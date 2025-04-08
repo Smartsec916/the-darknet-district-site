@@ -33,15 +33,16 @@ section {
 }
 
 .third-section {
-  background-image: url('attached_assets/Screenshot 2025-04-08 103834.png');
+  background-image: url('attached_assets/Screenshot 2025-04-08 105519.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  margin-top: 100vh;
   position: relative;
   height: 100vh;
   width: 100%;
   background-color: black;
+  top: 200vh;
+  position: absolute;
 }
 
 .third-section::before {
