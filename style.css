@@ -33,7 +33,7 @@ section {
 }
 
 .third-section {
-  background-image: url('attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png');
+  background-image: url('attached_assets/Screenshot 2025-04-08 103946.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -41,14 +41,35 @@ section {
   position: relative;
 }
 
-.first-section::before {
+.third-section::before {
+  content: '';
+  position: absolute;
+  top: -30vh;
+  left: 0;
+  width: 100%;
+  height: 30vh;
+  background: black;
+}
+
+.third-section::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, black 0%, transparent 30%, transparent 70%, black 100%);
+  pointer-events: none;
+}
+
+.second-section::after {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 30vh;
-  background: linear-gradient(to bottom, black, transparent);
+  background: linear-gradient(to top, transparent, black);
   pointer-events: none;
 }
 
@@ -60,51 +81,16 @@ section {
   width: 100%;
   height: 30vh;
   background: linear-gradient(to bottom, transparent, black);
-  pointer-events: none;
 }
 
 .second-section::before {
   content: '';
   position: absolute;
-  top: 0;
+  top: -30vh;
   left: 0;
   width: 100%;
   height: 30vh;
-  background: linear-gradient(to bottom, black, transparent);
-  pointer-events: none;
-}
-
-.second-section::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 30vh;
-  background: linear-gradient(to bottom, transparent, black);
-  pointer-events: none;
-}
-
-.third-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 30vh;
-  background: linear-gradient(to bottom, black, transparent);
-  pointer-events: none;
-}
-
-.third-section::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 30vh;
-  background: linear-gradient(to bottom, transparent, black);
-  pointer-events: none;
+  background: black;
 }
 
 .cyberpunk-title {
