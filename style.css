@@ -38,7 +38,7 @@ section {
   left: 0;
   width: 100%;
   height: 30vh;
-  background: linear-gradient(to bottom, transparent, white);
+  background: linear-gradient(to bottom, transparent, black);
 }
 
 .second-section::before {
@@ -48,7 +48,7 @@ section {
   left: 0;
   width: 100%;
   height: 30vh;
-  background: white;
+  background: black;
 }
 
 .cyberpunk-title {
