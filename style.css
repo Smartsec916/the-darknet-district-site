@@ -39,6 +39,9 @@ section {
   background-repeat: no-repeat;
   margin-top: 100vh;
   position: relative;
+  height: 100vh;
+  width: 100%;
+  background-color: black;
 }
 
 .third-section::before {
