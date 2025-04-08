@@ -21,10 +21,11 @@ body {
   font-size: 2.5rem;
   font-weight: bold;
   text-transform: uppercase;
-  color: #8a8a8a;
+  color: #c4c4c4;
   text-shadow: 
-    2px 2px 0px #000,
-    0 0 10px rgba(0, 255, 255, 0.2);
+    0 0 7px rgba(192, 219, 255, 0.8),
+    0 0 10px rgba(65, 120, 255, 0.3),
+    0 0 21px rgba(65, 120, 255, 0.2);
   letter-spacing: 3px;
-  opacity: 0.9;
+  opacity: 0.95;
 }
