@@ -1,19 +1,54 @@
+
 html, body {
   height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
 }
 
-body {
+section {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.first-section {
   background-image: url('attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+}
+
+.second-section {
+  background-image: url('attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_2f655a3a-3cf8-4c63-9ccf-603069e77808.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin-top: 100vh;
+}
+
+.first-section::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 30vh;
+  background: linear-gradient(to bottom, transparent, black);
+}
+
+.second-section::before {
+  content: '';
+  position: absolute;
+  top: -30vh;
+  left: 0;
+  width: 100%;
+  height: 30vh;
+  background: black;
 }
 
 .cyberpunk-title {
@@ -28,4 +63,24 @@ body {
     0 0 21px rgba(65, 120, 255, 0.2);
   letter-spacing: 3px;
   opacity: 0.95;
+}
+
+.game-button {
+  padding: 15px 30px;
+  font-family: 'Arial', sans-serif;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  color: #00ff9d;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid #00ff9d;
+  text-decoration: none;
+  letter-spacing: 2px;
+  transition: all 0.3s ease;
+  text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+  box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
+}
+
+.game-button:hover {
+  background: rgba(0, 255, 157, 0.1);
+  box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
 }
