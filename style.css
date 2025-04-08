@@ -1,10 +1,17 @@
-html, body {
+html {
+  scroll-behavior: smooth;
+  height: 100%;
+}
+
+body {
   height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
   background-color: black;
+  will-change: transform;
+  -webkit-font-smoothing: antialiased;
 }
 
 section {
@@ -114,6 +121,9 @@ section {
 .game-button {
   padding: 15px 30px;
   font-family: 'Arial', sans-serif;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
   font-size: 1.2rem;
   text-transform: uppercase;
   color: #00ff9d;
