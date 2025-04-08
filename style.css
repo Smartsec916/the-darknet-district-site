@@ -18,23 +18,13 @@ body {
 
 .cyberpunk-title {
   font-family: 'Arial', sans-serif;
-  font-size: 4rem;
+  font-size: 2.5rem;
   font-weight: bold;
   text-transform: uppercase;
-  color: #fff;
+  color: #8a8a8a;
   text-shadow: 
-    0 0 10px #0ff,
-    0 0 20px #0ff,
-    0 0 40px #0ff;
-  letter-spacing: 5px;
-  animation: glow 2s ease-in-out infinite alternate;
-}
-
-@keyframes glow {
-  from {
-    text-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 40px #0ff;
-  }
-  to {
-    text-shadow: 0 0 20px #ff0, 0 0 40px #ff0, 0 0 60px #ff0;
-  }
+    2px 2px 0px #000,
+    0 0 10px rgba(0, 255, 255, 0.2);
+  letter-spacing: 3px;
+  opacity: 0.9;
 }
