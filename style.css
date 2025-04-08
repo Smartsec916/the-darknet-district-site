@@ -17,20 +17,23 @@ section {
 }
 
 .first-section {
+  background-image: url('attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
 
 .second-section {
+  background-image: url('attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_2f655a3a-3cf8-4c63-9ccf-603069e77808.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  margin-top: 100vh;
+  margin-top: 50vh;
   position: relative;
 }
 
 .third-section {
+  background-image: url('attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -38,7 +41,7 @@ section {
   height: 100vh;
   width: 100%;
   background-color: black;
-  top: 200vh;
+  top: 100vh;
   position: absolute;
 }
 
