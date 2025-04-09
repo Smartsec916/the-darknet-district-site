@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +7,14 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body style="margin: 0; background-color: black; color: #00ff00; text-align: center;">
-  <h1 style="padding: 1rem;">The Darknet District – Origins</h1>
+  <h1 id="title" style="padding: 1rem;">The Darknet District – Origins</h1>
+  <select id="languageSelect" onchange="changeLanguage()">
+      <option value="en">English</option>
+      <option value="es">Español</option>
+      <option value="fr">Français</option>
+      <option value="zh">中文</option>
+      <option value="ru">Русский</option>
+    </select>
   <iframe 
     src="https://cyber-nexus-smartsec916.replit.app" 
     width="100%" 
@@ -16,5 +22,30 @@
     style="border: none; background-color: black;"
     allow="fullscreen">
   </iframe>
+  <script>
+    const translations = {
+      en: {
+        title: "The Darknet District – Origins"
+      },
+      es: {
+        title: "El Distrito Darknet – Orígenes"
+      },
+      fr: {
+        title: "Le District Darknet – Origines"
+      },
+      zh: {
+        title: "暗网区 – 起源"
+      },
+      ru: {
+        title: "Даркнет Район – Происхождение"
+      }
+    };
+
+    function changeLanguage() {
+      const selectedLanguage = document.getElementById("languageSelect").value;
+      const titleElement = document.getElementById("title");
+      titleElement.textContent = translations[selectedLanguage].title;
+    }
+  </script>
 </body>
 </html>
