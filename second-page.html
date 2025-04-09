@@ -71,7 +71,21 @@
       const gameFrame = document.getElementById("gameFrame");
       
       titleElement.textContent = translations[selectedLanguage].title;
-      gameFrame.src = `https://cyber-nexus-smartsec916.replit.app?lang=${selectedLanguage}`;
+      
+      // Reload iframe with new language parameter
+      gameFrame.src = gameFrame.src.split('?')[0] + '?lang=' + selectedLanguage;
+      
+      // Also try to communicate with the iframe directly
+      try {
+        gameFrame.contentWindow.postMessage({ type: 'languageChange', language: selectedLanguage }, '*');
+      } catch(e) {
+        console.log('Failed to send message to iframe:', e);
+      }
+    }
+
+    // Set initial language
+    window.onload = function() {
+      changeLanguage();
     }
   </script>
 </body>
