@@ -26,6 +26,7 @@ section {
 }
 
 .first-section {
+  margin-top: 0;
   background-image: url('attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png');
   background-size: cover;
   background-position: center;
