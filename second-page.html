@@ -17,46 +17,19 @@
     allow="fullscreen">
   </iframe>
   <script>
-    const translations = {
-      en: {
-        title: "The Darknet District – Origins"
-      },
-      es: {
-        title: "El Distrito Darknet – Orígenes"
-      },
-      fr: {
-        title: "Le District Darknet – Origines"
-      },
-      zh: {
-        title: "暗网区 – 起源"
-      },
-      ru: {
-        title: "Даркнет Район – Происхождение"
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'languageChange') {
+        const titleElement = document.getElementById("title");
+        const translations = {
+          en: "The Darknet District – Origins",
+          es: "El Distrito Darknet – Orígenes",
+          fr: "Le District Darknet – Origines",
+          zh: "暗网区 – 起源",
+          ru: "Даркнет Район – Происхождение"
+        };
+        titleElement.textContent = translations[event.data.language] || translations.en;
       }
-    };
-
-    function changeLanguage() {
-      const selectedLanguage = document.getElementById("languageSelect").value;
-      const titleElement = document.getElementById("title");
-      const gameFrame = document.getElementById("gameFrame");
-      
-      titleElement.textContent = translations[selectedLanguage].title;
-      
-      // Reload iframe with new language parameter
-      gameFrame.src = gameFrame.src.split('?')[0] + '?lang=' + selectedLanguage;
-      
-      // Also try to communicate with the iframe directly
-      try {
-        gameFrame.contentWindow.postMessage({ type: 'languageChange', language: selectedLanguage }, '*');
-      } catch(e) {
-        console.log('Failed to send message to iframe:', e);
-      }
-    }
-
-    // Set initial language
-    window.onload = function() {
-      changeLanguage();
-    }
+    });
   </script>
 </body>
 </html>
