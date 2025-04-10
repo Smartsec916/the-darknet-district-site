@@ -8,28 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
   let lastScrollY = window.scrollY;
   let ticking = false;
   
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      window.requestAnimationFrame(() => {
-        const currentScrollY = window.scrollY;
-        const scrollDiff = currentScrollY - lastScrollY;
-        const chat = document.querySelector('.floating-chat');
-        
-        if (chat) {
-          const currentOffset = parseFloat(getComputedStyle(chat).getPropertyValue('--scroll-offset') || '0');
-          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-          const scrollPercent = (currentScrollY / maxScroll) * 100;
-          const newOffset = Math.max(Math.min(scrollPercent * 4, 400), 0);
-          chat.style.setProperty('--scroll-offset', `${newOffset}px`);
-        }
-        
-        lastScrollY = currentScrollY;
-        ticking = false;
-      });
-      
-      ticking = true;
-    }
-  });
+  // Chat will stay fixed in position
   
   // Create chat elements
   const floatingChat = document.createElement('div');

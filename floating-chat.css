@@ -5,7 +5,6 @@
   z-index: 9999;
   pointer-events: auto;
   transition: transform 0.3s ease;
-  transform: translateY(var(--scroll-offset, 0));
   will-change: transform;
 }
 
