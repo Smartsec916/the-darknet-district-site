@@ -89,13 +89,13 @@ function addMessage(text, sender) {
 }
 
 function sendMessage() {
-  const chatWindow = document.querySelector('.chat-window, .floating-chat .chat-window');
-  if (!chatWindow) return;
+  const input = document.querySelector('#userInput');
+  const chatMessages = document.querySelector('.chat-messages');
   
-  const input = chatWindow.querySelector('#userInput');
-  const chatMessages = chatWindow.querySelector('.chat-messages');
-  
-  if (!input || !chatMessages) return;
+  if (!input || !chatMessages) {
+    console.error('Missing required chat elements');
+    return;
+  }
   
   const message = input.value.trim();
   if (message === '') return;
@@ -110,11 +110,11 @@ function sendMessage() {
   }, 500);
   
   input.value = '';
-  chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 // Initialize chat functionality when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('Initializing chat...');
   const userInput = document.querySelector('#userInput');
   if (userInput) {
     userInput.addEventListener('keypress', (e) => {
@@ -122,5 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sendMessage();
       }
     });
+  } else {
+    console.error('User input element not found');
   }
 });
