@@ -51,7 +51,13 @@ function getRandomResponse(responses) {
 }
 
 function getResponse(message) {
+  console.log('Getting response for:', message);
   const lowercaseMessage = message.toLowerCase();
+  
+  // Test pattern matching
+  patterns.forEach(pattern => {
+    console.log('Testing pattern:', pattern.match.source, pattern.match.test(lowercaseMessage));
+  });
 
   // Check for navigation commands first
   if (lowercaseMessage.includes('show store') || lowercaseMessage.includes('go to store')) {
@@ -89,13 +95,15 @@ function addMessage(text, sender) {
 }
 
 function sendMessage() {
-  const input = document.querySelector('#userInput');
-  const chatMessages = document.querySelector('.chat-messages');
+  console.log('Attempting to send message...');
+  const input = document.querySelector('#userInput, .floating-chat #userInput');
+  const chatMessages = document.querySelector('.chat-messages, .floating-chat .chat-messages');
   
   if (!input || !chatMessages) {
     console.error('Missing required chat elements');
     return;
   }
+  console.log('User input:', input.value);
   
   const message = input.value.trim();
   if (message === '') return;
@@ -115,8 +123,15 @@ function sendMessage() {
 // Initialize chat functionality when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Initializing chat...');
-  const userInput = document.querySelector('#userInput');
+  const userInput = document.querySelector('#userInput, .floating-chat #userInput');
+  const chatMessages = document.querySelector('.chat-messages, .floating-chat .chat-messages');
+  
+  if (!chatMessages) {
+    console.error('Chat messages container is missing!');
+  }
+  
   if (userInput) {
+    console.log('Chat input element found and initialized');
     userInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         sendMessage();
