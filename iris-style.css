@@ -103,13 +103,16 @@ input[type="text"]::placeholder {
 }
 
 button {
-  padding: 10px 20px;
+  padding: 5px 15px;
+  height: 36px;
   background: rgba(0, 255, 0, 0.15);
   border: 1px solid #00ff9d;
   color: #00ff9d;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
   text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
   box-shadow: 
     0 0 10px rgba(0, 255, 157, 0.2),

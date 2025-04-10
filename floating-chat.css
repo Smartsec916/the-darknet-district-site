@@ -96,10 +96,13 @@ input[type="text"] {
 }
 
 button {
-  padding: 10px 20px;
+  padding: 5px 15px;
+  height: 36px;
   background: rgba(0, 255, 0, 0.15); /*Green background*/
   border: 1px solid #00ff9d;
   color: #00ff9d;
+  display: flex;
+  align-items: center;
 }
 
 button:hover{
