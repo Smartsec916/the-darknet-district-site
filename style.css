@@ -116,11 +116,25 @@ section {
   text-shadow: 
     0 0 7px rgba(192, 219, 255, 0.8),
     0 0 10px rgba(65, 120, 255, 0.3),
-    0 0 21px rgba(65, 120, 255, 0.2);
+    0 0 21px rgba(65, 120, 255, 0.2),
+    0 0 30px rgba(0, 255, 0, 0.2);
   letter-spacing: 3px;
   opacity: 0.95;
   text-align: center;
   padding: 0 20px;
+  position: relative;
+}
+
+.cyberpunk-title::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 110%;
+  height: 120%;
+  background: radial-gradient(rgba(0, 255, 0, 0.1), transparent 70%);
+  z-index: -1;
 }
 
 .game-button {
