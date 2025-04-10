@@ -1,3 +1,4 @@
+
 // Enhanced pattern matching with randomized responses
 const patterns = [
   {
@@ -52,8 +53,8 @@ function getRandomResponse(responses) {
 function getResponse(message) {
   console.log('Getting response for:', message);
   const lowercaseMessage = message.toLowerCase();
-
-  // Test pattern matching (This section was already present, no change needed)
+  
+  // Test pattern matching
   patterns.forEach(pattern => {
     console.log('Testing pattern:', pattern.match.source, pattern.match.test(lowercaseMessage));
   });
@@ -85,7 +86,7 @@ function addMessage(text, sender) {
     console.error('Chat messages container not found');
     return;
   }
-
+  
   const msgDiv = document.createElement('div');
   msgDiv.className = `message ${sender}`;
   msgDiv.textContent = text;
@@ -97,63 +98,41 @@ function sendMessage() {
   console.log('Attempting to send message...');
   const input = document.querySelector('#userInput, .floating-chat #userInput');
   const chatMessages = document.querySelector('.chat-messages, .floating-chat .chat-messages');
-
+  
   if (!input || !chatMessages) {
     console.error('Missing required chat elements');
     return;
   }
   console.log('User input:', input.value);
-
+  
   const message = input.value.trim();
   if (message === '') return;
-
+  
   // Add user message
   addMessage(message, 'user');
-
+  
   // Add Iris's response with slight delay
   setTimeout(() => {
     const response = getResponse(message);
     addMessage(response, 'iris');
   }, 500);
-
+  
   input.value = '';
-}
-
-// Test patterns function
-function testPatterns() {
-  const testMessages = [
-    "hello",
-    "hi there",
-    "security",
-    "show game",
-    "thanks"
-  ];
-
-  console.log('Testing pattern matching:');
-  testMessages.forEach(msg => {
-    const response = getResponse(msg);
-    console.log(`Input: "${msg}" => Response: "${response}"`);
-  });
 }
 
 // Initialize chat functionality when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Initializing chat...');
-
-  // Debug DOM structure
-  const chatMessages = document.querySelector('.chat-messages');
-  console.log('Chat messages container:', chatMessages);
-
   const userInput = document.querySelector('#userInput, .floating-chat #userInput');
-  console.log('User input element:', userInput);
-
-  // Test pattern matching
-  testPatterns();
-
+  const chatMessages = document.querySelector('.chat-messages, .floating-chat .chat-messages');
+  
+  if (!chatMessages) {
+    console.error('Chat messages container is missing!');
+  }
+  
   if (userInput) {
-    // Debug keypress events
+    console.log('Chat input element found and initialized');
     userInput.addEventListener('keypress', (e) => {
-      console.log('Key pressed:', e.key);
       if (e.key === 'Enter') {
         sendMessage();
       }
