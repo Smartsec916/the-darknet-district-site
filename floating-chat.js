@@ -108,19 +108,4 @@ function initFloatingChat() {
 // Initialize floating chat
 document.addEventListener('DOMContentLoaded', () => {
   initFloatingChat();
-  
-  let lastScrollPosition = window.pageYOffset;
-  const floatingChat = document.querySelector('.floating-chat');
-  
-  window.addEventListener('scroll', () => {
-    const currentScrollPosition = window.pageYOffset;
-    
-    if (currentScrollPosition > lastScrollPosition) {
-      floatingChat.classList.remove('scrolled');
-    } else {
-      floatingChat.classList.add('scrolled');
-    }
-    
-    lastScrollPosition = currentScrollPosition;
-  });
 });
