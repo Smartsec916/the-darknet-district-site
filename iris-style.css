@@ -25,6 +25,8 @@
   border-radius: 50%;
   background: linear-gradient(45deg, #00ff9d, #008f5d);
   margin-right: 15px;
+  margin-top: 5px;
+  margin-left: 5px;
 }
 
 h2 {
