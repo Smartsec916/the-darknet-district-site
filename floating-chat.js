@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+  const floatingChat = document.createElement('div');
+  floatingChat.className = 'floating-chat';
+
   const chatToggle = document.createElement('div');
   chatToggle.className = 'chat-toggle';
   chatToggle.textContent = 'Chat with Iris';
