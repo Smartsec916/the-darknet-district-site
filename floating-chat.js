@@ -18,7 +18,8 @@ function sendMessage() {
   setTimeout(() => {
     const irisDiv = document.createElement('div');
     irisDiv.className = 'message iris';
-    irisDiv.textContent = "I am still under development, but I'm happy to assist you!";
+    const response = getResponse(message);
+    irisDiv.textContent = response;
     chatMessages.appendChild(irisDiv);
     
     // Auto scroll to bottom
