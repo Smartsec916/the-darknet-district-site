@@ -2,7 +2,7 @@
 // Enhanced pattern matching with randomized responses
 const patterns = [
   {
-    match: /(hi|hello|hey|greetings)/i,
+    match: /^(hello|hi|hey|greetings|good\s*(morning|afternoon|evening))\b/i,
     responses: [
       "Hello! I'm Iris, your cybersecurity assistant. How can I help you today?",
       "Greetings! I'm here to help with security and navigation in The Darknet District.",
@@ -47,8 +47,18 @@ const patterns = [
 ];
 
 function getRandomResponse(responses) {
-  const index = Math.floor(Math.random() * responses.length);
-  return responses[index];
+  return responses[Math.floor(Math.random() * responses.length)];
+}
+
+function addMessage(text, sender) {
+  const chatMessages = document.querySelector('.chat-messages');
+  if (!chatMessages) return;
+  
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `message ${sender}`;
+  msgDiv.textContent = text;
+  chatMessages.appendChild(msgDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 function getResponse(message) {
@@ -61,7 +71,7 @@ function getResponse(message) {
   }
 
   if (lowercaseMessage.includes('show game') || lowercaseMessage.includes('play game')) {
-    window.location.href = 'game.html';
+    window.location.href = 'game-first-page.html';
     return "Redirecting to game...";
   }
 
@@ -88,41 +98,26 @@ function sendMessage() {
   if (message === '') return;
   
   // Add user message
-  const userDiv = document.createElement('div');
-  userDiv.className = 'message user';
-  userDiv.textContent = message;
-  chatMessages.appendChild(userDiv);
+  addMessage(message, 'user');
   
   // Add Iris's response
   setTimeout(() => {
-    const irisDiv = document.createElement('div');
-    irisDiv.className = 'message iris';
     const response = getResponse(message);
-    irisDiv.textContent = response;
-    chatMessages.appendChild(irisDiv);
-    
-    // Auto scroll to bottom
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    addMessage(response, 'iris');
   }, 500);
   
   input.value = '';
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Initialize chat functionality
+// Initialize chat functionality when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
   const input = document.querySelector('#userInput');
-  const sendBtn = document.querySelector('.chat-input button');
-  
   if (input) {
     input.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         sendMessage();
       }
     });
-  }
-  
-  if (sendBtn) {
-    sendBtn.addEventListener('click', sendMessage);
   }
 });
