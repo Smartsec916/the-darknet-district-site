@@ -1,4 +1,34 @@
 
+function sendMessage() {
+  const input = document.querySelector('.floating-chat #userInput');
+  const chatMessages = document.querySelector('.floating-chat .chat-messages');
+  
+  if (!input || !chatMessages) return;
+  
+  const message = input.value.trim();
+  if (message === '') return;
+  
+  // Add user message
+  const userDiv = document.createElement('div');
+  userDiv.className = 'message user';
+  userDiv.textContent = message;
+  chatMessages.appendChild(userDiv);
+  
+  // Add Iris's response
+  setTimeout(() => {
+    const irisDiv = document.createElement('div');
+    irisDiv.className = 'message iris';
+    irisDiv.textContent = "I am still under development, but I'm happy to assist you!";
+    chatMessages.appendChild(irisDiv);
+    
+    // Auto scroll to bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }, 500);
+  
+  input.value = '';
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
 function initFloatingChat() {
   const chatHtml = `
     <div class="floating-chat">
@@ -10,14 +40,14 @@ function initFloatingChat() {
             <h2>IRIS</h2>
             <span class="status">ONLINE</span>
           </div>
-          <div class="chat-messages" id="chatMessages">
+          <div class="chat-messages">
             <div class="message system">
               Welcome to The Darknet District. I am Iris, your assistance android.
             </div>
           </div>
           <div class="chat-input">
             <input type="text" id="userInput" placeholder="Type your message...">
-            <button onclick="sendMessage()">Send</button>
+            <button class="send-button">Send</button>
           </div>
         </div>
       </div>
@@ -26,12 +56,28 @@ function initFloatingChat() {
 
   document.body.insertAdjacentHTML('beforeend', chatHtml);
 
-  const chatToggle = document.querySelector('.chat-toggle');
-  const chatWindow = document.querySelector('.chat-window');
+  const chatToggle = document.querySelector('.floating-chat .chat-toggle');
+  const chatWindow = document.querySelector('.floating-chat .chat-window');
+  const sendButton = document.querySelector('.floating-chat .send-button');
+  const input = document.querySelector('.floating-chat #userInput');
 
-  chatToggle.addEventListener('click', () => {
-    chatWindow.classList.toggle('active');
-  });
+  if (chatToggle && chatWindow) {
+    chatToggle.addEventListener('click', () => {
+      chatWindow.classList.toggle('active');
+    });
+  }
+
+  if (sendButton) {
+    sendButton.addEventListener('click', sendMessage);
+  }
+
+  if (input) {
+    input.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+  }
 }
 
 document.addEventListener('DOMContentLoaded', initFloatingChat);
