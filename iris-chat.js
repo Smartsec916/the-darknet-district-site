@@ -50,26 +50,19 @@ function getRandomResponse(responses) {
 }
 
 function getResponse(message) {
-  console.log('Getting response for:', message);
   const lowercaseMessage = message.toLowerCase();
 
-  // Test pattern matching
-  patterns.forEach(pattern => {
-    console.log('Testing pattern:', pattern.match.source, pattern.match.test(lowercaseMessage));
-  });
-
-  // Check for navigation commands first
+  // Handle navigation commands
   if (lowercaseMessage.includes('show store') || lowercaseMessage.includes('go to store')) {
     window.location.href = 'Store-first-page.html';
     return "Redirecting to store...";
   }
-
   if (lowercaseMessage.includes('show game') || lowercaseMessage.includes('play game')) {
     window.location.href = 'game-first-page.html';
     return "Redirecting to game...";
   }
 
-  // Pattern matching with random responses
+  // Pattern matching
   for (const pattern of patterns) {
     if (pattern.match.test(lowercaseMessage)) {
       return getRandomResponse(pattern.responses);
@@ -80,76 +73,47 @@ function getResponse(message) {
 }
 
 function addMessage(text, sender) {
-  const chatMessages = document.getElementById('chatMessages');
-  if (!chatMessages) {
-    console.error('Chat messages container not found');
-    return;
-  }
+  const messages = document.querySelector('.chat-messages');
+  if (!messages) return;
 
   const msgDiv = document.createElement('div');
   msgDiv.className = `message ${sender}`;
   msgDiv.textContent = text;
-  chatMessages.appendChild(msgDiv);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+  messages.appendChild(msgDiv);
+  messages.scrollTop = messages.scrollHeight;
 }
 
 function sendMessage() {
-  const input = document.getElementById('userInput');
-  const chatMessages = document.getElementById('chatMessages');
-
-  if (!input || !chatMessages) {
-    console.error('Missing chat elements');
-    return;
-  }
+  const input = document.querySelector('#userInput');
+  if (!input) return;
 
   const message = input.value.trim();
   if (message === '') return;
 
-  console.log('Input:', message);
+  addMessage(message, 'user');
 
-  // Add user message
-  const userDiv = document.createElement('div');
-  userDiv.className = 'message user';
-  userDiv.textContent = message;
-  chatMessages.appendChild(userDiv);
-
-  // Add response with slight delay
   setTimeout(() => {
     const response = getResponse(message);
-    console.log('Input:', message, '=> Response:', response);
-
-    const irisDiv = document.createElement('div');
-    irisDiv.className = 'message iris';
-    irisDiv.textContent = response;
-    chatMessages.appendChild(irisDiv);
-
-    // Ensure scroll to bottom
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    addMessage(response, 'iris');
   }, 500);
 
   input.value = '';
   input.focus();
 }
 
-// Initialize chat functionality when DOM is loaded
+// Initialize chat when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('Chat initialized');
-  const input = document.getElementById('userInput');
-  const chatMessages = document.getElementById('chatMessages');
+  const input = document.querySelector('#userInput');
+  if (!input) return;
 
-  if (!chatMessages) {
-    console.error('Chat messages container not found');
-    return;
-  }
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      sendMessage();
+    }
+  });
 
-  if (input) {
-    console.log('Chat input element found');
-    input.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        sendMessage();
-      }
-    });
-  } else {
-    console.error('User input element not found');
+  const sendBtn = document.querySelector('button[onclick="sendMessage()"]');
+  if (sendBtn) {
+    sendBtn.addEventListener('click', sendMessage);
   }
 });
