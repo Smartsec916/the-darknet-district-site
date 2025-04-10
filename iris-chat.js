@@ -51,8 +51,11 @@ function getRandomResponse(responses) {
 }
 
 function addMessage(text, sender) {
-  const chatMessages = document.querySelector('.chat-messages');
-  if (!chatMessages) return;
+  const chatMessages = document.getElementById('chatMessages');
+  if (!chatMessages) {
+    console.error('Chat messages container not found');
+    return;
+  }
   
   const msgDiv = document.createElement('div');
   msgDiv.className = `message ${sender}`;
@@ -86,28 +89,27 @@ function getResponse(message) {
 }
 
 function sendMessage() {
-  const input = document.getElementById('userInput');
+  const userInput = document.getElementById('userInput');
   const chatMessages = document.getElementById('chatMessages');
   
-  if (!input || !chatMessages) {
+  if (!userInput || !chatMessages) {
     console.error('Chat elements not found');
     return;
   }
   
-  const message = input.value.trim();
+  const message = userInput.value.trim();
   if (message === '') return;
   
   // Add user message
   addMessage(message, 'user');
   
-  // Add Iris's response
+  // Add Iris's response with slight delay
   setTimeout(() => {
     const response = getResponse(message);
     addMessage(response, 'iris');
   }, 500);
   
-  input.value = '';
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+  userInput.value = '';
 }
 
 // Initialize chat functionality when DOM is loaded
@@ -115,19 +117,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const userInput = document.getElementById('userInput');
   const chatMessages = document.getElementById('chatMessages');
   
-  if (userInput) {
-    userInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        sendMessage();
-      }
-    });
+  if (!userInput || !chatMessages) {
+    console.error('Failed to initialize chat: Missing required elements');
+    return;
   }
 
-  // Add initial greeting
-  if (chatMessages) {
-    const greeting = document.createElement('div');
-    greeting.className = 'message system';
-    greeting.textContent = "Greetings! I am Iris, your cybersecurity assistant in The Darknet District. How may I help you today?";
-    chatMessages.appendChild(greeting);
+  userInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      sendMessage();
+    }
+  });
+
+  // Add initial greeting if not already present
+  if (chatMessages.children.length === 0) {
+    addMessage("Greetings! I am Iris, your cybersecurity assistant in The Darknet District. How may I help you today?", 'system');
   }
 });
