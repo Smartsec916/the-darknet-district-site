@@ -1,17 +1,11 @@
 .floating-chat {
   position: fixed;
-  bottom: 20px !important;
+  bottom: 20px;
   right: 20px;
-  z-index: 99999;
+  z-index: 9999;
   pointer-events: auto;
   transition: all 0.3s ease;
-  transform: none !important;
-}
-
-#root .floating-chat,
-body > .floating-chat {
-  position: fixed !important;
-  bottom: 20px !important;
+  transform: translateY(var(--scroll-offset, 0));
 }
 
 @media (max-width: 600px) {
