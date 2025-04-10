@@ -80,9 +80,30 @@ function initFloatingChat() {
       const input = document.querySelector('#userInput');
       if (input) {
         input.focus();
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            sendMessage();
+          }
+        });
       }
     });
+
+    // Animate initial greeting
+    const greeting = "Greetings! I am Iris, your cybersecurity assistant in The Darknet District. How may I help you today?";
+    const greetingDiv = document.querySelector('.message.system');
+    if (greetingDiv) {
+      let i = 0;
+      const typingInterval = setInterval(() => {
+        greetingDiv.textContent += greeting[i];
+        i++;
+        if (i === greeting.length) {
+          clearInterval(typingInterval);
+          greetingDiv.classList.remove('typing');
+        }
+      }, 50);
+    }
   }
 }
 
+// Initialize floating chat
 document.addEventListener('DOMContentLoaded', initFloatingChat);

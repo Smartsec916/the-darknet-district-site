@@ -67,23 +67,13 @@ function getResponse(message) {
   const lowercaseMessage = message.toLowerCase();
 
   // Handle navigation commands
-  if (lowercaseMessage.includes('show store')) {
-    try {
-      window.location.href = 'Store-first-page.html';
-      return "Redirecting to store...";
-    } catch (e) {
-      console.error('Navigation error:', e);
-      return "Sorry, I couldn't access the store page.";
-    }
+  if (lowercaseMessage.includes('show store') || lowercaseMessage.includes('go to store')) {
+    window.location.href = 'Store-first-page.html';
+    return "Redirecting to store...";
   }
-  if (lowercaseMessage.includes('play game') || lowercaseMessage.includes('show game')) {
-    try {
-      window.location.href = 'game-first-page.html';
-      return "Redirecting to game...";
-    } catch (e) {
-      console.error('Navigation error:', e);
-      return "Sorry, I couldn't access the game page.";
-    }
+  if (lowercaseMessage.includes('show game') || lowercaseMessage.includes('play game')) {
+    window.location.href = 'game-first-page.html';
+    return "Redirecting to game...";
   }
 
   // Pattern matching
