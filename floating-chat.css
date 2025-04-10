@@ -2,7 +2,13 @@
   position: fixed;
   bottom: 20px;
   right: 20px;
-  z-index: 1000;
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+html, body {
+  position: relative;
+  min-height: 100%;
 }
 
 .chat-toggle {
