@@ -1,138 +1,96 @@
-function sendMessage() {
-  const chatWindow = document.querySelector('.floating-chat .chat-window');
-  if (!chatWindow) return;
+document.addEventListener('DOMContentLoaded', function() {
+  const chatToggle = document.createElement('div');
+  chatToggle.className = 'chat-toggle';
+  chatToggle.textContent = '💬 Chat with Iris';
 
-  const input = chatWindow.querySelector('#userInput');
-  const chatMessages = chatWindow.querySelector('.chat-messages');
+  const chatWindow = document.createElement('div');
+  chatWindow.className = 'chat-window';
 
-  if (!input || !chatMessages) return;
+  const chatMessages = document.createElement('div');
+  chatMessages.className = 'chat-messages';
 
-  const message = input.value.trim();
-  if (message === '') return;
+  const inputContainer = document.createElement('div');
+  inputContainer.style.display = 'flex';
+  inputContainer.style.padding = '10px';
+  inputContainer.style.gap = '10px';
 
-  // Add user message
-  const userDiv = document.createElement('div');
-  userDiv.className = 'message user';
-  userDiv.textContent = message;
-  chatMessages.appendChild(userDiv);
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = 'Type your message...';
 
-  // Add Iris's response
-  setTimeout(() => {
-    const irisDiv = document.createElement('div');
-    irisDiv.className = 'message iris';
-    const response = getResponse(message);
-    irisDiv.textContent = '';
-    chatMessages.appendChild(irisDiv);
+  const sendButton = document.createElement('button');
+  sendButton.textContent = '↵';
 
-    let i = 0;
-    const typingInterval = setInterval(() => {
-      if (i < response.length) {
-        irisDiv.textContent += response[i];
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        i++;
-      } else {
-        clearInterval(typingInterval);
-      }
-    }, 50);
+  inputContainer.appendChild(input);
+  inputContainer.appendChild(sendButton);
 
-    // Auto scroll to bottom
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }, 500);
+  chatWindow.appendChild(chatMessages);
+  chatWindow.appendChild(inputContainer);
 
-  input.value = '';
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
+  const floatingChat = document.createElement('div');
+  floatingChat.className = 'floating-chat';
+  floatingChat.appendChild(chatWindow);
+  floatingChat.appendChild(chatToggle);
 
-function initFloatingChat() {
-  if (document.querySelector('.floating-chat')) return;
+  document.body.appendChild(floatingChat);
 
-  const chatHtml = `
-    <div class="floating-chat">
-      <button class="chat-toggle">Chat with Iris</button>
-      <div class="chat-window">
-        <div class="chat-container">
-          <div class="chat-header">
-            <div class="avatar"></div>
-            <h2>Chatting with Iris</h2>
-            <span class="status">ONLINE</span>
-          </div>
-          <div class="chat-messages">
-            <div class="message system typing">
-            </div>
-          </div>
-          <div class="chat-input">
-            <input type="text" id="userInput" placeholder="Type your message...">
-            <button onclick="sendMessage()">Enter <span style="font-size: 1.2em;">↵</span></button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+  let isOpen = false;
 
-  document.body.insertAdjacentHTML('beforeend', chatHtml);
-
-  const chatToggle = document.querySelector('.chat-toggle');
-  const chatWindow = document.querySelector('.chat-window');
-
-  if (chatToggle && chatWindow) {
-    chatToggle.addEventListener('click', () => {
-      chatWindow.classList.toggle('active');
-      const input = document.querySelector('#userInput');
-      if (input) {
+  function toggleChat() {
+    isOpen = !isOpen;
+    chatWindow.style.display = isOpen ? 'block' : 'none';
+    if (isOpen) {
+      setTimeout(() => {
+        chatWindow.classList.add('active');
         input.focus();
-        input.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-            sendMessage();
-          }
-        });
-      }
-    });
-
-    // Animate initial greeting
-    const greeting = "Greetings! I am Iris, your cybersecurity assistant in The Darknet District. How may I help you today?";
-    const greetingDiv = document.querySelector('.message.system');
-    if (greetingDiv) {
-      let i = 0;
-      const typingInterval = setInterval(() => {
-        greetingDiv.textContent += greeting[i];
-        i++;
-        if (i === greeting.length) {
-          clearInterval(typingInterval);
-          greetingDiv.classList.remove('typing');
-        }
-      }, 50);
+      }, 0);
+    } else {
+      chatWindow.classList.remove('active');
     }
   }
-}
 
-// Initialize floating chat
-document.addEventListener('DOMContentLoaded', () => {
-  initFloatingChat();
-  
-  // Wait for chat elements to be inserted
-  setTimeout(() => {
-    let lastScroll = 0;
-    const floatingChat = document.querySelector('.floating-chat');
-  
-  window.addEventListener('scroll', () => {
-    const currentScroll = window.pageYOffset;
-    const scrollDiff = currentScroll - lastScroll;
-    const currentOffset = parseFloat(getComputedStyle(floatingChat).getPropertyValue('--scroll-offset') || '0');
-    const newOffset = Math.max(Math.min(currentOffset + scrollDiff, 100), -100);
-    
-    floatingChat.style.setProperty('--scroll-offset', `${newOffset}px`);
-    lastScroll = currentScroll;
-  if (floatingChat) {
-      window.addEventListener('scroll', () => {
-        const currentScroll = window.pageYOffset;
-        const scrollDiff = currentScroll - lastScroll;
-        const currentOffset = parseFloat(getComputedStyle(floatingChat).getPropertyValue('--scroll-offset') || '0');
-        const newOffset = Math.max(Math.min(currentOffset + scrollDiff, 100), -100);
-        
-        floatingChat.style.setProperty('--scroll-offset', `${newOffset}px`);
-        lastScroll = currentScroll;
-      });
+  chatToggle.addEventListener('click', toggleChat);
+
+  function addMessage(text, sender) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
+    messageDiv.textContent = text;
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function handleSend() {
+    const message = input.value.trim();
+    if (message) {
+      addMessage(message, 'user');
+      input.value = '';
+
+      // Add Iris's response
+      setTimeout(async () => {
+        const response = await getResponse(message);
+        const irisDiv = document.createElement('div');
+        irisDiv.className = 'message iris';
+        irisDiv.textContent = '';
+        chatMessages.appendChild(irisDiv);
+
+        let i = 0;
+        const typingInterval = setInterval(() => {
+          if (i < response.length) {
+            irisDiv.textContent += response[i];
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            i++;
+          } else {
+            clearInterval(typingInterval);
+          }
+        }, 50);
+      }, 500);
     }
-  }, 100);
-});
+  }
+
+  sendButton.addEventListener('click', handleSend);
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      handleSend();
+    }
+  });
 });
