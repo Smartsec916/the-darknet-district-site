@@ -1,10 +1,10 @@
 
 function sendMessage() {
-  const chatContainer = document.querySelector('.floating-chat');
-  if (!chatContainer) return;
+  const chatWindow = document.querySelector('.floating-chat .chat-window');
+  if (!chatWindow) return;
   
-  const input = chatContainer.querySelector('#userInput');
-  const chatMessages = chatContainer.querySelector('.chat-messages');
+  const input = chatWindow.querySelector('#userInput');
+  const chatMessages = chatWindow.querySelector('.chat-messages');
   
   if (!input || !chatMessages) return;
   
