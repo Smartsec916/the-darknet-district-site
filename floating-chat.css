@@ -116,7 +116,7 @@ html, body {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: url('attached_assets/008.jpg') center center/cover;
+  background: url('./attached_assets/008.jpg') center center/cover;
   border: 2px solid #00ff9d;
   box-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
 }
