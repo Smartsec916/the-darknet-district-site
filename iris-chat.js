@@ -94,7 +94,22 @@ function sendMessage() {
 
   setTimeout(() => {
     const response = getResponse(message);
-    addMessage(response, 'iris');
+    const irisDiv = document.createElement('div');
+    irisDiv.className = 'message iris typing';
+    irisDiv.textContent = ''; // Start with empty text
+    const chatMessages = document.querySelector('.chat-messages');
+    chatMessages.appendChild(irisDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    let i = 0;
+    const typingInterval = setInterval(() => {
+      irisDiv.textContent += response[i];
+      i++;
+      if (i === response.length) {
+        clearInterval(typingInterval);
+        irisDiv.classList.remove('typing');
+      }
+    }, 50); // Adjust typing speed here
   }, 500);
 
   input.value = '';

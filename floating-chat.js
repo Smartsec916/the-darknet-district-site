@@ -19,7 +19,7 @@ function sendMessage() {
   // Add Iris's response
   setTimeout(() => {
     const irisDiv = document.createElement('div');
-    irisDiv.className = 'message iris';
+    irisDiv.className = 'message iris typing';
     const response = getResponse(message);
     irisDiv.textContent = response;
     chatMessages.appendChild(irisDiv);
