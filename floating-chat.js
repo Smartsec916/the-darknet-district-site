@@ -41,12 +41,12 @@ function initFloatingChat() {
         <div class="chat-container">
           <div class="chat-header">
             <div class="avatar"></div>
-            <h2>IRIS</h2>
+            <h2>Chatting with Iris</h2>
             <span class="status">ONLINE</span>
           </div>
           <div class="chat-messages">
             <div class="message system">
-              Welcome to The Darknet District. I am Iris, your assistance android.
+              Greetings! I am Iris, your cybersecurity assistant in The Darknet District. How may I help you today?
             </div>
           </div>
           <div class="chat-input">
