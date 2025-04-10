@@ -9,6 +9,27 @@ document.addEventListener('DOMContentLoaded', function() {
   const chatMessages = document.createElement('div');
   chatMessages.className = 'chat-messages';
 
+  // Add Iris avatar and status
+  const irisHeader = document.createElement('div');
+  irisHeader.className = 'iris-header';
+  
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar';
+  
+  const status = document.createElement('span');
+  status.className = 'status-indicator';
+  status.textContent = 'Online';
+  
+  irisHeader.appendChild(avatar);
+  irisHeader.appendChild(status);
+  chatWindow.insertBefore(irisHeader, chatMessages);
+
+  // Add initial greeting
+  const greeting = document.createElement('div');
+  greeting.className = 'message iris';
+  greeting.textContent = "Hello! How can I help you today?";
+  chatMessages.appendChild(greeting);
+
   const inputContainer = document.createElement('div');
   inputContainer.style.display = 'flex';
   inputContainer.style.padding = '10px';

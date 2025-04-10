@@ -113,6 +113,14 @@ html, body {
   border-radius: 4px;
 }
 
+.iris-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid rgba(0, 255, 157, 0.3);
+}
+
 .avatar {
   width: 40px;
   height: 40px;
@@ -120,6 +128,32 @@ html, body {
   background: url('./attached_assets/008.jpg') center center/cover;
   border: 2px solid #00ff9d;
   box-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+}
+
+.status-indicator {
+  color: #00ff9d;
+  font-size: 14px;
+  position: relative;
+  padding-left: 15px;
+}
+
+.status-indicator::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  background-color: #00ff9d;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
 }
 
 .chat-window.active {
