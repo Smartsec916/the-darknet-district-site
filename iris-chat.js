@@ -1,4 +1,3 @@
-
 // Enhanced pattern matching with randomized responses
 const patterns = [
   {
@@ -53,7 +52,7 @@ function getRandomResponse(responses) {
 function getResponse(message) {
   console.log('Getting response for:', message);
   const lowercaseMessage = message.toLowerCase();
-  
+
   // Test pattern matching
   patterns.forEach(pattern => {
     console.log('Testing pattern:', pattern.match.source, pattern.match.test(lowercaseMessage));
@@ -81,12 +80,12 @@ function getResponse(message) {
 }
 
 function addMessage(text, sender) {
-  const chatMessages = document.querySelector('.chat-messages');
+  const chatMessages = document.getElementById('chatMessages');
   if (!chatMessages) {
     console.error('Chat messages container not found');
     return;
   }
-  
+
   const msgDiv = document.createElement('div');
   msgDiv.className = `message ${sender}`;
   msgDiv.textContent = text;
@@ -95,44 +94,57 @@ function addMessage(text, sender) {
 }
 
 function sendMessage() {
-  console.log('Attempting to send message...');
-  const input = document.querySelector('#userInput, .floating-chat #userInput');
-  const chatMessages = document.querySelector('.chat-messages, .floating-chat .chat-messages');
-  
+  const input = document.getElementById('userInput');
+  const chatMessages = document.getElementById('chatMessages');
+
   if (!input || !chatMessages) {
-    console.error('Missing required chat elements');
+    console.error('Missing chat elements');
     return;
   }
-  console.log('User input:', input.value);
-  
+
   const message = input.value.trim();
   if (message === '') return;
-  
+
+  console.log('Input:', message);
+
   // Add user message
-  addMessage(message, 'user');
-  
-  // Add Iris's response with slight delay
+  const userDiv = document.createElement('div');
+  userDiv.className = 'message user';
+  userDiv.textContent = message;
+  chatMessages.appendChild(userDiv);
+
+  // Add response with slight delay
   setTimeout(() => {
     const response = getResponse(message);
-    addMessage(response, 'iris');
+    console.log('Input:', message, '=> Response:', response);
+
+    const irisDiv = document.createElement('div');
+    irisDiv.className = 'message iris';
+    irisDiv.textContent = response;
+    chatMessages.appendChild(irisDiv);
+
+    // Ensure scroll to bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
   }, 500);
-  
+
   input.value = '';
+  input.focus();
 }
 
 // Initialize chat functionality when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('Initializing chat...');
-  const userInput = document.querySelector('#userInput, .floating-chat #userInput');
-  const chatMessages = document.querySelector('.chat-messages, .floating-chat .chat-messages');
-  
+  console.log('Chat initialized');
+  const input = document.getElementById('userInput');
+  const chatMessages = document.getElementById('chatMessages');
+
   if (!chatMessages) {
-    console.error('Chat messages container is missing!');
+    console.error('Chat messages container not found');
+    return;
   }
-  
-  if (userInput) {
-    console.log('Chat input element found and initialized');
-    userInput.addEventListener('keypress', (e) => {
+
+  if (input) {
+    console.log('Chat input element found');
+    input.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         sendMessage();
       }
