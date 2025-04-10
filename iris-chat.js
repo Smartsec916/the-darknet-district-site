@@ -30,6 +30,13 @@ const patterns = [
     ]
   },
   {
+    match: /(gear|equipment|tools|gadgets)/i,
+    responses: [
+      "Our gear collection will include urban survival equipment, custom electronics, and tactical tools. We're focusing on high-quality, practical items that blend form and function. Would you like to know about specific categories?",
+      "The gear section will feature everything from custom electronic gadgets to urban survival equipment. Each piece is carefully selected for both utility and style."
+    ]
+  },
+  {
     match: /(buy|purchase|store|shop|item|product)/i,
     responses: [
       "Our upcoming shop will feature an exciting range of products including urban survival gear, cyberpunk apparel, and exclusive merchandise. We'll have everything from technical manuals to custom gadgets. Would you like to preview the categories?",
