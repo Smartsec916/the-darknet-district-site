@@ -3,6 +3,11 @@
   bottom: 20px;
   right: 20px;
   z-index: 1000;
+  transition: transform 0.3s ease-out;
+}
+
+.floating-chat.scrolled {
+  transform: translateY(-100vh);
 }
 
 .chat-toggle {
