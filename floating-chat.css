@@ -94,3 +94,23 @@ input[type="text"] {
   border-radius: 4px;
   color: #00ff9d;
 }
+
+button {
+  padding: 10px 20px;
+  background: rgba(0, 255, 0, 0.15); /*Green background*/
+  border: 1px solid #00ff9d;
+  color: #00ff9d;
+}
+
+button:hover{
+  background: rgba(0, 255, 0, 0.3);
+}
+
+/*Approximation of Enter button -  requires further context on button implementation*/
+button.enter-button {
+  padding: 10px 20px;
+  background: rgba(0, 255, 0, 0.15);
+  border: 1px solid #00ff9d;
+  color: #00ff9d;
+  content: "↵ Enter"; /*Adding the enter symbol*/
+}

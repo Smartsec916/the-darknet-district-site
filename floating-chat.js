@@ -52,7 +52,7 @@ function initFloatingChat() {
           </div>
           <div class="chat-input">
             <input type="text" id="userInput" placeholder="Type your message...">
-            <button onclick="sendMessage()">Send</button>
+            <button onclick="sendMessage()">↵</button>
           </div>
         </div>
       </div>
