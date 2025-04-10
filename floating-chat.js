@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   const chatToggle = document.createElement('div');
   chatToggle.className = 'chat-toggle';
-  chatToggle.textContent = '💬 Chat with Iris';
+  chatToggle.textContent = 'Chat with Iris';
 
   const chatWindow = document.createElement('div');
   chatWindow.className = 'chat-window';
