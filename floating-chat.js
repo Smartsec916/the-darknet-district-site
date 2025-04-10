@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', function () {
+  // Check if chat already exists
+  if (document.querySelector('.floating-chat')) {
+    return;
+  }
+  
   // Create chat elements
   const floatingChat = document.createElement('div');
   floatingChat.className = 'floating-chat';
