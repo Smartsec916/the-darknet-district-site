@@ -117,7 +117,7 @@ section {
     0 0 7px rgba(192, 219, 255, 0.8),
     0 0 10px rgba(65, 120, 255, 0.3),
     0 0 21px rgba(65, 120, 255, 0.2),
-    0 0 30px rgba(0, 255, 0, 0.2);
+    0 0 30px rgba(0, 255, 0, 0.25);
   letter-spacing: 3px;
   opacity: 0.95;
   text-align: center;
@@ -133,7 +133,7 @@ section {
   transform: translate(-50%, -50%);
   width: 110%;
   height: 120%;
-  background: radial-gradient(rgba(0, 255, 0, 0.1), transparent 70%);
+  background: radial-gradient(rgba(0, 255, 0, 0.15), transparent 70%);
   z-index: -1;
 }
 
