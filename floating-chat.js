@@ -9,10 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const chatWindow = document.createElement('div');
   chatWindow.className = 'chat-window';
 
-  const chatMessages = document.createElement('div');
-  chatMessages.className = 'chat-messages';
-
-  // Add Iris avatar and status
+  // Add Iris avatar and status first
   const irisHeader = document.createElement('div');
   irisHeader.className = 'iris-header';
   
@@ -25,7 +22,11 @@ document.addEventListener('DOMContentLoaded', function() {
   
   irisHeader.appendChild(avatar);
   irisHeader.appendChild(status);
-  chatWindow.insertBefore(irisHeader, chatMessages);
+  chatWindow.appendChild(irisHeader);
+
+  // Then add chat messages container
+  const chatMessages = document.createElement('div');
+  chatMessages.className = 'chat-messages';
 
   // Add initial greeting
   const greeting = document.createElement('div');
