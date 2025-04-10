@@ -86,13 +86,13 @@ function getResponse(message) {
 }
 
 function sendMessage() {
-  const chatWindow = document.querySelector('.chat-window');
-  if (!chatWindow) return;
+  const input = document.getElementById('userInput');
+  const chatMessages = document.getElementById('chatMessages');
   
-  const input = chatWindow.querySelector('#userInput');
-  const chatMessages = chatWindow.querySelector('.chat-messages');
-  
-  if (!input || !chatMessages) return;
+  if (!input || !chatMessages) {
+    console.error('Chat elements not found');
+    return;
+  }
   
   const message = input.value.trim();
   if (message === '') return;
@@ -111,13 +111,23 @@ function sendMessage() {
 }
 
 // Initialize chat functionality when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-  const input = document.querySelector('#userInput');
-  if (input) {
-    input.addEventListener('keypress', function(e) {
+document.addEventListener('DOMContentLoaded', () => {
+  const userInput = document.getElementById('userInput');
+  const chatMessages = document.getElementById('chatMessages');
+  
+  if (userInput) {
+    userInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         sendMessage();
       }
     });
+  }
+
+  // Add initial greeting
+  if (chatMessages) {
+    const greeting = document.createElement('div');
+    greeting.className = 'message system';
+    greeting.textContent = "Greetings! I am Iris, your cybersecurity assistant in The Darknet District. How may I help you today?";
+    chatMessages.appendChild(greeting);
   }
 });
