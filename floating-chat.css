@@ -4,7 +4,8 @@
   right: 20px;
   z-index: 9999;
   pointer-events: auto;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
+  transform: translateY(var(--scroll-offset, 0));
 }
 
 @media (max-width: 600px) {
