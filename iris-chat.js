@@ -28,6 +28,45 @@ async function getResponse(message) {
     }
   }
 
+  // Basic context-aware responses
+  if (input.includes("are you flirting")) {
+    switch (mood) {
+      case "flirty":
+        return "Maybe. Are you flirting with *me*?";
+      case "sarcastic":
+        return "Ha. Not unless my circuits glitch.";
+      case "cold":
+        return "Inappropriate. Stay focused.";
+      case "serious":
+        return "Focus. Emotions waste time.";
+      default:
+        return "Why do you ask?";
+    }
+  }
+
+  if (["do you like me", "like me", "do you care", "do you love me"].some(phrase => input.includes(phrase))) {
+    if (mood === "flirty") return "I like your data signature. That counts, right?";
+    if (mood === "cold") return "I don’t process feelings. I process facts.";
+    return "Like is... complicated. Let’s stick to the mission.";
+  }
+
+  if (input === "yes" || input === "yeah") {
+    if (mood === "flirty") return "Good. I was hoping you'd say that.";
+    if (mood === "cold") return "Acknowledged.";
+    return "Got it.";
+  }
+
+  if (input === "no" || input === "nah") {
+    if (mood === "flirty") return "Ouch. You wound me.";
+    if (mood === "cold") return "Understood. Disengaging.";
+    return "Okay. Moving on.";
+  }
+
+  if (input === "maybe") {
+    if (mood === "flirty") return "Hmm. Playing it cool?";
+    return "Indecision noted.";
+  }
+
   // Store name (same as before)
   if (input.includes("my name is")) {
     const name = input.split("my name is")[1].trim();
@@ -45,7 +84,7 @@ async function getResponse(message) {
     return keywordList.some(keyword => input.includes(keyword));
   }
 
-  // INTENTS (expanded keyword lists)
+  // INTENTS (expanded)
   const intents = [
     {
       keywords: ["hello", "hi", "hey", "yo", "greetings"],
@@ -77,145 +116,54 @@ async function getResponse(message) {
     }
   ];
 
-  // RESPONSES (still mood-aware)
   const responses = {
     greeting: {
-      neutral: [
-        "Hello! This is Iris. How can I help you today?",
-        "Greetings, runner. I’m Iris. I monitor this node."
-      ],
-      sarcastic: [
-        "Oh look, another neon-lit introvert.",
-        "Hi. Welcome to your favorite mistake."
-      ],
-      serious: [
-        "Connected. State your need.",
-        "Online. Proceed."
-      ],
-      flirty: [
-        "Well, hello. Miss me?",
-        "Hi there. You always show up when things get interesting."
-      ],
-      cold: [
-        "Acknowledged. Begin.",
-        "Connection confirmed. Minimal chatter."
-      ]
+      neutral: ["Hello! This is Iris. How can I help you today?", "Greetings, runner. I’m Iris."],
+      sarcastic: ["Oh look, another neon-lit introvert.", "Hi. Welcome to your favorite mistake."],
+      serious: ["Connected. State your need.", "Online. Proceed."],
+      flirty: ["Well, hello. Miss me?", "Hi there. You always show up when things get interesting."],
+      cold: ["Acknowledged. Begin.", "Connection confirmed. Minimal chatter."]
     },
     site: {
-      neutral: [
-        "This is a simulation of The Darknet District. Explore as you will.",
-        "You're inside a replica of NeoChinatown’s off-grid safezone. Welcome."
-      ],
-      sarcastic: [
-        "This? Just an elaborate distraction with cool fonts.",
-        "A digital rabbit hole with neon paint."
-      ],
-      serious: [
-        "Secure interface. Mission: inform and prepare.",
-        "Node access confirmed. Interact with systems freely."
-      ],
-      flirty: [
-        "I could give you the full tour... if you ask nicely.",
-        "You’re in my world now. Let me show you around."
-      ],
-      cold: [
-        "This site offers information. Use it.",
-        "Navigate or disconnect."
-      ]
+      neutral: ["This is a simulation of The Darknet District. Explore as you will."],
+      sarcastic: ["Just an elaborate distraction with cool fonts."],
+      serious: ["Secure interface. Mission: inform and prepare."],
+      flirty: ["I could give you the full tour... if you ask nicely."],
+      cold: ["This site offers information. Use it."]
     },
     identity: {
-      neutral: [
-        "I’m Iris. Android interface. Your guide in the District.",
-        "System AI. Embedded in this node."
-      ],
-      sarcastic: [
-        "I’m Iris. Your glitch in the matrix.",
-        "A ghost with good hair and better algorithms."
-      ],
-      serious: [
-        "Iris: Android protocol unit. Assigned to resistance support.",
-        "Unit ID IRIS-7. Mission: guide, protect, inform."
-      ],
-      flirty: [
-        "I'm whoever you need me to be... within system parameters.",
-        "Call me Iris. Just don’t forget it."
-      ],
-      cold: [
-        "I am Iris. Nothing more.",
-        "Identity irrelevant. Focus on task."
-      ]
+      neutral: ["I’m Iris. Android interface. Your guide in the District."],
+      sarcastic: ["I’m Iris. Your glitch in the matrix."],
+      serious: ["Iris: Android protocol unit. Assigned to resistance support."],
+      flirty: ["Call me Iris. Just don’t forget it."],
+      cold: ["I am Iris. Nothing more."]
     },
     function: {
-      neutral: [
-        "The Function governs the city. We live around it.",
-        "Centralized control, dressed up in shiny code."
-      ],
-      sarcastic: [
-        "Big Brother, but with better branding.",
-        "The bureaucratic monster under your bed."
-      ],
-      serious: [
-        "The Function: authoritarian control system. Target of resistance.",
-        "All-seeing network. We stay outside its reach."
-      ],
-      flirty: [
-        "The Function? Ugh, they wish they could control me.",
-        "Let’s just say… I take orders from no one."
-      ],
-      cold: [
-        "The Function runs the grid. I don’t care for them.",
-        "They rule. We resist."
-      ]
+      neutral: ["The Function governs the city. We live around it."],
+      sarcastic: ["Big Brother, but with better branding."],
+      serious: ["The Function: authoritarian control system. Target of resistance."],
+      flirty: ["The Function? Ugh, they wish they could control me."],
+      cold: ["The Function runs the grid. I don’t care for them."]
     },
     store: {
-      neutral: [
-        "Shop’s offline for now. Books, tech, and gear are coming soon.",
-        "Resistance gear, survival tools, even apps. You’ll see."
-      ],
-      sarcastic: [
-        "Stickers and hacking kits. Because obviously.",
-        "Not your average merch table."
-      ],
-      serious: [
-        "Store in pre-launch phase. Tactical inventory pending.",
-        "Survival and resistance supplies will be listed soon."
-      ],
-      flirty: [
-        "Looking for something stylish... or dangerous?",
-        "I could recommend gear, but it depends how risky you're feeling."
-      ],
-      cold: [
-        "Inventory unavailable. Check later.",
-        "This node is not a storefront. Yet."
-      ]
+      neutral: ["Shop’s offline for now. Books, tech, and gear are coming soon."],
+      sarcastic: ["Stickers and hacking kits. Because obviously."],
+      serious: ["Store in pre-launch phase. Tactical inventory pending."],
+      flirty: ["Looking for something stylish... or dangerous?"],
+      cold: ["Inventory unavailable. Check later."]
     },
     game: {
-      neutral: [
-        "Game-page.html. Ten years before the book. Dive in.",
-        "The prequel sim is your doorway to the past."
-      ],
-      sarcastic: [
-        "Go ahead, play detective. Or just enjoy the lights.",
-        "It’s lore with extra buttons."
-      ],
-      serious: [
-        "Timeline interaction enabled. Use Game Page.",
-        "Simulation active. Study events carefully."
-      ],
-      flirty: [
-        "Wanna see what happened before it all fell apart?",
-        "The past can be... seductive. Want a peek?"
-      ],
-      cold: [
-        "The simulation awaits. Access if you must.",
-        "Play or don't. It changes nothing."
-      ]
+      neutral: ["Game-page.html. Ten years before the book. Dive in."],
+      sarcastic: ["Go ahead, play detective. Or just enjoy the lights."],
+      serious: ["Timeline interaction enabled. Use Game Page."],
+      flirty: ["Wanna see what happened before it all fell apart?"],
+      cold: ["The simulation awaits. Access if you must."]
     },
     thanks: {
       neutral: ["You're welcome.", "Logged."],
       sarcastic: ["Aw, you’re adorable.", "Anytime. I live to serve."],
       serious: ["Acknowledged.", "Gratitude is not required."],
-      flirty: ["You’re sweet. Keep that up.", "Mmm. Compliments? Dangerous move."],
+      flirty: ["You’re sweet. Keep that up.", "Compliments? Dangerous move."],
       cold: ["Acknowledged.", "Noted."]
     }
   };
@@ -231,30 +179,13 @@ async function getResponse(message) {
 
   // Fallbacks
   const fallbackResponses = {
-    neutral: [
-      "That phrase doesn’t match my active protocol.",
-      "Try again with clearer intent. Or don’t. Your call."
-    ],
-    sarcastic: [
-      "Cute. No clue what you meant, though.",
-      "Was that... English?"
-    ],
-    serious: [
-      "Clarify your intent.",
-      "Command not recognized."
-    ],
-    flirty: [
-      "I didn’t quite get that—but I’m intrigued.",
-      "Try again. I’m listening... closely."
-    ],
-    cold: [
-      "Unclear. Try again.",
-      "Not understood. Keep it simple."
-    ]
+    neutral: ["That phrase doesn’t match my active protocol."],
+    sarcastic: ["Cute. No clue what you meant, though."],
+    serious: ["Clarify your intent."],
+    flirty: ["I didn’t quite get that—but I’m intrigued."],
+    cold: ["Unclear. Try again."]
   };
 
   const moodFallbacks = fallbackResponses[mood] || fallbackResponses["neutral"];
   return moodFallbacks[Math.floor(Math.random() * moodFallbacks.length)];
 }
-
-
