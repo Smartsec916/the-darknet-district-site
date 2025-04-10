@@ -66,6 +66,14 @@ function initFloatingChat() {
   const chatWindow = document.querySelector('.floating-chat .chat-window');
   const sendButton = document.querySelector('.floating-chat .send-button');
   const input = document.querySelector('.floating-chat #userInput');
+  const messages = document.querySelector('.floating-chat .chat-messages');
+
+  if (messages) {
+    const greeting = document.createElement('div');
+    greeting.className = 'message system';
+    greeting.textContent = "Greetings! I am Iris, your cybersecurity assistant in The Darknet District. How may I help you today?";
+    messages.appendChild(greeting);
+  }
 
   if (chatToggle && chatWindow) {
     chatToggle.addEventListener('click', () => {
