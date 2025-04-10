@@ -30,6 +30,13 @@ const patterns = [
     ]
   },
   {
+    match: /^(the\s+)?game$/i,
+    responses: [
+      "The Darknet District - Origins is our interactive story-driven game where you'll explore the district's mysterious past. Would you like to start playing?",
+      "Our game takes you through an immersive journey in The Darknet District. Ready to begin your adventure?"
+    ]
+  },
+  {
     match: /(gear|equipment|tools|gadgets)/i,
     responses: [
       "Our gear collection will include urban survival equipment, custom electronics, and tactical tools. We're focusing on high-quality, practical items that blend form and function. Would you like to know about specific categories?",
