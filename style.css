@@ -109,7 +109,8 @@ section {
 
 .cyberpunk-title {
   font-family: 'Arial', sans-serif;
-  font-size: clamp(2rem, 6vw, 3rem);
+  font-size: clamp(1.5rem, 5vw, 3rem);
+  padding: min(20px, 4vw);
   font-weight: bold;
   text-transform: uppercase;
   color: #e4e4e4;
