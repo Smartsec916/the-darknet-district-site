@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const sendButton = document.createElement('button');
   sendButton.className = 'enter-button';
-  sendButton.textContent = '↵';
+  sendButton.textContent = 'Enter';
 
   // Append input elements
   inputContainer.appendChild(input);
