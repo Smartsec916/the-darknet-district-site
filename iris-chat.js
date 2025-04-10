@@ -1,24 +1,26 @@
 
-const responses = {
-  "hello": "Greetings, patron. How may I assist you today?",
-  "hi": "Greetings, patron. How may I assist you today?",
-  "help": "I can assist you with: \n- Security protocols\n- Navigation\n- Product information\n- Emergency services",
-  "who are you": "I am Iris, an advanced security android created by Admin to protect and assist patrons of The Darknet District.",
-  "security": "Security protocols are active and all systems are currently operating at optimal levels. No threats detected.",
-  "products": "Our store offers various cyberpunk merchandise including books, t-shirts, stickers, patches, electronics, and survival gear. All items are currently under construction.",
-  "location": "The Darknet District exists in the digital realm. Physical coordinates are irrelevant here.",
-  "emergency": "Emergency protocols activated. Please specify the nature of your emergency. Security teams are on standby.",
-  "default": "I understand your inquiry. However, this response pattern is not in my current database. Please rephrase or ask another question."
-};
+function getResponse(message) {
+  const responses = {
+    "hello": "Hello! How can I assist you today?",
+    "hi": "Hi there! How can I help you?",
+    "who are you": "I am Iris, an android assistant created by Admin to help maintain security and assist users in The Darknet District.",
+    "help": "I can help you navigate The Darknet District, provide information about our services, and assist with security-related questions.",
+    "what can you do": "I can provide information about The Darknet District, help with navigation, answer questions about our services, and assist with security-related inquiries.",
+  };
 
-function getResponse(input) {
-  input = input.toLowerCase().trim();
-  for (let key in responses) {
-    if (input.includes(key)) {
-      return responses[key];
+  // Default response if no match is found
+  let response = "I understand your message. How can I assist you further?";
+
+  // Check for matching keywords in the message
+  const lowercaseMessage = message.toLowerCase();
+  for (const [key, value] of Object.entries(responses)) {
+    if (lowercaseMessage.includes(key)) {
+      response = value;
+      break;
     }
   }
-  return responses.default;
+
+  return response;
 }
 
 function sendMessage() {
