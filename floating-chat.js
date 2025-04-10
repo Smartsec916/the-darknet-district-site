@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
           const currentOffset = parseFloat(getComputedStyle(chat).getPropertyValue('--scroll-offset') || '0');
           const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
           const scrollPercent = (currentScrollY / maxScroll) * 100;
-          const newOffset = Math.max(Math.min(scrollPercent * 2, 200), 0);
+          const newOffset = Math.max(Math.min(scrollPercent * 4, 400), 0);
           chat.style.setProperty('--scroll-offset', `${newOffset}px`);
         }
         
