@@ -4,6 +4,31 @@ document.addEventListener('DOMContentLoaded', function () {
     return;
   }
   
+  // Add scroll handling
+  let lastScrollY = window.scrollY;
+  let ticking = false;
+  
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY;
+        const scrollDiff = currentScrollY - lastScrollY;
+        const chat = document.querySelector('.floating-chat');
+        
+        if (chat) {
+          const currentOffset = parseFloat(getComputedStyle(chat).getPropertyValue('--scroll-offset') || '0');
+          const newOffset = Math.max(Math.min(currentOffset + scrollDiff, 100), 0);
+          chat.style.setProperty('--scroll-offset', `${newOffset}px`);
+        }
+        
+        lastScrollY = currentScrollY;
+        ticking = false;
+      });
+      
+      ticking = true;
+    }
+  });
+  
   // Create chat elements
   const floatingChat = document.createElement('div');
   floatingChat.className = 'floating-chat';
