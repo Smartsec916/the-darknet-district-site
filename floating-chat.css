@@ -34,7 +34,7 @@
   bottom: 90px;
   right: 20px;
   width: 300px;
-  max-height: 500px;
+  max-height: 400px;
   display: none;
   background: rgba(0, 0, 0, 0.9);
   border: 2px solid #00ff9d;
@@ -67,6 +67,26 @@
 .chat-window .message.system {
   background: rgba(0, 255, 157, 0.1);
   text-align: center;
+}
+
+.chat-messages {
+  max-height: 300px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #00ff9d rgba(0, 255, 157, 0.1);
+}
+
+.chat-messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: rgba(0, 255, 157, 0.1);
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background-color: #00ff9d;
+  border-radius: 4px;
 }
 
 .avatar {
