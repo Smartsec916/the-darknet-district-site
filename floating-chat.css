@@ -1,4 +1,3 @@
-
 .floating-chat {
   position: fixed;
   bottom: 20px;
@@ -62,4 +61,13 @@
 
 .chat-window.active {
   display: block;
+}
+
+input[type="text"] {
+  flex: 1;
+  padding: 10px;
+  background: rgba(0, 255, 0, 0.1);
+  border: 1px solid #00ff9d;
+  border-radius: 4px;
+  color: #00ff9d;
 }
