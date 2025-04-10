@@ -68,7 +68,14 @@ function initFloatingChat() {
     chatToggle.addEventListener('click', () => {
       chatWindow.classList.toggle('active');
       const input = document.querySelector('#userInput');
-      if (input) input.focus();
+      if (input) {
+        input.focus();
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            sendMessage();
+          }
+        });
+      }
     });
   }
 }
