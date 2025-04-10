@@ -3,9 +3,9 @@ const patterns = [
   {
     match: /^(hello|hi|hey|greetings|good\s*(morning|afternoon|evening))\b/i,
     responses: [
-      "Hello! I'm Iris, your cybersecurity assistant. How can I help you today?",
-      "Greetings! I'm here to help with security and navigation in The Darknet District.",
-      "Hi there! I'm Iris. What would you like to know about The Darknet District?"
+      "Welcome to The Darknet District! I'm Iris, and I'd love to tell you about our interactive cybersecurity game that teaches you the history of the district, or our upcoming shop featuring cyberpunk gear and security tools. What interests you?",
+      "Hello! I'm Iris. We have an exciting interactive game that lets you explore The Darknet District's origins, plus a shop coming soon with everything from security tools to urban survival gear. Would you like to know more about either?",
+      "Greetings! I'm Iris, your guide to The Darknet District. Our interactive game teaches cybersecurity through an immersive story, and our shop will soon offer cutting-edge security tools and cyberpunk merchandise. What would you like to explore first?"
     ]
   },
   {
@@ -25,15 +25,15 @@ const patterns = [
   {
     match: /(how|where|what).+(game|play)/i,
     responses: [
-      "Our interactive game will teach you about security concepts. Ready to play?",
-      "I can take you to our game section where you'll learn about cybersecurity through gameplay."
+      "Our game 'The Darknet District - Origins' is an interactive experience that teaches cybersecurity through an engaging story. You'll learn about encryption, digital security, and the district's fascinating history. Ready to start your journey?",
+      "In our interactive game, you'll discover the origins of The Darknet District while learning essential cybersecurity skills. It's a unique blend of storytelling and practical security knowledge. Would you like to play?"
     ]
   },
   {
     match: /(buy|purchase|store|shop|item|product)/i,
     responses: [
-      "Our store features cybersecurity gear and tools. Would you like to see what's available?",
-      "I can show you our collection of security tools and cyberpunk merchandise in the store."
+      "Our upcoming shop will feature an exciting range of products including security tools, urban survival gear, cyberpunk apparel, and exclusive merchandise. We'll have everything from technical manuals to custom gadgets. Would you like to preview the categories?",
+      "The Darknet District shop is coming soon with an incredible selection of cybersecurity gear, custom electronics, survival equipment, and cyberpunk merchandise. I can show you what's planned to be available!"
     ]
   },
   {
