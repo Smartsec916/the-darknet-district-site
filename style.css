@@ -158,3 +158,17 @@ section {
   background: rgba(0, 255, 157, 0.1);
   box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
 }
+
+@keyframes glitch {
+  0% { transform: translate(0) }
+  20% { transform: translate(-2px, 2px) }
+  40% { transform: translate(-2px, -2px) }
+  60% { transform: translate(2px, 2px) }
+  80% { transform: translate(2px, -2px) }
+  100% { transform: translate(0) }
+}
+
+.loading {
+  animation: glitch 0.3s infinite;
+  color: #00ff9d;
+}
