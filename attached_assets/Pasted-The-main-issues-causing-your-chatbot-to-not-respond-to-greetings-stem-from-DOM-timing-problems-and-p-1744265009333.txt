@@ -1,0 +1,176 @@
+The main issues causing your chatbot to not respond to greetings stem from DOM timing problems and potential pattern-matching limitations. Here's how to fix and improve it:
+
+---
+
+## **1. Fixing DOM Element Errors**
+The "TypeError: document.getElementById(...) is null" occurs because JavaScript tries to access elements before they exist in the DOM. Here's the fix:
+
+**In `iris-chat.js`:**
+```javascript
+document.addEventListener('DOMContentLoaded', () => {
+  // All DOM-dependent code goes here
+  const userInput = document.getElementById('userInput');
+  const chatMessages = document.getElementById('chatMessages');
+  
+  // Add event listener for Enter key
+  userInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+});
+
+function sendMessage() {
+  const input = document.getElementById('userInput').value.trim();
+  if (!input) return;
+
+  addMessage(input, 'user');
+  processInput(input);
+  document.getElementById('userInput').value = '';
+}
+```
+
+---
+
+## **2. Enhanced Pattern Matching**
+Your current regex patterns might not be catching all greeting variations. Update your pattern matching system:
+
+**In `iris-chat.js`:**
+```javascript
+const patterns = {
+  greetings: {
+    regex: /^(hello|hi|hey|greetings|good\s(morning|afternoon|evening))\b/i,
+    responses: [
+      "Greetings! I am Iris, your cybersecurity assistant.",
+      "Hello! How can I assist you today?",
+      "Hi there! Ready to explore The Darknet District?"
+    ]
+  },
+  game: {
+    regex: /(game|play|interactive)/i,
+    responses: [
+      "Would you like to play our interactive history game? Start Game",
+      "Check out The Darknet District's story: Play Now"
+    ]
+  }
+};
+
+function processInput(input) {
+  const normalized = input.toLowerCase().trim();
+  let response;
+
+  // Check patterns
+  if (patterns.greetings.regex.test(normalized)) {
+    response = getRandomResponse(patterns.greetings.responses);
+  } else if (patterns.game.regex.test(normalized)) {
+    response = getRandomResponse(patterns.game.responses);
+  } else {
+    response = "I'm here to help with cybersecurity and Darknet District navigation. How can I assist you?";
+  }
+
+  addMessage(response, 'bot');
+}
+
+function getRandomResponse(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+```
+
+---
+
+## **3. Message Display Fixes**
+Ensure messages are properly appended to the chat container:
+
+```javascript
+function addMessage(text, sender) {
+  const chatMessages = document.getElementById('chatMessages');
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `message ${sender}`;
+  msgDiv.innerHTML = text;
+  chatMessages.appendChild(msgDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+}
+```
+
+---
+
+## **4. CSS Additions**
+Add these styles to `iris-style.css` for proper message display:
+```css
+.message {
+  margin: 10px;
+  padding: 12px;
+  border-radius: 15px;
+  max-width: 70%;
+}
+
+.message.user {
+  background: #1a1a1a;
+  margin-left: auto;
+}
+
+.message.bot {
+  background: #2a2a2a;
+}
+
+.message a {
+  color: #4CAF50;
+  text-decoration: underline;
+}
+```
+
+---
+
+**Key improvements made:**
+1. DOM content loaded event ensures elements exist before access[1][2][3]
+2. More comprehensive greeting patterns with regex improvements[4][5]
+3. Randomized responses to avoid repetition[6]
+4. Proper message styling and auto-scrolling
+5. Added anchor tags for game/store navigation per your requirements
+
+The chatbot should now properly handle greetings and navigation requests while eliminating the DOM errors. For further enhancement, consider adding:
+- Session storage for conversation history
+- Loading animation during processing
+- Sound effects for message sends
+
+Citations:
+[1] https://www.servicenow.com/community/developer-forum/issue-with-dom-document-getelementbyid-quot-quot/m-p/2229785
+[2] https://idiallo.com/javascript/uncaught-typeerror-cannot-read-property-of-null
+[3] https://stackoverflow.com/questions/2632137/why-is-document-getelementbyid-returning-null
+[4] https://www.educative.io/courses/build-an-ai-chatbot/types-of-chatbots-rule-based-pattern-matching-and-genai
+[5] https://crmsupport.freshworks.com/support/solutions/articles/50000005986-using-regex-to-validate-responses-in-the-freshchat-bot-builder
+[6] https://dev.to/sylviapap/make-a-simple-chatbot-with-javascript-1gc
+[7] https://meta-guide.com/dialog-systems/chatbots/regex-chatbots
+[8] https://github.com/ChatScript/ChatScript/blob/master/WIKI/PAPERS/Paper-Pattern-Matching-for-Natural-Language-Applications.md
+[9] https://stackoverflow.com/questions/31359387/
+[10] https://stackoverflow.com/questions/71512766/null-error-when-using-document-getelementbyid/71512793
+[11] https://www.sitepoint.com/community/t/no-need-for-document-getelementbyid/437893
+[12] https://www.outsystems.com/forums/discussion/65707/document-getelementbyid-returns-null/
+[13] https://www.sitepoint.com/community/t/typeerror-document-getelementbyid-is-null/35688
+[14] https://support.mozilla.org/en-US/questions/974099
+[15] https://forum.webix.com/t/getelementbyid-is-returning-returning-null/15340
+[16] https://forum.freecodecamp.org/t/typeerror-document-getelementbyid-is-null/450883
+[17] https://stackoverflow.com/questions/61176501/why-is-document-getelementbyid-returning-null-when-there-is-an-element-with-th/61176753
+[18] https://developer.mozilla.org/en-US/docs/Web/API/Document/getElementById
+[19] https://discuss.codecademy.com/t/react-getelementbyid-error-cant-even-understand-what-is-happening/820158
+[20] https://sitespeak.ai/ai-chatbot-terms/pattern-matching
+[21] https://www.freecodecamp.org/news/regex-in-javascript/
+[22] https://marutitech.com/chatbots-work-guide-chatbot-architecture/
+[23] https://sendpulse.com/knowledge-base/chatbot/regular-expressions
+[24] https://kyleshevlin.com/pattern-matching/
+[25] https://www.qualimero.com/en/blog/chatbot-evolution-conversational-ai
+[26] https://www.ometrics.com/support/regular-expression/
+[27] https://stackoverflow.com/questions/41915075/regex-javascript-match-certain-chat-queries
+[28] https://www.chatbot.com/blog/chatbot-guide/
+[29] https://www.youtube.com/watch?v=5NWwq6SmOXM
+[30] https://blog.uchat.au/empower-your-chatbots-with-javascript-a-non-coders-guide
+[31] https://stackoverflow.com/questions/57861075/how-to-make-a-more-advanced-responding-chatbot-with-nltk
+[32] https://www.reddit.com/r/learnprogramming/comments/104khpu/what_am_i_doing_wrong_uncaught_typeerror/
+[33] https://terracoders.com/node/76
+[34] https://teamtreehouse.com/community/cant-figure-out-why-i-am-getting-null-when-i-getelementbyid-here-would-really-appreciate-help
+[35] https://stackoverflow.com/questions/13885533/it-says-that-typeerror-document-getelementbyid-is-null
+[36] https://www.dhiwise.com/post/troubleshooting-the-cannot-read-properties-of-null-error
+[37] https://pmc.ncbi.nlm.nih.gov/articles/PMC7298192/
+[38] https://www.ijeat.org/wp-content/uploads/papers/v8i2s2/B10080182S219.pdf
+[39] https://www.restack.io/p/entity-recognition-answer-rasa-regex-cat-ai
+
+---
+Answer from Perplexity: pplx.ai/share
