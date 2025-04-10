@@ -4,7 +4,6 @@
   right: 20px;
   z-index: 9999;
   pointer-events: auto;
-  transform: none !important;
 }
 
 @media (max-width: 600px) {
@@ -51,7 +50,6 @@ html, body {
   width: min(300px, 90vw);
   max-height: min(400px, 70vh);
   display: none;
-  transform: none !important;
   background: rgba(0, 0, 0, 0.9);
   border: 2px solid #00ff9d;
   border-radius: 8px;
