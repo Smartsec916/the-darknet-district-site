@@ -116,9 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentScrollPosition = window.pageYOffset;
     
     if (currentScrollPosition > lastScrollPosition) {
-      floatingChat.classList.add('scrolled');
-    } else {
       floatingChat.classList.remove('scrolled');
+    } else {
+      floatingChat.classList.add('scrolled');
     }
     
     lastScrollPosition = currentScrollPosition;
