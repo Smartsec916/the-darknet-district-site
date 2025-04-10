@@ -2,7 +2,7 @@
 function initFloatingChat() {
   const chatHtml = `
     <div class="floating-chat">
-      <button class="chat-toggle">💬</button>
+      <button class="chat-toggle">Chat with Iris</button>
       <div class="chat-window">
         <div class="chat-container">
           <div class="chat-header">
