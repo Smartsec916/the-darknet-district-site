@@ -157,12 +157,9 @@ html, body {
 }
 
 .chat-window.active {
+  display: block;
   opacity: 1;
   transform: scale(1);
-}
-
-.chat-window.active {
-  display: block;
 }
 
 input[type="text"] {
