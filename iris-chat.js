@@ -110,7 +110,7 @@ function sendMessage() {
         clearInterval(typingInterval);
         irisDiv.classList.remove('typing');
       }
-    }, 30); // Faster typing speed
+    }, 50); // Slower typing speed
   }, 500);
 
   input.value = '';

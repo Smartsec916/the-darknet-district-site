@@ -46,8 +46,7 @@ function initFloatingChat() {
             <span class="status">ONLINE</span>
           </div>
           <div class="chat-messages">
-            <div class="message system">
-              Greetings! I am Iris, your cybersecurity assistant in The Darknet District. How may I help you today?
+            <div class="message system typing">
             </div>
           </div>
           <div class="chat-input">
@@ -77,6 +76,21 @@ function initFloatingChat() {
         });
       }
     });
+
+    // Animate initial greeting
+    const greeting = "Greetings! I am Iris, your cybersecurity assistant in The Darknet District. How may I help you today?";
+    const greetingDiv = document.querySelector('.message.system');
+    if (greetingDiv) {
+      let i = 0;
+      const typingInterval = setInterval(() => {
+        greetingDiv.textContent += greeting[i];
+        i++;
+        if (i === greeting.length) {
+          clearInterval(typingInterval);
+          greetingDiv.classList.remove('typing');
+        }
+      }, 50);
+    }
   }
 }
 
