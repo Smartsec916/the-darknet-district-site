@@ -51,8 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
   chatWindow.appendChild(chatMessages);
   chatWindow.appendChild(inputContainer);
 
-  const floatingChat = document.createElement('div');
-  floatingChat.className = 'floating-chat';
   floatingChat.appendChild(chatWindow);
   floatingChat.appendChild(chatToggle);
 
