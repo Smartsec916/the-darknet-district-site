@@ -1,10 +1,62 @@
 
 function getResponse(message) {
-  const responses = {
-    "hello": "Hello! How can I assist you today?",
-    "hi": "Hi there! How can I help you?",
-    "who are you": "I am Iris, an android assistant created by Admin to help maintain security and assist users in The Darknet District.",
-    "help": "I can help you navigate The Darknet District, provide information about our services, and assist with security-related questions. Would you like to know about our store items or play our interactive history game?",
+  // Context tracking
+  let context = {
+    lastTopic: '',
+    mentionedStore: false,
+    mentionedGame: false
+  };
+
+  const patterns = [
+    {
+      match: /(hi|hello|hey|greetings)/i,
+      response: "Hello! I'm Iris, your cybersecurity assistant. How can I help you today?"
+    },
+    {
+      match: /(who|what) are you/i,
+      response: "I am Iris, an android assistant created to help maintain security and assist users in The Darknet District."
+    },
+    {
+      match: /security|protect|hack|defense/i,
+      response: "Security is crucial in The Darknet District. I recommend starting with our interactive game to learn the basics of cybersecurity. Would you like me to take you there?"
+    },
+    {
+      match: /(how|where|what).+(game|play)/i,
+      response: "Our interactive history game will teach you about The Darknet District's origins and basic security concepts. Would you like to play? Just say 'play game' or 'show game'."
+    },
+    {
+      match: /(buy|purchase|store|shop|item|product)/i,
+      response: "Our store features cybersecurity books, gear, and tools. Would you like to see what's available? Just say 'show store' or 'go to store'."
+    },
+    {
+      match: /thank|thanks/i,
+      response: "You're welcome! Stay safe in The Darknet District."
+    }
+  ];
+
+  const lowercaseMessage = message.toLowerCase();
+  
+  // Check for navigation commands first
+  if (lowercaseMessage.includes('show store') || lowercaseMessage.includes('go to store')) {
+    window.location.href = 'Store-first-page.html';
+    return "Redirecting to store...";
+  }
+  
+  if (lowercaseMessage.includes('show game') || lowercaseMessage.includes('play game')) {
+    window.location.href = 'game.html';
+    return "Redirecting to game...";
+  }
+
+  // Pattern matching
+  for (const pattern of patterns) {
+    if (pattern.match.test(lowercaseMessage)) {
+      return pattern.response;
+    }
+  }
+
+  // Default response if no pattern matches
+  return "I understand you're interested in The Darknet District. Would you like to know about our store items or try our interactive game?";
+}
     "what can you do": "I can provide information about The Darknet District, help with navigation, answer questions about our services, and assist with security-related inquiries. I can also tell you about our upcoming store items or guide you to our interactive history game!",
     "store": "Our store will feature: Books (digital security guides and cyberpunk fiction), T-Shirts with exclusive designs, Stickers, PVC Patches, Electronics (custom gadgets), Survival Gear, Emergency Supplies, and Apps. These items will be available soon! Would you like to see the store page? Just say 'show store' or 'go to store'.",
     "shop": "Our store will feature: Books (digital security guides and cyberpunk fiction), T-Shirts with exclusive designs, Stickers, PVC Patches, Electronics (custom gadgets), Survival Gear, Emergency Supplies, and Apps. These items will be available soon! Would you like to see the store page? Just say 'show store' or 'go to store'.",
