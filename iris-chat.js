@@ -50,20 +50,6 @@ function getRandomResponse(responses) {
   return responses[Math.floor(Math.random() * responses.length)];
 }
 
-function addMessage(text, sender) {
-  const chatMessages = document.getElementById('chatMessages');
-  if (!chatMessages) {
-    console.error('Chat messages container not found');
-    return;
-  }
-  
-  const msgDiv = document.createElement('div');
-  msgDiv.className = `message ${sender}`;
-  msgDiv.textContent = text;
-  chatMessages.appendChild(msgDiv);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
 function getResponse(message) {
   const lowercaseMessage = message.toLowerCase();
 
@@ -88,16 +74,30 @@ function getResponse(message) {
   return "I understand you're interested in The Darknet District. Would you like to know about our store items or try our interactive game?";
 }
 
-function sendMessage() {
-  const userInput = document.getElementById('userInput');
-  const chatMessages = document.getElementById('chatMessages');
-  
-  if (!userInput || !chatMessages) {
-    console.error('Chat elements not found');
+function addMessage(text, sender) {
+  const chatMessages = document.querySelector('.chat-messages');
+  if (!chatMessages) {
+    console.error('Chat messages container not found');
     return;
   }
   
-  const message = userInput.value.trim();
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `message ${sender}`;
+  msgDiv.textContent = text;
+  chatMessages.appendChild(msgDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function sendMessage() {
+  const chatWindow = document.querySelector('.chat-window, .floating-chat .chat-window');
+  if (!chatWindow) return;
+  
+  const input = chatWindow.querySelector('#userInput');
+  const chatMessages = chatWindow.querySelector('.chat-messages');
+  
+  if (!input || !chatMessages) return;
+  
+  const message = input.value.trim();
   if (message === '') return;
   
   // Add user message
@@ -109,27 +109,18 @@ function sendMessage() {
     addMessage(response, 'iris');
   }, 500);
   
-  userInput.value = '';
+  input.value = '';
+  chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 // Initialize chat functionality when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  const userInput = document.getElementById('userInput');
-  const chatMessages = document.getElementById('chatMessages');
-  
-  if (!userInput || !chatMessages) {
-    console.error('Failed to initialize chat: Missing required elements');
-    return;
-  }
-
-  userInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      sendMessage();
-    }
-  });
-
-  // Add initial greeting if not already present
-  if (chatMessages.children.length === 0) {
-    addMessage("Greetings! I am Iris, your cybersecurity assistant in The Darknet District. How may I help you today?", 'system');
+  const userInput = document.querySelector('#userInput');
+  if (userInput) {
+    userInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
   }
 });
