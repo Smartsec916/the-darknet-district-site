@@ -162,6 +162,18 @@ html, body {
   transform: scale(1);
 }
 
+.input-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  padding: 10px;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.9);
+  border-top: 1px solid rgba(0, 255, 157, 0.3);
+}
+
 input[type="text"] {
   flex: 1;
   padding: 10px;
