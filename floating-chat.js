@@ -34,6 +34,8 @@ function sendMessage() {
 }
 
 function initFloatingChat() {
+  if (document.querySelector('.floating-chat')) return;
+  
   const chatHtml = `
     <div class="floating-chat">
       <button class="chat-toggle">Chat with Iris</button>
@@ -51,7 +53,7 @@ function initFloatingChat() {
           </div>
           <div class="chat-input">
             <input type="text" id="userInput" placeholder="Type your message...">
-            <button class="send-button">Send</button>
+            <button onclick="sendMessage()" class="send-button">Send</button>
           </div>
         </div>
       </div>

@@ -35,14 +35,24 @@
   bottom: 90px;
   right: 20px;
   width: 300px;
-  opacity: 0;
-  transform: scale(0);
-  transform-origin: bottom right;
-  transition: all 0.3s ease;
+  display: none;
   background: rgba(0, 0, 0, 0.9);
   border: 2px solid #00ff9d;
   border-radius: 8px;
   box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
+  opacity: 0;
+  transform: scale(0);
+  transform-origin: bottom right;
+  transition: all 0.3s ease;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: url('attached_assets/008.jpg') center center/cover;
+  border: 2px solid #00ff9d;
+  box-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
 }
 
 .chat-window.active {
