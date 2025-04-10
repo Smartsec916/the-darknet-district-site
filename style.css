@@ -193,3 +193,9 @@ section {
   animation: glitch 0.3s infinite;
   color: #00ff9d;
 }
+
+/* Debug borders */
+.debug-borders * {
+  border: 1px solid rgba(0, 255, 157, 0.3) !important;
+  box-sizing: border-box !important;
+}
