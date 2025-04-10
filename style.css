@@ -109,19 +109,24 @@ section {
 
 .cyberpunk-title {
   font-family: 'Arial', sans-serif;
-  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  font-size: clamp(2rem, 6vw, 3rem);
   font-weight: bold;
   text-transform: uppercase;
-  color: #c4c4c4;
+  color: #e4e4e4;
   text-shadow: 
-    0 0 7px rgba(192, 219, 255, 0.8),
-    0 0 10px rgba(65, 120, 255, 0.3),
-    0 0 21px rgba(65, 120, 255, 0.2),
-    0 0 30px rgba(0, 255, 0, 0.4),
-    0 0 45px rgba(0, 255, 0, 0.2);
-  letter-spacing: 3px;
-  opacity: 0.95;
+    0 0 7px rgba(192, 219, 255, 0.9),
+    0 0 10px rgba(65, 120, 255, 0.4),
+    0 0 21px rgba(65, 120, 255, 0.3),
+    0 0 30px rgba(0, 255, 0, 0.5),
+    0 0 45px rgba(0, 255, 0, 0.3);
+  letter-spacing: 4px;
+  opacity: 1;
   text-align: center;
+  margin: 0 auto;
+  padding: 20px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%);
+  border-radius: 5px;
+  max-width: 90%;
   padding: 0 20px;
   position: relative;
 }
