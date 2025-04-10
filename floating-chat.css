@@ -203,5 +203,9 @@ button.enter-button {
   background: rgba(0, 255, 0, 0.15);
   border: 1px solid #00ff9d;
   color: #00ff9d;
-  content: "↵ Enter"; /*Adding the enter symbol*/
+}
+
+button.enter-button::before {
+  content: "↵ Enter";
+  display: inline-block;
 }
