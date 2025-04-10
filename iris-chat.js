@@ -74,8 +74,13 @@ function sendMessage() {
 }
 
 // Allow Enter key to send messages
-document.getElementById('userInput').addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') {
-    sendMessage();
+document.addEventListener('DOMContentLoaded', function() {
+  const input = document.querySelector('#userInput');
+  if (input) {
+    input.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
   }
 });
