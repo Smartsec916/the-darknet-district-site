@@ -104,12 +104,13 @@ function sendMessage() {
     let i = 0;
     const typingInterval = setInterval(() => {
       irisDiv.textContent += response[i];
+      chatMessages.scrollTop = chatMessages.scrollHeight;
       i++;
       if (i === response.length) {
         clearInterval(typingInterval);
         irisDiv.classList.remove('typing');
       }
-    }, 50); // Adjust typing speed here
+    }, 30); // Faster typing speed
   }, 500);
 
   input.value = '';
