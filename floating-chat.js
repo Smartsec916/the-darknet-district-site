@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
+  // Create chat elements
   const floatingChat = document.createElement('div');
   floatingChat.className = 'floating-chat';
 
@@ -9,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const chatWindow = document.createElement('div');
   chatWindow.className = 'chat-window';
 
-  // Add Iris avatar and status first
+  // Create and set up Iris header
   const irisHeader = document.createElement('div');
   irisHeader.className = 'iris-header';
 
@@ -20,79 +21,19 @@ document.addEventListener('DOMContentLoaded', function () {
   status.className = 'status-indicator';
   status.textContent = 'Online';
 
+  // Append header elements
   irisHeader.appendChild(avatar);
   irisHeader.appendChild(status);
   chatWindow.appendChild(irisHeader);
 
-  // Then add chat messages container
+  // Create messages container
   const chatMessages = document.createElement('div');
   chatMessages.className = 'chat-messages';
+  chatWindow.appendChild(chatMessages);
 
-  // Add mood-aware + return-aware greeting
-  const greeting = document.createElement('div');
-  greeting.className = 'message iris';
-  greeting.textContent = '';
-  chatMessages.appendChild(greeting);
-
-  const returningUser = localStorage.getItem("hasVisitedIris");
-
-  if (returningUser) {
-    const currentMood = localStorage.getItem("irisMood") || "neutral";
-
-    const moodReturnMessages = {
-      neutral: [
-        "Welcome back to the District.",
-        "Back again. Let’s pick up where we left off."
-      ],
-      sarcastic: [
-        "Wow, it’s you again. What an honor.",
-        "Didn’t expect to see you so soon. Or at all."
-      ],
-      serious: [
-        "You're back. Good. We have work to do.",
-        "Return acknowledged. Proceed with purpose."
-      ],
-      flirty: [
-        "Back again? You must like me.",
-        "Couldn’t stay away, huh?"
-      ],
-      cold: [
-        "You’ve returned. Don’t waste time.",
-        "Back. Let’s skip the pleasantries."
-      ]
-    };
-
-    const messageOptions = moodReturnMessages[currentMood] || moodReturnMessages["neutral"];
-    const message = messageOptions[Math.floor(Math.random() * messageOptions.length)];
-
-    let i = 0;
-    const typingInterval = setInterval(() => {
-      if (i < message.length) {
-        greeting.textContent += message[i];
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        i++;
-      } else {
-        clearInterval(typingInterval);
-      }
-    }, 50);
-  } else {
-    // First-time visitor
-    localStorage.setItem("hasVisitedIris", "true");
-    getResponse("hello").then(response => {
-      let i = 0;
-      const typingInterval = setInterval(() => {
-        if (i < response.length) {
-          greeting.textContent += response[i];
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-          i++;
-        } else {
-          clearInterval(typingInterval);
-        }
-      }, 50);
-    });
-  }
-
+  // Create input container
   const inputContainer = document.createElement('div');
+  inputContainer.className = 'input-container';
   inputContainer.style.display = 'flex';
   inputContainer.style.padding = '10px';
   inputContainer.style.gap = '10px';
@@ -102,19 +43,47 @@ document.addEventListener('DOMContentLoaded', function () {
   input.placeholder = 'Type your message...';
 
   const sendButton = document.createElement('button');
+  sendButton.className = 'enter-button';
   sendButton.textContent = '↵';
 
+  // Append input elements
   inputContainer.appendChild(input);
   inputContainer.appendChild(sendButton);
-
-  chatWindow.appendChild(chatMessages);
   chatWindow.appendChild(inputContainer);
 
+  // Build final structure
   floatingChat.appendChild(chatWindow);
   floatingChat.appendChild(chatToggle);
-
   document.body.appendChild(floatingChat);
 
+  // Add initial greeting
+  const greeting = document.createElement('div');
+  greeting.className = 'message iris';
+  greeting.textContent = '';
+  chatMessages.appendChild(greeting);
+
+  const returningUser = localStorage.getItem("hasVisitedIris");
+  if (returningUser) {
+    const currentMood = localStorage.getItem("irisMood") || "neutral";
+    const moodReturnMessages = {
+      neutral: ["Welcome back to the District.", "Back again. Let's pick up where we left off."],
+      sarcastic: ["Wow, it's you again. What an honor.", "Didn't expect to see you so soon. Or at all."],
+      serious: ["You're back. Good. We have work to do.", "Return acknowledged. Proceed with purpose."],
+      flirty: ["Back again? You must like me.", "Couldn't stay away, huh?"],
+      cold: ["You've returned. Don't waste time.", "Back. Let's skip the pleasantries."]
+    };
+
+    const messageOptions = moodReturnMessages[currentMood] || moodReturnMessages.neutral;
+    const message = messageOptions[Math.floor(Math.random() * messageOptions.length)];
+    typeMessage(greeting, message);
+  } else {
+    localStorage.setItem("hasVisitedIris", "true");
+    getResponse("hello").then(response => {
+      typeMessage(greeting, response);
+    });
+  }
+
+  // Chat toggle functionality
   let isOpen = false;
 
   function toggleChat() {
@@ -130,7 +99,18 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  chatToggle.addEventListener('click', toggleChat);
+  function typeMessage(element, text) {
+    let i = 0;
+    const typingInterval = setInterval(() => {
+      if (i < text.length) {
+        element.textContent += text[i];
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        i++;
+      } else {
+        clearInterval(typingInterval);
+      }
+    }, 50);
+  }
 
   function addMessage(text, sender) {
     const messageDiv = document.createElement('div');
@@ -146,28 +126,17 @@ document.addEventListener('DOMContentLoaded', function () {
       addMessage(message, 'user');
       input.value = '';
 
-      // Add Iris's response
       setTimeout(async () => {
         const response = await getResponse(message);
         const irisDiv = document.createElement('div');
         irisDiv.className = 'message iris';
-        irisDiv.textContent = '';
         chatMessages.appendChild(irisDiv);
-
-        let i = 0;
-        const typingInterval = setInterval(() => {
-          if (i < response.length) {
-            irisDiv.textContent += response[i];
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            i++;
-          } else {
-            clearInterval(typingInterval);
-          }
-        }, 50);
+        typeMessage(irisDiv, response);
       }, 500);
     }
   }
 
+  chatToggle.addEventListener('click', toggleChat);
   sendButton.addEventListener('click', handleSend);
   input.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
