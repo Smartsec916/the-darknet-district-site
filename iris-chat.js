@@ -79,14 +79,20 @@ function sendMessage() {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Allow Enter key to send messages
+// Initialize chat functionality
 document.addEventListener('DOMContentLoaded', function() {
   const input = document.querySelector('#userInput');
+  const sendBtn = document.querySelector('.chat-input button');
+  
   if (input) {
     input.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         sendMessage();
       }
     });
+  }
+  
+  if (sendBtn) {
+    sendBtn.addEventListener('click', sendMessage);
   }
 });

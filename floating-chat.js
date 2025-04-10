@@ -86,4 +86,16 @@ function initFloatingChat() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', initFloatingChat);
+document.addEventListener('DOMContentLoaded', () => {
+  initFloatingChat();
+  
+  // Add event listener for Enter key
+  const input = document.querySelector('#userInput');
+  if (input) {
+    input.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+  }
+});
