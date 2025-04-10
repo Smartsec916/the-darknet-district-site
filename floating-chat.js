@@ -19,10 +19,21 @@ function sendMessage() {
   // Add Iris's response
   setTimeout(() => {
     const irisDiv = document.createElement('div');
-    irisDiv.className = 'message iris typing';
+    irisDiv.className = 'message iris';
     const response = getResponse(message);
-    irisDiv.textContent = response;
+    irisDiv.textContent = '';
     chatMessages.appendChild(irisDiv);
+
+    let i = 0;
+    const typingInterval = setInterval(() => {
+      if (i < response.length) {
+        irisDiv.textContent += response[i];
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        i++;
+      } else {
+        clearInterval(typingInterval);
+      }
+    }, 50);
 
     // Auto scroll to bottom
     chatMessages.scrollTop = chatMessages.scrollHeight;

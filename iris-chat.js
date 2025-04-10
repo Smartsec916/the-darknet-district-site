@@ -95,22 +95,21 @@ function sendMessage() {
   setTimeout(() => {
     const response = getResponse(message);
     const irisDiv = document.createElement('div');
-    irisDiv.className = 'message iris typing';
-    irisDiv.textContent = ''; // Start with empty text
+    irisDiv.className = 'message iris';
+    irisDiv.textContent = '';
     const chatMessages = document.querySelector('.chat-messages');
     chatMessages.appendChild(irisDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
 
     let i = 0;
     const typingInterval = setInterval(() => {
-      irisDiv.textContent += response[i];
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-      i++;
-      if (i === response.length) {
+      if (i < response.length) {
+        irisDiv.textContent += response[i];
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        i++;
+      } else {
         clearInterval(typingInterval);
-        irisDiv.classList.remove('typing');
       }
-    }, 50); // Slower typing speed
+    }, 50);
   }, 500);
 
   input.value = '';
