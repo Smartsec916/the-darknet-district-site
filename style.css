@@ -206,6 +206,8 @@ section {
   z-index: 1000;
   background: transparent !important;
   overflow: hidden;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 @media (max-width: 480px) {
