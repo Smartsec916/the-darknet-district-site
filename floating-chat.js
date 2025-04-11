@@ -8,28 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
   let lastScrollY = window.scrollY;
   let ticking = false;
   
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      window.requestAnimationFrame(() => {
-        const currentScrollY = window.scrollY;
-        const scrollDiff = currentScrollY - lastScrollY;
-        const chat = document.querySelector('.floating-chat');
-        
-        if (chat) {
-          const currentOffset = parseFloat(getComputedStyle(chat).getPropertyValue('--scroll-offset') || '0');
-          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-          const scrollPercent = (currentScrollY / maxScroll) * 100;
-          const newOffset = Math.max(Math.min(scrollPercent * 4, 400), 0);
-          chat.style.setProperty('--scroll-offset', `${newOffset}px`);
-        }
-        
-        lastScrollY = currentScrollY;
-        ticking = false;
-      });
-      
-      ticking = true;
-    }
-  });
+  // Chat will stay fixed in position
   
   // Create chat elements
   const floatingChat = document.createElement('div');
@@ -159,22 +138,11 @@ document.addEventListener('DOMContentLoaded', function () {
       input.value = '';
 
       setTimeout(async () => {
-        try {
-          const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ message })
-          });
-          const data = await response.json();
-          const irisDiv = document.createElement('div');
-          irisDiv.className = 'message iris';
-          chatMessages.appendChild(irisDiv);
-          typeMessage(irisDiv, data.response);
-        } catch (error) {
-          console.error('Error:', error);
-        }
+        const response = await getResponse(message);
+        const irisDiv = document.createElement('div');
+        irisDiv.className = 'message iris';
+        chatMessages.appendChild(irisDiv);
+        typeMessage(irisDiv, response);
       }, 500);
     }
   }
