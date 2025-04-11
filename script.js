@@ -56,28 +56,36 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function sendChatMessage(message) {
+  const CHAT_API_URL = 'https://iris-smartsec916.replit.app/chat';
+  
   try {
-    const response = await fetch('https://iris-smartsec916.replit.app/chat', {
+    if (!message || typeof message !== 'string') {
+      throw new Error('Invalid message format');
+    }
+
+    const response = await fetch(CHAT_API_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
-      body: JSON.stringify({ message: message }),
-      credentials: 'include'
+      body: JSON.stringify({ message: message.trim() }),
+      credentials: 'include',
+      timeout: 10000 // 10 second timeout
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`Server error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
-    if (!data || !data.response) {
-      throw new Error('Invalid response format');
+    if (!data || typeof data.response !== 'string') {
+      throw new Error('Invalid response format from server');
     }
     
     return data.response;
   } catch (error) {
-    console.error('Fetch error:', error);
-    throw error;
+    console.error('Chat API error:', error);
+    return 'Sorry, I encountered an error. Please try again.';
   }
 }
