@@ -196,16 +196,15 @@ section {
 
 .chat-iframe {
   position: fixed;
-  bottom: 100px;
+  bottom: 20px;
   right: 20px;
   width: 360px;
-  height: 480px;
+  height: 500px;
   border: none;
   border-radius: 10px;
   background: transparent;
   overflow: hidden;
   z-index: 9999;
-  margin-bottom: 20px;
 }
 
 @media (max-width: 480px) {
