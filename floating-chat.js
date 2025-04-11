@@ -159,11 +159,22 @@ document.addEventListener('DOMContentLoaded', function () {
       input.value = '';
 
       setTimeout(async () => {
-        const response = await getResponse(message);
-        const irisDiv = document.createElement('div');
-        irisDiv.className = 'message iris';
-        chatMessages.appendChild(irisDiv);
-        typeMessage(irisDiv, response);
+        try {
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message })
+          });
+          const data = await response.json();
+          const irisDiv = document.createElement('div');
+          irisDiv.className = 'message iris';
+          chatMessages.appendChild(irisDiv);
+          typeMessage(irisDiv, data.response);
+        } catch (error) {
+          console.error('Error:', error);
+        }
       }, 500);
     }
   }
