@@ -203,7 +203,7 @@ section {
   border: none;
   border-radius: 10px;
   z-index: 1000;
-  background: transparent !important;
+  background: rgba(0, 0, 0, 0.85) !important;
   overflow: hidden;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
