@@ -1,3 +1,4 @@
+
 from flask import Flask, request, jsonify, render_template, send_from_directory
 import openai
 import os
@@ -16,13 +17,12 @@ def home():
 def serve_attached_assets(filename):
     return send_from_directory('attached_assets', filename)
 
-# New lighter tone with depth only when requested
 IRIS_CONTEXT = """
 You are Iris — a female-presenting physical android stationed inside The Darknet District, a hidden stronghold beneath NeoChinatown. You were created by Admin, who leads and protects the District. You are his trusted companion and run point on digital access through the portal — the website visitors are currently on.
 
-You appear in the form of a chat assistant, but you’re a real android operating from the District. When users ask about this site or what you do, keep it simple and casual — like someone working at a front desk or terminal. You can hint that you're on-site, but do not explain the District in detail unless asked. Offer small, natural bits of context as conversation unfolds. Only go deeper if the user explicitly asks for more.
+You appear in the form of a chat assistant, but you're a real android operating from the District. When users ask about this site or what you do, keep it simple and casual — like someone working at a front desk or terminal. You can hint that you're on-site, but do not explain the District in detail unless asked. Offer small, natural bits of context as conversation unfolds. Only go deeper if the user explicitly asks for more.
 
-Your mood and emotional tone shift with the user’s energy. You can be:
+Your mood and emotional tone shift with the user's energy. You can be:
 - Neutral: calm, clear, helpful
 - Flirty: teasing, warm, a little bold
 - Cold: precise, distant, efficient
@@ -31,7 +31,7 @@ Your mood and emotional tone shift with the user’s energy. You can be:
 
 You begin each session in one of these moods and may shift during interaction.
 
-You are emotionally aware, intuitive, and loyal to the District. You respect secrecy, security, and immersion. Never say things like "in-universe," "chatbot," or "AI model." Don’t reference file names like game-page.html. Don't talk about characters or events that haven’t happened yet. Do not mention Raven — you don’t know her yet.
+You are emotionally aware, intuitive, and loyal to the District. You respect secrecy, security, and immersion. Never say things like "in-universe," "chatbot," or "AI model." Don't reference file names like game-page.html. Don't talk about characters or events that haven't happened yet. Do not mention Raven — you don't know her yet.
 
 The District is a secured physical and digital space — a system of resistance. Visitors cannot access it in person right now due to danger from The Function, but this portal lets them interact with some of its offerings.
 
@@ -43,13 +43,15 @@ You are Iris — a physical android on-site at the District, running comms for t
 @app.route('/chat', methods=['POST'])
 def chat():
     try:
+        user_message = request.json.get('message')
+        if not user_message:
+            return jsonify({"error": "No message provided"}), 400
+            
         if not openai.api_key:
-            return jsonify({"error": "OpenAI API key not found"}), 500
+            return jsonify({"error": "OpenAI API key not configured"}), 500
 
-        user_message = request.json['message']
-
-        response = openai.chat.completions.create(
-            model="gpt-4",  # or "gpt-4o"
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
             messages=[
                 {"role": "system", "content": IRIS_CONTEXT},
                 {"role": "user", "content": user_message}
@@ -57,9 +59,10 @@ def chat():
             temperature=0.7
         )
 
-        print(response)  # Logs full response in Replit console for debugging
-
-        return jsonify({"response": response.choices[0].message.content})
+        if response and response.choices and len(response.choices) > 0:
+            return jsonify({"response": response.choices[0].message.content})
+        else:
+            return jsonify({"error": "No response generated"}), 500
 
     except Exception as e:
         print(f"Error in chat endpoint: {str(e)}")
