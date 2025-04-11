@@ -169,7 +169,7 @@ section {
     padding: 20px;
     box-sizing: border-box;
   }
-  
+
   .game-button:hover {
     transform: scale(1.05);
   }
@@ -196,7 +196,7 @@ section {
 
 .chat-iframe {
   position: fixed !important;
-  bottom: 20px !important;
+  bottom: 100px !important;
   right: 20px !important;
   width: 360px;
   height: 480px;
