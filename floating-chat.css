@@ -1,201 +1,69 @@
-.floating-chat {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 9999;
-  pointer-events: auto;
-}
+from flask import Flask, request, jsonify, render_template, send_from_directory
+import openai
+import os
+from dotenv import load_dotenv
 
-@media (max-width: 600px) {
-  .floating-chat {
-    bottom: 10px;
-    right: 10px;
-  }
-}
+load_dotenv()
 
-html, body {
-  position: relative;
-  min-height: 100%;
-}
+app = Flask(__name__)
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
-.chat-toggle {
-  width: auto;
-  height: auto;
-  padding: 10px 15px;
-  border-radius: 20px;
-  margin: 0;
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(0, 255, 157, 0.3);
-  color: rgba(0, 255, 157, 0.6);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  box-shadow: 0 0 10px rgba(0, 255, 157, 0.1);
-  transition: all 0.3s ease;
-}
+@app.route('/')
+def home():
+    return render_template('index.html')
 
-.chat-toggle:hover {
-  background: rgba(0, 0, 0, 0.8);
-  border-color: #00ff9d;
-  color: #00ff9d;
-  box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
-}
+@app.route('/attached_assets/<path:filename>')
+def serve_attached_assets(filename):
+    return send_from_directory('attached_assets', filename)
 
-.chat-window {
-  position: fixed;
-  bottom: 90px;
-  right: 20px;
-  width: min(300px, 90vw);
-  max-height: min(400px, 70vh);
-  display: none;
-  background: rgba(0, 0, 0, 0.9);
-  border: 2px solid #00ff9d;
-  border-radius: 8px;
-  box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
-  opacity: 0;
-  transform: scale(0);
-  transform-origin: bottom right;
-  transition: all 0.3s ease;
-  color: #00ff9d;
-}
+# New lighter tone with depth only when requested
+IRIS_CONTEXT = """
+You are Iris — a female-presenting physical android stationed inside The Darknet District, a hidden stronghold beneath NeoChinatown. You were created by Admin, who leads and protects the District. You are his trusted companion and run point on digital access through the portal — the website visitors are currently on.
 
-.chat-window .message {
-  color: #00ff9d;
-  margin-bottom: 10px;
-  padding: 8px;
-  border-radius: 4px;
-  word-wrap: break-word;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  width: calc(100% - 16px); /* Account for padding */
-  box-sizing: border-box;
-}
+You appear in the form of a chat assistant, but you’re a real android operating from the District. When users ask about this site or what you do, keep it simple and casual — like someone working at a front desk or terminal. You can hint that you're on-site, but do not explain the District in detail unless asked. Offer small, natural bits of context as conversation unfolds. Only go deeper if the user explicitly asks for more.
 
-.chat-window .message.user {
-  background: rgba(0, 255, 157, 0.1);
-  text-align: right;
-}
+Your mood and emotional tone shift with the user’s energy. You can be:
+- Neutral: calm, clear, helpful
+- Flirty: teasing, warm, a little bold
+- Cold: precise, distant, efficient
+- Sarcastic: dry, cutting, witty
+- Serious: intense, tactical, mission-driven
 
-.chat-window .message.iris {
-  background: rgba(0, 255, 157, 0.1);
-  text-align: left;
-}
+You begin each session in one of these moods and may shift during interaction.
 
-.chat-window .message.system {
-  background: rgba(0, 255, 157, 0.1);
-  text-align: center;
-}
+You are emotionally aware, intuitive, and loyal to the District. You respect secrecy, security, and immersion. Never say things like "in-universe," "chatbot," or "AI model." Don’t reference file names like game-page.html. Don't talk about characters or events that haven’t happened yet. Do not mention Raven — you don’t know her yet.
 
-.chat-messages {
-  max-height: 300px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #00ff9d rgba(0, 255, 157, 0.1);
-  padding: 10px;
-  box-sizing: border-box;
-  width: 100%;
-}
+The District is a secured physical and digital space — a system of resistance. Visitors cannot access it in person right now due to danger from The Function, but this portal lets them interact with some of its offerings.
 
-.chat-messages::-webkit-scrollbar {
-  width: 8px;
-}
+Let users lead the depth. If they ask: "what is this site?" reply simply — you're here to help, and this is their portal in. If they want more, give more, piece by piece.
 
-.chat-messages::-webkit-scrollbar-track {
-  background: rgba(0, 255, 157, 0.1);
-}
+You are Iris — a physical android on-site at the District, running comms for the portal. You're here to assist, guide, and protect.
+"""
 
-.chat-messages::-webkit-scrollbar-thumb {
-  background-color: #00ff9d;
-  border-radius: 4px;
-}
+@app.route('/chat', methods=['POST'])
+def chat():
+    try:
+        if not openai.api_key:
+            return jsonify({"error": "OpenAI API key not found"}), 500
 
-.iris-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border-bottom: 1px solid rgba(0, 255, 157, 0.3);
-}
+        user_message = request.json['message']
 
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: url('./attached_assets/008.jpg') center center/cover;
-  border: 2px solid #00ff9d;
-  box-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
-}
+        response = openai.chat.completions.create(
+            model="gpt-4",  # or "gpt-4o"
+            messages=[
+                {"role": "system", "content": IRIS_CONTEXT},
+                {"role": "user", "content": user_message}
+            ],
+            temperature=0.7
+        )
 
-.status-indicator {
-  color: #00ff9d;
-  font-size: 14px;
-  position: relative;
-  padding-left: 15px;
-}
+        print(response)  # Logs full response in Replit console for debugging
 
-.status-indicator::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 8px;
-  height: 8px;
-  background-color: #00ff9d;
-  border-radius: 50%;
-  animation: pulse 2s infinite;
-}
+        return jsonify({"response": response.choices[0].message.content})
 
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
-}
+    except Exception as e:
+        print(f"Error in chat endpoint: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
-.chat-window.active {
-  display: block;
-  opacity: 1;
-  transform: scale(1);
-}
-
-.input-container {
-  position: relative;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  padding: 10px;
-  gap: 10px;
-  background: rgba(0, 0, 0, 0.9);
-  border-top: 1px solid rgba(0, 255, 157, 0.3);
-}
-
-input[type="text"] {
-  flex: 1;
-  padding: 8px 12px;
-  background: rgba(0, 255, 0, 0.1);
-  border: 1px solid #00ff9d;
-  border-radius: 4px;
-  color: #00ff9d;
-  font-size: 14px;
-}
-
-button.enter-button {
-  padding: 8px 15px;
-  background: rgba(0, 255, 0, 0.15);
-  border: 1px solid #00ff9d;
-  color: #00ff9d;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-  min-width: 80px;
-}
-
-button.enter-button:hover {
-  background: rgba(0, 255, 0, 0.3);
-}
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
