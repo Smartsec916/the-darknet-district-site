@@ -17,3 +17,13 @@ document.addEventListener('DOMContentLoaded', function() {
 function scrollToTop() {
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
+
+// Handle chat iframe expansion
+window.addEventListener('message', function(event) {
+  const chatIframe = document.querySelector('.chat-iframe');
+  if (event.data === 'expand') {
+    chatIframe.classList.add('expanded');
+  } else if (event.data === 'collapse') {
+    chatIframe.classList.remove('expanded');
+  }
+});
