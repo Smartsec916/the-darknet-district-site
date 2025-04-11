@@ -195,9 +195,9 @@ section {
 }
 
 .chat-iframe {
-  position: fixed !important;
-  bottom: 100px !important;
-  right: 20px !important;
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
   width: 360px;
   height: 480px;
   border: none;
