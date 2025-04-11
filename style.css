@@ -198,8 +198,8 @@ section {
   position: fixed !important;
   bottom: 20px;
   right: 20px;
-  width: 400px;
-  height: 600px;
+  width: 360px;
+  height: 480px;
   border: none;
   border-radius: 10px;
   z-index: 1000;
@@ -212,6 +212,6 @@ section {
 @media (max-width: 480px) {
   .chat-iframe {
     width: 90%;
-    height: 500px;
+    height: 480px;
   }
 }
