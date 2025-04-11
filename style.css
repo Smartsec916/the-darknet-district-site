@@ -202,12 +202,12 @@ section {
   height: 480px;
   border: none;
   border-radius: 10px;
-  z-index: 1000 !important;
+  z-index: 9999 !important;
   background: transparent !important;
   overflow: hidden;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  will-change: transform;
+  transform: translateZ(0);
 }
 
 @media (max-width: 480px) {
