@@ -203,12 +203,15 @@ section {
   border: none;
   border-radius: 10px;
   background: transparent;
-  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
   z-index: 9999;
+  transition: all 0.3s ease;
 }
 
 @media (max-width: 480px) {
   .chat-iframe {
     width: 90%;
+    right: 5%;
+    bottom: 10px;
   }
 }
