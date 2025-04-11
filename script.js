@@ -30,38 +30,54 @@ document.addEventListener('DOMContentLoaded', function() {
     
     try {
       const data = event.data;
+      console.log('Received message:', data);
       
-      if (data.type === 'chat-message') {
+      if (data.type === 'chat-message' && data.message) {
         const response = await sendChatMessage(data.message);
-        chatIframe.contentWindow.postMessage({
-          type: 'chat-response',
-          response: response
-        }, 'https://iris-smartsec916.replit.app');
+        console.log('Sending response:', response);
+        
+        if (response) {
+          chatIframe.contentWindow.postMessage({
+            type: 'chat-response',
+            response: response
+          }, 'https://iris-smartsec916.replit.app');
+        } else {
+          throw new Error('Empty response received');
+        }
       }
     } catch (error) {
       console.error('Chat error:', error);
       chatIframe.contentWindow.postMessage({
         type: 'chat-error',
-        error: 'Failed to process message'
+        error: 'Failed to process message. Please try again.'
       }, 'https://iris-smartsec916.replit.app');
     }
   });
 });
 
 async function sendChatMessage(message) {
-  const response = await fetch('https://iris-smartsec916.replit.app/chat', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ message }),
-    credentials: 'include'
-  });
+  try {
+    const response = await fetch('https://iris-smartsec916.replit.app/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message: message }),
+      credentials: 'include'
+    });
 
-  if (!response.ok) {
-    throw new Error('Network response was not ok');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!data || !data.response) {
+      throw new Error('Invalid response format');
+    }
+    
+    return data.response;
+  } catch (error) {
+    console.error('Fetch error:', error);
+    throw error;
   }
-
-  const data = await response.json();
-  return data.response;
 }
