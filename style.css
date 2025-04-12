@@ -34,6 +34,8 @@ section {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .second-section {

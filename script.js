@@ -30,7 +30,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  window.addEventListener('scroll', checkSectionVisibility);
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        checkSectionVisibility();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
   checkSectionVisibility(); // Initial check
 });
 
