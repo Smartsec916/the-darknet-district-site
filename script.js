@@ -1,4 +1,3 @@
-
 // Basic scroll functionality
 document.addEventListener('DOMContentLoaded', function() {
   const sections = document.querySelectorAll('section');
@@ -8,16 +7,21 @@ document.addEventListener('DOMContentLoaded', function() {
     sections.forEach(section => {
       const rect = section.getBoundingClientRect();
       const windowHeight = window.innerHeight;
-      
-      // Calculate how much of the section is visible
-      const visiblePercentage = Math.min(
-        Math.max(
-          0,
-          Math.min(rect.bottom, windowHeight) - Math.max(rect.top, 0)
-        ) / windowHeight,
-        1
-      );
-      
+
+      // Calculate visibility based on section position
+      const sectionTop = rect.top;
+      const sectionHeight = rect.height;
+      const viewportCenter = windowHeight / 2;
+
+      // Calculate opacity based on distance from viewport center
+      let visiblePercentage;
+      if (sectionTop < viewportCenter && sectionTop > -sectionHeight) {
+        visiblePercentage = 1 - Math.abs(sectionTop - viewportCenter) / (sectionHeight);
+      } else {
+        visiblePercentage = 0;
+      }
+
+      visiblePercentage = Math.min(Math.max(visiblePercentage, 0), 1);
       section.style.opacity = visiblePercentage;
     });
 
