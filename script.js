@@ -114,10 +114,16 @@ function toggleChat() {
   const chatToggle = document.querySelector('.chat-toggle');
   if (chatContainer) {
     chatContainer.classList.toggle('active');
+    chatToggle.style.display = chatContainer.classList.contains('active') ? 'none' : 'block';
+    
+    // If opening chat, show initial message
     if (chatContainer.classList.contains('active')) {
-      chatToggle.style.display = 'none';
-    } else {
-      chatToggle.style.display = 'block';
+      setTimeout(() => {
+        const mood = localStorage.getItem("irisMood") || "neutral";
+        const moodGreetings = greetings[mood] || greetings["neutral"];
+        const message = moodGreetings[Math.floor(Math.random() * moodGreetings.length)];
+        displayMessage('Iris: ' + message, 'bot-message');
+      }, 500);
     }
   }
 }
