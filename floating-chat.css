@@ -1,3 +1,14 @@
+.chat-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 350px;
+  height: 500px;
+  z-index: 1000;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
+}
 
 from flask import Flask, request, jsonify, render_template, send_from_directory
 import openai
