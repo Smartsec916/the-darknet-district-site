@@ -46,3 +46,13 @@ document.addEventListener('DOMContentLoaded', function() {
 function scrollToTop() {
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
+
+function toggleChat() {
+  const container = document.querySelector('.chat-container');
+  const chatFrame = document.getElementById('chat-frame');
+  const chatToggle = document.querySelector('.chat-toggle');
+  
+  container.classList.toggle('expanded');
+  chatFrame.style.display = container.classList.contains('expanded') ? 'block' : 'none';
+  chatToggle.style.display = container.classList.contains('expanded') ? 'none' : 'flex';
+}
