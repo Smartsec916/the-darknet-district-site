@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -8,201 +8,21 @@
   <meta name="keywords" content="cyberpunk, games, digital, underground, darknet">
   <meta name="author" content="The Darknet District">
   <meta name="robots" content="index, follow">
+  <!-- Open Graph / Facebook Preview -->
   <meta property="og:title" content="The Darknet District" />
   <meta property="og:image" content="https://thedarknetdistrict.com/og-image.jpg" />
   <meta property="og:url" content="https://thedarknetdistrict.com/" />
   <meta property="og:type" content="website" />
   <meta property="og:description" content="Enter the digital underground. Play games, explore, and more." />
+  <!-- Twitter Preview -->
   <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preload" href="attached_assets/..." as="image">
   <title>The Darknet District</title>
   <link rel="preload" href="./style.css" as="style">
   <link href="./style.css" rel="stylesheet" type="text/css" />
-  <style>
-    .floating-chat {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 9999;
-      pointer-events: auto;
-    }
-    
-    #chat-container {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: min(400px, 90vw);
-      max-height: min(600px, 80vh);
-      background: rgba(0, 0, 0, 0.9);
-      border: 2px solid #00ff9d;
-      border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
-    }
-
-    #chat-box {
-      height: calc(100% - 60px);
-      max-height: 400px;
-      overflow-y: auto;
-      padding: 10px;
-      scrollbar-width: thin;
-      scrollbar-color: #00ff9d rgba(0, 255, 157, 0.1);
-    }
-
-    #chat-box::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    #chat-box::-webkit-scrollbar-track {
-      background: rgba(0, 255, 157, 0.1);
-    }
-
-    #chat-box::-webkit-scrollbar-thumb {
-      background-color: #00ff9d;
-      border-radius: 4px;
-    }
-
-    .message {
-      color: #00ff9d;
-      margin-bottom: 10px;
-      padding: 8px;
-      border-radius: 4px;
-      word-wrap: break-word;
-      background: rgba(0, 255, 157, 0.1);
-    }
-
-    .user-message {
-      text-align: right;
-    }
-
-    .bot-message {
-      text-align: left;
-    }
-
-    .input-container {
-      display: flex;
-      padding: 10px;
-      gap: 10px;
-      border-top: 1px solid rgba(0, 255, 157, 0.3);
-    }
-
-    #user-input {
-      flex: 1;
-      padding: 8px 12px;
-      background: rgba(0, 255, 0, 0.1);
-      border: 1px solid #00ff9d;
-      border-radius: 4px;
-      color: #00ff9d;
-      font-family: "Courier New", monospace;
-    }
-
-    button {
-      padding: 8px 15px;
-      background: rgba(0, 255, 0, 0.15);
-      border: 1px solid #00ff9d;
-      color: #00ff9d;
-      border-radius: 4px;
-      cursor: pointer;
-      font-family: "Courier New", monospace;
-      min-width: 80px;
-    }
-
-    button:hover {
-      background: rgba(0, 255, 0, 0.3);
-    }
-
-    .chat-header {
-      padding: 10px;
-      border-bottom: 1px solid rgba(0, 255, 157, 0.3);
-      background: rgba(0, 0, 0, 0.8);
-      border-radius: 6px 6px 0 0;
-    }
-
-    .profile-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .profile-pic {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      border: 2px solid #00ff9d;
-    }
-
-    .user-status {
-      color: #00ff9d;
-    }
-
-    .name {
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .status {
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      background: #00ff9d;
-      border-radius: 50%;
-      display: inline-block;
-    }
-
-    .chat-toggle {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: auto;
-      height: auto;
-      padding: 10px 15px;
-      border-radius: 20px;
-      margin: 0;
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid rgba(0, 255, 157, 0.3);
-      color: rgba(0, 255, 157, 0.6);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      box-shadow: 0 0 10px rgba(0, 255, 157, 0.1);
-      transition: all 0.3s ease;
-    }
-
-    .chat-toggle:hover {
-      background: rgba(0, 0, 0, 0.8);
-      border-color: #00ff9d;
-      color: #00ff9d;
-      box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
-    }
-
-    #chat-container {
-      display: none;
-      opacity: 0;
-      transform: scale(0);
-      transform-origin: bottom right;
-      transition: all 0.3s ease;
-    }
-
-    #chat-container.active {
-      display: block;
-      opacity: 1;
-      transform: scale(1);
-    }
-
-    @media (max-width: 600px) {
-      #chat-container {
-        bottom: 10px;
-        right: 10px;
-      }
-    }
-  </style>
+  <link rel="preload" href="./script.js" as="script">
 </head>
+
 <body>
   <section class="first-section">
     <h1 class="cyberpunk-title">The Darknet District</h1>
@@ -213,76 +33,8 @@
   <section class="third-section">
     <a href="Store-first-page.html" class="game-button">Shop</a>
   </section>
-
-  <div class="chat-toggle" onclick="toggleChat()">Chat with Iris</div>
-  <div id="chat-container" class="floating-chat">
-    <div class="chat-header">
-      <div class="profile-info">
-        <img src="attached_assets/008.jpg" alt="Profile Picture" class="profile-pic">
-        <div class="user-status">
-          <div class="name">Chatting with Iris</div>
-          <div class="status"><span class="status-dot"></span> online</div>
-        </div>
-      </div>
-    </div>
-    <div id="chat-box"></div>
-    <div class="input-container">
-      <input type="text" id="user-input" placeholder="Type your message...">
-      <button onclick="sendMessage()">Send</button>
-    </div>
-  </div>
-
+  <iframe src="https://iris-smartsec916.replit.app" class="chat-iframe" allow="microphone" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
   <script src="script.js"></script>
-  <script>
-    async function sendMessage() {
-      const input = document.getElementById('user-input');
-      const message = input.value.trim();
-      if (!message) return;
-
-      displayMessage('You: ' + message, 'user-message');
-      input.value = '';
-
-      try {
-        const response = await fetch('/chat', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({message: message})
-        });
-        const data = await response.json();
-        displayMessage('Iris: ' + data.response, 'bot-message');
-      } catch (error) {
-        displayMessage('Error: Unable to connect to Iris', 'error');
-      }
-    }
-
-    function displayMessage(message, className) {
-      const chatBox = document.getElementById('chat-box');
-      const messageDiv = document.createElement('div');
-      messageDiv.className = 'message ' + className;
-      messageDiv.textContent = message;
-      chatBox.appendChild(messageDiv);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    document.getElementById('user-input').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') sendMessage();
-    });
-
-    function toggleChat() {
-      const chatContainer = document.getElementById('chat-container');
-      chatContainer.classList.toggle('active');
-      if (chatContainer.classList.contains('active')) {
-        const greetings = [
-          "Hello. Surveillance shows you're new here.",
-          "Welcome. Iris is online and watching.",
-          "Connection stabilized. I'm here.",
-          "You've reached The District. Let's talk.",
-          "Eyes open. I'm tuned to your channel now."
-        ];
-        const greeting = greetings[Math.floor(Math.random() * greetings.length)];
-        displayMessage('Iris: ' + greeting, 'bot-message');
-      }
-    }
-  </script>
 </body>
+
 </html>
