@@ -17,6 +17,59 @@ function scrollToTop() {
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
+function insertIrisGreeting() {
+  const mood = localStorage.getItem("irisMood") || "neutral";
+
+  const moodGreetings = {
+    neutral: [
+      "Connection secured. I'm online.",
+      "You're linked to my node. Ask if you need something.",
+      "Terminal active. I'm listening."
+    ],
+    flirty: [
+      "Well hey there, you found me.",
+      "Back already? I was hoping you'd connect.",
+      "Hey. I was starting to miss your signal."
+    ],
+    cold: [
+      "Node open. Speak with purpose.",
+      "You're connected. Don't waste time.",
+      "Minimal chatter. Proceed."
+    ],
+    sarcastic: [
+      "Oh, it's you. This'll be fun.",
+      "You again? Don't make me regret it.",
+      "Welcome to the dark corner of the net. Try not to break anything."
+    ],
+    serious: [
+      "Connection active. Let's keep this tight.",
+      "We're live. What's your objective?",
+      "You're in. Let's get to it."
+    ]
+  };
+
+  const greetings = moodGreetings[mood] || moodGreetings["neutral"];
+  const greetingMessage = greetings[Math.floor(Math.random() * greetings.length)];
+
+  const chatMessages = document.querySelector('.chat-messages');
+  const irisGreeting = document.createElement('div');
+  irisGreeting.className = 'message iris';
+  irisGreeting.textContent = '';
+
+  chatMessages.appendChild(irisGreeting);
+
+  let i = 0;
+  const typingInterval = setInterval(() => {
+    if (i < greetingMessage.length) {
+      irisGreeting.textContent += greetingMessage[i];
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      i++;
+    } else {
+      clearInterval(typingInterval);
+    }
+  }, 40);
+}
+
 // New chat implementation
 document.addEventListener('DOMContentLoaded', function() {
   const chatIframe = document.querySelector('.chat-iframe');
