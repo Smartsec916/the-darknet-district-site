@@ -111,5 +111,13 @@ async function sendMessage() {
 
 function toggleChat() {
   const chatContainer = document.getElementById('chat-container');
-  chatContainer.classList.toggle('active');
+  const chatToggle = document.querySelector('.chat-toggle');
+  if (chatContainer) {
+    chatContainer.classList.toggle('active');
+    if (chatContainer.classList.contains('active')) {
+      chatToggle.style.display = 'none';
+    } else {
+      chatToggle.style.display = 'block';
+    }
+  }
 }

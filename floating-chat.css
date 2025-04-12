@@ -81,6 +81,7 @@ if __name__ == '__main__':
   z-index: 1000;
   display: none;
   box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
+  transition: all 0.3s ease;
 }
 
 .chat-container.active {
