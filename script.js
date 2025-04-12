@@ -18,7 +18,8 @@ document.addEventListener('DOMContentLoaded', function() {
         1
       );
 
-      section.style.opacity = visiblePercentage;
+      // Apply opacity only to the background
+      section.style.setProperty('--bg-opacity', visiblePercentage);
     });
 
     if (backToTopButton) {
