@@ -22,7 +22,7 @@ section {
   align-items: center;
   justify-content: center;
   position: relative;
-  margin: -10vh 0;
+  margin: -20vh 0;
   background-color: black;
   opacity: 0;
   transition: opacity 0.5s ease-in-out;
