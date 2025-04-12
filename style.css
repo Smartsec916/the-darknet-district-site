@@ -1,3 +1,4 @@
+
 html {
   scroll-behavior: smooth;
   height: 100%;
@@ -192,26 +193,4 @@ section {
 .loading {
   animation: glitch 0.3s infinite;
   color: #00ff9d;
-}
-
-.chat-iframe {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 400px;
-  height: 600px;
-  border: none;
-  border-radius: 10px;
-  z-index: 1000;
-  background: transparent !important;
-  overflow: hidden;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-@media (max-width: 480px) {
-  .chat-iframe {
-    width: 90%;
-    height: 500px;
-  }
 }
