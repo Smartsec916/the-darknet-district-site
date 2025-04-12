@@ -21,6 +21,16 @@
   <div style="height: 200px; background: black;"></div>
   <link rel="stylesheet" href="floating-chat.css">
   <script src="script.js"></script>
-  <iframe src="https://iris-smartsec916.replit.app/" class="chat-container"></iframe>
+  <button class="chat-toggle">Chat</button>
+  <iframe src="https://iris-smartsec916.replit.app/" class="chat-container" style="display: none;"></iframe>
+  <script>
+    const chatToggle = document.querySelector('.chat-toggle');
+    const chatContainer = document.querySelector('.chat-container');
+    
+    chatToggle.addEventListener('click', () => {
+      chatContainer.style.display = chatContainer.style.display === 'none' ? 'block' : 'none';
+      chatContainer.classList.toggle('expanded');
+    });
+  </script>
 </body>
 </html>
