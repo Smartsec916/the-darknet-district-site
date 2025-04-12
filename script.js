@@ -1,3 +1,4 @@
+
 // Basic scroll functionality
 document.addEventListener('DOMContentLoaded', function() {
   const backToTopButton = document.getElementById("backToTop");
