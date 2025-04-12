@@ -20,20 +20,85 @@ function scrollToTop() {
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
-async function getResponse(message) {
-  const input = message.toLowerCase();
+const greetings = {
+  neutral: [
+    "Connection secured. I'm online.",
+    "You're linked to my node. Ask if you need something."
+  ],
+  flirty: [
+    "Well hey there, you found me.",
+    "Back already? I was hoping you'd connect."
+  ],
+  cold: [
+    "Node open. Speak with purpose.",
+    "You're connected. Don't waste time."
+  ],
+  sarcastic: [
+    "Oh, it's you. This'll be fun.",
+    "You again? Don't make me regret it."
+  ],
+  serious: [
+    "Connection active. Let's keep this tight.",
+    "We're live. What's your objective?"
+  ]
+};
 
-  // Mood system
-  let mood = localStorage.getItem("irisMood");
-  if (!mood) {
-    const moods = ["neutral", "flirty", "cold", "sarcastic", "serious"];
-    mood = moods[Math.floor(Math.random() * moods.length)];
-    localStorage.setItem("irisMood", mood);
+async function sendMessage() {
+  const input = document.getElementById('user-input');
+  const message = input.value.trim();
+  if (!message) return;
+
+  displayMessage('You: ' + message, 'user-message');
+  input.value = '';
+
+  try {
+    const response = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: message })
+    });
+    const data = await response.json();
+    displayMessage('Iris: ' + data.response, 'bot-message');
+  } catch (error) {
+    displayMessage('Error: ' + error.message, 'error');
   }
+}
 
-  // Placeholder for your existing getResponse function content
-  //  You'll need to add your actual logic here based on iris-chat.js
-  return "This is a placeholder response.  Replace this with your actual chatbot logic.";
+function insertIrisChat() {
+  const chatHTML = `
+    <div id="chat-container" class="chat-container">
+      <div class="chat-header">
+        <div class="profile-info">
+          <div class="profile-pic"></div>
+          <div>
+            <div>Iris</div>
+            <div class="user-status"><span class="status-dot"></span>Online</div>
+          </div>
+        </div>
+      </div>
+      <div id="chat-box"></div>
+      <div class="input-container">
+        <input type="text" id="user-input" placeholder="Type your message...">
+      </div>
+    </div>
+    <button class="chat-toggle" onclick="toggleChat()">Chat with Iris</button>
+  `;
+  document.body.insertAdjacentHTML('beforeend', chatHTML);
+  
+  document.getElementById('user-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') sendMessage();
+  });
+}
+
+function toggleChat() {
+  const chatContainer = document.getElementById('chat-container');
+  chatContainer.classList.toggle('active');
+  if (chatContainer.classList.contains('active')) {
+    const mood = localStorage.getItem("irisMood") || "neutral";
+    const moodGreetings = greetings[mood] || greetings["neutral"];
+    const message = moodGreetings[Math.floor(Math.random() * moodGreetings.length)];
+    displayMessage('Iris: ' + message, 'bot-message');
+  }
 }
 
 function insertIrisChat() {
