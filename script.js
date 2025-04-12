@@ -5,6 +5,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function checkSectionVisibility() {
     sections.forEach(section => {
+      // Skip iframe container
+      if (section.contains(document.querySelector('iframe'))) {
+        return;
+      }
+      
       const rect = section.getBoundingClientRect();
       const windowHeight = window.innerHeight;
 
