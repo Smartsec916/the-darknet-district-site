@@ -13,25 +13,26 @@
         padding: 10px;
         gap: 15px;
       }
-      
+
       .category-card {
         margin: 0 10px;
       }
-      
+
       .category-title {
         font-size: 1em;
       }
-      
+
       .category-description {
         font-size: 0.8em;
       }
     }
-    
+
     @media (min-width: 769px) and (max-width: 1024px) {
       .product-grid {
         grid-template-columns: repeat(2, 1fr);
       }
     }
+
     .product-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -42,7 +43,7 @@
       padding: 15px;
       box-sizing: border-box;
     }
-    
+
     .category-card {
       background: rgba(0, 0, 0, 0.7);
       border: 2px solid #00ff9d;
@@ -59,13 +60,13 @@
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
     }
-    
+
     .category-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
       background: rgba(0, 255, 157, 0.1);
     }
-    
+
     .category-title {
       color: #00ff9d;
       font-size: 1.2em;
@@ -74,7 +75,7 @@
       letter-spacing: 2px;
       text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
     }
-    
+
     .category-description {
       color: #e4e4e4;
       font-size: 0.9em;
@@ -83,36 +84,52 @@
   </style>
 </head>
 <body style="margin: 0; background-color: black; text-align: center;">
+
+  <!-- CYBERPUNK AFFILIATE BANNER START -->
+<!-- CYBERPUNK AFFILIATE BANNER START -->
+<div style="background:#0a0a0a; border:2px solid #00ff9d; border-radius:12px; padding:12px; max-width:1000px; margin:30px auto 0 auto; box-shadow:0 0 12px #00ff9d;">
+  <a href="https://www.amazon.com/stores/MissionDarkness/page/017966AA-0EC8-428A-834E-4041B8CFA3E4?lp_asin=B0D4NPXG49&store_ref=bl_ast_dp_brandLogo_sto&linkCode=ll2&tag=thedarknetdis-20&linkId=64b29219822990d7d8d6ecf8c1bb5dc3&language=en_US&ref_=as_li_ss_tl"
+     target="_blank" style="text-decoration:none;">
+    <img src="attached_assets/mission_darkness_banner.jpg" alt="Mission Darkness - Trusted Faraday Protection" style="width:100%; border-radius:8px;" />
+    <p style="color:#00ff9d; font-family:'Courier New', monospace; font-size:0.95em; margin-top:8px; text-align:center;">
+      Shop EMP-shielded bags, gear lockers, and signal-blocking tools → Powered by Mission Darkness
+    </p>
+  </a>
+</div>
+<!-- CYBERPUNK AFFILIATE BANNER END -->
+
+
+  <!-- CYBERPUNK AFFILIATE BANNER END -->
+
   <div style="min-height: 120vh; background-image: url('attached_assets/cyberpunk_shop.jpg.png'); background-size: cover; background-position: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 50px; position: relative;">
     <div class="product-grid">
       <div class="category-card">
         <h3 class="category-title">Books</h3>
         <p class="category-description">Digital manuscripts, rare editions, and forbidden knowledge</p>
       </div>
-      
+
       <div class="category-card">
         <h3 class="category-title">Apps & Software</h3>
         <p class="category-description">Custom tools, security solutions, and digital utilities</p>
       </div>
-      
+
       <div class="category-card" onclick="window.location.href='./store-apparel.html';" style="cursor: pointer;">
         <h3 class="category-title">Apparel & Accessories</h3>
         <p class="category-description">Tech-enhanced clothing, cyberpunk fashion, stickers & patches</p>
       </div>
 
-
-      
       <div class="category-card">
         <h3 class="category-title">Survival & Emergency Gear</h3>
         <p class="category-description">Essential equipment for urban survival</p>
       </div>
-      
+
       <div class="category-card">
         <h3 class="category-title">Electronics & Tools</h3>
         <p class="category-description">Cutting-edge devices and specialized hardware</p>
       </div>
     </div>
   </div>
+
   <div style="height: 200px; background: black;"></div>
   <script src="script.js"></script>
 </body>
