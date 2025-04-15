@@ -23,18 +23,84 @@
   <link href="./floating-chat.css" rel="stylesheet" type="text/css">
   <link rel="dns-prefetch" href="https://thedarknetdistrict.com">
   <link rel="preconnect" href="https://thedarknetdistrict.com">
+  <style>
+    .top-nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      padding: 10px 0;
+      z-index: 9999;
+    }
+
+    .top-nav a {
+      font-family: 'Courier New', monospace;
+      color: #00ffcc;
+      text-decoration: none;
+      padding: 8px 16px;
+      border: 1px solid #00ffcc;
+      border-radius: 4px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .top-nav a:hover {
+      background-color: #00ffcc;
+      color: black;
+    }
+
+    .tipjar-section {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+      margin: 0;
+    }
+
+    .tipjar-section img {
+      width: 300px;
+      max-width: 90vw;
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 0 10px #00fff7);
+      transition: transform 0.3s ease;
+    }
+
+    .tipjar-section img:hover {
+      transform: scale(1.05);
+    }
+
+    body {
+      padding-top: 60px; /* Account for fixed nav */
+    }
+  </style>
 </head>
 
 <body>
 
-  
+  <!-- Top Navigation Buttons -->
+  <div class="top-nav">
+    <a href="game-first-page.html">Play a Game</a>
+    <a href="Store-first-page.html">Shop</a>
+  </div>
 
   <section class="first-section">
     <h1 class="cyberpunk-title">The Darknet District</h1>
   </section>
+
   <section class="second-section">
     <a href="game-first-page.html" class="game-button">Play a game</a>
   </section>
+
+  <!-- TIP JAR SECTION -->
+  <section class="tipjar-section">
+    <a href="https://www.paypal.com/donate/" target="_blank">
+      <img src="attached_assets/tipjar-glow.jpg" alt="Tip Jar - Fuel the Resistance">
+    </a>
+  </section>
+
   <section class="third-section">
     <a href="Store-first-page.html" class="game-button">Shop</a>
   </section>
@@ -46,8 +112,10 @@
       allow="microphone"
     ></iframe>
   </div>
+
   <section class="fourth-section" style="background-image: url('attached_assets/0_2.jpeg');">
   </section>
+
   <div class="bottom-header"></div>
   <script src="script.js"></script>
 </body>
