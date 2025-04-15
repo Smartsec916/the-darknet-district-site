@@ -4,11 +4,11 @@ if (typeof window.bannerInitialized === 'undefined') {
   window.banners = [
     {
       image: "/attached_assets/881f5832-0a1e-4079-8a66-fbc2c6479931._CR0,0,3000,600_SX3000_.jpg",
-      link: "https://www.amazon.com/stores/MissionDarkness/page/017966AA-0EC8-428A-834E-4041B8CFA3E4"
+      link: "https://mosequipment.com/"
     },
     {
       image: "/attached_assets/cyberpunk_game.jpg",
-      link: "https://www.amazon.com/stores/CD+PROJEKT+RED+GEAR+/page/E1B343BC-B052-4606-9582-290BB51557B5"
+      link: "https://www.cdprojektred.com/en"
     }
   ];
   window.currentBanner = 0;
