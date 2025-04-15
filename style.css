@@ -200,7 +200,7 @@ section {
 }
 
 .fourth-section {
-  background-image: url('attached_assets/0_2.jpeg');
+  background-image: url('./attached_assets/0_2.jpeg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
