@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,22 +7,35 @@
   <meta name="keywords" content="cyberpunk, games, digital, underground, darknet">
   <meta name="author" content="The Darknet District">
   <meta name="robots" content="index, follow">
+
   <!-- Open Graph / Facebook Preview -->
   <meta property="og:title" content="The Darknet District" />
   <meta property="og:image" content="https://thedarknetdistrict.com/og-image.jpg" />
   <meta property="og:url" content="https://thedarknetdistrict.com/" />
   <meta property="og:type" content="website" />
   <meta property="og:description" content="Enter the digital underground. Play games, explore, and more." />
-  <!-- Twitter Preview -->
+
+  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <link rel="preload" href="attached_assets/..." as="image">
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-HS0KYNY5H9"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-HS0KYNY5H9');
+  </script>
+
   <title>The Darknet District</title>
+  <link rel="preload" href="attached_assets/..." as="image">
   <link rel="preload" href="./style.css" as="style">
   <link rel="preload" href="./script.js" as="script">
   <link href="./style.css" rel="stylesheet" type="text/css" media="print" onload="this.media='all'">
   <link href="./floating-chat.css" rel="stylesheet" type="text/css">
   <link rel="dns-prefetch" href="https://thedarknetdistrict.com">
   <link rel="preconnect" href="https://thedarknetdistrict.com">
+
   <style>
     .top-nav {
       position: fixed;
@@ -79,7 +92,6 @@
 </head>
 
 <body>
-
   <!-- Top Navigation Buttons -->
   <div class="top-nav">
     <a href="game-first-page.html">Play a Game</a>
