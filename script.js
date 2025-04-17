@@ -52,7 +52,7 @@ function initializeBannerRotation() {
       imageEl.src = banner.image;
       linkEl.href = banner.link;
       if (banner.style) {
-        Object.assign(imageEl.style, banner.style);
+        imageEl.style.cssText = banner.style;
       }
       glitchEffect();
       imageEl.style.opacity = 1;
