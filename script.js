@@ -9,6 +9,10 @@ if (typeof window.bannerInitialized === 'undefined') {
     {
       image: "/attached_assets/cyberpunk_game.jpg",
       link: "https://www.cdprojektred.com/en"
+    },
+    {
+      image: "/attached_assets/TDND Banner.jpg",
+      link: "#"
     }
   ];
   window.currentBanner = 0;
