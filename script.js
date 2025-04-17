@@ -12,7 +12,8 @@ if (typeof window.bannerInitialized === 'undefined') {
     },
     {
       image: "/attached_assets/TDND Banner.jpg",
-      link: "#"
+      link: "#",
+      style: "object-fit: cover; height: 200px;"
     }
   ];
   window.currentBanner = 0;
@@ -50,6 +51,9 @@ function initializeBannerRotation() {
       const banner = banners[currentBanner];
       imageEl.src = banner.image;
       linkEl.href = banner.link;
+      if (banner.style) {
+        Object.assign(imageEl.style, banner.style);
+      }
       glitchEffect();
       imageEl.style.opacity = 1;
       imageEl.style.boxShadow = '0 0 20px #00ff9d';
