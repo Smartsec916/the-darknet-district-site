@@ -9,11 +9,6 @@ if (typeof window.bannerInitialized === 'undefined') {
     {
       image: "/attached_assets/cyberpunk_game.jpg",
       link: "https://www.cdprojektred.com/en"
-    },
-    {
-      image: "/attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png",
-      link: "#",
-      style: "height: 600px; object-fit: cover;"
     }
   ];
   window.currentBanner = 0;
@@ -51,9 +46,6 @@ function initializeBannerRotation() {
       const banner = banners[currentBanner];
       imageEl.src = banner.image;
       linkEl.href = banner.link;
-      if (banner.style) {
-        imageEl.style.cssText = banner.style;
-      }
       glitchEffect();
       imageEl.style.opacity = 1;
       imageEl.style.boxShadow = '0 0 20px #00ff9d';
