@@ -50,6 +50,23 @@
       font-size: 14px;
       margin-bottom: 16px;
     }
+
+    .product-card img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .buy-button {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 10px 18px;
+      background-color: #00ff9d;
+      color: black;
+      font-weight: bold;
+      border-radius: 6px;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
@@ -98,15 +115,25 @@
   }
 </style>
 
+<div class="content">
+  <h1 class="title">Electronics & Tools</h1>
 
-
-  <div class="content">
-    <h1 class="title">Electronics & Tools</h1>
-    <div class="product-card">
-      <h3>Coming Soon</h3>
-      <p>Cutting-edge devices and specialized hardware will be available here soon.</p>
-    </div>
+  <!-- Flipper Zero Product Card -->
+  <div class="product-card">
+    <img src="/mnt/data/cc199ebea32361a449fa3f1c6edee0d8_original.jpg" alt="Flipper Zero Device" />
+    <h3>Flipper Zero</h3>
+    <p>Multi-tool for hackers, geeks, and pentesters. Play with RFID, radio protocols, access systems, and infrared. It’s cute. It's powerful. It's yours.</p>
+    <img src="/mnt/data/on_orange.png" alt="Flipper Logo" style="width: 120px; margin: 10px auto;" />
+    <p><em>Clicking below will take you to the official Flipper Zero website.</em></p>
+    <a class="buy-button" href="https://flipperzero.one/" target="_blank">Buy Now</a>
   </div>
-</body>
 
+  <!-- Placeholder Card -->
+  <div class="product-card">
+    <h3>Coming Soon</h3>
+    <p>Cutting-edge devices and specialized hardware will be available here soon.</p>
+  </div>
+</div>
+
+</body>
 </html>
