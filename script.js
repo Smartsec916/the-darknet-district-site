@@ -11,7 +11,7 @@ if (typeof window.bannerInitialized === 'undefined') {
       link: "https://www.cdprojektred.com/en"
     },
     {
-      image: "/attached_assets/TDND Banner.jpg",
+      image: "/attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png",
       link: "#"
     }
   ];
