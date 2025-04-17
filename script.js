@@ -5,7 +5,7 @@ if (typeof window.bannerInitialized === 'undefined') {
     {
       image: "/attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png",
       link: "https://thedarknetdistrict.com",
-      style: "height: 200px; object-fit: cover;"
+      style: "height: 120px; object-fit: cover;"
     },
     {
       image: "/attached_assets/881f5832-0a1e-4079-8a66-fbc2c6479931._CR0,0,3000,600_SX3000_.jpg",
