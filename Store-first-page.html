@@ -106,15 +106,34 @@
     }
 
     .top-nav {
-      background-color: black;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      gap: 20px;
       padding: 10px 0;
-      text-align: left;
+      z-index: 9999;
     }
 
     .top-nav a {
-      color: #00ff9d;
+      font-family: 'Courier New', monospace;
+      color: #00ffcc;
       text-decoration: none;
-      margin: 0 20px;
+      padding: 8px 16px;
+      border: 1px solid #00ffcc;
+      border-radius: 4px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .top-nav a:hover {
+      background-color: #00ffcc;
+      color: black;
+    }
+
+    body {
+      padding-top: 60px;
     }
   </style>
 </head>
