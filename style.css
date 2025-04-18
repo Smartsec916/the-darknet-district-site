@@ -251,3 +251,90 @@ section {
 body {
   padding-top: 60px;
 }
+
+/* Cyberpunk Effects */
+.product-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.product-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 255, 157, 0.03) 0px,
+    rgba(0, 255, 157, 0.03) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  animation: scanline 10s linear infinite;
+}
+
+.product-card:hover::before {
+  opacity: 0.5;
+}
+
+.product-card h3 {
+  text-shadow: 0 0 10px rgba(0, 255, 157, 0.7),
+               0 0 20px rgba(0, 255, 157, 0.5),
+               0 0 30px rgba(0, 255, 157, 0.3);
+  animation: textPulse 2s infinite;
+}
+
+.product-card img {
+  transition: all 0.3s ease;
+}
+
+.product-card img:hover {
+  transform: scale(1.02);
+  filter: brightness(1.2) contrast(1.1);
+  animation: glitch 0.3s infinite;
+}
+
+.button, .buy-button {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, #00ff9d, #00ccff);
+  background-size: 200% 100%;
+  animation: gradient 3s ease infinite;
+  border: none !important;
+  color: black !important;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+@keyframes scanline {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(100%); }
+}
+
+@keyframes textPulse {
+  0%, 100% { text-shadow: 0 0 10px rgba(0, 255, 157, 0.7),
+                         0 0 20px rgba(0, 255, 157, 0.5),
+                         0 0 30px rgba(0, 255, 157, 0.3); }
+  50% { text-shadow: 0 0 20px rgba(0, 255, 157, 0.9),
+                     0 0 40px rgba(0, 255, 157, 0.7),
+                     0 0 60px rgba(0, 255, 157, 0.5); }
+}
+
+@keyframes glitch {
+  0% { transform: translate(0) scale(1.02); }
+  20% { transform: translate(-2px, 2px) scale(1.02); }
+  40% { transform: translate(-2px, -2px) scale(1.02); }
+  60% { transform: translate(2px, 2px) scale(1.02); }
+  80% { transform: translate(2px, -2px) scale(1.02); }
+  100% { transform: translate(0) scale(1.02); }
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
