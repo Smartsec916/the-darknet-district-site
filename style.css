@@ -339,3 +339,23 @@ section {
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
+
+.top-nav a {
+  font-family: 'Courier New', monospace;
+  color: #00ff9d;
+  text-decoration: none;
+  padding: 8px 16px;
+  border: 2px solid #00ff9d;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  background: rgba(0, 0, 0, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 5px;
+}
+
+.top-nav a:hover {
+  background: rgba(0, 255, 157, 0.1);
+  box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+  transform: translateY(-2px);
+}
