@@ -2,57 +2,62 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Login – Kai Kryptos</title>
   <style>
     body {
       background-color: black;
-      color: #00ffcc;
+      color: #00ffc3;
       font-family: monospace;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
       margin: 0;
     }
-    h1 {
-      margin-bottom: 20px;
+    .login-container {
+      text-align: center;
     }
-    input {
+    input[type="password"] {
       padding: 10px;
-      font-size: 1em;
-      background: #111;
-      border: 1px solid #00ffcc;
-      color: #00ffcc;
-      margin-bottom: 10px;
-      width: 250px;
+      font-size: 16px;
+      border: 1px solid #00ffc3;
+      background-color: black;
+      color: #00ffc3;
+      width: 300px;
+      text-align: center;
     }
     button {
-      padding: 10px 20px;
-      background: #00ffcc;
+      margin-top: 15px;
+      padding: 10px 25px;
+      background-color: #00ffc3;
       color: black;
-      font-weight: bold;
       border: none;
+      font-weight: bold;
       cursor: pointer;
+    }
+    button:hover {
+      background-color: #00cfa6;
     }
   </style>
 </head>
 <body>
-  <h1>Enter Admin Token</h1>
-  <input type="password" id="tokenInput" placeholder="admin-token" />
-  <button onclick="verify()">Enter</button>
+  <div class="login-container">
+    <h2>Enter Admin Token</h2>
+    <input id="token" type="password" placeholder="admin-token" />
+    <br />
+    <button id="enter">Enter</button>
+  </div>
 
   <script>
-    function verify() {
-      const token = document.getElementById('tokenInput').value;
-      if (token === 'admin-token') {
-
-      window.location.href = 'https://kai-kryptos-logger-smartsec916.replit.app'; // redirect to the logger
+    document.getElementById("enter").onclick = function () {
+      const token = document.getElementById("token").value;
+      if (token === "Fuck the System") {
+        window.location.href = "https://kai-kryptos-logger.smartsec916.replit.app/";
       } else {
-        alert('Invalid token');
+        alert("Access Denied");
       }
-    }
+    };
   </script>
 </body>
 </html>
