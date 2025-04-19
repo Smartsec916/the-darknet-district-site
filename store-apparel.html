@@ -36,7 +36,7 @@
       border-radius: 12px;
       padding: 20px;
       max-width: 320px;
-      margin: 40px auto;
+      margin: 20px; /* Reduced margin for grid layout */
       text-align: center;
       box-shadow: 0 0 12px #00ff9d44;
     }
@@ -75,6 +75,19 @@
 
     .product-card a.button:hover {
       background-color: #00cc7a;
+    }
+
+    /* Grid layout styles */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Responsive grid */
+      grid-gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .product-grid {
+        grid-template-columns: 1fr; /* Stack vertically on smaller screens */
+      }
     }
   </style>
 </head>
@@ -149,58 +162,61 @@
 
 <div class="content">
   <h1 class="title">Apparel & Accessories</h1>
+  <div class="product-grid">
+    <div class="product-card">
+      <img src="attached_assets/unisex-staple-t-shirt-black-front-6802b3d593026.png" alt="Admin Surveillance Countermeasure T-Shirt">
+      <h3>Admin: Surveillance Countermeasure T-Shirt</h3>
+      <p>Wear the resistance. This isn’t just a shirt — it’s a statement.
 
-  <div class="product-card">
-    <img src="attached_assets/unisex-staple-t-shirt-black-front-6802b3d593026.png" alt="Admin Surveillance Countermeasure T-Shirt">
-    <h3>Admin: Surveillance Countermeasure T-Shirt</h3>
-    <p>Wear the resistance. This isn’t just a shirt — it’s a statement.
-
-  <p>
-    🔹 <strong>Front:</strong> Admin — the face of rebellion from <em>The Darknet District</em><br>
-    🔹 <strong>Back:</strong> QR code linking to <em>TheDarknetDistrict.com</em><br>
-    🔹 <strong>Left Shoulder:</strong> QR-encoded mantra — “Fuck the System”<br>
-    🔹 <strong>Right Shoulder:</strong> Scan-activated SMS setup to blast “Fuck the System” straight to the NSA
-  </p>
-</p>
-Built for those who live off-grid, fight the Function, and glitch the narrative.
-Are you wearing your message loud enough?</p>
-  <a href="https://thedarknetdistrict.printful.me/product/unisex-t-shirt" target="_blank" class="button">Buy Now</a>
-  </div>
-
-
-  <div class="product-card">
-    <img src="attached_assets/zen-zephyr-shirt_front.png" alt="Cyber Monk T-Shirt">
-    <h3>Zen Zephyr T-Shirt</h3>
-    <p>Drift through the chaos with calm precision, Zen Zephyr. This isn’t just a shirt — it’s a statement of cyber-awareness stitched in threads and code.</p>
-    <p>
-      🔹 <strong>Front:</strong>“Zen Zephyr” — a signal of stillness in the storm<br>
-      🔹 <strong>Back:</strong>  A sleek QR code linking to TheDarknetDistrict.com<br>
-      🔹 <strong>Left Shoulder:</strong>QR-encoded mantra – “Suffering is just lag in the system. Patience is the patch.”<br>
-      🔹 <strong>Right Shoulder:</strong>Digital karma reminder – “What is uploaded must download. All karma syncs eventually.”<br>
+      <p>
+        🔹 <strong>Front:</strong> Admin — the face of rebellion from <em>The Darknet District</em><br>
+        🔹 <strong>Back:</strong> QR code linking to <em>TheDarknetDistrict.com</em><br>
+        🔹 <strong>Left Shoulder:</strong> QR-encoded mantra — “Fuck the System”<br>
+        🔹 <strong>Right Shoulder:</strong> Scan-activated SMS setup to blast “Fuck the System” straight to the NSA
       </p>
-      Perfect for hackers, rebels, monks, and anyone else surfing the edge of the system.<br>
-
-Soft. Durable. Mindful. Glitch-proof.</p>
     </p>
-    <a href="https://thedarknetdistrict.printful.me/product/cyber-monk-t-shirt" target="_blank" class="button">Buy Now</a>
-  </div>
+    Built for those who live off-grid, fight the Function, and glitch the narrative.
+    Are you wearing your message loud enough?</p>
+      <a href="https://thedarknetdistrict.printful.me/product/unisex-t-shirt" target="_blank" class="button">Buy Now</a>
+    </div>
 
 
-  <div class="product-card">
-    <img src="attached_assets/corpo-scum-qr.webp" alt="CORPO SCUM Sticker">
-    <h3>Holographic Corpo-Scum! Sticker</h3>
-    <p>This isn't just a sticker. It's a statement. A shimmering, holographic badge of defiance forged in the underbelly of The Darknet District. Slap it on your gear, your phone, your rival's security bot — and when scanned, it quietly preps the user's device to send one message:<br><br>
-    "Corpo-Scum!"<br>
-    To: Blackrock.</p>
-    <a href="https://thedarknetdistrict.printful.me/product/holographic-qr-code-corpo-scum-sticker" target="_blank" class="button">Buy Now</a>
-  </div>
+    <div class="product-card">
+      <img src="attached_assets/zen-zephyr-shirt_front.png" alt="Cyber Monk T-Shirt">
+      <h3>Zen Zephyr T-Shirt</h3>
+      <p>Drift through the chaos with calm precision, Zen Zephyr. This isn’t just a shirt — it’s a statement of cyber-awareness stitched in threads and code.</p>
+      <p>
+        🔹 <strong>Front:</strong>“Zen Zephyr” — a signal of stillness in the storm<br>
+        🔹 <strong>Back:</strong>  A sleek QR code linking to TheDarknetDistrict.com<br>
+        🔹 <strong>Left Shoulder:</strong>QR-encoded mantra – “Suffering is just lag in the system. Patience is the patch.”<br>
+        🔹 <strong>Right Shoulder:</strong>Digital karma reminder – “What is uploaded must download. All karma syncs eventually.”<br>
+        </p>
+        Perfect for hackers, rebels, monks, and anyone else surfing the edge of the system.<br>
 
-  
-  <div class="product-card">
-    <img src="attached_assets/FTS QR Holo.png" alt="Holographic QR Code Sticker">
-    <h3>Holographic QR Patch – "Fuck the System"</h3>
-    <p>This ain't just a patch. It's a statement.<br><br>
-    Woven from rebellion and printed in iridescent defiance, this holographic QR patch pulses with anti-corporate energy. Scan it, and your device will know exactly where you stand — one message, broadcast loud and clear:<br><br>"Fuck the System."</p>
-    <a href="https://thedarknetdistrict.printful.me/product/holographic-fuck-the-system-sticker" target="_blank" class="button">Buy Now</a>
+      Soft. Durable. Mindful. Glitch-proof.</p>
+      </p>
+      <a href="https://thedarknetdistrict.printful.me/product/cyber-monk-t-shirt" target="_blank" class="button">Buy Now</a>
+    </div>
+
+
+    <div class="product-card">
+      <img src="attached_assets/corpo-scum-qr.webp" alt="CORPO SCUM Sticker">
+      <h3>Holographic Corpo-Scum! Sticker</h3>
+      <p>This isn't just a sticker. It's a statement. A shimmering, holographic badge of defiance forged in the underbelly of The Darknet District. Slap it on your gear, your phone, your rival's security bot — and when scanned, it quietly preps the user's device to send one message:<br><br>
+      "Corpo-Scum!"<br>
+      To: Blackrock.</p>
+      <a href="https://thedarknetdistrict.printful.me/product/holographic-qr-code-corpo-scum-sticker" target="_blank" class="button">Buy Now</a>
+    </div>
+
+
+    <div class="product-card">
+      <img src="attached_assets/FTS QR Holo.png" alt="Holographic QR Code Sticker">
+      <h3>Holographic QR Patch – "Fuck the System"</h3>
+      <p>This ain't just a patch. It's a statement.<br><br>
+      Woven from rebellion and printed in iridescent defiance, this holographic QR patch pulses with anti-corporate energy. Scan it, and your device will know exactly where you stand — one message, broadcast loud and clear:<br><br>"Fuck the System."</p>
+      <a href="https://thedarknetdistrict.printful.me/product/holographic-fuck-the-system-sticker" target="_blank" class="button">Buy Now</a>
+    </div>
   </div>
 </div>
+</body>
+</html>
