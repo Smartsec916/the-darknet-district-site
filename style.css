@@ -185,6 +185,37 @@ section {
   box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
 }
 
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+.featured-section {
+  min-height: 60vh;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 40px 20px;
+}
+
+.featured-title {
+  color: #00ff9d;
+  text-align: center;
+  font-size: 2em;
+  margin-bottom: 40px;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+}
+
+.featured-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
 @keyframes glitch {
   0% { transform: translate(0) }
   20% { transform: translate(-2px, 2px) }

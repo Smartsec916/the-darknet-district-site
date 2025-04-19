@@ -58,8 +58,72 @@ function initializeBannerRotation() {
   setInterval(rotateBanner, 8000);
 }
 
+// Featured Products functionality
+const products = [
+  {
+    name: "Admin Surveillance T-Shirt",
+    image: "attached_assets/unisex-staple-t-shirt-black-front-6802b3d593026.png",
+    description: "Wear the resistance. This isn't just a shirt — it's a statement.",
+    link: "store-apparel.html"
+  },
+  {
+    name: "Zen Zephyr T-Shirt",
+    image: "attached_assets/zen-zephyr-shirt_front.png",
+    description: "Drift through the chaos with calm precision.",
+    link: "store-apparel.html"
+  },
+  {
+    name: "Flipper Zero",
+    image: "attached_assets/on_orange.png",
+    description: "Portable multi-tool for hackers and geeks.",
+    link: "store-electronics.html"
+  },
+  {
+    name: "Mission Darkness Faraday Bag",
+    image: "attached_assets/mission_darkness_banner.jpg",
+    description: "Military-grade Faraday bag for secure device storage.",
+    link: "store-survival.html"
+  },
+  {
+    name: "Kai Kryptos App",
+    image: "attached_assets/kai-kryptos-icon.png",
+    description: "Cyberpunk terminal for decrypted log access.",
+    link: "store-apps.html"
+  }
+];
+
+function getRandomProducts(count) {
+  const seed = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24)); // Changes daily
+  const shuffled = [...products];
+  
+  // Fisher-Yates shuffle with seeded random
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const seededRandom = ((i * seed) % shuffled.length);
+    [shuffled[i], shuffled[seededRandom]] = [shuffled[seededRandom], shuffled[i]];
+  }
+  
+  return shuffled.slice(0, count);
+}
+
+function displayFeaturedProducts() {
+  const container = document.getElementById('featured-products');
+  if (!container) return;
+
+  const featuredProducts = getRandomProducts(3);
+  
+  container.innerHTML = featuredProducts.map(product => `
+    <div class="product-card">
+      <img src="${product.image}" alt="${product.name}">
+      <h3>${product.name}</h3>
+      <p>${product.description}</p>
+      <a href="${product.link}" class="button">Learn More</a>
+    </div>
+  `).join('');
+}
+
 // Basic scroll functionality
 document.addEventListener('DOMContentLoaded', function() {
+  displayFeaturedProducts();
   const sections = document.querySelectorAll('section');
   const backToTopButton = document.getElementById("backToTop");
 
