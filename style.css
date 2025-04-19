@@ -209,11 +209,19 @@ section {
 
 .featured-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 30px;
-  max-width: 1200px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 40px;
+  width: 90%;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 20px;
+}
+
+@media (max-width: 768px) {
+  .featured-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
 }
 
 @keyframes glitch {
