@@ -195,14 +195,20 @@ section {
 .featured-section {
   min-height: 60vh;
   background: rgba(0, 0, 0, 0.8);
-  padding: 40px 20px;
+  padding: 20px;
+}
+
+.featured-container {
+  width: 90%;
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
 .featured-title {
   color: #00ff9d;
-  text-align: center;
+  text-align: left;
   font-size: 2em;
-  margin-bottom: 40px;
+  margin: 0 0 30px;
   text-transform: uppercase;
   text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
 }
