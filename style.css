@@ -1,4 +1,3 @@
-
 html {
   scroll-behavior: smooth;
   height: 100%;
@@ -13,6 +12,7 @@ body {
   background-color: black;
   will-change: transform;
   -webkit-font-smoothing: antialiased;
+  padding-top: 60px;
 }
 
 section {
@@ -46,8 +46,8 @@ section {
   position: relative;
 }
 
-.third-section {
-  background-image: url('attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png');
+.third-section,
+.fourth-section {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -57,65 +57,57 @@ section {
   background-color: black;
 }
 
-.third-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to top, transparent 70%, black);
-  pointer-events: none;
+.third-section {
+  background-image: url('attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png');
 }
 
-.third-section::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to bottom, transparent 70%, black);
-  pointer-events: none;
+.fourth-section {
+  background-image: url('./attached_assets/0_2.jpeg');
 }
 
-.second-section::after {
+.first-section::after,
+.second-section::before,
+.second-section::after,
+.third-section::before,
+.third-section::after,
+.fourth-section::before {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: 0;
   width: 100%;
-  height: 30vh;
-  background: linear-gradient(to bottom, transparent, black);
+  height: 100%;
   pointer-events: none;
 }
 
 .first-section::after {
-  content: '';
-  position: absolute;
   bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   background: linear-gradient(to bottom, transparent 70%, black);
-  pointer-events: none;
 }
 
 .second-section::before {
-  content: '';
-  position: absolute;
   top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   background: linear-gradient(to top, transparent 70%, black);
-  pointer-events: none;
+}
+
+.second-section::after {
+  bottom: 0;
+  height: 30vh;
+  background: linear-gradient(to bottom, transparent, black);
+}
+
+.third-section::before {
+  top: 0;
+  background: linear-gradient(to top, transparent 70%, black);
+}
+
+.third-section::after,
+.fourth-section::before {
+  bottom: 0;
+  background: linear-gradient(to bottom, transparent 70%, black);
 }
 
 .cyberpunk-title {
   font-family: 'Arial', sans-serif;
   font-size: clamp(1.5rem, 5vw, 3rem);
-  padding: min(20px, 4vw);
   font-weight: bold;
   text-transform: uppercase;
   color: #e4e4e4;
@@ -126,14 +118,12 @@ section {
     0 0 30px rgba(0, 255, 0, 0.5),
     0 0 45px rgba(0, 255, 0, 0.3);
   letter-spacing: 4px;
-  opacity: 1;
   text-align: center;
   margin: 0 auto;
-  padding: 20px;
   background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%);
   border-radius: 5px;
   max-width: 90%;
-  padding: 0 20px;
+  padding: 20px;
   position: relative;
 }
 
@@ -152,9 +142,6 @@ section {
 .game-button {
   padding: clamp(15px, 4vw, 25px) clamp(30px, 6vw, 50px);
   font-family: 'Arial', sans-serif;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  perspective: 1000;
   font-size: clamp(1.2rem, 4vw, 1.8rem);
   text-transform: uppercase;
   color: #00ff9d;
@@ -167,22 +154,15 @@ section {
   box-shadow: 0 0 25px rgba(0, 255, 157, 0.3);
   white-space: nowrap;
   margin: 15px;
-}
-
-@media (max-width: 768px) {
-  section {
-    padding: 20px;
-    box-sizing: border-box;
-  }
-
-  .game-button:hover {
-    transform: scale(1.05);
-  }
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
 }
 
 .game-button:hover {
   background: rgba(0, 255, 157, 0.1);
   box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+  transform: scale(1.05);
 }
 
 .button-container {
@@ -223,81 +203,24 @@ section {
   padding: 20px;
 }
 
+.featured-grid > .product-card {
+  width: 100%;
+  max-width: 350px;
+  margin: 0 auto;
+}
+
 @media (max-width: 768px) {
+  section {
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
   .featured-grid {
     grid-template-columns: 1fr;
     gap: 30px;
   }
 }
 
-@keyframes glitch {
-  0% { transform: translate(0) }
-  20% { transform: translate(-2px, 2px) }
-  40% { transform: translate(-2px, -2px) }
-  60% { transform: translate(2px, 2px) }
-  80% { transform: translate(2px, -2px) }
-  100% { transform: translate(0) }
-}
-
-.loading {
-  animation: glitch 0.3s infinite;
-  color: #00ff9d;
-}
-
-.fourth-section {
-  background-image: url('./attached_assets/0_2.jpeg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  position: relative;
-  height: 100vh;
-  width: 100%;
-  background-color: black;
-}
-
-.fourth-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to top, transparent 70%, black), linear-gradient(to bottom, transparent 70%, black);
-  pointer-events: none;
-}
-/* Navigation Styles */
-.top-nav {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  padding: 10px 0;
-  z-index: 9999;
-}
-
-.top-nav a {
-  font-family: 'Courier New', monospace;
-  color: #00ffcc;
-  text-decoration: none;
-  padding: 8px 16px;
-  border: 1px solid #00ffcc;
-  border-radius: 4px;
-  transition: background-color 0.3s, color 0.3s;
-}
-
-.top-nav a:hover {
-  background-color: #00ffcc;
-  color: black;
-}
-
-body {
-  padding-top: 60px;
-}
-
-/* Cyberpunk Effects */
 .product-card {
   position: relative;
   background: linear-gradient(45deg, #0d0d0d, #1a1a1a);
@@ -307,11 +230,13 @@ body {
     inset 0 0 20px rgba(0, 255, 157, 0.2);
   transition: all 0.3s ease;
   padding: 20px;
+  width: 100%;
+  max-width: 320px;
   height: auto;
-  min-height: 400px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  margin: 0 auto;
 }
 
 .product-card:hover {
@@ -387,15 +312,6 @@ body {
   100% { transform: translateY(100%); }
 }
 
-@keyframes textPulse {
-  0%, 100% { text-shadow: 0 0 10px rgba(0, 255, 157, 0.7),
-                         0 0 20px rgba(0, 255, 157, 0.5),
-                         0 0 30px rgba(0, 255, 157, 0.3); }
-  50% { text-shadow: 0 0 20px rgba(0, 255, 157, 0.9),
-                     0 0 40px rgba(0, 255, 157, 0.7),
-                     0 0 60px rgba(0, 255, 157, 0.5); }
-}
-
 @keyframes glitch {
   0% { transform: translate(0) scale(1.02); }
   20% { transform: translate(-2px, 2px) scale(1.02); }
@@ -405,49 +321,21 @@ body {
   100% { transform: translate(0) scale(1.02); }
 }
 
+@keyframes textPulse {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(0, 255, 157, 0.7),
+                 0 0 20px rgba(0, 255, 157, 0.5),
+                 0 0 30px rgba(0, 255, 157, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(0, 255, 157, 0.9),
+                 0 0 40px rgba(0, 255, 157, 0.7),
+                 0 0 60px rgba(0, 255, 157, 0.5);
+  }
+}
+
 @keyframes gradient {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
-}
-
-.store-container {
-  position: relative;
-  overflow: hidden;
-}
-
-.store-container::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(45deg, rgba(0, 255, 157, 0.1) 0%, transparent 100%);
-  pointer-events: none;
-  z-index: 1;
-}
-
-.scanlines::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 200%;
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent,
-    transparent 1px,
-    rgba(0, 255, 157, 0.03) 2px,
-    rgba(0, 255, 157, 0.03) 3px
-  );
-  animation: scanlines 10s linear infinite;
-  pointer-events: none;
-  z-index: 2;
-}
-
-@keyframes scanlines {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-50%); }
 }
