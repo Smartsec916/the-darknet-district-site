@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login – Kai Kryptos</title>
+  <style>
+    body {
+      background-color: black;
+      color: #00ffcc;
+      font-family: monospace;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    input {
+      padding: 10px;
+      font-size: 1em;
+      background: #111;
+      border: 1px solid #00ffcc;
+      color: #00ffcc;
+      margin-bottom: 10px;
+      width: 250px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #00ffcc;
+      color: black;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Enter Admin Token</h1>
+  <input type="password" id="tokenInput" placeholder="admin-token" />
+  <button onclick="verify()">Enter</button>
+
+  <script>
+    function verify() {
+      const token = document.getElementById('tokenInput').value;
+      if (token === 'admin-token') {
+
+      window.location.href = 'https://kai-kryptos-logger-smartsec916.replit.app'; // redirect to the logger
+      } else {
+        alert('Invalid token');
+      }
+    }
+  </script>
+</body>
+</html>
