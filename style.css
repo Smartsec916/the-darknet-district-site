@@ -12,7 +12,7 @@ body {
   background-color: black;
   will-change: transform;
   -webkit-font-smoothing: antialiased;
-  padding-top: 60px;
+  padding-top: 80px;
 }
 
 section {
