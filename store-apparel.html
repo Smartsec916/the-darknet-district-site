@@ -72,6 +72,29 @@
       background-color: #00ff9d;
       color: #000;
       padding: 10px 20px;
+
+    .filter-buttons {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .filter-btn {
+      background: transparent;
+      border: 2px solid #00ff9d;
+      color: #00ff9d;
+      padding: 8px 16px;
+      margin: 0 5px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+      background: #00ff9d;
+      color: black;
+    }
+
       text-decoration: none;
       font-weight: bold;
       border-radius: 6px;
@@ -92,6 +115,11 @@
 
   <div class="content">
     <h1 class="title">The Darknet District – Apparel & Accessories</h1>
+    <div class="filter-buttons">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="clothing">Clothing</button>
+      <button class="filter-btn" data-filter="stickers">Stickers</button>
+    </div>
   </div>
 
   <!-- Rotating Affiliate Banners -->
@@ -106,7 +134,7 @@
 
 <div class="product-grid">
   <!-- Start: Admin T-Shirt -->
-  <div class="product-card">
+  <div class="product-card" data-category="clothing">
     <div id="product-component-1746023629770"></div>
   </div>
 
@@ -219,7 +247,7 @@
 </script>
 
 <!-- Start: Holographic Corpo-Scum Sticker -->
-<div class="product-card">
+<div class="product-card" data-category="stickers">
   <div id="product-component-1746024487215"></div>
 </div>
 
@@ -489,3 +517,29 @@
   </script>
 </body>
 </html>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const filterButtons = document.querySelectorAll('.filter-btn');
+  const products = document.querySelectorAll('.product-card');
+
+  filterButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const filter = button.getAttribute('data-filter');
+      
+      // Update active button
+      filterButtons.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+
+      // Filter products
+      products.forEach(product => {
+        if (filter === 'all' || product.getAttribute('data-category') === filter) {
+          product.style.display = '';
+        } else {
+          product.style.display = 'none';
+        }
+      });
+    });
+  });
+});
+</script>
