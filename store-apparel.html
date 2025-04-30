@@ -27,15 +27,28 @@
       text-transform: uppercase;
       text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
     }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 768px) {
+      .product-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .product-card {
       border: 2px solid #00ff9d;
       background-color: #0d0d0d;
       border-radius: 12px;
       padding: 20px;
-      max-width: 320px;
-      margin: 20px;
-      text-align: center;
-      box-shadow: 0 0 12px #00ff9d44;
+      width: 100%;
+      margin: 0;
     }
     .product-card img {
       width: 100%;
@@ -66,16 +79,6 @@
     }
     .product-card a.button:hover {
       background-color: #00cc7a;
-    }
-    .product-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      grid-gap: 20px;
-    }
-    @media (max-width: 768px) {
-      .product-grid {
-        grid-template-columns: 1fr;
-      }
     }
   </style>
 </head>
@@ -214,6 +217,7 @@
 })();
 </script>
 
+<div class="product-grid">
 <!-- Start: Holographic Corpo-Scum Sticker -->
 <div class="product-card">
   <div id="product-component-1746024487215"></div>
@@ -227,6 +231,7 @@
 <!-- Start: Zen Zephyr T-Shirt -->
 <div class="product-card">
   <div id="product-component-1746024959024"></div>
+</div>
 </div>
 
 <script type="text/javascript">
