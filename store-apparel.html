@@ -365,6 +365,119 @@
   }
 })();
 </script>
+  
+<!-- Start: Shopify Product Card -->
+<div class="product-card">
+  <div id='product-component-1746047251463'></div>
+</div>
+
+<script type="text/javascript">
+(function () {
+  var scriptURL = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
+  if (window.ShopifyBuy) {
+    if (window.ShopifyBuy.UI) {
+      ShopifyBuyInit();
+    } else {
+      loadScript();
+    }
+  } else {
+    loadScript();
+  }
+
+  function loadScript() {
+    var script = document.createElement('script');
+    script.async = true;
+    script.src = scriptURL;
+    (document.head || document.body).appendChild(script);
+    script.onload = ShopifyBuyInit;
+  }
+
+  function ShopifyBuyInit() {
+    var client = ShopifyBuy.buildClient({
+      domain: 'qbhrmg-jn.myshopify.com',
+      storefrontAccessToken: 'b2db190312196bda4d67fee236d5994a',
+    });
+
+    ShopifyBuy.UI.onReady(client).then(function (ui) {
+      ui.createComponent('product', {
+        id: '9174620537049',
+        node: document.getElementById('product-component-1746047251463'),
+        moneyFormat: '%24%7B%7Bamount%7D%7D',
+        options: {
+          "product": {
+            "layout": "horizontal",
+            "styles": {
+              "product": {
+                "text-align": "left",
+                "@media (min-width: 601px)": {
+                  "max-width": "100%",
+                  "margin-left": "0",
+                  "margin-bottom": "50px"
+                }
+              },
+              "button": {
+                "background": "#00ff9d",
+                "color": "#000000",
+                "font-family": "Roboto, sans-serif",
+                "font-weight": "bold",
+                "font-size": "16px",
+                "padding": "16px 23px",
+                "border-radius": "14px"
+              },
+              "title": {
+                "font-size": "26px",
+                "color": "#00ff9d"
+              },
+              "price": {
+                "font-size": "18px",
+                "color": "#00ff9d"
+              }
+            },
+            "contents": {
+              "img": true,
+              "title": true,
+              "price": true,
+              "description": true,
+              "button": true
+            },
+            "text": {
+              "button": "Add to cart"
+            },
+            "googleFonts": ["Roboto"]
+          },
+          "cart": {
+            "styles": {
+              "button": {
+                "background": "#00ff9d",
+                "color": "#000000",
+                "font-weight": "bold",
+                "font-size": "16px",
+                "border-radius": "14px"
+              }
+            },
+            "text": {
+              "total": "Subtotal",
+              "button": "Checkout"
+            },
+            "googleFonts": ["Roboto"]
+          },
+          "toggle": {
+            "styles": {
+              "toggle": {
+                "background": "#00ff9d",
+                "color": "#000000",
+                "font-weight": "bold"
+              }
+            },
+            "googleFonts": ["Roboto"]
+          }
+        }
+      });
+    });
+  }
+})();
+</script>
+<!-- End: Shopify Product Card -->
 
     </div> <!-- close product-grid -->
   </div> <!-- close content -->
