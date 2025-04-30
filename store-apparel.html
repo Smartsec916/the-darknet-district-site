@@ -87,11 +87,16 @@
     <a href="Store-first-page.html">Shop</a>
   </div>
 
-  <div class="content">
-    <h1 class="title">Apparel & Accessories</h1>
-    <div class="product-grid">
+  <!-- Rotating Affiliate Banners -->
+  <div id="affiliate-banner" style="max-width: 1000px; margin: 40px auto; position: relative;">
+    <a id="affiliate-link" href="#" target="_blank">
+      <img id="affiliate-image" src="" alt=""
+           style="width: 100%; display: block; border-radius: 8px; opacity: 0; transition: opacity 0.6s ease, box-shadow 0.6s ease; position: relative; z-index: 2;" />
+    </a>
+    <div id="glitch-effect"
+         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3;"></div>
+  </div>
 
-      
 <!-- Start: Admin T-Shirt -->
 <div class="product-card">
   <div id="product-component-1746023629770"></div>
@@ -204,7 +209,7 @@
   }
 })();
 </script>
-      
+
 <!-- Start: Holographic Corpo-Scum Sticker -->
 <div class="product-card">
   <div id="product-component-1746024487215"></div>
@@ -354,5 +359,11 @@
 
     </div> <!-- close product-grid -->
   </div> <!-- close content -->
+<script src="script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeBannerRotation();
+    });
+  </script>
 </body>
 </html>
