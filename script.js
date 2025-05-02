@@ -1,3 +1,55 @@
+
+// Shopify Buy SDK
+var scriptURL = 'https://sdks.shopifycdn.com/buy-button-storefront/latest/buy-button-storefront.min.js';
+var client;
+var ui;
+
+function loadShopifyBuySDK() {
+  if (window.ShopifyBuy) {
+    initBuyClient();
+  } else {
+    var script = document.createElement('script');
+    script.async = true;
+    script.src = scriptURL;
+    script.onload = initBuyClient;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+}
+
+function initBuyClient() {
+  client = ShopifyBuy.buildClient({
+    domain: 'YOUR-SHOPIFY-STORE.myshopify.com', // Replace with your store domain
+    storefrontAccessToken: 'YOUR-STOREFRONT-ACCESS-TOKEN' // You'll get this from Shopify Admin
+  });
+  
+  ShopifyBuy.UI.onReady(client).then(function (ui) {
+    ui.createComponent('cart', {
+      moneyFormat: '%24%7B%7Bamount%7D%7D',
+      cart: {
+        popup: false,
+        startOpen: false,
+        styles: {
+          button: {
+            'background-color': '#00ff9d',
+            'color': 'black',
+            ':hover': {
+              'background-color': '#00cc7a'
+            }
+          }
+        }
+      }
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  loadShopifyBuySDK();
+  // Keep existing initialization
+  if(typeof initializeBannerRotation === 'function') {
+    initializeBannerRotation();
+  }
+});
+
 // Banner rotation functionality
 if (typeof window.bannerInitialized === 'undefined') {
   window.bannerInitialized = true;

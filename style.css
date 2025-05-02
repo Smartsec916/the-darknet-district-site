@@ -1,3 +1,18 @@
+
+/* Shopify Cart Styles */
+.shopify-buy-cart-wrapper {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  z-index: 9999;
+}
+
+.shopify-buy__cart {
+  background: #0d0d0d !important;
+  border: 2px solid #00ff9d !important;
+  color: #00ff9d !important;
+}
+
 html {
   scroll-behavior: smooth;
   height: 100%;
@@ -12,7 +27,7 @@ body {
   background-color: black;
   will-change: transform;
   -webkit-font-smoothing: antialiased;
-  padding-top: 120px;
+  padding-top: 80px;
 }
 
 section {
