@@ -9,6 +9,26 @@ channel = "stable-23_11"
 [deployment]
 publicDir = "/"
 deploymentTarget = "static"
+
+[[deployment.responseHeaders]]
+path = "/*"
+name = "X-Frame-Options"
+value = "SAMEORIGIN"
+
+[[deployment.responseHeaders]]
+path = "/*"
+name = "X-Content-Type-Options"
+value = "nosniff"
+
+[[deployment.responseHeaders]]
+path = "/*"
+name = "Referrer-Policy"
+value = "strict-origin-when-cross-origin"
+
+[[deployment.responseHeaders]]
+path = "/*"
+name = "Permissions-Policy"
+value = "geolocation=(), camera=(), microphone=()"
 run = ["sh", "-c", "python -m http.server 0.0.0.0:5000"]
 
 [workflows]
