@@ -165,22 +165,7 @@ section {
   max-width: 90%;
   padding: 20px;
   position: relative;
-  animation: glitch 2.5s infinite;
-  text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
-               0.025em 0.04em 0 #fffc00;
-}
-
-.cyberpunk-title::after {
-  content: attr(data-text);
-  position: absolute;
-  left: 2px;
-  text-shadow: -1px 0 red;
-  top: 0;
-  color: white;
-  background: black;
-  overflow: hidden;
-  clip: rect(0, 900px, 0, 0); 
-  animation: noise-anim 2s infinite linear alternate-reverse;
+  text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
 }
 
 .cyberpunk-title::before {
