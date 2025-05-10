@@ -24,10 +24,15 @@
     .title {
       color: #00ff9d;
       text-align: center;
-      margin-bottom: 40px;
+      margin-bottom: 20px;
       font-size: 2em;
       text-transform: uppercase;
       text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+    }
+
+    .filter-bar {
+      text-align: center;
+      margin-bottom: 20px;
     }
 
     .product-card {
@@ -36,7 +41,7 @@
       border-radius: 12px;
       padding: 20px;
       max-width: 320px;
-      margin: 40px auto;
+      margin: 20px auto;
       text-align: center;
       box-shadow: 0 0 12px #00ff9d44;
     }
@@ -49,18 +54,9 @@
       transition: box-shadow 0.3s ease-in-out;
     }
 
-    .product-card img:hover {
-      box-shadow: 0 0 20px #00ff9d88;
-    }
-
     .product-card h3 {
       font-size: 20px;
       margin: 10px 0;
-    }
-
-    .product-card p {
-      font-size: 14px;
-      margin-bottom: 16px;
     }
 
     .product-card a.button {
@@ -77,77 +73,50 @@
     .product-card a.button:hover {
       background-color: #00cc7a;
     }
-
-    .top-nav {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      background-color: rgba(0, 0, 0, 0.8);
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      padding: 10px 0;
-      z-index: 9999;
-    }
-
-    .top-nav a {
-      font-family: 'Courier New', monospace;
-      color: #00ffcc;
-      text-decoration: none;
-      padding: 8px 16px;
-      border: 1px solid #00ffcc;
-      border-radius: 4px;
-      transition: background-color 0.3s, color 0.3s;
-    }
-
-    .top-nav a:hover {
-      background-color: #00ffcc;
-      color: black;
-    }
-
-    body {
-      padding-top: 60px;
-    }
   </style>
 </head>
 <body>
-  <!-- Top Navigation Buttons -->
-  <div class="top-nav">
-    <a href="/index.html">Home</a>
-    <a href="/games-list.html">Play a Game</a>
-    <a href="/Store-first-page.html">Shop</a>
+  <div class="content">
+    <h1 class="title">The Darknet District – Survival & Emergency Gear</h1>
+    <p style="text-align: center;">Buy Now buttons will take you to Amazon through Influencers and Associates links.</p>
+
+    <div class="filter-bar">
+      <button onclick="filterProducts('all')">All</button>
+      <button onclick="filterProducts('gear')">Gear</button>
+      <button onclick="filterProducts('tools')">Tools</button>
+      <button onclick="filterProducts('medical')">Medical</button>
+    </div>
+
+    <div id="product-list">
+      <!-- Product Cards Generated Here -->
+    </div>
   </div>
 
-  <!-- Rotating Affiliate Banners -->
-  <div id="affiliate-banner" style="max-width: 1000px; margin: 40px auto; position: relative;">
-    <a id="affiliate-link" href="#" target="_blank">
-      <img id="affiliate-image" src="" alt=""
-           style="width: 100%; display: block; border-radius: 8px; opacity: 0; transition: opacity 0.6s ease, box-shadow 0.6s ease; position: relative; z-index: 2;" />
-    </a>
-    <div id="glitch-effect"
-         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3;"></div>
-    <div class="scanlines" style="position: absolute; inset: 0; z-index: 1; pointer-events: none;"></div>
-  </div>
-
-<!-- Mission Darkness Product Card -->
-<div class="product-card">
-  <h3>Mission Darkness Faraday Bag</h3>
-  <img src="attached_assets/images.png" style="width: 150px; display: block; margin: 0 auto 15px;" />
-  
-  <p>Military-grade Faraday bag for secure device storage. Perfect for protecting your electronics from EMPs, signal tracking, and remote hacking attempts.</p>
-  <p style="font-size: 12px; color: #00ffcc; margin-bottom: 10px;">
-    This will take you to the official Mission Darkness website.
-  </p>
-  <a href="https://mosequipment.com/" target="_blank" class="button" style="display: inline-block; text-decoration: none;">Shop Now</a>
-</div>
-
-
-
-  <script src="script.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      initializeBannerRotation();
-    });
+    const products = [
+      { name: "Survival Gear 1", url: "https://amzn.to/3ENaVe3", category: "gear" },
+      { name: "Survival Gear 2", url: "https://amzn.to/3FbrpfX", category: "gear" },
+      { name: "Tool 1", url: "https://amzn.to/4iW8aos", category: "tools" },
+      { name: "Medical Kit 1", url: "https://amzn.to/4iWMV5U", category: "medical" }
+    ];
+
+    function generateProducts() {
+      const productList = document.getElementById('product-list');
+      productList.innerHTML = products.map(product => `
+        <div class="product-card" data-category="${product.category}">
+          <h3>${product.name}</h3>
+          <a href="${product.url}" target="_blank" class="button">Buy Now</a>
+        </div>
+      `).join('');
+    }
+
+    function filterProducts(category) {
+      document.querySelectorAll('.product-card').forEach(card => {
+        card.style.display = category === 'all' || card.dataset.category === category ? 'block' : 'none';
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', generateProducts);
   </script>
 </body>
 </html>
