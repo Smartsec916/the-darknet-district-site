@@ -55,11 +55,11 @@ if (typeof window.bannerInitialized === 'undefined') {
   window.bannerInitialized = true;
   window.banners = [
     {
-      image: "/attached_assets/881f5832-0a1e-4079-8a66-fbc2c6479931._CR0,0,3000,600_SX3000_.jpg",
+      image: "./attached_assets/mission_darkness_banner.jpg",
       link: "https://mosequipment.com/"
     },
     {
-      image: "/attached_assets/cyberpunk_game.jpg",
+      image: "./attached_assets/cyberpunk_game.jpg",
       link: "https://www.cdprojektred.com/en"
     }
   ];
