@@ -4,6 +4,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>The Darknet District – Survival & Emergency Gear</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="script.js"></script>
   <style>
     body {
       background-color: black;
@@ -81,7 +82,16 @@
     </a>
     <div id="glitch-effect" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3;"></div>
     <div class="scanlines" style="position: absolute; inset: 0; z-index: 1; pointer-events: none;"></div>
-  </div>  <div class="content">
+  </div>  <!-- Rotating Affiliate Banners -->
+  <div id="affiliate-banner" style="max-width: 1000px; margin: 40px auto; position: relative;">
+    <a id="affiliate-link" href="#" target="_blank">
+      <img id="affiliate-image" src="" alt="" style="width: 100%; display: block; border-radius: 8px; opacity: 0; transition: opacity 0.6s ease, box-shadow 0.6s ease; position: relative; z-index: 2;" />
+    </a>
+    <div id="glitch-effect" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3;"></div>
+    <div class="scanlines" style="position: absolute; inset: 0; z-index: 1; pointer-events: none;"></div>
+  </div>
+
+  <div class="content">
     <h1 class="title">The Darknet District – Survival & Emergency Gear</h1>
     <p style="text-align: center;">Buy Now buttons will take you to Amazon through Influencers and Associates links.<br>All items listed have been rigorously tested by The Darknet District for quality.</p><div id="product-list">
   <div class="product-card"><h3>Titan Survival's Patented 1000 LB Survival Paracord</h3><a href="https://amzn.to/3ENaVe3" target="_blank" class="button">Buy Now</a></div>
@@ -96,5 +106,10 @@
 </div>
 
   </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeBannerRotation();
+    });
+  </script>
 </body>
 </html>
