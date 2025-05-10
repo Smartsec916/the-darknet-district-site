@@ -78,45 +78,19 @@
 <body>
   <div class="content">
     <h1 class="title">The Darknet District – Survival & Emergency Gear</h1>
-    <p style="text-align: center;">Buy Now buttons will take you to Amazon through Influencers and Associates links.</p>
-
-    <div class="filter-bar">
-      <button onclick="filterProducts('all')">All</button>
-      <button onclick="filterProducts('gear')">Gear</button>
-      <button onclick="filterProducts('tools')">Tools</button>
-      <button onclick="filterProducts('medical')">Medical</button>
-    </div>
+    <p style="text-align: center;">Buy Now buttons will take you to Amazon through Influencers and Associates links.<br>All items listed have been rigorously tested by The Darknet District for quality.</p>
 
     <div id="product-list">
-      <!-- Product Cards Generated Here -->
+      <div class="product-card"><h3>Titan Survival's Patented 1000 LB Survival Paracord</h3><a href="https://amzn.to/3ENaVe3" target="_blank" class="button">Buy Now</a></div>
+      <div class="product-card"><h3>Fresnel Lens</h3><a href="https://amzn.to/3FbrpfX" target="_blank" class="button">Buy Now</a></div>
+      <div class="product-card"><h3>Exotac candleTIN Nano Emergency Beeswax Tealight Candle</h3><a href="https://amzn.to/4iW8aos" target="_blank" class="button">Buy Now</a></div>
+      <div class="product-card"><h3>Survival Multi Tool Card</h3><a href="https://amzn.to/4iWMV5U" target="_blank" class="button">Buy Now</a></div>
+      <div class="product-card"><h3>Arcturus Military Wool Blanket</h3><a href="https://amzn.to/3S0IgoG" target="_blank" class="button">Buy Now</a></div>
+      <div class="product-card"><h3>Arcturus Heavy Duty Survival Blanket</h3><a href="https://amzn.to/43b73eT" target="_blank" class="button">Buy Now</a></div>
+      <div class="product-card"><h3>Stainless Steel 32oz Water Bottle</h3><a href="https://amzn.to/4kjvGx3" target="_blank" class="button">Buy Now</a></div>
+      <div class="product-card"><h3>SUUNTO MC-2 Compass</h3><a href="https://amzn.to/3RV2Wyt" target="_blank" class="button">Buy Now</a></div>
+      <div class="product-card"><h3>GRAYL UltraPress 16.9 oz Water Purifier</h3><a href="https://amzn.to/437McsP" target="_blank" class="button">Buy Now</a></div>
     </div>
   </div>
-
-  <script>
-    const products = [
-      { name: "Survival Gear 1", url: "https://amzn.to/3ENaVe3", category: "gear" },
-      { name: "Survival Gear 2", url: "https://amzn.to/3FbrpfX", category: "gear" },
-      { name: "Tool 1", url: "https://amzn.to/4iW8aos", category: "tools" },
-      { name: "Medical Kit 1", url: "https://amzn.to/4iWMV5U", category: "medical" }
-    ];
-
-    function generateProducts() {
-      const productList = document.getElementById('product-list');
-      productList.innerHTML = products.map(product => `
-        <div class="product-card" data-category="${product.category}">
-          <h3>${product.name}</h3>
-          <a href="${product.url}" target="_blank" class="button">Buy Now</a>
-        </div>
-      `).join('');
-    }
-
-    function filterProducts(category) {
-      document.querySelectorAll('.product-card').forEach(card => {
-        card.style.display = category === 'all' || card.dataset.category === category ? 'block' : 'none';
-      });
-    }
-
-    document.addEventListener('DOMContentLoaded', generateProducts);
-  </script>
 </body>
 </html>
