@@ -157,11 +157,13 @@ function getRandomProducts(count) {
   return shuffled.slice(0, count);
 }
 
+let featuredProducts;
+
 function displayFeaturedProducts() {
   const container = document.getElementById('featured-products');
   if (!container) return;
 
-  const featuredProducts = getRandomProducts(2);
+  featuredProducts = getRandomProducts(2);
   
   container.innerHTML = featuredProducts.map(product => `
     <div class="product-card">
