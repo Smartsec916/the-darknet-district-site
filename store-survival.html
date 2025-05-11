@@ -1,8 +1,10 @@
-<!DOCTYPE html><html lang="en">
+
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>The Darknet District – Survival & Emergency Gear</title>e>
+  <title>The Darknet District – Survival & Emergency Gear</title>
   <link rel="stylesheet" href="style.css" />
   <script src="script.js"></script>
   <style>
@@ -84,6 +86,13 @@
   </style>
 </head>
 <body>
+  <!-- Top Navigation Buttons -->
+  <div class="top-nav">
+    <a href="index.html">Home</a>
+    <a href="games-list.html">Play a Game</a>
+    <a href="store-first-page.html">Shop</a>
+  </div>
+
   <!-- Rotating Affiliate Banners -->
   <div id="affiliate-banner" style="max-width: 1000px; margin: 40px auto; position: relative;">
     <a id="affiliate-link" href="#" target="_blank">
@@ -122,6 +131,10 @@
   </div>
 
   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeBannerRotation();
+    });
+
     function filterProducts(category) {
       const products = document.querySelectorAll('.product-card');
       products.forEach(product => {
