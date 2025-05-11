@@ -72,6 +72,21 @@
   background-color: #00cc7a;
 }
 
+    #product-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto 20px;
+      padding: 20px;
+    }
+
+    @media (max-width: 768px) {
+      #product-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
   </style>
 </head>
 <body>
