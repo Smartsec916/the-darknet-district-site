@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://*; frame-src https://*.replit.app https://iris-chat-interface-smartsec916.replit.app/ https://www.robertsspaceindustries.com https://mosequipment.com https://www.cdprojektred.com https://thedarknetdistrict.com; frame-ancestors 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://*; frame-src https://*.replit.app https://iris-chat-interface-smartsec916.replit.app/ https://www.robertsspaceindustries.com https://mosequipment.com https://www.cdprojektred.com https://thedarknetdistrict.com; frame-ancestors 'self' https://thedarknetdistrict.com;">
+
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
-  <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
   <meta http-equiv="Permissions-Policy" content="geolocation=(), camera=(), microphone=()">
   <meta name="description" content="The Darknet District - Enter the digital underground. Play games, explore, and more.">
@@ -79,7 +80,7 @@
   <!-- Top Navigation Buttons -->
   <div class="top-nav">
     <a href="game-first-page.html" style="font-family: 'Courier New', monospace;">Play a Game</a>
-    <a href="Store-first-page.html" style="font-family: 'Courier New', monospace;">Shop</a>
+    <a href="store-first-page.html" style="font-family: 'Courier New', monospace;">Shop</a>
   </div>
 
   <section class="first-section">
@@ -89,7 +90,7 @@
   <section class="second-section">
     <div class="button-container">
       <a href="games-list.html" class="game-button">Play a game</a>
-      <a href="./Store-first-page.html" class="game-button">Shop</a>
+      <a href="./store-first-page.html" class="game-button">Shop</a>
     </div>
   </section>
 
@@ -100,16 +101,15 @@
     </div>
   </section>
 
-  <div style="position: fixed; bottom: 20px; right: 20px; z-index: 100001;">
-    <iframe 
-      src="https://iris-chat-interface-smartsec916.replit.app/"
-      style="width: 400px; height: 600px; border: none; background: transparent;"
-      allow="microphone"
-      referrerpolicy="strict-origin"
-      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-      loading="lazy">
-    </iframe>
-  </div>
+<div style="position: fixed; bottom: 20px; right: 20px; z-index: 100001;">
+  <iframe 
+    src="https://iris-chat-interface-smartsec916.replit.app/embed"
+    style="width: 400px; height: 600px; border: none; background: transparent;" 
+    allow="microphone; camera; clipboard-read; clipboard-write"
+    title="Iris AI Assistant">
+  </iframe>
+</div>
+
 
   <section class="fourth-section" style="background-image: url('attached_assets/0_2.jpeg');">
   </section>
