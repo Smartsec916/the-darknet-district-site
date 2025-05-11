@@ -13,91 +13,57 @@
       margin: 0;
       padding: 20px;
       font-family: 'Courier New', monospace;
-    }.content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
+    }
 
-.title {
-  color: #00ff9d;
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 2em;
-  text-transform: uppercase;
-  text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
-}
-
-.filter-bar {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.product-card {
-  border: 2px solid #00ff9d;
-  background-color: #0d0d0d;
-  border-radius: 12px;
-  padding: 20px;
-  max-width: 320px;
-  margin: 20px auto;
-  text-align: center;
-  box-shadow: 0 0 12px #00ff9d44;
-}
-
-.product-card img {
-  width: 100%;
-  max-width: 300px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  transition: box-shadow 0.3s ease-in-out;
-}
-
-.product-card h3 {
-  font-size: 20px;
-  margin: 10px 0;
-}
-
-.product-card a.button {
-  display: inline-block;
-  background-color: #00ff9d;
-  color: #000;
-  padding: 10px 20px;
-  text-decoration: none;
-  font-weight: bold;
-  border-radius: 6px;
-  transition: all 0.2s ease-in-out;
-}
-
-.product-card a.button:hover {
-  background-color: #00cc7a;
-}
-
-    #product-list {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
+    .content {
       max-width: 1200px;
-      margin: 0 auto 20px;
+      margin: 0 auto;
       padding: 20px;
     }
 
-    @media (max-width: 768px) {
-      #product-list {
-        grid-template-columns: 1fr;
-      }
+    .title {
+      color: #00ff9d;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 2em;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
     }
 
+    .filter-bar {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .filter-bar button {
+      background-color: #00ff9d;
+      color: #000;
+      border: none;
+      padding: 10px 15px;
+      margin: 5px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+
+    .filter-bar button:hover {
+      background-color: #00cc7a;
+    }
+
+    .product-card {
+      border: 2px solid #00ff9d;
+      background-color: #0d0d0d;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 320px;
+      margin: 20px auto;
+      text-align: center;
+      box-shadow: 0 0 12px #00ff9d44;
+    }
   </style>
 </head>
 <body>
   <!-- Rotating Affiliate Banners -->
-  <div id="affiliate-banner" style="max-width: 1000px; margin: 40px auto; position: relative;">
-    <a id="affiliate-link" href="#" target="_blank">
-      <img id="affiliate-image" src="" alt="" style="width: 100%; display: block; border-radius: 8px; opacity: 0; transition: opacity 0.6s ease, box-shadow 0.6s ease; position: relative; z-index: 2;" />
-    </a>
-    <div id="glitch-effect" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3;"></div>
-    <div class="scanlines" style="position: absolute; inset: 0; z-index: 1; pointer-events: none;"></div>
-  </div>  <!-- Rotating Affiliate Banners -->
   <div id="affiliate-banner" style="max-width: 1000px; margin: 40px auto; position: relative;">
     <a id="affiliate-link" href="#" target="_blank">
       <img id="affiliate-image" src="" alt="" style="width: 100%; display: block; border-radius: 8px; opacity: 0; transition: opacity 0.6s ease, box-shadow 0.6s ease; position: relative; z-index: 2;" />
@@ -110,34 +76,37 @@
     <h1 class="title">The Darknet District – Survival & Emergency Gear</h1>
     <p style="text-align: center;">Buy Now buttons will take you to Amazon through Influencers and Associates links.<br>All items listed have been rigorously tested by The Darknet District for quality.</p>
 
-        <div id="product-list">
-      <div class="product-card"><h3>Titan Survival's Patented 1000 LB Survival Paracord</h3><a href="https://amzn.to/3ENaVe3" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>Fresnel Lens</h3><a href="https://amzn.to/3FbrpfX" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>Exotac candleTIN Nano Emergency Beeswax Tealight Candle</h3><a href="https://amzn.to/4iW8aos" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>Survival Multi Tool Card</h3><a href="https://amzn.to/4iWMV5U" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>Arcturus Military Wool Blanket</h3><a href="https://amzn.to/3S0IgoG" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>Arcturus Heavy Duty Survival Blanket</h3><a href="https://amzn.to/43b73eT" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>Stainless Steel 32oz Water Bottle</h3><a href="https://amzn.to/4kjvGx3" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>SUUNTO MC-2 Compass</h3><a href="https://amzn.to/3RV2Wyt" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>Multi-Fuel Camping Stove</h3><a href="https://amzn.to/3Stklyf" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>ENO TravelNest Hammock & Straps Combo</h3><a href="https://amzn.to/3StkmCj" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>BLACK DIAMOND Storm 500-R Headlamp</h3><a href="https://amzn.to/3S1q8uV" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>Motorola Solutions Two-Way Radios</h3><a href="https://amzn.to/42QkTV5" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>VANQUEST TRIDENT-32 (Gen-3) Backpack</h3><a href="https://amzn.to/3YElAhT" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>Dark Energy Poseidon Pro Portable Charger</h3><a href="https://amzn.to/3GK0Lv5" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>Helikon-Tex US Model Poncho</h3><a href="https://amzn.to/3ZePFEP" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>Helikon-Tex Swagman Roll Poncho</h3><a href="https://amzn.to/3Zem0LU" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>Exotac fireSLEEVE Lighter Case</h3><a href="https://amzn.to/4dc02Pn" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>überleben Hexå Ferro Rod Fire Starter</h3><a href="https://amzn.to/4363bf6" target="_blank" class="button">Buy Now</a></div>
-      <div class="product-card"><h3>GRAYL UltraPress 16.9 oz Water Purifier</h3><a href="https://amzn.to/437McsP" target="_blank" class="button">Buy Now</a></div>
+    <div class="filter-bar">
+      <button onclick="filterProducts('all')">All</button>
+      <button onclick="filterProducts('gear')">Gear</button>
+      <button onclick="filterProducts('tools')">Tools</button>
+      <button onclick="filterProducts('lighting')">Lighting</button>
+      <button onclick="filterProducts('water')">Water Purification</button>
+      <button onclick="filterProducts('shelter')">Shelter</button>
+      <button onclick="filterProducts('navigation')">Navigation</button>
+      <button onclick="filterProducts('communication')">Communication</button>
     </div>
-</div>
 
+    <div id="product-list">
+      <div class="product-card" data-category="gear"><h3>Titan Survival's Patented 1000 LB Survival Paracord</h3><a href="https://amzn.to/3ENaVe3" target="_blank" class="button">Buy Now</a></div>
+      <div class="product-card" data-category="gear"><h3>Fresnel Lens</h3><a href="https://amzn.to/3FbrpfX" target="_blank" class="button">Buy Now</a></div>
+      <div class="product-card" data-category="lighting"><h3>Exotac candleTIN Nano Emergency Beeswax Tealight Candle</h3><a href="https://amzn.to/4iW8aos" target="_blank" class="button">Buy Now</a></div>
+      <div class="product-card" data-category="tools"><h3>Survival Multi Tool Card</h3><a href="https://amzn.to/4iWMV5U" target="_blank" class="button">Buy Now</a></div>
+      <div class="product-card" data-category="shelter"><h3>Arcturus Military Wool Blanket</h3><a href="https://amzn.to/3S0IgoG" target="_blank" class="button">Buy Now</a></div>
+      <div class="product-card" data-category="shelter"><h3>Arcturus Heavy Duty Survival Blanket</h3><a href="https://amzn.to/43b73eT" target="_blank" class="button">Buy Now</a></div>
+      <div class="product-card" data-category="navigation"><h3>SUUNTO MC-2 Compass</h3><a href="https://amzn.to/3RV2Wyt" target="_blank" class="button">Buy Now</a></div>
+      <div class="product-card" data-category="communication"><h3>Motorola Solutions Two-Way Radios</h3><a href="https://amzn.to/42QkTV5" target="_blank" class="button">Buy Now</a></div>
+      <div class="product-card" data-category="water"><h3>GRAYL UltraPress 16.9 oz Water Purifier</h3><a href="https://amzn.to/437McsP" target="_blank" class="button">Buy Now</a></div>
+    </div>
   </div>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-      initializeBannerRotation();
-    });
+
+  <script>
+    function filterProducts(category) {
+      const products = document.querySelectorAll('.product-card');
+      products.forEach(product => {
+        product.style.display = (category === 'all' || product.dataset.category === category) ? 'block' : 'none';
+      });
+    }
   </script>
 </body>
 </html>
