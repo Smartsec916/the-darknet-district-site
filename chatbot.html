@@ -18,6 +18,7 @@
             flex-direction: column;
             border-radius: 8px;
             color: white;
+            z-index: 10000;
         }
 
         #chat-messages {
@@ -52,22 +53,17 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
+            padding: 10px 20px;
             background: #ff0099;
             border: 2px solid #00ff99;
             color: white;
             cursor: pointer;
+            border-radius: 25px;
+            font-family: Arial, sans-serif;
+            z-index: 10000;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        #chat-button img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
         }
     </style>
 </head>
@@ -80,22 +76,21 @@
         </div>
     </div>
 
-    <button id="chat-button">
-        <img src="attached_assets/kai-kryptos-icon.png" alt="Chat">
-    </button>
+    <button id="chat-button">Chat with Iris</button>
 
     <script>
         const chatButton = document.getElementById('chat-button');
         const chatContainer = document.getElementById('chat-container');
         let isOpen = false;
 
-        chatButton.addEventListener('click', () => {
+        function toggleChat() {
             isOpen = !isOpen;
             chatContainer.style.display = isOpen ? 'flex' : 'none';
-            chatButton.style.display = isOpen ? 'none' : 'flex';
-        });
+            window.parent.postMessage(isOpen ? 'chat-opened' : 'chat-closed', '*');
+        }
 
-        // Handle sending messages
+        chatButton.addEventListener('click', toggleChat);
+
         const messageInput = document.getElementById('message-input');
         const sendButton = document.getElementById('send-button');
         const chatMessages = document.getElementById('chat-messages');
@@ -108,6 +103,7 @@
                 messageElement.style.marginBottom = '10px';
                 chatMessages.appendChild(messageElement);
                 messageInput.value = '';
+                chatMessages.scrollTop = chatMessages.scrollHeight;
             }
         }
 

@@ -108,30 +108,18 @@
 
   <div class="bottom-header"></div>
   <!-- Chatbot integration -->
-  <iframe src="chatbot.html" style="position: fixed; bottom: 20px; right: 20px; border: none; width: 400px; height: 600px; display: none;" id="chat-frame"></iframe>
-  
-  <!-- Chat button -->
-  <button id="chat-button" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background-color: #ff0099; border: 2px solid #00ff99; color: white; cursor: pointer; z-index: 100000; display: flex; align-items: center; justify-content: center;">
-    <img src="attached_assets/kai-kryptos-icon.png" style="width: 40px; height: 40px; border-radius: 50%;">
-  </button>
+  <iframe src="chatbot.html" style="position: fixed; bottom: 20px; right: 20px; border: none; width: 400px; height: 600px; display: none; z-index: 10000;" id="chat-frame"></iframe>
 
   <script src="script.js"></script>
   <script>
     // Chat toggle functionality
-    const chatButton = document.getElementById('chat-button');
     const chatFrame = document.getElementById('chat-frame');
     
-    chatButton.addEventListener('click', () => {
-      if (chatFrame.style.display === 'none') {
-        chatFrame.style.display = 'block';
-        chatButton.style.display = 'none';
-      }
-    });
-
     window.addEventListener('message', (event) => {
-      if (event.data === 'close-chat') {
+      if (event.data === 'chat-opened') {
+        chatFrame.style.display = 'block';
+      } else if (event.data === 'chat-closed') {
         chatFrame.style.display = 'none';
-        chatButton.style.display = 'flex';
       }
     });
   </script>
