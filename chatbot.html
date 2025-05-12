@@ -28,6 +28,7 @@
             align-items: center;
             justify-content: center;
             z-index: 10000;
+            box-shadow: 0 0 15px var(--shadow-color);
         }
 
         #iris-chat-button img {
@@ -101,12 +102,12 @@
         </div>
     </div>
 
-    <button id="chat-button">
+    <div id="iris-chat-button">
         <img src="attached_assets/kai-kryptos-icon.png" alt="Chat">
-    </button>
+    </div>
 
     <script>
-        const chatButton = document.getElementById('chat-button');
+        const chatButton = document.getElementById('iris-chat-button');
         const chatContainer = document.getElementById('chat-container');
         const messageInput = document.getElementById('message-input');
         const sendButton = document.getElementById('send-button');
@@ -116,6 +117,7 @@
         chatButton.addEventListener('click', () => {
             isOpen = !isOpen;
             chatContainer.style.display = isOpen ? 'flex' : 'none';
+            window.parent.postMessage(isOpen ? 'chat-opened' : 'chat-closed', '*');
         });
 
         function sendMessage() {
