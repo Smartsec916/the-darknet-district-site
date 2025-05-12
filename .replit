@@ -1,7 +1,7 @@
 
 run = "echo 'This is a static site'"
 hidden=[".config"]
-modules = ["web:v2-20230623-0b7a606"]
+modules = ["python-3.11", "web:v2-20230623-0b7a606"]
 
 [nix]
 channel = "stable-23_11"
