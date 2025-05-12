@@ -154,6 +154,18 @@
 
   <script src="script.js"></script>
   <script>
+    const banners = [
+      {
+        image: "/attached_assets/881f5832-0a1e-4079-8a66-fbc2c6479931._CR0,0,3000,600_SX3000_.jpg",
+        link: "https://mosequipment.com/"
+      },
+      {
+        image: "/attached_assets/cyberpunk_game.jpg",
+        link: "https://www.cdprojektred.com/en"
+      }
+    ];
+    
+    let currentBanner = 0;
     document.addEventListener('DOMContentLoaded', function() {
       initializeBannerRotation();
     });
