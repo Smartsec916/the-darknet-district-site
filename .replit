@@ -32,7 +32,7 @@ value = "geolocation=(), camera=(), microphone=()"
 run = ["sh", "-c", "python -m http.server 0.0.0.0:5000"]
 
 [workflows]
-runButton = "Preview Server"
+runButton = "Chat Server"
 
 [[workflows.workflow]]
 name = "Run"
@@ -51,3 +51,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python -m http.server 5000"
+
+[[workflows.workflow]]
+name = "Chat Server"
+author = 40752925
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python server.py"
