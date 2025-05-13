@@ -119,6 +119,30 @@ const products = [
     description: "Portable multi-tool for hackers and geeks.",
     link: "store-electronics.html"
   },
+  {
+    name: "Flipper Zero WiFi Devboard",
+    image: "attached_assets/fpr_zero_wifi_3_1024x1024@2x.jpg",
+    description: "Add WiFi capability to your Flipper Zero.",
+    link: "store-electronics.html"
+  },
+  {
+    name: "Flipper Zero Video Game Module",
+    image: "attached_assets/main_1024x1024@2x.jpg",
+    description: "Turn your Flipper Zero into a retro gaming console.",
+    link: "store-electronics.html"
+  },
+  {
+    name: "Flipper Zero Silicone Case",
+    image: "attached_assets/case-russian-transparent_1024x1024@2x.png",
+    description: "Protect your Flipper Zero with a durable silicone case.",
+    link: "store-electronics.html"
+  },
+  {
+    name: "Flipper Zero Proto Boards",
+    image: "attached_assets/all_proto_1024x1024@2x.jpg",
+    description: "Expand your Flipper Zero's capabilities with these prototype boards.",
+    link: "store-electronics.html"
+  },
   // Survival Gear
   {
     name: "HOLOSUN Digital Reflex Thermal Sight",
@@ -136,6 +160,54 @@ const products = [
     name: "Mission Darkness Faraday Bag",
     image: "attached_assets/Mission Darkness Dry Shield Faraday Phone Sleeve.jpg",
     description: "Military-grade Faraday bag for secure device storage.",
+    link: "store-survival.html"
+  },
+  {
+    name: "Survival Fishing Kit - Compact",
+    image: "attached_assets/Survival Fishing Kit - Compact.jpg",
+    description: "Essential compact fishing gear for survival situations.",
+    link: "store-survival.html"
+  },
+  {
+    name: "BLACK DIAMOND Storm Headlamp",
+    image: "attached_assets/71E+gwTfSGL._AC_SL1500_.jpg",
+    description: "500-R Rechargeable LED Headlamp for reliable illumination.",
+    link: "store-survival.html"
+  },
+  {
+    name: "VANQUEST TRIDENT-21 Backpack",
+    image: "attached_assets/VANQUEST TRIDENT-21 (Gen-3) Backpack.jpg",
+    description: "Gen-3 tactical backpack for urban operations.",
+    link: "store-survival.html"
+  },
+  {
+    name: "Morakniv Companion Fixed Blade",
+    image: "attached_assets/Morakniv Companion Fixed Blade.jpg",
+    description: "Reliable fixed blade knife for outdoor use.",
+    link: "store-survival.html"
+  },
+  {
+    name: "ENO OneLink Hammock System",
+    image: "attached_assets/ENO OneLink Hammock System.jpg",
+    description: "Complete hammock system for tactical rest.",
+    link: "store-survival.html"
+  },
+  {
+    name: "Jetboil Flash Stove System",
+    image: "attached_assets/Jetboil Flash Camping and Backpacking Stove System.jpg",
+    description: "Efficient camping and backpacking stove system.",
+    link: "store-survival.html"
+  },
+  {
+    name: "Mountain House Emergency Food",
+    image: "attached_assets/Mountain House 3-Day Emergency Food Supply.jpg",
+    description: "3-Day Emergency Food Supply for critical situations.",
+    link: "store-survival.html"
+  },
+  {
+    name: "Kaito Voyager KA500 Radio",
+    image: "attached_assets/Kaito Voyager KA500 Radio.jpg",
+    description: "Multi-powered emergency radio system.",
     link: "store-survival.html"
   },
   // Apparel
