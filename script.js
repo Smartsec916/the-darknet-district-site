@@ -110,7 +110,19 @@ function initializeBannerRotation() {
   setInterval(rotateBanner, 8000);
 }
 
-// Featured Products functionality
+// Product filtering functionality
+function filterProducts(category) {
+  const products = document.querySelectorAll('.product-card');
+  products.forEach(product => {
+    if (category === 'all' || product.dataset.category === category) {
+      product.style.display = 'flex';
+    } else {
+      product.style.display = 'none';
+    }
+  });
+}
+
+// Featured Products functionality  
 const products = [
   // Electronics
   {
