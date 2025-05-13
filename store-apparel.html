@@ -486,7 +486,7 @@
     </div> <!-- close product-grid -->
   </div> <!-- close content -->
 <script>
-    const banners = [
+  const banners = [
     {
       image: "/attached_assets/881f5832-0a1e-4079-8a66-fbc2c6479931._CR0,0,3000,600_SX3000_.jpg",
       link: "https://mosequipment.com/"
@@ -501,36 +501,46 @@
     }
   ];
 
-  let currentBannerIndex = 0;
-  const affiliateImage = document.getElementById('affiliate-image');
-  const affiliateLink = document.getElementById('affiliate-link');
-  const glitchEffect = document.getElementById('glitch-effect');
+  let currentBanner = 0;
+  const imageEl = document.getElementById("affiliate-image");
+  const linkEl = document.getElementById("affiliate-link");
+  const glitchEl = document.getElementById("glitch-effect");
 
-  function updateBanner() {
-    const banner = banners[currentBannerIndex];
-    affiliateImage.src = banner.image;
-    affiliateLink.href = banner.link;
+  function glitchEffect() {
+    glitchEl.innerHTML = '';
+    for (let i = 0; i < 4; i++) {
+      const bar = document.createElement("div");
+      bar.style.position = "absolute";
+      bar.style.left = "0";
+      bar.style.width = "100%";
+      bar.style.height = `${Math.random() * 4 + 2}px`;
+      bar.style.top = `${Math.random() * 100}%`;
+      bar.style.background = "#00ff9d";
+      bar.style.opacity = "0.15";
+      bar.style.animation = `glitchMove 0.3s ease-out forwards`;
+      glitchEl.appendChild(bar);
+    }
+    setTimeout(() => glitchEl.innerHTML = '', 400);
+  }
 
-    // Trigger glitch effect
-    glitchEffect.style.clipPath = `inset(${Math.random() * 100}% ${Math.random() * 100}% ${Math.random() * 100}% ${Math.random() * 100}%)`;
-    affiliateImage.style.opacity = 0; // Fade out
+  function rotateBanner() {
+    imageEl.style.opacity = 0;
+    imageEl.style.boxShadow = 'none';
+
     setTimeout(() => {
-      affiliateImage.style.opacity = 1; // Fade in
-      glitchEffect.style.clipPath = 'inset(0% 0% 0% 0%)'; // Reset glitch
-    }, 600);
+      const banner = banners[currentBanner];
+      imageEl.src = banner.image;
+      linkEl.href = banner.link;
+      glitchEffect();
+      imageEl.style.opacity = 1;
+      imageEl.style.boxShadow = '0 0 20px #00ff9d';
 
-    currentBannerIndex = (currentBannerIndex + 1) % banners.length;
+      currentBanner = (currentBanner + 1) % banners.length;
+    }, 500);
   }
 
-  function initializeBannerRotation() {
-    updateBanner();
-    setInterval(updateBanner, 5000); // Change banner every 5 seconds
-  }
+  rotateBanner();
+  setInterval(rotateBanner, 8000);
 </script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      initializeBannerRotation();
-    });
-  </script>
 </body>
 </html>
