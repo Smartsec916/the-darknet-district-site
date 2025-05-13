@@ -73,7 +73,7 @@
       color: #000;
       padding: 10px 20px;
 
-    
+
 
       text-decoration: none;
       font-weight: bold;
@@ -484,7 +484,48 @@
 
     </div> <!-- close product-grid -->
   </div> <!-- close content -->
-<script src="script.js"></script>
+<script>
+    const banners = [
+    {
+      image: "/attached_assets/881f5832-0a1e-4079-8a66-fbc2c6479931._CR0,0,3000,600_SX3000_.jpg",
+      link: "https://mosequipment.com/"
+    },
+    {
+      image: "/attached_assets/cyberpunk_game.jpg",
+      link: "https://www.cdprojektred.com/en"
+    },
+    {
+      image: "/attached_assets/Flipper_Zero.jpg",
+      link: "https://flipperzero.one/"
+    }
+  ];
+
+  let currentBannerIndex = 0;
+  const affiliateImage = document.getElementById('affiliate-image');
+  const affiliateLink = document.getElementById('affiliate-link');
+  const glitchEffect = document.getElementById('glitch-effect');
+
+  function updateBanner() {
+    const banner = banners[currentBannerIndex];
+    affiliateImage.src = banner.image;
+    affiliateLink.href = banner.link;
+
+    // Trigger glitch effect
+    glitchEffect.style.clipPath = `inset(${Math.random() * 100}% ${Math.random() * 100}% ${Math.random() * 100}% ${Math.random() * 100}%)`;
+    affiliateImage.style.opacity = 0; // Fade out
+    setTimeout(() => {
+      affiliateImage.style.opacity = 1; // Fade in
+      glitchEffect.style.clipPath = 'inset(0% 0% 0% 0%)'; // Reset glitch
+    }, 600);
+
+    currentBannerIndex = (currentBannerIndex + 1) % banners.length;
+  }
+
+  function initializeBannerRotation() {
+    updateBanner();
+    setInterval(updateBanner, 5000); // Change banner every 5 seconds
+  }
+</script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       initializeBannerRotation();
@@ -492,4 +533,3 @@
   </script>
 </body>
 </html>
-
