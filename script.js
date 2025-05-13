@@ -253,11 +253,8 @@ function displayFeaturedProducts() {
   let currentIndex = 0;
 
   function updateProducts() {
-    const startIndex = currentIndex;
-    const productsToShow = [
-      products[startIndex],
-      products[(startIndex + 1) % products.length]
-    ];
+    const shuffled = [...products].sort(() => Math.random() - 0.5);
+    const productsToShow = shuffled.slice(0, 2);
 
     container.innerHTML = productsToShow.map(product => `
       <div class="product-card" style="opacity: 0; transform: translateY(10px); transition: opacity 0.5s ease, transform 0.5s ease;">
