@@ -182,44 +182,5 @@
   </div> <!-- close content -->
 
   <script src="script.js"></script>
-  <script>
-    // Banner functionality handled by the previous script block
-
-    function glitchEffect() {
-      glitchEl.innerHTML = '';
-      for (let i = 0; i < 4; i++) {
-        const bar = document.createElement("div");
-        bar.style.position = "absolute";
-        bar.style.left = "0";
-        bar.style.width = "100%";
-        bar.style.height = `${Math.random() * 4 + 2}px`;
-        bar.style.top = `${Math.random() * 100}%`;
-        bar.style.background = "#00ff9d";
-        bar.style.opacity = "0.15";
-        bar.style.animation = `glitchMove 0.3s ease-out forwards`;
-        glitchEl.appendChild(bar);
-      }
-      setTimeout(() => glitchEl.innerHTML = '', 400);
-    }
-
-    function rotateBanner() {
-      imageEl.style.opacity = 0;
-      imageEl.style.boxShadow = 'none';
-
-      setTimeout(() => {
-        const banner = banners[currentBanner];
-        imageEl.src = banner.image;
-        linkEl.href = banner.link;
-        glitchEffect();
-        imageEl.style.opacity = 1;
-        imageEl.style.boxShadow = '0 0 20px #00ff9d';
-
-        currentBanner = (currentBanner + 1) % banners.length;
-      }, 500);
-    }
-
-    rotateBanner();
-    setInterval(rotateBanner, 8000);
-  </script>
 </body>
 </html>
