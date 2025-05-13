@@ -182,11 +182,11 @@ function displayFeaturedProducts() {
   featuredProducts = getRandomProducts(2);
   
   container.innerHTML = featuredProducts.map(product => `
-    <div class="product-card">
-      <img src="${product.image}" alt="${product.name}">
+    <div class="product-card" style="height: 400px; display: flex; flex-direction: column;">
+      <img src="${product.image}" alt="${product.name}" style="max-height: 200px; object-fit: contain;">
       <h3>${product.name}</h3>
       <p>${product.description}</p>
-      <a href="${product.link}" class="button">Learn More</a>
+      <a href="${product.link}" class="button" style="margin-top: auto;">Learn More</a>
     </div>
   `).join('');
 }
