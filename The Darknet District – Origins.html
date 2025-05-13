@@ -1,0 +1,74 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Darknet District – Origins</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .top-nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      padding: 10px 0;
+      z-index: 9999;
+    }
+
+    .top-nav a {
+      font-family: 'Courier New', monospace;
+      color: #00ffcc;
+      text-decoration: none;
+      padding: 8px 16px;
+      border: 1px solid #00ffcc;
+      border-radius: 4px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .top-nav a:hover {
+      background-color: #00ffcc;
+      color: black;
+    }
+
+    body {
+      padding-top: 60px;
+    }
+  </style>
+</head>
+<body style="margin: 0; background-color: black; color: #00ff00; text-align: center;">
+  <!-- Top Navigation Buttons -->
+  <div class="top-nav">
+    <a href="/index.html">Home</a>
+    <a href="/games-list.html">Play a Game</a>
+    <a href="/store-first-page.html">Shop</a>
+  </div>
+  <h1 id="title" style="padding: 1rem;">The Darknet District – Origins</h1>
+  <iframe 
+    id="gameFrame"
+    src="https://cyber-nexus-smartsec916.replit.app?lang=en" 
+    width="100%" 
+    height="800" 
+    style="border: none; background-color: black;"
+    allow="fullscreen">
+  </iframe>
+  <script>
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'languageChange') {
+        const titleElement = document.getElementById("title");
+        const translations = {
+          en: "The Darknet District – Origins",
+          es: "El Distrito Darknet – Orígenes",
+          fr: "Le District Darknet – Origines",
+          zh: "暗网区 – 起源",
+          ru: "Даркнет Район – Происхождение"
+        };
+        titleElement.textContent = translations[event.data.language] || translations['en'];
+      }
+    });
+  </script>
+</body>
+</html>
