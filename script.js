@@ -115,7 +115,7 @@ const products = [
   // Electronics
   {
     name: "Flipper Zero",
-    image: "./attached_assets/on_orange.png",
+    image: "./attached_assets/top.png",
     description: "Portable multi-tool for hackers and geeks.",
     link: "store-electronics.html"
   },
