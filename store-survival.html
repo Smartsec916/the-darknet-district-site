@@ -75,16 +75,19 @@
     #product-list {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 30px;
+      gap: 40px;
       max-width: 1200px;
       margin: 0 auto 20px;
       padding: 20px;
+      box-sizing: border-box;
     }
 
     .product-card {
       margin: 0;
       width: auto;
       max-width: none;
+      padding: 20px;
+      box-sizing: border-box;
     }
 
     @media (max-width: 768px) {
