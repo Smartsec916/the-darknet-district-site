@@ -233,13 +233,12 @@ const products = [
 ];
 
 function getRandomProducts(count) {
-  const seed = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24)); // Changes daily
   const shuffled = [...products];
   
-  // Fisher-Yates shuffle with seeded random
+  // Fisher-Yates shuffle with true randomization
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const seededRandom = ((i * seed) % shuffled.length);
-    [shuffled[i], shuffled[seededRandom]] = [shuffled[seededRandom], shuffled[i]];
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   
   return shuffled.slice(0, count);
