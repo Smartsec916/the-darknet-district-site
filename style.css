@@ -443,3 +443,9 @@ section {
   box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
   transform: translateY(-2px);
 }
+
+#affiliate-banner {
+  position: relative;
+  margin-top: 20px;
+  z-index: 1;
+}
