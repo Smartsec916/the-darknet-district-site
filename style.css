@@ -1,4 +1,3 @@
-
 /* Shopify Cart Styles */
 .shopify-buy-cart-wrapper {
   position: fixed;
@@ -159,7 +158,7 @@ section {
   color: #e4e4e4;
   letter-spacing: 4px;
   text-align: center;
-  margin: 0 auto;
+  margin: 20px auto;
   background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%);
   border-radius: 5px;
   max-width: 90%;
