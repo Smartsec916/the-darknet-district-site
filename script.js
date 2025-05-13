@@ -179,16 +179,64 @@ function displayFeaturedProducts() {
   const container = document.getElementById('featured-products');
   if (!container) return;
 
-  featuredProducts = getRandomProducts(2);
-  
-  container.innerHTML = featuredProducts.map(product => `
-    <div class="product-card">
-      <img src="${product.image}" alt="${product.name}">
-      <h3>${product.name}</h3>
-      <p>${product.description}</p>
-      <a href="${product.link}" class="button">Learn More</a>
-    </div>
-  `).join('');
+  let currentIndex = 0;
+
+  function updateProducts() {
+    const startIndex = currentIndex;
+    const productsToShow = [
+      products[startIndex],
+      products[(startIndex + 1) % products.length]
+    ];
+
+    container.innerHTML = productsToShow.map(product => `
+      <div class="product-card" style="opacity: 0; transform: translateY(10px); transition: opacity 0.5s ease, transform 0.5s ease;">
+        <img src="${product.image}" alt="${product.name}">
+        <h3>${product.name}</h3>
+        <p>${product.description}</p>
+        <a href="${product.link}" class="button">Learn More</a>
+      </div>
+    `).join('');
+
+    // Trigger glitch effect and fade-in
+    setTimeout(() => {
+      const cards = container.querySelectorAll('.product-card');
+      cards.forEach(card => {
+        const glitchEl = document.createElement('div');
+        glitchEl.style.position = 'absolute';
+        glitchEl.style.inset = '0';
+        glitchEl.style.zIndex = '1';
+        card.style.position = 'relative';
+        card.appendChild(glitchEl);
+
+        // Create glitch bars
+        for (let i = 0; i < 4; i++) {
+          const bar = document.createElement('div');
+          bar.style.position = 'absolute';
+          bar.style.left = '0';
+          bar.style.width = '100%';
+          bar.style.height = `${Math.random() * 4 + 2}px`;
+          bar.style.top = `${Math.random() * 100}%`;
+          bar.style.background = '#00ff9d';
+          bar.style.opacity = '0.15';
+          glitchEl.appendChild(bar);
+        }
+
+        // Fade in the card
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+
+        // Clean up glitch effect
+        setTimeout(() => {
+          glitchEl.remove();
+        }, 400);
+      });
+    }, 50);
+
+    currentIndex = (currentIndex + 2) % products.length;
+  }
+
+  updateProducts();
+  setInterval(updateProducts, 8000);
 }
 
 // Basic scroll functionality
