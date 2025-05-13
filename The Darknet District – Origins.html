@@ -2,73 +2,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Darknet District – Origins</title>
-  <link rel="stylesheet" href="style.css" />
   <style>
-    .top-nav {
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      color: #00ff9d;
+      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav {
       position: fixed;
       top: 0;
       width: 100%;
-      background-color: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.9);
+      padding: 1rem;
       display: flex;
       justify-content: center;
-      gap: 20px;
-      padding: 10px 0;
-      z-index: 9999;
+      gap: 1rem;
+      z-index: 1000;
     }
 
-    .top-nav a {
-      font-family: 'Courier New', monospace;
-      color: #00ffcc;
+    .nav a {
+      color: #00ff9d;
       text-decoration: none;
-      padding: 8px 16px;
-      border: 1px solid #00ffcc;
+      padding: 0.5rem 1rem;
+      border: 1px solid #00ff9d;
       border-radius: 4px;
-      transition: background-color 0.3s, color 0.3s;
+      transition: all 0.3s ease;
     }
 
-    .top-nav a:hover {
-      background-color: #00ffcc;
-      color: black;
+    .nav a:hover {
+      background: #00ff9d;
+      color: #000;
     }
 
-    body {
-      padding-top: 60px;
+    .game-container {
+      margin-top: 4rem;
+      flex: 1;
+      width: 100%;
+      height: calc(100vh - 4rem);
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #000;
     }
   </style>
 </head>
-<body style="margin: 0; background-color: black; color: #00ff00; text-align: center;">
-  <!-- Top Navigation Buttons -->
-  <div class="top-nav">
-    <a href="/index.html">Home</a>
-    <a href="/games-list.html">Play a Game</a>
-    <a href="/store-first-page.html">Shop</a>
+<body>
+  <nav class="nav">
+    <a href="index.html">Home</a>
+    <a href="games-list.html">Games</a>
+    <a href="store-first-page.html">Shop</a>
+  </nav>
+
+  <div class="game-container">
+    <iframe 
+      src="https://cyber-nexus-smartsec916.replit.app?lang=en"
+      allow="fullscreen"
+      loading="lazy">
+    </iframe>
   </div>
-  <h1 id="title" style="padding: 1rem;">The Darknet District – Origins</h1>
-  <iframe 
-    id="gameFrame"
-    src="https://cyber-nexus-smartsec916.replit.app?lang=en" 
-    width="100%" 
-    height="800" 
-    style="border: none; background-color: black;"
-    allow="fullscreen">
-  </iframe>
-  <script>
-    window.addEventListener('message', function(event) {
-      if (event.data && event.data.type === 'languageChange') {
-        const titleElement = document.getElementById("title");
-        const translations = {
-          en: "The Darknet District – Origins",
-          es: "El Distrito Darknet – Orígenes",
-          fr: "Le District Darknet – Origines",
-          zh: "暗网区 – 起源",
-          ru: "Даркнет Район – Происхождение"
-        };
-        titleElement.textContent = translations[event.data.language] || translations['en'];
-      }
-    });
-  </script>
 </body>
 </html>
