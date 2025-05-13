@@ -236,7 +236,7 @@ function displayFeaturedProducts() {
   }
 
   updateProducts();
-  setInterval(updateProducts, 8000);
+  setInterval(updateProducts, 15000);
 }
 
 // Basic scroll functionality
