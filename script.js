@@ -112,6 +112,33 @@ function initializeBannerRotation() {
 
 // Featured Products functionality
 const products = [
+  // Electronics
+  {
+    name: "Flipper Zero",
+    image: "attached_assets/on_orange.png",
+    description: "Portable multi-tool for hackers and geeks.",
+    link: "store-electronics.html"
+  },
+  // Survival Gear
+  {
+    name: "HOLOSUN Digital Reflex Thermal Sight",
+    image: "attached_assets/HOLOSUN Digital Reflex Thermal Sight.jpg",
+    description: "Advanced thermal optics for tactical situations.",
+    link: "store-survival.html"
+  },
+  {
+    name: "Streamlight TLR-8 HL-X",
+    image: "attached_assets/Streamlight 69467 TLR-8 HL-X sub USB 1000-Lumen Weapon Rail-Mounted Rechargeable Tactical Flashlight.jpg",
+    description: "1000-Lumen tactical weapon light.",
+    link: "store-survival.html"
+  },
+  {
+    name: "Mission Darkness Faraday Bag",
+    image: "attached_assets/Mission Darkness Dry Shield Faraday Phone Sleeve.jpg",
+    description: "Military-grade Faraday bag for secure device storage.",
+    link: "store-survival.html"
+  },
+  // Apparel
   {
     name: "Admin Surveillance T-Shirt",
     image: "attached_assets/unisex-staple-t-shirt-black-front-6802b3d593026.png",
@@ -124,18 +151,7 @@ const products = [
     description: "Drift through the chaos with calm precision.",
     link: "store-apparel.html"
   },
-  {
-    name: "Flipper Zero",
-    image: "attached_assets/on_orange.png",
-    description: "Portable multi-tool for hackers and geeks.",
-    link: "store-electronics.html"
-  },
-  {
-    name: "Mission Darkness Faraday Bag",
-    image: "attached_assets/mission_darkness_banner.jpg",
-    description: "Military-grade Faraday bag for secure device storage.",
-    link: "store-survival.html"
-  },
+  // Apps
   {
     name: "Kai Kryptos App",
     image: "attached_assets/kai-kryptos-icon.png",
