@@ -1,4 +1,3 @@
-
 // Shopify Buy SDK
 var scriptURL = 'https://sdks.shopifycdn.com/buy-button-storefront/latest/buy-button-storefront.min.js';
 var client;
@@ -21,7 +20,7 @@ function initBuyClient() {
     domain: 'YOUR-SHOPIFY-STORE.myshopify.com', // Replace with your store domain
     storefrontAccessToken: 'YOUR-STOREFRONT-ACCESS-TOKEN' // You'll get this from Shopify Admin
   });
-  
+
   ShopifyBuy.UI.onReady(client).then(function (ui) {
     ui.createComponent('cart', {
       moneyFormat: '%24%7B%7Bamount%7D%7D',
@@ -70,7 +69,7 @@ function initializeBannerRotation() {
   const imageEl = document.getElementById("affiliate-image");
   const linkEl = document.getElementById("affiliate-link");
   const glitchEl = document.getElementById("glitch-effect");
-  
+
   if (!imageEl || !linkEl || !glitchEl) return;
 
   function glitchEffect() {
@@ -246,13 +245,13 @@ const products = [
 
 function getRandomProducts(count) {
   const shuffled = [...products];
-  
+
   // Fisher-Yates shuffle with true randomization
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
-  
+
   return shuffled.slice(0, count);
 }
 
@@ -331,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (section.contains(document.querySelector('iframe'))) {
         return;
       }
-      
+
       const rect = section.getBoundingClientRect();
       const windowHeight = window.innerHeight;
 
