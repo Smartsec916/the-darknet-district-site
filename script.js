@@ -181,7 +181,7 @@ const products = [
   },
   {
     name: "BLACK DIAMOND Storm Headlamp",
-    image: "attached_assets/71E+gwTfSGL._AC_SL1500_.jpg",
+    image: "attached_assets/BLACK DIAMOND Storm 500-R Rechargeable LED Headlamp.jpg",
     description: "500-R Rechargeable LED Headlamp for reliable illumination.",
     link: "store-survival.html"
   },
