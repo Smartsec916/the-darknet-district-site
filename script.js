@@ -105,6 +105,12 @@ function initializeBannerRotation() {
     }, 500);
   }
 
+  // Preload banner images
+  banners.forEach(banner => {
+    const img = new Image();
+    img.src = banner.image;
+  });
+  
   rotateBanner();
   setInterval(rotateBanner, 8000);
 }

@@ -295,7 +295,8 @@ section {
   box-shadow: 
     0 0 10px rgba(0, 255, 157, 0.3),
     inset 0 0 20px rgba(0, 255, 157, 0.2);
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  will-change: transform, box-shadow;
   padding: 20px;
   width: 100%;
   max-width: 320px;
