@@ -69,12 +69,20 @@ section {
   background-color: black;
 }
 
+.first-section {
+  background-image: url('/attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png');
+}
+
+.second-section {
+  background-image: url('/attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_2f655a3a-3cf8-4c63-9ccf-603069e77808.png');
+}
+
 .third-section {
-  background-image: url('attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png');
+  background-image: url('/attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png');
 }
 
 .fourth-section {
-  background-image: url('attached_assets/0_2.jpeg');
+  background-image: url('/attached_assets/0_2.jpeg');
 }
 
 .first-section::after,
