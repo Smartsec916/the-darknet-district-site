@@ -263,61 +263,67 @@ function getRandomProducts(count) {
 
 let featuredProducts;
 
+// Cache for featured products
+let cachedProducts = null;
+let productObserver;
+
 function displayFeaturedProducts() {
   const container = document.getElementById('featured-products');
   if (!container) return;
 
-  let currentIndex = 0;
+  // Initialize Intersection Observer if not already created
+  if (!productObserver) {
+    productObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const card = entry.target;
+          requestAnimationFrame(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+          });
+        }
+      });
+    }, { threshold: 0.1 });
+  }
+
+  function createProductCard(product) {
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(10px)';
+    card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    
+    const img = new Image();
+    img.loading = 'lazy';
+    img.src = product.image;
+    img.alt = product.name;
+    
+    card.innerHTML = `
+      <h3>${product.name}</h3>
+      <p>${product.description}</p>
+      <a href="${product.link}" class="button">Learn More</a>
+    `;
+    card.insertBefore(img, card.firstChild);
+    
+    return card;
+  }
 
   function updateProducts() {
-    const shuffled = [...products].sort(() => Math.random() - 0.5);
-    const productsToShow = shuffled.slice(0, 2);
+    if (!cachedProducts) {
+      cachedProducts = [...products].sort(() => Math.random() - 0.5);
+    }
+    
+    const productsToShow = cachedProducts.slice(0, 2);
+    container.innerHTML = '';
 
-    container.innerHTML = productsToShow.map(product => `
-      <div class="product-card" style="opacity: 0; transform: translateY(10px); transition: opacity 0.5s ease, transform 0.5s ease;">
-        <img src="${product.image}" alt="${product.name}">
-        <h3>${product.name}</h3>
-        <p>${product.description}</p>
-        <a href="${product.link}" class="button">Learn More</a>
-      </div>
-    `).join('');
+    productsToShow.forEach(product => {
+      const card = createProductCard(product);
+      container.appendChild(card);
+      productObserver.observe(card);
+    });
 
-    // Trigger glitch effect and fade-in
-    setTimeout(() => {
-      const cards = container.querySelectorAll('.product-card');
-      cards.forEach(card => {
-        const glitchEl = document.createElement('div');
-        glitchEl.style.position = 'absolute';
-        glitchEl.style.inset = '0';
-        glitchEl.style.zIndex = '1';
-        card.style.position = 'relative';
-        card.appendChild(glitchEl);
-
-        // Create glitch bars
-        for (let i = 0; i < 4; i++) {
-          const bar = document.createElement('div');
-          bar.style.position = 'absolute';
-          bar.style.left = '0';
-          bar.style.width = '100%';
-          bar.style.height = `${Math.random() * 4 + 2}px`;
-          bar.style.top = `${Math.random() * 100}%`;
-          bar.style.background = '#00ff9d';
-          bar.style.opacity = '0.15';
-          glitchEl.appendChild(bar);
-        }
-
-        // Fade in the card
-        card.style.opacity = '1';
-        card.style.transform = 'translateY(0)';
-
-        // Clean up glitch effect
-        setTimeout(() => {
-          glitchEl.remove();
-        }, 400);
-      });
-    }, 50);
-
-    currentIndex = (currentIndex + 2) % products.length;
+    // Rotate cached products
+    cachedProducts.push(cachedProducts.shift());
   }
 
   updateProducts();
