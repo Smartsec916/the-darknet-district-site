@@ -5,7 +5,6 @@ modules = ["python-3.11", "web:v2-20230623-0b7a606"]
 
 [nix]
 channel = "stable-23_11"
-packages = ["freetype", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "tcl", "tk", "zlib"]
 
 [deployment]
 publicDir = "/"
