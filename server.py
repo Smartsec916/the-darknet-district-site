@@ -19,6 +19,11 @@ def serve_file(path):
 
 @app.route('/chat', methods=['POST'])
 def chat():
+    if not openai.api_key:
+        return jsonify({
+            'response': 'OpenAI API key not configured. Please check system configuration.'
+        }), 500
+
     try:
         data = request.json
         user_message = data.get('message', '')
@@ -34,6 +39,11 @@ def chat():
         return jsonify({
             'response': response.choices[0].message.content
         })
+    except openai.error.AuthenticationError:
+        print("OpenAI API key is invalid")
+        return jsonify({
+            'response': 'Authentication failed. Neural interface access denied.'
+        }), 500
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({
