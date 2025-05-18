@@ -1,3 +1,388 @@
+// Shopify Buy SDK
+var scriptURL = 'https://sdks.shopifycdn.com/buy-button-storefront/latest/buy-button-storefront.min.js';
+var client;
+var ui;
+
+function loadShopifyBuySDK() {
+  if (window.ShopifyBuy) {
+    initBuyClient();
+  } else {
+    var script = document.createElement('script');
+    script.async = true;
+    script.src = scriptURL;
+    script.onload = initBuyClient;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+}
+
+function initBuyClient() {
+  client = ShopifyBuy.buildClient({
+    domain: 'YOUR-SHOPIFY-STORE.myshopify.com', // Replace with your store domain
+    storefrontAccessToken: 'YOUR-STOREFRONT-ACCESS-TOKEN' // You'll get this from Shopify Admin
+  });
+
+  ShopifyBuy.UI.onReady(client).then(function (ui) {
+    ui.createComponent('cart', {
+      moneyFormat: '%24%7B%7Bamount%7D%7D',
+      cart: {
+        popup: false,
+        startOpen: false,
+        styles: {
+          button: {
+            'background-color': '#00ff9d',
+            'color': 'black',
+            ':hover': {
+              'background-color': '#00cc7a'
+            }
+          }
+        }
+      }
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  loadShopifyBuySDK();
+  // Keep existing initialization
+  if(typeof initializeBannerRotation === 'function') {
+    initializeBannerRotation();
+  }
+});
+
+// Banner rotation functionality
+if (typeof window.bannerInitialized === 'undefined') {
+  window.bannerInitialized = true;
+  window.banners = [
+    {
+      image: "./attached_assets/mission_darkness_banner.jpg",
+      link: "https://mosequipment.com/"
+    },
+    {
+      image: "./attached_assets/cyberpunk_game.jpg",
+      link: "https://www.cdprojektred.com/en"
+    }
+  ];
+  window.currentBanner = 0;
+}
+
+function initializeBannerRotation() {
+  const imageEl = document.getElementById("affiliate-image");
+  const linkEl = document.getElementById("affiliate-link");
+  const glitchEl = document.getElementById("glitch-effect");
+
+  if (!imageEl || !linkEl || !glitchEl) return;
+
+  function glitchEffect() {
+    glitchEl.innerHTML = '';
+    for (let i = 0; i < 4; i++) {
+      const bar = document.createElement("div");
+      bar.style.position = "absolute";
+      bar.style.left = "0";
+      bar.style.width = "100%";
+      bar.style.height = `${Math.random() * 4 + 2}px`;
+      bar.style.top = `${Math.random() * 100}%`;
+      bar.style.background = "#00ff9d";
+      bar.style.opacity = "0.15";
+      bar.style.animation = `glitchMove 0.3s ease-out forwards`;
+      glitchEl.appendChild(bar);
+    }
+    setTimeout(() => glitchEl.innerHTML = '', 400);
+  }
+
+  function rotateBanner() {
+    imageEl.style.opacity = 0;
+    imageEl.style.boxShadow = 'none';
+
+    setTimeout(() => {
+      const banner = banners[currentBanner];
+      imageEl.src = banner.image;
+      linkEl.href = banner.link;
+      glitchEffect();
+      imageEl.style.opacity = 1;
+      imageEl.style.boxShadow = '0 0 20px #00ff9d';
+
+      currentBanner = (currentBanner + 1) % banners.length;
+    }, 500);
+  }
+
+  // Preload banner images
+  banners.forEach(banner => {
+    const img = new Image();
+    img.src = banner.image;
+  });
+  
+  rotateBanner();
+  setInterval(rotateBanner, 8000);
+}
+
+// Product filtering functionality
+function filterProducts(category) {
+  const products = document.querySelectorAll('.product-card');
+  products.forEach(product => {
+    if (category === 'all' || product.dataset.category === category) {
+      product.style.display = 'flex';
+    } else {
+      product.style.display = 'none';
+    }
+  });
+}
+
+// Featured Products functionality  
+const products = [
+  // Electronics
+  {
+    name: "Flipper Zero",
+    image: "./attached_assets/top.png",
+    description: "Portable multi-tool for hackers and geeks.",
+    link: "store-electronics.html"
+  },
+  {
+    name: "Flipper Zero WiFi Devboard",
+    image: "attached_assets/fpr_zero_wifi_3_1024x1024@2x.jpg",
+    description: "Add WiFi capability to your Flipper Zero.",
+    link: "store-electronics.html"
+  },
+  {
+    name: "Flipper Zero Video Game Module",
+    image: "attached_assets/main_1024x1024@2x.jpg",
+    description: "Turn your Flipper Zero into a retro gaming console.",
+    link: "store-electronics.html"
+  },
+  {
+    name: "Flipper Zero Silicone Case",
+    image: "attached_assets/case-russian-transparent_1024x1024@2x.png",
+    description: "Protect your Flipper Zero with a durable silicone case.",
+    link: "store-electronics.html"
+  },
+  {
+    name: "Flipper Zero Proto Boards",
+    image: "attached_assets/all_proto_1024x1024@2x.jpg",
+    description: "Expand your Flipper Zero's capabilities with these prototype boards.",
+    link: "store-electronics.html"
+  },
+  // Survival Gear
+  {
+    name: "HOLOSUN Digital Reflex Thermal Sight",
+    image: "attached_assets/HOLOSUN Digital Reflex Thermal Sight.jpg",
+    description: "Advanced thermal optics for tactical situations.",
+    link: "store-survival.html"
+  },
+  {
+    name: "Streamlight TLR-8 HL-X",
+    image: "attached_assets/Streamlight 69467 TLR-8 HL-X sub USB 1000-Lumen Weapon Rail-Mounted Rechargeable Tactical Flashlight.jpg",
+    description: "1000-Lumen tactical weapon light.",
+    link: "store-survival.html"
+  },
+  {
+    name: "Mission Darkness Faraday Bag",
+    image: "attached_assets/Mission Darkness Dry Shield Faraday Phone Sleeve.jpg",
+    description: "Military-grade Faraday bag for secure device storage.",
+    link: "store-survival.html"
+  },
+  {
+    name: "Survival Fishing Kit - Compact",
+    image: "attached_assets/Survival Fishing Kit - Compact.jpg",
+    description: "Essential compact fishing gear for survival situations.",
+    link: "store-survival.html"
+  },
+  {
+    name: "BLACK DIAMOND Storm Headlamp",
+    image: "attached_assets/BLACK DIAMOND Storm 500-R Rechargeable LED Headlamp.jpg",
+    description: "500-R Rechargeable LED Headlamp for reliable illumination.",
+    link: "store-survival.html"
+  },
+  {
+    name: "VANQUEST TRIDENT-21 Backpack",
+    image: "attached_assets/VANQUEST TRIDENT-21 (Gen-3) Backpack.jpg",
+    description: "Gen-3 tactical backpack for urban operations.",
+    link: "store-survival.html"
+  },
+  {
+    name: "Morakniv Companion Fixed Blade",
+    image: "attached_assets/Morakniv Companion Fixed Blade.jpg",
+    description: "Reliable fixed blade knife for outdoor use.",
+    link: "store-survival.html"
+  },
+  {
+    name: "ENO OneLink Hammock System",
+    image: "attached_assets/ENO OneLink Hammock System.jpg",
+    description: "Complete hammock system for tactical rest.",
+    link: "store-survival.html"
+  },
+  {
+    name: "Jetboil Flash Stove System",
+    image: "attached_assets/Jetboil Flash Camping and Backpacking Stove System.jpg",
+    description: "Efficient camping and backpacking stove system.",
+    link: "store-survival.html"
+  },
+  {
+    name: "Mountain House Emergency Food",
+    image: "attached_assets/Mountain House 3-Day Emergency Food Supply.jpg",
+    description: "3-Day Emergency Food Supply for critical situations.",
+    link: "store-survival.html"
+  },
+  {
+    name: "Kaito Voyager KA500 Radio",
+    image: "attached_assets/Kaito Voyager KA500 Radio.jpg",
+    description: "Multi-powered emergency radio system.",
+    link: "store-survival.html"
+  },
+  // Apparel
+  {
+    name: "Admin Surveillance T-Shirt",
+    image: "attached_assets/unisex-staple-t-shirt-black-front-6802b3d593026.png",
+    description: "Wear the resistance. This isn't just a shirt — it's a statement.",
+    link: "store-apparel.html"
+  },
+  {
+    name: "Zen Zephyr T-Shirt",
+    image: "attached_assets/zen-zephyr-shirt_front.png",
+    description: "Drift through the chaos with calm precision.",
+    link: "store-apparel.html"
+  },
+  // Apps
+  {
+    name: "Kai Kryptos App",
+    image: "attached_assets/kai-kryptos-icon.png",
+    description: "Cyberpunk terminal for decrypted log access.",
+    link: "store-apps.html"
+  }
+];
+
+function getRandomProducts(count) {
+  const shuffled = [...products];
+
+  // Fisher-Yates shuffle with true randomization
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  return shuffled.slice(0, count);
+}
+
+let featuredProducts;
+
+// Cache for featured products
+let cachedProducts = null;
+let productObserver;
+
+function displayFeaturedProducts() {
+  const container = document.getElementById('featured-products');
+  if (!container) return;
+
+  // Initialize Intersection Observer if not already created
+  if (!productObserver) {
+    productObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const card = entry.target;
+          requestAnimationFrame(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+          });
+        }
+      });
+    }, { threshold: 0.1 });
+  }
+
+  function createProductCard(product) {
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(10px)';
+    card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    
+    const img = new Image();
+    img.loading = 'lazy';
+    img.src = product.image;
+    img.alt = product.name;
+    
+    card.innerHTML = `
+      <h3>${product.name}</h3>
+      <p>${product.description}</p>
+      <a href="${product.link}" class="button">Learn More</a>
+    `;
+    card.insertBefore(img, card.firstChild);
+    
+    return card;
+  }
+
+  function updateProducts() {
+    if (!cachedProducts) {
+      cachedProducts = [...products].sort(() => Math.random() - 0.5);
+    }
+    
+    const productsToShow = cachedProducts.slice(0, 2);
+    container.innerHTML = '';
+
+    productsToShow.forEach(product => {
+      const card = createProductCard(product);
+      container.appendChild(card);
+      productObserver.observe(card);
+    });
+
+    // Rotate cached products
+    cachedProducts.push(cachedProducts.shift());
+  }
+
+  updateProducts();
+  setInterval(updateProducts, 8000);
+}
+
+// Basic scroll functionality
+document.addEventListener('DOMContentLoaded', function() {
+  displayFeaturedProducts();
+  const sections = document.querySelectorAll('section');
+  const backToTopButton = document.getElementById("backToTop");
+
+  function checkSectionVisibility() {
+    sections.forEach(section => {
+      // Skip iframe container
+      if (section.contains(document.querySelector('iframe'))) {
+        return;
+      }
+
+      const rect = section.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+
+      // Calculate how much of the section is visible with a gentler threshold
+      const visibleHeight = Math.min(rect.bottom, windowHeight) - Math.max(rect.top, 0);
+      const visiblePercentage = Math.min(
+        Math.max(
+          0.3, // Minimum opacity
+          visibleHeight / windowHeight
+        ),
+        1
+      );
+
+      section.style.opacity = visiblePercentage;
+    });
+
+    if (backToTopButton) {
+      if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        backToTopButton.style.display = "block";
+      } else {
+        backToTopButton.style.display = "none";
+      }
+    }
+  }
+
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        checkSectionVisibility();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+  checkSectionVisibility(); // Initial check
+});
+
 function scrollToTop() {
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
+
+// Chat functionality is handled by the iframe

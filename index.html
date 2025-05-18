@@ -105,6 +105,21 @@
   </section>
 
   <div class="bottom-header"></div>
+  <!-- Chatbot integration -->
+  <iframe src="chatbot.html" style="position: fixed; bottom: 20px; right: 20px; border: none; width: 400px; height: 600px; display: none; z-index: 10000;" id="chat-frame"></iframe>
+
   <script src="script.js"></script>
+  <script>
+    // Chat toggle functionality
+    const chatFrame = document.getElementById('chat-frame');
+
+    window.addEventListener('message', (event) => {
+      if (event.data === 'chat-opened') {
+        chatFrame.style.display = 'block';
+      } else if (event.data === 'chat-closed') {
+        chatFrame.style.display = 'none';
+      }
+    });
+  </script>
 </body>
 </html>
