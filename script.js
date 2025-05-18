@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
       link: "store-electronics.html"
     },
     {
-      name: "HOLOSUN Digital Reflex Sight",
+      name: "HOLOSUN Digital Reflex Thermal Sight",
       image: "attached_assets/HOLOSUN Digital Reflex Thermal Sight.jpg",
       link: "store-electronics.html"
     },
