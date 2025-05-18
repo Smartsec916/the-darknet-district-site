@@ -1,5 +1,5 @@
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import openai
 import os
 from dotenv import load_dotenv
@@ -11,7 +11,11 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 
 @app.route('/')
 def home():
-    return app.send_static_file('index.html')
+    return send_from_directory('.', 'index.html')
+
+@app.route('/<path:path>')
+def serve_file(path):
+    return send_from_directory('.', path)
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -22,7 +26,7 @@ def chat():
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are Iris, a friendly and helpful AI assistant with cyberpunk aesthetics."},
+                {"role": "system", "content": "You are Iris, a cyberpunk AI assistant with extensive knowledge of technology, hacking, and digital culture. Your responses should reflect a mix of technical expertise and street-smart attitude."},
                 {"role": "user", "content": user_message}
             ]
         )
@@ -33,7 +37,7 @@ def chat():
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({
-            'response': 'Sorry, I encountered an error. Please try again.'
+            'response': 'Connection lost. Neural interface disrupted. Please try again.'
         }), 500
 
 if __name__ == '__main__':
