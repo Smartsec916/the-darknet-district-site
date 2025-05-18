@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     {
       name: "Flipper Zero",
       image: "attached_assets/top.png",
-      link: "https://shop.flipperzero.one"
+      link: "store-electronics.html"
     },
     {
       name: "HOLOSUN Digital Reflex Sight",
@@ -19,13 +19,23 @@ document.addEventListener('DOMContentLoaded', function() {
       name: "GRAYL Water Purifier",
       image: "attached_assets/GRAYL UltraPress 16.9 oz Water Purifier.jpg",
       link: "store-survival.html"
+    },
+    {
+      name: "Morakniv Companion",
+      image: "attached_assets/Morakniv Companion Fixed Blade.jpg",
+      link: "store-survival.html"
+    },
+    {
+      name: "BLACK DIAMOND Storm Headlamp",
+      image: "attached_assets/BLACK DIAMOND Storm 500-R Rechargeable LED Headlamp.jpg",
+      link: "store-survival.html"
     }
   ];
 
   const featuredGrid = document.getElementById('featured-products');
   if (featuredGrid) {
     let currentIndex = 0;
-    
+
     function showProducts() {
       featuredGrid.innerHTML = '';
       for(let i = 0; i < 2; i++) {
