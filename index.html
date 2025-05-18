@@ -110,6 +110,40 @@
       backdrop-filter: blur(3px);
       font-family: 'Courier New', monospace;
       box-shadow: 0 0 20px rgba(255, 51, 102, 0.2);
+      animation: screenFlicker 8s infinite;
+    }
+
+    .chat-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 255, 157, 0.03) 0px,
+        rgba(0, 255, 157, 0.03) 1px,
+        transparent 2px,
+        transparent 4px
+      );
+      pointer-events: none;
+      animation: scanline 10s linear infinite;
+    }
+
+    @keyframes screenFlicker {
+      0% { opacity: 1; }
+      1% { opacity: 0.95; }
+      2% { opacity: 0.9; }
+      3% { opacity: 1; }
+      98% { opacity: 1; }
+      99% { opacity: 0.9; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes scanline {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(450px); }
     }
 
     .chat-header {
