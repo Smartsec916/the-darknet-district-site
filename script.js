@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const featuredProducts = [
     {
       name: "Flipper Zero",
-      image: "attached_assets/Flipper_Zero.jpg",
+      image: "attached_assets/top.png",
       link: "https://shop.flipperzero.one"
     },
     {
