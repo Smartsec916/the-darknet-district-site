@@ -116,29 +116,33 @@ section {
 
 .first-section::after {
   bottom: 0;
-  background: linear-gradient(to bottom, transparent 70%, black);
+  background: linear-gradient(to bottom, transparent, black);
+  height: 30vh;
 }
 
 .second-section::before {
   top: 0;
-  background: linear-gradient(to top, transparent 70%, black);
+  background: linear-gradient(to top, transparent, black);
+  height: 30vh;
 }
 
 .second-section::after {
   bottom: 0;
-  height: 30vh;
   background: linear-gradient(to bottom, transparent, black);
+  height: 30vh;
 }
 
 .third-section::before {
   top: 0;
-  background: linear-gradient(to top, transparent 70%, black);
+  background: linear-gradient(to top, transparent, black);
+  height: 30vh;
 }
 
 .third-section::after,
 .fourth-section::before {
   bottom: 0;
-  background: linear-gradient(to bottom, transparent 70%, black);
+  background: linear-gradient(to bottom, transparent, black);
+  height: 30vh;
 }
 
 @keyframes glitch {
