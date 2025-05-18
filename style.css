@@ -152,9 +152,19 @@ section {
 
 .third-section::after,
 .fourth-section::before {
+  top: 0;
+  background: linear-gradient(to top, transparent, black);
+  height: 30vh;
+}
+
+.fourth-section::after {
+  content: '';
+  position: absolute;
   bottom: 0;
+  width: 100%;
   background: linear-gradient(to bottom, transparent, black);
   height: 30vh;
+  pointer-events: none;
 }
 
 @keyframes glitch {
