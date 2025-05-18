@@ -24,15 +24,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const featuredGrid = document.getElementById('featured-products');
   if (featuredGrid) {
-    featuredProducts.forEach(product => {
-      const card = document.createElement('div');
-      card.className = 'product-card';
-      card.innerHTML = `
-        <h3>${product.name}</h3>
-        <img src="${product.image}" alt="${product.name}" style="max-width: 200px; margin: 10px auto;">
-        <a href="${product.link}" class="button">Learn More</a>
-      `;
-      featuredGrid.appendChild(card);
-    });
+    let currentIndex = 0;
+    
+    function showProducts() {
+      featuredGrid.innerHTML = '';
+      for(let i = 0; i < 2; i++) {
+        const product = featuredProducts[(currentIndex + i) % featuredProducts.length];
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+          <h3>${product.name}</h3>
+          <img src="${product.image}" alt="${product.name}" style="max-width: 200px; margin: 10px auto;">
+          <a href="${product.link}" class="button">Learn More</a>
+        `;
+        featuredGrid.appendChild(card);
+      }
+      currentIndex = (currentIndex + 1) % featuredProducts.length;
+    }
+
+    showProducts();
+    setInterval(showProducts, 5000);
   }
 });
