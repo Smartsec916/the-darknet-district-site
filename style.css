@@ -92,6 +92,16 @@ section {
   background-image: url('attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png');
 }
 
+.third-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 30vh;
+  background: linear-gradient(to top, transparent, black);
+  pointer-events: none;
+}
+
 .fourth-section {
   background-image: url('attached_assets/0_2.jpeg');
   min-height: 100vh;
