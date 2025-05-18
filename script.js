@@ -56,3 +56,48 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(showProducts, 5000);
   }
 });
+
+function toggleChat() {
+  const container = document.getElementById('chatContainer');
+  container.style.display = container.style.display === 'none' ? 'block' : 'none';
+}
+
+async function sendMessage() {
+  const input = document.getElementById('messageInput');
+  const message = input.value.trim();
+
+  if (!message) return;
+
+  addMessage(message, true);
+  input.value = '';
+
+  try {
+    const response = await fetch('/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message })
+    });
+
+    const data = await response.json();
+    addMessage(data.response, false);
+  } catch (error) {
+    addMessage('Neural interface disrupted. Please try again.', false);
+  }
+}
+
+function handleKeyPress(event) {
+  if (event.key === 'Enter') {
+    sendMessage();
+  }
+}
+
+function addMessage(text, isUser) {
+  const messages = document.getElementById('chatMessages');
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+  messageDiv.textContent = text;
+  messages.appendChild(messageDiv);
+  messages.scrollTop = messages.scrollHeight;
+}
