@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         featuredGrid.appendChild(card);
       }
-      currentIndex = (currentIndex + 1) % featuredProducts.length;
+      currentIndex = (currentIndex + 2) % featuredProducts.length;
     }
 
     showProducts();
