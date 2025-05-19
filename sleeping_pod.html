@@ -6,6 +6,49 @@
   <title>Sleeping Pod - The Darknet District</title>
   <link rel="stylesheet" href="style.css">
   <style>
+    .audio-player {
+      display: none;
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #00ff9d;
+      padding: 15px;
+      border-radius: 5px;
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-bottom: 20px;
+      box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
+      width: 300px;
+      transition: all 0.3s ease;
+    }
+
+    .audio-player.active {
+      display: block;
+    }
+
+    .audio-player audio {
+      width: 100%;
+      filter: hue-rotate(180deg);
+    }
+
+    .audio-player::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border: 1px solid #00ff9d;
+      pointer-events: none;
+      animation: glow 2s infinite;
+    }
+
+    @keyframes glow {
+      0% { box-shadow: 0 0 5px #00ff9d; }
+      50% { box-shadow: 0 0 20px #00ff9d; }
+      100% { box-shadow: 0 0 5px #00ff9d; }
+    }
+
     .top-nav {
       transition: filter 1.5s ease;
     }
@@ -62,11 +105,33 @@
     <div class="control-buttons">
       <button class="control-button" onclick="dimLights()">Dim the lights</button>
       <button class="control-button" onclick="playMusic()">Play Music</button>
+      <div class="audio-player" id="audioPlayer">
+        <audio controls>
+          <source src="" type="audio/mp3">
+          Your browser does not support the audio element.
+        </audio>
+      </div>
     </div>
   </section>
 
   <script>
     let isDimmed = false;
+    let isPlaying = false;
+
+    function playMusic() {
+      const audioPlayer = document.getElementById('audioPlayer');
+      const button = document.querySelector('[onclick="playMusic()"]');
+      
+      if (!isPlaying) {
+        audioPlayer.classList.add('active');
+        button.textContent = 'Hide Music';
+        isPlaying = true;
+      } else {
+        audioPlayer.classList.remove('active');
+        button.textContent = 'Play Music';
+        isPlaying = false;
+      }
+    }
 
     function dimLights() {
       const button = document.querySelector('[onclick="dimLights()"]');
