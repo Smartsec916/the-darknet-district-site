@@ -12,14 +12,14 @@
       border: 2px solid #00ff9d;
       padding: 15px;
       border-radius: 5px;
-      position: absolute;
-      bottom: 100%;
+      position: fixed;
+      top: 50%;
       left: 50%;
-      transform: translateX(-50%);
-      margin-bottom: 20px;
+      transform: translate(-50%, -50%);
       box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
       width: 300px;
       transition: all 0.3s ease;
+      z-index: 1000;
     }
 
     .audio-player.active {
@@ -106,8 +106,8 @@
       <button class="control-button" onclick="dimLights()">Dim the lights</button>
       <button class="control-button" onclick="playMusic()">Play Music</button>
       <div class="audio-player" id="audioPlayer">
-        <audio controls>
-          <source src="path_to_your_mp3.mp3" type="audio/mp3">
+        <audio controls autoplay>
+          <source src="attached_assets/cyberpunk-music.mp3" type="audio/mp3">
           Your browser does not support the audio element.
         </audio>
       </div>
