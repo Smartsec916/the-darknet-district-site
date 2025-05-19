@@ -223,18 +223,26 @@
         currentTrackIndex = index;
         audioElement.src = playlist[currentTrackIndex];
         audioElement.load();
-        audioElement.play();
+        audioElement.play().catch(e => console.log('Playback failed:', e));
         fadeAudio(0, currentVolume, 500);
       }, 500);
     }
 
-    // Add event listener for when a track ends
     audioElement.addEventListener('ended', () => {
+      nextTrack();
+    });
+
+    audioElement.addEventListener('error', () => {
+      console.log('Audio error, trying next track');
       nextTrack();
     });
 
     function nextTrack() {
       const nextIndex = (currentTrackIndex + 1) % playlist.length;
+      if (nextIndex === 0) {
+        // Shuffle playlist when we've gone through all songs
+        playlist.sort(() => Math.random() - 0.5);
+      }
       changeTrack(nextIndex);
     }
 
