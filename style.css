@@ -111,6 +111,8 @@ section {
   background-position: center;
   background-repeat: no-repeat;
   position: relative;
+  z-index: 0;
+  opacity: 1;
 }
 
 .first-section::after,
