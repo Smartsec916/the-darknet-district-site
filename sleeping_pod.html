@@ -220,6 +220,7 @@
     function changeTrack(index) {
       fadeAudio(currentVolume, 0, 500);
       setTimeout(() => {
+        currentTrackIndex = index;
         audioElement.src = playlist[currentTrackIndex];
         audioElement.load();
         audioElement.play();
