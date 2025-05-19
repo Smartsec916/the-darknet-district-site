@@ -61,8 +61,21 @@
   </section>
 
   <script>
+    let isDimmed = false;
+
     function dimLights() {
-      document.querySelector('.pod-section').style.background = `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), linear-gradient(to bottom, transparent 70%, black), url('attached_assets/epsiloncircle_420_dark_cyberpunk_sleeping_pod_interior_viewed_f_82a73688-d6a7-4668-b80e-32dbd348dabc.png')`;
+      const button = document.querySelector('[onclick="dimLights()"]');
+      const podSection = document.querySelector('.pod-section');
+      
+      if (!isDimmed) {
+        podSection.style.filter = 'brightness(0.5)';
+        button.textContent = 'Turn the lights on';
+        isDimmed = true;
+      } else {
+        podSection.style.filter = 'brightness(1)';
+        button.textContent = 'Dim the lights';
+        isDimmed = false;
+      }
     }
 
     function playMusic() {
