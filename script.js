@@ -35,10 +35,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const featuredGrid = document.getElementById('featured-products');
   if (featuredGrid) {
     let currentIndex = 0;
+    const productsToShow = 2;
 
     function showProducts() {
       featuredGrid.innerHTML = '';
-      for(let i = 0; i < 2; i++) {
+      for(let i = 0; i < productsToShow; i++) {
         const product = featuredProducts[(currentIndex + i) % featuredProducts.length];
         const card = document.createElement('div');
         card.className = 'product-card';
@@ -49,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         featuredGrid.appendChild(card);
       }
-      currentIndex = (currentIndex + 2) % featuredProducts.length;
+      currentIndex = (currentIndex + 1) % featuredProducts.length;
     }
 
     showProducts();
