@@ -6,24 +6,6 @@
   <title>Sleeping Pod - The Darknet District</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    @keyframes smoke {
-      0% { transform: translateY(0) scale(1); opacity: 0; }
-      25% { opacity: 0.3; }
-      50% { transform: translateY(-20px) scale(1.2); opacity: 0.2; }
-      75% { opacity: 0.1; }
-      100% { transform: translateY(-40px) scale(1.4); opacity: 0; }
-    }
-
-    .smoke-particle {
-      position: fixed;
-      width: 100px;
-      height: 100px;
-      background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
-      border-radius: 50%;
-      pointer-events: none;
-      animation: smoke 4s infinite;
-    }
-
     .pod-section {
       min-height: 100vh;
       background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), linear-gradient(to bottom, transparent 70%, black), url('attached_assets/epsiloncircle_420_dark_cyberpunk_sleeping_pod_interior_viewed_f_82a73688-d6a7-4668-b80e-32dbd348dabc.png');
@@ -72,7 +54,6 @@
   </div>
 
   <section class="pod-section">
-    <div id="smoke-container"></div>
     <div class="control-buttons">
       <button class="control-button" onclick="dimLights()">Dim the lights</button>
       <button class="control-button" onclick="playMusic()">Play Music</button>
@@ -106,22 +87,6 @@
     }
   </script>
 
-  <script>
-    function createSmoke() {
-      const container = document.getElementById('smoke-container');
-      const smoke = document.createElement('div');
-      smoke.className = 'smoke-particle';
-      smoke.style.left = Math.random() * window.innerWidth + 'px';
-      smoke.style.bottom = '0px';
-      container.appendChild(smoke);
-      
-      setTimeout(() => {
-        smoke.remove();
-      }, 4000);
-    }
-    
-    setInterval(createSmoke, 500);
-  </script>
   <script src="script.js"></script>
 </body>
 </html>
