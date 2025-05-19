@@ -107,7 +107,7 @@
       <button class="control-button" onclick="playMusic()">Play Music</button>
       <div class="audio-player" id="audioPlayer">
         <audio controls>
-          <source src="" type="audio/mp3">
+          <source src="path_to_your_mp3.mp3" type="audio/mp3">
           Your browser does not support the audio element.
         </audio>
       </div>
@@ -151,9 +151,17 @@
       }
     }
 
-    function playMusic() {
-      // Add music functionality here
-      console.log('Music playing...');
+    const audio = new Audio('path_to_your_mp3.mp3');
+    let audioPlaying = false;
+
+    function toggleAudioPlay() {
+      if (audioPlaying) {
+        audio.pause();
+        audioPlaying = false;
+      } else {
+        audio.play();
+        audioPlaying = true;
+      }
     }
   </script>
 
