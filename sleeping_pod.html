@@ -8,26 +8,50 @@
   <style>
     .audio-player {
       display: none;
-      background: rgba(0, 0, 0, 0.8);
-      border: 2px solid #00ff9d;
-      padding: 15px;
-      border-radius: 5px;
+      background: rgba(0, 0, 0, 0.9);
+      border: 1px solid #00ff9d;
+      padding: 10px;
+      border-radius: 3px;
       position: fixed;
-      top: 50%;
+      bottom: 120px;
       left: 50%;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
-      width: 300px;
+      transform: translateX(-50%);
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.2);
+      width: 200px;
       transition: all 0.3s ease;
       z-index: 1000;
     }
 
     .audio-player.active {
-      display: block;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .audio-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 5px;
+    }
+
+    .audio-btn {
+      background: transparent;
+      color: #00ff9d;
+      border: 1px solid #00ff9d;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .audio-btn:hover {
+      background: rgba(0, 255, 157, 0.1);
     }
 
     .audio-player audio {
       width: 100%;
+      height: 30px;
       filter: hue-rotate(180deg);
     }
 
@@ -106,10 +130,14 @@
       <button class="control-button" onclick="dimLights()">Dim the lights</button>
       <button class="control-button" onclick="playMusic()">Play Music</button>
       <div class="audio-player" id="audioPlayer">
-        <audio controls autoplay>
+        <audio controls>
           <source src="attached_assets/CyberSilk.mp3" type="audio/mp3">
           Your browser does not support the audio element.
         </audio>
+        <div class="audio-controls">
+          <button class="audio-btn" onclick="previousTrack()">◀</button>
+          <button class="audio-btn" onclick="nextTrack()">▶</button>
+        </div>
       </div>
     </div>
   </section>
@@ -119,21 +147,71 @@
     let isPlaying = false;
     const audioPlayer = document.getElementById('audioPlayer');
     const audioElement = audioPlayer.querySelector('audio');
+    let currentVolume = 1;
+    let currentTrackIndex = 0;
     
+    const playlist = [
+      'attached_assets/CyberSilk.mp3'
+      // Add more MP3 files here as they become available
+    ];
+
+    function fadeAudio(from, to, duration) {
+      const steps = 20;
+      const stepTime = duration / steps;
+      const volumeStep = (to - from) / steps;
+      let currentStep = 0;
+
+      const fadeInterval = setInterval(() => {
+        currentStep++;
+        audioElement.volume = from + (volumeStep * currentStep);
+        if (currentStep >= steps) {
+          clearInterval(fadeInterval);
+          audioElement.volume = to;
+        }
+      }, stepTime);
+    }
+
     function playMusic() {
       const button = document.querySelector('[onclick="playMusic()"]');
       
       if (!isPlaying) {
         audioPlayer.classList.add('active');
         button.textContent = 'Hide Music';
+        audioElement.volume = 0;
         audioElement.play();
+        fadeAudio(0, currentVolume, 1000);
         isPlaying = true;
       } else {
-        audioPlayer.classList.remove('active');
-        button.textContent = 'Play Music';
-        audioElement.pause();
+        fadeAudio(currentVolume, 0, 1000);
+        setTimeout(() => {
+          audioPlayer.classList.remove('active');
+          button.textContent = 'Play Music';
+          audioElement.pause();
+          audioElement.volume = currentVolume;
+        }, 1000);
         isPlaying = false;
       }
+    }
+
+    function changeTrack(index) {
+      fadeAudio(currentVolume, 0, 500);
+      setTimeout(() => {
+        currentTrackIndex = index;
+        audioElement.src = playlist[currentTrackIndex];
+        audioElement.load();
+        audioElement.play();
+        fadeAudio(0, currentVolume, 500);
+      }, 500);
+    }
+
+    function nextTrack() {
+      const nextIndex = (currentTrackIndex + 1) % playlist.length;
+      changeTrack(nextIndex);
+    }
+
+    function previousTrack() {
+      const prevIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+      changeTrack(prevIndex);
     }
 
     function dimLights() {
