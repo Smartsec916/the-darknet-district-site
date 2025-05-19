@@ -81,7 +81,7 @@
     .top-nav {
       transition: filter 1.5s ease;
     }
-    
+
     .pod-section {
       min-height: 100vh;
       background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), linear-gradient(to bottom, transparent 70%, black), url('attached_assets/epsiloncircle_420_dark_cyberpunk_sleeping_pod_interior_viewed_f_82a73688-d6a7-4668-b80e-32dbd348dabc.png');
@@ -155,7 +155,7 @@
     const audioElement = audioPlayer.querySelector('audio');
     let currentVolume = 1;
     let currentTrackIndex = 0;
-    
+
     const playlist = [
       'attached_assets/CyberSilk.mp3',
       'attached_assets/Pulse (Extended).mp3',
@@ -196,7 +196,7 @@
 
     function playMusic() {
       const button = document.querySelector('[onclick="playMusic()"]');
-      
+
       if (!isPlaying) {
         audioPlayer.classList.add('active');
         button.textContent = 'Hide Music';
@@ -219,13 +219,17 @@
     function changeTrack(index) {
       fadeAudio(currentVolume, 0, 500);
       setTimeout(() => {
-        currentTrackIndex = index;
         audioElement.src = playlist[currentTrackIndex];
         audioElement.load();
         audioElement.play();
         fadeAudio(0, currentVolume, 500);
       }, 500);
     }
+
+    // Add event listener for when a track ends
+    audioElement.addEventListener('ended', () => {
+      nextTrack();
+    });
 
     function nextTrack() {
       const nextIndex = (currentTrackIndex + 1) % playlist.length;
@@ -241,7 +245,7 @@
       const button = document.querySelector('[onclick="dimLights()"]');
       const podSection = document.querySelector('.pod-section');
       const topNav = document.querySelector('.top-nav');
-      
+
       if (!isDimmed) {
         podSection.style.filter = 'brightness(0.3)';
         topNav.style.filter = 'brightness(0.3)';
