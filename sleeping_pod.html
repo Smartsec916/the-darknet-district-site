@@ -117,18 +117,21 @@
   <script>
     let isDimmed = false;
     let isPlaying = false;
-
+    const audioPlayer = document.getElementById('audioPlayer');
+    const audioElement = audioPlayer.querySelector('audio');
+    
     function playMusic() {
-      const audioPlayer = document.getElementById('audioPlayer');
       const button = document.querySelector('[onclick="playMusic()"]');
       
       if (!isPlaying) {
         audioPlayer.classList.add('active');
         button.textContent = 'Hide Music';
+        audioElement.play();
         isPlaying = true;
       } else {
         audioPlayer.classList.remove('active');
         button.textContent = 'Play Music';
+        audioElement.pause();
         isPlaying = false;
       }
     }
@@ -151,19 +154,7 @@
       }
     }
 
-    const audio = new Audio('path_to_your_mp3.mp3');
-    let audioPlaying = false;
-
-    function toggleAudioPlay() {
-      if (audioPlaying) {
-        audio.pause();
-        audioPlaying = false;
-      } else {
-        audio.play();
-        audioPlaying = true;
-      }
-    }
-  </script>
+    </script>
 
   <script src="script.js"></script>
 </body>
