@@ -66,13 +66,16 @@
     function dimLights() {
       const button = document.querySelector('[onclick="dimLights()"]');
       const podSection = document.querySelector('.pod-section');
+      const topNav = document.querySelector('.top-nav');
       
       if (!isDimmed) {
         podSection.style.filter = 'brightness(0.3)';
+        topNav.style.filter = 'brightness(0.3)';
         button.textContent = 'Turn the lights on';
         isDimmed = true;
       } else {
         podSection.style.filter = 'brightness(1)';
+        topNav.style.filter = 'brightness(1)';
         button.textContent = 'Dim the lights';
         isDimmed = false;
       }
