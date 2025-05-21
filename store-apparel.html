@@ -141,7 +141,7 @@
   function ShopifyBuyInit() {
     var client = ShopifyBuy.buildClient({
       domain: 'qbhrmg-jn.myshopify.com',
-      storefrontAccessToken: 'b2db190312196bda4d67fee236d5994a',
+      storefrontAccessToken: process.env.STOREFRONT_ACCESS_TOKEN,
     });
 
     ShopifyBuy.UI.onReady(client).then(function (ui) {
@@ -270,7 +270,7 @@
   function ShopifyBuyInit() {
     var client = ShopifyBuy.buildClient({
       domain: 'qbhrmg-jn.myshopify.com',
-      storefrontAccessToken: 'b2db190312196bda4d67fee236d5994a',
+      storefrontAccessToken: process.env.STOREFRONT_ACCESS_TOKEN,
     });
 
     const products = [
@@ -402,7 +402,7 @@
   function ShopifyBuyInit() {
     var client = ShopifyBuy.buildClient({
       domain: 'qbhrmg-jn.myshopify.com',
-      storefrontAccessToken: 'b2db190312196bda4d67fee236d5994a',
+      storefrontAccessToken: process.env.STOREFRONT_ACCESS_TOKEN,
     });
 
     ShopifyBuy.UI.onReady(client).then(function (ui) {
