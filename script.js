@@ -43,11 +43,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const product = featuredProducts[(currentIndex + i) % featuredProducts.length];
         const card = document.createElement('div');
         card.className = 'product-card';
-        card.innerHTML = `
-          <h3>${product.name}</h3>
-          <img src="${product.image}" alt="${product.name}" style="max-width: 200px; margin: 10px auto;">
-          <a href="${product.link}" class="button">Learn More</a>
-        `;
+
+        const name = document.createElement('h3');
+        name.textContent = product.name;
+
+        const img = document.createElement('img');
+        img.src = product.image;
+        img.alt = product.name;
+        img.style.maxWidth = '200px';
+        img.style.margin = '10px auto';
+
+        const link = document.createElement('a');
+        link.href = product.link;
+        link.className = 'button';
+        link.textContent = 'Learn More';
+
+        card.innerHTML = ''; // clear
+        card.append(name, img, link);
+
         featuredGrid.appendChild(card);
       }
       currentIndex = (currentIndex + 1) % featuredProducts.length;
