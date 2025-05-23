@@ -156,7 +156,10 @@
     let currentVolume = 1;
     let currentTrackIndex = 0;
 
-    const playlist = [].sort(() => Math.random() - 0.5);
+    const playlist = [
+      'attached_assets/Android Love.mp3',
+      'attached_assets/Cyber Silence (Extended) (2).mp3'
+    ].sort(() => Math.random() - 0.5);
 
     function fadeAudio(from, to, duration) {
       const steps = 20;
