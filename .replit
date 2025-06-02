@@ -1,5 +1,5 @@
 entrypoint = "index.html"
-modules = ["web"]
+modules = ["python-3.11", "web"]
 run = "echo 'This is a static site'"
 
 [nix]
