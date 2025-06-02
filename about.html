@@ -1,0 +1,193 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://*; connect-src *; frame-src *; frame-ancestors 'self';">
+  
+  <title>About - The Darknet District</title>
+  <link href="./style.css" rel="stylesheet" type="text/css">
+  
+  <style>
+    .top-nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      padding: 10px 0;
+      z-index: 9999;
+    }
+
+    .top-nav a {
+      font-family: 'Courier New', monospace;
+      color: #00ffcc;
+      text-decoration: none;
+      padding: 8px 16px;
+      border: 1px solid #00ffcc;
+      border-radius: 4px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .top-nav a:hover {
+      background-color: #00ffcc;
+      color: black;
+    }
+
+    body {
+      background-color: black;
+      color: #00ff9d;
+      min-height: 100vh;
+      margin: 0;
+      padding: 80px 20px 20px;
+      font-family: 'Courier New', monospace;
+      background-image: url('attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: -1;
+    }
+
+    .content {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #00ff9d;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
+    }
+
+    .title {
+      color: #00ff9d;
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 2.5em;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(0, 255, 157, 0.7);
+      letter-spacing: 3px;
+    }
+
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border-left: 3px solid #00ff9d;
+      background: rgba(0, 255, 157, 0.05);
+    }
+
+    .section h2 {
+      color: #00ff9d;
+      margin-bottom: 15px;
+      font-size: 1.5em;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .section p {
+      line-height: 1.6;
+      margin-bottom: 15px;
+      color: #cccccc;
+    }
+
+    .back-button {
+      display: inline-block;
+      margin-top: 30px;
+      padding: 12px 24px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #00ff9d;
+      border: 2px solid #00ff9d;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .back-button:hover {
+      background: rgba(0, 255, 157, 0.1);
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .feature-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .feature-list li {
+      margin-bottom: 10px;
+      padding-left: 20px;
+      position: relative;
+      color: #cccccc;
+    }
+
+    .feature-list li::before {
+      content: '▶';
+      position: absolute;
+      left: 0;
+      color: #00ff9d;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Top Navigation Buttons -->
+  <div class="top-nav">
+    <a href="index.html">Home</a>
+    <a href="games-list.html">Play a Game</a>
+    <a href="store-first-page.html">Shop</a>
+  </div>
+
+  <div class="content">
+    <h1 class="title">About The Darknet District</h1>
+    
+    <div class="section">
+      <h2>Welcome to the Underground</h2>
+      <p>The Darknet District is your gateway to the digital underground - a cyberpunk-inspired hub where technology meets rebellion, and the future is now. Step into a world where neon lights pierce through the darkness, and every click takes you deeper into the matrix of possibilities.</p>
+    </div>
+
+    <div class="section">
+      <h2>What We Offer</h2>
+      <ul class="feature-list">
+        <li>Immersive cyberpunk games that transport you to dystopian futures</li>
+        <li>Cutting-edge electronics and survival gear for the modern nomad</li>
+        <li>Exclusive apparel that blends style with digital rebellion</li>
+        <li>Digital sanctuaries like our sleeping pods for virtual rest</li>
+        <li>AI-powered assistance through our companion, Iris</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>Our Mission</h2>
+      <p>In a world increasingly dominated by corporate surveillance and digital conformity, The Darknet District stands as a beacon for those who refuse to be just another line of code in the system. We provide tools, entertainment, and sanctuary for digital rebels, hackers, and anyone who believes that technology should serve humanity, not the other way around.</p>
+    </div>
+
+    <div class="section">
+      <h2>The Experience</h2>
+      <p>Every element of The Darknet District has been crafted to immerse you in a cyberpunk aesthetic. From our glitch-inspired visual effects to our AI companion Iris, we've built more than just a website - we've created a digital experience that feels like stepping into the pages of a William Gibson novel.</p>
+    </div>
+
+    <div class="section">
+      <h2>Join the Resistance</h2>
+      <p>Whether you're here to play games that challenge the status quo, shop for gear that keeps you off the grid, or simply experience what the internet could be in a world where creativity trumps corporate control, you've found your home in the underground.</p>
+      <p>Welcome to The Darknet District. The future is what we make it.</p>
+    </div>
+
+    <a href="index.html" class="back-button">Return to Main Terminal</a>
+  </div>
+</body>
+</html>
