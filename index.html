@@ -231,6 +231,26 @@
       background: #00cc7a;
     }
 
+    .typing-indicator {
+      opacity: 0.7;
+    }
+
+    .typing-dots {
+      display: inline-block;
+      animation: typingDots 1.4s infinite;
+      font-size: 20px;
+      color: #00ff9d;
+    }
+
+    @keyframes typingDots {
+      0%, 60% {
+        opacity: 0.3;
+      }
+      30% {
+        opacity: 1;
+      }
+    }
+
     .product-card {
       border: 2px solid #00ff9d;
       background-color: #0d0d0d;
