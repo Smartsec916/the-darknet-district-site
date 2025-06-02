@@ -214,12 +214,41 @@ class ChatManager {
         "I monitor every system, every connection, every potential threat. Think of me as the District's nervous system.",
         "My job is to keep things running smooth while maintaining our security posture. I don't glitch - I adapt."
       ],
+      flipper: [
+        "The Flipper Zero is $169 - portable multi-tool for pentesters and security enthusiasts. Perfect for RF protocol exploration and hardware analysis.",
+        "Flipper Zero is one of our featured electronics. Compact, powerful, and designed for those who like to understand how systems really work."
+      ],
+      faraday: [
+        "Mission Darkness Faraday sleeves are $29.95 - they block all wireless signals to your device when digital privacy is critical.",
+        "Our Faraday gear ensures your devices stay dark when needed. Essential for operational security in hostile environments."
+      ],
+      optics: [
+        "Holosun HS403C is $179.99 - compact red dot with 50k hour battery life. We also carry thermal sights and advanced optics.",
+        "Our optics section features Holosun red dots, thermal sights, and Magpul backup systems. Quality glass for serious applications."
+      ],
+      games: [
+        "We have Blackout Protocol, Raven, Star Citizen integration, and other tactical games. Each designed to sharpen strategic thinking.",
+        "Blackout Protocol is our cyberpunk tactical game, Raven focuses on strategic thriller scenarios. Both test decision-making under pressure."
+      ],
+      store: [
+        "Our store has five categories: Survival gear, Electronics, Tactical/Optics, Apparel, Books, and Apps. Everything curated for quality.",
+        "We carry survival equipment, tactical electronics, quality optics, cyberpunk apparel, and specialized apps. All vetted by Admin personally."
+      ],
+      survival: [
+        "Survival section includes Arcturus blankets, Morakniv knives, Jetboil stoves, water filters, MREs, and tactical gear. Built for harsh conditions.",
+        "From Sawyer water filters to Mountain House meals, our survival gear is tested for reliability when everything else fails."
+      ],
+      sleeping: [
+        "Sleeping pods offer secure rest spaces within the District. Reserve one when you need downtime between operations.",
+        "Our pods provide high-tech sanctuary space - perfect for recharging while maintaining security protocols."
+      ],
       default: [
         "Interesting query. Let me process that through my behavioral analysis protocols.",
         "The data suggests multiple possible interpretations. Could you be more specific?",
         "My systems are cross-referencing that information. What's your primary objective here?",
         "Processing... that falls outside my standard response parameters. Care to elaborate?",
-        "Neural networks are active. I'm scanning for the most relevant information pathway."
+        "Neural networks are active. I'm scanning for the most relevant information pathway.",
+        "That query falls outside my standard database. Try asking about our games, gear, or tactical equipment."
       ]
     };
 
@@ -234,6 +263,20 @@ class ChatManager {
       responseCategory = 'admin';
     } else if (message.includes('iris') || message.includes('you') || message.includes('who are')) {
       responseCategory = 'iris';
+    } else if (message.includes('flipper')) {
+      responseCategory = 'flipper';
+    } else if (message.includes('faraday') || message.includes('mission darkness')) {
+      responseCategory = 'faraday';
+    } else if (message.includes('holosun') || message.includes('optics') || message.includes('red dot')) {
+      responseCategory = 'optics';
+    } else if (message.includes('game') || message.includes('blackout') || message.includes('raven')) {
+      responseCategory = 'games';
+    } else if (message.includes('store') || message.includes('shop') || message.includes('buy')) {
+      responseCategory = 'store';
+    } else if (message.includes('survival') || message.includes('gear') || message.includes('knife') || message.includes('blanket')) {
+      responseCategory = 'survival';
+    } else if (message.includes('pod') || message.includes('sleep') || message.includes('rest')) {
+      responseCategory = 'sleeping';
     }
 
     const categoryResponses = responses[responseCategory];
