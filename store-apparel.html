@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>The Darknet District – Apparel & Accessories</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="config.js"></script>
   <style>
     body {
       background-color: black;
@@ -141,6 +142,11 @@
 </div>
 
 <script type="text/javascript">
+// Load environment variables if available
+if (typeof process !== 'undefined' && process.env && process.env.STOREFRONT_ACCESS_TOKEN) {
+  window.STOREFRONT_ACCESS_TOKEN = process.env.STOREFRONT_ACCESS_TOKEN;
+}
+
 (function () {
   var scriptURL = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
   
@@ -169,15 +175,24 @@
   function showFallbackProducts() {
     // Show placeholder content if Shopify fails to load
     const productCards = document.querySelectorAll('.product-card');
+    const productNames = [
+      'Admin T-Shirt',
+      'Holographic Corpo-Scum Sticker', 
+      'Fuck the System Sticker',
+      'Zen Zephyr T-Shirt',
+      'Limited Edition Shirt'
+    ];
+    
     productCards.forEach(function(card, index) {
       if (card.querySelector('[id*="product-component"]')) {
         card.innerHTML = `
-          <h3>Product ${index + 1}</h3>
+          <h3>${productNames[index] || 'Product ' + (index + 1)}</h3>
           <p>Product loading temporarily unavailable. Please check back later.</p>
-          <div style="width: 100%; height: 200px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #00ff9d;">
-            Product Image
+          <div style="width: 100%; height: 200px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #00ff9d; font-size: 14px;">
+            Product Image Loading...
           </div>
-          <a href="#" class="button" style="pointer-events: none; opacity: 0.5;">Currently Unavailable</a>
+          <p style="color: #00ff9d; font-size: 18px; margin: 10px 0;">$24.99</p>
+          <a href="https://qbhrmg-jn.myshopify.com" target="_blank" class="button">View on Store</a>
         `;
       }
     });
@@ -186,8 +201,8 @@
   function ShopifyBuyInit() {
     try {
       var client = ShopifyBuy.buildClient({
-        domain: 'qbhrmg-jn.myshopify.com',
-        storefrontAccessToken: '7c8a2a29b32b5c6e15c1a2d3e4f5a6b7'
+        domain: window.STORE_CONFIG ? window.STORE_CONFIG.domain : 'qbhrmg-jn.myshopify.com',
+        storefrontAccessToken: window.STORE_CONFIG ? window.STORE_CONFIG.storefrontAccessToken : '7c8a2a29b32b5c6e15c1a2d3e4f5a6b7'
       });
 
       const products = [
