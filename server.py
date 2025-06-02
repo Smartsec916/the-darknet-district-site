@@ -4,7 +4,10 @@ import os
 import uuid
 from datetime import datetime
 from flask import Flask, request, jsonify, send_from_directory
-import openai
+from openai import OpenAI
+
+# Initialize OpenAI client
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 app = Flask(__name__)
 
@@ -80,7 +83,7 @@ def chat_message():
 
         # Call OpenAI API with Iris personality
         try:
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {
@@ -136,7 +139,7 @@ def chat():
 
         # Call OpenAI API with Iris personality
         try:
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {
