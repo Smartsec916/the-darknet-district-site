@@ -21,6 +21,10 @@ def index():
 def about():
     return send_from_directory('.', 'about.html')
 
+@app.route('/store-first-page')
+def store_first_page():
+    return send_from_directory('.', 'store-first-page.html')
+
 @app.route('/<path:filename>')
 def serve_file(filename):
     return send_from_directory('.', filename)
