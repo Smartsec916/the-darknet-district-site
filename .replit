@@ -10,6 +10,51 @@ packages = ["static-web-server"]
 publicDir = "/"
 deploymentTarget = "static"
 
+# Rewrite rules to remove .html extensions
+[[deployment.rewrites]]
+from = "/about"
+to = "/about.html"
+
+[[deployment.rewrites]]
+from = "/games-list"
+to = "/games-list.html"
+
+[[deployment.rewrites]]
+from = "/store-first-page"
+to = "/store-first-page.html"
+
+[[deployment.rewrites]]
+from = "/store-apparel"
+to = "/store-apparel.html"
+
+[[deployment.rewrites]]
+from = "/store-books"
+to = "/store-books.html"
+
+[[deployment.rewrites]]
+from = "/store-electronics"
+to = "/store-electronics.html"
+
+[[deployment.rewrites]]
+from = "/store-survival"
+to = "/store-survival.html"
+
+[[deployment.rewrites]]
+from = "/store-apps"
+to = "/store-apps.html"
+
+[[deployment.rewrites]]
+from = "/sleeping_pod"
+to = "/sleeping_pod.html"
+
+[[deployment.rewrites]]
+from = "/chatbot"
+to = "/chatbot.html"
+
+[[deployment.rewrites]]
+from = "/blackout-protocol"
+to = "/blackout-protocol/index.html"
+
 [[deployment.responseHeaders]]
 path = "/*"
 name = "X-Frame-Options"
