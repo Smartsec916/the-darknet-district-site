@@ -1,4 +1,3 @@
-
 import json
 import os
 import uuid
@@ -30,7 +29,7 @@ def create_session():
         'created_at': datetime.now(),
         'mood': 'professional'
     }
-    
+
     return jsonify({
         'sessionId': session_id,
         'isNew': True,
@@ -41,7 +40,7 @@ def create_session():
 def get_chat_history(session_id):
     if session_id not in chat_sessions:
         return jsonify({'messages': []})
-    
+
     return jsonify({
         'messages': chat_sessions[session_id]['messages']
     })
@@ -98,7 +97,7 @@ def chat_message():
                 max_tokens=150,
                 temperature=0.7
             )
-            
+
             ai_response = response.choices[0].message.content.strip()
         except Exception as openai_error:
             print(f"OpenAI API error: {openai_error}")
@@ -154,7 +153,7 @@ def chat():
                 max_tokens=150,
                 temperature=0.7
             )
-            
+
             return jsonify({
                 'response': response.choices[0].message.content.strip()
             })
@@ -173,7 +172,7 @@ def chat():
 def get_fallback_response(user_message):
     """Generate contextual fallback responses when OpenAI is unavailable"""
     message = user_message.lower()
-    
+
     if any(word in message for word in ['hello', 'hi', 'hey', 'greetings']):
         return "Neural interface online. What brings you to the District today?"
     elif any(word in message for word in ['district', 'darknet', 'what is this']):
