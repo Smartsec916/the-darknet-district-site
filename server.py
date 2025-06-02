@@ -17,6 +17,10 @@ chat_sessions = {}
 def index():
     return send_from_directory('.', 'index.html')
 
+@app.route('/about')
+def about():
+    return send_from_directory('.', 'about.html')
+
 @app.route('/<path:filename>')
 def serve_file(filename):
     return send_from_directory('.', filename)
