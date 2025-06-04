@@ -332,6 +332,36 @@ const featuredProducts = [
     price: "$179.99",
     image: "attached_assets/HOLOSUN HS403C.jpg",
     description: "Compact red dot sight with 50k hour battery"
+  },
+  {
+    name: "Arcturus Military Wool Blanket",
+    price: "$49.99",
+    image: "attached_assets/Arcturus Military Wool Blanket.jpg",
+    description: "Heavy duty survival blanket for harsh conditions"
+  },
+  {
+    name: "Morakniv Companion Fixed Blade",
+    price: "$24.99",
+    image: "attached_assets/Morakniv Companion Fixed Blade.jpg",
+    description: "Essential survival knife with high carbon steel"
+  },
+  {
+    name: "Jetboil Flash Camping Stove",
+    price: "$109.95",
+    image: "attached_assets/Jetboil Flash Camping and Backpacking Stove System.jpg",
+    description: "Ultra-fast boiling camping stove system"
+  },
+  {
+    name: "Sawyer Mini Water Filter",
+    price: "$34.95",
+    image: "attached_assets/Sawyer Products Mini Water Filtration System.jpg",
+    description: "Lightweight water filtration for emergency use"
+  },
+  {
+    name: "SUUNTO MC-2 Compass",
+    price: "$89.99",
+    image: "attached_assets/SUUNTO MC-2 Compass.jpg",
+    description: "Professional navigation compass for tactical use"
   }
 ];
 
