@@ -6,6 +6,8 @@
   <title>The Darknet District – Apparel & Accessories</title>
   <link rel="stylesheet" href="style.css" />
   <script src="config.js"></script>
+  <!-- Shopify Buy Button SDK: LOAD DIRECTLY IN HEAD -->
+  <script src="https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js"></script>
   <style>
     body {
       background-color: black;
@@ -36,13 +38,11 @@
       max-width: 1200px;
       margin: 0 auto;
     }
-
     @media (max-width: 768px) {
       .product-grid {
         grid-template-columns: 1fr;
       }
     }
-
     .product-card {
       border: 2px solid #00ff9d;
       background-color: #0d0d0d;
@@ -73,9 +73,6 @@
       background-color: #00ff9d;
       color: #000;
       padding: 10px 20px;
-
-
-
       text-decoration: none;
       font-weight: bold;
       border-radius: 6px;
@@ -95,8 +92,7 @@
     <a href="store-first-page">Shop</a>
   </div>
 
-  <div class="content">
-    </div>
+  <div class="content"></div>
 
   <!-- Rotating Affiliate Banners -->
   <div id="affiliate-banner" style="max-width: 1000px; margin: 40px auto; position: relative; height: 200px; background: rgba(0, 0, 0, 0.2);">
@@ -112,290 +108,115 @@
     <h1 class="title">The Darknet District – Apparel & Accessories</h1>
   </div>
 
-<div class="product-grid">
-  <!-- Start: Admin T-Shirt -->
-  <div class="product-card" data-category="t-shirts">
-    <div id="product-component-1746023629770"></div>
+  <div class="product-grid">
+    <!-- Product placeholders, Shopify will inject content -->
+    <div class="product-card" data-category="t-shirts">
+      <div id="product-component-1746023629770"></div>
+    </div>
+    <div class="product-card" data-category="stickers">
+      <div id="product-component-1746024487215"></div>
+    </div>
+    <div class="product-card" data-category="stickers">
+      <div id="product-component-1746024736060"></div>
+    </div>
+    <div class="product-card" data-category="t-shirts">
+      <div id="product-component-1746024959024"></div>
+    </div>
+    <div class="product-card" data-category="t-shirts">
+      <div id="product-component-1746047251463"></div>
+    </div>
   </div>
 
-
-
-<!-- Start: Holographic Corpo-Scum Sticker -->
-<div class="product-card" data-category="stickers">
-  <div id="product-component-1746024487215"></div>
-</div>
-
-<!-- Start: Fuck the System Sticker -->
-<div class="product-card" data-category="stickers">
-  <div id="product-component-1746024736060"></div>
-</div>
-
-<!-- Start: Zen Zephyr T-Shirt -->
-<div class="product-card" data-category="t-shirts">
-  <div id="product-component-1746024959024"></div>
-</div>
-<!-- Start: Shopify Product Card -->
-<div class="product-card" data-category="t-shirts">
-  <div id='product-component-1746047251463'></div>
-</div>
-
-</div>
-
-<script type="text/javascript">
-// Load environment variables if available
-if (typeof process !== 'undefined' && process.env && process.env.STOREFRONT_ACCESS_TOKEN) {
-  window.STOREFRONT_ACCESS_TOKEN = process.env.STOREFRONT_ACCESS_TOKEN;
-}
-
-(function () {
-  var scriptURL = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
-  
-  if (window.ShopifyBuy) {
-    if (window.ShopifyBuy.UI) {
-      ShopifyBuyInit();
-    } else {
-      loadScript();
-    }
-  } else {
-    loadScript();
-  }
-
-  function loadScript() {
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = scriptURL;
-    script.onload = ShopifyBuyInit;
-    script.onerror = function() {
-      console.error('Failed to load Shopify Buy SDK');
-      showFallbackProducts();
-    };
-    (document.head || document.body).appendChild(script);
-  }
-
-  function showFallbackProducts() {
-    // Show placeholder content if Shopify fails to load
-    const productCards = document.querySelectorAll('.product-card');
-    const productNames = [
-      'Admin T-Shirt',
-      'Holographic Corpo-Scum Sticker', 
-      'Fuck the System Sticker',
-      'Zen Zephyr T-Shirt',
-      'Limited Edition Shirt'
-    ];
-    
-    productCards.forEach(function(card, index) {
-      if (card.querySelector('[id*="product-component"]')) {
-        card.innerHTML = `
-          <h3>${productNames[index] || 'Product ' + (index + 1)}</h3>
-          <p>Product loading temporarily unavailable. Please check back later.</p>
-          <div style="width: 100%; height: 200px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #00ff9d; font-size: 14px;">
-            Product Image Loading...
-          </div>
-          <p style="color: #00ff9d; font-size: 18px; margin: 10px 0;">$24.99</p>
-          <a href="https://qbhrmg-jn.myshopify.com" target="_blank" class="button">View on Store</a>
-        `;
-      }
+  <script>
+  // Shopify Buy Button initialization -- ONLY after SDK is loaded!
+  document.addEventListener("DOMContentLoaded", function () {
+    var client = ShopifyBuy.buildClient({
+      domain: 'qbhrmg-jn.myshopify.com',
+      storefrontAccessToken: '7c8a2a29b32b5c6e15c1a2d3e4f5a6b7'
     });
-  }
 
-  function ShopifyBuyInit() {
-    try {
-      var client = ShopifyBuy.buildClient({
-        domain: window.STORE_CONFIG ? window.STORE_CONFIG.domain : 'qbhrmg-jn.myshopify.com',
-        storefrontAccessToken: window.STORE_CONFIG ? window.STORE_CONFIG.storefrontAccessToken : '7c8a2a29b32b5c6e15c1a2d3e4f5a6b7'
+    var products = [
+      { id: '9174497132761', node: 'product-component-1746023629770' },
+      { id: '9174498738393', node: 'product-component-1746024487215' },
+      { id: '9174500212953', node: 'product-component-1746024736060' },
+      { id: '9174501163225', node: 'product-component-1746024959024' },
+      { id: '9174620537049', node: 'product-component-1746047251463' }
+    ];
+
+    ShopifyBuy.UI.onReady(client).then(function (ui) {
+      products.forEach(function(product) {
+        var nodeElement = document.getElementById(product.node);
+        if (nodeElement) {
+          ui.createComponent('product', {
+            id: product.id,
+            node: nodeElement,
+            moneyFormat: '%24%7B%7Bamount%7D%7D'
+          });
+        }
       });
+    }).catch(function (error) {
+      console.error('Shopify UI initialization failed:', error);
+    });
+  });
+  </script>
 
-      const products = [
-        { id: '9174497132761', node: 'product-component-1746023629770' },
-        { id: '9174498738393', node: 'product-component-1746024487215' },
-        { id: '9174500212953', node: 'product-component-1746024736060' },
-        { id: '9174501163225', node: 'product-component-1746024959024' },
-        { id: '9174620537049', node: 'product-component-1746047251463' }
-      ];
+  <!-- Rotating banner script -->
+  <script>
+    const banners = [
+      {
+        image: "/attached_assets/881f5832-0a1e-4079-8a66-fbc2c6479931._CR0,0,3000,600_SX3000_.jpg",
+        link: "https://mosequipment.com/"
+      },
+      {
+        image: "/attached_assets/cyberpunk_game.jpg",
+        link: "https://www.cdprojektred.com/en"
+      },
+      {
+        image: "/attached_assets/Flipper_Zero.jpg",
+        link: "https://flipperzero.one/"
+      }
+    ];
 
-      ShopifyBuy.UI.onReady(client).then(function (ui) {
-        products.forEach(function(product) {
-          const nodeElement = document.getElementById(product.node);
-          if (nodeElement) {
-            ui.createComponent('product', {
-              id: product.id,
-              node: nodeElement,
-              moneyFormat: '%24%7B%7Bamount%7D%7D',
-              options: {
-                "product": {
-                  "layout": "horizontal",
-                  "styles": {
-                    "product": {
-                      "text-align": "left",
-                      "@media (min-width: 601px)": {
-                        "max-width": "100%",
-                        "margin-left": "0px",
-                        "margin-bottom": "0px"
-                      },
-                      "@media (max-width: 600px)": {
-                        "max-width": "100%",
-                        "margin-left": "0",
-                        "margin-bottom": "50px"
-                      }
-                    },
-                    "button": {
-                      "background": "#00ff9d",
-                      "color": "#000000",
-                      "font-family": "Roboto, sans-serif",
-                      "font-weight": "bold",
-                      "font-size": "16px",
-                      "padding": "16px 23px",
-                      "border-radius": "14px"
-                    },
-                    "title": {
-                      "font-size": "26px",
-                      "color": "#00ff9d"
-                    },
-                    "price": {
-                      "font-size": "18px",
-                      "color": "#00ff9d"
-                    }
-                  },
-                  "contents": {
-                    "img": true,
-                    "title": true,
-                    "price": true,
-                    "description": true,
-                    "button": true
-                  },
-                  "text": {
-                    "button": "Add to cart"
-                  },
-                  "googleFonts": ["Roboto"]
-                },
-                "cart": {
-                  "styles": {
-                    "cart": {
-                      "background-color": "#000000",
-                      "color": "#00ff9d",
-                      "font-family": "Courier New, monospace",
-                      "box-shadow": "0 0 20px #00ff9d88",
-                      "border": "2px solid #00ff9d"
-                    },
-                    "footer": {
-                      "background-color": "#000",
-                      "border-top": "1px solid #00ff9d"
-                    },
-                    "header": {
-                      "background-color": "#000",
-                      "color": "#00ff9d"
-                    },
-                    "lineItems": {
-                      "border-color": "#00ff9d"
-                    },
-                    "button": {
-                      "background-color": "#00ff9d",
-                      "color": "#000000",
-                      "font-weight": "bold",
-                      "border-radius": "12px"
-                    }
-                  },
-                  "text": {
-                    "total": "Subtotal",
-                    "button": "Checkout"
-                  },
-                  "googleFonts": ["Roboto"]
-                },
-                "toggle": {
-                  "styles": {
-                    "toggle": {
-                      "background": "#00ff9d",
-                      "color": "#000000",
-                      "font-weight": "bold"
-                    }
-                  },
-                  "googleFonts": ["Roboto"]
-                }
-              }
-            }).catch(function(error) {
-              console.error('Error creating product component:', error);
-              // Show fallback for this specific product
-              nodeElement.innerHTML = `
-                <h3>Product Unavailable</h3>
-                <p>This product is temporarily unavailable.</p>
-                <div style="width: 100%; height: 200px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #00ff9d;">
-                  Product Image
-                </div>
-              `;
-            });
-          }
-        });
-      }).catch(function(error) {
-        console.error('Shopify UI initialization failed:', error);
-        showFallbackProducts();
-      });
-    } catch (error) {
-      console.error('Shopify client creation failed:', error);
-      showFallbackProducts();
+    let currentBanner = 0;
+    const imageEl = document.getElementById("affiliate-image");
+    const linkEl = document.getElementById("affiliate-link");
+    const glitchEl = document.getElementById("glitch-effect");
+
+    function glitchEffect() {
+      glitchEl.innerHTML = '';
+      for (let i = 0; i < 4; i++) {
+        const bar = document.createElement("div");
+        bar.style.position = "absolute";
+        bar.style.left = "0";
+        bar.style.width = "100%";
+        bar.style.height = `${Math.random() * 4 + 2}px`;
+        bar.style.top = `${Math.random() * 100}%`;
+        bar.style.background = "#00ff9d";
+        bar.style.opacity = "0.15";
+        bar.style.animation = `glitchMove 0.3s ease-out forwards`;
+        glitchEl.appendChild(bar);
+      }
+      setTimeout(() => glitchEl.innerHTML = '', 400);
     }
-  }
-})();
-</script>
-<!-- End: Shopify Product Card -->
 
-    </div> <!-- close product-grid -->
-  </div> <!-- close content -->
-<script>
-  const banners = [
-    {
-      image: "/attached_assets/881f5832-0a1e-4079-8a66-fbc2c6479931._CR0,0,3000,600_SX3000_.jpg",
-      link: "https://mosequipment.com/"
-    },
-    {
-      image: "/attached_assets/cyberpunk_game.jpg",
-      link: "https://www.cdprojektred.com/en"
-    },
-    {
-      image: "/attached_assets/Flipper_Zero.jpg",
-      link: "https://flipperzero.one/"
+    function rotateBanner() {
+      imageEl.style.opacity = 0;
+      imageEl.style.boxShadow = 'none';
+
+      setTimeout(() => {
+        const banner = banners[currentBanner];
+        imageEl.src = banner.image;
+        linkEl.href = banner.link;
+        glitchEffect();
+        imageEl.style.opacity = 1;
+        imageEl.style.boxShadow = '0 0 20px #00ff9d';
+
+        currentBanner = (currentBanner + 1) % banners.length;
+      }, 500);
     }
-  ];
 
-  let currentBanner = 0;
-  const imageEl = document.getElementById("affiliate-image");
-  const linkEl = document.getElementById("affiliate-link");
-  const glitchEl = document.getElementById("glitch-effect");
-
-  function glitchEffect() {
-    glitchEl.innerHTML = '';
-    for (let i = 0; i < 4; i++) {
-      const bar = document.createElement("div");
-      bar.style.position = "absolute";
-      bar.style.left = "0";
-      bar.style.width = "100%";
-      bar.style.height = `${Math.random() * 4 + 2}px`;
-      bar.style.top = `${Math.random() * 100}%`;
-      bar.style.background = "#00ff9d";
-      bar.style.opacity = "0.15";
-      bar.style.animation = `glitchMove 0.3s ease-out forwards`;
-      glitchEl.appendChild(bar);
-    }
-    setTimeout(() => glitchEl.innerHTML = '', 400);
-  }
-
-  function rotateBanner() {
-    imageEl.style.opacity = 0;
-    imageEl.style.boxShadow = 'none';
-
-    setTimeout(() => {
-      const banner = banners[currentBanner];
-      imageEl.src = banner.image;
-      linkEl.href = banner.link;
-      glitchEffect();
-      imageEl.style.opacity = 1;
-      imageEl.style.boxShadow = '0 0 20px #00ff9d';
-
-      currentBanner = (currentBanner + 1) % banners.length;
-    }, 500);
-  }
-
-  rotateBanner();
-  setInterval(rotateBanner, 8000);
-</script>
+    rotateBanner();
+    setInterval(rotateBanner, 8000);
+  </script>
 </body>
 </html>
