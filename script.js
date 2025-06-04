@@ -318,7 +318,7 @@ const featuredProducts = [
   {
     name: "Flipper Zero",
     price: "$169.00",
-    image: "attached_assets/Flipper_Zero.jpg",
+    image: "attached_assets/top.png",
     description: "Portable multi-tool for pentesters and geeks"
   },
   {
