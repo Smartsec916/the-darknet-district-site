@@ -1,171 +1,30 @@
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <title>The Darknet District – Apparel & Accessories</title>
-        <link rel="stylesheet" href="style.css" />
-        <script src="config.js"></script>
-        <!-- Shopify Buy Button SDK: LOAD DIRECTLY IN HEAD -->
-        <script src="https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js"></script>
-        <style>
-          body {
-            background-color: black;
-            color: #00ff9d;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            font-family: 'Courier New', monospace;
-          }
-          .content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-          }
-          .title {
-            color: #00ff9d;
-            text-align: center;
-            margin-bottom: 40px;
-            font-size: 2em;
-            text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
-          }
-          .product-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-          }
-          @media (max-width: 768px) {
-            .product-grid {
-              grid-template-columns: 1fr;
-            }
-          }
-          .product-card {
-            border: 2px solid #00ff9d;
-            background-color: #0d0d0d;
-            border-radius: 12px;
-            padding: 20px;
-            width: 100%;
-            margin: 0;
-          }
-          .product-card img {
-            width: 100%;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            transition: box-shadow 0.3s ease-in-out;
-          }
-          .product-card img:hover {
-            box-shadow: 0 0 20px #00ff9d88;
-          }
-          .product-card h3 {
-            font-size: 20px;
-            margin: 10px 0;
-          }
-          .product-card p {
-            font-size: 14px;
-            margin-bottom: 16px;
-          }
-          .product-card a.button {
-            display: inline-block;
-            background-color: #00ff9d;
-            color: #000;
-            padding: 10px 20px;
-            text-decoration: none;
-            font-weight: bold;
-            border-radius: 6px;
-            transition: all 0.2s ease-in-out;
-          }
-          .product-card a.button:hover {
-            background-color: #00cc7a;
-          }
-        </style>
-      </head>
-      <body>
-
-        <!-- Top Navigation Buttons -->
-        <div class="top-nav">
-          <a href="/">Home</a>
-          <a href="games-list">Play a Game</a>
-          <a href="store-first-page">Shop</a>
-        </div>
-
-        <div class="content"></div>
-
-        <!-- Rotating Affiliate Banners -->
-        <div id="affiliate-banner" style="max-width: 1000px; margin: 40px auto; position: relative; height: 200px; background: rgba(0, 0, 0, 0.2);">
-          <a id="affiliate-link" href="#" target="_blank">
-            <img id="affiliate-image" src="" alt=""
-                 style="width: 100%; display: block; border-radius: 8px; opacity: 0; transition: opacity 0.6s ease, box-shadow 0.6s ease; position: relative; z-index: 2;" />
-          </a>
-          <div id="glitch-effect"
-               style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3;"></div>
-        </div>
-
-        <div class="content">
-          <h1 class="title">The Darknet District – Apparel & Accessories</h1>
-        </div>
-
-        <div class="product-grid">
-          <!-- Product placeholders, Shopify will inject content -->
-          <div class="product-card" data-category="t-shirts">
-            <div id="product-component-1746023629770"></div>
-          </div>
-          <div class="product-card" data-category="stickers">
-            <div id="product-component-1746024487215"></div>
-          </div>
-          <div class="product-card" data-category="stickers">
-            <div id="product-component-1746024736060"></div>
-          </div>
-          <div class="product-card" data-category="t-shirts">
-            <div id="product-component-1746024959024"></div>
-          </div>
-          <div class="product-card" data-category="t-shirts">
-            <div id="product-component-1746047251463"></div>
-          </div>
-        </div>
-
-        <script>
-        // Shopify Buy Button initialization -- ONLY after SDK is loaded!
-        document.addEventListener("DOMContentLoaded", function () {
-          var client = ShopifyBuy.buildClient({
-            domain: 'qbhrmg-jn.myshopify.com',
-            storefrontAccessToken: '7c8a2a29b32b5c6e15c1a2d3e4f5a6b7'
-          });
-
-          var products = [
-            { id: '9174497132761', node: 'product-component-1746023629770' },
-            { id: '9174498738393', node: 'product-component-1746024487215' },
-            { id: '9174500212953', node: 'product-component-1746024736060' },
-            { id: '9174501163225', node: 'product-component-1746024959024' },
-            { id: '9174620537049', node: 'product-component-1746047251463' }
-          ];
-
-          ShopifyBuy.UI.onReady(client).then(function (ui) {
-            products.forEach(function(product) {
-              var nodeElement = document.getElementById(product.node);
-              if (nodeElement) {
-                ui.createComponent('product', {
-                  id: product.id,
-                  node: nodeElement,
-                  moneyFormat: '%24%7B%7Bamount%7D%7D'
-                });
-              }
-            });
-          }).catch(function (error) {
-            console.error('Shopify UI initialization failed:', error);
-          });
-        });
-        </script>
-
-        <!-- Your rotating banner script and other custom JS remain unchanged -->
-        <script>
-          // ... (your rotating banner JS here) ...
-        </script>
-      </body>
-      </html>      text-align: center;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Darknet District – Apparel & Accessories</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="config.js"></script>
+  <!-- Shopify Buy Button SDK: LOAD DIRECTLY IN HEAD -->
+  <script src="https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js"></script>
+  <style>
+    body {
+      background-color: black;
+      color: #00ff9d;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      font-family: 'Courier New', monospace;
+    }
+    .content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .title {
+      color: #00ff9d;
+      text-align: center;
       margin-bottom: 40px;
       font-size: 2em;
       text-transform: uppercase;
@@ -222,6 +81,15 @@
     .product-card a.button:hover {
       background-color: #00cc7a;
     }
+
+    @keyframes glitchMove {
+      0% { transform: translateX(0); }
+      20% { transform: translateX(-2px); }
+      40% { transform: translateX(2px); }
+      60% { transform: translateX(-1px); }
+      80% { transform: translateX(1px); }
+      100% { transform: translateX(0); }
+    }
   </style>
 </head>
 <body>
@@ -232,8 +100,6 @@
     <a href="games-list">Play a Game</a>
     <a href="store-first-page">Shop</a>
   </div>
-
-  <div class="content"></div>
 
   <!-- Rotating Affiliate Banners -->
   <div id="affiliate-banner" style="max-width: 1000px; margin: 40px auto; position: relative; height: 200px; background: rgba(0, 0, 0, 0.2);">
