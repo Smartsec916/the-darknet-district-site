@@ -403,6 +403,6 @@ function rotateFeaturedProducts() {
 document.addEventListener('DOMContentLoaded', function() {
   displayFeaturedProducts();
   
-  // Start rotating featured products every 4 seconds
-  setInterval(rotateFeaturedProducts, 4000);
+  // Start rotating featured products every 8 seconds
+  setInterval(rotateFeaturedProducts, 8000);
 });
