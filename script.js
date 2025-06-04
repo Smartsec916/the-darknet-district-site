@@ -335,21 +335,44 @@ const featuredProducts = [
   }
 ];
 
+let currentProductIndex = 0;
+
 function displayFeaturedProducts() {
   const container = document.getElementById('featured-products');
   if (!container) return;
   
-  container.innerHTML = featuredProducts.map(product => `
-    <div class="product-card" style="width: 250px; height: 350px; margin: 10px;">
+  const product = featuredProducts[currentProductIndex];
+  container.innerHTML = `
+    <div class="product-card" style="width: 250px; height: 350px; margin: 10px auto; transition: opacity 0.5s ease;">
       <img src="${product.image}" alt="${product.name}" style="width: 180px; height: 180px; object-fit: contain;">
       <h3 style="color: #00ff9d; margin: 10px 0 5px 0; font-size: 16px;">${product.name}</h3>
       <p style="color: #cccccc; font-size: 14px; margin: 5px 0;">${product.description}</p>
       <p style="color: #ff3366; font-weight: bold; font-size: 18px; margin: 10px 0;">${product.price}</p>
     </div>
-  `).join('');
+  `;
+}
+
+function rotateFeaturedProducts() {
+  const container = document.getElementById('featured-products');
+  if (!container) return;
+  
+  // Fade out
+  container.style.opacity = '0';
+  
+  setTimeout(() => {
+    // Move to next product
+    currentProductIndex = (currentProductIndex + 1) % featuredProducts.length;
+    displayFeaturedProducts();
+    
+    // Fade in
+    container.style.opacity = '1';
+  }, 500);
 }
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
   displayFeaturedProducts();
+  
+  // Start rotating featured products every 4 seconds
+  setInterval(rotateFeaturedProducts, 4000);
 });
