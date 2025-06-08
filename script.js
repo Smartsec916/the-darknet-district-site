@@ -577,6 +577,12 @@ const featuredProducts = [
     price: "$49.99",
     image: "attached_assets/MIRA Safety - NBC-77 SOF - Single 40mm Gas Mask Filter_1749345202299.jpg",
     description: "40mm gas mask filter for NBC protection"
+  },
+  {
+    name: "MIRA Safety MOPP-1 CBRN Suit",
+    price: "$299.99",
+    image: "attached_assets/MIRA Safety MOPP-1 CBRN Protective Suit_1749345272579.jpg",
+    description: "Full-body CBRN protective suit for hazardous environments"
   }
 ];
 
