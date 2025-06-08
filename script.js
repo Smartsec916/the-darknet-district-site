@@ -214,6 +214,10 @@ class ChatManager {
         "Neural pathways active. How can I assist?",
         "Interface established. What do you need from the grid?"
       ],
+      sleeping_pod: [
+        "Sleeping pods offer secure rest spaces within the District. Reserve one when you need downtime between operations.",
+        "Our pods provide high-tech sanctuary space - perfect for recharging while maintaining security protocols."
+      ],
       district: [
         "The Darknet District is a nexus of digital underground activity. We operate in the spaces between conventional networks.",
         "This is Admin's domain - a carefully curated ecosystem of tools, games, and resources for those who think beyond the mainstream.",
@@ -291,7 +295,7 @@ class ChatManager {
     } else if (message.includes('survival') || message.includes('gear') || message.includes('knife') || message.includes('blanket')) {
       responseCategory = 'survival';
     } else if (message.includes('pod') || message.includes('sleep') || message.includes('rest')) {
-      responseCategory = 'sleeping_pod';';
+      responseCategory = 'sleeping_pod';
     }
 
     const categoryResponses = responses[responseCategory];
@@ -621,7 +625,7 @@ const featuredProducts = [
     name: "Leatherman Signal Multi-Tool",
     price: "$139.99",
     image: "attached_assets/LEATHERMAN - Signal_1749345952109.jpg",
-    description: "Survival multi-tool with fire starter, whistle, and 19 tools"ools"
+    description: "Survival multi-tool with fire starter, whistle, and 19 tools"
   }
 ];
 
