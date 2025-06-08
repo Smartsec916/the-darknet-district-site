@@ -356,6 +356,7 @@ section {
   justify-content: space-between;
   margin: 0 auto;
   contain: content;
+  border-radius: 12px;
 }
 
 .product-card:hover {
