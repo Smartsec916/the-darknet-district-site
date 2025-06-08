@@ -571,6 +571,12 @@ const featuredProducts = [
     price: "$169.99",
     image: "attached_assets/MIRA Safety CM-I01 Full-Face Industrial-Grade Gas Mask_1749345048552.jpg",
     description: "Full-face industrial-grade gas mask for protection"
+  },
+  {
+    name: "MIRA Safety NBC-77 SOF Filter",
+    price: "$49.99",
+    image: "attached_assets/MIRA Safety - NBC-77 SOF - Single 40mm Gas Mask Filter_1749345202299.jpg",
+    description: "40mm gas mask filter for NBC protection"
   }
 ];
 
