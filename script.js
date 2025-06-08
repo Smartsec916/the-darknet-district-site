@@ -356,7 +356,7 @@ const featuredProducts = [
   {
     name: "Flipper Zero Proto Boards",
     price: "$29.00",
-    image: "attached_assets/all_proto_1024x1024@2x.jpg",
+    image: "attached_assets/main_1024x1024@2x.jpg",
     description: "Expand your Flipper Zero's capabilities"
   },
   // Survival & Emergency Gear
@@ -375,7 +375,7 @@ const featuredProducts = [
   {
     name: "Fresnel Lens",
     price: "$12.99",
-    image: "attached_assets/Fresnel Lens.jpg",
+    image: "attached_assets/Survival Multi Tool Card.jpg",
     description: "Solar fire starter and magnification tool"
   },
   {
