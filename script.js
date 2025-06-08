@@ -16,7 +16,9 @@ class ChatManager {
     
     try {
       console.log("Attempting to create chat session...");
-      const response = await fetch('/api/chat/session', {
+      const url = '/api/chat/session';
+      console.log("Fetching URL:", url);
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -175,7 +177,9 @@ class ChatManager {
     this.setTyping(true);
     
     try {
-      const response = await fetch('/api/chat/message', {
+      const url = '/api/chat/message';
+      console.log("Sending message to URL:", url);
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

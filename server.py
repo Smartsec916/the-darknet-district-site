@@ -10,7 +10,7 @@ from openai import OpenAI
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app, origins="*", allow_headers=["Content-Type", "Authorization"])  # Enable CORS for all routes
 
 # In-memory session storage (in production, use a database)
 chat_sessions = {}
@@ -33,6 +33,7 @@ def serve_file(filename):
 
 @app.route('/api/chat/session', methods=['POST'])
 def create_session():
+    print("=== CREATE SESSION ENDPOINT HIT ===")
     try:
         session_id = str(uuid.uuid4())
         chat_sessions[session_id] = {
@@ -63,6 +64,7 @@ def get_chat_history(session_id):
 
 @app.route('/api/chat/message', methods=['POST'])
 def chat_message():
+    print("=== CHAT MESSAGE ENDPOINT HIT ===")
     try:
         data = request.json
         session_id = data.get('sessionId')
