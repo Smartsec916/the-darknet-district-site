@@ -583,6 +583,12 @@ const featuredProducts = [
     price: "$299.99",
     image: "attached_assets/MIRA Safety MOPP-1 CBRN Protective Suit_1749345272579.jpg",
     description: "Full-body CBRN protective suit for hazardous environments"
+  },
+  {
+    name: "Leatherman Premium Multi-Tool",
+    price: "$129.99",
+    image: "attached_assets/LEATHERMAN - Charge Plus_1749345883376.jpg",
+    description: "Premium multi-tool with pliers, knife, saw and 19 tools"
   }
 ];
 
