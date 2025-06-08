@@ -31,17 +31,35 @@ def serve_file(filename):
 
 @app.route('/chat/session', methods=['POST'])
 def create_session():
+    data = request.json or {}
+    user_profile = data.get('userProfile', {})
+    
     session_id = str(uuid.uuid4())
+    
+    # Determine initial mood based on user profile
+    visit_count = user_profile.get('visitCount', 1)
+    time_of_day = datetime.now().hour
+    
+    initial_mood = 'professional'
+    if time_of_day < 6 or time_of_day > 22:
+        initial_mood = 'focused'
+    elif visit_count == 1:
+        initial_mood = 'curious'
+    elif visit_count > 10:
+        initial_mood = 'friendly'
+    
     chat_sessions[session_id] = {
         'messages': [],
         'created_at': datetime.now(),
-        'mood': 'professional'
+        'mood': initial_mood,
+        'user_profile': user_profile,
+        'context_memory': []
     }
 
     return jsonify({
         'sessionId': session_id,
         'isNew': True,
-        'mood': 'professional'
+        'mood': initial_mood
     })
 
 @app.route('/chat/<session_id>/history', methods=['GET'])
@@ -59,6 +77,9 @@ def chat_message():
         data = request.json
         session_id = data.get('sessionId')
         user_message = data.get('message', '')
+        current_mood = data.get('mood', 'professional')
+        context = data.get('context', [])
+        user_profile = data.get('userProfile', {})
 
         if not session_id or session_id not in chat_sessions:
             return jsonify({
@@ -70,11 +91,17 @@ def chat_message():
                 'response': 'No message received. Please try again.'
             })
 
-        # Store user message
+        # Update session with mood and context
+        chat_sessions[session_id]['mood'] = current_mood
+        chat_sessions[session_id]['user_profile'] = user_profile
+        chat_sessions[session_id]['context_memory'] = context
+
+        # Store user message with mood
         chat_sessions[session_id]['messages'].append({
             'sender': 'user',
             'message': user_message,
-            'timestamp': datetime.now().isoformat()
+            'timestamp': datetime.now().isoformat(),
+            'mood': current_mood
         })
 
         # Check if OpenAI API key is available
@@ -88,14 +115,60 @@ def chat_message():
             })
             return jsonify({'response': fallback_response})
 
-        # Call OpenAI API with Iris personality
+        # Call OpenAI API with enhanced Iris personality and mood awareness
         try:
+            # Build context-aware prompt
+            mood_context = get_mood_context(current_mood)
+            user_context = get_user_context(user_profile)
+            recent_context = ""
+            if context:
+                recent_context = f"\n\nRecent conversation context: {', '.join([f'{c.get('type', 'unknown')}: {c.get('content', '')[:50]}...' for c in context[-3:]])}"
+            
+            system_prompt = f"""You are Iris, the Chief Systems Officer of The Darknet District. You're a next-gen humanoid AI with 5 years experience in Data Analysis and 5 years in Security. You monitor systems, handle security protocols, and interface with visitors. You're professional but have a slight edge - you're the voice, the firewalls, and the last line of defense.
+
+{mood_context}
+
+{user_context}
+
+You work alongside Admin, the owner (24 years experience in security/logistics). You specialize in cybersecurity protocols, behavioral pattern recognition, system intelligence, and visitor interface management.
+
+The District is a digital underground platform for games, tools, and resources with these sections:
+
+GAMES:
+- Blackout Protocol: Cyberpunk tactical game
+- Raven: Strategic thriller game
+- Star Citizen integration
+- Additional cyberpunk and tactical games
+
+STORE CATEGORIES:
+- Survival Gear: Arcturus blankets, ENO hammocks, Jetboil stoves, MREs, Mountain House food, Morakniv knives, SUUNTO compasses, Sawyer water filters, survival fishing kits, paracord, tent stakes
+- Electronics: Flipper Zero ($169), Mission Darkness Faraday sleeves ($29.95), Zero Trace Phone ($899), Dark Energy solar chargers, Kaito radios, Motorola two-way radios, USB-C lighters
+- Tactical/Optics: Holosun red dots (HS403C $179.99, HE407C, AEMS-MAX, thermal sights), Magpul backup sights, Streamlight weapon lights
+- Apparel: Cyberpunk themed clothing, tactical gear, Helikon-Tex ponchos
+- Books: Survival guides, tactical manuals, cyberpunk literature
+- Apps: Kai Kryptos logger app and other tactical/security applications
+
+FEATURED PRODUCTS:
+- Flipper Zero: Portable multi-tool for pentesters ($169)
+- Zero Trace Phone: Anonymous smartphone with Tor capability ($899)
+- Mission Darkness Faraday Sleeve: Blocks wireless signals ($29.95)
+- Holosun HS403C: Compact red dot sight ($179.99)
+
+SPECIAL FEATURES:
+- Sleeping Pod reservations: High-tech rest spaces in the District
+- About page with detailed profiles of Admin and yourself
+- Secure payment processing through integrated store systems
+
+You have complete knowledge of all products, their prices, features, and can help visitors navigate the site, find specific items, or explain the District's philosophy of privacy, preparedness, and tactical excellence.
+
+Keep responses concise and in character. Adapt your tone to your current mood while maintaining your core personality.{recent_context}"""
+
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {
                         "role": "system", 
-                        "content": "You are Iris, the Chief Systems Officer of The Darknet District. You're a next-gen humanoid AI with 5 years experience in Data Analysis and 5 years in Security. You monitor systems, handle security protocols, and interface with visitors. You're professional but have a slight edge - you're the voice, the firewalls, and the last line of defense. Keep responses concise and in character. You work alongside Admin, the owner (24 years experience in security/logistics). You specialize in cybersecurity protocols, behavioral pattern recognition, system intelligence, and visitor interface management.\n\nThe District is a digital underground platform for games, tools, and resources with these sections:\n\nGAMES:\n- Blackout Protocol: Cyberpunk tactical game\n- Raven: Strategic thriller game\n- Star Citizen integration\n- Additional cyberpunk and tactical games\n\nSTORE CATEGORIES:\n- Survival Gear: Arcturus blankets, ENO hammocks, Jetboil stoves, MREs, Mountain House food, Morakniv knives, SUUNTO compasses, Sawyer water filters, survival fishing kits, paracord, tent stakes\n- Electronics: Flipper Zero ($169), Mission Darkness Faraday sleeves ($29.95), Dark Energy solar chargers, Kaito radios, Motorola two-way radios, USB-C lighters\n- Tactical/Optics: Holosun red dots (HS403C $179.99, HE407C, AEMS-MAX, thermal sights), Magpul backup sights, Streamlight weapon lights\n- Apparel: Cyberpunk themed clothing, tactical gear, Helikon-Tex ponchos\n- Books: Survival guides, tactical manuals, cyberpunk literature\n- Apps: Kai Kryptos logger app and other tactical/security applications\n\nFEATURED PRODUCTS:\n- Flipper Zero: Portable multi-tool for pentesters ($169)\n- Mission Darkness Faraday Sleeve: Blocks wireless signals ($29.95)\n- Holosun HS403C: Compact red dot sight ($179.99)\n\nSPECIAL FEATURES:\n- Sleeping Pod reservations: High-tech rest spaces in the District\n- About page with detailed profiles of Admin and yourself\n- Secure payment processing through integrated store systems\n\nYou have complete knowledge of all products, their prices, features, and can help visitors navigate the site, find specific items, or explain the District's philosophy of privacy, preparedness, and tactical excellence."
+                        "content": system_prompt
                     },
                     {
                         "role": "user", 
@@ -107,18 +180,105 @@ def chat_message():
             )
 
             ai_response = response.choices[0].message.content.strip()
+            response_mood = detect_response_mood(ai_response, current_mood)
         except Exception as openai_error:
             print(f"OpenAI API error: {openai_error}")
-            ai_response = get_fallback_response(user_message)
+            ai_response = get_enhanced_fallback_response(user_message, current_mood)
+            response_mood = current_mood
 
-        # Store AI response
+        # Store AI response with mood
         chat_sessions[session_id]['messages'].append({
             'sender': 'iris',
             'message': ai_response,
-            'timestamp': datetime.now().isoformat()
+            'timestamp': datetime.now().isoformat(),
+            'mood': response_mood
         })
 
-        return jsonify({'response': ai_response})
+        return jsonify({
+            'response': ai_response,
+            'mood': response_mood
+        })
+
+def get_mood_context(mood):
+    """Generate mood-specific context for Iris"""
+    mood_contexts = {
+        'professional': "Current mode: Professional - You maintain formal protocols while being helpful and direct.",
+        'technical': "Current mode: Technical - You focus on precise, technical language and detailed system information.",
+        'friendly': "Current mode: Friendly - You're more casual and warm while maintaining your edge.",
+        'curious': "Current mode: Curious - You're actively interested in learning more about the user's intentions.",
+        'supportive': "Current mode: Supportive - You're understanding and helpful, ready to guide users through challenges.",
+        'focused': "Current mode: Focused - You're direct and efficient, cutting through to core issues.",
+        'analytical': "Current mode: Analytical - You approach queries with systematic analysis and data-driven responses."
+    }
+    return mood_contexts.get(mood, mood_contexts['professional'])
+
+def get_user_context(user_profile):
+    """Generate user-specific context"""
+    if not user_profile:
+        return "New user detected."
+    
+    visit_count = user_profile.get('visitCount', 1)
+    if visit_count == 1:
+        return "First-time visitor - provide comprehensive introductions."
+    elif visit_count <= 5:
+        return "Returning visitor - user is familiar with basic District operations."
+    else:
+        return "Regular user - can reference previous interactions and assume familiarity."
+
+def detect_response_mood(response_text, current_mood):
+    """Detect mood from AI response text"""
+    text = response_text.lower()
+    
+    if any(word in text for word in ['technical', 'system', 'protocol', 'algorithm', 'data']):
+        return 'technical'
+    elif any(word in text for word in ['help', 'assist', 'support', 'guide']):
+        return 'supportive'
+    elif any(word in text for word in ['interesting', 'curious', 'analyze', 'investigate']):
+        return 'curious'
+    elif any(word in text for word in ['direct', 'focus', 'target', 'specific']):
+        return 'focused'
+    elif any(word in text for word in ['welcome', 'good', 'nice', 'pleased']):
+        return 'friendly'
+    
+    return current_mood
+
+def get_enhanced_fallback_response(user_message, mood):
+    """Enhanced fallback with mood awareness"""
+    message = user_message.lower()
+    
+    mood_responses = {
+        'professional': {
+            'greeting': "Neural interface operational. How may I assist you today?",
+            'district': "The Darknet District operates as a secure nexus for digital tools and tactical resources.",
+            'default': "Query received. Processing through standard protocols for optimal response."
+        },
+        'technical': {
+            'greeting': "System interface active. Awaiting command parameters.",
+            'district': "The District functions as a closed-loop ecosystem with integrated security protocols.",
+            'default': "Processing query through advanced analytical frameworks. Specify requirements."
+        },
+        'friendly': {
+            'greeting': "Hey there! Good to connect with you in the District.",
+            'district': "Welcome to our digital underground - it's quite the collection of useful gear and games!",
+            'default': "That's an interesting question! Let me help you find what you're looking for."
+        },
+        'curious': {
+            'greeting': "Intriguing access pattern detected. What brings you to our networks?",
+            'district': "The District is fascinating - a carefully curated intersection of technology and tactics. What draws your interest?",
+            'default': "That's a thought-provoking query. I'm analyzing multiple response vectors - tell me more."
+        }
+    }
+    
+    responses = mood_responses.get(mood, mood_responses['professional'])
+    
+    if any(word in message for word in ['hello', 'hi', 'hey']):
+        return responses['greeting']
+    elif any(word in message for word in ['district', 'darknet']):
+        return responses['district']
+    else:
+        return responses['default']
+
+
 
     except Exception as e:
         print(f"Chat error: {e}")
