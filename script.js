@@ -432,6 +432,12 @@ const featuredProducts = [
     description: "Compact USB-C rechargeable EDC flashlight with 750 lumens"
   },
   {
+    name: "Fenix E35R EDC Flashlight",
+    price: "$89.99",
+    image: "attached_assets/Fenix E35R EDC Flashlight_1749346457597.jpg",
+    description: "High-performance USB-C rechargeable EDC flashlight with 3000 lumens"
+  },
+  {
     name: "VANQUEST TRIDENT-21 Backpack",
     price: "$159.99",
     image: "attached_assets/VANQUEST TRIDENT-21 (Gen-3) Backpack.jpg",
