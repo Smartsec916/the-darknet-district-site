@@ -31,18 +31,24 @@ def serve_file(filename):
 
 @app.route('/chat/session', methods=['POST'])
 def create_session():
-    session_id = str(uuid.uuid4())
-    chat_sessions[session_id] = {
-        'messages': [],
-        'created_at': datetime.now(),
-        'mood': 'professional'
-    }
+    try:
+        session_id = str(uuid.uuid4())
+        chat_sessions[session_id] = {
+            'messages': [],
+            'created_at': datetime.now(),
+            'mood': 'professional'
+        }
 
-    return jsonify({
-        'sessionId': session_id,
-        'isNew': True,
-        'mood': 'professional'
-    })
+        return jsonify({
+            'sessionId': session_id,
+            'isNew': True,
+            'mood': 'professional'
+        })
+    except Exception as e:
+        print(f"Session creation error: {e}")
+        return jsonify({
+            'error': 'Failed to create session'
+        }), 500
 
 @app.route('/chat/<session_id>/history', methods=['GET'])
 def get_chat_history(session_id):

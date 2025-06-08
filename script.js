@@ -15,6 +15,7 @@ class ChatManager {
     this.setTyping(true);
     
     try {
+      console.log("Attempting to create chat session...");
       const response = await fetch('/chat/session', {
         method: 'POST',
         headers: {
@@ -23,7 +24,15 @@ class ChatManager {
         body: JSON.stringify({})
       });
       
+      console.log("Session response status:", response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const data = await response.json();
+      console.log("Session data received:", data);
+      
       this.sessionId = data.sessionId || this.generateSessionId();
       this.mood = data.mood || "professional";
       
@@ -38,8 +47,10 @@ class ChatManager {
       }
     } catch (error) {
       console.error("Error initializing chat session:", error);
+      console.error("Error details:", error.message);
+      this.sessionId = this.generateSessionId();
       this.setTyping(false);
-      this.addMessage("System startup failed. I'm here anyway — what do you need?", false);
+      this.addMessage("Neural interface disrupted. Fallback protocols active — what do you need?", false);
     }
   }
 
