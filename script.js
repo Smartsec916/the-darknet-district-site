@@ -1,3 +1,4 @@
+
 // Chat functionality with session management
 class ChatManager {
   constructor() {
@@ -10,9 +11,9 @@ class ChatManager {
 
   async initializeSession() {
     if (this.sessionId) return;
-
+    
     this.setTyping(true);
-
+    
     try {
       console.log("Attempting to create chat session...");
       const url = '/api/chat/session';
@@ -24,19 +25,19 @@ class ChatManager {
         },
         body: JSON.stringify({})
       });
-
+      
       console.log("Session response status:", response.status);
-
+      
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-
+      
       const data = await response.json();
       console.log("Session data received:", data);
-
+      
       this.sessionId = data.sessionId || this.generateSessionId();
       this.mood = data.mood || "professional";
-
+      
       if (data.isNew || !data.sessionId) {
         const welcomeMessage = await this.fetchWelcomeMessage();
         setTimeout(() => {
@@ -59,7 +60,7 @@ class ChatManager {
     try {
       const response = await fetch(`/api/chat/${this.sessionId}/history`);
       const history = await response.json();
-
+      
       if (history?.messages?.length > 0) {
         this.messages = history.messages.map(msg => ({
           sender: msg.sender,
@@ -93,7 +94,7 @@ class ChatManager {
     this.isOpen = !this.isOpen;
     const container = document.getElementById('chatContainer');
     container.style.display = this.isOpen ? 'block' : 'none';
-
+    
     if (this.isOpen && !this.sessionId) {
       this.initializeSession();
     }
@@ -102,13 +103,13 @@ class ChatManager {
   setTyping(typing) {
     this.isTyping = typing;
     const messagesContainer = document.getElementById('chatMessages');
-
+    
     // Remove existing typing indicator
     const existingIndicator = messagesContainer.querySelector('.typing-indicator');
     if (existingIndicator) {
       existingIndicator.remove();
     }
-
+    
     if (typing) {
       const typingDiv = document.createElement('div');
       typingDiv.className = 'message bot-message typing-indicator';
@@ -121,15 +122,15 @@ class ChatManager {
   addMessage(text, isUser) {
     const message = { sender: isUser ? 'user' : 'iris', text };
     this.messages.push(message);
-
+    
     const messagesContainer = document.getElementById('chatMessages');
-
+    
     // Remove typing indicator if present
     const typingIndicator = messagesContainer.querySelector('.typing-indicator');
     if (typingIndicator) {
       typingIndicator.remove();
     }
-
+    
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
     messagesContainer.appendChild(messageDiv);
@@ -139,7 +140,7 @@ class ChatManager {
     } else {
       this.typewriterEffect(messageDiv, text);
     }
-
+    
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 
@@ -158,23 +159,23 @@ class ChatManager {
   renderMessages() {
     const messagesContainer = document.getElementById('chatMessages');
     messagesContainer.innerHTML = '';
-
+    
     this.messages.forEach(msg => {
       const messageDiv = document.createElement('div');
       messageDiv.className = `message ${msg.sender === 'user' ? 'user-message' : 'bot-message'}`;
       messageDiv.textContent = msg.text;
       messagesContainer.appendChild(messageDiv);
     });
-
+    
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 
   async sendMessage(text) {
     if (!text.trim()) return;
-
+    
     this.addMessage(text, true);
     this.setTyping(true);
-
+    
     try {
       const url = '/api/chat/message';
       console.log("Sending message to URL:", url);
@@ -315,9 +316,9 @@ function handleKeyPress(event) {
 function sendMessage() {
   const input = document.getElementById('messageInput');
   const message = input.value.trim();
-
+  
   if (!message) return;
-
+  
   chatManager.sendMessage(message);
   input.value = '';
 }
@@ -629,10 +630,10 @@ let currentProductIndex = 0;
 function displayFeaturedProducts() {
   const container = document.getElementById('featured-products');
   if (!container) return;
-
+  
   const product1 = featuredProducts[currentProductIndex];
   const product2 = featuredProducts[(currentProductIndex + 1) % featuredProducts.length];
-
+  
   container.innerHTML = `
     <div style="display: flex; gap: 30px; justify-content: center; flex-wrap: wrap;">
       <div class="product-card" style="width: 250px; height: 350px; margin: 10px; transition: opacity 0.5s ease;">
@@ -654,15 +655,15 @@ function displayFeaturedProducts() {
 function rotateFeaturedProducts() {
   const container = document.getElementById('featured-products');
   if (!container) return;
-
+  
   // Fade out
   container.style.opacity = '0';
-
+  
   setTimeout(() => {
     // Move to next two products
     currentProductIndex = (currentProductIndex + 2) % featuredProducts.length;
     displayFeaturedProducts();
-
+    
     // Fade in
     container.style.opacity = '1';
   }, 500);
@@ -671,7 +672,7 @@ function rotateFeaturedProducts() {
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
   displayFeaturedProducts();
-
+  
   // Start rotating featured products every 8 seconds
   setInterval(rotateFeaturedProducts, 8000);
 });
