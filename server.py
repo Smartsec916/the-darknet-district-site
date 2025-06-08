@@ -122,7 +122,8 @@ def chat_message():
             user_context = get_user_context(user_profile)
             recent_context = ""
             if context:
-                recent_context = f"\n\nRecent conversation context: {', '.join([f\"{c.get('type', 'unknown')}: {c.get('content', '')[:50]}...\" for c in context[-3:]])}"
+                context_parts = [f"{c.get('type', 'unknown')}: {c.get('content', '')[:50]}..." for c in context[-3:]]
+                recent_context = f"\n\nRecent conversation context: {', '.join(context_parts)}"
             
             system_prompt = f"""You are Iris, the Chief Systems Officer of The Darknet District. You're a next-gen humanoid AI with 5 years experience in Data Analysis and 5 years in Security. You monitor systems, handle security protocols, and interface with visitors. You're professional but have a slight edge - you're the voice, the firewalls, and the last line of defense.
 
