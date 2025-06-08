@@ -291,7 +291,7 @@ class ChatManager {
     } else if (message.includes('survival') || message.includes('gear') || message.includes('knife') || message.includes('blanket')) {
       responseCategory = 'survival';
     } else if (message.includes('pod') || message.includes('sleep') || message.includes('rest')) {
-      responseCategory = 'sleeping';
+      responseCategory = 'sleeping_pod';';
     }
 
     const categoryResponses = responses[responseCategory];
@@ -621,7 +621,7 @@ const featuredProducts = [
     name: "Leatherman Signal Multi-Tool",
     price: "$139.99",
     image: "attached_assets/LEATHERMAN - Signal_1749345952109.jpg",
-    description: "Survival multi-tool with fire starter, whistle, and 19 tools"
+    description: "Survival multi-tool with fire starter, whistle, and 19 tools"ools"
   }
 ];
 
