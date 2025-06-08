@@ -564,6 +564,13 @@ const featuredProducts = [
     price: "Free",
     image: "attached_assets/kai-kryptos-icon.png",
     description: "Cyberpunk terminal for decrypted log access"
+  },
+  // PPE (Personal Protective Equipment)
+  {
+    name: "MIRA Safety CM-I01 Gas Mask",
+    price: "$169.99",
+    image: "attached_assets/MIRA Safety CM-I01 Full-Face Industrial-Grade Gas Mask_1749345048552.jpg",
+    description: "Full-face industrial-grade gas mask for protection"
   }
 ];
 
