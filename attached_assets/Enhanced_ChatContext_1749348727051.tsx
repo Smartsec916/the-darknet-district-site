@@ -1,1 +1,0 @@
-Enhanced ChatContext with mood management and session control.
