@@ -589,6 +589,12 @@ const featuredProducts = [
     price: "$129.99",
     image: "attached_assets/LEATHERMAN - Charge Plus_1749345883376.jpg",
     description: "Premium multi-tool with pliers, knife, saw and 19 tools"
+  },
+  {
+    name: "Leatherman Signal Multi-Tool",
+    price: "$139.99",
+    image: "attached_assets/LEATHERMAN - Signal_1749345952109.jpg",
+    description: "Survival multi-tool with fire starter, whistle, and 19 tools"
   }
 ];
 
