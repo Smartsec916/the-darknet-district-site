@@ -19,10 +19,6 @@ chat_sessions = {}
 def index():
     return send_from_directory('.', 'index.html')
 
-@app.route('/sleeping_pod')
-def sleeping_pod():
-    return send_from_directory('.', 'sleeping_pod.html')
-
 @app.route('/about')
 def about():
     return send_from_directory('.', 'about.html')

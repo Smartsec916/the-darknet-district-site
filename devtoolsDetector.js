@@ -71,6 +71,5 @@ window.addEventListener("load", () => {
 
 // Export for potential use by other modules
 window.devtoolsDetector = {
-  notifyBackendOfInspect: notifyBackendOfInspect
-};ect
+  notifyBackendOfInspect
 };
