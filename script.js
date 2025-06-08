@@ -313,8 +313,9 @@ function addMessage(text, isUser) {
   chatManager.addMessage(text, isUser);
 }
 
-// Featured products functionality
+// Featured products functionality - All products from all store pages
 const featuredProducts = [
+  // Electronics & Tools
   {
     name: "Flipper Zero",
     price: "$169.00",
@@ -322,34 +323,89 @@ const featuredProducts = [
     description: "Portable multi-tool for pentesters and geeks"
   },
   {
-    name: "Mission Darkness Faraday Sleeve",
-    price: "$29.95",
-    image: "attached_assets/Mission Darkness Dry Shield Faraday Phone Sleeve.jpg",
-    description: "Block all wireless signals to your device"
+    name: "Flipper Zero WiFi Devboard",
+    price: "$39.00",
+    image: "attached_assets/fpr_zero_wifi_3_1024x1024@2x.jpg",
+    description: "Add WiFi capability to your Flipper Zero"
   },
   {
-    name: "Holosun HS403C",
-    price: "$179.99",
-    image: "attached_assets/HOLOSUN HS403C.jpg",
-    description: "Compact red dot sight with 50k hour battery"
+    name: "Flipper Zero Video Game Module",
+    price: "$49.00",
+    image: "attached_assets/main_1024x1024@2x.jpg",
+    description: "Turn your Flipper Zero into a retro gaming console"
+  },
+  {
+    name: "Flipper Zero Proto Boards",
+    price: "$29.00",
+    image: "attached_assets/all_proto_1024x1024@2x.jpg",
+    description: "Expand your Flipper Zero's capabilities"
+  },
+  // Survival & Emergency Gear
+  {
+    name: "Titan Survival Paracord",
+    price: "$19.99",
+    image: "attached_assets/Titan Survival's Patented 1000 LB Survival Paracord.jpg",
+    description: "1000 LB survival paracord for emergency situations"
+  },
+  {
+    name: "Survival Fishing Kit - Compact",
+    price: "$14.99",
+    image: "attached_assets/Survival Fishing Kit - Compact.jpg",
+    description: "Compact fishing kit for survival situations"
+  },
+  {
+    name: "Fresnel Lens",
+    price: "$12.99",
+    image: "attached_assets/Fresnel Lens.jpg",
+    description: "Solar fire starter and magnification tool"
+  },
+  {
+    name: "Survival Multi Tool Card",
+    price: "$9.99",
+    image: "attached_assets/Survival Multi Tool Card.jpg",
+    description: "Credit card sized multi-tool for survival"
   },
   {
     name: "Arcturus Military Wool Blanket",
     price: "$49.99",
     image: "attached_assets/Arcturus Military Wool Blanket.jpg",
-    description: "Heavy duty survival blanket for harsh conditions"
+    description: "Heavy duty military wool blanket"
   },
   {
-    name: "Morakniv Companion Fixed Blade",
+    name: "Arcturus Heavy Duty Survival Blanket",
     price: "$24.99",
-    image: "attached_assets/Morakniv Companion Fixed Blade.jpg",
-    description: "Essential survival knife with high carbon steel"
+    image: "attached_assets/Arcturus Heavy Duty Survival Blanket.jpg",
+    description: "Emergency survival blanket for harsh conditions"
   },
   {
-    name: "Jetboil Flash Camping Stove",
-    price: "$109.95",
-    image: "attached_assets/Jetboil Flash Camping and Backpacking Stove System.jpg",
-    description: "Ultra-fast boiling camping stove system"
+    name: "SUUNTO MC-2 Compass",
+    price: "$89.99",
+    image: "attached_assets/SUUNTO MC-2 Compass.jpg",
+    description: "Professional navigation compass for tactical use"
+  },
+  {
+    name: "Motorola Two-Way Radios",
+    price: "$79.99",
+    image: "attached_assets/Motorola Solutions Two-Way Radios.jpg",
+    description: "Reliable communication radios"
+  },
+  {
+    name: "GRAYL UltraPress Water Purifier",
+    price: "$89.95",
+    image: "attached_assets/GRAYL UltraPress 16.9 oz Water Purifier.jpg",
+    description: "16.9 oz water purifier for clean drinking water"
+  },
+  {
+    name: "Pathfinder Steel Water Bottle",
+    price: "$39.99",
+    image: "attached_assets/The Pathfinder School Stainless Steel 32oz Water Bottle.jpg",
+    description: "32oz stainless steel water bottle"
+  },
+  {
+    name: "Source Tactical Hydration System",
+    price: "$69.99",
+    image: "attached_assets/Source Tactical WXP 3L Low Profile Hydration System.jpg",
+    description: "3L low profile tactical hydration system"
   },
   {
     name: "Sawyer Mini Water Filter",
@@ -358,10 +414,156 @@ const featuredProducts = [
     description: "Lightweight water filtration for emergency use"
   },
   {
-    name: "SUUNTO MC-2 Compass",
+    name: "Dark Energy Poseidon Pro Charger",
+    price: "$199.99",
+    image: "attached_assets/Dark Energy Poseidon Pro Indestructible Portable Charger with Spectre 8W Solar Panel.jpg",
+    description: "Indestructible portable charger with solar panel"
+  },
+  {
+    name: "Black Diamond Storm Headlamp",
+    price: "$79.99",
+    image: "attached_assets/BLACK DIAMOND Storm 500-R Rechargeable LED Headlamp.jpg",
+    description: "500-R rechargeable LED headlamp"
+  },
+  {
+    name: "VANQUEST TRIDENT-21 Backpack",
+    price: "$159.99",
+    image: "attached_assets/VANQUEST TRIDENT-21 (Gen-3) Backpack.jpg",
+    description: "Gen-3 tactical backpack"
+  },
+  {
+    name: "Mission Darkness Faraday Sleeve",
+    price: "$29.95",
+    image: "attached_assets/Mission Darkness Dry Shield Faraday Phone Sleeve.jpg",
+    description: "Block all wireless signals to your device"
+  },
+  {
+    name: "Morakniv Companion Fixed Blade",
+    price: "$24.99",
+    image: "attached_assets/Morakniv Companion Fixed Blade.jpg",
+    description: "Essential survival knife with high carbon steel"
+  },
+  {
+    name: "Morakniv Garberg Full Tang",
     price: "$89.99",
-    image: "attached_assets/SUUNTO MC-2 Compass.jpg",
-    description: "Professional navigation compass for tactical use"
+    image: "attached_assets/Morakniv Garberg Full Tang Fixed Blade Knife.jpg",
+    description: "Full tang fixed blade knife"
+  },
+  {
+    name: "ENO OneLink Hammock System",
+    price: "$129.99",
+    image: "attached_assets/ENO OneLink Hammock System.jpg",
+    description: "Complete hammock system for outdoor rest"
+  },
+  {
+    name: "Exotac fireSLEEVE Lighter Case",
+    price: "$19.99",
+    image: "attached_assets/Exotac fireSLEEVE Waterproof Floating Lighter Case_.jpg",
+    description: "Waterproof floating lighter case"
+  },
+  {
+    name: "überleben Hexå Ferro Rod",
+    price: "$34.99",
+    image: "attached_assets/überleben Hexå Ferro Rod Fire Starter.jpg",
+    description: "Premium ferro rod fire starter"
+  },
+  {
+    name: "LcFun Electric Lighter",
+    price: "$24.99",
+    image: "attached_assets/LcFun Electric Lighter - USB C Rechargeable.jpg",
+    description: "USB C rechargeable electric lighter"
+  },
+  {
+    name: "Helikon-Tex Swagman Roll Poncho",
+    price: "$89.99",
+    image: "attached_assets/Helikon-Tex Swagman Roll Multi-Purpose Military Poncho.jpg",
+    description: "Multi-purpose military poncho"
+  },
+  {
+    name: "Helikon-Tex US Model Poncho",
+    price: "$69.99",
+    image: "attached_assets/Helikon-Tex US Model Surplus Line Poncho.jpg",
+    description: "US Model surplus line poncho"
+  },
+  {
+    name: "Jetboil Flash Camping Stove",
+    price: "$109.95",
+    image: "attached_assets/Jetboil Flash Camping and Backpacking Stove System.jpg",
+    description: "Ultra-fast boiling camping stove system"
+  },
+  {
+    name: "Mountain House 3-Day Food Supply",
+    price: "$49.99",
+    image: "attached_assets/Mountain House 3-Day Emergency Food Supply.jpg",
+    description: "3-day emergency food supply"
+  },
+  {
+    name: "MRE Surplus Pack",
+    price: "$39.99",
+    image: "attached_assets/Meals Ready to Eat Surplus (Pack of 4).jpg",
+    description: "Meals ready to eat surplus pack of 4"
+  },
+  {
+    name: "Kaito Voyager KA500 Radio",
+    price: "$69.99",
+    image: "attached_assets/Kaito Voyager KA500 Radio.jpg",
+    description: "Emergency weather radio with solar charging"
+  },
+  {
+    name: "Military ECWS Sleeping Bag",
+    price: "$199.99",
+    image: "attached_assets/US MILITARY ISSUE - ECWS WOODLAND MODULAR SLEEPING BAG SYSTEM 4.jpg",
+    description: "ECWS woodland modular sleeping bag system"
+  },
+  {
+    name: "Ultralight Titanium Tent Stakes",
+    price: "$29.99",
+    image: "attached_assets/Ultralight Titanium Tent Stakes 6 Pack.jpg",
+    description: "6 pack ultralight titanium tent stakes"
+  },
+  // Tactical & Optics
+  {
+    name: "HOLOSUN HE407C-GR X2",
+    price: "$299.99",
+    image: "attached_assets/HOLOSUN HE407C-GR X2.jpg",
+    description: "2 MOA dot open reflex sight"
+  },
+  {
+    name: "HOLOSUN HS403C",
+    price: "$179.99",
+    image: "attached_assets/HOLOSUN HS403C.jpg",
+    description: "Compact red dot sight with 50k hour battery"
+  },
+  {
+    name: "Holosun Ronin-AEMS-MAX-RD",
+    price: "$449.99",
+    image: "attached_assets/Holosun Ronin-AEMS-MAX-RD.jpg",
+    description: "Advanced rifle optic sight"
+  },
+  {
+    name: "HOLOSUN Digital Thermal Sight",
+    price: "$799.99",
+    image: "attached_assets/HOLOSUN Digital Reflex Thermal Sight.jpg",
+    description: "Digital reflex thermal sight"
+  },
+  {
+    name: "Magpul MBUS Flip-Up Sights",
+    price: "$89.99",
+    image: "attached_assets/Magpul MBUS Flip-Up Backup Sights, Black, Rear Sight.jpg",
+    description: "Flip-up backup iron sights"
+  },
+  {
+    name: "Streamlight TLR-8 HL-X",
+    price: "$199.99",
+    image: "attached_assets/Streamlight 69467 TLR-8 HL-X sub USB 1000-Lumen Weapon Rail-Mounted Rechargeable Tactical Flashlight.jpg",
+    description: "1000-lumen weapon light with laser"
+  },
+  // Apps & Software
+  {
+    name: "Kai Kryptos App",
+    price: "Free",
+    image: "attached_assets/kai-kryptos-icon.png",
+    description: "Cyberpunk terminal for decrypted log access"
   }
 ];
 
@@ -371,13 +573,23 @@ function displayFeaturedProducts() {
   const container = document.getElementById('featured-products');
   if (!container) return;
   
-  const product = featuredProducts[currentProductIndex];
+  const product1 = featuredProducts[currentProductIndex];
+  const product2 = featuredProducts[(currentProductIndex + 1) % featuredProducts.length];
+  
   container.innerHTML = `
-    <div class="product-card" style="width: 250px; height: 350px; margin: 10px auto; transition: opacity 0.5s ease;">
-      <img src="${product.image}" alt="${product.name}" style="width: 180px; height: 180px; object-fit: contain;">
-      <h3 style="color: #00ff9d; margin: 10px 0 5px 0; font-size: 16px;">${product.name}</h3>
-      <p style="color: #cccccc; font-size: 14px; margin: 5px 0;">${product.description}</p>
-      <p style="color: #ff3366; font-weight: bold; font-size: 18px; margin: 10px 0;">${product.price}</p>
+    <div style="display: flex; gap: 30px; justify-content: center; flex-wrap: wrap;">
+      <div class="product-card" style="width: 250px; height: 350px; margin: 10px; transition: opacity 0.5s ease;">
+        <img src="${product1.image}" alt="${product1.name}" style="width: 180px; height: 180px; object-fit: contain;">
+        <h3 style="color: #00ff9d; margin: 10px 0 5px 0; font-size: 16px;">${product1.name}</h3>
+        <p style="color: #cccccc; font-size: 14px; margin: 5px 0;">${product1.description}</p>
+        <p style="color: #ff3366; font-weight: bold; font-size: 18px; margin: 10px 0;">${product1.price}</p>
+      </div>
+      <div class="product-card" style="width: 250px; height: 350px; margin: 10px; transition: opacity 0.5s ease;">
+        <img src="${product2.image}" alt="${product2.name}" style="width: 180px; height: 180px; object-fit: contain;">
+        <h3 style="color: #00ff9d; margin: 10px 0 5px 0; font-size: 16px;">${product2.name}</h3>
+        <p style="color: #cccccc; font-size: 14px; margin: 5px 0;">${product2.description}</p>
+        <p style="color: #ff3366; font-weight: bold; font-size: 18px; margin: 10px 0;">${product2.price}</p>
+      </div>
     </div>
   `;
 }
@@ -390,8 +602,8 @@ function rotateFeaturedProducts() {
   container.style.opacity = '0';
   
   setTimeout(() => {
-    // Move to next product
-    currentProductIndex = (currentProductIndex + 1) % featuredProducts.length;
+    // Move to next two products
+    currentProductIndex = (currentProductIndex + 2) % featuredProducts.length;
     displayFeaturedProducts();
     
     // Fade in
