@@ -11,12 +11,17 @@
       color: #00ff9d;
       min-height: 100vh;
       margin: 0;
-      padding: 20px;
+      padding: 0;
       font-family: 'Courier New', monospace;
     }
     .top-nav {
       text-align: center;
       margin-bottom: 24px;
+      position: sticky;
+      top: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 1000;
+      padding: 10px 0 8px 0;
     }
     .top-nav a {
       color: #00ff9d;
@@ -46,11 +51,12 @@
     .title {
       color: #00ff9d;
       text-align: center;
-      margin-bottom: 40px;
-      font-size: 2em;
+      margin-bottom: 36px;
+      font-size: 2.3em;
       text-transform: uppercase;
       text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
       letter-spacing: 2px;
+      font-family: 'Courier New', monospace;
     }
     .product-grid {
       display: grid;
@@ -214,83 +220,119 @@
     });
   </script>
 
-  <!-- Shopify Buy Button Scripts (cyberpunk cart styling included in each) -->
-
-  <!-- Product 1 -->
-  <script type="text/javascript">
-  (function () {
-    var scriptURL = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
-    if (window.ShopifyBuy) {
-      if (window.ShopifyBuy.UI) {
-        ShopifyBuyInit();
-      } else {
-        loadScript();
-      }
-    } else {
-      loadScript();
-    }
-    function loadScript() {
-      var script = document.createElement('script');
-      script.async = true;
-      script.src = scriptURL;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(script);
-      script.onload = ShopifyBuyInit;
-    }
-    function ShopifyBuyInit() {
+  <!-- Shopify Buy Button Scripts - ONLY ONE SDK, one script, all products -->
+  <script src="https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
       var client = ShopifyBuy.buildClient({
         domain: 'qbhrmg-jn.myshopify.com',
-        storefrontAccessToken: 'b2db190312196bda4d67fee236d5994a',
+        storefrontAccessToken: 'b2db190312196bda4d67fee236d5994a'
       });
-      ShopifyBuy.UI.onReady(client).then(function (ui) {
-        ui.createComponent('product', {
-          id: '9174497132761',
-          node: document.getElementById('product-component-1749341487937'),
-          moneyFormat: '%24%7B%7Bamount%7D%7D',
-          options: {
-            "cart": {
-              "styles": {
-                "button": {
-                  "background-color": "#00ff9d",
-                  "color": "#000",
-                  "font-family": "Courier New, monospace",
-                  "font-size": "18px",
-                  "font-weight": "bold",
-                  "border-radius": "12px",
-                  "box-shadow": "0 0 12px #00ff9d99",
-                  "border": "2px solid #00ff9d",
-                  "transition": "background 0.18s, color 0.18s"
-                },
-                "cart": {
-                  "background-color": "#111",
-                  "border-radius": "18px",
-                  "box-shadow": "0 0 24px #00ff9d33",
-                  "color": "#00ff9d",
-                  "font-family": "Courier New, monospace"
-                },
-                "footer": {
-                  "background-color": "#181a1b"
-                }
-              },
-              "text": {
-                "total": "Subtotal",
-                "button": "Checkout"
-              },
-              "googleFonts": [
-                "Courier New"
-              ]
+
+      var uiReady = ShopifyBuy.UI.onReady(client);
+
+      var products = [
+        { id: '9174497132761', node: 'product-component-1749341487937' },
+        { id: '9174500212953', node: 'product-component-1749341538426' },
+        { id: '9174501163225', node: 'product-component-1749341562909' },
+        { id: '9174620537049', node: 'product-component-1749341585655' },
+        { id: '9174498738393', node: 'product-component-1749341611681' }
+      ];
+
+      var cyberpunkCartStyles = {
+        "cart": {
+          "styles": {
+            "button": {
+              "background-color": "#00ff9d",
+              "color": "#000",
+              "font-family": "Courier New, monospace",
+              "font-size": "18px",
+              "font-weight": "bold",
+              "border-radius": "12px",
+              "box-shadow": "0 0 12px #00ff9d99",
+              "border": "2px solid #00ff9d"
             },
-            // ...your other product options from your original code...
-          }
+            "cart": {
+              "background-color": "#111",
+              "border-radius": "18px",
+              "box-shadow": "0 0 24px #00ff9d33",
+              "color": "#00ff9d",
+              "font-family": "Courier New, monospace"
+            },
+            "footer": {
+              "background-color": "#181a1b"
+            }
+          },
+          "text": {
+            "total": "Subtotal",
+            "button": "Checkout"
+          },
+          "googleFonts": [
+            "Courier New"
+          ]
+        },
+        "product": {
+          "styles": {
+            "product": {
+              "@media (min-width: 601px)": {
+                "max-width": "100%",
+                "margin-left": "0",
+                "margin-bottom": "50px"
+              },
+              "text-align": "left"
+            },
+            "title": {
+              "font-size": "26px"
+            },
+            "button": {
+              "font-family": "Courier New, monospace",
+              "font-weight": "bold",
+              "font-size": "16px",
+              "padding-top": "16px",
+              "padding-bottom": "16px",
+              "border-radius": "14px",
+              "padding-left": "23px",
+              "padding-right": "23px"
+            },
+            "quantityInput": {
+              "font-size": "16px",
+              "padding-top": "16px",
+              "padding-bottom": "16px"
+            },
+            "price": {
+              "font-size": "18px"
+            }
+          },
+          "layout": "horizontal",
+          "contents": {
+            "img": false,
+            "imgWithCarousel": true,
+            "description": true
+          },
+          "width": "100%",
+          "text": {
+            "button": "Add to cart"
+          },
+          "googleFonts": [
+            "Courier New"
+          ]
+        }
+      };
+
+      uiReady.then(function (ui) {
+        products.forEach(function(product) {
+          ui.createComponent('product', {
+            id: product.id,
+            node: document.getElementById(product.node),
+            moneyFormat: '%24%7B%7Bamount%7D%7D',
+            options: cyberpunkCartStyles
+          });
         });
       });
-    }
-  })();
+    });
   </script>
-  <!-- Repeat for Product 2, 3, 4, 5. 
-       Just copy your other Buy Button scripts here, 
-       making sure to use the "cart" styles block above in each "options". -->
-  <!-- ... (repeat all your other product scripts, updating the "cart" section for each) ... -->
 
 </body>
 </html>
+
 
