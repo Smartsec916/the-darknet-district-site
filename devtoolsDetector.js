@@ -1,75 +1,36 @@
+// Developer tools detection
+(function() {
+  'use strict';
 
-// 🔍 DevTools Detection Module for Iris
-// Detects when users open Developer Tools and notifies the backend
+  let devtools = {
+    open: false,
+    orientation: null
+  };
 
-function notifyBackendOfInspect() {
-  // Get the current session ID from chat manager
-  const sessionId = window.chatManager?.sessionId || localStorage.getItem("chatSessionId");
-  
-  if (!sessionId) return;
+  const threshold = 160;
+  let setInterval_id;
 
-  fetch("/api/chat/message", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      sessionId: sessionId,
-      message: "[user triggered inspect]",
-    }),
-  }).catch(() => {
-    // Silent fail - don't break the user experience
-  });
-}
-
-// Repeatedly checks if DevTools are open by measuring debugger delay
-function detectDevToolsLoop() {
-  let alreadyTriggered = false;
-
-  setInterval(() => {
-    const start = performance.now();
-    debugger;
-    const duration = performance.now() - start;
-
-    // If debugger takes longer than 100ms, DevTools are likely open
-    if (duration > 100 && !alreadyTriggered) {
-      alreadyTriggered = true;
-      console.log("🔍 Iris: DevTools detected - trust level decreased");
-      notifyBackendOfInspect();
-    }
-
-    // Reset if tools are closed (debugger executes quickly)
-    if (duration < 50) {
-      alreadyTriggered = false;
-    }
-  }, 2000); // Check every 2 seconds
-}
-
-// Additional detection methods for extra coverage
-function detectDevToolsAlternative() {
-  let devtools = { open: false, orientation: null };
-  
-  setInterval(() => {
-    if (window.outerHeight - window.innerHeight > 200 || 
-        window.outerWidth - window.innerWidth > 200) {
+  function detectDevTools() {
+    if (window.outerHeight - window.innerHeight > threshold || 
+        window.outerWidth - window.innerWidth > threshold) {
       if (!devtools.open) {
         devtools.open = true;
-        notifyBackendOfInspect();
+        // Minimal detection without interference
       }
     } else {
-      devtools.open = false;
+      if (devtools.open) {
+        devtools.open = false;
+      }
     }
-  }, 1000);
-}
+  }
 
-// Initialize detection when page loads
-window.addEventListener("load", () => {
-  // Small delay to ensure chat manager is initialized
-  setTimeout(() => {
-    detectDevToolsLoop();
-    detectDevToolsAlternative();
-  }, 1000);
-});
+  // Start detection
+  setInterval_id = setInterval(detectDevTools, 500);
 
-// Export for potential use by other modules
-window.devtoolsDetector = {
-  notifyBackendOfInspect
-};
+  // Cleanup
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = devtools;
+  } else if (typeof window !== 'undefined') {
+    window.devtools = devtools;
+  }
+})();
