@@ -426,6 +426,12 @@ const featuredProducts = [
     description: "500-R rechargeable LED headlamp"
   },
   {
+    name: "Fenix E18R V2.0 EDC Flashlight",
+    price: "$69.99",
+    image: "attached_assets/Fenix E18R V2.0 EDC Flashlight_1749346285224.jpg",
+    description: "Compact USB-C rechargeable EDC flashlight with 750 lumens"
+  },
+  {
     name: "VANQUEST TRIDENT-21 Backpack",
     price: "$159.99",
     image: "attached_assets/VANQUEST TRIDENT-21 (Gen-3) Backpack.jpg",
