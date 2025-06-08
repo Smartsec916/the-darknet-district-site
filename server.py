@@ -31,7 +31,7 @@ def store_first_page():
 def serve_file(filename):
     return send_from_directory('.', filename)
 
-@app.route('/chat/session', methods=['POST'])
+@app.route('/api/chat/session', methods=['POST'])
 def create_session():
     try:
         session_id = str(uuid.uuid4())
@@ -52,7 +52,7 @@ def create_session():
             'error': 'Failed to create session'
         }), 500
 
-@app.route('/chat/<session_id>/history', methods=['GET'])
+@app.route('/api/chat/<session_id>/history', methods=['GET'])
 def get_chat_history(session_id):
     if session_id not in chat_sessions:
         return jsonify({'messages': []})
@@ -61,7 +61,7 @@ def get_chat_history(session_id):
         'messages': chat_sessions[session_id]['messages']
     })
 
-@app.route('/chat/message', methods=['POST'])
+@app.route('/api/chat/message', methods=['POST'])
 def chat_message():
     try:
         data = request.json
@@ -134,7 +134,7 @@ def chat_message():
             'response': 'Neural pathways temporarily disrupted. Please try again.'
         }), 500
 
-@app.route('/chat', methods=['POST'])
+@app.route('/api/chat', methods=['POST'])
 def chat():
     """Legacy endpoint for backward compatibility"""
     try:
