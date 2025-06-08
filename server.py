@@ -200,6 +200,12 @@ Keep responses concise and in character. Adapt your tone to your current mood wh
             'mood': response_mood
         })
 
+    except Exception as e:
+        print(f"Chat error: {e}")
+        return jsonify({
+            'response': 'Neural pathways temporarily disrupted. Please try again.'
+        }), 500
+
 def get_mood_context(mood):
     """Generate mood-specific context for Iris"""
     mood_contexts = {
