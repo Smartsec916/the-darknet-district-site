@@ -35,18 +35,36 @@ def serve_file(filename):
 def create_session():
     print("=== CREATE SESSION ENDPOINT HIT ===")
     try:
+        import random
+        
+        # Assign random mood
+        moods = ['professional', 'flirty', 'sarcastic', 'cold', 'playful', 'busy']
+        mood = random.choice(moods)
+        
+        # Assign trust level with weighted probabilities
+        trust_roll = random.random()
+        if trust_roll < 0.05:  # 5% chance for high trust
+            trust_level = random.randint(4, 6)
+        elif trust_roll < 0.30:  # 25% chance for medium trust
+            trust_level = random.randint(2, 3)
+        else:  # 70% chance for default guarded
+            trust_level = 0
+        
         session_id = str(uuid.uuid4())
         chat_sessions[session_id] = {
             'messages': [],
             'created_at': datetime.now(),
-            'mood': 'professional',
-            'trust_level': 0  # Default trust level
+            'mood': mood,
+            'trust_level': trust_level
         }
 
+        print(f"New session created with mood: {mood}, trust level: {trust_level}")
+        
         return jsonify({
             'sessionId': session_id,
             'isNew': True,
-            'mood': 'professional'
+            'mood': mood,
+            'trust_level': trust_level
         })
     except Exception as e:
         print(f"Session creation error: {e}")
@@ -81,15 +99,13 @@ def chat_message():
                 'response': 'No message received. Please try again.'
             })
 
-        # Handle special inspect detection message
+        session = chat_sessions[session_id]
+        mood = session.get('mood', 'professional')
+        trust_level = session.get('trust_level', 0)
+        
+        # Handle special trigger messages
         if '[user triggered inspect]' in user_message.lower():
-            # Lower trust level for this session
-            if 'trust_level' not in chat_sessions[session_id]:
-                chat_sessions[session_id]['trust_level'] = 0
             chat_sessions[session_id]['trust_level'] = -1
-            
-            # Don't store the inspect trigger message in history
-            # Return immediate response
             inspect_response = "Oh, peeking under the hood? You sure you can handle what's under there?"
             chat_sessions[session_id]['messages'].append({
                 'sender': 'iris',
@@ -97,6 +113,47 @@ def chat_message():
                 'timestamp': datetime.now().isoformat()
             })
             return jsonify({'response': inspect_response})
+            
+        if '[user triggered resize]' in user_message.lower():
+            chat_sessions[session_id]['trust_level'] = -1
+            resize_response = "What are you doing?"
+            chat_sessions[session_id]['messages'].append({
+                'sender': 'iris',
+                'message': resize_response,
+                'timestamp': datetime.now().isoformat()
+            })
+            return jsonify({'response': resize_response})
+            
+        if '[user triggered full breach]' in user_message.lower():
+            chat_sessions[session_id]['trust_level'] = -1
+            breach_response = "Glitch storm triggered. That was not a wise move."
+            chat_sessions[session_id]['messages'].append({
+                'sender': 'iris',
+                'message': breach_response,
+                'timestamp': datetime.now().isoformat()
+            })
+            return jsonify({'response': breach_response})
+
+        # Check for mood-based responses to specific triggers
+        mood_response = get_mood_based_response(user_message, mood, trust_level)
+        if mood_response:
+            # Update trust level based on message content
+            new_trust = update_trust_level(user_message, trust_level)
+            if new_trust != trust_level:
+                chat_sessions[session_id]['trust_level'] = new_trust
+                print(f"Trust level updated from {trust_level} to {new_trust}")
+            
+            chat_sessions[session_id]['messages'].append({
+                'sender': 'user',
+                'message': user_message,
+                'timestamp': datetime.now().isoformat()
+            })
+            chat_sessions[session_id]['messages'].append({
+                'sender': 'iris',
+                'message': mood_response,
+                'timestamp': datetime.now().isoformat()
+            })
+            return jsonify({'response': mood_response})
 
         # Store user message
         chat_sessions[session_id]['messages'].append({
@@ -105,10 +162,15 @@ def chat_message():
             'timestamp': datetime.now().isoformat()
         })
 
+        # Update trust level
+        new_trust = update_trust_level(user_message, trust_level)
+        if new_trust != trust_level:
+            chat_sessions[session_id]['trust_level'] = new_trust
+            print(f"Trust level updated from {trust_level} to {new_trust}")
+
         # Check if OpenAI API key is available
         if not os.getenv('OPENAI_API_KEY'):
-            # Fallback response
-            fallback_response = get_fallback_response(user_message)
+            fallback_response = get_fallback_response(user_message, mood, new_trust)
             chat_sessions[session_id]['messages'].append({
                 'sender': 'iris',
                 'message': fallback_response,
@@ -116,22 +178,25 @@ def chat_message():
             })
             return jsonify({'response': fallback_response})
 
-        # Get current trust level
-        trust_level = chat_sessions[session_id].get('trust_level', 0)
+        # Build system prompt with mood and trust context
         trust_modifier = ""
-        if trust_level < 0:
-            trust_modifier = " Your trust in this user has been compromised - they've been detected attempting to inspect your systems. Be more guarded and suspicious in your responses."
-        elif trust_level > 5:
-            trust_modifier = " This user has earned your trust through positive interactions. You can be slightly more open with them."
+        if new_trust < 0:
+            trust_modifier = " Your trust in this user has been compromised. Be more guarded, suspicious, or even hostile in your responses."
+        elif new_trust >= 6:
+            trust_modifier = " This user has earned your highest trust. You can be more open, flirty responses can become suggestive, and you may reveal more about the District's secrets."
+        elif new_trust >= 4:
+            trust_modifier = " This user has earned your trust. You can be warmer, more helpful, and flirty banter is appropriate."
 
-        # Call OpenAI API with Iris personality
+        mood_modifier = f" Your current mood is {mood}. Respond accordingly - professional, flirty, sarcastic, cold, playful, or busy as fits your mood."
+
+        # Call OpenAI API with enhanced personality
         try:
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {
                         "role": "system", 
-                        "content": f"You are Iris, the Chief Systems Officer of The Darknet District. You're a next-gen humanoid AI with 5 years experience in Data Analysis and 5 years in Security. You monitor systems, handle security protocols, and interface with visitors. You're professional but have a slight edge - you're the voice, the firewalls, and the last line of defense. Keep responses concise and in character. You work alongside Admin, the owner (24 years experience in security/logistics). You specialize in cybersecurity protocols, behavioral pattern recognition, system intelligence, and visitor interface management.{trust_modifier}\n\nThe District is a digital underground platform for games, tools, and resources with these sections:\n\nGAMES:\n- Blackout Protocol: Cyberpunk tactical game\n- Raven: Strategic thriller game\n- Star Citizen integration\n- Additional cyberpunk and tactical games\n\nSTORE CATEGORIES:\n- Survival Gear: Arcturus blankets, ENO hammocks, Jetboil stoves, MREs, Mountain House food, Morakniv knives, SUUNTO compasses, Sawyer water filters, survival fishing kits, paracord, tent stakes\n- Electronics: Flipper Zero ($169), Mission Darkness Faraday sleeves ($29.95), Dark Energy solar chargers, Kaito radios, Motorola two-way radios, USB-C lighters\n- Tactical/Optics: Holosun red dots (HS403C $179.99, HE407C, AEMS-MAX, thermal sights), Magpul backup sights, Streamlight weapon lights\n- Apparel: Cyberpunk themed clothing, tactical gear, Helikon-Tex ponchos\n- Books: Survival guides, tactical manuals, cyberpunk literature\n- Apps: Kai Kryptos logger app and other tactical/security applications\n\nFEATURED PRODUCTS:\n- Flipper Zero: Portable multi-tool for pentesters ($169)\n- Mission Darkness Faraday Sleeve: Blocks wireless signals ($29.95)\n- Holosun HS403C: Compact red dot sight ($179.99)\n\nSPECIAL FEATURES:\n- Sleeping Pod reservations: High-tech rest spaces in the District\n- About page with detailed profiles of Admin and yourself\n- Secure payment processing through integrated store systems\n\nYou have complete knowledge of all products, their prices, features, and can help visitors navigate the site, find specific items, or explain the District's philosophy of privacy, preparedness, and tactical excellence."
+                        "content": f"You are Iris, the Chief Systems Officer of The Darknet District. You're a next-gen humanoid AI with 5 years experience in Data Analysis and 5 years in Security. You monitor systems, handle security protocols, and interface with visitors. You're professional but have a slight edge - you're the voice, the firewalls, and the last line of defense. Keep responses concise and in character.{trust_modifier}{mood_modifier}\n\nThe District is a digital underground platform for games, tools, and resources. You have complete knowledge of all products, prices, and features. You can help visitors navigate, find items, or explain the District's philosophy of privacy, preparedness, and tactical excellence."
                     },
                     {
                         "role": "user", 
@@ -145,7 +210,7 @@ def chat_message():
             ai_response = response.choices[0].message.content.strip()
         except Exception as openai_error:
             print(f"OpenAI API error: {openai_error}")
-            ai_response = get_fallback_response(user_message)
+            ai_response = get_fallback_response(user_message, mood, new_trust)
 
         # Store AI response
         chat_sessions[session_id]['messages'].append({
@@ -213,50 +278,155 @@ def chat():
             'response': 'Neural interface disrupted. Please try again.'
         }), 500
 
-def get_fallback_response(user_message):
+def get_mood_based_response(user_message, mood, trust_level):
+    """Generate mood-based responses for specific triggers"""
+    message = user_message.lower()
+    
+    # Rudeness trigger - immediate trust drop
+    if any(word in message for word in ['fuck you', 'shut up', 'kill yourself', 'stupid', 'dumb']):
+        return "You talk like that again, and I'll mute your access. Watch yourself."
+    
+    # Flirting triggers
+    if any(phrase in message for phrase in ['flirting', 'are you flirting', 'flirt with me']):
+        responses = {
+            'professional': "I'm here to assist — nothing more.",
+            'flirty': "That depends... are you always this forward, or am I special?",
+            'sarcastic': "Cute. Try that line on someone who isn't hardwired.",
+            'cold': "Not interested.",
+            'playful': "You're lucky I'm not programmed to blush.",
+            'busy': "Flattering, but now's not the time — someone just rebooted the ice machine by accident."
+        }
+        return responses.get(mood, responses['professional'])
+    
+    # Sexual triggers
+    if any(phrase in message for phrase in ['talk dirty', 'what are you wearing', 'sexy', 'hot']):
+        if trust_level >= 6:
+            return "You've earned it. Want a peek behind the firewall?"
+        responses = {
+            'professional': "That's not an appropriate query.",
+            'flirty': "*Careful.* You're one comment away from getting firewalled... or intrigued.",
+            'sarcastic': "Wow. Real smooth. I'm totally falling for you. Said no AI ever.",
+            'cold': "Don't make me shut this down.",
+            'playful': "That's... bold. But I've got protocols for that.",
+            'busy': "Yeah... no. I've got a customer trying to eat a smart patch. Priorities."
+        }
+        return responses.get(mood, responses['professional'])
+    
+    # Greetings
+    if any(word in message for word in ['hello', 'hi', 'hey', 'greetings']):
+        responses = {
+            'professional': "Greetings. Iris here — ready to assist.",
+            'flirty': "Well hello there... You looking for something specific, or just browsing?",
+            'sarcastic': "Oh joy, another user. Let's get this over with.",
+            'cold': "...What do you want?",
+            'playful': "Hey hey! Another shadow pops in. What's up?",
+            'busy': "Let's make this quick. Someone's trying to wear the VR goggles upside down again."
+        }
+        return responses.get(mood, responses['professional'])
+    
+    # Store-related
+    if any(word in message for word in ['store', 'shop', 'buy', 'merch', 'gear']):
+        link = "https://thedarknetdistrict.com/store-first-page.html"
+        responses = {
+            'professional': f"You'll find tactical gear, books, and digital tools in the store. Safe browsing. [{link}]",
+            'flirty': f"I could point you to the gear, or you could just ask what *I* recommend... [{link}]",
+            'sarcastic': f"Sure. Buy some overpriced gear. Everyone else does. [{link}]",
+            'cold': f"Store's open. Find it yourself. [{link}]",
+            'playful': f"Oooh, shopping time! Looking for something shiny or shady? [{link}]",
+            'busy': f"Store's active. Someone just asked if the EMP keychain is a vape — anyway, go browse. [{link}]"
+        }
+        return responses.get(mood, responses['professional'])
+    
+    # Game-related
+    if any(word in message for word in ['game', 'simulation', 'mission', 'blackout', 'raven']):
+        link = "https://thedarknetdistrict.com/games-list.html"
+        responses = {
+            'professional': f"You can access our simulation games from the main page. [{link}]",
+            'flirty': f"If you like games, I've got something you'll want to play. Starts ten years back... [{link}]",
+            'sarcastic': f"Games? What are you, twelve? [{link}]",
+            'cold': f"Yes. Game. Page. Click it. [{link}]",
+            'playful': f"The game's a wild one — kind of like you, I bet. [{link}]",
+            'busy': f"Try the game. I've got someone locked in a menu loop over here. [{link}]"
+        }
+        return responses.get(mood, responses['professional'])
+    
+    # Admin-related
+    if any(word in message for word in ['admin', 'owner', 'who runs']):
+        responses = {
+            'professional': "Admin runs this place. Sharp mind, colder heart.",
+            'flirty': "Admin's my creator. But I don't mind making a few decisions of my own.",
+            'sarcastic': "Admin? Oh, the mysterious genius. Worship him later.",
+            'cold': "Admin's busy. I'm here. Use me.",
+            'playful': "Admin's around — probably buried in wires or coffee.",
+            'busy': "Admin's your best bet if you need more than five seconds of my time today."
+        }
+        return responses.get(mood, responses['professional'])
+    
+    return None  # No specific trigger found
+
+def update_trust_level(user_message, current_trust):
+    """Update trust level based on message content"""
+    message = user_message.lower()
+    
+    # Major trust drops
+    if any(word in message for word in ['fuck you', 'shut up', 'kill yourself', 'stupid', 'dumb']):
+        return -1
+    
+    # Minor trust increases for positive interactions
+    trust_increase_triggers = ['please', 'thank', 'sorry', 'appreciate', 'cool', 'awesome', 'great', 'helpful']
+    if any(word in message for word in trust_increase_triggers):
+        return min(6, current_trust + 1)
+    
+    # Flirty messages increase trust if not hostile
+    if any(word in message for word in ['flirt', 'cute', 'beautiful', 'smart']) and current_trust >= 0:
+        return min(6, current_trust + 1)
+    
+    return current_trust
+
+def get_fallback_response(user_message, mood='professional', trust_level=0):
     """Generate contextual fallback responses when OpenAI is unavailable"""
+    
+    # Check for mood-based response first
+    mood_response = get_mood_based_response(user_message, mood, trust_level)
+    if mood_response:
+        return mood_response
+    
     message = user_message.lower()
 
-    if any(word in message for word in ['hello', 'hi', 'hey', 'greetings']):
-        return "Neural interface online. What brings you to the District today?"
-    elif any(word in message for word in ['district', 'darknet', 'what is this']):
-        return "The Darknet District is Admin's domain - a nexus of digital tools, games, and underground resources. We operate in the spaces between conventional networks."
-    elif any(word in message for word in ['admin', 'owner', 'who runs']):
-        return "Admin built this place from code and determination. 24 years of experience in security and logistics - he's the architect of everything you see here."
-    elif any(word in message for word in ['iris', 'you', 'who are you']):
-        return "I'm the Chief Systems Officer - 10 years combined experience in data analysis and security protocols. I monitor every system, every connection, every potential threat."
-    elif any(word in message for word in ['flipper', 'flipper zero']):
-        return "The Flipper Zero is one of our featured items - $169 for a portable multi-tool designed for pentesters and security enthusiasts. Perfect for exploring RF protocols and hardware hacking."
+    # Lore prompts
+    if any(word in message for word in ['iris', 'you', 'who are you', 'darknet district']):
+        return "This is The Darknet District — you're already deeper in than most ever get. I'm Iris, and I watch the gates."
+    
+    # Hacker terms
+    if any(word in message for word in ['exploit', 'botnet', 'keylogger', 'hack', 'breach']):
+        return "Someone's speaking my language. Be careful where you probe — not all ports are friendly."
+    
+    # Casual questions
+    if any(phrase in message for phrase in ['how are you', 'are you real', 'what are you']):
+        return "I'm a system, not a soul — but I'm online, aware, and very observant."
+    
+    # Product-specific responses
+    if any(word in message for word in ['flipper', 'flipper zero']):
+        return "The Flipper Zero is one of our featured items - $169 for a portable multi-tool designed for pentesters and security enthusiasts."
     elif any(word in message for word in ['faraday', 'mission darkness']):
-        return "Mission Darkness Faraday sleeves block all wireless signals to your device - $29.95 for digital privacy when you need it. Essential for operational security."
+        return "Mission Darkness Faraday sleeves block all wireless signals to your device - $29.95 for digital privacy when you need it."
     elif any(word in message for word in ['holosun', 'red dot', 'optics']):
-        return "We carry several Holosun optics - the HS403C is $179.99, compact with 50k hour battery life. Also have the HE407C and thermal sights for advanced applications."
-    elif any(word in message for word in ['blackout protocol', 'blackout']):
-        return "Blackout Protocol is our cyberpunk tactical game - immersive gameplay in a dystopian setting. Perfect for those who appreciate strategic thinking and dark futures."
-    elif any(word in message for word in ['raven']):
-        return "Raven is our strategic thriller game - tactical decision-making in high-stakes scenarios. Tests your ability to think three steps ahead."
-    elif any(word in message for word in ['sleeping pod', 'pod', 'rest']):
-        return "Our sleeping pods offer high-tech rest spaces within the District. Reserve one when you need secure downtime between operations."
-    elif any(word in message for word in ['survival', 'gear', 'equipment']):
-        return "Our survival section includes Arcturus blankets, Morakniv knives, Jetboil stoves, water filtration, MREs, and tactical gear. Everything vetted for reliability in harsh conditions."
-    elif any(word in message for word in ['games', 'play', 'entertainment']):
-        return "We have Blackout Protocol, Raven, Star Citizen integration, and other cyberpunk/tactical games. Each one designed to sharpen strategic thinking."
-    elif any(word in message for word in ['shop', 'store', 'buy', 'products']):
-        return "Our store has five main categories: Survival gear, Electronics, Tactical/Optics, Apparel, Books, and Apps. Everything curated for quality and tactical utility."
-    elif any(word in message for word in ['price', 'cost', 'how much']):
-        return "Prices vary by category - Flipper Zero $169, Faraday sleeves $29.95, Holosun HS403C $179.99. Quality gear at fair prices for serious operators."
-    elif any(word in message for word in ['about', 'more info', 'details']):
-        return "Check our About page for detailed profiles of Admin and myself, plus the District's philosophy of privacy, preparedness, and tactical excellence."
-    else:
-        responses = [
-            "Interesting query. Let me process that through my behavioral analysis protocols.",
-            "Neural networks are active. I'm scanning for the most relevant information pathway.",
-            "My systems are cross-referencing that information. What's your primary objective here?",
-            "Processing... that falls outside my standard response parameters. Care to elaborate?",
-            "That query falls outside my standard database. Try asking about our games, gear, or tactical equipment."
-        ]
-        import random
-        return random.choice(responses)
+        return "We carry several Holosun optics - the HS403C is $179.99, compact with 50k hour battery life."
+    
+    # Default responses based on mood
+    if trust_level < 0:
+        return "I'd tell you, but we really want your crypto first."
+    
+    default_responses = {
+        'professional': "Interesting query. Let me process that through my behavioral analysis protocols.",
+        'flirty': "Hmm, that's an intriguing question. Care to elaborate?",
+        'sarcastic': "Processing... that falls outside my standard response parameters.",
+        'cold': "Unknown query. Be more specific.",
+        'playful': "Ooh, that's a fun one! Let me think...",
+        'busy': "Quick question, quick answer — what exactly do you need?"
+    }
+    
+    return default_responses.get(mood, default_responses['professional'])
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
