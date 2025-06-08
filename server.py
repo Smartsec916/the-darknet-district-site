@@ -3,12 +3,14 @@ import os
 import uuid
 from datetime import datetime
 from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
 from openai import OpenAI
 
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 # In-memory session storage (in production, use a database)
 chat_sessions = {}

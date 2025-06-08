@@ -16,7 +16,7 @@ class ChatManager {
     
     try {
       console.log("Attempting to create chat session...");
-      const response = await fetch('/chat/session', {
+      const response = await fetch('http://0.0.0.0:5000/chat/session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -56,7 +56,7 @@ class ChatManager {
 
   async loadChatHistory() {
     try {
-      const response = await fetch(`/chat/${this.sessionId}/history`);
+      const response = await fetch(`http://0.0.0.0:5000/chat/${this.sessionId}/history`);
       const history = await response.json();
       
       if (history?.messages?.length > 0) {
@@ -175,7 +175,7 @@ class ChatManager {
     this.setTyping(true);
     
     try {
-      const response = await fetch('/chat/message', {
+      const response = await fetch('http://0.0.0.0:5000/chat/message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
