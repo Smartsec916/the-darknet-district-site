@@ -1,4 +1,5 @@
-// Chat functionality with session management
+
+// Chat functionality with session management and cyberpunk theming
 class ChatManager {
   constructor() {
     this.isOpen = false;
@@ -8,6 +9,7 @@ class ChatManager {
     this.mood = "professional";
   }
 
+  // Initialize chat session with server or fallback to local session
   async initializeSession() {
     if (this.sessionId) return;
 
@@ -37,6 +39,7 @@ class ChatManager {
       this.sessionId = data.sessionId || this.generateSessionId();
       this.mood = data.mood || "professional";
 
+      // Show welcome message for new sessions
       if (data.isNew || !data.sessionId) {
         const welcomeMessage = await this.fetchWelcomeMessage();
         setTimeout(() => {
@@ -44,17 +47,20 @@ class ChatManager {
           this.setTyping(false);
         }, 1500);
       } else {
+        // Load existing chat history for returning sessions
         await this.loadChatHistory();
       }
     } catch (error) {
       console.error("Error initializing chat session:", error);
       console.error("Error details:", error.message);
+      // Fallback to local session with error message
       this.sessionId = this.generateSessionId();
       this.setTyping(false);
       this.addMessage("Neural interface disrupted. Fallback protocols active — what do you need?", false);
     }
   }
 
+  // Load previous chat messages from server
   async loadChatHistory() {
     try {
       const response = await fetch(`/api/chat/${this.sessionId}/history`);
@@ -74,6 +80,7 @@ class ChatManager {
     }
   }
 
+  // Generate random welcome messages with cyberpunk theme
   async fetchWelcomeMessage() {
     const welcomeMessages = [
       "Neural interface online. What brings you to the District today?",
@@ -85,10 +92,12 @@ class ChatManager {
     return welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
   }
 
+  // Generate unique session ID for fallback mode
   generateSessionId() {
     return 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
   }
 
+  // Toggle chat window visibility and initialize if needed
   toggleChat() {
     this.isOpen = !this.isOpen;
     const container = document.getElementById('chatContainer');
@@ -99,6 +108,7 @@ class ChatManager {
     }
   }
 
+  // Show or hide typing indicator animation
   setTyping(typing) {
     this.isTyping = typing;
     const messagesContainer = document.getElementById('chatMessages');
@@ -109,6 +119,7 @@ class ChatManager {
       existingIndicator.remove();
     }
 
+    // Add new typing indicator if needed
     if (typing) {
       const typingDiv = document.createElement('div');
       typingDiv.className = 'message bot-message typing-indicator';
@@ -118,6 +129,7 @@ class ChatManager {
     }
   }
 
+  // Add new message to chat and display with effects
   addMessage(text, isUser) {
     const message = { sender: isUser ? 'user' : 'iris', text };
     this.messages.push(message);
@@ -134,6 +146,7 @@ class ChatManager {
     messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
     messagesContainer.appendChild(messageDiv);
 
+    // Apply typewriter effect for bot messages
     if (isUser) {
       messageDiv.textContent = text;
     } else {
@@ -143,6 +156,7 @@ class ChatManager {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 
+  // Typewriter effect for bot responses
   typewriterEffect(element, text) {
     let i = 0;
     function typeWriter() {
@@ -155,6 +169,7 @@ class ChatManager {
     typeWriter();
   }
 
+  // Render all stored messages in chat window
   renderMessages() {
     const messagesContainer = document.getElementById('chatMessages');
     messagesContainer.innerHTML = '';
@@ -169,6 +184,7 @@ class ChatManager {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 
+  // Send user message to server or fallback to simulation
   async sendMessage(text) {
     if (!text.trim()) return;
 
@@ -198,6 +214,7 @@ class ChatManager {
       }, delay);
     } catch (error) {
       console.error("Falling back to simulated Iris response due to API failure:", error);
+      // Use local simulation when server is unavailable
       const fallback = await this.simulateIrisResponse(text);
       setTimeout(() => {
         this.setTyping(false);
@@ -206,7 +223,9 @@ class ChatManager {
     }
   }
 
+  // Simulate Iris AI responses based on keywords (fallback mode)
   async simulateIrisResponse(userMessage) {
+    // Predefined response categories for different topics
     const responses = {
       greeting: [
         "Systems online. Welcome to the District.",
@@ -266,6 +285,7 @@ class ChatManager {
       ]
     };
 
+    // Keyword matching to determine response category
     const message = userMessage.toLowerCase();
     let responseCategory = 'default';
 
@@ -293,25 +313,28 @@ class ChatManager {
       responseCategory = 'sleeping';
     }
 
+    // Return random response from selected category
     const categoryResponses = responses[responseCategory];
     return categoryResponses[Math.floor(Math.random() * categoryResponses.length)];
   }
 }
 
-// Initialize chat manager
+// Initialize chat manager instance
 const chatManager = new ChatManager();
 
-// Global functions for backward compatibility
+// Global functions for backward compatibility with existing HTML
 function toggleChat() {
   chatManager.toggleChat();
 }
 
+// Handle Enter key press in chat input
 function handleKeyPress(event) {
   if (event.key === 'Enter') {
     sendMessage();
   }
 }
 
+// Send message from input field
 function sendMessage() {
   const input = document.getElementById('messageInput');
   const message = input.value.trim();
@@ -329,7 +352,7 @@ function addMessage(text, isUser) {
 
 // Featured products functionality - All products from all store pages
 const featuredProducts = [
-  // Electronics & Tools
+  // Electronics & Tools section
   {
     name: "Flipper Zero",
     price: "$169.00",
@@ -354,7 +377,7 @@ const featuredProducts = [
     image: "attached_assets/all_proto_1024x1024@2x.jpg",
     description: "Expand your Flipper Zero's capabilities"
   },
-  // Survival & Emergency Gear
+  // Survival & Emergency Gear section
   {
     name: "Titan Survival Paracord",
     price: "$19.99",
@@ -547,7 +570,7 @@ const featuredProducts = [
     image: "attached_assets/Ultralight Titanium Tent Stakes 6 Pack.jpg",
     description: "6 pack ultralight titanium tent stakes"
   },
-  // Tactical & Optics
+  // Tactical & Optics section
   {
     name: "HOLOSUN HE407C-GR X2",
     price: "$299.99",
@@ -584,14 +607,14 @@ const featuredProducts = [
     image: "attached_assets/Streamlight 69467 TLR-8 HL-X sub USB 1000-Lumen Weapon Rail-Mounted Rechargeable Tactical Flashlight.jpg",
     description: "1000-lumen weapon light with laser"
   },
-  // Apps & Software
+  // Apps & Software section
   {
     name: "Kai Kryptos App",
     price: "Free",
     image: "attached_assets/kai-kryptos-icon.png",
     description: "Cyberpunk terminal for decrypted log access"
   },
-  // PPE (Personal Protective Equipment)
+  // PPE (Personal Protective Equipment) section
   {
     name: "MIRA Safety CM-I01 Gas Mask",
     price: "$169.99",
@@ -624,8 +647,10 @@ const featuredProducts = [
   }
 ];
 
+// Track current product index for rotation
 let currentProductIndex = 0;
 
+// Display two featured products side by side with fade transitions
 function displayFeaturedProducts() {
   const container = document.getElementById('featured-products');
   if (!container) return;
@@ -633,6 +658,7 @@ function displayFeaturedProducts() {
   const product1 = featuredProducts[currentProductIndex];
   const product2 = featuredProducts[(currentProductIndex + 1) % featuredProducts.length];
 
+  // Generate HTML for both products with consistent styling
   container.innerHTML = `
     <div style="display: flex; gap: 30px; justify-content: center; flex-wrap: wrap;">
       <div class="product-card" style="width: 250px; height: 350px; margin: 10px; transition: opacity 0.5s ease;">
@@ -651,24 +677,25 @@ function displayFeaturedProducts() {
   `;
 }
 
+// Rotate to next set of featured products with fade effect
 function rotateFeaturedProducts() {
   const container = document.getElementById('featured-products');
   if (!container) return;
 
-  // Fade out
+  // Fade out current products
   container.style.opacity = '0';
 
   setTimeout(() => {
-    // Move to next two products
+    // Move to next two products in the array
     currentProductIndex = (currentProductIndex + 2) % featuredProducts.length;
     displayFeaturedProducts();
 
-    // Fade in
+    // Fade in new products
     container.style.opacity = '1';
   }, 500);
 }
 
-// Initialize when page loads
+// Initialize featured products when page loads
 document.addEventListener('DOMContentLoaded', function() {
   displayFeaturedProducts();
 

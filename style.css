@@ -1,4 +1,4 @@
-/* Shopify Cart Styles */
+/* Shopify cart positioning and styling */
 .shopify-buy-cart-wrapper {
   position: fixed;
   top: 70px;
@@ -6,17 +6,20 @@
   z-index: 9999;
 }
 
+/* Shopify cart cyberpunk theme customization */
 .shopify-buy__cart {
   background: #0d0d0d !important;
   border: 2px solid #00ff9d !important;
   color: #00ff9d !important;
 }
 
+/* Smooth scrolling and full height setup */
 html {
   scroll-behavior: smooth;
   height: 100%;
 }
 
+/* Global body styling with cyberpunk theme */
 body {
   height: 100%;
   width: 100%;
@@ -29,6 +32,7 @@ body {
   padding-top: 60px;
 }
 
+/* Base section styling for full-height layouts */
 section {
   min-height: 100vh;
   width: 100%;
@@ -42,6 +46,7 @@ section {
   transition: opacity 0.2s ease-in-out;
 }
 
+/* First section - Main landing area with optimized rendering */
 .first-section {
   margin-top: 0;
   background-size: cover;
@@ -51,6 +56,7 @@ section {
   transform: translateZ(0);
 }
 
+/* Second section - Content area with flexible layout */
 .second-section {
   background-size: cover;
   background-position: center;
@@ -61,6 +67,7 @@ section {
   align-items: center;
 }
 
+/* Content wrapper for second section */
 .second-section-content {
   width: 100%;
   display: flex;
@@ -69,6 +76,7 @@ section {
   gap: 40px;
 }
 
+/* Third and fourth sections - Additional content areas */
 .third-section,
 .fourth-section {
   background-size: cover;
@@ -80,18 +88,22 @@ section {
   background-color: black;
 }
 
+/* First section background - Dark cyberpunk cityscape */
 .first-section {
   background-image: url('attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.webp');
 }
 
+/* Second section background - Gradient fade effect */
 .second-section {
   background-image: url('attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.webp');
 }
 
+/* Third section background - Continuation of gradient theme */
 .third-section {
   background-image: url('attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png');
 }
 
+/* Third section overlay - Top gradient fade effect */
 .third-section::before {
   content: '';
   position: absolute;
@@ -104,6 +116,7 @@ section {
   z-index: 1;
 }
 
+/* Fourth section background - Final background image */
 .fourth-section {
   background-image: url('attached_assets/0_2.jpeg');
   min-height: 100vh;
@@ -115,6 +128,7 @@ section {
   opacity: 1;
 }
 
+/* Base pseudo-element setup for gradient overlays */
 .first-section::after,
 .second-section::before,
 .second-section::after,
@@ -128,30 +142,35 @@ section {
   pointer-events: none;
 }
 
+/* First section bottom gradient fade to black */
 .first-section::after {
   bottom: 0;
   background: linear-gradient(to bottom, transparent, black);
   height: 30vh;
 }
 
+/* Second section top gradient fade from black */
 .second-section::before {
   top: 0;
   background: linear-gradient(to top, transparent, black);
   height: 30vh;
 }
 
+/* Second section bottom gradient fade to black */
 .second-section::after {
   bottom: 0;
   background: linear-gradient(to bottom, transparent, black);
   height: 30vh;
 }
 
+/* Third section top gradient fade from black */
 .third-section::before {
   top: 0;
   background: linear-gradient(to top, transparent, black);
   height: 30vh;
 }
 
+/* Third and fourth section gradient overlays */
 .third-section::after,
 .fourth-section::before {
   top: 0;
@@ -159,6 +178,7 @@ section {
   height: 30vh;
 }
 
+/* Fourth section bottom gradient fade to black */
 .fourth-section::after {
   content: '';
   position: absolute;
@@ -169,6 +189,7 @@ section {
   pointer-events: none;
 }
 
+/* Cyberpunk glitch text effect animation */
 @keyframes glitch {
   0% {
     text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
@@ -200,6 +221,7 @@ section {
   }
 }
 
+/* Main cyberpunk title styling with responsive sizing */
 .cyberpunk-title {
   font-family: 'Arial', sans-serif;
   font-size: clamp(1.5rem, 5vw, 3rem);
@@ -217,6 +239,7 @@ section {
   text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
 }
 
+/* Cyberpunk title background glow effect */
 .cyberpunk-title::before {
   content: '';
   position: absolute;
