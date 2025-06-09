@@ -218,6 +218,54 @@ section {
    ANIMATIONS - Cyberpunk effects and transitions
    ============================================================================ */
 
+/* Matrix digital rain effect */
+.digital-rain {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -2;
+  overflow: hidden;
+}
+
+.digital-rain::before {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 200%;
+  background-image: 
+    linear-gradient(0deg, transparent 0%, rgba(0, 255, 157, 0.1) 50%, transparent 100%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 98px,
+      rgba(0, 255, 157, 0.03) 100px,
+      rgba(0, 255, 157, 0.03) 102px
+    );
+  animation: matrixRain 20s linear infinite;
+}
+
+@keyframes matrixRain {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.4;
+  }
+  90% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
 /* Cyberpunk glitch text effect animation */
 @keyframes glitch {
   0% {
