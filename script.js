@@ -712,22 +712,52 @@ function displayFeaturedProducts() {
 }
 
 
-// Rotate to next set of featured products with fade effect
+// Rotate to next set of featured products with digital fade effect
 function rotateFeaturedProducts() {
   const container = document.getElementById('featured-products');
   if (!container) return;
 
-  // Fade out current products
-  container.style.opacity = '0';
+  // Add digital glitch effect before fade out
+  container.style.filter = 'hue-rotate(180deg) contrast(1.5)';
+  container.style.transform = 'scale(0.98) translateX(-2px)';
+
+  setTimeout(() => {
+    // Fade out with digital distortion
+    container.style.opacity = '0';
+    container.style.filter = 'blur(1px) hue-rotate(90deg)';
+    container.style.transform = 'scale(1.02) translateX(2px)';
+  }, 150);
 
   setTimeout(() => {
     // Move to next two products in the array
     currentProductIndex = (currentProductIndex + 2) % featuredProducts.length;
     displayFeaturedProducts();
 
-    // Fade in new products
+    // Add rotating class for scanline effect
+    container.classList.add('rotating');
+
+    // Start fade in with digital pattern effect
+    container.style.opacity = '0.3';
+    container.style.filter = 'contrast(2) brightness(1.3)';
+    container.style.transform = 'scale(0.95)';
+  }, 650);
+
+  setTimeout(() => {
+    // Complete fade in with final digital adjustments
+    container.style.opacity = '0.7';
+    container.style.filter = 'contrast(1.2) brightness(1.1)';
+    container.style.transform = 'scale(1.01)';
+  }, 800);
+
+  setTimeout(() => {
+    // Final state - fully visible with slight digital enhancement
     container.style.opacity = '1';
-  }, 500);
+    container.style.filter = 'none';
+    container.style.transform = 'scale(1)';
+    
+    // Remove rotating class
+    container.classList.remove('rotating');
+  }, 1000);
 }
 
 
