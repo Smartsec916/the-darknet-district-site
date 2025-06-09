@@ -116,22 +116,27 @@
 </head>
 <body>
   <!-- Top Navigation Buttons -->
+  <!-- Top Navigation Buttons -->
   <div class="top-nav">
     <a href="/">Home</a>
     <a href="games-list">Play a Game</a>
     <a href="store-first-page">Shop</a>
   </div>
 
-<!-- Rotating Affiliate Banners with Cyberpunk Glow & Glitch -->
-<div id="affiliate-banner" style="max-width: 1000px; margin: 40px auto; position: relative; height: 200px; background: rgba(0, 0, 0, 0.2);">
-  <a id="affiliate-link" href="#" target="_blank">
-    <img id="affiliate-image" src="" alt="" style="width: 100%; display: block; border-radius: 8px; opacity: 0; transition: opacity 0.6s ease, box-shadow 0.6s ease; position: relative; z-index: 2;" />
-  </a>
-  <div id="glitch-effect" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3;"></div>
-  <div class="scanlines" style="position: absolute; inset: 0; z-index: 1; pointer-events: none;"></div>
-</div>
+  <!-- Rotating Affiliate Banners with Cyberpunk Effects -->
+  <div id="affiliate-banner" style="max-width: 1000px; margin: 40px auto; position: relative; height: 200px; background: rgba(0, 0, 0, 0.2);">
+    <!-- Clickable affiliate link -->
+    <a id="affiliate-link" href="#" target="_blank">
+      <img id="affiliate-image" src="" alt="" style="width: 100%; display: block; border-radius: 8px; opacity: 0; transition: opacity 0.6s ease, box-shadow 0.6s ease; position: relative; z-index: 2;" />
+    </a>
+    <!-- Glitch effect overlay -->
+    <div id="glitch-effect" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3;"></div>
+    <!-- Scanline visual effects -->
+    <div class="scanlines" style="position: absolute; inset: 0; z-index: 1; pointer-events: none;"></div>
+  </div>
 
-<script>
+  <!-- Banner rotation and glitch effects JavaScript -->
+  <script>
   const banners = [
     {
       image: "attached_assets/881f5832-0a1e-4079-8a66-fbc2c6479931._CR0,0,3000,600_SX3000_.jpg",
@@ -189,10 +194,14 @@
   setInterval(rotateBanner, 8000);
 </script>
 
+  <!-- Main content container -->
   <div class="content">
+    <!-- Page title -->
     <h1 class="title">The Darknet District – Survival & Emergency Gear</h1>
+    <!-- Affiliate disclosure and quality statement -->
     <p style="text-align: center;">Buy Now buttons will take you to Amazon through Influencers and Associates links.<br>All items listed have been rigorously tested by The Darknet District for quality.</p>
 
+    <!-- Product category filter buttons -->
     <div class="filter-bar">
       <button onclick="filterProducts('all')">All</button>
       <button onclick="filterProducts('gear')">Gear</button>
@@ -211,13 +220,16 @@
       <button onclick="filterProducts('firearms')">Firearms Accessories</button>
     </div>
 
+    <!-- Product grid container -->
     <div id="product-list">
+      <!-- High-strength paracord for survival situations -->
       <div class="product-card" data-category="gear">
         <h3>Titan Survival's Patented 1000 LB Survival Paracord</h3>
         <img src="attached_assets/Titan Survival's Patented 1000 LB Survival Paracord.jpg" alt="Survival Paracord" style="max-width: 200px; margin: 10px auto;">
         <a href="https://amzn.to/3ENaVe3" target="_blank" class="button">Buy Now</a>
       </div>
 
+      <!-- Compact fishing survival kit -->
       <div class="product-card" data-category="gear">
         <h3>Survival Fishing Kit - Compact</h3>
         <img src="attached_assets/Survival Fishing Kit - Compact.jpg" alt="Survival Fishing Kit" style="max-width: 200px; margin: 10px auto;">
@@ -459,15 +471,21 @@
     </div>
   </div>
 
+  <!-- Product filtering JavaScript -->
   <script>
+    // Cache filtered product collections for performance
     const productCache = {};
+    // Filter products by category
     function filterProducts(category) {
+      // Cache the query results to avoid repeated DOM searches
       if (!productCache[category]) {
         productCache[category] = document.querySelectorAll(
           category === 'all' ? '.product-card' : `.product-card[data-category="${category}"]`
         );
       }
+      // Hide all products first
       document.querySelectorAll('.product-card').forEach(card => card.style.display = 'none');
+      // Show only products in selected category
       productCache[category].forEach(card => card.style.display = 'block');
     }
   </script>

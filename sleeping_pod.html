@@ -125,21 +125,29 @@
   </style>
 </head>
 <body>
+  <!-- Top Navigation Buttons -->
   <div class="top-nav">
     <a href="/">Home</a>
     <a href="games-list">Play a Game</a>
     <a href="store-first-page">Shop</a>
   </div>
 
+  <!-- Main sleeping pod environment section -->
   <section class="pod-section">
+    <!-- Control buttons for pod environment -->
     <div class="control-buttons">
+      <!-- Light control button -->
       <button class="control-button" onclick="dimLights()">Dim the lights</button>
+      <!-- Music player toggle button -->
       <button class="control-button" onclick="playMusic()">Play Music</button>
+      <!-- Hidden audio player interface -->
       <div class="audio-player" id="audioPlayer">
+        <!-- HTML5 audio element -->
         <audio controls>
           <source src="attached_assets/CyberSilk.mp3" type="audio/mp3">
           Your browser does not support the audio element.
         </audio>
+        <!-- Track navigation controls -->
         <div class="audio-controls">
           <button class="audio-btn" onclick="previousTrack()">◀</button>
           <button class="audio-btn" onclick="nextTrack()">▶</button>
@@ -148,14 +156,19 @@
     </div>
   </section>
 
+  <!-- Sleeping pod interactive JavaScript -->
   <script>
+    // Environment state variables
     let isDimmed = false;
     let isPlaying = false;
+    // Audio player DOM references
     const audioPlayer = document.getElementById('audioPlayer');
     const audioElement = audioPlayer.querySelector('audio');
+    // Audio settings
     let currentVolume = 1;
     let currentTrackIndex = 0;
 
+    // Shuffled cyberpunk music playlist
     const playlist = [
       'attached_assets/Android Love.mp3',
       'attached_assets/Cyber Silence (Extended) (2).mp3',
@@ -179,14 +192,17 @@
       'attached_assets/MetaMist_1749079991973.mp3',
       'attached_assets/SexBot (Cover)_1749079991973.mp3',
       'attached_assets/Sanctum of the Circuit.mp3'
+    // Shuffle the playlist randomly
     ].sort(() => Math.random() - 0.5);
 
+    // Smooth audio volume fade function
     function fadeAudio(from, to, duration) {
       const steps = 20;
       const stepTime = duration / steps;
       const volumeStep = (to - from) / steps;
       let currentStep = 0;
 
+      // Gradual volume change over time
       const fadeInterval = setInterval(() => {
         currentStep++;
         audioElement.volume = from + (volumeStep * currentStep);
@@ -197,6 +213,7 @@
       }, stepTime);
     }
 
+    // Toggle music player visibility and playback
     function playMusic() {
       const button = document.querySelector('[onclick="playMusic()"]');
 
@@ -219,6 +236,7 @@
       }
     }
 
+    // Change to a specific track with fade effects
     function changeTrack(index) {
       fadeAudio(currentVolume, 0, 500);
       setTimeout(() => {
@@ -230,15 +248,18 @@
       }, 500);
     }
 
+    // Auto-advance to next track when current ends
     audioElement.addEventListener('ended', () => {
       nextTrack();
     });
 
+    // Handle audio errors by skipping to next track
     audioElement.addEventListener('error', () => {
       console.log('Audio error, trying next track');
       nextTrack();
     });
 
+    // Navigate to next track in playlist
     function nextTrack() {
       const nextIndex = (currentTrackIndex + 1) % playlist.length;
       if (nextIndex === 0) {
@@ -248,11 +269,13 @@
       changeTrack(nextIndex);
     }
 
+    // Navigate to previous track in playlist
     function previousTrack() {
       const prevIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
       changeTrack(prevIndex);
     }
 
+    // Toggle pod lighting between bright and dimmed
     function dimLights() {
       const button = document.querySelector('[onclick="dimLights()"]');
       const podSection = document.querySelector('.pod-section');

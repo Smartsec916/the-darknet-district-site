@@ -90,34 +90,42 @@
 </head>
 <body>
   <!-- Top Navigation Buttons -->
+  <!-- Top Navigation Buttons -->
   <div class="top-nav">
     <a href="/">Home</a>
     <a href="games-list">Play a Game</a>
     <a href="store-first-page">Shop</a>
   </div>
 
+  <!-- Rotating Affiliate Banners with Cyberpunk Effects -->
+  <div id="affiliate-banner" style="max-width: 1000px; margin: 40px auto; position: relative; height: 200px; background: rgba(0, 0, 0, 0.2);">
+    <!-- Clickable affiliate link container -->
+    <a id="affiliate-link" href="#" target="_blank">
+      <img id="affiliate-image" src="" alt="" style="width: 100%; display: block; border-radius: 8px; opacity: 0; transition: opacity 0.6s ease, box-shadow 0.6s ease; position: relative; z-index: 2;" />
+    </a>
+    <!-- Glitch effect overlay -->
+    <div id="glitch-effect" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3;"></div>
+    <!-- Scanline effects for cyberpunk aesthetic -->
+    <div class="scanlines" style="position: absolute; inset: 0; z-index: 1; pointer-events: none;"></div>
+  </div>
 
-<!-- Rotating Affiliate Banners with Cyberpunk Glow & Glitch -->
-<div id="affiliate-banner" style="max-width: 1000px; margin: 40px auto; position: relative; height: 200px; background: rgba(0, 0, 0, 0.2);">
-  <a id="affiliate-link" href="#" target="_blank">
-    <img id="affiliate-image" src="" alt="" style="width: 100%; display: block; border-radius: 8px; opacity: 0; transition: opacity 0.6s ease, box-shadow 0.6s ease; position: relative; z-index: 2;" />
-  </a>
-  <div id="glitch-effect" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3;"></div>v>
-  <div class="scanlines" style="position: absolute; inset: 0; z-index: 1; pointer-events: none;"></div>
-</div>
+  <!-- Banner rotation JavaScript -->
+  <script>
+    // Array of affiliate banners with image paths and links
+    const banners = [
+      { image: "attached_assets/881f5832-0a1e-4079-8a66-fbc2c6479931._CR0,0,3000,600_SX3000_.jpg", link: "https://mosequipment.com/" },
+      { image: "attached_assets/cyberpunk_game.jpg", link: "https://www.cdprojektred.com/en" },
+      { image: "attached_assets/Flipper_Zero.jpg", link: "https://flipperzero.one/" }
+    ];
 
-<script>
-  const banners = [
-    { image: "attached_assets/881f5832-0a1e-4079-8a66-fbc2c6479931._CR0,0,3000,600_SX3000_.jpg", link: "https://mosequipment.com/" },
-    { image: "attached_assets/cyberpunk_game.jpg", link: "https://www.cdprojektred.com/en" },
-    { image: "attached_assets/Flipper_Zero.jpg", link: "https://flipperzero.one/" }
-  ];
+    // Current banner index tracker
+    let currentBanner = 0;
+    // DOM element references
+    const imageEl = document.getElementById("affiliate-image");
+    const linkEl = document.getElementById("affiliate-link");
 
-  let currentBanner = 0;
-  const imageEl = document.getElementById("affiliate-image");
-  const linkEl = document.getElementById("affiliate-link");
-
-  function rotateBanner() {
+    // Function to cycle through banners
+    function rotateBanner() {
     imageEl.style.opacity = 0;
     setTimeout(() => {
       const banner = banners[currentBanner];
@@ -129,75 +137,103 @@
     }, 500);
   }
 
+  // Initialize banner rotation
   rotateBanner();
+  // Set interval to rotate banners every 8 seconds
   setInterval(rotateBanner, 8000);
 </script>
 
+<!-- Main content container -->
 <div class="content">
+    <!-- Page title -->
     <h1 class="title">Electronics & Tools</h1>
+    <!-- Product grid layout -->
     <div class="product-grid">
-      <!-- Your product cards here -->
+      <!-- Flipper Zero main product card -->
       <div class="product-card">
         <h3>Flipper Zero</h3>
+        <!-- Product image -->
         <img 
           src="/attached_assets/top.png" 
           alt="Orange Flipper Zero Device" 
           style="max-width: 300px; display: block; margin: 10px auto;"/>
+        <!-- Product description -->
         <p>
           Flipper Zero is a portable multi-tool for hackers and geeks. With RFID, NFC, sub-GHz, IR, and GPIO capabilities, it lets you interact with digital systems all around you — all in a device that fits in your pocket.
           <br><br>
           The "Buy Now" button will take you to the official Flipper Zero website.
         </p>
+        <!-- External purchase link -->
         <a href="https://shop.flipperzero.one/" target="_blank" class="buy-button">Buy Now</a>
       </div>
 
-          <div class="product-card">
+      <!-- WiFi Devboard product card -->
+      <div class="product-card">
         <h3>Flipper Zero WiFi Devboard</h3>
+        <!-- Product image -->
         <img src="/attached_assets/fpr_zero_wifi_3_1024x1024@2x.jpg" alt="WiFi Devboard" style="max-width: 300px;">
+        <!-- Product description -->
         <p>Add WiFi capability to your Flipper Zero. Extend its capabilities even further.
           <br><br>
           The "Buy Now" button will take you to the official Flipper Zero website.
         </p>
+        <!-- External purchase link -->
         <a href="https://shop.flipperzero.one/products/wifi-devboard" target="_blank" class="buy-button">Buy Now</a>
       </div>
 
+      <!-- Video Game Module product card -->
       <div class="product-card">
         <h3>Flipper Zero Video Game Module</h3>
+        <!-- Product image -->
         <img src="/attached_assets/main_1024x1024@2x.jpg" alt="Video Game Module" style="max-width: 300px;">
+        <!-- Product description -->
         <p>Turn your Flipper Zero into a retro gaming console with this module.
           <br><br>
           The "Buy Now" button will take you to the official Flipper Zero website.
         </p>
+        <!-- External purchase link -->
         <a href="https://shop.flipperzero.one/products/video-game-module-for-flipper-zero" target="_blank" class="buy-button">Buy Now</a>
       </div>
 
+      <!-- Screen Protector product card -->
       <div class="product-card">
         <h3>Flipper Zero Screen Protector</h3>
+        <!-- Product image -->
         <img src="/attached_assets/case-russian-transparent_1024x1024@2x.png" alt="Screen Protector" style="max-width: 300px;">
+        <!-- Product description -->
         <p>Protect your Flipper Zero's screen with our premium screen protector. Pack of 3.
           <br><br>
           The "Buy Now" button will take you to the official Flipper Zero website.
         </p>
+        <!-- External purchase link -->
         <a href="https://shop.flipperzero.one/" target="_blank" class="buy-button">Buy Now</a>
       </div>
 
+      <!-- Proto Boards product card -->
       <div class="product-card">
         <h3>Flipper Zero Proto Boards</h3>
+        <!-- Product image -->
         <img src="/attached_assets/all_proto_1024x1024@2x.jpg" alt="Proto Boards" style="max-width: 300px;">
+        <!-- Product description -->
         <p>Expand your Flipper Zero's capabilities with these prototype boards.
           <br><br>
           The "Buy Now" button will take you to the official Flipper Zero website.
         </p>
+        <!-- External purchase link -->
         <a href="https://shop.flipperzero.one/products/proto-boards" target="_blank" class="buy-button">Buy Now</a>
       </div>
 
+      <!-- Zero Trace Phone product card -->
       <div class="product-card">
         <h3>Zero Trace Phone</h3>
+        <!-- Product image -->
         <img src="/attached_assets/Zero Trace Phone_1749347825958.jpg" alt="Zero Trace Phone" style="max-width: 300px;">
+        <!-- Product description -->
         <p>Zero Trace Phone is an all-in-one smartphone with everything you need to stay anonymous. Being completely portable, you can utilize the Tor network from anywhere, anonymously from the Zero Trace Phone. (Clearnet | Dark Web | Darknet | Deep Web Compatible)
           <br><br>
           The "Buy Now" button will take you to the zerotrace website.
         </p>
+        <!-- External purchase link -->
         <a href="https://zerotrace.org/product/zerotracephone/" target="_blank" class="buy-button">Buy Now</a>
       </div>
       </div> <!-- close product-grid -->
