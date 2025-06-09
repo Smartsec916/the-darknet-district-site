@@ -1,4 +1,3 @@
-
 // ============================================================================
 // CHAT FUNCTIONALITY - Session management and cyberpunk theming
 // ============================================================================
@@ -754,7 +753,7 @@ function rotateFeaturedProducts() {
     container.style.opacity = '1';
     container.style.filter = 'none';
     container.style.transform = 'scale(1)';
-    
+
     // Remove rotating class
     container.classList.remove('rotating');
   }, 1000);
@@ -771,4 +770,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Start rotating featured products every 8 seconds
   setInterval(rotateFeaturedProducts, 8000);
+
+  // Random glitch text effect
+  function applyRandomGlitch() {
+    // Select all text elements that can be glitched
+    const textElements = document.querySelectorAll('h1, h2, h3, .cyberpunk-title, .featured-title, .game-button, .top-nav a, .product-card h3');
+
+    if (textElements.length > 0) {
+      // Pick a random element
+      const randomElement = textElements[Math.floor(Math.random() * textElements.length)];
+
+      // Apply glitch effect
+      randomElement.classList.add('glitch-text');
+
+      // Apply text corruption animation randomly
+      if (Math.random() > 0.7) {
+        randomElement.style.animation = 'textCorruption 0.6s ease-in-out';
+      }
+
+      // Remove effects after animation
+      setTimeout(() => {
+        randomElement.classList.remove('glitch-text');
+        randomElement.style.animation = '';
+      }, 800);
+    }
+  }
+
+  // Apply random glitch effect every 3-7 seconds
+  function scheduleRandomGlitch() {
+    const delay = Math.random() * 4000 + 3000; // 3-7 seconds
+    setTimeout(() => {
+      applyRandomGlitch();
+      scheduleRandomGlitch(); // Schedule next glitch
+    }, delay);
+  }
+
+  // Start the random glitch effect
+  scheduleRandomGlitch();
 });
