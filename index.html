@@ -34,10 +34,12 @@
   </script>
 
   <title>The Darknet District</title>
+  <!-- Performance optimizations - preload critical assets -->
   <link rel="preload" href="attached_assets/..." as="image">
   <link rel="preload" href="./style.css" as="style">
   <link rel="preload" href="./script.js" as="script">
   <link href="./style.css" rel="stylesheet" type="text/css" media="print" onload="this.media='all'">
+  <!-- DNS optimizations for faster loading -->
   <link rel="dns-prefetch" href="https://thedarknetdistrict.com">
   <link rel="preconnect" href="https://thedarknetdistrict.com">
 
@@ -283,13 +285,17 @@
     <a href="about" style="font-family: 'Courier New', monospace;">About</a>
   </div>
 
+  <!-- Chat Interface - AI chatbot Iris -->
   <button class="chat-button" onclick="toggleChat()">Chat with Iris</button>
   <div class="chat-container" id="chatContainer" style="display: none;">
+    <!-- Chat header with Iris profile -->
     <div class="chat-header">
       <img src="attached_assets/Iris 01.png" alt="Iris" class="profile-pic">
       <h3 class="chat-title">Chatting with Iris</h3>
     </div>
+    <!-- Messages display area -->
     <div class="chat-messages" id="chatMessages"></div>
+    <!-- User input area -->
     <div class="chat-input">
       <input type="text" id="messageInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
       <button onclick="sendMessage()">Send</button>
@@ -297,16 +303,20 @@
   </div>
 
 
+  <!-- Hero section with main title -->
   <section class="first-section">
     <h1 class="cyberpunk-title" data-text="The Darknet District">The Darknet District</h1>
   </section>
 
+  <!-- Main content section with navigation and featured products -->
   <section class="second-section">
     <div class="second-section-content">
+      <!-- Main navigation buttons -->
       <div class="button-container">
         <a href="games-list" class="game-button">Play a game</a>
         <a href="store-first-page" class="game-button">Shop</a>
       </div>
+      <!-- Featured products showcase -->
       <div class="featured-section" style="background: none;">
         <div class="featured-container">
           <h2 class="featured-title">Featured Products</h2>
@@ -316,6 +326,7 @@
     </div>
   </section>
 
+  <!-- Sleeping pod reservation section -->
   <section class="fourth-section">
     <div class="pod-button-container">
       <a href="sleeping_pod" class="game-button">Reserve a Sleeping Pod</a>
