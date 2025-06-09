@@ -1,62 +1,89 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blackout Protocol - Coming Soon</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Blackout Protocol</title>
   <style>
-    .coming-soon-container {
-      min-height: 100vh;
+    /* Global body styling with dark red cyberpunk theme */
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      color: #ff3366;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+
+    /* Main container with centered content layout */
+    .container {
       display: flex;
-      flex-direction: column;
-      align-items: center;
       justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(45deg, #000, #1a0000);
+    }
+
+    /* Game announcement card with red cyberpunk styling */
+    .coming-soon {
       text-align: center;
-      padding: 20px;
-      background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
-                  repeating-linear-gradient(0deg, rgba(0,0,0,0.9) 0px, rgba(0,0,0,0.9) 1px, transparent 1px, transparent 2px);
+      padding: 40px;
+      border: 2px solid #ff3366;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      box-shadow: 0 0 30px rgba(255, 51, 102, 0.3);
     }
-    
-    .coming-soon-text {
-      font-size: 2em;
-      color: #00ff9d;
-      text-transform: uppercase;
-      margin: 20px 0;
-      animation: glitch 2s infinite;
-      text-shadow: 0 0 20px rgba(0, 255, 157, 0.5);
+
+    /* Main game title with red glow effect */
+    .coming-soon h1 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      text-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
     }
-    
-    .description {
-      max-width: 600px;
-      margin: 20px auto;
-      color: #00ff9d;
+
+    /* Game description and tagline text */
+    .coming-soon p {
       font-size: 1.2em;
       line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    /* Navigation button back to parent directory */
+    .back-button {
+      display: inline-block;
+      padding: 12px 24px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #ff3366;
+      border: 2px solid #ff3366;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Button hover effects with red glow */
+    .back-button:hover {
+      background: rgba(255, 51, 102, 0.1);
+      box-shadow: 0 0 15px rgba(255, 51, 102, 0.4);
+      transform: translateY(-2px);
     }
   </style>
 </head>
+
 <body>
-  <!-- Top Navigation Buttons -->
-  <div class="top-nav">
-    <a href="/">Home</a>
-    <a href="games-list">Play a Game</a>
-    <a href="store-first-page">Shop</a>
+  <!-- Main content container -->
+  <div class="container">
+    <!-- Game announcement section -->
+    <div class="coming-soon">
+      <!-- Game title with distinct red theme -->
+      <h1>BLACKOUT PROTOCOL</h1>
+      <!-- Game tagline and description -->
+      <p>When the lights go out, the real game begins.</p>
+      <p>A tactical cyberpunk thriller where survival depends on staying one step ahead of the system.</p>
+      <!-- Return to parent directory navigation -->
+      <a href="../" class="back-button">Return to District</a>
+    </div>
   </div>
-
-  <!-- Coming soon announcement container -->
-  <div class="coming-soon-container">
-    <!-- Game title with cyberpunk styling -->
-    <h1 class="cyberpunk-title">Blackout Protocol</h1>
-    <!-- Animated coming soon text -->
-    <div class="coming-soon-text">Coming Soon</div>
-    <!-- Game description and teaser -->
-    <p class="description">
-      A new cyberpunk adventure is being developed. Prepare yourself for a journey into the darkest corners of the digital underground.
-    </p>
-  </div>
-
-  <script src="script.js"></script>
 </body>
 </html>
