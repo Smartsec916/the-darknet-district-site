@@ -269,3 +269,124 @@
   </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop - The Darknet District</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .top-nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      padding: 10px 0;
+      z-index: 9999;
+    }
+
+    .top-nav a {
+      font-family: 'Courier New', monospace;
+      color: #00ffcc;
+      text-decoration: none;
+      padding: 8px 16px;
+      border: 1px solid #00ffcc;
+      border-radius: 4px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .top-nav a:hover {
+      background-color: #00ffcc;
+      color: black;
+    }
+
+    body {
+      padding-top: 80px;
+    }
+
+    .store-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    .store-category {
+      border: 2px solid #00ff9d;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .store-category:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+      background: rgba(0, 255, 157, 0.1);
+    }
+
+    .store-category h3 {
+      color: #00ff9d;
+      margin-bottom: 15px;
+      font-size: 1.5em;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation Buttons -->
+  <div class="top-nav">
+    <a href="/">Home</a>
+    <a href="games-list">Play a Game</a>
+    <a href="store-first-page">Shop</a>
+  </div>
+
+  <!-- Main content -->
+  <div style="min-height: 100vh; padding: 20px;">
+    <h1 class="cyberpunk-title">The Darknet District Store</h1>
+    
+    <!-- Store categories grid -->
+    <div class="store-grid">
+      <!-- Electronics category -->
+      <div class="store-category" onclick="window.location.href='store-electronics';">
+        <h3>Electronics & Tools</h3>
+        <p>Flipper Zero, WiFi devboards, and tactical electronics</p>
+      </div>
+
+      <!-- Apparel category -->
+      <div class="store-category" onclick="window.location.href='store-apparel';">
+        <h3>Apparel & Accessories</h3>
+        <p>Cyberpunk clothing and tactical gear</p>
+      </div>
+
+      <!-- Survival category -->
+      <div class="store-category" onclick="window.location.href='store-survival';">
+        <h3>Survival & Tactical</h3>
+        <p>Survival gear, knives, and tactical equipment</p>
+      </div>
+
+      <!-- Books category -->
+      <div class="store-category" onclick="window.location.href='store-books';">
+        <h3>Books</h3>
+        <p>Digital manuscripts and forbidden knowledge</p>
+      </div>
+
+      <!-- Apps category -->
+      <div class="store-category" onclick="window.location.href='store-apps';">
+        <h3>Apps & Software</h3>
+        <p>Cyberpunk applications and digital tools</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

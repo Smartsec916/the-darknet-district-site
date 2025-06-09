@@ -2,7 +2,7 @@
 # FLASK SERVER - The Darknet District Backend API
 # ============================================================================
 
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, render_template_string, redirect
 from flask_cors import CORS
 import os
 from openai import OpenAI
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 
 # Initialize Flask application
-app = Flask(__name__)
+app = Flask(__name__, static_folder='.', static_url_path='')
 # Enable CORS for all origins to allow frontend communication
 CORS(app, origins=["*"])
 
@@ -170,17 +170,30 @@ Keep responses concise and in character. Reference the District's offerings when
 # STATIC FILE ROUTES - Serve HTML, CSS, JS, and assets
 # ============================================================================
 
-# Serve main index.html file
+# Serve static files and HTML pages
 @app.route('/')
 def serve_index():
     return send_from_directory('.', 'index.html')
 
+@app.route('/store-first-page')
+def serve_store_first_page():
+    return send_from_directory('.', 'store-first-page.html')
 
-# Serve all other static files (HTML pages, CSS, JS, images)
+@app.route('/games-list')
+def serve_games_list():
+    return send_from_directory('.', 'games-list.html')
+
+@app.route('/about')
+def serve_about():
+    return send_from_directory('.', 'about.html')
+
+@app.route('/sleeping_pod')
+def serve_sleeping_pod():
+    return send_from_directory('.', 'sleeping_pod.html')
+
 @app.route('/<path:filename>')
-def serve_file(filename):
+def serve_static_files(filename):
     return send_from_directory('.', filename)
-
 
 # ============================================================================
 # CHAT API ENDPOINTS - Session and message handling
