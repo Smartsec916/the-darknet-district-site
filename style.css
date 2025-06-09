@@ -575,6 +575,37 @@ section {
   justify-content: space-between;
   margin: 0 auto;
   contain: content;
+  animation: colorShift 8s ease-in-out infinite;
+}
+
+@keyframes colorShift {
+  0% {
+    border-color: #00ff9d;
+    box-shadow: 
+      0 0 10px rgba(0, 255, 157, 0.3),
+      0 0 20px rgba(0, 255, 157, 0.4),
+      0 0 35px rgba(0, 255, 157, 0.3),
+      0 0 50px rgba(0, 255, 157, 0.2),
+      inset 0 0 20px rgba(0, 255, 157, 0.1);
+  }
+  50% {
+    border-color: #9327ff;
+    box-shadow: 
+      0 0 10px rgba(147, 39, 255, 0.3),
+      0 0 20px rgba(147, 39, 255, 0.4),
+      0 0 35px rgba(147, 39, 255, 0.3),
+      0 0 50px rgba(147, 39, 255, 0.2),
+      inset 0 0 20px rgba(147, 39, 255, 0.1);
+  }
+  100% {
+    border-color: #00ff9d;
+    box-shadow: 
+      0 0 10px rgba(0, 255, 157, 0.3),
+      0 0 20px rgba(0, 255, 157, 0.4),
+      0 0 35px rgba(0, 255, 157, 0.3),
+      0 0 50px rgba(0, 255, 157, 0.2),
+      inset 0 0 20px rgba(0, 255, 157, 0.1);
+  }
 }
 
 .product-card:hover {
