@@ -191,6 +191,7 @@ def chat_message():
 
         # Call OpenAI API with enhanced personality
         try:
+            print(f"Attempting OpenAI API call for session {session_id}")
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
@@ -204,12 +205,20 @@ def chat_message():
                     }
                 ],
                 max_tokens=150,
-                temperature=0.7
+                temperature=0.7,
+                timeout=30  # 30 second timeout
             )
 
             ai_response = response.choices[0].message.content.strip()
+            print(f"OpenAI API call successful for session {session_id}")
         except Exception as openai_error:
-            print(f"OpenAI API error: {openai_error}")
+            print(f"=== OpenAI API ERROR DETAILS ===")
+            print(f"Error type: {type(openai_error).__name__}")
+            print(f"Error message: {str(openai_error)}")
+            print(f"Session ID: {session_id}")
+            print(f"User message length: {len(user_message)} characters")
+            print(f"API Key present: {'Yes' if os.getenv('OPENAI_API_KEY') else 'No'}")
+            print("=== END ERROR DETAILS ===")
             ai_response = get_fallback_response(user_message, mood, new_trust)
 
         # Store AI response
@@ -226,6 +235,37 @@ def chat_message():
         return jsonify({
             'response': 'Neural pathways temporarily disrupted. Please try again.'
         }), 500
+
+@app.route('/api/test-openai', methods=['GET'])
+def test_openai():
+    """Test endpoint to check OpenAI API connectivity"""
+    try:
+        if not os.getenv('OPENAI_API_KEY'):
+            return jsonify({
+                'status': 'error',
+                'message': 'No OpenAI API key configured'
+            })
+        
+        # Simple test call
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": "Test"}],
+            max_tokens=5,
+            timeout=10
+        )
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'OpenAI API connection working',
+            'model': 'gpt-3.5-turbo'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'OpenAI API test failed: {str(e)}',
+            'error_type': type(e).__name__
+        })
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
