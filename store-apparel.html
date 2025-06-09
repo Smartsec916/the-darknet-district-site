@@ -86,6 +86,22 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
+      animation: colorShift 8s ease-in-out infinite;
+    }
+
+    @keyframes colorShift {
+      0% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 12px #00ff9d55;
+      }
+      50% {
+        border-color: #9327ff;
+        box-shadow: 0 0 12px rgba(147, 39, 255, 0.33);
+      }
+      100% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 12px #00ff9d55;
+      }
     }
     .product-cell:focus-within, .product-cell:hover {
       box-shadow: 0 0 30px #00ff9d;

@@ -55,6 +55,22 @@
       align-items: center;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
+      animation: colorShift 8s ease-in-out infinite;
+    }
+
+    @keyframes colorShift {
+      0% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+      }
+      50% {
+        border-color: #9327ff;
+        box-shadow: 0 0 30px rgba(147, 39, 255, 0.4);
+      }
+      100% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+      }
     }
 
     .category-card:hover {
