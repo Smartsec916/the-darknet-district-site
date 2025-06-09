@@ -1,3 +1,7 @@
+/* ============================================================================
+   SHOPIFY CART STYLING - Positioning and cyberpunk theme customization
+   ============================================================================ */
+
 /* Shopify cart positioning and styling */
 .shopify-buy-cart-wrapper {
   position: fixed;
@@ -12,6 +16,11 @@
   border: 2px solid #00ff9d !important;
   color: #00ff9d !important;
 }
+
+
+/* ============================================================================
+   GLOBAL LAYOUT - Smooth scrolling and full height setup
+   ============================================================================ */
 
 /* Smooth scrolling and full height setup */
 html {
@@ -31,6 +40,11 @@ body {
   -webkit-font-smoothing: antialiased;
   padding-top: 60px;
 }
+
+
+/* ============================================================================
+   SECTION LAYOUTS - Full-height responsive sections
+   ============================================================================ */
 
 /* Base section styling for full-height layouts */
 section {
@@ -88,6 +102,11 @@ section {
   background-color: black;
 }
 
+
+/* ============================================================================
+   BACKGROUND IMAGES - Section-specific cyberpunk backgrounds
+   ============================================================================ */
+
 /* First section background - Dark cyberpunk cityscape */
 .first-section {
   background-image: url('attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.webp');
@@ -127,6 +146,11 @@ section {
   z-index: 0;
   opacity: 1;
 }
+
+
+/* ============================================================================
+   GRADIENT OVERLAYS - Smooth transitions between sections
+   ============================================================================ */
 
 /* Base pseudo-element setup for gradient overlays */
 .first-section::after,
@@ -189,6 +213,11 @@ section {
   pointer-events: none;
 }
 
+
+/* ============================================================================
+   ANIMATIONS - Cyberpunk effects and transitions
+   ============================================================================ */
+
 /* Cyberpunk glitch text effect animation */
 @keyframes glitch {
   0% {
@@ -221,6 +250,11 @@ section {
   }
 }
 
+
+/* ============================================================================
+   TYPOGRAPHY - Cyberpunk titles and text styling
+   ============================================================================ */
+
 /* Main cyberpunk title styling with responsive sizing */
 .cyberpunk-title {
   font-family: 'Arial', sans-serif;
@@ -251,6 +285,11 @@ section {
   background: radial-gradient(rgba(0, 255, 0, 0.15), transparent 70%);
   z-index: -1;
 }
+
+
+/* ============================================================================
+   BUTTONS - Interactive cyberpunk button styling
+   ============================================================================ */
 
 .game-button {
   padding: clamp(15px, 4vw, 25px) clamp(30px, 6vw, 50px);
@@ -362,6 +401,11 @@ section {
     gap: 30px;
   }
 }
+
+
+/* ============================================================================
+   PRODUCT CARDS - Featured product display styling
+   ============================================================================ */
 
 .product-card {
   position: relative;
@@ -482,6 +526,11 @@ section {
   100% { background-position: 0% 50%; }
 }
 
+
+/* ============================================================================
+   NAVIGATION - Top navigation bar styling
+   ============================================================================ */
+
 .top-nav {
   position: fixed;
   top: 0;
@@ -517,11 +566,22 @@ section {
   transform: translateY(-2px);
 }
 
+
+/* ============================================================================
+   AFFILIATE BANNERS - Rotating banner positioning
+   ============================================================================ */
+
 #affiliate-banner {
   position: relative;
   margin-top: 80px;
   z-index: 1;
 }
+
+
+/* ============================================================================
+   SPECIAL COMPONENTS - Pod buttons and misc elements
+   ============================================================================ */
+
 .pod-button-container {
   position: absolute;
   top: 50%;

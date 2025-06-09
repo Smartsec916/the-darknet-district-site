@@ -1,5 +1,8 @@
 
-// Chat functionality with session management and cyberpunk theming
+// ============================================================================
+// CHAT FUNCTIONALITY - Session management and cyberpunk theming
+// ============================================================================
+
 class ChatManager {
   constructor() {
     this.isOpen = false;
@@ -8,6 +11,7 @@ class ChatManager {
     this.sessionId = null;
     this.mood = "professional";
   }
+
 
   // Initialize chat session with server or fallback to local session
   async initializeSession() {
@@ -60,6 +64,7 @@ class ChatManager {
     }
   }
 
+
   // Load previous chat messages from server
   async loadChatHistory() {
     try {
@@ -79,6 +84,7 @@ class ChatManager {
       this.setTyping(false);
     }
   }
+
 
   // Generate random welcome messages with cyberpunk theme
   async fetchWelcomeMessage() {
@@ -319,8 +325,14 @@ class ChatManager {
   }
 }
 
+
+// ============================================================================
+// GLOBAL CHAT FUNCTIONS - Backward compatibility with existing HTML
+// ============================================================================
+
 // Initialize chat manager instance
 const chatManager = new ChatManager();
+
 
 // Global functions for backward compatibility with existing HTML
 function toggleChat() {
@@ -350,7 +362,11 @@ function addMessage(text, isUser) {
   chatManager.addMessage(text, isUser);
 }
 
-// Featured products functionality - All products from all store pages
+
+// ============================================================================
+// FEATURED PRODUCTS FUNCTIONALITY - All products from all store pages
+// ============================================================================
+
 const featuredProducts = [
   // Electronics & Tools section
   {
@@ -377,7 +393,10 @@ const featuredProducts = [
     image: "attached_assets/all_proto_1024x1024@2x.jpg",
     description: "Expand your Flipper Zero's capabilities"
   },
+
+  // ========================================
   // Survival & Emergency Gear section
+  // ========================================
   {
     name: "Titan Survival Paracord",
     price: "$19.99",
@@ -570,7 +589,10 @@ const featuredProducts = [
     image: "attached_assets/Ultralight Titanium Tent Stakes 6 Pack.jpg",
     description: "6 pack ultralight titanium tent stakes"
   },
+
+  // ========================================
   // Tactical & Optics section
+  // ========================================
   {
     name: "HOLOSUN HE407C-GR X2",
     price: "$299.99",
@@ -607,14 +629,20 @@ const featuredProducts = [
     image: "attached_assets/Streamlight 69467 TLR-8 HL-X sub USB 1000-Lumen Weapon Rail-Mounted Rechargeable Tactical Flashlight.jpg",
     description: "1000-lumen weapon light with laser"
   },
+
+  // ========================================
   // Apps & Software section
+  // ========================================
   {
     name: "Kai Kryptos App",
     price: "Free",
     image: "attached_assets/kai-kryptos-icon.png",
     description: "Cyberpunk terminal for decrypted log access"
   },
+
+  // ========================================
   // PPE (Personal Protective Equipment) section
+  // ========================================
   {
     name: "MIRA Safety CM-I01 Gas Mask",
     price: "$169.99",
@@ -647,8 +675,14 @@ const featuredProducts = [
   }
 ];
 
+
+// ============================================================================
+// PRODUCT DISPLAY FUNCTIONS - Rotation and display logic
+// ============================================================================
+
 // Track current product index for rotation
 let currentProductIndex = 0;
+
 
 // Display two featured products side by side with fade transitions
 function displayFeaturedProducts() {
@@ -677,6 +711,7 @@ function displayFeaturedProducts() {
   `;
 }
 
+
 // Rotate to next set of featured products with fade effect
 function rotateFeaturedProducts() {
   const container = document.getElementById('featured-products');
@@ -694,6 +729,11 @@ function rotateFeaturedProducts() {
     container.style.opacity = '1';
   }, 500);
 }
+
+
+// ============================================================================
+// INITIALIZATION - Set up featured products on page load
+// ============================================================================
 
 // Initialize featured products when page loads
 document.addEventListener('DOMContentLoaded', function() {
