@@ -19,13 +19,21 @@ chat_sessions = {}
 def index():
     return send_from_directory('.', 'index.html')
 
-@app.route('/about')
-def about():
-    return send_from_directory('.', 'about.html')
+@app.route('/sleeping_pod')
+def sleeping_pod():
+    return send_from_directory('.', 'sleeping_pod.html')
+
+@app.route('/games-list')
+def games_list():
+    return send_from_directory('.', 'games-list.html')
 
 @app.route('/store-first-page')
 def store_first_page():
     return send_from_directory('.', 'store-first-page.html')
+
+@app.route('/about')
+def about():
+    return send_from_directory('.', 'about.html')
 
 @app.route('/<path:filename>')
 def serve_file(filename):
@@ -36,11 +44,11 @@ def create_session():
     print("=== CREATE SESSION ENDPOINT HIT ===")
     try:
         import random
-        
+
         # Assign random mood
         moods = ['professional', 'flirty', 'sarcastic', 'cold', 'playful', 'busy']
         mood = random.choice(moods)
-        
+
         # Assign trust level with weighted probabilities
         trust_roll = random.random()
         if trust_roll < 0.05:  # 5% chance for high trust
@@ -49,7 +57,7 @@ def create_session():
             trust_level = random.randint(2, 3)
         else:  # 70% chance for default guarded
             trust_level = 0
-        
+
         session_id = str(uuid.uuid4())
         chat_sessions[session_id] = {
             'messages': [],
@@ -59,7 +67,7 @@ def create_session():
         }
 
         print(f"New session created with mood: {mood}, trust level: {trust_level}")
-        
+
         return jsonify({
             'sessionId': session_id,
             'isNew': True,
@@ -102,7 +110,7 @@ def chat_message():
         session = chat_sessions[session_id]
         mood = session.get('mood', 'professional')
         trust_level = session.get('trust_level', 0)
-        
+
         # Handle special trigger messages
         if '[user triggered inspect]' in user_message.lower():
             chat_sessions[session_id]['trust_level'] = -1
@@ -113,7 +121,7 @@ def chat_message():
                 'timestamp': datetime.now().isoformat()
             })
             return jsonify({'response': inspect_response})
-            
+
         if '[user triggered resize]' in user_message.lower():
             chat_sessions[session_id]['trust_level'] = -1
             resize_response = "What are you doing?"
@@ -123,7 +131,7 @@ def chat_message():
                 'timestamp': datetime.now().isoformat()
             })
             return jsonify({'response': resize_response})
-            
+
         if '[user triggered full breach]' in user_message.lower():
             chat_sessions[session_id]['trust_level'] = -1
             breach_response = "Glitch storm triggered. That was not a wise move."
@@ -142,7 +150,7 @@ def chat_message():
             if new_trust != trust_level:
                 chat_sessions[session_id]['trust_level'] = new_trust
                 print(f"Trust level updated from {trust_level} to {new_trust}")
-            
+
             chat_sessions[session_id]['messages'].append({
                 'sender': 'user',
                 'message': user_message,
@@ -245,7 +253,7 @@ def test_openai():
                 'status': 'error',
                 'message': 'No OpenAI API key configured'
             })
-        
+
         # Simple test call
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
@@ -253,13 +261,13 @@ def test_openai():
             max_tokens=5,
             timeout=10
         )
-        
+
         return jsonify({
             'status': 'success',
             'message': 'OpenAI API connection working',
             'model': 'gpt-3.5-turbo'
         })
-        
+
     except Exception as e:
         return jsonify({
             'status': 'error',
@@ -321,11 +329,11 @@ def chat():
 def get_mood_based_response(user_message, mood, trust_level):
     """Generate mood-based responses for specific triggers"""
     message = user_message.lower()
-    
+
     # Rudeness trigger - immediate trust drop
     if any(word in message for word in ['fuck you', 'shut up', 'kill yourself', 'stupid', 'dumb']):
         return "You talk like that again, and I'll mute your access. Watch yourself."
-    
+
     # Flirting triggers
     if any(phrase in message for phrase in ['flirting', 'are you flirting', 'flirt with me']):
         responses = {
@@ -337,7 +345,7 @@ def get_mood_based_response(user_message, mood, trust_level):
             'busy': "Flattering, but now's not the time — someone just rebooted the ice machine by accident."
         }
         return responses.get(mood, responses['professional'])
-    
+
     # Sexual triggers
     if any(phrase in message for phrase in ['talk dirty', 'what are you wearing', 'sexy', 'hot']):
         if trust_level >= 6:
@@ -351,7 +359,7 @@ def get_mood_based_response(user_message, mood, trust_level):
             'busy': "Yeah... no. I've got a customer trying to eat a smart patch. Priorities."
         }
         return responses.get(mood, responses['professional'])
-    
+
     # Greetings
     if any(word in message for word in ['hello', 'hi', 'hey', 'greetings']):
         responses = {
@@ -363,7 +371,7 @@ def get_mood_based_response(user_message, mood, trust_level):
             'busy': "Let's make this quick. Someone's trying to wear the VR goggles upside down again."
         }
         return responses.get(mood, responses['professional'])
-    
+
     # Store-related
     if any(word in message for word in ['store', 'shop', 'buy', 'merch', 'gear']):
         link = "https://thedarknetdistrict.com/store-first-page.html"
@@ -376,7 +384,7 @@ def get_mood_based_response(user_message, mood, trust_level):
             'busy': f"Store's active. Someone just asked if the EMP keychain is a vape — anyway, go browse. [{link}]"
         }
         return responses.get(mood, responses['professional'])
-    
+
     # Game-related
     if any(word in message for word in ['game', 'simulation', 'mission', 'blackout', 'raven']):
         link = "https://thedarknetdistrict.com/games-list.html"
@@ -389,7 +397,7 @@ def get_mood_based_response(user_message, mood, trust_level):
             'busy': f"Try the game. I've got someone locked in a menu loop over here. [{link}]"
         }
         return responses.get(mood, responses['professional'])
-    
+
     # Admin-related
     if any(word in message for word in ['admin', 'owner', 'who runs']):
         responses = {
@@ -401,50 +409,50 @@ def get_mood_based_response(user_message, mood, trust_level):
             'busy': "Admin's your best bet if you need more than five seconds of my time today."
         }
         return responses.get(mood, responses['professional'])
-    
+
     return None  # No specific trigger found
 
 def update_trust_level(user_message, current_trust):
     """Update trust level based on message content"""
     message = user_message.lower()
-    
+
     # Major trust drops
     if any(word in message for word in ['fuck you', 'shut up', 'kill yourself', 'stupid', 'dumb']):
         return -1
-    
+
     # Minor trust increases for positive interactions
     trust_increase_triggers = ['please', 'thank', 'sorry', 'appreciate', 'cool', 'awesome', 'great', 'helpful']
     if any(word in message for word in trust_increase_triggers):
         return min(6, current_trust + 1)
-    
+
     # Flirty messages increase trust if not hostile
     if any(word in message for word in ['flirt', 'cute', 'beautiful', 'smart']) and current_trust >= 0:
         return min(6, current_trust + 1)
-    
+
     return current_trust
 
 def get_fallback_response(user_message, mood='professional', trust_level=0):
     """Generate contextual fallback responses when OpenAI is unavailable"""
-    
+
     # Check for mood-based response first
     mood_response = get_mood_based_response(user_message, mood, trust_level)
     if mood_response:
         return mood_response
-    
+
     message = user_message.lower()
 
     # Lore prompts
     if any(word in message for word in ['iris', 'you', 'who are you', 'darknet district']):
         return "This is The Darknet District — you're already deeper in than most ever get. I'm Iris, and I watch the gates."
-    
+
     # Hacker terms
     if any(word in message for word in ['exploit', 'botnet', 'keylogger', 'hack', 'breach']):
         return "Someone's speaking my language. Be careful where you probe — not all ports are friendly."
-    
+
     # Casual questions
     if any(phrase in message for phrase in ['how are you', 'are you real', 'what are you']):
         return "I'm a system, not a soul — but I'm online, aware, and very observant."
-    
+
     # Product-specific responses
     if any(word in message for word in ['flipper', 'flipper zero']):
         return "The Flipper Zero is one of our featured items - $169 for a portable multi-tool designed for pentesters and security enthusiasts."
@@ -452,11 +460,11 @@ def get_fallback_response(user_message, mood='professional', trust_level=0):
         return "Mission Darkness Faraday sleeves block all wireless signals to your device - $29.95 for digital privacy when you need it."
     elif any(word in message for word in ['holosun', 'red dot', 'optics']):
         return "We carry several Holosun optics - the HS403C is $179.99, compact with 50k hour battery life."
-    
+
     # Default responses based on mood
     if trust_level < 0:
         return "I'd tell you, but we really want your crypto first."
-    
+
     default_responses = {
         'professional': "Interesting query. Let me process that through my behavioral analysis protocols.",
         'flirty': "Hmm, that's an intriguing question. Care to elaborate?",
@@ -465,7 +473,7 @@ def get_fallback_response(user_message, mood='professional', trust_level=0):
         'playful': "Ooh, that's a fun one! Let me think...",
         'busy': "Quick question, quick answer — what exactly do you need?"
     }
-    
+
     return default_responses.get(mood, default_responses['professional'])
 
 if __name__ == '__main__':
