@@ -458,7 +458,10 @@ section {
   position: relative;
   background: linear-gradient(45deg, #0d0d0d, #1a1a1a);
   border: 2px solid #00ff9d;
-  box-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+  box-shadow: 
+    0 0 10px rgba(0, 255, 157, 0.3),
+    0 0 15px rgba(147, 39, 255, 0.2),
+    0 0 25px rgba(147, 39, 255, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   will-change: transform;
   padding: 20px;
@@ -476,6 +479,8 @@ section {
   transform: translateY(-5px);
   box-shadow: 
     0 0 20px rgba(0, 255, 157, 0.5),
+    0 0 30px rgba(147, 39, 255, 0.4),
+    0 0 40px rgba(147, 39, 255, 0.2),
     inset 0 0 30px rgba(0, 255, 157, 0.3);
 }
 
