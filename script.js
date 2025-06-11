@@ -661,6 +661,12 @@ const featuredProducts = [
     description: "Tactical cyberpunk apparel featuring Admin design"
   },
   {
+    name: "The Darknet District: Rebellion Edition T-Shirt",
+    price: "$29.99",
+    image: "attached_assets/darknet-district-rebellion-tshirt.jpg",
+    description: "Premium cyberpunk streetwear with QR codes and District branding"
+  },
+  {
     name: "District Patch Collection",
     price: "$15.99",
     image: "attached_assets/patch-collection.jpg",
