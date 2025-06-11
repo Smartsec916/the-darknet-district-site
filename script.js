@@ -655,6 +655,12 @@ const featuredProducts = [
     description: "Interactive holographic sticker with hidden QR code message"
   },
   {
+    name: "Holographic 'Fuck the System' QR Sticker",
+    price: "$9.99",
+    image: "attached_assets/fuck-the-system-qr-sticker.jpg",
+    description: "Premium holographic rebellion sticker with encrypted QR message"
+  },
+  {
     name: "Admin: Surveillance Countermeasure T-Shirt",
     price: "$24.99",
     image: "attached_assets/admin-surveillance-tshirt.jpg",
