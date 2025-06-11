@@ -439,6 +439,12 @@ const featuredProducts = [
     description: "Professional navigation compass for tactical use"
   },
   {
+    name: "S5 Ranger Meshtastic LoRa Radio",
+    price: "$299.99",
+    image: "attached_assets/S5 Ranger from Spec5 Meshtastic LoRa Radio_1749668682680.jpg",
+    description: "Advanced mesh networking radio for off-grid communication"
+  },
+  {
     name: "Motorola Two-Way Radios",
     price: "$79.99",
     image: "attached_assets/Motorola Solutions Two-Way Radios.jpg",
