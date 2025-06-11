@@ -640,6 +640,40 @@ const featuredProducts = [
   },
 
   // ========================================
+  // Apparel & Accessories section
+  // ========================================
+  {
+    name: "Darknet District Sticker Pack",
+    price: "$12.99",
+    image: "attached_assets/sticker-pack-preview.jpg",
+    description: "Cyberpunk stickers for laptops and gear"
+  },
+  {
+    name: "Neural Interface T-Shirt",
+    price: "$24.99",
+    image: "attached_assets/neural-tshirt.jpg",
+    description: "Premium cyberpunk themed apparel"
+  },
+  {
+    name: "District Patch Collection",
+    price: "$15.99",
+    image: "attached_assets/patch-collection.jpg",
+    description: "Iron-on patches for tactical gear"
+  },
+  {
+    name: "Cyber Hoodie",
+    price: "$49.99",
+    image: "attached_assets/cyber-hoodie.jpg",
+    description: "High-tech streetwear with hidden features"
+  },
+  {
+    name: "Glitch Cap",
+    price: "$19.99",
+    image: "attached_assets/glitch-cap.jpg",
+    description: "Digital camo tactical cap"
+  },
+
+  // ========================================
   // PPE (Personal Protective Equipment) section
   // ========================================
   {
