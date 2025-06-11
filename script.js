@@ -667,16 +667,28 @@ const featuredProducts = [
     description: "Find inner peace in the digital chaos - premium cyberpunk streetwear"
   },
   {
-    name: "Admin: Surveillance Countermeasure T-Shirt",
-    price: "$24.99",
-    image: "attached_assets/admin-surveillance-tshirt.jpg",
-    description: "Tactical cyberpunk apparel featuring Admin design"
+    name: "Admin: Tactical Operations T-Shirt",
+    price: "$26.99",
+    image: "attached_assets/admin-tactical-tshirt.jpg",
+    description: "Elite tactical design featuring Admin in full gear"
   },
   {
-    name: "The Darknet District: Rebellion Edition T-Shirt",
+    name: "The Darknet District: Main Edition T-Shirt",
     price: "$29.99",
-    image: "attached_assets/darknet-district-rebellion-tshirt.jpg",
-    description: "Premium cyberpunk streetwear with QR codes and District branding"
+    image: "attached_assets/darknet-district-main-tshirt.jpg",
+    description: "Classic District branding with cyberpunk aesthetic"
+  },
+  {
+    name: "Holographic QR Code Sticker - Series 1",
+    price: "$7.99",
+    image: "attached_assets/holographic-qr-sticker-1.jpg",
+    description: "Interactive holographic sticker with encrypted message"
+  },
+  {
+    name: "Holographic QR Code Sticker - Series 2",
+    price: "$7.99",
+    image: "attached_assets/holographic-qr-sticker-2.jpg",
+    description: "Premium holographic sticker with hidden QR functionality"
   },
   {
     name: "District Patch Collection",
