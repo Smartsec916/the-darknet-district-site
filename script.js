@@ -661,6 +661,12 @@ const featuredProducts = [
     description: "Premium holographic rebellion sticker with encrypted QR message"
   },
   {
+    name: "Zen Zephyr: Cyberpunk Meditation T-Shirt",
+    price: "$27.99",
+    image: "attached_assets/zen-zephyr-tshirt.jpg",
+    description: "Find inner peace in the digital chaos - premium cyberpunk streetwear"
+  },
+  {
     name: "Admin: Surveillance Countermeasure T-Shirt",
     price: "$24.99",
     image: "attached_assets/admin-surveillance-tshirt.jpg",
