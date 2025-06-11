@@ -649,10 +649,10 @@ const featuredProducts = [
     description: "Cyberpunk stickers for laptops and gear"
   },
   {
-    name: "Neural Interface T-Shirt",
+    name: "Admin: Surveillance Countermeasure T-Shirt",
     price: "$24.99",
-    image: "attached_assets/neural-tshirt.jpg",
-    description: "Premium cyberpunk themed apparel"
+    image: "attached_assets/admin-surveillance-tshirt.jpg",
+    description: "Tactical cyberpunk apparel featuring Admin design"
   },
   {
     name: "District Patch Collection",
