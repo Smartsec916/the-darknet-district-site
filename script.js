@@ -646,31 +646,31 @@ const featuredProducts = [
   {
     name: "Holographic QR Code 'Corpo-Scum!' Sticker",
     price: "$8.99",
-    image: "attached_assets/new-corpo-scum-qr-sticker.jpg",
+    image: "attached_assets/corpo-scum-qr-sticker.jpg",
     description: "Interactive holographic sticker with hidden QR code message"
   },
   {
     name: "Holographic 'Fuck the System' QR Sticker",
     price: "$9.99",
-    image: "attached_assets/new-fuck-the-system-qr-sticker.jpg",
+    image: "attached_assets/fuck-the-system-qr-sticker.jpg",
     description: "Premium holographic rebellion sticker with encrypted QR message"
   },
   {
     name: "Zen Zephyr: Cyberpunk Meditation T-Shirt",
     price: "$27.99",
-    image: "attached_assets/new-zen-zephyr-meditation-tshirt.jpg",
+    image: "attached_assets/zen-zephyr-meditation-tshirt.jpg",
     description: "Find inner peace in the digital chaos - premium cyberpunk streetwear"
   },
   {
     name: "Admin: Tactical Operations T-Shirt",
     price: "$26.99",
-    image: "attached_assets/new-admin-tactical-tshirt.jpg",
+    image: "attached_assets/admin-tactical-tshirt.jpg",
     description: "Elite tactical design featuring Admin in full gear"
   },
   {
     name: "The Darknet District: Main Edition T-Shirt",
     price: "$29.99",
-    image: "attached_assets/new-darknet-district-main-tshirt.jpg",
+    image: "attached_assets/darknet-district-main-tshirt.jpg",
     description: "Classic District branding with cyberpunk aesthetic"
   },
 
