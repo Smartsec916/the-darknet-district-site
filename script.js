@@ -658,7 +658,7 @@ const featuredProducts = [
   {
     name: "Zen Zephyr: Cyberpunk Meditation T-Shirt",
     price: "$27.99",
-    image: "attached_assets/zen-zephyr-tshirt.jpg",
+    image: "attached_assets/darknet-district-rebellion-tshirt.jpg",
     description: "Find inner peace in the digital chaos - premium cyberpunk streetwear"
   },
   {
