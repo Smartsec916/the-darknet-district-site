@@ -649,6 +649,12 @@ const featuredProducts = [
     description: "Cyberpunk stickers for laptops and gear"
   },
   {
+    name: "Holographic QR Code 'Corpo-Scum!' Sticker",
+    price: "$8.99",
+    image: "attached_assets/corpo-scum-qr-sticker.jpg",
+    description: "Interactive holographic sticker with hidden QR code message"
+  },
+  {
     name: "Admin: Surveillance Countermeasure T-Shirt",
     price: "$24.99",
     image: "attached_assets/admin-surveillance-tshirt.jpg",
