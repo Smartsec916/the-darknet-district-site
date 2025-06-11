@@ -679,8 +679,49 @@ const featuredProducts = [
 // PRODUCT DISPLAY FUNCTIONS - Rotation and display logic
 // ============================================================================
 
-// Track current product index for rotation
-let currentProductIndex = 0;
+// Track displayed products to avoid immediate repeats
+let recentlyDisplayedProducts = [];
+let currentProductPair = [];
+
+
+// Shuffle array function for better randomization
+function shuffleArray(array) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+
+// Get two random products that haven't been shown recently
+function getRandomProductPair() {
+  // Filter out recently displayed products
+  const availableProducts = featuredProducts.filter(product => 
+    !recentlyDisplayedProducts.includes(product.name)
+  );
+  
+  // If we've shown too many products, reset the recent list but keep last 4
+  if (availableProducts.length < 2) {
+    recentlyDisplayedProducts = recentlyDisplayedProducts.slice(-4);
+  }
+  
+  // Shuffle available products and pick first two
+  const shuffled = shuffleArray(availableProducts.length >= 2 ? availableProducts : featuredProducts);
+  const product1 = shuffled[0];
+  const product2 = shuffled[1];
+  
+  // Add to recent list
+  recentlyDisplayedProducts.push(product1.name, product2.name);
+  
+  // Keep recent list manageable (last 8 products)
+  if (recentlyDisplayedProducts.length > 8) {
+    recentlyDisplayedProducts = recentlyDisplayedProducts.slice(-8);
+  }
+  
+  return [product1, product2];
+}
 
 
 // Display two featured products side by side with fade transitions
@@ -688,8 +729,10 @@ function displayFeaturedProducts() {
   const container = document.getElementById('featured-products');
   if (!container) return;
 
-  const product1 = featuredProducts[currentProductIndex];
-  const product2 = featuredProducts[(currentProductIndex + 1) % featuredProducts.length];
+  // Get random product pair
+  currentProductPair = getRandomProductPair();
+  const product1 = currentProductPair[0];
+  const product2 = currentProductPair[1];
 
   // Generate HTML for both products with consistent styling
   container.innerHTML = `
@@ -728,8 +771,7 @@ function rotateFeaturedProducts() {
   }, 150);
 
   setTimeout(() => {
-    // Move to next two products in the array
-    currentProductIndex = (currentProductIndex + 2) % featuredProducts.length;
+    // Get new random products
     displayFeaturedProducts();
 
     // Add rotating class for scanline effect
@@ -768,8 +810,16 @@ function rotateFeaturedProducts() {
 document.addEventListener('DOMContentLoaded', function() {
   displayFeaturedProducts();
 
-  // Start rotating featured products every 8 seconds
-  setInterval(rotateFeaturedProducts, 8000);
+  // Start rotating featured products with variable timing (6-10 seconds)
+  function scheduleNextRotation() {
+    const delay = Math.random() * 4000 + 6000; // 6-10 seconds
+    setTimeout(() => {
+      rotateFeaturedProducts();
+      scheduleNextRotation(); // Schedule next rotation
+    }, delay);
+  }
+  
+  scheduleNextRotation();
 
   // Random glitch text effect
   function applyRandomGlitch() {
