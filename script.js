@@ -642,12 +642,7 @@ const featuredProducts = [
   // ========================================
   // Apparel & Accessories section
   // ========================================
-  {
-    name: "Darknet District Sticker Pack",
-    price: "$12.99",
-    image: "attached_assets/sticker-pack-preview.jpg",
-    description: "Cyberpunk stickers for laptops and gear"
-  },
+  
   {
     name: "Holographic QR Code 'Corpo-Scum!' Sticker",
     price: "$8.99",
@@ -678,36 +673,7 @@ const featuredProducts = [
     image: "attached_assets/darknet-district-main-tshirt.jpg",
     description: "Classic District branding with cyberpunk aesthetic"
   },
-  {
-    name: "Holographic QR Code Sticker - Series 1",
-    price: "$7.99",
-    image: "attached_assets/holographic-qr-sticker-1.jpg",
-    description: "Interactive holographic sticker with encrypted message"
-  },
-  {
-    name: "Holographic QR Code Sticker - Series 2",
-    price: "$7.99",
-    image: "attached_assets/holographic-qr-sticker-2.jpg",
-    description: "Premium holographic sticker with hidden QR functionality"
-  },
-  {
-    name: "District Patch Collection",
-    price: "$15.99",
-    image: "attached_assets/patch-collection.jpg",
-    description: "Iron-on patches for tactical gear"
-  },
-  {
-    name: "Cyber Hoodie",
-    price: "$49.99",
-    image: "attached_assets/cyber-hoodie.jpg",
-    description: "High-tech streetwear with hidden features"
-  },
-  {
-    name: "Glitch Cap",
-    price: "$19.99",
-    image: "attached_assets/glitch-cap.jpg",
-    description: "Digital camo tactical cap"
-  },
+
 
   // ========================================
   // PPE (Personal Protective Equipment) section
