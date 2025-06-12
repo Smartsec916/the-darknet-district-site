@@ -9,6 +9,7 @@ packages = ["static-web-server"]
 [deployment]
 publicDir = "/"
 deploymentTarget = "static"
+run = ["sh", "-c", "python server.py"]
 
 # Rewrite rules to remove .html extensions
 [[deployment.rewrites]]
