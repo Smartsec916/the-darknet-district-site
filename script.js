@@ -21,7 +21,7 @@ class ChatManager {
     try {
       console.log("Attempting to create chat session...");
       // Use relative URL for better compatibility with Replit
-      const url = '/api/chat/session';
+      const url = 'https://the-darknet-district-site.onrender.com/api/chat/session';
       console.log("Fetching URL:", url);
       const response = await fetch(url, {
         method: 'POST',
@@ -68,7 +68,7 @@ class ChatManager {
   // Load previous chat messages from server
   async loadChatHistory() {
     try {
-      const response = await fetch(`/api/chat/${this.sessionId}/history`);
+      const response = await fetch(`https://the-darknet-district-site.onrender.com/api/chat/${this.sessionId}/history`);
       const history = await response.json();
 
       if (history?.messages?.length > 0) {
@@ -199,7 +199,7 @@ class ChatManager {
 
     try {
       // Use relative URL for better compatibility with Replit
-      const url = '/api/chat/message';
+      const url = 'https://the-darknet-district-site.onrender.com/api/chat/message';
       console.log("Sending message to URL:", url);
       const response = await fetch(url, {
         method: 'POST',
@@ -650,7 +650,7 @@ const featuredProducts = [
   // ========================================
   // Apparel & Accessories section
   // ========================================
-  
+
   {
     name: "Holographic QR Code 'Corpo-Scum!' Sticker",
     price: "$8.99",
@@ -745,25 +745,25 @@ function getRandomProductPair() {
   const availableProducts = featuredProducts.filter(product => 
     !recentlyDisplayedProducts.includes(product.name)
   );
-  
+
   // If we've shown too many products, reset the recent list but keep last 4
   if (availableProducts.length < 2) {
     recentlyDisplayedProducts = recentlyDisplayedProducts.slice(-4);
   }
-  
+
   // Shuffle available products and pick first two
   const shuffled = shuffleArray(availableProducts.length >= 2 ? availableProducts : featuredProducts);
   const product1 = shuffled[0];
   const product2 = shuffled[1];
-  
+
   // Add to recent list
   recentlyDisplayedProducts.push(product1.name, product2.name);
-  
+
   // Keep recent list manageable (last 8 products)
   if (recentlyDisplayedProducts.length > 8) {
     recentlyDisplayedProducts = recentlyDisplayedProducts.slice(-8);
   }
-  
+
   return [product1, product2];
 }
 
@@ -788,7 +788,8 @@ function displayFeaturedProducts() {
         <p style="color: #ff3366; font-weight: bold; font-size: 18px; margin: 10px 0;">${product1.price}</p>
       </div>
       <div class="product-card" style="width: 250px; height: 350px; margin: 10px; transition: opacity 0.5s ease;">
-        <img src="${product2.image}" alt="${product2.name}" style="width: 180px; height: 180px; object-fit: contain;">
+        <img src="${product2.image}" alt="${product2.name}" style="width: 180```javascript
+px; height: 180px; object-fit: contain;">
         <h3 style="color: #00ff9d; margin: 10px 0 5px 0; font-size: 16px;">${product2.name}</h3>
         <p style="color: #cccccc; font-size: 14px; margin: 5px 0;">${product2.description}</p>
         <p style="color: #ff3366; font-weight: bold; font-size: 18px; margin: 10px 0;">${product2.price}</p>
@@ -862,7 +863,7 @@ document.addEventListener('DOMContentLoaded', function() {
       scheduleNextRotation(); // Schedule next rotation
     }, delay);
   }
-  
+
   scheduleNextRotation();
 
   // Random glitch text effect
