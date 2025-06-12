@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 # Initialize Flask application
 app = Flask(__name__, static_folder='.', static_url_path='')
 # Enable CORS for all origins to allow frontend communication
-CORS(app, origins=["*"])
+CORS(app, origins=["*"], methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
 
 
 # ============================================================================
@@ -38,20 +38,32 @@ sessions = {}
 
 # OpenAI client initialization (will use environment variable OPENAI_API_KEY)
 try:
-    client = OpenAI()
-    openai_available = True
+    api_key = os.getenv('OPENAI_API_KEY')
+    if api_key:
+        client = OpenAI(api_key=api_key)
+        openai_available = True
+        logger.info("OpenAI client initialized successfully")
+    else:
+        logger.warning("OPENAI_API_KEY not found in environment")
+        openai_available = False
+        client = None
 except Exception as e:
     logger.warning(f"OpenAI client initialization failed: {e}")
     openai_available = False
+    client = None
 
 
 # ============================================================================
 # CHAT API ENDPOINTS - Iris AI chatbot functionality
 # ============================================================================
 
-@app.route('/api/chat/session', methods=['POST'])
+@app.route('/api/chat/session', methods=['POST', 'OPTIONS'])
 def create_chat_session():
     """Create a new chat session for the Iris chatbot"""
+    # Handle preflight requests
+    if request.method == 'OPTIONS':
+        return '', 200
+        
     try:
         session_id = str(uuid.uuid4())
         sessions[session_id] = {
@@ -66,7 +78,7 @@ def create_chat_session():
             'sessionId': session_id,
             'isNew': True,
             'mood': 'professional'
-        })
+        }), 200
         
     except Exception as e:
         logger.error(f"Error creating chat session: {e}")
@@ -90,13 +102,22 @@ def get_chat_history(session_id):
         return jsonify({'error': 'Failed to get history'}), 500
 
 
-@app.route('/api/chat/message', methods=['POST'])
+@app.route('/api/chat/message', methods=['POST', 'OPTIONS'])
 def chat_message():
     """Process chat message and return Iris AI response"""
+    # Handle preflight requests
+    if request.method == 'OPTIONS':
+        return '', 200
+        
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No JSON data received'}), 400
+            
         session_id = data.get('sessionId')
         user_message = data.get('message', '').strip()
+        
+        logger.info(f"Received message from session {session_id}: {user_message}")
         
         if not session_id or not user_message:
             return jsonify({'error': 'Missing sessionId or message'}), 400
@@ -116,13 +137,15 @@ def chat_message():
         })
         
         # Generate AI response
-        if openai_available:
+        if openai_available and client:
             try:
                 iris_response = generate_openai_response(user_message, sessions[session_id]['messages'])
+                logger.info(f"Generated OpenAI response for session {session_id}")
             except Exception as e:
                 logger.warning(f"OpenAI API failed, using fallback: {e}")
                 iris_response = generate_fallback_response(user_message)
         else:
+            logger.info(f"Using fallback response for session {session_id}")
             iris_response = generate_fallback_response(user_message)
         
         # Store AI response
@@ -136,7 +159,7 @@ def chat_message():
         return jsonify({
             'response': iris_response,
             'sessionId': session_id
-        })
+        }), 200
         
     except Exception as e:
         logger.error(f"Error processing chat message: {e}")
@@ -261,8 +284,7 @@ def generate_fallback_response(user_message):
 # OPENAI CLIENT - AI chatbot integration
 # ============================================================================
 
-# Initialize OpenAI client with API key from environment
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+# OpenAI client is initialized above in the setup section
 
 
 # ============================================================================
@@ -385,6 +407,19 @@ Keep responses concise and in character. Reference the District's offerings when
             # Fallback error response in character
             return "Neural interface disrupted. Systems adapting... what do you need?"
 
+
+# ============================================================================
+# HEALTH CHECK ENDPOINT - For debugging connectivity
+# ============================================================================
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Health check endpoint to verify server is running"""
+    return jsonify({
+        'status': 'online',
+        'openai_available': openai_available,
+        'active_sessions': len(sessions)
+    }), 200
 
 # ============================================================================
 # STATIC FILE ROUTES - Serve HTML, CSS, JS, and assets
