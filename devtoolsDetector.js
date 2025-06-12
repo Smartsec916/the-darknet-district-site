@@ -28,7 +28,8 @@
     // Detection monitoring loop
     // ========================================
 
-    // Check every 500ms for developer tools
+    // Check every 500ms for developer tools - TEMPORARILY DISABLED
+    /*
     setInterval(function(){
 
         // Check if window dimensions suggest dev tools are open
@@ -52,5 +53,6 @@
         }
 
     }, 500); // Check every 500 milliseconds
+    */
 
 }(); // Execute immediately
