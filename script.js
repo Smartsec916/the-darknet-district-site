@@ -20,7 +20,8 @@ class ChatManager {
 
     try {
       console.log("Attempting to create chat session...");
-      const url = `${window.location.protocol}//${window.location.hostname}:5000/api/chat/session`;
+      // Use relative URL for better compatibility with Replit
+      const url = '/api/chat/session';
       console.log("Fetching URL:", url);
       const response = await fetch(url, {
         method: 'POST',
@@ -67,7 +68,7 @@ class ChatManager {
   // Load previous chat messages from server
   async loadChatHistory() {
     try {
-      const response = await fetch(`${window.location.protocol}//${window.location.hostname}:5000/api/chat/${this.sessionId}/history`);
+      const response = await fetch(`/api/chat/${this.sessionId}/history`);
       const history = await response.json();
 
       if (history?.messages?.length > 0) {
@@ -197,7 +198,8 @@ class ChatManager {
     this.setTyping(true);
 
     try {
-      const url = `${window.location.protocol}//${window.location.hostname}:5000/api/chat/message`;
+      // Use relative URL for better compatibility with Replit
+      const url = '/api/chat/message';
       console.log("Sending message to URL:", url);
       const response = await fetch(url, {
         method: 'POST',
