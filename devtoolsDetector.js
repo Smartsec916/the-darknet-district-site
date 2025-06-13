@@ -20,20 +20,48 @@
     // Detection threshold configuration
     // ========================================
 
-    // Pixel threshold for detecting dev tools opening
-    const threshold = 160;
+    // More relaxed thresholds and tracking for suspicious changes
+    const baseThreshold = 300; // Higher base threshold
+    let initialOuterWidth = window.outerWidth;
+    let initialOuterHeight = window.outerHeight;
+    let initialInnerWidth = window.innerWidth;
+    let initialInnerHeight = window.innerHeight;
+    let suspiciousChangeCount = 0;
+    let lastSuspiciousTime = 0;
 
 
     // ========================================
     // Detection monitoring loop
     // ========================================
 
-    // Check every 500ms for developer tools
+    // Check every 1000ms for developer tools (less frequent)
     setInterval(function(){
 
-        // Check if window dimensions suggest dev tools are open
-        if(window.outerHeight - window.innerHeight > threshold || 
-           window.outerWidth - window.innerWidth > threshold){
+        // Calculate current differences
+        const heightDiff = window.outerHeight - window.innerHeight;
+        const widthDiff = window.outerWidth - window.innerWidth;
+        
+        // Calculate change from initial state
+        const heightChange = Math.abs(window.outerHeight - initialOuterHeight);
+        const widthChange = Math.abs(window.outerWidth - initialOuterWidth);
+        
+        // Only trigger if BOTH conditions are met:
+        // 1. Current difference exceeds relaxed threshold
+        // 2. There was a significant sudden change (indicating devtools opening, not just resize)
+        const significantDifference = heightDiff > baseThreshold || widthDiff > baseThreshold;
+        const suddenChange = (heightChange > 200 && heightDiff > 250) || (widthChange > 200 && widthDiff > 250);
+        const currentTime = Date.now();
+        
+        // Track suspicious rapid changes
+        if(suddenChange && currentTime - lastSuspiciousTime < 2000) {
+            suspiciousChangeCount++;
+            lastSuspiciousTime = currentTime;
+        } else if(currentTime - lastSuspiciousTime > 5000) {
+            suspiciousChangeCount = 0; // Reset if no recent suspicious activity
+        }
+        
+        // Only trigger if we have significant difference AND (sudden change OR multiple suspicious changes)
+        if(significantDifference && (suddenChange || suspiciousChangeCount >= 2)){
 
             // If dev tools just opened
             if(!devtools.open){
@@ -88,9 +116,17 @@
         } else {
             // Dev tools are closed
             devtools.open = false;
+            
+            // Update baseline measurements when devtools are closed (gradual adaptation to legitimate resizing)
+            if(!devtools.open && (Math.abs(window.outerWidth - initialOuterWidth) < 100 || Math.abs(window.outerHeight - initialOuterHeight) < 100)) {
+                initialOuterWidth = window.outerWidth;
+                initialOuterHeight = window.outerHeight;
+                initialInnerWidth = window.innerWidth;
+                initialInnerHeight = window.innerHeight;
+            }
         }
 
-    }, 500); // Check every 500 milliseconds
+    }, 1000); // Check every 1000 milliseconds (less frequent)
 
     // ========================================
     // Chatbot integration function
