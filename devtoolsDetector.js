@@ -63,7 +63,7 @@
                             "color:#ff0000;font-size:16px;font-family:monospace;");
                         console.log('%c' + displayText, irisStyle);
                         charIndex++;
-                        setTimeout(typeIrisMessage, 80 + Math.random() * 40); // Variable typing speed
+                        setTimeout(typeIrisMessage, 30 + Math.random() * 20); // Faster variable typing speed
                     }
                 }
                 
