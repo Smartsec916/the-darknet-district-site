@@ -868,7 +868,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Random glitch text effect
   function applyRandomGlitch() {
     // Select all text elements that can be glitched (excluding cyberpunk-title)
-    const textElements = document.querySelectorAll('h1, h2, h3, .featured-title, .game-button, .top-nav a, .product-card h3');
+    const textElements = document.querySelectorAll('h2, h3, .featured-title, .game-button, .top-nav a, .product-card h3');
 
     if (textElements.length > 0) {
       // Pick a random element
