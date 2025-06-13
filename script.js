@@ -275,12 +275,68 @@ class ChatManager {
         "We carry survival equipment, tactical electronics, quality optics, cyberpunk apparel, and specialized apps. All vetted by Admin personally."
       ],
       survival: [
-        "Survival section includes Arcturus blankets, Morakniv knives, Jetboil stoves, water filters, MREs, and tactical gear. Built for harsh conditions.",
-        "From Sawyer water filters to Mountain House meals, our survival gear is tested for reliability when everything else fails."
+        "Our survival section is fully stocked with field-tested gear. We have everything from Titan's 1000 LB paracord with hidden Kevlar filaments to Morakniv blades and Jetboil stoves.",
+        "Survival gear includes water purification (GRAYL UltraPress, Sawyer Mini), fire starting (überleben ferro rods, electric lighters), shelter (Arcturus blankets, ENO hammocks), and emergency food (Mountain House, MREs).",
+        "From compact fishing kits to ECWS military sleeping systems, our survival inventory is curated for operators who don't trust luck."
       ],
       sleeping: [
         "Sleeping pods offer secure rest spaces within the District. Reserve one when you need downtime between operations.",
         "Our pods provide high-tech sanctuary space - perfect for recharging while maintaining security protocols."
+      ],
+      // Specific survival product categories
+      paracord: [
+        "Titan Survival's 1000 LB paracord is street-tough with Kevlar filament, fire-starting tinder, and fishing line hidden inside. For operators who don't trust luck."
+      ],
+      fishing: [
+        "We carry both compact and standard survival fishing kits. The compact version fits in city drains or bug-out rigs, while the standard has more line and hooks for serious off-grid fishing."
+      ],
+      fire: [
+        "Fire starting gear includes Fresnel lens credit-card firestarters, überleben Hexå ferro rods with aluminum casing, and LcFun electric USB-C arc lighters. No propane, no compromise."
+      ],
+      tools: [
+        "Multi-tools range from wallet-sized survival cards to full Leatherman Signal with ferro-rod striker and whistle. The Leatherman Premium is our all-in-one veteran with carry-on safe design."
+      ],
+      blankets: [
+        "Arcturus military wool blankets provide heat-retentive warmth, while the Heavy Duty version combines steel-mylar with waterproof shell and reflective inner lining."
+      ],
+      water: [
+        "Water solutions include GRAYL UltraPress (filters and kills viruses in 8 seconds), Sawyer Mini (squeeze-to-sip clean), and tactical hydration systems compatible with armor rigs."
+      ],
+      navigation: [
+        "SUUNTO MC-2 compass offers needle-fast orienteering with global needle and clinometer. Not just for hikers anymore."
+      ],
+      lighting: [
+        "Tactical lighting includes BLACK DIAMOND Storm 500-R (rechargeable, red/white beams), Fenix E18R V2.0 (magnetic tailcap), and Fenix E35R (1,600 lumens, three-mile throw)."
+      ],
+      communication: [
+        "Comms gear includes Motorola two-way radios for clear zone coverage, Spec5 Meshtastic S5 Ranger for peer-to-peer mesh with GPS encryption, and Kaito Voyager hand-crank radio with USB charging."
+      ],
+      knives: [
+        "Blade selection includes Morakniv Companion (Scandi blade, polymer sheath) for daily carry, and Garberg full-tang steel beast built for abuse and field repairs."
+      ],
+      shelter: [
+        "Shelter options range from ENO OneLink hammock (split-second deployment) to Helikon-Tex military ponchos and ECWS woodland modular sleeping systems rated for sub-zero ops."
+      ],
+      food: [
+        "Emergency food includes Mountain House 3-day supply (freeze-dried, shelf-stable) and MIL-SPEC MREs with entree, sides, and spoon. Gut-stress fuel for off-grid ops."
+      ],
+      bags: [
+        "VANQUEST TRIDENT-21 Gen-3 backpack offers modular operator design with armored access and cordura frame. Carry your kit like a spec-ops load-out."
+      ],
+      privacy: [
+        "Mission Darkness Faraday sleeves block radios, GPS, NFC—digital blackout in your palm. Cloak your signal with confidence."
+      ],
+      power: [
+        "Dark Energy Poseidon Pro combines USB-C quick-charge with folding solar panel. Dual-mode power plant charges anywhere your rig finds light."
+      ],
+      cooking: [
+        "Jetboil Flash boils water in 100 seconds with built-in ignitor, pot, and cozy. Fuel-efficient survival station for field ops."
+      ],
+      optics_survival: [
+        "Tactical optics include HOLOSUN red-dots with solar backup, thermal sights for covert heat-vision, and Streamlight weapon lights with 1000-lumen precision."
+      ],
+      ppe: [
+        "CBRN protection includes MIRA Safety CM-I01 full-face gas mask, NBC-77 SOF filters, and MOPP-1 protective suits. Breathe safe in worst-case scenarios."
       ],
       default: [
         "Interesting query. Let me process that through my behavioral analysis protocols.",
@@ -306,15 +362,47 @@ class ChatManager {
       responseCategory = 'iris';
     } else if (message.includes('flipper')) {
       responseCategory = 'flipper';
-    } else if (message.includes('faraday') || message.includes('mission darkness')) {
-      responseCategory = 'faraday';
-    } else if (message.includes('holosun') || message.includes('optics') || message.includes('red dot')) {
-      responseCategory = 'optics';
+    } else if (message.includes('faraday') || message.includes('mission darkness') || message.includes('privacy') || message.includes('signal block')) {
+      responseCategory = 'privacy';
+    } else if (message.includes('holosun') || message.includes('optics') || message.includes('red dot') || message.includes('sight') || message.includes('scope')) {
+      responseCategory = 'optics_survival';
     } else if (message.includes('game') || message.includes('blackout') || message.includes('raven')) {
       responseCategory = 'games';
     } else if (message.includes('store') || message.includes('shop') || message.includes('buy')) {
       responseCategory = 'store';
-    } else if (message.includes('survival') || message.includes('gear') || message.includes('knife') || message.includes('blanket')) {
+    } else if (message.includes('paracord') || message.includes('titan survival')) {
+      responseCategory = 'paracord';
+    } else if (message.includes('fishing') || message.includes('fish')) {
+      responseCategory = 'fishing';
+    } else if (message.includes('fire') || message.includes('lighter') || message.includes('ferro') || message.includes('fresnel')) {
+      responseCategory = 'fire';
+    } else if (message.includes('multi tool') || message.includes('leatherman') || message.includes('tool card')) {
+      responseCategory = 'tools';
+    } else if (message.includes('blanket') || message.includes('arcturus') || message.includes('wool')) {
+      responseCategory = 'blankets';
+    } else if (message.includes('water') || message.includes('purifier') || message.includes('filter') || message.includes('grayl') || message.includes('sawyer')) {
+      responseCategory = 'water';
+    } else if (message.includes('compass') || message.includes('navigation') || message.includes('suunto')) {
+      responseCategory = 'navigation';
+    } else if (message.includes('flashlight') || message.includes('headlamp') || message.includes('light') || message.includes('fenix') || message.includes('black diamond')) {
+      responseCategory = 'lighting';
+    } else if (message.includes('radio') || message.includes('communication') || message.includes('motorola') || message.includes('meshtastic') || message.includes('kaito')) {
+      responseCategory = 'communication';
+    } else if (message.includes('knife') || message.includes('blade') || message.includes('morakniv')) {
+      responseCategory = 'knives';
+    } else if (message.includes('shelter') || message.includes('hammock') || message.includes('poncho') || message.includes('tent') || message.includes('sleeping bag')) {
+      responseCategory = 'shelter';
+    } else if (message.includes('food') || message.includes('mre') || message.includes('mountain house') || message.includes('meal')) {
+      responseCategory = 'food';
+    } else if (message.includes('backpack') || message.includes('bag') || message.includes('vanquest')) {
+      responseCategory = 'bags';
+    } else if (message.includes('power') || message.includes('charger') || message.includes('solar') || message.includes('battery')) {
+      responseCategory = 'power';
+    } else if (message.includes('stove') || message.includes('cooking') || message.includes('jetboil')) {
+      responseCategory = 'cooking';
+    } else if (message.includes('gas mask') || message.includes('ppe') || message.includes('protection') || message.includes('mira safety') || message.includes('cbrn')) {
+      responseCategory = 'ppe';
+    } else if (message.includes('survival') || message.includes('gear') || message.includes('emergency') || message.includes('tactical')) {
       responseCategory = 'survival';
     } else if (message.includes('pod') || message.includes('sleep') || message.includes('rest')) {
       responseCategory = 'sleeping';
