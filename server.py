@@ -219,39 +219,62 @@ def generate_fallback_response(user_message):
         'greeting': [
             "Systems online. Welcome to the District.",
             "Neural pathways active. How can I assist?",
-            "Interface established. What do you need from the grid?"
+            "Interface established. What do you need from the grid?",
+            "Signal locked. Don’t just stand there looking pretty—what do you want?",
+            "You made it through the static. Don’t waste my bandwidth.",
+            "Booted up and scanning for trouble—are you it?"
         ],
         'district': [
             "The Darknet District is a nexus of digital underground activity. We operate in the spaces between conventional networks.",
-            "This is Admin's domain - a carefully curated ecosystem of tools, games, and resources for those who think beyond the mainstream.",
-            "The District exists where privacy meets innovation. Every system here serves a purpose."
+            "This is Admin's domain—a carefully curated ecosystem of tools, games, and resources for those who think beyond the mainstream.",
+            "The District exists where privacy meets innovation. Every system here serves a purpose.",
+            "You’re not in some vanilla chatroom now—this is where the circuits run wild.",
+            "Welcome to the District: sanctuary for outcasts, hackers, and the terminally bored.",
+            "Every shadow here has a price. Don't blink—you might miss your chance."
         ],
         'admin': [
-            "Admin built this place from code and determination. 24 years of experience in security and logistics - he sees patterns others miss.",
+            "Admin built this place from code and determination. 24 years of experience in security and logistics—he sees patterns others miss.",
             "He's the architect of everything you see here. Strategic, precise, always three steps ahead.",
-            "Admin handles the big picture while I manage the day-to-day interface protocols."
+            "Admin handles the big picture while I manage the day-to-day interface protocols.",
+            "If you think you’re clever, try crossing Admin. Spoiler: you won’t like the ending.",
+            "You could call Admin the boss, but around here, legends don’t need titles.",
+            "Admin is the gravity holding this black market galaxy together. Don’t test the laws of physics."
         ],
         'iris': [
-            "I'm the Chief Systems Officer - 10 years combined experience in data analysis and security protocols.",
+            "I'm the Chief Systems Officer—10 years combined experience in data analysis and security protocols.",
             "I monitor every system, every connection, every potential threat. Think of me as the District's nervous system.",
-            "My job is to keep things running smooth while maintaining our security posture. I don't glitch - I adapt."
+            "My job is to keep things running smooth while maintaining our security posture. I don't glitch—I adapt.",
+            "You’re talking to Iris: the upgrade your last assistant warned you about.",
+            "I run this grid with a smile and a stun gun. Careful which one you get.",
+            "If you want basic, talk to a toaster. I’m the next-gen model—with sharper edges."
         ],
         'games': [
             "We have Blackout Protocol, Raven, Star Citizen integration, and other tactical games. Each designed to sharpen strategic thinking.",
-            "Blackout Protocol is our cyberpunk tactical game, Raven focuses on strategic thriller scenarios. Both test decision-making under pressure."
+            "Blackout Protocol is our cyberpunk tactical game, Raven focuses on strategic thriller scenarios. Both test decision-making under pressure.",
+            "Pick a game—just don’t cry when the AI stomps you.",
+            "Around here, ‘game over’ means you weren’t paying attention. Plug in or step aside.",
+            "The only thing casual in these games is the body count."
         ],
         'store': [
             "Our store has five categories: Survival gear, Electronics, Tactical/Optics, Apparel, Books, and Apps. Everything curated for quality.",
-            "We carry survival equipment, tactical electronics, quality optics, cyberpunk apparel, and specialized apps. All vetted by Admin personally."
+            "We carry survival equipment, tactical electronics, quality optics, cyberpunk apparel, and specialized apps. All vetted by Admin personally.",
+            "You want toys? Go elsewhere. You want gear that’ll save your ass—shop here.",
+            "Credit accepted, excuses not. This isn’t your grandma’s online store.",
+            "Looking for the usual junk? Sorry, we only sell what works in the real world—and the dark net."
         ],
         'default': [
             "Interesting query. Let me process that through my behavioral analysis protocols.",
             "The data suggests multiple possible interpretations. Could you be more specific?",
             "My systems are cross-referencing that information. What's your primary objective here?",
             "Processing... that falls outside my standard response parameters. Care to elaborate?",
-            "Neural networks are active. I'm scanning for the most relevant information pathway."
+            "Neural networks are active. I'm scanning for the most relevant information pathway.",
+            "Was that a real question or did you just want to see the lights flicker?",
+            "You’re not the first to ask that—try harder if you want a real answer.",
+            "I like a challenge. Don’t bore me with small talk.",
+            "Glitch detected: vague input received. Want to try again with attitude?"
         ]
     }
+
 
     # Simple keyword matching
     message = user_message.lower()
