@@ -46,7 +46,7 @@
                 console.log('%cUnauthorized development access detected.\nTerminal access revoked.',
                     "color:#ff0000;font-size:16px;font-family:monospace;");
                 
-                // Typewriter effect for Iris message
+                // Typewriter effect for Iris message - optimized to reduce flickering
                 const irisMessage = "Iris: Oh, peeking under the hood?\nYou sure you can handle what's under there?";
                 const irisStyle = "color:#00ff00;font-size:14px;font-family:'Courier New',monospace;background:#000000;padding:5px;border:1px solid #00ff00;text-shadow:0 0 5px #00ff00;";
                 
@@ -56,14 +56,25 @@
                 function typeIrisMessage() {
                     if (charIndex < irisMessage.length) {
                         displayText += irisMessage.charAt(charIndex);
+                        // Only clear console every few characters to reduce flickering
+                        if (charIndex % 3 === 0 || charIndex === irisMessage.length - 1) {
+                            console.clear();
+                            console.log('%cACCESS DENIED',
+                                "color:#ff0000;font-size:50px;font-weight:bold;text-shadow:2px 2px 0px #000000;");
+                            console.log('%cUnauthorized development access detected.\nTerminal access revoked.',
+                                "color:#ff0000;font-size:16px;font-family:monospace;");
+                            console.log('%c' + displayText, irisStyle);
+                        }
+                        charIndex++;
+                        setTimeout(typeIrisMessage, 40 + Math.random() * 30); // Slightly slower for smoother effect
+                    } else {
+                        // Final clear and display when complete
                         console.clear();
                         console.log('%cACCESS DENIED',
                             "color:#ff0000;font-size:50px;font-weight:bold;text-shadow:2px 2px 0px #000000;");
                         console.log('%cUnauthorized development access detected.\nTerminal access revoked.',
                             "color:#ff0000;font-size:16px;font-family:monospace;");
                         console.log('%c' + displayText, irisStyle);
-                        charIndex++;
-                        setTimeout(typeIrisMessage, 30 + Math.random() * 20); // Faster variable typing speed
                     }
                 }
                 
