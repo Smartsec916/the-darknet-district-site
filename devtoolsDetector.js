@@ -68,6 +68,11 @@
                 }
                 
                 setTimeout(typeIrisMessage, 500); // Start typing after a brief delay
+                
+                // Trigger chatbot with dev tools message
+                setTimeout(() => {
+                    triggerChatbotDevToolsMessage();
+                }, 2000); // Wait for console animation to finish
             }
         } else {
             // Dev tools are closed
@@ -75,5 +80,37 @@
         }
 
     }, 500); // Check every 500 milliseconds
+
+    // ========================================
+    // Chatbot integration function
+    // ========================================
+    
+    function triggerChatbotDevToolsMessage() {
+        try {
+            // Check if chatManager exists (from script.js)
+            if (typeof chatManager !== 'undefined') {
+                // Open the chat if it's not already open
+                if (!chatManager.isOpen) {
+                    chatManager.toggleChat();
+                }
+                
+                // Wait a moment for chat to open, then send Iris's message
+                setTimeout(() => {
+                    const devToolsMessages = [
+                        "I see you've opened the developer tools. Curious about how the District operates behind the scenes?",
+                        "Developer console detected. Are you trying to peek into the neural pathways of the system?",
+                        "Ah, a fellow code explorer. What brings you to the digital underground of my interface?",
+                        "Console access granted. Though I should warn you - some secrets are better left encrypted.",
+                        "Dev tools active. I admire the curiosity, but what exactly are you looking for in there?"
+                    ];
+                    
+                    const randomMessage = devToolsMessages[Math.floor(Math.random() * devToolsMessages.length)];
+                    chatManager.addMessage(randomMessage, false);
+                }, 1000);
+            }
+        } catch (error) {
+            console.log("Chatbot integration failed:", error);
+        }
+    }
 
 }(); // Execute immediately
