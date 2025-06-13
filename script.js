@@ -788,8 +788,7 @@ function displayFeaturedProducts() {
         <p style="color: #ff3366; font-weight: bold; font-size: 18px; margin: 10px 0;">${product1.price}</p>
       </div>
       <div class="product-card" style="width: 250px; height: 350px; margin: 10px; transition: opacity 0.5s ease;">
-        <img src="${product2.image}" alt="${product2.name}" style="width: 180```javascript
-px; height: 180px; object-fit: contain;">
+        <img src="${product2.image}" alt="${product2.name}" style="width: 180px; height: 180px; object-fit: contain;">
         <h3 style="color: #00ff9d; margin: 10px 0 5px 0; font-size: 16px;">${product2.name}</h3>
         <p style="color: #cccccc; font-size: 14px; margin: 5px 0;">${product2.description}</p>
         <p style="color: #ff3366; font-weight: bold; font-size: 18px; margin: 10px 0;">${product2.price}</p>
