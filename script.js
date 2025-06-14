@@ -274,6 +274,26 @@ class ChatManager {
         "Our store has five categories: Survival gear, Electronics, Tactical/Optics, Apparel, Books, and Apps. Everything curated for quality.",
         "We carry survival equipment, tactical electronics, quality optics, cyberpunk apparel, and specialized apps. All vetted by Admin personally."
       ],
+      contact: [
+        "Need to reach us directly? Hit the Contact button for our email: thedarknetdistrict@gmail.com. We monitor all channels.",
+        "Direct comms available through our Contact button—it's the fastest way to reach Admin or me."
+      ],
+      facebook: [
+        "Check our Facebook page for District news and updates. The Facebook button will take you there.",
+        "Want the latest intel? Our Facebook page has all the current ops and announcements."
+      ],
+      youtube: [
+        "Our YouTube channel features the ambient music from our Sleeping Pods. Perfect for digital meditation.",
+        "The YouTube button takes you to our curated soundscape collection—same tracks that play in the pods."
+      ],
+      music: [
+        "Our Sleeping Pod music is available on our YouTube channel. Use the YouTube button to access the full collection.",
+        "The ambient tracks in our pods are curated for neural relaxation. Find them on our YouTube channel."
+      ],
+      social: [
+        "We're active on Facebook for news and YouTube for our pod music. Both buttons are available on our About page.",
+        "Stay connected: Facebook for updates, YouTube for ambient soundscapes, Contact for direct communication."
+      ],
       survival: [
         "Our survival section is fully stocked with field-tested gear. We have everything from Titan's 1000 LB paracord with hidden Kevlar filaments to Morakniv blades and Jetboil stoves.",
         "Survival gear includes water purification (GRAYL UltraPress, Sawyer Mini), fire starting (überleben ferro rods, electric lighters), shelter (Arcturus blankets, ENO hammocks), and emergency food (Mountain House, MREs).",
@@ -406,6 +426,14 @@ class ChatManager {
       responseCategory = 'survival';
     } else if (message.includes('pod') || message.includes('sleep') || message.includes('rest')) {
       responseCategory = 'sleeping';
+    } else if (message.includes('contact') || message.includes('email') || message.includes('reach') || message.includes('communicate')) {
+      responseCategory = 'contact';
+    } else if (message.includes('facebook') || message.includes('news') || message.includes('updates') || message.includes('social media')) {
+      responseCategory = 'facebook';
+    } else if (message.includes('youtube') || message.includes('music') || message.includes('ambient') || message.includes('soundscape')) {
+      responseCategory = 'youtube';
+    } else if (message.includes('social') || message.includes('follow') || message.includes('channel')) {
+      responseCategory = 'social';
     }
 
     // Return random response from selected category

@@ -258,9 +258,32 @@ def generate_fallback_response(user_message):
         'store': [
             "Our store has five categories: Survival gear, Electronics, Tactical/Optics, Apparel, Books, and Apps. Everything curated for quality.",
             "We carry survival equipment, tactical electronics, quality optics, cyberpunk apparel, and specialized apps. All vetted by Admin personally.",
-            "You want toys? Go elsewhere. You want gear that’ll save your ass—shop here.",
-            "Credit accepted, excuses not. This isn’t your grandma’s online store.",
+            "You want toys? Go elsewhere. You want gear that'll save your ass—shop here.",
+            "Credit accepted, excuses not. This isn't your grandma's online store.",
             "Looking for the usual junk? Sorry, we only sell what works in the real world—and the dark net."
+        ],
+        'contact': [
+            "Need to reach us directly? Hit the Contact button for our email: thedarknetdistrict@gmail.com. We monitor all channels.",
+            "Direct comms available through our Contact button—it's the fastest way to reach Admin or me.",
+            "The Contact button connects you to our main communication hub. Real humans, real responses."
+        ],
+        'facebook': [
+            "Check our Facebook page for District news and updates. The Facebook button will take you there.",
+            "Want the latest intel? Our Facebook page has all the current ops and announcements.",
+            "Facebook button leads to our social feed—stay connected to District activities."
+        ],
+        'youtube': [
+            "Our YouTube channel features the ambient music from our Sleeping Pods. Perfect for digital meditation.",
+            "The YouTube button takes you to our curated soundscape collection—same tracks that play in the pods.",
+            "Want that pod ambiance at home? Check our YouTube channel through the YouTube button."
+        ],
+        'music': [
+            "Our Sleeping Pod music is available on our YouTube channel. Use the YouTube button to access the full collection.",
+            "The ambient tracks in our pods are curated for neural relaxation. Find them on our YouTube channel."
+        ],
+        'social': [
+            "We're active on Facebook for news and YouTube for our pod music. Both buttons are available on our About page.",
+            "Stay connected: Facebook for updates, YouTube for ambient soundscapes, Contact for direct communication."
         ],
         'default': [
             "Interesting query. Let me process that through my behavioral analysis protocols.",
@@ -292,6 +315,16 @@ def generate_fallback_response(user_message):
         category = 'games'
     elif any(word in message for word in ['store', 'shop', 'buy', 'purchase', 'products']):
         category = 'store'
+    elif any(word in message for word in ['contact', 'email', 'reach']):
+        category = 'contact'
+    elif any(word in message for word in ['facebook', 'news', 'updates']):
+        category = 'facebook'
+    elif any(word in message for word in ['youtube', 'music', 'sleeping pod']):
+        category = 'youtube'
+    elif any(word in message for word in ['social']):
+        category = 'social'
+    elif any(word in message for word in ['pod', 'sleep']):
+        category = 'music'
 
     return random.choice(responses[category])
 
