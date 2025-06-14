@@ -4,11 +4,13 @@
 
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+from flask_mail import Mail, Message
 import os
 from openai import OpenAI
 import uuid
 import logging
 import random
+from datetime import datetime
 
 
 # ============================================================================
@@ -25,6 +27,18 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app, origins=["*"], methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
+
+# Email configuration using Replit Secrets
+app.config.update(
+    MAIL_SERVER='smtp.gmail.com',
+    MAIL_PORT=587,
+    MAIL_USE_TLS=True,
+    MAIL_USERNAME=os.environ.get('GMAIL_USER'),
+    MAIL_PASSWORD=os.environ.get('GMAIL_PASS')
+)
+
+# Initialize Flask-Mail
+mail = Mail(app)
 
 
 # ============================================================================
@@ -48,6 +62,50 @@ except Exception as e:
     logger.warning(f"OpenAI client initialization failed: {e}")
     openai_available = False
     client = None
+
+
+# ============================================================================
+# EMAIL LOGGING FUNCTIONALITY - Send chat logs via Gmail SMTP
+# ============================================================================
+
+def send_chat_log_email(session_id, conversation_messages):
+    """Send chat log to admin email via Gmail SMTP"""
+    try:
+        if not app.config['MAIL_USERNAME'] or not app.config['MAIL_PASSWORD']:
+            logger.warning("Email credentials not configured - skipping email log")
+            return False
+        
+        # Format conversation for email
+        email_body = f"""
+New Iris Chat Session Log
+========================
+Session ID: {session_id}
+Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
+
+Conversation:
+"""
+        
+        for i, msg in enumerate(conversation_messages, 1):
+            sender = "User" if msg['sender'] == 'user' else "Iris"
+            email_body += f"\n{i}. {sender}: {msg['message']}\n"
+        
+        email_body += f"\n\nTotal Messages: {len(conversation_messages)}"
+        
+        # Create and send email
+        msg = Message(
+            subject=f"Iris Chat Log - Session {session_id[:8]}",
+            sender=app.config['MAIL_USERNAME'],
+            recipients=[app.config['MAIL_USERNAME']],  # Send to same email
+            body=email_body
+        )
+        
+        mail.send(msg)
+        logger.info(f"Chat log email sent successfully for session {session_id}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to send chat log email: {e}")
+        return False
 
 
 # ============================================================================
@@ -152,6 +210,13 @@ def chat_message():
             'sender': 'iris',
             'message': iris_response
         })
+
+        # Send email log if conversation has reached a certain length (e.g., 4+ messages)
+        if len(sessions[session_id]['messages']) >= 4:
+            try:
+                send_chat_log_email(session_id, sessions[session_id]['messages'])
+            except Exception as e:
+                logger.warning(f"Email logging failed for session {session_id}: {e}")
 
         logger.info(f"Chat exchange completed for session {session_id}")
 
@@ -340,9 +405,12 @@ def generate_fallback_response(user_message):
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint to verify server is running"""
+    email_configured = bool(app.config.get('MAIL_USERNAME') and app.config.get('MAIL_PASSWORD'))
+    
     return jsonify({
         'status': 'online',
         'openai_available': openai_available,
+        'email_configured': email_configured,
         'active_sessions': len(sessions)
     }), 200
 

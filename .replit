@@ -4,7 +4,7 @@ run = "echo 'This is a static site'"
 
 [nix]
 channel = "stable-24_11"
-packages = ["static-web-server"]
+packages = ["cacert", "glibcLocales", "libxcrypt", "static-web-server"]
 
 [deployment]
 publicDir = "/"
