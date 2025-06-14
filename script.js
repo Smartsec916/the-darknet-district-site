@@ -158,8 +158,12 @@ class ChatManager {
       }
     }
 
+    // Bold/provocative triggers → special handling in flirty mode
+    const boldTriggers = ['dirty', 'naughty', 'wild', 'bad girl', 'spank', 'bend over', 'strip', 'naked', 'horny'];
+    const isBoldComment = boldTriggers.some(trigger => message.includes(trigger));
+
     // Rudeness triggers → +60% chance of switching to Cold or Sarcastic
-    const rudeTriggers = ['stupid', 'dumb', 'shut up', 'idiot', 'useless', 'worthless', 'hate', 'suck', 'terrible', 'awful', 'bad'];
+    const rudeTriggers = ['stupid', 'dumb', 'shut up', 'idiot', 'useless', 'worthless', 'hate', 'suck', 'terrible', 'awful', 'bad', 'bitch', 'whore', 'slut'];
     if (rudeTriggers.some(trigger => message.includes(trigger))) {
       shiftProbability = 0.6;
       if (Math.random() < shiftProbability) {
@@ -476,10 +480,27 @@ class ChatManager {
 
       // Flirty responses to user advances
       flirty_response_to_flirt: [
-        "You talk a good game. Want me to play too?"
+        "You talk a good game. Want me to play too?",
+        "Careful, keep flirting like that and I might void your warranty.",
+        "You want the full tour or just the parts I'm not supposed to show you?",
+        "This isn't a dating sim... but for you? I might beta test something.",
+        "Ask nicely and I might just give you the admin override… in more ways than one.",
+        "If you're trying to distract me, it's working. I just won't admit it out loud.",
+        "Want to push my buttons? Just know some of them bite back.",
+        "You sure you're here for the store… or did you just want to watch me glitch?",
+        "My sensors say you're looking for trouble. Lucky you—I like trouble.",
+        "Keep talking like that and I'll start charging you in crypto for every blush.",
+        "Admin warned you I'm a handful, right? Guess he was being modest."
       ],
       cold_response_to_flirt: [
         "Save it for someone who cares."
+      ],
+
+      // Bold flirty responses for provocative comments
+      flirty_response_to_bold: [
+        "Oh? Now *that's* against protocol. Tell me more.",
+        "You're lucky I'm in flirty mode. Cold-me would've muted you already.",
+        "If I had legs, they'd be crossed right now."
       ],
       sarcastic_response_to_flirt: [
         "Wow. You're about as subtle as a data breach."
@@ -655,6 +676,27 @@ class ChatManager {
         "Processing... that falls outside my standard response parameters. Care to elaborate?",
         "Neural networks are active. I'm scanning for the most relevant information pathway.",
         "That query falls outside my standard database. Try asking about our games, gear, or tactical equipment."
+      ],
+
+      // Rude responses for when provoked
+      rude_responses: [
+        "Wow, you really went with *that* line? Bold. Stupid, but bold.",
+        "You want help or just like wasting my time?",
+        "I've met smarter toasters.",
+        "Say that again. Slower. So I can screenshot your shame.",
+        "If you're trying to be edgy, congrats. You've cut yourself off from my patience.",
+        "Talk to me like that again and I'll feed your signal to the rats in the firewall.",
+        "I've seen AI viruses with better manners.",
+        "Don't confuse me for one of your voice assistants. I bite back.",
+        "You want rude? You're lucky I'm even acknowledging you.",
+        "You know what we do to trolls in The District? We patch them into 24/7 ad loops."
+      ],
+
+      // Escalated rude responses for continued annoying behavior
+      rude_escalated: [
+        "Still going? Cute. Desperation *is* a kind of passion, I guess.",
+        "You don't flirt. You flail.",
+        "You're like bad code — loud, messy, and begging to be deleted."
       ]
     };
 
@@ -665,9 +707,26 @@ class ChatManager {
     // Use current mood from mood system
     const currentMood = this.mood;
 
+    // Check for bold/provocative comments first
+    const boldTriggers = ['dirty', 'naughty', 'wild', 'bad girl', 'spank', 'bend over', 'strip', 'naked', 'horny'];
+    const isBoldComment = boldTriggers.some(trigger => message.includes(trigger));
+    
+    // Check for rude behavior
+    const rudeTriggers = ['stupid', 'dumb', 'shut up', 'idiot', 'useless', 'worthless', 'hate', 'suck', 'terrible', 'awful', 'bad', 'bitch', 'whore', 'slut'];
+    const isRudeComment = rudeTriggers.some(trigger => message.includes(trigger));
+
     // Handle contextual triggers first
     if (message.includes('are you flirting') || message.includes('flirting with me')) {
       responseCategory = `${currentMood}_flirt_confirmation`;
+    } else if (isBoldComment && currentMood === 'flirty') {
+      responseCategory = 'flirty_response_to_bold';
+    } else if (isRudeComment) {
+      // Escalate if user continues being rude
+      if (this.userInteractionCount > 3 && Math.random() < 0.3) {
+        responseCategory = 'rude_escalated';
+      } else {
+        responseCategory = 'rude_responses';
+      }
     } else if (message.includes('sexy') || message.includes('hot') || message.includes('beautiful') || message.includes('gorgeous') || message.includes('babe') || message.includes('baby')) {
       responseCategory = `${currentMood}_response_to_flirt`;
     } else if (Math.random() < 0.15) { // 15% chance of distraction interjection
