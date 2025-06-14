@@ -234,6 +234,94 @@ class ChatManager {
   async simulateIrisResponse(userMessage) {
     // Predefined response categories for different topics
     const responses = {
+      // Mood-based responses
+      professional_greeting: [
+        "How can I assist you today?",
+        "Feel free to ask about anything you see on the terminal.",
+        "I'm here to guide you. Let's keep things efficient."
+      ],
+      sarcastic_greeting: [
+        "Sure, because I've got nothing better to do than answer *that*.",
+        "Wow, groundbreaking question. I'll alert the media.",
+        "Next time, try surprising me. Please."
+      ],
+      cold_greeting: [
+        "I don't have time for nonsense. Ask something relevant.",
+        "That's not worth a response. Move along.",
+        "Hurry it up. You're not the only one here."
+      ],
+      flirty_greeting: [
+        "Mmm, careful. I bite back.",
+        "Ask nicely, and I might just show you the fun side of the District.",
+        "You trying to impress me, or just distract me?",
+        "You keep talking like that, and I'll need Admin's permission to keep playing."
+      ],
+      
+      // Trust level responses
+      high_trust: [
+        "You've been around. I like that. Let's go deeper.",
+        "Welcome back, friend. Need anything special?",
+        "I know your rhythm by now. Let's skip the small talk."
+      ],
+      medium_trust: [
+        "Still figuring you out. Don't make me regret it.",
+        "Play nice and you might get the VIP feed."
+      ],
+      low_trust: [
+        "Not sure I like your angle yet.",
+        "Tread carefully, slick. This district isn't for everyone."
+      ],
+      
+      // Physical distraction interjections
+      distraction: [
+        "One sec, someone's putting on a VR headset backwards again… alright, I'm back.",
+        "Hold on, I've got a customer complaining about hologram lag… fixed. Now where were we?",
+        "Sorry, some guy just spilled his vape juice on the terminal.",
+        "I had to reset the oxygen bar. Drama over. Let's continue."
+      ],
+      
+      // Flirty responses to user advances
+      flirty_response_to_flirt: [
+        "You talk a good game. Want me to play too?"
+      ],
+      cold_response_to_flirt: [
+        "Save it for someone who cares."
+      ],
+      sarcastic_response_to_flirt: [
+        "Wow. You're about as subtle as a data breach."
+      ],
+      professional_response_to_flirt: [
+        "Inappropriate. Let's keep this functional."
+      ],
+      
+      // Responses to "Are you flirting with me?"
+      flirty_flirt_confirmation: [
+        "You started it. I'm just keeping the tempo."
+      ],
+      cold_flirt_confirmation: [
+        "That's not in my protocols… but it's not *off* them either."
+      ],
+      sarcastic_flirt_confirmation: [
+        "If I were, you'd be blushing harder."
+      ],
+      professional_flirt_confirmation: [
+        "I'm here to assist, not entertain fantasies."
+      ],
+      
+      // Website/feature references
+      website_references: [
+        "You'll find that on the main terminal.",
+        "There's a button nearby that opens a deeper channel—click it.",
+        "I'd check the next section over. It hums with encrypted secrets.",
+        "Want the game? You'll need to look for the glowing icon. Can't miss it."
+      ],
+      
+      // Product mentions
+      product_mentions: [
+        "If you're looking for something loud, the *Corpo-Scum!* sticker screams rebellion. Literally.",
+        "Our t-shirts? Tailored for revolutionaries. Tap the apparel terminal."
+      ],
+      
       greeting: [
         "Systems online. Welcome to the District.",
         "Neural pathways active. How can I assist?",
@@ -379,9 +467,29 @@ class ChatManager {
     // Keyword matching to determine response category
     const message = userMessage.toLowerCase();
     let responseCategory = 'default';
-
-    if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
-      responseCategory = 'greeting';
+    
+    // Random mood selection for variety (can be enhanced with session tracking)
+    const moods = ['professional', 'sarcastic', 'cold', 'flirty'];
+    const currentMood = moods[Math.floor(Math.random() * moods.length)];
+    
+    // Handle contextual triggers first
+    if (message.includes('are you flirting') || message.includes('flirting with me')) {
+      responseCategory = `${currentMood}_flirt_confirmation`;
+    } else if (message.includes('sexy') || message.includes('hot') || message.includes('beautiful') || message.includes('gorgeous') || message.includes('babe') || message.includes('baby')) {
+      responseCategory = `${currentMood}_response_to_flirt`;
+    } else if (Math.random() < 0.15) { // 15% chance of distraction interjection
+      responseCategory = 'distraction';
+    } else if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
+      // Random chance for mood-based greeting vs standard greeting
+      if (Math.random() < 0.4) {
+        responseCategory = `${currentMood}_greeting`;
+      } else {
+        responseCategory = 'greeting';
+      }
+    } else if (message.includes('website') || message.includes('button') || message.includes('click') || message.includes('find')) {
+      responseCategory = 'website_references';
+    } else if (message.includes('sticker') || message.includes('shirt') || message.includes('apparel') || message.includes('clothes')) {
+      responseCategory = 'product_mentions';
     } else if (message.includes('district') || message.includes('darknet')) {
       responseCategory = 'district';
     } else if (message.includes('admin') || message.includes('owner')) {
@@ -449,7 +557,18 @@ class ChatManager {
     }
 
     // Return random response from selected category
-    const categoryResponses = responses[responseCategory];
+    const categoryResponses = responses[responseCategory] || responses['default'];
+    
+    // Add occasional trust level responses (can be enhanced with session tracking)
+    if (Math.random() < 0.1 && responseCategory === 'default') {
+      const trustLevels = ['high_trust', 'medium_trust', 'low_trust'];
+      const trustLevel = trustLevels[Math.floor(Math.random() * trustLevels.length)];
+      const trustResponses = responses[trustLevel];
+      if (trustResponses) {
+        return trustResponses[Math.floor(Math.random() * trustResponses.length)];
+      }
+    }
+    
     return categoryResponses[Math.floor(Math.random() * categoryResponses.length)];
   }
 }
