@@ -23,6 +23,10 @@ class ChatManager {
 
     // Debounce typing indicators
     this.typingTimeout = null;
+
+    // Distraction tracking
+    this.distractionCount = 0;
+    this.pendingUserMessage = null;
   }
 
   // Cache DOM elements on first access
@@ -376,6 +380,45 @@ class ChatManager {
     return allDistractions[Math.floor(Math.random() * allDistractions.length)];
   }
 
+  // Continue conversation after distraction
+  async continueConversationAfterDistraction() {
+    if (!this.pendingUserMessage) return;
+    
+    const userMessage = this.pendingUserMessage;
+    this.pendingUserMessage = null; // Clear the pending message
+    
+    this.setTyping(true);
+    
+    try {
+      const url = 'https://the-darknet-district-site.onrender.com/api/chat/message';
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          sessionId: this.sessionId,
+          message: userMessage
+        })
+      });
+
+      const data = await response.json();
+      const delay = Math.min(2000, Math.max(800, data.response.length * 20));
+
+      setTimeout(() => {
+        this.setTyping(false);
+        this.addMessage(data.response, false);
+      }, delay);
+    } catch (error) {
+      console.error("API failed during distraction continuation, using fallback:", error);
+      const fallback = await this.simulateIrisResponse(userMessage);
+      setTimeout(() => {
+        this.setTyping(false);
+        this.addMessage(fallback, false);
+      }, 1500);
+    }
+  }
+
   // Get responses object for easier access - cached for performance
   getResponsesObject() {
     if (this.responsesCache) {
@@ -527,14 +570,23 @@ class ChatManager {
     this.analyzeMoodShiftTriggers(text);
     this.userInteractionCount++;
 
-    // Check for distraction even when API is working (35% chance)
-    if (Math.random() < 0.35) {
+    // Check for distraction with frequency limits
+    const distractionChance = this.distractionCount < 2 ? 0.35 : 0.05;
+    if (Math.random() < distractionChance) {
+      this.distractionCount++;
+      this.pendingUserMessage = text; // Store the user message for later response
+      
       const distractionResponse = this.getDistractionResponse();
       const delay = Math.min(2000, Math.max(800, distractionResponse.length * 20));
       
       setTimeout(() => {
         this.setTyping(false);
         this.addMessage(distractionResponse, false);
+        
+        // Continue with normal conversation after 7 seconds
+        setTimeout(() => {
+          this.continueConversationAfterDistraction();
+        }, 7000);
       }, delay);
       return;
     }
@@ -604,8 +656,10 @@ class ChatManager {
       { keywords: ['website', 'site', 'page', 'online', 'digital', 'platform'], category: 'website' }
     ];
 
-    // Check for distraction interjection (35% chance)
-    if (Math.random() < 0.35) {
+    // Check for distraction interjection with frequency limits
+    const distractionChance = this.distractionCount < 2 ? 0.35 : 0.05;
+    if (Math.random() < distractionChance) {
+      this.distractionCount++;
       return this.getDistractionResponse();
     }
 
