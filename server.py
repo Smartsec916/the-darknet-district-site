@@ -401,6 +401,45 @@ def generate_fallback_response(user_message):
 # ============================================================================
 # HEALTH CHECK ENDPOINT - For debugging connectivity
 # ============================================================================
+@app.route('/api/chat/<session_id>/email', methods=['POST'])
+def email_chat_log(session_id):
+    """Send manual chat log email for a given session"""
+    try:
+        session = sessions.get(session_id)
+        if not session or 'messages' not in session:
+            return jsonify({"error": "Session not found or has no messages."}), 404
+
+        messages = session['messages']
+        if not messages:
+            return jsonify({"error": "No messages to email."}), 400
+
+        # Format log
+        email_body = f"""
+Manual Iris Chat Session Log
+============================
+Session ID: {session_id}
+Timestamp: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC
+
+Conversation:
+"""
+        for i, msg in enumerate(messages, 1):
+            sender = "User" if msg['sender'] == 'user' else "Iris"
+            email_body += f"\n{i}. {sender}: {msg['message']}\n"
+
+        # Send it
+        msg = Message(
+            subject=f"Iris Manual Log – Session {session_id[:8]}",
+            sender=app.config['MAIL_USERNAME'],
+            recipients=[app.config['MAIL_USERNAME']],
+            body=email_body
+        )
+        mail.send(msg)
+
+        return jsonify({"success": True, "message": "Manual chat log sent."}), 200
+
+    except Exception as e:
+        logger.error(f"Manual email error: {e}")
+        return jsonify({"error": "Failed to send manual chat log."}), 500
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
