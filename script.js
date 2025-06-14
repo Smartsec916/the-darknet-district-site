@@ -474,8 +474,8 @@ class ChatManager {
       { keywords: ['website', 'site', 'page', 'online', 'digital', 'platform'], category: 'website' }
     ];
 
-    // Check for distraction interjection (15% chance)
-    if (Math.random() < 0.15) {
+    // Check for distraction interjection (35% chance)
+    if (Math.random() < 0.35) {
       return this.getDistractionResponse();
     }
 
