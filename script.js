@@ -239,23 +239,21 @@ class ChatManager {
     }
   }
 
-  // Get distraction response based on current mood
+  // Get completely random distraction response (not mood-based)
   getDistractionResponse() {
     const responses = this.getResponsesObject();
-    const useMoodSpecific = Math.random() < 0.6;
+    
+    // Collect all distraction responses from all categories
+    const allDistractions = [
+      ...responses.distraction_classic,
+      ...responses.distraction_edgy,
+      ...responses.distraction_flirty,
+      ...responses.distraction_cold,
+      ...responses.distraction_sarcastic,
+      ...responses.distraction_professional
+    ];
 
-    if (useMoodSpecific) {
-      const moodDistraction = responses[`distraction_${this.mood}`];
-      if (moodDistraction && moodDistraction.length > 0) {
-        return moodDistraction[Math.floor(Math.random() * moodDistraction.length)];
-      }
-    }
-
-    const useEdgy = Math.random() < 0.5;
-    const distractionType = useEdgy ? 'distraction_edgy' : 'distraction_classic';
-    const distractions = responses[distractionType];
-
-    return distractions[Math.floor(Math.random() * distractions.length)];
+    return allDistractions[Math.floor(Math.random() * allDistractions.length)];
   }
 
   // Get responses object for easier access - cached for performance
