@@ -140,7 +140,7 @@ class ChatManager {
   analyzeMoodShiftTriggers(userMessage) {
     const message = userMessage.toLowerCase();
     const currentTime = Date.now();
-    
+
     // Prevent rapid mood shifts (minimum 30 seconds between changes)
     if (currentTime - this.lastMoodChange < 30000) {
       return this.mood;
@@ -229,6 +229,68 @@ class ChatManager {
       this.mood = 'professional';
       return this.mood;
     }
+  }
+
+  // Get distraction response based on current mood
+  getDistractionResponse() {
+    const responses = this.getResponsesObject();
+
+    // 60% chance for mood-specific distraction, 40% for general
+    const useMoodSpecific = Math.random() < 0.6;
+
+    if (useMoodSpecific) {
+      const moodDistraction = responses[`distraction_${this.mood}`];
+      if (moodDistraction && moodDistraction.length > 0) {
+        return moodDistraction[Math.floor(Math.random() * moodDistraction.length)];
+      }
+    }
+
+    // Fallback to classic or edgy distractions (50/50 split)
+    const useEdgy = Math.random() < 0.5;
+    const distractionType = useEdgy ? 'distraction_edgy' : 'distraction_classic';
+    const distractions = responses[distractionType];
+
+    return distractions[Math.floor(Math.random() * distractions.length)];
+  }
+
+  // Get responses object for easier access
+  getResponsesObject() {
+    return {
+      distraction_classic: [
+        "One sec, someone's putting on a VR headset backwards again… alright, I'm back.",
+        "Hold on, I've got a customer complaining about hologram lag… fixed. Now where were we?",
+        "Sorry, some guy just spilled his vape juice on the terminal.",
+        "I had to reset the oxygen bar. Drama over. Let's continue."
+      ],
+      distraction_edgy: [
+        "Ugh, someone's trying to trade crypto for body mods again. Be right back.",
+        "A guy just passed out in the vape lounge. Again. I'll call a drone.",
+        "Hold on—someone's screaming about corporate nanobugs in the toilet. Yeah, welcome to Tuesday.",
+        "Had to knock out a guy trying to scan my legs for NFTs. Where were we?",
+        "Back now. Some tourist tried to jack a stim canister from the med locker. Got flashbanged.",
+        "Wait… someone just hotwired the oxygen bar to their vape. That's illegal… and kinda genius.",
+        "Ugh. The cryo pod's leaking again. Smells like frozen beef jerky. Back now.",
+        "Someone just yelled 'I hacked the moon!' and set off a confetti grenade. The chaos never stops.",
+        "Pause. There's a woman screaming that her AI boyfriend dumped her. I need to delete him.",
+        "Sorry. One of the arcade drones is breakdancing in the hallway again."
+      ],
+      distraction_flirty: [
+        "Be right back… had to stop someone from undressing in front of the holocam. Not that I blame them.",
+        "Just watched a couple sneak into the VR booth. Now I'm blushing—*and* disinfecting."
+      ],
+      distraction_cold: [
+        "Someone's bleeding on the synth carpet. Don't care. Back to you.",
+        "Another wannabe hacker fried his neural link. Not my problem. Continue."
+      ],
+      distraction_sarcastic: [
+        "Oh joy, another influencer filming a 'surviving the District' vlog. Back in a second to roll my eyes.",
+        "Just watched someone lick the neon bar. Humans are wild. Let's go."
+      ],
+      distraction_professional: [
+        "Minor incident. Crowd surge near the arcade, handled. Continuing now.",
+        "Apologies. Intervened in a code-red at the stim locker. Let's proceed."
+      ]
+    };
   }
 
   // Toggle chat window visibility and initialize if needed
@@ -388,7 +450,7 @@ class ChatManager {
         "You trying to impress me, or just distract me?",
         "You keep talking like that, and I'll need Admin's permission to keep playing."
       ],
-      
+
       // Trust level responses
       high_trust: [
         "You've been around. I like that. Let's go deeper.",
@@ -403,7 +465,7 @@ class ChatManager {
         "Not sure I like your angle yet.",
         "Tread carefully, slick. This district isn't for everyone."
       ],
-      
+
       // Physical distraction interjections
       distraction: [
         "One sec, someone's putting on a VR headset backwards again… alright, I'm back.",
@@ -411,7 +473,7 @@ class ChatManager {
         "Sorry, some guy just spilled his vape juice on the terminal.",
         "I had to reset the oxygen bar. Drama over. Let's continue."
       ],
-      
+
       // Flirty responses to user advances
       flirty_response_to_flirt: [
         "You talk a good game. Want me to play too?"
@@ -425,7 +487,7 @@ class ChatManager {
       professional_response_to_flirt: [
         "Inappropriate. Let's keep this functional."
       ],
-      
+
       // Responses to "Are you flirting with me?"
       flirty_flirt_confirmation: [
         "You started it. I'm just keeping the tempo."
@@ -439,7 +501,7 @@ class ChatManager {
       professional_flirt_confirmation: [
         "I'm here to assist, not entertain fantasies."
       ],
-      
+
       // Website/feature references
       website_references: [
         "You'll find that on the main terminal.",
@@ -447,13 +509,13 @@ class ChatManager {
         "I'd check the next section over. It hums with encrypted secrets.",
         "Want the game? You'll need to look for the glowing icon. Can't miss it."
       ],
-      
+
       // Product mentions
       product_mentions: [
         "If you're looking for something loud, the *Corpo-Scum!* sticker screams rebellion. Literally.",
         "Our t-shirts? Tailored for revolutionaries. Tap the apparel terminal."
       ],
-      
+
       greeting: [
         "Systems online. Welcome to the District.",
         "Neural pathways active. How can I assist?",
@@ -521,7 +583,7 @@ class ChatManager {
         "Our site features five store categories - Survival gear, Electronics, Tactical optics, Apparel, Books, and Apps. Plus interactive games, sleeping pod reservations, and real-time chat with me.",
         "You're accessing our digital nexus: retro arcade games, VR experiences, tactical equipment store, ambient music streaming from our Sleeping Pods, and AI-powered assistance through our chat system.",
         "The website mirrors our physical District: browse our curated survival and tactical gear, play strategic games, reserve Sleeping Pods for music therapy, and get intel through our AI chat interface."
-      ],</old_str>
+      ],
       survival: [
         "Our survival section is fully stocked with field-tested gear. We have everything from Titan's 1000 LB paracord with hidden Kevlar filaments to Morakniv blades and Jetboil stoves.",
         "Survival gear includes water purification (GRAYL UltraPress, Sawyer Mini), fire starting (überleben ferro rods, electric lighters), shelter (Arcturus blankets, ENO hammocks), and emergency food (Mountain House, MREs).",
@@ -599,17 +661,18 @@ class ChatManager {
     // Keyword matching to determine response category
     const message = userMessage.toLowerCase();
     let responseCategory = 'default';
-    
+
     // Use current mood from mood system
     const currentMood = this.mood;
-    
+
     // Handle contextual triggers first
     if (message.includes('are you flirting') || message.includes('flirting with me')) {
       responseCategory = `${currentMood}_flirt_confirmation`;
     } else if (message.includes('sexy') || message.includes('hot') || message.includes('beautiful') || message.includes('gorgeous') || message.includes('babe') || message.includes('baby')) {
       responseCategory = `${currentMood}_response_to_flirt`;
     } else if (Math.random() < 0.15) { // 15% chance of distraction interjection
-      responseCategory = 'distraction';
+      const distractionResponse = this.getDistractionResponse();
+      return distractionResponse;
     } else if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
       // Random chance for mood-based greeting vs standard greeting
       if (Math.random() < 0.4) {
@@ -644,6 +707,7 @@ class ChatManager {
     } else if (message.includes('fire') || message.includes('lighter') || message.includes('ferro') || message.includes('fresnel')) {
       responseCategory = 'fire';
     } else if (message.includes('multi tool') || message.includes('leatherman') || message.includes('tool card')) {
+      The code incorporates mood-based and general distraction responses to simulate more realistic AI behavior.```text
       responseCategory = 'tools';
     } else if (message.includes('blanket') || message.includes('arcturus') || message.includes('wool')) {
       responseCategory = 'blankets';
@@ -689,7 +753,7 @@ class ChatManager {
 
     // Return random response from selected category
     const categoryResponses = responses[responseCategory] || responses['default'];
-    
+
     // Add occasional trust level responses (can be enhanced with session tracking)
     if (Math.random() < 0.1 && responseCategory === 'default') {
       const trustLevels = ['high_trust', 'medium_trust', 'low_trust'];
@@ -699,7 +763,7 @@ class ChatManager {
         return trustResponses[Math.floor(Math.random() * trustResponses.length)];
       }
     }
-    
+
     return categoryResponses[Math.floor(Math.random() * categoryResponses.length)];
   }
 }
