@@ -286,10 +286,10 @@ class ChatManager {
       // If triggers found, calculate mood shift
       if (triggerCount > 0) {
         console.log(`Found ${triggerCount} triggers for ${moodType}:`, matchedTriggers);
-        
+
         // Multiple triggers increase probability
         const adjustedProbability = Math.min(triggers.probability + (triggerCount * 0.1), 0.8);
-        
+
         if (Math.random() < adjustedProbability) {
           // Special handling for cold/sarcastic split
           if (moodType === 'cold') {
@@ -309,7 +309,7 @@ class ChatManager {
       if (this.mood === 'cold') {
         const positiveWords = moodTriggers.professional.words.concat(['sorry', 'apologize', 'mistake']);
         const positiveCount = positiveWords.filter(word => message.includes(word)).length;
-        
+
         if (positiveCount > 0 && Math.random() < 0.3) {
           newMood = Math.random() < 0.7 ? 'professional' : 'sarcastic';
           console.log("Cold mood softened due to positive context");
@@ -366,7 +366,7 @@ class ChatManager {
   // Get completely random distraction response (not mood-based)
   getDistractionResponse() {
     const responses = this.getResponsesObject();
-    
+
     // Collect all distraction responses from all categories
     const allDistractions = [
       ...responses.distraction_classic,
@@ -383,12 +383,12 @@ class ChatManager {
   // Continue conversation after distraction
   async continueConversationAfterDistraction() {
     if (!this.pendingUserMessage) return;
-    
+
     const userMessage = this.pendingUserMessage;
     this.pendingUserMessage = null; // Clear the pending message
-    
+
     this.setTyping(true);
-    
+
     try {
       const url = 'https://the-darknet-district-site.onrender.com/api/chat/message';
       const response = await fetch(url, {
@@ -575,14 +575,14 @@ class ChatManager {
     if (Math.random() < distractionChance) {
       this.distractionCount++;
       this.pendingUserMessage = text; // Store the user message for later response
-      
+
       const distractionResponse = this.getDistractionResponse();
       const delay = Math.min(2000, Math.max(800, distractionResponse.length * 20));
-      
+
       setTimeout(() => {
         this.setTyping(false);
         this.addMessage(distractionResponse, false);
-        
+
         // Continue with normal conversation after 7 seconds
         setTimeout(() => {
           this.continueConversationAfterDistraction();
@@ -774,10 +774,10 @@ class IrisResponses {
         music: [
           "Our music is available in two places: experience it live in our Sleeping Pods, or stream the full collection on our YouTube channel.",
           "The ambient tracks in our pods are curated for neural relaxation. You can listen in the pods or find the complete collection on our YouTube channel.",
-          "Whether you're in a Sleeping Pod or want to take the music with you, our YouTube channel has the full cyberpunk soundscape library."
+          "Whether you're in a Sleeping Pod or want to take the music with you, our YouTube channel has the full soundscape library."
         ],
         website: [
-          "The Darknet District website offers a comprehensive digital experience: tactical games like Blackout Protocol and Raven, our full store with survival gear and electronics, Sleeping Pods with cyberpunk ambient music, and direct access to Iris AI support.",
+          "The Darknet District website offers a comprehensive digital experience: tactical games like Blackout Protocol and Raven, our full store with survival gear and electronics, Sleeping Pods with ambient music, and direct access to Iris AI support.",
           "Our site features five store categories - Survival gear, Electronics, Tactical optics, Apparel, Books, and Apps. Plus interactive games, sleeping pod reservations, and real-time chat with me.",
           "You're accessing our digital nexus: retro arcade games, VR experiences, tactical equipment store, ambient music streaming from our Sleeping Pods, and AI-powered assistance through our chat system.",
           "The website mirrors our physical District: browse our curated survival and tactical gear, play strategic games, reserve Sleeping Pods for music therapy, and get intel through our AI chat interface."
@@ -1109,7 +1109,7 @@ const featuredProducts = [
     name: "Kai Kryptos App",
     price: "Free",
     image: "attached_assets/kai-kryptos-icon.png",
-    description: "Cyberpunk terminal for decrypted log access"
+    description: "Terminal for decrypted log access"
   },
   {
     name: "Holographic QR Code 'Corpo-Scum!' Sticker",
@@ -1124,10 +1124,10 @@ const featuredProducts = [
     description: "Premium holographic rebellion sticker with encrypted QR message"
   },
   {
-    name: "Zen Zephyr: Cyberpunk Meditation T-Shirt",
+    name: "Zen Zephyr: Meditation T-Shirt",
     price: "$27.99",
     image: "attached_assets/zen-zephyr-meditation-tshirt.jpg",
-    description: "Find inner peace in the digital chaos - premium cyberpunk streetwear"
+    description: "Find inner peace in the digital chaos - premium streetwear"
   },
   {
     name: "Admin: Tactical Operations T-Shirt",
@@ -1139,7 +1139,7 @@ const featuredProducts = [
     name: "The Darknet District: Main Edition T-Shirt",
     price: "$29.99",
     image: "attached_assets/darknet-district-main-tshirt.jpg",
-    description: "Classic District branding with cyberpunk aesthetic"
+    description: "Classic District branding with digital aesthetic"
   },
   {
     name: "MIRA Safety CM-I01 Gas Mask",
