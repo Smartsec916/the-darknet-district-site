@@ -75,7 +75,7 @@
                     "color:#ff0000;font-size:16px;font-family:monospace;");
                 
                 // Typewriter effect for Iris message - no flickering
-                const irisMessage = "Iris: Oh, peeking under the hood?\nYou sure you can handle what's under there?";
+                const irisMessage = "\nIris: Oh, peeking under the hood?\nYou sure you can handle what's under there?";
                 const irisStyle = "color:#00ff00;font-size:14px;font-family:'Courier New',monospace;background:#000000;padding:5px;border:1px solid #00ff00;text-shadow:0 0 5px #00ff00;";
                 
                 let displayText = "";
