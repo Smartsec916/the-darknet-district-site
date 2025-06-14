@@ -119,10 +119,14 @@ def chat_message():
 
         # Create session if it doesn't exist
         if session_id not in sessions:
+            data = request.get_json() or {}
+            user_name = data.get('userName')
+
             sessions[session_id] = {
                 'messages': [],
                 'created_at': None,
-                'mood': 'professional'
+                'mood': 'professional',
+                'userName': user_name
             }
 
         # Store user message

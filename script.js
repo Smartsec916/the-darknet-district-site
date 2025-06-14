@@ -27,6 +27,11 @@ class ChatManager {
     // Distraction tracking
     this.distractionCount = 0;
     this.pendingUserMessage = null;
+
+    // Name tracking
+    this.userName = null;
+    this.userResponseCount = 0;
+    this.nameAsked = false;
   }
 
   // Cache DOM elements on first access
@@ -44,6 +49,9 @@ class ChatManager {
     this.setTyping(true);
 
     try {
+      // Try to retrieve stored name first
+      this.retrieveUserName();
+      
       console.log("Attempting to create chat session...");
       const url = 'https://the-darknet-district-site.onrender.com/api/chat/session';
       console.log("Fetching URL:", url);
@@ -52,7 +60,9 @@ class ChatManager {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({})
+        body: JSON.stringify({
+          userName: this.userName
+        })
       });
 
       console.log("Session response status:", response.status);
@@ -108,19 +118,65 @@ class ChatManager {
 
   // Generate random welcome messages with cyberpunk theme
   async fetchWelcomeMessage() {
-    const welcomeMessages = [
-      "Neural interface online. What brings you to the District today?",
-      "Systems operational. How can I assist you in the shadows?",
-      "Connection established. What intel do you need from the grid?",
-      "Interface active. Ready to navigate the digital underground with you.",
-      "Network sync complete. What's your mission in the District?"
-    ];
-    return welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+    if (this.userName) {
+      const namedWelcomeMessages = [
+        `Welcome back, ${this.userName}. Neural interface synced to your profile.`,
+        `Good to see you again, ${this.userName}. Systems are operational.`,
+        `${this.userName} - your signature's in my memory banks. What brings you back to the District?`,
+        `Interface reestablished, ${this.userName}. Ready for another session?`,
+        `${this.userName}, welcome back to the grid. What do you need today?`
+      ];
+      return namedWelcomeMessages[Math.floor(Math.random() * namedWelcomeMessages.length)];
+    } else {
+      const welcomeMessages = [
+        "Neural interface online. What brings you to the District today?",
+        "Systems operational. How can I assist you in the shadows?",
+        "Connection established. What intel do you need from the grid?",
+        "Interface active. Ready to navigate the digital underground with you.",
+        "Network sync complete. What's your mission in the District?"
+      ];
+      return welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+    }
   }
 
   // Generate unique session ID for fallback mode
   generateSessionId() {
     return 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+  }
+
+  // Store user name locally and on server
+  async storeUserName(name) {
+    try {
+      localStorage.setItem('iris_user_name', name);
+      
+      // Send to server if available
+      await fetch('https://the-darknet-district-site.onrender.com/api/chat/store-name', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          sessionId: this.sessionId,
+          userName: name
+        })
+      });
+    } catch (error) {
+      console.log("Name storage failed, using local storage only");
+    }
+  }
+
+  // Retrieve stored user name
+  retrieveUserName() {
+    try {
+      const storedName = localStorage.getItem('iris_user_name');
+      if (storedName) {
+        this.userName = storedName;
+        return storedName;
+      }
+    } catch (error) {
+      console.log("Could not retrieve stored name");
+    }
+    return null;
   }
 
   // Select mood based on probability distribution
@@ -569,6 +625,88 @@ class ChatManager {
 
     this.analyzeMoodShiftTriggers(text);
     this.userInteractionCount++;
+    this.userResponseCount++;
+
+    // Check if we should ask for name
+    if (!this.nameAsked && !this.userName && (this.userResponseCount === 2 || this.userResponseCount === 3)) {
+      this.nameAsked = true;
+      
+      // Check if message contains a name introduction
+      const nameIntroPatterns = [
+        /my name is (\w+)/i,
+        /i'm (\w+)/i,
+        /i am (\w+)/i,
+        /call me (\w+)/i
+      ];
+      
+      for (const pattern of nameIntroPatterns) {
+        const match = text.match(pattern);
+        if (match) {
+          this.userName = match[1];
+          this.storeUserName(match[1]);
+          break;
+        }
+      }
+      
+      if (!this.userName) {
+        // Ask for name after responding to their message
+        setTimeout(async () => {
+          const namePrompts = [
+            "By the way, what should I call you? I like to know who I'm talking to in the District.",
+            "I'm curious - what's your name? I prefer to address people properly.",
+            "What should I call you? Makes our conversation more... personal.",
+            "Mind telling me your name? I like to remember the people I talk with."
+          ];
+          
+          const prompt = namePrompts[Math.floor(Math.random() * namePrompts.length)];
+          this.setTyping(true);
+          
+          setTimeout(() => {
+            this.setTyping(false);
+            this.addMessage(prompt, false);
+          }, 1000);
+        }, 2000);
+      }
+      
+      // Don't return early, continue with normal response
+    }
+
+    // Check if this message is responding to name prompt
+    if (this.nameAsked && !this.userName && this.userResponseCount > 2) {
+      const namePatterns = [
+        /my name is (\w+)/i,
+        /i'm (\w+)/i,
+        /i am (\w+)/i,
+        /call me (\w+)/i,
+        /(\w+)$/  // Just a single word as last resort
+      ];
+      
+      for (const pattern of namePatterns) {
+        const match = text.match(pattern);
+        if (match) {
+          this.userName = match[1];
+          this.storeUserName(match[1]);
+          
+          // Acknowledge the name
+          const acknowledgments = [
+            `Nice to meet you, ${this.userName}. I'll remember that.`,
+            `${this.userName} - got it. Good to have a name to the neural signature.`,
+            `Pleasure, ${this.userName}. Your name's logged in my memory banks.`,
+            `${this.userName}... I like it. I'll make sure to remember.`
+          ];
+          
+          setTimeout(() => {
+            this.setTyping(true);
+            setTimeout(() => {
+              this.setTyping(false);
+              this.addMessage(acknowledgments[Math.floor(Math.random() * acknowledgments.length)], false);
+            }, 1200);
+          }, 1000);
+          
+          break;
+        }
+      }
+    }
 
     // Check for distraction with frequency limits
     const distractionChance = this.distractionCount < 2 ? 0.35 : 0.05;
