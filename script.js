@@ -9,6 +9,9 @@ class ChatManager {
     this.isTyping = false;
     this.sessionId = null;
     this.mood = "professional";
+    this.moodShiftCooldown = 0; // Prevent rapid mood changes
+    this.userInteractionCount = 0;
+    this.lastMoodChange = Date.now();
   }
 
 
@@ -41,7 +44,7 @@ class ChatManager {
       console.log("Session data received:", data);
 
       this.sessionId = data.sessionId || this.generateSessionId();
-      this.mood = data.mood || "professional";
+      this.initializeMood(data);
 
       // Show welcome message for new sessions
       if (data.isNew || !data.sessionId) {
@@ -59,6 +62,7 @@ class ChatManager {
       console.error("Error details:", error.message);
       // Fallback to local session with error message
       this.sessionId = this.generateSessionId();
+      this.initializeMood(); // Initialize mood for fallback session
       this.setTyping(false);
       this.addMessage("Neural interface disrupted. Fallback protocols active — what do you need?", false);
     }
@@ -101,6 +105,130 @@ class ChatManager {
   // Generate unique session ID for fallback mode
   generateSessionId() {
     return 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+  }
+
+  // Select mood based on probability distribution
+  selectRandomMood() {
+    const moodProbabilities = [
+      { mood: 'professional', weight: 35 },
+      { mood: 'flirty', weight: 25 },
+      { mood: 'sarcastic', weight: 20 },
+      { mood: 'cold', weight: 15 },
+      { mood: 'wildcard', weight: 5 } // For future experimental moods
+    ];
+
+    const totalWeight = moodProbabilities.reduce((sum, item) => sum + item.weight, 0);
+    let random = Math.random() * totalWeight;
+
+    for (const item of moodProbabilities) {
+      random -= item.weight;
+      if (random <= 0) {
+        // Handle wildcard mood - currently maps to random existing mood
+        if (item.mood === 'wildcard') {
+          const baseMoods = ['professional', 'flirty', 'sarcastic', 'cold'];
+          return baseMoods[Math.floor(Math.random() * baseMoods.length)];
+        }
+        return item.mood;
+      }
+    }
+
+    // Fallback to professional if calculation fails
+    return 'professional';
+  }
+
+  // Analyze user message for mood shift triggers
+  analyzeMoodShiftTriggers(userMessage) {
+    const message = userMessage.toLowerCase();
+    const currentTime = Date.now();
+    
+    // Prevent rapid mood shifts (minimum 30 seconds between changes)
+    if (currentTime - this.lastMoodChange < 30000) {
+      return this.mood;
+    }
+
+    let newMood = this.mood;
+    let shiftProbability = 0;
+
+    // Flirtation triggers → +40% chance of switching to Flirty
+    const flirtTriggers = ['sexy', 'hot', 'beautiful', 'gorgeous', 'babe', 'baby', 'cute', 'love', 'kiss', 'dating', 'flirt'];
+    if (flirtTriggers.some(trigger => message.includes(trigger))) {
+      shiftProbability = 0.4;
+      if (Math.random() < shiftProbability) {
+        newMood = 'flirty';
+      }
+    }
+
+    // Rudeness triggers → +60% chance of switching to Cold or Sarcastic
+    const rudeTriggers = ['stupid', 'dumb', 'shut up', 'idiot', 'useless', 'worthless', 'hate', 'suck', 'terrible', 'awful', 'bad'];
+    if (rudeTriggers.some(trigger => message.includes(trigger))) {
+      shiftProbability = 0.6;
+      if (Math.random() < shiftProbability) {
+        newMood = Math.random() < 0.5 ? 'cold' : 'sarcastic';
+      }
+    }
+
+    // Positive interaction triggers → slight chance to shift to professional or flirty
+    const positiveTriggers = ['thank', 'please', 'help', 'amazing', 'great', 'awesome', 'cool', 'nice'];
+    if (positiveTriggers.some(trigger => message.includes(trigger)) && this.mood === 'cold') {
+      shiftProbability = 0.3;
+      if (Math.random() < shiftProbability) {
+        newMood = Math.random() < 0.7 ? 'professional' : 'flirty';
+      }
+    }
+
+    // Admin override check (future implementation)
+    if (message.includes('admin override') || message.includes('mood:')) {
+      const moodMatch = message.match(/mood:\s*(\w+)/);
+      if (moodMatch) {
+        const requestedMood = moodMatch[1].toLowerCase();
+        const validMoods = ['professional', 'flirty', 'sarcastic', 'cold'];
+        if (validMoods.includes(requestedMood)) {
+          newMood = requestedMood;
+        }
+      }
+    }
+
+    // Update mood if changed
+    if (newMood !== this.mood) {
+      this.mood = newMood;
+      this.lastMoodChange = currentTime;
+      console.log(`Iris mood shifted to: ${newMood}`);
+    }
+
+    return this.mood;
+  }
+
+  // Initialize or rotate mood for session
+  initializeMood(sessionData = null) {
+    try {
+      // If session data includes mood, use it
+      if (sessionData && sessionData.mood) {
+        this.mood = sessionData.mood;
+        return this.mood;
+      }
+
+      // Check if we should rotate daily mood (could be enhanced with localStorage)
+      const today = new Date().toDateString();
+      const savedMoodDate = localStorage.getItem('iris_mood_date');
+      const savedMood = localStorage.getItem('iris_mood');
+
+      // If same day and mood exists, use saved mood
+      if (savedMoodDate === today && savedMood) {
+        this.mood = savedMood;
+      } else {
+        // New day or no saved mood - select random mood
+        this.mood = this.selectRandomMood();
+        localStorage.setItem('iris_mood', this.mood);
+        localStorage.setItem('iris_mood_date', today);
+      }
+
+      return this.mood;
+    } catch (error) {
+      // Fallback to professional if localStorage fails or other errors
+      console.warn('Error initializing mood, falling back to professional:', error);
+      this.mood = 'professional';
+      return this.mood;
+    }
   }
 
   // Toggle chat window visibility and initialize if needed
@@ -196,6 +324,10 @@ class ChatManager {
 
     this.addMessage(text, true);
     this.setTyping(true);
+
+    // Analyze message for mood shift triggers
+    this.analyzeMoodShiftTriggers(text);
+    this.userInteractionCount++;
 
     try {
       // Use relative URL for better compatibility with Replit
@@ -468,9 +600,8 @@ class ChatManager {
     const message = userMessage.toLowerCase();
     let responseCategory = 'default';
     
-    // Random mood selection for variety (can be enhanced with session tracking)
-    const moods = ['professional', 'sarcastic', 'cold', 'flirty'];
-    const currentMood = moods[Math.floor(Math.random() * moods.length)];
+    // Use current mood from mood system
+    const currentMood = this.mood;
     
     // Handle contextual triggers first
     if (message.includes('are you flirting') || message.includes('flirting with me')) {
