@@ -10,6 +10,8 @@ from openai import OpenAI
 import uuid
 import logging
 import random
+import time
+import threading
 from datetime import datetime
 
 
@@ -123,7 +125,8 @@ def create_chat_session():
         sessions[session_id] = {
             'messages': [],
             'created_at': None,
-            'mood': 'professional'
+            'mood': 'professional',
+            'last_active': time.time()
         }
 
         logger.info(f"Created new chat session: {session_id}")
@@ -184,7 +187,8 @@ def chat_message():
                 'messages': [],
                 'created_at': None,
                 'mood': 'professional',
-                'userName': user_name
+                'userName': user_name,
+                'last_active': time.time()
             }
 
         # Store user message
@@ -210,6 +214,9 @@ def chat_message():
             'sender': 'iris',
             'message': iris_response
         })
+        
+        # Update last activity timestamp
+        sessions[session_id]['last_active'] = time.time()
 
         # Send email log if conversation has reached a certain length (e.g., 4+ messages)
         if len(sessions[session_id]['messages']) >= 4:
@@ -497,6 +504,34 @@ def serve_static_files(filename):
 # ============================================================================
 # APPLICATION STARTUP - Run development server
 # ============================================================================
+
+def session_timeout_checker():
+    """Background thread to check for inactive sessions and email logs"""
+    while True:
+        now = time.time()
+        timeout_limit = 15 * 60  # 15 minutes in seconds
+
+        expired = []
+        for session_id, data in sessions.items():
+            if 'messages' in data and data['messages'] and now - data.get('last_active', 0) > timeout_limit:
+                try:
+                    send_chat_log_email(session_id, data['messages'])
+                    logger.info(f"Sent timeout email for inactive session {session_id}")
+                except Exception as e:
+                    logger.error(f"Failed to send timeout email for session {session_id}: {e}")
+                expired.append(session_id)
+
+        for session_id in expired:
+            try:
+                del sessions[session_id]
+                logger.info(f"Cleaned up expired session {session_id}")
+            except KeyError:
+                pass
+
+        time.sleep(60)  # Check every minute
+
+# Start the timeout checker when the app runs
+threading.Thread(target=session_timeout_checker, daemon=True).start()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
