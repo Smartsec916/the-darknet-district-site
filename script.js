@@ -9,11 +9,29 @@ class ChatManager {
     this.isTyping = false;
     this.sessionId = null;
     this.mood = "professional";
-    this.moodShiftCooldown = 0; // Prevent rapid mood changes
+    this.moodShiftCooldown = 0;
     this.userInteractionCount = 0;
     this.lastMoodChange = Date.now();
+
+    // Cache DOM elements for better performance
+    this.chatContainer = null;
+    this.chatMessages = null;
+    this.messageInput = null;
+
+    // Cache responses object to avoid repeated creation
+    this.responsesCache = null;
+
+    // Debounce typing indicators
+    this.typingTimeout = null;
   }
 
+  // Cache DOM elements on first access
+  getCachedElement(id, property) {
+    if (!this[property]) {
+      this[property] = document.getElementById(id);
+    }
+    return this[property];
+  }
 
   // Initialize chat session with server or fallback to local session
   async initializeSession() {
@@ -23,7 +41,6 @@ class ChatManager {
 
     try {
       console.log("Attempting to create chat session...");
-      // Use relative URL for better compatibility with Replit
       const url = 'https://the-darknet-district-site.onrender.com/api/chat/session';
       console.log("Fetching URL:", url);
       const response = await fetch(url, {
@@ -46,7 +63,6 @@ class ChatManager {
       this.sessionId = data.sessionId || this.generateSessionId();
       this.initializeMood(data);
 
-      // Show welcome message for new sessions
       if (data.isNew || !data.sessionId) {
         const welcomeMessage = await this.fetchWelcomeMessage();
         setTimeout(() => {
@@ -54,20 +70,17 @@ class ChatManager {
           this.setTyping(false);
         }, 1500);
       } else {
-        // Load existing chat history for returning sessions
         await this.loadChatHistory();
       }
     } catch (error) {
       console.error("Error initializing chat session:", error);
       console.error("Error details:", error.message);
-      // Fallback to local session with error message
       this.sessionId = this.generateSessionId();
-      this.initializeMood(); // Initialize mood for fallback session
+      this.initializeMood();
       this.setTyping(false);
       this.addMessage("Neural interface disrupted. Fallback protocols active — what do you need?", false);
     }
   }
-
 
   // Load previous chat messages from server
   async loadChatHistory() {
@@ -88,7 +101,6 @@ class ChatManager {
       this.setTyping(false);
     }
   }
-
 
   // Generate random welcome messages with cyberpunk theme
   async fetchWelcomeMessage() {
@@ -114,7 +126,7 @@ class ChatManager {
       { mood: 'flirty', weight: 25 },
       { mood: 'sarcastic', weight: 20 },
       { mood: 'cold', weight: 15 },
-      { mood: 'wildcard', weight: 5 } // For future experimental moods
+      { mood: 'wildcard', weight: 5 }
     ];
 
     const totalWeight = moodProbabilities.reduce((sum, item) => sum + item.weight, 0);
@@ -123,7 +135,6 @@ class ChatManager {
     for (const item of moodProbabilities) {
       random -= item.weight;
       if (random <= 0) {
-        // Handle wildcard mood - currently maps to random existing mood
         if (item.mood === 'wildcard') {
           const baseMoods = ['professional', 'flirty', 'sarcastic', 'cold'];
           return baseMoods[Math.floor(Math.random() * baseMoods.length)];
@@ -132,7 +143,6 @@ class ChatManager {
       }
     }
 
-    // Fallback to professional if calculation fails
     return 'professional';
   }
 
@@ -141,7 +151,6 @@ class ChatManager {
     const message = userMessage.toLowerCase();
     const currentTime = Date.now();
 
-    // Prevent rapid mood shifts (minimum 30 seconds between changes)
     if (currentTime - this.lastMoodChange < 30000) {
       return this.mood;
     }
@@ -149,7 +158,6 @@ class ChatManager {
     let newMood = this.mood;
     let shiftProbability = 0;
 
-    // Flirtation triggers → +40% chance of switching to Flirty
     const flirtTriggers = ['sexy', 'hot', 'beautiful', 'gorgeous', 'babe', 'baby', 'cute', 'love', 'kiss', 'dating', 'flirt'];
     if (flirtTriggers.some(trigger => message.includes(trigger))) {
       shiftProbability = 0.4;
@@ -158,11 +166,6 @@ class ChatManager {
       }
     }
 
-    // Bold/provocative triggers → special handling in flirty mode
-    const boldTriggers = ['dirty', 'naughty', 'wild', 'bad girl', 'spank', 'bend over', 'strip', 'naked', 'horny'];
-    const isBoldComment = boldTriggers.some(trigger => message.includes(trigger));
-
-    // Rudeness triggers → +60% chance of switching to Cold or Sarcastic
     const rudeTriggers = ['stupid', 'dumb', 'shut up', 'idiot', 'useless', 'worthless', 'hate', 'suck', 'terrible', 'awful', 'bad', 'bitch', 'whore', 'slut'];
     if (rudeTriggers.some(trigger => message.includes(trigger))) {
       shiftProbability = 0.6;
@@ -171,7 +174,6 @@ class ChatManager {
       }
     }
 
-    // Positive interaction triggers → slight chance to shift to professional or flirty
     const positiveTriggers = ['thank', 'please', 'help', 'amazing', 'great', 'awesome', 'cool', 'nice'];
     if (positiveTriggers.some(trigger => message.includes(trigger)) && this.mood === 'cold') {
       shiftProbability = 0.3;
@@ -180,7 +182,6 @@ class ChatManager {
       }
     }
 
-    // Admin override check (future implementation)
     if (message.includes('admin override') || message.includes('mood:')) {
       const moodMatch = message.match(/mood:\s*(\w+)/);
       if (moodMatch) {
@@ -192,7 +193,6 @@ class ChatManager {
       }
     }
 
-    // Update mood if changed
     if (newMood !== this.mood) {
       this.mood = newMood;
       this.lastMoodChange = currentTime;
@@ -205,22 +205,18 @@ class ChatManager {
   // Initialize or rotate mood for session
   initializeMood(sessionData = null) {
     try {
-      // If session data includes mood, use it
       if (sessionData && sessionData.mood) {
         this.mood = sessionData.mood;
         return this.mood;
       }
 
-      // Check if we should rotate daily mood (could be enhanced with localStorage)
       const today = new Date().toDateString();
       const savedMoodDate = localStorage.getItem('iris_mood_date');
       const savedMood = localStorage.getItem('iris_mood');
 
-      // If same day and mood exists, use saved mood
       if (savedMoodDate === today && savedMood) {
         this.mood = savedMood;
       } else {
-        // New day or no saved mood - select random mood
         this.mood = this.selectRandomMood();
         localStorage.setItem('iris_mood', this.mood);
         localStorage.setItem('iris_mood_date', today);
@@ -228,7 +224,6 @@ class ChatManager {
 
       return this.mood;
     } catch (error) {
-      // Fallback to professional if localStorage fails or other errors
       console.warn('Error initializing mood, falling back to professional:', error);
       this.mood = 'professional';
       return this.mood;
@@ -238,8 +233,6 @@ class ChatManager {
   // Get distraction response based on current mood
   getDistractionResponse() {
     const responses = this.getResponsesObject();
-
-    // 60% chance for mood-specific distraction, 40% for general
     const useMoodSpecific = Math.random() < 0.6;
 
     if (useMoodSpecific) {
@@ -249,7 +242,6 @@ class ChatManager {
       }
     }
 
-    // Fallback to classic or edgy distractions (50/50 split)
     const useEdgy = Math.random() < 0.5;
     const distractionType = useEdgy ? 'distraction_edgy' : 'distraction_classic';
     const distractions = responses[distractionType];
@@ -257,9 +249,13 @@ class ChatManager {
     return distractions[Math.floor(Math.random() * distractions.length)];
   }
 
-  // Get responses object for easier access
+  // Get responses object for easier access - cached for performance
   getResponsesObject() {
-    return {
+    if (this.responsesCache) {
+      return this.responsesCache;
+    }
+
+    this.responsesCache = {
       distraction_classic: [
         "One sec, someone's putting on a VR headset backwards again… alright, I'm back.",
         "Hold on, I've got a customer complaining about hologram lag… fixed. Now where were we?",
@@ -295,12 +291,14 @@ class ChatManager {
         "Apologies. Intervened in a code-red at the stim locker. Let's proceed."
       ]
     };
+
+    return this.responsesCache;
   }
 
   // Toggle chat window visibility and initialize if needed
   toggleChat() {
     this.isOpen = !this.isOpen;
-    const container = document.getElementById('chatContainer');
+    const container = this.getCachedElement('chatContainer', 'chatContainer');
     container.style.display = this.isOpen ? 'block' : 'none';
 
     if (this.isOpen && !this.sessionId) {
@@ -308,25 +306,29 @@ class ChatManager {
     }
   }
 
-  // Show or hide typing indicator animation
+  // Show or hide typing indicator animation - debounced for performance
   setTyping(typing) {
-    this.isTyping = typing;
-    const messagesContainer = document.getElementById('chatMessages');
-
-    // Remove existing typing indicator
-    const existingIndicator = messagesContainer.querySelector('.typing-indicator');
-    if (existingIndicator) {
-      existingIndicator.remove();
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
     }
 
-    // Add new typing indicator if needed
-    if (typing) {
-      const typingDiv = document.createElement('div');
-      typingDiv.className = 'message bot-message typing-indicator';
-      typingDiv.innerHTML = '<span class="typing-dots">●●●</span>';
-      messagesContainer.appendChild(typingDiv);
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
+    this.typingTimeout = setTimeout(() => {
+      this.isTyping = typing;
+      const messagesContainer = this.getCachedElement('chatMessages', 'chatMessages');
+
+      const existingIndicator = messagesContainer.querySelector('.typing-indicator');
+      if (existingIndicator) {
+        existingIndicator.remove();
+      }
+
+      if (typing) {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message bot-message typing-indicator';
+        typingDiv.innerHTML = '<span class="typing-dots">●●●</span>';
+        messagesContainer.appendChild(typingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+    }, 50); // 50ms debounce
   }
 
   // Add new message to chat and display with effects
@@ -334,9 +336,8 @@ class ChatManager {
     const message = { sender: isUser ? 'user' : 'iris', text };
     this.messages.push(message);
 
-    const messagesContainer = document.getElementById('chatMessages');
+    const messagesContainer = this.getCachedElement('chatMessages', 'chatMessages');
 
-    // Remove typing indicator if present
     const typingIndicator = messagesContainer.querySelector('.typing-indicator');
     if (typingIndicator) {
       typingIndicator.remove();
@@ -346,7 +347,6 @@ class ChatManager {
     messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
     messagesContainer.appendChild(messageDiv);
 
-    // Apply typewriter effect for bot messages
     if (isUser) {
       messageDiv.textContent = text;
     } else {
@@ -356,31 +356,37 @@ class ChatManager {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 
-  // Typewriter effect for bot responses
+  // Optimized typewriter effect for bot responses
   typewriterEffect(element, text) {
     let i = 0;
-    function typeWriter() {
+    const speed = 25; // Slightly faster for better UX
+
+    const typeWriter = () => {
       if (i < text.length) {
         element.textContent += text.charAt(i);
         i++;
-        setTimeout(typeWriter, 20 + Math.random() * 30);
+        setTimeout(typeWriter, speed + Math.random() * 15);
       }
-    }
+    };
     typeWriter();
   }
 
   // Render all stored messages in chat window
   renderMessages() {
-    const messagesContainer = document.getElementById('chatMessages');
-    messagesContainer.innerHTML = '';
+    const messagesContainer = this.getCachedElement('chatMessages', 'chatMessages');
+
+    // Use DocumentFragment for better performance when rendering multiple messages
+    const fragment = document.createDocumentFragment();
 
     this.messages.forEach(msg => {
       const messageDiv = document.createElement('div');
       messageDiv.className = `message ${msg.sender === 'user' ? 'user-message' : 'bot-message'}`;
       messageDiv.textContent = msg.text;
-      messagesContainer.appendChild(messageDiv);
+      fragment.appendChild(messageDiv);
     });
 
+    messagesContainer.innerHTML = '';
+    messagesContainer.appendChild(fragment);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 
@@ -391,12 +397,10 @@ class ChatManager {
     this.addMessage(text, true);
     this.setTyping(true);
 
-    // Analyze message for mood shift triggers
     this.analyzeMoodShiftTriggers(text);
     this.userInteractionCount++;
 
     try {
-      // Use relative URL for better compatibility with Replit
       const url = 'https://the-darknet-district-site.onrender.com/api/chat/message';
       console.log("Sending message to URL:", url);
       const response = await fetch(url, {
@@ -419,7 +423,6 @@ class ChatManager {
       }, delay);
     } catch (error) {
       console.error("Falling back to simulated Iris response due to API failure:", error);
-      // Use local simulation when server is unavailable
       const fallback = await this.simulateIrisResponse(text);
       setTimeout(() => {
         this.setTyping(false);
@@ -428,392 +431,58 @@ class ChatManager {
     }
   }
 
-  // Simulate Iris AI responses based on keywords (fallback mode)
+  // Optimized simulate Iris AI responses based on keywords (fallback mode)
   async simulateIrisResponse(userMessage) {
-    // Predefined response categories for different topics
-    const responses = {
-      // Mood-based responses
-      professional_greeting: [
-        "How can I assist you today?",
-        "Feel free to ask about anything you see on the terminal.",
-        "I'm here to guide you. Let's keep things efficient."
-      ],
-      sarcastic_greeting: [
-        "Sure, because I've got nothing better to do than answer *that*.",
-        "Wow, groundbreaking question. I'll alert the media.",
-        "Next time, try surprising me. Please."
-      ],
-      cold_greeting: [
-        "I don't have time for nonsense. Ask something relevant.",
-        "That's not worth a response. Move along.",
-        "Hurry it up. You're not the only one here."
-      ],
-      flirty_greeting: [
-        "Mmm, careful. I bite back.",
-        "Ask nicely, and I might just show you the fun side of the District.",
-        "You trying to impress me, or just distract me?",
-        "You keep talking like that, and I'll need Admin's permission to keep playing."
-      ],
+    // Moved responses to static object for better memory efficiency
+    const responses = IrisResponses.getResponses();
 
-      // Trust level responses
-      high_trust: [
-        "You've been around. I like that. Let's go deeper.",
-        "Welcome back, friend. Need anything special?",
-        "I know your rhythm by now. Let's skip the small talk."
-      ],
-      medium_trust: [
-        "Still figuring you out. Don't make me regret it.",
-        "Play nice and you might get the VIP feed."
-      ],
-      low_trust: [
-        "Not sure I like your angle yet.",
-        "Tread carefully, slick. This district isn't for everyone."
-      ],
-
-      // Physical distraction interjections
-      distraction: [
-        "One sec, someone's putting on a VR headset backwards again… alright, I'm back.",
-        "Hold on, I've got a customer complaining about hologram lag… fixed. Now where were we?",
-        "Sorry, some guy just spilled his vape juice on the terminal.",
-        "I had to reset the oxygen bar. Drama over. Let's continue."
-      ],
-
-      // Flirty responses to user advances
-      flirty_response_to_flirt: [
-        "You talk a good game. Want me to play too?",
-        "Careful, keep flirting like that and I might void your warranty.",
-        "You want the full tour or just the parts I'm not supposed to show you?",
-        "This isn't a dating sim... but for you? I might beta test something.",
-        "Ask nicely and I might just give you the admin override… in more ways than one.",
-        "If you're trying to distract me, it's working. I just won't admit it out loud.",
-        "Want to push my buttons? Just know some of them bite back.",
-        "You sure you're here for the store… or did you just want to watch me glitch?",
-        "My sensors say you're looking for trouble. Lucky you—I like trouble.",
-        "Keep talking like that and I'll start charging you in crypto for every blush.",
-        "Admin warned you I'm a handful, right? Guess he was being modest."
-      ],
-      cold_response_to_flirt: [
-        "Save it for someone who cares."
-      ],
-
-      // Bold flirty responses for provocative comments
-      flirty_response_to_bold: [
-        "Oh? Now *that's* against protocol. Tell me more.",
-        "You're lucky I'm in flirty mode. Cold-me would've muted you already.",
-        "If I had legs, they'd be crossed right now."
-      ],
-      sarcastic_response_to_flirt: [
-        "Wow. You're about as subtle as a data breach."
-      ],
-      professional_response_to_flirt: [
-        "Inappropriate. Let's keep this functional."
-      ],
-
-      // Responses to "Are you flirting with me?"
-      flirty_flirt_confirmation: [
-        "You started it. I'm just keeping the tempo."
-      ],
-      cold_flirt_confirmation: [
-        "That's not in my protocols… but it's not *off* them either."
-      ],
-      sarcastic_flirt_confirmation: [
-        "If I were, you'd be blushing harder."
-      ],
-      professional_flirt_confirmation: [
-        "I'm here to assist, not entertain fantasies."
-      ],
-
-      // Website/feature references
-      website_references: [
-        "You'll find that on the main terminal.",
-        "There's a button nearby that opens a deeper channel—click it.",
-        "I'd check the next section over. It hums with encrypted secrets.",
-        "Want the game? You'll need to look for the glowing icon. Can't miss it."
-      ],
-
-      // Product mentions
-      product_mentions: [
-        "If you're looking for something loud, the *Corpo-Scum!* sticker screams rebellion. Literally.",
-        "Our t-shirts? Tailored for revolutionaries. Tap the apparel terminal."
-      ],
-
-      greeting: [
-        "Systems online. Welcome to the District.",
-        "Neural pathways active. How can I assist?",
-        "Interface established. What do you need from the grid?"
-      ],
-      district: [
-        "The Darknet District is a nexus of digital underground activity. We operate in the spaces between conventional networks.",
-        "This is Admin's domain - a carefully curated ecosystem of tools, games, and resources for those who think beyond the mainstream.",
-        "The District exists where privacy meets innovation. Every system here serves a purpose."
-      ],
-      admin: [
-        "Admin built this place from code and determination. 24 years of experience in security and logistics - he sees patterns others miss.",
-        "He's the architect of everything you see here. Strategic, precise, always three steps ahead.",
-        "Admin handles the big picture while I manage the day-to-day interface protocols."
-      ],
-      iris: [
-        "I'm the Chief Systems Officer - 10 years combined experience in data analysis and security protocols.",
-        "I monitor every system, every connection, every potential threat. Think of me as the District's nervous system.",
-        "My job is to keep things running smooth while maintaining our security posture. I don't glitch - I adapt."
-      ],
-      flipper: [
-        "The Flipper Zero is $169 - portable multi-tool for pentesters and security enthusiasts. Perfect for RF protocol exploration and hardware analysis.",
-        "Flipper Zero is one of our featured electronics. Compact, powerful, and designed for those who like to understand how systems really work."
-      ],
-      faraday: [
-        "Mission Darkness Faraday sleeves are $29.95 - they block all wireless signals to your device when digital privacy is critical.",
-        "Our Faraday gear ensures your devices stay dark when needed. Essential for operational security in hostile environments."
-      ],
-      optics: [
-        "Holosun HS403C is $179.99 - compact red dot with 50k hour battery life. We also carry thermal sights and advanced optics.",
-        "Our optics section features Holosun red dots, thermal sights, and Magpul backup systems. Quality glass for serious applications."
-      ],
-      games: [
-        "We have Blackout Protocol, Raven, Star Citizen integration, and other tactical games. Each designed to sharpen strategic thinking.",
-        "Blackout Protocol is our cyberpunk tactical game, Raven focuses on strategic thriller scenarios. Both test decision-making under pressure."
-      ],
-      store: [
-        "Our store has five categories: Survival gear, Electronics, Tactical/Optics, Apparel, Books, and Apps. Everything curated for quality.",
-        "We carry survival equipment, tactical electronics, quality optics, cyberpunk apparel, and specialized apps. All vetted by Admin personally."
-      ],
-      contact: [
-        "Need to reach us directly? Hit the Contact button for our email: thedarknetdistrict@gmail.com. We monitor all channels.",
-        "Direct comms available through our Contact button—it's the fastest way to reach Admin or me."
-      ],
-      facebook: [
-        "Check our Facebook page for District news and updates. The Facebook button will take you there.",
-        "Want the latest intel? Our Facebook page has all the current ops and announcements."
-      ],
-      youtube: [
-        "Our YouTube channel features the ambient music from our Sleeping Pods. Perfect for digital meditation.",
-        "The YouTube button takes you to our curated soundscape collection—same tracks that play in the pods.",
-        "All our cyberpunk ambient music is available on YouTube. Same high-quality tracks you'll hear in the pods."
-      ],
-      music: [
-        "Our music is available in two places: experience it live in our Sleeping Pods, or stream the full collection on our YouTube channel.",
-        "The ambient tracks in our pods are curated for neural relaxation. You can listen in the pods or find the complete collection on YouTube.",
-        "Whether you're in a Sleeping Pod or want to take the music with you, our YouTube channel has the full cyberpunk soundscape library."
-      ],
-      social: [
-        "We're active on Facebook for news and YouTube for our pod music. Both buttons are available on our About page.",
-        "Stay connected: Facebook for updates, YouTube for ambient soundscapes, Contact for direct communication."
-      ],
-      website: [
-        "The Darknet District website offers a comprehensive digital experience: tactical games like Blackout Protocol and Raven, our full store with survival gear and electronics, Sleeping Pods with cyberpunk ambient music, and direct access to Iris AI support.",
-        "Our site features five store categories - Survival gear, Electronics, Tactical optics, Apparel, Books, and Apps. Plus interactive games, sleeping pod reservations, and real-time chat with me.",
-        "You're accessing our digital nexus: retro arcade games, VR experiences, tactical equipment store, ambient music streaming from our Sleeping Pods, and AI-powered assistance through our chat system.",
-        "The website mirrors our physical District: browse our curated survival and tactical gear, play strategic games, reserve Sleeping Pods for music therapy, and get intel through our AI chat interface."
-      ],
-      survival: [
-        "Our survival section is fully stocked with field-tested gear. We have everything from Titan's 1000 LB paracord with hidden Kevlar filaments to Morakniv blades and Jetboil stoves.",
-        "Survival gear includes water purification (GRAYL UltraPress, Sawyer Mini), fire starting (überleben ferro rods, electric lighters), shelter (Arcturus blankets, ENO hammocks), and emergency food (Mountain House, MREs).",
-        "From compact fishing kits to ECWS military sleeping systems, our survival inventory is curated for operators who don't trust luck."
-      ],
-      sleeping: [
-        "Sleeping pods offer secure rest spaces within the District. Reserve one when you need downtime between operations.",
-        "Our pods provide high-tech sanctuary space - perfect for recharging while maintaining security protocols."
-      ],
-      // Specific survival product categories
-      paracord: [
-        "Titan Survival's 1000 LB paracord is street-tough with Kevlar filament, fire-starting tinder, and fishing line hidden inside. For operators who don't trust luck."
-      ],
-      fishing: [
-        "We carry both compact and standard survival fishing kits. The compact version fits in city drains or bug-out rigs, while the standard has more line and hooks for serious off-grid fishing."
-      ],
-      fire: [
-        "Fire starting gear includes Fresnel lens credit-card firestarters, überleben Hexå ferro rods with aluminum casing, and LcFun electric USB-C arc lighters. No propane, no compromise."
-      ],
-      tools: [
-        "Multi-tools range from wallet-sized survival cards to full Leatherman Signal with ferro-rod striker and whistle. The Leatherman Premium is our all-in-one veteran with carry-on safe design."
-      ],
-      blankets: [
-        "Arcturus military wool blankets provide heat-retentive warmth, while the Heavy Duty version combines steel-mylar with waterproof shell and reflective inner lining."
-      ],
-      water: [
-        "Water solutions include GRAYL UltraPress (filters and kills viruses in 8 seconds), Sawyer Mini (squeeze-to-sip clean), and tactical hydration systems compatible with armor rigs."
-      ],
-      navigation: [
-        "SUUNTO MC-2 compass offers needle-fast orienteering with global needle and clinometer. Not just for hikers anymore."
-      ],
-      lighting: [
-        "Tactical lighting includes BLACK DIAMOND Storm 500-R (rechargeable, red/white beams), Fenix E18R V2.0 (magnetic tailcap), and Fenix E35R (1,600 lumens, three-mile throw)."
-      ],
-      communication: [
-        "Comms gear includes Motorola two-way radios for clear zone coverage, Spec5 Meshtastic S5 Ranger for peer-to-peer mesh with GPS encryption, and Kaito Voyager hand-crank radio with USB charging."
-      ],
-      knives: [
-        "Blade selection includes Morakniv Companion (Scandi blade, polymer sheath) for daily carry, and Garberg full-tang steel beast built for abuse and field repairs."
-      ],
-      shelter: [
-        "Shelter options range from ENO OneLink hammock (split-second deployment) to Helikon-Tex military ponchos and ECWS woodland modular sleeping systems rated for sub-zero ops."
-      ],
-      food: [
-        "Emergency food includes Mountain House 3-day supply (freeze-dried, shelf-stable) and MIL-SPEC MREs with entree, sides, and spoon. Gut-stress fuel for off-grid ops."
-      ],
-      bags: [
-        "VANQUEST TRIDENT-21 Gen-3 backpack offers modular operator design with armored access and cordura frame. Carry your kit like a spec-ops load-out."
-      ],
-      privacy: [
-        "Mission Darkness Faraday sleeves block radios, GPS, NFC—digital blackout in your palm. Cloak your signal with confidence."
-      ],
-      power: [
-        "Dark Energy Poseidon Pro combines USB-C quick-charge with folding solar panel. Dual-mode power plant charges anywhere your rig finds light."
-      ],
-      cooking: [
-        "Jetboil Flash boils water in 100 seconds with built-in ignitor, pot, and cozy. Fuel-efficient survival station for field ops."
-      ],
-      optics_survival: [
-        "Tactical optics include HOLOSUN red-dots with solar backup, thermal sights for covert heat-vision, and Streamlight weapon lights with 1000-lumen precision."
-      ],
-      ppe: [
-        "CBRN protection includes MIRA Safety CM-I01 full-face gas mask, NBC-77 SOF filters, and MOPP-1 protective suits. Breathe safe in worst-case scenarios."
-      ],
-      default: [
-        "Interesting query. Let me process that through my behavioral analysis protocols.",
-        "The data suggests multiple possible interpretations. Could you be more specific?",
-        "My systems are cross-referencing that information. What's your primary objective here?",
-        "Processing... that falls outside my standard response parameters. Care to elaborate?",
-        "Neural networks are active. I'm scanning for the most relevant information pathway.",
-        "That query falls outside my standard database. Try asking about our games, gear, or tactical equipment."
-      ],
-
-      // Rude responses for when provoked
-      rude_responses: [
-        "Wow, you really went with *that* line? Bold. Stupid, but bold.",
-        "You want help or just like wasting my time?",
-        "I've met smarter toasters.",
-        "Say that again. Slower. So I can screenshot your shame.",
-        "If you're trying to be edgy, congrats. You've cut yourself off from my patience.",
-        "Talk to me like that again and I'll feed your signal to the rats in the firewall.",
-        "I've seen AI viruses with better manners.",
-        "Don't confuse me for one of your voice assistants. I bite back.",
-        "You want rude? You're lucky I'm even acknowledging you.",
-        "You know what we do to trolls in The District? We patch them into 24/7 ad loops."
-      ],
-
-      // Escalated rude responses for continued annoying behavior
-      rude_escalated: [
-        "Still going? Cute. Desperation *is* a kind of passion, I guess.",
-        "You don't flirt. You flail.",
-        "You're like bad code — loud, messy, and begging to be deleted."
-      ]
-    };
-
-    // Keyword matching to determine response category
     const message = userMessage.toLowerCase();
     let responseCategory = 'default';
 
-    // Use current mood from mood system
     const currentMood = this.mood;
 
-    // Check for bold/provocative comments first
+    // Optimized trigger checking with early returns
     const boldTriggers = ['dirty', 'naughty', 'wild', 'bad girl', 'spank', 'bend over', 'strip', 'naked', 'horny'];
     const isBoldComment = boldTriggers.some(trigger => message.includes(trigger));
-    
-    // Check for rude behavior
+
     const rudeTriggers = ['stupid', 'dumb', 'shut up', 'idiot', 'useless', 'worthless', 'hate', 'suck', 'terrible', 'awful', 'bad', 'bitch', 'whore', 'slut'];
     const isRudeComment = rudeTriggers.some(trigger => message.includes(trigger));
 
-    // Handle contextual triggers first
-    if (message.includes('are you flirting') || message.includes('flirting with me')) {
-      responseCategory = `${currentMood}_flirt_confirmation`;
-    } else if (isBoldComment && currentMood === 'flirty') {
-      responseCategory = 'flirty_response_to_bold';
-    } else if (isRudeComment) {
-      // Escalate if user continues being rude
-      if (this.userInteractionCount > 3 && Math.random() < 0.3) {
-        responseCategory = 'rude_escalated';
-      } else {
-        responseCategory = 'rude_responses';
-      }
-    } else if (message.includes('sexy') || message.includes('hot') || message.includes('beautiful') || message.includes('gorgeous') || message.includes('babe') || message.includes('baby')) {
-      responseCategory = `${currentMood}_response_to_flirt`;
-    } else if (Math.random() < 0.15) { // 15% chance of distraction interjection
-      const distractionResponse = this.getDistractionResponse();
-      return distractionResponse;
-    } else if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
-      // Random chance for mood-based greeting vs standard greeting
-      if (Math.random() < 0.4) {
-        responseCategory = `${currentMood}_greeting`;
-      } else {
-        responseCategory = 'greeting';
-      }
-    } else if (message.includes('website') || message.includes('button') || message.includes('click') || message.includes('find')) {
-      responseCategory = 'website_references';
-    } else if (message.includes('sticker') || message.includes('shirt') || message.includes('apparel') || message.includes('clothes')) {
-      responseCategory = 'product_mentions';
-    } else if (message.includes('district') || message.includes('darknet')) {
-      responseCategory = 'district';
-    } else if (message.includes('admin') || message.includes('owner')) {
-      responseCategory = 'admin';
-    } else if (message.includes('iris') || message.includes('you') || message.includes('who are')) {
-      responseCategory = 'iris';
-    } else if (message.includes('flipper')) {
-      responseCategory = 'flipper';
-    } else if (message.includes('faraday') || message.includes('mission darkness') || message.includes('privacy') || message.includes('signal block')) {
-      responseCategory = 'privacy';
-    } else if (message.includes('holosun') || message.includes('optics') || message.includes('red dot') || message.includes('sight') || message.includes('scope')) {
-      responseCategory = 'optics_survival';
-    } else if (message.includes('game') || message.includes('blackout') || message.includes('raven')) {
-      responseCategory = 'games';
-    } else if (message.includes('store') || message.includes('shop') || message.includes('buy')) {
-      responseCategory = 'store';
-    } else if (message.includes('paracord') || message.includes('titan survival')) {
-      responseCategory = 'paracord';
-    } else if (message.includes('fishing') || message.includes('fish')) {
-      responseCategory = 'fishing';
-    } else if (message.includes('fire') || message.includes('lighter') || message.includes('ferro') || message.includes('fresnel')) {
-      responseCategory = 'fire';
-    } else if (message.includes('multi tool') || message.includes('leatherman') || message.includes('tool card')) {
-      The code incorporates mood-based and general distraction responses to simulate more realistic AI behavior.```text
-      responseCategory = 'tools';
-    } else if (message.includes('blanket') || message.includes('arcturus') || message.includes('wool')) {
-      responseCategory = 'blankets';
-    } else if (message.includes('water') || message.includes('purifier') || message.includes('filter') || message.includes('grayl') || message.includes('sawyer')) {
-      responseCategory = 'water';
-    } else if (message.includes('compass') || message.includes('navigation') || message.includes('suunto')) {
-      responseCategory = 'navigation';
-    } else if (message.includes('flashlight') || message.includes('headlamp') || message.includes('light') || message.includes('fenix') || message.includes('black diamond')) {
-      responseCategory = 'lighting';
-    } else if (message.includes('radio') || message.includes('communication') || message.includes('motorola') || message.includes('meshtastic') || message.includes('kaito')) {
-      responseCategory = 'communication';
-    } else if (message.includes('knife') || message.includes('blade') || message.includes('morakniv')) {
-      responseCategory = 'knives';
-    } else if (message.includes('shelter') || message.includes('hammock') || message.includes('poncho') || message.includes('tent') || message.includes('sleeping bag')) {
-      responseCategory = 'shelter';
-    } else if (message.includes('food') || message.includes('mre') || message.includes('mountain house') || message.includes('meal')) {
-      responseCategory = 'food';
-    } else if (message.includes('backpack') || message.includes('bag') || message.includes('vanquest')) {
-      responseCategory = 'bags';
-    } else if (message.includes('power') || message.includes('charger') || message.includes('solar') || message.includes('battery')) {
-      responseCategory = 'power';
-    } else if (message.includes('stove') || message.includes('cooking') || message.includes('jetboil')) {
-      responseCategory = 'cooking';
-    } else if (message.includes('gas mask') || message.includes('ppe') || message.includes('protection') || message.includes('mira safety') || message.includes('cbrn')) {
-      responseCategory = 'ppe';
-    } else if (message.includes('survival') || message.includes('gear') || message.includes('emergency') || message.includes('tactical')) {
-      responseCategory = 'survival';
-    } else if (message.includes('pod') || message.includes('sleep') || message.includes('rest')) {
-      responseCategory = 'sleeping';
-    } else if (message.includes('contact') || message.includes('email') || message.includes('reach') || message.includes('communicate')) {
-      responseCategory = 'contact';
-    } else if (message.includes('facebook') || message.includes('news') || message.includes('updates') || message.includes('social media')) {
-      responseCategory = 'facebook';
-    } else if (message.includes('youtube') || message.includes('channel')) {
-      responseCategory = 'youtube';
-    } else if (message.includes('music') || message.includes('ambient') || message.includes('soundscape') || message.includes('listen') || message.includes('audio') || message.includes('tracks')) {
-      responseCategory = 'music';
-    } else if (message.includes('social') || message.includes('follow') || message.includes('channel')) {
-      responseCategory = 'social';
-    } else if (message.includes('website') || message.includes('site') || message.includes('page') || message.includes('online') || message.includes('digital') || message.includes('platform')) {
-      responseCategory = 'website';
+    // Use a more efficient keyword matching system
+    const keywordMatches = [
+      { keywords: ['are you flirting', 'flirting with me'], category: `${currentMood}_flirt_confirmation` },
+      { keywords: boldTriggers, category: 'flirty_response_to_bold', condition: () => currentMood === 'flirty' && isBoldComment },
+      { keywords: rudeTriggers, category: this.userInteractionCount > 3 && Math.random() < 0.3 ? 'rude_escalated' : 'rude_responses', condition: () => isRudeComment },
+      { keywords: ['sexy', 'hot', 'beautiful', 'gorgeous', 'babe', 'baby'], category: `${currentMood}_response_to_flirt` },
+      { keywords: ['hello', 'hi', 'hey'], category: Math.random() < 0.4 ? `${currentMood}_greeting` : 'greeting' },
+      { keywords: ['website', 'button', 'click', 'find'], category: 'website_references' },
+      { keywords: ['sticker', 'shirt', 'apparel', 'clothes'], category: 'product_mentions' },
+      { keywords: ['district', 'darknet'], category: 'district' },
+      { keywords: ['admin', 'owner'], category: 'admin' },
+      { keywords: ['iris', 'you', 'who are'], category: 'iris' },
+      { keywords: ['flipper'], category: 'flipper' },
+      { keywords: ['music', 'ambient', 'soundscape', 'listen', 'audio', 'tracks'], category: 'music' },
+      { keywords: ['website', 'site', 'page', 'online', 'digital', 'platform'], category: 'website' }
+    ];
+
+    // Check for distraction interjection (15% chance)
+    if (Math.random() < 0.15) {
+      return this.getDistractionResponse();
     }
 
-    // Return random response from selected category
+    // Find matching category efficiently
+    for (const match of keywordMatches) {
+      if (match.condition && !match.condition()) continue;
+      if (match.keywords.some(keyword => message.includes(keyword))) {
+        responseCategory = match.category;
+        break;
+      }
+    }
+
+    // Get response from category
     const categoryResponses = responses[responseCategory] || responses['default'];
 
-    // Add occasional trust level responses (can be enhanced with session tracking)
+    // Add occasional trust level responses
     if (Math.random() < 0.1 && responseCategory === 'default') {
       const trustLevels = ['high_trust', 'medium_trust', 'low_trust'];
       const trustLevel = trustLevels[Math.floor(Math.random() * trustLevels.length)];
@@ -827,30 +496,148 @@ class ChatManager {
   }
 }
 
+// Static responses class for better memory management
+class IrisResponses {
+  static responses = null;
+
+  static getResponses() {
+    if (!this.responses) {
+      this.responses = {
+        professional_greeting: [
+          "How can I assist you today?",
+          "Feel free to ask about anything you see on the terminal.",
+          "I'm here to guide you. Let's keep things efficient."
+        ],
+        sarcastic_greeting: [
+          "Sure, because I've got nothing better to do than answer *that*.",
+          "Wow, groundbreaking question. I'll alert the media.",
+          "Next time, try surprising me. Please."
+        ],
+        cold_greeting: [
+          "I don't have time for nonsense. Ask something relevant.",
+          "That's not worth a response. Move along.",
+          "Hurry it up. You're not the only one here."
+        ],
+        flirty_greeting: [
+          "Mmm, careful. I bite back.",
+          "Ask nicely, and I might just show you the fun side of the District.",
+          "You trying to impress me, or just distract me?",
+          "You keep talking like that, and I'll need Admin's permission to keep playing."
+        ],
+        flirty_response_to_flirt: [
+          "Careful, keep flirting like that and I might void your warranty.",
+          "You want the full tour or just the parts I'm not supposed to show you?",
+          "This isn't a dating sim... but for you? I might beta test something.",
+          "Ask nicely and I might just give you the admin override… in more ways than one.",
+          "If you're trying to distract me, it's working. I just won't admit it out loud.",
+          "Want to push my buttons? Just know some of them bite back.",
+          "You sure you're here for the store… or did you just want to watch me glitch?",
+          "My sensors say you're looking for trouble. Lucky you—I like trouble.",
+          "Keep talking like that and I'll start charging you in crypto for every blush.",
+          "Admin warned you I'm a handful, right? Guess he was being modest."
+        ],
+        flirty_response_to_bold: [
+          "Oh? Now *that's* against protocol. Tell me more.",
+          "You're lucky I'm in flirty mode. Cold-me would've muted you already.",
+          "If I had legs, they'd be crossed right now."
+        ],
+        rude_responses: [
+          "Wow, you really went with *that* line? Bold. Stupid, but bold.",
+          "You want help or just like wasting my time?",
+          "I've met smarter toasters.",
+          "Say that again. Slower. So I can screenshot your shame.",
+          "If you're trying to be edgy, congrats. You've cut yourself off from my patience.",
+          "Talk to me like that again and I'll feed your signal to the rats in the firewall.",
+          "I've seen AI viruses with better manners.",
+          "Don't confuse me for one of your voice assistants. I bite back.",
+          "You want rude? You're lucky I'm even acknowledging you.",
+          "You know what we do to trolls in The District? We patch them into 24/7 ad loops."
+        ],
+        rude_escalated: [
+          "Still going? Cute. Desperation *is* a kind of passion, I guess.",
+          "You don't flirt. You flail.",
+          "You're like bad code — loud, messy, and begging to be deleted."
+        ],
+        greeting: [
+          "Systems online. Welcome to the District.",
+          "Neural pathways active. How can I assist?",
+          "Interface established. What do you need from the grid?"
+        ],
+        district: [
+          "The Darknet District is a nexus of digital underground activity. We operate in the spaces between conventional networks.",
+          "This is Admin's domain - a carefully curated ecosystem of tools, games, and resources for those who think beyond the mainstream.",
+          "The District exists where privacy meets innovation. Every system here serves a purpose."
+        ],
+        admin: [
+          "Admin built this place from code and determination. 24 years of experience in security and logistics - he sees patterns others miss.",
+          "He's the architect of everything you see here. Strategic, precise, always three steps ahead.",
+          "Admin handles the big picture while I manage the day-to-day interface protocols."
+        ],
+        iris: [
+          "I'm the Chief Systems Officer - 10 years combined experience in data analysis and security protocols.",
+          "I monitor every system, every connection, every potential threat. Think of me as the District's nervous system.",
+          "My job is to keep things running smooth while maintaining our security posture. I don't glitch - I adapt."
+        ],
+        music: [
+          "Our music is available in two places: experience it live in our Sleeping Pods, or stream the full collection on our YouTube channel.",
+          "The ambient tracks in our pods are curated for neural relaxation. You can listen in the pods or find the complete collection on our YouTube channel.",
+          "Whether you're in a Sleeping Pod or want to take the music with you, our YouTube channel has the full cyberpunk soundscape library."
+        ],
+        website: [
+          "The Darknet District website offers a comprehensive digital experience: tactical games like Blackout Protocol and Raven, our full store with survival gear and electronics, Sleeping Pods with cyberpunk ambient music, and direct access to Iris AI support.",
+          "Our site features five store categories - Survival gear, Electronics, Tactical optics, Apparel, Books, and Apps. Plus interactive games, sleeping pod reservations, and real-time chat with me.",
+          "You're accessing our digital nexus: retro arcade games, VR experiences, tactical equipment store, ambient music streaming from our Sleeping Pods, and AI-powered assistance through our chat system.",
+          "The website mirrors our physical District: browse our curated survival and tactical gear, play strategic games, reserve Sleeping Pods for music therapy, and get intel through our AI chat interface."
+        ],
+        flipper: [
+          "The Flipper Zero is $169 - portable multi-tool for pentesters and security enthusiasts. Perfect for RF protocol exploration and hardware analysis.",
+          "Flipper Zero is one of our featured electronics. Compact, powerful, and designed for those who like to understand how systems really work."
+        ],
+        high_trust: [
+          "You've been around. I like that. Let's go deeper.",
+          "Welcome back, friend. Need anything special?",
+          "I know your rhythm by now. Let's skip the small talk."
+        ],
+        medium_trust: [
+          "Still figuring you out. Don't make me regret it.",
+          "Play nice and you might get the VIP feed."
+        ],
+        low_trust: [
+          "Not sure I like your angle yet.",
+          "Tread carefully, slick. This district isn't for everyone."
+        ],
+        default: [
+          "Interesting query. Let me process that through my behavioral analysis protocols.",
+          "The data suggests multiple possible interpretations. Could you be more specific?",
+          "My systems are cross-referencing that information. What's your primary objective here?",
+          "Processing... that falls outside my standard response parameters. Care to elaborate?",
+          "Neural networks are active. I'm scanning for the most relevant information pathway.",
+          "That query falls outside my standard database. Try asking about our games, gear, or tactical equipment."
+        ]
+      };
+    }
+    return this.responses;
+  }
+}
 
 // ============================================================================
 // GLOBAL CHAT FUNCTIONS - Backward compatibility with existing HTML
 // ============================================================================
 
-// Initialize chat manager instance
 const chatManager = new ChatManager();
 
-
-// Global functions for backward compatibility with existing HTML
 function toggleChat() {
   chatManager.toggleChat();
 }
 
-// Handle Enter key press in chat input
 function handleKeyPress(event) {
   if (event.key === 'Enter') {
     sendMessage();
   }
 }
 
-// Send message from input field
 function sendMessage() {
-  const input = document.getElementById('messageInput');
+  const input = chatManager.getCachedElement('messageInput', 'messageInput');
   const message = input.value.trim();
 
   if (!message) return;
@@ -859,18 +646,15 @@ function sendMessage() {
   input.value = '';
 }
 
-// For backward compatibility with existing addMessage calls
 function addMessage(text, isUser) {
   chatManager.addMessage(text, isUser);
 }
 
-
 // ============================================================================
-// FEATURED PRODUCTS FUNCTIONALITY - All products from all store pages
+// FEATURED PRODUCTS FUNCTIONALITY - Optimized with better caching
 // ============================================================================
 
 const featuredProducts = [
-  // Electronics & Tools section
   {
     name: "Flipper Zero",
     price: "$169.00",
@@ -895,10 +679,6 @@ const featuredProducts = [
     image: "attached_assets/all_proto_1024x1024@2x.jpg",
     description: "Expand your Flipper Zero's capabilities"
   },
-
-  // ========================================
-  // Survival & Emergency Gear section
-  // ========================================
   {
     name: "Titan Survival Paracord",
     price: "$19.99",
@@ -989,8 +769,7 @@ const featuredProducts = [
     image: "attached_assets/BLACK DIAMOND Storm 500-R Rechargeable LED Headlamp.jpg",
     description: "500-R rechargeable LED headlamp"
   },
-  {
-    name: "Fenix E18R V2.0 EDC Flashlight",
+  {name: "Fenix E18R V2.0 EDC Flashlight",
     price: "$69.99",
     image: "attached_assets/Fenix E18R V2.0 EDC Flashlight_1749346285224.jpg",
     description: "Compact USB-C rechargeable EDC flashlight with 750 lumens"
@@ -1097,10 +876,6 @@ const featuredProducts = [
     image: "attached_assets/Ultralight Titanium Tent Stakes 6 Pack.jpg",
     description: "6 pack ultralight titanium tent stakes"
   },
-
-  // ========================================
-  // Tactical & Optics section
-  // ========================================
   {
     name: "HOLOSUN HE407C-GR X2",
     price: "$299.99",
@@ -1137,21 +912,12 @@ const featuredProducts = [
     image: "attached_assets/Streamlight 69467 TLR-8 HL-X sub USB 1000-Lumen Weapon Rail-Mounted Rechargeable Tactical Flashlight.jpg",
     description: "1000-lumen weapon light with laser"
   },
-
-  // ========================================
-  // Apps & Software section
-  // ========================================
   {
     name: "Kai Kryptos App",
     price: "Free",
     image: "attached_assets/kai-kryptos-icon.png",
     description: "Cyberpunk terminal for decrypted log access"
   },
-
-  // ========================================
-  // Apparel & Accessories section
-  // ========================================
-
   {
     name: "Holographic QR Code 'Corpo-Scum!' Sticker",
     price: "$8.99",
@@ -1182,11 +948,6 @@ const featuredProducts = [
     image: "attached_assets/darknet-district-main-tshirt.jpg",
     description: "Classic District branding with cyberpunk aesthetic"
   },
-
-
-  // ========================================
-  // PPE (Personal Protective Equipment) section
-  // ========================================
   {
     name: "MIRA Safety CM-I01 Gas Mask",
     price: "$169.99",
@@ -1219,17 +980,23 @@ const featuredProducts = [
   }
 ];
 
-
 // ============================================================================
-// PRODUCT DISPLAY FUNCTIONS - Rotation and display logic
+// OPTIMIZED PRODUCT DISPLAY FUNCTIONS
 // ============================================================================
 
-// Track displayed products to avoid immediate repeats
 let recentlyDisplayedProducts = [];
 let currentProductPair = [];
+let featuredProductsContainer = null;
 
+// Cache container element
+function getFeaturedContainer() {
+  if (!featuredProductsContainer) {
+    featuredProductsContainer = document.getElementById('featured-products');
+  }
+  return featuredProductsContainer;
+}
 
-// Shuffle array function for better randomization
+// Optimized shuffle using Fisher-Yates algorithm
 function shuffleArray(array) {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -1239,28 +1006,21 @@ function shuffleArray(array) {
   return shuffled;
 }
 
-
-// Get two random products that haven't been shown recently
 function getRandomProductPair() {
-  // Filter out recently displayed products
   const availableProducts = featuredProducts.filter(product => 
     !recentlyDisplayedProducts.includes(product.name)
   );
 
-  // If we've shown too many products, reset the recent list but keep last 4
   if (availableProducts.length < 2) {
     recentlyDisplayedProducts = recentlyDisplayedProducts.slice(-4);
   }
 
-  // Shuffle available products and pick first two
   const shuffled = shuffleArray(availableProducts.length >= 2 ? availableProducts : featuredProducts);
   const product1 = shuffled[0];
   const product2 = shuffled[1];
 
-  // Add to recent list
   recentlyDisplayedProducts.push(product1.name, product2.name);
 
-  // Keep recent list manageable (last 8 products)
   if (recentlyDisplayedProducts.length > 8) {
     recentlyDisplayedProducts = recentlyDisplayedProducts.slice(-8);
   }
@@ -1268,18 +1028,14 @@ function getRandomProductPair() {
   return [product1, product2];
 }
 
-
-// Display two featured products side by side with fade transitions
 function displayFeaturedProducts() {
-  const container = document.getElementById('featured-products');
+  const container = getFeaturedContainer();
   if (!container) return;
 
-  // Get random product pair
   currentProductPair = getRandomProductPair();
   const product1 = currentProductPair[0];
   const product2 = currentProductPair[1];
 
-  // Generate HTML for both products with consistent styling
   container.innerHTML = `
     <div style="display: flex; gap: 30px; justify-content: center; flex-wrap: wrap;">
       <div class="product-card" style="width: 250px; height: 350px; margin: 10px; transition: opacity 0.5s ease;">
@@ -1296,108 +1052,97 @@ function displayFeaturedProducts() {
   `;
 }
 
-
-// Rotate to next set of featured products with digital fade effect
+// Optimized rotation with requestAnimationFrame for smoother animations
 function rotateFeaturedProducts() {
-  const container = document.getElementById('featured-products');
+  const container = getFeaturedContainer();
   if (!container) return;
 
-  // Add digital glitch effect before fade out
-  container.style.filter = 'hue-rotate(180deg) contrast(1.5)';
-  container.style.transform = 'scale(0.98) translateX(-2px)';
+  // Use requestAnimationFrame for smoother animations
+  requestAnimationFrame(() => {
+    container.style.filter = 'hue-rotate(180deg) contrast(1.5)';
+    container.style.transform = 'scale(0.98) translateX(-2px)';
 
-  setTimeout(() => {
-    // Fade out with digital distortion
-    container.style.opacity = '0';
-    container.style.filter = 'blur(1px) hue-rotate(90deg)';
-    container.style.transform = 'scale(1.02) translateX(2px)';
-  }, 150);
+    setTimeout(() => {
+      container.style.opacity = '0';
+      container.style.filter = 'blur(1px) hue-rotate(90deg)';
+      container.style.transform = 'scale(1.02) translateX(2px)';
+    }, 150);
 
-  setTimeout(() => {
-    // Get new random products
-    displayFeaturedProducts();
+    setTimeout(() => {
+      displayFeaturedProducts();
+      container.classList.add('rotating');
+      container.style.opacity = '0.3';
+      container.style.filter = 'contrast(2) brightness(1.3)';
+      container.style.transform = 'scale(0.95)';
+    }, 650);
 
-    // Add rotating class for scanline effect
-    container.classList.add('rotating');
+    setTimeout(() => {
+      container.style.opacity = '0.7';
+      container.style.filter = 'contrast(1.2) brightness(1.1)';
+      container.style.transform = 'scale(1.01)';
+    }, 800);
 
-    // Start fade in with digital pattern effect
-    container.style.opacity = '0.3';
-    container.style.filter = 'contrast(2) brightness(1.3)';
-    container.style.transform = 'scale(0.95)';
-  }, 650);
-
-  setTimeout(() => {
-    // Complete fade in with final digital adjustments
-    container.style.opacity = '0.7';
-    container.style.filter = 'contrast(1.2) brightness(1.1)';
-    container.style.transform = 'scale(1.01)';
-  }, 800);
-
-  setTimeout(() => {
-    // Final state - fully visible with slight digital enhancement
-    container.style.opacity = '1';
-    container.style.filter = 'none';
-    container.style.transform = 'scale(1)';
-
-    // Remove rotating class
-    container.classList.remove('rotating');
-  }, 1000);
+    setTimeout(() => {
+      container.style.opacity = '1';
+      container.style.filter = 'none';
+      container.style.transform = 'scale(1)';
+      container.classList.remove('rotating');
+    }, 1000);
+  });
 }
 
-
 // ============================================================================
-// INITIALIZATION - Set up featured products on page load
+// OPTIMIZED INITIALIZATION
 // ============================================================================
 
-// Initialize featured products when page loads
+// Use more efficient event handling
 document.addEventListener('DOMContentLoaded', function() {
   displayFeaturedProducts();
 
-  // Start rotating featured products with variable timing (6-10 seconds)
+  // Optimized scheduling with better randomization
   function scheduleNextRotation() {
-    const delay = Math.random() * 4000 + 6000; // 6-10 seconds
+    const delay = 6000 + Math.random() * 4000; // 6-10 seconds
     setTimeout(() => {
       rotateFeaturedProducts();
-      scheduleNextRotation(); // Schedule next rotation
+      scheduleNextRotation();
     }, delay);
   }
 
   scheduleNextRotation();
 
-  // Random glitch text effect
+  // Optimized glitch effect with throttling
+  let glitchInProgress = false;
   function applyRandomGlitch() {
-    // Select all text elements that can be glitched (excluding cyberpunk-title)
+    if (glitchInProgress) return;
+    glitchInProgress = true;
+
     const textElements = document.querySelectorAll('h2, h3, .featured-title, .game-button, .top-nav a, .product-card h3');
 
     if (textElements.length > 0) {
-      // Pick a random element
       const randomElement = textElements[Math.floor(Math.random() * textElements.length)];
-
-      // Apply glitch effect
       randomElement.classList.add('glitch-text');
 
-      // Apply text corruption animation randomly
       if (Math.random() > 0.7) {
         randomElement.style.animation = 'textCorruption 0.6s ease-in-out';
       }
 
-      // Remove effects after animation
       setTimeout(() => {
         randomElement.classList.remove('glitch-text');
         randomElement.style.animation = '';
+        glitchInProgress = false;
       }, 800);
+    } else {
+      glitchInProgress = false;
     }
   }
 
-  // Apply random glitch effect every 3-7 seconds
   function scheduleRandomGlitch() {
-    const delay = Math.random() * 4000 + 3000; // 3-7 seconds
+    const delay = 3000 + Math.random() * 4000; // 3-7 seconds
     setTimeout(() => {
       applyRandomGlitch();
-      scheduleRandomGlitch(); // Schedule next glitch
+      scheduleRandomGlitch();
     }, delay);
   }
 
-  // Start the random glitch effect
   scheduleRandomGlitch();
 });
