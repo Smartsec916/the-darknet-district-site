@@ -407,6 +407,18 @@ class ChatManager {
     this.analyzeMoodShiftTriggers(text);
     this.userInteractionCount++;
 
+    // Check for distraction even when API is working (35% chance)
+    if (Math.random() < 0.35) {
+      const distractionResponse = this.getDistractionResponse();
+      const delay = Math.min(2000, Math.max(800, distractionResponse.length * 20));
+      
+      setTimeout(() => {
+        this.setTyping(false);
+        this.addMessage(distractionResponse, false);
+      }, delay);
+      return;
+    }
+
     try {
       const url = 'https://the-darknet-district-site.onrender.com/api/chat/message';
       console.log("Sending message to URL:", url);
