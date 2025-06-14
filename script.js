@@ -296,6 +296,14 @@ class ChatManager {
         "We're active on Facebook for news and YouTube for our pod music. Both buttons are available on our About page.",
         "Stay connected: Facebook for updates, YouTube for ambient soundscapes, Contact for direct communication."
       ],
+      website: [
+        "The Darknet District website offers a comprehensive digital experience: tactical games like Blackout Protocol and Raven, our full store with survival gear and electronics, Sleeping Pods with cyberpunk ambient music, and direct access to Iris AI support.",
+        "Our site features five store categories - Survival gear, Electronics, Tactical optics, Apparel, Books, and Apps. Plus interactive games, sleeping pod reservations, and real-time chat with me.",
+        "You're accessing our digital nexus: retro arcade games, VR experiences, tactical equipment store, ambient music streaming from our Sleeping Pods, and AI-powered assistance through our chat system.",
+        "The website mirrors our physical District: browse our curated survival and tactical gear, play strategic games, reserve Sleeping Pods for music therapy, and get intel through our AI chat interface.",
+        "Our digital infrastructure includes: Blackout Protocol tactical simulator, Raven strategic thriller, comprehensive gear catalog across survival/electronics/optics categories, cyberpunk ambient playlists, and neural interface chat support.",
+        "This platform integrates everything: tactical gaming suite, five-category equipment store, Sleeping Pod music streaming, social media links, and direct communication channels with District command."
+      ],</old_str>
       survival: [
         "Our survival section is fully stocked with field-tested gear. We have everything from Titan's 1000 LB paracord with hidden Kevlar filaments to Morakniv blades and Jetboil stoves.",
         "Survival gear includes water purification (GRAYL UltraPress, Sawyer Mini), fire starting (überleben ferro rods, electric lighters), shelter (Arcturus blankets, ENO hammocks), and emergency food (Mountain House, MREs).",
@@ -438,6 +446,8 @@ class ChatManager {
       responseCategory = 'music';
     } else if (message.includes('social') || message.includes('follow') || message.includes('channel')) {
       responseCategory = 'social';
+    } else if (message.includes('website') || message.includes('site') || message.includes('page') || message.includes('online') || message.includes('digital') || message.includes('platform')) {
+      responseCategory = 'website';
     }
 
     // Return random response from selected category
