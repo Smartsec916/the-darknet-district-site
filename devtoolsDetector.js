@@ -20,8 +20,8 @@
     // Detection threshold configuration
     // ========================================
 
-    // More relaxed thresholds and tracking for suspicious changes
-    const baseThreshold = 300; // Higher base threshold
+    // Detection threshold - lowered for better sensitivity
+    const baseThreshold = 200; // More sensitive threshold
     let initialOuterWidth = window.outerWidth;
     let initialOuterHeight = window.outerHeight;
     let initialInnerWidth = window.innerWidth;
@@ -45,23 +45,21 @@
         const heightChange = Math.abs(window.outerHeight - initialOuterHeight);
         const widthChange = Math.abs(window.outerWidth - initialOuterWidth);
         
-        // Only trigger if BOTH conditions are met:
-        // 1. Current difference exceeds relaxed threshold
-        // 2. There was a significant sudden change (indicating devtools opening, not just resize)
-        const significantDifference = heightDiff > baseThreshold || widthDiff > baseThreshold;
-        const suddenChange = (heightChange > 200 && heightDiff > 250) || (widthChange > 200 && widthDiff > 250);
+        // Simplified detection: trigger on significant size differences
+        const significantHeightDiff = heightDiff > baseThreshold;
+        const significantWidthDiff = widthDiff > baseThreshold;
         const currentTime = Date.now();
         
-        // Track suspicious rapid changes
-        if(suddenChange && currentTime - lastSuspiciousTime < 2000) {
+        // Track when we detect potential devtools opening
+        if((significantHeightDiff || significantWidthDiff) && currentTime - lastSuspiciousTime > 1000) {
             suspiciousChangeCount++;
             lastSuspiciousTime = currentTime;
-        } else if(currentTime - lastSuspiciousTime > 5000) {
-            suspiciousChangeCount = 0; // Reset if no recent suspicious activity
+        } else if(currentTime - lastSuspiciousTime > 3000) {
+            suspiciousChangeCount = 0; // Reset if no recent activity
         }
         
-        // Only trigger if we have significant difference AND (sudden change OR multiple suspicious changes)
-        if(significantDifference && (suddenChange || suspiciousChangeCount >= 2)){
+        // Trigger if we have significant difference OR multiple detections
+        if(significantHeightDiff || significantWidthDiff || suspiciousChangeCount >= 1){
 
             // If dev tools just opened
             if(!devtools.open){
@@ -118,7 +116,7 @@
             }
         }
 
-    }, 1000); // Check every 1000 milliseconds (less frequent)
+    }, 500); // Check every 500 milliseconds for faster detection
 
     // ========================================
     // Chatbot integration function
