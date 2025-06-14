@@ -284,11 +284,13 @@ class ChatManager {
       ],
       youtube: [
         "Our YouTube channel features the ambient music from our Sleeping Pods. Perfect for digital meditation.",
-        "The YouTube button takes you to our curated soundscape collection—same tracks that play in the pods."
+        "The YouTube button takes you to our curated soundscape collection—same tracks that play in the pods.",
+        "All our cyberpunk ambient music is available on YouTube. Same high-quality tracks you'll hear in the pods."
       ],
       music: [
-        "Our Sleeping Pod music is available on our YouTube channel. Use the YouTube button to access the full collection.",
-        "The ambient tracks in our pods are curated for neural relaxation. Find them on our YouTube channel."
+        "Our music is available in two places: experience it live in our Sleeping Pods, or stream the full collection on our YouTube channel.",
+        "The ambient tracks in our pods are curated for neural relaxation. You can listen in the pods or find the complete collection on YouTube.",
+        "Whether you're in a Sleeping Pod or want to take the music with you, our YouTube channel has the full cyberpunk soundscape library."
       ],
       social: [
         "We're active on Facebook for news and YouTube for our pod music. Both buttons are available on our About page.",
@@ -430,8 +432,10 @@ class ChatManager {
       responseCategory = 'contact';
     } else if (message.includes('facebook') || message.includes('news') || message.includes('updates') || message.includes('social media')) {
       responseCategory = 'facebook';
-    } else if (message.includes('youtube') || message.includes('music') || message.includes('ambient') || message.includes('soundscape')) {
+    } else if (message.includes('youtube') || message.includes('channel')) {
       responseCategory = 'youtube';
+    } else if (message.includes('music') || message.includes('ambient') || message.includes('soundscape') || message.includes('listen') || message.includes('audio') || message.includes('tracks')) {
+      responseCategory = 'music';
     } else if (message.includes('social') || message.includes('follow') || message.includes('channel')) {
       responseCategory = 'social';
     }
