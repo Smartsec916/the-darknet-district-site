@@ -151,7 +151,11 @@ class ChatManager {
     const message = userMessage.toLowerCase();
     const currentTime = Date.now();
 
-    if (currentTime - this.lastMoodChange < 30000) {
+    console.log("Mood before analysis:", this.mood);
+    console.log("User said:", userMessage);
+
+    if (currentTime - this.lastMoodChange < 10000) {
+      console.log("Mood cooldown active, keeping current mood:", this.mood);
       return this.mood;
     }
 
@@ -189,14 +193,19 @@ class ChatManager {
         const validMoods = ['professional', 'flirty', 'sarcastic', 'cold'];
         if (validMoods.includes(requestedMood)) {
           newMood = requestedMood;
+          console.log(`Manual mood override to: ${newMood}`);
         }
       }
     }
+
+    console.log("Mood after analysis:", newMood);
 
     if (newMood !== this.mood) {
       this.mood = newMood;
       this.lastMoodChange = currentTime;
       console.log(`Iris mood shifted to: ${newMood}`);
+      // Debug notification in chat (remove this line when done testing)
+      this.addMessage(`(Mood shifted to: ${newMood})`, false);
     }
 
     return this.mood;
