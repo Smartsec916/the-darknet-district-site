@@ -2,7 +2,7 @@
 # FLASK SERVER - The Darknet District Backend API
 # ============================================================================
 
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, make_response
 from flask_cors import CORS
 from flask_mail import Mail, Message
 import os
@@ -401,17 +401,24 @@ def generate_fallback_response(user_message):
 # ============================================================================
 # HEALTH CHECK ENDPOINT - For debugging connectivity
 # ============================================================================
-@app.route('/api/chat/<session_id>/email', methods=['POST'])
+@app.route('/api/chat/<session_id>/email', methods=['POST', 'OPTIONS'])
 def email_chat_log(session_id):
     """Send manual chat log email for a given session"""
+    if request.method == 'OPTIONS':
+        return '', 200
+        
     try:
         session = sessions.get(session_id)
         if not session or 'messages' not in session:
-            return jsonify({"error": "Session not found or has no messages."}), 404
+            response = make_response(jsonify({"error": "Session not found or has no messages."}), 404)
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            return response
 
         messages = session['messages']
         if not messages:
-            return jsonify({"error": "No messages to email."}), 400
+            response = make_response(jsonify({"error": "No messages to email."}), 400)
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            return response
 
         # Format log
         email_body = f"""
@@ -435,11 +442,15 @@ Conversation:
         )
         mail.send(msg)
 
-        return jsonify({"success": True, "message": "Manual chat log sent."}), 200
+        response = make_response(jsonify({"success": True, "message": "Manual chat log sent."}), 200)
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        return response
 
     except Exception as e:
         logger.error(f"Manual email error: {e}")
-        return jsonify({"error": "Failed to send manual chat log."}), 500
+        response = make_response(jsonify({"error": "Failed to send manual chat log."}), 500)
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        return response
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
