@@ -146,7 +146,7 @@ class ChatManager {
     return 'professional';
   }
 
-  // Analyze user message for mood shift triggers
+  // Comprehensive mood trigger system with organized categories
   analyzeMoodShiftTriggers(userMessage) {
     const message = userMessage.toLowerCase();
     const currentTime = Date.now();
@@ -162,30 +162,86 @@ class ChatManager {
     let newMood = this.mood;
     let shiftProbability = 0;
 
-    const flirtTriggers = ['sexy', 'hot', 'beautiful', 'gorgeous', 'babe', 'baby', 'cute', 'love', 'kiss', 'dating', 'flirt'];
-    if (flirtTriggers.some(trigger => message.includes(trigger))) {
-      shiftProbability = 0.4;
-      if (Math.random() < shiftProbability) {
-        newMood = 'flirty';
-      }
-    }
+    // Comprehensive trigger categories
+    const moodTriggers = {
+      // FLIRTY triggers - romantic/sexual content
+      flirty: {
+        words: [
+          'sexy', 'hot', 'beautiful', 'gorgeous', 'babe', 'baby', 'cute', 'love', 'kiss', 'dating', 'flirt',
+          'sweetheart', 'honey', 'darling', 'angel', 'stunning', 'attractive', 'seductive', 'charming',
+          'adorable', 'pretty', 'handsome', 'romance', 'romantic', 'passionate', 'desire', 'want you',
+          'need you', 'miss you', 'thinking of you', 'dream about', 'fantasize', 'crush', 'infatuated',
+          'enchanting', 'alluring', 'captivating', 'mesmerizing', 'breathtaking', 'irresistible'
+        ],
+        phrases: [
+          'you are beautiful', 'you are hot', 'you are sexy', 'i love you', 'wanna date',
+          'are you single', 'want to go out', 'dinner date', 'netflix and chill', 'slide into dms',
+          'heart eyes', 'love at first sight', 'match made in heaven', 'better half', 'soulmate'
+        ],
+        probability: 0.4
+      },
 
-    const rudeTriggers = ['stupid', 'dumb', 'shut up', 'idiot', 'useless', 'worthless', 'hate', 'suck', 'terrible', 'awful', 'bad', 'bitch', 'whore', 'slut'];
-    if (rudeTriggers.some(trigger => message.includes(trigger))) {
-      shiftProbability = 0.6;
-      if (Math.random() < shiftProbability) {
-        newMood = Math.random() < 0.5 ? 'cold' : 'sarcastic';
-      }
-    }
+      // COLD triggers - insults, hostility, disrespect
+      cold: {
+        words: [
+          'stupid', 'dumb', 'idiot', 'moron', 'retard', 'pathetic', 'worthless', 'useless', 'loser',
+          'failure', 'trash', 'garbage', 'waste', 'disgusting', 'gross', 'ugly', 'hideous', 'repulsive',
+          'annoying', 'irritating', 'boring', 'lame', 'cringe', 'crappy', 'shitty', 'fucked up',
+          'bitch', 'whore', 'slut', 'cunt', 'asshole', 'bastard', 'dickhead', 'prick', 'douche'
+        ],
+        phrases: [
+          'shut up', 'fuck off', 'go away', 'leave me alone', 'you suck', 'you are terrible',
+          'you are awful', 'i hate you', 'you are the worst', 'piece of shit', 'son of a bitch',
+          'get lost', 'buzz off', 'piss off', 'screw you', 'go to hell', 'drop dead'
+        ],
+        probability: 0.6
+      },
 
-    const positiveTriggers = ['thank', 'please', 'help', 'amazing', 'great', 'awesome', 'cool', 'nice'];
-    if (positiveTriggers.some(trigger => message.includes(trigger)) && this.mood === 'cold') {
-      shiftProbability = 0.3;
-      if (Math.random() < shiftProbability) {
-        newMood = Math.random() < 0.7 ? 'professional' : 'flirty';
-      }
-    }
+      // SARCASTIC triggers - mocking, dismissive, condescending
+      sarcastic: {
+        words: [
+          'whatever', 'sure', 'right', 'okay', 'fine', 'great', 'wonderful', 'fantastic', 'perfect',
+          'brilliant', 'genius', 'smartass', 'know-it-all', 'obviously', 'clearly', 'totally',
+          'absolutely', 'definitely', 'certainly', 'wow', 'amazing', 'incredible', 'unbelievable'
+        ],
+        phrases: [
+          'yeah right', 'as if', 'in your dreams', 'fat chance', 'not likely', 'sure thing',
+          'tell me more', 'how original', 'never heard that before', 'so funny', 'real clever',
+          'big deal', 'who cares', 'so what', 'and your point is', 'thanks captain obvious'
+        ],
+        probability: 0.5
+      },
 
+      // PROFESSIONAL triggers - business, formal, respectful
+      professional: {
+        words: [
+          'please', 'thank', 'thanks', 'appreciate', 'grateful', 'help', 'assist', 'support',
+          'information', 'question', 'inquiry', 'request', 'professional', 'business', 'formal',
+          'respectful', 'polite', 'courteous', 'proper', 'appropriate', 'serious', 'important',
+          'urgent', 'priority', 'official', 'documentation', 'procedure', 'protocol', 'policy'
+        ],
+        phrases: [
+          'thank you', 'please help', 'i appreciate', 'could you help', 'would you mind',
+          'if you please', 'excuse me', 'pardon me', 'may i ask', 'i would like to know',
+          'can you provide', 'i need assistance', 'looking for information', 'professional inquiry'
+        ],
+        probability: 0.3
+      }
+    };
+
+    // Context-based mood modifiers
+    const contextModifiers = {
+      // Questions tend to be more professional
+      questions: ['what', 'how', 'when', 'where', 'why', 'who', 'which', 'can', 'could', 'would', 'should', 'will'],
+      // Compliments can trigger flirty mood
+      compliments: ['good job', 'well done', 'impressive', 'excellent', 'outstanding', 'remarkable'],
+      // Technical terms lean professional
+      technical: ['system', 'protocol', 'interface', 'network', 'security', 'database', 'server', 'api'],
+      // Casual speech might trigger sarcastic
+      casual: ['dude', 'bro', 'man', 'yo', 'sup', 'wassup', 'hey', 'hi there', 'whats up']
+    };
+
+    // Check for manual mood overrides first
     if (message.includes('admin override') || message.includes('mood:')) {
       const moodMatch = message.match(/mood:\s*(\w+)/);
       if (moodMatch) {
@@ -194,17 +250,81 @@ class ChatManager {
         if (validMoods.includes(requestedMood)) {
           newMood = requestedMood;
           console.log(`Manual mood override to: ${newMood}`);
+          this.mood = newMood;
+          this.lastMoodChange = currentTime;
+          this.addMessage(`(Mood manually set to: ${newMood})`, false);
+          return this.mood;
         }
       }
     }
 
-    console.log("Mood after analysis:", newMood);
+    // Check each mood category for triggers
+    for (const [moodType, triggers] of Object.entries(moodTriggers)) {
+      let triggerCount = 0;
+      let matchedTriggers = [];
 
+      // Check individual words
+      for (const word of triggers.words) {
+        if (message.includes(word)) {
+          triggerCount++;
+          matchedTriggers.push(word);
+        }
+      }
+
+      // Check phrases (higher weight)
+      for (const phrase of triggers.phrases) {
+        if (message.includes(phrase)) {
+          triggerCount += 2; // Phrases count double
+          matchedTriggers.push(phrase);
+        }
+      }
+
+      // If triggers found, calculate mood shift
+      if (triggerCount > 0) {
+        console.log(`Found ${triggerCount} triggers for ${moodType}:`, matchedTriggers);
+        
+        // Multiple triggers increase probability
+        const adjustedProbability = Math.min(triggers.probability + (triggerCount * 0.1), 0.8);
+        
+        if (Math.random() < adjustedProbability) {
+          // Special handling for cold/sarcastic split
+          if (moodType === 'cold') {
+            newMood = Math.random() < 0.6 ? 'cold' : 'sarcastic';
+          } else {
+            newMood = moodType;
+          }
+          console.log(`Mood shift triggered to: ${newMood} (probability: ${adjustedProbability})`);
+          break;
+        }
+      }
+    }
+
+    // Context-based mood adjustments
+    if (newMood === this.mood) {
+      // Check if current cold mood should soften with positive context
+      if (this.mood === 'cold') {
+        const positiveWords = moodTriggers.professional.words.concat(['sorry', 'apologize', 'mistake']);
+        const positiveCount = positiveWords.filter(word => message.includes(word)).length;
+        
+        if (positiveCount > 0 && Math.random() < 0.3) {
+          newMood = Math.random() < 0.7 ? 'professional' : 'sarcastic';
+          console.log("Cold mood softened due to positive context");
+        }
+      }
+
+      // Technical context can shift to professional
+      const techCount = contextModifiers.technical.filter(term => message.includes(term)).length;
+      if (techCount > 1 && this.mood !== 'professional' && Math.random() < 0.2) {
+        newMood = 'professional';
+        console.log("Technical context triggered professional mood");
+      }
+    }
+
+    // Apply mood change if different
     if (newMood !== this.mood) {
       this.mood = newMood;
       this.lastMoodChange = currentTime;
       console.log(`Iris mood shifted to: ${newMood}`);
-      // Debug notification in chat (remove this line when done testing)
       this.addMessage(`(Mood shifted to: ${newMood})`, false);
     }
 
