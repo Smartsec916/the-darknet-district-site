@@ -216,7 +216,8 @@ def chat_message():
         })
         
         # Update last activity timestamp
-        sessions[session_id]['last_active'] = time.time()
+        if session_id in sessions:
+            sessions[session_id]['last_active'] = time.time()
 
         # Send email log if conversation has reached a certain length (e.g., 4+ messages)
         if len(sessions[session_id]['messages']) >= 4:
@@ -512,7 +513,10 @@ def session_timeout_checker():
         timeout_limit = 15 * 60  # 15 minutes in seconds
 
         expired = []
-        for session_id, data in sessions.items():
+        # Create a copy of sessions to avoid runtime errors during iteration
+        sessions_copy = dict(sessions)
+        
+        for session_id, data in sessions_copy.items():
             if 'messages' in data and data['messages'] and now - data.get('last_active', 0) > timeout_limit:
                 try:
                     send_chat_log_email(session_id, data['messages'])

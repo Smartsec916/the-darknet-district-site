@@ -64,6 +64,31 @@
             // If dev tools just opened
             if(!devtools.open){
                 devtools.open = true;
+                
+                // Create warning message with proper spacing
+                const warningMessage = `> "Oh, peeking under the hood? You sure you can handle what's under there?"
+
+The neural pathways are watching. Every click tracked. Every keystroke logged.
+
+> "Welcome to the surveillance state, choom. Hope you brought your paranoia."`;
+
+                // Display the warning
+                alert(warningMessage);
+                
+                // Optional: Redirect or take other action
+                // window.location.href = 'about:blank';
+            }
+        } else {
+            // Dev tools closed
+            if(devtools.open){
+                devtools.open = false;
+                suspiciousChangeCount = 0;
+            }
+        }
+
+    }, 1000);
+
+}();
 
                 // Clear console and show warning
                 console.clear();
