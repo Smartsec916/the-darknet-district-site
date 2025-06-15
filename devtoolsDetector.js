@@ -47,8 +47,6 @@ window.addEventListener("load", () => {
             if (!devtoolsOpen) {
                 devtoolsOpen = true;
 
-                const warning = `> "Oh, peeking under the hood? You sure you can handle what's under there?"\n\nThe neural pathways are watching. Every click tracked. Every keystroke logged.\n\n> "Welcome to the surveillance state, choom. Hope you brought your paranoia."`;
-                alert(warning);
                 console.clear();
                 console.log('%cACCESS DENIED', "color:#ff0000;font-size:50px;font-weight:bold;text-shadow:2px 2px 0px #000000;");
                 console.log('%cUnauthorized development access detected.\nTerminal access revoked.', "color:#ff0000;font-size:16px;font-family:monospace;");
