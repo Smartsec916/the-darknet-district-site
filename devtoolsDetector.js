@@ -20,8 +20,8 @@
     // Detection threshold configuration
     // ========================================
 
-    // Detection threshold - lowered for better sensitivity
-    const baseThreshold = 200; // More sensitive threshold
+    // More relaxed thresholds and tracking for suspicious changes
+    const baseThreshold = 300; // Higher base threshold
     let initialOuterWidth = window.outerWidth;
     let initialOuterHeight = window.outerHeight;
     let initialInnerWidth = window.innerWidth;
@@ -45,50 +45,27 @@
         const heightChange = Math.abs(window.outerHeight - initialOuterHeight);
         const widthChange = Math.abs(window.outerWidth - initialOuterWidth);
         
-        // Simplified detection: trigger on significant size differences
-        const significantHeightDiff = heightDiff > baseThreshold;
-        const significantWidthDiff = widthDiff > baseThreshold;
+        // Only trigger if BOTH conditions are met:
+        // 1. Current difference exceeds relaxed threshold
+        // 2. There was a significant sudden change (indicating devtools opening, not just resize)
+        const significantDifference = heightDiff > baseThreshold || widthDiff > baseThreshold;
+        const suddenChange = (heightChange > 200 && heightDiff > 250) || (widthChange > 200 && widthDiff > 250);
         const currentTime = Date.now();
         
-        // Track when we detect potential devtools opening
-        if((significantHeightDiff || significantWidthDiff) && currentTime - lastSuspiciousTime > 1000) {
+        // Track suspicious rapid changes
+        if(suddenChange && currentTime - lastSuspiciousTime < 2000) {
             suspiciousChangeCount++;
             lastSuspiciousTime = currentTime;
-        } else if(currentTime - lastSuspiciousTime > 3000) {
-            suspiciousChangeCount = 0; // Reset if no recent activity
+        } else if(currentTime - lastSuspiciousTime > 5000) {
+            suspiciousChangeCount = 0; // Reset if no recent suspicious activity
         }
         
-        // Trigger if we have significant difference OR multiple detections
-        if(significantHeightDiff || significantWidthDiff || suspiciousChangeCount >= 1){
+        // Only trigger if we have significant difference AND (sudden change OR multiple suspicious changes)
+        if(significantDifference && (suddenChange || suspiciousChangeCount >= 2)){
 
             // If dev tools just opened
             if(!devtools.open){
                 devtools.open = true;
-                
-                // Create warning message with proper spacing
-                const warningMessage = `> "Oh, peeking under the hood? You sure you can handle what's under there?"
-
-The neural pathways are watching. Every click tracked. Every keystroke logged.
-
-> "Welcome to the surveillance state, choom. Hope you brought your paranoia."`;
-
-                // Display the warning
-                alert(warningMessage);
-                
-                // Optional: Redirect or take other action
-                // window.location.href = 'about:blank';
-            }
-        } else {
-            // Dev tools closed
-            if(devtools.open){
-                devtools.open = false;
-                suspiciousChangeCount = 0;
-            }
-        }
-
-    }, 1000);
-
-}();
 
                 // Clear console and show warning
                 console.clear();
@@ -97,27 +74,35 @@ The neural pathways are watching. Every click tracked. Every keystroke logged.
                 console.log('%cUnauthorized development access detected.\nTerminal access revoked.',
                     "color:#ff0000;font-size:16px;font-family:monospace;");
                 
-                // Typewriter effect for Iris message - no flickering
-                const irisMessage = "\nIris: Oh, peeking under the hood?\nYou sure you can handle what's under there?";
+                // Typewriter effect for Iris message - optimized to reduce flickering
+                const irisMessage = "Iris: Oh, peeking under the hood?\nYou sure you can handle what's under there?";
                 const irisStyle = "color:#00ff00;font-size:14px;font-family:'Courier New',monospace;background:#000000;padding:5px;border:1px solid #00ff00;text-shadow:0 0 5px #00ff00;";
                 
                 let displayText = "";
                 let charIndex = 0;
                 
-                // Clear console once at the start
-                console.clear();
-                console.log('%cACCESS DENIED',
-                    "color:#ff0000;font-size:50px;font-weight:bold;text-shadow:2px 2px 0px #000000;");
-                console.log('%cUnauthorized development access detected.\nTerminal access revoked.',
-                    "color:#ff0000;font-size:16px;font-family:monospace;");
-                
                 function typeIrisMessage() {
                     if (charIndex < irisMessage.length) {
                         displayText += irisMessage.charAt(charIndex);
-                        // Update only the Iris message line without clearing
-                        console.log('%c' + displayText, irisStyle);
+                        // Only clear console every few characters to reduce flickering
+                        if (charIndex % 3 === 0 || charIndex === irisMessage.length - 1) {
+                            console.clear();
+                            console.log('%cACCESS DENIED',
+                                "color:#ff0000;font-size:50px;font-weight:bold;text-shadow:2px 2px 0px #000000;");
+                            console.log('%cUnauthorized development access detected.\nTerminal access revoked.',
+                                "color:#ff0000;font-size:16px;font-family:monospace;");
+                            console.log('%c' + displayText, irisStyle);
+                        }
                         charIndex++;
-                        setTimeout(typeIrisMessage, 40 + Math.random() * 30);
+                        setTimeout(typeIrisMessage, 40 + Math.random() * 30); // Slightly slower for smoother effect
+                    } else {
+                        // Final clear and display when complete
+                        console.clear();
+                        console.log('%cACCESS DENIED',
+                            "color:#ff0000;font-size:50px;font-weight:bold;text-shadow:2px 2px 0px #000000;");
+                        console.log('%cUnauthorized development access detected.\nTerminal access revoked.',
+                            "color:#ff0000;font-size:16px;font-family:monospace;");
+                        console.log('%c' + displayText, irisStyle);
                     }
                 }
                 
@@ -141,7 +126,7 @@ The neural pathways are watching. Every click tracked. Every keystroke logged.
             }
         }
 
-    }, 500); // Check every 500 milliseconds for faster detection
+    }, 1000); // Check every 1000 milliseconds (less frequent)
 
     // ========================================
     // Chatbot integration function

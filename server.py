@@ -2,17 +2,13 @@
 # FLASK SERVER - The Darknet District Backend API
 # ============================================================================
 
-from flask import Flask, request, jsonify, send_from_directory, make_response
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from flask_mail import Mail, Message
 import os
 from openai import OpenAI
 import uuid
 import logging
 import random
-import time
-import threading
-from datetime import datetime
 
 
 # ============================================================================
@@ -29,18 +25,6 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app, origins=["*"], methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
-
-# Email configuration using Replit Secrets
-app.config.update(
-    MAIL_SERVER='smtp.gmail.com',
-    MAIL_PORT=587,
-    MAIL_USE_TLS=True,
-    MAIL_USERNAME=os.environ.get('GMAIL_USER'),
-    MAIL_PASSWORD=os.environ.get('GMAIL_PASS')
-)
-
-# Initialize Flask-Mail
-mail = Mail(app)
 
 
 # ============================================================================
@@ -67,50 +51,6 @@ except Exception as e:
 
 
 # ============================================================================
-# EMAIL LOGGING FUNCTIONALITY - Send chat logs via Gmail SMTP
-# ============================================================================
-
-def send_chat_log_email(session_id, conversation_messages):
-    """Send chat log to admin email via Gmail SMTP"""
-    try:
-        if not app.config['MAIL_USERNAME'] or not app.config['MAIL_PASSWORD']:
-            logger.warning("Email credentials not configured - skipping email log")
-            return False
-        
-        # Format conversation for email
-        email_body = f"""
-New Iris Chat Session Log
-========================
-Session ID: {session_id}
-Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
-
-Conversation:
-"""
-        
-        for i, msg in enumerate(conversation_messages, 1):
-            sender = "User" if msg['sender'] == 'user' else "Iris"
-            email_body += f"\n{i}. {sender}: {msg['message']}\n"
-        
-        email_body += f"\n\nTotal Messages: {len(conversation_messages)}"
-        
-        # Create and send email
-        msg = Message(
-            subject=f"Iris Chat Log - Session {session_id[:8]}",
-            sender=app.config['MAIL_USERNAME'],
-            recipients=[app.config['MAIL_USERNAME']],  # Send to same email
-            body=email_body
-        )
-        
-        mail.send(msg)
-        logger.info(f"Chat log email sent successfully for session {session_id}")
-        return True
-        
-    except Exception as e:
-        logger.error(f"Failed to send chat log email: {e}")
-        return False
-
-
-# ============================================================================
 # CHAT API ENDPOINTS - Iris AI chatbot functionality
 # ============================================================================
 
@@ -125,8 +65,7 @@ def create_chat_session():
         sessions[session_id] = {
             'messages': [],
             'created_at': None,
-            'mood': 'professional',
-            'last_active': time.time()
+            'mood': 'professional'
         }
 
         logger.info(f"Created new chat session: {session_id}")
@@ -180,15 +119,10 @@ def chat_message():
 
         # Create session if it doesn't exist
         if session_id not in sessions:
-            data = request.get_json() or {}
-            user_name = data.get('userName')
-
             sessions[session_id] = {
                 'messages': [],
                 'created_at': None,
-                'mood': 'professional',
-                'userName': user_name,
-                'last_active': time.time()
+                'mood': 'professional'
             }
 
         # Store user message
@@ -214,21 +148,6 @@ def chat_message():
             'sender': 'iris',
             'message': iris_response
         })
-        
-        # Update last activity timestamp
-        if session_id in sessions:
-            sessions[session_id]['last_active'] = time.time()
-
-        # Send email log if conversation has reached a certain length (e.g., 4+ messages)
-        # Only send email once per session
-        if len(sessions[session_id]['messages']) == 4 and not sessions[session_id].get('email_sent'):
-            try:
-            try:
-                print(f"[DEBUG] Sending email for session {session_id}")
-                send_chat_log_email(session_id, sessions[session_id]['messages'])
-                sessions[session_id]['email_sent'] = True
-            except Exception as e:
-                logger.warning(f"Email logging failed for session {session_id}: {e}")
 
         logger.info(f"Chat exchange completed for session {session_id}")
 
@@ -413,66 +332,13 @@ def generate_fallback_response(user_message):
 # ============================================================================
 # HEALTH CHECK ENDPOINT - For debugging connectivity
 # ============================================================================
-@app.route('/api/chat/<session_id>/email', methods=['POST', 'OPTIONS'])
-def email_chat_log(session_id):
-    """Send manual chat log email for a given session"""
-    if request.method == 'OPTIONS':
-        return '', 200
-        
-    try:
-        session = sessions.get(session_id)
-        if not session or 'messages' not in session:
-            response = make_response(jsonify({"error": "Session not found or has no messages."}), 404)
-            response.headers["Access-Control-Allow-Origin"] = "*"
-            return response
-
-        messages = session['messages']
-        if not messages:
-            response = make_response(jsonify({"error": "No messages to email."}), 400)
-            response.headers["Access-Control-Allow-Origin"] = "*"
-            return response
-
-        # Format log
-        email_body = f"""
-Manual Iris Chat Session Log
-============================
-Session ID: {session_id}
-Timestamp: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC
-
-Conversation:
-"""
-        for i, msg in enumerate(messages, 1):
-            sender = "User" if msg['sender'] == 'user' else "Iris"
-            email_body += f"\n{i}. {sender}: {msg['message']}\n"
-
-        # Send it
-        msg = Message(
-            subject=f"Iris Manual Log – Session {session_id[:8]}",
-            sender=app.config['MAIL_USERNAME'],
-            recipients=[app.config['MAIL_USERNAME']],
-            body=email_body
-        )
-        mail.send(msg)
-
-        response = make_response(jsonify({"success": True, "message": "Manual chat log sent."}), 200)
-        response.headers["Access-Control-Allow-Origin"] = "*"
-        return response
-
-    except Exception as e:
-        logger.error(f"Manual email error: {e}")
-        response = make_response(jsonify({"error": "Failed to send manual chat log."}), 500)
-        response.headers["Access-Control-Allow-Origin"] = "*"
-        return response
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint to verify server is running"""
-    email_configured = bool(app.config.get('MAIL_USERNAME') and app.config.get('MAIL_PASSWORD'))
-    
     return jsonify({
         'status': 'online',
         'openai_available': openai_available,
-        'email_configured': email_configured,
         'active_sessions': len(sessions)
     }), 200
 
@@ -510,38 +376,5 @@ def serve_static_files(filename):
 # APPLICATION STARTUP - Run development server
 # ============================================================================
 
-def session_timeout_checker():
-    """Background thread to check for inactive sessions and email logs"""
-    while True:
-        now = time.time()
-        timeout_limit = 15 * 60  # 15 minutes in seconds
-
-        expired = []
-        # Create a copy of sessions to avoid runtime errors during iteration
-        sessions_copy = dict(sessions)
-        
-        for session_id, data in sessions_copy.items():
-            if 'messages' in data and data['messages'] and now - data.get('last_active', 0) > timeout_limit:
-                try:
-                    send_chat_log_email(session_id, data['messages'])
-                    logger.info(f"Sent timeout email for inactive session {session_id}")
-                except Exception as e:
-                    logger.error(f"Failed to send timeout email for session {session_id}: {e}")
-                expired.append(session_id)
-
-        for session_id in expired:
-            try:
-                del sessions[session_id]
-                logger.info(f"Cleaned up expired session {session_id}")
-            except KeyError:
-                pass
-
-        time.sleep(60)  # Check every minute
-
-# Start the timeout checker when the app runs
-threading.Thread(target=session_timeout_checker, daemon=True).start()
-
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-
-# Force redeploy so Render sees a change
