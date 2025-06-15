@@ -52,27 +52,10 @@ window.addEventListener("load", () => {
                 console.log('%cUnauthorized development access detected.\nTerminal access revoked.', "color:#ff0000;font-size:16px;font-family:monospace;");
 
                 const irisMessage = ">>> IRIS: Oh, peeking under the hood? You sure you can handle what's under there? <<<";
-                let displayIndex = 0;
-                const scrollWidth = 80; // Width of the scrolling window
-
-                function scrollIrisMessage() {
-                    if (displayIndex < irisMessage.length + scrollWidth) {
-                        let visibleText = "";
-                        for (let i = 0; i < scrollWidth; i++) {
-                            const charPos = displayIndex - i;
-                            if (charPos >= 0 && charPos < irisMessage.length) {
-                                visibleText = irisMessage.charAt(charPos) + visibleText;
-                            } else {
-                                visibleText = " " + visibleText;
-                            }
-                        }
-                        console.log('%c' + visibleText, "color:#00ff00;font-size:14px;font-family:'Courier New',monospace;background:#000;padding:5px;border:1px solid #00ff00;text-shadow:0 0 5px #00ff00;");
-                        displayIndex++;
-                        setTimeout(scrollIrisMessage, 80);
-                    }
-                }
-
-                setTimeout(scrollIrisMessage, 500);
+                
+                setTimeout(() => {
+                    console.log('%c' + irisMessage, "color:#00ff00;font-size:14px;font-family:'Courier New',monospace;background:#000;padding:5px;border:1px solid #00ff00;text-shadow:0 0 5px #00ff00;");
+                }, 500);
 
                 setTimeout(() => {
                     if (typeof chatManager !== 'undefined') {
