@@ -223,6 +223,7 @@ def chat_message():
         # Only send email once per session
         if len(sessions[session_id]['messages']) == 4 and not sessions[session_id].get('email_sent'):
             try:
+            try:
                 print(f"[DEBUG] Sending email for session {session_id}")
                 send_chat_log_email(session_id, sessions[session_id]['messages'])
                 sessions[session_id]['email_sent'] = True
