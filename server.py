@@ -220,11 +220,15 @@ def chat_message():
             sessions[session_id]['last_active'] = time.time()
 
         # Send email log if conversation has reached a certain length (e.g., 4+ messages)
-        if len(sessions[session_id]['messages']) >= 4:
-            try:
-                send_chat_log_email(session_id, sessions[session_id]['messages'])
-            except Exception as e:
-                logger.warning(f"Email logging failed for session {session_id}: {e}")
+# Only send email once per session
+if len(sessions[session_id]['messages']) == 4 and not sessions[session_id].get('email_sent'):
+    try:
+        print(f"[DEBUG] Sending email for session {session_id}")
+        send_chat_log_email(session_id, sessions[session_id]['messages'])
+        sessions[session_id]['email_sent'] = True
+    except Exception as e:
+        logger.warning(f"Email logging failed for session {session_id}: {e}")
+
 
         logger.info(f"Chat exchange completed for session {session_id}")
 
@@ -539,3 +543,5 @@ threading.Thread(target=session_timeout_checker, daemon=True).start()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+
+# Force redeploy so Render sees a change
