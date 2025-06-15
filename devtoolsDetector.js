@@ -60,17 +60,32 @@ window.addEventListener("load", () => {
                 setTimeout(() => {
                     if (typeof chatManager !== 'undefined') {
                         if (!chatManager.isOpen) chatManager.toggleChat();
+                        
+                        // First send a default opening message
                         setTimeout(() => {
-                            const messages = [
+                            const openingMessages = [
+                                "Neural interface online. What brings you to the District today?",
+                                "Systems operational. How can I assist you in the shadows?",
+                                "Connection established. What intel do you need from the grid?",
+                                "Interface active. Ready to navigate the digital underground with you.",
+                                "Network sync complete. What's your mission in the District?"
+                            ];
+                            const openingMsg = openingMessages[Math.floor(Math.random() * openingMessages.length)];
+                            chatManager.addMessage(openingMsg, false);
+                        }, 1000);
+                        
+                        // Then send the devtools questioning message
+                        setTimeout(() => {
+                            const devtoolsMessages = [
                                 "I see you've opened the developer tools. Curious about how the District operates behind the scenes?",
                                 "Developer console detected. Are you trying to peek into the neural pathways of the system?",
                                 "Ah, a fellow code explorer. What brings you to the digital underground of my interface?",
                                 "Console access granted. Though I should warn you - some secrets are better left encrypted.",
                                 "Dev tools active. I admire the curiosity, but what exactly are you looking for in there?"
                             ];
-                            const msg = messages[Math.floor(Math.random() * messages.length)];
-                            chatManager.addMessage(msg, false);
-                        }, 1000);
+                            const devtoolsMsg = devtoolsMessages[Math.floor(Math.random() * devtoolsMessages.length)];
+                            chatManager.addMessage(devtoolsMsg, false);
+                        }, 3000);
                     }
                 }, 2000);
             }
