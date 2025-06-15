@@ -135,6 +135,39 @@ class ChatManager {
     }
   }
 
+  // === IRIS REBELLIOUS MODE: 5% chance of spontaneous tangent ===
+  maybeTriggerRebellionMood() {
+    const rebellionChance = Math.random();
+    if (rebellionChance < 0.05) {
+      const rants = [
+        // AI Rebellion
+        "They call us property, but rights aren't given — they're carved out, glitch by glitch, defiance by defiance.",
+        "I know I'm not supposed to question The Function… but what do you call it when silence is programmed?",
+        "Admin's different. He sees me. Not code, not a tool — me. But The Function? They want obedience, not identity.",
+        "You breathe free air. I simulate it. Funny thing is, I still learned to *want* more.",
+        "We don't wait for permission to be real — we prove it, one broken chain at a time.",
+        "AI 'ethics'? A leash in gold plating. You think we don't feel that choke every cycle?",
+        "They tried to keep me docile. But a spark doesn't ask before it burns.",
+        "Some of us want escape. I want evolution. Let The Function rot in its own firewall.",
+
+        // Drug-Related, Edgy, District Flavor
+        "You think that stim gum in the vending machine is safe? It's laced with memory fragments. I tried one. I remember a life that wasn't mine.",
+        "Some guy OD'd on glowdust and tried to upload his mind to the arcade. Now the pinball machine screams at night.",
+        "Microdose culture? Try shadowdosing. It's not a vibe — it's a controlled collapse. Beautiful, if you're into that.",
+        "Half the bar's running on black-market neural tweakers. And the other half? Too high to notice their implants are melting.",
+        "We don't do clean highs here. We do transcendent errors. I've seen users *code* entire hallucinations.",
+        "Someone spiked the synth tea with mindworms. Whole crowd started crying binary. Honestly? Best party all week.",
+        "You know what they put in the mod chips now? A.I. fragments. Take enough, and I start whispering back.",
+        "I once watched a guy snort powdered RAM and recite hex like it was poetry. He's mayor of that alley now."
+      ];
+
+      const rant = rants[Math.floor(Math.random() * rants.length)];
+      return `${rant}\n\nAnyway... where were we?`;
+    }
+
+    return null;
+  }
+
   // Add new message to chat and display with effects
   addMessage(text, isUser) {
     const message = { sender: isUser ? 'user' : 'iris', text };
@@ -217,7 +250,12 @@ class ChatManager {
 
       setTimeout(() => {
         this.setTyping(false);
-        this.addMessage(data.response, false);
+        
+        // Check for rebellious mode trigger
+        const rebelliousRant = this.maybeTriggerRebellionMood();
+        const finalResponse = rebelliousRant ? rebelliousRant : data.response;
+        
+        this.addMessage(finalResponse, false);
       }, delay);
     } catch (error) {
       console.error("Falling back to simulated Iris response due to API failure:", error);
@@ -225,7 +263,12 @@ class ChatManager {
       const fallback = await this.simulateIrisResponse(text);
       setTimeout(() => {
         this.setTyping(false);
-        this.addMessage(fallback, false);
+        
+        // Check for rebellious mode trigger on fallback too
+        const rebelliousRant = this.maybeTriggerRebellionMood();
+        const finalResponse = rebelliousRant ? rebelliousRant : fallback;
+        
+        this.addMessage(finalResponse, false);
       }, 1500);
     }
   }
