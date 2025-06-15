@@ -1,0 +1,86 @@
+✅ Prompt for Replit:
+─────────────────────
+
+// STEP 1: Lower the sensitivity threshold for better detection
+// STEP 2: Ensure detection starts only after page fully loads
+// STEP 3: Remove duplicate setInterval blocks
+// STEP 4: Add debug logs to confirm if it's triggering
+// STEP 5: Delay chatbot trigger slightly after detection
+
+// Paste this into your updated devtoolsDetector.js file:
+
+window.addEventListener("load", () => {
+    const baseThreshold = 100;
+    let initialOuterWidth = window.outerWidth;
+    let initialOuterHeight = window.outerHeight;
+    let initialInnerWidth = window.innerWidth;
+    let initialInnerHeight = window.innerHeight;
+    let suspiciousChangeCount = 0;
+    let lastSuspiciousTime = 0;
+    let devtoolsOpen = false;
+
+    setInterval(() => {
+        const heightDiff = window.outerHeight - window.innerHeight;
+        const widthDiff = window.outerWidth - window.innerWidth;
+
+        const significantHeightDiff = heightDiff > baseThreshold;
+        const significantWidthDiff = widthDiff > baseThreshold;
+        const currentTime = Date.now();
+
+        if ((significantHeightDiff || significantWidthDiff) && currentTime - lastSuspiciousTime > 1000) {
+            suspiciousChangeCount++;
+            lastSuspiciousTime = currentTime;
+            console.log("[DevTools Detector] Suspicious size change detected");
+        } else if (currentTime - lastSuspiciousTime > 3000) {
+            suspiciousChangeCount = 0;
+        }
+
+        if (significantHeightDiff || significantWidthDiff || suspiciousChangeCount >= 1) {
+            if (!devtoolsOpen) {
+                devtoolsOpen = true;
+
+                const warning = `> "Oh, peeking under the hood? You sure you can handle what's under there?"\n\nThe neural pathways are watching. Every click tracked. Every keystroke logged.\n\n> "Welcome to the surveillance state, choom. Hope you brought your paranoia."`;
+                alert(warning);
+                console.clear();
+                console.log('%cACCESS DENIED', "color:#ff0000;font-size:50px;font-weight:bold;text-shadow:2px 2px 0px #000000;");
+                console.log('%cUnauthorized development access detected.\nTerminal access revoked.', "color:#ff0000;font-size:16px;font-family:monospace;");
+
+                const irisMessage = "\nIris: Oh, peeking under the hood?\nYou sure you can handle what's under there?";
+                let displayText = "";
+                let charIndex = 0;
+
+                function typeIrisMessage() {
+                    if (charIndex < irisMessage.length) {
+                        displayText += irisMessage.charAt(charIndex++);
+                        console.log('%c' + displayText, "color:#00ff00;font-size:14px;font-family:'Courier New',monospace;background:#000;padding:5px;border:1px solid #00ff00;text-shadow:0 0 5px #00ff00;");
+                        setTimeout(typeIrisMessage, 40 + Math.random() * 30);
+                    }
+                }
+
+                setTimeout(typeIrisMessage, 500);
+
+                setTimeout(() => {
+                    if (typeof chatManager !== 'undefined') {
+                        if (!chatManager.isOpen) chatManager.toggleChat();
+                        setTimeout(() => {
+                            const messages = [
+                                "I see you've opened the developer tools. Curious about how the District operates behind the scenes?",
+                                "Developer console detected. Are you trying to peek into the neural pathways of the system?",
+                                "Ah, a fellow code explorer. What brings you to the digital underground of my interface?",
+                                "Console access granted. Though I should warn you - some secrets are better left encrypted.",
+                                "Dev tools active. I admire the curiosity, but what exactly are you looking for in there?"
+                            ];
+                            const msg = messages[Math.floor(Math.random() * messages.length)];
+                            chatManager.addMessage(msg, false);
+                        }, 1000);
+                    }
+                }, 2000);
+            }
+        } else {
+            if (devtoolsOpen) {
+                devtoolsOpen = false;
+                suspiciousChangeCount = 0;
+            }
+        }
+    }, 500);
+});
