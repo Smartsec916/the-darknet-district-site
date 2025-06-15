@@ -3,7 +3,7 @@
 // ============================================================================
 
 window.addEventListener("load", () => {
-    const baseThreshold = 100;
+    const baseThreshold = 50; // Lowered from 100 to 50 for better sensitivity
     let initialOuterWidth = window.outerWidth;
     let initialOuterHeight = window.outerHeight;
     let initialInnerWidth = window.innerWidth;
@@ -16,19 +16,34 @@ window.addEventListener("load", () => {
         const heightDiff = window.outerHeight - window.innerHeight;
         const widthDiff = window.outerWidth - window.innerWidth;
 
+        // Multiple detection methods for better coverage
         const significantHeightDiff = heightDiff > baseThreshold;
         const significantWidthDiff = widthDiff > baseThreshold;
+        
+        // Additional detection: check for common devtools dimensions
+        const possibleDevtoolsHeight = window.innerHeight < window.outerHeight - 200;
+        const possibleDevtoolsWidth = window.innerWidth < window.outerWidth - 200;
+        
+        // Console detection method
+        let consoleOpen = false;
+        const start = performance.now();
+        console.log('%c', '');
+        const end = performance.now();
+        if (end - start > 100) {
+            consoleOpen = true;
+        }
+        
         const currentTime = Date.now();
 
-        if ((significantHeightDiff || significantWidthDiff) && currentTime - lastSuspiciousTime > 1000) {
+        if ((significantHeightDiff || significantWidthDiff || possibleDevtoolsHeight || possibleDevtoolsWidth || consoleOpen) && currentTime - lastSuspiciousTime > 500) {
             suspiciousChangeCount++;
             lastSuspiciousTime = currentTime;
-            console.log("[DevTools Detector] Suspicious size change detected");
-        } else if (currentTime - lastSuspiciousTime > 3000) {
+            console.log("[DevTools Detector] Suspicious activity detected");
+        } else if (currentTime - lastSuspiciousTime > 2000) {
             suspiciousChangeCount = 0;
         }
 
-        if (significantHeightDiff || significantWidthDiff || suspiciousChangeCount >= 1) {
+        if (significantHeightDiff || significantWidthDiff || possibleDevtoolsHeight || possibleDevtoolsWidth || consoleOpen || suspiciousChangeCount >= 1) {
             if (!devtoolsOpen) {
                 devtoolsOpen = true;
 
