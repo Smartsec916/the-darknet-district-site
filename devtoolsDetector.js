@@ -3,28 +3,21 @@
 // ============================================================================
 
 window.addEventListener("load", () => {
-    const baseThreshold = 50; // Lowered from 100 to 50 for better sensitivity
-    let initialOuterWidth = window.outerWidth;
-    let initialOuterHeight = window.outerHeight;
-    let initialInnerWidth = window.innerWidth;
-    let initialInnerHeight = window.innerHeight;
-    let suspiciousChangeCount = 0;
-    let lastSuspiciousTime = 0;
+    const heightThreshold = 150; // More reasonable threshold for height differences
+    const widthThreshold = 200; // More reasonable threshold for width differences
     let devtoolsOpen = false;
-
+    let lastTriggerTime = 0;
+    
     setInterval(() => {
         const heightDiff = window.outerHeight - window.innerHeight;
         const widthDiff = window.outerWidth - window.innerWidth;
+        const currentTime = Date.now();
 
-        // Multiple detection methods for better coverage
-        const significantHeightDiff = heightDiff > baseThreshold;
-        const significantWidthDiff = widthDiff > baseThreshold;
+        // More conservative detection - only trigger on significant size differences
+        const significantHeightDiff = heightDiff > heightThreshold;
+        const significantWidthDiff = widthDiff > widthThreshold;
         
-        // Additional detection: check for common devtools dimensions
-        const possibleDevtoolsHeight = window.innerHeight < window.outerHeight - 200;
-        const possibleDevtoolsWidth = window.innerWidth < window.outerWidth - 200;
-        
-        // Console detection method
+        // Console detection method (more reliable)
         let consoleOpen = false;
         const start = performance.now();
         console.log('%c', '');
@@ -33,19 +26,13 @@ window.addEventListener("load", () => {
             consoleOpen = true;
         }
         
-        const currentTime = Date.now();
-
-        if ((significantHeightDiff || significantWidthDiff || possibleDevtoolsHeight || possibleDevtoolsWidth || consoleOpen) && currentTime - lastSuspiciousTime > 500) {
-            suspiciousChangeCount++;
-            lastSuspiciousTime = currentTime;
-            console.log("[DevTools Detector] Suspicious activity detected");
-        } else if (currentTime - lastSuspiciousTime > 2000) {
-            suspiciousChangeCount = 0;
-        }
-
-        if (significantHeightDiff || significantWidthDiff || possibleDevtoolsHeight || possibleDevtoolsWidth || consoleOpen || suspiciousChangeCount >= 1) {
-            if (!devtoolsOpen) {
-                devtoolsOpen = true;
+        // Only trigger if we have strong indicators AND haven't triggered recently
+        const hasDevtools = (significantHeightDiff || significantWidthDiff || consoleOpen);
+        const enoughTimePassed = currentTime - lastTriggerTime > 3000; // 3 second cooldown
+        
+        if (hasDevtools && !devtoolsOpen && enoughTimePassed) {
+            devtoolsOpen = true;
+            lastTriggerTime = currentTime;
 
                 console.clear();
                 console.log('%cACCESS DENIED', "color:#ff0000;font-size:50px;font-weight:bold;text-shadow:2px 2px 0px #000000;");
@@ -89,11 +76,9 @@ window.addEventListener("load", () => {
                     }
                 }, 2000);
             }
-        } else {
-            if (devtoolsOpen) {
-                devtoolsOpen = false;
-                suspiciousChangeCount = 0;
-            }
+        } else if (!hasDevtools && devtoolsOpen && enoughTimePassed) {
+            // Reset when devtools are clearly closed
+            devtoolsOpen = false;
         }
-    }, 500);
+    }, 1000); // Check less frequently to reduce false positives
 });
