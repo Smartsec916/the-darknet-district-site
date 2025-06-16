@@ -284,9 +284,28 @@ class ChatManager {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 
+  // === Add context tagging to messages ===
+  analyzeMessageContext(message) {
+    const lower = message.toLowerCase();
+    if (/help|how do i|what is/i.test(lower)) return "question";
+    if (/love|cute|hot|kiss|date/i.test(lower)) return "flirty";
+    if (/hack|code|bug|glitch/i.test(lower)) return "tech";
+    if (/stupid|idiot|trash|shut up/i.test(lower)) return "rude";
+    if (/hi|hello|hey/i.test(lower)) return "greeting";
+    return "general";
+  }
+
   // Send user message to server or fallback to simulation
   async sendMessage(text) {
     if (!text.trim()) return;
+
+    const contextTag = this.analyzeMessageContext(text);
+    console.log("User message context:", contextTag);
+
+    // Optional mood logic
+    if (contextTag === "flirty" && this.mood === "professional") {
+      this.mood = "flirty";
+    }
 
     this.addMessage(text, true);
     this.setTyping(true);
