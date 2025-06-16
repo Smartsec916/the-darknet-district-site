@@ -75,7 +75,7 @@ window.addEventListener("load", () => {
                         }, 3000);
                     }
                 }, 2000);
-            }
+            });
         } else if (!hasDevtools && devtoolsOpen && enoughTimePassed) {
             // Reset when devtools are clearly closed
             devtoolsOpen = false;
