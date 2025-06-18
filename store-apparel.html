@@ -201,6 +201,30 @@
     .shopify-buy__cart__footer {
       background-color: #181a1b !important;
     }
+
+    /* Filter bar styling matching survival page */
+    .filter-bar {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .filter-bar button {
+      background-color: #00ff9d;
+      color: #000;
+      border: none;
+      padding: 10px 15px;
+      margin: 5px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .filter-bar button:hover {
+      background-color: #00cc7a;
+    }
   </style>
 </head>
 <body>
@@ -225,30 +249,37 @@
   <div class="content">
     <!-- Page title -->
     <h1 class="title">The Darknet District – Apparel & Accessories</h1>
+
+        <!-- Product category filter buttons -->
+    <div class="filter-bar" style="text-align: center; margin-bottom: 20px;">
+      <button onclick="filterProducts('all')">All</button>
+      <button onclick="filterProducts('clothing')">Clothing</button>
+      <button onclick="filterProducts('stickers')">Stickers</button>
+    </div>
     <!-- Product grid layout -->
     <div class="product-grid">
       <!-- Product cell for first item -->
-      <div class="product-cell">
+      <div class="product-cell" data-category="clothing">
         <div id='product-component-1749341487937'></div>
       </div>
 
-      
-      <div class="product-cell">
+
+      <div class="product-cell" data-category="stickers">
         <div id='product-component-1749341538426'></div>
       </div>
 
-      
-      <div class="product-cell">
+
+      <div class="product-cell" data-category="clothing">
         <div id='product-component-1749341562909'></div>
       </div>
 
-      
-      <div class="product-cell">
+
+      <div class="product-cell" data-category="stickers">
         <div id='product-component-1749341585655'></div>
       </div>
 
-      
-      <div class="product-cell">
+
+      <div class="product-cell" data-category="clothing">
         <div id='product-component-1749341611681'></div>
       </div>
     </div>
@@ -394,5 +425,17 @@
     });
   </script>
 
+    <script>
+    const productCache = {};
+    function filterProducts(category) {
+      if (!productCache[category]) {
+        productCache[category] = document.querySelectorAll(
+          category === 'all' ? '.product-cell' : `.product-cell[data-category="${category}"]`
+        );
+      }
+      document.querySelectorAll('.product-cell').forEach(cell => cell.style.display = 'none');
+      productCache[category].forEach(cell => cell.style.display = 'flex');
+    }
+  </script>
 </body>
 </html>
