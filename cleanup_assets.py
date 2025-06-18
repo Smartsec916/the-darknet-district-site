@@ -20,13 +20,38 @@ def find_used_assets():
                 with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
                     content = f.read()
                     
-                # Find all references to attached_assets
-                matches = re.findall(r'attached_assets/([^"\'\s\)]+)', content)
-                for match in matches:
-                    # Clean up any URL encoding
-                    asset_name = match.replace('%20', ' ').replace('%2B', '+')
-                    used_assets.add(asset_name)
-                    
+                # Find all references to attached_assets with various patterns
+                patterns = [
+                    r'attached_assets/([^"\'\s\)\>]+)',  # Basic pattern
+                    r'"attached_assets/([^"]+)"',         # Quoted patterns
+                    r"'attached_assets/([^']+)'",         # Single quoted
+                    r'src="attached_assets/([^"]+)"',     # Image src
+                    r"src='attached_assets/([^']+)'",     # Image src single quote
+                    r'image:\s*"attached_assets/([^"]+)"', # CSS/JS image references
+                    r'\.jpg"',  # Look for any .jpg references
+                    r'\.png"',  # Look for any .png references
+                    r'\.webp"', # Look for any .webp references
+                    r'\.mp3"',  # Look for any .mp3 references
+                ]
+                
+                for pattern_regex in patterns:
+                    matches = re.findall(pattern_regex, content)
+                    for match in matches:
+                        if isinstance(match, tuple):
+                            match = match[0]
+                        # Clean up any URL encoding
+                        asset_name = match.replace('%20', ' ').replace('%2B', '+').replace('%2D', '-')
+                        used_assets.add(asset_name)
+                
+                # Also look for any filename patterns that might be referenced
+                # Look for standalone filenames that match assets
+                all_assets = get_all_assets()
+                for asset in all_assets:
+                    # Check if the asset filename (without extension) appears in content
+                    base_name = os.path.splitext(asset)[0]
+                    if base_name.lower() in content.lower():
+                        used_assets.add(asset)
+                        
             except Exception as e:
                 print(f"Error reading {filepath}: {e}")
     
