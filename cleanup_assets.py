@@ -3,6 +3,7 @@
 import os
 import re
 import glob
+import urllib.parse
 
 def find_used_assets():
     """Find all assets referenced in code files"""
@@ -22,16 +23,14 @@ def find_used_assets():
                     
                 # Find all references to attached_assets with various patterns
                 patterns = [
-                    r'attached_assets/([^"\'\s\)\>]+)',  # Basic pattern
+                    r'attached_assets/([^"\'\s\)\>\,\;]+)',  # Basic pattern
                     r'"attached_assets/([^"]+)"',         # Quoted patterns
                     r"'attached_assets/([^']+)'",         # Single quoted
                     r'src="attached_assets/([^"]+)"',     # Image src
                     r"src='attached_assets/([^']+)'",     # Image src single quote
                     r'image:\s*"attached_assets/([^"]+)"', # CSS/JS image references
-                    r'\.jpg"',  # Look for any .jpg references
-                    r'\.png"',  # Look for any .png references
-                    r'\.webp"', # Look for any .webp references
-                    r'\.mp3"',  # Look for any .mp3 references
+                    r'href="attached_assets/([^"]+)"',     # Links
+                    r"href='attached_assets/([^']+)'",     # Links single quote
                 ]
                 
                 for pattern_regex in patterns:
@@ -40,16 +39,22 @@ def find_used_assets():
                         if isinstance(match, tuple):
                             match = match[0]
                         # Clean up any URL encoding
-                        asset_name = match.replace('%20', ' ').replace('%2B', '+').replace('%2D', '-')
+                        asset_name = urllib.parse.unquote(match)
                         used_assets.add(asset_name)
+                        # Also add the URL encoded version
+                        used_assets.add(match)
                 
-                # Also look for any filename patterns that might be referenced
-                # Look for standalone filenames that match assets
+                # Also look for partial filename matches that might be referenced
                 all_assets = get_all_assets()
                 for asset in all_assets:
                     # Check if the asset filename (without extension) appears in content
                     base_name = os.path.splitext(asset)[0]
-                    if base_name.lower() in content.lower():
+                    # Remove timestamp suffixes like "_1749345883376"
+                    clean_base_name = re.sub(r'_\d+$', '', base_name)
+                    
+                    if (base_name.lower() in content.lower() or 
+                        clean_base_name.lower() in content.lower() or
+                        asset.lower() in content.lower()):
                         used_assets.add(asset)
                         
             except Exception as e:
@@ -81,30 +86,44 @@ def main():
     
     print(f"\nFound {len(all_assets)} total assets")
     print(f"Found {len(used_assets)} used assets")
-    print(f"Found {len(unused_assets)} unused assets")
+    print(f"Found {len(unused_assets)} potentially unused assets")
+    
+    if used_assets:
+        print("\nUsed assets:")
+        for asset in sorted(used_assets):
+            print(f"  ✓ {asset}")
     
     if unused_assets:
-        print("\nUnused assets:")
+        print("\nPotentially unused assets:")
         for asset in sorted(unused_assets):
-            print(f"  - {asset}")
+            print(f"  ? {asset}")
         
-        response = input(f"\nDelete {len(unused_assets)} unused assets? (y/N): ")
+        print("\n⚠️  WARNING: This script may not detect all asset references.")
+        print("   Review the list carefully before deleting anything.")
+        print("   Consider manually checking if these assets are actually unused.")
+        
+        response = input(f"\nDelete {len(unused_assets)} potentially unused assets? (y/N): ")
         if response.lower() == 'y':
-            deleted_count = 0
-            for asset in unused_assets:
-                asset_path = os.path.join("attached_assets", asset)
-                try:
-                    os.remove(asset_path)
-                    print(f"Deleted: {asset}")
-                    deleted_count += 1
-                except Exception as e:
-                    print(f"Error deleting {asset}: {e}")
-            
-            print(f"\nDeleted {deleted_count} unused assets")
+            print("\nAre you absolutely sure? This cannot be undone! (type 'DELETE' to confirm)")
+            confirm = input("Confirmation: ")
+            if confirm == 'DELETE':
+                deleted_count = 0
+                for asset in unused_assets:
+                    asset_path = os.path.join("attached_assets", asset)
+                    try:
+                        os.remove(asset_path)
+                        print(f"Deleted: {asset}")
+                        deleted_count += 1
+                    except Exception as e:
+                        print(f"Error deleting {asset}: {e}")
+                
+                print(f"\nDeleted {deleted_count} assets")
+            else:
+                print("Deletion cancelled - confirmation not received")
         else:
             print("No assets deleted")
     else:
-        print("\nNo unused assets found!")
+        print("\nNo potentially unused assets found!")
 
 if __name__ == "__main__":
     main()
