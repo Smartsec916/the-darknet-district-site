@@ -2,8 +2,8 @@
 // Prevents spam. Logs "ACCESS DENIED" and Iris's message at bottom of console.
 
 window.addEventListener("load", () => {
-    const heightThreshold = 150;
-    const widthThreshold = 200;
+    const heightThreshold = 300;
+    const widthThreshold = 400;
     let devtoolsTriggered = false;
 
     const checkDevTools = () => {
@@ -14,11 +14,20 @@ window.addEventListener("load", () => {
         const start = performance.now();
         console.log('%c', '');
         const end = performance.now();
-        if (end - start > 100) consoleOpen = true;
+        if (end - start > 150) consoleOpen = true;
 
-        const screenMismatch = window.outerWidth > screen.availWidth || window.outerHeight > screen.availHeight;
+        // More conservative screen mismatch check
+        const screenMismatch = window.outerWidth > (screen.availWidth + 50) || window.outerHeight > (screen.availHeight + 50);
 
-        const hasDevtools = (heightDiff > heightThreshold || widthDiff > widthThreshold || consoleOpen || screenMismatch);
+        // Require multiple indicators or very high thresholds
+        const indicators = [
+            heightDiff > heightThreshold,
+            widthDiff > widthThreshold,
+            consoleOpen,
+            screenMismatch
+        ].filter(Boolean).length;
+
+        const hasDevtools = indicators >= 2 || heightDiff > 500 || widthDiff > 600;
 
         if (hasDevtools && !devtoolsTriggered) {
             devtoolsTriggered = true;
