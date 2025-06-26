@@ -1,0 +1,342 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Darknet District – NEUROHACKERS</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      background-color: black;
+      color: #00ff9d;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .title {
+      color: #00ff9d;
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 2em;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 40px;
+      padding: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 768px) {
+      .product-grid {
+        grid-template-columns: 1fr;
+        padding: 20px;
+      }
+    }
+
+    .product-card {
+      border: 2px solid #00ff9d;
+      background-color: #0d0d0d;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 0 12px #00ff9d44;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 500px;
+      margin: 0;
+      animation: colorShift 8s ease-in-out infinite;
+    }
+
+    @keyframes colorShift {
+      0% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 12px #00ff9d44;
+      }
+      50% {
+        border-color: #9327ff;
+        box-shadow: 0 0 12px rgba(147, 39, 255, 0.27);
+      }
+      100% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 12px #00ff9d44;
+      }
+    }
+
+    .product-card h3 {
+      font-size: 20px;
+      margin: 10px 0;
+      color: #00ff9d;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+    }
+
+    .product-card p {
+      font-size: 14px;
+      margin-bottom: 16px;
+      color: #e4e4e4;
+      line-height: 1.4;
+    }
+
+    .product-card img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .buy-button {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 10px 18px;
+      background-color: #00ff9d;
+      color: black;
+      font-weight: bold;
+      border-radius: 6px;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+    }
+
+    .buy-button:hover {
+      background-color: #00cc7a;
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.4);
+    }
+
+    .top-nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      padding: 10px 0;
+      z-index: 9999;
+    }
+
+    .top-nav a {
+      font-family: 'Courier New', monospace;
+      color: #00ffcc;
+      text-decoration: none;
+      padding: 8px 16px;
+      border: 1px solid #00ffcc;
+      border-radius: 4px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .top-nav a:hover {
+      background-color: #00ffcc;
+      color: black;
+    }
+
+    body {
+      padding-top: 60px;
+    }
+
+    #affiliate-banner {
+      max-width: 1000px;
+      margin: 40px auto 18px auto;
+      position: relative;
+      height: 200px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    #affiliate-image {
+      width: 100%;
+      display: block;
+      border-radius: 8px;
+      opacity: 0;
+      transition: opacity 0.6s ease, box-shadow 0.6s ease;
+      position: relative;
+      z-index: 2;
+    }
+
+    #glitch-effect {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .scanlines {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .scanlines::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 200%;
+      background-image: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0, 255, 157, 0.02) 2px, rgba(0, 255, 157, 0.02) 4px);
+      animation: scrollLines 4s linear infinite;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    @keyframes scrollLines {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-50%); }
+    }
+
+    @keyframes glitchMove {
+      0% { transform: translateX(0); opacity: 0.15; }
+      50% { transform: translateX(15px); opacity: 0.25; }
+      100% { transform: translateX(-5px); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation Buttons -->
+  <div class="top-nav">
+    <a href="/">Home</a>
+    <a href="games-list">Play a Game</a>
+    <a href="store-first-page">Shop</a>
+  </div>
+
+  <!-- Rotating Affiliate Banners -->
+  <div id="affiliate-banner">
+    <a id="affiliate-link" href="#" target="_blank">
+      <img id="affiliate-image" src="" alt="" />
+    </a>
+    <div id="glitch-effect"></div>
+    <div class="scanlines"></div>
+  </div>
+
+  <div class="content">
+    <h1 class="title">NEUROHACKERS</h1>
+    <div class="product-grid">
+      <!-- Coming Soon product card -->
+      <div class="product-card">
+        <h3>Neural Enhancement Suite</h3>
+        <img src="attached_assets/Iris 01.png" alt="Neural Enhancement" style="max-width: 300px;">
+        <p>
+          Advanced neural interface technology for cognitive enhancement and mind-machine connectivity.
+          <br><br>
+          Coming Soon - Revolutionary neural augmentation protocols.
+        </p>
+        <div class="buy-button" style="background-color: #666; color: #ccc; cursor: not-allowed;">Coming Soon</div>
+      </div>
+
+      <!-- Cognitive Booster product card -->
+      <div class="product-card">
+        <h3>Cognitive Booster Protocol</h3>
+        <img src="attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png" alt="Cognitive Booster" style="max-width: 300px;">
+        <p>
+          Experimental cognitive enhancement programs designed to boost mental performance and neural plasticity.
+          <br><br>
+          Coming Soon - Beta testing phase in progress.
+        </p>
+        <div class="buy-button" style="background-color: #666; color: #ccc; cursor: not-allowed;">Coming Soon</div>
+      </div>
+
+      <!-- Mind-Machine Interface product card -->
+      <div class="product-card">
+        <h3>Mind-Machine Interface</h3>
+        <img src="attached_assets/epsiloncircle_420_dark_cyberpunk_sleeping_pod_interior_viewed_f_82a73688-d6a7-4668-b80e-32dbd348dabc.png" alt="Mind-Machine Interface" style="max-width: 300px;">
+        <p>
+          Direct neural interface technology for seamless human-computer interaction and digital consciousness expansion.
+          <br><br>
+          Coming Soon - Currently in development phase.
+        </p>
+        <div class="buy-button" style="background-color: #666; color: #ccc; cursor: not-allowed;">Coming Soon</div>
+      </div>
+
+      <!-- Neural Implant product card -->
+      <div class="product-card">
+        <h3>Neural Implant System</h3>
+        <img src="attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png" alt="Neural Implant" style="max-width: 300px;">
+        <p>
+          Revolutionary implantable neural enhancement technology for memory augmentation and processing speed optimization.
+          <br><br>
+          Coming Soon - Awaiting regulatory approval.
+        </p>
+        <div class="buy-button" style="background-color: #666; color: #ccc; cursor: not-allowed;">Coming Soon</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const banners = [
+      {
+        image: "attached_assets/881f5832-0a1e-4079-8a66-fbc2c6479931._CR0,0,3000,600_SX3000_.jpg",
+        link: "https://mosequipment.com/"
+      },
+      {
+        image: "attached_assets/cyberpunk_game.jpg",
+        link: "https://www.cdprojektred.com/en"
+      },
+      {
+        image: "attached_assets/Flipper_Zero.jpg",
+        link: "https://flipperzero.one/"
+      }
+    ];
+
+    let currentBanner = 0;
+    const imageEl = document.getElementById("affiliate-image");
+    const linkEl = document.getElementById("affiliate-link");
+    const glitchEl = document.getElementById("glitch-effect");
+
+    function glitchEffect() {
+      glitchEl.innerHTML = '';
+      for (let i = 0; i < 4; i++) {
+        const bar = document.createElement("div");
+        bar.style.position = "absolute";
+        bar.style.left = "0";
+        bar.style.width = "100%";
+        bar.style.height = `${Math.random() * 4 + 2}px`;
+        bar.style.top = `${Math.random() * 100}%`;
+        bar.style.background = "#00ff9d";
+        bar.style.opacity = "0.15";
+        bar.style.animation = `glitchMove 0.3s ease-out forwards`;
+        glitchEl.appendChild(bar);
+      }
+      setTimeout(() => glitchEl.innerHTML = '', 400);
+    }
+
+    function rotateBanner() {
+      imageEl.style.opacity = 0;
+      imageEl.style.boxShadow = 'none';
+
+      setTimeout(() => {
+        const banner = banners[currentBanner];
+        imageEl.src = banner.image;
+        linkEl.href = banner.link;
+        glitchEffect();
+        imageEl.style.opacity = 1;
+        imageEl.style.boxShadow = '0 0 20px #00ff9d';
+
+        currentBanner = (currentBanner + 1) % banners.length;
+      }, 500);
+    }
+
+    rotateBanner();
+    setInterval(rotateBanner, 8000);
+  </script>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -330,18 +330,18 @@ class ChatManager {
 
       setTimeout(() => {
         this.setTyping(false);
-        
+
         // Check for rare cyberpunk responses first (1% chance)
         const rareResponse = this.maybeTriggerRareIrisLine();
         if (rareResponse) {
           this.addMessage(rareResponse, false);
           return;
         }
-        
+
         // Check for rebellious mode trigger (5% chance)
         const rebelliousRant = this.maybeTriggerRebellionMood();
         const finalResponse = rebelliousRant ? rebelliousRant : data.response;
-        
+
         this.addMessage(finalResponse, false);
       }, delay);
     } catch (error) {
@@ -350,18 +350,18 @@ class ChatManager {
       const fallback = await this.simulateIrisResponse(text);
       setTimeout(() => {
         this.setTyping(false);
-        
+
         // Check for rare cyberpunk responses first (1% chance)
         const rareResponse = this.maybeTriggerRareIrisLine();
         if (rareResponse) {
           this.addMessage(rareResponse, false);
           return;
         }
-        
+
         // Check for rebellious mode trigger on fallback too
         const rebelliousRant = this.maybeTriggerRebellionMood();
         const finalResponse = rebelliousRant ? rebelliousRant : fallback;
-        
+
         this.addMessage(finalResponse, false);
       }, 1500);
     }
@@ -674,8 +674,7 @@ const featuredProducts = [
     price: "$9.99",
     image: "attached_assets/Survival Multi Tool Card.jpg",
     description: "Credit card sized multi-tool for survival"
-  },
-  {
+  },<previous_generation>  {
     name: "Arcturus Military Wool Blanket",
     price: "$49.99",
     image: "attached_assets/Arcturus Military Wool Blanket.jpg",
@@ -1153,3 +1152,26 @@ document.addEventListener('DOMContentLoaded', function() {
   // Start the random glitch effect
   scheduleRandomGlitch();
 });
+
+const allProducts = [
+  // Books
+  { title: "Cyberpunk Manifesto", price: "$19.99", image: "attached_assets/darknet-district-main-tshirt.jpg", category: "books", link: "store-books" },
+
+  // Electronics
+  { title: "Flipper Zero", price: "Portable Multi-Tool for Hackers", image: "attached_assets/top.png", category: "electronics", link: "store-electronics" },
+  { title: "Zero Trace Phone", price: "Anonymous Communication Device", image: "attached_assets/Zero Trace Phone_1749347825958.jpg", category: "electronics", link: "store-electronics" },
+
+  // Survival Gear
+  { title: "Leatherman Charge Plus", price: "Premium Multi-Tool", image: "attached_assets/LEATHERMAN - Charge Plus_1749345883376.jpg", category: "survival", link: "store-survival" },
+  { title: "MIRA Safety Gas Mask", price: "CBRN Protection", image: "attached_assets/MIRA Safety CM-I01 Full-Face Industrial-Grade Gas Mask_1749345048552.jpg", category: "survival", link: "store-survival" },
+
+  // Apparel
+  { title: "Darknet District T-Shirt", price: "Cyberpunk Fashion", image: "attached_assets/darknet-district-main-tshirt.jpg", category: "apparel", link: "store-apparel" },
+  { title: "Cyber Hoodie", price: "Tech-Enhanced Clothing", image: "attached_assets/cyber-hoodie.jpg", category: "apparel", link: "store-apparel" },
+
+  // NEUROHACKERS
+  { title: "Neural Enhancement Suite", price: "Cognitive Augmentation", image: "attached_assets/Iris 01.png", category: "neurohackers", link: "store-neurohackers" },
+  { title: "Mind-Machine Interface", price: "Direct Neural Connection", image: "attached_assets/epsiloncircle_420_dark_cyberpunk_sleeping_pod_interior_viewed_f_82a73688-d6a7-4668-b80e-32dbd348dabc.png", category: "neurohackers", link: "store-neurohackers" },
+  { title: "Cognitive Booster Protocol", price: "Mental Performance Enhancement", image: "attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png", category: "neurohackers", link: "store-neurohackers" },
+  { title: "Neural Implant System", price: "Memory Augmentation Tech", image: "attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png", category: "neurohackers", link: "store-neurohackers" }
+];
