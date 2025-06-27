@@ -1226,6 +1226,28 @@ function rotateFeaturedProducts() {
 
 // Initialize featured products when page loads
 document.addEventListener('DOMContentLoaded', function() {
+  // Set up chat button event listener
+  const chatButton = document.getElementById('chatButton');
+  if (chatButton) {
+    chatButton.addEventListener('click', toggleChat);
+  }
+
+  // Set up chat input event listeners
+  const messageInput = document.getElementById('messageInput');
+  const sendButton = document.getElementById('sendButton');
+  
+  if (messageInput) {
+    messageInput.addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+        sendMessage();
+      }
+    });
+  }
+  
+  if (sendButton) {
+    sendButton.addEventListener('click', sendMessage);
+  }
+
   displayFeaturedProducts();
 
   // Start rotating featured products with variable timing (6-10 seconds)

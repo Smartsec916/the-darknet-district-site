@@ -286,7 +286,7 @@
   </div>
 
   <!-- Chat Interface - AI chatbot Iris -->
-  <button class="chat-button" onclick="toggleChat()">Chat with Iris</button>
+  <button class="chat-button" id="chatButton">Chat with Iris</button>
   <div class="chat-container" id="chatContainer" style="display: none;">
     <!-- Chat header with Iris profile -->
     <div class="chat-header">
@@ -297,8 +297,8 @@
     <div class="chat-messages" id="chatMessages"></div>
     <!-- User input area -->
     <div class="chat-input">
-      <input type="text" id="messageInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
-      <button onclick="sendMessage()">Send</button>
+      <input type="text" id="messageInput" placeholder="Type your message...">
+      <button id="sendButton">Send</button>
     </div>
   </div>
 
