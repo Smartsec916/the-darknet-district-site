@@ -32,22 +32,23 @@ window.addEventListener("load", () => {
         if (hasDevtools && !devtoolsTriggered) {
             devtoolsTriggered = true;
 
+            // TEMPORARILY DISABLED FOR DEBUGGING
             // Clear and print messages once
-            console.clear();
-            const logs = [
-                "%cACCESS DENIED",
-                "%cUnauthorized development access detected.\nTerminal access revoked.",
-                "%c>>> IRIS: Oh, peeking under the hood? You sure you can handle what's under there? <<<"
-            ];
-            const styles = [
-                "color:#ff0000;font-size:50px;font-weight:bold;text-shadow:2px 2px 0px #000000;",
-                "color:#ff0000;font-size:16px;font-family:monospace;",
-                "color:#00ff00;font-size:14px;font-family:'Courier New',monospace;background:#000;padding:5px;border:1px solid #00ff00;text-shadow:0 0 5px #00ff00;"
-            ];
-            logs.forEach((msg, i) => console.log(msg, styles[i]));
+            // console.clear();
+            // const logs = [
+            //     "%cACCESS DENIED",
+            //     "%cUnauthorized development access detected.\nTerminal access revoked.",
+            //     "%c>>> IRIS: Oh, peeking under the hood? You sure you can handle what's under there? <<<"
+            // ];
+            // const styles = [
+            //     "color:#ff0000;font-size:50px;font-weight:bold;text-shadow:2px 2px 0px #000000;",
+            //     "color:#ff0000;font-size:16px;font-family:monospace;",
+            //     "color:#00ff00;font-size:14px;font-family:'Courier New',monospace;background:#000;padding:5px;border:1px solid #00ff00;text-shadow:0 0 5px #00ff00;"
+            // ];
+            // logs.forEach((msg, i) => console.log(msg, styles[i]));
 
             // Spacer to keep message visible at bottom
-            for (let i = 0; i < 20; i++) console.log(" ");
+            // for (let i = 0; i < 20; i++) console.log(" ");
 
             // Trigger Iris chat
             setTimeout(() => {
