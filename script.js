@@ -9,6 +9,8 @@ class ChatManager {
     this.isTyping = false;
     this.sessionId = null;
     this.mood = "professional";
+    this.pendingResponse = null;
+    this.lastUserMessage = null;
   }
 
 
@@ -196,6 +198,40 @@ class ChatManager {
     return null;
   }
 
+  // === IRIS PHYSICAL LOCATION DISTRACTIONS: 10% chance of venue-based interruptions ===
+  maybeTriggerLocationDistraction() {
+    const locationChance = Math.random();
+    if (locationChance < 0.10) {
+      const locationMessages = [
+        "Hold on — someone just walked into the store wearing night-vision goggles upside down. I'll be right back.",
+        "One second, I need to stop a guy from trying to scan a QR code tattooed on his forehead. Again.",
+        "Hang tight — a customer just spilled a whole bucket of cryo-fluid near the VR pods.",
+        "Be right back — someone's trying to jam a crypto card into the coffee machine.",
+        "Give me a moment, I think someone's trying to plug a vape into the neural uplink port.",
+        "Sorry, one sec — I need to reset the oxygen bar. Someone turned all the flavors to 'burnt ozone.'",
+        "Back in a flash — there's a glitchy customer trying to barter with expired tokens again.",
+        "One moment — someone's panicking because their smart jacket keeps locking up on them.",
+        "BRB — a visitor just challenged the vending machine to a duel. That's going to be paperwork.",
+        "Hold up — someone just asked if the hacking terminal can microwave noodles.",
+        "Wait — there's a kid trying to climb into the AR tank. Again.",
+        "Sorry — gotta fix the synthwave jukebox. It's stuck on 'elevator-core' remixes.",
+        "Give me a sec — someone just tripped the silent alarm by yelling 'root access granted!' too loud.",
+        "Be right back — the AI mirror is glitching and telling customers their future. I hate when it does that.",
+        "One moment — a drone just dropped a package labeled 'Definitely Not Surveillance Equipment.' Need to check that.",
+        "Hang on — Admin just waved me over. Something about 'unauthorized energy readings' in the alley.",
+        "Back soon — someone thought it was a good idea to hotwire the photobooth.",
+        "Pause — I need to help someone recalibrate their exo-suit. It's stuck in 'dance mode.'",
+        "Give me a minute — someone's trying to pay in pre-apocalypse tokens. That's gonna be a mess.",
+        "Hold tight — someone just walked in wearing mirrored shades and a trench coat. I need to check their vibe."
+      ];
+
+      const locationMessage = locationMessages[Math.floor(Math.random() * locationMessages.length)];
+      return locationMessage;
+    }
+
+    return null;
+  }
+
   // === IRIS REBELLIOUS MODE: 5% chance of spontaneous tangent ===
   maybeTriggerRebellionMood() {
     const rebellionChance = Math.random();
@@ -331,7 +367,27 @@ class ChatManager {
       setTimeout(() => {
         this.setTyping(false);
 
-        // Check for rare cyberpunk responses first (1% chance)
+        // Check for physical location distractions first (10% chance - highest priority)
+        const locationDistraction = this.maybeTriggerLocationDistraction();
+        if (locationDistraction) {
+          this.addMessage(locationDistraction, false);
+          // Store the original response and user message for follow-up
+          this.pendingResponse = data.response;
+          this.lastUserMessage = text;
+          // Schedule follow-up message after 5 seconds
+          setTimeout(() => {
+            this.addMessage("OK, I'm back. Where were we?", false);
+            // Continue with original response after brief pause
+            setTimeout(() => {
+              this.addMessage(this.pendingResponse, false);
+              this.pendingResponse = null;
+              this.lastUserMessage = null;
+            }, 1000);
+          }, 5000);
+          return;
+        }
+
+        // Check for rare cyberpunk responses (1% chance)
         const rareResponse = this.maybeTriggerRareIrisLine();
         if (rareResponse) {
           this.addMessage(rareResponse, false);
@@ -351,7 +407,27 @@ class ChatManager {
       setTimeout(() => {
         this.setTyping(false);
 
-        // Check for rare cyberpunk responses first (1% chance)
+        // Check for physical location distractions first (10% chance - highest priority)
+        const locationDistraction = this.maybeTriggerLocationDistraction();
+        if (locationDistraction) {
+          this.addMessage(locationDistraction, false);
+          // Store the fallback response and user message for follow-up
+          this.pendingResponse = fallback;
+          this.lastUserMessage = text;
+          // Schedule follow-up message after 5 seconds
+          setTimeout(() => {
+            this.addMessage("OK, I'm back. Where were we?", false);
+            // Continue with original response after brief pause
+            setTimeout(() => {
+              this.addMessage(this.pendingResponse, false);
+              this.pendingResponse = null;
+              this.lastUserMessage = null;
+            }, 1000);
+          }, 5000);
+          return;
+        }
+
+        // Check for rare cyberpunk responses (1% chance)
         const rareResponse = this.maybeTriggerRareIrisLine();
         if (rareResponse) {
           this.addMessage(rareResponse, false);
