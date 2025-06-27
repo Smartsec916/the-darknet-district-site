@@ -723,6 +723,54 @@ const featuredProducts = [
     image: "attached_assets/all_proto_1024x1024@2x.jpg",
     description: "Expand your Flipper Zero's capabilities"
   },
+  
+  // Neurohackers section
+  {
+    name: "NEUROHACKER COLLECTIVE Qualia Mind",
+    price: "$139.00",
+    image: "attached_assets/NEUROHACKER COLLECTIVE Qualia Mind_1750994136438.jpg",
+    description: "Premium nootropic supplement for cognitive enhancement"
+  },
+  {
+    name: "QUALIA MIND (Caffeine Free)",
+    price: "$139.00",
+    image: "attached_assets/QUALIA MIND - Caffeine Free_1750989931542.jpg",
+    description: "Caffeine-free nootropic for sustained mental performance"
+  },
+  {
+    name: "Road Trip Mushroom Gummies - Blue Raspberry",
+    price: "$49.99",
+    image: "attached_assets/Road Trip Mushroom Gummies - Blue Raspberry_1750989931542.jpg",
+    description: "Premium mushroom gummies for consciousness exploration"
+  },
+  {
+    name: "Road Trip Mushroom Gummies - Pineapple",
+    price: "$49.99",
+    image: "attached_assets/Road Trip Mushroom Gummies - Pineapple_1750989931542.jpg",
+    description: "Tropical pineapple mushroom gummies with tiered dosing"
+  },
+  {
+    name: "Host Defense MycoBotanicals Brain",
+    price: "$32.95",
+    image: "attached_assets/Host Defense MycoBotanicals Brain_1750989931542.jpg",
+    description: "Mushroom and botanical blend for cognitive support"
+  },
+  {
+    name: "Host Defense MycoBenefits Focus",
+    price: "$29.95",
+    image: "attached_assets/Host Defense MycoBenefits Focus_1750989931542.jpg",
+    description: "Lion's Mane and mushroom complex for mental clarity"
+  },
+  {
+    name: "Host Defense Lion's Mane",
+    price: "$24.95",
+    image: "attached_assets/Host Defense Mushrooms Lion's Mane_1750989931542.jpg",
+    description: "Premium Lion's Mane for brain health and memory support"
+  },
+  
+  // Survival & Emergency Gear section4x1024@2x.jpg",
+    description: "Expand your Flipper Zero's capabilities"
+  },
 
   // ========================================
   // Survival & Emergency Gear section
