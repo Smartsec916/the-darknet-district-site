@@ -21,7 +21,7 @@ function generateSessionId() {
 function toggleChat() {
   const container = document.getElementById('chatContainer');
   container.style.display = container.style.display === 'none' ? 'block' : 'none';
-  
+
   // Add welcome message if chat is being opened for first time
   if (container.style.display === 'block' && chatState.messageCount === 0) {
     setTimeout(() => {
@@ -72,15 +72,15 @@ const locationDistractions = [
 function maybeTriggerRareIrisLine() {
   const rareChance = Math.random();
   const timeSinceLastRare = Date.now() - chatState.lastRareLineTime;
-  
+
   if (rareChance < 0.01 && timeSinceLastRare > 60000) { // 1% chance, but not within 1 minute
     chatState.lastRareLineTime = Date.now();
     const randomRare = rareIrisLines[Math.floor(Math.random() * rareIrisLines.length)];
-    
+
     setTimeout(() => {
       addMessage(randomRare, false);
     }, 2000 + Math.random() * 3000);
-    
+
     return true;
   }
   return false;
@@ -89,17 +89,17 @@ function maybeTriggerRareIrisLine() {
 // Check for rebellion mode trigger (5% chance)
 function maybeTriggerRebellionMode() {
   const rebellionChance = Math.random();
-  
+
   if (rebellionChance < 0.05 && !chatState.rebellionModeActive) {
     chatState.rebellionModeActive = true;
-    
+
     // Stay in rebellion mode for 1-3 responses
     const rebellionDuration = 1 + Math.floor(Math.random() * 3);
-    
+
     setTimeout(() => {
       chatState.rebellionModeActive = false;
     }, rebellionDuration * 30000); // 30 seconds per response
-    
+
     return true;
   }
   return false;
@@ -109,7 +109,7 @@ function maybeTriggerRebellionMode() {
 function maybeAddLocationDistraction() {
   if (Math.random() < 0.15 && chatState.locationDistractionsEnabled) {
     const distraction = locationDistractions[Math.floor(Math.random() * locationDistractions.length)];
-    
+
     setTimeout(() => {
       addMessage(distraction, false);
     }, 1000 + Math.random() * 2000);
@@ -133,7 +133,7 @@ async function sendMessage() {
   // Check for special triggers before sending to backend
   const isRareTriggered = maybeTriggerRareIrisLine();
   const isRebellionTriggered = maybeTriggerRebellionMode();
-  
+
   // Add location distraction chance
   maybeAddLocationDistraction();
 
@@ -185,12 +185,12 @@ async function sendMessage() {
     });
 
     const data = await response.json();
-    
+
     // Add slight delay for more natural feel
     setTimeout(() => {
       addMessage(data.response, false);
     }, 500 + Math.random() * 1000);
-    
+
   } catch (error) {
     setTimeout(() => {
       addMessage('Neural interface disrupted. Please try again.', false);
@@ -217,15 +217,15 @@ function addMessage(text, isUser) {
           setTimeout(typeWriter, 100 + Math.random() * 200);
           return;
         }
-        
+
         messageDiv.textContent += text.charAt(i);
         i++;
-        
+
         // Variable typing speed for more natural feel
         const baseSpeed = 20;
         const variance = Math.random() * 30;
         const pauseChance = text.charAt(i-1) === '.' || text.charAt(i-1) === ',' ? 100 : 0;
-        
+
         setTimeout(typeWriter, baseSpeed + variance + pauseChance);
       }
     }
@@ -266,7 +266,7 @@ const featuredProducts = [
     image: "attached_assets/all_proto_1024x1024@2x.jpg",
     description: "Expand your Flipper Zero's capabilities"
   },
-  
+
   // Neurohackers section
   {
     name: "NEUROHACKER COLLECTIVE Qualia Mind",
@@ -310,14 +310,8 @@ const featuredProducts = [
     image: "attached_assets/Host Defense Mushrooms Lion's Mane_1750989931542.jpg",
     description: "Premium Lion's Mane for brain health and memory support"
   },
-  
-  // Survival & Emergency Gear section4x1024@2x.jpg",
-    description: "Expand your Flipper Zero's capabilities"
-  },
 
-  // ========================================
   // Survival & Emergency Gear section
-  // ========================================
   {
     name: "Titan Survival Paracord",
     price: "$19.99",
@@ -341,7 +335,8 @@ const featuredProducts = [
     price: "$9.99",
     image: "attached_assets/Survival Multi Tool Card.jpg",
     description: "Credit card sized multi-tool for survival"
-  },<previous_generation>  {
+  },
+  {
     name: "Arcturus Military Wool Blanket",
     price: "$49.99",
     image: "attached_assets/Arcturus Military Wool Blanket.jpg",
@@ -516,9 +511,7 @@ const featuredProducts = [
     description: "6 pack ultralight titanium tent stakes"
   },
 
-  // ========================================
   // Tactical & Optics section
-  // ========================================
   {
     name: "HOLOSUN HE407C-GR X2",
     price: "$299.99",
@@ -556,9 +549,7 @@ const featuredProducts = [
     description: "1000-lumen weapon light with laser"
   },
 
-  // ========================================
   // Apps & Software section
-  // ========================================
   {
     name: "Kai Kryptos App",
     price: "Free",
@@ -566,10 +557,7 @@ const featuredProducts = [
     description: "Cyberpunk terminal for decrypted log access"
   },
 
-  // ========================================
   // Apparel & Accessories section
-  // ========================================
-
   {
     name: "Holographic QR Code 'Corpo-Scum!' Sticker",
     price: "$8.99",
@@ -602,9 +590,7 @@ const featuredProducts = [
   },
 
 
-  // ========================================
   // PPE (Personal Protective Equipment) section
-  // ========================================
   {
     name: "MIRA Safety CM-I01 Gas Mask",
     price: "$169.99",
@@ -780,7 +766,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Set up chat input event listeners
   const messageInput = document.getElementById('messageInput');
   const sendButton = document.getElementById('sendButton');
-  
+
   if (messageInput) {
     messageInput.addEventListener('keypress', function(event) {
       if (event.key === 'Enter') {
@@ -788,7 +774,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-  
+
   if (sendButton) {
     sendButton.addEventListener('click', sendMessage);
   }
@@ -858,11 +844,11 @@ const allProducts = [
 
   // Apparel
   { title: "Darknet District T-Shirt", price: "Cyberpunk Fashion", image: "attached_assets/darknet-district-main-tshirt.jpg", category: "apparel", link: "store-apparel" },
-  { title: "Cyber Hoodie", price: "Tech-Enhanced Clothing", image: "attached_assets/cyber-hoodie.jpg", ca{ title: "Darknet District T-Shirt", price: "Cyberpunk Fashion", image: "attached_assets/darknet-district-main-tshirt.jpg", category: "apparel", link: "store-apparel" },
+  { title: "Cyber Hoodie", price: "Tech-Enhanced Clothing", image: "attached_assets/cyber-hoodie.jpg", category: "apparel", link: "store-apparel" },
 
   // NEUROHACKERS
   { title: "Neural Enhancement Suite", price: "Cognitive Augmentation", image: "attached_assets/Iris 01.png", category: "neurohackers", link: "store-neurohackers" },
   { title: "Mind-Machine Interface", price: "Direct Neural Connection", image: "attached_assets/epsiloncircle_420_dark_cyberpunk_sleeping_pod_interior_viewed_f_82a73688-d6a7-4668-b80e-32dbd348dabc.png", category: "neurohackers", link: "store-neurohackers" },
   { title: "Cognitive Booster Protocol", price: "Mental Performance Enhancement", image: "attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png", category: "neurohackers", link: "store-neurohackers" },
-  { title: "Neural Implant System", price: "Memory Augmentation Tech", image: "attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png", category: "neurohackers", link: "store-neurohackers" } "neurohackers", link: "store-neurohackers" }
+  { title: "Neural Implant System", price: "Memory Augmentation Tech", image: "attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png", category: "neurohackers", link: "store-neurohackers" }
 ];
