@@ -1167,11 +1167,11 @@ const allProducts = [
 
   // Apparel
   { title: "Darknet District T-Shirt", price: "Cyberpunk Fashion", image: "attached_assets/darknet-district-main-tshirt.jpg", category: "apparel", link: "store-apparel" },
-  { title: "Cyber Hoodie", price: "Tech-Enhanced Clothing", image: "attached_assets/cyber-hoodie.jpg", category: "apparel", link: "store-apparel" },
+  { title: "Cyber Hoodie", price: "Tech-Enhanced Clothing", image: "attached_assets/cyber-hoodie.jpg", ca{ title: "Darknet District T-Shirt", price: "Cyberpunk Fashion", image: "attached_assets/darknet-district-main-tshirt.jpg", category: "apparel", link: "store-apparel" },
 
   // NEUROHACKERS
   { title: "Neural Enhancement Suite", price: "Cognitive Augmentation", image: "attached_assets/Iris 01.png", category: "neurohackers", link: "store-neurohackers" },
   { title: "Mind-Machine Interface", price: "Direct Neural Connection", image: "attached_assets/epsiloncircle_420_dark_cyberpunk_sleeping_pod_interior_viewed_f_82a73688-d6a7-4668-b80e-32dbd348dabc.png", category: "neurohackers", link: "store-neurohackers" },
   { title: "Cognitive Booster Protocol", price: "Mental Performance Enhancement", image: "attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png", category: "neurohackers", link: "store-neurohackers" },
-  { title: "Neural Implant System", price: "Memory Augmentation Tech", image: "attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png", category: "neurohackers", link: "store-neurohackers" }
+  { title: "Neural Implant System", price: "Memory Augmentation Tech", image: "attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png", category: "neurohackers", link: "store-neurohackers" } "neurohackers", link: "store-neurohackers" }
 ];
