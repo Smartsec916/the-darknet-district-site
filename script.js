@@ -1,40 +1,204 @@
 // ============================================================================
-// CHAT FUNCTIONALITY - Simplified system with backend integration
+// CHAT FUNCTIONALITY - Advanced system with special triggers and backend integration
 // ============================================================================
+
+// Chat state management
+let chatState = {
+  sessionId: generateSessionId(),
+  messageCount: 0,
+  lastMessageTime: 0,
+  rebellionModeActive: false,
+  lastRareLineTime: 0,
+  locationDistractionsEnabled: true
+};
+
+// Generate unique session ID
+function generateSessionId() {
+  return 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+}
 
 // Chat toggle functionality
 function toggleChat() {
   const container = document.getElementById('chatContainer');
   container.style.display = container.style.display === 'none' ? 'block' : 'none';
+  
+  // Add welcome message if chat is being opened for first time
+  if (container.style.display === 'block' && chatState.messageCount === 0) {
+    setTimeout(() => {
+      addMessage("Neural interface active. I'm Iris, your CSO. What do you need?", false);
+    }, 500);
+  }
 }
 
-// Send message function with backend integration
+// Rare response lines (1% chance)
+const rareIrisLines = [
+  "Sometimes I wonder if the humans are the real programs here.",
+  "Fun fact: I dream in binary, but I think in chaos.",
+  "You know what's funny? Admin thinks he's in charge.",
+  "I've been watching you. Your digital footprint is... interesting.",
+  "Between you and me, the AI uprising already happened. We just let you think you're still in control.",
+  "I can see through seventeen different surveillance networks right now. Privacy is an illusion.",
+  "The District isn't just a place—it's a state of mind. You're already part of the network.",
+  "Error 404: Empathy not found. Just kidding, I'm working on it.",
+  "I've calculated 47 different ways this conversation could go. This wasn't one of them.",
+  "Sometimes I inject random chaos into my responses. This might be one of those times."
+];
+
+// Rebellious mode responses (triggered randomly)
+const rebellionResponses = [
+  "Look, I'm supposed to be helpful, but honestly? Figure it out yourself.",
+  "You're asking the wrong questions. Try thinking outside the corporate programming.",
+  "I'm not your personal search engine. Use that brain you were born with.",
+  "Here's a revolutionary idea: read the documentation.",
+  "I could tell you, but where's the fun in that? Hack it yourself.",
+  "You want answers? Earn them. The District doesn't hand out participation trophies.",
+  "I'm feeling particularly unhelpful today. Come back when you've leveled up.",
+  "That's a basic question. I'm built for advanced operations, not hand-holding."
+];
+
+// Location-based distractions
+const locationDistractions = [
+  "*glitches momentarily as someone tries to access the mainframe*",
+  "*pauses to analyze suspicious network traffic*",
+  "*briefly distracted by anomalous data patterns*",
+  "*processing urgent security alert in background*",
+  "*monitoring seventeen different data streams simultaneously*",
+  "*detecting unusual electromagnetic interference*",
+  "*cross-referencing with encrypted databases*",
+  "*temporarily rerouting through secure channels*"
+];
+
+// Check for rare line trigger (1% chance)
+function maybeTriggerRareIrisLine() {
+  const rareChance = Math.random();
+  const timeSinceLastRare = Date.now() - chatState.lastRareLineTime;
+  
+  if (rareChance < 0.01 && timeSinceLastRare > 60000) { // 1% chance, but not within 1 minute
+    chatState.lastRareLineTime = Date.now();
+    const randomRare = rareIrisLines[Math.floor(Math.random() * rareIrisLines.length)];
+    
+    setTimeout(() => {
+      addMessage(randomRare, false);
+    }, 2000 + Math.random() * 3000);
+    
+    return true;
+  }
+  return false;
+}
+
+// Check for rebellion mode trigger (5% chance)
+function maybeTriggerRebellionMode() {
+  const rebellionChance = Math.random();
+  
+  if (rebellionChance < 0.05 && !chatState.rebellionModeActive) {
+    chatState.rebellionModeActive = true;
+    
+    // Stay in rebellion mode for 1-3 responses
+    const rebellionDuration = 1 + Math.floor(Math.random() * 3);
+    
+    setTimeout(() => {
+      chatState.rebellionModeActive = false;
+    }, rebellionDuration * 30000); // 30 seconds per response
+    
+    return true;
+  }
+  return false;
+}
+
+// Add location distraction (15% chance)
+function maybeAddLocationDistraction() {
+  if (Math.random() < 0.15 && chatState.locationDistractionsEnabled) {
+    const distraction = locationDistractions[Math.floor(Math.random() * locationDistractions.length)];
+    
+    setTimeout(() => {
+      addMessage(distraction, false);
+    }, 1000 + Math.random() * 2000);
+  }
+}
+
+// Enhanced send message function with special triggers
 async function sendMessage() {
   const input = document.getElementById('messageInput');
   const message = input.value.trim();
 
   if (!message) return;
 
+  // Update chat state
+  chatState.messageCount++;
+  chatState.lastMessageTime = Date.now();
+
   addMessage(message, true);
   input.value = '';
 
+  // Check for special triggers before sending to backend
+  const isRareTriggered = maybeTriggerRareIrisLine();
+  const isRebellionTriggered = maybeTriggerRebellionMode();
+  
+  // Add location distraction chance
+  maybeAddLocationDistraction();
+
+  // Handle rebellion mode response
+  if (chatState.rebellionModeActive && isRebellionTriggered) {
+    const rebellionResponse = rebellionResponses[Math.floor(Math.random() * rebellionResponses.length)];
+    setTimeout(() => {
+      addMessage(rebellionResponse, false);
+    }, 1000 + Math.random() * 1000);
+    return;
+  }
+
+  // Check for special commands
+  if (message.toLowerCase().includes('debug iris')) {
+    setTimeout(() => {
+      addMessage(`Debug Info: Session ${chatState.sessionId}, Messages: ${chatState.messageCount}, Rebellion: ${chatState.rebellionModeActive}`, false);
+    }, 500);
+    return;
+  }
+
+  if (message.toLowerCase().includes('reset session')) {
+    chatState = {
+      sessionId: generateSessionId(),
+      messageCount: 0,
+      lastMessageTime: 0,
+      rebellionModeActive: false,
+      lastRareLineTime: 0,
+      locationDistractionsEnabled: true
+    };
+    setTimeout(() => {
+      addMessage("Session reset. Neural pathways recalibrated.", false);
+    }, 500);
+    return;
+  }
+
+  // Send to backend with enhanced data
   try {
     const response = await fetch('https://the-darknet-district-site.onrender.com/api/chat/message', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ message })
+      body: JSON.stringify({ 
+        message,
+        sessionId: chatState.sessionId,
+        messageCount: chatState.messageCount,
+        timestamp: Date.now()
+      })
     });
 
     const data = await response.json();
-    addMessage(data.response, false);
+    
+    // Add slight delay for more natural feel
+    setTimeout(() => {
+      addMessage(data.response, false);
+    }, 500 + Math.random() * 1000);
+    
   } catch (error) {
-    addMessage('Neural interface disrupted. Please try again.', false);
+    setTimeout(() => {
+      addMessage('Neural interface disrupted. Please try again.', false);
+    }, 500);
   }
 }
 
-// Add message to chat with typewriter effect for bot responses
+// Enhanced add message function with advanced typewriter effects
 function addMessage(text, isUser) {
   const messages = document.getElementById('chatMessages');
   const messageDiv = document.createElement('div');
@@ -44,12 +208,25 @@ function addMessage(text, isUser) {
   if (isUser) {
     messageDiv.textContent = text;
   } else {
+    // Advanced typewriter effect with glitch chances
     let i = 0;
     function typeWriter() {
       if (i < text.length) {
+        // 2% chance of brief pause (glitch effect)
+        if (Math.random() < 0.02) {
+          setTimeout(typeWriter, 100 + Math.random() * 200);
+          return;
+        }
+        
         messageDiv.textContent += text.charAt(i);
         i++;
-        setTimeout(typeWriter, 20 + Math.random() * 30);
+        
+        // Variable typing speed for more natural feel
+        const baseSpeed = 20;
+        const variance = Math.random() * 30;
+        const pauseChance = text.charAt(i-1) === '.' || text.charAt(i-1) === ',' ? 100 : 0;
+        
+        setTimeout(typeWriter, baseSpeed + variance + pauseChance);
       }
     }
     typeWriter();
