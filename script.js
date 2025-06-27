@@ -773,6 +773,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const chatButton = document.getElementById('chatButton');
   if (chatButton) {
     chatButton.addEventListener('click', toggleChat);
+  } else {
+    console.log('Chat button not found in DOM');
   }
 
   // Set up chat input event listeners

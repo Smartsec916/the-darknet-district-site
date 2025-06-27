@@ -50,17 +50,18 @@ window.addEventListener("load", () => {
             for (let i = 0; i < 20; i++) console.log(" ");
 
             // Trigger Iris chat
-            if (typeof chatManager !== 'undefined') {
+            setTimeout(() => {
+                const chatContainer = document.getElementById('chatContainer');
+                if (chatContainer && chatContainer.style.display === 'none') {
+                    toggleChat();
+                }
                 setTimeout(() => {
-                    if (!chatManager.isOpen) chatManager.toggleChat();
-                    setTimeout(() => {
-                        chatManager.addMessage("Neural interface online. What brings you to the District today?", false);
-                    }, 1000);
-                    setTimeout(() => {
-                        chatManager.addMessage("I see you've opened the developer tools. Curious about how the District operates behind the scenes?", false);
-                    }, 3000);
-                }, 1500);
-            }
+                    addMessage("Neural interface online. What brings you to the District today?", false);
+                }, 1000);
+                setTimeout(() => {
+                    addMessage("I see you've opened the developer tools. Curious about how the District operates behind the scenes?", false);
+                }, 3000);
+            }, 1500);
         }
 
         // Allow retriggering after devtools have been closed for 5+ seconds
