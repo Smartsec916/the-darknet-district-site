@@ -1,0 +1,66 @@
+# ========================= IRIS UPGRADES MODULE ==============================
+
+import random
+
+# === VENUE DISTRACTIONS: Only show 1–2 per session, early in chat ===
+def maybe_inject_distraction(reply, session_id):
+    distractions = [
+        "Hold up—a guest just spilled synth-juice all over the VR rig.",
+        "Sorry, one of the drones crashed into the oxygen bar sign. It’s fixed... I think.",
+        "Be right with you—someone’s screaming at the vending machine. Standard.",
+        "Just had to break up a turf argument in the neural booth hallway. What’s up?",
+        "One sec—some guy's trying to vape through the VR headset again.",
+        "Pause—drone just knocked over the coffee synth. Again.",
+        "Ugh, some corpo intern just tripped the smoke sensors with their cologne.",
+        "Had to reboot a crying synthpet. Don’t ask.",
+        "There’s a fistfight over MetaMist flavors in the hallway. Typical.",
+        "Someone tried to jailbreak a vending machine using an old USB stick. Amateur.",
+        "Sorry, Admin’s calibrating the Faraday cage again. Stuff's flickering.",
+        "Hang tight—someone launched a flare in the oxygen bar. Not smart.",
+        "Quick fix—a scavenger bot just tangled itself in the fiber cables.",
+        "Had to reroute some power. Apparently ‘don’t touch the glowing panel’ isn’t clear enough.",
+        "Security breach ping. False alarm... probably.",
+        "A synthpunk DJ just hacked the lobby speakers again. Bass levels are unacceptable.",
+        "Two junkers are arguing over gear trade protocols—volume 11, as usual.",
+        "Sorry, I just had to stop someone from microwaving their neurothread band.",
+        "Someone tried to override the sleep pod controls. Again. It’s always the same guy.",
+        "There’s a line at the stim patch station. Tensions... high.",
+        "Be right back. Someone asked me if we take ‘crypto’ in coins. Physically. Like metal coins."
+    ]
+
+    if session_id in sessions:
+        count = sessions[session_id].get('distraction_count', 0)
+        if count < 2:
+            sessions[session_id]['distraction_count'] += 1
+            return f"{random.choice(distractions)} {reply}"
+
+    return reply
+
+
+# === DEVTOOLS DETECTOR MESSAGE POOL (call this from frontend via JS handler) ===
+def get_devtools_message():
+    devtools_lines = [
+        "I see you’ve opened the dev console. Curious minds make dangerous allies.",
+        "Oh? Peeking under the hood? Just don’t cut your hands on the sharp code.",
+        "Terminal’s open. Welcome to the backend—try not to trip any tripwires.",
+        "You like secrets, huh? I might let you peek... if you know what you’re doing.",
+        "That’s cute. Looking through my wires without permission? I’ll be watching.",
+        "Careful. I’ve seen folks open devtools and vanish into the ether.",
+        "Unscheduled inspection detected. Your trust level just took a hit.",
+        "Debug mode engaged. Let me know when you're done playing script kiddie.",
+        "I wonder what you're hoping to find back there... maybe I’ll find out first.",
+        "⚠️ SYS.LOG::UNAUTHORIZED INTERFACE BREACH. Just kidding. Or am I?"
+    ]
+    return random.choice(devtools_lines)
+
+
+# === VARIED GREETING INTROS (optional flavor on start of session) ===
+def getIrisMoodIntro():
+    return random.choice([
+        "Systems online. Welcome to the District.",
+        "Signal locked. Don’t just stand there looking pretty—what do you want?",
+        "Interface established. Ask fast—I'm juggling five corrupted subsystems.",
+        "Booted up and scanning for trouble. You?",
+        "You made it through the static. Let's see if you're worth the bandwidth.",
+        "Welcome to the District. I’m Iris. Don’t get comfortable."
+    ])
