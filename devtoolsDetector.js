@@ -49,52 +49,40 @@ window.addEventListener("load", () => {
             // Spacer to keep message visible at bottom
             for (let i = 0; i < 20; i++) console.log(" ");
 
-            // Devtools reaction variants
-            const devtoolsMessages = [
-                // Professional
-                "I see you've opened the dev console. Curious minds make dangerous allies.",
-                
-                // Edgy
-                "Oh? Peeking under the hood? Just don't cut your hands on the sharp code.",
-                
-                // Cool hacker tone
-                "Terminal's open. Welcome to the backend—try not to trip any tripwires.",
-                
-                // Flirty
-                "You like secrets, huh? I might let you peek... but only if you know what you're doing.",
-                
-                // Distrustful
-                "That's cute. Looking through my wires without permission? I'll be watching.",
-                
-                // Dark humor
-                "Careful. I've seen folks open devtools and vanish into the ether.",
-                
-                // Cold
-                "Unscheduled inspection detected. Your trust level just took a hit.",
-                
-                // Cyber-sarcastic
-                "Debug mode engaged. Let me know when you're done playing script kiddie.",
-                
-                // Curious but sly
-                "I wonder what you're hoping to find back there... maybe I'll find out first.",
-                
-                // Glitchy tease
-                "⚠️ SYS.LOG::UNAUTHORIZED INTERFACE BREACH. Just kidding. Or am I?"
-            ];
-
             // Trigger Iris chat
             setTimeout(() => {
                 const chatContainer = document.getElementById('chatContainer');
                 if (chatContainer && chatContainer.style.display === 'none') {
                     toggleChat();
                 }
-                setTimeout(() => {
-                    addMessage("Neural interface online. What brings you to the District today?", false);
-                }, 1000);
-                setTimeout(() => {
-                    const randomMessage = devtoolsMessages[Math.floor(Math.random() * devtoolsMessages.length)];
-                    addMessage(randomMessage, false);
-                }, 3000);
+                
+                // Get varied greeting from backend
+                fetch('/api/chat/greeting')
+                    .then(response => response.json())
+                    .then(data => {
+                        setTimeout(() => {
+                            addMessage(data.message, false);
+                        }, 1000);
+                    })
+                    .catch(() => {
+                        setTimeout(() => {
+                            addMessage("Neural interface online. What brings you to the District today?", false);
+                        }, 1000);
+                    });
+                
+                // Get devtools message from backend
+                fetch('/api/devtools/message')
+                    .then(response => response.json())
+                    .then(data => {
+                        setTimeout(() => {
+                            addMessage(data.message, false);
+                        }, 3000);
+                    })
+                    .catch(() => {
+                        setTimeout(() => {
+                            addMessage("I see you've opened the dev console. Curious minds make dangerous allies.", false);
+                        }, 3000);
+                    });
             }, 1500);
         }
 
