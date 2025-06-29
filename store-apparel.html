@@ -321,7 +321,9 @@
     document.addEventListener("DOMContentLoaded", async function () {
       // Fetch store configuration from server
       const configResponse = await fetch('/api/store/config');
-      const storeConfig = await configResponse.json();
+      const text = await configResponse.text();
+      console.log("Config response text:", text);
+      const storeConfig = JSON.parse(text);
 
       var client = ShopifyBuy.buildClient({
         domain: storeConfig.domain,
