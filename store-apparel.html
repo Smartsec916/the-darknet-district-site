@@ -322,7 +322,7 @@
       // Fetch store configuration from server
       const configResponse = await fetch('/api/store/config');
       const storeConfig = await configResponse.json();
-      
+
       var client = ShopifyBuy.buildClient({
         domain: storeConfig.domain,
         storefrontAccessToken: storeConfig.storefrontAccessToken
@@ -443,5 +443,17 @@
       productCache[category].forEach(cell => cell.style.display = 'flex');
     }
   </script>
+  <!-- Chat Interface -->
+  <button id="chatButton" class="chat-button">💬 Chat with Iris</button>
+  <div id="chatContainer" class="chat-container" style="display: none;">
+    <div class="chat-header">Iris - CSO</div>
+    <div id="chatMessages" class="chat-messages"></div>
+    <div class="chat-input-container">
+      <input type="text" id="messageInput" placeholder="Type your message..." />
+      <button id="sendButton">Send</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
