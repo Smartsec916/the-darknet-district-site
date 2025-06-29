@@ -152,7 +152,8 @@
       }
     ];
 
-    let survivalCurrentBanner = 0;
+    // Current banner index tracker
+    let survivalBannerIndex = 0;
     const survivalImageEl = document.getElementById("affiliate-image");
     const survivalLinkEl = document.getElementById("affiliate-link");
     const survivalGlitchEl = document.getElementById("glitch-effect");
@@ -179,19 +180,19 @@
 
     function rotateSurvivalBanner() {
       if (!survivalImageEl || !survivalLinkEl) return;
-      
+
       survivalImageEl.style.opacity = 0;
       survivalImageEl.style.boxShadow = 'none';
 
       setTimeout(() => {
-        const banner = survivalBanners[survivalCurrentBanner];
+        const banner = survivalBanners[survivalBannerIndex];
         survivalImageEl.src = banner.image;
         survivalLinkEl.href = banner.link;
         survivalGlitchEffect();
         survivalImageEl.style.opacity = 1;
         survivalImageEl.style.boxShadow = '0 0 20px #00ff9d';
 
-        survivalCurrentBanner = (survivalCurrentBanner + 1) % survivalBanners.length;
+        survivalBannerIndex = (survivalBannerIndex + 1) % survivalBanners.length;
       }, 500);
     }
 
@@ -200,6 +201,18 @@
       rotateSurvivalBanner();
       setInterval(rotateSurvivalBanner, 8000);
     });
+
+    function rotateBanner() {
+    imageEl.style.opacity = 0;
+    setTimeout(() => {
+      const banner = banners[survivalBannerIndex];
+      imageEl.src = banner.image;
+      linkEl.href = banner.link;
+      imageEl.style.opacity = 1;
+
+      survivalBannerIndex = (survivalBannerIndex + 1) % banners.length;
+    }, 500);
+  }
   </script>
 
   <!-- Main content container -->
@@ -273,7 +286,7 @@
         <a href="https://amzn.to/43Oi4D9" target="_blank" class="button">Buy Now</a>
       </div>
 
-      
+
       <div class="product-card" data-category="shelter">
         <h3>Arcturus Military Wool Blanket</h3>
         <img src="attached_assets/Arcturus Military Wool Blanket.jpg" alt="Military Wool Blanket" style="max-width: 200px; margin: 10px auto;">
@@ -491,7 +504,7 @@
         <img src="attached_assets/MIRA Safety MOPP-1 CBRN Protective Suit_1749345272579.jpg" alt="MIRA Safety MOPP-1 CBRN Suit" style="max-width: 200px; margin: 10px auto;">
         <a href="https://amzn.to/4kUSoeT" target="_blank" class="button">Buy Now</a>
       </div>
-    </div>
+        </div>
   </div>
 
   <!-- Product filtering JavaScript -->
