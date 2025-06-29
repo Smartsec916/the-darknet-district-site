@@ -892,30 +892,30 @@ const allProducts = [
   { title: "Neural Implant System", price: "Memory Augmentation Tech", image: "attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png", category: "neurohackers", link: "store-neurohackers" }
 ];
 
-// Rotating affiliate banners
-const banners = [
+// Rotating affiliate banners for main pages
+const mainBanners = [
   { image: "attached_assets/881f5832-0a1e-4079-8a66-fbc2c6479931._CR0,0,3000,600_SX3000_.jpg", link: "https://mosequipment.com/" },
   { image: "attached_assets/cyberpunk_game.jpg", link: "https://www.cdprojektred.com/en" },
   { image: "attached_assets/Flipper_Zero.jpg", link: "https://flipperzero.one/" }
 ];
-let globalBannerIndex = 0;
+let mainBannerIndex = 0;
 
-const imageEl = document.getElementById('banner-image');
-const linkEl = document.getElementById('banner-link');
+const mainImageEl = document.getElementById('banner-image');
+const mainLinkEl = document.getElementById('banner-link');
 
-function rotateBanner() {
-  if (imageEl && linkEl) {
-    imageEl.style.opacity = 0;
+function rotateMainBanner() {
+  if (mainImageEl && mainLinkEl) {
+    mainImageEl.style.opacity = 0;
     setTimeout(() => {
-      const banner = banners[globalBannerIndex];
-      imageEl.src = banner.image;
-      linkEl.href = banner.link;
-      imageEl.style.opacity = 1;
-      globalBannerIndex = (globalBannerIndex + 1) % banners.length;
+      const banner = mainBanners[mainBannerIndex];
+      mainImageEl.src = banner.image;
+      mainLinkEl.href = banner.link;
+      mainImageEl.style.opacity = 1;
+      mainBannerIndex = (mainBannerIndex + 1) % mainBanners.length;
     }, 500);
   }
 }
 
-if (imageEl && linkEl) {
-  setInterval(rotateBanner, 5000);
+if (mainImageEl && mainLinkEl) {
+  setInterval(rotateMainBanner, 5000);
 }
