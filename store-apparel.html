@@ -293,18 +293,18 @@
         { image: "attached_assets/cyberpunk_game.jpg", link: "https://www.cdprojektred.com/en" },
         { image: "attached_assets/Flipper_Zero.jpg", link: "https://flipperzero.one/" }
       ];
-      let currentBannerIndex = 0;
+      let apparelBannerIndex = 0;
       const imageEl = document.getElementById("affiliate-image");
       const linkEl = document.getElementById("affiliate-link");
       function rotateBanner() {
         if (imageEl && linkEl) {
           imageEl.style.opacity = 0;
           setTimeout(() => {
-            const banner = banners[currentBannerIndex];
+            const banner = banners[apparelBannerIndex];
             imageEl.src = banner.image;
             linkEl.href = banner.link;
             imageEl.style.opacity = 1;
-            currentBannerIndex = (currentBannerIndex + 1) % banners.length;
+            apparelBannerIndex = (apparelBannerIndex + 1) % banners.length;
           }, 500);
         }
       }
