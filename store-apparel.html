@@ -319,7 +319,8 @@
     document.addEventListener("DOMContentLoaded", function () {
       var client = ShopifyBuy.buildClient({
         domain: 'qbhrmg-jn.myshopify.com',
-        storefrontAccessToken: 'b2db190312196bda4d67fee236d5994a'
+        // Note: API tokens should be handled server-side for security
+        storefrontAccessToken: '' // Remove hard-coded token
       });
 
       var uiReady = ShopifyBuy.UI.onReady(client);
