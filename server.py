@@ -419,6 +419,30 @@ def health_check():
     }), 200
 
 
+@app.route('/api/devtools/message', methods=['GET'])
+def devtools_message():
+    messages = [
+        "I see you've opened the dev console. Curious minds make dangerous allies.",
+        "Oh? Peeking under the hood? Just don't cut your hands on the sharp code.",
+        "Terminal's open. Welcome to the backend—try not to trip any tripwires.",
+        "You like secrets, huh? I might let you peek... if you know what you're doing.",
+        "That's cute. Looking through my wires without permission? I'll be watching.",
+        "Careful. I've seen folks open devtools and vanish into the ether.",
+        "Unscheduled inspection detected. Your trust level just took a hit.",
+        "Debug mode engaged. Let me know when you're done playing script kiddie.",
+        "I wonder what you're hoping to find back there... maybe I'll find out first.",
+        "⚠️ SYS.LOG::UNAUTHORIZED INTERFACE BREACH. Just kidding. Or am I?"
+    ]
+    return jsonify({"message": get_devtools_message()})
+
+@app.route('/api/store/config')
+def store_config():
+    return jsonify({
+        "domain": "qbhrmg-jn.myshopify.com",
+        "storefrontAccessToken": os.getenv('SHOPIFY_STOREFRONT_TOKEN', '')
+    })
+
+
 # ============================================================================
 # STATIC FILE ROUTES - Serve HTML, CSS, JS, and assets
 # ============================================================================

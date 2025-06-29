@@ -316,11 +316,14 @@
   <!-- Shopify Buy Button Scripts - ONLY ONE SDK, one script, all products -->
   <script src="https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", async function () {
+      // Fetch store configuration from server
+      const configResponse = await fetch('/api/store/config');
+      const storeConfig = await configResponse.json();
+      
       var client = ShopifyBuy.buildClient({
-        domain: 'qbhrmg-jn.myshopify.com',
-        // Note: API tokens should be handled server-side for security
-        storefrontAccessToken: '' // Remove hard-coded token
+        domain: storeConfig.domain,
+        storefrontAccessToken: storeConfig.storefrontAccessToken
       });
 
       var uiReady = ShopifyBuy.UI.onReady(client);
