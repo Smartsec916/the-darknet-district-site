@@ -419,21 +419,6 @@ def health_check():
     }), 200
 
 
-
-
-@app.route('/api/store/config')
-def store_config():
-    domain = os.getenv('SHOPIFY_DOMAIN', 'qbhrmg-jn.myshopify.com')
-    token = os.getenv('SHOPIFY_TOKEN', os.getenv('SHOPIFY_STOREFRONT_TOKEN', ''))
-    
-    logger.info(f"Store config request - Domain: {domain}, Token present: {bool(token)}")
-    
-    return jsonify({
-        "domain": domain,
-        "storefrontAccessToken": token
-    })
-
-
 # ============================================================================
 # STATIC FILE ROUTES - Serve HTML, CSS, JS, and assets
 # ============================================================================

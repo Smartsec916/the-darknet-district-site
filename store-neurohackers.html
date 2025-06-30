@@ -344,8 +344,7 @@
       }
     ];
 
-    // Current banner index tracker
-    let neurohackersBannerIndex = 0;
+    let currentBanner = 0;
     const imageEl = document.getElementById("affiliate-image");
     const linkEl = document.getElementById("affiliate-link");
     const glitchEl = document.getElementById("glitch-effect");
@@ -372,14 +371,14 @@
       imageEl.style.boxShadow = 'none';
 
       setTimeout(() => {
-        const banner = banners[neurohackersBannerIndex];
+        const banner = banners[currentBanner];
         imageEl.src = banner.image;
         linkEl.href = banner.link;
         glitchEffect();
         imageEl.style.opacity = 1;
         imageEl.style.boxShadow = '0 0 20px #00ff9d';
 
-        neurohackersBannerIndex = (neurohackersBannerIndex + 1) % banners.length;
+        currentBanner = (currentBanner + 1) % banners.length;
       }, 500);
     }
 

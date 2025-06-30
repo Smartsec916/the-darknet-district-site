@@ -684,59 +684,20 @@ function displayFeaturedProducts() {
   const product2 = currentProductPair[1];
 
   // Generate HTML for both products with consistent styling
-  // Create elements safely to prevent XSS
-  const wrapper = document.createElement('div');
-  wrapper.style.cssText = 'display: flex; gap: 30px; justify-content: center; flex-wrap: wrap;';
-
-  // Create first product card
-  const card1 = document.createElement('div');
-  card1.className = 'product-card';
-  card1.style.cssText = 'width: 250px; height: 350px; margin: 10px; transition: opacity 0.5s ease;';
-
-  const img1 = document.createElement('img');
-  img1.src = product1.image;
-  img1.alt = product1.name;
-  img1.style.cssText = 'width: 180px; height: 180px; object-fit: contain;';
-
-  const h3_1 = document.createElement('h3');
-  h3_1.textContent = product1.name;
-  h3_1.style.cssText = 'color: #00ff9d; margin: 10px 0 5px 0; font-size: 16px;';
-
-  const p1 = document.createElement('p');
-  p1.textContent = product1.description;
-  p1.style.cssText = 'color: #cccccc; font-size: 14px; margin: 5px 0;';
-
-  card1.appendChild(img1);
-  card1.appendChild(h3_1);
-  card1.appendChild(p1);
-
-  // Create second product card
-  const card2 = document.createElement('div');
-  card2.className = 'product-card';
-  card2.style.cssText = 'width: 250px; height: 350px; margin: 10px; transition: opacity 0.5s ease;';
-
-  const img2 = document.createElement('img');
-  img2.src = product2.image;
-  img2.alt = product2.name;
-  img2.style.cssText = 'width: 180px; height: 180px; object-fit: contain;';
-
-  const h3_2 = document.createElement('h3');
-  h3_2.textContent = product2.name;
-  h3_2.style.cssText = 'color: #00ff9d; margin: 10px 0 5px 0; font-size: 16px;';
-
-  const p2 = document.createElement('p');
-  p2.textContent = product2.description;
-  p2.style.cssText = 'color: #cccccc; font-size: 14px; margin: 5px 0;';
-
-  card2.appendChild(img2);
-  card2.appendChild(h3_2);
-  card2.appendChild(p2);
-
-  wrapper.appendChild(card1);
-  wrapper.appendChild(card2);
-
-  container.innerHTML = '';
-  container.appendChild(wrapper);
+  container.innerHTML = `
+    <div style="display: flex; gap: 30px; justify-content: center; flex-wrap: wrap;">
+      <div class="product-card" style="width: 250px; height: 350px; margin: 10px; transition: opacity 0.5s ease;">
+        <img src="${product1.image}" alt="${product1.name}" style="width: 180px; height: 180px; object-fit: contain;">
+        <h3 style="color: #00ff9d; margin: 10px 0 5px 0; font-size: 16px;">${product1.name}</h3>
+        <p style="color: #cccccc; font-size: 14px; margin: 5px 0;">${product1.description}</p>
+      </div>
+      <div class="product-card" style="width: 250px; height: 350px; margin: 10px; transition: opacity 0.5s ease;">
+        <img src="${product2.image}" alt="${product2.name}" style="width: 180px; height: 180px; object-fit: contain;">
+        <h3 style="color: #00ff9d; margin: 10px 0 5px 0; font-size: 16px;">${product2.name}</h3>
+        <p style="color: #cccccc; font-size: 14px; margin: 5px 0;">${product2.description}</p>
+      </div>
+    </div>
+  `;
 }
 
 
@@ -891,31 +852,3 @@ const allProducts = [
   { title: "Cognitive Booster Protocol", price: "Mental Performance Enhancement", image: "attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png", category: "neurohackers", link: "store-neurohackers" },
   { title: "Neural Implant System", price: "Memory Augmentation Tech", image: "attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png", category: "neurohackers", link: "store-neurohackers" }
 ];
-
-// Rotating affiliate banners for main pages
-const mainBanners = [
-  { image: "attached_assets/881f5832-0a1e-4079-8a66-fbc2c6479931._CR0,0,3000,600_SX3000_.jpg", link: "https://mosequipment.com/" },
-  { image: "attached_assets/cyberpunk_game.jpg", link: "https://www.cdprojektred.com/en" },
-  { image: "attached_assets/Flipper_Zero.jpg", link: "https://flipperzero.one/" }
-];
-let mainBannerIndex = 0;
-
-const mainImageEl = document.getElementById('banner-image');
-const mainLinkEl = document.getElementById('banner-link');
-
-function rotateMainBanner() {
-  if (mainImageEl && mainLinkEl) {
-    mainImageEl.style.opacity = 0;
-    setTimeout(() => {
-      const banner = mainBanners[mainBannerIndex];
-      mainImageEl.src = banner.image;
-      mainLinkEl.href = banner.link;
-      mainImageEl.style.opacity = 1;
-      mainBannerIndex = (mainBannerIndex + 1) % mainBanners.length;
-    }, 500);
-  }
-}
-
-if (mainImageEl && mainLinkEl) {
-  setInterval(rotateMainBanner, 5000);
-}
