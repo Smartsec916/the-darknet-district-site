@@ -683,21 +683,39 @@ function displayFeaturedProducts() {
   const product1 = currentProductPair[0];
   const product2 = currentProductPair[1];
 
-  // Generate HTML for both products with consistent styling
-  container.innerHTML = `
-    <div style="display: flex; gap: 30px; justify-content: center; flex-wrap: wrap;">
-      <div class="product-card" style="width: 250px; height: 350px; margin: 10px; transition: opacity 0.5s ease;">
-        <img src="${product1.image}" alt="${product1.name}" style="width: 180px; height: 180px; object-fit: contain;">
-        <h3 style="color: #00ff9d; margin: 10px 0 5px 0; font-size: 16px;">${product1.name}</h3>
-        <p style="color: #cccccc; font-size: 14px; margin: 5px 0;">${product1.description}</p>
-      </div>
-      <div class="product-card" style="width: 250px; height: 350px; margin: 10px; transition: opacity 0.5s ease;">
-        <img src="${product2.image}" alt="${product2.name}" style="width: 180px; height: 180px; object-fit: contain;">
-        <h3 style="color: #00ff9d; margin: 10px 0 5px 0; font-size: 16px;">${product2.name}</h3>
-        <p style="color: #cccccc; font-size: 14px; margin: 5px 0;">${product2.description}</p>
-      </div>
-    </div>
-  `;
+  // Clear container safely
+  container.innerHTML = '';
+
+  // Create wrapper div
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'display: flex; gap: 30px; justify-content: center; flex-wrap: wrap;';
+
+  // Create product cards using safe DOM methods
+  [product1, product2].forEach(product => {
+    const productCard = document.createElement('div');
+    productCard.className = 'product-card';
+    productCard.style.cssText = 'width: 250px; height: 350px; margin: 10px; transition: opacity 0.5s ease;';
+
+    const img = document.createElement('img');
+    img.src = product.image; // Safe assignment
+    img.alt = product.name; // Safe assignment
+    img.style.cssText = 'width: 180px; height: 180px; object-fit: contain;';
+
+    const title = document.createElement('h3');
+    title.textContent = product.name; // Safe text assignment - automatically escapes
+    title.style.cssText = 'color: #00ff9d; margin: 10px 0 5px 0; font-size: 16px;';
+
+    const description = document.createElement('p');
+    description.textContent = product.description; // Safe text assignment - automatically escapes
+    description.style.cssText = 'color: #cccccc; font-size: 14px; margin: 5px 0;';
+
+    productCard.appendChild(img);
+    productCard.appendChild(title);
+    productCard.appendChild(description);
+    wrapper.appendChild(productCard);
+  });
+
+  container.appendChild(wrapper);
 }
 
 
