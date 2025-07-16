@@ -343,8 +343,8 @@
     const auth = getAuth(app);
     const googleProvider = new GoogleAuthProvider();
 
-    // Global function for the button
-    window.enterTheDistrict = async function() {
+    // Global function for the button - ensure it's available
+    const enterTheDistrict = async function() {
       try {
         const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
@@ -418,6 +418,9 @@
         console.log('User is signed out');
       }
     });
+
+    // Ensure the function is globally available
+    window.enterTheDistrict = enterTheDistrict;
   </script>
 
 <div id="floating-elements"></div>
