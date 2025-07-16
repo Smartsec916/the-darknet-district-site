@@ -792,3 +792,16 @@ section {
   transform: translate(-50%, -50%);
   z-index: 2;
 }
+
+.chat-button {
+      position: fixed;
+      bottom: 60px;
+      right: 20px;
+}
+
+.chat-container {
+      display: none;
+      position: fixed;
+      bottom: 120px;
+      right: 20px;
+}
