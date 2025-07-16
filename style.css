@@ -795,13 +795,13 @@ section {
 
 .chat-button {
       position: fixed;
-      bottom: 60px;
+      bottom: 80px;
       right: 20px;
 }
 
 .chat-container {
       display: none;
       position: fixed;
-      bottom: 120px;
+      bottom: 140px;
       right: 20px;
 }
