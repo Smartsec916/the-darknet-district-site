@@ -391,6 +391,19 @@ section {
    BUTTONS - Interactive cyberpunk button styling
    ============================================================================ */
 
+.enter-district-btn {
+  animation: colorShift 8s ease-in-out infinite;
+  margin-top: 30px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.enter-district-btn:hover {
+  transform: scale(1.05);
+  filter: brightness(1.2);
+}
+
 .game-button {
   padding: clamp(15px, 4vw, 25px) clamp(30px, 6vw, 50px);
   font-family: 'Arial', sans-serif;
