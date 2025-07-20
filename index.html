@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://*; connect-src 'self' https://the-darknet-district-site.onrender.com; frame-src https://*.replit.app https://www.robertsspaceindustries.com https://mosequipment.com https://www.cdprojektred.com https://thedarknetdistrict.com; frame-ancestors 'self' https://thedarknetdistrict.com;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://*; connect-src 'self' https://the-darknet-district-site.onrender.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://accounts.google.com; frame-src https://*.replit.app https://www.robertsspaceindustries.com https://mosequipment.com https://www.cdprojektred.com https://thedarknetdistrict.com https://accounts.google.com; frame-ancestors 'self' https://thedarknetdistrict.com;">
 
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
@@ -345,7 +345,12 @@
 
     // Global function for the button - make it immediately available
     window.enterTheDistrict = async function() {
+      console.log("enterTheDistrict function called");
+      console.log("Auth object:", auth);
+      console.log("Provider object:", googleProvider);
+      
       try {
+        console.log("Attempting to sign in with popup...");
         const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
         console.log("User signed in:", user.displayName);
@@ -380,6 +385,8 @@
         
       } catch (error) {
         console.error('Sign-in failed:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
         
         // Show error message with cyberpunk styling
         const errorMsg = document.createElement('div');
