@@ -1,6 +1,10 @@
-// === DEVTOOLS DETECTOR – FINAL VERSION ===
-// Prevents spam. Logs "ACCESS DENIED" and Iris's message at bottom of console.
+// === DEVTOOLS DETECTOR – DISABLED FOR DEBUGGING ===
+// Temporarily disabled to allow debugging of Firebase login issues
 
+console.log("DevTools detector disabled for debugging");
+
+// Commented out to disable devtools detection
+/*
 window.addEventListener("load", () => {
     const heightThreshold = 300;
     const widthThreshold = 400;
@@ -99,3 +103,4 @@ window.addEventListener("load", () => {
 
     setInterval(checkDevTools, 1000);
 });
+*/
