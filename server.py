@@ -27,6 +27,21 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app, origins=["*"], methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
 
+# Add CSP header to all responses
+@app.after_request
+def add_csp_header(response):
+    csp_policy = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.gstatic.com https://apis.google.com https://*.googleapis.com; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' https://* data:; "
+        "connect-src 'self' https://the-darknet-district-site.onrender.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://accounts.google.com https://*.googleapis.com https://www.googleapis.com https://*.gstatic.com; "
+        "frame-src 'self' https://accounts.google.com https://*.firebaseapp.com https://*.google.com https://*.replit.app https://the-darknet-district-71873.firebaseapp.com; "
+        "frame-ancestors 'self' https://thedarknetdistrict.com;"
+    )
+    response.headers['Content-Security-Policy'] = csp_policy
+    return response
+
 
 # ============================================================================
 # DATA STORAGE - Session and chat management
