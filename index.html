@@ -42,7 +42,7 @@
   <!-- DNS optimizations for faster loading -->
   <link rel="dns-prefetch" href="https://thedarknetdistrict.com">
   <link rel="preconnect" href="https://thedarknetdistrict.com">
-  
+
   <!-- Firebase Scripts -->
   <script type="module" src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js"></script>
@@ -316,14 +316,14 @@
     </div>
   </section>
 
-  
 
-  
+
+
 
   <div class="bottom-header"></div>
   <script src="script.js"></script>
   <script src="devtoolsDetector.js"></script>
-  
+
   <!-- Firebase Authentication -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
@@ -348,13 +348,13 @@
       console.log("enterTheDistrict function called");
       console.log("Auth object:", auth);
       console.log("Provider object:", googleProvider);
-      
+
       try {
         console.log("Attempting to sign in with popup...");
         const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
         console.log("User signed in:", user.displayName);
-        
+
         // Show welcome message with cyberpunk styling
         const welcomeMsg = document.createElement('div');
         welcomeMsg.style.cssText = `
@@ -378,16 +378,16 @@
           <p>Neural link established...</p>
         `;
         document.body.appendChild(welcomeMsg);
-        
+
         setTimeout(() => {
           document.body.removeChild(welcomeMsg);
         }, 3000);
-        
+
       } catch (error) {
         console.error('Sign-in failed:', error);
         console.error('Error code:', error.code);
         console.error('Error message:', error.message);
-        
+
         // Show error message with cyberpunk styling
         const errorMsg = document.createElement('div');
         errorMsg.style.cssText = `
@@ -410,23 +410,24 @@
           <p>Neural link failed. Please try again.</p>
         `;
         document.body.appendChild(errorMsg);
-        
+
         setTimeout(() => {
           document.body.removeChild(errorMsg);
         }, 3000);
       }
     };
 
-    // Monitor auth state
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log('User is signed in:', user.displayName);
-      } else {
-        console.log('User is signed out');
-      }
-    });
+    setTimeout(() => {
+      // Monitor auth state
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          console.log('User is signed in:', user.displayName);
+        } else {
+          console.log('User is signed out');
+        }
+      });
 
-    
+    }, 1000); // Give Firebase imports time to load
   </script>
 
 <div id="floating-elements"></div>
