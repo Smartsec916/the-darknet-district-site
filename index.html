@@ -334,7 +334,7 @@
   <!-- Firebase Authentication -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
-    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyACm01u0QvzvYx52u5fYCKmgj6jyq_1Lk8",
@@ -348,93 +348,122 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const googleProvider = new GoogleAuthProvider();
+    const provider = new GoogleAuthProvider();
 
-    // Global function for the button - make it immediately available
-    window.enterTheDistrict = async function() {
-      console.log("enterTheDistrict function called");
-      console.log("Auth object:", auth);
-      console.log("Provider object:", googleProvider);
+    // Function to show success message
+    function showSuccessMessage(user) {
+      const welcomeMsg = document.createElement('div');
+      welcomeMsg.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 255, 157, 0.1);
+        border: 2px solid #00ff9d;
+        color: #00ff9d;
+        padding: 20px;
+        border-radius: 10px;
+        font-family: 'Courier New', monospace;
+        z-index: 10000;
+        text-align: center;
+        backdrop-filter: blur(10px);
+      `;
+      welcomeMsg.innerHTML = `
+        <h3>NEURAL LINK ESTABLISHED</h3>
+        <p>Welcome to The Darknet District, ${user.displayName}!</p>
+        <p>Neural link established...</p>
+      `;
+      document.body.appendChild(welcomeMsg);
 
-      try {
-        console.log("Attempting to sign in with popup...");
-        const result = await signInWithPopup(auth, googleProvider);
-        const user = result.user;
-        console.log("User signed in:", user.displayName);
+      setTimeout(() => {
+        document.body.removeChild(welcomeMsg);
+      }, 3000);
+    }
 
-        // Show welcome message with cyberpunk styling
-        const welcomeMsg = document.createElement('div');
-        welcomeMsg.style.cssText = `
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          background: rgba(0, 255, 157, 0.1);
-          border: 2px solid #00ff9d;
-          color: #00ff9d;
-          padding: 20px;
-          border-radius: 10px;
-          font-family: 'Courier New', monospace;
-          z-index: 10000;
-          text-align: center;
-          backdrop-filter: blur(10px);
-        `;
-        welcomeMsg.innerHTML = `
-          <h3>ACCESS GRANTED</h3>
-          <p>Welcome to The Darknet District, ${user.displayName}!</p>
-          <p>Neural link established...</p>
-        `;
-        document.body.appendChild(welcomeMsg);
+    // Function to show error message
+    function showErrorMessage() {
+      const errorMsg = document.createElement('div');
+      errorMsg.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 0, 0, 0.1);
+        border: 2px solid #ff0000;
+        color: #ff0000;
+        padding: 20px;
+        border-radius: 10px;
+        font-family: 'Courier New', monospace;
+        z-index: 10000;
+        text-align: center;
+        backdrop-filter: blur(10px);
+      `;
+      errorMsg.innerHTML = `
+        <h3>ACCESS DENIED</h3>
+        <p>Neural link failed. Please try again.</p>
+      `;
+      document.body.appendChild(errorMsg);
 
-        setTimeout(() => {
-          document.body.removeChild(welcomeMsg);
-        }, 3000);
+      setTimeout(() => {
+        document.body.removeChild(errorMsg);
+      }, 3000);
+    }
 
-      } catch (error) {
-        console.error('Sign-in failed:', error);
-        console.error('Error code:', error.code);
-        console.error('Error message:', error.message);
+    // Improved authentication function with popup/redirect fallback
+    window.enterTheDistrict = function() {
+      console.log("Attempting sign-in...");
 
-        // Show error message with cyberpunk styling
-        const errorMsg = document.createElement('div');
-        errorMsg.style.cssText = `
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          background: rgba(255, 0, 0, 0.1);
-          border: 2px solid #ff0000;
-          color: #ff0000;
-          padding: 20px;
-          border-radius: 10px;
-          font-family: 'Courier New', monospace;
-          z-index: 10000;
-          text-align: center;
-          backdrop-filter: blur(10px);
-        `;
-        errorMsg.innerHTML = `
-          <h3>ACCESS DENIED</h3>
-          <p>Neural link failed. Please try again.</p>
-        `;
-        document.body.appendChild(errorMsg);
-
-        setTimeout(() => {
-          document.body.removeChild(errorMsg);
-        }, 3000);
+      // Detect if inside iframe — signInWithPopup may not work reliably
+      if (window.self !== window.top) {
+        console.warn("⚠️ You're inside an iframe. Redirecting instead of popup.");
+        signInWithRedirect(auth, provider);
+        return;
       }
+
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          const user = result.user;
+          console.log("User signed in:", user.displayName);
+          showSuccessMessage(user);
+        })
+        .catch((error) => {
+          console.warn("Popup sign-in failed:", error.code);
+          if (
+            error.code === "auth/popup-blocked" ||
+            error.code === "auth/popup-closed-by-user" ||
+            error.code === "auth/web-storage-unsupported"
+          ) {
+            console.log("Falling back to redirect-based sign-in.");
+            signInWithRedirect(auth, provider);
+          } else {
+            console.error("Unhandled Firebase auth error:", error);
+            showErrorMessage();
+          }
+        });
     };
 
-    setTimeout(() => {
-      // Monitor auth state
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          console.log('User is signed in:', user.displayName);
-        } else {
-          console.log('User is signed out');
+    // Check for redirect result on page load
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          const user = result.user;
+          console.log("User signed in via redirect:", user.displayName);
+          showSuccessMessage(user);
         }
+      })
+      .catch((error) => {
+        console.error("Redirect result error:", error);
+        showErrorMessage();
       });
 
-    }, 1000); // Give Firebase imports time to load
+    // Monitor auth state
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log('User is signed in:', user.displayName);
+      } else {
+        console.log('User is signed out');
+      }
+    });
   </script>
 
 <div id="floating-elements"></div>
