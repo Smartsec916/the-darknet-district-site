@@ -12,6 +12,16 @@
   <meta name="author" content="The Darknet District">
   <meta name="robots" content="index, follow">
 
+  <!-- Content Security Policy -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.gstatic.com https://apis.google.com https://*.googleapis.com;
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' https://*;
+    connect-src 'self' https://the-darknet-district-site.onrender.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://accounts.google.com https://*.googleapis.com https://www.googleapis.com https://*.gstatic.com;
+    frame-src 'self' https://*.replit.app https://www.robertsspaceindustries.com https://mosequipment.com https://www.cdprojektred.com https://thedarknetdistrict.com https://accounts.google.com https://*.firebaseapp.com;
+  ">
+
   <!-- Open Graph / Facebook Preview -->
   <meta property="og:title" content="The Darknet District" />
   <meta property="og:image" content="https://thedarknetdistrict.com/og-image.jpg" />
