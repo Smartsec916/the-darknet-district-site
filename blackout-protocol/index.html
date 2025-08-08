@@ -1,56 +1,51 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blackout Protocol</title>
+  <title>Blackout Protocol - Cyberpunk Rebel</title>
   <style>
-    /* Global body styling with dark red cyberpunk theme */
     body {
       margin: 0;
-      padding: 0;
+      padding: 20px;
       background: #000;
       color: #ff3366;
       font-family: 'Courier New', monospace;
-      overflow: hidden;
+      overflow-x: hidden;
     }
 
-    /* Main container with centered content layout */
-    .container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: linear-gradient(45deg, #000, #1a0000);
-    }
-
-    /* Game announcement card with red cyberpunk styling */
-    .coming-soon {
-      text-align: center;
-      padding: 40px;
+    #gameContainer {
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      padding-top: 100%; /* 1x1 ratio */
+      background: black;
       border: 2px solid #ff3366;
-      border-radius: 10px;
-      background: rgba(0, 0, 0, 0.8);
-      box-shadow: 0 0 30px rgba(255, 51, 102, 0.3);
+      box-shadow: 0 0 20px rgba(255, 51, 102, 0.3);
     }
 
-    /* Main game title with red glow effect */
-    .coming-soon h1 {
-      font-size: 3em;
-      margin-bottom: 20px;
-      text-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
+    #gameCanvas {
+      position: absolute;
+      top: 0; 
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: linear-gradient(#050505, #0a0a0a);
+      cursor: crosshair;
     }
 
-    /* Game description and tagline text */
-    .coming-soon p {
-      font-size: 1.2em;
-      line-height: 1.6;
-      margin-bottom: 30px;
+    .controls {
+      text-align: center;
+      margin: 20px 0;
+      color: #ff3366;
     }
 
-    /* Navigation button back to parent directory */
     .back-button {
       display: inline-block;
+      margin: 20px auto;
       padding: 12px 24px;
       background: rgba(0, 0, 0, 0.7);
       color: #ff3366;
@@ -62,28 +57,502 @@
       letter-spacing: 1px;
     }
 
-    /* Button hover effects with red glow */
     .back-button:hover {
       background: rgba(255, 51, 102, 0.1);
       box-shadow: 0 0 15px rgba(255, 51, 102, 0.4);
       transform: translateY(-2px);
     }
+
+    .game-title {
+      text-align: center;
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
+      text-transform: uppercase;
+    }
   </style>
 </head>
-
 <body>
-  <!-- Main content container -->
-  <div class="container">
-    <!-- Game announcement section -->
-    <div class="coming-soon">
-      <!-- Game title with distinct red theme -->
-      <h1>BLACKOUT PROTOCOL</h1>
-      <!-- Game tagline and description -->
-      <p>When the lights go out, the real game begins.</p>
-      <p>A tactical cyberpunk thriller where survival depends on staying one step ahead of the system.</p>
-      <!-- Return to parent directory navigation -->
-      <a href="../" class="back-button">Return to District</a>
-    </div>
+  <h1 class="game-title">Blackout Protocol</h1>
+  
+  <div class="controls">
+    <p>Arrow Keys: Move | Space: Jump | Enter: Hack | ESC: Pause</p>
   </div>
+
+  <div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px;">
+    <a href="../games-list" class="back-button">Return to Games</a>
+  </div>
+
+  <script>
+    // Game Canvas Setup
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas resolution
+    function resizeCanvas() {
+      const container = document.getElementById('gameContainer');
+      const rect = container.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+    }
+    
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Game State
+    let gameState = 'playing'; // playing, paused, gameOver
+    let score = 0;
+    let level = 1;
+    
+    // Player Object
+    const player = {
+      x: 50,
+      y: 200,
+      width: 20,
+      height: 30,
+      velocityX: 0,
+      velocityY: 0,
+      speed: 4,
+      jumpPower: 12,
+      onGround: false,
+      health: 100,
+      color: '#00ffcc'
+    };
+
+    // Game Objects Arrays
+    let platforms = [];
+    let enemies = [];
+    let drones = [];
+    let cameras = [];
+    let hackItems = [];
+    let particles = [];
+
+    // Input Handling
+    const keys = {};
+    
+    document.addEventListener('keydown', (e) => {
+      keys[e.code] = true;
+      
+      if (e.code === 'Escape') {
+        gameState = gameState === 'playing' ? 'paused' : 'playing';
+      }
+      
+      if (e.code === 'Enter' && gameState === 'playing') {
+        hackNearbyCamera();
+      }
+    });
+    
+    document.addEventListener('keyup', (e) => {
+      keys[e.code] = false;
+    });
+
+    // Initialize Game World
+    function initGame() {
+      // Create platforms
+      platforms = [
+        {x: 0, y: canvas.height - 40, width: canvas.width, height: 40}, // ground
+        {x: 200, y: canvas.height - 120, width: 150, height: 20},
+        {x: 400, y: canvas.height - 200, width: 120, height: 20},
+        {x: 600, y: canvas.height - 160, width: 100, height: 20},
+        {x: 100, y: canvas.height - 280, width: 180, height: 20}
+      ];
+
+      // Create enemies
+      enemies = [
+        {x: 300, y: canvas.height - 70, width: 15, height: 25, direction: 1, speed: 1, patrolStart: 250, patrolEnd: 400, health: 2},
+        {x: 500, y: canvas.height - 230, width: 15, height: 25, direction: 1, speed: 1.5, patrolStart: 450, patrolEnd: 550, health: 2},
+        {x: 650, y: canvas.height - 190, width: 15, height: 25, direction: -1, speed: 1, patrolStart: 600, patrolEnd: 720, health: 2}
+      ];
+
+      // Create drones
+      drones = [
+        {x: 150, y: 100, width: 25, height: 15, direction: 1, speed: 2, patrolStart: 100, patrolEnd: 300},
+        {x: 450, y: 150, width: 25, height: 15, direction: -1, speed: 1.5, patrolStart: 400, patrolEnd: 600}
+      ];
+
+      // Create cameras
+      cameras = [
+        {x: 350, y: canvas.height - 250, width: 20, height: 15, active: true, detectionRange: 80, hacked: false},
+        {x: 550, y: canvas.height - 300, width: 20, height: 15, active: true, detectionRange: 100, hacked: false}
+      ];
+
+      // Create hack items
+      hackItems = [
+        {x: 250, y: canvas.height - 140, width: 12, height: 12, collected: false},
+        {x: 450, y: canvas.height - 220, width: 12, height: 12, collected: false},
+        {x: 150, y: canvas.height - 300, width: 12, height: 12, collected: false}
+      ];
+    }
+
+    // Game Physics
+    function updatePlayer() {
+      if (gameState !== 'playing') return;
+
+      // Horizontal movement
+      if (keys['ArrowLeft']) {
+        player.velocityX = -player.speed;
+      } else if (keys['ArrowRight']) {
+        player.velocityX = player.speed;
+      } else {
+        player.velocityX *= 0.8; // friction
+      }
+
+      // Jumping
+      if (keys['Space'] && player.onGround) {
+        player.velocityY = -player.jumpPower;
+        player.onGround = false;
+      }
+
+      // Gravity
+      player.velocityY += 0.6;
+      if (player.velocityY > 15) player.velocityY = 15;
+
+      // Update position
+      player.x += player.velocityX;
+      player.y += player.velocityY;
+
+      // Platform collision
+      player.onGround = false;
+      platforms.forEach(platform => {
+        if (player.x < platform.x + platform.width &&
+            player.x + player.width > platform.x &&
+            player.y < platform.y + platform.height &&
+            player.y + player.height > platform.y) {
+          
+          if (player.velocityY > 0 && player.y < platform.y) {
+            player.y = platform.y - player.height;
+            player.velocityY = 0;
+            player.onGround = true;
+          }
+        }
+      });
+
+      // Keep player in bounds
+      if (player.x < 0) player.x = 0;
+      if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+      if (player.y > canvas.height) {
+        player.health -= 20;
+        player.x = 50;
+        player.y = 200;
+        if (player.health <= 0) gameState = 'gameOver';
+      }
+    }
+
+    function updateEnemies() {
+      if (gameState !== 'playing') return;
+
+      enemies.forEach((enemy, index) => {
+        if (enemy.health <= 0) {
+          enemies.splice(index, 1);
+          score += 10;
+          return;
+        }
+
+        // Patrol movement
+        enemy.x += enemy.direction * enemy.speed;
+        
+        if (enemy.x <= enemy.patrolStart || enemy.x >= enemy.patrolEnd) {
+          enemy.direction *= -1;
+        }
+
+        // Check collision with player
+        if (player.x < enemy.x + enemy.width &&
+            player.x + player.width > enemy.x &&
+            player.y < enemy.y + enemy.height &&
+            player.y + player.height > enemy.y) {
+          
+          if (player.velocityY > 0 && player.y < enemy.y) {
+            // Player jumped on enemy
+            enemy.health--;
+            player.velocityY = -8;
+            createParticles(enemy.x + enemy.width/2, enemy.y, '#ff3366');
+          } else {
+            // Player hit enemy
+            player.health -= 5;
+            player.velocityX = (player.x < enemy.x) ? -8 : 8;
+            if (player.health <= 0) gameState = 'gameOver';
+          }
+        }
+      });
+    }
+
+    function updateDrones() {
+      if (gameState !== 'playing') return;
+
+      drones.forEach(drone => {
+        drone.x += drone.direction * drone.speed;
+        
+        if (drone.x <= drone.patrolStart || drone.x >= drone.patrolEnd) {
+          drone.direction *= -1;
+        }
+
+        // Check collision with player
+        if (player.x < drone.x + drone.width &&
+            player.x + player.width > drone.x &&
+            player.y < drone.y + drone.height &&
+            player.y + player.height > drone.y) {
+          
+          player.health -= 3;
+          createParticles(drone.x + drone.width/2, drone.y + drone.height/2, '#ffff00');
+          if (player.health <= 0) gameState = 'gameOver';
+        }
+      });
+    }
+
+    function updateCameras() {
+      if (gameState !== 'playing') return;
+
+      cameras.forEach(camera => {
+        if (camera.hacked) return;
+
+        const distanceToPlayer = Math.sqrt(
+          Math.pow(player.x - camera.x, 2) + Math.pow(player.y - camera.y, 2)
+        );
+
+        if (distanceToPlayer < camera.detectionRange) {
+          camera.active = true;
+          // Camera spotted player - reduce health slowly
+          if (Math.random() < 0.02) {
+            player.health -= 1;
+            if (player.health <= 0) gameState = 'gameOver';
+          }
+        }
+      });
+    }
+
+    function updateHackItems() {
+      if (gameState !== 'playing') return;
+
+      hackItems.forEach(item => {
+        if (item.collected) return;
+
+        if (player.x < item.x + item.width &&
+            player.x + player.width > item.x &&
+            player.y < item.y + item.height &&
+            player.y + player.height > item.y) {
+          
+          item.collected = true;
+          score += 5;
+          player.health = Math.min(100, player.health + 10);
+          createParticles(item.x + item.width/2, item.y + item.height/2, '#00ffcc');
+        }
+      });
+    }
+
+    function hackNearbyCamera() {
+      cameras.forEach(camera => {
+        const distanceToPlayer = Math.sqrt(
+          Math.pow(player.x - camera.x, 2) + Math.pow(player.y - camera.y, 2)
+        );
+
+        if (distanceToPlayer < 50) {
+          camera.hacked = true;
+          camera.active = false;
+          score += 20;
+          createParticles(camera.x + camera.width/2, camera.y + camera.height/2, '#00ff00');
+        }
+      });
+    }
+
+    function createParticles(x, y, color) {
+      for (let i = 0; i < 8; i++) {
+        particles.push({
+          x: x,
+          y: y,
+          velocityX: (Math.random() - 0.5) * 8,
+          velocityY: (Math.random() - 0.5) * 8,
+          life: 30,
+          color: color
+        });
+      }
+    }
+
+    function updateParticles() {
+      particles.forEach((particle, index) => {
+        particle.x += particle.velocityX;
+        particle.y += particle.velocityY;
+        particle.life--;
+        
+        if (particle.life <= 0) {
+          particles.splice(index, 1);
+        }
+      });
+    }
+
+    // Rendering Functions
+    function drawPlayer() {
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+      
+      // Player glow effect
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = player.color;
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+      ctx.shadowBlur = 0;
+    }
+
+    function drawPlatforms() {
+      ctx.fillStyle = '#333';
+      platforms.forEach(platform => {
+        ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+        
+        // Platform edge glow
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
+      });
+    }
+
+    function drawEnemies() {
+      enemies.forEach(enemy => {
+        ctx.fillStyle = '#ff3366';
+        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+        
+        // Enemy glow
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = '#ff3366';
+        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+        ctx.shadowBlur = 0;
+      });
+    }
+
+    function drawDrones() {
+      drones.forEach(drone => {
+        ctx.fillStyle = '#ffff00';
+        ctx.fillRect(drone.x, drone.y, drone.width, drone.height);
+        
+        // Drone glow and propellers
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = '#ffff00';
+        ctx.fillRect(drone.x, drone.y, drone.width, drone.height);
+        ctx.shadowBlur = 0;
+        
+        // Simple propeller lines
+        ctx.strokeStyle = '#ffff00';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(drone.x - 5, drone.y + drone.height/2);
+        ctx.lineTo(drone.x + drone.width + 5, drone.y + drone.height/2);
+        ctx.stroke();
+      });
+    }
+
+    function drawCameras() {
+      cameras.forEach(camera => {
+        if (camera.hacked) {
+          ctx.fillStyle = '#00ff00';
+        } else if (camera.active) {
+          ctx.fillStyle = '#ff0000';
+        } else {
+          ctx.fillStyle = '#888';
+        }
+        
+        ctx.fillRect(camera.x, camera.y, camera.width, camera.height);
+        
+        // Camera detection cone
+        if (!camera.hacked && camera.active) {
+          ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(camera.x + camera.width/2, camera.y + camera.height/2, camera.detectionRange, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      });
+    }
+
+    function drawHackItems() {
+      hackItems.forEach(item => {
+        if (item.collected) return;
+        
+        ctx.fillStyle = '#00ffcc';
+        ctx.fillRect(item.x, item.y, item.width, item.height);
+        
+        // Hack item glow
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = '#00ffcc';
+        ctx.fillRect(item.x, item.y, item.width, item.height);
+        ctx.shadowBlur = 0;
+      });
+    }
+
+    function drawParticles() {
+      particles.forEach(particle => {
+        ctx.fillStyle = particle.color;
+        ctx.globalAlpha = particle.life / 30;
+        ctx.fillRect(particle.x - 2, particle.y - 2, 4, 4);
+        ctx.globalAlpha = 1;
+      });
+    }
+
+    function drawUI() {
+      ctx.fillStyle = '#ff3366';
+      ctx.font = '16px Courier New';
+      ctx.fillText(`Health: ${player.health}`, 10, 25);
+      ctx.fillText(`Score: ${score}`, 10, 45);
+      ctx.fillText(`Level: ${level}`, 10, 65);
+      
+      if (gameState === 'paused') {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = '#ff3366';
+        ctx.font = '32px Courier New';
+        ctx.textAlign = 'center';
+        ctx.fillText('PAUSED', canvas.width/2, canvas.height/2);
+        ctx.font = '16px Courier New';
+        ctx.fillText('Press ESC to continue', canvas.width/2, canvas.height/2 + 40);
+        ctx.textAlign = 'left';
+      }
+      
+      if (gameState === 'gameOver') {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = '#ff3366';
+        ctx.font = '32px Courier New';
+        ctx.textAlign = 'center';
+        ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2);
+        ctx.font = '16px Courier New';
+        ctx.fillText(`Final Score: ${score}`, canvas.width/2, canvas.height/2 + 40);
+        ctx.fillText('Refresh to restart', canvas.width/2, canvas.height/2 + 60);
+        ctx.textAlign = 'left';
+      }
+    }
+
+    // Main Game Loop
+    function gameLoop() {
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Update game objects
+      updatePlayer();
+      updateEnemies();
+      updateDrones();
+      updateCameras();
+      updateHackItems();
+      updateParticles();
+      
+      // Draw everything
+      drawPlatforms();
+      drawPlayer();
+      drawEnemies();
+      drawDrones();
+      drawCameras();
+      drawHackItems();
+      drawParticles();
+      drawUI();
+      
+      // Continue loop
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Start the game
+    initGame();
+    gameLoop();
+  </script>
 </body>
 </html>

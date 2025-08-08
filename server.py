@@ -462,6 +462,10 @@ def serve_about():
 def serve_sleeping_pod():
     return send_from_directory('.', 'sleeping_pod.html')
 
+@app.route('/blackout-protocol')
+def serve_blackout_protocol():
+    return send_from_directory('./blackout-protocol', 'index.html')
+
 @app.route('/<path:filename>')
 def serve_static_files(filename):
     return send_from_directory('.', filename)
