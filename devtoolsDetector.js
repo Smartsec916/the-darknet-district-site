@@ -1,10 +1,9 @@
-// === DEVTOOLS DETECTOR – DISABLED FOR DEBUGGING ===
-// Temporarily disabled to allow debugging of Firebase login issues
 
-console.log("DevTools detector disabled for debugging");
+// === DEVTOOLS DETECTOR – RE-ENABLED ===
+// Re-enabled to detect devtools opening and trigger Iris responses
 
-// Commented out to disable devtools detection
-/*
+console.log("DevTools detector enabled");
+
 window.addEventListener("load", () => {
     const heightThreshold = 300;
     const widthThreshold = 400;
@@ -103,4 +102,3 @@ window.addEventListener("load", () => {
 
     setInterval(checkDevTools, 1000);
 });
-*/
