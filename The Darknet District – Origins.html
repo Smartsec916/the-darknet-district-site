@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,85 +6,389 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Darknet District – Origins</title>
   <style>
-    /* Global body styling with cyberpunk black theme */
-    body {
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
       background: #000;
       color: #00ff9d;
       font-family: 'Courier New', monospace;
       overflow: hidden;
+      height: 100vh;
+      position: relative;
     }
 
-    /* Main container with full viewport height */
+    .matrix-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
     .container {
+      position: relative;
+      z-index: 10;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background: linear-gradient(45deg, #000, #111);
+      text-align: center;
+      background: rgba(0, 0, 0, 0.8);
     }
 
-    /* Game announcement card with cyberpunk styling */
-    .coming-soon {
-      text-align: center;
-      padding: 40px;
+    .terminal-window {
+      background: rgba(0, 20, 0, 0.9);
       border: 2px solid #00ff9d;
       border-radius: 10px;
-      background: rgba(0, 0, 0, 0.8);
-      box-shadow: 0 0 30px rgba(0, 255, 157, 0.3);
+      padding: 30px;
+      width: 90%;
+      max-width: 800px;
+      box-shadow: 0 0 50px rgba(0, 255, 157, 0.3);
+      position: relative;
+      overflow: hidden;
     }
 
-    /* Main game title with neon glow effect */
-    .coming-soon h1 {
-      font-size: 2.5em;
+    .terminal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 20px;
-      text-shadow: 0 0 20px rgba(0, 255, 157, 0.5);
+      padding-bottom: 10px;
+      border-bottom: 1px solid #00ff9d;
     }
 
-    /* Game description and story text */
-    .coming-soon p {
+    .terminal-title {
       font-size: 1.2em;
-      line-height: 1.6;
-      margin-bottom: 30px;
+      color: #00ff9d;
     }
 
-    /* Navigation button back to main site */
-    .back-button {
-      display: inline-block;
-      padding: 12px 24px;
-      background: rgba(0, 0, 0, 0.7);
-      color: #00ff9d;
+    .terminal-controls {
+      display: flex;
+      gap: 5px;
+    }
+
+    .terminal-button {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 1px solid #00ff9d;
+    }
+
+    .terminal-button.close { background: #ff3366; }
+    .terminal-button.minimize { background: #ffff00; }
+    .terminal-button.maximize { background: #00ff9d; }
+
+    .game-title {
+      font-size: 3em;
+      margin-bottom: 20px;
+      text-shadow: 0 0 20px rgba(0, 255, 157, 0.8);
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0 0 20px rgba(0, 255, 157, 0.8); }
+      to { text-shadow: 0 0 30px rgba(0, 255, 157, 1), 0 0 40px rgba(0, 255, 157, 0.5); }
+    }
+
+    .story-text {
+      font-size: 1.2em;
+      line-height: 1.8;
+      margin-bottom: 30px;
+      opacity: 0;
+      animation: typewriter 4s steps(100) forwards;
+    }
+
+    @keyframes typewriter {
+      from { opacity: 0; width: 0; }
+      to { opacity: 1; width: 100%; }
+    }
+
+    .interactive-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    .menu-option {
+      background: rgba(0, 255, 157, 0.1);
       border: 2px solid #00ff9d;
+      color: #00ff9d;
+      padding: 15px 30px;
+      font-family: 'Courier New', monospace;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .menu-option::before {
+      content: '> ';
+      position: absolute;
+      left: 10px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .menu-option:hover {
+      background: rgba(0, 255, 157, 0.2);
+      box-shadow: 0 0 20px rgba(0, 255, 157, 0.4);
+      transform: translateX(10px);
+      padding-left: 40px;
+    }
+
+    .menu-option:hover::before {
+      opacity: 1;
+    }
+
+    .scanlines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 255, 157, 0.03) 0px,
+        rgba(0, 255, 157, 0.03) 1px,
+        transparent 2px,
+        transparent 4px
+      );
+      pointer-events: none;
+      animation: scanline 2s linear infinite;
+    }
+
+    @keyframes scanline {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100vh); }
+    }
+
+    .back-button {
+      margin-top: 30px;
+      background: rgba(255, 51, 102, 0.1);
+      border: 2px solid #ff3366;
+      color: #ff3366;
+      padding: 12px 24px;
+      font-family: 'Courier New', monospace;
       text-decoration: none;
-      border-radius: 6px;
       transition: all 0.3s ease;
       text-transform: uppercase;
       letter-spacing: 1px;
     }
 
-    /* Button hover effects with glow */
     .back-button:hover {
-      background: rgba(0, 255, 157, 0.1);
-      box-shadow: 0 0 15px rgba(0, 255, 157, 0.4);
+      background: rgba(255, 51, 102, 0.2);
+      box-shadow: 0 0 15px rgba(255, 51, 102, 0.4);
       transform: translateY(-2px);
+    }
+
+    .status-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      border-top: 1px solid #00ff9d;
+      padding: 10px 20px;
+      font-size: 0.9em;
+      z-index: 15;
+    }
+
+    .status-item {
+      display: inline-block;
+      margin-right: 30px;
+    }
+
+    .blinking {
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
     }
   </style>
 </head>
 
 <body>
-  <!-- Main content container -->
+  <!-- Matrix rain background -->
+  <canvas class="matrix-bg" id="matrixCanvas"></canvas>
+  
+  <!-- Scanlines effect -->
+  <div class="scanlines"></div>
+
+  <!-- Main content -->
   <div class="container">
-    <!-- Game announcement section -->
-    <div class="coming-soon">
-      <!-- Game title -->
-      <h1>The Darknet District – Origins</h1>
-      <!-- Game storyline and description -->
-      <p>The beginning of everything. Where the digital underground was born.</p>
-      <p>Discover how the District came to be, meet its founders, and experience the events that shaped the future of digital rebellion.</p>
-      <!-- Return to main site navigation -->
+    <div class="terminal-window">
+      <div class="terminal-header">
+        <div class="terminal-title">DARKNET_DISTRICT://ORIGINS_PROTOCOL</div>
+        <div class="terminal-controls">
+          <div class="terminal-button close"></div>
+          <div class="terminal-button minimize"></div>
+          <div class="terminal-button maximize"></div>
+        </div>
+      </div>
+
+      <h1 class="game-title">ORIGINS</h1>
+      
+      <div class="story-text">
+        > INITIALIZING NEURAL LINK...<br>
+        > ACCESSING ARCHIVED MEMORIES...<br>
+        > LOADING DISTRICT GENESIS PROTOCOLS...<br><br>
+        The year was 2087. The first digital uprising began not with violence, but with a single line of code that would change everything...
+      </div>
+
+      <div class="interactive-menu">
+        <button class="menu-option" onclick="startGame()">
+          Begin the Origin Story
+        </button>
+        <button class="menu-option" onclick="accessArchives()">
+          Access Historical Archives
+        </button>
+        <button class="menu-option" onclick="viewCharacters()">
+          Meet the Founders
+        </button>
+        <button class="menu-option" onclick="exploreWorld()">
+          Explore the Pre-District World
+        </button>
+      </div>
+
       <a href="/" class="back-button">Return to District</a>
     </div>
   </div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span class="status-item">NEURAL_LINK: <span style="color: #00ff9d;">ACTIVE</span></span>
+    <span class="status-item">SECURITY: <span style="color: #ffff00;">ELEVATED</span></span>
+    <span class="status-item">MEMORY_CORE: <span style="color: #00ff9d;">87%</span></span>
+    <span class="status-item blinking">SYSTEM_STATUS: <span style="color: #00ff9d;">ONLINE</span></span>
+  </div>
+
+  <script>
+    // Matrix rain effect
+    const canvas = document.getElementById('matrixCanvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+-=[]{}|;:,.<>?'.split('');
+    const fontSize = 10;
+    const columns = canvas.width / fontSize;
+    const drops = [];
+
+    for (let x = 0; x < columns; x++) {
+      drops[x] = 1;
+    }
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#00ff9d';
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = characters[Math.floor(Math.random() * characters.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+
+    setInterval(drawMatrix, 35);
+
+    // Resize canvas on window resize
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    // Interactive functions
+    function startGame() {
+      showMessage("LOADING ORIGIN STORY MODULE...", () => {
+        showStorySegment("The first hacker collective formed in the ruins of Old Tokyo...");
+      });
+    }
+
+    function accessArchives() {
+      showMessage("ACCESSING CLASSIFIED ARCHIVES...", () => {
+        showStorySegment("2087.03.15 - First successful breach of CorpNet mainframe...");
+      });
+    }
+
+    function viewCharacters() {
+      showMessage("LOADING FOUNDER PROFILES...", () => {
+        showStorySegment("CIPHER - The Ghost in the Machine. Real name: Unknown...");
+      });
+    }
+
+    function exploreWorld() {
+      showMessage("INITIALIZING WORLD MAP...", () => {
+        showStorySegment("Pre-District Earth: Corporate towers pierce polluted skies...");
+      });
+    }
+
+    function showMessage(message, callback) {
+      const messageDiv = document.createElement('div');
+      messageDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.95);
+        border: 2px solid #00ff9d;
+        color: #00ff9d;
+        padding: 20px;
+        font-family: 'Courier New', monospace;
+        z-index: 20;
+        text-align: center;
+        box-shadow: 0 0 30px rgba(0, 255, 157, 0.5);
+      `;
+      messageDiv.textContent = message;
+      document.body.appendChild(messageDiv);
+
+      setTimeout(() => {
+        document.body.removeChild(messageDiv);
+        if (callback) callback();
+      }, 2000);
+    }
+
+    function showStorySegment(text) {
+      const storyDiv = document.querySelector('.story-text');
+      storyDiv.innerHTML = '> ' + text + '<br><br><span class="blinking">Press any key to continue...</span>';
+      
+      document.addEventListener('keydown', function handler() {
+        storyDiv.innerHTML = `
+          > INITIALIZING NEURAL LINK...<br>
+          > ACCESSING ARCHIVED MEMORIES...<br>
+          > LOADING DISTRICT GENESIS PROTOCOLS...<br><br>
+          The year was 2087. The first digital uprising began not with violence, but with a single line of code that would change everything...
+        `;
+        document.removeEventListener('keydown', handler);
+      });
+    }
+
+    // Add some cyberpunk ambience
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        console.log('%c[ORIGINS_PROTOCOL] Neural link established. Welcome, user.', 'color: #00ff9d; font-family: monospace;');
+      }, 1000);
+    });
+  </script>
 </body>
 </html>
