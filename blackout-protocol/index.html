@@ -385,13 +385,48 @@
 
     // Rendering Functions
     function drawPlayer() {
-      ctx.fillStyle = player.color;
-      ctx.fillRect(player.x, player.y, player.width, player.height);
+      const x = player.x;
+      const y = player.y;
+      const scale = player.width / 20; // Scale factor based on player width
       
       // Player glow effect
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 8;
       ctx.shadowColor = player.color;
-      ctx.fillRect(player.x, player.y, player.width, player.height);
+      
+      // Head
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.arc(x + 10 * scale, y + 6 * scale, 5 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Body (torso)
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + 7 * scale, y + 10 * scale, 6 * scale, 12 * scale);
+      
+      // Arms
+      ctx.fillStyle = player.color;
+      // Left arm
+      ctx.fillRect(x + 4 * scale, y + 12 * scale, 3 * scale, 8 * scale);
+      // Right arm  
+      ctx.fillRect(x + 13 * scale, y + 12 * scale, 3 * scale, 8 * scale);
+      
+      // Legs
+      ctx.fillStyle = player.color;
+      // Left leg
+      ctx.fillRect(x + 7 * scale, y + 22 * scale, 2.5 * scale, 8 * scale);
+      // Right leg
+      ctx.fillRect(x + 10.5 * scale, y + 22 * scale, 2.5 * scale, 8 * scale);
+      
+      // Add some cyberpunk details
+      ctx.fillStyle = '#ffffff';
+      // Eyes (white dots)
+      ctx.fillRect(x + 8 * scale, y + 5 * scale, 1 * scale, 1 * scale);
+      ctx.fillRect(x + 11 * scale, y + 5 * scale, 1 * scale, 1 * scale);
+      
+      // Chest detail (glowing core)
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(x + 9 * scale, y + 15 * scale, 2 * scale, 2 * scale);
+      
       ctx.shadowBlur = 0;
     }
 
