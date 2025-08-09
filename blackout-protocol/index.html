@@ -27,6 +27,10 @@
    🟢 RETRO RENDERING PIPELINE: Creates authentic pixel-perfect visuals
    🟢 DUAL-LAYER SYSTEM: Main game on bottom, UI overlays on top
 ========================================================= */
+let READY = false;           // 🟢 LOADING GATE: blocks game loop until assets are ready
+let LOAD_MSG = 'Loading…';   // 🟢 STATUS MESSAGE: shows on screen while loading
+window.addEventListener('error', e => console.error('Runtime error:', e.message)); // 🟢 ERROR CAPTURE: logs runtime errors for debugging
+
 const VW=256, VH=240, TILE=16; // 🟢 VIRTUAL SCREEN: NES-style 256x240 resolution for retro feel
 const gameCanvas=document.getElementById('gameCanvas'); // 🟢 MAIN DISPLAY: Where the cyberpunk action happens
 const overlayCanvas=document.getElementById('overlayCanvas'); // 🟢 UI LAYER: Holographic ads and interface elements
@@ -445,11 +449,14 @@ function drawUI(now){ // 🟢 USER INTERFACE: All HUD elements and game state di
   if(justLeveled>0){ ctx.fillStyle='rgba(0,0,0,.5)'; ctx.fillRect(0,56,VW,18); ctx.fillStyle='#ffd95e'; ctx.fillText(`LEVEL UP → ${level}`,VW/2-36,68); justLeveled-=16; }
 
   // 🟢 ASSET WARNINGS: Development helper messages
-  let y=VH-10; const warn=msg=>{ ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(2,y-7,VW-4,9); ctx.fillStyle='#ffb36a'; ctx.fillText(msg,6,y-6); y-=10; }; // 🟢 WARNING HELPER: Displays missing asset alerts
-  if(!SPR.player.anim.idle.img) warn('Missing player_* PNGs'); // 🟢 PLAYER SPRITES: Check for protagonist animations
-  if(!SPR.robot.anim.idle.img)  warn('Missing robot_* PNGs'); // 🟢 ROBOT SPRITES: Check for enemy animations
-  if(!SPR.drone.anim.idle.img)  warn('Missing drone_* PNGs'); // 🟢 DRONE SPRITES: Check for surveillance animations
-  if(!bgFar) warn('Missing: assets/01_bg_far.png (using gradient sky)'); // 🟢 BACKGROUND ASSETS: Check for cityscape layers
+  let y = VH - 10; // 🟢 WARNING POSITION: Start at bottom of screen
+  const warn = msg => { ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(2,y-7,VW-4,9); ctx.fillStyle='#ffb36a'; ctx.fillText(msg,6,y-6); y-=10; }; // 🟢 WARNING HELPER: Displays missing asset alerts
+  if (typeof SPR !== 'undefined' && SPR) { // 🟢 SAFETY CHECK: Only check if SPR exists
+    if (!SPR.player?.anim?.idle?.img) warn('Missing player_* PNGs'); // 🟢 PLAYER SPRITES: Check for protagonist animations
+    if (!SPR.robot?.anim?.idle?.img)  warn('Missing robot_* PNGs'); // 🟢 ROBOT SPRITES: Check for enemy animations
+    if (!SPR.drone?.anim?.idle?.img)  warn('Missing drone_* PNGs'); // 🟢 DRONE SPRITES: Check for surveillance animations
+  }
+  if (!bgFar) warn('Missing: assets/01_bg_far.png (using gradient sky)'); // 🟢 BACKGROUND ASSETS: Check for cityscape layers
 }
 
 function drawOverlay(now){
@@ -494,23 +501,79 @@ function reset(){
   resetBtn.style.display='none';
 }
 
+function makeSeamlessTile(img, opts = {}) {
+  if (!img) return null;
+  const { cropY = 0, cropH = img.height, mode = 'mirror' } = opts;
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  canvas.width = img.width * 2;
+  canvas.height = cropH;
+  
+  // Draw original
+  ctx.drawImage(img, 0, cropY, img.width, cropH, 0, 0, img.width, cropH);
+  
+  if (mode === 'mirror') {
+    // Draw mirrored copy
+    ctx.scale(-1, 1);
+    ctx.drawImage(img, 0, cropY, img.width, cropH, -img.width * 2, 0, img.width, cropH);
+  } else {
+    // Draw regular copy
+    ctx.drawImage(img, 0, cropY, img.width, cropH, img.width, 0, img.width, cropH);
+  }
+  
+  return canvas;
+}
+
 async function boot(){
-  SPR = await loadSprites(SPRITE_DEF);
-  bgFar=SPR.bg.far; bgMid=SPR.bg.mid; bgNear=SPR.bg.near; fgRail=SPR.bg.rail;
-  // Initialize anim runners
-  setAnim(player=makePlayer(),'player','idle');
-  for(let x=0;x<CHUNK*4;x+=CHUNK) genChunk(x);
-  gameState='playing';
+  try {
+    SPR = await loadSprites(SPRITE_DEF);
+    bgFar=SPR.bg.far; bgMid=SPR.bg.mid; bgNear=SPR.bg.near; fgRail=SPR.bg.rail;
+
+    // Build seamless parallax tiles if available
+    if (bgFar || bgMid || bgNear) {
+      const FAR_CROP_TOP = 0;
+      const FAR_CROP_H   = Math.floor((bgFar?.height || 0) * 0.70) || (bgFar?.height || 0);
+      window.BGTiles = {
+        far : makeSeamlessTile(bgFar,  { cropY: FAR_CROP_TOP,  cropH: FAR_CROP_H,  mode:'mirror' }),
+        mid : makeSeamlessTile(bgMid,  { cropY: 0, cropH: bgMid?.height || 0,     mode:'mirror' }),
+        near: makeSeamlessTile(bgNear, { cropY: 0, cropH: bgNear?.height || 0,    mode:'mirror' }),
+        rail: fgRail
+      };
+    }
+
+    player = makePlayer();
+    setAnim(player,'player','idle');
+    for(let x=0;x<CHUNK*4;x+=CHUNK) genChunk(x);
+
+    gameState='playing';
+    READY = true; // 🟢 ASSETS LOADED: all good, start the game
+  } catch (err) {
+    console.error(err);
+    LOAD_MSG = 'Load failed (check console)'; // 🟢 ERROR STATE: show failure message
+  }
 }
 boot();
 
 function loop(now){ // 🟢 MAIN GAME LOOP: 60fps game engine heartbeat
-  const dt=loop.t?now-loop.t:16; loop.t=now; // 🟢 DELTA TIME: Calculate time since last frame
-  if(gameState==='playing') update(dt,now); // 🟢 LOGIC UPDATE: Process game state if playing
+  const dt = loop.t ? now - loop.t : 16; loop.t = now; // 🟢 DELTA TIME: Calculate time since last frame
+
+  // 🟢 LOADING GATE: Show loading screen until assets are ready
+  if (!READY) {
+    ctx.fillStyle = '#000'; ctx.fillRect(0,0,VW,VH); // 🟢 BLACK BACKGROUND: Clear loading screen
+    drawSky(); // 🟢 GRADIENT SKY: Show something while loading
+    ctx.fillStyle = '#cfd6df'; // 🟢 LOADING TEXT: Light gray text
+    ctx.fillText(LOAD_MSG, VW/2 - 20, VH/2); // 🟢 STATUS MESSAGE: Show loading progress
+    blit(); // 🟢 DISPLAY UPDATE: Render loading screen
+    requestAnimationFrame(loop); // 🟢 CONTINUE LOOP: Keep checking for readiness
+    return; // 🟢 EARLY EXIT: Don't process game logic yet
+  }
+
+  if (gameState==='playing') update(dt, now); // 🟢 LOGIC UPDATE: Process game state if playing
 
   // 🟢 RENDERING PIPELINE: Draw everything in proper order
-  ctx.fillStyle='#000'; ctx.fillRect(0,0,VW,VH); // 🟢 CLEAR SCREEN: Start with black canvas
-  if(bgFar) { drawParallax(); } else { drawSky(); } // 🟢 BACKGROUND: Cityscape or gradient fallback
+  ctx.fillStyle = '#000'; ctx.fillRect(0,0,VW,VH); // 🟢 CLEAR SCREEN: Start with black canvas
+  if (window.BGTiles?.far || bgFar) { drawParallax(); } else { drawSky(); } // 🟢 BACKGROUND: Enhanced parallax or fallback
   drawTiles(); drawTerminals(); drawEntities(now); drawUI(now); // 🟢 WORLD LAYERS: Platforms, terminals, characters, UI
   blit(); drawOverlay(now); // 🟢 FINAL DISPLAY: Scale to screen and add overlays
 
