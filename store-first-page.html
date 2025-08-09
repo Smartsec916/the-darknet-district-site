@@ -174,6 +174,82 @@
       width: 100vw;
       margin: 0;
     }
+    .product-page-content {
+      width: 90%;
+      max-width: 800px;
+      margin: 40px auto;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 30px;
+      border-radius: 15px;
+      border: 2px solid #00ff9d;
+      box-shadow: 0 0 25px rgba(0, 255, 157, 0.3);
+      text-align: left;
+    }
+    .product-page-content h1 {
+      color: #00ff9d;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 2em;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+    }
+    .product-page-content p {
+      color: #e4e4e4;
+      font-size: 1.1em;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+    .product-page-content .buy-button {
+      display: inline-block;
+      background-color: #00ff9d;
+      color: black;
+      padding: 12px 24px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background-color 0.3s, color 0.3s;
+      margin-right: 15px;
+      cursor: pointer;
+    }
+    .product-page-content .buy-button:hover {
+      background-color: black;
+      color: #00ff9d;
+      border: 1px solid #00ff9d;
+    }
+    .product-page-content .read-free-button {
+      display: inline-block;
+      background-color: transparent;
+      color: #00ff9d;
+      padding: 12px 24px;
+      border: 2px solid #00ff9d;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background-color 0.3s, color 0.3s;
+      cursor: pointer;
+    }
+    .product-page-content .read-free-button:hover {
+      background-color: #00ff9d;
+      color: black;
+    }
+    .pdf-viewer-container {
+      margin-top: 30px;
+      border: 1px solid #00ff9d;
+      border-radius: 5px;
+      overflow: hidden; /* Ensures the PDF viewer stays within the rounded borders */
+    }
+    .pdf-viewer-container h3 {
+      background-color: rgba(0, 255, 157, 0.1);
+      color: #00ff9d;
+      padding: 10px;
+      margin: 0;
+      text-align: center;
+      font-size: 1.2em;
+    }
+    .pdf-viewer-frame {
+      width: 100%;
+      height: 600px; /* Adjust height as needed */
+      border: none; /* Remove default iframe border */
+    }
   </style>
 </head>
 
@@ -181,8 +257,9 @@
   <!-- Top Navigation Buttons -->
   <div class="top-nav">
     <a href="/">Home</a>
-    <a href="games-list">Play a Game</a>
+    <a href="games-list.html">Arcade</a>
     <a href="store-first-page.html">Shop</a>
+    <a href="about.html">About</a>
   </div>
 
   <!-- Rotating Affiliate Banners -->
@@ -369,4 +446,3 @@
   </script>
 </body>
 </html>
-
