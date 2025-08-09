@@ -448,13 +448,84 @@
 
     function drawEnemies() {
       enemies.forEach(enemy => {
-        ctx.fillStyle = '#ff3366';
-        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+        const x = enemy.x;
+        const y = enemy.y;
+        const scale = enemy.width / 15; // Scale factor based on enemy width
         
-        // Enemy glow
-        ctx.shadowBlur = 5;
+        // Robot glow effect
+        ctx.shadowBlur = 8;
         ctx.shadowColor = '#ff3366';
-        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+        
+        // Robot head (rectangular with antenna)
+        ctx.fillStyle = '#ff3366';
+        ctx.fillRect(x + 4 * scale, y, 7 * scale, 6 * scale);
+        
+        // Head details - glowing eyes
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x + 5 * scale, y + 1.5 * scale, 1.5 * scale, 1.5 * scale);
+        ctx.fillRect(x + 8.5 * scale, y + 1.5 * scale, 1.5 * scale, 1.5 * scale);
+        
+        // Antenna
+        ctx.fillStyle = '#ff3366';
+        ctx.fillRect(x + 7 * scale, y - 2 * scale, 1 * scale, 3 * scale);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x + 6.5 * scale, y - 2 * scale, 2 * scale, 1 * scale);
+        
+        // Robot torso (main body)
+        ctx.fillStyle = '#ff3366';
+        ctx.fillRect(x + 3 * scale, y + 6 * scale, 9 * scale, 12 * scale);
+        
+        // Chest panel detail
+        ctx.fillStyle = '#990033';
+        ctx.fillRect(x + 4 * scale, y + 8 * scale, 7 * scale, 8 * scale);
+        
+        // Central power core (glowing)
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x + 6.5 * scale, y + 10 * scale, 2 * scale, 4 * scale);
+        
+        // Robot arms
+        ctx.fillStyle = '#ff3366';
+        // Left arm
+        ctx.fillRect(x, y + 8 * scale, 3 * scale, 8 * scale);
+        // Right arm  
+        ctx.fillRect(x + 12 * scale, y + 8 * scale, 3 * scale, 8 * scale);
+        
+        // Shoulder joints
+        ctx.fillStyle = '#990033';
+        ctx.fillRect(x + 2.5 * scale, y + 7 * scale, 2 * scale, 2 * scale);
+        ctx.fillRect(x + 10.5 * scale, y + 7 * scale, 2 * scale, 2 * scale);
+        
+        // Robot legs
+        ctx.fillStyle = '#ff3366';
+        // Left leg
+        ctx.fillRect(x + 4 * scale, y + 18 * scale, 3 * scale, 7 * scale);
+        // Right leg
+        ctx.fillRect(x + 8 * scale, y + 18 * scale, 3 * scale, 7 * scale);
+        
+        // Knee joints
+        ctx.fillStyle = '#990033';
+        ctx.fillRect(x + 4.5 * scale, y + 20 * scale, 2 * scale, 1 * scale);
+        ctx.fillRect(x + 8.5 * scale, y + 20 * scale, 2 * scale, 1 * scale);
+        
+        // Robot feet
+        ctx.fillStyle = '#ff3366';
+        ctx.fillRect(x + 3.5 * scale, y + 25 * scale, 4 * scale, 2 * scale);
+        ctx.fillRect(x + 7.5 * scale, y + 25 * scale, 4 * scale, 2 * scale);
+        
+        // Add some tech details - circuit lines
+        ctx.strokeStyle = '#990033';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        // Vertical lines on torso
+        ctx.moveTo(x + 5 * scale, y + 8 * scale);
+        ctx.lineTo(x + 5 * scale, y + 16 * scale);
+        ctx.moveTo(x + 10 * scale, y + 8 * scale);
+        ctx.lineTo(x + 10 * scale, y + 16 * scale);
+        // Horizontal line across chest
+        ctx.moveTo(x + 4 * scale, y + 12 * scale);
+        ctx.lineTo(x + 11 * scale, y + 12 * scale);
+        ctx.stroke();
+        
         ctx.shadowBlur = 0;
       });
     }
