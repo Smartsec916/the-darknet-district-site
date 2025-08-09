@@ -1,916 +1,501 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blackout Protocol - Cyberpunk Rebel</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 20px;
-      background: #000;
-      color: #ff3366;
-      font-family: 'Courier New', monospace;
-      overflow-x: hidden;
-    }
-
-    #gameContainer {
-      position: relative;
-      width: 100%;
-      max-width: 800px;
-      margin: 0 auto;
-      padding-top: 100%; /* 1x1 ratio */
-      background: black;
-      border: 2px solid #ff3366;
-      box-shadow: 0 0 20px rgba(255, 51, 102, 0.3);
-    }
-
-    #gameCanvas {
-      position: absolute;
-      top: 0; 
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: block;
-      background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
-      cursor: crosshair;
-    }
-
-    .controls {
-      text-align: center;
-      margin: 20px 0;
-      color: #ff3366;
-    }
-
-    .back-button {
-      display: inline-block;
-      margin: 20px auto;
-      padding: 12px 24px;
-      background: rgba(0, 0, 0, 0.7);
-      color: #ff3366;
-      border: 2px solid #ff3366;
-      text-decoration: none;
-      border-radius: 6px;
-      transition: all 0.3s ease;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .back-button:hover {
-      background: rgba(255, 51, 102, 0.1);
-      box-shadow: 0 0 15px rgba(255, 51, 102, 0.4);
-      transform: translateY(-2px);
-    }
-
-    .game-title {
-      text-align: center;
-      font-size: 2.5em;
-      margin-bottom: 10px;
-      text-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
-      text-transform: uppercase;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Blackout Protocol — Sprite PNGs</title>
+<style>
+  :root { --frame-w: 960px; }
+  html,body{margin:0;background:#000;color:#cfd6df;font-family:monospace;overflow:hidden;}
+  #gameContainer{position:relative;width:100%;max-width:var(--frame-w);margin:0 auto;aspect-ratio:4/3;background:#000;border:2px solid #5c5c5c;}
+  canvas{position:absolute;inset:0;display:block;image-rendering:pixelated;image-rendering:crisp-edges;}
+  #overlayCanvas{pointer-events:none;}
+  #resetBtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-8px);padding:10px 16px;background:#0f1016;border:2px solid #626a78;border-radius:6px;color:#cfd6df;letter-spacing:.6px;display:none;cursor:pointer;z-index:5}
+  #resetBtn:hover{filter:brightness(1.15)}
+</style>
 </head>
 <body>
-  <h1 class="game-title">Blackout Protocol</h1>
-  
-  <div class="controls">
-    <p>Arrow Keys: Move | Space: Jump | Enter: Hack | ESC: Pause</p>
-  </div>
+<div id="gameContainer">
+  <canvas id="gameCanvas"></canvas>
+  <canvas id="overlayCanvas"></canvas>
+  <button id="resetBtn" type="button">Reset (R)</button>
+</div>
 
-  <div id="gameContainer">
-    <canvas id="gameCanvas"></canvas>
-  </div>
+<script>
+/* =========================================================
+   DISPLAY SURFACE (NES-like internal buffer -> scaled canvas)
+========================================================= */
+const VW=256, VH=240, TILE=16;
+const gameCanvas=document.getElementById('gameCanvas');
+const overlayCanvas=document.getElementById('overlayCanvas');
+const gctx=gameCanvas.getContext('2d'); gctx.imageSmoothingEnabled=false;
+const octx=overlayCanvas.getContext('2d');
+const nes=document.createElement('canvas'); nes.width=VW; nes.height=VH;
+const ctx=nes.getContext('2d',{alpha:false}); ctx.imageSmoothingEnabled=false; ctx.font='8px monospace';
+let RENDER={scale:1,ox:0,oy:0};
+function fit(){ const r=document.getElementById('gameContainer').getBoundingClientRect();
+  gameCanvas.width=r.width; gameCanvas.height=r.height; overlayCanvas.width=r.width; overlayCanvas.height=r.height; }
+addEventListener('resize',fit); fit();
 
-  <div style="text-align: center; margin-top: 20px;">
-    <a href="../games-list" class="back-button">Return to Games</a>
-  </div>
+/* Kill page scroll on game keys (Space/Arrows) */
+addEventListener('keydown',e=>{
+  if(['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.code)) e.preventDefault();
+},{passive:false});
 
-  <script>
-    // Game Canvas Setup
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Set canvas resolution
-    function resizeCanvas() {
-      const container = document.getElementById('gameContainer');
-      const rect = container.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
+/* =========================================================
+   ASSETS — per-state PNGs
+   We auto-detect frame count by width / frameWidth
+========================================================= */
+const IMG=path=>new Promise(res=>{const i=new Image(); i.onload=()=>res(i); i.onerror=()=>res(null); i.src=path;});
+const SPRITE_DEF={
+  player:{fw:48,fh:48, states:{
+    idle:'assets/player_idle_48.png',
+    walk:'assets/player_walk_48.png',
+    run:'assets/player_run_48.png',
+    jump:'assets/player_jump_48.png',
+    fall:'assets/player_fall_48.png',
+    hurt:'assets/player_hurt_48.png',
+    dead:'assets/player_dead_48.png'
+  }, fps:{idle:6, walk:10, run:12, jump:10, fall:10, hurt:6, dead:8}},
+  robot:{fw:48,fh:48, states:{
+    idle:'assets/robot_idle_48.png',
+    walk:'assets/robot_walk_48.png',
+    run:'assets/robot_run_48.png',
+    attack:'assets/robot_attack_48.png',
+    hurt:'assets/robot_hurt_48.png',
+    dead:'assets/robot_dead_48.png'
+  }, fps:{idle:6, walk:9, run:10, attack:12, hurt:6, dead:8}},
+  drone:{fw:32,fh:32, states:{
+    idle:'assets/drone_idle_32.png',
+    hover:'assets/drone_hover_32.png',
+    move:'assets/drone_move_32.png',
+    attack:'assets/drone_attack_32.png',
+    hurt:'assets/drone_hurt_32.png',
+    dead:'assets/drone_dead_32.png'
+  }, fps:{idle:3, hover:10, move:10, attack:12, hurt:6, dead:8}},
+  bg_far:'assets/01_bg_far.png',
+  bg_mid:'assets/02_bg_mid.png',
+  bg_near:'assets/03_bg_near.png',
+  fg_rail:'assets/04_fg_rail.png'
+};
+
+function makeAnimator(sheet, fw, fh, fps){
+  // sheet: image containing N frames horizontally; auto-detect N.
+  const frames = sheet ? Math.max(1, Math.floor(sheet.width / fw)) : 1;
+  let frame=0, time=0, spf=1000/(fps||8);
+  return {
+    reset(){ frame=0; time=0; },
+    step(dt, clamp=false){ time+=dt; while(time>spf){ time-=spf; frame = clamp ? Math.min(frame+1, frames-1) : (frame+1)%frames; } },
+    draw(x,y,flip=false,alpha=1){
+      if(!sheet) return;
+      const sx=frame*fw, sy=0;
+      ctx.save(); ctx.globalAlpha=alpha;
+      if(flip){ ctx.translate(x+fw,y); ctx.scale(-1,1); ctx.drawImage(sheet,sx,sy,fw,fh,0,0,fw,fh); }
+      else    { ctx.drawImage(sheet,sx,sy,fw,fh,x,y,fw,fh); }
+      ctx.restore();
+    },
+    frames
+  };
+}
+
+async function loadSprites(def){
+  const out={};
+  for(const who of ['player','robot','drone']){
+    const fw=def[who].fw, fh=def[who].fh;
+    const pack={fw,fh, anim:{}};
+    for(const [state,src] of Object.entries(def[who].states)){
+      const img=await IMG(src);
+      pack.anim[state]={
+        img,
+        make:()=>makeAnimator(img,fw,fh, def[who].fps[state]||8)
+      };
     }
-    
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    out[who]=pack;
+  }
+  const bg={};
+  bg.far = await IMG(def.bg_far);
+  bg.mid = await IMG(def.bg_mid);
+  bg.near= await IMG(def.bg_near);
+  bg.rail= await IMG(def.fg_rail);
+  out.bg=bg;
+  return out;
+}
 
-    // Game State
-    let gameState = 'playing'; // playing, paused, gameOver
-    let score = 0;
-    let level = 1;
-    let worldOffset = 0; // Track how far right the player has traveled
-    let difficultyLevel = 1;
-    let lastEnemySpawn = 0;
-    let lastDroneSpawn = 0;
-    
-    // Player Object
-    const player = {
-      x: 50,
-      y: 200,
-      width: 20,
-      height: 30,
-      velocityX: 0,
-      velocityY: 0,
-      speed: 4,
-      jumpPower: 12,
-      onGround: false,
-      health: 100,
-      color: '#00ffcc',
-      totalDistanceTraveled: 0
-    };
+/* =========================================================
+   GAMESTATE, INPUT, CAMERA
+========================================================= */
+let gameState='loading', score=0, level=1, justLeveled=0;
+let cameraX=0, worldMaxX=0;
+const CHUNK=320, LEVEL_LEN=1600;
 
-    // Game Objects Arrays
-    let platforms = [];
-    let enemies = [];
-    let drones = [];
-    let cameras = [];
-    let hackItems = [];
-    let particles = [];
-    
-    // Background layers for parallax effect
-    let backgroundLayers = [];
+const DEAD_ZONE=2; // ← tighter center. Increase to widen.
+function updateCamera(){
+  const center=VW*.5, L=center-DEAD_ZONE, R=center+DEAD_ZONE;
+  let target=cameraX;
+  if(player.x-cameraX<L) target=player.x-L;
+  else if(player.x-cameraX>R) target=player.x-R;
+  cameraX += (target-cameraX)*.25;
+  cameraX=Math.max(0,Math.min(cameraX, worldMaxX-VW));
+}
 
-    // Input Handling
-    const keys = {};
-    
-    document.addEventListener('keydown', (e) => {
-      keys[e.code] = true;
-      
-      if (e.code === 'Escape') {
-        gameState = gameState === 'playing' ? 'paused' : 'playing';
-      }
-      
-      if (e.code === 'Enter' && gameState === 'playing') {
-        hackNearbyCamera();
-      }
-    });
-    
-    document.addEventListener('keyup', (e) => {
-      keys[e.code] = false;
-    });
+const keys={}, JUMP_BUFFER=120, COYOTE=120;
+let jumpBufferUntil=0, coyoteUntil=0, jumpHeld=false;
+addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if(e.code==='Escape') gameState=(gameState==='playing')?'paused':'playing';
+  if(e.code==='Space'){ jumpBufferUntil=performance.now()+JUMP_BUFFER; jumpHeld=true; }
+  if(e.code==='KeyR' && gameState==='gameOver') reset();
+  if(e.code==='Enter' && gameState==='playing') tryHack();
+});
+addEventListener('keyup',e=>{ keys[e.code]=false; if(e.code==='Space') jumpHeld=false; });
 
-    // Initialize Game World
-    function initGame() {
-      // Create initial platforms (more will be generated as player progresses)
-      platforms = [
-        {x: 0, y: canvas.height - 40, width: canvas.width * 10, height: 40}, // extended ground
-        {x: 200, y: canvas.height - 120, width: 150, height: 20},
-        {x: 400, y: canvas.height - 200, width: 120, height: 20},
-        {x: 600, y: canvas.height - 160, width: 100, height: 20},
-        {x: 100, y: canvas.height - 280, width: 180, height: 20}
-      ];
+/* =========================================================
+   ENTITIES
+========================================================= */
+let SPR=null;
+let bgFar=null,bgMid=null,bgNear=null,fgRail=null;
 
-      // Create initial enemies
-      enemies = [
-        {x: 300, y: canvas.height - 70, width: 15, height: 25, direction: 1, speed: 1, patrolStart: 250, patrolEnd: 400, health: 2, isChasing: false, lastPlayerSeen: {x: 0, y: 0}},
-        {x: 500, y: canvas.height - 230, width: 15, height: 25, direction: 1, speed: 1.5, patrolStart: 450, patrolEnd: 550, health: 2, isChasing: false, lastPlayerSeen: {x: 0, y: 0}},
-        {x: 650, y: canvas.height - 190, width: 15, height: 25, direction: -1, speed: 1, patrolStart: 600, patrolEnd: 720, health: 2, isChasing: false, lastPlayerSeen: {x: 0, y: 0}}
-      ];
+let player, robots=[], drones=[], platforms=[], terminals=[], ads=[];
+const resetBtn=document.getElementById('resetBtn'); resetBtn.onclick=()=>reset();
 
-      // Create initial drones
-      drones = [
-        {x: 150, y: 100, width: 25, height: 15, direction: 1, speed: 2, patrolStart: 100, patrolEnd: 300, isChasing: false, alertLevel: 0},
-        {x: 450, y: 150, width: 25, height: 15, direction: -1, speed: 1.5, patrolStart: 400, patrolEnd: 600, isChasing: false, alertLevel: 0}
-      ];
+function makePlayer(){
+  // Player collision box is slightly smaller than 48x48 visuals for feel
+  return { x:32, y:VH-80, w:18, h:28, vx:0, vy:0, onGround:false, facing:1,
+           speed:1.48, aGround:.18, aAir:.11, dragG:.82, dragA:.985, jump:3.65,
+           hp:100, dist:0, hitUntil:0, anim: { state:'idle', runner:null } };
+}
 
-      // Create cameras
-      cameras = [
-        {x: 350, y: canvas.height - 250, width: 20, height: 15, active: true, detectionRange: 80, hacked: false, alertedEnemies: false},
-        {x: 550, y: canvas.height - 300, width: 20, height: 15, active: true, detectionRange: 100, hacked: false, alertedEnemies: false}
-      ];
+function setAnim(actor, who, state, clamp=false){
+  if(actor.anim.state===state) return;
+  actor.anim.state=state;
+  const spec=SPR[who].anim[state];
+  actor.anim.runner = spec ? spec.make() : null;
+  if(actor.anim.runner) actor.anim.runner.reset();
+  actor.anim.clamp = clamp;
+}
 
-      // Create hack items
-      hackItems = [
-        {x: 250, y: canvas.height - 140, width: 12, height: 12, collected: false},
-        {x: 450, y: canvas.height - 220, width: 12, height: 12, collected: false},
-        {x: 150, y: canvas.height - 300, width: 12, height: 12, collected: false}
-      ];
+function stepAnim(actor, dt){ if(actor.anim.runner) actor.anim.runner.step(dt, actor.anim.clamp); }
+function drawAnim(actor, who, x, y, flip=false, alpha=1){
+  const run=actor.anim.runner;
+  if(run) run.draw(x,y,flip,alpha);
+}
 
-      generateBackgroundLayers();
+/* =========================================================
+   WORLD GEN
+========================================================= */
+const ADS_TXT=[
+  "Neon Nights — Discretion Included","HoloCompanion™ — Terms Apply",
+  "Love.exe — Try a Free Emote","Rent-A-Hacker — We Never Met You",
+  "Sleep Faster™ — Productivity Pills","Oxygen+ — Premium Breaths"
+];
+const choice = a => a[(Math.random()*a.length)|0];
+let generatedUntil=0, worldMax=0;
+
+function genChunk(startX){
+  const endX=startX+CHUNK;
+
+  // Ground tiles
+  for(let x=startX;x<endX;x+=TILE) platforms.push({x,y:VH-TILE,w:TILE,h:TILE});
+
+  // Floating platforms
+  const pc=2+((Math.random()*3)|0);
+  for(let i=0;i<pc;i++){
+    const px=startX+40+Math.random()*(CHUNK-80);
+    const py=VH-(64+((Math.random()*96)|0));
+    const pw=TILE*(2+((Math.random()*3)|0));
+    platforms.push({x:(px/TILE|0)*TILE,y:(py/TILE|0)*TILE,w:pw,h:TILE});
+  }
+
+  // Robots
+  const rc=1+((Math.random()*2)|0);
+  for(let i=0;i<rc;i++){
+    const rx=startX+64+Math.random()*(CHUNK-128);
+    robots.push({x:rx|0,y:VH-TILE*2,w:18,h:24,dir:Math.random()<.5?-1:1,speed:.66,hp:3,alert:false,hitUntil:0,anim:{state:'idle',runner:null}});
+  }
+
+  // Drones
+  if(Math.random()<.6){
+    const dx=startX+80+Math.random()*(CHUNK-160), dy=60+Math.random()*80;
+    drones.push({x:dx|0,y:dy|0,w:18,h:14,dir:Math.random()<.5?-1:1,speed:.8,phase:Math.random()*6,anim:{state:'move',runner:null}});
+  }
+
+  // Hack terminals
+  if(Math.random()<.5){
+    const tx=startX+40+Math.random()*(CHUNK-80); let ty=VH-TILE*2;
+    for(const p of platforms){ if(tx>=p.x-4 && tx<=p.x+p.w+4) ty=Math.min(ty,p.y-TILE); }
+    terminals.push({x:tx|0,y:ty|0,w:12,h:16,cooldown:0});
+  }
+
+  // Hologram ad anchors (1–2)
+  const ac=1+((Math.random()*2)|0);
+  for(let i=0;i<ac;i++){
+    const ax=startX+40+Math.random()*(CHUNK-80), ay=VH-(120+((Math.random()*60)|0));
+    ads.push({x:ax|0,y:ay|0,text:choice(ADS_TXT),phase:Math.random()*6});
+  }
+
+  generatedUntil=endX; worldMaxX=Math.max(worldMaxX,endX);
+}
+
+/* =========================================================
+   PHYSICS / COLLISIONS
+========================================================= */
+function rects(a,b){ return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y; }
+function collide(body){
+  body.onGround=false;
+  body.y+=body.vy;
+  for(const p of platforms){
+    if(rects(body,p)){
+      if(body.vy>0){ body.y=p.y-body.h; body.vy=0; body.onGround=true; coyoteUntil=0; }
+      else if(body.vy<0){ body.y=p.y+p.h; body.vy=0; }
     }
-
-    // Generate dynamic background layers
-    function generateBackgroundLayers() {
-      backgroundLayers = [];
-      for (let layer = 0; layer < 3; layer++) {
-        backgroundLayers.push({
-          buildings: generateBuildings(layer),
-          parallaxSpeed: 0.1 + layer * 0.2,
-          opacity: 0.3 + layer * 0.2
-        });
-      }
+  }
+  body.x+=body.vx;
+  for(const p of platforms){
+    if(rects(body,p)){
+      if(body.vx>0) body.x=p.x-body.w; else if(body.vx<0) body.x=p.x+p.w;
+      body.vx=0;
     }
+  }
+}
 
-    function generateBuildings(layer) {
-      const buildings = [];
-      const buildingCount = 20 + layer * 10;
-      for (let i = 0; i < buildingCount; i++) {
-        buildings.push({
-          x: i * (100 + Math.random() * 50),
-          y: canvas.height - (100 + Math.random() * 200 + layer * 50),
-          width: 30 + Math.random() * 40,
-          height: 100 + Math.random() * 200 + layer * 50,
-          windows: Math.floor(Math.random() * 8) + 2,
-          color: layer === 0 ? '#111' : (layer === 1 ? '#222' : '#333')
-        });
-      }
-      return buildings;
-    }
+/* =========================================================
+   HACK / EMP
+========================================================= */
+let hackUntil=0, hackCDUntil=0; const HACK_MS=3000, CD_MS=5000;
+function tryHack(){
+  const now=performance.now(); if(now<hackCDUntil) return;
+  const near=terminals.find(t=>Math.hypot((t.x+6)-(player.x+player.w/2),(t.y+8)-(player.y+player.h/2))<18 && t.cooldown<=0);
+  if(near){ hackUntil=now+HACK_MS; hackCDUntil=now+CD_MS; near.cooldown=CD_MS; score+=20; }
+}
 
-    // Spawn new enemies as player progresses
-    function spawnEnemies() {
-      const currentDistance = player.totalDistanceTraveled;
-      if (currentDistance > lastEnemySpawn + (1000 / difficultyLevel)) {
-        const spawnX = player.x + canvas.width + Math.random() * 200;
-        enemies.push({
-          x: spawnX,
-          y: canvas.height - 70,
-          width: 15,
-          height: 25,
-          direction: -1,
-          speed: 1 + Math.random() * difficultyLevel * 0.5,
-          patrolStart: spawnX - 100,
-          patrolEnd: spawnX + 100,
-          health: 2 + Math.floor(difficultyLevel / 3),
-          isChasing: false,
-          lastPlayerSeen: {x: 0, y: 0}
-        });
-        lastEnemySpawn = currentDistance;
-      }
-    }
+/* =========================================================
+   UPDATE LOOP
+========================================================= */
+function cull(){ const cutoff=cameraX-300;
+  for(let i=ads.length-1;i>=0;i--) if(ads[i].x+120<cutoff) ads.splice(i,1);
+  for(let i=robots.length-1;i>=0;i--) if(robots[i].x+120<cutoff) robots.splice(i,1);
+  for(let i=drones.length-1;i>=0;i--) if(drones[i].x+120<cutoff) drones.splice(i,1);
+}
 
-    // Spawn new drones as player progresses
-    function spawnDrones() {
-      const currentDistance = player.totalDistanceTraveled;
-      if (currentDistance > lastDroneSpawn + (1500 / difficultyLevel)) {
-        const spawnX = player.x + canvas.width + Math.random() * 300;
-        drones.push({
-          x: spawnX,
-          y: 50 + Math.random() * 150,
-          width: 25,
-          height: 15,
-          direction: -1,
-          speed: 2 + Math.random() * difficultyLevel * 0.3,
-          patrolStart: spawnX - 150,
-          patrolEnd: spawnX + 150,
-          isChasing: false,
-          alertLevel: 0
-        });
-        lastDroneSpawn = currentDistance;
-      }
-    }
+function update(dt,now){
+  if(gameState!=='playing') return;
 
-    // Game Physics
-    function updatePlayer() {
-      if (gameState !== 'playing') return;
+  // Movement
+  const L=!!keys['ArrowLeft'], R=!!keys['ArrowRight'];
+  const accel=player.onGround?player.aGround:player.aAir;
+  const drag=player.onGround?player.dragG:player.dragA;
+  if(L){ player.vx=Math.max(player.vx-accel,-player.speed); player.facing=-1; }
+  if(R){ player.vx=Math.min(player.vx+accel, player.speed);  player.facing= 1; }
+  if(!L && !R) player.vx*=drag;
 
-      const previousX = player.x;
+  if(player.onGround) coyoteUntil=now+COYOTE;
+  const wantsJump = now<=jumpBufferUntil;
+  if(wantsJump && (player.onGround || now<=coyoteUntil)){ player.vy=-player.jump; player.onGround=false; jumpBufferUntil=0; coyoteUntil=0; }
+  if(!jumpHeld && player.vy<-1.2) player.vy=-1.2;
 
-      // Horizontal movement
-      if (keys['ArrowLeft']) {
-        player.velocityX = -player.speed;
-      } else if (keys['ArrowRight']) {
-        player.velocityX = player.speed;
-      } else {
-        player.velocityX *= 0.8; // friction
-      }
+  player.vy+=.18; if(player.vy>3.6) player.vy=3.6;
+  collide(player);
 
-      // Jumping
-      if (keys['Space'] && player.onGround) {
-        player.velocityY = -player.jumpPower;
-        player.onGround = false;
-      }
+  // Player anim
+  if(player.hp<=0) setAnim(player,'player','dead',true);
+  else if(now<player.hitUntil) setAnim(player,'player','hurt',true);
+  else if(!player.onGround) setAnim(player,'player', player.vy<0?'jump':'fall');
+  else {
+    const s=Math.abs(player.vx);
+    setAnim(player,'player', s>1.05?'run':(s>0.2?'walk':'idle'));
+  }
+  stepAnim(player,dt);
 
-      // Gravity
-      player.velocityY += 0.6;
-      if (player.velocityY > 15) player.velocityY = 15;
+  // Generate ahead
+  const need=cameraX+VW+CHUNK*2; while(generatedUntil<need) genChunk(generatedUntil);
 
-      // Update position
-      player.x += player.velocityX;
-      player.y += player.velocityY;
-
-      // Track total distance traveled
-      if (player.x > previousX) {
-        player.totalDistanceTraveled += (player.x - previousX);
-        
-        // Update difficulty level based on distance
-        const newDifficultyLevel = Math.floor(player.totalDistanceTraveled / 1000) + 1;
-        if (newDifficultyLevel > difficultyLevel) {
-          difficultyLevel = newDifficultyLevel;
-          level = difficultyLevel;
-        }
-      }
-
-      // Platform collision
-      player.onGround = false;
-      platforms.forEach(platform => {
-        if (player.x < platform.x + platform.width &&
-            player.x + player.width > platform.x &&
-            player.y < platform.y + platform.height &&
-            player.y + player.height > platform.y) {
-          
-          if (player.velocityY > 0 && player.y < platform.y) {
-            player.y = platform.y - player.height;
-            player.velocityY = 0;
-            player.onGround = true;
-          }
-        }
-      });
-
-      // Keep player in bounds
-      if (player.x < 0) player.x = 0;
-      if (player.y > canvas.height) {
-        player.health -= 20;
-        player.x = 50;
-        player.y = 200;
-        if (player.health <= 0) gameState = 'gameOver';
-      }
-
-      // Spawn new enemies and drones based on progression
-      spawnEnemies();
-      spawnDrones();
-    }
-
-    function updateEnemies() {
-      if (gameState !== 'playing') return;
-
-      enemies.forEach((enemy, index) => {
-        if (enemy.health <= 0) {
-          enemies.splice(index, 1);
-          score += 10;
-          return;
-        }
-
-        // Check if enemy can see player
-        const distanceToPlayer = Math.sqrt(
-          Math.pow(player.x - enemy.x, 2) + Math.pow(player.y - enemy.y, 2)
-        );
-
-        // Chasing behavior
-        if (distanceToPlayer < 150 && !enemy.isChasing) {
-          enemy.isChasing = true;
-          enemy.lastPlayerSeen = {x: player.x, y: player.y};
-        }
-
-        if (enemy.isChasing) {
-          // Chase the player or last known position
-          const targetX = distanceToPlayer < 200 ? player.x : enemy.lastPlayerSeen.x;
-          
-          if (targetX > enemy.x + enemy.width/2) {
-            enemy.direction = 1;
-          } else if (targetX < enemy.x + enemy.width/2) {
-            enemy.direction = -1;
-          }
-
-          enemy.x += enemy.direction * (enemy.speed * 1.5); // Faster when chasing
-
-          // Stop chasing if too far from last known position
-          if (Math.abs(enemy.x - enemy.lastPlayerSeen.x) > 300) {
-            enemy.isChasing = false;
-          }
-        } else {
-          // Normal patrol movement
-          enemy.x += enemy.direction * enemy.speed;
-          
-          if (enemy.x <= enemy.patrolStart || enemy.x >= enemy.patrolEnd) {
-            enemy.direction *= -1;
-          }
-        }
-
-        // Check collision with player
-        if (player.x < enemy.x + enemy.width &&
-            player.x + player.width > enemy.x &&
-            player.y < enemy.y + enemy.height &&
-            player.y + player.height > enemy.y) {
-          
-          if (player.velocityY > 0 && player.y < enemy.y) {
-            // Player jumped on enemy
-            enemy.health--;
-            player.velocityY = -8;
-            createParticles(enemy.x + enemy.width/2, enemy.y, '#ff3366');
-          } else {
-            // Player hit enemy
-            player.health -= 5 + Math.floor(difficultyLevel / 2);
-            player.velocityX = (player.x < enemy.x) ? -8 : 8;
-            if (player.health <= 0) gameState = 'gameOver';
-          }
-        }
-      });
-    }
-
-    function updateDrones() {
-      if (gameState !== 'playing') return;
-
-      drones.forEach((drone, index) => {
-        // Remove drones that are too far behind the player
-        if (drone.x < player.x - canvas.width * 2) {
-          drones.splice(index, 1);
-          return;
-        }
-
-        const distanceToPlayer = Math.sqrt(
-          Math.pow(player.x - drone.x, 2) + Math.pow(player.y - drone.y, 2)
-        );
-
-        // Alert behavior - drones get more aggressive when they detect player
-        if (distanceToPlayer < 120) {
-          drone.alertLevel = Math.min(drone.alertLevel + 0.02, 1);
-          drone.isChasing = true;
-        } else if (drone.alertLevel > 0) {
-          drone.alertLevel = Math.max(drone.alertLevel - 0.01, 0);
-          if (drone.alertLevel <= 0) {
-            drone.isChasing = false;
-          }
-        }
-
-        if (drone.isChasing && distanceToPlayer < 200) {
-          // Chase the player
-          const targetX = player.x + player.width/2;
-          const targetY = player.y + player.height/2;
-          
-          const deltaX = targetX - (drone.x + drone.width/2);
-          const deltaY = targetY - (drone.y + drone.height/2);
-          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-          
-          if (distance > 0) {
-            drone.x += (deltaX / distance) * drone.speed * (1 + drone.alertLevel);
-            drone.y += (deltaY / distance) * drone.speed * 0.5 * (1 + drone.alertLevel);
-          }
-        } else {
-          // Normal patrol movement
-          drone.x += drone.direction * drone.speed;
-          
-          if (drone.x <= drone.patrolStart || drone.x >= drone.patrolEnd) {
-            drone.direction *= -1;
-          }
-        }
-
-        // Check collision with player
-        if (player.x < drone.x + drone.width &&
-            player.x + player.width > drone.x &&
-            player.y < drone.y + drone.height &&
-            player.y + player.height > drone.y) {
-          
-          player.health -= 3 + Math.floor(difficultyLevel / 2);
-          createParticles(drone.x + drone.width/2, drone.y + drone.height/2, '#ffff00');
-          if (player.health <= 0) gameState = 'gameOver';
-        }
-      });
-    }
-
-    function updateCameras() {
-      if (gameState !== 'playing') return;
-
-      cameras.forEach(camera => {
-        if (camera.hacked) return;
-
-        const distanceToPlayer = Math.sqrt(
-          Math.pow(player.x - camera.x, 2) + Math.pow(player.y - camera.y, 2)
-        );
-
-        if (distanceToPlayer < camera.detectionRange) {
-          camera.active = true;
-          
-          // Alert nearby enemies and drones when player is spotted
-          if (!camera.alertedEnemies) {
-            enemies.forEach(enemy => {
-              const enemyDistance = Math.sqrt(
-                Math.pow(enemy.x - camera.x, 2) + Math.pow(enemy.y - camera.y, 2)
-              );
-              if (enemyDistance < 300) {
-                enemy.isChasing = true;
-                enemy.lastPlayerSeen = {x: player.x, y: player.y};
-              }
-            });
-
-            drones.forEach(drone => {
-              const droneDistance = Math.sqrt(
-                Math.pow(drone.x - camera.x, 2) + Math.pow(drone.y - camera.y, 2)
-              );
-              if (droneDistance < 400) {
-                drone.isChasing = true;
-                drone.alertLevel = 1;
-              }
-            });
-            
-            camera.alertedEnemies = true;
-          }
-          
-          // Camera spotted player - reduce health slowly
-          if (Math.random() < 0.02) {
-            player.health -= 1;
-            if (player.health <= 0) gameState = 'gameOver';
-          }
-        } else {
-          camera.alertedEnemies = false;
-        }
-      });
-    }
-
-    function updateHackItems() {
-      if (gameState !== 'playing') return;
-
-      hackItems.forEach(item => {
-        if (item.collected) return;
-
-        if (player.x < item.x + item.width &&
-            player.x + player.width > item.x &&
-            player.y < item.y + item.height &&
-            player.y + player.height > item.y) {
-          
-          item.collected = true;
-          score += 5;
-          player.health = Math.min(100, player.health + 10);
-          createParticles(item.x + item.width/2, item.y + item.height/2, '#00ffcc');
-        }
-      });
-    }
-
-    function hackNearbyCamera() {
-      cameras.forEach(camera => {
-        const distanceToPlayer = Math.sqrt(
-          Math.pow(player.x - camera.x, 2) + Math.pow(player.y - camera.y, 2)
-        );
-
-        if (distanceToPlayer < 50) {
-          camera.hacked = true;
-          camera.active = false;
-          score += 20;
-          createParticles(camera.x + camera.width/2, camera.y + camera.height/2, '#00ff00');
-        }
-      });
-    }
-
-    function createParticles(x, y, color) {
-      for (let i = 0; i < 8; i++) {
-        particles.push({
-          x: x,
-          y: y,
-          velocityX: (Math.random() - 0.5) * 8,
-          velocityY: (Math.random() - 0.5) * 8,
-          life: 30,
-          color: color
-        });
+  // Drones AI
+  const hacked = now<hackUntil;
+  for(const d of drones){
+    if(!hacked){
+      d.x+=d.dir*d.speed; d.phase+=.02; d.y+=Math.sin(d.phase)*.2;
+      if((d.x%CHUNK)<8||(d.x%CHUNK)>CHUNK-8) d.dir*=-1;
+      // vertical scan (alert robots)
+      if(player.x+player.w>d.x-6 && player.x<d.x+d.w+6 && player.y>d.y){
+        let blocked=false; const scan={x:d.x,y:d.y,w:d.w,h:(player.y-d.y)};
+        for(const p of platforms){ if(rects(scan,p)){ blocked=true; break; } }
+        if(!blocked){ for(const r of robots){ if(Math.abs(r.x+d.x)<9999){} } // noop; just flavor
+          for(const r of robots){ if(Math.abs(r.x-d.x)<140) r.alert=true; } }
       }
     }
+  }
 
-    function updateParticles() {
-      particles.forEach((particle, index) => {
-        particle.x += particle.velocityX;
-        particle.y += particle.velocityY;
-        particle.life--;
-        
-        if (particle.life <= 0) {
-          particles.splice(index, 1);
-        }
-      });
+  // Robot AI + combat
+  for(const r of robots){
+    if(!hacked){
+      const see=Math.abs(r.x-player.x)<92 && Math.abs(r.y-player.y)<56;
+      if(see) r.alert=true;
+      if(r.alert) r.x+=(player.x>r.x?1:-1)*r.speed*1.25;
+      else { r.x+=r.dir*r.speed; if((r.x%110)<1) r.dir*=-1; }
     }
-
-    // Rendering Functions
-    function drawBackground() {
-      // Dynamic background with parallax layers
-      backgroundLayers.forEach((layer, layerIndex) => {
-        ctx.fillStyle = layer.color || '#000';
-        ctx.globalAlpha = layer.opacity;
-        
-        layer.buildings.forEach(building => {
-          const offsetX = (player.totalDistanceTraveled * layer.parallaxSpeed) % (canvas.width * 2);
-          const drawX = building.x - offsetX;
-          
-          // Only draw buildings that are visible
-          if (drawX + building.width > -100 && drawX < canvas.width + 100) {
-            // Building body
-            ctx.fillStyle = building.color;
-            ctx.fillRect(drawX, building.y, building.width, building.height);
-            
-            // Windows based on difficulty level (more lit windows = more danger)
-            const windowsLit = Math.min(building.windows, Math.floor(difficultyLevel / 2) + 1);
-            for (let w = 0; w < windowsLit; w++) {
-              const windowX = drawX + 5 + (w % 3) * (building.width / 3 - 5);
-              const windowY = building.y + 10 + Math.floor(w / 3) * 25;
-              
-              // Different window colors based on layer and difficulty
-              if (layerIndex === 0) {
-                ctx.fillStyle = difficultyLevel > 3 ? '#ff3366' : '#ffff00';
-              } else if (layerIndex === 1) {
-                ctx.fillStyle = difficultyLevel > 5 ? '#ff6633' : '#00ffcc';
-              } else {
-                ctx.fillStyle = '#ffffff';
-              }
-              
-              ctx.fillRect(windowX, windowY, 8, 12);
-            }
-            
-            // Add some cyberpunk details for higher difficulty
-            if (difficultyLevel > 2 && layerIndex === 0) {
-              // Neon signs
-              ctx.fillStyle = '#ff00ff';
-              ctx.fillRect(drawX, building.y + building.height - 30, building.width, 4);
-              
-              // Antenna/communication arrays
-              if (Math.random() < 0.3) {
-                ctx.strokeStyle = '#00ffcc';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(drawX + building.width/2, building.y);
-                ctx.lineTo(drawX + building.width/2, building.y - 20);
-                ctx.stroke();
-              }
-            }
-          }
-        });
-        
-        ctx.globalAlpha = 1;
-      });
+    // Anim
+    setAnim(r,'robot', r.alert?'run':'walk'); stepAnim(r,dt);
+    // Collide with player
+    if(rects(player,r)){
+      if(player.vy>0 && player.y+player.h<=r.y+6){ r.hp--; r.hitUntil=now+120; player.vy=-2.6; score+=12; }
+      else{ player.vx+=(player.x<r.x)?-0.8:0.8; player.hp-=7; player.hitUntil=now+150; if(player.hp<=0){ gameState='gameOver'; resetBtn.style.display='block'; } }
     }
+  }
+  for(let i=robots.length-1;i>=0;i--) if(robots[i].hp<=0) robots.splice(i,1);
 
-    function drawPlayer() {
-      const x = player.x;
-      const y = player.y;
-      const scale = player.width / 20; // Scale factor based on player width
-      
-      // Player glow effect
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = player.color;
-      
-      // Head
-      ctx.fillStyle = player.color;
-      ctx.beginPath();
-      ctx.arc(x + 10 * scale, y + 6 * scale, 5 * scale, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Body (torso)
-      ctx.fillStyle = player.color;
-      ctx.fillRect(x + 7 * scale, y + 10 * scale, 6 * scale, 12 * scale);
-      
-      // Arms
-      ctx.fillStyle = player.color;
-      // Left arm
-      ctx.fillRect(x + 4 * scale, y + 12 * scale, 3 * scale, 8 * scale);
-      // Right arm  
-      ctx.fillRect(x + 13 * scale, y + 12 * scale, 3 * scale, 8 * scale);
-      
-      // Legs
-      ctx.fillStyle = player.color;
-      // Left leg
-      ctx.fillRect(x + 7 * scale, y + 22 * scale, 2.5 * scale, 8 * scale);
-      // Right leg
-      ctx.fillRect(x + 10.5 * scale, y + 22 * scale, 2.5 * scale, 8 * scale);
-      
-      // Add some cyberpunk details
-      ctx.fillStyle = '#ffffff';
-      // Eyes (white dots)
-      ctx.fillRect(x + 8 * scale, y + 5 * scale, 1 * scale, 1 * scale);
-      ctx.fillRect(x + 11 * scale, y + 5 * scale, 1 * scale, 1 * scale);
-      
-      // Chest detail (glowing core)
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(x + 9 * scale, y + 15 * scale, 2 * scale, 2 * scale);
-      
-      ctx.shadowBlur = 0;
+  updateCamera(); cull();
+  player.dist=Math.max(player.dist,player.x);
+  const nl=(player.dist/LEVEL_LEN|0)+1; if(nl>level){ level=nl; justLeveled=1200; }
+}
+
+/* =========================================================
+   DRAW — sky/parallax/world/sprites/ads/UI
+========================================================= */
+function drawSky(){
+  for(let y=0;y<VH;y++){ const t=y/VH; ctx.fillStyle=`rgb(${12+18*t|0},${16+30*t|0},${30+58*t|0})`; ctx.fillRect(0,y,VW,1); }
+}
+
+function tileLayer(img,y,speed,alpha=1){
+  if(!img) return;
+  const cx=cameraX|0, w=img.width; if(!w) return;
+  const off=-(cx*speed|0)%w;
+  ctx.save(); ctx.globalAlpha=alpha;
+  for(let x=off-w;x<VW;x+=w) ctx.drawImage(img,x,y);
+  ctx.restore();
+}
+function drawParallax(){
+  tileLayer(bgFar||bgMid||bgNear, VH-170, 0.25, 1.0);
+  tileLayer(bgMid||bgFar,          VH-160, 0.50, 0.90);
+  tileLayer(bgNear||bgFar,         VH-150, 0.90, 0.90);
+  if(fgRail) tileLayer(fgRail,     VH-44 , 1.00, 1.0);
+}
+
+function drawTiles(){
+  for(const p of platforms){
+    const sx=p.x-cameraX; if(sx+p.w<0||sx>VW) continue;
+    for(let x=0;x<p.w;x+=TILE) for(let y=0;y<p.h;y+=TILE){
+      const xx=sx+x, yy=p.y+y, even=((((xx|0)>>4)+(((yy|0)>>4)))%2)===0;
+      ctx.fillStyle=even?'#3a3f47':'#2c3038'; ctx.fillRect(xx|0,yy|0,TILE,TILE);
+      if(y===0){ ctx.fillStyle='#98a0b0'; ctx.fillRect(xx|0,yy|0,TILE,1); }
     }
+  }
+}
+function drawTerminals(){
+  for(const t of terminals){ const x=(t.x-cameraX)|0; if(x+t.w<0||x>VW) continue;
+    ctx.fillStyle='#9b6bff'; ctx.fillRect(x,t.y,t.w,t.h);
+    ctx.fillStyle='#fff'; ctx.fillRect(x+2,t.y+3,t.w-4,3);
+  }
+}
 
-    function drawPlatforms() {
-      ctx.fillStyle = '#333';
-      platforms.forEach(platform => {
-        ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
-        
-        // Platform edge glow
-        ctx.strokeStyle = '#666';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
-      });
-    }
+function drawEntities(now){
+  // Robots
+  for(const r of robots){
+    const x=(r.x-cameraX)|0, y=r.y|0; if(x+48<0||x>VW) continue;
+    drawAnim(r,'robot',x-14,y-24,(player.x<r.x), now<r.hitUntil?0.75:1);
+  }
+  // Drones
+  for(const d of drones){
+    const x=(d.x-cameraX)|0, y=d.y|0; if(x+32<0||x>VW) continue;
+    if(!d.anim.runner) setAnim(d,'drone','move');
+    stepAnim(d,16); drawAnim(d,'drone',x-7,y-9,false,1);
+  }
+  // Player
+  const px=(player.x-cameraX)|0, py=player.y|0;
+  drawAnim(player,'player',px-15,py-20, player.facing===-1, performance.now()<player.hitUntil?0.8:1);
+}
 
-    function drawEnemies() {
-      enemies.forEach(enemy => {
-        const x = enemy.x;
-        const y = enemy.y;
-        const scale = enemy.width / 15; // Scale factor based on enemy width
-        
-        // Robot glow effect
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = '#ff3366';
-        
-        // Robot head (rectangular with antenna)
-        ctx.fillStyle = '#ff3366';
-        ctx.fillRect(x + 4 * scale, y, 7 * scale, 6 * scale);
-        
-        // Head details - glowing eyes
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(x + 5 * scale, y + 1.5 * scale, 1.5 * scale, 1.5 * scale);
-        ctx.fillRect(x + 8.5 * scale, y + 1.5 * scale, 1.5 * scale, 1.5 * scale);
-        
-        // Antenna
-        ctx.fillStyle = '#ff3366';
-        ctx.fillRect(x + 7 * scale, y - 2 * scale, 1 * scale, 3 * scale);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(x + 6.5 * scale, y - 2 * scale, 2 * scale, 1 * scale);
-        
-        // Robot torso (main body)
-        ctx.fillStyle = '#ff3366';
-        ctx.fillRect(x + 3 * scale, y + 6 * scale, 9 * scale, 12 * scale);
-        
-        // Chest panel detail
-        ctx.fillStyle = '#990033';
-        ctx.fillRect(x + 4 * scale, y + 8 * scale, 7 * scale, 8 * scale);
-        
-        // Central power core (glowing)
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(x + 6.5 * scale, y + 10 * scale, 2 * scale, 4 * scale);
-        
-        // Robot arms
-        ctx.fillStyle = '#ff3366';
-        // Left arm
-        ctx.fillRect(x, y + 8 * scale, 3 * scale, 8 * scale);
-        // Right arm  
-        ctx.fillRect(x + 12 * scale, y + 8 * scale, 3 * scale, 8 * scale);
-        
-        // Shoulder joints
-        ctx.fillStyle = '#990033';
-        ctx.fillRect(x + 2.5 * scale, y + 7 * scale, 2 * scale, 2 * scale);
-        ctx.fillRect(x + 10.5 * scale, y + 7 * scale, 2 * scale, 2 * scale);
-        
-        // Robot legs
-        ctx.fillStyle = '#ff3366';
-        // Left leg
-        ctx.fillRect(x + 4 * scale, y + 18 * scale, 3 * scale, 7 * scale);
-        // Right leg
-        ctx.fillRect(x + 8 * scale, y + 18 * scale, 3 * scale, 7 * scale);
-        
-        // Knee joints
-        ctx.fillStyle = '#990033';
-        ctx.fillRect(x + 4.5 * scale, y + 20 * scale, 2 * scale, 1 * scale);
-        ctx.fillRect(x + 8.5 * scale, y + 20 * scale, 2 * scale, 1 * scale);
-        
-        // Robot feet
-        ctx.fillStyle = '#ff3366';
-        ctx.fillRect(x + 3.5 * scale, y + 25 * scale, 4 * scale, 2 * scale);
-        ctx.fillRect(x + 7.5 * scale, y + 25 * scale, 4 * scale, 2 * scale);
-        
-        // Add some tech details - circuit lines
-        ctx.strokeStyle = '#990033';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        // Vertical lines on torso
-        ctx.moveTo(x + 5 * scale, y + 8 * scale);
-        ctx.lineTo(x + 5 * scale, y + 16 * scale);
-        ctx.moveTo(x + 10 * scale, y + 8 * scale);
-        ctx.lineTo(x + 10 * scale, y + 16 * scale);
-        // Horizontal line across chest
-        ctx.moveTo(x + 4 * scale, y + 12 * scale);
-        ctx.lineTo(x + 11 * scale, y + 12 * scale);
-        ctx.stroke();
-        
-        ctx.shadowBlur = 0;
-      });
-    }
+function drawUI(now){
+  // HUD inside the game area
+  ctx.fillStyle='rgba(0,0,0,.55)'; ctx.fillRect(0,0,VW,18);
+  ctx.fillStyle='#cfd6df'; ctx.fillText('Blackout Protocol',6,6);
+  ctx.fillStyle='#9aa3b2'; ctx.fillText('← → Move | Space Jump | Enter Hack | ESC Pause',120,6);
+  ctx.fillStyle='#fff'; ctx.fillText(`HP:${Math.max(0,player.hp)}  L:${level}  SC:${score}`,6,28);
 
-    function drawDrones() {
-      drones.forEach(drone => {
-        ctx.fillStyle = '#ffff00';
-        ctx.fillRect(drone.x, drone.y, drone.width, drone.height);
-        
-        // Drone glow and propellers
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = '#ffff00';
-        ctx.fillRect(drone.x, drone.y, drone.width, drone.height);
-        ctx.shadowBlur = 0;
-        
-        // Simple propeller lines
-        ctx.strokeStyle = '#ffff00';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(drone.x - 5, drone.y + drone.height/2);
-        ctx.lineTo(drone.x + drone.width + 5, drone.y + drone.height/2);
-        ctx.stroke();
-      });
-    }
+  const left=Math.max(0,hackUntil-now)|0;
+  if(left>0){ ctx.fillStyle='#7dff9a'; ctx.fillText(`EMP ${Math.ceil(left/1000)}s`,6,40); }
+  else if(now<hackCDUntil){ ctx.fillStyle='#7f8a99'; ctx.fillText(`Hack CD ${((hackCDUntil-now)/1000|0)}s`,6,40); }
+  else { ctx.fillStyle='#7dff9a'; ctx.fillText('Enter: Hack',6,40); }
 
-    function drawCameras() {
-      cameras.forEach(camera => {
-        if (camera.hacked) {
-          ctx.fillStyle = '#00ff00';
-        } else if (camera.active) {
-          ctx.fillStyle = '#ff0000';
-        } else {
-          ctx.fillStyle = '#888';
-        }
-        
-        ctx.fillRect(camera.x, camera.y, camera.width, camera.height);
-        
-        // Camera detection cone
-        if (!camera.hacked && camera.active) {
-          ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.arc(camera.x + camera.width/2, camera.y + camera.height/2, camera.detectionRange, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-      });
-    }
+  if(gameState==='paused'){ ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#fff'; ctx.fillText('PAUSED (ESC)',VW/2-30,VH/2); }
+  if(gameState==='gameOver'){ ctx.fillStyle='rgba(0,0,0,.7)'; ctx.fillRect(0,0,VW,VH);
+    ctx.fillStyle='#fff'; ctx.fillText('GAME OVER',VW/2-34,VH/2-8); ctx.fillText(`Score ${score}`,VW/2-26,VH/2+4);
+    ctx.fillText('Press R or click Reset',VW/2-54,VH/2+16); }
 
-    function drawHackItems() {
-      hackItems.forEach(item => {
-        if (item.collected) return;
-        
-        ctx.fillStyle = '#00ffcc';
-        ctx.fillRect(item.x, item.y, item.width, item.height);
-        
-        // Hack item glow
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = '#00ffcc';
-        ctx.fillRect(item.x, item.y, item.width, item.height);
-        ctx.shadowBlur = 0;
-      });
-    }
+  if(justLeveled>0){ ctx.fillStyle='rgba(0,0,0,.5)'; ctx.fillRect(0,56,VW,18); ctx.fillStyle='#ffd95e'; ctx.fillText(`LEVEL UP → ${level}`,VW/2-36,68); justLeveled-=16; }
 
-    function drawParticles() {
-      particles.forEach(particle => {
-        ctx.fillStyle = particle.color;
-        ctx.globalAlpha = particle.life / 30;
-        ctx.fillRect(particle.x - 2, particle.y - 2, 4, 4);
-        ctx.globalAlpha = 1;
-      });
-    }
+  // Warnings if assets missing
+  let y=VH-10; const warn=msg=>{ ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(2,y-7,VW-4,9); ctx.fillStyle='#ffb36a'; ctx.fillText(msg,6,y-6); y-=10; };
+  if(!SPR.player.anim.idle.img) warn('Missing player_* PNGs');
+  if(!SPR.robot.anim.idle.img)  warn('Missing robot_* PNGs');
+  if(!SPR.drone.anim.idle.img)  warn('Missing drone_* PNGs');
+  if(!bgFar) warn('Missing: assets/01_bg_far.png (using gradient sky)');
+}
 
-    function drawUI() {
-      ctx.fillStyle = '#ff3366';
-      ctx.font = '16px Courier New';
-      ctx.fillText(`Health: ${player.health}`, 10, 25);
-      ctx.fillText(`Score: ${score}`, 10, 45);
-      ctx.fillText(`Difficulty: ${difficultyLevel}`, 10, 65);
-      ctx.fillText(`Distance: ${Math.floor(player.totalDistanceTraveled)}m`, 10, 85);
-      ctx.fillText(`Enemies: ${enemies.length} | Drones: ${drones.length}`, 10, 105);
-      
-      if (gameState === 'paused') {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        ctx.fillStyle = '#ff3366';
-        ctx.font = '32px Courier New';
-        ctx.textAlign = 'center';
-        ctx.fillText('PAUSED', canvas.width/2, canvas.height/2);
-        ctx.font = '16px Courier New';
-        ctx.fillText('Press ESC to continue', canvas.width/2, canvas.height/2 + 40);
-        ctx.textAlign = 'left';
-      }
-      
-      if (gameState === 'gameOver') {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        ctx.fillStyle = '#ff3366';
-        ctx.font = '32px Courier New';
-        ctx.textAlign = 'center';
-        ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2);
-        ctx.font = '16px Courier New';
-        ctx.fillText(`Final Score: ${score}`, canvas.width/2, canvas.height/2 + 40);
-        ctx.fillText('Refresh to restart', canvas.width/2, canvas.height/2 + 60);
-        ctx.textAlign = 'left';
-      }
-    }
+function drawOverlay(now){
+  octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
+  // At most 2 hologram ads, semi-transparent, with glow; they move with world
+  const vis=[];
+  for(const a of ads){
+    const sx=Math.round(RENDER.ox+(a.x-cameraX)*RENDER.scale);
+    const sy=Math.round(RENDER.oy+a.y*RENDER.scale);
+    if(sx>-140 && sx<overlayCanvas.width+140 && sy<overlayCanvas.height*0.78) vis.push({a,sx,sy});
+  }
+  vis.sort((p,q)=>p.sx-q.sx);
+  const two=vis.slice(0,2);
+  octx.save(); octx.textBaseline='top';
+  for(const {a,sx,sy} of two){
+    const color=/Nights|Love|Companion/i.test(a.text)?'#ffd95e':'#6fc2ff';
+    a.phase+=.03; const bob=Math.sin(a.phase)*2*RENDER.scale, flick=.6+.4*Math.sin(a.phase*3);
+    let fs=Math.max(12,Math.round(14*RENDER.scale)); octx.font=`${fs}px monospace`;
+    const maxW=Math.round(120*RENDER.scale); while(octx.measureText(a.text).width>maxW && fs>9){ fs--; octx.font=`${fs}px monospace`; }
+    octx.globalAlpha=.62; octx.save(); octx.shadowBlur=0; octx.fillStyle='rgba(0,0,0,.35)'; octx.fillText(a.text,sx+1,sy+bob+1); octx.restore();
+    octx.shadowColor=color; octx.shadowBlur=14*flick; octx.fillStyle=color; octx.fillText(a.text,sx,sy+bob);
+    octx.globalAlpha=1;
+  }
+  octx.restore();
+}
 
-    // Main Game Loop
-    function gameLoop() {
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Update game objects
-      updatePlayer();
-      updateEnemies();
-      updateDrones();
-      updateCameras();
-      updateHackItems();
-      updateParticles();
-      
-      // Draw everything
-      drawBackground();
-      drawPlatforms();
-      drawPlayer();
-      drawEnemies();
-      drawDrones();
-      drawCameras();
-      drawHackItems();
-      drawParticles();
-      drawUI();
-      
-      // Continue loop
-      requestAnimationFrame(gameLoop);
-    }
+function blit(){
+  gctx.clearRect(0,0,gameCanvas.width,gameCanvas.height);
+  const s=Math.min(gameCanvas.width/VW, gameCanvas.height/VH);
+  const sw=(VW*s)|0, sh=(VH*s)|0, ox=((gameCanvas.width-sw)/2)|0, oy=((gameCanvas.height-sh)/2)|0;
+  gctx.drawImage(nes,0,0,VW,VH,ox,oy,sw,sh); RENDER={scale:s,ox,oy};
+}
 
-    // Start the game
-    initGame();
-    gameLoop();
-  </script>
+/* =========================================================
+   RESET / BOOT / LOOP
+========================================================= */
+function reset(){
+  gameState='playing'; cameraX=0; worldMaxX=0; score=0; level=1; justLeveled=0;
+  platforms=[]; robots=[]; drones=[]; terminals=[]; ads=[]; generatedUntil=0;
+  player=makePlayer();
+  for(let x=0;x<CHUNK*4;x+=CHUNK) genChunk(x);
+  resetBtn.style.display='none';
+}
+
+async function boot(){
+  SPR = await loadSprites(SPRITE_DEF);
+  bgFar=SPR.bg.far; bgMid=SPR.bg.mid; bgNear=SPR.bg.near; fgRail=SPR.bg.rail;
+  // Initialize anim runners
+  setAnim(player=makePlayer(),'player','idle');
+  for(let x=0;x<CHUNK*4;x+=CHUNK) genChunk(x);
+  gameState='playing';
+}
+boot();
+
+function loop(now){
+  const dt=loop.t?now-loop.t:16; loop.t=now;
+  if(gameState==='playing') update(dt,now);
+
+  // DRAW
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,VW,VH);
+  if(bgFar) { drawParallax(); } else { drawSky(); } // fallback gradient if no bg
+  drawTiles(); drawTerminals(); drawEntities(now); drawUI(now);
+  blit(); drawOverlay(now);
+
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
 </body>
 </html>
