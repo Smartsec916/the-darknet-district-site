@@ -105,6 +105,30 @@ function makeAnimator(sheet, fw, fh, fps){ // 🟢 ANIMATION ENGINE: Brings stat
   };
 }
 
+function makeSeamlessTile(img, opts = {}) {
+  if (!img) return null;
+  const { cropY = 0, cropH = img.height, mode = 'mirror' } = opts;
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = img.width * 2;
+  canvas.height = cropH;
+
+  // Draw original
+  ctx.drawImage(img, 0, cropY, img.width, cropH, 0, 0, img.width, cropH);
+
+  if (mode === 'mirror') {
+    // Draw mirrored copy
+    ctx.scale(-1, 1);
+    ctx.drawImage(img, 0, cropY, img.width, cropH, -img.width * 2, 0, img.width, cropH);
+  } else {
+    // Draw regular copy
+    ctx.drawImage(img, 0, cropY, img.width, cropH, img.width, 0, img.width, cropH);
+  }
+
+  return canvas;
+}
+
 async function loadSprites(def){
   const out={};
   for(const who of ['player','robot','drone']){
@@ -370,7 +394,7 @@ function update(dt,now){ // 🟢 MAIN GAME LOOP: Processes all game logic each f
 
 /* =========================================================
    DRAW — sky/parallax/world/sprites/ads/UI
-   🟢 RENDERING PIPELINE: Creates the visual cyberpunk experience
+   🟢RENDERING PIPELINE: Creates the visual cyberpunk experience
    🟢 LAYERED GRAPHICS: Sky > background > world > entities > UI
 ========================================================= */
 function drawSky(){ // 🟢 SKY GRADIENT: Creates atmospheric cyberpunk sky
@@ -386,10 +410,10 @@ function tileLayer(img,y,speed,alpha=1){
   ctx.restore();
 }
 function drawParallax(){
-  tileLayer(bgFar||bgMid||bgNear, VH-170, 0.25, 1.0);
-  tileLayer(bgMid||bgFar,          VH-160, 0.50, 0.90);
-  tileLayer(bgNear||bgFar,         VH-150, 0.90, 0.90);
-  if(fgRail) tileLayer(fgRail,     VH-44 , 1.00, 1.0);
+  tileLayer(window.BGTiles?.far || bgFar, VH-170, 0.25, 1.0);
+  tileLayer(window.BGTiles?.mid || bgMid, VH-160, 0.50, 0.90);
+  tileLayer(window.BGTiles?.near|| bgNear,VH-150, 0.90, 0.90);
+  if(window.BGTiles?.rail || fgRail) tileLayer(window.BGTiles?.rail || fgRail, VH-44 , 1.00, 1.0);
 }
 
 function drawTiles(){
@@ -497,32 +521,9 @@ function reset(){
   gameState='playing'; cameraX=0; worldMaxX=0; score=0; level=1; justLeveled=0;
   platforms=[]; robots=[]; drones=[]; terminals=[]; ads=[]; generatedUntil=0;
   player=makePlayer();
+  setAnim(player,'player','idle');
   for(let x=0;x<CHUNK*4;x+=CHUNK) genChunk(x);
   resetBtn.style.display='none';
-}
-
-function makeSeamlessTile(img, opts = {}) {
-  if (!img) return null;
-  const { cropY = 0, cropH = img.height, mode = 'mirror' } = opts;
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  
-  canvas.width = img.width * 2;
-  canvas.height = cropH;
-  
-  // Draw original
-  ctx.drawImage(img, 0, cropY, img.width, cropH, 0, 0, img.width, cropH);
-  
-  if (mode === 'mirror') {
-    // Draw mirrored copy
-    ctx.scale(-1, 1);
-    ctx.drawImage(img, 0, cropY, img.width, cropH, -img.width * 2, 0, img.width, cropH);
-  } else {
-    // Draw regular copy
-    ctx.drawImage(img, 0, cropY, img.width, cropH, img.width, 0, img.width, cropH);
-  }
-  
-  return canvas;
 }
 
 async function boot(){
@@ -571,7 +572,7 @@ function loop(now){ // 🟢 MAIN GAME LOOP: 60fps game engine heartbeat
 
   if (gameState==='playing') update(dt, now); // 🟢 LOGIC UPDATE: Process game state if playing
 
-  // 🟢 RENDERING PIPELINE: Draw everything in proper order
+  // 🟢RENDERING PIPELINE: Draw everything in proper order
   ctx.fillStyle = '#000'; ctx.fillRect(0,0,VW,VH); // 🟢 CLEAR SCREEN: Start with black canvas
   if (window.BGTiles?.far || bgFar) { drawParallax(); } else { drawSky(); } // 🟢 BACKGROUND: Enhanced parallax or fallback
   drawTiles(); drawTerminals(); drawEntities(now); drawUI(now); // 🟢 WORLD LAYERS: Platforms, terminals, characters, UI
