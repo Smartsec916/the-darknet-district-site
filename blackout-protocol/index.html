@@ -609,11 +609,16 @@ function drawExitDoor(){
     // Scale the door image to fit the door dimensions
     ctx.drawImage(doorImg, x, y, exitDoor.w, exitDoor.h); 
   } else { 
-    // Fallback if image not loaded or failed to load
-    ctx.fillStyle='#444'; ctx.fillRect(x,y,exitDoor.w,exitDoor.h); 
+    // Enhanced fallback door with better visibility
+    ctx.fillStyle='#2a3040'; ctx.fillRect(x,y,exitDoor.w,exitDoor.h); 
     ctx.fillStyle='#6fc2ff'; ctx.fillRect(x+exitDoor.w-6,y+exitDoor.h/2-3,4,6);
-    ctx.fillStyle='#fff'; ctx.fillRect(x+2,y+4,exitDoor.w-4,2);
-    ctx.fillStyle='#ccc'; ctx.fillText('DOOR',x+2,y+exitDoor.h-4);
+    ctx.fillStyle='#8fb3ff'; ctx.fillRect(x+2,y+4,exitDoor.w-4,3);
+    ctx.fillStyle='#a0c4ff'; ctx.fillRect(x+2,y+8,exitDoor.w-4,2);
+    ctx.fillStyle='#7dff9a'; 
+    ctx.fillText('SHOP',x+3,y+exitDoor.h-8);
+    ctx.fillText('DOOR',x+3,y+exitDoor.h-2);
+    // Add border for visibility
+    ctx.strokeStyle='#6fc2ff'; ctx.lineWidth=1; ctx.strokeRect(x,y,exitDoor.w,exitDoor.h);
   }
 }
 
