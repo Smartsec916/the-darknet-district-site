@@ -2,18 +2,18 @@
 <html lang="en">
 <head>
   <base href="/blackout-protocol/">
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Blackout Protocol — Sprite PNGs</title>
-<style>
-  :root { --frame-w: 960px; }
-  html,body{margin:0;background:#000;color:#cfd6df;font-family:monospace;overflow:hidden;}
-  #gameContainer{position:relative;width:100%;max-width:var(--frame-w);margin:0 auto;aspect-ratio:4/3;background:#000;border:2px solid #5c5c5c;}
-  canvas{position:absolute;inset:0;display:block;image-rendering:pixelated;image-rendering:crisp-edges;}
-  #overlayCanvas{pointer-events:none;}
-  #resetBtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-8px);padding:10px 16px;background:#0f1016;border:2px solid #626a78;border-radius:6px;color:#cfd6df;letter-spacing:.6px;display:none;cursor:pointer;z-index:5}
-  #resetBtn:hover{filter:brightness(1.15)}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Blackout Protocol — Sprite PNGs</title>
+  <style>
+    :root { --frame-w: 960px; }
+    html,body{margin:0;background:#000;color:#cfd6df;font-family:monospace;overflow:hidden;}
+    #gameContainer{position:relative;width:100%;max-width:var(--frame-w);margin:0 auto;aspect-ratio:4/3;background:#000;border:2px solid #5c5c5c;}
+    canvas{position:absolute;inset:0;display:block;image-rendering:pixelated;image-rendering:crisp-edges;}
+    #overlayCanvas{pointer-events:none;}
+    #resetBtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-8px);padding:10px 16px;background:#0f1016;border:2px solid #626a78;border-radius:6px;color:#cfd6df;letter-spacing:.6px;display:none;cursor:pointer;z-index:5}
+    #resetBtn:hover{filter:brightness(1.15)}
+  </style>
 </head>
 <body>
 <div id="gameContainer">
@@ -23,452 +23,398 @@
 </div>
 
 <script>
-/* =========================================================
-   DISPLAY SURFACE (NES-like internal buffer -> scaled canvas)
-   🟢 RETRO RENDERING PIPELINE: Creates authentic pixel-perfect visuals
-   🟢 DUAL-LAYER SYSTEM: Main game on bottom, UI overlays on top
-========================================================= */
-let READY = false;           // 🟢 LOADING GATE: blocks game loop until assets are ready
-let LOAD_MSG = 'Loading…';   // 🟢 STATUS MESSAGE: shows on screen while loading
-window.addEventListener('error', e => console.error('Runtime error:', e.message)); // 🟢 ERROR CAPTURE: logs runtime errors for debugging
+/* ================= CORE / DISPLAY ================= */
+let READY=false, LOAD_MSG='Loading…';
+window.addEventListener('error', e => console.error('Runtime error:', e.message));
 
-const VW=256, VH=240, TILE=16; // 🟢 VIRTUAL SCREEN: NES-style 256x240 resolution for retro feel
-const gameCanvas=document.getElementById('gameCanvas'); // 🟢 MAIN DISPLAY: Where the cyberpunk action happens
-const overlayCanvas=document.getElementById('overlayCanvas'); // 🟢 UI LAYER: Holographic ads and interface elements
-const gctx=gameCanvas.getContext('2d'); gctx.imageSmoothingEnabled=false; // 🟢 CRISP PIXELS: No blur for authentic retro look
-const octx=overlayCanvas.getContext('2d'); // 🟢 OVERLAY RENDERER: For semi-transparent UI effects
-const nes=document.createElement('canvas'); nes.width=VW; nes.height=VH; // 🟢 VIRTUAL BUFFER: Internal rendering surface
-const ctx=nes.getContext('2d',{alpha:false}); ctx.imageSmoothingEnabled=false; ctx.font='8px monospace'; // 🟢 PIXEL CANVAS: Main drawing surface
-let RENDER={scale:1,ox:0,oy:0}; // 🟢 SCALING DATA: For responsive display scaling
-function fit(){ const r=document.getElementById('gameContainer').getBoundingClientRect(); // 🟢 AUTO-FIT: Maintains aspect ratio on any screen
+const VW=256, VH=240, TILE=16;
+const gameCanvas=document.getElementById('gameCanvas');
+const overlayCanvas=document.getElementById('overlayCanvas');
+const gctx=gameCanvas.getContext('2d'); gctx.imageSmoothingEnabled=false;
+const octx=overlayCanvas.getContext('2d');
+const nes=document.createElement('canvas'); nes.width=VW; nes.height=VH;
+const ctx=nes.getContext('2d',{alpha:false}); ctx.imageSmoothingEnabled=false; ctx.font='8px monospace';
+let RENDER={scale:1,ox:0,oy:0};
+function fit(){ const r=document.getElementById('gameContainer').getBoundingClientRect();
   gameCanvas.width=r.width; gameCanvas.height=r.height; overlayCanvas.width=r.width; overlayCanvas.height=r.height; }
 addEventListener('resize',fit); fit();
 
-/* 🟢 INPUT CAPTURE: Prevents browser from stealing our game controls */
 addEventListener('keydown',e=>{
-  if(['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.code)) e.preventDefault(); // 🟢 CONTROL LOCK: Game owns these keys
+  if(['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.code)) e.preventDefault();
 },{passive:false});
 
-/* =========================================================
-   ASSETS — per-state PNGs
-   🟢 SPRITE SYSTEM: Brings cyberpunk characters to life with animations
-   🟢 AUTO-DETECTION: Counts frames automatically from sprite sheet width
-========================================================= */
-const IMG=path=>new Promise(res=>{const i=new Image(); i.onload=()=>res(i); i.onerror=()=>res(null); i.src=path;}); // 🟢 ASSET LOADER: Safely loads sprite images
-const SPRITE_DEF={ // 🟢 CHARACTER DEFINITIONS: All sprite data for the cyberpunk cast
-  player:{fw:48,fh:48, states:{ // 🟢 PROTAGONIST: The hacker fighting the system
-    idle:'assets/player_idle_48.png',     // 🟢 READY STATE: Standing alert for action
-    walk:'assets/player_walk_48.png',     // 🟢 CASUAL MOVE: Normal exploration pace
-    run:'assets/player_run_48.png',       // 🟢 SPRINT MODE: Fast escape from danger
-    jump:'assets/player_jump_48.png',     // 🟢 AERIAL GRACE: Parkour through the cityscape
-    fall:'assets/player_fall_48.png',     // 🟢 GRAVITY PULL: Descending motion
-    hurt:'assets/player_hurt_48.png',     // 🟢 DAMAGE TAKEN: Visual feedback for pain
-    dead:'assets/player_dead_48.png'      // 🟢 GAME OVER: The ultimate failure state
-  }, fps:{idle:6, walk:10, run:12, jump:10, fall:10, hurt:6, dead:8}}, // 🟢 ANIMATION SPEEDS: Frames per second for each state
-  robot:{fw:48,fh:48, states:{ // 🟢 CORPORATE ENFORCERS: Hostile humanoid machines
-    idle:'assets/robot_idle_48.png',      // 🟢 PATROL MODE: Scanning for intruders
-    walk:'assets/robot_walk_48.png',      // 🟢 MARCH TEMPO: Methodical movement
-    run:'assets/robot_run_48.png',        // 🟢 PURSUIT MODE: Chasing detected targets
-    attack:'assets/robot_attack_48.png',  // 🟢 COMBAT STANCE: Engaging the enemy
-    hurt:'assets/robot_hurt_48.png',      // 🟢 SYSTEM DAMAGE: Taking hits from above
-    dead:'assets/robot_dead_48.png'       // 🟢 SHUTDOWN: Defeated by player stomps
-  }, fps:{idle:6, walk:9, run:10, attack:12, hurt:6, dead:8}}, // 🟢 MACHINE TIMING: Robot animation frequencies
-  drone:{fw:32,fh:32, states:{ // 🟢 SURVEILLANCE UNITS: Flying corporate eyes
-    idle:'assets/drone_idle_32.png',      // 🟢 STATIONARY WATCH: Monitoring area
-    hover:'assets/drone_hover_32.png',    // 🟢 FLOATING PATROL: Aerial surveillance
-    move:'assets/drone_move_32.png',      // 🟢 FLIGHT PATTERN: Moving through airspace
-    attack:'assets/drone_attack_32.png',  // 🟢 ALERT MODE: Calling for backup
-    hurt:'assets/drone_hurt_32.png',      // 🟢 SYSTEM ERROR: Taking damage
-    dead:'assets/drone_dead_32.png'       // 🟢 CRASHED: Brought down by EMP
-  }, fps:{idle:3, hover:10, move:10, attack:12, hurt:6, dead:8}}, // 🟢 AERIAL TIMING: Drone animation speeds
-  bg_far:'assets/01_bg_far.png',    // 🟢 DISTANT SKYLINE: Far background cityscape
-  bg_mid:'assets/01_bg_mid_transparent_1024w.png',    // 🟢 MID-TIER TOWERS: Middle layer buildings
-  bg_near:null,  // 🟢 CLOSE STRUCTURES: Not used yet
-  fg_rail:null   // 🟢 TRANSIT SYSTEM: Not used yet
+/* ================= ASSETS ================= */
+const IMG=path=>new Promise(res=>{const i=new Image(); i.onload=()=>res(i); i.onerror=()=>res(null); i.src=path;});
+
+const SPRITE_DEF={
+  player:{fw:48,fh:48, states:{
+    idle:'assets/player_idle_48.png', walk:'assets/player_walk_48.png', run:'assets/player_run_48.png',
+    jump:'assets/player_jump_48.png', fall:'assets/player_fall_48.png', hurt:'assets/player_hurt_48.png', dead:'assets/player_dead_48.png'
+  }, fps:{idle:6, walk:10, run:12, jump:10, fall:10, hurt:6, dead:8}},
+  robot:{fw:48,fh:48, states:{
+    idle:'assets/robot_idle_48.png', walk:'assets/robot_walk_48.png', run:'assets/robot_run_48.png',
+    attack:'assets/robot_attack_48.png', hurt:'assets/robot_hurt_48.png', dead:'assets/robot_dead_48.png'
+  }, fps:{idle:6, walk:9, run:10, attack:12, hurt:6, dead:8}},
+  drone:{fw:32,fh:32, states:{
+    idle:'assets/drone_idle_32.png', hover:'assets/drone_hover_32.png', move:'assets/drone_move_32.png',
+    attack:'assets/drone_attack_32.png', hurt:'assets/drone_hurt_32.png', dead:'assets/drone_dead_32.png'
+  }, fps:{idle:3, hover:10, move:10, attack:12, hurt:6, dead:8}},
+  // background/tiles/hooks (images are loaded below via loadBackgrounds / loadTiles)
+  bg_far:'assets/01_bg_far.png',
+  bg_near:'assets/01_bg_near.png',
+  coin:'assets/coin.png',
+  door:'assets/door.png',
+  ledge:'assets/ledge_tile.png'
 };
 
-function makeAnimator(sheet, fw, fh, fps){ // 🟢 ANIMATION ENGINE: Brings static sprites to life
-  // 🟢 SPRITE SHEET PARSER: Extracts frames from horizontal strip
-  const frames = sheet ? Math.max(1, Math.floor(sheet.width / fw)) : 1; // 🟢 AUTO-COUNT: Detects frame count from width
-  let frame=0, time=0, spf=1000/(fps||8); // 🟢 TIMING VARS: Current frame, elapsed time, speed per frame
+function makeAnimator(sheet, fw, fh, fps){
+  const frames = sheet ? Math.max(1, Math.floor(sheet.width / fw)) : 1;
+  let frame=0, time=0, spf=1000/(fps||8);
   return {
-    reset(){ frame=0; time=0; }, // 🟢 RESTART: Begins animation from first frame
-    step(dt, clamp=false){ time+=dt; while(time>spf){ time-=spf; frame = clamp ? Math.min(frame+1, frames-1) : (frame+1)%frames; } }, // 🟢 TIME ADVANCE: Updates frame based on elapsed time
-    draw(x,y,flip=false,alpha=1){ // 🟢 RENDER FRAME: Draws current animation frame
-      if(!sheet) return; // 🟢 SAFETY CHECK: No drawing without sprite sheet
-      const sx=frame*fw, sy=0; // 🟢 SOURCE COORDS: Calculate frame position in sheet
-      ctx.save(); ctx.globalAlpha=alpha; // 🟢 CONTEXT STATE: Save for transparency effects
-      if(flip){ ctx.translate(x+fw,y); ctx.scale(-1,1); ctx.drawImage(sheet,sx,sy,fw,fh,0,0,fw,fh); } // 🟢 MIRROR FLIP: For facing left/right
-      else    { ctx.drawImage(sheet,sx,sy,fw,fh,x,y,fw,fh); } // 🟢 NORMAL DRAW: Standard sprite rendering
-      ctx.restore(); // 🟢 RESTORE STATE: Clean up context changes
+    reset(){ frame=0; time=0; },
+    step(dt, clamp=false){ time+=dt; while(time>spf){ time-=spf; frame = clamp ? Math.min(frame+1, frames-1) : (frame+1)%frames; } },
+    draw(x,y,flip=false,alpha=1){
+      if(!sheet) return;
+      const sx=frame*fw, sy=0;
+      ctx.save(); ctx.globalAlpha=alpha;
+      if(flip){ ctx.translate(x+fw,y); ctx.scale(-1,1); ctx.drawImage(sheet,sx,sy,fw,fh,0,0,fw,fh); }
+      else    { ctx.drawImage(sheet,sx,sy,fw,fh,x,y,fw,fh); }
+      ctx.restore();
     },
-    frames // 🟢 FRAME COUNT: Total frames available
+    frames
   };
 }
 
-/* === TWO-LAYER PARALLAX (far + near) =============================== */
+/* ================= PARALLAX ================= */
+const BG={far:null, near:null, farW:0, nearW:0};
+const PARALLAX={far:0.25, near:0.9};
+const NEAR_FADE_PX=120;
 
-const BG = {
-  far: null, near: null,
-  farW: 0,   nearW: 0
-};
+async function loadBackgrounds(){
+  BG.far  = await IMG(SPRITE_DEF.bg_far);
+  BG.near = await IMG(SPRITE_DEF.bg_near);
+  if(BG.far)  BG.farW  = BG.far.width;
+  if(BG.near) BG.nearW = BG.near.width;
+  console.log('BG loaded:', {far:BG.farW, near:BG.nearW});
+}
 
-// Parallax multipliers (smaller = slower)
-const PARALLAX = { far: 0.25, near: 0.90 };
-
-// Optional: fade the top of the near layer into transparency
-// so far skyline shows through. Increase px for a taller fade.
-const NEAR_FADE_PX = 160;
-
-// Call once at boot
-async function loadBackgrounds() {
-  try {
-    BG.far  = await IMG('assets/01_bg_far.png');
-    BG.near = await IMG('assets/01_bg_near.png');
-    if(BG.far) BG.farW  = BG.far.width;
-    if(BG.near) BG.nearW = BG.near.width;
-    console.log('BG loaded:', { far: BG.farW, near: BG.nearW });
-  } catch (e) {
-    console.warn('BG load error', e);
+function tileParallax(img, imgW, speed, dstH){
+  if(!img) return;
+  const cam = cameraX||0;
+  let x = -((cam*speed) % imgW);
+  if (x>0) x -= imgW;
+  for(let i=0;i<3;i++){
+    ctx.drawImage(img, Math.floor(x+i*imgW), 0, imgW, img.height, Math.floor(x+i*imgW), 0, imgW, dstH);
   }
 }
 
+function drawBackgrounds(){
+  if(!BG.far && !BG.near){ drawSky(); return; }
+  if(BG.far) tileParallax(BG.far, BG.farW, PARALLAX.far, VH);
+  if(BG.near){
+    ctx.save();
+    tileParallax(BG.near, BG.nearW, PARALLAX.near, VH);
+    const fadeH=Math.min(NEAR_FADE_PX,VH);
+    const g=ctx.createLinearGradient(0,0,0,fadeH);
+    g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,1)');
+    ctx.globalCompositeOperation='destination-in';
+    ctx.fillStyle=g; ctx.fillRect(0,0,VW,VH);
+    ctx.restore();
+  }
+}
+
+function drawSky(){
+  for(let y=0;y<VH;y++){ const t=y/VH; ctx.fillStyle=`rgb(${12+18*t|0},${16+30*t|0},${30+58*t|0})`; ctx.fillRect(0,y,VW,1); }
+}
+
+/* ================= SPRITES ================= */
 async function loadSprites(def){
   const out={};
   for(const who of ['player','robot','drone']){
     const fw=def[who].fw, fh=def[who].fh;
-    const pack={fw,fh, anim:{}};
+    const pack={fw,fh,anim:{}};
     for(const [state,src] of Object.entries(def[who].states)){
       const img=await IMG(src);
-      pack.anim[state]={
-        img,
-        make:()=>makeAnimator(img,fw,fh, def[who].fps[state]||8)
-      };
+      pack.anim[state]={img, make:()=>makeAnimator(img,fw,fh, def[who].fps[state]||8)};
     }
     out[who]=pack;
   }
   return out;
 }
 
-/* =========================================================
-   GAMESTATE, INPUT, CAMERA
-   🟢 GAME BRAIN: Manages overall game state and progression
-   🟢 CAMERA SYSTEM: Smooth following for cinematic feel
-========================================================= */
-let gameState='loading', score=0, level=1, justLeveled=0; // 🟢 CORE STATE: Current game status and player progress
-let cameraX=0, worldMaxX=0; // 🟢 CAMERA POSITION: Tracks player movement smoothly
-const CHUNK=320, LEVEL_LEN=1600; // 🟢 WORLD GENERATION: Size of procedural chunks and level length
+/* ================= STATE / INPUT / CAMERA ================= */
+let gameState='loading', score=0, btc=0, level=1, justLeveled=0;
+let cameraX=0, worldMaxX=0;
+const CHUNK=320, LEVEL_LEN=1600;
 
-const DEAD_ZONE=2; // 🟢 CAMERA DEADZONE: Small center area where camera doesn't move
-function updateCamera(){ // 🟢 SMOOTH TRACKING: Professional camera follow system
-  const center=VW*.5, L=center-DEAD_ZONE, R=center+DEAD_ZONE; // 🟢 SCREEN ZONES: Left and right trigger boundaries
-  let target=cameraX; // 🟢 TARGET POSITION: Where camera wants to move
-  if(player.x-cameraX<L) target=player.x-L; // 🟢 FOLLOW LEFT: Player moving left edge
-  else if(player.x-cameraX>R) target=player.x-R; // 🟢 FOLLOW RIGHT: Player moving right edge  
-  cameraX += (target-cameraX)*.25; // 🟢 SMOOTH INTERPOLATION: Gradual camera movement
-  cameraX=Math.max(0,Math.min(cameraX, worldMaxX-VW)); // 🟢 WORLD BOUNDS: Keep camera within generated world
+const DEAD_ZONE=2;
+function updateCamera(){
+  const center=VW*.5, L=center-DEAD_ZONE, R=center+DEAD_ZONE;
+  let target=cameraX;
+  if(player.x-cameraX<L) target=player.x-L;
+  else if(player.x-cameraX>R) target=player.x-R;
+  cameraX += (target-cameraX)*.25;
+  cameraX=Math.max(0,Math.min(cameraX, worldMaxX-VW));
 }
 
-const keys={}, JUMP_BUFFER=120, COYOTE=120; // 🟢 INPUT STATE: Tracks pressed keys and jump timing
-let jumpBufferUntil=0, coyoteUntil=0, jumpHeld=false; // 🟢 JUMP MECHANICS: Professional platformer feel
-addEventListener('keydown',e=>{ // 🟢 KEY PRESS HANDLER: Responds to player input
-  keys[e.code]=true; // 🟢 TRACK STATE: Remember this key is pressed
-  if(e.code==='Escape') gameState=(gameState==='playing')?'paused':'playing'; // 🟢 PAUSE TOGGLE: ESC pauses/unpauses game
-  if(e.code==='Space'){ jumpBufferUntil=performance.now()+JUMP_BUFFER; jumpHeld=true; } // 🟢 JUMP BUFFER: Forgiving jump timing
-  if(e.code==='KeyR' && gameState==='gameOver') reset(); // 🟢 QUICK RESTART: R key restarts after death
-  if(e.code==='Enter' && gameState==='playing') tryHack(); // 🟢 HACK COMMAND: Enter activates EMP ability
+const keys={}, JUMP_BUFFER=140, COYOTE=140;
+let jumpBufferUntil=0, coyoteUntil=0, jumpHeld=false;
+addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if(e.code==='Escape') gameState=(gameState==='playing')?'paused':(gameState==='paused'?'playing':gameState);
+  if(e.code==='Space'){ jumpBufferUntil=performance.now()+JUMP_BUFFER; jumpHeld=true; }
+  if(e.code==='KeyR' && (gameState==='gameOver'||gameState==='levelComplete')) reset();
+  if(e.code==='Enter' && gameState==='playing') tryHack();
 });
-addEventListener('keyup',e=>{ keys[e.code]=false; if(e.code==='Space') jumpHeld=false; }); // 🟢 KEY RELEASE: Stop tracking released keys
+addEventListener('keyup',e=>{ keys[e.code]=false; if(e.code==='Space') jumpHeld=false; });
 
-/* =========================================================
-   ENTITIES
-   🟢 GAME WORLD: All the actors in our cyberpunk stage
-   🟢 ENTITY ARRAYS: Organized collections of game objects
-========================================================= */
-let SPR=null; // 🟢 SPRITE LIBRARY: Loaded animation data
-let bgFar=null,bgMid=null,bgNear=null,fgRail=null; // 🟢 BACKGROUND LAYERS: Parallax cityscape elements
+/* ================= ENTITIES ================= */
+let SPR=null;
+let player, robots=[], drones=[], platforms=[], terminals=[], ads=[], coins=[];
+let exitDoor=null;
 
-let player, robots=[], drones=[], platforms=[], terminals=[], ads=[]; // 🟢 GAME ENTITIES: All interactive objects
-const resetBtn=document.getElementById('resetBtn'); resetBtn.onclick=()=>reset(); // 🟢 UI CONTROL: Reset button functionality
+const resetBtn=document.getElementById('resetBtn'); resetBtn.onclick=()=>reset();
 
-function makePlayer(){ // 🟢 PROTAGONIST FACTORY: Creates the main character
-  // 🟢 HITBOX DESIGN: Smaller collision box than sprite for better feel
-  return { x:32, y:VH-80, w:18, h:28, vx:0, vy:0, onGround:false, facing:1, // 🟢 POSITION & PHYSICS: Location and movement state
-           speed:1.48, aGround:.18, aAir:.11, dragG:.82, dragA:.985, jump:3.65, // 🟢 MOVEMENT TUNING: Carefully balanced physics constants
-           hp:100, dist:0, hitUntil:0, anim: { state:'idle', runner:null } }; // 🟢 GAME STATE: Health, distance traveled, animation
+function makePlayer(){
+  return { x:32, y:VH-80, w:18, h:28, vx:0, vy:0, onGround:false, facing:1,
+           speed:1.52, aGround:.19, aAir:.12, dragG:.82, dragA:.986, jump:4.15,
+           hp:100, dist:0, hitUntil:0, anim:{state:'idle',runner:null} };
 }
 
-function setAnim(actor, who, state, clamp=false){ // 🟢 ANIMATION SWITCHER: Changes character animation state
-  if(actor.anim.state===state) return; // 🟢 OPTIMIZATION: Don't restart same animation
-  actor.anim.state=state; // 🟢 STATE UPDATE: Record new animation state
-  const spec=SPR[who].anim[state]; // 🟢 SPRITE LOOKUP: Get animation definition
-  actor.anim.runner = spec ? spec.make() : null; // 🟢 ANIMATOR CREATE: Make new animation controller
-  if(actor.anim.runner) actor.anim.runner.reset(); // 🟢 FRESH START: Begin from first frame
-  actor.anim.clamp = clamp; // 🟢 CLAMP MODE: For one-shot animations like death
+function setAnim(actor, who, state, clamp=false){
+  if(actor.anim.state===state) return;
+  actor.anim.state=state;
+  const spec=SPR[who]?.anim?.[state];
+  actor.anim.runner = spec ? spec.make() : null;
+  if(actor.anim.runner) actor.anim.runner.reset();
+  actor.anim.clamp=clamp;
 }
+function stepAnim(a,dt){ if(a.anim.runner) a.anim.runner.step(dt, a.anim.clamp); }
+function drawAnim(a,who,x,y,flip=false,alpha=1){ const run=a.anim.runner; if(run) run.draw(x,y,flip,alpha); }
 
-function stepAnim(actor, dt){ if(actor.anim.runner) actor.anim.runner.step(dt, actor.anim.clamp); } // 🟢 ANIMATION UPDATE: Advance frame timing
-function drawAnim(actor, who, x, y, flip=false, alpha=1){ // 🟢 ANIMATION RENDER: Draw current frame
-  const run=actor.anim.runner; // 🟢 GET ANIMATOR: Current animation controller
-  if(run) run.draw(x,y,flip,alpha); // 🟢 DRAW FRAME: Render current animation frame
-}
-
-/* =========================================================
-   WORLD GEN
-   🟢 PROCEDURAL CITY: Infinite cyberpunk cityscape generator
-   🟢 RANDOM PLACEMENT: Creates varied gameplay experiences
-========================================================= */
-const ADS_TXT=[ // 🟢 CORPORATE PROPAGANDA: Dystopian advertising messages
+/* ================= WORLD GEN ================= */
+const ADS_TXT=[
   "Neon Nights — Discretion Included","HoloCompanion™ — Terms Apply",
   "Love.exe — Try a Free Emote","Rent-A-Hacker — We Never Met You",
   "Sleep Faster™ — Productivity Pills","Oxygen+ — Premium Breaths"
 ];
-const choice = a => a[(Math.random()*a.length)|0]; // 🟢 RANDOM PICKER: Selects random array element
-let generatedUntil=0, worldMax=0; // 🟢 GENERATION TRACKING: How much world we've built
+const choice = a => a[(Math.random()*a.length)|0];
+let generatedUntil=0;
 
-function genChunk(startX){ // 🟢 CHUNK GENERATOR: Creates 320px sections of city
-  const endX=startX+CHUNK; // 🟢 CHUNK BOUNDARY: End of this generation segment
+function groundY(){ return VH-TILE; }
 
-  // 🟢 FOUNDATION LAYER: Solid ground for the city
-  for(let x=startX;x<endX;x+=TILE) platforms.push({x,y:VH-TILE,w:TILE,h:TILE});
+function genChunk(startX){
+  const endX=startX+CHUNK;
 
-  // 🟢 PARKOUR PLATFORMS: Floating surfaces for vertical gameplay
-  const pc=2+((Math.random()*3)|0); // 🟢 PLATFORM COUNT: 2-4 floating platforms
+  // ground
+  for(let x=startX;x<endX;x+=TILE) platforms.push({x,y:groundY(),w:TILE,h:TILE});
+
+  // floating ledges (snap to grid)
+  const pc=2+((Math.random()*3)|0);
   for(let i=0;i<pc;i++){
-    const px=startX+40+Math.random()*(CHUNK-80); // 🟢 HORIZONTAL POSITION: Random X within chunk
-    const py=VH-(64+((Math.random()*96)|0)); // 🟢 VERTICAL POSITION: Random height
-    const pw=TILE*(2+((Math.random()*3)|0)); // 🟢 PLATFORM WIDTH: 2-4 tiles wide
-    platforms.push({x:(px/TILE|0)*TILE,y:(py/TILE|0)*TILE,w:pw,h:TILE}); // 🟢 SNAP TO GRID: Aligned platform placement
+    const px=startX+40+Math.random()*(CHUNK-80);
+    const py=VH-(64+((Math.random()*96)|0));
+    const pw=TILE*(2+((Math.random()*3)|0));
+    platforms.push({x:(px/TILE|0)*TILE, y:(py/TILE|0)*TILE, w:pw, h:TILE});
   }
 
-  // 🟢 CORPORATE ENFORCERS: Ground-based robot enemies
-  const rc=1+((Math.random()*2)|0); // 🟢 ROBOT COUNT: 1-2 robots per chunk
-  for(let i=0;i<rc;i++){
-    const rx=startX+64+Math.random()*(CHUNK-128); // 🟢 ROBOT POSITION: Random X within safe zone
-    robots.push({x:rx|0,y:VH-TILE*2,w:18,h:24,dir:Math.random()<.5?-1:1,speed:.66,hp:3,alert:false,hitUntil:0,anim:{state:'idle',runner:null}}); // 🟢 ROBOT STATS: Health, direction, speed
+  // coins (2-4 per chunk)
+  const cc=2+((Math.random()*3)|0);
+  for(let i=0;i<cc;i++){
+    const cx=startX+30+Math.random()*(CHUNK-60);
+    let cy=VH-64-((Math.random()*96)|0);
+    for(const p of platforms){ if(cx>=p.x-6 && cx<=p.x+p.w+6) cy=Math.min(cy, p.y-14); }
+    coins.push({x:cx|0, y:cy|0, r:6, taken:false});
   }
 
-  // 🟢 SURVEILLANCE DRONES: Flying watchers with 60% spawn chance
-  if(Math.random()<.6){
-    const dx=startX+80+Math.random()*(CHUNK-160), dy=60+Math.random()*80; // 🟢 DRONE POSITION: Random air space
-    drones.push({x:dx|0,y:dy|0,w:18,h:14,dir:Math.random()<.5?-1:1,speed:.8,phase:Math.random()*6,anim:{state:'move',runner:null}}); // 🟢 DRONE STATS: Flight pattern and movement
-  }
-
-  // 🟢 HACK TERMINALS: EMP power sources (50% spawn chance)
+  // terminals
   if(Math.random()<.5){
-    const tx=startX+40+Math.random()*(CHUNK-80); let ty=VH-TILE*2; // 🟢 TERMINAL POSITION: Start at ground level
-    for(const p of platforms){ if(tx>=p.x-4 && tx<=p.x+p.w+4) ty=Math.min(ty,p.y-TILE); } // 🟢 PLATFORM SNAP: Place on highest nearby platform
-    terminals.push({x:tx|0,y:ty|0,w:12,h:16,cooldown:0}); // 🟢 TERMINAL DATA: Size and usage state
+    const tx=startX+40+Math.random()*(CHUNK-80); let ty=VH-TILE*2;
+    for(const p of platforms){ if(tx>=p.x-4 && tx<=p.x+p.w+4) ty=Math.min(ty,p.y-TILE); }
+    terminals.push({x:tx|0,y:ty|0,w:12,h:16,cooldown:0});
   }
 
-  // 🟢 HOLOGRAPHIC ADS: Corporate propaganda displays (1-2 per chunk)
-  const ac=1+((Math.random()*2)|0); // 🟢 AD COUNT: Variable advertising density
+  // ads (spawn later visually)
+  const ac=1+((Math.random()*2)|0);
   for(let i=0;i<ac;i++){
-    const ax=startX+40+Math.random()*(CHUNK-80), ay=VH-(120+((Math.random()*60)|0)); // 🟢 AD POSITION: Mid-air hologram placement
-    ads.push({x:ax|0,y:ay|0,text:choice(ADS_TXT),phase:Math.random()*6}); // 🟢 AD DATA: Message and animation phase
+    const ax=startX+40+Math.random()*(CHUNK-80), ay=VH-(120+((Math.random()*60)|0));
+    ads.push({x:ax|0,y:ay|0,text:choice(ADS_TXT),phase:Math.random()*6});
   }
 
-  generatedUntil=endX; worldMaxX=Math.max(worldMaxX,endX); // 🟢 PROGRESS TRACKING: Update generation boundaries
-}
-
-/* =========================================================
-   PHYSICS / COLLISIONS
-   🟢 PHYSICS ENGINE: Realistic movement and collision system
-   🟢 RECTANGLE COLLISION: Precise platform interaction
-========================================================= */
-function rects(a,b){ return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y; } // 🟢 COLLISION TEST: AABB rectangle intersection
-function collide(body){ // 🟢 PHYSICS SOLVER: Handles movement and platform collision
-  body.onGround=false; // 🟢 ASSUME AIRBORNE: Reset ground state each frame
-  body.y+=body.vy; // 🟢 VERTICAL MOVEMENT: Apply Y velocity first
-  for(const p of platforms){ // 🟢 PLATFORM CHECK: Test against all solid surfaces
-    if(rects(body,p)){ // 🟢 COLLISION DETECTED: Body overlaps with platform
-      if(body.vy>0){ body.y=p.y-body.h; body.vy=0; body.onGround=true; coyoteUntil=0; } // 🟢 LANDING: Player hits platform from above
-      else if(body.vy<0){ body.y=p.y+p.h; body.vy=0; } // 🟢 HEAD BONK: Player hits platform from below
+  // enemies — do NOT spawn in the initial screen (startX < 256)
+  if(startX>=256){
+    const rc=1+((Math.random()*2)|0);
+    for(let i=0;i<rc;i++){
+      const rx=startX+64+Math.random()*(CHUNK-128);
+      robots.push({x:rx|0,y:VH-TILE*2,w:18,h:24,dir:Math.random()<.5?-1:1,speed:.66,hp:3,alert:false,hitUntil:0,active:false,anim:{state:'idle',runner:null}});
+    }
+    if(Math.random()<.6){
+      const dx=startX+80+Math.random()*(CHUNK-160), dy=60+Math.random()*80;
+      drones.push({x:dx|0,y:dy|0,w:18,h:14,dir:Math.random()<.5?-1:1,speed:.8,phase:Math.random()*6,active:false,anim:{state:'move',runner:null}});
     }
   }
-  body.x+=body.vx; // 🟢 HORIZONTAL MOVEMENT: Apply X velocity after Y resolution
-  for(const p of platforms){ // 🟢 WALL CHECK: Test horizontal collisions
-    if(rects(body,p)){ // 🟢 WALL COLLISION: Body hits platform sides
-      if(body.vx>0) body.x=p.x-body.w; else if(body.vx<0) body.x=p.x+p.w; // 🟢 WALL PUSH: Move body out of platform
-      body.vx=0; // 🟢 STOP MOVEMENT: Zero horizontal velocity
+
+  generatedUntil=endX; worldMaxX=Math.max(worldMaxX,endX);
+}
+
+/* ================= PHYSICS ================= */
+function rects(a,b){ return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y; }
+function collide(body){
+  body.onGround=false;
+
+  // vertical
+  body.y+=body.vy;
+  for(const p of platforms){
+    if(rects(body,p)){
+      if(body.vy>0){ body.y=p.y-body.h; body.vy=0; body.onGround=true; coyoteUntil=0; }
+      else if(body.vy<0){ body.y=p.y+p.h; body.vy=0; }
+    }
+  }
+
+  // horizontal + tiny step-up (helps catch ledge edges)
+  body.x+=body.vx;
+  for(const p of platforms){
+    if(rects(body,p)){
+      if(body.vx>0){
+        body.y-=2;
+        if(!rects(body,p)){ body.onGround=false; break; }
+        body.y+=2;
+      }else if(body.vx<0){
+        body.y-=2;
+        if(!rects(body,p)){ body.onGround=false; break; }
+        body.y+=2;
+      }
+      if(body.vx>0) body.x=p.x-body.w; else if(body.vx<0) body.x=p.x+p.w;
+      body.vx=0;
     }
   }
 }
 
-/* =========================================================
-   HACK / EMP
-   🟢 EMP SYSTEM: The player's ultimate weapon against the machines
-   🟢 TERMINAL HACKING: Activates citywide electromagnetic pulse
-========================================================= */
-let hackUntil=0, hackCDUntil=0; const HACK_MS=3000, CD_MS=5000; // 🟢 HACK TIMING: 3s active EMP, 5s cooldown
-function tryHack(){ // 🟢 HACK ATTEMPT: Player tries to activate EMP
-  const now=performance.now(); if(now<hackCDUntil) return; // 🟢 COOLDOWN CHECK: Prevent spam hacking
-  const near=terminals.find(t=>Math.hypot((t.x+6)-(player.x+player.w/2),(t.y+8)-(player.y+player.h/2))<18 && t.cooldown<=0); // 🟢 PROXIMITY TEST: Find nearby usable terminal
-  if(near){ hackUntil=now+HACK_MS; hackCDUntil=now+CD_MS; near.cooldown=CD_MS; score+=20; } // 🟢 HACK SUCCESS: Activate EMP and disable terminal
+/* ================= HACK / EMP ================= */
+let hackUntil=0, hackCDUntil=0; const HACK_MS=3000, CD_MS=5000;
+function tryHack(){
+  const now=performance.now(); if(now<hackCDUntil) return;
+  const near=terminals.find(t=>Math.hypot((t.x+6)-(player.x+player.w/2),(t.y+8)-(player.y+player.h/2))<18 && t.cooldown<=0);
+  if(near){ hackUntil=now+HACK_MS; hackCDUntil=now+CD_MS; near.cooldown=CD_MS; score+=20; }
 }
 
-/* =========================================================
-   UPDATE LOOP
-========================================================= */
+/* ================= UPDATE ================= */
+let coinImg=null, doorImg=null, ledgeImg=null;
+async function loadTiles(){
+  coinImg = await IMG(SPRITE_DEF.coin);
+  doorImg = await IMG(SPRITE_DEF.door);
+  ledgeImg= await IMG(SPRITE_DEF.ledge);
+}
+
 function cull(){ const cutoff=cameraX-300;
   for(let i=ads.length-1;i>=0;i--) if(ads[i].x+120<cutoff) ads.splice(i,1);
   for(let i=robots.length-1;i>=0;i--) if(robots[i].x+120<cutoff) robots.splice(i,1);
   for(let i=drones.length-1;i>=0;i--) if(drones[i].x+120<cutoff) drones.splice(i,1);
+  for(let i=coins.length-1;i>=0;i--) if(coins[i].x+40<cutoff) coins.splice(i,1);
 }
 
-function update(dt,now){ // 🟢 MAIN GAME LOOP: Processes all game logic each frame
-  if(gameState!=='playing') return; // 🟢 PAUSE GUARD: Only update during active gameplay
+function activateEnemies(){
+  const visRight = cameraX + VW + 64;
+  for(const r of robots){ if(!r.active && r.x<visRight) r.active=true; }
+  for(const d of drones){ if(!d.active && d.x<visRight) d.active=true; }
+}
 
-  // 🟢 PLAYER MOVEMENT SYSTEM: Responsive character control
-  const L=!!keys['ArrowLeft'], R=!!keys['ArrowRight']; // 🟢 INPUT READ: Check arrow key states
-  const accel=player.onGround?player.aGround:player.aAir; // 🟢 ACCELERATION: Different speeds on ground vs air
-  const drag=player.onGround?player.dragG:player.dragA; // 🟢 FRICTION: Realistic deceleration
-  if(L){ player.vx=Math.max(player.vx-accel,-player.speed); player.facing=-1; } // 🟢 MOVE LEFT: Accelerate left, face left
-  if(R){ player.vx=Math.min(player.vx+accel, player.speed);  player.facing= 1; } // 🟢 MOVE RIGHT: Accelerate right, face right
-  if(!L && !R) player.vx*=drag; // 🟢 DECELERATION: Apply friction when not moving
+function update(dt,now){
+  if(gameState!=='playing') return;
 
-  // 🟢 JUMP MECHANICS: Professional platformer feel
-  if(player.onGround) coyoteUntil=now+COYOTE; // 🟢 COYOTE TIME: Brief window to jump after leaving platform
-  const wantsJump = now<=jumpBufferUntil; // 🟢 JUMP BUFFER: Remember jump input briefly
-  if(wantsJump && (player.onGround || now<=coyoteUntil)){ player.vy=-player.jump; player.onGround=false; jumpBufferUntil=0; coyoteUntil=0; } // 🟢 EXECUTE JUMP: Launch player upward
-  if(!jumpHeld && player.vy<-1.2) player.vy=-1.2; // 🟢 VARIABLE JUMP: Release space for shorter jump
+  // controls
+  const L=!!keys['ArrowLeft'], R=!!keys['ArrowRight'];
+  const accel=player.onGround?player.aGround:player.aAir;
+  const drag=player.onGround?player.dragG:player.dragA;
+  if(L){ player.vx=Math.max(player.vx-accel,-player.speed); player.facing=-1; }
+  if(R){ player.vx=Math.min(player.vx+accel, player.speed);  player.facing= 1; }
+  if(!L && !R) player.vx*=drag;
 
-  // 🟢 GRAVITY APPLICATION: Realistic falling physics
-  player.vy+=.18; if(player.vy>3.6) player.vy=3.6; // 🟢 GRAVITY: Constant downward acceleration with terminal velocity
-  collide(player); // 🟢 COLLISION RESOLVE: Handle platform interactions
+  // jump tuning
+  if(player.onGround) coyoteUntil=now+COYOTE;
+  const wantsJump = now<=jumpBufferUntil;
+  if(wantsJump && (player.onGround || now<=coyoteUntil)){ player.vy=-player.jump; player.onGround=false; jumpBufferUntil=0; coyoteUntil=0; }
+  if(!jumpHeld && player.vy<-1.25) player.vy=-1.25;
 
-  // 🟢 PLAYER ANIMATION SYSTEM: Visual state representation
-  if(player.hp<=0) setAnim(player,'player','dead',true); // 🟢 DEATH STATE: Game over animation
-  else if(now<player.hitUntil) setAnim(player,'player','hurt',true); // 🟢 DAMAGE STATE: Visual damage feedback
-  else if(!player.onGround) setAnim(player,'player', player.vy<0?'jump':'fall'); // 🟢 AERIAL STATE: Jump up or fall down
-  else { // 🟢 GROUND STATES: Movement-based animations
-    const s=Math.abs(player.vx); // 🟢 SPEED CHECK: How fast is player moving
-    setAnim(player,'player', s>1.05?'run':(s>0.2?'walk':'idle')); // 🟢 SPEED TIERS: Run > walk > idle
-  }
-  stepAnim(player,dt); // 🟢 ANIMATION UPDATE: Advance player animation frame
+  // gravity
+  player.vy+=.18; if(player.vy>3.7) player.vy=3.7;
+  collide(player);
 
-  // 🟢 PROCEDURAL WORLD: Generate city ahead of player
-  const need=cameraX+VW+CHUNK*2; while(generatedUntil<need) genChunk(generatedUntil); // 🟢 INFINITE CITY: Always generate ahead of camera
+  // anim
+  if(player.hp<=0) setAnim(player,'player','dead',true);
+  else if(now<player.hitUntil) setAnim(player,'player','hurt',true);
+  else if(!player.onGround) setAnim(player,'player', player.vy<0?'jump':'fall');
+  else { const s=Math.abs(player.vx); setAnim(player,'player', s>1.05?'run':(s>0.2?'walk':'idle')); }
+  stepAnim(player,dt);
 
-  // 🟢 DRONE AI SYSTEM: Flying surveillance units
-  const hacked = now<hackUntil; // 🟢 EMP STATUS: Are machines disabled?
+  // world gen
+  const need=cameraX+VW+CHUNK*2; while(generatedUntil<need) genChunk(generatedUntil);
+
+  // activate enemies only after moving right
+  activateEnemies();
+
+  // drones
+  const hacked = now<hackUntil;
   for(const d of drones){
-    if(!hacked){ // 🟢 NORMAL OPERATION: Drones function unless EMP active
-      d.x+=d.dir*d.speed; d.phase+=.02; d.y+=Math.sin(d.phase)*.2; // 🟢 FLIGHT PATTERN: Horizontal movement with bobbing
-      if((d.x%CHUNK)<8||(d.x%CHUNK)>CHUNK-8) d.dir*=-1; // 🟢 PATROL BOUNDS: Turn around at chunk edges
-      // 🟢 SURVEILLANCE SCAN: Drones detect player vertically
-      if(player.x+player.w>d.x-6 && player.x<d.x+d.w+6 && player.y>d.y){ // 🟢 VERTICAL ALIGNMENT: Player directly below drone
-        let blocked=false; const scan={x:d.x,y:d.y,w:d.w,h:(player.y-d.y)}; // 🟢 SCAN BEAM: Create detection rectangle
-        for(const p of platforms){ if(rects(scan,p)){ blocked=true; break; } } // 🟢 OBSTRUCTION CHECK: Platforms block scan
-        if(!blocked){ for(const r of robots){ if(Math.abs(r.x+d.x)<9999){} } // 🟢 FLAVOR CODE: Unused detection logic
-          for(const r of robots){ if(Math.abs(r.x-d.x)<140) r.alert=true; } } // 🟢 ROBOT ALERT: Drones call nearby robots to hunt player
+    if(!d.active) continue;
+    if(!hacked){
+      d.x+=d.dir*d.speed; d.phase+=.02; d.y+=Math.sin(d.phase)*.2;
+      if((d.x%CHUNK)<8||(d.x%CHUNK)>CHUNK-8) d.dir*=-1;
+      if(player.x+player.w>d.x-6 && player.x<d.x+d.w+6 && player.y>d.y){
+        let blocked=false; const scan={x:d.x,y:d.y,w:d.w,h:(player.y-d.y)};
+        for(const p of platforms){ if(rects(scan,p)){ blocked=true; break; } }
+        if(!blocked){ for(const r of robots){ if(Math.abs(r.x-d.x)<140) r.alert=true; } }
       }
     }
   }
 
-  // 🟢 ROBOT AI SYSTEM: Ground-based corporate enforcers
+  // robots
   for(const r of robots){
-    if(!hacked){ // 🟢 ACTIVE MODE: Robots patrol and hunt unless EMP active
-      const see=Math.abs(r.x-player.x)<92 && Math.abs(r.y-player.y)<56; // 🟢 DETECTION RANGE: Can robot see player?
-      if(see) r.alert=true; // 🟢 DIRECT DETECTION: Robot spots player nearby
-      if(r.alert) r.x+=(player.x>r.x?1:-1)*r.speed*1.25; // 🟢 PURSUIT MODE: Move toward player when alert
-      else { r.x+=r.dir*r.speed; if((r.x%110)<1) r.dir*=-1; } // 🟢 PATROL MODE: Back and forth movement
+    if(!r.active) continue;
+    if(!hacked){
+      const see=Math.abs(r.x-player.x)<92 && Math.abs(r.y-player.y)<56;
+      if(see) r.alert=true;
+      if(r.alert) r.x+=(player.x>r.x?1:-1)*r.speed*1.25;
+      else { r.x+=r.dir*r.speed; if((r.x%110)<1) r.dir*=-1; }
     }
-    // 🟢 ROBOT ANIMATION: Movement-based visual states
-    setAnim(r,'robot', r.alert?'run':'walk'); stepAnim(r,dt); // 🟢 ANIMATION STATE: Run when chasing, walk when patrolling
-    // 🟢 PLAYER-ROBOT COMBAT: Stomp mechanic and damage system
-    if(rects(player,r)){ // 🟢 COLLISION DETECTED: Player and robot touching
-      if(player.vy>0 && player.y+player.h<=r.y+6){ r.hp--; r.hitUntil=now+120; player.vy=-2.6; score+=12; } // 🟢 STOMP ATTACK: Player lands on robot from above
-      else{ player.vx+=(player.x<r.x)?-0.8:0.8; player.hp-=7; player.hitUntil=now+150; if(player.hp<=0){ gameState='gameOver'; resetBtn.style.display='block'; } } // 🟢 DAMAGE TAKEN: Robot hurts player on contact
+    setAnim(r,'robot', r.alert?'run':'walk'); stepAnim(r,dt);
+    if(rects(player,r)){
+      if(player.vy>0 && player.y+player.h<=r.y+6){ r.hp--; r.hitUntil=now+120; player.vy=-2.6; score+=12; }
+      else{ player.vx+=(player.x<r.x)?-0.8:0.8; player.hp-=7; player.hitUntil=now+150; if(player.hp<=0){ gameState='gameOver'; resetBtn.style.display='block'; } }
     }
   }
-  for(let i=robots.length-1;i>=0;i--) if(robots[i].hp<=0) robots.splice(i,1); // 🟢 CLEANUP: Remove destroyed robots
+  for(let i=robots.length-1;i>=0;i--) if(robots[i].hp<=0) robots.splice(i,1);
 
-  // 🟢 WORLD MANAGEMENT: Camera, cleanup, progression
-  updateCamera(); cull(); // 🟢 CAMERA UPDATE: Follow player smoothly, remove off-screen entities
-  player.dist=Math.max(player.dist,player.x); // 🟢 DISTANCE TRACKING: Record furthest player progress
-  const nl=(player.dist/LEVEL_LEN|0)+1; if(nl>level){ level=nl; justLeveled=1200; } // 🟢 LEVEL SYSTEM: Advance level based on distance
-}
-
-/* =========================================================
-   DRAW — sky/parallax/world/sprites/ads/UI
-   🟢RENDERING PIPELINE: Creates the visual cyberpunk experience
-   🟢 LAYERED GRAPHICS: Sky > background > world > entities > UI
-========================================================= */
-function drawSky(){ // 🟢 SKY GRADIENT: Creates atmospheric cyberpunk sky
-  for(let y=0;y<VH;y++){ const t=y/VH; ctx.fillStyle=`rgb(${12+18*t|0},${16+30*t|0},${30+58*t|0})`; ctx.fillRect(0,y,VW,1); } // 🟢 VERTICAL GRADIENT: Dark blue to lighter blue
-}
-
-// Tiles an image seamlessly across the screen at y,
-// scrolled by cameraX*speed. alpha is optional.
-function tileLayer(img, imgW, speed, y, alpha = 1) {
-  if (!img) return;
-  ctx.save();
-  ctx.globalAlpha = alpha;
-
-  // cameraX should be your world/camera position in pixels
-  const cam = cameraX || 0;
-  let x = -((cam * speed) % imgW);
-  if (x > 0) x -= imgW;
-
-  for (let i = 0; i < 3; i++) {
-    ctx.drawImage(img, Math.floor(x + i * imgW), Math.floor(y));
-  }
-  ctx.restore();
-}
-
-// Draw backgrounds (call near the start of your frame)
-function drawBackgrounds() {
-  if (!BG.far && !BG.near) return;
-
-  // Far skyline: scale to fill full screen height
-  if(BG.far) {
-    ctx.save();
-    const scaleY = VH / BG.far.height; // Scale to fill full screen height
-    const cam = cameraX || 0;
-    let x = -((cam * PARALLAX.far) % BG.farW);
-    if (x > 0) x -= BG.farW;
-
-    for (let i = 0; i < 3; i++) {
-      ctx.drawImage(BG.far, Math.floor(x + i * BG.farW), 0, BG.farW, BG.far.height, 
-                    Math.floor(x + i * BG.farW), 0, BG.farW, VH);
+  // coins pickup
+  for(const c of coins){
+    if(!c.taken && player.x+player.w>c.x-4 && player.x<c.x+12 && player.y+player.h>c.y-4 && player.y<c.y+12){
+      c.taken=true; btc += 1; score += 3;
     }
-    ctx.restore();
   }
 
-  // Near containers: scale to fill full screen height
-  if(BG.near) {
-    ctx.save();
-    const scaleY = VH / BG.near.height; // Scale to fill full screen height
-    const cam = cameraX || 0;
-    let x = -((cam * PARALLAX.near) % BG.nearW);
-    if (x > 0) x -= BG.nearW;
+  // exit door collision
+  if(exitDoor && rects(player, exitDoor)){ gameState='levelComplete'; resetBtn.style.display='block'; }
 
-    for (let i = 0; i < 3; i++) {
-      ctx.drawImage(BG.near, Math.floor(x + i * BG.nearW), 0, BG.nearW, BG.near.height,
-                    Math.floor(x + i * BG.nearW), 0, BG.nearW, VH);
-    }
-
-    // Fade mask (top of near layer -> transparent)
-    const fadeH = Math.min(NEAR_FADE_PX, VH);
-    const g = ctx.createLinearGradient(0, 0, 0, fadeH);
-    g.addColorStop(0, 'rgba(0,0,0,0)');  // fully transparent at the very top
-    g.addColorStop(1, 'rgba(0,0,0,1)');  // fully opaque by fade end
-
-    ctx.globalCompositeOperation = 'destination-in';
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, VW, VH);
-    ctx.restore();
-  }
+  // camera / cleanup / level
+  updateCamera(); cull();
+  player.dist=Math.max(player.dist,player.x);
+  const nl=(player.dist/LEVEL_LEN|0)+1; if(nl>level){ level=nl; justLeveled=1200; }
 }
 
+/* ================= DRAW ================= */
 function drawTiles(){
   for(const p of platforms){
     const sx=p.x-cameraX; if(sx+p.w<0||sx>VW) continue;
-    for(let x=0;x<p.w;x+=TILE) for(let y=0;y<p.h;y+=TILE){
-      const xx=sx+x, yy=p.y+y, even=((((xx|0)>>4)+(((yy|0)>>4)))%2)===0;
-      ctx.fillStyle=even?'#3a3f47':'#2c3038'; ctx.fillRect(xx|0,yy|0,TILE,TILE);
-      if(y===0){ ctx.fillStyle='#98a0b0'; ctx.fillRect(xx|0,yy|0,TILE,1); }
+    if(ledgeImg){
+      for(let x=0;x<p.w;x+=TILE){
+        ctx.drawImage(ledgeImg, sx+x|0, p.y|0, TILE, TILE);
+      }
+    }else{
+      for(let x=0;x<p.w;x+=TILE){
+        const xx=sx+x, yy=p.y, even=((((xx|0)>>4)+(((yy|0)>>4)))%2)===0;
+        ctx.fillStyle=even?'#3a3f47':'#2c3038'; ctx.fillRect(xx|0,yy|0,TILE,TILE);
+        ctx.fillStyle='#98a0b0'; ctx.fillRect(xx|0,yy|0,TILE,1);
+      }
     }
   }
 }
@@ -478,78 +424,84 @@ function drawTerminals(){
     ctx.fillStyle='#fff'; ctx.fillRect(x+2,t.y+3,t.w-4,3);
   }
 }
+function drawCoins(now){
+  for(const c of coins){
+    if(c.taken) continue;
+    const x=(c.x-cameraX)|0, y=c.y|0; if(x<-12||x>VW) continue;
+    if(coinImg){ ctx.drawImage(coinImg, x-6, y-6, 12, 12); }
+    else{ ctx.fillStyle='#ffd95e'; ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#8b5'; ctx.fillRect(x-1,y-4,2,8); }
+  }
+}
+function drawExitDoor(){
+  if(!exitDoor) return;
+  const x=(exitDoor.x-cameraX)|0, y=exitDoor.y|0;
+  if(x>VW||x+exitDoor.w<0) return;
+  if(doorImg){ ctx.drawImage(doorImg, x, y, exitDoor.w, exitDoor.h); }
+  else{ ctx.fillStyle='#222'; ctx.fillRect(x,y,exitDoor.w,exitDoor.h); ctx.fillStyle='#6fc2ff'; ctx.fillRect(x+exitDoor.w-6,y+exitDoor.h/2-3,4,6); }
+}
 
 function drawEntities(now){
-  // Robots
   for(const r of robots){
     const x=(r.x-cameraX)|0, y=r.y|0; if(x+48<0||x>VW) continue;
     drawAnim(r,'robot',x-14,y-24,(player.x<r.x), now<r.hitUntil?0.75:1);
   }
-  // Drones
   for(const d of drones){
     const x=(d.x-cameraX)|0, y=d.y|0; if(x+32<0||x>VW) continue;
     if(!d.anim.runner) setAnim(d,'drone','move');
     stepAnim(d,16); drawAnim(d,'drone',x-7,y-9,false,1);
   }
-  // Player
   const px=(player.x-cameraX)|0, py=player.y|0;
   drawAnim(player,'player',px-15,py-20, player.facing===-1, performance.now()<player.hitUntil?0.8:1);
 }
 
-function drawUI(now){ // 🟢 USER INTERFACE: All HUD elements and game state displays
-  // 🟢 TOP HUD BAR: Title and controls display
-  ctx.fillStyle='rgba(0,0,0,.55)'; ctx.fillRect(0,0,VW,18); // 🟢 HUD BACKGROUND: Semi-transparent overlay
-  ctx.fillStyle='#cfd6df'; ctx.fillText('Blackout Protocol',6,6); // 🟢 GAME TITLE: Cyberpunk branding
-  ctx.fillStyle='#9aa3b2'; ctx.fillText('← → Move | Space Jump | Enter Hack | ESC Pause',120,6); // 🟢 CONTROL HINTS: Player guidance
-  ctx.fillStyle='#fff'; ctx.fillText(`HP:${Math.max(0,player.hp)}  L:${level}  SC:${score}`,6,28); // 🟢 STATS DISPLAY: Health, level, score
+function drawUI(now){
+  ctx.fillStyle='rgba(0,0,0,.55)'; ctx.fillRect(0,0,VW,18);
+  ctx.fillStyle='#cfd6df'; ctx.fillText('Blackout Protocol',6,6);
+  ctx.fillStyle='#9aa3b2'; ctx.fillText('← → Move | Space Jump | Enter Hack | ESC Pause',120,6);
+  ctx.fillStyle='#fff'; ctx.fillText(`HP:${Math.max(0,player.hp)}  L:${level}  SC:${score}  BTC:${btc}`,6,28);
 
-  // 🟢 EMP STATUS DISPLAY: Shows hack system state
-  const left=Math.max(0,hackUntil-now)|0; // 🟢 TIME REMAINING: How much EMP time left
-  if(left>0){ ctx.fillStyle='#7dff9a'; ctx.fillText(`EMP ${Math.ceil(left/1000)}s`,6,40); } // 🟢 ACTIVE EMP: Green countdown timer
-  else if(now<hackCDUntil){ ctx.fillStyle='#7f8a99'; ctx.fillText(`Hack CD ${((hackCDUntil-now)/1000|0)}s`,6,40); } // 🟢 COOLDOWN: Gray cooldown timer
-  else { ctx.fillStyle='#7dff9a'; ctx.fillText('Enter: Hack',6,40); } // 🟢 READY STATE: Green hack prompt
+  const left=Math.max(0,hackUntil-now)|0;
+  if(left>0){ ctx.fillStyle='#7dff9a'; ctx.fillText(`EMP ${Math.ceil(left/1000)}s`,6,40); }
+  else if(now<hackCDUntil){ ctx.fillStyle='#7f8a99'; ctx.fillText(`Hack CD ${((hackCDUntil-now)/1000|0)}s`,6,40); }
+  else { ctx.fillStyle='#7dff9a'; ctx.fillText('Enter: Hack',6,40); }
 
-  // 🟢 GAME STATE OVERLAYS: Pause and game over screens
-  if(gameState==='paused'){ ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#fff'; ctx.fillText('PAUSED (ESC)',VW/2-30,VH/2); } // 🟢 PAUSE OVERLAY: Semi-transparent pause screen
-  if(gameState==='gameOver'){ ctx.fillStyle='rgba(0,0,0,.7)'; ctx.fillRect(0,0,VW,VH); // 🟢 DEATH SCREEN: Dark overlay with game over info
-    ctx.fillStyle='#fff'; ctx.fillText('GAME OVER',VW/2-34,VH/2-8); ctx.fillText(`Score ${score}`,VW/2-26,VH/2+4);
-    ctx.fillText('Press R or click Reset',VW/2-54,VH/2+16); }
+  if(gameState==='paused'){ ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#fff'; ctx.fillText('PAUSED (ESC)',VW/2-30,VH/2); }
+  if(gameState==='gameOver'){ ctx.fillStyle='rgba(0,0,0,.7)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#fff'; ctx.fillText('GAME OVER',VW/2-34,VH/2-8); ctx.fillText(`Score ${score}  BTC ${btc}`,VW/2-40,VH/2+4); ctx.fillText('Press R or click Reset',VW/2-54,VH/2+16); }
+  if(gameState==='levelComplete'){ ctx.fillStyle='rgba(0,0,0,.7)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#7dff9a'; ctx.fillText('LEVEL COMPLETE',VW/2-44,VH/2-8); ctx.fillStyle='#fff'; ctx.fillText(`BTC ${btc} — (store next)`,VW/2-44,VH/2+4); ctx.fillText('Press R to replay',VW/2-40,VH/2+16); }
 
-  // 🟢 LEVEL UP NOTIFICATION: Temporary level advancement display
-  if(justLeveled>0){ ctx.fillStyle='rgba(0,0,0,.5)'; ctx.fillRect(0,56,VW,18); ctx.fillStyle='#ffd95e'; ctx.fillText(`LEVEL UP → ${level}`,VW/2-36,68); justLeveled-=16; }
-
-  // 🟢 ASSET WARNINGS: Development helper messages
-  let y = VH - 10; // 🟢 WARNING POSITION: Start at bottom of screen
-  const warn = msg => { ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(2,y-7,VW-4,9); ctx.fillStyle='#ffb36a'; ctx.fillText(msg,6,y-6); y-=10; }; // 🟢 WARNING HELPER: Displays missing asset alerts
-  if (typeof SPR !== 'undefined' && SPR) { // 🟢 SAFETY CHECK: Only check if SPR exists
-    if (!SPR.player?.anim?.idle?.img) warn('Missing player_* PNGs'); // 🟢 PLAYER SPRITES: Check for protagonist animations
-    if (!SPR.robot?.anim?.idle?.img)  warn('Missing robot_* PNGs'); // 🟢 ROBOT SPRITES: Check for enemy animations
-    if (!SPR.drone?.anim?.idle?.img)  warn('Missing drone_* PNGs'); // 🟢 DRONE SPRITES: Check for surveillance animations
+  let y = VH - 10;
+  const warn = msg => { ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(2,y-7,VW-4,9); ctx.fillStyle='#ffb36a'; ctx.fillText(msg,6,y-6); y-=10; };
+  if (SPR) {
+    if (!SPR.player?.anim?.idle?.img) warn('Missing player_* PNGs');
+    if (!SPR.robot?.anim?.idle?.img)  warn('Missing robot_* PNGs');
+    if (!SPR.drone?.anim?.idle?.img)  warn('Missing drone_* PNGs');
   }
-  if (!BG.far) warn('Missing: assets/01_bg_far.png (using gradient sky)'); // 🟢 BACKGROUND ASSETS: Check for far background
-  if (!BG.near) warn('Missing: assets/01_bg_near.png'); // 🟢 NEAR BACKGROUND: Check for near layer
+  if (!BG.far) warn('Missing: assets/01_bg_far.png (gradient sky used)');
+  if (!BG.near) warn('Missing: assets/01_bg_near.png');
 }
 
 function drawOverlay(now){
   octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
-  // At most 2 hologram ads, semi-transparent, with glow; they move with world
   const vis=[];
   for(const a of ads){
     const sx=Math.round(RENDER.ox+(a.x-cameraX)*RENDER.scale);
     const sy=Math.round(RENDER.oy+a.y*RENDER.scale);
-    if(sx>-140 && sx<overlayCanvas.width+140 && sy<overlayCanvas.height*0.78) vis.push({a,sx,sy});
+    if(sx>-160 && sx<overlayCanvas.width+160 && sy<overlayCanvas.height*0.78) vis.push({a,sx,sy});
   }
   vis.sort((p,q)=>p.sx-q.sx);
   const two=vis.slice(0,2);
   octx.save(); octx.textBaseline='top';
   for(const {a,sx,sy} of two){
-    const color=/Nights|Love|Companion/i.test(a.text)?'#ffd95e':'#6fc2ff';
     a.phase+=.03; const bob=Math.sin(a.phase)*2*RENDER.scale, flick=.6+.4*Math.sin(a.phase*3);
+    const w=Math.round(140*RENDER.scale), h=Math.round(30*RENDER.scale);
+    octx.globalAlpha=.85; octx.fillStyle='rgba(10,14,20,.6)'; octx.fillRect(sx-6,sy-6+bob,w+12,h+12);
+    octx.globalAlpha=1; octx.strokeStyle='rgba(111,194,255,'+(0.7*flick)+')'; octx.lineWidth=2; octx.strokeRect(sx-6,sy-6+bob,w+12,h+12);
+    octx.save(); octx.shadowColor='#6fc2ff'; octx.shadowBlur=14*flick; octx.fillStyle='#6fc2ff';
     let fs=Math.max(12,Math.round(14*RENDER.scale)); octx.font=`${fs}px monospace`;
-    const maxW=Math.round(120*RENDER.scale); while(octx.measureText(a.text).width>maxW && fs>9){ fs--; octx.font=`${fs}px monospace`; }
-    octx.globalAlpha=.62; octx.save(); octx.shadowBlur=0; octx.fillStyle='rgba(0,0,0,.35)'; octx.fillText(a.text,sx+1,sy+bob+1); octx.restore();
-    octx.shadowColor=color; octx.shadowBlur=14*flick; octx.fillStyle=color; octx.fillText(a.text,sx,sy+bob);
-    octx.globalAlpha=1;
+    const maxW=w-12; while(octx.measureText(a.text).width>maxW && fs>9){ fs--; octx.font=`${fs}px monospace`; }
+    octx.fillText(a.text,sx,sy+bob);
+    octx.restore();
+    octx.globalAlpha=.2*flick; octx.fillStyle='#6fc2ff'; octx.fillRect(sx-6, sy-1+bob, w+12, 1); octx.globalAlpha=1;
   }
   octx.restore();
 }
@@ -561,61 +513,49 @@ function blit(){
   gctx.drawImage(nes,0,0,VW,VH,ox,oy,sw,sh); RENDER={scale:s,ox,oy};
 }
 
-/* =========================================================
-   RESET / BOOT / LOOP
-========================================================= */
+/* ================= RESET / BOOT / LOOP ================= */
+function placeExitDoor(){
+  const x=LEVEL_LEN-40, y=groundY()-32;
+  exitDoor={x, y, w:24, h:32};
+}
 function reset(){
-  gameState='playing'; cameraX=0; worldMaxX=0; score=0; level=1; justLeveled=0;
-  platforms=[]; robots=[]; drones=[]; terminals=[]; ads=[]; generatedUntil=0;
-  player=makePlayer();
-  setAnim(player,'player','idle');
+  gameState='playing'; cameraX=0; worldMaxX=0; score=0; btc=0; level=1; justLeveled=0;
+  platforms=[]; robots=[]; drones=[]; terminals=[]; ads=[]; coins=[]; generatedUntil=0; exitDoor=null;
+  player=makePlayer(); setAnim(player,'player','idle');
   for(let x=0;x<CHUNK*4;x+=CHUNK) genChunk(x);
+  placeExitDoor();
   resetBtn.style.display='none';
 }
-
 async function boot(){
-  try {
+  try{
     SPR = await loadSprites(SPRITE_DEF);
-    await loadBackgrounds();
-
-    player = makePlayer();
-    setAnim(player,'player','idle');
+    await Promise.all([loadBackgrounds(), loadTiles()]);
+    player = makePlayer(); setAnim(player,'player','idle');
     for(let x=0;x<CHUNK*4;x+=CHUNK) genChunk(x);
-
-    gameState='playing';
-    READY = true; // 🟢 ASSETS LOADED: all good, start the game
-  } catch (err) {
-    console.error(err);
-    LOAD_MSG = 'Load failed (check console)'; // 🟢 ERROR STATE: show failure message
-  }
+    placeExitDoor();
+    gameState='playing'; READY=true;
+  }catch(err){ console.error(err); LOAD_MSG='Load failed (check console)'; }
 }
 boot();
 
-function loop(now){ // 🟢 MAIN GAME LOOP: 60fps game engine heartbeat
-  const dt = loop.t ? now - loop.t : 16; loop.t = now; // 🟢 DELTA TIME: Calculate time since last frame
-
-  // 🟢 LOADING GATE: Show loading screen until assets are ready
-  if (!READY) {
-    ctx.fillStyle = '#000'; ctx.fillRect(0,0,VW,VH); // 🟢 BLACK BACKGROUND: Clear loading screen
-    drawSky(); // 🟢 GRADIENT SKY: Show something while loading
-    ctx.fillStyle = '#cfd6df'; // 🟢 LOADING TEXT: Light gray text
-    ctx.fillText(LOAD_MSG, VW/2 - 20, VH/2); // 🟢 STATUS MESSAGE: Show loading progress
-    blit(); // 🟢 DISPLAY UPDATE: Render loading screen
-    requestAnimationFrame(loop); // 🟢 CONTINUE LOOP: Keep checking for readiness
-    return; // 🟢 EARLY EXIT: Don't process game logic yet
+function loop(now){
+  const dt = loop.t ? now - loop.t : 16; loop.t = now;
+  if (!READY){
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,VW,VH);
+    drawSky(); ctx.fillStyle='#cfd6df'; ctx.fillText(LOAD_MSG, VW/2 - 20, VH/2);
+    blit(); requestAnimationFrame(loop); return;
   }
+  if (gameState==='playing') update(dt, now);
 
-  if (gameState==='playing') update(dt, now); // 🟢 LOGIC UPDATE: Process game state if playing
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,VW,VH);
+  drawBackgrounds();
+  drawTiles(); drawTerminals(); drawCoins(now); drawExitDoor(); drawEntities(now); drawUI(now);
+  blit(); drawOverlay(now);
 
-  // 🟢RENDERING PIPELINE: Draw everything in proper order
-  ctx.fillStyle = '#000'; ctx.fillRect(0,0,VW,VH); // 🟢 CLEAR SCREEN: Start with black canvas
-  if (BG.far || BG.near) { drawBackgrounds(); } else { drawSky(); } // 🟢 BACKGROUND: Two-layer parallax or fallback
-  drawTiles(); drawTerminals(); drawEntities(now); drawUI(now); // 🟢 WORLD LAYERS: Platforms, terminals, characters, UI
-  blit(); drawOverlay(now); // 🟢 FINAL DISPLAY: Scale to screen and add overlays
-
-  requestAnimationFrame(loop); // 🟢 FRAME REQUEST: Schedule next frame at 60fps
+  requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
 </script>
 </body>
 </html>
+
