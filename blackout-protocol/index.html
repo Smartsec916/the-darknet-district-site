@@ -626,7 +626,7 @@ function drawUI(now){
 function drawOverlay(now){
   octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
 
-  // gather ads in viewport
+  // gather ads in viewport - allow overlapping
   const vis=[];
   for(const a of ads){
     const sx=Math.round(RENDER.ox+(a.x-cameraX)*RENDER.scale);
@@ -634,9 +634,8 @@ function drawOverlay(now){
     if(sx>-200 && sx<overlayCanvas.width+200 && sy<overlayCanvas.height*0.85) vis.push({a,sx,sy});
   }
 
-  // cap how many we draw per frame (nearest first)
-  vis.sort((p,q)=>Math.abs(p.sx-overlayCanvas.width/2)-Math.abs(q.sx-overlayCanvas.width/2));
-  const toDraw=vis.slice(0,3);
+  // draw all visible ads (no sorting or limiting for overlapping effect)
+  const toDraw=vis;
 
   octx.save();
   for(const {a,sx,sy} of toDraw){
