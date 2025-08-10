@@ -212,7 +212,7 @@ function makePlayer(){
   
   // Apply upgrades to base stats
   const baseSpeed = 1.52;
-  const baseJump = 4.15;
+  const baseJump = 5.2; // Increased from 4.15 for better accessibility
   const speed = savedUpgrades.speedBoost ? baseSpeed * 1.3 : baseSpeed;
   const jump = savedUpgrades.jumpBoost ? baseJump * 1.2 : baseJump;
   
@@ -258,20 +258,45 @@ function genChunk(startX){
   const cc=3+((Math.random()*3)|0);
   for(let i=0;i<cc;i++){
     const cx=startX+40+Math.random()*(CHUNK-80);
-    let cy=VH-80-((Math.random()*80)|0);
+    let cy=VH-80-((Math.random()*60)|0); // Reduced random range for better reachability
+    let placedOnPlatform = false;
     
-    // Place coins above platforms for better accessibility
+    // First try to place coins directly on or near platforms
     for(const p of platforms){ 
-      if(cx>=p.x-8 && cx<=p.x+p.w+8) {
-        cy=Math.min(cy, p.y-20); // Place coins higher above platforms
+      if(cx>=p.x-16 && cx<=p.x+p.w+16) {
+        // Place coins just above platforms where they're easily reachable
+        if(p.y < VH-TILE) { // Not ground level
+          cy = p.y - 24; // Positioned for easy jumping collection
+          placedOnPlatform = true;
+          break;
+        }
       }
     }
     
-    // Ensure coins are not too high or too low
-    cy = Math.max(cy, 32); // Not too high
-    cy = Math.min(cy, VH-32); // Not too low
+    // If not placed on a platform, ensure it's reachable from ground or nearby platforms
+    if(!placedOnPlatform) {
+      // Check if there's a platform within jumping distance
+      let nearPlatform = false;
+      for(const p of platforms) {
+        const distToPlatform = Math.abs(cx - (p.x + p.w/2));
+        if(distToPlatform <= 80 && p.y < VH-TILE) { // Within reasonable horizontal distance
+          nearPlatform = true;
+          cy = Math.min(cy, p.y - 16); // Make sure it's reachable from that platform
+          break;
+        }
+      }
+      
+      // If no nearby platform, keep it low enough to reach from ground
+      if(!nearPlatform) {
+        cy = Math.max(cy, VH-100); // Keep within jumping reach from ground
+      }
+    }
     
-    coins.push({x:cx|0, y:cy|0, r:8, taken:false}); // Slightly larger radius for easier collection
+    // Final bounds check
+    cy = Math.max(cy, 40); // Not too high
+    cy = Math.min(cy, VH-24); // Not too low
+    
+    coins.push({x:cx|0, y:cy|0, r:10, taken:false}); // Larger radius for easier collection
   }
 
   // terminals
