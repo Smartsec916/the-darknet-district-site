@@ -1,0 +1,68 @@
+You are editing a static web project. Make the following exact changes. 
+IMPORTANT RULES:
+- Do NOT append timestamps, hashes, or query strings to any filenames or image references.
+- Do NOT rename, fingerprint, or relocate files. Use EXACT names and paths below.
+- Do NOT convert images or embed them as data URIs. Create real files at the paths given.
+- Keep all paths relative; no build steps that inject cache-busting.
+
+1) Create the folder if it doesn’t exist:
+   /blackout-protocol/assets/
+
+2) In /blackout-protocol/assets/, create these files EXACTLY with these names.
+   For now, create valid PNG placeholders (tiny files are fine). DO NOT add any time tags or rename them:
+   - 4K.png
+   - Drink_Oil_01.png
+   - Drink_Oil_02.png
+   - Meat.png
+   - HoloCompanion.png
+   - Rent.png
+   - coin.png
+   - ledge_tile.png
+
+   If you can’t generate binary PNGs directly, create zero-byte placeholders and leave them in place; the user will upload the real graphics later, keeping the SAME filenames. DO NOT change or auto-fix extensions.
+
+3) Ensure any references in code use the EXACT, no-tag paths:
+   assets/4K.png
+   assets/Drink_Oil_01.png
+   assets/Drink_Oil_02.png
+   assets/Meat.png
+   assets/HoloCompanion.png
+   assets/Rent.png
+   assets/coin.png
+   assets/ledge_tile.png
+   (No ?v=… or similar allowed.)
+
+4) Add a new page at project root:
+   /BP_Game_Stop_01.html
+   Contents (exactly this — a black screen; pressing “R” returns to the main game at /blackout-protocol/):
+   ---
+   <!DOCTYPE html>
+   <html lang="en">
+   <head>
+     <meta charset="utf-8"/>
+     <meta name="viewport" content="width=device-width, initial-scale=1"/>
+     <title>Blackout Protocol — Stop</title>
+     <style>
+       html,body{height:100%;margin:0;background:#000;color:#cfd6df;font-family:monospace}
+       .center{height:100%;display:flex;align-items:center;justify-content:center}
+       .hint{opacity:.6}
+     </style>
+   </head>
+   <body>
+     <div class="center"><div class="hint">Stop screen — press <strong>R</strong> to reset (return to game)</div></div>
+     <script>
+       // If your game lives somewhere else, change this path.
+       const GAME_URL = "/blackout-protocol/";
+       addEventListener("keydown", (e)=>{
+         if(e.code==="KeyR"){ window.location.href = GAME_URL; }
+       });
+     </script>
+   </body>
+   </html>
+   ---
+
+5) Do NOT modify any other files. Do NOT inject build steps that add time tags or hashes. Keep all existing image/script references untouched except as noted above.
+
+When finished, confirm:
+- The new files exist at /blackout-protocol/assets/ with the exact names.
+- /BP_Game_Stop_01.html loads to a black screen, and pressing “R” navigates to /blackout-protocol/.

@@ -23,6 +23,12 @@
 </div>
 
 <script>
+/* ================= CONFIG YOU MAY TWEAK ================= */
+const SHOP_URL = '/shop/';               // <— where to send player on door touch
+const LEVEL_LEN = 1600;                  // <— how far until the shop door
+const DOOR_W = 24, DOOR_H = 32;          // size of door sprite
+const HYPER_RELOAD_TAG = 'rev=2025-08-10'; // cache-bust new images
+
 /* ================= CORE / DISPLAY ================= */
 let READY=false, LOAD_MSG='Loading…';
 window.addEventListener('error', e => console.error('Runtime error:', e.message));
@@ -59,14 +65,39 @@ const SPRITE_DEF={
     idle:'assets/drone_idle_32.png', hover:'assets/drone_hover_32.png', move:'assets/drone_move_32.png',
     attack:'assets/drone_attack_32.png', hurt:'assets/drone_hurt_32.png', dead:'assets/drone_dead_32.png'
   }, fps:{idle:3, hover:10, move:10, attack:12, hurt:6, dead:8}},
-  // background/tiles/hooks (images are loaded below via loadBackgrounds / loadTiles)
+  // background/tiles/hooks
   bg_far:'assets/01_bg_far.png',
-  bg_near:'assets/01_bg_near.png',
+  // Force new near layer (cache-bust):
+  bg_near:`assets/01_bg_near.png?${HYPER_RELOAD_TAG}`,
   coin:'assets/coin.png',
   door:'assets/door.png',
   ledge:'assets/ledge_tile.png'
 };
 
+/* ===== Graphic Ads (your PNGs) ===== */
+const AD_SRC = {
+  fourk: 'assets/4K.png',
+  meat:  'assets/Meat.png',
+  holo:  'assets/HoloCompanion.png',
+  rent:  'assets/Rent.png',
+  drinkA:'assets/Drink_Oil_01.png',
+  drinkB:'assets/Drink_Oil_02.png'
+};
+const AD_KINDS = ['fourk','meat','holo','rent','drink']; // pool for random selection
+
+const AdImages = {
+  fourk:null, meat:null, holo:null, rent:null, drink:[null,null]
+};
+
+async function loadAdImages(){
+  AdImages.fourk = await IMG(AD_SRC.fourk);
+  AdImages.meat  = await IMG(AD_SRC.meat);
+  AdImages.holo  = await IMG(AD_SRC.holo);
+  AdImages.rent  = await IMG(AD_SRC.rent);
+  AdImages.drink = [ await IMG(AD_SRC.drinkA), await IMG(AD_SRC.drinkB) ];
+}
+
+/* Animator helper */
 function makeAnimator(sheet, fw, fh, fps){
   const frames = sheet ? Math.max(1, Math.floor(sheet.width / fw)) : 1;
   let frame=0, time=0, spf=1000/(fps||8);
@@ -124,7 +155,7 @@ function drawBackgrounds(){
 }
 
 function drawSky(){
-  for(let y=0;y<VH;y++){ const t=y/VH; ctx.fillStyle=`rgb(${12+18*t|0},${16+30*t|0},${30+58*t|0})`; ctx.fillRect(0,y,VW,1); }
+  for(let y=0;y<VH;y++){ const t=y/VH; ctx.fillStyle=`rgb(${12+18*t|0},${16+30*t|0},${30+58*t|0})`; ctx.fillRect(0,y,VH,1); }
 }
 
 /* ================= SPRITES ================= */
@@ -145,7 +176,7 @@ async function loadSprites(def){
 /* ================= STATE / INPUT / CAMERA ================= */
 let gameState='loading', score=0, btc=0, level=1, justLeveled=0;
 let cameraX=0, worldMaxX=0;
-const CHUNK=320, LEVEL_LEN=1600;
+const CHUNK=320;
 
 const DEAD_ZONE=2;
 function updateCamera(){
@@ -193,11 +224,6 @@ function stepAnim(a,dt){ if(a.anim.runner) a.anim.runner.step(dt, a.anim.clamp);
 function drawAnim(a,who,x,y,flip=false,alpha=1){ const run=a.anim.runner; if(run) run.draw(x,y,flip,alpha); }
 
 /* ================= WORLD GEN ================= */
-const ADS_TXT=[
-  "Neon Nights — Discretion Included","HoloCompanion™ — Terms Apply",
-  "Love.exe — Try a Free Emote","Rent-A-Hacker — We Never Met You",
-  "Sleep Faster™ — Productivity Pills","Oxygen+ — Premium Breaths"
-];
 const choice = a => a[(Math.random()*a.length)|0];
 let generatedUntil=0;
 
@@ -234,11 +260,12 @@ function genChunk(startX){
     terminals.push({x:tx|0,y:ty|0,w:12,h:16,cooldown:0});
   }
 
-  // ads (spawn later visually)
+  // ads (now graphic)
   const ac=1+((Math.random()*2)|0);
   for(let i=0;i<ac;i++){
     const ax=startX+40+Math.random()*(CHUNK-80), ay=VH-(120+((Math.random()*60)|0));
-    ads.push({x:ax|0,y:ay|0,text:choice(ADS_TXT),phase:Math.random()*6});
+    const kind = choice(AD_KINDS);
+    ads.push({x:ax|0,y:ay|0,kind,phase:Math.random()*6});
   }
 
   // enemies — do NOT spawn in the initial screen (startX < 256)
@@ -271,7 +298,7 @@ function collide(body){
     }
   }
 
-  // horizontal + tiny step-up (helps catch ledge edges)
+  // horizontal + tiny step-up
   body.x+=body.vx;
   for(const p of platforms){
     if(rects(body,p)){
@@ -307,7 +334,7 @@ async function loadTiles(){
 }
 
 function cull(){ const cutoff=cameraX-300;
-  for(let i=ads.length-1;i>=0;i--) if(ads[i].x+120<cutoff) ads.splice(i,1);
+  for(let i=ads.length-1;i>=0;i--) if(ads[i].x+160<cutoff) ads.splice(i,1);
   for(let i=robots.length-1;i>=0;i--) if(robots[i].x+120<cutoff) robots.splice(i,1);
   for(let i=drones.length-1;i>=0;i--) if(drones[i].x+120<cutoff) drones.splice(i,1);
   for(let i=coins.length-1;i>=0;i--) if(coins[i].x+40<cutoff) coins.splice(i,1);
@@ -392,8 +419,12 @@ function update(dt,now){
     }
   }
 
-  // exit door collision
-  if(exitDoor && rects(player, exitDoor)){ gameState='levelComplete'; resetBtn.style.display='block'; }
+  // exit door collision -> Shop transfer
+  if(exitDoor && rects(player, exitDoor)){
+    // tiny delay feels nicer and avoids accidental flicker
+    gameState='levelComplete';
+    setTimeout(()=>{ window.location.href = SHOP_URL; }, 300);
+  }
 
   // camera / cleanup / level
   updateCamera(); cull();
@@ -460,14 +491,18 @@ function drawUI(now){
   ctx.fillStyle='#9aa3b2'; ctx.fillText('← → Move | Space Jump | Enter Hack | ESC Pause',120,6);
   ctx.fillStyle='#fff'; ctx.fillText(`HP:${Math.max(0,player.hp)}  L:${level}  SC:${score}  BTC:${btc}`,6,28);
 
+  // Distance readout + door position helper (so you can pick your end point)
+  ctx.fillStyle='#7dff9a';
+  ctx.fillText(`DIST:${player.dist|0}  DOOR@:${(LEVEL_LEN-40)|0}`, 6, 40);
+
   const left=Math.max(0,hackUntil-now)|0;
-  if(left>0){ ctx.fillStyle='#7dff9a'; ctx.fillText(`EMP ${Math.ceil(left/1000)}s`,6,40); }
-  else if(now<hackCDUntil){ ctx.fillStyle='#7f8a99'; ctx.fillText(`Hack CD ${((hackCDUntil-now)/1000|0)}s`,6,40); }
-  else { ctx.fillStyle='#7dff9a'; ctx.fillText('Enter: Hack',6,40); }
+  if(left>0){ ctx.fillStyle='#7dff9a'; ctx.fillText(`EMP ${Math.ceil(left/1000)}s`,6,52); }
+  else if(now<hackCDUntil){ ctx.fillStyle='#7f8a99'; ctx.fillText(`Hack CD ${((hackCDUntil-now)/1000|0)}s`,6,52); }
+  else { ctx.fillStyle='#7dff9a'; ctx.fillText('Enter: Hack',6,52); }
 
   if(gameState==='paused'){ ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#fff'; ctx.fillText('PAUSED (ESC)',VW/2-30,VH/2); }
   if(gameState==='gameOver'){ ctx.fillStyle='rgba(0,0,0,.7)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#fff'; ctx.fillText('GAME OVER',VW/2-34,VH/2-8); ctx.fillText(`Score ${score}  BTC ${btc}`,VW/2-40,VH/2+4); ctx.fillText('Press R or click Reset',VW/2-54,VH/2+16); }
-  if(gameState==='levelComplete'){ ctx.fillStyle='rgba(0,0,0,.7)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#7dff9a'; ctx.fillText('LEVEL COMPLETE',VW/2-44,VH/2-8); ctx.fillStyle='#fff'; ctx.fillText(`BTC ${btc} — (store next)`,VW/2-44,VH/2+4); ctx.fillText('Press R to replay',VW/2-40,VH/2+16); }
+  if(gameState==='levelComplete'){ ctx.fillStyle='rgba(0,0,0,.7)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#7dff9a'; ctx.fillText('LEVEL COMPLETE → SHOP',VW/2-60,VH/2-8); }
 
   let y = VH - 10;
   const warn = msg => { ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(2,y-7,VW-4,9); ctx.fillStyle='#ffb36a'; ctx.fillText(msg,6,y-6); y-=10; };
@@ -477,35 +512,81 @@ function drawUI(now){
     if (!SPR.drone?.anim?.idle?.img)  warn('Missing drone_* PNGs');
   }
   if (!BG.far) warn('Missing: assets/01_bg_far.png (gradient sky used)');
-  if (!BG.near) warn('Missing: assets/01_bg_near.png');
+  if (!BG.near) warn('Missing: assets/01_bg_near.png (cache bust added)');
 }
 
+/* ======== HOLOGRAM AD OVERLAY (graphics instead of text) ======== */
 function drawOverlay(now){
   octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
+
+  // gather ads in viewport
   const vis=[];
   for(const a of ads){
     const sx=Math.round(RENDER.ox+(a.x-cameraX)*RENDER.scale);
     const sy=Math.round(RENDER.oy+a.y*RENDER.scale);
-    if(sx>-160 && sx<overlayCanvas.width+160 && sy<overlayCanvas.height*0.78) vis.push({a,sx,sy});
+    if(sx>-200 && sx<overlayCanvas.width+200 && sy<overlayCanvas.height*0.85) vis.push({a,sx,sy});
   }
-  vis.sort((p,q)=>p.sx-q.sx);
-  const two=vis.slice(0,2);
-  octx.save(); octx.textBaseline='top';
-  for(const {a,sx,sy} of two){
-    a.phase+=.03; const bob=Math.sin(a.phase)*2*RENDER.scale, flick=.6+.4*Math.sin(a.phase*3);
-    const w=Math.round(140*RENDER.scale), h=Math.round(30*RENDER.scale);
-    octx.globalAlpha=.85; octx.fillStyle='rgba(10,14,20,.6)'; octx.fillRect(sx-6,sy-6+bob,w+12,h+12);
-    octx.globalAlpha=1; octx.strokeStyle='rgba(111,194,255,'+(0.7*flick)+')'; octx.lineWidth=2; octx.strokeRect(sx-6,sy-6+bob,w+12,h+12);
-    octx.save(); octx.shadowColor='#6fc2ff'; octx.shadowBlur=14*flick; octx.fillStyle='#6fc2ff';
-    let fs=Math.max(12,Math.round(14*RENDER.scale)); octx.font=`${fs}px monospace`;
-    const maxW=w-12; while(octx.measureText(a.text).width>maxW && fs>9){ fs--; octx.font=`${fs}px monospace`; }
-    octx.fillText(a.text,sx,sy+bob);
+
+  // cap how many we draw per frame (nearest first)
+  vis.sort((p,q)=>Math.abs(p.sx-overlayCanvas.width/2)-Math.abs(q.sx-overlayCanvas.width/2));
+  const toDraw=vis.slice(0,3);
+
+  octx.save();
+  for(const {a,sx,sy} of toDraw){
+    a.phase = (a.phase||0) + 0.03;
+    const flick = 0.65 + 0.35*Math.sin(a.phase*3);  // neon flicker
+    const bob   = Math.sin(a.phase)*2*RENDER.scale; // subtle float
+    const tilt  = (Math.sin(a.phase*0.6))*0.03;     // tiny tilt
+
+    // pick image
+    let img=null;
+    if(a.kind==='fourk') img = AdImages.fourk;
+    else if(a.kind==='meat') img = AdImages.meat;
+    else if(a.kind==='holo') img = AdImages.holo;
+    else if(a.kind==='rent') img = AdImages.rent;
+    else if(a.kind==='drink') img = (Math.floor((performance.now()/350))%2===0 ? AdImages.drink[0] : AdImages.drink[1]);
+
+    if(!img) continue;
+
+    // scale to a nice panel size
+    const targetW = Math.round(140*RENDER.scale);
+    const ratio = img.height ? (img.width/img.height) : 1;
+    const w = targetW, h = Math.max(30, Math.round((targetW/ratio)));
+    const x = sx - Math.round(w/2), y = sy - Math.round(h/2) + bob;
+
+    // hologram frame
+    octx.globalAlpha = 0.85;
+    octx.fillStyle = 'rgba(10,14,20,0.5)';
+    octx.fillRect(x-8,y-8,w+16,h+16);
+    octx.globalAlpha = 1;
+    octx.strokeStyle = `rgba(111,194,255,${0.5*flick})`;
+    octx.lineWidth = 2;
+    octx.strokeRect(x-8,y-8,w+16,h+16);
+
+    // image with tilt + transparency (hologram)
+    octx.save();
+    octx.translate(x+w/2, y+h/2);
+    octx.rotate(tilt);
+    octx.globalAlpha = 0.72 + 0.12*Math.sin(a.phase*2); // ~0.7-0.84
+    octx.drawImage(img, -w/2, -h/2, w, h);
+
+    // soft glow pass
+    octx.globalAlpha = 0.18 * flick;
+    octx.shadowColor = '#6fc2ff';
+    octx.shadowBlur  = 22;
+    octx.drawImage(img, -w/2, -h/2, w, h);
     octx.restore();
-    octx.globalAlpha=.2*flick; octx.fillStyle='#6fc2ff'; octx.fillRect(sx-6, sy-1+bob, w+12, 1); octx.globalAlpha=1;
+
+    // scanline shimmer
+    octx.globalAlpha = 0.12*flick;
+    octx.fillStyle = '#6fc2ff';
+    octx.fillRect(x-8, y + (h*0.2|0), w+16, 1);
+    octx.globalAlpha = 1;
   }
   octx.restore();
 }
 
+/* ================= BLIT ================= */
 function blit(){
   gctx.clearRect(0,0,gameCanvas.width,gameCanvas.height);
   const s=Math.min(gameCanvas.width/VW, gameCanvas.height/VH);
@@ -515,9 +596,10 @@ function blit(){
 
 /* ================= RESET / BOOT / LOOP ================= */
 function placeExitDoor(){
-  const x=LEVEL_LEN-40, y=groundY()-32;
-  exitDoor={x, y, w:24, h:32};
+  const x=LEVEL_LEN-40, y=groundY()-DOOR_H;
+  exitDoor={x, y, w:DOOR_W, h:DOOR_H};
 }
+
 function reset(){
   gameState='playing'; cameraX=0; worldMaxX=0; score=0; btc=0; level=1; justLeveled=0;
   platforms=[]; robots=[]; drones=[]; terminals=[]; ads=[]; coins=[]; generatedUntil=0; exitDoor=null;
@@ -526,10 +608,11 @@ function reset(){
   placeExitDoor();
   resetBtn.style.display='none';
 }
+
 async function boot(){
   try{
     SPR = await loadSprites(SPRITE_DEF);
-    await Promise.all([loadBackgrounds(), loadTiles()]);
+    await Promise.all([loadBackgrounds(), loadTiles(), loadAdImages()]);
     player = makePlayer(); setAnim(player,'player','idle');
     for(let x=0;x<CHUNK*4;x+=CHUNK) genChunk(x);
     placeExitDoor();
