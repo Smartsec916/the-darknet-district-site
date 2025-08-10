@@ -421,27 +421,43 @@ function tileLayer(img, imgW, speed, y, alpha = 1) {
 function drawBackgrounds() {
   if (!BG.far && !BG.near) return;
 
-  // Far skyline: draw from the top of the canvas
-  if(BG.far) tileLayer(BG.far, BG.farW, PARALLAX.far, 0, 1);
-
-  // Near containers: align their *bottom* to the canvas bottom
-  if(BG.near) {
-    const nearY = VH - BG.near.height;
-
-    // Draw near layer, then punch a vertical alpha fade at the top
+  // Far skyline: scale to fill full screen height
+  if(BG.far) {
     ctx.save();
-    tileLayer(BG.near, BG.nearW, PARALLAX.near, nearY, 1);
+    const scaleY = VH / BG.far.height; // Scale to fill full screen height
+    const cam = cameraX || 0;
+    let x = -((cam * PARALLAX.far) % BG.farW);
+    if (x > 0) x -= BG.farW;
+
+    for (let i = 0; i < 3; i++) {
+      ctx.drawImage(BG.far, Math.floor(x + i * BG.farW), 0, BG.farW, BG.far.height, 
+                    Math.floor(x + i * BG.farW), 0, BG.farW, VH);
+    }
+    ctx.restore();
+  }
+
+  // Near containers: scale to fill full screen height
+  if(BG.near) {
+    ctx.save();
+    const scaleY = VH / BG.near.height; // Scale to fill full screen height
+    const cam = cameraX || 0;
+    let x = -((cam * PARALLAX.near) % BG.nearW);
+    if (x > 0) x -= BG.nearW;
+
+    for (let i = 0; i < 3; i++) {
+      ctx.drawImage(BG.near, Math.floor(x + i * BG.nearW), 0, BG.nearW, BG.near.height,
+                    Math.floor(x + i * BG.nearW), 0, BG.nearW, VH);
+    }
 
     // Fade mask (top of near layer -> transparent)
-    const fadeTop = Math.max(nearY, nearY);
-    const fadeH   = Math.min(NEAR_FADE_PX, BG.near.height);
-    const g = ctx.createLinearGradient(0, fadeTop, 0, fadeTop + fadeH);
+    const fadeH = Math.min(NEAR_FADE_PX, VH);
+    const g = ctx.createLinearGradient(0, 0, 0, fadeH);
     g.addColorStop(0, 'rgba(0,0,0,0)');  // fully transparent at the very top
     g.addColorStop(1, 'rgba(0,0,0,1)');  // fully opaque by fade end
 
     ctx.globalCompositeOperation = 'destination-in';
     ctx.fillStyle = g;
-    ctx.fillRect(0, nearY, VW, BG.near.height);
+    ctx.fillRect(0, 0, VW, VH);
     ctx.restore();
   }
 }
