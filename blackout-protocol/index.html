@@ -50,7 +50,18 @@ addEventListener('keydown',e=>{
 },{passive:false});
 
 /* ================= ASSETS ================= */
-const IMG=path=>new Promise(res=>{const i=new Image(); i.onload=()=>res(i); i.onerror=()=>res(null); i.src=path;});
+const IMG=path=>new Promise(res=>{
+  const i=new Image(); 
+  i.onload=()=>{
+    console.log('✓ Asset loaded successfully:', path);
+    res(i);
+  }; 
+  i.onerror=()=>{
+    console.error('✗ Failed to load asset:', path);
+    res(null);
+  }; 
+  i.src=path;
+});
 
 const SPRITE_DEF={
   player:{fw:48,fh:48, states:{
