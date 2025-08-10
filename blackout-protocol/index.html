@@ -81,9 +81,9 @@ const SPRITE_DEF={ // 🟢 CHARACTER DEFINITIONS: All sprite data for the cyberp
     dead:'assets/drone_dead_32.png'       // 🟢 CRASHED: Brought down by EMP
   }, fps:{idle:3, hover:10, move:10, attack:12, hurt:6, dead:8}}, // 🟢 AERIAL TIMING: Drone animation speeds
   bg_far:'assets/01_bg_far.png',    // 🟢 DISTANT SKYLINE: Far background cityscape
-  bg_mid:'assets/02_bg_mid.png',    // 🟢 MID-TIER TOWERS: Middle layer buildings
-  bg_near:'assets/03_bg_near.png',  // 🟢 CLOSE STRUCTURES: Near background details
-  fg_rail:'assets/04_fg_rail.png'   // 🟢 TRANSIT SYSTEM: Foreground rail elements
+  bg_mid:'assets/01_bg_mid_transparent_1024w.png',    // 🟢 MID-TIER TOWERS: Middle layer buildings
+  bg_near:null,  // 🟢 CLOSE STRUCTURES: Not used yet
+  fg_rail:null   // 🟢 TRANSIT SYSTEM: Not used yet
 };
 
 function makeAnimator(sheet, fw, fh, fps){ // 🟢 ANIMATION ENGINE: Brings static sprites to life
