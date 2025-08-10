@@ -24,7 +24,7 @@
 
 <script>
 /* ================= CONFIG YOU MAY TWEAK ================= */
-const SHOP_URL = '/store-first-page';               // <— where to send player on door touch
+const SHOP_URL = './game-shop.html';               // <— where to send player on door touch
 const LEVEL_LEN = 1600;                  // <— how far until the shop door
 const DOOR_W = 24, DOOR_H = 32;          // size of door sprite
 const HYPER_RELOAD_TAG = 'rev=2025-08-10'; // cache-bust new images
@@ -207,9 +207,20 @@ let exitDoor=null;
 const resetBtn=document.getElementById('resetBtn'); resetBtn.onclick=()=>reset();
 
 function makePlayer(){
+  // Load saved stats if returning from shop
+  const savedHealth = parseInt(localStorage.getItem('playerHealth')) || 100;
+  const savedUpgrades = JSON.parse(localStorage.getItem('playerUpgrades')) || {};
+  
+  // Apply upgrades to base stats
+  const baseSpeed = 1.52;
+  const baseJump = 4.15;
+  const speed = savedUpgrades.speedBoost ? baseSpeed * 1.3 : baseSpeed;
+  const jump = savedUpgrades.jumpBoost ? baseJump * 1.2 : baseJump;
+  
   return { x:32, y:VH-80, w:18, h:28, vx:0, vy:0, onGround:false, facing:1,
-           speed:1.52, aGround:.19, aAir:.12, dragG:.82, dragA:.986, jump:4.15,
-           hp:100, dist:0, hitUntil:0, anim:{state:'idle',runner:null} };
+           speed, aGround:.19, aAir:.12, dragG:.82, dragA:.986, jump,
+           hp:savedHealth, dist:0, hitUntil:0, anim:{state:'idle',runner:null},
+           upgrades: savedUpgrades };
 }
 
 function setAnim(actor, who, state, clamp=false){
@@ -318,11 +329,16 @@ function collide(body){
 }
 
 /* ================= HACK / EMP ================= */
-let hackUntil=0, hackCDUntil=0; const HACK_MS=3000, CD_MS=5000;
+let hackUntil=0, hackCDUntil=0; 
+const getHackDuration = () => player?.upgrades?.advancedHack ? 5000 : 3000; // Advanced EMP lasts longer
+const HACK_MS=3000, CD_MS=5000;
 function tryHack(){
   const now=performance.now(); if(now<hackCDUntil) return;
   const near=terminals.find(t=>Math.hypot((t.x+6)-(player.x+player.w/2),(t.y+8)-(player.y+player.h/2))<18 && t.cooldown<=0);
-  if(near){ hackUntil=now+HACK_MS; hackCDUntil=now+CD_MS; near.cooldown=CD_MS; score+=20; }
+  if(near){ 
+    const hackDuration = getHackDuration();
+    hackUntil=now+hackDuration; hackCDUntil=now+CD_MS; near.cooldown=CD_MS; score+=20; 
+  }
 }
 
 /* ================= UPDATE ================= */
@@ -407,23 +423,34 @@ function update(dt,now){
     setAnim(r,'robot', r.alert?'run':'walk'); stepAnim(r,dt);
     if(rects(player,r)){
       if(player.vy>0 && player.y+player.h<=r.y+6){ r.hp--; r.hitUntil=now+120; player.vy=-2.6; score+=12; }
-      else{ player.vx+=(player.x<r.x)?-0.8:0.8; player.hp-=7; player.hitUntil=now+150; if(player.hp<=0){ gameState='gameOver'; resetBtn.style.display='block'; } }
+      else{ 
+        player.vx+=(player.x<r.x)?-0.8:0.8; 
+        // Apply armor upgrade
+        const damage = player.upgrades?.armor ? 5 : 7; // 25% damage reduction
+        player.hp-=damage; player.hitUntil=now+150; 
+        if(player.hp<=0){ gameState='gameOver'; resetBtn.style.display='block'; } 
+      }
     }
   }
   for(let i=robots.length-1;i>=0;i--) if(robots[i].hp<=0) robots.splice(i,1);
 
-  // coins pickup
+  // coins pickup (with magnet upgrade)
+  const magnetRange = player.upgrades?.coinMagnet ? 20 : 8;
   for(const c of coins){
-    if(!c.taken && player.x+player.w>c.x-4 && player.x<c.x+12 && player.y+player.h>c.y-4 && player.y<c.y+12){
+    if(!c.taken && player.x+player.w>c.x-magnetRange && player.x<c.x+magnetRange && player.y+player.h>c.y-magnetRange && player.y<c.y+magnetRange){
       c.taken=true; btc += 1; score += 3;
     }
   }
 
-  // exit door collision -> Shop transfer
+  // exit door collision -> Game Shop transfer
   if(exitDoor && rects(player, exitDoor)){
     // tiny delay feels nicer and avoids accidental flicker
     gameState='levelComplete';
-    setTimeout(()=>{ window.location.href = SHOP_URL; }, 300);
+    setTimeout(()=>{ 
+      // Pass game stats to shop
+      const shopUrl = `${SHOP_URL}?btc=${btc}&score=${score}&level=${level}`;
+      window.location.href = shopUrl;
+    }, 300);
   }
 
   // camera / cleanup / level
@@ -601,12 +628,26 @@ function placeExitDoor(){
 }
 
 function reset(){
-  gameState='playing'; cameraX=0; worldMaxX=0; score=0; btc=0; level=1; justLeveled=0;
+  // Load saved progress if returning from shop
+  const savedBTC = parseInt(localStorage.getItem('playerBTC')) || 0;
+  const savedScore = parseInt(localStorage.getItem('playerScore')) || 0;
+  const savedLevel = parseInt(localStorage.getItem('gameLevel')) || 1;
+  
+  gameState='playing'; cameraX=0; worldMaxX=0; 
+  score=savedScore; btc=savedBTC; level=savedLevel; justLeveled=0;
   platforms=[]; robots=[]; drones=[]; terminals=[]; ads=[]; coins=[]; generatedUntil=0; exitDoor=null;
   player=makePlayer(); setAnim(player,'player','idle');
   for(let x=0;x<CHUNK*4;x+=CHUNK) genChunk(x);
   placeExitDoor();
   resetBtn.style.display='none';
+  
+  // Clear localStorage after loading to prevent issues with fresh starts
+  if(savedLevel > 1) {
+    localStorage.removeItem('playerBTC');
+    localStorage.removeItem('playerScore'); 
+    localStorage.removeItem('playerHealth');
+    localStorage.removeItem('gameLevel');
+  }
 }
 
 async function boot(){
