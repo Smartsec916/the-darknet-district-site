@@ -1,0 +1,79 @@
+# --- Blackout Protocol: step-by-step asset + path fixer (idempotent) ---
+
+set -u  # warn on unset vars (don't exit on errors so we finish all checks)
+
+ROOT_DIR="$(pwd)"
+APP_DIR="blackout-protocol"
+ASSETS_DIR="$APP_DIR/assets"
+INDEX_HTML="$APP_DIR/index.html"
+
+echo "▶ Checking paths…"
+if [ ! -d "$ASSETS_DIR" ]; then
+  echo "❌ $ASSETS_DIR not found. Are you in the project root? (pwd: $ROOT_DIR)"
+  exit 1
+fi
+
+echo "▶ Normalizing sprite filenames in $ASSETS_DIR (remove timestamp suffixes, force .png)…"
+cd "$ASSETS_DIR"
+shopt -s nullglob
+for f in *.png *.PNG; do
+  base="${f%.*}"
+  # remove trailing _1234567890… (10–16 digits just before extension)
+  clean="$(printf '%s' "$base" | sed -E 's/_[0-9]{10,16}$//')"
+  new="${clean}.png"
+  if [ "$f" != "$new" ]; then
+    echo "  - rename: $f -> $new"
+    mv -f -- "$f" "$new"
+  fi
+done
+
+echo "▶ Ensuring required backgrounds…"
+# FAR background
+if [ -f "01_bg_far.png" ]; then
+  echo "  ✓ 01_bg_far.png present"
+else
+  # try to salvage other case names or similar
+  cand="$(printf '%s\n' 01_bg_far.* 2>/dev/null | head -n1 || true)"
+  if [ -n "${cand:-}" ] && [ -f "$cand" ]; then
+    echo "  - copying $cand -> 01_bg_far.png"
+    cp -f -- "$cand" "01_bg_far.png"
+  else
+    echo "  ⚠ Missing 01_bg_far.png (game will fall back to gradient)"
+  fi
+fi
+
+# NEAR background (make from your mid transparent, if present)
+if [ -f "01_bg_near.png" ]; then
+  echo "  ✓ 01_bg_near.png present"
+else
+  if [ -f "01_bg_mid_transparent_1024w.png" ]; then
+    echo "  - copying 01_bg_mid_transparent_1024w.png -> 01_bg_near.png"
+    cp -f -- "01_bg_mid_transparent_1024w.png" "01_bg_near.png"
+  else
+    echo "  ⚠ Missing 01_bg_near.png and 01_bg_mid_transparent_1024w.png"
+    echo "    (Upload one of them to $ASSETS_DIR)"
+  fi
+fi
+
+echo "▶ Summary of assets now in $ASSETS_DIR:"
+ls -1 | sed 's/^/  • /'
+
+cd "$ROOT_DIR"
+
+echo "▶ Ensuring <base href=\"/blackout-protocol/\"> in $INDEX_HTML…"
+if grep -qi '<base[^>]*href="/blackout-protocol/' "$INDEX_HTML"; then
+  echo "  ✓ base href already present"
+else
+  # insert immediately after the first <head> tag
+  tmpfile="$(mktemp)"
+  awk 'BEGIN{done=0}
+       {print}
+       tolower($0) ~ /<head[^>]*>/ && !done {print "  <base href=\"/blackout-protocol/\">"; done=1}' \
+      "$INDEX_HTML" > "$tmpfile" && mv "$tmpfile" "$INDEX_HTML"
+  echo "  + inserted base href"
+fi
+
+echo "▶ Done!"
+echo "Next steps:"
+echo "  1) Redeploy/Run, then open the app URL."
+echo "  2) Hard refresh the preview (Ctrl/Cmd+Shift+R) to clear caches."
