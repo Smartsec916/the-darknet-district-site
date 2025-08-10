@@ -494,8 +494,13 @@ function drawExitDoor(){
   if(!exitDoor) return;
   const x=(exitDoor.x-cameraX)|0, y=exitDoor.y|0;
   if(x>VW||x+exitDoor.w<0) return;
-  if(doorImg){ ctx.drawImage(doorImg, x, y, exitDoor.w, exitDoor.h); }
-  else{ ctx.fillStyle='#222'; ctx.fillRect(x,y,exitDoor.w,exitDoor.h); ctx.fillStyle='#6fc2ff'; ctx.fillRect(x+exitDoor.w-6,y+exitDoor.h/2-3,4,6); }
+  if(doorImg){ 
+    ctx.drawImage(doorImg, x, y, exitDoor.w, exitDoor.h); 
+  } else { 
+    // Fallback if image not loaded
+    ctx.fillStyle='#222'; ctx.fillRect(x,y,exitDoor.w,exitDoor.h); 
+    ctx.fillStyle='#6fc2ff'; ctx.fillRect(x+exitDoor.w-6,y+exitDoor.h/2-3,4,6); 
+  }
 }
 
 function drawEntities(now){
