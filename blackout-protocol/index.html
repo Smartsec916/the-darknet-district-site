@@ -347,6 +347,13 @@ async function loadTiles(){
   coinImg = await IMG(SPRITE_DEF.coin);
   doorImg = await IMG(SPRITE_DEF.door);
   ledgeImg= await IMG(SPRITE_DEF.ledge);
+  
+  // Debug logging for door image
+  if(doorImg) {
+    console.log('Door image loaded successfully:', doorImg.width, 'x', doorImg.height);
+  } else {
+    console.warn('Failed to load door.png');
+  }
 }
 
 function cull(){ const cutoff=cameraX-300;
@@ -494,12 +501,16 @@ function drawExitDoor(){
   if(!exitDoor) return;
   const x=(exitDoor.x-cameraX)|0, y=exitDoor.y|0;
   if(x>VW||x+exitDoor.w<0) return;
-  if(doorImg){ 
+  
+  if(doorImg && doorImg.complete && doorImg.naturalWidth > 0){ 
+    // Scale the door image to fit the door dimensions
     ctx.drawImage(doorImg, x, y, exitDoor.w, exitDoor.h); 
   } else { 
-    // Fallback if image not loaded
-    ctx.fillStyle='#222'; ctx.fillRect(x,y,exitDoor.w,exitDoor.h); 
-    ctx.fillStyle='#6fc2ff'; ctx.fillRect(x+exitDoor.w-6,y+exitDoor.h/2-3,4,6); 
+    // Fallback if image not loaded or failed to load
+    ctx.fillStyle='#444'; ctx.fillRect(x,y,exitDoor.w,exitDoor.h); 
+    ctx.fillStyle='#6fc2ff'; ctx.fillRect(x+exitDoor.w-6,y+exitDoor.h/2-3,4,6);
+    ctx.fillStyle='#fff'; ctx.fillRect(x+2,y+4,exitDoor.w-4,2);
+    ctx.fillStyle='#ccc'; ctx.fillText('DOOR',x+2,y+exitDoor.h-4);
   }
 }
 
