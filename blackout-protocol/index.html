@@ -549,9 +549,9 @@ function drawOverlay(now){
     if(!img) continue;
 
     // scale to a nice panel size
-    const targetW = Math.round(140*RENDER.scale);
+    const targetW = Math.round(14*RENDER.scale);
     const ratio = img.height ? (img.width/img.height) : 1;
-    const w = targetW, h = Math.max(30, Math.round((targetW/ratio)));
+    const w = targetW, h = Math.max(3, Math.round((targetW/ratio)));
     const x = sx - Math.round(w/2), y = sy - Math.round(h/2) + bob;
 
     // hologram frame
