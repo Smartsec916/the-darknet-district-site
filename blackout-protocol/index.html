@@ -105,28 +105,31 @@ function makeAnimator(sheet, fw, fh, fps){ // 🟢 ANIMATION ENGINE: Brings stat
   };
 }
 
-function makeSeamlessTile(img, opts = {}) {
-  if (!img) return null;
-  const { cropY = 0, cropH = img.height, mode = 'mirror' } = opts;
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+/* === TWO-LAYER PARALLAX (far + near) =============================== */
 
-  canvas.width = img.width * 2;
-  canvas.height = cropH;
+const BG = {
+  far: null, near: null,
+  farW: 0,   nearW: 0
+};
 
-  // Draw original
-  ctx.drawImage(img, 0, cropY, img.width, cropH, 0, 0, img.width, cropH);
+// Parallax multipliers (smaller = slower)
+const PARALLAX = { far: 0.25, near: 0.90 };
 
-  if (mode === 'mirror') {
-    // Draw mirrored copy
-    ctx.scale(-1, 1);
-    ctx.drawImage(img, 0, cropY, img.width, cropH, -img.width * 2, 0, img.width, cropH);
-  } else {
-    // Draw regular copy
-    ctx.drawImage(img, 0, cropY, img.width, cropH, img.width, 0, img.width, cropH);
+// Optional: fade the top of the near layer into transparency
+// so far skyline shows through. Increase px for a taller fade.
+const NEAR_FADE_PX = 160;
+
+// Call once at boot
+async function loadBackgrounds() {
+  try {
+    BG.far  = await IMG('assets/01_bg_far.png');
+    BG.near = await IMG('assets/01_bg_near.png');
+    if(BG.far) BG.farW  = BG.far.width;
+    if(BG.near) BG.nearW = BG.near.width;
+    console.log('BG loaded:', { far: BG.farW, near: BG.nearW });
+  } catch (e) {
+    console.warn('BG load error', e);
   }
-
-  return canvas;
 }
 
 async function loadSprites(def){
@@ -143,12 +146,6 @@ async function loadSprites(def){
     }
     out[who]=pack;
   }
-  const bg={};
-  bg.far = await IMG(def.bg_far);
-  bg.mid = await IMG(def.bg_mid);
-  bg.near= await IMG(def.bg_near);
-  bg.rail= await IMG(def.fg_rail);
-  out.bg=bg;
   return out;
 }
 
@@ -401,19 +398,51 @@ function drawSky(){ // 🟢 SKY GRADIENT: Creates atmospheric cyberpunk sky
   for(let y=0;y<VH;y++){ const t=y/VH; ctx.fillStyle=`rgb(${12+18*t|0},${16+30*t|0},${30+58*t|0})`; ctx.fillRect(0,y,VW,1); } // 🟢 VERTICAL GRADIENT: Dark blue to lighter blue
 }
 
-function tileLayer(img,y,speed,alpha=1){
-  if(!img) return;
-  const cx=cameraX|0, w=img.width; if(!w) return;
-  const off=-(cx*speed|0)%w;
-  ctx.save(); ctx.globalAlpha=alpha;
-  for(let x=off-w;x<VW;x+=w) ctx.drawImage(img,x,y);
+// Tiles an image seamlessly across the screen at y,
+// scrolled by cameraX*speed. alpha is optional.
+function tileLayer(img, imgW, speed, y, alpha = 1) {
+  if (!img) return;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  // cameraX should be your world/camera position in pixels
+  const cam = cameraX || 0;
+  let x = -((cam * speed) % imgW);
+  if (x > 0) x -= imgW;
+
+  for (let i = 0; i < 3; i++) {
+    ctx.drawImage(img, Math.floor(x + i * imgW), Math.floor(y));
+  }
   ctx.restore();
 }
-function drawParallax(){
-  tileLayer(window.BGTiles?.far || bgFar, VH-170, 0.25, 1.0);
-  tileLayer(window.BGTiles?.mid || bgMid, VH-160, 0.50, 0.90);
-  tileLayer(window.BGTiles?.near|| bgNear,VH-150, 0.90, 0.90);
-  if(window.BGTiles?.rail || fgRail) tileLayer(window.BGTiles?.rail || fgRail, VH-44 , 1.00, 1.0);
+
+// Draw backgrounds (call near the start of your frame)
+function drawBackgrounds() {
+  if (!BG.far && !BG.near) return;
+
+  // Far skyline: draw from the top of the canvas
+  if(BG.far) tileLayer(BG.far, BG.farW, PARALLAX.far, 0, 1);
+
+  // Near containers: align their *bottom* to the canvas bottom
+  if(BG.near) {
+    const nearY = VH - BG.near.height;
+
+    // Draw near layer, then punch a vertical alpha fade at the top
+    ctx.save();
+    tileLayer(BG.near, BG.nearW, PARALLAX.near, nearY, 1);
+
+    // Fade mask (top of near layer -> transparent)
+    const fadeTop = Math.max(nearY, nearY);
+    const fadeH   = Math.min(NEAR_FADE_PX, BG.near.height);
+    const g = ctx.createLinearGradient(0, fadeTop, 0, fadeTop + fadeH);
+    g.addColorStop(0, 'rgba(0,0,0,0)');  // fully transparent at the very top
+    g.addColorStop(1, 'rgba(0,0,0,1)');  // fully opaque by fade end
+
+    ctx.globalCompositeOperation = 'destination-in';
+    ctx.fillStyle = g;
+    ctx.fillRect(0, nearY, VW, BG.near.height);
+    ctx.restore();
+  }
 }
 
 function drawTiles(){
@@ -480,7 +509,8 @@ function drawUI(now){ // 🟢 USER INTERFACE: All HUD elements and game state di
     if (!SPR.robot?.anim?.idle?.img)  warn('Missing robot_* PNGs'); // 🟢 ROBOT SPRITES: Check for enemy animations
     if (!SPR.drone?.anim?.idle?.img)  warn('Missing drone_* PNGs'); // 🟢 DRONE SPRITES: Check for surveillance animations
   }
-  if (!bgFar) warn('Missing: assets/01_bg_far.png (using gradient sky)'); // 🟢 BACKGROUND ASSETS: Check for cityscape layers
+  if (!BG.far) warn('Missing: assets/01_bg_far.png (using gradient sky)'); // 🟢 BACKGROUND ASSETS: Check for far background
+  if (!BG.near) warn('Missing: assets/01_bg_near.png'); // 🟢 NEAR BACKGROUND: Check for near layer
 }
 
 function drawOverlay(now){
@@ -529,19 +559,7 @@ function reset(){
 async function boot(){
   try {
     SPR = await loadSprites(SPRITE_DEF);
-    bgFar=SPR.bg.far; bgMid=SPR.bg.mid; bgNear=SPR.bg.near; fgRail=SPR.bg.rail;
-
-    // Build seamless parallax tiles if available
-    if (bgFar || bgMid || bgNear) {
-      const FAR_CROP_TOP = 0;
-      const FAR_CROP_H   = Math.floor((bgFar?.height || 0) * 0.70) || (bgFar?.height || 0);
-      window.BGTiles = {
-        far : makeSeamlessTile(bgFar,  { cropY: FAR_CROP_TOP,  cropH: FAR_CROP_H,  mode:'mirror' }),
-        mid : makeSeamlessTile(bgMid,  { cropY: 0, cropH: bgMid?.height || 0,     mode:'mirror' }),
-        near: makeSeamlessTile(bgNear, { cropY: 0, cropH: bgNear?.height || 0,    mode:'mirror' }),
-        rail: fgRail
-      };
-    }
+    await loadBackgrounds();
 
     player = makePlayer();
     setAnim(player,'player','idle');
@@ -574,7 +592,7 @@ function loop(now){ // 🟢 MAIN GAME LOOP: 60fps game engine heartbeat
 
   // 🟢RENDERING PIPELINE: Draw everything in proper order
   ctx.fillStyle = '#000'; ctx.fillRect(0,0,VW,VH); // 🟢 CLEAR SCREEN: Start with black canvas
-  if (window.BGTiles?.far || bgFar) { drawParallax(); } else { drawSky(); } // 🟢 BACKGROUND: Enhanced parallax or fallback
+  if (BG.far || BG.near) { drawBackgrounds(); } else { drawSky(); } // 🟢 BACKGROUND: Two-layer parallax or fallback
   drawTiles(); drawTerminals(); drawEntities(now); drawUI(now); // 🟢 WORLD LAYERS: Platforms, terminals, characters, UI
   blit(); drawOverlay(now); // 🟢 FINAL DISPLAY: Scale to screen and add overlays
 
