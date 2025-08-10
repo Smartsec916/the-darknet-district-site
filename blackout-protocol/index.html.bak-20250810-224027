@@ -27,7 +27,7 @@
 const SHOP_URL = './game-shop.html';               // <— where to send player on door touch
 const LEVEL_LEN = 1600;                  // <— how far until the shop door
 const DOOR_W = 24, DOOR_H = 32;          // size of door sprite
-const HYPER_RELOAD_TAG = 'rev=20250810-224122'; // cache-bust new images
+const HYPER_RELOAD_TAG = 'rev=2025-08-10'; // cache-bust new images
 
 /* ================= CORE / DISPLAY ================= */
 let READY=false, LOAD_MSG='Loading…';
@@ -772,7 +772,6 @@ async function boot(){
   try{
     SPR = await loadSprites(SPRITE_DEF);
     await Promise.all([loadBackgrounds(), loadTiles(), loadAdImages()]);
-    await assetSelfTest();
     player = makePlayer(); setAnim(player,'player','idle');
     for(let x=0;x<CHUNK*4;x+=CHUNK) genChunk(x);
     placeExitDoor();
@@ -802,59 +801,3 @@ requestAnimationFrame(loop);
 </body>
 </html>
 
-
-<!-- === Injected: Asset Self-Test (diagnostic) === -->
-<script>
-function __collectAssetUrls(){
-  try{
-    const urls=[];
-    if (typeof SPRITE_DEF==='object'){
-      ['player','robot','drone'].forEach(k=>{
-        const o=SPRITE_DEF[k]; if(o&&o.states) urls.push(...Object.values(o.states));
-      });
-      ['bg_far','bg_near','coin','door','ledge'].forEach(k=>{
-        if (SPRITE_DEF[k]) urls.push(SPRITE_DEF[k]);
-      });
-    }
-    if (typeof AD_SRC==='object'){
-      ['fourk','meat','holo','rent','drinkA','drinkB'].forEach(k=>AD_SRC[k]&&urls.push(AD_SRC[k]));
-    }
-    return urls.filter(Boolean);
-  }catch(e){ console.warn('URL collection failed',e); return []; }
-}
-
-async function assetSelfTest(){
-  const urls=__collectAssetUrls();
-  if(!urls.length){ console.warn('Asset test: no URLs collected'); return; }
-  const head=async u=>{ try{ const r=await fetch(u,{method:'HEAD',cache:'no-store'}); return {url:u,ok:r.ok,status:r.status}; }catch(e){ return {url:u,ok:false,status:'network'}; } };
-  const results=await Promise.all(urls.map(head));
-  const bad=results.filter(r=>!r.ok);
-  if(bad.length){
-    console.group('%cMissing/blocked assets','color:#ffb36a');
-    bad.forEach(b=>console.warn(b.status,b.url));
-    console.groupEnd();
-    window.__ASSET_ERRORS__=bad.map(b=>b.url);
-  }else{
-    console.info('All assets resolved (HEAD ok).');
-    window.__ASSET_ERRORS__=[];
-  }
-}
-
-(function(){
-  const _oldDrawUI=window.drawUI;
-  if(typeof _oldDrawUI==='function'){
-    window.drawUI=function(now){
-      _oldDrawUI.call(this,now);
-      try{
-        const errs=Array.isArray(window.__ASSET_ERRORS__)?window.__ASSET_ERRORS__:[];
-        if(errs.length&&typeof ctx!=='undefined'){
-          let y=64; ctx.fillStyle='#ffb36a';
-          ctx.fillText('Missing assets:',6,y); y+=10;
-          errs.slice(0,6).forEach(u=>{ const short=u.replace(location.origin,''); ctx.fillText(short,6,y); y+=10; });
-          if(errs.length>6) ctx.fillText(`…and ${errs.length-6} more`,6,y);
-        }
-      }catch(e){}
-    };
-  }
-})();
-</script>
