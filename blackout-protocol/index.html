@@ -121,10 +121,31 @@ const PARALLAX={far:0.25, near:0.9};
 const NEAR_FADE_PX=120;
 
 async function loadBackgrounds(){
+  console.log('Loading backgrounds...');
+  console.log('Expected paths:', {
+    far: SPRITE_DEF.bg_far,
+    near: SPRITE_DEF.bg_near
+  });
+  
   BG.far  = await IMG(SPRITE_DEF.bg_far);
   BG.near = await IMG(SPRITE_DEF.bg_near);
-  if(BG.far)  BG.farW  = BG.far.width;
-  if(BG.near) BG.nearW = BG.near.width;
+  
+  if(BG.far && BG.far.complete && BG.far.naturalWidth > 0) {
+    BG.farW = BG.far.width;
+    console.log('✓ Far background loaded:', BG.farW + 'px wide');
+  } else {
+    console.error('✗ Failed to load far background:', SPRITE_DEF.bg_far);
+    BG.farW = 0;
+  }
+  
+  if(BG.near && BG.near.complete && BG.near.naturalWidth > 0) {
+    BG.nearW = BG.near.width;
+    console.log('✓ Near background loaded:', BG.nearW + 'px wide');
+  } else {
+    console.error('✗ Failed to load near background:', SPRITE_DEF.bg_near);
+    BG.nearW = 0;
+  }
+  
   console.log('BG loaded:', {far:BG.farW, near:BG.nearW});
 }
 
@@ -379,25 +400,32 @@ function tryHack(){
 /* ================= UPDATE ================= */
 let coinImg=null, doorImg=null, ledgeImg=null;
 async function loadTiles(){
+  console.log('Loading tiles...');
+  console.log('Expected paths:', {
+    coin: SPRITE_DEF.coin,
+    door: SPRITE_DEF.door,
+    ledge: SPRITE_DEF.ledge
+  });
+  
   coinImg = await IMG(SPRITE_DEF.coin);
   doorImg = await IMG(SPRITE_DEF.door);
   ledgeImg= await IMG(SPRITE_DEF.ledge);
   
   // Debug logging for all tile images
-  if(coinImg) {
-    console.log('Coin image loaded successfully:', coinImg.width, 'x', coinImg.height);
+  if(coinImg && coinImg.complete && coinImg.naturalWidth > 0) {
+    console.log('✓ Coin image loaded successfully:', coinImg.width, 'x', coinImg.height);
   } else {
-    console.warn('Failed to load coin.png');
+    console.error('✗ Failed to load coin.png:', SPRITE_DEF.coin);
   }
-  if(doorImg) {
-    console.log('Door image loaded successfully:', doorImg.width, 'x', doorImg.height);
+  if(doorImg && doorImg.complete && doorImg.naturalWidth > 0) {
+    console.log('✓ Door image loaded successfully:', doorImg.width, 'x', doorImg.height);
   } else {
-    console.warn('Failed to load door.png');
+    console.error('✗ Failed to load door.png:', SPRITE_DEF.door);
   }
-  if(ledgeImg) {
-    console.log('Ledge image loaded successfully:', ledgeImg.width, 'x', ledgeImg.height);
+  if(ledgeImg && ledgeImg.complete && ledgeImg.naturalWidth > 0) {
+    console.log('✓ Ledge image loaded successfully:', ledgeImg.width, 'x', ledgeImg.height);
   } else {
-    console.warn('Failed to load ledge_tile.png');
+    console.error('✗ Failed to load ledge_tile.png:', SPRITE_DEF.ledge);
   }
 }
 
