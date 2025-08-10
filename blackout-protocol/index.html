@@ -65,23 +65,22 @@ const SPRITE_DEF={
     idle:'assets/drone_idle_32.png', hover:'assets/drone_hover_32.png', move:'assets/drone_move_32.png',
     attack:'assets/drone_attack_32.png', hurt:'assets/drone_hurt_32.png', dead:'assets/drone_dead_32.png'
   }, fps:{idle:3, hover:10, move:10, attack:12, hurt:6, dead:8}},
-  // background/tiles/hooks
-  bg_far:'assets/01_bg_far.png',
-  // Force new near layer (cache-bust):
+  // background/tiles/hooks with cache-busting for proper loading
+  bg_far:`assets/01_bg_far.png?${HYPER_RELOAD_TAG}`,
   bg_near:`assets/01_bg_near.png?${HYPER_RELOAD_TAG}`,
-  coin:'assets/coin.png',
-  door:'assets/door.png',
-  ledge:'assets/ledge_tile.png'
+  coin:`assets/coin.png?${HYPER_RELOAD_TAG}`,
+  door:`assets/door.png?${HYPER_RELOAD_TAG}`,
+  ledge:`assets/ledge_tile.png?${HYPER_RELOAD_TAG}`
 };
 
 /* ===== Graphic Ads (your PNGs) ===== */
 const AD_SRC = {
-  fourk: 'assets/4K.png',
-  meat:  'assets/Meat.png',
-  holo:  'assets/HoloCompanion.png',
-  rent:  'assets/Rent.png',
-  drinkA:'assets/Drink_Oil_01.png',
-  drinkB:'assets/Drink_Oil_02.png'
+  fourk: `assets/4K.png?${HYPER_RELOAD_TAG}`,
+  meat:  `assets/Meat.png?${HYPER_RELOAD_TAG}`,
+  holo:  `assets/HoloCompanion.png?${HYPER_RELOAD_TAG}`,
+  rent:  `assets/Rent.png?${HYPER_RELOAD_TAG}`,
+  drinkA:`assets/Drink_Oil_01.png?${HYPER_RELOAD_TAG}`,
+  drinkB:`assets/Drink_Oil_02.png?${HYPER_RELOAD_TAG}`
 };
 const AD_KINDS = ['fourk','meat','holo','rent','drink']; // pool for random selection
 
@@ -255,13 +254,24 @@ function genChunk(startX){
     platforms.push({x:(px/TILE|0)*TILE, y:(py/TILE|0)*TILE, w:pw, h:TILE});
   }
 
-  // coins (2-4 per chunk)
-  const cc=2+((Math.random()*3)|0);
+  // coins (3-5 per chunk for better accessibility)
+  const cc=3+((Math.random()*3)|0);
   for(let i=0;i<cc;i++){
-    const cx=startX+30+Math.random()*(CHUNK-60);
-    let cy=VH-64-((Math.random()*96)|0);
-    for(const p of platforms){ if(cx>=p.x-6 && cx<=p.x+p.w+6) cy=Math.min(cy, p.y-14); }
-    coins.push({x:cx|0, y:cy|0, r:6, taken:false});
+    const cx=startX+40+Math.random()*(CHUNK-80);
+    let cy=VH-80-((Math.random()*80)|0);
+    
+    // Place coins above platforms for better accessibility
+    for(const p of platforms){ 
+      if(cx>=p.x-8 && cx<=p.x+p.w+8) {
+        cy=Math.min(cy, p.y-20); // Place coins higher above platforms
+      }
+    }
+    
+    // Ensure coins are not too high or too low
+    cy = Math.max(cy, 32); // Not too high
+    cy = Math.min(cy, VH-32); // Not too low
+    
+    coins.push({x:cx|0, y:cy|0, r:8, taken:false}); // Slightly larger radius for easier collection
   }
 
   // terminals
@@ -348,11 +358,21 @@ async function loadTiles(){
   doorImg = await IMG(SPRITE_DEF.door);
   ledgeImg= await IMG(SPRITE_DEF.ledge);
   
-  // Debug logging for door image
+  // Debug logging for all tile images
+  if(coinImg) {
+    console.log('Coin image loaded successfully:', coinImg.width, 'x', coinImg.height);
+  } else {
+    console.warn('Failed to load coin.png');
+  }
   if(doorImg) {
     console.log('Door image loaded successfully:', doorImg.width, 'x', doorImg.height);
   } else {
     console.warn('Failed to load door.png');
+  }
+  if(ledgeImg) {
+    console.log('Ledge image loaded successfully:', ledgeImg.width, 'x', ledgeImg.height);
+  } else {
+    console.warn('Failed to load ledge_tile.png');
   }
 }
 
@@ -492,9 +512,28 @@ function drawTerminals(){
 function drawCoins(now){
   for(const c of coins){
     if(c.taken) continue;
-    const x=(c.x-cameraX)|0, y=c.y|0; if(x<-12||x>VW) continue;
-    if(coinImg){ ctx.drawImage(coinImg, x-6, y-6, 12, 12); }
-    else{ ctx.fillStyle='#ffd95e'; ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#8b5'; ctx.fillRect(x-1,y-4,2,8); }
+    const x=(c.x-cameraX)|0, y=c.y|0; if(x<-16||x>VW+16) continue;
+    
+    // Ensure coin image is loaded and complete before drawing
+    if(coinImg && coinImg.complete && coinImg.naturalWidth > 0){ 
+      // Draw coin with proper centering and size
+      const coinSize = 16; // Make coins slightly larger and more visible
+      ctx.drawImage(coinImg, x-coinSize/2, y-coinSize/2, coinSize, coinSize); 
+    } else { 
+      // Fallback coin drawing if image fails to load
+      ctx.fillStyle='#ffd95e'; 
+      ctx.beginPath(); 
+      ctx.arc(x, y, 6, 0, Math.PI*2); 
+      ctx.fill(); 
+      ctx.strokeStyle='#ffaa00';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      // Add a simple "₿" symbol for BTC
+      ctx.fillStyle='#000';
+      ctx.font = '8px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('₿', x, y+2);
+    }
   }
 }
 function drawExitDoor(){
