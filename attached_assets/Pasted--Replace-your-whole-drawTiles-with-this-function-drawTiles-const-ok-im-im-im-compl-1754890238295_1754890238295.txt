@@ -1,0 +1,58 @@
+// Replace your whole drawTiles() with this:
+function drawTiles(){
+  const ok = (im)=>im && im.complete && im.naturalWidth>0;
+  // Prefer the ledge art; fall back to platform_industrial only if ledge is missing
+  const img = ok(ledgeImg) ? ledgeImg : (ok(platformImg) ? platformImg : null);
+
+  // How we split ledge_tile.png vertically: top = rails, bottom = deck
+  const RAIL_FRAC   = 0.55;    // top ~55% are the rails/fence
+  const DST_BASE_H  = 20;      // rendered deck thickness (collision stays TILE=16)
+
+  for (const p of platforms){
+    const sx = p.x - cameraX; if (sx + p.w < 0 || sx > VW) continue;
+
+    if (!ok(img)) {
+      // fallback visual so a missing PNG never makes platforms invisible
+      ctx.fillStyle = '#1a2332'; ctx.fillRect(sx|0, p.y|0, p.w, TILE);
+      ctx.fillStyle = '#6fc2ff'; ctx.fillRect(sx|0, p.y|0, p.w, 2);
+      ctx.fillStyle = '#4a5568'; ctx.fillRect(sx|0, (p.y+TILE-2)|0, p.w, 2);
+      continue;
+    }
+
+    const iw = img.naturalWidth, ih = img.naturalHeight;
+    const srcBaseY = Math.floor(ih * RAIL_FRAC);
+    const srcBaseH = ih - srcBaseY;
+
+    // crop 1px inset to avoid sampling outside transparent edges
+    const srcX = 1, srcW = Math.max(1, iw - 2);
+
+    // draw deck slightly taller than TILE so it looks chunky, but keep the top aligned to physics
+    const dy = (p.y - (DST_BASE_H - TILE)) | 0;
+    ctx.drawImage(img, srcX, srcBaseY, srcW, srcBaseH, sx|0, dy, p.w, DST_BASE_H);
+  }
+}
+
+// Replace your whole drawRailsOnTop() with this:
+function drawRailsOnTop(){
+  const ok = (im)=>im && im.complete && im.naturalWidth>0;
+  const img = ok(ledgeImg) ? ledgeImg : null;  // use SAME file for the rail so alpha is correct
+  if (!img) return;
+
+  const RAIL_FRAC   = 0.55;
+  const DST_BASE_H  = 20;      // must match the one above
+
+  const iw = img.naturalWidth, ih = img.naturalHeight;
+  const railSrcH = Math.floor(ih * RAIL_FRAC);
+  const baseSrcH = ih - railSrcH;
+  const scale    = DST_BASE_H / baseSrcH;            // keep rail/base proportions consistent
+  const railDstH = Math.max(10, Math.round(railSrcH * scale));
+
+  const srcX = 1, srcW = Math.max(1, iw - 2);
+
+  for (const p of platforms){
+    if (p.y >= VH - TILE) continue;                 // only floating platforms get rails
+    const sx = p.x - cameraX; if (sx + p.w < 0 || sx > VW) continue;
+    const y  = (p.y - railDstH) | 0;
+    ctx.drawImage(img, srcX, 0, srcW, railSrcH, sx|0, y, p.w, railDstH);
+  }
+}
