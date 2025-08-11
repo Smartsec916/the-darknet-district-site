@@ -495,18 +495,12 @@ function drawTiles(){
     const tileImg = ledgeImg;
 
     if(tileImg && tileImg.complete && tileImg.naturalWidth>0){
-      // Draw complete platform graphics side by side to fill the platform width
+      // Draw the full graphic stretched across the platform width
       const imgW = tileImg.naturalWidth;
       const imgH = tileImg.naturalHeight;
-      const numTiles = Math.ceil(p.w / imgW);
-      
-      for(let i = 0; i < numTiles; i++){
-        const tileX = sx + (i * imgW);
-        const clipW = Math.min(imgW, sx + p.w - tileX); // clip last tile if needed
-        if(clipW > 0){
-          ctx.drawImage(tileImg, 0, 0, clipW, imgH, tileX|0, p.y|0, clipW, TILE);
-        }
-      }
+      // Draw one complete graphic stretched to platform width, maintaining aspect ratio
+      const drawH = Math.min(TILE, imgH);
+      ctx.drawImage(tileImg, 0, 0, imgW, imgH, sx|0, p.y|0, p.w, drawH);
     }else{
       // fallback boxes
       ctx.fillStyle='#3a3f47'; ctx.fillRect(sx|0,p.y|0,p.w,TILE);
