@@ -23,19 +23,17 @@
 </div>
 
 <script>
-/* ================= CONFIG YOU MAY TWEAK ================= */
-const SHOP_URL = './game-shop.html';                 // where to send player on door touch
-const LEVEL_LEN = 1600;                              // how far until the shop door
-const DOOR_W = 24, DOOR_H = 32;                      // size of door sprite
-// 🔥 Cache-buster: new value each page load so images always refresh
+/* ================= CONFIG ================= */
+const SHOP_URL = './game-shop.html';
+const LEVEL_LEN = 1600;
+const DOOR_W = 24, DOOR_H = 32;
 const HYPER_RELOAD_TAG = 'rev=' + Date.now();
 
 /* ================= CORE / DISPLAY ================= */
 let READY=false, LOAD_MSG='Loading…';
-window.addEventListener('error', e => console.error('Runtime error:', e.message));
+addEventListener('error', e => console.error('Runtime error:', e.message));
 
 const VW=256, VH=240, TILE=16;
-const PLATFORM_H=24;
 
 const gameCanvas=document.getElementById('gameCanvas');
 const overlayCanvas=document.getElementById('overlayCanvas');
@@ -43,7 +41,10 @@ const gctx=gameCanvas.getContext('2d'); gctx.imageSmoothingEnabled=false;
 const octx=overlayCanvas.getContext('2d');
 
 const nes=document.createElement('canvas'); nes.width=VW; nes.height=VH;
-const ctx=nes.getContext('2d',{alpha:false}); ctx.imageSmoothingEnabled=false; ctx.font='9px monospace';
+const ctx=nes.getContext('2d',{alpha:false});
+ctx.imageSmoothingEnabled=false;
+ctx.font='9px monospace';
+ctx.textBaseline='top';
 
 let RENDER={scale:1,ox:0,oy:0};
 function fit(){
@@ -59,6 +60,7 @@ addEventListener('keydown',e=>{
 
 /* ================= ASSETS ================= */
 const IMG = (path) => new Promise(resolve=>{
+  if(!path){ resolve(null); return; }
   const i=new Image();
   i.onload=()=>{ console.log('✓ Asset loaded successfully:', path); resolve(i); };
   i.onerror=()=>{ console.error('✗ Failed to load asset:', path); resolve(null); };
@@ -84,11 +86,11 @@ const SPRITE_DEF={
   coin:`assets/btc_glow.png?${HYPER_RELOAD_TAG}`,
   door:`assets/shop_door_neon.png?${HYPER_RELOAD_TAG}`,
   ledge:`assets/ledge_tile.png?${HYPER_RELOAD_TAG}`,
-  platform:`assets/platform_industrial.png?${HYPER_RELOAD_TAG}`,   // optional; falls back to ledge
-  terminal:`assets/hacker_terminal.png?${HYPER_RELOAD_TAG}`
+  platform:`assets/platform_industrial.png?${HYPER_RELOAD_TAG}`,
+  terminal:'' // no base terminal; we use animated frames below
 };
 
-/* ===== Graphic Ads (your PNGs) ===== */
+/* ===== Graphic Ads (your PNGs) — without repeats until deck is used ===== */
 const AD_SRC = {
   fourk: `assets/4K.png?${HYPER_RELOAD_TAG}`,
   meat:  `assets/Meat.png?${HYPER_RELOAD_TAG}`,
@@ -98,6 +100,11 @@ const AD_SRC = {
   drinkB:`assets/Drink_Oil_02.png?${HYPER_RELOAD_TAG}`
 };
 const AD_KINDS = ['fourk','meat','holo','rent','drink'];
+let adDeck=[];
+function refillDeck(){ adDeck=[...AD_KINDS].sort(()=>Math.random()-0.5); }
+function nextAdKind(){ if(!adDeck.length) refillDeck(); return adDeck.shift(); }
+refillDeck();
+
 const AdImages = { fourk:null, meat:null, holo:null, rent:null, drink:[null,null] };
 async function loadAdImages(){
   AdImages.fourk = await IMG(AD_SRC.fourk);
@@ -127,36 +134,45 @@ function makeAnimator(sheet, fw, fh, fps){
 }
 
 /* ================= PARALLAX ================= */
-const BG={far:null, near:null, farW:0, nearW:0};
-const PARALLAX={far:0.25, near:0.9};
+const BG={far:null, near:null};
+const PARALLAX={far:0.18, near:0.55};
 const NEAR_FADE_PX=120;
 
 async function loadBackgrounds(){
   console.log('Loading backgrounds...', {far: SPRITE_DEF.bg_far, near: SPRITE_DEF.bg_near});
   BG.far  = await IMG(SPRITE_DEF.bg_far);
   BG.near = await IMG(SPRITE_DEF.bg_near);
-  BG.farW  = BG.far  && BG.far.naturalWidth  ? BG.far.width  : 0;
-  BG.nearW = BG.near && BG.near.naturalWidth ? BG.near.width : 0;
-  if(!BG.farW)  console.error('✗ Failed to load far background:', SPRITE_DEF.bg_far);
-  if(!BG.nearW) console.error('✗ Failed to load near background:', SPRITE_DEF.bg_near);
-  console.log('BG loaded:', {far: BG.farW, near: BG.nearW});
+  console.log('BG loaded:', {far: BG.far?.naturalWidth||0, near: BG.near?.naturalWidth||0});
 }
 
-function tileParallax(img, imgW, speed, dstH){
-  if(!img||!imgW) return;
+// Scale to VH only, tile horizontally, flip every tile to avoid obvious seams
+function tileParallax(img, speed){
+  if(!img) return;
+  const scale = VH / img.height;
+  const tileW = Math.max(1, Math.round(img.width * scale));
   const cam = cameraX||0;
-  let x = -((cam*speed) % imgW);
-  if (x>0) x -= imgW;
-  for(let i=0;i<3;i++){
-    ctx.drawImage(img, Math.floor(x+i*imgW), 0, imgW, img.height, Math.floor(x+i*imgW), 0, imgW, dstH);
+  let x = -Math.floor((cam*speed) % tileW);
+  if (x>0) x -= tileW;
+  for(let i=0;i<4;i++){
+    const drawX = x + i*tileW;
+    const flip = (i%2)===1;
+    ctx.save();
+    if(flip){
+      ctx.translate(drawX + tileW, 0);
+      ctx.scale(-1,1);
+      ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, tileW, VH);
+    }else{
+      ctx.drawImage(img, 0, 0, img.width, img.height, drawX, 0, tileW, VH);
+    }
+    ctx.restore();
   }
 }
 function drawBackgrounds(){
   if(!BG.far && !BG.near){ drawSky(); return; }
-  if(BG.far) tileParallax(BG.far, BG.farW, PARALLAX.far, VH);
+  if(BG.far)  tileParallax(BG.far,  PARALLAX.far);
   if(BG.near){
     ctx.save();
-    tileParallax(BG.near, BG.nearW, PARALLAX.near, VH);
+    tileParallax(BG.near, PARALLAX.near);
     const fadeH=Math.min(NEAR_FADE_PX,VH);
     const g=ctx.createLinearGradient(0,0,0,fadeH);
     g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,1)');
@@ -188,14 +204,16 @@ async function loadSprites(def){
 let gameState='loading', score=0, btc=0, level=1, justLeveled=0;
 let cameraX=0, worldMaxX=0;
 const CHUNK=320;
-const DEAD_ZONE=2;
 
+// camera follows earlier so parallax is more visible
+const DEAD_ZONE=8;
 function updateCamera(){
-  const center=VW*.5, L=center-DEAD_ZONE, R=center+DEAD_ZONE;
+  const center=VW*0.40; // keep player slightly left of center
+  const L=center-DEAD_ZONE, R=center+DEAD_ZONE;
   let target=cameraX;
   if(player.x-cameraX<L) target=player.x-L;
   else if(player.x-cameraX>R) target=player.x-R;
-  cameraX += (target-cameraX)*.25;
+  cameraX += (target-cameraX)*0.45;
   cameraX=Math.max(0,Math.min(cameraX, worldMaxX-VW));
 }
 
@@ -217,11 +235,10 @@ let exitDoor=null;
 const resetBtn=document.getElementById('resetBtn'); resetBtn.onclick=()=>reset();
 
 function makePlayer(){
-  // Load saved stats if returning from shop
   const savedHealth = parseInt(localStorage.getItem('playerHealth')) || 100;
   const savedUpgrades = JSON.parse(localStorage.getItem('playerUpgrades')) || {};
   const baseSpeed = 1.52;
-  const baseJump  = 5.2;
+  const baseJump  = 5.6;
   const speed = savedUpgrades.speedBoost ? baseSpeed * 1.3 : baseSpeed;
   const jump  = savedUpgrades.jumpBoost  ? baseJump  * 1.2 : baseJump;
   return { x:32, y:VH-80, w:18, h:28, vx:0, vy:0, onGround:false, facing:1,
@@ -244,68 +261,65 @@ function drawAnim(a,who,x,y,flip=false,alpha=1){ const run=a.anim.runner; if(run
 /* ================= WORLD GEN ================= */
 const choice = a => a[(Math.random()*a.length)|0];
 let generatedUntil=0;
-function groundY(){ return VH-TILE; }
+const groundY = () => VH-TILE;
 
 function genChunk(startX){
   const endX=startX+CHUNK;
+  const firstScreen = startX < VW;
 
-  // ground
+  // ground tiles
   for(let x=startX;x<endX;x+=TILE) platforms.push({x,y:groundY(),w:TILE,h:TILE});
 
-  // floating ledges (single, bigger slabs)
-  const pc=1; // 1–2 per chunk
-  for(let i=0;i<pc;i++){
-    const px=startX+40+Math.random()*(CHUNK-80);
-    const py=VH-(64+((Math.random()*96)|0));
-    const pw = TILE * (5 + ((Math.random()*4)|0)); // 10–16 tiles wide
-    platforms.push({x:(px/TILE|0)*TILE, y:(py/TILE|0)*TILE, w:pw, h:TILE});
-  }
+  if(!firstScreen){
+    // one guaranteed climbable pair; keeps at most 2 visible
+    const LOW_LEDGE_OFFSET  = TILE*3;
+    const HIGH_LEDGE_OFFSET = TILE*5;
 
-  // coins (3–5 per chunk)
-  const cc=3+((Math.random()*3)|0);
-  for(let i=0;i<cc;i++){
-    const cx=startX+40+Math.random()*(CHUNK-80);
-    let cy=VH-80-((Math.random()*60)|0);
-    let placedOnPlatform=false;
-    for(const p of platforms){
-      if(cx>=p.x-16 && cx<=p.x+p.w+16){
-        if(p.y < VH-TILE){ cy = p.y - 24; placedOnPlatform=true; break; }
-      }
+    const baseX = startX + 50 + Math.random()*(CHUNK-140);
+    const lowX  = Math.max(startX+24, Math.min(endX-110, (baseX/TILE|0)*TILE));
+    const highX = Math.min(endX-60, lowX + TILE*(5 + ((Math.random()*2)|0)));
+
+    const lowW  = TILE*(5 + ((Math.random()*2)|0));
+    const highW = TILE*(4 + ((Math.random()*2)|0));
+
+    const lowY  = groundY() - LOW_LEDGE_OFFSET;
+    const highY = groundY() - HIGH_LEDGE_OFFSET;
+
+    platforms.push({x:lowX,  y:lowY,  w:lowW,  h:TILE});
+    platforms.push({x:highX, y:highY, w:highW, h:TILE});
+
+    // coins anchored above ledges
+    const above = [
+      {x: lowX + 8 + Math.random()*(Math.max(16, lowW-16)),  y: lowY-20},
+      {x: highX + 8 + Math.random()*(Math.max(16, highW-16)), y: highY-20},
+      {x: (lowX+highX)/2, y: Math.min(lowY, highY)-26}
+    ];
+    for(const p of above){ coins.push({x:p.x|0, y:Math.max(40,Math.min(VH-24,p.y))|0, r:10, taken:false}); }
+
+    // terminals
+    if(Math.random()<.5){
+      const tx=startX+40+Math.random()*(CHUNK-80); let ty=VH-TILE*2;
+      for(const p of platforms){ if(tx>=p.x-4 && tx<=p.x+p.w+4) ty=Math.min(ty,p.y-TILE); }
+      terminals.push({x:tx|0,y:ty|0,w:12,h:16,cooldown:0});
     }
-    if(!placedOnPlatform){
-      let nearPlatform=false;
-      for(const p of platforms){
-        const dist=Math.abs(cx - (p.x + p.w/2));
-        if(dist<=80 && p.y < VH-TILE){ nearPlatform=true; cy=Math.min(cy, p.y-16); break; }
-      }
-      if(!nearPlatform) cy = Math.max(cy, VH-100);
-    }
-    cy = Math.max(cy, 40);
-    cy = Math.min(cy, VH-24);
-    coins.push({x:cx|0, y:cy|0, r:10, taken:false});
-  }
 
-  // terminals
-  if(Math.random()<.5){
-    const tx=startX+40+Math.random()*(CHUNK-80); let ty=VH-TILE*2;
-    for(const p of platforms){ if(tx>=p.x-4 && tx<=p.x+p.w+4) ty=Math.min(ty,p.y-TILE); }
-    terminals.push({x:tx|0,y:ty|0,w:12,h:16,cooldown:0});
-  }
+    // ads (no repeats until deck is used)
+    const ax=startX+60+Math.random()*(CHUNK-120), ay=VH-(120+((Math.random()*50)|0));
+    ads.push({x:ax|0,y:ay|0,kind:nextAdKind(),phase:Math.random()*6});
 
-  // ads (now graphic)
-  const ac=1+((Math.random()*2)|0);
-  for(let i=0;i<ac;i++){
-    const ax=startX+40+Math.random()*(CHUNK-80), ay=VH-(120+((Math.random()*60)|0));
-    const kind = choice(AD_KINDS);
-    ads.push({x:ax|0,y:ay|0,kind,phase:Math.random()*6});
-  }
-
-  // enemies — do NOT spawn in the initial screen
-  if(startX>=256){
+    // enemies
     const rc=1+((Math.random()*2)|0);
     for(let i=0;i<rc;i++){
       const rx=startX+64+Math.random()*(CHUNK-128);
-      robots.push({x:rx|0,y:VH-TILE*2,w:18,h:24,dir:Math.random()<.5?-1:1,speed:.66,hp:3,alert:false,hitUntil:0,active:false,anim:{state:'idle',runner:null}});
+      robots.push({
+        x:rx|0,y:VH-TILE*2,w:18,h:24,
+        dir:Math.random()<.5?-1:1,speed:.66,hp:3,
+        active:false,hitUntil:0,
+        state:'patrol', alert:false,
+        patrolL:rx-40, patrolR:rx+40,
+        searchUntil:0, lookTimer:0,
+        anim:{state:'idle',runner:null}
+      });
     }
     if(Math.random()<.6){
       const dx=startX+80+Math.random()*(CHUNK-160), dy=60+Math.random()*80;
@@ -348,54 +362,63 @@ function collide(body){
 /* ================= HACK / EMP ================= */
 let hackUntil=0, hackCDUntil=0; 
 const getHackDuration = () => player?.upgrades?.advancedHack ? 5000 : 3000;
-const HACK_MS=3000, CD_MS=5000;
 function tryHack(){
   const now=performance.now(); if(now<hackCDUntil) return;
   const near=terminals.find(t=>Math.hypot((t.x+6)-(player.x+player.w/2),(t.y+8)-(player.y+player.h/2))<18 && t.cooldown<=0);
-  if(near){ const d=getHackDuration(); hackUntil=now+d; hackCDUntil=now+CD_MS; near.cooldown=CD_MS; score+=20; }
+  if(near){ const d=getHackDuration(); hackUntil=now+d; hackCDUntil=now+5000; near.cooldown=5000; score+=20; }
+}
+
+/* ================= COINS: BASE MAGNET + PICKUP ================= */
+function pickupCoins(){
+  for (const c of coins){
+    if (c.taken) continue;
+    const px = player.x + player.w/2, py = player.y + player.h/2;
+    const dx = c.x - px, dy = c.y - py;
+    const dist2 = dx*dx + dy*dy;
+
+    const hasUpgrade = !!(player.upgrades && player.upgrades.coinMagnet);
+    const magnetR = hasUpgrade ? 56 : 24;
+    if (dist2 <= magnetR*magnetR){
+      const d = Math.sqrt(dist2) || 1;
+      const pull = hasUpgrade ? 1.3 : 0.65;
+      c.x -= (dx/d) * pull;
+      c.y -= (dy/d) * pull;
+    }
+    const rr = (c.r || 10) + 8;
+    if (dist2 <= rr*rr){
+      c.taken = true;
+      btc += 1; score += 5;
+    }
+  }
 }
 
 /* ================= UPDATE ================= */
-let coinImg=null, doorImg=null, ledgeImg=null, platformImg=null, terminalImg=null, platformRailImg=null;
+let coinImg=null, doorImg=null, ledgeImg=null, platformImg=null, platformRailImg=null;
 let terminalFrame1=null, terminalFrame2=null;
 
 async function loadTiles(){
   console.log('Loading tiles...', {
     coin: SPRITE_DEF.coin, door: SPRITE_DEF.door, ledge: SPRITE_DEF.ledge,
-    platform: SPRITE_DEF.platform, terminal: SPRITE_DEF.terminal
+    platform: SPRITE_DEF.platform
   });
-  
   try {
     coinImg     = await IMG(SPRITE_DEF.coin);
     doorImg     = await IMG(SPRITE_DEF.door);
     ledgeImg    = await IMG(SPRITE_DEF.ledge);
-    platformImg = await IMG(SPRITE_DEF.platform);          // may be null
-    terminalImg = await IMG(SPRITE_DEF.terminal);
-    platformRailImg = await IMG(`assets/platform_rail.png?${HYPER_RELOAD_TAG}`); // optional overlay
-    
-    // Load animated terminal frames
+    platformImg = await IMG(SPRITE_DEF.platform);
+    platformRailImg = await IMG(`assets/platform_rail.png?${HYPER_RELOAD_TAG}`);
+
+    // Terminal animated frames only (no base hacker_terminal.png)
     terminalFrame1 = await IMG(`assets/hacker_terminal_frame1.png?${HYPER_RELOAD_TAG}`);
     terminalFrame2 = await IMG(`assets/hacker_terminal_frame2.png?${HYPER_RELOAD_TAG}`);
+    if(!(terminalFrame1 && terminalFrame2)) console.warn('Terminal frames missing — fallback rects will render');
 
     const ok = (im)=>im && im.complete && im.naturalWidth>0;
     console[ok(coinImg)?'log':'error'](ok(coinImg)?'✓ Coin image':'✗ Failed to load coin', ok(coinImg)?`${coinImg.width}x${coinImg.height}`:SPRITE_DEF.coin);
     console[ok(doorImg)?'log':'error'](ok(doorImg)?'✓ Door image':'✗ Failed to load door', ok(doorImg)?`${doorImg.width}x${doorImg.height}`:SPRITE_DEF.door);
     console[ok(ledgeImg)?'log':'error'](ok(ledgeImg)?'✓ Ledge image':'✗ Failed to load ledge', ok(ledgeImg)?`${ledgeImg.width}x${ledgeImg.height}`:SPRITE_DEF.ledge);
     console[ok(platformImg)?'log':'warn'](ok(platformImg)?'✓ Platform image':'⚠ No platform_industrial (using ledge)', ok(platformImg)?`${platformImg.width}x${platformImg.height}`:'');
-    console[ok(terminalImg)?'log':'error'](ok(terminalImg)?'✓ Terminal image':'✗ Failed to load terminal', ok(terminalImg)?`${terminalImg.width}x${terminalImg.height}`:SPRITE_DEF.terminal);
     if(ok(platformRailImg)) console.log('✓ Platform rail overlay:', platformRailImg.width+'x'+platformRailImg.height);
-    else console.log('(No platform_rail overlay found — fallback line will be used)');
-
-    if (ledgeImg) {
-      console.log('Ledge image debug:', {
-        src: ledgeImg.src,
-        complete: ledgeImg.complete,
-        naturalWidth: ledgeImg.naturalWidth,
-        naturalHeight: ledgeImg.naturalHeight,
-        width: ledgeImg.width,
-        height: ledgeImg.height
-      });
-    }
   } catch (error) {
     console.error('Error loading tiles:', error);
   }
@@ -416,6 +439,9 @@ function activateEnemies(){
 function update(dt,now){
   if(gameState!=='playing') return;
 
+  // terminals cooldown tick
+  for(const t of terminals){ if(t.cooldown>0) t.cooldown=Math.max(0,t.cooldown-dt); }
+
   const L=!!keys['ArrowLeft'], R=!!keys['ArrowRight'];
   const accel=player.onGround?player.aGround:player.aAir;
   const drag=player.onGround?player.dragG:player.dragA;
@@ -431,6 +457,7 @@ function update(dt,now){
   player.vy+=.18; if(player.vy>3.7) player.vy=3.7;
 
   collide(player);
+  pickupCoins();
 
   if(player.hp<=0) setAnim(player,'player','dead',true);
   else if(now<player.hitUntil) setAnim(player,'player','hurt',true);
@@ -448,23 +475,51 @@ function update(dt,now){
     if(!hacked){
       d.x+=d.dir*d.speed; d.phase+=.02; d.y+=Math.sin(d.phase)*.2;
       if((d.x%CHUNK)<8||(d.x%CHUNK)>CHUNK-8) d.dir*=-1;
-      if(player.x+player.w>d.x-6 && player.x<d.x+d.w+6 && player.y>d.y){
-        let blocked=false; const scan={x:d.x,y:d.y,w:d.w,h:(player.y-d.y)};
-        for(const p of platforms){ if(rects(scan,p)){ blocked=true; break; } }
-        if(!blocked){ for(const r of robots){ if(Math.abs(r.x-d.x)<140) r.alert=true; } }
-      }
     }
   }
 
+  // ===== ROBOT AI =====
   for(const r of robots){
     if(!r.active) continue;
-    if(!hacked){
-      const see=Math.abs(r.x-player.x)<92 && Math.abs(r.y-player.y)<56;
-      if(see) r.alert=true;
-      if(r.alert) r.x+=(player.x>r.x?1:-1)*r.speed*1.25;
-      else { r.x+=r.dir*r.speed; if((r.x%110)<1) r.dir*=-1; }
+
+    const dx = player.x - r.x;
+    const dy = player.y - r.y;
+    const see = Math.abs(dx) < 92 && Math.abs(dy) < 56;
+
+    const playerAbove = (player.y + player.h) < (r.y - 6);
+    let hasFloorBetween = false;
+    if(playerAbove){
+      for(const p of platforms){
+        const betweenY = (p.y >= player.y) && (p.y <= r.y);
+        const overlapX = (r.x > p.x - 8) && (r.x < p.x + p.w + 8);
+        if(betweenY && overlapX){ hasFloorBetween = true; break; }
+      }
     }
-    setAnim(r,'robot', r.alert?'run':'walk'); stepAnim(r,dt);
+
+    if(see && !(playerAbove && hasFloorBetween)){
+      r.state = 'chase'; r.alert = true; r.dir = dx > 0 ? 1 : -1; r.x += r.dir * r.speed * 1.25;
+    } else if(playerAbove){
+      if(r.state !== 'search'){
+        r.state='search'; r.alert=false; r.searchUntil=now+2500+Math.random()*2000;
+        const offset = (dx > 0 ? -1 : 1) * (24 + Math.random()*28);
+        const c = r.x + offset, span = 28 + Math.random()*18;
+        r.patrolL=c - span; r.patrolR=c + span; r.dir = Math.random()<.5?-1:1; r.lookTimer = now + 600 + Math.random()*800;
+      }
+      if(now > r.lookTimer){ r.dir *= -1; r.lookTimer = now + 600 + Math.random()*900; }
+      r.x += r.dir * r.speed * 0.9;
+      if(r.x < r.patrolL){ r.x = r.patrolL; r.dir = 1; }
+      if(r.x > r.patrolR){ r.x = r.patrolR; r.dir = -1; }
+      if(now > r.searchUntil) r.state='patrol';
+    } else {
+      r.alert=false;
+      if(r.state!=='patrol'){ r.state='patrol'; r.patrolL=r.x-40; r.patrolR=r.x+40; r.dir = Math.sign(dx)||1; }
+      r.x += r.dir * r.speed;
+      if(r.x < r.patrolL){ r.x = r.patrolL; r.dir = 1; }
+      if(r.x > r.patrolR){ r.x = r.patrolR; r.dir = -1; }
+    }
+
+    setAnim(r,'robot', r.state==='chase' ? 'run' : 'walk'); stepAnim(r,dt);
+
     if(rects(player,r)){
       if(player.vy>0 && player.y+player.h<=r.y+6){ r.hp--; r.hitUntil=now+120; player.vy=-2.6; score+=12; }
       else{
@@ -476,22 +531,6 @@ function update(dt,now){
     }
   }
   for(let i=robots.length-1;i>=0;i--) if(robots[i].hp<=0) robots.splice(i,1);
-
-  const magnetRange = player.upgrades?.coinMagnet ? 26 : 12;
-  for(const c of coins){
-    if(!c.taken) continue;
-    const x=(c.x-cameraX)|0, y=c.y|0; if(x<-16||x>VW+16) continue;
-    if(coinImg && coinImg.complete && coinImg.naturalWidth){
-      const coinSize = 20;
-      ctx.save(); ctx.shadowColor = '#ffaa00'; ctx.shadowBlur = 8;
-      ctx.drawImage(coinImg, x-coinSize/2, y-coinSize/2, coinSize, coinSize);
-      ctx.restore();
-    }else{
-      ctx.fillStyle='#ffd95e'; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle='#ffaa00'; ctx.lineWidth=2; ctx.stroke();
-      ctx.fillStyle='#000'; ctx.font='8px monospace'; ctx.textAlign='center'; ctx.fillText('₿', x, y+2);
-    }
-  }
 
   if(exitDoor && rects(player, exitDoor)){
     gameState='levelComplete';
@@ -511,13 +550,13 @@ function drawTiles(){
   const ok = (im)=>im && im.complete && im.naturalWidth>0;
   const img = ok(ledgeImg) ? ledgeImg : (ok(platformImg) ? platformImg : null);
 
-  const RAIL_FRAC   = 0.55;    // top ~55% are the rails/fence
-  const DST_BASE_H  = 20;      // rendered deck thickness (collision stays TILE=16)
+  const RAIL_FRAC   = 0.55;
+  const DST_BASE_H  = 20;
 
   for (const p of platforms){
     const sx = p.x - cameraX; if (sx + p.w < 0 || sx > VW) continue;
 
-    if (!ok(img)) {
+    if (!ok(img)){
       ctx.fillStyle = '#1a2332'; ctx.fillRect(sx|0, p.y|0, p.w, TILE);
       ctx.fillStyle = '#6fc2ff'; ctx.fillRect(sx|0, p.y|0, p.w, 2);
       ctx.fillStyle = '#4a5568'; ctx.fillRect(sx|0, (p.y+TILE-2)|0, p.w, 2);
@@ -527,9 +566,7 @@ function drawTiles(){
     const iw = img.naturalWidth, ih = img.naturalHeight;
     const srcBaseY = Math.floor(ih * RAIL_FRAC);
     const srcBaseH = ih - srcBaseY;
-
     const srcX = 1, srcW = Math.max(1, iw - 2);
-
     const dy = (p.y - (DST_BASE_H - TILE)) | 0;
     ctx.drawImage(img, srcX, srcBaseY, srcW, srcBaseH, sx|0, dy, p.w, DST_BASE_H);
   }
@@ -548,11 +585,10 @@ function drawRailsOnTop(){
   const baseSrcH = ih - railSrcH;
   const scale    = DST_BASE_H / baseSrcH;
   const railDstH = Math.max(10, Math.round(railSrcH * scale));
-
   const srcX = 1, srcW = Math.max(1, iw - 2);
 
   for (const p of platforms){
-    if (p.y >= VH - TILE) continue;                 // only floating platforms get rails
+    if (p.y >= VH - TILE) continue;
     const sx = p.x - cameraX; if (sx + p.w < 0 || sx > VW) continue;
     const y  = (p.y - railDstH) | 0;
     ctx.drawImage(img, srcX, 0, srcW, railSrcH, sx|0, y, p.w, railDstH);
@@ -562,16 +598,15 @@ function drawRailsOnTop(){
 function drawTerminals(){
   for(const t of terminals){ 
     const x=(t.x-cameraX)|0; if(x+t.w<0||x>VW) continue;
-    
+
     const hasAnimFrames = terminalFrame1 && terminalFrame1.complete && terminalFrame2 && terminalFrame2.complete;
-    let currentTerminalImg = terminalImg;
-    
+    let currentTerminalImg = null;
     if(hasAnimFrames) {
       const animSpeed = 300;
       const frameIndex = Math.floor(performance.now() / animSpeed) % 2;
       currentTerminalImg = frameIndex === 0 ? terminalFrame1 : terminalFrame2;
     }
-    
+
     if(currentTerminalImg && currentTerminalImg.complete && currentTerminalImg.naturalWidth){
       ctx.save();
       if(t.cooldown <= 0) { ctx.shadowColor = '#00ff9d'; ctx.shadowBlur = 4; }
@@ -605,8 +640,23 @@ function drawCoins(now){
       ctx.fillStyle='#ffd95e'; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2); ctx.fill();
       ctx.strokeStyle='#ffaa00'; ctx.lineWidth=2; ctx.stroke();
       ctx.fillStyle='#000'; ctx.font='8px monospace'; ctx.textAlign='center'; ctx.fillText('₿', x, y+2);
+      ctx.textAlign='left';
     }
   }
+}
+
+function drawEntities(now){
+  for(const r of robots){
+    const x=(r.x-cameraX)|0, y=r.y|0; if(x+48<0||x>VW) continue;
+    drawAnim(r,'robot',x-14,y-24,(player.x<r.x), now<r.hitUntil?0.75:1);
+  }
+  for(const d of drones){
+    const x=(d.x-cameraX)|0, y=d.y|0; if(x+32<0||x>VW) continue;
+    if(!d.anim.runner) setAnim(d,'drone','move');
+    stepAnim(d,16); drawAnim(d,'drone',x-7,y-9,false,1);
+  }
+  const px=(player.x-cameraX)|0, py=player.y|0;
+  drawAnim(player,'player',px-15,py-20, player.facing===-1, performance.now()<player.hitUntil?0.8:1);
 }
 
 function drawExitDoor(){
@@ -628,49 +678,58 @@ function drawExitDoor(){
   }
 }
 
-function drawEntities(now){
-  for(const r of robots){
-    const x=(r.x-cameraX)|0, y=r.y|0; if(x+48<0||x>VW) continue;
-    drawAnim(r,'robot',x-14,y-24,(player.x<r.x), now<r.hitUntil?0.75:1);
+/* ---------- FIT-TO-WIDTH CONTROLS HINT (no clip ever) ---------- */
+function drawControlsHint() {
+  const title = 'Blackout Protocol';
+  ctx.font='9px monospace'; ctx.textAlign='left';
+  const titleW = ctx.measureText(title).width;
+  ctx.fillStyle='#cfd6df'; ctx.fillText(title,6,4);
+
+  const pad = 6;
+  const avail = VW - (titleW + pad*2 + 2);
+
+  const candidates = [
+    {text:'← → Move | Space | Enter | ESC', size:8},
+    {text:'← → Move | Space | Enter',      size:8},
+    {text:'← → | Space | Enter | ESC',     size:8},
+    {text:'←→|Space|Enter|ESC',            size:7},
+    {text:'←→|␣|⏎|ESC',                   size:7},
+    {text:'←→ ␣ ⏎ ESC',                   size:6},
+  ];
+
+  let choice = candidates[0];
+  for (const c of candidates){
+    ctx.font = `${c.size}px monospace`;
+    if (ctx.measureText(c.text).width <= avail){ choice=c; break; }
   }
-  for(const d of drones){
-    const x=(d.x-cameraX)|0, y=d.y|0; if(x+32<0||x>VW) continue;
-    if(!d.anim.runner) setAnim(d,'drone','move');
-    stepAnim(d,16); drawAnim(d,'drone',x-7,y-9,false,1);
-  }
-  const px=(player.x-cameraX)|0, py=player.y|0;
-  drawAnim(player,'player',px-15,py-20, player.facing===-1, performance.now()<player.hitUntil?0.8:1);
+
+  ctx.textAlign='right';
+  ctx.fillStyle='#9aa3b2';
+  ctx.font = `${choice.size}px monospace`;
+  ctx.fillText(choice.text, VW-4, 4);
+
+  // restore defaults
+  ctx.textAlign='left';
+  ctx.font='9px monospace';
 }
 
 function drawUI(now){
-  ctx.fillStyle='rgba(0,0,0,.78)'; ctx.fillRect(0,0,VW,18);
+  // top bar
+  ctx.fillStyle='rgba(0,0,0,.78)'; ctx.fillRect(0,0,VW,20);
+  drawControlsHint();
 
-  ctx.fillStyle='#cfd6df'; ctx.fillText('Blackout Protocol',6,6);
-  ctx.fillStyle='#9aa3b2'; ctx.fillText('← → Move | Space Jump | Enter Hack | ESC Pause',120,6);
-
-  ctx.fillStyle='#fff'; ctx.fillText(`HP:${Math.max(0,player.hp)}  L:${level}  SC:${score}  BTC:${btc}`,6,28);
-
-  ctx.fillStyle='#7dff9a';
-  ctx.fillText(`DIST:${player.dist|0}  DOOR@:${(LEVEL_LEN-40)|0}`, 6, 40);
+  // stats line
+  ctx.fillStyle='#fff'; ctx.fillText(`HP:${Math.max(0,player.hp)}  L:${level}  SC:${score}  BTC:${btc}`,6,24);
+  ctx.fillStyle='#7dff9a'; ctx.fillText(`DIST:${player.dist|0}  DOOR@:${(LEVEL_LEN-40)|0}`, 6, 36);
 
   const left=Math.max(0,hackUntil-now)|0;
-  if(left>0){ ctx.fillStyle='#7dff9a'; ctx.fillText(`EMP ${Math.ceil(left/1000)}s`,6,52); }
-  else if(now<hackCDUntil){ ctx.fillStyle='#7f8a99'; ctx.fillText(`Hack CD ${((hackCDUntil-now)/1000|0)}s`,6,52); }
-  else { ctx.fillStyle='#7dff9a'; ctx.fillText('Enter: Hack',6,52); }
+  if(left>0){ ctx.fillStyle='#7dff9a'; ctx.fillText(`EMP ${Math.ceil(left/1000)}s`,6,48); }
+  else if(now<hackCDUntil){ ctx.fillStyle='#7f8a99'; ctx.fillText(`Hack CD ${((hackCDUntil-now)/1000|0)}s`,6,48); }
+  else { ctx.fillStyle='#7dff9a'; ctx.fillText('Enter: Hack',6,48); }
 
   if(gameState==='paused'){ ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#fff'; ctx.fillText('PAUSED (ESC)',VW/2-30,VH/2); }
   if(gameState==='gameOver'){ ctx.fillStyle='rgba(0,0,0,.7)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#fff'; ctx.fillText('GAME OVER',VW/2-34,VH/2-8); ctx.fillText(`Score ${score}  BTC ${btc}`,VW/2-40,VH/2+4); ctx.fillText('Press R or click Reset',VW/2-54,VH/2+16); }
   if(gameState==='levelComplete'){ ctx.fillStyle='rgba(0,0,0,.7)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#7dff9a'; ctx.fillText('LEVEL COMPLETE → SHOP',VW/2-60,VH/2-8); }
-
-  let y = VH - 10;
-  const warn = msg => { ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(2,y-7,VW-4,9); ctx.fillStyle='#ffb36a'; ctx.fillText(msg,6,y-6); y-=10; };
-  if (SPR) {
-    if (!SPR.player?.anim?.idle?.img) warn('Missing player_* PNGs');
-    if (!SPR.robot?.anim?.idle?.img)  warn('Missing robot_* PNGs');
-    if (!SPR.drone?.anim?.idle?.img)  warn('Missing drone_* PNGs');
-  }
-  if (!BG.far) warn('Missing: assets/01_bg_far.png (gradient sky used)');
-  if (!BG.near) warn('Missing: assets/01_bg_near.png (cache bust added)');
 }
 
 /* ======== HOLOGRAM AD OVERLAY ======== */
@@ -682,9 +741,8 @@ function drawOverlay(now){
     const sy=Math.round(RENDER.oy+a.y*RENDER.scale);
     if(sx>-200 && sx<overlayCanvas.width+200 && sy<overlayCanvas.height*0.85) vis.push({a,sx,sy});
   }
-  const toDraw=vis;
   octx.save();
-  for(const {a,sx,sy} of toDraw){
+  for(const {a,sx,sy} of vis){
     a.phase = (a.phase||0) + 0.03;
     const flick = 0.65 + 0.35*Math.sin(a.phase*3);
     const bob   = Math.sin(a.phase)*2*RENDER.scale;
@@ -772,8 +830,12 @@ async function assetSelfTest(){
     ['player','robot','drone'].forEach(k=>{
       const o=SPRITE_DEF[k]; if(o&&o.states) Object.values(o.states).forEach(push);
     });
-    ['bg_far','bg_near','coin','door','ledge','platform','terminal'].forEach(k=>push(SPRITE_DEF[k]));
-    ['fourk','meat','holo','rent','drinkA','drinkB'].forEach(k=>push(AD_SRC[k]));
+    ['bg_far','bg_near','coin','door','ledge','platform'].forEach(k=>push(SPRITE_DEF[k]));
+    // terminal base intentionally omitted
+    ['fourk','meat','holo','rent','drinkA','drinkB',
+     `assets/hacker_terminal_frame1.png?${HYPER_RELOAD_TAG}`,
+     `assets/hacker_terminal_frame2.png?${HYPER_RELOAD_TAG}`
+    ].forEach(push);
     const head=async u=>{ try{ const r=await fetch(u,{method:'HEAD',cache:'no-store'}); return {u,ok:r.ok,st:r.status}; }catch{ return {u,ok:false,st:'net'}; } };
     const results=await Promise.all(urls.filter(Boolean).map(head));
     const bad=results.filter(r=>!r.ok);
@@ -818,6 +880,5 @@ function loop(now){
 }
 requestAnimationFrame(loop);
 </script>
-
 </body>
 </html>
