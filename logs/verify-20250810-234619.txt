@@ -1,0 +1,22 @@
+== Blackout Protocol: verification @ 20250810-234619 ==
+
+-- asset files --
+coin.png  path=blackout-protocol/assets/coin.png  size=24656  sig=  => NOT_PNG
+door.png  path=blackout-protocol/assets/door.png  size=0  sig=  => NOT_PNG
+ledge_tile.png  path=blackout-protocol/assets/ledge_tile.png  size=6384  sig=  => NOT_PNG
+
+-- index.html checks --
+30:const HYPER_RELOAD_TAG = 'rev=20250810-231230'; // cache-bust new images
+80:  bg_far:`assets/01_bg_far.png?${HYPER_RELOAD_TAG}`,
+81:  bg_near:`assets/01_bg_near.png?${HYPER_RELOAD_TAG}`,
+82:  coin:`assets/coin.png?${HYPER_RELOAD_TAG}`,
+83:  door:`assets/door.png?${HYPER_RELOAD_TAG}`,
+84:  ledge:`assets/ledge_tile.png?${HYPER_RELOAD_TAG}`
+89:  fourk: `assets/4K.png?${HYPER_RELOAD_TAG}`,
+90:  meat:  `assets/Meat.png?${HYPER_RELOAD_TAG}`,
+91:  holo:  `assets/HoloCompanion.png?${HYPER_RELOAD_TAG}`,
+92:  rent:  `assets/Rent.png?${HYPER_RELOAD_TAG}`,
+93:  drinkA:`assets/Drink_Oil_01.png?${HYPER_RELOAD_TAG}`,
+94:  drinkB:`assets/Drink_Oil_02.png?${HYPER_RELOAD_TAG}`
+UI/Ads runtime patch marker: not found
+

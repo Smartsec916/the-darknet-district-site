@@ -27,7 +27,7 @@
 const SHOP_URL = './game-shop.html';               // <— where to send player on door touch
 const LEVEL_LEN = 1600;                  // <— how far until the shop door
 const DOOR_W = 24, DOOR_H = 32;          // size of door sprite
-const HYPER_RELOAD_TAG = 'rev=20250810-231230'; // cache-bust new images
+const HYPER_RELOAD_TAG = 'rev=20250810-225425'; // cache-bust new images
 
 /* ================= CORE / DISPLAY ================= */
 let READY=false, LOAD_MSG='Loading…';
@@ -526,7 +526,7 @@ function update(dt,now){
   for(let i=robots.length-1;i>=0;i--) if(robots[i].hp<=0) robots.splice(i,1);
 
   // coins pickup (with magnet upgrade)
-  const magnetRange = player.upgrades?.coinMagnet ? 26 : 12;
+  const magnetRange = player.upgrades?.coinMagnet ? 20 : 8;
   for(const c of coins){
     if(!c.taken && player.x+player.w>c.x-magnetRange && player.x<c.x+magnetRange && player.y+player.h>c.y-magnetRange && player.y<c.y+magnetRange){
       c.taken=true; btc += 1; score += 3;

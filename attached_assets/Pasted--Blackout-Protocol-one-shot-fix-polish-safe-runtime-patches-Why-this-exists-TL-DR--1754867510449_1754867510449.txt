@@ -1,0 +1,257 @@
+# === Blackout Protocol: one-shot fix & polish (safe runtime patches) ===
+# Why this exists (TL;DR):
+# 1) <base href="/blackout-protocol/"> ensures every "assets/..." resolves under /blackout-protocol/assets/
+# 2) HYPER_RELOAD_TAG busts browser cache so updated PNGs actually reload
+# 3) Sprite states (player/robot/drone) were missing cache-bust -> intermittent stale/404 caching; we patch at runtime
+# 4) Some BTC coins spawned out of jump range -> we post-process each new chunk to clamp them to reachable heights
+# 5) You wanted no drones in level 1 -> we cull any drones spawned before the shop door (LEVEL_LEN)
+# 6) game-shop.html background + your own UI -> we create a simple shop that persists upgrades via localStorage
+
+set -euo pipefail
+
+PAGE="./blackout-protocol/index.html"
+SHOP="./blackout-protocol/game-shop.html"
+STAMP="$(date +%Y%m%d-%H%M%S)"
+HRT="rev=$STAMP"
+
+echo "==> Backups"
+[ -f "$PAGE" ] || { echo "ERROR: $PAGE not found"; exit 1; }
+cp "$PAGE" "$PAGE.bak-$STAMP"
+[ -f "$SHOP" ] && cp "$SHOP" "$SHOP.bak-$STAMP" || true
+echo "  • Saved $PAGE.bak-$STAMP"
+[ -f "$SHOP" ] && echo "  • Saved $SHOP.bak-$STAMP" || echo "  • (No existing game-shop.html)"
+
+echo
+echo "==> Ensure <base href=\"/blackout-protocol/\"> (so 'assets/…' resolves to /blackout-protocol/assets/…)"
+if ! grep -q '<base href="/blackout-protocol/">' "$PAGE"; then
+  awk '
+    BEGIN{done=0}
+    /<head[^>]*>/ && !done { print; print "  <base href=\"/blackout-protocol/\">"; done=1; next }
+    { print }
+  ' "$PAGE" > "$PAGE.tmp1" && mv "$PAGE.tmp1" "$PAGE"
+  echo "  • Inserted base href"
+else
+  echo "  • Base href already present"
+fi
+
+echo
+echo "==> Ensure/bump HYPER_RELOAD_TAG (cache-busting)"
+if grep -qE 'const[[:space:]]+HYPER_RELOAD_TAG' "$PAGE"; then
+  perl -0777 -pe "s/(const\\s+HYPER_RELOAD_TAG\\s*=\\s*['\"])rev=[^'\"']*(['\"])/\\1$HRT\\2/g" -i "$PAGE"
+  echo "  • Bumped HYPER_RELOAD_TAG to $HRT"
+else
+  # Insert just after the first <script> tag so your code can use it
+  perl -0777 -pe "s~(<script[^>]*>)~\\1\nconst HYPER_RELOAD_TAG = '$HRT'; // injected cache-bust~i" -i "$PAGE"
+  echo "  • Inserted HYPER_RELOAD_TAG = '$HRT'"
+fi
+
+echo
+echo "==> Inject runtime patches (safe; no brittle regex over your logic)"
+# We inject a small <script> block before </body> that:
+#  - Appends ?${HYPER_RELOAD_TAG} to all sprite state PNGs at runtime
+#  - Wraps genChunk() to fix coin positions + block drones before door
+PATCH_MARK="<!-- RUNTIME_PATCH_BLACKOUT -->"
+if ! grep -q "$PATCH_MARK" "$PAGE"; then
+  awk -v MARK="$PATCH_MARK" '
+    BEGIN{done=0}
+    /<\/body>/ && !done {
+      print MARK
+      print "<script>"
+      print "(function(){"
+      print "  // 1) Add cache-bust to sprite states at runtime (avoids fragile source edits)"
+      print "  const addTag = p => (typeof p === \"string\" && !p.includes(\"?\")) ? `${p}?${HYPER_RELOAD_TAG}` : p;"
+      print "  if (window.SPRITE_DEF){"
+      print "    [\"player\",\"robot\",\"drone\"].forEach(k=>{"
+      print "      const st = SPRITE_DEF[k] && SPRITE_DEF[k].states; if(!st) return;"
+      print "      Object.keys(st).forEach(s=>{ st[s] = addTag(st[s]); });"
+      print "    });"
+      print "  }"
+      print ""
+      print "  // 2) Wrap genChunk to clamp coin heights and block drones before the shop door"
+      print "  if (typeof window.genChunk === \"function\"){"
+      print "    const _genChunk = window.genChunk;"
+      print "    window.genChunk = function(startX){"
+      print "      const coinStart  = Array.isArray(window.coins)? window.coins.length : 0;"
+      print "      const droneStart = Array.isArray(window.drones)? window.drones.length : 0;"
+      print "      _genChunk(startX);"
+      print "      // Clamp coins created by this chunk to be reachable"
+      print "      if (Array.isArray(window.coins)){"
+      print "        const gy = (typeof window.groundY === 'function') ? groundY() : (window.VH ? (window.VH - (window.TILE||16)) : 240-16);"
+      print "        for (let i=coinStart;i<window.coins.length;i++){"
+      print "          const c = window.coins[i]; if(!c) continue;"
+      print "          // Find a ledge under coin.x"
+      print "          let anchor=null;"
+      print "          if (Array.isArray(window.platforms)){"
+      print "            for(const p of window.platforms){"
+      print "              if (p && p.y < gy && c.x >= p.x-12 && c.x <= p.x + p.w + 12){ if(!anchor || p.y < anchor.y) anchor=p; }"
+      print "            }"
+      print "          }"
+      print "          if (anchor){ c.y = (anchor.y - 22)|0; }"
+      print "          else { const maxRise=90; const minY = Math.max(gy - maxRise, 48); c.y = Math.max(minY, (window.VH||240) - 96)|0; }"
+      print "        }"
+      print "      }"
+      print "      // Cull drones spawned before door (level 1 stays clean)"
+      print "      if (Array.isArray(window.drones)){"
+      print "        for (let i=window.drones.length-1; i>=droneStart; i--){"
+      print "          const d = window.drones[i];"
+      print "          if (!d) continue;"
+      print "          if (typeof window.LEVEL_LEN === 'number' && startX < window.LEVEL_LEN){"
+      print "            window.drones.splice(i,1);"
+      print "          }"
+      print "        }"
+      print "      }"
+      print "    };"
+      print "  }"
+      print ""
+      print "})();"
+      print "</script>"
+      print MARK"
+      print
+      done=1
+      next
+    }
+    { print }
+  ' "$PAGE" > "$PAGE.tmp2" && mv "$PAGE.tmp2" "$PAGE"
+  echo "  • Injected runtime patch block"
+else
+  echo "  • Runtime patch already present (skipped)"
+fi
+
+echo
+echo "==> Increase magnet pickup range a bit (helps borderline BTC pickups)"
+# Safer minimal change: just increase the two numbers in the coinMagnet ternary
+perl -0777 -pe "s/coinMagnet \? 20 : 8/coinMagnet ? 26 : 12/g" -i "$PAGE" && \
+echo "  • magnet: coinMagnet ? 26 : 12 (was 20 : 8)"
+
+echo
+echo "==> Create/refresh custom game-shop.html (uses your background + UI; persists upgrades)"
+mkdir -p "$(dirname "$SHOP")"
+cat > "$SHOP" <<EOF_SHOP
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/blackout-protocol/">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Blackout Protocol — Shop</title>
+  <style>
+    :root{ --panel:#0f1016; --text:#cfd6df; --accent:#6fc2ff; }
+    html,body{margin:0;height:100%;font-family:monospace;background:#000;color:var(--text);}
+    .wrap{
+      min-height:100%;
+      /* Why: append ?$HRT so the shop bg isn't stale */
+      background:#000 url("assets/01_bg_mid_transparent_1024w.png?$HRT") center/cover no-repeat fixed;
+      display:flex; align-items:center; justify-content:center; padding:24px;
+    }
+    .shop{ width:min(960px,92vw); background:rgba(10,14,20,.88); border:2px solid #3a4556; border-radius:12px; padding:16px; box-shadow:0 8px 30px rgba(0,0,0,.45);}
+    .head{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
+    .h1{font-size:18px; letter-spacing:.6px;}
+    .stats{font-size:12px; color:#9aa3b2}
+    .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px;}
+    .card{background:#121722; border:1px solid #283140; border-radius:10px; padding:12px;}
+    .card h3{margin:0 0 6px 0; font-size:14px;}
+    .price{color:#7dff9a; font-size:12px; margin:6px 0;}
+    button{background:#0f1016; color:var(--text); border:1px solid #475569; border-radius:8px; padding:8px 10px; cursor:pointer;}
+    button:hover{filter:brightness(1.1)}
+    .footer{display:flex; gap:8px; justify-content:flex-end; margin-top:12px;}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="shop">
+    <div class="head">
+      <div class="h1">District Shop</div>
+      <div class="stats" id="stats"></div>
+    </div>
+
+    <div class="grid" id="items"></div>
+
+    <div class="footer">
+      <button id="backBtn">Return to Game</button>
+      <button id="resetBtn" title="Clear all upgrades and stats">Reset Progress</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const q=new URLSearchParams(location.search);
+let btc=+q.get('btc')||0, score=+q.get('score')||0, level=+q.get('level')||1;
+
+// Persist stats so the game picks them up on reset()
+localStorage.setItem('playerBTC', String(btc));
+localStorage.setItem('playerScore', String(score));
+localStorage.setItem('gameLevel', String(level));
+
+// Upgrades shape matches what the game expects in makePlayer()
+const upgrades = JSON.parse(localStorage.getItem('playerUpgrades')||'{}');
+
+const catalog = [
+  { id:'speedBoost',     name:'Kinetic Boots',     desc:'Run speed +30%',    price:12 },
+  { id:'jumpBoost',      name:'Grav Mod',          desc:'Jump height +20%',  price:10 },
+  { id:'armor',          name:'Poly Armor',        desc:'Damage -25%',       price:15 },
+  { id:'coinMagnet',     name:'Coin Magnet',       desc:'Pickup range x2',   price:8  },
+  { id:'advancedHack',   name:'ADV EMP Suite',     desc:'EMP lasts +2s',     price:14 }
+];
+
+function render(){
+  document.getElementById('stats').textContent = \`Level \${level} | Score \${score} | BTC \${btc}\`;
+  const grid = document.getElementById('items');
+  grid.innerHTML = '';
+  catalog.forEach(item=>{
+    const owned = !!upgrades[item.id];
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.innerHTML = \`
+      <h3>\${item.name}</h3>
+      <div style="font-size:12px;color:#9aa3b2">\${item.desc}</div>
+      <div class="price">Price: \${item.price} BTC</div>
+      <button \${owned?'disabled':''} data-id="\${item.id}">\${owned?'Owned':'Buy'}</button>
+    \`;
+    grid.appendChild(el);
+  });
+}
+
+document.getElementById('items').addEventListener('click', e=>{
+  const id = e.target?.dataset?.id; if(!id) return;
+  const item = catalog.find(x=>x.id===id); if(!item) return;
+  if (upgrades[id]) return;
+  if (btc < item.price) { alert('Not enough BTC!'); return; }
+  btc -= item.price;
+  upgrades[id] = true;
+  localStorage.setItem('playerUpgrades', JSON.stringify(upgrades));
+  localStorage.setItem('playerBTC', String(btc));
+  render();
+});
+
+document.getElementById('backBtn').onclick = () => { location.href = './index.html'; };
+document.getElementById('resetBtn').onclick = () => {
+  if (!confirm('Reset all progress and upgrades?')) return;
+  localStorage.removeItem('playerUpgrades');
+  localStorage.removeItem('playerBTC');
+  localStorage.removeItem('playerScore');
+  localStorage.removeItem('playerHealth');
+  localStorage.removeItem('gameLevel');
+  btc=0; score=0; level=1;
+  render();
+};
+
+render();
+</script>
+</body>
+</html>
+EOF_SHOP
+echo "  • Wrote $SHOP (with bg cache-busted as ?$HRT)"
+
+echo
+echo "==> Final checks"
+grep -q '<base href="/blackout-protocol/">' "$PAGE" && echo "  • index.html base OK"
+grep -q 'HYPER_RELOAD_TAG' "$PAGE" && echo "  • index.html cache-bust tag OK"
+grep -q "$PATCH_MARK" "$PAGE" && echo "  • runtime patch injected"
+
+echo
+echo "==> Done."
+echo "Hard-refresh (Ctrl/Cmd+Shift+R) and check:"
+echo "  1) Console shows ✓ Asset loaded lines; missing ones list exact URLs."
+echo "  2) BTC are reachable; magnet pickup feels better."
+echo "  3) No drones before the shop; they appear after the door."
+echo "  4) Shop shows YOUR UI & background; purchases persist via localStorage."

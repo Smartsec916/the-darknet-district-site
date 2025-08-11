@@ -1,297 +1,112 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <base href="/blackout-protocol/">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Blackout Protocol — Game Shop</title>
+  <title>Blackout Protocol — Shop</title>
   <style>
-    :root { --frame-w: 960px; }
-    html,body{margin:0;background:#000;color:#cfd6df;font-family:monospace;overflow:hidden;}
-    #gameContainer{position:relative;width:100%;max-width:var(--frame-w);margin:0 auto;aspect-ratio:4/3;background:#000;border:2px solid #5c5c5c;}
-    canvas{position:absolute;inset:0;display:block;image-rendering:pixelated;image-rendering:crisp-edges;}
-    
-    .shop-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.9);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-      padding: 20px;
-      box-sizing: border-box;
+    :root{ --panel:#0f1016; --text:#cfd6df; --accent:#6fc2ff; }
+    html,body{margin:0;height:100%;font-family:monospace;background:#000;color:var(--text);}
+    .wrap{
+      min-height:100%;
+      /* Why: append ?rev=20250810-231230 so the shop bg isn't stale */
+      background:#000 url("assets/01_bg_mid_transparent_1024w.png?rev=20250810-231230") center/cover no-repeat fixed;
+      display:flex; align-items:center; justify-content:center; padding:24px;
     }
-    
-    .shop-title {
-      color: #00ff9d;
-      font-size: 24px;
-      margin-bottom: 20px;
-      text-shadow: 0 0 10px #00ff9d;
-      text-align: center;
-    }
-    
-    .shop-stats {
-      color: #cfd6df;
-      margin-bottom: 30px;
-      text-align: center;
-      font-size: 16px;
-    }
-    
-    .shop-items {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      max-width: 600px;
-      margin-bottom: 30px;
-    }
-    
-    .shop-item {
-      background: rgba(0, 255, 157, 0.1);
-      border: 2px solid #00ff9d;
-      padding: 15px;
-      border-radius: 8px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    
-    .shop-item:hover {
-      background: rgba(0, 255, 157, 0.2);
-      box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
-    }
-    
-    .shop-item.disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      border-color: #666;
-    }
-    
-    .item-name {
-      color: #00ff9d;
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-    
-    .item-description {
-      color: #cfd6df;
-      font-size: 12px;
-      margin-bottom: 10px;
-    }
-    
-    .item-price {
-      color: #ffd95e;
-      font-weight: bold;
-    }
-    
-    .shop-buttons {
-      display: flex;
-      gap: 20px;
-    }
-    
-    .shop-button {
-      background: #00ff9d;
-      color: #000;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-family: monospace;
-      font-weight: bold;
-      transition: all 0.3s;
-    }
-    
-    .shop-button:hover {
-      background: #00cc7a;
-      box-shadow: 0 0 10px #00ff9d;
-    }
-    
-    .shop-button.secondary {
-      background: #666;
-      color: #cfd6df;
-    }
-    
-    .shop-button.secondary:hover {
-      background: #888;
-    }
+    .shop{ width:min(960px,92vw); background:rgba(10,14,20,.88); border:2px solid #3a4556; border-radius:12px; padding:16px; box-shadow:0 8px 30px rgba(0,0,0,.45);}
+    .head{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
+    .h1{font-size:18px; letter-spacing:.6px;}
+    .stats{font-size:12px; color:#9aa3b2}
+    .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px;}
+    .card{background:#121722; border:1px solid #283140; border-radius:10px; padding:12px;}
+    .card h3{margin:0 0 6px 0; font-size:14px;}
+    .price{color:#7dff9a; font-size:12px; margin:6px 0;}
+    button{background:#0f1016; color:var(--text); border:1px solid #475569; border-radius:8px; padding:8px 10px; cursor:pointer;}
+    button:hover{filter:brightness(1.1)}
+    .footer{display:flex; gap:8px; justify-content:flex-end; margin-top:12px;}
   </style>
 </head>
 <body>
-<div id="gameContainer">
-  <canvas id="gameCanvas"></canvas>
-  
-  <div class="shop-overlay">
-    <div class="shop-title">🛒 DARKNET DISTRICT SHOP 🛒</div>
-    <div class="shop-title" style="font-size: 18px; margin-bottom: 10px;">LEVEL 2</div>
-    
-    <div class="shop-stats">
-      <div>Health: <span id="playerHealth">100</span>% (RESTORED)</div>
-      <div>BTC Available: <span id="playerBTC">0</span></div>
-      <div>Score: <span id="playerScore">0</span></div>
+<div class="wrap">
+  <div class="shop">
+    <div class="head">
+      <div class="h1">District Shop</div>
+      <div class="stats" id="stats"></div>
     </div>
-    
-    <div class="shop-items">
-      <div class="shop-item" data-item="health" data-price="5">
-        <div class="item-name">Health Pack</div>
-        <div class="item-description">Restore 25 HP instantly</div>
-        <div class="item-price">5 BTC</div>
-      </div>
-      
-      <div class="shop-item" data-item="speed" data-price="10">
-        <div class="item-name">Speed Boost</div>
-        <div class="item-description">Increase movement speed</div>
-        <div class="item-price">10 BTC</div>
-      </div>
-      
-      <div class="shop-item" data-item="jump" data-price="8">
-        <div class="item-name">Jump Enhancer</div>
-        <div class="item-description">Higher jumps for better mobility</div>
-        <div class="item-price">8 BTC</div>
-      </div>
-      
-      <div class="shop-item" data-item="armor" data-price="15">
-        <div class="item-name">Nano Armor</div>
-        <div class="item-description">Reduce damage taken by 25%</div>
-        <div class="item-price">15 BTC</div>
-      </div>
-      
-      <div class="shop-item" data-item="coins" data-price="3">
-        <div class="item-name">Coin Magnet</div>
-        <div class="item-description">Attract coins from greater distance</div>
-        <div class="item-price">3 BTC</div>
-      </div>
-      
-      <div class="shop-item" data-item="hacker" data-price="12">
-        <div class="item-name">Advanced EMP</div>
-        <div class="item-description">Longer hack duration</div>
-        <div class="item-price">12 BTC</div>
-      </div>
-    </div>
-    
-    <div class="shop-buttons">
-      <button class="shop-button" onclick="continueGame()">Continue to Next Level</button>
-      <button class="shop-button secondary" onclick="returnToGame()">Return to Game</button>
+
+    <div class="grid" id="items"></div>
+
+    <div class="footer">
+      <button id="backBtn">Return to Game</button>
+      <button id="resetBtn" title="Clear all upgrades and stats">Reset Progress</button>
     </div>
   </div>
 </div>
 
 <script>
-// Get player stats from URL parameters or localStorage
-const urlParams = new URLSearchParams(window.location.search);
-let playerBTC = parseInt(urlParams.get('btc')) || parseInt(localStorage.getItem('playerBTC')) || 0;
-let playerScore = parseInt(urlParams.get('score')) || parseInt(localStorage.getItem('playerScore')) || 0;
-let playerHealth = 100; // Always reset to 100 in shop
+const q=new URLSearchParams(location.search);
+let btc=+q.get('btc')||0, score=+q.get('score')||0, level=+q.get('level')||1;
 
-// Player upgrades
-let playerUpgrades = JSON.parse(localStorage.getItem('playerUpgrades')) || {
-  speedBoost: false,
-  jumpBoost: false,
-  armor: false,
-  coinMagnet: false,
-  advancedHack: false
-};
+// Persist stats so the game picks them up on reset()
+localStorage.setItem('playerBTC', String(btc));
+localStorage.setItem('playerScore', String(score));
+localStorage.setItem('gameLevel', String(level));
 
-// Update display
-document.getElementById('playerBTC').textContent = playerBTC;
-document.getElementById('playerScore').textContent = playerScore;
-document.getElementById('playerHealth').textContent = playerHealth;
+// Upgrades shape matches what the game expects in makePlayer()
+const upgrades = JSON.parse(localStorage.getItem('playerUpgrades')||'{}');
 
-// Update item availability
-function updateShopItems() {
-  const items = document.querySelectorAll('.shop-item');
-  items.forEach(item => {
-    const price = parseInt(item.dataset.price);
-    const itemType = item.dataset.item;
-    
-    if (playerBTC < price) {
-      item.classList.add('disabled');
-    } else {
-      item.classList.remove('disabled');
-    }
-    
-    // Mark already purchased items
-    if (itemType === 'speed' && playerUpgrades.speedBoost) item.classList.add('disabled');
-    if (itemType === 'jump' && playerUpgrades.jumpBoost) item.classList.add('disabled');
-    if (itemType === 'armor' && playerUpgrades.armor) item.classList.add('disabled');
-    if (itemType === 'coins' && playerUpgrades.coinMagnet) item.classList.add('disabled');
-    if (itemType === 'hacker' && playerUpgrades.advancedHack) item.classList.add('disabled');
+const catalog = [
+  { id:'speedBoost',     name:'Kinetic Boots',     desc:'Run speed +30%',    price:12 },
+  { id:'jumpBoost',      name:'Grav Mod',          desc:'Jump height +20%',  price:10 },
+  { id:'armor',          name:'Poly Armor',        desc:'Damage -25%',       price:15 },
+  { id:'coinMagnet',     name:'Coin Magnet',       desc:'Pickup range x2',   price:8  },
+  { id:'advancedHack',   name:'ADV EMP Suite',     desc:'EMP lasts +2s',     price:14 }
+];
+
+function render(){
+  document.getElementById('stats').textContent = `Level ${level} | Score ${score} | BTC ${btc}`;
+  const grid = document.getElementById('items');
+  grid.innerHTML = '';
+  catalog.forEach(item=>{
+    const owned = !!upgrades[item.id];
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.innerHTML = `
+      <h3>${item.name}</h3>
+      <div style="font-size:12px;color:#9aa3b2">${item.desc}</div>
+      <div class="price">Price: ${item.price} BTC</div>
+      <button ${owned?'disabled':''} data-id="${item.id}">${owned?'Owned':'Buy'}</button>
+    `;
+    grid.appendChild(el);
   });
 }
 
-// Handle item purchases
-document.querySelectorAll('.shop-item').forEach(item => {
-  item.addEventListener('click', function() {
-    if (this.classList.contains('disabled')) return;
-    
-    const price = parseInt(this.dataset.price);
-    const itemType = this.dataset.item;
-    
-    if (playerBTC >= price) {
-      playerBTC -= price;
-      
-      switch(itemType) {
-        case 'health':
-          playerHealth = Math.min(100, playerHealth + 25);
-          break;
-        case 'speed':
-          playerUpgrades.speedBoost = true;
-          break;
-        case 'jump':
-          playerUpgrades.jumpBoost = true;
-          break;
-        case 'armor':
-          playerUpgrades.armor = true;
-          break;
-        case 'coins':
-          playerUpgrades.coinMagnet = true;
-          break;
-        case 'hacker':
-          playerUpgrades.advancedHack = true;
-          break;
-      }
-      
-      // Update display
-      document.getElementById('playerBTC').textContent = playerBTC;
-      document.getElementById('playerHealth').textContent = playerHealth;
-      
-      // Save to localStorage
-      localStorage.setItem('playerBTC', playerBTC.toString());
-      localStorage.setItem('playerScore', playerScore.toString());
-      localStorage.setItem('playerHealth', playerHealth.toString());
-      localStorage.setItem('playerUpgrades', JSON.stringify(playerUpgrades));
-      
-      updateShopItems();
-      
-      // Visual feedback
-      this.style.background = 'rgba(0, 255, 157, 0.4)';
-      setTimeout(() => {
-        this.style.background = 'rgba(0, 255, 157, 0.1)';
-      }, 200);
-    }
-  });
+document.getElementById('items').addEventListener('click', e=>{
+  const id = e.target?.dataset?.id; if(!id) return;
+  const item = catalog.find(x=>x.id===id); if(!item) return;
+  if (upgrades[id]) return;
+  if (btc < item.price) { alert('Not enough BTC!'); return; }
+  btc -= item.price;
+  upgrades[id] = true;
+  localStorage.setItem('playerUpgrades', JSON.stringify(upgrades));
+  localStorage.setItem('playerBTC', String(btc));
+  render();
 });
 
-function continueGame() {
-  // Save final stats and return to main game for level 2+
-  localStorage.setItem('playerBTC', playerBTC.toString());
-  localStorage.setItem('playerScore', playerScore.toString());
-  localStorage.setItem('playerHealth', playerHealth.toString());
-  localStorage.setItem('playerUpgrades', JSON.stringify(playerUpgrades));
-  localStorage.setItem('gameLevel', '2');
-  
-  window.location.href = './index.html?level=2';
-}
+document.getElementById('backBtn').onclick = () => { location.href = './index.html'; };
+document.getElementById('resetBtn').onclick = () => {
+  if (!confirm('Reset all progress and upgrades?')) return;
+  localStorage.removeItem('playerUpgrades');
+  localStorage.removeItem('playerBTC');
+  localStorage.removeItem('playerScore');
+  localStorage.removeItem('playerHealth');
+  localStorage.removeItem('gameLevel');
+  btc=0; score=0; level=1;
+  render();
+};
 
-function returnToGame() {
-  window.location.href = './index.html';
-}
-
-updateShopItems();
+render();
 </script>
 </body>
 </html>
