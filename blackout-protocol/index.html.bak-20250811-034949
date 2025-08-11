@@ -27,7 +27,7 @@
 const SHOP_URL = './game-shop.html';                 // where to send player on door touch
 const LEVEL_LEN = 1600;                              // how far until the shop door
 const DOOR_W = 24, DOOR_H = 32;                      // size of door sprite
-const HYPER_RELOAD_TAG = 'rev=20250811-041055';      // cache-bust new images
+const HYPER_RELOAD_TAG = 'rev=20250811-033159';      // cache-bust new images
 
 /* ================= CORE / DISPLAY ================= */
 let READY=false, LOAD_MSG='Loading…';
@@ -252,7 +252,7 @@ function genChunk(startX){
   for(let x=startX;x<endX;x+=TILE) platforms.push({x,y:groundY(),w:TILE,h:TILE});
 
   // floating ledges (single, bigger slabs)
-  const pc=1; // 1–2 per chunk
+  const pc = 1; // 1–2 per chunk
   for(let i=0;i<pc;i++){
     const px=startX+40+Math.random()*(CHUNK-80);
     const py=VH-(64+((Math.random()*96)|0));
@@ -773,101 +773,11 @@ function loop(now){
   if (gameState==='playing') update(dt, now);
   ctx.fillStyle='#000'; ctx.fillRect(0,0,VW,VH);
   drawBackgrounds();
-  drawTiles(); drawTerminals(); drawCoins(now); drawExitDoor(); drawEntities(now); drawRailsOnTop(); drawRailsOnTop(); drawUI(now);
+  drawTiles(); drawTerminals(); drawCoins(now); drawExitDoor(); drawEntities(now); drawRailsOnTop(); drawUI(now);
   blit(); drawOverlay(now);
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
 </script>
-<script>
-(function(){
-  // Fractions of the source image used for each band (tweak if you ever change the art)
-  const BASE_SRC_FRAC = 0.28; // bottom 28% of the image -> platform base
-  const RAIL_SRC_FRAC = 0.42; // top 42% of the image    -> rail
-  const PLATFORM_BASE_H = 22; // render height of the base (collision stays at TILE=16)
-  const RAIL_H = 14;          // render height of the rail (on top of player)
-
-  // Base: stretch one slice of your ledge image across the platform width
-  window.drawTiles = function(){
-    for(const p of (window.platforms||[])){
-      const sx = (p.x - (window.cameraX||0))|0;
-      const VW = window.VW||256; if(sx + p.w < 0 || sx > VW) continue;
-
-      const img = (window.ledgeImg && window.ledgeImg.complete && window.ledgeImg.naturalWidth>0) ? window.ledgeImg : null;
-      if(img){
-        const srcW = img.naturalWidth, srcH = img.naturalHeight;
-        const srcBaseH = Math.max(1, (srcH * BASE_SRC_FRAC)|0);
-        const srcBaseY = srcH - srcBaseH;
-        window.ctx.drawImage(img, 0, srcBaseY, srcW, srcBaseH, sx, p.y|0, p.w, PLATFORM_BASE_H);
-      }else{
-        window.ctx.fillStyle = "#3a3f47"; window.ctx.fillRect(sx|0, p.y|0, p.w, (window.TILE||16));
-        window.ctx.fillStyle = "#98a0b0"; window.ctx.fillRect(sx|0, p.y|0, p.w, 1);
-      }
-    }
-  };
-
-  // Rails: paint from the SAME image, top band, after entities so it sits above the player
-  window.drawRailsOnTop = function(){
-    const img = (window.ledgeImg && window.ledgeImg.complete && window.ledgeImg.naturalWidth>0) ? window.ledgeImg : null;
-    if(!img) return;
-    const TILE = window.TILE||16, VH = window.VH||240, VW = window.VW||256, camX = window.cameraX||0;
-
-    const srcW = img.naturalWidth, srcH = img.naturalHeight;
-    const srcRailH = Math.max(1, (srcH * RAIL_SRC_FRAC)|0);
-    const srcRailY = 0;
-
-    for(const p of (window.platforms||[])){
-      if(p.y >= VH - TILE) continue; // only floating ledges
-      const sx = (p.x - camX)|0;
-      if(sx + p.w < 0 || sx > VW) continue;
-      window.ctx.drawImage(img, 0, srcRailY, srcW, srcRailH, sx, (p.y - RAIL_H)|0, p.w, RAIL_H);
-    }
-  };
-
-  // Make sure we actually call the overlay after entities
-  const _loop = window.loop;
-  if(typeof _loop === "function"){
-    // No need to wrap loop; the page already calls drawRailsOnTop in the frame.
-    // This block exists as a safety comment.
-  }
-})();
-</script>
 </body>
 </html>
-<script>
-(() => {
-  console.log('[patch] ledge_singlepiece active');
-  function pickImg(){
-    // Prefer ledge_tile.png, fall back to platform_industrial.png just in case
-    if (window.ledgeImg && window.ledgeImg.complete && window.ledgeImg.naturalWidth) return window.ledgeImg;
-    if (window.platformImg && window.platformImg.complete && window.platformImg.naturalWidth) return window.platformImg;
-    return null;
-  }
-  function drawOne(img, p){
-    const TILE = window.TILE||16, VW = window.VW||256, camX = window.cameraX||0;
-    const sx = (p.x - camX)|0; if (sx + p.w < 0 || sx > VW) return;
-
-    if (img && img.naturalWidth && img.naturalHeight) {
-      // Crop a tall slice from the BOTTOM of the PNG (includes deck + rails),
-      // and a vertical band from the center to avoid edge fades.
-      const bandW = Math.min(96, img.naturalWidth);
-      const srcX  = ((img.naturalWidth - bandW)/2)|0;
-      const srcH  = Math.min(240, img.naturalHeight);  // tall enough to include rails
-      const srcY  = img.naturalHeight - srcH;
-
-      const destH = 32 + TILE;          // rail above + solid deck height (TILE)
-      const destY = (p.y - (destH - TILE))|0; // keep deck top flush with p.y
-      window.ctx.drawImage(img, srcX, srcY, bandW, srcH, sx, destY, p.w, destH);
-    } else {
-      // Fallback: simple box so you never "float on air"
-      window.ctx.fillStyle = '#3a3f47'; window.ctx.fillRect(sx|0, p.y|0, p.w, TILE);
-      window.ctx.fillStyle = '#98a0b0'; window.ctx.fillRect(sx|0, (p.y|0)+1, p.w, 1);
-    }
-  }
-  const _origDrawTiles = window.drawTiles;
-  window.drawTiles = function(){
-    const img = pickImg();
-    for (const p of (window.platforms||[])) drawOne(img, p);
-  };
-})();
-</script>

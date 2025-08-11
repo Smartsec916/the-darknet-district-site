@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/blackout-protocol/">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Blackout Protocol — Shop</title>
+  <style>
+    :root{ --panel:#0f1016; --text:#cfd6df; --accent:#6fc2ff; }
+    html,body{margin:0;height:100%;font-family:monospace;background:#000;color:var(--text);}
+    .wrap{
+      min-height:100%;
+      /* Why: append ?rev=20250810-231230 so the shop bg isn't stale */
+      background:#000 url("assets/01_bg_mid_transparent_1024w.png?rev=20250810-231230") center/cover no-repeat fixed;
+      display:flex; align-items:center; justify-content:center; padding:24px;
+    }
+    .shop{ width:min(960px,92vw); background:rgba(10,14,20,.88); border:2px solid #3a4556; border-radius:12px; padding:16px; box-shadow:0 8px 30px rgba(0,0,0,.45);}
+    .head{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
+    .h1{font-size:18px; letter-spacing:.6px;}
+    .stats{font-size:12px; color:#9aa3b2}
+    .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px;}
+    .card{background:#121722; border:1px solid #283140; border-radius:10px; padding:12px;}
+    .card h3{margin:0 0 6px 0; font-size:14px;}
+    .price{color:#7dff9a; font-size:12px; margin:6px 0;}
+    button{background:#0f1016; color:var(--text); border:1px solid #475569; border-radius:8px; padding:8px 10px; cursor:pointer;}
+    button:hover{filter:brightness(1.1)}
+    .footer{display:flex; gap:8px; justify-content:flex-end; margin-top:12px;}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="shop">
+    <div class="head">
+      <div class="h1">District Shop</div>
+      <div class="stats" id="stats"></div>
+    </div>
+
+    <div class="grid" id="items"></div>
+
+    <div class="footer">
+      <button id="backBtn">Return to Game</button>
+      <button id="resetBtn" title="Clear all upgrades and stats">Reset Progress</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const q=new URLSearchParams(location.search);
+let btc=+q.get('btc')||0, score=+q.get('score')||0, level=+q.get('level')||1;
+
+// Persist stats so the game picks them up on reset()
+localStorage.setItem('playerBTC', String(btc));
+localStorage.setItem('playerScore', String(score));
+localStorage.setItem('gameLevel', String(level));
+
+// Upgrades shape matches what the game expects in makePlayer()
+const upgrades = JSON.parse(localStorage.getItem('playerUpgrades')||'{}');
+
+const catalog = [
+  { id:'speedBoost',     name:'Kinetic Boots',     desc:'Run speed +30%',    price:12 },
+  { id:'jumpBoost',      name:'Grav Mod',          desc:'Jump height +20%',  price:10 },
+  { id:'armor',          name:'Poly Armor',        desc:'Damage -25%',       price:15 },
+  { id:'coinMagnet',     name:'Coin Magnet',       desc:'Pickup range x2',   price:8  },
+  { id:'advancedHack',   name:'ADV EMP Suite',     desc:'EMP lasts +2s',     price:14 }
+];
+
+function render(){
+  document.getElementById('stats').textContent = `Level ${level} | Score ${score} | BTC ${btc}`;
+  const grid = document.getElementById('items');
+  grid.innerHTML = '';
+  catalog.forEach(item=>{
+    const owned = !!upgrades[item.id];
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.innerHTML = `
+      <h3>${item.name}</h3>
+      <div style="font-size:12px;color:#9aa3b2">${item.desc}</div>
+      <div class="price">Price: ${item.price} BTC</div>
+      <button ${owned?'disabled':''} data-id="${item.id}">${owned?'Owned':'Buy'}</button>
+    `;
+    grid.appendChild(el);
+  });
+}
+
+document.getElementById('items').addEventListener('click', e=>{
+  const id = e.target?.dataset?.id; if(!id) return;
+  const item = catalog.find(x=>x.id===id); if(!item) return;
+  if (upgrades[id]) return;
+  if (btc < item.price) { alert('Not enough BTC!'); return; }
+  btc -= item.price;
+  upgrades[id] = true;
+  localStorage.setItem('playerUpgrades', JSON.stringify(upgrades));
+  localStorage.setItem('playerBTC', String(btc));
+  render();
+});
+
+document.getElementById('backBtn').onclick = () => { location.href = './index.html'; };
+document.getElementById('resetBtn').onclick = () => {
+  if (!confirm('Reset all progress and upgrades?')) return;
+  localStorage.removeItem('playerUpgrades');
+  localStorage.removeItem('playerBTC');
+  localStorage.removeItem('playerScore');
+  localStorage.removeItem('playerHealth');
+  localStorage.removeItem('gameLevel');
+  btc=0; score=0; level=1;
+  render();
+};
+
+render();
+</script>
+</body>
+</html>

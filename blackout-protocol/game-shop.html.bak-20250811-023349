@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/blackout-protocol/">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Byte Bazaar - Add-Men</title>
+  <style>
+    :root{
+      --accent:#6fc2ff; --accent2:#7dff9a; --ink:#cfd6df; --dim:#8a94a6;
+      --bg:#0b0f16; --panel:#0f141f; --mono: ui-monospace, Menlo, Consolas, monospace;
+      --w: 920px;
+    }
+    html,body{margin:0;height:100%;background:radial-gradient(100% 140% at 50% 0%,#0b0f16 0%,#0a0f1a 50%,#070b13 100%); color:var(--ink); font-family:var(--mono);}
+    .wrap{max-width:var(--w); margin:0 auto; padding:18px;}
+    .hdr{display:flex; align-items:center; gap:10px; color:var(--accent); letter-spacing:.8px}
+    .sign{font-weight:700}
+    .card{background:linear-gradient(180deg,rgba(22,28,40,.85),rgba(9,12,18,.85));
+          border:1px solid #263248; border-radius:10px; overflow:hidden;
+          box-shadow:0 0 40px rgba(1,10,30,.35) inset, 0 12px 50px rgba(20,40,80,.25);}
+    .imgbox{display:flex; justify-content:center; padding:14px 14px 6px}
+    .imgbox img{image-rendering:pixelated; width:min(680px,96vw); max-width:100%;
+                border:1px solid #33415f; background:#0b0f16}
+    .term{padding:12px 14px 18px; border-top:1px solid #25314a;
+          background:repeating-linear-gradient(180deg,#0d1320 0 2px,#0c1220 2px 4px); position:relative}
+    .crt::after{content:""; position:absolute; inset:0;
+                background:linear-gradient(to bottom,rgba(255,255,255,.03),rgba(0,0,0,0) 60%); pointer-events:none;}
+    .line{white-space:pre-wrap; line-height:1.25em}
+    .caret{display:inline-block; width:7px; margin-left:2px; background:var(--accent); animation:blink .9s steps(1) infinite;}
+    @keyframes blink{50%{opacity:0}}
+    .meta{display:flex; justify-content:space-between; gap:12px; color:var(--dim); font-size:12px; padding:10px 2px 0}
+    .btns{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; justify-content:center}
+    button{background:var(--panel); border:1px solid #2b354a; color:var(--ink); padding:8px 10px; border-radius:8px; cursor:pointer; letter-spacing:.5px}
+    button:hover{border-color:var(--accent); box-shadow:0 0 0 2px rgba(111,194,255,.1)}
+    .own{color:#8cffc8}.warn{color:#ffb36a}.err{color:#ff8a8a}.ok{color:#7dff9a}
+    .small{font-size:12px;color:var(--dim)}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <div class="sign">BYTE BAZAAR</div>
+    <div class="small"> -  proprietor: Add-Men</div>
+  </div>
+
+  <div class="card">
+    <div class="imgbox">
+      <img id="keeper" alt="Add-Men, shopkeeper" src="assets/shop_addmen.png?rev=20250811-022751">
+    </div>
+    <div id="term" class="term crt"></div>
+    <div class="meta">
+      <div>Tip: press number keys [1-6] to buy, [0] or [L] to leave. Space = skip typing.</div>
+      <div id="status">...</div>
+    </div>
+  </div>
+
+  <div class="btns" id="quick"></div>
+</div>
+
+<script>
+(function(){
+  const qs=new URLSearchParams(location.search);
+  const btcQS = parseInt(qs.get('btc')||'');
+  const scoreQS=parseInt(qs.get('score')||'');
+  const levelQS=parseInt(qs.get('level')||'');
+
+  const getNum=(k,def=0)=>{const n=parseInt(localStorage.getItem(k)||''); return Number.isFinite(n)?n:def;}
+  const getObj=(k)=>{try{return JSON.parse(localStorage.getItem(k)||'{}')}catch{return{}}}
+  const setObj=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+
+  let BTC = Number.isFinite(btcQS)?btcQS:getNum('playerBTC',0);
+  let SCORE = Number.isFinite(scoreQS)?scoreQS:getNum('playerScore',0);
+  let LVL = Number.isFinite(levelQS)?levelQS:getNum('gameLevel',1);
+  let HP = getNum('playerHealth',100);
+  let UPG = getObj('playerUpgrades');
+
+  const CATALOG = [
+    {id:'speedBoost',   label:'Speed Boost',    desc:'run like rumor',           cost:12, type:'flag'},
+    {id:'jumpBoost',    label:'Jump Boost',     desc:'reach the high rails',     cost:12, type:'flag'},
+    {id:'armor',        label:'Armor Plating',  desc:'take less damage',         cost:15, type:'flag'},
+    {id:'coinMagnet',   label:'Coin Magnet',    desc:'pull creds from air',      cost:10, type:'flag'},
+    {id:'advancedHack', label:'Advanced EMP',   desc:'longer hack pulse',        cost:20, type:'flag'},
+    {id:'heal',         label:'Trauma Gel',     desc:'patch to 100 HP',          cost:5,  type:'heal'}
+  ];
+
+  const term = document.getElementById('term');
+  const status = document.getElementById('status');
+  let skip=false;
+
+  function caret(){ const c=document.createElement('span'); c.className='caret'; return c; }
+  function writeLine(text){ const p=document.createElement('div'); p.className='line'; p.textContent=text; term.appendChild(p); term.scrollTop=term.scrollHeight; return p; }
+  async function type(text, spd=16){
+    const p=document.createElement('div'); p.className='line';
+    term.appendChild(p); const c=caret(); let out='';
+    for(let i=0;i<text.length;i++){
+      if(skip){ out=text; break; }
+      out+=text[i]; p.textContent=out; p.appendChild(c); term.scrollTop=term.scrollHeight;
+      await new Promise(r=>setTimeout(r, spd));
+    }
+    p.textContent=out; term.scrollTop=term.scrollHeight;
+  }
+
+  function fmtBal(){ return `BTC:${BTC}  HP:${HP}  LVL:${LVL}  SC:${SCORE}`; }
+  function setStatus(s){ status.textContent=s; }
+
+  function owned(id){ return !!UPG[id]; }
+  function canAfford(cost){ return BTC>=cost; }
+
+  async function intro(){
+    term.innerHTML='';
+    await type("【Add-Men】 Byte Bazaar terminal online...");
+    await type("Welcome back, runner.");
+    await type(\`Balance → ${fmtBal()}\`);
+    await type("What can I slot for you?");
+    await menu();
+  }
+
+  function lineFor(item, idx){
+    const have = item.type==='flag' && owned(item.id);
+    const tag = have ? " [OWNED]" : "";
+    return \`[${idx}] ${item.label}  -  ${item.desc}  (${item.cost} BTC)${tag}\`;
+  }
+
+  async function menu(){
+    for(let i=0;i<CATALOG.length;i++){ await type(lineFor(CATALOG[i], i+1)); }
+    await type("[0] Leave shop");
+    ensureButtons();
+    setStatus(fmtBal());
+  }
+
+  function ensureButtons(){
+    const q=document.getElementById('quick');
+    if(q.dataset.ready) return;
+    q.dataset.ready="1";
+    CATALOG.forEach((it,i)=>{
+      const b=document.createElement('button');
+      b.textContent=\`${i+1}. ${it.label}\`;
+      b.onclick=()=>attemptPurchase(i+1);
+      q.appendChild(b);
+    });
+    const leave=document.createElement('button');
+    leave.textContent="0. Leave shop";
+    leave.onclick=leaveShop;
+    q.appendChild(leave);
+  }
+
+  function saveAndToast(msg, cls='ok'){
+    setObj('playerUpgrades', UPG);
+    localStorage.setItem('playerBTC', String(BTC));
+    localStorage.setItem('playerScore', String(SCORE));
+    localStorage.setItem('gameLevel', String(LVL));
+    localStorage.setItem('playerHealth', String(HP));
+    const p=writeLine(msg); p.classList.add(cls);
+    setStatus(fmtBal());
+  }
+
+  function attemptPurchase(n){
+    const idx=n-1;
+    if(n===0){ leaveShop(); return; }
+    if(idx<0||idx>=CATALOG.length){ return; }
+    const it=CATALOG[idx];
+
+    if(it.type==='flag'){
+      if(owned(it.id)) { writeLine(\`Already installed: ${it.label}\`).classList.add('own'); return; }
+      if(!canAfford(it.cost)){ writeLine(\`Insufficient funds for ${it.label}. Need ${it.cost} BTC.\`).classList.add('err'); return; }
+      BTC-=it.cost; UPG[it.id]=true;
+      saveAndToast(\`Installed: ${it.label}. (-${it.cost} BTC)\`);
+      writeLine(lineFor(it, idx+1)).classList.add('own');
+    }else if(it.type==='heal'){
+      if(!canAfford(it.cost)){ writeLine(\`Insufficient funds for ${it.label}. Need ${it.cost} BTC.\`).classList.add('err'); return; }
+      BTC-=it.cost; HP=100;
+      saveAndToast(\`Vitals topped up to 100. (-${it.cost} BTC)\`);
+    }
+  }
+
+  function leaveShop(){
+    LVL = Math.max(LVL, 2);
+    saveAndToast("Gate unlocked. See you out there, runner.", "warn");
+    setTimeout(()=>{ location.href='./index.html'; }, 450);
+  }
+
+  window.addEventListener('keydown',(e)=>{
+    if(e.code==='Space'){ skip=true; }
+    if(e.key>='0'&&e.key<='9'){ attemptPurchase(parseInt(e.key,10)); }
+    if(e.key==='l'||e.key==='L'){ leaveShop(); }
+  });
+
+  intro();
+})();
+</script>
+</body>
+</html>

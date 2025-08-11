@@ -27,7 +27,7 @@
 const SHOP_URL = './game-shop.html';                 // where to send player on door touch
 const LEVEL_LEN = 1600;                              // how far until the shop door
 const DOOR_W = 24, DOOR_H = 32;                      // size of door sprite
-const HYPER_RELOAD_TAG = 'rev=20250811-041055';      // cache-bust new images
+const HYPER_RELOAD_TAG = 'rev=20250811-040446';      // cache-bust new images
 
 /* ================= CORE / DISPLAY ================= */
 let READY=false, LOAD_MSG='Loading…';
@@ -832,42 +832,6 @@ requestAnimationFrame(loop);
   }
 })();
 </script>
+<script src="platform-patch.js?rev=20250811-035731"></script>
 </body>
 </html>
-<script>
-(() => {
-  console.log('[patch] ledge_singlepiece active');
-  function pickImg(){
-    // Prefer ledge_tile.png, fall back to platform_industrial.png just in case
-    if (window.ledgeImg && window.ledgeImg.complete && window.ledgeImg.naturalWidth) return window.ledgeImg;
-    if (window.platformImg && window.platformImg.complete && window.platformImg.naturalWidth) return window.platformImg;
-    return null;
-  }
-  function drawOne(img, p){
-    const TILE = window.TILE||16, VW = window.VW||256, camX = window.cameraX||0;
-    const sx = (p.x - camX)|0; if (sx + p.w < 0 || sx > VW) return;
-
-    if (img && img.naturalWidth && img.naturalHeight) {
-      // Crop a tall slice from the BOTTOM of the PNG (includes deck + rails),
-      // and a vertical band from the center to avoid edge fades.
-      const bandW = Math.min(96, img.naturalWidth);
-      const srcX  = ((img.naturalWidth - bandW)/2)|0;
-      const srcH  = Math.min(240, img.naturalHeight);  // tall enough to include rails
-      const srcY  = img.naturalHeight - srcH;
-
-      const destH = 32 + TILE;          // rail above + solid deck height (TILE)
-      const destY = (p.y - (destH - TILE))|0; // keep deck top flush with p.y
-      window.ctx.drawImage(img, srcX, srcY, bandW, srcH, sx, destY, p.w, destH);
-    } else {
-      // Fallback: simple box so you never "float on air"
-      window.ctx.fillStyle = '#3a3f47'; window.ctx.fillRect(sx|0, p.y|0, p.w, TILE);
-      window.ctx.fillStyle = '#98a0b0'; window.ctx.fillRect(sx|0, (p.y|0)+1, p.w, 1);
-    }
-  }
-  const _origDrawTiles = window.drawTiles;
-  window.drawTiles = function(){
-    const img = pickImg();
-    for (const p of (window.platforms||[])) drawOne(img, p);
-  };
-})();
-</script>

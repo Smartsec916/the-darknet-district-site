@@ -20,52 +20,39 @@
   <canvas id="gameCanvas"></canvas>
   <canvas id="overlayCanvas"></canvas>
   <button id="resetBtn" type="button">Reset (R)</button>
-</div>
-
-<script>
+</div><script>
 /* ================= CONFIG YOU MAY TWEAK ================= */
-const SHOP_URL = './game-shop.html';                 // where to send player on door touch
-const LEVEL_LEN = 1600;                              // how far until the shop door
-const DOOR_W = 24, DOOR_H = 32;                      // size of door sprite
-const HYPER_RELOAD_TAG = 'rev=20250811-041055';      // cache-bust new images
-
-/* ================= CORE / DISPLAY ================= */
+const SHOP_URL = './game-shop.html';               // <— where to send player on door touch
+const LEVEL_LEN = 1600;                  // <— how far until the shop door
+const DOOR_W = 24, DOOR_H = 32;          // size of door sprite
+const HYPER_RELOAD_TAG = 'rev=20250811-022257'; // cache-bust new images/* ================= CORE / DISPLAY ================= */
 let READY=false, LOAD_MSG='Loading…';
-window.addEventListener('error', e => console.error('Runtime error:', e.message));
-
-const VW=256, VH=240, TILE=16;
+window.addEventListener('error', e => console.error('Runtime error:', e.message));const VW=256, VH=240, TILE=16;
 const PLATFORM_H=24;
-
 const gameCanvas=document.getElementById('gameCanvas');
 const overlayCanvas=document.getElementById('overlayCanvas');
 const gctx=gameCanvas.getContext('2d'); gctx.imageSmoothingEnabled=false;
 const octx=overlayCanvas.getContext('2d');
-
 const nes=document.createElement('canvas'); nes.width=VW; nes.height=VH;
 const ctx=nes.getContext('2d',{alpha:false}); ctx.imageSmoothingEnabled=false; ctx.font='9px monospace';
-
 let RENDER={scale:1,ox:0,oy:0};
-function fit(){
-  const r=document.getElementById('gameContainer').getBoundingClientRect();
-  gameCanvas.width=r.width; gameCanvas.height=r.height;
-  overlayCanvas.width=r.width; overlayCanvas.height=r.height;
-}
-addEventListener('resize',fit); fit();
-
-addEventListener('keydown',e=>{
+function fit(){ const r=document.getElementById('gameContainer').getBoundingClientRect();
+  gameCanvas.width=r.width; gameCanvas.height=r.height; overlayCanvas.width=r.width; overlayCanvas.height=r.height; }
+addEventListener('resize',fit); fit();addEventListener('keydown',e=>{
   if(['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.code)) e.preventDefault();
-},{passive:false});
-
-/* ================= ASSETS ================= */
-const IMG = (path) => new Promise(resolve=>{
-  const i=new Image();
-  i.onload=()=>{ console.log('✓ Asset loaded successfully:', path); resolve(i); };
-  i.onerror=()=>{ console.error('✗ Failed to load asset:', path); resolve(null); };
+},{passive:false});/* ================= ASSETS ================= */
+const IMG=path=>new Promise(res=>{
+  const i=new Image(); 
+  i.onload=()=>{
+    console.log('✓ Asset loaded successfully:', path);
+    res(i);
+  }; 
+  i.onerror=()=>{
+    console.error('✗ Failed to load asset:', path);
+    res(null);
+  }; 
   i.src=path;
-});
-
-/* Sprite + static art definitions */
-const SPRITE_DEF={
+});const SPRITE_DEF={
   player:{fw:48,fh:48, states:{
     idle:'assets/player_idle_48.png', walk:'assets/player_walk_48.png', run:'assets/player_run_48.png',
     jump:'assets/player_jump_48.png', fall:'assets/player_fall_48.png', hurt:'assets/player_hurt_48.png', dead:'assets/player_dead_48.png'
@@ -78,16 +65,15 @@ const SPRITE_DEF={
     idle:'assets/drone_idle_32.png', hover:'assets/drone_hover_32.png', move:'assets/drone_move_32.png',
     attack:'assets/drone_attack_32.png', hurt:'assets/drone_hurt_32.png', dead:'assets/drone_dead_32.png'
   }, fps:{idle:3, hover:10, move:10, attack:12, hurt:6, dead:8}},
+  // background/tiles/hooks with cache-busting for proper loading
   bg_far:`assets/01_bg_far.png?${HYPER_RELOAD_TAG}`,
   bg_near:`assets/01_bg_near.png?${HYPER_RELOAD_TAG}`,
-  coin:`assets/btc_glow.png?${HYPER_RELOAD_TAG}`,
-  door:`assets/shop_door_neon.png?${HYPER_RELOAD_TAG}`,
-  ledge:`assets/ledge_tile.png?${HYPER_RELOAD_TAG}`,
-  platform:`assets/platform_industrial.png?${HYPER_RELOAD_TAG}`,   // optional; falls back to ledge
-  terminal:`assets/hacker_terminal.png?${HYPER_RELOAD_TAG}`
-};
-
-/* ===== Graphic Ads (your PNGs) ===== */
+  coin:`assets/btc_glow.png?`,
+  door:`assets/shop_door_neon.png?`,
+  ledge:`assets/ledge_tile.png?`,
+  platform:`assets/platform_industrial.png?`,
+  terminal:`assets/hacker_terminal.png?`
+};/* ===== Graphic Ads (your PNGs) ===== */
 const AD_SRC = {
   fourk: `assets/4K.png?${HYPER_RELOAD_TAG}`,
   meat:  `assets/Meat.png?${HYPER_RELOAD_TAG}`,
@@ -96,17 +82,15 @@ const AD_SRC = {
   drinkA:`assets/Drink_Oil_01.png?${HYPER_RELOAD_TAG}`,
   drinkB:`assets/Drink_Oil_02.png?${HYPER_RELOAD_TAG}`
 };
-const AD_KINDS = ['fourk','meat','holo','rent','drink'];
-const AdImages = { fourk:null, meat:null, holo:null, rent:null, drink:[null,null] };
-async function loadAdImages(){
+const AD_KINDS = ['fourk','meat','holo','rent','drink']; // pool for random selectionconst AdImages = {
+  fourk:null, meat:null, holo:null, rent:null, drink:[null,null]
+};async function loadAdImages(){
   AdImages.fourk = await IMG(AD_SRC.fourk);
   AdImages.meat  = await IMG(AD_SRC.meat);
   AdImages.holo  = await IMG(AD_SRC.holo);
   AdImages.rent  = await IMG(AD_SRC.rent);
   AdImages.drink = [ await IMG(AD_SRC.drinkA), await IMG(AD_SRC.drinkB) ];
-}
-
-/* Animator helper */
+}/* Animator helper */
 function makeAnimator(sheet, fw, fh, fps){
   const frames = sheet ? Math.max(1, Math.floor(sheet.width / fw)) : 1;
   let frame=0, time=0, spf=1000/(fps||8);
@@ -123,34 +107,45 @@ function makeAnimator(sheet, fw, fh, fps){
     },
     frames
   };
-}
-
-/* ================= PARALLAX ================= */
+}/* ================= PARALLAX ================= */
 const BG={far:null, near:null, farW:0, nearW:0};
 const PARALLAX={far:0.25, near:0.9};
-const NEAR_FADE_PX=120;
-
-async function loadBackgrounds(){
-  console.log('Loading backgrounds...', {far: SPRITE_DEF.bg_far, near: SPRITE_DEF.bg_near});
+const NEAR_FADE_PX=120;async function loadBackgrounds(){
+  console.log('Loading backgrounds...');
+  console.log('Expected paths:', {
+    far: SPRITE_DEF.bg_far,
+    near: SPRITE_DEF.bg_near
+  });
+  
   BG.far  = await IMG(SPRITE_DEF.bg_far);
   BG.near = await IMG(SPRITE_DEF.bg_near);
-  BG.farW  = BG.far  && BG.far.naturalWidth  ? BG.far.width  : 0;
-  BG.nearW = BG.near && BG.near.naturalWidth ? BG.near.width : 0;
-  if(!BG.farW)  console.error('✗ Failed to load far background:', SPRITE_DEF.bg_far);
-  if(!BG.nearW) console.error('✗ Failed to load near background:', SPRITE_DEF.bg_near);
-  console.log('BG loaded:', {far: BG.farW, near: BG.nearW});
-}
-
-function tileParallax(img, imgW, speed, dstH){
-  if(!img||!imgW) return;
+  
+  if(BG.far && BG.far.complete && BG.far.naturalWidth > 0) {
+    BG.farW = BG.far.width;
+    console.log('✓ Far background loaded:', BG.farW + 'px wide');
+  } else {
+    console.error('✗ Failed to load far background:', SPRITE_DEF.bg_far);
+    BG.farW = 0;
+  }
+  
+  if(BG.near && BG.near.complete && BG.near.naturalWidth > 0) {
+    BG.nearW = BG.near.width;
+    console.log('✓ Near background loaded:', BG.nearW + 'px wide');
+  } else {
+    console.error('✗ Failed to load near background:', SPRITE_DEF.bg_near);
+    BG.nearW = 0;
+  }
+  
+  console.log('BG loaded:', {far:BG.farW, near:BG.nearW});
+}function tileParallax(img, imgW, speed, dstH){
+  if(!img) return;
   const cam = cameraX||0;
   let x = -((cam*speed) % imgW);
   if (x>0) x -= imgW;
   for(let i=0;i<3;i++){
     ctx.drawImage(img, Math.floor(x+i*imgW), 0, imgW, img.height, Math.floor(x+i*imgW), 0, imgW, dstH);
   }
-}
-function drawBackgrounds(){
+}function drawBackgrounds(){
   if(!BG.far && !BG.near){ drawSky(); return; }
   if(BG.far) tileParallax(BG.far, BG.farW, PARALLAX.far, VH);
   if(BG.near){
@@ -163,12 +158,9 @@ function drawBackgrounds(){
     ctx.fillStyle=g; ctx.fillRect(0,0,VW,VH);
     ctx.restore();
   }
-}
-function drawSky(){
+}function drawSky(){
   for(let y=0;y<VH;y++){ const t=y/VH; ctx.fillStyle=`rgb(${12+18*t|0},${16+30*t|0},${30+58*t|0})`; ctx.fillRect(0,y,VH,1); }
-}
-
-/* ================= SPRITES ================= */
+}/* ================= SPRITES ================= */
 async function loadSprites(def){
   const out={};
   for(const who of ['player','robot','drone']){
@@ -181,14 +173,10 @@ async function loadSprites(def){
     out[who]=pack;
   }
   return out;
-}
-
-/* ================= STATE / INPUT / CAMERA ================= */
+}/* ================= STATE / INPUT / CAMERA ================= */
 let gameState='loading', score=0, btc=0, level=1, justLeveled=0;
 let cameraX=0, worldMaxX=0;
-const CHUNK=320;
-const DEAD_ZONE=2;
-
+const CHUNK=320;const DEAD_ZONE=2;
 function updateCamera(){
   const center=VW*.5, L=center-DEAD_ZONE, R=center+DEAD_ZONE;
   let target=cameraX;
@@ -196,9 +184,7 @@ function updateCamera(){
   else if(player.x-cameraX>R) target=player.x-R;
   cameraX += (target-cameraX)*.25;
   cameraX=Math.max(0,Math.min(cameraX, worldMaxX-VW));
-}
-
-const keys={}, JUMP_BUFFER=140, COYOTE=140;
+}const keys={}, JUMP_BUFFER=140, COYOTE=140;
 let jumpBufferUntil=0, coyoteUntil=0, jumpHeld=false;
 addEventListener('keydown',e=>{
   keys[e.code]=true;
@@ -207,29 +193,25 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyR' && (gameState==='gameOver'||gameState==='levelComplete')) reset();
   if(e.code==='Enter' && gameState==='playing') tryHack();
 });
-addEventListener('keyup',e=>{ keys[e.code]=false; if(e.code==='Space') jumpHeld=false; });
-
-/* ================= ENTITIES ================= */
+addEventListener('keyup',e=>{ keys[e.code]=false; if(e.code==='Space') jumpHeld=false; });/* ================= ENTITIES ================= */
 let SPR=null;
 let player, robots=[], drones=[], platforms=[], terminals=[], ads=[], coins=[];
-let exitDoor=null;
-const resetBtn=document.getElementById('resetBtn'); resetBtn.onclick=()=>reset();
-
-function makePlayer(){
+let exitDoor=null;const resetBtn=document.getElementById('resetBtn'); resetBtn.onclick=()=>reset();function makePlayer(){
   // Load saved stats if returning from shop
   const savedHealth = parseInt(localStorage.getItem('playerHealth')) || 100;
   const savedUpgrades = JSON.parse(localStorage.getItem('playerUpgrades')) || {};
+  
+  // Apply upgrades to base stats
   const baseSpeed = 1.52;
-  const baseJump  = 5.2;
+  const baseJump = 5.2; // Increased from 4.15 for better accessibility
   const speed = savedUpgrades.speedBoost ? baseSpeed * 1.3 : baseSpeed;
-  const jump  = savedUpgrades.jumpBoost  ? baseJump  * 1.2 : baseJump;
+  const jump = savedUpgrades.jumpBoost ? baseJump * 1.2 : baseJump;
+  
   return { x:32, y:VH-80, w:18, h:28, vx:0, vy:0, onGround:false, facing:1,
            speed, aGround:.19, aAir:.12, dragG:.82, dragA:.986, jump,
            hp:savedHealth, dist:0, hitUntil:0, anim:{state:'idle',runner:null},
            upgrades: savedUpgrades };
-}
-
-function setAnim(actor, who, state, clamp=false){
+}function setAnim(actor, who, state, clamp=false){
   if(actor.anim.state===state) return;
   actor.anim.state=state;
   const spec=SPR[who]?.anim?.[state];
@@ -238,68 +220,72 @@ function setAnim(actor, who, state, clamp=false){
   actor.anim.clamp=clamp;
 }
 function stepAnim(a,dt){ if(a.anim.runner) a.anim.runner.step(dt, a.anim.clamp); }
-function drawAnim(a,who,x,y,flip=false,alpha=1){ const run=a.anim.runner; if(run) run.draw(x,y,flip,alpha); }
-
-/* ================= WORLD GEN ================= */
+function drawAnim(a,who,x,y,flip=false,alpha=1){ const run=a.anim.runner; if(run) run.draw(x,y,flip,alpha); }/* ================= WORLD GEN ================= */
 const choice = a => a[(Math.random()*a.length)|0];
-let generatedUntil=0;
-function groundY(){ return VH-TILE; }
-
-function genChunk(startX){
-  const endX=startX+CHUNK;
-
-  // ground
-  for(let x=startX;x<endX;x+=TILE) platforms.push({x,y:groundY(),w:TILE,h:TILE});
-
-  // floating ledges (single, bigger slabs)
-  const pc=1; // 1–2 per chunk
+let generatedUntil=0;function groundY(){ return VH-TILE; }function genChunk(startX){
+  const endX=startX+CHUNK;  // ground
+  for(let x=startX;x<endX;x+=TILE) platforms.push({x,y:groundY(),w:TILE,h:TILE});  // floating ledges (snap to grid)
+  const pc=1+((Math.random()*2)|0);
   for(let i=0;i<pc;i++){
     const px=startX+40+Math.random()*(CHUNK-80);
     const py=VH-(64+((Math.random()*96)|0));
-    const pw = TILE * (5 + ((Math.random()*4)|0)); // 10–16 tiles wide
+    const pw=TILE*(8+((Math.random()*8)|0));
     platforms.push({x:(px/TILE|0)*TILE, y:(py/TILE|0)*TILE, w:pw, h:TILE});
-  }
-
-  // coins (3–5 per chunk)
+  }  // coins (3-5 per chunk for better accessibility)
   const cc=3+((Math.random()*3)|0);
   for(let i=0;i<cc;i++){
     const cx=startX+40+Math.random()*(CHUNK-80);
-    let cy=VH-80-((Math.random()*60)|0);
-    let placedOnPlatform=false;
-    for(const p of platforms){
-      if(cx>=p.x-16 && cx<=p.x+p.w+16){
-        if(p.y < VH-TILE){ cy = p.y - 24; placedOnPlatform=true; break; }
+    let cy=VH-80-((Math.random()*60)|0); // Reduced random range for better reachability
+    let placedOnPlatform = false;
+    
+    // First try to place coins directly on or near platforms
+    for(const p of platforms){ 
+      if(cx>=p.x-16 && cx<=p.x+p.w+16) {
+        // Place coins just above platforms where they're easily reachable
+        if(p.y < VH-TILE) { // Not ground level
+          cy = p.y - 24; // Positioned for easy jumping collection
+          placedOnPlatform = true;
+          break;
+        }
       }
     }
-    if(!placedOnPlatform){
-      let nearPlatform=false;
-      for(const p of platforms){
-        const dist=Math.abs(cx - (p.x + p.w/2));
-        if(dist<=80 && p.y < VH-TILE){ nearPlatform=true; cy=Math.min(cy, p.y-16); break; }
+    
+    // If not placed on a platform, ensure it's reachable from ground or nearby platforms
+    if(!placedOnPlatform) {
+      // Check if there's a platform within jumping distance
+      let nearPlatform = false;
+      for(const p of platforms) {
+        const distToPlatform = Math.abs(cx - (p.x + p.w/2));
+        if(distToPlatform <= 80 && p.y < VH-TILE) { // Within reasonable horizontal distance
+          nearPlatform = true;
+          cy = Math.min(cy, p.y - 16); // Make sure it's reachable from that platform
+          break;
+        }
       }
-      if(!nearPlatform) cy = Math.max(cy, VH-100);
+      
+      // If no nearby platform, keep it low enough to reach from ground
+      if(!nearPlatform) {
+        cy = Math.max(cy, VH-100); // Keep within jumping reach from ground
+      }
     }
-    cy = Math.max(cy, 40);
-    cy = Math.min(cy, VH-24);
-    coins.push({x:cx|0, y:cy|0, r:10, taken:false});
-  }
-
-  // terminals
+    
+    // Final bounds check
+    cy = Math.max(cy, 40); // Not too high
+    cy = Math.min(cy, VH-24); // Not too low
+    
+    coins.push({x:cx|0, y:cy|0, r:10, taken:false}); // Larger radius for easier collection
+  }  // terminals
   if(Math.random()<.5){
     const tx=startX+40+Math.random()*(CHUNK-80); let ty=VH-TILE*2;
     for(const p of platforms){ if(tx>=p.x-4 && tx<=p.x+p.w+4) ty=Math.min(ty,p.y-TILE); }
     terminals.push({x:tx|0,y:ty|0,w:12,h:16,cooldown:0});
-  }
-
-  // ads (now graphic)
+  }  // ads (now graphic)
   const ac=1+((Math.random()*2)|0);
   for(let i=0;i<ac;i++){
     const ax=startX+40+Math.random()*(CHUNK-80), ay=VH-(120+((Math.random()*60)|0));
     const kind = choice(AD_KINDS);
     ads.push({x:ax|0,y:ay|0,kind,phase:Math.random()*6});
-  }
-
-  // enemies — do NOT spawn in the initial screen
+  }  // enemies — do NOT spawn in the initial screen (startX < 256)
   if(startX>=256){
     const rc=1+((Math.random()*2)|0);
     for(let i=0;i<rc;i++){
@@ -310,124 +296,125 @@ function genChunk(startX){
       const dx=startX+80+Math.random()*(CHUNK-160), dy=60+Math.random()*80;
       drones.push({x:dx|0,y:dy|0,w:18,h:14,dir:Math.random()<.5?-1:1,speed:.8,phase:Math.random()*6,active:false,anim:{state:'move',runner:null}});
     }
-  }
-
-  generatedUntil=endX; worldMaxX=Math.max(worldMaxX,endX);
-}
-
-/* ================= PHYSICS ================= */
+  }  generatedUntil=endX; worldMaxX=Math.max(worldMaxX,endX);
+}/* ================= PHYSICS ================= */
 function rects(a,b){ return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y; }
 function collide(body){
-  body.onGround=false;
-
-  // vertical
+  body.onGround=false;  // vertical
   body.y+=body.vy;
   for(const p of platforms){
     if(rects(body,p)){
       if(body.vy>0){ body.y=p.y-body.h; body.vy=0; body.onGround=true; coyoteUntil=0; }
       else if(body.vy<0){ body.y=p.y+p.h; body.vy=0; }
     }
-  }
-
-  // horizontal + tiny step-up
+  }  // horizontal + tiny step-up
   body.x+=body.vx;
   for(const p of platforms){
     if(rects(body,p)){
       if(body.vx>0){
-        body.y-=2; if(!rects(body,p)){ body.onGround=false; break; } body.y+=2;
+        body.y-=2;
+        if(!rects(body,p)){ body.onGround=false; break; }
+        body.y+=2;
       }else if(body.vx<0){
-        body.y-=2; if(!rects(body,p)){ body.onGround=false; break; } body.y+=2;
+        body.y-=2;
+        if(!rects(body,p)){ body.onGround=false; break; }
+        body.y+=2;
       }
       if(body.vx>0) body.x=p.x-body.w; else if(body.vx<0) body.x=p.x+p.w;
       body.vx=0;
     }
   }
-}
-
-/* ================= HACK / EMP ================= */
+}/* ================= HACK / EMP ================= */
 let hackUntil=0, hackCDUntil=0; 
-const getHackDuration = () => player?.upgrades?.advancedHack ? 5000 : 3000;
+const getHackDuration = () => player?.upgrades?.advancedHack ? 5000 : 3000; // Advanced EMP lasts longer
 const HACK_MS=3000, CD_MS=5000;
 function tryHack(){
   const now=performance.now(); if(now<hackCDUntil) return;
   const near=terminals.find(t=>Math.hypot((t.x+6)-(player.x+player.w/2),(t.y+8)-(player.y+player.h/2))<18 && t.cooldown<=0);
-  if(near){ const d=getHackDuration(); hackUntil=now+d; hackCDUntil=now+CD_MS; near.cooldown=CD_MS; score+=20; }
-}
-
-/* ================= UPDATE ================= */
+  if(near){ 
+    const hackDuration = getHackDuration();
+    hackUntil=now+hackDuration; hackCDUntil=now+CD_MS; near.cooldown=CD_MS; score+=20; 
+  }
+}/* ================= UPDATE ================= */
 let coinImg=null, doorImg=null, ledgeImg=null, platformImg=null, terminalImg=null, platformRailImg=null;
-
 async function loadTiles(){
-  console.log('Loading tiles...', {
-    coin: SPRITE_DEF.coin, door: SPRITE_DEF.door, ledge: SPRITE_DEF.ledge,
-    platform: SPRITE_DEF.platform, terminal: SPRITE_DEF.terminal
+  console.log('Loading tiles...');
+  console.log('Expected paths:', {
+    coin: SPRITE_DEF.coin,
+    door: SPRITE_DEF.door,
+    ledge: SPRITE_DEF.ledge,
+    platform: SPRITE_DEF.platform,
+    terminal: SPRITE_DEF.terminal
   });
-  coinImg     = await IMG(SPRITE_DEF.coin);
-  doorImg     = await IMG(SPRITE_DEF.door);
-  ledgeImg    = await IMG(SPRITE_DEF.ledge);
-  platformImg = await IMG(SPRITE_DEF.platform);          // may be null
+  
+  coinImg = await IMG(SPRITE_DEF.coin);
+  doorImg = await IMG(SPRITE_DEF.door);
+  ledgeImg= await IMG(SPRITE_DEF.ledge);
+  platformImg = await IMG(SPRITE_DEF.platform);
   terminalImg = await IMG(SPRITE_DEF.terminal);
-  platformRailImg = await IMG(`assets/platform_rail.png?${HYPER_RELOAD_TAG}`); // optional overlay
-
-  const ok = (im)=>im && im.complete && im.naturalWidth>0;
-  console[ok(coinImg)?'log':'error'](ok(coinImg)?'✓ Coin image':'✗ Failed to load coin', ok(coinImg)?`${coinImg.width}x${coinImg.height}`:SPRITE_DEF.coin);
-  console[ok(doorImg)?'log':'error'](ok(doorImg)?'✓ Door image':'✗ Failed to load door', ok(doorImg)?`${doorImg.width}x${doorImg.height}`:SPRITE_DEF.door);
-  console[ok(ledgeImg)?'log':'error'](ok(ledgeImg)?'✓ Ledge image':'✗ Failed to load ledge', ok(ledgeImg)?`${ledgeImg.width}x${ledgeImg.height}`:SPRITE_DEF.ledge);
-  console[ok(platformImg)?'log':'warn'](ok(platformImg)?'✓ Platform image':'⚠ No platform_industrial (using ledge)', ok(platformImg)?`${platformImg.width}x${platformImg.height}`:'');
-  console[ok(terminalImg)?'log':'error'](ok(terminalImg)?'✓ Terminal image':'✗ Failed to load terminal', ok(terminalImg)?`${terminalImg.width}x${terminalImg.height}`:SPRITE_DEF.terminal);
-  if(ok(platformRailImg)) console.log('✓ Platform rail overlay:', platformRailImg.width+'x'+platformRailImg.height);
-  else console.log('(No platform_rail overlay found — fallback line will be used)');
-}
-
-function cull(){ const cutoff=cameraX-300;
+  platformRailImg = await IMG(SPRITE_DEF.platformTop || ('assets/platform_rail.png?'+HYPER_RELOAD_TAG));
+  if(platformRailImg terminalImg = await IMG(SPRITE_DEF.terminal);terminalImg = await IMG(SPRITE_DEF.terminal); platformRailImg.complete terminalImg = await IMG(SPRITE_DEF.terminal);terminalImg = await IMG(SPRITE_DEF.terminal); platformRailImg.naturalWidth>0){
+    console.log('✓ Platform rail image loaded successfully:', platformRailImg.width,'x',platformRailImg.height);
+  }else{
+    console.warn('⚠ Platform rail overlay missing (optional).');
+  }  
+  // Debug logging for all tile images
+  if(coinImg && coinImg.complete && coinImg.naturalWidth > 0) {
+    console.log('✓ Coin image loaded successfully:', coinImg.width, 'x', coinImg.height);
+  } else {
+    console.error('✗ Failed to load coin.png:', SPRITE_DEF.coin);
+  }
+  if(doorImg && doorImg.complete && doorImg.naturalWidth > 0) {
+    console.log('✓ Door image loaded successfully:', doorImg.width, 'x', doorImg.height);
+  } else {
+    console.error('✗ Failed to load door.png:', SPRITE_DEF.door);
+  }
+  if(ledgeImg && ledgeImg.complete && ledgeImg.naturalWidth > 0) {
+    console.log('✓ Ledge image loaded successfully:', ledgeImg.width, 'x', ledgeImg.height);
+  } else {
+    console.error('✗ Failed to load ledge_tile.png:', SPRITE_DEF.ledge);
+  }
+  if(platformImg && platformImg.complete && platformImg.naturalWidth > 0) {
+    console.log('✓ Platform image loaded successfully:', platformImg.width, 'x', platformImg.height);
+  } else {
+    console.error('✗ Failed to load platform_industrial.png:', SPRITE_DEF.platform);
+  }
+  if(terminalImg && terminalImg.complete && terminalImg.naturalWidth > 0) {
+    console.log('✓ Terminal image loaded successfully:', terminalImg.width, 'x', terminalImg.height);
+  } else {
+    console.error('✗ Failed to load hacker_terminal.png:', SPRITE_DEF.terminal);
+  }
+}function cull(){ const cutoff=cameraX-300;
   for(let i=ads.length-1;i>=0;i--) if(ads[i].x+160<cutoff) ads.splice(i,1);
   for(let i=robots.length-1;i>=0;i--) if(robots[i].x+120<cutoff) robots.splice(i,1);
   for(let i=drones.length-1;i>=0;i--) if(drones[i].x+120<cutoff) drones.splice(i,1);
   for(let i=coins.length-1;i>=0;i--) if(coins[i].x+40<cutoff) coins.splice(i,1);
-}
-function activateEnemies(){
+}function activateEnemies(){
   const visRight = cameraX + VW + 64;
   for(const r of robots){ if(!r.active && r.x<visRight) r.active=true; }
   for(const d of drones){ if(!d.active && d.x<visRight) d.active=true; }
-}
-
-function update(dt,now){
-  if(gameState!=='playing') return;
-
-  // controls
+}function update(dt,now){
+  if(gameState!=='playing') return;  // controls
   const L=!!keys['ArrowLeft'], R=!!keys['ArrowRight'];
   const accel=player.onGround?player.aGround:player.aAir;
   const drag=player.onGround?player.dragG:player.dragA;
   if(L){ player.vx=Math.max(player.vx-accel,-player.speed); player.facing=-1; }
   if(R){ player.vx=Math.min(player.vx+accel, player.speed);  player.facing= 1; }
-  if(!L && !R) player.vx*=drag;
-
-  // jump tuning
+  if(!L && !R) player.vx*=drag;  // jump tuning
   if(player.onGround) coyoteUntil=now+COYOTE;
   const wantsJump = now<=jumpBufferUntil;
   if(wantsJump && (player.onGround || now<=coyoteUntil)){ player.vy=-player.jump; player.onGround=false; jumpBufferUntil=0; coyoteUntil=0; }
-  if(!jumpHeld && player.vy<-1.25) player.vy=-1.25;
-
-  // gravity
+  if(!jumpHeld && player.vy<-1.25) player.vy=-1.25;  // gravity
   player.vy+=.18; if(player.vy>3.7) player.vy=3.7;
-
-  collide(player);
-
-  // anim
+  collide(player);  // anim
   if(player.hp<=0) setAnim(player,'player','dead',true);
   else if(now<player.hitUntil) setAnim(player,'player','hurt',true);
   else if(!player.onGround) setAnim(player,'player', player.vy<0?'jump':'fall');
   else { const s=Math.abs(player.vx); setAnim(player,'player', s>1.05?'run':(s>0.2?'walk':'idle')); }
-  stepAnim(player,dt);
-
-  // world gen
-  const need=cameraX+VW+CHUNK*2; while(generatedUntil<need) genChunk(generatedUntil);
-
-  // enemies
-  activateEnemies();
+  stepAnim(player,dt);  // world gen
+  const need=cameraX+VW+CHUNK*2; while(generatedUntil<need) genChunk(generatedUntil);  // activate enemies only after moving right
+  activateEnemies();  // drones
   const hacked = now<hackUntil;
-
-  // drones
   for(const d of drones){
     if(!d.active) continue;
     if(!hacked){
@@ -439,9 +426,7 @@ function update(dt,now){
         if(!blocked){ for(const r of robots){ if(Math.abs(r.x-d.x)<140) r.alert=true; } }
       }
     }
-  }
-
-  // robots
+  }  // robots
   for(const r of robots){
     if(!r.active) continue;
     if(!hacked){
@@ -453,140 +438,163 @@ function update(dt,now){
     setAnim(r,'robot', r.alert?'run':'walk'); stepAnim(r,dt);
     if(rects(player,r)){
       if(player.vy>0 && player.y+player.h<=r.y+6){ r.hp--; r.hitUntil=now+120; player.vy=-2.6; score+=12; }
-      else{
-        player.vx+=(player.x<r.x)?-0.8:0.8;
-        const damage = player.upgrades?.armor ? 5 : 7;
-        player.hp-=damage; player.hitUntil=now+150;
-        if(player.hp<=0){ gameState='gameOver'; resetBtn.style.display='block'; }
+      else{ 
+        player.vx+=(player.x<r.x)?-0.8:0.8; 
+        // Apply armor upgrade
+        const damage = player.upgrades?.armor ? 5 : 7; // 25% damage reduction
+        player.hp-=damage; player.hitUntil=now+150; 
+        if(player.hp<=0){ gameState='gameOver'; resetBtn.style.display='block'; } 
       }
     }
   }
-  for(let i=robots.length-1;i>=0;i--) if(robots[i].hp<=0) robots.splice(i,1);
-
-  // coins pickup (with magnet)
+  for(let i=robots.length-1;i>=0;i--) if(robots[i].hp<=0) robots.splice(i,1);  // coins pickup (with magnet upgrade)
   const magnetRange = player.upgrades?.coinMagnet ? 26 : 12;
   for(const c of coins){
     if(!c.taken && player.x+player.w>c.x-magnetRange && player.x<c.x+magnetRange && player.y+player.h>c.y-magnetRange && player.y<c.y+magnetRange){
       c.taken=true; btc += 1; score += 3;
     }
-  }
-
-  // exit door collision -> Game Shop transfer
+  }  // exit door collision -> Game Shop transfer
   if(exitDoor && rects(player, exitDoor)){
+    // tiny delay feels nicer and avoids accidental flicker
     gameState='levelComplete';
     setTimeout(()=>{ 
+      // Pass game stats to shop
       const shopUrl = `${SHOP_URL}?btc=${btc}&score=${score}&level=${level}`;
       window.location.href = shopUrl;
     }, 300);
-  }
-
-  // camera / cleanup / level
+  }  // camera / cleanup / level
   updateCamera(); cull();
   player.dist=Math.max(player.dist,player.x);
   const nl=(player.dist/LEVEL_LEN|0)+1; if(nl>level){ level=nl; justLeveled=1200; }
-}
-
-/* ================= DRAW ================= */
+}/* ================= DRAW ================= */
 function drawTiles(){
   for(const p of platforms){
     const sx=p.x-cameraX; if(sx+p.w<0||sx>VW) continue;
-
     // Use industrial platform for floating platforms, ledge for ground
     const useIndustrial = p.y < VH-TILE && platformImg && platformImg.complete;
     const tileImg = useIndustrial ? platformImg : ledgeImg;
+    
+    if(tileImg){
+      for(let x=0;x<p.w;x+=TILE){
+        ctx.drawImage(tileImg, sx+x|0, p.y|0, TILE, TILE);
+      }
 
-    if(tileImg && tileImg.complete && tileImg.naturalWidth>0){
-      // stretch a single slice across the width (no visible tiling seams)
-      const srcW = Math.min(TILE, tileImg.naturalWidth);
-      const srcH = Math.min(TILE, tileImg.naturalHeight);
-      ctx.drawImage(tileImg, 0, 0, srcW, srcH, sx|0, p.y|0, p.w, TILE);
-    }else{
-      // fallback boxes
-      ctx.fillStyle='#3a3f47'; ctx.fillRect(sx|0,p.y|0,p.w,TILE);
-      ctx.fillStyle='#98a0b0'; ctx.fillRect(sx|0,p.y|0,p.w,1);
-    }
+function drawPlatformRails(){
+  if(!(platformRailImg && platformRailImg.complete)) return;
+  for(const p of platforms){
+    if(p.y >= VH-TILE) continue; // only floating
+    const sx=p.x-cameraX; if(sx+p.w<0||sx>VW) continue;
+    const h = (typeof PLATFORM_H!=="undefined"?PLATFORM_H:24);
+    const railH = Math.max(h, 28); // rails can be a bit taller than the base
+    const yy = (p.y - railH + TILE)|0; // sit on top of the platform
+    ctx.drawImage(platformRailImg, sx|0, yy, p.w, railH);
   }
 }
 
-function drawRailsOnTop(){
-  // Draw fence/rail ON TOP of the player for floating platforms
-  const ok = (im)=>im && im.complete && im.naturalWidth>0;
-  const railH = 10;
-  for(const p of platforms){
-    if(p.y < VH - TILE){
-      const sx=(p.x - cameraX)|0, y=(p.y - railH - 2)|0;
-      if(ok(platformRailImg)){
-        ctx.drawImage(platformRailImg, 0, 0, TILE, railH, sx, y, p.w, railH);
-      }else if(ledgeImg && ledgeImg.complete){
-        // fallback: use a simple 1px neon line
-        ctx.save(); ctx.strokeStyle="#6fc2ff"; ctx.lineWidth=1;
-        ctx.beginPath(); ctx.moveTo(sx, y+railH-1); ctx.lineTo(sx+p.w, y+railH-1); ctx.stroke();
-        ctx.restore();
+    }else{
+      for(let x=0;x<p.w;x+=TILE){
+        const xx=sx+x, yy=p.y, even=((((xx|0)>>4)+(((yy|0)>>4)))%2)===0;
+        ctx.fillStyle=even?'#3a3f47':'#2c3038'; ctx.fillRect(xx|0,yy|0,TILE,TILE);
+        ctx.fillStyle='#98a0b0'; ctx.fillRect(xx|0,yy|0,TILE,1);
       }
     }
   }
 }
-
 function drawTerminals(){
   for(const t of terminals){ 
-    const x=(t.x-cameraX)|0; if(x+t.w<0||x>VW) continue;
-    if(terminalImg && terminalImg.complete && terminalImg.naturalWidth){
+    const x=(t.x-cameraX)|0; 
+    if(x+t.w<0||x>VW) continue;
+    
+    if(terminalImg && terminalImg.complete && terminalImg.naturalWidth > 0){
+      // Draw the hacker terminal sprite
       ctx.save();
-      if(t.cooldown <= 0) { ctx.shadowColor = '#00ff9d'; ctx.shadowBlur = 4; }
-      else { ctx.shadowColor = '#ff4444'; ctx.shadowBlur = 2; }
+      // Add subtle glow effect for active terminals
+      if(t.cooldown <= 0) {
+        ctx.shadowColor = '#00ff9d';
+        ctx.shadowBlur = 4;
+      } else {
+        ctx.shadowColor = '#ff4444';
+        ctx.shadowBlur = 2;
+      }
       ctx.drawImage(terminalImg, x-2, t.y-4, t.w+4, t.h+4);
       ctx.restore();
+      
+      // Add status indicator
       if(t.cooldown > 0) {
         ctx.fillStyle = 'rgba(255, 68, 68, 0.8)';
         ctx.fillRect(x, t.y-2, Math.max(1, (t.w * (t.cooldown / 5000))), 2);
       }
-    }else{
+    } else {
+      // Fallback terminal rendering
       ctx.fillStyle = t.cooldown > 0 ? '#6b4d9b' : '#9b6bff'; 
       ctx.fillRect(x,t.y,t.w,t.h);
       ctx.fillStyle = t.cooldown > 0 ? '#ccc' : '#fff'; 
       ctx.fillRect(x+2,t.y+3,t.w-4,3);
-      ctx.fillStyle = '#00ff9d'; ctx.font = '6px monospace'; ctx.fillText('HACK', x+1, t.y+t.h-2);
+      // Add "HACK" text for better visibility
+      ctx.fillStyle = '#00ff9d';
+      ctx.font = '6px monospace';
+      ctx.fillText('HACK', x+1, t.y+t.h-2);
     }
   }
 }
-
 function drawCoins(now){
   for(const c of coins){
     if(c.taken) continue;
     const x=(c.x-cameraX)|0, y=c.y|0; if(x<-16||x>VW+16) continue;
-    if(coinImg && coinImg.complete && coinImg.naturalWidth){
-      const coinSize = 20;
-      ctx.save(); ctx.shadowColor = '#ffaa00'; ctx.shadowBlur = 8;
+    
+    // Ensure coin image is loaded and complete before drawing
+    if(coinImg && coinImg.complete && coinImg.naturalWidth > 0){ 
+      // Draw glowing BTC with proper centering and size
+      const coinSize = 20; // Slightly larger for the glowing effect
+      ctx.save();
+      // Add glow effect
+      ctx.shadowColor = '#ffaa00';
+      ctx.shadowBlur = 8;
       ctx.drawImage(coinImg, x-coinSize/2, y-coinSize/2, coinSize, coinSize);
       ctx.restore();
-    }else{
-      ctx.fillStyle='#ffd95e'; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle='#ffaa00'; ctx.lineWidth=2; ctx.stroke();
-      ctx.fillStyle='#000'; ctx.font='8px monospace'; ctx.textAlign='center'; ctx.fillText('₿', x, y+2);
+    } else { 
+      // Fallback coin drawing if image fails to load
+      ctx.fillStyle='#ffd95e'; 
+      ctx.beginPath(); 
+      ctx.arc(x, y, 6, 0, Math.PI*2); 
+      ctx.fill(); 
+      ctx.strokeStyle='#ffaa00';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      // Add a simple "₿" symbol for BTC
+      ctx.fillStyle='#000';
+      ctx.font = '8px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('₿', x, y+2);
     }
   }
 }
-
 function drawExitDoor(){
   if(!exitDoor) return;
   const x=(exitDoor.x-cameraX)|0, y=exitDoor.y|0;
   if(x>VW||x+exitDoor.w<0) return;
-
-  if(doorImg && doorImg.complete && doorImg.naturalWidth){
-    ctx.save(); ctx.shadowColor = '#ff1493'; ctx.shadowBlur = 6;
+  
+  if(doorImg && doorImg.complete && doorImg.naturalWidth > 0){ 
+    // Scale the neon shop door to fit the door dimensions
+    ctx.save();
+    // Add subtle glow to the neon door
+    ctx.shadowColor = '#ff1493';
+    ctx.shadowBlur = 6;
     ctx.drawImage(doorImg, x, y, exitDoor.w, exitDoor.h);
     ctx.restore();
-  }else{
+  } else { 
+    // Enhanced fallback door with better visibility
     ctx.fillStyle='#2a3040'; ctx.fillRect(x,y,exitDoor.w,exitDoor.h); 
     ctx.fillStyle='#6fc2ff'; ctx.fillRect(x+exitDoor.w-6,y+exitDoor.h/2-3,4,6);
     ctx.fillStyle='#8fb3ff'; ctx.fillRect(x+2,y+4,exitDoor.w-4,3);
     ctx.fillStyle='#a0c4ff'; ctx.fillRect(x+2,y+8,exitDoor.w-4,2);
-    ctx.fillStyle='#7dff9a'; ctx.fillText('SHOP',x+3,y+exitDoor.h-8); ctx.fillText('DOOR',x+3,y+exitDoor.h-2);
+    ctx.fillStyle='#7dff9a'; 
+    ctx.fillText('SHOP',x+3,y+exitDoor.h-8);
+    ctx.fillText('DOOR',x+3,y+exitDoor.h-2);
+    // Add border for visibility
     ctx.strokeStyle='#6fc2ff'; ctx.lineWidth=1; ctx.strokeRect(x,y,exitDoor.w,exitDoor.h);
   }
-}
-
-function drawEntities(now){
+}function drawEntities(now){
   for(const r of robots){
     const x=(r.x-cameraX)|0, y=r.y|0; if(x+48<0||x>VW) continue;
     drawAnim(r,'robot',x-14,y-24,(player.x<r.x), now<r.hitUntil?0.75:1);
@@ -598,32 +606,18 @@ function drawEntities(now){
   }
   const px=(player.x-cameraX)|0, py=player.y|0;
   drawAnim(player,'player',px-15,py-20, player.facing===-1, performance.now()<player.hitUntil?0.8:1);
-}
-
-function drawUI(now){
-  // darker strip for readability
+}function drawUI(now){
   ctx.fillStyle='rgba(0,0,0,.78)'; ctx.fillRect(0,0,VW,18);
-
   ctx.fillStyle='#cfd6df'; ctx.fillText('Blackout Protocol',6,6);
   ctx.fillStyle='#9aa3b2'; ctx.fillText('← → Move | Space Jump | Enter Hack | ESC Pause',120,6);
-
-  ctx.fillStyle='#fff'; ctx.fillText(`HP:${Math.max(0,player.hp)}  L:${level}  SC:${score}  BTC:${btc}`,6,28);
-
-  // Distance readout + door position helper
+  ctx.fillStyle='#fff'; ctx.fillText(`HP:${Math.max(0,player.hp)}  L:${level}  SC:${score}  BTC:${btc}`,6,28);  // Distance readout + door position helper (so you can pick your end point)
   ctx.fillStyle='#7dff9a';
-  ctx.fillText(`DIST:${player.dist|0}  DOOR@:${(LEVEL_LEN-40)|0}`, 6, 40);
-
-  const left=Math.max(0,hackUntil-now)|0;
+  ctx.fillText(`DIST:${player.dist|0}  DOOR@:${(LEVEL_LEN-40)|0}`, 6, 40);  const left=Math.max(0,hackUntil-now)|0;
   if(left>0){ ctx.fillStyle='#7dff9a'; ctx.fillText(`EMP ${Math.ceil(left/1000)}s`,6,52); }
   else if(now<hackCDUntil){ ctx.fillStyle='#7f8a99'; ctx.fillText(`Hack CD ${((hackCDUntil-now)/1000|0)}s`,6,52); }
-  else { ctx.fillStyle='#7dff9a'; ctx.fillText('Enter: Hack',6,52); }
-
-  if(gameState==='paused'){ ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#fff'; ctx.fillText('PAUSED (ESC)',VW/2-30,VH/2); }
+  else { ctx.fillStyle='#7dff9a'; ctx.fillText('Enter: Hack',6,52); }  if(gameState==='paused'){ ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#fff'; ctx.fillText('PAUSED (ESC)',VW/2-30,VH/2); }
   if(gameState==='gameOver'){ ctx.fillStyle='rgba(0,0,0,.7)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#fff'; ctx.fillText('GAME OVER',VW/2-34,VH/2-8); ctx.fillText(`Score ${score}  BTC ${btc}`,VW/2-40,VH/2+4); ctx.fillText('Press R or click Reset',VW/2-54,VH/2+16); }
-  if(gameState==='levelComplete'){ ctx.fillStyle='rgba(0,0,0,.7)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#7dff9a'; ctx.fillText('LEVEL COMPLETE → SHOP',VW/2-60,VH/2-8); }
-
-  // asset warnings
-  let y = VH - 10;
+  if(gameState==='levelComplete'){ ctx.fillStyle='rgba(0,0,0,.7)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#7dff9a'; ctx.fillText('LEVEL COMPLETE → SHOP',VW/2-60,VH/2-8); }  let y = VH - 10;
   const warn = msg => { ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(2,y-7,VW-4,9); ctx.fillStyle='#ffb36a'; ctx.fillText(msg,6,y-6); y-=10; };
   if (SPR) {
     if (!SPR.player?.anim?.idle?.img) warn('Missing player_* PNGs');
@@ -632,84 +626,70 @@ function drawUI(now){
   }
   if (!BG.far) warn('Missing: assets/01_bg_far.png (gradient sky used)');
   if (!BG.near) warn('Missing: assets/01_bg_near.png (cache bust added)');
-}
-
-/* ======== HOLOGRAM AD OVERLAY ======== */
+}/* ======== HOLOGRAM AD OVERLAY (graphics instead of text) ======== */
 function drawOverlay(now){
-  octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
+  octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);  // gather ads in viewport - allow overlapping
   const vis=[];
   for(const a of ads){
     const sx=Math.round(RENDER.ox+(a.x-cameraX)*RENDER.scale);
     const sy=Math.round(RENDER.oy+a.y*RENDER.scale);
     if(sx>-200 && sx<overlayCanvas.width+200 && sy<overlayCanvas.height*0.85) vis.push({a,sx,sy});
-  }
-  const toDraw=vis;
-  octx.save();
+  }  // draw all visible ads (no sorting or limiting for overlapping effect)
+  const toDraw=vis;  octx.save();
   for(const {a,sx,sy} of toDraw){
     a.phase = (a.phase||0) + 0.03;
-    const flick = 0.65 + 0.35*Math.sin(a.phase*3);
-    const bob   = Math.sin(a.phase)*2*RENDER.scale;
-    const tilt  = (Math.sin(a.phase*0.6))*0.03;
-
+    const flick = 0.65 + 0.35*Math.sin(a.phase*3);  // neon flicker
+    const bob   = Math.sin(a.phase)*2*RENDER.scale; // subtle float
+    const tilt  = (Math.sin(a.phase*0.6))*0.03;     // tiny tilt    // pick image
     let img=null;
     if(a.kind==='fourk') img = AdImages.fourk;
     else if(a.kind==='meat') img = AdImages.meat;
     else if(a.kind==='holo') img = AdImages.holo;
     else if(a.kind==='rent') img = AdImages.rent;
-    else if(a.kind==='drink') img = (Math.floor((performance.now()/350))%2===0 ? AdImages.drink[0] : AdImages.drink[1]);
-    if(!img) continue;
-
+    else if(a.kind==='drink') img = (Math.floor((performance.now()/350))%2===0 ? AdImages.drink[0] : AdImages.drink[1]);    if(!img) continue;    // scale to a nice panel size
     const targetW = Math.round(56*RENDER.scale);
     const ratio = img.height ? (img.width/img.height) : 1;
     const w = targetW, h = Math.max(11, Math.round((targetW/ratio)));
-    const x = sx - Math.round(w/2), y = sy - Math.round(h/2) + bob;
-
+    const x = sx - Math.round(w/2), y = sy - Math.round(h/2) + bob;    // hologram frame
     octx.globalAlpha = 0.85;
     octx.fillStyle = 'rgba(10,14,20,0.5)';
     octx.fillRect(x-8,y-8,w+16,h+16);
     octx.globalAlpha = 1;
-    octx.strokeStyle = `rgba(111,194,255,0.5)`;
+    octx.strokeStyle = `rgba(111,194,255,${0.5*flick})`;
     octx.lineWidth = 2;
-    octx.strokeRect(x-8,y-8,w+16,h+16);
-
+    octx.strokeRect(x-8,y-8,w+16,h+16);    // image with tilt + transparency (hologram)
     octx.save();
     octx.translate(x+w/2, y+h/2);
     octx.rotate(tilt);
-    octx.globalAlpha = 0.72 + 0.12*Math.sin(a.phase*2);
-    octx.drawImage(img, -w/2, -h/2, w, h);
+    octx.globalAlpha = 0.72 + 0.12*Math.sin(a.phase*2); // ~0.7-0.84
+    octx.drawImage(img, -w/2, -h/2, w, h);    // soft glow pass
     octx.globalAlpha = 0.18 * flick;
     octx.shadowColor = '#6fc2ff';
     octx.shadowBlur  = 22;
     octx.drawImage(img, -w/2, -h/2, w, h);
-    octx.restore();
-
+    octx.restore();    // scanline shimmer
     octx.globalAlpha = 0.12*flick;
     octx.fillStyle = '#6fc2ff';
     octx.fillRect(x-8, y + (h*0.2|0), w+16, 1);
     octx.globalAlpha = 1;
   }
   octx.restore();
-}
-
-/* ================= BLIT ================= */
+}/* ================= BLIT ================= */
 function blit(){
   gctx.clearRect(0,0,gameCanvas.width,gameCanvas.height);
   const s=Math.min(gameCanvas.width/VW, gameCanvas.height/VH);
   const sw=(VW*s)|0, sh=(VH*s)|0, ox=((gameCanvas.width-sw)/2)|0, oy=((gameCanvas.height-sh)/2)|0;
   gctx.drawImage(nes,0,0,VW,VH,ox,oy,sw,sh); RENDER={scale:s,ox,oy};
-}
-
-/* ================= RESET / BOOT / LOOP ================= */
+}/* ================= RESET / BOOT / LOOP ================= */
 function placeExitDoor(){
   const x=LEVEL_LEN-40, y=groundY()-DOOR_H;
   exitDoor={x, y, w:DOOR_W, h:DOOR_H};
-}
-
-function reset(){
-  const savedBTC   = parseInt(localStorage.getItem('playerBTC'))   || 0;
+}function reset(){
+  // Load saved progress if returning from shop
+  const savedBTC = parseInt(localStorage.getItem('playerBTC')) || 0;
   const savedScore = parseInt(localStorage.getItem('playerScore')) || 0;
-  const savedLevel = parseInt(localStorage.getItem('gameLevel'))   || 1;
-
+  const savedLevel = parseInt(localStorage.getItem('gameLevel')) || 1;
+  
   gameState='playing'; cameraX=0; worldMaxX=0; 
   score=savedScore; btc=savedBTC; level=savedLevel; justLeveled=0;
   platforms=[]; robots=[]; drones=[]; terminals=[]; ads=[]; coins=[]; generatedUntil=0; exitDoor=null;
@@ -717,40 +697,15 @@ function reset(){
   for(let x=0;x<CHUNK*4;x+=CHUNK) genChunk(x);
   placeExitDoor();
   resetBtn.style.display='none';
-
+  
+  // Clear localStorage after loading to prevent issues with fresh starts
   if(savedLevel > 1) {
     localStorage.removeItem('playerBTC');
     localStorage.removeItem('playerScore'); 
     localStorage.removeItem('playerHealth');
     localStorage.removeItem('gameLevel');
   }
-}
-
-async function assetSelfTest(){
-  try{
-    const urls=[];
-    const push=(u)=>u&&urls.push(u);
-    ['player','robot','drone'].forEach(k=>{
-      const o=SPRITE_DEF[k]; if(o&&o.states) Object.values(o.states).forEach(push);
-    });
-    ['bg_far','bg_near','coin','door','ledge','platform','terminal'].forEach(k=>push(SPRITE_DEF[k]));
-    ['fourk','meat','holo','rent','drinkA','drinkB'].forEach(k=>push(AD_SRC[k]));
-    const head=async u=>{ try{ const r=await fetch(u,{method:'HEAD',cache:'no-store'}); return {u,ok:r.ok,st:r.status}; }catch{ return {u,ok:false,st:'net'}; } };
-    const results=await Promise.all(urls.filter(Boolean).map(head));
-    const bad=results.filter(r=>!r.ok);
-    if(bad.length){
-      console.group('%cMissing/blocked assets','color:#ffb36a');
-      bad.forEach(b=>console.warn(b.st,b.u));
-      console.groupEnd();
-      window.__ASSET_ERRORS__=bad.map(b=>b.u);
-    }else{
-      console.info('All assets resolved (HEAD ok).');
-      window.__ASSET_ERRORS__=[];
-    }
-  }catch(e){ console.warn('Asset self-test failed',e); }
-}
-
-async function boot(){
+}async function boot(){
   try{
     SPR = await loadSprites(SPRITE_DEF);
     await Promise.all([loadBackgrounds(), loadTiles(), loadAdImages()]);
@@ -761,113 +716,70 @@ async function boot(){
     gameState='playing'; READY=true;
   }catch(err){ console.error(err); LOAD_MSG='Load failed (check console)'; }
 }
-boot();
-
-function loop(now){
+boot();function loop(now){
   const dt = loop.t ? now - loop.t : 16; loop.t = now;
   if (!READY){
     ctx.fillStyle='#000'; ctx.fillRect(0,0,VW,VH);
     drawSky(); ctx.fillStyle='#cfd6df'; ctx.fillText(LOAD_MSG, VW/2 - 20, VH/2);
     blit(); requestAnimationFrame(loop); return;
   }
-  if (gameState==='playing') update(dt, now);
-  ctx.fillStyle='#000'; ctx.fillRect(0,0,VW,VH);
+  if (gameState==='playing') update(dt, now);  ctx.fillStyle='#000'; ctx.fillRect(0,0,VW,VH);
   drawBackgrounds();
-  drawTiles(); drawTerminals(); drawCoins(now); drawExitDoor(); drawEntities(now); drawRailsOnTop(); drawRailsOnTop(); drawUI(now);
-  blit(); drawOverlay(now);
-  requestAnimationFrame(loop);
+  drawTiles(); drawTerminals(); drawCoins(now); drawExitDoor(); drawEntities(now); drawPlatformRails(); drawUI(now);
+  blit(); drawOverlay(now);  requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
 </script>
-<script>
-(function(){
-  // Fractions of the source image used for each band (tweak if you ever change the art)
-  const BASE_SRC_FRAC = 0.28; // bottom 28% of the image -> platform base
-  const RAIL_SRC_FRAC = 0.42; // top 42% of the image    -> rail
-  const PLATFORM_BASE_H = 22; // render height of the base (collision stays at TILE=16)
-  const RAIL_H = 14;          // render height of the rail (on top of player)
-
-  // Base: stretch one slice of your ledge image across the platform width
-  window.drawTiles = function(){
-    for(const p of (window.platforms||[])){
-      const sx = (p.x - (window.cameraX||0))|0;
-      const VW = window.VW||256; if(sx + p.w < 0 || sx > VW) continue;
-
-      const img = (window.ledgeImg && window.ledgeImg.complete && window.ledgeImg.naturalWidth>0) ? window.ledgeImg : null;
-      if(img){
-        const srcW = img.naturalWidth, srcH = img.naturalHeight;
-        const srcBaseH = Math.max(1, (srcH * BASE_SRC_FRAC)|0);
-        const srcBaseY = srcH - srcBaseH;
-        window.ctx.drawImage(img, 0, srcBaseY, srcW, srcBaseH, sx, p.y|0, p.w, PLATFORM_BASE_H);
-      }else{
-        window.ctx.fillStyle = "#3a3f47"; window.ctx.fillRect(sx|0, p.y|0, p.w, (window.TILE||16));
-        window.ctx.fillStyle = "#98a0b0"; window.ctx.fillRect(sx|0, p.y|0, p.w, 1);
-      }
-    }
-  };
-
-  // Rails: paint from the SAME image, top band, after entities so it sits above the player
-  window.drawRailsOnTop = function(){
-    const img = (window.ledgeImg && window.ledgeImg.complete && window.ledgeImg.naturalWidth>0) ? window.ledgeImg : null;
-    if(!img) return;
-    const TILE = window.TILE||16, VH = window.VH||240, VW = window.VW||256, camX = window.cameraX||0;
-
-    const srcW = img.naturalWidth, srcH = img.naturalHeight;
-    const srcRailH = Math.max(1, (srcH * RAIL_SRC_FRAC)|0);
-    const srcRailY = 0;
-
-    for(const p of (window.platforms||[])){
-      if(p.y >= VH - TILE) continue; // only floating ledges
-      const sx = (p.x - camX)|0;
-      if(sx + p.w < 0 || sx > VW) continue;
-      window.ctx.drawImage(img, 0, srcRailY, srcW, srcRailH, sx, (p.y - RAIL_H)|0, p.w, RAIL_H);
-    }
-  };
-
-  // Make sure we actually call the overlay after entities
-  const _loop = window.loop;
-  if(typeof _loop === "function"){
-    // No need to wrap loop; the page already calls drawRailsOnTop in the frame.
-    // This block exists as a safety comment.
-  }
-})();
-</script>
 </body>
-</html>
+</html><!-- === Injected: Asset Self-Test (diagnostic) === -->
 <script>
-(() => {
-  console.log('[patch] ledge_singlepiece active');
-  function pickImg(){
-    // Prefer ledge_tile.png, fall back to platform_industrial.png just in case
-    if (window.ledgeImg && window.ledgeImg.complete && window.ledgeImg.naturalWidth) return window.ledgeImg;
-    if (window.platformImg && window.platformImg.complete && window.platformImg.naturalWidth) return window.platformImg;
-    return null;
-  }
-  function drawOne(img, p){
-    const TILE = window.TILE||16, VW = window.VW||256, camX = window.cameraX||0;
-    const sx = (p.x - camX)|0; if (sx + p.w < 0 || sx > VW) return;
-
-    if (img && img.naturalWidth && img.naturalHeight) {
-      // Crop a tall slice from the BOTTOM of the PNG (includes deck + rails),
-      // and a vertical band from the center to avoid edge fades.
-      const bandW = Math.min(96, img.naturalWidth);
-      const srcX  = ((img.naturalWidth - bandW)/2)|0;
-      const srcH  = Math.min(240, img.naturalHeight);  // tall enough to include rails
-      const srcY  = img.naturalHeight - srcH;
-
-      const destH = 32 + TILE;          // rail above + solid deck height (TILE)
-      const destY = (p.y - (destH - TILE))|0; // keep deck top flush with p.y
-      window.ctx.drawImage(img, srcX, srcY, bandW, srcH, sx, destY, p.w, destH);
-    } else {
-      // Fallback: simple box so you never "float on air"
-      window.ctx.fillStyle = '#3a3f47'; window.ctx.fillRect(sx|0, p.y|0, p.w, TILE);
-      window.ctx.fillStyle = '#98a0b0'; window.ctx.fillRect(sx|0, (p.y|0)+1, p.w, 1);
+function __collectAssetUrls(){
+  try{
+    const urls=[];
+    if (typeof SPRITE_DEF==='object'){
+      ['player','robot','drone'].forEach(k=>{
+        const o=SPRITE_DEF[k]; if(o&&o.states) urls.push(...Object.values(o.states));
+      });
+      ['bg_far','bg_near','coin','door','ledge'].forEach(k=>{
+        if (SPRITE_DEF[k]) urls.push(SPRITE_DEF[k]);
+      });
     }
+    if (typeof AD_SRC==='object'){
+      ['fourk','meat','holo','rent','drinkA','drinkB'].forEach(k=>AD_SRC[k]&&urls.push(AD_SRC[k]));
+    }
+    return urls.filter(Boolean);
+  }catch(e){ console.warn('URL collection failed',e); return []; }
+}async function assetSelfTest(){
+  const urls=__collectAssetUrls();
+  if(!urls.length){ console.warn('Asset test: no URLs collected'); return; }
+  const head=async u=>{ try{ const r=await fetch(u,{method:'HEAD',cache:'no-store'}); return {url:u,ok:r.ok,status:r.status}; }catch(e){ return {url:u,ok:false,status:'network'}; } };
+  const results=await Promise.all(urls.map(head));
+  const bad=results.filter(r=>!r.ok);
+  if(bad.length){
+    console.group('%cMissing/blocked assets','color:#ffb36a');
+    bad.forEach(b=>console.warn(b.status,b.url));
+    console.groupEnd();
+    window.__ASSET_ERRORS__=bad.map(b=>b.url);
+  }else{
+    console.info('All assets resolved (HEAD ok).');
+    window.__ASSET_ERRORS__=[];
   }
-  const _origDrawTiles = window.drawTiles;
-  window.drawTiles = function(){
-    const img = pickImg();
-    for (const p of (window.platforms||[])) drawOne(img, p);
-  };
+}(function(){
+  const _oldDrawUI=window.drawUI;
+  if(typeof _oldDrawUI==='function'){
+    window.drawUI=function(now){
+      _oldDrawUI.call(this,now);
+      try{
+        const errs=Array.isArray(window.__ASSET_ERRORS__)?window.__ASSET_ERRORS__:[];
+        if(errs.length&&typeof ctx!=='undefined'){
+          let y=64; ctx.fillStyle='#ffb36a';
+          ctx.fillText('Missing assets:',6,y); y+=10;
+          errs.slice(0,6).forEach(u=>{ const short=u.replace(location.origin,''); ctx.fillText(short,6,y); y+=10; });
+          if(errs.length>6) ctx.fillText(`…and ${errs.length-6} more`,6,y);
+        }
+      }catch(e){}
+    };
+  }
 })();
 </script>
+// /* SELFTEST_KEYS_PATCH */

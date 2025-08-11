@@ -1,0 +1,13 @@
+== Asset repair @ 20250811-012138 ==
+• Repairing: blackout-protocol/assets/ledge_tile.png
+✗ Could not restore blackout-protocol/assets/ledge_tile.png (no valid candidates found)
+• Repairing: blackout-protocol/assets/btc_glow.png
+✗ Could not restore blackout-protocol/assets/btc_glow.png (no valid candidates found)
+• Repairing: blackout-protocol/assets/shop_door_neon.png
+✗ Could not restore blackout-protocol/assets/shop_door_neon.png (no valid candidates found)
+• Repairing: blackout-protocol/assets/platform_industrial.png
+✗ Could not restore blackout-protocol/assets/platform_industrial.png (no valid candidates found)
+• Repairing: blackout-protocol/assets/hacker_terminal.png
+✗ Could not restore blackout-protocol/assets/hacker_terminal.png (no valid candidates found)
+✓ Aliased shop keeper: shop_addmen.png
+✓ Cache tag bumped to rev=20250811-012138
