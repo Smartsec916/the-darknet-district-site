@@ -356,6 +356,7 @@ function tryHack(){
 
 /* ================= UPDATE ================= */
 let coinImg=null, doorImg=null, ledgeImg=null, platformImg=null, terminalImg=null, platformRailImg=null;
+let terminalFrame1=null, terminalFrame2=null;
 
 async function loadTiles(){
   console.log('Loading tiles...', {
@@ -368,6 +369,10 @@ async function loadTiles(){
   platformImg = await IMG(SPRITE_DEF.platform);          // may be null
   terminalImg = await IMG(SPRITE_DEF.terminal);
   platformRailImg = await IMG(`assets/platform_rail.png?${HYPER_RELOAD_TAG}`); // optional overlay
+  
+  // Load animated terminal frames
+  terminalFrame1 = await IMG(`assets/hacker_terminal_frame1.png?${HYPER_RELOAD_TAG}`);
+  terminalFrame2 = await IMG(`assets/hacker_terminal_frame2.png?${HYPER_RELOAD_TAG}`);
 
   const ok = (im)=>im && im.complete && im.naturalWidth>0;
   console[ok(coinImg)?'log':'error'](ok(coinImg)?'✓ Coin image':'✗ Failed to load coin', ok(coinImg)?`${coinImg.width}x${coinImg.height}`:SPRITE_DEF.coin);
@@ -531,11 +536,23 @@ function drawRailsOnTop(){
 function drawTerminals(){
   for(const t of terminals){ 
     const x=(t.x-cameraX)|0; if(x+t.w<0||x>VW) continue;
-    if(terminalImg && terminalImg.complete && terminalImg.naturalWidth){
+    
+    // Use animated terminal frames if available
+    const hasAnimFrames = terminalFrame1 && terminalFrame1.complete && terminalFrame2 && terminalFrame2.complete;
+    let currentTerminalImg = terminalImg;
+    
+    if(hasAnimFrames) {
+      // Animate between frames (switch every 300ms)
+      const animSpeed = 300;
+      const frameIndex = Math.floor(performance.now() / animSpeed) % 2;
+      currentTerminalImg = frameIndex === 0 ? terminalFrame1 : terminalFrame2;
+    }
+    
+    if(currentTerminalImg && currentTerminalImg.complete && currentTerminalImg.naturalWidth){
       ctx.save();
       if(t.cooldown <= 0) { ctx.shadowColor = '#00ff9d'; ctx.shadowBlur = 4; }
       else { ctx.shadowColor = '#ff4444'; ctx.shadowBlur = 2; }
-      ctx.drawImage(terminalImg, x-2, t.y-4, t.w+4, t.h+4);
+      ctx.drawImage(currentTerminalImg, x-2, t.y-4, t.w+4, t.h+4);
       ctx.restore();
       if(t.cooldown > 0) {
         ctx.fillStyle = 'rgba(255, 68, 68, 0.8)';
