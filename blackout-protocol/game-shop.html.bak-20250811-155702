@@ -49,7 +49,7 @@
 </div>
 
 <script>
-const HYPER_RELOAD_TAG = 'rev=20250811-155702'; // replaced by bump step
+const HYPER_RELOAD_TAG = 'rev=20250811-033159'; // replaced by bump step
 document.getElementById('keeper').src = 'assets/shop_addmen.png?'+HYPER_RELOAD_TAG;
 
 (function(){
@@ -100,10 +100,10 @@ cp -f "$SHOP" "$SHOP.bak-$STAMP"
 bump_cache(){
   local f="$1"
   if grep -q "const HYPER_RELOAD_TAG" "$f"; then
-    sed -i -E "s/const HYPER_RELOAD_TAG *= *'rev=[^']+';/const HYPER_RELOAD_TAG = 'rev=20250811-155702';/" "$f"
+    sed -i -E "s/const HYPER_RELOAD_TAG *= *'rev=[^']+';/const HYPER_RELOAD_TAG = 'rev=20250811-033159';/" "$f"
   else
     # inject just before the first <script> open
-    sed -i "0,/<script>/{s/<script>/<script>\nconst HYPER_RELOAD_TAG = 'rev=20250811-155702';/}" "$f"
+    sed -i "0,/<script>/{s/<script>/<script>\nconst HYPER_RELOAD_TAG = 'rev=20250811-033159';/}" "$f"
   fi
 }
 bump_cache "$GAME"
@@ -242,7 +242,7 @@ cat > "$SHOP" <<'HTML'
 </div>
 
 <script>
-const HYPER_RELOAD_TAG = 'rev=20250811-155702'; // replaced by bump step
+const HYPER_RELOAD_TAG = 'rev=20250811-033159'; // replaced by bump step
 document.getElementById('keeper').src = 'assets/shop_addmen.png?'+HYPER_RELOAD_TAG;
 
 (function(){
