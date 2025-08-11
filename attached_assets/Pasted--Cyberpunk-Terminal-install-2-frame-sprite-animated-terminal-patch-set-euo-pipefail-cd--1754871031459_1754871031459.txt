@@ -1,0 +1,89 @@
+# === Cyberpunk Terminal: install 2-frame sprite + animated terminal patch ===
+set -euo pipefail
+cd ~/workspace 2>/dev/null || true
+[ -f blackout-protocol/index.html ] || { echo "❌ Not at project root. Run: cd ~/workspace"; exit 1; }
+
+DEST="blackout-protocol/assets"
+CHAT="attached_assets"
+A="hacking_terminal_cpunk_48.png"
+B="hacking_terminal_cpunk_48b.png"
+mkdir -p "$DEST" "$CHAT"
+
+copy_one(){ # prefer already in DEST, else from chat, else anywhere in repo
+  local name="$1"
+  if [ -s "$DEST/$name" ]; then echo "  • $name already in $DEST"; return; fi
+  if [ -s "$CHAT/$name" ]; then cp -f "$CHAT/$name" "$DEST/$name" && echo "  • $name ← $CHAT/$name" && return; fi
+  local found; found=$(find . -type f -iname "$name" ! -path "./$DEST/*" ! -path "./.git/*" 2>/dev/null | head -n1 || true)
+  if [ -n "$found" ]; then cp -f "$found" "$DEST/$name" && echo "  • $name ← $found"; else echo "  ⚠️ $name not found. Upload it then rerun."; fi
+}
+
+echo "== Place sprites =="
+copy_one "$A"
+copy_one "$B"
+
+echo "== Bump cache-bust in index.html =="
+if grep -qE 'const[[:space:]]+HYPER_RELOAD_TAG' blackout-protocol/index.html; then
+  perl -0777 -pe "s/(const\\s+HYPER_RELOAD_TAG\\s*=\\s*['\"])rev=[^'\"']*(['\"])/\\1rev=$(date +%Y%m%d-%H%M%S)\\2/g" -i blackout-protocol/index.html || true
+  echo "  • cache tag bumped"
+else
+  echo "  • no HYPER_RELOAD_TAG found (skipping)"
+fi
+
+echo "== Inject animated terminal runtime patch (idempotent) =="
+PAGE="blackout-protocol/index.html"
+MARK="<!-- RUNTIME_PATCH_TERMINAL_SPRITE_CYBERPUNK -->"
+if ! grep -q "$MARK" "$PAGE"; then
+  TMP="$PAGE.tmp-$$"
+  awk -v mark="$MARK" -v a="$A" -v b="$B" '
+    BEGIN{done=0}
+    /<\/body>/ && !done {
+      print mark
+      print "<script>"
+      print "(function(){"
+      print "  try{"
+      print "    var tag=(typeof HYPER_RELOAD_TAG!==\"undefined\"?\"?\"+HYPER_RELOAD_TAG:\"\");"
+      print "    var i1=new Image(), i2=new Image();"
+      print "    i1.src=\"assets/\"+a+tag; i2.src=\"assets/\"+b+tag;"
+      print "    i1.onload=function(){console.log(\"✓ terminal A loaded:\",i1.src)};"
+      print "    i2.onload=function(){console.log(\"✓ terminal B loaded:\",i2.src)};"
+      print "    var prev=window.drawTerminals, t0=performance.now();"
+      print "    window.drawTerminals=function(){"
+      print "      // If not ready, use original"
+      print "      if(!(i1&&i1.complete&&i1.naturalWidth>0&&i2&&i2.complete&&i2.naturalWidth>0)){"
+      print "        return prev && prev.apply(this, arguments);"
+      print "      }"
+      print "      try{"
+      print "        var ctx=window.ctx, VW=window.VW, cameraX=window.cameraX, terminals=window.terminals, R=window.RENDER||{scale:1};"
+      print "        if(!ctx||!terminals){ return prev && prev.apply(this, arguments); }"
+      print "        var now=performance.now(), phase=((now-t0)/160)|0; var img=(phase%2?i2:i1);"
+      print "        for(var i=0;i<terminals.length;i++){"
+      print "          var t=terminals[i]; var x=(t.x-cameraX)|0; if(x+t.w<0||x>VW) continue; var y=t.y|0;"
+      print "          // Slightly oversized sprite with center align and subtle bob"
+      print "          var W=28, H=28, bob=Math.sin((now/450)+i)*1.0;"
+      print "          ctx.save();"
+      print "          ctx.globalAlpha = 0.92 + 0.06*Math.sin(now/300 + i);"
+      print "          ctx.drawImage(img, x-7, y-14 + bob, W, H);"
+      print "          // faint cyan scanline"
+      print "          ctx.globalAlpha = 0.12; ctx.fillStyle=\"#6fc2ff\"; ctx.fillRect(x-7, y-2, W, 1);"
+      print "          ctx.restore();"
+      print "        }"
+      print "      }catch(e){ console.warn(\"terminal sprite draw err\", e); prev && prev.apply(this, arguments); }"
+      print "    };"
+      print "  }catch(e){ console.warn(\"terminal sprite patch failed\", e); }"
+      print "})();"
+      print "</script>"
+      print mark
+      print
+      done=1
+    }
+    { print }
+  ' "$PAGE" > "$TMP" && mv "$TMP" "$PAGE"
+  echo "  • patch injected"
+else
+  echo "  • patch already present (skipped)"
+fi
+
+echo
+echo "Ready. Hard-refresh /blackout-protocol (Ctrl/Cmd+Shift+R) to see the animated neon terminal."
+echo "Sprites in: $DEST/"
+ls -l "$DEST/$A" "$DEST/$B" 2>/dev/null || true
