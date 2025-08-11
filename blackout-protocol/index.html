@@ -491,15 +491,22 @@ function drawTiles(){
   for(const p of platforms){
     const sx=p.x-cameraX; if(sx+p.w<0||sx>VW) continue;
 
-    // Use industrial platform for floating platforms, ledge for ground
-    const useIndustrial = p.y < VH-TILE && platformImg && platformImg.complete;
-    const tileImg = useIndustrial ? platformImg : ledgeImg;
+    // Use ledge_tile.png for all platforms
+    const tileImg = ledgeImg;
 
     if(tileImg && tileImg.complete && tileImg.naturalWidth>0){
-      // stretch a single slice across the width (no visible tiling seams)
-      const srcW = Math.min(TILE, tileImg.naturalWidth);
-      const srcH = Math.min(TILE, tileImg.naturalHeight);
-      ctx.drawImage(tileImg, 0, 0, srcW, srcH, sx|0, p.y|0, p.w, TILE);
+      // Draw complete platform graphics side by side to fill the platform width
+      const imgW = tileImg.naturalWidth;
+      const imgH = tileImg.naturalHeight;
+      const numTiles = Math.ceil(p.w / imgW);
+      
+      for(let i = 0; i < numTiles; i++){
+        const tileX = sx + (i * imgW);
+        const clipW = Math.min(imgW, sx + p.w - tileX); // clip last tile if needed
+        if(clipW > 0){
+          ctx.drawImage(tileImg, 0, 0, clipW, imgH, tileX|0, p.y|0, clipW, TILE);
+        }
+      }
     }else{
       // fallback boxes
       ctx.fillStyle='#3a3f47'; ctx.fillRect(sx|0,p.y|0,p.w,TILE);
@@ -779,65 +786,6 @@ function loop(now){
 }
 requestAnimationFrame(loop);
 </script>
-<script>
-/* FIXED_PLATFORM_RENDERING */
-(function(){
-  console.log('[patch] Fixed platform rendering active');
 
-  // Single, clean platform drawing function
-  window.drawTiles = function(){
-    for(const p of (window.platforms||[])){
-      const sx = (p.x - (window.cameraX||0))|0;
-      const VW = window.VW||256, TILE = window.TILE||16;
-      if(sx + p.w < 0 || sx > VW) continue;
-
-      // Use ledge_tile.png for all platforms, platform_industrial.png as fallback
-      const img = (window.ledgeImg && window.ledgeImg.complete && window.ledgeImg.naturalWidth>0) ? 
-                  window.ledgeImg : 
-                  (window.platformImg && window.platformImg.complete && window.platformImg.naturalWidth>0) ?
-                  window.platformImg : null;
-
-      if(img){
-        // Stretch image across platform width, use full height
-        const srcW = img.naturalWidth, srcH = img.naturalHeight;
-        window.ctx.drawImage(img, 0, 0, srcW, srcH, sx, p.y|0, p.w, TILE);
-      }else{
-        // Fallback boxes
-        window.ctx.fillStyle='#3a3f47'; window.ctx.fillRect(sx|0, p.y|0, p.w, TILE);
-        window.ctx.fillStyle='#98a0b0'; window.ctx.fillRect(sx|0, p.y|0, p.w, 1);
-      }
-    }
-  };
-
-  // Rails overlay for floating platforms only
-  window.drawRailsOnTop = function(){
-    const img = window.platformRailImg || window.ledgeImg;
-    if(!img || !img.complete) return;
-
-    const TILE = window.TILE||16, VH = window.VH||240, VW = window.VW||256, camX = window.cameraX||0;
-    const railH = 12;
-
-    for(const p of (window.platforms||[])){
-      if(p.y >= VH - TILE) continue; // only floating platforms
-      const sx = (p.x - camX)|0;
-      if(sx + p.w < 0 || sx > VW) continue;
-
-      if(window.platformRailImg){
-        window.ctx.drawImage(window.platformRailImg, 0, 0, window.platformRailImg.naturalWidth, railH, sx, p.y - railH, p.w, railH);
-      }else{
-        // Simple neon line fallback
-        window.ctx.save();
-        window.ctx.strokeStyle = "#6fc2ff";
-        window.ctx.lineWidth = 2;
-        window.ctx.beginPath();
-        window.ctx.moveTo(sx, p.y - 2);
-        window.ctx.lineTo(sx + p.w, p.y - 2);
-        window.ctx.stroke();
-        window.ctx.restore();
-      }
-    }
-  };
-})();
-</script>
 </body>
 </html>
