@@ -500,12 +500,16 @@ function drawTiles(){
     const tileImg = ledgeImg;
 
     if(tileImg && tileImg.complete && tileImg.naturalWidth>0){
-      // Draw the full graphic stretched across the platform width
+      // Draw one instance of the ledge graphic, centered on the platform
       const imgW = tileImg.naturalWidth;
       const imgH = tileImg.naturalHeight;
-      // Draw one complete graphic stretched to platform width, maintaining aspect ratio
-      const drawH = Math.min(TILE, imgH);
-      ctx.drawImage(tileImg, 0, 0, imgW, imgH, sx|0, p.y|0, p.w, drawH);
+      
+      // Center the graphic on the platform
+      const centerX = sx + (p.w / 2) - (imgW / 2);
+      const drawY = p.y;
+      
+      // Draw the complete graphic without stretching
+      ctx.drawImage(tileImg, 0, 0, imgW, imgH, centerX|0, drawY|0, imgW, imgH);
     }else{
       // fallback boxes
       ctx.fillStyle='#3a3f47'; ctx.fillRect(sx|0,p.y|0,p.w,TILE);
