@@ -79,9 +79,10 @@ const SPRITE_DEF={
   // background/tiles/hooks with cache-busting for proper loading
   bg_far:`assets/01_bg_far.png?${HYPER_RELOAD_TAG}`,
   bg_near:`assets/01_bg_near.png?${HYPER_RELOAD_TAG}`,
-  coin:`assets/coin.png?${HYPER_RELOAD_TAG}`,
-  door:`assets/door.png?${HYPER_RELOAD_TAG}`,
-  ledge:`assets/ledge_tile.png?${HYPER_RELOAD_TAG}`
+  coin:`assets/btc_glow.png?${HYPER_RELOAD_TAG}`,
+  door:`assets/shop_door_neon.png?${HYPER_RELOAD_TAG}`,
+  ledge:`assets/ledge_tile.png?${HYPER_RELOAD_TAG}`,
+  platform:`assets/platform_industrial.png?${HYPER_RELOAD_TAG}`
 };
 
 /* ===== Graphic Ads (your PNGs) ===== */
@@ -409,18 +410,20 @@ function tryHack(){
 }
 
 /* ================= UPDATE ================= */
-let coinImg=null, doorImg=null, ledgeImg=null;
+let coinImg=null, doorImg=null, ledgeImg=null, platformImg=null;
 async function loadTiles(){
   console.log('Loading tiles...');
   console.log('Expected paths:', {
     coin: SPRITE_DEF.coin,
     door: SPRITE_DEF.door,
-    ledge: SPRITE_DEF.ledge
+    ledge: SPRITE_DEF.ledge,
+    platform: SPRITE_DEF.platform
   });
   
   coinImg = await IMG(SPRITE_DEF.coin);
   doorImg = await IMG(SPRITE_DEF.door);
   ledgeImg= await IMG(SPRITE_DEF.ledge);
+  platformImg = await IMG(SPRITE_DEF.platform);
   
   // Debug logging for all tile images
   if(coinImg && coinImg.complete && coinImg.naturalWidth > 0) {
@@ -437,6 +440,11 @@ async function loadTiles(){
     console.log('✓ Ledge image loaded successfully:', ledgeImg.width, 'x', ledgeImg.height);
   } else {
     console.error('✗ Failed to load ledge_tile.png:', SPRITE_DEF.ledge);
+  }
+  if(platformImg && platformImg.complete && platformImg.naturalWidth > 0) {
+    console.log('✓ Platform image loaded successfully:', platformImg.width, 'x', platformImg.height);
+  } else {
+    console.error('✗ Failed to load platform_industrial.png:', SPRITE_DEF.platform);
   }
 }
 
@@ -554,9 +562,13 @@ function update(dt,now){
 function drawTiles(){
   for(const p of platforms){
     const sx=p.x-cameraX; if(sx+p.w<0||sx>VW) continue;
-    if(ledgeImg){
+    // Use industrial platform for floating platforms, ledge for ground
+    const useIndustrial = p.y < VH-TILE && platformImg && platformImg.complete;
+    const tileImg = useIndustrial ? platformImg : ledgeImg;
+    
+    if(tileImg){
       for(let x=0;x<p.w;x+=TILE){
-        ctx.drawImage(ledgeImg, sx+x|0, p.y|0, TILE, TILE);
+        ctx.drawImage(tileImg, sx+x|0, p.y|0, TILE, TILE);
       }
     }else{
       for(let x=0;x<p.w;x+=TILE){
@@ -580,9 +592,14 @@ function drawCoins(now){
     
     // Ensure coin image is loaded and complete before drawing
     if(coinImg && coinImg.complete && coinImg.naturalWidth > 0){ 
-      // Draw coin with proper centering and size
-      const coinSize = 16; // Make coins slightly larger and more visible
-      ctx.drawImage(coinImg, x-coinSize/2, y-coinSize/2, coinSize, coinSize); 
+      // Draw glowing BTC with proper centering and size
+      const coinSize = 20; // Slightly larger for the glowing effect
+      ctx.save();
+      // Add glow effect
+      ctx.shadowColor = '#ffaa00';
+      ctx.shadowBlur = 8;
+      ctx.drawImage(coinImg, x-coinSize/2, y-coinSize/2, coinSize, coinSize);
+      ctx.restore();
     } else { 
       // Fallback coin drawing if image fails to load
       ctx.fillStyle='#ffd95e'; 
@@ -606,8 +623,13 @@ function drawExitDoor(){
   if(x>VW||x+exitDoor.w<0) return;
   
   if(doorImg && doorImg.complete && doorImg.naturalWidth > 0){ 
-    // Scale the door image to fit the door dimensions
-    ctx.drawImage(doorImg, x, y, exitDoor.w, exitDoor.h); 
+    // Scale the neon shop door to fit the door dimensions
+    ctx.save();
+    // Add subtle glow to the neon door
+    ctx.shadowColor = '#ff1493';
+    ctx.shadowBlur = 6;
+    ctx.drawImage(doorImg, x, y, exitDoor.w, exitDoor.h);
+    ctx.restore();
   } else { 
     // Enhanced fallback door with better visibility
     ctx.fillStyle='#2a3040'; ctx.fillRect(x,y,exitDoor.w,exitDoor.h); 
