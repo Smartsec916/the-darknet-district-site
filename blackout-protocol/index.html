@@ -82,7 +82,8 @@ const SPRITE_DEF={
   coin:`assets/btc_glow.png?${HYPER_RELOAD_TAG}`,
   door:`assets/shop_door_neon.png?${HYPER_RELOAD_TAG}`,
   ledge:`assets/ledge_tile.png?${HYPER_RELOAD_TAG}`,
-  platform:`assets/platform_industrial.png?${HYPER_RELOAD_TAG}`
+  platform:`assets/platform_industrial.png?${HYPER_RELOAD_TAG}`,
+  terminal:`assets/hacker_terminal.png?${HYPER_RELOAD_TAG}`
 };
 
 /* ===== Graphic Ads (your PNGs) ===== */
@@ -410,20 +411,22 @@ function tryHack(){
 }
 
 /* ================= UPDATE ================= */
-let coinImg=null, doorImg=null, ledgeImg=null, platformImg=null;
+let coinImg=null, doorImg=null, ledgeImg=null, platformImg=null, terminalImg=null;
 async function loadTiles(){
   console.log('Loading tiles...');
   console.log('Expected paths:', {
     coin: SPRITE_DEF.coin,
     door: SPRITE_DEF.door,
     ledge: SPRITE_DEF.ledge,
-    platform: SPRITE_DEF.platform
+    platform: SPRITE_DEF.platform,
+    terminal: SPRITE_DEF.terminal
   });
   
   coinImg = await IMG(SPRITE_DEF.coin);
   doorImg = await IMG(SPRITE_DEF.door);
   ledgeImg= await IMG(SPRITE_DEF.ledge);
   platformImg = await IMG(SPRITE_DEF.platform);
+  terminalImg = await IMG(SPRITE_DEF.terminal);
   
   // Debug logging for all tile images
   if(coinImg && coinImg.complete && coinImg.naturalWidth > 0) {
@@ -445,6 +448,11 @@ async function loadTiles(){
     console.log('✓ Platform image loaded successfully:', platformImg.width, 'x', platformImg.height);
   } else {
     console.error('✗ Failed to load platform_industrial.png:', SPRITE_DEF.platform);
+  }
+  if(terminalImg && terminalImg.complete && terminalImg.naturalWidth > 0) {
+    console.log('✓ Terminal image loaded successfully:', terminalImg.width, 'x', terminalImg.height);
+  } else {
+    console.error('✗ Failed to load hacker_terminal.png:', SPRITE_DEF.terminal);
   }
 }
 
@@ -580,9 +588,40 @@ function drawTiles(){
   }
 }
 function drawTerminals(){
-  for(const t of terminals){ const x=(t.x-cameraX)|0; if(x+t.w<0||x>VW) continue;
-    ctx.fillStyle='#9b6bff'; ctx.fillRect(x,t.y,t.w,t.h);
-    ctx.fillStyle='#fff'; ctx.fillRect(x+2,t.y+3,t.w-4,3);
+  for(const t of terminals){ 
+    const x=(t.x-cameraX)|0; 
+    if(x+t.w<0||x>VW) continue;
+    
+    if(terminalImg && terminalImg.complete && terminalImg.naturalWidth > 0){
+      // Draw the hacker terminal sprite
+      ctx.save();
+      // Add subtle glow effect for active terminals
+      if(t.cooldown <= 0) {
+        ctx.shadowColor = '#00ff9d';
+        ctx.shadowBlur = 4;
+      } else {
+        ctx.shadowColor = '#ff4444';
+        ctx.shadowBlur = 2;
+      }
+      ctx.drawImage(terminalImg, x-2, t.y-4, t.w+4, t.h+4);
+      ctx.restore();
+      
+      // Add status indicator
+      if(t.cooldown > 0) {
+        ctx.fillStyle = 'rgba(255, 68, 68, 0.8)';
+        ctx.fillRect(x, t.y-2, Math.max(1, (t.w * (t.cooldown / 5000))), 2);
+      }
+    } else {
+      // Fallback terminal rendering
+      ctx.fillStyle = t.cooldown > 0 ? '#6b4d9b' : '#9b6bff'; 
+      ctx.fillRect(x,t.y,t.w,t.h);
+      ctx.fillStyle = t.cooldown > 0 ? '#ccc' : '#fff'; 
+      ctx.fillRect(x+2,t.y+3,t.w-4,3);
+      // Add "HACK" text for better visibility
+      ctx.fillStyle = '#00ff9d';
+      ctx.font = '6px monospace';
+      ctx.fillText('HACK', x+1, t.y+t.h-2);
+    }
   }
 }
 function drawCoins(now){
