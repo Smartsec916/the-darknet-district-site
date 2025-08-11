@@ -363,25 +363,42 @@ async function loadTiles(){
     coin: SPRITE_DEF.coin, door: SPRITE_DEF.door, ledge: SPRITE_DEF.ledge,
     platform: SPRITE_DEF.platform, terminal: SPRITE_DEF.terminal
   });
-  coinImg     = await IMG(SPRITE_DEF.coin);
-  doorImg     = await IMG(SPRITE_DEF.door);
-  ledgeImg    = await IMG(SPRITE_DEF.ledge);
-  platformImg = await IMG(SPRITE_DEF.platform);          // may be null
-  terminalImg = await IMG(SPRITE_DEF.terminal);
-  platformRailImg = await IMG(`assets/platform_rail.png?${HYPER_RELOAD_TAG}`); // optional overlay
   
-  // Load animated terminal frames
-  terminalFrame1 = await IMG(`assets/hacker_terminal_frame1.png?${HYPER_RELOAD_TAG}`);
-  terminalFrame2 = await IMG(`assets/hacker_terminal_frame2.png?${HYPER_RELOAD_TAG}`);
+  try {
+    coinImg     = await IMG(SPRITE_DEF.coin);
+    doorImg     = await IMG(SPRITE_DEF.door);
+    ledgeImg    = await IMG(SPRITE_DEF.ledge);
+    platformImg = await IMG(SPRITE_DEF.platform);          // may be null
+    terminalImg = await IMG(SPRITE_DEF.terminal);
+    platformRailImg = await IMG(`assets/platform_rail.png?${HYPER_RELOAD_TAG}`); // optional overlay
+    
+    // Load animated terminal frames
+    terminalFrame1 = await IMG(`assets/hacker_terminal_frame1.png?${HYPER_RELOAD_TAG}`);
+    terminalFrame2 = await IMG(`assets/hacker_terminal_frame2.png?${HYPER_RELOAD_TAG}`);
 
-  const ok = (im)=>im && im.complete && im.naturalWidth>0;
-  console[ok(coinImg)?'log':'error'](ok(coinImg)?'✓ Coin image':'✗ Failed to load coin', ok(coinImg)?`${coinImg.width}x${coinImg.height}`:SPRITE_DEF.coin);
-  console[ok(doorImg)?'log':'error'](ok(doorImg)?'✓ Door image':'✗ Failed to load door', ok(doorImg)?`${doorImg.width}x${doorImg.height}`:SPRITE_DEF.door);
-  console[ok(ledgeImg)?'log':'error'](ok(ledgeImg)?'✓ Ledge image':'✗ Failed to load ledge', ok(ledgeImg)?`${ledgeImg.width}x${ledgeImg.height}`:SPRITE_DEF.ledge);
-  console[ok(platformImg)?'log':'warn'](ok(platformImg)?'✓ Platform image':'⚠ No platform_industrial (using ledge)', ok(platformImg)?`${platformImg.width}x${platformImg.height}`:'');
-  console[ok(terminalImg)?'log':'error'](ok(terminalImg)?'✓ Terminal image':'✗ Failed to load terminal', ok(terminalImg)?`${terminalImg.width}x${terminalImg.height}`:SPRITE_DEF.terminal);
-  if(ok(platformRailImg)) console.log('✓ Platform rail overlay:', platformRailImg.width+'x'+platformRailImg.height);
-  else console.log('(No platform_rail overlay found — fallback line will be used)');
+    const ok = (im)=>im && im.complete && im.naturalWidth>0;
+    console[ok(coinImg)?'log':'error'](ok(coinImg)?'✓ Coin image':'✗ Failed to load coin', ok(coinImg)?`${coinImg.width}x${coinImg.height}`:SPRITE_DEF.coin);
+    console[ok(doorImg)?'log':'error'](ok(doorImg)?'✓ Door image':'✗ Failed to load door', ok(doorImg)?`${doorImg.width}x${doorImg.height}`:SPRITE_DEF.door);
+    console[ok(ledgeImg)?'log':'error'](ok(ledgeImg)?'✓ Ledge image':'✗ Failed to load ledge', ok(ledgeImg)?`${ledgeImg.width}x${ledgeImg.height}`:SPRITE_DEF.ledge);
+    console[ok(platformImg)?'log':'warn'](ok(platformImg)?'✓ Platform image':'⚠ No platform_industrial (using ledge)', ok(platformImg)?`${platformImg.width}x${platformImg.height}`:'');
+    console[ok(terminalImg)?'log':'error'](ok(terminalImg)?'✓ Terminal image':'✗ Failed to load terminal', ok(terminalImg)?`${terminalImg.width}x${terminalImg.height}`:SPRITE_DEF.terminal);
+    if(ok(platformRailImg)) console.log('✓ Platform rail overlay:', platformRailImg.width+'x'+platformRailImg.height);
+    else console.log('(No platform_rail overlay found — fallback line will be used)');
+
+    // Force a debug check on the ledge image specifically
+    if (ledgeImg) {
+      console.log('Ledge image debug:', {
+        src: ledgeImg.src,
+        complete: ledgeImg.complete,
+        naturalWidth: ledgeImg.naturalWidth,
+        naturalHeight: ledgeImg.naturalHeight,
+        width: ledgeImg.width,
+        height: ledgeImg.height
+      });
+    }
+  } catch (error) {
+    console.error('Error loading tiles:', error);
+  }
 }
 
 function cull(){ const cutoff=cameraX-300;
@@ -496,31 +513,36 @@ function drawTiles(){
   for(const p of platforms){
     const sx=p.x-cameraX; if(sx+p.w<0||sx>VW) continue;
 
-    // Use ledge_tile.png for all platforms
-    const tileImg = ledgeImg;
-
-    if(tileImg && tileImg.complete && tileImg.naturalWidth>0){
-      // Preserve transparency by saving context state
+    // Check for valid ledge image
+    const hasValidLedge = ledgeImg && ledgeImg.complete && ledgeImg.naturalWidth > 0 && ledgeImg.naturalHeight > 0;
+    
+    if(hasValidLedge){
       ctx.save();
+      ctx.imageSmoothingEnabled = false; // Ensure pixel-perfect rendering
       
-      // Draw the ledge tile at actual size to preserve pixel-perfect detail
-      const tileW = Math.min(tileImg.naturalWidth, p.w);
-      const tileH = Math.min(tileImg.naturalHeight, TILE + 4);
+      // Scale the ledge to fit platform width while maintaining aspect ratio
+      const imgW = ledgeImg.naturalWidth;
+      const imgH = ledgeImg.naturalHeight;
+      const targetH = Math.min(TILE + 8, imgH); // Allow slightly taller than tile
       
-      // Tile the image across the platform width if needed
-      for(let x = 0; x < p.w; x += tileW) {
-        const currentW = Math.min(tileW, p.w - x);
-        const drawX = sx + x;
-        const drawY = p.y - (tileH - TILE);
-        
-        ctx.drawImage(tileImg, 0, 0, currentW, tileH, drawX|0, drawY|0, currentW, tileH);
-      }
+      // Stretch horizontally to fill platform width, maintain reasonable height
+      ctx.drawImage(ledgeImg, 
+        0, 0, imgW, imgH,           // source
+        sx, p.y - (targetH - TILE), p.w, targetH  // destination
+      );
       
       ctx.restore();
-    }else{
-      // fallback boxes
-      ctx.fillStyle='#3a3f47'; ctx.fillRect(sx|0,p.y|0,p.w,TILE);
-      ctx.fillStyle='#98a0b0'; ctx.fillRect(sx|0,p.y|0,p.w,1);
+    } else {
+      // Enhanced fallback with cyberpunk styling
+      ctx.fillStyle='#1a2332'; ctx.fillRect(sx|0,p.y|0,p.w,TILE);
+      ctx.fillStyle='#6fc2ff'; ctx.fillRect(sx|0,p.y|0,p.w,2);
+      ctx.fillStyle='#4a5568'; ctx.fillRect(sx|0,(p.y+TILE-2)|0,p.w,2);
+      
+      // Add some detail lines to make it look more industrial
+      ctx.fillStyle='#2d3748';
+      for(let i = 0; i < p.w; i += 8) {
+        ctx.fillRect((sx + i)|0, (p.y + 2)|0, 1, TILE - 4);
+      }
     }
   }
 }
