@@ -500,16 +500,24 @@ function drawTiles(){
     const tileImg = ledgeImg;
 
     if(tileImg && tileImg.complete && tileImg.naturalWidth>0){
-      // Draw the platform graphic at natural size, aligned to platform position
-      const imgW = tileImg.naturalWidth;
-      const imgH = tileImg.naturalHeight;
+      // Scale the graphic to fit platform width while maintaining reasonable height
+      const maxHeight = TILE + 8; // Limit height to tile size + small buffer
+      const aspectRatio = tileImg.naturalWidth / tileImg.naturalHeight;
       
-      // Position the graphic at the platform location (left-aligned)
-      const drawX = sx;
-      const drawY = p.y - (imgH - TILE); // Align bottom of graphic with platform collision box
+      let drawW = p.w;
+      let drawH = Math.min(maxHeight, drawW / aspectRatio);
       
-      // Draw the complete graphic at its natural size
-      ctx.drawImage(tileImg, 0, 0, imgW, imgH, drawX|0, drawY|0, imgW, imgH);
+      // If still too tall, constrain by height and adjust width proportionally
+      if(drawH > maxHeight) {
+        drawH = maxHeight;
+        drawW = drawH * aspectRatio;
+      }
+      
+      // Center horizontally if scaled width is less than platform width
+      const drawX = sx + (p.w - drawW) / 2;
+      const drawY = p.y - (drawH - TILE); // Align bottom with collision box
+      
+      ctx.drawImage(tileImg, 0, 0, tileImg.naturalWidth, tileImg.naturalHeight, drawX|0, drawY|0, drawW|0, drawH|0);
     }else{
       // fallback boxes
       ctx.fillStyle='#3a3f47'; ctx.fillRect(sx|0,p.y|0,p.w,TILE);
