@@ -9,7 +9,7 @@ packages = ["static-web-server", "rename", "file", "unixtools.xxd"]
 [deployment]
 publicDir = "/"
 deploymentTarget = "static"
-run = ["sh", "-c", "python server.py"]
+run = ["sh", "-c", "static-web-server -w ./.config/static-web-server.toml"]
 
 # Rewrite rules to remove .html extensions
 [[deployment.rewrites]]
@@ -77,7 +77,7 @@ name = "Permissions-Policy"
 value = "geolocation=(), camera=(), microphone=()"
 
 [workflows]
-runButton = "Chat Server"
+runButton = "Serve static site"
 
 [[workflows.workflow]]
 name = "Serve static"
@@ -100,6 +100,15 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python server.py"
+
+[[workflows.workflow]]
+name = "Serve static site"
+author = 40752925
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "static-web-server -w ./.config/static-web-server.toml"
 
 [[ports]]
 localPort = 5000
