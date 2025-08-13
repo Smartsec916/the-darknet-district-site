@@ -1,0 +1,192 @@
+# REPLIT PROMPT — Blackout Protocol: session-scoped saves, fresh starts, health=100 per level, wipe-on-death
+
+Goal:
+- Fix “carrying progress from Replit preview to live site.” Root cause: game used localStorage (persists across browser sessions), so data leaked between tabs/sites.
+- Switch runtime saves to sessionStorage (per-tab/per-session).
+- ALWAYS start each level at 100 HP.
+- Keep BTC / inventory / upgrades / score between levels and in the shop during the SAME session.
+- On death (HP ≤ 0): wipe the whole run and restart clean at Level 1.
+- Add a tester switch `?fresh=1` to force-clear mid-session.
+
+What you’ll do (minimal, surgical):
+1) In both `index.html` (game) and `game-shop.html` (shop), insert a “session bootstrap” that initializes a fresh session once per browser session and honors `?fresh=1`.
+2) Use `sessionStorage` instead of `localStorage`.
+3) In the game:
+   - Start each level with `playerHealth = 100`.
+   - Add a `handleDeath()` that nukes the run and restarts L1.
+   - Ensure saves between levels and when entering shop still happen.
+4) In the shop:
+   - Read/write from `sessionStorage`.
+   - If a stale deep link lands with no run state, redirect to a clean start.
+
+----------------------------------------------------------------------------------------------------
+A) SESSION BOOTSTRAP (ADD TO TOP OF BOTH FILES, before any reads from storage)
+----------------------------------------------------------------------------------------------------
+<!-- put inside <head> after <style> or at the very top of your first <script> tag -->
+<script>
+(function bootstrapSession(){
+  try {
+    if (!sessionStorage.getItem('bp_session_started')) {
+      try { sessionStorage.clear(); } catch(e){}
+      sessionStorage.setItem('bp_session_started', '1');
+    }
+    // Manual tester override: add ?fresh=1 to URL to force-clear mid-session
+    var _qs = new URLSearchParams(location.search);
+    if (_qs.has('fresh')) {
+      try { sessionStorage.clear(); } catch(e){}
+      sessionStorage.setItem('bp_session_started', '1');
+    }
+  } catch(e){/* noop */}
+})();
+</script>
+
+----------------------------------------------------------------------------------------------------
+B) STORAGE HELPERS (USE INSTEAD OF direct localStorage)
+----------------------------------------------------------------------------------------------------
+/* index.html */
+function getN(k,d){ const n=parseInt(sessionStorage.getItem(k)||''); return Number.isFinite(n)?n:d; }
+function setN(k,v){ sessionStorage.setItem(k,String(v)); }
+function getO(k){ try{ return JSON.parse(sessionStorage.getItem(k)||'{}'); }catch{ return {}; } }
+function setO(k,v){ sessionStorage.setItem(k, JSON.stringify(v)); }
+function getLevel(){ return Math.max(1, getN('gameLevel', 1)); }
+function setLevel(n){ setN('gameLevel', Math.max(1,n)); }
+
+/* game-shop.html */
+const getN=(k,d=0)=>{const n=parseInt(sessionStorage.getItem(k)||'');return Number.isFinite(n)?n:d;}
+const setN=(k,v)=>sessionStorage.setItem(k,String(v));
+const getO=(k)=>{try{return JSON.parse(sessionStorage.getItem(k)||'{}')}catch{ return {} }};
+const setO=(k,v)=>sessionStorage.setItem(k,JSON.stringify(v));
+
+----------------------------------------------------------------------------------------------------
+C) INDEX.HTML — LEVEL STARTS AT 100 HP + WIPE-ON-DEATH
+----------------------------------------------------------------------------------------------------
+// RUN STATE (keep across levels within the same session)
+let score = getN('playerScore', 0);
+let btc   = getN('playerBTC'  , 0);
+let level = getLevel();
+let playerUpgrades = getO('playerUpgrades');
+
+// HEALTH RULE: always 100 at the start of each level
+let playerHealth = 100;
+
+function startLevel(nextLevel){
+  level = Math.max(1, nextLevel|0);
+  setLevel(level);
+
+  // RESET HEALTH per level start
+  playerHealth = 100;
+  setN('playerHealth', playerHealth);
+
+  // keep run data available
+  setN('playerBTC'  , btc);
+  setN('playerScore', score);
+  setO('playerUpgrades', playerUpgrades);
+
+  // TODO: re-init your per-level systems/entities here
+  initLevelSystems(level);
+}
+
+// DEATH HANDLER: wipe the run & restart Level 1 from scratch
+function handleDeath() {
+  try { sessionStorage.clear(); } catch {}
+  sessionStorage.setItem('bp_session_started', '1');
+  setN('gameLevel', 1);
+  setN('playerBTC', 0);
+  setN('playerScore', 0);
+  // Do NOT re-save upgrades—death wipes them
+  location.href = 'index.html';
+}
+
+// DAMAGE application (call this where the player takes damage)
+function applyDamage(dmg){
+  playerHealth = Math.max(0, playerHealth - Math.max(0, dmg|0));
+  if (playerHealth <= 0) {
+    handleDeath();
+    return;
+  }
+  setN('playerHealth', playerHealth);
+}
+
+// Between-level save (use when finishing a level OR entering shop)
+function saveForShop(){
+  setN('playerBTC'  , btc);
+  setN('playerScore', score);
+  setN('gameLevel'  , level);
+  setO('playerUpgrades', playerUpgrades);
+  // Note: health will reset to 100 at next startLevel(...)
+}
+
+// OPTIONAL: debug hard reset (e.g., bound to R key or a button)
+function hardReset(){
+  try { sessionStorage.clear(); } catch(e){}
+  sessionStorage.setItem('bp_session_started','1');
+  location.href = 'index.html?fresh=1';
+}
+
+// BOOT (called once on load)
+(function boot(){
+  const qs = new URLSearchParams(location.search);
+  const resume = qs.get('resume') === '1';
+  if (resume) {
+    const lvlFromUrl = parseInt(qs.get('level')||'');
+    if (Number.isFinite(lvlFromUrl)) setLevel(lvlFromUrl);
+  }
+  // ALWAYS start level by enforcing health=100:
+  startLevel(getLevel());
+  // requestAnimationFrame(loop) ...
+})();
+
+----------------------------------------------------------------------------------------------------
+D) GAME-SHOP.HTML — READ/WRITE FROM sessionStorage + SAFETY
+----------------------------------------------------------------------------------------------------
+// Pull from URL if present; otherwise from sessionStorage
+let BTC   = (v=>{const n=parseInt(v||'');return Number.isFinite(n)?n:getN('playerBTC',0)})(new URLSearchParams(location.search).get('btc'));
+let SCORE = (v=>{const n=parseInt(v||'');return Number.isFinite(n)?n:getN('playerScore',0)})(new URLSearchParams(location.search).get('score'));
+let LVL   = (v=>{const n=parseInt(v||'');return Number.isFinite(n)?n:getN('gameLevel',1)})(new URLSearchParams(location.search).get('level'));
+let UPG   = getO('playerUpgrades');
+
+// SAFETY: if this page is opened with no run state, kick back to a clean game start
+const runMissing = !sessionStorage.getItem('playerBTC') && !sessionStorage.getItem('playerScore') && Object.keys(UPG).length===0;
+if (runMissing){
+  try { sessionStorage.clear(); } catch {}
+  sessionStorage.setItem('bp_session_started', '1');
+  location.href = 'index.html';
+}
+
+// SAVE back to session (call whenever player purchases or before leaving shop)
+function save(){
+  setO('playerUpgrades',UPG);
+  setN('playerBTC', BTC);
+  setN('playerScore', SCORE);
+  setN('gameLevel', LVL);
+  // Health is intentionally not reused; the game will set HP=100 at the next level start
+}
+
+// Resume the game (health will be forced to 100 in index.html startLevel)
+function resumeGame(){
+  save();
+  const url = `index.html?resume=1&level=${LVL}&score=${SCORE}&btc=${BTC}`;
+  location.href = url;
+}
+
+----------------------------------------------------------------------------------------------------
+E) SEARCH/REPLACE SWAPS (do this carefully)
+----------------------------------------------------------------------------------------------------
+1) In BOTH files:
+   - Replace ALL occurrences of `localStorage` with `sessionStorage`. (If you already added helpers above, prefer using getN/setN/getO/setO instead of direct calls.)
+
+2) Ensure your “enter shop” transition in the game calls `saveForShop()` and navigates with query params if desired:
+   location.href = `game-shop.html?level=${level}&score=${score}&btc=${btc}`;
+
+3) Ensure your damage/health logic calls `applyDamage(dmg)` (or directly inserts the death check snippet) so death triggers a full wipe.
+
+----------------------------------------------------------------------------------------------------
+F) TEST PLAN
+----------------------------------------------------------------------------------------------------
+- Open your site in a FRESH tab (or use `?fresh=1` once) → should start Level 1, 0 BTC.
+- Play → collect BTC → enter shop → buy something → Resume → run state persists (BTC/inventory/upgrades) within the SAME tab session.
+- Complete level → next level should load with HP reset to 100 and run state persisted (BTC/inventory/upgrades).
+- Die at any time → page reloads to Level 1 with 0 BTC and NO upgrades/inventory (true wipe).
+- Close the tab and reopen → fresh run (no leak from old sessions or Replit preview).
+
+That’s it. Paste the code blocks into the indicated spots in `index.html` and `game-shop.html`, do the search/replace, and you’re good.
