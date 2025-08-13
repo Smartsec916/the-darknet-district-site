@@ -5,6 +5,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Byte Bazaar — Add-Men</title>
+  <script>
+(function bootstrapSession(){
+  try {
+    if (!sessionStorage.getItem('bp_session_started')) {
+      try { sessionStorage.clear(); } catch(e){}
+      sessionStorage.setItem('bp_session_started', '1');
+    }
+    // Manual tester override: add ?fresh=1 to URL to force-clear mid-session
+    var _qs = new URLSearchParams(location.search);
+    if (_qs.has('fresh')) {
+      try { sessionStorage.clear(); } catch(e){}
+      sessionStorage.setItem('bp_session_started', '1');
+    }
+  } catch(e){/* noop */}
+})();
+</script>
   <style>
     :root{
       --frame-w:960px;
@@ -13,7 +29,7 @@
     }
     html,body{margin:0;height:100%;background:#050b14;color:var(--ink);font-family:ui-monospace,Menlo,Consolas,monospace;overflow:hidden}
     .frame{position:relative;width:100%;max-width:var(--frame-w);margin:0 auto;aspect-ratio:4/3;border:2px solid #1a2830;border-radius:14px;background:#000;box-shadow:0 18px 80px rgba(0,0,0,.45) inset, 0 16px 60px rgba(16,28,48,.35)}
-    .keeper{position:absolute;inset:0;object-fit:cover;width:100%;height:100%;image-rendering:pixelated}
+    .keeper{position:absolute; inset:0;object-fit:cover;width:100%;height:100%;image-rendering:pixelated}
 
     .crt{
       position:absolute;padding:14px 16px;border-radius:18px;color:var(--ink);
@@ -24,7 +40,7 @@
       overflow:hidden;
     }
     .crt::before{
-      content:"";position:absolute;inset:0;pointer-events:none;
+      content:"";position:absolute; inset:0;pointer-events:none;
       background:
         repeating-linear-gradient(0deg, rgba(183,255,68,.12) 0 1px, transparent 1px 3px),
         repeating-linear-gradient(90deg, rgba(183,255,68,.055) 0 1px, transparent 1px 5px);
@@ -86,35 +102,40 @@
   </div>
 
 <script>
+// Storage helpers for session-scoped saves
+const getN=(k,d=0)=>{const n=parseInt(sessionStorage.getItem(k)||'');return Number.isFinite(n)?n:d;}
+const setN=(k,v)=>sessionStorage.setItem(k,String(v));
+const getO=(k)=>{try{return JSON.parse(sessionStorage.getItem(k)||'{}')}catch{ return {} }};
+const setO=(k,v)=>sessionStorage.setItem(k,JSON.stringify(v));
+
 const HYPER_RELOAD_TAG = 'rev=' + Date.now();
 document.getElementById('keeper').src = 'assets/shop_addmen.png?' + HYPER_RELOAD_TAG;
 
-const qs   = new URLSearchParams(location.search);
-const num  = (v,d=0)=>{const n=parseInt(v);return Number.isFinite(n)?n:d;}
-const getN = (k,d=0)=>{const n=parseInt(localStorage.getItem(k)||'');return Number.isFinite(n)?n:d;}
-const getO = (k)=>{try{return JSON.parse(localStorage.getItem(k)||'{}')}catch{ return {} }};
-const setO = (k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const items=[
+  {id:1,name:'Double Jump',price:50,desc:'Unlock double jump ability',effect:'doubleJump'},
+  {id:2,name:'Body Armor',price:75,desc:'Reduce damage by 50%',effect:'armor'},
+  {id:3,name:'Medkits x3',price:30,desc:'Heal to full health 3 times',effect:'medkits'},
+  {id:4,name:'EMP Grenades x5',price:100,desc:'5 EMP grenades to disable enemies',effect:'emp'}
+];
 
-let BTC   = num(qs.get('btc')  , getN('playerBTC',0));
-let SCORE = num(qs.get('score'), getN('playerScore',0));
-let LVL   = num(qs.get('level'), getN('gameLevel',1));   // the level you just finished
-let HP    = getN('playerHealth',100);
+// Pull from URL if present; otherwise from sessionStorage
+let BTC   = (v=>{const n=parseInt(v||'');return Number.isFinite(n)?n:getN('playerBTC',0)})(new URLSearchParams(location.search).get('btc'));
+let SCORE = (v=>{const n=parseInt(v||'');return Number.isFinite(n)?n:getN('playerScore',0)})(new URLSearchParams(location.search).get('score'));
+let LVL   = (v=>{const n=parseInt(v||'');return Number.isFinite(n)?n:getN('gameLevel',1)})(new URLSearchParams(location.search).get('level'));
 let UPG   = getO('playerUpgrades');
+let inventory = getO('playerInventory');
 
-const balLbl  = document.getElementById('balLbl');
-const invList = document.getElementById('invList');
-const emptySlot = document.getElementById('emptySlot');
-const itemsWrap = document.getElementById('items');
-const bubbleEl  = document.getElementById('bubble');
-
-function save(){
-  setO('playerUpgrades',UPG);
-  localStorage.setItem('playerBTC', String(BTC));
-  localStorage.setItem('playerScore', String(SCORE));
-  localStorage.setItem('gameLevel', String(LVL));
-  localStorage.setItem('playerHealth', String(HP));
+// SAFETY: if this page is opened with no run state, kick back to a clean game start
+const runMissing = !sessionStorage.getItem('playerBTC') && !sessionStorage.getItem('playerScore') && Object.keys(UPG).length===0 && Object.keys(inventory).length===0;
+if (runMissing && BTC === 0 && SCORE === 0){
+  try { sessionStorage.clear(); } catch {}
+  sessionStorage.setItem('bp_session_started', '1');
+  location.href = 'index.html';
 }
-function setBalance(){ balLbl.textContent = 'BTC:'+BTC; }
+
+let balance = BTC;
+
+function updateBalance(){ balLbl.textContent = 'BTC:'+balance; }
 function showOwned(name, tag){
   emptySlot.style.display='none';
   const row=document.createElement('div'); row.className='slot';
@@ -180,28 +201,41 @@ function renderItems(){
     card.innerHTML=`
       <h5>${item.label}</h5>
       <p>${item.desc}</p>
-      <button class="buy"${(BTC<item.cost||already)?' disabled':''}>Buy — <span class="price">${item.cost} BTC</span></button>`;
+      <button class="buy"${(balance<item.cost||already)?' disabled':''}>Buy — <span class="price">${item.cost} BTC</span></button>`;
     const btn = card.querySelector('.buy');
     btn.onclick=()=>{
-      if(BTC < item.cost || (item.id!=='mobileEMP' && has(item.id))) return;
-      BTC -= item.cost; setBalance();
+      if(balance < item.cost || (item.id!=='mobileEMP' && has(item.id))) return;
+      balance -= item.cost;
       item.grant(); save();
       renderItems();
+      updateBalance();
     };
     itemsWrap.appendChild(card);
   });
 }
 
-/* Continue always advances to the NEXT level */
-document.getElementById('continueCard').onclick=()=>{
-  const nextLevel = (LVL>=1 ? LVL+1 : 2);  // 1→2, 2→3, 3→4
-  LVL = nextLevel;
+// SAVE back to session
+function save(){
+  setO('playerUpgrades',UPG);
+  setO('playerInventory',inventory);
+  setN('playerBTC', balance);
+  setN('playerScore', SCORE);
+  setN('gameLevel', LVL);
+}
+
+// Resume the game (health will be forced to 100 in index.html startLevel)
+function resumeGame(){
   save();
-  location.href = './index.html';
-};
+  const url = `index.html?resume=1&level=${LVL}&score=${SCORE}&btc=${balance}`;
+  location.href = url;
+}
+
+function continueGame(){
+  resumeGame();
+}
 
 (async function init(){
-  setBalance();
+  updateBalance();
 
   /* Reflect existing inventory — EMP only if charges > 0 */
   if(UPG.mobileEMP && (UPG.mobileEMPCharges|0) > 0){

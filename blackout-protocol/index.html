@@ -31,12 +31,17 @@ const HYPER_RELOAD_TAG = 'rev=' + Date.now();
 
 /* ================= CORE / DISPLAY ================= */
 let READY=false, LOAD_MSG='Loading…';
-const VW=256, VH=240, TILE=16;
+const VW=960,VH=720,TW=48,SPEED=225;
+let canvas,ctx,fpsCount=0,fpsTimer=0,cameraX=0,lastTime=0;
+let state,resetBtn,currentLevel=0,score=0,btc=0,empGrenades=3,hasDoubleJump=false,hasArmor=false,hasMedkits=false,medkitCount=0,empBlast=null,empBlastTime=0;
 
-const gameCanvas=document.getElementById('gameCanvas');
-const overlayCanvas=document.getElementById('overlayCanvas');
-const gctx=gameCanvas.getContext('2d'); gctx.imageSmoothingEnabled=false;
-const octx=overlayCanvas.getContext('2d');
+// Storage helpers for session-scoped saves
+function getN(k,d){ const n=parseInt(sessionStorage.getItem(k)||''); return Number.isFinite(n)?n:d; }
+function setN(k,v){ sessionStorage.setItem(k,String(v)); }
+function getO(k){ try{ return JSON.parse(sessionStorage.getItem(k)||'{}'); }catch{ return {}; } }
+function setO(k,v){ sessionStorage.setItem(k, JSON.stringify(v)); }
+function getLevel(){ return Math.max(1, getN('gameLevel', 1)); }
+function setLevel(n){ setN('gameLevel', Math.max(1,n)); }
 
 const nes=document.createElement('canvas'); nes.width=VW; nes.height=VH;
 const ctx=nes.getContext('2d',{alpha:false});
@@ -174,7 +179,7 @@ function tileParallax(img, speed){
   }
 }
 function drawBackgrounds(){
-  if(!BG.far && !BG.near){ for(let y=0;y<VH;y++){ const t=y/VH; ctx.fillStyle=`rgb(${12+18*t|0},${16+30*t|0},${30+58*t|0})`; ctx.fillRect(0,y,VH,1); } return; }
+  if(!BG.far && !BG.near){ for(let y=0;y<VH;y++){ const t=y/VH; ctx.fillStyle=`rgb(${12+18*t|0},${16+30*t|0},${30+58*t|0})`; ctx.fillRect(0,y,VW,1); } return; }
   if(BG.far)  tileParallax(BG.far,  PARALLAX.far);
   if(BG.near){
     ctx.save();
@@ -511,7 +516,6 @@ function update(dt,now){
 
   if(player.hp<=0) setAnim(player,'player','dead',true);
   else if(now<player.hitUntil) setAnim(player,'player','hurt',true);
-  else if(!player.onGround) setAnim(player,'player', player.vy<0?'jump':'fall');
   else { const s=Math.abs(player.vx); setAnim(player,'player', s>1.05?'run':(s>0.2?'walk':'idle')); }
   stepAnim(player,dt);
 
@@ -595,10 +599,8 @@ function update(dt,now){
   if(exitDoor && rects(player, exitDoor)){
     gameState='levelComplete';
     setTimeout(()=>{ 
-      localStorage.setItem('playerBTC', String(btc));
-      localStorage.setItem('playerScore', String(score));
-      localStorage.setItem('gameLevel', String(level));
-      window.location.href = `${SHOP_URL}?btc=${btc}&score=${score}&level=${level}`;
+      saveForShop();
+      location.href = './blackout-protocol/game-shop.html?level='+currentLevel+'&btc='+(state.player.btc||0)+'&score='+(state.player.kills||0);
     }, 250);
   }
 
@@ -754,7 +756,7 @@ function drawUI(now){
   drawControlsHint();
 
   const charges = getEmpCharges();
-  ctx.fillStyle='#fff'; ctx.fillText(`HP:${Math.max(0,player.hp)}  L:${level}  SC:${score}  BTC:${btc}`,6,24);
+  ctx.fillStyle='#fff'; ctx.fillText(`HP:${Math.max(0,player.hp)}  L:${currentLevel}  SC:${score}  BTC:${btc}`,6,24);
   if(charges>0){ ctx.fillStyle='#7dff9a'; ctx.fillText(`EMP Charges:${charges}`, 6, 36); }
 
   if(gameState==='paused'){ ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#fff'; ctx.fillText('PAUSED (ESC)',VW/2-30,VH/2); }
@@ -821,15 +823,68 @@ function placeExitDoor(){ exitDoor={x:LEVEL_LEN-40, y:groundY()-DOOR_H, w:DOOR_W
 function clearRun(){ localStorage.removeItem('playerBTC'); localStorage.removeItem('playerScore'); localStorage.removeItem('playerHealth'); }
 function hardResetToL1(){ setLevel(1); clearRun(); boot(true); }
 
+function restartLevel(){
+  state=newGameState();
+  state.player.x=100;
+  state.player.y=350;
+  cameraX=0;
+}
+
+// Death handler: wipe the run & restart Level 1 from scratch
+function handleDeath() {
+  try { sessionStorage.clear(); } catch {}
+  sessionStorage.setItem('bp_session_started', '1');
+  setN('gameLevel', 1);
+  setN('playerBTC', 0);
+  setN('playerScore', 0);
+  location.href = 'index.html';
+}
+
+// Damage application with death check
+function applyDamage(dmg){
+  state.player.hp = Math.max(0, state.player.hp - Math.max(0, dmg|0));
+  if (state.player.hp <= 0) {
+    handleDeath();
+    return;
+  }
+}
+
+// Level start with health reset to 100
+function startLevel(nextLevel){
+  currentLevel = Math.max(1, nextLevel|0);
+  setLevel(currentLevel);
+
+  // RESET HEALTH per level start
+  if (state && state.player) {
+    state.player.hp = 100;
+  }
+
+  // keep run data available
+  setN('playerBTC', btc);
+  setN('playerScore', score);
+}
+
+// Between-level save
+function saveForShop(){
+  setN('playerBTC', btc);
+  setN('playerScore', score);
+  setN('gameLevel', currentLevel);
+}
+
 function resetFromSaved(){
-  gameState='playing'; cameraX=0; worldMaxX=0;
-  score=parseInt(localStorage.getItem('playerScore')||'0')||0;
-  btc  =parseInt(localStorage.getItem('playerBTC')  ||'0')||0;
-  level=getLevel();
+  state=newGameState();
+  state.player.x=100;
+  state.player.y=350;
+  cameraX=0;
+  
+  score=getN('playerScore', 0);
+  btc=getN('playerBTC', 0);
+  currentLevel=getLevel();
+
   platforms=[]; robots=[]; drones=[]; npcs=[]; terminals=[]; ads=[]; coins=[]; generatedUntil=0; exitDoor=null;
   player=makePlayer(); setAnim(player,'player','idle');
   for(let x=0;x<CHUNK*4;x+=CHUNK) genChunk(x);
-  if(level===2 && drones.length<2){
+  if(currentLevel===2 && drones.length<2){
     drones.push(makeDrone(420,70), makeDrone(820,80), makeDrone(1200,60));
   }
   placeExitDoor(); resetBtn.style.display='none';
@@ -845,7 +900,51 @@ async function boot(forceL1=false){
     READY=true;
   }catch(err){ console.error(err); LOAD_MSG='Load failed (check console)'; }
 }
-boot();
+
+// Damage handler for player
+function damagePlayer(dmg){
+  if(performance.now()<state.player.hitUntil)return;
+  state.player.hitUntil=performance.now()+1e3;
+  applyDamage(dmg);
+}
+
+/* Boot -------------------------------------------------------------------- */
+window.addEventListener('load',()=>{
+  canvas=document.getElementById('gameCanvas');
+  ctx=canvas.getContext('2d');
+  resetBtn=document.getElementById('resetBtn');
+  canvas.width=VW; canvas.height=VH;
+
+  // Initialize from session storage
+  const qs = new URLSearchParams(location.search);
+  const resume = qs.get('resume') === '1';
+  if (resume) {
+    const lvlFromUrl = parseInt(qs.get('level')||'');
+    if (Number.isFinite(lvlFromUrl)) {
+      currentLevel = lvlFromUrl;
+      setLevel(lvlFromUrl);
+    }
+    score = getN('playerScore', 0);
+    btc = getN('playerBTC', 0);
+  } else {
+    currentLevel = getLevel();
+    score = getN('playerScore', 0);
+    btc = getN('playerBTC', 0);
+  }
+
+  loadSprites(SPRITE_DEF).then(()=>{
+    resetFromSaved();
+    // ALWAYS start level with health=100
+    if (state && state.player) {
+      state.player.hp = 100;
+    }
+    requestAnimationFrame(loop);
+  });
+
+  addEventListener('keydown',onKeyDown);
+  addEventListener('keyup',onKeyUp);
+  resetBtn.addEventListener('click',restartLevel);
+});
 
 function loop(now){
   const dt = loop.t ? now - loop.t : 16; loop.t = now;
@@ -861,7 +960,8 @@ function loop(now){
   blit(); drawOverlay(now);
   requestAnimationFrame(loop);
 }
-requestAnimationFrame(loop);
+boot();
+
 </script>
 </body>
 </html>
