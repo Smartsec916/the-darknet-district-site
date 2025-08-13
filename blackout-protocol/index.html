@@ -25,48 +25,75 @@
 <script>
 /* ================= CONFIG ================= */
 const SHOP_URL = './game-shop.html';
-const LEVEL_LEN = 1900;              // door at far-right
+const VW=960, VH=720;
+const TILE = 48;            // tile size
+const LEVEL_LEN = 1900;     // door at far-right
 const DOOR_W = 24, DOOR_H = 32;
 const HYPER_RELOAD_TAG = 'rev=' + Date.now();
 
-/* ================= CORE / DISPLAY ================= */
-let READY=false, LOAD_MSG='Loading…';
-const VW=960,VH=720,TW=48,SPEED=225;
-let canvas,ctx,fpsCount=0,fpsTimer=0,cameraX=0,lastTime=0;
-let state,resetBtn,currentLevel=0,score=0,btc=0,empGrenades=3,hasDoubleJump=false,hasArmor=false,hasMedkits=false,medkitCount=0,empBlast=null,empBlastTime=0;
+/* ================= RENDER TARGETS ================= */
+let gcanvas, gctx;                    // on-screen canvas + ctx
+const nes = document.createElement('canvas');  // offscreen buffer
+nes.width = VW; nes.height = VH;
+const nesCtx = nes.getContext('2d', { alpha:false }); // <-- renamed to avoid conflicts
+nesCtx.imageSmoothingEnabled = false;
+nesCtx.font = '9px monospace';
+nesCtx.textBaseline = 'top';
 
-// Storage helpers for session-scoped saves
+let overlayCanvas, octx;
+let RENDER={scale:1,ox:0,oy:0};
+function fit(){
+  const r=document.getElementById('gameContainer').getBoundingClientRect();
+  gcanvas.width=r.width; gcanvas.height=r.height;
+  overlayCanvas.width=r.width; overlayCanvas.height=r.height;
+}
+addEventListener('resize',fit);
+
+/* ================= CORE / STATE ================= */
+let READY=false, LOAD_MSG='Loading…';
+let currentLevel=1, score=0, btc=0;
+let empGrenades=3, hasDoubleJump=false, hasArmor=false, hasMedkits=false, medkitCount=0;
+let gameState='loading';
+let cameraX=0, worldMaxX=0;
+
+/* ================= SESSION STORAGE (per run) ================= */
 function getN(k,d){ const n=parseInt(sessionStorage.getItem(k)||''); return Number.isFinite(n)?n:d; }
 function setN(k,v){ sessionStorage.setItem(k,String(v)); }
 function getO(k){ try{ return JSON.parse(sessionStorage.getItem(k)||'{}'); }catch{ return {}; } }
 function setO(k,v){ sessionStorage.setItem(k, JSON.stringify(v)); }
+
 function getLevel(){ return Math.max(1, getN('gameLevel', 1)); }
 function setLevel(n){ setN('gameLevel', Math.max(1,n)); }
 
-const nes=document.createElement('canvas'); nes.width=VW; nes.height=VH;
-const ctx=nes.getContext('2d',{alpha:false});
-ctx.imageSmoothingEnabled=false;
-ctx.font='9px monospace';
-ctx.textBaseline='top';
-
-let RENDER={scale:1,ox:0,oy:0};
-function fit(){
-  const r=document.getElementById('gameContainer').getBoundingClientRect();
-  gameCanvas.width=r.width; gameCanvas.height=r.height;
-  overlayCanvas.width=r.width; overlayCanvas.height=r.height;
+function clearRun(){
+  try{
+    sessionStorage.removeItem('playerBTC');
+    sessionStorage.removeItem('playerScore');
+    sessionStorage.removeItem('playerHealth');
+    sessionStorage.setItem('bp_session_started','1');
+  }catch{}
 }
-addEventListener('resize',fit); fit();
+
+/* ================= INPUT ================= */
+const keys={}, JUMP_BUFFER=140, COYOTE=140;
+let jumpBufferUntil=0, coyoteUntil=0, jumpHeld=false;
 
 addEventListener('keydown',e=>{
   if(['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.code)) e.preventDefault();
+  keys[e.code]=true;
+  if(e.code==='Escape') gameState=(gameState==='playing')?'paused':(gameState==='paused'?'playing':gameState);
+  if(e.code==='Space'){ jumpBufferUntil=performance.now()+JUMP_BUFFER; jumpHeld=true; }
+  if(e.code==='KeyE' && gameState==='playing') tryMobileEMP();
+  if(e.code==='KeyR' && (gameState==='gameOver'||gameState==='levelComplete')) hardResetToL1();
+  if(e.code==='Enter' && gameState==='playing') tryHack();
 },{passive:false});
+addEventListener('keyup',e=>{ keys[e.code]=false; if(e.code==='Space') jumpHeld=false; });
 
-/* ================= LEVEL / STORAGE ================= */
-function getSaved(k, d){ const n=parseInt(localStorage.getItem(k)||''); return Number.isFinite(n)?n:d; }
-function getLevel(){ return Math.max(1, getSaved('gameLevel', 1)); }
-function setLevel(n){ localStorage.setItem('gameLevel', String(n)); }
+/* ================= BACKGROUNDS ================= */
+const BG={far:null, near:null};
+const PARALLAX={far:0.18, near:0.55};
+const NEAR_FADE_PX=120;
 
-/* suffix 01 / 02 / 03 for bg art */
 function levelSuffix(lv){ return lv<10 ? `0${lv}` : String(lv); }
 function levelArt(lv){
   const s = levelSuffix(lv);
@@ -76,7 +103,6 @@ function levelArt(lv){
   };
 }
 
-/* ================= ASSETS ================= */
 const IMG = (path) => new Promise(resolve=>{
   if(!path){ resolve(null); return; }
   const i=new Image();
@@ -85,80 +111,14 @@ const IMG = (path) => new Promise(resolve=>{
   i.src=path;
 });
 
-/* Sprite + static art (includes FEMALE idle/run) */
-const SPRITE_DEF_BASE={
-  player:{fw:48,fh:48, states:{
-    idle:'assets/player_idle_48.png', walk:'assets/player_walk_48.png', run:'assets/player_run_48.png',
-    jump:'assets/player_jump_48.png', fall:'assets/player_fall_48.png', hurt:'assets/player_hurt_48.png', dead:'assets/player_dead_48.png'
-  }, fps:{idle:6, walk:10, run:12, jump:10, fall:10, hurt:6, dead:8}},
-  robot:{fw:48,fh:48, states:{
-    idle:'assets/robot_idle_48.png', walk:'assets/robot_walk_48.png', run:'assets/robot_run_48.png',
-    attack:'assets/robot_attack_48.png', hurt:'assets/robot_hurt_48.png', dead:'assets/robot_dead_48.png'
-  }, fps:{idle:6, walk:9, run:10, attack:12, hurt:6, dead:8}},
-  drone:{fw:32,fh:32, states:{
-    idle:'assets/drone_idle_32.png', hover:'assets/drone_hover_32.png', move:'assets/drone_move_32.png',
-    attack:'assets/drone_attack_32.png', hurt:'assets/drone_hurt_32.png', dead:'assets/drone_dead_32.png'
-  }, fps:{idle:3, hover:10, move:10, attack:12, hurt:6, dead:8}},
-  female:{fw:48,fh:48, states:{
-    idle:'assets/female_idle.png',
-    run:'assets/female_run.png'
-  }, fps:{idle:6, run:10}},
-  coin:`assets/btc_glow.png?${HYPER_RELOAD_TAG}`,
-  door:`assets/shop_door_neon.png?${HYPER_RELOAD_TAG}`,
-  ledge:`assets/ledge_tile.png?${HYPER_RELOAD_TAG}`,
-  platform:`assets/platform_industrial.png?${HYPER_RELOAD_TAG}`,
-};
-let SPRITE_DEF = JSON.parse(JSON.stringify(SPRITE_DEF_BASE));
-
-/* ===== Level-specific posters ===== */
-const AD_SRC_ALL = {
-  Blackrock:`assets/Blackrock.png?${HYPER_RELOAD_TAG}`,
-  Downthere:`assets/Downthere.png?${HYPER_RELOAD_TAG}`,
-  Oxygen:`assets/Oxygen.png?${HYPER_RELOAD_TAG}`,
-  Skinshift:`assets/Skinshift.png?${HYPER_RELOAD_TAG}`,
-  Zen:`assets/Zen.png?${HYPER_RELOAD_TAG}`,
-  Bug:`assets/Bug.png?${HYPER_RELOAD_TAG}`,
-  Pill:`assets/Pill.png?${HYPER_RELOAD_TAG}`,
-  Plug:`assets/Plug.png?${HYPER_RELOAD_TAG}`,
-  Touchless:`assets/Touchless.png?${HYPER_RELOAD_TAG}`,
-  Pinknoise:`assets/Pinknoise.png?${HYPER_RELOAD_TAG}`,
-};
-const ADS_BY_LEVEL = { 1:[], 2:['Blackrock','Downthere','Oxygen','Skinshift','Zen'], 3:['Bug','Pill','Plug','Touchless','Pinknoise'] };
-let AdImages = {};
-async function loadAdImages(lv){ AdImages={}; for(const k of (ADS_BY_LEVEL[lv]||[])){ AdImages[k]=await IMG(AD_SRC_ALL[k]); }}
-
-/* Animator */
-function makeAnimator(sheet, fw, fh, fps){
-  const frames = sheet ? Math.max(1, Math.floor(sheet.width / fw)) : 1;
-  let frame=0, time=0, spf=1000/(fps||8);
-  return {
-    reset(){ frame=0; time=0; },
-    step(dt, clamp=false){ time+=dt; while(time>spf){ time-=spf; frame = clamp ? Math.min(frame+1, frames-1) : (frame+1)%frames; } },
-    draw(x,y,flip=false,alpha=1){
-      if(!sheet) return;
-      const sx=frame*fw;
-      ctx.save(); ctx.globalAlpha=alpha;
-      if(flip){ ctx.translate(x+fw,y); ctx.scale(-1,1); ctx.drawImage(sheet,sx,0,fw,fh,0,0,fw,fh); }
-      else    { ctx.drawImage(sheet,sx,0,fw,fh,x,y,fw,fh); }
-      ctx.restore();
-    }
-  };
-}
-
-/* ================= PARALLAX ================= */
-const BG={far:null, near:null};
-const PARALLAX={far:0.18, near:0.55};
-const NEAR_FADE_PX=120;
-
 async function loadBackgroundsForLevel(lv){
   const art = levelArt(lv);
-  SPRITE_DEF.bg_far  = art.bg_far;
-  SPRITE_DEF.bg_near = art.bg_near;
-  BG.far  = await IMG(SPRITE_DEF.bg_far);
-  BG.near = await IMG(SPRITE_DEF.bg_near);
+  BG.far  = await IMG(art.bg_far);
+  BG.near = await IMG(art.bg_near);
 }
 function tileParallax(img, speed){
   if(!img) return;
+  const ctx = nesCtx;
   const scale = VH / img.height;
   const tileW = Math.max(1, Math.round(img.width * scale));
   const cam = cameraX||0;
@@ -179,28 +139,70 @@ function tileParallax(img, speed){
   }
 }
 function drawBackgrounds(){
-  if(!BG.far && !BG.near){ for(let y=0;y<VH;y++){ const t=y/VH; ctx.fillStyle=`rgb(${12+18*t|0},${16+30*t|0},${30+58*t|0})`; ctx.fillRect(0,y,VW,1); } return; }
+  const ctx = nesCtx;
+  if(!BG.far && !BG.near){
+    for(let y=0;y<VH;y++){
+      const t=y/VH; ctx.fillStyle=`rgb(${12+18*t|0},${16+30*t|0},${30+58*t|0})`;
+      ctx.fillRect(0,y,VW,1);
+    }
+    return;
+  }
   if(BG.far)  tileParallax(BG.far,  PARALLAX.far);
   if(BG.near){
     ctx.save();
     tileParallax(BG.near, PARALLAX.near);
     const fadeH=Math.min(NEAR_FADE_PX,VH);
-    const g=ctx.createLinearGradient(0,0,0,fadeH);
+    const g=nesCtx.createLinearGradient(0,0,0,fadeH);
     g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,1)');
-    ctx.globalCompositeOperation='destination-in';
-    ctx.fillStyle=g; ctx.fillRect(0,0,VW,VH);
-    ctx.restore();
+    nesCtx.globalCompositeOperation='destination-in';
+    nesCtx.fillStyle=g; nesCtx.fillRect(0,0,VW,VH);
+    nesCtx.restore();
   }
 }
 
 /* ================= SPRITES ================= */
+const SPRITE_DEF={
+  player:{fw:48,fh:48, states:{
+    idle:'assets/player_idle_48.png', walk:'assets/player_walk_48.png', run:'assets/player_run_48.png',
+    jump:'assets/player_jump_48.png', fall:'assets/player_fall_48.png', hurt:'assets/player_hurt_48.png', dead:'assets/player_dead_48.png'
+  }, fps:{idle:6, walk:10, run:12, jump:10, fall:10, hurt:6, dead:8}},
+  robot:{fw:48,fh:48, states:{
+    idle:'assets/robot_idle_48.png', walk:'assets/robot_walk_48.png', run:'assets/robot_run_48.png',
+    attack:'assets/robot_attack_48.png', hurt:'assets/robot_hurt_48.png', dead:'assets/robot_dead_48.png'
+  }, fps:{idle:6, walk:9, run:10, attack:12, hurt:6, dead:8}},
+  drone:{fw:32,fh:32, states:{
+    idle:'assets/drone_idle_32.png', hover:'assets/drone_hover_32.png', move:'assets/drone_move_32.png',
+    attack:'assets/drone_attack_32.png', hurt:'assets/drone_hurt_32.png', dead:'assets/drone_dead_32.png'
+  }, fps:{idle:3, hover:10, move:10, attack:12, hurt:6, dead:8}},
+  female:{fw:48,fh:48, states:{
+    idle:'assets/female_idle.png',
+    run:'assets/female_run.png'
+  }, fps:{idle:6, run:10}}
+};
+
+let SPR=null;
+function makeAnimator(sheet, fw, fh, fps){
+  const frames = sheet ? Math.max(1, Math.floor(sheet.width / fw)) : 1;
+  let frame=0, time=0, spf=1000/(fps||8);
+  return {
+    reset(){ frame=0; time=0; },
+    step(dt, clamp=false){ time+=dt; while(time>spf){ time-=spf; frame = clamp ? Math.min(frame+1, frames-1) : (frame+1)%frames; } },
+    draw(x,y,flip=false,alpha=1){
+      if(!sheet) return;
+      const sx=frame*fw;
+      nesCtx.save(); nesCtx.globalAlpha=alpha;
+      if(flip){ nesCtx.translate(x+fw,y); nesCtx.scale(-1,1); nesCtx.drawImage(sheet,sx,0,fw,fh,0,0,fw,fh); }
+      else    { nesCtx.drawImage(sheet,sx,0,fw,fh,x,y,fw,fh); }
+      nesCtx.restore();
+    }
+  };
+}
 async function loadSprites(def){
   const out={};
   for(const who of Object.keys(def)){
     const entry = def[who];
-    if(!entry || !entry.states) continue;
     const fw=entry.fw, fh=entry.fh;
-    const pack={fw,fh,anim:{}};
+    const pack={fw,fh,anim:{},fps:entry.fps};
     for(const [state,src] of Object.entries(entry.states)){
       const img=await IMG(src);
       pack.anim[state]={img, make:()=>makeAnimator(img,fw,fh, entry.fps[state]||8)};
@@ -210,43 +212,44 @@ async function loadSprites(def){
   return out;
 }
 
-/* ================= STATE / INPUT / CAMERA ================= */
-let gameState='loading', score=0, btc=0, level=1;
-let cameraX=0, worldMaxX=0;
-const CHUNK=320;
+/* ================= ADS ================= */
+const AD_SRC_ALL = {
+  Blackrock:`assets/Blackrock.png?${HYPER_RELOAD_TAG}`,
+  Downthere:`assets/Downthere.png?${HYPER_RELOAD_TAG}`,
+  Oxygen:`assets/Oxygen.png?${HYPER_RELOAD_TAG}`,
+  Skinshift:`assets/Skinshift.png?${HYPER_RELOAD_TAG}`,
+  Zen:`assets/Zen.png?${HYPER_RELOAD_TAG}`,
+  Bug:`assets/Bug.png?${HYPER_RELOAD_TAG}`,
+  Pill:`assets/Pill.png?${HYPER_RELOAD_TAG}`,
+  Plug:`assets/Plug.png?${HYPER_RELOAD_TAG}`,
+  Touchless:`assets/Touchless.png?${HYPER_RELOAD_TAG}`,
+  Pinknoise:`assets/Pinknoise.png?${HYPER_RELOAD_TAG}`,
+};
+const ADS_BY_LEVEL = { 1:[], 2:['Blackrock','Downthere','Oxygen','Skinshift','Zen'], 3:['Bug','Pill','Plug','Touchless','Pinknoise'] };
+let AdImages = {};
+async function loadAdImages(lv){ AdImages={}; for(const k of (ADS_BY_LEVEL[lv]||[])){ AdImages[k]=await IMG(AD_SRC_ALL[k]); }}
 
-const DEAD_ZONE=8;
-function updateCamera(){
-  const center=VW*0.40;
-  const L=center-DEAD_ZONE, R=center+DEAD_ZONE;
-  let target=cameraX;
-  if(player.x-cameraX<L) target=player.x-L;
-  else if(player.x-cameraX>R) target=player.x-R;
-  cameraX += (target-cameraX)*0.45;
-  cameraX=Math.max(0,Math.min(cameraX, worldMaxX-VW));
+/* ================= TILES / STATIC ================= */
+let coinImg=null, doorImg=null, ledgeImg=null, platformImg=null, platformRailImg=null;
+let terminalFrame1=null, terminalFrame2=null;
+
+async function loadTiles(){
+  coinImg     = await IMG(`assets/btc_glow.png?${HYPER_RELOAD_TAG}`);
+  doorImg     = await IMG(`assets/shop_door_neon.png?${HYPER_RELOAD_TAG}`);
+  ledgeImg    = await IMG(`assets/ledge_tile.png?${HYPER_RELOAD_TAG}`);
+  platformImg = await IMG(`assets/platform_industrial.png?${HYPER_RELOAD_TAG}`);
+  platformRailImg = await IMG(`assets/platform_rail.png?${HYPER_RELOAD_TAG}`);
+  terminalFrame1 = await IMG(`assets/hacker_terminal_frame1.png?${HYPER_RELOAD_TAG}`);
+  terminalFrame2 = await IMG(`assets/hacker_terminal_frame2.png?${HYPER_RELOAD_TAG}`);
 }
 
-const keys={}, JUMP_BUFFER=140, COYOTE=140;
-let jumpBufferUntil=0, coyoteUntil=0, jumpHeld=false;
-addEventListener('keydown',e=>{
-  keys[e.code]=true;
-  if(e.code==='Escape') gameState=(gameState==='playing')?'paused':(gameState==='paused'?'playing':gameState);
-  if(e.code==='Space'){ jumpBufferUntil=performance.now()+JUMP_BUFFER; jumpHeld=true; }
-  if(e.code==='KeyE' && gameState==='playing') tryMobileEMP();
-  if(e.code==='KeyR' && (gameState==='gameOver'||gameState==='levelComplete')) hardResetToL1();
-  if(e.code==='Enter' && gameState==='playing') tryHack();
-});
-addEventListener('keyup',e=>{ keys[e.code]=false; if(e.code==='Space') jumpHeld=false; });
-
 /* ================= ENTITIES ================= */
-let SPR=null;
 let player, robots=[], drones=[], npcs=[], platforms=[], terminals=[], ads=[], coins=[];
 let exitDoor=null;
-const resetBtn=document.getElementById('resetBtn'); resetBtn.onclick=()=>hardResetToL1();
 
 function makePlayer(){
-  const savedHealth = parseInt(localStorage.getItem('playerHealth')) || 100;
-  const savedUpgrades = JSON.parse(localStorage.getItem('playerUpgrades')) || {};
+  const savedHealth = parseInt(sessionStorage.getItem('playerHealth')) || 100;
+  const savedUpgrades = JSON.parse(sessionStorage.getItem('playerUpgrades') || '{}');
   const baseSpeed = 1.52;
   const baseJump  = 5.6;
   const speed = savedUpgrades.speedBoost ? baseSpeed * 1.3 : baseSpeed;
@@ -265,24 +268,24 @@ function setAnim(actor, who, state, clamp=false){
   actor.anim.clamp=clamp;
 }
 function stepAnim(a,dt){ if(a.anim.runner) a.anim.runner.step(dt, a.anim.clamp); }
-function drawAnim(a,who,x,y,flip=false,alpha=1){ const run=a.anim.runner; if(run) run.draw(x,y,flip,alpha); }
+
+function rects(a,b){ return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y; }
 
 /* ================= WORLD GEN ================= */
 const choice = a => a[(Math.random()*a.length)|0];
 let generatedUntil=0;
 const groundY = () => VH-TILE;
+const CHUNK=320;
 const L1_GATE_X = 900;
 
 function genChunk(startX){
   const endX=startX+CHUNK;
   const firstScreen = startX < VW;
 
-  // ground tiles
   for(let x=startX;x<endX;x+=TILE) platforms.push({x,y:groundY(),w:TILE,h:TILE});
 
   if(firstScreen){ generatedUntil=endX; worldMaxX=Math.max(worldMaxX,endX); return; }
 
-  // simple platforms + coins
   const LOW_Y  = groundY() - TILE*3;
   const HIGH_Y = groundY() - TILE*5;
 
@@ -302,23 +305,20 @@ function genChunk(startX){
   ];
   for(const p of coinPts){ coins.push({x:p.x|0, y:Math.max(40,Math.min(VH-24,p.y))|0, r:10, taken:false}); }
 
-  // one terminal sometimes
   if(Math.random()<.5){
     const tx=startX+40+Math.random()*(CHUNK-80); let ty=VH-TILE*2;
     for(const p of platforms){ if(tx>=p.x-4 && tx<=p.x+p.w+4) ty=Math.min(ty,p.y-TILE); }
     terminals.push({x:tx|0,y:ty|0,w:12,h:16,cooldown:0});
   }
 
-  // decor
-  const adKeys = ADS_BY_LEVEL[level]||[];
+  const adKeys = ADS_BY_LEVEL[currentLevel]||[];
   if(adKeys.length){
     const ax=startX+60+Math.random()*(CHUNK-120), ay=VH-(120+((Math.random()*50)|0));
     const kind = choice(adKeys);
     ads.push({x:ax|0,y:ay|0,kind,phase:Math.random()*6});
   }
 
-  // enemies per level
-  if(level===1){
+  if(currentLevel===1){
     if(endX >= L1_GATE_X){
       const rc=1+((Math.random()*2)|0);
       for(let i=0;i<rc;i++){
@@ -326,7 +326,7 @@ function genChunk(startX){
         robots.push(makeRobot(rx|0));
       }
     }
-  }else if(level===2){
+  }else if(currentLevel===2){
     const rc=1+((Math.random()*2)|0);
     for(let i=0;i<rc;i++){
       const rx=startX+64+Math.random()*(CHUNK-128);
@@ -336,7 +336,7 @@ function genChunk(startX){
       const dx=startX+80+Math.random()*(CHUNK-160), dy=50+Math.random()*90;
       drones.push(makeDrone(dx|0,dy|0));
     }
-  }else if(level===3){
+  }else if(currentLevel===3){
     if(Math.random()<.6){
       const nx=startX+80+Math.random()*(CHUNK-140);
       npcs.push(makeCollector(nx|0, VH-TILE*2));
@@ -369,7 +369,6 @@ function makeCollector(x,y){
 }
 
 /* ================= PHYSICS ================= */
-function rects(a,b){ return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y; }
 function collide(body){
   body.onGround=false;
   body.y+=body.vy;
@@ -392,14 +391,13 @@ function collide(body){
 /* ================= HACK / EMP ================= */
 let hackUntil=0, hackCDUntil=0, empTextTimer=0;
 function getEmpCharges(){
-  const up = JSON.parse(localStorage.getItem('playerUpgrades') || '{}');
+  const up = JSON.parse(sessionStorage.getItem('playerUpgrades') || '{}');
   return up.mobileEMP && (up.mobileEMPCharges|0) > 0 ? (up.mobileEMPCharges|0) : 0;
 }
 function setEmpCharges(n){
-  const up = JSON.parse(localStorage.getItem('playerUpgrades') || '{}');
-  up.mobileEMP = true;
-  up.mobileEMPCharges = Math.max(0, n|0);
-  localStorage.setItem('playerUpgrades', JSON.stringify(up));
+  const up = JSON.parse(sessionStorage.getItem('playerUpgrades') || '{}');
+  up.mobileEMP = true; up.mobileEMPCharges = Math.max(0, n|0);
+  sessionStorage.setItem('playerUpgrades', JSON.stringify(up));
 }
 function triggerEMP(perma=false, duration=3000){
   const now=performance.now();
@@ -453,20 +451,17 @@ function pickupCoins(){
   }
 }
 
-/* ================= UPDATE ================= */
-let coinImg=null, doorImg=null, ledgeImg=null, platformImg=null, platformRailImg=null;
-let terminalFrame1=null, terminalFrame2=null;
-
-async function loadTiles(){
-  coinImg     = await IMG(SPRITE_DEF.coin);
-  doorImg     = await IMG(SPRITE_DEF.door);
-  ledgeImg    = await IMG(SPRITE_DEF.ledge);
-  platformImg = await IMG(SPRITE_DEF.platform);
-  platformRailImg = await IMG(`assets/platform_rail.png?${HYPER_RELOAD_TAG}`);
-  terminalFrame1 = await IMG(`assets/hacker_terminal_frame1.png?${HYPER_RELOAD_TAG}`);
-  terminalFrame2 = await IMG(`assets/hacker_terminal_frame2.png?${HYPER_RELOAD_TAG}`);
+/* ================= CAMERA ================= */
+const DEAD_ZONE=8;
+function updateCamera(){
+  const center=VW*0.40;
+  const L=center-DEAD_ZONE, R=center+DEAD_ZONE;
+  let target=cameraX;
+  if(player.x-cameraX<L) target=player.x-L;
+  else if(player.x-cameraX>R) target=player.x-R;
+  cameraX += (target-cameraX)*0.45;
+  cameraX=Math.max(0,Math.min(cameraX, worldMaxX-VW));
 }
-
 function cull(){ const cutoff=cameraX-300;
   for(let i=ads.length-1;i>=0;i--) if(ads[i].x+160<cutoff) ads.splice(i,1);
   for(let i=robots.length-1;i>=0;i--) if(robots[i].x+120<cutoff) robots.splice(i,1);
@@ -479,9 +474,8 @@ function activateEnemies(){
   for(const r of robots){ if(!r.active && r.x<visRight) r.active=true; }
   for(const d of drones){ if(!d.active && d.x<visRight) d.active=true; }
 }
-
 function playerLitByCone(){
-  if(level!==2) return false;
+  if(currentLevel!==2) return false;
   for(const d of drones){
     const coneW = 60, coneH = 100;
     const px = player.x + player.w/2;
@@ -492,6 +486,7 @@ function playerLitByCone(){
   return false;
 }
 
+/* ================= UPDATE LOOP ================= */
 function update(dt,now){
   if(gameState!=='playing') return;
 
@@ -514,7 +509,7 @@ function update(dt,now){
   collide(player);
   pickupCoins();
 
-  if(player.hp<=0) setAnim(player,'player','dead',true);
+  if(player.hp<=0){ gameState='gameOver'; document.getElementById('resetBtn').style.display='block'; }
   else if(now<player.hitUntil) setAnim(player,'player','hurt',true);
   else { const s=Math.abs(player.vx); setAnim(player,'player', s>1.05?'run':(s>0.2?'walk':'idle')); }
   stepAnim(player,dt);
@@ -555,7 +550,7 @@ function update(dt,now){
     if(see){ r.dir = dx > 0 ? 1 : -1; r.vx = r.dir * r.speed * 1.25; setAnim(r,'robot','run'); }
     else    { r.vx = r.dir * r.speed; setAnim(r,'robot','walk'); }
 
-    if(level===2 && playerAbove && lit && now>r.jumpCoolUntil && r.onGround){
+    if(currentLevel===2 && playerAbove && lit && now>r.jumpCoolUntil && r.onGround){
       r.vy = -3.0; r.jumpCoolUntil = now + 900;
     }
 
@@ -565,8 +560,8 @@ function update(dt,now){
       if(player.vy>0 && player.y+player.h<=r.y+6){ r.hp--; r.hitUntil=now+120; player.vy=-2.6; score+=12; }
       else{
         player.vx+=(player.x<r.x)?-0.8:0.8;
-        player.hp-=7; player.hitUntil=now+150;
-        if(player.hp<=0){ gameState='gameOver'; resetBtn.style.display='block'; }
+        player.hp=Math.max(0, player.hp-7); player.hitUntil=now+150;
+        if(player.hp<=0){ gameState='gameOver'; document.getElementById('resetBtn').style.display='block'; }
       }
     }
   }
@@ -588,8 +583,8 @@ function update(dt,now){
     stepAnim(n,dt);
 
     if(rects(player,n) && !n.collected){
-      const take = Math.min(5, btc);   // <-- change here
-      if(take > 0) btc -= take;        // leaves 0 if less than 5
+      const take = Math.min(5, btc);   // 5 BTC max; if <5, takes remaining
+      if(take > 0) btc -= take;
       n.collected = true;
       n.vx = 0;
     }
@@ -600,7 +595,7 @@ function update(dt,now){
     gameState='levelComplete';
     setTimeout(()=>{ 
       saveForShop();
-      location.href = './blackout-protocol/game-shop.html?level='+currentLevel+'&btc='+(state.player.btc||0)+'&score='+(state.player.kills||0);
+      location.href = `./blackout-protocol/game-shop.html?level=${currentLevel}&btc=${btc}&score=${score}`;
     }, 250);
   }
 
@@ -608,47 +603,18 @@ function update(dt,now){
 }
 
 /* ================= DRAW ================= */
-function drawTiles(){
-  const ok = (im)=>im && im.complete && im.naturalWidth>0;
-  const img = ok(ledgeImg) ? ledgeImg : (ok(platformImg) ? platformImg : null);
-  const RAIL_FRAC=0.55, DST_BASE_H=20;
-
-  for (const p of platforms){
-    const sx = p.x - cameraX; if (sx + p.w < 0 || sx > VW) continue;
-
-    if (!img){
-      ctx.fillStyle = '#1a2332'; ctx.fillRect(sx|0, p.y|0, p.w, TILE);
-      ctx.fillStyle = '#6fc2ff'; ctx.fillRect(sx|0, p.y|0, p.w, 2);
-      ctx.fillStyle = '#4a5568'; ctx.fillRect(sx|0, (p.y+TILE-2)|0, p.w, 2);
-      continue;
+function drawCoins(){
+  for(const c of coins){
+    if(c.taken) continue;
+    const x=(c.x-cameraX)|0, y=c.y|0; if(x<-16||x>VW+16) continue;
+    if(coinImg && coinImg.complete && coinImg.naturalWidth){
+      const s=20; nesCtx.save(); nesCtx.shadowColor='#ffaa00'; nesCtx.shadowBlur=8; nesCtx.drawImage(coinImg, x-s/2, y-s/2, s, s); nesCtx.restore();
+    }else{
+      nesCtx.fillStyle='#ffd95e'; nesCtx.beginPath(); nesCtx.arc(x, y, 6, 0, Math.PI*2); nesCtx.fill();
+      nesCtx.strokeStyle='#ffaa00'; nesCtx.lineWidth=2; nesCtx.stroke();
+      nesCtx.fillStyle='#000'; nesCtx.font='8px monospace'; nesCtx.textAlign='center'; nesCtx.fillText('₿', x, y+2);
+      nesCtx.textAlign='left';
     }
-
-    const iw = img.naturalWidth, ih = img.naturalHeight;
-    const srcBaseY = Math.floor(ih * RAIL_FRAC);
-    const srcBaseH = ih - srcBaseY;
-    const srcX = 1, srcW = Math.max(1, iw - 2);
-    const dy = (p.y - (DST_BASE_H - TILE)) | 0;
-    ctx.drawImage(img, srcX, srcBaseY, srcW, srcBaseH, sx|0, dy, p.w, DST_BASE_H);
-  }
-}
-function drawRailsOnTop(){
-  const img = ledgeImg && ledgeImg.complete && ledgeImg.naturalWidth ? ledgeImg : null;
-  if (!img) return;
-
-  const RAIL_FRAC=0.55, DST_BASE_H=20;
-
-  const iw = img.naturalWidth, ih = img.naturalHeight;
-  const railSrcH = Math.floor(ih * RAIL_FRAC);
-  const baseSrcH = ih - railSrcH;
-  const scale    = DST_BASE_H / baseSrcH;
-  const railDstH = Math.max(10, Math.round(railSrcH * scale));
-  const srcX = 1, srcW = Math.max(1, iw - 2);
-
-  for (const p of platforms){
-    if (p.y >= VH - TILE) continue;
-    const sx = p.x - cameraX; if (sx + p.w < 0 || sx > VW) continue;
-    const y  = (p.y - railDstH) | 0;
-    ctx.drawImage(img, srcX, 0, srcW, railSrcH, sx|0, y, p.w, railDstH);
   }
 }
 function drawTerminals(){
@@ -656,77 +622,101 @@ function drawTerminals(){
     const x=(t.x-cameraX)|0; if(x+t.w<0||x>VW) continue;
     const img = (Math.floor(performance.now()/300)%2) ? terminalFrame1 : terminalFrame2;
     if(img && img.complete && img.naturalWidth){
-      ctx.save(); if(t.cooldown<=0){ctx.shadowColor='#00ff9d';ctx.shadowBlur=4;} else {ctx.shadowColor='#ff4444';ctx.shadowBlur=2;}
-      ctx.drawImage(img, x-2, t.y-4, t.w+4, t.h+4); ctx.restore();
+      nesCtx.save(); if(t.cooldown<=0){nesCtx.shadowColor='#00ff9d';nesCtx.shadowBlur=4;} else {nesCtx.shadowColor='#ff4444';nesCtx.shadowBlur=2;}
+      nesCtx.drawImage(img, x-2, t.y-4, t.w+4, t.h+4); nesCtx.restore();
     }else{
-      ctx.fillStyle = t.cooldown > 0 ? '#6b4d9b' : '#9b6bff'; 
-      ctx.fillRect(x,t.y,t.w,t.h);
+      nesCtx.fillStyle = t.cooldown > 0 ? '#6b4d9b' : '#9b6bff'; 
+      nesCtx.fillRect(x,t.y,t.w,t.h);
     }
   }
 }
-function drawCoins(){
-  for(const c of coins){
-    if(c.taken) continue;
-    const x=(c.x-cameraX)|0, y=c.y|0; if(x<-16||x>VW+16) continue;
-    if(coinImg && coinImg.complete && coinImg.naturalWidth){
-      const s=20; ctx.save(); ctx.shadowColor='#ffaa00'; ctx.shadowBlur=8; ctx.drawImage(coinImg, x-s/2, y-s/2, s, s); ctx.restore();
-    }else{
-      ctx.fillStyle='#ffd95e'; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle='#ffaa00'; ctx.lineWidth=2; ctx.stroke();
-      ctx.fillStyle='#000'; ctx.font='8px monospace'; ctx.textAlign='center'; ctx.fillText('₿', x, y+2);
-      ctx.textAlign='left';
+function drawTiles(){
+  const ok = (im)=>im && im.complete && im.naturalWidth>0;
+  const img = ok(ledgeImg) ? ledgeImg : (ok(platformImg) ? platformImg : null);
+  const RAIL_FRAC=0.55, DST_BASE_H=20;
+  for (const p of platforms){
+    const sx = p.x - cameraX; if (sx + p.w < 0 || sx > VW) continue;
+    if (!img){
+      nesCtx.fillStyle = '#1a2332'; nesCtx.fillRect(sx|0, p.y|0, p.w, TILE);
+      nesCtx.fillStyle = '#6fc2ff'; nesCtx.fillRect(sx|0, p.y|0, p.w, 2);
+      nesCtx.fillStyle = '#4a5568'; nesCtx.fillRect(sx|0, (p.y+TILE-2)|0, p.w, 2);
+      continue;
     }
+    const iw = img.naturalWidth, ih = img.naturalHeight;
+    const srcBaseY = Math.floor(ih * RAIL_FRAC);
+    const srcBaseH = ih - srcBaseY;
+    const srcX = 1, srcW = Math.max(1, iw - 2);
+    const dy = (p.y - (DST_BASE_H - TILE)) | 0;
+    nesCtx.drawImage(img, srcX, srcBaseY, srcW, srcBaseH, sx|0, dy, p.w, DST_BASE_H);
+  }
+}
+function drawRailsOnTop(){
+  const img = ledgeImg && ledgeImg.complete && ledgeImg.naturalWidth ? ledgeImg : null;
+  if (!img) return;
+  const RAIL_FRAC=0.55, DST_BASE_H=20;
+  const iw = img.naturalWidth, ih = img.naturalHeight;
+  const railSrcH = Math.floor(ih * RAIL_FRAC);
+  const baseSrcH = ih - railSrcH;
+  const scale    = DST_BASE_H / baseSrcH;
+  const railDstH = Math.max(10, Math.round(railSrcH * scale));
+  const srcX = 1, srcW = Math.max(1, iw - 2);
+  for (const p of platforms){
+    if (p.y >= VH - TILE) continue;
+    const sx = p.x - cameraX; if (sx + p.w < 0 || sx > VW) continue;
+    const y  = (p.y - railDstH) | 0;
+    nesCtx.drawImage(img, srcX, 0, srcW, railSrcH, sx|0, y, p.w, railDstH);
   }
 }
 function drawDronesAndCones(){
   for(const d of drones){
     const x=(d.x-cameraX)|0, y=d.y|0; if(x+32<0||x>VW) continue;
-    if(level===2){
+    if(currentLevel===2){
       const coneW=60, coneH=100;
-      ctx.save();
-      ctx.globalAlpha = d.disabled ? 0.15 : 0.22;
-      ctx.fillStyle   = '#9ad1ff';
-      ctx.beginPath();
-      ctx.moveTo(x, y+8);
-      ctx.lineTo(x - coneW/2, y + coneH);
-      ctx.lineTo(x + coneW/2, y + coneH);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
+      nesCtx.save();
+      nesCtx.globalAlpha = d.disabled ? 0.15 : 0.22;
+      nesCtx.fillStyle   = '#9ad1ff';
+      nesCtx.beginPath();
+      nesCtx.moveTo(x, y+8);
+      nesCtx.lineTo(x - coneW/2, y + coneH);
+      nesCtx.lineTo(x + coneW/2, y + coneH);
+      nesCtx.closePath();
+      nesCtx.fill();
+      nesCtx.restore();
     }
     if(!d.anim?.runner) setAnim(d,'drone','move');
     stepAnim(d,16);
-    drawAnim(d,'drone',x-7,y-9,false, d.disabled?0.55:1);
+    d.anim.runner.draw(x-7,y-9,false, d.disabled?0.55:1);
   }
 }
 function drawEntities(now){
   for(const r of robots){
     const x=(r.x-cameraX)|0, y=r.y|0; if(x+48<0||x>VW) continue;
     const alpha = now<r.stunnedUntil ? 0.65 : (now<r.hitUntil?0.75:1);
-    drawAnim(r,'robot',x-14,y-24,(player.x<r.x), alpha);
+    r.anim.runner?.draw(x-14,y-24,(player.x<r.x), alpha);
   }
   drawDronesAndCones();
 
   for(const n of npcs){
     const x=(n.x-cameraX)|0, y=n.y|0; if(x+24<0||x>VW) continue;
-    drawAnim(n,'female', x-15, y-26, n.facing<0, 1);
+    n.anim.runner?.draw(x-15, y-26, n.facing<0, 1);
   }
 
   const px=(player.x-cameraX)|0, py=player.y|0;
-  drawAnim(player,'player',px-15,py-20, player.facing===-1, performance.now()<player.hitUntil?0.8:1);
+  player.anim.runner?.draw(px-15,py-20, player.facing===-1, performance.now()<player.hitUntil?0.8:1);
 }
 function drawExitDoor(){
   if(!exitDoor) return;
   const x=(exitDoor.x-cameraX)|0, y=exitDoor.y|0;
   if(doorImg && doorImg.complete && doorImg.naturalWidth){
-    ctx.save(); ctx.shadowColor = '#ff1493'; ctx.shadowBlur = 6;
-    ctx.drawImage(doorImg, x, y, exitDoor.w, exitDoor.h);
-    ctx.restore();
+    nesCtx.save(); nesCtx.shadowColor = '#ff1493'; nesCtx.shadowBlur = 6;
+    nesCtx.drawImage(doorImg, x, y, exitDoor.w, exitDoor.h);
+    nesCtx.restore();
   }else{
-    ctx.fillStyle='#2a3040'; ctx.fillRect(x,y,exitDoor.w,exitDoor.h); 
+    nesCtx.fillStyle='#2a3040'; nesCtx.fillRect(x,y,exitDoor.w,exitDoor.h); 
   }
 }
 function drawControlsHint() {
+  const ctx = nesCtx;
   const title = 'Blackout Protocol';
   ctx.font='9px monospace'; ctx.textAlign='left';
   const titleW = ctx.measureText(title).width;
@@ -752,22 +742,22 @@ function drawControlsHint() {
   ctx.font='9px monospace';
 }
 function drawUI(now){
-  ctx.fillStyle='rgba(0,0,0,.78)'; ctx.fillRect(0,0,VW,20);
+  nesCtx.fillStyle='rgba(0,0,0,.78)'; nesCtx.fillRect(0,0,VW,20);
   drawControlsHint();
 
   const charges = getEmpCharges();
-  ctx.fillStyle='#fff'; ctx.fillText(`HP:${Math.max(0,player.hp)}  L:${currentLevel}  SC:${score}  BTC:${btc}`,6,24);
-  if(charges>0){ ctx.fillStyle='#7dff9a'; ctx.fillText(`EMP Charges:${charges}`, 6, 36); }
+  nesCtx.fillStyle='#fff'; nesCtx.fillText(`HP:${Math.max(0,player.hp)}  L:${currentLevel}  SC:${score}  BTC:${btc}`,6,24);
+  if(charges>0){ nesCtx.fillStyle='#7dff9a'; nesCtx.fillText(`EMP Charges:${charges}`, 6, 36); }
 
-  if(gameState==='paused'){ ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#fff'; ctx.fillText('PAUSED (ESC)',VW/2-30,VH/2); }
-  if(gameState==='gameOver'){ ctx.fillStyle='rgba(0,0,0,.7)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#fff'; ctx.fillText('GAME OVER',VW/2-34,VH/2-8); ctx.fillText(`Score ${score}  BTC ${btc}`,VW/2-40,VH/2+4); ctx.fillText('Press R to restart L1',VW/2-52,VH/2+16); }
-  if(gameState==='levelComplete'){ ctx.fillStyle='rgba(0,0,0,.7)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='#7dff9a'; ctx.fillText('LEVEL COMPLETE → SHOP',VW/2-60,VH/2-8); }
+  if(gameState==='paused'){ nesCtx.fillStyle='rgba(0,0,0,.6)'; nesCtx.fillRect(0,0,VW,VH); nesCtx.fillStyle='#fff'; nesCtx.fillText('PAUSED (ESC)',VW/2-30,VH/2); }
+  if(gameState==='gameOver'){ nesCtx.fillStyle='rgba(0,0,0,.7)'; nesCtx.fillRect(0,0,VW,VH); nesCtx.fillStyle='#fff'; nesCtx.fillText('GAME OVER',VW/2-34,VH/2-8); nesCtx.fillText(`Score ${score}  BTC ${btc}`,VW/2-40,VH/2+4); nesCtx.fillText('Press R to restart L1',VW/2-52,VH/2+16); }
+  if(gameState==='levelComplete'){ nesCtx.fillStyle='rgba(0,0,0,.7)'; nesCtx.fillRect(0,0,VW,VH); nesCtx.fillStyle='#7dff9a'; nesCtx.fillText('LEVEL COMPLETE → SHOP',VW/2-60,VH/2-8); }
 }
 
 /* ======== HOLOGRAM POSTERS (overlay canvas) ======== */
 function drawOverlay(now){
   octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
-  if(!(ADS_BY_LEVEL[level]||[]).length) return;
+  if(!(ADS_BY_LEVEL[currentLevel]||[]).length) return;
   for(const a of ads){
     const img = AdImages[a.kind]; if(!img) continue;
     const sx=Math.round(RENDER.ox+(a.x-cameraX)*RENDER.scale);
@@ -812,59 +802,29 @@ function drawOverlay(now){
 
 /* ================= BLIT ================= */
 function blit(){
-  gctx.clearRect(0,0,gameCanvas.width,gameCanvas.height);
-  const s=Math.min(gameCanvas.width/VW, gameCanvas.height/VH);
-  const sw=(VW*s)|0, sh=(VH*s)|0, ox=((gameCanvas.width-sw)/2)|0, oy=((gameCanvas.height-sh)/2)|0;
+  gctx.clearRect(0,0,gcanvas.width,gcanvas.height);
+  const s=Math.min(gcanvas.width/VW, gcanvas.height/VH);
+  const sw=(VW*s)|0, sh=(VH*s)|0, ox=((gcanvas.width-sw)/2)|0, oy=((gcanvas.height-sh)/2)|0;
   gctx.drawImage(nes,0,0,VW,VH,ox,oy,sw,sh); RENDER={scale:s,ox,oy};
 }
 
-/* ================= RESET / BOOT / LOOP ================= */
+/* ================= RESET / BOOT ================= */
 function placeExitDoor(){ exitDoor={x:LEVEL_LEN-40, y:groundY()-DOOR_H, w:DOOR_W, h:DOOR_H}; }
-function clearRun(){ localStorage.removeItem('playerBTC'); localStorage.removeItem('playerScore'); localStorage.removeItem('playerHealth'); }
-function hardResetToL1(){ setLevel(1); clearRun(); boot(true); }
 
-function restartLevel(){
-  state=newGameState();
-  state.player.x=100;
-  state.player.y=350;
-  cameraX=0;
+function hardResetToL1(){
+  setLevel(1);
+  clearRun();
+  boot(true);
 }
 
-// Death handler: wipe the run & restart Level 1 from scratch
-function handleDeath() {
-  try { sessionStorage.clear(); } catch {}
-  sessionStorage.setItem('bp_session_started', '1');
-  setN('gameLevel', 1);
-  setN('playerBTC', 0);
-  setN('playerScore', 0);
-  location.href = 'index.html';
-}
-
-// Damage application with death check
-function applyDamage(dmg){
-  state.player.hp = Math.max(0, state.player.hp - Math.max(0, dmg|0));
-  if (state.player.hp <= 0) {
-    handleDeath();
-    return;
-  }
-}
-
-// Level start with health reset to 100
-function startLevel(nextLevel){
-  currentLevel = Math.max(1, nextLevel|0);
+function startLevel(lv){
+  currentLevel = Math.max(1, lv|0);
   setLevel(currentLevel);
-
-  // RESET HEALTH per level start
-  if (state && state.player) {
-    state.player.hp = 100;
-  }
-
-  // keep run data available
+  if (player) player.hp = 100; // health reset per level start
   setN('playerBTC', btc);
   setN('playerScore', score);
 }
 
-// Between-level save
 function saveForShop(){
   setN('playerBTC', btc);
   setN('playerScore', score);
@@ -872,24 +832,28 @@ function saveForShop(){
 }
 
 function resetFromSaved(){
-  state=newGameState();
-  state.player.x=100;
-  state.player.y=350;
-  cameraX=0;
-  
+  // player & world
+  player = makePlayer();
+  player.hp = 100; // always start level with full health
+
+  platforms=[]; robots=[]; drones=[]; npcs=[]; terminals=[]; ads=[]; coins=[];
+  generatedUntil=0; exitDoor=null;
+
+  // restore run stats
   score=getN('playerScore', 0);
   btc=getN('playerBTC', 0);
   currentLevel=getLevel();
 
-  platforms=[]; robots=[]; drones=[]; npcs=[]; terminals=[]; ads=[]; coins=[]; generatedUntil=0; exitDoor=null;
-  player=makePlayer(); setAnim(player,'player','idle');
   for(let x=0;x<CHUNK*4;x+=CHUNK) genChunk(x);
   if(currentLevel===2 && drones.length<2){
     drones.push(makeDrone(420,70), makeDrone(820,80), makeDrone(1200,60));
   }
-  placeExitDoor(); resetBtn.style.display='none';
+  placeExitDoor();
+  document.getElementById('resetBtn').style.display='none';
+  gameState='playing';
 }
 
+/* ================= BOOT & LOOP ================= */
 async function boot(forceL1=false){
   try{
     if(forceL1) setLevel(1);
@@ -901,67 +865,47 @@ async function boot(forceL1=false){
   }catch(err){ console.error(err); LOAD_MSG='Load failed (check console)'; }
 }
 
-// Damage handler for player
-function damagePlayer(dmg){
-  if(performance.now()<state.player.hitUntil)return;
-  state.player.hitUntil=performance.now()+1e3;
-  applyDamage(dmg);
-}
-
-/* Boot -------------------------------------------------------------------- */
-window.addEventListener('load',()=>{
-  canvas=document.getElementById('gameCanvas');
-  ctx=canvas.getContext('2d');
-  resetBtn=document.getElementById('resetBtn');
-  canvas.width=VW; canvas.height=VH;
-
-  // Initialize from session storage
-  const qs = new URLSearchParams(location.search);
-  const resume = qs.get('resume') === '1';
-  if (resume) {
-    const lvlFromUrl = parseInt(qs.get('level')||'');
-    if (Number.isFinite(lvlFromUrl)) {
-      currentLevel = lvlFromUrl;
-      setLevel(lvlFromUrl);
-    }
-    score = getN('playerScore', 0);
-    btc = getN('playerBTC', 0);
-  } else {
-    currentLevel = getLevel();
-    score = getN('playerScore', 0);
-    btc = getN('playerBTC', 0);
-  }
-
-  loadSprites(SPRITE_DEF).then(()=>{
-    resetFromSaved();
-    // ALWAYS start level with health=100
-    if (state && state.player) {
-      state.player.hp = 100;
-    }
-    requestAnimationFrame(loop);
-  });
-
-  addEventListener('keydown',onKeyDown);
-  addEventListener('keyup',onKeyUp);
-  resetBtn.addEventListener('click',restartLevel);
-});
-
 function loop(now){
   const dt = loop.t ? now - loop.t : 16; loop.t = now;
   if (!READY){
-    ctx.fillStyle='#000'; ctx.fillRect(0,0,VW,VH);
-    ctx.fillStyle='#cfd6df'; ctx.fillText(LOAD_MSG, VW/2 - 20, VH/2);
+    nesCtx.fillStyle='#000'; nesCtx.fillRect(0,0,VW,VH);
+    nesCtx.fillStyle='#cfd6df'; nesCtx.fillText(LOAD_MSG, VW/2 - 20, VH/2);
     blit(); requestAnimationFrame(loop); return;
   }
   if (gameState==='playing') update(dt, now);
-  ctx.fillStyle='#000'; ctx.fillRect(0,0,VW,VH);
+  nesCtx.fillStyle='#000'; nesCtx.fillRect(0,0,VW,VH);
   drawBackgrounds();
   drawTiles(); drawTerminals(); drawCoins(); drawExitDoor(); drawEntities(now); drawRailsOnTop(); drawUI(now);
   blit(); drawOverlay(now);
   requestAnimationFrame(loop);
 }
-boot();
 
+/* ================= STARTUP ================= */
+window.addEventListener('load', ()=>{
+  gcanvas = document.getElementById('gameCanvas');
+  gctx    = gcanvas.getContext('2d');
+  overlayCanvas = document.getElementById('overlayCanvas');
+  octx = overlayCanvas.getContext('2d');
+
+  fit();
+
+  // Query params allow resume=1&level=#
+  const qs = new URLSearchParams(location.search);
+  const resume = qs.get('resume') === '1';
+  if (resume) {
+    const lvlFromUrl = parseInt(qs.get('level')||'');
+    if (Number.isFinite(lvlFromUrl)) { currentLevel = lvlFromUrl; setLevel(lvlFromUrl); }
+    score = getN('playerScore', 0);
+    btc   = getN('playerBTC', 0);
+  } else {
+    currentLevel = getLevel();
+    score = getN('playerScore', 0);
+    btc   = getN('playerBTC', 0);
+  }
+
+  document.getElementById('resetBtn').addEventListener('click', hardResetToL1);
+  boot().then(()=> requestAnimationFrame(loop));
+});
 </script>
 </body>
 </html>
