@@ -1,0 +1,69 @@
+<!-- shop3.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BYTE BAZAAR — Shop 3</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <style>
+    html,body{margin:0;background:#000;color:#cfd6df;font-family:monospace;height:100%}
+    .wrap{display:grid;place-items:center;height:100%;background:#000 url('./assets/shop_addmen.png') center/cover no-repeat;}
+    .panel{background:rgba(0,0,0,.75); border:1px solid #3a5; padding:12px; width:min(720px,96vw)}
+    h1{color:#9cff7e;margin:6px 0 10px 0;font-size:16px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .card{border:1px solid #264; padding:8px}
+    .btn{display:inline-block;margin-top:6px;padding:6px 10px;border:1px solid #5c5c5c;border-radius:4px;color:#9cff7e;text-decoration:none;cursor:pointer}
+    .btn:hover{filter:brightness(1.2)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel">
+      <h1>BYTE BAZAAR — Add-Men</h1>
+      <p>“You’re in luck. We just got a sidearm in stock.”</p>
+      <div id="stats"></div>
+      <div class="grid">
+        <div class="card">
+          <div><b>Sidearm</b> — 15 BTC</div>
+          <div>Future combat levels placeholder.</div>
+          <button class="btn" id="buyGun">Buy</button>
+        </div>
+        <div class="card" style="opacity:.5">More soon…</div>
+        <div class="card" style="opacity:.5">More soon…</div>
+      </div>
+      <div style="margin-top:10px">
+        <a class="btn" id="continue">[ CONTINUE ]</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { getRunN, setRunN, getRunO, setRunO, goTo } from './engine.js';
+
+    const stats = document.getElementById('stats');
+    function refresh(){
+      const btc = getRunN('playerBTC',0);
+      const u = getRunO('playerUpgrades',{});
+      stats.textContent = `BTC: ${btc}  |  Gun: ${u.sidearm?'YES':'NO'}`;
+    }
+    refresh();
+
+    document.getElementById('buyGun').onclick = ()=>{
+      let btc=getRunN('playerBTC',0);
+      const u=getRunO('playerUpgrades',{});
+      if(u.sidearm){ alert('Already owned.'); return }
+      if(btc>=15){
+        btc-=15; setRunN('playerBTC',btc);
+        u.sidearm=true;
+        setRunO('playerUpgrades',u);
+        refresh();
+      } else alert('Not enough BTC.');
+    };
+
+    document.getElementById('continue').onclick=()=>{
+      // For now loop back to START or a placeholder L4 page if you add one later.
+      goTo('./index.html');
+    };
+  </script>
+</body>
+</html>

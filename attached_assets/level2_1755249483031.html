@@ -1,0 +1,25 @@
+<!-- level2.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Blackout Protocol — Level 2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <style>
+    html,body{margin:0;background:#000;height:100%}
+    #gameContainer{display:grid;place-items:center;height:100%}
+    canvas{image-rendering:pixelated;width:min(960px, 96vw);height:auto;border:2px solid #5c5c5c;background:#000}
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <canvas id="game" width="960" height="720"></canvas>
+  </div>
+
+  <script type="module">
+    import { bootLevel } from './engine.js';
+    sessionStorage.setItem('gameLevel','2');
+    bootLevel(2, { nextHref:'./shop2.html' });
+  </script>
+</body>
+</html>
