@@ -112,8 +112,4 @@ args = "static-web-server -w ./.config/static-web-server.toml"
 
 [[ports]]
 localPort = 80
-externalPort = 3000
-
-[[ports]]
-localPort = 5000
 externalPort = 80
