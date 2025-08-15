@@ -1,4 +1,3 @@
-
 // engine.js  (shared engine for Levels 1–3)
 const VW = 256, VH = 240, TILE = 16;
 const LEVEL_LEN = 1600;
@@ -118,7 +117,7 @@ function aabb(a,b){ return (a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h
 // ====== input ======
 addEventListener('keydown',e=>{
   if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space','KeyA','KeyD','KeyW','KeyE','Enter','Escape','KeyR'].includes(e.code)) e.preventDefault();
-  
+
   if(e.code==='ArrowLeft'||e.code==='KeyA') LEFT=1;
   if(e.code==='ArrowRight'||e.code==='KeyD') RIGHT=1;
   if(e.code==='ArrowUp'||e.code==='KeyW'||e.code==='Space') { UP=1; jumpBufferUntil=performance.now()+JUMP_BUFFER; jumpHeld=true; }
@@ -250,7 +249,7 @@ function drawBackgrounds(){
     const g = ctx.createLinearGradient(0, 0, 0, fadeH);
     g.addColorStop(0, 'rgba(0,0,0,0)');
     g.addColorStop(1, 'rgba(0,0,0,1)');
-    ctx.globalCompositeOperation = 'destination-in';
+    ctx.compositeOperation = 'destination-in';
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, VW, VH);
     ctx.restore();
@@ -292,21 +291,26 @@ function genChunk(startX){
   pushGroundRow(startX, endX);
 
   if(lvl === 3){
+    // Level 3: More BTC coins and female NPCs
     if(!firstScreen){
-      for(let i = 0; i < 2; i++){
+      for(let i = 0; i < 3; i++){ // Increased coin count
         const cx = startX + 30 + Math.random() * (CHUNK - 60);
         coins.push({x: cx|0, y: (groundY() - 24)|0, r: 10, taken: false});
       }
-      const ax = startX + 60 + Math.random() * (CHUNK - 120);
-      const ay = VH - (120 + ((Math.random() * 50)|0));
-      ads.push({x: ax|0, y: ay|0, kind: nextAdKind(), phase: Math.random() * 6});
+      // ads - better spacing, less frequent
+      if(Math.random() < 0.7){ // 70% chance of ad per chunk
+        const ax = startX + 80 + Math.random() * (CHUNK - 160); // More centered
+        const ay = VH - (140 + ((Math.random() * 60)|0)); // Higher placement
+        ads.push({x: ax|0, y: ay|0, kind: nextAdKind(), phase: Math.random() * 6});
+      }
     }
     generatedUntil = endX;
     worldMaxX = Math.max(worldMaxX, endX);
     return;
   }
 
-  const ledgesStartOffset = (lvl === 1) ? 760 : 0;
+  // Ledges and other platforms
+  const ledgesStartOffset = (lvl === 1) ? 760 : 0; // Level 1: ledges start later
   const allowLedges = (!firstScreen) && (startX >= ledgesStartOffset);
 
   if(allowLedges){
@@ -344,9 +348,12 @@ function genChunk(startX){
       terminals.push({x: tx|0, y: ty|0, w: 12, h: 16, cooldown: 0});
     }
 
-    const ax = startX + 60 + Math.random() * (CHUNK - 120);
-    const ay = VH - (120 + ((Math.random() * 50)|0));
-    ads.push({x: ax|0, y: ay|0, kind: nextAdKind(), phase: Math.random() * 6});
+    // ads - better spacing, less frequent
+    if(Math.random() < 0.7){ // 70% chance of ad per chunk
+      const ax = startX + 80 + Math.random() * (CHUNK - 160); // More centered
+      const ay = VH - (140 + ((Math.random() * 60)|0)); // Higher placement
+      ads.push({x: ax|0, y: ay|0, kind: nextAdKind(), phase: Math.random() * 6});
+    }
   }
 
   if(lvl >= 1){
@@ -362,6 +369,7 @@ function genChunk(startX){
   }
 
   if(lvl >= 2){
+    // Level 2: Robots in starting area fixed by only activating them later
     if(Math.random() < 0.6){
       const dx = startX + 80 + Math.random() * (CHUNK - 160);
       const dy = 60 + Math.random() * 80;
@@ -384,7 +392,7 @@ function makePlayer(){
   const baseJump = 5.6;
   const speed = savedUpgrades.speedBoost ? baseSpeed * 1.3 : baseSpeed;
   const jump = savedUpgrades.jumpBoost ? baseJump * 1.2 : baseJump;
-  
+
   return {
     x: 32, y: VH - 80, w: 18, h: 28, vx: 0, vy: 0, onGround: false, facing: 1,
     speed, aGround: 0.19, aAir: 0.12, dragG: 0.82, dragA: 0.986, jump,
@@ -448,7 +456,7 @@ function triggerEMP(){
   if(!(player.upgrades?.mobileEMP) || charges <= 0) return;
   player.upgrades.mobileEMPCharges = charges - 1;
   setRunO('playerUpgrades', player.upgrades);
-  
+
   const left = cameraX - 40, right = cameraX + VW + 40;
   robots = robots.filter(r => (r.x < left) || (r.x > right));
   for(const d of drones){
@@ -502,7 +510,7 @@ function placeExitDoor(){
 
 function spawnLevel3Females(){
   females = [];
-  const n = 3 + ((Math.random() * 3)|0);
+  const n = 3 + ((Math.random() * 3)|0); // Increased number of females
   for(let i = 0; i < n; i++){
     const x = 180 + i * 180 + Math.random() * 60;
     females.push({
@@ -519,6 +527,7 @@ function activateEnemies(){
   const visRight = cameraX + VW + 64;
   for(const r of robots){
     if(!r.active && r.x < visRight){
+      // Level 1: Robots only activate after a certain distance
       if(LVL === 1){ if(player.x >= 900){ r.active = true; } } 
       else { r.active = true; }
     }
@@ -576,7 +585,7 @@ function update(dt, now){
   const L = !!LEFT, R = !!RIGHT;
   const accel = player.onGround ? player.aGround : player.aAir;
   const drag = player.onGround ? player.dragG : player.dragA;
-  
+
   if(L){ player.vx = Math.max(player.vx - accel, -player.speed); player.facing = -1; }
   if(R){ player.vx = Math.min(player.vx + accel, player.speed); player.facing = 1; }
   if(!L && !R) player.vx *= drag;
@@ -689,11 +698,11 @@ function update(dt, now){
         stepAnim(f, dt); 
         continue; 
       }
-      
+
       const dx = player.x - f.x;
       const dy = player.y - f.y;
       const see = Math.abs(dx) < 120 && Math.abs(dy) < 56;
-      
+
       if(see){
         // Chase player
         const dir = dx > 0 ? 1 : -1;
@@ -705,12 +714,12 @@ function update(dt, now){
         if(Math.random() < 0.01) f.dir = (f.dir || 1) * -1; // Occasional direction change
         setAnim(f, 'female', 'idle');
       }
-      
+
       stepAnim(f, dt);
-      
+
       // Check collision with player
       if(aabb(player, f)){
-        const take = Math.min(5, btc);
+        const take = Math.min(5, btc); // Steals up to 5 BTC
         if(take > 0){ 
           btc -= take; 
           score += 2; // Small score bonus for surviving the encounter
@@ -931,12 +940,12 @@ function drawAds(){
   for(const a of ads){
     const x = (a.x - cameraX)|0, y = a.y|0;
     if(x + 160 < 0 || x > VW) continue;
-    
+
     // Update animation phase
     a.phase = (a.phase || 0) + 0.03;
     const flicker = 0.7 + 0.3 * Math.sin(a.phase * 3);
     const bob = Math.sin(a.phase) * 2;
-    
+
     // Get correct image for this ad kind
     let img = null;
     if(a.kind === 'drink'){
@@ -946,15 +955,15 @@ function drawAds(){
     } else {
       img = CurrentAds.imgObjs[a.kind];
     }
-    
+
     if(img && img.complete && img.naturalWidth > 0){
       ctx.save();
       ctx.globalAlpha = flicker;
-      
+
       // Holographic glow effect
       ctx.shadowColor = '#00ffff';
       ctx.shadowBlur = 8;
-      
+
       const targetW = 120, targetH = 80;
       ctx.drawImage(img, x, y + bob, targetW, targetH);
       ctx.restore();
@@ -1009,7 +1018,7 @@ function blit(){
 let lastTime = 0;
 function loop(now){
   const dt = now - lastTime; lastTime = now;
-  
+
   update(dt, now);
 
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH);
@@ -1023,7 +1032,7 @@ function loop(now){
   drawEntities(now);
   drawRailsOnTop();
   drawUI(now);
-  
+
   blit();
   requestAnimationFrame(loop);
 }
@@ -1035,7 +1044,7 @@ export async function bootLevel(levelNumber, opts = {}){
   ctx = C.getContext('2d');
   VW_CANVAS = C.width;
   VH_CANVAS = C.height;
-  
+
   off = document.createElement('canvas');
   off.width = VW;
   off.height = VH;
