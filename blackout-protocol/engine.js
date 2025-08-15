@@ -900,6 +900,48 @@ function drawControlsHint(){
   ctx.font = '9px monospace';
 }
 
+function drawAds(){
+  for(const a of ads){
+    const x = (a.x - cameraX)|0, y = a.y|0;
+    if(x + 160 < 0 || x > VW) continue;
+    
+    // Update animation phase
+    a.phase = (a.phase || 0) + 0.03;
+    const flicker = 0.7 + 0.3 * Math.sin(a.phase * 3);
+    const bob = Math.sin(a.phase) * 2;
+    
+    // Get correct image for this ad kind
+    let img = null;
+    if(a.kind === 'drink'){
+      // Level 1 only: 2-frame blink animation
+      const frame = (Math.floor(performance.now() / 350) % 2 === 0) ? 'drinkA' : 'drinkB';
+      img = CurrentAds.imgObjs[frame];
+    } else {
+      img = CurrentAds.imgObjs[a.kind];
+    }
+    
+    if(img && img.complete && img.naturalWidth > 0){
+      ctx.save();
+      ctx.globalAlpha = flicker;
+      
+      // Holographic glow effect
+      ctx.shadowColor = '#00ffff';
+      ctx.shadowBlur = 8;
+      
+      const targetW = 120, targetH = 80;
+      ctx.drawImage(img, x, y + bob, targetW, targetH);
+      ctx.restore();
+    } else {
+      // Fallback if image not loaded
+      ctx.fillStyle = `hsl(${(a.phase * 30) % 360}, 70%, 60%)`;
+      ctx.fillRect(x, y + bob, 120, 80);
+      ctx.fillStyle = '#fff';
+      ctx.font = '12px monospace';
+      ctx.fillText(a.kind.toUpperCase(), x + 10, y + bob + 40);
+    }
+  }
+}
+
 function drawUI(now){
   ctx.fillStyle = 'rgba(0,0,0,.78)'; ctx.fillRect(0, 0, VW, 20);
   drawControlsHint();
@@ -948,6 +990,7 @@ function loop(now){
   drawTiles();
   drawTerminals();
   drawDronesAndCones(now);
+  drawAds();
   drawCoins();
   drawExitDoor();
   drawEntities(now);
