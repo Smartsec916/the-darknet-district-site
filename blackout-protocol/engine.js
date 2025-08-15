@@ -506,8 +506,11 @@ function spawnLevel3Females(){
   for(let i = 0; i < n; i++){
     const x = 180 + i * 180 + Math.random() * 60;
     females.push({
-      x: x|0, y: VH - TILE * 2, w: 18, h: 28, speed: 0.5 + Math.random() * 0.3,
-      hasTaken: false, anim: {state: 'idle', runner: null}
+      x: x|0, y: VH - TILE * 2, w: 18, h: 28, 
+      speed: 0.5 + Math.random() * 0.3,
+      dir: Math.random() < 0.5 ? -1 : 1, // Random initial direction
+      hasTaken: false, 
+      anim: {state: 'idle', runner: null}
     });
   }
 }
@@ -678,16 +681,40 @@ function update(dt, now){
 
   for(let i = robots.length - 1; i >= 0; i--) if(robots[i].hp <= 0) robots.splice(i, 1);
 
-  // Level 3 females
+  // Level 3 females - chase player and steal BTC
   if(LVL === 3){
     for(const f of females){
-      if(f.hasTaken){ setAnim(f, 'female', 'idle'); stepAnim(f, dt); continue; }
-      const dir = (player.x > f.x) ? 1 : -1;
-      f.x += dir * f.speed;
-      setAnim(f, 'female', 'run'); stepAnim(f, dt);
+      if(f.hasTaken){ 
+        setAnim(f, 'female', 'idle'); 
+        stepAnim(f, dt); 
+        continue; 
+      }
+      
+      const dx = player.x - f.x;
+      const dy = player.y - f.y;
+      const see = Math.abs(dx) < 120 && Math.abs(dy) < 56;
+      
+      if(see){
+        // Chase player
+        const dir = dx > 0 ? 1 : -1;
+        f.x += dir * f.speed * 1.2; // Slightly faster when chasing
+        setAnim(f, 'female', 'run');
+      } else {
+        // Idle patrol behavior
+        f.x += (f.dir || 1) * f.speed * 0.5;
+        if(Math.random() < 0.01) f.dir = (f.dir || 1) * -1; // Occasional direction change
+        setAnim(f, 'female', 'idle');
+      }
+      
+      stepAnim(f, dt);
+      
+      // Check collision with player
       if(aabb(player, f)){
         const take = Math.min(5, btc);
-        if(take > 0){ btc -= take; }
+        if(take > 0){ 
+          btc -= take; 
+          score += 2; // Small score bonus for surviving the encounter
+        }
         f.hasTaken = true;
         setAnim(f, 'female', 'idle');
       }
