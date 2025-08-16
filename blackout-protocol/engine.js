@@ -242,18 +242,7 @@ function tileParallax(img, speed){
 function drawBackgrounds(){
   if(!BG.far && !BG.near){ drawSky(); return; }
   if(BG.far) tileParallax(BG.far, PARALLAX.far);
-  if(BG.near){
-    ctx.save();
-    tileParallax(BG.near, PARALLAX.near);
-    const fadeH = Math.min(120, VH);
-    const g = ctx.createLinearGradient(0, 0, 0, fadeH);
-    g.addColorStop(0, 'rgba(0,0,0,0)');
-    g.addColorStop(1, 'rgba(0,0,0,1)');
-    ctx.compositeOperation = 'destination-in';
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, VW, VH);
-    ctx.restore();
-  }
+  if(BG.near) tileParallax(BG.near, PARALLAX.near);
 }
 
 function drawSky(){
@@ -293,14 +282,14 @@ function genChunk(startX){
   if(lvl === 3){
     // Level 3: More BTC coins and female NPCs
     if(!firstScreen){
-      for(let i = 0; i < 3; i++){ // Increased coin count
+      for(let i = 0; i < 5; i++){ // Even more coins in Level 3
         const cx = startX + 30 + Math.random() * (CHUNK - 60);
         coins.push({x: cx|0, y: (groundY() - 24)|0, r: 10, taken: false});
       }
       // ads - better spacing, less frequent
-      if(Math.random() < 0.7){ // 70% chance of ad per chunk
-        const ax = startX + 80 + Math.random() * (CHUNK - 160); // More centered
-        const ay = VH - (140 + ((Math.random() * 60)|0)); // Higher placement
+      if(Math.random() < 0.6){ // Slightly less frequent but better spaced
+        const ax = startX + 100 + Math.random() * (CHUNK - 200);
+        const ay = VH - (120 + ((Math.random() * 40)|0));
         ads.push({x: ax|0, y: ay|0, kind: nextAdKind(), phase: Math.random() * 6});
       }
     }
@@ -310,7 +299,7 @@ function genChunk(startX){
   }
 
   // Ledges and other platforms
-  const ledgesStartOffset = (lvl === 1) ? 760 : 0; // Level 1: ledges start later
+  const ledgesStartOffset = (lvl === 1) ? 480 : 0; // Level 1: ledges start sooner but not in first screen
   const allowLedges = (!firstScreen) && (startX >= ledgesStartOffset);
 
   if(allowLedges){
@@ -527,8 +516,9 @@ function activateEnemies(){
   const visRight = cameraX + VW + 64;
   for(const r of robots){
     if(!r.active && r.x < visRight){
-      // Level 1: Robots only activate after a certain distance
+      // Robots only activate after player progresses past starting area
       if(LVL === 1){ if(player.x >= 900){ r.active = true; } } 
+      else if(LVL === 2){ if(player.x >= 400){ r.active = true; } }
       else { r.active = true; }
     }
   }
@@ -939,12 +929,13 @@ function drawControlsHint(){
 function drawAds(){
   for(const a of ads){
     const x = (a.x - cameraX)|0, y = a.y|0;
-    if(x + 160 < 0 || x > VW) continue;
+    if(x + 80 < 0 || x > VW) continue;
 
     // Update animation phase
     a.phase = (a.phase || 0) + 0.03;
-    const flicker = 0.7 + 0.3 * Math.sin(a.phase * 3);
+    const flicker = 0.65 + 0.35 * Math.sin(a.phase * 3);
     const bob = Math.sin(a.phase) * 2;
+    const tilt = (Math.sin(a.phase * 0.6)) * 0.02;
 
     // Get correct image for this ad kind
     let img = null;
@@ -957,23 +948,48 @@ function drawAds(){
     }
 
     if(img && img.complete && img.naturalWidth > 0){
+      // Calculate proper scaling
+      const targetW = 56;
+      const ratio = img.height ? (img.width / img.height) : 1;
+      const w = targetW, h = Math.max(11, Math.round(targetW / ratio));
+      const drawX = x - Math.round(w/2), drawY = y - Math.round(h/2) + bob;
+
       ctx.save();
-      ctx.globalAlpha = flicker;
 
-      // Holographic glow effect
-      ctx.shadowColor = '#00ffff';
-      ctx.shadowBlur = 8;
+      // Frame box
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = 'rgba(10,14,20,0.5)';
+      ctx.fillRect(drawX - 8, drawY - 8, w + 16, h + 16);
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = 'rgba(111,194,255,0.5)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(drawX - 8, drawY - 8, w + 16, h + 16);
 
-      const targetW = 120, targetH = 80;
-      ctx.drawImage(img, x, y + bob, targetW, targetH);
+      // Main image with tilt and flicker
+      ctx.translate(drawX + w/2, drawY + h/2);
+      ctx.rotate(tilt);
+      ctx.globalAlpha = 0.72 + 0.12 * Math.sin(a.phase * 2);
+      ctx.drawImage(img, -w/2, -h/2, w, h);
+
+      // Holographic bloom
+      ctx.globalAlpha = 0.18 * flicker;
+      ctx.shadowColor = '#6fc2ff';
+      ctx.shadowBlur = 22;
+      ctx.drawImage(img, -w/2, -h/2, w, h);
       ctx.restore();
+
+      // Scanline overlay
+      ctx.globalAlpha = 0.12 * flicker;
+      ctx.fillStyle = '#6fc2ff';
+      ctx.fillRect(drawX - 8, drawY + (h * 0.2)|0, w + 16, 1);
+      ctx.globalAlpha = 1;
     } else {
       // Fallback if image not loaded
       ctx.fillStyle = `hsl(${(a.phase * 30) % 360}, 70%, 60%)`;
-      ctx.fillRect(x, y + bob, 120, 80);
+      ctx.fillRect(x, y + bob, 56, 40);
       ctx.fillStyle = '#fff';
-      ctx.font = '12px monospace';
-      ctx.fillText(a.kind.toUpperCase(), x + 10, y + bob + 40);
+      ctx.font = '10px monospace';
+      ctx.fillText(a.kind.toUpperCase(), x + 5, y + bob + 25);
     }
   }
 }
