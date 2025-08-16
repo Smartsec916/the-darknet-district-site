@@ -281,7 +281,7 @@ function genChunk(startX){
 
   if(lvl === 3){
     // Level 3: More BTC coins and female NPCs
-    if(!firstScreen){
+    if(!firstScreen && startX >= 300){
       for(let i = 0; i < 5; i++){ // Even more coins in Level 3
         const cx = startX + 30 + Math.random() * (CHUNK - 60);
         coins.push({x: cx|0, y: (groundY() - 24)|0, r: 10, taken: false});
@@ -299,7 +299,7 @@ function genChunk(startX){
   }
 
   // Ledges and other platforms
-  const ledgesStartOffset = (lvl === 1) ? 480 : 0; // Level 1: ledges start sooner but not in first screen
+  const ledgesStartOffset = 300; // All levels: ledges and NPCs start at DIST 300
   const allowLedges = (!firstScreen) && (startX >= ledgesStartOffset);
 
   if(allowLedges){
@@ -345,7 +345,7 @@ function genChunk(startX){
     }
   }
 
-  if(lvl >= 1){
+  if(lvl >= 1 && startX >= 300){
     const rc = 1 + ((Math.random() * 2)|0);
     for(let i = 0; i < rc; i++){
       const rx = startX + 64 + Math.random() * (CHUNK - 128);
@@ -357,7 +357,7 @@ function genChunk(startX){
     }
   }
 
-  if(lvl >= 2){
+  if(lvl >= 2 && startX >= 300){
     // Level 2: Robots in starting area fixed by only activating them later
     if(Math.random() < 0.6){
       const dx = startX + 80 + Math.random() * (CHUNK - 160);
@@ -365,6 +365,19 @@ function genChunk(startX){
       drones.push({
         x: dx|0, y: dy|0, w: 18, h: 14, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.8,
         phase: Math.random() * 6, active: false, disabled: false, anim: {state: 'move', runner: null}
+      });
+    }
+  }
+
+  // Female NPCs for Level 3 (behave like robots but steal BTC)
+  if(lvl === 3 && startX >= 300){
+    const fc = 1 + ((Math.random() * 2)|0);
+    for(let i = 0; i < fc; i++){
+      const fx = startX + 64 + Math.random() * (CHUNK - 128);
+      females.push({
+        x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.5, hp: 1,
+        active: false, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 40, patrolR: fx + 40,
+        searchUntil: 0, lookTimer: 0, hasTaken: false, anim: {state: 'idle', runner: null}
       });
     }
   }
@@ -498,20 +511,8 @@ function placeExitDoor(){
 }
 
 function spawnLevel3Females(){
-  females = [];
-  const n = 4 + ((Math.random() * 3)|0); // Increased number of females
-  for(let i = 0; i < n; i++){
-    const x = 200 + i * 200 + Math.random() * 80;
-    const female = {
-      x: x|0, y: VH - TILE * 2, w: 18, h: 28, 
-      speed: 0.5 + Math.random() * 0.3,
-      dir: Math.random() < 0.5 ? -1 : 1,
-      hasTaken: false, 
-      anim: {state: 'idle', runner: null}
-    };
-    setAnim(female, 'female', 'idle');
-    females.push(female);
-  }
+  // Females are now spawned procedurally in genChunk like robots
+  // This function is kept for compatibility but does nothing
 }
 
 function activateEnemies(){
@@ -519,13 +520,16 @@ function activateEnemies(){
   for(const r of robots){
     if(!r.active && r.x < visRight){
       // Robots only activate after player progresses past starting area
-      if(LVL === 1){ if(player.x >= 900){ r.active = true; } } 
+      if(LVL === 1){ if(player.x >= 400){ r.active = true; } } 
       else if(LVL === 2){ if(player.x >= 400){ r.active = true; } }
       else { r.active = true; }
     }
   }
   for(const d of drones){
     if(!d.active && d.x < visRight){ if(LVL >= 2) d.active = true; }
+  }
+  for(const f of females){
+    if(!f.active && f.x < visRight){ if(LVL === 3) f.active = true; }
   }
 }
 
@@ -682,42 +686,61 @@ function update(dt, now){
 
   for(let i = robots.length - 1; i >= 0; i--) if(robots[i].hp <= 0) robots.splice(i, 1);
 
-  // Level 3 females - chase player and steal BTC
+  // Level 3 females - AI similar to robots but steal BTC instead of dealing damage
   if(LVL === 3){
     for(const f of females){
-      if(f.hasTaken){ 
-        setAnim(f, 'female', 'idle'); 
-        stepAnim(f, dt); 
-        continue; 
-      }
-
+      if(!f.active) continue;
       const dx = player.x - f.x;
       const dy = player.y - f.y;
-      const see = Math.abs(dx) < 120 && Math.abs(dy) < 56;
+      const see = Math.abs(dx) < 92 && Math.abs(dy) < 56;
 
-      if(see){
-        // Chase player
-        const dir = dx > 0 ? 1 : -1;
-        f.x += dir * f.speed * 1.2; // Slightly faster when chasing
-        setAnim(f, 'female', 'run');
-      } else {
-        // Idle patrol behavior
-        f.x += (f.dir || 1) * f.speed * 0.5;
-        if(Math.random() < 0.01) f.dir = (f.dir || 1) * -1; // Occasional direction change
-        setAnim(f, 'female', 'idle');
+      const playerAbove = (player.y + player.h) < (f.y - 6);
+      let hasFloorBetween = false;
+      if(playerAbove){
+        for(const p of platforms){
+          const betweenY = (p.y >= player.y) && (p.y <= f.y);
+          const overlapX = (f.x > p.x - 8) && (f.x < p.x + p.w + 8);
+          if(betweenY && overlapX){ hasFloorBetween = true; break; }
+        }
       }
 
+      if(see && !(playerAbove && hasFloorBetween)){
+        f.state = 'chase'; f.alert = true; f.dir = dx > 0 ? 1 : -1;
+        f.x += f.dir * f.speed * 1.25;
+      } else if(playerAbove){
+        if(f.state !== 'search'){
+          f.state = 'search'; f.alert = false; f.searchUntil = now + 2500 + Math.random() * 2000;
+          const offset = (dx > 0 ? -1 : 1) * (24 + Math.random() * 28);
+          const c = f.x + offset, span = 28 + Math.random() * 18;
+          f.patrolL = c - span; f.patrolR = c + span; f.dir = Math.random() < 0.5 ? -1 : 1;
+          f.lookTimer = now + 600 + Math.random() * 800;
+        }
+        if(now > f.lookTimer){ f.dir *= -1; f.lookTimer = now + 600 + Math.random() * 900; }
+        f.x += f.dir * f.speed * 0.9;
+        if(f.x < f.patrolL){ f.x = f.patrolL; f.dir = 1; }
+        if(f.x > f.patrolR){ f.x = f.patrolR; f.dir = -1; }
+        if(now > f.searchUntil) f.state = 'patrol';
+      } else {
+        f.alert = false;
+        if(f.state !== 'patrol'){ f.state = 'patrol'; f.patrolL = f.x - 40; f.patrolR = f.x + 40; f.dir = Math.sign(dx) || 1; }
+        f.x += f.dir * f.speed;
+        if(f.x < f.patrolL){ f.x = f.patrolL; f.dir = 1; }
+        if(f.x > f.patrolR){ f.x = f.patrolR; f.dir = -1; }
+      }
+
+      setAnim(f, 'female', f.state === 'chase' ? 'run' : 'idle');
       stepAnim(f, dt);
 
-      // Check collision with player
-      if(aabb(player, f)){
-        const take = Math.min(5, btc); // Steals up to 5 BTC
-        if(take > 0){ 
-          btc -= take; 
-          score += 2; // Small score bonus for surviving the encounter
+      // Collision with player - steal BTC instead of dealing damage
+      if(aabb(player, f) && !f.hasTaken){
+        const steal = Math.min(5, btc); // Steal up to 5 BTC
+        if(steal > 0){
+          btc -= steal;
+          setRunN('playerBTC', btc);
+          score += 2; // Small score bonus for surviving
         }
         f.hasTaken = true;
-        setAnim(f, 'female', 'idle');
+        f.hitUntil = now + 800; // Brief stun after stealing
       }
     }
   }
