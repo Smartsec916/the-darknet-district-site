@@ -254,16 +254,6 @@ function drawSky(){
 }
 
 // ====== ads ======
-async function loadAdImagesForLevel(lvl){
-  CurrentAds = adConfigForLevel(lvl);
-  CurrentAds.imgObjs = {};
-  const keys = Object.keys(CurrentAds.images || {});
-  for(const k of keys){
-    CurrentAds.imgObjs[k] = await IMG(CurrentAds.images[k]);
-  }
-  refillDeck();
-}
-
 function refillDeck(){ adDeck = [...CurrentAds.kinds].sort(() => Math.random() - 0.5); }
 function nextAdKind(){ if(!adDeck.length) refillDeck(); return adDeck.shift(); }
 
@@ -699,7 +689,7 @@ function update(dt, now){
       if(playerAbove){
         for(const p of platforms){
           const betweenY = (p.y >= player.y) && (p.y <= f.y);
-          const overlapX = (f.x > p.x - 8) && (f.x < p.x + p.w + 8);
+          const overlapX = (f.x > p.x - 8) && (f.x < p.x + f.w + 8);
           if(betweenY && overlapX){ hasFloorBetween = true; break; }
         }
       }
@@ -956,11 +946,9 @@ function drawAds(){
     const x = (a.x - cameraX)|0, y = a.y|0;
     if(x + 80 < 0 || x > VW) continue;
 
-    // Update animation phase
-    a.phase = (a.phase || 0) + 0.03;
-    const flicker = 0.65 + 0.35 * Math.sin(a.phase * 3);
-    const bob = Math.sin(a.phase) * 2;
-    const tilt = (Math.sin(a.phase * 0.6)) * 0.02;
+    // Minimal animation phase
+    a.phase = (a.phase || 0) + 0.01;
+    const bob = Math.sin(a.phase) * 1;
 
     // Get correct image for this ad kind
     let img = null;
@@ -981,40 +969,19 @@ function drawAds(){
 
       ctx.save();
 
-      // Frame box
-      ctx.globalAlpha = 0.85;
-      ctx.fillStyle = 'rgba(10,14,20,0.5)';
-      ctx.fillRect(drawX - 8, drawY - 8, w + 16, h + 16);
-      ctx.globalAlpha = 1;
-      ctx.strokeStyle = 'rgba(111,194,255,0.5)';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(drawX - 8, drawY - 8, w + 16, h + 16);
+      // Simple frame box
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = 'rgba(10,14,20,0.7)';
+      ctx.fillRect(drawX - 4, drawY - 4, w + 8, h + 8);
+      ctx.strokeStyle = 'rgba(111,194,255,0.8)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(drawX - 4, drawY - 4, w + 8, h + 8);
 
-      // Main image with tilt and flicker - improved visibility
-      ctx.translate(drawX + w/2, drawY + h/2);
-      ctx.rotate(tilt);
-      ctx.globalAlpha = 0.85 + 0.08 * Math.sin(a.phase * 2);
-      ctx.drawImage(img, -w/2, -h/2, w, h);
+      // Draw the ad image with high opacity for readability
+      ctx.globalAlpha = 0.95;
+      ctx.drawImage(img, drawX, drawY, w, h);
 
-      // Holographic bloom - reduced for better readability
-      ctx.globalAlpha = 0.12 * flicker;
-      ctx.shadowColor = '#6fc2ff';
-      ctx.shadowBlur = 15;
-      ctx.drawImage(img, -w/2, -h/2, w, h);
       ctx.restore();
-
-      // Scanline overlay - less prominent
-      ctx.globalAlpha = 0.08 * flicker;
-      ctx.fillStyle = '#6fc2ff';
-      ctx.fillRect(drawX - 8, drawY + (h * 0.2)|0, w + 16, 1);
-      ctx.globalAlpha = 1;
-    } else {
-      // Fallback if image not loaded
-      ctx.fillStyle = `hsl(${(a.phase * 30) % 360}, 70%, 60%)`;
-      ctx.fillRect(x, y + bob, 56, 40);
-      ctx.fillStyle = '#fff';
-      ctx.font = '10px monospace';
-      ctx.fillText(a.kind.toUpperCase(), x + 5, y + bob + 25);
     }
   }
 }
