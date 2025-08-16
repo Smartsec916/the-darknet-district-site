@@ -217,6 +217,16 @@ async function loadBackgrounds(){
   BG.near = await IMG(SPRITE_DEF.bg_near);
 }
 
+async function loadAdImagesForLevel(lvl){
+  CurrentAds = adConfigForLevel(lvl);
+  CurrentAds.imgObjs = {};
+  const keys = Object.keys(CurrentAds.images || {});
+  for(const k of keys){
+    CurrentAds.imgObjs[k] = await IMG(CurrentAds.images[k]);
+  }
+  refillDeck();
+}
+
 function tileParallax(img, speed){
   if(!img) return;
   const scale = VH / img.height;
