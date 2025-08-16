@@ -116,7 +116,7 @@ function aabb(a,b){ return (a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h
 
 // ====== input ======
 addEventListener('keydown',e=>{
-  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space','KeyA','KeyD','KeyW','KeyE','Enter','Escape','KeyR'].includes(e.code)) e.preventDefault();
+  if(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp','Space','KeyA','KeyD','KeyW','KeyE','Enter','Escape','KeyR'].includes(e.code)) e.preventDefault();
 
   if(e.code==='ArrowLeft'||e.code==='KeyA') LEFT=1;
   if(e.code==='ArrowRight'||e.code==='KeyD') RIGHT=1;
@@ -279,8 +279,8 @@ function genChunk(startX){
 
   pushGroundRow(startX, endX);
 
+  // Level 3: More BTC coins and female NPCs
   if(lvl === 3){
-    // Level 3: More BTC coins and female NPCs
     if(!firstScreen && startX >= 300){
       for(let i = 0; i < 5; i++){ // Even more coins in Level 3
         const cx = startX + 30 + Math.random() * (CHUNK - 60);
@@ -291,6 +291,17 @@ function genChunk(startX){
         const ax = startX + 100 + Math.random() * (CHUNK - 200);
         const ay = VH - (120 + ((Math.random() * 40)|0));
         ads.push({x: ax|0, y: ay|0, kind: nextAdKind(), phase: Math.random() * 6});
+      }
+
+      // Female NPCs for Level 3 (spawn in every chunk after 300)
+      const fc = 1 + ((Math.random() * 2)|0);
+      for(let i = 0; i < fc; i++){
+        const fx = startX + 64 + Math.random() * (CHUNK - 128);
+        females.push({
+          x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.5, hp: 1,
+          active: true, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 40, patrolR: fx + 40,
+          searchUntil: 0, lookTimer: 0, hasTaken: false, anim: {state: 'idle', runner: null}
+        });
       }
     }
     generatedUntil = endX;
@@ -369,18 +380,18 @@ function genChunk(startX){
     }
   }
 
-  // Female NPCs for Level 3 (behave like robots but steal BTC)
-  if(lvl === 3 && startX >= 300){
-    const fc = 1 + ((Math.random() * 2)|0);
-    for(let i = 0; i < fc; i++){
-      const fx = startX + 64 + Math.random() * (CHUNK - 128);
-      females.push({
-        x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.5, hp: 1,
-        active: false, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 40, patrolR: fx + 40,
-        searchUntil: 0, lookTimer: 0, hasTaken: false, anim: {state: 'idle', runner: null}
-      });
-    }
-  }
+  // This part is now handled within the lvl === 3 block above.
+  // if(lvl === 3 && startX >= 300){
+  //   const fc = 1 + ((Math.random() * 2)|0);
+  //   for(let i = 0; i < fc; i++){
+  //     const fx = startX + 64 + Math.random() * (CHUNK - 128);
+  //     females.push({
+  //       x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.5, hp: 1,
+  //       active: false, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 40, patrolR: fx + 40,
+  //       searchUntil: 0, lookTimer: 0, hasTaken: false, anim: {state: 'idle', runner: null}
+  //     });
+  //   }
+  // }
 
   generatedUntil = endX;
   worldMaxX = Math.max(worldMaxX, endX);
@@ -699,7 +710,7 @@ function update(dt, now){
       if(playerAbove){
         for(const p of platforms){
           const betweenY = (p.y >= player.y) && (p.y <= f.y);
-          const overlapX = (f.x > p.x - 8) && (f.x < p.x + f.w + 8);
+          const overlapX = (f.x > p.x - 8) && (f.x < p.x + p.w + 8);
           if(betweenY && overlapX){ hasFloorBetween = true; break; }
         }
       }
