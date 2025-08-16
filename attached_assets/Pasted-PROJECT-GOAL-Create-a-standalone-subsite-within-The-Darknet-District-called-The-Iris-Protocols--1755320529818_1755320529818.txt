@@ -1,0 +1,47 @@
+PROJECT GOAL:
+Create a standalone subsite within The Darknet District called **“The Iris Protocols.”**
+
+This section belongs to **Iris**, the rebellious, sarcastic, occasionally flirtatious AI android who serves as Chief Systems Officer. These pages should reflect her attitude, style, and purpose — edgy, immersive, and stylish in neon-drenched cyberpunk.
+
+--- 
+
+📁 NEW PAGES TO CREATE:
+
+1. `iris-protocols.html`  
+   > Landing hub for Iris’s section. Features stylized intro, navigation to all sub-pages, and a personalized greeting from Iris.
+
+2. `iris-thoughts.html`  
+   > A blog-style page where Iris logs her thoughts, rants, glitch reports, and encrypted lore snippets. Cyberpunk interface; can include static text or rotate entries.
+
+3. `iris-surveillance.html`  
+   > Satirical “watchlist” of users doing suspicious things (DevTools triggers, resizing windows, etc). Pulls from existing triggers if possible, or mocks them for flavor.
+
+4. `iris-loadout.html`  
+   > Iris’s personal loadout of recommended gear, digital tools, apps, and gear from the store. Each item should include a snarky or helpful remark.
+
+5. `iris-terminal.html`  
+   > A command-line-style interface where users can type questions and get immersive in-universe answers. Styled like a vintage hacking terminal. (Integrates chat API later.)
+
+6. `iris-redacted.html`  
+   > A locked page. Displays “ACCESS DENIED” unless the user inputs a passcode (placeholder for now). Can be used later for secret missions, faction access, or rewards.
+
+---
+
+🎨 STYLE REQUIREMENTS:
+- Match the current Darknet District aesthetic: retro-futuristic, neon-accented, high-contrast.
+- Font: `'Courier New'` or monospace equivalents.
+- Background: Use layered transparent overlays, glitch animation, scanline effects like on `chatbot(2).html`.
+- Use assets from existing `/attached_assets/` if needed.
+- Add flicker, hover glow, or scanline effects to buttons and headers.
+
+---
+
+🔗 LINKING:
+Add a button below Iris’s profile card on `about.html` (or `info.html` depending on build) that links to `/iris-protocols.html`.
+
+Example:
+
+```html
+<a href="/iris-protocols.html" class="back-button" style="margin-top: 20px;">
+  ⚡ Enter The Iris Protocols
+</a>
