@@ -101,10 +101,13 @@
     let upgrades = getRunO('playerUpgrades', {});
 
     const items = [
-      { id: 'jumpBoost', name: 'Jump Boost', desc: 'Higher jumps for better mobility.', price: 8, key: 'jumpBoost' },
-      { id: 'advancedHack', name: 'Advanced Hack', desc: 'Longer hack duration (5s vs 3s).', price: 12, key: 'advancedHack' },
-      { id: 'armor', name: 'Body Armor', desc: 'Reduces damage taken from enemies.', price: 15, key: 'armor' }
+      { id: 'coinMagnet', name: 'BTC Magnet', desc: 'Pulls coins from farther away.', price: 10, key: 'coinMagnet' }
     ];
+    
+    // Add Mobile EMP if not owned
+    if(!upgrades.mobileEMP){
+      items.unshift({ id: 'mobileEMP', name: 'Mobile EMP', desc: '+2 charges. Trigger EMP anywhere (E).', price: 5, key: 'mobileEMP' });
+    }
 
     function updateUI(){
       document.getElementById('balLbl').textContent = `BTC:${btc}`;
@@ -116,12 +119,21 @@
           <div class="crt card">
             <h5>${item.name}</h5>
             <p>${item.desc}</p>
-            <button class="buy" ${canBuy ? '' : 'disabled'} onclick="buyItem('${item.key}', ${item.price})">
+            <button class="buy" ${canBuy ? '' : 'disabled'} data-key="${item.key}" data-price="${item.price}">
               Buy — <span class="price">${item.price} BTC</span>
             </button>
           </div>
         `;
       }).join('');
+
+      // Add click listeners to buy buttons
+      itemsDiv.querySelectorAll('.buy').forEach(btn => {
+        btn.onclick = () => {
+          const key = btn.dataset.key;
+          const price = parseInt(btn.dataset.price);
+          buyItem(key, price);
+        };
+      });
 
       const invList = document.getElementById('invList');
       const owned = Object.keys(upgrades).filter(k => upgrades[k] === true);
@@ -134,15 +146,16 @@
       }
     }
 
-    window.buyItem = function(key, price){
+    function buyItem(key, price){
       if(btc >= price && !upgrades[key]){
         btc -= price;
+        if(key === 'mobileEMP') upgrades.mobileEMPCharges = 2;
         upgrades[key] = true;
         setRunN('playerBTC', btc);
         setRunO('playerUpgrades', upgrades);
         updateUI();
       }
-    };
+    }
 
     document.getElementById('continueCard').onclick = () => goTo('./level3.html');
 

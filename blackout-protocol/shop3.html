@@ -111,8 +111,7 @@
     let upgrades = getRunO('playerUpgrades', {});
 
     const items = [
-      { id: 'megaEMP', name: 'Mega EMP', desc: '+3 more EMP charges.', price: 20, key: 'megaEMP' },
-      { id: 'shielding', name: 'EMF Shielding', desc: 'Immunity to drone detection.', price: 25, key: 'shielding' }
+      { id: 'sidearm', name: 'Sidearm', desc: 'Basic ranged weapon for defense.', price: 15, key: 'sidearm' }
     ];
 
     function updateUI(){
@@ -125,12 +124,21 @@
           <div class="crt card">
             <h5>${item.name}</h5>
             <p>${item.desc}</p>
-            <button class="buy" ${canBuy ? '' : 'disabled'} onclick="buyItem('${item.key}', ${item.price})">
+            <button class="buy" ${canBuy ? '' : 'disabled'} data-key="${item.key}" data-price="${item.price}">
               Buy — <span class="price">${item.price} BTC</span>
             </button>
           </div>
         `;
       }).join('');
+
+      // Add click listeners to buy buttons
+      itemsDiv.querySelectorAll('.buy').forEach(btn => {
+        btn.onclick = () => {
+          const key = btn.dataset.key;
+          const price = parseInt(btn.dataset.price);
+          buyItem(key, price);
+        };
+      });
 
       const invList = document.getElementById('invList');
       const owned = Object.keys(upgrades).filter(k => upgrades[k] === true);
@@ -143,18 +151,15 @@
       }
     }
 
-    window.buyItem = function(key, price){
+    function buyItem(key, price){
       if(btc >= price && !upgrades[key]){
         btc -= price;
-        if(key === 'megaEMP' && upgrades.mobileEMPCharges) {
-          upgrades.mobileEMPCharges += 3;
-        }
         upgrades[key] = true;
         setRunN('playerBTC', btc);
         setRunO('playerUpgrades', upgrades);
         updateUI();
       }
-    };
+    }
 
     document.getElementById('continueCard').onclick = () => {
       alert('Game Complete! Thanks for playing Blackout Protocol.');

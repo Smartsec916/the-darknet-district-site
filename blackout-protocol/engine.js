@@ -499,16 +499,18 @@ function placeExitDoor(){
 
 function spawnLevel3Females(){
   females = [];
-  const n = 3 + ((Math.random() * 3)|0); // Increased number of females
+  const n = 4 + ((Math.random() * 3)|0); // Increased number of females
   for(let i = 0; i < n; i++){
-    const x = 180 + i * 180 + Math.random() * 60;
-    females.push({
+    const x = 200 + i * 200 + Math.random() * 80;
+    const female = {
       x: x|0, y: VH - TILE * 2, w: 18, h: 28, 
       speed: 0.5 + Math.random() * 0.3,
-      dir: Math.random() < 0.5 ? -1 : 1, // Random initial direction
+      dir: Math.random() < 0.5 ? -1 : 1,
       hasTaken: false, 
       anim: {state: 'idle', runner: null}
-    });
+    };
+    setAnim(female, 'female', 'idle');
+    females.push(female);
   }
 }
 
@@ -965,21 +967,21 @@ function drawAds(){
       ctx.lineWidth = 2;
       ctx.strokeRect(drawX - 8, drawY - 8, w + 16, h + 16);
 
-      // Main image with tilt and flicker
+      // Main image with tilt and flicker - improved visibility
       ctx.translate(drawX + w/2, drawY + h/2);
       ctx.rotate(tilt);
-      ctx.globalAlpha = 0.72 + 0.12 * Math.sin(a.phase * 2);
+      ctx.globalAlpha = 0.85 + 0.08 * Math.sin(a.phase * 2);
       ctx.drawImage(img, -w/2, -h/2, w, h);
 
-      // Holographic bloom
-      ctx.globalAlpha = 0.18 * flicker;
+      // Holographic bloom - reduced for better readability
+      ctx.globalAlpha = 0.12 * flicker;
       ctx.shadowColor = '#6fc2ff';
-      ctx.shadowBlur = 22;
+      ctx.shadowBlur = 15;
       ctx.drawImage(img, -w/2, -h/2, w, h);
       ctx.restore();
 
-      // Scanline overlay
-      ctx.globalAlpha = 0.12 * flicker;
+      // Scanline overlay - less prominent
+      ctx.globalAlpha = 0.08 * flicker;
       ctx.fillStyle = '#6fc2ff';
       ctx.fillRect(drawX - 8, drawY + (h * 0.2)|0, w + 16, 1);
       ctx.globalAlpha = 1;

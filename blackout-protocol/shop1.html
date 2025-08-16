@@ -105,8 +105,7 @@
     let upgrades = getRunO('playerUpgrades', {});
 
     const items = [
-      { id: 'speedBoost', name: 'Mobile EMP', desc: '+2 charges. Trigger EMP anywhere (E).', price: 5, key: 'mobileEMP' },
-      { id: 'coinMagnet', name: 'BTC Magnet', desc: 'Pulls coins from farther away.', price: 10, key: 'coinMagnet' }
+      { id: 'mobileEMP', name: 'Mobile EMP', desc: '+2 charges. Trigger EMP anywhere (E).', price: 5, key: 'mobileEMP' }
     ];
 
     function updateUI(){
@@ -119,12 +118,21 @@
           <div class="crt card">
             <h5>${item.name}</h5>
             <p>${item.desc}</p>
-            <button class="buy" ${canBuy ? '' : 'disabled'} onclick="buyItem('${item.key}', ${item.price})">
+            <button class="buy" ${canBuy ? '' : 'disabled'} data-key="${item.key}" data-price="${item.price}">
               Buy — <span class="price">${item.price} BTC</span>
             </button>
           </div>
         `;
       }).join('');
+
+      // Add click listeners to buy buttons
+      itemsDiv.querySelectorAll('.buy').forEach(btn => {
+        btn.onclick = () => {
+          const key = btn.dataset.key;
+          const price = parseInt(btn.dataset.price);
+          buyItem(key, price);
+        };
+      });
 
       const invList = document.getElementById('invList');
       const owned = Object.keys(upgrades).filter(k => upgrades[k] === true);
@@ -137,7 +145,7 @@
       }
     }
 
-    window.buyItem = function(key, price){
+    function buyItem(key, price){
       if(btc >= price && !upgrades[key]){
         btc -= price;
         if(key === 'mobileEMP') upgrades.mobileEMPCharges = 2;
@@ -146,7 +154,7 @@
         setRunO('playerUpgrades', upgrades);
         updateUI();
       }
-    };
+    }
 
     document.getElementById('continueCard').onclick = () => goTo('./level2.html');
 
