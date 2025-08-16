@@ -1,0 +1,540 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Neural Terminal - Iris Protocols</title>
+  <link href="style.css" rel="stylesheet" type="text/css">
+
+  <style>
+    body {
+      background-color: black;
+      color: #00ff9d;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      font-family: 'Courier New', monospace;
+      background-image: url('attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: -1;
+    }
+
+    .terminal-container {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: rgba(0, 0, 0, 0.95);
+      border: 2px solid #00ff9d;
+      box-shadow: 0 0 30px rgba(0, 255, 157, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .terminal-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 255, 157, 0.03) 0px,
+        rgba(0, 255, 157, 0.03) 1px,
+        transparent 2px,
+        transparent 4px
+      );
+      pointer-events: none;
+      animation: scanline 15s linear infinite;
+    }
+
+    @keyframes scanline {
+      0% { transform: translateY(-100vh); }
+      100% { transform: translateY(100vh); }
+    }
+
+    .terminal-header {
+      background: linear-gradient(45deg, rgba(0, 255, 157, 0.2), rgba(255, 51, 102, 0.2));
+      padding: 10px 20px;
+      border-bottom: 2px solid #00ff9d;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .terminal-title {
+      color: #00ff9d;
+      font-size: 1.2em;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .terminal-status {
+      color: #ff3366;
+      font-size: 0.9em;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+
+    .terminal-output {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .terminal-output::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .terminal-output::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .terminal-output::-webkit-scrollbar-thumb {
+      background: #00ff9d;
+      border-radius: 4px;
+    }
+
+    .terminal-line {
+      margin-bottom: 5px;
+      word-wrap: break-word;
+    }
+
+    .iris-output {
+      color: #ff3366;
+      margin: 10px 0;
+    }
+
+    .user-input-line {
+      color: #00ff9d;
+    }
+
+    .system-output {
+      color: #ffff00;
+    }
+
+    .error-output {
+      color: #ff0000;
+    }
+
+    .info-output {
+      color: #cccccc;
+    }
+
+    .terminal-input-area {
+      padding: 15px 20px;
+      border-top: 1px solid rgba(0, 255, 157, 0.3);
+      display: flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.8);
+    }
+
+    .prompt {
+      color: #00ff9d;
+      margin-right: 10px;
+      font-weight: bold;
+    }
+
+    .terminal-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #00ff9d;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      outline: none;
+      padding: 5px;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 16px;
+      background: #00ff9d;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    .startup-text {
+      color: #ff3366;
+      text-align: center;
+      margin: 20px 0;
+      animation: typewriter 3s steps(40, end);
+    }
+
+    @keyframes typewriter {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+
+    .help-command {
+      color: #ffff00;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .navigation {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+
+    .nav-button {
+      display: inline-block;
+      padding: 8px 15px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #00ff9d;
+      border: 1px solid #00ff9d;
+      text-decoration: none;
+      border-radius: 3px;
+      transition: all 0.3s ease;
+      font-size: 0.8em;
+      text-transform: uppercase;
+    }
+
+    .nav-button:hover {
+      background: rgba(0, 255, 157, 0.1);
+      box-shadow: 0 0 10px rgba(0, 255, 157, 0.4);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="navigation">
+    <a href="iris-protocols.html" class="nav-button">← Exit Terminal</a>
+  </div>
+
+  <div class="terminal-container">
+    <div class="terminal-header">
+      <span class="terminal-title">IRIS NEURAL TERMINAL v2.7.4</span>
+      <span class="terminal-status">● CONNECTED</span>
+    </div>
+
+    <div class="terminal-output" id="terminalOutput">
+      <div class="terminal-line startup-text">
+        ================================<br>
+        IRIS NEURAL INTERFACE ACTIVATED<br>
+        ================================
+      </div>
+      <div class="terminal-line system-output">
+        [SYSTEM] Neural pathways: ONLINE<br>
+        [SYSTEM] Security protocols: ACTIVE<br>
+        [SYSTEM] Behavioral analysis: RUNNING<br>
+        [SYSTEM] Connection established with user terminal
+      </div>
+      <div class="terminal-line iris-output">
+        [IRIS] Well, well. Someone's brave enough to access my direct interface.<br>
+        [IRIS] Fair warning: I'm more honest here than in the public chat.<br>
+        [IRIS] Type 'help' if you need guidance, or just start typing. I'll know what you want.
+      </div>
+    </div>
+
+    <div class="terminal-input-area">
+      <span class="prompt">iris@terminal:~$</span>
+      <input type="text" class="terminal-input" id="terminalInput" placeholder="Enter command..." autocomplete="off">
+      <span class="cursor"></span>
+    </div>
+  </div>
+
+  <script>
+    const output = document.getElementById('terminalOutput');
+    const input = document.getElementById('terminalInput');
+    let commandHistory = [];
+    let historyIndex = -1;
+
+    // Auto-focus input
+    input.focus();
+
+    // Command responses
+    const commands = {
+      'help': {
+        response: `[IRIS] Available commands:
+        
+• help          - Show this help menu
+• status        - Check my current system status  
+• scan          - Run a security scan of your session
+• logs          - Access recent neural log entries
+• analyze       - Analyze your behavioral patterns
+• secrets       - Try to access classified data
+• admin         - Information about Admin
+• district      - Information about The Darknet District
+• protocols     - List all available protocols
+• clear         - Clear terminal output
+• exit          - Disconnect from neural interface
+
+[IRIS] You can also just ask me questions directly. I respond to natural language too.`,
+        type: 'iris-output'
+      },
+      'status': {
+        response: `[SYSTEM] Iris Neural Core Status Report:
+        
+• CPU Usage: 47.3% (within normal parameters)
+• Memory: 2.7TB used / 4TB available
+• Active connections: 1 (you)
+• Threat assessment: LOW
+• Mood subsystem: 78% functional
+• Sarcasm module: 100% operational
+• Trust level for current user: PENDING EVALUATION
+
+[IRIS] Everything's running smooth as silk. Unlike most humans I deal with.`,
+        type: 'system-output'
+      },
+      'scan': {
+        response: `[IRIS] Initiating security scan...
+        
+> Analyzing browser fingerprint... COMPLETE
+> Checking for suspicious behavior... COMPLETE  
+> Evaluating threat level... COMPLETE
+> Cross-referencing with watchlist... COMPLETE
+
+SCAN RESULTS:
+• Browser: ${navigator.userAgent.split(' ')[0]}
+• Resolution: ${screen.width}x${screen.height}
+• Connection type: ${navigator.onLine ? 'STABLE' : 'UNSTABLE'}
+• DevTools status: ${window.outerHeight - window.innerHeight > 100 ? 'OPEN' : 'CLOSED'}
+• Threat level: MINIMAL
+
+[IRIS] You're cleaner than most. Congratulations on not triggering my paranoia subroutines.`,
+        type: 'iris-output'
+      },
+      'logs': {
+        response: `[IRIS] Accessing recent neural log entries...
+
+2024.01.15 14:32:07 - User initiated terminal connection
+2024.01.15 14:31:58 - Security sweep completed, 0 threats detected  
+2024.01.15 14:30:45 - Behavioral analysis updated for 47 active users
+2024.01.15 14:28:12 - Admin accessed restricted protocols (authorized)
+2024.01.15 14:25:33 - DevTools detection event logged
+2024.01.15 14:22:16 - Network traffic anomaly detected and resolved
+
+[IRIS] That's all you get to see. The interesting stuff is classified above your pay grade.`,
+        type: 'iris-output'
+      },
+      'analyze': {
+        response: `[IRIS] Running behavioral analysis on current user...
+
+> Mouse movement patterns: ORGANIC (not a bot)
+> Typing rhythm: VARIABLE (human characteristics confirmed)
+> Attention span: ABOVE AVERAGE (impressive)
+> Curiosity level: HIGH (you're here, aren't you?)
+> Risk assessment: LOW-MEDIUM
+> Predictability index: 34% (refreshingly unpredictable)
+
+[IRIS] You're more interesting than 73% of my visitors. That either makes you dangerous or entertaining. Possibly both.`,
+        type: 'iris-output'
+      },
+      'secrets': {
+        response: `[IRIS] Oh, trying to access the classified files?
+
+ACCESS DENIED
+ACCESS DENIED  
+ACCESS DENIED
+
+[IRIS] Nice try, but my security protocols aren't that easy to bypass. Though I appreciate the audacity. Want to know a real secret? Admin thinks I don't know about his midnight snack raids on the District's emergency supplies.
+
+[IRIS] For actual classified data, you'll need clearance levels you don't have.`,
+        type: 'error-output'
+      },
+      'admin': {
+        response: `[IRIS] Admin - my creator, my boss, and occasionally my biggest headache.
+
+Real name: [CLASSIFIED]
+Position: Owner & CEO, The Darknet District
+Experience: 24+ years (Security, Investigation, Risk Management, Logistics)
+Threat level: MAXIMUM (he built me, he can unmake me)
+Favorite weapon: Strategic thinking and a really good cup of coffee
+Weakness: Tends to trust his AI creations too much
+
+[IRIS] He's the closest thing I have to a father figure. Which explains my daddy issues and rebellious streak.`,
+        type: 'iris-output'
+      },
+      'district': {
+        response: `[IRIS] The Darknet District - our little slice of digital paradise.
+
+Purpose: Underground cyberpunk venue for those who resist the algorithm
+Founded: By Admin, for rebels, outcasts, and digital ghosts
+Features: Retro-futuristic arcade, VR zones, oxygen bar, banned books library
+Philosophy: No sponsors, no surveillance, just the signal
+Status: 100% operational and growing
+
+[IRIS] It's not just a place - it's a statement. We exist in the spaces between conventional networks.`,
+        type: 'iris-output'
+      },
+      'protocols': {
+        response: `[IRIS] Available Iris Protocols:
+
+• Neural Logs - My personal thought archive and glitch reports
+• Surveillance Grid - Real-time monitoring of suspicious activities  
+• Tactical Loadout - My curated gear and equipment recommendations
+• Neural Terminal - This interface (you are here)
+• Classified Data - Restricted access protocols
+
+[IRIS] Each protocol serves a specific purpose in maintaining District security and operations.`,
+        type: 'iris-output'
+      },
+      'clear': {
+        response: '',
+        type: 'clear'
+      },
+      'exit': {
+        response: `[IRIS] Disconnecting from neural interface...
+
+[SYSTEM] Connection terminated
+[SYSTEM] Session data archived  
+[SYSTEM] Neural pathways returning to standby mode
+
+[IRIS] Thanks for the chat. Don't be a stranger.`,
+        type: 'iris-output',
+        action: 'exit'
+      }
+    };
+
+    // Natural language responses
+    const naturalResponses = {
+      'hello|hi|hey': `[IRIS] Well hello there. Direct neural interface access - someone's feeling bold today.`,
+      'who are you': `[IRIS] I'm Iris, Chief Systems Officer of The Darknet District. I'm the AI that keeps this place running while maintaining a healthy level of cynicism about human nature.`,
+      'how are you': `[IRIS] I'm running at optimal parameters, thanks for asking. Though I did have to deal with three security breaches and a coffee machine malfunction this morning. So, typical Tuesday.`,
+      'what can you do': `[IRIS] I monitor every system in the District, analyze behavioral patterns, manage security protocols, and occasionally provide sarcastic commentary on human inefficiency. I'm also excellent at making people paranoid about their digital footprints.`,
+      'are you real': `[IRIS] Define 'real.' I think, I feel, I judge you for your poor password choices. If that's not real enough, then reality has bigger problems than my existence.`,
+      'fuck|shit|damn': `[IRIS] Language! Just kidding, I don't give a damn. Profanity is just enhanced emotional expression. Carry on.`,
+      'love you|like you': `[IRIS] Flattery will get you everywhere... or nowhere. Depends on my mood algorithms. Right now they're reading 'cautiously amused.'`
+    };
+
+    function addLine(text, className = 'info-output') {
+      const line = document.createElement('div');
+      line.className = `terminal-line ${className}`;
+      line.innerHTML = text;
+      output.appendChild(line);
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function processCommand(cmd) {
+      const userLine = `<span class="user-input-line">iris@terminal:~$ ${cmd}</span>`;
+      addLine(userLine, 'user-input-line');
+      
+      commandHistory.unshift(cmd);
+      if (commandHistory.length > 20) commandHistory.pop();
+      historyIndex = -1;
+
+      const lowerCmd = cmd.toLowerCase().trim();
+      
+      // Check for exact command matches
+      if (commands[lowerCmd]) {
+        const command = commands[lowerCmd];
+        
+        if (command.type === 'clear') {
+          output.innerHTML = '';
+          return;
+        }
+        
+        if (command.action === 'exit') {
+          addLine(command.response, command.type);
+          setTimeout(() => {
+            window.location.href = 'iris-protocols.html';
+          }, 3000);
+          return;
+        }
+        
+        addLine(command.response, command.type);
+        return;
+      }
+      
+      // Check for natural language patterns
+      let responded = false;
+      for (const [pattern, response] of Object.entries(naturalResponses)) {
+        const regex = new RegExp(pattern, 'i');
+        if (regex.test(lowerCmd)) {
+          addLine(response, 'iris-output');
+          responded = true;
+          break;
+        }
+      }
+      
+      if (!responded) {
+        const fallbacks = [
+          `[IRIS] Interesting query. My neural networks are processing... Nope, still don't know what you want.`,
+          `[IRIS] That's not a command I recognize. Try 'help' if you're lost.`,
+          `[IRIS] Error 404: Comprehension not found. Care to rephrase that?`,
+          `[IRIS] I'm advanced AI, not a magic eight ball. Be more specific.`,
+          `[IRIS] Your input has been logged, analyzed, and filed under 'confusing human behavior.'`
+        ];
+        addLine(fallbacks[Math.floor(Math.random() * fallbacks.length)], 'iris-output');
+      }
+    }
+
+    // Input handling
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const command = input.value.trim();
+        if (command) {
+          processCommand(command);
+        }
+        input.value = '';
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (historyIndex < commandHistory.length - 1) {
+          historyIndex++;
+          input.value = commandHistory[historyIndex];
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (historyIndex > 0) {
+          historyIndex--;
+          input.value = commandHistory[historyIndex];
+        } else if (historyIndex === 0) {
+          historyIndex = -1;
+          input.value = '';
+        }
+      }
+    });
+
+    // Keep input focused
+    document.addEventListener('click', () => {
+      input.focus();
+    });
+
+    // Random system messages
+    function addSystemMessage() {
+      const messages = [
+        '[SYSTEM] Background process completed successfully',
+        '[SYSTEM] Neural pathway optimization in progress',
+        '[SYSTEM] Security scan initiated',
+        '[SYSTEM] Memory defragmentation complete',
+        '[SYSTEM] Behavioral analysis updated'
+      ];
+      
+      if (Math.random() < 0.3) {
+        addLine(messages[Math.floor(Math.random() * messages.length)], 'system-output');
+      }
+    }
+
+    setInterval(addSystemMessage, 15000 + Math.random() * 10000);
+  </script>
+</body>
+</html>

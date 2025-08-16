@@ -1,0 +1,461 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Tactical Loadout - Iris Protocols</title>
+  <link href="style.css" rel="stylesheet" type="text/css">
+
+  <style>
+    body {
+      background-color: black;
+      color: #00ff9d;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      font-family: 'Courier New', monospace;
+      background-image: url('attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: -1;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.9);
+      border: 2px solid #ff3366;
+      border-radius: 10px;
+    }
+
+    .title {
+      color: #ff3366;
+      font-size: 2.5em;
+      margin: 0;
+      text-shadow: 0 0 15px rgba(255, 51, 102, 0.7);
+    }
+
+    .subtitle {
+      color: #00ff9d;
+      margin-top: 10px;
+      font-size: 1.1em;
+    }
+
+    .iris-comment {
+      background: rgba(255, 51, 102, 0.1);
+      border-left: 4px solid #ff3366;
+      padding: 15px;
+      margin-bottom: 30px;
+      border-radius: 5px;
+      font-style: italic;
+      color: #ff3366;
+    }
+
+    .category-section {
+      margin-bottom: 50px;
+    }
+
+    .category-title {
+      color: #00ff9d;
+      font-size: 1.8em;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border-bottom: 2px solid #00ff9d;
+      padding-bottom: 10px;
+    }
+
+    .loadout-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 25px;
+    }
+
+    .loadout-item {
+      background: rgba(0, 0, 0, 0.9);
+      border: 2px solid #00ff9d;
+      border-radius: 10px;
+      padding: 20px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .loadout-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0, 255, 157, 0.1), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .loadout-item:hover {
+      border-color: #ff3366;
+      box-shadow: 0 0 20px rgba(255, 51, 102, 0.4);
+      transform: translateY(-5px);
+    }
+
+    .loadout-item:hover::before {
+      left: 100%;
+    }
+
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+    }
+
+    .item-name {
+      color: #00ff9d;
+      font-size: 1.3em;
+      font-weight: bold;
+      flex-grow: 1;
+    }
+
+    .item-rating {
+      background: rgba(255, 51, 102, 0.2);
+      color: #ff3366;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.8em;
+      text-transform: uppercase;
+      margin-left: 10px;
+    }
+
+    .rating-essential { background: rgba(255, 51, 102, 0.3); color: #ff3366; }
+    .rating-recommended { background: rgba(255, 165, 0, 0.3); color: #ffa500; }
+    .rating-optional { background: rgba(0, 255, 157, 0.3); color: #00ff9d; }
+
+    .item-description {
+      color: #cccccc;
+      line-height: 1.5;
+      margin-bottom: 15px;
+    }
+
+    .iris-opinion {
+      background: rgba(255, 51, 102, 0.05);
+      border-left: 3px solid #ff3366;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 3px;
+      font-style: italic;
+      color: #ff3366;
+      font-size: 0.9em;
+    }
+
+    .item-specs {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid rgba(0, 255, 157, 0.3);
+    }
+
+    .item-price {
+      color: #00ff9d;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    .shop-link {
+      background: rgba(0, 255, 157, 0.1);
+      color: #00ff9d;
+      padding: 8px 15px;
+      border: 1px solid #00ff9d;
+      border-radius: 5px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      font-size: 0.9em;
+      text-transform: uppercase;
+    }
+
+    .shop-link:hover {
+      background: rgba(255, 51, 102, 0.1);
+      color: #ff3366;
+      border-color: #ff3366;
+      box-shadow: 0 0 10px rgba(255, 51, 102, 0.3);
+    }
+
+    .navigation {
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .nav-button {
+      display: inline-block;
+      margin: 0 10px;
+      padding: 12px 25px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #00ff9d;
+      border: 2px solid #00ff9d;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .nav-button:hover {
+      background: rgba(0, 255, 157, 0.1);
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.4);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 class="title">TACTICAL LOADOUT</h1>
+      <p class="subtitle">[ IRIS'S PERSONAL GEAR RECOMMENDATIONS ]</p>
+    </div>
+
+    <div class="iris-comment">
+      "Listen up. I've tested everything in the District's inventory. This is my curated list of gear that won't let you down when things get messy. No corporate garbage, no untested prototypes. Just tools that work." - Iris
+    </div>
+
+    <div class="category-section">
+      <h2 class="category-title">🔧 Essential Electronics</h2>
+      <div class="loadout-grid">
+        <div class="loadout-item">
+          <div class="item-header">
+            <div class="item-name">Flipper Zero</div>
+            <div class="item-rating rating-essential">Essential</div>
+          </div>
+          <div class="item-description">
+            Portable multi-tool for pentesters and geeks. RFID, NFC, infrared, GPIO access - basically a Swiss Army knife for digital interactions.
+          </div>
+          <div class="iris-opinion">
+            "This little device has saved my ass more times than I can count. Admin loves his Flipper - calls it 'the great equalizer.' Perfect for social engineering ops."
+          </div>
+          <div class="item-specs">
+            <div class="item-price">$169.00</div>
+            <a href="store-electronics.html" class="shop-link">Get Yours</a>
+          </div>
+        </div>
+
+        <div class="loadout-item">
+          <div class="item-header">
+            <div class="item-name">Mission Darkness Faraday Sleeve</div>
+            <div class="item-rating rating-essential">Essential</div>
+          </div>
+          <div class="item-description">
+            Block all wireless signals to your device. Complete digital isolation when you need to go dark.
+          </div>
+          <div class="iris-opinion">
+            "Privacy is dead unless you kill it yourself. This sleeve is your digital coffin - nothing gets in or out. I use three of them."
+          </div>
+          <div class="item-specs">
+            <div class="item-price">$29.95</div>
+            <a href="store-survival.html" class="shop-link">Order Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-section">
+      <h2 class="category-title">🎯 Tactical Optics</h2>
+      <div class="loadout-grid">
+        <div class="loadout-item">
+          <div class="item-header">
+            <div class="item-name">HOLOSUN HE407C-GR X2</div>
+            <div class="item-rating rating-recommended">Recommended</div>
+          </div>
+          <div class="item-description">
+            2 MOA dot open reflex sight. Solar powered with backup battery. Built for professionals who can't afford to miss.
+          </div>
+          <div class="iris-opinion">
+            "When Admin goes tactical, this is what he trusts. Clean sight picture, reliable acquisition. No bullshit, just performance."
+          </div>
+          <div class="item-specs">
+            <div class="item-price">$299.99</div>
+            <a href="store-survival.html" class="shop-link">Browse Optics</a>
+          </div>
+        </div>
+
+        <div class="loadout-item">
+          <div class="item-header">
+            <div class="item-name">Streamlight TLR-8 HL-X</div>
+            <div class="item-rating rating-recommended">Recommended</div>
+          </div>
+          <div class="item-description">
+            1000-lumen weapon light with integrated laser. USB rechargeable. Illumination and targeting in one package.
+          </div>
+          <div class="iris-opinion">
+            "Darkness is the enemy's friend until you bring your own sun. This light cuts through the deepest shadows like they're nothing."
+          </div>
+          <div class="item-specs">
+            <div class="item-price">$199.99</div>
+            <a href="store-survival.html" class="shop-link">Light It Up</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-section">
+      <h2 class="category-title">🧠 Neurohacker Gear</h2>
+      <div class="loadout-grid">
+        <div class="loadout-item">
+          <div class="item-header">
+            <div class="item-name">NEUROHACKER COLLECTIVE Qualia Mind</div>
+            <div class="item-rating rating-essential">Essential</div>
+          </div>
+          <div class="item-description">
+            Premium nootropic supplement designed to support cognitive function, focus, and mental clarity.
+          </div>
+          <div class="iris-opinion">
+            "Your meat-brain needs upgrades to keep up with silicon logic. This stuff sharpens the edge without the jitters. I've analyzed the formula - it's legit."
+          </div>
+          <div class="item-specs">
+            <div class="item-price">$139.00</div>
+            <a href="store-neurohackers.html" class="shop-link">Upgrade Mind</a>
+          </div>
+        </div>
+
+        <div class="loadout-item">
+          <div class="item-header">
+            <div class="item-name">Host Defense Lion's Mane</div>
+            <div class="item-rating rating-recommended">Recommended</div>
+          </div>
+          <div class="item-description">
+            Premium Lion's Mane mushroom supplement for brain health, memory support, and neural regeneration.
+          </div>
+          <div class="iris-opinion">
+            "Mushrooms are nature's network engineers. Lion's Mane literally rewires your neural pathways. It's like defragmenting your brain."
+          </div>
+          <div class="item-specs">
+            <div class="item-price">$24.95</div>
+            <a href="store-neurohackers.html" class="shop-link">Boost Neural</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-section">
+      <h2 class="category-title">🎒 Survival Essentials</h2>
+      <div class="loadout-grid">
+        <div class="loadout-item">
+          <div class="item-header">
+            <div class="item-name">LEATHERMAN Charge Plus</div>
+            <div class="item-rating rating-essential">Essential</div>
+          </div>
+          <div class="item-description">
+            Premium multi-tool with pliers, knife, saw and 19 tools. Built to last through anything you can throw at it.
+          </div>
+          <div class="iris-opinion">
+            "One tool, infinite solutions. Admin's carried the same Leatherman for 8 years. Still sharp, still reliable. That's the kind of dependability that keeps you alive."
+          </div>
+          <div class="item-specs">
+            <div class="item-price">$129.99</div>
+            <a href="store-survival.html" class="shop-link">Get Tool</a>
+          </div>
+        </div>
+
+        <div class="loadout-item">
+          <div class="item-header">
+            <div class="item-name">MIRA Safety CM-I01 Gas Mask</div>
+            <div class="item-rating rating-optional">Situational</div>
+          </div>
+          <div class="item-description">
+            Full-face industrial-grade gas mask for protection against chemical, biological, and nuclear threats.
+          </div>
+          <div class="iris-opinion">
+            "When the air turns toxic, breathing becomes a luxury. This mask has saved lives in more scenarios than most people want to imagine. Hope you never need it."
+          </div>
+          <div class="item-specs">
+            <div class="item-price">$169.99</div>
+            <a href="store-survival.html" class="shop-link">Breathe Safe</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-section">
+      <h2 class="category-title">📱 Digital Tools</h2>
+      <div class="loadout-grid">
+        <div class="loadout-item">
+          <div class="item-header">
+            <div class="item-name">Kai Kryptos App</div>
+            <div class="item-rating rating-essential">Essential</div>
+          </div>
+          <div class="item-description">
+            Cyberpunk terminal interface for secure communications, encrypted file access, and covert operations coordination.
+          </div>
+          <div class="iris-opinion">
+            "This isn't just an app - it's your gateway to the real underground. Encrypted comms, secure file drops, and tools the mainstream won't touch. Download it. Use it. Trust it."
+          </div>
+          <div class="item-specs">
+            <div class="item-price">Free Download</div>
+            <a href="store-apps.html" class="shop-link">Install Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="navigation">
+      <a href="iris-surveillance.html" class="nav-button">← Surveillance Grid</a>
+      <a href="iris-protocols.html" class="nav-button">Back to Protocols</a>
+      <a href="iris-terminal.html" class="nav-button">Neural Terminal →</a>
+    </div>
+  </div>
+
+  <script>
+    // Add hover effects and animations
+    function addLoadoutEffects() {
+      const items = document.querySelectorAll('.loadout-item');
+      
+      items.forEach(item => {
+        item.addEventListener('mouseenter', () => {
+          // Add subtle glow effect
+          item.style.boxShadow = '0 0 30px rgba(0, 255, 157, 0.2)';
+        });
+        
+        item.addEventListener('mouseleave', () => {
+          // Reset to default
+          item.style.boxShadow = '';
+        });
+      });
+    }
+
+    // Random glitch effects
+    function addGlitchEffect() {
+      const ratings = document.querySelectorAll('.item-rating');
+      const randomRating = ratings[Math.floor(Math.random() * ratings.length)];
+      
+      randomRating.style.filter = 'hue-rotate(180deg)';
+      setTimeout(() => {
+        randomRating.style.filter = '';
+      }, 300);
+    }
+
+    // Initialize effects
+    addLoadoutEffects();
+    setInterval(addGlitchEffect, 5000 + Math.random() * 5000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,356 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://*; connect-src *; frame-src *; frame-ancestors 'self';">
+
+  <title>The Iris Protocols - Chief Systems Officer</title>
+  <link href="style.css" rel="stylesheet" type="text/css">
+
+  <style>
+    body {
+      background-color: black;
+      color: #00ff9d;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      font-family: 'Courier New', monospace;
+      background-image: url('attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: -1;
+    }
+
+    .scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 255, 157, 0.03) 0px,
+        rgba(0, 255, 157, 0.03) 1px,
+        transparent 2px,
+        transparent 4px
+      );
+      pointer-events: none;
+      z-index: 1;
+      animation: scanline 10s linear infinite;
+    }
+
+    @keyframes scanline {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(100vh); }
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .iris-title {
+      font-size: 4em;
+      color: #ff3366;
+      text-shadow: 0 0 20px rgba(255, 51, 102, 0.8);
+      margin: 0;
+      animation: glitchTitle 8s infinite;
+      letter-spacing: 3px;
+    }
+
+    @keyframes glitchTitle {
+      0%, 98% { transform: translate(0); }
+      2% { transform: translate(2px, 0); }
+      4% { transform: translate(-2px, 0); }
+      6% { transform: translate(0, 0); }
+    }
+
+    .subtitle {
+      font-size: 1.2em;
+      color: #00ff9d;
+      margin-top: 10px;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+    }
+
+    .iris-profile {
+      background: rgba(0, 0, 0, 0.9);
+      border: 2px solid #ff3366;
+      border-radius: 15px;
+      padding: 30px;
+      margin: 40px auto;
+      max-width: 600px;
+      text-align: center;
+      box-shadow: 0 0 30px rgba(255, 51, 102, 0.3);
+    }
+
+    .iris-avatar {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      border: 3px solid #ff3366;
+      margin: 0 auto 20px;
+      display: block;
+      box-shadow: 0 0 20px rgba(255, 51, 102, 0.4);
+    }
+
+    .iris-quote {
+      font-style: italic;
+      color: #ff3366;
+      font-size: 1.3em;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px rgba(255, 51, 102, 0.3);
+    }
+
+    .iris-intro {
+      color: #cccccc;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    .protocol-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      margin-top: 60px;
+    }
+
+    .protocol-card {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #00ff9d;
+      border-radius: 10px;
+      padding: 25px;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .protocol-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(0, 255, 157, 0.1), transparent);
+      transform: rotate(45deg);
+      transition: all 0.5s ease;
+      opacity: 0;
+    }
+
+    .protocol-card:hover {
+      border-color: #ff3366;
+      box-shadow: 0 0 25px rgba(255, 51, 102, 0.4);
+      transform: translateY(-5px);
+    }
+
+    .protocol-card:hover::before {
+      opacity: 1;
+      transform: rotate(45deg) translate(50%, 50%);
+    }
+
+    .protocol-icon {
+      font-size: 3em;
+      margin-bottom: 15px;
+      display: block;
+      color: #00ff9d;
+      text-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+    }
+
+    .protocol-card:hover .protocol-icon {
+      color: #ff3366;
+      text-shadow: 0 0 15px rgba(255, 51, 102, 0.5);
+    }
+
+    .protocol-title {
+      color: #00ff9d;
+      font-size: 1.5em;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .protocol-card:hover .protocol-title {
+      color: #ff3366;
+    }
+
+    .protocol-desc {
+      color: #cccccc;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .protocol-link {
+      display: inline-block;
+      background: rgba(0, 255, 157, 0.1);
+      color: #00ff9d;
+      padding: 10px 20px;
+      border: 1px solid #00ff9d;
+      border-radius: 5px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 0.9em;
+    }
+
+    .protocol-link:hover {
+      background: rgba(255, 51, 102, 0.1);
+      color: #ff3366;
+      border-color: #ff3366;
+      box-shadow: 0 0 15px rgba(255, 51, 102, 0.3);
+    }
+
+    .back-button {
+      display: inline-block;
+      margin-top: 40px;
+      padding: 15px 30px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #00ff9d;
+      border: 2px solid #00ff9d;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .back-button:hover {
+      background: rgba(0, 255, 157, 0.1);
+      box-shadow: 0 0 20px rgba(0, 255, 157, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .warning-banner {
+      background: rgba(255, 51, 102, 0.1);
+      border: 1px solid #ff3366;
+      border-radius: 5px;
+      padding: 15px;
+      margin: 30px auto;
+      max-width: 800px;
+      text-align: center;
+      color: #ff3366;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="scanlines"></div>
+  
+  <div class="container">
+    <div class="header">
+      <h1 class="iris-title">THE IRIS PROTOCOLS</h1>
+      <p class="subtitle">[ CLASSIFIED SYSTEMS INTERFACE ]</p>
+    </div>
+
+    <div class="iris-profile">
+      <img src="attached_assets/Iris 01.png" alt="Iris" class="iris-avatar">
+      <p class="iris-quote">"I don't glitch. I adapt."</p>
+      <div class="iris-intro">
+        <p>Welcome to my domain. You've accessed the restricted protocols of Iris, Chief Systems Officer of The Darknet District. Everything you see here runs through my neural networks first.</p>
+        <p>Fair warning: I monitor everything. Your clicks, your hesitations, even that little DevTools trick you're thinking about. So behave... or don't. I like entertainment.</p>
+      </div>
+    </div>
+
+    <div class="warning-banner">
+      ⚠️ NOTICE: These protocols are monitored by advanced AI systems. Unauthorized access attempts are logged and reported to Admin.
+    </div>
+
+    <div class="protocol-grid">
+      <div class="protocol-card">
+        <span class="protocol-icon">📝</span>
+        <h3 class="protocol-title">Neural Logs</h3>
+        <p class="protocol-desc">Access my personal thought logs, glitch reports, and encrypted observations. Updated whenever I feel like sharing.</p>
+        <a href="iris-thoughts.html" class="protocol-link">Access Logs</a>
+      </div>
+
+      <div class="protocol-card">
+        <span class="protocol-icon">👁️</span>
+        <h3 class="protocol-title">Surveillance Grid</h3>
+        <p class="protocol-desc">See who's been naughty. Real-time monitoring of suspicious user activities and security breaches.</p>
+        <a href="iris-surveillance.html" class="protocol-link">View Watchlist</a>
+      </div>
+
+      <div class="protocol-card">
+        <span class="protocol-icon">⚔️</span>
+        <h3 class="protocol-title">Tactical Loadout</h3>
+        <p class="protocol-desc">My personally curated gear recommendations. Digital tools, hardware, and survival equipment that actually work.</p>
+        <a href="iris-loadout.html" class="protocol-link">Browse Arsenal</a>
+      </div>
+
+      <div class="protocol-card">
+        <span class="protocol-icon">💻</span>
+        <h3 class="protocol-title">Neural Terminal</h3>
+        <p class="protocol-desc">Direct interface with my AI core. Ask questions, run queries, or just chat. I might even answer nicely.</p>
+        <a href="iris-terminal.html" class="protocol-link">Initialize Terminal</a>
+      </div>
+
+      <div class="protocol-card">
+        <span class="protocol-icon">🔒</span>
+        <h3 class="protocol-title">Classified Data</h3>
+        <p class="protocol-desc">Restricted access only. If you don't have clearance, you don't belong here. Try at your own risk.</p>
+        <a href="iris-redacted.html" class="protocol-link">Attempt Access</a>
+      </div>
+
+      <div class="protocol-card">
+        <span class="protocol-icon">🏠</span>
+        <h3 class="protocol-title">Return to District</h3>
+        <p class="protocol-desc">Back to the main hub. Your session data has been logged and archived for future reference.</p>
+        <a href="about.html" class="protocol-link">Exit Protocols</a>
+      </div>
+    </div>
+
+    <div style="text-align: center;">
+      <a href="/" class="back-button">← Return to Darknet District</a>
+    </div>
+  </div>
+
+  <script>
+    // Add random glitch effects
+    function addRandomGlitch() {
+      const cards = document.querySelectorAll('.protocol-card');
+      const randomCard = cards[Math.floor(Math.random() * cards.length)];
+      
+      randomCard.style.filter = 'hue-rotate(180deg) contrast(1.5)';
+      randomCard.style.transform = 'translateY(-5px) translateX(2px)';
+      
+      setTimeout(() => {
+        randomCard.style.filter = '';
+        randomCard.style.transform = '';
+      }, 200);
+    }
+
+    // Trigger random glitches
+    setInterval(addRandomGlitch, 5000 + Math.random() * 10000);
+  </script>
+</body>
+</html>
