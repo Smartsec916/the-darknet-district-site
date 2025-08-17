@@ -46,8 +46,8 @@ const SPRITE_DEF = {
     attack:'assets/drone_attack_32.png', hurt:'assets/drone_hurt_32.png', dead:'assets/drone_dead_32.png'
   }, fps:{idle:3, hover:10, move:10, attack:12, hurt:6, dead:8}},
   female:{fw:48,fh:48, states:{
-    idle:'assets/female_idle.png', run:'assets/female_run.png'
-  }, fps:{idle:6, run:10}},
+    idle:'assets/female_idle.png', walk:'assets/female_walk.png', run:'assets/female_run.png'
+  }, fps:{idle:6, walk:8, run:10}},
   bg_far:null, bg_near:null, coin:null, door:null, ledge:null, platform:null
 };
 
