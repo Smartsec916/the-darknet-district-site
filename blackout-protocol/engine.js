@@ -1010,7 +1010,7 @@ function drawAds(){
 
     if(img && img.complete && img.naturalWidth > 0){
       // Calculate proper scaling - make ads larger and more readable
-      const targetW = 72;
+      const targetW = 56;
       const ratio = img.height ? (img.width / img.height) : 1;
       const w = targetW, h = Math.max(14, Math.round(targetW / ratio));
       const drawX = x - Math.round(w/2), drawY = y - Math.round(h/2) + bob;
