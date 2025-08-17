@@ -390,19 +390,6 @@ function genChunk(startX){
     }
   }
 
-  // This part is now handled within the lvl === 3 block above.
-  // if(lvl === 3 && startX >= 300){
-  //   const fc = 1 + ((Math.random() * 2)|0);
-  //   for(let i = 0; i < fc; i++){
-  //     const fx = startX + 64 + Math.random() * (CHUNK - 128);
-  //     females.push({
-  //       x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.5, hp: 1,
-  //       active: false, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 40, patrolR: fx + 40,
-  //       searchUntil: 0, lookTimer: 0, hasTaken: false, anim: {state: 'idle', runner: null}
-  //     });
-  //   }
-  // }
-
   generatedUntil = endX;
   worldMaxX = Math.max(worldMaxX, endX);
 }
@@ -872,6 +859,7 @@ function drawTerminals(){
       ctx.fillStyle = t.cooldown > 0 ? '#ccc' : '#fff';
       ctx.fillRect(x + 2, t.y + 3, t.w - 4, 3);
       ctx.fillStyle = '#00ff9d'; ctx.font = '6px monospace'; ctx.fillText('HACK', x + 1, t.y + t.h - 2);
+      ctx.textAlign = 'left';
     }
   }
 }
@@ -1146,6 +1134,481 @@ export async function bootLevel(levelNumber, opts = {}){
   // Reset input state
   LEFT = RIGHT = UP = 0;
   jumpBufferUntil = 0; coyoteUntil = 0; jumpHeld = false;
+
+  // Start game loop
+  requestAnimationFrame(loop);
+}
+
+/* ================= ENTITIES ================= */
+class FemaleNPC {
+  constructor(def, assets, world, playerRef) {
+    this.x = def.x;
+    this.y = def.y;
+    this.w = def.w ?? 32;
+    this.h = def.h ?? 48;
+
+    this.dir   = def.dir ?? -1;         // -1 left, +1 right
+    this.speed = def.speed ?? 1.0;
+    this.minX  = def.minX ?? (this.x - 64);
+    this.maxX  = def.maxX ?? (this.x + 64);
+
+    this.vx = 0;
+    this.vy = 0;
+    this.hasDrained = false;
+
+    this.assets = assets;   // expects assets.img.female_idle / female_run
+    this.world  = world;    // expects { gravity, slide(...) }
+    this.playerRef = playerRef;
+  }
+
+  static loadAssets(loader) {
+    // Use the same loader your engine uses for other sprites.
+    if (loader && typeof loader.image === 'function') {
+      loader.image('female_idle','./assets/female_idle.png');
+      loader.image('female_run','./assets/female_run.png');
+    } else {
+      // If your engine preloads differently, make sure assets.img has these by the time draw() runs.
+    }
+  }
+
+  get bbox() { return { x:this.x, y:this.y, w:this.w, h:this.h }; }
+
+  update(dt) {
+    // Patrol logic like robots
+    if (this.x <= this.minX) this.dir = 1;
+    if (this.x >= this.maxX) this.dir = -1;
+    this.vx = this.dir * this.speed;
+
+    // Gravity + tile collision (mirror robot's physics)
+    this.vy += (this.world.gravity ?? 2000) * dt;
+    const n = this.world.slide(this.x, this.y, this.w, this.h, this.vx, this.vy);
+    this.x = n.x; this.y = n.y;
+
+    // One-time BTC drain
+    const p = this.playerRef && this.playerRef();
+    if (!this.hasDrained && p && this._overlap(this.bbox, p.bbox)) {
+      const current = parseInt(sessionStorage.getItem('btc') || '0', 10);
+      const taken = Math.min(3, current);
+      sessionStorage.setItem('btc', String(current - taken));
+      this.hasDrained = true; // permanently ignore after first drain
+    }
+  }
+
+  draw(ctx) {
+    const run = Math.abs(this.vx) > 0.1;
+    const img = run ? (this.assets.img && this.assets.img.female_run) 
+                    : (this.assets.img && this.assets.img.female_idle);
+    if (!img) return;
+
+    // Face travel direction (optional horizontal flip)
+    ctx.save();
+    const flip = this.dir < 0;
+    if (flip) {
+      ctx.translate(Math.floor(this.x)+this.w, Math.floor(this.y));
+      ctx.scale(-1, 1);
+      ctx.drawImage(img, 0, 0, this.w, this.h);
+    } else {
+      ctx.drawImage(img, Math.floor(this.x), Math.floor(this.y), this.w, this.h);
+    }
+    ctx.restore();
+  }
+
+  _overlap(a,b){
+    return a && b && a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+}
+
+class Robot {
+  constructor(def,assets,world,playerRef) {
+    this.x = def.x; this.y = def.y; this.w = def.w ?? 32; this.h = def.h ?? 48;
+    this.dir = def.dir ?? -1; this.speed = def.speed ?? 1.0;
+    this.minX = def.minX ?? (this.x - 64); this.maxX = def.maxX ?? (this.x + 64);
+    this.vx=0; this.vy=0; this.hp = def.hp ?? 3; this.hitUntil = 0;
+    this.state = 'patrol'; this.alert = false;
+    this.assets = assets; this.world = world; this.playerRef = playerRef;
+    this.anim = {state:'idle', runner:null};
+    this.active = def.active ?? false; // Whether it has been activated by proximity
+  }
+  get bbox() { return {x:this.x, y:this.y, w:this.w, h:this.h}; }
+  update(dt) {
+    if(!this.active) return;
+    const player = this.playerRef && this.playerRef();
+    if(!player) return;
+
+    const dx = player.x - this.x; const dy = player.y - this.y;
+    const see = Math.abs(dx) < 92 && Math.abs(dy) < 56;
+    const playerAbove = (player.y + player.h) < (this.y - 6);
+    let hasFloorBetween = false;
+    if(playerAbove){
+      for(const p of this.world.platforms){
+        const betweenY = (p.y >= player.y) && (p.y <= this.y);
+        const overlapX = (this.x > p.x - 8) && (this.x < p.x + p.w + 8);
+        if(betweenY && overlapX){ hasFloorBetween = true; break; }
+      }
+    }
+
+    if(see && !(playerAbove && hasFloorBetween)){
+      this.state = 'chase'; this.alert = true; this.dir = dx > 0 ? 1 : -1;
+      this.vx = this.dir * this.speed * 1.25;
+    } else if(playerAbove){
+      if(this.state !== 'search'){
+        this.state = 'search'; this.alert = false; this.searchUntil = performance.now() + 2500 + Math.random() * 2000;
+        const offset = (dx > 0 ? -1 : 1) * (24 + Math.random() * 28);
+        const c = this.x + offset, span = 28 + Math.random() * 18;
+        this.patrolL = c - span; this.patrolR = c + span; this.dir = Math.random() < 0.5 ? -1 : 1;
+        this.lookTimer = performance.now() + 600 + Math.random() * 800;
+      }
+      if(performance.now() > this.lookTimer){ this.dir *= -1; this.lookTimer = performance.now() + 600 + Math.random() * 900; }
+      this.vx = this.dir * this.speed * 0.9;
+      if(this.x < this.patrolL){ this.x = this.patrolL; this.dir = 1; }
+      if(this.x > this.patrolR){ this.x = this.patrolR; this.dir = -1; }
+      if(this.state === 'search' && performance.now() > this.searchUntil) this.state = 'patrol';
+    } else {
+      this.alert = false;
+      if(this.state !== 'patrol'){ this.state = 'patrol'; this.patrolL = this.x - 40; this.patrolR = this.x + 40; this.dir = Math.sign(dx) || 1; }
+      this.vx = this.dir * this.speed;
+      if(this.x < this.patrolL){ this.x = this.patrolL; this.dir = 1; }
+      if(this.x > this.patrolR){ this.x = this.patrolR; this.dir = -1; }
+    }
+
+    this.vy += (this.world.gravity ?? 2000) * dt;
+    const n = this.world.slide(this.x, this.y, this.w, this.h, this.vx, this.vy);
+    this.x = n.x; this.y = n.y;
+
+    const animState = this.state === 'chase' ? 'run' : 'walk';
+    if(this.anim.state !== animState) this.anim.state = animState;
+    if(this.anim.runner) this.anim.runner.step(dt);
+  }
+  draw(ctx) {
+    const flip = this.dir < 0;
+    const alpha = performance.now() < this.hitUntil ? 0.75 : 1.0;
+    const animState = this.state === 'chase' ? 'run' : 'walk';
+    const img = this.assets.img?.[`${animState}_${this.w}`];
+    if (!img) return;
+
+    ctx.save();
+    if (flip) {
+      ctx.translate(Math.floor(this.x) + this.w, Math.floor(this.y));
+      ctx.scale(-1, 1);
+      ctx.drawImage(img, 0, 0, this.w, this.h);
+    } else {
+      ctx.drawImage(img, Math.floor(this.x), Math.floor(this.y), this.w, this.h);
+    }
+    ctx.restore();
+  }
+}
+
+class Drone {
+  constructor(def,assets,world,playerRef) {
+    this.x = def.x; this.y = def.y; this.w=18; this.h=14;
+    this.dir = def.dir ?? -1; this.speed = def.speed ?? 0.8;
+    this.phase = def.phase ?? 0; this.active = def.active ?? false;
+    this.disabled = def.disabled ?? false;
+    this.assets = assets; this.world = world; this.playerRef = playerRef;
+    this.anim = {state:'move', runner:null};
+  }
+  get bbox() { return {x:this.x, y:this.y, w:this.w, h:this.h}; }
+  update(dt) {
+    if(!this.active || this.disabled) return;
+    this.x += this.dir * this.speed;
+    this.phase = (this.phase || 0) + 0.02;
+    this.y += Math.sin(this.phase) * 0.2;
+    if((this.x % CHUNK) < 8 || (this.x % CHUNK) > CHUNK - 8) this.dir *= -1;
+    if(this.anim.runner) this.anim.runner.step(dt);
+  }
+  draw(ctx) {
+    const img = this.assets.img?.['drone_move_32']; // Assuming drone move animation is fixed
+    if (!img) return;
+    ctx.drawImage(img, Math.floor(this.x)-7, Math.floor(this.y)-9, this.w, this.h);
+  }
+}
+
+// Entity factory
+function spawnEntity(def) {
+  const world = {
+    gravity: 2000,
+    slide: (x, y, w, h, vx, vy) => {
+      let body = {x, y, w, h, vx, vy};
+      body.y += body.vy;
+      for(const p of platforms){
+        if(aabb(body, p)){
+          if(body.vy > 0){ body.y = p.y - body.h; body.vy = 0; body.onGround = true; }
+          else if(body.vy < 0){ body.y = p.y + p.h; body.vy = 0; }
+        }
+      }
+      body.x += body.vx;
+      for(const p of platforms){
+        if(aabb(body, p)){
+          if(body.vx > 0) body.x = p.x - body.w;
+          else if(body.vx < 0) body.x = p.x + p.w;
+          body.vx = 0;
+        }
+      }
+      return body;
+    },
+    platforms
+  };
+
+  switch (def.type) {
+    case 'robot': actors.push(new Robot(def,SPR,world,()=>player)); break;
+    case 'drone': actors.push(new Drone(def,SPR,world,()=>player)); break;
+    case 'female_npc': actors.push(new FemaleNPC(def,SPR,world,()=>player)); break;
+    case 'coin': coins.push(def); break;
+    case 'platform': platforms.push(def); break;
+    case 'terminal': terminals.push(def); break;
+    case 'ad': ads.push(def); break;
+    default: console.warn("Unknown entity type:", def.type);
+  }
+}
+
+// Helper to detect current level id from param or sessionStorage
+function _isLevel3(levelId) {
+  if (levelId === 3) return true;
+  try {
+    const g = parseInt(sessionStorage.getItem('gameLevel') || '0', 10);
+    if (g === 3) return true;
+  } catch (_) {}
+  return false;
+}
+
+// Initial entity spawning logic
+const actors = []; // Temporary array to hold entities that need physics updates
+function processLevelEntities(levelData, levelId) {
+  // Apply Level 3 specific modifications
+  if (_isLevel3(levelId)) {
+    // Filter out robots on Level 3
+    levelData.defs = levelData.defs.filter(d => d.type !== 'robot');
+
+    // Inject default female NPCs if none exist
+    if (!levelData.defs.some(d => d.type === 'female_npc')) {
+      levelData.defs.push(
+        { type:'female_npc', x: 280, y: 560, w:32, h:48, speed:1.0, dir:-1, minX:240, maxX:360 },
+        { type:'female_npc', x: 520, y: 560, w:32, h:48, speed:1.0, dir: 1, minX:480, maxX:600 },
+        { type:'female_npc', x: 760, y: 560, w:32, h:48, speed:1.2, dir:-1, minX:720, maxX:840 },
+      );
+    }
+  }
+
+  // Spawn entities from the processed definitions
+  for(const def of levelData.defs) {
+    if (def.type === 'robot' || def.type === 'drone' || def.type === 'female_npc') {
+      // Add to actors list for physics processing
+      const world = {
+        gravity: 2000,
+        slide: (x, y, w, h, vx, vy) => {
+          let body = {x, y, w, h, vx, vy};
+          body.y += body.vy;
+          for(const p of platforms){
+            if(aabb(body, p)){
+              if(body.vy > 0){ body.y = p.y - body.h; body.vy = 0; body.onGround = true; }
+              else if(body.vy < 0){ body.y = p.y + p.h; body.vy = 0; }
+            }
+          }
+          body.x += body.vx;
+          for(const p of platforms){
+            if(aabb(body, p)){
+              if(body.vx > 0) body.x = p.x - body.w;
+              else if(body.vx < 0) body.x = p.x + p.w;
+              body.vx = 0;
+            }
+          }
+          return body;
+        },
+        platforms
+      };
+      if (def.type === 'robot') actors.push(new Robot(def,SPR,world,()=>player));
+      else if (def.type === 'drone') actors.push(new Drone(def,SPR,world,()=>player));
+      else if (def.type === 'female_npc') actors.push(new FemaleNPC(def,SPR,world,()=>player));
+    } else {
+      // For other entity types, use the direct spawning function
+      spawnEntity(def);
+    }
+  }
+}
+
+
+// ====== Preload Assets ======
+async function preloadAssets(levelId) {
+  const loader = {
+    imgMap: {},
+    image: function(name, src) {
+      if (this.imgMap[name]) return this.imgMap[name];
+      const img = new Image();
+      img.onload = () => { this.imgMap[name] = img; };
+      img.onerror = () => console.error(`Failed to load: ${src}`);
+      img.src = src + '?' + HYPER_RELOAD_TAG;
+      this.imgMap[name] = img; // Store partially loaded image to prevent multiple requests
+      return img;
+    }
+  };
+
+  // Load player and other core sprites
+  loader.image('player_idle_48','./assets/player_idle_48.png');
+  loader.image('player_walk_48','./assets/player_walk_48.png');
+  loader.image('player_run_48','./assets/player_run_48.png');
+  loader.image('player_jump_48','./assets/player_jump_48.png');
+  loader.image('player_fall_48','./assets/player_fall_48.png');
+  loader.image('player_hurt_48','./assets/player_hurt_48.png');
+  loader.image('player_dead_48','./assets/player_dead_48.png');
+  loader.image('robot_idle_48','./assets/robot_idle_48.png');
+  loader.image('robot_walk_48','./assets/robot_walk_48.png');
+  loader.image('robot_run_48','./assets/robot_run_48.png');
+  loader.image('robot_attack_48','./assets/robot_attack_48.png');
+  loader.image('robot_hurt_48','./assets/robot_hurt_48.png');
+  loader.image('robot_dead_48','./assets/robot_dead_48.png');
+  loader.image('drone_idle_32','./assets/drone_idle_32.png');
+  loader.image('drone_hover_32','./assets/drone_hover_32.png');
+  loader.image('drone_move_32','./assets/drone_move_32.png');
+  loader.image('drone_attack_32','./assets/drone_attack_32.png');
+  loader.image('drone_hurt_32','./assets/drone_hurt_32.png');
+  loader.image('drone_dead_32','./assets/drone_dead_32.png');
+  loader.image('female_idle','./assets/female_idle.png');
+  loader.image('female_run','./assets/female_run.png');
+
+  FemaleNPC.loadAssets(loader);
+
+  // Load level specific backgrounds and ads
+  const bgUrls = bgURLsForLevel(levelId);
+  loader.image('bg_far', bgUrls.far);
+  loader.image('bg_near', bgUrls.near);
+
+  const adConfig = adConfigForLevel(levelId);
+  for (const kind in adConfig.images) {
+    loader.image(kind, adConfig.images[kind]);
+  }
+
+  // Load other game assets
+  loader.image('coin', SPRITE_DEF.coin);
+  loader.image('door', SPRITE_DEF.door);
+  loader.image('ledge', SPRITE_DEF.ledge);
+  loader.image('platform', SPRITE_DEF.platform);
+  loader.image('terminal_frame1', `assets/hacker_terminal_frame1.png?${HYPER_RELOAD_TAG}`);
+  loader.image('terminal_frame2', `assets/hacker_terminal_frame2.png?${HYPER_RELOAD_TAG}`);
+
+  // Wait for all images to load
+  await Promise.all(Object.values(loader.imgMap).map(img => new Promise(resolve => img.onload ? img.onload = resolve : resolve())));
+  
+  return loader;
+}
+
+
+// ====== Modified bootLevel ======
+export async function bootLevel(levelNumber, opts = {}){
+  const canvas = document.getElementById('game');
+  C = canvas;
+  ctx = C.getContext('2d');
+  VW_CANVAS = C.width;
+  VH_CANVAS = C.height;
+
+  off = document.createElement('canvas');
+  off.width = VW;
+  off.height = VH;
+  octx = off.getContext('2d');
+  ctx = octx;
+  ctx.imageSmoothingEnabled = false;
+  ctx.font = '9px monospace';
+  ctx.textBaseline = 'top';
+
+  LVL = levelNumber | 0;
+  NEXT_HREF = opts.nextHref || './index.html';
+
+  // Initialize game state from storage
+  score = getRunN('playerScore', 0);
+  btc = getRunN('playerBTC', 0);
+  level = LVL;
+  gameState = 'playing';
+
+  // Preload assets
+  const assets = await preloadAssets(LVL);
+
+  // Set background and ad configurations
+  setBackgroundsForLevel(LVL);
+  await loadAdImagesForLevel(LVL); // Ensure ads are loaded correctly
+
+  // Reset world state
+  cameraX = 0; worldMaxX = 0; generatedUntil = 0;
+  platforms = []; robots = []; drones = []; females = []; terminals = []; ads = []; coins = [];
+  exitDoor = null;
+  actors.length = 0; // Clear actors array
+
+  // Load level data (assuming levelData is available somewhere or loaded here)
+  // For now, simulating level data generation based on levelNumber
+  const levelData = {
+    defs: [] // This would normally come from a level definition file or be generated
+  };
+  
+  // Pre-fill levelData based on level number for testing purposes
+  // This part needs to be replaced with actual level data loading
+  if (LVL === 1) {
+    levelData.defs = [
+      {type: 'robot', x: 400, y: 560, active: false},
+      {type: 'robot', x: 600, y: 560, active: false},
+      {type: 'ad', x: 350, y: 300, kind: 'fourk'},
+      {type: 'ad', x: 550, y: 320, kind: 'meat'},
+    ];
+  } else if (LVL === 2) {
+    levelData.defs = [
+      {type: 'robot', x: 400, y: 560, active: false},
+      {type: 'drone', x: 120, y: 70, active: true},
+      {type: 'drone', x: 220, y: 85, active: true},
+      {type: 'ad', x: 350, y: 300, kind: 'oxygen'},
+      {type: 'ad', x: 550, y: 320, kind: 'skinshift'},
+    ];
+  } else if (LVL === 3) {
+    // Level 3 definitions will be handled by processLevelEntities
+    levelData.defs = [
+      {type: 'ad', x: 350, y: 300, kind: 'bug'},
+      {type: 'ad', x: 550, y: 320, kind: 'pill'},
+    ];
+  }
+
+  // Process level entities, applying modifications for Level 3
+  processLevelEntities(levelData, LVL);
+
+  // Create player
+  player = makePlayer();
+  setAnim(player, 'player', 'idle');
+
+  // Populate initial entities based on generated levelData.defs
+  for(const def of levelData.defs) {
+    if (def.type === 'robot' || def.type === 'drone' || def.type === 'female_npc') {
+      const world = {
+        gravity: 2000,
+        slide: (x, y, w, h, vx, vy) => {
+          let body = {x, y, w, h, vx, vy};
+          body.y += body.vy;
+          for(const p of platforms){
+            if(aabb(body, p)){
+              if(body.vy > 0){ body.y = p.y - body.h; body.vy = 0; body.onGround = true; }
+              else if(body.vy < 0){ body.y = p.y + p.h; body.vy = 0; }
+            }
+          }
+          body.x += body.vx;
+          for(const p of platforms){
+            if(aabb(body, p)){
+              if(body.vx > 0) body.x = p.x - body.w;
+              else if(body.vx < 0) body.x = p.x + p.w;
+              body.vx = 0;
+            }
+          }
+          return body;
+        },
+        platforms
+      };
+      if (def.type === 'robot') robots.push(new Robot(def,SPR,world,()=>player));
+      else if (def.type === 'drone') drones.push(new Drone(def,SPR,world,()=>player));
+      else if (def.type === 'female_npc') females.push(new FemaleNPC(def,SPR,world,()=>player));
+    } else {
+      spawnEntity(def); // Handles coins, platforms, terminals, ads directly
+    }
+  }
+
+  // Generate initial chunks for the level
+  for(let x = 0; x < CHUNK * 4; x += CHUNK) genChunk(x);
+  placeExitDoor();
+
+  // Initialize sprites after loading
+  SPR = await loadSprites(SPRITE_DEF);
 
   // Start game loop
   requestAnimationFrame(loop);
