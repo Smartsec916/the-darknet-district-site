@@ -267,10 +267,14 @@ function drawSky(){
 function refillDeck(){ 
   // Create multiple copies of each ad type to ensure variety
   adDeck = [];
-  for(let i = 0; i < 3; i++){
+  for(let i = 0; i < 5; i++){
     adDeck.push(...CurrentAds.kinds);
   }
-  adDeck = adDeck.sort(() => Math.random() - 0.5); 
+  // Better shuffling algorithm
+  for(let i = adDeck.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [adDeck[i], adDeck[j]] = [adDeck[j], adDeck[i]];
+  }
 }
 function nextAdKind(){ 
   if(!adDeck.length) refillDeck(); 
@@ -296,22 +300,25 @@ function genChunk(startX){
         const cx = startX + 30 + Math.random() * (CHUNK - 60);
         coins.push({x: cx|0, y: (groundY() - 24)|0, r: 10, taken: false});
       }
-      // ads - better spacing, less frequent
-      if(Math.random() < 0.6){ // Slightly less frequent but better spaced
-        const ax = startX + 100 + Math.random() * (CHUNK - 200);
-        const ay = VH - (120 + ((Math.random() * 40)|0));
+      // ads - more frequent with guaranteed variety
+      if(Math.random() < 0.8){ // Higher chance for more ads
+        const ax = startX + 80 + Math.random() * (CHUNK - 160);
+        const ay = VH - (100 + ((Math.random() * 60)|0));
         ads.push({x: ax|0, y: ay|0, kind: nextAdKind(), phase: Math.random() * 6});
       }
 
       // Female NPCs for Level 3 (spawn in every chunk after 300)
-      const fc = 1 + ((Math.random() * 2)|0);
+      const fc = 2 + ((Math.random() * 2)|0); // More females per chunk
       for(let i = 0; i < fc; i++){
         const fx = startX + 64 + Math.random() * (CHUNK - 128);
-        females.push({
-          x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.5, hp: 1,
-          active: true, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 40, patrolR: fx + 40,
+        const newFemale = {
+          x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.6, hp: 1,
+          active: true, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 50, patrolR: fx + 50,
           searchUntil: 0, lookTimer: 0, hasTaken: false, anim: {state: 'idle', runner: null}
-        });
+        };
+        // Initialize animation immediately
+        setAnim(newFemale, 'female', 'idle');
+        females.push(newFemale);
       }
     }
     generatedUntil = endX;
@@ -521,14 +528,20 @@ function placeExitDoor(){
 function spawnLevel3Females(){
   // Force spawn some initial females near the start for Level 3
   if(LVL === 3){
-    // Add 2-3 females in the starting area to guarantee visibility
-    for(let i = 0; i < 3; i++){
-      const fx = 400 + i * 120 + Math.random() * 60;
-      females.push({
-        x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.5, hp: 1,
-        active: true, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 40, patrolR: fx + 40,
+    // Clear any existing females first
+    females.length = 0;
+    
+    // Add 4-5 females in the starting area to guarantee visibility
+    for(let i = 0; i < 5; i++){
+      const fx = 200 + i * 100 + Math.random() * 40;
+      const newFemale = {
+        x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.7, hp: 1,
+        active: true, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 60, patrolR: fx + 60,
         searchUntil: 0, lookTimer: 0, hasTaken: false, anim: {state: 'idle', runner: null}
-      });
+      };
+      // Initialize animation immediately
+      setAnim(newFemale, 'female', 'idle');
+      females.push(newFemale);
     }
   }
 }
@@ -981,39 +994,39 @@ function drawAds(){
     const x = (a.x - cameraX)|0, y = a.y|0;
     if(x + 80 < 0 || x > VW) continue;
 
-    // Minimal animation phase
-    a.phase = (a.phase || 0) + 0.01;
-    const bob = Math.sin(a.phase) * 1;
+    // Subtle animation phase
+    a.phase = (a.phase || 0) + 0.005;
+    const bob = Math.sin(a.phase) * 0.5;
 
     // Get correct image for this ad kind
     let img = null;
     if(a.kind === 'drink'){
       // Level 1 only: 2-frame blink animation
-      const frame = (Math.floor(performance.now() / 350) % 2 === 0) ? 'drinkA' : 'drinkB';
+      const frame = (Math.floor(performance.now() / 500) % 2 === 0) ? 'drinkA' : 'drinkB';
       img = CurrentAds.imgObjs[frame];
     } else {
       img = CurrentAds.imgObjs[a.kind];
     }
 
     if(img && img.complete && img.naturalWidth > 0){
-      // Calculate proper scaling
-      const targetW = 56;
+      // Calculate proper scaling - make ads larger and more readable
+      const targetW = 72;
       const ratio = img.height ? (img.width / img.height) : 1;
-      const w = targetW, h = Math.max(11, Math.round(targetW / ratio));
+      const w = targetW, h = Math.max(14, Math.round(targetW / ratio));
       const drawX = x - Math.round(w/2), drawY = y - Math.round(h/2) + bob;
 
       ctx.save();
 
-      // Simple frame box
-      ctx.globalAlpha = 0.9;
-      ctx.fillStyle = 'rgba(10,14,20,0.7)';
-      ctx.fillRect(drawX - 4, drawY - 4, w + 8, h + 8);
-      ctx.strokeStyle = 'rgba(111,194,255,0.8)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(drawX - 4, drawY - 4, w + 8, h + 8);
-
-      // Draw the ad image with high opacity for readability
+      // Cleaner frame with better contrast
       ctx.globalAlpha = 0.95;
+      ctx.fillStyle = 'rgba(5,8,12,0.85)';
+      ctx.fillRect(drawX - 3, drawY - 3, w + 6, h + 6);
+      ctx.strokeStyle = 'rgba(0,255,157,0.6)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(drawX - 3, drawY - 3, w + 6, h + 6);
+
+      // Draw the ad image with full opacity for maximum readability
+      ctx.globalAlpha = 1.0;
       ctx.drawImage(img, drawX, drawY, w, h);
 
       ctx.restore();
