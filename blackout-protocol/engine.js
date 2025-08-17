@@ -264,8 +264,18 @@ function drawSky(){
 }
 
 // ====== ads ======
-function refillDeck(){ adDeck = [...CurrentAds.kinds].sort(() => Math.random() - 0.5); }
-function nextAdKind(){ if(!adDeck.length) refillDeck(); return adDeck.shift(); }
+function refillDeck(){ 
+  // Create multiple copies of each ad type to ensure variety
+  adDeck = [];
+  for(let i = 0; i < 3; i++){
+    adDeck.push(...CurrentAds.kinds);
+  }
+  adDeck = adDeck.sort(() => Math.random() - 0.5); 
+}
+function nextAdKind(){ 
+  if(!adDeck.length) refillDeck(); 
+  return adDeck.shift(); 
+}
 
 // ====== world generation ======
 function pushGroundRow(startX, endX){
@@ -522,8 +532,18 @@ function placeExitDoor(){
 }
 
 function spawnLevel3Females(){
-  // Females are now spawned procedurally in genChunk like robots
-  // This function is kept for compatibility but does nothing
+  // Force spawn some initial females near the start for Level 3
+  if(LVL === 3){
+    // Add 2-3 females in the starting area to guarantee visibility
+    for(let i = 0; i < 3; i++){
+      const fx = 400 + i * 120 + Math.random() * 60;
+      females.push({
+        x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.5, hp: 1,
+        active: true, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 40, patrolR: fx + 40,
+        searchUntil: 0, lookTimer: 0, hasTaken: false, anim: {state: 'idle', runner: null}
+      });
+    }
+  }
 }
 
 function activateEnemies(){
@@ -540,7 +560,13 @@ function activateEnemies(){
     if(!d.active && d.x < visRight){ if(LVL >= 2) d.active = true; }
   }
   for(const f of females){
-    if(!f.active && f.x < visRight){ if(LVL === 3) f.active = true; }
+    if(!f.active && f.x < visRight){ 
+      if(LVL === 3) {
+        f.active = true; 
+        // Initialize animation if not set
+        if(!f.anim.runner) setAnim(f, 'female', 'idle');
+      }
+    }
   }
 }
 
