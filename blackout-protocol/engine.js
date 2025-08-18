@@ -1,4 +1,3 @@
-
 // engine.js  (shared engine for Levels 1–3)
 const VW = 256, VH = 240, TILE = 16;
 const LEVEL_LEN = 1600;
@@ -531,7 +530,7 @@ function spawnLevel3Females(){
   if(LVL === 3){
     // Clear any existing females first
     females.length = 0;
-    
+
     // Add 4-5 females in the starting area to guarantee visibility
     for(let i = 0; i < 5; i++){
       const fx = 200 + i * 100 + Math.random() * 40;
