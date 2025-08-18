@@ -17,8 +17,8 @@
   <div class="wrap">
     <div>
       <canvas id="title" width="640" height="480"></canvas>
-      <div style="text-align:center">
-        <a class="btn" href="./level1.html">[ START ]</a>
+      <div style="text-align:center; margin-top: 20px;">
+        <a class="btn" href="./level1.html" style="font-size: 18px; padding: 12px 24px;">[ START ]</a>
       </div>
     </div>
   </div>
@@ -54,9 +54,7 @@
         ctx.fillText(`${String(i+1).padStart(2,'0')}  ${tag}  ${score}`, 20, 90+i*16);
       });
 
-      ctx.fillStyle='#9cff7e';
-      ctx.font='12px monospace';
-      ctx.fillText('[ START ]', VW-120, VH-24);
+      
     }
     drawTitle();
   </script>

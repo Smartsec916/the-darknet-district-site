@@ -531,12 +531,12 @@ function spawnLevel3Females(){
     // Clear any existing females first
     females.length = 0;
 
-    // Add 4-5 females in the starting area to guarantee visibility
-    for(let i = 0; i < 5; i++){
-      const fx = 200 + i * 100 + Math.random() * 40;
+    // Add females in the starting area AND immediately visible area
+    for(let i = 0; i < 8; i++){
+      const fx = 80 + i * 60 + Math.random() * 20; // Start closer to player
       const newFemale = {
         x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.7, hp: 1,
-        active: true, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 60, patrolR: fx + 60,
+        active: true, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 40, patrolR: fx + 40,
         searchUntil: 0, lookTimer: 0, hasTaken: false, anim: {state: 'idle', runner: null}
       };
       // Initialize animation immediately
@@ -566,6 +566,11 @@ function activateEnemies(){
         // Initialize animation if not set
         if(!f.anim.runner) setAnim(f, 'female', 'idle');
       }
+    }
+    // For Level 3, ensure all females are always active once spawned
+    if(LVL === 3 && !f.active) {
+      f.active = true;
+      if(!f.anim.runner) setAnim(f, 'female', 'idle');
     }
   }
 }
@@ -994,42 +999,31 @@ function drawAds(){
     const x = (a.x - cameraX)|0, y = a.y|0;
     if(x + 80 < 0 || x > VW) continue;
 
-    // Subtle animation phase
-    a.phase = (a.phase || 0) + 0.005;
-    const bob = Math.sin(a.phase) * 0.5;
-
     // Get correct image for this ad kind
     let img = null;
     if(a.kind === 'drink'){
-      // Level 1 only: 2-frame blink animation
-      const frame = (Math.floor(performance.now() / 500) % 2 === 0) ? 'drinkA' : 'drinkB';
-      img = CurrentAds.imgObjs[frame];
+      // Use first drink image only, no animation
+      img = CurrentAds.imgObjs['drinkA'];
     } else {
       img = CurrentAds.imgObjs[a.kind];
     }
 
     if(img && img.complete && img.naturalWidth > 0){
-      // Calculate proper scaling - make ads larger and more readable
+      // Calculate proper scaling - keep same size as before
       const targetW = 56;
       const ratio = img.height ? (img.width / img.height) : 1;
       const w = targetW, h = Math.max(14, Math.round(targetW / ratio));
-      const drawX = x - Math.round(w/2), drawY = y - Math.round(h/2) + bob;
+      const drawX = x - Math.round(w/2), drawY = y - Math.round(h/2);
 
-      ctx.save();
-
-      // Cleaner frame with better contrast
-      ctx.globalAlpha = 0.95;
-      ctx.fillStyle = 'rgba(5,8,12,0.85)';
-      ctx.fillRect(drawX - 3, drawY - 3, w + 6, h + 6);
-      ctx.strokeStyle = 'rgba(0,255,157,0.6)';
+      // Simple black frame
+      ctx.fillStyle = 'rgba(0,0,0,0.9)';
+      ctx.fillRect(drawX - 2, drawY - 2, w + 4, h + 4);
+      ctx.strokeStyle = 'rgba(255,255,255,0.8)';
       ctx.lineWidth = 1;
-      ctx.strokeRect(drawX - 3, drawY - 3, w + 6, h + 6);
+      ctx.strokeRect(drawX - 2, drawY - 2, w + 4, h + 4);
 
-      // Draw the ad image with full opacity for maximum readability
-      ctx.globalAlpha = 1.0;
+      // Draw the ad image with full opacity, no effects
       ctx.drawImage(img, drawX, drawY, w, h);
-
-      ctx.restore();
     }
   }
 }
