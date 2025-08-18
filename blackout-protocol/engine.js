@@ -40,8 +40,15 @@ export function goTo(href){ location.href = href; }
 function loadImg(url){
   return new Promise((resolve, reject)=>{
     const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('Image failed: ' + url));
+    img.onload = () => {
+      console.log('✓ Loaded:', url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      console.error('✗ Failed to load:', url);
+      console.error('Full path attempted:', img.src);
+      reject(new Error('Image failed: ' + url));
+    };
     img.src = url + (url.includes('?') ? '&' : '?') + CACHE_BUSTER;
   });
 }
