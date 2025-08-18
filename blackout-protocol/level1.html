@@ -6,10 +6,9 @@
   <title>Blackout Protocol — Level 1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <style>
-    :root { --frame-w: 960px; }
-    html,body{margin:0;background:#000;color:#cfd6df;font-family:monospace;overflow:hidden;}
-    #gameContainer{position:relative;width:100%;max-width:var(--frame-w);margin:0 auto;aspect-ratio:4/3;background:#000;border:2px solid #5c5c5c;}
-    canvas{position:absolute;inset:0;display:block;image-rendering:pixelated;image-rendering:crisp-edges;}
+    html,body{margin:0;background:#000;color:#cfd6df;font-family:monospace;height:100%;overflow:hidden;}
+    #gameContainer{display:grid;place-items:center;height:100vh;width:100vw;}
+    canvas{image-rendering:pixelated;image-rendering:crisp-edges;width:min(960px, 96vw);height:auto;border:2px solid #5c5c5c;background:#000;}
   </style>
 </head>
 <body>
