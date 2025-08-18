@@ -49,14 +49,14 @@ function loadImg(url){
 // ---------- Sprite registry (paths are case-sensitive) ----------
 const SPRITES = {
   player: {
-    fw: 32, fh: 32,
+    fw: 48, fh: 48,
     states: {
-      idle:  'assets/player_idle_32.png',
-      run:   'assets/player_run_32.png',
-      hurt:  'assets/player_hurt_32.png',
-      dead:  'assets/player_dead_32.png',
-      jump:  'assets/player_jump_32.png',
-      fall:  'assets/player_fall_32.png'
+      idle:  'assets/player_idle_48.png',
+      run:   'assets/player_run_48.png',
+      hurt:  'assets/player_hurt_48.png',
+      dead:  'assets/player_dead_48.png',
+      jump:  'assets/player_jump_48.png',
+      fall:  'assets/player_fall_48.png'
     },
     fps: { idle:6, run:12, hurt:6, dead:8, jump:10, fall:10 }
   },
