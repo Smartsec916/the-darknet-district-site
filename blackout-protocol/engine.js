@@ -181,7 +181,7 @@ async function loadTiles(){
 
 // Level-specific ads (by filename in /assets)
 const AdSets = {
-  1: ['4K','bitcoin_glow_cyberpunk','btc_glow','Drink_Oil_01','Drink_Oil_02'],
+  1: ['4K','btc_glow','Drink_Oil_01','Drink_Oil_02'],
   2: ['Blackrock','Downthere','Oxygen','Skinshift','Zen'],
   3: ['Bug','Pill','Plug','Touchless','Pinknoise']
 };
