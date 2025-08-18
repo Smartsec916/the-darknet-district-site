@@ -297,17 +297,18 @@ function genChunk(startX){
       const ay = VH - (100 + ((Math.random()*60)|0));
       const kind = pickAdKind(); if (kind) ads.push({x:ax|0, y:ay|0, kind, phase:Math.random()*6});
     }
-    // females — spawn inactive so they use same activation as robots
+    // females — spawn active for Level 3
     const fc = 2 + ((Math.random()*2)|0);
     for (let i=0;i<fc;i++){
       const fx = startX + 64 + Math.random()*(CHUNK-128);
-      females.push({
+      const newFemale = {
         type:'female', x:fx|0, y:VH - TILE*2, w:18, h:28,
         dir: Math.random()<0.5?-1:1, speed:0.66, hp:1,
-        active:false, patrolL:fx-50, patrolR:fx+50,
+        active:true, patrolL:fx-50, patrolR:fx+50,
         hitUntil:0, state:'patrol', hasTaken:false, anim:null
-      });
-      setAnim(females[females.length-1], 'female', 'idle');
+      };
+      setAnim(newFemale, 'female', 'idle');
+      females.push(newFemale);
     }
   }
 
@@ -393,7 +394,7 @@ function activateByProgress(){
   for (const f of females){
     if (!f.active && f.x < visRight && player.x >= gate){
       f.active = true;
-      if (!f.anim || !f.anim.img) setAnim(f, 'female', 'run');
+      setAnim(f, 'female', 'idle');
     }
   }
 }
@@ -564,10 +565,34 @@ function update(dt, now){
     if (d.x < 32) d.dir = 1;
     if (d.x > worldMaxX - 32) d.dir = -1;
   }
+  
+  // Level 3 Female AI - steal BTC instead of dealing damage
   for (const f of females){
     if (!f.active) continue;
+    
+    // Simple patrol movement
     f.x += f.dir * f.speed * 0.9;
     if (f.x < f.patrolL || f.x > f.patrolR) f.dir *= -1;
+    
+    // Set animation based on movement
+    setAnim(f, 'female', Math.abs(f.dir * f.speed) > 0.1 ? 'run' : 'idle');
+    
+    // Check collision with player for BTC theft
+    if (rects(player, f) && !f.hasTaken && performance.now() > f.hitUntil) {
+      const steal = Math.min(3, btc); // Steal up to 3 BTC
+      if (steal > 0) {
+        btc -= steal;
+        setRunN('playerBTC', btc);
+        score += 1; // Small score bonus for surviving encounter
+        f.hasTaken = true;
+        f.hitUntil = performance.now() + 2000; // 2 second cooldown before can steal again
+      }
+    }
+    
+    // Reset theft flag after some time
+    if (f.hasTaken && performance.now() > f.hitUntil + 5000) {
+      f.hasTaken = false;
+    }
   }
 
   pickupCoins();
@@ -656,6 +681,21 @@ export async function bootLevel(levelNumber, opts = {}){
   // initial chunks
   for (let x=0;x<VW + CHUNK*2;x+=CHUNK) genChunk(x);
   placeExit();
+
+  // Level 3: Force spawn initial females near start
+  if (LVL === 3) {
+    for (let i = 0; i < 3; i++) {
+      const fx = 250 + i * 120 + Math.random() * 40;
+      const newFemale = {
+        type:'female', x:fx|0, y:VH - TILE*2, w:18, h:28,
+        dir: Math.random()<0.5?-1:1, speed:0.66, hp:1,
+        active:true, patrolL:fx-50, patrolR:fx+50,
+        hitUntil:0, state:'patrol', hasTaken:false, anim:null
+      };
+      setAnim(newFemale, 'female', 'idle');
+      females.push(newFemale);
+    }
+  }
 
   // carry-over values
   score = getRunN('playerScore', 0);
