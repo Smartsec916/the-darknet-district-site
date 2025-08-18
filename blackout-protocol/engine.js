@@ -171,7 +171,10 @@ async function loadBackgrounds(level){
 async function loadTiles(){
   [coinImg, doorImg, platformImg, platformRailImg, terminalA, terminalB] = await Promise.all([
     loadImg('assets/btc_glow.png'),
-    loadImg('assets/door.png'),
+    loadImg('assets/door.png').catch(err => {
+      console.error('Door image failed to load, using fallback');
+      return null;
+    }),
     loadImg('assets/platform_industrial.png').catch(()=>null),      // optional
     loadImg('assets/platform_rail.png').catch(()=>null), // optional
     loadImg('assets/hacker_terminal_frame1.png').catch(()=>null),       // optional
