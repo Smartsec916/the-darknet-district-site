@@ -220,11 +220,28 @@ async function loadBackgrounds(){
 async function loadAdImagesForLevel(lvl){
   CurrentAds = adConfigForLevel(lvl);
   CurrentAds.imgObjs = {};
-  const keys = Object.keys(CurrentAds.images || {});
+  const images = CurrentAds.images || {};
+  const keys = Object.keys(images);
+  
+  // Debug logging for Level 1
+  if(lvl === 1) console.log(`Loading ads for Level 1:`, keys);
+  
   for(const k of keys){
-    CurrentAds.imgObjs[k] = await IMG(CurrentAds.images[k]);
+    try {
+      CurrentAds.imgObjs[k] = await IMG(images[k]);
+      if(lvl === 1) console.log(`Loaded ad image: ${k}`);
+    } catch(error) {
+      console.error(`Failed to load ad image ${k}:`, error);
+    }
   }
+  
   refillDeck();
+  
+  // Debug the final state
+  if(lvl === 1) {
+    console.log(`Level 1 ads loaded:`, Object.keys(CurrentAds.imgObjs));
+    console.log(`Ad deck size: ${adDeck.length}`);
+  }
 }
 
 function tileParallax(img, speed){
@@ -267,18 +284,21 @@ function drawSky(){
 function refillDeck(){ 
   // Create multiple copies of each ad type to ensure variety
   adDeck = [];
-  for(let i = 0; i < 5; i++){
+  for(let i = 0; i < 8; i++){ // Increased from 5 to 8 copies
     adDeck.push(...CurrentAds.kinds);
   }
-  // Better shuffling algorithm
+  // Better shuffling algorithm - Fisher-Yates shuffle
   for(let i = adDeck.length - 1; i > 0; i--){
     const j = Math.floor(Math.random() * (i + 1));
     [adDeck[i], adDeck[j]] = [adDeck[j], adDeck[i]];
   }
 }
 function nextAdKind(){ 
-  if(!adDeck.length) refillDeck(); 
-  return adDeck.shift(); 
+  if(!adDeck.length || adDeck.length < 3) refillDeck(); // Refill earlier
+  const kind = adDeck.shift();
+  // Debug logging for Level 1
+  if(LVL === 1) console.log(`Selected ad kind: ${kind}, remaining deck: ${adDeck.length}`);
+  return kind; 
 }
 
 // ====== world generation ======
