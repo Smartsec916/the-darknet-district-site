@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Curious Grid</title>
+</head>
+<body>
+  <div>
+    <nav>
+      <a href="resources.html">Resources</a> |
+      <a href="curious.html">Curious Grid</a>
+    </nav>
+
+    <h1>Cyberpunk Knowledge Grid</h1>
+    <p>
+      Welcome to the grid. This page links to high-voltage learning nodes for cyber security, ethical hacking, and electronic tinkering. Whether you're a rogue sysadmin, a neon-lit solder junkie, or a zero-day dreamer, these portals will level up your skills and plug you into the underground.
+    </p>
+
+    <div>
+      <h2>🧠 StationX</h2>
+      <p>Elite training vault for cyber operatives. Offers 30,000+ courses from penetration testing to AI forensics. Mentorship and mastermind groups included.</p>
+      <a href="https://www.stationx.net/best-places-to-learn-cyber-security/" target="_blank">Visit StationX</a>
+    </div>
+
+    <div>
+      <h2>🧪 TryHackMe</h2>
+      <p>Gamified hacking labs in a browser-based simulation. Navigate red team ops, Linux forensics, and OWASP exploits in a safe, neon-lit sandbox.</p>
+      <a href="https://www.tryhackme.com" target="_blank">Visit TryHackMe</a>
+    </div>
+
+    <div>
+      <h2>🧬 Hack The Box</h2>
+      <p>Virtual machines rigged with vulnerabilities. Practice real-world exploits in a legal, encrypted arena. From beginner to black hat emulation.</p>
+      <a href="https://www.hackthebox.com" target="_blank">Visit Hack The Box</a>
+    </div>
+
+    <div>
+      <h2>🛰️ VulnHub</h2>
+      <p>Downloadable VMs designed to be broken. Perfect for offline penetration testing and privilege escalation drills. No rules, just root.</p>
+      <a href="https://www.vulnhub.com" target="_blank">Visit VulnHub</a>
+    </div>
+
+    <div>
+      <h2>🧰 PentesterLab</h2>
+      <p>Web app security dojo. Learn to exploit APIs, CSRF, SSRF, and more. Includes real-world walkthroughs and code review missions.</p>
+      <a href="https://www.pentesterlab.com" target="_blank">Visit PentesterLab</a>
+    </div>
+
+    <div>
+      <h2>🧱 Security Shepherd</h2>
+      <p>OWASP-based training ground. Hands-on challenges for web and mobile app vulnerabilities. Open-source and customizable.</p>
+      <a href="https://owasp.org/www-project-security-shepherd/" target="_blank">Visit Security Shepherd</a>
+    </div>
+
+    <div>
+      <h2>🧠 Hack This Site</h2>
+      <p>Old-school hacker playground. CTFs, steganography, and realistic missions. Active since 2003. Join the forums, IRC, and Discord underground.</p>
+      <a href="https://www.hackthissite.org" target="_blank">Visit Hack This Site</a>
+    </div>
+
+    <div>
+      <h2>🔧 Tinkerers Workshop</h2>
+      <p>DIY lab for robotics, Arduino, and 3D printing. Learn to build bots, code microcontrollers, and solder your way to enlightenment.</p>
+      <a href="https://thetinkerersworkshop.com/" target="_blank">Visit Tinkerers Workshop</a>
+    </div>
+
+    <div>
+      <h2>⚡ Tinkercad Circuits</h2>
+      <p>Browser-based circuit simulator. Drag, drop, and code your way through breadboards, LEDs, and micro:bit madness.</p>
+      <a href="https://www.tinkercad.com/circuits" target="_blank">Visit Tinkercad Circuits</a>
+    </div>
+
+    <div>
+      <h2>🔌 EveryCircuit</h2>
+      <p>Animated circuit simulator with real-time feedback. Visualize voltages, currents, and logic gates like a digital oracle.</p>
+      <a href="https://everycircuit.com/" target="_blank">Visit EveryCircuit</a>
+    </div>
+
+    <div>
+      <h2>📐 CircuitLab</h2>
+      <p>Professional-grade schematic editor and simulator. Ideal for analog/digital mashups and rapid prototyping in-browser.</p>
+      <a href="https://www.circuitlab.com/" target="_blank">Visit CircuitLab</a>
+    </div>
+
+    <div>
+      <h2>🎭 DEF CON Las Vegas</h2>
+      <p>The mothership. Annual hacker convergence with villages, CTFs, and bleeding-edge talks. If you’re serious about the craft, this is your pilgrimage.</p>
+      <a href="https://defcon.org/index.html" target="_blank">Visit DEF CON</a>
+    </div>
+  </div>
+</body>
+</html>
