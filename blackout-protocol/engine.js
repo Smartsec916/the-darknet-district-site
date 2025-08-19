@@ -367,10 +367,11 @@ function genChunk(startX){
       terminals.push({x: tx|0, y: ty|0, w: 12, h: 16, cooldown: 0});
     }
 
-    // ads - better spacing, less frequent
-    if(Math.random() < 0.7){ // 70% chance of ad per chunk
+    // ads - better spacing, more frequent for Level 1
+    const adChance = lvl === 1 ? 0.9 : 0.7; // 90% chance for Level 1, 70% for others
+    if(Math.random() < adChance){
       const ax = startX + 80 + Math.random() * (CHUNK - 160); // More centered
-      const ay = VH - (140 + ((Math.random() * 60)|0)); // Higher placement
+      const ay = VH - (120 + ((Math.random() * 40)|0)); // Lower placement for better visibility
       ads.push({x: ax|0, y: ay|0, kind: nextAdKind(), phase: Math.random() * 6});
     }
   }
@@ -1025,7 +1026,8 @@ function drawControlsHint(){
 function drawAds(){
   for(const a of ads){
     const x = (a.x - cameraX)|0, y = a.y|0;
-    if(x + 80 < 0 || x > VW) continue; // Bounds check for larger ads
+    const maxAdWidth = Math.round(VW * 0.25); // Match the 25% used in sizing
+    if(x + maxAdWidth < 0 || x > VW) continue; // Bounds check for percentage-based ads
 
     // Get correct image for this ad kind
     let img = null;
@@ -1037,8 +1039,9 @@ function drawAds(){
     }
 
     if(img && img.complete && img.naturalWidth > 0){
-      // Use natural size with reasonable scaling
-      const maxW = 80; // Maximum width for very large images
+      // Use percentage-based sizing relative to viewport width
+      const maxWidthPercent = 0.25; // 25% of viewport width
+      const maxW = Math.round(VW * maxWidthPercent);
       const naturalW = img.naturalWidth;
       const naturalH = img.naturalHeight;
       
