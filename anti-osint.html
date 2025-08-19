@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anti-OSINT Grid - The Darknet District</title>
+  <link href="style.css" rel="stylesheet" type="text/css" />
+  <style>
+    .anti-osint-bg {
+      min-height: 100vh;
+      background-image: linear-gradient(to bottom, black 0%, transparent 20%, transparent 80%, black 100%), url('attached_assets/cyberpunk_shop.jpg.png');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      position: relative;
+      width: 100vw;
+      margin: 0;
+      padding-top: 20px;
+    }
+
+    .anti-osint-title {
+      color: #ffcc00;
+      text-align: center;
+      margin: 40px 0 24px 0;
+      font-size: 2.3em;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+      letter-spacing: 2px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .anti-osint-nav {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      display: flex;
+      gap: 10px;
+    }
+
+    .nav-link {
+      background-color: #ffcc00;
+      color: black;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+
+    .nav-link:hover {
+      background-color: black;
+      color: #ffcc00;
+      border: 1px solid #ffcc00;
+      box-shadow: 0 0 15px rgba(255, 204, 0, 0.4);
+    }
+
+    .intro-text {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #ffcc00;
+      padding: 25px;
+      border-radius: 10px;
+      margin: 20px auto 40px auto;
+      width: 95%;
+      max-width: 1200px;
+      color: #e4e4e4;
+      font-size: 1.1em;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .resource-card {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #ffcc00;
+      padding: 25px;
+      border-radius: 10px;
+      margin: 20px auto;
+      width: 95%;
+      max-width: 800px;
+      transition: all 0.3s ease;
+      animation: antiOsintShift 6s ease-in-out infinite;
+    }
+
+    .resource-card:hover {
+      border-color: #ff6600;
+      box-shadow: 0 0 30px rgba(255, 102, 0, 0.4);
+    }
+
+    .resource-card h2 {
+      color: #ffcc00;
+      font-size: 1.8em;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .resource-card p {
+      color: #e4e4e4;
+      font-size: 1.1em;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .resource-link {
+      display: inline-block;
+      background-color: #ffcc00;
+      color: black;
+      padding: 12px 24px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-right: 15px;
+      margin-bottom: 10px;
+    }
+
+    .resource-link:hover {
+      background-color: #ff6600;
+      color: white;
+      box-shadow: 0 0 15px rgba(255, 102, 0, 0.5);
+      transform: scale(1.05);
+    }
+
+    @keyframes antiOsintShift {
+      0% {
+        border-color: #ffcc00;
+        box-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
+      }
+      50% {
+        border-color: #ff6600;
+        box-shadow: 0 0 40px rgba(255, 102, 0, 0.6);
+      }
+      100% {
+        border-color: #ffcc00;
+        box-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
+      }
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: black;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="digital-rain"></div>
+  
+  <div class="anti-osint-bg">
+    <nav class="anti-osint-nav">
+      <a href="resources.html" class="nav-link">Resources</a>
+      <a href="osint.html" class="nav-link">OSINT Grid</a>
+      <a href="/" class="nav-link">Home</a>
+    </nav>
+
+    <h1 class="anti-osint-title">🕶️ Anti-OSINT & Privacy Grid</h1>
+    
+    <div class="intro-text">
+      <p>
+        Welcome to the blackout zone. This grid links to tools designed to counter surveillance, erase digital footprints, and cloak your presence online. Whether you're escaping data brokers, shielding your metadata, or tunneling through encrypted VPNs, these nodes are your resistance arsenal. Stay hidden. Stay sovereign.
+      </p>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧼 Just Delete Me</h2>
+      <p>Directory of opt-out links for hundreds of data brokers and platforms. Ranked by difficulty. Your escape map from the data grid.</p>
+      <a href="https://justdeleteme.xyz/" target="_blank" class="resource-link">Visit Just Delete Me</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧠 Privacy Guides</h2>
+      <p>Independent, nonprofit resource hub for privacy tools and threat modeling. Navigate the surveillance state with vetted recommendations.</p>
+      <a href="https://www.privacyguides.org/en/" target="_blank" class="resource-link">Visit Privacy Guides</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧬 PrivacyTools.io</h2>
+      <p>Legendary privacy bunker with vetted tools for encrypted communication, anonymous browsing, and digital self-defense.</p>
+      <a href="https://www.privacytools.io/" target="_blank" class="resource-link">Visit PrivacyTools.io</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🛡️ Tor Browser</h2>
+      <p>Anonymous web browsing through the onion network. Route your traffic through encrypted relays to evade tracking.</p>
+      <a href="https://www.torproject.org/" target="_blank" class="resource-link">Visit Tor Project</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🔒 Signal</h2>
+      <p>End-to-end encrypted messaging and calls. Open-source, independently audited, and trusted by privacy advocates worldwide.</p>
+      <a href="https://signal.org/" target="_blank" class="resource-link">Visit Signal</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🎭 ProtonMail</h2>
+      <p>Swiss-based encrypted email service. Zero-access encryption means even Proton can't read your messages.</p>
+      <a href="https://proton.me/mail" target="_blank" class="resource-link">Visit ProtonMail</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🔐 Tails</h2>
+      <p>Amnesic Incognito Live System. Portable OS that leaves no traces and routes everything through Tor by default.</p>
+      <a href="https://tails.boum.org/" target="_blank" class="resource-link">Visit Tails</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🛡️ NordVPN</h2>
+      <p>Encrypted tunnel through the surveillance grid with AES-256 encryption. No-logs policy audited by third parties.</p>
+      <a href="https://nordvpn.com/" target="_blank" class="resource-link">Visit NordVPN</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧯 AboutDFIR Opt-Out Guide</h2>
+      <p>Massive list of opt-out links sorted by difficulty. Remove your data from people search engines, brokers, and public indexes.</p>
+      <a href="https://aboutdfir.com/resources/osint-opt-out-guide/" target="_blank" class="resource-link">Visit Opt-Out Guide</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧪 The OSINT Toolbox: Privacy Opt-Out</h2>
+      <p>GitHub repo with direct links to remove yourself from dozens of OSINT platforms. Includes guides and difficulty ratings.</p>
+      <a href="https://github.com/The-Osint-Toolbox/Privacy-Opt-Out" target="_blank" class="resource-link">Visit Privacy Opt-Out</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🔍 DuckDuckGo</h2>
+      <p>Privacy-focused search engine that doesn't track users or store search history. Your queries remain anonymous.</p>
+      <a href="https://duckduckgo.com/" target="_blank" class="resource-link">Visit DuckDuckGo</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🛡️ Mullvad VPN</h2>
+      <p>Anonymous VPN service that accepts cryptocurrency payments and requires no personal information to create an account.</p>
+      <a href="https://mullvad.net/" target="_blank" class="resource-link">Visit Mullvad</a>
+    </div>
+  </div>
+</body>
+</html>
