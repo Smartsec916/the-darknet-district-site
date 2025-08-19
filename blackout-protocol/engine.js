@@ -1039,35 +1039,52 @@ function drawAds(){
     }
 
     if(img && img.complete && img.naturalWidth > 0){
-      // Use percentage-based sizing relative to viewport width
+      // Use percentage-based sizing relative to viewport width for display size
       const maxWidthPercent = 0.25; // 25% of viewport width
-      const maxW = Math.round(VW * maxWidthPercent);
+      const displayMaxW = Math.round(VW * maxWidthPercent);
       const naturalW = img.naturalWidth;
       const naturalH = img.naturalHeight;
       
-      let w, h;
-      if(naturalW > maxW) {
-        // Scale down only if image is too large
-        const scale = maxW / naturalW;
-        w = maxW;
-        h = Math.round(naturalH * scale);
+      // Calculate display dimensions (same as before)
+      let displayW, displayH;
+      if(naturalW > displayMaxW) {
+        const scale = displayMaxW / naturalW;
+        displayW = displayMaxW;
+        displayH = Math.round(naturalH * scale);
       } else {
-        // Use natural size for smaller images
-        w = naturalW;
-        h = naturalH;
+        displayW = naturalW;
+        displayH = naturalH;
       }
       
-      const drawX = x - Math.round(w/2), drawY = y - Math.round(h/2);
+      // For high-resolution rendering, use a 2x scale factor
+      const hiResScale = 2;
+      const hiResW = displayW * hiResScale;
+      const hiResH = displayH * hiResScale;
+      
+      const drawX = x - Math.round(displayW/2), drawY = y - Math.round(displayH/2);
+
+      // Create high-resolution off-screen canvas
+      const hiResCanvas = document.createElement('canvas');
+      hiResCanvas.width = hiResW;
+      hiResCanvas.height = hiResH;
+      const hiResCtx = hiResCanvas.getContext('2d');
+      hiResCtx.imageSmoothingEnabled = true;
+      hiResCtx.imageSmoothingQuality = 'high';
+      
+      // Draw image at high resolution
+      hiResCtx.drawImage(img, 0, 0, hiResW, hiResH);
 
       // Simple black frame
       ctx.fillStyle = 'rgba(0,0,0,0.9)';
-      ctx.fillRect(drawX - 2, drawY - 2, w + 4, h + 4);
+      ctx.fillRect(drawX - 2, drawY - 2, displayW + 4, displayH + 4);
       ctx.strokeStyle = 'rgba(255,255,255,0.8)';
       ctx.lineWidth = 1;
-      ctx.strokeRect(drawX - 2, drawY - 2, w + 4, h + 4);
+      ctx.strokeRect(drawX - 2, drawY - 2, displayW + 4, displayH + 4);
 
-      // Draw the ad image with full opacity, no effects
-      ctx.drawImage(img, drawX, drawY, w, h);
+      // Draw the high-res canvas scaled down to display size for crisp rendering
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(hiResCanvas, drawX, drawY, displayW, displayH);
     }
   }
 }
