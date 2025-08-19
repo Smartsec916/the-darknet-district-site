@@ -1094,12 +1094,10 @@ function drawAds(){
       // Draw image at high resolution
       hiResCtx.drawImage(img, 0, 0, hiResW, hiResH);
 
-      // Simple black frame
-      ctx.fillStyle = 'rgba(0,0,0,0.9)';
-      ctx.fillRect(drawX - 2, drawY - 2, displayW + 4, displayH + 4);
-      ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+      // Optional subtle border (no background fill to preserve transparency)
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
       ctx.lineWidth = 1;
-      ctx.strokeRect(drawX - 2, drawY - 2, displayW + 4, displayH + 4);
+      ctx.strokeRect(drawX - 1, drawY - 1, displayW + 2, displayH + 2);
 
       // Draw the high-res canvas scaled down to display size for crisp rendering
       ctx.imageSmoothingEnabled = true;
