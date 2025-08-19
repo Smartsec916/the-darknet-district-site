@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>The Darknet District – Legal Resources</title>
+  <title>The Darknet District – Resources</title>
   <link rel="stylesheet" href="style.css" />
   <style>
     .resources-bg {
@@ -15,7 +15,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
       position: relative;
       width: 100vw;
       margin: 0;
@@ -24,37 +24,42 @@
     .resources-title {
       color: #00ff9d;
       text-align: center;
-      margin: 40px 0 24px 0;
-      font-size: 2.3em;
+      margin: 40px 0 40px 0;
+      font-size: 2.5em;
       text-transform: uppercase;
       text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
       letter-spacing: 2px;
       font-family: 'Courier New', monospace;
     }
 
-    .resources-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 25px;
-      width: 95%;
-      max-width: 1200px;
-      margin: 0 auto 40px auto;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-
-    .resource-card {
-      background: rgba(0, 0, 0, 0.8);
-      border: 2px solid #00ff9d;
-      padding: 25px;
-      border-radius: 10px;
-      transition: all 0.3s ease;
-      text-align: left;
-      min-height: 160px;
+    .nav-container {
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      gap: 30px;
+      align-items: center;
+      max-width: 600px;
+      width: 90%;
+    }
+
+    .nav-button {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #00ff9d;
+      padding: 30px 50px;
+      border-radius: 15px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      width: 100%;
+      text-align: center;
       animation: colorShift 8s ease-in-out infinite;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .nav-button.curious {
+      border-color: #9327ff;
+      animation: colorShiftPurple 8s ease-in-out infinite;
     }
 
     @keyframes colorShift {
@@ -63,8 +68,8 @@
         box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
       }
       50% {
-        border-color: #9327ff;
-        box-shadow: 0 0 30px rgba(147, 39, 255, 0.4);
+        border-color: #00ff9d;
+        box-shadow: 0 0 30px rgba(0, 255, 157, 0.6);
       }
       100% {
         border-color: #00ff9d;
@@ -72,50 +77,51 @@
       }
     }
 
-    .resource-card:hover {
+    @keyframes colorShiftPurple {
+      0% {
+        border-color: #9327ff;
+        box-shadow: 0 0 30px rgba(147, 39, 255, 0.4);
+      }
+      50% {
+        border-color: #9327ff;
+        box-shadow: 0 0 30px rgba(147, 39, 255, 0.6);
+      }
+      100% {
+        border-color: #9327ff;
+        box-shadow: 0 0 30px rgba(147, 39, 255, 0.4);
+      }
+    }
+
+    .nav-button:hover {
       transform: translateY(-5px);
-      box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
       background: rgba(0, 255, 157, 0.1);
     }
 
-    .resource-title {
+    .nav-button.curious:hover {
+      background: rgba(147, 39, 255, 0.1);
+    }
+
+    .button-title {
       color: #00ff9d;
-      font-size: 1.4em;
-      margin-bottom: 15px;
+      font-size: 1.8em;
+      margin-bottom: 10px;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
       text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
       font-family: 'Courier New', monospace;
-    }
-
-    .resource-description {
-      color: #e4e4e4;
-      font-size: 1em;
-      line-height: 1.5;
-      margin-bottom: 20px;
-      flex-grow: 1;
-    }
-
-    .resource-link {
-      display: inline-block;
-      background-color: #00ff9d;
-      color: black;
-      padding: 12px 24px;
-      border-radius: 5px;
-      text-decoration: none;
       font-weight: bold;
-      transition: all 0.3s ease;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      font-family: 'Courier New', monospace;
-      align-self: flex-start;
     }
 
-    .resource-link:hover {
-      background-color: black;
-      color: #00ff9d;
-      border: 1px solid #00ff9d;
-      box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+    .nav-button.curious .button-title {
+      color: #9327ff;
+      text-shadow: 0 0 10px rgba(147, 39, 255, 0.5);
+    }
+
+    .button-description {
+      color: #e4e4e4;
+      font-size: 1.1em;
+      line-height: 1.4;
+      font-family: 'Courier New', monospace;
     }
 
     .intro-text {
@@ -123,26 +129,24 @@
       border: 2px solid #00ff9d;
       padding: 25px;
       border-radius: 10px;
-      margin: 20px auto 40px auto;
-      width: 95%;
-      max-width: 1200px;
+      margin: 0 auto 40px auto;
+      width: 90%;
+      max-width: 800px;
       color: #e4e4e4;
       font-size: 1.1em;
       line-height: 1.6;
-      text-align: left;
+      text-align: center;
     }
 
     @media (max-width: 768px) {
-      .resources-grid {
-        grid-template-columns: 1fr;
-        padding: 10px;
-        gap: 20px;
-      }
-      .resource-card {
-        margin: 0 10px;
-      }
       .resources-title {
-        font-size: 1.8em;
+        font-size: 2em;
+      }
+      .button-title {
+        font-size: 1.5em;
+      }
+      .nav-button {
+        padding: 25px 30px;
       }
     }
 
@@ -182,57 +186,28 @@
     <a href="about.html">About</a>
   </div>
 
-  <div class="resources-title">The Darknet District – Legal Resources</div>
-
   <div class="resources-bg">
     <div class="scanlines"></div>
     
+    <div class="resources-title">Resources Hub</div>
+    
     <div class="intro-text">
       <p>
-        This page was created to help individuals facing legal action for cyber-related offenses.
-        Whether you're seeking advocacy, financial support, or legal guidance, these resources offer
-        pathways to defend digital rights and access justice. Many of these organizations support
-        free speech, privacy, and fair treatment under the law—especially in cases involving hacking,
-        whistleblowing, or digital activism.
+        Access specialized resource collections designed for different needs and interests.
+        Choose your path below to explore curated tools, information, and communities.
       </p>
     </div>
 
-    <div class="resources-grid">
-      <div class="resource-card">
-        <h3 class="resource-title">🧠 EFF Legal Support</h3>
-        <p class="resource-description">» Tactical Defense Hub » Deploys elite legal minds to defend hackers, whistleblowers, and privacy rebels. If your case could reshape digital law, they may join your fight.</p>
-        <a href="https://www.eff.org/legal" target="_blank" class="resource-link">Visit Site</a>
-      </div>
+    <div class="nav-container">
+      <a href="legal_resources.html" class="nav-button">
+        <div class="button-title">Legal Resources</div>
+        <div class="button-description">Cybersecurity legal defense, funding platforms, and digital rights advocacy organizations</div>
+      </a>
 
-      <div class="resource-card">
-        <h3 class="resource-title">💸 GoFundMe Legal Defense</h3>
-        <p class="resource-description">» Civilian Crowdfunding Beacon » Rally allies to bankroll your defense. Platform-friendly campaigns only—optics and discretion matter.</p>
-        <a href="https://www.gofundme.com/c/blog/how-to-pay-for-lawyer" target="_blank" class="resource-link">Visit Site</a>
-      </div>
-
-      <div class="resource-card">
-        <h3 class="resource-title">🔥 Fight for the Future</h3>
-        <p class="resource-description">» Activist Uplink » A rogue collective amplifying voices against surveillance and censorship. If your cybercrime case is tied to activism, they may boost your signal.</p>
-        <a href="https://www.fightforthefuture.org/" target="_blank" class="resource-link">Visit Site</a>
-      </div>
-
-      <div class="resource-card">
-        <h3 class="resource-title">🛡️ GiveSendGo</h3>
-        <p class="resource-description">» Alt-Tech Crowdfunding Node » Minimal moderation, maximum volatility. A lifeline for politically radioactive cases—use with caution.</p>
-        <a href="https://www.givesendgo.com/" target="_blank" class="resource-link">Visit Site</a>
-      </div>
-
-      <div class="resource-card">
-        <h3 class="resource-title">🧬 FundRazr</h3>
-        <p class="resource-description">» Modular Funding Engine » International, flexible, and privacy-aware. Ideal for low-profile legal battles or community-backed defense ops.</p>
-        <a href="https://fundrazr.com/" target="_blank" class="resource-link">Visit Site</a>
-      </div>
-
-      <div class="resource-card">
-        <h3 class="resource-title">🏴‍☠️ National Lawyers Guild</h3>
-        <p class="resource-description">» Legal Resistance Network » Progressive defenders of protestors and movement builders. If your charges intersect with systemic critique, they may deploy legal observers or connect you to sympathetic counsel.</p>
-        <a href="https://www.nlg.org/" target="_blank" class="resource-link">Visit Site</a>
-      </div>
+      <a href="curious.html" class="nav-button curious">
+        <div class="button-title">Curious</div>
+        <div class="button-description">Exploration tools, research platforms, and communities for the intellectually adventurous</div>
+      </a>
     </div>
   </div>
 
