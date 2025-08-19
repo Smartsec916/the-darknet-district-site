@@ -1,0 +1,286 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Darknet District – Leak Node</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom, #0a0a0a 0%, #1a0026 50%, #0a0a0a 100%);
+      font-family: 'Courier New', monospace;
+      color: #e4e4e4;
+      min-height: 100vh;
+      background-attachment: fixed;
+    }
+
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 15px 20px;
+      border-bottom: 2px solid #ff0080;
+      backdrop-filter: blur(10px);
+    }
+
+    .top-nav a {
+      color: #00ff9d;
+      text-decoration: none;
+      margin-right: 20px;
+      font-weight: bold;
+      transition: color 0.3s ease;
+    }
+
+    .top-nav a:hover {
+      color: #ff0080;
+    }
+
+    .back-button {
+      position: fixed;
+      top: 80px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #00ff9d;
+      padding: 10px 20px;
+      border: 2px solid #00ff9d;
+      border-radius: 5px;
+      text-decoration: none;
+      font-family: 'Courier New', monospace;
+      transition: all 0.3s ease;
+      z-index: 999;
+    }
+
+    .back-button:hover {
+      background: rgba(0, 255, 157, 0.1);
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 120px 20px 40px;
+    }
+
+    .page-title {
+      color: #ff0080;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+      text-transform: uppercase;
+      text-shadow: 0 0 20px rgba(255, 0, 128, 0.5);
+      letter-spacing: 2px;
+    }
+
+    .intro-text {
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid #ff0080;
+      padding: 25px;
+      border-radius: 10px;
+      margin-bottom: 40px;
+      text-align: center;
+      line-height: 1.6;
+      animation: colorShift 8s ease-in-out infinite;
+    }
+
+    @keyframes colorShift {
+      0% {
+        border-color: #ff0080;
+        box-shadow: 0 0 30px rgba(255, 0, 128, 0.3);
+      }
+      50% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 30px rgba(0, 255, 157, 0.3);
+      }
+      100% {
+        border-color: #ff0080;
+        box-shadow: 0 0 30px rgba(255, 0, 128, 0.3);
+      }
+    }
+
+    .resource-card {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #ff0080;
+      padding: 25px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .resource-card:hover {
+      border-color: #00ff9d;
+      box-shadow: 0 0 25px rgba(0, 255, 157, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .resource-card h2 {
+      color: #ff0080;
+      margin-bottom: 15px;
+      font-size: 1.4em;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .resource-card p {
+      line-height: 1.6;
+      margin-bottom: 20px;
+      color: #e4e4e4;
+    }
+
+    .resource-link {
+      display: inline-block;
+      background: linear-gradient(45deg, #ff0080, #9327ff);
+      color: white;
+      padding: 12px 25px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .resource-link:hover {
+      background: linear-gradient(45deg, #9327ff, #00ff9d);
+      box-shadow: 0 0 20px rgba(147, 39, 255, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .leak-link {
+      background: linear-gradient(45deg, #ff4500, #ff6b00);
+    }
+
+    .leak-link:hover {
+      background: linear-gradient(45deg, #ff6b00, #ff8500);
+      box-shadow: 0 0 20px rgba(255, 69, 0, 0.5);
+    }
+
+    .discipline {
+      color: #00ff9d;
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 100px 15px 20px;
+      }
+
+      .page-title {
+        font-size: 2em;
+      }
+
+      .back-button {
+        top: 70px;
+        left: 15px;
+        padding: 8px 15px;
+      }
+    }
+
+    /* Add some cyberpunk scan line effects */
+    .container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 255, 157, 0.03) 2px,
+        rgba(0, 255, 157, 0.03) 4px
+      );
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation Buttons -->
+  <div class="top-nav">
+    <a href="/">Home</a>
+    <a href="games-list.html">Arcade</a>
+    <a href="store-first-page.html">Shop</a>
+    <a href="resources.html">Resources</a>
+    <a href="about.html">About</a>
+  </div>
+
+  <a href="resources.html" class="back-button">← Back to Resources</a>
+
+  <div class="container">
+    <h1 class="page-title">🛰️ Leak Node</h1>
+    
+    <div class="intro-text">
+      <p>
+        <span class="discipline">Discipline: Data Liberation & Corporate Exposure</span><br><br>
+        This grid links to encrypted portals for whistleblowers, journalists, and digital insurgents. Whether you're exposing corporate fraud, environmental sabotage, or systemic abuse, these platforms offer secure channels to transmit truth into the open. Use caution. Use encryption. Use courage.
+      </p>
+    </div>
+
+    <div class="resource-card">
+      <h2>📡 WikiLeaks</h2>
+      <p>The original leak engine. Publishes classified media and news leaks from anonymous sources. Known for exposing war crimes, surveillance programs, and corporate collusion.</p>
+      <a href="https://wikileaks.org/" target="_blank" class="resource-link leak-link">Visit WikiLeaks</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧠 Cryptome</h2>
+      <p>One of the earliest leak platforms. Hosts documents on surveillance, intelligence operations, and corporate espionage. Raw, unfiltered, and fiercely independent.</p>
+      <a href="https://cryptome.org/" target="_blank" class="resource-link leak-link">Visit Cryptome</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🎓 UniLeaks</h2>
+      <p>Transparency portal for academia. Exposes corruption and financial mismanagement in universities and research institutions. Motto: "Keep education honest."</p>
+      <a href="https://secureblitz.com/top-wikileaks-alternatives/#3_Unileaks" target="_blank" class="resource-link leak-link">Visit UniLeaks</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧬 The Intercept</h2>
+      <p>Investigative journalism hub focused on government and corporate accountability. Offers secure dropboxes for whistleblowers and publishes high-impact exposés.</p>
+      <a href="https://theintercept.com/" target="_blank" class="resource-link leak-link">Visit The Intercept</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🛠️ Whistleblower Aid</h2>
+      <p>Legal nonprofit helping whistleblowers report misconduct safely and lawfully. Offers pro bono legal, advocacy, and security support for public interest disclosures.</p>
+      <a href="https://whistlebloweraid.org/" target="_blank" class="resource-link">Visit Whistleblower Aid</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧯 Government Accountability Project (GAP)</h2>
+      <p>Supports whistleblowers exposing corporate and government wrongdoing. Offers legal representation and policy advocacy to protect truth-tellers.</p>
+      <a href="https://whistleblower.org/" target="_blank" class="resource-link">Visit GAP</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>📢 Transparency International</h2>
+      <p>Global movement fighting corruption. Offers reporting channels, legal advice centers, and advocacy tools for exposing corporate and institutional abuse.</p>
+      <a href="https://www.transparency.org/en/" target="_blank" class="resource-link">Visit Transparency International</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>📁 Corruption Case Chronicle</h2>
+      <p>Public database documenting global corruption cases. A research tool for journalists, activists, and legal advocates tracking systemic abuse.</p>
+      <a href="https://www.corruptionchronicle.org/" target="_blank" class="resource-link">Visit Corruption Chronicle</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧠 The Signals Network</h2>
+      <p>Supports whistleblowers with legal aid, media coordination, and security. Works with journalists to investigate and publish corporate wrongdoing.</p>
+      <a href="https://thesignalsnetwork.org/" target="_blank" class="resource-link">Visit The Signals Network</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧪 Psst</h2>
+      <p>Encrypted dropbox for workers reporting internal misconduct. Offers legal, media, and psychosocial support. Deposits can remain sealed until others corroborate.</p>
+      <a href="https://psst.org/" target="_blank" class="resource-link">Visit Psst</a>
+    </div>
+  </div>
+</body>
+</html>
