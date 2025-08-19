@@ -569,18 +569,10 @@ function activateEnemies(){
       // For Level 3, always activate all females immediately
       if(!f.active) {
         f.active = true;
-        console.log(`Activating female at x:${f.x}`);
       }
       // Ensure animation is always set
       if(!f.anim.runner) {
         setAnim(f, 'female', 'idle');
-        console.log(`Setting animation for female at x:${f.x}`);
-      }
-    } else if(!f.active && f.x < visRight){ 
-      if(LVL === 3) {
-        f.active = true; 
-        // Initialize animation if not set
-        if(!f.anim.runner) setAnim(f, 'female', 'idle');
       }
     }
   }
@@ -926,27 +918,15 @@ function drawEntities(now){
   }
   for(const f of females){
     const x = (f.x - cameraX)|0, y = f.y|0;
-    if(x + 48 < -100 || x > VW + 100) continue; // Extended bounds for testing
+    if(x + 48 < 0 || x > VW) continue;
     
-    // Debug: Log female positions relative to screen
-    if(LVL === 3 && f.active) {
-      console.log(`Drawing female: screen_x:${x}, world_x:${f.x}, y:${y}, active:${f.active}`);
+    // Ensure animation is properly set
+    if(!f.anim.runner) {
+      setAnim(f, 'female', 'idle');
     }
     
     const flip = (player.x < f.x);
-    
-    // Draw animation if available, otherwise draw debug placeholder
-    if(f.anim.runner) {
-      drawAnim(f, 'female', x - 15, y - 20, flip, 1);
-    } else {
-      // Fallback debug rendering - pink rectangle
-      ctx.fillStyle = '#ff69b4'; // Hot pink
-      ctx.fillRect(x - 9, y - 14, 18, 28);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '12px monospace';
-      ctx.fillText('F', x - 3, y);
-      console.log(`Drew fallback female at screen x:${x}, y:${y}`);
-    }
+    drawAnim(f, 'female', x - 15, y - 20, flip, 1);
   }
   const px = (player.x - cameraX)|0, py = player.y|0;
   drawAnim(player, 'player', px - 15, py - 20, player.facing === -1, performance.now() < player.hitUntil ? 0.8 : 1);
