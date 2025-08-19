@@ -1,0 +1,68 @@
+# Fix Level 3 Female NPCs in Blackout Protocol Game
+
+I have a JavaScript platformer game with multiple levels. Level 3 is supposed to spawn Female NPCs that steal the player's BTC instead of dealing damage, but they're not appearing on screen. 
+
+## Current Problem
+- Female NPCs should spawn in Level 3 but are invisible/not spawning
+- The game has robots in Level 1+, drones in Level 2+, and should have females in Level 3
+- The spawning logic exists but something is preventing them from appearing
+
+## Files to Modify
+- `engine.js` - Main game engine with spawning logic
+- The female NPCs should appear as pink entities that chase the player and steal BTC on contact
+
+## Required Fixes
+
+### 1. Debug the Spawning System
+Add console.log statements to track:
+- When `genChunk()` runs for Level 3
+- How many females are being spawned
+- Whether females are being activated
+- Female positions relative to camera
+
+### 2. Fix the genChunk Function
+In the Level 3 section of `genChunk()`:
+- Reduce spawn distance from 300px to 200px for earlier appearance
+- Make females spawn closer together (every 80px instead of random spread)
+- Set females as `active: true` immediately when spawned
+- Add guaranteed spawning (remove randomness temporarily)
+
+### 3. Fix spawnLevel3Females Function
+- Spawn females closer to player start position (x=120 instead of x=80)
+- Reduce total count from 8 to 6 for better performance
+- Ensure all females are marked as active immediately
+- Call this AFTER chunk generation, not before
+
+### 4. Add Debug Rendering
+In `drawEntities()`, add placeholder rendering for females:
+- Draw pink rectangles when sprite isn't available
+- Extend drawing bounds for testing (-100 to VW+100)
+- Add console logs showing female screen positions
+
+### 5. Fix activateEnemies Function
+For Level 3 females:
+- Always set `active: true` regardless of position
+- Ensure animation is initialized for all females
+- Don't wait for camera proximity to activate
+
+### 6. Add Fallback Sprite Handling
+If female sprites don't load:
+- Draw colored placeholder rectangles
+- Show 'F' text marker
+- Use consistent sizing (18w x 28h)
+
+## Expected Behavior After Fix
+- Pink rectangular NPCs should appear on screen in Level 3
+- They should move left/right in patrol patterns
+- Console should show spawn messages and position data
+- NPCs should chase player when in range
+- They should steal BTC instead of dealing damage on contact
+
+## Test Steps
+1. Load Level 3 (`level3.html`)
+2. Check browser console (F12) for spawn messages
+3. Look for pink rectangles moving on platforms
+4. Walk toward NPCs to test chase behavior
+5. Let them touch player to test BTC stealing
+
+The core issue is likely in the spawning timing or activation logic. Focus on making females spawn reliably first, then worry about sprites and behavior.
