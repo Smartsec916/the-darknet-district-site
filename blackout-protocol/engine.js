@@ -295,7 +295,7 @@ function genChunk(startX){
 
   // Level 3: More BTC coins and female NPCs
   if(lvl === 3){
-    if(!firstScreen && startX >= 300){
+    if(!firstScreen && startX >= 200){ // Reduced from 300 to 200 for earlier spawning
       for(let i = 0; i < 5; i++){ // Even more coins in Level 3
         const cx = startX + 30 + Math.random() * (CHUNK - 60);
         coins.push({x: cx|0, y: (groundY() - 24)|0, r: 10, taken: false});
@@ -307,18 +307,20 @@ function genChunk(startX){
         ads.push({x: ax|0, y: ay|0, kind: nextAdKind(), phase: Math.random() * 6});
       }
 
-      // Female NPCs for Level 3 (spawn in every chunk after 300)
-      const fc = 2 + ((Math.random() * 2)|0); // More females per chunk
+      // Female NPCs for Level 3 - guaranteed spawning with debug logging
+      console.log(`Level 3: Spawning females in chunk starting at ${startX}`);
+      const fc = 3; // Fixed count for consistent spawning
       for(let i = 0; i < fc; i++){
-        const fx = startX + 64 + Math.random() * (CHUNK - 128);
+        const fx = startX + 40 + (i * 80); // Spawn every 80px for better distribution
         const newFemale = {
-          x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.6, hp: 1,
-          active: true, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 50, patrolR: fx + 50,
+          x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.7, hp: 1,
+          active: true, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 40, patrolR: fx + 40,
           searchUntil: 0, lookTimer: 0, hasTaken: false, anim: {state: 'idle', runner: null}
         };
         // Initialize animation immediately
         setAnim(newFemale, 'female', 'idle');
         females.push(newFemale);
+        console.log(`Spawned female at x:${fx}, y:${newFemale.y}, active:${newFemale.active}`);
       }
     }
     generatedUntil = endX;
@@ -528,21 +530,24 @@ function placeExitDoor(){
 function spawnLevel3Females(){
   // Force spawn some initial females near the start for Level 3
   if(LVL === 3){
+    console.log('Level 3: spawnLevel3Females called');
     // Clear any existing females first
     females.length = 0;
 
-    // Add females in the starting area AND immediately visible area
-    for(let i = 0; i < 8; i++){
-      const fx = 80 + i * 60 + Math.random() * 20; // Start closer to player
+    // Add females in the starting area - closer to player start
+    for(let i = 0; i < 6; i++){ // Reduced from 8 to 6 for better performance
+      const fx = 120 + i * 70; // More consistent spacing, closer to start
       const newFemale = {
         x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.7, hp: 1,
-        active: true, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 40, patrolR: fx + 40,
+        active: true, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 50, patrolR: fx + 50,
         searchUntil: 0, lookTimer: 0, hasTaken: false, anim: {state: 'idle', runner: null}
       };
       // Initialize animation immediately
       setAnim(newFemale, 'female', 'idle');
       females.push(newFemale);
+      console.log(`Initial female spawned at x:${fx}, y:${newFemale.y}`);
     }
+    console.log(`Total females spawned: ${females.length}`);
   }
 }
 
@@ -560,17 +565,23 @@ function activateEnemies(){
     if(!d.active && d.x < visRight){ if(LVL >= 2) d.active = true; }
   }
   for(const f of females){
-    if(!f.active && f.x < visRight){ 
+    if(LVL === 3) {
+      // For Level 3, always activate all females immediately
+      if(!f.active) {
+        f.active = true;
+        console.log(`Activating female at x:${f.x}`);
+      }
+      // Ensure animation is always set
+      if(!f.anim.runner) {
+        setAnim(f, 'female', 'idle');
+        console.log(`Setting animation for female at x:${f.x}`);
+      }
+    } else if(!f.active && f.x < visRight){ 
       if(LVL === 3) {
         f.active = true; 
         // Initialize animation if not set
         if(!f.anim.runner) setAnim(f, 'female', 'idle');
       }
-    }
-    // For Level 3, ensure all females are always active once spawned
-    if(LVL === 3 && !f.active) {
-      f.active = true;
-      if(!f.anim.runner) setAnim(f, 'female', 'idle');
     }
   }
 }
@@ -915,9 +926,27 @@ function drawEntities(now){
   }
   for(const f of females){
     const x = (f.x - cameraX)|0, y = f.y|0;
-    if(x + 48 < 0 || x > VW) continue;
+    if(x + 48 < -100 || x > VW + 100) continue; // Extended bounds for testing
+    
+    // Debug: Log female positions relative to screen
+    if(LVL === 3 && f.active) {
+      console.log(`Drawing female: screen_x:${x}, world_x:${f.x}, y:${y}, active:${f.active}`);
+    }
+    
     const flip = (player.x < f.x);
-    drawAnim(f, 'female', x - 15, y - 20, flip, 1);
+    
+    // Draw animation if available, otherwise draw debug placeholder
+    if(f.anim.runner) {
+      drawAnim(f, 'female', x - 15, y - 20, flip, 1);
+    } else {
+      // Fallback debug rendering - pink rectangle
+      ctx.fillStyle = '#ff69b4'; // Hot pink
+      ctx.fillRect(x - 9, y - 14, 18, 28);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '12px monospace';
+      ctx.fillText('F', x - 3, y);
+      console.log(`Drew fallback female at screen x:${x}, y:${y}`);
+    }
   }
   const px = (player.x - cameraX)|0, py = player.y|0;
   drawAnim(player, 'player', px - 15, py - 20, player.facing === -1, performance.now() < player.hitUntil ? 0.8 : 1);
@@ -1136,7 +1165,11 @@ export async function bootLevel(levelNumber, opts = {}){
     drones.push({x: 120, y: 70, w: 18, h: 14, dir: 1, speed: 0.7, phase: Math.random() * 6, active: true, disabled: false, anim: {state: 'move', runner: null}});
     drones.push({x: 220, y: 85, w: 18, h: 14, dir: -1, speed: 0.7, phase: Math.random() * 6, active: true, disabled: false, anim: {state: 'move', runner: null}});
   }
-  if(LVL === 3) spawnLevel3Females();
+  if(LVL === 3) {
+    // Call after chunk generation to add extra females in starting area
+    spawnLevel3Females();
+    console.log(`Level 3 setup complete. Total females: ${females.length}`);
+  }
 
   // Reset input state
   LEFT = RIGHT = UP = 0;
