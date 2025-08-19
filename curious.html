@@ -130,6 +130,60 @@
       0% { transform: translateY(0); }
       100% { transform: translateY(-50%); }
     }
+
+    .resource-card {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #9327ff;
+      padding: 25px;
+      border-radius: 10px;
+      margin: 20px auto;
+      width: 95%;
+      max-width: 800px;
+      transition: all 0.3s ease;
+      animation: pulse 4s ease-in-out infinite;
+    }
+
+    .resource-card:hover {
+      border-color: #00ff9d;
+      box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+    }
+
+    .resource-card h2 {
+      color: #9327ff;
+      font-size: 1.8em;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .resource-card p {
+      color: #e4e4e4;
+      font-size: 1.1em;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .resource-link {
+      display: inline-block;
+      background-color: #9327ff;
+      color: white;
+      padding: 12px 24px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .resource-link:hover {
+      background-color: #00ff9d;
+      color: black;
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+      transform: scale(1.05);
+    }
   </style>
 </head>
 
@@ -152,18 +206,80 @@
     
     <div class="intro-text">
       <p>
-        Welcome to the Curious section - a space for exploration, discovery, and unconventional resources.
-        This area is dedicated to tools, information, and communities that fuel curiosity and expand horizons.
+        Welcome to the grid. This page links to high-voltage learning nodes for cyber security, ethical hacking, and electronic tinkering. Whether you're a rogue sysadmin, a neon-lit solder junkie, or a zero-day dreamer, these portals will level up your skills and plug you into the underground.
       </p>
     </div>
 
-    <div class="coming-soon">
-      <h2>Under Construction</h2>
-      <p>The curious minds are still cataloging these resources. Check back soon for tools that feed your hunger for knowledge and exploration.</p>
-      <p>• Research Tools<br>
-      • Educational Platforms<br>
-      • Community Forums<br>
-      • Experimental Projects</p>
+    <div class="resource-card">
+      <h2>🧠 StationX</h2>
+      <p>Elite training vault for cyber operatives. Offers 30,000+ courses from penetration testing to AI forensics. Mentorship and mastermind groups included.</p>
+      <a href="https://www.stationx.net/best-places-to-learn-cyber-security/" target="_blank" class="resource-link">Visit StationX</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧪 TryHackMe</h2>
+      <p>Gamified hacking labs in a browser-based simulation. Navigate red team ops, Linux forensics, and OWASP exploits in a safe, neon-lit sandbox.</p>
+      <a href="https://www.tryhackme.com" target="_blank" class="resource-link">Visit TryHackMe</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧬 Hack The Box</h2>
+      <p>Virtual machines rigged with vulnerabilities. Practice real-world exploits in a legal, encrypted arena. From beginner to black hat emulation.</p>
+      <a href="https://www.hackthebox.com" target="_blank" class="resource-link">Visit Hack The Box</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🛰️ VulnHub</h2>
+      <p>Downloadable VMs designed to be broken. Perfect for offline penetration testing and privilege escalation drills. No rules, just root.</p>
+      <a href="https://www.vulnhub.com" target="_blank" class="resource-link">Visit VulnHub</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧰 PentesterLab</h2>
+      <p>Web app security dojo. Learn to exploit APIs, CSRF, SSRF, and more. Includes real-world walkthroughs and code review missions.</p>
+      <a href="https://www.pentesterlab.com" target="_blank" class="resource-link">Visit PentesterLab</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧱 Security Shepherd</h2>
+      <p>OWASP-based training ground. Hands-on challenges for web and mobile app vulnerabilities. Open-source and customizable.</p>
+      <a href="https://owasp.org/www-project-security-shepherd/" target="_blank" class="resource-link">Visit Security Shepherd</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧠 Hack This Site</h2>
+      <p>Old-school hacker playground. CTFs, steganography, and realistic missions. Active since 2003. Join the forums, IRC, and Discord underground.</p>
+      <a href="https://www.hackthissite.org" target="_blank" class="resource-link">Visit Hack This Site</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🔧 Tinkerers Workshop</h2>
+      <p>DIY lab for robotics, Arduino, and 3D printing. Learn to build bots, code microcontrollers, and solder your way to enlightenment.</p>
+      <a href="https://thetinkerersworkshop.com/" target="_blank" class="resource-link">Visit Tinkerers Workshop</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>⚡ Tinkercad Circuits</h2>
+      <p>Browser-based circuit simulator. Drag, drop, and code your way through breadboards, LEDs, and micro:bit madness.</p>
+      <a href="https://www.tinkercad.com/circuits" target="_blank" class="resource-link">Visit Tinkercad Circuits</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🔌 EveryCircuit</h2>
+      <p>Animated circuit simulator with real-time feedback. Visualize voltages, currents, and logic gates like a digital oracle.</p>
+      <a href="https://everycircuit.com/" target="_blank" class="resource-link">Visit EveryCircuit</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>📐 CircuitLab</h2>
+      <p>Professional-grade schematic editor and simulator. Ideal for analog/digital mashups and rapid prototyping in-browser.</p>
+      <a href="https://www.circuitlab.com/" target="_blank" class="resource-link">Visit CircuitLab</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🎭 DEF CON Las Vegas</h2>
+      <p>The ultimate hacker conference. Annual pilgrimage for black hats, white hats, and everyone in between. Talks, villages, and networking.</p>
+      <a href="https://defcon.org/" target="_blank" class="resource-link">Visit DEF CON</a>
     </div>
   </div>
 
