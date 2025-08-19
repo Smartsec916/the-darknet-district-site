@@ -1025,7 +1025,7 @@ function drawControlsHint(){
 function drawAds(){
   for(const a of ads){
     const x = (a.x - cameraX)|0, y = a.y|0;
-    if(x + 80 < 0 || x > VW) continue;
+    if(x + 120 < 0 || x > VW) continue; // Increased bounds check for larger ads
 
     // Get correct image for this ad kind
     let img = null;
@@ -1037,10 +1037,23 @@ function drawAds(){
     }
 
     if(img && img.complete && img.naturalWidth > 0){
-      // Calculate proper scaling - keep same size as before
-      const targetW = 56;
-      const ratio = img.height ? (img.width / img.height) : 1;
-      const w = targetW, h = Math.max(14, Math.round(targetW / ratio));
+      // Use natural size with reasonable scaling
+      const maxW = 120; // Maximum width for very large images
+      const naturalW = img.naturalWidth;
+      const naturalH = img.naturalHeight;
+      
+      let w, h;
+      if(naturalW > maxW) {
+        // Scale down only if image is too large
+        const scale = maxW / naturalW;
+        w = maxW;
+        h = Math.round(naturalH * scale);
+      } else {
+        // Use natural size for smaller images
+        w = naturalW;
+        h = naturalH;
+      }
+      
       const drawX = x - Math.round(w/2), drawY = y - Math.round(h/2);
 
       // Simple black frame
