@@ -281,6 +281,8 @@ function drawSky(){
 }
 
 // ====== ads ======
+let lastAdKind = null; // Track the last ad shown
+
 function refillDeck(){ 
   // Create multiple copies of each ad type to ensure variety
   adDeck = [];
@@ -293,10 +295,33 @@ function refillDeck(){
     [adDeck[i], adDeck[j]] = [adDeck[j], adDeck[i]];
   }
 }
+
 function nextAdKind(){ 
   if(!adDeck.length || adDeck.length < 3) refillDeck(); // Refill earlier
+  
+  // If we have multiple ad types available, avoid showing the same ad consecutively
+  if(CurrentAds.kinds.length > 1 && lastAdKind) {
+    // Find the first ad in deck that's different from the last one
+    let foundIndex = -1;
+    for(let i = 0; i < adDeck.length; i++) {
+      if(adDeck[i] !== lastAdKind) {
+        foundIndex = i;
+        break;
+      }
+    }
+    
+    if(foundIndex !== -1) {
+      // Remove the found ad from its position and use it
+      const kind = adDeck.splice(foundIndex, 1)[0];
+      lastAdKind = kind;
+      if(LVL === 1) console.log(`Selected ad kind: ${kind}, remaining deck: ${adDeck.length}`);
+      return kind;
+    }
+  }
+  
+  // Fallback to normal behavior if no alternatives found or first ad
   const kind = adDeck.shift();
-  // Debug logging for Level 1
+  lastAdKind = kind;
   if(LVL === 1) console.log(`Selected ad kind: ${kind}, remaining deck: ${adDeck.length}`);
   return kind; 
 }
