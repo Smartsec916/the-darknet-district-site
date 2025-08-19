@@ -1104,7 +1104,9 @@ function drawAds(){
       // Draw the high-res canvas scaled down to display size for crisp rendering
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
+      ctx.globalAlpha = 0.85; // Make ads slightly transparent
       ctx.drawImage(hiResCanvas, drawX, drawY, displayW, displayH);
+      ctx.globalAlpha = 1.0; // Reset opacity for other elements
     }
   }
 }
