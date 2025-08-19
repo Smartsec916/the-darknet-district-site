@@ -1025,7 +1025,7 @@ function drawControlsHint(){
 function drawAds(){
   for(const a of ads){
     const x = (a.x - cameraX)|0, y = a.y|0;
-    if(x + 120 < 0 || x > VW) continue; // Increased bounds check for larger ads
+    if(x + 60 < 0 || x > VW) continue; // Bounds check for smaller ads
 
     // Get correct image for this ad kind
     let img = null;
@@ -1038,7 +1038,7 @@ function drawAds(){
 
     if(img && img.complete && img.naturalWidth > 0){
       // Use natural size with reasonable scaling
-      const maxW = 120; // Maximum width for very large images
+      const maxW = 60; // Maximum width for very large images (50% of previous size)
       const naturalW = img.naturalWidth;
       const naturalH = img.naturalHeight;
       
