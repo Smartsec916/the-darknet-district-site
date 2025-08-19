@@ -1102,7 +1102,7 @@ function drawAds(){
       // Draw the high-res canvas scaled down to display size for crisp rendering
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
-      ctx.globalAlpha = 0.75; // Make ads 25% transparent (75% opacity)
+      ctx.globalAlpha = 0.85; // Make ads 15% transparent (85% opacity)
       ctx.drawImage(hiResCanvas, drawX, drawY, displayW, displayH);
       ctx.globalAlpha = 1.0; // Reset opacity for other elements
     }
