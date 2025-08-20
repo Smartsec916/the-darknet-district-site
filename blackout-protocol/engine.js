@@ -438,10 +438,17 @@ function genChunk(startX){
     if(Math.random() < 0.6){
       const dx = startX + 80 + Math.random() * (CHUNK - 160);
       const dy = 60 + Math.random() * 80;
-      drones.push({
+      const newDrone = {
         x: dx|0, y: dy|0, w: 18, h: 14, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.8,
         phase: Math.random() * 6, active: false, disabled: false, anim: {state: 'move', runner: null}
-      });
+      };
+      
+      // Initialize animation immediately if sprites are loaded
+      if(SPR && SPR.drone) {
+        setAnim(newDrone, 'drone', 'move');
+      }
+      
+      drones.push(newDrone);
     }
   }
 
@@ -978,20 +985,41 @@ function drawEntities(now){
   for(const d of drones){
     const x = (d.x - cameraX)|0, y = d.y|0;
     if(x + 32 < 0 || x > VW) continue;
-    if(!d.anim.runner) setAnim(d, 'drone', 'move');
-    stepAnim(d, 16); drawAnim(d, 'drone', x - 7, y - 9, false, d.disabled ? 0.7 : 1);
+    
+    // Ensure animation is properly set up
+    if(!d.anim.runner && SPR && SPR.drone) {
+      setAnim(d, 'drone', 'move');
+    }
+    
+    if(d.anim.runner) {
+      stepAnim(d, 16);
+      drawAnim(d, 'drone', x - 7, y - 9, false, d.disabled ? 0.7 : 1);
+    } else {
+      // Fallback visual if no animation
+      ctx.fillStyle = d.disabled ? '#666' : '#8a99ff';
+      ctx.fillRect(x, y, 18, 14);
+    }
   }
   for(const f of females){
     const x = (f.x - cameraX)|0, y = f.y|0;
     if(x + 48 < 0 || x > VW) continue;
     
     // Ensure animation is properly set
-    if(!f.anim.runner) {
+    if(!f.anim.runner && SPR && SPR.female) {
       setAnim(f, 'female', 'idle');
     }
     
     const flip = (player.x < f.x);
-    drawAnim(f, 'female', x - 15, y - 20, flip, 1);
+    
+    if(f.anim.runner) {
+      drawAnim(f, 'female', x - 15, y - 20, flip, 1);
+    } else {
+      // Fallback visual if no animation
+      ctx.fillStyle = '#ff69b4';
+      ctx.fillRect(x, y, 18, 28);
+      ctx.fillStyle = '#fff';
+      ctx.fillText('F', x + 6, y + 10);
+    }
   }
   const px = (player.x - cameraX)|0, py = player.y|0;
   drawAnim(player, 'player', px - 15, py - 20, player.facing === -1, performance.now() < player.hitUntil ? 0.8 : 1);
@@ -1247,14 +1275,28 @@ export async function bootLevel(levelNumber, opts = {}){
 
   // Level-specific setup - MOVED AFTER sprite loading
   if(LVL === 2){
-    drones.push({x: 120, y: 70, w: 18, h: 14, dir: 1, speed: 0.7, phase: Math.random() * 6, active: true, disabled: false, anim: {state: 'move', runner: null}});
-    drones.push({x: 220, y: 85, w: 18, h: 14, dir: -1, speed: 0.7, phase: Math.random() * 6, active: true, disabled: false, anim: {state: 'move', runner: null}});
+    const drone1 = {x: 120, y: 70, w: 18, h: 14, dir: 1, speed: 0.7, phase: Math.random() * 6, active: true, disabled: false, anim: {state: 'move', runner: null}};
+    const drone2 = {x: 220, y: 85, w: 18, h: 14, dir: -1, speed: 0.7, phase: Math.random() * 6, active: true, disabled: false, anim: {state: 'move', runner: null}};
+    
+    // Initialize animations immediately
+    setAnim(drone1, 'drone', 'move');
+    setAnim(drone2, 'drone', 'move');
+    
+    drones.push(drone1);
+    drones.push(drone2);
   }
   
   // IMPORTANT: Call spawnLevel3Females AFTER sprites are loaded
   if(LVL === 3) {
     spawnLevel3Females();
     console.log(`Level 3 initialized with ${females.length} females`);
+    
+    // Ensure all female animations are properly initialized
+    for(const f of females) {
+      if(!f.anim.runner) {
+        setAnim(f, 'female', 'idle');
+      }
+    }
   }
 
   // Reset input state
