@@ -1118,7 +1118,7 @@ function drawAds(){
       const naturalW = img.naturalWidth;
       const naturalH = img.naturalHeight;
       
-      // Calculate display dimensions (same as before)
+      // Calculate display dimensions
       let displayW, displayH;
       if(naturalW > displayMaxW) {
         const scale = displayMaxW / naturalW;
@@ -1129,35 +1129,41 @@ function drawAds(){
         displayH = naturalH;
       }
       
-      // For high-resolution rendering, use a 2x scale factor
-      const hiResScale = 2;
+      // Use 4x scale factor for ultra-high resolution rendering
+      const hiResScale = 4;
       const hiResW = displayW * hiResScale;
       const hiResH = displayH * hiResScale;
       
       const drawX = x - Math.round(displayW/2), drawY = y - Math.round(displayH/2);
 
-      // Create high-resolution off-screen canvas
+      // Create ultra-high-resolution off-screen canvas
       const hiResCanvas = document.createElement('canvas');
       hiResCanvas.width = hiResW;
       hiResCanvas.height = hiResH;
       const hiResCtx = hiResCanvas.getContext('2d');
+      
+      // Use highest quality settings
       hiResCtx.imageSmoothingEnabled = true;
       hiResCtx.imageSmoothingQuality = 'high';
       
-      // Draw image at high resolution
-      hiResCtx.drawImage(img, 0, 0, hiResW, hiResH);
+      // Draw image at ultra-high resolution with crisp pixel mapping
+      hiResCtx.drawImage(img, 0, 0, naturalW, naturalH, 0, 0, hiResW, hiResH);
 
       // Optional subtle border (no background fill to preserve transparency)
       ctx.strokeStyle = 'rgba(255,255,255,0.3)';
       ctx.lineWidth = 1;
       ctx.strokeRect(drawX - 1, drawY - 1, displayW + 2, displayH + 2);
 
-      // Draw the high-res canvas scaled down to display size for crisp rendering
+      // Draw the ultra-high-res canvas scaled down to display size for maximum crispness
+      ctx.save();
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
       ctx.globalAlpha = 0.85; // Make ads 15% transparent (85% opacity)
-      ctx.drawImage(hiResCanvas, drawX, drawY, displayW, displayH);
-      ctx.globalAlpha = 1.0; // Reset opacity for other elements
+      
+      // Use precise scaling to avoid any blur
+      ctx.drawImage(hiResCanvas, 0, 0, hiResW, hiResH, drawX, drawY, displayW, displayH);
+      
+      ctx.restore();
     }
   }
 }
