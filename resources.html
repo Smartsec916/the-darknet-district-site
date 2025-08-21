@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -138,6 +137,81 @@
       text-align: center;
     }
 
+    .resource-card {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #00ff9d;
+      padding: 25px;
+      border-radius: 10px;
+      margin: 20px auto; /* Adjusted margin for spacing between cards */
+      width: 90%;
+      max-width: 500px; /* Max width for cards */
+      color: #e4e4e4;
+      font-size: 1.1em;
+      line-height: 1.6;
+      font-family: 'Courier New', monospace;
+      transition: all 0.3s ease;
+    }
+
+    .resource-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+    }
+
+    .resource-card h2 {
+      color: #00ff9d;
+      font-size: 1.8em;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+    }
+
+    .resource-card h2 a {
+        text-decoration: none;
+        color: inherit; /* Inherit color from h2 */
+    }
+
+    .resource-card .curious-link {
+        display: inline-block;
+        margin-top: 15px;
+        color: #9327ff; /* Purple color for curious links */
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .resource-card .curious-link:hover {
+        text-decoration: underline;
+        transform: translateX(5px);
+    }
+
+    .resource-card p {
+        margin-bottom: 15px;
+    }
+
+    .resource-card ul {
+        list-style: none;
+        padding-left: 0;
+    }
+
+    .resource-card li {
+        margin-bottom: 8px;
+    }
+
+    .resource-card a {
+        color: #00ff9d;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .resource-card a:hover {
+        text-decoration: underline;
+        color: #9327ff;
+    }
+
+
     @media (max-width: 768px) {
       .resources-title {
         font-size: 2em;
@@ -147,6 +221,13 @@
       }
       .nav-button {
         padding: 25px 30px;
+      }
+      .resource-card {
+        max-width: 90%;
+        padding: 20px;
+      }
+      .resource-card h2 {
+        font-size: 1.5em;
       }
     }
 
@@ -188,9 +269,9 @@
 
   <div class="resources-bg">
     <div class="scanlines"></div>
-    
+
     <div class="resources-title">Resources Hub</div>
-    
+
     <div class="intro-text">
       <p>
         Access specialized resource collections designed for different needs and interests.
@@ -223,6 +304,23 @@
         <div class="button-title">🛰️ Leak Node</div>
         <div class="button-description">Whistleblowing platforms and corporate exposure tools for digital truth-tellers</div>
       </a>
+    </div>
+
+    <!-- Additional Resource Cards -->
+    <!-- 🛰️ BORDERLESS ADVOCACY NETWORKS -->
+    <div class="resource-card">
+      <h2><a href="borderless.html">🛰️ Borderless Advocacy Networks</a></h2>
+      <p><strong>Discipline:</strong> Transnational Solidarity & Encrypted Outreach</p>
+      <p>In a world sliced by firewalls and fractured jurisdictions, these nodes form the backbone of resistance across borders. Translation collectives, diaspora-led legal aid, and mesh networks converge to support stateless users, digital nomads, and whistleblowers navigating hostile terrain. This is the grid for those who operate in liminal zones—where language, law, and signal must be remixed for survival.</p>
+      <a href="borderless.html" class="curious-link">Explore Borderless Networks →</a>
+    </div>
+
+    <!-- 🧠 NEURODIVERGENT OPS & ACCESSIBILITY HACKS -->
+    <div class="resource-card">
+      <h2><a href="neurodivergent.html">🧠 Neurodivergent Ops & Accessibility Hacks</a></h2>
+      <p><strong>Discipline:</strong> Inclusive Resistance & Cognitive Modularity</p>
+      <p>Resistance isn't one-size-fits-all. This node is tuned for users who process the world differently—those who need clarity in chaos, modularity in overload, and sensory safety in hostile systems. From ADHD-friendly legal explainers to UI mods and cognitive load kits, this grid empowers neurodivergent operatives to navigate digital warfare with precision and care.</p>
+      <a href="neurodivergent.html" class="curious-link">Access Neurodivergent Tools →</a>
     </div>
   </div>
 
