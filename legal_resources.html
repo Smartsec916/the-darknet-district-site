@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -191,12 +190,52 @@
       0% { transform: translateY(0); }
       100% { transform: translateY(-50%); }
     }
+    
+    .top-nav {
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 10px 0;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      width: 100%;
+      border-bottom: 2px solid #00ff9d;
+    }
+
+    .top-nav a {
+      color: #00ff9d;
+      text-decoration: none;
+      margin: 0 15px;
+      font-family: 'Courier New', monospace;
+      font-size: 1.1em;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .top-nav a:hover {
+      color: #9327ff;
+      text-shadow: 0 0 15px rgba(147, 39, 255, 0.5);
+    }
+
+    .external-links {
+        color: #9327ff; 
+        font-size: 0.9em; 
+        text-align: center; 
+        margin-bottom: 10px; 
+        font-family: 'Courier New', monospace;
+        padding: 5px 0;
+        background-color: rgba(0, 0, 0, 0.8);
+    }
   </style>
 </head>
 
 <body>
   <!-- Top Navigation Buttons -->
   <div class="top-nav">
+    <div class="external-links">
+        hackthissite.org • thetinkerersworkshop.com • tinkercad.com • overthewire.org • picoctf.org • tryhackme.com
+      </div>
     <a href="/">Home</a>
     <a href="games-list.html">Arcade</a>
     <a href="store-first-page.html">Shop</a>
@@ -210,7 +249,7 @@
 
   <div class="resources-bg">
     <div class="scanlines"></div>
-    
+
     <div class="intro-text">
       <p>
         This page was created to help individuals facing legal action for cyber-related offenses.
