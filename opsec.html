@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OPSEC Resources</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f7f6;
+      color: #333;
+    }
+    .container {
+      max-width: 960px;
+      margin: 40px auto;
+      padding: 30px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 10px;
+    }
+    .resource-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+    }
+    .resource-card {
+      background-color: #ecf0f1;
+      padding: 25px;
+      border-radius: 6px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .resource-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    .resource-card h2 {
+      color: #34495e;
+      margin-top: 0;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .resource-card p {
+      color: #555;
+      font-size: 0.95em;
+      margin-bottom: 20px;
+      flex-grow: 1; /* Allows paragraph to take available space */
+    }
+    .resource-link {
+      display: inline-block;
+      background-color: #3498db;
+      color: #fff;
+      padding: 10px 18px;
+      text-decoration: none;
+      border-radius: 4px;
+      text-align: center;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+      margin-top: auto; /* Pushes link to the bottom */
+    }
+    .resource-link:hover {
+      background-color: #2980b9;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 50px;
+      font-size: 0.8em;
+      color: #7f8c8d;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Operational Security (OPSEC) Resources</h1>
+    <div class="resource-grid">
+
+      <div class="resource-card">
+        <h2>🛡️ SANS OPSEC Training</h2>
+        <p>Industry-leading cybersecurity training organization providing comprehensive OPSEC courses and threat modeling frameworks for security professionals.</p>
+        <a href="https://www.sans.org/cyber-security-courses/operational-security/" target="_blank" class="resource-link">Visit SANS OPSEC</a>
+      </div>
+
+      <div class="resource-card">
+        <h2>🔐 Privacy International</h2>
+        <p>Global advocacy organization providing operational security guides, digital rights training, and counter-surveillance resources for activists and journalists.</p>
+        <a href="https://privacyinternational.org/" target="_blank" class="resource-link">Visit Privacy International</a>
+      </div>
+
+      <div class="resource-card">
+        <h2>🌐 EFF - Surveillance Self-Defense</h2>
+        <p>Electronic Frontier Foundation's guide to protecting your digital privacy and security, offering practical advice and tools.</p>
+        <a href="https://ssd.eff.org/" target="_blank" class="resource-link">Explore EFF SSD</a>
+      </div>
+
+      <div class="resource-card">
+        <h2>💡 CISA - OPSEC Best Practices</h2>
+        <p>Cybersecurity and Infrastructure Security Agency resources on essential OPSEC principles and cyber hygiene for critical infrastructure protection.</p>
+        <a href="https://www.cisa.gov/topics/cybersecurity/operational-security-opsec" target="_blank" class="resource-link">Discover CISA OPSEC</a>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>&copy; 2023 OPSEC Awareness Initiative. All rights reserved.</p>
+  </div>
+
+</body>
+</html>
