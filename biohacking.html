@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Darknet District – Biohacking & Human Integration</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .resources-bg {
+      min-height: 100vh;
+      background-image: linear-gradient(to bottom, black 0%, transparent 20%, transparent 80%, black 100%), url('attached_assets/cyberpunk_shop.jpg.png');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      position: relative;
+      width: 100vw;
+      margin: 0;
+    }
+
+    .resources-title {
+      color: #00ff9d;
+      text-align: center;
+      margin: 40px 0 24px 0;
+      font-size: 2.3em;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+      letter-spacing: 2px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .intro-text {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #00ff9d;
+      padding: 25px;
+      border-radius: 10px;
+      margin: 20px auto 40px auto;
+      width: 95%;
+      max-width: 1200px;
+      color: #e4e4e4;
+      font-size: 1.1em;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .back-button {
+      position: fixed;
+      top: 80px;
+      left: 20px;
+      background-color: #00ff9d;
+      color: black;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .back-button:hover {
+      background-color: black;
+      color: #00ff9d;
+      border: 1px solid #00ff9d;
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+    }
+
+    .resources-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 25px;
+      width: 95%;
+      max-width: 1200px;
+      margin: 0 auto 40px auto;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .resource-card {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #00ff9d;
+      padding: 25px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      text-align: left;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      animation: colorShift 8s ease-in-out infinite;
+    }
+
+    @keyframes colorShift {
+      0% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+      }
+      50% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 30px rgba(0, 255, 157, 0.6);
+      }
+      100% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+      }
+    }
+
+    .resource-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 40px rgba(0, 255, 157, 0.6);
+    }
+
+    .resource-card h2 {
+      color: #00ff9d;
+      font-size: 1.6em;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+    }
+
+    .resource-card p {
+      color: #e4e4e4;
+      font-size: 1em;
+      line-height: 1.5;
+      margin-bottom: 15px;
+      flex-grow: 1;
+      font-family: 'Courier New', monospace;
+    }
+
+    .resource-link {
+      display: inline-block;
+      background: rgba(0, 255, 157, 0.1);
+      color: #00ff9d;
+      text-decoration: none;
+      padding: 10px 20px;
+      border: 1px solid #00ff9d;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      margin-top: auto;
+      text-align: center;
+    }
+
+    .resource-link:hover {
+      background: #00ff9d;
+      color: black;
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.7);
+      transform: translateY(-2px);
+    }
+
+    body {
+      margin: 0;
+      padding-top: 60px;
+      background-color: black;
+    }
+
+    .scanlines::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 200%;
+      background-image: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0, 255, 157, 0.02) 2px, rgba(0, 255, 157, 0.02) 4px);
+      animation: scrollLines 4s linear infinite;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    @keyframes scrollLines {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-50%); }
+    }
+
+    @media (max-width: 768px) {
+      .resources-title {
+        font-size: 1.8em;
+      }
+      .resource-card h2 {
+        font-size: 1.4em;
+      }
+      .resources-grid {
+        grid-template-columns: 1fr;
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Top Navigation Buttons -->
+  <div class="top-nav">
+    <a href="/">Home</a>
+    <a href="games-list.html">Arcade</a>
+    <a href="store-first-page.html">Shop</a>
+    <a href="resources.html">Resources</a>
+    <a href="about.html">About</a>
+  </div>
+
+  <div class="resources-bg">
+    <div class="scanlines"></div>
+    <a href="resources.html" class="back-button">← Resources</a>
+
+    <div class="resources-title">Biohacking & Human Integration</div>
+    
+    <div class="intro-text">
+      <p>
+        Welcome to the frontier of flesh and firmware. This node explores the radical fusion of biology and technology—where implants, sensors, and genetic tweaks redefine what it means to be human. From subdermal chips to DIY neural mods, these resources map the underground labs and open-source collectives pushing the boundaries of body autonomy and digital evolution.
+      </p>
+    </div>
+
+    <div class="resources-grid">
+      <div class="resource-card">
+        <h2>🧬 Health.com</h2>
+        <p>Biohacking explained: How it works, benefits, and tips. Comprehensive guide to the fundamentals of biological self-optimization through technology and lifestyle modifications.</p>
+        <a href="https://www.health.com/biohacking-8787150" target="_blank" class="resource-link">Visit Health.com</a>
+      </div>
+
+      <div class="resource-card">
+        <h2>⚕️ WebMD</h2>
+        <p>Biohacking 101: Types and ways to try it. Medical perspective on biohacking practices, safety considerations, and evidence-based approaches to biological enhancement.</p>
+        <a href="https://www.webmd.com/a-to-z-guides/biohacking" target="_blank" class="resource-link">Visit WebMD</a>
+      </div>
+
+      <div class="resource-card">
+        <h2>💊 Health Benefits Times</h2>
+        <p>What is biohacking and how does it work? Detailed exploration of biohacking methodologies, from genetic modifications to implantable devices and metabolic optimization.</p>
+        <a href="https://www.healthbenefitstimes.com/health-wiki/biohacking/" target="_blank" class="resource-link">Visit Health Benefits Times</a>
+      </div>
+
+      <div class="resource-card">
+        <h2>🔬 Scientific Origin</h2>
+        <p>What is biohacking and how does it work? Scientific approach to understanding biohacking technologies, research methodologies, and emerging biotechnology applications.</p>
+        <a href="https://scientificorigin.com/what-is-biohacking-and-how-does-it-work" target="_blank" class="resource-link">Visit Scientific Origin</a>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 200px; background: black;"></div>
+</body>
+</html>
