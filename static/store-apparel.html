@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Darknet District – Apparel & Accessories</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      background-color: black;
+      color: #00ff9d;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      font-family: 'Courier New', monospace;
+    }
+    .top-nav {
+      text-align: center;
+      margin-bottom: 24px;
+      position: sticky;
+      top: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 1000;
+      padding: 10px 0 8px 0;
+    }
+    .top-nav a {
+      color: #00ff9d;
+      border: 1.5px solid #00ff9d;
+      background: #161616;
+      text-decoration: none;
+      padding: 10px 32px;
+      margin: 0 14px 8px 0;
+      border-radius: 12px;
+      box-shadow: 0 0 6px #00ff9d44;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 1.1em;
+      transition: background 0.18s, color 0.18s, border-color 0.18s;
+    }
+    .top-nav a:hover {
+      background: #00ff9d;
+      color: #000;
+      border-color: #15ffbc;
+    }
+    .content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .title {
+      color: #00ff9d;
+      text-align: center;
+      margin-bottom: 36px;
+      font-size: 2.3em;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+      letter-spacing: 2px;
+      font-family: 'Courier New', monospace;
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px;
+      max-width: 1100px;
+      margin: 0 auto 40px auto;
+      padding: 24px;
+      background: rgba(13, 13, 13, 0.7);
+      border-radius: 24px;
+      box-shadow: 0 0 40px #00ff9d33;
+    }
+    @media (max-width: 900px) {
+      .product-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        padding: 12px;
+      }
+    }
+    .product-cell {
+      border: 2px solid #00ff9d;
+      border-radius: 18px;
+      background: #111;
+      padding: 16px;
+      box-shadow: 0 0 12px #00ff9d55;
+      min-height: 460px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      animation: colorShift 8s ease-in-out infinite;
+    }
+
+    @keyframes colorShift {
+      0% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 12px #00ff9d55;
+      }
+      50% {
+        border-color: #9327ff;
+        box-shadow: 0 0 12px rgba(147, 39, 255, 0.33);
+      }
+      100% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 12px #00ff9d55;
+      }
+    }
+    .product-cell:focus-within, .product-cell:hover {
+      box-shadow: 0 0 30px #00ff9d;
+      border-color: #00ffe7;
+      background: #181a1b;
+    }
+    /* Banner styles */
+    #affiliate-banner {
+      max-width: 1000px;
+      margin: 40px auto 30px auto;
+      position: relative;
+      height: 200px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 0 24px #00ff9d33;
+    }
+    #affiliate-image {
+      width: 100%;
+      display: block;
+      border-radius: 8px;
+      opacity: 0;
+      transition: opacity 0.6s ease, box-shadow 0.6s ease;
+      position: relative;
+      z-index: 2;
+    }
+    #affiliate-link {
+      display: block;
+      height: 100%;
+      width: 100%;
+    }
+    #glitch-effect {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 3;
+    }
+    /* Product description text styling for better readability */
+    .shopify-buy__product__description {
+      color: #e4e4e4 !important;
+      font-family: 'Courier New', monospace !important;
+    }
+
+    /* Product title styling - cyberpunk green */
+    .shopify-buy__product__title {
+      color: #00ff9d !important;
+      font-family: 'Courier New', monospace !important;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5) !important;
+    }
+
+    /* Product price styling - cyberpunk green */
+    .shopify-buy__product__price {
+      color: #00ff9d !important;
+      font-family: 'Courier New', monospace !important;
+      font-weight: bold !important;
+    }
+
+    /* Product variant selector styling */
+    .shopify-buy__product__variant-selectors {
+      color: #00ff9d !important;
+      font-family: 'Courier New', monospace !important;
+    }
+
+    .shopify-buy__select {
+      background-color: #0d0d0d !important;
+      color: #00ff9d !important;
+      border: 1px solid #00ff9d !important;
+      font-family: 'Courier New', monospace !important;
+    }
+
+    /* Custom cart and button styling for neon cyberpunk look */
+    .shopify-buy__btn {
+      font-family: 'Courier New', monospace !important;
+      font-size: 18px !important;
+      font-weight: bold !important;
+      background-color: #00ff9d !important;
+      color: #000 !important;
+      border-radius: 12px !important;
+      box-shadow: 0 0 12px #00ff9d99 !important;
+      border: 2px solid #00ff9d !important;
+      transition: background 0.18s, color 0.18s, box-shadow 0.18s !important;
+    }
+    .shopify-buy__btn:hover, .shopify-buy__btn:focus {
+      background: #191919 !important;
+      color: #00ff9d !important;
+      border-color: #00ff9d !important;
+      box-shadow: 0 0 20px #00ff9d;
+    }
+    .shopify-buy__cart {
+      background-color: #111 !important;
+      border-radius: 18px !important;
+      box-shadow: 0 0 24px #00ff9d33 !important;
+      color: #00ff9d !important;
+      font-family: 'Courier New', monospace !important;
+    }
+    .shopify-buy__cart__footer {
+      background-color: #181a1b !important;
+    }
+
+    /* Filter bar styling matching survival page */
+    .filter-bar {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .filter-bar button {
+      background-color: #00ff9d;
+      color: #000;
+      border: none;
+      padding: 10px 15px;
+      margin: 5px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .filter-bar button:hover {
+      background-color: #00cc7a;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Buttons -->
+  <div class="top-nav">
+    <a href="/">Home</a>
+    <a href="games-list">Arcade</a>
+    <a href="store-first-page">Shop</a>
+    <a href="about">About</a>
+  </div>
+
+  <!-- Rotating Affiliate Banners -->
+  <div id="affiliate-banner">
+    <a id="affiliate-link" href="#" target="_blank">
+      <img id="affiliate-image" src="" alt="" />
+    </a>
+    <!-- Glitch effect overlay for banner animations -->
+    <div id="glitch-effect"></div>
+  </div>
+
+  <!-- Main content container -->
+  <div class="content">
+    <!-- Page title -->
+    <h1 class="title">The Darknet District – Apparel & Accessories</h1>
+
+        <!-- Product category filter buttons -->
+    <div class="filter-bar" style="text-align: center; margin-bottom: 20px;">
+      <button onclick="filterProducts('all')">All</button>
+      <button onclick="filterProducts('clothing')">Clothing</button>
+      <button onclick="filterProducts('stickers')">Stickers</button>
+    </div>
+    <!-- Product grid layout -->
+    <div class="product-grid">
+      <!-- Product cell for first item -->
+      <div class="product-cell" data-category="clothing">
+        <div id='product-component-1749341487937'></div>
+      </div>
+
+
+      <div class="product-cell" data-category="stickers">
+        <div id='product-component-1749341538426'></div>
+      </div>
+
+
+      <div class="product-cell" data-category="clothing">
+        <div id='product-component-1749341562909'></div>
+      </div>
+
+
+      <div class="product-cell" data-category="stickers">
+        <div id='product-component-1749341585655'></div>
+      </div>
+
+
+      <div class="product-cell" data-category="clothing">
+        <div id='product-component-1749341611681'></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rotating affiliate banners JS -->
+  <script>
+    const banners = [
+      { image: "attached_assets/881f5832-0a1e-4079-8a66-fbc2c6479931._CR0,0,3000,600_SX3000_.jpg", link: "https://mosequipment.com/" },
+      { image: "attached_assets/cyberpunk_game.jpg", link: "https://www.cdprojektred.com/en" },
+      { image: "attached_assets/Flipper_Zero.jpg", link: "https://flipperzero.one/" }
+    ];
+    let currentBanner = 0;
+    const imageEl = document.getElementById("affiliate-image");
+    const linkEl = document.getElementById("affiliate-link");
+    function rotateBanner() {
+      if (imageEl && linkEl) {
+        imageEl.style.opacity = 0;
+        setTimeout(() => {
+          const banner = banners[currentBanner];
+          imageEl.src = banner.image;
+          linkEl.href = banner.link;
+          imageEl.style.opacity = 1;
+          currentBanner = (currentBanner + 1) % banners.length;
+        }, 500);
+      }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      rotateBanner();
+      setInterval(rotateBanner, 8000);
+    });
+  </script>
+
+  <!-- Shopify Buy Button Scripts - ONLY ONE SDK, one script, all products -->
+  <script src="https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var client = ShopifyBuy.buildClient({
+        domain: 'qbhrmg-jn.myshopify.com',
+        storefrontAccessToken: 'b2db190312196bda4d67fee236d5994a'
+      });
+
+      var uiReady = ShopifyBuy.UI.onReady(client);
+
+      var products = [
+        { id: '9174497132761', node: 'product-component-1749341487937' },
+        { id: '9174500212953', node: 'product-component-1749341538426' },
+        { id: '9174501163225', node: 'product-component-1749341562909' },
+        { id: '9174620537049', node: 'product-component-1749341585655' },
+        { id: '9174498738393', node: 'product-component-1749341611681' }
+      ];
+
+      var cyberpunkCartStyles = {
+        "cart": {
+          "styles": {
+            "button": {
+              "background-color": "#00ff9d",
+              "color": "#000",
+              "font-family": "Courier New, monospace",
+              "font-size": "18px",
+              "font-weight": "bold",
+              "border-radius": "12px",
+              "box-shadow": "0 0 12px #00ff9d99",
+              "border": "2px solid #00ff9d"
+            },
+            "cart": {
+              "background-color": "#111",
+              "border-radius": "18px",
+              "box-shadow": "0 0 24px #00ff9d33",
+              "color": "#00ff9d",
+              "font-family": "Courier New, monospace"
+            },
+            "footer": {
+              "background-color": "#181a1b"
+            }
+          },
+          "text": {
+            "total": "Subtotal",
+            "button": "Checkout"
+          },
+          "googleFonts": [
+            "Courier New"
+          ]
+        },
+        "product": {
+          "styles": {
+            "product": {
+              "@media (min-width: 601px)": {
+                "max-width": "100%",
+                "margin-left": "0",
+                "margin-bottom": "50px"
+              },
+              "text-align": "left"
+            },
+            "title": {
+              "font-size": "26px"
+            },
+            "button": {
+              "font-family": "Courier New, monospace",
+              "font-weight": "bold",
+              "font-size": "16px",
+              "padding-top": "16px",
+              "padding-bottom": "16px",
+              "border-radius": "14px",
+              "padding-left": "23px",
+              "padding-right": "23px"
+            },
+            "quantityInput": {
+              "font-size": "16px",
+              "padding-top": "16px",
+              "padding-bottom": "16px"
+            },
+            "price": {
+              "font-size": "18px"
+            }
+          },
+          "layout": "horizontal",
+          "contents": {
+            "img": false,
+            "imgWithCarousel": true,
+            "description": true
+          },
+          "width": "100%",
+          "text": {
+            "button": "Add to cart"
+          },
+          "googleFonts": [
+            "Courier New"
+          ]
+        }
+      };
+
+      uiReady.then(function (ui) {
+        products.forEach(function(product) {
+          ui.createComponent('product', {
+            id: product.id,
+            node: document.getElementById(product.node),
+            moneyFormat: '%24%7B%7Bamount%7D%7D',
+            options: cyberpunkCartStyles
+          });
+        });
+      });
+    });
+  </script>
+
+    <script>
+    const productCache = {};
+    function filterProducts(category) {
+      if (!productCache[category]) {
+        productCache[category] = document.querySelectorAll(
+          category === 'all' ? '.product-cell' : `.product-cell[data-category="${category}"]`
+        );
+      }
+      document.querySelectorAll('.product-cell').forEach(cell => cell.style.display = 'none');
+      productCache[category].forEach(cell => cell.style.display = 'flex');
+    }
+  </script>
+</body>
+</html>

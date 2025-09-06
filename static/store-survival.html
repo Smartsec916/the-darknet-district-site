@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Darknet District – Survival & Emergency Gear</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="script.js"></script>
+  <style>
+    body {
+      background-color: black;
+      color: #00ff9d;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .title {
+      color: #00ff9d;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 2em;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+    }
+
+    .filter-bar {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .filter-bar button {
+      background-color: #00ff9d;
+      color: #000;
+      border: none;
+      padding: 10px 15px;
+      margin: 5px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+
+    .filter-bar button:hover {
+      background-color: #00cc7a;
+    }
+
+    .product-card {
+      border: 2px solid #00ff9d;
+      background-color: #0d0d0d;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 320px;
+      margin: 20px auto;
+      text-align: center;
+      box-shadow: 0 0 12px #00ff9d44;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 400px;
+      height: 100%;
+    }
+
+    .product-card h3 {
+      margin: 10px 0;
+      flex-shrink: 0;
+    }
+
+    .product-card img {
+      margin: 10px auto;
+      flex-shrink: 0;
+    }
+
+    .product-card .button {
+      margin: auto auto 0 auto;
+      width: 120px;
+      flex-shrink: 0;
+      display: block;
+      text-align: center;
+    }
+
+    #product-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 40px;
+      max-width: 1200px;
+      margin: 0 auto 20px;
+      padding: 20px;
+      box-sizing: border-box;
+      align-items: stretch;
+    }
+
+    .product-card {
+      margin: 0;
+      width: auto;
+      max-width: none;
+      padding: 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    @media (max-width: 768px) {
+      #product-list {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation Buttons -->
+  <!-- Top Navigation Buttons -->
+  <div class="top-nav">
+    <a href="/">Home</a>
+    <a href="games-list">Arcade</a>
+    <a href="store-first-page">Shop</a>
+    <a href="about">About</a>
+  </div>
+
+  <!-- Rotating Affiliate Banners with Cyberpunk Effects -->
+  <div id="affiliate-banner" style="max-width: 1000px; margin: 40px auto; position: relative; height: 200px; background: rgba(0, 0, 0, 0.2);">
+    <!-- Clickable affiliate link -->
+    <a id="affiliate-link" href="#" target="_blank">
+      <img id="affiliate-image" src="" alt="" style="width: 100%; display: block; border-radius: 8px; opacity: 0; transition: opacity 0.6s ease, box-shadow 0.6s ease; position: relative; z-index: 2;" />
+    </a>
+    <!-- Glitch effect overlay -->
+    <div id="glitch-effect" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3;"></div>
+    <!-- Scanline visual effects -->
+    <div class="scanlines" style="position: absolute; inset: 0; z-index: 1; pointer-events: none;"></div>
+  </div>
+
+  <!-- Banner rotation and glitch effects JavaScript -->
+  <script>
+    const survivalBanners = [
+      {
+        image: "attached_assets/881f5832-0a1e-4079-8a66-fbc2c6479931._CR0,0,3000,600_SX3000_.jpg",
+        link: "https://mosequipment.com/"
+      },
+      {
+        image: "attached_assets/cyberpunk_game.jpg",
+        link: "https://www.cdprojektred.com/en"
+      },
+      {
+        image: "attached_assets/Flipper_Zero.jpg",
+        link: "https://flipperzero.one/"
+      }
+    ];
+
+    let survivalCurrentBanner = 0;
+    const survivalImageEl = document.getElementById("affiliate-image");
+    const survivalLinkEl = document.getElementById("affiliate-link");
+    const survivalGlitchEl = document.getElementById("glitch-effect");
+
+    function survivalGlitchEffect() {
+      if (!survivalGlitchEl) return;
+      survivalGlitchEl.innerHTML = '';
+      for (let i = 0; i < 4; i++) {
+        const bar = document.createElement("div");
+        bar.style.position = "absolute";
+        bar.style.left = "0";
+        bar.style.width = "100%";
+        bar.style.height = `${Math.random() * 4 + 2}px`;
+        bar.style.top = `${Math.random() * 100}%`;
+        bar.style.background = "#00ff9d";
+        bar.style.opacity = "0.15";
+        bar.style.animation = "glitchMove 0.3s ease-out forwards";
+        survivalGlitchEl.appendChild(bar);
+      }
+      setTimeout(() => {
+        if (survivalGlitchEl) survivalGlitchEl.innerHTML = '';
+      }, 400);
+    }
+
+    function rotateSurvivalBanner() {
+      if (!survivalImageEl || !survivalLinkEl) return;
+      
+      survivalImageEl.style.opacity = 0;
+      survivalImageEl.style.boxShadow = 'none';
+
+      setTimeout(() => {
+        const banner = survivalBanners[survivalCurrentBanner];
+        survivalImageEl.src = banner.image;
+        survivalLinkEl.href = banner.link;
+        survivalGlitchEffect();
+        survivalImageEl.style.opacity = 1;
+        survivalImageEl.style.boxShadow = '0 0 20px #00ff9d';
+
+        survivalCurrentBanner = (survivalCurrentBanner + 1) % survivalBanners.length;
+      }, 500);
+    }
+
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+      rotateSurvivalBanner();
+      setInterval(rotateSurvivalBanner, 8000);
+    });
+  </script>
+
+  <!-- Main content container -->
+  <div class="content">
+    <!-- Page title -->
+    <h1 class="title">The Darknet District – Survival & Emergency Gear</h1>
+    <!-- Affiliate disclosure and quality statement -->
+    <p style="text-align: center;">Buy Now buttons will take you to Amazon through Influencers and Associates links.<br>All items listed have been rigorously tested by The Darknet District for quality.</p>
+
+    <!-- Product category filter buttons -->
+    <div class="filter-bar">
+      <button onclick="filterProducts('all')">All</button>
+      <button onclick="filterProducts('gear')">Gear</button>
+      <button onclick="filterProducts('tools')">Tools</button>
+      <button onclick="filterProducts('lighting')">Lighting</button>
+      <button onclick="filterProducts('water')">Water & Hydration</button>
+      <button onclick="filterProducts('shelter')">Shelter</button>
+      <button onclick="filterProducts('navigation')">Navigation</button>
+      <button onclick="filterProducts('communication')">Communication</button>
+      <button onclick="filterProducts('power')">Power</button>
+      <button onclick="filterProducts('bags')">Bags</button>
+      <button onclick="filterProducts('fire')">Fire</button>
+      <button onclick="filterProducts('cooking')">Cooking</button>
+      <button onclick="filterProducts('food')">Food</button>
+      <button onclick="filterProducts('ppe')">PPE</button>
+      <button onclick="filterProducts('firearms')">Firearms Accessories</button>
+    </div>
+
+    <!-- Product grid container -->
+    <div id="product-list">
+      <!-- High-strength paracord for survival situations -->
+      <div class="product-card" data-category="gear">
+        <h3>Titan Survival's Patented 1000 LB Survival Paracord</h3>
+        <img src="attached_assets/Titan Survival's Patented 1000 LB Survival Paracord.jpg" alt="Survival Paracord" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3ENaVe3" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <!-- Compact fishing survival kit -->
+      <div class="product-card" data-category="gear">
+        <h3>Survival Fishing Kit - Compact</h3>
+        <img src="attached_assets/Survival Fishing Kit - Compact.jpg" alt="Survival Fishing Kit" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3RYReTv" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="gear">
+        <h3>Survival Fishing Kit - Standard</h3>
+        <img src="attached_assets/Survival Fishing Kit - Standard.jpg" alt="Standard Survival Fishing Kit" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3F7edJ1" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="fire">
+        <h3>Fresnel Lens</h3>
+        <img src="attached_assets/Fresnel Lens.jpg" alt="Fresnel Lens" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3FbrpfX" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="tools">
+        <h3>Survival Multi Tool Card</h3>
+        <img src="attached_assets/Survival Multi Tool Card.jpg" alt="Multi Tool Card" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/4iWMV5U" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="tools">
+        <h3>Leatherman Premium Multi-Tool</h3>
+        <img src="attached_assets/LEATHERMAN - Charge Plus.jpg" alt="Leatherman Multi-Tool" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/43R0yOu" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="tools">
+        <h3>Leatherman Signal Multi-Tool</h3>
+        <img src="attached_assets/LEATHERMAN - Signal.jpg" alt="Leatherman Signal Multi-Tool" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/43Oi4D9" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      
+      <div class="product-card" data-category="shelter">
+        <h3>Arcturus Military Wool Blanket</h3>
+        <img src="attached_assets/Arcturus Military Wool Blanket.jpg" alt="Military Wool Blanket" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3S0IgoG" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="shelter">
+        <h3>Arcturus Heavy Duty Survival Blanket</h3>
+        <img src="attached_assets/Arcturus Heavy Duty Survival Blanket.jpg" alt="Survival Blanket" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/43b73eT" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="navigation">
+        <h3>SUUNTO MC-2 Compass</h3>
+        <img src="attached_assets/SUUNTO MC-2 Compass.jpg" alt="SUUNTO Compass" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3RV2Wyt" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="communication">
+        <h3>Motorola Solutions Two-Way Radios</h3>
+        <img src="attached_assets/Motorola Solutions Two-Way Radios.jpg" alt="Two-Way Radios" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/42QkTV5" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="water">
+        <h3>GRAYL UltraPress 16.9 oz Water Purifier</h3>
+        <img src="attached_assets/GRAYL UltraPress 16.9 oz Water Purifier.jpg" alt="Water Purifier" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/437McsP" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="water">
+        <h3>The Pathfinder School Stainless Steel 32oz Water Bottle</h3>
+        <img src="attached_assets/The Pathfinder School Stainless Steel 32oz Water Bottle.jpg" alt="Pathfinder Water Bottle" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/43qCQtv" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="water">
+        <h3>Source Tactical WXP 3L Low Profile Hydration System</h3>
+        <img src="attached_assets/Source Tactical WXP 3L Low Profile Hydration System.jpg" alt="Source Tactical Hydration System" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3F7vSQX" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="water">
+        <h3>Sawyer Products Mini Water Filtration System</h3>
+        <img src="attached_assets/Sawyer Products Mini Water Filtration System.jpg" alt="Sawyer Mini Water Filter" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3Syyz0V" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="power">
+        <h3>Dark Energy Poseidon Pro Portable Charger with Solar Panel</h3>
+        <img src="attached_assets/Dark Energy Poseidon Pro Indestructible Portable Charger with Spectre 8W Solar Panel.jpg" alt="Portable Charger" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/4deCGZJ" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="lighting">
+        <h3>BLACK DIAMOND Storm 500-R Rechargeable LED Headlamp</h3>
+        <img src="attached_assets/BLACK DIAMOND Storm 500-R Rechargeable LED Headlamp.jpg" alt="LED Headlamp" style="max-width: 200px; margin: 10px auto; display: block;">
+        <a href="https://amzn.to/3H4t6MJ" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="lighting">
+        <h3>Fenix E18R V2.0 EDC Flashlight</h3>
+        <img src="attached_assets/Fenix E18R V2.0 EDC Flashlight.jpg" alt="Fenix E18R V2.0 EDC Flashlight" style="max-width: 200px; margin: 10px auto; display: block;">
+        <a href="https://amzn.to/43PDa3X" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="lighting">
+        <h3>Fenix E35R EDC Flashlight</h3>
+        <img src="attached_assets/Fenix E35R EDC Flashlight.jpg" alt="Fenix E35R EDC Flashlight" style="max-width: 200px; margin: 10px auto; display: block;">
+        <a href="https://amzn.to/4jAqSSZ" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="bags">
+        <h3>VANQUEST TRIDENT-21 (Gen-3) Backpack</h3>
+        <img src="attached_assets/VANQUEST TRIDENT-21 (Gen-3) Backpack.jpg" alt="VANQUEST Backpack" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/44zoUi3" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="gear">
+        <h3>Mission Darkness Dry Shield Faraday Phone Sleeve</h3>
+        <img src="attached_assets/Mission Darkness Dry Shield Faraday Phone Sleeve.jpg" alt="Faraday Phone Sleeve" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3Zdov0Y" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="gear">
+        <h3>Morakniv Companion Fixed Blade</h3>
+        <img src="attached_assets/Morakniv Companion Fixed Blade.jpg" alt="Morakniv Companion Fixed Blade" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3GQBTSB" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="gear">
+        <h3>Morakniv Garberg Full Tang Fixed Blade Knife</h3>
+        <img src="attached_assets/Morakniv Garberg Full Tang Fixed Blade Knife.jpg" alt="Morakniv Garberg Full Tang Fixed Blade Knife" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/433YGS8" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="shelter">
+        <h3>ENO OneLink Hammock System</h3>
+        <img src="attached_assets/ENO OneLink Hammock System.jpg" alt="ENO OneLink Hammock" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/4jUT4RD" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="fire">
+        <h3>Exotac fireSLEEVE Waterproof Floating Lighter Case</h3>
+        <img src="attached_assets/Exotac fireSLEEVE Waterproof Floating Lighter Case_.jpg" alt="Waterproof Lighter Case" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3GLOfeP" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="fire">
+        <h3>überleben Hexå Ferro Rod Fire Starter</h3>
+        <img src="attached_assets/überleben Hexå Ferro Rod Fire Starter.jpg" alt="Ferro Rod Fire Starter" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/4iYflN6" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="fire">
+        <h3>LcFun Electric Lighter - USB C Rechargeable</h3>
+        <img src="attached_assets/LcFun Electric Lighter - USB C Rechargeable.jpg" alt="LcFun Electric Lighter" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/4jTp0pi" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="shelter">
+        <h3>Helikon-Tex Swagman Roll Multi-Purpose Military Poncho</h3>
+        <img src="attached_assets/Helikon-Tex Swagman Roll Multi-Purpose Military Poncho.jpg" alt="Military Poncho" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/4jarJK8" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="shelter">
+        <h3>Helikon-Tex US Model Surplus Line Poncho</h3>
+        <img src="attached_assets/Helikon-Tex US Model Surplus Line Poncho.jpg" alt="US Model Surplus Line Poncho" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/4dhXlMz" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="cooking">
+        <h3>Jetboil Flash Camping and Backpacking Stove System</h3>
+        <img src="attached_assets/Jetboil Flash Camping and Backpacking Stove System.jpg" alt="Jetboil Flash Stove" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/4khzaA6" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="food">
+        <h3>Mountain House 3-Day Emergency Food Supply</h3>
+        <img src="attached_assets/Mountain House 3-Day Emergency Food Supply.jpg" alt="Mountain House Food Supply" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/4372z8Z" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="food">
+        <h3>Meals Ready to Eat Surplus (Pack of 4)</h3>
+        <img src="attached_assets/Meals Ready to Eat Surplus (Pack of 4).jpg" alt="MRE Surplus Pack" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/43tlNag" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="communication">
+        <h3>S5 Ranger from Spec5 Meshtastic LoRa Radio</h3>
+        <img src="attached_assets/S5 Ranger from Spec5 Meshtastic LoRa Radio.jpg" alt="S5 Ranger Meshtastic LoRa Radio" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/4kHq4gw" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="communication">
+        <h3>Kaito Voyager KA500 Radio</h3>
+        <img src="attached_assets/Kaito Voyager KA500 Radio.jpg" alt="Kaito Voyager Radio" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/4demrf3" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="communication">
+        <h3>Spectre-Android Off-Grid Meshtastic Phone with LoRa</h3>
+        <img src="attached_assets/Spectre-Android Off-Grid Meshtastic Phone with LoRa.jpg" alt="Spectre-Android Off-Grid Meshtastic Phone" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/4l2t2fS" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="communication">
+        <h3>Relay Solar-Powered Meshtastic LoRa Relay System Long-Range</h3>
+        <img src="attached_assets/Relay Solar-Powered Meshtastic LoRa Relay System Long-Range.jpg" alt="Relay Solar-Powered Meshtastic LoRa System" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3THIstF" target="_blank" class="button">Buy Now</a>
+      </div>
+      <div class="product-card" data-category="shelter">
+        <h3>MILITARY ISSUE - ECWS WOODLAND MODULAR SLEEPING BAG SYSTEM 4</h3>
+        <img src="attached_assets/US MILITARY ISSUE - ECWS WOODLAND MODULAR SLEEPING BAG SYSTEM 4.jpg" alt="ECWS Sleeping Bag System" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3F510jY" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="shelter">
+        <h3>Ultralight Titanium Tent Stakes 6 Pack</h3>
+        <img src="attached_assets/Ultralight Titanium Tent Stakes 6 Pack.jpg" alt="Ultralight Titanium Tent Stakes" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/44Ujxu3" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="firearms">
+        <h3>HOLOSUN HE407C-GR X2 / HS407C X2 2 MOA Dot Open Reflex Sight</h3>
+        <img src="attached_assets/HOLOSUN HE407C-GR X2.jpg" alt="HOLOSUN HE407C-GR X2" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3Fa95Uz" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="firearms">
+        <h3>HOLOSUN HS403C / HE403C-GR 2 MOA Dot Micro Sight</h3>
+        <img src="attached_assets/HOLOSUN HS403C.jpg" alt="HOLOSUN HS403C" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/42U0Ipi" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="firearms">
+        <h3>Holosun Ronin-AEMS-MAX-RD Rifle Optic</h3>
+        <img src="attached_assets/Holosun Ronin-AEMS-MAX-RD.jpg" alt="Holosun Ronin-AEMS-MAX-RD" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/44Dz3u8" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="firearms">
+        <h3>HOLOSUN Digital Reflex Thermal Sight</h3>
+        <img src="attached_assets/HOLOSUN Digital Reflex Thermal Sight.jpg" alt="HOLOSUN Digital Reflex Thermal Sight" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/4jQ7xxX" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="firearms">
+        <h3>Magpul MBUS Flip-Up Backup Sights</h3>
+        <img src="attached_assets/Magpul MBUS Flip-Up Backup Sights, Black, Rear Sight.jpg" alt="Magpul MBUS Flip-Up Backup Sights" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3GT6RJS" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="firearms">
+        <h3>Streamlight TLR-8 HL-X sub USB 1000-Lumen Weapon Light</h3>
+        <img src="attached_assets/Streamlight 69467 TLR-8 HL-X sub USB 1000-Lumen Weapon Rail-Mounted Rechargeable Tactical Flashlight.jpg" alt="Streamlight TLR-8 HL-X Weapon Light" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3SxPX5V" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="ppe">
+        <h3>MIRA Safety CM-I01 Full-Face Industrial-Grade Gas Mask</h3>
+        <img src="attached_assets/MIRA Safety CM-I01 Full-Face Industrial-Grade Gas Mask.jpg" alt="MIRA Safety Gas Mask" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3SGnfzV" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="ppe">
+        <h3>MIRA Safety NBC-77 SOF Gas Mask Filter</h3>
+        <img src="attached_assets/MIRA Safety - NBC-77 SOF - Single 40mm Gas Mask Filter.jpg" alt="MIRA Safety NBC-77 SOF Filter" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/3HpJDeH" target="_blank" class="button">Buy Now</a>
+      </div>
+
+      <div class="product-card" data-category="ppe">
+        <h3>MIRA Safety MOPP-1 CBRN Protective Suit</h3>
+        <img src="attached_assets/MIRA Safety MOPP-1 CBRN Protective Suit.jpg" alt="MIRA Safety MOPP-1 CBRN Suit" style="max-width: 200px; margin: 10px auto;">
+        <a href="https://amzn.to/4kUSoeT" target="_blank" class="button">Buy Now</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product filtering JavaScript -->
+  <script>
+    // Cache filtered product collections for performance
+    const productCache = {};
+    // Filter products by category
+    function filterProducts(category) {
+      // Cache the query results to avoid repeated DOM searches
+      if (!productCache[category]) {
+        productCache[category] = document.querySelectorAll(
+          category === 'all' ? '.product-card' : `.product-card[data-category="${category}"]`
+        );
+      }
+      // Hide all products first
+      document.querySelectorAll('.product-card').forEach(card => card.style.display = 'none');
+      // Show only products in selected category
+      productCache[category].forEach(card => card.style.display = 'block');
+    }
+  </script>
+</body>
+</html>

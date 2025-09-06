@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sleeping Pod - The Darknet District</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .audio-player {
+      display: none;
+      background: rgba(0, 0, 0, 0.9);
+      border: 1px solid #00ff9d;
+      padding: 10px;
+      border-radius: 3px;
+      position: fixed;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.2);
+      width: 200px;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .audio-player.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .audio-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 5px;
+    }
+
+    .audio-btn {
+      background: transparent;
+      color: #00ff9d;
+      border: 1px solid #00ff9d;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .audio-btn:hover {
+      background: rgba(0, 255, 157, 0.1);
+    }
+
+    .audio-player audio {
+      width: 100%;
+      height: 30px;
+      filter: hue-rotate(180deg);
+    }
+
+    .audio-player audio::-webkit-media-controls-time-remaining-display,
+    .audio-player audio::-webkit-media-controls-current-time-display {
+      color: lightblue;
+    }
+
+    .audio-player::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border: 1px solid #00ff9d;
+      pointer-events: none;
+      animation: glow 2s infinite;
+    }
+
+    @keyframes glow {
+      0% { box-shadow: 0 0 5px #00ff9d; }
+      50% { box-shadow: 0 0 20px #00ff9d; }
+      100% { box-shadow: 0 0 5px #00ff9d; }
+    }
+
+    .top-nav {
+      transition: filter 1.5s ease;
+    }
+
+    .pod-section {
+      min-height: 100vh;
+      background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), linear-gradient(to bottom, transparent 70%, black), url('attached_assets/epsiloncircle_420_dark_cyberpunk_sleeping_pod_interior_viewed_f_82a73688-d6a7-4668-b80e-32dbd348dabc.png');
+      background-size: cover;
+      background-position: center;
+      transition: filter 1.5s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 20px;
+      position: relative;
+    }
+
+    .control-buttons {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 40px;
+      margin-top: calc(100vh - 200px);
+      z-index: 2;
+    }
+
+    .control-button {
+      background: rgba(0, 0, 0, 0.7);
+      color: rgba(0, 255, 157, 0.8);
+      border: 1px solid rgba(0, 255, 157, 0.8);
+      padding: 8px 16px;
+      font-family: 'Courier New', monospace;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 1px;
+      border-radius: 3px;
+    }
+
+    .control-button:hover {
+      background: rgba(0, 255, 157, 0.15);
+      box-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation Buttons -->
+  <div class="top-nav">
+    <a href="/">Home</a>
+    <a href="games-list">Play a Game</a>
+    <a href="store-first-page">Shop</a>
+  </div>
+
+  <!-- Main sleeping pod environment section -->
+  <section class="pod-section">
+    <!-- Control buttons for pod environment -->
+    <div class="control-buttons">
+      <!-- Light control button -->
+      <button class="control-button" onclick="dimLights()">Dim the lights</button>
+      <!-- Music player toggle button -->
+      <button class="control-button" onclick="playMusic()">Play Music</button>
+      <!-- Hidden audio player interface -->
+      <div class="audio-player" id="audioPlayer">
+        <!-- HTML5 audio element -->
+        <audio controls>
+          <source src="attached_assets/CyberSilk.mp3" type="audio/mp3">
+          Your browser does not support the audio element.
+        </audio>
+        <!-- Track navigation controls -->
+        <div class="audio-controls">
+          <button class="audio-btn" onclick="previousTrack()">◀</button>
+          <button class="audio-btn" onclick="nextTrack()">▶</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sleeping pod interactive JavaScript -->
+  <script>
+    // Environment state variables
+    let isDimmed = false;
+    let isPlaying = false;
+    // Audio player DOM references
+    const audioPlayer = document.getElementById('audioPlayer');
+    const audioElement = audioPlayer.querySelector('audio');
+    // Audio settings
+    let currentVolume = 1;
+    let currentTrackIndex = 0;
+
+    // Shuffled cyberpunk music playlist
+    const playlist = [
+      'attached_assets/Android Love.mp3',
+      'attached_assets/Cyber Silence (Extended) (2).mp3',
+      'attached_assets/CyberLoom (Extended).mp3',
+      'attached_assets/Eclipse.mp3',
+      'attached_assets/Eternal Paradox.mp3',
+      'attached_assets/Fuck the System  (2.0).mp3',
+      'attached_assets/Ghost 1.0.mp3',
+      'attached_assets/Psychedelic Upgrade.mp3',
+      'attached_assets/Pulse (Extended).mp3',
+      'attached_assets/RetroVibe (Extended).mp3',
+      'attached_assets/Upgrades (Extended Mix).mp3',
+      'attached_assets/Vaporia.mp3',
+      'attached_assets/Yearning Pulse 02 (Cover) (1).mp3',
+      'attached_assets/Это всё дерьмо 3.0.mp3',
+      'attached_assets/谢谢你送来的猫咪.mp3',
+      'attached_assets/Nexus DataCore (Cover).mp3',
+      'attached_assets/Meta Mist (2.0).mp3',
+      'attached_assets/Sheep.mp3',
+      'attached_assets/Nights in Chongqing 3.0.mp3',
+      'attached_assets/MetaMist_1749079991973.mp3',
+      'attached_assets/SexBot (Cover)_1749079991973.mp3',
+      'attached_assets/Sanctum of the Circuit.mp3',
+      'attached_assets/The City (Cover)_1749857657755.mp3',
+      'attached_assets/The City (Extended)_1749857657712.mp3',
+      'attached_assets/Synthetic Touch_1749857577904.mp3',
+      'attached_assets/Synthetic Touch (Her) (02) (Cover)_1749857577941.mp3',
+      'attached_assets/BlackRock Leash (Cover)_1754669325561.mp3'
+    // Shuffle the playlist randomly
+    ].sort(() => Math.random() - 0.5);
+
+    // Smooth audio volume fade function
+    function fadeAudio(from, to, duration) {
+      const steps = 20;
+      const stepTime = duration / steps;
+      const volumeStep = (to - from) / steps;
+      let currentStep = 0;
+
+      // Gradual volume change over time
+      const fadeInterval = setInterval(() => {
+        currentStep++;
+        audioElement.volume = from + (volumeStep * currentStep);
+        if (currentStep >= steps) {
+          clearInterval(fadeInterval);
+          audioElement.volume = to;
+        }
+      }, stepTime);
+    }
+
+    // Toggle music player visibility and playback
+    function playMusic() {
+      const button = document.querySelector('[onclick="playMusic()"]');
+
+      if (!isPlaying) {
+        audioPlayer.classList.add('active');
+        button.textContent = 'Hide Music';
+        audioElement.volume = 0;
+        audioElement.play();
+        fadeAudio(0, currentVolume, 1000);
+        isPlaying = true;
+      } else {
+        fadeAudio(currentVolume, 0, 1000);
+        setTimeout(() => {
+          audioPlayer.classList.remove('active');
+          button.textContent = 'Play Music';
+          audioElement.pause();
+          audioElement.volume = currentVolume;
+        }, 1000);
+        isPlaying = false;
+      }
+    }
+
+    // Change to a specific track with fade effects
+    function changeTrack(index) {
+      fadeAudio(currentVolume, 0, 500);
+      setTimeout(() => {
+        currentTrackIndex = index;
+        audioElement.src = playlist[currentTrackIndex];
+        audioElement.load();
+        audioElement.play().catch(e => console.log('Playback failed:', e));
+        fadeAudio(0, currentVolume, 500);
+      }, 500);
+    }
+
+    // Auto-advance to next track when current ends
+    audioElement.addEventListener('ended', () => {
+      nextTrack();
+    });
+
+    // Handle audio errors by skipping to next track
+    audioElement.addEventListener('error', () => {
+      console.log('Audio error, trying next track');
+      nextTrack();
+    });
+
+    // Navigate to next track in playlist
+    function nextTrack() {
+      const nextIndex = (currentTrackIndex + 1) % playlist.length;
+      if (nextIndex === 0) {
+        // Shuffle playlist when we've gone through all songs
+        playlist.sort(() => Math.random() - 0.5);
+      }
+      changeTrack(nextIndex);
+    }
+
+    // Navigate to previous track in playlist
+    function previousTrack() {
+      const prevIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+      changeTrack(prevIndex);
+    }
+
+    // Toggle pod lighting between bright and dimmed
+    function dimLights() {
+      const button = document.querySelector('[onclick="dimLights()"]');
+      const podSection = document.querySelector('.pod-section');
+      const topNav = document.querySelector('.top-nav');
+
+      if (!isDimmed) {
+        podSection.style.filter = 'brightness(0.3)';
+        topNav.style.filter = 'brightness(0.3)';
+        button.textContent = 'Turn the lights on';
+        isDimmed = true;
+      } else {
+        podSection.style.filter = 'brightness(1)';
+        topNav.style.filter = 'brightness(1)';
+        button.textContent = 'Dim the lights';
+        isDimmed = false;se;
+      }
+    }
+
+    </script>
+
+  <script src="script.js"></script>
+</body>
+</html>

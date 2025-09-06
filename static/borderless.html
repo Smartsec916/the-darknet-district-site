@@ -1,0 +1,270 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Darknet District – Borderless Advocacy Networks</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .borderless-bg {
+      min-height: 100vh;
+      background-image: linear-gradient(to bottom, black 0%, transparent 20%, transparent 80%, black 100%), url('attached_assets/cyberpunk_shop.jpg.png');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      width: 100vw;
+      margin: 0;
+      padding: 20px 0;
+    }
+
+    .borderless-title {
+      color: #00ff9d;
+      text-align: center;
+      margin: 40px 0;
+      font-size: 2.5em;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+      letter-spacing: 2px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .content-container {
+      width: 95%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .intro-card {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #00ff9d;
+      padding: 30px;
+      border-radius: 10px;
+      margin-bottom: 40px;
+      color: #e4e4e4;
+      font-size: 1.1em;
+      line-height: 1.6;
+      animation: colorShift 8s ease-in-out infinite;
+    }
+
+    @keyframes colorShift {
+      0% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+      }
+      50% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 30px rgba(0, 255, 157, 0.6);
+      }
+      100% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+      }
+    }
+
+    .discipline-tag {
+      color: #00ff9d;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .resource-card {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #00ff9d;
+      padding: 25px;
+      border-radius: 10px;
+      margin: 20px 0;
+      color: #e4e4e4;
+      font-size: 1.1em;
+      line-height: 1.6;
+      transition: all 0.3s ease;
+    }
+
+    .resource-card:hover {
+      border-color: #00c48a;
+      box-shadow: 0 0 25px rgba(0, 255, 157, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .resource-card h3 {
+      color: #00ff9d;
+      font-size: 1.3em;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .resource-card a {
+      color: #00ff9d;
+      text-decoration: none;
+      border-bottom: 1px dotted #00ff9d;
+      transition: all 0.3s ease;
+    }
+
+    .resource-card a:hover {
+      color: #00c48a;
+      border-bottom-color: #00c48a;
+    }
+
+    .resource-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .resource-list li {
+      margin-bottom: 15px;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .resource-list li::before {
+      content: "🛰️";
+      position: absolute;
+      left: 0;
+      color: #00ff9d;
+    }
+
+    .back-button {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #00ff9d;
+      color: #00ff9d;
+      padding: 15px 30px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      display: inline-block;
+      margin-bottom: 30px;
+    }
+
+    .back-button:hover {
+      background: rgba(0, 255, 157, 0.1);
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+    }
+
+    body {
+      margin: 0;
+      padding-top: 60px;
+      background-color: black;
+    }
+
+    .scanlines::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 200%;
+      background-image: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0, 255, 157, 0.02) 2px, rgba(0, 255, 157, 0.02) 4px);
+      animation: scrollLines 4s linear infinite;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    @keyframes scrollLines {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-50%); }
+    }
+
+    @media (max-width: 768px) {
+      .borderless-title {
+        font-size: 1.8em;
+      }
+      .intro-card, .resource-card {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Top Navigation Buttons -->
+  <div class="top-nav">
+    <a href="/">Home</a>
+    <a href="games-list.html">Arcade</a>
+    <a href="store-first-page.html">Shop</a>
+    <a href="resources.html">Resources</a>
+    <a href="about.html">About</a>
+  </div>
+
+  <div class="borderless-bg">
+    <div class="scanlines"></div>
+    
+    <div class="content-container">
+      
+      
+      <div style="color: #ff0080; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+        raicestexas.org • accessnow.org • mutualaiddisasterrelief.org • calyxinstitute.org • torproject.org
+      </div>
+      <div class="borderless-title">🛰️ Borderless Advocacy Networks</div>
+      
+      <div class="intro-card">
+        <p><span class="discipline-tag">Discipline:</span> Transnational Solidarity & Encrypted Outreach</p>
+        <p>In a world sliced by firewalls and fractured jurisdictions, these nodes form the backbone of resistance across borders. Translation collectives, diaspora-led legal aid, and mesh networks converge to support stateless users, digital nomads, and whistleblowers navigating hostile terrain. This is the grid for those who operate in liminal zones—where language, law, and signal must be remixed for survival.</p>
+      </div>
+
+      <div class="resource-card">
+        <h3>🔐 Localization Lab</h3>
+        <p>Encrypted Translation Collective working to make privacy tools accessible across language barriers. Volunteer-driven project translating security software into dozens of languages to protect users worldwide.</p>
+        <div style="color: #00ffcc; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+          localizationlab.org
+        </div>
+        <a href="https://www.localizationlab.org" target="_blank">Visit Localization Lab</a>
+      </div>
+
+      <div class="resource-card">
+        <h3>⚖️ RAICES</h3>
+        <p>Diaspora-Led Legal Aid organization providing comprehensive immigration services and advocacy. Focuses on family reunification, detention issues, and supporting vulnerable populations navigating complex legal systems.</p>
+        <div style="color: #00ffcc; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+          raicestexas.org
+        </div>
+        <a href="https://www.raicestexas.org" target="_blank">Visit RAICES</a>
+      </div>
+
+      <div class="resource-card">
+        <h3>🛡️ Access Now</h3>
+        <p>Multilingual Cybercrime Defense Kits and digital rights advocacy. Defends and extends digital rights of users at risk, providing security training and emergency response support across borders.</p>
+        <div style="color: #00ffcc; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+          accessnow.org
+        </div>
+        <a href="https://www.accessnow.org" target="_blank">Visit Access Now</a>
+      </div>
+
+      <div class="resource-card">
+        <h3>🤝 Mutual Aid Disaster Relief</h3>
+        <p>Cross-Border Mutual Aid Maps connecting communities for disaster response and ongoing support. Grassroots network providing direct aid without bureaucratic barriers.</p>
+        <a href="https://www.mutualaiddisasterrelief.org" target="_blank">Visit Mutual Aid Disaster Relief</a>
+      </div>
+
+      <div class="resource-card">
+        <h3>📡 Calyx Institute</h3>
+        <p>Decentralized VPN & Mesh Networks providing privacy-focused internet access. Researches, tests, and deploys technology to enhance privacy, security, and access to information.</p>
+        <a href="https://calyxinstitute.org" target="_blank">Visit Calyx Institute</a>
+      </div>
+
+      <div class="resource-card">
+        <h3>Additional Resources</h3>
+        <ul class="resource-list">
+          <li><a href="https://www.torproject.org" target="_blank">Tor Project</a> - Anonymous communication networks</li>
+          <li><a href="https://www.eff.org" target="_blank">Electronic Frontier Foundation</a> - Digital rights advocacy</li>
+          <li><a href="https://ooni.org" target="_blank">OONI</a> - Open Observatory of Network Interference</li>
+          <li><a href="https://censorship.no" target="_blank">Censorship.no</a> - Anti-censorship research</li>
+          <li><a href="https://www.freehaven.net" target="_blank">Free Haven Project</a> - Anonymous publication systems</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 200px; background: black;"></div>
+</body>
+</html>

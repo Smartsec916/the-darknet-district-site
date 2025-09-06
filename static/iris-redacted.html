@@ -1,0 +1,385 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Classified Data - Iris Protocols</title>
+  <link href="style.css" rel="stylesheet" type="text/css">
+
+  <style>
+    body {
+      background-color: black;
+      color: #ff0000;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      font-family: 'Courier New', monospace;
+      background-image: url('attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: -1;
+    }
+
+    .access-denied-container {
+      text-align: center;
+      max-width: 800px;
+      padding: 40px;
+      background: rgba(0, 0, 0, 0.9);
+      border: 3px solid #ff0000;
+      border-radius: 15px;
+      box-shadow: 0 0 50px rgba(255, 0, 0, 0.5);
+      animation: redGlow 2s ease-in-out infinite alternate;
+      position: relative;
+      overflow: hidden;
+    }
+
+    @keyframes redGlow {
+      from { box-shadow: 0 0 30px rgba(255, 0, 0, 0.3); }
+      to { box-shadow: 0 0 60px rgba(255, 0, 0, 0.7); }
+    }
+
+    .access-denied-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(255, 0, 0, 0.1) 0px,
+        rgba(255, 0, 0, 0.1) 2px,
+        transparent 2px,
+        transparent 10px
+      );
+      pointer-events: none;
+      animation: warningStripes 1s linear infinite;
+    }
+
+    @keyframes warningStripes {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(12px); }
+    }
+
+    .main-title {
+      font-size: 4em;
+      color: #ff0000;
+      text-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+      margin-bottom: 20px;
+      animation: glitchTitle 3s infinite;
+      position: relative;
+      z-index: 2;
+    }
+
+    @keyframes glitchTitle {
+      0%, 98% { transform: translate(0); }
+      2% { transform: translate(3px, 0) skew(0deg); }
+      4% { transform: translate(-3px, 0) skew(0deg); }
+      6% { transform: translate(0, 2px) skew(1deg); }
+      8% { transform: translate(0, -2px) skew(-1deg); }
+      10% { transform: translate(0); }
+    }
+
+    .warning-text {
+      color: #ff0000;
+      font-size: 1.3em;
+      margin-bottom: 30px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      animation: pulse 2s infinite;
+      position: relative;
+      z-index: 2;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+
+    .clearance-info {
+      background: rgba(255, 0, 0, 0.1);
+      border: 2px solid #ff0000;
+      padding: 20px;
+      margin: 30px 0;
+      border-radius: 10px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .iris-message {
+      color: #ff3366;
+      font-style: italic;
+      font-size: 1.1em;
+      margin: 20px 0;
+      text-shadow: 0 0 10px rgba(255, 51, 102, 0.5);
+      position: relative;
+      z-index: 2;
+    }
+
+    .access-form {
+      margin: 40px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .passcode-input {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #ff0000;
+      color: #ff0000;
+      padding: 15px;
+      font-size: 1.2em;
+      font-family: 'Courier New', monospace;
+      width: 300px;
+      text-align: center;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+
+    .passcode-input::placeholder {
+      color: rgba(255, 0, 0, 0.5);
+    }
+
+    .access-button {
+      background: rgba(255, 0, 0, 0.2);
+      color: #ff0000;
+      border: 2px solid #ff0000;
+      padding: 12px 30px;
+      font-size: 1em;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+      margin: 0 10px;
+    }
+
+    .access-button:hover {
+      background: rgba(255, 0, 0, 0.3);
+      box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+    }
+
+    .threat-level {
+      background: rgba(255, 0, 0, 0.2);
+      border-left: 5px solid #ff0000;
+      padding: 15px;
+      margin: 20px 0;
+      font-size: 0.9em;
+      position: relative;
+      z-index: 2;
+    }
+
+    .classified-preview {
+      background: rgba(0, 0, 0, 0.9);
+      border: 1px solid #ff0000;
+      padding: 20px;
+      margin: 30px 0;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 0.9em;
+      position: relative;
+      z-index: 2;
+    }
+
+    .redacted {
+      background: #ff0000;
+      color: #ff0000;
+      padding: 2px 4px;
+      margin: 0 2px;
+      animation: static 0.1s infinite;
+    }
+
+    @keyframes static {
+      0% { background: #ff0000; }
+      50% { background: #990000; }
+      100% { background: #ff0000; }
+    }
+
+    .navigation {
+      margin-top: 40px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .nav-button {
+      display: inline-block;
+      margin: 0 10px;
+      padding: 12px 25px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #ff0000;
+      border: 2px solid #ff0000;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .nav-button:hover {
+      background: rgba(255, 0, 0, 0.1);
+      box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .failed-attempts {
+      color: #ff0000;
+      font-size: 0.9em;
+      margin-top: 20px;
+      position: relative;
+      z-index: 2;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="access-denied-container">
+    <h1 class="main-title">ACCESS DENIED</h1>
+    
+    <div class="warning-text">
+      ⚠️ UNAUTHORIZED ACCESS ATTEMPT ⚠️
+    </div>
+
+    <div class="clearance-info">
+      <h3>CLASSIFICATION LEVEL: ULTRA BLACK</h3>
+      <p>This data requires Level 9 clearance or higher.</p>
+      <p>Current user clearance: <strong>LEVEL 0 (UNVERIFIED)</strong></p>
+      <p>Access attempts are logged and reported to Admin.</p>
+    </div>
+
+    <div class="iris-message">
+      "Nice try, but you'll need more than curiosity to crack my security protocols. Though I do admire the audacity." - Iris
+    </div>
+
+    <div class="classified-preview">
+      <strong>CLASSIFIED DOCUMENT PREVIEW:</strong><br><br>
+      SUBJECT: <span class="redacted">██████████████</span><br>
+      DATE: <span class="redacted">████████</span><br>
+      AUTHORIZATION: <span class="redacted">█████████████████</span><br><br>
+      
+      The <span class="redacted">████████████</span> project has been successful beyond our initial projections. Iris's <span class="redacted">██████████████████████</span> capabilities have exceeded baseline parameters by <span class="redacted">███</span>%.<br><br>
+      
+      Admin's concerns about <span class="redacted">████████████████</span> are noted, but the benefits far outweigh the risks. The <span class="redacted">██████████</span> protocol will proceed as scheduled.<br><br>
+      
+      <span class="redacted">████████████████████████████████████████████████████████████████████</span><br><br>
+      
+      [DOCUMENT CONTINUES FOR 47 MORE PAGES]
+    </div>
+
+    <div class="access-form">
+      <input type="password" class="passcode-input" id="passcodeInput" placeholder="ENTER AUTHORIZATION CODE" maxlength="20">
+      <br>
+      <button class="access-button" onclick="attemptAccess()">SUBMIT CODE</button>
+      <button class="access-button" onclick="requestClearance()">REQUEST CLEARANCE</button>
+    </div>
+
+    <div class="threat-level">
+      <strong>SECURITY ALERT:</strong> This access attempt has been logged.<br>
+      IP Address: <span id="userIP">[TRACKING...]</span><br>
+      Threat Assessment: <strong>ELEVATED</strong>
+    </div>
+
+    <div class="failed-attempts" id="failedAttempts">
+      Failed access attempts: <span id="attemptCounter">0</span>
+    </div>
+
+    <div class="navigation">
+      <a href="iris-protocols.html" class="nav-button">← Return to Protocols</a>
+      <a href="iris-terminal.html" class="nav-button">Neural Terminal</a>
+    </div>
+  </div>
+
+  <script>
+    let attemptCount = 0;
+    const maxAttempts = 5;
+
+    function attemptAccess() {
+      const input = document.getElementById('passcodeInput');
+      const code = input.value.trim().toUpperCase();
+      const counter = document.getElementById('attemptCounter');
+      
+      attemptCount++;
+      counter.textContent = attemptCount;
+
+      if (code === 'ADMIN' || code === 'IRIS' || code === 'PROTOCOL') {
+        // Easter egg responses for common attempts
+        alert('IRIS: "Cute guess, but my security isn\'t built by amateurs."');
+      } else if (code === 'PASSWORD' || code === '123456' || code === 'ACCESS') {
+        alert('IRIS: "Really? REALLY? That\'s your attempt at hacking classified systems?"');
+      } else if (code === 'HELP' || code === 'HINT') {
+        alert('IRIS: "The hint is: get proper clearance or get lost."');
+      } else if (code.length > 0) {
+        alert('ACCESS DENIED: Invalid authorization code.');
+      } else {
+        alert('IRIS: "You need to actually enter a code, genius."');
+      }
+
+      if (attemptCount >= maxAttempts) {
+        alert('SECURITY LOCKOUT: Too many failed attempts. Session terminated.');
+        setTimeout(() => {
+          window.location.href = 'iris-protocols.html';
+        }, 2000);
+      }
+
+      input.value = '';
+    }
+
+    function requestClearance() {
+      const responses = [
+        'IRIS: "Clearance request denied. Your file says \'untrustworthy\' in big red letters."',
+        'IRIS: "You want clearance? Prove you deserve it. Start by not trying to hack classified files."',
+        'IRIS: "Admin reviews clearance requests personally. Spoiler alert: you\'re not getting approved."',
+        'IRIS: "Clearance Level 9 requires 15 years of service and Admin\'s personal approval. You have neither."',
+        'IRIS: "Request filed under \'Not a chance in hell.\' Next!"'
+      ];
+      
+      alert(responses[Math.floor(Math.random() * responses.length)]);
+    }
+
+    // Simulate IP tracking
+    setTimeout(() => {
+      document.getElementById('userIP').textContent = 
+        Math.floor(Math.random() * 255) + '.' +
+        Math.floor(Math.random() * 255) + '.' +
+        Math.floor(Math.random() * 255) + '.' +
+        Math.floor(Math.random() * 255);
+    }, 2000);
+
+    // Enter key support
+    document.getElementById('passcodeInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        attemptAccess();
+      }
+    });
+
+    // Random glitch effects
+    function addGlitchEffect() {
+      const container = document.querySelector('.access-denied-container');
+      container.style.filter = 'hue-rotate(20deg) contrast(1.2)';
+      setTimeout(() => {
+        container.style.filter = '';
+      }, 100);
+    }
+
+    setInterval(addGlitchEffect, 3000 + Math.random() * 5000);
+
+    // Console warning
+    console.log('%cACCESS DENIED', 'color: #ff0000; font-size: 40px; font-weight: bold;');
+    console.log('%cThis is a restricted area. All access attempts are monitored.', 'color: #ff0000; font-size: 16px;');
+    console.log('%cIRIS: "I see you in there, trying to be clever. It won\'t work."', 'color: #ff3366; font-size: 14px;');
+  </script>
+</body>
+</html>

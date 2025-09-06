@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OPSEC Resources - The Darknet District</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .resources-bg {
+      min-height: 100vh;
+      background-image: linear-gradient(to bottom, black 0%, transparent 20%, transparent 80%, black 100%), url('attached_assets/cyberpunk_shop.jpg.png');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      position: relative;
+      width: 100vw;
+      margin: 0;
+    }
+
+    .resources-title {
+      color: #00ff9d;
+      text-align: center;
+      margin: 40px 0 24px 0;
+      font-size: 2.3em;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+      letter-spacing: 2px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .intro-text {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #00ff9d;
+      padding: 25px;
+      border-radius: 10px;
+      margin: 20px auto 40px auto;
+      width: 95%;
+      max-width: 1200px;
+      color: #e4e4e4;
+      font-size: 1.1em;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .back-button {
+      position: fixed;
+      top: 80px;
+      left: 20px;
+      background-color: #00ff9d;
+      color: black;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .back-button:hover {
+      background-color: black;
+      color: #00ff9d;
+      border: 1px solid #00ff9d;
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+    }
+
+    .resources-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 25px;
+      width: 95%;
+      max-width: 1200px;
+      margin: 0 auto 40px auto;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .resource-card {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #00ff9d;
+      padding: 25px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      text-align: left;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      animation: colorShift 8s ease-in-out infinite;
+    }
+
+    @keyframes colorShift {
+      0% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+      }
+      50% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 30px rgba(0, 255, 157, 0.6);
+      }
+      100% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+      }
+    }
+
+    .resource-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 40px rgba(0, 255, 157, 0.6);
+    }
+
+    .resource-card h2 {
+      color: #00ff9d;
+      font-size: 1.6em;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+    }
+
+    .resource-card p {
+      color: #e4e4e4;
+      font-size: 1em;
+      line-height: 1.5;
+      margin-bottom: 20px;
+      flex-grow: 1;
+    }
+
+    .resource-link {
+      display: inline-block;
+      background-color: #00ff9d;
+      color: black;
+      padding: 12px 24px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Courier New', monospace;
+      align-self: flex-start;
+    }
+
+    .resource-link:hover {
+      background-color: black;
+      color: #00ff9d;
+      border: 1px solid #00ff9d;
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 768px) {
+      .resources-title {
+        font-size: 2em;
+      }
+      .resources-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .resource-card {
+        max-width: 90%;
+        padding: 20px;
+      }
+      .resource-card h2 {
+        font-size: 1.4em;
+      }
+    }
+
+    body {
+      margin: 0;
+      padding-top: 60px;
+      background-color: black;
+    }
+
+    .scanlines::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 200%;
+      background-image: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0, 255, 157, 0.02) 2px, rgba(0, 255, 157, 0.02) 4px);
+      animation: scrollLines 4s linear infinite;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    @keyframes scrollLines {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-50%); }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Top Navigation Buttons -->
+  <div class="top-nav">
+    <a href="/">Home</a>
+    <a href="games-list.html">Arcade</a>
+    <a href="store-first-page.html">Shop</a>
+    <a href="resources.html">Resources</a>
+    <a href="about.html">About</a>
+  </div>
+
+  <div class="resources-bg">
+    <div class="scanlines"></div>
+
+    
+
+    <div class="resources-title">🛡️ OPSEC Hub</div>
+
+    <div class="intro-text">
+      <p><strong>Discipline:</strong> Threat Modeling & Digital Camouflage</p>
+      <p>In the neon shadows of the net, every click leaves a trace. This node is your tactical playbook for staying invisible—covering threat modeling, metadata hygiene, encrypted comms, and counter-surveillance. Whether you're navigating darknet markets, whistleblowing ops, or just ghosting trackers, OPSEC is your armor.</p>
+    </div>
+
+    <div class="resources-grid">
+      <div class="resource-card">
+        <h2>🛡️ The Tor Project</h2>
+        <p>Anonymous browsing and traffic routing through encrypted onion layers. Essential infrastructure for digital anonymity and censorship resistance.</p>
+        <div style="color: #00ff9d; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+          torproject.org
+        </div>
+        <a href="https://www.torproject.org/" target="_blank" class="resource-link">Deploy Tor</a>
+      </div>
+
+      <div class="resource-card">
+        <h2>🔐 Tails OS</h2>
+        <p>Amnesic operating system that leaves no traces. Boot from USB for maximum security and privacy protection in hostile environments.</p>
+        <div style="color: #ff0080; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+          tails.boum.org
+        </div>
+        <a href="https://tails.boum.org/" target="_blank" class="resource-link">Download Tails</a>
+      </div>
+
+      <div class="resource-card">
+        <h2>🧬 Signal</h2>
+        <p>Military-grade encrypted messaging and voice calls. Open-source, independently audited, and trusted by privacy advocates worldwide.</p>
+        <div style="color: #9327ff; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+          signal.org
+        </div>
+        <a href="https://signal.org/" target="_blank" class="resource-link">Install Signal</a>
+      </div>
+
+      <div class="resource-card">
+        <h2>🎭 ProtonMail</h2>
+        <p>Swiss-based end-to-end encrypted email service with zero-access architecture. Even Proton cannot read your messages.</p>
+        <div style="color: #ffcc00; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+          proton.me/mail
+        </div>
+        <a href="https://proton.me/mail" target="_blank" class="resource-link">Create Account</a>
+      </div>
+
+      <div class="resource-card">
+        <h2>📚 OPSEC 101</h2>
+        <p>Beginner-friendly operational security guide covering fundamentals of threat modeling and privacy protection.</p>
+        <div style="color: #00ffcc; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+          opsec101.org
+        </div>
+        <a href="https://opsec101.org/" target="_blank" class="resource-link">Start Training</a>
+      </div>
+
+      <div class="resource-card">
+        <h2>🔐 Privacy International</h2>
+        <p>Global advocacy organization providing operational security guides, digital rights training, and counter-surveillance resources for activists and journalists.</p>
+        <div style="color: #ff3366; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+          privacyinternational.org
+        </div>
+        <a href="https://privacyinternational.org/" target="_blank" class="resource-link">Explore Resources</a>
+      </div>
+
+      <div class="resource-card">
+        <h2>🌐 EFF Surveillance Self-Defense</h2>
+        <p>Electronic Frontier Foundation's comprehensive guide to protecting your digital privacy and security with practical tools and techniques.</p>
+        <div style="color: #ff6600; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+          ssd.eff.org
+        </div>
+        <a href="https://ssd.eff.org/" target="_blank" class="resource-link">Deploy Defenses</a>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 200px; background: black;"></div>
+</body>
+</html>

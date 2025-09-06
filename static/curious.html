@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Darknet District – Curious Resources</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .resources-bg {
+      min-height: 100vh;
+      background-image: linear-gradient(to bottom, black 0%, transparent 20%, transparent 80%, black 100%), url('attached_assets/cyberpunk_shop.jpg.png');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      position: relative;
+      width: 100vw;
+      margin: 0;
+    }
+
+    .resources-title {
+      color: #9327ff;
+      text-align: center;
+      margin: 40px 0 24px 0;
+      font-size: 2.3em;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(147, 39, 255, 0.5);
+      letter-spacing: 2px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .intro-text {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #9327ff;
+      padding: 25px;
+      border-radius: 10px;
+      margin: 20px auto 40px auto;
+      width: 95%;
+      max-width: 1200px;
+      color: #e4e4e4;
+      font-size: 1.1em;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .back-button {
+      position: fixed;
+      top: 80px;
+      left: 20px;
+      background-color: #9327ff;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .back-button:hover {
+      background-color: black;
+      color: #9327ff;
+      border: 1px solid #9327ff;
+      box-shadow: 0 0 15px rgba(147, 39, 255, 0.5);
+    }
+
+    .coming-soon {
+      background: rgba(147, 39, 255, 0.1);
+      border: 2px solid #9327ff;
+      padding: 40px;
+      border-radius: 15px;
+      margin: 40px auto;
+      width: 95%;
+      max-width: 600px;
+      text-align: center;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 20px rgba(147, 39, 255, 0.3);
+      }
+      50% {
+        box-shadow: 0 0 40px rgba(147, 39, 255, 0.6);
+      }
+      100% {
+        box-shadow: 0 0 20px rgba(147, 39, 255, 0.3);
+      }
+    }
+
+    .coming-soon h2 {
+      color: #9327ff;
+      font-size: 2em;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .coming-soon p {
+      color: #e4e4e4;
+      font-size: 1.2em;
+      line-height: 1.6;
+    }
+
+    body {
+      margin: 0;
+      padding-top: 60px;
+      background-color: black;
+    }
+
+    .scanlines::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 200%;
+      background-image: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(147, 39, 255, 0.02) 2px, rgba(147, 39, 255, 0.02) 4px);
+      animation: scrollLines 4s linear infinite;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    @keyframes scrollLines {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-50%); }
+    }
+
+    .resource-card {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #9327ff;
+      padding: 25px;
+      border-radius: 10px;
+      margin: 20px auto;
+      width: 95%;
+      max-width: 800px;
+      transition: all 0.3s ease;
+      animation: pulse 4s ease-in-out infinite;
+    }
+
+    .resource-card:hover {
+      border-color: #00ff9d;
+      box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+    }
+
+    .resource-card h2 {
+      color: #9327ff;
+      font-size: 1.8em;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .resource-card p {
+      color: #e4e4e4;
+      font-size: 1.1em;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .resource-link {
+      display: inline-block;
+      background-color: #9327ff;
+      color: white;
+      padding: 12px 24px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .resource-link:hover {
+      background-color: #00ff9d;
+      color: black;
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Top Navigation Buttons -->
+  <div class="top-nav">
+    <a href="/">Home</a>
+    <a href="games-list.html">Arcade</a>
+    <a href="store-first-page.html">Shop</a>
+    <a href="resources.html">Resources</a>
+    <a href="about.html">About</a>
+  </div>
+
+  
+
+  <div class="resources-title">Curious Resources</div>
+
+  <div class="resources-bg">
+    <div class="scanlines"></div>
+
+    <div class="intro-text">
+      <p>
+        Welcome to the grid. This page links to high-voltage learning nodes for cyber security, ethical hacking, and electronic tinkering. Whether you're a rogue sysadmin, a neon-lit solder junkie, or a zero-day dreamer, these portals will level up your skills and plug you into the underground.
+      </p>
+    </div>
+
+    <div class="resource-card">
+      <h2>🎭 DEF CON Las Vegas</h2>
+      <p>The ultimate hacker conference. Annual pilgrimage for black hats, white hats, and everyone in between. Talks, villages, and networking.</p>
+      <div style="color: #00ff9d; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+        defcon.org
+      </div>
+      <a href="https://defcon.org/" target="_blank" class="resource-link">Visit DEF CON</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧠 StationX</h2>
+      <p>Elite training vault for cyber operatives. Offers 30,000+ courses from penetration testing to AI forensics. Mentorship and mastermind groups included.</p>
+      <div style="color: #00ff9d; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+        stationx.net
+      </div>
+      <a href="https://www.stationx.net/best-places-to-learn-cyber-security/" target="_blank" class="resource-link">Visit StationX</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧪 TryHackMe</h2>
+      <p>Gamified hacking labs in a browser-based simulation. Navigate red team ops, Linux forensics, and OWASP exploits in a safe, neon-lit sandbox.</p>
+      <div style="color: #00ff9d; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+        tryhackme.com
+      </div>
+      <a href="https://www.tryhackme.com" target="_blank" class="resource-link">Visit TryHackMe</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧬 Hack The Box</h2>
+      <p>Virtual machines rigged with vulnerabilities. Practice real-world exploits in a legal, encrypted arena. From beginner to black hat emulation.</p>
+      <div style="color: #00ff9d; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+        hackthebox.com
+      </div>
+      <a href="https://www.hackthebox.com" target="_blank" class="resource-link">Visit Hack The Box</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🛰️ VulnHub</h2>
+      <p>Downloadable VMs designed to be broken. Perfect for offline penetration testing and privilege escalation drills. No rules, just root.</p>
+      <div style="color: #00ff9d; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+        vulnhub.com
+      </div>
+      <a href="https://www.vulnhub.com" target="_blank" class="resource-link">Visit VulnHub</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧰 PentesterLab</h2>
+      <p>Web app security dojo. Learn to exploit APIs, CSRF, SSRF, and more. Includes real-world walkthroughs and code review missions.</p>
+      <div style="color: #00ff9d; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+        pentesterlab.com
+      </div>
+      <a href="https://www.pentesterlab.com" target="_blank" class="resource-link">Visit PentesterLab</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧱 Security Shepherd</h2>
+      <p>OWASP-based training ground. Hands-on challenges for web and mobile app vulnerabilities. Open-source and customizable.</p>
+      <div style="color: #00ff9d; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+        owasp.org/www-project-security-shepherd/
+      </div>
+      <a href="https://owasp.org/www-project-security-shepherd/" target="_blank" class="resource-link">Visit Security Shepherd</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🧠 Hack This Site</h2>
+      <p>Old-school hacker playground. CTFs, steganography, and realistic missions. Active since 2003. Join the forums, IRC, and Discord underground.</p>
+      <div style="color: #00ff9d; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+        hackthissite.org
+      </div>
+      <a href="https://www.hackthissite.org" target="_blank" class="resource-link">Visit Hack This Site</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🔧 Tinkerers Workshop</h2>
+      <p>DIY lab for robotics, Arduino, and 3D printing. Learn to build bots, code microcontrollers, and solder your way to enlightenment.</p>
+      <div style="color: #00ff9d; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+        thetinkerersworkshop.com
+      </div>
+      <a href="https://thetinkerersworkshop.com/" target="_blank" class="resource-link">Visit Tinkerers Workshop</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>⚡ Tinkercad Circuits</h2>
+      <p>Browser-based circuit simulator. Drag, drop, and code your way through breadboards, LEDs, and micro:bit madness.</p>
+      <div style="color: #00ff9d; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+        tinkercad.com/circuits
+      </div>
+      <a href="https://www.tinkercad.com/circuits" target="_blank" class="resource-link">Visit Tinkercad Circuits</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>🔌 EveryCircuit</h2>
+      <p>Animated circuit simulator with real-time feedback. Visualize voltages, currents, and logic gates like a digital oracle.</p>
+      <div style="color: #00ff9d; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+        everycircuit.com
+      </div>
+      <a href="https://everycircuit.com/" target="_blank" class="resource-link">Visit EveryCircuit</a>
+    </div>
+
+    <div class="resource-card">
+      <h2>📐 CircuitLab</h2>
+      <p>Professional-grade schematic editor and simulator. Ideal for analog/digital mashups and rapid prototyping in-browser.</p>
+      <div style="color: #00ff9d; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+        circuitlab.com
+      </div>
+      <a href="https://www.circuitlab.com/" target="_blank" class="resource-link">Visit CircuitLab</a>
+    </div>
+  </div>
+
+  <div style="height: 200px; background: black;"></div>
+</body>
+</html>

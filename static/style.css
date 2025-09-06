@@ -1,0 +1,807 @@
+/* ============================================================================
+   SHOPIFY CART STYLING - Positioning and cyberpunk theme customization
+   ============================================================================ */
+
+/* Shopify cart positioning and styling */
+.shopify-buy-cart-wrapper {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  z-index: 9999;
+}
+
+/* Shopify cart cyberpunk theme customization */
+.shopify-buy__cart {
+  background: #0d0d0d !important;
+  border: 2px solid #00ff9d !important;
+  color: #00ff9d !important;
+}
+
+
+/* ============================================================================
+   GLOBAL LAYOUT - Smooth scrolling and full height setup
+   ============================================================================ */
+
+/* Smooth scrolling and full height setup */
+html {
+  scroll-behavior: smooth;
+  height: 100%;
+}
+
+/* Global body styling with cyberpunk theme */
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background-color: black;
+  will-change: transform;
+  -webkit-font-smoothing: antialiased;
+  padding-top: 60px;
+}
+
+
+/* ============================================================================
+   SECTION LAYOUTS - Full-height responsive sections
+   ============================================================================ */
+
+/* Base section styling for full-height layouts */
+section {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin: 0;
+  background-color: black;
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* First section - Main landing area with optimized rendering */
+.first-section {
+  margin-top: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Second section - Content area with flexible layout */
+.second-section {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Content wrapper for second section */
+.second-section-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+/* Third and fourth sections - Additional content areas */
+.third-section,
+.fourth-section {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  background-color: black;
+}
+
+
+/* ============================================================================
+   BACKGROUND IMAGES - Section-specific cyberpunk backgrounds
+   ============================================================================ */
+
+/* First section background - Dark cyberpunk cityscape */
+.first-section {
+  background-image: url('attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.webp');
+}
+
+/* Second section background - Gradient fade effect */
+.second-section {
+  background-image: url('attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.webp');
+}
+
+/* Third section background - Continuation of gradient theme */
+.third-section {
+  background-image: url('attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png');
+}
+
+/* Third section overlay - Top gradient fade effect */
+.third-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 30vh;
+  background: linear-gradient(to bottom, black, transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Fourth section background - Final background image */
+.fourth-section {
+  background-image: url('attached_assets/0_2.jpeg');
+  min-height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  z-index: 0;
+  opacity: 1;
+}
+
+
+/* ============================================================================
+   GRADIENT OVERLAYS - Smooth transitions between sections
+   ============================================================================ */
+
+/* Base pseudo-element setup for gradient overlays */
+.first-section::after,
+.second-section::before,
+.second-section::after,
+.third-section::before,
+.third-section::after,
+.fourth-section::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* First section bottom gradient fade to black */
+.first-section::after {
+  bottom: 0;
+  background: linear-gradient(to bottom, transparent, black);
+  height: 30vh;
+}
+
+/* Second section top gradient fade from black */
+.second-section::before {
+  top: 0;
+  background: linear-gradient(to top, transparent, black);
+  height: 30vh;
+}
+
+/* Second section bottom gradient fade to black */
+.second-section::after {
+  bottom: 0;
+  background: linear-gradient(to bottom, transparent, black);
+  height: 30vh;
+}
+
+/* Third section top gradient fade from black */
+.third-section::before {
+  top: 0;
+  background: linear-gradient(to top, transparent, black);
+  height: 30vh;
+}
+
+/* Third and fourth section gradient overlays */
+.third-section::after,
+.fourth-section::before {
+  top: 0;
+  background: linear-gradient(to top, transparent, black);
+  height: 30vh;
+}
+
+/* Fourth section bottom gradient fade to black */
+.fourth-section::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(to bottom, transparent, black);
+  height: 30vh;
+  pointer-events: none;
+}
+
+
+/* ============================================================================
+   ANIMATIONS - Cyberpunk effects and transitions
+   ============================================================================ */
+
+/* Matrix digital rain effect */
+.digital-rain {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -2;
+  overflow: hidden;
+}
+
+.digital-rain::before {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 200%;
+  background-image: 
+    linear-gradient(0deg, transparent 0%, rgba(0, 255, 157, 0.1) 50%, transparent 100%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 98px,
+      rgba(0, 255, 157, 0.03) 100px,
+      rgba(0, 255, 157, 0.03) 102px
+    );
+  animation: matrixRain 20s linear infinite;
+}
+
+@keyframes matrixRain {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.4;
+  }
+  90% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+/* Cyberpunk glitch text effect animation */
+@keyframes glitch {
+  0% {
+    text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
+                 0.025em 0.04em 0 #fffc00;
+  }
+  15% {
+    text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
+                 0.025em 0.04em 0 #fffc00;
+  }
+  16% {
+    text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff,
+                 -0.05em -0.05em 0 #fffc00;
+  }
+  49% {
+    text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff,
+                 -0.05em -0.05em 0 #fffc00;
+  }
+  50% {
+    text-shadow: 0.05em 0.035em 0 #00fffc, 0.03em 0 0 #fc00ff,
+                 0 -0.04em 0 #fffc00;
+  }
+  99% {
+    text-shadow: 0.05em 0.035em 0 #00fffc, 0.03em 0 0 #fc00ff,
+                 0 -0.04em 0 #fffc00;
+  }
+  100% {
+    text-shadow: -0.05em 0 0 #00fffc, -0.025em -0.04em 0 #fc00ff,
+                 -0.04em -0.025em 0 #fffc00;
+  }
+}
+
+/* Random glitch text effect that applies to various elements */
+.glitch-text {
+  animation: glitch 0.8s ease-in-out;
+}
+
+@keyframes textCorruption {
+  0% { 
+    transform: translate(0);
+    filter: hue-rotate(0deg);
+  }
+  10% { 
+    transform: translate(-2px, 1px);
+    filter: hue-rotate(90deg);
+  }
+  20% { 
+    transform: translate(2px, -1px);
+    filter: hue-rotate(180deg);
+  }
+  30% { 
+    transform: translate(-1px, 2px);
+    filter: hue-rotate(270deg);
+  }
+  40% { 
+    transform: translate(1px, -2px);
+    filter: hue-rotate(360deg);
+  }
+  50% { 
+    transform: translate(-2px, -1px);
+    filter: hue-rotate(90deg);
+  }
+  60% { 
+    transform: translate(2px, 1px);
+    filter: hue-rotate(180deg);
+  }
+  70% { 
+    transform: translate(-1px, -2px);
+    filter: hue-rotate(270deg);
+  }
+  80% { 
+    transform: translate(1px, 2px);
+    filter: hue-rotate(360deg);
+  }
+  90% { 
+    transform: translate(-2px, 1px);
+    filter: hue-rotate(45deg);
+  }
+  100% { 
+    transform: translate(0);
+    filter: hue-rotate(0deg);
+  }
+}
+
+
+/* ============================================================================
+   TYPOGRAPHY - Cyberpunk titles and text styling
+   ============================================================================ */
+
+/* Main cyberpunk title styling with responsive sizing */
+.cyberpunk-title {
+  font-family: 'Arial', sans-serif;
+  font-size: clamp(1.5rem, 5vw, 3rem);
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #e4e4e4;
+  letter-spacing: 4px;
+  text-align: center;
+  margin: 20px auto;
+  background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%);
+  border-radius: 5px;
+  max-width: 90%;
+  padding: 20px;
+  position: relative;
+  text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+}
+
+/* Cyberpunk title background glow effect */
+.cyberpunk-title::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 110%;
+  height: 120%;
+  background: radial-gradient(rgba(0, 255, 0, 0.15), transparent 70%);
+  z-index: -1;
+}
+
+
+/* ============================================================================
+   BUTTONS - Interactive cyberpunk button styling
+   ============================================================================ */
+
+.enter-district-btn {
+  animation: colorShift 8s ease-in-out infinite;
+  margin-top: 120px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: fit-content;
+  clear: both;
+}
+
+.enter-district-btn:hover {
+  transform: scale(1.05);
+  filter: brightness(1.2);
+}
+
+.game-button {
+  padding: clamp(15px, 4vw, 25px) clamp(30px, 6vw, 50px);
+  font-family: 'Arial', sans-serif;
+  font-size: clamp(1.2rem, 4vw, 1.8rem);
+  text-transform: uppercase;
+  color: #00ff9d;
+  background: rgba(0, 0, 0, 0.7);
+  border: 3px solid #00ff9d;
+  text-decoration: none;
+  letter-spacing: 2px;
+  transition: all 0.3s ease;
+  text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+  box-shadow: 0 0 25px rgba(0, 255, 157, 0.3);
+  white-space: nowrap;
+  margin: 15px;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
+  position: relative;
+  overflow: hidden;
+}
+
+.game-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(0, 255, 157, 0.4),
+    transparent
+  );
+  transition: all 0.6s;
+}
+
+.game-button:hover::before {
+  left: 100%;
+}
+
+.game-button:hover {
+  background: rgba(0, 255, 157, 0.2);
+  box-shadow: 0 0 35px rgba(0, 255, 157, 0.5);
+  transform: scale(1.05) translateZ(0);
+  text-shadow: 0 0 15px rgba(0, 255, 157, 0.8);
+}
+
+.game-button:hover {
+  background: rgba(0, 255, 157, 0.1);
+  box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+  transform: scale(1.05);
+}
+
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+.featured-section {
+  min-height: 60vh;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 20px;
+}
+
+.featured-container {
+  width: 90%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.featured-title {
+  color: #00ff9d;
+  text-align: center;
+  font-size: 2em;
+  margin: 0 0 30px;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+}
+
+/* Digital pattern animation for featured products container */
+.featured-grid {
+  transition: opacity 0.3s ease, filter 0.3s ease, transform 0.3s ease;
+}
+
+/* Add scanline effect during transitions */
+.featured-grid::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 255, 157, 0.1) 2px,
+    rgba(0, 255, 157, 0.1) 4px
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+/* Activate scanlines during rotation */
+.featured-grid.rotating::before {
+  opacity: 1;
+  animation: digitalScan 0.8s ease-in-out;
+}
+
+@keyframes digitalScan {
+  0% { 
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  50% { 
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+  100% { 
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.featured-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 40px;
+  width: 90%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.featured-grid > .product-card {
+  width: 100%;
+  max-width: 350px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  section {
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  .featured-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+}
+
+
+/* ============================================================================
+   PRODUCT CARDS - Featured product display styling
+   ============================================================================ */
+
+.product-card {
+  position: relative;
+  background: linear-gradient(45deg, #0d0d0d, #1a1a1a);
+  border: 2px solid #00ff9d;
+  box-shadow: 
+    0 0 10px rgba(0, 255, 157, 0.3),
+    0 0 20px rgba(147, 39, 255, 0.6),
+    0 0 35px rgba(147, 39, 255, 0.4),
+    0 0 50px rgba(147, 39, 255, 0.2),
+    inset 0 0 20px rgba(147, 39, 255, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  will-change: transform;
+  padding: 20px;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin: 0 auto;
+  contain: content;
+  animation: colorShift 8s ease-in-out infinite;
+}
+
+@keyframes colorShift {
+  0% {
+    border-color: #00ff9d;
+    box-shadow: 
+      0 0 10px rgba(0, 255, 157, 0.3),
+      0 0 20px rgba(0, 255, 157, 0.4),
+      0 0 35px rgba(0, 255, 157, 0.3),
+      0 0 50px rgba(0, 255, 157, 0.2),
+      inset 0 0 20px rgba(0, 255, 157, 0.1);
+  }
+  50% {
+    border-color: #9327ff;
+    box-shadow: 
+      0 0 10px rgba(147, 39, 255, 0.3),
+      0 0 20px rgba(147, 39, 255, 0.4),
+      0 0 35px rgba(147, 39, 255, 0.3),
+      0 0 50px rgba(147, 39, 255, 0.2),
+      inset 0 0 20px rgba(147, 39, 255, 0.1);
+  }
+  100% {
+    border-color: #00ff9d;
+    box-shadow: 
+      0 0 10px rgba(0, 255, 157, 0.3),
+      0 0 20px rgba(0, 255, 157, 0.4),
+      0 0 35px rgba(0, 255, 157, 0.3),
+      0 0 50px rgba(0, 255, 157, 0.2),
+      inset 0 0 20px rgba(0, 255, 157, 0.1);
+  }
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 
+    0 0 20px rgba(0, 255, 157, 0.5),
+    0 0 40px rgba(147, 39, 255, 0.8),
+    0 0 60px rgba(147, 39, 255, 0.6),
+    0 0 80px rgba(147, 39, 255, 0.4),
+    0 0 100px rgba(147, 39, 255, 0.2),
+    inset 0 0 30px rgba(0, 255, 157, 0.3),
+    inset 0 0 25px rgba(147, 39, 255, 0.2);
+}
+
+.product-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 255, 157, 0.03) 0px,
+    rgba(0, 255, 157, 0.03) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  animation: scanline 10s linear infinite;
+}
+
+.product-card:hover::before {
+  opacity: 0.5;
+}
+
+.product-card h3 {
+  text-shadow: 0 0 10px rgba(0, 255, 157, 0.7),
+               0 0 20px rgba(0, 255, 157, 0.5),
+               0 0 30px rgba(0, 255, 157, 0.3);
+  animation: textPulse 2s infinite;
+}
+
+.product-card img {
+  transition: all 0.3s ease;
+}
+
+.product-card img:hover {
+  transform: scale(1.02);
+  filter: brightness(1.2) contrast(1.1);
+  animation: glitch 0.3s infinite;
+}
+
+.button, .buy-button {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, #00ff9d, #00ccff);
+  background-size: 200% 100%;
+  animation: gradient 3s ease infinite;
+  border: none !important;
+  color: black !important;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(0, 255, 157, 0.4);
+}
+
+.button:hover, .buy-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(0, 255, 157, 0.6);
+}
+
+@keyframes scanline {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(100%); }
+}
+
+@keyframes glitch {
+  0% { transform: translate(0) scale(1.02); }
+  20% { transform: translate(-2px, 2px) scale(1.02); }
+  40% { transform: translate(-2px, -2px) scale(1.02); }
+  60% { transform: translate(2px, 2px) scale(1.02); }
+  80% { transform: translate(2px, -2px) scale(1.02); }
+  100% { transform: translate(0) scale(1.02); }
+}
+
+@keyframes textPulse {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(0, 255, 157, 0.7),
+                 0 0 20px rgba(0, 255, 157, 0.5),
+                 0 0 30px rgba(0, 255, 157, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(0, 255, 157, 0.9),
+                 0 0 40px rgba(0, 255, 157, 0.7),
+                 0 0 60px rgba(0, 255, 157, 0.5);
+  }
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+
+/* ============================================================================
+   NAVIGATION - Top navigation bar styling
+   ============================================================================ */
+
+.top-nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 0;
+  z-index: 9999;
+}
+
+.top-nav a {
+  font-family: 'Courier New', monospace;
+  color: #00ff9d;
+  text-decoration: none;
+  padding: 12px 24px;
+  border: 2px solid #00ff9d;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  background: rgba(0, 0, 0, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 10px;
+  text-align: center;
+  min-width: 120px;
+}
+
+.top-nav a:hover {
+  background: rgba(0, 255, 157, 0.1);
+  box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+  transform: translateY(-2px);
+}
+
+
+/* ============================================================================
+   AFFILIATE BANNERS - Rotating banner positioning
+   ============================================================================ */
+
+#affiliate-banner {
+  position: relative;
+  margin-top: 80px;
+  z-index: 1;
+}
+
+
+/* ============================================================================
+   SPECIAL COMPONENTS - Pod buttons and misc elements
+   ============================================================================ */
+
+.pod-button-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.chat-button {
+      position: fixed;
+      bottom: 120px;
+      right: 20px;
+}
+
+.chat-container {
+      display: none;
+      position: fixed;
+      bottom: 180px;
+      right: 20px;
+}

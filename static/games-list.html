@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Darknet District - Games</title>
+  <link href="style.css" rel="stylesheet" type="text/css">
+  <style>
+    .top-nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      padding: 10px 0;
+      z-index: 9999;
+    }
+
+    .top-nav a {
+      font-family: 'Courier New', monospace;
+      color: #00ffcc;
+      text-decoration: none;
+      padding: 8px 16px;
+      border: 1px solid #00ffcc;
+      border-radius: 4px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .top-nav a:hover {
+      background-color: #00ffcc;
+      color: black;
+    }
+
+    body {
+      padding-top: 60px;
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      width: 95%;
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+
+    .game-card {
+      border: 2px solid #00ff9d;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 25px;
+      border-radius: 10px;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 20px; /* Added margin to create space between cards */
+    }
+
+    .game-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+      background: rgba(0, 255, 157, 0.1);
+    }
+
+    .game-card h3 {
+      color: #00ff9d;
+      font-size: 1.5em;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5); 0 10px rgba(0, 255, 157, 0.5);
+    }
+
+    .game-card p {
+      color: #00ff9d;
+      font-size: 1.1em;
+      margin: 10px 0;
+    }
+
+    .status-tag {
+      padding: 8px 15px;
+      border-radius: 5px;
+      font-weight: bold;
+      margin-top: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .ready {
+      background: #00ff9d;
+      color: black;
+    }
+
+    .coming-soon {
+      background: rgba(255, 157, 0, 0.3);
+      color: #ffa500;
+      border: 1px solid #ffa500;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation Buttons -->
+  <div class="top-nav">
+    <a href="/">Home</a>
+    <a href="games-list">Play a Game</a>
+    <a href="store-first-page">Shop</a>
+  </div>
+
+  <!-- Page Content - Games showcase area -->
+  <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 80px;">
+    <!-- Page title -->
+    <h1 class="cyberpunk-title">Available Games</h1>
+
+    <!-- Games grid container -->
+    <div class="games-grid">
+      <!-- Origins game - Main story game -->
+      <div class="game-card" onclick="window.open('https://cyber-nexus-smartsec916.replit.app', '_blank');">
+        <h3>The Darknet District – Origins</h3>
+        <p>Enter the digital underground and begin your journey</p>
+        <div class="status-tag ready">Ready to play now</div>
+      </div>
+
+      <!-- Blackout Protocol - Ready to play -->
+      <div class="game-card" onclick="window.location.href='blackout-protocol';">
+        <h3>Blackout Protocol</h3>
+        <p>A cyberpunk sidescroller adventure</p>
+        <div class="status-tag ready">Ready to play now</div>
+      </div>
+
+      <!-- Project X - Mysterious upcoming game -->
+      <div class="game-card">
+        <h3>Project X</h3>
+        <p>Details classified</p>
+        <div class="status-tag coming-soon">Coming Soon</div>
+      </div>
+
+      <!-- Raven game - Stealth adventure -->
+      <div class="game-card" onclick="window.location.href='raven';">
+        <h3>Raven</h3>
+        <p>A dark cyberpunk stealth adventure</p>
+        <div class="status-tag ready">Ready to play now</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Star Citizen referral section -->
+  <div class="product-card">
+  <!-- Star Citizen logo -->
+  <img src="attached_assets/star-citizen-logo.png" alt="Star Citizen Logo" style="width: 200px; height: auto; margin: 0 auto; display: block;">
+  <!-- Referral offer title -->
+  <h3 style="color: #00ff9d; text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);">Play Star Citizen – Enlist Bonus</h3>
+  <!-- Referral benefits description -->
+  <p style="color: #00ff9d;">
+    Gear up and launch into the 'verse. Use our referral link to join Star Citizen and you'll receive <strong>5,000 UEC</strong> in bonus credits.
+  </p>
+  <!-- External link warning -->
+  <p style="color: #00ff9d;">
+    ⚠️ Clicking this will take you to the official Star Citizen enlistment page.
+  </p>
+  <!-- Referral link button -->
+  <a href="https://www.robertsspaceindustries.com/enlist?referral=STAR-W2HJ-F3XX" target="_blank" class="button">Buy Now</a>
+</div>
+
+  <script src="script.js"></script>
+</body>
+</html>

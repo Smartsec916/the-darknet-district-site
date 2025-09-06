@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Darknet District – Legal Resources</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .resources-bg {
+      min-height: 100vh;
+      background-image: linear-gradient(to bottom, black 0%, transparent 20%, transparent 80%, black 100%), url('attached_assets/cyberpunk_shop.jpg.png');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      position: relative;
+      width: 100vw;
+      margin: 0;
+    }
+
+    .resources-title {
+      color: #00ff9d;
+      text-align: center;
+      margin: 40px 0 24px 0;
+      font-size: 2.3em;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+      letter-spacing: 2px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .resources-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 25px;
+      width: 95%;
+      max-width: 1200px;
+      margin: 0 auto 40px auto;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .resource-card {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #00ff9d;
+      padding: 25px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      text-align: left;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      animation: colorShift 8s ease-in-out infinite;
+    }
+
+    @keyframes colorShift {
+      0% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+      }
+      50% {
+        border-color: #9327ff;
+        box-shadow: 0 0 30px rgba(147, 39, 255, 0.4);
+      }
+      100% {
+        border-color: #00ff9d;
+        box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+      }
+    }
+
+    .resource-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+      background: rgba(0, 255, 157, 0.1);
+    }
+
+    .resource-title {
+      color: #00ff9d;
+      font-size: 1.4em;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+      font-family: 'Courier New', monospace;
+    }
+
+    .resource-description {
+      color: #e4e4e4;
+      font-size: 1em;
+      line-height: 1.5;
+      margin-bottom: 20px;
+      flex-grow: 1;
+    }
+
+    .resource-link {
+      display: inline-block;
+      background-color: #00ff9d;
+      color: black;
+      padding: 12px 24px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Courier New', monospace;
+      align-self: flex-start;
+    }
+
+    .resource-link:hover {
+      background-color: black;
+      color: #00ff9d;
+      border: 1px solid #00ff9d;
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+    }
+
+    .intro-text {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #00ff9d;
+      padding: 25px;
+      border-radius: 10px;
+      margin: 20px auto 40px auto;
+      width: 95%;
+      max-width: 1200px;
+      color: #e4e4e4;
+      font-size: 1.1em;
+      line-height: 1.6;
+      text-align: left;
+    }
+
+    .back-button {
+      position: fixed;
+      top: 80px;
+      left: 20px;
+      background-color: #00ff9d;
+      color: black;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .back-button:hover {
+      background-color: black;
+      color: #00ff9d;
+      border: 1px solid #00ff9d;
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+    }
+
+    @media (max-width: 768px) {
+      .resources-grid {
+        grid-template-columns: 1fr;
+        padding: 10px;
+        gap: 20px;
+      }
+      .resource-card {
+        margin: 0 10px;
+      }
+      .resources-title {
+        font-size: 1.8em;
+      }
+    }
+
+    body {
+      margin: 0;
+      padding-top: 60px;
+      background-color: black;
+    }
+
+    .scanlines::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 200%;
+      background-image: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0, 255, 157, 0.02) 2px, rgba(0, 255, 157, 0.02) 4px);
+      animation: scrollLines 4s linear infinite;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    @keyframes scrollLines {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-50%); }
+    }
+    
+    .top-nav {
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 10px 0;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      width: 100%;
+      border-bottom: 2px solid #00ff9d;
+    }
+
+    .top-nav a {
+      color: #00ff9d;
+      text-decoration: none;
+      margin: 0 15px;
+      font-family: 'Courier New', monospace;
+      font-size: 1.1em;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .top-nav a:hover {
+      color: #9327ff;
+      text-shadow: 0 0 15px rgba(147, 39, 255, 0.5);
+    }
+
+    .external-links {
+        color: #9327ff; 
+        font-size: 0.9em; 
+        text-align: center; 
+        margin-bottom: 10px; 
+        font-family: 'Courier New', monospace;
+        padding: 5px 0;
+        background-color: rgba(0, 0, 0, 0.8);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Top Navigation Buttons -->
+  <div class="top-nav">
+    <div class="external-links">
+        hackthissite.org • thetinkerersworkshop.com • tinkercad.com • overthewire.org • picoctf.org • tryhackme.com
+      </div>
+    <a href="/">Home</a>
+    <a href="games-list.html">Arcade</a>
+    <a href="store-first-page.html">Shop</a>
+    <a href="resources.html">Resources</a>
+    <a href="about.html">About</a>
+  </div>
+
+  
+
+  <div class="resources-title">Legal Resources</div>
+
+  <div class="resources-bg">
+    <div class="scanlines"></div>
+
+    <div class="intro-text">
+      <p>
+        This page was created to help individuals facing legal action for cyber-related offenses.
+        Whether you're seeking advocacy, financial support, or legal guidance, these resources offer
+        pathways to defend digital rights and access justice. Many of these organizations support
+        free speech, privacy, and fair treatment under the law—especially in cases involving hacking,
+        whistleblowing, or digital activism.
+      </p>
+    </div>
+
+    <div class="resources-grid">
+      <div class="resource-card">
+        <h3 class="resource-title">🧠 EFF Legal Support</h3>
+        <p class="resource-description">» Tactical Defense Hub » Deploys elite legal minds to defend hackers, whistleblowers, and privacy rebels. If your case could reshape digital law, they may join your fight.</p>
+        <div style="color: #00ff9d; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+          eff.org/legal
+        </div>
+        <a href="https://www.eff.org/legal" target="_blank" class="resource-link">Visit Site</a>
+      </div>
+
+      <div class="resource-card">
+        <h3 class="resource-title">💸 GoFundMe Legal Defense</h3>
+        <p class="resource-description">» Civilian Crowdfunding Beacon » Rally allies to bankroll your defense. Platform-friendly campaigns only—optics and discretion matter.</p>
+        <div style="color: #ff0080; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+          gofundme.com/c/blog/how-to-pay-for-lawyer
+        </div>
+        <a href="https://www.gofundme.com/c/blog/how-to-pay-for-lawyer" target="_blank" class="resource-link">Visit Site</a>
+      </div>
+
+      <div class="resource-card">
+        <h3 class="resource-title">🔥 Fight for the Future</h3>
+        <p class="resource-description">» Activist Uplink » A rogue collective amplifying voices against surveillance and censorship. If your cybercrime case is tied to activism, they may boost your signal.</p>
+        <div style="color: #9327ff; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+          fightforthefuture.org
+        </div>
+        <a href="https://www.fightforthefuture.org/" target="_blank" class="resource-link">Visit Site</a>
+      </div>
+
+      <div class="resource-card">
+        <h3 class="resource-title">🛡️ GiveSendGo</h3>
+        <p class="resource-description">» Alt-Tech Crowdfunding Node » Minimal moderation, maximum volatility. A lifeline for politically radioactive cases—use with caution.</p>
+        <div style="color: #ffcc00; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+          givesendgo.com
+        </div>
+        <a href="https://www.givesendgo.com/" target="_blank" class="resource-link">Visit Site</a>
+      </div>
+
+      <div class="resource-card">
+        <h3 class="resource-title">🧬 FundRazr</h3>
+        <p class="resource-description">» Modular Funding Engine » International, flexible, and privacy-aware. Ideal for low-profile legal battles or community-backed defense ops.</p>
+        <div style="color: #00ffcc; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+          fundrazr.com
+        </div>
+        <a href="https://fundrazr.com/" target="_blank" class="resource-link">Visit Site</a>
+      </div>
+
+      <div class="resource-card">
+        <h3 class="resource-title">🏴‍☠️ National Lawyers Guild</h3>
+        <p class="resource-description">» Legal Resistance Network » Progressive defenders of protestors and movement builders. If your charges intersect with systemic critique, they may deploy legal observers or connect you to sympathetic counsel.</p>
+        <div style="color: #ff3366; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+          nlg.org
+        </div>
+        <a href="https://www.nlg.org/" target="_blank" class="resource-link">Visit Site</a>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 200px; background: black;"></div>
+</body>
+</html>

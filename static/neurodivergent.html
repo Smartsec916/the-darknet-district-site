@@ -1,0 +1,273 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Darknet District – Neurodivergent Ops & Accessibility Hacks</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .neurodivergent-bg {
+      min-height: 100vh;
+      background-image: linear-gradient(to bottom, black 0%, transparent 20%, transparent 80%, black 100%), url('attached_assets/cyberpunk_shop.jpg.png');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      width: 100vw;
+      margin: 0;
+      padding: 20px 0;
+    }
+
+    .neurodivergent-title {
+      color: #9327ff;
+      text-align: center;
+      margin: 40px 0;
+      font-size: 2.5em;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(147, 39, 255, 0.5);
+      letter-spacing: 2px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .content-container {
+      width: 95%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .intro-card {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #9327ff;
+      padding: 30px;
+      border-radius: 10px;
+      margin-bottom: 40px;
+      color: #e4e4e4;
+      font-size: 1.1em;
+      line-height: 1.6;
+      animation: colorShiftPurple 8s ease-in-out infinite;
+    }
+
+    @keyframes colorShiftPurple {
+      0% {
+        border-color: #9327ff;
+        box-shadow: 0 0 30px rgba(147, 39, 255, 0.4);
+      }
+      50% {
+        border-color: #9327ff;
+        box-shadow: 0 0 30px rgba(147, 39, 255, 0.6);
+      }
+      100% {
+        border-color: #9327ff;
+        box-shadow: 0 0 30px rgba(147, 39, 255, 0.4);
+      }
+    }
+
+    .discipline-tag {
+      color: #9327ff;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .resource-card {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #9327ff;
+      padding: 25px;
+      border-radius: 10px;
+      margin: 20px 0;
+      color: #e4e4e4;
+      font-size: 1.1em;
+      line-height: 1.6;
+      transition: all 0.3s ease;
+    }
+
+    .resource-card:hover {
+      border-color: #00ff9d;
+      box-shadow: 0 0 25px rgba(0, 255, 157, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .resource-card h3 {
+      color: #9327ff;
+      font-size: 1.3em;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .resource-card a {
+      color: #9327ff;
+      text-decoration: none;
+      border-bottom: 1px dotted #9327ff;
+      transition: all 0.3s ease;
+    }
+
+    .resource-card a:hover {
+      color: #00ff9d;
+      border-bottom-color: #00ff9d;
+    }
+
+    .resource-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .resource-list li {
+      margin-bottom: 15px;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .resource-list li::before {
+      content: "🧠";
+      position: absolute;
+      left: 0;
+      color: #9327ff;
+    }
+
+    .back-button {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #9327ff;
+      color: #9327ff;
+      padding: 15px 30px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      display: inline-block;
+      margin-bottom: 30px;
+    }
+
+    .back-button:hover {
+      background: rgba(147, 39, 255, 0.1);
+      box-shadow: 0 0 15px rgba(147, 39, 255, 0.5);
+    }
+
+    body {
+      margin: 0;
+      padding-top: 60px;
+      background-color: black;
+    }
+
+    .scanlines::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 200%;
+      background-image: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(147, 39, 255, 0.02) 2px, rgba(147, 39, 255, 0.02) 4px);
+      animation: scrollLines 4s linear infinite;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    @keyframes scrollLines {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-50%); }
+    }
+
+    @media (max-width: 768px) {
+      .neurodivergent-title {
+        font-size: 1.8em;
+      }
+      .intro-card, .resource-card {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Top Navigation Buttons -->
+  <div class="top-nav">
+    <a href="/">Home</a>
+    <a href="games-list.html">Arcade</a>
+    <a href="store-first-page.html">Shop</a>
+    <a href="resources.html">Resources</a>
+    <a href="about.html">About</a>
+  </div>
+
+  <div class="neurodivergent-bg">
+    <div class="scanlines"></div>
+    
+    <div class="content-container">
+      
+      
+      <div style="color: #9327ff; font-size: 0.9em; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace;">
+        ndla.org • darkreader.org • w3.org • autisticadvocacy.org • nngroup.com • focusmate.com
+      </div>
+      <div class="neurodivergent-title">🧠 Neurodivergent Ops & Accessibility Hacks</div>
+      
+      <div class="intro-card">
+        <p><span class="discipline-tag">Discipline:</span> Inclusive Resistance & Cognitive Modularity</p>
+        <p>Resistance isn't one-size-fits-all. This node is tuned for users who process the world differently—those who need clarity in chaos, modularity in overload, and sensory safety in hostile systems. From ADHD-friendly legal explainers to UI mods and cognitive load kits, this grid empowers neurodivergent operatives to navigate digital warfare with precision and care.</p>
+      </div>
+
+      <div class="resource-card">
+        <h3>📚 NDLA</h3>
+        <p>ADHD-Friendly Legal Explainers providing accessible legal information formatted for different cognitive processing styles. Clear, structured content that breaks down complex legal concepts into digestible modules.</p>
+        <a href="https://www.ndla.org" target="_blank">Visit NDLA</a>
+      </div>
+
+      <div class="resource-card">
+        <h3>🌙 Dark Reader</h3>
+        <p>Sensory-Friendly UI Mods that reduce eye strain and visual overwhelm. Browser extension that applies dark mode to websites, with customizable brightness, contrast, and color filters.</p>
+        <a href="https://darkreader.org" target="_blank">Visit Dark Reader</a>
+      </div>
+
+      <div class="resource-card">
+        <h3>🔤 W3C Accessibility Guidelines</h3>
+        <p>Alt-Text & Captioning Best Practices for creating inclusive digital content. Comprehensive guidelines for making web content accessible to users with diverse abilities and processing styles.</p>
+        <a href="https://www.w3.org/WAI/tutorials/images/" target="_blank">Visit W3C Accessibility</a>
+      </div>
+
+      <div class="resource-card">
+        <h3>🗣️ ASAN</h3>
+        <p>Neurodivergent Advocacy Organizations promoting acceptance and support for autistic and neurodivergent individuals. Resources for self-advocacy, policy change, and community building.</p>
+        <a href="https://autisticadvocacy.org" target="_blank">Visit ASAN</a>
+      </div>
+
+      <div class="resource-card">
+        <h3>🧩 Nielsen Norman Group</h3>
+        <p>Cognitive Load Reduction Kits and UX research focused on reducing mental effort required to use interfaces. Evidence-based design principles for creating more accessible digital experiences.</p>
+        <a href="https://www.nngroup.com/articles/cognitive-load/" target="_blank">Visit NNG</a>
+      </div>
+
+      <div class="resource-card">
+        <h3>Additional Accessibility Tools</h3>
+        <ul class="resource-list">
+          <li><a href="https://www.read-and-write.com" target="_blank">Read&Write</a> - Text-to-speech and literacy support</li>
+          <li><a href="https://www.texthelp.com" target="_blank">Texthelp</a> - Reading and writing assistance tools</li>
+          <li><a href="https://webaim.org" target="_blank">WebAIM</a> - Web accessibility resources</li>
+          <li><a href="https://www.color-blindness.com" target="_blank">Coblis</a> - Color blindness simulator</li>
+          <li><a href="https://chrome.google.com/webstore/detail/mercury-reader/oknpjjbmpnndlpmnhmekjpocelpnlfdi" target="_blank">Mercury Reader</a> - Distraction-free reading mode</li>
+          <li><a href="https://www.bemyeyes.com" target="_blank">Be My Eyes</a> - Visual assistance community</li>
+        </ul>
+      </div>
+
+      <div class="resource-card">
+        <h3>Cognitive Support Resources</h3>
+        <ul class="resource-list">
+          <li><a href="https://www.focusmate.com" target="_blank">Focusmate</a> - Body doubling for ADHD productivity</li>
+          <li><a href="https://forest.app" target="_blank">Forest</a> - Pomodoro technique with gamification</li>
+          <li><a href="https://www.notion.so" target="_blank">Notion</a> - Modular workspace organization</li>
+          <li><a href="https://todoist.com" target="_blank">Todoist</a> - Task management with natural language processing</li>
+          <li><a href="https://www.rescuetime.com" target="_blank">RescueTime</a> - Automatic time tracking and awareness</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 200px; background: black;"></div>
+</body>
+</html>

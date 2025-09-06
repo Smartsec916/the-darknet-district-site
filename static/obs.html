@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login – Kai Kryptos</title>
+  <style>
+    body {
+      background-color: black;
+      color: #00ffc3;
+      font-family: monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-container {
+      text-align: center;
+    }
+    input[type="password"] {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #00ffc3;
+      background-color: black;
+      color: #00ffc3;
+      width: 300px;
+      text-align: center;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 25px;
+      background-color: #00ffc3;
+      color: black;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00cfa6;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Enter Admin Token</h2>
+    <input id="token" type="password" placeholder="admin-token" />
+    <br />
+    <button id="enter">Enter</button>
+  </div>
+
+  <script>
+    document.getElementById("enter").onclick = function () {
+      const token = document.getElementById("token").value;
+      if (token === "Fuck the System") {
+        window.location.href = "https://kai-kryptos-logger.smartsec916.replit.app/";
+      } else {
+        alert("Access Denied");
+      }
+    };
+  </script>
+</body>
+</html>

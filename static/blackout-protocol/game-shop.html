@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Blackout Protocol — Shop</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html,body{margin:0;background:#000;color:#cfd6df;font-family:monospace;height:100%;}
+    .wrap{display:grid;place-items:center;height:100%;}
+    .shop{text-align:center;padding:20px;}
+    .btn{display:inline-block;margin:8px;padding:8px 16px;border:1px solid #5c5c5c;border-radius:4px;color:#9cff7e;text-decoration:none;background:#111;}
+    .btn:hover{filter:brightness(1.2);}
+    .title{color:#b7ff44;font-size:18px;margin-bottom:20px;}
+    .stats{color:#cfd6df;margin:20px 0;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="shop">
+      <div class="title">BLACKOUT PROTOCOL SHOP</div>
+      <div class="stats" id="stats">Loading...</div>
+      <div>
+        <a class="btn" id="buyGun">Buy Sidearm (15 BTC)</a>
+      </div>
+      <div>
+        <p>Enhance your capabilities. Purchase upgrades to survive the protocol.</p>
+        <p>Head back out. Unspent BTC carries forward.</p>
+      </div>
+      <div style="margin-top:20px">
+        <a class="btn" href="./index.html">[ BACK ]</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { getRunN, setRunN, getRunO, setRunO } from './engine.js';
+
+    const stats = document.getElementById('stats');
+    function refresh(){
+      const btc = getRunN('playerBTC',0);
+      const u = getRunO('playerUpgrades',{});
+      stats.textContent = `BTC: ${btc}  |  Gun: ${u.sidearm?'YES':'NO'}`;
+    }
+    refresh();
+
+    document.getElementById('buyGun').onclick = ()=>{
+      let btc=getRunN('playerBTC',0);
+      const u=getRunO('playerUpgrades',{});
+      if(u.sidearm){ alert('Already owned.'); return }
+      if(btc>=15){
+        btc-=15; setRunN('playerBTC',btc);
+        u.sidearm=true;
+        setRunO('playerUpgrades',u);
+        refresh();
+      } else alert('Not enough BTC.');
+    };
+  </script>
+</body>
+</html>

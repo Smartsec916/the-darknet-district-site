@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Raven</title>
+  <style>
+    /* Global body styling with cyberpunk theme */
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      color: #00ff9d;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+
+    /* Main container with centered layout */
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(45deg, #000, #111);
+    }
+
+    /* Coming soon announcement card */
+    .coming-soon {
+      text-align: center;
+      padding: 40px;
+      border: 2px solid #00ff9d;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      box-shadow: 0 0 30px rgba(0, 255, 157, 0.3);
+    }
+
+    /* Main game title with glow effect */
+    .coming-soon h1 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      text-shadow: 0 0 20px rgba(0, 255, 157, 0.5);
+    }
+
+    /* Game description text */
+    .coming-soon p {
+      font-size: 1.2em;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    /* Return navigation button */
+    .back-button {
+      display: inline-block;
+      padding: 12px 24px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #00ff9d;
+      border: 2px solid #00ff9d;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Button hover effects */
+    .back-button:hover {
+      background: rgba(0, 255, 157, 0.1);
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.4);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Main content container -->
+  <div class="container">
+    <!-- Coming soon announcement section -->
+    <div class="coming-soon">
+      <!-- Game title -->
+      <h1>RAVEN</h1>
+      <!-- Game description and teaser -->
+      <p>A dark cyberpunk stealth adventure is in development.</p>
+      <p>Navigate the digital underworld where every shadow hides secrets and every connection could be your last.</p>
+      <!-- Return to main site button -->
+      <a href="/" class="back-button">Return to District</a>
+    </div>
+  </div>
+</body>
+</html>
