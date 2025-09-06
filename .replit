@@ -9,7 +9,7 @@ packages = ["file", "rename", "static-web-server", "unixtools.xxd"]
 [deployment]
 publicDir = "/"
 deploymentTarget = "autoscale"
-run = ["static-web-server", "-w", "./.config/static-web-server.toml"]
+run = ["static-web-server", "-p", "5000", "-d", "/static"]
 
 # Rewrite rules to remove .html extensions
 [[deployment.rewrites]]
@@ -125,7 +125,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "static-web-server -w ./.config/static-web-server.toml"
+args = "static-web-server -p 5000 -d ./static"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
