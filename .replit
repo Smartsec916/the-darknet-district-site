@@ -117,15 +117,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Static Server"
+args = "Static Web Server"
 
 [[workflows.workflow]]
-name = "Static Server"
+name = "Static Web Server"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python3 -m http.server 5000 --directory static"
+args = "static-web-server -w ./.config/static-web-server.toml"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
