@@ -8,11 +8,13 @@ async function loadHak5(){
   const grid = document.getElementById('hak5-grid');
   grid.innerHTML = items.map(p => {
     const img = p.image ? p.image : 'attached_assets/placeholder.png';
+    const description = p.description || 'Professional security testing tool';
     return `
       <div class="product-card">
         <h3>${p.name}</h3>
         <img src="${img}" alt="${p.name}">
-        <p>The "Buy Now" button will take you to the Hak5 website.</p>
+        <p class="product-description">${description}</p>
+        <p class="buy-note">Available on the official Hak5 store</p>
         <a href="${p.url}" target="_blank" class="buy-button">Buy Now</a>
       </div>`;
   }).join('');
