@@ -9,7 +9,7 @@ packages = ["file", "rename", "static-web-server", "unixtools.xxd"]
 [deployment]
 publicDir = "/"
 deploymentTarget = "autoscale"
-run = ["static-web-server", "-p", "5000", "-d", "/static"]
+run = ["sh", "-c", ""]
 
 # Rewrite rules to remove .html extensions
 [[deployment.rewrites]]
