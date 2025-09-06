@@ -88,8 +88,8 @@ def main():
         'https://shop.hak5.org/products/wifi-pineapple',
         'https://shop.hak5.org/collections/homepage-collection-grid/products/wifi-pineapple-enterprise',
         'https://shop.hak5.org/collections/homepage-collection-grid/products/wifi-pineapple-pager',
-        'https://shop.hak5.org/collections/homepage-collection-grid/products/omg-cable',
-        'https://shop.hak5.org/collections/homepage-collection-grid/products/shark-jack'
+        'https://shop.hak5.org/collections/homepage-collection-grid/products/usb-rubber-ducky',
+        'https://shop.hak5.org/collections/homepage-collection-grid/products/bash-bunny'
     ]
 
     products = []
