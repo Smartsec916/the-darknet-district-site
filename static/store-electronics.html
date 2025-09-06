@@ -150,7 +150,7 @@
     ]
 
     // Current banner index tracker
-    let currentBanner = 0;
+    let electronicsBanner = 0;
     // DOM element references
     const imageEl = document.getElementById("affiliate-image");
     const linkEl = document.getElementById("affiliate-link");
@@ -159,12 +159,12 @@
     function rotateBanner() {
     imageEl.style.opacity = 0;
     setTimeout(() => {
-      const banner = banners[currentBanner];
+      const banner = banners[electronicsBanner];
       imageEl.src = banner.image;
       linkEl.href = banner.link;
       imageEl.style.opacity = 1;
 
-      currentBanner = (currentBanner + 1) % banners.length;
+      electronicsBanner = (electronicsBanner + 1) % banners.length;
     }, 500);
   }
 
