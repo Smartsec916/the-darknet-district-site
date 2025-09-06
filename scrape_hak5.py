@@ -1,123 +1,67 @@
-#!/usr/bin/env python3
+
+import json, time, re
+from urllib.parse import urlparse
 import requests
-from bs4 import BeautifulSoup
-import json
-import time
-import re
 
-def scrape_hak5_product(url):
-    """Scrape individual Hak5 product page"""
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
+PRODUCTS = [
+    "https://shop.hak5.org/products/wifi-pineapple",
+    "https://shop.hak5.org/collections/homepage-collection-grid/products/wifi-pineapple-enterprise",
+    "https://shop.hak5.org/collections/homepage-collection-grid/products/wifi-pineapple-pager",
+    "https://shop.hak5.org/collections/homepage-collection-grid/products/usb-rubber-ducky",
+    "https://shop.hak5.org/collections/homepage-collection-grid/products/bash-bunny",
+    "https://shop.hak5.org/collections/homepage-collection-grid/products/omg-cable",
+    "https://shop.hak5.org/collections/homepage-collection-grid/products/shark-jack",
+    "https://shop.hak5.org/collections/homepage-collection-grid/products/key-croc",
+    "https://shop.hak5.org/products/bug",
+    "https://shop.hak5.org/collections/homepage-collection-grid/products/omg-plug",
+    "https://shop.hak5.org/collections/homepage-collection-grid/products/omg-adapter",
+    "https://shop.hak5.org/products/omg-unblocker",
+    "https://shop.hak5.org/products/packet-squirrel-mark-ii",
+    "https://shop.hak5.org/products/screen-crab",
+    "https://shop.hak5.org/products/lan-turtle",
+    "https://shop.hak5.org/collections/mischief-gadgets/products/o-mg-field-kit",
+    "https://shop.hak5.org/products/malicious-cable-detector-by-o-mg",
+    "https://shop.hak5.org/products/glytch-crash-kit",
+    "https://shop.hak5.org/products/c2",
+    "https://shop.hak5.org/products/payload-studio-pro",
+]
 
-    try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
+S = requests.Session()
+S.headers.update({
+    "User-Agent": "Mozilla/5.0 (compatible; Hak5Scraper/1.0)",
+    "Accept": "application/json,text/html,*/*"
+})
 
-        soup = BeautifulSoup(response.content, 'html.parser')
-
-        # Extract product name
-        title_selectors = [
-            'h1.product-title',
-            'h1[data-testid="product-title"]',
-            '.product-title',
-            'h1',
-            '.pdp-product-name'
-        ]
-
-        title = None
-        for selector in title_selectors:
-            title_elem = soup.select_one(selector)
-            if title_elem:
-                title = title_elem.get_text().strip()
-                break
-
-        # Extract product image
-        img_selectors = [
-            'img[data-testid="product-image"]',
-            '.product-image img',
-            '.product-gallery img',
-            'img[src*="cdn.shopify.com"]',
-            '.featured-image img'
-        ]
-
-        image_url = None
-        for selector in img_selectors:
-            img_elem = soup.select_one(selector)
-            if img_elem:
-                image_url = img_elem.get('src') or img_elem.get('data-src')
-                if image_url and image_url.startswith('//'):
-                    image_url = 'https:' + image_url
-                elif image_url and not image_url.startswith('http'):
-                    image_url = 'https://shop.hak5.org' + image_url
-                break
-
-        # Extract description
-        desc_selectors = [
-            '.product-description',
-            '.product-details',
-            '[data-testid="product-description"]',
-            '.product-content p'
-        ]
-
-        description = None
-        for selector in desc_selectors:
-            desc_elem = soup.select_one(selector)
-            if desc_elem:
-                description = desc_elem.get_text().strip()
-                break
-
-        # Clean up product name for alt text in case it's used later
-        alt_text = re.sub(r'[^\w\s-]', '', title).strip() if title else "Product Image"
-
-        return {
-            'name': title, # Renamed from 'title' to 'name' for consistency with original script's output structure
-            'image': image_url, # Renamed from 'image_url' to 'image'
-            'url': url, # Renamed from 'product_url' to 'url'
-            'description': description
-        }
-
-    except Exception as e:
-        print(f"Error scraping {url}: {e}")
-        return None
+def to_product_json_url(url: str) -> str:
+    path = urlparse(url).path
+    m = re.search(r"/products/([^/?#]+)", path)
+    handle = m.group(1) if m else None
+    if not handle:
+        raise ValueError(f"Couldn't extract product handle from {url}")
+    return f"https://shop.hak5.org/products/{handle}.json"
 
 def main():
-    # Specific product URLs provided by the user
-    product_urls = [
-        'https://shop.hak5.org/products/wifi-pineapple',
-        'https://shop.hak5.org/collections/homepage-collection-grid/products/wifi-pineapple-enterprise',
-        'https://shop.hak5.org/collections/homepage-collection-grid/products/wifi-pineapple-pager',
-        'https://shop.hak5.org/collections/homepage-collection-grid/products/usb-rubber-ducky',
-        'https://shop.hak5.org/collections/homepage-collection-grid/products/bash-bunny'
-    ]
-
-    products = []
-
-    for url in product_urls:
-        print(f"Scraping: {url}")
-        product = scrape_hak5_product(url)
-        if product:
-            products.append(product)
-            print(f"Found: {product['name']}")
-
-        # Be respectful with requests
-        time.sleep(2)
-
-    # Save to JSON file
-    with open('hak5_products.json', 'w', encoding='utf-8') as f:
-        json.dump(products, f, indent=2)
-
-    print(f"\nScraped {len(products)} products")
-    print("Product data saved to 'hak5_products.json'")
-
-    # Print results
-    print("\nFirst few products found:")
-    for i, product in enumerate(products[:3]):
-        print(f"{i+1}. {product['name']}")
-        print(f"   URL: {product['url']}")
-        print()
-
+    out = []
+    for url in PRODUCTS:
+        try:
+            pj = to_product_json_url(url)
+            r = S.get(pj, timeout=15)
+            r.raise_for_status()
+            data = r.json()
+            product = data.get("product", {})
+            name = product.get("title") or "Unknown"
+            images = product.get("images") or []
+            src = images[0]["src"] if images else None
+            if src and src.startswith("//"):
+                src = "https:" + src
+            item = {"name": name, "url": url, "image": src, "description": None}
+            print(f"Found: {name} -> {src or 'NO IMAGE'}")
+            out.append(item)
+        except Exception as e:
+            print(f"Error on {url}: {e}")
+        time.sleep(0.6)
+    with open("hak5_products.json", "w", encoding="utf-8") as f:
+        json.dump(out, f, indent=2, ensure_ascii=False)
 
 if __name__ == "__main__":
     main()
