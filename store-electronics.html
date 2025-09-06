@@ -160,34 +160,7 @@
   setInterval(rotateBanner, 8000);
 </script>
 
-<!-- Main content container -->
-<div class="content">
-    <!-- Page title -->
-    <h1 class="title">Electronics & Tools</h1>
-    <!-- Product grid layout -->
-    <div class="product-grid" id="hak5-grid">
-      <!-- Products will be loaded dynamically -->
-    </div>
-  </div> <!-- close content -->
-
-  <script src="script.js"></script>
-  <script>
-async function loadHak5(){
-  const res = await fetch('hak5_products.json', { cache: 'no-store' });
-  const items = await res.json();
-  const grid = document.getElementById('hak5-grid');
-  grid.innerHTML = items.map(p => {
-    const img = p.image ? p.image : 'attached_assets/placeholder.png';
-    return `
-      <div class="product-card">
-        <h3>${p.name}</h3>
-        <img src="${img}" alt="${p.name}" style="max-width: 300px;">
-        <p>The "Buy Now" button will take you to the Hak5 website.</p>
-        <a href="${p.url}" target="_blank" class="buy-button">Buy Now</a>
-      </div>`;
-  }).join('');
-}
-loadHak5();
-</script>
+<div class="product-grid" id="hak5-grid"></div>
+<script src="script.js"></script>
 </body>
 </html>

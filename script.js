@@ -1,4 +1,25 @@
 // ============================================================================
+// HAK5 PRODUCTS LOADING
+// ============================================================================
+
+async function loadHak5(){
+  const res = await fetch('hak5_products.json', { cache: 'no-store' });
+  const items = await res.json();
+  const grid = document.getElementById('hak5-grid');
+  grid.innerHTML = items.map(p => {
+    const img = p.image ? p.image : 'attached_assets/placeholder.png';
+    return `
+      <div class="product-card">
+        <h3>${p.name}</h3>
+        <img src="${img}" alt="${p.name}">
+        <p>The "Buy Now" button will take you to the Hak5 website.</p>
+        <a href="${p.url}" target="_blank" class="buy-button">Buy Now</a>
+      </div>`;
+  }).join('');
+}
+loadHak5();
+
+// ============================================================================
 // CHAT FUNCTIONALITY - Advanced system with special triggers and backend integration
 // ============================================================================
 
