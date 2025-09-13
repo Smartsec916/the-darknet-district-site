@@ -4,7 +4,7 @@ run = "echo 'This is a static site'"
 
 [nix]
 channel = "stable-24_11"
-packages = ["file", "rename", "static-web-server", "unixtools.xxd"]
+packages = ["file", "freetype", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "rename", "static-web-server", "tcl", "tk", "unixtools.xxd", "zlib"]
 
 [deployment]
 publicDir = "./static"
