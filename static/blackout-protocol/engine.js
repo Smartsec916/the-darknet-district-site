@@ -2,7 +2,7 @@
 const VW = 256, VH = 240, TILE = 16;
 const LEVEL_LEN = 1600;
 const DOOR_W = 24, DOOR_H = 32;
-const HYPER_RELOAD_TAG = 'rev=' + Date.now();
+const HYPER_RELOAD_TAG = 'rev=' + Date.now() + '_fix';
 
 // ====== storage helpers (session for run; local for leaderboard) ======
 export function getRunN(k,d=0){ return +(sessionStorage.getItem(k) ?? d) }
@@ -34,27 +34,27 @@ function IMG(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload
 
 const SPRITE_DEF = {
   player:{fw:48,fh:48, states:{
-    idle:'assets/player_idle_48.png', walk:'assets/player_walk_48.png', run:'assets/player_run_48.png',
-    jump:'assets/player_jump_48.png', fall:'assets/player_fall_48.png', hurt:'assets/player_hurt_48.png', dead:'assets/player_dead_48.png'
+    idle:'/blackout-protocol/assets/player_idle_48.png', walk:'/blackout-protocol/assets/player_walk_48.png', run:'/blackout-protocol/assets/player_run_48.png',
+    jump:'/blackout-protocol/assets/player_jump_48.png', fall:'/blackout-protocol/assets/player_fall_48.png', hurt:'/blackout-protocol/assets/player_hurt_48.png', dead:'/blackout-protocol/assets/player_dead_48.png'
   }, fps:{idle:6, walk:10, run:12, jump:10, fall:10, hurt:6, dead:8}},
   robot:{fw:48,fh:48, states:{
-    idle:'assets/robot_idle_48.png', walk:'assets/robot_walk_48.png', run:'assets/robot_run_48.png',
-    attack:'assets/robot_attack_48.png', hurt:'assets/robot_hurt_48.png', dead:'assets/robot_dead_48.png'
+    idle:'/blackout-protocol/assets/robot_idle_48.png', walk:'/blackout-protocol/assets/robot_walk_48.png', run:'/blackout-protocol/assets/robot_run_48.png',
+    attack:'/blackout-protocol/assets/robot_attack_48.png', hurt:'/blackout-protocol/assets/robot_hurt_48.png', dead:'/blackout-protocol/assets/robot_dead_48.png'
   }, fps:{idle:6, walk:9, run:10, attack:12, hurt:6, dead:8}},
   drone:{fw:32,fh:32, states:{
-    idle:'assets/drone_idle_32.png', hover:'assets/drone_hover_32.png', move:'assets/drone_move_32.png',
-    attack:'assets/drone_attack_32.png', hurt:'assets/drone_hurt_32.png', dead:'assets/drone_dead_32.png'
+    idle:'/blackout-protocol/assets/drone_idle_32.png', hover:'/blackout-protocol/assets/drone_hover_32.png', move:'/blackout-protocol/assets/drone_move_32.png',
+    attack:'/blackout-protocol/assets/drone_attack_32.png', hurt:'/blackout-protocol/assets/drone_hurt_32.png', dead:'/blackout-protocol/assets/drone_dead_32.png'
   }, fps:{idle:3, hover:10, move:10, attack:12, hurt:6, dead:8}},
   female:{fw:48,fh:48, states:{
-    idle:'assets/female_idle.png', walk:'assets/female_walk.png', run:'assets/female_run.png'
+    idle:'/blackout-protocol/assets/female_idle.png', walk:'/blackout-protocol/assets/female_walk.png', run:'/blackout-protocol/assets/female_run.png'
   }, fps:{idle:6, walk:8, run:10}},
   bg_far:null, bg_near:null, coin:null, door:null, ledge:null, platform:null
 };
 
 function bgURLsForLevel(lvl){
-  if(lvl===2) return {far:`assets/02_bg_far.png?${HYPER_RELOAD_TAG}`, near:`assets/02_bg_near.png?${HYPER_RELOAD_TAG}`};
-  if(lvl===3) return {far:`assets/03_bg_far.png?${HYPER_RELOAD_TAG}`, near:`assets/03_bg_near.png?${HYPER_RELOAD_TAG}`};
-  return {far:`assets/01_bg_far.png?${HYPER_RELOAD_TAG}`, near:`assets/01_bg_near.png?${HYPER_RELOAD_TAG}`};
+  if(lvl===2) return {far:`/blackout-protocol/assets/02_bg_far.png?${HYPER_RELOAD_TAG}`, near:`/blackout-protocol/assets/02_bg_near.png?${HYPER_RELOAD_TAG}`};
+  if(lvl===3) return {far:`/blackout-protocol/assets/03_bg_far.png?${HYPER_RELOAD_TAG}`, near:`/blackout-protocol/assets/03_bg_near.png?${HYPER_RELOAD_TAG}`};
+  return {far:`/blackout-protocol/assets/01_bg_far.png?${HYPER_RELOAD_TAG}`, near:`/blackout-protocol/assets/01_bg_near.png?${HYPER_RELOAD_TAG}`};
 }
 
 function adConfigForLevel(lvl){
@@ -62,11 +62,11 @@ function adConfigForLevel(lvl){
     return {
       kinds:['blackrock','downthere','oxygen','skinshift','zen'],
       images:{
-        blackrock:`assets/Blackrock.png?${HYPER_RELOAD_TAG}`,
-        downthere:`assets/Downthere.png?${HYPER_RELOAD_TAG}`,
-        oxygen:`assets/Oxygen.png?${HYPER_RELOAD_TAG}`,
-        skinshift:`assets/Skinshift.png?${HYPER_RELOAD_TAG}`,
-        zen:`assets/Zen.png?${HYPER_RELOAD_TAG}`,
+        blackrock:`/blackout-protocol/assets/Blackrock.png?${HYPER_RELOAD_TAG}`,
+        downthere:`/blackout-protocol/assets/Downthere.png?${HYPER_RELOAD_TAG}`,
+        oxygen:`/blackout-protocol/assets/Oxygen.png?${HYPER_RELOAD_TAG}`,
+        skinshift:`/blackout-protocol/assets/Skinshift.png?${HYPER_RELOAD_TAG}`,
+        zen:`/blackout-protocol/assets/Zen.png?${HYPER_RELOAD_TAG}`,
       }
     };
   }
@@ -74,23 +74,23 @@ function adConfigForLevel(lvl){
     return {
       kinds:['bug','pill','plug','touchless','pinknoise'],
       images:{
-        bug:`assets/Bug.png?${HYPER_RELOAD_TAG}`,
-        pill:`assets/Pill.png?${HYPER_RELOAD_TAG}`,
-        plug:`assets/Plug.png?${HYPER_RELOAD_TAG}`,
-        touchless:`assets/Touchless.png?${HYPER_RELOAD_TAG}`,
-        pinknoise:`assets/Pinknoise.png?${HYPER_RELOAD_TAG}`,
+        bug:`/blackout-protocol/assets/Bug.png?${HYPER_RELOAD_TAG}`,
+        pill:`/blackout-protocol/assets/Pill.png?${HYPER_RELOAD_TAG}`,
+        plug:`/blackout-protocol/assets/Plug.png?${HYPER_RELOAD_TAG}`,
+        touchless:`/blackout-protocol/assets/Touchless.png?${HYPER_RELOAD_TAG}`,
+        pinknoise:`/blackout-protocol/assets/Pinknoise.png?${HYPER_RELOAD_TAG}`,
       }
     };
   }
   return {
     kinds:['fourk','meat','holo','rent','drink'],
     images:{
-      fourk:`assets/4K.png?${HYPER_RELOAD_TAG}`,
-      meat:`assets/Meat.png?${HYPER_RELOAD_TAG}`,
-      holo:`assets/HoloCompanion.png?${HYPER_RELOAD_TAG}`,
-      rent:`assets/Rent.png?${HYPER_RELOAD_TAG}`,
-      drinkA:`assets/Drink_Oil_01.png?${HYPER_RELOAD_TAG}`,
-      drinkB:`assets/Drink_Oil_02.png?${HYPER_RELOAD_TAG}`,
+      fourk:`/blackout-protocol/assets/4K.png?${HYPER_RELOAD_TAG}`,
+      meat:`/blackout-protocol/assets/Meat.png?${HYPER_RELOAD_TAG}`,
+      holo:`/blackout-protocol/assets/HoloCompanion.png?${HYPER_RELOAD_TAG}`,
+      rent:`/blackout-protocol/assets/Rent.png?${HYPER_RELOAD_TAG}`,
+      drinkA:`/blackout-protocol/assets/Drink_Oil_01.png?${HYPER_RELOAD_TAG}`,
+      drinkB:`/blackout-protocol/assets/Drink_Oil_02.png?${HYPER_RELOAD_TAG}`,
     }
   };
 }
@@ -176,14 +176,22 @@ function makeAnimator(sheet, fw, fh, fps){
 async function loadSprites(def){
   const out={};
   for(const who of ['player','robot','drone','female']){
+    console.log(`Loading sprites for ${who}...`);
     const fw=def[who].fw, fh=def[who].fh;
     const pack={fw,fh,anim:{}};
     for(const [state,src] of Object.entries(def[who].states)){
-      const img=await IMG(src + '?' + HYPER_RELOAD_TAG);
-      pack.anim[state]={img, make:()=>makeAnimator(img,fw,fh, def[who].fps[state]||8)};
+      try {
+        const img=await IMG(src + '?' + HYPER_RELOAD_TAG);
+        pack.anim[state]={img, make:()=>makeAnimator(img,fw,fh, def[who].fps[state]||8)};
+        console.log(`Loaded ${who} ${state} sprite from ${src}`);
+      } catch(error) {
+        console.error(`Failed to load ${who} ${state} sprite from ${src}:`, error);
+        pack.anim[state]={img: null, make:()=>makeAnimator(null,fw,fh, def[who].fps[state]||8)};
+      }
     }
     out[who]=pack;
   }
+  console.log('Sprite loading complete:', Object.keys(out));
   return out;
 }
 
@@ -206,10 +214,10 @@ function setBackgroundsForLevel(lvl){
   const urls = bgURLsForLevel(lvl);
   SPRITE_DEF.bg_far = urls.far;
   SPRITE_DEF.bg_near = urls.near;
-  SPRITE_DEF.coin = `assets/btc_glow.png?${HYPER_RELOAD_TAG}`;
-  SPRITE_DEF.door = `assets/shop_door_neon.png?${HYPER_RELOAD_TAG}`;
-  SPRITE_DEF.ledge = `assets/ledge_tile.png?${HYPER_RELOAD_TAG}`;
-  SPRITE_DEF.platform = `assets/platform_industrial.png?${HYPER_RELOAD_TAG}`;
+  SPRITE_DEF.coin = `/blackout-protocol/assets/btc_glow.png?${HYPER_RELOAD_TAG}`;
+  SPRITE_DEF.door = `/blackout-protocol/assets/shop_door_neon.png?${HYPER_RELOAD_TAG}`;
+  SPRITE_DEF.ledge = `/blackout-protocol/assets/ledge_tile.png?${HYPER_RELOAD_TAG}`;
+  SPRITE_DEF.platform = `/blackout-protocol/assets/platform_industrial.png?${HYPER_RELOAD_TAG}`;
 }
 
 async function loadBackgrounds(){
@@ -680,8 +688,8 @@ async function loadTiles(){
     doorImg = await IMG(SPRITE_DEF.door);
     ledgeImg = await IMG(SPRITE_DEF.ledge);
     platformImg = await IMG(SPRITE_DEF.platform);
-    terminalFrame1 = await IMG(`assets/hacker_terminal_frame1.png?${HYPER_RELOAD_TAG}`);
-    terminalFrame2 = await IMG(`assets/hacker_terminal_frame2.png?${HYPER_RELOAD_TAG}`);
+    terminalFrame1 = await IMG(`/blackout-protocol/assets/hacker_terminal_frame1.png?${HYPER_RELOAD_TAG}`);
+    terminalFrame2 = await IMG(`/blackout-protocol/assets/hacker_terminal_frame2.png?${HYPER_RELOAD_TAG}`);
   } catch (error) {
     console.error('Error loading tiles:', error);
   }
