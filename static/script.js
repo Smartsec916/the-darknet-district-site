@@ -3,9 +3,11 @@
 // ============================================================================
 
 async function loadHak5(){
+  const grid = document.getElementById('hak5-grid');
+  if (!grid) return;
+  
   const res = await fetch('hak5_products.json', { cache: 'no-store' });
   const items = await res.json();
-  const grid = document.getElementById('hak5-grid');
   grid.innerHTML = items.map(p => {
     const img = p.image ? p.image : 'attached_assets/placeholder.png';
     const description = p.description || 'Professional security testing tool';
