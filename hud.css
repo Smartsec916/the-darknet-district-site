@@ -9,14 +9,14 @@ Activation: add data-hud="immersive" to a page's body.
 
 :root {
   /* CENTRAL HUD CONTROLS */
-  --tdnd-hud-opacity: 0.34;
-  --tdnd-hud-coordinate-opacity: 0.14;
+  --tdnd-hud-opacity: 0.62;
+  --tdnd-hud-coordinate-opacity: 0.42;
   --tdnd-hud-coordinate-drift-duration: 72s;
   --tdnd-hud-scroll-parallax-strength: 0.012;
-  --tdnd-hud-scanline-intensity: 0.32;
-  --tdnd-hud-glow-intensity: 0.38;
+  --tdnd-hud-scanline-intensity: 0.5;
+  --tdnd-hud-glow-intensity: 0.52;
   --tdnd-hud-animation-speed: 1;
-  --tdnd-hud-mobile-effect-intensity: 0.22;
+  --tdnd-hud-mobile-effect-intensity: 0.4;
 }
 
 /* The HUD stays isolated until a page explicitly opts in. */
@@ -243,5 +243,176 @@ body[data-hud="immersive"] .resource-card:hover::after {
 
   body[data-hud="immersive"] .tdnd-hud-coordinates {
     transform: translateX(-50%);
+  }
+}
+
+/* ========================================================================== */
+/* CONCEPT C — VISOR PRESENCE AND UNIFORM RESOURCE PANELS                     */
+/* ========================================================================== */
+
+body[data-hud="immersive"] .tdnd-hud-layer {
+  opacity: 0.62;
+}
+
+body[data-hud="immersive"] .tdnd-hud-viewport {
+  border-color: rgba(115, 255, 218, 0.3);
+  box-shadow: inset 0 0 42px rgba(0, 255, 157, 0.07);
+}
+
+body[data-hud="immersive"] .tdnd-hud-bracket {
+  width: 32px;
+  height: 32px;
+  border-color: rgba(126, 255, 222, 0.95);
+}
+
+body[data-hud="immersive"] .tdnd-hud-coordinates,
+body[data-hud="immersive"] .tdnd-hud-status,
+body[data-hud="immersive"] .tdnd-hud-top-status {
+  color: rgba(118, 255, 216, 0.42);
+  text-shadow: 0 0 7px rgba(0, 255, 157, 0.16);
+}
+
+body[data-hud="immersive"] .tdnd-hud-top-status {
+  position: absolute;
+  top: 28px;
+  right: 48px;
+  font: 10px/1 "Courier New", monospace;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body[data-hud="immersive"] .tdnd-hud-connector {
+  position: absolute;
+  height: 1px;
+  border-top: 1px solid rgba(114, 255, 214, 0.38);
+  box-shadow: 0 0 7px rgba(0, 255, 157, 0.16);
+}
+
+body[data-hud="immersive"] .tdnd-hud-connector::before,
+body[data-hud="immersive"] .tdnd-hud-connector::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid rgba(114, 255, 214, 0.6);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+body[data-hud="immersive"] .tdnd-hud-connector::before {
+  left: 0;
+}
+
+body[data-hud="immersive"] .tdnd-hud-connector::after {
+  right: 0;
+}
+
+body[data-hud="immersive"] .tdnd-hud-connector--left {
+  top: 42%;
+  left: -1px;
+  width: 18%;
+}
+
+body[data-hud="immersive"] .tdnd-hud-connector--right {
+  top: 66%;
+  right: -1px;
+  width: 16%;
+}
+
+body[data-hud="immersive"] .tdnd-hud-viewport::before,
+body[data-hud="immersive"] .tdnd-hud-viewport::after {
+  content: "";
+  position: absolute;
+  top: 16%;
+  bottom: 16%;
+  width: 8px;
+  opacity: 0.48;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(118, 255, 216, 0.56) 0 1px,
+    transparent 1px 34px
+  );
+}
+
+body[data-hud="immersive"] .tdnd-hud-viewport::before {
+  left: 10px;
+}
+
+body[data-hud="immersive"] .tdnd-hud-viewport::after {
+  right: 10px;
+}
+
+body[data-hud="immersive"] .tdnd-hud-layer::after {
+  opacity: 0.5;
+}
+
+body[data-hud="immersive"] .nav-button::after,
+body[data-hud="immersive"] .resource-card::after,
+body[data-hud="immersive"] .intro-text::after {
+  border-color: rgba(121, 255, 219, 0.36);
+  opacity: 0.66;
+}
+
+body[data-hud="immersive"] .resource-card:hover::after,
+body[data-hud="immersive"] .nav-button:hover::after {
+  opacity: 1;
+}
+
+body[data-hud="immersive"] .additional-resources-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 26px;
+  width: 90%;
+  max-width: 1200px;
+  margin: 20px auto 80px;
+}
+
+body[data-hud="immersive"] .additional-resources-grid .resource-card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  margin: 0;
+}
+
+body[data-hud="immersive"] .additional-resources-grid .resource-card h2 {
+  min-height: 3.2em;
+}
+
+body[data-hud="immersive"] .additional-resources-grid .resource-card .curious-link {
+  margin-top: auto;
+  padding-top: 15px;
+}
+
+@media (max-width: 768px) {
+  body[data-hud="immersive"] .tdnd-hud-layer {
+    opacity: 0.4;
+  }
+
+  body[data-hud="immersive"] .tdnd-hud-bracket {
+    width: 23px;
+    height: 23px;
+  }
+
+  body[data-hud="immersive"] .tdnd-hud-connector,
+  body[data-hud="immersive"] .tdnd-hud-viewport::before,
+  body[data-hud="immersive"] .tdnd-hud-viewport::after,
+  body[data-hud="immersive"] .tdnd-hud-top-status {
+    display: none;
+  }
+
+  body[data-hud="immersive"] .additional-resources-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    width: 90%;
+    margin-bottom: 60px;
+  }
+
+  body[data-hud="immersive"] .additional-resources-grid .resource-card h2 {
+    min-height: 0;
   }
 }
