@@ -32,6 +32,32 @@ Most pages add small inline styles on top of these reusable rules.
    ============================================================================ */
 
 /* Smooth scrolling and full height setup */
+/* Shared sizing and navigation safeguards keep page-specific layouts inside the viewport. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Normalizes the common top navigation without changing its visual treatment. */
+body > .top-nav {
+  left: 0;
+  right: 0;
+  width: auto;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+/* Lets resource-grid rows share the height of their longest card without fixed heights. */
+.resources-grid {
+  grid-auto-rows: 1fr;
+  align-items: stretch;
+}
+
+.resources-grid > .resource-card {
+  height: 100%;
+}
+
 html {
   scroll-behavior: smooth;
   height: 100%;
