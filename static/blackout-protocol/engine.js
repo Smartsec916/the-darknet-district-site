@@ -1,3 +1,12 @@
+/*
+==============================================================================
+BLACKOUT PROTOCOL — SHARED GAME ENGINE
+
+Purpose: runs the three platforming levels, between-level shops, and browser-local run state.
+Relationship: level pages import bootLevel(); shop pages use the exported storage helpers.
+==============================================================================
+*/
+
 // engine.js  (shared engine for Levels 1–3)
 const VW = 256, VH = 240, TILE = 16;
 const LEVEL_LEN = 1600;
@@ -21,6 +30,7 @@ export function goTo(href){ window.location.assign(href) }
 
 function getLeaderboard(){ try{return JSON.parse(localStorage.getItem('leaderboard')||'[]')}catch(e){return[]} }
 function setLeaderboard(list){ localStorage.setItem('leaderboard', JSON.stringify(list)) }
+// The leaderboard is intentionally browser-local; this does not submit scores to a service.
 function postScore(score=0){
   const id = Math.random().toString(36).slice(2,10).toUpperCase();
   const lb = getLeaderboard();
