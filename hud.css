@@ -191,6 +191,22 @@ body[data-hud="immersive"] .resource-card:hover::after {
 }
 
 @media (max-width: 768px) {
+  /* Wrapped mobile navigation remains in flow instead of covering page content. */
+  body[data-hud="immersive"] {
+    padding-top: 0;
+  }
+
+  body[data-hud="immersive"] .top-nav {
+    position: sticky;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 0;
+  }
+
+  body[data-hud="immersive"] .top-nav a {
+    margin: 0 4px;
+  }
+
   body[data-hud="immersive"] .tdnd-hud-layer {
     opacity: var(--tdnd-hud-mobile-effect-intensity);
   }
