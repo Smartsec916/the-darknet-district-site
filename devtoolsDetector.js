@@ -1,3 +1,11 @@
+/*
+==============================================================================
+DEVTOOLS DETECTOR
+
+Purpose: opens Iris flavor interactions when browser DevTools indicators are detected.
+Relationship: calls the Iris UI from script.js and optional same-origin API endpoints.
+==============================================================================
+*/
 
 // === DEVTOOLS DETECTOR – RE-ENABLED ===
 // Re-enabled to detect devtools opening and trigger Iris responses
