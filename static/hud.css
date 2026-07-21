@@ -359,14 +359,14 @@ body[data-hud="immersive"] .nav-button:hover::after {
   opacity: 1;
 }
 
-body[data-hud="immersive"] .additional-resources-grid {
+body[data-hud="immersive"] /* The supporting resource panels intentionally follow the top category-card rhythm. */
+.additional-resources-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-items: stretch;
-  gap: 26px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 30px;
   width: 90%;
-  max-width: 1200px;
-  margin: 20px auto 80px;
+  max-width: 600px;
+  margin: 40px auto 80px;
 }
 
 body[data-hud="immersive"] .additional-resources-grid .resource-card {
@@ -375,17 +375,24 @@ body[data-hud="immersive"] .additional-resources-grid .resource-card {
   flex-direction: column;
   width: 100%;
   max-width: none;
-  height: 100%;
+  min-height: 260px;
   margin: 0;
+  padding: 30px 50px;
+  border-radius: 15px;
 }
 
 body[data-hud="immersive"] .additional-resources-grid .resource-card h2 {
-  min-height: 3.2em;
+  margin: 0 0 12px;
+  min-height: 0;
+}
+
+body[data-hud="immersive"] .additional-resources-grid .resource-card p {
+  margin: 0 0 15px;
 }
 
 body[data-hud="immersive"] .additional-resources-grid .resource-card .curious-link {
   margin-top: auto;
-  padding-top: 15px;
+  padding-top: 16px;
 }
 
 @media (max-width: 768px) {
@@ -406,13 +413,13 @@ body[data-hud="immersive"] .additional-resources-grid .resource-card .curious-li
   }
 
   body[data-hud="immersive"] .additional-resources-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 20px;
+    gap: 30px;
     width: 90%;
-    margin-bottom: 60px;
+    margin: 30px auto 60px;
   }
 
-  body[data-hud="immersive"] .additional-resources-grid .resource-card h2 {
+  body[data-hud="immersive"] .additional-resources-grid .resource-card {
     min-height: 0;
+    padding: 25px 30px;
   }
 }
