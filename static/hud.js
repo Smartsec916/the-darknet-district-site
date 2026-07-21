@@ -35,6 +35,9 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
       <div class="tdnd-hud-coordinates tdnd-hud-coordinates--bottom">
         <span>SECTOR 01</span><span>SYNC 98%</span><span>SECURE</span>
       </div>
+      <div class="tdnd-hud-top-status">Net: Stable&nbsp;&nbsp;|&nbsp;&nbsp;Node 06&nbsp;&nbsp;|&nbsp;&nbsp;Sync 98%</div>
+      <div class="tdnd-hud-connector tdnd-hud-connector--left"></div>
+      <div class="tdnd-hud-connector tdnd-hud-connector--right"></div>
       <div class="tdnd-hud-status">Iris // Resource Link Established</div>
     </div>
   `;
