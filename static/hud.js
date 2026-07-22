@@ -15,10 +15,7 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
     return;
   }
 
-  const host = document.querySelector(".resources-bg");
-  if (!host) {
-    return;
-  }
+  const host = body;
 
   const layer = document.createElement("div");
   layer.className = "tdnd-hud-layer";
@@ -42,8 +39,8 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
     </div>
   `;
 
-  // The full-page frame moves with the Resources document as visitors scroll.
-  host.prepend(layer);
+  // The visor frame remains attached to the viewport while content scrolls beneath it.
+  body.prepend(layer);
 
   const scaleStations = Array.from({ length: 17 }, (_, index) =>
     `<span class="tdnd-hud-scale-station" data-hud-scale-index="${index}">${String(index * 60).padStart(3, "0")}</span>`
