@@ -46,14 +46,23 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
 
   const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   let frameId = null;
+  let povFrameId = null;
+  let povX = 0;
+  let povY = 0;
+  let targetPovX = 0;
+  let targetPovY = 0;
 
-  // Scroll only shifts the decorative coordinate layer by a few pixels.
+  function getHudSetting(name, fallback) {
+    const value = Number.parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue(name)
+    );
+    return Number.isFinite(value) ? value : fallback;
+  }
+
+  // Scroll adjusts the coordinate readouts; pointer input moves the visor layer itself.
   function updateParallax() {
     frameId = null;
-    const strength = Number.parseFloat(
-      getComputedStyle(document.documentElement)
-        .getPropertyValue("--tdnd-hud-scroll-parallax-strength")
-    ) || 0;
+    const strength = getHudSetting("--tdnd-hud-scroll-parallax-strength", 0);
     const offset = Math.min(8, window.scrollY * strength);
     body.style.setProperty("--tdnd-hud-scroll-offset", `${offset}px`);
   }
@@ -64,19 +73,67 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
     }
   }
 
+  // Smoothly settles the decorative frame toward the viewer's pointer position.
+  function updatePovParallax() {
+    povFrameId = null;
+    const settle = getHudSetting("--tdnd-hud-pov-settle", 0.1);
+    povX += (targetPovX - povX) * settle;
+    povY += (targetPovY - povY) * settle;
+
+    body.style.setProperty("--tdnd-hud-pov-x", `${povX.toFixed(2)}px`);
+    body.style.setProperty("--tdnd-hud-pov-y", `${povY.toFixed(2)}px`);
+
+    if (Math.abs(targetPovX - povX) > 0.05 || Math.abs(targetPovY - povY) > 0.05) {
+      povFrameId = window.requestAnimationFrame(updatePovParallax);
+    }
+  }
+
+  function requestPovUpdate() {
+    if (povFrameId === null) {
+      povFrameId = window.requestAnimationFrame(updatePovParallax);
+    }
+  }
+
+  function updatePovTarget(event) {
+    const strength = getHudSetting("--tdnd-hud-pov-parallax-strength", 8);
+    const normalizedX = (event.clientX / window.innerWidth) * 2 - 1;
+    const normalizedY = (event.clientY / window.innerHeight) * 2 - 1;
+    targetPovX = normalizedX * strength;
+    targetPovY = normalizedY * strength;
+    requestPovUpdate();
+  }
+
+  function resetPovTarget() {
+    targetPovX = 0;
+    targetPovY = 0;
+    requestPovUpdate();
+  }
+
   function updateMotionPreference() {
     window.removeEventListener("scroll", requestParallaxUpdate);
+    window.removeEventListener("pointermove", updatePovTarget);
+    window.removeEventListener("blur", resetPovTarget);
 
     if (frameId !== null) {
       window.cancelAnimationFrame(frameId);
       frameId = null;
     }
 
+    if (povFrameId !== null) {
+      window.cancelAnimationFrame(povFrameId);
+      povFrameId = null;
+    }
+
     if (!motionQuery.matches) {
       window.addEventListener("scroll", requestParallaxUpdate, { passive: true });
+      window.addEventListener("pointermove", updatePovTarget, { passive: true });
+      window.addEventListener("blur", resetPovTarget);
       requestParallaxUpdate();
+      resetPovTarget();
     } else {
       body.style.removeProperty("--tdnd-hud-scroll-offset");
+      body.style.removeProperty("--tdnd-hud-pov-x");
+      body.style.removeProperty("--tdnd-hud-pov-y");
     }
   }
 
