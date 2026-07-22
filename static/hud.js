@@ -44,6 +44,21 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
 
   host.prepend(layer);
 
+  const scaleStations = Array.from({ length: 7 }, (_, index) =>
+    `<span class="tdnd-hud-scale-station" data-hud-scale-index="${index}">${String(index * 125).padStart(3, "0")}</span>`
+  ).join("");
+
+  // This document-height scale keeps left and right HUD ticks synchronized.
+  const pageScale = document.createElement("div");
+  pageScale.className = "tdnd-hud-page-scale";
+  pageScale.setAttribute("aria-hidden", "true");
+  pageScale.innerHTML = `
+    <div class="tdnd-hud-page-scale-rail tdnd-hud-page-scale-rail--left">${scaleStations}</div>
+    <div class="tdnd-hud-page-scale-rail tdnd-hud-page-scale-rail--right">${scaleStations}</div>
+  `;
+  host.prepend(pageScale);
+
+  const scaleReadouts = pageScale.querySelectorAll("[data-hud-scale-index]");
   const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   let frameId = null;
   let povFrameId = null;
@@ -65,6 +80,16 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
     const strength = getHudSetting("--tdnd-hud-scroll-parallax-strength", 0);
     const offset = Math.min(8, window.scrollY * strength);
     body.style.setProperty("--tdnd-hud-scroll-offset", `${offset}px`);
+
+    const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    const progress = window.scrollY / maxScroll;
+    const readoutBase = Math.round(progress * 360);
+    pageScale.style.setProperty("--tdnd-hud-page-scroll-offset", `${Math.min(16, window.scrollY * 0.01)}px`);
+
+    scaleReadouts.forEach((readout) => {
+      const station = Number(readout.dataset.hudScaleIndex);
+      readout.textContent = String((readoutBase + station * 125) % 1000).padStart(3, "0");
+    });
   }
 
   function requestParallaxUpdate() {
@@ -134,6 +159,7 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
       body.style.removeProperty("--tdnd-hud-scroll-offset");
       body.style.removeProperty("--tdnd-hud-pov-x");
       body.style.removeProperty("--tdnd-hud-pov-y");
+      pageScale.style.removeProperty("--tdnd-hud-page-scroll-offset");
     }
   }
 
