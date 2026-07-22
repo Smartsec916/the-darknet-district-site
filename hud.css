@@ -17,6 +17,8 @@ Activation: add data-hud="immersive" to a page's body.
   --tdnd-hud-glow-intensity: 0.52;
   --tdnd-hud-animation-speed: 1;
   --tdnd-hud-mobile-effect-intensity: 0.4;
+  --tdnd-hud-pov-parallax-strength: 8;
+  --tdnd-hud-pov-settle: 0.1;
 }
 
 /* The HUD stays isolated until a page explicitly opts in. */
@@ -36,6 +38,8 @@ body[data-hud="immersive"] .tdnd-hud-layer {
   overflow: hidden;
   pointer-events: none;
   opacity: var(--tdnd-hud-opacity);
+  transform: translate3d(var(--tdnd-hud-pov-x, 0px), var(--tdnd-hud-pov-y, 0px), 0);
+  will-change: transform;
 }
 
 body[data-hud="immersive"] .tdnd-hud-viewport {
@@ -211,6 +215,10 @@ body[data-hud="immersive"] .resource-card:hover::after {
     opacity: var(--tdnd-hud-mobile-effect-intensity);
   }
 
+  :root {
+    --tdnd-hud-pov-parallax-strength: 5;
+  }
+
   body[data-hud="immersive"] .tdnd-hud-viewport {
     inset: 12px 14px;
   }
@@ -234,6 +242,11 @@ body[data-hud="immersive"] .resource-card:hover::after {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  body[data-hud="immersive"] .tdnd-hud-layer {
+    transform: none !important;
+    will-change: auto;
+  }
+
   body[data-hud="immersive"] .tdnd-hud-layer *,
   body[data-hud="immersive"] .tdnd-hud-layer::after,
   body[data-hud="immersive"] .scanlines::before {
