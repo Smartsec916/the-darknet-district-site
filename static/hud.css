@@ -22,11 +22,11 @@ Activation: add data-hud="immersive" to a page's body.
 }
 
 /* The HUD stays isolated until a page explicitly opts in. */
-body[data-hud="immersive"] .resources-bg {
+body[data-hud="immersive"] {
   isolation: isolate;
 }
 
-body[data-hud="immersive"] .resources-bg > :not(.tdnd-hud-layer):not(.tdnd-hud-page-scale):not(.scanlines) {
+body[data-hud="immersive"] > :not(.tdnd-hud-layer):not(.tdnd-hud-page-scale) {
   position: relative;
   z-index: 2;
 }
@@ -89,7 +89,7 @@ body[data-hud="immersive"] .tdnd-hud-scale-station:nth-child(odd)::after {
 }
 
 body[data-hud="immersive"] .tdnd-hud-layer {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 1;
   overflow: hidden;
