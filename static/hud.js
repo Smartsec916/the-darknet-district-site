@@ -42,7 +42,8 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
     </div>
   `;
 
-  host.prepend(layer);
+  // The visor frame belongs to the viewport, not the scrolling content region.
+  body.prepend(layer);
 
   const scaleStations = Array.from({ length: 7 }, (_, index) =>
     `<span class="tdnd-hud-scale-station" data-hud-scale-index="${index}">${String(index * 125).padStart(3, "0")}</span>`
