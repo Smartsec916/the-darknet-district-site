@@ -42,11 +42,11 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
     </div>
   `;
 
-  // The visor frame belongs to the viewport, not the scrolling content region.
-  body.prepend(layer);
+  // The full-page frame moves with the Resources document as visitors scroll.
+  host.prepend(layer);
 
-  const scaleStations = Array.from({ length: 7 }, (_, index) =>
-    `<span class="tdnd-hud-scale-station" data-hud-scale-index="${index}">${String(index * 125).padStart(3, "0")}</span>`
+  const scaleStations = Array.from({ length: 17 }, (_, index) =>
+    `<span class="tdnd-hud-scale-station" data-hud-scale-index="${index}">${String(index * 60).padStart(3, "0")}</span>`
   ).join("");
 
   // This document-height scale keeps left and right HUD ticks synchronized.
@@ -89,7 +89,7 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
 
     scaleReadouts.forEach((readout) => {
       const station = Number(readout.dataset.hudScaleIndex);
-      readout.textContent = String((readoutBase + station * 125) % 1000).padStart(3, "0");
+      readout.textContent = String((readoutBase + station * 60) % 1000).padStart(3, "0");
     });
   }
 
