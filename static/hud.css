@@ -563,3 +563,23 @@ body[data-hud="immersive"] .additional-resources-grid .resource-card .curious-li
   body[data-hud="immersive"] .tdnd-hud-page-scale-rail--right .tdnd-hud-scale-station::after { margin-right: 4px; }
   body[data-hud="immersive"] .tdnd-hud-scale-station:nth-child(4n+1)::after { width: 20px; }
 }
+
+@media (min-width: 769px) and (max-width: 900px) {
+  body[data-hud="immersive"] .tdnd-hud-page-scale-rail { width: 58px; }
+  body[data-hud="immersive"] .tdnd-hud-page-scale-rail--left { left: 8px; }
+  body[data-hud="immersive"] .tdnd-hud-page-scale-rail--right { right: 8px; }
+  body[data-hud="immersive"] .tdnd-hud-coordinates span { margin: 0 18px; }
+  body[data-hud="immersive"] .tdnd-hud-top-status { right: 34px; font-size: 8px; }
+}
+
+@media (max-width: 600px) {
+  body[data-hud="immersive"] .tdnd-hud-viewport { inset: 8px; }
+  body[data-hud="immersive"] .tdnd-hud-bracket { width: 16px; height: 16px; }
+  body[data-hud="immersive"] .tdnd-hud-page-scale-rail { width: 34px; }
+  body[data-hud="immersive"] .tdnd-hud-page-scale-rail--left { left: 3px; }
+  body[data-hud="immersive"] .tdnd-hud-page-scale-rail--right { right: 3px; }
+  body[data-hud="immersive"] .tdnd-hud-scale-station { font-size: 6px; letter-spacing: 0; }
+  body[data-hud="immersive"] .tdnd-hud-scale-station::after { width: 8px; margin-left: 2px; }
+  body[data-hud="immersive"] .tdnd-hud-page-scale-rail--right .tdnd-hud-scale-station::after { margin-right: 2px; }
+  body[data-hud="immersive"] .tdnd-hud-scale-station:nth-child(4n+1)::after { width: 13px; }
+}
