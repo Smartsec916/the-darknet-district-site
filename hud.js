@@ -39,7 +39,7 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
     </div>
   `;
 
-  // The visor frame remains attached to the viewport while content scrolls beneath it.
+  // The visor frame follows the full document so its lower edge reaches the page end.
   body.prepend(layer);
 
   const scaleStations = Array.from({ length: 17 }, (_, index) =>
@@ -55,6 +55,30 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
     <div class="tdnd-hud-page-scale-rail tdnd-hud-page-scale-rail--right">${scaleStations}</div>
   `;
   host.prepend(pageScale);
+
+  let documentHeightFrameId = null;
+
+  function getDocumentHeight() {
+    const documentElement = document.documentElement;
+    return Math.max(
+      documentElement.scrollHeight,
+      documentElement.offsetHeight,
+      body.scrollHeight,
+      body.offsetHeight,
+      window.innerHeight
+    );
+  }
+
+  function updateDocumentHeight() {
+    documentHeightFrameId = null;
+    document.documentElement.style.setProperty("--tdnd-hud-document-height", `${getDocumentHeight()}px`);
+  }
+
+  function requestDocumentHeightUpdate() {
+    if (documentHeightFrameId === null) {
+      documentHeightFrameId = window.requestAnimationFrame(updateDocumentHeight);
+    }
+  }
 
   const scaleReadouts = pageScale.querySelectorAll("[data-hud-scale-index]");
   const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -160,6 +184,21 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
       pageScale.style.removeProperty("--tdnd-hud-page-scroll-offset");
     }
   }
+
+  window.addEventListener("resize", requestDocumentHeightUpdate, { passive: true });
+  window.addEventListener("load", requestDocumentHeightUpdate, { once: true });
+
+  if (typeof ResizeObserver === "function") {
+    const documentResizeObserver = new ResizeObserver(requestDocumentHeightUpdate);
+    documentResizeObserver.observe(body);
+  }
+
+  if (typeof MutationObserver === "function") {
+    const documentMutationObserver = new MutationObserver(requestDocumentHeightUpdate);
+    documentMutationObserver.observe(body, { childList: true, subtree: true });
+  }
+
+  requestDocumentHeightUpdate();
 
   motionQuery.addEventListener("change", updateMotionPreference);
   updateMotionPreference();

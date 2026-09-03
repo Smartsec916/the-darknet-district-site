@@ -36,7 +36,11 @@ body[data-hud="immersive"] > :not(.tdnd-hud-layer):not(.tdnd-hud-page-scale) {
 /* Page-height aircraft-style scale; both rails share the same station grid. */
 body[data-hud="immersive"] .tdnd-hud-page-scale {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: var(--tdnd-hud-document-height, 100vh);
+  min-height: 100%;
   z-index: 1;
   pointer-events: none;
   transform: translateY(var(--tdnd-hud-page-scroll-offset, 0px));
@@ -89,8 +93,12 @@ body[data-hud="immersive"] .tdnd-hud-scale-station:nth-child(odd)::after {
 }
 
 body[data-hud="immersive"] .tdnd-hud-layer {
-  position: fixed;
-  inset: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: var(--tdnd-hud-document-height, 100vh);
+  min-height: 100%;
   z-index: 1;
   overflow: hidden;
   pointer-events: none;
