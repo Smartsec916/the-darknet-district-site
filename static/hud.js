@@ -1,10 +1,10 @@
 /*
-==============================================================================
+------------------------------------------------------------------------------
 THE DARKNET DISTRICT — IMMERSIVE HUD BEHAVIOR
 
 Purpose: creates the decorative visor layer for pages that explicitly opt in.
 The HUD never owns navigation, content, authentication, or Iris behavior.
-==============================================================================
+------------------------------------------------------------------------------
 */
 
 (function () {
@@ -42,23 +42,22 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
   // The visor frame follows the full document so its lower edge reaches the page end.
   body.prepend(layer);
 
-  const scaleStations = Array.from({ length: 17 }, (_, index) =>
-    `<span class="tdnd-hud-scale-station" data-hud-scale-index="${index}">${String(index * 60).padStart(3, "0")}</span>`
-  ).join("");
+  // Stations are generated from the measured document height rather than a
+  // fixed count, so long pages get enough stations to reach the true bottom.
+  const HUD_SCALE_STATION_SPACING = 130; // approximate px between stations
+  const HUD_SCALE_MIN_STATIONS = 8;
 
-  // This document-height scale keeps left and right HUD ticks synchronized.
   const pageScale = document.createElement("div");
   pageScale.className = "tdnd-hud-page-scale";
   pageScale.setAttribute("aria-hidden", "true");
-  pageScale.innerHTML = `
-    <div class="tdnd-hud-page-scale-rail tdnd-hud-page-scale-rail--left">${scaleStations}</div>
-    <div class="tdnd-hud-page-scale-rail tdnd-hud-page-scale-rail--right">${scaleStations}</div>
-  `;
   host.prepend(pageScale);
 
-  let documentHeightFrameId = null;
+  let scaleReadouts = [];
+  let lastScaleHeight = 0;
+  let lastStationCount = 0;
+  let scaleRebuildFrame = null;
 
-  function getDocumentHeight() {
+  function measureDocumentHeight() {
     const documentElement = document.documentElement;
     return Math.max(
       documentElement.scrollHeight,
@@ -69,18 +68,73 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
     );
   }
 
-  function updateDocumentHeight() {
-    documentHeightFrameId = null;
-    document.documentElement.style.setProperty("--tdnd-hud-document-height", `${getDocumentHeight()}px`);
+  function buildScaleStations(count) {
+    return Array.from({ length: count }, (_, index) =>
+      `<span class="tdnd-hud-scale-station" data-hud-scale-index="${index}">${String((index * 60) % 1000).padStart(3, "0")}</span>`
+    ).join("");
   }
 
-  function requestDocumentHeightUpdate() {
-    if (documentHeightFrameId === null) {
-      documentHeightFrameId = window.requestAnimationFrame(updateDocumentHeight);
+  function rebuildPageScale() {
+    const docHeight = measureDocumentHeight();
+    const stationCount = Math.max(
+      HUD_SCALE_MIN_STATIONS,
+      Math.round(docHeight / HUD_SCALE_STATION_SPACING)
+    );
+
+    if (docHeight === lastScaleHeight && stationCount === lastStationCount) {
+      return;
+    }
+
+    lastScaleHeight = docHeight;
+    lastStationCount = stationCount;
+
+    // Both overlays share the full measured height and remain out of flow.
+    document.documentElement.style.setProperty("--tdnd-hud-document-height", `${docHeight}px`);
+    pageScale.style.height = `${docHeight}px`;
+    layer.style.height = `${docHeight}px`;
+    pageScale.style.setProperty("--tdnd-hud-scale-count", String(stationCount));
+
+    const stations = buildScaleStations(stationCount);
+    pageScale.innerHTML = `
+      <div class="tdnd-hud-page-scale-rail tdnd-hud-page-scale-rail--left">${stations}</div>
+      <div class="tdnd-hud-page-scale-rail tdnd-hud-page-scale-rail--right">${stations}</div>
+    `;
+    scaleReadouts = pageScale.querySelectorAll("[data-hud-scale-index]");
+    requestParallaxUpdate();
+  }
+
+  function requestScaleRebuild() {
+    if (scaleRebuildFrame === null) {
+      scaleRebuildFrame = window.requestAnimationFrame(() => {
+        scaleRebuildFrame = null;
+        rebuildPageScale();
+      });
     }
   }
 
-  const scaleReadouts = pageScale.querySelectorAll("[data-hud-scale-index]");
+  // Keep the scale and full HUD frame current as content changes dimensions.
+  window.addEventListener("load", requestScaleRebuild);
+  window.addEventListener("resize", requestScaleRebuild, { passive: true });
+
+  if (typeof ResizeObserver === "function") {
+    const scaleResizeObserver = new ResizeObserver(requestScaleRebuild);
+    scaleResizeObserver.observe(document.documentElement);
+    scaleResizeObserver.observe(body);
+  }
+
+  if (typeof MutationObserver === "function") {
+    const documentMutationObserver = new MutationObserver(requestScaleRebuild);
+    documentMutationObserver.observe(body, { childList: true, subtree: true });
+  }
+
+  // Fallback for late-loading images shifting the document height.
+  Array.from(document.images).forEach((image) => {
+    if (!image.complete) {
+      image.addEventListener("load", requestScaleRebuild, { once: true });
+      image.addEventListener("error", requestScaleRebuild, { once: true });
+    }
+  });
+
   const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   let frameId = null;
   let povFrameId = null;
@@ -96,7 +150,7 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
     return Number.isFinite(value) ? value : fallback;
   }
 
-  // Scroll adjusts the coordinate readouts; pointer input moves the visor layer itself.
+  // Scroll adjusts the coordinate readouts; pointer input moves the HUD layer itself.
   function updateParallax() {
     frameId = null;
     const strength = getHudSetting("--tdnd-hud-scroll-parallax-strength", 0);
@@ -185,21 +239,7 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
     }
   }
 
-  window.addEventListener("resize", requestDocumentHeightUpdate, { passive: true });
-  window.addEventListener("load", requestDocumentHeightUpdate, { once: true });
-
-  if (typeof ResizeObserver === "function") {
-    const documentResizeObserver = new ResizeObserver(requestDocumentHeightUpdate);
-    documentResizeObserver.observe(body);
-  }
-
-  if (typeof MutationObserver === "function") {
-    const documentMutationObserver = new MutationObserver(requestDocumentHeightUpdate);
-    documentMutationObserver.observe(body, { childList: true, subtree: true });
-  }
-
-  requestDocumentHeightUpdate();
-
   motionQuery.addEventListener("change", updateMotionPreference);
+  rebuildPageScale();
   updateMotionPreference();
 }());
