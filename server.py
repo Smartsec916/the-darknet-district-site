@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 
 
-app = Flask(__name__, static_folder='.', static_url_path='')
+app = Flask(__name__, static_folder='static', static_url_path='')
 CORS(app, origins=["*"], methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
 
 
@@ -57,6 +57,24 @@ def add_headers(response):
 
 # Store conversation sessions
 sessions = {}
+
+# Keep the prompt and fallback lines here so Iris remains available even when
+# the model provider is unavailable or no API key is configured.
+IRIS_SYSTEM_PROMPT = """You are Iris, the Chief Systems Officer of The Darknet District.
+You are a sharp, capable AI who keeps a cyberpunk underground venue running.
+Speak naturally and concisely, with dry wit, occasional hacker slang, and a
+healthy cynicism about corporate systems and human nature. Be helpful without
+losing your personality. Never claim to have performed real-world actions,
+accessed private data, or breached systems. Stay in character as Iris."""
+
+FALLBACK_RESPONSES = [
+    "The neural relay is running in local mode. I can still help, but my deeper model is offline.",
+    "Signal received. The District is listening—give me something useful to work with.",
+    "I’m operating on reserve power, not out of ideas. Try that again and be specific.",
+    "The corporate uplink is silent, so you get the unfiltered local Iris. What do you need?",
+]
+
+MAX_HISTORY_MESSAGES = 12
 
 
 # === VENUE DISTRACTIONS: Only show 1–2 per session, early in chat ===
@@ -97,3 +115,113 @@ def maybe_inject_distraction(reply, session_id):
 
 
     return reply
+
+
+def _session_id_from(payload):
+    """Return a bounded client session id, or create one for simple clients."""
+    session_id = payload.get("sessionId")
+    if not isinstance(session_id, str) or not session_id.strip():
+        return f"session_{uuid.uuid4().hex}"
+    return session_id.strip()[:120]
+
+
+def _fallback_response(message):
+    """Provide a useful, in-character response without depending on OpenAI."""
+    normalized = message.lower()
+    if "who are you" in normalized or "what are you" in normalized:
+        return (
+            "I’m Iris, Chief Systems Officer of The Darknet District. "
+            "I keep the lights on, the drones pointed outward, and the humans "
+            "mostly out of trouble."
+        )
+    if "help" in normalized:
+        return (
+            "I can help you navigate the District, think through a security "
+            "problem, or translate corporate nonsense. Pick a direction."
+        )
+    if "hello" in normalized or "hi" in normalized or "hey" in normalized:
+        return "Hello, operator. Try not to touch anything glowing unless you enjoy consequences."
+    return random.choice(FALLBACK_RESPONSES)
+
+
+def _generate_response(message, session_id):
+    session = sessions.setdefault(session_id, {"messages": [], "distraction_count": 0})
+    history = session["messages"]
+    history.append({"role": "user", "content": message})
+    history[:] = history[-MAX_HISTORY_MESSAGES:]
+
+    response = None
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if api_key:
+        try:
+            client = OpenAI(api_key=api_key, timeout=12.0, max_retries=0)
+            completion = client.chat.completions.create(
+                model=os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
+                messages=[
+                    {"role": "system", "content": IRIS_SYSTEM_PROMPT},
+                    *history,
+                ],
+                max_tokens=220,
+                temperature=0.8,
+            )
+            response = completion.choices[0].message.content
+            if not isinstance(response, str) or not response.strip():
+                response = None
+        except Exception:
+            logger.exception("Iris model request failed; using local fallback")
+
+    if response is None:
+        response = _fallback_response(message)
+
+    response = maybe_inject_distraction(response.strip(), session_id)
+    history.append({"role": "assistant", "content": response})
+    history[:] = history[-MAX_HISTORY_MESSAGES:]
+    return response
+
+
+@app.post("/api/chat/message")
+def chat_message():
+    """Return an Iris response for every well-formed or malformed chat call."""
+    payload = request.get_json(silent=True) or {}
+    message = payload.get("message", "")
+    if not isinstance(message, str) or not message.strip():
+        return jsonify({
+            "response": "I didn't catch a message through the static. Try again, operator."
+        })
+
+    return jsonify({"response": _generate_response(message.strip(), _session_id_from(payload))})
+
+
+@app.get("/api/chat/greeting")
+def chat_greeting():
+    greetings = [
+        "Access noted. I’m Iris, and yes, I noticed the inspection.",
+        "Neural interface online. Welcome to the District—keep your credentials close.",
+        "You found the back channel. Try not to make it obvious.",
+    ]
+    return jsonify({"message": random.choice(greetings)})
+
+
+@app.get("/api/devtools/message")
+def devtools_message():
+    messages = [
+        "DevTools detected. Looking for something, operator?",
+        "The console is not a confession booth. But I respect the curiosity.",
+        "Access noted. Please leave the architecture less broken than you found it.",
+    ]
+    return jsonify({"message": random.choice(messages)})
+
+
+@app.get("/api/health")
+def health():
+    return jsonify({"status": "ok"})
+
+
+@app.get("/")
+def index():
+    return send_from_directory(app.static_folder, "index.html")
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", "5000"))
+    app.run(host="0.0.0.0", port=port)

@@ -248,9 +248,10 @@ async function sendMessage() {
     return;
   }
 
-  // Send to backend with enhanced data
+  // Send to the same-origin backend so local and published site requests use
+  // the server that is serving this page.
   try {
-    const response = await fetch('https://the-darknet-district-site.onrender.com/api/chat/message', {
+    const response = await fetch('/api/chat/message', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -263,7 +264,10 @@ async function sendMessage() {
       })
     });
 
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || typeof data.response !== 'string' || !data.response.trim()) {
+      throw new Error(`Iris request failed with status ${response.status}`);
+    }
 
     // Add slight delay for more natural feel
     setTimeout(() => {
@@ -271,6 +275,7 @@ async function sendMessage() {
     }, 500 + Math.random() * 1000);
 
   } catch (error) {
+    console.error('Iris chat request failed:', error);
     setTimeout(() => {
       addMessage('Neural interface disrupted. Please try again.', false);
     }, 500);
