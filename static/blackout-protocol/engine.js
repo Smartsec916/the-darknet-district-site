@@ -1148,28 +1148,40 @@ function drawControlsHint(){
   ctx.font = '9px monospace';
 }
 
-// Keep holograms legible against busy skyline art without covering actors.
-function drawAds(){
+// Render at display resolution: small lettering must not pass through the
+// 256x240 pixel-art buffer. Screen blending emits light without dark panels.
+function drawAds(target=ctx){
   for(const a of ads){
     const img=CurrentAds.imgObjs[a.kind==='drink'?'drinkA':a.kind];
     if(!img || !img.complete || !img.naturalWidth) continue;
     const scale=Math.min(90/img.naturalWidth,112/img.naturalHeight);
-    const w=Math.round(img.naturalWidth*scale),h=Math.round(img.naturalHeight*scale);
-    const x=Math.round(a.x-cameraX-w/2);
-    const y=clamp(Math.round(a.y-h/2),43,groundY()-h-8);
+    const w=img.naturalWidth*scale,h=img.naturalHeight*scale;
+    const x=a.x-cameraX-w/2;
+    const y=clamp(a.y-h/2,43,groundY()-h-8);
     if(x+w+4<0 || x-4>VW) continue;
-    ctx.save();
-    ctx.fillStyle='rgba(2,8,20,.88)';ctx.fillRect(x-3,y-3,w+6,h+6);
-    ctx.shadowColor='#56deff';ctx.shadowBlur=4;
-    ctx.strokeStyle='rgba(101,225,255,.8)';ctx.lineWidth=.7;
-    ctx.strokeRect(x-3,y-3,w+6,h+6);ctx.shadowBlur=0;
-    ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-    ctx.globalAlpha=1;ctx.filter='brightness(1.65) saturate(1.2)';
-    ctx.drawImage(img,x,y,w,h);ctx.filter='none';
-    ctx.fillStyle='#a3f5ff';
-    for(const cx of [x-3,x+w-3]){ctx.fillRect(cx,y-3,6,1);ctx.fillRect(cx,y+h+2,6,1)}
-    ctx.restore();
+    target.save();
+    target.globalCompositeOperation='screen';
+    target.imageSmoothingEnabled=true;target.imageSmoothingQuality='high';
+    // A restrained halo, followed by a sharp, full-opacity lettering pass.
+    target.globalAlpha=.22;
+    target.filter='brightness(1.8) blur(2px)';
+    target.drawImage(img,x,y,w,h);
+    target.globalAlpha=1;
+    target.filter='brightness(1.55) saturate(1.15)';
+    target.drawImage(img,x,y,w,h);
+    target.restore();
   }
+}
+function drawDisplayAds(){
+  const target=C.getContext('2d');
+  const s=Math.min(VW_CANVAS/VW,VH_CANVAS/VH);
+  const sw=(VW*s)|0,sh=(VH*s)|0;
+  target.save();
+  target.translate(((VW_CANVAS-sw)/2)|0,((VH_CANVAS-sh)/2)|0);
+  target.scale(sw/VW,sh/VH);
+  target.beginPath();target.rect(0,0,VW,VH);target.clip();
+  drawAds(target);
+  target.restore();
 }
 
 function drawUI(now){
@@ -1199,11 +1211,11 @@ function drawAtmosphere(now){
   }ctx.restore();
 }
 
-function blit(){
+function blit(clear=true){
   const canvas = C;
   const gctx = canvas.getContext('2d');
   gctx.imageSmoothingEnabled = false;
-  gctx.clearRect(0, 0, VW_CANVAS, VH_CANVAS);
+  if(clear) gctx.clearRect(0, 0, VW_CANVAS, VH_CANVAS);
   const s = Math.min(VW_CANVAS / VW, VH_CANVAS / VH);
   const sw = (VW * s)|0, sh = (VH * s)|0;
   const ox = ((VW_CANVAS - sw) / 2)|0, oy = ((VH_CANVAS - sh) / 2)|0;
@@ -1221,7 +1233,10 @@ function loop(now){
 
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH);
   drawBackgrounds();
-  drawAds();
+  blit();
+  drawDisplayAds();
+  // Composite pixel-art foreground over the high-resolution holograms.
+  ctx.clearRect(0,0,VW,VH);
   drawTiles();
   drawTerminals();
   drawDronesAndCones(now);
@@ -1232,7 +1247,7 @@ function loop(now){
   drawAtmosphere(simulationTime);
   drawUI(simulationTime);
 
-  blit();
+  blit(false);
   requestAnimationFrame(loop);
 }
 
