@@ -21,7 +21,7 @@
       <div class="title">BLACKOUT PROTOCOL SHOP</div>
       <div class="stats" id="stats">Loading...</div>
       <div>
-        <a class="btn" id="buyGun">Buy Sidearm (15 BTC)</a>
+        <a class="btn" id="buyGun">Buy Armor (15 BTC)</a>
       </div>
       <div>
         <p>Enhance your capabilities. Purchase upgrades to survive the protocol.</p>
@@ -40,17 +40,17 @@
     function refresh(){
       const btc = getRunN('playerBTC',0);
       const u = getRunO('playerUpgrades',{});
-      stats.textContent = `BTC: ${btc}  |  Gun: ${u.sidearm?'YES':'NO'}`;
+      stats.textContent = `BTC: ${btc}  |  Armor: ${u.armor?'YES':'NO'}`;
     }
     refresh();
 
     document.getElementById('buyGun').onclick = ()=>{
       let btc=getRunN('playerBTC',0);
       const u=getRunO('playerUpgrades',{});
-      if(u.sidearm){ alert('Already owned.'); return }
+      if(u.armor){ alert('Already owned.'); return }
       if(btc>=15){
         btc-=15; setRunN('playerBTC',btc);
-        u.sidearm=true;
+        u.armor=true;
         setRunO('playerUpgrades',u);
         refresh();
       } else alert('Not enough BTC.');

@@ -1,62 +1,7 @@
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Blackout Protocol — Start</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    html,body{margin:0;background:#000;color:#cfd6df;font-family:monospace;height:100%;}
-    .wrap{display:grid;place-items:center;height:100%;}
-    canvas{image-rendering:pixelated;width:min(960px, 96vw);height:auto;border:2px solid #5c5c5c;background:#000;}
-    .btn{display:inline-block;margin-top:12px;padding:8px 16px;border:1px solid #5c5c5c;border-radius:4px;color:#9cff7e;text-decoration:none}
-    .btn:hover{filter:brightness(1.2)}
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div>
-      <canvas id="title" width="640" height="480"></canvas>
-      <div style="text-align:center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-        <a class="btn" href="./level1.html" style="font-size: 18px; padding: 12px 24px;">[ START ]</a>
-      </div>
-    </div>
-  </div>
-
-  <script type="module">
-    // Minimal draw of retro title + Top10 pulled from localStorage
-    const c=document.getElementById('title'), ctx=c.getContext('2d');
-    const VW=c.width, VH=c.height;
-
-    function getLeaderboard(){
-      try{ return JSON.parse(localStorage.getItem('leaderboard')||'[]') }catch(e){ return [] }
-    }
-    function drawCRT(){
-      ctx.fillStyle='#000'; ctx.fillRect(0,0,VW,VH);
-      ctx.strokeStyle='rgba(0,255,120,.15)';
-      for(let y=0;y<VH;y+=2){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(VW,y); ctx.stroke() }
-    }
-    function drawTitle(){
-      drawCRT();
-      ctx.fillStyle='#b7ff44';
-      ctx.font='16px monospace';
-      ctx.fillText('BLACKOUT PROTOCOL', 20, 40);
-
-      ctx.fillStyle='#cfd6df';
-      ctx.font='12px monospace';
-      ctx.fillText('TOP 10', 20, 70);
-
-      const lb=getLeaderboard().slice(0,10);
-      ctx.font='11px monospace';
-      lb.forEach((row,i)=>{
-        const tag=(row.tag||row.id||'RUN').toString().slice(0,10).padEnd(10,' ');
-        const score=(row.score||0).toString().padStart(6,' ');
-        ctx.fillText(`${String(i+1).padStart(2,'0')}  ${tag}  ${score}`, 20, 90+i*16);
-      });
-
-      
-    }
-    drawTitle();
-  </script>
-</body>
-</html>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Blackout Protocol</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:#060b15;color:#e6f1ff;font:15px/1.6 system-ui,sans-serif}main{min-height:100dvh;padding:7vh 8vw;background:linear-gradient(90deg,#060b15f5 12%,#060b1577),url('assets/03_bg_far.png') center/cover}header{color:#65ecdc;letter-spacing:.25em;font:12px monospace}h1{font-size:clamp(48px,8vw,105px);line-height:.95;letter-spacing:-.06em;margin:8vh 0 25px;max-width:800px}h1 span{color:#69eddd}p{max-width:530px;color:#b6c7da}.start{display:inline-block;background:#72eddb;color:#061923;padding:16px 28px;text-decoration:none;font-weight:750;border-radius:4px;margin:20px 0}.start:hover{background:#baffef}.grid{display:flex;gap:45px;flex-wrap:wrap;margin-top:35px}.grid section{max-width:360px}h2{font:12px monospace;letter-spacing:.16em;color:#e997d0}ol{padding-left:25px;color:#b6c7da}small{color:#8ba7bf}a:focus-visible{outline:3px solid #ff9bd9;outline-offset:5px}
+</style></head><body><main><header>TRANSMISSION 001 / OFFLINE RESISTANCE</header><h1>BLACKOUT<br><span>PROTOCOL.</span></h1><p>Three districts. One way out. Cross the undergrid, evade surveillance, and slip through the Neon Bazaar with your BTC intact.</p><a class="start" href="level1.html">START A NEW RUN ↗</a><br><small>Keyboard play · Progress carries between districts</small><div class="grid"><section><h2>FIELD MANUAL</h2><p>A / D or arrows to move. Space to jump.<br>Enter hacks nearby terminals. E uses an EMP.<br>Escape pauses the signal.</p><p>Find all three relay shards in each district: +9 BTC, +250 score, and +15 HP. Spend BTC at Byte Bazaar. Watch for pickpockets in district 3.</p></section><section><h2>LOCAL HIGH SCORES</h2><ol id="scores"></ol></section></div></main><script>
+let scores=[];try{scores=JSON.parse(localStorage.getItem('leaderboard')||'[]')}catch{}const list=document.getElementById('scores');if(!Array.isArray(scores))scores=[];for(const entry of scores.slice(0,5)){const row=document.createElement('li');row.textContent=String(entry.id||'RUN')+' — '+Number(entry.score||0);list.append(row)}if(!scores.length)list.textContent='No signals recorded. Make the first run.';
+</script></body></html>

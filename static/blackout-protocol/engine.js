@@ -11,7 +11,7 @@ Relationship: level pages import bootLevel(); shop pages use the exported storag
 const VW = 256, VH = 240, TILE = 16;
 const LEVEL_LEN = 1600;
 const DOOR_W = 24, DOOR_H = 32;
-const HYPER_RELOAD_TAG = 'rev=' + Date.now() + '_fix';
+const HYPER_RELOAD_TAG = 'rev=20260908';
 
 // ====== storage helpers (session for run; local for leaderboard) ======
 export function getRunN(k,d=0){ return +(sessionStorage.getItem(k) ?? d) }
@@ -19,7 +19,7 @@ export function setRunN(k,v){ sessionStorage.setItem(k, String(v)) }
 export function getRunO(k,d={}){ try{return JSON.parse(sessionStorage.getItem(k)||'null')??d}catch(e){return d} }
 export function setRunO(k,o){ sessionStorage.setItem(k, JSON.stringify(o)) }
 export function hardResetRun(){
-  sessionStorage.clear();
+  for(const key of ['playerBTC','playerScore','playerHealth','playerUpgrades','gameLevel']) sessionStorage.removeItem(key);
   setRunN('playerBTC',0);
   setRunN('playerScore',0);
   setRunN('playerHealth',100);
@@ -31,7 +31,7 @@ export function goTo(href){ window.location.assign(href) }
 function getLeaderboard(){ try{return JSON.parse(localStorage.getItem('leaderboard')||'[]')}catch(e){return[]} }
 function setLeaderboard(list){ localStorage.setItem('leaderboard', JSON.stringify(list)) }
 // The leaderboard is intentionally browser-local; this does not submit scores to a service.
-function postScore(score=0){
+export function postScore(score=0){
   const id = Math.random().toString(36).slice(2,10).toUpperCase();
   const lb = getLeaderboard();
   lb.push({id, score});
@@ -44,27 +44,27 @@ function IMG(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload
 
 const SPRITE_DEF = {
   player:{fw:48,fh:48, states:{
-    idle:'/blackout-protocol/assets/player_idle_48.png', walk:'/blackout-protocol/assets/player_walk_48.png', run:'/blackout-protocol/assets/player_run_48.png',
-    jump:'/blackout-protocol/assets/player_jump_48.png', fall:'/blackout-protocol/assets/player_fall_48.png', hurt:'/blackout-protocol/assets/player_hurt_48.png', dead:'/blackout-protocol/assets/player_dead_48.png'
+    idle:'./assets/player_idle_48.png', walk:'./assets/player_walk_48.png', run:'./assets/player_run_48.png',
+    jump:'./assets/player_jump_48.png', fall:'./assets/player_fall_48.png', hurt:'./assets/player_hurt_48.png', dead:'./assets/player_dead_48.png'
   }, fps:{idle:6, walk:10, run:12, jump:10, fall:10, hurt:6, dead:8}},
   robot:{fw:48,fh:48, states:{
-    idle:'/blackout-protocol/assets/robot_idle_48.png', walk:'/blackout-protocol/assets/robot_walk_48.png', run:'/blackout-protocol/assets/robot_run_48.png',
-    attack:'/blackout-protocol/assets/robot_attack_48.png', hurt:'/blackout-protocol/assets/robot_hurt_48.png', dead:'/blackout-protocol/assets/robot_dead_48.png'
+    idle:'./assets/robot_idle_48.png', walk:'./assets/robot_walk_48.png', run:'./assets/robot_run_48.png',
+    attack:'./assets/robot_attack_48.png', hurt:'./assets/robot_hurt_48.png', dead:'./assets/robot_dead_48.png'
   }, fps:{idle:6, walk:9, run:10, attack:12, hurt:6, dead:8}},
   drone:{fw:32,fh:32, states:{
-    idle:'/blackout-protocol/assets/drone_idle_32.png', hover:'/blackout-protocol/assets/drone_hover_32.png', move:'/blackout-protocol/assets/drone_move_32.png',
-    attack:'/blackout-protocol/assets/drone_attack_32.png', hurt:'/blackout-protocol/assets/drone_hurt_32.png', dead:'/blackout-protocol/assets/drone_dead_32.png'
+    idle:'./assets/drone_idle_32.png', hover:'./assets/drone_hover_32.png', move:'./assets/drone_move_32.png',
+    attack:'./assets/drone_attack_32.png', hurt:'./assets/drone_hurt_32.png', dead:'./assets/drone_dead_32.png'
   }, fps:{idle:3, hover:10, move:10, attack:12, hurt:6, dead:8}},
   female:{fw:48,fh:48, states:{
-    idle:'/blackout-protocol/assets/female_idle.png', walk:'/blackout-protocol/assets/female_walk.png', run:'/blackout-protocol/assets/female_run.png'
+    idle:'./assets/female_idle.png', walk:'./assets/female_walk.png', run:'./assets/female_run.png'
   }, fps:{idle:6, walk:8, run:10}},
   bg_far:null, bg_near:null, coin:null, door:null, ledge:null, platform:null
 };
 
 function bgURLsForLevel(lvl){
-  if(lvl===2) return {far:`/blackout-protocol/assets/02_bg_far.png?${HYPER_RELOAD_TAG}`, near:`/blackout-protocol/assets/02_bg_near.png?${HYPER_RELOAD_TAG}`};
-  if(lvl===3) return {far:`/blackout-protocol/assets/03_bg_far.png?${HYPER_RELOAD_TAG}`, near:`/blackout-protocol/assets/03_bg_near.png?${HYPER_RELOAD_TAG}`};
-  return {far:`/blackout-protocol/assets/01_bg_far.png?${HYPER_RELOAD_TAG}`, near:`/blackout-protocol/assets/01_bg_near.png?${HYPER_RELOAD_TAG}`};
+  if(lvl===2) return {far:`./assets/02_bg_far.png?${HYPER_RELOAD_TAG}`, near:`./assets/02_bg_near.png?${HYPER_RELOAD_TAG}`};
+  if(lvl===3) return {far:`./assets/03_bg_far.png?${HYPER_RELOAD_TAG}`, near:`./assets/03_bg_near.png?${HYPER_RELOAD_TAG}`};
+  return {far:`./assets/01_bg_far.png?${HYPER_RELOAD_TAG}`, near:`./assets/01_bg_near.png?${HYPER_RELOAD_TAG}`};
 }
 
 function adConfigForLevel(lvl){
@@ -72,11 +72,11 @@ function adConfigForLevel(lvl){
     return {
       kinds:['blackrock','downthere','oxygen','skinshift','zen'],
       images:{
-        blackrock:`/blackout-protocol/assets/Blackrock.png?${HYPER_RELOAD_TAG}`,
-        downthere:`/blackout-protocol/assets/Downthere.png?${HYPER_RELOAD_TAG}`,
-        oxygen:`/blackout-protocol/assets/Oxygen.png?${HYPER_RELOAD_TAG}`,
-        skinshift:`/blackout-protocol/assets/Skinshift.png?${HYPER_RELOAD_TAG}`,
-        zen:`/blackout-protocol/assets/Zen.png?${HYPER_RELOAD_TAG}`,
+        blackrock:`./assets/Blackrock.png?${HYPER_RELOAD_TAG}`,
+        downthere:`./assets/Downthere.png?${HYPER_RELOAD_TAG}`,
+        oxygen:`./assets/Oxygen.png?${HYPER_RELOAD_TAG}`,
+        skinshift:`./assets/Skinshift.png?${HYPER_RELOAD_TAG}`,
+        zen:`./assets/Zen.png?${HYPER_RELOAD_TAG}`,
       }
     };
   }
@@ -84,23 +84,23 @@ function adConfigForLevel(lvl){
     return {
       kinds:['bug','pill','plug','touchless','pinknoise'],
       images:{
-        bug:`/blackout-protocol/assets/Bug.png?${HYPER_RELOAD_TAG}`,
-        pill:`/blackout-protocol/assets/Pill.png?${HYPER_RELOAD_TAG}`,
-        plug:`/blackout-protocol/assets/Plug.png?${HYPER_RELOAD_TAG}`,
-        touchless:`/blackout-protocol/assets/Touchless.png?${HYPER_RELOAD_TAG}`,
-        pinknoise:`/blackout-protocol/assets/Pinknoise.png?${HYPER_RELOAD_TAG}`,
+        bug:`./assets/Bug.png?${HYPER_RELOAD_TAG}`,
+        pill:`./assets/Pill.png?${HYPER_RELOAD_TAG}`,
+        plug:`./assets/Plug.png?${HYPER_RELOAD_TAG}`,
+        touchless:`./assets/Touchless.png?${HYPER_RELOAD_TAG}`,
+        pinknoise:`./assets/Pinknoise.png?${HYPER_RELOAD_TAG}`,
       }
     };
   }
   return {
     kinds:['fourk','meat','holo','rent','drink'],
     images:{
-      fourk:`/blackout-protocol/assets/4K.png?${HYPER_RELOAD_TAG}`,
-      meat:`/blackout-protocol/assets/Meat.png?${HYPER_RELOAD_TAG}`,
-      holo:`/blackout-protocol/assets/HoloCompanion.png?${HYPER_RELOAD_TAG}`,
-      rent:`/blackout-protocol/assets/Rent.png?${HYPER_RELOAD_TAG}`,
-      drinkA:`/blackout-protocol/assets/Drink_Oil_01.png?${HYPER_RELOAD_TAG}`,
-      drinkB:`/blackout-protocol/assets/Drink_Oil_02.png?${HYPER_RELOAD_TAG}`,
+      fourk:`./assets/4K.png?${HYPER_RELOAD_TAG}`,
+      meat:`./assets/Meat.png?${HYPER_RELOAD_TAG}`,
+      holo:`./assets/HoloCompanion.png?${HYPER_RELOAD_TAG}`,
+      rent:`./assets/Rent.png?${HYPER_RELOAD_TAG}`,
+      drinkA:`./assets/Drink_Oil_01.png?${HYPER_RELOAD_TAG}`,
+      drinkB:`./assets/Drink_Oil_02.png?${HYPER_RELOAD_TAG}`,
     }
   };
 }
@@ -115,6 +115,7 @@ let SPR=null, LVL=1, NEXT_HREF='./index.html';
 let coinImg=null, doorImg=null, ledgeImg=null, platformImg=null, terminalFrame1=null, terminalFrame2=null;
 let generatedUntil=0, worldMaxX=0;
 let hackUntil=0, hackCDUntil=0;
+let relays=[];
 
 const CHUNK = 320;
 const JUMP_BUFFER = 140, COYOTE = 140;
@@ -130,7 +131,8 @@ addEventListener('keydown',e=>{
 
   if(e.code==='ArrowLeft'||e.code==='KeyA') LEFT=1;
   if(e.code==='ArrowRight'||e.code==='KeyD') RIGHT=1;
-  if(e.code==='ArrowUp'||e.code==='KeyW'||e.code==='Space') { UP=1; jumpBufferUntil=performance.now()+JUMP_BUFFER; jumpHeld=true; }
+  if(e.code==='ArrowUp'||e.code==='KeyW'||e.code==='Space') { UP=1; jumpBufferUntil=simulationTime+JUMP_BUFFER; jumpHeld=true; }
+  if(e.repeat) return;
   if(e.code==='Escape') gameState=(gameState==='playing')?'paused':(gameState==='paused'?'playing':gameState);
   if(e.code==='Enter') tryHack();
   if(e.code==='KeyE') triggerEMP();
@@ -183,30 +185,41 @@ function makeAnimator(sheet, fw, fh, fps){
 }
 
 // ====== sprites ======
+function femaleSheet(state){
+  const sheet=document.createElement('canvas'); sheet.width=192; sheet.height=48;
+  const g=sheet.getContext('2d');
+  for(let f=0;f<4;f++){
+    const x=f*48, stride=state==='idle'?0:[-3,0,3,0][f]*(state==='run'?1.5:1);
+    g.save();g.translate(x+8,16);g.scale(.67,.67);
+    const box=(color,a,b,w,h)=>{g.fillStyle=color;g.fillRect(a,b,w,h)};
+    box('#251d38',16,4,16,18); box('#ffc568',17,5,13,9);
+    box('#edab86',22,10,9,10); box('#fff0c1',18,6,11,3);
+    box('#172c42',17,20,14,12); box('#54eadb',27,21,3,9);
+    box('#d786b6',18,31,13,3); box('#26374e',18+stride,34,5,10);
+    box('#26374e',26-stride,34,5,10);box('#f27fbd',17+stride,44,8,3);
+    box('#f27fbd',25-stride,44,8,3);box('#edab86',14-stride/2,22,4,10);
+    box('#edab86',31+stride/2,22,4,10);box('#101b30',29,13,2,2);
+    box('#a96e3e',16,12,4,9);box('#ffe6a1',18,8,3,8);
+    box('#263d55',18,22,4,8);box('#0d192a',23,23,3,8);
+    box('#fff0d7',30,13,1,1);box('#bd6f73',28,18,3,1);
+    box('#101c30',19+stride,38,2,6);box('#101c30',27-stride,38,2,6);
+    g.restore();
+  }return sheet;
+}
 async function loadSprites(def){
-  const out={};
-  for(const who of ['player','robot','drone','female']){
-    console.log(`Loading sprites for ${who}...`);
-    const fw=def[who].fw, fh=def[who].fh;
-    const pack={fw,fh,anim:{}};
-    for(const [state,src] of Object.entries(def[who].states)){
-      try {
-        const img=await IMG(src + '?' + HYPER_RELOAD_TAG);
-        pack.anim[state]={img, make:()=>makeAnimator(img,fw,fh, def[who].fps[state]||8)};
-        console.log(`Loaded ${who} ${state} sprite from ${src}`);
-      } catch(error) {
-        console.error(`Failed to load ${who} ${state} sprite from ${src}:`, error);
-        pack.anim[state]={img: null, make:()=>makeAnimator(null,fw,fh, def[who].fps[state]||8)};
-      }
-    }
-    out[who]=pack;
-  }
-  console.log('Sprite loading complete:', Object.keys(out));
-  return out;
+  const entries=await Promise.all(['player','robot','drone','female'].map(async who=>{
+    const {fw,fh}=def[who],pack={fw,fh,anim:{}};
+    await Promise.all(Object.entries(def[who].states).map(async ([state,src])=>{
+      let img=null;
+      try {img=who==='female'?femaleSheet(state):await IMG(src+'?'+HYPER_RELOAD_TAG)}
+      catch(error){console.warn('Sprite unavailable:',src)}
+      pack.anim[state]={img,make:()=>makeAnimator(img,fw,fh,def[who].fps[state]||8)};
+    }));return [who,pack];
+  }));return Object.fromEntries(entries);
 }
 
 function setAnim(actor, who, state, clamp=false){
-  if(actor.anim.state===state) return;
+  if(actor.anim.state===state && actor.anim.runner) return;
   actor.anim.state=state;
   const spec=SPR[who]?.anim?.[state];
   actor.anim.runner = spec ? spec.make() : null;
@@ -224,15 +237,14 @@ function setBackgroundsForLevel(lvl){
   const urls = bgURLsForLevel(lvl);
   SPRITE_DEF.bg_far = urls.far;
   SPRITE_DEF.bg_near = urls.near;
-  SPRITE_DEF.coin = `/blackout-protocol/assets/btc_glow.png?${HYPER_RELOAD_TAG}`;
-  SPRITE_DEF.door = `/blackout-protocol/assets/shop_door_neon.png?${HYPER_RELOAD_TAG}`;
-  SPRITE_DEF.ledge = `/blackout-protocol/assets/ledge_tile.png?${HYPER_RELOAD_TAG}`;
-  SPRITE_DEF.platform = `/blackout-protocol/assets/platform_industrial.png?${HYPER_RELOAD_TAG}`;
+  SPRITE_DEF.coin = `./assets/btc_glow.png?${HYPER_RELOAD_TAG}`;
+  SPRITE_DEF.door = `./assets/shop_door_neon.png?${HYPER_RELOAD_TAG}`;
+  SPRITE_DEF.ledge = `./assets/ledge_tile.png?${HYPER_RELOAD_TAG}`;
+  SPRITE_DEF.platform = `./assets/platform_industrial.png?${HYPER_RELOAD_TAG}`;
 }
 
 async function loadBackgrounds(){
-  BG.far = await IMG(SPRITE_DEF.bg_far);
-  BG.near = await IMG(SPRITE_DEF.bg_near);
+  [BG.far,BG.near] = await Promise.all([SPRITE_DEF.bg_far,SPRITE_DEF.bg_near].map(src=>IMG(src).catch(()=>null)));
 }
 
 async function loadAdImagesForLevel(lvl){
@@ -358,6 +370,12 @@ function genChunk(startX){
 
   // Level 3: More BTC coins and female NPCs
   if(lvl === 3){
+    if(startX>=CHUNK){
+      platforms.push({x:startX+70,y:groundY()-48,w:80,h:TILE});
+      platforms.push({x:startX+190,y:groundY()-80,w:64,h:TILE});
+      terminals.push({x:startX+100,y:groundY()-64,w:12,h:16,cooldown:0});
+      coins.push({x:startX+210,y:groundY()-100,r:10,taken:false});
+    }
     if(!firstScreen && startX >= 400){ // Changed from 300 to 400 to avoid overlap with initial spawn
       for(let i = 0; i < 5; i++){ // Even more coins in Level 3
         const cx = startX + 30 + Math.random() * (CHUNK - 60);
@@ -375,7 +393,7 @@ function genChunk(startX){
       for(let i = 0; i < fc; i++){
         const fx = startX + 64 + Math.random() * (CHUNK - 128);
         const newFemale = {
-          x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.6, hp: 1,
+          x: fx|0, y: groundY() - 28, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.6, hp: 1,
           active: false, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 50, patrolR: fx + 50,
           searchUntil: 0, lookTimer: 0, hasTaken: false, anim: {state: 'idle', runner: null}
         };
@@ -526,7 +544,8 @@ function collide(body){
 
 // ====== hack / emp ======
 function tryHack(){
-  const now = performance.now();
+  if(!player || gameState!=='playing') return;
+  const now = simulationTime;
   if(now < hackCDUntil) return;
   const near = terminals.find(t => 
     Math.hypot((t.x + 6) - (player.x + player.w/2), (t.y + 8) - (player.y + player.h/2)) < 18 && 
@@ -542,6 +561,7 @@ function tryHack(){
 }
 
 function triggerEMP(){
+  if(!player || gameState!=='playing') return;
   const charges = (player.upgrades?.mobileEMPCharges | 0);
   if(!(player.upgrades?.mobileEMP) || charges <= 0) return;
   player.upgrades.mobileEMPCharges = charges - 1;
@@ -582,9 +602,11 @@ function pickupCoins(){
 
 // ====== damage / death ======
 function applyDamage(dmg){
+  if(gameState!=='playing') return;
   if(LVL === 1) dmg = Math.min(dmg, 20);
   player.hp = Math.max(0, player.hp - Math.max(0, dmg|0));
   if(player.hp <= 0){
+    gameState='dead';
     postScore(score);
     setTimeout(() => goTo('./index.html'), 800);
     return;
@@ -602,10 +624,10 @@ function spawnLevel3Females(){
   // Force spawn some initial females for Level 3
   if(LVL === 3){
     // Clear any existing females first
-    females.length = 0;
+    // Preserve NPCs already generated farther into the district.
 
     // Add females spread out across the level, starting further from player
-    for(let i = 0; i < 6; i++){
+    for(let i = 0; i < 3; i++){
       const fx = 200 + i * 80 + Math.random() * 40; // Start further from player, more spread out
       const newFemale = {
         x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.7, hp: 1,
@@ -672,6 +694,7 @@ function playerLitByCone(){
   if(LVL < 2 || !drones.length) return false;
   const px = player.x + player.w/2, py = player.y + player.h/2;
   for(const d of drones){
+    if(!d.active || d.disabled) continue;
     const topXw = d.x + 8, topYw = d.y + 10;
     if(py < topYw) continue;
     const coneH = 120, baseW = 70;
@@ -698,8 +721,8 @@ async function loadTiles(){
     doorImg = await IMG(SPRITE_DEF.door);
     ledgeImg = await IMG(SPRITE_DEF.ledge);
     platformImg = await IMG(SPRITE_DEF.platform);
-    terminalFrame1 = await IMG(`/blackout-protocol/assets/hacker_terminal_frame1.png?${HYPER_RELOAD_TAG}`);
-    terminalFrame2 = await IMG(`/blackout-protocol/assets/hacker_terminal_frame2.png?${HYPER_RELOAD_TAG}`);
+    terminalFrame1 = await IMG(`./assets/hacker_terminal_frame1.png?${HYPER_RELOAD_TAG}`);
+    terminalFrame2 = await IMG(`./assets/hacker_terminal_frame2.png?${HYPER_RELOAD_TAG}`);
   } catch (error) {
     console.error('Error loading tiles:', error);
   }
@@ -732,6 +755,7 @@ function update(dt, now){
   if(player.vy > 3.7) player.vy = 3.7;
 
   collide(player);
+  player.x = clamp(player.x,0,LEVEL_LEN-player.w);
   pickupCoins();
 
   if(player.hp <= 0) setAnim(player, 'player', 'dead', true);
@@ -743,8 +767,14 @@ function update(dt, now){
   }
   stepAnim(player, dt);
 
+  for(const relay of relays){
+    if(!relay.taken && Math.hypot(player.x+9-relay.x,player.y+14-relay.y)<24){
+      relay.taken=true; score+=50; btc+=3;
+      if(relays.every(r=>r.taken)){score+=100; player.hp=Math.min(100,player.hp+15)}
+    }
+  }
   const need = cameraX + VW + CHUNK * 2;
-  while(generatedUntil < need) genChunk(generatedUntil);
+  while(generatedUntil < Math.min(need,LEVEL_LEN)) genChunk(generatedUntil);
 
   activateEnemies();
   const hacked = now < hackUntil;
@@ -752,6 +782,7 @@ function update(dt, now){
   // drones movement
   for(const d of drones){
     if(!d.active || d.disabled) continue;
+    setAnim(d,'drone','move'); stepAnim(d,dt);
     if(!hacked){
       d.x += d.dir * d.speed;
       d.phase = (d.phase || 0) + 0.02;
@@ -765,6 +796,7 @@ function update(dt, now){
 
   for(const r of robots){
     if(!r.active) continue;
+    if(hacked){stepAnim(r,dt);continue;}
     const dx = player.x - r.x;
     const dy = player.y - r.y;
     const see = Math.abs(dx) < 92 && Math.abs(dy) < 56;
@@ -863,7 +895,7 @@ function update(dt, now){
         if(f.x > f.patrolR){ f.x = f.patrolR; f.dir = -1; }
       }
 
-      setAnim(f, 'female', f.state === 'chase' ? 'run' : 'idle');
+      setAnim(f, 'female', f.state === 'chase' ? 'run' : 'walk');
       stepAnim(f, dt);
 
       // Collision with player - steal BTC instead of dealing damage
@@ -885,6 +917,7 @@ function update(dt, now){
     setTimeout(() => {
       setRunN('playerBTC', btc);
       setRunN('playerScore', score);
+      setRunN('playerHealth', player.hp);
       setRunN('gameLevel', LVL);
       setRunO('playerUpgrades', player.upgrades);
       goTo(NEXT_HREF);
@@ -950,7 +983,7 @@ function drawTerminals(){
     let currentTerminalImg = null;
     if(hasAnimFrames){
       const animSpeed = 300;
-      const frameIndex = Math.floor(performance.now() / animSpeed) % 2;
+      const frameIndex = Math.floor(simulationTime / animSpeed) % 2;
       currentTerminalImg = frameIndex === 0 ? terminalFrame1 : terminalFrame2;
     }
 
@@ -1010,7 +1043,7 @@ function drawEntities(now){
     }
     
     if(d.anim.runner) {
-      stepAnim(d, 16);
+
       drawAnim(d, 'drone', x - 7, y - 9, false, d.disabled ? 0.7 : 1);
     } else {
       // Fallback visual if no animation
@@ -1040,7 +1073,7 @@ function drawEntities(now){
     }
   }
   const px = (player.x - cameraX)|0, py = player.y|0;
-  drawAnim(player, 'player', px - 15, py - 20, player.facing === -1, performance.now() < player.hitUntil ? 0.8 : 1);
+  drawAnim(player, 'player', px - 15, py - 20, player.facing === -1, simulationTime < player.hitUntil ? 0.8 : 1);
 }
 
 function drawExitDoor(){
@@ -1066,6 +1099,7 @@ function drawDronesAndCones(now){
   for(const d of drones){
     const x = (d.x - cameraX)|0, y = d.y|0;
     if(x + 32 < 0 || x > VW) continue;
+    if(!d.active || d.disabled) continue;
     const coneH = 120, baseW = 70;
     const topX = x + 8, topY = y + 10, by = Math.min(VH - 10, topY + coneH);
     ctx.save();
@@ -1147,26 +1181,7 @@ function drawAds(){
         displayH = naturalH;
       }
       
-      // Use 4x scale factor for ultra-high resolution rendering
-      const hiResScale = 4;
-      const hiResW = displayW * hiResScale;
-      const hiResH = displayH * hiResScale;
-      
       const drawX = x - Math.round(displayW/2), drawY = y - Math.round(displayH/2);
-
-      // Create ultra-high-resolution off-screen canvas
-      const hiResCanvas = document.createElement('canvas');
-      hiResCanvas.width = hiResW;
-      hiResCanvas.height = hiResH;
-      const hiResCtx = hiResCanvas.getContext('2d');
-      
-      // Use highest quality settings
-      hiResCtx.imageSmoothingEnabled = true;
-      hiResCtx.imageSmoothingQuality = 'high';
-      
-      // Draw image at ultra-high resolution with crisp pixel mapping
-      hiResCtx.drawImage(img, 0, 0, naturalW, naturalH, 0, 0, hiResW, hiResH);
-
       // Optional subtle border (no background fill to preserve transparency)
       ctx.strokeStyle = 'rgba(255,255,255,0.3)';
       ctx.lineWidth = 1;
@@ -1179,7 +1194,7 @@ function drawAds(){
       ctx.globalAlpha = 0.85; // Make ads 15% transparent (85% opacity)
       
       // Use precise scaling to avoid any blur
-      ctx.drawImage(hiResCanvas, 0, 0, hiResW, hiResH, drawX, drawY, displayW, displayH);
+      ctx.drawImage(img, drawX, drawY, displayW, displayH);
       
       ctx.restore();
     }
@@ -1187,43 +1202,36 @@ function drawAds(){
 }
 
 function drawUI(now){
-  ctx.fillStyle = 'rgba(0,0,0,.78)'; ctx.fillRect(0, 0, VW, 20);
-  drawControlsHint();
-
-  ctx.fillStyle = '#fff'; ctx.fillText(`HP:${Math.max(0, player.hp)}  L:${LVL}  SC:${score}  BTC:${btc}`, 6, 24);
-  ctx.fillStyle = '#7dff9a'; ctx.fillText(`DIST:${player.dist|0}  DOOR@:${(LEVEL_LEN - 40)|0}`, 6, 36);
-
-  // Add debug info for Level 3
-  if(LVL === 3) {
-    const activeFemales = females.filter(f => f.active).length;
-    const totalFemales = females.length;
-    ctx.fillStyle = '#ff69b4'; 
-    ctx.fillText(`Females: ${activeFemales}/${totalFemales}`, 6, 60);
+  ctx.fillStyle='rgba(5,12,25,.92)';ctx.fillRect(0,0,VW,39);
+  ctx.font='8px monospace';ctx.fillStyle='#61e8dc';
+  ctx.fillText(['','01 / THE UNDERGRID','02 / WATCHER DISTRICT','03 / NEON BAZAAR'][LVL],6,5);
+  ctx.fillStyle='#edf5ff';ctx.fillText('BTC '+btc+'   SCORE '+score,6,17);
+  ctx.fillStyle='#24354b';ctx.fillRect(181,7,68,5);
+  ctx.fillStyle=player.hp>30?'#61e8dc':'#ff779b';ctx.fillRect(181,7,68*player.hp/100,5);
+  ctx.fillStyle='#c5d8ed';ctx.fillText('HP '+player.hp,205,18);
+  ctx.fillStyle='#536a86';ctx.fillRect(6,31,243,2);
+  ctx.fillStyle='#ed91d2';ctx.fillRect(6,31,243*clamp(player.dist/(LEVEL_LEN-40),0,1),2);
+  ctx.fillStyle='rgba(5,12,25,.9)';ctx.fillRect(0,228,VW,12);
+  ctx.fillStyle='#b9cde3';ctx.fillText('RELAYS '+relays.filter(r=>r.taken).length+'/3  '+(now<hackUntil?'SYSTEMS OFFLINE': 'ENTER: HACK')+'  E: EMP',5,230);
+  if(gameState!=='playing'){
+    ctx.fillStyle='rgba(3,8,20,.8)';ctx.fillRect(0,65,VW,110);
+    ctx.fillStyle='#80f3df';ctx.textAlign='center';ctx.font='12px monospace';
+    ctx.fillText(gameState==='paused'?'SIGNAL PAUSED':gameState==='dead'?'SIGNAL LOST':'DISTRICT CLEARED',VW/2,107);
+    ctx.font='8px monospace';ctx.fillText(gameState==='paused'?'ESC TO RESUME':gameState==='dead'?'Returning to base':'Connecting to Byte Bazaar',VW/2,130);ctx.textAlign='left';
   }
-
-  const left = Math.max(0, hackUntil - now)|0;
-  if(left > 0){ ctx.fillStyle = '#7dff9a'; ctx.fillText(`Hack ${Math.ceil(left/1000)}s`, 6, 48); }
-  else if(now < hackCDUntil){ ctx.fillStyle = '#7f8a99'; ctx.fillText(`Hack CD ${((hackCDUntil - now)/1000|0)}s`, 6, 48); }
-  else { ctx.fillStyle = '#7dff9a'; ctx.fillText('Enter: Hack', 6, 48); }
-
-  const charges = (player.upgrades?.mobileEMPCharges | 0);
-  if(player.upgrades?.mobileEMP === true && charges > 0){
-    ctx.fillStyle = '#a0ffea'; ctx.fillText(`EMP Charges: ${charges} (E)`, VW - 120, 24);
-  }
-
-  if(gameState === 'paused'){
-    ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(0, 0, VW, VH);
-    ctx.fillStyle = '#fff'; ctx.fillText('PAUSED (ESC)', VW/2 - 30, VH/2);
-  }
-  if(gameState === 'levelComplete'){
-    ctx.fillStyle = 'rgba(0,0,0,.7)'; ctx.fillRect(0, 0, VW, VH);
-    ctx.fillStyle = '#7dff9a'; ctx.fillText('LEVEL COMPLETE → SHOP', VW/2 - 60, VH/2 - 8);
-  }
+}
+function drawAtmosphere(now){
+  ctx.save();ctx.strokeStyle='rgba(133,199,255,.16)';ctx.lineWidth=.5;
+  for(let i=0;i<32;i++){const x=(i*79-cameraX*.3)%VW,y=(i*43+now*.035)%VH;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-3,y+9);ctx.stroke()}
+  for(const r of relays){if(r.taken)continue;const x=r.x-cameraX,y=r.y+Math.sin(now/250)*2;
+    ctx.shadowBlur=8;ctx.shadowColor='#65ffe0';ctx.strokeStyle='#65ffe0';ctx.beginPath();ctx.moveTo(x,y-7);ctx.lineTo(x+5,y);ctx.lineTo(x,y+7);ctx.lineTo(x-5,y);ctx.closePath();ctx.stroke();
+  }ctx.restore();
 }
 
 function blit(){
   const canvas = C;
   const gctx = canvas.getContext('2d');
+  gctx.imageSmoothingEnabled = false;
   gctx.clearRect(0, 0, VW_CANVAS, VH_CANVAS);
   const s = Math.min(VW_CANVAS / VW, VH_CANVAS / VH);
   const sw = (VW * s)|0, sh = (VH * s)|0;
@@ -1231,11 +1239,14 @@ function blit(){
   gctx.drawImage(off, 0, 0, VW, VH, ox, oy, sw, sh);
 }
 
-let lastTime = 0;
+let lastTime = 0, accumulator=0, simulationTime=0;
+addEventListener('blur',()=>{LEFT=RIGHT=UP=0;jumpHeld=false;if(gameState==='playing')gameState='paused';});
 function loop(now){
-  const dt = now - lastTime; lastTime = now;
-
-  update(dt, now);
+  const dt = Math.min(100,now-lastTime); lastTime=now;
+  if(gameState==='playing'){
+    accumulator+=dt;
+    while(accumulator>=1000/60){simulationTime+=1000/60;update(1000/60,simulationTime);accumulator-=1000/60;}
+  }else{accumulator=0;}
 
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH);
   drawBackgrounds();
@@ -1247,7 +1258,8 @@ function loop(now){
   drawExitDoor();
   drawEntities(now);
   drawRailsOnTop();
-  drawUI(now);
+  drawAtmosphere(simulationTime);
+  drawUI(simulationTime);
 
   blit();
   requestAnimationFrame(loop);
@@ -1296,6 +1308,7 @@ export async function bootLevel(levelNumber, opts = {}){
   // Generate initial chunks
   for(let x = 0; x < CHUNK * 4; x += CHUNK) genChunk(x);
   placeExitDoor();
+  relays=[480,960,1400].map(x=>({x,y:groundY()-32,taken:false}));
 
   // Level-specific setup - MOVED AFTER sprite loading
   if(LVL === 2){
@@ -1328,5 +1341,6 @@ export async function bootLevel(levelNumber, opts = {}){
   jumpBufferUntil = 0; coyoteUntil = 0; jumpHeld = false;
 
   // Start game loop
+  lastTime=performance.now();simulationTime=0;accumulator=0;
   requestAnimationFrame(loop);
 }

@@ -98,20 +98,20 @@
 
     <div class="continue">
       <div class="crt card" id="continueCard">
-        <h5>Continue</h5>
+        <h5>Replay Neon Bazaar</h5>
         <p>Head back out. Unspent BTC carries forward.</p>
       </div>
     </div>
   </div>
 
   <script type="module">
-    import { getRunN, setRunN, getRunO, setRunO, goTo } from './engine.js';
+    import { getRunN, setRunN, getRunO, setRunO, goTo, postScore } from './engine.js';
 
     let btc = getRunN('playerBTC', 0);
     let upgrades = getRunO('playerUpgrades', {});
 
     const items = [
-      { id: 'sidearm', name: 'Sidearm', desc: 'Basic ranged weapon for defense.', price: 15, key: 'sidearm' }
+      { id: 'armor', name: 'Armor', desc: 'Reduce robot damage on another district run.', price: 15, key: 'armor' }
     ];
 
     function updateUI(){
@@ -162,11 +162,11 @@
     }
 
     document.getElementById('continueCard').onclick = () => {
-      alert('Game Complete! Thanks for playing Blackout Protocol.');
-      goTo('./index.html');
+      goTo('./level3.html');
     };
 
     document.getElementById('finalCard').onclick = () => {
+      postScore(getRunN('playerScore', 0));
       alert(`Final Score: ${getRunN('playerScore', 0)} - Submitted to leaderboard!`);
       goTo('./index.html');
     };
