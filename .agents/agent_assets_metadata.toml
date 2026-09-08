@@ -1,0 +1,30 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "ywf1EgXaB3MraDeLHLpea"
+uri = "file://exports/blackout-protocol-primary.zip"
+type = "unspecified"
+title = "Blackout Protocol — Primary Files"
+description = "Primary Blackout Protocol game directory, root games-list page, and project documentation reference."
+logical_id = "702d71e8-9ac0-47f3-b3d1-2a84a4379f40"
+content_hash = "sha256:9f0fe16cf67fe1f5f19c712f51818ac1ebbce4ffd5aa83644c04208226441e15"
+size = 59214897
+mtime_ms = 1788840259936
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:038b50bc-84d4-4c8b-a418-3e9f60bd3dec/702d71e8-9ac0-47f3-b3d1-2a84a4379f40/c0aaca31-065e-4813-9617-70109fc75ce7"
+storage_version_token = "1788840268030732"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "Rd32U2HwlIRHaOEXoEM2M"
+uri = "file://exports/blackout-protocol-static-mirror.zip"
+type = "unspecified"
+title = "Blackout Protocol — Static Mirror"
+description = "Static mirror of the Blackout Protocol game and its games-list page."
+logical_id = "10086cdc-c1b6-437e-b4fb-7f905ae698ea"
+content_hash = "sha256:0010555d705c14b784888b1f210fe316748c684569efa57e157be44aa26348ee"
+size = 59214127
+mtime_ms = 1788840262240
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:038b50bc-84d4-4c8b-a418-3e9f60bd3dec/10086cdc-c1b6-437e-b4fb-7f905ae698ea/55d820b7-7b21-4e8b-b7d3-2941831bdbaf"
+storage_version_token = "1788840269641902"
+content_type = "application/octet-stream"
