@@ -1148,56 +1148,27 @@ function drawControlsHint(){
   ctx.font = '9px monospace';
 }
 
+// Keep holograms legible against busy skyline art without covering actors.
 function drawAds(){
   for(const a of ads){
-    const x = (a.x - cameraX)|0, y = a.y|0;
-    const maxAdWidth = Math.round(VW * 0.25); // Match the 25% used in sizing
-    if(x + maxAdWidth < 0 || x > VW) continue; // Bounds check for percentage-based ads
-
-    // Get correct image for this ad kind
-    let img = null;
-    if(a.kind === 'drink'){
-      // Use first drink image only, no animation
-      img = CurrentAds.imgObjs['drinkA'];
-    } else {
-      img = CurrentAds.imgObjs[a.kind];
-    }
-
-    if(img && img.complete && img.naturalWidth > 0){
-      // Use percentage-based sizing relative to viewport width for display size
-      const maxWidthPercent = 0.25; // 25% of viewport width
-      const displayMaxW = Math.round(VW * maxWidthPercent);
-      const naturalW = img.naturalWidth;
-      const naturalH = img.naturalHeight;
-      
-      // Calculate display dimensions
-      let displayW, displayH;
-      if(naturalW > displayMaxW) {
-        const scale = displayMaxW / naturalW;
-        displayW = displayMaxW;
-        displayH = Math.round(naturalH * scale);
-      } else {
-        displayW = naturalW;
-        displayH = naturalH;
-      }
-      
-      const drawX = x - Math.round(displayW/2), drawY = y - Math.round(displayH/2);
-      // Optional subtle border (no background fill to preserve transparency)
-      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(drawX - 1, drawY - 1, displayW + 2, displayH + 2);
-
-      // Draw the ultra-high-res canvas scaled down to display size for maximum crispness
-      ctx.save();
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-      ctx.globalAlpha = 0.85; // Make ads 15% transparent (85% opacity)
-      
-      // Use precise scaling to avoid any blur
-      ctx.drawImage(img, drawX, drawY, displayW, displayH);
-      
-      ctx.restore();
-    }
+    const img=CurrentAds.imgObjs[a.kind==='drink'?'drinkA':a.kind];
+    if(!img || !img.complete || !img.naturalWidth) continue;
+    const scale=Math.min(90/img.naturalWidth,112/img.naturalHeight);
+    const w=Math.round(img.naturalWidth*scale),h=Math.round(img.naturalHeight*scale);
+    const x=Math.round(a.x-cameraX-w/2);
+    const y=clamp(Math.round(a.y-h/2),43,groundY()-h-8);
+    if(x+w+4<0 || x-4>VW) continue;
+    ctx.save();
+    ctx.fillStyle='rgba(2,8,20,.88)';ctx.fillRect(x-3,y-3,w+6,h+6);
+    ctx.shadowColor='#56deff';ctx.shadowBlur=4;
+    ctx.strokeStyle='rgba(101,225,255,.8)';ctx.lineWidth=.7;
+    ctx.strokeRect(x-3,y-3,w+6,h+6);ctx.shadowBlur=0;
+    ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+    ctx.globalAlpha=1;ctx.filter='brightness(1.65) saturate(1.2)';
+    ctx.drawImage(img,x,y,w,h);ctx.filter='none';
+    ctx.fillStyle='#a3f5ff';
+    for(const cx of [x-3,x+w-3]){ctx.fillRect(cx,y-3,6,1);ctx.fillRect(cx,y+h+2,6,1)}
+    ctx.restore();
   }
 }
 
@@ -1250,10 +1221,10 @@ function loop(now){
 
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH);
   drawBackgrounds();
+  drawAds();
   drawTiles();
   drawTerminals();
   drawDronesAndCones(now);
-  drawAds();
   drawCoins();
   drawExitDoor();
   drawEntities(now);
