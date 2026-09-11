@@ -10,16 +10,17 @@
     #gameContainer{display:grid;place-items:center;height:100vh;width:100vw;}
     canvas{image-rendering:pixelated;image-rendering:crisp-edges;width:min(960px, 96vw);height:auto;border:2px solid #5c5c5c;background:#000;}
   </style>
+<link rel="stylesheet" href="game.css">
 </head>
 <body>
   <div id="gameContainer">
-    <canvas id="game" width="960" height="720"></canvas>
+    <canvas id="game" width="768" height="720">Your browser needs Canvas support to play.</canvas>
   </div>
 
   <script type="module">
-    import { bootLevel } from './engine.js?v=1757225';
+    import { bootLevel } from './engine.js?v=20260908-holograms3';
     sessionStorage.setItem('gameLevel','2');
     bootLevel(2, { nextHref:'./shop2.html' });
   </script>
-</body>
+<aside class="controls">A / D or arrows · Space to jump · Enter to hack · E for EMP · Esc to pause<br>Collect 3 relay shards for bonus BTC, 250 score and 15 HP. Reach the neon exit.</aside></body>
 </html>

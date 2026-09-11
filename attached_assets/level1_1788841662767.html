@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Blackout Protocol — Level 2</title>
+  <title>Blackout Protocol — Level 1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <style>
     html,body{margin:0;background:#000;color:#cfd6df;font-family:monospace;height:100%;overflow:hidden;}
@@ -18,9 +18,11 @@
   </div>
 
   <script type="module">
-    import { bootLevel } from './engine.js?v=20260908-holograms3';
-    sessionStorage.setItem('gameLevel','2');
-    bootLevel(2, { nextHref:'./shop2.html' });
+    import { bootLevel, hardResetRun } from './engine.js?v=20260908';
+    // Fresh run starts here
+    hardResetRun();          // clears session, sets BTC/score/upgrades fresh
+    sessionStorage.setItem('gameLevel','1');
+    bootLevel(1, { nextHref:'./shop1.html' });
   </script>
 <aside class="controls">A / D or arrows · Space to jump · Enter to hack · E for EMP · Esc to pause<br>Collect 3 relay shards for bonus BTC, 250 score and 15 HP. Reach the neon exit.</aside></body>
 </html>

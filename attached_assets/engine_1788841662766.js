@@ -1148,40 +1148,57 @@ function drawControlsHint(){
   ctx.font = '9px monospace';
 }
 
-// Render at display resolution: small lettering must not pass through the
-// 256x240 pixel-art buffer. Screen blending emits light without dark panels.
-function drawAds(target=ctx){
+function drawAds(){
   for(const a of ads){
-    const img=CurrentAds.imgObjs[a.kind==='drink'?'drinkA':a.kind];
-    if(!img || !img.complete || !img.naturalWidth) continue;
-    const scale=Math.min(90/img.naturalWidth,112/img.naturalHeight);
-    const w=img.naturalWidth*scale,h=img.naturalHeight*scale;
-    const x=a.x-cameraX-w/2;
-    const y=clamp(a.y-h/2,43,groundY()-h-8);
-    if(x+w+4<0 || x-4>VW) continue;
-    target.save();
-    target.globalCompositeOperation='screen';
-    target.imageSmoothingEnabled=true;target.imageSmoothingQuality='high';
-    // A restrained halo, followed by a sharp, full-opacity lettering pass.
-    target.globalAlpha=.22;
-    target.filter='brightness(1.8) blur(2px)';
-    target.drawImage(img,x,y,w,h);
-    target.globalAlpha=1;
-    target.filter='brightness(1.55) saturate(1.15)';
-    target.drawImage(img,x,y,w,h);
-    target.restore();
+    const x = (a.x - cameraX)|0, y = a.y|0;
+    const maxAdWidth = Math.round(VW * 0.25); // Match the 25% used in sizing
+    if(x + maxAdWidth < 0 || x > VW) continue; // Bounds check for percentage-based ads
+
+    // Get correct image for this ad kind
+    let img = null;
+    if(a.kind === 'drink'){
+      // Use first drink image only, no animation
+      img = CurrentAds.imgObjs['drinkA'];
+    } else {
+      img = CurrentAds.imgObjs[a.kind];
+    }
+
+    if(img && img.complete && img.naturalWidth > 0){
+      // Use percentage-based sizing relative to viewport width for display size
+      const maxWidthPercent = 0.25; // 25% of viewport width
+      const displayMaxW = Math.round(VW * maxWidthPercent);
+      const naturalW = img.naturalWidth;
+      const naturalH = img.naturalHeight;
+      
+      // Calculate display dimensions
+      let displayW, displayH;
+      if(naturalW > displayMaxW) {
+        const scale = displayMaxW / naturalW;
+        displayW = displayMaxW;
+        displayH = Math.round(naturalH * scale);
+      } else {
+        displayW = naturalW;
+        displayH = naturalH;
+      }
+      
+      const drawX = x - Math.round(displayW/2), drawY = y - Math.round(displayH/2);
+      // Optional subtle border (no background fill to preserve transparency)
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(drawX - 1, drawY - 1, displayW + 2, displayH + 2);
+
+      // Draw the ultra-high-res canvas scaled down to display size for maximum crispness
+      ctx.save();
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.globalAlpha = 0.85; // Make ads 15% transparent (85% opacity)
+      
+      // Use precise scaling to avoid any blur
+      ctx.drawImage(img, drawX, drawY, displayW, displayH);
+      
+      ctx.restore();
+    }
   }
-}
-function drawDisplayAds(){
-  const target=C.getContext('2d');
-  const s=Math.min(VW_CANVAS/VW,VH_CANVAS/VH);
-  const sw=(VW*s)|0,sh=(VH*s)|0;
-  target.save();
-  target.translate(((VW_CANVAS-sw)/2)|0,((VH_CANVAS-sh)/2)|0);
-  target.scale(sw/VW,sh/VH);
-  target.beginPath();target.rect(0,0,VW,VH);target.clip();
-  drawAds(target);
-  target.restore();
 }
 
 function drawUI(now){
@@ -1211,11 +1228,11 @@ function drawAtmosphere(now){
   }ctx.restore();
 }
 
-function blit(clear=true){
+function blit(){
   const canvas = C;
   const gctx = canvas.getContext('2d');
   gctx.imageSmoothingEnabled = false;
-  if(clear) gctx.clearRect(0, 0, VW_CANVAS, VH_CANVAS);
+  gctx.clearRect(0, 0, VW_CANVAS, VH_CANVAS);
   const s = Math.min(VW_CANVAS / VW, VH_CANVAS / VH);
   const sw = (VW * s)|0, sh = (VH * s)|0;
   const ox = ((VW_CANVAS - sw) / 2)|0, oy = ((VH_CANVAS - sh) / 2)|0;
@@ -1233,13 +1250,10 @@ function loop(now){
 
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH);
   drawBackgrounds();
-  blit();
-  drawDisplayAds();
-  // Composite pixel-art foreground over the high-resolution holograms.
-  ctx.clearRect(0,0,VW,VH);
   drawTiles();
   drawTerminals();
   drawDronesAndCones(now);
+  drawAds();
   drawCoins();
   drawExitDoor();
   drawEntities(now);
@@ -1247,7 +1261,7 @@ function loop(now){
   drawAtmosphere(simulationTime);
   drawUI(simulationTime);
 
-  blit(false);
+  blit();
   requestAnimationFrame(loop);
 }
 

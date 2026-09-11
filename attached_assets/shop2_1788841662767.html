@@ -65,9 +65,6 @@
     .continue{position:absolute;right:3%;bottom:4%}
     .continue .card{cursor:pointer;user-select:none}
     .continue .card:hover{box-shadow:0 0 0 2px rgba(183,255,68,.14)}
-
-    .final{position:absolute;right:3%;bottom:25%}
-    .final .card{background: linear-gradient(135deg, #1a2d42, #0d1b2a);border-color:#4a90e2}
   </style>
 </head>
 <body>
@@ -78,7 +75,7 @@
 
     <div class="crt bubble">
       <h3>【Add-Men】</h3>
-      <div class="text" id="bubble">Final level gear. You've made it this far...<span class="cursor"></span></div>
+      <div class="text" id="bubble">More gear available. The deeper you go, the more you'll need.<span class="cursor"></span></div>
     </div>
 
     <div class="crt inv">
@@ -89,30 +86,28 @@
 
     <div class="items" id="items"></div>
 
-    <div class="final">
-      <div class="crt card" id="finalCard">
-        <h5>【COMPLETE RUN】</h5>
-        <p>Finish with your current score and submit to leaderboard.</p>
-      </div>
-    </div>
-
     <div class="continue">
       <div class="crt card" id="continueCard">
-        <h5>Replay Neon Bazaar</h5>
+        <h5>Continue</h5>
         <p>Head back out. Unspent BTC carries forward.</p>
       </div>
     </div>
   </div>
 
   <script type="module">
-    import { getRunN, setRunN, getRunO, setRunO, goTo, postScore } from './engine.js';
+    import { getRunN, setRunN, getRunO, setRunO, goTo } from './engine.js';
 
     let btc = getRunN('playerBTC', 0);
     let upgrades = getRunO('playerUpgrades', {});
 
     const items = [
-      { id: 'armor', name: 'Armor', desc: 'Reduce robot damage on another district run.', price: 15, key: 'armor' }
+      { id: 'coinMagnet', name: 'BTC Magnet', desc: 'Pulls coins from farther away.', price: 10, key: 'coinMagnet' }
     ];
+    
+    // Add Mobile EMP if not owned
+    if(!upgrades.mobileEMP){
+      items.unshift({ id: 'mobileEMP', name: 'Mobile EMP', desc: '+2 charges. Trigger EMP anywhere (E).', price: 5, key: 'mobileEMP' });
+    }
 
     function updateUI(){
       document.getElementById('balLbl').textContent = `BTC:${btc}`;
@@ -154,6 +149,7 @@
     function buyItem(key, price){
       if(btc >= price && !upgrades[key]){
         btc -= price;
+        if(key === 'mobileEMP') upgrades.mobileEMPCharges = 2;
         upgrades[key] = true;
         setRunN('playerBTC', btc);
         setRunO('playerUpgrades', upgrades);
@@ -161,15 +157,7 @@
       }
     }
 
-    document.getElementById('continueCard').onclick = () => {
-      goTo('./level3.html');
-    };
-
-    document.getElementById('finalCard').onclick = () => {
-      postScore(getRunN('playerScore', 0));
-      alert(`Final Score: ${getRunN('playerScore', 0)} - Submitted to leaderboard!`);
-      goTo('./index.html');
-    };
+    document.getElementById('continueCard').onclick = () => goTo('./level3.html');
 
     updateUI();
   </script>
