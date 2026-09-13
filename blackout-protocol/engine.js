@@ -11,7 +11,7 @@ Relationship: level pages import bootLevel(); shop pages use the exported storag
 const VW = 256, VH = 240, TILE = 16;
 const LEVEL_LEN = 1600;
 const DOOR_W = 24, DOOR_H = 32;
-const HYPER_RELOAD_TAG = 'rev=20260908';
+const HYPER_RELOAD_TAG = 'rev=20260913-visuals';
 
 // ====== storage helpers (session for run; local for leaderboard) ======
 export function getRunN(k,d=0){ return +(sessionStorage.getItem(k) ?? d) }
@@ -185,33 +185,24 @@ function makeAnimator(sheet, fw, fh, fps){
 }
 
 // ====== sprites ======
-function femaleSheet(state){
-  const sheet=document.createElement('canvas'); sheet.width=192; sheet.height=48;
-  const g=sheet.getContext('2d');
-  for(let f=0;f<4;f++){
-    const x=f*48, stride=state==='idle'?0:[-3,0,3,0][f]*(state==='run'?1.5:1);
-    g.save();g.translate(x+8,16);g.scale(.67,.67);
-    const box=(color,a,b,w,h)=>{g.fillStyle=color;g.fillRect(a,b,w,h)};
-    box('#251d38',16,4,16,18); box('#ffc568',17,5,13,9);
-    box('#edab86',22,10,9,10); box('#fff0c1',18,6,11,3);
-    box('#172c42',17,20,14,12); box('#54eadb',27,21,3,9);
-    box('#d786b6',18,31,13,3); box('#26374e',18+stride,34,5,10);
-    box('#26374e',26-stride,34,5,10);box('#f27fbd',17+stride,44,8,3);
-    box('#f27fbd',25-stride,44,8,3);box('#edab86',14-stride/2,22,4,10);
-    box('#edab86',31+stride/2,22,4,10);box('#101b30',29,13,2,2);
-    box('#a96e3e',16,12,4,9);box('#ffe6a1',18,8,3,8);
-    box('#263d55',18,22,4,8);box('#0d192a',23,23,3,8);
-    box('#fff0d7',30,13,1,1);box('#bd6f73',28,18,3,1);
-    box('#101c30',19+stride,38,2,6);box('#101c30',27-stride,38,2,6);
-    g.restore();
-  }return sheet;
+// Source files contain single poses with backgrounds, not animation strips.
+// Trace the character silhouette while drawing the original, unmodified artwork.
+async function femaleSheet(state,src){
+ const img=await IMG(src+'?'+HYPER_RELOAD_TAG);
+ const outlines={
+ idle:[[.32,.03],[.55,.02],[.64,.06],[.66,.21],[.64,.27],[.69,.37],[.72,.45],[.75,.51],[.74,.56],[.69,.56],[.68,.66],[.70,.78],[.73,.92],[.74,.98],[.60,.98],[.56,.87],[.55,.73],[.49,.62],[.46,.74],[.43,.83],[.43,.96],[.34,.97],[.31,.91],[.32,.77],[.34,.65],[.33,.57],[.25,.56],[.24,.51],[.26,.41],[.27,.29],[.31,.23]],
+ walk:[[.49,.06],[.62,.06],[.67,.10],[.66,.19],[.62,.24],[.65,.36],[.72,.41],[.79,.41],[.86,.44],[.86,.47],[.79,.48],[.70,.46],[.62,.43],[.64,.55],[.65,.65],[.68,.70],[.67,.78],[.72,.85],[.84,.87],[.86,.90],[.78,.94],[.70,.94],[.60,.91],[.57,.85],[.54,.73],[.51,.67],[.45,.61],[.39,.73],[.32,.80],[.27,.88],[.25,.93],[.20,.94],[.14,.90],[.13,.87],[.19,.82],[.21,.75],[.28,.64],[.32,.58],[.35,.48],[.39,.43],[.32,.40],[.25,.47],[.23,.52],[.19,.52],[.15,.49],[.16,.45],[.23,.40],[.29,.32],[.32,.27],[.26,.29],[.28,.21],[.35,.17],[.43,.15]],
+ run:[[.28,.14],[.36,.13],[.48,.14],[.61,.10],[.71,.10],[.77,.13],[.78,.20],[.73,.25],[.76,.33],[.82,.35],[.84,.32],[.88,.33],[.93,.37],[.92,.40],[.86,.42],[.75,.40],[.66,.36],[.64,.45],[.66,.50],[.70,.56],[.70,.60],[.65,.66],[.57,.72],[.48,.78],[.49,.83],[.57,.86],[.57,.89],[.51,.90],[.43,.87],[.38,.83],[.35,.80],[.34,.76],[.43,.65],[.52,.57],[.45,.57],[.37,.66],[.27,.76],[.18,.83],[.13,.87],[.17,.92],[.17,.94],[.12,.94],[.09,.90],[.07,.85],[.07,.82],[.13,.79],[.18,.74],[.26,.66],[.31,.57],[.37,.49],[.41,.45],[.35,.43],[.32,.39],[.26,.42],[.20,.46],[.16,.46],[.12,.42],[.13,.39],[.18,.35],[.20,.29],[.24,.25],[.28,.24],[.33,.24],[.29,.21],[.25,.20],[.30,.18]]};
+ const sheet=document.createElement('canvas');sheet.width=48;sheet.height=48;
+ const g=sheet.getContext('2d');g.save();g.translate(11,12);g.scale(26,36);g.beginPath();
+ outlines[state].forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.clip();g.drawImage(img,0,0,1,1);g.restore();return sheet;
 }
 async function loadSprites(def){
   const entries=await Promise.all(['player','robot','drone','female'].map(async who=>{
     const {fw,fh}=def[who],pack={fw,fh,anim:{}};
     await Promise.all(Object.entries(def[who].states).map(async ([state,src])=>{
       let img=null;
-      try {img=who==='female'?femaleSheet(state):await IMG(src+'?'+HYPER_RELOAD_TAG)}
+      try {img=who==='female'?await femaleSheet(state,src):await IMG(src+'?'+HYPER_RELOAD_TAG)}
       catch(error){console.warn('Sprite unavailable:',src)}
       pack.anim[state]={img,make:()=>makeAnimator(img,fw,fh,def[who].fps[state]||8)};
     }));return [who,pack];
@@ -1150,14 +1141,29 @@ function drawControlsHint(){
 
 // Render at display resolution: small lettering must not pass through the
 // 256x240 pixel-art buffer. Screen blending emits light without dark panels.
+function adPlacement(a,img){
+ const ratio=Math.min(90/img.naturalWidth,112/img.naturalHeight);
+ const rail=ledgeImg&&ledgeImg.naturalHeight?Math.max(10,Math.round(Math.floor(ledgeImg.naturalHeight*.55)*20/(ledgeImg.naturalHeight-Math.floor(ledgeImg.naturalHeight*.55)))):0;
+ const obstacles=platforms.map(p=>({x:p.x-4,y:p.y-rail-5,w:p.w+8,h:rail+25})).concat(terminals.map(t=>({x:t.x-6,y:t.y-8,w:t.w+12,h:t.h+16})),coins.map(c=>({x:c.x-14,y:c.y-14,w:28,h:28})),exitDoor?[{x:exitDoor.x-4,y:exitDoor.y-4,w:exitDoor.w+8,h:exitDoor.h+8}]:[]);
+ const hit=(r,o)=>r.x<o.x+o.w&&r.x+r.w>o.x&&r.y<o.y+o.h&&r.y+r.h>o.y;
+ for(const factor of [1,.9,.8,.7,.6,.5,.4]){
+  const w=img.naturalWidth*ratio*factor,h=img.naturalHeight*ratio*factor;
+  for(const offset of [0,-24,24,-48,48,-72,72]){
+   const x=clamp(a.x-w/2+offset,4,LEVEL_LEN-w-4);
+   for(let y=43;y+h<groundY()-8;y+=4){const r={x,y,w,h};if(!obstacles.some(o=>hit(r,o)))return r;}
+  }
+ }
+ const bottom=Math.min(groundY()-8,...obstacles.map(o=>o.y));
+ const scale=Math.min(ratio,Math.max(1,bottom-47)/img.naturalHeight);
+ return {x:clamp(a.x-img.naturalWidth*scale/2,4,LEVEL_LEN-img.naturalWidth*scale-4),y:43,w:img.naturalWidth*scale,h:img.naturalHeight*scale};
+}
 function drawAds(target=ctx){
   for(const a of ads){
+    if(a.x-cameraX < -180 || a.x-cameraX > VW+180)continue;
     const img=CurrentAds.imgObjs[a.kind==='drink'?'drinkA':a.kind];
     if(!img || !img.complete || !img.naturalWidth) continue;
-    const scale=Math.min(90/img.naturalWidth,112/img.naturalHeight);
-    const w=img.naturalWidth*scale,h=img.naturalHeight*scale;
-    const x=a.x-cameraX-w/2;
-    const y=clamp(a.y-h/2,43,groundY()-h-8);
+    const {x:worldX,y,w,h}=adPlacement(a,img);
+    const x=worldX-cameraX;
     if(x+w+4<0 || x-4>VW) continue;
     target.save();
     target.globalCompositeOperation='screen';
