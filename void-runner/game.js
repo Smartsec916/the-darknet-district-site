@@ -45,7 +45,7 @@ function bar() {
   const station = C.stations[state.location];
   if (state.quest === 'legal-offer' || state.quest === 'illegal-offer') {
     const illegal = state.quest === 'illegal-offer';
-    panel(`${station.name.toUpperCase()} / THE DEAD CHANNEL`, illegal ? 'Trust has<br>a <em>price.</em>' : 'An honest<br><em>living.</em>', `<div class="contact">ROOK / INDEPENDENT CARGO BROKER</div><p class="quote">${illegal ? '“You delivered. No excuses, no missing cargo. I have another run: memory wafers, no registration. Corporate law calls them contraband. Undertow calls them a lifeline. Eight hundred credits. More heat this time.”' : '“New ship? Then you need a first paycheck. Filtration parts to Kepler Exchange. Licensed cargo, clean paperwork. Three hundred and fifty credits. Watch the lane — even honest freight attracts thieves.”'}</p><span class="tag ${illegal ? 'illegal' : ''}">${illegal ? 'ILLEGAL CARGO / HIGHER RISK' : 'LEGAL CARGO / LOW RISK'}</span><div class="manifest">${row('Destination', illegal ? 'Undertow Dock' : 'Kepler Exchange')}${row('Payment', illegal ? '800 CR' : '350 CR')}${row('Reputation', illegal ? '+3' : '+2')}</div>`, button('ACCEPT THE JOB →', 'accept') + button('BACK TO DOCK', 'dock', true), `<div class="eyebrow">${station.bar.toUpperCase()}</div><h2>${illegal ? 'The same booth.' : 'Your first contact.'}</h2><p>Magenta light spills across the table. Behind Rook, the docking windows frame a slow procession of freighters.</p><p class="fine">Accepting loads the cargo. You launch when ready from the dock.</p>`);
+    panel(`${station.name.toUpperCase()} / THE DEAD CHANNEL`, illegal ? 'Trust has<br>a <em>price.</em>' : 'An honest<br><em>living.</em>', `<div class="contact">ROOK / INDEPENDENT CARGO BROKER</div><p class="quote">${illegal ? '“You delivered. No excuses, no missing cargo. I have another run: memory wafers, no registration. Corporate law calls them contraband. Rusthaven calls them a lifeline. Eight hundred credits. More heat this time.”' : '“New ship? Then you need a first paycheck. Filtration parts to Kepler Exchange. Licensed cargo, clean paperwork. Three hundred and fifty credits. Watch the lane — even honest freight attracts thieves.”'}</p><span class="tag ${illegal ? 'illegal' : ''}">${illegal ? 'ILLEGAL CARGO / HIGHER RISK' : 'LEGAL CARGO / LOW RISK'}</span><div class="manifest">${row('Destination', illegal ? 'Rusthaven Port' : 'Kepler Exchange')}${row('Payment', illegal ? '800 CR' : '350 CR')}${row('Reputation', illegal ? '+3' : '+2')}</div>`, button('ACCEPT THE JOB →', 'accept') + button('BACK TO DOCK', 'dock', true), `<div class="eyebrow">${station.bar.toUpperCase()}</div><h2>${illegal ? 'The same booth.' : 'Your first contact.'}</h2><p>Magenta light spills across the table. Behind Rook, the docking windows frame a slow procession of freighters.</p><p class="fine">Accepting loads the cargo. You launch when ready from the dock.</p>`);
     return;
   }
   if (state.quest !== 'open') return dock();
@@ -124,20 +124,24 @@ function update(dt) {
   if(dx||dy)target=null;
   const scale=Math.min(W,H)*.9/14;
   const bounds={x:Math.min(9,Math.max(1,(W/2-50)/scale)),y:Math.min(5,Math.max(1,(H*.42-50)/scale))};
-  VoidFlightPhysics.step(player,{dx,dy,target},dt,stats.speed,bounds);
+  VoidFlightPhysics.step(player,{dx,dy,target},dt,stats.speed*(driveTime>0?2.5:1),bounds);
   shot -= dt;
   if ((keys.has('Space') || firing || touchFiring) && shot <= 0) { shot = stats.cooldown; for (const offset of [-.28, .28]) bullets.push({ x: player.x + offset, y: player.y, z: 15, previousZ: 15, damage: stats.damage }); tone(600, .055); }
   spawnClock -= dt;
   if (spawned < current.enemies && spawnClock <= 0 && enemies.length < 4 + Math.floor(current.tier)) { const group=current.tier>=4?3:current.tier>=1?2:1; for(let i=0;i<group&&spawned<current.enemies&&enemies.length<4+Math.floor(current.tier);i++)spawnEnemy(); spawnClock = Math.max(1.2, (current.duration - 12) / Math.max(1, current.enemies) * group); }
-  for (const b of bullets) { b.previousZ = b.z; b.z += dt * 105; }
+  for (const b of bullets) { if(b.target&&!b.target.dead){b.x=b.target.x;b.y=b.target.y;} b.previousZ = b.z; b.z += dt * 105; }
   for (const e of enemies) {
     e.age += dt; e.z = Math.max(e.heavy ? 46 : 35, e.z - dt * (10 + current.tier * 2));
     e.x += Math.sin(time * .9 + e.phase) * dt * (e.heavy ? .6 : e.interceptor ? 2 + current.tier * .15 : 1.2); e.x = Math.max(-7, Math.min(7, e.x)); e.fire -= dt;
-    if (e.fire <= 0 && e.z < 95) { e.fire = Math.max(.7, 2.6 - current.tier * .3 - (e.interceptor ? .2 : 0)); const flightTime = Math.max(.4, (e.z - 14) / 32); for(const spread of (e.heavy ? [-.65,.65] : [0])) hostile.push({ x: e.x + spread, y: e.y, z: e.z, vx: (player.x - e.x + spread) / flightTime, vy: (player.y - e.y) / flightTime, damage: e.heavy ? 20 : 10 + current.tier * 1.6 }); }
-    for (const b of bullets) if (!b.dead && !e.dead && b.previousZ <= e.z + 3 && b.z >= e.z - 3 && Math.hypot(b.x - e.x, b.y - e.y) < 1.35 * e.size) { b.dead = true; e.armor -= b.damage; if (e.armor <= 0) { e.dead = true; resolved++; burst(e); } }
+    if (e.fire <= 0 && e.z < 95) { e.fire = e.boss ? (e.armor<e.maxArmor*.4?.8:1.4) : Math.max(.7, 2.6 - current.tier * .3 - (e.interceptor ? .2 : 0)); const flightTime = Math.max(.4, (e.z - 14) / 32); for(const spread of (e.boss ? [-2,-1,0,1,2] : e.heavy ? [-.65,.65] : [0])) hostile.push({ x: e.x + spread, y: e.y, z: e.z, vx: (player.x - e.x + spread) / flightTime, vy: (player.y - e.y) / flightTime, damage: e.heavy ? 20 : 10 + current.tier * 1.6 }); }
+    for (const b of bullets) if (!b.dead && !e.dead && !b.hits?.has(e) && b.previousZ <= e.z + 3 && b.z >= e.z - 3 && Math.hypot(b.x - e.x, b.y - e.y) < 1.35 * e.size) {
+      (b.hits??=new Set()).add(e); b.dead = !stats.piercing;
+      if (!e.generator && enemies.some(other=>other.generator&&!other.dead)) continue;
+      e.armor -= b.damage; if (e.armor <= 0) { e.dead = true; resolved++; burst(e); }
+    }
     // Surviving a pursuer also clears the route; new pilots cannot get stuck indefinitely.
   }
-  for (const b of hostile) { b.z -= dt * 32; b.x += b.vx * dt; b.y += b.vy * dt; if (b.z <= 15 && !b.dead) { if (Math.hypot(b.x - player.x, b.y - player.y) < .75) hurt(b.damage); b.dead = true; } }
+  for (const b of hostile) { b.z -= dt * 32; b.x += b.vx * dt; b.y += b.vy * dt; if (b.z <= 15 && !b.dead) { if (Math.hypot(b.x - player.x, b.y - player.y) < .75) { hurt(b.damage); b.dead=true; } else escortImpact(b); b.dead = true; } }
   enemies = enemies.filter(e => !e.dead); bullets = bullets.filter(b => !b.dead && b.z < 155); hostile = hostile.filter(b => !b.dead);
   for (const s of sparks) { s.life -= dt; s.x += s.vx * dt; s.y += s.vy * dt; s.z += s.vz * dt; } sparks = sparks.filter(s => s.life > 0);
   const progress = Math.min(1, elapsed / current.duration);
@@ -182,7 +186,7 @@ function draw() {
     if (destinationVisible()) { ctx.save(); ctx.globalAlpha = 1; stationScene(color); ctx.restore(); }
     [...enemies].sort((a, b) => b.z - a.z).forEach(e => { ship(e.x, e.y, e.z, e.size, e.heavy ? '#ffad63' : '#ff65b8', Math.sin(time + e.phase) * .2, e.className); const p = project(e.x, e.y - e.size * 2.3, e.z); ctx.fillStyle = '#311c35'; ctx.fillRect(p.x - 20, p.y, 40, 3); ctx.fillStyle = '#ff65b8'; ctx.fillRect(p.x - 20, p.y, Math.max(0, e.armor / e.maxArmor) * 40, 3); });
     ctx.shadowBlur = 12;
-    for (const list of [bullets, hostile]) for (const b of list) { const p = project(b.x, b.y, b.z), q = project(b.x, b.y, b.z + 5); ctx.strokeStyle = list === bullets ? state.upgrades.guns >= 1 ? '#a9ff6b' : '#69ffe1' : '#ff4787'; ctx.shadowColor = ctx.strokeStyle; ctx.lineWidth = Math.max(2, p.s * .05); ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y + 2); ctx.stroke(); }
+    for (const list of [bullets, hostile]) for (const b of list) { const p = project(b.x, b.y, b.z), q = project(b.x, b.y, b.z + 5); ctx.strokeStyle = list === bullets ? state.upgrades.guns >= 1 ? '#a9ff6b' : '#69ffe1' : b.escort ? '#ffbd69' : '#ff4787'; ctx.shadowColor = ctx.strokeStyle; ctx.lineWidth = Math.max(2, p.s * .05); ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y + 2); ctx.stroke(); }
     for (const s of sparks) { const p = project(s.x, s.y, s.z); ctx.fillStyle = s.color; ctx.globalAlpha = Math.max(0, s.life / .8); ctx.fillRect(p.x, p.y, 3, 3); } ctx.globalAlpha = 1; ctx.shadowBlur = 0;
     ship(player.x, player.y, 14, .55, state.upgrades.armor ? '#8ce4ff' : '#58ffe1', -player.x * .025);
     // Upgrade hardware is drawn in the same perspective as the existing ship mesh.

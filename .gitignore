@@ -1,4 +1,9 @@
 node_modules/
+__pycache__/
+*.pyc
+.env
+.env.*
+service-account*.json
 .config/
 .upm/
 .cache/

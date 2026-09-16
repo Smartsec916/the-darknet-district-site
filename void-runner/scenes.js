@@ -3,13 +3,13 @@ const characters = {
  mara: {name:'Mara Voss', role:'ELIAS’S FRIEND / FREIGHT MECHANIC', cell:'0% 0%'},
  elias: {name:'Elias Ward', role:'YOUR FORMER EMPLOYER / ARCHIVED RECORDING', cell:'50% 0%'},
  rook: {name:'Rook', role:'INDEPENDENT CARGO BROKER', cell:'100% 0%'},
- iona: {name:'Iona Vale', role:'UNDERTOW ENGINEER', cell:'0% 100%'},
+ iona: {name:'Iona Vale', role:'RUSTHAVEN ENGINEER', cell:'0% 100%'},
  sol: {name:'Dr. Sol', role:'KEPLER CLINIC NETWORK', cell:'50% 100%'},
  nyx: {name:'Nyx', role:'BARTENDER / THE DEAD CHANNEL', cell:'100% 100%'}
 };
 let speech = null;
 function portrait(id, small=false) { const c=characters[id]; return `<div class="portrait ${small?'small':''}" role="img" aria-label="Portrait of ${c.name}" style="background-position:${c.cell}"></div>`; }
-function scene(name) { screen.dataset.scene=name; screen.classList.toggle('cinematic',!!name); }
+function scene(name) { screen.dataset.scene=name;screen.dataset.station=state.location;screen.classList.remove('station-dock'); screen.classList.toggle('cinematic',!!name); }
 const originalPanel=panel;
 panel=function(...args){speech=null;scene('');originalPanel(...args);};
 const originalDock=dock;
@@ -60,7 +60,7 @@ function rookConversation(){
  offerCard(illegal);
 }
 function offerCard(illegal){
- talk('bar',[{who:'rook',text:`${illegal?'Good run. Next job: memory wafers to Undertow. Illegal. More enemies. 800 credits, +3 reputation.':'Elias sent you? Take legal filters to Kepler. One raider on the route. 350 credits, +2 reputation. Then come back.'}`}],()=>{if(C.accept(state)){save();dock();announce('Cargo loaded. Ready for departure.');}else dock();},'ACCEPT JOB →','Rook’s booth');
+ talk('bar',[{who:'rook',text:`${illegal?'Good run. Next job: memory wafers to Rusthaven. Illegal. More enemies. 800 credits, +3 reputation.':'Elias sent you? Take legal filters to Kepler. One raider on the route. 350 credits, +2 reputation. Then come back.'}`}],()=>{if(C.accept(state)){save();dock();announce('Cargo loaded. Ready for departure.');}else dock();},'ACCEPT JOB →','Rook’s booth');
  // Leaving the offer never commits the player to a job.
  screen.querySelector('.speech-controls').insertAdjacentHTML('beforeend',button('NOT YET','bar',true));
 }

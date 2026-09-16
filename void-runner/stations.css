@@ -1,0 +1,13 @@
+/* Meridian and Vesper keep their original artwork. Other stations have unique concourses. */
+.cinematic[data-station=kepler]:is([data-scene=bar],[data-scene=dock])::before{background-image:linear-gradient(#040b1833,#040b1800 48%,#040b1870),url('art/concourse-kepler.png?v=freight')}
+.cinematic[data-station=undertow]:is([data-scene=bar],[data-scene=dock])::before{background-image:linear-gradient(#040b1822,#040b1800 48%,#040b1870),url('art/concourse-undertow.png')}
+.cinematic[data-station=foundry]:is([data-scene=bar],[data-scene=dock])::before{background-image:linear-gradient(#040b1822,#040b1800 48%,#040b1870),url('art/concourse-foundry.png')}
+main.station-dock{display:flex;padding:130px 5vw 125px;align-items:flex-end;min-height:100dvh}
+.station-dock .layout{margin:0;max-width:470px;grid-template-columns:1fr}
+.station-dock .panel{background:#06101eed;box-shadow:0 15px 65px #0008;border-left:3px solid var(--mint)}
+.station-dock .panel h1{font-size:36px}.station-detail{display:block;margin-top:15px;font-size:13px;line-height:1.6;color:#aabecb}
+.equipment-tabs{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0}.equipment-tabs button{font-size:12px}.standard-grid .card{display:block}.standard-grid .card h2{font-size:20px}.standard-grid .card p{font-size:12px}.standard-grid .card button{font-size:11px}.credit-utilities{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;max-width:750px}.utility-heading{margin-top:36px}
+/* New rooms use simple, readable navigation without implying a character's location in the art. */
+.cinematic:not([data-station=meridian])[data-scene=bar] .place{transform:none;position:relative;inset:auto;display:inline-flex;margin:10px 10px 0 0;min-width:140px}
+.cinematic:not([data-station=meridian])[data-scene=bar] .scene-heading{margin-bottom:30px}
+@media(max-width:800px){main.station-dock{padding:calc(110px + 40vw) 18px 140px;align-items:flex-start}.station-dock .layout{max-width:none}.station-dock .panel h1{font-size:30px}.equipment-tabs{flex-direction:column}.credit-utilities{grid-template-columns:1fr}.cinematic:not([data-station=meridian])[data-scene=bar] .scene-heading{margin-bottom:calc(38vw - 10px)}}

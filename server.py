@@ -39,7 +39,18 @@ logger = logging.getLogger(__name__)
 
 
 app = Flask(__name__, static_folder='static', static_url_path='')
-CORS(app, origins=["*"], methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
+CORS(app, resources={
+    r"/api/void-runner/.*": {"origins": ["https://thedarknetdistrict.com", "https://www.thedarknetdistrict.com", *os.environ.get("VOID_EXTRA_ORIGINS", "").split(",")]},
+    r"/api/(chat|devtools|health).*": {"origins": "*"},
+}, methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type", "Authorization"])
+from void_runner_api import api as void_runner_api
+app.register_blueprint(void_runner_api)
+
+
+@app.get('/void-runner/<path:filename>')
+def void_runner_asset(filename):
+    # GitHub Pages serves the root folder; Flask's static mirror shares these assets.
+    return send_from_directory(os.path.join(app.root_path, 'void-runner'), filename)
 
 
 # CSP now handled via HTML meta tag

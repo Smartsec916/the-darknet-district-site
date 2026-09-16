@@ -1,0 +1,8 @@
+body.cockpit-flight header{background:linear-gradient(#030a13e6,transparent);pointer-events:none}
+.cockpit-flight #weapon{color:#d0e5e9;opacity:1}.cockpit-flight #flight-throttle button{color:#aaffea;border-color:#6ac3b0}.cockpit-flight #flight-throttle button:hover{background:#214442}.cockpit-flight header a{pointer-events:auto}
+.cockpit-flight #flight-hud .telemetry{top:120px;left:8vw;max-width:160px;background:#030d1688;padding:10px}
+.cockpit-flight #flight-hud .route{right:8vw;top:120px;max-width:210px;background:#030d1688;padding:10px}
+.cockpit-flight #flight-objective{bottom:26%;font-size:12px;background:#020c16aa;padding:8px}
+.cockpit-flight #notice{top:80px;font-size:12px}.cockpit-flight footer{background:transparent;pointer-events:none}.cockpit-flight footer button{pointer-events:auto}
+.cockpit-flight #controls{display:none}#flight-throttle{display:none}.cockpit-flight #flight-throttle{display:flex;position:fixed;bottom:11%;left:6%;gap:5px;z-index:5}#flight-throttle button{font-size:10px;padding:8px;background:#061823dd}
+@media(max-width:800px){.cockpit-flight header{padding:12px}.cockpit-flight .stats{display:none}.cockpit-flight #flight-hud .telemetry{top:60px;left:6%;max-width:115px;font-size:10px}.cockpit-flight #flight-hud .route{top:60px;right:6%;max-width:125px;font-size:10px}.cockpit-flight #notice{top:160px;font-size:10px}.cockpit-flight #flight-objective{bottom:27%;font-size:10px}.cockpit-flight #flight-throttle{bottom:16%;left:3%}.cockpit-flight #touch-controls{bottom:17%;right:3%}.cockpit-flight #touch-controls span{display:none}.cockpit-flight footer{padding:8px}.cockpit-flight footer button{font-size:10px;padding:8px}}

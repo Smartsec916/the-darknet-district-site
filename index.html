@@ -335,22 +335,7 @@
 
   <!-- Firebase Authentication -->
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyACm01u0QvzvYx52u5fYCKmgj6jyq_1Lk8",
-      authDomain: "the-darknet-district-71873.firebaseapp.com",
-      projectId: "the-darknet-district-71873",
-      storageBucket: "the-darknet-district-71873.firebasestorage.app",
-      messagingSenderId: "166866456762",
-      appId: "1:166866456762:web:6f716b9832e8be9fd27283",
-      measurementId: "G-N60E0QB9DD"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
+    import {auth, provider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged} from './firebase-auth.js';
 
     // Function to show success message
     function showSuccessMessage(user) {
@@ -372,9 +357,10 @@
       `;
       welcomeMsg.innerHTML = `
         <h3>NEURAL LINK ESTABLISHED</h3>
-        <p>Welcome to The Darknet District, ${user.displayName}!</p>
+        <p>Welcome to The Darknet District, <span class="pilot-name"></span>!</p>
         <p>Neural link established...</p>
       `;
+      welcomeMsg.querySelector('.pilot-name').textContent = user.displayName || 'Pilot';
       document.body.appendChild(welcomeMsg);
 
       setTimeout(() => {

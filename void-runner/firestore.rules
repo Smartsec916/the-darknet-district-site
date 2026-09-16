@@ -1,0 +1,11 @@
+// Merge these matches into your EXISTING Firestore rules; do not replace other app rules.
+// Only the Admin SDK on the backend may read or write these collections.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /vr_players/{document=**} { allow read, write: if false; }
+    match /vr_orders/{document=**} { allow read, write: if false; }
+    match /vr_checkouts/{document=**} { allow read, write: if false; }
+    match /vr_payment_blocks/{document=**} { allow read, write: if false; }
+  }
+}

@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>The Darknet District – Shop</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="hud.css?v=page-scale-1" />
   <style>
     @media (max-width: 768px) {
       .product-grid {
@@ -252,6 +251,8 @@
       border: none; /* Remove default iframe border */
     }
   </style>
+  <link rel="stylesheet" href="hud.css" />
+  <script src="hud.js" defer></script>
 </head>
 
 <body data-hud="immersive">
@@ -274,22 +275,12 @@
     <div class="scanlines" style="position: absolute; inset: 0; z-index: 1; pointer-events: none;"></div>
   </div>
 
-  <!-- Rotating Affiliate Banners -->
-  <div id="affiliate-banner" style="max-width: 1000px; margin: 40px auto 18px auto; position: relative; height: 200px; background: rgba(0, 0, 0, 0.2); border-radius: 18px; overflow: hidden;">
-    <a id="affiliate-link" href="#" target="_blank">
-      <img id="affiliate-image" src="" alt=""
-           style="width: 100%; display: block; border-radius: 8px; opacity: 0; transition: opacity 0.6s ease, box-shadow 0.6s ease; position: relative; z-index: 2;" />
-    </a>
-    <div id="glitch-effect"
-         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3;"></div>
-    <div class="scanlines" style="position: absolute; inset: 0; z-index: 1; pointer-events: none;"></div>
-  </div>
-
   <div class="shop-title">The Darknet District – Shop</div>
 
   <div class="store-bg">
     <div class="scanlines"></div>
     <div class="product-grid">
+      <a class="category-card" href="void-runner.html#market" style="text-decoration:none"><h3 class="category-title">VOID//RUNNER Equipment</h3><p class="category-description">Permanent weapons, shields, and ship systems. Try them in free training.</p></a>
       <!-- Books category card -->
       <div class="category-card" onclick="window.location.href='./store-books.html';">
         <h3 class="category-title">Books</h3>
@@ -388,6 +379,6 @@
     setInterval(rotateBanner, 8000);
   </script>
 
-  <script src="hud.js?v=full-page-scale-1" defer></script>
+
 </body>
 </html>

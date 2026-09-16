@@ -1,0 +1,5 @@
+const test=require('node:test'),assert=require('node:assert/strict'),M=require('../void-runner/cockpit-math.js');
+test('camera turns through 180 degrees and finds a rear target',()=>{const rear={x:0,y:0,z:-80},front=M.basis(0,0);assert(M.project(rear,front,1400,900).z<0);assert(M.arrow(rear,front,1400,900).behind);const turned=M.project(rear,M.basis(Math.PI,0),1400,900);assert(turned.z>0);assert(Math.abs(turned.x-700)<.001);});
+test('camera axes stay orthogonal with pitch and roll',()=>{const b=M.basis(1,.8,.4);for(const v of Object.values(b))assert(Math.abs(M.length(v)-1)<1e-10);assert(Math.abs(M.dot(b.r,b.u))<1e-10);assert(Math.abs(M.dot(b.r,b.f))<1e-10);});
+test('swept shots hit between frames in front and behind',()=>{assert(M.segmentHit({x:0,y:0,z:0},{x:0,y:0,z:-100},{x:0,y:0,z:-50},2));assert(!M.segmentHit({x:0,y:0,z:0},{x:0,y:0,z:-100},{x:10,y:0,z:-50},2));});
+test('throttle and pitch remain bounded; controls allow full yaw turns',()=>{const s={yaw:0,pitch:0,roll:0,yawRate:0,pitchRate:0,throttle:.8};for(let i=0;i<1000;i++)M.steer(s,{x:1,y:1,roll:0,throttle:1},.016);assert(s.yaw>Math.PI*2);assert(s.pitch<=1.48);assert.equal(s.throttle,1.4);});

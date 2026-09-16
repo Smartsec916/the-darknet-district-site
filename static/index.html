@@ -50,9 +50,9 @@
   <link rel="dns-prefetch" href="https://thedarknetdistrict.com">
   <link rel="preconnect" href="https://thedarknetdistrict.com">
 
-  <!-- Firebase Scripts - TEMPORARILY DISABLED -->
-  <!-- <script type="module" src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js"></script> -->
+  <!-- Firebase Scripts -->
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js"></script>
 
   <style>
     .top-nav {
@@ -291,10 +291,11 @@
 <body class="site-home">
   <!-- Top Navigation Buttons -->
   <div class="top-nav">
+    <a href="/">Home</a>
     <a href="games-list.html">Arcade</a>
     <a href="store-first-page.html">Store</a>
-    <a href="sleeping_pod.html">Sleeping Pod</a>
     <a href="resources.html">Resources</a>
+    <a href="sleeping_pod.html">Sleeping Pod</a>
     <a href="about.html">About</a>
   </div>
 
@@ -332,45 +333,125 @@
   <script src="script.js"></script>
   <script src="devtoolsDetector.js"></script>
 
-  <!-- Firebase Authentication - TEMPORARILY DISABLED -->
-  <script>
-    // Temporary placeholder function while Firebase is under construction
-    window.enterTheDistrict = function() {
-      const constructionMsg = document.createElement('div');
-      constructionMsg.style.cssText = `
+  <!-- Firebase Authentication -->
+  <script type="module">
+    import {auth, provider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged} from './firebase-auth.js';
+
+    // Function to show success message
+    function showSuccessMessage(user) {
+      const welcomeMsg = document.createElement('div');
+      welcomeMsg.style.cssText = `
         position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background: rgba(255, 165, 0, 0.1);
-        border: 2px solid #ffa500;
-        color: #ffa500;
-        padding: 30px;
+        background: rgba(0, 255, 157, 0.1);
+        border: 2px solid #00ff9d;
+        color: #00ff9d;
+        padding: 20px;
         border-radius: 10px;
         font-family: 'Courier New', monospace;
         z-index: 10000;
         text-align: center;
         backdrop-filter: blur(10px);
-        max-width: 400px;
       `;
-      constructionMsg.innerHTML = `
-        <h3>⚠️ UNDER CONSTRUCTION ⚠️</h3>
-        <p>Neural link system is currently being upgraded.</p>
-        <p>This feature will be available soon.</p>
-        <button onclick="this.parentElement.remove()" style="
-          margin-top: 15px;
-          background: #ffa500;
-          color: black;
-          border: none;
-          padding: 10px 20px;
-          border-radius: 5px;
-          cursor: pointer;
-          font-family: 'Courier New', monospace;
-          font-weight: bold;
-        ">OK</button>
+      welcomeMsg.innerHTML = `
+        <h3>NEURAL LINK ESTABLISHED</h3>
+        <p>Welcome to The Darknet District, <span class="pilot-name"></span>!</p>
+        <p>Neural link established...</p>
       `;
-      document.body.appendChild(constructionMsg);
+      welcomeMsg.querySelector('.pilot-name').textContent = user.displayName || 'Pilot';
+      document.body.appendChild(welcomeMsg);
+
+      setTimeout(() => {
+        document.body.removeChild(welcomeMsg);
+      }, 3000);
+    }
+
+    // Function to show error message
+    function showErrorMessage() {
+      const errorMsg = document.createElement('div');
+      errorMsg.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 0, 0, 0.1);
+        border: 2px solid #ff0000;
+        color: #ff0000;
+        padding: 20px;
+        border-radius: 10px;
+        font-family: 'Courier New', monospace;
+        z-index: 10000;
+        text-align: center;
+        backdrop-filter: blur(10px);
+      `;
+      errorMsg.innerHTML = `
+        <h3>ACCESS DENIED</h3>
+        <p>Neural link failed. Please try again.</p>
+      `;
+      document.body.appendChild(errorMsg);
+
+      setTimeout(() => {
+        document.body.removeChild(errorMsg);
+      }, 3000);
+    }
+
+    // Improved authentication function with popup/redirect fallback
+    window.enterTheDistrict = function() {
+      console.log("Attempting sign-in...");
+
+      // Detect if inside iframe — signInWithPopup may not work reliably
+      if (window.self !== window.top) {
+        console.warn("⚠️ You're inside an iframe. Redirecting instead of popup.");
+        signInWithRedirect(auth, provider);
+        return;
+      }
+
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          const user = result.user;
+          console.log("User signed in:", user.displayName);
+          showSuccessMessage(user);
+        })
+        .catch((error) => {
+          console.warn("Popup sign-in failed:", error.code);
+          if (
+            error.code === "auth/popup-blocked" ||
+            error.code === "auth/popup-closed-by-user" ||
+            error.code === "auth/web-storage-unsupported"
+          ) {
+            console.log("Falling back to redirect-based sign-in.");
+            signInWithRedirect(auth, provider);
+          } else {
+            console.error("Unhandled Firebase auth error:", error);
+            showErrorMessage();
+          }
+        });
     };
+
+    // Check for redirect result on page load
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          const user = result.user;
+          console.log("User signed in via redirect:", user.displayName);
+          showSuccessMessage(user);
+        }
+      })
+      .catch((error) => {
+        console.error("Redirect result error:", error);
+        showErrorMessage();
+      });
+
+    // Monitor auth state
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log('User is signed in:', user.displayName);
+      } else {
+        console.log('User is signed out');
+      }
+    });
   </script>
 
 <div id="floating-elements"></div>
