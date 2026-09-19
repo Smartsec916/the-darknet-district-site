@@ -20,12 +20,12 @@ const output=process.env.VOID_SCREENSHOT_DIR;const fs=require('node:fs');
  await page.getByRole('button',{name:'NEXT →',exact:true}).click();assert((await page.locator('#spoken-text').textContent()).includes('The ship is yours'));
  await page.getByRole('button',{name:'NEXT →',exact:true}).click();await page.getByRole('button',{name:'BOARD SHIP →',exact:true}).click();
  await page.evaluate(()=>{elapsed=current.duration;spawned=resolved=current.enemies;enemies=[];approachTime=4;mode='play';arrive();});
- await page.getByRole('button',{name:'ENTER MERIDIAN STATION →',exact:true}).click();await page.getByRole('button',{name:'GO TO BAR →',exact:true}).click();await page.getByRole('button',{name:'ROOK · TALK',exact:true}).click();await page.getByRole('button',{name:'ACCEPT JOB →',exact:true}).click();
+ await page.getByRole('button',{name:'OPEN STATION MENU →',exact:true}).click();await page.getByRole('button',{name:'GO TO BAR →',exact:true}).click();await page.getByRole('button',{name:'ROOK · TALK',exact:true}).click();await page.getByRole('button',{name:'ACCEPT JOB →',exact:true}).click();
  assert.equal(await page.locator('#expansion-nav').isVisible(),false);
  await page.getByRole('button',{name:'LAUNCH →',exact:true}).click();
  await page.evaluate(()=>{elapsed=current.duration;spawned=resolved=current.enemies;enemies=[];approachTime=4;mode='play';arrive();});
  assert((await page.locator('#spoken-text').textContent()).includes('350 credits'));
- await page.getByRole('button',{name:'ENTER THE STATION →',exact:true}).click();await page.getByRole('button',{name:'SIGN IN & SAVE PROGRESS',exact:true}).waitFor();
+ await page.getByRole('button',{name:'OPEN STATION MENU →',exact:true}).click();await page.getByRole('button',{name:'SIGN IN & SAVE PROGRESS',exact:true}).waitFor();
  if(output){fs.mkdirSync(output,{recursive:true});await page.screenshot({path:path.join(output,'first-delivery-offer.png'),fullPage:true});}
  await page.getByRole('button',{name:'KEEP PLAYING',exact:true}).click();assert.equal(await page.evaluate(()=>state.quest),'return');assert.equal(await page.evaluate(()=>state.credits),450);
  await page.locator('#expansion-nav [data-action="shop"]').click();await page.locator('.standard-grid .card').nth(3).getByRole('button',{name:'INSTALL / 300 CR',exact:true}).click();assert.equal(await page.evaluate(()=>C.stats(state).shield),15);assert.equal(await page.evaluate(()=>state.credits),150);

@@ -21,9 +21,10 @@
     ['gate-4','Void sentinel','gate','boss','meridian',14,4.5,60,3200,'Defeat the sentinel. Its final phase fires faster as its hull collapses.']
   ];
   const missions = definitions.map((d,i) => ({id:d[0],name:d[1],chapter:d[2],kind:d[3],destination:d[4],enemies:d[5],tier:d[6],duration:d[7],reward:d[8],briefing:d[9],cargo:d[3]==='escort'?'Rescue shuttle':d[3]==='salvage'?'Recovered intelligence':'Sector clearance',legal:true,rep:3,requirement:5,requires:i?definitions[i-1][0]:null,contact:'Rook'}));
+  const balance=()=>typeof module!=='undefined'?require('./balance.js').values:root.VoidBalance.values;
   const gear = {
-    wraith: {name:'Wraith Cannon',slot:'weapon',description:'Piercing bolts. 25% more damage than max-tier pulse cannons, at the same firing rate.',symbol:'W',color:'#ef79ff'},
-    aegis: {name:'Aegis Shield',slot:'shield',description:'70 shield capacity. Regenerates 12 per second after 4 seconds without a hit.',symbol:'A',color:'#58ffe1'},
+    wraith: {name:'Wraith Cannon',slot:'weapon',get description(){const b=balance();return 'Piercing bolts. '+b.premiumLaserDamage.toFixed(2)+' damage at '+b.premiumLaserFireRate.toFixed(2)+' shots per second.';},symbol:'W',color:'#ef79ff'},
+    aegis: {name:'Aegis Shield',slot:'shield',get description(){const b=balance();return b.premiumShield+' shield capacity. Regenerates '+b.premiumShieldRechargeRate+' per second after '+b.premiumShieldRechargeDelay+' seconds without a hit.';},symbol:'A',color:'#58ffe1'},
     ghost: {name:'Ghost Drive',slot:'utility',description:'A 0.7-second invulnerable speed burst. Press E or tap DRIVE. 8-second cooldown.',symbol:'G',color:'#ffbd69'},
     sentinel: {name:'Sentinel Drone',slot:'utility',description:'An autonomous wingmate fires a targeted 4-damage bolt every 0.7 seconds.',symbol:'S',color:'#a9ff6b'}
   };

@@ -9,7 +9,7 @@ const path=require('node:path');
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:5000/void-runner.html');
  await page.waitForFunction(()=>stationTexture.complete&&stationTexture.naturalWidth);
- await page.waitForFunction(()=>undertowStationTexture.complete&&undertowStationTexture.naturalWidth);
+ await page.waitForFunction(()=>undertowStationTexture.complete&&undertowStationTexture.naturalWidth&&keplerStationTexture.complete&&keplerStationTexture.naturalWidth);
  const routes=await page.evaluate(()=>{
   const s=C.fresh(),result=[];C.beginJourney(s);result.push(C.flight(s).destination);C.complete(s);C.accept(s);result.push(C.flight(s).destination);C.complete(s);result.push(C.flight(s).destination);C.complete(s);C.accept(s);result.push(C.flight(s).destination);return result;
  });
@@ -23,7 +23,7 @@ const path=require('node:path');
    await skyboxes[destination].decode();state=C.fresh();state.quest='open';state.completed=2;state.location=destination==='meridian'?'foundry':'meridian';
    current={destination,enemies:1,duration:40,kind:'delivery'};mode='pause';elapsed=36;approachTime=3;spawned=resolved=1;enemies=[];bullets=[];hostile=[];sparks=[];screen.classList.add('hidden');flightUI(true);$('route-name').textContent=C.stations[destination].name.toUpperCase();$('flight-objective').textContent='Route clear. Approaching delivery dock.';
    const calls=[];const original=drawStationStructure;const drawImage=ctx.drawImage;
-   drawStationStructure=function(id,...args){calls.push(id);return original(id,...args);};ctx.drawImage=function(image,...args){if(image===stationTexture)calls.push('meridian');if(image===undertowStationTexture)calls.push('undertow');return drawImage.call(this,image,...args);};
+   drawStationStructure=function(id,...args){calls.push(id);return original(id,...args);};ctx.drawImage=function(image,...args){if(image===stationTexture)calls.push('meridian');if(image===keplerStationTexture)calls.push('kepler');if(image===undertowStationTexture)calls.push('undertow');return drawImage.call(this,image,...args);};
    try{resolved=0;stationScene(C.stations[destination].color);const hidden=calls.length===0;resolved=1;stationScene(C.stations[destination].color);return {hidden,calls};}
    finally{drawStationStructure=original;ctx.drawImage=drawImage;draw();}
   },destination);

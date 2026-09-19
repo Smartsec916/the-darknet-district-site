@@ -1,0 +1,12 @@
+#dev-balance-open{position:fixed;right:16px;top:90px;z-index:35;font-size:11px}
+#dev-balance{position:fixed;inset:8vh 5vw;z-index:60;overflow:auto;background:#081522f7;border:1px solid #58ffe1;padding:24px;color:#dcece9;box-shadow:0 20px 90px #000}
+#dev-balance[hidden],#dev-balance-open[hidden],#combat-debug[hidden]{display:none}
+.dev-heading{display:flex;align-items:center;justify-content:space-between;gap:20px}.dev-heading h2{font-size:18px}
+.dev-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:20px 0}
+.dev-fields label{display:grid;gap:5px;font:12px Consolas,monospace}.dev-fields input,#dev-preset{background:#102331;border:1px solid #456270;color:#fff;padding:9px;min-width:0}
+.dev-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.dev-actions button{font-size:11px}
+#combat-debug{position:fixed;top:270px;left:15px;z-index:34;background:#03101bce;color:#8effde;font:11px/1.5 Consolas,monospace;padding:10px;pointer-events:none;white-space:pre-wrap;max-width:290px}
+#flash{z-index:5;box-shadow:none}
+#missile-fire{pointer-events:auto;touch-action:none;font-size:11px;padding:12px;background:#342712d9;color:#ffcc70;border-color:#ffcc70}
+.cockpit-flight #touch-controls{left:auto;gap:8px}
+@media(max-width:600px){#combat-debug{top:240px;max-width:210px;font-size:9px}#dev-balance{inset:4vh 3vw;padding:15px}.dev-heading h2{font-size:14px}.dev-heading button{padding:8px}.dev-fields{grid-template-columns:1fr}}

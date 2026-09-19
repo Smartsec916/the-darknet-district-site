@@ -3,6 +3,7 @@ const skyboxes = {};
 function texture(path) { const img = new Image(); img.src = 'void-runner/art/' + path; return img; }
 for (const id of Object.keys(C.stations)) skyboxes[id] = texture('sky-' + id + '.png');
 const stationTexture = texture('station.png');
+const keplerStationTexture = texture('station-kepler.png');
 const undertowStationTexture = texture('station-undertow.png');
 function skyboxTransform(progress, width, height, imageWidth, imageHeight, still = reducedMotion) {
  const zoom = still ? 1.04 : 1.08 + Math.min(1, Math.max(0, progress)) * .14;
@@ -28,6 +29,10 @@ stationScene = function(color) {
  if(destination==='undertow'&&undertowStationTexture.complete&&undertowStationTexture.naturalWidth){
   const height=width*undertowStationTexture.naturalHeight/undertowStationTexture.naturalWidth;
   ctx.save();ctx.globalAlpha=1;ctx.drawImage(undertowStationTexture,W*.69-width/2,H*.49-height/2,width,height);ctx.restore();return;
+ }
+ if(destination==='kepler'&&keplerStationTexture.complete&&keplerStationTexture.naturalWidth){
+  const height=width*keplerStationTexture.naturalHeight/keplerStationTexture.naturalWidth;
+  ctx.drawImage(keplerStationTexture,W*.69-width/2,H*.49-height/2,width,height);return;
  }
  if(destination!=='meridian'){drawStationStructure(destination,W*.69,H*.49,width);return;}
  if (!stationTexture.complete || !stationTexture.naturalWidth) { oldStationScene(color); return; }

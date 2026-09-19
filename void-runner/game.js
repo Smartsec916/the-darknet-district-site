@@ -69,13 +69,14 @@ function routeClear() { return !!current && spawned >= current.enemies && resolv
 function destinationVisible() { return routeClear() && elapsed / current.duration > .72; }
 function arrive() {
   if (mode !== 'play' || !routeClear() || elapsed < current.duration || (current.enemies && approachTime < 3)) return;
-  const reward = C.complete(state); if (!reward) return;
+  const reward = C.complete(state); if (!reward) return;current.repairCharged=reward.repairCharged;
   mode = 'arrival'; clearInput(); save(); flightUI(false); hud();
   const station = C.stations[state.location];
   let story = reward.reward ? `The cargo checks out. ${reward.reward} credits transfer to your account. Your reputation increases by ${reward.rep}.` : 'Magnetic clamps catch the Kestrel. Engines down. For a moment, the ship is quiet.';
+  if(reward.repairCharged)story+=` Dock servicing costs ${reward.repairCharged} credits.`;
   if (reward.gunReward) story += ' Iona Vale meets you at the loading ramp. “You came through when nobody else would. Take these pulse cannons. Next time, come back alive.” Her crew installs your MK 2 guns. Equipment stores and new contracts are now open.';
   else if (state.quest === 'return') story += ' “Tell Rook you kept your word,” the receiver says. Time to head back to Meridian.';
-  panel('ARRIVAL CONFIRMED / ' + station.name.toUpperCase(), reward.reward ? 'Cargo <em>delivered.</em>' : 'Welcome<br><em>aboard.</em>', `<p>${story}</p>${reward.reward ? `<div class="manifest">${row('Payment received', '+' + reward.reward + ' CR')}${row('Reputation earned', '+' + reward.rep)}${reward.gunReward ? row('Customer reward', 'MK 2 pulse cannons installed') : ''}</div>` : ''}`, button('ENTER ' + station.name.toUpperCase() + ' →', 'dock'), shipCard()); tone(620, .3);
+  panel('ARRIVAL CONFIRMED / ' + station.name.toUpperCase(), reward.reward ? 'Cargo <em>delivered.</em>' : 'Welcome<br><em>aboard.</em>', `<p>${story}</p>${reward.reward ? `<div class="manifest">${row('Payment received', '+' + reward.reward + ' CR')}${row('Reputation earned', '+' + reward.rep)}${reward.gunReward ? row('Customer reward', 'MK 2 pulse cannons installed') : ''}</div>` : ''}`, button('OPEN STATION MENU →', 'dock'), shipCard()); tone(620, .3);
 }
 function hurt(amount) { if (mode !== 'play' || damageTime > 0) return; hp = Math.max(0, hp - amount); damageTime = .45; hud(); tone(65, .25, 'sawtooth'); if (!hp) { mode = 'over'; clearInput(); flightUI(false); panel('DISTRESS BEACON / RECOVERY CREW DISPATCHED', 'One more<br><em>chance.</em>', '<p>The recovery crew pulls your ship out of the lane. Your cargo and upgrades are safe. Retry this route with a repaired hull. No credits or reputation are lost.</p>', button('RETRY ROUTE →', 'launch') + (state.quest === 'open' ? button('RETURN TO DOCK', 'dock', true) : ''), shipCard()); } }
 function pause() { if (mode === 'play') { mode = 'pause'; clearInput(); $('pause').textContent = 'RESUME'; panel('FLIGHT PAUSED', 'Holding<br><em>position.</em>', '<p>Your route is paused. Resume when you are ready.</p>', button('RESUME FLIGHT →', 'resume')); } else if (mode === 'pause') { mode = 'play'; screen.classList.add('hidden'); canvas.focus({ preventScroll: true }); $('pause').textContent = 'PAUSE'; } }
@@ -87,10 +88,18 @@ screen.addEventListener('click', event => {
   else if (['dock', 'bar', 'shop'].includes(action)) dock(action);
   else if (action === 'accept' || action.startsWith('contract:')) { if (C.accept(state, action.split(':')[1])) { save(); dock(); announce('Cargo loaded. Ready for departure.'); } }
   else if (action.startsWith('buy:')) { if (mode === 'dock' && C.buy(state, action.split(':')[1])) { save(); hud(); shop(); tone(500, .2); announce('Upgrade installed.'); } }
-  else if (action === 'reset-prompt') panel('NEW JOURNEY', 'Start <em>again?</em>', '<p>This replaces the campaign saved in this browser, including credits, reputation, and upgrades.</p>', button('KEEP CURRENT JOURNEY', 'cancel-reset') + button('REPLACE SAVE', 'reset', true));
+  else if (action === 'reset-prompt') panel('NEW JOURNEY', 'Start <em>again?</em>', '<p>This replaces the campaign saved in this browser, including credits, reputation, and earned upgrades. Permanent account purchases and your cloud journey are preserved.</p>', button('KEEP CURRENT JOURNEY', 'cancel-reset') + button('REPLACE SAVE', 'reset', true));
   else if (action === 'cancel-reset') title();
-  else if (action === 'reset') { state = C.fresh(); save(); inheritance(); }
+  else if (action === 'reset') { newJourney(); }
 });
+function newJourney(){
+  state=C.fresh();current=null;trialGear=null;devMissileTrial=false;clearInput();
+  elapsed=approachTime=shot=spawnClock=spawned=resolved=damageTime=0;
+  enemies=[];bullets=[];hostile=[];sparks=[];missionObjects=[];
+  shieldHP=shieldDelay=driveTime=driveCooldown=droneClock=0;
+  hp=C.stats(state).hull;VoidCombatEffects.reset();resetMissileFlight();
+  save();hud();updateEquipmentHud();inheritance();
+}
 $('pause').onclick = pause;
 $('sound').onclick = () => { muted = !muted; $('sound').textContent = muted ? 'SOUND OFF' : 'SOUND ON'; $('sound').setAttribute('aria-pressed', String(!muted)); tone(550, .1); if (mode === 'play') canvas.focus({ preventScroll: true }); };
 addEventListener('keydown', e => { if (mode !== 'play' && mode !== 'pause') return; if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code) && e.target.tagName !== 'BUTTON') e.preventDefault(); if (e.target.tagName !== 'BUTTON') keys.add(e.code); if (e.code === 'KeyP' && !e.repeat) pause(); });
@@ -98,7 +107,7 @@ addEventListener('keyup', e => keys.delete(e.code));
 addEventListener('blur', () => { clearInput(); if (mode === 'play') pause(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'play') pause(); });
 function aim(e) { const s = Math.min(W, H) * .9 / 14; target = { x: Math.max(-9, Math.min(9, (e.clientX - W / 2) / s)), y: Math.max(-5, Math.min(5, (e.clientY - H * .48) / s)) }; }
-canvas.onpointerdown = e => { if (mode !== 'play') return; canvas.setPointerCapture(e.pointerId); pointer = true; firing = true; aim(e); };
+canvas.onpointerdown = e => { if (mode !== 'play' || e.button!==0) return; canvas.setPointerCapture(e.pointerId); pointer = true; firing = true; aim(e); };
 canvas.onpointermove = e => { if (mode === 'play' && (e.pointerType === 'mouse' || pointer)) aim(e); };
 canvas.onpointerup = canvas.onpointercancel = () => { pointer = false; firing = false; };
 $('fire').onpointerdown = e => { if (mode !== 'play') return; e.preventDefault(); $('fire').setPointerCapture(e.pointerId); touchFiring = true; };
