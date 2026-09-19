@@ -1,0 +1,2 @@
+/* Separate feedback timing from damage immunity, with a capped subtle pulse. */
+const VoidCombatEffects={remaining:0,kind:'hull',pulse(kind){this.kind=kind;this.remaining=.22;},reset(){this.remaining=0;$('flash').style.opacity=0;},step(dt){this.remaining=Math.max(0,this.remaining-dt);},draw(){const el=$('flash');el.style.background=this.kind==='shield'?'radial-gradient(ellipse,transparent 35%,#48ceff 100%)':'radial-gradient(ellipse,transparent 25%,#ff183d 100%)';el.style.opacity=this.remaining?Math.min(reducedMotion?.08:.22,this.remaining):0;}};

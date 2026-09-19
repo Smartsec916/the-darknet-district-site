@@ -56,7 +56,7 @@ async function initializeAuth(){
   try{
     firebase=await import('../firebase-auth.js');
     firebase.onAuthStateChanged(firebase.auth,user=>{
-      generation++;account.user=user;account.cloud=null;account.revision=0;saveReady=false;setOwnedGear([]);render();
+      generation++;account.user=user;const identityEpoch=generation;VoidDevTools.identity((path,body)=>{if(identityEpoch!==generation||!user)throw new Error('Sign in again.');return api(path,body);});account.cloud=null;account.revision=0;saveReady=false;setOwnedGear([]);render();
       if(user)run(async()=>{await confirmCheckout();await refresh();},true);
     });
     await firebase.getRedirectResult(firebase.auth);

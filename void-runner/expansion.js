@@ -3,7 +3,7 @@
 let ownedGear = [], trialGear = null, shieldHP = 0, shieldDelay = 0, driveTime = 0, driveCooldown = 0, droneClock = 0;
 let missionObjects = [], objectiveCount = 0, objectiveClock = 1, escortHP = 100, escortClock = 3;
 const baseStats = C.stats;
-C.stats = s => trialGear ? baseStats({...s,loadout:{...s.loadout,[VoidContent.gear[trialGear].slot]:trialGear}},[...ownedGear,trialGear]) : baseStats(s,ownedGear);
+C.stats = s => trialGear && VoidContent.gear[trialGear] ? baseStats({...s,loadout:{...s.loadout,[VoidContent.gear[trialGear].slot]:trialGear}},[...ownedGear,trialGear]) : baseStats(s,ownedGear);
 function escapeText(value) { return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function menuPage(eyebrow,heading,body) {
   speech=null;scene('');mode='dock';clearInput();flightUI(false);screen.classList.remove('hidden');
@@ -54,10 +54,10 @@ shop=function(){
   menuPage(`STATION OUTFITTER / ${state.credits.toLocaleString()} CR`,'Built with <em>your earnings.</em>',
     `${equipmentTabs('credits')}<p>Spend mission credits on standard ship systems. No account or real money needed. Exclusive equipment is available in the separate real-money tier.</p><div class="gear-grid standard-grid">${Object.entries(C.upgrades).map(([key,u])=>`<article class="card"><span class="tag">STANDARD / CREDITS</span><h2>${u.name}</h2><p>${u.description}</p>${u.prices.map((cost,i)=>{
       const installed=state.upgrades[key]>i,next=state.upgrades[key]===i;
-      const benefit=key==='armor'?`${100+(i+1)*30} hull`:key==='guns'?`${(1+(i+1)*.65).toFixed(2)} damage / bolt`:key==='shields'?`${(i+1)*15} shield`:`${10+(i+1)*2.5} handling`;
+      const benefit=key==='armor'?`${VOID_BALANCE.playerHull+(i+1)*VOID_BALANCE.hullPerTier} hull`:key==='guns'?`${(VOID_BALANCE.laserDamage+(i+1)*VOID_BALANCE.laserDamagePerTier).toFixed(2)} damage / bolt`:key==='shields'?`${VOID_BALANCE.playerShield+(i+1)*VOID_BALANCE.shieldPerTier} shield`:`${10+(i+1)*2.5} handling`;
       const label=installed?'INSTALLED':!next?'INSTALL PREVIOUS TIER':state.credits<cost?`NEED ${cost-state.credits} MORE CR`:`INSTALL / ${cost} CR`;
       return `<div class="upgrade-tier">${row('TIER '+(i+1),cost+' CR')}<p>${benefit}</p>${button(label,'buy:'+key,false,installed||!next||state.credits<cost)}</div>`;
-    }).join('')}</article>`).join('')}</div><h2 class="utility-heading">Utility bay / choose one</h2><div class="credit-utilities">${Object.entries(VoidContent.creditGear).map(([id,g])=>{const owned=state.creditGear.includes(id),equipped=state.loadout.utility===id;return `<article class="card gear-card" style="--gear-color:${g.color}"><div class="gear-art">${gearArt(g.art)}</div><span class="tag">STANDARD / CREDITS</span><h2>${g.name}</h2><p>${g.description}</p>${owned?button(equipped?'UNEQUIP':'EQUIP','equip:'+id,equipped):button('BUY / '+g.price+' CR','credit-gear:'+id,false,state.credits<g.price)}</article>`;}).join('')}</div><p class="fine">Credit upgrades belong to this campaign and are included in cloud saves. A new journey resets earned equipment. Account-owned exclusive items remain available.</p>`);
+    }).join('')}</article>`).join('')}</div><h2 class="utility-heading">Utility bay / choose one</h2><div class="credit-utilities">${Object.entries(VoidContent.creditGear).map(([id,g])=>{const owned=state.creditGear.includes(id),equipped=state.loadout.utility===id;return `<article class="card gear-card" style="--gear-color:${g.color}"><div class="gear-art">${gearArt(g.art)}</div><span class="tag">STANDARD / CREDITS</span><h2>${g.name}</h2><p>${g.description}</p>${owned?button(equipped?'UNEQUIP':'EQUIP','equip:'+id,equipped):button('BUY / '+g.price+' CR','credit-gear:'+id,false,state.credits<g.price)}</article>`;}).join('')}</div><p class="fine">Dock servicing: ${VOID_BALANCE.repairCost?Math.round(VOID_BALANCE.repairCost)+' CR per arrival (limited to available credits)':'free'}. Credit upgrades belong to this campaign and are included in cloud saves. A new journey resets earned equipment. Account-owned exclusive items remain available.</p>`);
 };
 function firstDeliveryOffer(){
   state.loginOfferSeen=true;save();view='first-delivery-offer';
@@ -101,9 +101,9 @@ const expansionClear=routeClear;
 routeClear=function(){return expansionClear()&&(current.kind!=='salvage'||objectiveCount>=3)&&(current.kind!=='escort'||escortHP>0);};
 const expansionHurt=hurt;
 hurt=function(amount){
-  if(mode!=='play'||damageTime>0||driveTime>0)return;
+  if(mode!=='play'||amount<=0||damageTime>0||driveTime>0)return;
   shieldDelay=C.stats(state).shieldDelay;const absorbed=Math.min(shieldHP,amount);shieldHP-=absorbed;
-  if(amount>absorbed)expansionHurt(amount-absorbed);else {damageTime=.25;tone(320,.1);}
+  if(amount>absorbed){expansionHurt(amount-absorbed);VoidCombatEffects.pulse('hull');}else {damageTime=.25;tone(320,.1);VoidCombatEffects.pulse('shield');}
   updateEquipmentHud();
 };
 const expansionSpawn=spawnEnemy;

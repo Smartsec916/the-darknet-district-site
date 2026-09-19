@@ -3,12 +3,38 @@ import hashlib
 import os
 import time
 import uuid
+import json
+import math
+from pathlib import Path
 from functools import wraps
 from flask import Blueprint, jsonify, request, current_app
 
 api = Blueprint('void_runner', __name__, url_prefix='/api/void-runner')
 ITEMS = {'wraith': 'Wraith Cannon', 'aegis': 'Aegis Shield', 'ghost': 'Ghost Drive', 'sentinel': 'Sentinel Drone'}
 PROJECT = 'the-darknet-district-71873'
+
+# One numeric schema shared with the browser; parse JSON without executing JS.
+BALANCE_SPEC = json.loads((Path(__file__).parent / 'void-runner' / 'balance-data.js').read_text(encoding='utf-8').split('globalThis.VoidBalanceSpec = ', 1)[1].strip().removesuffix(';'))
+BALANCE_DEFAULTS = {key: field['value'] for key, field in BALANCE_SPEC.items()}
+
+
+def balance_admin(uid):
+    return uid in {entry.strip() for entry in os.getenv('VOID_ADMIN_UIDS', '').split(',') if entry.strip()}
+
+
+def clean_balance(value):
+    if not isinstance(value, dict) or set(value) != set(BALANCE_SPEC):
+        raise ApiError('A complete balance configuration is required.')
+    for key, number in value.items():
+        field = BALANCE_SPEC[key]
+        if type(number) not in (int, float) or not math.isfinite(number) or not field['min'] <= number <= field['max']:
+            raise ApiError('Invalid balance value: ' + key)
+    return dict(value)
+
+
+def balance_record(db):
+    saved = db.collection('vr_config').document('combat').get().to_dict() or {}
+    return {'values': {**BALANCE_DEFAULTS, **saved.get('values', {})}, 'revision': saved.get('revision', 0), 'preset': saved.get('preset', 'NORMAL')}
 
 
 class ApiError(Exception):
@@ -121,6 +147,46 @@ def catalog():
 def account(db, uid):
     saved = player_ref(db, uid).get().to_dict() or {}
     return jsonify(owned=inventory(db, uid), save=saved.get('save'), revision=saved.get('revision', 0), savedAt=saved.get('savedAt'))
+
+
+@api.get('/balance')
+def public_balance():
+    if os.getenv('VOID_ACCOUNTS_ENABLED') != 'true':
+        return jsonify(values=BALANCE_DEFAULTS)
+    db, _, _ = services()
+    return jsonify(values=balance_record(db)['values'])
+
+
+@api.route('/developer/balance', methods=['GET', 'POST'])
+@signed_in
+def developer_balance(db, uid):
+    # Firebase verifies token signature, audience, expiry and revocation first.
+    # This allowlist lives only in the server environment, never in a save/email.
+    if not balance_admin(uid):
+        raise ApiError('Developer access is not authorized.', 403)
+    if request.method == 'GET':
+        return jsonify(**balance_record(db))
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict) or type(payload.get('revision')) is not int:
+        raise ApiError('A balance revision is required.')
+    values = clean_balance(payload.get('values'))
+    preset = payload.get('preset')
+    if preset not in ['EASY', 'NORMAL', 'HARD', 'CUSTOM']:
+        raise ApiError('Invalid balance preset.')
+    from firebase_admin import firestore
+    ref = db.collection('vr_config').document('combat')
+
+    @firestore.transactional
+    def commit(transaction):
+        prior = ref.get(transaction=transaction).to_dict() or {}
+        revision = prior.get('revision', 0)
+        if payload['revision'] != revision:
+            raise ApiError('Balance changed on another device. Reload current values first.', 409)
+        transaction.set(ref, {'values': values, 'preset': preset, 'revision': revision + 1,
+                              'updatedAt': int(time.time()), 'updatedBy': uid})
+        return revision + 1
+    revision = commit(db.transaction())
+    return jsonify(values=values, preset=preset, revision=revision)
 
 
 def clean_save(value):

@@ -1,5 +1,10 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const C=require('../void-runner/campaign.js');const content=require('../void-runner/content.js');
+test('optional dock servicing charges once and keeps credits valid',()=>{
+  const B=require('../void-runner/balance.js'),s=C.fresh();s.quest='legal-run';
+  try{B.apply({...B.defaults,repairCost:20.4});const receipt=C.complete(s);assert.equal(receipt.repairCharged,20);assert.equal(s.credits,430);assert(C.restore(JSON.stringify(s)));}
+  finally{B.apply(B.defaults);}
+});
 test('v1 saves migrate without losing credits, location or upgrades',()=>{
   const old={version:1,quest:'open',location:'undertow',credits:2450,reputation:10,completed:4,contract:'ghost',upgrades:{guns:2,armor:1,engines:3}};
   const s=C.restore(JSON.stringify(old));assert.equal(s.version,2);assert.equal(s.credits,2450);assert.deepEqual(s.upgrades,{...old.upgrades,shields:0});assert.deepEqual(s.cleared,[]);assert.equal(s.contract,'ghost');

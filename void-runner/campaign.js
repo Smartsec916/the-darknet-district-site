@@ -2,6 +2,7 @@
 (function (root) {
   'use strict';
   const content = typeof module !== 'undefined' ? require('./content.js') : root.VoidContent;
+  const B = (typeof module !== 'undefined' ? require('./balance.js') : root.VoidBalance).values;
   const stations = {
     meridian: { name: 'Meridian Station', district: 'SECTOR 07 / THE LOWER ORBIT', color: '#58ffe1', bar: 'The Dead Channel' },
     kepler: { name: 'Kepler Exchange', district: 'SECTOR 12 / FREIGHT LANE', color: '#ffbd69', bar: 'The Loading Bay' },
@@ -15,9 +16,9 @@
   ];
   const upgrades = {
     guns: { name: 'Pulse cannons', description: 'More damage and a faster firing cycle.', prices: [350, 700, 1200] },
-    armor: { name: 'Hull plating', description: 'Adds 30 hull integrity per tier.', prices: [300, 600, 1000] },
+    armor: { name: 'Hull plating', get description(){return 'Adds '+B.hullPerTier+' hull integrity per tier.';}, prices: [300, 600, 1000] },
     engines: { name: 'Vector thrusters', description: 'Faster movement and more responsive handling.', prices: [250, 500, 900] },
-    shields: { name: 'Deflector shield', description: '15 shield capacity per tier. Regenerates 6 per second after 6 seconds without a hit.', prices: [300, 650, 1000] }
+    shields: { name: 'Deflector shield', get description(){return B.shieldPerTier+' shield capacity per tier. Regenerates '+B.shieldRechargeRate+' per second after '+B.shieldRechargeDelay+' seconds without a hit.';}, prices: [300, 650, 1000] }
   };
   const quests = ['inheritance', 'arrival', 'legal-offer', 'legal-run', 'return', 'illegal-offer', 'illegal-run', 'open'];
   const allContracts = [...contracts, ...content.missions];
@@ -42,7 +43,7 @@
   function stats(s, owned = []) {
     const has = id => owned.includes(id) && s.loadout?.[content.gear[id].slot] === id;
     const creditHas=id=>s.creditGear?.includes(id)&&s.loadout?.utility===id;
-    return { hull: 100 + s.upgrades.armor * 30, damage: has('wraith') ? 3.6875 : 1 + s.upgrades.guns * .65, cooldown: has('wraith') ? .115 : .22 - s.upgrades.guns * .035, speed: 10 + s.upgrades.engines * 2.5, shield: has('aegis') ? 70 : (s.upgrades.shields||0)*15, shieldRegen:has('aegis')?12:6,shieldDelay:has('aegis')?4:6, piercing: has('wraith'), drive: has('ghost')||creditHas('vector'),driveDuration:has('ghost')?.7:.4,driveCooldown:has('ghost')?8:12, drone: has('sentinel')||creditHas('scout'),droneDamage:has('sentinel')?4:2,droneCooldown:has('sentinel')?.7:1.2 };
+    return { hull: B.playerHull + s.upgrades.armor * B.hullPerTier, damage: has('wraith') ? B.premiumLaserDamage : B.laserDamage + s.upgrades.guns * B.laserDamagePerTier, cooldown: has('wraith') ? 1/B.premiumLaserFireRate : Math.max(1/60,1/B.laserFireRate - s.upgrades.guns * B.laserCooldownPerTier), speed: 10 + s.upgrades.engines * 2.5, shield: has('aegis') ? B.premiumShield : B.playerShield+(s.upgrades.shields||0)*B.shieldPerTier, shieldRegen:has('aegis')?B.premiumShieldRechargeRate:B.shieldRechargeRate,shieldDelay:has('aegis')?B.premiumShieldRechargeDelay:B.shieldRechargeDelay, piercing: has('wraith'), drive: has('ghost')||creditHas('vector'),driveDuration:has('ghost')?.7:.4,driveCooldown:has('ghost')?8:12, drone: has('sentinel')||creditHas('scout'),droneDamage:has('sentinel')?4:2,droneCooldown:has('sentinel')?.7:1.2 };
   }
   function unlocked(s,c) { return s.quest==='open' && s.reputation>=c.requirement && (!c.requires || s.cleared.includes(c.requires)); }
   function flight(s) {
@@ -70,6 +71,7 @@
     const f = flight(s); if (!f) return null;
     const previous = s.quest;
     s.location = f.destination; s.credits += f.reward; s.reputation += f.rep;
+    const repairCharged=Math.min(s.credits,Math.round(B.repairCost));s.credits-=repairCharged;
     if (f.reward) s.completed++;
     if (f.chapter && !s.cleared.includes(f.id)) s.cleared.push(f.id);
     if (previous === 'arrival') s.quest = 'legal-offer';
@@ -77,7 +79,7 @@
     else if (previous === 'return') s.quest = 'illegal-offer';
     else if (previous === 'illegal-run') { s.quest = 'open'; s.upgrades.guns = Math.max(1, s.upgrades.guns); }
     else s.contract = null;
-    return { ...f, gunReward: previous === 'illegal-run' };
+    return { ...f, repairCharged, gunReward: previous === 'illegal-run' };
   }
   function buy(s, key) {
     if (s.completed < 1 || !Object.hasOwn(upgrades, key)) return false;

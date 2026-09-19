@@ -54,6 +54,29 @@ class ApiTests(unittest.TestCase):
     def test_missing_and_invalid_login_rejected(self):
         self.assertEqual(self.client.get('/api/void-runner/account').status_code,401)
         self.assertEqual(self.client.get('/api/void-runner/account',headers={'Authorization':'Bearer forged'}).status_code,401)
+    def test_developer_endpoints_fail_closed(self):
+        for method in [self.client.get, self.client.post]:
+            self.assertEqual(method('/api/void-runner/developer/balance').status_code,401)
+            self.assertEqual(method('/api/void-runner/developer/balance',headers={'Authorization':'Bearer forged'}).status_code,401)
+            with patch.dict(os.environ, {'VOID_ADMIN_UIDS': ''}):
+                self.assertEqual(method('/api/void-runner/developer/balance',headers=self.header).status_code,403)
+        self.assertNotIn('vr_config/combat',self.db.data)
+    def test_admin_balance_validation_conflict_and_isolation(self):
+        with patch.dict(os.environ, {'VOID_ADMIN_UIDS': 'other, pilot'}):
+            original=self.client.get('/api/void-runner/developer/balance',headers=self.header).json
+            values={**original['values'],'enemyHull':8}
+            payload={'values':values,'revision':0,'preset':'CUSTOM'}
+            self.assertEqual(self.client.post('/api/void-runner/developer/balance',headers=self.header,json=payload).status_code,200)
+            self.assertEqual(self.client.post('/api/void-runner/developer/balance',headers=self.header,json=payload).status_code,409)
+            self.assertEqual(self.db.data['vr_config/combat']['updatedBy'],'pilot')
+            for invalid in [True,-1,1000000,'10',float('inf')]:
+                payload['values']={**values,'enemyHull':invalid};payload['revision']=1
+                self.assertEqual(self.client.post('/api/void-runner/developer/balance',headers=self.header,json=payload).status_code,400)
+            payload['values']={**values,'admin':True}
+            self.assertEqual(self.client.post('/api/void-runner/developer/balance',headers=self.header,json=payload).status_code,400)
+            self.assertEqual(self.db.data['vr_config/combat']['revision'],1)
+            self.assertEqual(self.client.get('/api/void-runner/account',headers=self.header).json['owned'],[])
+            self.assertIsNone(self.client.get('/api/void-runner/account',headers=self.header).json['save'])
     def test_repeated_fulfillment_grants_only_one_item(self):
         for _ in range(3): self.assertEqual(vr.fulfill(self.db,self.stripe,'cs_test_example','pilot'),'paid')
         self.assertEqual(vr.inventory(self.db,'pilot'),['wraith'])
