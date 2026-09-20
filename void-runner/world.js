@@ -1,12 +1,12 @@
 /* Layered space environments. Foreground rocks are scenery, outside the flight lane. */
 const skyboxes = {};
 const artBase=new URL('art/',document.currentScript.src);
-const assetLoads=[];
 function texture(path){
  const img=new Image();
  const url=new URL(path,artBase).href;
  img.ready=new Promise(resolve=>{img.onload=()=>resolve(true);img.onerror=()=>{console.warn('[VOID//RUNNER] Asset failed to load: '+url);resolve(false);};});
- assetLoads.push(img.ready);img.src=url;return img;
+ img.fetchPriority=['cockpit-kestrel.png','station.png','vesper-people.png'].includes(path)?'high':'low';
+ img.src=url;return img;
 }
 for (const id of Object.keys(C.stations)) skyboxes[id] = texture('sky-' + id + '.png');
 const stationTexture = texture('station.png');
