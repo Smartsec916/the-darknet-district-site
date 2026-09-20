@@ -20,7 +20,7 @@
     ['gate-3','The other side','gate','generator','foundry',16,4,58,2400,'Break the alien shield anchor, then clear the gate approach.'],
     ['gate-4','Void sentinel','gate','boss','meridian',14,4.5,60,3200,'Defeat the sentinel. Its final phase fires faster as its hull collapses.']
   ];
-  const missions = definitions.map((d,i) => ({id:d[0],name:d[1],chapter:d[2],kind:d[3],destination:d[4],enemies:d[5],tier:d[6],duration:d[7],reward:d[8],briefing:d[9],cargo:d[3]==='escort'?'Rescue shuttle':d[3]==='salvage'?'Recovered intelligence':'Sector clearance',legal:true,rep:3,requirement:5,requires:i?definitions[i-1][0]:null,contact:'Rook'}));
+  const missions = definitions.map((d,i) => ({id:d[0],name:d[1],chapter:d[2],kind:d[3],destination:d[4],enemies:d[5],tier:d[6],duration:d[7],reward:d[8],briefing:d[9],cargo:d[3]==='escort'?'Rescue shuttle':d[3]==='salvage'?'Recovered intelligence':'Sector clearance',legal:true,requires:i?definitions[i-1][0]:null,contact:'Rook'}));
   const balance=()=>typeof module!=='undefined'?require('./balance.js').values:root.VoidBalance.values;
   const gear = {
     wraith: {name:'Wraith Cannon',slot:'weapon',get description(){const b=balance();return 'Piercing bolts. '+b.premiumLaserDamage.toFixed(2)+' damage at '+b.premiumLaserFireRate.toFixed(2)+' shots per second.';},symbol:'W',color:'#ef79ff'},

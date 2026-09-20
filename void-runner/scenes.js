@@ -12,10 +12,6 @@ function portrait(id, small=false) { const c=characters[id]; return `<div class=
 function scene(name) { screen.dataset.scene=name;screen.dataset.station=state.location;screen.classList.remove('station-dock'); screen.classList.toggle('cinematic',!!name); }
 const originalPanel=panel;
 panel=function(...args){speech=null;scene('');originalPanel(...args);};
-const originalDock=dock;
-dock=function(tab='dock'){speech=null;scene('');originalDock(tab);};
-const originalShop=shop;
-shop=function(){speech=null;scene('');originalShop();};
 const originalLaunch=launch;
 launch=function(){speech=null;scene('');originalLaunch();};
 function talk(sceneName, lines, done, label='CONTINUE →', heading='') {
@@ -50,7 +46,7 @@ title=function(){
 };
 function barRoom(){
  speech=null;mode='dock';view='bar';clearInput();flightUI(false);scene('bar');screen.classList.remove('hidden');
- screen.innerHTML=`<section class="cinematic-space"><div class="scene-heading"><div class="eyebrow">${C.stations[state.location].name.toUpperCase()}</div><h1>${C.stations[state.location].bar}</h1></div><button class="place bartender" data-action="talk-nyx">NYX · TALK</button><button class="place booth" data-action="talk-rook">ROOK · TALK</button><button class="place exit" data-action="dock">DOCK →</button>${state.quest==='open'?'<button class="place job-board" data-action="contacts">CARGO CONTACTS →</button>':''}</section>`;
+ screen.innerHTML=`<section class="cinematic-space"><div class="scene-heading"><div class="eyebrow">${C.stations[state.location].name.toUpperCase()}</div><h1>${C.stations[state.location].bar}</h1></div><button class="place bartender" data-action="talk-nyx">NYX · TALK</button><button class="place booth" data-action="talk-rook">ROOK · TALK</button>${state.quest==='open'?'<button class="place job-board" data-action="contacts">CARGO CONTACTS →</button>':''}</section>`;
 }
 bar=barRoom;
 function rookConversation(){
@@ -60,21 +56,21 @@ function rookConversation(){
  offerCard(illegal);
 }
 function offerCard(illegal){
- talk('bar',[{who:'rook',text:`${illegal?'Good run. Next job: memory wafers to Rusthaven. Illegal. More enemies. 800 credits, +3 reputation.':'Elias sent you? Take legal filters to Kepler. One raider on the route. 350 credits, +2 reputation. Then come back.'}`}],()=>{if(C.accept(state)){save();dock();announce('Cargo loaded. Ready for departure.');}else dock();},'ACCEPT JOB →','Rook’s booth');
+ talk('bar',[{who:'rook',text:`${illegal?'Good run. Next job: memory wafers to Rusthaven. Illegal. This run might be more dangerous. 800 credits.':'Elias sent you? Take legal filters to Kepler. Look out for raiders. 350 credits. Then come back.'}`}],()=>{if(C.accept(state)){save();dock();announce('Cargo loaded. Ready for departure.');}else dock();},'ACCEPT JOB →','Rook’s booth');
  // Leaving the offer never commits the player to a job.
  screen.querySelector('.speech-controls').insertAdjacentHTML('beforeend',button('NOT YET','bar',true));
 }
 function contacts(){
  speech=null;scene('dock');mode='dock';view='bar';screen.classList.remove('hidden');
- screen.innerHTML=`<section class="cinematic-space"><div class="scene-heading"><div class="eyebrow">CARGO DOCK</div><h1>Find a job.</h1></div>${C.contracts.map(c=>{const id=c.id==='medicine'?'sol':c.id==='ghost'?'iona':'rook';return '<button class="place contact-'+id+'" data-action="brief:'+c.id+'" '+(state.contract||state.reputation<c.requirement?'disabled':'')+'>'+characters[id].name+'<br>'+(state.contract?'CARGO LOADED':state.reputation<c.requirement?c.requirement+' REP REQUIRED':c.reward+' CR · TALK')+'</button>';}).join('')}<button class="place cargo-exit" data-action="bar">BAR →</button></section>`;
+ screen.innerHTML=`<section class="cinematic-space"><div class="scene-heading"><div class="eyebrow">CARGO DOCK</div><h1>Find a job.</h1></div>${C.contracts.map(c=>{const id=c.id==='medicine'?'sol':c.id==='ghost'?'iona':'rook';return '<button class="place contact-'+id+'" data-action="brief:'+c.id+'" '+(state.contract?'disabled':'')+'>'+characters[id].name+'<br>'+(state.contract?'CARGO LOADED':c.reward+' CR · TALK')+'</button>';}).join('')}<button class="place cargo-exit" data-action="bar">BAR →</button></section>`;
 }
-function brief(id){const c=C.contracts.find(c=>c.id===id);if(!c)return;const who=id==='medicine'?'sol':id==='ghost'?'iona':'rook';talk('dock',[{who,text: `${c.cargo}. ${c.legal?'Legal':'Illegal'}. To ${C.stations[c.destination===state.location?'meridian':c.destination].name}. ${c.reward} credits, +${c.rep} reputation.`}],()=>{if(C.accept(state,id)){save();dock();}else contacts();},'ACCEPT JOB →','Cargo job');screen.querySelector('.speech-controls').insertAdjacentHTML('beforeend',button('BACK','contacts',true));}
+function brief(id){const c=C.contracts.find(c=>c.id===id);if(!c)return;const who=id==='medicine'?'sol':id==='ghost'?'iona':'rook';talk('dock',[{who,text: `${c.cargo}. ${c.legal?'Legal':'Illegal'}. To ${C.stations[c.destination===state.location?'meridian':c.destination].name}. ${c.reward} credits.`}],()=>{if(C.accept(state,id)){save();dock();}else contacts();},'ACCEPT JOB →','Cargo job');screen.querySelector('.speech-controls').insertAdjacentHTML('beforeend',button('BACK','contacts',true));}
 
 const originalArrive=arrive;
 arrive=function(){
  const f=current;originalArrive();if(mode!=='arrival'||!f?.reward)return;
  const who=f.destination==='undertow'?'iona':f.destination==='foundry'?'rook':'sol';
- const line=f.destination==='undertow'&&state.completed===2?'Delivered. 800 credits, +3 reputation. These MK 2 guns are my thanks. Shops are open to you now.':`Delivered. ${f.reward} credits, +${f.rep} reputation. ${state.quest==='return'?'Head back to Rook at Meridian.':'Good flying.'}`;
+ const line=f.destination==='undertow'&&state.completed===2?'Delivered. 800 credits. These MK 2 guns are my thanks. Shops are open to you now.':`Delivered. ${f.reward} credits. ${state.quest==='return'?'Head back to Rook at Meridian.':'Good flying.'}`;
  talk('dock',[{who,text:line+(f.repairCharged?` Dock servicing costs ${f.repairCharged} credits.`:'')}],()=>dock(),'OPEN STATION MENU →','Delivery confirmed');
 };
 screen.addEventListener('click',e=>{const a=e.target.closest('button')?.dataset.action;if(a==='speech-next')advanceSpeech();else if(a==='opening-replay')inheritance(true);else if(a==='talk-rook')rookConversation();else if(a==='talk-nyx')talk('bar',[{who:'nyx',text:state.quest==='legal-offer'?'Rook has work. He’s in the booth.':state.quest==='illegal-offer'?'Rook is waiting. This job pays better.':'Need work? Visit the cargo contacts. Need upgrades? Try the shop.'}],barRoom,'BACK TO THE BAR','At the counter');else if(a==='contacts')contacts();else if(a?.startsWith('brief:'))brief(a.slice(6));});
@@ -106,4 +102,4 @@ function drawPlanets(dest){
  ctx.strokeStyle=type.base+'55';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,p.r,0,Math.PI*2);ctx.stroke();if(type.ring)ring(0,Math.PI);ctx.restore();
  if(flying&&elapsed/current.duration<.48){ctx.fillStyle='#adc7d1';ctx.font='11px Consolas, monospace';ctx.fillText(type.name,Math.max(20,Math.min(W-260,p.x-p.r)),Math.max(205,p.y+p.r+24));}
 }
-// world.js starts the game after its textures and renderers are registered.
+// bootstrap.js owns startup after all renderers are registered.
