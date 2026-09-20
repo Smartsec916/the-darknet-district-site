@@ -10,9 +10,9 @@
     foundry: { name: 'The Foundry', district: 'SECTOR 24 / INDUSTRIAL BELT', color: '#ff795f', bar: 'Afterburn' }
   };
   const contracts = [
-    { id: 'medicine', name: 'Cold chain', cargo: 'Refrigerated clinic supplies', legal: true, destination: 'kepler', reward: 650, rep: 2, enemies: 8, tier: 1, duration: 38, requirement: 5, contact: 'Dr. Sol', briefing: 'Our clinics need these before the next shift. Keep the containers intact. The raiders out here have started flying in pairs.' },
-    { id: 'ghost', name: 'Ghost hardware', cargo: 'Unlicensed neural processors', legal: false, destination: 'undertow', reward: 1000, rep: 3, enemies: 12, tier: 2, duration: 45, requirement: 7, contact: 'Iona Vale', briefing: 'The people buying these cannot afford corporate leases on their own minds. Expect armored interceptors. Upgrade before you leave.' },
-    { id: 'foundry', name: 'A debt in steel', cargo: 'Restricted fabrication cores', legal: false, destination: 'foundry', reward: 1500, rep: 4, enemies: 16, tier: 3, duration: 52, requirement: 10, contact: 'Rook', briefing: 'The Foundry is building something the corporations would rather stay broken. A gunship guards the approach. Bring armor and a better reactor.' }
+    { id: 'medicine', name: 'Cold chain', cargo: 'Refrigerated clinic supplies', legal: true, destination: 'kepler', reward: 650, enemies: 8, tier: 1, duration: 38, contact: 'Dr. Sol', briefing: 'Our clinics need these before the next shift. Keep the containers intact. The raiders out here have started flying in pairs.' },
+    { id: 'ghost', name: 'Ghost hardware', cargo: 'Unlicensed neural processors', legal: false, destination: 'undertow', reward: 1000, enemies: 12, tier: 2, duration: 45, contact: 'Iona Vale', briefing: 'The people buying these cannot afford corporate leases on their own minds. Expect armored interceptors. Upgrade before you leave.' },
+    { id: 'foundry', name: 'A debt in steel', cargo: 'Restricted fabrication cores', legal: false, destination: 'foundry', reward: 1500, enemies: 16, tier: 3, duration: 52, contact: 'Rook', briefing: 'The Foundry is building something the corporations would rather stay broken. A gunship guards the approach. Bring armor and a better reactor.' }
   ];
   const upgrades = {
     guns: { name: 'Pulse cannons', description: 'More damage and a faster firing cycle.', prices: [350, 700, 1200] },
@@ -22,12 +22,12 @@
   };
   const quests = ['inheritance', 'arrival', 'legal-offer', 'legal-run', 'return', 'illegal-offer', 'illegal-run', 'open'];
   const allContracts = [...contracts, ...content.missions];
-  function fresh() { return { version: 2, quest: 'inheritance', location: 'meridian', credits: 100, reputation: 0, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], loginOfferSeen:false, loadout: {weapon:null,shield:null,utility:null} }; }
+  function fresh() { return { version: 2, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], loginOfferSeen:false, loadout: {weapon:null,shield:null,utility:null} }; }
   function restore(raw) {
     try {
       const s = JSON.parse(raw);
       if (!s || ![1,2].includes(s.version) || !quests.includes(s.quest) || !Object.hasOwn(stations, s.location)) return null;
-      for (const k of ['credits', 'reputation', 'completed']) if (!Number.isSafeInteger(s[k]) || s[k] < 0 || s[k] > 100000000) return null;
+      for (const k of ['credits', 'completed']) if (!Number.isSafeInteger(s[k]) || s[k] < 0 || s[k] > 100000000) return null;
       if(s.upgrades && s.upgrades.shields===undefined)s.upgrades.shields=0;
       for (const k of Object.keys(upgrades)) if (!Number.isInteger(s.upgrades?.[k]) || s.upgrades[k] < 0 || s.upgrades[k] > 3) return null;
       if (s.contract !== null && !allContracts.some(c => c.id === s.contract)) return null;
@@ -36,7 +36,7 @@
       const allGear={...content.gear,...content.creditGear};
       for (const slot of Object.keys(loadout)) if (Object.hasOwn(allGear,s.loadout?.[slot] || '') && allGear[s.loadout[slot]].slot===slot) loadout[slot]=s.loadout[slot];
       const creditGear=Array.isArray(s.creditGear)?[...new Set(s.creditGear.filter(id=>Object.hasOwn(content.creditGear,id)))]:[];
-      return { ...fresh(), quest: s.quest, location: s.location, credits: s.credits, reputation: s.reputation, completed: s.completed, upgrades: { guns: s.upgrades.guns, armor: s.upgrades.armor, engines: s.upgrades.engines,shields:s.upgrades.shields }, contract: s.contract, cleared, loadout,creditGear,loginOfferSeen:typeof s.loginOfferSeen==='boolean'?s.loginOfferSeen:s.completed>0 };
+      return { ...fresh(), quest: s.quest, location: s.location, credits: s.credits, completed: s.completed, upgrades: { guns: s.upgrades.guns, armor: s.upgrades.armor, engines: s.upgrades.engines,shields:s.upgrades.shields }, contract: s.contract, cleared, loadout,creditGear,loginOfferSeen:typeof s.loginOfferSeen==='boolean'?s.loginOfferSeen:s.completed>0 };
     } catch { return null; }
   }
   function beginJourney(s) { if (s.quest !== 'inheritance') return false; s.quest = 'arrival'; return true; }
@@ -45,13 +45,13 @@
     const creditHas=id=>s.creditGear?.includes(id)&&s.loadout?.utility===id;
     return { hull: B.playerHull + s.upgrades.armor * B.hullPerTier, damage: has('wraith') ? B.premiumLaserDamage : B.laserDamage + s.upgrades.guns * B.laserDamagePerTier, cooldown: has('wraith') ? 1/B.premiumLaserFireRate : Math.max(1/60,1/B.laserFireRate - s.upgrades.guns * B.laserCooldownPerTier), speed: 10 + s.upgrades.engines * 2.5, shield: has('aegis') ? B.premiumShield : B.playerShield+(s.upgrades.shields||0)*B.shieldPerTier, shieldRegen:has('aegis')?B.premiumShieldRechargeRate:B.shieldRechargeRate,shieldDelay:has('aegis')?B.premiumShieldRechargeDelay:B.shieldRechargeDelay, piercing: has('wraith'), drive: has('ghost')||creditHas('vector'),driveDuration:has('ghost')?.7:.4,driveCooldown:has('ghost')?8:12, drone: has('sentinel')||creditHas('scout'),droneDamage:has('sentinel')?4:2,droneCooldown:has('sentinel')?.7:1.2 };
   }
-  function unlocked(s,c) { return s.quest==='open' && s.reputation>=c.requirement && (!c.requires || s.cleared.includes(c.requires)); }
+  function unlocked(s,c) { return s.quest==='open' && (!c.requires || s.cleared.includes(c.requires)); }
   function flight(s) {
-    const base = { enemies: 0, tier: 0, duration: 15, reward: 0, rep: 0, legal: true, cargo: 'Empty hold' };
+    const base = { enemies: 0, tier: 0, duration: 15, reward: 0, legal: true, cargo: 'Empty hold' };
     if (s.quest === 'arrival') return { ...base, name: 'A ship of your own', destination: 'meridian' };
-    if (s.quest === 'legal-run') return { ...base, name: 'An honest living', cargo: 'Water filtration parts', destination: 'kepler', enemies: 1, duration: 28, reward: 350, rep: 2 };
+    if (s.quest === 'legal-run') return { ...base, name: 'An honest living', cargo: 'Water filtration parts', destination: 'kepler', enemies: 1, duration: 28, reward: 350 };
     if (s.quest === 'return') return { ...base, name: 'Back to the Dead Channel', destination: 'meridian', duration: 18 };
-    if (s.quest === 'illegal-run') return { ...base, name: 'No questions asked', cargo: 'Unregistered memory wafers', legal: false, destination: 'undertow', enemies: 6, tier: 1, duration: 36, reward: 800, rep: 3 };
+    if (s.quest === 'illegal-run') return { ...base, name: 'No questions asked', cargo: 'Unregistered memory wafers', legal: false, destination: 'undertow', enemies: 6, tier: 1, duration: 36, reward: 800 };
     if (s.quest === 'open' && s.contract) {
       const c = allContracts.find(c => c.id === s.contract);
       if (!c) return null;
@@ -70,7 +70,7 @@
   function complete(s) {
     const f = flight(s); if (!f) return null;
     const previous = s.quest;
-    s.location = f.destination; s.credits += f.reward; s.reputation += f.rep;
+    s.location = f.destination; s.credits += f.reward;
     const repairCharged=Math.min(s.credits,Math.round(B.repairCost));s.credits-=repairCharged;
     if (f.reward) s.completed++;
     if (f.chapter && !s.cleared.includes(f.id)) s.cleared.push(f.id);

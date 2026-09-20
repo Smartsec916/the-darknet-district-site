@@ -17,17 +17,17 @@ const defaults=require('../void-runner/balance.js').defaults;
   else if(p.endsWith('/save')){cloud=r.request().postDataJSON().save;body={revision:++revision};}
   await r.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
  });
- await page.goto('http://127.0.0.1:5000/void-runner.html');await page.waitForFunction(()=>typeof flight!=='undefined'&&cockpitArt.complete);
+ await page.goto('http://127.0.0.1:5000/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);
  assert.equal(await page.locator('#dev-balance-open').isVisible(),false);
  const progress=JSON.parse(originalCloud);
  for(const signedIn of [false,true]){
   await page.evaluate(s=>{state=s;save();title();},progress);
   if(signedIn){await page.locator('#expansion-nav [data-action="account"]').click();await page.getByRole('button',{name:'SIGN IN WITH GOOGLE',exact:true}).click();await page.waitForFunction(()=>VoidAccount.user&&!VoidAccount.busy&&ownedGear.length===2);await page.evaluate(()=>title());}
   await page.getByRole('button',{name:'NEW JOURNEY',exact:true}).click();await page.getByRole('button',{name:'REPLACE SAVE',exact:true}).click();
-  const reset=await page.evaluate(()=>({save:JSON.parse(localStorage.getItem(SAVE_KEY)),state,credits:$('credits').textContent,rep:$('reputation').textContent,hp,shieldHP,current,owned:ownedGear}));
-  assert.equal(reset.credits,'100');assert.equal(reset.state.credits,100);assert.equal(reset.save.credits,100);assert.equal(reset.state.reputation,0);assert.equal(reset.state.completed,0);assert.deepEqual(reset.state.cleared,[]);assert.equal(reset.state.contract,null);assert.equal(reset.current,null);assert.equal(reset.hp,100);assert.equal(reset.shieldHP,0);assert.equal(reset.owned.length,signedIn?2:0);assert.equal(JSON.stringify(cloud),originalCloud);
+  const reset=await page.evaluate(()=>({save:JSON.parse(localStorage.getItem(SAVE_KEY)),state,credits:$('credits').textContent,hp,shieldHP,current,owned:ownedGear}));
+  assert.equal(reset.credits,'100');assert.equal(reset.state.credits,100);assert.equal(reset.save.credits,100);assert.equal(reset.state.reputation,undefined);assert.equal(reset.state.completed,0);assert.deepEqual(reset.state.cleared,[]);assert.equal(reset.state.contract,null);assert.equal(reset.current,null);assert.equal(reset.hp,100);assert.equal(reset.shieldHP,0);assert.equal(reset.owned.length,signedIn?2:0);assert.equal(JSON.stringify(cloud),originalCloud);
  }
- await page.reload();await page.waitForFunction(()=>typeof state!=='undefined');assert.equal(await page.evaluate(()=>state.credits),100);
+ await page.reload();await page.waitForFunction(()=>window.VoidStartup?.started);assert.equal(await page.evaluate(()=>state.credits),100);
  // Explicit cloud load is the sole route back to the old campaign.
  await page.evaluate(()=>{state.completed=1;dock();});await page.locator('#expansion-nav [data-action="account"]').click();await page.getByRole('button',{name:'SIGN IN WITH GOOGLE',exact:true}).click();await page.waitForFunction(()=>VoidAccount.user&&!VoidAccount.busy);
  await page.getByRole('button',{name:'LOAD CLOUD JOURNEY',exact:true}).click();assert.equal(await page.evaluate(()=>state.credits),100);await page.getByRole('button',{name:'LOAD CLOUD SAVE',exact:true}).click();assert.equal(await page.evaluate(()=>state.credits),9800);
@@ -60,7 +60,7 @@ const defaults=require('../void-runner/balance.js').defaults;
  await page.evaluate(()=>{trialGear=null;dock();});await page.locator('#expansion-nav [data-action="account"]').click();await page.getByRole('button',{name:'SIGN OUT',exact:true}).click();await page.waitForFunction(()=>!VoidAccount.busy);assert.equal(await page.locator('#dev-balance-open').isVisible(),false);assert.equal(await page.evaluate(()=>missileState.ownsMissileLauncher),false);
  const touch=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});touch.on('pageerror',e=>errors.push(e.message));
  await touch.route('**/firebase-auth.js',r=>r.fulfill({contentType:'text/javascript',body:'export const auth={},provider={};export const onAuthStateChanged=(a,fn)=>fn(null);export const getRedirectResult=async()=>null;'}));
- await touch.goto('http://127.0.0.1:5000/void-runner.html');await touch.waitForFunction(()=>typeof flight!=='undefined');
+ await touch.goto('http://127.0.0.1:5000/void-runner.html');await touch.waitForFunction(()=>window.VoidStartup?.started);await touch.waitForFunction(()=>typeof flight!=='undefined');
  await touch.evaluate(()=>{VoidDevTools.authorized=true;devMissileTrial=true;trialGear='missile';launch();spawnEnemy();Object.assign(enemies[0],{x:0,y:0,z:55,fire:99,velocity:{x:0,y:0,z:0}});mode='pause';stepMissileCombat(2,{x:0,y:0,z:0});draw();});
  await touch.locator('#missile-fire').waitFor({state:'visible'});assert.equal(await touch.locator('#missile-fire').evaluate(el=>getComputedStyle(el).pointerEvents),'auto');
  await touch.evaluate(()=>{mode='play';});await touch.locator('#missile-fire').dispatchEvent('pointerdown',{pointerType:'touch',button:0,pointerId:4});assert.equal(await touch.evaluate(()=>missileState.missilesLoaded),11);

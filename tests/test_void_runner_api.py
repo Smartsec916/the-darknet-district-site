@@ -120,7 +120,12 @@ class ApiTests(unittest.TestCase):
         response=self.client.post('/api/void-runner/save',json={'save':state,'revision':0},headers=self.header)
         self.assertEqual(response.status_code,200)
         account=self.client.get('/api/void-runner/account',headers=self.header).json
-        self.assertEqual(account['save'],state)
+        self.assertEqual(account['save'],{k:v for k,v in state.items() if k!='reputation'})
+        self.assertNotIn('reputation',account['save'])
+        modern={k:v for k,v in state.items() if k!='reputation'}
+        self.assertEqual(vr.clean_save(modern),account['save'])
+        state['reputation']='ignored legacy value'
+        self.assertEqual(vr.clean_save(state),account['save'])
         self.assertEqual(account['owned'],[])
         state['creditGear']=['sentinel']
         self.assertEqual(self.client.post('/api/void-runner/save',json={'save':state,'revision':1},headers=self.header).status_code,400)

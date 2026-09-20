@@ -98,7 +98,7 @@ draw=function(){
  for(const o of missionObjects){if(o.kind==='hazard'){drawRock(o);continue;}const p=flightPoint(o);if(p.z>1){const r=Math.max(7,p.s*2);ctx.strokeStyle='#58ffe1';ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.PI/4);ctx.strokeRect(-r,-r,r*2,r*2);ctx.restore();}}
  if(current.kind==='escort'){const p=flightPoint({x:0,y:5,z:25});if(p.z>1){ctx.strokeStyle='#ffbd69';ctx.strokeRect(p.x-20,p.y-12,40,24);ctx.fillStyle='#ffbd69';ctx.fillText('SHUTTLE',p.x-24,p.y+28);}}
  drawMissiles();
- if(cockpitArt.complete&&cockpitArt.naturalWidth)ctx.drawImage(cockpitArt,0,0,W,H);else{ctx.fillStyle='#091720';ctx.fillRect(0,H*.81,W,H*.19);}
+ ctx.drawImage(cockpitArt,0,0,W,H); // Required and decoded by bootstrap before flight.
  flight.arrows=[];for(const e of enemies){const p=flightPoint(e);if(p.z<=0||p.x<W*.12||p.x>W*.88||p.y<H*.15||p.y>H*.72)cockpitArrow(e,e.generator?'RELAY':'HOSTILE','#ff718a');}
  for(const o of missionObjects)if(o.kind==='salvage'){const p=flightPoint(o);if(p.z<=0||p.x<0||p.x>W||p.y<0||p.y>H*.75)cockpitArrow(o,'SIGNAL','#58ffe1');}
  ctx.strokeStyle='#8dffe3';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(W/2,H*.44,9,0,Math.PI*2);ctx.moveTo(W/2-22,H*.44);ctx.lineTo(W/2-13,H*.44);ctx.moveTo(W/2+13,H*.44);ctx.lineTo(W/2+22,H*.44);ctx.stroke();

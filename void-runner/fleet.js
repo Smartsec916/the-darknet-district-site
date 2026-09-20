@@ -32,4 +32,4 @@ ship=function(x,y,z,size,color,rotation=0,kind='player'){
  if(kind==='player'&&combat&&state.upgrades.guns){ctx.fillStyle='#bdff82';for(const side of [-1,1])ctx.fillRect(side*width*.34-2,-height*.12,4+state.upgrades.guns,15);}
  ctx.restore();
 };
-title();requestAnimationFrame(loop);
+// Startup belongs to bootstrap.js, after cockpit registration.

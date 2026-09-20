@@ -10,7 +10,7 @@ test('v1 saves migrate without losing credits, location or upgrades',()=>{
   const s=C.restore(JSON.stringify(old));assert.equal(s.version,2);assert.equal(s.credits,2450);assert.deepEqual(s.upgrades,{...old.upgrades,shields:0});assert.deepEqual(s.cleared,[]);assert.equal(s.contract,'ghost');
 });
 test('all 12 chapter missions unlock in order and pay once per acceptance',()=>{
-  const s=C.fresh();s.quest='open';s.reputation=5;assert.equal(C.accept(s,'gate-4'),false);
+  const s=C.fresh();s.quest='open';assert.equal(C.accept(s,'gate-4'),false);
   for(const m of content.missions){assert.equal(C.accept(s,m.id),true);assert.equal(C.flight(s).kind,m.kind);const credits=s.credits;C.complete(s);assert.equal(s.credits,credits+m.reward);assert.equal(C.complete(s),null);assert(s.cleared.includes(m.id));}
   assert.equal(s.cleared.length,12);assert.equal(C.accept(s,'belt-1'),true);C.complete(s);assert.equal(s.cleared.length,12);
 });
@@ -39,4 +39,11 @@ test('exclusive tier is stronger and still requires account ownership',()=>{
   const normal=C.stats(s);assert.equal(normal.shield,45);assert.equal(normal.driveCooldown,12);
   s.loadout={weapon:'wraith',shield:'aegis',utility:'ghost'};assert.equal(C.stats(s).shield,45);assert.equal(C.stats(s).drive,false);
   const premium=C.stats(s,['wraith','aegis','ghost']);assert(premium.shield>normal.shield);assert(premium.shieldRegen>normal.shieldRegen);assert(premium.driveCooldown<normal.driveCooldown);
+});
+
+test('legacy reputation is ignored without losing campaign or equipment',()=>{
+ for(const reputation of [undefined,25,-1,'obsolete',null]){
+ const old={...C.fresh(),quest:'open',completed:4,credits:2500,contract:'ghost',reputation,creditGear:['scout'],loadout:{weapon:'wraith',shield:null,utility:'scout'},cleared:['belt-1']};
+ const restored=C.restore(JSON.stringify(old));assert(restored);assert.equal(restored.credits,2500);assert.equal(restored.contract,'ghost');assert.deepEqual(restored.creditGear,['scout']);assert.equal(restored.loadout.weapon,'wraith');assert(!Object.hasOwn(restored,'reputation'));assert(C.unlocked(restored,C.contracts[2]));
+ }
 });

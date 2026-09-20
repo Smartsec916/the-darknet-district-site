@@ -196,7 +196,7 @@ def clean_save(value):
     if value.get('quest') not in ['inheritance','arrival','legal-offer','legal-run','return','illegal-offer','illegal-run','open'] or value.get('location') not in ['meridian','kepler','undertow','foundry']:
         raise ApiError('Invalid campaign state.')
     result = {k: value[k] for k in ['version','quest','location']}
-    for k in ['credits','reputation','completed']:
+    for k in ['credits','completed']:
         v = value.get(k)
         if type(v) is not int or not 0 <= v <= 100_000_000:
             raise ApiError('Invalid campaign values.')

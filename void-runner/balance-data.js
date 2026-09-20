@@ -1,5 +1,6 @@
 /* Shared by the browser and Python API. Edit this JSON object to tune defaults and limits. */
 globalThis.VoidBalanceSpec = {
+  "firstRaiderDelay": {"value":10,"min":0,"max":60},
   "playerHull": {
     "value": 100,
     "min": 1,
