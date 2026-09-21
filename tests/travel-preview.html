@@ -1,0 +1,12 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>VOID travel QA</title>
+<style>body{margin:0;background:#030913;color:#bfffee;font:14px monospace}nav{padding:10px;display:flex;gap:10px;align-items:center}button{background:#142832;color:#bfffee;padding:9px;border:1px solid #58ffe1}iframe{width:100%;height:calc(100vh - 58px);border:0}#status{margin-left:auto}</style>
+<nav><b>LOCAL TRAVEL QA</b><button data-origin="meridian" data-destination="kepler">Meridian → Kepler</button><button data-origin="kepler" data-destination="meridian">Kepler → Meridian</button><button data-origin="undertow" data-destination="foundry">Rusthaven → Foundry</button><button data-origin="foundry" data-destination="undertow">Foundry → Rusthaven</button><button id="clear">Clear encounter</button><span id="status">Loading…</span></nav>
+<iframe src="../void-runner.html" title="Game preview"></iframe>
+<script>
+if(!['localhost','127.0.0.1'].includes(location.hostname))throw Error('This QA fixture is local-only.');
+const frame=document.querySelector('iframe'),status=document.getElementById('status');
+document.querySelector('nav').onclick=e=>{if(!e.target.dataset.origin)return;const {origin,destination}=e.target.dataset;
+frame.contentWindow.eval(`save=()=>{};state=C.fresh();state.quest='open';state.completed=2;state.location=${JSON.stringify(origin)};C.chooseDestination(state,${JSON.stringify(destination)});launch();`);};
+document.getElementById('clear').onclick=()=>frame.contentWindow.eval("if(flight.route?.phase==='encounter'){while(spawned<current.enemies)spawnEnemy();for(const e of enemies)hitEnemy(e,10000);enemies=enemies.filter(e=>!e.dead);if(mode==='pause')pause();}");
+setInterval(()=>{try{status.textContent=frame.contentWindow.eval("if(flight.route?.phase==='encounter'&&mode==='play')pause();if(flight.route?.phase==='align'){flight.yaw=Math.atan2(flight.route.vector.x,flight.route.vector.z);flight.pitch=flight.roll=flight.yawRate=flight.pitchRate=0;}flight.route?flight.route.phase.toUpperCase()+' / '+(flight.route.progress*VoidWarp.config.warpSeconds).toFixed(1)+'s':'READY'");}catch{}},100);
+</script></html>

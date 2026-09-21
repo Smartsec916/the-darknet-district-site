@@ -44,8 +44,13 @@ function firstDeliveryOffer(){
     `<p>Your first job is done. Rook is waiting back at Meridian.</p><p>Sign in to save your journey online and access exclusive ship upgrades. You can also keep playing as a guest.</p><div class="account-actions">${button(window.VoidAccount?.user?'SAVE PROGRESS / ACCOUNT':'SIGN IN & SAVE PROGRESS','account')}${button('KEEP PLAYING','dock',true)}${button('VIEW UPGRADE SHOP','shop',true)}</div><p class="fine">Signing in is optional. Your progress already saves in this browser. The upgrade catalog is being prepared.</p>`);
 }
 function setOwnedGear(ids) {
-  ownedGear=ids.filter(id=>Object.hasOwn(VoidContent.gear,id));
-  shieldHP=Math.min(shieldHP,C.stats(state).shield);
+  ownedGear=Array.isArray(ids)?ids.filter(id=>Object.hasOwn(VoidContent.gear,id)||id==='spectre'):[];
+  VoidShips.verify(ownedGear);
+  if(state.activeShip==='ship3'&&!VoidShips.owns(state,'ship3')){C.switchShip(state,'starter');save();hud();}
+  if(view==='hangar'&&mode==='dock')hangar();
+  const stats=C.stats(state);shieldHP=Math.min(shieldHP,stats.shield);hp=Math.min(hp,stats.hull);
+  missileState.missileCapacity=Math.min(missileState.missileCapacity,stats.ship.missile.capacity);
+  missileState.missilesLoaded=Math.min(missileState.missilesLoaded,missileState.missileCapacity);
   if (['market','shop'].includes(view)&&mode==='dock') market();
 }
 const expansionDock=dock;
@@ -93,10 +98,10 @@ spawnEnemy=function(){
 };
 function activateDrive(){const s=C.stats(state);if(mode==='play'&&s.drive&&driveCooldown<=0){driveTime=s.driveDuration;driveCooldown=s.driveCooldown;tone(220,.3);}}
 function updateEquipmentHud(){
-  const s=C.stats(state);$('shield-number').textContent=s.shield?`${Math.ceil(shieldHP)} / ${s.shield}`:'NONE';
-  $('shield-bar').style.width=s.shield?100*shieldHP/s.shield+'%':'0%';
-  $('drive').disabled=!s.drive||driveCooldown>0;
-  $('drive').textContent=s.drive?(driveCooldown>0?`DRIVE ${Math.ceil(driveCooldown)}s`:'DRIVE / E'):'DRIVE / NONE';
+  const s=C.stats(state);hudText('shield-number',s.shield?`${Math.ceil(shieldHP)} / ${s.shield}`:'NONE');
+  const width=s.shield?(100*shieldHP/s.shield).toFixed(1)+'%':'0%';if($('shield-bar').style.width!==width)$('shield-bar').style.width=width;
+  const disabled=!s.drive||driveCooldown>0;if($('drive').disabled!==disabled)$('drive').disabled=disabled;
+  hudText('drive',s.drive?(driveCooldown>0?`DRIVE ${Math.ceil(driveCooldown)}s`:'DRIVE / E'):'DRIVE / NONE');
 }
 function escortImpact(b){
   if(b.escort&&!b.dead&&Math.hypot(b.x,b.y-2.4)<1){escortHP=Math.max(0,escortHP-b.damage);if(!escortHP){mode='over';clearInput();flightUI(false);panel('ESCORT LOST','Bring them <em>home.</em>','<p>The shuttle was disabled. Retry the mission; your campaign and equipment are safe.</p>',button('RETRY MISSION','launch')+button('BACK TO SHIP','dock',true));}}

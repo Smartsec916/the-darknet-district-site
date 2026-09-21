@@ -6,8 +6,9 @@ const flightBasis=()=>FM.basis(flight.yaw,flight.pitch,flight.roll);
 const flightPoint=o=>FM.project(o,flightBasis(),W,H);
 const cockpitLaunch=launch;
 launch=function(){VoidDevTools?.applyPending();cockpitLaunch();if(mode!=='play')return;Object.assign(flight,{yaw:0,pitch:0,roll:0,yawRate:0,pitchRate:0,throttle:.8,mouseX:0,mouseY:0,travel:0,nav:{x:0,y:0,z:140}});VoidPilotFlight.reset(flight);flight.route=trialGear?null:VoidWarp.restore(state.travel,state.location,current.destination,current.id||state.quest,current.enemies>0||['salvage','hazard','escort'].includes(current.kind));
+ ensureLocationAssets(state.location);ensureLocationAssets(current.destination);fleetTexture.load();
  if(flight.route){state.travel=flight.route;flight.nav={x:flight.route.vector.x*140,y:0,z:flight.route.vector.z*140};if(flight.route.encounter.state==='cleared')spawned=resolved=current.enemies;save();}
- resetMissileFlight();VoidCombatEffects.reset();$('route-status').textContent=`0% / ${current.enemies} HOSTILES`;$('weapon').textContent=C.stats(state).piercing?'WRAITH / PIERCING':`PULSE MK ${state.upgrades.guns+1}`;flight.rocks=Array.from({length:34},(_,i)=>({x:(i%2?1:-1)*(28+random()*100),y:(random()-.5)*120,z:25+random()*300,size:1.5+random()*6,phase:random()*6}));announce('Cockpit online · WASD / arrows turn · Shift / X throttle · Space fires');};
+ resetMissileFlight();VoidCombatEffects.reset();$('route-status').textContent='DEPARTURE GUIDANCE';$('weapon').textContent=C.stats(state).piercing?'WRAITH / PIERCING':`PULSE MK ${state.upgrades.guns+1}`;flight.rocks=Array.from({length:34},(_,i)=>({x:(i%2?1:-1)*(28+random()*100),y:(random()-.5)*120,z:25+random()*300,size:1.5+random()*6,phase:random()*6}));announce('Cockpit online · WASD / arrows turn · Shift / X throttle · Space fires');};
 const cockpitUI=flightUI;
 flightUI=function(active){cockpitUI(active);document.body.classList.toggle('cockpit-flight',active);};
 aim=function(e){const rect=canvas.getBoundingClientRect();flight.mouseX=FM.clamp((e.clientX-rect.left-W/2)/(W*.3),-1,1);flight.mouseY=FM.clamp((e.clientY-rect.top-H*.44)/(H*.3),-1,1);};
@@ -39,12 +40,12 @@ update=function(dt){
  if(mode!=='play'){if(mode!=='pause')VoidCombatEffects.step(dt);VoidAudio.update(VoidShips.get(state),0,0,'idle',false);cockpitIdleUpdate(dt);return;}
  VoidCombatEffects.step(dt);time+=dt;noticeTime-=dt;if(noticeTime<=0)$('notice').textContent='';damageTime=Math.max(0,damageTime-dt);cockpitEquipment(dt);
  const stats=C.stats(state),x=Number(keys.has('KeyD')||keys.has('ArrowRight'))-Number(keys.has('KeyA')||keys.has('ArrowLeft')),y=Number(keys.has('KeyS')||keys.has('ArrowDown'))-Number(keys.has('KeyW')||keys.has('ArrowUp'));
- VoidPilotFlight.step(flight,{x:x||flight.mouseX,y:y||flight.mouseY,roll:Number(keys.has('KeyR'))-Number(keys.has('KeyQ')),throttle:Number(keys.has('ShiftLeft')||keys.has('ShiftRight'))-Number(keys.has('KeyX'))},dt,stats.flight,driveTime>0,state.upgrades.engines);
+ if(!flight.route||['align','encounter'].includes(flight.route.phase))VoidPilotFlight.step(flight,{x:x||flight.mouseX,y:y||flight.mouseY,roll:Number(keys.has('KeyR'))-Number(keys.has('KeyQ')),throttle:Number(keys.has('ShiftLeft')||keys.has('ShiftRight'))-Number(keys.has('KeyX'))},dt,stats.flight,driveTime>0,state.upgrades.engines);
  const b=flightBasis(),velocity=flight.velocity,speed=FM.length(velocity);flight.travel+=speed*dt;
  const route=flight.route,combat=!route||route.phase==='encounter';
  if(combat)elapsed+=dt*FM.clamp(flight.throttle/.8,.5,1.5);
  if(route){const changed=VoidWarp.step(route,dt,b.f,routeClear()&&(current.kind!=='hazard'||elapsed>=current.duration));if(changed){state.travel=route;save();VoidAudio.event(route.phase==='warp'?'warp':route.phase==='encounter'||route.phase==='arrived'?'exit':'charge',stats.ship);if(route.phase==='encounter'){elapsed=0;announce('INTERDICTION · Clear the encounter to resume your route.');}if(route.phase==='align')announce('Route clear. Align with destination to resume warp.');}}
- if(!combat){VoidAudio.update(stats.ship,flight.throttle,Math.abs(flight.yawRate),route.phase,true);updateWarpHud();if(route.phase==='arrived'){elapsed=current.duration;approachTime+=dt;if(approachTime>=3)arrive();}return;}
+ if(!combat){VoidAudio.update(stats.ship,flight.throttle,Math.abs(flight.yawRate),route.phase,true);updateWarpHud();if(route.phase==='arrived'){elapsed=current.duration;approachTime+=dt;if(approachTime>=VoidWarp.config.approachSeconds)arrive();}return;}
  cockpitMission(dt,velocity);if(mode!=='play')return;
  shot-=dt;if((keys.has('Space')||firing||touchFiring)&&shot<=0){shot=stats.cooldown;for(const offset of [-.65,.65])bullets.push({x:b.r.x*offset,y:b.r.y*offset,z:b.r.z*offset,vx:b.f.x*VOID_BALANCE.laserProjectileSpeed,vy:b.f.y*VOID_BALANCE.laserProjectileSpeed,vz:b.f.z*VOID_BALANCE.laserProjectileSpeed,damage:stats.damage,life:VOID_BALANCE.laserRange/VOID_BALANCE.laserProjectileSpeed});VoidAudio.event('laser',stats.ship);}
  spawnClock-=dt;if(spawned<current.enemies&&spawnClock<=0&&enemies.length<4+Math.floor(current.tier)){spawnEnemy();spawnClock=Math.max(1.4,(current.duration-10)/Math.max(1,current.enemies));}
@@ -65,9 +66,9 @@ update=function(dt){
  for(const s of sparks){s.life-=dt;s.x+=s.vx*dt;s.y+=s.vy*dt;s.z+=s.vz*dt;moveRelative(s,velocity,dt);}sparks=sparks.filter(s=>s.life>0);
  for(const rock of flight.rocks){moveRelative(rock,velocity,dt);if(FM.length(rock)>380||FM.length(rock)<9){Object.assign(rock,spawnAhead(260,(random()-.5)*210,(random()-.5)*140));}}
  VoidAudio.update(stats.ship,flight.throttle,Math.abs(flight.yawRate),'encounter',true);
- const progress=route?route.progress:Math.min(1,elapsed/current.duration);$('progress').style.width=progress*100+'%';$('route-status').textContent=`${Math.floor(progress*100)}% / ${Math.max(0,current.enemies-resolved)} HOSTILES`;
- $('flight-objective').textContent=current.kind==='salvage'&&objectiveCount<3?`RECOVER SIGNALS ${objectiveCount} / 3 · Steer through cyan beacons`:current.kind==='escort'?`SHUTTLE ${escortHP}% · Destroy attackers to protect it`:routeClear()?'Route clear · Docking guidance engaged':'Clear hostiles · Red arrows point toward off-screen ships';
- if(route)updateWarpHud();else if(mode==='play'&&elapsed>=current.duration&&routeClear()) {approachTime+=dt;if(approachTime>=3)arrive();}
+ const progress=route?route.progress:Math.min(1,elapsed/current.duration);if(!route){$('progress').style.width=progress*100+'%';$('route-status').textContent=`${Math.floor(progress*100)}% / ${routeClear()?'ROUTE CLEAR':'HOSTILE ACTIVITY'}`;
+ $('flight-objective').textContent=current.kind==='salvage'&&objectiveCount<3?`RECOVER SIGNALS ${objectiveCount} / 3 · Steer through cyan beacons`:current.kind==='escort'?`SHUTTLE ${escortHP}% · Destroy attackers to protect it`:routeClear()?'Route clear · Docking guidance engaged':'Clear hostiles · Red arrows point toward off-screen ships';}
+ if(route)updateWarpHud();else if(mode==='play'&&elapsed>=current.duration&&routeClear()) {approachTime+=dt;if(approachTime>=VoidWarp.config.approachSeconds)arrive();}
 };
 // A surrounding sphere of stars stays fixed in space as the cockpit turns.
 const domeStars=Array.from({length:850},()=>{const y=random()*2-1,a=random()*Math.PI*2,r=Math.sqrt(1-y*y);return {x:Math.cos(a)*r*1000,y:y*1000,z:Math.sin(a)*r*1000,bright:random()};});
@@ -79,8 +80,9 @@ function makeSkyRenderer(){
  function shader(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}
  const program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vs));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))return null;gl.useProgram(program);
  const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);const attribute=gl.getAttribLocation(program,'p');gl.enableVertexAttribArray(attribute);gl.vertexAttribPointer(attribute,2,gl.FLOAT,false,0,0);
- const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);let loaded;
- return function(image,b){if(!image.complete||!image.naturalWidth)return false;const width=Math.round(W*.7),height=Math.round(H*.7);if(surface.width!==width||surface.height!==height){surface.width=width;surface.height=height;}gl.viewport(0,0,width,height);if(loaded!==image){gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);loaded=image;}for(const [name,v]of [['right',b.r],['up',b.u],['forward',b.f]])gl.uniform3f(gl.getUniformLocation(program,name),v.x,v.y,v.z);gl.uniform1f(gl.getUniformLocation(program,'aspect'),W/H);gl.drawArrays(gl.TRIANGLES,0,6);ctx.drawImage(surface,0,0,W,H);return true;};
+ const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);const textures=new WeakMap();
+ const uniforms=Object.fromEntries(['right','up','forward','aspect'].map(name=>[name,gl.getUniformLocation(program,name)]));
+ return function(image,b){if(!image.complete||!image.naturalWidth)return false;const width=Math.round(W*.7),height=Math.round(H*.7);if(surface.width!==width||surface.height!==height){surface.width=width;surface.height=height;}gl.viewport(0,0,width,height);if(!textures.has(image)){const texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);textures.set(image,texture);}else gl.bindTexture(gl.TEXTURE_2D,textures.get(image));for(const [name,v]of [['right',b.r],['up',b.u],['forward',b.f]])gl.uniform3f(uniforms[name],v.x,v.y,v.z);gl.uniform1f(uniforms.aspect,W/H);gl.drawArrays(gl.TRIANGLES,0,6);ctx.drawImage(surface,0,0,W,H);return true;};
 }
 try{skyRenderer=makeSkyRenderer();}catch{skyRenderer=null;}
 function hashNoise(x,y,z){const n=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return n-Math.floor(n);}
@@ -97,21 +99,21 @@ function cockpitArrow(o,label,color){const a=FM.arrow(o,flightBasis(),W,H);fligh
 const cockpitDockDraw=draw;
 draw=function(){
  if(mode!=='play'&&mode!=='pause'){cockpitDockDraw();VoidCombatEffects.draw();VoidDevTools.debug();return;}
- const b=flightBasis();ctx.fillStyle='#030713';ctx.fillRect(0,0,W,H);if(skyRenderer)skyRenderer(skyboxes[current.destination],b);
+ const b=flightBasis(),r=flight.route,seconds=(r?.progress||0)*VoidWarp.config.warpSeconds;ctx.fillStyle='#030713';ctx.fillRect(0,0,W,H);if(skyRenderer){const blend=!r||r.phase==='arrived'?1:Math.max(0,Math.min(1,(seconds-VoidWarp.config.destinationRevealSeconds)/2.5));if(blend<1)skyRenderer(skyboxes[state.location],b);if(blend>0){ctx.save();ctx.globalAlpha=blend;skyRenderer(skyboxes[current.destination],b);ctx.restore();}}
  for(const star of domeStars){const p=FM.project(star,b,W,H);if(p.z>0&&p.x>=0&&p.x<W&&p.y>=0&&p.y<H){ctx.fillStyle=star.bright>.85?'#d4eaff':'#6e899c';ctx.fillRect(p.x,p.y,star.bright>.85?1.6:1,star.bright>.85?1.6:1);}}
- cockpitPlanet();for(const rock of [...flight.rocks].sort((a,b)=>flightPoint(b).z-flightPoint(a).z))drawRock(rock);
- if(destinationVisible()){const p=flightPoint({x:0,y:0,z:140}),scale=.2+Math.min(1,approachTime/3)*.6;ctx.save();ctx.translate(p.x-W*.69,p.y-H*.49);ctx.translate(W*.69,H*.49);ctx.scale(scale,scale);ctx.translate(-W*.69,-H*.49);stationScene(C.stations[current.destination].color);ctx.restore();}
+ if(!r||r.phase==='encounter')cockpitPlanet();if(!r||['align','encounter'].includes(r.phase))for(const rock of [...flight.rocks].sort((a,b)=>flightPoint(b).z-flightPoint(a).z))drawRock(rock);
+
  for(const e of [...enemies].sort((a,b)=>flightPoint(b).z-flightPoint(a).z))cockpitEnemy(e);
  for(const list of [bullets,hostile])for(const o of list){const p=flightPoint(o),q=flightPoint({x:o.x-(o.vx||0)*.025,y:o.y-(o.vy||0)*.025,z:o.z-(o.vz||0)*.025});if(p.z>1&&q.z>1){ctx.strokeStyle=list===bullets?'#6bffe3':o.escort?'#ffbf61':'#ff526f';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();}}
  for(const s of sparks){const p=flightPoint(s);if(p.z>1){ctx.globalAlpha=Math.max(0,s.life/.8);ctx.fillStyle=s.color;ctx.fillRect(p.x,p.y,3,3);}}ctx.globalAlpha=1;
  for(const o of missionObjects){if(o.kind==='hazard'){drawRock(o);continue;}const p=flightPoint(o);if(p.z>1){const r=Math.max(7,p.s*2);ctx.strokeStyle='#58ffe1';ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.PI/4);ctx.strokeRect(-r,-r,r*2,r*2);ctx.restore();}}
  if(current.kind==='escort'){const p=flightPoint({x:0,y:5,z:25});if(p.z>1){ctx.strokeStyle='#ffbd69';ctx.strokeRect(p.x-20,p.y-12,40,24);ctx.fillStyle='#ffbd69';ctx.fillText('SHUTTLE',p.x-24,p.y+28);}}
  drawMissiles();
- drawWarpEffect();drawShipCockpit(); // Required and decoded by bootstrap before flight.
+ drawWarpEffect();drawTravelStation();drawDeparture();drawShipCockpit(); // Required and decoded by bootstrap before flight.
  flight.arrows=[];for(const e of enemies){const p=flightPoint(e);if(p.z<=0||p.x<W*.12||p.x>W*.88||p.y<H*.15||p.y>H*.72)cockpitArrow(e,e.generator?'RELAY':'HOSTILE','#ff718a');}
  for(const o of missionObjects)if(o.kind==='salvage'){const p=flightPoint(o);if(p.z<=0||p.x<0||p.x>W||p.y<0||p.y>H*.75)cockpitArrow(o,'SIGNAL','#58ffe1');}
  ctx.strokeStyle='#8dffe3';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(W/2,H*.44,9,0,Math.PI*2);ctx.moveTo(W/2-22,H*.44);ctx.lineTo(W/2-13,H*.44);ctx.moveTo(W/2+13,H*.44);ctx.lineTo(W/2+22,H*.44);ctx.stroke();
- ctx.fillStyle='#84f7dc';ctx.textAlign='center';ctx.font=`${W<600?11:14}px Consolas`;ctx.fillText(`${VoidShips.get(state).name} / ${Math.round(flight.throttle*100)}% THRUST`,W*.5,H*.85);ctx.fillText(`HDG ${((flight.yaw*180/Math.PI%360+360)%360).toFixed(0).padStart(3,'0')}   HOSTILES ${Math.max(0,current.enemies-resolved)}`,W*.5,H*.88);ctx.font='11px Consolas';if(W>700)ctx.fillText('WASD TURN · Q/R ROLL · SHIFT/X THROTTLE · SPACE FIRE',W*.5,H*.93);ctx.textAlign='left';
+ ctx.fillStyle='#84f7dc';ctx.textAlign='center';ctx.font=`${W<600?11:14}px Consolas`;ctx.fillText(`${VoidShips.get(state).name} / ${Math.round(flight.throttle*100)}% THRUST`,W*.5,H*.85);ctx.fillText(`HDG ${((flight.yaw*180/Math.PI%360+360)%360).toFixed(0).padStart(3,'0')}   ${routeClear()?'ROUTE CLEAR':'HOSTILE ACTIVITY'}`,W*.5,H*.88);ctx.font='11px Consolas';if(W>700)ctx.fillText('WASD TURN · Q/R ROLL · SHIFT/X THROTTLE · SPACE FIRE',W*.5,H*.93);ctx.textAlign='left';
  drawWarpMarker();drawMissileReticle();drawEnemyLockWarning();VoidCombatEffects.draw();VoidDevTools?.debug();
 };
 // Touch controls remain outside the canopy; buttons alter the same flight throttle.

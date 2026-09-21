@@ -8,6 +8,7 @@ const path=require('node:path');
  const page=await browser.newPage({viewport:{width:1440,height:900},reducedMotion:'reduce'});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:5000/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);
+ await page.evaluate(()=>Object.keys(C.stations).forEach(ensureLocationAssets));
  await page.waitForFunction(()=>stationTexture.complete&&stationTexture.naturalWidth);
  await page.waitForFunction(()=>undertowStationTexture.complete&&undertowStationTexture.naturalWidth&&keplerStationTexture.complete&&keplerStationTexture.naturalWidth);
  const routes=await page.evaluate(()=>{

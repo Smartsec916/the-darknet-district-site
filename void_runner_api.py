@@ -10,7 +10,7 @@ from functools import wraps
 from flask import Blueprint, jsonify, request, current_app
 
 api = Blueprint('void_runner', __name__, url_prefix='/api/void-runner')
-ITEMS = {'wraith': 'Wraith Cannon', 'aegis': 'Aegis Shield', 'ghost': 'Ghost Drive', 'sentinel': 'Sentinel Drone'}
+ITEMS = {'wraith': 'Wraith Cannon', 'aegis': 'Aegis Shield', 'ghost': 'Ghost Drive', 'sentinel': 'Sentinel Drone', 'spectre': 'Spectre / 03'}
 PROJECT = 'the-darknet-district-71873'
 
 # One numeric schema shared with the browser; parse JSON without executing JS.
@@ -128,6 +128,8 @@ def product(stripe, item):
     expected_live = os.getenv('STRIPE_SECRET_KEY', '').startswith('sk_live_')
     if not price.get('active') or price.get('recurring') or not isinstance(price.get('unit_amount'), int) or price['unit_amount'] <= 0 or price.get('livemode') != expected_live or price.get('currency') != 'usd':
         raise ApiError('Equipment price is not configured correctly.', 503)
+    if item == 'spectre' and price['unit_amount'] != 100:
+        raise ApiError('Spectre must be configured as a one-time $1.00 USD price.', 503)
     return {'id': item, 'name': ITEMS[item], 'price': price_id, 'amount': price['unit_amount'], 'currency': price['currency']}
 
 
@@ -146,7 +148,7 @@ def catalog():
 @signed_in
 def account(db, uid):
     saved = player_ref(db, uid).get().to_dict() or {}
-    return jsonify(owned=inventory(db, uid), save=saved.get('save'), revision=saved.get('revision', 0), savedAt=saved.get('savedAt'))
+    return jsonify(owned=inventory(db, uid), developer=balance_admin(uid), save=saved.get('save'), revision=saved.get('revision', 0), savedAt=saved.get('savedAt'))
 
 
 @api.get('/balance')
@@ -238,14 +240,14 @@ def clean_save(value):
         raise ApiError('Invalid campaign ships.')
     if not isinstance(standard,list) or len(standard)>6 or any(x not in ['pulse1','pulse2','pulse3','shield1','shield2','shield3'] for x in standard):
         raise ApiError('Invalid standard equipment.')
-    result['ownedShips'] = list(dict.fromkeys(['starter',*ships]))
-    result['standardGear'] = list(dict.fromkeys(['pulse1','shield1',*standard]))
+    result['ownedShips'] = list(dict.fromkeys(['starter',*[s for s in ships if s != 'ship3']]))
+    result['standardGear'] = list(dict.fromkeys(['pulse1','shield1',*[g for g in standard if g not in ('pulse3','shield3')]]))
     active = value.get('activeShip','starter')
-    if active not in result['ownedShips']:
+    if active not in ship_ids or (active != 'ship3' and active not in result['ownedShips']):
         raise ApiError('Ship is not owned by this campaign.')
-    result['activeShip'] = active
+    result['activeShip'] = 'starter' if active == 'ship3' else active
     loadouts = value.get('shipLoadouts',{})
-    if not isinstance(loadouts,dict) or len(loadouts)>3 or any(k not in result['ownedShips'] for k in loadouts):
+    if not isinstance(loadouts,dict) or len(loadouts)>3 or any(k not in result['ownedShips'] and k != 'ship3' for k in loadouts):
         raise ApiError('Invalid ship loadouts.')
     result['shipLoadouts'] = {}
     for ship_id, equipped in loadouts.items():

@@ -3,7 +3,8 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
  applyPending(){if(this.pending){VoidBalance.apply(this.pending);this.pending=null;}},
  async identity(request){
   this.authorized=false;this.request=request;this.overlay=false;devPanel.hidden=true;devButton.hidden=true;debugInfo.hidden=true;
-  devMissileTrial=false;Object.assign(missileState,{ownsMissileLauncher:false,equipped:false,missilesLoaded:0,missileCapacity:0});missiles=[];missileLock=VoidTargeting.fresh();
+  if(devMissileTrial){devMissileTrial=false;resetMissileFlight();}
+  if(!request)return;
   try{const data=await request('developer/balance');if(this.request!==request)return;this.authorized=true;this.receive(data);devButton.hidden=false;}catch{/* Fail closed; ordinary players get no private controls. */}
  },
  receive(data){this.values=VoidBalance.validate(data.values);this.revision=data.revision;this.preset=data.preset||'CUSTOM';this.pending=this.values;},
@@ -47,5 +48,4 @@ devPanel.addEventListener('click',async event=>{
  }catch(error){if(request===tools.request)devPanel.querySelector('#dev-status').textContent=error.message;}
 });
 // A public read exposes numbers, never developer access or a write capability.
-const balanceApiBase=['localhost','127.0.0.1'].includes(location.hostname)?'':'https://the-darknet-district-site.onrender.com';
-fetch(balanceApiBase+'/api/void-runner/balance').then(r=>r.ok?r.json():Promise.reject()).then(data=>{if(!VoidDevTools.authorized)VoidDevTools.pending=VoidBalance.validate(data.values);}).catch(()=>{});
+VoidNetwork.request('balance').then(data=>{if(!VoidDevTools.authorized)VoidDevTools.pending=VoidBalance.validate(data.values);}).catch(()=>{});

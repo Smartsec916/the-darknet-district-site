@@ -28,7 +28,7 @@ const output=process.env.VOID_SCREENSHOT_DIR;const fs=require('node:fs');
  await page.getByRole('button',{name:'OPEN STATION MENU →',exact:true}).click();await page.getByRole('button',{name:'SIGN IN & SAVE PROGRESS',exact:true}).waitFor();
  if(output){fs.mkdirSync(output,{recursive:true});await page.screenshot({path:path.join(output,'first-delivery-offer.png'),fullPage:true});}
  await page.getByRole('button',{name:'KEEP PLAYING',exact:true}).click();assert.equal(await page.evaluate(()=>state.quest),'return');assert.equal(await page.evaluate(()=>state.credits),450);
- await page.locator('#expansion-nav [data-action="shop"]').click();assert.equal(await page.locator('.shop-placeholder').count(),1);assert.equal(await page.locator('[data-action^="buy:"]').count(),4);assert.equal(await page.locator('[data-action^="purchase:"]').count(),0);
+ await page.locator('#expansion-nav [data-action="shop"]').click();assert.equal(await page.locator('.shop-placeholder').count(),1);assert.equal(await page.locator('[data-action^="buy:"]').count(),4);assert.equal(await page.locator('[data-action^="purchase:"]').count(),1);
  if(output)await page.screenshot({path:path.join(output,'credit-upgrades.png'),fullPage:true});
  await page.getByRole('button',{name:'CAMPAIGN',exact:true}).click();await page.locator('.mission-grid .card').last().waitFor();assert.equal(await page.locator('.mission-grid .card').count(),12);
  assert.equal(await page.getByRole('button',{name:'FINISH OPENING DELIVERIES'}).count(),12);

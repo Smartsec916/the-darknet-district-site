@@ -1,17 +1,26 @@
 /* Layered space environments. Foreground rocks are scenery, outside the flight lane. */
 const skyboxes = {};
 const artBase=new URL('art/',document.currentScript.src);
-function texture(path){
+const textureCache=new Map();
+function texture(path,lazy=false){
+ if(textureCache.has(path)){const cached=textureCache.get(path);if(!lazy)cached.load();return cached;}
  const img=new Image();
  const url=new URL(path,artBase).href;
- img.ready=new Promise(resolve=>{img.onload=()=>resolve(true);img.onerror=()=>{console.warn('[VOID//RUNNER] Asset failed to load: '+url);resolve(false);};});
+ img.ready=new Promise(resolve=>{img.onload=()=>{img.loadedAt=performance.now();resolve(true);};img.onerror=()=>{console.warn('[VOID//RUNNER] Asset failed to load: '+url);resolve(false);};});
  img.fetchPriority=['cockpit-kestrel.png','station.png','vesper-people.png'].includes(path)?'high':'low';
- img.src=url;return img;
+ img.decoding='async';img.load=()=>{if(!img.src)img.src=url;return img.ready;};textureCache.set(path,img);if(!lazy)img.load();return img;
 }
-for (const id of Object.keys(C.stations)) skyboxes[id] = texture('sky-' + id + '.png');
-const stationTexture = texture('station.png');
-const keplerStationTexture = texture('station-kepler.png');
-const undertowStationTexture = texture('station-undertow.png');
+for (const id of Object.keys(C.stations)) skyboxes[id] = texture('sky-' + id + '.png',true);
+const stationTexture = texture('station.png',true);
+const keplerStationTexture = texture('station-kepler.png',true);
+const undertowStationTexture = texture('station-undertow.png',true);
+const stationImages={meridian:stationTexture,kepler:keplerStationTexture,undertow:undertowStationTexture};
+function ensureLocationAssets(id){skyboxes[id]?.load();stationImages[id]?.load();}
+function drawStationExterior(id,x,y,width){
+ const img=stationImages[id];
+ if(img?.naturalWidth){const blend=Math.min(1,(performance.now()-img.loadedAt)/400),height=width*img.naturalHeight/img.naturalWidth;if(blend<1){ctx.save();ctx.globalAlpha*=1-blend;drawStationStructure(id,x,y,width);ctx.restore();}ctx.save();ctx.globalAlpha*=blend;ctx.drawImage(img,x-width/2,y-height/2,width,height);ctx.restore();}
+ else drawStationStructure(id,x,y,width);
+}
 function skyboxTransform(progress, width, height, imageWidth, imageHeight, still = reducedMotion) {
  const zoom = still ? 1.04 : 1.08 + Math.min(1, Math.max(0, progress)) * .14;
  const scale = Math.max(width / imageWidth, height / imageHeight) * zoom;
@@ -50,7 +59,8 @@ stationScene = function(color) {
 // Distinct exterior silhouettes complement each station's illustrated concourse.
 function drawStationStructure(id,x,y,width){
  ctx.save();ctx.translate(x,y);ctx.scale(width/800,width/800);
- const palette=['#635a51','#241d1b','#ff9a43'];
+ const palette=id==='meridian'?['#587887','#102631','#58ffe1']:id==='kepler'?['#776f64','#251f17','#ffbd69']:id==='undertow'?['#695977','#21182d','#ef79ff']:['#635a51','#241d1b','#ff9a43'];
+ if(id!=='foundry'){ctx.strokeStyle=palette[0];ctx.lineWidth=id==='undertow'?38:22;ctx.beginPath();ctx.ellipse(0,0,260,id==='kepler'?90:145,0,id==='undertow'?.3:0,id==='undertow'?5.7:Math.PI*2);ctx.stroke();ctx.strokeStyle=palette[2];ctx.lineWidth=3;ctx.stroke();for(const side of [-1,1]){ctx.fillStyle=palette[0];ctx.fillRect(side*210-30,-95,60,185);ctx.fillStyle=palette[2];ctx.fillRect(side*210-20,-60,40,3);}ctx.fillStyle=palette[0];ctx.fillRect(-160,-32,320,64);ctx.fillStyle=palette[2];ctx.fillRect(-140,-4,280,5);ctx.restore();return;}
  const metal=ctx.createLinearGradient(0,-150,0,150);metal.addColorStop(0,palette[0]);metal.addColorStop(1,palette[1]);
  function box(bx,by,bw,bh){ctx.fillStyle=metal;ctx.strokeStyle=palette[0];ctx.lineWidth=2;ctx.fillRect(bx,by,bw,bh);ctx.strokeRect(bx,by,bw,bh);ctx.fillStyle=palette[2];for(let wx=bx+8;wx<bx+bw-5;wx+=14)ctx.fillRect(wx,by+bh*.45,5,3);}
    box(-280,15,540,55);box(-225,85,460,30);
@@ -82,7 +92,7 @@ dock=function(tab='dock'){
  let actions='',summary='';
  if(state.quest==='legal-offer'||state.quest==='illegal-offer'){summary='Rook is waiting at the bar.';actions=button('GO TO BAR →','bar');}
  else if(state.quest==='return'){summary='Paid. Return to Rook for the next job.';actions=button('RETURN TO MERIDIAN →','launch');}
- else if(f){summary=f.cargo+' → '+C.stations[f.destination].name+(f.enemies?' · '+f.enemies+' hostiles':'');actions=button('LAUNCH →','launch');}
+ else if(f){summary=f.cargo+' → '+C.stations[f.destination].name+(f.enemies?' · RAIDERS REPORTED':'');actions=button('LAUNCH →','launch');}
  else {summary='Repaired and ready.';actions=button('FIND WORK →','bar');}
  if(state.completed>=1)actions+=button('UPGRADES','shop',true);
  if(state.quest==='open')actions+=button('BAR','bar',true);

@@ -1,0 +1,28 @@
+VOID//RUNNER next update
+
+Branch: codex/void-runner-network-premium-travel
+Commit: 412e37b1482353aaadfc0364c54850d1df42caec
+Previous overhaul: 8e9c0674672427b9e2dd0b16abb101cce40e016e
+Original upstream: 97191403d90603204479578736680c63828914ae
+
+No push, deployment, main merge or real payment was performed.
+
+Choose ONE integration method in your existing repository:
+
+A. If the prior overhaul is already present:
+  git switch -c codex/void-runner-network-premium-travel 8e9c0674672427b9e2dd0b16abb101cce40e016e
+  git am /path/to/VOID-RUNNER-next-update-commit.patch
+Or apply VOID-RUNNER-next-update.patch with git apply after reviewing it.
+
+B. If the prior overhaul is not present:
+  git switch -c codex/void-runner-network-premium-travel 97191403d90603204479578736680c63828914ae
+  git apply /path/to/VOID-RUNNER-combined.patch
+Review and commit before deploying.
+
+The two ZIPs are alternatives containing changed/new files at repository-relative paths. They are overlays for the existing repository, not standalone game downloads. Existing artwork/assets and unrelated pages are preserved and not duplicated. next-update-changes.zip contains this update only; combined-changes.zip includes the prior overhaul plus this update. Do not apply both patches.
+
+Read VOID-RUNNER-NEXT-UPDATE.md for root cause, configuration, verification and limits. Render currently returns Service Suspended; code alone cannot restore the service. Spectre needs server-side VOID_PRICE_SPECTRE for an active one-time 100-cent USD price, with the existing account/payment configuration.
+
+Validation: 30 Node tests, 19 Python tests, all 10 browser scripts passed. Browser results and read-only production HTTP evidence are included separately. No secrets or test private keys are packaged.
+
+Local committed checkout: C:\Users\smart\Documents\Codex\2026-09-21\files-pasted-by-the-user-you\work\void-runner

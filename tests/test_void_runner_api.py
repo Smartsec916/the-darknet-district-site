@@ -128,7 +128,7 @@ class ApiTests(unittest.TestCase):
         account=self.client.get('/api/void-runner/account',headers=self.header).json
         self.assertEqual(account['save'],clean)
         self.assertEqual(account['owned'],[])
-        for patch in [{'ownedShips':['wraith']},{'standardGear':['aegis']},{'activeShip':'ship3'},{'combatRuns':True},{'travel':{**state['travel'],'progress':float('nan')}},{'shipLoadouts':{'ship2':{'missile':'wraith'}}}]:
+        for patch in [{'ownedShips':['wraith']},{'standardGear':['aegis']},{'activeShip':'invalid'},{'combatRuns':True},{'travel':{**state['travel'],'progress':float('nan')}},{'shipLoadouts':{'ship2':{'missile':'wraith'}}}]:
             with self.assertRaises(vr.ApiError):
                 vr.clean_save({**state,**patch})
 

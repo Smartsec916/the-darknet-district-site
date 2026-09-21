@@ -1,44 +1,43 @@
 /* Firebase identity + authenticated API. Cloud save replacement is always explicit. */
-const account = window.VoidAccount = {user:null,products:[],status:'Connecting to the equipment store…',busy:false,revision:0,cloud:null,savedAt:null};
-const apiBase = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : 'https://the-darknet-district-site.onrender.com';
+const account = window.VoidAccount = {user:null,products:[],status:'Verified purchases require a connection.',busy:false,revision:0,cloud:null,savedAt:null};
+let authInitialization=null,unsubscribe=null;
 let firebase, generation=0, pendingCheckout=new URLSearchParams(location.search).get('checkout');
-let saveReady=false;
+let saveReady=false,verifiedUntil=0,ownershipTimer,refreshTimer;
 function render(){
   document.getElementById('account-nav').textContent=account.user?'ACCOUNT':'SIGN IN';
   if(mode==='dock'&&view==='market')market();
   if(mode==='dock'&&view==='account')accountPage();
 }
 async function api(path,body,authenticated=true){
-  const headers={'Content-Type':'application/json'};
-  if(authenticated){if(!account.user)throw new Error('Sign in to continue.');headers.Authorization='Bearer '+await account.user.getIdToken();}
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
-  try{
-    const response=await fetch(apiBase+'/api/void-runner/'+path,{method:body?'POST':'GET',headers,body:body?JSON.stringify(body):undefined,signal:controller.signal,credentials:'omit'});
-    let data;try{data=await response.json();}catch{throw new Error('The account service is not available yet. Local play and training still work.');}
-    if(!response.ok)throw new Error(data.error||'The account service could not complete that request.');
-    return data;
-  }catch(error){if(error.name==='AbortError')throw new Error('The account service took too long. Try again in a moment.');throw error;}
-  finally{clearTimeout(timer);}
+  const user=account.user,epoch=generation;
+  if(authenticated&&!user)throw new Error('Sign in to continue.');
+  const token=authenticated?await user.getIdToken():undefined;
+  if(authenticated&&epoch!==generation)throw new Error('Sign in again.');
+  return VoidNetwork.request(path,{body,token,scope:authenticated?user.uid+':'+epoch:'public'});
 }
+
 async function catalog(){
   try{const data=await api('catalog',null,false);account.products=data.products;account.status=data.testMode?'TEST STORE · Checkout uses test payments. No real equipment sales yet.':'Permanent equipment · Secure checkout · No subscription';}
-  catch{account.products=[];account.status='Equipment sales are opening soon. Try every item in free training.';}
+  catch{account.products=[];account.status='VOID NETWORK unavailable. Purchases remain locked. Try again shortly.';}
   render();
 }
 async function refresh(){
   const epoch=generation;
-  const data=await api('account');if(epoch!==generation)return;
+  let data;try{data=await api('account');}catch(error){if(epoch===generation){setOwnedGear([]);saveReady=false;}throw error;}if(epoch!==generation)return;
+  verifiedUntil=Date.now()+300000;clearTimeout(ownershipTimer);ownershipTimer=setTimeout(()=>{setOwnedGear([]);verifiedUntil=0;},300000);
+  clearTimeout(refreshTimer);refreshTimer=setTimeout(()=>{if(epoch===generation&&account.user)run(refresh,true);},240000);
+  if(data.developer){const identityEpoch=generation;VoidDevTools.identity((path,body)=>{if(identityEpoch!==generation||!account.user)throw new Error('Sign in again.');return api(path,body);});}
   account.revision=data.revision;account.cloud=data.save;account.savedAt=data.savedAt;saveReady=true;setOwnedGear(data.owned);render();
 }
 function cloudDescription(){return account.cloud?`${account.cloud.completed} deliveries · ${account.cloud.credits.toLocaleString()} CR · ${account.cloud.cleared?.length||0}/12 new missions`:'No cloud save yet.';}
 function accountPage(){
   view='account';
   menuPage('PILOT ACCOUNT','Your ship. <em>Everywhere.</em>',
-    `<p class="account-detail">${account.user?'Signed in as <strong>'+escapeText(account.user.displayName||account.user.email||'Pilot')+'</strong>.':'Use the same Google login as the District homepage. You can keep playing locally without signing in.'}</p>${account.user?`<div class="manifest">${row('This browser',state.completed+' deliveries / '+state.credits+' CR')}${row('Cloud save',escapeText(cloudDescription()))}${row('Owned equipment',ownedGear.length+' / 4')}</div><p>Choose when to copy progress between this browser and your account. New Journey resets your local campaign; it never deletes purchases.</p><div class="account-actions">${button('SAVE THIS JOURNEY TO CLOUD','cloud-save-prompt',false,account.busy||!saveReady)}${button('LOAD CLOUD JOURNEY','cloud-load-prompt',true,account.busy||!account.cloud||!saveReady)}${button('REFRESH / RESTORE PURCHASES','account-refresh',true,account.busy)}${button('SIGN OUT','sign-out',true,account.busy)}</div>`:`<div class="account-actions">${button('SIGN IN WITH GOOGLE','sign-in',false,account.busy||!firebase)}${!firebase?button('RETRY CONNECTION','auth-retry',true,account.busy):''}</div>`}<p class="fine">Cloud saves copy campaign progress only. Paid ownership is checked separately with the server. Your browser save remains available if the account service is offline.</p>`);
+    `<p class="account-detail">${account.user?'Signed in as <strong>'+escapeText(account.user.displayName||account.user.email||'Pilot')+'</strong>.':'Use the same Google login as the District homepage. You can keep playing locally without signing in.'}</p>${account.user?`<div class="manifest">${row('This browser',state.completed+' deliveries / '+state.credits+' CR')}${row('Cloud save',escapeText(cloudDescription()))}${row('Owned equipment',ownedGear.length+' verified items')}</div><p>Choose when to copy progress between this browser and your account. New Journey resets your local campaign; it never deletes purchases.</p><div class="account-actions">${button('SAVE THIS JOURNEY TO CLOUD','cloud-save-prompt',false,account.busy||!saveReady)}${button('LOAD CLOUD JOURNEY','cloud-load-prompt',true,account.busy||!account.cloud||!saveReady)}${button('REFRESH / RESTORE PURCHASES','account-refresh',true,account.busy)}${button('SIGN OUT','sign-out',true,account.busy)}</div>`:`<div class="account-actions">${button('SIGN IN WITH GOOGLE','sign-in',false,account.busy||!firebase)}${!firebase?button('RETRY CONNECTION','auth-retry',true,account.busy):''}</div>`}<p class="fine">Cloud saves copy campaign progress only. Paid ownership is checked separately with the server. Your browser save remains available if the account service is offline.</p>`);
 }
 async function run(action,quiet=false){
   if(account.busy)return;account.busy=true;render();
-  try{await action();}catch(error){if(!quiet||state.completed>=1)announce(error.message||'Connection unavailable. Please try again.');}
+  try{await action();}catch(error){if(!quiet)announce(error.message||'Connection unavailable. Please try again.');}
   finally{account.busy=false;render();}
 }
 function clearCheckout(){pendingCheckout=null;const url=new URL(location.href);url.searchParams.delete('checkout');history.replaceState(null,'',url);}
@@ -52,17 +51,24 @@ async function confirmCheckout(){
   else if(data.status==='revoked'){clearCheckout();announce('This purchase was refunded or suspended.');}
   else announce('Payment is still processing. Refresh your account in a moment.');
 }
-async function initializeAuth(){
-  try{
-    firebase=await import('../firebase-auth.js');
-    firebase.onAuthStateChanged(firebase.auth,user=>{
-      generation++;account.user=user;const identityEpoch=generation;VoidDevTools.identity((path,body)=>{if(identityEpoch!==generation||!user)throw new Error('Sign in again.');return api(path,body);});account.cloud=null;account.revision=0;saveReady=false;setOwnedGear([]);render();
-      if(user)run(async()=>{await confirmCheckout();await refresh();},true);
-    });
-    await firebase.getRedirectResult(firebase.auth);
-  }catch{if(state.completed>=1)announce('Google sign-in could not connect. Local play is still available.');}
-  render();
+function initializeAuth(){
+  if(authInitialization)return authInitialization;
+  VoidNetwork.report('identity','connecting');
+  authInitialization=(async()=>{
+    try{
+      firebase=await import('../firebase-auth.js');
+      if(!unsubscribe)unsubscribe=firebase.onAuthStateChanged(firebase.auth,user=>{
+        generation++;clearTimeout(ownershipTimer);clearTimeout(refreshTimer);verifiedUntil=0;account.user=user;VoidDevTools.identity(null);account.cloud=null;account.revision=0;saveReady=false;setOwnedGear([]);render();
+        VoidNetwork.report('identity','ready');
+        if(user)run(async()=>{await confirmCheckout();await refresh();},true);
+      });
+      await firebase.getRedirectResult(firebase.auth);
+    }catch{VoidNetwork.report('identity','degraded');authInitialization=null;}
+    render();
+  })();
+  return authInitialization;
 }
+
 function requestAction(action){
   if(['play','pause'].includes(mode))return;
   if(action==='account'){accountPage();return;}
@@ -79,10 +85,10 @@ function requestAction(action){
     account.user=firebase.auth.currentUser;await confirmCheckout();await refresh();
   });
   else if(action==='sign-out')run(async()=>{generation++;setOwnedGear([]);await firebase.signOut(firebase.auth);account.user=null;saveReady=false;account.cloud=null;});
-  else if(action==='account-refresh')run(async()=>{await catalog();await confirmCheckout();await refresh();announce('Account and equipment refreshed.');});
+  else if(action==='account-refresh')run(async()=>{setOwnedGear([]);await confirmCheckout();await refresh();announce('Account and equipment refreshed.');});
   else if(action?.startsWith('purchase:')){
     if(!account.user){accountPage();return;}
-    run(async()=>{const epoch=generation;const data=await api('checkout',{item:action.slice(9)});if(epoch!==generation)return;
+    run(async()=>{await catalog();if(!account.products.some(p=>p.id===action.slice(9)))throw new Error(account.status+' This item is not currently available.');const epoch=generation;const data=await api('checkout',{item:action.slice(9)});if(epoch!==generation)return;
       const target=new URL(data.url);if(target.protocol!=='https:'||target.hostname!=='checkout.stripe.com')throw new Error('Unexpected checkout address.');location.assign(target.href);});
   }
   else if(action==='cloud-save-prompt'&&saveReady){view='save-confirm';menuPage('CLOUD SAVE','Save this <em>journey?</em>',`<p>Copy this browser’s ${state.completed} deliveries and ${state.credits} credits to your account. ${account.cloud?'This replaces your current cloud journey.':'This creates your first cloud save.'}</p>${button('SAVE TO CLOUD','cloud-save')}${button('CANCEL','account',true)}`);}
@@ -93,4 +99,6 @@ function requestAction(action){
 document.getElementById('expansion-nav').addEventListener('click',e=>requestAction(e.target.closest('button')?.dataset.action));
 screen.addEventListener('click',e=>requestAction(e.target.closest('button')?.dataset.action));
 if(pendingCheckout==='cancelled'){clearCheckout();announce('Checkout cancelled. No equipment was added.');}
-catalog();initializeAuth();
+VoidLoading.stage('account','ACCOUNT INITIALIZATION STARTED · OPTIONAL SERVICES CONNECTING');
+initializeAuth();
+addEventListener('focus',()=>{if(account.user&&Date.now()>verifiedUntil-240000)run(refresh,true);});
