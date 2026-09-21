@@ -1,5 +1,5 @@
 /* Detailed fleet sprites use source rectangles, preserving the transparent atlas. */
-const fleetTexture=texture('ships.png');
+const fleetTexture=texture('ships.png',true);
 const fleetFrames={player:[0,0,627,565],raider:[627,0,627,605],interceptor:[0,570,627,684],gunship:[627,610,627,644]};
 const wireframeShip=ship;
 ship=function(x,y,z,size,color,rotation=0,kind='player'){

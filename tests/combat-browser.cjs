@@ -13,7 +13,7 @@ const defaults=require('../void-runner/balance.js').defaults;
   if(p.endsWith('/developer/balance')){if(!admin){status=403;body={error:'Not authorized'};}else{if(r.request().method()==='POST'){const d=r.request().postDataJSON();balance={...d,revision:balance.revision+1};}body=balance;}}
   else if(p.endsWith('/balance'))body={values:defaults};
   else if(p.endsWith('/catalog'))body={products:[],testMode:true};
-  else if(p.endsWith('/account'))body={owned:['wraith','aegis'],save:cloud,revision};
+  else if(p.endsWith('/account'))body={owned:['wraith','aegis'],save:cloud,revision,developer:admin};
   else if(p.endsWith('/save')){cloud=r.request().postDataJSON().save;body={revision:++revision};}
   await r.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
  });

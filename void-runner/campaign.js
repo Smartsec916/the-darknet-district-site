@@ -12,7 +12,7 @@
     foundry: { name: 'The Foundry', district: 'SECTOR 24 / INDUSTRIAL BELT', color: '#ff795f', bar: 'Afterburn' }
   };
   const contracts = [
-    { id: 'medicine', name: 'Cold chain', cargo: 'Refrigerated clinic supplies', legal: true, destination: 'kepler', reward: 650, enemies: 8, tier: 1, duration: 38, contact: 'Dr. Sol', briefing: 'Our clinics need these before the next shift. Keep the containers intact. The raiders out here have started flying in pairs.' },
+    { id: 'medicine', name: 'Cold chain', cargo: 'Refrigerated clinic supplies', legal: true, destination: 'kepler', reward: 650, enemies: 8, tier: 1, duration: 38, contact: 'Dr. Sol', briefing: 'Our clinics need these before the next shift. Keep the containers intact. Raider activity has increased along the route.' },
     { id: 'ghost', name: 'Ghost hardware', cargo: 'Unlicensed neural processors', legal: false, destination: 'undertow', reward: 1000, enemies: 12, tier: 2, duration: 45, contact: 'Iona Vale', briefing: 'The people buying these cannot afford corporate leases on their own minds. Expect armored interceptors. Upgrade before you leave.' },
     { id: 'foundry', name: 'A debt in steel', cargo: 'Restricted fabrication cores', legal: false, destination: 'foundry', reward: 1500, enemies: 16, tier: 3, duration: 52, contact: 'Rook', briefing: 'The Foundry is building something the corporations would rather stay broken. A gunship guards the approach. Bring armor and a better reactor.' }
   ];
@@ -44,7 +44,7 @@
   function beginJourney(s) { if (s.quest !== 'inheritance') return false; s.quest = 'arrival'; return true; }
   function stats(s, owned = []) {
     const ship=S.get(s), weapon=S.equipment[s.loadout?.weapon], shield=S.equipment[s.loadout?.shield];
-    const standard=id=>s.standardGear?.includes(id);
+    const standard=id=>S.equipment[id]?.ship==='ship3'?S.owns(s,'ship3'):s.standardGear?.includes(id);
     const laser=weapon&&standard(s.loadout.weapon)?weapon.damage:ship.laser, rate=weapon&&standard(s.loadout.weapon)?weapon.rate:ship.fireRate;
     const deflector=shield&&standard(s.loadout.shield)?shield:{capacity:ship.shield,recharge:ship.recharge,delay:ship.shieldDelay};
     const has = id => owned.includes(id) && s.loadout?.[content.gear[id].slot] === id;
@@ -99,23 +99,24 @@
   function buyGear(s,id){const g=content.creditGear[id];if(!g||(id==='launcher'&&!s.missileUnlocked)||s.completed<1||s.creditGear.includes(id)||s.credits<g.price)return false;s.credits-=g.price;s.creditGear.push(id);s.loadout[g.slot]=id;return true;}
 
   function migrate(out,raw){
-    out.ownedShips=['starter',...new Set((Array.isArray(raw.ownedShips)?raw.ownedShips:[]).filter(id=>id!=='starter'&&Object.hasOwn(S.ships,id)))];
+    out.ownedShips=['starter',...new Set((Array.isArray(raw.ownedShips)?raw.ownedShips:[]).filter(id=>id==='ship2'))];
     out.activeShip=out.ownedShips.includes(raw.activeShip)?raw.activeShip:'starter';
-    out.standardGear=['pulse1','shield1',...new Set((Array.isArray(raw.standardGear)?raw.standardGear:[]).filter(id=>Object.hasOwn(S.equipment,id)&&!['pulse1','shield1'].includes(id)))];
+    out.standardGear=['pulse1','shield1',...new Set((Array.isArray(raw.standardGear)?raw.standardGear:[]).filter(id=>['pulse2','shield2'].includes(id)))];
     out.combatRuns=Number.isSafeInteger(raw.combatRuns)&&raw.combatRuns>=0?Math.min(raw.combatRuns,100000000):Math.min(raw.completed,2);
     out.missileUnlocked=out.combatRuns>=2;
     out.missileOfferSeen=raw.missileOfferSeen===true;
     const gear={...content.gear,...content.creditGear,...S.equipment};
     const clean=l=>Object.fromEntries(['weapon','shield','utility','missile'].map(slot=>[slot,gear[l?.[slot]]?.slot===slot?l[slot]:null]));
     for(const id of out.ownedShips)out.shipLoadouts[id]=clean(raw.shipLoadouts?.[id]||S.defaults[id]);
+    out.shipLoadouts.ship3=clean(raw.shipLoadouts?.ship3||S.defaults.ship3);
     out.loadout=clean(raw.loadout);out.shipLoadouts[out.activeShip]={...out.loadout};
     out.destination=out.quest==='open'&&!out.contract&&stations[raw.destination]&&raw.destination!==out.location?raw.destination:null;
     const f=flight(out);out.travel=f&&raw.travel?Warp.restore(raw.travel,out.location,f.destination,f.id||out.quest,f.enemies>0||['salvage','hazard','escort'].includes(f.kind)):null;
     return out;
   }
-  function buyShip(s,id){const ship=S.ships[id];if(!ship||s.ownedShips.includes(id)||s.credits<ship.price)return false;s.credits-=ship.price;s.ownedShips.push(id);s.shipLoadouts[id]={...S.defaults[id]};for(const [key,item]of Object.entries(S.equipment))if(item.ship===id&&!s.standardGear.includes(key))s.standardGear.push(key);return true;}
-  function switchShip(s,id){if(!s.ownedShips.includes(id)||!S.ships[id])return false;s.shipLoadouts[s.activeShip]={...s.loadout};s.activeShip=id;s.loadout={...(s.shipLoadouts[id]||S.defaults[id])};return true;}
-  function ownsEquipment(s,id,verified=[]){return Object.hasOwn(content.gear,id)?verified.includes(id):Object.hasOwn(content.creditGear,id)?s.creditGear.includes(id):Object.hasOwn(S.equipment,id)&&s.standardGear.includes(id);}
+  function buyShip(s,id){const ship=S.ships[id];if(!ship||ship.premium||s.ownedShips.includes(id)||s.credits<ship.price)return false;s.credits-=ship.price;s.ownedShips.push(id);s.shipLoadouts[id]={...S.defaults[id]};for(const [key,item]of Object.entries(S.equipment))if(item.ship===id&&!s.standardGear.includes(key))s.standardGear.push(key);return true;}
+  function switchShip(s,id){if(!S.owns(s,id)||!S.ships[id])return false;s.shipLoadouts[s.activeShip]={...s.loadout};s.activeShip=id;s.loadout={...(s.shipLoadouts[id]||S.defaults[id])};return true;}
+  function ownsEquipment(s,id,verified=[]){return Object.hasOwn(content.gear,id)?verified.includes(id):Object.hasOwn(content.creditGear,id)?s.creditGear.includes(id):Object.hasOwn(S.equipment,id)&&(S.equipment[id].ship==='ship3'?S.owns(s,'ship3'):s.standardGear.includes(id));}
   function equip(s,id,verified=[]){const g={...content.gear,...content.creditGear,...S.equipment}[id];if(!g||!ownsEquipment(s,id,verified))return false;s.loadout[g.slot]=s.loadout[g.slot]===id?null:id;s.shipLoadouts[s.activeShip]={...s.loadout};return true;}
   function chooseDestination(s,id){if(s.quest!=='open'||s.contract||!stations[id]||id===s.location)return false;s.destination=id;s.travel=null;return true;}
 

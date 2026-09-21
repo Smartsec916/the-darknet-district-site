@@ -39,7 +39,7 @@ function launch() {
 function routeClear() { return !!current && spawned >= current.enemies && resolved >= current.enemies && enemies.every(e => e.dead); }
 function destinationVisible() { return typeof flight!=='undefined'&&flight.route?flight.route.phase==='arrived':routeClear() && elapsed / current.duration > .72; }
 function arrive() {
-  if (mode !== 'play' || !routeClear() || elapsed < current.duration || (current.enemies && approachTime < 3)) return;
+  if (mode !== 'play' || !routeClear() || elapsed < current.duration || (current.enemies && approachTime < VoidWarp.config.approachSeconds)) return;
   const reward = C.complete(state); if (!reward) return;current.repairCharged=reward.repairCharged;
   mode = 'arrival'; clearInput(); save(); flightUI(false); hud();
   const station = C.stations[state.location];
@@ -90,7 +90,7 @@ function spawnEnemy() {
  const interceptor=!heavy&&tier>=1&&i%3!==0;
  const armor=heavy?12+tier*2:interceptor?3+tier*1.6:2+tier*1.2;
  enemies.push({x:(Math.random()-.5)*12,y:(Math.random()-.5)*6,z:115,phase:Math.random()*Math.PI*2,fire:1.1+Math.random()*.7,armor,maxArmor:armor,size:heavy?1.8:1,heavy,interceptor,className:heavy?'gunship':interceptor?'interceptor':'raider',age:0});
- if(heavy)announce('Heavy gunship incoming.');else if(i===0)announce(current.enemies===1?'Lone raider incoming.':'Hostile squadron incoming.');
+ if(heavy)announce('Heavy gunship incoming.');else if(i===0)announce('Hostile activity detected.');
 }
 function update(dt) {
   if (mode === 'pause') return;

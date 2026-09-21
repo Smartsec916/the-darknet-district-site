@@ -1,5 +1,7 @@
 # VOID//RUNNER flight overhaul
 
+The follow-up implementation is documented in [VOID-RUNNER-NEXT-UPDATE.md](VOID-RUNNER-NEXT-UPDATE.md). Its network, ownership and travel rules supersede the original overhaul behavior below. Spectre now requires a verified $1.00 USD account purchase.
+
 Base: `97191403d90603204479578736680c63828914ae` (GitHub main inspected September 21, 2026).
 Branch: `codex/void-runner-flight-overhaul`. Local implementation; no production deployment or remote push.
 
@@ -9,7 +11,7 @@ Branch: `codex/void-runner-flight-overhaul`. Local implementation; no production
 
 | Base specification | Kestrel / 01 | Peregrine / 02 | Spectre / 03 |
 |---|---:|---:|---:|
-| Purchase price | Starter | 1,000 CR | 2,500 CR |
+| Purchase price | Starter | 1,000 CR | $1.00 USD, verified purchase |
 | Hull | 100 | 135 | 170 |
 | Shields | 0 | 30 | 55 |
 | Shield recharge / second | 6* | 8 | 10 |

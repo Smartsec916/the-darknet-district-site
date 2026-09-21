@@ -10,20 +10,22 @@ function drawShipCockpit(){
  if(advanced){ctx.setLineDash([8,12]);ctx.strokeRect(W*.19,H*.12,W*.62,H*.62);ctx.setLineDash([]);}
  ctx.restore();
 }
+function hudText(id,value){const el=$(id);if(el.textContent!==value)el.textContent=value;}
 function updateWarpHud(){const r=flight.route;if(!r)return;
  const alignment=FM.dot(flightBasis().f,r.vector),percent=Math.round(FM.clamp((alignment+1)/2,0,1)*100);
- $('progress').style.width=(r.progress*100)+'%';
- $('route-status').textContent=Math.floor(r.progress*100)+'% / '+r.phase.toUpperCase();
- $('flight-objective').textContent=r.phase==='align'?(r.aligned>0?'WARP VECTOR LOCKED':'ALIGN WITH DESTINATION')+' · '+percent+'%':r.phase==='warp'?'WARP / '+C.stations[r.destination].name:r.phase==='arrived'?'ARRIVAL / docking guidance':current.kind==='salvage'?'RECOVER SIGNALS '+objectiveCount+' / 3 · Clear hostiles to resume':current.kind==='escort'?'SHUTTLE '+escortHP+'% · Clear hostiles to resume':'INTERDICTION · '+Math.max(0,current.enemies-resolved)+' HOSTILES';
+ const width=(r.progress*100).toFixed(1)+'%';if($('progress').style.width!==width)$('progress').style.width=width;
+ hudText('route-status',Math.floor(r.progress*100)+'% / '+r.phase.toUpperCase());
+ hudText('flight-objective',r.phase==='departure'?'DEPARTING / '+C.stations[r.origin].name:r.phase==='align'?(r.aligned>0?'WARP VECTOR LOCKED':'ALIGN WITH DESTINATION')+' · '+percent+'%':r.phase==='warp'?'WARP / '+C.stations[r.destination].name:r.phase==='arrived'?'ARRIVAL / docking guidance':current.kind==='salvage'?'RECOVER SIGNALS '+objectiveCount+' / 3 · Clear hostiles to resume':current.kind==='escort'?'SHUTTLE '+escortHP+'% · Clear hostiles to resume':'INTERDICTION · HOSTILE ACTIVITY');
 }
 function drawWarpMarker(){const r=flight.route;if(!r||r.phase!=='align')return;const p=flightPoint(flight.nav);
  if(p.z<1||p.x<W*.12||p.x>W*.88||p.y<H*.16||p.y>H*.72){cockpitArrow(flight.nav,'DESTINATION','#58ffe1');return;}
  ctx.save();ctx.translate(p.x,p.y);ctx.strokeStyle=r.aligned>0?'#ffdd8b':'#58ffe1';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-20);ctx.lineTo(20,0);ctx.lineTo(0,20);ctx.lineTo(-20,0);ctx.closePath();ctx.stroke();ctx.font='11px Consolas';ctx.textAlign='center';ctx.fillStyle=ctx.strokeStyle;ctx.fillText(C.stations[r.destination].name.toUpperCase(),0,39);ctx.restore();
 }
 function drawWarpEffect(){const r=flight.route;if(!r||r.phase!=='warp')return;
- ctx.save();ctx.globalAlpha=reducedMotion?.12:.65;ctx.lineWidth=1.5;
+ const slow=warpSpeed(r);drawWarpObjects(r,slow);
+ ctx.save();ctx.globalAlpha=(reducedMotion?.12:.65)*slow;ctx.lineWidth=1.5;
  const cx=W*.5,cy=H*.44;
- for(let i=0;i<(reducedMotion?12:70);i++){const a=i*2.39996,n=((time*(.8+i%3*.1)+i*.137)%1),radius=20+n*Math.max(W,H),length=30+n*140;ctx.strokeStyle=i%2?'#78fff0':'#ba7bff';ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*radius,cy+Math.sin(a)*radius);ctx.lineTo(cx+Math.cos(a)*(radius+length),cy+Math.sin(a)*(radius+length));ctx.stroke();}
+ for(let i=0;i<(reducedMotion?12:70);i++){const a=i*2.39996,n=((time*(.8+i%3*.1)+i*.137)%1),radius=20+n*Math.max(W,H),length=(30+n*140)*slow;ctx.strokeStyle=i%2?'#78fff0':'#ba7bff';ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*radius,cy+Math.sin(a)*radius);ctx.lineTo(cx+Math.cos(a)*(radius+length),cy+Math.sin(a)*(radius+length));ctx.stroke();}
  ctx.fillStyle='#6abfff';ctx.globalAlpha=.05;ctx.fillRect(0,0,W,H);ctx.restore();
 }
 tone=function(...args){VoidAudio.tone(...args);};
