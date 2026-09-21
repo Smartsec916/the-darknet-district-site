@@ -115,12 +115,32 @@ class ApiTests(unittest.TestCase):
         self.assertNotIn('owned',account['save']);self.assertEqual(account['owned'],[])
         state['credits']=True
         self.assertEqual(self.client.post('/api/void-runner/save',json={'save':state,'revision':1},headers=self.header).status_code,400)
+    def test_ship_progression_and_route_roundtrip_stays_separate_from_purchases(self):
+        state={'version':2,'quest':'open','location':'meridian','credits':500,'completed':2,'upgrades':{'guns':1,'armor':0,'engines':0},'cleared':[],'contract':'medicine','loadout':{'weapon':'pulse2','shield':'shield2','utility':None,'missile':'launcher'},'creditGear':['launcher'],'ownedShips':['starter','ship2'],'activeShip':'ship2','standardGear':['pulse1','shield1','pulse2','shield2'],'shipLoadouts':{'ship2':{'weapon':'pulse2','shield':'shield2','missile':'launcher'}},'combatRuns':2,'missileOfferSeen':True,'travel':{'origin':'meridian','destination':'kepler','mission':'medicine','progress':.42,'encounter':{'type':'combat','state':'active'}},'owned':['wraith']}
+        clean=vr.clean_save(state)
+        self.assertEqual(clean['activeShip'],'ship2')
+        self.assertEqual(clean['shipLoadouts']['ship2']['missile'],'launcher')
+        self.assertTrue(clean['missileUnlocked'])
+        self.assertTrue(clean['missileOfferSeen'])
+        self.assertEqual(clean['travel']['progress'],.42)
+        self.assertNotIn('owned',clean)
+        self.assertEqual(self.client.post('/api/void-runner/save',json={'save':state,'revision':0},headers=self.header).status_code,200)
+        account=self.client.get('/api/void-runner/account',headers=self.header).json
+        self.assertEqual(account['save'],clean)
+        self.assertEqual(account['owned'],[])
+        for patch in [{'ownedShips':['wraith']},{'standardGear':['aegis']},{'activeShip':'ship3'},{'combatRuns':True},{'travel':{**state['travel'],'progress':float('nan')}},{'shipLoadouts':{'ship2':{'missile':'wraith'}}}]:
+            with self.assertRaises(vr.ApiError):
+                vr.clean_save({**state,**patch})
+
     def test_credit_equipment_save_roundtrip_cannot_grant_paid_gear(self):
         state={'version':2,'quest':'return','location':'kepler','credits':150,'reputation':2,'completed':1,'upgrades':{'guns':0,'armor':0,'engines':0,'shields':1},'cleared':[],'contract':None,'loadout':{'weapon':None,'shield':None,'utility':'scout'},'creditGear':['scout'],'loginOfferSeen':True}
         response=self.client.post('/api/void-runner/save',json={'save':state,'revision':0},headers=self.header)
         self.assertEqual(response.status_code,200)
         account=self.client.get('/api/void-runner/account',headers=self.header).json
-        self.assertEqual(account['save'],{k:v for k,v in state.items() if k!='reputation'})
+        self.assertEqual(account['save'],vr.clean_save(state))
+        self.assertEqual(account['save']['ownedShips'],['starter'])
+        self.assertEqual(account['save']['activeShip'],'starter')
+        self.assertEqual(account['save']['combatRuns'],1)
         self.assertNotIn('reputation',account['save'])
         modern={k:v for k,v in state.items() if k!='reputation'}
         self.assertEqual(vr.clean_save(modern),account['save'])

@@ -9,7 +9,7 @@ const characters = {
 };
 let speech = null;
 function portrait(id, small=false) { const c=characters[id]; return `<div class="portrait ${small?'small':''}" role="img" aria-label="Portrait of ${c.name}" style="background-position:${c.cell}"></div>`; }
-function scene(name) { screen.dataset.scene=name;screen.dataset.station=state.location;screen.classList.remove('station-dock'); screen.classList.toggle('cinematic',!!name); }
+function scene(name) { globalThis.VoidAudio?.cancel(); screen.dataset.scene=name;screen.dataset.station=state.location;screen.classList.remove('station-dock'); screen.classList.toggle('cinematic',!!name); }
 const originalPanel=panel;
 panel=function(...args){speech=null;scene('');originalPanel(...args);};
 const originalLaunch=launch;
@@ -21,6 +21,7 @@ function talk(sceneName, lines, done, label='CONTINUE →', heading='') {
 function renderLine(){
  const line=speech.lines[speech.index], c=characters[line.who];speech.shown=reducedMotion?line.text.length:0;
  screen.innerHTML=`<section class="cinematic-space"><div class="scene-heading"><div class="eyebrow">${speech.scene==='vesper'?'VESPER / WARD FREIGHT WORKSHOP':speech.scene==='bar'?C.stations[state.location].name.toUpperCase()+' / '+C.stations[state.location].bar.toUpperCase():'INCOMING TRANSMISSION'}</div><h1>${speech.heading}</h1></div><div class="dialogue-window"><div class="speech-body"><div class="speaker"><h2>${c.name}</h2><span>${c.role}</span></div><p id="spoken-text" aria-hidden="true"></p><p class="sr-only" aria-live="polite">${c.name}: ${line.text}</p><div class="speech-controls"><span id="speech-status">TRANSMITTING <span class="talk-light">●</span></span><button data-action="speech-next" id="speech-next">${reducedMotion?nextLabel():'SHOW FULL LINE'}</button></div></div></div></section>`;
+ globalThis.VoidAudio?.speak(line.who,line.text);
  $('spoken-text').textContent=line.text.slice(0,Math.floor(speech.shown));
 }
 function nextLabel(){return speech.index===speech.lines.length-1?speech.label:'NEXT →';}
@@ -29,7 +30,7 @@ function advanceSpeech(){
  const line=speech.lines[speech.index];
  if(speech.shown<line.text.length){speech.shown=line.text.length;updateSpeech(0);return;}
  if(speech.index<speech.lines.length-1){speech.index++;renderLine();return;}
- const done=speech.done;speech=null;done();
+ const done=speech.done;speech=null;globalThis.VoidAudio?.cancel();done();
 }
 function updateSpeech(dt){if(!speech)return;const line=speech.lines[speech.index];speech.shown=Math.min(line.text.length,speech.shown+dt*48);$('spoken-text').textContent=line.text.slice(0,Math.floor(speech.shown));const finished=speech.shown>=line.text.length;$('speech-next').textContent=finished?nextLabel():'SHOW FULL LINE';$('speech-status').textContent=finished?`${speech.index+1} / ${speech.lines.length} · END OF LINE`:'● SPEAKING';}
 const originalUpdate=update;update=function(dt){originalUpdate(dt);updateSpeech(dt);};

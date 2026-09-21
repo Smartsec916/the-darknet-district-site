@@ -1,0 +1,49 @@
+VOID//RUNNER overhaul
+
+Branch: codex/void-runner-flight-overhaul
+Commit: 8e9c0674672427b9e2dd0b16abb101cce40e016e
+Upstream base: 97191403d90603204479578736680c63828914ae
+
+This package contains only the 27 changed/new files, preserving repository-relative paths. Existing artwork and unrelated site pages are not included. Nothing was pushed or deployed.
+
+Preferred integration into the existing repository:
+  git switch -c codex/void-runner-flight-overhaul 97191403d90603204479578736680c63828914ae
+  git am /path/to/VOID-RUNNER-overhaul-commit.patch
+
+Alternatively apply VOID-RUNNER-overhaul.patch with git apply, or overlay the changed-file ZIP and review the diff. Use only one of these methods. Integrate the Python cloud-save validator with the client changes.
+
+Tests: 27 Node tests, 15 Python API tests, eight browser scripts passed. Full progression was browser-automated; manual visual/control spot-checks were also performed. Final human handling/audio review remains.
+
+The local committed checkout remains at:
+C:\Users\smart\Documents\Codex\2026-09-21\files-pasted-by-the-user-you\work\void-runner
+
+Read VOID-RUNNER-OVERHAUL.md for tuning, architecture, migrations, test commands and limitations.
+
+Changed files:
+VOID-RUNNER-OVERHAUL.md
+static/void-runner.html
+tests/browser-smoke.cjs
+tests/cockpit-browser.cjs
+tests/combat-browser.cjs
+tests/followup-browser.cjs
+tests/overhaul-browser.cjs
+tests/overhaul.test.cjs
+tests/piloted-browser.cjs
+tests/test_void_runner_api.py
+void-runner.html
+void-runner/campaign.js
+void-runner/cockpit.js
+void-runner/combat.js
+void-runner/content.js
+void-runner/enemy-pilots.js
+void-runner/expansion.js
+void-runner/flight-presentation.js
+void-runner/game.js
+void-runner/hangar.css
+void-runner/hangar.js
+void-runner/pilot-flight.js
+void-runner/scenes.js
+void-runner/ship-audio.js
+void-runner/ships.js
+void-runner/warp.js
+void_runner_api.py
