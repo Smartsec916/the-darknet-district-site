@@ -25,7 +25,7 @@ function equipGear(id) {
   const gear={...VoidContent.gear,...VoidContent.creditGear};
   if ((!ownedGear.includes(id)&&!state.creditGear.includes(id))||!gear[id]) return;
   const slot=gear[id].slot;
-  state.loadout[slot]=state.loadout[slot]===id?null:id;save();hud();view==='shop'?shop():market();
+  if(!C.equip(state,id,ownedGear))return;save();hud();view==='shop'?shop():market();
 }
 shop=function(){
  if(state.completed<1){shipHome();return;}
@@ -34,9 +34,9 @@ shop=function(){
  const gear={...VoidContent.gear,...VoidContent.creditGear};
  const restored=owned.filter(id=>gear[id]).map(id=>{const g=gear[id],equipped=state.loadout[g.slot]===id;return '<div class="card"><h3>'+g.name+'</h3>'+button(equipped?'UNEQUIP':'EQUIP','equip:'+id,equipped)+'</div>';}).join('');
  menuPage('STATION OUTFITTER','Upgrade <em>shop.</em>',
- '<div class="gear-grid"><section class="card shop-placeholder"><h2>STANDARD</h2><p>STANDARD ITEM — COMING SOON</p></section><section class="card shop-placeholder"><h2>EXCLUSIVE</h2><p>EXCLUSIVE ITEM — COMING SOON</p></section></div>'+
+ '<div class="gear-grid"><section class="card shop-placeholder"><h2>EXCLUSIVE</h2><p>EXCLUSIVE ITEM — COMING SOON</p></section></div>'+
  (restored?'<section aria-label="Previously owned equipment"><h2>Your existing equipment</h2>'+restored+'</section>':'')+
- '<p>New equipment will be added here as it becomes available.</p>'+button('ACCOUNT & CLOUD SAVES','account',true));
+ '<p>Buy ships and standard upgrades below. Manage owned equipment in the Hangar.</p>'+button('ACCOUNT & CLOUD SAVES','account',true));
 };
 function firstDeliveryOffer(){
   state.loginOfferSeen=true;save();view='first-delivery-offer';

@@ -29,6 +29,7 @@
     sentinel: {name:'Sentinel Drone',slot:'utility',description:'An autonomous wingmate fires a targeted 4-damage bolt every 0.7 seconds.',symbol:'S',color:'#a9ff6b'}
   };
   const creditGear = {
+    launcher: {name:'Missile launcher',slot:'missile',price:0,description:'Rook’s installation voucher. Six missiles in the Kestrel; larger racks on upgraded ships. Refilled at departure.',color:'#ffbd69'},
     vector: {name:'Vector Booster',slot:'utility',price:500,description:'A 0.4-second evasive burst. 12-second cooldown. Press E or tap DRIVE.',art:'ghost',color:'#ffbd69'},
     scout: {name:'Scout Drone',slot:'utility',price:700,description:'A wingmate fires a targeted 2-damage bolt every 1.2 seconds.',art:'sentinel',color:'#a9ff6b'}
   };

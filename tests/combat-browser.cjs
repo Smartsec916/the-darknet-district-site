@@ -33,7 +33,7 @@ const defaults=require('../void-runner/balance.js').defaults;
  await page.getByRole('button',{name:'LOAD CLOUD JOURNEY',exact:true}).click();assert.equal(await page.evaluate(()=>state.credits),100);await page.getByRole('button',{name:'LOAD CLOUD SAVE',exact:true}).click();assert.equal(await page.evaluate(()=>state.credits),9800);
  // Real enemy fire produces a visible hostile object. A miss causes no damage.
  const combat=await page.evaluate(()=>{
-  state=C.fresh();state.quest='legal-run';state.upgrades.shields=1;launch();spawnEnemy();const e=enemies[0];Object.assign(e,{x:0,y:0,z:70,fire:0,velocity:{x:0,y:0,z:0},passTime:10});update(.01);const fired=hostile.length>0;const before=hp;
+  state=C.fresh();state.quest='legal-run';state.upgrades.shields=1;launch();flight.route.phase='encounter';spawnEnemy();const e=enemies[0];Object.assign(e,{x:0,y:0,z:70,fire:0,velocity:{x:0,y:0,z:0},passTime:10});VoidEnemyPilots.init(e);update(.01);const fired=hostile.length>0;const before=hp;
   enemies=[];hostile=[{x:20,y:0,z:1,vx:0,vy:0,vz:-55,damage:10,life:3}];update(.04);const missed=hp===before&&shieldHP===15;
   hostile=[{x:0,y:0,z:1,vx:0,vy:0,vz:-55,damage:10,life:3}];update(.04);const shield=shieldHP;const shieldKind=VoidCombatEffects.kind;
   damageTime=0;hostile=[{x:0,y:0,z:1,vx:0,vy:0,vz:-55,damage:10,life:3}];update(.04);draw();const hull=hp,kind=VoidCombatEffects.kind,opacity=Number($('flash').style.opacity);
@@ -55,7 +55,7 @@ const defaults=require('../void-runner/balance.js').defaults;
  const out=process.env.VOID_SCREENSHOT_DIR;if(out){fs.mkdirSync(out,{recursive:true});await page.screenshot({path:path.join(out,'missile-combat.png')});}
  await page.locator('#dev-balance-open').click();if(out)await page.screenshot({path:path.join(out,'developer-balance.png')});await page.getByRole('button',{name:'CLOSE',exact:true}).click();
  await page.evaluate(async()=>{await keplerStationTexture.decode();trialGear=null;devMissileTrial=false;state.location='kepler';state.quest='return';dock();});if(out)await page.screenshot({path:path.join(out,'kepler-interior.png')});
- await page.evaluate(()=>{state.quest='legal-run';launch();enemies=[];spawned=resolved=current.enemies;elapsed=current.duration;approachTime=3;mode='pause';draw();});if(out)await page.screenshot({path:path.join(out,'kepler-approach.png')});
+ await page.evaluate(()=>{state.quest='legal-run';launch();enemies=[];spawned=resolved=current.enemies;elapsed=current.duration;approachTime=3;flight.route.phase='arrived';mode='pause';draw();});if(out)await page.screenshot({path:path.join(out,'kepler-approach.png')});
  await page.setViewportSize({width:390,height:844});await page.evaluate(()=>draw());assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));if(out)await page.screenshot({path:path.join(out,'combat-mobile.png')});
  await page.evaluate(()=>{trialGear=null;dock();});await page.locator('#expansion-nav [data-action="account"]').click();await page.getByRole('button',{name:'SIGN OUT',exact:true}).click();await page.waitForFunction(()=>!VoidAccount.busy);assert.equal(await page.locator('#dev-balance-open').isVisible(),false);assert.equal(await page.evaluate(()=>missileState.ownsMissileLauncher),false);
  const touch=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});touch.on('pageerror',e=>errors.push(e.message));

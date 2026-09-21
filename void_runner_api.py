@@ -210,7 +210,7 @@ def clean_save(value):
     result['upgrades'] = {k: upgrades[k] for k in ['guns','armor','engines']}
     result['upgrades']['shields']=shield_tier
     credit_gear=value.get('creditGear',[])
-    if not isinstance(credit_gear,list) or len(credit_gear)>2 or any(x not in ['vector','scout'] for x in credit_gear):
+    if not isinstance(credit_gear,list) or len(credit_gear)>3 or any(x not in ['vector','scout','launcher'] for x in credit_gear):
         raise ApiError('Invalid credit equipment.')
     result['creditGear']=list(dict.fromkeys(credit_gear))
     result['loginOfferSeen']=value.get('loginOfferSeen',value['completed']>0) is True
@@ -226,10 +226,59 @@ def clean_save(value):
     loadout = value.get('loadout')
     if not isinstance(loadout, dict):
         raise ApiError('Invalid loadout.')
-    slots = {'weapon':[None,'wraith'], 'shield':[None,'aegis'], 'utility':[None,'ghost','sentinel','vector','scout']}
+    slots = {'weapon':[None,'wraith','pulse1','pulse2','pulse3'], 'shield':[None,'aegis','shield1','shield2','shield3'], 'utility':[None,'ghost','sentinel','vector','scout'], 'missile':[None,'launcher']}
     if any(loadout.get(k) not in allowed for k, allowed in slots.items()):
         raise ApiError('Invalid equipment.')
     result['loadout'] = {k: loadout.get(k) for k in slots}
+    # These fields are ordinary campaign data, never premium inventory claims.
+    ship_ids = ['starter','ship2','ship3']
+    ships = value.get('ownedShips',['starter'])
+    standard = value.get('standardGear',['pulse1','shield1'])
+    if not isinstance(ships,list) or len(ships)>3 or any(x not in ship_ids for x in ships):
+        raise ApiError('Invalid campaign ships.')
+    if not isinstance(standard,list) or len(standard)>6 or any(x not in ['pulse1','pulse2','pulse3','shield1','shield2','shield3'] for x in standard):
+        raise ApiError('Invalid standard equipment.')
+    result['ownedShips'] = list(dict.fromkeys(['starter',*ships]))
+    result['standardGear'] = list(dict.fromkeys(['pulse1','shield1',*standard]))
+    active = value.get('activeShip','starter')
+    if active not in result['ownedShips']:
+        raise ApiError('Ship is not owned by this campaign.')
+    result['activeShip'] = active
+    loadouts = value.get('shipLoadouts',{})
+    if not isinstance(loadouts,dict) or len(loadouts)>3 or any(k not in result['ownedShips'] for k in loadouts):
+        raise ApiError('Invalid ship loadouts.')
+    result['shipLoadouts'] = {}
+    for ship_id, equipped in loadouts.items():
+        if not isinstance(equipped,dict) or any(equipped.get(k) not in allowed for k,allowed in slots.items()):
+            raise ApiError('Invalid ship equipment.')
+        result['shipLoadouts'][ship_id] = {k:equipped.get(k) for k in slots}
+    runs = value.get('combatRuns',min(result['completed'],2))
+    if type(runs) is not int or not 0 <= runs <= 100_000_000:
+        raise ApiError('Invalid combat progression.')
+    result['combatRuns'] = runs
+    result['missileUnlocked'] = runs >= 2
+    result['missileOfferSeen'] = value.get('missileOfferSeen') is True
+    locations = ['meridian','kepler','undertow','foundry']
+    destination = value.get('destination')
+    if destination is not None and destination not in locations:
+        raise ApiError('Invalid destination.')
+    result['destination'] = destination
+    result['travel'] = None
+    travel = value.get('travel')
+    if travel is not None:
+        import math
+        if not isinstance(travel,dict) or travel.get('origin') not in locations or travel.get('destination') not in locations:
+            raise ApiError('Invalid route.')
+        progress = travel.get('progress')
+        if type(progress) not in [int,float] or not math.isfinite(progress) or not 0 <= progress <= 1:
+            raise ApiError('Invalid route progress.')
+        encounter = travel.get('encounter')
+        if not isinstance(encounter,dict) or encounter.get('type') not in ['combat','none'] or encounter.get('state') not in ['pending','active','cleared']:
+            raise ApiError('Invalid encounter.')
+        mission = travel.get('mission')
+        if mission is not None and mission not in ['medicine','ghost','foundry',*missions,'inheritance','arrival','legal-offer','legal-run','return','illegal-offer','illegal-run','open']:
+            raise ApiError('Invalid route mission.')
+        result['travel'] = {'origin':travel['origin'],'destination':travel['destination'],'progress':progress,'mission':mission,'encounter':{'type':encounter['type'],'state':encounter['state']}}
     return result
 
 

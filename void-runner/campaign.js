@@ -2,6 +2,8 @@
 (function (root) {
   'use strict';
   const content = typeof module !== 'undefined' ? require('./content.js') : root.VoidContent;
+  const S = typeof module !== 'undefined' ? require('./ships.js') : root.VoidShips;
+  const Warp = typeof module !== 'undefined' ? require('./warp.js') : root.VoidWarp;
   const B = (typeof module !== 'undefined' ? require('./balance.js') : root.VoidBalance).values;
   const stations = {
     meridian: { name: 'Meridian Station', district: 'SECTOR 07 / THE LOWER ORBIT', color: '#58ffe1', bar: 'The Dead Channel' },
@@ -22,7 +24,7 @@
   };
   const quests = ['inheritance', 'arrival', 'legal-offer', 'legal-run', 'return', 'illegal-offer', 'illegal-run', 'open'];
   const allContracts = [...contracts, ...content.missions];
-  function fresh() { return { version: 2, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], loginOfferSeen:false, loadout: {weapon:null,shield:null,utility:null} }; }
+  function fresh() { return { version: 2, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], loginOfferSeen:false, ownedShips:['starter'], activeShip:'starter', standardGear:['pulse1','shield1'], shipLoadouts:{}, combatRuns:0, missileOfferSeen:false, missileUnlocked:false, travel:null, destination:null, loadout: {weapon:null,shield:null,utility:null,missile:null} }; }
   function restore(raw) {
     try {
       const s = JSON.parse(raw);
@@ -33,17 +35,21 @@
       if (s.contract !== null && !allContracts.some(c => c.id === s.contract)) return null;
       const cleared = Array.isArray(s.cleared) ? [...new Set(s.cleared.filter(id=>content.missions.some(m=>m.id===id)))] : [];
       const loadout = fresh().loadout;
-      const allGear={...content.gear,...content.creditGear};
+      const allGear={...content.gear,...content.creditGear,...S.equipment};
       for (const slot of Object.keys(loadout)) if (Object.hasOwn(allGear,s.loadout?.[slot] || '') && allGear[s.loadout[slot]].slot===slot) loadout[slot]=s.loadout[slot];
       const creditGear=Array.isArray(s.creditGear)?[...new Set(s.creditGear.filter(id=>Object.hasOwn(content.creditGear,id)))]:[];
-      return { ...fresh(), quest: s.quest, location: s.location, credits: s.credits, completed: s.completed, upgrades: { guns: s.upgrades.guns, armor: s.upgrades.armor, engines: s.upgrades.engines,shields:s.upgrades.shields }, contract: s.contract, cleared, loadout,creditGear,loginOfferSeen:typeof s.loginOfferSeen==='boolean'?s.loginOfferSeen:s.completed>0 };
+      return migrate({ ...fresh(), quest: s.quest, location: s.location, credits: s.credits, completed: s.completed, upgrades: { guns: s.upgrades.guns, armor: s.upgrades.armor, engines: s.upgrades.engines,shields:s.upgrades.shields }, contract: s.contract, cleared, loadout,creditGear,loginOfferSeen:typeof s.loginOfferSeen==='boolean'?s.loginOfferSeen:s.completed>0 },s);
     } catch { return null; }
   }
   function beginJourney(s) { if (s.quest !== 'inheritance') return false; s.quest = 'arrival'; return true; }
   function stats(s, owned = []) {
+    const ship=S.get(s), weapon=S.equipment[s.loadout?.weapon], shield=S.equipment[s.loadout?.shield];
+    const standard=id=>s.standardGear?.includes(id);
+    const laser=weapon&&standard(s.loadout.weapon)?weapon.damage:ship.laser, rate=weapon&&standard(s.loadout.weapon)?weapon.rate:ship.fireRate;
+    const deflector=shield&&standard(s.loadout.shield)?shield:{capacity:ship.shield,recharge:ship.recharge,delay:ship.shieldDelay};
     const has = id => owned.includes(id) && s.loadout?.[content.gear[id].slot] === id;
     const creditHas=id=>s.creditGear?.includes(id)&&s.loadout?.utility===id;
-    return { hull: B.playerHull + s.upgrades.armor * B.hullPerTier, damage: has('wraith') ? B.premiumLaserDamage : B.laserDamage + s.upgrades.guns * B.laserDamagePerTier, cooldown: has('wraith') ? 1/B.premiumLaserFireRate : Math.max(1/60,1/B.laserFireRate - s.upgrades.guns * B.laserCooldownPerTier), speed: 10 + s.upgrades.engines * 2.5, shield: has('aegis') ? B.premiumShield : B.playerShield+(s.upgrades.shields||0)*B.shieldPerTier, shieldRegen:has('aegis')?B.premiumShieldRechargeRate:B.shieldRechargeRate,shieldDelay:has('aegis')?B.premiumShieldRechargeDelay:B.shieldRechargeDelay, piercing: has('wraith'), drive: has('ghost')||creditHas('vector'),driveDuration:has('ghost')?.7:.4,driveCooldown:has('ghost')?8:12, drone: has('sentinel')||creditHas('scout'),droneDamage:has('sentinel')?4:2,droneCooldown:has('sentinel')?.7:1.2 };
+    return { ship, flight:ship.flight, hull: B.playerHull * ship.hull/100 + s.upgrades.armor * B.hullPerTier, damage: has('wraith') ? B.premiumLaserDamage : B.laserDamage * laser + s.upgrades.guns * B.laserDamagePerTier, cooldown: has('wraith') ? 1/B.premiumLaserFireRate : Math.max(1/60,1/(B.laserFireRate*rate) - s.upgrades.guns * B.laserCooldownPerTier), speed: 10 + s.upgrades.engines * 2.5, shield: has('aegis') ? B.premiumShield : B.playerShield+deflector.capacity+(s.upgrades.shields||0)*B.shieldPerTier, shieldRegen:has('aegis')?B.premiumShieldRechargeRate:B.shieldRechargeRate*deflector.recharge/6,shieldDelay:has('aegis')?B.premiumShieldRechargeDelay:B.shieldRechargeDelay*deflector.delay/6, piercing: has('wraith'), drive: has('ghost')||creditHas('vector'),driveDuration:has('ghost')?.7:.4,driveCooldown:has('ghost')?8:12, drone: has('sentinel')||creditHas('scout'),droneDamage:has('sentinel')?4:2,droneCooldown:has('sentinel')?.7:1.2 };
   }
   function unlocked(s,c) { return s.quest==='open' && (!c.requires || s.cleared.includes(c.requires)); }
   function flight(s) {
@@ -58,6 +64,7 @@
       const pressure = c.chapter ? 0 : Math.min(6, Math.floor(Math.max(0, s.completed - 2) / 2));
       return { ...c, enemies: c.enemies + pressure * 2, tier: c.tier + pressure * .4, duration: c.duration + pressure * 2, pressure, destination: c.destination === s.location ? 'meridian' : c.destination };
     }
+    if(s.quest==='open'&&s.destination&&stations[s.destination]&&s.destination!==s.location)return {...base,name:'Free transit',destination:s.destination,duration:20,enemies:3,tier:1,reward:0,kind:'transit'};
     return null;
   }
   function accept(s, id) {
@@ -70,6 +77,8 @@
   function complete(s) {
     const f = flight(s); if (!f) return null;
     const previous = s.quest;
+    if(f.enemies>0){s.combatRuns=(s.combatRuns||0)+1;if(s.combatRuns>=2)s.missileUnlocked=true;}
+    s.travel=null;s.destination=null;
     s.location = f.destination; s.credits += f.reward;
     const repairCharged=Math.min(s.credits,Math.round(B.repairCost));s.credits-=repairCharged;
     if (f.reward) s.completed++;
@@ -79,7 +88,7 @@
     else if (previous === 'return') s.quest = 'illegal-offer';
     else if (previous === 'illegal-run') { s.quest = 'open'; s.upgrades.guns = Math.max(1, s.upgrades.guns); }
     else s.contract = null;
-    return { ...f, repairCharged, gunReward: previous === 'illegal-run' };
+    return { ...f, missileOffer:s.missileUnlocked&&!s.missileOfferSeen, repairCharged, gunReward: previous === 'illegal-run' };
   }
   function buy(s, key) {
     if (s.completed < 1 || !Object.hasOwn(upgrades, key)) return false;
@@ -87,8 +96,30 @@
     if (cost === undefined || s.credits < cost) return false;
     s.credits -= cost; s.upgrades[key]++; return true;
   }
-  function buyGear(s,id){const g=content.creditGear[id];if(!g||s.completed<1||s.creditGear.includes(id)||s.credits<g.price)return false;s.credits-=g.price;s.creditGear.push(id);s.loadout[g.slot]=id;return true;}
-  const api = { stations, contracts, allContracts, upgrades, fresh, restore, beginJourney, stats, flight, accept, complete, buy, buyGear, unlocked };
+  function buyGear(s,id){const g=content.creditGear[id];if(!g||(id==='launcher'&&!s.missileUnlocked)||s.completed<1||s.creditGear.includes(id)||s.credits<g.price)return false;s.credits-=g.price;s.creditGear.push(id);s.loadout[g.slot]=id;return true;}
+
+  function migrate(out,raw){
+    out.ownedShips=['starter',...new Set((Array.isArray(raw.ownedShips)?raw.ownedShips:[]).filter(id=>id!=='starter'&&Object.hasOwn(S.ships,id)))];
+    out.activeShip=out.ownedShips.includes(raw.activeShip)?raw.activeShip:'starter';
+    out.standardGear=['pulse1','shield1',...new Set((Array.isArray(raw.standardGear)?raw.standardGear:[]).filter(id=>Object.hasOwn(S.equipment,id)&&!['pulse1','shield1'].includes(id)))];
+    out.combatRuns=Number.isSafeInteger(raw.combatRuns)&&raw.combatRuns>=0?Math.min(raw.combatRuns,100000000):Math.min(raw.completed,2);
+    out.missileUnlocked=out.combatRuns>=2;
+    out.missileOfferSeen=raw.missileOfferSeen===true;
+    const gear={...content.gear,...content.creditGear,...S.equipment};
+    const clean=l=>Object.fromEntries(['weapon','shield','utility','missile'].map(slot=>[slot,gear[l?.[slot]]?.slot===slot?l[slot]:null]));
+    for(const id of out.ownedShips)out.shipLoadouts[id]=clean(raw.shipLoadouts?.[id]||S.defaults[id]);
+    out.loadout=clean(raw.loadout);out.shipLoadouts[out.activeShip]={...out.loadout};
+    out.destination=out.quest==='open'&&!out.contract&&stations[raw.destination]&&raw.destination!==out.location?raw.destination:null;
+    const f=flight(out);out.travel=f&&raw.travel?Warp.restore(raw.travel,out.location,f.destination,f.id||out.quest,f.enemies>0||['salvage','hazard','escort'].includes(f.kind)):null;
+    return out;
+  }
+  function buyShip(s,id){const ship=S.ships[id];if(!ship||s.ownedShips.includes(id)||s.credits<ship.price)return false;s.credits-=ship.price;s.ownedShips.push(id);s.shipLoadouts[id]={...S.defaults[id]};for(const [key,item]of Object.entries(S.equipment))if(item.ship===id&&!s.standardGear.includes(key))s.standardGear.push(key);return true;}
+  function switchShip(s,id){if(!s.ownedShips.includes(id)||!S.ships[id])return false;s.shipLoadouts[s.activeShip]={...s.loadout};s.activeShip=id;s.loadout={...(s.shipLoadouts[id]||S.defaults[id])};return true;}
+  function ownsEquipment(s,id,verified=[]){return Object.hasOwn(content.gear,id)?verified.includes(id):Object.hasOwn(content.creditGear,id)?s.creditGear.includes(id):Object.hasOwn(S.equipment,id)&&s.standardGear.includes(id);}
+  function equip(s,id,verified=[]){const g={...content.gear,...content.creditGear,...S.equipment}[id];if(!g||!ownsEquipment(s,id,verified))return false;s.loadout[g.slot]=s.loadout[g.slot]===id?null:id;s.shipLoadouts[s.activeShip]={...s.loadout};return true;}
+  function chooseDestination(s,id){if(s.quest!=='open'||s.contract||!stations[id]||id===s.location)return false;s.destination=id;s.travel=null;return true;}
+
+  const api = { stations, contracts, allContracts, upgrades, fresh, restore, beginJourney, stats, flight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
