@@ -1,6 +1,6 @@
 /* Serializable route checkpoints. Encounters have a type so later events need no new route loop. */
 (function(root){
- const config={alignmentCos:Math.cos(8*Math.PI/180),hold:.65,departureSeconds:2.2,warpSeconds:12,destinationRevealSeconds:8,decelerationSeconds:3,approachSeconds:3,interruption:.42};
+ const config={alignmentCos:Math.cos(8*Math.PI/180),hold:.65,departureSeconds:4,warpSeconds:12,destinationRevealSeconds:8,decelerationSeconds:3,approachSeconds:3,interruption:.42};
  function create(origin,destination,mission,encounter=false){const heading={meridian:-.55,kepler:.65,undertow:-.8,foundry:.9}[destination]||.55;return {origin,destination,mission:mission||null,progress:0,phase:'departure',departure:0,aligned:0,encounter:{type:encounter?'combat':'none',state:encounter?'pending':'cleared'},vector:{x:Math.sin(heading),y:0,z:Math.cos(heading)}};}
  function restore(raw,origin,destination,mission,encounter){
   const r=create(origin,destination,mission,encounter);

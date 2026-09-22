@@ -33,10 +33,15 @@ function stepMissileCombat(dt,velocity){
 function drawMissiles(){for(const m of missiles){const p=flightPoint(m),q=flightPoint({x:m.x-m.direction.x*5,y:m.y-m.direction.y*5,z:m.z-m.direction.z*5});if(p.z>1&&q.z>1){ctx.strokeStyle='#ffcf83';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(p.x,p.y);ctx.stroke();ctx.fillStyle='#fff3d6';ctx.fillRect(p.x-2,p.y-2,4,4);}}}
 function drawMissileReticle(){
  if(!missileState.ownsMissileLauncher||!missileState.equipped)return;
- const target=missileLock.target||enemies.find(e=>!e.dead&&flightPoint(e).z>1);
- if(target){const p=flightPoint(target),r=Math.max(18,Math.min(90,p.s*target.size*3));ctx.save();ctx.strokeStyle=missileLock.progress>=1?'#ffcc70':missileLock.target?'#58ffe1':'#8399ab';ctx.lineWidth=2;ctx.strokeRect(p.x-r,p.y-r,r*2,r*2);ctx.fillStyle=ctx.strokeStyle;ctx.font='11px Consolas';ctx.textAlign='center';ctx.fillText(missileLock.progress>=1?'MISSILE LOCK':missileLock.target?'ACQUIRING '+Math.round(missileLock.progress*100)+'%':'TARGET DETECTED',p.x,p.y-r-14);ctx.fillRect(p.x-r,p.y+r+5,r*2*missileLock.progress,3);ctx.restore();}
- const radius=Math.min(W,H)*VOID_BALANCE.missileLockRadius,x=W/2,y=H*.44;
- ctx.save();ctx.strokeStyle=missileLock.progress>=1?'#ffcc70':missileLock.target?'#ffdba9':'#769d9e';ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=1;ctx.setLineDash([5,5]);ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,y,radius,-Math.PI/2,-Math.PI/2+Math.PI*2*missileLock.progress);ctx.stroke();ctx.textAlign='center';ctx.font='11px Consolas';ctx.fillText(`${missileState.missilesLoaded?missileLock.status:'EMPTY'} / ${missileState.missilesLoaded}${missileCooldown>0?' / COOLDOWN':missileLock.progress>=1?' / RIGHT CLICK':''}`,x,y+radius+19);ctx.restore();
+ const target=missileLock.target,locked=missileLock.progress>=1,radius=Math.min(W,H)*missileBalance().missileLockRadius,x=W*.5,y=H*.44;
+ ctx.save();ctx.strokeStyle=locked?'#ffd084':'#87dcc6';ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=1;ctx.globalAlpha=.65;ctx.setLineDash([3,12]);ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;
+ if(target&&!target.dead){const p=flightPoint(target),r=Math.max(16,Math.min(65,p.s*target.size*2.8));
+  if(p.z>1){if(locked)ctx.strokeRect(p.x-r,p.y-r,2*r,2*r);else for(const sx of [-1,1])for(const sy of [-1,1]){ctx.beginPath();ctx.moveTo(p.x+sx*(r-7),p.y+sy*r);ctx.lineTo(p.x+sx*r,p.y+sy*r);ctx.lineTo(p.x+sx*r,p.y+sy*(r-7));ctx.stroke();}
+   ctx.font='10px Consolas';ctx.textAlign='center';ctx.fillText(locked?'LOCK':Math.round(missileLock.progress*100)+'%',p.x,p.y-r-7);
+   ctx.beginPath();ctx.arc(x,y,radius,-Math.PI/2,-Math.PI/2+Math.PI*2*missileLock.progress);ctx.stroke();
+  }
+ }
+ ctx.font='10px Consolas';ctx.textAlign='center';ctx.fillText(!missileState.missilesLoaded?'EMPTY':missileCooldown>0?'COOLDOWN':locked?'LOCK / FIRE':'',x,y+radius+14);ctx.restore();
 }
 
 function missileBalance(){const m=VoidShips.get(state).missile;return {...VOID_BALANCE,missileDamage:VOID_BALANCE.missileDamage*m.damage,missileLockTime:VOID_BALANCE.missileLockTime*m.lock,missileCooldown:VOID_BALANCE.missileCooldown*m.cooldown};}

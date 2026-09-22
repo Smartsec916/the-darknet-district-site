@@ -22,16 +22,3 @@ function drawTravelStation(){
  const width=W*(.012+.34*reveal*reveal+.40*approach*approach);
  ctx.save();drawStationExterior(r.destination,W*.5,H*.44,width);ctx.restore();
 }
-function drawDeparture(){
- const r=flight.route;if(r?.phase!=='departure')return;const t=Math.min(1,r.departure/VoidWarp.config.departureSeconds),color=C.stations[r.origin].color;
- ctx.save();ctx.globalAlpha=1-t*t;
- drawStationExterior(r.origin,W*.5,H*.39,W*(1.7-t*1.25));
- // Dock hardware mirrors the ring / freight gantry / patched crescent / refinery identity.
- const count=r.origin==='foundry'?6:r.origin==='kepler'?4:3;
- ctx.strokeStyle=color;ctx.fillStyle='#111b26';ctx.lineWidth=3;
- for(let i=0;i<count;i++){const depth=(i/count+t*.85)%1,spread=.25+depth*1.2,x=W*spread,y=H*(.15-depth*.24),h=H*(.6+depth*.8);
-  if(r.origin==='meridian'||r.origin==='undertow'){ctx.beginPath();ctx.ellipse(W*.5,H*.44,x,h*.52,0,r.origin==='undertow'?.3:0,r.origin==='undertow'?5.7:Math.PI*2);ctx.stroke();}
-  else{ctx.fillRect(W*.5-x,y,15+depth*28,h);ctx.fillRect(W*.5+x,y,15+depth*28,h);ctx.strokeRect(W*.5-x,y,x*2,h);if(r.origin==='foundry'){ctx.fillStyle='#ff795f55';ctx.fillRect(W*.5-x+5,y,8,h);ctx.fillStyle='#111b26';}}
- }
- ctx.restore();
-}
