@@ -1,28 +1,19 @@
-VOID//RUNNER next update
-
-Branch: codex/void-runner-network-premium-travel
-Commit: 412e37b1482353aaadfc0364c54850d1df42caec
-Previous overhaul: 8e9c0674672427b9e2dd0b16abb101cce40e016e
+VOID//RUNNER — transparent hangars and flight HUD
+Branch: codex/void-runner-hangars-flight-hud
+Commit: bfb89e967a02a6abfbb75d9fa2ae2b3f4e42bd91
+Previous update base: 412e37b1482353aaadfc0364c54850d1df42caec
 Original upstream: 97191403d90603204479578736680c63828914ae
 
-No push, deployment, main merge or real payment was performed.
+No deployment, push or main merge.
 
-Choose ONE integration method in your existing repository:
+Choose ONE ZIP overlay for your existing repository:
+- VOID-RUNNER-hangars-hud.zip: changes since the previous network/premium/travel update (412e37b1482353aaadfc0364c54850d1df42caec).
+- VOID-RUNNER-all-updates.zip: cumulative changes from original upstream (97191403d90603204479578736680c63828914ae).
 
-A. If the prior overhaul is already present:
-  git switch -c codex/void-runner-network-premium-travel 8e9c0674672427b9e2dd0b16abb101cce40e016e
-  git am /path/to/VOID-RUNNER-next-update-commit.patch
-Or apply VOID-RUNNER-next-update.patch with git apply after reviewing it.
+These contain changed/new files only, including all four transparent hangar PNGs, at repository-relative paths. They require the existing repository's other files and artwork. Extract into a review branch, not directly into production. No files are deleted by this update.
 
-B. If the prior overhaul is not present:
-  git switch -c codex/void-runner-network-premium-travel 97191403d90603204479578736680c63828914ae
-  git apply /path/to/VOID-RUNNER-combined.patch
-Review and commit before deploying.
+Equivalent binary Git patches are supplied; run git apply --check before applying the matching patch. Do not apply both variants.
 
-The two ZIPs are alternatives containing changed/new files at repository-relative paths. They are overlays for the existing repository, not standalone game downloads. Existing artwork/assets and unrelated pages are preserved and not duplicated. next-update-changes.zip contains this update only; combined-changes.zip includes the prior overhaul plus this update. Do not apply both patches.
+Read VOID-RUNNER-HANGARS-HUD.md for all 18 requested report points, asset dimensions, math, tests and limitations. Exact built-in generation prompts are included in void-runner/art/HANGAR-PROMPTS.json. Visual captures and verification.json are separate review evidence.
 
-Read VOID-RUNNER-NEXT-UPDATE.md for root cause, configuration, verification and limits. Render currently returns Service Suspended; code alone cannot restore the service. Spectre needs server-side VOID_PRICE_SPECTRE for an active one-time 100-cent USD price, with the existing account/payment configuration.
-
-Validation: 30 Node tests, 19 Python tests, all 10 browser scripts passed. Browser results and read-only production HTTP evidence are included separately. No secrets or test private keys are packaged.
-
-Local committed checkout: C:\Users\smart\Documents\Codex\2026-09-21\files-pasted-by-the-user-you\work\void-runner
+32 Node tests and 7 relevant browser scripts passed. End-to-end GPU FPS is hardware dependent; measured added CPU drawing submission is documented.

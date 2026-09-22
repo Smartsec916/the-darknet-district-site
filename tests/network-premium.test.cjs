@@ -20,7 +20,7 @@ test('forged legacy saves and campaign credits never unlock Spectre or its equip
  S.verify([]);assert.equal(S.get(restored).id,'starter');assert.equal(C.stats(restored).damage,1);assert(!C.switchShip(restored,'ship3'));
 });
 test('departure and eight-second reveal timing remain centralized through encounter resume',()=>{
- const r=W.create('kepler','meridian','route',true);assert.equal(r.phase,'departure');for(let i=0;i<23;i++)W.step(r,.1,r.vector);assert.equal(r.phase,'align');
+ const r=W.create('kepler','meridian','route',true);assert.equal(r.phase,'departure');for(let i=0;i<Math.ceil(W.config.departureSeconds*10)+1;i++)W.step(r,.1,r.vector);assert.equal(r.phase,'align');
  for(let i=0;i<70&&r.phase!=='encounter';i++)W.step(r,.1,r.vector);assert.equal(r.phase,'encounter');const progress=r.progress;for(let i=0;i<100;i++)W.step(r,.1,r.vector,false);assert.equal(r.progress,progress);
  W.step(r,.1,r.vector,true);for(let i=0;i<100&&r.progress*W.config.warpSeconds<8;i++)W.step(r,.1,r.vector,true);
  assert(r.progress*W.config.warpSeconds>=8&&r.progress*W.config.warpSeconds<8.11);assert.equal(r.destination,'meridian');assert.equal(r.phase,'warp');
