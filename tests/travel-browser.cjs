@@ -6,7 +6,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
  const output=process.env.VOID_SCREENSHOT_DIR;if(output)fs.mkdirSync(output,{recursive:true});const capture=async name=>{if(output)await page.screenshot({path:path.join(output,name+'.png')});};
  try{
   await page.goto('http://127.0.0.1:5000/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);
-  assert(!requests.some(u=>/sky-|station(?:-kepler|-undertow)?\.png|ships\.png/.test(u)),'Travel textures are not startup prerequisites');
+  assert(!requests.some(u=>/sky-(?:kepler|undertow|foundry)|station-(?:kepler|undertow)\.png|ships\.png/.test(u)),'Travel textures are not startup prerequisites');
   const routes=[['meridian','kepler'],['kepler','meridian'],['undertow','foundry'],['foundry','undertow']];
   for(const [origin,destination]of routes){
    await page.evaluate(async({origin,destination})=>{state=C.fresh();state.quest='open';state.completed=2;state.location=origin;C.chooseDestination(state,destination);launch();mode='pause';await Promise.all([departureImages[origin].load(),skyboxes[origin].load(),skyboxes[destination].load(),stationImages[origin]?.load(),stationImages[destination]?.load()]);flight.route.departure=.45;await new Promise(r=>setTimeout(r,450));$('notice').textContent='';updateWarpHud();draw();},{origin,destination});

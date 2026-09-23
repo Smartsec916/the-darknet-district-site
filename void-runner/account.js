@@ -4,7 +4,7 @@ let authInitialization=null,unsubscribe=null;
 let firebase, generation=0, pendingCheckout=new URLSearchParams(location.search).get('checkout');
 let saveReady=false,verifiedUntil=0,ownershipTimer,refreshTimer;
 function render(){
-  document.getElementById('account-nav').textContent=account.user?'ACCOUNT':'SIGN IN';
+  globalThis.VoidMenu?.refreshAccount();
   if(mode==='dock'&&view==='market')market();
   if(mode==='dock'&&view==='account')accountPage();
 }
@@ -32,8 +32,9 @@ async function refresh(){
 function cloudDescription(){return account.cloud?`${account.cloud.completed} deliveries · ${account.cloud.credits.toLocaleString()} CR · ${account.cloud.cleared?.length||0}/12 new missions`:'No cloud save yet.';}
 function accountPage(){
   view='account';
-  menuPage('PILOT ACCOUNT','Your ship. <em>Everywhere.</em>',
-    `<p class="account-detail">${account.user?'Signed in as <strong>'+escapeText(account.user.displayName||account.user.email||'Pilot')+'</strong>.':'Use the same Google login as the District homepage. You can keep playing locally without signing in.'}</p>${account.user?`<div class="manifest">${row('This browser',state.completed+' deliveries / '+state.credits+' CR')}${row('Cloud save',escapeText(cloudDescription()))}${row('Owned equipment',ownedGear.length+' verified items')}</div><p>Choose when to copy progress between this browser and your account. New Journey resets your local campaign; it never deletes purchases.</p><div class="account-actions">${button('SAVE THIS JOURNEY TO CLOUD','cloud-save-prompt',false,account.busy||!saveReady)}${button('LOAD CLOUD JOURNEY','cloud-load-prompt',true,account.busy||!account.cloud||!saveReady)}${button('REFRESH / RESTORE PURCHASES','account-refresh',true,account.busy)}${button('SIGN OUT','sign-out',true,account.busy)}</div>`:`<div class="account-actions">${button('SIGN IN WITH GOOGLE','sign-in',false,account.busy||!firebase)}${!firebase?button('RETRY CONNECTION','auth-retry',true,account.busy):''}</div>`}<p class="fine">Cloud saves copy campaign progress only. Paid ownership is checked separately with the server. Your browser save remains available if the account service is offline.</p>`);
+  menuPage('PILOT ACCOUNT','Pilot account',
+    `<p class="account-detail">${account.user?'Signed in as <strong>'+escapeText(account.user.displayName||account.user.email||'Pilot')+'</strong>.':'Use the same Google login as the District homepage. You can keep playing locally without signing in.'}</p>${account.user?`<div class="manifest">${row('This browser',state.completed+' deliveries / '+state.credits+' CR')}${row('Cloud save',escapeText(cloudDescription()))}${row('Owned equipment',ownedGear.length+' verified items')}</div><p>Choose when to copy progress between this browser and your account. Start New Campaign replaces the local campaign; it never deletes purchases.</p><div class="account-actions">${button('SAVE THIS JOURNEY TO CLOUD','cloud-save-prompt',false,account.busy||!saveReady)}${button('LOAD CLOUD JOURNEY','cloud-load-prompt',true,account.busy||!account.cloud||!saveReady)}${button('REFRESH / RESTORE PURCHASES','account-refresh',true,account.busy)}${button('SIGN OUT','sign-out',true,account.busy)}</div>`:`<div class="account-actions">${button('SIGN IN WITH GOOGLE','sign-in',false,account.busy||!firebase)}${!firebase?button('RETRY CONNECTION','auth-retry',true,account.busy):''}</div>`}<p class="fine">Cloud saves copy campaign progress only. Paid ownership is checked separately with the server. Your browser save remains available if the account service is offline.</p>`);
+  const back=screen.querySelector('.shop-heading button');if(back){back.dataset.action='account-main-menu';back.textContent='BACK TO MAIN MENU';}
 }
 async function run(action,quiet=false){
   if(account.busy)return;account.busy=true;render();
@@ -94,9 +95,9 @@ function requestAction(action){
   else if(action==='cloud-save-prompt'&&saveReady){view='save-confirm';menuPage('CLOUD SAVE','Save this <em>journey?</em>',`<p>Copy this browser’s ${state.completed} deliveries and ${state.credits} credits to your account. ${account.cloud?'This replaces your current cloud journey.':'This creates your first cloud save.'}</p>${button('SAVE TO CLOUD','cloud-save')}${button('CANCEL','account',true)}`);}
   else if(action==='cloud-load-prompt'&&account.cloud){view='load-confirm';menuPage('RESTORE JOURNEY','Load your <em>cloud save?</em>',`<p>${escapeText(cloudDescription())}. This replaces the campaign in this browser. Your purchased equipment is unaffected.</p>${button('LOAD CLOUD SAVE','cloud-load')}${button('CANCEL','account',true)}`);}
   else if(action==='cloud-save')run(async()=>{const epoch=generation;const snapshot=JSON.parse(JSON.stringify(state));const data=await api('save',{save:snapshot,revision:account.revision});if(epoch!==generation)return;account.revision=data.revision;account.cloud=snapshot;account.savedAt=data.savedAt;accountPage();announce('Journey saved to your account.');});
-  else if(action==='cloud-load'&&account.cloud){const restored=C.restore(JSON.stringify(account.cloud));if(!restored){announce('This cloud save is incompatible. Your local progress is unchanged.');return;}state=restored;save();current=null;hud();accountPage();announce('Cloud journey restored.');}
+  else if(action==='cloud-load'&&account.cloud){const restored=C.restore(JSON.stringify(account.cloud));if(!restored){announce('This cloud save is incompatible. Your local progress is unchanged.');return;}state=restored;save();current=null;VoidMenu.returnTo=null;hud();accountPage();announce('Cloud journey restored.');}
 }
-document.getElementById('expansion-nav').addEventListener('click',e=>requestAction(e.target.closest('button')?.dataset.action));
+account.request=requestAction;
 screen.addEventListener('click',e=>requestAction(e.target.closest('button')?.dataset.action));
 if(pendingCheckout==='cancelled'){clearCheckout();announce('Checkout cancelled. No equipment was added.');}
 VoidLoading.stage('account','ACCOUNT INITIALIZATION STARTED · OPTIONAL SERVICES CONNECTING');

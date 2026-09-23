@@ -9,7 +9,7 @@
   return {x:a.x*Math.cos(limit)+tangent.x*Math.sin(limit),y:a.y*Math.cos(limit)+tangent.y*Math.sin(limit),z:a.z*Math.cos(limit)+tangent.z*Math.sin(limit)};
  }
  function launch(s,lock,basis,balance,cooldown){
-  if(!ready(s)||cooldown>0||lock.progress<1||!lock.target||lock.target.dead)return null;
+  if(!ready(s)||cooldown>0||lock.progress<1||!lock.target||lock.target.dead||(lock.target.allegiance&&lock.target.allegiance!=='hostile')||Math.hypot(lock.target.x,lock.target.y,lock.target.z)>balance.missileRange)return null;
   s.missilesLoaded--;return {x:basis.r.x*1.4+basis.u.x*.6,y:basis.r.y*1.4+basis.u.y*.6,z:basis.r.z*1.4+basis.u.z*.6,direction:{...basis.f},target:lock.target,life:balance.missileLifetime,distance:0,damage:balance.missileDamage};
  }
  function step(m,dt,velocity,balance,enemies,hit){
@@ -17,7 +17,7 @@
   if(m.target&&!m.target.dead)m.direction=turn(m.direction,{x:m.target.x-m.x,y:m.target.y-m.y,z:m.target.z-m.z},balance.missileTurnRate*dt);
   const distance=balance.missileSpeed*dt;m.distance+=distance;
   for(const axis of ['x','y','z'])m[axis]+=m.direction[axis]*distance-velocity[axis]*dt;
-  for(const e of enemies)if(!e.dead&&M.segmentHit(from,m,e,e.size*2.1)){hit(e,m.damage);m.dead=true;break;}
+  for(const e of enemies)if(!e.dead&&(!e.allegiance||e.allegiance==='hostile')&&M.segmentHit(from,m,e,e.size*2.1)){hit(e,m.damage);m.dead=true;break;}
   if(m.life<=0||m.distance>=balance.missileRange)m.dead=true;
  }
  const api={ready,turn,launch,step};if(typeof module!=='undefined')module.exports=api;else root.VoidMissiles=api;

@@ -1,0 +1,39 @@
+{
+  "locations": [
+    "meridian",
+    "kepler",
+    "undertow",
+    "foundry"
+  ],
+  "missions": [
+    "medicine",
+    "ghost",
+    "foundry",
+    "belt-1",
+    "belt-2",
+    "belt-3",
+    "belt-4",
+    "lockdown-1",
+    "lockdown-2",
+    "lockdown-3",
+    "lockdown-4",
+    "gate-1",
+    "gate-2",
+    "gate-3",
+    "gate-4"
+  ],
+  "chapters": [
+    "belt-1",
+    "belt-2",
+    "belt-3",
+    "belt-4",
+    "lockdown-1",
+    "lockdown-2",
+    "lockdown-3",
+    "lockdown-4",
+    "gate-1",
+    "gate-2",
+    "gate-3",
+    "gate-4"
+  ]
+}

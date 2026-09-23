@@ -4,7 +4,7 @@
  function step(lock,candidates,project,width,height,dt,balance,enabled){
   if(!enabled){Object.assign(lock,fresh());return;}
   const radius=Math.min(width,height)*balance.missileLockRadius;
-  const eligible=candidates.filter(e=>!e.dead).map(e=>({e,p:project(e)})).filter(({p})=>p.z>1&&Math.hypot(p.x-width/2,p.y-height*.44)<=radius).sort((a,b)=>a.p.z-b.p.z);
+  const eligible=candidates.filter(e=>!e.dead&&(!e.allegiance||e.allegiance==='hostile')).map(e=>({e,p:project(e)})).filter(({e,p})=>p.z>1&&Math.hypot(p.x-width/2,p.y-height*.44)<=radius&&(!balance.missileRange||Math.hypot(e.x,e.y,e.z)<=balance.missileRange)).sort((a,b)=>a.p.z-b.p.z);
   const next=eligible.find(q=>q.e===lock.target)?.e||eligible[0]?.e||null;
   if(next!==lock.target){lock.target=next;lock.progress=0;}
   lock.progress=next?Math.min(1,lock.progress+dt/balance.missileLockTime):0;

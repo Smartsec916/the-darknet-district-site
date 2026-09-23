@@ -15,7 +15,7 @@ VoidStartup.ready=(async()=>{
  VoidLoading.stage('art','ESSENTIAL ART DECODED');
  if(VoidStartup.started)return true;
  VoidStartup.started=true;VoidStartup.starts++;
- title();if(location.hash==='#market'&&state.completed>=1)market();
+ title();
  VoidLoading.stage('ready','READY · OPTIONAL SERVICES CONTINUE IN BACKGROUND');VoidLoading.ready();
  last=performance.now();requestAnimationFrame(loop);
  return true;

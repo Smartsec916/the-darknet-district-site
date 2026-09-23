@@ -1,15 +1,8 @@
 /* Portrait dialogue, explorable interiors, and route-specific planet flybys. */
-const characters = {
- mara: {name:'Mara Voss', role:'ELIAS’S FRIEND / FREIGHT MECHANIC', cell:'0% 0%'},
- elias: {name:'Elias Ward', role:'YOUR FORMER EMPLOYER / ARCHIVED RECORDING', cell:'50% 0%'},
- rook: {name:'Rook', role:'INDEPENDENT CARGO BROKER', cell:'100% 0%'},
- iona: {name:'Iona Vale', role:'RUSTHAVEN ENGINEER', cell:'0% 100%'},
- sol: {name:'Dr. Sol', role:'KEPLER CLINIC NETWORK', cell:'50% 100%'},
- nyx: {name:'Nyx', role:'BARTENDER / THE DEAD CHANNEL', cell:'100% 100%'}
-};
+const characters = VoidStoryContent.characters;
 let speech = null;
-function portrait(id, small=false) { const c=characters[id]; return `<div class="portrait ${small?'small':''}" role="img" aria-label="Portrait of ${c.name}" style="background-position:${c.cell}"></div>`; }
-function scene(name) { globalThis.VoidAudio?.cancel(); screen.dataset.scene=name;screen.dataset.station=state.location;screen.classList.remove('station-dock'); screen.classList.toggle('cinematic',!!name); }
+function portrait(id, small=false) { const c=characters[id]; return `<div class="portrait ${small?'small':''}" role="img" aria-label="Portrait of ${c.name}" style="background-image:url('${new URL(c.portrait,new URL('../',artBase)).href}');background-size:${c.cell?'300% 200%':'cover'};background-position:${c.cell||'center'}"></div>`; }
+function scene(name) { if(name&&screen.dataset.scene&&screen.dataset.scene!==name)globalThis.VoidAudio?.event('door');globalThis.VoidAudio?.cancel(); screen.dataset.scene=name;screen.dataset.station=state.location;screen.classList.remove('station-dock'); screen.classList.toggle('cinematic',!!name); }
 const originalPanel=panel;
 panel=function(...args){speech=null;scene('');originalPanel(...args);};
 const originalLaunch=launch;
@@ -19,8 +12,8 @@ function talk(sceneName, lines, done, label='CONTINUE →', heading='') {
  speech={lines,index:0,shown:0,done,label,heading,scene:sceneName};renderLine();
 }
 function renderLine(){
- const line=speech.lines[speech.index], c=characters[line.who];speech.shown=reducedMotion?line.text.length:0;
- screen.innerHTML=`<section class="cinematic-space"><div class="scene-heading"><div class="eyebrow">${speech.scene==='vesper'?'VESPER / WARD FREIGHT WORKSHOP':speech.scene==='bar'?C.stations[state.location].name.toUpperCase()+' / '+C.stations[state.location].bar.toUpperCase():'INCOMING TRANSMISSION'}</div><h1>${speech.heading}</h1></div><div class="dialogue-window"><div class="speech-body"><div class="speaker"><h2>${c.name}</h2><span>${c.role}</span></div><p id="spoken-text" aria-hidden="true"></p><p class="sr-only" aria-live="polite">${c.name}: ${line.text}</p><div class="speech-controls"><span id="speech-status">TRANSMITTING <span class="talk-light">●</span></span><button data-action="speech-next" id="speech-next">${reducedMotion?nextLabel():'SHOW FULL LINE'}</button></div></div></div></section>`;
+ const line=speech.lines[speech.index], c=characters[line.who]||{name:line.who,role:''};const newlyMet=!state.story.met.includes(line.who);if(newlyMet)state.story.met.push(line.who);const events=VoidStory.emit(state,'talk',line.who);if(newlyMet||events.length)save();speech.shown=reducedMotion?line.text.length:0;
+ screen.innerHTML=`<section class="cinematic-space"><div class="scene-heading"><div class="eyebrow">${speech.scene==='vesper'?'VESPER / WARD FREIGHT WORKSHOP':speech.scene==='bar'?C.stations[state.location].name.toUpperCase()+' / '+C.stations[state.location].bar.toUpperCase():'INCOMING TRANSMISSION'}</div><h1>${speech.heading}</h1></div><div class="dialogue-window">${characters[line.who]?portrait(line.who):''}<div class="speech-body"><div class="speaker"><h2>${c.name}</h2><span>${c.role}</span></div><p id="spoken-text" aria-hidden="true"></p><p class="sr-only" aria-live="polite">${c.name}: ${line.text}</p><div class="speech-controls"><span id="speech-status">TRANSMITTING <span class="talk-light">●</span></span><button data-action="speech-next" id="speech-next">${reducedMotion?nextLabel():'SHOW FULL LINE'}</button></div></div></div></section>`;
  globalThis.VoidAudio?.speak(line.who,line.text);
  $('spoken-text').textContent=line.text.slice(0,Math.floor(speech.shown));
 }
@@ -34,17 +27,6 @@ function advanceSpeech(){
 }
 function updateSpeech(dt){if(!speech)return;const line=speech.lines[speech.index];speech.shown=Math.min(line.text.length,speech.shown+dt*48);$('spoken-text').textContent=line.text.slice(0,Math.floor(speech.shown));const finished=speech.shown>=line.text.length;$('speech-next').textContent=finished?nextLabel():'SHOW FULL LINE';$('speech-status').textContent=finished?`${speech.index+1} / ${speech.lines.length} · END OF LINE`:'● SPEAKING';}
 const originalUpdate=update;update=function(dt){originalUpdate(dt);updateSpeech(dt);};
-function inheritance(replay=false){
- talk('vesper',[
- {who:'mara',text:'Elias passed away last night. You worked for him for years. In his will, he left you the Kestrel.'},
- {who:'elias',text:'The ship is yours. Go make a life of your own.'},
- {who:'mara',text:'You have 100 credits. Fly to Meridian and meet Rook at the bar. He has work.'}
- ],()=>{if(replay){title();return;}C.beginJourney(state);save();launch();},replay?'BACK':'BOARD SHIP →','A last gift.');
-}
-title=function(){
- speech=null;mode='title';clearInput();flightUI(false);hud();scene('vesper');screen.classList.remove('hidden');
- screen.innerHTML=`<section class="cinematic-space"><div class="scene-heading"><div class="eyebrow">CHAPTER 01 / PLANET VESPER</div><h1>A last <em>gift.</em></h1></div><div class="opening-card"><div class="eyebrow">WARD FREIGHT / AFTER THE RAIN</div><p>Mara is waiting outside your old workshop.</p><div class="actions">${button(hasSave?'CONTINUE JOURNEY →':'MEET MARA →','continue')}${hasSave?button('VIEW NEW OPENING','opening-replay',true)+button('NEW JOURNEY','reset-prompt',true):''}</div></div></section>`;
-};
 function barRoom(){
  speech=null;mode='dock';view='bar';clearInput();flightUI(false);scene('bar');screen.classList.remove('hidden');
  screen.innerHTML=`<section class="cinematic-space"><div class="scene-heading"><div class="eyebrow">${C.stations[state.location].name.toUpperCase()}</div><h1>${C.stations[state.location].bar}</h1></div><button class="place bartender" data-action="talk-nyx">NYX · TALK</button><button class="place booth" data-action="talk-rook">ROOK · TALK</button>${state.quest==='open'?'<button class="place job-board" data-action="contacts">CARGO CONTACTS →</button>':''}</section>`;
@@ -57,7 +39,7 @@ function rookConversation(){
  offerCard(illegal);
 }
 function offerCard(illegal){
- talk('bar',[{who:'rook',text:`${illegal?'Good run. Next job: memory wafers to Rusthaven. Illegal. This run might be more dangerous. 800 credits.':'Elias sent you? Take legal filters to Kepler. Look out for raiders. 350 credits. Then come back.'}`}],()=>{if(C.accept(state)){save();dock();announce('Cargo loaded. Ready for departure.');}else dock();},'ACCEPT JOB →','Rook’s booth');
+ talk('bar',[{who:'rook',text:`${illegal?'Good run. Next job: memory wafers to Rusthaven. Illegal. This run might be more dangerous. 800 credits.':(state.story.met.includes('rook')?'The filters are still waiting. Take them to Kepler. Watch for raiders. 350 credits. Then come back.':'Elias sent you? Take legal filters to Kepler. Look out for raiders. 350 credits. Then come back.')}`}],()=>{if(C.accept(state)){save();dock();announce('Cargo loaded. Ready for departure.');}else dock();},'ACCEPT JOB →','Rook’s booth');
  // Leaving the offer never commits the player to a job.
  screen.querySelector('.speech-controls').insertAdjacentHTML('beforeend',button('NOT YET','bar',true));
 }
@@ -74,7 +56,7 @@ arrive=function(){
  const line=f.destination==='undertow'&&state.completed===2?'Delivered. 800 credits. These MK 2 guns are my thanks. Shops are open to you now.':`Delivered. ${f.reward} credits. ${state.quest==='return'?'Head back to Rook at Meridian.':'Good flying.'}`;
  talk('dock',[{who,text:line+(f.repairCharged?` Dock servicing costs ${f.repairCharged} credits.`:'')}],()=>dock(),'OPEN STATION MENU →','Delivery confirmed');
 };
-screen.addEventListener('click',e=>{const a=e.target.closest('button')?.dataset.action;if(a==='speech-next')advanceSpeech();else if(a==='opening-replay')inheritance(true);else if(a==='talk-rook')rookConversation();else if(a==='talk-nyx')talk('bar',[{who:'nyx',text:state.quest==='legal-offer'?'Rook has work. He’s in the booth.':state.quest==='illegal-offer'?'Rook is waiting. This job pays better.':'Need work? Visit the cargo contacts. Need upgrades? Try the shop.'}],barRoom,'BACK TO THE BAR','At the counter');else if(a==='contacts')contacts();else if(a?.startsWith('brief:'))brief(a.slice(6));});
+screen.addEventListener('click',e=>{const a=e.target.closest('button')?.dataset.action;if(a==='speech-next')advanceSpeech();else if(a==='talk-rook')rookConversation();else if(a==='talk-nyx')talk('bar',[{who:'nyx',text:state.quest==='legal-offer'?'Rook has work. He’s in the booth.':state.quest==='illegal-offer'?'Rook is waiting. This job pays better.':'Need work? Visit the cargo contacts. Need upgrades? Try the shop.'}],barRoom,'BACK TO THE BAR','At the counter');else if(a==='contacts')contacts();else if(a?.startsWith('brief:'))brief(a.slice(6));});
 addEventListener('keydown',e=>{if(speech&&['Space','Enter'].includes(e.code)&&e.target.tagName!=='BUTTON'){e.preventDefault();if(!e.repeat)advanceSpeech();}});
 const planetTypes={
  meridian:{name:'AUREL / RINGED GAS GIANT',base:'#d6b58a',shade:'#443248',ring:true,kind:'gas',side:1},

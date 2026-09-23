@@ -5,21 +5,21 @@ const canvas = $('space'), ctx = canvas.getContext('2d'), screen = $('screen');
 const SAVE_KEY = 'void-runner-campaign-v1';
 let state = C.fresh(), hasSave = false, saveAvailable = true;
 try { const restored = C.restore(localStorage.getItem(SAVE_KEY)); if (restored) { state = restored; hasSave = true; } } catch { saveAvailable = false; }
-let mode = 'title', view = 'dock', W, H, D, time = 0, muted = true, audio;
+let mode = 'title', view = 'dock', W, H, D, time = 0;
 let approachTime = 0;
 let current = null, elapsed = 0, hp = 100, shot = 0, spawnClock = 0, spawned = 0, resolved = 0, damageTime = 0, noticeTime = 0;
 let enemies = [], bullets = [], hostile = [], sparks = [], target = null, pointer = false, firing = false, touchFiring = false;
 canvas.tabIndex = 0;
-const player = { x: 0, y: 0, vx: 0, vy: 0, bank: 0, pitch: 0 }, keys = new Set();
+const player = { x: 0, y: 0, vx: 0, vy: 0, bank: 0, pitch: 0 };
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let seed = 734;
 function random() { seed = seed * 16807 % 2147483647; return (seed - 1) / 2147483646; }
 const stars = Array.from({ length: 320 }, () => ({ x: (random() - .5) * 300, y: (random() - .5) * 190, z: random() * 260 + 1 }));
 function resize() { W = innerWidth; H = innerHeight; D = Math.min(devicePixelRatio || 1, 2); canvas.width = W * D; canvas.height = H * D; ctx.setTransform(D, 0, 0, D, 0, 0); }
 addEventListener('resize', resize); resize();
-function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); hasSave = true; } catch { saveAvailable = false; announce('Storage unavailable. Keep this tab open to retain progress.'); } }
+function save() { try { state.savedAt=Date.now(); localStorage.setItem(SAVE_KEY, JSON.stringify(state)); hasSave = true; } catch { saveAvailable = false; announce('Storage unavailable. Keep this tab open to retain progress.'); } }
 function announce(text) { $('notice').textContent = text; noticeTime = 4; }
-function tone(freq, duration, type = 'sine', volume = .025) { if (muted) return; try { audio ??= new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); const o = audio.createOscillator(), g = audio.createGain(); o.type = type; o.frequency.setValueAtTime(freq, audio.currentTime); o.frequency.exponentialRampToValueAtTime(Math.max(20, freq * .4), audio.currentTime + duration); g.gain.setValueAtTime(volume, audio.currentTime); g.gain.exponentialRampToValueAtTime(.001, audio.currentTime + duration); o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + duration); } catch {} }
+function tone(...args) { globalThis.VoidAudio?.tone(...args); }
 function button(label, action, quiet = false, disabled = false) { return `<button data-action="${action}" class="${quiet ? 'quiet' : ''}" ${disabled ? 'disabled' : ''}>${label}</button>`; }
 function row(label, value) { return `<div class="data-row"><span>${label}</span><strong>${value}</strong></div>`; }
 function panel(eyebrow, title, body, actions, aside = '') { screen.innerHTML = `<div class="layout"><section class="panel lead"><div class="eyebrow">${eyebrow}</div><h1 tabindex="-1">${title}</h1>${body}<div class="actions">${actions}</div></section>${aside ? `<aside class="side-panel">${aside}</aside>` : ''}</div>`; screen.classList.remove('hidden'); screen.querySelector('h1')?.focus({ preventScroll: true }); }
@@ -27,21 +27,21 @@ function shipCard() { const s = C.stats(state); return `<div class="eyebrow">YOU
 function hud() { const name=document.querySelector('header .wide strong');if(name)name.textContent=VoidShips.get(state).name; $('credits').textContent = state.credits.toLocaleString(); const max = C.stats(state).hull; $('hull').style.width = Math.max(0, hp / max * 100) + '%'; $('hull-number').textContent = `${Math.ceil(hp)} / ${max}`; $('weapon').textContent = `PULSE MK ${state.upgrades.guns + 1} / THRUST MK ${state.upgrades.engines + 1}`; }
 let title, dock, bar, shop;
 function flightUI(on) { $('flight-hud').classList.toggle('hidden', !on); $('touch-controls').classList.toggle('hidden', !on); $('pause').classList.toggle('hidden', !on); if (!on) $('pause').textContent = 'PAUSE'; }
-function clearInput() { keys.clear(); pointer = false; firing = false; touchFiring = false; target = null; }
+function clearInput() { VoidInput.held.clear(); pointer = false; firing = false; touchFiring = false; target = null; }
 function launch() {
   current = C.flight(state); if (!current) return;
   save(); clearInput(); mode = 'play'; elapsed = 0; approachTime = 0; shot = 0; spawned = 0; resolved = 0; spawnClock = VOID_BALANCE.firstRaiderDelay; damageTime = 0; hp = C.stats(state).hull;
   enemies = []; bullets = []; hostile = []; sparks = []; VoidFlightPhysics.reset(player);
   screen.classList.add('hidden'); canvas.focus({ preventScroll: true }); flightUI(true); $('pause').textContent = 'PAUSE'; document.documentElement.style.setProperty('--mint', C.stations[current.destination].color);
   $('route-name').textContent = C.stations[current.destination].name.toUpperCase(); $('flight-objective').textContent = current.enemies ? 'Protect your cargo. Clear hostiles before docking.' : 'Follow the transit lane. Docking is automatic on arrival.';
-  announce(state.quest === 'arrival' ? 'WASD / arrows to steer. Hold Space to fire. Touch: drag to move and fire.' : current.legal ? 'Cargo secured. Transponder clear.' : 'Contraband loaded. Stay sharp.'); hud(); tone(280, .4);
+  announce(current.legal ? 'Cargo secured. Transponder clear.' : 'Contraband loaded. Stay sharp.'); hud(); tone(280, .4);
 }
-function routeClear() { return !!current && spawned >= current.enemies && resolved >= current.enemies && enemies.every(e => e.dead); }
+function routeClear() { return !!current && spawned >= current.enemies && resolved >= current.enemies && enemies.every(e => !VoidStory.hostile(e)); }
 function destinationVisible() { return typeof flight!=='undefined'&&flight.route?flight.route.phase==='arrived':routeClear() && elapsed / current.duration > .72; }
 function arrive() {
   if (mode !== 'play' || !routeClear() || elapsed < current.duration || (current.enemies && approachTime < VoidWarp.config.approachSeconds)) return;
   const reward = C.complete(state); if (!reward) return;current.repairCharged=reward.repairCharged;
-  mode = 'arrival'; clearInput(); save(); flightUI(false); hud();
+  VoidAudio.event('dock');mode = 'arrival'; clearInput(); save(); flightUI(false); hud();
   const station = C.stations[state.location];
   let story = reward.reward ? `The cargo checks out. ${reward.reward} credits transfer to your account.` : 'Magnetic clamps catch the Kestrel. Engines down. For a moment, the ship is quiet.';
   if(reward.repairCharged)story+=` Dock servicing costs ${reward.repairCharged} credits.`;
@@ -50,18 +50,15 @@ function arrive() {
   panel('ARRIVAL CONFIRMED / ' + station.name.toUpperCase(), reward.reward ? 'Cargo <em>delivered.</em>' : 'Welcome<br><em>aboard.</em>', `<p>${story}</p>${reward.reward ? `<div class="manifest">${row('Payment received', '+' + reward.reward + ' CR')}${reward.gunReward ? row('Customer reward', 'MK 2 pulse cannons installed') : ''}</div>` : ''}`, button('OPEN STATION MENU →', 'dock'), shipCard()); tone(620, .3);
 }
 function hurt(amount) { if (mode !== 'play' || damageTime > 0) return; hp = Math.max(0, hp - amount); damageTime = .45; hud(); tone(65, .25, 'sawtooth'); if (!hp) { mode = 'over'; clearInput(); flightUI(false); panel('DISTRESS BEACON / RECOVERY CREW DISPATCHED', 'One more<br><em>chance.</em>', '<p>The recovery crew pulls your ship out of the lane. Your cargo and upgrades are safe. Retry this route with a repaired hull. No credits are lost.</p>', button('RETRY ROUTE →', 'launch') + (state.quest === 'open' ? button('RETURN TO DOCK', 'dock', true) : ''), shipCard()); } }
-function pause() { if (mode === 'play') { mode = 'pause'; clearInput(); $('pause').textContent = 'RESUME'; panel('FLIGHT PAUSED', 'Holding<br><em>position.</em>', '<p>Your route is paused. Resume when you are ready.</p>', button('RESUME FLIGHT →', 'resume')); } else if (mode === 'pause') { mode = 'play'; screen.classList.add('hidden'); canvas.focus({ preventScroll: true }); $('pause').textContent = 'PAUSE'; } }
+function pause() { openGameMenu(); }
+
 screen.addEventListener('click', event => {
   const action = event.target.closest('button')?.dataset.action; if (!action) return;
-  if (action === 'continue') { if (state.quest === 'inheritance') inheritance(); else if (state.quest === 'arrival') launch(); else dock(); }
-  else if (action === 'launch') launch();
-  else if (action === 'resume') pause();
+  if (action === 'launch') launch();
   else if (['dock', 'bar', 'shop'].includes(action)) dock(action);
   else if (action === 'accept' || action.startsWith('contract:')) { if (C.accept(state, action.split(':')[1])) { save(); dock(); announce('Cargo loaded. Ready for departure.'); } }
   else if (action.startsWith('buy:')) { if (mode === 'dock' && C.buy(state, action.split(':')[1])) { save(); hud(); shop(); tone(500, .2); announce('Upgrade installed.'); } }
-  else if (action === 'reset-prompt') panel('NEW JOURNEY', 'Start <em>again?</em>', '<p>This replaces the campaign saved in this browser, including credits and earned upgrades. Permanent account purchases and your cloud journey are preserved.</p>', button('KEEP CURRENT JOURNEY', 'cancel-reset') + button('REPLACE SAVE', 'reset', true));
-  else if (action === 'cancel-reset') title();
-  else if (action === 'reset') { newJourney(); }
+
 });
 function newJourney(){
   state=C.fresh();current=null;trialGear=null;devMissileTrial=false;clearInput();
@@ -69,12 +66,9 @@ function newJourney(){
   enemies=[];bullets=[];hostile=[];sparks=[];missionObjects=[];
   shieldHP=shieldDelay=driveTime=driveCooldown=droneClock=0;
   hp=C.stats(state).hull;VoidCombatEffects.reset();resetMissileFlight();
-  save();hud();updateEquipmentHud();inheritance();
+  VoidStory.emit(state,'campaignStart');save();hud();updateEquipmentHud();workshopOpening();
 }
 $('pause').onclick = pause;
-$('sound').onclick = () => { muted = !muted; $('sound').textContent = muted ? 'SOUND OFF' : 'SOUND ON'; $('sound').setAttribute('aria-pressed', String(!muted)); tone(550, .1); if (mode === 'play') canvas.focus({ preventScroll: true }); };
-addEventListener('keydown', e => { if (mode !== 'play' && mode !== 'pause') return; if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code) && e.target.tagName !== 'BUTTON') e.preventDefault(); if (e.target.tagName !== 'BUTTON') keys.add(e.code); if (e.code === 'KeyP' && !e.repeat) pause(); });
-addEventListener('keyup', e => keys.delete(e.code));
 addEventListener('blur', () => { clearInput(); if (mode === 'play') pause(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'play') pause(); });
 function aim(e) { const s = Math.min(W, H) * .9 / 14; target = { x: Math.max(-9, Math.min(9, (e.clientX - W / 2) / s)), y: Math.max(-5, Math.min(5, (e.clientY - H * .48) / s)) }; }
@@ -83,7 +77,7 @@ canvas.onpointermove = e => { if (mode === 'play' && (e.pointerType === 'mouse' 
 canvas.onpointerup = canvas.onpointercancel = () => { pointer = false; firing = false; };
 $('fire').onpointerdown = e => { if (mode !== 'play') return; e.preventDefault(); $('fire').setPointerCapture(e.pointerId); touchFiring = true; };
 $('fire').onpointerup = $('fire').onpointercancel = () => touchFiring = false;
-function burst(e, color = '#ffbd69') { for (let i = 0; i < 26; i++) sparks.push({ x: e.x, y: e.y, z: e.z, vx: (Math.random() - .5) * 12, vy: (Math.random() - .5) * 12, vz: (Math.random() - .5) * 14, life: .8, color }); tone(90, .2, 'square'); }
+function burst(e,color='#ffbd69',kind='ship') { VoidCombatEffects.explode(e,kind);VoidAudio.event('explosion',VoidShips.get(state),e,flightBasis()); }
 function spawnEnemy() {
  const i=spawned++,tier=current.tier;
  const heavy=tier>=2&&(i===current.enemies-1||i%5===4);
