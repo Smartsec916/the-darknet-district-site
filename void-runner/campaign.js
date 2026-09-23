@@ -5,12 +5,8 @@
   const S = typeof module !== 'undefined' ? require('./ships.js') : root.VoidShips;
   const Warp = typeof module !== 'undefined' ? require('./warp.js') : root.VoidWarp;
   const B = (typeof module !== 'undefined' ? require('./balance.js') : root.VoidBalance).values;
-  const stations = {
-    meridian: { name: 'Meridian Station', district: 'SECTOR 07 / THE LOWER ORBIT', color: '#58ffe1', bar: 'The Dead Channel' },
-    kepler: { name: 'Kepler Exchange', district: 'SECTOR 12 / FREIGHT LANE', color: '#ffbd69', bar: 'The Loading Bay' },
-    undertow: { name: 'Rusthaven Port', district: 'SECTOR 19 / OFF THE GRID', color: '#ef79ff', bar: 'Low Frequency' },
-    foundry: { name: 'The Foundry', district: 'SECTOR 24 / INDUSTRIAL BELT', color: '#ff795f', bar: 'Afterburn' }
-  };
+  const Story=typeof module!=='undefined'?require('./story.js'):root.VoidStory;
+  const stations=Story.content.locations;
   const contracts = [
     { id: 'medicine', name: 'Cold chain', cargo: 'Refrigerated clinic supplies', legal: true, destination: 'kepler', reward: 650, enemies: 8, tier: 1, duration: 38, contact: 'Dr. Sol', briefing: 'Our clinics need these before the next shift. Keep the containers intact. Raider activity has increased along the route.' },
     { id: 'ghost', name: 'Ghost hardware', cargo: 'Unlicensed neural processors', legal: false, destination: 'undertow', reward: 1000, enemies: 12, tier: 2, duration: 45, contact: 'Iona Vale', briefing: 'The people buying these cannot afford corporate leases on their own minds. Expect armored interceptors. Upgrade before you leave.' },
@@ -24,7 +20,7 @@
   };
   const quests = ['inheritance', 'arrival', 'legal-offer', 'legal-run', 'return', 'illegal-offer', 'illegal-run', 'open'];
   const allContracts = [...contracts, ...content.missions];
-  function fresh() { return { version: 2, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], loginOfferSeen:false, ownedShips:['starter'], activeShip:'starter', standardGear:['pulse1','shield1'], shipLoadouts:{}, combatRuns:0, missileOfferSeen:false, missileUnlocked:false, travel:null, destination:null, loadout: {weapon:null,shield:null,utility:null,missile:null} }; }
+  function fresh() { return { version: 2, story:Story.fresh(), savedAt:null, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], loginOfferSeen:false, ownedShips:['starter'], activeShip:'starter', standardGear:['pulse1','shield1'], shipLoadouts:{}, combatRuns:0, missileOfferSeen:false, missileUnlocked:false, travel:null, destination:null, loadout: {weapon:null,shield:null,utility:null,missile:null} }; }
   function restore(raw) {
     try {
       const s = JSON.parse(raw);
@@ -41,7 +37,7 @@
       return migrate({ ...fresh(), quest: s.quest, location: s.location, credits: s.credits, completed: s.completed, upgrades: { guns: s.upgrades.guns, armor: s.upgrades.armor, engines: s.upgrades.engines,shields:s.upgrades.shields }, contract: s.contract, cleared, loadout,creditGear,loginOfferSeen:typeof s.loginOfferSeen==='boolean'?s.loginOfferSeen:s.completed>0 },s);
     } catch { return null; }
   }
-  function beginJourney(s) { if (s.quest !== 'inheritance') return false; s.quest = 'arrival'; return true; }
+  function beginJourney(s) { if (s.quest !== 'inheritance') return false; s.quest = 'arrival'; s.story.chapter='arrival'; Story.emit(s,'leaveLocation','vesper'); return true; }
   function stats(s, owned = []) {
     const ship=S.get(s), weapon=S.equipment[s.loadout?.weapon], shield=S.equipment[s.loadout?.shield];
     const standard=id=>S.equipment[id]?.ship==='ship3'?S.owns(s,'ship3'):s.standardGear?.includes(id);
@@ -72,7 +68,7 @@
     if (s.quest === 'illegal-offer') { s.quest = 'illegal-run'; return true; }
     const c = allContracts.find(c => c.id === id);
     if (s.contract || !c || !unlocked(s,c)) return false;
-    s.contract = id; return true;
+    s.contract = id; Story.emit(s,'missionAccepted',id);return true;
   }
   function complete(s) {
     const f = flight(s); if (!f) return null;
@@ -88,6 +84,7 @@
     else if (previous === 'return') s.quest = 'illegal-offer';
     else if (previous === 'illegal-run') { s.quest = 'open'; s.upgrades.guns = Math.max(1, s.upgrades.guns); }
     else s.contract = null;
+    s.story.chapter=s.quest;Story.emit(s,'missionComplete',f.id||previous);Story.emit(s,'arriveLocation',s.location);Story.emit(s,'dock',s.location);
     return { ...f, missileOffer:s.missileUnlocked&&!s.missileOfferSeen, repairCharged, gunReward: previous === 'illegal-run' };
   }
   function buy(s, key) {
@@ -96,7 +93,7 @@
     if (cost === undefined || s.credits < cost) return false;
     s.credits -= cost; s.upgrades[key]++; return true;
   }
-  function buyGear(s,id){const g=content.creditGear[id];if(!g||(id==='launcher'&&!s.missileUnlocked)||s.completed<1||s.creditGear.includes(id)||s.credits<g.price)return false;s.credits-=g.price;s.creditGear.push(id);s.loadout[g.slot]=id;return true;}
+  function buyGear(s,id){const g=content.creditGear[id];if(!g||(id==='launcher'&&!s.missileUnlocked)||s.completed<1||s.creditGear.includes(id)||s.credits<g.price)return false;s.credits-=g.price;s.creditGear.push(id);s.loadout[g.slot]=id;Story.emit(s,'acquireItem',id);return true;}
 
   function migrate(out,raw){
     out.ownedShips=['starter',...new Set((Array.isArray(raw.ownedShips)?raw.ownedShips:[]).filter(id=>id==='ship2'))];
@@ -112,9 +109,11 @@
     out.loadout=clean(raw.loadout);out.shipLoadouts[out.activeShip]={...out.loadout};
     out.destination=out.quest==='open'&&!out.contract&&stations[raw.destination]&&raw.destination!==out.location?raw.destination:null;
     const f=flight(out);out.travel=f&&raw.travel?Warp.restore(raw.travel,out.location,f.destination,f.id||out.quest,f.enemies>0||['salvage','hazard','escort'].includes(f.kind)):null;
+    out.story=Story.restore(raw.story);out.savedAt=Number.isSafeInteger(raw.savedAt)&&raw.savedAt>0?raw.savedAt:null;
+    if(!raw.story&&out.quest!=='inheritance'){out.story.flags.metMara=true;out.story.met=['mara','elias'];out.story.events=['mara_workshop_intro'];out.story.chapter=out.quest;if(out.completed>0){out.story.flags.rookIntroduced=true;out.story.met.push('rook');}}
     return out;
   }
-  function buyShip(s,id){const ship=S.ships[id];if(!ship||ship.premium||s.ownedShips.includes(id)||s.credits<ship.price)return false;s.credits-=ship.price;s.ownedShips.push(id);s.shipLoadouts[id]={...S.defaults[id]};for(const [key,item]of Object.entries(S.equipment))if(item.ship===id&&!s.standardGear.includes(key))s.standardGear.push(key);return true;}
+  function buyShip(s,id){const ship=S.ships[id];if(!ship||ship.premium||s.ownedShips.includes(id)||s.credits<ship.price)return false;s.credits-=ship.price;s.ownedShips.push(id);s.shipLoadouts[id]={...S.defaults[id]};for(const [key,item]of Object.entries(S.equipment))if(item.ship===id&&!s.standardGear.includes(key))s.standardGear.push(key);Story.emit(s,'ownShip',id);return true;}
   function switchShip(s,id){if(!S.owns(s,id)||!S.ships[id])return false;s.shipLoadouts[s.activeShip]={...s.loadout};s.activeShip=id;s.loadout={...(s.shipLoadouts[id]||S.defaults[id])};return true;}
   function ownsEquipment(s,id,verified=[]){return Object.hasOwn(content.gear,id)?verified.includes(id):Object.hasOwn(content.creditGear,id)?s.creditGear.includes(id):Object.hasOwn(S.equipment,id)&&(S.equipment[id].ship==='ship3'?S.owns(s,'ship3'):s.standardGear.includes(id));}
   function equip(s,id,verified=[]){const g={...content.gear,...content.creditGear,...S.equipment}[id];if(!g||!ownsEquipment(s,id,verified))return false;s.loadout[g.slot]=s.loadout[g.slot]===id?null:id;s.shipLoadouts[s.activeShip]={...s.loadout};return true;}

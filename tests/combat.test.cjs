@@ -1,11 +1,11 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const B=require('../void-runner/balance.js'),M=require('../void-runner/missiles.js'),T=require('../void-runner/targeting.js'),FM=require('../void-runner/cockpit-math.js');
 test('lock requires continuous tracking and cannot transfer to another enemy',()=>{
- const lock=T.fresh(),a={x:500,y:352,z:80},b={...a};const project=e=>e;
+ const lock=T.fresh(),a={x:0,y:0,z:80},b={...a};const project=e=>({x:500+e.x*10,y:352+e.y*10,z:e.z});
  T.step(lock,[a],project,1000,800,.75,B.defaults,true);assert.equal(lock.progress,.5);
  T.step(lock,[b],project,1000,800,.3,B.defaults,true);assert(Math.abs(lock.progress-.2)<1e-12);
- b.x=800;T.step(lock,[b],project,1000,800,.3,B.defaults,true);assert.equal(lock.progress,0);
- b.x=500;T.step(lock,[b],project,1000,800,1.5,B.defaults,true);assert.equal(lock.status,'LOCK');
+ b.x=30;T.step(lock,[b],project,1000,800,.3,B.defaults,true);assert.equal(lock.progress,0);
+ b.x=0;T.step(lock,[b],project,1000,800,1.5,B.defaults,true);assert.equal(lock.status,'LOCK');
  T.step(lock,[b],project,1000,800,1,B.defaults,false);assert.equal(lock.target,null);
 });
 test('missile ownership, equipment, ammo, lock and cooldown independently gate fire',()=>{

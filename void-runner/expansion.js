@@ -6,6 +6,7 @@ const baseStats = C.stats;
 C.stats = s => trialGear && VoidContent.gear[trialGear] ? baseStats({...s,loadout:{...s.loadout,[VoidContent.gear[trialGear].slot]:trialGear}},[...ownedGear,trialGear]) : baseStats(s,ownedGear);
 function escapeText(value) { return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function menuPage(eyebrow,heading,body) {
+  globalThis.VoidMenu&&leaveMenu();
   speech=null;scene('');mode='dock';clearInput();flightUI(false);screen.classList.remove('hidden');
   screen.innerHTML=`<section class="shop-layout panel expansion-panel"><div class="shop-heading"><div><div class="eyebrow">${eyebrow}</div><h1>${heading}</h1></div>${button('BACK TO SHIP','ship-home',true)}</div>${body}</section>`;
   const h=screen.querySelector('h1');h.tabIndex=-1;h.focus({preventScroll:true});
@@ -64,8 +65,7 @@ dock=function(tab='dock') {
     screen.querySelector('.lead p')?.insertAdjacentHTML('beforeend','<br><span class="station-detail">'+descriptions[state.location]+'</span>');
   }
 };
-const expansionTitle=title;
-title=function(){trialGear=null;expansionTitle();};
+
 const expansionLaunch=launch;
 launch=function(){
   if (trialGear) {
@@ -96,12 +96,12 @@ spawnEnemy=function(){
   if(current.kind==='generator'&&spawned===1){Object.assign(e,{generator:true,x:0,y:0,size:2,armor:22+current.tier*4,maxArmor:22+current.tier*4});announce('Shield relay online. Destroy the central relay first.');}
   if(current.kind==='boss'&&spawned===current.enemies){Object.assign(e,{boss:true,heavy:true,interceptor:false,className:'gunship',size:3,x:0,y:-1,armor:90+current.tier*15,maxArmor:90+current.tier*15});announce(current.name.toUpperCase()+' / CAPITAL SHIP INBOUND');}
 };
-function activateDrive(){const s=C.stats(state);if(mode==='play'&&s.drive&&driveCooldown<=0){driveTime=s.driveDuration;driveCooldown=s.driveCooldown;tone(220,.3);}}
+function activateDrive(){const s=C.stats(state);if(mode==='play'&&s.drive&&driveCooldown<=0){driveTime=s.driveDuration;driveCooldown=s.driveCooldown;VoidAudio.event('boost');}}
 function updateEquipmentHud(){
   const s=C.stats(state);hudText('shield-number',s.shield?`${Math.ceil(shieldHP)} / ${s.shield}`:'NONE');
   const width=s.shield?(100*shieldHP/s.shield).toFixed(1)+'%':'0%';if($('shield-bar').style.width!==width)$('shield-bar').style.width=width;
   const disabled=!s.drive||driveCooldown>0;if($('drive').disabled!==disabled)$('drive').disabled=disabled;
-  hudText('drive',s.drive?(driveCooldown>0?`DRIVE ${Math.ceil(driveCooldown)}s`:'DRIVE / E'):'DRIVE / NONE');
+  hudText('drive',s.drive?(driveCooldown>0?`DRIVE ${Math.ceil(driveCooldown)}s`:'DRIVE / '+VoidInput.label(VoidInput.bindings.boost)):'DRIVE / NONE');
 }
 function escortImpact(b){
   if(b.escort&&!b.dead&&Math.hypot(b.x,b.y-2.4)<1){escortHP=Math.max(0,escortHP-b.damage);if(!escortHP){mode='over';clearInput();flightUI(false);panel('ESCORT LOST','Bring them <em>home.</em>','<p>The shuttle was disabled. Retry the mission; your campaign and equipment are safe.</p>',button('RETRY MISSION','launch')+button('BACK TO SHIP','dock',true));}}
@@ -117,10 +117,10 @@ function navigateExpansion(action){
   else if(action?.startsWith('trial:')){trialGear=action.slice(6);if(VoidContent.gear[trialGear])launch();}
 }
 screen.addEventListener('click',e=>navigateExpansion(e.target.closest('button')?.dataset.action));
-document.querySelector('#expansion-nav').addEventListener('click',e=>navigateExpansion(e.target.closest('button')?.dataset.action));
+
 $('drive').onclick=activateDrive;
 $('leave-trial').onclick=()=>{if(trialGear){trialGear=null;current=null;market();}};
 const equipmentFlightUI=flightUI;
-flightUI=function(on){equipmentFlightUI(on);$('drive').classList.toggle('hidden',!on);$('leave-trial').classList.toggle('hidden',!on||!trialGear);$('expansion-nav').classList.toggle('hidden',state.completed<1);for(const b of document.querySelectorAll('#expansion-nav button'))b.disabled=on;};
+flightUI=function(on){equipmentFlightUI(on);$('drive').classList.toggle('hidden',!on);$('leave-trial').classList.toggle('hidden',!on||!trialGear);};
 // A store link never skips the original workshop, inheritance and first delivery.
 // bootstrap.js handles initial navigation after registration.

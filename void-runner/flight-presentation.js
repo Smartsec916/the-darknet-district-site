@@ -28,10 +28,7 @@ function drawWarpEffect(){const r=flight.route;if(!r||r.phase!=='warp')return;
  for(let i=0;i<(reducedMotion?12:70);i++){const a=i*2.39996,n=((time*(.8+i%3*.1)+i*.137)%1),radius=20+n*Math.max(W,H),length=(30+n*140)*slow;ctx.strokeStyle=i%2?'#78fff0':'#ba7bff';ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*radius,cy+Math.sin(a)*radius);ctx.lineTo(cx+Math.cos(a)*(radius+length),cy+Math.sin(a)*(radius+length));ctx.stroke();}
  ctx.fillStyle='#6abfff';ctx.globalAlpha=.05;ctx.fillRect(0,0,W,H);ctx.restore();
 }
-tone=function(...args){VoidAudio.tone(...args);};
-function refreshSoundButton(){muted=!VoidAudio.settings.enabled;$('sound').textContent=muted?'SOUND OFF':'SOUND ON';$('sound').setAttribute('aria-pressed',String(!muted));}
-$('sound').onclick=()=>{VoidAudio.set({enabled:!VoidAudio.settings.enabled});VoidAudio.unlock();refreshSoundButton();if(mode==='play')canvas.focus({preventScroll:true});};
-refreshSoundButton();
 addEventListener('pointerdown',()=>VoidAudio.unlock(),{passive:true});addEventListener('keydown',()=>VoidAudio.unlock());
-addEventListener('pagehide',()=>{VoidAudio.cancel();VoidAudio.update(VoidShips.get(state),0,0,'idle',false);});
+addEventListener('pagehide',()=>VoidAudio.suspend());
+document.addEventListener('visibilitychange',()=>{if(document.hidden)VoidAudio.suspend();});
 const audioHurt=hurt;hurt=function(amount){const beforeHull=hp,beforeShield=shieldHP;audioHurt(amount);if(hp<beforeHull||shieldHP<beforeShield)VoidAudio.event(hp<beforeHull?'hull':'shield',VoidShips.get(state));};

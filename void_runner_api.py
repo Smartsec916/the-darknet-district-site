@@ -195,7 +195,10 @@ def clean_save(value):
     """Cloud saves cannot grant ownership, change prices or write another player's record."""
     if not isinstance(value, dict) or value.get('version') != 2:
         raise ApiError('Unsupported save format.')
-    if value.get('quest') not in ['inheritance','arrival','legal-offer','legal-run','return','illegal-offer','illegal-run','open'] or value.get('location') not in ['meridian','kepler','undertow','foundry']:
+    from pathlib import Path
+    import json
+    manifest=json.loads((Path(__file__).parent/'void-runner'/'save-manifest.json').read_text())
+    if value.get('quest') not in ['inheritance','arrival','legal-offer','legal-run','return','illegal-offer','illegal-run','open'] or value.get('location') not in manifest['locations']:
         raise ApiError('Invalid campaign state.')
     result = {k: value[k] for k in ['version','quest','location']}
     for k in ['credits','completed']:
@@ -216,13 +219,13 @@ def clean_save(value):
         raise ApiError('Invalid credit equipment.')
     result['creditGear']=list(dict.fromkeys(credit_gear))
     result['loginOfferSeen']=value.get('loginOfferSeen',value['completed']>0) is True
-    missions = [f'{chapter}-{n}' for chapter in ['belt','lockdown','gate'] for n in range(1,5)]
+    missions = manifest['missions']
     contract = value.get('contract')
     if contract is not None and contract not in ['medicine','ghost','foundry',*missions]:
         raise ApiError('Invalid mission.')
     result['contract'] = contract
     cleared = value.get('cleared')
-    if not isinstance(cleared, list) or len(cleared) > 12 or any(x not in missions for x in cleared):
+    if not isinstance(cleared, list) or len(cleared) > len(manifest['chapters']) or any(x not in manifest['chapters'] for x in cleared):
         raise ApiError('Invalid chapter progress.')
     result['cleared'] = list(dict.fromkeys(cleared))
     loadout = value.get('loadout')
@@ -260,7 +263,7 @@ def clean_save(value):
     result['combatRuns'] = runs
     result['missileUnlocked'] = runs >= 2
     result['missileOfferSeen'] = value.get('missileOfferSeen') is True
-    locations = ['meridian','kepler','undertow','foundry']
+    locations = manifest['locations']
     destination = value.get('destination')
     if destination is not None and destination not in locations:
         raise ApiError('Invalid destination.')
@@ -281,6 +284,43 @@ def clean_save(value):
         if mission is not None and mission not in ['medicine','ghost','foundry',*missions,'inheritance','arrival','legal-offer','legal-run','return','illegal-offer','illegal-run','open']:
             raise ApiError('Invalid route mission.')
         result['travel'] = {'origin':travel['origin'],'destination':travel['destination'],'progress':progress,'mission':mission,'encounter':{'type':encounter['type'],'state':encounter['state']}}
+    story = value.get('story', {})
+    if not isinstance(story, dict):
+        raise ApiError('Invalid story state.')
+    import re
+    def story_id(x):
+        return isinstance(x,str) and re.fullmatch(r'[a-zA-Z][\w-]{0,63}',x) and x not in ['constructor','prototype','__proto__']
+    cleaned = {}
+    for key in ['met','events','unlocked','pending','encounters']:
+        entries = story.get(key, [])
+        if not isinstance(entries,list) or len(entries)>256 or not all(story_id(x) for x in entries):
+            raise ApiError('Invalid story list.')
+        cleaned[key] = list(dict.fromkeys(entries))
+    for key in ['flags','relationships','characters']:
+        entries = story.get(key,{})
+        if not isinstance(entries,dict) or len(entries)>256 or not all(story_id(x) for x in entries):
+            raise ApiError('Invalid story records.')
+        for item in entries.values():
+            valid = (type(item) is bool or isinstance(item,str) and len(item)<=200 or type(item) is int and abs(item)<=9007199254740991) if key=='flags' else (type(item) is int and -100<=item<=100) if key=='relationships' else item in ['alive','dead','removed']
+            if not valid:
+                raise ApiError('Invalid story value.')
+        cleaned[key] = dict(entries)
+    chapter = story.get('chapter','inheritance')
+    if not story_id(chapter):
+        raise ApiError('Invalid story chapter.')
+    cleaned['chapter'] = chapter
+    if 'cursor' in story:
+        cursor=story['cursor']
+        if cursor is not None and (not isinstance(cursor,dict) or not story_id(cursor.get('scene')) or not story_id(cursor.get('node')) or type(cursor.get('choices')) is not bool):
+            raise ApiError('Invalid dialogue checkpoint.')
+        cleaned['cursor']=None if cursor is None else {key:cursor[key] for key in ['scene','node','choices']}
+
+    if 'story' in value:
+        result['story'] = cleaned
+    saved_at = value.get('savedAt')
+    if saved_at is not None and (type(saved_at) is not int or not 0<saved_at<=9007199254740991):
+        raise ApiError('Invalid save timestamp.')
+    result['savedAt'] = saved_at
     return result
 
 
