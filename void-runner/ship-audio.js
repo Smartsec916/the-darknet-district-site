@@ -304,6 +304,7 @@
     danger = lowHealth;
   }
 
+  let mediaPlaying = false;
   function tick(dt) {
     ensureContext();
     if (!context || context.state !== 'running') return;
@@ -317,18 +318,18 @@
     bed.forEach((v, i) => {
       v.o.type = p.wave;
       target(v.o.frequency, p.root * p.chord[i], 1.5);
-      target(v.g.gain, (i ? .012 : .018) * (profile === 'bar' ? .65 : 1), 1.2);
+      target(v.g.gain, mediaPlaying ? 0 : (i ? .012 : .018) * (profile === 'bar' ? .65 : 1), 1.2);
       target(v.filter.frequency, profile === 'bar' ? 180 : p.wave === 'sawtooth' ? 260 : 600, 1);
     });
     target(ambient.o.frequency, p.ambient, 1.5);
     target(ambient.g.gain, profile === 'menu' ? 0 : profile === 'flight' ? .003 : .008, 1.2);
-    target(tension.g.gain, combat || danger ? (danger ? .012 : .007) : 0, 1);
+    target(tension.g.gain, !mediaPlaying && (combat || danger) ? (danger ? .012 : .007) : 0, 1);
     target(tension.o.frequency, p.root * (danger ? 2.12 : 2.01), 1);
     beat -= Math.min(.2, dt);
     if (beat <= 0) {
       beat = 1 / (p.pulse * (combat ? 2 : 1));
-      tone(p.root * 4, .45, 'sine', combat ? .028 : .01, null, null, 'music');
-      if (combat) tone(54, .15, 'triangle', .025, null, null, 'music');
+      if (!mediaPlaying) tone(p.root * 4, .45, 'sine', combat ? .028 : .01, null, null, 'music');
+      if (combat && !mediaPlaying) tone(54, .15, 'triangle', .025, null, null, 'music');
       if (danger) tone(220, .18, 'sine', .012);
     }
   }
@@ -435,6 +436,16 @@
     } catch {}
   }
   const api = {
+    get ready() { return !!context && context.state === 'running'; },
+    mediaActive(value) { mediaPlaying = value === true; },
+    // Locally hosted tracks share the gesture gate, master/category gain and pause lifecycle.
+    connectMedia(element, category = 'music') {
+      ensureContext();
+      if (!context || !buses[category]) return null;
+      const source = context.createMediaElementSource(element), gain = context.createGain();
+      source.connect(gain); gain.connect(buses[category]);
+      return {gain, context, dispose(){source.disconnect();gain.disconnect();}};
+    },
     defaults,
     profiles,
     musicProfiles,

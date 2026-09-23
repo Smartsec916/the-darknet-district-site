@@ -20,3 +20,11 @@ class StorySaveTests(unittest.TestCase):
     def test_old_campaign_stays_eligible_for_client_migration(self):
         state=self.state();del state['story'];del state['savedAt'];clean=vr.clean_save(state)
         self.assertNotIn('story',clean);self.assertIsNone(clean['savedAt'])
+
+    def test_sol_visit_keeps_frontier_progress_and_existing_schema(self):
+        state=self.state();state['story']['flags']['solDestination']='mars'
+        clean=vr.clean_save(state)
+        self.assertEqual(clean['story']['flags']['solDestination'],'mars')
+        self.assertEqual(clean['location'],'meridian')
+        self.assertEqual(clean['credits'],state['credits'])
+        self.assertEqual(clean['version'],2)
