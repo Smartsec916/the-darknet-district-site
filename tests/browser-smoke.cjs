@@ -16,9 +16,8 @@ const output=process.env.VOID_SCREENSHOT_DIR;const fs=require('node:fs');
  });
  await page.goto('http://127.0.0.1:5000/void-runner.html#market');await page.waitForFunction(()=>window.VoidStartup?.started);
  assert.equal(await page.locator('#expansion-nav').isVisible(),false);
- await page.getByRole('button',{name:'MEET MARA →',exact:true}).click();assert((await page.locator('#spoken-text').textContent()).includes('Elias passed away'));
- await page.getByRole('button',{name:'NEXT →',exact:true}).click();assert((await page.locator('#spoken-text').textContent()).includes('The ship is yours'));
- await page.getByRole('button',{name:'NEXT →',exact:true}).click();await page.getByRole('button',{name:'BOARD SHIP →',exact:true}).click();
+ await page.locator('[data-action=menu-new]').click();await page.locator('[data-action=story-intro]').click();assert((await page.locator('#spoken-text').textContent()).includes('Elias passed away'));
+ await page.evaluate(()=>{for(let i=0;i<6;i++)advanceSpeech();});await page.locator('[data-action="story-choice:0"]').click();await page.evaluate(()=>{advanceSpeech();advanceSpeech();});
  await page.evaluate(()=>{elapsed=current.duration;spawned=resolved=current.enemies;enemies=[];approachTime=4;mode='play';arrive();});
  await page.getByRole('button',{name:'OPEN STATION MENU →',exact:true}).click();await page.getByRole('button',{name:'GO TO BAR →',exact:true}).click();await page.getByRole('button',{name:'ROOK · TALK',exact:true}).click();await page.getByRole('button',{name:'ACCEPT JOB →',exact:true}).click();
  assert.equal(await page.locator('#expansion-nav').isVisible(),false);
@@ -28,9 +27,9 @@ const output=process.env.VOID_SCREENSHOT_DIR;const fs=require('node:fs');
  await page.getByRole('button',{name:'OPEN STATION MENU →',exact:true}).click();await page.getByRole('button',{name:'SIGN IN & SAVE PROGRESS',exact:true}).waitFor();
  if(output){fs.mkdirSync(output,{recursive:true});await page.screenshot({path:path.join(output,'first-delivery-offer.png'),fullPage:true});}
  await page.getByRole('button',{name:'KEEP PLAYING',exact:true}).click();assert.equal(await page.evaluate(()=>state.quest),'return');assert.equal(await page.evaluate(()=>state.credits),450);
- await page.locator('#expansion-nav [data-action="shop"]').click();assert.equal(await page.locator('.shop-placeholder').count(),1);assert.equal(await page.locator('[data-action^="buy:"]').count(),4);assert.equal(await page.locator('[data-action^="purchase:"]').count(),1);
+ await page.evaluate(()=>{leaveMenu();dock('shop');});assert.equal(await page.locator('.shop-placeholder').count(),1);assert.equal(await page.locator('[data-action^="buy:"]').count(),4);assert.equal(await page.locator('[data-action^="purchase:"]').count(),1);
  if(output)await page.screenshot({path:path.join(output,'credit-upgrades.png'),fullPage:true});
- await page.getByRole('button',{name:'CAMPAIGN',exact:true}).click();await page.locator('.mission-grid .card').last().waitFor();assert.equal(await page.locator('.mission-grid .card').count(),12);
+ await page.evaluate(()=>campaignBoard());await page.locator('.mission-grid .card').last().waitFor();assert.equal(await page.locator('.mission-grid .card').count(),12);
  assert.equal(await page.getByRole('button',{name:'FINISH OPENING DELIVERIES'}).count(),12);
  await page.evaluate(()=>{state=C.fresh();state.quest='open';state.credits=1500;state.completed=2;save();campaignBoard();});
  await page.getByRole('button',{name:'ACCEPT MISSION',exact:true}).first().click();assert.equal(await page.evaluate(()=>state.contract),'belt-1');
@@ -42,14 +41,14 @@ const output=process.env.VOID_SCREENSHOT_DIR;const fs=require('node:fs');
  const trial=await page.evaluate(()=>{mode='pause';return {shield:shieldHP,stats:C.stats(state).shield,credits:state.credits};});assert.equal(trial.shield,70);assert.equal(trial.stats,70);
  const absorbed=await page.evaluate(()=>{mode='play';damageTime=0;hurt(25);mode='pause';return {hp,shieldHP};});assert.equal(absorbed.shieldHP,45);assert.equal(absorbed.hp,100);
  await page.getByRole('button',{name:'LEAVE TRAINING'}).click();assert.equal(await page.evaluate(()=>state.credits),trial.credits);assert.equal(await page.evaluate(()=>C.stats(state).shield),0);
- await page.getByRole('button',{name:'SIGN IN',exact:true}).click();await page.getByRole('button',{name:'SIGN IN WITH GOOGLE'}).click();
+ await page.evaluate(()=>{leaveMenu();mode='dock';VoidAccount.request('account');});await page.getByRole('button',{name:'SIGN IN WITH GOOGLE'}).click();
  await page.getByRole('button',{name:'SAVE THIS JOURNEY TO CLOUD'}).waitFor();await page.waitForFunction(()=>!window.VoidAccount.busy);
  await page.getByRole('button',{name:'SAVE THIS JOURNEY TO CLOUD'}).click();await page.getByRole('button',{name:'SAVE TO CLOUD',exact:true}).click();await page.waitForFunction(()=>!window.VoidAccount.busy);assert.equal(revision,1);
  await page.evaluate(()=>{state.credits=1;save();});await page.getByRole('button',{name:'LOAD CLOUD JOURNEY'}).click();await page.getByRole('button',{name:'LOAD CLOUD SAVE',exact:true}).click();assert.equal(await page.evaluate(()=>state.credits),1500);
  owned=['wraith','aegis','ghost','sentinel'];await page.getByRole('button',{name:'REFRESH / RESTORE PURCHASES'}).click();await page.waitForFunction(()=>!window.VoidAccount.busy);
- await page.locator('#expansion-nav [data-action="shop"]').click();await page.getByRole('button',{name:'EQUIP',exact:true}).nth(0).click();assert.equal(await page.evaluate(()=>C.stats(state).damage),3.6875);
+ await page.evaluate(()=>{leaveMenu();dock('shop');});await page.getByRole('button',{name:'EQUIP',exact:true}).nth(0).click();assert.equal(await page.evaluate(()=>C.stats(state).damage),3.6875);
  await page.locator('[aria-label="Previously owned equipment"] .card').nth(2).getByRole('button',{name:'EQUIP',exact:true}).click();await page.locator('[aria-label="Previously owned equipment"] .card').nth(3).getByRole('button',{name:'EQUIP',exact:true}).click();assert.equal(await page.evaluate(()=>state.loadout.utility),'sentinel');
- if(output){fs.mkdirSync(output,{recursive:true});await page.screenshot({path:path.join(output,'black-market-desktop.png'),fullPage:true});await page.getByRole('button',{name:'CAMPAIGN',exact:true}).click();await page.screenshot({path:path.join(output,'campaign-desktop.png'),fullPage:true});}
+ if(output){fs.mkdirSync(output,{recursive:true});await page.screenshot({path:path.join(output,'black-market-desktop.png'),fullPage:true});await page.evaluate(()=>campaignBoard());await page.screenshot({path:path.join(output,'campaign-desktop.png'),fullPage:true});}
  // Boss phases, relay protection, and escort failure exercise the real update loop.
  const mechanics=await page.evaluate(()=>{
    state.cleared=VoidContent.missions.map(m=>m.id);state.loadout={weapon:null,shield:null,utility:null};state.contract='lockdown-2';launch();flight.route.phase='encounter';mode='play';spawnEnemy();spawnEnemy();const relay=enemies[0],targetEnemy=enemies[1];relay.z=60;targetEnemy.z=50;targetEnemy.x=5;targetEnemy.y=0;const before=targetEnemy.armor;
@@ -58,13 +57,13 @@ const output=process.env.VOID_SCREENSHOT_DIR;const fs=require('node:fs');
    state.contract='belt-3';launch();escortHP=10;escortImpact({escort:true,x:0,y:2.4,damage:10});const escortFailed=mode==='over';
    state.contract=null;dock();return {before,protectedArmor,killed,bossExists,escortFailed};
  });assert.equal(mechanics.before,mechanics.protectedArmor);assert(mechanics.killed&&mechanics.bossExists&&mechanics.escortFailed);
- await page.getByRole('button',{name:'ACCOUNT',exact:true}).click();await page.getByRole('button',{name:'SIGN OUT',exact:true}).click();await page.waitForFunction(()=>!window.VoidAccount.busy);assert.equal(await page.evaluate(()=>ownedGear.length),0);
+ await page.evaluate(()=>{leaveMenu();mode='dock';VoidAccount.request('account');});await page.getByRole('button',{name:'SIGN OUT',exact:true}).click();await page.waitForFunction(()=>!window.VoidAccount.busy);assert.equal(await page.evaluate(()=>ownedGear.length),0);
  if(output){for(const id of ['meridian','kepler','undertow','foundry']){await page.evaluate(async id=>{if(id!=='meridian'){const image=new Image();image.src='void-runner/art/concourse-'+id+'.png';await image.decode();}state.location=id;state.contract=null;dock();},id);await page.waitForFunction(()=>[...document.images].every(i=>i.complete));await page.screenshot({path:path.join(output,'station-'+id+'.png'),fullPage:true});}}
  await page.setViewportSize({width:390,height:844});await page.evaluate(()=>{state.location='undertow';dock();});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  if(output)await page.screenshot({path:path.join(output,'station-mobile.png'),fullPage:true});
- await page.locator('#expansion-nav [data-action="shop"]').click();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ await page.evaluate(()=>{leaveMenu();dock('shop');});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  if(output)await page.screenshot({path:path.join(output,'credit-upgrades-mobile.png'),fullPage:true});
- await page.setViewportSize({width:390,height:844});await page.locator('#expansion-nav [data-action="shop"]').click();
+ await page.setViewportSize({width:390,height:844});await page.evaluate(()=>{leaveMenu();dock('shop');});
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  if(output)await page.screenshot({path:path.join(output,'black-market-mobile.png'),fullPage:true});
  await page.goto('http://127.0.0.1:5000/');await page.getByRole('button',{name:'Enter the District',exact:true}).click();await page.locator('.pilot-name').waitFor();assert.equal(await page.locator('.pilot-name').textContent(),'Test Pilot');

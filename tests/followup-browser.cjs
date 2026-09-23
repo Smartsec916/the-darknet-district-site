@@ -13,7 +13,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
  await page.route('**/cockpit.js',async r=>{await new Promise(resolve=>setTimeout(resolve,500));await r.continue();});
  await page.route('**/art/cockpit-kestrel.png',async r=>{await new Promise(resolve=>setTimeout(resolve,500));await r.continue();});
  await page.goto('http://127.0.0.1:5000/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);await page.waitForTimeout(120);
- assert.equal(await page.evaluate(()=>earlyFrames),0);assert.equal(await page.evaluate(()=>VoidStartup.starts),1);assert.equal(await page.locator('.opening-card').count(),1);
+ assert.equal(await page.evaluate(()=>earlyFrames),0);assert.equal(await page.evaluate(()=>VoidStartup.starts),1);assert.equal(await page.locator('.main-menu').count(),1);await page.locator('[data-action=menu-new]').click();await page.evaluate(()=>artDraws=[]);
  assert(!await page.evaluate(()=>artDraws.includes('station.png')),'No exterior drawn beneath opening');
  const counts=await page.evaluate(()=>{state=C.fresh();state.quest='legal-run';launch();mode='pause';artDraws=[];draw();return {cockpit:artDraws.filter(x=>x==='cockpit-kestrel.png').length,hud:!$('flight-hud').classList.contains('hidden')};});assert.equal(counts.cockpit,1);assert(counts.hud);
  const timing=await page.evaluate(()=>{state=C.fresh();state.quest='legal-run';launch();flight.route.phase="encounter";for(let i=0;i<249;i++)update(.04);const before=spawned;mode='pause';update(2);const paused=spawned;mode='play';update(.041);const after=spawned;mode='pause';return {before,paused,after,delay:VOID_BALANCE.firstRaiderDelay};});assert.deepEqual(timing,{before:0,paused:0,after:1,delay:10});
@@ -28,7 +28,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
  await missing.unroute('**/art/station.png');await missing.reload();await missing.waitForFunction(()=>window.VoidStartup?.started);
  const staticPage=await browser.newPage();const failed=[];
  staticPage.on('response',r=>{if(new URL(r.url()).pathname.startsWith('/void-runner/')&&r.status()>=400)failed.push(r.url());});
- await staticPage.goto('http://127.0.0.1:5002/void-runner.html');await staticPage.waitForFunction(()=>window.VoidStartup?.started);
+ await staticPage.goto('http://127.0.0.1:5001/void-runner.html');await staticPage.waitForFunction(()=>window.VoidStartup?.started);
  assert.deepEqual(failed,[]);assert.equal(await staticPage.evaluate(()=>new URL(cockpitArt.src).pathname),'/void-runner/art/cockpit-kestrel.png');
  const noCockpit=await browser.newPage();await noCockpit.route('**/art/cockpit-kestrel.png',r=>r.fulfill({status:404,body:'missing'}));await noCockpit.goto('http://127.0.0.1:5000/void-runner.html');await noCockpit.getByText('Game artwork unavailable').waitFor();assert.equal(await noCockpit.evaluate(()=>VoidStartup.started),false);
  assert.deepEqual(errors,[]);await browser.close();console.log('Follow-up checks passed: slow startup, one scene/loop, cockpit draw, Meridian art, missing-art warning/retry, 10-second raider, pause, bar, dialogue, placeholders, mobile.');

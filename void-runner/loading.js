@@ -1,8 +1,8 @@
 /* This small script follows the static loading markup, before the game modules. */
-const VoidLoading={stages:new Set(),stage(name,label){this.stages.add(name);const progress=document.getElementById('init-progress'),status=document.getElementById('init-status');if(progress)progress.value=this.stages.size;if(status)status.textContent=label;},ready(){document.getElementById('loading-screen')?.remove();},error(message){const el=document.getElementById('init-status');if(el)el.textContent=message;document.getElementById('init-retry').hidden=false;}};
+const VoidLoading={stages:new Set(),stage(name,label){this.stages.add(name);const progress=document.getElementById('init-progress'),status=document.getElementById('init-status');if(progress)progress.value=this.stages.size;if(status)status.textContent=label;},ready(){document.getElementById('loading-screen')?.remove();},error(message){const el=document.getElementById('init-status');if(el)el.textContent=message;const retry=document.getElementById('init-retry');if(retry)retry.hidden=false;}};
 VoidLoading.stage('core','LOADING FLIGHT SYSTEMS…');
 addEventListener('error',event=>{
- if(event.target?.tagName==='SCRIPT'&&event.target.type!=='module')VoidLoading.error('A FLIGHT SYSTEM FAILED TO LOAD · Check your connection and retry.');
+ if(document.getElementById('loading-screen')&&event.target?.tagName==='SCRIPT'&&event.target.type!=='module')VoidLoading.error('A FLIGHT SYSTEM FAILED TO LOAD · Check your connection and retry.');
 },true);
 addEventListener('void-service-state',()=>{
  const el=document.getElementById('service-status');if(!el)return;
