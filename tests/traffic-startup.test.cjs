@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const Traffic=require('../void-runner/traffic.js'),Story=require('../void-runner/story.js'),Preparation=require('../void-runner/preparation.js');
 function rng(seed){return()=>((seed=(seed*1664525+1013904223)>>>0)/2**32);}
-test('seeded traffic includes empty areas, both crossings, varied distance and only neutral contacts',()=>{
+test('station traffic is populated, independent, varied and neutral',()=>{
  let empty=0,populated=0,left=false,right=false;const distances=new Set();
  for(let seed=1;seed<200;seed++){
   const area=Traffic.create(rng(seed*731));if(area.contacts.length)populated++;else empty++;
@@ -9,7 +9,7 @@ test('seeded traffic includes empty areas, both crossings, varied distance and o
   for(let i=0;i<700;i++)Traffic.step(area,.1,{x:3,y:0,z:2});
   assert.equal(area.contacts.length,0);
  }
- assert(empty>40&&populated>40&&left&&right&&distances.size>50);
+ assert(empty===0&&populated===199&&left&&right&&distances.size>50);
  assert.equal(Traffic.create(()=>.9,true).contacts.length,0);
 });
 test('traffic subtracts player translation without steering or matching player velocity',()=>{
@@ -28,3 +28,4 @@ test('phase deadlines abort late work and preserve useful failure metadata',asyn
  try{await assert.rejects(Preparation.run(task=>task.wait('assets',()=>new Promise(r=>setTimeout(r,80)),'slow.png')),e=>e.phase==='assets'&&e.asset==='slow.png'&&e.elapsedMs>=10);assert.equal(Preparation.current,null);}
  finally{Object.assign(Preparation.limits,old);}
 });
+

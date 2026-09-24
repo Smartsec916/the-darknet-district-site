@@ -1,8 +1,8 @@
 /* Prototype locations are content, not campaign replacements. Units are metres. */
 (function(root) {
   const systems = {
-    frontier: {
-      name: 'FRONTIER',
+    erebus: {
+      name: 'EREBUS SYSTEM',
       destinations: ['meridian', 'kepler', 'undertow', 'foundry']
     },
     sol: {
@@ -201,7 +201,7 @@
   const radio = {
     nightdrive: {
       name: 'NIGHT//DRIVE',
-      regions: ['frontier', 'sol'],
+      regions: ['erebus', 'sol'],
       tracks: []
     },
     district: {
@@ -221,7 +221,7 @@
     },
     freebelt: {
       name: 'FREEBELT',
-      regions: ['frontier'],
+      regions: ['erebus'],
       tracks: []
     }
   };

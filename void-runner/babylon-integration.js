@@ -1,4 +1,4 @@
-/* Boundary adapter: the legacy simulation stays authoritative. */
+/* Babylon presentation adapter; existing campaign, combat and input remain authoritative. */
 const VoidGraphics = window.VoidGraphics = {
   renderer: 'babylon',
   quality: matchMedia('(pointer:coarse)').matches || navigator.hardwareConcurrency <= 4 ? 'low' : 'medium',
@@ -8,12 +8,12 @@ const VoidGraphics = window.VoidGraphics = {
 try {
   const stored = JSON.parse(localStorage.getItem('void-runner-graphics-v1'));
   if (stored) {
-    if (['babylon','legacy'].includes(stored.renderer)) VoidGraphics.renderer = stored.renderer;
+    // Old renderer preferences migrate to authoritative Babylon.
     if (VoidBabylon.presets[stored.quality]) VoidGraphics.quality = stored.quality;
   }
 } catch {}
 const rendererParam = new URLSearchParams(location.search).get('renderer');
-if (['legacy', 'babylon'].includes(rendererParam)) VoidGraphics.renderer = rendererParam;
+// URL parameters cannot revive the obsolete renderer.
 VoidBabylon.setQuality(VoidGraphics.quality);
 const navigationReveal = VoidNavigationReveal.create();
 let expedition = null,
@@ -22,11 +22,11 @@ let expedition = null,
   walkTarget = null,
   walkingKeys = new Set(),
   lastStepSound = 0;
-let ambientTraffic = VoidTraffic.create(() => 0), departureStation = {x:0,y:0,z:-100};
+let ambientTraffic = VoidTraffic.create(() => 0), departureStation = {x:0,y:4,z:-15};
 let escortShip = null,
   preparingLaunch = null,
   preparationGeneration = 0,
-  activeRenderer = 'legacy',
+  activeRenderer = 'babylon',
   preparedDestination = null;
 const VoidInteractions = window.VoidInteractions = {
   handlers: new Map(),
@@ -85,14 +85,6 @@ launch = function() {
   walker = walkingLocation = expedition = null;
   walkingKeys.clear();
   document.exitPointerLock?.();
-  if (VoidGraphics.renderer !== 'babylon') {
-    VoidBabylon.release();
-    activeRenderer = 'legacy';
-    escortShip = null;
-    migrationLaunch();
-    VoidNavigationReveal.reset(navigationReveal, 'launch');
-    return;
-  }
   if (!C.flight(state) && !trialGear) { dock(); announce('Choose a destination or accept a job before launching.'); return; }
   const token = ++preparationGeneration;
   VoidGraphics.busy = true;
@@ -105,31 +97,29 @@ launch = function() {
   preparingLaunch = (async () => {
     try {
       await boundedPrepare(async task => {
-        await VoidBabylon.prepareSpace(state.location, undefined, task);
+        await VoidBabylon.prepareSpace(state.quest==='arrival'?'vesper':state.location, undefined, task);
         if(token === preparationGeneration && $('preparation-status')) $('preparation-status').textContent='Exterior ready. Preparing departure artwork…';
-        const image = departureImages[state.location];
-        if (image) {
-          await task.wait('artwork', async()=>{await image.load();if (!image.naturalWidth) throw Error('Departure artwork unavailable: '+image.src);await image.decode();}, image.src || 'departure artwork');
-        }
+
       });
       if (token !== preparationGeneration) return;
       activeRenderer = 'babylon';
       VoidGraphics.error = null;
       preparedDestination = null;
       migrationLaunch();
+      if(state.quest==='arrival'&&flight.route)flight.route.origin='vesper';
       if(mode !== 'play') throw Error('Flight could not start. Choose a route and retry.');
       VoidNavigationReveal.reset(navigationReveal, 'launch');
       escortShip = current?.kind === 'escort' ? VoidEscort.create({
         heading: flight.route?.vector
       }) : null;
-      departureStation = {x:0,y:0,z:-100};
+      departureStation = {x:0,y:4,z:-15};
       const scriptedCombat = state.story.encounters.some(id => VoidStoryContent.encounters[id]?.ships.some(ship => VoidStory.relationship(VoidStoryContent.ships[ship] || {}) === 'hostile'));
-      ambientTraffic = VoidTraffic.create(Math.random, !!current?.enemies || !!trialGear || scriptedCombat);
+      ambientTraffic = VoidTraffic.create(Math.random, !!trialGear);
     } catch (error) {
       if (token !== preparationGeneration) return;
       VoidGraphics.error = error.message;
       mode = 'dock';
-      panel('DEPARTURE PREPARATION FAILED', 'Departure <em>held.</em>', '<p>' + escapeText(error.message) + ' Your campaign is unchanged. Retry, or use the original renderer.</p>', button('RETRY', 'launch') + button('USE ORIGINAL RENDERER', 'migration-fallback', true));
+      panel('DEPARTURE PREPARATION FAILED', 'Departure <em>held.</em>', '<p>' + escapeText(error.message) + ' Your campaign is unchanged. Retry or return to the station.</p>', button('RETRY', 'launch') + button('RETURN TO STATION', 'dock', true));
     } finally {
       clearInterval(progressTimer);
       if(token !== preparationGeneration) VoidBabylon.release();
@@ -168,7 +158,7 @@ arrive = function() {
 const migrationSettings = settingsPage;
 settingsPage = function() {
   migrationSettings();
-  screen.querySelector('.settings-panel').insertAdjacentHTML('beforeend', `<h2>Graphics</h2><label>Renderer<select id="renderer-setting"><option value="legacy" ${VoidGraphics.renderer==='legacy'?'selected':''}>Original / recovery</option><option value="babylon" ${VoidGraphics.renderer==='babylon'?'selected':''}>Babylon 3D</option></select></label><label>Quality<select id="quality-setting">${Object.keys(VoidBabylon.presets).map(q=>`<option ${q===VoidGraphics.quality?'selected':''}>${q}</option>`).join('')}</select></label><p class="fine">Renderer changes apply on the next departure. Walking locations use Babylon. Models are prototype blockouts based on the existing artwork.</p><h2>Radio</h2><label>Local station<select id="radio-setting"><option value="">OFF / LOCATION MUSIC</option>${VoidRadio.available().map(([id,s])=>`<option value="${id}" ${VoidRadio.selection===id?'selected':''}>${s.name}</option>`).join('')}</select></label><p id="radio-status" class="fine">${escapeText(VoidRadio.status)}</p>`);
+  screen.querySelector('.settings-panel').insertAdjacentHTML('beforeend', `<h2>Graphics</h2><label>Renderer<select id="renderer-setting"><option value="babylon" ${VoidGraphics.renderer==='babylon'?'selected':''}>Babylon 3D</option></select></label><label>Quality<select id="quality-setting">${Object.keys(VoidBabylon.presets).map(q=>`<option ${q===VoidGraphics.quality?'selected':''}>${q}</option>`).join('')}</select></label><p class="fine">Renderer changes apply on the next departure. Walking locations use Babylon. Models are prototype blockouts based on the existing artwork.</p><h2>Radio</h2><label>Local station<select id="radio-setting"><option value="">OFF / LOCATION MUSIC</option>${VoidRadio.available().map(([id,s])=>`<option value="${id}" ${VoidRadio.selection===id?'selected':''}>${s.name}</option>`).join('')}</select></label><p id="radio-status" class="fine">${escapeText(VoidRadio.status)}</p>`);
 };
 screen.addEventListener('change', e => {
   if (e.target.id === 'renderer-setting') {
@@ -187,107 +177,6 @@ screen.addEventListener('change', async e => {
     if ($('radio-status')) $('radio-status').textContent = VoidRadio.status;
   }
 });
-const migrationDock = dock;
-dock = function(tab = 'dock') {
-  ambientTraffic = VoidTraffic.create(() => 0);
-  if(activeRenderer === 'babylon' && !VoidGraphics.busy) VoidBabylon.release();
-  // The save schema anchors the opening route at Meridian, but the player has
-  // not arrived there yet. Cancelling preparation must not show that station.
-  if (state.quest === 'arrival') {
-    mode = 'dock'; view = 'departure'; clearInput(); flightUI(false);
-    panel('VESPER / KESTREL READY', 'Your first <em>flight.</em>', '<p>The Kestrel is ready at Vesper. Launch and fly to Meridian to meet Rook.</p>', button('LAUNCH TO MERIDIAN →', 'launch'));
-    scene('vesper');
-    return;
-  }
-  if (walkingLocation) {
-    VoidBabylon.release();
-    walkingLocation = null;
-    walker = null;
-  }
-  migrationDock(tab);
-  if (mode === 'dock' && view === 'dock') screen.querySelector('.actions')?.insertAdjacentHTML('beforeend', button('LEAVE SHIP / 3D HANGAR', 'explore:hangar', true) + (VoidExplorationData.solAvailable(state) ? button('SOL / INTERSTELLAR NAVIGATION', 'sol-map', true) : '') + (VoidExplorationData.destinations[state.story.flags.solDestination] ? button('RESUME SOL VISIT', 'sol-resume', true) : ''));
-};
-const migrationNavigation = navigation;
-navigation = function() {
-  migrationNavigation();
-  if (VoidExplorationData.solAvailable(state)) screen.querySelector('.hangar-grid')?.insertAdjacentHTML('beforeend', '<article class="card"><h3>SOL</h3><p>Interstellar transit. Earth and Mars landing prototypes.</p>' + button('PLOT INTERSTELLAR ROUTE', 'sol-map', false, !!state.contract) + '</article>');
-};
-
-function solMap() {
-  if (!VoidExplorationData.solAvailable(state) || state.contract) {
-    announce('Finish your current cargo run before plotting Sol.');
-    return;
-  }
-  leaveMenu();
-  mode = 'dock';
-  view = 'sol';
-  flightUI(false);
-  panel('INTERSTELLAR NAVIGATION', 'The <em>Sol system.</em>', '<p>Align the Kestrel with the interstellar vector. Earth and Mars are separate, compact landing areas. Frontier campaign progress stays anchored at your last station.</p><div class="hangar-grid">' + Object.entries(VoidExplorationData.destinations).map(([id, d]) => '<article class="card"><h2>' + d.name + '</h2><p>Orbital approach → landing facility → walking blockout.</p>' + button('PLOT ' + id.toUpperCase(), 'sol-travel:' + id) + '</article>').join('') + '</div>', button('RETURN TO FRONTIER STATION', 'sol-return', true));
-}
-async function solTravel(id) {
-  if (!VoidExplorationData.destinations[id] || !VoidExplorationData.solAvailable(state) || state.contract) return;
-  if (VoidGraphics.busy) return;
-  VoidGraphics.busy = true;
-  const token = ++preparationGeneration;
-  preparationPanel('Plotting <em>Sol transit.</em>');
-  try {
-    await boundedPrepare(task => VoidBabylon.prepareSpace(id, undefined, task));
-    if (token !== preparationGeneration) return;
-    expedition = {
-      id,
-      phase: 'align',
-      clock: 0,
-      aligned: 0,
-      pilot: {
-        yaw: 0,
-        pitch: 0,
-        roll: 0,
-        yawRate: 0,
-        pitchRate: 0,
-        throttle: .8
-      },
-      vector: {
-        x: .35,
-        y: 0,
-        z: Math.sqrt(1 - .35 * .35)
-      },
-      rocks: Array.from({
-        length: 34
-      }, (_, i) => ({
-        x: (i % 2 ? 1 : -1) * (35 + i),
-        y: Math.sin(i) * 70,
-        z: 80 + i * 7,
-        size: 2 + i % 4,
-        phase: i
-      }))
-    };
-    VoidPilotFlight.reset(expedition.pilot);
-    mode = 'transit3d';
-    scene('');
-    screen.classList.add('hidden');
-    clearInput();
-    canvas.focus();
-    VoidNavigationReveal.reset(navigationReveal, 'sol');
-  } catch (error) {
-    mode = 'dock';
-    panel('TRANSIT UNAVAILABLE', 'Route <em>held.</em>', '<p>' + escapeText(error.message) + '</p>', button('BACK', 'sol-map'));
-  } finally {
-    VoidGraphics.busy = false;
-  }
-}
-
-function orbit() {
-  const id = expedition?.id || state.story.flags.solDestination;
-  if (!VoidExplorationData.destinations[id]) return solMap();
-  mode = 'dock';
-  view = 'orbit';
-  clearInput();
-  flightUI(false);
-  state.story.flags.solDestination = id;
-  save();
-  const d = VoidExplorationData.destinations[id];
-  panel('SOL / ORBITAL APPROACH', d.name, '<p>Landing clearance received. The next area is a small exploration blockout.</p>', button('LAND / ' + d.location.toUpperCase(), 'explore:' + d.location) + button('SOL NAVIGATION', 'sol-map', true));
-}
 async function enterWalking(id) {
   const def = VoidExplorationData.locations[id];
   if (!def) return;
@@ -334,27 +223,7 @@ function resumeWalking() {
   noticeTime = 0;
 }
 
-async function leaveWalking() {
-  document.exitPointerLock?.();
-  const destination = walkingLocation?.kind === 'city' ? 'earth' : walkingLocation?.kind === 'underground' ? 'mars' : null;
-  walkingLocation = null;
-  walker = null;
-  walkingKeys.clear();
-  VoidBabylon.release();
-  if (!destination) { dock(); return; }
-  const token = ++preparationGeneration;
-  VoidGraphics.busy = true;
-  preparationPanel('Returning to <em>orbit.</em>');
-  try {
-    await boundedPrepare(task => VoidBabylon.prepareSpace(destination, undefined, task));
-    if (token !== preparationGeneration) return;
-    expedition = {id:destination, rocks:[]};
-    orbit();
-  } catch (error) {
-    mode = 'dock';
-    panel('ORBIT UNAVAILABLE', 'Transit <em>held.</em>', '<p>'+escapeText(error.message)+'</p>', button('SOL NAVIGATION','sol-map'));
-  } finally { VoidGraphics.busy = false; }
-}
+async function leaveWalking(){return launch();}
 
 const migrationJourney = newJourney;
 newJourney = function() {
@@ -412,23 +281,10 @@ screen.addEventListener('click', e => {
     preparationGeneration++;
     dock();
   }
-  if (a === 'migration-fallback') {
-    VoidGraphics.renderer = 'legacy';
-    graphicsSave();
-    launch();
-  }
+  
   if (a.startsWith('explore:')) enterWalking(a.slice(8));
   if (a === 'walk-resume' && walkingLocation) resumeWalking();
-  if (a === 'sol-map') solMap();
-  if (a === 'sol-return') {
-    delete state.story.flags.solDestination;
-    expedition = null;
-    save();
-    VoidBabylon.release();
-    dock();
-  }
-  if (a === 'sol-resume') solTravel(state.story.flags.solDestination);
-  if (a.startsWith('sol-travel:')) solTravel(a.slice(11));
+
 });
 const walkingUI = document.createElement('div');
 walkingUI.id = 'walking-ui';
@@ -489,27 +345,28 @@ canvas.addEventListener('pointermove', e => {
 });
 const migrationUpdate = update;
 async function prepareDestination() {
-  const id = current.destination;
+  const id = current.destination, token=++preparationGeneration;
   preparedDestination = id;
-  mode = 'preparing-flight';
+  mode = 'preparing-flight';VoidGraphics.busy=true;
   clearInput();
   // Keep the current rendered frame visible behind the warp preparation message.
   screen.classList.remove('hidden');
   screen.innerHTML = '<section class="opening-card"><p>WARP FIELD / SYNCHRONIZING DESTINATION</p></section>';
   try {
     await boundedPrepare(task => VoidBabylon.prepareSpace(id, undefined, task));
-    if (mode !== 'preparing-flight') return;
+    if (mode !== 'preparing-flight'||token!==preparationGeneration) return;
     screen.classList.add('hidden');
     mode = 'play';
     last = performance.now();
   } catch (error) {
+    if(token!==preparationGeneration)return;
     mode = 'dock';
     flightUI(false);
-    panel('WARP HELD', 'Destination <em>unavailable.</em>', '<p>' + escapeText(error.message) + ' The route checkpoint is saved.</p>', button('RETRY ROUTE', 'launch') + button('USE ORIGINAL RENDERER', 'migration-fallback', true));
-  }
+    panel('WARP HELD', 'Destination <em>unavailable.</em>', '<p>' + escapeText(error.message) + ' The route checkpoint is saved.</p>', button('RETRY ROUTE', 'launch') + button('RETURN TO STATION', 'dock', true));
+  }finally{if(token===preparationGeneration)VoidGraphics.busy=false;}
 }
 update = function(dt) {
-  const region = walkingLocation?.kind === 'city' ? 'earth' : walkingLocation?.kind === 'underground' ? 'mars' : expedition ? 'sol' : 'frontier';
+  const region = walkingLocation?.kind === 'city' ? 'earth' : walkingLocation?.kind === 'underground' ? 'mars' : state.universe?.currentSystem==='sol' ? 'sol' : 'erebus';
   VoidRadio.setContext(region, state);
   VoidRadio.category(mode === 'play' ? (enemies.some(VoidStory.hostile) ? 'combat' : 'flight') : walkingLocation?.music || 'station');
   const before = flight.route?.phase;
@@ -522,7 +379,7 @@ update = function(dt) {
     VoidExplorer.step(walker, moving, dt, walkingLocation);
     walkTarget = VoidExplorer.select(walker, walkingLocation, item => !item.when || VoidStory.matches(state, item.when));
     time += dt;
-    $('walking-caption').textContent = walkingLocation.name + ' / BLOCKOUT';
+    $('walking-caption').textContent = walkingLocation.name + ' / '+(walkingLocation.kind==='station'?'CREW DECK':'LANDING ZONE');
     $('walking-interact').textContent = walkTarget ? '[E] ' + walkTarget.label : 'Look toward a nearby object';
     $('walking-interact').disabled = !walkTarget;
     lastStepSound -= dt;
@@ -534,34 +391,6 @@ update = function(dt) {
     VoidAudio.tick(dt);
     return;
   }
-  if (mode === 'transit3d') {
-    time += dt;
-    const e = expedition;
-    VoidNavigationReveal.step(navigationReveal, dt, 'sol');
-    if (e.phase === 'align') {
-      VoidPilotFlight.step(e.pilot, {
-        x: Number(walkingKeys.has('KeyD')) - Number(walkingKeys.has('KeyA')),
-        y: Number(walkingKeys.has('KeyS')) - Number(walkingKeys.has('KeyW')),
-        roll: Number(walkingKeys.has('KeyR')) - Number(walkingKeys.has('KeyQ')),
-        throttle: Number(walkingKeys.has('ShiftLeft')) - Number(walkingKeys.has('KeyX'))
-      }, dt, C.stats(state).flight);
-      const b = FM.basis(e.pilot.yaw, e.pilot.pitch, e.pilot.roll);
-      e.aligned = FM.dot(b.f, e.vector) > .99 && VoidNavigationReveal.opacity(navigationReveal) > 0 ? e.aligned + dt : 0;
-      if (e.aligned > .65) {
-        e.phase = 'warp';
-        e.clock = 0;
-        VoidAudio.event('warp');
-      }
-    } else {
-      e.clock += dt;
-      if (e.clock >= 8) {
-        orbit();
-        VoidAudio.event('exit');
-      }
-    }
-    VoidAudio.update(VoidShips.get(state), .8, 0, e.phase, true);
-    return;
-  }
   migrationUpdate(dt);
   if (mode === 'play') {
     const phase = flight.route?.phase || 'encounter';
@@ -571,7 +400,7 @@ update = function(dt) {
       escortHP = escortShip.health;
     }
     if(phase==='warp'||phase==='encounter'||enemies.some(VoidStory.hostile)) ambientTraffic.contacts=[];
-    else VoidTraffic.step(ambientTraffic,dt,flight.velocity);
+    else {if(!ambientTraffic.contacts.length)ambientTraffic=VoidTraffic.create(Math.random,false);VoidTraffic.step(ambientTraffic,dt,flight.velocity);}
     if(phase==='departure'||phase==='align') for(const axis of ['x','y','z']) departureStation[axis]-=(flight.velocity?.[axis]||0)*dt;
     enemies = enemies.filter(e => !e.dead);
     if (activeRenderer === 'babylon' && phase === 'warp' && preparedDestination !== current.destination) prepareDestination();
@@ -651,7 +480,6 @@ function drawContactMarkers() {
     } else cockpitArrow(o, 'SIGNAL', '#58ffe1');
   }
 }
-const migrationDraw = draw;
 draw = function() {
   walkingUI.hidden = !['walking', 'transit3d'].includes(mode);
   if (mode === 'preparing-flight') return;
@@ -662,70 +490,15 @@ draw = function() {
     ctx.fillRect(W / 2 - 2, H / 2 - 2, 4, 4);
     return;
   }
-  if (mode === 'transit3d') {
-    $('walking-caption').textContent = 'SOL / HOLD ALIGNMENT TO ENGAGE TRANSIT';
-    $('walking-interact').textContent = 'WASD OR DIRECTION BUTTONS TO ALIGN';
-    $('walking-interact').disabled = true;
-    const e = expedition,
-      basis = FM.basis(e.pilot.yaw, e.pilot.pitch, e.pilot.roll),
-      image = VoidBabylon.renderFlight({
-        basis,
-        route: {
-          phase: e.phase,
-          progress: e.clock / 8
-        },
-        rocks: e.rocks,
-        ships: [],
-        bullets: [],
-        hostile: [],
-        missiles: [],
-        effects: [],
-        time,
-        approach: 0
-      }, W, H);
-    if (image) ctx.drawImage(image, 0, 0, W, H);
-    drawShipCockpit();
-    ctx.fillStyle = '#83d5c8';
-    ctx.font = '16px Consolas';
-    ctx.textAlign = 'center';
-    ctx.fillText(e.phase === 'align' ? 'SOL / ALIGN INTERSTELLAR VECTOR — WASD' : 'SOL / INTERSTELLAR TRANSIT', W / 2, H * .2);
-    if (e.phase === 'align' && VoidNavigationReveal.opacity(navigationReveal) > 0) {
-      const p = FM.project(e.vector, basis, W, H);
-      ctx.strokeStyle = '#83d5c8';
-      ctx.strokeRect(p.x - 20, p.y - 20, 40, 40);
-      ctx.fillText('SOL → ' + e.id.toUpperCase(), p.x, p.y + 43);
-    }
-    ctx.textAlign = 'left';
-    return;
-  }
-  if (view === 'orbit' && expedition && VoidBabylon.diagnostics.exteriorReady) {
-    const image = VoidBabylon.renderFlight({
-      basis: FM.basis(0, 0, 0),
-      route: null,
-      rocks: expedition.rocks,
-      ships: [],
-      bullets: [],
-      hostile: [],
-      missiles: [],
-      effects: [],
-      time,
-      approach: 0
-    }, W, H);
-    if (image) {
-      ctx.drawImage(image, 0, 0, W, H);
-      return;
-    }
-  }
   if (activeRenderer === 'babylon' && ['play', 'pause'].includes(mode) && VoidBabylon.diagnostics.exteriorReady) {
     const image = VoidBabylon.renderFlight(migrationSnapshot(), W, H);
     if (!image) {
-      migrationDraw();
-      return;
+      throw Error('Babylon graphics context unavailable. Retry the route.');
     }
     ctx.clearRect(0, 0, W, H);
     ctx.drawImage(image, 0, 0, W, H);
     drawWarpEffect();
-    drawDeparture();
+    // Physical Babylon hangar is the departure environment.
     ctx.save();
     if (!reducedMotion) {
       const amplitude = Math.min(1.5, damageTime * 2 + Math.abs(flight.yawRate) * .35);
@@ -741,5 +514,6 @@ draw = function() {
     VoidCombatEffects.draw();
     return;
   }
-  migrationDraw();
+  if(['play','pause'].includes(mode)){renderUnavailable();return;}
+  drawModernBackground();
 };

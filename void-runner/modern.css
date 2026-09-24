@@ -1,0 +1,7 @@
+body.frontend #space{opacity:1}body.frontend{background:#07121e}.main-menu{background:linear-gradient(90deg,#061018ed,#06101880,transparent)}
+#mission-log{position:fixed;z-index:100;inset:12% 15%;padding:2rem;background:#091721f5;border:1px solid #729d9b;overflow:auto;color:#d6e5e4;box-shadow:0 20px 100px #000a}
+#mission-log button{display:block;text-align:left;width:100%;margin:1rem 0;padding:1rem}#mission-log span,#mission-log small{display:block;margin-top:.5rem}
+.card:has([data-action="buy:guns"]),.card:has([data-action="credit-gear:launcher"]){border-top:3px solid #d47575}.card:has([data-action="buy:shields"]){border-top:3px solid #78a5cf}.card:has([data-action="buy:engines"]){border-top:3px solid #d39865}.card:has([data-action="buy:armor"]),.card:has([data-action^="credit-gear:"]){border-top:3px solid #84bd94}.card:has([data-action^="purchase:"]){border-top:3px solid #b398cf}
+body:has(#walking-ui:not([hidden])) #screen{background:none}#walking-ui{pointer-events:none}#walking-ui button{pointer-events:auto}#walking-caption{background:#091721c9;padding:.6rem}
+@media(max-width:700px){#mission-log{inset:8% 3%;padding:1rem}}
+.card:has([data-action="credit-gear:launcher"]){border-top-color:#d47575}

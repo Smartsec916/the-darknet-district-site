@@ -1,0 +1,206 @@
+[
+  {
+    "path": "void-runner.html",
+    "change": "modified",
+    "upstreamBlob": "b794976a799b279f498c81fe083101a69b757dea",
+    "sha256": "61d6ca3ac06e88e85faeea13e6d6c6d54a69d8f0414621a84f4b96d7e77a3e3a"
+  },
+  {
+    "path": "void-runner/asset-pipeline.js",
+    "change": "modified",
+    "upstreamBlob": "2b84998183c78f4abefa4e7346bc601f26f08ecc",
+    "sha256": "89b98e16b288657b5dced2e5bf672c0338b14c12e1cb17002514084940e83517"
+  },
+  {
+    "path": "void-runner/babylon-integration.js",
+    "change": "modified",
+    "upstreamBlob": "b998074793fafac14196b73dd2e791fd53b5b84c",
+    "sha256": "878f5fad8c38eeb8146544db8edeed0a0fc6c6280f76ac15ebca6ccca6b12ff9"
+  },
+  {
+    "path": "void-runner/babylon-renderer.js",
+    "change": "modified",
+    "upstreamBlob": "2faac85c4afa390e946d890f0c1e5a784a5adba6",
+    "sha256": "097e6e138ac85ed5bd3afb5649f4c3eafa5ffd54f620d480982f8604f3a7df78"
+  },
+  {
+    "path": "void-runner/bootstrap.js",
+    "change": "modified",
+    "upstreamBlob": "a4ff804c8816decd1682fa617a03e3c72f27bd89",
+    "sha256": "2d99f77897cd2eb5afc15d7a625d5ebea6f28dbfa8f96c724b095cd6b36f3251"
+  },
+  {
+    "path": "void-runner/campaign.js",
+    "change": "modified",
+    "upstreamBlob": "6d22c7463eb1f38a7da2b87569882463966c0559",
+    "sha256": "f530a1b5c5b718a3df733c5515cd0910b9704db62fd4ca1eef2ec73f3f6b61e0"
+  },
+  {
+    "path": "void-runner/cockpit.js",
+    "change": "modified",
+    "upstreamBlob": "19cb9bc0da958a27d1acb26eee613978e5536bf3",
+    "sha256": "b70d311cfaadf08e0162def8c5fc85dd48a3ab7e3c39e65c627304b03f0360fa"
+  },
+  {
+    "path": "void-runner/exploration-data.js",
+    "change": "modified",
+    "upstreamBlob": "3b1a6a2b78895111f44e5ae27ed587400010c39a",
+    "sha256": "1bd1c7741edab922873a5d91d8ad98eb00dced7e709acc92d9ff139af1ca72e6"
+  },
+  {
+    "path": "void-runner/flight-presentation.js",
+    "change": "modified",
+    "upstreamBlob": "9194889ce56f9f9de6ee380f454b658d942cb1d6",
+    "sha256": "5a0de0568ef720780a58cd653756f625197a1452d7e74e5d07c21d0c9450d14b"
+  },
+  {
+    "path": "void-runner/game.js",
+    "change": "modified",
+    "upstreamBlob": "ddf6d653b9b26e188fdaadee91ce6c186cf929b2",
+    "sha256": "372b56bb953c4de211e4aaf1f3b2b8a7baf96cbdb1067ad91931a86f629ffc64"
+  },
+  {
+    "path": "void-runner/hangar.js",
+    "change": "modified",
+    "upstreamBlob": "b49d0864609c816bc997dd4a8bf2671182531596",
+    "sha256": "c430324208b9ef12520cf9abb69d6a914f1bdc5c9dd8918453431279fae8b980"
+  },
+  {
+    "path": "void-runner/menu.js",
+    "change": "modified",
+    "upstreamBlob": "8a03349df077bea55a0e7068f5cd3785d36a2331",
+    "sha256": "5752aa953f5a2a588e0743c4cf0cdef3f4fecc91a77f45c817f0c524e051b4c2"
+  },
+  {
+    "path": "void-runner/preparation.js",
+    "change": "modified",
+    "upstreamBlob": "111c4ce32fea47acf401733034bfe070f9283619",
+    "sha256": "c35fbc5fd1b7b5609ff60fc0d2375d0904a1056e9f6cd438b225f770864e2806"
+  },
+  {
+    "path": "void-runner/save-manifest.json",
+    "change": "modified",
+    "upstreamBlob": "dea779f633413004aee74c558b1cc77d11c35f98",
+    "sha256": "cdb0980598abd141a3d57b59dcece2dc0ddeb95101a90feaa324998ad9d97401"
+  },
+  {
+    "path": "void-runner/scenes.js",
+    "change": "modified",
+    "upstreamBlob": "ec201107fa1d18a3d7aa20da12560c4d68821259",
+    "sha256": "d0383339250adbf746e88e3b74183a2f75fd6f49838feb20c2344083e6cbbca5"
+  },
+  {
+    "path": "void-runner/ship-audio.js",
+    "change": "modified",
+    "upstreamBlob": "08b68721c8718b0a685033a6bc2ed03150a9c37a",
+    "sha256": "971a2e87fb955bff882a99261c44ad9a34243c93e2988f44bd17dcad5f3b4cc2"
+  },
+  {
+    "path": "void-runner/story-content.js",
+    "change": "modified",
+    "upstreamBlob": "50763242acfb6416b062171c223aec5fc878f779",
+    "sha256": "9660196cb16a1e47d04f817822e07dbe7af9fa13c7e798c2425cc5bc3e6f9785"
+  },
+  {
+    "path": "void-runner/traffic.js",
+    "change": "modified",
+    "upstreamBlob": "2a1390b64c204b157af3e4771dd21ea44a760be8",
+    "sha256": "b3ce877a0e272d72def2cf2f39ed506e48eccd04506b57bbbaf47a6bd9d37c46"
+  },
+  {
+    "path": "void-runner/warp.js",
+    "change": "modified",
+    "upstreamBlob": "3e676fba9bd400af3b4cdf9cd7335e65cdaf867b",
+    "sha256": "2615f18a3a3bd2ee4ecc4978d37ba1b4c7c74734eb9a007e878cbaff7f670176"
+  },
+  {
+    "path": "void_runner_api.py",
+    "change": "modified",
+    "upstreamBlob": "cf9e45a911a2977a0f9e726510abd34206396b48",
+    "sha256": "e176b56ddacbbec62b3e378a29aa27813a412dccbce32cc38f7d31d53e7caa7f"
+  },
+  {
+    "path": "static/void-runner.html",
+    "change": "modified",
+    "upstreamBlob": "b794976a799b279f498c81fe083101a69b757dea",
+    "sha256": "61d6ca3ac06e88e85faeea13e6d6c6d54a69d8f0414621a84f4b96d7e77a3e3a"
+  },
+  {
+    "path": "tests/overhaul.test.cjs",
+    "change": "modified",
+    "upstreamBlob": "6a48461ae401409cb3114b03d9ba58c9410f81f2",
+    "sha256": "103e9c5ac3bdde57b7a0c925c7fe81c7e09d96b4f091537c697e77c4d113ad96"
+  },
+  {
+    "path": "tests/traffic-startup.test.cjs",
+    "change": "modified",
+    "upstreamBlob": "f51008925130c7d340a6a1e7f74204792669bc09",
+    "sha256": "94114a36b60e4f534d07c6b02367d8aaeaddc25be8edd60863808d1f962b934e"
+  },
+  {
+    "path": "tests/test_story_save.py",
+    "change": "modified",
+    "upstreamBlob": "51fe10ad5dd25fcb5c501e47bc6a933f0cc240a5",
+    "sha256": "831f7c6c6c579cbbfa465d451b5df24ac8dc0a062cf20536475f567319bcc1c2"
+  },
+  {
+    "path": "void-runner/universe.js",
+    "change": "added",
+    "upstreamBlob": null,
+    "sha256": "d6b27b12564105619961aa0e024918593a92ade550ecc972f7ae64d68cb832c8"
+  },
+  {
+    "path": "void-runner/mission-log.js",
+    "change": "added",
+    "upstreamBlob": null,
+    "sha256": "e1de8b7053bcf82055c6f1e50d26e6ef509ef48898329de816259d67f514d971"
+  },
+  {
+    "path": "void-runner/station-layouts.js",
+    "change": "added",
+    "upstreamBlob": null,
+    "sha256": "795aefca40b422396b677c98066a49a50fd119eaec638ddad1f984538abff607"
+  },
+  {
+    "path": "void-runner/world-integration.js",
+    "change": "added",
+    "upstreamBlob": null,
+    "sha256": "37fce617a91d00af79c4f5a82d9cc63521ee0bb0e0658edf3c15820d66bed11b"
+  },
+  {
+    "path": "void-runner/modern.css",
+    "change": "added",
+    "upstreamBlob": null,
+    "sha256": "d9923eaa3707665beb592a0706e8eb45ea7d160030a5c89761761217f8b4a45c"
+  },
+  {
+    "path": "void-runner/voice-provider.js",
+    "change": "added",
+    "upstreamBlob": null,
+    "sha256": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef"
+  },
+  {
+    "path": "tests/modern-world.test.cjs",
+    "change": "added",
+    "upstreamBlob": null,
+    "sha256": "7d6be7258ef8ddc9f6556b43dc8ffcc21e5b207e78f06a3b3a79c429906a51cc"
+  },
+  {
+    "path": "tests/modern-world-browser.cjs",
+    "change": "added",
+    "upstreamBlob": null,
+    "sha256": "4f66bf3019363861db8cda47c9f701d1acb9b4eef30d05b110481ef068bbae50"
+  },
+  {
+    "path": "tests/modern-recovery-browser.cjs",
+    "change": "added",
+    "upstreamBlob": null,
+    "sha256": "60aeaf815dd685ef5bd0897d662561c8ccb22be14b396a49e890f63771d43e67"
+  },
+  {
+    "path": "tests/modern-opening-browser.cjs",
+    "change": "added",
+    "upstreamBlob": null,
+    "sha256": "9e532f9b672b1845e64a0d0e14a4c4dfc68800a9d454cba0b42b0f600b2a92a2"
+  }
+]

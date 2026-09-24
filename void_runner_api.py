@@ -267,6 +267,29 @@ def clean_save(value):
     if destination is not None and destination not in locations:
         raise ApiError('Invalid destination.')
     result['destination'] = destination
+    universe = value.get('universe', {})
+    if not isinstance(universe, dict):
+        raise ApiError('Invalid universe state.')
+    cleaned_universe = {}
+    for key, allowed, default in [('discoveredSystems', ['erebus','sol'], ['erebus']), ('discoveredLocations', locations, ['vesper','meridian']), ('visitedLocations', locations, ['vesper'])]:
+        entries = universe.get(key, default)
+        if not isinstance(entries,list) or len(entries)>256 or any(x not in allowed for x in entries):
+            raise ApiError('Invalid universe locations.')
+        cleaned_universe[key] = list(dict.fromkeys(entries))
+    cleaned_universe['currentSystem'] = 'sol' if result['location'] in ['sol-belt','earth','mars'] else 'erebus'
+    for key in ['missionLogUnlocked','freeTravel']:
+        cleaned_universe[key] = universe.get(key) is True or result['missileOfferSeen']
+    tracked = universe.get('trackedMission')
+    if tracked is not None and (not isinstance(tracked,str) or len(tracked)>80):
+        raise ApiError('Invalid tracked mission.')
+    cleaned_universe['trackedMission'] = tracked
+    completed = universe.get('completedObjectives', [])
+    if not isinstance(completed,list) or len(completed)>200 or any(not isinstance(x,str) or len(x)>80 for x in completed):
+        raise ApiError('Invalid completed objectives.')
+    cleaned_universe['completedObjectives'] = completed
+    station = universe.get('station')
+    cleaned_universe['station'] = {'location':result['location']} if isinstance(station,dict) and station.get('location') == result['location'] else None
+    result['universe'] = cleaned_universe
     result['travel'] = None
     travel = value.get('travel')
     if travel is not None:

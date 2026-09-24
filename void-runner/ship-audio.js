@@ -405,7 +405,7 @@
           profile: p,
           volume: settings.master * settings.voice,
           bus: buses?.voice
-        })).catch(() => {}).finally(() => {
+        })).catch(error => {console.warn('[VOID voice]',{character:id,recovery:'subtitles',reason:error.message});}).finally(() => {
           if (token === current) {
             speaking = false;
             mix();

@@ -113,5 +113,5 @@ function draw() {
   $('flash').style.opacity = reducedMotion ? 0 : damageTime * .8;
 }
 let last = performance.now();
-function loop(now) { const dt = Math.min((now - last) / 1000, .04); last = now; update(dt); draw(); requestAnimationFrame(loop); }
+function loop(now) { const dt = Math.min((now - last) / 1000, .04); last = now; try{update(dt);draw();}catch(error){console.error('[VOID frame]',{mode,location:state.location,phase:typeof flight!=='undefined'?flight.route?.phase:null,error});mode='recovery';if(typeof walkingLocation!=='undefined'){walkingLocation=walker=null;}globalThis.VoidBabylon?.release();clearInput();flightUI(false);panel('FLIGHT RECOVERY','Flight <em>held.</em>','<p>Your last checkpoint is safe. Retry the route or return to the station.</p>',button('RETRY ROUTE','launch')+button('RETURN TO STATION','dock',true));}finally{requestAnimationFrame(loop);} }
 // bootstrap.js starts the only animation loop after all modules are registered.
