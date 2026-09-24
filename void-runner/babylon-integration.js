@@ -56,7 +56,10 @@ function preparationPanel(label) {
   mode = 'preparing';
   clearInput();
   flightUI(false);
-  panel('PREPARING ENVIRONMENT', label, '<p>Loading the exterior and preparing the next area.</p>', button('RETURN TO STATION', 'migration-cancel', true));
+  panel('PREPARING ENVIRONMENT', label, '<p id="preparation-status" role="status">Loading the 3D engine and exterior. Your flight will start when ready.</p><div class="loading-activity" aria-label="Loading in progress"></div><p id="preparation-time" class="fine"></p>', button('CANCEL PREPARATION', 'migration-cancel', true, true));
+  // A double-click on Board/Launch must not hit a newly inserted Cancel button.
+  const cancelButton = screen.querySelector('[data-action="migration-cancel"]');
+  setTimeout(() => { if(cancelButton?.isConnected) cancelButton.disabled=false; }, 800);
 }
 async function boundedPrepare(action) {
   let timeout;
@@ -70,6 +73,12 @@ async function boundedPrepare(action) {
 }
 const migrationLaunch = launch;
 launch = function() {
+  if (preparingLaunch) {
+    if (mode === 'preparing') return preparingLaunch;
+    const queuedToken = ++preparationGeneration;
+    preparationPanel('Preparing <em>departure.</em>');
+    return preparingLaunch.then(() => { if(queuedToken === preparationGeneration) return launch(); });
+  }
   walker = walkingLocation = expedition = null;
   walkingKeys.clear();
   document.exitPointerLock?.();
@@ -80,14 +89,20 @@ launch = function() {
     VoidNavigationReveal.reset(navigationReveal, 'launch');
     return;
   }
-  if (preparingLaunch) return preparingLaunch;
+  if (!C.flight(state) && !trialGear) { dock(); announce('Choose a destination or accept a job before launching.'); return; }
   const token = ++preparationGeneration;
   VoidGraphics.busy = true;
   preparationPanel('Preparing <em>departure.</em>');
+  const started = performance.now();
+  const progressTimer = setInterval(() => {
+    const el = $('preparation-time');
+    if (token === preparationGeneration && el) el.textContent = Math.floor((performance.now()-started)/1000)+'s elapsed · First 3D launch may take longer.';
+  }, 250);
   preparingLaunch = (async () => {
     try {
       await boundedPrepare(async () => {
         await VoidBabylon.prepareSpace(state.location);
+        if(token === preparationGeneration && $('preparation-status')) $('preparation-status').textContent='Exterior ready. Preparing departure artwork…';
         const image = departureImages[state.location];
         if (image) {
           await image.load();
@@ -99,6 +114,7 @@ launch = function() {
       activeRenderer = 'babylon';
       preparedDestination = null;
       migrationLaunch();
+      if(mode !== 'play') throw Error('Flight could not start. Choose a route and retry.');
       VoidNavigationReveal.reset(navigationReveal, 'launch');
       escortShip = current?.kind === 'escort' ? VoidEscort.create({
         heading: flight.route?.vector
@@ -131,6 +147,7 @@ launch = function() {
       mode = 'dock';
       panel('GRAPHICS UNAVAILABLE', 'Departure <em>held.</em>', '<p>' + escapeText(error.message) + ' Your campaign is unchanged. Retry, or use the original renderer.</p>', button('RETRY', 'launch') + button('USE ORIGINAL RENDERER', 'migration-fallback', true));
     } finally {
+      clearInterval(progressTimer);
       VoidGraphics.busy = false;
       preparingLaunch = null;
     }
@@ -185,6 +202,14 @@ screen.addEventListener('change', async e => {
 });
 const migrationDock = dock;
 dock = function(tab = 'dock') {
+  // The save schema anchors the opening route at Meridian, but the player has
+  // not arrived there yet. Cancelling preparation must not show that station.
+  if (state.quest === 'arrival') {
+    mode = 'dock'; view = 'departure'; clearInput(); flightUI(false);
+    panel('VESPER / KESTREL READY', 'Your first <em>flight.</em>', '<p>The Kestrel is ready at Vesper. Launch and fly to Meridian to meet Rook.</p>', button('LAUNCH TO MERIDIAN →', 'launch'));
+    scene('vesper');
+    return;
+  }
   if (walkingLocation) {
     VoidBabylon.release();
     walkingLocation = null;

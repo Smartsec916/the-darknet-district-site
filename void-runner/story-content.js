@@ -89,16 +89,20 @@
   });
   const voices = {
     mara: {
-      pitch: 1.05,
-      rate: 1,
+      pitch: 1,
+      rate: .94,
+      age: 'mature',
+      preferred: ['hazel', 'susan', 'sonia', 'zira'],
       volume: .85,
       variant: 1,
       presentation: 'feminine',
       style: 'measured'
     },
     elias: {
-      pitch: .9,
-      rate: .9,
+      pitch: .98,
+      rate: .91,
+      age: 'older',
+      preferred: ['george', 'daniel', 'david'],
       volume: .8,
       variant: 2,
       presentation: 'masculine',
@@ -116,19 +120,19 @@
       pitch: 1.02,
       rate: 1.03,
       volume: .8,
-      variant: 3
+      variant: 3, presentation: 'feminine', age: 'adult', style: 'confident', preferred: ['jenny', 'samantha', 'zira']
     },
     sol: {
       pitch: 1,
       rate: .96,
       volume: .8,
-      variant: 4
+      variant: 4, presentation: 'masculine', age: 'mature', style: 'calm', preferred: ['daniel', 'mark']
     },
     nyx: {
       pitch: .96,
       rate: 1,
       volume: .8,
-      variant: 5
+      variant: 5, presentation: 'feminine', age: 'adult', style: 'dry', preferred: ['aria', 'hazel']
     }
   };
   const dialogue = {

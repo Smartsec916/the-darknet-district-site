@@ -37,7 +37,7 @@ function renderMainMenu() {
   const a = window.VoidAccount,
     u = a?.user;
   menuShell('main',
-    `<section class="main-menu"><p class="menu-kicker">THE DARKNET DISTRICT / FLIGHT SYSTEMS ONLINE</p><h1 class="game-logo" tabindex="-1">VOID<span>//</span>RUNNER</h1><p class="menu-subtitle">CARGO & CONSEQUENCES</p><nav class="menu-options" aria-label="Main menu">${VoidMenu.returnTo?button('RESUME GAME','menu-resume'):''}${button('START NEW CAMPAIGN','menu-new')}${button('LOAD CAMPAIGN','menu-load',false,!hasSave&&!a?.cloud)}${button('SETTINGS','menu-settings')}${button('LOGOUT','menu-logout',false,!u||a?.busy)}</nav><div class="menu-account">${u?'SIGNED IN · '+escapeText(u.displayName||u.email||'Pilot'):'LOCAL PILOT · NOT SIGNED IN'}${button(u?'ACCOUNT / CLOUD SAVES':'SIGN IN','menu-account',true)}</div><p class="menu-save">${hasSave?saveDescription(state):'Your journey begins on Vesper.'}</p></section>`
+    `<section class="main-menu"><p class="menu-kicker">THE DARKNET DISTRICT / FLIGHT SYSTEMS ONLINE</p><h1 class="game-logo" tabindex="-1">VOID<span>//</span>RUNNER</h1><p class="menu-subtitle">CARGO & CONSEQUENCES</p><nav class="menu-options" aria-label="Main menu">${VoidMenu.returnTo?button('RESUME GAME','menu-resume'):''}${button('START NEW CAMPAIGN','menu-new')}${button('LOAD CAMPAIGN','menu-load',false,!hasSave&&!a?.cloud)}${button('SETTINGS','menu-settings')}${button('LOGOUT','menu-logout',false,!u||a?.busy)}</nav><div class="menu-account">${u?'SIGNED IN':'LOCAL PILOT · NOT SIGNED IN'}${button(u?'ACCOUNT / CLOUD SAVES':'SIGN IN','menu-account',true)}</div><p class="menu-save">${hasSave?saveDescription(state):'Your journey begins on Vesper.'}</p></section>`
     );
 }
 
@@ -87,10 +87,18 @@ function resumeMenu() {
   else title();
 }
 
+function voiceSettingsHTML() {
+  const voices = VoidAudio.availableVoices();
+  return '<details><summary>Character voices</summary><p class="fine">Automatic selection matches known voices to each character. If this device has no matching voice, dialogue stays subtitled. Choose a voice below to override it. Naturalness depends on voices installed on your device.</p>' + Object.entries(VoidStoryContent.characters).map(([id,c]) => '<label>'+escapeText(c.name)+'<select data-character-voice="'+id+'"><option value="">Automatic matching</option>'+voices.map(v=>'<option value="'+escapeText(v.voiceURI)+'" '+(VoidAudio.voiceChoice(id)===v.voiceURI?'selected':'')+'>'+escapeText(v.name)+'</option>').join('')+'</select></label>').join('')+'</details>';
+}
+screen.addEventListener('change', e => {
+  const id = e.target.dataset.characterVoice;
+  if (id) { VoidAudio.chooseVoice(id, e.target.value); VoidAudio.speak(id, 'Flight systems ready. Keep her flying.'); }
+});
 function settingsPage() {
   const s = VoidAudio.settings;
   menuShell('settings',
-    `<section class="settings-panel"><h1 tabindex="-1">Settings</h1>${[['music','Music volume'],['effects','Sound effects volume'],['voice','Voice volume']].map(([id,label])=>`<label>${label}<input type="range" min="0" max="100" step="1" data-setting="${id}" value="${Math.round(s[id]*100)}"><output>${Math.round(s[id]*100)}</output></label>`).join('')}${button('KEYBINDINGS','menu-bindings')}${button(s.enabled?'MUTE ALL':'UNMUTE ALL','menu-mute',true)}<p class="fine">Audio starts after interaction. Voices use this device’s speech engine. Set a category to zero to mute it.</p>${button('BACK','menu-back',true)}</section>`
+    `<section class="settings-panel">${button('BACK','menu-back',true)}<h1 tabindex="-1">Settings</h1>${[['music','Music volume'],['effects','Sound effects volume'],['voice','Voice volume']].map(([id,label])=>`<label>${label}<input type="range" min="0" max="100" step="1" data-setting="${id}" value="${Math.round(s[id]*100)}"><output>${Math.round(s[id]*100)}</output></label>`).join('')}${button('KEYBINDINGS','menu-bindings')}${button(s.enabled?'MUTE ALL':'UNMUTE ALL','menu-mute',true)}<p class="fine">Audio starts after interaction. Voices use this device’s speech engine. Set a category to zero to mute it.</p>${voiceSettingsHTML()}</section>`
     );
 }
 
