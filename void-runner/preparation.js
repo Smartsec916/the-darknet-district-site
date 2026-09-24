@@ -1,6 +1,6 @@
 /* Bounded, phase-aware readiness. No simulation or render loop is owned here. */
 (function(root){
- const limits={module:45000,assets:8000,scene:10000,artwork:3000,optional:3000,total:65000};
+ const limits={module:240000,assets:8000,scene:10000,artwork:3000,optional:3000,total:270000};
  let current=null;const tasks=new Set();
  async function run(action){
   const controller=new AbortController(),started=performance.now();

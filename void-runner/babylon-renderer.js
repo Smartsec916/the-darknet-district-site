@@ -716,6 +716,7 @@
       for (const x of [-9, -5]) box('landing-strut', [.25, 1.5, .3], [x, .75, -6], material('rib', '#23333b'), roomRoot);
     }
     if (def.kind === 'city') {
+      characterModel('admin',roomRoot,[-2,0,39]);characterModel('iris',roomRoot,[2,0,39]);
       scene.clearColor = new b.Color4(.12, .15, .17, 1);
       for (let i = 0; i < 14; i++) box('distant-skyline', [8, 12 + i % 5 * 4, 9], [-65 + i * 10, 6 + i % 5 * 2, 65], material('skyline', '#354149'), roomRoot);
       box('entrance', [3, 3, .2], [0, 1.5, 31], material('door', '#182e32'), roomRoot);

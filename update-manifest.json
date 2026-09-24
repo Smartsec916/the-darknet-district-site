@@ -1,0 +1,180 @@
+{
+  "baseCommit": "9a1e603f53d3a497f1a8b126b07c35745f4d55f7",
+  "files": [
+    {
+      "path": "static/void-runner.html",
+      "change": "modified",
+      "sha256": "8b6b3ceba651cc8948585c1885dff0216643411eef342e75d4fe0bbdd68a2ded"
+    },
+    {
+      "path": "tests/babylon-foundation.test.cjs",
+      "change": "modified",
+      "sha256": "f5f04c6c1616d9ae0fc0553e35b4d8c395049e1f60cfb5582171d44c0d335093"
+    },
+    {
+      "path": "tests/campaign.test.cjs",
+      "change": "modified",
+      "sha256": "c6ecebe019a785128178c85d95ffcdb9f52d8699cb88c2abf6dbb55cc2776ca4"
+    },
+    {
+      "path": "tests/faction-browser.cjs",
+      "change": "added",
+      "sha256": "37ca3489aeda5b2026d892326b18e8eff541621fb288324f5ec47ed91bb82c5c"
+    },
+    {
+      "path": "tests/modern-world.test.cjs",
+      "change": "modified",
+      "sha256": "0af96966728fd357624cbc40e06047e7013c2a008e164cdc53bd9ebd343b7d4f"
+    },
+    {
+      "path": "tests/overhaul.test.cjs",
+      "change": "modified",
+      "sha256": "8382236e25feafb7c4c99f66d9718790e3384d7429fb82ca82438bb0421f79dd"
+    },
+    {
+      "path": "tests/progression.test.cjs",
+      "change": "added",
+      "sha256": "8bfdf97b0e38f0a4bf3f6bc9eabf3ab870953aa75c7aa8334651bb0240dd0440"
+    },
+    {
+      "path": "tests/prologue-browser.cjs",
+      "change": "added",
+      "sha256": "d8ca866b4325a5f8c3625b6f26a1d86c52b26293befabb9e4b3fd3c5e7dcb8df"
+    },
+    {
+      "path": "tests/serve-modern.cjs",
+      "change": "added",
+      "sha256": "f36d5eea68d9ea20c56755f7ee0bf192615ecf05e284e44ac680bb13faa129f4"
+    },
+    {
+      "path": "tests/slow-startup-browser.cjs",
+      "change": "added",
+      "sha256": "3d0fbded3eb511a9be97e216130bdc3c8bc532399a9dafb2762f72e678f1a420"
+    },
+    {
+      "path": "tests/test_progression_save.py",
+      "change": "added",
+      "sha256": "c25cb20332bedd478e367454ddd86beed6e90ffc6aa4f693eda76ca1467d55ab"
+    },
+    {
+      "path": "void-runner/babylon-renderer.js",
+      "change": "modified",
+      "sha256": "85fce345e4fb2f60f5ccbe6b77a3ff6c65df218a252f09787ddb3c37122ffe85"
+    },
+    {
+      "path": "void-runner/bootstrap.js",
+      "change": "modified",
+      "sha256": "079aa6ef8327775921694508cdb684ed1b5ebf332588993759dcabfdc946e820"
+    },
+    {
+      "path": "void-runner/campaign.js",
+      "change": "modified",
+      "sha256": "e4ef99fdbde7a2b117644480268a9127a3ff38d7ced326b6081f75c8b149197d"
+    },
+    {
+      "path": "void-runner/cockpit.js",
+      "change": "modified",
+      "sha256": "297cc2a66a473f5774c0b6b48f9f04320fc274df5973e7b02e424b6ddddad095"
+    },
+    {
+      "path": "void-runner/combat.js",
+      "change": "modified",
+      "sha256": "6432477e511fb84874403b6890dbca5043d64b6948a1d8d1f06c06bb3b370771"
+    },
+    {
+      "path": "void-runner/exploration-data.js",
+      "change": "modified",
+      "sha256": "297fcf17aaaf528bca31c07f5334b3b6ffbc97e47b5869894ec6ad62b0c751c6"
+    },
+    {
+      "path": "void-runner/factions.js",
+      "change": "added",
+      "sha256": "380482c6f4ea7d4d49e3d9c22d6439ddacd2696b46f4d56f6dd7a438f53bc438"
+    },
+    {
+      "path": "void-runner/flight-presentation.js",
+      "change": "modified",
+      "sha256": "732526de84b7345f00376b7471f720517881a8bd19aeaa1cb6f332232013d01c"
+    },
+    {
+      "path": "void-runner/game.js",
+      "change": "modified",
+      "sha256": "40bc5089a5097d7e80ed0b95ca194d68d39c5935887423dd07913d31d691368c"
+    },
+    {
+      "path": "void-runner/hangar.js",
+      "change": "modified",
+      "sha256": "aea1c118b3031be1016a2aec634ece7c93d8d03712aa90dc9ef5b883868b6f46"
+    },
+    {
+      "path": "void-runner/mission-log.js",
+      "change": "modified",
+      "sha256": "c168d87d9597fbdeebfa698bf198147c0977d197e56766ff395269f49fd6640e"
+    },
+    {
+      "path": "void-runner/preparation.js",
+      "change": "modified",
+      "sha256": "7b4bdd47bfffd18932594540997fe67942dbaf7d0521c8100b93429a446271da"
+    },
+    {
+      "path": "void-runner/progression.js",
+      "change": "added",
+      "sha256": "9baabdf9daee5cb2ffeb2babc6dc3e5dbd16744e0f75420912c24705177c1f1b"
+    },
+    {
+      "path": "void-runner/prologue-integration.js",
+      "change": "added",
+      "sha256": "61df7611ba546b7af281a6f16b22fbda4457819c7be7aadbb600c5eff9271ba2"
+    },
+    {
+      "path": "void-runner/prologue.css",
+      "change": "added",
+      "sha256": "b87731029ccd8b16a05cae59209c158620ed6bc36c6e84c34059cb7c88df6d3e"
+    },
+    {
+      "path": "void-runner/ships.js",
+      "change": "modified",
+      "sha256": "0d0d01d12425f5608f2135f662d687739e837b09c931ce1052ad4768cb94508f"
+    },
+    {
+      "path": "void-runner/story-scenes.js",
+      "change": "modified",
+      "sha256": "eac030281059af0c69ee52827fabc54e999597972d1e0d45d27edc1dbf64e6b9"
+    },
+    {
+      "path": "void-runner/story.js",
+      "change": "modified",
+      "sha256": "3257989185597f6e40cf79a284e08a928af2dd204cd2c5b99114de034731c09c"
+    },
+    {
+      "path": "void-runner/universe.js",
+      "change": "modified",
+      "sha256": "e8be475038c39fcb15b5ef769e9b09eba927cd311783a9c0e9b1e25c905a8320"
+    },
+    {
+      "path": "void-runner/warp.js",
+      "change": "modified",
+      "sha256": "50cedb3847530f2a7818f4630f291727ec350c9e97d84e71025836710978a3cb"
+    },
+    {
+      "path": "void-runner/world-integration.js",
+      "change": "modified",
+      "sha256": "2f1d585c4cbb40f89f0b9c2517e877592d1196a174fe34a772e017f9cbe1f407"
+    },
+    {
+      "path": "void-runner.html",
+      "change": "modified",
+      "sha256": "8b6b3ceba651cc8948585c1885dff0216643411eef342e75d4fe0bbdd68a2ded"
+    },
+    {
+      "path": "void_runner_api.py",
+      "change": "modified",
+      "sha256": "3c179e1645d8d18e13d6008cbcab7a83e87d15d0d7ae29c6583ed47180bdf71e"
+    },
+    {
+      "path": "void_runner_progression.py",
+      "change": "added",
+      "sha256": "42b76db75abb6ac05f59642b8d739565d3ba6ee7985288d55dd26a88a631777c"
+    }
+  ]
+}

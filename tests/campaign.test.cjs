@@ -10,7 +10,7 @@ test('v1 saves migrate without losing credits, location or upgrades',()=>{
   const s=C.restore(JSON.stringify(old));assert.equal(s.version,2);assert.equal(s.credits,2450);assert.deepEqual(s.upgrades,{...old.upgrades,shields:0});assert.deepEqual(s.cleared,[]);assert.equal(s.contract,'ghost');
 });
 test('all 12 chapter missions unlock in order and pay once per acceptance',()=>{
-  const s=C.fresh();s.quest='open';assert.equal(C.accept(s,'gate-4'),false);
+  const s=C.fresh();trained(s);s.quest='open';assert.equal(C.accept(s,'gate-4'),false);
   for(const m of content.missions){assert.equal(C.accept(s,m.id),true);assert.equal(C.flight(s).kind,m.kind);const credits=s.credits;C.complete(s);assert.equal(s.credits,credits+m.reward);assert.equal(C.complete(s),null);assert(s.cleared.includes(m.id));}
   assert.equal(s.cleared.length,12);assert.equal(C.accept(s,'belt-1'),true);C.complete(s);assert.equal(s.cleared.length,12);
 });
@@ -25,12 +25,12 @@ test('restore rejects invalid saves and ignores ownership claims',()=>{
   s.contract='missing';assert.equal(C.restore(JSON.stringify(s)),null);
 });
 test('opening campaign and earned equipment remain playable',()=>{
-  const s=C.fresh();C.beginJourney(s);C.complete(s);C.accept(s);C.complete(s);C.complete(s);C.accept(s);C.complete(s);
+  const s=trained(C.fresh());C.beginJourney(s);C.complete(s);C.accept(s);C.complete(s);C.complete(s);C.accept(s);C.complete(s);
   assert.equal(s.quest,'open');assert.equal(s.upgrades.guns,1);assert.equal(C.buy(s,'armor'),true);assert.equal(C.stats(s).hull,130);
 });
 test('credit equipment unlocks after the first delivery, without an account',()=>{
   const s=C.fresh();s.credits=5000;assert.equal(C.buy(s,'shields'),false);assert.equal(C.buyGear(s,'scout'),false);
-  s.completed=1;s.quest='return';assert(C.buy(s,'shields'));assert.equal(C.stats(s).shield,15);assert(C.buyGear(s,'scout'));assert.equal(C.stats(s).droneDamage,2);
+  s.completed=1;s.quest='return';assert(C.buy(s,'shields'));assert.equal(C.stats(s).shield,15);assert(C.buyGear(s,'scout'));assert(C.equip(s,'scout'));assert.equal(C.stats(s).droneDamage,2);
   assert.equal(C.buyGear(s,'wraith'),false);assert.equal(C.buyGear(s,'scout'),false);assert.equal(s.credits,4000);
   const restored=C.restore(JSON.stringify(s));assert.deepEqual(restored.creditGear,['scout']);assert.equal(C.stats(restored).drone,true);
 });
@@ -44,6 +44,8 @@ test('exclusive tier is stronger and still requires account ownership',()=>{
 test('legacy reputation is ignored without losing campaign or equipment',()=>{
  for(const reputation of [undefined,25,-1,'obsolete',null]){
  const old={...C.fresh(),quest:'open',completed:4,credits:2500,contract:'ghost',reputation,creditGear:['scout'],loadout:{weapon:'wraith',shield:null,utility:'scout'},cleared:['belt-1']};
- const restored=C.restore(JSON.stringify(old));assert(restored);assert.equal(restored.credits,2500);assert.equal(restored.contract,'ghost');assert.deepEqual(restored.creditGear,['scout']);assert.equal(restored.loadout.weapon,'wraith');assert(!Object.hasOwn(restored,'reputation'));assert(C.unlocked(restored,C.contracts[2]));
+ delete old.progression;old.missileOfferSeen=true;const restored=C.restore(JSON.stringify(old));assert(restored);assert.equal(restored.credits,2500);assert.equal(restored.contract,'ghost');assert.deepEqual(restored.creditGear,['scout']);assert.equal(restored.loadout.weapon,'wraith');assert(!Object.hasOwn(restored,'reputation'));assert(C.unlocked(restored,C.contracts[2]));
  }
 });
+
+function trained(s){const P=require('../void-runner/progression.js');for(const f of P.flags)s.progression.flags[f]=true;s.progression.completed=true;s.progression.equipment.owned=['cooling'];s.missileOfferSeen=true;s.progression.checkpoint={location:s.location};return s;}

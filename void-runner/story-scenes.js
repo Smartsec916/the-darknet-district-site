@@ -46,7 +46,8 @@ function playStoryScene(id, nodeId) {
         state.story.pending = state.story.pending.filter(x => x !== id);
         C.beginJourney(state);
         save();
-        launch();
+        // Receiving the ship ends the conversation; boarding is a physical action.
+        if(walkingLocation)resumeWalking();else dock();
       } else dock();
     }
   }, node.choices ? 'RESPOND →' : node.label || 'CONTINUE →', def.heading || '');

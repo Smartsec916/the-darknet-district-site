@@ -27,7 +27,7 @@ function resetMissileFlight(){
  missileButton.classList.add('hidden');
  const testing=devMissileTrial&&VoidDevTools.authorized&&trialGear==='missile';
  const owns=state.creditGear.includes('launcher'),equipped=owns&&state.loadout.missile==='launcher',capacity=VoidShips.get(state).missile.capacity;
- Object.assign(missileState,{ownsMissileLauncher:testing||owns,equipped:testing||equipped,missilesLoaded:testing?12:equipped?capacity:0,missileCapacity:testing?12:owns?capacity:0});
+ Object.assign(missileState,{ownsMissileLauncher:testing||owns,equipped:testing||equipped,missilesLoaded:testing?12:equipped?Math.min(capacity,state.progression.missiles??capacity):0,missileCapacity:testing?12:owns?capacity:0});
  updateMissileHud();
 }
 function fireMissile(){
@@ -35,7 +35,7 @@ function fireMissile(){
  // Recheck the current geometry on input, not just the previous animation frame.
  VoidTargeting.step(missileLock,lockCandidates(),flightPoint,W,H,0,missileBalance(),VoidMissiles.ready(missileState));
  const missile=VoidMissiles.launch(missileState,missileLock,flightBasis(),missileBalance(),missileCooldown);
- if(!missile){updateMissileHud();VoidAudio.event('dry');return;}missiles.push(missile);missileCooldown=missileBalance().missileCooldown;missileLock=VoidTargeting.fresh();VoidAudio.event('missile',VoidShips.get(state));updateMissileHud();
+ if(!missile){updateMissileHud();VoidAudio.event('dry');return;}missiles.push(missile);if(!devMissileTrial){state.progression.missiles=missileState.missilesLoaded;VoidProgression.mark(state,'missileLocked');VoidProgression.mark(state,'missileFired');save();}missileCooldown=missileBalance().missileCooldown;missileLock=VoidTargeting.fresh();VoidAudio.event('missile',VoidShips.get(state));updateMissileHud();
 }
 canvas.addEventListener('contextmenu',event=>{if(mode==='play')event.preventDefault();});
 canvas.addEventListener('pointerdown',event=>{if(mode==='play'&&event.button===2){event.preventDefault();fireMissile();}});

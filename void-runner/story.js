@@ -88,6 +88,7 @@
   }
 
   function relationship(ship) {
+    if(ship.faction&&typeof VoidFactions!=='undefined')return VoidFactions.attitude({id:'player',faction:'player'},ship);
     const value=ship.relationship || ship.allegiance || 'hostile';
     return ['hostile','neutral','friendly'].includes(value)?value:'neutral';
   }
