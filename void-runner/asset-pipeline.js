@@ -21,29 +21,34 @@
     return data;
   }
 
-  function loadPlugin() {
+  function loadPlugin(task) {
     if (loader) return loader;
     loader = new Promise((resolve, reject) => {
       const s = document.createElement('script');
       s.src = new URL('vendor/babylonjs-loaders-8.26.0.min.js', base);
-      s.onload = resolve;
+      const abort=()=>{s.remove();loader=null;reject(task.signal.reason);};
+      task?.signal.addEventListener('abort',abort,{once:true});
+      s.onload = ()=>{task?.signal.removeEventListener('abort',abort);resolve();};
       s.onerror = () => {
         loader = null;
         s.remove();
+        task?.signal.removeEventListener('abort',abort);
         reject(Error('GLB loader unavailable.'));
       };
       document.head.append(s);
     });
     return loader;
   }
-  async function load(id, def, scene) {
+  async function load(id, def, scene, task) {
     const url = new URL(def.src, base);
     if (url.origin !== location.origin || !url.pathname.endsWith('.glb')) throw Error('Model must be a locally hosted GLB.');
-    const response = await fetch(url);
+    const response = await fetch(url,{signal:task?.signal});
     if (!response.ok) throw Error('Model unavailable: ' + id);
     validate(await response.arrayBuffer());
-    await loadPlugin();
+    await loadPlugin(task);
+    task?.check();
     const container = await BABYLON.SceneLoader.LoadAssetContainerAsync(url.href.slice(0, url.href.lastIndexOf('/') + 1), url.href.slice(url.href.lastIndexOf('/') + 1), scene);
+    if(task?.signal.aborted){container.dispose();task.check();}
     containers.set(id, {
       container,
       def
@@ -64,9 +69,9 @@
     asset.rotation.y = item.def.yaw || 0;
     return node;
   }
-  async function prepare(scene, definitions) {
+  async function prepare(scene, definitions, task) {
     release();
-    await Promise.all(Object.entries(definitions).map(([id, def]) => load(id, def, scene)));
+    await Promise.all(Object.entries(definitions).map(([id, def]) => load(id, def, scene, task)));
   }
 
   function release() {

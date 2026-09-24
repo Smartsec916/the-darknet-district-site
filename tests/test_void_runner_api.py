@@ -142,6 +142,7 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(account['save']['activeShip'],'starter')
         self.assertEqual(account['save']['combatRuns'],1)
         self.assertNotIn('reputation',account['save'])
+        self.assertNotIn('loginOfferSeen',account['save'])
         modern={k:v for k,v in state.items() if k!='reputation'}
         self.assertEqual(vr.clean_save(modern),account['save'])
         state['reputation']='ignored legacy value'

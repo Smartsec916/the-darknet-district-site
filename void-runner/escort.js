@@ -3,7 +3,7 @@
   function create(def = {}) {
     return {
       id: def.id || 'shuttle',
-      allegiance: 'friendly',
+      relationship: 'friendly',
       x: 0,
       y: 5,
       z: 38,

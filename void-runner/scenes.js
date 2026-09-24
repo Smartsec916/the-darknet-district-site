@@ -54,7 +54,7 @@ arrive=function(){
  const f=current;originalArrive();if(mode!=='arrival'||!f?.reward)return;
  const who=f.destination==='undertow'?'iona':f.destination==='foundry'?'rook':'sol';
  const line=f.destination==='undertow'&&state.completed===2?'Delivered. 800 credits. These MK 2 guns are my thanks. Shops are open to you now.':`Delivered. ${f.reward} credits. ${state.quest==='return'?'Head back to Rook at Meridian.':'Good flying.'}`;
- talk('dock',[{who,text:line+(f.repairCharged?` Dock servicing costs ${f.repairCharged} credits.`:'')}],()=>dock(),'OPEN STATION MENU →','Delivery confirmed');
+ talk('dock',[{who,text:line+(f.repairCharged?` Dock servicing costs ${f.repairCharged} credits.`:'')}],()=>dock(),'GO BACK TO YOUR SHIP →','Delivery confirmed');
 };
 screen.addEventListener('click',e=>{const a=e.target.closest('button')?.dataset.action;if(a==='speech-next')advanceSpeech();else if(a==='talk-rook')rookConversation();else if(a==='talk-nyx')talk('bar',[{who:'nyx',text:state.quest==='legal-offer'?'Rook has work. He’s in the booth.':state.quest==='illegal-offer'?'Rook is waiting. This job pays better.':'Need work? Visit the cargo contacts. Need upgrades? Try the shop.'}],barRoom,'BACK TO THE BAR','At the counter');else if(a==='contacts')contacts();else if(a?.startsWith('brief:'))brief(a.slice(6));});
 addEventListener('keydown',e=>{if(speech&&['Space','Enter'].includes(e.code)&&e.target.tagName!=='BUTTON'){e.preventDefault();if(!e.repeat)advanceSpeech();}});

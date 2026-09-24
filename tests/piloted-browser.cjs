@@ -1,6 +1,6 @@
 /* Deterministic input pilot: no enemy damage, player health or route progress cheats. */
 const {chromium}=require('playwright'),assert=require('node:assert/strict');
-(async()=>{const browser=await chromium.launch({headless:true,channel:'msedge'});try{const page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:5000/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);
+(async()=>{const browser=await chromium.launch({headless:true,channel:'msedge'});try{const page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:5000/void-runner.html?renderer=legacy');await page.waitForFunction(()=>window.VoidStartup?.started);
  const result=await page.evaluate(()=>{
   state=C.fresh();C.beginJourney(state);const results=[];
   for(let run=0;run<4;run++){

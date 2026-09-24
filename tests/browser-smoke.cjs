@@ -14,19 +14,19 @@ const output=process.env.VOID_SCREENSHOT_DIR;const fs=require('node:fs');
    else {status=503;body={error:'Checkout is disabled in browser tests.'};}
    await r.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
  });
- await page.goto('http://127.0.0.1:5000/void-runner.html#market');await page.waitForFunction(()=>window.VoidStartup?.started);
+ await page.goto('http://127.0.0.1:5000/void-runner.html?renderer=legacy#market');await page.waitForFunction(()=>window.VoidStartup?.started);
  assert.equal(await page.locator('#expansion-nav').isVisible(),false);
  await page.locator('[data-action=menu-new]').click();await page.locator('[data-action=story-intro]').click();assert((await page.locator('#spoken-text').textContent()).includes('Elias passed away'));
  await page.evaluate(()=>{for(let i=0;i<6;i++)advanceSpeech();});await page.locator('[data-action="story-choice:0"]').click();await page.evaluate(()=>{advanceSpeech();advanceSpeech();});
  await page.evaluate(()=>{elapsed=current.duration;spawned=resolved=current.enemies;enemies=[];approachTime=4;mode='play';arrive();});
- await page.getByRole('button',{name:'OPEN STATION MENU →',exact:true}).click();await page.getByRole('button',{name:'GO TO BAR →',exact:true}).click();await page.getByRole('button',{name:'ROOK · TALK',exact:true}).click();await page.getByRole('button',{name:'ACCEPT JOB →',exact:true}).click();
+ await page.getByRole('button',{name:'EXIT TO SPACE STATION →',exact:true}).click();await page.getByRole('button',{name:'GO TO BAR →',exact:true}).click();await page.getByRole('button',{name:'ROOK · TALK',exact:true}).click();await page.getByRole('button',{name:'ACCEPT JOB →',exact:true}).click();
  assert.equal(await page.locator('#expansion-nav').isVisible(),false);
  await page.getByRole('button',{name:'LAUNCH →',exact:true}).click();
  await page.evaluate(()=>{elapsed=current.duration;spawned=resolved=current.enemies;enemies=[];approachTime=4;mode='play';arrive();});
  assert((await page.locator('#spoken-text').textContent()).includes('350 credits'));
- await page.getByRole('button',{name:'OPEN STATION MENU →',exact:true}).click();await page.getByRole('button',{name:'SIGN IN & SAVE PROGRESS',exact:true}).waitFor();
- if(output){fs.mkdirSync(output,{recursive:true});await page.screenshot({path:path.join(output,'first-delivery-offer.png'),fullPage:true});}
- await page.getByRole('button',{name:'KEEP PLAYING',exact:true}).click();assert.equal(await page.evaluate(()=>state.quest),'return');assert.equal(await page.evaluate(()=>state.credits),450);
+ await page.getByRole('button',{name:'GO BACK TO YOUR SHIP →',exact:true}).click();assert.equal(await page.getByText('Make this ship your own.').count(),0);
+ if(output){fs.mkdirSync(output,{recursive:true});await page.screenshot({path:path.join(output,'delivery-return.png'),fullPage:true});}
+ assert.equal(await page.evaluate(()=>state.quest),'return');assert.equal(await page.evaluate(()=>state.credits),450);
  await page.evaluate(()=>{leaveMenu();dock('shop');});assert.equal(await page.locator('.shop-placeholder').count(),1);assert.equal(await page.locator('[data-action^="buy:"]').count(),4);assert.equal(await page.locator('[data-action^="purchase:"]').count(),1);
  if(output)await page.screenshot({path:path.join(output,'credit-upgrades.png'),fullPage:true});
  await page.evaluate(()=>campaignBoard());await page.locator('.mission-grid .card').last().waitFor();assert.equal(await page.locator('.mission-grid .card').count(),12);

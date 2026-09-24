@@ -4,7 +4,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
  page.on('pageerror',e=>errors.push(e.message));await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline'}));await page.route('**/api/void-runner/**',r=>r.fulfill({status:503,body:'offline'}));
  const out=process.env.VOID_SCREENSHOT_DIR;const shot=async name=>{if(out){fs.mkdirSync(out,{recursive:true});await page.screenshot({path:path.join(out,name+'.png')});}};
  try{
- await page.goto('http://127.0.0.1:5000/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);
+ await page.goto('http://127.0.0.1:5000/void-runner.html?renderer=legacy');await page.waitForFunction(()=>window.VoidStartup?.started);
  const assets=[];
  for(const origin of ['meridian','kepler','undertow','foundry']){
   const result=await page.evaluate(async origin=>{

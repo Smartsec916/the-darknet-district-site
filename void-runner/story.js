@@ -87,16 +87,19 @@
     return fired;
   }
 
-  function hostile(ship) {
-    return !ship.dead && (!ship.allegiance || ship.allegiance === 'hostile');
+  function relationship(ship) {
+    const value=ship.relationship || ship.allegiance || 'hostile';
+    return ['hostile','neutral','friendly'].includes(value)?value:'neutral';
   }
+  const contactColors={hostile:'#ff718a',neutral:'#bbc2cc',friendly:'#58ffe1'};
+  function hostile(ship) { return !ship.dead && relationship(ship)==='hostile'; }
   const api = {
     fresh,
     restore,
     matches,
     apply,
     emit,
-    hostile,
+    hostile, relationship, contactColors,
     content
   };
   if (typeof module !== 'undefined') module.exports = api;

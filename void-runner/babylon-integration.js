@@ -1,6 +1,6 @@
 /* Boundary adapter: the legacy simulation stays authoritative. */
 const VoidGraphics = window.VoidGraphics = {
-  renderer: 'legacy',
+  renderer: 'babylon',
   quality: matchMedia('(pointer:coarse)').matches || navigator.hardwareConcurrency <= 4 ? 'low' : 'medium',
   busy: false,
   error: null
@@ -8,7 +8,7 @@ const VoidGraphics = window.VoidGraphics = {
 try {
   const stored = JSON.parse(localStorage.getItem('void-runner-graphics-v1'));
   if (stored) {
-    VoidGraphics.renderer = stored.renderer === 'babylon' ? 'babylon' : 'legacy';
+    if (['babylon','legacy'].includes(stored.renderer)) VoidGraphics.renderer = stored.renderer;
     if (VoidBabylon.presets[stored.quality]) VoidGraphics.quality = stored.quality;
   }
 } catch {}
@@ -22,6 +22,7 @@ let expedition = null,
   walkTarget = null,
   walkingKeys = new Set(),
   lastStepSound = 0;
+let ambientTraffic = VoidTraffic.create(() => 0), departureStation = {x:0,y:0,z:-100};
 let escortShip = null,
   preparingLaunch = null,
   preparationGeneration = 0,
@@ -62,13 +63,14 @@ function preparationPanel(label) {
   setTimeout(() => { if(cancelButton?.isConnected) cancelButton.disabled=false; }, 800);
 }
 async function boundedPrepare(action) {
-  let timeout;
-  try {
-    return await Promise.race([action(), new Promise((_, reject) => {
-      timeout = setTimeout(() => reject(Error('Environment preparation timed out.')), 30000);
-    })]);
-  } finally {
-    clearTimeout(timeout);
+  try { return await VoidPreparation.run(action); }
+  catch(error) {
+    console.error('[VOID//RUNNER preparation]', {reason:error.message, error,
+      renderer:VoidGraphics.renderer, activeRenderer, ...VoidBabylon.diagnostics,
+      engineReady:VoidBabylon.diagnostics.ready, sceneReady:VoidBabylon.scene?.isReady(),
+      phase:error.phase, asset:error.asset, elapsedMs:error.elapsedMs});
+    VoidBabylon.release();
+    throw error;
   }
 }
 const migrationLaunch = launch;
@@ -79,10 +81,12 @@ launch = function() {
     preparationPanel('Preparing <em>departure.</em>');
     return preparingLaunch.then(() => { if(queuedToken === preparationGeneration) return launch(); });
   }
+  ambientTraffic = VoidTraffic.create(() => 0);
   walker = walkingLocation = expedition = null;
   walkingKeys.clear();
   document.exitPointerLock?.();
   if (VoidGraphics.renderer !== 'babylon') {
+    VoidBabylon.release();
     activeRenderer = 'legacy';
     escortShip = null;
     migrationLaunch();
@@ -96,22 +100,21 @@ launch = function() {
   const started = performance.now();
   const progressTimer = setInterval(() => {
     const el = $('preparation-time');
-    if (token === preparationGeneration && el) el.textContent = Math.floor((performance.now()-started)/1000)+'s elapsed · First 3D launch may take longer.';
+    if (token === preparationGeneration && el) el.textContent = Math.floor((performance.now()-started)/1000)+'s elapsed · '+(VoidPreparation.current?.phase || 'starting')+' · First 3D launch may take longer.';
   }, 250);
   preparingLaunch = (async () => {
     try {
-      await boundedPrepare(async () => {
-        await VoidBabylon.prepareSpace(state.location);
+      await boundedPrepare(async task => {
+        await VoidBabylon.prepareSpace(state.location, undefined, task);
         if(token === preparationGeneration && $('preparation-status')) $('preparation-status').textContent='Exterior ready. Preparing departure artwork…';
         const image = departureImages[state.location];
         if (image) {
-          await image.load();
-          if (!image.naturalWidth) throw Error('Departure artwork unavailable.');
-          await image.decode();
+          await task.wait('artwork', async()=>{await image.load();if (!image.naturalWidth) throw Error('Departure artwork unavailable: '+image.src);await image.decode();}, image.src || 'departure artwork');
         }
       });
       if (token !== preparationGeneration) return;
       activeRenderer = 'babylon';
+      VoidGraphics.error = null;
       preparedDestination = null;
       migrationLaunch();
       if(mode !== 'play') throw Error('Flight could not start. Choose a route and retry.');
@@ -119,35 +122,17 @@ launch = function() {
       escortShip = current?.kind === 'escort' ? VoidEscort.create({
         heading: flight.route?.vector
       }) : null;
-      if (!trialGear)
-        for (const [i, allegiance] of ['neutral', 'friendly'].entries()) enemies.push({
-          traffic: true,
-          allegiance,
-          className: i ? 'security' : 'courier',
-          x: i ? 65 : -55,
-          y: 12,
-          z: 95 + i * 45,
-          size: 1.2,
-          armor: 30,
-          maxArmor: 30,
-          shield: 0,
-          maxShield: 0,
-          velocity: {
-            x: i ? -2 : 2,
-            y: 0,
-            z: 5
-          },
-          age: 0,
-          fire: 99,
-          phase: i
-        });
+      departureStation = {x:0,y:0,z:-100};
+      const scriptedCombat = state.story.encounters.some(id => VoidStoryContent.encounters[id]?.ships.some(ship => VoidStory.relationship(VoidStoryContent.ships[ship] || {}) === 'hostile'));
+      ambientTraffic = VoidTraffic.create(Math.random, !!current?.enemies || !!trialGear || scriptedCombat);
     } catch (error) {
       if (token !== preparationGeneration) return;
       VoidGraphics.error = error.message;
       mode = 'dock';
-      panel('GRAPHICS UNAVAILABLE', 'Departure <em>held.</em>', '<p>' + escapeText(error.message) + ' Your campaign is unchanged. Retry, or use the original renderer.</p>', button('RETRY', 'launch') + button('USE ORIGINAL RENDERER', 'migration-fallback', true));
+      panel('DEPARTURE PREPARATION FAILED', 'Departure <em>held.</em>', '<p>' + escapeText(error.message) + ' Your campaign is unchanged. Retry, or use the original renderer.</p>', button('RETRY', 'launch') + button('USE ORIGINAL RENDERER', 'migration-fallback', true));
     } finally {
       clearInterval(progressTimer);
+      if(token !== preparationGeneration) VoidBabylon.release();
       VoidGraphics.busy = false;
       preparingLaunch = null;
     }
@@ -175,13 +160,15 @@ routeClear = function() {
 };
 const migrationArrive = arrive;
 arrive = function() {
+  const wasFlying = mode === 'play';
   migrationArrive();
   if (escortShip && current?.kind === 'escort' && ['arrival','dialogue'].includes(mode) && state.location === current.destination && !state.contract) escortShip.status = 'complete';
+  if(wasFlying && ['arrival','dialogue'].includes(mode)) {ambientTraffic.contacts=[];VoidBabylon.release();}
 };
 const migrationSettings = settingsPage;
 settingsPage = function() {
   migrationSettings();
-  screen.querySelector('.settings-panel').insertAdjacentHTML('beforeend', `<h2>Graphics</h2><label>Renderer<select id="renderer-setting"><option value="legacy" ${VoidGraphics.renderer==='legacy'?'selected':''}>Original / recovery</option><option value="babylon" ${VoidGraphics.renderer==='babylon'?'selected':''}>Babylon 3D / preview</option></select></label><label>Quality<select id="quality-setting">${Object.keys(VoidBabylon.presets).map(q=>`<option ${q===VoidGraphics.quality?'selected':''}>${q}</option>`).join('')}</select></label><p class="fine">Renderer changes apply on the next departure. Walking locations use Babylon. Models are prototype blockouts based on the existing artwork.</p><h2>Radio</h2><label>Local station<select id="radio-setting"><option value="">OFF / LOCATION MUSIC</option>${VoidRadio.available().map(([id,s])=>`<option value="${id}" ${VoidRadio.selection===id?'selected':''}>${s.name}</option>`).join('')}</select></label><p id="radio-status" class="fine">${escapeText(VoidRadio.status)}</p>`);
+  screen.querySelector('.settings-panel').insertAdjacentHTML('beforeend', `<h2>Graphics</h2><label>Renderer<select id="renderer-setting"><option value="legacy" ${VoidGraphics.renderer==='legacy'?'selected':''}>Original / recovery</option><option value="babylon" ${VoidGraphics.renderer==='babylon'?'selected':''}>Babylon 3D</option></select></label><label>Quality<select id="quality-setting">${Object.keys(VoidBabylon.presets).map(q=>`<option ${q===VoidGraphics.quality?'selected':''}>${q}</option>`).join('')}</select></label><p class="fine">Renderer changes apply on the next departure. Walking locations use Babylon. Models are prototype blockouts based on the existing artwork.</p><h2>Radio</h2><label>Local station<select id="radio-setting"><option value="">OFF / LOCATION MUSIC</option>${VoidRadio.available().map(([id,s])=>`<option value="${id}" ${VoidRadio.selection===id?'selected':''}>${s.name}</option>`).join('')}</select></label><p id="radio-status" class="fine">${escapeText(VoidRadio.status)}</p>`);
 };
 screen.addEventListener('change', e => {
   if (e.target.id === 'renderer-setting') {
@@ -202,6 +189,8 @@ screen.addEventListener('change', async e => {
 });
 const migrationDock = dock;
 dock = function(tab = 'dock') {
+  ambientTraffic = VoidTraffic.create(() => 0);
+  if(activeRenderer === 'babylon' && !VoidGraphics.busy) VoidBabylon.release();
   // The save schema anchors the opening route at Meridian, but the player has
   // not arrived there yet. Cancelling preparation must not show that station.
   if (state.quest === 'arrival') {
@@ -242,7 +231,7 @@ async function solTravel(id) {
   const token = ++preparationGeneration;
   preparationPanel('Plotting <em>Sol transit.</em>');
   try {
-    await boundedPrepare(() => VoidBabylon.prepareSpace(id));
+    await boundedPrepare(task => VoidBabylon.prepareSpace(id, undefined, task));
     if (token !== preparationGeneration) return;
     expedition = {
       id,
@@ -308,7 +297,7 @@ async function enterWalking(id) {
   const token = ++preparationGeneration;
   preparationPanel('Preparing <em>' + escapeText(def.name) + '.</em>');
   try {
-    await boundedPrepare(() => VoidBabylon.prepareRoom(def));
+    await boundedPrepare(task => VoidBabylon.prepareRoom(def, task));
     if (token !== preparationGeneration) return;
     walker = {
       x: def.spawn[0],
@@ -357,7 +346,7 @@ async function leaveWalking() {
   VoidGraphics.busy = true;
   preparationPanel('Returning to <em>orbit.</em>');
   try {
-    await boundedPrepare(() => VoidBabylon.prepareSpace(destination));
+    await boundedPrepare(task => VoidBabylon.prepareSpace(destination, undefined, task));
     if (token !== preparationGeneration) return;
     expedition = {id:destination, rocks:[]};
     orbit();
@@ -508,7 +497,7 @@ async function prepareDestination() {
   screen.classList.remove('hidden');
   screen.innerHTML = '<section class="opening-card"><p>WARP FIELD / SYNCHRONIZING DESTINATION</p></section>';
   try {
-    await boundedPrepare(() => VoidBabylon.prepareSpace(id));
+    await boundedPrepare(task => VoidBabylon.prepareSpace(id, undefined, task));
     if (mode !== 'preparing-flight') return;
     screen.classList.add('hidden');
     mode = 'play';
@@ -581,11 +570,9 @@ update = function(dt) {
       VoidEscort.step(escortShip, dt, flight.velocity, flightBasis().f, enemies.some(VoidStory.hostile));
       escortHP = escortShip.health;
     }
-    for (const e of enemies)
-      if (e.traffic) {
-        for (const axis of ['x', 'y', 'z']) e[axis] += e.velocity[axis] * dt;
-        if (FM.length(e) > 400) e.dead = true;
-      }
+    if(phase==='warp'||phase==='encounter'||enemies.some(VoidStory.hostile)) ambientTraffic.contacts=[];
+    else VoidTraffic.step(ambientTraffic,dt,flight.velocity);
+    if(phase==='departure'||phase==='align') for(const axis of ['x','y','z']) departureStation[axis]-=(flight.velocity?.[axis]||0)*dt;
     enemies = enemies.filter(e => !e.dead);
     if (activeRenderer === 'babylon' && phase === 'warp' && preparedDestination !== current.destination) prepareDestination();
   }
@@ -627,7 +614,8 @@ function migrationSnapshot() {
     basis: flightBasis(),
     route: flight.route,
     rocks: flight.rocks,
-    ships: escortShip ? [...enemies, escortShip] : enemies,
+    ships: [...enemies,...VoidTraffic.visible(ambientTraffic),...(escortShip?[escortShip]:[])],
+    departureStation,
     bullets,
     hostile,
     missiles: [...missiles, ...enemyMissiles],
@@ -639,20 +627,22 @@ function migrationSnapshot() {
 
 function drawContactMarkers() {
   flight.arrows = [];
-  for (const e of enemies) {
+  for (const e of [...enemies,...VoidTraffic.visible(ambientTraffic)]) {
+    if(e.marker==='none')continue;
     const p = flightPoint(e),
       hostile = VoidStory.hostile(e),
-      color = hostile ? '#ff718a' : e.allegiance === 'friendly' ? '#58ffe1' : '#bbc2cc';
-    if (p.z <= 0 || p.x < W * .12 || p.x > W * .88 || p.y < H * .15 || p.y > H * .72) cockpitArrow(e, hostile ? 'HOSTILE' : (e.allegiance || 'NEUTRAL').toUpperCase(), color);
+      color = VoidStory.contactColors[VoidStory.relationship(e)];
+    if(e.traffic && (p.z<=0 || Math.abs(p.x-W*.5)<70 && Math.abs(p.y-H*.44)<70)) continue;
+    if (p.z <= 0 || p.x < W * .12 || p.x > W * .88 || p.y < H * .15 || p.y > H * .72) !e.traffic && cockpitArrow(e, hostile ? 'HOSTILE' : VoidStory.relationship(e).toUpperCase(), color);
     else {
       const r = Math.max(12, Math.min(80, p.s * e.size * 2.8));
       ctx.strokeStyle = color;
       ctx.strokeRect(p.x - r, p.y - r, r * 2, r * 2);
       ctx.fillStyle = color;
-      ctx.fillRect(p.x - r, p.y - r - 5, r * 2 * Math.max(0, e.armor / e.maxArmor), 2);
+      if(e.maxArmor>0) ctx.fillRect(p.x - r, p.y - r - 5, r * 2 * Math.max(0, e.armor / e.maxArmor), 2);
     }
   }
-  if (escortShip) cockpitArrow(escortShip, 'ESCORT ' + Math.round(escortShip.health) + '%', '#58ffe1');
+  if (escortShip) cockpitArrow(escortShip, 'ESCORT ' + Math.round(escortShip.health) + '%', VoidStory.contactColors[VoidStory.relationship(escortShip)]);
   for (const o of missionObjects) {
     const p = flightPoint(o);
     if (p.z > 0) {

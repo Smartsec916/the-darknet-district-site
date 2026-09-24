@@ -33,7 +33,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
   await page.waitForFunction(()=>VoidNetwork.states.account?.state==='degraded');assert.equal(await page.evaluate(()=>VoidShips.owns(state,'ship3')),false);assert.match(await page.locator('#service-status').innerText(),/OFFLINE/);
   await page.evaluate(()=>shop());await page.getByRole('button',{name:'PURCHASE / $1.00 USD',exact:true}).click();await page.waitForFunction(()=>!VoidAccount.busy);
   assert.match(await page.locator('#notice').innerText(),/unavailable|not currently available/i);assert(!await page.evaluate(()=>VoidShips.owns(state,'ship3')));
-  assert(await page.evaluate(()=>{state.quest='legal-run';launch();return mode==='play';}));
+  assert(await page.evaluate(async()=>{state.quest='legal-run';await launch();return mode==='play';}));
   requests=(await (await context.request.get('https://127.0.0.1:5443/__fixture')).json()).requests;assert.equal(requests.filter(r=>r.path.endsWith('/checkout')).length,0);assert.equal(requests.filter(r=>r.path.endsWith('/catalog')&&r.method==='GET').length,3);
   // Browser throttling applies to actual HTTPS traffic; essential art has an observable loading state.
   await fixture({mode:'healthy'});const slow=await context.newPage();const cdp=await context.newCDPSession(slow);await cdp.send('Network.enable');await cdp.send('Network.setCacheDisabled',{cacheDisabled:true});
