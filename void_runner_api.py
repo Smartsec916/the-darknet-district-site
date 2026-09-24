@@ -289,6 +289,13 @@ def clean_save(value):
     cleaned_universe['completedObjectives'] = completed
     station = universe.get('station')
     cleaned_universe['station'] = {'location':result['location']} if isinstance(station,dict) and station.get('location') == result['location'] else None
+    if value.get('progression') is not None:
+        from void_runner_progression import clean_progression
+        try:
+            result['progression'] = clean_progression(value['progression'], locations)
+        except (ValueError, TypeError, AttributeError) as error:
+            raise ApiError(str(error))
+        cleaned_universe['freeTravel'] = result['progression']['completed'] and result['missileOfferSeen']
     result['universe'] = cleaned_universe
     result['travel'] = None
     travel = value.get('travel')

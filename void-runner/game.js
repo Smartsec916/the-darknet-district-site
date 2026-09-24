@@ -45,7 +45,7 @@ function arrive() {
   const station = C.stations[state.location];
   let story = reward.reward ? `The cargo checks out. ${reward.reward} credits transfer to your account.` : 'Magnetic clamps catch the Kestrel. Engines down. For a moment, the ship is quiet.';
   if(reward.repairCharged)story+=` Dock servicing costs ${reward.repairCharged} credits.`;
-  if (reward.gunReward) story += ' Iona Vale meets you at the loading ramp. “You came through when nobody else would. Take these pulse cannons. Next time, come back alive.” Her crew installs your MK 2 guns. Equipment stores and new contracts are now open.';
+  if (reward.gunReward) story += ' Iona Vale meets you at the loading ramp. “You came through when nobody else would. Take these pulse cannons. Next time, come back alive.” Her crew installs your MK 2 guns. Complete Rook’s missile qualification before taking independent contracts.';
   else if (state.quest === 'return') story += ' “Tell Rook you kept your word,” the receiver says. Time to head back to Meridian.';
   panel('ARRIVAL CONFIRMED / ' + station.name.toUpperCase(), reward.reward ? 'Cargo <em>delivered.</em>' : 'Welcome<br><em>aboard.</em>', `<p>${story}</p>${reward.reward ? `<div class="manifest">${row('Payment received', '+' + reward.reward + ' CR')}${reward.gunReward ? row('Customer reward', 'MK 2 pulse cannons installed') : ''}</div>` : ''}`, button('EXIT TO SPACE STATION →', 'dock'), shipCard()); tone(620, .3);
 }
@@ -61,7 +61,7 @@ screen.addEventListener('click', event => {
 
 });
 function newJourney(){
-  state=C.fresh();current=null;trialGear=null;devMissileTrial=false;clearInput();
+  state=C.fresh();state.location='vesper';current=null;trialGear=null;devMissileTrial=false;clearInput();
   elapsed=approachTime=shot=spawnClock=spawned=resolved=damageTime=0;
   enemies=[];bullets=[];hostile=[];sparks=[];missionObjects=[];
   shieldHP=shieldDelay=driveTime=driveCooldown=droneClock=0;

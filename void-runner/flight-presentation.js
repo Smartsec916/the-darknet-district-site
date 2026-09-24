@@ -15,11 +15,11 @@ function updateWarpHud(){const r=flight.route;if(!r)return;
  const alignment=FM.dot(flightBasis().f,r.vector),percent=Math.round(FM.clamp((alignment+1)/2,0,1)*100);
  const width=(r.progress*100).toFixed(1)+'%';if($('progress').style.width!==width)$('progress').style.width=width;
  hudText('route-status',Math.floor(r.progress*100)+'% / '+r.phase.toUpperCase());
- hudText('flight-objective',r.phase==='departure'?'DEPARTING / '+C.stations[r.origin].name:r.phase==='align'?(r.aligned>0?'WARP VECTOR LOCKED':'ALIGN WITH DESTINATION')+' · '+percent+'%':r.phase==='warp'?'WARP / '+C.stations[r.destination].name:r.phase==='arrived'?'ARRIVAL / docking guidance':current.kind==='salvage'?'RECOVER SIGNALS '+objectiveCount+' / 3 · Clear hostiles to resume':current.kind==='escort'?'SHUTTLE '+escortHP+'% · Clear hostiles to resume':'INTERDICTION · HOSTILE ACTIVITY');
+ hudText('flight-objective',r.phase==='departure'?'DEPARTING / '+C.stations[r.origin].name:r.phase==='align'?(r.aligned>0?'WARP VECTOR LOCKED':'ALIGN WITH DESTINATION')+' · '+percent+'%':r.phase==='warp'?(r.policy?.kind==='interstellar'?'INTERSTELLAR JUMP / ':'IN-SYSTEM JUMP / ')+C.stations[r.destination].name:r.phase==='arrived'?'ARRIVAL / docking guidance':current.kind==='salvage'?'RECOVER SIGNALS '+objectiveCount+' / 3 · Clear hostiles to resume':current.kind==='escort'?'SHUTTLE '+escortHP+'% · Clear hostiles to resume':'INTERDICTION · HOSTILE ACTIVITY');
 }
 function drawWarpMarker(){const r=flight.route;if(!r||r.phase!=='align')return;const p=flightPoint(flight.nav);
- if(p.z<1||p.x<W*.12||p.x>W*.88||p.y<H*.16||p.y>H*.72){cockpitArrow(flight.nav,'DESTINATION','#58ffe1');return;}
- ctx.save();ctx.translate(p.x,p.y);ctx.strokeStyle=r.aligned>0?'#ffdd8b':'#58ffe1';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-20);ctx.lineTo(20,0);ctx.lineTo(0,20);ctx.lineTo(-20,0);ctx.closePath();ctx.stroke();ctx.font='11px Consolas';ctx.textAlign='center';ctx.fillStyle=ctx.strokeStyle;ctx.fillText(C.stations[r.destination].name.toUpperCase(),0,39);ctx.restore();
+ if(p.z<1||p.x<W*.12||p.x>W*.88||p.y<H*.16||p.y>H*.72){cockpitArrow(flight.nav,'DESTINATION','#f4d15d');return;}
+ ctx.save();ctx.translate(p.x,p.y);ctx.strokeStyle='#f4d15d';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-20);ctx.lineTo(20,0);ctx.lineTo(0,20);ctx.lineTo(-20,0);ctx.closePath();ctx.stroke();ctx.font='11px Consolas';ctx.textAlign='center';ctx.fillStyle=ctx.strokeStyle;ctx.fillText(C.stations[r.destination].name.toUpperCase(),0,39);ctx.restore();
 }
 function drawWarpEffect(){const r=flight.route;if(!r||r.phase!=='warp')return;
  const slow=warpSpeed(r);drawWarpObjects(r,slow);

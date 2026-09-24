@@ -1,0 +1,11 @@
+#tutorial-prompt{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);max-width:680px;width:85%;padding:12px 16px;color:#f4d15d;background:#071019e8;border-left:3px solid #f4d15d;font:14px/1.5 monospace;pointer-events:none;z-index:20}
+#systems-hud{position:fixed;left:18px;bottom:76px;background:#08141cde;color:#cfdddd;padding:8px;font:12px monospace;pointer-events:none;z-index:19}
+#ground-controls{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:22}#ground-controls[hidden],#tutorial-prompt[hidden],#systems-hud[hidden]{display:none}
+#ground-controls button{font-size:10px;padding:9px}.module-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.module-grid article{background:#101f2a;border:1px solid #45616b;padding:16px}.module-slots{display:flex;flex-wrap:wrap;gap:8px}.equipment-icon{width:80px;height:65px;color:#8bbcc4}.module-grid h2{font-size:20px}.module-grid p{font-size:13px}
+@media(max-width:700px){#tutorial-prompt{bottom:155px;font-size:12px}#ground-controls{flex-wrap:wrap;width:90%;justify-content:center}#systems-hud{bottom:105px;font-size:10px}}
+
+.module-compare{width:100%;font:12px monospace;border-collapse:collapse;margin:12px 0}.module-compare th,.module-compare td{text-align:left;padding:5px;border-bottom:1px solid #304753}
+#flight-lesson-controls{display:none}
+@media(pointer:coarse){#flight-lesson-controls:not([hidden]){display:flex;position:fixed;left:5%;right:5%;bottom:65px;flex-wrap:wrap;justify-content:center;gap:4px;z-index:23}#flight-lesson-controls button{font-size:10px;padding:7px}#tutorial-prompt{bottom:170px}#systems-hud{bottom:132px}}
+#walking-ui{bottom:130px}body:has(#ground-controls:not([hidden])) #tutorial-prompt{bottom:200px}
+@media(pointer:coarse){#walking-ui{bottom:125px}body:has(#ground-controls:not([hidden])) #tutorial-prompt{bottom:300px}body:has(#ground-controls:not([hidden])) #systems-hud{bottom:102px}}

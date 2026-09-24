@@ -16,10 +16,12 @@ test('escort rendezvous, transit, distance hold, distress and loss are reusable'
  const e=Escort.create();Escort.step(e,1,{x:0,y:0,z:12},{x:0,y:0,z:1},false);assert.equal(e.status,'transit');assert(e.progress>0);const progress=e.progress;Escort.step(e,1,{x:0,y:0,z:12},{x:0,y:0,z:1},true);assert.equal(e.status,'defending');assert.equal(e.progress,progress);assert(e.distress);e.z=200;Escort.step(e,1,{x:0,y:0,z:0},{x:0,y:0,z:1},false);assert.equal(e.status,'waiting');Escort.damage(e,101);assert(e.dead);assert.equal(e.status,'lost');
 });
 test('Sol unlock and landing definitions preserve an existing campaign save',()=>{
- const s=C.fresh();assert(!Data.solAvailable(s));s.quest='open';assert(Data.solAvailable(s));s.story.flags.solDestination='earth';s.credits=321;const restored=C.restore(JSON.stringify(s));assert.equal(restored.credits,321);assert.equal(restored.location,'meridian');assert.equal(restored.story.flags.solDestination,'earth');assert.deepEqual(Data.systems.sol.destinations,['earth','mars']);for(const d of Object.values(Data.destinations))assert(Data.locations[d.location]);
+ const s=C.fresh();assert(!Data.solAvailable(s));s.quest='open';trained(s);assert(Data.solAvailable(s));s.story.flags.solDestination='earth';s.credits=321;const restored=C.restore(JSON.stringify(s));assert.equal(restored.credits,321);assert.equal(restored.location,'meridian');assert.equal(restored.story.flags.solDestination,'earth');assert.deepEqual(Data.systems.sol.destinations,['earth','mars']);for(const d of Object.values(Data.destinations))assert(Data.locations[d.location]);
 });
 test('GLB validation rejects remote asset references and implicit decoder dependencies',()=>{
  const Assets=require('../void-runner/asset-pipeline.js');
  function file(data){let json=JSON.stringify(data);json+=' '.repeat((4-json.length%4)%4);const bytes=new TextEncoder().encode(json),out=new ArrayBuffer(20+bytes.length),v=new DataView(out);v.setUint32(0,0x46546c67,true);v.setUint32(4,2,true);v.setUint32(8,out.byteLength,true);v.setUint32(12,bytes.length,true);v.setUint32(16,0x4e4f534a,true);new Uint8Array(out,20).set(bytes);return out;}
  assert.equal(Assets.validate(file({asset:{version:'2.0'},buffers:[]})).asset.version,'2.0');assert.throws(()=>Assets.validate(file({images:[{uri:'https://remote.invalid/texture.png'}]})),/self-contained/);assert.throws(()=>Assets.validate(file({extensionsUsed:['KHR_draco_mesh_compression']})),/decoder/);assert.throws(()=>Assets.validate(new ArrayBuffer(4)));
 });
+
+function trained(s){const P=require('../void-runner/progression.js');for(const f of P.flags)s.progression.flags[f]=true;s.progression.completed=true;s.progression.equipment.owned=['cooling'];s.missileOfferSeen=true;s.progression.checkpoint={location:s.location};return s;}

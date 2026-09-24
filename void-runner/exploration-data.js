@@ -227,7 +227,7 @@
   };
 
   function solAvailable(state) {
-    return state.quest === systems.sol.unlockQuest;
+    return state.progression?state.progression.completed:state.quest === systems.sol.unlockQuest;
   }
   const api = {
     systems,

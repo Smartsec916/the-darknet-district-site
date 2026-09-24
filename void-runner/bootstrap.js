@@ -12,4 +12,4 @@ VoidStartup.ready=(async()=>{
  VoidLoading.stage('ready','READY · OPTIONAL SERVICES CONTINUE IN BACKGROUND');VoidLoading.ready();
  last=performance.now();requestAnimationFrame(loop);
  return true;
-})().catch(error=>{console.error('[VOID//RUNNER startup]',error);VoidLoading.error('INITIALIZATION FAILED · Reload to retry.');return false;});
+})().catch(error=>{console.error('[VOID//RUNNER startup]',error);VoidStartup.error={message:error.message,phase:error.phase||'initialization',asset:error.asset||null};VoidLoading.error('INITIALIZATION FAILED · '+(error.phase?error.phase.toUpperCase()+' · ':'')+error.message+' · Retry when ready.');return false;});

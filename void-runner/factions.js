@@ -1,0 +1,17 @@
+/* Shared ship/ground allegiance and bounded loaded-area combat. No galaxy simulation. */
+(function(root){
+ const factions={player:{name:'Player'},civilian:{name:'Civilian'},pirate:{name:'Pirates'},'erebus-local':{name:'Erebus local'},'sol-local':{name:'Sol local'},communion:{name:'The Communion',futureSystem:'communion'},'natural-order':{name:'The Natural Order',futureSystem:'natural-order'},neutral:{name:'Independent'}};
+ const relationships=[['communion','natural-order',-100],['pirate','civilian',-100],['pirate','erebus-local',-100],['pirate','sol-local',-100],['pirate','player',-100],['player','erebus-local',40],['player','sol-local',40]];
+ const tuning={range:220,fireRange:90,damage:6,cooldown:1.4,speed:12,maxActors:24,retarget:.4};
+ function relation(a,b){if(a===b)return 100;return relationships.find(([x,y])=>x===a&&y===b||x===b&&y===a)?.[2]||0;}
+ function attitude(a,b){if(a.lastAttacker===b.id)return 'hostile';const r=relation(a.faction,b.faction);return r<0?'hostile':r>0?'friendly':'neutral';}
+ const distance=(a,b)=>Math.hypot(a.x-b.x,(a.y||0)-(b.y||0),a.z-b.z);
+ function select(a,actors){let best=null,score=-Infinity;for(const b of actors){if(b===a||b.dead||attitude(a,b)!=='hostile')continue;const d=distance(a,b);if(d>tuning.range)continue;const rank=(a.lastAttacker===b.id?180:0)+(a.protectId===b.targetId?90:0)+(a.role==='pirate'?(b.cargoValue||0)*.02:0)+(a.targetId===b.id?20:0)-d;if(rank>score){score=rank;best=b;}}return best;}
+ function step(actors,dt,onHit=()=>{}){dt=Math.max(0,Math.min(.1,dt));const loaded=actors.slice(0,tuning.maxActors);for(const a of loaded){if(a.dead||a.player)continue;a.retarget=(a.retarget||0)-dt;if(a.retarget<=0){a.targetId=select(a,loaded)?.id||null;a.retarget=tuning.retarget;}const target=loaded.find(b=>b.id===a.targetId&&!b.dead);if(!target)continue;const d=distance(a,target),flee=a.role==='civilian';a.behavior=flee?'flee':'engage';if(d>50||flee){const k=tuning.speed*dt/Math.max(1,d)*(flee?-1:1);a.x+=(target.x-a.x)*k;a.y=(a.y||0)+((target.y||0)-(a.y||0))*k;a.z+=(target.z-a.z)*k;}a.cooldown=Math.max(0,(a.cooldown||0)-dt);if(!flee&&d<tuning.fireRange&&!a.cooldown){target.hp=Math.max(0,(target.hp??100)-tuning.damage);target.lastAttacker=a.id;target.dead=target.hp<=0;a.cooldown=tuning.cooldown;onHit(a,target,tuning.damage);}}}
+ function cargoUsed(s,mission){return (s.progression.cargo||[]).reduce((n,c)=>n+c.units,0)+(mission&&mission.cargo!=='Empty hold'&&!mission.dataCargo?1:0);}
+ function salvage(cargo,rng=Math.random){return cargo.filter(()=>rng()<.5).map(c=>({...c}));}
+ function recover(s,item,capacity,mission){if(cargoUsed(s,mission)+item.units>capacity)return false;s.progression.cargo.push({...item});return true;}
+ function relay(s,system){return {state:s.progression.relays[system]||'online',localServices:true,remoteCurrent:(s.progression.relays[system]||'online')==='online'};}
+ function objective(s,def,event){if(def.kind==='repair-relay'&&event.type==='repair'&&event.id===def.target){s.progression.relays[def.system]='online';return true;}if(def.kind==='deliver-data'&&event.type==='delivery'&&event.id===def.target&&s.progression.data.includes(def.package)){s.progression.data=s.progression.data.filter(x=>x!==def.package);return true;}return false;}
+ const api={factions,relationships,tuning,relation,attitude,select,step,cargoUsed,salvage,recover,relay,objective};if(typeof module!=='undefined')module.exports=api;else root.VoidFactions=api;
+})(globalThis);
