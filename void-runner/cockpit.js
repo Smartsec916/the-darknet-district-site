@@ -1,12 +1,12 @@
 /* Assisted first-person flight: 3D camera and movement, billboard ships, swept shots. */
 const FM=VoidCockpitMath;
-const cockpitArt=texture('cockpit-kestrel.png');
+const cockpitArt=texture('cockpit-kestrel.png',true); // Retained reference; modern flight never loads it.
 const flight={yaw:0,pitch:0,roll:0,yawRate:0,pitchRate:0,throttle:.8,mouseX:0,mouseY:0,travel:0,rocks:[],nav:{x:0,y:0,z:140},arrows:[]};
 const flightBasis=()=>FM.basis(flight.yaw,flight.pitch,flight.roll);
 const flightPoint=o=>FM.project(o,flightBasis(),W,H);
 const cockpitLaunch=launch;
 launch=function(){VoidDevTools?.applyPending();cockpitLaunch();if(mode!=='play')return;Object.assign(flight,{yaw:0,pitch:0,roll:0,yawRate:0,pitchRate:0,throttle:.8,mouseX:0,mouseY:0,travel:0,nav:{x:0,y:0,z:140}});VoidPilotFlight.reset(flight);flight.route=trialGear?null:VoidWarp.restore(state.travel,state.location,current.destination,current.id||state.quest,current.enemies>0||['salvage','hazard','escort'].includes(current.kind));
- departureImages[state.location]?.load();ensureLocationAssets(state.location);ensureLocationAssets(current.destination);fleetTexture.load();
+ // Modern departure has no bitmap asset dependency.
  if(flight.route){state.travel=flight.route;flight.nav={x:flight.route.vector.x*140,y:0,z:flight.route.vector.z*140};if(flight.route.encounter.state==='cleared')spawned=resolved=current.enemies;save();}
  resetMissileFlight();VoidCombatEffects.reset();$('route-status').textContent='DEPARTURE GUIDANCE';$('weapon').textContent=C.stats(state).piercing?'WRAITH / PIERCING':`PULSE MK ${state.upgrades.guns+1}`;flight.rocks=Array.from({length:34},(_,i)=>({x:(i%2?1:-1)*(28+random()*100),y:(random()-.5)*120,z:25+random()*300,size:1.5+random()*6,phase:random()*6}));announce('Cockpit online · '+VoidInput.label(VoidInput.bindings.fire)+' primary · '+VoidInput.label(VoidInput.bindings.missile)+' missile · '+VoidInput.label(VoidInput.bindings.pause)+' menu');};
 const cockpitUI=flightUI;

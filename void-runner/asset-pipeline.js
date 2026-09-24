@@ -2,7 +2,7 @@
 (function(root) {
   const models = {
       ships: {},
-      stations: {}
+      stations: {},characters: {}
     },
     containers = new Map();
   let loader;
@@ -71,7 +71,7 @@
   }
   async function prepare(scene, definitions, task) {
     release();
-    await Promise.all(Object.entries(definitions).map(([id, def]) => load(id, def, scene, task)));
+    await Promise.all(Object.entries(definitions).map(async ([id,def])=>{try{await VoidPreparation.run(t=>t.wait('optional',()=>load(id,def,scene,t),def.src));}catch(error){console.warn('[VOID optional model]',{id,asset:def.src,recovery:'procedural modern placeholder',reason:error.message});}}));task?.check();
   }
 
   function release() {

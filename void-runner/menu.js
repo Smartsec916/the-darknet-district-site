@@ -144,10 +144,7 @@ function mainAction(a) {
     } catch {}
     VoidMenu.returnTo = null;
     leaveMenu();
-    if (resumeStoryScene()) return;
-    if (state.quest === 'inheritance') workshopOpening();
-    else if (C.flight(state)) launch();
-    else dock();
+    resumeSavedWorld();
   } else if (a === 'menu-account') {
     leaveMenu();
     if (window.VoidAccount?.request) window.VoidAccount.request('account');
@@ -180,6 +177,7 @@ screen.addEventListener('input', e => {
   e.target.nextElementSibling.value = e.target.value;
 });
 addEventListener('keydown', e => {
+  if(mode==='mission-log'){if(e.code==='Escape'){e.preventDefault();closeMissionLog();}return;}
   if (VoidMenu.capture) {
     e.preventDefault();
     e.stopImmediatePropagation();

@@ -1,6 +1,6 @@
 /* Canvas presentation follows the active campaign hull. Replace procedural canopies here later. */
 function drawShipCockpit(){
- const ship=VoidShips.get(state);if(ship.cockpit==='salvage'){if(cockpitArt.complete&&cockpitArt.naturalWidth)ctx.drawImage(cockpitArt,0,0,W,H);return;}
+ const ship=VoidShips.get(state);
  ctx.save();const advanced=ship.cockpit==='spectre',c=ship.color;
  const metal=ctx.createLinearGradient(0,H*.73,0,H);metal.addColorStop(0,advanced?'#19203b':'#22383e');metal.addColorStop(1,'#040910');ctx.fillStyle=metal;ctx.strokeStyle=c;ctx.lineWidth=advanced?1:3;
  const paths=advanced?[[[0,0],[W*.12,0],[W*.05,H*.67],[W*.23,H*.85],[W*.77,H*.85],[W*.95,H*.67],[W*.88,0],[W,0],[W,H],[0,H]]]:[[[0,0],[W*.08,0],[W*.12,H*.65],[W*.3,H*.81],[W*.7,H*.81],[W*.88,H*.65],[W*.92,0],[W,0],[W,H],[0,H]]];

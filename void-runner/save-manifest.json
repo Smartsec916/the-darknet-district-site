@@ -3,7 +3,11 @@
     "meridian",
     "kepler",
     "undertow",
-    "foundry"
+    "foundry",
+    "vesper",
+    "sol-belt",
+    "earth",
+    "mars"
   ],
   "missions": [
     "medicine",

@@ -28,3 +28,10 @@ class StorySaveTests(unittest.TestCase):
         self.assertEqual(clean['location'],'meridian')
         self.assertEqual(clean['credits'],state['credits'])
         self.assertEqual(clean['version'],2)
+
+    def test_universe_round_trip_and_validation(self):
+        state=self.state();state['location']='sol-belt'
+        state['universe']={'currentSystem':'sol','discoveredSystems':['erebus','sol'],'discoveredLocations':['meridian','sol-belt','earth','mars'],'visitedLocations':['meridian','sol-belt'],'missionLogUnlocked':True,'freeTravel':True,'trackedMission':'meet-admin','completedObjectives':[],'station':{'location':'sol-belt'}}
+        self.assertEqual(vr.clean_save(state)['universe'],state['universe'])
+        state['universe']['discoveredLocations']=['unknown']
+        with self.assertRaises(vr.ApiError):vr.clean_save(state)

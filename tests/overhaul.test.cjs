@@ -34,7 +34,7 @@ test('warp requires alignment, interrupts, persists and resumes the same destina
  const saved=W.restore(JSON.parse(JSON.stringify(r)),'meridian','kepler','legal-run',true);assert.equal(saved.phase,'encounter');W.step(saved,.1,saved.vector,true);assert.equal(saved.phase,'align');assert.equal(saved.destination,'kepler');for(let i=0;i<150;i++)W.step(saved,.1,saved.vector,true);assert.equal(saved.phase,'arrived');assert.equal(saved.progress,1);
  const s=C.fresh();s.quest='legal-run';s.travel=saved;C.complete(s);assert.equal(s.travel,null);
 });
-test('free navigation requires an open campaign and no loaded contract',()=>{const s=C.fresh();assert(!C.chooseDestination(s,'foundry'));s.quest='open';assert(C.chooseDestination(s,'foundry'));assert.equal(C.flight(s).kind,'transit');s.contract='medicine';assert(!C.chooseDestination(s,'kepler'));});
+test('free navigation requires Rook unlock and preserves loaded cargo',()=>{const s=C.fresh();assert(!C.chooseDestination(s,'foundry'));s.quest='open';require('../void-runner/universe.js').unlock(s);assert(C.chooseDestination(s,'foundry'));assert.equal(C.flight(s).kind,'transit');s.contract='medicine';assert(C.chooseDestination(s,'kepler'));assert.equal(s.contract,'medicine');});
 test('audio absence and disabled voices fail gracefully; settings clamp and persist',()=>{
  let saved;global.localStorage={setItem:(k,v)=>saved=v};Audio.set({enabled:true,voiceEnabled:true,master:9});Audio.unlock();Audio.event('laser',S.ships.starter);Audio.update(S.ships.starter,1,1,'warp',true);assert.equal(Audio.speak('rook','Testing'),false);Audio.set({voiceEnabled:false});assert.equal(JSON.parse(saved).master,1);assert.equal(JSON.parse(saved).voiceEnabled,false);Audio.cancel();delete global.localStorage;
 });
@@ -44,3 +44,4 @@ test('NPC speech replaces previous lines, uses stable varied profiles and cancel
  global.speechSynthesis={cancel:()=>cancelled++,getVoices:()=>[{name:'Device A',lang:'en-US',localService:true},{name:'Device B',lang:'en-GB',localService:true}],speak:u=>spoken.push(u)};
  Audio.set({enabled:true,voiceEnabled:true});assert(Audio.speak('rook','First line'));assert(Audio.speak('rook','Second line'));assert.equal(spoken[0].pitch,spoken[1].pitch);assert.equal(spoken[0].voice.name,spoken[1].voice.name);assert(Audio.speak('mara','Different speaker'));assert.notEqual(spoken[2].pitch,spoken[1].pitch);assert(cancelled>=3);Audio.set({voiceEnabled:false});assert(!Audio.speak('rook','Disabled'));Audio.cancel();delete global.speechSynthesis;delete global.SpeechSynthesisUtterance;
 });
+

@@ -225,6 +225,7 @@
       box('engine-pod', [.55, .55, 1.8], [side * 1.05, 0, -1.35], dark, node);
       box('exhaust', [.38, .34, .15], [side * 1.05, 0, -2.3], light, node);
     }
+    if(name==='ship2')node.scaling.x=1.2;if(name==='ship3')node.scaling.z=1.3;
     node.metadata = {
       placeholder: true,
       reference: 'art/ships.png'
@@ -233,45 +234,62 @@
   }
 
   function stationModel(id, parent) {
-    const model = VoidAssets.instance('station:' + id, parent);
-    if (model) return model;
-    const b = B(),
-      node = new b.TransformNode('station-' + id, scene),
-      hull = material('station', '#4a5860'),
-      trim = material('trim', {
-        meridian: '#69bfac',
-        kepler: '#c8a16d',
-        undertow: '#b67dbb',
-        foundry: '#c5885b'
-      } [id] || '#7eaaa0', true);
-    node.parent = parent;
-    if (id !== 'foundry') {
-      const ring = b.MeshBuilder.CreateTorus('habitat-ring', {
-        diameter: 72,
-        thickness: id === 'undertow' ? 7 : 5,
-        tessellation: 48
-      }, scene);
-      ring.parent = node;
-      ring.material = hull;
-      ring.rotation.x = Math.PI / 2;
-      ring.scaling.y = id === 'kepler' ? .45 : .7;
+    const b=B(),node=new b.TransformNode('station-'+id,scene);node.parent=parent;
+    const def=VoidStationLayouts.layout(id),hull=material('station',def.color),metal=material('truss','#343e47'),trim=material('navigation','#a9d7c5',true);
+    for(const p of def.shell)box(p.id,p.size,p.position,p.kind==='glass'?material('window','#6cabbc',false,.12):p.kind==='floor'?material('floor','#29333c'):hull,node);
+    // Open physical aperture at z=-26; split pressure doors slide into the jambs.
+    const doors=[-1,1].map(side=>box('hangar-door',[9.8,7,.35],[side*15,3.5,-26],metal,node));
+    const arrays=[];
+    for(const side of [-1,1]){
+      box('structural-truss',[45,.7,.7],[side*38,5,9],metal,node);
+      for(let i=0;i<3;i++){
+        const pivot=new b.TransformNode('solar-gimbal',scene);pivot.parent=node;pivot.position.set(side*(25+i*14),5,9);arrays.push(pivot);
+        box('solar-frame',[11,.22,29],[0,0,0],metal,pivot);
+        box('solar-array',[10.6,.12,28.6],[0,.17,0],material('solar','#213958'),pivot);
+        for(let j=-6;j<=6;j++)box('solar-cell-seam',[10.6,.03,.045],[0,.25,j*2],trim,pivot);
+        box('external-tank',[3,3,7],[side*(23+i*5),1,27],hull,node);
+      }
+      box('radiator',[10,.2,12],[side*26,2,-13],material('radiator','#b1b7b7'),node);
+      for(let z=-34;z<-24;z+=3)box('approach-light',[.35,.25,.8],[side*9,.4,z],trim,node);
+      box('antenna',[.15,8,.15],[side*15,10,29],metal,node);
     }
-    box('central-spine', [58, 7, 10], [0, 0, 0], hull, node);
-    box('dock-bay', [12, 9, 18], [0, -6, 6], material('dock-dark', '#15232d'), node);
-    for (let i = -4; i <= 4; i++) {
-      box('module', [5, 5, 14], [i * 6, 0, 0], material('module', i % 2 ? '#5c696c' : '#384a55'), node);
-      box('window-strip', [3, .5, .2], [i * 6, 1.3, -7.15], trim, node);
-      box('dock-rib', [.5, 8, 11], [i * 6, -1, 0], hull, node);
-    }
-    for (let i = -2; i <= 2; i++) {
-      box('industrial-tower', [5, 25 + (i % 2 ? 10 : 0), 7], [i * 12, 3, 0], hull, node);
-      box('running-lights', [3, .4, 7.2], [i * 12, 7, 0], trim, node);
-    }
-    node.metadata = {
-      placeholder: true,
-      reference: 'art/STATION-ART.md'
-    };
-    return node;
+    node.metadata={layout:id,doors,arrays,placeholder:true};return node;
+  }
+
+  let actors=[];
+  function characterModel(id,parent,position,ambient=false){
+    const model=VoidAssets.instance('character:'+id,parent);if(model){model.position.set(position[0],0,position[2]);actors.push({node:model,base:position.slice(),ambient});return model;}
+    const b=B(),a=VoidStationLayouts.appearances[id]||{coat:'#59676e',hair:'#30363c',skin:'#ae8a70'},node=new b.TransformNode('npc-'+id,scene);
+    node.parent=parent;node.position.set(...position);node.position.y=0;
+    const coat=material('coat',a.coat),skin=material('skin',a.skin),dark=material('clothing','#252b33');
+    box('torso',[.55,.68,.3],[0,1.15,0],coat,node);box('coat-tail',[.6,.35,.32],[0,.77,0],coat,node);
+    for(const side of [-1,1]){box('leg',[.19,.65,.23],[side*.15,.36,0],dark,node);box('boot',[.22,.16,.36],[side*.15,.08,.05],dark,node);const arm=box('arm',[.16,.59,.19],[side*.37,1.14,0],coat,node);arm.rotation.z=side*.1;box('hand',[.14,.16,.16],[side*.4,.8,0],skin,node);}
+    const head=b.MeshBuilder.CreateSphere('head',{diameter:.36,segments:12},scene);head.parent=node;head.position.y=1.7;head.scaling.y=1.2;head.material=skin;
+    box('hair',[.36,.12,.34],[0,1.88,-.02],material('hair',a.hair),node);
+    if(a.style==='beard')box('beard',[.28,.14,.08],[0,1.57,.15],material('hair',a.hair),node);
+    if(a.style==='braids')for(let i=-2;i<=2;i++)box('braid',[.055,.4,.06],[i*.08,1.61,-.17],material('hair',a.hair),node);
+    if(a.eye)box('cybernetic-eye',[.085,.06,.04],[.09,1.73,.177],material('implant',a.eye,true),node);
+    if(a.style==='glasses')box('spectacles',[.31,.085,.045],[0,1.73,.18],dark,node);
+    if(a.archive){node.getChildMeshes().forEach(m=>m.visibility=.6);box('archive-projector',[.8,.12,.6],[0,.05,0],material('archive','#70bdd6',true),node);}
+    node.metadata={placeholder:true,reference:'art/characters.png',character:id,ambient};actors.push({node,base:position.slice(),ambient});return node;
+  }
+  async function prepareStation(def,task){
+    release(); // A new visit owns exactly one room and its actors, signs and lights.
+    await prepareSpace(def.id,['raider','courier','shuttle','security',def.ship],task,Object.fromEntries(def.interactions.filter(i=>i.character&&VoidAssets.models.characters[i.character]).map(i=>['character:'+i.character,VoidAssets.models.characters[i.character]])));task.check();station.setEnabled(false);rocks.forEach((mesh,i)=>{mesh.position.set((i%2?-1:1)*(75+i*6),30+Math.sin(i)*24,90+i*17);mesh.scaling.setAll(2+i%5);});
+    roomRoot=stationModel(def.id,null);room=def;actors=[];
+    const ship=shipModel(def.ship,'friendly',roomRoot);ship.position.set(-7,2,-9);ship.scaling.setAll(2);
+    for(const item of def.interactions)if(item.character)characterModel(item.character,roomRoot,item.position);
+    for(let i=0;i<4;i++)characterModel('crew-'+i,roomRoot,[i<2?-13:13,0,i<2?-8+i*7:20+i*3],true);
+    for(let i=0;i<5;i++)box('cargo-crate',[1.3,1.3,1.3],[12+(i%2)*1.5,.65,-17+Math.floor(i/2)*1.5],material('cargo','#716b56'),roomRoot);
+    const colors=['#d47575','#78a5cf','#d39865','#84bd94','#b398cf'];
+    colors.forEach((c,i)=>box('outfitter-category',[.55,.9,.12],[-14+i*1.5,1.7,29],material('shop',c,true),roomRoot));
+    for(let z=-20;z<32;z+=7){box('floor-guide',[.12,.025,3],[0,.03,z],material('guide','#80baaa',true),roomRoot);if(z<4||z>18)box('ceiling-light',[8,.06,.2],[0,z<4?8.7:5.7,z],material('lamp','#d1d4be',true),roomRoot);}
+    for(const signDef of def.signs)sign(signDef,roomRoot);
+    const roomLight=new BABYLON.PointLight('concourse-light',new BABYLON.Vector3(0,4,25),scene);roomLight.parent=roomRoot;roomLight.intensity=.85;roomLight.range=28;
+    const fill=new BABYLON.PointLight('hangar-light',new BABYLON.Vector3(0,6,-9),scene);fill.parent=roomRoot;fill.intensity=.8;fill.range=45;
+    // These routes are station-relative and visible through the observation apertures.
+    for(let i=0;i<3;i++){const n=shipModel(i?'shuttle':'courier','neutral',roomRoot);n.metadata={...n.metadata,traffic:true,lane:i};actors.push({node:n,traffic:true,lane:i});}
+    await task.wait('scene',()=>scene.whenReadyAsync(),'station-'+def.id);diagnostics.location=def.id;
   }
 
   function planetTexture(id) {
@@ -299,8 +317,8 @@
     t.update();
     return t;
   }
-  async function prepareSpace(id, shipTypes = ['raider', 'interceptor', 'gunship', 'courier', 'security', 'shuttle'], task) {
-    if(!task) return VoidPreparation.run(t=>prepareSpace(id,shipTypes,t));
+  async function prepareSpace(id, shipTypes = ['raider', 'interceptor', 'gunship', 'courier', 'security', 'shuttle'], task,extraModels={}) {
+    if(!task) return VoidPreparation.run(t=>prepareSpace(id,shipTypes,t,extraModels));
     await initialize(task);
     task.check();
     if (activeLocation === id && spaceRoot && diagnostics.exteriorReady) {
@@ -316,6 +334,7 @@
     room = null;
     scene.clearColor = new b.Color4(.008, .018, .035, 1);
     await task.wait('assets',()=>VoidAssets.prepare(scene, {
+      ...extraModels,
       ...Object.fromEntries(Object.entries(VoidAssets.models.ships).filter(([key]) => shipTypes.includes(key)).map(([key, value]) => ['ship:' + key, value])),
       ...(VoidAssets.models.stations[id] ? {
         ['station:' + id]: VoidAssets.models.stations[id]
@@ -329,11 +348,9 @@
     }, scene);
     sky.parent = spaceRoot;
     const skyMat = material('sky-' + id, '#ffffff', true);
-    skyMat.emissiveColor = new b.Color3(.5, .5, .5);
+    skyMat.emissiveColor = new b.Color3(.012, .023, .047);
     skyMat.backFaceCulling = false;
-    const skyReady = new Promise((resolve, reject) => {
-      skyMat.diffuseTexture = new b.Texture(new URL('art/sky-' + texturePath + '.png', base).href, scene, false, false, b.Texture.TRILINEAR_SAMPLINGMODE, resolve, () => reject(Error('Exterior sky texture unavailable.')));
-    });
+    // Stars and procedural planets are always ready; bitmap skies are optional art references.
     sky.material = skyMat;
     const starMat = material('stars', '#b3c6d3', true),
       starSource = b.MeshBuilder.CreateSphere('star-source', {
@@ -400,7 +417,7 @@
     }
     // Compile and fetch the current exterior before the launch clock may advance.
     try {
-      await task.wait('assets',()=>skyReady, 'art/sky-'+texturePath+'.png');
+
       await task.wait('scene',()=>scene.whenReadyAsync(), 'space-'+id);
     } catch (error) {
       clearSpace();
@@ -511,8 +528,10 @@
     station.setEnabled(destinationVisible || atOrigin);
     if (destinationVisible) {
       const reveal = Math.max(0, (progress * 12 - 8) / 4);
-      station.position.set(0, 0, arrival ? Math.max(34, 120 - snapshot.approach * 28) : 1500 - reveal * 1380);
-    } else if(atOrigin) station.position.copyFrom(vector(snapshot.departureStation || {x:0,y:0,z:-100}));
+      station.rotation.y=0;station.position.set(0,-4,arrival?120-snapshot.approach*35:1500-reveal*1380);
+    } else if(atOrigin){station.rotation.y=Math.PI;station.position.copyFrom(vector(snapshot.departureStation || {x:0,y:4,z:-15}));}
+    station.metadata?.arrays?.forEach((n,i)=>n.rotation.z=.14+Math.sin(snapshot.time*.015+i*.2)*.08);
+    if(station.metadata?.doors)station.metadata.doors.forEach((d,i)=>d.position.x=(i?1:-1)*(5+10*(phase==='departure'?Math.min(1,(snapshot.route.departure||0)/1.2):1)));
     diagnostics.stationVisible=station.isEnabled();
     diagnostics.stationPosition=station.position.asArray();
     const present = new Set();
@@ -635,6 +654,7 @@
   }
   async function prepareRoom(def, task) {
     if(!task)return VoidPreparation.run(t=>prepareRoom(def,t));
+    if(def.kind==='station')return prepareStation(def,task);
     await initialize(task);
     release();
     const b = B();
@@ -642,7 +662,7 @@
     room = def;
     camera.unfreezeProjectionMatrix();
     const definitions = Object.fromEntries((def.models || []).map(m => [m.id, m]));
-    if (def.kind === 'hangar' && VoidAssets.models.ships.starter) definitions['ship:starter'] = VoidAssets.models.ships.starter;
+    const hullId=def.ship||'starter';if(VoidAssets.models.ships[hullId])definitions['ship:'+hullId]=VoidAssets.models.ships[hullId];
     await task.wait('assets',()=>VoidAssets.prepare(scene, definitions,task),'room models');
     for (const defn of def.models || []) {
       const node = VoidAssets.instance(defn.id, roomRoot);
@@ -689,9 +709,9 @@
         head.parent = roomRoot;
       } else if (item.action !== 'board') box('terminal', [.65, 1.4, .35], [item.position[0], .7, item.position[2] + .4], material('terminal', '#466966'), roomRoot);
     }
-    if (def.kind === 'hangar') {
-      const ship = shipModel('starter', 'friendly', roomRoot);
-      ship.position.set(-7, 2, -5);
+    if (['hangar','city','underground'].includes(def.kind)) {
+      const ship = shipModel(def.ship||'starter', 'friendly', roomRoot);
+      ship.position.set(-7, 2, def.kind==='hangar'?-5:-24);
       ship.scaling.setAll(2);
       for (const x of [-9, -5]) box('landing-strut', [.25, 1.5, .3], [x, .75, -6], material('rib', '#23333b'), roomRoot);
     }
@@ -714,7 +734,7 @@
     signs = [];
     disposeNode(roomRoot);
     roomRoot = null;
-    room = null;
+    room = null;actors=[];
   }
 
   function renderRoom(player, width, height, time, allowed = () => true) {
@@ -730,6 +750,8 @@
       s.material.alpha = s.def.animation === 'flicker' ? .72 + Math.sin(time * 13) * .07 : s.def.animation === 'pulse' ? .8 + Math.sin(time) * .08 : .9;
       if (s.def.animation === 'rotate') s.mesh.rotation.y = time * .2;
     }
+    for(const actor of actors){if(actor.traffic){actor.node.position.set((actor.lane%2?-1:1)*(25+actor.lane*8),5+actor.lane*2,((time*(5+actor.lane)+actor.lane*37)%140)-55);actor.node.rotation.y=0;}else{actor.node.rotation.y=Math.sin(time*.3+actor.base[0])*.13;if(actor.ambient)actor.node.position.z=actor.base[2]+Math.sin(time*.2+actor.base[0])*1.2;}}
+    roomRoot.metadata?.arrays?.forEach((n,i)=>n.rotation.z=.14+Math.sin(time*.015+i*.2)*.08);
     scene.render();
     diagnostics.frames++;
     return surface;
@@ -764,3 +786,4 @@
     }
   };
 })(globalThis);
+

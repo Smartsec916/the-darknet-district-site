@@ -153,7 +153,7 @@
         },
         work: {
           character: 'mara',
-          text: 'You have 100 credits. Fly to Meridian and meet Rook at the bar. He has work.',
+          text: 'You have 100 credits. This is the Erebus System. Fly to Meridian and meet Rook at the bar. He has work.',
           choices: [{
             text: 'I’ll make him proud.',
             effects: {
