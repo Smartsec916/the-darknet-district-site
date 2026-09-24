@@ -370,7 +370,27 @@
   root.speechSynthesis?.addEventListener?.('voiceschanged', refreshVoices);
   refreshVoices();
 
-  function speak(id, text) {
+  let voiceChoices = {};
+  try { voiceChoices = JSON.parse(root.localStorage?.getItem('void-runner-voices-v1') || '{}') || {}; } catch {}
+  const voiceNames = {
+    feminine: /\b(zira|hazel|susan|samantha|victoria|karen|moira|tessa|fiona|ava|allison|siri female|female|jenny|aria|sonia|libby|sara|jane|nancy|joanna|salli|amy|emma)\b/i,
+    masculine: /\b(david|mark|george|james|daniel|alex|fred|tom|oliver|guy|ryan|christopher|eric|roger|brian|male|siri male)\b/i
+  };
+  function chooseVoice(id, uri) {
+    if (!content.characters[id]) return;
+    if (uri) voiceChoices[id] = uri; else delete voiceChoices[id];
+    try { root.localStorage?.setItem('void-runner-voices-v1', JSON.stringify(voiceChoices)); } catch {}
+    cancel();
+  }
+  function selectVoice(id, pool = voices) {
+    const p = profiles[content.characters[id]?.voiceProfile || id] || profiles.rook;
+    const explicit = pool.find(v => v.voiceURI === voiceChoices[id] || v.voiceURI === p.voiceId || v.name === p.voiceId);
+    if (explicit) return explicit;
+    const matches = pool.filter(v => voiceNames[p.presentation]?.test(v.name));
+    const score = v => (/natural|neural|enhanced|premium/i.test(v.name) ? 20 : 0) + (p.preferred?.some(n => v.name.toLowerCase().includes(n)) ? 5 : 0);
+    return matches.sort((a,b) => score(b)-score(a) || a.name.localeCompare(b.name))[0] || null;
+  }
+  function speak(id, text, waitedForVoices = false) {
     cancel();
     if (!settings.enabled || !settings.voiceEnabled || !settings.voice) return false;
     const p = profiles[content.characters[id]?.voiceProfile || id] || profiles.rook;
@@ -400,10 +420,15 @@
     if (!root.speechSynthesis || !root.SpeechSynthesisUtterance) return false;
     try {
       refreshVoices();
-      const u = new root.SpeechSynthesisUtterance(text),
-        pool = voices.filter(v => v.localService).length ? voices.filter(v => v.localService) : voices;
-      u.voice = pool.find(v => v.voiceURI === p.voiceId || v.name === p.voiceId) || pool[(p.variant || 0) %
-        pool.length] || null;
+      if (!voices.length && !waitedForVoices) {
+        const current = token;
+        speechTimer = setTimeout(() => { if(token === current) speak(id, text, true); }, 1000);
+        return true;
+      }
+      const selected = selectVoice(id);
+      if (!selected) return false;
+      const u = new root.SpeechSynthesisUtterance(text);
+      u.voice = selected;
       u.lang = u.voice?.lang || 'en-US';
       u.pitch = p.pitch;
       u.rate = p.rate;
@@ -436,6 +461,9 @@
     } catch {}
   }
   const api = {
+    selectVoice, chooseVoice,
+    voiceChoice: id => voiceChoices[id] || '',
+    availableVoices() { refreshVoices(); return voices; },
     get ready() { return !!context && context.state === 'running'; },
     mediaActive(value) { mediaPlaying = value === true; },
     // Locally hosted tracks share the gesture gate, master/category gain and pause lifecycle.

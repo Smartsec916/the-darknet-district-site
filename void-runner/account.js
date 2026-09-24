@@ -2,7 +2,7 @@
 const account = window.VoidAccount = {user:null,products:[],status:'Verified purchases require a connection.',busy:false,revision:0,cloud:null,savedAt:null};
 let authInitialization=null,unsubscribe=null;
 let firebase, generation=0, pendingCheckout=new URLSearchParams(location.search).get('checkout');
-let saveReady=false,verifiedUntil=0,ownershipTimer,refreshTimer;
+let saveReady=false,verifiedUntil=0,ownershipTimer,refreshTimer,lastRefreshAttempt=0;
 function render(){
   globalThis.VoidMenu?.refreshAccount();
   if(mode==='dock'&&view==='market')market();
@@ -22,6 +22,7 @@ async function catalog(){
   render();
 }
 async function refresh(){
+  lastRefreshAttempt=Date.now();
   const epoch=generation;
   let data;try{data=await api('account');}catch(error){if(epoch===generation){setOwnedGear([]);saveReady=false;}throw error;}if(epoch!==generation)return;
   verifiedUntil=Date.now()+300000;clearTimeout(ownershipTimer);ownershipTimer=setTimeout(()=>{setOwnedGear([]);verifiedUntil=0;},300000);
@@ -102,4 +103,4 @@ screen.addEventListener('click',e=>requestAction(e.target.closest('button')?.dat
 if(pendingCheckout==='cancelled'){clearCheckout();announce('Checkout cancelled. No equipment was added.');}
 VoidLoading.stage('account','ACCOUNT INITIALIZATION STARTED · OPTIONAL SERVICES CONNECTING');
 initializeAuth();
-addEventListener('focus',()=>{if(account.user&&Date.now()>verifiedUntil-240000)run(refresh,true);});
+addEventListener('focus',()=>{if(account.user&&Date.now()>verifiedUntil-240000&&Date.now()-lastRefreshAttempt>60000)run(refresh,true);});
