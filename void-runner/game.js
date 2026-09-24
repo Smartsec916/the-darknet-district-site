@@ -47,7 +47,7 @@ function arrive() {
   if(reward.repairCharged)story+=` Dock servicing costs ${reward.repairCharged} credits.`;
   if (reward.gunReward) story += ' Iona Vale meets you at the loading ramp. “You came through when nobody else would. Take these pulse cannons. Next time, come back alive.” Her crew installs your MK 2 guns. Equipment stores and new contracts are now open.';
   else if (state.quest === 'return') story += ' “Tell Rook you kept your word,” the receiver says. Time to head back to Meridian.';
-  panel('ARRIVAL CONFIRMED / ' + station.name.toUpperCase(), reward.reward ? 'Cargo <em>delivered.</em>' : 'Welcome<br><em>aboard.</em>', `<p>${story}</p>${reward.reward ? `<div class="manifest">${row('Payment received', '+' + reward.reward + ' CR')}${reward.gunReward ? row('Customer reward', 'MK 2 pulse cannons installed') : ''}</div>` : ''}`, button('OPEN STATION MENU →', 'dock'), shipCard()); tone(620, .3);
+  panel('ARRIVAL CONFIRMED / ' + station.name.toUpperCase(), reward.reward ? 'Cargo <em>delivered.</em>' : 'Welcome<br><em>aboard.</em>', `<p>${story}</p>${reward.reward ? `<div class="manifest">${row('Payment received', '+' + reward.reward + ' CR')}${reward.gunReward ? row('Customer reward', 'MK 2 pulse cannons installed') : ''}</div>` : ''}`, button('EXIT TO SPACE STATION →', 'dock'), shipCard()); tone(620, .3);
 }
 function hurt(amount) { if (mode !== 'play' || damageTime > 0) return; hp = Math.max(0, hp - amount); damageTime = .45; hud(); tone(65, .25, 'sawtooth'); if (!hp) { mode = 'over'; clearInput(); flightUI(false); panel('DISTRESS BEACON / RECOVERY CREW DISPATCHED', 'One more<br><em>chance.</em>', '<p>The recovery crew pulls your ship out of the lane. Your cargo and upgrades are safe. Retry this route with a repaired hull. No credits are lost.</p>', button('RETRY ROUTE →', 'launch') + (state.quest === 'open' ? button('RETURN TO DOCK', 'dock', true) : ''), shipCard()); } }
 function pause() { openGameMenu(); }
@@ -83,7 +83,7 @@ function spawnEnemy() {
  const heavy=tier>=2&&(i===current.enemies-1||i%5===4);
  const interceptor=!heavy&&tier>=1&&i%3!==0;
  const armor=heavy?12+tier*2:interceptor?3+tier*1.6:2+tier*1.2;
- enemies.push({x:(Math.random()-.5)*12,y:(Math.random()-.5)*6,z:115,phase:Math.random()*Math.PI*2,fire:1.1+Math.random()*.7,armor,maxArmor:armor,size:heavy?1.8:1,heavy,interceptor,className:heavy?'gunship':interceptor?'interceptor':'raider',age:0});
+ enemies.push({relationship:'hostile',x:(Math.random()-.5)*12,y:(Math.random()-.5)*6,z:115,phase:Math.random()*Math.PI*2,fire:1.1+Math.random()*.7,armor,maxArmor:armor,size:heavy?1.8:1,heavy,interceptor,className:heavy?'gunship':interceptor?'interceptor':'raider',age:0});
  if(heavy)announce('Heavy gunship incoming.');else if(i===0)announce('Hostile activity detected.');
 }
 function update(dt) {

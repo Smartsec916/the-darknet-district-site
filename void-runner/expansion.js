@@ -39,11 +39,6 @@ shop=function(){
  (restored?'<section aria-label="Previously owned equipment"><h2>Your existing equipment</h2>'+restored+'</section>':'')+
  '<p>Buy ships and standard upgrades below. Manage owned equipment in the Hangar.</p>'+button('ACCOUNT & CLOUD SAVES','account',true));
 };
-function firstDeliveryOffer(){
-  state.loginOfferSeen=true;save();view='first-delivery-offer';
-  menuPage('FIRST DELIVERY COMPLETE / 350 CR EARNED','Make this ship <em>your own.</em>',
-    `<p>Your first job is done. Rook is waiting back at Meridian.</p><p>Sign in to save your journey online and access exclusive ship upgrades. You can also keep playing as a guest.</p><div class="account-actions">${button(window.VoidAccount?.user?'SAVE PROGRESS / ACCOUNT':'SIGN IN & SAVE PROGRESS','account')}${button('KEEP PLAYING','dock',true)}${button('VIEW UPGRADE SHOP','shop',true)}</div><p class="fine">Signing in is optional. Your progress already saves in this browser. The upgrade catalog is being prepared.</p>`);
-}
 function setOwnedGear(ids) {
   ownedGear=Array.isArray(ids)?ids.filter(id=>Object.hasOwn(VoidContent.gear,id)||id==='spectre'):[];
   VoidShips.verify(ownedGear);
@@ -57,7 +52,6 @@ function setOwnedGear(ids) {
 const expansionDock=dock;
 dock=function(tab='dock') {
   trialGear=null;
-  if(state.quest==='return'&&state.completed===1&&!state.loginOfferSeen){firstDeliveryOffer();return;}
   expansionDock(tab);
   if(tab==='dock'&&state.location!=='meridian'){
     scene('dock');screen.classList.add('station-dock');

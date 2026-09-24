@@ -20,7 +20,7 @@
   };
   const quests = ['inheritance', 'arrival', 'legal-offer', 'legal-run', 'return', 'illegal-offer', 'illegal-run', 'open'];
   const allContracts = [...contracts, ...content.missions];
-  function fresh() { return { version: 2, story:Story.fresh(), savedAt:null, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], loginOfferSeen:false, ownedShips:['starter'], activeShip:'starter', standardGear:['pulse1','shield1'], shipLoadouts:{}, combatRuns:0, missileOfferSeen:false, missileUnlocked:false, travel:null, destination:null, loadout: {weapon:null,shield:null,utility:null,missile:null} }; }
+  function fresh() { return { version: 2, story:Story.fresh(), savedAt:null, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], ownedShips:['starter'], activeShip:'starter', standardGear:['pulse1','shield1'], shipLoadouts:{}, combatRuns:0, missileOfferSeen:false, missileUnlocked:false, travel:null, destination:null, loadout: {weapon:null,shield:null,utility:null,missile:null} }; }
   function restore(raw) {
     try {
       const s = JSON.parse(raw);
@@ -34,7 +34,7 @@
       const allGear={...content.gear,...content.creditGear,...S.equipment};
       for (const slot of Object.keys(loadout)) if (Object.hasOwn(allGear,s.loadout?.[slot] || '') && allGear[s.loadout[slot]].slot===slot) loadout[slot]=s.loadout[slot];
       const creditGear=Array.isArray(s.creditGear)?[...new Set(s.creditGear.filter(id=>Object.hasOwn(content.creditGear,id)))]:[];
-      return migrate({ ...fresh(), quest: s.quest, location: s.location, credits: s.credits, completed: s.completed, upgrades: { guns: s.upgrades.guns, armor: s.upgrades.armor, engines: s.upgrades.engines,shields:s.upgrades.shields }, contract: s.contract, cleared, loadout,creditGear,loginOfferSeen:typeof s.loginOfferSeen==='boolean'?s.loginOfferSeen:s.completed>0 },s);
+      return migrate({ ...fresh(), quest: s.quest, location: s.location, credits: s.credits, completed: s.completed, upgrades: { guns: s.upgrades.guns, armor: s.upgrades.armor, engines: s.upgrades.engines,shields:s.upgrades.shields }, contract: s.contract, cleared, loadout,creditGear },s);
     } catch { return null; }
   }
   function beginJourney(s) { if (s.quest !== 'inheritance') return false; s.quest = 'arrival'; s.story.chapter='arrival'; Story.emit(s,'leaveLocation','vesper'); return true; }

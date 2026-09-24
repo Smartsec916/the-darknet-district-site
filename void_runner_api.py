@@ -218,7 +218,6 @@ def clean_save(value):
     if not isinstance(credit_gear,list) or len(credit_gear)>3 or any(x not in ['vector','scout','launcher'] for x in credit_gear):
         raise ApiError('Invalid credit equipment.')
     result['creditGear']=list(dict.fromkeys(credit_gear))
-    result['loginOfferSeen']=value.get('loginOfferSeen',value['completed']>0) is True
     missions = manifest['missions']
     contract = value.get('contract')
     if contract is not None and contract not in ['medicine','ghost','foundry',*missions]:

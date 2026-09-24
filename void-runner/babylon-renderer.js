@@ -147,24 +147,29 @@
     if (node) node.dispose(false, false);
   }
 
-  function script() {
+  function script(task) {
     if (root.BABYLON) return Promise.resolve();
     return new Promise((resolve, reject) => {
       const s = document.createElement('script');
       s.src = new URL('vendor/babylon-8.26.0.js', base);
-      s.onload = resolve;
+      const abort = () => { s.remove(); reject(task.signal.reason); };
+      task.signal.addEventListener('abort',abort,{once:true});
+      s.onload = () => {task.signal.removeEventListener('abort',abort);resolve();};
       s.onerror = () => {
         s.remove();
+        task.signal.removeEventListener('abort',abort);
         reject(Error('Babylon engine unavailable.'));
       };
       document.head.append(s);
     });
   }
-  async function initialize() {
-    if (engine) return;
+  async function initialize(task) {
+    if (!task) return VoidPreparation.run(t=>initialize(t));
+    if (engine && diagnostics.ready) return;
     if (loadPromise) return loadPromise;
     loadPromise = (async () => {
-      await script();
+      await task.wait('module',()=>script(task),new URL('vendor/babylon-8.26.0.js',base).href);
+      task.check();
       const b = B();
       surface = document.createElement('canvas');
       surface.setAttribute('aria-hidden', 'true');
@@ -194,6 +199,9 @@
         diagnostics.ready = true;
       });
     })().catch(error => {
+      scene?.dispose(); engine?.dispose();
+      scene=engine=camera=surface=null;
+      diagnostics.ready=false;
       loadPromise = null;
       throw error;
     });
@@ -291,8 +299,10 @@
     t.update();
     return t;
   }
-  async function prepareSpace(id, shipTypes = ['raider', 'interceptor', 'gunship', 'courier', 'security', 'shuttle']) {
-    await initialize();
+  async function prepareSpace(id, shipTypes = ['raider', 'interceptor', 'gunship', 'courier', 'security', 'shuttle'], task) {
+    if(!task) return VoidPreparation.run(t=>prepareSpace(id,shipTypes,t));
+    await initialize(task);
+    task.check();
     if (activeLocation === id && spaceRoot && diagnostics.exteriorReady) {
       spaceRoot.setEnabled(true);
       roomRoot?.setEnabled(false);
@@ -305,12 +315,12 @@
     activeLocation = id;
     room = null;
     scene.clearColor = new b.Color4(.008, .018, .035, 1);
-    await VoidAssets.prepare(scene, {
+    await task.wait('assets',()=>VoidAssets.prepare(scene, {
       ...Object.fromEntries(Object.entries(VoidAssets.models.ships).filter(([key]) => shipTypes.includes(key)).map(([key, value]) => ['ship:' + key, value])),
       ...(VoidAssets.models.stations[id] ? {
         ['station:' + id]: VoidAssets.models.stations[id]
       } : {})
-    });
+    },task), 'registered space models');
     const texturePath = ['meridian', 'kepler', 'undertow', 'foundry'].includes(id) ? id : 'kepler';
     sky = b.MeshBuilder.CreateSphere('painted-sky', {
       diameter: 3000,
@@ -365,7 +375,7 @@
       ring.scaling.y = .025;
     }
     station = stationModel(id, spaceRoot);
-    station.position.set(-65, -5, 180);
+    station.position.set(0, 0, -100);
     rockSource = b.MeshBuilder.CreateIcoSphere('rock-source', {
       radius: 1,
       subdivisions: 2,
@@ -390,7 +400,8 @@
     }
     // Compile and fetch the current exterior before the launch clock may advance.
     try {
-      await Promise.all([skyReady, scene.whenReadyAsync()]);
+      await task.wait('assets',()=>skyReady, 'art/sky-'+texturePath+'.png');
+      await task.wait('scene',()=>scene.whenReadyAsync(), 'space-'+id);
     } catch (error) {
       clearSpace();
       throw error;
@@ -495,16 +506,26 @@
       }
     });
     planet.rotation.y = snapshot.time * .008;
-    if (warp || arrival) {
+    const destinationVisible = (warp && progress*VoidWarp.config.warpSeconds>=VoidWarp.config.destinationRevealSeconds || arrival) && activeLocation===snapshot.route?.destination;
+    const atOrigin = (phase==='departure'||phase==='align') && progress===0 && activeLocation===snapshot.route?.origin;
+    station.setEnabled(destinationVisible || atOrigin);
+    if (destinationVisible) {
       const reveal = Math.max(0, (progress * 12 - 8) / 4);
       station.position.set(0, 0, arrival ? Math.max(34, 120 - snapshot.approach * 28) : 1500 - reveal * 1380);
-    } else station.position.set(-65, -5, phase === 'departure' ? 180 + snapshot.route.departure * 18 : 350);
+    } else if(atOrigin) station.position.copyFrom(vector(snapshot.departureStation || {x:0,y:0,z:-100}));
+    diagnostics.stationVisible=station.isEnabled();
+    diagnostics.stationPosition=station.position.asArray();
     const present = new Set();
     for (const e of snapshot.ships) {
       present.add(e);
       let node = ships.get(e);
       if (!node) {
-        node = shipModel(e.className || 'ship', e.allegiance || 'hostile', spaceRoot);
+        node = shipModel(e.className || 'ship', VoidStory.relationship(e), spaceRoot);
+        if(e.traffic){
+          const wake=b.MeshBuilder.CreateSphere('traffic-warp-wake',{diameter:2,segments:6},scene);
+          wake.parent=node;wake.material=material('traffic-warp','#b7dce8',true,.75);wake.position.z=-3;
+          node.metadata={...node.metadata,warpWake:wake};
+        }
         ships.set(e, node);
       }
       node.position.copyFrom(vector(e));
@@ -516,6 +537,8 @@
       };
       node.rotation.y = Math.atan2(v.x, v.z);
       node.rotation.x = Math.atan2(v.y, Math.hypot(v.x, v.z));
+      const wake=node.metadata?.warpWake;
+      if(wake){wake.setEnabled(e.warp>0);wake.scaling.set(1+e.warp*2,1+e.warp*2,1+e.warp*25);node.scaling.z*=1+e.warp*5;node.getChildMeshes().forEach(m=>m.visibility=1-e.warp);}
     }
     for (const [e, node] of ships)
       if (!present.has(e)) {
@@ -610,8 +633,9 @@
     });
     return mesh;
   }
-  async function prepareRoom(def) {
-    await initialize();
+  async function prepareRoom(def, task) {
+    if(!task)return VoidPreparation.run(t=>prepareRoom(def,t));
+    await initialize(task);
     release();
     const b = B();
     roomRoot = new b.TransformNode('room', scene);
@@ -619,7 +643,7 @@
     camera.unfreezeProjectionMatrix();
     const definitions = Object.fromEntries((def.models || []).map(m => [m.id, m]));
     if (def.kind === 'hangar' && VoidAssets.models.ships.starter) definitions['ship:starter'] = VoidAssets.models.ships.starter;
-    await VoidAssets.prepare(scene, definitions);
+    await task.wait('assets',()=>VoidAssets.prepare(scene, definitions,task),'room models');
     for (const defn of def.models || []) {
       const node = VoidAssets.instance(defn.id, roomRoot);
       node.position.set(...defn.position);
@@ -677,7 +701,7 @@
       box('entrance', [3, 3, .2], [0, 1.5, 31], material('door', '#182e32'), roomRoot);
     } else scene.clearColor = new b.Color4(.015, .022, .028, 1);
     for (const defn of def.signs) sign(defn, roomRoot);
-    await scene.whenReadyAsync();
+    await task.wait('scene',()=>scene.whenReadyAsync(),'room-'+def.id);
     diagnostics.location = def.name;
     diagnostics.meshCount = scene.meshes.length;
   }

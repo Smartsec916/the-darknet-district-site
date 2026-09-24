@@ -115,7 +115,7 @@ function spawnStoryEncounter(id) {
       ...spawnAhead(100, i * 18, 12),
       contentId: id,
       owner: s.owner,
-      allegiance: s.allegiance,
+      relationship: s.relationship || s.allegiance,
       className: s.shipClass,
       portrait: s.art && s.art !== 'art/ships.png' ? texture(s.art.replace(/^art\//,'')) : null,
       size: 1,

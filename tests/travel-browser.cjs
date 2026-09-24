@@ -5,7 +5,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
  await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline'}));await page.route('**/api/void-runner/**',r=>r.fulfill({status:503,body:'Service Suspended'}));
  const output=process.env.VOID_SCREENSHOT_DIR;if(output)fs.mkdirSync(output,{recursive:true});const capture=async name=>{if(output)await page.screenshot({path:path.join(output,name+'.png')});};
  try{
-  await page.goto('http://127.0.0.1:5000/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);
+  await page.goto('http://127.0.0.1:5000/void-runner.html?renderer=legacy');await page.waitForFunction(()=>window.VoidStartup?.started);
   assert(!requests.some(u=>/sky-(?:kepler|undertow|foundry)|station-(?:kepler|undertow)\.png|ships\.png/.test(u)),'Travel textures are not startup prerequisites');
   const routes=[['meridian','kepler'],['kepler','meridian'],['undertow','foundry'],['foundry','undertow']];
   for(const [origin,destination]of routes){
