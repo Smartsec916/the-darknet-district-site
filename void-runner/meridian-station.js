@@ -1,0 +1,65 @@
+/* One exterior identity for the front end, flight approach and occupied Meridian. */
+(function(root){
+ const model={src:null,path:'assets/models/stations/meridian.glb',scale:1,yaw:0};
+ const design={id:'meridian',hangars:[{id:'H01',x:0,z:-11,w:36,h:9,d:30},{id:'H02',x:45,z:1,w:30,h:12,d:40},{id:'H03',x:-39,z:16,w:24,h:10,d:28}],features:['H01','H02','H03','solar arrays','docking collar','communications','warm windows','light tanks'],model};
+ function build(scene,parent,{occupied=false}={}){
+  const B=BABYLON,node=new B.TransformNode('meridian-exterior',scene);node.parent=parent;const materials=[],textures=[],batches=new Map(),blink=[];
+  function mat(name,hex,glow=false){const m=new B.StandardMaterial('meridian-'+name,scene);m.diffuseColor=B.Color3.FromHexString(hex);m.specularColor=new B.Color3(.22,.25,.28);m.specularPower=48;if(glow){m.emissiveColor=m.diffuseColor.clone();m.disableLighting=true;}materials.push(m);return m;}
+  const hull=mat('graphite','#4b535b'),panel=mat('patch-panels','#61686c'),edge=mat('frames','#272f37'),tank=mat('ceramic-tanks','#c5c6b9'),hazard=mat('hazard','#d4a446'),dark=mat('hangar-depth','#0b151e'),solar=mat('solar-cells','#294664'),warm=mat('inhabited','#b49a6b',true),nav=mat('navigation','#8dd9d0',true),red=mat('navigation-red','#cc7964',true);
+  const cell=new B.DynamicTexture('meridian-solar-grid',{width:256,height:512},scene,false);textures.push(cell);const g=cell.getContext();g.fillStyle='#19354c';g.fillRect(0,0,256,512);for(let y=0;y<512;y+=32)for(let x=0;x<256;x+=32){g.fillStyle=(x+y)%64?'#29475e':'#254458';g.fillRect(x+2,y+2,28,28);g.strokeStyle='#698397';g.lineWidth=.5;g.strokeRect(x+2,y+2,28,28);}cell.update();solar.diffuseTexture=cell;
+  function add(mesh,m,p,merge=true){mesh.parent=node;mesh.position.set(...p);mesh.material=m;mesh.isPickable=false;if(merge){if(!batches.has(m))batches.set(m,[]);batches.get(m).push(mesh);}return mesh;}
+  function box(name,size,p,m=hull){return add(B.MeshBuilder.CreateBox(name,{width:size[0],height:size[1],depth:size[2]},scene),m,p);}
+  function cylinder(name,r,h,p,m=tank){return add(B.MeshBuilder.CreateCylinder(name,{diameter:2*r,height:h,tessellation:16},scene),m,p);}
+  function beam(a,b,width=.4){const start=B.Vector3.FromArray(a),end=B.Vector3.FromArray(b),mid=start.add(end).scale(.5);const mesh=box('structural-framework',[width,width,B.Vector3.Distance(start,end)],mid.asArray(),edge);mesh.lookAt(end);return mesh;}
+  function label(text,p,w,h){const t=new B.DynamicTexture('meridian-label-'+text,{width:512,height:128},scene,false);textures.push(t);const c=t.getContext();c.fillStyle='#273039';c.fillRect(0,0,512,128);c.fillStyle='#d0b980';c.font='bold 82px monospace';c.textAlign='center';c.fillText(text,256,95);t.update();const m=mat('label-'+text,'#ffffff');m.diffuseTexture=t;m.emissiveColor=new B.Color3(.18,.17,.14);return add(B.MeshBuilder.CreatePlane('label-'+text,{width:w,height:h,sideOrientation:B.Mesh.DOUBLESIDE},scene),m,p,false);}
+  for(const h of design.hangars){
+   if(!(occupied&&h.id==='H01')){box(h.id+'-roof',[h.w,.9,h.d],[h.x,h.h,h.z]);box(h.id+'-floor',[h.w,.8,h.d],[h.x,-.4,h.z],edge);for(const s of [-1,1])box(h.id+'-side',[.8,h.h,h.d],[h.x+s*h.w/2,h.h/2,h.z]);box(h.id+'-back',[h.w,h.h,.7],[h.x,h.h/2,h.z+h.d/2]);
+    box(h.id+'-shadow',[h.w-4,h.h-2,.2],[h.x,h.h/2,h.z+h.d*.25],dark);box(h.id+'-inner-light',[h.w-5,.25,.3],[h.x,h.h-1,h.z+h.d*.2],warm);
+    for(const s of [-1,1])box(h.id+'-portal',[h.w*.2,h.h,.9],[h.x+s*h.w*.4,h.h/2,h.z-h.d/2],edge);
+   }
+   box(h.id+'-lintel',[h.w+1,2,1.2],[h.x,h.h-.5,h.z-h.d/2],panel);label(h.id,[h.x,h.h+2,h.z-h.d/2-.8],12,3);
+   for(const s of [-1,1]){box('hangar-strip',[.25,h.h-2,.25],[h.x+s*(h.w*.29),h.h/2,h.z-h.d/2-.7],warm);for(let z=-h.d/2;z<h.d/2;z+=8)box('hangar-rib',[.35,h.h+1,.5],[h.x+s*(h.w/2+.5),h.h/2,h.z+z],edge);}
+   for(let i=0;i<3;i++)box('roof-service',[3,.6,4],[h.x-h.w*.28+i*h.w*.28,h.h+.7,h.z+4],i%2?panel:edge);
+  }
+  // Modules extend the real H01/concourse footprint instead of changing its walkable plan.
+  box('rear-service-spine',[100,7,10],[3,5,40]);box('port-link',[16,5,7],[-23,3,11],panel);box('starboard-link',[16,5,10],[26,4,9],panel);
+  box('habitation',[30,10,12],[-18,12,35],panel);box('bar-business-module',[22,7,10],[17,11,39]);box('raised-communications',[14,13,13],[-8,18,43],edge);
+  for(let x=-31;x<28;x+=3)for(const y of [12,15])box('warm-window',[1.6,.7,.12],[x,y,28.85],warm);
+  label('MERIDIAN',[13,17,33.8],20,3.4);
+  // Lighter pressure vessels with circumferential safety bands.
+  for(let i=0;i<4;i++){const x=-23+i*7,z=-39+(i%2)*2;const body=cylinder('fuel-storage-tank',2.6,18,[x,-5,z]);body.rotation.x=Math.PI/2;for(const end of [-1,1]){const cap=add(B.MeshBuilder.CreateSphere('tank-end',{diameter:5.2,segments:12},scene),tank,[x,-5,z+end*9]);cap.scaling.z=.4;const band=cylinder('tank-hazard-band',2.65,.8,[x,-5,z+end*6.6],hazard);band.rotation.x=Math.PI/2;}box('tank-reflector',[.8,.2,12],[x,-2.33,z],warm);beam([x,-3,z],[x,1,z],.45);}
+  // Asymmetric trussed solar outriggers; blue cell faces remain visible from approach.
+  for(const wing of [{x:-82,z:24,w:40,d:46},{x:93,z:34,w:38,d:36}]){
+   beam([wing.x<0?-48:60,3,wing.z],[wing.x,3,wing.z],1);for(const offset of [-6,6])beam([wing.x<0?-48:60,0,wing.z+offset],[wing.x,3,wing.z],.45);
+   box('solar-frame',[wing.w+.7,.7,wing.d+.7],[wing.x,3,wing.z],edge);box('solar-array',[wing.w,.15,wing.d],[wing.x,3.44,wing.z],solar);
+   for(let x=-wing.w/2;x<=wing.w/2;x+=10)box('solar-rail',[.25,.15,wing.d],[wing.x+x,3.6,wing.z],panel);
+  }
+  // Large ship berthing collar on the starboard flank.
+  beam([57,2,25],[76,2,8],2);const collar=add(B.MeshBuilder.CreateTorus('large-ship-docking-collar',{diameter:17,thickness:2,tessellation:32},scene),panel,[76,3,2]);collar.rotation.x=Math.PI/2;
+  const seal=add(B.MeshBuilder.CreateTorus('docking-seal',{diameter:13,thickness:.8,tessellation:32},scene),hazard,[76,3,1.7]);seal.rotation.x=Math.PI/2;
+  for(const s of [-1,1])box('docking-clamp',[3,4,5],[76+s*9,3,3],edge);
+  beam([-8,25,43],[-8,43,43],.65);for(let y=29;y<41;y+=4)box('antenna',[10,.15,.15],[-8,y,43],panel);
+  const dish=add(B.MeshBuilder.CreateSphere('communications-dish',{diameter:9,segments:16,slice:.5},scene),tank,[-20,21,40]);dish.scaling.y=.28;dish.rotation.z=.5;beam([-20,15,40],[-20,21,40]);
+  for(const x of [-48,58]){beam([x,10,30],[x,25,30],.23);box('comms-panel',[2,4,.25],[x,21,30],panel);}
+  for(const p of [[-103,4,0],[112,4,17],[-8,44,43],[76,3,-.5]]){const lamp=add(B.MeshBuilder.CreateSphere('navigation-beacon',{diameter:.85,segments:6},scene),p[0]<0?red:nav,p,false);blink.push(lamp);}
+  for(const [m,list]of batches)if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);merged.material=m;merged.parent=node;merged.name='meridian-batch-'+m.name;merged.isPickable=false;}
+  node.metadata={identity:'meridian',design,exteriorOnly:!occupied,blink,dispose(){for(const t of textures)t.dispose();for(const m of materials)m.dispose(false,false);}};return node;
+ }
+ function planetTexture(scene){const B=BABYLON,t=new B.DynamicTexture('meridian-planet-map',{width:512,height:256},scene,false),c=t.getContext(),pixels=c.createImageData(512,256);
+  for(let y=0;y<256;y++)for(let x=0;x<512;x++){const u=x/512*Math.PI*2,v=y/256*Math.PI,swirl=Math.sin(u*3+Math.sin(v*8))*3+Math.sin(u*7-v*4)*.8,band=Math.sin(y*.17+swirl),fine=Math.sin(y*.6+Math.sin(u*12)*1.3)*.14,storm=Math.exp(-Math.pow((x-360)/45,2)-Math.pow((y-150)/12,2));const n=band*.12+fine+storm*.15,i=(y*512+x)*4;pixels.data[i]=Math.min(220,139+n*70);pixels.data[i+1]=Math.min(200,119+n*55);pixels.data[i+2]=Math.min(190,104+n*48);pixels.data[i+3]=255;}c.putImageData(pixels,0,0);t.update();return t;
+ }
+ async function menu(engine,quality,task){const B=BABYLON,scene=new B.Scene(engine);scene.clearColor=new B.Color4(.004,.009,.019,1);const camera=new B.FreeCamera('meridian-menu-camera',B.Vector3.Zero(),scene);camera.inputs.clear();camera.minZ=1;camera.maxZ=4500;
+  const sun=new B.DirectionalLight('menu-star',new B.Vector3(.45,-.6,.65),scene);sun.intensity=2.1;sun.diffuse=new B.Color3(1,.92,.81);const fill=new B.HemisphericLight('menu-reflection',new B.Vector3(0,1,-.3),scene);fill.intensity=.27;fill.diffuse=new B.Color3(.58,.71,.91);fill.groundColor=new B.Color3(.06,.08,.12);
+  const origin=new B.TransformNode('meridian-menu-root',scene);let station,disposed=false;
+  try{const def=VoidAssets.models.stations.meridian||model;if(def.src){try{await VoidPreparation.run(t=>t.wait('optional',()=>VoidAssets.load('menu:meridian',def,scene,t),def.src));station=VoidAssets.instance('menu:meridian',origin);}catch(e){console.warn('[VOID Meridian menu optional model]',e.message);}}task.check();station??=build(scene,origin);
+   const world=B.MeshBuilder.CreateSphere('meridian-menu-planet',{diameter:310,segments:quality==='low'?32:48},scene);world.position.set(-260,-100,620);const pm=new B.ShaderMaterial('menu-planet-surface',scene,{vertexSource:'precision highp float;attribute vec3 position;attribute vec3 normal;attribute vec2 uv;uniform mat4 world;uniform mat4 worldViewProjection;varying vec3 n;varying vec3 p;varying vec2 vUV;void main(){n=normalize(mat3(world)*normal);p=(world*vec4(position,1.)).xyz;vUV=uv;gl_Position=worldViewProjection*vec4(position,1.);}',fragmentSource:'precision highp float;varying vec3 n;varying vec3 p;varying vec2 vUV;uniform sampler2D surfaceMap;uniform vec3 cameraPosition;void main(){vec3 N=normalize(n),L=normalize(vec3(-.55,.5,-.7)),V=normalize(cameraPosition-p);float light=dot(N,L),day=smoothstep(-.04,.12,light);vec3 terrain=texture2D(surfaceMap,vUV).rgb;vec3 color=terrain*(.035+max(0.,light)*.78)*day+vec3(.004,.006,.012)*(1.-day);float rim=pow(1.-max(0.,dot(N,V)),4.)*smoothstep(-.15,.3,light);color+=vec3(.08,.15,.22)*rim;gl_FragColor=vec4(color,1.);}'},{attributes:['position','normal','uv'],uniforms:['world','worldViewProjection','cameraPosition'],samplers:['surfaceMap']});pm.setTexture('surfaceMap',planetTexture(scene));world.material=pm;
+   let seed=9321;const random=()=>((seed=seed*16807%2147483647)-1)/2147483646;const rockMat=new B.StandardMaterial('menu-debris-stone',scene);rockMat.diffuseColor=new B.Color3(.22,.25,.27);rockMat.specularColor=B.Color3.Black();const rocks=[];
+   for(let variant=0;variant<4;variant++){const source=B.MeshBuilder.CreateIcoSphere('debris-source-'+variant,{radius:1,subdivisions:2,flat:true},scene),vertices=source.getVerticesData(B.VertexBuffer.PositionKind);for(let i=0;i<vertices.length;i+=3){const n=.7+.27*Math.sin(vertices[i]*5+variant*7)*Math.cos(vertices[i+1]*9+vertices[i+2]*6);vertices[i]*=n*(1+variant*.13);vertices[i+1]*=n;vertices[i+2]*=n*(.8+variant*.1);}source.setVerticesData(B.VertexBuffer.PositionKind,vertices);source.createNormals(true);source.material=rockMat;source.isVisible=false;
+    for(let i=0;i<(quality==='low'?3:5);i++){const m=source.createInstance('meridian-menu-debris');m.position.set(random()*1100-450,random()*480-220,random()*1050-300);m.scaling.setAll(2+random()*9);m.rotation.set(random()*6,random()*6,random()*6);rocks.push({m,base:m.position.clone(),phase:random()*6,speed:.004+random()*.008});}}
+   const stars=B.MeshBuilder.CreateSphere('menu-star-source',{diameter:1.3,segments:3},scene),sm=new B.StandardMaterial('menu-stars',scene);sm.emissiveColor=new B.Color3(.62,.72,.84);sm.disableLighting=true;stars.material=sm;stars.isVisible=false;const starCount=quality==='low'?120:220;for(let i=0;i<starCount;i++){const y=1-2*(i+.5)/starCount,a=i*2.399963,r=Math.sqrt(1-y*y),m=stars.createInstance('menu-star');m.position.set(Math.cos(a)*r*1800,y*1800,Math.sin(a)*r*1800);m.scaling.setAll(.4+random()*.8);}
+   await task.wait('scene',()=>scene.whenReadyAsync(),'Meridian menu exterior');
+   return {scene,station,camera,render(time,w,h,reduced=false){const t=reduced?0:time,angle=.68+Math.sin(t*.008)*.035,distance=430*Math.max(1,1.25/(w/h));camera.position.set(Math.sin(angle)*distance,distance*.358+Math.sin(t*.011)*3,-Math.cos(angle)*distance);camera.setTarget(new B.Vector3(0,7,8));camera.unfreezeProjectionMatrix();const projection=B.Matrix.PerspectiveFovLH(.73,w/h,1,4500);projection.m[8]=w/h>1.1?.43:.18;camera.freezeProjectionMatrix(projection);world.rotation.y=t*.0006;pm.setVector3('cameraPosition',camera.position);for(const r of rocks){r.m.rotation.y=r.phase+t*r.speed;r.m.rotation.x=r.phase*.4+t*r.speed*.4;r.m.position.y=r.base.y+Math.sin(t*.008+r.phase)*1.5;}station.metadata?.blink?.forEach((m,i)=>m.visibility=reduced?.8:.55+.45*Math.pow(Math.max(0,Math.sin(t*.7+i)),10));scene.render();},dispose(){if(disposed)return;disposed=true;station.metadata?.dispose?.();VoidAssets.unload('menu:meridian');scene.dispose();}};
+  }catch(e){VoidAssets.unload('menu:meridian');scene.dispose();throw e;}
+ }
+ root.VoidMeridian={design,model,build,planetTexture,menu};
+})(globalThis);

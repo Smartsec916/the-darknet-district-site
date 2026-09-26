@@ -1,10 +1,15 @@
 /* Connect the modern world to the existing campaign, input, rewards and account UI. */
 state.universe=VoidUniverse.restore(state.universe,state);
-let modernMenuReady=false,modernMenuPending=false,missionPanel=null,missionReturn=null,destinationPreparation=null;
+let modernMenuFailure=false,modernMenuReady=false,modernMenuPending=false,missionPanel=null,missionReturn=null,destinationPreparation=null;
 const managedDestination=prepareDestination;
 prepareDestination=function(){if(destinationPreparation)return destinationPreparation;destinationPreparation=managedDestination().finally(()=>destinationPreparation=null);return destinationPreparation;};
 function renderUnavailable(){ctx.fillStyle='#07121e';ctx.fillRect(0,0,W,H);ctx.fillStyle='#bed6d4';ctx.font='18px monospace';ctx.fillText('3D display unavailable — open Menu to retry.',30,H*.5);}
 function drawModernBackground(){
+ if(mode==='menu'){
+  const image=VoidBabylon.renderMenu(W,H,time,reducedMotion);
+  if(image)ctx.drawImage(image,0,0,W,H);else{ctx.fillStyle='#030813';ctx.fillRect(0,0,W,H);if(!modernMenuPending&&!VoidBabylon.diagnostics.menuReady&&!modernMenuFailure){modernMenuPending=true;VoidBabylon.prepareMenu().then(()=>modernMenuReady=true).catch(e=>{if(mode==='menu'&&!/cancel/i.test(e.message)){modernMenuFailure=true;console.warn('[VOID menu background]',e.message);}}).finally(()=>modernMenuPending=false);}}
+  return;
+ }
  if(walkingLocation&&walker&&VoidBabylon.scene){const img=VoidBabylon.renderRoom(walker,W,H,time);if(img)ctx.drawImage(img,0,0,W,H);return;}
  if(VoidGraphics.busy){renderUnavailable();return;}
  if(!VoidBabylon.diagnostics.exteriorReady){
@@ -15,6 +20,7 @@ function drawModernBackground(){
  const image=VoidBabylon.renderFlight({basis:FM.basis(.15*Math.sin(time*.035),0,0),route:{phase:'arrived',destination:state.location,progress:1},rocks:Array.from({length:18},(_,i)=>({x:(i%2?1:-1)*(50+i*7),y:Math.sin(i)*50,z:180+i*13,size:2+i%5,phase:i})),ships:[],bullets:[],hostile:[],missiles:[],effects:[],time,approach:0},W,H);if(image)ctx.drawImage(image,0,0,W,H);
 }
 // Never launch a second preparation while the menu's scene is being constructed.
+const meridianLeaveMenu=leaveMenu;leaveMenu=function(){modernMenuFailure=false;modernMenuReady=false;VoidBabylon.releaseMenu();return meridianLeaveMenu();};
 const worldLaunch=launch;
 launch=async function(){if(modernMenuPending){VoidPreparation.cancel?.();await new Promise(resolve=>{const check=()=>modernMenuPending?setTimeout(check,20):resolve();check();});}if(state.universe.freeTravel&&!originalFlight(state)){state.destination=VoidUniverse.destinations(state)[0]||null;}return worldLaunch();};
 const worldEnterWalking=enterWalking;

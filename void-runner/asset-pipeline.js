@@ -74,6 +74,7 @@
     await Promise.all(Object.entries(definitions).map(async ([id,def])=>{try{await VoidPreparation.run(t=>t.wait('optional',()=>load(id,def,scene,t),def.src));}catch(error){console.warn('[VOID optional model]',{id,asset:def.src,recovery:'procedural modern placeholder',reason:error.message});}}));task?.check();
   }
 
+  function unload(id){const item=containers.get(id);if(item){item.container.dispose();containers.delete(id);}}
   function release() {
     for (const {
         container
@@ -82,7 +83,7 @@
     containers.clear();
   }
   const api = {
-    models,
+    models,unload,
     validate,
     load,
     instance,
