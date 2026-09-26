@@ -44,7 +44,18 @@ def clean_progression(raw, locations):
         clean_cargo.append({'id':c['id'],'units':c['units']})
     data=raw.get('data',[])
     if not isinstance(data,list) or len(data)>16 or any(not isinstance(x,str) or len(x)>80 for x in data): raise ValueError('Invalid data cargo.')
-    return {'version':1,'flags':dict(flags),'completed':raw.get('completed') is True and all(flags.get(f) for f in FLAGS),'migrated':raw.get('migrated') is True,
-            'personal':{'weapon':'ward-pistol','ammo':count(p.get('ammo'),8,8),'reserve':count(p.get('reserve'),999,48),'items':entries(p.get('items',[]),['ward-kit']),'attachments':attachments,'optic':optic},
+    opening=raw.get('opening',{'version':1})
+    if not isinstance(opening,dict) or opening.get('version') not in [1,2]: raise ValueError('Invalid opening state.')
+    required=FLAGS
+    if opening['version']==2:
+        cans=opening.get('cans',[])
+        if not isinstance(cans,list) or len(cans)>6 or any(type(i) is not int or i<0 or i>5 for i in cans): raise ValueError('Invalid practice targets.')
+        opening={'version':2,'hologram':opening.get('hologram') is True,'pistol':opening.get('pistol') is True,'cans':list(dict.fromkeys(cans))}
+        required='move look interact draw aim fire reload groundCombat'.split()+FLAGS[16:]
+    else: opening={'version':1}
+    opening_done=opening['version']==1 or opening['hologram'] and opening['pistol'] and len(opening['cans'])>=4
+    weapon='ward-pistol' if opening['version']==1 or opening['pistol'] else None
+    return {'opening':opening,'version':1,'flags':dict(flags),'completed':raw.get('completed') is True and opening_done and all(flags.get(f) for f in required),'migrated':raw.get('migrated') is True,
+            'personal':{'weapon':weapon,'ammo':count(p.get('ammo'),8,8),'reserve':count(p.get('reserve'),999,48),'items':entries(p.get('items',[]),['ward-kit']),'attachments':attachments,'optic':optic},
             'equipment':{'owned':owned,'installed':installed},'missiles':None if raw.get('missiles') is None else count(raw['missiles'],30),
             'checkpoint':{'location':location},'reputation':reputation,'cargo':clean_cargo,'data':data,'relays':relays}

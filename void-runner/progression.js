@@ -13,12 +13,16 @@
  const ground=['move','look','sprint','jump','interact','pickup','draw','aim','fire','reload','holster','groundCombat','inventory','sightOwned','sightEquipped','sightAim'];
  const flight=['board','throttle','steer','roll','navigation','jumpTravel','dock','shipInventory','hangar','moduleInstalled','vendor','modulePurchased','purchasedInstalled','laserCombat','missileSelected','targetSelected','missileLocked','missileFired'];
  const flags=[...ground,...flight];
- const fresh=()=>({version:1,flags:{},completed:false,migrated:false,personal:{weapon:'ward-pistol',ammo:8,reserve:48,items:[],attachments:[],optic:null},equipment:{owned:[],installed:{}},missiles:null,checkpoint:{location:'vesper'},reputation:{},cargo:[],data:[],relays:{}});
+ const openingGround=['move','look','interact','draw','aim','fire','reload','groundCombat'];
+ const fresh=()=>({version:1,flags:{},completed:false,migrated:false,opening:{version:2,hologram:false,pistol:false,cans:[]},personal:{weapon:null,ammo:8,reserve:48,items:[],attachments:[],optic:null},equipment:{owned:[],installed:{}},missiles:null,checkpoint:{location:'vesper'},reputation:{},cargo:[],data:[],relays:{}});
  const number=(x,f=0,max=1e8)=>Number.isFinite(x)?Math.max(0,Math.min(max,x)):f;
  function restore(raw,s){const p=fresh();
-  if(!raw){if(s.quest!=='inheritance'){for(const id of ground)p.flags[id]=true;p.migrated=true;p.checkpoint={location:s.location};}if(s.universe?.freeTravel||s.missileOfferSeen){for(const id of flags)p.flags[id]=true;p.completed=true;}return p;}
+  if(!raw){if(s.quest!=='inheritance'){p.opening={version:1};p.personal.weapon='ward-pistol';}if(s.quest!=='inheritance'){for(const id of ground)p.flags[id]=true;p.migrated=true;p.checkpoint={location:s.location};}if(s.universe?.freeTravel||s.missileOfferSeen){for(const id of flags)p.flags[id]=true;p.completed=true;}return p;}
+  p.opening=raw.opening?.version===2?{version:2,hologram:raw.opening.hologram===true,pistol:raw.opening.pistol===true,cans:[...new Set((Array.isArray(raw.opening.cans)?raw.opening.cans:[]).filter(id=>Number.isInteger(id)&&id>=0&&id<6))]}:{version:1};
+  if(p.opening.version===1&&s.quest==='inheritance'&&!ground.every(id=>raw.flags?.[id]))p.opening={version:2,hologram:false,pistol:true,cans:[]};
+  p.personal.weapon=p.opening.version===2?(p.opening.pistol?'ward-pistol':null):'ward-pistol';
   for(const id of flags)if(raw.flags?.[id]===true)p.flags[id]=true;
-  p.completed=raw.completed===true&&flags.every(id=>p.flags[id]);p.migrated=raw.migrated===true;
+  p.completed=raw.completed===true&&groundDone({progression:p})&&flight.every(id=>p.flags[id]);p.migrated=raw.migrated===true;
   const a=raw.personal||{};p.personal.ammo=number(a.ammo,8,8);p.personal.reserve=number(a.reserve,48,999);p.personal.items=(a.items||[]).filter(x=>x==='ward-kit');p.personal.attachments=(a.attachments||[]).filter(x=>x==='red-dot');p.personal.optic=a.optic==='red-dot'&&p.personal.attachments.includes('red-dot')?'red-dot':null;
   p.equipment.owned=[...new Set((raw.equipment?.owned||[]).filter(id=>Object.hasOwn(modules,id)))];
   for(const ship of ['starter','ship2','ship3']){p.equipment.installed[ship]={};for(const [slot,id] of Object.entries(raw.equipment?.installed?.[ship]||{}))if(p.equipment.owned.includes(id)&&modules[id].slot===slot)p.equipment.installed[ship][slot]=id;}
@@ -29,16 +33,16 @@
   return p;
  }
  function mark(s,id){if(!flags.includes(id)||s.progression.flags[id])return false;s.progression.flags[id]=true;sync(s);return true;}
- function groundDone(s){return ground.every(id=>s.progression.flags[id]);}
+ function groundDone(s){const p=s.progression,o=p.opening;return o?.version===2?o.hologram&&o.pistol&&o.cans.length>=4&&openingGround.every(id=>p.flags[id]):ground.every(id=>p.flags[id]);}
  function sync(s){const p=s.progression;if(p.personal.attachments.includes('red-dot'))p.flags.sightOwned=true;if(p.personal.optic==='red-dot')p.flags.sightEquipped=true;
   if(Object.values(p.equipment.installed[s.activeShip]||{}).some(id=>Object.hasOwn(modules,id)))p.flags.moduleInstalled=true;
   if(p.flags.modulePurchased&&Object.values(p.equipment.installed[s.activeShip]||{}).some(id=>id!=='cooling'))p.flags.purchasedInstalled=true;
-  p.completed=flags.every(id=>p.flags[id])&&s.missileOfferSeen===true;
+  p.completed=groundDone(s)&&flight.every(id=>p.flags[id])&&s.missileOfferSeen===true;
   if(s.universe){s.universe.freeTravel=p.completed;s.universe.missionLogUnlocked=p.completed||s.missileOfferSeen===true;}
   return p.completed;
  }
  function stage(s){if(s.progression.completed)return 'ACT-01_OPEN_WORLD';if(!groundDone(s))return 'PROLOGUE-01_GROUND';if(s.quest==='inheritance')return 'PROLOGUE-02_SHIP_ACQUISITION';if(!s.progression.flags.dock)return 'PROLOGUE-03_FLIGHT';if(!s.progression.flags.purchasedInstalled)return 'PROLOGUE-04_FIRST_STATION';if(!s.missileUnlocked)return 'PROLOGUE-05_COMBAT';return s.creditGear.includes('launcher')?'PROLOGUE-07_MISSILE_TRAINING':'PROLOGUE-06_MISSILE_ACQUISITION';}
- function next(s){sync(s);return (groundDone(s)?flight:ground).find(id=>!s.progression.flags[id])||null;}
+ function next(s){sync(s);return (groundDone(s)?flight:s.progression.opening?.version===2?openingGround:ground).find(id=>!s.progression.flags[id])||null;}
  function buy(s,id){const m=modules[id],p=s.progression;if(!m||p.equipment.owned.includes(id)||s.credits<m.price)return false;s.credits-=m.price;p.equipment.owned.push(id);mark(s,'modulePurchased');return true;}
  function install(s,slot,id){const p=s.progression,m=modules[id];if(id!==null&&(!m||m.slot!==slot||!m.compatible.includes(s.activeShip)||!p.equipment.owned.includes(id)))return false;if(!['weapon','shield','power','cooling','engine'].includes(slot))return false;(p.equipment.installed[s.activeShip]??={})[slot]=id;sync(s);return true;}
  function systems(s){const ship=Ships.get(s).id,t={...tuning.ships[ship],cost:tuning.laser.cost,heat:tuning.laser.heat};for(const id of Object.values(s.progression?.equipment.installed[ship]||{})){const m=modules[id];if(!m||!s.progression.equipment.owned.includes(id))continue;for(const [k,v]of Object.entries(m.stats))if(['capacity','recharge','cooling','heatLimit'].includes(k))t[k]+=v;else if(k==='cost'||k==='heat')t[k]*=v;}return t;}

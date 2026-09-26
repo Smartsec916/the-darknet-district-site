@@ -3,6 +3,16 @@ import unittest
 import void_runner_api as vr
 
 class StorySaveTests(unittest.TestCase):
+    def test_opening_passes_through_campaign_save_validation(self):
+        state=self.state();state.update(quest='inheritance',location='vesper')
+        state['progression']={'opening':{'version':2,'hologram':True,'pistol':False,'cans':[]},'flags':{'move':True,'look':True},'personal':{'weapon':None,'ammo':8,'reserve':48},'checkpoint':{'location':'vesper'}}
+        clean=vr.clean_save(state)
+        self.assertEqual(clean['progression']['opening'],state['progression']['opening'])
+        self.assertIsNone(clean['progression']['personal']['weapon'])
+        state['progression']['opening'].update(pistol=True,cans=[0,2,3,5])
+        clean=vr.clean_save(state)
+        self.assertEqual(clean['progression']['opening']['cans'],[0,2,3,5])
+        self.assertEqual(clean['progression']['personal']['weapon'],'ward-pistol')
     def state(self):
         return {'version':2,'quest':'open','location':'meridian','credits':100,'completed':2,'upgrades':{'guns':0,'armor':0,'engines':0,'shields':0},'cleared':[],'contract':None,'loadout':{},'story':{'flags':{'metMara':True,'promise':False},'met':['mara'],'events':['mara_workshop_intro'],'pending':['mara_workshop_intro'],'relationships':{'mara':2},'characters':{'pirate':'dead'},'chapter':'open','unlocked':['undertow'],'encounters':['mara_rendezvous']},'savedAt':1750000000000}
     def test_round_trip_preserves_story_without_ownership_claims(self):

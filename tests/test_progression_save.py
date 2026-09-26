@@ -16,3 +16,10 @@ class ProgressionSaveTests(unittest.TestCase):
     def test_premium_claims_are_not_entitlements(self):
         p=self.base();p['owned']=['spectre'];p['premium']=True
         result=clean_progression(p,['meridian']);self.assertNotIn('owned',result);self.assertNotIn('premium',result)
+    def test_opening_round_trip_and_gift_gate(self):
+        p=self.base();p['opening']={'version':2,'hologram':True,'pistol':False,'cans':[]}
+        result=clean_progression(p,['meridian']);self.assertIsNone(result['personal']['weapon']);self.assertFalse(result['completed'])
+        p['opening'].update(pistol=True,cans=[0,1,2,3]);result=clean_progression(p,['meridian'])
+        self.assertEqual(result['opening'],p['opening']);self.assertEqual(result['personal']['weapon'],'ward-pistol');self.assertTrue(result['completed'])
+        p['opening']['cans']=[True]
+        with self.assertRaises(ValueError):clean_progression(p,['meridian'])

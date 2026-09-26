@@ -1,180 +1,120 @@
 {
-  "baseCommit": "9a1e603f53d3a497f1a8b126b07c35745f4d55f7",
+  "baseCommit": "ad6256a8be9a88233cb3ee23281898ff8f77cafa",
   "files": [
     {
       "path": "static/void-runner.html",
       "change": "modified",
-      "sha256": "8b6b3ceba651cc8948585c1885dff0216643411eef342e75d4fe0bbdd68a2ded"
+      "sha256": "c41f75a1996f455dce7e382bf0cc29429b48740aa4d960f0bc6fa678a53d77db"
     },
     {
       "path": "tests/babylon-foundation.test.cjs",
       "change": "modified",
-      "sha256": "f5f04c6c1616d9ae0fc0553e35b4d8c395049e1f60cfb5582171d44c0d335093"
+      "sha256": "f78ead28766b4e7f3461b1aae52ab13d575456d263b7c4394da8241cab126a11"
     },
     {
       "path": "tests/campaign.test.cjs",
       "change": "modified",
-      "sha256": "c6ecebe019a785128178c85d95ffcdb9f52d8699cb88c2abf6dbb55cc2776ca4"
-    },
-    {
-      "path": "tests/faction-browser.cjs",
-      "change": "added",
-      "sha256": "37ca3489aeda5b2026d892326b18e8eff541621fb288324f5ec47ed91bb82c5c"
+      "sha256": "f27f5b62bf576698ec590bdafc2e6820e5f8729d039cc6bec7bc2221e35b5256"
     },
     {
       "path": "tests/modern-world.test.cjs",
       "change": "modified",
-      "sha256": "0af96966728fd357624cbc40e06047e7013c2a008e164cdc53bd9ebd343b7d4f"
+      "sha256": "55f4df7a8358209287f1ce1968f9209962e786d5712c90a68495244aafb0f990"
+    },
+    {
+      "path": "tests/opening-browser.cjs",
+      "change": "added",
+      "sha256": "1c88b1e7495fcf30a19c1611ee9375ad4ca59248bfc7808eed7096c66ea22425"
+    },
+    {
+      "path": "tests/opening.test.cjs",
+      "change": "added",
+      "sha256": "69437789b3dd08d9f57e55b701aea84695efc5a26654bebad3d65641f1e0594a"
     },
     {
       "path": "tests/overhaul.test.cjs",
       "change": "modified",
-      "sha256": "8382236e25feafb7c4c99f66d9718790e3384d7429fb82ca82438bb0421f79dd"
+      "sha256": "5fe2bd0fd89997630d72c4b4f630c2a3aff0f523dce42f91b2e2cf745dd58bcb"
     },
     {
       "path": "tests/progression.test.cjs",
-      "change": "added",
-      "sha256": "8bfdf97b0e38f0a4bf3f6bc9eabf3ab870953aa75c7aa8334651bb0240dd0440"
+      "change": "modified",
+      "sha256": "e558e9318c3b53ccc08d694c3c7542afdfb0e9773a3ce64f9a772268ddd6f17c"
     },
     {
       "path": "tests/prologue-browser.cjs",
-      "change": "added",
-      "sha256": "d8ca866b4325a5f8c3625b6f26a1d86c52b26293befabb9e4b3fd3c5e7dcb8df"
-    },
-    {
-      "path": "tests/serve-modern.cjs",
-      "change": "added",
-      "sha256": "f36d5eea68d9ea20c56755f7ee0bf192615ecf05e284e44ac680bb13faa129f4"
-    },
-    {
-      "path": "tests/slow-startup-browser.cjs",
-      "change": "added",
-      "sha256": "3d0fbded3eb511a9be97e216130bdc3c8bc532399a9dafb2762f72e678f1a420"
+      "change": "modified",
+      "sha256": "562ebc4ab2084466ad82d5783a65b938d77e4e9de4a56ef7f412f63ddc65f68d"
     },
     {
       "path": "tests/test_progression_save.py",
-      "change": "added",
-      "sha256": "c25cb20332bedd478e367454ddd86beed6e90ffc6aa4f693eda76ca1467d55ab"
+      "change": "modified",
+      "sha256": "084abc72cb16b407603e28e807fba91d9493309420356da6c2c2c333890ed90c"
+    },
+    {
+      "path": "tests/test_story_save.py",
+      "change": "modified",
+      "sha256": "43d83916d1e8afd2dba3888cd627b1a4157f0ebb3447fb71cff7728d89b53e65"
+    },
+    {
+      "path": "void-runner/babylon-integration.js",
+      "change": "modified",
+      "sha256": "b0cfa2de9b2323d6b67d3cb201d7de3f1d60a59867fa452ae92a47e73006cdcd"
     },
     {
       "path": "void-runner/babylon-renderer.js",
       "change": "modified",
-      "sha256": "85fce345e4fb2f60f5ccbe6b77a3ff6c65df218a252f09787ddb3c37122ffe85"
+      "sha256": "54c2ada84c8142205e6e37d9c388b319ace722b1d138f7e3843fd0d2bc3a2ca1"
     },
     {
-      "path": "void-runner/bootstrap.js",
+      "path": "void-runner/exploration-controller.js",
       "change": "modified",
-      "sha256": "079aa6ef8327775921694508cdb684ed1b5ebf332588993759dcabfdc946e820"
+      "sha256": "69d16a252c609c642181ad34dff208d6381445689b210de5f0d2b5e28105bbae"
     },
     {
-      "path": "void-runner/campaign.js",
-      "change": "modified",
-      "sha256": "e4ef99fdbde7a2b117644480268a9127a3ff38d7ced326b6081f75c8b149197d"
-    },
-    {
-      "path": "void-runner/cockpit.js",
-      "change": "modified",
-      "sha256": "297cc2a66a473f5774c0b6b48f9f04320fc274df5973e7b02e424b6ddddad095"
-    },
-    {
-      "path": "void-runner/combat.js",
-      "change": "modified",
-      "sha256": "6432477e511fb84874403b6890dbca5043d64b6948a1d8d1f06c06bb3b370771"
-    },
-    {
-      "path": "void-runner/exploration-data.js",
-      "change": "modified",
-      "sha256": "297fcf17aaaf528bca31c07f5334b3b6ffbc97e47b5869894ec6ad62b0c751c6"
-    },
-    {
-      "path": "void-runner/factions.js",
+      "path": "void-runner/opening-data.js",
       "change": "added",
-      "sha256": "380482c6f4ea7d4d49e3d9c22d6439ddacd2696b46f4d56f6dd7a438f53bc438"
+      "sha256": "6bb33c18ced2cf818aad59ac451aa3fe14e7335c5f77b84cc499d29921ce3b9c"
     },
     {
-      "path": "void-runner/flight-presentation.js",
-      "change": "modified",
-      "sha256": "732526de84b7345f00376b7471f720517881a8bd19aeaa1cb6f332232013d01c"
+      "path": "void-runner/OPENING-MODELS.md",
+      "change": "added",
+      "sha256": "9fb5417a14efda967483a4696247e83f399356bf74486e30ce226dcd746ee45a"
     },
     {
-      "path": "void-runner/game.js",
-      "change": "modified",
-      "sha256": "40bc5089a5097d7e80ed0b95ca194d68d39c5935887423dd07913d31d691368c"
-    },
-    {
-      "path": "void-runner/hangar.js",
-      "change": "modified",
-      "sha256": "aea1c118b3031be1016a2aec634ece7c93d8d03712aa90dc9ef5b883868b6f46"
-    },
-    {
-      "path": "void-runner/mission-log.js",
-      "change": "modified",
-      "sha256": "c168d87d9597fbdeebfa698bf198147c0977d197e56766ff395269f49fd6640e"
-    },
-    {
-      "path": "void-runner/preparation.js",
-      "change": "modified",
-      "sha256": "7b4bdd47bfffd18932594540997fe67942dbaf7d0521c8100b93429a446271da"
+      "path": "void-runner/opening-scene.js",
+      "change": "added",
+      "sha256": "8ac126fc0b74bb0befac8ad28ca9d4cf5485fae00fbac05fd84afd63df19e007"
     },
     {
       "path": "void-runner/progression.js",
-      "change": "added",
-      "sha256": "9baabdf9daee5cb2ffeb2babc6dc3e5dbd16744e0f75420912c24705177c1f1b"
+      "change": "modified",
+      "sha256": "4028eb596f9d734810bd88dc7ff3fd968cb20548b2ecbdd218a2757e24b06771"
     },
     {
       "path": "void-runner/prologue-integration.js",
-      "change": "added",
-      "sha256": "61df7611ba546b7af281a6f16b22fbda4457819c7be7aadbb600c5eff9271ba2"
+      "change": "modified",
+      "sha256": "7b6dd4db7944c421ec3f55f6003d1bb36e5e03990eedd3f7925a02432b91a8be"
     },
     {
       "path": "void-runner/prologue.css",
-      "change": "added",
-      "sha256": "b87731029ccd8b16a05cae59209c158620ed6bc36c6e84c34059cb7c88df6d3e"
-    },
-    {
-      "path": "void-runner/ships.js",
       "change": "modified",
-      "sha256": "0d0d01d12425f5608f2135f662d687739e837b09c931ce1052ad4768cb94508f"
-    },
-    {
-      "path": "void-runner/story-scenes.js",
-      "change": "modified",
-      "sha256": "eac030281059af0c69ee52827fabc54e999597972d1e0d45d27edc1dbf64e6b9"
-    },
-    {
-      "path": "void-runner/story.js",
-      "change": "modified",
-      "sha256": "3257989185597f6e40cf79a284e08a928af2dd204cd2c5b99114de034731c09c"
-    },
-    {
-      "path": "void-runner/universe.js",
-      "change": "modified",
-      "sha256": "e8be475038c39fcb15b5ef769e9b09eba927cd311783a9c0e9b1e25c905a8320"
-    },
-    {
-      "path": "void-runner/warp.js",
-      "change": "modified",
-      "sha256": "50cedb3847530f2a7818f4630f291727ec350c9e97d84e71025836710978a3cb"
+      "sha256": "e8db29ab0ed2a1e8deb85e5709556fac03643caede8334ce50d2b9d779b1bde5"
     },
     {
       "path": "void-runner/world-integration.js",
       "change": "modified",
-      "sha256": "2f1d585c4cbb40f89f0b9c2517e877592d1196a174fe34a772e017f9cbe1f407"
+      "sha256": "3cc2c633464ead59ed3f673d2b31bc53245154ee152e708c7d3533495dce6df7"
     },
     {
       "path": "void-runner.html",
       "change": "modified",
-      "sha256": "8b6b3ceba651cc8948585c1885dff0216643411eef342e75d4fe0bbdd68a2ded"
-    },
-    {
-      "path": "void_runner_api.py",
-      "change": "modified",
-      "sha256": "3c179e1645d8d18e13d6008cbcab7a83e87d15d0d7ae29c6583ed47180bdf71e"
+      "sha256": "c41f75a1996f455dce7e382bf0cc29429b48740aa4d960f0bc6fa678a53d77db"
     },
     {
       "path": "void_runner_progression.py",
-      "change": "added",
-      "sha256": "42b76db75abb6ac05f59642b8d739565d3ba6ee7985288d55dd26a88a631777c"
+      "change": "modified",
+      "sha256": "9f67dc479985642bc0487daa34399c872d57dcc00e1360ed9f473a6dc7fb2e10"
     }
   ]
 }

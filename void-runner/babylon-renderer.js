@@ -217,7 +217,13 @@
       dark = material('hull-dark', '#202e36'),
       light = material('engine', allegiance === 'hostile' ? '#ed765b' : '#60d7d0', true);
     node.parent = parent;
-    box('hull', [1.4, .65, 4], [0, 0, 0], metal, node);
+    if(name==='starter'){
+      const positions=[],indices=[],normals=[],uvs=[],rings=[[-2,.52,.22],[-1.3,.78,.34],[.65,.64,.32],[2.15,.16,.12]];
+      for(const [z,w,h]of rings)for(let i=0;i<8;i++){const a=i*Math.PI/4+Math.PI/8;positions.push(Math.cos(a)*w,Math.sin(a)*h,z);uvs.push(i/8,(z+2)/4.15);}
+      for(let r=0;r<3;r++)for(let i=0;i<8;i++){const a=r*8+i,c=r*8+(i+1)%8;indices.push(a,c,c+8,a,c+8,a+8);}for(let i=1;i<7;i++){indices.push(0,i+1,i,24,24+i,24+i+1);}
+      for(let i=0;i<indices.length;i+=3)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];b.VertexData.ComputeNormals(positions,indices,normals);const hull=new b.Mesh('kestrel-hull',scene),data=new b.VertexData();Object.assign(data,{positions,indices,normals,uvs});data.applyToMesh(hull);hull.parent=node;hull.material=metal;hull.convertToFlatShadedMesh();
+      for(const side of [-1,1]){const stripe=box('service-stripe',[.035,.28,1.5],[side*.66,.05,-.1],material('kestrel-stripe','#a77551'),node);stripe.rotation.y=side*.07;for(let z=-1.5;z<.5;z+=.35)box('service-vent',[.035,.05,.16],[side*.7,.1,z],dark,node);}
+    }else box('hull', [1.4, .65, 4], [0, 0, 0], metal, node);
     box('canopy', [.85, .32, 1.3], [0, .44, .65], material('glass', '#182b3c'), node);
     for (const side of [-1, 1]) {
       const wing = box('swept-wing', [2.3, .18, 1.6], [side * 1.3, -.1, -.6], metal, node);
@@ -317,6 +323,7 @@
     t.update();
     return t;
   }
+  let surfaceHandle=null;
   async function prepareSpace(id, shipTypes = ['raider', 'interceptor', 'gunship', 'courier', 'security', 'shuttle'], task,extraModels={}) {
     if(!task) return VoidPreparation.run(t=>prepareSpace(id,shipTypes,t,extraModels));
     await initialize(task);
@@ -335,6 +342,7 @@
     scene.clearColor = new b.Color4(.008, .018, .035, 1);
     await task.wait('assets',()=>VoidAssets.prepare(scene, {
       ...extraModels,
+      ...(id==='vesper'?Object.fromEntries(Object.entries(VoidOpening.hooks).filter(([,d])=>d.src).map(([key,d])=>['opening:'+key,d])):{}),
       ...Object.fromEntries(Object.entries(VoidAssets.models.ships).filter(([key]) => shipTypes.includes(key)).map(([key, value]) => ['ship:' + key, value])),
       ...(VoidAssets.models.stations[id] ? {
         ['station:' + id]: VoidAssets.models.stations[id]
@@ -391,7 +399,13 @@
       ring.rotation.x = .4;
       ring.scaling.y = .025;
     }
-    station = stationModel(id, spaceRoot);
+    if(id==='vesper'){
+      station=new b.TransformNode('vesper-surface',scene);station.parent=spaceRoot;
+      surfaceHandle=VoidOpeningScene.build({scene,parent:station,quality,shadowLight:scene.getLightByName('sun'),characterModel,shipModel,state,camera});
+      surfaceHandle.ship.setEnabled(false); // The player is now inside this ship.
+      sky.setEnabled(false);planet.setEnabled(false);
+      for(const mesh of spaceRoot.getChildMeshes())if(mesh.name==='star')mesh.setEnabled(false);
+    }else station = stationModel(id, spaceRoot);
     station.position.set(0, 0, -100);
     rockSource = b.MeshBuilder.CreateIcoSphere('rock-source', {
       radius: 1,
@@ -429,6 +443,7 @@
   }
 
   function clearSpace() {
+    surfaceHandle?.dispose();surfaceHandle=null;
     disposeNode(spaceRoot);
     spaceRoot = null;
     rocks = [];
@@ -532,7 +547,13 @@
     } else if(atOrigin){station.rotation.y=Math.PI;station.position.copyFrom(vector(snapshot.departureStation || {x:0,y:4,z:-15}));}
     station.metadata?.arrays?.forEach((n,i)=>n.rotation.z=.14+Math.sin(snapshot.time*.015+i*.2)*.08);
     if(station.metadata?.doors)station.metadata.doors.forEach((d,i)=>d.position.x=(i?1:-1)*(5+10*(phase==='departure'?Math.min(1,(snapshot.route.departure||0)/1.2):1)));
-    diagnostics.stationVisible=station.isEnabled();
+    if(surfaceHandle){
+      const lift=atOrigin?3+Math.pow(Math.min(4,snapshot.route.departure||0),2)*4:Math.max(3,45-(snapshot.approach||0)*40);
+      station.rotation.y=0;station.position.set(-12,-lift,atOrigin?(snapshot.departureStation?.z||-15)-10:-25);
+      rocks.forEach(mesh=>mesh.setEnabled(false));
+    }
+    diagnostics.surfaceDeparture=!!surfaceHandle&&atOrigin;
+    diagnostics.stationVisible=!surfaceHandle&&station.isEnabled();
     diagnostics.stationPosition=station.position.asArray();
     const present = new Set();
     for (const e of snapshot.ships) {
@@ -652,6 +673,7 @@
     });
     return mesh;
   }
+  let openingHandle=null;
   async function prepareRoom(def, task) {
     if(!task)return VoidPreparation.run(t=>prepareRoom(def,t));
     if(def.kind==='station')return prepareStation(def,task);
@@ -661,6 +683,14 @@
     roomRoot = new b.TransformNode('room', scene);
     room = def;
     camera.unfreezeProjectionMatrix();
+    if(def.kind==='workshop'){
+      const definitions=Object.fromEntries(Object.entries(VoidOpening.hooks).filter(([,d])=>d.src).map(([id,d])=>['opening:'+id,d]));
+      if(VoidAssets.models.ships.starter)definitions['ship:starter']=VoidAssets.models.ships.starter;
+      await task.wait('assets',()=>VoidAssets.prepare(scene,definitions,task),'workshop models');
+      openingHandle=VoidOpeningScene.build({scene,parent:roomRoot,quality,shadowLight:scene.getLightByName('sun'),characterModel,shipModel,state,camera});
+      await task.wait('scene',()=>scene.whenReadyAsync(),'workshop');
+      diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
+    }
     const definitions = Object.fromEntries((def.models || []).map(m => [m.id, m]));
     const hullId=def.ship||'starter';if(VoidAssets.models.ships[hullId])definitions['ship:'+hullId]=VoidAssets.models.ships[hullId];
     await task.wait('assets',()=>VoidAssets.prepare(scene, definitions,task),'room models');
@@ -728,6 +758,7 @@
   }
 
   function clearRoom() {
+    openingHandle?.dispose();openingHandle=null;
     for (const s of signs) {
       s.texture.dispose();
       s.material.dispose();
@@ -742,7 +773,7 @@
     if (!roomRoot) return null;
     resize(width, height);
     camera.unfreezeProjectionMatrix();
-    camera.fov = 1.05;
+    camera.fov = openingHandle&&camera.metadata?.openingAim ? .8 : 1.05;
     camera.position.set(player.x, player.y, player.z);
     camera.upVector.set(0, 1, 0);
     camera.rotation.set(player.pitch, player.yaw, 0);
@@ -751,8 +782,9 @@
       s.material.alpha = s.def.animation === 'flicker' ? .72 + Math.sin(time * 13) * .07 : s.def.animation === 'pulse' ? .8 + Math.sin(time) * .08 : .9;
       if (s.def.animation === 'rotate') s.mesh.rotation.y = time * .2;
     }
-    for(const actor of actors){if(actor.traffic){actor.node.position.set((actor.lane%2?-1:1)*(25+actor.lane*8),5+actor.lane*2,((time*(5+actor.lane)+actor.lane*37)%140)-55);actor.node.rotation.y=0;}else{actor.node.rotation.y=Math.sin(time*.3+actor.base[0])*.13;if(actor.ambient)actor.node.position.z=actor.base[2]+Math.sin(time*.2+actor.base[0])*1.2;}}
+    for(const actor of actors){if(openingHandle&&actor.node===openingHandle.mara)continue;if(actor.traffic){actor.node.position.set((actor.lane%2?-1:1)*(25+actor.lane*8),5+actor.lane*2,((time*(5+actor.lane)+actor.lane*37)%140)-55);actor.node.rotation.y=0;}else{actor.node.rotation.y=Math.sin(time*.3+actor.base[0])*.13;if(actor.ambient)actor.node.position.z=actor.base[2]+Math.sin(time*.2+actor.base[0])*1.2;}}
     roomRoot.metadata?.arrays?.forEach((n,i)=>n.rotation.z=.14+Math.sin(time*.015+i*.2)*.08);
+    openingHandle?.tick(time);
     scene.render();
     diagnostics.frames++;
     return surface;
@@ -782,6 +814,7 @@
     get quality() {
       return quality;
     },
+    get opening(){return openingHandle;},
     get scene() {
       return scene;
     }

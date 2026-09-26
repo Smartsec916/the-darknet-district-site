@@ -24,4 +24,4 @@ test('GLB validation rejects remote asset references and implicit decoder depend
  assert.equal(Assets.validate(file({asset:{version:'2.0'},buffers:[]})).asset.version,'2.0');assert.throws(()=>Assets.validate(file({images:[{uri:'https://remote.invalid/texture.png'}]})),/self-contained/);assert.throws(()=>Assets.validate(file({extensionsUsed:['KHR_draco_mesh_compression']})),/decoder/);assert.throws(()=>Assets.validate(new ArrayBuffer(4)));
 });
 
-function trained(s){const P=require('../void-runner/progression.js');for(const f of P.flags)s.progression.flags[f]=true;s.progression.completed=true;s.progression.equipment.owned=['cooling'];s.missileOfferSeen=true;s.progression.checkpoint={location:s.location};return s;}
+function trained(s){s.progression.opening={version:2,hologram:true,pistol:true,cans:[0,1,2,3]};s.progression.personal.weapon='ward-pistol';const P=require('../void-runner/progression.js');for(const f of P.flags)s.progression.flags[f]=true;s.progression.completed=true;s.progression.equipment.owned=['cooling'];s.missileOfferSeen=true;s.progression.checkpoint={location:s.location};return s;}
