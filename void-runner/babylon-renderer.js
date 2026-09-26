@@ -239,10 +239,14 @@
     return node;
   }
 
-  function stationModel(id, parent) {
+  function stationModel(id, parent, exterior=false) {
+    if(id==='meridian'&&exterior){const imported=VoidAssets.instance('station:meridian',parent);if(imported){imported.metadata={identity:'meridian',source:'shared-glb'};return imported;}return VoidMeridian.build(scene,parent);}
     const b=B(),node=new b.TransformNode('station-'+id,scene);node.parent=parent;
     const def=VoidStationLayouts.layout(id),hull=material('station',def.color),metal=material('truss','#343e47'),trim=material('navigation','#a9d7c5',true);
     for(const p of def.shell)box(p.id,p.size,p.position,p.kind==='glass'?material('window','#6cabbc',false,.12):p.kind==='floor'?material('floor','#29333c'):hull,node);
+    if(id==='meridian'){
+      const exterior=VoidMeridian.build(scene,node,{occupied:true});node.metadata={layout:id,exterior};return node;
+    }
     // Open physical aperture at z=-26; split pressure doors slide into the jambs.
     const doors=[-1,1].map(side=>box('hangar-door',[9.8,7,.35],[side*15,3.5,-26],metal,node));
     const arrays=[];
@@ -299,6 +303,7 @@
   }
 
   function planetTexture(id) {
+    if(id==='meridian')return VoidMeridian.planetTexture(scene);
     const b = B(),
       t = new b.DynamicTexture('planet-map-' + id, {
         width: 512,
@@ -344,8 +349,8 @@
       ...extraModels,
       ...(id==='vesper'?Object.fromEntries(Object.entries(VoidOpening.hooks).filter(([,d])=>d.src).map(([key,d])=>['opening:'+key,d])):{}),
       ...Object.fromEntries(Object.entries(VoidAssets.models.ships).filter(([key]) => shipTypes.includes(key)).map(([key, value]) => ['ship:' + key, value])),
-      ...(VoidAssets.models.stations[id] ? {
-        ['station:' + id]: VoidAssets.models.stations[id]
+      ...((VoidAssets.models.stations[id]||(id==='meridian'&&VoidMeridian.model.src?VoidMeridian.model:null)) ? {
+        ['station:' + id]: VoidAssets.models.stations[id]||VoidMeridian.model
       } : {})
     },task), 'registered space models');
     const texturePath = ['meridian', 'kepler', 'undertow', 'foundry'].includes(id) ? id : 'kepler';
@@ -405,7 +410,7 @@
       surfaceHandle.ship.setEnabled(false); // The player is now inside this ship.
       sky.setEnabled(false);planet.setEnabled(false);
       for(const mesh of spaceRoot.getChildMeshes())if(mesh.name==='star')mesh.setEnabled(false);
-    }else station = stationModel(id, spaceRoot);
+    }else station = stationModel(id, spaceRoot,true);
     station.position.set(0, 0, -100);
     rockSource = b.MeshBuilder.CreateIcoSphere('rock-source', {
       radius: 1,
@@ -443,6 +448,7 @@
   }
 
   function clearSpace() {
+    station?.metadata?.dispose?.();
     surfaceHandle?.dispose();surfaceHandle=null;
     disposeNode(spaceRoot);
     spaceRoot = null;
@@ -758,6 +764,7 @@
   }
 
   function clearRoom() {
+    roomRoot?.metadata?.exterior?.metadata?.dispose?.();
     openingHandle?.dispose();openingHandle=null;
     for (const s of signs) {
       s.texture.dispose();
@@ -801,7 +808,13 @@
     for (const m of Object.values(materials)) m.dispose(false, true);
     materials = {};
   }
-  root.VoidBabylon = {
+  let menuHandle=null,menuPromise=null,menuTask=null,menuGeneration=0;
+  function releaseMenu(){menuGeneration++;menuTask?.cancel();menuHandle?.dispose();menuHandle=null;diagnostics.menuReady=false;}
+  function prepareMenu(){if(menuHandle)return Promise.resolve();if(menuPromise)return menuPromise;const generation=menuGeneration;
+    menuPromise=VoidPreparation.run(async task=>{menuTask=task;await initialize(task);const next=await VoidMeridian.menu(engine,quality,task);if(generation!==menuGeneration){next.dispose();return;}menuHandle=next;diagnostics.menuReady=true;diagnostics.menuMeshes=next.scene.meshes.length;}).finally(()=>{menuTask=null;menuPromise=null;});return menuPromise;
+  }
+  function renderMenu(width,height,time,reduced){if(!menuHandle)return null;resize(width,height);menuHandle.render(time,width,height,reduced);return surface;}
+  root.VoidBabylon = {prepareMenu,renderMenu,releaseMenu,get menuScene(){return menuHandle?.scene;},
     initialize,
     prepareSpace,
     prepareRoom,

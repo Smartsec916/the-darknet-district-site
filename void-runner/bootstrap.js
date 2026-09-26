@@ -3,7 +3,7 @@ const VoidStartup=window.VoidStartup={started:false,starts:0,ready:null};
 VoidStartup.ready=(async()=>{
  VoidLoading.stage('data','GAME DATA READY');
  VoidLoading.stage('campaign','CAMPAIGN RESTORED · LOADING ESSENTIAL ART');
- await VoidBabylon.prepareSpace(state.location);
+ await VoidBabylon.prepareMenu();
  modernMenuReady=true;
  VoidLoading.stage('art','MODERN ENVIRONMENT READY');
  if(VoidStartup.started)return true;
