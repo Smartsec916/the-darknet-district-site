@@ -48,4 +48,4 @@ test('legacy reputation is ignored without losing campaign or equipment',()=>{
  }
 });
 
-function trained(s){const P=require('../void-runner/progression.js');for(const f of P.flags)s.progression.flags[f]=true;s.progression.completed=true;s.progression.equipment.owned=['cooling'];s.missileOfferSeen=true;s.progression.checkpoint={location:s.location};return s;}
+function trained(s){s.progression.opening={version:2,hologram:true,pistol:true,cans:[0,1,2,3]};s.progression.personal.weapon='ward-pistol';const P=require('../void-runner/progression.js');for(const f of P.flags)s.progression.flags[f]=true;s.progression.completed=true;s.progression.equipment.owned=['cooling'];s.missileOfferSeen=true;s.progression.checkpoint={location:s.location};return s;}

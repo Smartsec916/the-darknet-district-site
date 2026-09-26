@@ -9,3 +9,16 @@
 @media(pointer:coarse){#flight-lesson-controls:not([hidden]){display:flex;position:fixed;left:5%;right:5%;bottom:65px;flex-wrap:wrap;justify-content:center;gap:4px;z-index:23}#flight-lesson-controls button{font-size:10px;padding:7px}#tutorial-prompt{bottom:170px}#systems-hud{bottom:132px}}
 #walking-ui{bottom:130px}body:has(#ground-controls:not([hidden])) #tutorial-prompt{bottom:200px}
 @media(pointer:coarse){#walking-ui{bottom:125px}body:has(#ground-controls:not([hidden])) #tutorial-prompt{bottom:300px}body:has(#ground-controls:not([hidden])) #systems-hud{bottom:102px}}
+
+/* One contextual line leaves the workshop view open. Touch retains explicit actions. */
+#tutorial-prompt{background:rgba(10,18,22,.68);border:0;border-left:2px solid #d0b885;padding:8px 12px;max-width:min(580px,85vw);font-size:12px;box-shadow:none}
+@media(pointer:fine){#ground-controls{display:none!important}}
+@media(max-width:600px){#tutorial-prompt{top:65px;bottom:auto;font-size:11px}#systems-hud{font-size:10px}#ground-controls{max-width:65vw;flex-wrap:wrap}}
+
+@media(pointer:fine){body:has(#ground-controls:not([hidden])) #tutorial-prompt{bottom:85px;width:auto}#walking-ui{bottom:28px}#walking-caption{background:transparent;font-size:11px}#systems-hud{bottom:18px}}
+
+@media(pointer:fine){#walking-caption{display:none}body:has(#ground-controls:not([hidden])) #tutorial-prompt{bottom:106px}#walking-interact:disabled{border:0;background:transparent;font-size:11px;color:#a7b2af}}
+
+#tutorial-prompt{height:fit-content}
+@media(max-width:600px){body:has(#ground-controls:not([hidden])) #tutorial-prompt{top:90px;bottom:auto!important;left:18px;right:18px;transform:none;width:auto;max-width:none}#systems-hud{max-width:80vw}}
+@media(pointer:coarse) and (max-width:600px){#ground-controls{width:94vw;max-width:94vw;justify-content:center;bottom:10px}#walking-ui{bottom:138px}body:has(#ground-controls:not([hidden])) #systems-hud{top:148px;bottom:auto;left:18px}#ground-controls button{padding:8px;font-size:9px;min-height:40px}}

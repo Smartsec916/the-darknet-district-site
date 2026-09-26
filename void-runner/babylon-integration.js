@@ -9,6 +9,7 @@ try {
   const stored = JSON.parse(localStorage.getItem('void-runner-graphics-v1'));
   if (stored) {
     // Old renderer preferences migrate to authoritative Babylon.
+    if(Number.isFinite(stored.lookSensitivity))VoidExplorer.config.sensitivity=Math.max(.0005,Math.min(.006,stored.lookSensitivity));
     if (VoidBabylon.presets[stored.quality]) VoidGraphics.quality = stored.quality;
   }
 } catch {}
@@ -40,7 +41,7 @@ function graphicsSave() {
   try {
     localStorage.setItem('void-runner-graphics-v1', JSON.stringify({
       renderer: VoidGraphics.renderer,
-      quality: VoidGraphics.quality
+      quality: VoidGraphics.quality,lookSensitivity:VoidExplorer.config.sensitivity
     }));
   } catch {}
 }
@@ -158,9 +159,10 @@ arrive = function() {
 const migrationSettings = settingsPage;
 settingsPage = function() {
   migrationSettings();
-  screen.querySelector('.settings-panel').insertAdjacentHTML('beforeend', `<h2>Graphics</h2><label>Renderer<select id="renderer-setting"><option value="babylon" ${VoidGraphics.renderer==='babylon'?'selected':''}>Babylon 3D</option></select></label><label>Quality<select id="quality-setting">${Object.keys(VoidBabylon.presets).map(q=>`<option ${q===VoidGraphics.quality?'selected':''}>${q}</option>`).join('')}</select></label><p class="fine">Renderer changes apply on the next departure. Walking locations use Babylon. Models are prototype blockouts based on the existing artwork.</p><h2>Radio</h2><label>Local station<select id="radio-setting"><option value="">OFF / LOCATION MUSIC</option>${VoidRadio.available().map(([id,s])=>`<option value="${id}" ${VoidRadio.selection===id?'selected':''}>${s.name}</option>`).join('')}</select></label><p id="radio-status" class="fine">${escapeText(VoidRadio.status)}</p>`);
+  screen.querySelector('.settings-panel').insertAdjacentHTML('beforeend', `<h2>Graphics</h2><label>Renderer<select id="renderer-setting"><option value="babylon" ${VoidGraphics.renderer==='babylon'?'selected':''}>Babylon 3D</option></select></label><label>Quality<select id="quality-setting">${Object.keys(VoidBabylon.presets).map(q=>`<option ${q===VoidGraphics.quality?'selected':''}>${q}</option>`).join('')}</select></label><p class="fine">Quality controls resolution and effects. Workshop shadow changes apply on the next visit.</p><h2>Walking controls</h2><label>Mouse sensitivity<input id="walking-sensitivity" type="range" min="0.0005" max="0.006" step="0.0001" value="${VoidExplorer.config.sensitivity}"></label><p class="fine">WASD · Shift sprint · C / Ctrl crouch · Space jump · E interact · 1 draw · right mouse aim · left mouse fire · R reload · I inventory</p><h2>Radio</h2><label>Local station<select id="radio-setting"><option value="">OFF / LOCATION MUSIC</option>${VoidRadio.available().map(([id,s])=>`<option value="${id}" ${VoidRadio.selection===id?'selected':''}>${s.name}</option>`).join('')}</select></label><p id="radio-status" class="fine">${escapeText(VoidRadio.status)}</p>`);
 };
 screen.addEventListener('change', e => {
+  if(e.target.id==='walking-sensitivity'){VoidExplorer.config.sensitivity=Math.max(.0005,Math.min(.006,Number(e.target.value)||.0022));graphicsSave();}
   if (e.target.id === 'renderer-setting') {
     VoidGraphics.renderer = e.target.value;
     graphicsSave();
@@ -180,7 +182,7 @@ screen.addEventListener('change', async e => {
 async function enterWalking(id) {
   const def = VoidExplorationData.locations[id];
   if (!def) return;
-  if (id !== 'hangar' && !VoidExplorationData.solAvailable(state)) return;
+  if (id !== 'hangar' && def.kind!=='workshop' && !VoidExplorationData.solAvailable(state)) return;
   if (VoidGraphics.busy) return;
   VoidGraphics.busy = true;
   const token = ++preparationGeneration;
@@ -192,7 +194,7 @@ async function enterWalking(id) {
       x: def.spawn[0],
       y: def.spawn[1],
       z: def.spawn[2],
-      yaw: 0,
+      yaw: def.yaw||0,
       pitch: 0
     };
     walkingLocation = def;
@@ -302,7 +304,7 @@ walkingUI.addEventListener('pointerdown', e => {
 for (const event of ['pointerup', 'pointercancel']) walkingUI.addEventListener(event, e => walkingKeys.delete(e.target.dataset.walk));
 addEventListener('keydown', e => {
   if (!['walking', 'transit3d'].includes(mode) || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
-  if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'ShiftRight', 'KeyQ', 'KeyR', 'KeyX'].includes(e.code)) {
+  if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'ShiftRight', 'KeyC', 'ControlLeft', 'ControlRight', 'KeyQ', 'KeyR', 'KeyX'].includes(e.code)) {
     e.preventDefault();
     walkingKeys.add(e.code);
   }
@@ -336,8 +338,8 @@ canvas.addEventListener('pointermove', e => {
   if (!locked && !lookPointer) return;
   const dx = locked ? e.movementX : e.clientX - lookPointer.x,
     dy = locked ? e.movementY : e.clientY - lookPointer.y;
-  walker.yaw += dx * .0025;
-  walker.pitch = FM.clamp(walker.pitch + dy * .0025, -1.35, 1.35);
+  walker.yaw += dx * VoidExplorer.config.sensitivity;
+  walker.pitch = FM.clamp(walker.pitch + dy * VoidExplorer.config.sensitivity, -1.35, 1.35);
   if (lookPointer) lookPointer = {
     x: e.clientX,
     y: e.clientY
@@ -374,6 +376,7 @@ update = function(dt) {
     const moving = {
       x: Number(walkingKeys.has('KeyD')) - Number(walkingKeys.has('KeyA')),
       z: Number(walkingKeys.has('KeyW')) - Number(walkingKeys.has('KeyS')),
+      crouch: walkingKeys.has('KeyC')||walkingKeys.has('ControlLeft')||walkingKeys.has('ControlRight'),
       run: walkingKeys.has('ShiftLeft') || walkingKeys.has('ShiftRight')
     };
     VoidExplorer.step(walker, moving, dt, walkingLocation);

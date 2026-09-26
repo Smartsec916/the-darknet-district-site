@@ -27,6 +27,7 @@ async function resumeSavedWorld(){
 const physicalResumeWalking=resumeWalking;
 resumeWalking=function(){if(walkingLocation?.kind==='station'&&walkingLocation.ship!==VoidShips.get(state).id)return enterWalking('hangar');return physicalResumeWalking();};
 enterWalking=async function(id){
+ if(id==='vesper'||id==='hangar'&&state.location==='vesper'){VoidExplorationData.locations.vesper=VoidOpening.layout();await worldEnterWalking('vesper');if(mode==='walking'){state.universe.station={location:'vesper'};save();}return;}
  if(id==='hangar'||VoidUniverse.locations[id]){
   const loc=id==='hangar'?state.location:id;
   const def=VoidStationLayouts.layout(loc,VoidShips.get(state).id);def.name=C.stations[loc]?.name||loc;VoidExplorationData.locations.hangar=def;
