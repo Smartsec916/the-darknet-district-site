@@ -54,6 +54,8 @@ title = function() {
 
 function openGameMenu() {
   if (mode === 'menu') return;
+  const owner=mode==='play'?VoidFlightSession.active:null;
+  if(mode==='play'&&!VoidFlightSession.pause(owner))return;
   const snapshot = {
     mode,
     view,
@@ -63,6 +65,7 @@ function openGameMenu() {
     hidden: screen.classList.contains('hidden')
   };
   VoidMenu.returnTo = () => {
+    if(owner&&!VoidFlightSession.resume(owner))return;
     leaveMenu();
     mode = snapshot.mode;
     view = snapshot.view;
@@ -154,6 +157,7 @@ function mainAction(a) {
     }
   } else if (a === 'account-main-menu') renderMainMenu();
   else if (a === 'menu-logout') {
+    VoidFlightSession.end();
     VoidMenu.returnTo = null;
     window.VoidAccount?.request?.('sign-out');
   } else if (a === 'bindings-reset') {
@@ -206,7 +210,7 @@ addEventListener('keydown', e => {
     else openGameMenu();
     return;
   }
-  if (mode !== 'play') return;
+  if (mode !== 'play' || !VoidFlightSession.running()) return;
   e.preventDefault();
   VoidInput.held.add(e.code);
   if (e.repeat) return;
@@ -218,7 +222,7 @@ const menuUpdate = update;
 update = function(dt) {
   menuUpdate(dt);
   VoidAudio.scene(mode === 'menu' ? 'menu' : mode === 'play' ? 'flight' : view === 'bar' ? 'bar' : state
-    .location, mode === 'play' && enemies.some(VoidStory.hostile), mode === 'play' && hp < C.stats(state)
+    .location, mode === 'play' && enemies.some(VoidStory.hostile), mode === 'play' && hp < VoidFlightCraft.stats()
     .hull * .25);
   VoidAudio.tick(dt);
 };

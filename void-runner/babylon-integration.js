@@ -63,24 +63,27 @@ function preparationPanel(label) {
   const cancelButton = screen.querySelector('[data-action="migration-cancel"]');
   setTimeout(() => { if(cancelButton?.isConnected) cancelButton.disabled=false; }, 800);
 }
-async function boundedPrepare(action) {
+function boundedPrepare(action) {
+  const token=preparationGeneration,owner=VoidFlightSession.active;
+  return VoidFlightSession.exclusive(async()=>{
+  if(token!==preparationGeneration)throw Error('Preparation cancelled.');
   try { return await VoidPreparation.run(action); }
   catch(error) {
     console.error('[VOID//RUNNER preparation]', {reason:error.message, error,
       renderer:VoidGraphics.renderer, activeRenderer, ...VoidBabylon.diagnostics,
       engineReady:VoidBabylon.diagnostics.ready, sceneReady:VoidBabylon.scene?.isReady(),
       phase:error.phase, asset:error.asset, elapsedMs:error.elapsedMs});
-    VoidBabylon.release();
+    if(!owner)VoidBabylon.release();
     throw error;
   }
+  });
 }
 const migrationLaunch = launch;
-launch = function() {
+launch = function prepareCampaignFlight() {
+  const owner=VoidFlightSession.active;
+  if(!VoidFlightSession.owns(owner))return;
   if (preparingLaunch) {
-    if (mode === 'preparing') return preparingLaunch;
-    const queuedToken = ++preparationGeneration;
-    preparationPanel('Preparing <em>departure.</em>');
-    return preparingLaunch.then(() => { if(queuedToken === preparationGeneration) return launch(); });
+    return preparingLaunch.then(() => { if(VoidFlightSession.owns(owner)) return prepareCampaignFlight(); });
   }
   ambientTraffic = VoidTraffic.create(() => 0);
   walker = walkingLocation = expedition = null;
@@ -102,7 +105,7 @@ launch = function() {
         if(token === preparationGeneration && $('preparation-status')) $('preparation-status').textContent='Exterior ready. Preparing departure artwork…';
 
       });
-      if (token !== preparationGeneration) return;
+      if (token !== preparationGeneration || !VoidFlightSession.owns(owner)) return;
       activeRenderer = 'babylon';
       VoidGraphics.error = null;
       preparedDestination = null;
@@ -123,8 +126,8 @@ launch = function() {
       panel('DEPARTURE PREPARATION FAILED', 'Departure <em>held.</em>', '<p>' + escapeText(error.message) + ' Your campaign is unchanged. Retry or return to the station.</p>', button('RETRY', 'launch') + button('RETURN TO STATION', 'dock', true));
     } finally {
       clearInterval(progressTimer);
-      if(token !== preparationGeneration) VoidBabylon.release();
-      VoidGraphics.busy = false;
+      // Release is owned by the serialized lifecycle handoff, never a stale finalizer.
+      if(token === preparationGeneration) VoidGraphics.busy = false;
       preparingLaunch = null;
     }
   })();
@@ -154,7 +157,7 @@ arrive = function() {
   const wasFlying = mode === 'play';
   migrationArrive();
   if (escortShip && current?.kind === 'escort' && ['arrival','dialogue'].includes(mode) && state.location === current.destination && !state.contract) escortShip.status = 'complete';
-  if(wasFlying && ['arrival','dialogue'].includes(mode)) {ambientTraffic.contacts=[];VoidBabylon.release();}
+  if(wasFlying && ['arrival','dialogue'].includes(mode)) {ambientTraffic.contacts=[];VoidFlightSession.end();}
 };
 const migrationSettings = settingsPage;
 settingsPage = function() {
@@ -201,11 +204,12 @@ async function enterWalking(id) {
     resumeWalking();
     VoidAudio.event('door');
   } catch (error) {
+    if(token!==preparationGeneration)return;
     walkingLocation = null;
     mode = 'dock';
     panel('LOCATION UNAVAILABLE', 'Access <em>held.</em>', '<p>' + escapeText(error.message) + '</p>', button('RETURN TO SHIP', 'dock'));
   } finally {
-    VoidGraphics.busy = false;
+    if(token===preparationGeneration)VoidGraphics.busy = false;
   }
 }
 
@@ -232,7 +236,6 @@ newJourney = function() {
   preparationGeneration++;
   walkingLocation = walker = expedition = escortShip = null;
   walkingKeys.clear();
-  VoidBabylon.release();
   migrationJourney();
 };
 
@@ -347,6 +350,8 @@ canvas.addEventListener('pointermove', e => {
 });
 const migrationUpdate = update;
 async function prepareDestination() {
+  const owner=VoidFlightSession.active;
+  if(!VoidFlightSession.owns(owner))return;
   const id = current.destination, token=++preparationGeneration;
   preparedDestination = id;
   mode = 'preparing-flight';VoidGraphics.busy=true;
@@ -356,7 +361,7 @@ async function prepareDestination() {
   screen.innerHTML = '<section class="opening-card"><p>WARP FIELD / SYNCHRONIZING DESTINATION</p></section>';
   try {
     await boundedPrepare(task => VoidBabylon.prepareSpace(id, undefined, task));
-    if (mode !== 'preparing-flight'||token!==preparationGeneration) return;
+    if (mode !== 'preparing-flight'||token!==preparationGeneration||!VoidFlightSession.owns(owner)) return;
     screen.classList.add('hidden');
     mode = 'play';
     last = performance.now();
@@ -365,6 +370,8 @@ async function prepareDestination() {
     mode = 'dock';
     flightUI(false);
     panel('WARP HELD', 'Destination <em>unavailable.</em>', '<p>' + escapeText(error.message) + ' The route checkpoint is saved.</p>', button('RETRY ROUTE', 'launch') + button('RETURN TO STATION', 'dock', true));
+    VoidGraphics.busy=false;
+    VoidFlightSession.end(owner);
   }finally{if(token===preparationGeneration)VoidGraphics.busy=false;}
 }
 update = function(dt) {

@@ -138,7 +138,59 @@
   function equip(s,id,verified=[]){const g={...content.gear,...content.creditGear,...S.equipment}[id];if(!g||!ownsEquipment(s,id,verified))return false;s.loadout[g.slot]=s.loadout[g.slot]===id?null:id;s.shipLoadouts[s.activeShip]={...s.loadout};return true;}
   function chooseDestination(s,id){if(!s.universe?.freeTravel||!U.destinations(s).includes(id)||!stations[id]||id===s.location)return false;s.destination=id;s.travel=null;return true;}
 
-  const api = { stations, contracts, allContracts, upgrades, fresh, restore, beginJourney, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination };
+  // Resolve the current campaign at each callback: loading/new journeys replace state.
+  function enemyHitConsequences(getState, persist) {
+    return {
+      beforeDamage() {
+        const s = getState();
+        if (typeof s.progression !== 'undefined') P.mark(s, 'laserCombat');
+      },
+      destroyed(enemy) {
+        const s = getState();
+        Story.emit(s, 'destroyTarget', enemy.contentId || enemy.className);
+        if (enemy.owner) s.story.characters[enemy.owner] = 'dead';
+        persist();
+      }
+    };
+  }
+  function missileFireConsequences(getState, persist) {
+    return {
+      fired(remaining) {
+        const s = getState();
+        s.progression.missiles = remaining;
+        P.mark(s, 'missileLocked');
+        P.mark(s, 'missileFired');
+        persist();
+      }
+    };
+  }
+  function pistolConsequences(getState, mark, persist, hitCan) {
+    return {
+      ammunition() {
+        const p = getState().progression.personal;
+        return {ammo:p.ammo, reserve:p.reserve};
+      },
+      ammunitionChanged(ammunition) {
+        const p = getState().progression.personal;
+        p.ammo = ammunition.ammo;
+        p.reserve = ammunition.reserve;
+      },
+      mark,
+      hitCan(id) { return hitCan(getState(), id); },
+      practiceComplete() { return getState().progression.opening.cans.length === 4; },
+      save: persist
+    };
+  }
+  function pistolHandlingConsequences(getState, mark) {
+    return {
+      drawChanged(drawn) { mark(drawn ? 'draw' : 'holster'); },
+      aimed() {
+        mark('aim');
+        if (getState().progression.personal.optic === 'red-dot') mark('sightAim');
+      }
+    };
+  }
+  const api = { stations, contracts, allContracts, upgrades, fresh, restore, beginJourney, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

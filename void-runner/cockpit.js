@@ -5,10 +5,10 @@ const flight={yaw:0,pitch:0,roll:0,yawRate:0,pitchRate:0,throttle:.8,mouseX:0,mo
 const flightBasis=()=>FM.basis(flight.yaw,flight.pitch,flight.roll);
 const flightPoint=o=>FM.project(o,flightBasis(),W,H);
 const cockpitLaunch=launch;
-launch=function(){VoidDevTools?.applyPending();cockpitLaunch();if(mode!=='play')return;Object.assign(flight,{yaw:0,pitch:0,roll:0,yawRate:0,pitchRate:0,throttle:.8,mouseX:0,mouseY:0,travel:0,nav:{x:0,y:0,z:140}});VoidPilotFlight.reset(flight);flight.route=trialGear?null:VoidWarp.restore(state.travel,state.location,current.destination,current.id||state.quest,current.enemies>0||['salvage','hazard','escort'].includes(current.kind));
+launch=function(){VoidDevTools?.applyPending();VoidFlightCraft.initialize();cockpitLaunch();if(mode!=='play')return;Object.assign(flight,{yaw:0,pitch:0,roll:0,yawRate:0,pitchRate:0,throttle:.8,mouseX:0,mouseY:0,travel:0,nav:{x:0,y:0,z:140}});VoidPilotFlight.reset(flight);flight.route=trialGear?null:VoidWarp.restore(state.travel,state.location,current.destination,current.id||state.quest,current.enemies>0||['salvage','hazard','escort'].includes(current.kind));
  // Modern departure has no bitmap asset dependency.
  if(flight.route){state.travel=flight.route;flight.nav={x:flight.route.vector.x*140,y:0,z:flight.route.vector.z*140};if(flight.route.encounter.state==='cleared')spawned=resolved=current.enemies;save();}
- resetMissileFlight();VoidCombatEffects.reset();$('route-status').textContent='DEPARTURE GUIDANCE';$('weapon').textContent=C.stats(state).piercing?'WRAITH / PIERCING':`PULSE MK ${state.upgrades.guns+1}`;flight.rocks=Array.from({length:34},(_,i)=>({x:(i%2?1:-1)*(28+random()*100),y:(random()-.5)*120,z:25+random()*300,size:1.5+random()*6,phase:random()*6}));announce('Cockpit online · '+VoidInput.label(VoidInput.bindings.fire)+' primary · '+VoidInput.label(VoidInput.bindings.missile)+' missile · '+VoidInput.label(VoidInput.bindings.pause)+' menu');};
+ resetMissileFlight();VoidCombatEffects.reset();$('route-status').textContent='DEPARTURE GUIDANCE';$('weapon').textContent=VoidFlightCraft.stats().piercing?'WRAITH / PIERCING':`PULSE MK ${VoidFlightCraft.upgrades().guns+1}`;flight.rocks=Array.from({length:34},(_,i)=>({x:(i%2?1:-1)*(28+random()*100),y:(random()-.5)*120,z:25+random()*300,size:1.5+random()*6,phase:random()*6}));announce('Cockpit online · '+VoidInput.label(VoidInput.bindings.fire)+' primary · '+VoidInput.label(VoidInput.bindings.missile)+' missile · '+VoidInput.label(VoidInput.bindings.pause)+' menu');};
 const cockpitUI=flightUI;
 flightUI=function(active){cockpitUI(active);document.body.classList.toggle('cockpit-flight',active);};
 aim=function(e){const rect=canvas.getBoundingClientRect();flight.mouseX=FM.clamp((e.clientX-rect.left-W/2)/(W*.3),-1,1);flight.mouseY=FM.clamp((e.clientY-rect.top-H*.44)/(H*.3),-1,1);};
@@ -20,13 +20,22 @@ const cockpitSpawn=spawnEnemy;
 spawnEnemy=function(){cockpitSpawn();const e=enemies[enemies.length-1],b=flightBasis();const spread=e.x*4;e.x=b.f.x*115+b.r.x*spread+b.u.x*e.y*3;e.y=b.f.y*115+b.r.y*spread+b.u.y*e.y*3;e.z=b.f.z*115+b.r.z*spread;const d=FM.unit({x:-e.x,y:-e.y,z:-e.z});e.velocity={x:d.x*19,y:d.y*19,z:d.z*19};e.passTime=0;e.armor*=VOID_BALANCE.enemyHull/2;e.maxArmor=e.armor;e.shield=VOID_BALANCE.enemyShield;e.maxShield=e.shield;VoidEnemyPilots.init(e,state.quest!=='open'?'rookie':current.tier>=3?'elite':current.tier>=1?'trained':'rookie',spawned);};
 function moveRelative(o,v,dt){o.x-=v.x*dt;o.y-=v.y*dt;o.z-=v.z*dt;}
 function spawnAhead(distance,lateral=0,vertical=0){const b=flightBasis();return {x:b.f.x*distance+b.r.x*lateral+b.u.x*vertical,y:b.f.y*distance+b.r.y*lateral+b.u.y*vertical,z:b.f.z*distance+b.r.z*lateral+b.u.z*vertical};}
-function hitEnemy(e,damage){if(!VoidStory.hostile(e))return;if(typeof state.progression!=='undefined')VoidProgression.mark(state,'laserCombat');if(!e.generator&&enemies.some(q=>q.generator&&!q.dead))return;const absorbed=Math.min(e.shield||0,damage);e.shield=(e.shield||0)-absorbed;e.armor-=damage-absorbed;VoidCombatEffects.explode(e,'impact');if(e.armor<=0){e.dead=true;resolved++;burst(e,e.boss?'#ff795f':'#ffbd69',e.boss?'large':'ship');VoidStory.emit(state,'destroyTarget',e.contentId||e.className);if(e.owner)state.story.characters[e.owner]='dead';save();}}
+const campaignEnemyHitConsequences=C.enemyHitConsequences(()=>state,()=>save());
+function hitEnemy(e,damage,consequences=campaignEnemyHitConsequences){
+ if(!VoidStory.hostile(e))return;
+ // Campaign tutorial marking historically precedes the generator damage block.
+ consequences?.beforeDamage?.();
+ if(!e.generator&&enemies.some(q=>q.generator&&!q.dead))return;
+ const absorbed=Math.min(e.shield||0,damage);e.shield=(e.shield||0)-absorbed;e.armor-=damage-absorbed;
+ VoidCombatEffects.explode(e,'impact');
+ if(e.armor<=0){e.dead=true;resolved++;burst(e,e.boss?'#ff795f':'#ffbd69',e.boss?'large':'ship');consequences?.destroyed?.(e);}
+}
 function cockpitEquipment(dt){
- const stats=C.stats(state);shieldDelay=Math.max(0,shieldDelay-dt);driveCooldown=Math.max(0,driveCooldown-dt);driveTime=Math.max(0,driveTime-dt);if(!shieldDelay)shieldHP=Math.min(stats.shield,shieldHP+dt*stats.shieldRegen);if(VoidInput.down('boost'))activateDrive();
+ const stats=VoidFlightCraft.stats();shieldDelay=Math.max(0,shieldDelay-dt);driveCooldown=Math.max(0,driveCooldown-dt);driveTime=Math.max(0,driveTime-dt);if(!shieldDelay)shieldHP=Math.min(stats.shield,shieldHP+dt*stats.shieldRegen);if(VoidInput.down('boost'))activateDrive();
  updateEquipmentHud();
 }
 function cockpitMission(dt,velocity){
- const stats=C.stats(state);
+ const stats=VoidFlightCraft.stats();
  droneClock-=dt;if(stats.drone&&droneClock<=0&&enemies.some(VoidStory.hostile)){const e=enemies.find(e=>e.generator&&VoidStory.hostile(e))||enemies.find(VoidStory.hostile);hitEnemy(e,stats.droneDamage);droneClock=stats.droneCooldown;}
  if(current.kind==='salvage'||current.kind==='hazard'){
   objectiveClock-=dt;if(objectiveClock<=0&&(current.kind==='hazard'?elapsed<current.duration:objectiveCount<3)){missionObjects.push({...spawnAhead(100,(random()-.5)*22,(random()-.5)*12),kind:current.kind,size:2,phase:random()*6});objectiveClock=current.kind==='salvage'?4:2.5;}
@@ -37,17 +46,17 @@ function cockpitMission(dt,velocity){
 }
 const cockpitIdleUpdate=update;
 update=function(dt){
- if(mode!=='play'){if(mode!=='pause')VoidCombatEffects.step(dt);VoidAudio.update(VoidShips.get(state),0,0,'idle',false);cockpitIdleUpdate(dt);return;}
+ if(mode!=='play'){if(mode!=='pause')VoidCombatEffects.step(dt);VoidAudio.update((globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)),0,0,'idle',false);cockpitIdleUpdate(dt);return;}
  VoidCombatEffects.step(dt);time+=dt;noticeTime-=dt;if(noticeTime<=0)$('notice').textContent='';damageTime=Math.max(0,damageTime-dt);cockpitEquipment(dt);
- const stats=C.stats(state),x=Number(VoidInput.down('yawRight'))-Number(VoidInput.down('yawLeft')),y=Number(VoidInput.down('pitchDown'))-Number(VoidInput.down('pitchUp'));
- if(!flight.route||['align','encounter'].includes(flight.route.phase))VoidPilotFlight.step(flight,{x:x||flight.mouseX,y:y||flight.mouseY,roll:Number(VoidInput.down('rollRight'))-Number(VoidInput.down('rollLeft')),throttle:Number(VoidInput.down('throttleUp'))-Number(VoidInput.down('throttleDown'))},dt,stats.flight,driveTime>0,state.upgrades.engines);
+ const stats=VoidFlightCraft.stats(),x=Number(VoidInput.down('yawRight'))-Number(VoidInput.down('yawLeft')),y=Number(VoidInput.down('pitchDown'))-Number(VoidInput.down('pitchUp'));
+ if(!flight.route||['align','encounter'].includes(flight.route.phase))VoidPilotFlight.step(flight,{x:x||flight.mouseX,y:y||flight.mouseY,roll:Number(VoidInput.down('rollRight'))-Number(VoidInput.down('rollLeft')),throttle:Number(VoidInput.down('throttleUp'))-Number(VoidInput.down('throttleDown'))},dt,stats.flight,driveTime>0,VoidFlightCraft.upgrades().engines);
  const b=flightBasis(),velocity=flight.velocity,speed=FM.length(velocity);flight.travel+=speed*dt;
  const route=flight.route,combat=!route||route.phase==='encounter';
  if(combat)elapsed+=dt*FM.clamp(flight.throttle/.8,.5,1.5);
  if(route){const changed=VoidWarp.step(route,dt,typeof navigationReveal!=='undefined'&&route.phase==='align'&&VoidNavigationReveal.opacity(navigationReveal)<=0?{x:0,y:0,z:0}:b.f,routeClear()&&(current.kind!=='hazard'||elapsed>=current.duration));if(changed){state.travel=route;save();VoidAudio.event(route.phase==='warp'?'warp':route.phase==='encounter'||route.phase==='arrived'?'exit':'charge',stats.ship);if(route.phase==='encounter'){VoidStory.emit(state,'enterCombat',current.id||state.quest);elapsed=0;announce('INTERDICTION · Clear the encounter to resume your route.');}if(route.phase==='align')announce('Route clear. Align with destination to resume warp.');}}
  if(!combat){VoidAudio.update(stats.ship,flight.throttle,Math.abs(flight.yawRate),route.phase,true);updateWarpHud();if(route.phase==='arrived'){elapsed=current.duration;approachTime+=dt;if(approachTime>=VoidWarp.config.approachSeconds)arrive();}return;}
  cockpitMission(dt,velocity);if(mode!=='play')return;
- shot-=dt;if((VoidInput.down('fire')||firing||touchFiring)&&shot<=0&&VoidProgression.consume(weaponBank,state)){shot=stats.cooldown;for(const offset of [-.65,.65])bullets.push({x:b.r.x*offset,y:b.r.y*offset,z:b.r.z*offset,vx:b.f.x*VOID_BALANCE.laserProjectileSpeed,vy:b.f.y*VOID_BALANCE.laserProjectileSpeed,vz:b.f.z*VOID_BALANCE.laserProjectileSpeed,damage:stats.damage,life:VOID_BALANCE.laserRange/VOID_BALANCE.laserProjectileSpeed});VoidAudio.event('laser',stats.ship);}
+ shot-=dt;if((VoidInput.down('fire')||firing||touchFiring)&&shot<=0&&VoidProgression.consume(weaponBank,state,VoidFlightCraft.systems())){shot=stats.cooldown;for(const offset of [-.65,.65])bullets.push({x:b.r.x*offset,y:b.r.y*offset,z:b.r.z*offset,vx:b.f.x*VOID_BALANCE.laserProjectileSpeed,vy:b.f.y*VOID_BALANCE.laserProjectileSpeed,vz:b.f.z*VOID_BALANCE.laserProjectileSpeed,damage:stats.damage,life:VOID_BALANCE.laserRange/VOID_BALANCE.laserProjectileSpeed});VoidAudio.event('laser',stats.ship);}
  spawnClock-=dt;if(spawned<current.enemies&&spawnClock<=0&&enemies.filter(VoidStory.hostile).length<4+Math.floor(current.tier)){spawnEnemy();spawnClock=Math.max(1.4,(current.duration-10)/Math.max(1,current.enemies));}
  for(const e of enemies){
   if(!VoidStory.hostile(e)){moveRelative(e,velocity,dt);continue;}e.age+=dt;const distance=FM.length(e);

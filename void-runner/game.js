@@ -7,7 +7,7 @@ let state = C.fresh(), hasSave = false, saveAvailable = true;
 try { const restored = C.restore(localStorage.getItem(SAVE_KEY)); if (restored) { state = restored; hasSave = true; } } catch { saveAvailable = false; }
 let mode = 'title', view = 'dock', W, H, D, time = 0;
 let approachTime = 0;
-let current = null, elapsed = 0, hp = 100, shot = 0, spawnClock = 0, spawned = 0, resolved = 0, damageTime = 0, noticeTime = 0;
+let current = null, elapsed = 0, spawnClock = 0, spawned = 0, resolved = 0, noticeTime = 0;
 let enemies = [], bullets = [], hostile = [], sparks = [], target = null, pointer = false, firing = false, touchFiring = false;
 canvas.tabIndex = 0;
 const player = { x: 0, y: 0, vx: 0, vy: 0, bank: 0, pitch: 0 };
@@ -23,14 +23,14 @@ function tone(...args) { globalThis.VoidAudio?.tone(...args); }
 function button(label, action, quiet = false, disabled = false) { return `<button data-action="${action}" class="${quiet ? 'quiet' : ''}" ${disabled ? 'disabled' : ''}>${label}</button>`; }
 function row(label, value) { return `<div class="data-row"><span>${label}</span><strong>${value}</strong></div>`; }
 function panel(eyebrow, title, body, actions, aside = '') { screen.innerHTML = `<div class="layout"><section class="panel lead"><div class="eyebrow">${eyebrow}</div><h1 tabindex="-1">${title}</h1>${body}<div class="actions">${actions}</div></section>${aside ? `<aside class="side-panel">${aside}</aside>` : ''}</div>`; screen.classList.remove('hidden'); screen.querySelector('h1')?.focus({ preventScroll: true }); }
-function shipCard() { const s = C.stats(state); return `<div class="eyebrow">YOUR SHIP</div><h2>${VoidShips.get(state).name}</h2><p>Elias’s old courier. Every repair bears your work. Now yours.</p>${row('Pulse cannons', 'MK ' + (state.upgrades.guns + 1))}${row('Hull integrity', s.hull)}${row('Vector thrusters', 'MK ' + (state.upgrades.engines + 1))}<p class="fine">${saveAvailable ? 'Progress saves on this browser at departures, deliveries, and purchases. Hull is serviced at every dock.' : 'Browser saving is unavailable. Progress lasts while this tab stays open.'}</p>`; }
-function hud() { const name=document.querySelector('header .wide strong');if(name)name.textContent=VoidShips.get(state).name; $('credits').textContent = state.credits.toLocaleString(); const max = C.stats(state).hull; $('hull').style.width = Math.max(0, hp / max * 100) + '%'; $('hull-number').textContent = `${Math.ceil(hp)} / ${max}`; $('weapon').textContent = `PULSE MK ${state.upgrades.guns + 1} / THRUST MK ${state.upgrades.engines + 1}`; }
+function shipCard() { const s = VoidFlightCraft.stats(); return `<div class="eyebrow">YOUR SHIP</div><h2>${VoidFlightCraft.ship().name}</h2><p>Elias’s old courier. Every repair bears your work. Now yours.</p>${row('Pulse cannons', 'MK ' + (VoidFlightCraft.upgrades().guns + 1))}${row('Hull integrity', s.hull)}${row('Vector thrusters', 'MK ' + (VoidFlightCraft.upgrades().engines + 1))}<p class="fine">${saveAvailable ? 'Progress saves on this browser at departures, deliveries, and purchases. Hull is serviced at every dock.' : 'Browser saving is unavailable. Progress lasts while this tab stays open.'}</p>`; }
+function hud() { const name=document.querySelector('header .wide strong');if(name)name.textContent=VoidFlightCraft.ship().name; $('credits').textContent = state.credits.toLocaleString(); const max = VoidFlightCraft.stats().hull; $('hull').style.width = Math.max(0, hp / max * 100) + '%'; $('hull-number').textContent = `${Math.ceil(hp)} / ${max}`; $('weapon').textContent = `PULSE MK ${VoidFlightCraft.upgrades().guns + 1} / THRUST MK ${VoidFlightCraft.upgrades().engines + 1}`; }
 let title, dock, bar, shop;
 function flightUI(on) { $('flight-hud').classList.toggle('hidden', !on); $('touch-controls').classList.toggle('hidden', !on); $('pause').classList.toggle('hidden', !on); if (!on) $('pause').textContent = 'PAUSE'; }
 function clearInput() { VoidInput.held.clear(); pointer = false; firing = false; touchFiring = false; target = null; }
 function launch() {
   current = C.flight(state); if (!current) return;
-  save(); clearInput(); mode = 'play'; elapsed = 0; approachTime = 0; shot = 0; spawned = 0; resolved = 0; spawnClock = VOID_BALANCE.firstRaiderDelay; damageTime = 0; hp = C.stats(state).hull;
+  save(); clearInput(); mode = 'play'; elapsed = 0; approachTime = 0; shot = 0; spawned = 0; resolved = 0; spawnClock = VOID_BALANCE.firstRaiderDelay; damageTime = 0; hp = VoidFlightCraft.stats().hull;
   enemies = []; bullets = []; hostile = []; sparks = []; VoidFlightPhysics.reset(player);
   screen.classList.add('hidden'); canvas.focus({ preventScroll: true }); flightUI(true); $('pause').textContent = 'PAUSE'; document.documentElement.style.setProperty('--mint', C.stations[current.destination].color);
   $('route-name').textContent = C.stations[current.destination].name.toUpperCase(); $('flight-objective').textContent = current.enemies ? 'Protect your cargo. Clear hostiles before docking.' : 'Follow the transit lane. Docking is automatic on arrival.';
@@ -61,6 +61,7 @@ screen.addEventListener('click', event => {
 
 });
 function newJourney(){
+  VoidFlightCraft.resetIdle();
   state=C.fresh();state.location='vesper';current=null;trialGear=null;devMissileTrial=false;clearInput();
   elapsed=approachTime=shot=spawnClock=spawned=resolved=damageTime=0;
   enemies=[];bullets=[];hostile=[];sparks=[];missionObjects=[];
@@ -72,12 +73,12 @@ $('pause').onclick = pause;
 addEventListener('blur', () => { clearInput(); if (mode === 'play') pause(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'play') pause(); });
 function aim(e) { const s = Math.min(W, H) * .9 / 14; target = { x: Math.max(-9, Math.min(9, (e.clientX - W / 2) / s)), y: Math.max(-5, Math.min(5, (e.clientY - H * .48) / s)) }; }
-canvas.onpointerdown = e => { if (mode !== 'play' || e.button!==0) return; canvas.setPointerCapture(e.pointerId); pointer = true; firing = true; aim(e); };
+canvas.onpointerdown = e => { if (mode !== 'play' || !VoidFlightSession.running() || e.button!==0) return; canvas.setPointerCapture(e.pointerId); pointer = true; firing = true; aim(e); };
 canvas.onpointermove = e => { if (mode === 'play' && (e.pointerType === 'mouse' || pointer)) aim(e); };
 canvas.onpointerup = canvas.onpointercancel = () => { pointer = false; firing = false; };
-$('fire').onpointerdown = e => { if (mode !== 'play') return; e.preventDefault(); $('fire').setPointerCapture(e.pointerId); touchFiring = true; };
+$('fire').onpointerdown = e => { if (mode !== 'play' || !VoidFlightSession.running()) return; e.preventDefault(); $('fire').setPointerCapture(e.pointerId); touchFiring = true; };
 $('fire').onpointerup = $('fire').onpointercancel = () => touchFiring = false;
-function burst(e,color='#ffbd69',kind='ship') { VoidCombatEffects.explode(e,kind);VoidAudio.event('explosion',VoidShips.get(state),e,flightBasis()); }
+function burst(e,color='#ffbd69',kind='ship') { VoidCombatEffects.explode(e,kind);VoidAudio.event('explosion',VoidFlightCraft.ship(),e,flightBasis()); }
 function spawnEnemy() {
  const i=spawned++,tier=current.tier;
  const heavy=tier>=2&&(i===current.enemies-1||i%5===4);
@@ -89,7 +90,7 @@ function spawnEnemy() {
 function update(dt) {
   if (mode === 'pause') return;
   time += dt; noticeTime -= dt; if (noticeTime <= 0) $('notice').textContent = '';
-  damageTime = Math.max(0, damageTime - dt);
+  if(globalThis.VoidFlightSession?.active?.status!=='PAUSED')damageTime = Math.max(0, damageTime - dt);
   for (const s of stars) { s.z -= dt * (mode === 'play' ? 25 : reducedMotion ? 0 : 3); if (s.z < 1) s.z += 260; }
 }
 
@@ -113,5 +114,5 @@ function draw() {
   $('flash').style.opacity = reducedMotion ? 0 : damageTime * .8;
 }
 let last = performance.now();
-function loop(now) { const dt = Math.min((now - last) / 1000, .04); last = now; try{update(dt);draw();}catch(error){console.error('[VOID frame]',{mode,location:state.location,phase:typeof flight!=='undefined'?flight.route?.phase:null,error});mode='recovery';if(typeof walkingLocation!=='undefined'){walkingLocation=walker=null;}globalThis.VoidBabylon?.release();clearInput();flightUI(false);panel('FLIGHT RECOVERY','Flight <em>held.</em>','<p>Your last checkpoint is safe. Retry the route or return to the station.</p>',button('RETRY ROUTE','launch')+button('RETURN TO STATION','dock',true));}finally{requestAnimationFrame(loop);} }
+function loop(now) { const dt = Math.min((now - last) / 1000, .04); last = now; try{update(dt);draw();}catch(error){console.error('[VOID frame]',{mode,location:state.location,phase:typeof flight!=='undefined'?flight.route?.phase:null,error});mode='recovery';if(typeof walkingLocation!=='undefined'){walkingLocation=walker=null;}if(globalThis.VoidFlightSession){if(VoidFlightSession.active)VoidFlightSession.end();else VoidFlightSession.exclusive(()=>VoidBabylon.release());}else globalThis.VoidBabylon?.release();clearInput();flightUI(false);panel('FLIGHT RECOVERY','Flight <em>held.</em>','<p>Your last checkpoint is safe. Retry the route or return to the station.</p>',button('RETRY ROUTE','launch')+button('RETURN TO STATION','dock',true));}finally{requestAnimationFrame(loop);} }
 // bootstrap.js starts the only animation loop after all modules are registered.

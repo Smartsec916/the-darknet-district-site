@@ -3,7 +3,7 @@ const hudHeadingLabels=Array.from({length:72},(_,i)=>({angle:i*5,label:({0:'N',9
 const hudBankTicks=[-180,-120,-90,-60,-30,0,30,60,90,120,180].map(deg=>({deg,a:deg*Math.PI/180}));
 function hudLine(x,y,a,b){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(a,b);ctx.stroke();}
 function drawFlightHud(){
- const data=VoidHudMath.read(flight,missileLock.target),cx=W*.5,cy=H*.44,small=W<650,unit=Math.min(W,H),span=Math.min(W*.25,210),color=VoidShips.get(state).id==='ship3'?'#a3deff':VoidShips.get(state).id==='ship2'?'#85f3ec':'#a1e9c6';
+ const data=VoidHudMath.read(flight,missileLock.target),cx=W*.5,cy=H*.44,small=W<650,unit=Math.min(W,H),span=Math.min(W*.25,210),color=(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)).id==='ship3'?'#a3deff':(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)).id==='ship2'?'#85f3ec':'#a1e9c6';
  ctx.save();ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1;ctx.font=`${small?10:11}px Consolas`;ctx.textAlign='center';
  // Navigation reference heading: no magnetic compass is implied.
  const top=H*(small?.235:.19),step=Math.min(4,W/150);

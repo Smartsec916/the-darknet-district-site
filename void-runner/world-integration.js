@@ -14,7 +14,7 @@ function drawModernBackground(){
  if(VoidGraphics.busy){renderUnavailable();return;}
  if(!VoidBabylon.diagnostics.exteriorReady){
   ctx.fillStyle='#07121e';ctx.fillRect(0,0,W,H);
-  if(!modernMenuPending&&!modernMenuReady){modernMenuPending=true;VoidBabylon.prepareSpace(state.location).then(()=>modernMenuReady=true).catch(e=>{console.error('[VOID world menu]',e);modernMenuReady=true;}).finally(()=>modernMenuPending=false);}
+  if(!modernMenuPending&&!modernMenuReady){modernMenuPending=true;boundedPrepare(task=>VoidBabylon.prepareSpace(state.location,undefined,task)).then(()=>modernMenuReady=true).catch(e=>{console.error('[VOID world menu]',e);modernMenuReady=true;}).finally(()=>modernMenuPending=false);}
   return;
  }
  const image=VoidBabylon.renderFlight({basis:FM.basis(.15*Math.sin(time*.035),0,0),route:{phase:'arrived',destination:state.location,progress:1},rocks:Array.from({length:18},(_,i)=>({x:(i%2?1:-1)*(50+i*7),y:Math.sin(i)*50,z:180+i*13,size:2+i%5,phase:i})),ships:[],bullets:[],hostile:[],missiles:[],effects:[],time,approach:0},W,H);if(image)ctx.drawImage(image,0,0,W,H);
@@ -22,7 +22,7 @@ function drawModernBackground(){
 // Never launch a second preparation while the menu's scene is being constructed.
 const meridianLeaveMenu=leaveMenu;leaveMenu=function(){modernMenuFailure=false;modernMenuReady=false;VoidBabylon.releaseMenu();return meridianLeaveMenu();};
 const worldLaunch=launch;
-launch=async function(){if(modernMenuPending){VoidPreparation.cancel?.();await new Promise(resolve=>{const check=()=>modernMenuPending?setTimeout(check,20):resolve();check();});}if(state.universe.freeTravel&&!originalFlight(state)){state.destination=VoidUniverse.destinations(state)[0]||null;}return worldLaunch();};
+launch=async function(){const owner=VoidFlightSession.active;if(modernMenuPending){VoidPreparation.cancel?.();await new Promise(resolve=>{const check=()=>modernMenuPending&&VoidFlightSession.owns(owner)?setTimeout(check,20):resolve();check();});}if(!VoidFlightSession.owns(owner))return;if(state.universe.freeTravel&&!originalFlight(state)){state.destination=VoidUniverse.destinations(state)[0]||null;}return worldLaunch();};
 const worldEnterWalking=enterWalking;
 async function resumeSavedWorld(){
  if(state.story.cursor){await enterWalking(state.quest==='inheritance'?'vesper':'hangar');resumeStoryScene();return;}
@@ -56,7 +56,7 @@ leaveWalking=async function(){
 const worldArrive=arrive;
 arrive=function(){const previous=state.location,quest=state.quest;worldArrive();if(!['arrival','dialogue'].includes(mode)||state.location===previous&&state.quest===quest)return;
  const lines=speech?.lines.slice(),label=speech?.label;speech=null;
- Promise.resolve(dock()).then(()=>{if(lines&&mode==='walking')talk('',lines,()=>{if(walkingLocation)resumeWalking();},label||'EXPLORE STATION');});
+ const docking=dock(),token=preparationGeneration;Promise.resolve(docking).then(()=>{if(token===preparationGeneration&&lines&&mode==='walking')talk('',lines,()=>{if(walkingLocation)resumeWalking();},label||'EXPLORE STATION');});
 };
 // Keep conversations and service overlays in the same physical station.
 const worldTalk=talk;

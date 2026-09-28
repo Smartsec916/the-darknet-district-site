@@ -15,7 +15,7 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
  read(){return VoidBalance.validate(Object.fromEntries([...devPanel.querySelectorAll('[data-balance]')].map(el=>[el.dataset.balance,el.value===''?NaN:Number(el.value)])));},
  debug(){
   debugInfo.hidden=!this.authorized||!this.overlay||!['play','pause'].includes(mode);if(debugInfo.hidden)return;
-  const e=missileLock.target||enemies.find(e=>flightPoint(e).z>0),s=C.stats(state);
+  const e=missileLock.target||enemies.find(e=>flightPoint(e).z>0),s=VoidFlightCraft.stats();
   debugInfo.textContent=`PLAYER Hull ${hp.toFixed(1)} Shield ${shieldHP.toFixed(1)}\nLaser ${s.damage.toFixed(2)} Missile ${VOID_BALANCE.missileDamage}\nTARGET ${e?`Hull ${e.armor.toFixed(1)} Shield ${(e.shield||0).toFixed(1)} Distance ${FM.length(e).toFixed(1)} Fire ${e.fire.toFixed(2)}s`:'NONE'}\nLock ${Math.round(missileLock.progress*100)}%`;
  }
 };

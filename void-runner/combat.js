@@ -1,7 +1,7 @@
 /* Cockpit integration. Test access is session-only and never saved as ownership. */
-const missileState={ownsMissileLauncher:false,equipped:false,missilesLoaded:0,missileCapacity:0,type:'standard'};
+Object.assign(missileState,{ownsMissileLauncher:false,equipped:false,missilesLoaded:0,missileCapacity:0,type:'standard'});
 let enemyMissiles=[],warningClock=0;
-let missiles=[],missileCooldown=0,missileLock=VoidTargeting.fresh(),devMissileTrial=false;
+let missiles=[],missileLock=VoidTargeting.fresh(),devMissileTrial=false;
 let selectedTarget=null,targetSelection=false,lockEnabled=true;
 function selectCombatTarget(action){
  const choices=enemies.filter(VoidStory.hostile).sort((a,b)=>FM.length(a)-FM.length(b));
@@ -25,17 +25,19 @@ function resetMissileFlight(){
  selectedTarget=null;targetSelection=false;lockEnabled=true;
  missiles=[];enemyMissiles=[];warningClock=0;missileCooldown=0;missileLock=VoidTargeting.fresh();
  missileButton.classList.add('hidden');
- const testing=devMissileTrial&&VoidDevTools.authorized&&trialGear==='missile';
- const owns=state.creditGear.includes('launcher'),equipped=owns&&state.loadout.missile==='launcher',capacity=VoidShips.get(state).missile.capacity;
- Object.assign(missileState,{ownsMissileLauncher:testing||owns,equipped:testing||equipped,missilesLoaded:testing?12:equipped?Math.min(capacity,state.progression.missiles??capacity):0,missileCapacity:testing?12:owns?capacity:0});
+ Object.assign(missileState,VoidFlightCraft.missiles());
  updateMissileHud();
 }
-function fireMissile(){
+const campaignMissileFireConsequences=C.missileFireConsequences(()=>state,()=>save());
+function fireMissile(consequences=campaignMissileFireConsequences){
  if(mode!=='play')return;
  // Recheck the current geometry on input, not just the previous animation frame.
  VoidTargeting.step(missileLock,lockCandidates(),flightPoint,W,H,0,missileBalance(),VoidMissiles.ready(missileState));
  const missile=VoidMissiles.launch(missileState,missileLock,flightBasis(),missileBalance(),missileCooldown);
- if(!missile){updateMissileHud();VoidAudio.event('dry');return;}missiles.push(missile);if(!devMissileTrial){state.progression.missiles=missileState.missilesLoaded;VoidProgression.mark(state,'missileLocked');VoidProgression.mark(state,'missileFired');save();}missileCooldown=missileBalance().missileCooldown;missileLock=VoidTargeting.fresh();VoidAudio.event('missile',VoidShips.get(state));updateMissileHud();
+ if(!missile){updateMissileHud();VoidAudio.event('dry');return;}missiles.push(missile);
+ // Preserve trial isolation and persist before cooldown, lock reset, audio and HUD.
+ if(!devMissileTrial)consequences?.fired?.(missileState.missilesLoaded);
+ missileCooldown=missileBalance().missileCooldown;missileLock=VoidTargeting.fresh();VoidAudio.event('missile',(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)));updateMissileHud();
 }
 canvas.addEventListener('contextmenu',event=>{if(mode==='play')event.preventDefault();});
 canvas.addEventListener('pointerdown',event=>{if(mode==='play'&&event.button===2){event.preventDefault();fireMissile();}});
@@ -45,7 +47,7 @@ function stepMissileCombat(dt,velocity){
  const wasLocked=missileLock.progress>=1;
  missileCooldown=Math.max(0,missileCooldown-dt);
  VoidTargeting.step(missileLock,lockCandidates(),flightPoint,W,H,dt,missileBalance(),VoidMissiles.ready(missileState));
- if(!wasLocked&&missileLock.progress>=1)VoidAudio.event('lock',VoidShips.get(state));
+ if(!wasLocked&&missileLock.progress>=1)VoidAudio.event('lock',(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)));
  stepEnemyMissiles(dt,velocity);
  for(const m of missiles)VoidMissiles.step(m,dt,velocity,missileBalance(),enemies,(e,damage)=>{burst(m,'#ffcd83','missile');hitEnemy(e,damage);});
  missiles=missiles.filter(m=>!m.dead);
@@ -66,12 +68,12 @@ function drawMissileReticle(){
  ctx.font='10px Consolas';ctx.textAlign='center';ctx.fillText(!missileState.missilesLoaded?'EMPTY':missileCooldown>0?'COOLDOWN':locked?'LOCK / FIRE':'',x,y+radius+14);ctx.restore();
 }
 
-function missileBalance(){const m=VoidShips.get(state).missile;return {...VOID_BALANCE,missileDamage:VOID_BALANCE.missileDamage*m.damage,missileLockTime:VOID_BALANCE.missileLockTime*m.lock,missileCooldown:VOID_BALANCE.missileCooldown*m.cooldown};}
-function launchEnemyMissile(e){enemyMissiles.push({x:e.x,y:e.y,z:e.z,direction:{...e.pilot.heading},life:6,distance:0,damage:VOID_BALANCE.missileDamage,target:{x:0,y:0,z:0,size:.85}});VoidAudio.event('warning',VoidShips.get(state));}
+function missileBalance(){if(globalThis.VoidFlightCraft?.missileBalance())return VoidFlightCraft.missileBalance();const m=(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)).missile;return {...VOID_BALANCE,missileDamage:VOID_BALANCE.missileDamage*m.damage,missileLockTime:VOID_BALANCE.missileLockTime*m.lock,missileCooldown:VOID_BALANCE.missileCooldown*m.cooldown};}
+function launchEnemyMissile(e){enemyMissiles.push({x:e.x,y:e.y,z:e.z,direction:{...e.pilot.heading},life:6,distance:0,damage:VOID_BALANCE.missileDamage,target:{x:0,y:0,z:0,size:.85}});VoidAudio.event('warning',(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)));}
 function stepEnemyMissiles(dt,velocity){
  const balance={...VOID_BALANCE,missileSpeed:55,missileTurnRate:.6};
  for(const m of enemyMissiles)VoidMissiles.step(m,dt,velocity,balance,[m.target],(_,damage)=>hurt(damage));enemyMissiles=enemyMissiles.filter(m=>!m.dead);
- warningClock=Math.max(0,warningClock-dt);if(warningClock===0&&enemies.some(e=>e.pilot?.lock>.05)){VoidAudio.event('warning',VoidShips.get(state));warningClock=2;}
+ warningClock=Math.max(0,warningClock-dt);if(warningClock===0&&enemies.some(e=>e.pilot?.lock>.05)){VoidAudio.event('warning',(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)));warningClock=2;}
 }
 function drawEnemyLockWarning(){
  for(const m of enemyMissiles){const p=flightPoint(m);if(p.z>1){ctx.fillStyle='#ff745f';ctx.fillRect(p.x-3,p.y-3,6,6);}else cockpitArrow(m,'MISSILE','#ff745f');}

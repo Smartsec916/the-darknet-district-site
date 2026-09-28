@@ -1,6 +1,6 @@
 /* Campaign navigation, equipment trials and mission mechanics. */
 'use strict';
-let ownedGear = [], trialGear = null, shieldHP = 0, shieldDelay = 0, driveTime = 0, driveCooldown = 0, droneClock = 0;
+let ownedGear = [], trialGear = null;
 let missionObjects = [], objectiveCount = 0, objectiveClock = 1, escortHP = 100, escortClock = 3;
 const baseStats = C.stats;
 C.stats = s => trialGear && VoidContent.gear[trialGear] ? baseStats({...s,loadout:{...s.loadout,[VoidContent.gear[trialGear].slot]:trialGear}},[...ownedGear,trialGear]) : baseStats(s,ownedGear);
@@ -44,9 +44,9 @@ function setOwnedGear(ids) {
   VoidShips.verify(ownedGear);
   if(state.activeShip==='ship3'&&!VoidShips.owns(state,'ship3')){C.switchShip(state,'starter');save();hud();}
   if(view==='hangar'&&mode==='dock')hangar();
-  const stats=C.stats(state);shieldHP=Math.min(shieldHP,stats.shield);hp=Math.min(hp,stats.hull);
+  if(!VoidFlightCraft.active()){const stats=C.stats(state);shieldHP=Math.min(shieldHP,stats.shield);hp=Math.min(hp,stats.hull);
   missileState.missileCapacity=Math.min(missileState.missileCapacity,stats.ship.missile.capacity);
-  missileState.missilesLoaded=Math.min(missileState.missilesLoaded,missileState.missileCapacity);
+  missileState.missilesLoaded=Math.min(missileState.missilesLoaded,missileState.missileCapacity);}
   if (['market','shop'].includes(view)&&mode==='dock') market();
 }
 const expansionDock=dock;
@@ -68,7 +68,7 @@ launch=function(){
     try { expansionLaunch(); } finally { C.flight=normalFlight; }
   } else expansionLaunch();
   if (mode!=='play') return;
-  shieldHP=C.stats(state).shield;shieldDelay=driveTime=driveCooldown=droneClock=0;
+  shieldHP=VoidFlightCraft.stats().shield;shieldDelay=driveTime=driveCooldown=droneClock=0;
   missionObjects=[];objectiveCount=0;objectiveClock=1;escortHP=100;escortClock=3;
   $('flight-objective').textContent=trialGear?'TRAINING / E or DRIVE activates Ghost Drive. Leave at any time.':current.briefing||$('flight-objective').textContent;
   updateEquipmentHud();
@@ -80,7 +80,7 @@ routeClear=function(){return expansionClear()&&(current.kind!=='salvage'||object
 const expansionHurt=hurt;
 hurt=function(amount){
   if(mode!=='play'||amount<=0||damageTime>0||driveTime>0)return;
-  shieldDelay=C.stats(state).shieldDelay;const absorbed=Math.min(shieldHP,amount);shieldHP-=absorbed;
+  shieldDelay=VoidFlightCraft.stats().shieldDelay;const absorbed=Math.min(shieldHP,amount);shieldHP-=absorbed;
   if(amount>absorbed){expansionHurt(amount-absorbed);VoidCombatEffects.pulse('hull');}else {damageTime=.25;tone(320,.1);VoidCombatEffects.pulse('shield');}
   updateEquipmentHud();
 };
@@ -90,9 +90,9 @@ spawnEnemy=function(){
   if(current.kind==='generator'&&spawned===1){Object.assign(e,{generator:true,x:0,y:0,size:2,armor:22+current.tier*4,maxArmor:22+current.tier*4});announce('Shield relay online. Destroy the central relay first.');}
   if(current.kind==='boss'&&spawned===current.enemies){Object.assign(e,{boss:true,heavy:true,interceptor:false,className:'gunship',size:3,x:0,y:-1,armor:90+current.tier*15,maxArmor:90+current.tier*15});announce(current.name.toUpperCase()+' / CAPITAL SHIP INBOUND');}
 };
-function activateDrive(){const s=C.stats(state);if(mode==='play'&&s.drive&&driveCooldown<=0){driveTime=s.driveDuration;driveCooldown=s.driveCooldown;VoidAudio.event('boost');}}
+function activateDrive(){const s=VoidFlightCraft.stats();if(mode==='play'&&s.drive&&driveCooldown<=0){driveTime=s.driveDuration;driveCooldown=s.driveCooldown;VoidAudio.event('boost');}}
 function updateEquipmentHud(){
-  const s=C.stats(state);hudText('shield-number',s.shield?`${Math.ceil(shieldHP)} / ${s.shield}`:'NONE');
+  const s=VoidFlightCraft.stats();hudText('shield-number',s.shield?`${Math.ceil(shieldHP)} / ${s.shield}`:'NONE');
   const width=s.shield?(100*shieldHP/s.shield).toFixed(1)+'%':'0%';if($('shield-bar').style.width!==width)$('shield-bar').style.width=width;
   const disabled=!s.drive||driveCooldown>0;if($('drive').disabled!==disabled)$('drive').disabled=disabled;
   hudText('drive',s.drive?(driveCooldown>0?`DRIVE ${Math.ceil(driveCooldown)}s`:'DRIVE / '+VoidInput.label(VoidInput.bindings.boost)):'DRIVE / NONE');

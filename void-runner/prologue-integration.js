@@ -1,7 +1,7 @@
 /* One integration layer for the existing input, campaign, scene and account systems. */
 const P=VoidProgression;
 state.progression??=P.restore(null,state);P.sync(state);
-const weaponBank={energy:P.systems(state).capacity,heat:0,overheated:false};
+Object.assign(weaponBank,{energy:P.systems(state).capacity,heat:0,overheated:false});
 const groundState={drawn:false,aim:false,reload:0,cooldown:0,health:100,vertical:0,jump:0,hostileClock:0};
 const prologueNewJourney=newJourney;newJourney=function(){Object.assign(groundState,{drawn:false,aim:false,reload:0,cooldown:0,health:100,vertical:0,jump:0,hostileClock:0,lastLook:null});return prologueNewJourney();};
 const tutorialUI=document.createElement('aside');tutorialUI.id='tutorial-prompt';tutorialUI.setAttribute('aria-live','polite');document.body.append(tutorialUI);
@@ -9,7 +9,7 @@ const equipmentHUD=document.createElement('div');equipmentHUD.id='systems-hud';d
 const groundControls=document.createElement('div');groundControls.id='ground-controls';groundControls.innerHTML=[['INVENTORY','inventory'],['DRAW / HOLSTER','draw'],['AIM','aim'],['FIRE','fire'],['RELOAD','reload'],['JUMP','jump'],['CROUCH','crouch']].map(([s,a])=>'<button data-ground="'+a+'">'+s+'</button>').join('');document.body.append(groundControls);
 groundControls.insertAdjacentHTML('beforeend','<button data-ground="sprint">SPRINT</button>');
 const flightLessonControls=document.createElement('div');flightLessonControls.id='flight-lesson-controls';flightLessonControls.hidden=true;flightLessonControls.innerHTML=[['THRUST +','throttleUp'],['BRAKE','throttleDown'],['ROLL ←','rollLeft'],['ROLL →','rollRight'],['TARGET','nearest'],['LOCK','lock']].map(([label,action])=>'<button data-flight-lesson="'+action+'">'+label+'</button>').join('');document.body.append(flightLessonControls);
-flightLessonControls.addEventListener('pointerdown',e=>{const action=e.target.dataset.flightLesson;if(mode!=='play'||!action)return;e.preventDefault();e.target.setPointerCapture(e.pointerId);if(['nearest','lock'].includes(action))selectCombatTarget(action);else VoidInput.held.add(VoidInput.bindings[action]);});
+flightLessonControls.addEventListener('pointerdown',e=>{const action=e.target.dataset.flightLesson;if(mode!=='play'||!VoidFlightSession.running()||!action)return;e.preventDefault();e.target.setPointerCapture(e.pointerId);if(['nearest','lock'].includes(action))selectCombatTarget(action);else VoidInput.held.add(VoidInput.bindings[action]);});
 for(const event of ['pointerup','pointercancel'])flightLessonControls.addEventListener(event,e=>{const action=e.target.dataset.flightLesson;if(action)VoidInput.held.delete(VoidInput.bindings[action]);});
 const stamp=id=>{if(P.mark(state,id)){if(state.progression.completed)VoidUniverse.unlock(state);save();}};
 const binding=id=>VoidInput.label(VoidInput.bindings[id]);
@@ -61,21 +61,38 @@ let openingBoarded=false;
 function openingCockpit(){document.exitPointerLock?.();clearInput();walkingKeys.clear();groundState.drawn=groundState.aim=false;VoidBabylon.opening?.weapon(false,false,0);mode='equipment';view='equipment';panel('KESTREL / PRE-FLIGHT','Your ship. <em>Your next move.</em>','<p>Flight controls ahead. Hull and shields protect the ship; weapon power and heat are separate. The radar tracks nearby contacts.</p><p>Factory systems nominal. Destination: Meridian Station. Inspect your inventory before starting the engines.</p>',button('SHIP INVENTORY','progress-inventory',true)+button('START ENGINES / DEPART','opening-start')+button('STEP OUTSIDE','opening-exit',true));}
 const prologueLeave=leaveWalking;leaveWalking=async function(){if(!P.groundDone(state)){announce('Finish the can practice with Mara before boarding.');return;}if(state.quest==='inheritance'){if(state.progression.opening?.version===2){openingBoarded=true;stamp('board');openingCockpit();return;}announce('Speak with Mara to receive Elias’s ship.');return;}if(state.progression.flags.dock&&!state.progression.flags.purchasedInstalled&&!state.progression.completed){announce('Inspect ship inventory, install the reward module, then buy and install a module before departure.');return;}stamp('board');return prologueLeave();};
 screen.addEventListener('click',async e=>{const a=e.target.closest('button')?.dataset.action;if(a?.startsWith('opening-choice:')){const choice=VoidStoryContent.dialogue.mara_workshop_intro.nodes.work.choices[Number(a.split(':')[1])];if(!choice||state.progression.opening.pistol)return;VoidStory.apply(state,choice.effects);state.progression.opening.pistol=true;state.progression.personal.weapon='ward-pistol';stamp('interact');save();VoidBabylon.opening?.lead();resumeWalking();}if(a==='opening-start'&&openingBoarded){openingBoarded=false;state.story.pending=state.story.pending.filter(id=>id!=='mara_workshop_intro');state.story.cursor=null;C.beginJourney(state);save();await prologueLeave();}if(a==='opening-exit'){openingBoarded=false;resumeWalking();}});
-const prologueLaunch=launch;launch=async function(){await prologueLaunch();weaponBank.energy=P.systems(state).capacity;weaponBank.heat=0;weaponBank.overheated=false;if(mode==='play')stamp('board');};
+const prologueLaunch=launch;launch=async function(){const owner=VoidFlightSession.active;await prologueLaunch();if(!VoidFlightSession.owns(owner))return;weaponBank.energy=VoidFlightCraft.systems().capacity;weaponBank.heat=0;weaponBank.overheated=false;if(mode==='play')stamp('board');};
 const prologueResume=resumeWalking;resumeWalking=function(){prologueResume();if(walkingLocation){const loc=walkingLocation.id==='vesper'?'vesper':state.location;P.checkpoint(state,loc);save();}};
 async function safeRespawn(){VoidPreparation.cancel();walkingLocation=walker=null;speech=null;P.respawn(state);groundState.health=100;groundState.drawn=false;groundState.aim=false;save();await dock();}
 const prologueHurt=hurt;hurt=function(amount){prologueHurt(amount);if(mode==='over'){save();panel('RECOVERY CREW','Return to <em>safety.</em>','<p>Your progression, credits, inventory and account purchases remain intact. Resume at your last safe landing.</p>',button('RESPAWN AT CHECKPOINT','progress-respawn'));}};
 const prologueSelect=selectCombatTarget;selectCombatTarget=function(action){prologueSelect(action);if(selectedTarget)stamp('targetSelected');};
 
+const campaignPistolConsequences=C.pistolConsequences(()=>state,stamp,()=>save(),(s,id)=>VoidOpening.hit(s,id));
+// Ammo values are supplied independently; only the Campaign policy writes them back.
+function pistolAction(action,ammunition=campaignPistolConsequences.ammunition(),consequences=campaignPistolConsequences){
+ if(mode!=='walking')return;
+ if(action==='reload'&&groundState.drawn&&!groundState.reload&&ammunition.reserve&&ammunition.ammo<P.tuning.ground.magazine)groundState.reload=P.tuning.ground.reload;
+ if(action==='fire'&&groundState.drawn&&!groundState.reload&&!groundState.cooldown&&ammunition.ammo>0){ammunition.ammo--;consequences?.ammunitionChanged?.(ammunition);groundState.cooldown=P.tuning.ground.cooldown;consequences?.mark?.('fire');const opening=VoidBabylon.opening;if(opening){const B=BABYLON,dir=new B.Vector3(Math.sin(walker.yaw)*Math.cos(walker.pitch),-Math.sin(walker.pitch),Math.cos(walker.yaw)*Math.cos(walker.pitch));const hit=VoidBabylon.scene.pickWithRay(new B.Ray(new B.Vector3(walker.x,walker.y,walker.z),dir,40),m=>m.isPickable&&Number.isInteger(m.metadata?.canId));if(hit?.hit){let blocked=false;for(let t=.3;t<hit.distance-.7;t+=.2)if(walkingLocation.solids.some(s=>Math.abs(walker.x+dir.x*t-s.position[0])<s.size[0]/2&&Math.abs(walker.y+dir.y*t-s.position[1])<s.size[1]/2&&Math.abs(walker.z+dir.z*t-s.position[2])<s.size[2]/2))blocked=true;if(!blocked&&consequences?.hitCan?.(hit.pickedMesh.metadata.canId)){opening.hit(hit.pickedMesh.metadata.canId,dir);if(consequences?.practiceComplete?.())announce('Mara: Still works. Reload, then take the Kestrel to Meridian. Rook’s waiting.');}}}consequences?.save?.();VoidAudio.event('laser',VoidShips.get(state));}
+}
+function finishPistolReload(ammunition=campaignPistolConsequences.ammunition(),consequences=campaignPistolConsequences){
+ const n=Math.min(P.tuning.ground.magazine-ammunition.ammo,ammunition.reserve);
+ ammunition.ammo+=n;ammunition.reserve-=n;
+ consequences?.ammunitionChanged?.(ammunition);consequences?.mark?.('reload');consequences?.save?.();
+}
+const campaignPistolHandlingConsequences=C.pistolHandlingConsequences(()=>state,stamp);
+function pistolHandlingAction(action,personal=state.progression.personal,consequences=campaignPistolHandlingConsequences){
+ if(mode!=='walking')return;
+ if(action==='draw'&&personal.weapon){groundState.drawn=!groundState.drawn;consequences?.drawChanged?.(groundState.drawn);}
+ if(action==='aim'){groundState.aim=!groundState.aim;if(groundState.drawn&&groundState.aim)consequences?.aimed?.();}
+}
 function groundAction(action){if(mode!=='walking')return;
  if(action==='crouch'){if(walkingKeys.has('KeyC'))walkingKeys.delete('KeyC');else walkingKeys.add('KeyC');}
  if(action==='sprint'){if(walkingKeys.has('ShiftLeft'))walkingKeys.delete('ShiftLeft');else walkingKeys.add('ShiftLeft');}
  if(action==='inventory')return personalInventory();
- if(action==='draw'&&state.progression.personal.weapon){groundState.drawn=!groundState.drawn;stamp(groundState.drawn?'draw':'holster');}
- if(action==='aim'){groundState.aim=!groundState.aim;if(groundState.drawn&&groundState.aim){stamp('aim');if(state.progression.personal.optic==='red-dot')stamp('sightAim');}}
- if(action==='reload'&&groundState.drawn&&!groundState.reload&&state.progression.personal.reserve&&state.progression.personal.ammo<P.tuning.ground.magazine)groundState.reload=P.tuning.ground.reload;
+ if(action==='draw'||action==='aim')pistolHandlingAction(action);
+ if(action==='reload')pistolAction(action);
  if(action==='jump'&&!(walker.height>0)){walker.jumpRequested=true;stamp('jump');}
- if(action==='fire'&&groundState.drawn&&!groundState.reload&&!groundState.cooldown&&state.progression.personal.ammo>0){state.progression.personal.ammo--;groundState.cooldown=P.tuning.ground.cooldown;stamp('fire');const opening=VoidBabylon.opening;if(opening){const B=BABYLON,dir=new B.Vector3(Math.sin(walker.yaw)*Math.cos(walker.pitch),-Math.sin(walker.pitch),Math.cos(walker.yaw)*Math.cos(walker.pitch));const hit=VoidBabylon.scene.pickWithRay(new B.Ray(new B.Vector3(walker.x,walker.y,walker.z),dir,40),m=>m.isPickable&&Number.isInteger(m.metadata?.canId));if(hit?.hit){let blocked=false;for(let t=.3;t<hit.distance-.7;t+=.2)if(walkingLocation.solids.some(s=>Math.abs(walker.x+dir.x*t-s.position[0])<s.size[0]/2&&Math.abs(walker.y+dir.y*t-s.position[1])<s.size[1]/2&&Math.abs(walker.z+dir.z*t-s.position[2])<s.size[2]/2))blocked=true;if(!blocked&&VoidOpening.hit(state,hit.pickedMesh.metadata.canId)){opening.hit(hit.pickedMesh.metadata.canId,dir);if(state.progression.opening.cans.length===4)announce('Mara: Still works. Reload, then take the Kestrel to Meridian. Rook’s waiting.');}}}save();VoidAudio.event('laser',VoidShips.get(state));}
+ if(action==='fire')pistolAction(action);
 }
 groundControls.addEventListener('click',e=>groundAction(e.target.dataset.ground));
 addEventListener('keydown',e=>{if(mode!=='walking'||e.repeat||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;const a={KeyI:'inventory',Digit1:'draw',KeyH:'draw',KeyR:'reload',Space:'jump'}[e.code];if(a){e.preventDefault();groundAction(a);}});
@@ -94,16 +111,16 @@ VoidInteractions.register('admin',()=>{state.universe.completedObjectives.push(.
 VoidInteractions.register('terminal',()=>{const r=VoidFactions.relay(state,VoidUniverse.system(state.location));localPanel('Landing <em>services.</em>','<p>Relay: '+r.state+'. '+(r.remoteCurrent?'Local information current.':'Remote updates delayed. Local navigation and services remain available.')+'</p>'+button('SHIP INVENTORY','progress-inventory'));});
 
 const prologueUpdate=update;
-update=function(dt){const old=walker?{x:walker.x,z:walker.z,yaw:walker.yaw,pitch:walker.pitch}:null,phase=flight.route?.phase;P.powerStep(weaponBank,state,dt);prologueUpdate(dt);
+update=function(dt){const old=walker?{x:walker.x,z:walker.z,yaw:walker.yaw,pitch:walker.pitch}:null,phase=flight.route?.phase;if(!globalThis.VoidFlightSession?.active||VoidFlightSession.active.status!=='PAUSED')P.powerStep(weaponBank,state,dt,VoidFlightCraft.systems());prologueUpdate(dt);
  if(['play','preparing-flight'].includes(mode)&&flight.route?.phase==='warp'){stamp('navigation');stamp('jumpTravel');}
  if(mode==='walking'&&walker){if(old&&Math.hypot(walker.x-old.x,walker.z-old.z)>.001){stamp('move');if(walkingKeys.has('ShiftLeft')||walkingKeys.has('ShiftRight'))stamp('sprint');}if(groundState.lastLook&&Math.abs(walker.yaw-groundState.lastLook.yaw)+Math.abs(walker.pitch-groundState.lastLook.pitch)>.005)stamp('look');groundState.lastLook={yaw:walker.yaw,pitch:walker.pitch};
-  groundState.cooldown=Math.max(0,groundState.cooldown-dt);if(groundState.reload){groundState.reload=Math.max(0,groundState.reload-dt);if(!groundState.reload){const p=state.progression.personal,n=Math.min(P.tuning.ground.magazine-p.ammo,p.reserve);p.ammo+=n;p.reserve-=n;stamp('reload');save();}}
+  groundState.cooldown=Math.max(0,groundState.cooldown-dt);if(groundState.reload){groundState.reload=Math.max(0,groundState.reload-dt);if(!groundState.reload){finishPistolReload();}}
   if(state.location==='earth'&&!state.universe.completedObjectives.includes('meet-admin')){const goal=city.interactions.find(i=>i.id===(state.story.flags.districtDoor?'admin':'tdd'));trackedWalkWaypoint=goal;$('walking-caption').textContent='YELLOW OBJECTIVE / '+goal.label;}
  }else groundState.lastLook=null;
  if(mode==='play'){if(VoidInput.down('throttleUp')||VoidInput.down('throttleDown'))stamp('throttle');if(Math.abs(flight.yawRate)+Math.abs(flight.pitchRate)>.1)stamp('steer');if(Math.abs(flight.roll)>.05)stamp('roll');if(flight.route?.phase==='warp'){stamp('navigation');stamp('jumpTravel');}if(missileLock.progress>=1)stamp('missileLocked');}
  const completed=state.progression.completed;P.sync(state);if(state.progression.completed&&!state.universe.discoveredSystems.includes('sol')){VoidUniverse.unlock(state);save();announce('PROLOGUE COMPLETE · Free exploration unlocked. F1 tracks Admin in Sol.');}
  const next=VoidOpening.next(state)||P.next(state),visible=['walking','play'].includes(mode)&&!state.progression.completed;tutorialUI.hidden=!visible;tutorialUI.textContent=visible?((state.progression.opening?.version===2&&state.quest==='inheritance'?openingPrompts[next]:null)||prompts[next]?.()||'Return to Rook and complete your qualification.') :'';
- groundControls.hidden=mode!=='walking';flightLessonControls.hidden=mode!=='play';equipmentHUD.hidden=!['walking','play'].includes(mode);equipmentHUD.textContent=mode==='play'?'POWER '+Math.round(weaponBank.energy)+' / '+P.systems(state).capacity+' · HEAT '+Math.round(weaponBank.heat)+' / '+P.systems(state).heatLimit+(weaponBank.overheated?' · COOLING LOCKOUT':''):'HEALTH '+groundState.health+' · '+(groundState.drawn?'WARD PISTOL '+state.progression.personal.ammo+' / '+state.progression.personal.reserve:'HOLSTERED')+(groundState.reload?' · RELOADING':'');
+ groundControls.hidden=mode!=='walking';flightLessonControls.hidden=mode!=='play';equipmentHUD.hidden=!['walking','play'].includes(mode);equipmentHUD.textContent=mode==='play'?'POWER '+Math.round(weaponBank.energy)+' / '+VoidFlightCraft.systems().capacity+' · HEAT '+Math.round(weaponBank.heat)+' / '+VoidFlightCraft.systems().heatLimit+(weaponBank.overheated?' · COOLING LOCKOUT':''):'HEALTH '+groundState.health+' · '+(groundState.drawn?'WARD PISTOL '+state.progression.personal.ammo+' / '+state.progression.personal.reserve:'HOLSTERED')+(groundState.reload?' · RELOADING':'');
  if(mode==='walking'&&walkingLocation?.kind==='workshop'){
   const opening=VoidBabylon.opening;opening?.weapon(groundState.drawn,groundState.aim,groundState.reload);
   const mara=walkingLocation.interactions.find(i=>i.id==='mara');if(opening&&mara)mara.position=[opening.mara.position.x,1.68,opening.mara.position.z];
