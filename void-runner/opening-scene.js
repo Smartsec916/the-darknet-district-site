@@ -1,18 +1,18 @@
 /* Bounded Babylon workshop scene. Asset hooks replace models, not gameplay anchors. */
 (function(root){
+ const base=typeof document==='undefined'?null:new URL('.',document.currentScript.src);
  function build({scene,parent,quality,shadowLight,characterModel,shipModel,state,camera}){
   const B=BABYLON,low=quality==='low',owned=[],textures=[],staticMeshes=[],dynamic=[],canNodes=[],v=(x,y,z)=>new B.Vector3(x,y,z);
   let seed=719;const rand=()=>((seed=seed*16807%2147483647)-1)/2147483646;
   const mats={};
-  function texture(name,color){const t=new B.DynamicTexture('ward-'+name,{width:256,height:256},scene,false);textures.push(t);const g=t.getContext();g.fillStyle=color;g.fillRect(0,0,256,256);for(let i=0;i<1300;i++){const a=rand()*.10;g.fillStyle=rand()>.5?'rgba(235,222,196,'+a+')':'rgba(29,25,22,'+a+')';g.fillRect(rand()*256,rand()*256,1+rand()*9,1+rand()*2);}for(let i=0;i<20;i++){g.strokeStyle='rgba(35,28,22,.10)';g.beginPath();g.moveTo(rand()*256,rand()*256);g.lineTo(rand()*256,rand()*256);g.stroke();}t.update();t.anisotropicFilteringLevel=low?2:4;return t;}
+  function texture(name,kind,color){const t=VoidVesperVisuals.surfaceTexture(B,scene,name,kind,color,quality);textures.push(t);return t;}
   function mat(name,color,rough=.8,metal=.1,glow){if(mats[name])return mats[name];const m=new B.PBRMaterial('ward-'+name,scene);owned.push(m);m.albedoColor=B.Color3.FromHexString(color);m.roughness=rough;m.metallic=metal;m.environmentIntensity=.6;if(glow)m.emissiveColor=B.Color3.FromHexString(glow);mats[name]=m;return m;}
-  const sand=mat('sand','#ad8662'),paint=mat('paint','#887b68',.86,.25),steel=mat('steel','#464b4a',.58,.45),rust=mat('faded-orange','#b4773a',.77,.25),dark=mat('rubber','#222b2e',.9),floorMat=mat('concrete','#9d9483'),blue=mat('monitor','#163443',.5,.2,'#3289a8'),warm=mat('warm','#efd59b',.5,.1,'#ffc373'),cloth=mat('cloth','#656b56');
-  paint.albedoTexture=texture('paint','#b5a793');paint.albedoColor.set(1,1,1);floorMat.albedoTexture=texture('floor','#aaa293');floorMat.albedoTexture.uScale=floorMat.albedoTexture.vScale=8;floorMat.albedoColor.set(1,1,1);sand.albedoTexture=texture('soil','#c2a280');sand.albedoColor.set(1,1,1);sand.albedoTexture.uScale=sand.albedoTexture.vScale=50;
-  // A small tiled, generated surface keeps weathering local and download-free.
-  const wear=new B.DynamicTexture('workshop-floor-wear',{width:1024,height:1024},scene,false);textures.push(wear);const wg=wear.getContext();wg.fillStyle='#8f8777';wg.fillRect(0,0,1024,1024);
-  for(let i=0;i<16000;i++){wg.fillStyle=rand()>.5?'rgba(40,32,23,.14)':'rgba(235,221,195,.12)';wg.fillRect(rand()*1024,rand()*1024,1+rand()*3,1+rand()*2);}
-  for(let i=0;i<16;i++){const x=rand()*1024,y=rand()*1024,r=20+rand()*90,g=wg.createRadialGradient(x,y,1,x,y,r);g.addColorStop(0,'rgba(31,29,23,.20)');g.addColorStop(1,'rgba(31,29,23,0)');wg.fillStyle=g;wg.fillRect(x-r,y-r,r*2,r*2);}
-  wg.lineWidth=1;wg.strokeStyle='rgba(25,25,23,.3)';for(let i=0;i<9;i++){let x=rand()*1024,y=rand()*1024;wg.beginPath();wg.moveTo(x,y);for(let j=0;j<8;j++){x+=rand()*40-20;y+=rand()*25;wg.lineTo(x,y);}wg.stroke();}wear.update();wear.uScale=wear.vScale=2;floorMat.albedoTexture=wear;
+  const sand=mat('sand','#ad8662',.97,0),paint=mat('paint','#887b68',.81,.32),steel=mat('steel','#464b4a',.52,.55),rust=mat('faded-orange','#b4773a',.75,.26),dark=mat('rubber','#222b2e',.9),floorMat=mat('concrete','#9d9483',.85,.09),blue=mat('monitor','#163443',.5,.2,'#3289a8'),warm=mat('warm','#efd59b',.5,.1,'#ffc373'),cloth=mat('cloth','#656b56');
+  paint.albedoTexture=texture('paint','metal','#8e8b80');paint.albedoColor.set(1,1,1);
+  steel.albedoTexture=texture('steel','metal','#555d5d');steel.albedoColor.set(1,1,1);
+  rust.albedoTexture=texture('faded-orange','metal','#a97848');rust.albedoColor.set(1,1,1);
+  floorMat.albedoTexture=texture('floor','floor','#999182');floorMat.albedoTexture.uScale=floorMat.albedoTexture.vScale=2;floorMat.albedoColor.set(1,1,1);
+  sand.albedoTexture=texture('soil','soil','#b59570');sand.albedoColor.set(1,1,1);sand.albedoTexture.uScale=sand.albedoTexture.vScale=80;
   function add(mesh,m,p,owner=parent,merge=true){mesh.material=m;mesh.position.set(...p);mesh.parent=owner;mesh.receiveShadows=true;mesh.isPickable=false;if(merge)staticMeshes.push(mesh);return mesh;}
   function box(name,size,p,m=paint,owner=parent,merge=true){return add(B.MeshBuilder.CreateBox(name,{width:size[0],height:size[1],depth:size[2]},scene),m,p,owner,merge);}
   // Chamfered hero boxes: six faces, twelve bevels, eight corner triangles.
@@ -26,20 +26,61 @@
   function sign(name,text,p,w=2,h=.6,mcolor='#6dbea9'){const t=new B.DynamicTexture(name,{width:512,height:128},scene,false);textures.push(t);const g=t.getContext();g.fillStyle='#132228';g.fillRect(0,0,512,128);g.strokeStyle=mcolor;g.lineWidth=4;g.strokeRect(8,8,496,112);g.fillStyle=mcolor;g.font='bold 25px monospace';g.textAlign='center';g.fillText(text,256,72);t.update();const m=new B.StandardMaterial(name,scene);owned.push(m);m.diffuseTexture=t;m.emissiveTexture=t;m.specularColor=B.Color3.Black();const mesh=B.MeshBuilder.CreatePlane(name,{width:w,height:h,sideOrientation:B.Mesh.DOUBLESIDE},scene);add(mesh,m,p,parent,false);return mesh;}
   function hook(id,at,fallback){const imported=VoidAssets.instance('opening:'+id,parent);if(imported){imported.position.set(...at);return imported;}return fallback();}
   const ground=add(B.MeshBuilder.CreateGround('vesper-terrain',{width:1600,height:1600,subdivisions:1},scene),sand,[0,-.07,0],parent,false);
-  const sky=new B.ShaderMaterial('ward-sky',scene,{vertexSource:'precision highp float;attribute vec3 position;uniform mat4 worldViewProjection;varying vec3 p;void main(){p=position;gl_Position=worldViewProjection*vec4(position,1.);}',fragmentSource:'precision highp float;varying vec3 p;void main(){float h=clamp(normalize(p).y,0.,1.);vec3 c=mix(vec3(.60,.73,.81),vec3(.10,.33,.65),pow(h,.45));gl_FragColor=vec4(c,1.);}'},{attributes:['position'],uniforms:['worldViewProjection']});owned.push(sky);sky.backFaceCulling=false;sky.disableDepthWrite=true;
+  const sky=new B.ShaderMaterial('ward-sky',scene,{vertexSource:'precision highp float;attribute vec3 position;uniform mat4 worldViewProjection;varying vec3 p;void main(){p=position;gl_Position=worldViewProjection*vec4(position,1.);}',fragmentSource:'precision highp float;varying vec3 p;void main(){float h=clamp(normalize(p).y,0.,1.);vec3 c=mix(vec3(.83,.70,.57),vec3(.18,.40,.72),smoothstep(0.,.85,h));gl_FragColor=vec4(c,1.);}'},{attributes:['position'],uniforms:['worldViewProjection']});owned.push(sky);sky.backFaceCulling=false;sky.disableDepthWrite=true;
   const dome=B.MeshBuilder.CreateSphere('vesper-sky',{diameter:1900,segments:16,sideOrientation:B.Mesh.BACKSIDE},scene);add(dome,sky,[0,0,0],parent,false);dome.infiniteDistance=true;
   scene.clearColor=B.Color4.FromHexString('#9aaab9ff');scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.00125;scene.fogColor=B.Color3.FromHexString('#c9b99e');scene.ambientColor=B.Color3.Black();
   const hemi=scene.lights.find(l=>l.name==='ambient');if(hemi){hemi.intensity=.38;hemi.diffuse=B.Color3.FromHexString('#b7d3ec');hemi.groundColor=B.Color3.FromHexString('#a78461');}shadowLight.direction=v(-.55,-.8,.25);shadowLight.intensity=2.2;shadowLight.diffuse=B.Color3.FromHexString('#ffe0ad');shadowLight.position=v(45,75,-30);shadowLight.shadowMinZ=1;shadowLight.shadowMaxZ=180;shadowLight.autoUpdateExtends=false;shadowLight.orthoLeft=-65;shadowLight.orthoRight=65;shadowLight.orthoBottom=-65;shadowLight.orthoTop=65;
-  scene.imageProcessingConfiguration.toneMappingEnabled=true;scene.imageProcessingConfiguration.exposure=1.05;scene.imageProcessingConfiguration.contrast=1.12;
+  scene.imageProcessingConfiguration.toneMappingEnabled=true;scene.imageProcessingConfiguration.exposure=1.18;scene.imageProcessingConfiguration.contrast=1.08;
   // Broad, simple terrain silhouettes form a deep horizon without large texture downloads.
-  const rock=mat('mesa','#966f51');for(let i=0;i<24;i++){const angle=i/24*Math.PI*2,d=350+rand()*320,h=12+rand()*30,r=25+rand()*40;const mesh=B.MeshBuilder.CreateCylinder('distant-mesa',{height:h,diameterTop:r*.9,diameterBottom:r*1.65,tessellation:5},scene);add(mesh,rock,[Math.sin(angle)*d,h*.44-3,Math.cos(angle)*d]);mesh.rotation.y=rand()*4;}
-  const moonMat=mat('moon','#d8d9d2',1,0,'#33393d');const moon=add(B.MeshBuilder.CreateSphere('distant-moon',{diameter:80,segments:24},scene),moonMat,[330,160,700],parent,false);moon.receiveShadows=false;
+  const rock=mat('rock','#927056',.94,0),ridgeMat=mat('mesa','#ffffff',.96,0);ridgeMat.backFaceCulling=false;VoidVesperVisuals.mountainRing(B,scene,parent,ridgeMat);
+  const backdropMaterial=new B.StandardMaterial('vesper-ridge-backdrop',scene);owned.push(backdropMaterial);
+  const backdropTexture=new B.Texture(new URL('art/vesper-ridges.webp',base).href,scene,true,false);textures.push(backdropTexture);
+  backdropTexture.hasAlpha=true;backdropTexture.vScale=-1;backdropTexture.vOffset=1;backdropMaterial.diffuseTexture=backdropTexture;backdropMaterial.useAlphaFromDiffuseTexture=true;
+  backdropMaterial.transparencyMode=B.Material.MATERIAL_ALPHATEST;backdropMaterial.alphaCutOff=.25;
+  backdropMaterial.disableLighting=true;backdropMaterial.emissiveTexture=backdropTexture;backdropMaterial.emissiveColor=B.Color3.White();backdropMaterial.backFaceCulling=false;
+  const backdrop=add(B.MeshBuilder.CreatePlane('vesper-ridge-panorama',{width:600,height:300,sideOrientation:B.Mesh.DOUBLESIDE},scene),backdropMaterial,[0,105,350],parent,false);
+  backdrop.receiveShadows=false;
+  const moonMat=mat('moon','#d9dfeb',1,0,'#242937');moonMat.fogEnabled=false;moonMat.albedoTexture=texture('moon','moon','#bdc9dd');moonMat.albedoColor.set(1,1,1);const moon=add(B.MeshBuilder.CreateSphere('distant-moon',{diameter:240,segments:32},scene),moonMat,[410,270,850],parent,false);moon.receiveShadows=false;const companion=add(B.MeshBuilder.CreateSphere('vesper-companion',{diameter:38,segments:16},scene),moonMat,[285,245,760],parent,false);companion.receiveShadows=false;
   // Independent open-front workshop; no station shell, solar arrays or interior corridor.
   hook('workshop',[0,0,0],()=>{box('workshop-slab',[29,.25,28],[0,-.1,-10],floorMat);for(const x of [-13,13]){bevel('wall-panel',[.35,6,24],[x,3,-11.5]);for(let z=-21;z<1;z+=4)bevel('support-column',[.42,6.2,.5],[x*.97,3.1,z],steel);}
    box('back-panel',[26,6,.35],[0,3,-23],paint);box('garage-roof',[28,.28,25],[0,6.2,-11.5],steel);bevel('header',[27,.6,.65],[0,5.8,.5],rust);for(let z=-21;z<2;z+=4){bevel('roof-crossbeam',[26,.22,.22],[0,5.8,z],steel);for(const x of [-8,8]){const beam=bevel('diagonal-brace',[.16,.16,6],[x,5.4,z+1],steel);beam.rotation.z=x<0?.08:-.08;}}
    for(const x of [-12,12]){bevel('door-track',[.22,5.8,.25],[x,2.9,.9],dark);for(let y=1;y<5;y+=1.2)bevel('panel-repair',[.06,.8,1.4],[x>0?12.78:-12.78,y,-14],y%2?paint:steel);}
    for(const x of [-8,7])for(const z of [-6,-17]){bevel('light-fixture',[2.8,.16,.35],[x,5.9,z],dark);box('warm-strip',[2.5,.04,.2],[x,5.79,z],warm);}return parent;});
+  // Shared wall and floor treatments keep the old collision shell and gameplay anchors intact.
+  const inset=mat('wall-inset','#59615d',.78,.34),seam=mat('joint','#292f30',.91,.18),warning=mat('safety-ochre','#ba8950',.72,.22);
+  for(const side of [-1,1]){
+   for(const z of [-19,-13,-7]){
+    bevel('service-wall-panel',[.07,3.5,5.25],[side*12.76,2.9,z],inset,parent,.035);
+    box('vertical-joint',[.10,4.5,.07],[side*12.69,2.9,z+2.65],seam);
+    box('kick-plate',[.12,.75,5.25],[side*12.67,.46,z],steel);
+    box('overhead-cable-tray',[.22,.16,5.25],[side*12.62,5.45,z],dark);
+    if(z===-13){bevel('utility-cover',[.13,1.15,1.2],[side*12.60,2.1,z],paint,parent,.04);box('utility-screen',[.15,.32,.72],[side*12.52,2.25,z],blue);}
+   }
+   for(const z of [-18,-8]){
+    bevel('exterior-buttress',[.35,6.0,.55],[side*13.18,3,z],steel,parent,.07);
+    box('exterior-rail',[.12,.17,8.6],[side*13.25,1.05,z+2],rust);
+   }
+   box('portal-jamb',[.52,6.1,.55],[side*12.8,3.05,1.12],steel);
+   box('portal-safety-stripe',[.035,3.8,.15],[side*12.47,2.1,1.47],warning);
+  }
+  for(const z of [-18,-12,-6]){
+   bevel('ceiling-plate',[11,.055,5.1],[0,6.015,z],paint,parent,.035);
+   box('ceiling-joint',[25,.09,.12],[0,5.95,z+2.55],seam);
+  }
+  for(const x of [-8,8])for(const z of [-17,-7]){
+   box('floor-access',[2.0,.018,1.35],[x,.042,z],inset);
+   for(const side of [-1,1])box('access-edge',[.065,.023,1.45],[x+side*1.02,.055,z],steel);
+  }
+  box('door-threshold',[26,.035,.55],[0,.055,1.0],steel);
+  for(let x=-12;x<=12;x+=.5)box('threshold-slot',[.17,.038,.11],[x,.08,1.0],seam);
+  for(const z of [7,11,15])for(const x of [4,12,20]){
+   box('apron-joint',[5.2,.012,.035],[x,.064,z],seam);
+  }
+  for(const side of [-1,1])for(const z of [4,8,12]){
+   box('apron-track',[.09,.018,2.2],[side*4.9,.063,z],seam);
+  }
   const lamp=new B.PointLight('ward-worklamp',v(-7,3,-6),scene);lamp.diffuse=B.Color3.FromHexString('#ffc57c');lamp.intensity=45;lamp.range=12;lamp.parent=parent;
+  if(!low){const entryLamp=new B.PointLight('ward-entrance-worklight',v(7,4,-1),scene);entryLamp.diffuse=B.Color3.FromHexString('#ffd4a0');entryLamp.intensity=22;entryLamp.range=15;entryLamp.parent=parent;}
   // Workbench, drawers, diagnostic screen and restrained tool silhouettes.
   hook('bench',[-10,0,-11],()=>{bevel('bench-top',[2.5,.18,8],[-10,1.03,-11],steel);for(const z of [-14,-8]){bevel('cabinet',[2.25,.95,2.6],[-10,.5,z],rust);for(let i=0;i<4;i++){bevel('drawer',[2.05,.16,.035],[-10,.22+i*.2,z+1.32],paint);bevel('drawer-handle',[.65,.045,.07],[-10,.22+i*.2,z+1.36],steel);}}for(let i=0;i<8;i++){const tool=bevel('bench-tool',[.12,.05,.45],[-10.8+rand()*1.4,1.16,-13+rand()*4],steel);tool.rotation.y=rand()*5;}return parent;});
   bevel('diagnostic-case',[1.8,1.2,.22],[-10,2,-13.7],rust);sign('diagnostic','KESTREL / SYSTEMS NOMINAL',[-10,2,-13.55],1.5,.85,'#69b9cc');
@@ -53,7 +94,7 @@
   for(let i=0;i<5;i++)bevel('floor-expansion-joint',[25,.012,.025],[0,.036,-20+i*4.5],dark);
   for(let i=0;i<55;i++)box('drain-slot',[.08,.016,.5],[-11+i*.4,.045,.6],dark);
   for(let i=0;i<10;i++){const z=-18+i*1.7;bevel('electrical-conduit',[.045,.045,1.55],[-12.7,2.4,z],steel);}
-  for(let i=0;i<22;i++){const x=rand()*80-40,z=5+rand()*65;if(Math.abs(x-12)<14&&Math.abs(z-25)<15||Math.abs(x)<16&&z<10)continue;const stone=B.MeshBuilder.CreatePolyhedron('apron-stone',{type:1,size:.12+rand()*.3},scene);add(stone,rock,[x,.08,z]);stone.scaling.y=.5;}
+  for(let i=0;i<62;i++){const x=rand()*92-46,z=5+rand()*72;if(Math.abs(x-12)<14&&Math.abs(z-25)<15||Math.abs(x)<16&&z<10)continue;const stone=B.MeshBuilder.CreatePolyhedron('apron-stone',{type:1,size:.12+rand()*.55},scene);add(stone,rock,[x,.08,z]);stone.scaling.y=.5;}
   // Landing apron and maintained, older Kestrel. A single hook owns its replacement.
   box('landing-pad',[22,.12,24],[12,-.005,25],floorMat);for(const x of [2,22])for(let z=16;z<36;z+=3)box('pad-stripe',[.18,.025,1.8],[x,.07,z],rust);
   const ship=hook('kestrel',[12,1.8,25],()=>{const n=shipModel('starter','friendly',parent);n.position.set(12,2,25);n.scaling.set(2.4,2.4,2.8);n.rotation.y=Math.PI+.4;return n;});
@@ -72,17 +113,57 @@
   for(const def of VoidOpening.cans){const node=new B.TransformNode('can-'+def.id,scene);node.parent=parent;node.position.set(...def.position);const body=cylinder('can-body-'+def.id,.14,.44,[0,0,0],def.id%2?paint:rust,node,12,false);body.isPickable=true;body.metadata={canId:def.id};cylinder('can-rim',.145,.025,[0,.23,0],steel,node,12,false);cylinder('can-rim',.145,.025,[0,-.23,0],steel,node,12,false);canNodes.push({id:def.id,node,body,velocity:null,spin:0,base:def.position.slice()});if(state.progression.opening?.cans.includes(def.id)){node.position.y=.2;node.rotation.z=1.3;body.isPickable=false;}}
   sign('range-note','KEEP FIRE TOWARD BERM',[36,1.5,-16],3,.55,'#c6b480').rotation.y=-Math.PI/2;
   // Mara is the only person here. Rounded primitives improve the interim silhouette.
-  const mara=hook('mara',[7,0,-5],()=>{const n=characterModel('mara',parent,[7,0,-5]);for(const mesh of n.getChildMeshes())if(/arm|leg|torso|coat|hair/.test(mesh.name)){mesh.isVisible=false;}bevel('mara-jacket',[.49,.63,.28],[0,1.1,0],cloth,n,.12,false);bevel('mara-hem',[.53,.25,.31],[0,.77,0],cloth,n,.07,false);for(const side of [-1,1]){const arm=cylinder('mara-arm',.085,.56,[side*.32,1.12,0],cloth,n,10,false);arm.rotation.z=side*.12;cylinder('mara-leg',.10,.65,[side*.14,.38,0],dark,n,10,false);}const hair=add(B.MeshBuilder.CreateSphere('mara-grey-hair',{diameter:.37,segments:12},scene),mat('grey-hair','#a9aaa1'),[0,1.82,-.045],n,false);hair.scaling.y=.55;const faceMat=mat('mara-skin','#a88870');bevel('mara-nose',[.07,.10,.09],[0,1.70,.19],faceMat,n,.025,false);for(const side of [-1,1]){bevel('mara-eye',[.048,.02,.015],[side*.085,1.75,.171],dark,n,.005,false);bevel('mara-pocket',[.13,.16,.02],[side*.13,1.17,.15],paint,n,.012,false);}bevel('mara-belt',[.48,.055,.32],[0,.84,0],dark,n,.01,false);return n;});mara.rotation.y=Math.PI;
+  const mara=hook('mara',[7,0,-5],()=>{
+   const n=new B.TransformNode('mara-visual',scene);n.parent=parent;n.position.set(7,0,-5);
+   const jacket=mat('mara-jacket','#485c5b',.91,.08),jacketLight=mat('mara-seam','#72827b',.82,.09),trousers=mat('mara-trousers','#303b3b',.94,.04),skin=mat('mara-skin','#aa826c',.87,0),hair=mat('mara-hair','#c1c2b7',.92,0),boots=mat('mara-boots','#292e30',.9,.08),eye=mat('mara-eye','#222c30',.7,.05);
+   bevel('mara-coat-body',[.58,.72,.35],[0,1.16,0],jacket,n,.09,false);
+   bevel('mara-coat-hem',[.63,.30,.39],[0,.76,-.01],jacket,n,.08,false);
+   for(const side of [-1,1]){
+    const leg=cylinder('mara-trouser',.135,.76,[side*.16,.42,0],trousers,n,10,false);leg.rotation.z=side*.035;
+    bevel('mara-boot',[.25,.20,.40],[side*.16,.11,.09],boots,n,.04,false);
+    const sleeve=cylinder('mara-sleeve',.12,.61,[side*.405,1.20,0],jacket,n,10,false);sleeve.rotation.z=side*.20;
+    cylinder('mara-cuff',.125,.09,[side*.48,.88,0],jacketLight,n,10,false);
+    add(B.MeshBuilder.CreateSphere('mara-hand',{diameter:.18,segments:10},scene),skin,[side*.49,.79,.025],n,false);
+    bevel('mara-lapel',[.18,.47,.055],[side*.15,1.36,.205],jacketLight,n,.025,false);
+    box('mara-brow',[.115,.035,.038],[side*.093,1.77,.197],hair,n,false);
+    add(B.MeshBuilder.CreateSphere('mara-eye',{diameter:.045,segments:8},scene),eye,[side*.095,1.735,.205],n,false);
+    box('mara-work-pocket',[.18,.17,.06],[side*.17,1.07,.20],jacketLight,n,false);
+   }
+   cylinder('mara-neck',.12,.20,[0,1.56,0],skin,n,10,false);
+   const head=add(B.MeshBuilder.CreateSphere('mara-head',{diameter:.42,segments:18},scene),skin,[0,1.75,0],n,false);head.scaling.set(.92,1.13,.89);
+   bevel('mara-nose',[.075,.12,.09],[0,1.70,.205],skin,n,.018,false);
+   const cap=add(B.MeshBuilder.CreateSphere('mara-silver-hair',{diameter:.46,segments:18},scene),hair,[0,1.91,-.047],n,false);cap.scaling.set(1.07,.45,.91);
+   for(const side of [-1,1]){const lock=add(B.MeshBuilder.CreateSphere('mara-hair-lock',{diameter:.16,segments:10},scene),hair,[side*.19,1.78,-.02],n,false);lock.scaling.y=2.1;}
+   box('mara-tool-belt',[.59,.085,.38],[0,.91,0],boots,n,false);
+   bevel('mara-tool-pouch',[.19,.31,.23],[.39,.78,-.09],rust,n,.04,false);
+   box('mara-jacket-patch',[.15,.08,.02],[-.19,1.40,.235],warning,n,false);
+   return n;
+  });mara.rotation.y=Math.PI;
   // Elias is a cyan bust projection above a case, never a physical character actor.
   bevel('projector-case',[1.8,.8,1.2],[-6,.43,-3],rust);bevel('projector-top',[1.9,.12,1.25],[-6,.9,-3],steel);sign('archive-label','ELIAS WARD / RECORDING',[-6,.68,-2.37],1.5,.28,'#77c6dc');
-  const holoMaterial=new B.ShaderMaterial('elias-projection',scene,{vertexSource:'precision highp float;attribute vec3 position;uniform mat4 worldViewProjection;uniform mat4 world;varying vec3 p;void main(){p=(world*vec4(position,1.)).xyz;gl_Position=worldViewProjection*vec4(position,1.);}',fragmentSource:'precision highp float;varying vec3 p;uniform float time;void main(){float scan=.75+.25*sin(p.y*160.+time*2.);float flicker=.93+.07*sin(time*17.);gl_FragColor=vec4(vec3(.18,.68,.94)*scan,.30*flicker);}'},{attributes:['position'],uniforms:['worldViewProjection','world','time'],needAlphaBlending:true});owned.push(holoMaterial);holoMaterial.backFaceCulling=false;
-  const hologram=hook('elias',[-6,1.1,-3],()=>{const n=new B.TransformNode('elias-hologram',scene);n.parent=parent;n.position.set(-6,1.1,-3);const bust=add(B.MeshBuilder.CreateSphere('projection-shoulders',{diameter:1,segments:16},scene),holoMaterial,[0,.24,0],n,false);bust.scaling.set(.75,.6,.37);const head=add(B.MeshBuilder.CreateSphere('projection-head',{diameter:.43,segments:20},scene),holoMaterial,[0,.79,0],n,false);head.scaling.set(1,1.25,.92);for(const side of [-1,1]){bevel('projection-brow',[.16,.035,.05],[side*.11,.89,.19],holoMaterial,n,.015,false);bevel('projection-eye',[.075,.028,.03],[side*.1,.835,.212],blue,n,.01,false);}bevel('projection-nose',[.065,.13,.085],[0,.78,.24],holoMaterial,n,.025,false);for(let i=-2;i<=2;i++){const beard=add(B.MeshBuilder.CreateSphere('projection-beard',{diameter:.12,segments:8},scene),holoMaterial,[i*.052,.62-Math.abs(i)*.01,.16],n,false);beard.scaling.y=1.25;}for(let i=0;i<9;i++){const a=i/9*Math.PI*2;add(B.MeshBuilder.CreateSphere('projection-hair',{diameter:.14,segments:8},scene),holoMaterial,[Math.cos(a)*.18,1.02+Math.sin(a)*.055,Math.sin(a)*.12-.05],n,false);}return n;});
+  // One transparent, depth-safe projection material can be reused by other archived figures.
+  const holoMaterial=new B.ShaderMaterial('elias-projection',scene,{
+   vertexSource:'precision highp float;attribute vec3 position;attribute vec3 normal;uniform mat4 worldViewProjection;uniform mat4 world;varying vec3 p;varying vec3 n;void main(){p=(world*vec4(position,1.)).xyz;n=normalize(mat3(world)*normal);gl_Position=worldViewProjection*vec4(position,1.);}',
+   fragmentSource:'precision highp float;varying vec3 p;varying vec3 n;uniform vec3 cameraPosition;uniform float time;void main(){float facing=abs(dot(normalize(n),normalize(cameraPosition-p)));float edge=pow(1.-facing,1.6);float scan=.78+.22*sin(p.y*125.+time*2.2);float shimmer=.96+.04*sin(time*13.+p.x*8.);vec3 color=mix(vec3(.12,.53,.80),vec3(.43,.87,1.),edge);float alpha=(.32+.30*edge)*scan*shimmer;gl_FragColor=vec4(color*(.86+.14*scan),alpha);}',
+  },{attributes:['position','normal'],uniforms:['worldViewProjection','world','cameraPosition','time'],needAlphaBlending:true});
+  owned.push(holoMaterial);holoMaterial.backFaceCulling=false;holoMaterial.disableDepthWrite=true;
+  const hologram=hook('elias',[-6,1.1,-3],()=>{
+   const n=new B.TransformNode('elias-hologram',scene);n.parent=parent;n.position.set(-6,1.1,-3);
+   const bust=add(B.MeshBuilder.CreateSphere('projection-shoulders',{diameter:1,segments:16},scene),holoMaterial,[0,.25,0],n,false);bust.scaling.set(.72,.5,.32);
+   const neck=add(B.MeshBuilder.CreateCylinder('projection-neck',{height:.18,diameter:.24,tessellation:12},scene),holoMaterial,[0,.57,0],n,false);
+   const head=add(B.MeshBuilder.CreateSphere('projection-head',{diameter:.43,segments:20},scene),holoMaterial,[0,.81,0],n,false);head.scaling.set(1,1.18,.94);
+   const hair=add(B.MeshBuilder.CreateSphere('projection-hair',{diameter:.45,segments:16},scene),holoMaterial,[0,1.005,-.025],n,false);hair.scaling.set(1.07,.35,.92);
+   const beard=add(B.MeshBuilder.CreateSphere('projection-beard',{diameter:.29,segments:16},scene),holoMaterial,[0,.65,.105],n,false);beard.scaling.set(.85,.64,.55);
+   for(const side of [-1,1]){bevel('projection-brow',[.15,.03,.045],[side*.11,.88,.19],holoMaterial,n,.015,false);bevel('projection-eye',[.06,.025,.028],[side*.1,.83,.212],holoMaterial,n,.01,false);}
+   bevel('projection-nose',[.06,.12,.07],[0,.78,.225],holoMaterial,n,.02,false);
+   return n;
+  });
   hologram.rotation.y=Math.PI;
   for(const mesh of hologram.getChildMeshes()){mesh.material=holoMaterial;mesh.isPickable=false;mesh.receiveShadows=false;}
-  const cone=B.MeshBuilder.CreateCylinder('projection-cone',{height:.9,diameterTop:.85,diameterBottom:.08,tessellation:20},scene);add(cone,holoMaterial,[-6,1.4,-3],parent,false);
+  const projectorRing=B.MeshBuilder.CreateTorus('projection-emitter',{diameter:.72,thickness:.025,tessellation:24},scene);add(projectorRing,blue,[-6,.99,-3],parent,false);
   // Merge repeated static scenery by material; dynamic actors/targets stay independent.
-  for(const m of Object.values(mats)){const batch=staticMeshes.filter(mesh=>mesh.material===m&&mesh.parent===parent&&Math.hypot(mesh.position.x,mesh.position.z)<80);if(batch.length>1){const merged=B.Mesh.MergeMeshes(batch,true,true,undefined,false,true);if(merged){merged.parent=parent;merged.receiveShadows=true;merged.isPickable=false;}}}
-  let shadow;if(!low){shadow=new B.ShadowGenerator(quality==='high'?2048:1024,shadowLight);shadow.usePercentageCloserFiltering=true;shadow.filteringQuality=B.ShadowGenerator.QUALITY_LOW;shadow.bias=.003;shadow.normalBias=.08;shadowLight.autoCalcShadowZBounds=false;for(const mesh of parent.getChildMeshes())if(mesh!==ground&&mesh!==dome&&mesh.material!==holoMaterial&&mesh!==moon&&Math.hypot(mesh.position.x,mesh.position.z)<80&&mesh.getTotalVertices()>0)shadow.addShadowCaster(mesh,false);}
+  for(const m of Object.values(mats)){const batch=staticMeshes.filter(mesh=>mesh.material===m&&mesh.parent===parent&&Math.hypot(mesh.position.x,mesh.position.z)<80);if(batch.length>1){const merged=B.Mesh.MergeMeshes(batch,true,true,undefined,false,false);if(merged){merged.parent=parent;merged.receiveShadows=true;merged.isPickable=false;}}}
+  let shadow;const noShadowMaterials=new Set([inset,seam,warning,warm,blue]);if(!low){shadow=new B.ShadowGenerator(quality==='high'?2048:1024,shadowLight);shadow.usePercentageCloserFiltering=true;shadow.filteringQuality=B.ShadowGenerator.QUALITY_LOW;shadow.bias=.003;shadow.normalBias=.08;shadowLight.autoCalcShadowZBounds=false;for(const mesh of parent.getChildMeshes())if(mesh!==ground&&mesh!==dome&&mesh.material!==holoMaterial&&mesh!==moon&&!noShadowMaterials.has(mesh.material)&&(mesh.parent!==mara||['mara-coat-body','mara-trouser','mara-head'].includes(mesh.name))&&Math.hypot(mesh.position.x,mesh.position.z)<80&&mesh.getTotalVertices()>0)shadow.addShadowCaster(mesh,false);}
   const dust=new B.ParticleSystem('workshop-dust',low?24:60,scene);const dot=new B.DynamicTexture('dust-dot',16,scene,false);textures.push(dot);let dc=dot.getContext();dc.clearRect(0,0,16,16);const grad=dc.createRadialGradient(8,8,0,8,8,8);grad.addColorStop(0,'#fff');grad.addColorStop(1,'rgba(255,255,255,0)');dc.fillStyle=grad;dc.fillRect(0,0,16,16);dot.update();dust.particleTexture=dot;dust.emitter=v(0,1,2);dust.minEmitBox=v(-14,0,-10);dust.maxEmitBox=v(14,4,16);dust.color1=new B.Color4(.8,.65,.42,.09);dust.color2=new B.Color4(.9,.8,.6,.04);dust.colorDead=new B.Color4(.9,.8,.6,0);dust.minSize=.035;dust.maxSize=.09;dust.minLifeTime=5;dust.maxLifeTime=10;dust.emitRate=low?2:5;dust.direction1=v(.1,.01,.03);dust.direction2=v(.25,.05,.08);dust.minEmitPower=.1;dust.maxEmitPower=.3;dust.gravity=v(0,0,0);dust.start();
   const weaponRoot=new B.TransformNode('ward-first-person',scene);weaponRoot.parent=camera;
   const importedPistol=VoidAssets.instance('opening:pistol',weaponRoot);
@@ -95,7 +176,7 @@
    weapon(drawn,aim,reloading){weaponRoot.setEnabled(drawn);weaponRoot.position.set(aim?0:.21,reloading?-.40:aim?-.07:-.23,aim?.5:.55);weaponRoot.rotation.set(reloading?.65:0,0,reloading?.4:0);camera.metadata={...camera.metadata,openingAim:aim};},
    hit(id,direction){const can=canNodes.find(c=>c.id===id);if(!can||can.velocity)return;can.velocity=v(direction.x*2.6,1.8,direction.z*2.6);can.spin=6;can.body.isPickable=false;},
    tick(time){const dt=lastTime===null?0:Math.min(.05,Math.max(0,time-lastTime));lastTime=time;if(leadIndex>=0&&leadIndex<route.length){const target=v(...route[leadIndex]),delta=target.subtract(mara.position),distance=delta.length();if(distance<.12)leadIndex++;else if(B.Vector3.Distance(camera.position,mara.position)<16){mara.position.addInPlace(delta.scale(Math.min(distance,dt*1.6)/distance));mara.rotation.y=Math.atan2(delta.x,delta.z);}}
-    holoMaterial.setFloat('time',time);hologram.scaling.y=1+Math.sin(time*19)*.003;for(const c of canNodes)if(c.velocity){c.velocity.y-=9.8*dt;c.node.position.addInPlace(c.velocity.scale(dt));c.node.rotation.z+=c.spin*dt;c.node.rotation.x+=c.spin*.4*dt;if(c.node.position.y<.15){c.node.position.y=.15;c.velocity.y=Math.abs(c.velocity.y)*.18;c.velocity.x*=Math.exp(-7*dt);c.velocity.z*=Math.exp(-7*dt);c.spin*=Math.exp(-5*dt);if(Math.hypot(c.velocity.x,c.velocity.z)<.04&&c.velocity.y<.3)c.velocity=null;}}},
+    holoMaterial.setFloat('time',time);holoMaterial.setVector3('cameraPosition',camera.position);hologram.scaling.y=1+Math.sin(time*19)*.003;for(const c of canNodes)if(c.velocity){c.velocity.y-=9.8*dt;c.node.position.addInPlace(c.velocity.scale(dt));c.node.rotation.z+=c.spin*dt;c.node.rotation.x+=c.spin*.4*dt;if(c.node.position.y<.15){c.node.position.y=.15;c.velocity.y=Math.abs(c.velocity.y)*.18;c.velocity.x*=Math.exp(-7*dt);c.velocity.z*=Math.exp(-7*dt);c.spin*=Math.exp(-5*dt);if(Math.hypot(c.velocity.x,c.velocity.z)<.04&&c.velocity.y<.3)c.velocity=null;}}},
    dispose(){weaponRoot.dispose();shadow?.dispose();dust.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,false);scene.fogMode=B.Scene.FOGMODE_NONE;scene.imageProcessingConfiguration.toneMappingEnabled=false;scene.imageProcessingConfiguration.exposure=1;scene.imageProcessingConfiguration.contrast=1;scene.ambientColor=B.Color3.Black();if(hemi){hemi.intensity=.48;hemi.diffuse=B.Color3.White();hemi.groundColor=new B.Color3(.12,.15,.21);}shadowLight.autoUpdateExtends=true;shadowLight.orthoLeft=shadowLight.orthoRight=shadowLight.orthoTop=shadowLight.orthoBottom=null;shadowLight.position=v(0,0,0);shadowLight.intensity=1.5;shadowLight.diffuse=B.Color3.White();shadowLight.direction=v(.6,-.7,.4);}
   };return handle;
  }
