@@ -96,8 +96,12 @@ function groundAction(action){if(mode!=='walking')return;
 }
 groundControls.addEventListener('click',e=>groundAction(e.target.dataset.ground));
 addEventListener('keydown',e=>{if(mode!=='walking'||e.repeat||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;const a={KeyI:'inventory',Digit1:'draw',KeyH:'draw',KeyR:'reload',Space:'jump'}[e.code];if(a){e.preventDefault();groundAction(a);}});
-canvas.addEventListener('pointerdown',e=>{if(mode!=='walking')return;if(e.button===2){groundState.aim=false;groundAction('aim');}else if(e.button===0&&groundState.drawn)groundAction('fire');});
-canvas.addEventListener('pointerup',e=>{if(e.button===2)groundState.aim=false;});canvas.addEventListener('contextmenu',e=>{if(mode==='walking')e.preventDefault();});
+function groundPointerButton(e){if(mode!=='walking')return;if(e.button===2){groundState.aim=false;groundAction('aim');}else if(e.button===0&&groundState.drawn)groundAction('fire');}
+// Mouse pointerdown only fires for the first pressed button; mousedown also fires while right-click aim is held.
+canvas.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse')groundPointerButton(e);});
+canvas.addEventListener('mousedown',groundPointerButton);
+canvas.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse'&&e.button===2)groundState.aim=false;});
+canvas.addEventListener('mouseup',e=>{if(e.button===2)groundState.aim=false;});canvas.addEventListener('contextmenu',e=>{if(mode==='walking')e.preventDefault();});
 
 // Sacramento remains a short physical walk from landing to the District vestibule.
 const city=VoidExplorationData.locations.sacramento;city.prototype=false;city.bounds=[22,44];

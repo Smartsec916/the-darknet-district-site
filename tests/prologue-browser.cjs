@@ -13,11 +13,17 @@ try{
  const start=await page.evaluate(()=>VoidBabylon.opening.mara.position.z);await page.waitForTimeout(500);assert((await page.evaluate(()=>VoidBabylon.opening.mara.position.z))>start);
  await page.keyboard.press('Digit1');await page.evaluate(()=>{Object.assign(walker,{x:24,z:-8,yaw:Math.PI/2,pitch:0,vx:0,vz:0});groundAction('aim');});
  await page.evaluate(()=>{if(!groundState.drawn||!groundState.aim||!state.progression.flags.draw||!state.progression.flags.aim)throw Error('First draw/aim did not progress');const saved=localStorage.getItem(SAVE_KEY);groundAction('aim');if(groundState.aim)throw Error('Aim toggle did not cancel');groundAction('aim');if(!groundState.aim||localStorage.getItem(SAVE_KEY)!==saved)throw Error('Repeated aim changed save or runtime incorrectly');});
- for(let id=0;id<4;id++){await page.evaluate(id=>{const pos=VoidOpening.cans[id].position,dx=pos[0]-walker.x,dz=pos[2]-walker.z;walker.yaw=Math.atan2(dx,dz);walker.pitch=Math.atan2(walker.y-pos[1],Math.hypot(dx,dz));},id);await page.mouse.click(720,450);await page.waitForTimeout(300);}
- assert.deepEqual(await page.evaluate(()=>({ammo:state.progression.personal.ammo,reserve:state.progression.personal.reserve})),{ammo:4,reserve:48});
+ await page.evaluate(()=>{walker.pitch=-1.2;});await page.mouse.move(720,450);await page.mouse.down({button:'right'});await page.mouse.click(720,450,{button:'left'});await page.waitForTimeout(300);assert.deepEqual(await page.evaluate(()=>({ammo:state.progression.personal.ammo,cans:state.progression.opening.cans})),{ammo:7,cans:[]});await page.mouse.up({button:'right'});
+ for(let id=0;id<4;id++){
+  await page.evaluate(id=>{const pos=VoidOpening.cans[id].position,dx=pos[0]-walker.x,dz=pos[2]-walker.z;walker.yaw=Math.atan2(dx,dz);walker.pitch=Math.atan2(walker.y-pos[1],Math.hypot(dx,dz));},id);
+  if(id===0){await page.mouse.move(720,450);await page.mouse.down({button:'right'});assert.equal(await page.evaluate(()=>groundState.aim),true);}
+  await page.mouse.click(720,450,{button:'left'});await page.waitForTimeout(300);
+  if(id===0){assert.deepEqual(await page.evaluate(()=>({ammo:state.progression.personal.ammo,cans:state.progression.opening.cans,fire:state.progression.flags.fire})),{ammo:6,cans:[0],fire:true});await page.mouse.up({button:'right'});assert.equal(await page.evaluate(()=>groundState.aim),false);}
+}
+ assert.deepEqual(await page.evaluate(()=>({ammo:state.progression.personal.ammo,reserve:state.progression.personal.reserve})),{ammo:3,reserve:48});
  await page.keyboard.press('KeyH');assert.equal(await page.evaluate(()=>groundState.drawn),false);await page.keyboard.press('KeyH');assert.equal(await page.evaluate(()=>groundState.drawn),true);
  await page.evaluate(()=>{walker.pitch=-1.2;});
- for(let shot=0;shot<4;shot++){await page.evaluate(()=>groundAction('fire'));await page.waitForTimeout(300);}
+ for(let shot=0;shot<3;shot++){await page.evaluate(()=>groundAction('fire'));await page.waitForTimeout(300);}
  await page.evaluate(()=>{if(state.progression.personal.ammo!==0)throw Error('Magazine should be empty');const saved=localStorage.getItem(SAVE_KEY);groundAction('fire');if(state.progression.personal.ammo!==0||localStorage.getItem(SAVE_KEY)!==saved)throw Error('Empty fire changed ammunition/save');});
  console.log('CAN STATE',await page.evaluate(()=>state.progression.opening));assert.equal(await page.evaluate(()=>state.progression.opening.cans.length),4);assert(await page.evaluate(()=>VoidBabylon.opening.canNodes[0].node.position.x>39));
  await page.keyboard.press('KeyR');await page.waitForTimeout(1250);assert(await page.evaluate(()=>P.groundDone(state)));assert.deepEqual(await page.evaluate(()=>({ammo:state.progression.personal.ammo,reserve:state.progression.personal.reserve})),{ammo:8,reserve:40});await page.screenshot({path:'work/opening-range.png'});
