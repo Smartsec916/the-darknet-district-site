@@ -47,24 +47,32 @@
     texture.update();texture.anisotropicFilteringLevel=quality==='low'?2:4;return texture;
   }
 
-  function mountainRing(B,scene,parent,material){
-    const rand=random(92341),positions=[],indices=[],colors=[];
-    function vertex(x,y,z,shade){positions.push(x,y,z);colors.push(shade[0],shade[1],shade[2],1);}
-    const palettes=[[[.53,.42,.35],[.46,.36,.32],[.59,.46,.36]],[[.41,.42,.46],[.34,.37,.44],[.50,.46,.45]]];
-    for(let layer=1;layer>=0;layer--)for(let i=0;i<34;i++){
-      const angle=(i+rand()*.35)/34*Math.PI*2,radius=(layer?610:390)+rand()*80,width=(layer?42:35)+rand()*48;
-      if(angle<.90||angle>Math.PI*2-.90)continue; // The detailed backdrop owns the workshop's forward vista.
-      const cx=Math.sin(angle)*radius,cz=Math.cos(angle)*radius,tx=Math.cos(angle),tz=-Math.sin(angle),height=(layer?48:34)+rand()*(layer?90:63);
-      const profile=[[-1,0],[-.76,.38],[-.47,.78],[-.20,.96],[.24,.94],[.55,.65],[.82,.30],[1,0]];
-      const base=positions.length/3,palette=palettes[layer];
-      for(const [side,elevation]of profile){const offset=side*width;vertex(cx+tx*offset,-8+height*elevation,cz+tz*offset,palette[Math.floor(rand()*palette.length)]);}
-      // A recessed foot and a fractured middle band give each ridge a changing silhouette.
-      for(let j=0;j<profile.length;j++){const side=profile[j][0]*width;vertex(cx+tx*side-Math.sin(angle)*17,-8,cz+tz*side-Math.cos(angle)*17,palette[(j+1)%palette.length]);}
-      for(let j=0;j<profile.length-1;j++){indices.push(base+j,base+j+1,base+8+j,base+j+1,base+9+j,base+8+j);}
+  // A continuous, double-sided radial heightfield replaces the single forward-facing photo card.
+  // It has real depth from every flight camera angle and costs only a few thousand triangles.
+  function mountainRing(B,scene,parent,material,quality='medium'){
+    const segments=quality==='low'?96:192,radii=[245,290,350,425,510,610,725,845,970,1100,1240],positions=[],indices=[],colors=[],uvs=[];
+    const peaks=[[-2.76,1.0],[-2.23,.72],[-1.72,1.18],[-1.10,.83],[-.40,1.07],[.27,1.24],[.86,.78],[1.44,1.09],[2.15,.85],[2.74,1.20]];
+    function wrap(a){return Math.atan2(Math.sin(a),Math.cos(a));}
+    for(let ring=0;ring<radii.length;ring++)for(let i=0;i<=segments;i++){
+      const angle=i/segments*Math.PI*2,r=radii[ring],angular=angle>Math.PI?angle-Math.PI*2:angle;
+      let skyline=0;for(const [at,scale] of peaks){const d=wrap(angular-at);skyline+=scale*Math.exp(-d*d/.027);}
+      // Integer angular frequencies keep the first and last columns identical.
+      const crest=34+skyline*73+12*Math.sin(angle*12)+6*Math.sin(angle*28+.6);
+      const radial=Math.max(0,Math.min(1,(r-270)/400));
+      const shelves=Math.sin(r*.043+Math.sin(angle*15)*2.2)*5+Math.sin(r*.11+angle*31)*2;
+      const y=ring===0?-.035:Math.max(-.035,(crest+shelves)*radial+(r>500?Math.sin(angle*7+r*.013)*15:0));
+      positions.push(Math.sin(angle)*r,y,Math.cos(angle)*r);
+      const shade=.79+.13*Math.sin(angle*23+r*.014)+.06*Math.sin(r*.18+angle*37);
+      colors.push(Math.min(1,.67*shade),Math.min(1,.51*shade),Math.min(1,.38*shade),1);
+      uvs.push(i/segments*16,ring*1.5);
     }
-    const normals=[],mesh=new B.Mesh('vesper-distant-ridges',scene),data=new B.VertexData();
-    B.VertexData.ComputeNormals(positions,indices,normals);Object.assign(data,{positions,indices,normals,colors});data.applyToMesh(mesh);
-    mesh.parent=parent;mesh.material=material;mesh.isPickable=false;mesh.receiveShadows=false;mesh.alwaysSelectAsActiveMesh=false;return mesh;
+    for(let ring=0;ring<radii.length-1;ring++)for(let i=0;i<segments;i++){
+      const a=ring*(segments+1)+i,b=a+segments+1;
+      indices.push(a,b,a+1,a+1,b,b+1);
+    }
+    const normals=[],mesh=new B.Mesh('vesper-continuous-mountain-terrain',scene),data=new B.VertexData();
+    B.VertexData.ComputeNormals(positions,indices,normals);Object.assign(data,{positions,indices,normals,colors,uvs});data.applyToMesh(mesh);
+    mesh.parent=parent;mesh.material=material;mesh.isPickable=false;mesh.receiveShadows=false;return mesh;
   }
 
   root.VoidVesperVisuals={surfaceTexture,mountainRing};

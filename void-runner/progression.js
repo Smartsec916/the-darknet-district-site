@@ -1,7 +1,7 @@
 /* Persisted prologue, equipment and safe checkpoints. No renderer or account authority. */
 (function(root){
  const Ships=typeof module!=='undefined'?require('./ships.js'):root.VoidShips;
- const tuning={jump:{local:14,interstellar:28},ground:{magazine:8,reserve:48,damage:12,reload:1.1,cooldown:.25,hostileHull:36,hostileDamage:5},ships:{starter:{capacity:72,recharge:12,cooling:18,heatLimit:100,cargo:1},ship2:{capacity:96,recharge:16,cooling:22,heatLimit:110,cargo:1},ship3:{capacity:125,recharge:18,cooling:20,heatLimit:120,cargo:3}},laser:{cost:6,heat:13,recover:.35}};
+ const tuning={jump:{local:14,interstellar:28},ground:{magazine:10,reserve:48,damage:12,reload:1.1,cooldown:.25,hostileHull:36,hostileDamage:5},ships:{starter:{capacity:72,recharge:12,cooling:18,heatLimit:100,cargo:1},ship2:{capacity:96,recharge:16,cooling:22,heatLimit:110,cargo:1},ship3:{capacity:125,recharge:18,cooling:20,heatLimit:120,cargo:3}},laser:{cost:6,heat:13,recover:.35}};
  const modules={
   capacitor:{name:'Reserve capacitor',slot:'power',price:150,icon:'power',stats:{capacity:24,recharge:3},compatible:['starter','ship2','ship3']},
   cooling:{name:'Ward cooling loop',slot:'cooling',price:120,icon:'cooling',stats:{cooling:8,heatLimit:15},compatible:['starter','ship2','ship3']},
@@ -14,7 +14,7 @@
  const flight=['board','throttle','steer','roll','navigation','jumpTravel','dock','shipInventory','hangar','moduleInstalled','vendor','modulePurchased','purchasedInstalled','laserCombat','missileSelected','targetSelected','missileLocked','missileFired'];
  const flags=[...ground,...flight];
  const openingGround=['move','look','interact','draw','aim','fire','reload','groundCombat'];
- const fresh=()=>({version:1,flags:{},completed:false,migrated:false,opening:{version:2,hologram:false,pistol:false,cans:[]},personal:{weapon:null,ammo:8,reserve:48,items:[],attachments:[],optic:null},equipment:{owned:[],installed:{}},missiles:null,checkpoint:{location:'vesper'},reputation:{},cargo:[],data:[],relays:{}});
+ const fresh=()=>({version:1,flags:{},completed:false,migrated:false,opening:{version:2,hologram:false,pistol:false,cans:[]},personal:{weapon:null,ammo:tuning.ground.magazine,reserve:tuning.ground.reserve,items:[],attachments:[],optic:null},equipment:{owned:[],installed:{}},missiles:null,checkpoint:{location:'vesper'},reputation:{},cargo:[],data:[],relays:{}});
  const number=(x,f=0,max=1e8)=>Number.isFinite(x)?Math.max(0,Math.min(max,x)):f;
  function restore(raw,s){const p=fresh();
   if(!raw){if(s.quest!=='inheritance'){p.opening={version:1};p.personal.weapon='ward-pistol';}if(s.quest!=='inheritance'){for(const id of ground)p.flags[id]=true;p.migrated=true;p.checkpoint={location:s.location};}if(s.universe?.freeTravel||s.missileOfferSeen){for(const id of flags)p.flags[id]=true;p.completed=true;}return p;}
@@ -23,7 +23,7 @@
   p.personal.weapon=p.opening.version===2?(p.opening.pistol?'ward-pistol':null):'ward-pistol';
   for(const id of flags)if(raw.flags?.[id]===true)p.flags[id]=true;
   p.completed=raw.completed===true&&groundDone({progression:p})&&flight.every(id=>p.flags[id]);p.migrated=raw.migrated===true;
-  const a=raw.personal||{};p.personal.ammo=number(a.ammo,8,8);p.personal.reserve=number(a.reserve,48,999);p.personal.items=(a.items||[]).filter(x=>x==='ward-kit');p.personal.attachments=(a.attachments||[]).filter(x=>x==='red-dot');p.personal.optic=a.optic==='red-dot'&&p.personal.attachments.includes('red-dot')?'red-dot':null;
+  const a=raw.personal||{};p.personal.ammo=number(a.ammo,tuning.ground.magazine,tuning.ground.magazine);p.personal.reserve=number(a.reserve,tuning.ground.reserve,999);p.personal.items=(a.items||[]).filter(x=>x==='ward-kit');p.personal.attachments=(a.attachments||[]).filter(x=>x==='red-dot');p.personal.optic=a.optic==='red-dot'&&p.personal.attachments.includes('red-dot')?'red-dot':null;
   p.equipment.owned=[...new Set((raw.equipment?.owned||[]).filter(id=>Object.hasOwn(modules,id)))];
   for(const ship of ['starter','ship2','ship3']){p.equipment.installed[ship]={};for(const [slot,id] of Object.entries(raw.equipment?.installed?.[ship]||{}))if(p.equipment.owned.includes(id)&&modules[id].slot===slot)p.equipment.installed[ship][slot]=id;}
   p.missiles=raw.missiles===null?null:Math.floor(number(raw.missiles,0,30));p.checkpoint={location:typeof raw.checkpoint?.location==='string'?raw.checkpoint.location:s.location};

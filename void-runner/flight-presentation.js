@@ -1,13 +1,30 @@
 /* Canvas presentation follows the active campaign hull. Replace procedural canopies here later. */
 function drawShipCockpit(){
  const ship=(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state));
- ctx.save();const advanced=ship.cockpit==='spectre',c=ship.color;
- const metal=ctx.createLinearGradient(0,H*.73,0,H);metal.addColorStop(0,advanced?'#19203b':'#22383e');metal.addColorStop(1,'#040910');ctx.fillStyle=metal;ctx.strokeStyle=c;ctx.lineWidth=advanced?1:3;
- const paths=advanced?[[[0,0],[W*.12,0],[W*.05,H*.67],[W*.23,H*.85],[W*.77,H*.85],[W*.95,H*.67],[W*.88,0],[W,0],[W,H],[0,H]]]:[[[0,0],[W*.08,0],[W*.12,H*.65],[W*.3,H*.81],[W*.7,H*.81],[W*.88,H*.65],[W*.92,0],[W,0],[W,H],[0,H]]];
- for(const points of paths){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.closePath();ctx.fill();ctx.stroke();}
- const deck=advanced?H*.91:H*.9;ctx.fillStyle='#071621';ctx.fillRect(W*.3,deck,W*.4,H-deck);ctx.strokeRect(W*.3,deck,W*.4,H-deck);
- for(const side of [.1,.78]){ctx.fillStyle='#08131d';ctx.fillRect(W*side,H*.79,W*.12,H*.1);ctx.strokeRect(W*side,H*.79,W*.12,H*.1);for(let i=0;i<5;i++){ctx.fillStyle=i%2?c:'#436678';ctx.fillRect(W*(side+.01),H*(.805+i*.014),W*(.035+i*.01),2);}}
- if(advanced){ctx.setLineDash([8,12]);ctx.strokeRect(W*.19,H*.12,W*.62,H*.62);ctx.setLineDash([]);}
+ ctx.save();const advanced=ship.cockpit==='spectre',trim=advanced?'#7286a9':'#788582',accent=advanced?'#6eafcf':'#b77843';
+ function shape(points,fill,stroke=trim,line=2){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p[0]*W,p[1]*H):ctx.moveTo(p[0]*W,p[1]*H));ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=line;ctx.stroke();}}
+ const shell=ctx.createLinearGradient(0,0,0,H);shell.addColorStop(0,'#1e292c');shell.addColorStop(.48,'#3b4140');shell.addColorStop(1,'#111b21');
+ // Only the physical ribs and dashboard are drawn; the open aperture shows the live 3D scene.
+ shape([[0,0],[.18,0],[.11,.10],[.08,.44],[.13,.70],[.25,.79],[.25,.83],[0,.83]],shell);
+ shape([[1,0],[.82,0],[.89,.10],[.92,.44],[.87,.70],[.75,.79],[.75,.83],[1,.83]],shell);
+ shape([[0,0],[1,0],[.84,.067],[.16,.067]],'#222c30',accent,3);
+ shape([[.16,.066],[.175,.066],[.25,.79],[.235,.79]],'#485150','#12191d',2);
+ shape([[.84,.066],[.825,.066],[.75,.79],[.765,.79]],'#485150','#12191d',2);
+ shape([[0,.83],[.25,.78],[.37,.81],[.63,.81],[.75,.78],[1,.83],[1,1],[0,1]],'#1a2428',trim,3);
+ shape([[.23,.81],[.37,.80],[.63,.80],[.77,.81],[.71,.95],[.29,.95]],'#303a3d','#11191c',3);
+ shape([[.41,.88],[.59,.88],[.66,1],[.34,1]],'#151e22',accent,2);
+ // Flush dark displays are ready for live navigation, targeting and ship-state UI.
+ for(const side of [-1,1]){const x=side<0?.07:.78;
+  shape([[x,.806],[x+.15,.806],[x+.13,.898],[x-.008,.898]],'#0b1318','#57676a',2);
+  shape([[x+.012,.817],[x+.135,.817],[x+.119,.883],[x+.004,.883]],'#071119',null);
+  shape([[x+.033,.932],[x+.13,.932],[x+.142,.98],[x+.022,.98]],'#101d22','#4b5a5b',1);
+  for(let i=0;i<5;i++){ctx.fillStyle=i===0?accent:'#485457';ctx.fillRect(W*(x+.015+i*.025),H*.910,W*.012,H*.004);}
+ }
+ shape([[.385,.832],[.615,.832],[.605,.907],[.395,.907]],'#081218','#637275',2);
+ for(const x of [.265,.735]){ctx.fillStyle='#9b8e75';ctx.fillRect(W*x,H*.814,Math.max(3,W*.004),Math.max(3,H*.006));}
+ // Hardware seams and fasteners reinforce the worn, inexpensive Kestrel construction.
+ for(const side of [-1,1])for(let i=0;i<6;i++){const x=(side<0?.039:.961)*W,y=(.14+i*.10)*H;ctx.fillStyle='#87908a';ctx.beginPath();ctx.arc(x,y,Math.max(1.5,W*.0015),0,Math.PI*2);ctx.fill();}
+ ctx.strokeStyle='#090f11';ctx.lineWidth=3;for(const y of [.87,.925]){ctx.beginPath();ctx.moveTo(W*.25,H*y);ctx.lineTo(W*.75,H*y);ctx.stroke();}
  ctx.restore();
 }
 function hudText(id,value){const el=$(id);if(el.textContent!==value)el.textContent=value;}

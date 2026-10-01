@@ -213,7 +213,7 @@
     if (model) return model;
     const b = B(),
       node = new b.TransformNode(name, scene),
-      metal = material('hull', '#465964'),
+      metal = material('hull', name==='starter'?'#a8a299':'#465964'),
       dark = material('hull-dark', '#202e36'),
       light = material('engine', allegiance === 'hostile' ? '#ed765b' : '#60d7d0', true);
     node.parent = parent;
@@ -223,12 +223,35 @@
       for(let r=0;r<3;r++)for(let i=0;i<8;i++){const a=r*8+i,c=r*8+(i+1)%8;indices.push(a,c,c+8,a,c+8,a+8);}for(let i=1;i<7;i++){indices.push(0,i+1,i,24,24+i,24+i+1);}
       for(let i=0;i<indices.length;i+=3)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];b.VertexData.ComputeNormals(positions,indices,normals);const hull=new b.Mesh('kestrel-hull',scene),data=new b.VertexData();Object.assign(data,{positions,indices,normals,uvs});data.applyToMesh(hull);hull.parent=node;hull.material=metal;hull.convertToFlatShadedMesh();
       for(const side of [-1,1]){const stripe=box('service-stripe',[.035,.28,1.5],[side*.66,.05,-.1],material('kestrel-stripe','#a77551'),node);stripe.rotation.y=side*.07;for(let z=-1.5;z<.5;z+=.35)box('service-vent',[.035,.05,.16],[side*.7,.1,z],dark,node);}
+      const armor=material('kestrel-armor','#a5a297'),panel=material('kestrel-panel','#727a76'),wingMat=material('kestrel-wing','#a8a39b'),rust=material('kestrel-rust','#9d6550');
+      if(!armor.diffuseTexture){armor.diffuseTexture=new b.Texture(new URL('art/vesper-weathered-panels.webp',base).href,scene,true,false);armor.diffuseTexture.uScale=2;armor.diffuseTexture.vScale=2;armor.diffuseColor=b.Color3.White();}
+      // The landing-pad view sees the working ship from below; retain readable hull panels in shade.
+      armor.emissiveColor=new b.Color3(.16,.15,.13);wingMat.emissiveColor=new b.Color3(.20,.19,.16);metal.emissiveColor=new b.Color3(.23,.22,.19);
+      function plate(name,footprint,y,thickness,mat){const ps=[],ids=[],normals=[],uv=[];for(const h of [y-thickness/2,y+thickness/2])for(const [x,z] of footprint){ps.push(x,h,z);uv.push(x,z);}const n=footprint.length;for(let i=1;i<n-1;i++){ids.push(n,n+i,n+i+1,0,i+1,i);}for(let i=0;i<n;i++){const j=(i+1)%n;ids.push(i,j,n+j,i,n+j,n+i);}b.VertexData.ComputeNormals(ps,ids,normals);const mesh=new b.Mesh(name,scene),data=new b.VertexData();Object.assign(data,{positions:ps,indices:ids,normals,uvs:uv});data.applyToMesh(mesh);mesh.parent=node;mesh.material=mat;return mesh;}
+      plate('kestrel-dorsal-armor',[[-.54,-1.53],[.54,-1.53],[.62,.45],[.42,1.24],[-.42,1.24],[-.62,.45]],.36,.075,armor);
+      plate('kestrel-ventral-armor',[[-.52,-1.56],[.52,-1.56],[.60,.20],[.29,1.54],[-.29,1.54],[-.60,.20]],-.44,.055,wingMat);
+      plate('kestrel-nose-armor',[[-.42,1.20],[.42,1.20],[.26,2.12],[-.26,2.12]],.14,.06,panel);
+      for(const side of [-1,1]){
+        const wing=plate('kestrel-swept-wing',[[side*.52,.20],[side*2.45,-.65],[side*2.75,-1.28],[side*1.15,-1.62]],-.13,.15,wingMat);wing.material.backFaceCulling=false;
+        plate('kestrel-side-cheek',[[side*.60,-.60],[side*.76,-.15],[side*.58,1.02],[side*.38,1.38]],-.21,.085,wingMat);
+        const border=box('kestrel-wing-edge',[1.45,.075,.10],[side*1.7,-.04,-1.20],dark,node);border.rotation.y=side*.35;
+        const marking=box('kestrel-wing-service-paint',[.38,.016,.52],[side*1.76,-.043,-.88],rust,node);marking.rotation.y=side*.35;
+        box('kestrel-weapon-pylon',[.25,.18,1.18],[side*2.35,-.28,-.98],dark,node);
+        const cannon=b.MeshBuilder.CreateCylinder('kestrel-laser-barrel',{height:1.25,diameter:.105,tessellation:10},scene);cannon.parent=node;cannon.rotation.x=Math.PI/2;cannon.position.set(side*2.35,-.30,-.04);cannon.material=panel;
+        box('kestrel-empty-missile-rail',[.16,.08,.72],[side*1.45,-.31,-.88],dark,node);
+        const intake=b.MeshBuilder.CreateCylinder('kestrel-engine-cowl',{height:1.20,diameter:.72,tessellation:12},scene);intake.parent=node;intake.rotation.x=Math.PI/2;intake.position.set(side*1.06,-.03,-1.50);intake.material=panel;
+        const ring=b.MeshBuilder.CreateTorus('kestrel-exhaust-ring',{diameter:.60,thickness:.07,tessellation:16},scene);ring.parent=node;ring.position.set(side*1.06,-.03,-2.22);ring.material=armor;
+        box('kestrel-cockpit-side-frame',[.07,.15,1.17],[side*.42,.54,.72],panel,node);
+        for(let z=-1.45;z<.40;z+=.46)box('kestrel-hull-service-panel',[.025,.16,.32],[side*.76,-.12,z],z<-.4?armor:panel,node);
+      }
+      box('kestrel-canopy-rear-frame',[.91,.06,.06],[0,.60,.14],armor,node);
+      box('kestrel-canopy-front-frame',[.69,.06,.06],[0,.56,1.28],armor,node);
     }else box('hull', [1.4, .65, 4], [0, 0, 0], metal, node);
-    box('canopy', [.85, .32, 1.3], [0, .44, .65], material('glass', '#182b3c'), node);
+    const canopyMaterial=name==='starter'?material('kestrel-glass', '#344c55'):material('glass', '#182b3c');
+    if(name==='starter')canopyMaterial.emissiveColor=new b.Color3(.035,.065,.075);
+    box('canopy', [.85, name==='starter'?.23:.32, 1.3], [0, name==='starter'?.48:.44, .65], canopyMaterial, node);
     for (const side of [-1, 1]) {
-      const wing = box('swept-wing', [2.3, .18, 1.6], [side * 1.3, -.1, -.6], metal, node);
-      wing.rotation.y = side * -.32;
-      box('engine-pod', [.55, .55, 1.8], [side * 1.05, 0, -1.35], dark, node);
+      if(name!=='starter'){const wing = box('swept-wing', [2.3, .18, 1.6], [side * 1.3, -.1, -.6], metal, node);wing.rotation.y = side * -.32;box('engine-pod', [.55, .55, 1.8], [side * 1.05, 0, -1.35], dark, node);}
       box('exhaust', [.38, .34, .15], [side * 1.05, 0, -2.3], light, node);
     }
     if(name==='ship2')node.scaling.x=1.2;if(name==='ship3')node.scaling.z=1.3;
@@ -833,4 +856,3 @@
     }
   };
 })(globalThis);
-
