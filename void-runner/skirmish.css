@@ -1,0 +1,16 @@
+.skirmish-menu{max-width:650px;margin:7vh auto 0;padding:2rem;background:linear-gradient(145deg,#07141ceb,#0a1821e8);border:1px solid #567078;box-shadow:0 24px 80px #000b;color:#d3e3e5}
+.skirmish-menu h1{font-size:clamp(2.3rem,5vw,4rem);letter-spacing:.12em;color:#e8eeee}
+.skirmish-menu h2{font-size:.82rem;letter-spacing:.22em;color:#89c6ce;margin:1.5rem 0 .6rem}
+.skirmish-menu p{line-height:1.5}
+.skirmish-menu .skirmish-location{padding:.75rem 1rem;border:1px solid #4f6871;background:#102531;color:#dce8e9;font-weight:700;letter-spacing:.12em}
+.skirmish-choices{display:flex;gap:.55rem;flex-wrap:wrap}
+.skirmish-choices button{min-width:7rem;flex:1;border:1px solid #61a9bc}
+#skirmish-hud{pointer-events:none;position:fixed;inset:0;z-index:18;color:#e3f3ef;font:700 12px/1.4 monospace;text-shadow:0 1px 5px #000}
+#skirmish-hud[hidden]{display:none}
+#skirmish-hud .skirmish-vitals{position:absolute;left:2%;top:14%;display:grid;gap:.45rem;min-width:190px;background:#07131ad9;border-left:3px solid #9bd6d3;padding:.7rem .9rem}
+#skirmish-hud .skirmish-vitals b{font-size:14px;color:#f0b974}
+#skirmish-hud .skirmish-objective{position:absolute;left:50%;top:15%;transform:translateX(-50%);padding:.45rem 1rem;background:#061019d8;border:1px solid #9b7356;text-align:center;white-space:nowrap;color:#f0bf78}
+#skirmish-hud .skirmish-controls{position:absolute;left:50%;bottom:5%;transform:translateX(-50%);background:#061019d8;padding:.45rem .8rem;text-align:center;color:#a8c7c6;white-space:nowrap}
+#skirmish-hud.hit{box-shadow:inset 0 0 130px #d13139b8}
+.skirmish-active header .stats,.skirmish-active #service-status{display:none}
+@media(max-width:700px){.skirmish-menu{margin:5vh 1rem;padding:1rem}#skirmish-hud .skirmish-controls{font-size:9px;white-space:normal;width:90%}#skirmish-hud .skirmish-objective{font-size:10px;width:74%;white-space:normal;top:9%}}

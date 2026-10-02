@@ -37,7 +37,7 @@ function renderMainMenu() {
   const a = window.VoidAccount,
     u = a?.user;
   menuShell('main',
-    `<section class="main-menu"><p class="menu-kicker">THE DARKNET DISTRICT / FLIGHT SYSTEMS ONLINE</p><h1 class="game-logo" tabindex="-1">VOID<span>//</span>RUNNER</h1><p class="menu-subtitle">CARGO & CONSEQUENCES</p><nav class="menu-options" aria-label="Main menu">${VoidMenu.returnTo?button('RESUME GAME','menu-resume'):''}${button('START NEW CAMPAIGN','menu-new')}${button('LOAD CAMPAIGN','menu-load',false,!hasSave&&!a?.cloud)}${button('SETTINGS','menu-settings')}${button('LOGOUT','menu-logout',false,!u||a?.busy)}</nav><div class="menu-account">${u?'SIGNED IN':'LOCAL PILOT · NOT SIGNED IN'}${button(u?'ACCOUNT / CLOUD SAVES':'SIGN IN','menu-account',true)}</div><p class="menu-save">${hasSave?saveDescription(state):'Your journey begins on Vesper.'}</p></section>`
+    `<section class="main-menu"><p class="menu-kicker">THE DARKNET DISTRICT / FLIGHT SYSTEMS ONLINE</p><h1 class="game-logo" tabindex="-1">VOID<span>//</span>RUNNER</h1><p class="menu-subtitle">CARGO & CONSEQUENCES</p><nav class="menu-options" aria-label="Main menu">${VoidMenu.returnTo?button('RESUME GAME','menu-resume'):''}${button('START NEW CAMPAIGN','menu-new')}${button('LOAD CAMPAIGN','menu-load',false,!hasSave&&!a?.cloud)}${!VoidMenu.returnTo?button('SKIRMISH','menu-skirmish'):''}${button('SETTINGS','menu-settings')}${button('LOGOUT','menu-logout',false,!u||a?.busy)}</nav><div class="menu-account">${u?'SIGNED IN':'LOCAL PILOT · NOT SIGNED IN'}${button(u?'ACCOUNT / CLOUD SAVES':'SIGN IN','menu-account',true)}</div><p class="menu-save">${hasSave?saveDescription(state):'Your journey begins on Vesper.'}</p></section>`
     );
 }
 
@@ -120,6 +120,7 @@ function loadMenu() {
 function mainAction(a) {
   if (a === 'game-menu') openGameMenu();
   else if (a === 'menu-resume') resumeMenu();
+  else if (a === 'menu-skirmish') VoidSkirmish.setup();
   else if (a === 'menu-settings') settingsPage();
   else if (a === 'menu-mute') {
     VoidAudio.set({
