@@ -49,7 +49,7 @@ update=function(dt){
  if(mode!=='play'){if(mode!=='pause')VoidCombatEffects.step(dt);VoidAudio.update((globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)),0,0,'idle',false);cockpitIdleUpdate(dt);return;}
  VoidCombatEffects.step(dt);time+=dt;noticeTime-=dt;if(noticeTime<=0)$('notice').textContent='';damageTime=Math.max(0,damageTime-dt);cockpitEquipment(dt);
  const stats=VoidFlightCraft.stats(),x=Number(VoidInput.down('yawRight'))-Number(VoidInput.down('yawLeft')),y=Number(VoidInput.down('pitchDown'))-Number(VoidInput.down('pitchUp'));
- if(!flight.route||['align','encounter'].includes(flight.route.phase))VoidPilotFlight.step(flight,{x:x||flight.mouseX,y:y||flight.mouseY,roll:Number(VoidInput.down('rollRight'))-Number(VoidInput.down('rollLeft')),throttle:Number(VoidInput.down('throttleUp'))-Number(VoidInput.down('throttleDown'))},dt,stats.flight,driveTime>0,VoidFlightCraft.upgrades().engines);
+ if(!flight.route||['align','encounter'].includes(flight.route.phase))VoidPilotFlight.step(flight,{x:x||VoidInput.axes.flightX||flight.mouseX,y:y||VoidInput.axes.flightY||flight.mouseY,roll:FM.clamp(Number(VoidInput.down('rollRight'))-Number(VoidInput.down('rollLeft'))+VoidInput.axes.roll,-1,1),throttle:FM.clamp(Number(VoidInput.down('throttleUp'))-Number(VoidInput.down('throttleDown'))+VoidInput.axes.throttle,-1,1)},dt,stats.flight,driveTime>0,VoidFlightCraft.upgrades().engines);
  const b=flightBasis(),velocity=flight.velocity,speed=FM.length(velocity);flight.travel+=speed*dt;
  const route=flight.route,combat=!route||route.phase==='encounter';
  if(combat)elapsed+=dt*FM.clamp(flight.throttle/.8,.5,1.5);

@@ -844,6 +844,7 @@
   }
   function renderMenu(width,height,time,reduced){if(!menuHandle)return null;resize(width,height);menuHandle.render(time,width,height,reduced);return surface;}
   root.VoidBabylon = {prepareMenu,renderMenu,releaseMenu,get menuScene(){return menuHandle?.scene;},
+    resizeViewport(width,height){if(engine)resize(width,height);},
     initialize,
     prepareSpace,
     prepareRoom,
