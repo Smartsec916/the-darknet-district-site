@@ -702,7 +702,7 @@
     });
     return mesh;
   }
-  let openingHandle=null;
+  let openingHandle=null,derelictHandle=null;
   async function prepareRoom(def, task) {
     if(!task)return VoidPreparation.run(t=>prepareRoom(def,t));
     if(def.kind==='station')return prepareStation(def,task);
@@ -718,6 +718,11 @@
       await task.wait('assets',()=>VoidAssets.prepare(scene,definitions,task),'workshop models');
       openingHandle=VoidOpeningScene.build({scene,parent:roomRoot,quality,shadowLight:scene.getLightByName('sun'),characterModel,shipModel,state,camera});
       await task.wait('scene',()=>scene.whenReadyAsync(),'workshop');
+      diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
+    }
+    if(def.kind==='derelict'){
+      derelictHandle=VoidDerelictStation.build({scene,parent:roomRoot,quality,shipModel});
+      await task.wait('scene',()=>scene.whenReadyAsync(),'derelict station');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
     const definitions = Object.fromEntries((def.models || []).map(m => [m.id, m]));
@@ -789,6 +794,7 @@
   function clearRoom() {
     roomRoot?.metadata?.exterior?.metadata?.dispose?.();
     openingHandle?.dispose();openingHandle=null;
+    derelictHandle?.dispose();derelictHandle=null;
     for (const s of signs) {
       s.texture.dispose();
       s.material.dispose();
