@@ -325,7 +325,7 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 canvas.addEventListener('click', () => {
-  if (mode === 'walking' && !matchMedia('(pointer:coarse)').matches) canvas.requestPointerLock?.()?.catch?.(() => {});
+  if (mode === 'walking' && globalThis.VoidControls?.deviceClass!=='touch-first') canvas.requestPointerLock?.()?.catch?.(() => {});
 });
 let lookPointer = null;
 canvas.addEventListener('pointerdown', e => {
@@ -381,16 +381,16 @@ update = function(dt) {
   const before = flight.route?.phase;
   if (mode === 'walking') {
     const moving = {
-      x: Number(walkingKeys.has('KeyD')) - Number(walkingKeys.has('KeyA')),
-      z: Number(walkingKeys.has('KeyW')) - Number(walkingKeys.has('KeyS')),
-      crouch: walkingKeys.has('KeyC')||walkingKeys.has('ControlLeft')||walkingKeys.has('ControlRight'),
-      run: walkingKeys.has('ShiftLeft') || walkingKeys.has('ShiftRight')
+      x: FM.clamp(Number(walkingKeys.has('KeyD')) - Number(walkingKeys.has('KeyA')) + VoidInput.axes.moveX,-1,1),
+      z: FM.clamp(Number(walkingKeys.has('KeyW')) - Number(walkingKeys.has('KeyS')) + VoidInput.axes.moveZ,-1,1),
+      crouch: walkingKeys.has('KeyC')||walkingKeys.has('ControlLeft')||walkingKeys.has('ControlRight')||VoidInput.virtual.has('crouch'),
+      run: walkingKeys.has('ShiftLeft') || walkingKeys.has('ShiftRight')||VoidInput.virtual.has('sprint')
     };
     VoidExplorer.step(walker, moving, dt, walkingLocation);
     walkTarget = VoidExplorer.select(walker, walkingLocation, item => !item.when || VoidStory.matches(state, item.when));
     time += dt;
     $('walking-caption').textContent = walkingLocation.name + ' / '+(walkingLocation.kind==='station'?'CREW DECK':'LANDING ZONE');
-    $('walking-interact').textContent = walkTarget ? '[E] ' + walkTarget.label : 'Look toward a nearby object';
+    $('walking-interact').textContent = walkTarget ? '['+(globalThis.VoidControls?.label('interact')||'E')+'] ' + walkTarget.label : 'Look toward a nearby object';
     $('walking-interact').disabled = !walkTarget;
     lastStepSound -= dt;
     if ((moving.x || moving.z) && lastStepSound <= 0) {
