@@ -1,0 +1,26 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VOID//RUNNER Animation Lab</title>
+<style>html,body{margin:0;height:100%;background:#07111c;color:#d5e7e5;font:14px monospace}main{display:flex;height:100%}aside{box-sizing:border-box;width:310px;padding:22px;background:#0d202a;border-right:1px solid #345761}h1{font-size:20px}label{display:block;margin:18px 0}select,input,button{font:inherit;color:inherit;background:#142f3a;border:1px solid #4b8f8f;padding:8px}button{cursor:pointer;margin-right:7px}small{line-height:1.5;color:#9bb7b8}#scene{width:calc(100% - 310px);height:100%;touch-action:none}#status{white-space:pre-wrap}</style></head><body><main><aside><h1>VOID//RUNNER<br>ANIMATION LAB</h1><p>Mara · VR_Humanoid_v1</p><label>Clip<br><select id="clip"><option value="idle_fighting">Idle / fighting</option><option value="clap_slow">Slow clap</option></select></label><label><input type="checkbox" id="loop" checked> Loop</label><label>Speed <output id="speed-value">1.0</output><br><input id="speed" type="range" min="0.25" max="2" step="0.05" value="1"></label><button id="play">PLAY / BLEND</button><button id="stop">STOP</button><p id="status">Loading…</p><small>Local development preview only. The production game does not load this GLB. Drag to orbit; scroll to zoom.</small></aside><canvas id="scene"></canvas></main>
+<script src="../void-runner/vendor/babylon-8.26.0.js"></script><script src="../void-runner/vendor/babylonjs-loaders-8.26.0.min.js"></script><script src="../void-runner/animation-library.js"></script>
+<script>
+(async()=>{
+ const canvas=document.getElementById('scene'),status=document.getElementById('status'),engine=new BABYLON.Engine(canvas,true,{audioEngine:false}),scene=new BABYLON.Scene(engine);
+ scene.clearColor=new BABYLON.Color4(.04,.08,.12,1);
+ const camera=new BABYLON.ArcRotateCamera('orbit',-.7,1.25,4,new BABYLON.Vector3(0,.95,0),scene);camera.attachControl(canvas,true);camera.lowerRadiusLimit=2;camera.upperRadiusLimit=10;
+ const light=new BABYLON.HemisphericLight('fill',new BABYLON.Vector3(0,1,0),scene);light.intensity=.95;
+ const sun=new BABYLON.DirectionalLight('sun',new BABYLON.Vector3(-.4,-1,-.4),scene);sun.intensity=.65;
+ const floor=BABYLON.MeshBuilder.CreateGround('floor',{width:8,height:8},scene);const mat=new BABYLON.StandardMaterial('floor',scene);mat.diffuseColor=BABYLON.Color3.FromHexString('#26343a');floor.material=mat;
+ try{
+  const result=await VoidAnimationLibrary.spawn(scene),clips=Object.fromEntries(result.animationGroups.map(group=>[Object.keys(VoidAnimationLibrary.clips).find(id=>group.name.endsWith(id)),group]));
+  const play=()=>{
+   const id=document.getElementById('clip').value,loop=document.getElementById('loop').checked,speed=Number(document.getElementById('speed').value);
+   if(!result.animator.play(id,{loop,speed}))return;
+   status.textContent='Skeletons: '+result.skeletons.length+'\nBones: '+result.skeletons[0]?.bones.length+'\nClips: '+Object.keys(clips).join(', ')+'\nPlaying: '+id+'\nRoot motion: horizontal hips held in place';
+  };
+  document.getElementById('play').onclick=play;
+  document.getElementById('stop').onclick=()=>{result.animator.stop();status.textContent+='\nStopped.';};
+  document.getElementById('speed').oninput=event=>{document.getElementById('speed-value').textContent=Number(event.target.value).toFixed(2);result.animator.setSpeed(Number(event.target.value));};
+  window.VoidAnimationLab={scene,clips,result,play};play();
+ }catch(error){console.error('[VOID animation lab]',error);status.textContent='LOAD FAILED: '+error.message;}
+ engine.runRenderLoop(()=>scene.render());addEventListener('resize',()=>engine.resize());
+})();
+</script></body></html>
