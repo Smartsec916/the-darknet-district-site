@@ -70,6 +70,7 @@
     hull: [55, .22, 'square', .035],
     lock: [660, .15, 'sine', .025],
     warning: [150, .2, 'triangle', .025],
+    incoming: [220, .32, 'sawtooth', .045],
     charge: [90, .5, 'triangle', .03],
     warp: [260, .7, 'sawtooth', .035],
     exit: [180, .4, 'triangle', .03],

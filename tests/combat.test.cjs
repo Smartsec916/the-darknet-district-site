@@ -8,6 +8,14 @@ test('lock requires continuous tracking and cannot transfer to another enemy',()
  b.x=0;T.step(lock,[b],project,1000,800,1.5,B.defaults,true);assert.equal(lock.status,'LOCK');
  T.step(lock,[b],project,1000,800,1,B.defaults,false);assert.equal(lock.target,null);
 });
+test('target availability is distinct from acquisition and unguided missiles remain configurable',()=>{
+ const target={x:0,y:0,z:60,size:1},lock=T.fresh(),project=()=>({x:750,y:352,z:60});
+ T.step(lock,[target],project,1000,800,.2,B.defaults,true);
+ assert.equal(lock.status,'AVAILABLE');assert.equal(lock.available,target);assert.equal(lock.progress,0);
+ const s={ownsMissileLauncher:true,equipped:true,missilesLoaded:2,missileCapacity:2};
+ const shot=M.launch(s,lock,FM.basis(0,0),{...B.defaults,missileRequiresLock:false},0);
+ assert(shot);assert.equal(shot.target,null);assert.equal(s.missilesLoaded,1);
+});
 test('missile ownership, equipment, ammo, lock and cooldown independently gate fire',()=>{
  const target={x:0,y:0,z:50,size:1},lock={target,progress:1},valid={ownsMissileLauncher:true,equipped:true,missilesLoaded:3,missileCapacity:3};
  for(const change of [{ownsMissileLauncher:false},{equipped:false},{missilesLoaded:0},{missileCapacity:0}])assert.equal(M.launch({...valid,...change},lock,FM.basis(0,0),B.defaults,0),null);

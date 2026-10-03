@@ -8,6 +8,7 @@
   const Story=typeof module!=='undefined'?require('./story.js'):root.VoidStory;
   const P=typeof module!=='undefined'?require('./progression.js'):root.VoidProgression;
   const U=typeof module!=='undefined'?require('./universe.js'):root.VoidUniverse;
+  const Missions=typeof module!=='undefined'?require('./mission-log.js'):root.VoidMissions;
   const stations=Story.content.locations;for(const [id,def] of Object.entries(U.locations))stations[id]={...stations[id],...def};
   const contracts = [
     { id: 'medicine', name: 'Cold chain', cargo: 'Refrigerated clinic supplies', legal: true, destination: 'kepler', reward: 650, enemies: 8, tier: 1, duration: 38, contact: 'Dr. Sol', briefing: 'Our clinics need these before the next shift. Keep the containers intact. Raider activity has increased along the route.' },
@@ -39,7 +40,7 @@
       return migrate({ ...fresh(), quest: s.quest, location: s.location, credits: s.credits, completed: s.completed, upgrades: { guns: s.upgrades.guns, armor: s.upgrades.armor, engines: s.upgrades.engines,shields:s.upgrades.shields }, contract: s.contract, cleared, loadout,creditGear },s);
     } catch { return null; }
   }
-  function beginJourney(s) { if (s.quest !== 'inheritance'||!P.groundDone(s)) return false; s.quest = 'arrival'; s.story.chapter='arrival'; Story.emit(s,'leaveLocation','vesper'); return true; }
+  function beginJourney(s) { if (s.quest !== 'inheritance'||!P.groundDone(s)) return false; s.quest = 'arrival'; s.story.chapter='arrival';P.sync(s);Missions.acquire(s,'flight-training');Missions.acquire(s,'arrival');Missions.sync(s,{missionFlight}); Story.emit(s,'leaveLocation','vesper'); return true; }
   function stats(s, owned = []) {
     const ship=S.get(s), weapon=S.equipment[s.loadout?.weapon], shield=S.equipment[s.loadout?.shield];
     const standard=id=>S.equipment[id]?.ship==='ship3'?S.owns(s,'ship3'):s.standardGear?.includes(id);
@@ -49,14 +50,14 @@
     const creditHas=id=>s.creditGear?.includes(id)&&s.loadout?.utility===id;
     return P.stats(s,{ ship, flight:ship.flight, hull: B.playerHull * ship.hull/100 + s.upgrades.armor * B.hullPerTier, damage: has('wraith') ? B.premiumLaserDamage : B.laserDamage * laser + s.upgrades.guns * B.laserDamagePerTier, cooldown: has('wraith') ? 1/B.premiumLaserFireRate : Math.max(1/60,1/(B.laserFireRate*rate) - s.upgrades.guns * B.laserCooldownPerTier), speed: 10 + s.upgrades.engines * 2.5, shield: has('aegis') ? B.premiumShield : B.playerShield+deflector.capacity+(s.upgrades.shields||0)*B.shieldPerTier, shieldRegen:has('aegis')?B.premiumShieldRechargeRate:B.shieldRechargeRate*deflector.recharge/6,shieldDelay:has('aegis')?B.premiumShieldRechargeDelay:B.shieldRechargeDelay*deflector.delay/6, piercing: has('wraith'), drive: has('ghost')||creditHas('vector'),driveDuration:has('ghost')?.7:.4,driveCooldown:has('ghost')?8:12, drone: has('sentinel')||creditHas('scout'),droneDamage:has('sentinel')?4:2,droneCooldown:has('sentinel')?.7:1.2 });
   }
-  function unlocked(s,c) { return s.quest==='open' && s.progression.completed && (!c.requires || s.cleared.includes(c.requires)); }
+  function unlocked(s,c) { return s.quest==='open' && (s.universe.freeTravel||s.progression.completed) && (!c.requires || s.cleared.includes(c.requires)); }
   function missionFlight(s) {
     const base = { enemies: 0, tier: 0, duration: 15, reward: 0, legal: true, cargo: 'Empty hold' };
     if (s.quest === 'arrival') return { ...base, name: 'A ship of your own', destination: 'meridian' };
     if (s.quest === 'legal-run') return { ...base, name: 'An honest living', cargo: 'Water filtration parts', destination: 'kepler', enemies: 1, duration: 28, reward: 350 };
     if (s.quest === 'return') return { ...base, name: 'Back to the Dead Channel', destination: 'meridian', duration: 18 };
     if (s.quest === 'illegal-run') return { ...base, name: 'No questions asked', cargo: 'Unregistered memory wafers', legal: false, destination: 'undertow', enemies: 6, tier: 1, duration: 36, reward: 800 };
-    if(s.quest==='open'&&!s.progression.completed&&!s.contract)return {...base,id:'prologue-missiles',name:'Rook / Missile qualification',destination:s.location==='meridian'?'kepler':'meridian',enemies:1,tier:0,duration:18};
+    if(s.quest==='open'&&!s.progression.flags.missileFired&&!s.contract)return {...base,id:'prologue-missiles',name:'Rook / Missile qualification',destination:s.location==='meridian'?'kepler':'meridian',enemies:1,tier:0,duration:18};
     if (s.quest === 'open' && s.contract) {
       const c = allContracts.find(c => c.id === s.contract);
       if (!c) return null;
@@ -76,12 +77,12 @@
   }
   function accept(s, id) {
     if(s.progression.flags.dock&&!s.progression.flags.purchasedInstalled&&!s.progression.completed)return false;
-    if (s.quest === 'legal-offer') { s.quest = 'legal-run'; return true; }
-    if (s.quest === 'illegal-offer') { s.quest = 'illegal-run'; return true; }
+    if (s.quest === 'legal-offer') { s.quest = 'legal-run';Missions.acquire(s,'legal-run'); return true; }
+    if (s.quest === 'illegal-offer') { s.quest = 'illegal-run';Missions.acquire(s,'illegal-run'); return true; }
     const c = allContracts.find(c => c.id === id);
     if (s.contract || !c || !unlocked(s,c)) return false;
     if(!c.dataCargo&&(s.progression.cargo||[]).reduce((n,x)=>n+x.units,0)>=P.systems(s).cargo)return false;
-    s.destination=null;s.contract = id; Story.emit(s,'missionAccepted',id);return true;
+    s.destination=null;s.contract = id;Missions.acquire(s,id);Story.emit(s,'missionAccepted',id);return true;
   }
   function complete(s) {
     const f = flight(s); if (!f) return null;
@@ -95,6 +96,7 @@
     if(f.kind==='transit'){s.story.chapter=s.quest;Story.emit(s,'arriveLocation',s.location);return {...f,repairCharged,gunReward:false};}
     if(f.id==='prologue-missiles')return {...f,repairCharged,gunReward:false};
     if(!s.universe.completedObjectives.includes(f.id||previous))s.universe.completedObjectives.push(f.id||previous);
+    Missions.complete(s,f.id||previous);
     if (previous === 'arrival') s.quest = 'legal-offer';
     else if (previous === 'legal-run') s.quest = 'return';
     else if (previous === 'return') s.quest = 'illegal-offer';
@@ -130,7 +132,7 @@
     if(!raw.story&&out.quest!=='inheritance'){out.story.flags.metMara=true;out.story.met=['mara','elias'];out.story.events=['mara_workshop_intro'];out.story.chapter=out.quest;if(out.completed>0){out.story.flags.rookIntroduced=true;out.story.met.push('rook');}}
     if(!Object.hasOwn(stations,out.progression.checkpoint.location))out.progression.checkpoint={location:out.location};
     if(stations[out.progression.checkpoint.location]){out.location=out.progression.checkpoint.location;out.universe.station={location:out.location};}
-    out.travel=null;out.destination=null;out.story.cursor=null;out.universe.currentSystem=U.system(out.location);return out;
+    out.travel=null;out.destination=null;out.story.cursor=null;out.universe.currentSystem=U.system(out.location);Missions.sync(out,{missionFlight,contracts});return out;
   }
   function buyShip(s,id){const ship=S.ships[id];if(!ship||ship.premium||s.ownedShips.includes(id)||s.credits<ship.price)return false;s.credits-=ship.price;s.ownedShips.push(id);s.shipLoadouts[id]={...S.defaults[id]};for(const [key,item]of Object.entries(S.equipment))if(item.ship===id&&!s.standardGear.includes(key))s.standardGear.push(key);Story.emit(s,'ownShip',id);return true;}
   function switchShip(s,id){if(!S.owns(s,id)||!S.ships[id])return false;s.shipLoadouts[s.activeShip]={...s.loadout};s.activeShip=id;s.loadout={...(s.shipLoadouts[id]||S.defaults[id])};return true;}

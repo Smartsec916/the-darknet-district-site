@@ -38,7 +38,12 @@
   if(Object.values(p.equipment.installed[s.activeShip]||{}).some(id=>Object.hasOwn(modules,id)))p.flags.moduleInstalled=true;
   if(p.flags.modulePurchased&&Object.values(p.equipment.installed[s.activeShip]||{}).some(id=>id!=='cooling'))p.flags.purchasedInstalled=true;
   p.completed=groundDone(s)&&flight.every(id=>p.flags[id])&&s.missileOfferSeen===true;
-  if(s.universe){s.universe.freeTravel=p.completed;s.universe.missionLogUnlocked=p.completed||s.missileOfferSeen===true;}
+  if(s.universe){
+   // A pilot may revisit skipped training maneuvers after completing the missile
+   // qualification. Travel access does not certify those missing objectives.
+   s.universe.freeTravel=p.completed||p.flags.missileFired===true||s.universe.freeTravel===true;
+   s.universe.missionLogUnlocked=p.completed||s.missileOfferSeen===true||s.quest!=='inheritance';
+  }
   return p.completed;
  }
  function stage(s){if(s.progression.completed)return 'ACT-01_OPEN_WORLD';if(!groundDone(s))return 'PROLOGUE-01_GROUND';if(s.quest==='inheritance')return 'PROLOGUE-02_SHIP_ACQUISITION';if(!s.progression.flags.dock)return 'PROLOGUE-03_FLIGHT';if(!s.progression.flags.purchasedInstalled)return 'PROLOGUE-04_FIRST_STATION';if(!s.missileUnlocked)return 'PROLOGUE-05_COMBAT';return s.creditGear.includes('launcher')?'PROLOGUE-07_MISSILE_TRAINING':'PROLOGUE-06_MISSILE_ACQUISITION';}

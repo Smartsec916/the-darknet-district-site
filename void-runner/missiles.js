@@ -9,8 +9,9 @@
   return {x:a.x*Math.cos(limit)+tangent.x*Math.sin(limit),y:a.y*Math.cos(limit)+tangent.y*Math.sin(limit),z:a.z*Math.cos(limit)+tangent.z*Math.sin(limit)};
  }
  function launch(s,lock,basis,balance,cooldown){
-  if(!ready(s)||cooldown>0||lock.progress<1||!lock.target||lock.target.dead||((lock.target.relationship||lock.target.allegiance)&&(lock.target.relationship||lock.target.allegiance)!=='hostile')||Math.hypot(lock.target.x,lock.target.y,lock.target.z)>balance.missileRange)return null;
-  s.missilesLoaded--;return {x:basis.r.x*1.4+basis.u.x*.6,y:basis.r.y*1.4+basis.u.y*.6,z:basis.r.z*1.4+basis.u.z*.6,direction:{...basis.f},target:lock.target,life:balance.missileLifetime,distance:0,damage:balance.missileDamage};
+  const guided=balance.missileRequiresLock!==false;
+  if(!ready(s)||cooldown>0||(guided&&(lock.progress<1||!lock.target))||lock.target?.dead||((lock.target?.relationship||lock.target?.allegiance)&&(lock.target.relationship||lock.target.allegiance)!=='hostile')||(lock.target&&Math.hypot(lock.target.x,lock.target.y,lock.target.z)>balance.missileRange))return null;
+  s.missilesLoaded--;return {x:basis.r.x*1.4+basis.u.x*.6,y:basis.r.y*1.4+basis.u.y*.6,z:basis.r.z*1.4+basis.u.z*.6,direction:{...basis.f},target:guided?lock.target:null,life:balance.missileLifetime,distance:0,damage:balance.missileDamage};
  }
  function step(m,dt,velocity,balance,enemies,hit){
   const from={x:m.x,y:m.y,z:m.z};m.life-=dt;
