@@ -34,9 +34,19 @@ function updateWarpHud(){const r=flight.route;if(!r)return;
  hudText('route-status',Math.floor(r.progress*100)+'% / '+r.phase.toUpperCase());
  hudText('flight-objective',r.phase==='departure'?'DEPARTING / '+C.stations[r.origin].name:r.phase==='align'?(r.aligned>0?'WARP VECTOR LOCKED':'ALIGN WITH DESTINATION')+' · '+percent+'%':r.phase==='warp'?(r.policy?.kind==='interstellar'?'INTERSTELLAR JUMP / ':'IN-SYSTEM JUMP / ')+C.stations[r.destination].name:r.phase==='arrived'?'ARRIVAL / docking guidance':current.kind==='salvage'?'RECOVER SIGNALS '+objectiveCount+' / 3 · Clear hostiles to resume':current.kind==='escort'?'SHUTTLE '+escortHP+'% · Clear hostiles to resume':'INTERDICTION · HOSTILE ACTIVITY');
 }
+const navigationEdge={name:null,angle:0,last:0};
+function drawNavigationEdge(vector,name,color='#ffe58b'){
+ const edge=FM.arrow(vector,flightBasis(),W,H),now=performance.now();let angle=edge.angle;
+ if(navigationEdge.name===name&&now-navigationEdge.last<1200&&!reducedMotion){const delta=Math.atan2(Math.sin(angle-navigationEdge.angle),Math.cos(angle-navigationEdge.angle));angle=navigationEdge.angle+delta*Math.min(1,Math.max(.08,(now-navigationEdge.last)/90));}
+ navigationEdge.name=name;navigationEdge.angle=angle;navigationEdge.last=now;
+ edge.x=W*.5+Math.cos(angle)*W*.38;edge.y=H*.44+Math.sin(angle)*H*.28;edge.angle=angle;
+ ctx.save();ctx.translate(edge.x,edge.y);ctx.rotate(edge.angle);ctx.fillStyle='#07131c';ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(17,0);ctx.lineTo(-9,-9);ctx.lineTo(-5,0);ctx.lineTo(-9,9);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+ ctx.save();ctx.font='bold 12px Consolas';ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#07131c';ctx.fillStyle=color;const label=(edge.behind?'BEHIND / ':'')+name;ctx.strokeText(label,edge.x,edge.y+25);ctx.fillText(label,edge.x,edge.y+25);ctx.restore();
+}
 function drawWarpMarker(){const r=flight.route;if(!r||r.phase!=='align')return;const p=flightPoint(flight.nav);
- if(p.z<1||p.x<W*.12||p.x>W*.88||p.y<H*.16||p.y>H*.72){cockpitArrow(flight.nav,'DESTINATION','#f4d15d');return;}
- ctx.save();ctx.translate(p.x,p.y);ctx.strokeStyle='#f4d15d';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-20);ctx.lineTo(20,0);ctx.lineTo(0,20);ctx.lineTo(-20,0);ctx.closePath();ctx.stroke();ctx.font='11px Consolas';ctx.textAlign='center';ctx.fillStyle=ctx.strokeStyle;ctx.fillText(C.stations[r.destination].name.toUpperCase(),0,39);ctx.restore();
+ const name=C.stations[r.destination].name.toUpperCase(),color='#ffe58b';
+ if(p.z<1||p.x<W*.12||p.x>W*.88||p.y<H*.16||p.y>H*.72){drawNavigationEdge(flight.nav,name,color);return;}
+ ctx.save();ctx.translate(p.x,p.y);ctx.shadowColor='#07131c';ctx.shadowBlur=12;ctx.strokeStyle=color;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,-24);ctx.lineTo(24,0);ctx.lineTo(0,24);ctx.lineTo(-24,0);ctx.closePath();ctx.stroke();ctx.fillStyle=color;ctx.fillRect(-3,-3,6,6);ctx.font='bold 12px Consolas';ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#07131c';ctx.strokeText(name,0,43);ctx.fillText(name,0,43);ctx.restore();
 }
 function drawWarpEffect(){const r=flight.route;if(!r||r.phase!=='warp')return;
  const slow=warpSpeed(r);drawWarpObjects(r,slow);

@@ -17,7 +17,7 @@ function random() { seed = seed * 16807 % 2147483647; return (seed - 1) / 214748
 const stars = Array.from({ length: 320 }, () => ({ x: (random() - .5) * 300, y: (random() - .5) * 190, z: random() * 260 + 1 }));
 function resize() { W = innerWidth; H = innerHeight; D = Math.min(devicePixelRatio || 1, 2); canvas.width = W * D; canvas.height = H * D; ctx.setTransform(D, 0, 0, D, 0, 0); }
 addEventListener('resize', resize); resize();
-function save() { try { state.savedAt=Date.now(); localStorage.setItem(SAVE_KEY, JSON.stringify(state)); hasSave = true; } catch { saveAvailable = false; announce('Storage unavailable. Keep this tab open to retain progress.'); } }
+function save() { try { VoidMissions.sync(state,C);state.savedAt=Date.now(); localStorage.setItem(SAVE_KEY, JSON.stringify(state)); hasSave = true; } catch { saveAvailable = false; announce('Storage unavailable. Keep this tab open to retain progress.'); } }
 function announce(text) { $('notice').textContent = text; noticeTime = 4; }
 function tone(...args) { globalThis.VoidAudio?.tone(...args); }
 function button(label, action, quiet = false, disabled = false) { return `<button data-action="${action}" class="${quiet ? 'quiet' : ''}" ${disabled ? 'disabled' : ''}>${label}</button>`; }
