@@ -2,7 +2,7 @@
 const account = window.VoidAccount = {user:null,products:[],status:'Verified purchases require a connection.',busy:false,revision:0,cloud:null,savedAt:null};
 let authInitialization=null,unsubscribe=null;
 let firebase, generation=0, pendingCheckout=new URLSearchParams(location.search).get('checkout');
-let saveReady=false,verifiedUntil=0,ownershipTimer,refreshTimer,lastRefreshAttempt=0;
+let saveReady=false,verifiedUntil=0,ownershipTimer,refreshTimer,serviceRetryTimer,lastRefreshAttempt=0;
 function render(){
   globalThis.VoidMenu?.refreshAccount();
   if(mode==='dock'&&view==='market')market();
@@ -24,7 +24,12 @@ async function catalog(){
 async function refresh(){
   lastRefreshAttempt=Date.now();
   const epoch=generation;
-  let data;try{data=await api('account');}catch(error){if(epoch===generation){setOwnedGear([]);saveReady=false;}throw error;}if(epoch!==generation)return;
+  let data;try{data=await api('account');}catch(error){if(epoch===generation){setOwnedGear([]);saveReady=false;
+    if(['unavailable','timeout','network','invalid-response'].includes(error.kind)){
+      clearTimeout(serviceRetryTimer);serviceRetryTimer=setTimeout(()=>{if(epoch===generation&&account.user)run(refresh,true);},60000);
+    }
+  }throw error;}if(epoch!==generation)return;
+  clearTimeout(serviceRetryTimer);
   verifiedUntil=Date.now()+300000;clearTimeout(ownershipTimer);ownershipTimer=setTimeout(()=>{setOwnedGear([]);verifiedUntil=0;},300000);
   clearTimeout(refreshTimer);refreshTimer=setTimeout(()=>{if(epoch===generation&&account.user)run(refresh,true);},240000);
   if(data.developer){const identityEpoch=generation;VoidDevTools.identity((path,body)=>{if(identityEpoch!==generation||!account.user)throw new Error('Sign in again.');return api(path,body);});}

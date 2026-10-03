@@ -42,9 +42,21 @@
   async function load(id, def, scene, task) {
     const url = new URL(def.src, base);
     if (url.origin !== location.origin || !url.pathname.endsWith('.glb')) throw Error('Model must be a locally hosted GLB.');
-    const response = await fetch(url,{signal:task?.signal});
-    if (!response.ok) throw Error('Model unavailable: ' + id);
-    validate(await response.arrayBuffer());
+    let buffer;
+    for(let attempt=1;attempt<=2;attempt++){
+      task?.check();
+      try{
+        const response=await fetch(url,{signal:task?.signal});
+        if(!response.ok)throw Error('Model HTTP '+response.status);
+        buffer=await response.arrayBuffer();
+        validate(buffer);
+        break;
+      }catch(error){
+        if(task?.signal.aborted||attempt===2)throw Error('Model unavailable: '+id+' · '+error.message);
+        console.warn('[VOID//RUNNER assets] retry', {id,attempt,reason:error.message});
+        await new Promise(resolve=>setTimeout(resolve,650));
+      }
+    }
     await loadPlugin(task);
     task?.check();
     const container = await BABYLON.SceneLoader.LoadAssetContainerAsync(url.href.slice(0, url.href.lastIndexOf('/') + 1), url.href.slice(url.href.lastIndexOf('/') + 1), scene);
