@@ -147,38 +147,74 @@
     if (node) node.dispose(false, false);
   }
 
-  function script(task) {
-    if (root.BABYLON) return Promise.resolve();
+  function loadEngineOnce(task) {
     return new Promise((resolve, reject) => {
       const s = document.createElement('script');
+      s.dataset.voidRetry = 'engine';
       s.src = new URL('vendor/babylon-8.26.0.js', base);
-      const abort = () => { s.remove(); reject(task.signal.reason); };
-      task.signal.addEventListener('abort',abort,{once:true});
-      s.onload = () => {task.signal.removeEventListener('abort',abort);resolve();};
-      s.onerror = () => {
-        s.remove();
-        task.signal.removeEventListener('abort',abort);
-        reject(Error('Babylon engine unavailable.'));
+      let done = false;
+      const finish = error => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        task.signal.removeEventListener('abort', abort);
+        if (error) { s.remove(); reject(error); }
+        else resolve();
       };
+      const abort = () => finish(task.signal.reason);
+      const timer = setTimeout(() => finish(Error('Babylon download timed out.')), 60000);
+      task.signal.addEventListener('abort', abort, {once:true});
+      s.onload = () => finish(root.BABYLON?.Engine ? null : Error('Babylon script loaded without an engine.'));
+      s.onerror = () => finish(Error('Babylon download failed.'));
       document.head.append(s);
     });
+  }
+  async function script(task) {
+    if (root.BABYLON?.Engine) return;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      task.check();
+      if(root.BABYLON?.Engine)return;
+      VoidLoading.stage('core', attempt === 1 ? 'INITIALIZING ENGINE' : 'RETRYING ENGINE DOWNLOAD · '+attempt+'/3');
+      try { await loadEngineOnce(task); return; }
+      catch (error) {
+        if (task.signal.aborted) throw error;
+        console.warn('[VOID//RUNNER startup] engine download', {attempt, reason:error.message});
+        if (attempt === 3) { const failure = Error('Babylon engine unavailable after 3 attempts. Check the connection, then retry.'); failure.phase='module'; throw failure; }
+        await new Promise((resolve,reject) => {
+          const abort=()=>{clearTimeout(timer);reject(task.signal.reason);};
+          const timer=setTimeout(()=>{task.signal.removeEventListener('abort',abort);resolve();}, 700*2**(attempt-1)+Math.random()*300);
+          task.signal.addEventListener('abort',abort,{once:true});
+        });
+      }
+    }
+  }
+  function checkGraphics() {
+    const probe=document.createElement('canvas');
+    let context=null;
+    try { context=probe.getContext('webgl2')||probe.getContext('webgl')||probe.getContext('experimental-webgl'); } catch {}
+    if (!context) { const error=Error('WebGL could not start in this browser. Check graphics drivers and hardware acceleration, then retry.'); error.phase='graphics'; throw error; }
+    context.getExtension('WEBGL_lose_context')?.loseContext();
   }
   async function initialize(task) {
     if (!task) return VoidPreparation.run(t=>initialize(t));
     if (engine && diagnostics.ready) return;
     if (loadPromise) return loadPromise;
     loadPromise = (async () => {
+      checkGraphics();
       await task.wait('module',()=>script(task),new URL('vendor/babylon-8.26.0.js',base).href);
       task.check();
       const b = B();
       surface = document.createElement('canvas');
       surface.setAttribute('aria-hidden', 'true');
       // No second audio context and no second animation loop.
-      engine = new b.Engine(surface, true, {
+      try { engine = new b.Engine(surface, true, {
         preserveDrawingBuffer: true,
         stencil: true,
         audioEngine: false
-      });
+      }); } catch(cause) {
+        const error=Error('WebGL engine could not start. Check graphics drivers and browser hardware acceleration.');
+        error.phase='graphics';error.cause=cause;throw error;
+      }
       scene = new b.Scene(engine);
       scene.clearColor = new b.Color4(.008, .018, .035, 1);
       camera = new b.FreeCamera('presentation-camera', b.Vector3.Zero(), scene);
@@ -194,9 +230,11 @@
       engine.onContextLostObservable.add(() => {
         diagnostics.ready = false;
         diagnostics.exteriorReady = false;
+        VoidLoading.graphicsState?.('lost');
       });
       engine.onContextRestoredObservable.add(() => {
         diagnostics.ready = true;
+        VoidLoading.graphicsState?.('restored');
       });
     })().catch(error => {
       scene?.dispose(); engine?.dispose();
