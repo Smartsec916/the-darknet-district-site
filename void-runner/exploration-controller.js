@@ -2,9 +2,9 @@
 (function(root) {
   const radius = .38;
 
-  function blocked(x, z, location) {
+  function blocked(x, z, location, ignoreId=null) {
     if (Math.abs(x) > location.bounds[0] - radius || Math.abs(z) > location.bounds[1] - radius) return true;
-    return location.solids.some(s => Math.abs(x - s.position[0]) < s.size[0] / 2 + radius && Math.abs(z - s.position[2]) < s.size[2] / 2 + radius);
+    return location.solids.some(s => s.id!==ignoreId && !s.open && Math.abs(x - s.position[0]) < s.size[0] / 2 + radius && Math.abs(z - s.position[2]) < s.size[2] / 2 + radius);
   }
 
   const config={sensitivity:.0022,walk:3.4,sprint:5.6,crouch:1.65,acceleration:32,braking:44,gravity:18,jump:4.6};
@@ -35,7 +35,7 @@
       // Test horizontal line of sight; never interact through a wall.
       let occluded = false;
       for (let t = .15; t < distance - .45; t += .15)
-        if (blocked(player.x + dx * t / distance, player.z + dz * t / distance, location)) {
+        if (blocked(player.x + dx * t / distance, player.z + dz * t / distance, location, item.action==='station-door'?item.door:null)) {
           occluded = true;
           break;
         }

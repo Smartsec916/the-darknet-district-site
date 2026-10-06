@@ -38,7 +38,8 @@
   if(e.generator)p.speed=0;
   e.velocity={x:p.heading.x*p.speed,y:p.heading.y*p.speed,z:p.heading.z*p.speed};
   const facing=M.dot(p.heading,toward),offensive=p.state==='attack'||p.state==='reposition';
-  p.canFire=offensive&&distance<165&&facing>t.fireCone;
+  p.canFire=context.detected!==false&&offensive&&distance<165&&facing>t.fireCone;
+  if(context.detected===false){p.lock=0;p.heading=missiles.turn(p.heading,{x:context.forward.z,y:.15,z:-context.forward.x},t.turn*dt);e.velocity={x:p.heading.x*t.speed,y:p.heading.y*t.speed,z:p.heading.z*t.speed};return p;}
   p.lock=e.heavy&&p.canFire&&distance<130&&p.missileCooldown<=0?Math.min(1,p.lock+dt/t.lockTime):Math.max(0,p.lock-dt*2);
   return p;
  }

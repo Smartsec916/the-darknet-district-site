@@ -11,7 +11,7 @@ function selectCombatTarget(action){
  selectedTarget=action==='nearest'?choices[0]:choices[(index+delta+choices.length)%choices.length];
  targetSelection=true;lockEnabled=true;missileLock=VoidTargeting.fresh();VoidAudio.event('cycle');
 }
-function lockCandidates(){if(selectedTarget?.dead)selectedTarget=null;return !lockEnabled?[]:targetSelection?(selectedTarget?[selectedTarget]:[]):enemies;}
+function lockCandidates(){if(selectedTarget?.dead)selectedTarget=null;return !lockEnabled?[]:targetSelection?(selectedTarget?[selectedTarget]:[]):enemies.filter(e=>!globalThis.VoidFlightSkirmish?.lineBlocked(e));}
 function missileStatus(){
  if(!missileState.ownsMissileLauncher)return 'NO LAUNCHER';if(!missileState.equipped)return 'NOT EQUIPPED';if(!missileState.missilesLoaded)return 'EMPTY · REARM AT DOCK';if(missileCooldown>0)return 'RELOADING';
  if(!lockEnabled)return 'LOCK OFF';const e=selectedTarget||missileLock.target;
@@ -81,6 +81,7 @@ function stepEnemyMissiles(dt,velocity){
  if(stage!=='none'&&warningClock===0){VoidAudio.event(stage==='incoming'?'incoming':'warning',(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)));warningClock=stage==='incoming'?3:2.5;}
 }
 function drawEnemyLockWarning(){
+ for(const e of enemies.filter(e=>!e.dead&&e.pilot?.lock>.05)){const p=flightPoint(e);if(p.z<=1||p.x<20||p.x>W-20||p.y<20||p.y>H-20)cockpitArrow(e,'LOCK SOURCE','#ffbc76');}
  for(const m of enemyMissiles){const p=flightPoint(m);if(p.z>1){ctx.fillStyle='#ff745f';ctx.fillRect(p.x-3,p.y-3,6,6);}else cockpitArrow(m,'MISSILE','#ff745f');}
  const locking=enemies.some(e=>e.pilot?.lock>.05);if(!locking&&!enemyMissiles.length)return;
  ctx.save();ctx.font='bold 14px Consolas';ctx.textAlign='center';ctx.fillStyle=enemyMissiles.length?'#ff6b61':'#ffbc76';ctx.shadowColor='#000';ctx.shadowBlur=8;ctx.fillText(enemyMissiles.length?'MISSILE INCOMING':'LOCK WARNING',W*.5,H*.22);ctx.restore();

@@ -300,11 +300,11 @@
     return node;
   }
 
-  function stationModel(id, parent, exterior=false) {
+  function stationModel(id, parent, exterior=false,layoutDef=null) {
     if(id==='meridian'&&exterior){const imported=VoidAssets.instance('station:meridian',parent);if(imported){imported.metadata={identity:'meridian',source:'shared-glb'};return imported;}return VoidMeridian.build(scene,parent);}
     const b=B(),node=new b.TransformNode('station-'+id,scene);node.parent=parent;
-    const def=VoidStationLayouts.layout(id),hull=material('station',def.color),metal=material('truss','#343e47'),trim=material('navigation','#a9d7c5',true);
-    for(const p of def.shell)box(p.id,p.size,p.position,p.kind==='glass'?material('window','#6cabbc',false,.12):p.kind==='floor'?material('floor','#29333c'):hull,node);
+    const def=layoutDef||VoidStationLayouts.layout(id),hull=material('station',def.color),metal=material('truss','#343e47'),trim=material('navigation','#a9d7c5',true);
+    for(const p of def.shell){const colors={frame:'#252c31',panel:'#61676a',seat:'#735a42',ceramic:'#b0b9b5',counter:'#655846',door:'#59656c',amber:'#d7a465',teal:'#82beb0'};const mesh=box(p.id,p.size,p.position,p.kind==='glass'?material('window','#6cabbc',false,.12):p.kind==='floor'?material('floor','#29333c'):colors[p.kind]?material(p.kind,colors[p.kind],['amber','teal'].includes(p.kind)):hull,node);if(p.kind==='door')mesh.metadata={stationDoor:p};}
     if(id==='meridian'){
       const exterior=VoidMeridian.build(scene,node,{occupied:true});node.metadata={layout:id,exterior};return node;
     }
@@ -327,10 +327,10 @@
     node.metadata={layout:id,doors,arrays,placeholder:true};return node;
   }
 
-  let actors=[];
+  let actors=[],stationActivity=null,lastActivityTime=null;
   function characterModel(id,parent,position,ambient=false){
     const model=VoidAssets.instance('character:'+id,parent);if(model){model.position.set(position[0],0,position[2]);actors.push({node:model,base:position.slice(),ambient});return model;}
-    const b=B(),a=VoidStationLayouts.appearances[id]||{coat:'#59676e',hair:'#30363c',skin:'#ae8a70'},node=new b.TransformNode('npc-'+id,scene);
+    const b=B(),a=VoidStationLayouts.appearances[id]||{coat:['#48565b','#665541','#566249','#4d5264'][Number(id.slice(-1))%4]||'#59676e',hair:'#30363c',skin:['#ae8a70','#75533f','#c7a184'][Number(id.slice(-1))%3]||'#ae8a70'},node=new b.TransformNode('npc-'+id,scene);
     node.parent=parent;node.position.set(...position);node.position.y=0;
     const coat=material('coat',a.coat),skin=material('skin',a.skin),dark=material('clothing','#252b33');
     box('torso',[.55,.68,.3],[0,1.15,0],coat,node);box('coat-tail',[.6,.35,.32],[0,.77,0],coat,node);
@@ -342,25 +342,51 @@
     if(a.eye)box('cybernetic-eye',[.085,.06,.04],[.09,1.73,.177],material('implant',a.eye,true),node);
     if(a.style==='glasses')box('spectacles',[.31,.085,.045],[0,1.73,.18],dark,node);
     if(a.archive){node.getChildMeshes().forEach(m=>m.visibility=.6);box('archive-projector',[.8,.12,.6],[0,.05,0],material('archive','#70bdd6',true),node);}
+    if(ambient){
+      const pieces=node.getChildMeshes();for(const old of pieces){if(['torso','arm','leg','hair'].includes(old.name)){const size=old.getBoundingInfo().boundingBox.extendSize.scale(2),shape=old.name==='hair'?b.MeshBuilder.CreateSphere('crew-hair',{diameter:1,segments:12},scene):b.MeshBuilder.CreateCapsule(old.name,{height:size.y,radius:Math.min(size.x,size.z)/2,tessellation:10},scene);shape.parent=node;shape.position.copyFrom(old.position);shape.rotation.copyFrom(old.rotation);shape.material=old.material;if(old.name==='torso')shape.scaling.x=1.65;if(old.name==='hair')shape.scaling.set(size.x,.2,size.z);old.dispose();}}
+      for(const x of [-.07,.07]){const eye=b.MeshBuilder.CreateSphere('crew-eye',{diameter:.035,segments:6},scene);eye.parent=node;eye.position.set(x,1.73,.162);eye.material=dark;}box('crew-nose',[.055,.08,.07],[0,1.67,.18],skin,node);box('crew-belt',[.46,.08,.33],[0,.86,0],dark,node);box('crew-badge',[.08,.13,.02],[-.15,1.3,.16],material('badge','#d1b879'),node);
+    }
     node.metadata={placeholder:true,reference:'art/characters.png',character:id,ambient};actors.push({node,base:position.slice(),ambient});return node;
   }
   async function prepareStation(def,task){
     release(); // A new visit owns exactly one room and its actors, signs and lights.
     await prepareSpace(def.id,['raider','courier','shuttle','security',def.ship],task,Object.fromEntries(def.interactions.filter(i=>i.character&&VoidAssets.models.characters[i.character]).map(i=>['character:'+i.character,VoidAssets.models.characters[i.character]])));task.check();station.setEnabled(false);rocks.forEach((mesh,i)=>{mesh.position.set((i%2?-1:1)*(75+i*6),30+Math.sin(i)*24,90+i*17);mesh.scaling.setAll(2+i%5);});
-    roomRoot=stationModel(def.id,null);room=def;actors=[];
+    roomRoot=stationModel(def.id,null,false,def);room=def;actors=[];stationActivity=def.activityPoints?VoidStationActivities.create(def):null;lastActivityTime=null;
     const ship=shipModel(def.ship,'friendly',roomRoot);ship.position.set(-7,2,-9);ship.scaling.setAll(2);
     for(const item of def.interactions)if(item.character)characterModel(item.character,roomRoot,item.position);
-    for(let i=0;i<4;i++)characterModel('crew-'+i,roomRoot,[i<2?-13:13,0,i<2?-8+i*7:20+i*3],true);
+    if(stationActivity){for(const a of stationActivity.actors){const node=characterModel('crew-'+a.id,roomRoot,[a.x,0,a.z],true);actors[actors.length-1].activity=a;const cup=box('crew-cup',[.1,.16,.1],[.4,1.4,.2],material('cup','#b7b2a1'),node);cup.setEnabled(false);actors[actors.length-1].cup=cup;}}else for(let i=0;i<4;i++)characterModel('crew-'+i,roomRoot,[i<2?-13:13,0,i<2?-8+i*7:20+i*3],true);
     for(let i=0;i<5;i++)box('cargo-crate',[1.3,1.3,1.3],[12+(i%2)*1.5,.65,-17+Math.floor(i/2)*1.5],material('cargo','#716b56'),roomRoot);
     const colors=['#d47575','#78a5cf','#d39865','#84bd94','#b398cf'];
     colors.forEach((c,i)=>box('outfitter-category',[.55,.9,.12],[-14+i*1.5,1.7,29],material('shop',c,true),roomRoot));
     for(let z=-20;z<32;z+=7){box('floor-guide',[.12,.025,3],[0,.03,z],material('guide','#80baaa',true),roomRoot);if(z<4||z>18)box('ceiling-light',[8,.06,.2],[0,z<4?8.7:5.7,z],material('lamp','#d1d4be',true),roomRoot);}
     for(const signDef of def.signs)sign(signDef,roomRoot);
-    const roomLight=new BABYLON.PointLight('concourse-light',new BABYLON.Vector3(0,4,25),scene);roomLight.parent=roomRoot;roomLight.intensity=.85;roomLight.range=28;
+    if(def.id==='meridian'){fitoutMeridian(roomRoot);planet.position.set(340,-65,140);}
+    const roomLight=new BABYLON.PointLight('concourse-light',new BABYLON.Vector3(0,4,25),scene);roomLight.parent=roomRoot;roomLight.diffuse=new BABYLON.Color3(1,.69,.38);roomLight.intensity=1.4;roomLight.range=28;
     const fill=new BABYLON.PointLight('hangar-light',new BABYLON.Vector3(0,6,-9),scene);fill.parent=roomRoot;fill.intensity=.8;fill.range=45;
     // These routes are station-relative and visible through the observation apertures.
     for(let i=0;i<3;i++){const n=shipModel(i?'shuttle':'courier','neutral',roomRoot);n.metadata={...n.metadata,traffic:true,lane:i};actors.push({node:n,traffic:true,lane:i});}
     await task.wait('scene',()=>scene.whenReadyAsync(),'station-'+def.id);diagnostics.location=def.id;
+  }
+
+  function fitoutMeridian(parent){
+    const b=B(),steel=material('brushed-steel','#454e55'),warm=material('lamp-warm','#ffd39a',true),rubber=material('rubber','#232a30'),copper=material('copper','#967053');
+    scene.getLightByName('ambient').intensity=.22;scene.getLightByName('sun').intensity=.28;
+    function pipe(x,y,z,length){const m=b.MeshBuilder.CreateCylinder('service-pipe',{diameter:.13,height:length,tessellation:10},scene);m.parent=parent;m.position.set(x,y,z);m.rotation.x=Math.PI/2;m.material=copper;}
+    for(let z=20;z<66;z+=4){
+      for(const x of [-5.5,5.5]){box('luminaire-housing',[1.8,.22,.45],[x,5.45,z],steel,parent);box('warm-diffuser',[1.5,.04,.3],[x,5.31,z],warm,parent);}
+      for(const x of [-16.8,16.8]){pipe(x,5.2,z,4);box('pressure-frame',[.22,4.5,.25],[x,2.25,z],steel,parent);box('amber-wall-lamp',[.12,1.3,.15],[x*.985,2.5,z],warm,parent);}
+      for(const x of [-12,-6,0,6,12]){box('floor-expansion-joint',[.04,.018,4],[x,.027,z],rubber,parent);for(const s of [-1,1])box('deck-fastener',[.09,.025,.09],[x+s*.15,.032,z-1.8],steel,parent);}
+    }
+    for(const [x,z]of [[10,30],[-10,27],[0,45],[0,59]]){const light=new b.PointLight('warm-crew-light',new b.Vector3(x,4.7,z),scene);light.parent=parent;light.diffuse=new b.Color3(1,.68,.35);light.intensity=1.6;light.range=22;}
+    for(const x of [-12,11])for(const z of [37,41]){const lamp=b.MeshBuilder.CreateCylinder('table-lamp',{diameterTop:.16,diameterBottom:.32,height:.24,tessellation:12},scene);lamp.parent=parent;lamp.position.set(x,1.12,z);lamp.material=warm;box('table-light-base',[.12,.16,.12],[x,.92,z],steel,parent);for(const s of [-1,1]){box('chair-metal-leg',[.08,.48,.08],[x+s*1.6,.24,z-.24],steel,parent);box('chair-metal-leg',[.08,.48,.08],[x+s*1.6,.24,z+.24],steel,parent);}}
+    for(const x of [8,10,12,14]){box('bar-service-panel',[1.75,.76,.045],[x,.65,28.36],steel,parent);box('bar-underlight',[1.6,.035,.04],[x,1.04,28.31],warm,parent);}
+    const terminal=box('crew-terminal',[1,.7,.15],[-4,1.3,31],steel,parent);box('terminal-display',[.8,.45,.04],[-4,1.4,30.9],material('screen','#74bba8',true),parent);box('terminal-stand',[.18,1,.2],[-4,.5,31],steel,parent);
+    for(const side of [-1,1])for(const z of [47,55,59,63]){const x=side*7;for(const y of [1,3.2]){box('crew-wall-inset',[.04,1.8,3.2],[x-side*.23,y,z],steel,parent);for(const dz of [-1.4,1.4])box('panel-latch',[.09,.23,.12],[x-side*.27,y,z+dz],copper,parent);}}
+    parent.metadata={...parent.metadata,art:globalThis.VoidMeridianArt?.enhance({B:b,scene,parent,box,material,quality})};
+    for(const m of parent.getChildMeshes())if(m.material)m.material.maxSimultaneousLights=8;
+    // Static fittings share material batches; NPCs, signs and doors keep individual nodes.
+    const batches=new Map();for(const m of parent.getChildMeshes()){if(m.parent!==parent||m.metadata?.stationDoor||!m.isVisible||!m.isEnabled())continue;const list=batches.get(m.material)||[];list.push(m);batches.set(m.material,list);}for(const [mat,list] of batches)if(list.length>1){const mesh=b.Mesh.MergeMeshes(list,true,true,undefined,false,false);mesh.name='meridian-interior-'+mat.name;mesh.parent=parent;mesh.material=mat;mesh.isPickable=false;}
+
   }
 
   function planetTexture(id) {
@@ -393,6 +419,7 @@
   async function prepareSpace(id, shipTypes = ['raider', 'interceptor', 'gunship', 'courier', 'security', 'shuttle'], task,extraModels={}) {
     if(!task) return VoidPreparation.run(t=>prepareSpace(id,shipTypes,t,extraModels));
     await initialize(task);
+    scene.getLightByName('ambient').intensity=.48;scene.getLightByName('sun').intensity=1.5;
     task.check();
     if (activeLocation === id && spaceRoot && diagnostics.exteriorReady) {
       spaceRoot.setEnabled(true);
@@ -830,6 +857,7 @@
   }
 
   function clearRoom() {
+    roomRoot?.metadata?.art?.dispose?.();
     roomRoot?.metadata?.exterior?.metadata?.dispose?.();
     openingHandle?.dispose();openingHandle=null;
     derelictHandle?.dispose();derelictHandle=null;
@@ -840,7 +868,7 @@
     signs = [];
     disposeNode(roomRoot);
     roomRoot = null;
-    room = null;actors=[];
+    room = null;actors=[];stationActivity=null;lastActivityTime=null;
   }
 
   function renderRoom(player, width, height, time, allowed = () => true) {
@@ -856,7 +884,9 @@
       s.material.alpha = s.def.animation === 'flicker' ? .72 + Math.sin(time * 13) * .07 : s.def.animation === 'pulse' ? .8 + Math.sin(time) * .08 : .9;
       if (s.def.animation === 'rotate') s.mesh.rotation.y = time * .2;
     }
-    for(const actor of actors){if(openingHandle&&actor.node===openingHandle.mara)continue;if(actor.traffic){actor.node.position.set((actor.lane%2?-1:1)*(25+actor.lane*8),5+actor.lane*2,((time*(5+actor.lane)+actor.lane*37)%140)-55);actor.node.rotation.y=0;}else{actor.node.rotation.y=Math.sin(time*.3+actor.base[0])*.13;if(actor.ambient)actor.node.position.z=actor.base[2]+Math.sin(time*.2+actor.base[0])*1.2;}}
+    if(stationActivity){VoidStationActivities.step(stationActivity,lastActivityTime===null?0:Math.min(.1,Math.max(0,time-lastActivityTime)));lastActivityTime=time;}
+    for(const mesh of roomRoot.getChildMeshes()){const d=mesh.metadata?.stationDoor;if(d)mesh.position.y=d.position[1]+(d.open?3.5:0);}
+    for(const actor of actors){if(actor.activity){const a=actor.activity,seated=a.state==='sit'||a.state==='drink';actor.node.position.set(a.x,seated?-.35:0,a.z);actor.node.rotation.y=a.yaw;actor.cup?.setEnabled(a.state==='drink'||a.state==='get-drink');for(const mesh of actor.node.getChildMeshes()){if(mesh.name==='arm')mesh.rotation.x=a.state==='walk'?Math.sin(time*5+a.id)*.25:a.state==='talk'?Math.sin(time*2+a.id)*.15:a.state==='drink'?-.9+Math.sin(time)*.15:a.gesture==='device'?-.65:0;if(mesh.name==='leg')mesh.rotation.x=seated?-1.15:a.state==='walk'?Math.sin(time*5+(mesh.position.x<0?Math.PI:0))*.3:0;if(mesh.name==='head')mesh.rotation.y=a.gesture==='look'?Math.sin(time)*.18:0;}continue;}if(openingHandle&&actor.node===openingHandle.mara)continue;if(actor.traffic){actor.node.position.set((actor.lane%2?-1:1)*(25+actor.lane*8),5+actor.lane*2,((time*(5+actor.lane)+actor.lane*37)%140)-55);actor.node.rotation.y=0;}else{actor.node.rotation.y=Math.sin(time*.3+actor.base[0])*.13;if(actor.ambient)actor.node.position.z=actor.base[2]+Math.sin(time*.2+actor.base[0])*1.2;}}
     roomRoot.metadata?.arrays?.forEach((n,i)=>n.rotation.z=.14+Math.sin(time*.015+i*.2)*.08);
     openingHandle?.tick(time);
     scene.render();
