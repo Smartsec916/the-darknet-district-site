@@ -3,6 +3,14 @@ import unittest
 import void_runner_api as vr
 
 class StorySaveTests(unittest.TestCase):
+    def test_mission_objectives_tracking_and_travel_survive_cloud_validation(self):
+        state=self.state();state['universe']={'trackingInitialized':True,'trackedMission':'repair','freeTravel':True,'missions':{'repair':{'acquired':True,'completed':False,'objectives':{'parts':True,'return':False}}}}
+        clean=vr.clean_save(state)
+        self.assertTrue(clean['universe']['trackingInitialized']);self.assertEqual(clean['universe']['trackedMission'],'repair')
+        self.assertEqual(clean['universe']['missions']['repair']['objectives'],{'parts':True})
+        self.assertTrue(clean['universe']['freeTravel'])
+        state['universe']['missions']['repair']['objectives']['bad']=1
+        with self.assertRaises(vr.ApiError):vr.clean_save(state)
     def test_opening_passes_through_campaign_save_validation(self):
         state=self.state();state.update(quest='inheritance',location='vesper')
         state['progression']={'opening':{'version':2,'hologram':True,'pistol':False,'cans':[]},'flags':{'move':True,'look':True},'personal':{'weapon':None,'ammo':8,'reserve':48},'checkpoint':{'location':'vesper'}}
@@ -42,6 +50,6 @@ class StorySaveTests(unittest.TestCase):
     def test_universe_round_trip_and_validation(self):
         state=self.state();state['location']='sol-belt'
         state['universe']={'currentSystem':'sol','discoveredSystems':['erebus','sol'],'discoveredLocations':['meridian','sol-belt','earth','mars'],'visitedLocations':['meridian','sol-belt'],'missionLogUnlocked':True,'freeTravel':True,'trackedMission':'meet-admin','completedObjectives':[],'station':{'location':'sol-belt'}}
-        self.assertEqual(vr.clean_save(state)['universe'],state['universe'])
+        self.assertEqual(vr.clean_save(state)['universe'],{**state['universe'],'trackingInitialized':True,'missions':{}})
         state['universe']['discoveredLocations']=['unknown']
         with self.assertRaises(vr.ApiError):vr.clean_save(state)

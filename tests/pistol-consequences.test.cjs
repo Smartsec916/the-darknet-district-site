@@ -20,7 +20,7 @@ function run(old,o={}){
   walkingKeys:new Set(),walker:{x:0,y:1.68,z:0,yaw:0,pitch:0,height:0},walkingLocation:{solids:o.blocked?[{position:[0,1.68,2],size:[2,3,2]}]:[]},
   BABYLON:{Vector3,Ray},VoidOpening:{hit(s,id){record('can:'+id);return Opening.hit(s,id);}},
   VoidBabylon:{opening:o.noOpening?null:{hit(id){record('animate:'+id);}},scene:{pickWithRay(ray,predicate){record('ray');assert.equal(ray.length,40);assert.equal(predicate({isPickable:true,metadata:{canId:3}}),true);assert.equal(predicate({isPickable:true,metadata:{}}),false);return {hit:!o.miss,distance:10,pickedMesh:{metadata:{canId:o.canId??3}}};}}},
-  VoidAudio:{event:id=>record('audio:'+id)},VoidShips:{get:()=>({})},announce:()=>record('announce'),personalInventory:()=>record('inventory')
+  VoidAudio:{event:id=>record('audio:'+id)},VoidShips:{get:()=>({})},announce:()=>record('announce'),personalInventory:()=>record('inventory'),refreshOpeningObjective:()=>{}
  });
  vm.runInContext((old?baseline.action:current)+'\nfunction stepWeapon(dt){'+(old?baseline.step:currentStep)+'}',ctx);
  if(o.replaceState){ctx.state=copy(state);ctx.state.progression.personal.ammo=4;}

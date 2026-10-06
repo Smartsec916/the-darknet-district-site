@@ -12,7 +12,7 @@
  for(const m of Object.values(modules)){m.faction=null;m.technology='conventional';m.requiresAugmentation=0;}
  const ground=['move','look','sprint','jump','interact','pickup','draw','aim','fire','reload','holster','groundCombat','inventory','sightOwned','sightEquipped','sightAim'];
  const flight=['board','throttle','steer','roll','navigation','jumpTravel','dock','shipInventory','hangar','moduleInstalled','vendor','modulePurchased','purchasedInstalled','laserCombat','missileSelected','targetSelected','missileLocked','missileFired'];
- const flags=[...ground,...flight];
+ const flags=[...ground,...flight,'shootingTutorialComplete','maraShipHandoff'];
  const openingGround=['move','look','interact','draw','aim','fire','reload','groundCombat'];
  const fresh=()=>({version:1,flags:{},completed:false,migrated:false,opening:{version:2,hologram:false,pistol:false,cans:[]},personal:{weapon:null,ammo:tuning.ground.magazine,reserve:tuning.ground.reserve,items:[],attachments:[],optic:null},equipment:{owned:[],installed:{}},missiles:null,checkpoint:{location:'vesper'},reputation:{},cargo:[],data:[],relays:{}});
  const number=(x,f=0,max=1e8)=>Number.isFinite(x)?Math.max(0,Math.min(max,x)):f;
@@ -22,6 +22,7 @@
   if(p.opening.version===1&&s.quest==='inheritance'&&!ground.every(id=>raw.flags?.[id]))p.opening={version:2,hologram:false,pistol:true,cans:[]};
   p.personal.weapon=p.opening.version===2?(p.opening.pistol?'ward-pistol':null):'ward-pistol';
   for(const id of flags)if(raw.flags?.[id]===true)p.flags[id]=true;
+  repairOpening({progression:p,quest:s.quest});
   p.completed=raw.completed===true&&groundDone({progression:p})&&flight.every(id=>p.flags[id]);p.migrated=raw.migrated===true;
   const a=raw.personal||{};p.personal.ammo=number(a.ammo,tuning.ground.magazine,tuning.ground.magazine);p.personal.reserve=number(a.reserve,tuning.ground.reserve,999);p.personal.items=(a.items||[]).filter(x=>x==='ward-kit');p.personal.attachments=(a.attachments||[]).filter(x=>x==='red-dot');p.personal.optic=a.optic==='red-dot'&&p.personal.attachments.includes('red-dot')?'red-dot':null;
   p.equipment.owned=[...new Set((raw.equipment?.owned||[]).filter(id=>Object.hasOwn(modules,id)))];
@@ -33,8 +34,17 @@
   return p;
  }
  function mark(s,id){if(!flags.includes(id)||s.progression.flags[id])return false;s.progression.flags[id]=true;sync(s);return true;}
- function groundDone(s){const p=s.progression,o=p.opening;return o?.version===2?o.hologram&&o.pistol&&o.cans.length>=4&&openingGround.every(id=>p.flags[id]):ground.every(id=>p.flags[id]);}
- function sync(s){const p=s.progression;if(p.personal.attachments.includes('red-dot'))p.flags.sightOwned=true;if(p.personal.optic==='red-dot')p.flags.sightEquipped=true;
+ function repairOpening(s){
+  const p=s.progression,o=p.opening;if(o?.version!==2)return false;
+  let changed=false;
+  const set=id=>{if(p.flags[id]!==true){p.flags[id]=true;changed=true;}};
+  // Recorded target hits and successful boarding are durable progression evidence.
+  if(o.cans.length>=4||p.flags.shootingTutorialComplete||p.flags.board){set('shootingTutorialComplete');set('groundCombat');}
+  if(p.flags.board)set('maraShipHandoff');
+  return changed;
+ }
+ function groundDone(s){const p=s.progression,o=p.opening;return o?.version===2?p.flags.board===true||o.hologram&&o.pistol&&(o.cans.length>=4||p.flags.shootingTutorialComplete===true):ground.every(id=>p.flags[id]);}
+ function sync(s){const p=s.progression;repairOpening(s);if(p.personal.attachments.includes('red-dot'))p.flags.sightOwned=true;if(p.personal.optic==='red-dot')p.flags.sightEquipped=true;
   if(Object.values(p.equipment.installed[s.activeShip]||{}).some(id=>Object.hasOwn(modules,id)))p.flags.moduleInstalled=true;
   if(p.flags.modulePurchased&&Object.values(p.equipment.installed[s.activeShip]||{}).some(id=>id!=='cooling'))p.flags.purchasedInstalled=true;
   p.completed=groundDone(s)&&flight.every(id=>p.flags[id])&&s.missileOfferSeen===true;
@@ -56,5 +66,5 @@
  function consume(bank,s,t=systems(s)){if(bank.overheated||bank.energy<t.cost)return false;bank.energy-=t.cost;bank.heat=Math.min(t.heatLimit,bank.heat+t.heat);if(bank.heat>=t.heatLimit)bank.overheated=true;return true;}
  function checkpoint(s,location){s.progression.checkpoint={location};s.travel=null;}
  function respawn(s){s.story.cursor=null;s.location=s.progression.checkpoint.location;s.travel=null;s.destination=null;s.universe.station={location:s.location};s.progression.personal.ammo=tuning.ground.magazine;s.progression.personal.reserve=Math.max(24,s.progression.personal.reserve);}
- const api={tuning,modules,ground,flight,flags,fresh,restore,mark,groundDone,sync,stage,next,buy,install,systems,stats,powerStep,consume,checkpoint,respawn};if(typeof module!=='undefined')module.exports=api;else root.VoidProgression=api;
+ const api={tuning,modules,ground,flight,flags,fresh,restore,repairOpening,mark,groundDone,sync,stage,next,buy,install,systems,stats,powerStep,consume,checkpoint,respawn};if(typeof module!=='undefined')module.exports=api;else root.VoidProgression=api;
 })(globalThis);

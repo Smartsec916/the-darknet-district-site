@@ -1,0 +1,28 @@
+{
+  "upstream": "Smartsec916/the-darknet-district-site",
+  "commit": "a47e0e95355fa6e1444a942ab7a809b49be08a66",
+  "files": {
+    "tests/pistol-consequences.test.cjs": "7f1be1338844626cfbcf247f6de0bc06a131c328a3c7c0c88e96f94684e1aeb0",
+    "tests/test_progression_save.py": "4a041689e44e3e1eb2bae186104a45cf407e14252760c806bfe7b83216906cd1",
+    "tests/test_story_save.py": "f322bc652df893a69707e548270dcd69356e471e77a8c9b77ab994174807f783",
+    "void-runner/account.js": "e9407ef59678e638431ee9c094afd9b6e0114ad5207dcbe5bc25294812040d84",
+    "void-runner/cache.js": "247a925e1fec609d7200eaf9a6fe4e3bd32f22f46475f1a9728c6a263eceb9fa",
+    "void-runner/campaign.js": "8f8d121289130c0f23a7683ea777f81045d37ac88fd9608cf23fc60070bbed1c",
+    "void-runner/flight-skirmish.js": "b8931288eb0b515e67e676a0d46b3e2e2f8e5d2ab35cba9acf0fd9abaa864ff1",
+    "void-runner/game.js": "3dff2f4a55eb5683574720beb87683bac1d4f2110d36dc6dcc4f3bcea0a6ff88",
+    "void-runner/menu.js": "343dd53300ecaf46fcc2ef9dc767dae7c4bc3234198737d76b305e6627a38166",
+    "void-runner/opening-data.js": "da0aa31cb6dcd9de5d44f4c979260f4e1cef339899db89dc97880f3bc02ff13b",
+    "void-runner/opening-scene.js": "ffa71252b96db5477c3da79e7cd5e713191e6e1e3f365a4c15777687d3ad192c",
+    "void-runner/progression.js": "491ff017467e0838260497b99379f4370a0ef55069cf4ca03afb2a6b81a026b7",
+    "void-runner/prologue-integration.js": "af496ae6341bba4c2153361ce7549f143fbe526d38decfb1788eb552826952f7",
+    "void-runner/skirmish.js": "d1ec923a347fcb9274baa019a0ade3e83130705f569f4da8b2a1c5508b491e66",
+    "void_runner_api.py": "d5c251e49e282d33d3af65a9fbc7eaee72269c2f8691e838faaabff0c4fc6431",
+    "void_runner_progression.py": "7395c7e27a9bdc35cc90f2be971246bb13053e81806251fda260d2f14c0b1076",
+    "void-runner-sw.js": "aca9a876de84cabf4fb5e655f5eb5bc1fc3536fcda4885d3bddf41d5928fd24e",
+    "tests/tutorial-recovery.test.cjs": "8ff7ca778d2fabfa9a68a2c2bc5a6e678ebd7dd1da755055e9e189a2fe42006c",
+    "tests/tutorial-menu-save-browser.cjs": "cfca4bcdda6083d841e76ea22a8b8da171351311e803c6b60c4e19640a0a829b",
+    "tests/campaign-account-save-browser.cjs": "f1fb342313264381a07a8cb74682852aeb7192eb77673b7dcda181e987db73ad",
+    "VOID_RUNNER_SAVE_SYSTEM_AUDIT.md": "6074cda28e211c63f4068a3046ab45b0f1b6de2eb66cc6c7523f3c2b4bb7d452",
+    "UPDATE_README.md": "1bcce470b52a814ec0744b706b017786c0bf5b5bdaf061d39141abd9067d8526"
+  }
+}

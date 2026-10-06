@@ -1,6 +1,6 @@
 /* Optional disk cache. Normal browser loading remains the fallback. */
 (function(root){
-  const build='2026-10-05-recovery-2';
+  const build='2026-10-06-tutorial-save-1';
   const api=root.VoidCache={build,worker:null,ready:false};
   if(!('serviceWorker' in navigator)||!location.protocol.startsWith('http'))return;
   const sw=new URL('../void-runner-sw.js',document.currentScript.src);
