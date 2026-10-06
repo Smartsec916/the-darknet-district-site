@@ -3,6 +3,7 @@ const VoidMenu = window.VoidMenu = {
   page: '',
   returnTo: null,
   capture: null,
+  transitioning: false,
   refreshAccount() {
     if (this.page === 'main' && mode === 'menu') renderMainMenu();
   }
@@ -37,7 +38,7 @@ function renderMainMenu() {
   const a = window.VoidAccount,
     u = a?.user;
   menuShell('main',
-    `<section class="main-menu"><p class="menu-kicker">THE DARKNET DISTRICT / FLIGHT SYSTEMS ONLINE</p><h1 class="game-logo" tabindex="-1">VOID<span>//</span>RUNNER</h1><p class="menu-subtitle">CARGO & CONSEQUENCES</p><nav class="menu-options" aria-label="Main menu">${VoidMenu.returnTo?button('RESUME GAME','menu-resume'):''}${button('START NEW CAMPAIGN','menu-new')}${button('LOAD CAMPAIGN','menu-load',false,!hasSave&&!a?.cloud)}${!VoidMenu.returnTo?button('SKIRMISH','menu-skirmish'):''}${button('SETTINGS','menu-settings')}${button('LOGOUT','menu-logout',false,!u||a?.busy)}</nav><div class="menu-account">${u?'SIGNED IN':'LOCAL PILOT · NOT SIGNED IN'}${button(u?'ACCOUNT / CLOUD SAVES':'SIGN IN','menu-account',true)}</div><p class="menu-save">${hasSave?saveDescription(state):'Your journey begins on Vesper.'}</p></section>`
+    `<section class="main-menu"><p class="menu-kicker">THE DARKNET DISTRICT / FLIGHT SYSTEMS ONLINE</p><h1 class="game-logo" tabindex="-1">VOID<span>//</span>RUNNER</h1><p class="menu-subtitle">CARGO & CONSEQUENCES</p><nav class="menu-options" aria-label="Main menu">${VoidMenu.returnTo?button('RESUME GAME','menu-resume'):''}${button('CONTINUE CAMPAIGN','menu-continue',false,!hasSave)}${button('CAMPAIGN','menu-campaign')}${button('SKIRMISH','menu-skirmish')}${button('SETTINGS / KEYBINDINGS','menu-settings')}${VoidMenu.returnTo?button('MAIN MENU','menu-main',true):''}${button('LOGOUT','menu-logout',false,!u||a?.busy)}</nav><div class="menu-account">${u?'SIGNED IN':'LOCAL PILOT · NOT SIGNED IN'}${button(u?'ACCOUNT / CLOUD SAVES':'SIGN IN','menu-account',true)}</div><p class="menu-save">${hasSave?saveDescription(state):'Your journey begins on Vesper.'}</p></section>`
     );
 }
 
@@ -54,6 +55,8 @@ title = function() {
 
 function openGameMenu() {
   if (mode === 'menu') return;
+  save();
+  walkingKeys.clear();document.exitPointerLock?.();
   const owner=mode==='play'?VoidFlightSession.active:null;
   if(mode==='play'&&!VoidFlightSession.pause(owner))return;
   const snapshot = {
@@ -117,9 +120,33 @@ function loadMenu() {
     );
 }
 
-function mainAction(a) {
+function campaignMenu(){menuShell('campaign','<section class="settings-panel menu-confirm"><h1 tabindex="-1">Campaign</h1>'+button('CONTINUE / LOAD CAMPAIGN','menu-load',false,!hasSave&&!window.VoidAccount?.cloud)+button('START NEW CAMPAIGN','menu-new')+button('MAIN MENU','menu-back',true)+'</section>');}
+
+async function exitActiveGame(){
+ const skirmish=globalThis.VoidSkirmish?.active||globalThis.VoidFlightSkirmish?.active;
+ if(!skirmish&&(hasSave||mode!=='menu'&&mode!=='title'))save();
+ mode='menu';VoidMenu.returnTo=null;speech=null;VoidAudio.cancel();clearInput();walkingKeys.clear();document.exitPointerLock?.();
+ const pending=[preparingLaunch,destinationPreparation].filter(Boolean);
+ preparationGeneration++;VoidPreparation.cancel();
+ if(globalThis.VoidFlightSkirmish?.active)await VoidFlightSkirmish.end();
+ await VoidFlightSession.end();
+ await Promise.allSettled(pending);
+ if(globalThis.VoidSkirmish?.active)VoidSkirmish.end();
+ await VoidFlightSession.exclusive(()=>VoidBabylon.release());
+ walkingLocation=walker=null;trackedWalkWaypoint=null;openingBoarded=false;groundState.reload=groundState.cooldown=0;groundState.drawn=groundState.aim=false;
+ missionPanel?.remove();missionPanel=null;missionReturn=null;missionOwner=null;
+ enemies=[];bullets=[];hostile=[];sparks=[];missionObjects=[];current=null;trialGear=null;devMissileTrial=false;
+ VoidGraphics.busy=false;flightUI(false);tutorialUI.hidden=true;groundControls.hidden=true;ammoHUD.hidden=true;equipmentHUD.hidden=true;
+}
+
+async function mainAction(a) {
+  if(VoidMenu.transitioning)return;
+  const transition=['menu-main','menu-campaign','menu-skirmish','menu-continue','menu-load-local','menu-new-confirm','menu-account','menu-logout'].includes(a);
+  if(transition){VoidMenu.transitioning=true;try{await exitActiveGame();}catch(error){announce('Unable to leave the current session. Try again.');console.error(error);VoidMenu.transitioning=false;return;}VoidMenu.transitioning=false;}
   if (a === 'game-menu') openGameMenu();
   else if (a === 'menu-resume') resumeMenu();
+  else if (a === 'menu-main') renderMainMenu();
+  else if (a === 'menu-campaign') campaignMenu();
   else if (a === 'menu-skirmish') VoidSkirmish.setup();
   else if (a === 'menu-settings') settingsPage();
   else if (a === 'menu-mute') {
@@ -141,11 +168,13 @@ function mainAction(a) {
     VoidMenu.returnTo = null;
     leaveMenu();
     newJourney();
-  } else if (a === 'menu-load-local' && hasSave) {
+  } else if ((a === 'menu-load-local'||a==='menu-continue') && hasSave) {
+    let restored;
     try {
-      const restored = C.restore(localStorage.getItem(SAVE_KEY));
-      if (restored) state = restored;
+      restored = C.restore(localStorage.getItem(SAVE_KEY));
     } catch {}
+    if(!restored){announce('The local campaign could not be loaded.');renderMainMenu();return;}
+    state=restored;
     VoidMenu.returnTo = null;
     leaveMenu();
     resumeSavedWorld();

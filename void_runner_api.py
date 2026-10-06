@@ -283,6 +283,22 @@ def clean_save(value):
     if tracked is not None and (not isinstance(tracked,str) or len(tracked)>80):
         raise ApiError('Invalid tracked mission.')
     cleaned_universe['trackedMission'] = tracked
+    cleaned_universe['trackingInitialized'] = universe.get('trackingInitialized') is True or tracked is not None
+    records=universe.get('missions',{})
+    import re
+    def mission_id(item):
+        return isinstance(item,str) and re.fullmatch(r'[a-z][a-z0-9-]{0,79}',item)
+    if not isinstance(records,dict) or len(records)>100:
+        raise ApiError('Invalid mission records.')
+    cleaned_universe['missions']={}
+    for mission_id_value,entry in records.items():
+        if not mission_id(mission_id_value) or not isinstance(entry,dict):
+            raise ApiError('Invalid mission record.')
+        objectives=entry.get('objectives',{})
+        if not isinstance(objectives,dict) or len(objectives)>100 or any(not mission_id(key) or type(val) is not bool for key,val in objectives.items()):
+            raise ApiError('Invalid mission objectives.')
+        if entry.get('acquired') is True:
+            cleaned_universe['missions'][mission_id_value]={'acquired':True,'completed':entry.get('completed') is True,'objectives':{key:val for key,val in objectives.items() if val}}
     completed = universe.get('completedObjectives', [])
     if not isinstance(completed,list) or len(completed)>200 or any(not isinstance(x,str) or len(x)>80 for x in completed):
         raise ApiError('Invalid completed objectives.')
@@ -295,7 +311,7 @@ def clean_save(value):
             result['progression'] = clean_progression(value['progression'], locations)
         except (ValueError, TypeError, AttributeError) as error:
             raise ApiError(str(error))
-        cleaned_universe['freeTravel'] = result['progression']['completed'] and result['missileOfferSeen']
+        cleaned_universe['freeTravel'] = result['progression']['completed'] or result['progression']['flags'].get('missileFired') is True or universe.get('freeTravel') is True
     result['universe'] = cleaned_universe
     result['travel'] = None
     travel = value.get('travel')

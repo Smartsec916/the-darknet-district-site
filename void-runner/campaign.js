@@ -179,7 +179,7 @@
       },
       mark,
       hitCan(id) { return hitCan(getState(), id); },
-      practiceComplete() { return getState().progression.opening.cans.length === 4; },
+      practiceComplete() { return getState().progression.flags.shootingTutorialComplete === true; },
       save: persist
     };
   }

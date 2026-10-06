@@ -17,9 +17,22 @@ class ProgressionSaveTests(unittest.TestCase):
         p=self.base();p['owned']=['spectre'];p['premium']=True
         result=clean_progression(p,['meridian']);self.assertNotIn('owned',result);self.assertNotIn('premium',result)
     def test_opening_round_trip_and_gift_gate(self):
-        p=self.base();p['opening']={'version':2,'hologram':True,'pistol':False,'cans':[]}
+        p=self.base();del p['flags']['board'];p['opening']={'version':2,'hologram':True,'pistol':False,'cans':[]}
         result=clean_progression(p,['meridian']);self.assertIsNone(result['personal']['weapon']);self.assertFalse(result['completed'])
-        p['opening'].update(pistol=True,cans=[0,1,2,3]);result=clean_progression(p,['meridian'])
+        p['flags']['board']=True;p['opening'].update(pistol=True,cans=[0,1,2,3]);result=clean_progression(p,['meridian'])
         self.assertEqual(result['opening'],p['opening']);self.assertEqual(result['personal']['weapon'],'ward-pistol');self.assertTrue(result['completed'])
         p['opening']['cans']=[True]
         with self.assertRaises(ValueError):clean_progression(p,['meridian'])
+    def test_ten_round_magazine_and_tutorial_milestones(self):
+        p=self.base();p['personal']['ammo']=10
+        p['opening']={'version':2,'hologram':True,'pistol':True,'cans':[0,1,2,3]}
+        del p['flags']['reload']
+        result=clean_progression(p,['meridian'])
+        self.assertEqual(result['personal']['ammo'],10)
+        self.assertTrue(result['flags']['shootingTutorialComplete'])
+        self.assertTrue(result['flags']['maraShipHandoff'])
+        self.assertTrue(result['completed'])
+    def test_partial_practice_does_not_complete(self):
+        p=self.base();p['flags']={};p['opening']={'version':2,'hologram':True,'pistol':True,'cans':[0,1,2]}
+        result=clean_progression(p,['meridian'])
+        self.assertNotIn('shootingTutorialComplete',result['flags']);self.assertFalse(result['completed'])

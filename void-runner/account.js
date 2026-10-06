@@ -77,6 +77,7 @@ function initializeAuth(){
 }
 
 function requestAction(action){
+  if(globalThis.VoidSkirmish?.active||globalThis.VoidFlightSkirmish?.active)return;
   if(['play','pause'].includes(mode))return;
   if(action==='account'){accountPage();return;}
   if(action==='auth-retry'){run(initializeAuth);return;}

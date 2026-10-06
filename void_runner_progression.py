@@ -1,7 +1,8 @@
 """Validate non-premium progression independently of account entitlements."""
 import json
 
-FLAGS = 'move look sprint jump interact pickup draw aim fire reload holster groundCombat inventory sightOwned sightEquipped sightAim board throttle steer roll navigation jumpTravel dock shipInventory hangar moduleInstalled vendor modulePurchased purchasedInstalled laserCombat missileSelected targetSelected missileLocked missileFired'.split()
+FLAGS = 'move look sprint jump interact pickup draw aim fire reload holster groundCombat inventory sightOwned sightEquipped sightAim board throttle steer roll navigation jumpTravel dock shipInventory hangar moduleInstalled vendor modulePurchased purchasedInstalled laserCombat missileSelected targetSelected missileLocked missileFired shootingTutorialComplete maraShipHandoff'.split()
+FLIGHT_FLAGS = FLAGS[16:35]
 MODULES = {'capacitor':'power','cooling':'cooling','pulse':'weapon','shield':'shield','engine':'engine'}
 
 def clean_progression(raw, locations):
@@ -46,16 +47,21 @@ def clean_progression(raw, locations):
     if not isinstance(data,list) or len(data)>16 or any(not isinstance(x,str) or len(x)>80 for x in data): raise ValueError('Invalid data cargo.')
     opening=raw.get('opening',{'version':1})
     if not isinstance(opening,dict) or opening.get('version') not in [1,2]: raise ValueError('Invalid opening state.')
-    required=FLAGS
+    flags=dict(flags)
+    required=FLAGS[:35]
     if opening['version']==2:
         cans=opening.get('cans',[])
         if not isinstance(cans,list) or len(cans)>6 or any(type(i) is not int or i<0 or i>5 for i in cans): raise ValueError('Invalid practice targets.')
         opening={'version':2,'hologram':opening.get('hologram') is True,'pistol':opening.get('pistol') is True,'cans':list(dict.fromkeys(cans))}
-        required='move look interact draw aim fire reload groundCombat'.split()+FLAGS[16:]
+        if len(opening['cans'])>=4 or flags.get('shootingTutorialComplete') or flags.get('board'):
+            flags['shootingTutorialComplete']=True
+            flags['groundCombat']=True
+        if flags.get('board'): flags['maraShipHandoff']=True
+        required=FLIGHT_FLAGS
     else: opening={'version':1}
-    opening_done=opening['version']==1 or opening['hologram'] and opening['pistol'] and len(opening['cans'])>=4
+    opening_done=opening['version']==1 or flags.get('board') is True or opening['hologram'] and opening['pistol'] and flags.get('shootingTutorialComplete') is True
     weapon='ward-pistol' if opening['version']==1 or opening['pistol'] else None
     return {'opening':opening,'version':1,'flags':dict(flags),'completed':raw.get('completed') is True and opening_done and all(flags.get(f) for f in required),'migrated':raw.get('migrated') is True,
-            'personal':{'weapon':weapon,'ammo':count(p.get('ammo'),8,8),'reserve':count(p.get('reserve'),999,48),'items':entries(p.get('items',[]),['ward-kit']),'attachments':attachments,'optic':optic},
+            'personal':{'weapon':weapon,'ammo':count(p.get('ammo'),10,10),'reserve':count(p.get('reserve'),999,48),'items':entries(p.get('items',[]),['ward-kit']),'attachments':attachments,'optic':optic},
             'equipment':{'owned':owned,'installed':installed},'missiles':None if raw.get('missiles') is None else count(raw['missiles'],30),
             'checkpoint':{'location':location},'reputation':reputation,'cargo':clean_cargo,'data':data,'relays':relays}
