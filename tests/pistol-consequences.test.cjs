@@ -61,7 +61,7 @@ for(const [name,options,count]of cases)test('pistol equivalence: '+name,()=>{
 });
 test('fire saves before ray processing on first tutorial mark and after can processing',()=>{
  const a=run(false,{cans:[0,1,2]});assert.deepEqual(a.trace.map(x=>x.name),['mark:fire','save','ray','can:3','animate:3','announce','save','audio:laser']);
- assert.equal(a.saves[0].progression.personal.ammo,7);assert.equal(a.saves[0].progression.opening.cans.length,3);assert.equal(a.saves[1].progression.opening.cans.length,4);
+ assert.equal(a.saves[0].progression.personal.ammo,P.tuning.ground.magazine-1);assert.equal(a.saves[0].progression.opening.cans.length,3);assert.equal(a.saves[1].progression.opening.cans.length,4);
  assert.equal(a.trace[0].weapon.cooldown,P.tuning.ground.cooldown);
 });
 test('partial reload writes ammo before marking and retains both first-time saves',()=>{

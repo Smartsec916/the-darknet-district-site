@@ -251,6 +251,7 @@ function interactWalking() {
     resume: resumeWalking,
     save
   });
+  if(item.action==='station-door'){const d=walkingLocation.solids.find(s=>s.id===item.door);if(d){const near=Math.abs(walker.x-d.position[0])<d.size[0]/2+.5&&Math.abs(walker.z-d.position[2])<d.size[2]/2+.5;if(d.open&&near){announce('Step clear of the door before closing.');return;}d.open=!d.open;VoidAudio.event('door');}return;}
   if (item.action === 'board') return leaveWalking();
   if (item.action === 'talk') {
     // Rook's existing job logic is retained; the added back button returns to physical space.

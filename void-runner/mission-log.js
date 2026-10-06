@@ -10,16 +10,18 @@
  ];
  const trainingIds=training.map(([id])=>id);
  const definitions={
-  'flight-training':{title:'FLIGHT TRAINING',type:'tutorial',objectives:training.map(([id,label])=>({id,label}))},
-  'meet-admin':{title:'MEET ADMIN',type:'main',destination:'earth',interaction:'tdd',objectives:[{id:'meet-admin',label:'Find Admin at The Darknet District, Sacramento'}]}
+  'flight-training':{title:'FLIGHT TRAINING',type:'tutorial',giver:'Mara / Rook',source:'story',start:'vesper',end:'meridian',completion:{event:'training-actions'},objectives:training.map(([id,label])=>({id,label}))},
+  'meet-admin':{title:'MEET ADMIN',type:'main',giver:'Rook',source:'story',start:'meridian',end:'earth',completion:{event:'talk',interaction:'admin'},destination:'earth',interaction:'tdd',objectives:[{id:'meet-admin',label:'Find Admin at The Darknet District, Sacramento'}]}
  };
  const safeId=id=>typeof id==='string'&&/^[a-z][a-z0-9-]{0,79}$/.test(id);
  function define(id,definition){if(!safeId(id)||!definition||!['tutorial','main','side','bounty','station'].includes(definition.type)||!Array.isArray(definition.objectives)||!definition.objectives.length||!definition.objectives.every(o=>safeId(o.id)&&typeof o.label==='string'))return false;definitions[id]={...definition,objectives:definition.objectives.map(o=>({...o}))};return true;}
  function records(s){return s.universe.missions??={};}
- function acquire(s,id){if(!safeId(id))return null;const entries=records(s);return entries[id]??={acquired:true,completed:false,objectives:{}};}
+ function available(s,id){const d=definitions[id];if(!d)return true;const requirements=d.prerequisites||[];return requirements.every(key=>s.universe?.missions?.[key]?.completed===true)&&Object.entries(d.storyFlags||{}).every(([key,value])=>s.story?.flags?.[key]===value)&&Object.entries(d.factionFlags||{}).every(([key,value])=>(s.progression?.reputation?.[key]||0)>=value)&&(!d.availability?.locations||d.availability.locations.includes(s.location));}
+ function acquire(s,id){if(!safeId(id)||(!records(s)[id]&&!available(s,id)))return null;const entries=records(s);return entries[id]??={acquired:true,completed:false,objectives:{}};}
  function complete(s,id,objective='arrive',C){
-  const entry=acquire(s,id),definition=description(s,C,id);
-  if(!entry||id==='flight-training'||!definition.objectives.some(o=>o.id===objective))return false;
+  const definition=description(s,C,id);
+  if(id==='flight-training'||!definition.objectives.some(o=>o.id===objective))return false;
+  const entry=acquire(s,id);if(!entry)return false;
   entry.objectives[objective]=true;
   entry.completed=definition.objectives.filter(o=>o.required!==false).every(o=>entry.objectives[o.id]===true);
   if(entry.completed&&s.universe.trackedMission===id)s.universe.trackedMission=null;
@@ -51,11 +53,11 @@
   if(definitions[id])return definitions[id];
   const f=C?.missionFlight?.({...s,destination:null});
   const isCurrent=f&&f.kind!=='transit'&&(f.id||s.quest)===id;
-  const contract=C?.contracts?.find?.(item=>item.id===id);
+  const contract=(C?.allContracts||C?.contracts)?.find?.(item=>item.id===id);
   const title=isCurrent?f.name:contract?.name||id.replace(/-/g,' ').toUpperCase();
   const destination=isCurrent?f.destination:contract?.destination;
   const cargo=isCurrent?f.cargo:contract?.cargo;
-  return {title,type:'campaign',destination,objectives:[{id:'arrive',label:cargo&&cargo!=='Empty hold'?'Deliver '+cargo:'Reach the destination and dock'}]};
+  return {title,type:'campaign',destination,source:'mission-terminal',giver:contract?.contact||'Campaign',start:contract?.start||null,end:destination,prerequisites:contract?.requires?[contract.requires]:[],availability:{},storyFlags:{},factionFlags:{},completion:{event:'dock',location:destination},objectives:[{id:'arrive',label:cargo&&cargo!=='Empty hold'?'Deliver '+cargo:'Reach the destination and dock'}]};
  }
  function all(s,C){
   if(!s?.universe)return [];
@@ -87,6 +89,7 @@
   const hop=U.nextHop(s.location,mission.destination);
   return {kind:U.route(s.location,hop).kind,label:(U.system(s.location)!==U.system(hop)?'INTERSTELLAR / ':'LOCAL / ')+(U.locations[hop]?.name||hop).toUpperCase(),destination:hop};
  }
- const api={definitions,trainingIds,define,acquire,complete,sync,all,active,tracked,track,untrack,guidance};
+ function metadata(s,C,id){return {availability:{},giver:null,source:null,start:null,end:null,prerequisites:[],storyFlags:{},factionFlags:{},completion:null,...description(s,C,id)};}
+ const api={definitions,trainingIds,define,available,metadata,acquire,complete,sync,all,active,tracked,track,untrack,guidance};
  if(typeof module!=='undefined')module.exports=api;else root.VoidMissions=api;
 })(globalThis);

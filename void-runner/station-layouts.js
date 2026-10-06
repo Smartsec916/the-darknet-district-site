@@ -10,6 +10,7 @@
   nyx:{coat:'#303544',hair:'#e1e1db',skin:'#b09b90',style:'undercut',eye:'#a7d4e2'}
  };
  function layout(id,ship='starter'){
+  if(id==='meridian')return (typeof module!=='undefined'?require('./meridian-interior.js'):root.VoidMeridianInterior).layout(ship);
   const shell=[],solids=[];const add=(name,size,position,kind='hull',collision=true)=>{const part={id:name,size,position,kind};shell.push(part);if(collision)solids.push(part);};
   // Hangar [-18,18] x [-26,4], corridor [-4,4] x [4,18], commerce [-18,18] x [18,34].
   for(const side of [-1,1]){
