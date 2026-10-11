@@ -1,0 +1,21 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "bp_leaderboard",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "bestScore", "order": "DESCENDING"},
+        {"fieldPath": "sortKey", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "bp_leaderboard",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "bestScore", "order": "ASCENDING"},
+        {"fieldPath": "sortKey", "order": "ASCENDING"}
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

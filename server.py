@@ -41,10 +41,13 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__, static_folder='static', static_url_path='')
 CORS(app, resources={
     r"/api/void-runner/.*": {"origins": ["https://thedarknetdistrict.com", "https://www.thedarknetdistrict.com", *[origin.strip() for origin in os.environ.get("VOID_EXTRA_ORIGINS", "").split(",") if origin.strip()]]},
+    r"/api/blackout/.*": {"origins": ["https://thedarknetdistrict.com", "https://www.thedarknetdistrict.com", *[origin.strip() for origin in os.environ.get("BLACKOUT_EXTRA_ORIGINS", "").split(",") if origin.strip()]]},
     r"/api/(chat|devtools|health).*": {"origins": "*"},
 }, methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type", "Authorization"], max_age=600)
 from void_runner_api import api as void_runner_api
 app.register_blueprint(void_runner_api)
+from blackout_api import api as blackout_api
+app.register_blueprint(blackout_api)
 
 
 @app.get('/void-runner/<path:filename>')

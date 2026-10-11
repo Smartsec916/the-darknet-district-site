@@ -18,7 +18,7 @@
   </div>
 
   <script type="module">
-    import { bootLevel, hardResetRun } from './engine.js?v=20261011-smog';
+    import { bootLevel, hardResetRun } from './engine.js?v=20261011-accounts';
     if(new URLSearchParams(location.search).has('new')) hardResetRun();
     sessionStorage.setItem('gameLevel', String(Math.max(1, Number(sessionStorage.getItem('gameLevel')||1))));
     bootLevel(1, { nextHref:'./shop1.html' });

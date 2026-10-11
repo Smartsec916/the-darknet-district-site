@@ -1,7 +1,49 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Blackout Protocol</title>
 <style>
-*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:#060b15;color:#e6f1ff;font:15px/1.6 system-ui,sans-serif}main{min-height:100dvh;padding:7vh 8vw;background:linear-gradient(90deg,#060b15f5 12%,#060b1577),url('assets/03_bg_far.png') center/cover}header{color:#65ecdc;letter-spacing:.25em;font:12px monospace}h1{font-size:clamp(48px,8vw,105px);line-height:.95;letter-spacing:-.06em;margin:8vh 0 25px;max-width:800px}h1 span{color:#69eddd}p{max-width:530px;color:#b6c7da}.start{display:inline-block;background:#72eddb;color:#061923;padding:16px 28px;text-decoration:none;font-weight:750;border-radius:4px;margin:20px 0}.start:hover{background:#baffef}.grid{display:flex;gap:45px;flex-wrap:wrap;margin-top:35px}.grid section{max-width:360px}h2{font:12px monospace;letter-spacing:.16em;color:#e997d0}ol{padding-left:25px;color:#b6c7da}small{color:#8ba7bf}a:focus-visible{outline:3px solid #ff9bd9;outline-offset:5px}
- .start[hidden]{display:none}</style></head><body><main><header>TRANSMISSION 001 / OFFLINE RESISTANCE</header><h1>BLACKOUT<br><span>PROTOCOL.</span></h1><p>Six connected sectors. Learn the streets, protect your BTC, then breach the machine perimeter and Blackout Core.</p><a class="start" href="level1.html?new=1">START A NEW RUN ↗</a><a class="start" id="resume" hidden href="level1.html">RESUME RUN ↗</a><br><small>Keyboard play · Progress carries between sectors</small><div class="grid"><section><h2>FIELD MANUAL</h2><p>A / D or arrows to move. Space to jump.<br>Enter hacks nearby terminals. E uses an EMP.<br>Escape pauses the signal.</p><p>Find all three relay shards in each district: +9 BTC, +250 score, and +15 HP. Spend BTC at Byte Bazaar. Bazaar encounters in district 3 can cost BTC. F or J fires a sidearm after it is acquired in sector 5.</p></section><section><h2>LOCAL HIGH SCORES</h2><ol id="scores"></ol></section></div></main><script>
-const savedLevel=Number(sessionStorage.getItem('gameLevel')||0);if(savedLevel>=1&&savedLevel<=6){const resume=document.getElementById('resume');resume.hidden=false;resume.href='level'+savedLevel+'.html'}let scores=[];try{scores=JSON.parse(localStorage.getItem('leaderboard')||'[]')}catch{}const list=document.getElementById('scores');if(!Array.isArray(scores))scores=[];for(const entry of scores.slice(0,5)){const row=document.createElement('li');row.textContent=String(entry.id||'RUN')+' — '+Number(entry.score||0);list.append(row)}if(!scores.length)list.textContent='No signals recorded. Make the first run.';
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:#060b15;color:#e6f1ff;font:15px/1.6 system-ui,sans-serif}main{min-height:100dvh;padding:7vh 8vw;background:linear-gradient(90deg,#060b15f5 12%,#060b1577),url('assets/03_bg_far.png') center/cover}header{color:#65ecdc;letter-spacing:.25em;font:12px monospace}h1{font-size:clamp(48px,8vw,105px);line-height:.95;letter-spacing:-.06em;margin:8vh 0 25px;max-width:800px}h1 span{color:#69eddd}p{max-width:560px;color:#b6c7da}.start,.button{display:inline-block;background:#72eddb;color:#061923;padding:14px 22px;text-decoration:none;font-weight:750;border:0;border-radius:4px;margin:10px 10px 10px 0;cursor:pointer;font:700 14px system-ui,sans-serif}.start:hover,.button:hover{background:#baffef}.secondary{background:#173247;color:#9df9ec;border:1px solid #5ccfc4}.secondary:hover{background:#24455c}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:30px;margin-top:35px;max-width:1180px}.grid section{background:#071321d9;padding:20px;border:1px solid #36546b}h2{font:12px monospace;letter-spacing:.16em;color:#e997d0}ol{padding-left:25px;color:#b6c7da}small{color:#8ba7bf}input{width:min(100%,320px);padding:12px;background:#091a29;border:1px solid #68d9d1;color:#ecf7ff;font:16px monospace}label{display:block;color:#b6c7da;margin-top:14px}.status{min-height:24px;color:#73e8dc}a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid #ff9bd9;outline-offset:4px}[hidden]{display:none!important}@media(max-width:600px){main{padding:30px 5vw}h1{margin-top:45px}.start,.button{width:100%;text-align:center}}
+</style></head><body><main>
+<header>TRANSMISSION 001 / OFFLINE RESISTANCE</header><h1>BLACKOUT<br><span>PROTOCOL.</span></h1>
+<p>Six connected sectors. Learn the streets, protect your BTC, then breach the machine perimeter and Blackout Core.</p>
+<a class="start" href="level1.html?new=1">START A NEW RUN ↗</a><a class="start secondary" id="resume" hidden href="level1.html">RESUME RUN ↗</a><a class="start secondary" href="leaderboard.html">GLOBAL LEADERBOARD ↗</a><br><small>Guest play is always available · Sign in and choose a handle before a new run to compete globally</small>
+<div class="grid"><section><h2>PLAYER ACCOUNT</h2><p id="identity" role="status">Checking sign-in…</p><button class="button" id="signIn" hidden>SIGN IN WITH GOOGLE</button><button class="button secondary" id="signOut" hidden>SIGN OUT</button><div id="profile" hidden><p id="stats">Personal best: — · Global rank: —</p><form id="handleForm"><label for="handle">Public handle</label><input id="handle" name="handle" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" autocomplete="off" required><br><button class="button secondary" id="checkHandle" type="button">CHECK AVAILABILITY</button><button class="button" type="submit">SAVE HANDLE</button></form><p class="status" id="handleStatus" role="status"></p><small>3–20 letters, numbers or underscores. Handles are case-insensitive and may be changed once every 30 days. Your Google name and email are not shown publicly.</small></div><p class="status" id="accountError" role="status"></p></section>
+<section><h2>FIELD MANUAL</h2><p>A / D or arrows to move. Space to jump.<br>Enter hacks nearby terminals. E uses an EMP.<br>Escape pauses the signal.</p><p>Find all three relay shards in each district: +9 BTC, +250 score, and +15 HP. Spend BTC at Byte Bazaar. Bazaar encounters in district 3 can cost BTC. F or J fires a sidearm after it is acquired in sector 5.</p></section>
+<section><h2>LOCAL HIGH SCORES</h2><ol id="scores"></ol><small>These browser-only records remain available for guest runs.</small></section></div></main>
+<script type="module">
+import * as Account from './account.js';
+const savedLevel=Number(sessionStorage.getItem('gameLevel')||0);
+if(savedLevel>=1&&savedLevel<=6){const resume=document.getElementById('resume');resume.hidden=false;resume.href='level'+savedLevel+'.html'}
+let scores=[];try{scores=JSON.parse(localStorage.getItem('leaderboard')||'[]')}catch{}
+const list=document.getElementById('scores');if(!Array.isArray(scores))scores=[];
+for(const entry of scores.slice(0,5)){const row=document.createElement('li');row.textContent=String(entry.id||'RUN')+' — '+Number(entry.score||0);list.append(row)}
+if(!scores.length)list.textContent='No signals recorded. Make the first run.';
+const identity=document.getElementById('identity'),error=document.getElementById('accountError'),profile=document.getElementById('profile');
+async function renderAccount(){
+  const user=Account.currentUser();
+  identity.textContent=user?'Signed in. Choose your public handle below.':'Playing as guest. Local scores still work.';
+  document.getElementById('signIn').hidden=!!user;
+  document.getElementById('signOut').hidden=!user;
+  profile.hidden=!user;
+  if(!user)return;
+  try{
+    const data=await Account.leaderboard();
+    const me=data.me||{};
+    document.getElementById('handle').value=me.handle||'';
+    document.getElementById('stats').textContent=`${me.handle||'No handle yet'} · Personal best: ${me.bestScore||0} · Global rank: ${me.rank?'#'+me.rank:'—'} · Highest level: ${me.highestCompletedLevel||0}`;
+    error.textContent='';
+  }catch(e){error.textContent=e.message;}
+}
+addEventListener('blackout-auth', renderAccount);
+Account.authReady().then(renderAccount);
+document.getElementById('signIn').onclick=async()=>{error.textContent='';try{await Account.signIn();await renderAccount()}catch(e){error.textContent=e.message}};
+document.getElementById('signOut').onclick=async()=>{try{await Account.signOut();await renderAccount()}catch(e){error.textContent=e.message}};
+document.getElementById('checkHandle').onclick=async()=>{
+  const handle=document.getElementById('handle');const status=document.getElementById('handleStatus');
+  if(!handle.reportValidity())return;
+  status.textContent='Checking…';try{const result=await Account.checkHandle(handle.value);status.textContent=result.available?'Handle is available.':'Handle is already taken.'}catch(e){status.textContent=e.message}
+};
+document.getElementById('handleForm').onsubmit=async event=>{
+  event.preventDefault();const status=document.getElementById('handleStatus');
+  status.textContent='Saving…';try{const result=await Account.claimHandle(document.getElementById('handle').value);status.textContent=`${result.handle} is your public handle.`;await renderAccount()}catch(e){status.textContent=e.message}
+};
 </script></body></html>

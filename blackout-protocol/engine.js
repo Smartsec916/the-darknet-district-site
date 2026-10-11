@@ -6,12 +6,13 @@ Purpose: runs the three platforming levels, between-level shops, and browser-loc
 Relationship: level pages import bootLevel(); shop pages use the exported storage helpers.
 ==============================================================================
 */
+import * as Account from './account.js';
 
 // Shared engine for the existing districts and their later sectors.
 const VW = 256, VH = 240, TILE = 16;
 const LEVEL_LEN = 1600;
 const DOOR_W = 24, DOOR_H = 32;
-const HYPER_RELOAD_TAG = 'rev=20261011-smog';
+const HYPER_RELOAD_TAG = 'rev=20261011-accounts';
 const LEVELS = {
   1:{name:'THE UNDERGRID', ledges:1, robots:0, drones:0, thieves:0, gun:false},
   2:{name:'WATCHER DISTRICT', ledges:2, robots:0, drones:0, thieves:0, gun:false},
@@ -30,8 +31,9 @@ export function setRunN(k,v){ sessionStorage.setItem(k, String(v)) }
 export function getRunO(k,d={}){ try{return JSON.parse(sessionStorage.getItem(k)||'null')??d}catch(e){return d} }
 export function setRunO(k,o){ sessionStorage.setItem(k, JSON.stringify(o)) }
 export function hardResetRun(){
+  Account.resetRankedRun();
   for(const key of ['playerBTC','playerScore','playerHealth','playerUpgrades','gameLevel','blackoutGun','blackoutLevel3Warned','blackoutFinished']) sessionStorage.removeItem(key);
-  for(let n=1;n<=6;n++) {sessionStorage.removeItem(`blackoutCoins${n}`);sessionStorage.removeItem(`blackoutRelays${n}`);sessionStorage.removeItem(`blackoutCheckpoint${n}`);}
+  for(let n=1;n<=6;n++) {sessionStorage.removeItem(`blackoutCoins${n}`);sessionStorage.removeItem(`blackoutRelays${n}`);sessionStorage.removeItem(`blackoutCheckpoint${n}`);sessionStorage.removeItem(`blackoutScoreEvents${n}`);}
   setRunN('playerBTC',0);
   setRunN('playerScore',0);
   setRunN('playerHealth',100);
@@ -130,6 +132,13 @@ function adConfigForLevel(lvl){
 // ====== core state objects ======
 let C, ctx, off, octx, VW_CANVAS, VH_CANVAS;
 let gameState = 'playing', score = 0, btc = 0, level = 1;
+const SCORE_POINTS={hack:20,shot:10,coin:5,relay:50,relayBonus:100,jumpRobot:12};
+let scoreEvents={};
+function earnScore(kind){
+  score+=SCORE_POINTS[kind];
+  scoreEvents[kind]=(scoreEvents[kind]||0)+1;
+  setRunO(`blackoutScoreEvents${LVL}`,scoreEvents);
+}
 let LEFT=0, RIGHT=0, UP=0, jumpBufferUntil=0, coyoteUntil=0, jumpHeld=false;
 let player, cameraX=0, platforms=[], coins=[], robots=[], drones=[], females=[], terminals=[], ads=[], exitDoor=null;
 let BG={far:null, near:null}, CurrentAds={kinds:[], images:{}, imgObjs:{}}, adDeck=[];
@@ -608,7 +617,7 @@ function tryHack(){
     hackUntil = now + d;
     hackCDUntil = now + 5000;
     near.cooldown = 5000;
-    score += 20;
+    earnScore('hack');
   }
 }
 
@@ -642,7 +651,7 @@ function updateProjectiles(dt){
       shot.x>=p.x && shot.x<=p.x+p.w && shot.y>=p.y && shot.y<=p.y+p.h)) shot.life=0;
     for(const r of robots){
       if(shot.life>0 && !shot.hit && shot.x>=r.x && shot.x<=r.x+r.w &&
-        shot.y>=r.y-14 && shot.y<=r.y+r.h){r.hp--;r.hitUntil=simulationTime+220;shot.hit=true;shot.life=0;score+=10;
+        shot.y>=r.y-14 && shot.y<=r.y+r.h){r.hp--;r.hitUntil=simulationTime+220;shot.hit=true;shot.life=0;earnScore('shot');
           impacts.push({x:shot.x,y:shot.y,until:simulationTime+180});break;}
     }
   }
@@ -669,7 +678,7 @@ function pickupCoins(){
     const rr = (c.r || 10) + 8;
     if(dist2 <= rr * rr){
       c.taken = true;
-      btc += 1; score += 5;
+      btc += 1; earnScore('coin');
       coinHistory.add(c.id);
       setRunO(`blackoutCoins${LVL}`,[...coinHistory]);
       setRunN('playerBTC',btc);setRunN('playerScore',score);
@@ -684,8 +693,12 @@ function applyDamage(dmg){
   player.hp = Math.max(0, player.hp - Math.max(0, dmg|0));
   if(player.hp <= 0){
     gameState='dead';
+    setRunN('playerScore',score);
     postScore(score);
-    setTimeout(() => goTo('./index.html'), 800);
+    setTimeout(async () => {
+      await Account.finishRun(score,scoreEvents);
+      goTo('./game-over.html');
+    }, 800);
     return;
   }
   setRunN('playerHealth', player.hp);
@@ -818,9 +831,9 @@ function update(dt, now){
 
   for(const relay of relays){
     if(!relay.taken && Math.hypot(player.x+9-relay.x,player.y+14-relay.y)<24){
-      relay.taken=true; score+=50; btc+=3;
+      relay.taken=true; earnScore('relay'); btc+=3;
       relayHistory.add(relay.id);setRunO(`blackoutRelays${LVL}`,[...relayHistory]);
-      if(relays.every(r=>r.taken)){score+=100; player.hp=Math.min(100,player.hp+15)}
+      if(relays.every(r=>r.taken)){earnScore('relayBonus'); player.hp=Math.min(100,player.hp+15)}
       setRunN('playerBTC',btc);setRunN('playerScore',score);setRunN('playerHealth',player.hp);
     }
   }
@@ -894,7 +907,7 @@ function update(dt, now){
 
     if(aabb(player, r)){
       if(player.vy > 0 && player.y + player.h <= r.y + 6){
-        r.hp--; r.hitUntil = now + 120; player.vy = -2.6; score += 12;
+        r.hp--; r.hitUntil = now + 120; player.vy = -2.6; earnScore('jumpRobot');
       } else if(now > player.hitUntil){
         player.hitUntil = now + 800;
         player.vx += (player.x < r.x) ? -0.8 : 0.8;
@@ -970,13 +983,14 @@ function update(dt, now){
 
   if(exitDoor && aabb(player, exitDoor)){
     gameState = 'levelComplete';
-    setTimeout(() => {
+    setTimeout(async () => {
       setRunN('playerBTC', btc);
       setRunN('playerScore', score);
       setRunN('playerHealth', player.hp);
       setRunN('gameLevel', LVL+1);
       setRunN('blackoutGun',hasGun?1:0);
       setRunO('playerUpgrades', player.upgrades);
+      await Account.recordLevel(LVL, score, scoreEvents);
       goTo(NEXT_HREF);
     }, 300);
   }
@@ -1378,9 +1392,12 @@ export async function bootLevel(levelNumber, opts = {}){
 
   LVL = levelNumber | 0;
   NEXT_HREF = opts.nextHref || './index.html';
+  Account.authReady();
+  if(LVL===1 && new URLSearchParams(location.search).has('new')) Account.startRankedRun();
 
   // Initialize game state from storage
   score = getRunN('playerScore', 0);
+  scoreEvents=getRunO(`blackoutScoreEvents${LVL}`,{});
   btc = getRunN('playerBTC', 0);
   coinHistory=new Set(getRunO(`blackoutCoins${LVL}`,[]));
   relayHistory=new Set(getRunO(`blackoutRelays${LVL}`,[]));

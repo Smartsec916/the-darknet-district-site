@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blackout Protocol — Signal Lost</title><style>
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;background:linear-gradient(#060b15c9,#060b15e8),url('assets/03_bg_far.png') center/cover;color:#e6f1ff;font:16px/1.6 system-ui,sans-serif}main{width:min(620px,90vw);padding:32px;border:1px solid #ed91d2;background:#081524ed;box-shadow:0 0 50px #ed91d233}small{color:#ed91d2;letter-spacing:.2em}h1{font-size:clamp(42px,8vw,80px);line-height:1;margin:20px 0}strong{color:#72eddb}a{display:inline-block;margin:20px 12px 0 0;padding:12px 18px;background:#72eddb;color:#061923;text-decoration:none;font-weight:700}a:focus-visible{outline:3px solid #ff96d4}
+</style></head><body><main><small>TRANSMISSION INTERRUPTED</small><h1>SIGNAL<br>LOST.</h1><p>Run score: <strong id="score">0</strong></p><p id="ranked" role="status"></p><a href="level1.html?new=1">TRY AGAIN ↗</a><a href="leaderboard.html">GLOBAL LEADERBOARD ↗</a><a href="index.html">MAIN MENU ↗</a></main><script>
+document.getElementById('score').textContent=String(Number(sessionStorage.getItem('playerScore')||0));
+let result;try{result=JSON.parse(sessionStorage.getItem('blackoutLastSubmission')||'null')}catch{}
+document.getElementById('ranked').textContent=result?.personalBest?'NEW PERSONAL BEST — '+result.bestScore:
+  result?'Ranked result saved. Personal best: '+result.bestScore:
+  (sessionStorage.getItem('blackoutRankedError')||'Score saved locally. Sign in before your next run to compete globally.');
+</script></body></html>
