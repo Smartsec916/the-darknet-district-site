@@ -40,7 +40,7 @@
       return migrate({ ...fresh(), quest: s.quest, location: s.location, credits: s.credits, completed: s.completed, upgrades: { guns: s.upgrades.guns, armor: s.upgrades.armor, engines: s.upgrades.engines,shields:s.upgrades.shields }, contract: s.contract, cleared, loadout,creditGear },s);
     } catch { return null; }
   }
-  function beginJourney(s) { if (s.quest !== 'inheritance'||!P.groundDone(s)) return false; s.quest = 'arrival'; s.story.chapter='arrival';P.sync(s);Missions.acquire(s,'flight-training');Missions.acquire(s,'arrival');Missions.sync(s,{missionFlight}); Story.emit(s,'leaveLocation','vesper'); return true; }
+  function beginJourney(s) { if (s.quest !== 'inheritance'||!P.groundDone(s)) return false; s.quest = 'arrival'; s.story.chapter='arrival';P.sync(s);Missions.acquire(s,'flight-training');Missions.acquire(s,'meet-rook');Missions.complete(s,'meet-rook','instructions',{missionFlight});Missions.sync(s,{missionFlight}); Story.emit(s,'leaveLocation','vesper'); return true; }
   function stats(s, owned = []) {
     const ship=S.get(s), weapon=S.equipment[s.loadout?.weapon], shield=S.equipment[s.loadout?.shield];
     const standard=id=>S.equipment[id]?.ship==='ship3'?S.owns(s,'ship3'):s.standardGear?.includes(id);
@@ -76,7 +76,6 @@
     return {name:'Free transit',destination:s.destination,duration:policy.seconds,enemies:policy.interdiction?3:0,tier:1,reward:0,legal:true,cargo:'Empty hold',kind:'transit'};
   }
   function accept(s, id) {
-    if(s.progression.flags.dock&&!s.progression.flags.purchasedInstalled&&!s.progression.completed)return false;
     if (s.quest === 'legal-offer') { s.quest = 'legal-run';Missions.acquire(s,'legal-run'); return true; }
     if (s.quest === 'illegal-offer') { s.quest = 'illegal-run';Missions.acquire(s,'illegal-run'); return true; }
     const c = allContracts.find(c => c.id === id);
@@ -96,7 +95,9 @@
     if(f.kind==='transit'){s.story.chapter=s.quest;Story.emit(s,'arriveLocation',s.location);return {...f,repairCharged,gunReward:false};}
     if(f.id==='prologue-missiles')return {...f,repairCharged,gunReward:false};
     if(!s.universe.completedObjectives.includes(f.id||previous))s.universe.completedObjectives.push(f.id||previous);
-    Missions.complete(s,f.id||previous);
+    if(previous==='arrival'&&s.location==='meridian'){
+      for(const objective of ['travel','dock'])Missions.complete(s,'meet-rook',objective,{missionFlight});
+    } else Missions.complete(s,f.id||previous);
     if (previous === 'arrival') s.quest = 'legal-offer';
     else if (previous === 'legal-run') s.quest = 'return';
     else if (previous === 'return') s.quest = 'illegal-offer';

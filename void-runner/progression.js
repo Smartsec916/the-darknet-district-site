@@ -43,7 +43,7 @@
   if(p.flags.board)set('maraShipHandoff');
   return changed;
  }
- function groundDone(s){const p=s.progression,o=p.opening;return o?.version===2?p.flags.board===true||o.hologram&&o.pistol&&(o.cans.length>=4||p.flags.shootingTutorialComplete===true):ground.every(id=>p.flags[id]);}
+ function groundDone(s){const p=s.progression,o=p.opening;return o?.version===2?p.flags.board===true||o.pistol&&(o.cans.length>=4||p.flags.shootingTutorialComplete===true):ground.every(id=>p.flags[id]);}
  function sync(s){const p=s.progression;repairOpening(s);if(p.personal.attachments.includes('red-dot'))p.flags.sightOwned=true;if(p.personal.optic==='red-dot')p.flags.sightEquipped=true;
   if(Object.values(p.equipment.installed[s.activeShip]||{}).some(id=>Object.hasOwn(modules,id)))p.flags.moduleInstalled=true;
   if(p.flags.modulePurchased&&Object.values(p.equipment.installed[s.activeShip]||{}).some(id=>id!=='cooling'))p.flags.purchasedInstalled=true;
@@ -52,7 +52,7 @@
    // A pilot may revisit skipped training maneuvers after completing the missile
    // qualification. Travel access does not certify those missing objectives.
    s.universe.freeTravel=p.completed||p.flags.missileFired===true||s.universe.freeTravel===true;
-   s.universe.missionLogUnlocked=p.completed||s.missileOfferSeen===true||s.quest!=='inheritance';
+   s.universe.missionLogUnlocked=p.opening?.pistol===true||p.completed||s.missileOfferSeen===true||s.quest!=='inheritance';
   }
   return p.completed;
  }

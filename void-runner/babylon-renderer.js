@@ -21,7 +21,7 @@
       fragments: 220
     }
   };
-  let engine, scene, camera, surface, loadPromise, spaceRoot, roomRoot, planet, station, sky, rockSource, rocks = [],
+  let engine, scene, camera, surface, loadPromise, spaceRoot, roomRoot, planet, station, sky, rockSource, cockpit, rocks = [],
     ships = new Map(),
     pools = {},
     poolSources = {},
@@ -353,7 +353,7 @@
     await prepareSpace(def.id,['raider','courier','shuttle','security',def.ship],task,Object.fromEntries(def.interactions.filter(i=>i.character&&VoidAssets.models.characters[i.character]).map(i=>['character:'+i.character,VoidAssets.models.characters[i.character]])));task.check();station.setEnabled(false);rocks.forEach((mesh,i)=>{mesh.position.set((i%2?-1:1)*(75+i*6),30+Math.sin(i)*24,90+i*17);mesh.scaling.setAll(2+i%5);});
     roomRoot=stationModel(def.id,null,false,def);room=def;actors=[];stationActivity=def.activityPoints?VoidStationActivities.create(def):null;lastActivityTime=null;
     const ship=shipModel(def.ship,'friendly',roomRoot);ship.position.set(-7,2,-9);ship.scaling.setAll(2);
-    for(const item of def.interactions)if(item.character)characterModel(item.character,roomRoot,item.position);
+    for(const item of def.interactions)if(item.character)characterModel(item.character,roomRoot,item.visualPosition||item.position);
     if(stationActivity){for(const a of stationActivity.actors){const node=characterModel('crew-'+a.id,roomRoot,[a.x,0,a.z],true);actors[actors.length-1].activity=a;const cup=box('crew-cup',[.1,.16,.1],[.4,1.4,.2],material('cup','#b7b2a1'),node);cup.setEnabled(false);actors[actors.length-1].cup=cup;}}else for(let i=0;i<4;i++)characterModel('crew-'+i,roomRoot,[i<2?-13:13,0,i<2?-8+i*7:20+i*3],true);
     for(let i=0;i<5;i++)box('cargo-crate',[1.3,1.3,1.3],[12+(i%2)*1.5,.65,-17+Math.floor(i/2)*1.5],material('cargo','#716b56'),roomRoot);
     const colors=['#d47575','#78a5cf','#d39865','#84bd94','#b398cf'];
@@ -377,9 +377,9 @@
       for(const x of [-16.8,16.8]){pipe(x,5.2,z,4);box('pressure-frame',[.22,4.5,.25],[x,2.25,z],steel,parent);box('amber-wall-lamp',[.12,1.3,.15],[x*.985,2.5,z],warm,parent);}
       for(const x of [-12,-6,0,6,12]){box('floor-expansion-joint',[.04,.018,4],[x,.027,z],rubber,parent);for(const s of [-1,1])box('deck-fastener',[.09,.025,.09],[x+s*.15,.032,z-1.8],steel,parent);}
     }
-    for(const [x,z]of [[10,30],[-10,27],[0,45],[0,59]]){const light=new b.PointLight('warm-crew-light',new b.Vector3(x,4.7,z),scene);light.parent=parent;light.diffuse=new b.Color3(1,.68,.35);light.intensity=1.6;light.range=22;}
+    for(const [x,z]of [[0,61],[-10,27],[0,45],[0,59]]){const light=new b.PointLight('warm-crew-light',new b.Vector3(x,4.7,z),scene);light.parent=parent;light.diffuse=new b.Color3(1,.68,.35);light.intensity=1.6;light.range=22;}
     for(const x of [-12,11])for(const z of [37,41]){const lamp=b.MeshBuilder.CreateCylinder('table-lamp',{diameterTop:.16,diameterBottom:.32,height:.24,tessellation:12},scene);lamp.parent=parent;lamp.position.set(x,1.12,z);lamp.material=warm;box('table-light-base',[.12,.16,.12],[x,.92,z],steel,parent);for(const s of [-1,1]){box('chair-metal-leg',[.08,.48,.08],[x+s*1.6,.24,z-.24],steel,parent);box('chair-metal-leg',[.08,.48,.08],[x+s*1.6,.24,z+.24],steel,parent);}}
-    for(const x of [8,10,12,14]){box('bar-service-panel',[1.75,.76,.045],[x,.65,28.36],steel,parent);box('bar-underlight',[1.6,.035,.04],[x,1.04,28.31],warm,parent);}
+    for(const x of [-4.5,-1.5,1.5,4.5]){box('bar-service-panel',[2.7,.76,.045],[x,.65,60.36],steel,parent);box('bar-underlight',[2.6,.035,.04],[x,1.04,60.31],warm,parent);}
     const terminal=box('crew-terminal',[1,.7,.15],[-4,1.3,31],steel,parent);box('terminal-display',[.8,.45,.04],[-4,1.4,30.9],material('screen','#74bba8',true),parent);box('terminal-stand',[.18,1,.2],[-4,.5,31],steel,parent);
     for(const side of [-1,1])for(const z of [47,55,59,63]){const x=side*7;for(const y of [1,3.2]){box('crew-wall-inset',[.04,1.8,3.2],[x-side*.23,y,z],steel,parent);for(const dz of [-1.4,1.4])box('panel-latch',[.09,.23,.12],[x-side*.27,y,z+dz],copper,parent);}}
     parent.metadata={...parent.metadata,art:globalThis.VoidMeridianArt?.enhance({B:b,scene,parent,box,material,quality})};
@@ -536,6 +536,7 @@
   }
 
   function clearSpace() {
+    cockpit?.dispose();cockpit=null;
     station?.metadata?.dispose?.();
     surfaceHandle?.dispose();surfaceHandle=null;
     disposeNode(spaceRoot);
@@ -617,6 +618,10 @@
       projection = b.Matrix.PerspectiveFovLH(2 * Math.atan(height / (2 * focal)), width / height, .1, 3500);
     projection.m[9] = .12;
     camera.freezeProjectionMatrix(projection);
+    cockpit??=root.VoidCockpit3D.build(scene,camera);
+    cockpit.setEnabled(true);
+    cockpit.sync();
+    cockpit.update(snapshot.instruments,snapshot.time);
     const phase = snapshot.route?.phase || 'encounter',
       arrival = phase === 'arrived',
       warp = phase === 'warp',
@@ -637,7 +642,11 @@
     station.setEnabled(destinationVisible || atOrigin);
     if (destinationVisible) {
       const reveal = Math.max(0, (progress * 12 - 8) / 4);
-      station.rotation.y=0;station.position.set(0,-4,arrival?120-snapshot.approach*35:1500-reveal*1380);
+      // H01 opens along local -Z, directly into the player's +Z approach.
+      // Keep the station's physical orientation and move through that opening.
+      station.rotation.y=0;
+      const approach=Math.max(0,Math.min(1,(snapshot.approach||0)/VoidWarp.config.approachSeconds));
+      station.position.set(0,-4,arrival?120-105*approach:1500-reveal*1380);
     } else if(atOrigin){station.rotation.y=Math.PI;station.position.copyFrom(vector(snapshot.departureStation || {x:0,y:4,z:-15}));}
     station.metadata?.arrays?.forEach((n,i)=>n.rotation.z=.14+Math.sin(snapshot.time*.015+i*.2)*.08);
     if(station.metadata?.doors)station.metadata.doors.forEach((d,i)=>d.position.x=(i?1:-1)*(5+10*(phase==='departure'?Math.min(1,(snapshot.route.departure||0)/1.2):1)));
@@ -824,7 +833,7 @@
     }
     for (const item of def.interactions) {
       if (item.character) {
-        const figure = box('npc-' + item.character, [.65, 1.25, .45], [item.position[0], .95, item.position[2]], material('coat', '#4d5a58'), roomRoot);
+        const figure = box('npc-' + item.character, [.65, 1.25, .45], [(item.visualPosition||item.position)[0], .95, (item.visualPosition||item.position)[2]], material('coat', '#4d5a58'), roomRoot);
         figure.metadata = {
           placeholder: true,
           character: item.character
@@ -833,7 +842,7 @@
           diameter: .38,
           segments: 8
         }, scene);
-        head.position.set(item.position[0], 1.75, item.position[2]);
+        head.position.set((item.visualPosition||item.position)[0], 1.75, (item.visualPosition||item.position)[2]);
         head.material = material('skin', '#ad8d73');
         head.parent = roomRoot;
       } else if (item.action !== 'board') box('terminal', [.65, 1.4, .35], [item.position[0], .7, item.position[2] + .4], material('terminal', '#466966'), roomRoot);
@@ -873,6 +882,7 @@
 
   function renderRoom(player, width, height, time, allowed = () => true) {
     if (!roomRoot) return null;
+    cockpit?.setEnabled(false);
     resize(width, height);
     camera.unfreezeProjectionMatrix();
     camera.fov = openingHandle&&camera.metadata?.openingAim ? .8 : 1.05;

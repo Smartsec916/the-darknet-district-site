@@ -16,7 +16,7 @@
  function restore(raw={},state={}){const out={...fresh()},valid=xs=>Array.isArray(xs)?[...new Set(xs.filter(x=>Object.hasOwn(locations,x)))]:[];
   out.currentSystem=system(state.location);out.discoveredLocations=[...new Set([...out.discoveredLocations,...valid(raw.discoveredLocations),state.location].filter(Boolean))];out.visitedLocations=[...new Set([...out.visitedLocations,...valid(raw.visitedLocations),state.location].filter(Boolean))];
   // Earlier saves already received Rook's voucher; migrate its world unlock once.
-  out.missionLogUnlocked=raw.missionLogUnlocked===true||state.missileOfferSeen===true||state.quest!=='inheritance';out.freeTravel=state.progression?state.progression.completed===true||raw.freeTravel===true:out.missionLogUnlocked;
+  out.missionLogUnlocked=raw.missionLogUnlocked===true||state.progression?.opening?.pistol===true||state.missileOfferSeen===true||state.quest!=='inheritance';out.freeTravel=state.progression?state.progression.completed===true||raw.freeTravel===true:out.missionLogUnlocked;
   out.trackedMission=typeof raw.trackedMission==='string'?raw.trackedMission:null;
   out.trackingInitialized=raw.trackingInitialized===true||out.trackedMission!==null;
   for(const [id,entry] of Object.entries(raw.missions||{}).slice(0,100))if(/^[a-z][a-z0-9-]{0,79}$/.test(id)&&entry?.acquired===true){
