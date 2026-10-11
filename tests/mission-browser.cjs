@@ -9,12 +9,14 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
   await page.waitForFunction(()=>window.VoidStartup?.started);
   await page.evaluate(async()=>{
    state=C.fresh();state.quest='open';state.location='meridian';state.universe.freeTravel=true;state.universe.missionLogUnlocked=true;
-   for(const id of ['throttle','navigation','jumpTravel'])VoidProgression.mark(state,id);
+   state.progression.opening.pistol=true;
+   for(const id of ['move','sprint','jump','groundCombat','board','throttle','navigation','jumpTravel'])VoidProgression.mark(state,id);
    VoidMissions.sync(state,C);await enterWalking('hangar');save();
   });
+  await page.locator('#mission-log-button').waitFor({state:'visible'});
   await page.keyboard.press('F1');
   assert.equal(await page.locator('#mission-log').count(),1);
-  assert(await page.locator('#mission-log').getByText('FLIGHT TRAINING').count());
+  assert(await page.locator('#mission-log').getByText('BASIC TRAINING').count());
   assert(await page.locator('#mission-log .mission-entry li.pending').count()>0);
   assert(await page.locator('#mission-log .mission-entry li.complete').count()>0);
   await page.locator('[data-untrack="flight-training"]').click();

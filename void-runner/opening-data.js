@@ -16,7 +16,7 @@
    {id:'maintenance',action:'maintenance',label:'KESTREL DIAGNOSTICS',position:[5,1.68,19],range:2.8},
    {id:'board',action:'board',label:'BOARD KESTREL',position:[5,1.68,24],range:3}],signs:[]};}
  const stages=['move','look','recording','mara','range','draw','aim','fire','reload','cans','handoff','ship'];
- function next(s){const p=s.progression,o=p.opening;if(!o||o.version!==2||s.quest!=='inheritance')return null;P.repairOpening(s);if(p.flags.board)return'ship';if(!o.hologram)return'recording';if(!o.pistol)return'mara';if(p.flags.shootingTutorialComplete)return p.flags.maraShipHandoff?'ship':'handoff';if(!p.flags.move)return'move';if(!p.flags.look)return'look';if(!p.flags.draw)return'draw';if(!p.flags.aim)return'aim';if(!p.flags.fire)return'fire';if(!p.flags.reload)return'reload';return'cans';}
+ function next(s){const p=s.progression,o=p.opening;if(!o||o.version!==2||s.quest!=='inheritance')return null;P.repairOpening(s);if(p.flags.board)return'ship';if(!o.hologram&&!o.pistol)return'recording';if(!o.pistol)return'mara';if(p.flags.shootingTutorialComplete)return p.flags.maraShipHandoff?'ship':'handoff';if(!p.flags.move)return'move';if(!p.flags.look)return'look';if(!p.flags.draw)return'draw';if(!p.flags.aim)return'aim';if(!p.flags.fire)return'fire';if(!p.flags.reload)return'reload';return'cans';}
  function hit(s,id){const o=s.progression.opening;if(!o||!o.pistol||!Number.isInteger(id)||id<0||id>=cans.length||o.cans.includes(id))return false;o.cans.push(id);P.repairOpening(s);return true;}
  const api={hooks,cans,layout,stages,next,hit};if(typeof module!=='undefined')module.exports=api;else root.VoidOpening=api;
 })(globalThis);

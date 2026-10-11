@@ -1,5 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const C=require('../void-runner/campaign.js'),M=require('../void-runner/mission-log.js'),P=require('../void-runner/progression.js'),U=require('../void-runner/universe.js');
+const Meridian=require('../void-runner/meridian-interior.js'),Explorer=require('../void-runner/exploration-controller.js');
 
 test('skipped Flight Training maneuvers stay incomplete after navigation, warp and docking',()=>{
  const s=C.fresh();s.quest='arrival';
@@ -33,8 +34,9 @@ test('Mission Log keeps completed missions and tracking never changes ownership'
 });
 
 test('finishing later qualification allows travel while a skipped maneuver remains available',()=>{
- const s=C.fresh();s.quest='open';s.missileOfferSeen=true;
+ const s=C.fresh();s.quest='open';s.missileOfferSeen=true;s.progression.opening.pistol=true;
  for(const id of M.trainingIds.filter(id=>id!=='steer'))P.mark(s,id);
+ P.mark(s,'missileFired');
  U.unlock(s);M.sync(s,C);
  assert.equal(s.progression.completed,false);
  assert.equal(s.universe.freeTravel,true);
@@ -43,6 +45,42 @@ test('finishing later qualification allows travel while a skipped maneuver remai
  assert.equal(C.flight(s).kind,'transit');
  M.track(s,'flight-training',C);
  assert.equal(M.tracked(s,C).objectives.find(o=>!o.complete).id,'steer');
+});
+
+test('Mara handoff starts cargo independently and a skipped tutorial maneuver does not block Rook',()=>{
+ const s=C.fresh();s.progression.opening={version:2,hologram:false,pistol:true,cans:[0,1,2,3]};
+ P.repairOpening(s);P.mark(s,'maraShipHandoff');M.sync(s,C);
+ assert.equal(M.all(s,C).find(m=>m.id==='flight-training').completed,false);
+ assert.equal(M.all(s,C).find(m=>m.id==='meet-rook').objectives[0].complete,true);
+ assert(C.beginJourney(s));
+ assert(M.track(s,'meet-rook',C));
+ P.mark(s,'board');
+ s.location='meridian';s.quest='legal-offer';M.sync(s,C);
+ for(const id of ['enter','locate','speak'])M.complete(s,'meet-rook',id,C);
+ assert.equal(M.all(s,C).find(m=>m.id==='meet-rook').completed,true);
+ assert.equal(M.all(s,C).find(m=>m.id==='flight-training').completed,false);
+ assert(C.accept(s));
+ assert.equal(s.quest,'legal-run');
+});
+
+test('tracking and independent objectives survive legacy save restoration',()=>{
+ const s=C.fresh();s.quest='legal-offer';s.location='meridian';
+ s.progression.opening={version:2,hologram:false,pistol:true,cans:[0,1,2,3]};
+ s.progression.flags.maraShipHandoff=true;s.progression.flags.board=true;
+ M.sync(s,C);assert(M.track(s,'meet-rook',C));
+ const restored=C.restore(JSON.stringify(s));assert(restored);
+ assert.equal(M.tracked(restored,C)?.id,'meet-rook');
+ assert.equal(M.all(restored,C).find(m=>m.id==='meet-rook').objectives.find(o=>o.id==='dock').complete,true);
+ assert.equal(M.all(restored,C).find(m=>m.id==='meet-rook').objectives.find(o=>o.id==='speak').complete,false);
+});
+
+test('Meridian keeps the outfitter by the entrance and the bartender reachable beyond the corridor',()=>{
+ const room=Meridian.layout();
+ assert.equal(room.shell.find(o=>o.id==='shop-counter').position[2],29);
+ assert(room.shell.find(o=>o.id==='bar-counter').position[2]>55);
+ const door=room.shell.find(o=>o.id==='crew-pressure-door');door.open=true;
+ for(let z=5;z<=57;z+=1)assert.equal(Explorer.blocked(0,z,room),false,'corridor blocked at z='+z);
+ assert.equal(Explorer.select({x:0,z:57,yaw:0},room)?.id,'nyx');
 });
 
 test('a registered multi-objective mission completes only after each required event',()=>{

@@ -461,7 +461,8 @@ function migrationSnapshot() {
     missiles: [...missiles, ...enemyMissiles],
     effects: VoidCombatEffects.clouds,
     time,
-    approach: approachTime
+    approach: approachTime,
+    instruments:{hull:hp/Math.max(1,VoidFlightCraft.stats().hull)*100,shield:shieldHP/Math.max(1,VoidFlightCraft.stats().shield)*100,heat:weaponBank.heat/Math.max(1,VoidFlightCraft.systems().heatLimit)*100,power:weaponBank.energy/Math.max(1,VoidFlightCraft.systems().capacity)*100,speed:FM.length(flight.velocity||{x:0,y:0,z:0}),throttle:flight.throttle,route:current?.destination?C.stations[current.destination]?.name:'LOCAL',missiles:state.progression?.missiles??0,target:selectedTarget?.className||'NONE'}
   };
 }
 
@@ -515,7 +516,7 @@ draw = function() {
       const amplitude = Math.min(1.5, damageTime * 2 + Math.abs(flight.yawRate) * .35);
       ctx.translate(Math.sin(time * 35) * amplitude, Math.cos(time * 27) * amplitude);
     }
-    drawShipCockpit();
+    // Babylon draws the camera-mounted 3D cockpit and live instruments.
     ctx.restore();
     drawContactMarkers();
     drawFlightHud();
