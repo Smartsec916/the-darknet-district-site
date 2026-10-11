@@ -1,0 +1,29 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Blackout Protocol — Global Leaderboard</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:linear-gradient(#060b15e8,#060b15f0),url('assets/security_bg_far.png') center/cover;color:#e6f1ff;font:15px/1.5 system-ui,sans-serif}main{width:min(940px,94vw);margin:auto;padding:5vh 0 12vh}small{color:#65ecdc;letter-spacing:.2em}h1{font-size:clamp(38px,7vw,72px);line-height:1;margin:18px 0 8px}p{color:#b6c7da}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0}a,button{display:inline-block;padding:11px 16px;background:#72eddb;color:#061923;border:0;border-radius:4px;text-decoration:none;font-weight:700;cursor:pointer}button{font:700 14px system-ui,sans-serif}a:focus-visible,button:focus-visible{outline:3px solid #ff9bd9;outline-offset:4px}.panel{padding:20px;background:#081524ec;border:1px solid #4a857e;margin:18px 0}#mine{color:#72eddb}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{text-align:left;padding:10px;border-bottom:1px solid #294154;overflow-wrap:anywhere}th{color:#ed91d2;font:12px monospace;letter-spacing:.1em}td:first-child{color:#72eddb;font-family:monospace}tr.self{background:#24495088}#status{min-height:24px;color:#ffafcf}@media(max-width:600px){th,td{padding:8px 4px;font-size:12px}.panel{padding:12px}}
+</style></head><body><main><small>BLACKOUT PROTOCOL / GLOBAL SIGNALS</small><h1>LEADERBOARD.</h1><p>Top 100 accepted ranked scores. Ties are ordered by a stable account key. One row per player.</p><div class="toolbar"><a href="index.html">← MAIN MENU</a><button id="refresh">REFRESH</button><button id="signIn" hidden>SIGN IN WITH GOOGLE</button></div><p id="status" role="status">Connecting to leaderboard…</p><div class="panel" id="mine">Checking player ranking…</div><div class="panel"><table><thead><tr><th>RANK</th><th>HANDLE</th><th>BEST SCORE</th><th>HIGHEST LEVEL</th></tr></thead><tbody id="rows"></tbody></table></div></main>
+<script type="module">
+import * as Account from './account.js';
+const rows=document.getElementById('rows'),status=document.getElementById('status'),mine=document.getElementById('mine');
+async function load(){
+  status.textContent='Loading global scores…';
+  try{
+    const data=await Account.leaderboard();
+    rows.replaceChildren();
+    for(const entry of data.entries){
+      const tr=document.createElement('tr');
+      if(data.me?.handle===entry.handle && data.me?.rank===entry.rank)tr.className='self';
+      for(const value of [entry.rank,entry.handle,entry.bestScore,entry.highestCompletedLevel]){const td=document.createElement('td');td.textContent=String(value);tr.append(td)}
+      rows.append(tr);
+    }
+    if(!data.entries.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=4;td.textContent='No ranked signals yet.';tr.append(td);rows.append(tr)}
+    mine.textContent=data.me?.handle?`${data.me.handle} · Your rank: ${data.me.rank?'#'+data.me.rank:'—'} · Personal best: ${data.me.bestScore} · Completed games: ${data.me.totalCompletedGames}`:
+      Account.currentUser()?'Choose a public handle from the main menu to enter the ranking.':'Sign in to see your personal ranking. Guest viewing is available.';
+    status.textContent='Top '+data.entries.length+' players';
+  }catch(error){status.textContent=error.message;mine.textContent='Local play remains available.';}
+}
+addEventListener('blackout-auth',()=>{document.getElementById('signIn').hidden=!!Account.currentUser();load()});
+Account.authReady().then(()=>{document.getElementById('signIn').hidden=!!Account.currentUser();load()});
+document.getElementById('refresh').onclick=load;
+document.getElementById('signIn').onclick=async()=>{try{await Account.signIn();load()}catch(e){status.textContent=e.message}};
+</script></body></html>

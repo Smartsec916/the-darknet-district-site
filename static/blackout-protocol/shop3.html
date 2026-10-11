@@ -106,6 +106,7 @@
 
   <script type="module">
     import { getRunN, setRunN, getRunO, setRunO, goTo, postScore } from './engine.js';
+    import { finishRun } from './account.js';
 
     let btc = getRunN('playerBTC', 0);
     let upgrades = getRunO('playerUpgrades', {});
@@ -165,11 +166,12 @@
       goTo('./level4.html');
     };
 
-    document.getElementById('finalCard').onclick = () => {
+    document.getElementById('finalCard').onclick = async () => {
       if(!sessionStorage.getItem('blackoutFinished')) postScore(getRunN('playerScore', 0));
       sessionStorage.setItem('blackoutFinished','1');
       setRunN('gameLevel',7);
-      alert(`Final Score: ${getRunN('playerScore', 0)} - Submitted to leaderboard!`);
+      const result=await finishRun(getRunN('playerScore',0));
+      alert(`Final Score: ${getRunN('playerScore', 0)} — ${result?'Ranked result saved.':'Saved locally.'}`);
       goTo('./index.html');
     };
 

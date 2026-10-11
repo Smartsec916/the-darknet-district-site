@@ -2,15 +2,23 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Blackout Protocol — Signal Restored</title>
 <style>
-*{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;background:linear-gradient(#060b15c9,#060b15e8),url('assets/06_bg_near.png') center/cover;color:#e6f1ff;font:16px/1.6 system-ui,sans-serif}
-main{width:min(650px,90vw);padding:32px;border:1px solid #5ccfc4;background:#081524ed;box-shadow:0 0 50px #42d8d244}small{color:#65ecdc;letter-spacing:.2em}h1{font-size:clamp(40px,8vw,80px);line-height:1;margin:20px 0}strong{color:#ff96d4}a{display:inline-block;margin-top:20px;padding:12px 18px;background:#72eddb;color:#061923;text-decoration:none;font-weight:700}a:focus-visible{outline:3px solid #ff96d4}
-</style></head><body><main><small>TRANSMISSION COMPLETE</small><h1>SIGNAL<br>RESTORED.</h1><p>You crossed all six sectors of Blackout Protocol.</p><p>Final score: <strong id="score">0</strong><br>BTC preserved: <strong id="btc">0</strong></p><a href="index.html">RETURN TO BASE ↗</a></main>
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;background:linear-gradient(#060b15c9,#060b15e8),url('assets/security_bg_far.png') center/cover;color:#e6f1ff;font:16px/1.6 system-ui,sans-serif}
+main{width:min(650px,90vw);padding:32px;border:1px solid #5ccfc4;background:#081524ed;box-shadow:0 0 50px #42d8d244}small{color:#65ecdc;letter-spacing:.2em}h1{font-size:clamp(40px,8vw,80px);line-height:1;margin:20px 0}strong{color:#ff96d4}a{display:inline-block;margin:20px 12px 0 0;padding:12px 18px;background:#72eddb;color:#061923;text-decoration:none;font-weight:700}a:focus-visible{outline:3px solid #ff96d4}#ranked{color:#72eddb}
+</style></head><body><main><small>TRANSMISSION COMPLETE</small><h1>SIGNAL<br>RESTORED.</h1><p>You crossed all six sectors of Blackout Protocol.</p><p>Final score: <strong id="score">0</strong><br>BTC preserved: <strong id="btc">0</strong></p><p id="ranked" role="status">Checking ranked result…</p><a href="leaderboard.html">GLOBAL LEADERBOARD ↗</a><a href="index.html">RETURN TO BASE ↗</a></main>
 <script type="module">
 import {getRunN,postScore} from './engine.js';
+import {finishRun} from './account.js';
 if(getRunN('gameLevel',1)<7) location.replace('index.html');
-document.getElementById('score').textContent=String(getRunN('playerScore',0));
+const score=getRunN('playerScore',0);
+document.getElementById('score').textContent=String(score);
 document.getElementById('btc').textContent=String(getRunN('playerBTC',0));
-if(getRunN('gameLevel',1)>=7 && !sessionStorage.getItem('blackoutFinished')){
-  postScore(getRunN('playerScore',0));sessionStorage.setItem('blackoutFinished','1');
+if(!sessionStorage.getItem('blackoutFinished')){
+  postScore(score);
+  sessionStorage.setItem('blackoutFinished','1');
+  await finishRun(score);
 }
+let result;try{result=JSON.parse(sessionStorage.getItem('blackoutLastSubmission')||'null')}catch{}
+document.getElementById('ranked').textContent=result?.personalBest?'NEW PERSONAL BEST — '+result.bestScore:
+  result?'Ranked result saved. Personal best: '+result.bestScore:
+  (sessionStorage.getItem('blackoutRankedError')||'Local score saved. Sign in and choose a handle before a new run to compete globally.');
 </script></body></html>
