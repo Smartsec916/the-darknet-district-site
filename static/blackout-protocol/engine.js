@@ -7,11 +7,22 @@ Relationship: level pages import bootLevel(); shop pages use the exported storag
 ==============================================================================
 */
 
-// engine.js  (shared engine for Levels 1–3)
+// Shared engine for the existing districts and their later sectors.
 const VW = 256, VH = 240, TILE = 16;
 const LEVEL_LEN = 1600;
 const DOOR_W = 24, DOOR_H = 32;
-const HYPER_RELOAD_TAG = 'rev=20260913-visuals';
+const HYPER_RELOAD_TAG = 'rev=20261011-smog';
+const LEVELS = {
+  1:{name:'THE UNDERGRID', ledges:1, robots:0, drones:0, thieves:0, gun:false},
+  2:{name:'WATCHER DISTRICT', ledges:2, robots:0, drones:0, thieves:0, gun:false},
+  3:{name:'NEON BAZAAR', ledges:2, robots:0, drones:0, thieves:1, gun:false},
+  4:{name:'MACHINE PERIMETER', ledges:2, robots:1, drones:0, thieves:0, gun:false},
+  5:{name:'ARMORY ACCESS', ledges:2, robots:1, drones:1, thieves:0, gun:true},
+  6:{name:'BLACKOUT CORE', ledges:3, robots:2, drones:1, thieves:0, gun:true}
+};
+// All gaps are shorter than the unupgraded ground jump's ~94 px range.
+const GAPS={1:[],2:[[608,640]],3:[[928,976]],4:[[608,656],[1216,1264]],
+  5:[[608,656],[1216,1280]],6:[[608,672],[1216,1280]]};
 
 // ====== storage helpers (session for run; local for leaderboard) ======
 export function getRunN(k,d=0){ return +(sessionStorage.getItem(k) ?? d) }
@@ -19,7 +30,8 @@ export function setRunN(k,v){ sessionStorage.setItem(k, String(v)) }
 export function getRunO(k,d={}){ try{return JSON.parse(sessionStorage.getItem(k)||'null')??d}catch(e){return d} }
 export function setRunO(k,o){ sessionStorage.setItem(k, JSON.stringify(o)) }
 export function hardResetRun(){
-  for(const key of ['playerBTC','playerScore','playerHealth','playerUpgrades','gameLevel']) sessionStorage.removeItem(key);
+  for(const key of ['playerBTC','playerScore','playerHealth','playerUpgrades','gameLevel','blackoutGun','blackoutLevel3Warned','blackoutFinished']) sessionStorage.removeItem(key);
+  for(let n=1;n<=6;n++) {sessionStorage.removeItem(`blackoutCoins${n}`);sessionStorage.removeItem(`blackoutRelays${n}`);sessionStorage.removeItem(`blackoutCheckpoint${n}`);}
   setRunN('playerBTC',0);
   setRunN('playerScore',0);
   setRunN('playerHealth',100);
@@ -62,12 +74,22 @@ const SPRITE_DEF = {
 };
 
 function bgURLsForLevel(lvl){
+  if(lvl>=4) return {far:`./assets/security_bg_far.png?${HYPER_RELOAD_TAG}`, near:`./assets/security_fence_near.png?${HYPER_RELOAD_TAG}`};
   if(lvl===2) return {far:`./assets/02_bg_far.png?${HYPER_RELOAD_TAG}`, near:`./assets/02_bg_near.png?${HYPER_RELOAD_TAG}`};
   if(lvl===3) return {far:`./assets/03_bg_far.png?${HYPER_RELOAD_TAG}`, near:`./assets/03_bg_near.png?${HYPER_RELOAD_TAG}`};
   return {far:`./assets/01_bg_far.png?${HYPER_RELOAD_TAG}`, near:`./assets/01_bg_near.png?${HYPER_RELOAD_TAG}`};
 }
 
 function adConfigForLevel(lvl){
+  if(lvl>=4){
+    const pairs={
+      4:['sentry','ironmesh'],
+      5:['novaarms','ioncell'],
+      6:['corelink','voidwatt']
+    };
+    const kinds=pairs[lvl]||pairs[6];
+    return {kinds, images:Object.fromEntries(kinds.map(kind=>[kind,`./assets/ad_${kind}.png?${HYPER_RELOAD_TAG}`]))};
+  }
   if(lvl===2){
     return {
       kinds:['blackrock','downthere','oxygen','skinshift','zen'],
@@ -112,10 +134,14 @@ let LEFT=0, RIGHT=0, UP=0, jumpBufferUntil=0, coyoteUntil=0, jumpHeld=false;
 let player, cameraX=0, platforms=[], coins=[], robots=[], drones=[], females=[], terminals=[], ads=[], exitDoor=null;
 let BG={far:null, near:null}, CurrentAds={kinds:[], images:{}, imgObjs:{}}, adDeck=[];
 let SPR=null, LVL=1, NEXT_HREF='./index.html';
-let coinImg=null, doorImg=null, ledgeImg=null, platformImg=null, terminalFrame1=null, terminalFrame2=null;
+let coinImg=null, doorImg=null, ledgeImg=null, platformImg=null, terminalFrame1=null, terminalFrame2=null, sidearmImg=null, impactImg=null;
 let generatedUntil=0, worldMaxX=0;
 let hackUntil=0, hackCDUntil=0;
 let relays=[];
+let projectiles=[], impacts=[], gunPickup=null, hasGun=false, nextShot=0, notice='', noticeUntil=0;
+let coinHistory=new Set(), relayHistory=new Set();
+let nextCoinId=0;
+let lastCheckpointX=32;
 
 const CHUNK = 320;
 const JUMP_BUFFER = 140, COYOTE = 140;
@@ -124,18 +150,21 @@ const groundY = () => VH - TILE;
 // ====== helpers ======
 function clamp(v,a,b){ return v<a?a:v>b?b:v }
 function aabb(a,b){ return (a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y) }
+function hasGroundAt(x){return x>=0&&x<LEVEL_LEN&&!(GAPS[LVL]||[]).some(([a,b])=>x>=a&&x<b)}
 
 // ====== input ======
 addEventListener('keydown',e=>{
-  if(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp','Space','KeyA','KeyD','KeyW','KeyE','Enter','Escape','KeyR'].includes(e.code)) e.preventDefault();
+  if(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp','Space','KeyA','KeyD','KeyW','KeyE','KeyF','KeyJ','Enter','Escape','KeyR'].includes(e.code)) e.preventDefault();
+  if(gameState==='warning') { if(e.code==='Enter'||e.code==='Space') gameState='playing'; return; }
 
   if(e.code==='ArrowLeft'||e.code==='KeyA') LEFT=1;
   if(e.code==='ArrowRight'||e.code==='KeyD') RIGHT=1;
-  if(e.code==='ArrowUp'||e.code==='KeyW'||e.code==='Space') { UP=1; jumpBufferUntil=simulationTime+JUMP_BUFFER; jumpHeld=true; }
+  if(e.code==='ArrowUp'||e.code==='KeyW'||e.code==='Space') { UP=1; if(!e.repeat) jumpBufferUntil=simulationTime+JUMP_BUFFER; jumpHeld=true; }
   if(e.repeat) return;
   if(e.code==='Escape') gameState=(gameState==='playing')?'paused':(gameState==='paused'?'playing':gameState);
   if(e.code==='Enter') tryHack();
   if(e.code==='KeyE') triggerEMP();
+  if(e.code==='KeyF'||e.code==='KeyJ') fireGun();
 });
 
 addEventListener('keyup',e=>{
@@ -210,9 +239,11 @@ async function loadSprites(def){
 }
 
 function setAnim(actor, who, state, clamp=false){
-  if(actor.anim.state===state && actor.anim.runner) return;
+  const packName=who==='player'&&hasGun?'playerArmed':who;
+  if(actor.anim.state===state && actor.anim.who===packName && actor.anim.runner) return;
   actor.anim.state=state;
-  const spec=SPR[who]?.anim?.[state];
+  actor.anim.who=packName;
+  const spec=SPR[packName]?.anim?.[state];
   actor.anim.runner = spec ? spec.make() : null;
   if(actor.anim.runner) actor.anim.runner.reset();
   actor.anim.clamp=clamp;
@@ -221,8 +252,32 @@ function setAnim(actor, who, state, clamp=false){
 function stepAnim(a,dt){ if(a.anim.runner) a.anim.runner.step(dt, a.anim.clamp); }
 function drawAnim(a,who,x,y,flip=false,alpha=1){ const run=a.anim.runner; if(run) run.draw(x,y,flip,alpha); }
 
+// Build each armed state once from the original sprite and gun pixels. The
+// player's hand is drawn over the grip, so it is part of the animation frame.
+function makeArmedPlayerSprites(){
+  const base=SPR.player, armed={fw:48,fh:48,anim:{}};
+  const hands={idle:[26,26],walk:[26,26],run:[29,23],jump:[26,26],
+    fall:[29,23],hurt:[26,26]};
+  for(const [state,spec] of Object.entries(base.anim)){
+    const img=spec.img;
+    if(!img || !sidearmImg || !hands[state]){armed.anim[state]=spec;continue;}
+    const sheet=document.createElement('canvas');sheet.width=img.width;sheet.height=img.height;
+    const g=sheet.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(img,0,0);
+    const [hx,hy]=hands[state],frames=Math.max(1,Math.floor(img.width/48));
+    for(let frame=0;frame<frames;frame++){
+      const origin=frame*48;
+      g.drawImage(sidearmImg,origin+hx-5,hy-6,16,12);
+      g.drawImage(img,origin+hx,hy,2,2,origin+hx,hy,2,2);
+    }
+    armed.anim[state]={img:sheet,make:()=>makeAnimator(sheet,48,48,SPRITE_DEF.player.fps[state])};
+  }
+  return armed;
+}
+
 // ====== parallax backgrounds ======
-const PARALLAX = {far: 0.18, near: 0.55};
+const PARALLAX = {far: 0.12, near: 0.82};
+// Source-image coordinates of chimney mouths in security_bg_far.png.
+const SECURITY_STACKS = [[99,152],[130,180],[391,245],[1008,211],[1070,225],[1590,152],[1620,181]];
 
 function setBackgroundsForLevel(lvl){
   const urls = bgURLsForLevel(lvl);
@@ -241,28 +296,11 @@ async function loadBackgrounds(){
 async function loadAdImagesForLevel(lvl){
   CurrentAds = adConfigForLevel(lvl);
   CurrentAds.imgObjs = {};
-  const images = CurrentAds.images || {};
-  const keys = Object.keys(images);
-  
-  // Debug logging for Level 1
-  if(lvl === 1) console.log(`Loading ads for Level 1:`, keys);
-  
-  for(const k of keys){
-    try {
-      CurrentAds.imgObjs[k] = await IMG(images[k]);
-      if(lvl === 1) console.log(`Loaded ad image: ${k}`);
-    } catch(error) {
-      console.error(`Failed to load ad image ${k}:`, error);
-    }
-  }
-  
+  await Promise.all(Object.entries(CurrentAds.images||{}).map(async ([key,src])=>{
+    try {CurrentAds.imgObjs[key]=await IMG(src)}
+    catch(error){console.warn('Ad image unavailable:',src)}
+  }));
   refillDeck();
-  
-  // Debug the final state
-  if(lvl === 1) {
-    console.log(`Level 1 ads loaded:`, Object.keys(CurrentAds.imgObjs));
-    console.log(`Ad deck size: ${adDeck.length}`);
-  }
 }
 
 function tileParallax(img, speed){
@@ -272,24 +310,52 @@ function tileParallax(img, speed){
   const cam = cameraX || 0;
   let x = -Math.floor((cam * speed) % tileW);
   if (x > 0) x -= tileW;
-  for(let i = 0; i < 4; i++){
+  for(let i = 0, count = Math.ceil(VW/tileW)+2; i < count; i++){
     const drawX = x + i * tileW;
-    const flip = (i % 2) === 1;
-    ctx.save();
-    if(flip){
-      ctx.translate(drawX + tileW, 0);
-      ctx.scale(-1, 1);
-      ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, tileW, VH);
-    } else {
-      ctx.drawImage(img, 0, 0, img.width, img.height, drawX, 0, tileW, VH);
-    }
-    ctx.restore();
+    // These layers contain lettering. Mirroring alternate tiles reverses the signs.
+    ctx.drawImage(img, 0, 0, img.width, img.height, drawX, 0, tileW, VH);
   }
+}
+
+function drawSecuritySkyEffects(){
+  if(LVL<4 || !BG.far) return;
+  const scale=VH/BG.far.height;
+  const tileW=Math.max(1,Math.round(BG.far.width*scale));
+  const offset=-Math.floor(((cameraX||0)*PARALLAX.far)%tileW);
+  const seconds=simulationTime/1000;
+  const tiles=Math.ceil(VW/tileW)+2;
+  ctx.save();
+  for(let tile=0;tile<tiles;tile++){
+    const left=offset+tile*tileW;
+    for(const [sx,sy] of SECURITY_STACKS){
+      const mouthX=left+sx*scale, mouthY=sy*scale;
+      if(mouthX < -22 || mouthX > VW+22) continue;
+      for(let i=0;i<6;i++){
+        const rise=(seconds*.18+i/6)%1;
+        const drift=Math.sin(seconds*.7+i*1.7+sx)*2+rise*5;
+        const radius=1.5+rise*4;
+        ctx.globalAlpha=(1-rise)*.23;
+        ctx.fillStyle='#a3a4c3';
+        ctx.beginPath();
+        ctx.ellipse(mouthX+drift,mouthY-rise*25,radius*1.35,radius,0,0,Math.PI*2);
+        ctx.fill();
+      }
+    }
+  }
+  const haze=ctx.createLinearGradient(0,0,0,102);
+  haze.addColorStop(0,'rgba(75,82,132,.10)');
+  haze.addColorStop(.55,'rgba(112,92,144,.07)');
+  haze.addColorStop(1,'rgba(112,92,144,0)');
+  ctx.globalAlpha=.8+Math.sin(seconds*.18)*.12;
+  ctx.fillStyle=haze;
+  ctx.fillRect(0,0,VW,102);
+  ctx.restore();
 }
 
 function drawBackgrounds(){
   if(!BG.far && !BG.near){ drawSky(); return; }
   if(BG.far) tileParallax(BG.far, PARALLAX.far);
+  drawSecuritySkyEffects();
   if(BG.near) tileParallax(BG.near, PARALLAX.near);
 }
 
@@ -335,7 +401,6 @@ function nextAdKind(){
       // Remove the found ad from its position and use it
       const kind = adDeck.splice(foundIndex, 1)[0];
       lastAdKind = kind;
-      if(LVL === 1) console.log(`Selected ad kind: ${kind}, remaining deck: ${adDeck.length}`);
       return kind;
     }
   }
@@ -343,13 +408,19 @@ function nextAdKind(){
   // Fallback to normal behavior if no alternatives found or first ad
   const kind = adDeck.shift();
   lastAdKind = kind;
-  if(LVL === 1) console.log(`Selected ad kind: ${kind}, remaining deck: ${adDeck.length}`);
   return kind; 
 }
 
 // ====== world generation ======
 function pushGroundRow(startX, endX){
-  for(let x = startX; x < endX; x += TILE) platforms.push({x, y: groundY(), w: TILE, h: TILE});
+  for(let x = startX; x < endX; x += TILE){
+    if((GAPS[LVL]||[]).some(([a,b])=>x>=a&&x<b))continue;
+    platforms.push({x, y: groundY(), w: TILE, h: TILE});
+  }
+}
+function addCoin(x,y){
+  const id=nextCoinId++;
+  coins.push({x:x|0,y:y|0,r:10,taken:coinHistory.has(id),id});
 }
 
 function genChunk(startX){
@@ -359,18 +430,18 @@ function genChunk(startX){
 
   pushGroundRow(startX, endX);
 
-  // Level 3: More BTC coins and female NPCs
+  // The Bazaar uses its established elevated route and paid encounters.
   if(lvl === 3){
     if(startX>=CHUNK){
       platforms.push({x:startX+70,y:groundY()-48,w:80,h:TILE});
       platforms.push({x:startX+190,y:groundY()-80,w:64,h:TILE});
       terminals.push({x:startX+100,y:groundY()-64,w:12,h:16,cooldown:0});
-      coins.push({x:startX+210,y:groundY()-100,r:10,taken:false});
+      addCoin(startX+210,groundY()-100);
     }
-    if(!firstScreen && startX >= 400){ // Changed from 300 to 400 to avoid overlap with initial spawn
+    if(!firstScreen && startX >= CHUNK){
       for(let i = 0; i < 5; i++){ // Even more coins in Level 3
         const cx = startX + 30 + Math.random() * (CHUNK - 60);
-        coins.push({x: cx|0, y: (groundY() - 24)|0, r: 10, taken: false});
+        addCoin(cx,groundY()-24);
       }
       // ads - more frequent with guaranteed variety
       if(Math.random() < 0.8){ // Higher chance for more ads
@@ -380,13 +451,13 @@ function genChunk(startX){
       }
 
       // Female NPCs for Level 3 (spawn in every chunk after 400)
-      const fc = 1 + ((Math.random() * 2)|0); // 1-2 females per chunk
+      const fc = 1;
       for(let i = 0; i < fc; i++){
         const fx = startX + 64 + Math.random() * (CHUNK - 128);
         const newFemale = {
           x: fx|0, y: groundY() - 28, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.6, hp: 1,
           active: false, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 50, patrolR: fx + 50,
-          searchUntil: 0, lookTimer: 0, hasTaken: false, anim: {state: 'idle', runner: null}
+          searchUntil: 0, lookTimer: 0, hasCharged: false, anim: {state: 'idle', runner: null}
         };
         // Initialize animation immediately if sprites are loaded
         if(SPR && SPR.female) {
@@ -401,33 +472,28 @@ function genChunk(startX){
   }
 
   // Ledges and other platforms
-  const ledgesStartOffset = 300; // All levels: ledges and NPCs start at DIST 300
-  const allowLedges = (!firstScreen) && (startX >= ledgesStartOffset);
+  const allowLedges = !firstScreen && (lvl>1 || startX>=CHUNK*2);
 
   if(allowLedges){
     const LOW_LEDGE_OFFSET = TILE * 3;
     const HIGH_LEDGE_OFFSET = TILE * 5;
 
-    const baseX = startX + 50 + Math.random() * (CHUNK - 140);
-    const lowX = Math.max(startX + 24, Math.min(endX - 110, (baseX / TILE | 0) * TILE));
-    const highX = Math.min(endX - 60, lowX + TILE * (5 + ((Math.random() * 2)|0)));
-
-    const lowW = TILE * (5 + ((Math.random() * 2)|0));
-    const highW = TILE * (4 + ((Math.random() * 2)|0));
-
-    const lowY = groundY() - LOW_LEDGE_OFFSET;
-    const highY = groundY() - HIGH_LEDGE_OFFSET;
+    // Fixed supports avoid overlap. From the first ledge, the second starts
+    // 56 px away and 32 px higher; the base jump covers this at 1.52 px/tick.
+    const lowX = startX + 32, highX = startX + 160;
+    const lowW = 72, highW = 64;
+    const lowY = groundY() - (lvl===1 ? 32 : LOW_LEDGE_OFFSET);
+    const highY = groundY() - (lvl===1 ? 48 : HIGH_LEDGE_OFFSET);
 
     platforms.push({x: lowX, y: lowY, w: lowW, h: TILE});
-    platforms.push({x: highX, y: highY, w: highW, h: TILE});
+    if(LEVELS[lvl].ledges>=2) platforms.push({x: highX, y: highY, w: highW, h: TILE});
+    if(LEVELS[lvl].ledges>=3) platforms.push({x:startX+256,y:groundY()-64,w:48,h:TILE});
 
-    const above = [
-      {x: lowX + 8 + Math.random() * (Math.max(16, lowW - 16)), y: lowY - 20},
-      {x: highX + 8 + Math.random() * (Math.max(16, highW - 16)), y: highY - 20},
-      {x: (lowX + highX) / 2, y: Math.min(lowY, highY) - 26}
-    ];
+    const above = [{x:lowX+lowW/2,y:lowY-20}];
+    if(LEVELS[lvl].ledges>=2) above.push({x:highX+highW/2,y:highY-20});
+    if(LEVELS[lvl].ledges>=3) above.push({x:startX+280,y:groundY()-84});
     for(const p of above){
-      coins.push({x: p.x|0, y: Math.max(40, Math.min(VH - 24, p.y))|0, r: 10, taken: false});
+      addCoin(p.x,Math.max(40, Math.min(VH - 24, p.y)));
     }
 
     if(Math.random() < 0.5){
@@ -448,10 +514,10 @@ function genChunk(startX){
     }
   }
 
-  if(lvl >= 1 && startX >= 300){
-    const rc = 1 + ((Math.random() * 2)|0);
+  if(LEVELS[lvl]?.robots && startX >= CHUNK && startX < LEVEL_LEN-CHUNK){
+    const rc = LEVELS[lvl].robots;
     for(let i = 0; i < rc; i++){
-      const rx = startX + 64 + Math.random() * (CHUNK - 128);
+      const rx = startX + 210 + i*35;
       robots.push({
         x: rx|0, y: VH - TILE * 2, w: 18, h: 24, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.66, hp: 3,
         active: false, hitUntil: 0, state: 'patrol', alert: false, patrolL: rx - 40, patrolR: rx + 40,
@@ -460,7 +526,7 @@ function genChunk(startX){
     }
   }
 
-  if(lvl >= 2 && startX >= 300){
+  if(LEVELS[lvl]?.drones && startX >= CHUNK*2){
     // Level 2: Robots in starting area fixed by only activating them later
     if(Math.random() < 0.6){
       const dx = startX + 80 + Math.random() * (CHUNK - 160);
@@ -506,26 +572,21 @@ function rects(a, b){ return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b
 function collide(body){
   body.onGround = false;
 
+  const previousBottom = body.y + body.h, previousTop = body.y;
   body.y += body.vy;
   for(const p of platforms){
+    if(p.x > body.x+body.w+24 || p.x+p.w < body.x-24) continue;
     if(rects(body, p)){
-      if(body.vy > 0){ body.y = p.y - body.h; body.vy = 0; body.onGround = true; coyoteUntil = 0; }
-      else if(body.vy < 0){ body.y = p.y + p.h; body.vy = 0; }
+      if(body.vy >= 0 && previousBottom <= p.y+2){ body.y = p.y - body.h; body.vy = 0; body.onGround = true; }
+      else if(body.vy < 0 && previousTop >= p.y+p.h-2){ body.y = p.y + p.h; body.vy = 0; }
     }
   }
 
   body.x += body.vx;
   for(const p of platforms){
+    if(p.x > body.x+body.w+24 || p.x+p.w < body.x-24) continue;
     if(rects(body, p)){
-      if(body.vx > 0){
-        body.y -= 2;
-        if(!rects(body, p)){ body.onGround = false; break; }
-        body.y += 2;
-      } else if(body.vx < 0){
-        body.y -= 2;
-        if(!rects(body, p)){ body.onGround = false; break; }
-        body.y += 2;
-      }
+      // The visible rail is decorative; collisions use the deck rectangle.
       if(body.vx > 0) body.x = p.x - body.w;
       else if(body.vx < 0) body.x = p.x + p.w;
       body.vx = 0;
@@ -567,6 +628,28 @@ function triggerEMP(){
   }
 }
 
+function fireGun(){
+  if(gameState!=='playing' || !hasGun || simulationTime<nextShot) return;
+  nextShot=simulationTime+320;
+  projectiles.push({x:player.x+(player.facing>0?20:-2),y:player.y+5,
+    vx:player.facing*5.5,life:500,hit:false});
+}
+
+function updateProjectiles(dt){
+  for(const shot of projectiles){
+    shot.x+=shot.vx; shot.life-=dt;
+    if(shot.x<0 || shot.x>LEVEL_LEN || platforms.some(p=>p.y<groundY() &&
+      shot.x>=p.x && shot.x<=p.x+p.w && shot.y>=p.y && shot.y<=p.y+p.h)) shot.life=0;
+    for(const r of robots){
+      if(shot.life>0 && !shot.hit && shot.x>=r.x && shot.x<=r.x+r.w &&
+        shot.y>=r.y-14 && shot.y<=r.y+r.h){r.hp--;r.hitUntil=simulationTime+220;shot.hit=true;shot.life=0;score+=10;
+          impacts.push({x:shot.x,y:shot.y,until:simulationTime+180});break;}
+    }
+  }
+  projectiles=projectiles.filter(s=>s.life>0);
+  impacts=impacts.filter(i=>i.until>simulationTime);
+}
+
 // ====== coins ======
 function pickupCoins(){
   for(const c of coins){
@@ -587,6 +670,9 @@ function pickupCoins(){
     if(dist2 <= rr * rr){
       c.taken = true;
       btc += 1; score += 5;
+      coinHistory.add(c.id);
+      setRunO(`blackoutCoins${LVL}`,[...coinHistory]);
+      setRunN('playerBTC',btc);setRunN('playerScore',score);
     }
   }
 }
@@ -611,54 +697,13 @@ function placeExitDoor(){
   exitDoor = {x, y, w: DOOR_W, h: DOOR_H};
 }
 
-function spawnLevel3Females(){
-  // Force spawn some initial females for Level 3
-  if(LVL === 3){
-    // Clear any existing females first
-    // Preserve NPCs already generated farther into the district.
-
-    // Add females spread out across the level, starting further from player
-    for(let i = 0; i < 3; i++){
-      const fx = 200 + i * 80 + Math.random() * 40; // Start further from player, more spread out
-      const newFemale = {
-        x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.7, hp: 1,
-        active: true, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 40, patrolR: fx + 40,
-        searchUntil: 0, lookTimer: 0, hasTaken: false, anim: {state: 'idle', runner: null}
-      };
-      // Initialize animation immediately with proper sprite check
-      if(SPR && SPR.female) {
-        setAnim(newFemale, 'female', 'idle');
-      }
-      females.push(newFemale);
-    }
-
-    // Add some females in the immediately visible area (but not too close to start)
-    for(let i = 0; i < 3; i++){
-      const fx = 100 + i * 50 + Math.random() * 20;
-      const newFemale = {
-        x: fx|0, y: VH - TILE * 2, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.6, hp: 1,
-        active: true, hitUntil: 0, state: 'patrol', alert: false, patrolL: fx - 30, patrolR: fx + 30,
-        searchUntil: 0, lookTimer: 0, hasTaken: false, anim: {state: 'idle', runner: null}
-      };
-      if(SPR && SPR.female) {
-        setAnim(newFemale, 'female', 'idle');
-      }
-      females.push(newFemale);
-    }
-
-    console.log(`Level 3: Spawned ${females.length} female NPCs`);
-  }
-}
-
 function activateEnemies(){
   const visRight = cameraX + VW + 64;
   
   for(const r of robots){
     if(!r.active && r.x < visRight){
       // Robots only activate after player progresses past starting area
-      if(LVL === 1){ if(player.x >= 400){ r.active = true; } } 
-      else if(LVL === 2){ if(player.x >= 400){ r.active = true; } }
-      else { r.active = true; }
+      r.active = true;
     }
   }
   
@@ -707,16 +752,13 @@ function cull(){
 
 // ====== load tiles ======
 async function loadTiles(){
-  try {
-    coinImg = await IMG(SPRITE_DEF.coin);
-    doorImg = await IMG(SPRITE_DEF.door);
-    ledgeImg = await IMG(SPRITE_DEF.ledge);
-    platformImg = await IMG(SPRITE_DEF.platform);
-    terminalFrame1 = await IMG(`./assets/hacker_terminal_frame1.png?${HYPER_RELOAD_TAG}`);
-    terminalFrame2 = await IMG(`./assets/hacker_terminal_frame2.png?${HYPER_RELOAD_TAG}`);
-  } catch (error) {
-    console.error('Error loading tiles:', error);
-  }
+  const urls=[SPRITE_DEF.coin,SPRITE_DEF.door,SPRITE_DEF.ledge,SPRITE_DEF.platform,
+    `./assets/hacker_terminal_frame1.png?${HYPER_RELOAD_TAG}`,
+    `./assets/hacker_terminal_frame2.png?${HYPER_RELOAD_TAG}`,
+    `./assets/sidearm_16.png?${HYPER_RELOAD_TAG}`,
+    `./assets/impact_8.png?${HYPER_RELOAD_TAG}`];
+  [coinImg,doorImg,ledgeImg,platformImg,terminalFrame1,terminalFrame2,sidearmImg,impactImg]=
+    await Promise.all(urls.map(src=>IMG(src).catch(()=>null)));
 }
 
 // ====== update ======
@@ -747,7 +789,23 @@ function update(dt, now){
 
   collide(player);
   player.x = clamp(player.x,0,LEVEL_LEN-player.w);
+  if(player.y>VH+24){
+    player.x=lastCheckpointX;player.y=groundY()-player.h;
+    player.vx=0;player.vy=0;player.onGround=true;player.hitUntil=now+1000;
+    notice='SIGNAL RECOVERED AT CHECKPOINT';noticeUntil=now+1800;
+    applyDamage(8);
+  }
+  const nextCheckpoint=lastCheckpointX+320;
+  if(player.x>=nextCheckpoint && player.onGround &&
+    !(GAPS[LVL]||[]).some(([a,b])=>nextCheckpoint>=a&&nextCheckpoint<b)){
+    lastCheckpointX=nextCheckpoint;setRunN(`blackoutCheckpoint${LVL}`,lastCheckpointX);
+  }
   pickupCoins();
+  if(gunPickup && !hasGun && aabb(player,gunPickup)){
+    hasGun=true;gunPickup=null;notice='SIDEARM ACQUIRED · F / J TO FIRE';noticeUntil=now+3000;
+    setRunN('blackoutGun',1);
+  }
+  updateProjectiles(dt);
 
   if(player.hp <= 0) setAnim(player, 'player', 'dead', true);
   else if(now < player.hitUntil) setAnim(player, 'player', 'hurt', true);
@@ -761,7 +819,9 @@ function update(dt, now){
   for(const relay of relays){
     if(!relay.taken && Math.hypot(player.x+9-relay.x,player.y+14-relay.y)<24){
       relay.taken=true; score+=50; btc+=3;
+      relayHistory.add(relay.id);setRunO(`blackoutRelays${LVL}`,[...relayHistory]);
       if(relays.every(r=>r.taken)){score+=100; player.hp=Math.min(100,player.hp+15)}
+      setRunN('playerBTC',btc);setRunN('playerScore',score);setRunN('playerHealth',player.hp);
     }
   }
   const need = cameraX + VW + CHUNK * 2;
@@ -783,11 +843,12 @@ function update(dt, now){
   }
 
   // robots AI
-  const lit = (LVL === 2) ? playerLitByCone() : false;
+  const lit = playerLitByCone();
 
   for(const r of robots){
     if(!r.active) continue;
     if(hacked){stepAnim(r,dt);continue;}
+    const oldX=r.x;
     const dx = player.x - r.x;
     const dy = player.y - r.y;
     const see = Math.abs(dx) < 92 && Math.abs(dy) < 56;
@@ -817,7 +878,7 @@ function update(dt, now){
       r.x += r.dir * r.speed * 0.9;
       if(r.x < r.patrolL){ r.x = r.patrolL; r.dir = 1; }
       if(r.x > r.patrolR){ r.x = r.patrolR; r.dir = -1; }
-      if(LVL === 2 && lit){ r.y -= 0.9; }
+      if(lit){ r.alert=true; }
       if(now > r.searchUntil) r.state = 'patrol';
     } else {
       r.alert = false;
@@ -827,6 +888,7 @@ function update(dt, now){
       if(r.x > r.patrolR){ r.x = r.patrolR; r.dir = -1; }
     }
 
+    if(!hasGroundAt(r.x+r.w/2)){r.x=oldX;r.dir*=-1;r.state='patrol';}
     setAnim(r, 'robot', r.state === 'chase' ? 'run' : 'walk');
     stepAnim(r, dt);
 
@@ -844,10 +906,11 @@ function update(dt, now){
 
   for(let i = robots.length - 1; i >= 0; i--) if(robots[i].hp <= 0) robots.splice(i, 1);
 
-  // Level 3 females - AI similar to robots but steal BTC instead of dealing damage
+  // Bazaar NPCs charge BTC for a brief encounter instead of dealing damage.
   if(LVL === 3){
     for(const f of females){
       if(!f.active) continue;
+      const oldX=f.x;
       const dx = player.x - f.x;
       const dy = player.y - f.y;
       const see = Math.abs(dx) < 92 && Math.abs(dy) < 56;
@@ -886,19 +949,21 @@ function update(dt, now){
         if(f.x > f.patrolR){ f.x = f.patrolR; f.dir = -1; }
       }
 
+      if(!hasGroundAt(f.x+f.w/2)){f.x=oldX;f.dir*=-1;f.state='patrol';}
       setAnim(f, 'female', f.state === 'chase' ? 'run' : 'walk');
       stepAnim(f, dt);
 
-      // Collision with player - steal BTC instead of dealing damage
-      if(aabb(player, f) && !f.hasTaken){
-        const steal = Math.min(5, btc); // Steal up to 5 BTC
-        if(steal > 0){
-          btc -= steal;
+      // One fictional in-game BTC charge per NPC; no external wallet interaction.
+      if(aabb(player, f) && !f.hasCharged){
+        const charge = Math.min(5, btc);
+        if(charge > 0){
+          btc -= charge;
           setRunN('playerBTC', btc);
-          score += 2; // Small score bonus for surviving
+          notice=`BAZAAR ENCOUNTER  -${charge} BTC`;
+          noticeUntil=now+2200;
         }
-        f.hasTaken = true;
-        f.hitUntil = now + 800; // Brief stun after stealing
+        f.hasCharged = true;
+        f.hitUntil = now + 800;
       }
     }
   }
@@ -909,7 +974,8 @@ function update(dt, now){
       setRunN('playerBTC', btc);
       setRunN('playerScore', score);
       setRunN('playerHealth', player.hp);
-      setRunN('gameLevel', LVL);
+      setRunN('gameLevel', LVL+1);
+      setRunN('blackoutGun',hasGun?1:0);
       setRunO('playerUpgrades', player.upgrades);
       goTo(NEXT_HREF);
     }, 300);
@@ -941,6 +1007,15 @@ function drawTiles(){
     const srcX = 1, srcW = Math.max(1, iw - 2);
     const dy = (p.y - (20 - TILE))|0;
     ctx.drawImage(img, srcX, srcBaseY, srcW, srcBaseH, sx|0, dy, p.w, 20);
+  }
+}
+function drawGaps(){
+  for(const [a,b] of GAPS[LVL]||[]){
+    const x=a-cameraX,w=b-a;
+    if(x+w<0||x>VW)continue;
+    ctx.fillStyle='#020812';ctx.fillRect(x,groundY(),w,VH-groundY());
+    ctx.fillStyle='#ff6db7';ctx.fillRect(x-2,groundY()-2,2,3);
+    ctx.fillRect(x+w,groundY()-2,2,3);
   }
 }
 
@@ -1065,6 +1140,21 @@ function drawEntities(now){
   }
   const px = (player.x - cameraX)|0, py = player.y|0;
   drawAnim(player, 'player', px - 15, py - 20, player.facing === -1, simulationTime < player.hitUntil ? 0.8 : 1);
+  if(gunPickup){
+    const gx=(gunPickup.x-cameraX)|0,gy=gunPickup.y|0;
+    ctx.fillStyle='#0b2434';ctx.fillRect(gx-3,gy-3,gunPickup.w+6,gunPickup.h+6);
+    ctx.strokeStyle='#60e8da';ctx.strokeRect(gx-3,gy-3,gunPickup.w+6,gunPickup.h+6);
+    if(sidearmImg)ctx.drawImage(sidearmImg,gx,gy,16,12);
+  }
+  for(const s of projectiles){
+    const sx=s.x-cameraX;
+    if(sx<0||sx>VW)continue;
+    ctx.fillStyle='#b2fff2';ctx.fillRect(sx-2,s.y-1,5,2);
+  }
+  for(const i of impacts){
+    const ix=i.x-cameraX;
+    if(ix>=0&&ix<=VW&&impactImg)ctx.drawImage(impactImg,ix-4,i.y-4,8,8);
+  }
 }
 
 function drawExitDoor(){
@@ -1142,6 +1232,7 @@ function drawControlsHint(){
 // Render at display resolution: small lettering must not pass through the
 // 256x240 pixel-art buffer. Screen blending emits light without dark panels.
 function adPlacement(a,img){
+ if(a.layout)return a.layout;
  const ratio=Math.min(90/img.naturalWidth,112/img.naturalHeight);
  const rail=ledgeImg&&ledgeImg.naturalHeight?Math.max(10,Math.round(Math.floor(ledgeImg.naturalHeight*.55)*20/(ledgeImg.naturalHeight-Math.floor(ledgeImg.naturalHeight*.55)))):0;
  const obstacles=platforms.map(p=>({x:p.x-4,y:p.y-rail-5,w:p.w+8,h:rail+25})).concat(terminals.map(t=>({x:t.x-6,y:t.y-8,w:t.w+12,h:t.h+16})),coins.map(c=>({x:c.x-14,y:c.y-14,w:28,h:28})),exitDoor?[{x:exitDoor.x-4,y:exitDoor.y-4,w:exitDoor.w+8,h:exitDoor.h+8}]:[]);
@@ -1150,12 +1241,12 @@ function adPlacement(a,img){
   const w=img.naturalWidth*ratio*factor,h=img.naturalHeight*ratio*factor;
   for(const offset of [0,-24,24,-48,48,-72,72]){
    const x=clamp(a.x-w/2+offset,4,LEVEL_LEN-w-4);
-   for(let y=43;y+h<groundY()-8;y+=4){const r={x,y,w,h};if(!obstacles.some(o=>hit(r,o)))return r;}
+   for(let y=43;y+h<groundY()-8;y+=4){const r={x,y,w,h};if(!obstacles.some(o=>hit(r,o)))return a.layout=r;}
   }
  }
  const bottom=Math.min(groundY()-8,...obstacles.map(o=>o.y));
  const scale=Math.min(ratio,Math.max(1,bottom-47)/img.naturalHeight);
- return {x:clamp(a.x-img.naturalWidth*scale/2,4,LEVEL_LEN-img.naturalWidth*scale-4),y:43,w:img.naturalWidth*scale,h:img.naturalHeight*scale};
+ return a.layout={x:clamp(a.x-img.naturalWidth*scale/2,4,LEVEL_LEN-img.naturalWidth*scale-4),y:43,w:img.naturalWidth*scale,h:img.naturalHeight*scale};
 }
 function drawAds(target=ctx){
   for(const a of ads){
@@ -1193,7 +1284,7 @@ function drawDisplayAds(){
 function drawUI(now){
   ctx.fillStyle='rgba(5,12,25,.92)';ctx.fillRect(0,0,VW,39);
   ctx.font='8px monospace';ctx.fillStyle='#61e8dc';
-  ctx.fillText(['','01 / THE UNDERGRID','02 / WATCHER DISTRICT','03 / NEON BAZAAR'][LVL],6,5);
+  ctx.fillText(`${String(LVL).padStart(2,'0')} / ${LEVELS[LVL]?.name||'SECTOR'}`,6,5);
   ctx.fillStyle='#edf5ff';ctx.fillText('BTC '+btc+'   SCORE '+score,6,17);
   ctx.fillStyle='#24354b';ctx.fillRect(181,7,68,5);
   ctx.fillStyle=player.hp>30?'#61e8dc':'#ff779b';ctx.fillRect(181,7,68*player.hp/100,5);
@@ -1201,12 +1292,19 @@ function drawUI(now){
   ctx.fillStyle='#536a86';ctx.fillRect(6,31,243,2);
   ctx.fillStyle='#ed91d2';ctx.fillRect(6,31,243*clamp(player.dist/(LEVEL_LEN-40),0,1),2);
   ctx.fillStyle='rgba(5,12,25,.9)';ctx.fillRect(0,228,VW,12);
-  ctx.fillStyle='#b9cde3';ctx.fillText('RELAYS '+relays.filter(r=>r.taken).length+'/3  '+(now<hackUntil?'SYSTEMS OFFLINE': 'ENTER: HACK')+'  E: EMP',5,230);
+  ctx.fillStyle='#b9cde3';ctx.fillText('RELAYS '+relays.filter(r=>r.taken).length+'/3  '+(now<hackUntil?'SYSTEMS OFFLINE': 'ENTER: HACK')+(hasGun?'  F: FIRE':'  E: EMP'),5,230);
+  if(now<noticeUntil){ctx.fillStyle='#ff9ac8';ctx.fillText(notice,6,44);}
   if(gameState!=='playing'){
     ctx.fillStyle='rgba(3,8,20,.8)';ctx.fillRect(0,65,VW,110);
     ctx.fillStyle='#80f3df';ctx.textAlign='center';ctx.font='12px monospace';
-    ctx.fillText(gameState==='paused'?'SIGNAL PAUSED':gameState==='dead'?'SIGNAL LOST':'DISTRICT CLEARED',VW/2,107);
-    ctx.font='8px monospace';ctx.fillText(gameState==='paused'?'ESC TO RESUME':gameState==='dead'?'Returning to base':'Connecting to Byte Bazaar',VW/2,130);ctx.textAlign='left';
+    ctx.fillText(gameState==='warning'?'SECURITY ALERT':gameState==='paused'?'SIGNAL PAUSED':gameState==='dead'?'SIGNAL LOST':'DISTRICT CLEARED',VW/2,91);
+    ctx.font='8px monospace';
+    if(gameState==='warning'){
+      ctx.fillStyle='#ff9ac8';ctx.fillText('NEON BAZAAR ENCOUNTERS',VW/2,111);
+      ctx.fillStyle='#dce8f7';ctx.fillText('An encounter may cost BTC.',VW/2,129);
+      ctx.fillText('Keep moving to save it. ENTER.',VW/2,143);
+    } else ctx.fillText(gameState==='paused'?'ESC TO RESUME':gameState==='dead'?'Returning to base':'Sector complete',VW/2,130);
+    ctx.textAlign='left';
   }
 }
 function drawAtmosphere(now){
@@ -1243,6 +1341,7 @@ function loop(now){
   drawDisplayAds();
   // Composite pixel-art foreground over the high-resolution holograms.
   ctx.clearRect(0,0,VW,VH);
+  drawGaps();
   drawTiles();
   drawTerminals();
   drawDronesAndCones(now);
@@ -1273,6 +1372,9 @@ export async function bootLevel(levelNumber, opts = {}){
   ctx.imageSmoothingEnabled = false;
   ctx.font = '9px monospace';
   ctx.textBaseline = 'top';
+  ctx.fillStyle='#06101d';ctx.fillRect(0,0,VW,VH);
+  ctx.fillStyle='#65ecdc';ctx.fillText('CONNECTING TO SECTOR...',58,112);
+  blit();
 
   LVL = levelNumber | 0;
   NEXT_HREF = opts.nextHref || './index.html';
@@ -1280,6 +1382,8 @@ export async function bootLevel(levelNumber, opts = {}){
   // Initialize game state from storage
   score = getRunN('playerScore', 0);
   btc = getRunN('playerBTC', 0);
+  coinHistory=new Set(getRunO(`blackoutCoins${LVL}`,[]));
+  relayHistory=new Set(getRunO(`blackoutRelays${LVL}`,[]));
   level = LVL;
   gameState = 'playing';
 
@@ -1287,45 +1391,32 @@ export async function bootLevel(levelNumber, opts = {}){
   setBackgroundsForLevel(LVL);
   SPR = await loadSprites(SPRITE_DEF);
   await Promise.all([loadBackgrounds(), loadTiles(), loadAdImagesForLevel(LVL)]);
+  SPR.playerArmed=makeArmedPlayerSprites();
 
   // Reset world state
   cameraX = 0; worldMaxX = 0; generatedUntil = 0;
+  nextCoinId=0;
   platforms = []; robots = []; drones = []; females = []; terminals = []; ads = []; coins = [];
+  projectiles=[];impacts=[];gunPickup=null;nextShot=0;notice='';noticeUntil=0;
+  hasGun=LVL>=5 && getRunN('blackoutGun',0)>0;
   exitDoor = null;
 
   // Create player
   player = makePlayer();
+  lastCheckpointX=clamp(getRunN(`blackoutCheckpoint${LVL}`,32),32,1312);
+  player.x=lastCheckpointX;
   setAnim(player, 'player', 'idle');
 
   // Generate initial chunks
   for(let x = 0; x < CHUNK * 4; x += CHUNK) genChunk(x);
   placeExitDoor();
-  relays=[480,960,1400].map(x=>({x,y:groundY()-32,taken:false}));
+  relays=[480,960,1400].map((x,id)=>({x,y:groundY()-32,taken:relayHistory.has(id),id}));
+  if(LVL===5 && !hasGun) gunPickup={x:150,y:groundY()-16,w:16,h:12};
+  if(LVL===6 && !hasGun) gunPickup={x:150,y:groundY()-16,w:16,h:12};
 
   // Level-specific setup - MOVED AFTER sprite loading
-  if(LVL === 2){
-    const drone1 = {x: 120, y: 70, w: 18, h: 14, dir: 1, speed: 0.7, phase: Math.random() * 6, active: true, disabled: false, anim: {state: 'move', runner: null}};
-    const drone2 = {x: 220, y: 85, w: 18, h: 14, dir: -1, speed: 0.7, phase: Math.random() * 6, active: true, disabled: false, anim: {state: 'move', runner: null}};
-    
-    // Initialize animations immediately
-    setAnim(drone1, 'drone', 'move');
-    setAnim(drone2, 'drone', 'move');
-    
-    drones.push(drone1);
-    drones.push(drone2);
-  }
-  
-  // IMPORTANT: Call spawnLevel3Females AFTER sprites are loaded
-  if(LVL === 3) {
-    spawnLevel3Females();
-    console.log(`Level 3 initialized with ${females.length} females`);
-    
-    // Ensure all female animations are properly initialized
-    for(const f of females) {
-      if(!f.anim.runner) {
-        setAnim(f, 'female', 'idle');
-      }
-    }
+  if(LVL===3 && !sessionStorage.getItem('blackoutLevel3Warned')){
+    gameState='warning';sessionStorage.setItem('blackoutLevel3Warned','1');
   }
 
   // Reset input state

@@ -78,7 +78,7 @@
 
     <div class="crt bubble">
       <h3>【Add-Men】</h3>
-      <div class="text" id="bubble">Final level gear. You've made it this far...<span class="cursor"></span></div>
+      <div class="text" id="bubble">The Bazaar is behind you. Gear up for the machine perimeter...<span class="cursor"></span></div>
     </div>
 
     <div class="crt inv">
@@ -91,15 +91,15 @@
 
     <div class="final">
       <div class="crt card" id="finalCard">
-        <h5>【COMPLETE RUN】</h5>
-        <p>Finish with your current score and submit to leaderboard.</p>
+        <h5>【END RUN EARLY】</h5>
+        <p>Bank your current score and return to base.</p>
       </div>
     </div>
 
     <div class="continue">
       <div class="crt card" id="continueCard">
-        <h5>Replay Neon Bazaar</h5>
-        <p>Head back out. Unspent BTC carries forward.</p>
+        <h5>Enter Machine Perimeter</h5>
+        <p>Continue to sector 4. Unspent BTC carries forward.</p>
       </div>
     </div>
   </div>
@@ -162,11 +162,13 @@
     }
 
     document.getElementById('continueCard').onclick = () => {
-      goTo('./level3.html');
+      goTo('./level4.html');
     };
 
     document.getElementById('finalCard').onclick = () => {
-      postScore(getRunN('playerScore', 0));
+      if(!sessionStorage.getItem('blackoutFinished')) postScore(getRunN('playerScore', 0));
+      sessionStorage.setItem('blackoutFinished','1');
+      setRunN('gameLevel',7);
       alert(`Final Score: ${getRunN('playerScore', 0)} - Submitted to leaderboard!`);
       goTo('./index.html');
     };

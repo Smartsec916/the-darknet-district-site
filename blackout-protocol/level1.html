@@ -18,10 +18,9 @@
   </div>
 
   <script type="module">
-    import { bootLevel, hardResetRun } from './engine.js?v=20260913-visuals';
-    // Fresh run starts here
-    hardResetRun();          // clears session, sets BTC/score/upgrades fresh
-    sessionStorage.setItem('gameLevel','1');
+    import { bootLevel, hardResetRun } from './engine.js?v=20261011-smog';
+    if(new URLSearchParams(location.search).has('new')) hardResetRun();
+    sessionStorage.setItem('gameLevel', String(Math.max(1, Number(sessionStorage.getItem('gameLevel')||1))));
     bootLevel(1, { nextHref:'./shop1.html' });
   </script>
 <aside class="controls">A / D or arrows · Space to jump · Enter to hack · E for EMP · Esc to pause<br>Collect 3 relay shards for bonus BTC, 250 score and 15 HP. Reach the neon exit.</aside></body>
