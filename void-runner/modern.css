@@ -16,3 +16,8 @@ body.cockpit-flight #mission-log-button:not([hidden]){bottom:calc(env(safe-area-
 body:has(#walking-ui:not([hidden])) #screen{background:none}#walking-ui{pointer-events:none}#walking-ui button{pointer-events:auto}#walking-caption{background:#091721c9;padding:.6rem}
 @media(max-width:700px){#mission-log{inset:8% 3%;padding:1rem}}
 .card:has([data-action="credit-gear:launcher"]){border-top-color:#d47575}
+/* HUD spacing: the mission tracker sits above notices and the network status line,
+   and flight lessons sit above the cockpit console instead of covering its displays. */
+#mission-tracker:not([hidden]){top:calc(env(safe-area-inset-top) + 44px);padding:.35rem .75rem}
+body.cockpit-flight #notice{top:96px}
+@media(min-width:601px){body.cockpit-flight:not(.mobile-gameplay) #tutorial-prompt{bottom:33vh}}

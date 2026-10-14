@@ -7,6 +7,8 @@ class StorySaveTests(unittest.TestCase):
         state=self.state();state['universe']={'trackingInitialized':True,'trackedMission':'repair','freeTravel':True,'missions':{'repair':{'acquired':True,'completed':False,'objectives':{'parts':True,'return':False}}}}
         clean=vr.clean_save(state)
         self.assertTrue(clean['universe']['trackingInitialized']);self.assertEqual(clean['universe']['trackedMission'],'repair')
+        self.assertTrue(clean['universe']['autoTrack'])
+        state['universe']['autoTrack']=False;self.assertFalse(vr.clean_save(state)['universe']['autoTrack'])
         self.assertEqual(clean['universe']['missions']['repair']['objectives'],{'parts':True})
         self.assertTrue(clean['universe']['freeTravel'])
         state['universe']['missions']['repair']['objectives']['bad']=1
@@ -50,6 +52,6 @@ class StorySaveTests(unittest.TestCase):
     def test_universe_round_trip_and_validation(self):
         state=self.state();state['location']='sol-belt'
         state['universe']={'currentSystem':'sol','discoveredSystems':['erebus','sol'],'discoveredLocations':['meridian','sol-belt','earth','mars'],'visitedLocations':['meridian','sol-belt'],'missionLogUnlocked':True,'freeTravel':True,'trackedMission':'meet-admin','completedObjectives':[],'station':{'location':'sol-belt'}}
-        self.assertEqual(vr.clean_save(state)['universe'],{**state['universe'],'trackingInitialized':True,'missions':{}})
+        self.assertEqual(vr.clean_save(state)['universe'],{**state['universe'],'trackingInitialized':True,'autoTrack':True,'missions':{}})
         state['universe']['discoveredLocations']=['unknown']
         with self.assertRaises(vr.ApiError):vr.clean_save(state)

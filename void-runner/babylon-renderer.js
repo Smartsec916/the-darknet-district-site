@@ -195,6 +195,45 @@
     if (!context) { const error=Error('WebGL could not start in this browser. Check graphics drivers and hardware acceleration, then retry.'); error.phase='graphics'; throw error; }
     context.getExtension('WEBGL_lose_context')?.loseContext();
   }
+  // Shared camera look: ACES tone mapping, anti-aliasing, bloom and emissive glow.
+  // Low quality keeps only tone mapping so slower devices pay no extra passes.
+  const look = {
+    apply(targetScene, targetCamera, level = quality) {
+      const b = B(), ip = targetScene.imageProcessingConfiguration, state = targetScene.metadata ??= {};
+      ip.toneMappingEnabled = true;
+      ip.toneMappingType = b.ImageProcessingConfiguration.TONEMAPPING_ACES;
+      ip.exposure = 1.55;
+      ip.contrast = 1.06;
+      ip.vignetteEnabled = level !== 'low';
+      ip.vignetteWeight = .7;
+      ip.vignetteStretch = .9;
+      ip.vignetteColor = new b.Color4(0, 0, 0, 0);
+      ip.vignetteBlendMode = b.ImageProcessingConfiguration.VIGNETTEMODE_MULTIPLY;
+      if (level === 'low') { state.lookPipeline?.dispose(); state.lookPipeline = null; }
+      else if (!state.lookPipeline) {
+        try {
+          const pipeline = new b.DefaultRenderingPipeline('void-look', true, targetScene, [targetCamera]);
+          pipeline.fxaaEnabled = true;
+          pipeline.bloomEnabled = true;
+          pipeline.bloomThreshold = .78;
+          pipeline.bloomWeight = .32;
+          pipeline.bloomKernel = 48;
+          pipeline.bloomScale = .5;
+          pipeline.imageProcessingEnabled = true;
+          state.lookPipeline = pipeline;
+        } catch (error) { console.warn('Post-processing unavailable; continuing without it.', error); state.lookPipeline = null; }
+      }
+      if (level !== 'high') { state.lookGlow?.dispose(); state.lookGlow = null; }
+      else if (!state.lookGlow) {
+        try {
+          const glow = new b.GlowLayer('void-glow', targetScene, { mainTextureRatio: .5, blurKernelSize: 32 });
+          glow.intensity = .45;
+          state.lookGlow = glow;
+        } catch (error) { state.lookGlow = null; }
+      }
+    }
+  };
+  root.VoidLook = look;
   async function initialize(task) {
     if (!task) return VoidPreparation.run(t=>initialize(t));
     if (engine && diagnostics.ready) return;
@@ -226,6 +265,7 @@
       hemi.groundColor = new b.Color3(.12, .15, .21);
       const sun = new b.DirectionalLight('sun', new b.Vector3(.6, -.7, .4), scene);
       sun.intensity = 1.5;
+      look.apply(scene, camera);
       diagnostics.ready = true;
       engine.onContextLostObservable.add(() => {
         diagnostics.ready = false;
@@ -362,7 +402,7 @@
     for(const signDef of def.signs)sign(signDef,roomRoot);
     if(def.id==='meridian'){fitoutMeridian(roomRoot);planet.position.set(340,-65,140);}
     const roomLight=new BABYLON.PointLight('concourse-light',new BABYLON.Vector3(0,4,25),scene);roomLight.parent=roomRoot;roomLight.diffuse=new BABYLON.Color3(1,.69,.38);roomLight.intensity=1.4;roomLight.range=28;
-    const fill=new BABYLON.PointLight('hangar-light',new BABYLON.Vector3(0,6,-9),scene);fill.parent=roomRoot;fill.intensity=.8;fill.range=45;
+    const fill=new BABYLON.PointLight('hangar-light',new BABYLON.Vector3(0,6,-9),scene);fill.parent=roomRoot;fill.intensity=1.25;fill.range=60;
     // These routes are station-relative and visible through the observation apertures.
     for(let i=0;i<3;i++){const n=shipModel(i?'shuttle':'courier','neutral',roomRoot);n.metadata={...n.metadata,traffic:true,lane:i};actors.push({node:n,traffic:true,lane:i});}
     await task.wait('scene',()=>scene.whenReadyAsync(),'station-'+def.id);diagnostics.location=def.id;
@@ -907,6 +947,8 @@
   function qualitySet(value) {
     quality = presets[value] ? value : 'medium';
     lastWidth = 0;
+    if (scene && camera) look.apply(scene, camera, quality);
+    if (menuHandle?.scene?.activeCamera) look.apply(menuHandle.scene, menuHandle.scene.activeCamera, quality);
   }
 
   function release() {
