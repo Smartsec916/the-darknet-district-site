@@ -1,0 +1,443 @@
+/*
+==============================================================================
+THE DARKNET DISTRICT — HOMEPAGE TECH ACCENTS
+
+Refined layer on top of the existing homepage look: cursor-lit grid, rare
+signal tears, precision readouts, glass navigation, chromatic title, orbiting
+light on the Enter button and the Iris capsule. accents.js builds the extra
+elements; removing both files restores the original homepage exactly.
+==============================================================================
+*/
+
+@property --tdd-orbit {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+body.site-home {
+  --tdd-green: #00ff9d;
+  --tdd-cyan: #00ffcc;
+  --tdd-pink: #ff3366;
+  --tdd-hair: rgba(255, 255, 255, 0.09);
+  --tdd-micro: 'Courier New', Courier, monospace;
+}
+
+/* ---------------------------------------------------------------------------
+   HERO LAYERS — overlays sit between the skyline and the title.
+   --------------------------------------------------------------------------- */
+body.site-home .first-section {
+  isolation: isolate;
+  overflow: hidden;
+}
+
+body.site-home .tdd-hero-content {
+  position: relative;
+  z-index: 4;
+}
+
+/* Fine dot grid that only shows near the cursor, like light on etched glass. */
+body.site-home .tdd-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(0, 255, 157, 0.75) 0.6px, transparent 1px);
+  background-size: 14px 14px;
+  -webkit-mask-image: radial-gradient(circle 190px at var(--tdd-mx, 50%) var(--tdd-my, 46%), #000 0%, rgba(0, 0, 0, 0.35) 45%, transparent 100%);
+  mask-image: radial-gradient(circle 190px at var(--tdd-mx, 50%) var(--tdd-my, 46%), #000 0%, rgba(0, 0, 0, 0.35) 45%, transparent 100%);
+  opacity: 0.55;
+}
+
+/* Signal tear: copies of the skyline that slip sideways for a fraction of a second. */
+body.site-home .tdd-tear {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: inherit;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+}
+
+body.site-home .tdd-tear--b {
+  mix-blend-mode: screen;
+  filter: hue-rotate(-30deg) saturate(2.2) brightness(0.8);
+}
+
+body.site-home .tdd-tear.is-on {
+  opacity: 1;
+}
+
+/* Precision ruler under the navigation; the marker follows the cursor. */
+body.site-home .tdd-ruler {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  height: 18px;
+  pointer-events: none;
+  border-bottom: 1px solid var(--tdd-hair);
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.28) 0 1px, transparent 1px 50px) 0 100% / 100% 9px no-repeat,
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.12) 0 1px, transparent 1px 10px) 0 100% / 100% 4px no-repeat;
+}
+
+body.site-home .tdd-ruler-mark {
+  position: absolute;
+  bottom: 0;
+  left: var(--tdd-px, 50%);
+  width: 1px;
+  height: 18px;
+  background: var(--tdd-green);
+  box-shadow: 0 0 6px rgba(0, 255, 157, 0.8);
+  transition: left 0.12s ease-out;
+}
+
+body.site-home .tdd-ruler-mark::after {
+  content: "";
+  position: absolute;
+  bottom: 18px;
+  left: -3px;
+  border: 3px solid transparent;
+  border-top-color: var(--tdd-green);
+}
+
+body.site-home .tdd-readout {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  font: 11px/1.2 var(--tdd-micro);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgba(228, 228, 228, 0.62);
+}
+
+body.site-home .tdd-readout b {
+  font-weight: normal;
+  color: var(--tdd-green);
+}
+
+body.site-home .tdd-readout--tl { top: 40px; left: 26px; }
+body.site-home .tdd-readout--tr { top: 40px; right: 26px; text-align: right; }
+body.site-home .tdd-readout--bl { bottom: 26px; left: 26px; }
+
+body.site-home .tdd-pulse {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 8px;
+  border-radius: 50%;
+  vertical-align: 1px;
+  background: var(--tdd-green);
+  animation: tdd-breathe 3.2s ease-in-out infinite;
+}
+
+@keyframes tdd-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.4); }
+  50% { opacity: 0.25; box-shadow: 0 0 0 4px rgba(0, 255, 157, 0); }
+}
+
+body.site-home .tdd-cross {
+  position: absolute;
+  z-index: 3;
+  width: 11px;
+  height: 11px;
+  pointer-events: none;
+}
+
+body.site-home .tdd-cross::before,
+body.site-home .tdd-cross::after {
+  content: "";
+  position: absolute;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+body.site-home .tdd-cross::before { left: 5px; top: 0; width: 1px; height: 11px; }
+body.site-home .tdd-cross::after { top: 5px; left: 0; width: 11px; height: 1px; }
+body.site-home .tdd-cross--1 { top: 26px; left: 12px; }
+body.site-home .tdd-cross--2 { top: 26px; right: 12px; }
+body.site-home .tdd-cross--3 { bottom: 12px; left: 12px; }
+body.site-home .tdd-cross--4 { bottom: 12px; right: 12px; }
+
+/* ---------------------------------------------------------------------------
+   GLASS NAVIGATION
+   --------------------------------------------------------------------------- */
+body.site-home .top-nav {
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  border-bottom: 1px solid var(--tdd-hair);
+}
+
+body.site-home .top-nav a {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(0, 255, 204, 0.32);
+  border-radius: 2px;
+  background: rgba(0, 255, 204, 0.03);
+  letter-spacing: 0.03em;
+}
+
+body.site-home .top-nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #bffff0, transparent);
+  transform: translateX(-105%);
+}
+
+body.site-home .top-nav a:hover,
+body.site-home .top-nav a:focus-visible {
+  background: rgba(0, 255, 204, 0.09);
+  color: #f2fffb;
+  border-color: rgba(0, 255, 204, 0.9);
+  box-shadow: 0 0 22px rgba(0, 255, 204, 0.15);
+  outline: none;
+  animation: tdd-split 0.22s steps(2) 1;
+}
+
+body.site-home .top-nav a:hover::after,
+body.site-home .top-nav a:focus-visible::after {
+  transform: translateX(105%);
+  transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+body.site-home .top-nav a[aria-current="page"] {
+  border-color: rgba(0, 255, 204, 0.75);
+}
+
+body.site-home .top-nav a[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  width: 3px;
+  height: 3px;
+  margin-left: -1.5px;
+  border-radius: 50%;
+  background: var(--tdd-cyan);
+  box-shadow: 0 0 6px var(--tdd-cyan);
+}
+
+@keyframes tdd-split {
+  0% { text-shadow: -1.5px 0 rgba(255, 51, 102, 0.9), 1.5px 0 rgba(0, 200, 255, 0.9); }
+  100% { text-shadow: none; }
+}
+
+/* The accents bring their own refined glitches, so the older jitter effect
+   from script.js is muted on the navigation and the Enter button. */
+body.site-home .top-nav a.glitch-text,
+body.site-home .enter-district-btn.glitch-text {
+  animation: none !important;
+}
+
+/* ---------------------------------------------------------------------------
+   TITLE — frosted panel, chromatic edges, rare slice glitch
+   --------------------------------------------------------------------------- */
+body.site-home .cyberpunk-title {
+  background: rgba(0, 0, 0, 0.32);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07), 0 30px 60px rgba(0, 0, 0, 0.35);
+  text-shadow: -0.6px 0 rgba(255, 51, 102, 0.55), 0.6px 0 rgba(0, 220, 255, 0.55), 0 0 14px rgba(0, 255, 157, 0.45);
+  padding: 26px 34px;
+}
+
+body.site-home .tdd-edge {
+  position: absolute;
+  height: 1px;
+  pointer-events: none;
+}
+
+body.site-home .tdd-edge--top {
+  top: 0;
+  left: 12%;
+  right: 12%;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 157, 0.9), transparent);
+}
+
+body.site-home .tdd-edge--bottom {
+  bottom: 0;
+  left: 30%;
+  right: 30%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+}
+
+body.site-home .tdd-ghost {
+  position: absolute;
+  inset: 0;
+  padding: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  text-shadow: none;
+  mix-blend-mode: screen;
+}
+
+body.site-home .tdd-ghost--r { color: #ff3366; }
+body.site-home .tdd-ghost--c { color: #00e5ff; }
+body.site-home .cyberpunk-title.is-slicing .tdd-ghost { opacity: 0.85; }
+
+/* ---------------------------------------------------------------------------
+   ENTER BUTTON — glass with a light orbiting the edge; label decodes on hover
+   --------------------------------------------------------------------------- */
+body.site-home .enter-district-btn {
+  animation: none;
+  border: 1px solid rgba(0, 255, 157, 0.22);
+  border-radius: 2px;
+  background: rgba(0, 10, 6, 0.42);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 60px rgba(0, 255, 157, 0.1), inset 0 0 30px rgba(0, 255, 157, 0.05);
+  letter-spacing: 6px;
+  font-size: clamp(1rem, 3.4vw, 1.5rem);
+  padding: clamp(16px, 3.4vw, 22px) clamp(30px, 6vw, 56px);
+  text-shadow: 0 0 12px rgba(0, 255, 157, 0.45);
+}
+
+body.site-home .enter-district-btn::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: conic-gradient(from var(--tdd-orbit), transparent 0deg 250deg, rgba(0, 255, 157, 0.9) 300deg, #c9b3ff 330deg, rgba(147, 39, 255, 0.9) 345deg, transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: tdd-orbit 5.5s linear infinite;
+}
+
+body.site-home .enter-district-btn::before {
+  background: linear-gradient(100deg, transparent 35%, rgba(255, 255, 255, 0.1) 50%, transparent 65%);
+}
+
+body.site-home .enter-district-btn:hover,
+body.site-home .enter-district-btn:focus-visible {
+  transform: none;
+  filter: none;
+  border-color: rgba(0, 255, 157, 0.55);
+  box-shadow: 0 0 80px rgba(0, 255, 157, 0.18), inset 0 0 30px rgba(0, 255, 157, 0.08);
+  outline: none;
+}
+
+@keyframes tdd-orbit {
+  to { --tdd-orbit: 360deg; }
+}
+
+/* ---------------------------------------------------------------------------
+   IRIS CAPSULE
+   --------------------------------------------------------------------------- */
+body.site-home .chat-button.tdd-iris {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 51, 102, 0.45);
+  border-radius: 999px;
+  padding: 6px 18px 6px 6px;
+  background: rgba(20, 0, 8, 0.45);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: #ffd0dc;
+  box-shadow: 0 0 30px rgba(255, 51, 102, 0.12);
+}
+
+body.site-home .chat-button.tdd-iris:hover,
+body.site-home .chat-button.tdd-iris:focus-visible {
+  background: rgba(255, 51, 102, 0.14);
+  color: #fff;
+  border-color: rgba(255, 51, 102, 0.9);
+  box-shadow: 0 0 40px rgba(255, 51, 102, 0.25);
+  outline: none;
+}
+
+body.site-home .tdd-iris-avatar {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+body.site-home .tdd-iris-avatar img {
+  position: absolute;
+  inset: 4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+}
+
+body.site-home .tdd-iris-avatar svg {
+  position: absolute;
+  inset: 0;
+  width: 34px;
+  height: 34px;
+  animation: tdd-rotate 4s linear infinite;
+}
+
+body.site-home .tdd-iris-avatar circle {
+  fill: none;
+  stroke: var(--tdd-pink);
+  stroke-width: 1;
+  stroke-dasharray: 20 86;
+  stroke-linecap: round;
+}
+
+body.site-home .tdd-iris-text {
+  display: grid;
+  text-align: left;
+  line-height: 1.15;
+}
+
+body.site-home .tdd-iris-text small {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 51, 102, 0.85);
+}
+
+@keyframes tdd-rotate {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------------------------------------------------------------------------
+   SMALL SCREENS AND REDUCED MOTION
+   --------------------------------------------------------------------------- */
+@media (max-width: 1100px) {
+  body.site-home .tdd-readout--tl,
+  body.site-home .tdd-readout--tr { top: 34px; }
+}
+
+@media (max-width: 640px) {
+  body.site-home .tdd-readout--tr,
+  body.site-home .tdd-cross--2,
+  body.site-home .tdd-wide { display: none; }
+  body.site-home .tdd-readout { font-size: 10px; }
+  body.site-home .tdd-readout--tl { left: 16px; }
+  body.site-home .tdd-readout--bl { left: 16px; bottom: 84px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.site-home .enter-district-btn::after,
+  body.site-home .tdd-iris-avatar svg,
+  body.site-home .tdd-pulse,
+  body.site-home .top-nav a:hover {
+    animation: none !important;
+  }
+
+  body.site-home .tdd-tear,
+  body.site-home .tdd-ghost {
+    display: none;
+  }
+}
