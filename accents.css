@@ -200,7 +200,7 @@ body.site-home .tdd-vr {
   justify-items: center;
   gap: 10px;
   margin: 50px auto 0;
-  padding: 44px clamp(28px, 7vw, 96px) 40px;
+  padding: 64px clamp(28px, 7vw, 110px) 58px;
   width: fit-content;
   max-width: calc(100vw - 32px);
   text-align: center;
@@ -212,7 +212,7 @@ body.site-home .tdd-vr::before {
   position: absolute;
   inset: 0;
   z-index: -2;
-  background: rgba(4, 7, 19, 0.55);
+  background: rgba(4, 7, 19, 0.62);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 55%, transparent 100%);
@@ -223,19 +223,27 @@ body.site-home .tdd-vr::before {
 /* The Void Runner menu scene, drawn by void-runner-backdrop.js, faded behind the logo. */
 body.site-home .tdd-vr-backdrop {
   position: absolute;
-  inset: 0;
+  /* Larger than the panel so the scene can draw big and fade out softly
+     well beyond the logo. */
+  top: -42%;
+  bottom: -42%;
+  left: -24%;
+  right: -24%;
   z-index: -1;
-  width: 100%;
-  height: 100%;
+  width: 148%;
+  height: 184%;
   opacity: 0;
   pointer-events: none;
   transition: opacity 1.6s ease;
-  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 35%, transparent 100%);
-  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 35%, transparent 100%);
+  /* Screen blending drops the black of space, so only the lit station and
+     planet show over the skyline. */
+  mix-blend-mode: screen;
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%);
+  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%);
 }
 
 body.site-home .tdd-vr-backdrop.is-ready {
-  opacity: 0.5;
+  opacity: 0.85;
 }
 
 body.site-home .tdd-vr-kicker {
@@ -264,6 +272,12 @@ body.site-home .tdd-vr-logo span {
   font-size: 0.75em;
 }
 
+body.site-home .tdd-vr-kicker,
+body.site-home .tdd-vr-sub {
+  /* Keeps the small lines readable over the station. */
+  text-shadow: 0 0 6px #000, 0 1px 3px #000;
+}
+
 body.site-home .tdd-vr-sub {
   margin: 0;
   font: 11px/1.4 monospace;
@@ -282,7 +296,7 @@ body.site-home .tdd-vr-status {
   text-transform: uppercase;
   color: #ffb547;
   border: 1px solid rgba(255, 181, 71, 0.35);
-  background: rgba(40, 24, 0, 0.35);
+  background: rgba(30, 18, 0, 0.7);
 }
 
 body.site-home .tdd-vr-status i {

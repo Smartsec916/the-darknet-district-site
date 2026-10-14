@@ -30,12 +30,13 @@ if anything fails.
     "void-runner/babylon-renderer.js"
   ];
   const FRAME_INTERVAL = 1000 / 30; // a faded backdrop does not need 60fps
-  // The menu is framed for a widescreen window, with the station and planet
-  // in its right half. Render it at that shape and crop to that subject.
+  // The menu is framed for a widescreen window, with the station, planet and
+  // asteroids in its right half. Render it at that shape and crop to that subject.
   // If the game's menu composition changes, adjust SUBJECT to match.
   const MENU_ASPECT = 1.6;
-  const SUBJECT = { x: 0.77, y: 0.39, width: 0.375, height: 0.41 }; // fractions of the frame
-  const FILL = 0.95;            // how much of the panel the subject fills
+  // Station, planet and the nearby asteroids, as fractions of the frame.
+  const SUBJECT = { x: 0.75, y: 0.45, width: 0.56, height: 0.6 };
+  const FILL = 0.9;            // how much of the panel the subject fills
   const MAX_RENDER_WIDTH = 1200;
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -107,7 +108,7 @@ if anything fails.
       if (!visible || document.hidden) return;
       if (now - lastDraw >= FRAME_INTERVAL || reduceMotion.matches) {
         lastDraw = now;
-        const rect = host.getBoundingClientRect();
+        const rect = canvas.getBoundingClientRect();
         const width = Math.max(2, Math.round(rect.width));
         const height = Math.max(2, Math.round(rect.height));
         if (canvas.width !== width || canvas.height !== height) {
