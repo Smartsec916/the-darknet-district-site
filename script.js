@@ -43,7 +43,7 @@ async function loadHak5(){
       image.alt = p.name || 'Security tool';
       image.src = typeof p.image === 'string' && /^(https?:\/\/|attached_assets\/)/i.test(p.image)
         ? p.image
-        : 'attached_assets/top.png';
+        : 'attached_assets/top.webp';
 
       const description = p.description || 'Professional security testing tool';
       const descriptionElement = document.createElement('p');
@@ -338,7 +338,7 @@ const featuredProducts = [
   {
     name: "Flipper Zero",
     price: "$169.00",
-    image: "attached_assets/top.png",
+    image: "attached_assets/top.webp",
     description: "Portable multi-tool for pentesters and geeks"
   },
   {
@@ -646,7 +646,7 @@ const featuredProducts = [
   {
     name: "Kai Kryptos App",
     price: "Free",
-    image: "attached_assets/kai-kryptos-icon.png",
+    image: "attached_assets/kai-kryptos-icon.webp",
     description: "Cyberpunk terminal for decrypted log access"
   },
 
@@ -944,7 +944,7 @@ const allProducts = [
   { title: "Cyberpunk Manifesto", price: "$19.99", image: "attached_assets/darknet-district-main-tshirt.jpg", category: "books", link: "store-books.html" },
 
   // Electronics
-  { title: "Flipper Zero", price: "Portable Multi-Tool for Hackers", image: "attached_assets/top.png", category: "electronics", link: "store-electronics.html" },
+  { title: "Flipper Zero", price: "Portable Multi-Tool for Hackers", image: "attached_assets/top.webp", category: "electronics", link: "store-electronics.html" },
   { title: "Zero Trace Phone", price: "Anonymous Communication Device", image: "attached_assets/Zero Trace Phone.jpg", category: "electronics", link: "store-electronics.html" },
 
   // Survival Gear
@@ -953,11 +953,10 @@ const allProducts = [
 
   // Apparel
   { title: "Darknet District T-Shirt", price: "Cyberpunk Fashion", image: "attached_assets/darknet-district-main-tshirt.jpg", category: "apparel", link: "store-apparel.html" },
-  { title: "Cyber Hoodie", price: "Tech-Enhanced Clothing", image: "attached_assets/cyber-hoodie.jpg", category: "apparel", link: "store-apparel.html" },
 
   // NEUROHACKERS
-  { title: "Neural Enhancement Suite", price: "Cognitive Augmentation", image: "attached_assets/Iris 01.png", category: "neurohackers", link: "store-neurohackers.html" },
-  { title: "Mind-Machine Interface", price: "Direct Neural Connection", image: "attached_assets/epsiloncircle_420_dark_cyberpunk_sleeping_pod_interior_viewed_f_82a73688-d6a7-4668-b80e-32dbd348dabc.png", category: "neurohackers", link: "store-neurohackers.html" },
-  { title: "Cognitive Booster Protocol", price: "Mental Performance Enhancement", image: "attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png", category: "neurohackers", link: "store-neurohackers.html" },
-  { title: "Neural Implant System", price: "Memory Augmentation Tech", image: "attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png", category: "neurohackers", link: "store-neurohackers.html" }
+  { title: "Neural Enhancement Suite", price: "Cognitive Augmentation", image: "attached_assets/Iris 01.webp", category: "neurohackers", link: "store-neurohackers.html" },
+  { title: "Mind-Machine Interface", price: "Direct Neural Connection", image: "attached_assets/epsiloncircle_420_dark_cyberpunk_sleeping_pod_interior_viewed_f_82a73688-d6a7-4668-b80e-32dbd348dabc.webp", category: "neurohackers", link: "store-neurohackers.html" },
+  { title: "Cognitive Booster Protocol", price: "Mental Performance Enhancement", image: "attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.webp", category: "neurohackers", link: "store-neurohackers.html" },
+  { title: "Neural Implant System", price: "Memory Augmentation Tech", image: "attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.webp", category: "neurohackers", link: "store-neurohackers.html" }
 ];
