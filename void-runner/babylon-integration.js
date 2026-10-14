@@ -503,7 +503,8 @@ draw = function() {
     return;
   }
   if (activeRenderer === 'babylon' && ['play', 'pause'].includes(mode) && VoidBabylon.diagnostics.exteriorReady) {
-    const image = VoidBabylon.renderFlight(migrationSnapshot(), W, H);
+    const snapshot = migrationSnapshot();
+    const image = VoidBabylon.renderFlight(snapshot, W, H);
     if (!image) {
       throw Error('Babylon graphics context unavailable. Retry the route.');
     }
@@ -516,7 +517,8 @@ draw = function() {
       const amplitude = Math.min(1.5, damageTime * 2 + Math.abs(flight.yawRate) * .35);
       ctx.translate(Math.sin(time * 35) * amplitude, Math.cos(time * 27) * amplitude);
     }
-    // Babylon draws the camera-mounted 3D cockpit and live instruments.
+    // Painted Kestrel cockpit and its live screens; Babylon's 3D cockpit is the fallback.
+    VoidCockpitOverlay?.draw(ctx, W, H, snapshot.instruments, time);
     ctx.restore();
     drawContactMarkers();
     drawFlightHud();

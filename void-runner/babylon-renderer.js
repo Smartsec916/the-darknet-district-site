@@ -659,9 +659,10 @@
     projection.m[9] = .12;
     camera.freezeProjectionMatrix(projection);
     cockpit??=root.VoidCockpit3D.build(scene,camera);
-    cockpit.setEnabled(true);
-    cockpit.sync();
-    cockpit.update(snapshot.instruments,snapshot.time);
+    // The painted cockpit overlay replaces the box cockpit once its image has loaded.
+    const painted=root.VoidCockpitOverlay?.ready===true;
+    cockpit.setEnabled(!painted);
+    if(!painted){cockpit.sync();cockpit.update(snapshot.instruments,snapshot.time);}
     const phase = snapshot.route?.phase || 'encounter',
       arrival = phase === 'arrived',
       warp = phase === 'warp',
