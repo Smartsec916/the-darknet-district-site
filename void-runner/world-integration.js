@@ -98,7 +98,7 @@ update=function(dt){
  if(mode==='play'&&state.universe.freeTravel&&flight.route?.phase==='align'&&VoidNavigationReveal.opacity(navigationReveal)>0){routeMarkers=flightRoutes();const chosen=routeMarkers.find(r=>FM.dot(flightBasis().f,r.vector)>.993);if(chosen&&chosen.id!==current.destination)setFlightDestination(chosen.id);const marker=routeMarkers.find(r=>r.id===current.destination);if(marker){flight.route.vector=marker.vector;flight.nav={x:marker.vector.x*140,y:0,z:marker.vector.z*140};}}
  const tracked=['play','walking'].includes(mode)&&!globalThis.VoidFlightSkirmish?.active?VoidMissions.tracked(state,C):null;missionTracker.hidden=!tracked;if(tracked){const label=tracked.title+' / '+tracked.objective;if(missionTracker.textContent!==label)missionTracker.textContent=label;}
  missionLogButton.hidden=!state.universe.missionLogUnlocked||!['play','walking'].includes(mode)||!!globalThis.VoidFlightSkirmish?.active;
- trackedWalkWaypoint=null;if(mode==='walking'&&walker){const m=VoidMissions.tracked(state,C),g=VoidMissions.guidance(state,m,true);if(g){const item=walkingLocation.interactions.find(i=>i.id===g.interaction);let waypoint=item;if(item){if(walker.z<3&&item.position[2]>4)waypoint={position:[0,1.7,3]};else if(walker.z<18&&item.position[2]>18)waypoint={position:[0,1.7,19]};else if(walker.z>19&&item.position[2]<18)waypoint={position:[0,1.7,19]};else if(walker.z>4&&item.position[2]<4)waypoint={position:[0,1.7,3]};}trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · '+g.label+(waypoint?' · '+Math.round(Math.hypot(waypoint.position[0]-walker.x,waypoint.position[2]-walker.z))+'m':'');}}
+ trackedWalkWaypoint=null;if(mode==='walking'&&walker){const m=VoidMissions.tracked(state,C),g=VoidMissions.guidance(state,m,true);if(g){const item=walkingLocation.interactions.find(i=>i.id===g.interaction)||(g.interaction==='rook'?walkingLocation.interactions.find(i=>i.id==='jobs'):null);let waypoint=item;if(item){if(walker.z<3&&item.position[2]>4)waypoint={position:[0,1.7,3]};else if(walker.z<18&&item.position[2]>18)waypoint={position:[0,1.7,19]};else if(walker.z>19&&item.position[2]<18)waypoint={position:[0,1.7,19]};else if(walker.z>4&&item.position[2]<4)waypoint={position:[0,1.7,3]};}trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · '+g.label+(waypoint?' · '+Math.round(Math.hypot(waypoint.position[0]-walker.x,waypoint.position[2]-walker.z))+'m':'');}}
 };
 const worldMarker=drawWarpMarker;
 drawWarpMarker=function(){
@@ -124,4 +124,17 @@ addEventListener('keydown',e=>{if(e.code===(VoidInput.bindings.missionLog||'KeyL
 let interdictionFlash=0;const immersionUpdate=update;update=function(dt){const before=flight.route?.phase;immersionUpdate(dt);if(mode==='play'&&before!=='encounter'&&flight.route?.phase==='encounter')interdictionFlash=2;interdictionFlash=Math.max(0,interdictionFlash-dt);};
 const immersionDraw=draw;draw=function(){immersionDraw();if(interdictionFlash>0&&mode==='play'){ctx.save();ctx.translate(W*.5,H*.28);ctx.rotate(-.045);ctx.globalAlpha=reducedMotion?1:.75+Math.sin(time*36)*.2;ctx.fillStyle='#f0978d';ctx.font='bold '+Math.max(20,Math.min(34,W*.025))+'px monospace';ctx.textAlign='center';ctx.fillText('⚠ WARP INTERDICTION',0,0);ctx.strokeStyle='#d56666';ctx.beginPath();ctx.moveTo(-W*.23,12);ctx.lineTo(W*.23,12);ctx.stroke();ctx.restore();}};
 
-const guidanceDraw=draw;draw=function(){guidanceDraw();if(mode==='walking'&&trackedWalkWaypoint&&walker){const p=trackedWalkWaypoint.position,dx=p[0]-walker.x,dz=p[2]-walker.z,angle=Math.atan2(dx,dz)-walker.yaw;ctx.save();ctx.translate(W*.5,H*.62);ctx.rotate(angle);ctx.fillStyle='#e2c284';ctx.beginPath();ctx.moveTo(0,-10);ctx.lineTo(-5,5);ctx.lineTo(5,5);ctx.closePath();ctx.fill();ctx.restore();}};
+const guidanceDraw=draw;draw=function(){guidanceDraw();drawMissionWaypoint();};
+// Tracked-mission waypoint: a large arrow around the screen centre pointing toward the
+// goal, with its distance. Follows whatever the Mission Log tracks.
+function drawMissionWaypoint(){
+ if(mode!=='walking'||!trackedWalkWaypoint||!walker)return;
+ const p=trackedWalkWaypoint.position,dx=p[0]-walker.x,dz=p[2]-walker.z,label=Math.round(Math.hypot(dx,dz))+' m',pulse=reducedMotion?1:.75+.25*Math.sin(time*4);
+ const angle=Math.atan2(dx,dz)-walker.yaw,r=Math.min(W,H)*.2;
+ ctx.save();ctx.lineJoin='round';ctx.font='bold 13px Consolas, monospace';ctx.textAlign='center';
+ ctx.translate(W*.5+Math.sin(angle)*r,H*.5-Math.cos(angle)*r);ctx.rotate(angle);
+ ctx.shadowColor='#000';ctx.shadowBlur=12;ctx.fillStyle='rgba(255,214,120,'+(.6+.35*pulse)+')';ctx.strokeStyle='#1a1206';ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(0,-26);ctx.lineTo(-17,10);ctx.lineTo(0,2);ctx.lineTo(17,10);ctx.closePath();ctx.stroke();ctx.fill();
+ ctx.rotate(-angle);ctx.shadowBlur=4;ctx.fillStyle='#ffe7a8';ctx.fillText(label,0,32);
+ ctx.restore();
+}
