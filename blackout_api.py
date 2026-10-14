@@ -16,7 +16,7 @@ HANDLE_COOLDOWN = 30 * 24 * 3600
 RUN_START_COOLDOWN = 30
 RUN_LIFETIME = 4 * 3600
 MIN_LEVEL_SECONDS = 12
-MAX_LEVEL_DELTA = {1: 1500, 2: 1700, 3: 2000, 4: 2200, 5: 2500, 6: 2800}
+MAX_LEVEL_DELTA = {1: 1900, 2: 2100, 3: 2000, 4: 2200, 5: 2500, 6: 2800}
 POINTS = {'hack': 20, 'shot': 10, 'coin': 5, 'relay': 50, 'relayBonus': 100, 'jumpRobot': 12}
 BLOCKED_HANDLES = {'admin', 'administrator', 'moderator', 'mod', 'support', 'staff',
                    'official', 'firebase', 'google', 'developer', 'system', 'null'}
@@ -125,7 +125,8 @@ def validate_events(events, level, delta):
         raise ApiError('Invalid score events.')
     limits = {'hack': 20, 'shot': 60 if level >= 5 else 0,
               'coin': 100, 'relay': 3, 'relayBonus': 1,
-              'jumpRobot': 50 if level >= 4 else 0}
+              # Robots from sector 4; street gangs in sectors 1 and 2.
+              'jumpRobot': 50 if level >= 4 else (30 if level <= 2 else 0)}
     if level > 6:
         limits = dict.fromkeys(POINTS, 0)
     for kind, value in events.items():

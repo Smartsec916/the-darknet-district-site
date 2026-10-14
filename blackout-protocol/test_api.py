@@ -162,6 +162,14 @@ class BlackoutApiTests(unittest.TestCase):
             with self.assertRaises(api.ApiError):
                 api.validate_events(events, level, delta)
 
+    def test_gang_stomps_count_only_where_enemies_exist(self):
+        # Street gangs in sectors 1-2, robots from sector 4, none in the Bazaar.
+        for level in (1, 2, 4, 6):
+            self.assertEqual(api.validate_events({'jumpRobot': 3}, level, 36), {'jumpRobot': 3})
+        for events, level, delta in [({'jumpRobot': 1}, 3, 12), ({'jumpRobot': 31}, 1, 372)]:
+            with self.assertRaises(api.ApiError):
+                api.validate_events(events, level, delta)
+
     def test_ranked_run_is_monotone_idempotent_and_server_owned(self):
         uid = 'user-a'
         pid = api.player_id(uid)
