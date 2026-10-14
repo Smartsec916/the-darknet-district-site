@@ -7,3 +7,14 @@ The planet-image request encountered the image-generation usage limit. Planet su
 ## Cockpit prompt
 
 Use case: stylized-concept. Asset type: transparent PNG cockpit foreground overlay for a first-person cyberpunk space flight game, landscape 16:9. View from pilot eyes inside an old Kestrel courier spacecraft. Worn dark graphite metal, chipped paint, cables, restrained cyan instrument illumination and amber warning lights, detailed realistic sci-fi game art. The forward canopy must be a genuinely transparent alpha opening occupying the central 80 percent of the image width and top 75 percent of image height so the game renders space behind it. Only slim cockpit frame along the left and right edges and top corners, with the instrument console concentrated in the bottom 20 percent. No central strut. Small dim blank instrument panels along the bottom, no readable text or numbers. No hands, no pilot, no planet, no stars, no opaque backdrop behind window, no windshield tint. Minimal obstruction to gameplay, symmetrical forward facing camera, no weapons in view. Transparent background through the canopy, clean silhouette, no watermark.
+
+## Painted pilot cockpit (current)
+
+`void-runner/art/cockpit-kestrel-pilot.webp` is made from the owner's Kestrel cockpit
+concept art (`Kestrel/Untitled1.png`), with the canopy openings, the overhead window and
+the two side ports cut to transparency so the live 3D space view shows through. The
+canopy rods and grab handles were kept opaque. `void-runner/cockpit-overlay.js` draws it
+over the flight view (cover-fit, anchored to the bottom, seat slightly cropped) and paints
+live SHIP / NAV / WEAPONS readouts into the three dashboard screens. Screen rectangles are
+in source pixels in that module; update them if the art is replaced with a Blender render
+of the same 1672×941 framing. If the image fails to load, the Babylon box cockpit is used.

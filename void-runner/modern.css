@@ -21,3 +21,6 @@ body:has(#walking-ui:not([hidden])) #screen{background:none}#walking-ui{pointer-
 #mission-tracker:not([hidden]){top:calc(env(safe-area-inset-top) + 44px);padding:.35rem .75rem}
 body.cockpit-flight #notice{top:96px}
 @media(min-width:601px){body.cockpit-flight:not(.mobile-gameplay) #tutorial-prompt{bottom:33vh}}
+/* Painted cockpit: keep route status and lessons in the canopy, above the console. */
+body.cockpit-flight.painted-cockpit #flight-objective{bottom:38.5%}
+@media(min-width:601px){body.cockpit-flight.painted-cockpit:not(.mobile-gameplay) #tutorial-prompt{bottom:44vh}}
