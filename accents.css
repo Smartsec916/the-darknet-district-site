@@ -238,8 +238,16 @@ body.site-home .tdd-vr-backdrop {
   /* Screen blending drops the black of space, so only the lit station and
      planet show over the skyline. */
   mix-blend-mode: screen;
-  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%);
-  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%);
+  /* Soft oval edge, plus a long fade from the top so the planet's upper half
+     dissolves into the skyline. */
+  -webkit-mask-image:
+    radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%),
+    linear-gradient(to bottom, transparent 10%, rgba(0, 0, 0, 0.35) 30%, #000 52%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%),
+    linear-gradient(to bottom, transparent 10%, rgba(0, 0, 0, 0.35) 30%, #000 52%);
+  mask-composite: intersect;
 }
 
 body.site-home .tdd-vr-backdrop.is-ready {
