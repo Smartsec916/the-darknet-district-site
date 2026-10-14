@@ -3,17 +3,11 @@
 THE DARKNET DISTRICT — HOMEPAGE TECH ACCENTS
 
 Refined layer on top of the existing homepage look: cursor-lit grid, rare
-signal tears, glass navigation, chromatic title, the Void Runner teaser with
-an orbiting light, and the Iris capsule. accents.js builds the extra
+signal tears, glass navigation, chromatic title, the Void Runner teaser over
+the game's own menu scene, and the Iris capsule. accents.js builds the extra
 elements; removing both files restores the original homepage exactly.
 ==============================================================================
 */
-
-@property --tdd-orbit {
-  syntax: '<angle>';
-  inherits: false;
-  initial-value: 0deg;
-}
 
 body.site-home {
   --tdd-green: #00ff9d;
@@ -201,38 +195,47 @@ body.site-home .cyberpunk-title.is-slicing .tdd-ghost { opacity: 0.85; }
    --------------------------------------------------------------------------- */
 body.site-home .tdd-vr {
   position: relative;
+  isolation: isolate;
   display: grid;
   justify-items: center;
   gap: 10px;
-  margin: 70px auto 0;
-  padding: 26px clamp(24px, 5vw, 48px) 22px;
+  margin: 50px auto 0;
+  padding: 44px clamp(28px, 7vw, 96px) 40px;
   width: fit-content;
   max-width: calc(100vw - 32px);
   text-align: center;
-  border: 1px solid rgba(108, 228, 207, 0.22);
-  border-radius: 2px;
-  background: rgba(4, 7, 19, 0.5);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 0 60px rgba(108, 228, 207, 0.08), inset 0 0 30px rgba(108, 228, 207, 0.04);
 }
 
-body.site-home .tdd-vr::after {
+/* Frosted glass with no outline: the haze fades out toward every edge. */
+body.site-home .tdd-vr::before {
   content: "";
   position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
+  inset: 0;
+  z-index: -2;
+  background: rgba(4, 7, 19, 0.55);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 55%, transparent 100%);
+  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 55%, transparent 100%);
   pointer-events: none;
-  background: conic-gradient(from var(--tdd-orbit), transparent 0deg 250deg, rgba(108, 228, 207, 0.9) 300deg, #c9b3ff 330deg, rgba(147, 39, 255, 0.9) 345deg, transparent 360deg);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  animation: tdd-orbit 5.5s linear infinite;
 }
 
-@keyframes tdd-orbit {
-  to { --tdd-orbit: 360deg; }
+/* The Void Runner menu scene, drawn by void-runner-backdrop.js, faded behind the logo. */
+body.site-home .tdd-vr-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.6s ease;
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 35%, transparent 100%);
+  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 35%, transparent 100%);
+}
+
+body.site-home .tdd-vr-backdrop.is-ready {
+  opacity: 0.5;
 }
 
 body.site-home .tdd-vr-kicker {
@@ -397,7 +400,6 @@ body.site-home[data-hud="immersive"] > .digital-rain {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body.site-home .tdd-vr::after,
   body.site-home .tdd-vr-status i,
   body.site-home .tdd-iris-avatar svg,
   body.site-home .top-nav a:hover {
