@@ -125,26 +125,16 @@ let interdictionFlash=0;const immersionUpdate=update;update=function(dt){const b
 const immersionDraw=draw;draw=function(){immersionDraw();if(interdictionFlash>0&&mode==='play'){ctx.save();ctx.translate(W*.5,H*.28);ctx.rotate(-.045);ctx.globalAlpha=reducedMotion?1:.75+Math.sin(time*36)*.2;ctx.fillStyle='#f0978d';ctx.font='bold '+Math.max(20,Math.min(34,W*.025))+'px monospace';ctx.textAlign='center';ctx.fillText('⚠ WARP INTERDICTION',0,0);ctx.strokeStyle='#d56666';ctx.beginPath();ctx.moveTo(-W*.23,12);ctx.lineTo(W*.23,12);ctx.stroke();ctx.restore();}};
 
 const guidanceDraw=draw;draw=function(){guidanceDraw();drawMissionWaypoint();};
-// Tracked-mission waypoint: a marker over the goal when it is on screen, otherwise a
-// large arrow at the screen edge pointing toward it. Follows whatever the Mission Log tracks.
+// Tracked-mission waypoint: a large arrow around the screen centre pointing toward the
+// goal, with its distance. Follows whatever the Mission Log tracks.
 function drawMissionWaypoint(){
  if(mode!=='walking'||!trackedWalkWaypoint||!walker)return;
- const p=trackedWalkWaypoint.position,dx=p[0]-walker.x,dz=p[2]-walker.z,dist=Math.hypot(dx,dz),label=Math.round(dist)+' m',pulse=reducedMotion?1:.75+.25*Math.sin(time*4);
- let screen=null;
- try{const scene=VoidBabylon.scene,cam=scene?.activeCamera;if(cam&&globalThis.BABYLON){const B=BABYLON,pt=new B.Vector3(p[0],(p[1]||1.6)+.5,p[2]),view=B.Vector3.TransformCoordinates(pt,cam.getViewMatrix());if(view.z>.2){const v=B.Vector3.Project(pt,B.Matrix.Identity(),scene.getTransformMatrix(),cam.viewport.toGlobal(W,H));if(v.x>40&&v.x<W-40&&v.y>60&&v.y<H-80)screen=v;}}}catch{}
+ const p=trackedWalkWaypoint.position,dx=p[0]-walker.x,dz=p[2]-walker.z,label=Math.round(Math.hypot(dx,dz))+' m',pulse=reducedMotion?1:.75+.25*Math.sin(time*4);
+ const angle=Math.atan2(dx,dz)-walker.yaw,r=Math.min(W,H)*.2;
  ctx.save();ctx.lineJoin='round';ctx.font='bold 13px Consolas, monospace';ctx.textAlign='center';
- if(screen){
-  const s=12+4*pulse;ctx.translate(screen.x,screen.y-18);
-  ctx.shadowColor='#000';ctx.shadowBlur=10;ctx.fillStyle='rgba(255,214,120,'+(.55+.4*pulse)+')';ctx.strokeStyle='#1a1206';ctx.lineWidth=3;
-  ctx.beginPath();ctx.moveTo(0,-s);ctx.lineTo(s*.75,0);ctx.lineTo(0,s);ctx.lineTo(-s*.75,0);ctx.closePath();ctx.stroke();ctx.fill();
-  ctx.beginPath();ctx.moveTo(-8,s+6);ctx.lineTo(8,s+6);ctx.lineTo(0,s+16);ctx.closePath();ctx.stroke();ctx.fill();
-  ctx.shadowBlur=4;ctx.fillStyle='#ffe7a8';ctx.fillText(label,0,-s-8);
- }else{
-  const angle=Math.atan2(dx,dz)-walker.yaw,r=Math.min(W,H)*.2;
-  ctx.translate(W*.5+Math.sin(angle)*r,H*.5-Math.cos(angle)*r);ctx.rotate(angle);
-  ctx.shadowColor='#000';ctx.shadowBlur=12;ctx.fillStyle='rgba(255,214,120,'+(.6+.35*pulse)+')';ctx.strokeStyle='#1a1206';ctx.lineWidth=3;
-  ctx.beginPath();ctx.moveTo(0,-26);ctx.lineTo(-17,10);ctx.lineTo(0,2);ctx.lineTo(17,10);ctx.closePath();ctx.stroke();ctx.fill();
-  ctx.rotate(-angle);ctx.shadowBlur=4;ctx.fillStyle='#ffe7a8';ctx.fillText(label,0,32);
- }
+ ctx.translate(W*.5+Math.sin(angle)*r,H*.5-Math.cos(angle)*r);ctx.rotate(angle);
+ ctx.shadowColor='#000';ctx.shadowBlur=12;ctx.fillStyle='rgba(255,214,120,'+(.6+.35*pulse)+')';ctx.strokeStyle='#1a1206';ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(0,-26);ctx.lineTo(-17,10);ctx.lineTo(0,2);ctx.lineTo(17,10);ctx.closePath();ctx.stroke();ctx.fill();
+ ctx.rotate(-angle);ctx.shadowBlur=4;ctx.fillStyle='#ffe7a8';ctx.fillText(label,0,32);
  ctx.restore();
 }
