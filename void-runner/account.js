@@ -1,8 +1,11 @@
-/* Firebase identity + authenticated API. Cloud save replacement is always explicit. */
+/* Firebase identity + authenticated API. Cloud save replacement is always explicit.
+   Sign-in: a District handle (no Google needed), an email link, or Google. */
 const account = window.VoidAccount = {user:null,products:[],status:'Verified purchases require a connection.',busy:false,revision:0,cloud:null,savedAt:null};
 let authInitialization=null,unsubscribe=null;
 let firebase, generation=0, pendingCheckout=new URLSearchParams(location.search).get('checkout');
 let saveReady=false,verifiedUntil=0,ownershipTimer,refreshTimer,serviceRetryTimer,lastRefreshAttempt=0;
+// Handles, email links and Google linking are shared with every District game.
+let identityModule=null;const identity=()=>identityModule??=import('../district-identity.js');
 function render(){
   globalThis.VoidMenu?.refreshAccount();
   if(mode==='dock'&&view==='market')market();
@@ -36,11 +39,34 @@ async function refresh(){
   account.revision=data.revision;account.cloud=data.save;account.savedAt=data.savedAt;saveReady=true;setOwnedGear(data.owned);render();
 }
 function cloudDescription(){return account.cloud?`${account.cloud.completed} deliveries · ${account.cloud.credits.toLocaleString()} CR · ${account.cloud.cleared?.length||0}/12 new missions`:'No cloud save yet.';}
+function handleField(id,label,action,cta,value=''){
+  return `<div class="account-field"><label for="${id}">${label}</label><div class="field-row"><input id="${id}" maxlength="20" autocomplete="off" spellcheck="false" placeholder="Ghost_01" value="${escapeText(value)}" data-enter="${action}">${button(cta,action,false,account.busy)}</div><small>3–20 letters, numbers or underscores. Shared across District games.</small></div>`;
+}
+function emailField(cta,quiet=false){
+  return `<div class="account-field"><label for="vr-email">Email sign-in link</label><div class="field-row"><input id="vr-email" type="email" autocomplete="email" placeholder="you@example.com" data-enter="email-link">${button(cta,'email-link',quiet,account.busy||!firebase)}</div><small>Open the link in this browser to finish. No password, no Google account.</small></div>`;
+}
 function accountPage(){
   view='account';
-  menuPage('PILOT ACCOUNT','Pilot account',
-    `<p class="account-detail">${account.user?'Signed in as <strong>'+escapeText(account.user.displayName||account.user.email||'Pilot')+'</strong>.':'Use the same Google login as the District homepage. You can keep playing locally without signing in.'}</p>${account.user?`<div class="manifest">${row('This browser',state.completed+' deliveries / '+state.credits+' CR')}${row('Cloud save',escapeText(cloudDescription()))}${row('Owned equipment',ownedGear.length+' verified items')}</div><p>Choose when to copy progress between this browser and your account. Start New Campaign replaces the local campaign; it never deletes purchases.</p><div class="account-actions">${button('SAVE THIS JOURNEY TO CLOUD','cloud-save-prompt',false,account.busy||!saveReady)}${button('LOAD CLOUD JOURNEY','cloud-load-prompt',true,account.busy||!account.cloud||!saveReady)}${button('REFRESH / RESTORE PURCHASES','account-refresh',true,account.busy)}${button('SIGN OUT','sign-out',true,account.busy)}</div>`:`<div class="account-actions">${button('SIGN IN WITH GOOGLE','sign-in',false,account.busy||!firebase)}${!firebase?button('RETRY CONNECTION','auth-retry',true,account.busy):''}</div>`}<p class="fine">Cloud saves copy campaign progress only. Paid ownership is checked separately with the server. Your browser save remains available if the account service is offline.</p>`);
+  const user=account.user,anonymous=!!user?.isAnonymous,name=user?.displayName||user?.email||'Pilot';
+  let body;
+  if(!user){
+    body=`<p class="account-detail">Register a handle to keep cloud saves and buy equipment. No Google account needed, and you can keep playing locally without one.</p>
+      ${handleField('vr-handle','Choose your handle','register-handle','REGISTER HANDLE')}
+      <details class="account-other"><summary>Already have an account?</summary>${emailField('SEND LINK',true)}<div class="account-actions">${button('SIGN IN WITH GOOGLE','sign-in',true,account.busy||!firebase)}${!firebase?button('RETRY CONNECTION','auth-retry',true,account.busy):''}</div></details>`;
+  } else {
+    body=`<p class="account-detail">Signed in as <strong>${escapeText(name)}</strong>.</p>`;
+    if(!user.displayName)body+=handleField('vr-handle','Choose your public handle','register-handle','CLAIM HANDLE');
+    if(anonymous)body+=`<div class="account-warning"><strong>Handle not secured.</strong> It lives only in this browser. Add an email or Google so you can sign in anywhere. Required before buying equipment.</div>${emailField('SECURE WITH EMAIL')}<div class="account-actions">${button('SECURE WITH GOOGLE','secure-google',true,account.busy||!firebase)}</div>`;
+    body+=`<div class="manifest">${row('This browser',state.completed+' deliveries / '+state.credits+' CR')}${row('Cloud save',escapeText(cloudDescription()))}${row('Owned equipment',ownedGear.length+' verified items')}</div><p>Choose when to copy progress between this browser and your account. Start New Campaign replaces the local campaign; it never deletes purchases.</p><div class="account-actions">${button('SAVE THIS JOURNEY TO CLOUD','cloud-save-prompt',false,account.busy||!saveReady)}${button('LOAD CLOUD JOURNEY','cloud-load-prompt',true,account.busy||!account.cloud||!saveReady)}${button('REFRESH / RESTORE PURCHASES','account-refresh',true,account.busy)}${button('SIGN OUT','sign-out',true,account.busy)}</div>`;
+    if(user.displayName)body+=`<details class="account-other"><summary>Change public handle</summary>${handleField('vr-handle-change','New handle','change-handle','CHANGE HANDLE',user.displayName)}<small>Handles can be changed once every 30 days.</small></details>`;
+  }
+  menuPage('PILOT ACCOUNT','Pilot account',body+`<p class="fine">Cloud saves copy campaign progress only. Paid ownership is checked separately with the server. Your browser save remains available if the account service is offline.</p>`);
   const back=screen.querySelector('.shop-heading button');if(back){back.dataset.action='account-main-menu';back.textContent='BACK TO MAIN MENU';}
+}
+function fieldValue(id){return screen.querySelector('#'+id)?.value.trim()||'';}
+async function afterIdentityChange(){
+  account.user=firebase.auth.currentUser;
+  try{await confirmCheckout();await refresh();}catch(error){render();}
 }
 async function run(action,quiet=false){
   if(account.busy)return;account.busy=true;render();
@@ -70,6 +96,9 @@ function initializeAuth(){
         if(user)run(async()=>{await confirmCheckout();await refresh();},true);
       });
       await firebase.getRedirectResult(firebase.auth);
+      try{const done=await (await identity()).completeEmailLink();
+        if(done){await afterIdentityChange();announce(done.result==='secured'?'Handle secured. You can now sign in anywhere with your email.':done.result==='switched'?'That email already had an account. You are now signed in to it.':'Signed in with your email link.');}
+      }catch(error){announce(error.message);}
     }catch{VoidNetwork.report('identity','degraded');authInitialization=null;}
     render();
   })();
@@ -81,6 +110,21 @@ function requestAction(action){
   if(['play','pause'].includes(mode))return;
   if(action==='account'){accountPage();return;}
   if(action==='auth-retry'){run(initializeAuth);return;}
+  // Read typed values first: run() redraws the page (busy state) before the action starts.
+  if(action==='register-handle'||action==='change-handle'){const handle=fieldValue(action==='register-handle'?'vr-handle':'vr-handle-change');run(async()=>{
+    if(!firebase)throw new Error('Account service is still connecting. Try again shortly.');
+    const user=await (await identity()).registerHandle(handle);
+    await afterIdentityChange();
+    announce(`Handle ${user.displayName} is yours.${user.isAnonymous?' Secure it with an email or Google to keep it on other devices.':''}`);
+  });}
+  if(action==='email-link'){const typed=fieldValue('vr-email');run(async()=>{
+    const email=await (await identity()).sendEmailLink(typed);
+    announce(`Sign-in link sent to ${email}. Open it in this browser to finish.`);
+  });}
+  if(action==='secure-google')run(async()=>{
+    const user=await (await identity()).secureWithGoogle();
+    if(user){await afterIdentityChange();announce('Handle secured with Google.');}
+  });
   if(action==='sign-in')run(async()=>{
     if(!firebase)throw new Error('Google sign-in is still connecting. Try again shortly.');
     try{await firebase.signInWithPopup(firebase.auth,firebase.provider);}
@@ -96,6 +140,7 @@ function requestAction(action){
   else if(action==='account-refresh')run(async()=>{setOwnedGear([]);await confirmCheckout();await refresh();announce('Account and equipment refreshed.');});
   else if(action?.startsWith('purchase:')){
     if(!account.user){accountPage();return;}
+    if(account.user.isAnonymous){accountPage();announce('Secure your handle with an email or Google before buying equipment, so a purchase can never be lost.');return;}
     run(async()=>{await catalog();if(!account.products.some(p=>p.id===action.slice(9)))throw new Error(account.status+' This item is not currently available.');const epoch=generation;const data=await api('checkout',{item:action.slice(9)});if(epoch!==generation)return;
       const target=new URL(data.url);if(target.protocol!=='https:'||target.hostname!=='checkout.stripe.com')throw new Error('Unexpected checkout address.');location.assign(target.href);});
   }
@@ -106,6 +151,8 @@ function requestAction(action){
 }
 account.request=requestAction;
 screen.addEventListener('click',e=>requestAction(e.target.closest('button')?.dataset.action));
+// Enter in a handle or email field triggers its button.
+screen.addEventListener('keydown',e=>{const action=e.target.dataset?.enter;if(e.key==='Enter'&&action){e.preventDefault();requestAction(action);}});
 if(pendingCheckout==='cancelled'){clearCheckout();announce('Checkout cancelled. No equipment was added.');}
 VoidLoading.stage('account','ACCOUNT INITIALIZATION STARTED · OPTIONAL SERVICES CONNECTING');
 initializeAuth();

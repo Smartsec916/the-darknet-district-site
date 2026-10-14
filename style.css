@@ -154,7 +154,7 @@ section {
 
 /* Third section background - Continuation of gradient theme */
 .third-section {
-  background-image: url('attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png');
+  background-image: url('attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.webp');
 }
 
 /* Third section overlay - Top gradient fade effect */
@@ -1095,5 +1095,24 @@ section {
     width: 100%;
     margin-right: 0 !important;
     margin-left: 0 !important;
+  }
+}
+
+/* ============================================================================
+   REDUCED MOTION - Respect visitors who ask their device to limit motion.
+   Effects freeze on a still frame instead of disappearing, so the look stays.
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .digital-rain {
+    display: none;
   }
 }

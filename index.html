@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -45,7 +45,9 @@
   <!-- Performance optimizations - preload critical assets -->
   <link rel="preload" href="./style.css" as="style">
   <link rel="preload" href="./script.js" as="script">
-  <link href="./style.css" rel="stylesheet" type="text/css" media="print" onload="this.media='all'">
+  <link href="./style.css" rel="stylesheet" type="text/css">
+  <link href="./hud.css" rel="stylesheet" type="text/css">
+  <link href="./accents.css" rel="stylesheet" type="text/css">
   <!-- DNS optimizations for faster loading -->
   <link rel="dns-prefetch" href="https://thedarknetdistrict.com">
   <link rel="preconnect" href="https://thedarknetdistrict.com">
@@ -288,7 +290,7 @@
 </style>
 </head>
 
-<body class="site-home">
+<body class="site-home" data-hud="immersive">
   <!-- Top Navigation Buttons -->
   <div class="top-nav">
     <a href="/">Home</a>
@@ -304,7 +306,7 @@
   <div class="chat-container" id="chatContainer" style="display: none;">
     <!-- Chat header with Iris profile -->
     <div class="chat-header">
-      <img src="attached_assets/Iris 01.png" alt="Iris" class="profile-pic">
+      <img src="attached_assets/Iris 01.webp" alt="Iris" class="profile-pic">
       <h3 class="chat-title">Chatting with Iris</h3>
     </div>
     <!-- Messages display area -->
@@ -321,7 +323,12 @@
   <section class="first-section">
     <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
       <h1 class="cyberpunk-title" data-text="The Darknet District">The Darknet District</h1>
-      <button class="enter-district-btn game-button" onclick="enterTheDistrict()">Enter the District</button>
+      <div class="tdd-vr" data-void-backdrop role="group" aria-label="Void Runner: under construction, coming soon">
+        <p class="tdd-vr-kicker">THE DARKNET DISTRICT / FLIGHT SYSTEMS ONLINE</p>
+        <p class="tdd-vr-logo">VOID<span>//</span>RUNNER</p>
+        <p class="tdd-vr-sub">CARGO &amp; CONSEQUENCES</p>
+        <p class="tdd-vr-status"><i aria-hidden="true"></i>Under construction &middot; Coming soon</p>
+      </div>
     </div>
   </section>
 
@@ -332,6 +339,9 @@
   <div class="bottom-header"></div>
   <script src="script.js"></script>
   <script src="devtoolsDetector.js"></script>
+  <script src="hud.js"></script>
+  <script src="accents.js"></script>
+  <script src="void-runner-backdrop.js"></script>
 
   <!-- Firebase Authentication -->
   <script type="module">

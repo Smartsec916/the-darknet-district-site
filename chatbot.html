@@ -181,7 +181,7 @@
   <button class="chat-button" onclick="toggleChat()">Chat with Iris</button>
   <div class="chat-container" id="chatContainer" style="display: none;">
     <div class="chat-header">
-      <img src="attached_assets/Iris 01.png" alt="Iris" class="profile-pic">
+      <img src="attached_assets/Iris 01.webp" alt="Iris" class="profile-pic">
       <h3 class="chat-title">Chatting with Iris</h3>
     </div>
     <div class="chat-messages" id="chatMessages"></div>
@@ -212,8 +212,13 @@
       addMessage(message, true);
       input.value = '';
 
+      // GitHub Pages has no API, so the live domain talks to the Render backend.
+      const apiBase = /(^|\.)thedarknetdistrict\.com$|\.github\.io$/.test(location.hostname)
+        ? 'https://the-darknet-district-site.onrender.com'
+        : '';
+
       try {
-        const response = await fetch('/api/chat/message', {
+        const response = await fetch(`${apiBase}/api/chat/message`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -222,7 +227,9 @@
         });
 
         const data = await response.json().catch(() => ({}));
-        if (!response.ok || typeof data.response !== 'string' || !data.response.trim()) {
+        // 413 (too long) and 429 (rate limited) still carry an in-character reply.
+        const replyable = response.ok || response.status === 413 || response.status === 429;
+        if (!replyable || typeof data.response !== 'string' || !data.response.trim()) {
           throw new Error(`Iris request failed with status ${response.status}`);
         }
         addMessage(data.response, false);

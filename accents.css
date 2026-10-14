@@ -1,0 +1,435 @@
+/*
+==============================================================================
+THE DARKNET DISTRICT — HOMEPAGE TECH ACCENTS
+
+Refined layer on top of the existing homepage look: cursor-lit grid, rare
+signal tears, glass navigation, chromatic title, the Void Runner teaser over
+the game's own menu scene, and the Iris capsule. accents.js builds the extra
+elements; removing both files restores the original homepage exactly.
+==============================================================================
+*/
+
+body.site-home {
+  --tdd-green: #00ff9d;
+  --tdd-cyan: #00ffcc;
+  --tdd-pink: #ff3366;
+  --tdd-hair: rgba(255, 255, 255, 0.09);
+  --tdd-micro: 'Courier New', Courier, monospace;
+}
+
+/* ---------------------------------------------------------------------------
+   HERO LAYERS — overlays sit between the skyline and the title.
+   --------------------------------------------------------------------------- */
+body.site-home .first-section {
+  isolation: isolate;
+  overflow: hidden;
+}
+
+body.site-home .tdd-hero-content {
+  position: relative;
+  z-index: 4;
+}
+
+/* Fine dot grid that only shows near the cursor, like light on etched glass. */
+body.site-home .tdd-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(0, 255, 157, 0.75) 0.6px, transparent 1px);
+  background-size: 14px 14px;
+  -webkit-mask-image: radial-gradient(circle 190px at var(--tdd-mx, 50%) var(--tdd-my, 46%), #000 0%, rgba(0, 0, 0, 0.35) 45%, transparent 100%);
+  mask-image: radial-gradient(circle 190px at var(--tdd-mx, 50%) var(--tdd-my, 46%), #000 0%, rgba(0, 0, 0, 0.35) 45%, transparent 100%);
+  opacity: 0.55;
+}
+
+/* Signal tear: copies of the skyline that slip sideways for a fraction of a second. */
+body.site-home .tdd-tear {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: inherit;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+}
+
+body.site-home .tdd-tear--b {
+  mix-blend-mode: screen;
+  filter: hue-rotate(-30deg) saturate(2.2) brightness(0.8);
+}
+
+body.site-home .tdd-tear.is-on {
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------------------------
+   GLASS NAVIGATION
+   --------------------------------------------------------------------------- */
+body.site-home .top-nav {
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  border-bottom: 1px solid var(--tdd-hair);
+}
+
+body.site-home .top-nav a {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(0, 255, 204, 0.32);
+  border-radius: 2px;
+  background: rgba(0, 255, 204, 0.03);
+  letter-spacing: 0.03em;
+}
+
+body.site-home .top-nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #bffff0, transparent);
+  transform: translateX(-105%);
+}
+
+body.site-home .top-nav a:hover,
+body.site-home .top-nav a:focus-visible {
+  background: rgba(0, 255, 204, 0.09);
+  color: #f2fffb;
+  border-color: rgba(0, 255, 204, 0.9);
+  box-shadow: 0 0 22px rgba(0, 255, 204, 0.15);
+  outline: none;
+  animation: tdd-split 0.22s steps(2) 1;
+}
+
+body.site-home .top-nav a:hover::after,
+body.site-home .top-nav a:focus-visible::after {
+  transform: translateX(105%);
+  transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+body.site-home .top-nav a[aria-current="page"] {
+  border-color: rgba(0, 255, 204, 0.75);
+}
+
+body.site-home .top-nav a[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  width: 3px;
+  height: 3px;
+  margin-left: -1.5px;
+  border-radius: 50%;
+  background: var(--tdd-cyan);
+  box-shadow: 0 0 6px var(--tdd-cyan);
+}
+
+@keyframes tdd-split {
+  0% { text-shadow: -1.5px 0 rgba(255, 51, 102, 0.9), 1.5px 0 rgba(0, 200, 255, 0.9); }
+  100% { text-shadow: none; }
+}
+
+/* The accents bring their own refined glitches, so the older jitter effect
+   from script.js is muted on the navigation. */
+body.site-home .top-nav a.glitch-text {
+  animation: none !important;
+}
+
+/* ---------------------------------------------------------------------------
+   TITLE — frosted panel, chromatic edges, rare slice glitch
+   --------------------------------------------------------------------------- */
+body.site-home .cyberpunk-title {
+  background: rgba(0, 0, 0, 0.32);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07), 0 30px 60px rgba(0, 0, 0, 0.35);
+  text-shadow: -0.6px 0 rgba(255, 51, 102, 0.55), 0.6px 0 rgba(0, 220, 255, 0.55), 0 0 14px rgba(0, 255, 157, 0.45);
+  padding: 26px 34px;
+}
+
+body.site-home .tdd-edge {
+  position: absolute;
+  height: 1px;
+  pointer-events: none;
+}
+
+body.site-home .tdd-edge--top {
+  top: 0;
+  left: 12%;
+  right: 12%;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 157, 0.9), transparent);
+}
+
+body.site-home .tdd-edge--bottom {
+  bottom: 0;
+  left: 30%;
+  right: 30%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+}
+
+body.site-home .tdd-ghost {
+  position: absolute;
+  inset: 0;
+  padding: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  text-shadow: none;
+  mix-blend-mode: screen;
+}
+
+body.site-home .tdd-ghost--r { color: #ff3366; }
+body.site-home .tdd-ghost--c { color: #00e5ff; }
+body.site-home .cyberpunk-title.is-slicing .tdd-ghost { opacity: 0.85; }
+
+/* ---------------------------------------------------------------------------
+   VOID RUNNER TEASER — replaces Enter the District until the game launches.
+   The logo uses the same type treatment as the game's main menu.
+   --------------------------------------------------------------------------- */
+body.site-home .tdd-vr {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin: 50px auto 0;
+  padding: 64px clamp(28px, 7vw, 110px) 58px;
+  width: fit-content;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+}
+
+/* Frosted glass with no outline: the haze fades out toward every edge. */
+body.site-home .tdd-vr::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: rgba(4, 7, 19, 0.62);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 55%, transparent 100%);
+  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 55%, transparent 100%);
+  pointer-events: none;
+}
+
+/* The Void Runner menu scene, drawn by void-runner-backdrop.js, faded behind the logo. */
+body.site-home .tdd-vr-backdrop {
+  position: absolute;
+  /* Larger than the panel so the scene can draw big and fade out softly
+     well beyond the logo. */
+  top: -42%;
+  bottom: -42%;
+  left: -24%;
+  right: -24%;
+  z-index: -1;
+  width: 148%;
+  height: 184%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.6s ease;
+  /* Screen blending drops the black of space, so only the lit station and
+     planet show over the skyline. */
+  mix-blend-mode: screen;
+  /* Soft oval edge, plus a long fade from the top so the planet's upper half
+     dissolves into the skyline. */
+  -webkit-mask-image:
+    radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%),
+    linear-gradient(to bottom, transparent 10%, rgba(0, 0, 0, 0.35) 30%, #000 52%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%),
+    linear-gradient(to bottom, transparent 10%, rgba(0, 0, 0, 0.35) 30%, #000 52%);
+  mask-composite: intersect;
+}
+
+body.site-home .tdd-vr-backdrop.is-ready {
+  opacity: 0.85;
+}
+
+body.site-home .tdd-vr-kicker {
+  margin: 0;
+  font: 11px/1.4 monospace;
+  letter-spacing: 0.3em;
+  color: #81a7af;
+}
+
+/* Same treatment as .game-logo in void-runner/menu.css. */
+body.site-home .tdd-vr-logo {
+  margin: 4px 0 0;
+  font-family: Impact, 'Arial Narrow', sans-serif;
+  font-size: clamp(40px, 7vw, 92px);
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  line-height: 0.94;
+  transform: skew(-5deg);
+  color: #e5ebe6;
+  text-shadow: 2px 3px 0 #173b43;
+  text-transform: none;
+}
+
+body.site-home .tdd-vr-logo span {
+  color: #6ce4cf;
+  font-size: 0.75em;
+}
+
+body.site-home .tdd-vr-kicker,
+body.site-home .tdd-vr-sub {
+  /* Keeps the small lines readable over the station. */
+  text-shadow: 0 0 6px #000, 0 1px 3px #000;
+}
+
+body.site-home .tdd-vr-sub {
+  margin: 0;
+  font: 11px/1.4 monospace;
+  letter-spacing: 0.45em;
+  color: #b6bebb;
+}
+
+body.site-home .tdd-vr-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 7px 14px;
+  font: 12px/1.3 'Courier New', monospace;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #ffb547;
+  border: 1px solid rgba(255, 181, 71, 0.35);
+  background: rgba(30, 18, 0, 0.7);
+}
+
+body.site-home .tdd-vr-status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffb547;
+  box-shadow: 0 0 8px #ffb547;
+  animation: tdd-breathe-amber 2.6s ease-in-out infinite;
+}
+
+@keyframes tdd-breathe-amber {
+  50% { opacity: 0.3; }
+}
+
+/* ---------------------------------------------------------------------------
+   IRIS CAPSULE
+   --------------------------------------------------------------------------- */
+body.site-home .chat-button.tdd-iris {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 51, 102, 0.45);
+  border-radius: 999px;
+  padding: 6px 18px 6px 6px;
+  background: rgba(20, 0, 8, 0.45);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: #ffd0dc;
+  box-shadow: 0 0 30px rgba(255, 51, 102, 0.12);
+}
+
+body.site-home .chat-button.tdd-iris:hover,
+body.site-home .chat-button.tdd-iris:focus-visible {
+  background: rgba(255, 51, 102, 0.14);
+  color: #fff;
+  border-color: rgba(255, 51, 102, 0.9);
+  box-shadow: 0 0 40px rgba(255, 51, 102, 0.25);
+  outline: none;
+}
+
+body.site-home .tdd-iris-avatar {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+body.site-home .tdd-iris-avatar img {
+  position: absolute;
+  inset: 4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+}
+
+body.site-home .tdd-iris-avatar svg {
+  position: absolute;
+  inset: 0;
+  width: 34px;
+  height: 34px;
+  animation: tdd-rotate 4s linear infinite;
+}
+
+body.site-home .tdd-iris-avatar circle {
+  fill: none;
+  stroke: var(--tdd-pink);
+  stroke-width: 1;
+  stroke-dasharray: 20 86;
+  stroke-linecap: round;
+}
+
+body.site-home .tdd-iris-text {
+  display: grid;
+  text-align: left;
+  line-height: 1.15;
+}
+
+body.site-home .tdd-iris-text small {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 51, 102, 0.85);
+}
+
+@keyframes tdd-rotate {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------------------------------------------------------------------------
+   HUD ON THE HOMEPAGE — hud.css lifts every top-level element into the page
+   flow; these stay pinned to the screen as before.
+   --------------------------------------------------------------------------- */
+body.site-home[data-hud="immersive"] > #chatButton,
+body.site-home[data-hud="immersive"] > #chatContainer {
+  position: fixed;
+  z-index: 1000;
+}
+
+body.site-home[data-hud="immersive"] > .digital-rain {
+  position: fixed;
+  z-index: -2;
+}
+
+/* ---------------------------------------------------------------------------
+   SMALL SCREENS AND REDUCED MOTION
+   --------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  /* Leave room under the teaser for the Iris button. */
+  body.site-home .first-section { padding-bottom: 96px; }
+  body.site-home .tdd-vr { margin-top: 40px; }
+  body.site-home .tdd-vr-status { font-size: 11px; letter-spacing: 0.12em; padding: 7px 10px; }
+  body.site-home .tdd-vr-sub { letter-spacing: 0.25em; }
+  body.site-home .tdd-vr-kicker { letter-spacing: 0.18em; font-size: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.site-home .tdd-vr-status i,
+  body.site-home .tdd-iris-avatar svg,
+  body.site-home .top-nav a:hover {
+    animation: none !important;
+  }
+
+  body.site-home .tdd-tear,
+  body.site-home .tdd-ghost {
+    display: none;
+  }
+}

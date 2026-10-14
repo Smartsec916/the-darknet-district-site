@@ -16,7 +16,7 @@ HANDLE_COOLDOWN = 30 * 24 * 3600
 RUN_START_COOLDOWN = 30
 RUN_LIFETIME = 4 * 3600
 MIN_LEVEL_SECONDS = 12
-MAX_LEVEL_DELTA = {1: 1500, 2: 1700, 3: 2000, 4: 2200, 5: 2500, 6: 2800}
+MAX_LEVEL_DELTA = {1: 1900, 2: 2100, 3: 2000, 4: 2200, 5: 2500, 6: 2800}
 POINTS = {'hack': 20, 'shot': 10, 'coin': 5, 'relay': 50, 'relayBonus': 100, 'jumpRobot': 12}
 BLOCKED_HANDLES = {'admin', 'administrator', 'moderator', 'mod', 'support', 'staff',
                    'official', 'firebase', 'google', 'developer', 'system', 'null'}
@@ -69,7 +69,7 @@ def identity(auth, app, required=True):
     header = request.headers.get('Authorization', '')
     if not header:
         if required:
-            raise ApiError('Sign in with Google to continue.', 401)
+            raise ApiError('Sign in or register a handle to continue.', 401)
         return None
     if not header.startswith('Bearer ') or len(header) > 8192:
         raise ApiError('Invalid authorization header.', 401)
@@ -125,7 +125,8 @@ def validate_events(events, level, delta):
         raise ApiError('Invalid score events.')
     limits = {'hack': 20, 'shot': 60 if level >= 5 else 0,
               'coin': 100, 'relay': 3, 'relayBonus': 1,
-              'jumpRobot': 50 if level >= 4 else 0}
+              # Robots from sector 4; street gangs in sectors 1 and 2.
+              'jumpRobot': 50 if level >= 4 else (30 if level <= 2 else 0)}
     if level > 6:
         limits = dict.fromkeys(POINTS, 0)
     for kind, value in events.items():
@@ -165,12 +166,31 @@ def public_entry(doc, rank):
             'highestCompletedLevel': value['highestCompletedLevel']}
 
 
-@api.get('/leaderboard')
-def leaderboard():
-    db, auth, app = services()
+# The public top 100 costs up to 100 Firestore reads, so it is shared across
+# requests briefly and dropped whenever a score or handle changes.
+TOP_CACHE_SECONDS = 30
+_top_cache = {'at': 0.0, 'rows': None}
+
+
+def invalidate_top():
+    _top_cache['rows'] = None
+
+
+def top_entries(db):
+    now = time.monotonic()
+    if _top_cache['rows'] is not None and now - _top_cache['at'] < TOP_CACHE_SECONDS:
+        return _top_cache['rows']
     from google.cloud.firestore_v1 import Query
     rows = db.collection('bp_leaderboard').order_by('bestScore', direction=Query.DESCENDING).order_by('sortKey').limit(100).stream()
     top = [public_entry(doc, rank) for rank, doc in enumerate(rows, 1)]
+    _top_cache.update(at=now, rows=top)
+    return top
+
+
+@api.get('/leaderboard')
+def leaderboard():
+    db, auth, app = services()
+    top = top_entries(db)
     uid = identity(auth, app, required=False)
     mine = None
     if uid:
@@ -196,11 +216,14 @@ def handle_available(handle):
     return jsonify(available=not reservation or bool(uid and reservation.get('playerId') == player_id(uid)))
 
 
-@api.post('/handle')
-@signed_in
-def claim_handle(db, uid):
+def claim_public_handle(db, uid, handle):
+    """Reserve a District-wide public handle for uid. Shared by every game.
+
+    Returns (display, changed_at). Raises ApiError when the handle is invalid,
+    taken by someone else, or changed too recently.
+    """
     from firebase_admin import firestore
-    display, key = clean_handle(body(['handle'])['handle'])
+    display, key = clean_handle(handle)
     now, pid = int(time.time()), player_id(uid)
     profile_ref, _, board_ref = refs(db, pid)
     reservation = db.collection('bp_handles').document(key)
@@ -226,6 +249,20 @@ def claim_handle(db, uid):
             tx.set(board_ref, {'handle': display}, merge=True)
         return now
     changed_at = commit(db.transaction())
+    invalidate_top()
+    return display, changed_at
+
+
+@api.post('/handle')
+@signed_in
+def claim_handle(db, uid):
+    display, changed_at = claim_public_handle(db, uid, body(['handle'])['handle'])
+    try:
+        # Show the same handle in every District game. Best effort only.
+        _, auth, app = services()
+        auth.update_user(uid, display_name=display, app=app)
+    except Exception:
+        pass
     return jsonify(handle=display, nextChangeAt=changed_at + HANDLE_COOLDOWN)
 
 
@@ -340,4 +377,5 @@ def finish_run(db, uid, run_id):
         return {'personalBest': improved, 'bestScore': best,
                 'completedLevel': completed, 'duplicate': False}
     result = commit(db.transaction())
+    invalidate_top()
     return jsonify(**result)

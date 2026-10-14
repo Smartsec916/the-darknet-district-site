@@ -1,4 +1,5 @@
-/* Blackout Protocol identity and ranked-run API. Guest play never waits for Firebase. */
+/* Blackout Protocol identity and ranked-run API. Guest play never waits for Firebase.
+   Sign-in: a District handle (no Google needed), an email link, or Google. */
 const BASE = ['localhost', '127.0.0.1'].includes(location.hostname) ? '' : 'https://the-darknet-district-site.onrender.com';
 const ROOT = `${BASE}/api/blackout`;
 let firebase = null;
@@ -19,6 +20,18 @@ export function authReady(){
         resolve(value);
       });
       await firebase.getRedirectResult(firebase.auth);
+      try {
+        const done = await (await identity()).completeEmailLink();
+        if(done){
+          user = firebase.auth.currentUser;
+          const message = done.result === 'secured' ? 'Handle secured. You can now sign in anywhere with your email.'
+            : done.result === 'switched' ? 'That email already had an account. You are now signed in to it.'
+            : 'Signed in with your email link.';
+          dispatchEvent(new CustomEvent('blackout-auth', {detail:{signedIn:true, message}}));
+        }
+      } catch(error) {
+        dispatchEvent(new CustomEvent('blackout-auth', {detail:{signedIn:!!user, message:error.message}}));
+      }
     } catch(error) {
       console.warn('Blackout sign-in unavailable:', error);
       clearTimeout(timer);
@@ -26,6 +39,33 @@ export function authReady(){
     }
   });
   return authPromise;
+}
+
+// Handles, email links and Google linking are shared with every District game.
+let identityModule = null;
+const identity = () => identityModule ??= import('../district-identity.js');
+
+function changed(){
+  user = firebase?.auth.currentUser || null;
+  dispatchEvent(new CustomEvent('blackout-auth', {detail:{signedIn:!!user}}));
+  return user;
+}
+
+/** Register or change the public handle. Creates a handle-only account when signed out. */
+export async function registerHandle(handle){
+  await authReady();
+  const value = await (await identity()).registerHandle(handle);
+  changed();
+  return {handle: value.displayName};
+}
+
+export async function sendEmailLink(email){ return (await identity()).sendEmailLink(email); }
+
+export async function secureWithGoogle(){
+  await authReady();
+  const value = await (await identity()).secureWithGoogle();
+  changed();
+  return value;
 }
 
 export async function signIn(){
@@ -51,7 +91,7 @@ export async function signOut(){
 
 async function request(path, {method='GET', body, requireUser=false, timeout=5000}={}){
   await authReady();
-  if(requireUser && !user) throw new Error('Sign in with Google to continue.');
+  if(requireUser && !user) throw new Error('Sign in or register a handle to continue.');
   const controller = new AbortController();
   const timer = setTimeout(()=>controller.abort(), timeout);
   try {

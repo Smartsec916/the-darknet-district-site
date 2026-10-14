@@ -13,14 +13,22 @@ const VW = 256, VH = 240, TILE = 16;
 const LEVEL_LEN = 1600;
 const DOOR_W = 24, DOOR_H = 32;
 const HYPER_RELOAD_TAG = 'rev=20261011-accounts';
+// gang: street gang for the early sectors. fireEvery: ms between armed-robot shots.
 const LEVELS = {
-  1:{name:'THE UNDERGRID', ledges:1, robots:0, drones:0, thieves:0, gun:false},
-  2:{name:'WATCHER DISTRICT', ledges:2, robots:0, drones:0, thieves:0, gun:false},
+  1:{name:'THE UNDERGRID', ledges:1, robots:0, drones:0, thieves:0, gun:false, gang:'rats', gangs:1},
+  2:{name:'WATCHER DISTRICT', ledges:2, robots:0, drones:0, thieves:0, gun:false, gang:'saints', gangs:1},
   3:{name:'NEON BAZAAR', ledges:2, robots:0, drones:0, thieves:1, gun:false},
-  4:{name:'MACHINE PERIMETER', ledges:2, robots:1, drones:0, thieves:0, gun:false},
-  5:{name:'ARMORY ACCESS', ledges:2, robots:1, drones:1, thieves:0, gun:true},
-  6:{name:'BLACKOUT CORE', ledges:3, robots:2, drones:1, thieves:0, gun:true}
+  4:{name:'MACHINE PERIMETER', ledges:2, robots:1, drones:0, thieves:0, gun:false, fireEvery:2600},
+  5:{name:'ARMORY ACCESS', ledges:2, robots:1, drones:1, thieves:0, gun:true, fireEvery:2200},
+  6:{name:'BLACKOUT CORE', ledges:3, robots:2, drones:1, thieves:0, gun:true, fireEvery:1800}
 };
+// Street gangs: contact damage, hits to drop, walking speed, and the name shown when they spot you.
+const GANGS = {
+  rats:{label:'RUST RATS', damage:5, hp:2, speed:.55},
+  saints:{label:'GLITCH SAINTS', damage:6, hp:2, speed:.62}
+};
+// Muzzle point of the armed robot's rifle in its firing pose (sprite faces right).
+const ROBOT_MUZZLE = {x:47, y:21};
 // All gaps are shorter than the unupgraded ground jump's ~94 px range.
 const GAPS={1:[],2:[[608,640]],3:[[928,976]],4:[[608,656],[1216,1264]],
   5:[[608,656],[1216,1280]],6:[[608,672],[1216,1280]]};
@@ -72,6 +80,18 @@ const SPRITE_DEF = {
   female:{fw:48,fh:48, states:{
     idle:'./assets/female_idle.png', walk:'./assets/female_walk.png', run:'./assets/female_run.png'
   }, fps:{idle:6, walk:8, run:10}},
+  robot_armed:{fw:48,fh:48, states:{
+    idle:'./assets/robot_armed_idle_48.png', walk:'./assets/robot_armed_walk_48.png', run:'./assets/robot_armed_run_48.png',
+    attack:'./assets/robot_armed_attack_48.png', hurt:'./assets/robot_armed_hurt_48.png', dead:'./assets/robot_dead_48.png'
+  }, fps:{idle:6, walk:9, run:10, attack:12, hurt:6, dead:8}},
+  gang_rats:{fw:48,fh:48, states:{
+    idle:'./assets/gang_rats_idle_48.png', walk:'./assets/gang_rats_walk_48.png', run:'./assets/gang_rats_run_48.png',
+    hurt:'./assets/gang_rats_hurt_48.png', dead:'./assets/gang_rats_dead_48.png'
+  }, fps:{idle:6, walk:9, run:11, hurt:6, dead:8}},
+  gang_saints:{fw:48,fh:48, states:{
+    idle:'./assets/gang_saints_idle_48.png', walk:'./assets/gang_saints_walk_48.png', run:'./assets/gang_saints_run_48.png',
+    hurt:'./assets/gang_saints_hurt_48.png', dead:'./assets/gang_saints_dead_48.png'
+  }, fps:{idle:6, walk:9, run:11, hurt:6, dead:8}},
   bg_far:null, bg_near:null, coin:null, door:null, ledge:null, platform:null
 };
 
@@ -84,13 +104,14 @@ function bgURLsForLevel(lvl){
 
 function adConfigForLevel(lvl){
   if(lvl>=4){
-    const pairs={
-      4:['sentry','ironmesh'],
-      5:['novaarms','ioncell'],
-      6:['corelink','voidwatt']
+    // Neon tube posters in the same style as the early sectors.
+    const sets={
+      4:['sentry','ironmesh','botforce'],
+      5:['novaarms','dronepal','bulletcoffee'],
+      6:['obey','happyfeed','dreampass']
     };
-    const kinds=pairs[lvl]||pairs[6];
-    return {kinds, images:Object.fromEntries(kinds.map(kind=>[kind,`./assets/ad_${kind}.png?${HYPER_RELOAD_TAG}`]))};
+    const kinds=sets[lvl]||sets[6];
+    return {kinds, images:Object.fromEntries(kinds.map(kind=>[kind,`./assets/ad_${kind}.webp?${HYPER_RELOAD_TAG}`]))};
   }
   if(lvl===2){
     return {
@@ -147,6 +168,7 @@ let coinImg=null, doorImg=null, ledgeImg=null, platformImg=null, terminalFrame1=
 let generatedUntil=0, worldMaxX=0;
 let hackUntil=0, hackCDUntil=0;
 let relays=[];
+let enemyShots=[], corpses=[], gangSpotted=false;
 let projectiles=[], impacts=[], gunPickup=null, hasGun=false, nextShot=0, notice='', noticeUntil=0;
 let coinHistory=new Set(), relayHistory=new Set();
 let nextCoinId=0;
@@ -236,7 +258,8 @@ async function femaleSheet(state,src){
  outlines[state].forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.clip();g.drawImage(img,0,0,1,1);g.restore();return sheet;
 }
 async function loadSprites(def){
-  const entries=await Promise.all(['player','robot','drone','female'].map(async who=>{
+  const packs=['player','robot','drone','female','robot_armed','gang_rats','gang_saints'];
+  const entries=await Promise.all(packs.map(async who=>{
     const {fw,fh}=def[who],pack={fw,fh,anim:{}};
     await Promise.all(Object.entries(def[who].states).map(async ([state,src])=>{
       let img=null;
@@ -527,10 +550,28 @@ function genChunk(startX){
     const rc = LEVELS[lvl].robots;
     for(let i = 0; i < rc; i++){
       const rx = startX + 210 + i*35;
+      const armed = !!LEVELS[lvl].fireEvery;
       robots.push({
         x: rx|0, y: VH - TILE * 2, w: 18, h: 24, dir: Math.random() < 0.5 ? -1 : 1, speed: 0.66, hp: 3,
         active: false, hitUntil: 0, state: 'patrol', alert: false, patrolL: rx - 40, patrolR: rx + 40,
-        searchUntil: 0, lookTimer: 0, anim: {state: 'idle', runner: null}
+        searchUntil: 0, lookTimer: 0, anim: {state: 'idle', runner: null},
+        kind: 'robot', pack: armed ? 'robot_armed' : 'robot', armed,
+        nextShot: 0, windupUntil: 0, attackUntil: 0
+      });
+    }
+  }
+
+  // Street gangs work the early sectors. They're human, so hacking terminals doesn't stop them.
+  const gang = LEVELS[lvl]?.gang && GANGS[LEVELS[lvl].gang];
+  if(gang && startX >= CHUNK && startX < LEVEL_LEN-CHUNK){
+    for(let i = 0; i < LEVELS[lvl].gangs; i++){
+      const gx = (startX + 120 + Math.random() * 120)|0;
+      if(!hasGroundAt(gx) || !hasGroundAt(gx + 18)) continue;
+      robots.push({
+        x: gx, y: groundY() - 28, w: 18, h: 28, dir: Math.random() < 0.5 ? -1 : 1, speed: gang.speed, hp: gang.hp,
+        active: false, hitUntil: 0, state: 'patrol', alert: false, patrolL: gx - 40, patrolR: gx + 40,
+        searchUntil: 0, lookTimer: 0, anim: {state: 'idle', runner: null},
+        kind: 'gang', pack: 'gang_' + LEVELS[lvl].gang, damage: gang.damage
       });
     }
   }
@@ -657,6 +698,27 @@ function updateProjectiles(dt){
   }
   projectiles=projectiles.filter(s=>s.life>0);
   impacts=impacts.filter(i=>i.until>simulationTime);
+}
+
+// Robot rifle bolts: stopped by raised platforms; one hit per hurt window.
+function updateEnemyShots(dt, now){
+  for(const shot of enemyShots){
+    shot.x += shot.vx; shot.life -= dt;
+    if(shot.x < 0 || shot.x > LEVEL_LEN || platforms.some(p => p.y < groundY() &&
+      shot.x >= p.x && shot.x <= p.x + p.w && shot.y >= p.y && shot.y <= p.y + p.h)){
+      shot.life = 0; impacts.push({x: shot.x, y: shot.y, until: now + 160}); continue;
+    }
+    if(shot.x >= player.x && shot.x <= player.x + player.w && shot.y >= player.y && shot.y <= player.y + player.h){
+      shot.life = 0; impacts.push({x: shot.x, y: shot.y, until: now + 180});
+      if(now > player.hitUntil){
+        player.hitUntil = now + 700;
+        player.vx += Math.sign(shot.vx) * 0.9;
+        const damage = LVL >= 6 ? 7 : 6;
+        applyDamage(player.upgrades?.armor ? damage - 2 : damage);
+      }
+    }
+  }
+  enemyShots = enemyShots.filter(s => s.life > 0);
 }
 
 // ====== coins ======
@@ -860,7 +922,9 @@ function update(dt, now){
 
   for(const r of robots){
     if(!r.active) continue;
-    if(hacked){stepAnim(r,dt);continue;}
+    const pack = r.pack || 'robot';
+    // Terminal hacks shut down machines; gang members keep coming.
+    if(hacked && r.kind !== 'gang'){ r.windupUntil = 0; stepAnim(r,dt); continue; }
     const oldX=r.x;
     const dx = player.x - r.x;
     const dy = player.y - r.y;
@@ -877,6 +941,9 @@ function update(dt, now){
     }
 
     if(see && !(playerAbove && hasFloorBetween)){
+      if(r.kind === 'gang' && !gangSpotted){
+        gangSpotted = true; notice = GANGS[LEVELS[LVL].gang].label + ' SPOTTED YOU'; noticeUntil = now + 1800;
+      }
       r.state = 'chase'; r.alert = true; r.dir = dx > 0 ? 1 : -1;
       r.x += r.dir * r.speed * 1.25;
     } else if(playerAbove){
@@ -902,7 +969,28 @@ function update(dt, now){
     }
 
     if(!hasGroundAt(r.x+r.w/2)){r.x=oldX;r.dir*=-1;r.state='patrol';}
-    setAnim(r, 'robot', r.state === 'chase' ? 'run' : 'walk');
+
+    // Armed robots stop, aim for a moment (laser sight), then fire a bolt.
+    if(r.armed){
+      const aimY = r.y - 24 + ROBOT_MUZZLE.y;
+      const inRange = Math.abs(dx) < 150 && Math.abs((player.y + player.h/2) - aimY) < 30 &&
+        r.x - cameraX > -10 && r.x - cameraX < VW + 10;
+      if(r.windupUntil){
+        r.x = oldX;
+        if(now >= r.windupUntil){
+          const dir = player.x < r.x ? -1 : 1;
+          const mx = r.x - 14 + (dir > 0 ? ROBOT_MUZZLE.x : 48 - ROBOT_MUZZLE.x);
+          enemyShots.push({x: mx, y: aimY, vx: dir * 2.4, life: 1600});
+          r.windupUntil = 0; r.attackUntil = now + 260;
+          r.nextShot = now + LEVELS[LVL].fireEvery * (0.85 + Math.random() * 0.3);
+        }
+      } else if(inRange && now >= r.nextShot && now >= r.attackUntil){
+        r.windupUntil = now + 450;
+      }
+      if(now < r.attackUntil) r.x = oldX;
+    }
+    const aiming = r.windupUntil || now < r.attackUntil;
+    setAnim(r, pack, aiming ? 'attack' : (r.state === 'chase' ? 'run' : 'walk'));
     stepAnim(r, dt);
 
     if(aabb(player, r)){
@@ -911,13 +999,20 @@ function update(dt, now){
       } else if(now > player.hitUntil){
         player.hitUntil = now + 800;
         player.vx += (player.x < r.x) ? -0.8 : 0.8;
-        const damage = player.upgrades?.armor ? 5 : 7;
-        applyDamage(damage);
+        const base = r.kind === 'gang' ? r.damage : 7;
+        applyDamage(player.upgrades?.armor ? base - 2 : base);
       }
     }
   }
 
-  for(let i = robots.length - 1; i >= 0; i--) if(robots[i].hp <= 0) robots.splice(i, 1);
+  for(let i = robots.length - 1; i >= 0; i--){
+    const r = robots[i];
+    if(r.hp > 0) continue;
+    corpses.push({x: r.x, y: r.y, pack: r.pack || 'robot', kind: r.kind, flip: player.x < r.x, until: now + 900});
+    robots.splice(i, 1);
+  }
+  corpses = corpses.filter(c => c.until > now);
+  updateEnemyShots(dt, now);
 
   // Bazaar NPCs charge BTC for a brief encounter instead of dealing damage.
   if(LVL === 3){
@@ -1023,13 +1118,52 @@ function drawTiles(){
     ctx.drawImage(img, srcX, srcBaseY, srcW, srcBaseH, sx|0, dy, p.w, 20);
   }
 }
+// Floor gaps: a lit pit below the deck, then hazard markings drawn over the tiles.
 function drawGaps(){
   for(const [a,b] of GAPS[LVL]||[]){
     const x=a-cameraX,w=b-a;
     if(x+w<0||x>VW)continue;
-    ctx.fillStyle='#020812';ctx.fillRect(x,groundY(),w,VH-groundY());
-    ctx.fillStyle='#ff6db7';ctx.fillRect(x-2,groundY()-2,2,3);
-    ctx.fillRect(x+w,groundY()-2,2,3);
+    const top=groundY()-4;
+    const pit=ctx.createLinearGradient(0,top,0,VH);
+    pit.addColorStop(0,'#000');pit.addColorStop(.35,'#16030c');pit.addColorStop(1,'#7a0830');
+    ctx.fillStyle=pit;ctx.fillRect(x,top,w,VH-top);
+  }
+}
+function drawGapWarnings(){
+  const t=simulationTime, blink=Math.floor(t/350)%2===0, pulse=.5+.5*Math.sin(t/260);
+  for(const [a,b] of GAPS[LVL]||[]){
+    const x=(a-cameraX)|0,w=b-a,top=groundY();
+    if(x+w<-24||x>VW+24)continue;
+    ctx.save();
+    // Red glow rising from the drop.
+    const glow=ctx.createLinearGradient(0,top-44,0,top+4);
+    glow.addColorStop(0,'rgba(255,40,90,0)');glow.addColorStop(1,`rgba(255,40,90,${.3+.18*pulse})`);
+    ctx.fillStyle=glow;ctx.fillRect(x,top-44,w,48);
+    // Broken deck lips.
+    ctx.fillStyle='#07080c';
+    for(const [ex,dir] of [[x,1],[x+w,-1]]){ctx.fillRect(dir>0?ex:ex-2,top-4,2,3);ctx.fillRect(dir>0?ex:ex-1,top-1,1,2);}
+    // Hazard stripes along both lips of the deck.
+    for(const [lx,dir] of [[x-10,1],[x+w,-1]]){
+      for(let i=0;i<10;i++){
+        ctx.fillStyle=((i>>1)%2)?'#14161c':'#ffcc1a';
+        ctx.fillRect(lx+i,top,1,3);
+      }
+      ctx.fillStyle='#ff2b56';ctx.fillRect(dir>0?lx+9:lx,top-1,1,5);
+    }
+    // Warning posts with blinking beacons at each edge.
+    for(const px of [x-3,x+w+1]){
+      ctx.fillStyle='#2a2f3a';ctx.fillRect(px,top-12,2,12);
+      ctx.fillStyle=blink?'#ff2b56':'#5a1022';ctx.fillRect(px-1,top-15,4,3);
+      if(blink){ctx.shadowColor='#ff2b56';ctx.shadowBlur=6;ctx.fillRect(px-1,top-15,4,3);ctx.shadowBlur=0;}
+    }
+    // Floating hazard sign above the middle of the drop.
+    const cx=(x+w/2)|0,cy=(top-40+Math.sin(t/300)*1.5)|0;
+    ctx.shadowColor='#ffcc1a';ctx.shadowBlur=6;
+    ctx.fillStyle='rgba(20,14,0,.75)';
+    ctx.beginPath();ctx.moveTo(cx,cy-8);ctx.lineTo(cx+9,cy+7);ctx.lineTo(cx-9,cy+7);ctx.closePath();ctx.fill();
+    ctx.globalAlpha=.8+.2*pulse;ctx.strokeStyle='#ffcc1a';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.shadowBlur=0;ctx.fillStyle='#ffe066';ctx.fillRect(cx-1,cy-3,2,6);ctx.fillRect(cx-1,cy+4,2,2);
+    ctx.restore();
   }
 }
 
@@ -1107,11 +1241,43 @@ function drawCoins(){
   }
 }
 
+// Gang members share the player's 48px frame layout; robots use their own.
+const spriteOffset = (kind) => kind === 'gang' ? {x: 15, y: 20} : {x: 14, y: 24};
+
 function drawEntities(now){
+  for(const c of corpses){
+    const x = (c.x - cameraX)|0, y = c.y|0, o = spriteOffset(c.kind);
+    const img = SPR[c.pack]?.anim?.dead?.img;
+    if(!img || x + 48 < 0 || x > VW) continue;
+    ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, (c.until - simulationTime) / 500));
+    if(c.flip){ ctx.translate(x - o.x + 48, y - o.y); ctx.scale(-1, 1); ctx.drawImage(img, 0, 0, 48, 48, 0, 0, 48, 48); }
+    else ctx.drawImage(img, 0, 0, 48, 48, x - o.x, y - o.y, 48, 48);
+    ctx.restore();
+  }
   for(const r of robots){
     const x = (r.x - cameraX)|0, y = r.y|0;
     if(x + 48 < 0 || x > VW) continue;
-    drawAnim(r, 'robot', x - 14, y - 24, (player.x < r.x), now < r.hitUntil ? 0.75 : 1);
+    const o = spriteOffset(r.kind), flip = player.x < r.x;
+    drawAnim(r, r.pack || 'robot', x - o.x, y - o.y, flip, now < r.hitUntil ? 0.75 : 1);
+    if(r.windupUntil){
+      // Laser sight while the robot aims: the cue to jump.
+      const mx = x - 14 + (flip ? 48 - ROBOT_MUZZLE.x : ROBOT_MUZZLE.x), my = y - 24 + ROBOT_MUZZLE.y;
+      const pulse = 0.45 + 0.35 * Math.sin(simulationTime / 40);
+      ctx.save();
+      ctx.globalAlpha = pulse; ctx.fillStyle = '#ff3a4f';
+      ctx.fillRect(flip ? mx - 70 : mx, my, 70, 1);
+      ctx.globalAlpha = 1; ctx.fillStyle = '#ffd0d6'; ctx.fillRect(mx - 1, my - 1, 2, 2);
+      ctx.restore();
+    }
+  }
+  for(const shot of enemyShots){
+    const sx = (shot.x - cameraX)|0, sy = shot.y|0;
+    if(sx < -8 || sx > VW + 8) continue;
+    ctx.save();
+    ctx.shadowColor = '#ff4a5c'; ctx.shadowBlur = 6;
+    ctx.fillStyle = '#ff4a5c'; ctx.fillRect(shot.vx > 0 ? sx - 8 : sx + 2, sy, 6, 1);
+    ctx.fillStyle = '#ffe0e4'; ctx.fillRect(sx - 2, sy - 1, 4, 3);
+    ctx.restore();
   }
   for(const d of drones){
     const x = (d.x - cameraX)|0, y = d.y|0;
@@ -1357,6 +1523,7 @@ function loop(now){
   ctx.clearRect(0,0,VW,VH);
   drawGaps();
   drawTiles();
+  drawGapWarnings();
   drawTerminals();
   drawDronesAndCones(now);
   drawCoins();
@@ -1415,6 +1582,7 @@ export async function bootLevel(levelNumber, opts = {}){
   nextCoinId=0;
   platforms = []; robots = []; drones = []; females = []; terminals = []; ads = []; coins = [];
   projectiles=[];impacts=[];gunPickup=null;nextShot=0;notice='';noticeUntil=0;
+  enemyShots=[];corpses=[];gangSpotted=false;
   hasGun=LVL>=5 && getRunN('blackoutGun',0)>0;
   exitDoor = null;
 
