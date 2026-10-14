@@ -69,7 +69,7 @@ def identity(auth, app, required=True):
     header = request.headers.get('Authorization', '')
     if not header:
         if required:
-            raise ApiError('Sign in with Google to continue.', 401)
+            raise ApiError('Sign in or register a handle to continue.', 401)
         return None
     if not header.startswith('Bearer ') or len(header) > 8192:
         raise ApiError('Invalid authorization header.', 401)
@@ -215,11 +215,14 @@ def handle_available(handle):
     return jsonify(available=not reservation or bool(uid and reservation.get('playerId') == player_id(uid)))
 
 
-@api.post('/handle')
-@signed_in
-def claim_handle(db, uid):
+def claim_public_handle(db, uid, handle):
+    """Reserve a District-wide public handle for uid. Shared by every game.
+
+    Returns (display, changed_at). Raises ApiError when the handle is invalid,
+    taken by someone else, or changed too recently.
+    """
     from firebase_admin import firestore
-    display, key = clean_handle(body(['handle'])['handle'])
+    display, key = clean_handle(handle)
     now, pid = int(time.time()), player_id(uid)
     profile_ref, _, board_ref = refs(db, pid)
     reservation = db.collection('bp_handles').document(key)
@@ -246,6 +249,19 @@ def claim_handle(db, uid):
         return now
     changed_at = commit(db.transaction())
     invalidate_top()
+    return display, changed_at
+
+
+@api.post('/handle')
+@signed_in
+def claim_handle(db, uid):
+    display, changed_at = claim_public_handle(db, uid, body(['handle'])['handle'])
+    try:
+        # Show the same handle in every District game. Best effort only.
+        _, auth, app = services()
+        auth.update_user(uid, display_name=display, app=app)
+    except Exception:
+        pass
     return jsonify(handle=display, nextChangeAt=changed_at + HANDLE_COOLDOWN)
 
 

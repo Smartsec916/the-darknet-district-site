@@ -57,6 +57,7 @@ def _extra_origins(name):
 CORS(app, resources={
     r"/api/void-runner/.*": {"origins": [*SITE_ORIGINS, *_extra_origins("VOID_EXTRA_ORIGINS")]},
     r"/api/blackout/.*": {"origins": [*SITE_ORIGINS, *_extra_origins("BLACKOUT_EXTRA_ORIGINS")]},
+    r"/api/identity/.*": {"origins": [*SITE_ORIGINS, *_extra_origins("VOID_EXTRA_ORIGINS"), *_extra_origins("BLACKOUT_EXTRA_ORIGINS")]},
     # The chat spends OpenAI credits, so only the site itself may call it from a browser.
     r"/api/(chat|devtools)/.*": {"origins": [*SITE_ORIGINS, *_extra_origins("CHAT_EXTRA_ORIGINS")]},
     r"/api/health": {"origins": "*"},
@@ -65,6 +66,8 @@ from void_runner_api import api as void_runner_api
 app.register_blueprint(void_runner_api)
 from blackout_api import api as blackout_api
 app.register_blueprint(blackout_api)
+from identity_api import api as identity_api
+app.register_blueprint(identity_api)
 
 
 @app.get('/void-runner/<path:filename>')
