@@ -1,0 +1,11 @@
+# Crawl guidance only; this does not hide or protect anything.
+User-agent: *
+Disallow: /tests/
+Disallow: /tools/
+Disallow: /scripts/
+Disallow: /exports/
+Disallow: /static/
+Disallow: /attached_assets/*.txt
+Disallow: /obs.html
+
+Sitemap: https://thedarknetdistrict.com/sitemap.xml
