@@ -165,12 +165,31 @@ def public_entry(doc, rank):
             'highestCompletedLevel': value['highestCompletedLevel']}
 
 
-@api.get('/leaderboard')
-def leaderboard():
-    db, auth, app = services()
+# The public top 100 costs up to 100 Firestore reads, so it is shared across
+# requests briefly and dropped whenever a score or handle changes.
+TOP_CACHE_SECONDS = 30
+_top_cache = {'at': 0.0, 'rows': None}
+
+
+def invalidate_top():
+    _top_cache['rows'] = None
+
+
+def top_entries(db):
+    now = time.monotonic()
+    if _top_cache['rows'] is not None and now - _top_cache['at'] < TOP_CACHE_SECONDS:
+        return _top_cache['rows']
     from google.cloud.firestore_v1 import Query
     rows = db.collection('bp_leaderboard').order_by('bestScore', direction=Query.DESCENDING).order_by('sortKey').limit(100).stream()
     top = [public_entry(doc, rank) for rank, doc in enumerate(rows, 1)]
+    _top_cache.update(at=now, rows=top)
+    return top
+
+
+@api.get('/leaderboard')
+def leaderboard():
+    db, auth, app = services()
+    top = top_entries(db)
     uid = identity(auth, app, required=False)
     mine = None
     if uid:
@@ -226,6 +245,7 @@ def claim_handle(db, uid):
             tx.set(board_ref, {'handle': display}, merge=True)
         return now
     changed_at = commit(db.transaction())
+    invalidate_top()
     return jsonify(handle=display, nextChangeAt=changed_at + HANDLE_COOLDOWN)
 
 
@@ -340,4 +360,5 @@ def finish_run(db, uid, run_id):
         return {'personalBest': improved, 'bestScore': best,
                 'completedLevel': completed, 'duplicate': False}
     result = commit(db.transaction())
+    invalidate_top()
     return jsonify(**result)

@@ -7,6 +7,14 @@ and the Iris widget. Functions must tolerate pages that do not include their DOM
 ==============================================================================
 */
 
+// GitHub Pages hosts the public site but has no API, so the live domain talks to
+// the Render backend. Anywhere else (local dev, Render itself) uses same-origin.
+window.IRIS_API_BASE = window.IRIS_API_BASE ?? (
+  /(^|\.)thedarknetdistrict\.com$|\.github\.io$/.test(location.hostname)
+    ? 'https://the-darknet-district-site.onrender.com'
+    : ''
+);
+
 // ============================================================================
 // HAK5 PRODUCTS LOADING
 // ============================================================================
@@ -248,10 +256,9 @@ async function sendMessage() {
     return;
   }
 
-  // Send to the same-origin backend so local and published site requests use
-  // the server that is serving this page.
+  // IRIS_API_BASE points the live site at Render; elsewhere it is same-origin.
   try {
-    const response = await fetch('/api/chat/message', {
+    const response = await fetch(`${window.IRIS_API_BASE}/api/chat/message`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -265,7 +272,9 @@ async function sendMessage() {
     });
 
     const data = await response.json().catch(() => ({}));
-    if (!response.ok || typeof data.response !== 'string' || !data.response.trim()) {
+    // 413 (too long) and 429 (rate limited) still carry an in-character reply.
+    const replyable = response.ok || response.status === 413 || response.status === 429;
+    if (!replyable || typeof data.response !== 'string' || !data.response.trim()) {
       throw new Error(`Iris request failed with status ${response.status}`);
     }
 
