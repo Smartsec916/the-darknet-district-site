@@ -3,8 +3,8 @@
 THE DARKNET DISTRICT — HOMEPAGE TECH ACCENTS
 
 Refined layer on top of the existing homepage look: cursor-lit grid, rare
-signal tears, precision readouts, glass navigation, chromatic title, orbiting
-light on the Enter button and the Iris capsule. accents.js builds the extra
+signal tears, glass navigation, chromatic title, the Void Runner teaser with
+an orbiting light, and the Iris capsule. accents.js builds the extra
 elements; removing both files restores the original homepage exactly.
 ==============================================================================
 */
@@ -70,99 +70,6 @@ body.site-home .tdd-tear--b {
 body.site-home .tdd-tear.is-on {
   opacity: 1;
 }
-
-/* Precision ruler under the navigation; the marker follows the cursor. */
-body.site-home .tdd-ruler {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 3;
-  height: 18px;
-  pointer-events: none;
-  border-bottom: 1px solid var(--tdd-hair);
-  background:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.28) 0 1px, transparent 1px 50px) 0 100% / 100% 9px no-repeat,
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.12) 0 1px, transparent 1px 10px) 0 100% / 100% 4px no-repeat;
-}
-
-body.site-home .tdd-ruler-mark {
-  position: absolute;
-  bottom: 0;
-  left: var(--tdd-px, 50%);
-  width: 1px;
-  height: 18px;
-  background: var(--tdd-green);
-  box-shadow: 0 0 6px rgba(0, 255, 157, 0.8);
-  transition: left 0.12s ease-out;
-}
-
-body.site-home .tdd-ruler-mark::after {
-  content: "";
-  position: absolute;
-  bottom: 18px;
-  left: -3px;
-  border: 3px solid transparent;
-  border-top-color: var(--tdd-green);
-}
-
-body.site-home .tdd-readout {
-  position: absolute;
-  z-index: 3;
-  pointer-events: none;
-  font: 11px/1.2 var(--tdd-micro);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: rgba(228, 228, 228, 0.62);
-}
-
-body.site-home .tdd-readout b {
-  font-weight: normal;
-  color: var(--tdd-green);
-}
-
-body.site-home .tdd-readout--tl { top: 40px; left: 26px; }
-body.site-home .tdd-readout--tr { top: 40px; right: 26px; text-align: right; }
-body.site-home .tdd-readout--bl { bottom: 26px; left: 26px; }
-
-body.site-home .tdd-pulse {
-  display: inline-block;
-  width: 5px;
-  height: 5px;
-  margin-right: 8px;
-  border-radius: 50%;
-  vertical-align: 1px;
-  background: var(--tdd-green);
-  animation: tdd-breathe 3.2s ease-in-out infinite;
-}
-
-@keyframes tdd-breathe {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.4); }
-  50% { opacity: 0.25; box-shadow: 0 0 0 4px rgba(0, 255, 157, 0); }
-}
-
-body.site-home .tdd-cross {
-  position: absolute;
-  z-index: 3;
-  width: 11px;
-  height: 11px;
-  pointer-events: none;
-}
-
-body.site-home .tdd-cross::before,
-body.site-home .tdd-cross::after {
-  content: "";
-  position: absolute;
-  background: rgba(255, 255, 255, 0.45);
-}
-
-body.site-home .tdd-cross::before { left: 5px; top: 0; width: 1px; height: 11px; }
-body.site-home .tdd-cross::after { top: 5px; left: 0; width: 11px; height: 1px; }
-body.site-home .tdd-cross--1 { top: 26px; left: 12px; }
-body.site-home .tdd-cross--2 { top: 26px; right: 12px; }
-body.site-home .tdd-cross--3 { bottom: 12px; left: 12px; }
-body.site-home .tdd-cross--4 { bottom: 12px; right: 12px; }
 
 /* ---------------------------------------------------------------------------
    GLASS NAVIGATION
@@ -233,9 +140,8 @@ body.site-home .top-nav a[aria-current="page"]::before {
 }
 
 /* The accents bring their own refined glitches, so the older jitter effect
-   from script.js is muted on the navigation and the Enter button. */
-body.site-home .top-nav a.glitch-text,
-body.site-home .enter-district-btn.glitch-text {
+   from script.js is muted on the navigation. */
+body.site-home .top-nav a.glitch-text {
   animation: none !important;
 }
 
@@ -290,51 +196,103 @@ body.site-home .tdd-ghost--c { color: #00e5ff; }
 body.site-home .cyberpunk-title.is-slicing .tdd-ghost { opacity: 0.85; }
 
 /* ---------------------------------------------------------------------------
-   ENTER BUTTON — glass with a light orbiting the edge; label decodes on hover
+   VOID RUNNER TEASER — replaces Enter the District until the game launches.
+   The logo uses the same type treatment as the game's main menu.
    --------------------------------------------------------------------------- */
-body.site-home .enter-district-btn {
-  animation: none;
-  border: 1px solid rgba(0, 255, 157, 0.22);
+body.site-home .tdd-vr {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin: 70px auto 0;
+  padding: 26px clamp(24px, 5vw, 48px) 22px;
+  width: fit-content;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+  border: 1px solid rgba(108, 228, 207, 0.22);
   border-radius: 2px;
-  background: rgba(0, 10, 6, 0.42);
+  background: rgba(4, 7, 19, 0.5);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  box-shadow: 0 0 60px rgba(0, 255, 157, 0.1), inset 0 0 30px rgba(0, 255, 157, 0.05);
-  letter-spacing: 6px;
-  font-size: clamp(1rem, 3.4vw, 1.5rem);
-  padding: clamp(16px, 3.4vw, 22px) clamp(30px, 6vw, 56px);
-  text-shadow: 0 0 12px rgba(0, 255, 157, 0.45);
+  box-shadow: 0 0 60px rgba(108, 228, 207, 0.08), inset 0 0 30px rgba(108, 228, 207, 0.04);
 }
 
-body.site-home .enter-district-btn::after {
+body.site-home .tdd-vr::after {
   content: "";
   position: absolute;
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
   pointer-events: none;
-  background: conic-gradient(from var(--tdd-orbit), transparent 0deg 250deg, rgba(0, 255, 157, 0.9) 300deg, #c9b3ff 330deg, rgba(147, 39, 255, 0.9) 345deg, transparent 360deg);
+  background: conic-gradient(from var(--tdd-orbit), transparent 0deg 250deg, rgba(108, 228, 207, 0.9) 300deg, #c9b3ff 330deg, rgba(147, 39, 255, 0.9) 345deg, transparent 360deg);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
   animation: tdd-orbit 5.5s linear infinite;
 }
 
-body.site-home .enter-district-btn::before {
-  background: linear-gradient(100deg, transparent 35%, rgba(255, 255, 255, 0.1) 50%, transparent 65%);
-}
-
-body.site-home .enter-district-btn:hover,
-body.site-home .enter-district-btn:focus-visible {
-  transform: none;
-  filter: none;
-  border-color: rgba(0, 255, 157, 0.55);
-  box-shadow: 0 0 80px rgba(0, 255, 157, 0.18), inset 0 0 30px rgba(0, 255, 157, 0.08);
-  outline: none;
-}
-
 @keyframes tdd-orbit {
   to { --tdd-orbit: 360deg; }
+}
+
+body.site-home .tdd-vr-kicker {
+  margin: 0;
+  font: 11px/1.4 monospace;
+  letter-spacing: 0.3em;
+  color: #81a7af;
+}
+
+/* Same treatment as .game-logo in void-runner/menu.css. */
+body.site-home .tdd-vr-logo {
+  margin: 4px 0 0;
+  font-family: Impact, 'Arial Narrow', sans-serif;
+  font-size: clamp(40px, 7vw, 92px);
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  line-height: 0.94;
+  transform: skew(-5deg);
+  color: #e5ebe6;
+  text-shadow: 2px 3px 0 #173b43;
+  text-transform: none;
+}
+
+body.site-home .tdd-vr-logo span {
+  color: #6ce4cf;
+  font-size: 0.75em;
+}
+
+body.site-home .tdd-vr-sub {
+  margin: 0;
+  font: 11px/1.4 monospace;
+  letter-spacing: 0.45em;
+  color: #b6bebb;
+}
+
+body.site-home .tdd-vr-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 7px 14px;
+  font: 12px/1.3 'Courier New', monospace;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #ffb547;
+  border: 1px solid rgba(255, 181, 71, 0.35);
+  background: rgba(40, 24, 0, 0.35);
+}
+
+body.site-home .tdd-vr-status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffb547;
+  box-shadow: 0 0 8px #ffb547;
+  animation: tdd-breathe-amber 2.6s ease-in-out infinite;
+}
+
+@keyframes tdd-breathe-amber {
+  50% { opacity: 0.3; }
 }
 
 /* ---------------------------------------------------------------------------
@@ -412,26 +370,36 @@ body.site-home .tdd-iris-text small {
 }
 
 /* ---------------------------------------------------------------------------
-   SMALL SCREENS AND REDUCED MOTION
+   HUD ON THE HOMEPAGE — hud.css lifts every top-level element into the page
+   flow; these stay pinned to the screen as before.
    --------------------------------------------------------------------------- */
-@media (max-width: 1100px) {
-  body.site-home .tdd-readout--tl,
-  body.site-home .tdd-readout--tr { top: 34px; }
+body.site-home[data-hud="immersive"] > #chatButton,
+body.site-home[data-hud="immersive"] > #chatContainer {
+  position: fixed;
+  z-index: 1000;
 }
 
+body.site-home[data-hud="immersive"] > .digital-rain {
+  position: fixed;
+  z-index: -2;
+}
+
+/* ---------------------------------------------------------------------------
+   SMALL SCREENS AND REDUCED MOTION
+   --------------------------------------------------------------------------- */
 @media (max-width: 640px) {
-  body.site-home .tdd-readout--tr,
-  body.site-home .tdd-cross--2,
-  body.site-home .tdd-wide { display: none; }
-  body.site-home .tdd-readout { font-size: 10px; }
-  body.site-home .tdd-readout--tl { left: 16px; }
-  body.site-home .tdd-readout--bl { left: 16px; bottom: 84px; }
+  /* Leave room under the teaser for the Iris button. */
+  body.site-home .first-section { padding-bottom: 96px; }
+  body.site-home .tdd-vr { margin-top: 40px; }
+  body.site-home .tdd-vr-status { font-size: 11px; letter-spacing: 0.12em; padding: 7px 10px; }
+  body.site-home .tdd-vr-sub { letter-spacing: 0.25em; }
+  body.site-home .tdd-vr-kicker { letter-spacing: 0.18em; font-size: 10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body.site-home .enter-district-btn::after,
+  body.site-home .tdd-vr::after,
+  body.site-home .tdd-vr-status i,
   body.site-home .tdd-iris-avatar svg,
-  body.site-home .tdd-pulse,
   body.site-home .top-nav a:hover {
     animation: none !important;
   }

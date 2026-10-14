@@ -35,46 +35,22 @@ cosmetic: navigation, sign-in and the Iris chat keep working without it.
   const tearA = el("div", "tdd-tear tdd-tear--a");
   const tearB = el("div", "tdd-tear tdd-tear--b");
   const grid = el("div", "tdd-grid");
-  const ruler = el("div", "tdd-ruler", '<span class="tdd-ruler-mark"></span>');
-  const readTL = el("div", "tdd-readout tdd-readout--tl", '<span class="tdd-pulse"></span>Node <b>online</b><span class="tdd-wide"> &nbsp;·&nbsp; sector 03</span>');
-  const readTR = el("div", "tdd-readout tdd-readout--tr", 'x <b data-tdd-x>0.500</b> &nbsp; y <b data-tdd-y>0.460</b>');
-  const readBL = el("div", "tdd-readout tdd-readout--bl", '<span data-tdd-clock>00:00:00</span> &nbsp;·&nbsp; uplink <b data-tdd-latency>42</b>ms &nbsp;·&nbsp; enc AES-256');
-  const crosses = [1, 2, 3, 4].map((n) => el("span", `tdd-cross tdd-cross--${n}`));
-  hero.prepend(tearA, tearB, grid, ruler, readTL, readTR, readBL, ...crosses);
+  hero.prepend(tearA, tearB, grid);
 
-  const outX = readTR.querySelector("[data-tdd-x]");
-  const outY = readTR.querySelector("[data-tdd-y]");
-  const rulerMark = ruler.querySelector(".tdd-ruler-mark");
-
+  // The grid is lit around the cursor.
   let pointerFrame = null;
   let lastPointer = null;
   function applyPointer() {
     pointerFrame = null;
     if (!lastPointer) return;
     const rect = hero.getBoundingClientRect();
-    const x = lastPointer.clientX - rect.left;
-    const y = lastPointer.clientY - rect.top;
-    hero.style.setProperty("--tdd-mx", `${x}px`);
-    hero.style.setProperty("--tdd-my", `${y}px`);
-    rulerMark.style.setProperty("--tdd-px", `${x}px`);
-    outX.textContent = Math.min(1, Math.max(0, x / rect.width)).toFixed(3);
-    outY.textContent = Math.min(1, Math.max(0, y / rect.height)).toFixed(3);
+    hero.style.setProperty("--tdd-mx", `${lastPointer.clientX - rect.left}px`);
+    hero.style.setProperty("--tdd-my", `${lastPointer.clientY - rect.top}px`);
   }
   hero.addEventListener("pointermove", (event) => {
     lastPointer = event;
     if (pointerFrame === null) pointerFrame = window.requestAnimationFrame(applyPointer);
   }, { passive: true });
-
-  const clock = readBL.querySelector("[data-tdd-clock]");
-  const latency = readBL.querySelector("[data-tdd-latency]");
-  const pad = (n) => String(n).padStart(2, "0");
-  function tick() {
-    const now = new Date();
-    clock.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-    latency.textContent = String(38 + Math.round(Math.random() * 9));
-  }
-  tick();
-  window.setInterval(tick, 1000);
 
   // ---------------------------------------------------------------------------
   // NAVIGATION — mark the current page
@@ -173,44 +149,4 @@ cosmetic: navigation, sign-in and the Iris chat keep working without it.
     window.setTimeout(slice, 4500 + Math.random() * 5000);
   }
   window.setTimeout(slice, 3500);
-
-  // ---------------------------------------------------------------------------
-  // ENTER BUTTON — label decodes when hovered or focused
-  // ---------------------------------------------------------------------------
-  const enter = hero.querySelector(".enter-district-btn");
-  if (enter) {
-    const original = enter.textContent.trim();
-    const labelSpan = document.createElement("span");
-    labelSpan.textContent = original;
-    enter.textContent = "";
-    enter.append(labelSpan);
-    enter.setAttribute("aria-label", original);
-
-    const glyphs = "ABCDEFGHJKLMNPRSTUVXYZ0123456789";
-    let decoding = false;
-    function decode() {
-      if (decoding) return;
-      decoding = true;
-      enter.style.minWidth = `${enter.offsetWidth}px`;
-      const start = performance.now();
-      const duration = 420;
-      (function frame(now) {
-        const progress = Math.min(1, (now - start) / duration);
-        let out = "";
-        for (let i = 0; i < original.length; i += 1) {
-          const ch = original[i];
-          out += ch === " " || i / original.length < progress ? ch : glyphs[(Math.random() * glyphs.length) | 0];
-        }
-        labelSpan.textContent = out;
-        if (progress < 1) {
-          window.requestAnimationFrame(frame);
-        } else {
-          labelSpan.textContent = original;
-          decoding = false;
-        }
-      })(start);
-    }
-    enter.addEventListener("mouseenter", decode);
-    enter.addEventListener("focus", decode);
-  }
 }());
