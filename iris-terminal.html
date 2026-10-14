@@ -435,8 +435,11 @@ Status: 100% operational and growing
     }
 
     function processCommand(cmd) {
-      const userLine = `<span class="user-input-line">iris@terminal:~$ ${cmd}</span>`;
-      addLine(userLine, 'user-input-line');
+      // Typed input is shown as text, never parsed as HTML.
+      const userLine = document.createElement('span');
+      userLine.className = 'user-input-line';
+      userLine.textContent = `iris@terminal:~$ ${cmd}`;
+      addLine(userLine.outerHTML, 'user-input-line');
       
       commandHistory.unshift(cmd);
       if (commandHistory.length > 20) commandHistory.pop();

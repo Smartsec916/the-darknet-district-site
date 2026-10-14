@@ -68,7 +68,7 @@ window.addEventListener("load", () => {
                 }
                 
                 // Get varied greeting from backend
-                fetch('/api/chat/greeting')
+                fetch(`${window.IRIS_API_BASE || ''}/api/chat/greeting`)
                     .then(response => response.json())
                     .then(data => {
                         setTimeout(() => {
@@ -82,7 +82,7 @@ window.addEventListener("load", () => {
                     });
                 
                 // Get devtools message from backend
-                fetch('/api/devtools/message')
+                fetch(`${window.IRIS_API_BASE || ''}/api/devtools/message`)
                     .then(response => response.json())
                     .then(data => {
                         setTimeout(() => {
