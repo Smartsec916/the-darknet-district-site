@@ -19,8 +19,9 @@ Activation: add data-hud="immersive" to a page's body.
   --tdnd-hud-mobile-effect-intensity: 0.4;
   --tdnd-hud-pov-parallax-strength: 8;
   --tdnd-hud-pov-settle: 0.1;
-  /* Head-mounted sway on the LAT/LON tapes. 1 is roughly 1-2px; keep it subtle. */
-  --tdnd-hud-sway-strength: 0.45;
+  /* Head-mounted sway on the LAT/LON tapes. 1 is about 3-5px of idle drift;
+     it calms while scrolling. 0.5 is gentler, 1.5 more pronounced. */
+  --tdnd-hud-sway-strength: 1;
 }
 
 /* The HUD stays isolated until a page explicitly opts in. */

@@ -60,10 +60,10 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
   tapes.setAttribute("aria-hidden", "true");
   tapes.innerHTML = `
     <div class="tdnd-hud-tape tdnd-hud-tape--left" data-axis="lat">
-      <canvas></canvas><div class="tdnd-hud-caret"><b data-caret>37.7749</b><small>LAT N</small></div>
+      <canvas></canvas><div class="tdnd-hud-caret"><b data-caret>37.77490</b><small>LAT N</small></div>
     </div>
     <div class="tdnd-hud-tape tdnd-hud-tape--right" data-axis="lon">
-      <canvas></canvas><div class="tdnd-hud-caret"><b data-caret>122.4194</b><small>LON W</small></div>
+      <canvas></canvas><div class="tdnd-hud-caret"><b data-caret>122.41940</b><small>LON W</small></div>
     </div>
   `;
   body.prepend(tapes);
@@ -238,12 +238,13 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
 
   function render() {
     const center = smoothScroll + window.innerHeight / 2;
-    tapeViews.forEach((view) => drawTape(view, center, docHeight));
+    tapeViews.forEach((view) => drawTape(view, center + tickDrift, docHeight));
 
-    const lat = valueAt("lat", center).toFixed(4);
-    const lon = valueAt("lon", center).toFixed(4);
-    tapeViews[0].caret.textContent = lat;
-    tapeViews[1].caret.textContent = lon;
+    const lat = valueAt("lat", center + tickDrift).toFixed(4);
+    const lon = valueAt("lon", center + tickDrift).toFixed(4);
+    // The caret carries one extra digit so the unsteady view shows in the reading.
+    tapeViews[0].caret.textContent = valueAt("lat", center + tickDrift).toFixed(5);
+    tapeViews[1].caret.textContent = valueAt("lon", center + tickDrift).toFixed(5);
     if (visorLat) visorLat.textContent = `LAT ${lat}`;
     if (visorLon) visorLon.textContent = `LON ${lon}`;
 
@@ -251,14 +252,21 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
   }
 
   // Sum of slow, unrelated sine waves: never repeats visibly, never jerks.
-  function sway(t) {
-    const s = swayStrength;
+  // At strength 1 the view drifts about 3-5px with a slight tilt while idle.
+  function sway(t, amount) {
+    const s = swayStrength * amount;
     return {
-      x: s * (1.1 * Math.sin(t * 0.43) + 0.6 * Math.sin(t * 1.21 + 1.3) + 0.25 * Math.sin(t * 2.9 + 0.4)),
-      y: s * (0.9 * Math.sin(t * 0.57 + 2.1) + 0.5 * Math.sin(t * 1.63 + 0.7) + 0.2 * Math.sin(t * 3.7)),
-      r: s * (0.08 * Math.sin(t * 0.31 + 0.9) + 0.03 * Math.sin(t * 1.1))
+      x: s * (2.6 * Math.sin(t * 0.43) + 1.4 * Math.sin(t * 1.21 + 1.3) + 0.5 * Math.sin(t * 2.9 + 0.4)),
+      y: s * (2.0 * Math.sin(t * 0.57 + 2.1) + 1.1 * Math.sin(t * 1.63 + 0.7) + 0.4 * Math.sin(t * 3.7)),
+      r: s * (0.22 * Math.sin(t * 0.31 + 0.9) + 0.08 * Math.sin(t * 1.1)),
+      // The ticks wander a little against the fixed caret, so the reading wavers.
+      tick: s * (2.4 * Math.sin(t * 0.37 + 0.5) + 1.0 * Math.sin(t * 1.7 + 2.2))
     };
   }
+
+  // Sway is strongest when the page is still and calms while scrolling.
+  let idle = 1;
+  let tickDrift = 0;
 
   function loop(now) {
     loopFrame = null;
@@ -273,7 +281,10 @@ The HUD never owns navigation, content, authentication, or Iris behavior.
     povY += (targetPovY - povY) * povSettle;
 
     const t = now / 1000;
-    const s = sway(t);
+    const moving = Math.min(1, Math.abs(velocity) / 6);
+    idle += ((1 - 0.7 * moving) - idle) * 0.05;
+    const s = sway(t, idle);
+    tickDrift = s.tick;
     // A quick scroll makes the view lag a touch, the way a head trails a turn.
     const lag = Math.max(-3, Math.min(3, -velocity * 0.06));
 
