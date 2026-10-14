@@ -1097,3 +1097,22 @@ section {
     margin-left: 0 !important;
   }
 }
+
+/* ============================================================================
+   REDUCED MOTION - Respect visitors who ask their device to limit motion.
+   Effects freeze on a still frame instead of disappearing, so the look stays.
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .digital-rain {
+    display: none;
+  }
+}
