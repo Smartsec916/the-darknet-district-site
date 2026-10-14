@@ -40,6 +40,9 @@
       return migrate({ ...fresh(), quest: s.quest, location: s.location, credits: s.credits, completed: s.completed, upgrades: { guns: s.upgrades.guns, armor: s.upgrades.armor, engines: s.upgrades.engines,shields:s.upgrades.shields }, contract: s.contract, cleared, loadout,creditGear },s);
     } catch { return null; }
   }
+  // The Vesper practice circuit is flown before the Meridian run. Its route uses the
+  // inheritance quest as its mission id, so cloud saves need no new quest state.
+  function trainingPending(s){ return s.quest==='inheritance'&&P.groundDone(s)&&s.progression?.flags?.board===true&&s.story?.flags?.flightTrainingComplete!==true; }
   function beginJourney(s) { if (s.quest !== 'inheritance'||!P.groundDone(s)) return false; s.quest = 'arrival'; s.story.chapter='arrival';P.sync(s);Missions.acquire(s,'flight-training');Missions.acquire(s,'meet-rook');Missions.complete(s,'meet-rook','instructions',{missionFlight});Missions.sync(s,{missionFlight}); Story.emit(s,'leaveLocation','vesper'); return true; }
   function stats(s, owned = []) {
     const ship=S.get(s), weapon=S.equipment[s.loadout?.weapon], shield=S.equipment[s.loadout?.shield];
@@ -53,6 +56,7 @@
   function unlocked(s,c) { return s.quest==='open' && (s.universe.freeTravel||s.progression.completed) && (!c.requires || s.cleared.includes(c.requires)); }
   function missionFlight(s) {
     const base = { enemies: 0, tier: 0, duration: 15, reward: 0, legal: true, cargo: 'Empty hold' };
+    if (trainingPending(s)) return { ...base, name: 'Flight training / Vesper circuit', destination: 'vesper', duration: 10, kind: 'training' };
     if (s.quest === 'arrival') return { ...base, name: 'A ship of your own', destination: 'meridian' };
     if (s.quest === 'legal-run') return { ...base, name: 'An honest living', cargo: 'Water filtration parts', destination: 'kepler', enemies: 1, duration: 28, reward: 350 };
     if (s.quest === 'return') return { ...base, name: 'Back to the Dead Channel', destination: 'meridian', duration: 18 };
@@ -88,6 +92,13 @@
     const previous = s.quest;
     if(f.enemies>0){s.combatRuns=(s.combatRuns||0)+1;if(s.combatRuns>=2)s.missileUnlocked=true;}
     s.travel=null;s.destination=null;
+    if(f.kind==='training'){
+      s.location=f.destination;U.visit(s);P.checkpoint(s,s.location);P.mark(s,'dock');
+      s.story.flags.flightTrainingComplete=true;
+      Missions.sync(s,{missionFlight,contracts});Missions.complete(s,'meet-rook','instructions',{missionFlight});
+      Story.emit(s,'arriveLocation',s.location);
+      return {...f,repairCharged:0,gunReward:false,training:true};
+    }
     s.location = f.destination; U.visit(s);P.checkpoint(s,s.location);P.mark(s,'dock');if(!s.progression.equipment.owned.includes('cooling')){s.progression.equipment.owned.push('cooling');if(previous==='arrival')s.credits+=200;} s.credits += f.reward;
     const repairCharged=Math.min(s.credits,Math.round(B.repairCost));s.credits-=repairCharged;
     if (f.reward) s.completed++;
@@ -193,7 +204,7 @@
       }
     };
   }
-  const api = { stations, contracts, allContracts, upgrades, fresh, restore, beginJourney, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
+  const api = { stations, contracts, allContracts, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

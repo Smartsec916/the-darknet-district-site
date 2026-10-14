@@ -47,12 +47,36 @@ test('finishing later qualification allows travel while a skipped maneuver remai
  assert.equal(M.tracked(s,C).objectives.find(o=>!o.complete).id,'steer');
 });
 
-test('Mara handoff starts cargo independently and a skipped tutorial maneuver does not block Rook',()=>{
- const s=C.fresh();s.progression.opening={version:2,hologram:false,pistol:true,cans:[0,1,2,3]};
+test('Mara handoff starts the Vesper practice circuit; Rook waits until it is flown',()=>{
+ const s=C.fresh();s.location='vesper';s.progression.opening={version:2,hologram:true,pistol:true,cans:[0,1,2,3]};
  P.repairOpening(s);P.mark(s,'maraShipHandoff');M.sync(s,C);
+ assert.equal(M.all(s,C).find(m=>m.id==='ground-training').completed,true);
  assert.equal(M.all(s,C).find(m=>m.id==='flight-training').completed,false);
+ assert.equal(M.all(s,C).some(m=>m.id==='meet-rook'),false,'cargo must not start before the practice circuit');
+ assert.equal(M.tracked(s,C)?.id,'flight-training');
+ assert.equal(C.flight(s),null,'no flight until the pilot boards');
+ P.mark(s,'board');
+ const circuit=C.flight(s);
+ assert.equal(circuit.kind,'training');assert.equal(circuit.destination,'vesper');assert.equal(circuit.enemies,0);
+ assert.equal(M.all(s,C).some(m=>m.id==='inheritance'),false,'the circuit is not a separate log entry');
+ for(const id of ['throttle','steer','roll','navigation','jumpTravel'])P.mark(s,id);
+ const landed=C.complete(s);
+ assert.equal(landed.training,true);assert.equal(s.quest,'inheritance');assert.equal(s.location,'vesper');
+ assert.equal(s.story.flags.flightTrainingComplete,true);assert.equal(s.credits,100,'practice circuit pays and charges nothing');
+ assert.equal(M.all(s,C).find(m=>m.id==='flight-training').completed,true);
  assert.equal(M.all(s,C).find(m=>m.id==='meet-rook').objectives[0].complete,true);
- assert(C.beginJourney(s));
+ assert.equal(M.tracked(s,C)?.id,'meet-rook','next mission is tracked automatically');
+ assert.equal(C.trainingPending(s),false);
+ assert(C.beginJourney(s));assert.equal(C.flight(s).destination,'meridian');
+ const restored=C.restore(JSON.stringify(s));
+ assert.equal(restored.story.flags.flightTrainingComplete,true);
+});
+
+test('a skipped tutorial maneuver on older saves does not block Rook',()=>{
+ const s=C.fresh();s.progression.opening={version:2,hologram:false,pistol:true,cans:[0,1,2,3]};
+ P.repairOpening(s);P.mark(s,'maraShipHandoff');
+ assert(C.beginJourney(s));M.sync(s,C);
+ assert.equal(M.all(s,C).find(m=>m.id==='meet-rook').objectives[0].complete,true);
  assert(M.track(s,'meet-rook',C));
  P.mark(s,'board');
  s.location='meridian';s.quest='legal-offer';M.sync(s,C);
@@ -61,6 +85,33 @@ test('Mara handoff starts cargo independently and a skipped tutorial maneuver do
  assert.equal(M.all(s,C).find(m=>m.id==='flight-training').completed,false);
  assert(C.accept(s));
  assert.equal(s.quest,'legal-run');
+});
+
+test('later prologue lessons appear as their own Mission Log entries',()=>{
+ const s=C.fresh();s.quest='legal-offer';s.location='meridian';M.sync(s,C);
+ const station=M.all(s,C).find(m=>m.id==='first-station');
+ assert(station);assert.equal(station.type,'tutorial');assert.equal(station.objectives[0].id,'shipInventory');
+ assert.equal(M.all(s,C).some(m=>m.id==='combat-qualification'),false,'combat lessons wait for the first cargo run');
+ for(const id of M.stationIds)P.mark(s,id);M.sync(s,C);
+ assert.equal(M.all(s,C).find(m=>m.id==='first-station').completed,true);
+ assert(C.accept(s));M.sync(s,C);
+ const combat=M.all(s,C).find(m=>m.id==='combat-qualification');
+ assert(combat);assert.deepEqual(combat.objectives.map(o=>o.id),M.combatIds);
+ assert.deepEqual(M.guidance(s,{...station,completed:false,objectives:station.objectives.map(o=>({...o,complete:o.id!=='vendor'}))},true),{kind:'local',label:'Visit the ship outfitter',interaction:'services'});
+});
+
+test('auto-tracking follows completions but respects an explicit untrack',()=>{
+ const s=C.fresh();s.quest='legal-offer';s.location='meridian';s.story.flags.rookIntroduced=true;M.sync(s,C);
+ assert.equal(M.tracked(s,C)?.id,'flight-training','unfinished training ranks first');
+ M.untrack(s);M.sync(s,C);assert.equal(M.tracked(s,C),null);
+ assert.equal(C.restore(JSON.stringify(s)).universe.autoTrack,false);
+ for(const id of M.trainingIds)P.mark(s,id);M.sync(s,C);
+ assert.equal(M.tracked(s,C),null,'an untracked log stays untracked');
+ assert(M.track(s,'legal-offer',C)===false);
+ assert(M.track(s,'first-station',C));
+ for(const id of M.stationIds)P.mark(s,id);M.sync(s,C);
+ assert.notEqual(M.tracked(s,C)?.id,'first-station');
+ assert.equal(s.universe.autoTrack,true,'completing the tracked mission resumes automatic tracking');
 });
 
 test('tracking and independent objectives survive legacy save restoration',()=>{

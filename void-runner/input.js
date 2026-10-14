@@ -16,7 +16,8 @@
     next: ['Next hostile', 'Tab'],
     previous: ['Previous hostile', 'KeyG'],
     clear: ['Clear target', 'KeyC'],
-    lock: ['Acquire target lock', 'KeyL'],
+    lock: ['Acquire target lock', 'KeyB'],
+    missionLog: ['Mission log', 'KeyL'],
     pause: ['Pause / menu', 'Escape']
   };
   const defaults = Object.fromEntries(Object.entries(actions).map(([id, a]) => [id, a[1]])),
@@ -28,6 +29,13 @@
   const controller = {bindings:{...controllerDefaults},sensitivity:1,leftDeadZone:.16,rightDeadZone:.18,invertY:false};
   try {
     const raw = JSON.parse(root.localStorage?.getItem(key) || 'null');
+    // Saves from before the Mission Log action used L for target lock; move that
+    // default lock to B so the new Mission Log default does not collide.
+    if (raw && typeof raw.missionLog !== 'string') {
+      const used = code => Object.values(raw).includes(code);
+      if (raw.lock === 'KeyL' && !used('KeyB')) raw.lock = 'KeyB';
+      raw.missionLog = ['KeyL', 'KeyJ', 'KeyK', 'KeyN'].find(code => !used(code)) || 'KeyL';
+    }
     if (raw && Object.keys(defaults).every(id => typeof raw[id] === 'string') && new Set(Object.keys(defaults).map(id=>raw[id]))
       .size === Object.keys(defaults).length) bindings = Object.fromEntries(Object.keys(defaults).map(
       id => [id, raw[id]]));

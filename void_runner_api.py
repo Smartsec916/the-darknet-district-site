@@ -284,6 +284,7 @@ def clean_save(value):
         raise ApiError('Invalid tracked mission.')
     cleaned_universe['trackedMission'] = tracked
     cleaned_universe['trackingInitialized'] = universe.get('trackingInitialized') is True or tracked is not None
+    cleaned_universe['autoTrack'] = universe.get('autoTrack') is not False
     records=universe.get('missions',{})
     import re
     def mission_id(item):

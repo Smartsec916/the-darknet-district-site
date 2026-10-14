@@ -12,13 +12,15 @@
  for(const location of Object.values(locations)){location.ownerFaction??=null;location.securityFaction??=location.system==='sol'?'sol-local':'erebus-local';}
  function system(id){return locations[id]?.system||'erebus';}
  function route(a,b){const interstellar=system(a)!==system(b);return {kind:interstellar?'interstellar':'local',seconds:progression.tuning.jump[interstellar?'interstellar':'local'],interdiction:!interstellar};}
- function fresh(){return {currentSystem:'erebus',discoveredSystems:['erebus'],discoveredLocations:['vesper','meridian'],visitedLocations:['vesper'],missionLogUnlocked:false,freeTravel:false,trackedMission:null,trackingInitialized:false,missions:{},completedObjectives:[],station:null};}
+ function fresh(){return {currentSystem:'erebus',discoveredSystems:['erebus'],discoveredLocations:['vesper','meridian'],visitedLocations:['vesper'],missionLogUnlocked:false,freeTravel:false,trackedMission:null,trackingInitialized:false,autoTrack:true,missions:{},completedObjectives:[],station:null};}
  function restore(raw={},state={}){const out={...fresh()},valid=xs=>Array.isArray(xs)?[...new Set(xs.filter(x=>Object.hasOwn(locations,x)))]:[];
   out.currentSystem=system(state.location);out.discoveredLocations=[...new Set([...out.discoveredLocations,...valid(raw.discoveredLocations),state.location].filter(Boolean))];out.visitedLocations=[...new Set([...out.visitedLocations,...valid(raw.visitedLocations),state.location].filter(Boolean))];
   // Earlier saves already received Rook's voucher; migrate its world unlock once.
   out.missionLogUnlocked=raw.missionLogUnlocked===true||state.progression?.opening?.pistol===true||state.missileOfferSeen===true||state.quest!=='inheritance';out.freeTravel=state.progression?state.progression.completed===true||raw.freeTravel===true:out.missionLogUnlocked;
   out.trackedMission=typeof raw.trackedMission==='string'?raw.trackedMission:null;
   out.trackingInitialized=raw.trackingInitialized===true||out.trackedMission!==null;
+  // Only an explicit Untrack turns off automatic tracking of the next mission.
+  out.autoTrack=raw.autoTrack!==false;
   for(const [id,entry] of Object.entries(raw.missions||{}).slice(0,100))if(/^[a-z][a-z0-9-]{0,79}$/.test(id)&&entry?.acquired===true){
    const objectives={};for(const [key,value] of Object.entries(entry.objectives||{}).slice(0,100))if(/^[a-z][a-z0-9-]{0,79}$/.test(key)&&value===true)objectives[key]=true;
    out.missions[id]={acquired:true,completed:entry.completed===true,objectives};

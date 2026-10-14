@@ -2,71 +2,118 @@
    authority for tutorial actions; the log never infers them from later travel. */
 (function(root){
  const U=typeof module!=='undefined'?require('./universe.js'):root.VoidUniverse;
- const training=[
-  ['receive-gun','Receive Elias’s pistol from Mara'],['move','Move through the workshop'],
-  ['sprint','Run'],['jump','Jump'],['groundCombat','Destroy four training cans'],
-  ['board','Board the ship'],['throttle','Use throttle and braking'],
-  ['steer','Pitch and yaw the ship'],['navigation','Align with a destination'],
-  ['jumpTravel','Complete an in-system jump'],['dock','Dock at a station']
+ const P=typeof module!=='undefined'?require('./progression.js'):root.VoidProgression;
+ // Ground lessons on Vesper. Optional practice is listed but never blocks the ship.
+ const ground=[
+  ['recording','Play Elias’s recording'],['receive-gun','Receive Elias’s pistol from Mara'],
+  ['move','Move through the workshop'],['look','Look around'],['sprint','Run',false],['jump','Jump',false],
+  ['draw','Draw the pistol'],['aim','Aim down the sights'],['fire','Fire at a can'],['reload','Reload'],
+  ['groundCombat','Knock down four practice cans']
  ];
- const trainingIds=training.map(([id])=>id);
+ // The Vesper practice circuit. It is flown before the Meridian run and is separate from it.
+ const training=[
+  ['board','Board the Kestrel'],['throttle','Use throttle and braking'],
+  ['steer','Pitch and yaw the ship'],['roll','Roll the ship'],['navigation','Align with the training beacon'],
+  ['jumpTravel','Complete a short in-system jump'],['dock','Land the Kestrel']
+ ];
+ const station=[
+  ['shipInventory','Inspect your ship inventory at the maintenance terminal'],['hangar','Open hangar maintenance'],
+  ['moduleInstalled','Install the Ward cooling loop'],['vendor','Visit the ship outfitter'],
+  ['modulePurchased','Buy a ship module'],['purchasedInstalled','Install the module you bought']
+ ];
+ const combat=[
+  ['laserCombat','Fire your lasers in combat'],['missileSelected','Claim and install Rook’s missile launcher'],
+  ['targetSelected','Select a hostile target'],['missileLocked','Acquire a missile lock'],['missileFired','Fire a locked missile']
+ ];
+ const objectives=list=>list.map(([id,label,required])=>({id,label:required===false?label+' (optional)':label,...(required===false?{required:false}:{})}));
+ const trainingIds=training.map(([id])=>id),groundIds=ground.map(([id])=>id),stationIds=station.map(([id])=>id),combatIds=combat.map(([id])=>id);
+ const tutorials=['ground-training','flight-training','first-station','combat-qualification'];
  const definitions={
-  'flight-training':{title:'BASIC TRAINING',type:'tutorial',description:'Mara’s ground and introductory flight training.',giver:'Mara',source:'story',start:'vesper',end:'meridian',completion:{event:'training-actions'},objectives:training.map(([id,label])=>({id,label}))},
+  'ground-training':{title:'GROUND TRAINING',type:'tutorial',description:'Mara walks you through Elias’s workshop and his old pistol.',giver:'Mara',source:'story',start:'vesper',end:'vesper',destination:'vesper',objectives:objectives(ground)},
+  'flight-training':{title:'FLIGHT TRAINING',type:'tutorial',description:'One practice circuit over Vesper: get a feel for the Kestrel, jump to the training beacon and land back on Mara’s pad.',giver:'Mara',source:'story',start:'vesper',end:'vesper',destination:'vesper',completion:{event:'training-actions'},objectives:objectives(training)},
   'meet-rook':{title:'CARGO DELIVERY / MEET ROOK',type:'main',description:'Take the Kestrel to Meridian Station and meet Rook to begin the cargo campaign.',giver:'Mara',source:'story',start:'vesper',end:'meridian',destination:'meridian',interaction:'rook',objectives:[
    {id:'instructions',label:'Receive Mara’s instructions'}, {id:'travel',label:'Travel to Meridian Station'},
    {id:'dock',label:'Dock at Meridian Station'}, {id:'enter',label:'Enter the station'},
    {id:'locate',label:'Locate Rook'}, {id:'speak',label:'Speak with Rook'}]},
+  'first-station':{title:'FIRST STATION / OUTFITTING',type:'tutorial',description:'Learn the hangar maintenance terminal and the ship outfitter. Any station with a hangar will do.',giver:'Rook',source:'story',objectives:objectives(station)},
+  'combat-qualification':{title:'COMBAT QUALIFICATION',type:'tutorial',description:'Rook wants proof you can defend a hold. After two combat runs, claim the launcher voucher at the outfitter.',giver:'Rook',source:'story',objectives:objectives(combat)},
   'legal-run':{title:'AN HONEST LIVING',type:'cargo',description:'Deliver water filtration parts to Kepler.',giver:'Rook',destination:'kepler',rewards:350,objectives:[{id:'arrive',label:'Deliver the filters and dock at Kepler'}]},
   'return':{title:'BACK TO THE DEAD CHANNEL',type:'main',description:'Return to Meridian with the completed delivery.',giver:'Rook',destination:'meridian',objectives:[{id:'arrive',label:'Dock at Meridian Station'}]},
   'illegal-run':{title:'NO QUESTIONS ASKED',type:'cargo',description:'Deliver unregistered memory wafers to Undertow.',giver:'Rook',destination:'undertow',rewards:800,objectives:[{id:'arrive',label:'Deliver the wafers and dock at Undertow'}]},
   'meet-admin':{title:'MEET ADMIN',type:'main',description:'Find Rook’s contact in Sacramento.',giver:'Rook',source:'story',start:'meridian',end:'earth',completion:{event:'talk',interaction:'admin'},destination:'earth',interaction:'tdd',objectives:[{id:'meet-admin',label:'Find Admin at The Darknet District, Sacramento'}]}
  };
+ // Auto-tracking picks the first active mission in this order.
+ const priority=['ground-training','flight-training','meet-rook','first-station','legal-run','return','illegal-run','combat-qualification'];
  const safeId=id=>typeof id==='string'&&/^[a-z][a-z0-9-]{0,79}$/.test(id);
+ const flightTrainingDone=s=>s.story?.flags?.flightTrainingComplete===true;
+ const pastWorkshop=s=>s.quest!=='inheritance';
+ const pastMeridianArrival=s=>!['inheritance','arrival'].includes(s.quest);
+ const pastFirstOffer=s=>!['inheritance','arrival','legal-offer'].includes(s.quest);
  function define(id,definition){if(!safeId(id)||!definition||!['tutorial','main','side','cargo','campaign','bounty','station'].includes(definition.type)||!Array.isArray(definition.objectives)||!definition.objectives.length||!definition.objectives.every(o=>safeId(o.id)&&typeof o.label==='string'))return false;definitions[id]={...definition,objectives:definition.objectives.map(o=>({...o}))};return true;}
  function records(s){return s.universe.missions??={};}
  function available(s,id){const d=definitions[id];if(!d)return true;const requirements=d.prerequisites||[];return requirements.every(key=>s.universe?.missions?.[key]?.completed===true)&&Object.entries(d.storyFlags||{}).every(([key,value])=>s.story?.flags?.[key]===value)&&Object.entries(d.factionFlags||{}).every(([key,value])=>(s.progression?.reputation?.[key]||0)>=value)&&(!d.availability?.locations||d.availability.locations.includes(s.location));}
  function acquire(s,id){if(!safeId(id)||(!records(s)[id]&&!available(s,id)))return null;const entries=records(s);return entries[id]??={acquired:true,completed:false,objectives:{}};}
+ function finish(s,id,entry){
+  if(entry.completed&&s.universe.trackedMission===id){s.universe.trackedMission=null;s.universe.autoTrack=true;}
+ }
  function complete(s,id,objective='arrive',C){
   const definition=description(s,C,id);
-  if(id==='flight-training'||!definition.objectives.some(o=>o.id===objective))return false;
+  if(tutorials.includes(id)||!definition.objectives.some(o=>o.id===objective))return false;
   const entry=acquire(s,id);if(!entry)return false;
   if(entry.objectives[objective]===true)return false;
   entry.objectives[objective]=true;
   entry.completed=definition.objectives.filter(o=>o.required!==false).every(o=>entry.objectives[o.id]===true);
-  if(entry.completed&&s.universe.trackedMission===id)s.universe.trackedMission=null;
+  finish(s,id,entry);
   return true;
+ }
+ // Copies progression flags into a tutorial entry; the flags stay authoritative.
+ function mirror(s,id,ids,value,done){
+  const entry=acquire(s,id);if(!entry)return;
+  entry.objectives={};for(const key of ids)if(value(key))entry.objectives[key]=true;
+  const was=entry.completed;entry.completed=done(entry);
+  if(entry.completed&&!was)finish(s,id,entry);
  }
  function sync(s,C){
   if(!s?.universe)return [];
-  const entries=records(s),p=s.progression;
-  if(p&&(p.opening?.pistol||p.personal?.weapon==='ward-pistol'||p.flags?.board||s.quest!=='inheritance')){
-   const entry=acquire(s,'flight-training');
-   for(const id of trainingIds)entry.objectives[id]=id==='receive-gun'?(p.opening?.pistol===true||p.personal?.weapon==='ward-pistol'):id==='groundCombat'?(p.flags?.groundCombat===true||p.flags?.shootingTutorialComplete===true||p.opening?.cans?.length>=4):p.flags?.[id]===true;
-   entry.completed=trainingIds.every(id=>entry.objectives[id]);
+  const entries=records(s),p=s.progression,f=p?.flags||{};
+  if(p&&(p.opening?.pistol||p.personal?.weapon==='ward-pistol'||f.board||pastWorkshop(s))){
+   const v1=p.opening?.version!==2;
+   mirror(s,'ground-training',groundIds,id=>id==='recording'?(v1||p.opening.hologram===true||p.opening.pistol===true):id==='receive-gun'?(p.opening?.pistol===true||p.personal?.weapon==='ward-pistol'):id==='groundCombat'?(f.groundCombat===true||f.shootingTutorialComplete===true||p.opening?.cans?.length>=4):f[id]===true,()=>P.groundDone(s)||pastWorkshop(s));
+   // Older saves already hold a single combined entry; its flags carry over unchanged.
+   if((P.groundDone(s)||pastWorkshop(s))&&(f.maraShipHandoff||f.board||pastWorkshop(s)||entries['flight-training']))mirror(s,'flight-training',trainingIds,id=>f[id]===true,()=>trainingIds.every(id=>f[id]===true));
   }
-  if(p&&(p.flags?.maraShipHandoff||s.quest!=='inheritance')){
+  if(p&&(flightTrainingDone(s)||pastWorkshop(s))){
    const cargo=acquire(s,'meet-rook');
    cargo.objectives.instructions=true;
-   if(s.quest!=='inheritance'&&(s.location==='meridian'||s.quest!=='arrival'))cargo.objectives.travel=true;
-   if(s.quest!=='inheritance'&&s.quest!=='arrival')cargo.objectives.dock=true;
+   if(pastWorkshop(s)&&(s.location==='meridian'||s.quest!=='arrival'))cargo.objectives.travel=true;
+   if(pastMeridianArrival(s))cargo.objectives.dock=true;
    if(s.story?.flags?.rookIntroduced||['legal-run','return','illegal-offer','illegal-run','open'].includes(s.quest)){
     cargo.objectives.enter=true;cargo.objectives.locate=true;cargo.objectives.speak=true;
    }
-   cargo.completed=definitions['meet-rook'].objectives.every(o=>cargo.objectives[o.id]);
+   const was=cargo.completed;cargo.completed=definitions['meet-rook'].objectives.every(o=>cargo.objectives[o.id]);
+   if(cargo.completed&&!was)finish(s,'meet-rook',cargo);
   }
+  if(p&&(pastMeridianArrival(s)||stationIds.some(id=>f[id]===true)))mirror(s,'first-station',stationIds,id=>f[id]===true,()=>stationIds.every(id=>f[id]===true));
+  if(p&&(pastFirstOffer(s)||combatIds.some(id=>f[id]===true)))mirror(s,'combat-qualification',combatIds,id=>f[id]===true,()=>combatIds.every(id=>f[id]===true));
   const flight=C?.missionFlight?.({...s,destination:null});
-  if(flight&&flight.kind!=='transit'&&flight.id!=='prologue-missiles'&&(flight.id||s.quest)!=='arrival')acquire(s,flight.id||s.quest);
+  if(flight&&!['transit','training'].includes(flight.kind)&&flight.id!=='prologue-missiles'&&(flight.id||s.quest)!=='arrival')acquire(s,flight.id||s.quest);
   if(s.universe.freeTravel)acquire(s,'meet-admin');
-  for(const id of s.universe.completedObjectives||[])if(safeId(id)&&id!=='arrival'){
+  for(const id of s.universe.completedObjectives||[])if(safeId(id)&&!['arrival','inheritance'].includes(id)&&!tutorials.includes(id)){
    const entry=acquire(s,id);entry.completed=true;
    entry.objectives[id==='meet-admin'?'meet-admin':'arrive']=true;
   }
-  if(s.universe.trackedMission&&!entries[s.universe.trackedMission]?.acquired)s.universe.trackedMission=null;
-  if(s.universe.trackedMission&&entries[s.universe.trackedMission].completed)s.universe.trackedMission=null;
-  if(s.universe.trackedMission===null&&entries['flight-training']?.acquired&&!entries['flight-training'].completed&&s.universe.trackingInitialized!==true){
-   s.universe.trackedMission='flight-training';
+  const tracked=s.universe.trackedMission;
+  if(tracked&&(!entries[tracked]?.acquired||entries[tracked].completed)){s.universe.trackedMission=null;s.universe.autoTrack=s.universe.autoTrack!==false||!!entries[tracked]?.completed;}
+  if(s.universe.trackedMission===null&&s.universe.autoTrack!==false){
+   const next=nextMission(s,C);if(next)s.universe.trackedMission=next;
   }
   return all(s,C);
+ }
+ function nextMission(s,C){
+  const active=Object.entries(records(s)).filter(([,entry])=>entry?.acquired&&!entry.completed).map(([id])=>id);
+  if(!active.length)return null;
+  const rank=id=>{const i=priority.indexOf(id);return i>=0?i:id==='meet-admin'?priority.length+1:priority.length;};
+  return active.sort((a,b)=>rank(a)-rank(b))[0];
  }
  function description(s,C,id){
   if(definitions[id])return definitions[id];
@@ -82,20 +129,26 @@
   if(!s?.universe)return [];
   return Object.entries(records(s)).filter(([,entry])=>entry?.acquired).map(([id,entry])=>{
    const def=description(s,C,id),objectives=def.objectives.map(objective=>({...objective,complete:entry.objectives?.[objective.id]===true}));
-   const complete=entry.completed===true||objectives.filter(objective=>objective.required!==false).every(objective=>objective.complete);
-   const destination=id==='flight-training'?C?.missionFlight?.({...s,destination:null})?.destination:id==='meet-rook'&&entry.objectives?.dock?'meridian':def.destination;
+   const complete=entry.completed===true||!tutorials.includes(id)&&objectives.filter(objective=>objective.required!==false).every(objective=>objective.complete);
+   const destination=id==='flight-training'&&pastWorkshop(s)?C?.missionFlight?.({...s,destination:null})?.destination||def.destination:id==='meet-rook'&&entry.objectives?.dock?'meridian':def.destination;
    return {id,title:def.title,type:def.type,description:def.description||'',destination,rewards:def.rewards||null,interaction:def.interaction,objectives,objective:objectives.find(objective=>objective.required!==false&&!objective.complete)?.label||'Complete',completed:complete,tracked:s.universe.trackedMission===id};
   });
  }
  function active(s,C){sync(s,C);return all(s,C).filter(mission=>!mission.completed);}
  function tracked(s,C){return active(s,C).find(mission=>mission.tracked)||null;}
- function track(s,id,C){sync(s,C);if(!all(s,C).some(mission=>mission.id===id&&!mission.completed))return false;s.universe.trackedMission=id;s.universe.trackingInitialized=true;return true;}
- function untrack(s){s.universe.trackedMission=null;s.universe.trackingInitialized=true;}
+ function track(s,id,C){sync(s,C);if(!all(s,C).some(mission=>mission.id===id&&!mission.completed))return false;s.universe.trackedMission=id;s.universe.trackingInitialized=true;s.universe.autoTrack=true;return true;}
+ function untrack(s){s.universe.trackedMission=null;s.universe.trackingInitialized=true;s.universe.autoTrack=false;}
+ // Station terminals that teach each First Station step.
+ const stationTerminal={shipInventory:'maintenance',hangar:'maintenance',moduleInstalled:'maintenance',purchasedInstalled:'maintenance',vendor:'services',modulePurchased:'services'};
  function guidance(s,mission,inside){if(!mission||mission.completed)return null;
+  const pending=mission.objectives.find(objective=>objective.required!==false&&!objective.complete)||mission.objectives.find(objective=>!objective.complete);
   if(mission.id==='meet-rook'&&inside&&s.location==='meridian')return {kind:'local',label:mission.objective,interaction:mission.interaction};
+  if(mission.id==='ground-training')return pending?{kind:'instruction',label:pending.label}:null;
+  if(mission.id==='first-station'){if(!pending)return null;return inside?{kind:'local',label:pending.label,interaction:stationTerminal[pending.id]}:{kind:'instruction',label:pending.label+' (any station hangar)'};}
+  if(mission.id==='combat-qualification')return pending?{kind:'instruction',label:pending.label}:null;
   if(mission.id==='flight-training'){
-   const pending=mission.objectives.find(objective=>!objective.complete);
    if(!pending)return null;
+   if(pending.id==='board'&&inside)return {kind:'ship',label:pending.label,interaction:'board'};
    if(!['navigation','jumpTravel','dock'].includes(pending.id))return {kind:'instruction',label:pending.label};
    // Current scripted route is the navigable training objective, never proof of a maneuver.
    const destination=s.destination||s.travel?.destination||mission.destination;
@@ -110,6 +163,6 @@
   return {kind:U.route(s.location,hop).kind,label:(U.system(s.location)!==U.system(hop)?'INTERSTELLAR / ':'LOCAL / ')+(U.locations[hop]?.name||hop).toUpperCase(),destination:hop};
  }
  function metadata(s,C,id){return {availability:{},giver:null,source:null,start:null,end:null,prerequisites:[],storyFlags:{},factionFlags:{},completion:null,...description(s,C,id)};}
- const api={definitions,trainingIds,define,available,metadata,acquire,complete,sync,all,active,tracked,track,untrack,guidance};
+ const api={definitions,trainingIds,groundIds,stationIds,combatIds,tutorials,define,available,metadata,acquire,complete,sync,all,active,tracked,track,untrack,guidance,nextMission};
  if(typeof module!=='undefined')module.exports=api;else root.VoidMissions=api;
 })(globalThis);
