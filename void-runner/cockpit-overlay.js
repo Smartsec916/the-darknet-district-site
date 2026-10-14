@@ -18,12 +18,13 @@
   image.onerror=()=>{api.failed=true;};
   image.src=new URL('art/cockpit-kestrel-pilot.webp',document.currentScript?.src||location.href).href;
  }
- // Cover the viewport, anchored to the bottom. The pilot seat at the very bottom is
- // allowed to slide off-screen so more of the canopy stays open for flying.
- const SEAT_CROP=.07;
+ // The pilot sits close to the canopy: only this part of the painting is framed on
+ // screen, so the window posts sit near the screen edges and the seat and lower
+ // console fall off the bottom. The dashboard screens stay fully visible.
+ const VIEW={x0:230,x1:1442,bottom:768};
  function layout(width,height){
-  const scale=Math.max(width/SOURCE.width,height/(SOURCE.height*(1-SEAT_CROP)));
-  return {scale,x:(width-SOURCE.width*scale)/2,y:height-SOURCE.height*(1-SEAT_CROP)*scale};
+  const scale=Math.max(width/(VIEW.x1-VIEW.x0),height/VIEW.bottom);
+  return {scale,x:width/2-(VIEW.x0+VIEW.x1)/2*scale,y:height-VIEW.bottom*scale};
  }
  const pct=v=>Math.max(0,Math.min(999,Math.round(Number(v)||0)))+'%';
  function readout(ctx,box,title,rows,time){

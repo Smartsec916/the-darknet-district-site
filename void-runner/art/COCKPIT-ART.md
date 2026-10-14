@@ -15,6 +15,6 @@ concept art (`Kestrel/Untitled1.png`), with the canopy openings, the overhead wi
 the two side ports cut to transparency so the live 3D space view shows through. The
 canopy rods and grab handles were kept opaque. `void-runner/cockpit-overlay.js` draws it
 over the flight view (cover-fit, anchored to the bottom, seat slightly cropped) and paints
-live SHIP / NAV / WEAPONS readouts into the three dashboard screens. Screen rectangles are
+live SHIP / NAV / WEAPONS readouts into the three dashboard screens. Only part of the painting is framed on screen (`VIEW` in the module) so the pilot sits close to the canopy. Screen rectangles are
 in source pixels in that module; update them if the art is replaced with a Blender render
 of the same 1672×941 framing. If the image fails to load, the Babylon box cockpit is used.
