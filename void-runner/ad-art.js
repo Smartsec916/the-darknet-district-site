@@ -1,0 +1,57 @@
+/* Tessaly advertising. Corporate, dark and adult: ship parts, weapons, security,
+   insurance and labour. Every ad is painted locally onto a canvas; no image files. */
+(function(root){
+  const brands=[
+    {id:'kessler',brand:'KESSLER DYNAMICS',line:'HULL PLATING',slogan:'Rated for the worst day of your life.',zh:'凯斯勒装甲',accent:'#e8b04a',bg:['#16110a','#2b1d0c'],product:'plate'},
+    {id:'halberd',brand:'HALBERD ARMS',line:'HX-9 SERVICE RIFLE',slogan:'Negotiate from a position of strength.',zh:'哈尔伯德军械',accent:'#d9483b',bg:['#120809','#2a0d10'],product:'rifle'},
+    {id:'vanta',brand:'VANTA PROPULSION',line:'V-SERIES DRIVE CORE',slogan:'Arrive before the bad news does.',zh:'万塔推进',accent:'#4fd6ff',bg:['#050c14','#0b2233'],product:'engine'},
+    {id:'omg',brand:'ORBITAL MUNITIONS GROUP',line:'SEEKER-4 MISSILE',slogan:'Guaranteed lock. Outcomes may vary.',zh:'轨道军火集团',accent:'#ff7a2f',bg:['#130a05','#2e1408'],product:'missile'},
+    {id:'function',brand:'THE FUNCTION',line:'CIVIC NOTICE',slogan:'Compliance is a service. Thank you for your cooperation.',zh:'功能 · 秩序 · 利润',accent:'#e8eef5',bg:['#07080b','#16191f'],product:'eye'},
+    {id:'sable',brand:'SABLE MUTUAL',line:'PILOT LIFE COVER',slogan:'Your ship can be replaced. Plan accordingly.',zh:'黑貂保险',accent:'#b9a1ff',bg:['#0b0812','#1d1530'],product:'shield'},
+    {id:'argent',brand:'ARGENT CONTRACTING',line:'NOW HIRING · ESCORT CREWS',slogan:'Steady pay. Next of kin optional.',zh:'银色承包',accent:'#c7d0d8',bg:['#0a0c0e','#1c2228'],product:'badge'},
+    {id:'helix',brand:'HELIX AUGMENTATION',line:'NEURAL TARGETING SUITE',slogan:'Upgrade the parts that fail you.',zh:'螺旋增强',accent:'#3ff2c0',bg:['#04100d','#0b2a22'],product:'arm'},
+    {id:'deepwell',brand:'DEEPWELL EXTRACTION',line:'VANTOR SHAFTS · 12-HR SHIFTS',slogan:'The deep pays. Eventually.',zh:'深井开采',accent:'#d6a35a',bg:['#0e0a06','#241a0e'],product:'drill'},
+    {id:'tidewater',brand:'TIDEWATER FUEL',line:'COLD-FUSION CELLS',slogan:'Clean burn. Dirty margins.',zh:'潮汐燃料',accent:'#7fd1ff',bg:['#060b12','#0f1e30'],product:'cell'},
+    {id:'corvid',brand:'CORVID SECURITY',line:'IRONEYE PATROL DRONES',slogan:'Someone is always watching. Make sure it is yours.',zh:'鸦卫安防',accent:'#ff3b5c',bg:['#0d0507','#24090f'],product:'drone'},
+    {id:'nexus',brand:'NEXUS DATACORE',line:'COLD STORAGE · SECURE TIER',slogan:'Your secrets are our inventory.',zh:'联结数据核心',accent:'#7f8cff',bg:['#06071a','#121540'],product:'server'}
+  ];
+  function rand(seed){return()=>((seed=seed*16807%2147483647)-1)/2147483646;}
+  function glow(g,color,blur,draw){g.save();g.shadowColor=color;g.shadowBlur=blur;draw();g.restore();}
+  function metal(g,x,y,w,h,tint){const gr=g.createLinearGradient(x,y,x,y+h);gr.addColorStop(0,'#c9ced3');gr.addColorStop(.35,'#6c737a');gr.addColorStop(.5,'#e8ecef');gr.addColorStop(1,tint||'#2c3136');return gr;}
+  const products={
+    plate(g,W,H,a){const x=W*.2,y=H*.3,w=W*.6,h=H*.32;g.fillStyle=metal(g,x,y,w,h,'#3a3020');g.beginPath();g.moveTo(x+w*.1,y);g.lineTo(x+w*.9,y);g.lineTo(x+w,y+h*.2);g.lineTo(x+w,y+h);g.lineTo(x,y+h);g.lineTo(x,y+h*.2);g.closePath();g.fill();g.strokeStyle='rgba(0,0,0,.5)';g.lineWidth=3;for(let i=1;i<4;i++){g.beginPath();g.moveTo(x,y+h*i/4);g.lineTo(x+w,y+h*i/4);g.stroke();}g.fillStyle='#1a1a1a';for(let i=0;i<10;i++)for(let j=0;j<4;j++){g.beginPath();g.arc(x+w*.08+i*w*.093,y+h*.12+j*h*.25,3,0,7);g.fill();}glow(g,a,30,()=>{g.strokeStyle=a;g.lineWidth=2;g.strokeRect(x-10,y-10,w+20,h+20);});g.fillStyle='rgba(0,0,0,.6)';g.beginPath();g.ellipse(x+w*.62,y+h*.48,28,18,.4,0,7);g.fill();},
+    rifle(g,W,H,a){g.save();g.translate(W*.5,H*.46);g.rotate(-.12);g.fillStyle=metal(g,-200,-30,400,60,'#1a1c20');g.fillRect(-220,-18,330,36);g.fillRect(100,-10,120,18);g.fillRect(-250,-14,40,46);g.fillRect(-60,16,34,70);g.fillRect(10,16,28,50);g.fillStyle='#111';g.fillRect(-150,-40,120,20);glow(g,a,25,()=>{g.fillStyle=a;g.fillRect(-140,-36,100,6);g.fillRect(-30,-6,90,4);});g.restore();},
+    engine(g,W,H,a){const cx=W*.5,cy=H*.45;g.fillStyle=metal(g,cx-150,cy-110,300,220,'#14202a');g.beginPath();g.moveTo(cx-160,cy-90);g.lineTo(cx+60,cy-120);g.lineTo(cx+60,cy+120);g.lineTo(cx-160,cy+90);g.closePath();g.fill();for(let i=0;i<6;i++){g.strokeStyle='rgba(0,0,0,.45)';g.lineWidth=4;g.beginPath();g.moveTo(cx-140+i*34,cy-92-i*5);g.lineTo(cx-140+i*34,cy+92+i*5);g.stroke();}const gr=g.createRadialGradient(cx+70,cy,10,cx+70,cy,150);gr.addColorStop(0,'#ffffff');gr.addColorStop(.2,a);gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.beginPath();g.ellipse(cx+70,cy,60,118,0,0,7);g.fill();glow(g,a,40,()=>{g.strokeStyle=a;g.lineWidth=6;g.beginPath();g.ellipse(cx+66,cy,52,112,0,0,7);g.stroke();});},
+    missile(g,W,H,a){g.save();g.translate(W*.5,H*.46);g.rotate(-.5);g.fillStyle=metal(g,-40,-220,80,440,'#2a1a10');g.beginPath();g.moveTo(0,-230);g.quadraticCurveTo(32,-170,32,-120);g.lineTo(32,180);g.lineTo(-32,180);g.lineTo(-32,-120);g.quadraticCurveTo(-32,-170,0,-230);g.fill();g.fillStyle='#222';for(const s of [-1,1]){g.beginPath();g.moveTo(s*32,120);g.lineTo(s*80,190);g.lineTo(s*32,180);g.fill();}g.fillStyle=a;g.fillRect(-32,-60,64,14);const gr=g.createRadialGradient(0,210,5,0,230,120);gr.addColorStop(0,'#fff6d0');gr.addColorStop(.3,a);gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(-120,180,240,200);g.restore();},
+    eye(g,W,H,a){const cx=W*.5,cy=H*.43;glow(g,a,40,()=>{g.strokeStyle=a;g.lineWidth=5;g.beginPath();g.moveTo(cx-170,cy);g.quadraticCurveTo(cx,cy-140,cx+170,cy);g.quadraticCurveTo(cx,cy+140,cx-170,cy);g.stroke();});const gr=g.createRadialGradient(cx,cy,4,cx,cy,70);gr.addColorStop(0,'#ff2b2b');gr.addColorStop(.35,'#5a0000');gr.addColorStop(1,'#000');g.fillStyle=gr;g.beginPath();g.arc(cx,cy,66,0,7);g.fill();glow(g,'#ff2b2b',30,()=>{g.fillStyle='#ff2b2b';g.beginPath();g.arc(cx,cy,10,0,7);g.fill();});for(let i=0;i<24;i++){g.strokeStyle='rgba(255,255,255,.08)';g.beginPath();g.moveTo(cx,cy);g.lineTo(cx+Math.cos(i/24*6.283)*250,cy+Math.sin(i/24*6.283)*250);g.stroke();}},
+    shield(g,W,H,a){const cx=W*.5,cy=H*.42;g.fillStyle=metal(g,cx-120,cy-140,240,280,'#1b1428');g.beginPath();g.moveTo(cx,cy-150);g.lineTo(cx+125,cy-100);g.quadraticCurveTo(cx+120,cy+80,cx,cy+150);g.quadraticCurveTo(cx-120,cy+80,cx-125,cy-100);g.closePath();g.fill();glow(g,a,30,()=>{g.strokeStyle=a;g.lineWidth=4;g.stroke();});g.fillStyle='#0b0812';g.font='bold 120px serif';g.textAlign='center';g.fillText('S',cx,cy+42);},
+    badge(g,W,H,a){const cx=W*.5,cy=H*.42;g.fillStyle=metal(g,cx-130,cy-130,260,260,'#20262c');g.beginPath();for(let i=0;i<8;i++){const t=i/8*6.283-Math.PI/8;g.lineTo(cx+Math.cos(t)*135,cy+Math.sin(t)*135);}g.closePath();g.fill();g.strokeStyle='#0b0d10';g.lineWidth=10;g.stroke();g.fillStyle='#0b0d10';g.font='bold 34px sans-serif';g.textAlign='center';g.fillText('ARGENT',cx,cy-8);g.font='bold 20px sans-serif';g.fillText('CONTRACT FORCE',cx,cy+26);for(let i=0;i<3;i++){g.beginPath();g.moveTo(cx-40+i*40,cy+52);g.lineTo(cx-28+i*40,cy+72);g.lineTo(cx-52+i*40,cy+72);g.fill();}},
+    arm(g,W,H,a){g.save();g.translate(W*.52,H*.47);g.rotate(.35);g.fillStyle=metal(g,-40,-200,80,400,'#0c201a');g.fillRect(-38,-200,76,180);g.fillRect(-32,-10,64,170);g.beginPath();g.arc(0,-15,44,0,7);g.fill();for(let i=0;i<4;i++)g.fillRect(-36+i*20,160,16,60-(i%3)*10);glow(g,a,25,()=>{g.strokeStyle=a;g.lineWidth=3;for(let i=0;i<5;i++){g.beginPath();g.moveTo(-30,-180+i*34);g.lineTo(30,-170+i*34);g.stroke();}g.beginPath();g.arc(0,-15,20,0,7);g.stroke();});g.restore();},
+    drill(g,W,H,a){const cx=W*.5,cy=H*.42;g.fillStyle=metal(g,cx-60,cy-170,120,200,'#2b200f');g.fillRect(cx-60,cy-170,120,150);g.fillStyle=metal(g,cx-50,cy-20,100,200,'#3a2a12');g.beginPath();g.moveTo(cx-55,cy-20);g.lineTo(cx+55,cy-20);g.lineTo(cx,cy+170);g.closePath();g.fill();g.strokeStyle='rgba(0,0,0,.55)';g.lineWidth=6;for(let i=0;i<7;i++){g.beginPath();g.moveTo(cx-50+i*7,cy-10+i*24);g.lineTo(cx+50-i*7,cy+8+i*24);g.stroke();}glow(g,a,25,()=>{g.fillStyle=a;g.fillRect(cx-60,cy-110,120,8);});},
+    cell(g,W,H,a){for(let i=0;i<3;i++){const x=W*.24+i*W*.19,y=H*.26;g.fillStyle=metal(g,x,y,70,240,'#0e1a26');g.fillRect(x,y,70,240);const gr=g.createLinearGradient(x,y+40,x,y+200);gr.addColorStop(0,a);gr.addColorStop(1,'#04121c');glow(g,a,30,()=>{g.fillStyle=gr;g.fillRect(x+14,y+40,42,160);});g.fillStyle='#0a0f14';g.fillRect(x+20,y-14,30,16);}},
+    drone(g,W,H,a){const cx=W*.5,cy=H*.42;g.fillStyle=metal(g,cx-90,cy-60,180,120,'#1c0b10');g.beginPath();g.ellipse(cx,cy,95,62,0,0,7);g.fill();for(const s of [-1,1]){g.fillStyle='#16181c';g.fillRect(cx+s*95-(s>0?0:70),cy-50,70,10);g.beginPath();g.ellipse(cx+s*165,cy-46,62,10,0,0,7);g.fill();}glow(g,a,40,()=>{g.fillStyle=a;g.beginPath();g.arc(cx,cy+8,20,0,7);g.fill();});g.fillStyle='rgba(255,59,92,.12)';g.beginPath();g.moveTo(cx,cy+20);g.lineTo(cx-140,H*.72);g.lineTo(cx+140,H*.72);g.closePath();g.fill();},
+    server(g,W,H,a){for(let i=0;i<5;i++){const y=H*.22+i*58;g.fillStyle=metal(g,W*.22,y,W*.56,50,'#0b0d24');g.fillRect(W*.22,y,W*.56,50);for(let k=0;k<12;k++){g.fillStyle=(k+i)%4?'#1b1f40':a;g.fillRect(W*.25+k*22,y+18,12,12);}}glow(g,a,30,()=>{g.strokeStyle=a;g.lineWidth=2;g.strokeRect(W*.2,H*.2,W*.6,300);});}
+  };
+  function paint(g,W,H,brand){
+    const r=rand(brand.id.length*7919+11),[b0,b1]=brand.bg;
+    const bg=g.createLinearGradient(0,0,W*.3,H);bg.addColorStop(0,b0);bg.addColorStop(1,b1);g.fillStyle=bg;g.fillRect(0,0,W,H);
+    const halo=g.createRadialGradient(W*.5,H*.44,10,W*.5,H*.44,W*.7);halo.addColorStop(0,brand.accent+'40');halo.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=halo;g.fillRect(0,0,W,H);
+    g.strokeStyle='rgba(255,255,255,.04)';g.lineWidth=1;for(let y=0;y<H;y+=4){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
+    // Products are drawn on a 512 x 768 design grid and scaled to the canvas.
+    g.save();g.scale(W/512,H/768);products[brand.product](g,512,768,brand.accent);g.restore();
+    // Brand block.
+    g.fillStyle='rgba(0,0,0,.55)';g.fillRect(0,0,W,H*.12);g.fillStyle=brand.accent;g.fillRect(0,H*.12-3,W,3);
+    g.textAlign='left';g.fillStyle='#f3f5f7';g.font='800 '+Math.round(W*.068)+'px "Helvetica Neue",Arial,sans-serif';g.fillText(brand.brand,W*.06,H*.075);
+    g.fillStyle=brand.accent;g.font='600 '+Math.round(W*.034)+'px monospace';g.fillText(brand.zh,W*.06,H*.105);
+    // Product line and slogan.
+    g.fillStyle='rgba(0,0,0,.62)';g.fillRect(0,H*.7,W,H*.3);
+    g.fillStyle=brand.accent;g.font='700 '+Math.round(W*.04)+'px monospace';g.fillText(brand.line,W*.06,H*.755);
+    g.fillStyle='#f3f5f7';g.font='600 '+Math.round(W*.052)+'px Georgia,serif';
+    const words=brand.slogan.split(' ');let line='',y=H*.82;for(const w of words){const test=line?line+' '+w:w;if(g.measureText(test).width>W*.88){g.fillText(line,W*.06,y);line=w;y+=W*.065;}else line=test;}g.fillText(line,W*.06,y);
+    // Fine print, licence mark and barcode.
+    g.fillStyle='rgba(255,255,255,.38)';g.font=Math.round(W*.018)+'px monospace';g.fillText('TESSALY TRADE LICENCE '+(1000+Math.floor(r()*8999))+'-'+brand.id.toUpperCase()+' · SOLD TO ALL SYSTEMS · NO REFUNDS',W*.06,H*.965);
+    g.fillStyle='#f3f5f7';for(let i=0;i<34;i++){const bw=1+Math.floor(r()*3);g.fillRect(W*.74+i*3.4,H*.93,bw,H*.025);}
+    if(brand.id!=='function'){g.strokeStyle='rgba(232,238,245,.55)';g.lineWidth=2;g.beginPath();g.arc(W*.9,H*.17,18,0,7);g.stroke();g.fillStyle='rgba(232,238,245,.55)';g.font='bold 10px monospace';g.textAlign='center';g.fillText('FN',W*.9,H*.175);g.textAlign='left';}
+  }
+  root.VoidAds={brands,paint};
+})(globalThis);

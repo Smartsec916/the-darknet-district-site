@@ -7,7 +7,7 @@
   meridian:{system:'erebus'},kepler:{system:'erebus'},undertow:{system:'erebus'},foundry:{system:'erebus'},
   'sol-belt':{system:'sol',name:'Tessaly Belt Anchorage',district:'TESSALY / ASTEROID BELT',color:'#8dbea9',bar:'Belt Canteen'},
   earth:{system:'sol',name:'NeoChinatown',district:'TESSALY / CITY LANDING',color:'#9b7bff',bar:'The Darknet District'},
-  mars:{system:'sol',name:'Mars / Underground City',district:'TESSALY / SUBSURFACE ACCESS',color:'#ba6847',bar:'Transit Canteen'}
+  mars:{system:'sol',name:'Vantor / Underground City',district:'TESSALY / SUBSURFACE ACCESS',color:'#ba6847',bar:'Transit Canteen'}
  };
  for(const location of Object.values(locations)){location.ownerFaction??=null;location.securityFaction??=location.system==='sol'?'sol-local':'erebus-local';}
  function system(id){return locations[id]?.system||'erebus';}
