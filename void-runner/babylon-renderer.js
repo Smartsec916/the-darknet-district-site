@@ -300,7 +300,7 @@
       for(const [z,w,h]of rings)for(let i=0;i<8;i++){const a=i*Math.PI/4+Math.PI/8;positions.push(Math.cos(a)*w,Math.sin(a)*h,z);uvs.push(i/8,(z+2)/4.15);}
       for(let r=0;r<3;r++)for(let i=0;i<8;i++){const a=r*8+i,c=r*8+(i+1)%8;indices.push(a,c,c+8,a,c+8,a+8);}for(let i=1;i<7;i++){indices.push(0,i+1,i,24,24+i,24+i+1);}
       for(let i=0;i<indices.length;i+=3)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];b.VertexData.ComputeNormals(positions,indices,normals);const hull=new b.Mesh('kestrel-hull',scene),data=new b.VertexData();Object.assign(data,{positions,indices,normals,uvs});data.applyToMesh(hull);hull.parent=node;hull.material=metal;hull.convertToFlatShadedMesh();
-      for(const side of [-1,1]){const stripe=box('service-stripe',[.035,.28,1.5],[side*.66,.05,-.1],material('kestrel-stripe','#a77551'),node);stripe.rotation.y=side*.07;for(let z=-1.5;z<.5;z+=.35)box('service-vent',[.035,.05,.16],[side*.7,.1,z],dark,node);}
+      for(const side of [-1,1]){const stripe=box('service-stripe',[.035,.28,1.5],[side*.66,.05,-.1],material('kestrel-stripe','#8e2c26'),node);stripe.rotation.y=side*.07;for(let z=-1.5;z<.5;z+=.35)box('service-vent',[.035,.05,.16],[side*.7,.1,z],dark,node);}
       const armor=material('kestrel-armor','#a5a297'),panel=material('kestrel-panel','#727a76'),wingMat=material('kestrel-wing','#a8a39b'),rust=material('kestrel-rust','#9d6550');
       if(!armor.diffuseTexture){armor.diffuseTexture=new b.Texture(new URL('art/vesper-weathered-panels.webp',base).href,scene,true,false);armor.diffuseTexture.uScale=2;armor.diffuseTexture.vScale=2;armor.diffuseColor=b.Color3.White();}
       // The landing-pad view sees the working ship from below; retain readable hull panels in shade.
@@ -324,13 +324,22 @@
       }
       box('kestrel-canopy-rear-frame',[.91,.06,.06],[0,.60,.14],armor,node);
       box('kestrel-canopy-front-frame',[.69,.06,.06],[0,.56,1.28],armor,node);
+      // Reference-art details: red service stripe, swept tail fin, chin guns, orange
+      // engine glow and amber running lights.
+      const red=material('kestrel-red','#8e2c26');
+      box('kestrel-dorsal-stripe',[.16,.012,2.3],[.22,.405,-.35],red,node);
+      {const fin=new b.Mesh('kestrel-tail-fin',scene),ps=[],ids=[],ns=[],pts=[[-1.05,.40],[-1.95,.40],[-2.25,1.45],[-1.80,1.45]];for(const x of [-.04,.04])for(const [z,y] of pts)ps.push(x,y,z);ids.push(0,1,2,0,2,3,4,6,5,4,7,6);for(let i=0;i<4;i++){const j=(i+1)%4;ids.push(i,j,4+j,i,4+j,4+i);}b.VertexData.ComputeNormals(ps,ids,ns);const d=new b.VertexData();Object.assign(d,{positions:ps,indices:ids,normals:ns});d.applyToMesh(fin);fin.parent=node;fin.material=armor;armor.backFaceCulling=false;
+       box('kestrel-fin-stripe',[.09,.16,.62],[0,1.18,-1.95],red,node).rotation.x=-.3;}
+      for(const side of [-1,1]){const gun=b.MeshBuilder.CreateCylinder('kestrel-chin-gun',{height:.7,diameter:.06,tessellation:8},scene);gun.parent=node;gun.rotation.x=Math.PI/2;gun.position.set(side*.12,-.40,1.95);gun.material=dark;}
+      const amberLamp=material('kestrel-lamp','#ffb14a',true);for(const side of [-1,1]){box('kestrel-nose-lamp',[.14,.05,.03],[side*.2,-.1,2.1],amberLamp,node);box('kestrel-wingtip-lamp',[.06,.06,.12],[side*2.7,-.12,-1.25],amberLamp,node);}
     }else box('hull', [1.4, .65, 4], [0, 0, 0], metal, node);
     const canopyMaterial=name==='starter'?material('kestrel-glass', '#344c55'):material('glass', '#182b3c');
     if(name==='starter')canopyMaterial.emissiveColor=new b.Color3(.035,.065,.075);
     box('canopy', [.85, name==='starter'?.23:.32, 1.3], [0, name==='starter'?.48:.44, .65], canopyMaterial, node);
     for (const side of [-1, 1]) {
       if(name!=='starter'){const wing = box('swept-wing', [2.3, .18, 1.6], [side * 1.3, -.1, -.6], metal, node);wing.rotation.y = side * -.32;box('engine-pod', [.55, .55, 1.8], [side * 1.05, 0, -1.35], dark, node);}
-      box('exhaust', [.38, .34, .15], [side * 1.05, 0, -2.3], light, node);
+      if(name==='starter'){const glow=b.MeshBuilder.CreateDisc('kestrel-engine-glow',{radius:.27,tessellation:20},scene);glow.parent=node;glow.position.set(side*1.06,-.03,-2.24);glow.rotation.y=Math.PI;glow.material=material('kestrel-burn',allegiance==='hostile'?'#ed765b':'#ff9a3c',true);}
+      else box('exhaust', [.38, .34, .15], [side * 1.05, 0, -2.3], light, node);
     }
     if(name==='ship2')node.scaling.x=1.2;if(name==='ship3')node.scaling.z=1.3;
     node.metadata = {

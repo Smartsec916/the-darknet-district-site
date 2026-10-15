@@ -5,7 +5,7 @@
  function build(scene,parent,{occupied=false}={}){
   const B=BABYLON,node=new B.TransformNode('meridian-exterior',scene);node.parent=parent;const materials=[],textures=[],batches=new Map(),blink=[];
   function mat(name,hex,glow=false){const m=new B.StandardMaterial('meridian-'+name,scene);m.diffuseColor=B.Color3.FromHexString(hex);m.specularColor=new B.Color3(.22,.25,.28);m.specularPower=48;if(glow){m.emissiveColor=m.diffuseColor.clone();m.disableLighting=true;}materials.push(m);return m;}
-  const hull=mat('graphite','#4b535b'),panel=mat('patch-panels','#61686c'),edge=mat('frames','#272f37'),tank=mat('ceramic-tanks','#c5c6b9'),hazard=mat('hazard','#d4a446'),dark=mat('hangar-depth','#0b151e'),solar=mat('solar-cells','#294664'),warm=mat('inhabited','#b49a6b',true),nav=mat('navigation','#8dd9d0',true),red=mat('navigation-red','#cc7964',true);
+  const hull=mat('graphite','#4b535b'),panel=mat('patch-panels','#61686c'),edge=mat('frames','#272f37'),tank=mat('ceramic-tanks','#c5c6b9'),hazard=mat('hazard','#d9782c'),dark=mat('hangar-depth','#0b151e'),solar=mat('solar-cells','#294664'),warm=mat('inhabited','#b49a6b',true),nav=mat('navigation','#8dd9d0',true),red=mat('navigation-red','#cc7964',true);
   const cell=new B.DynamicTexture('meridian-solar-grid',{width:256,height:512},scene,false);textures.push(cell);const g=cell.getContext();g.fillStyle='#19354c';g.fillRect(0,0,256,512);for(let y=0;y<512;y+=32)for(let x=0;x<256;x+=32){g.fillStyle=(x+y)%64?'#29475e':'#254458';g.fillRect(x+2,y+2,28,28);g.strokeStyle='#698397';g.lineWidth=.5;g.strokeRect(x+2,y+2,28,28);}cell.update();solar.diffuseTexture=cell;
   function add(mesh,m,p,merge=true){mesh.parent=node;mesh.position.set(...p);mesh.material=m;mesh.isPickable=false;if(merge){if(!batches.has(m))batches.set(m,[]);batches.get(m).push(mesh);}return mesh;}
   function box(name,size,p,m=hull){const intersects=occupied&&Math.abs(p[0])<18+size[0]/2&&p[2]+size[2]/2>-26&&p[2]-size[2]/2<66&&p[1]+size[1]/2>0&&p[1]-size[1]/2<9;const mesh=add(B.MeshBuilder.CreateBox(name,{width:size[0],height:size[1],depth:size[2]},scene),m,p,!intersects);if(intersects)mesh.setEnabled(false);return mesh;}
@@ -41,7 +41,16 @@
   beam([-8,25,43],[-8,43,43],.65);for(let y=29;y<41;y+=4)box('antenna',[10,.15,.15],[-8,y,43],panel);
   const dish=add(B.MeshBuilder.CreateSphere('communications-dish',{diameter:9,segments:16,slice:.5},scene),tank,[-20,21,40]);dish.scaling.y=.28;dish.rotation.z=.5;beam([-20,15,40],[-20,21,40]);
   for(const x of [-48,58]){beam([x,10,30],[x,25,30],.23);box('comms-panel',[2,4,.25],[x,21,30],panel);}
-  for(const p of [[-103,4,0],[112,4,17],[-8,44,43],[76,3,-.5]]){const lamp=add(B.MeshBuilder.CreateSphere('navigation-beacon',{diameter:.85,segments:6},scene),p[0]<0?red:nav,p,false);blink.push(lamp);}
+  for(const p of [[-103,4,0],[112,4,17],[-8,44,43],[76,3,-.5]]){const lamp=add(B.MeshBuilder.CreateSphere('navigation-beacon',{diameter:.85,segments:6},scene),p[0]<0?red:nav,p,false);blink.push(lamp);}
+  // Reference-art pass: lit window bands along the spine, orange-banded pressure
+  // tanks on the aft end, tall vertical solar wings, a sensor spire and the full
+  // MERIDIAN STATION / FUEL · REPAIRS · SUPPLIES lettering.
+  for(let x=-44;x<52;x+=2.4)for(const y of [3.2,6.4]){if(Math.abs(x-13)<11&&y>6)continue;box('spine-window',[1.3,.55,.12],[x,y,34.95],(Math.floor(x*7+y)%5)?warm:edge);}
+  for(const [i,z] of [[0,30],[1,38],[2,46]]){const big=cylinder('aft-pressure-tank',4.2,16,[66+i*0,6+i*0,z]);big.rotation.z=Math.PI/2;big.position.x=60+8.5;for(const off of [-5,0,5]){const band=cylinder('aft-tank-band',4.3,1.2,[68.5+off,6,z],hazard);band.rotation.z=Math.PI/2;}for(const end of [-1,1]){const cap=add(B.MeshBuilder.CreateSphere('aft-tank-cap',{diameter:8.4,segments:12},scene),tank,[68.5+end*8,6,z]);cap.scaling.x=.35;}}
+  for(const [x,z] of [[-60,-10],[-30,62],[34,66],[100,-6]]){beam([x,2,z],[x,40,z],.6);for(const side of [-1,1]){box('tall-solar-frame',[7.4,30.4,.5],[x+side*4.4,24,z],edge);box('tall-solar-array',[7,30,.2],[x+side*4.4,24,z-.3],solar);}}
+  for(const h of design.hangars)for(const sd of [-1,1])for(let z=-h.d/2+3;z<h.d/2-2;z+=2.6)box('hangar-side-window',[.12,.6,1.4],[h.x+sd*(h.w/2+.45),h.h*.72,h.z+z],(Math.round(z*3+h.x)%4)?warm:edge);
+  beam([22,8.5,40],[22,34,40],.5);for(let y=14;y<34;y+=5)box('spire-ring',[2.6,.5,2.6],[22,y,40],panel);
+  label('FUEL · REPAIRS · SUPPLIES',[13,13.6,33.8],24,2.2);
   for(const [m,list]of batches)if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);merged.material=m;merged.parent=node;merged.name='meridian-batch-'+m.name;merged.isPickable=false;}
   node.metadata={identity:'meridian',design,exteriorOnly:!occupied,blink,dispose(){for(const t of textures)t.dispose();for(const m of materials)m.dispose(false,false);}};return node;
  }
