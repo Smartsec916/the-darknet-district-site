@@ -1,5 +1,5 @@
 /* VOID//RUNNER only. Increment BUILD when deploying changed game files. */
-const BUILD='2026-10-15-vesper-buttes-1';
+const BUILD='2026-10-15-rusthaven-rook-terrain-1';
 const CORE='void-runner-core-'+BUILD;
 const ASSETS='void-runner-assets-'+BUILD;
 const PAGE=new URL('./void-runner.html',self.location).pathname;
