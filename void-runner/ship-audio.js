@@ -33,7 +33,7 @@
       wave: 'triangle',
       ambient: 40
     },
-    undertow: {
+    rusthaven: {
       root: 46.25,
       chord: [1, 1.189, 1.5],
       pulse: 1.3,

@@ -27,7 +27,7 @@ All files below are in `void-runner/art/`. All four departure PNGs are **1672×9
 | --- | --- | --- | --- |
 | Meridian | `station.png` | `hangar-meridian.png` | Implemented artwork; alpha doorway |
 | Kepler | `station-kepler.png`, established freight-concourse palette | `hangar-kepler.png` | Implemented artwork; alpha doorway |
-| Rusthaven | `station-undertow.png` | `hangar-undertow.png` | Implemented artwork; alpha doorway |
+| Rusthaven | `station-rusthaven.png` | `hangar-rusthaven.png` | Implemented artwork; alpha doorway |
 | Foundry | `concourse-foundry.png`, existing refinery exterior geometry | `hangar-foundry.png` | Implemented artwork; alpha doorway |
 
 Exact final prompts are in `void-runner/art/HANGAR-PROMPTS.json`. The earlier opaque-doorway generation was discarded and is not referenced or packaged.

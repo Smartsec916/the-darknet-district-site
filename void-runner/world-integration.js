@@ -65,7 +65,18 @@ const worldRenderLine=renderLine;
 renderLine=function(){worldRenderLine();if(walkingLocation){screen.dataset.scene='';screen.classList.remove('cinematic');screen.querySelectorAll('.portrait').forEach(el=>el.remove());}};
 barRoom=()=>resumeWalking();bar=barRoom;contacts=function(){campaignBoard();};
 const originalRookConversation=rookConversation;
-rookConversation=function(){if(state.location==='meridian'){VoidMissions.complete(state,'meet-rook','enter',C);VoidMissions.complete(state,'meet-rook','locate',C);VoidMissions.complete(state,'meet-rook','speak',C);save();}if(state.missileUnlocked&&!state.missileOfferSeen){state.missileOfferSeen=true;VoidUniverse.unlock(state);save();talk('',[rookMissileLine],resumeWalking,'RETURN TO STATION');return;}if(state.quest==='open'){talk('',[{who:'rook',text:state.progression?.completed?'The cargo board still has work. Admin is over in Tessaly if you want a longer run. '+VoidInput.label(VoidInput.bindings.missionLog||'KeyL')+' opens your Mission Log.':'Finish your missile qualification: acquire the launcher, install it at the maintenance terminal, then select, lock and fire on a hostile in your next run.'}],resumeWalking,'RETURN TO STATION');return;}originalRookConversation();};
+// Rook's freight runs keep going after the opening jobs. A newly opened system gets the next run.
+function rookFreightOffer(){
+ const key=VoidInput.label(VoidInput.bindings.missionLog||'KeyL'),place=id=>C.stations[id]?.name||id;
+ if(state.contract==='rook-run'){const r=C.rookRun(state);talk('',[{who:'rook',text:'The '+r.cargo.toLowerCase()+' are still in your hold. '+place(r.destination)+' is waiting on them.'}],resumeWalking,'RETURN TO STATION');return;}
+ if(state.contract){talk('',[{who:'rook',text:'Finish the job you are carrying. Then come see me.'}],resumeWalking,'RETURN TO STATION');return;}
+ const r=C.rookRun({...state,contract:null}),far=VoidUniverse.system(r.destination)!==VoidUniverse.system(state.location);
+ const served=String(state.story.flags.rookSystems||'erebus').split(','),opening=!served.includes(VoidUniverse.system(r.destination));
+ const lead=opening?'Lanes into '+VoidUniverse.systems[VoidUniverse.system(r.destination)].name+' just opened up. Get in before everyone else does.':r.number===1?'Opening jobs are done. I keep freight moving, and you look like you could use steady work.':'Back for more? Good.';
+ talk('',[{who:'rook',text:lead+' '+r.cargo+' to '+place(r.destination)+(far?' — an interstellar run':'')+'. '+(r.legal?'Legal.':'Not legal.')+' '+r.reward+' credits. '+(r.number===1?'Admin is over in Tessaly if you want other work. '+key+' opens your Mission Log.':'')}],()=>{if(C.accept(state,'rook-run')){VoidMissions.track(state,C.rookRun(state).id,C);save();announce('Cargo loaded. '+place(r.destination)+' tracked.');}resumeWalking();},'ACCEPT RUN →','Rook’s booth');
+ screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',button('NOT NOW','walk-resume',true));
+}
+rookConversation=function(){if(state.location==='meridian'){VoidMissions.complete(state,'meet-rook','enter',C);VoidMissions.complete(state,'meet-rook','locate',C);VoidMissions.complete(state,'meet-rook','speak',C);save();}if(state.missileUnlocked&&!state.missileOfferSeen){state.missileOfferSeen=true;VoidUniverse.unlock(state);save();talk('',[rookMissileLine],resumeWalking,'RETURN TO STATION');return;}if(state.quest==='open'){if(state.progression?.completed){rookFreightOffer();return;}talk('',[{who:'rook',text:'Finish your missile qualification: acquire the launcher, install it at the maintenance terminal, then select, lock and fire on a hostile in your next run.'}],resumeWalking,'RETURN TO STATION');return;}originalRookConversation();};
 VoidInteractions.register('talk',({item})=>{
  if(item.character==='rook')return rookConversation();
  if(item.character==='mara')return playStoryScene('mara_workshop_intro');

@@ -58,8 +58,8 @@ const output=process.env.VOID_SCREENSHOT_DIR;const fs=require('node:fs');
    state.contract=null;dock();return {before,protectedArmor,killed,bossExists,escortFailed};
  });assert.equal(mechanics.before,mechanics.protectedArmor);assert(mechanics.killed&&mechanics.bossExists&&mechanics.escortFailed);
  await page.evaluate(()=>{leaveMenu();mode='dock';VoidAccount.request('account');});await page.getByRole('button',{name:'SIGN OUT',exact:true}).click();await page.waitForFunction(()=>!window.VoidAccount.busy);assert.equal(await page.evaluate(()=>ownedGear.length),0);
- if(output){for(const id of ['meridian','kepler','undertow','foundry']){await page.evaluate(async id=>{if(id!=='meridian'){const image=new Image();image.src='void-runner/art/concourse-'+id+'.png';await image.decode();}state.location=id;state.contract=null;dock();},id);await page.waitForFunction(()=>[...document.images].every(i=>i.complete));await page.screenshot({path:path.join(output,'station-'+id+'.png'),fullPage:true});}}
- await page.setViewportSize({width:390,height:844});await page.evaluate(()=>{state.location='undertow';dock();});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ if(output){for(const id of ['meridian','kepler','rusthaven','foundry']){await page.evaluate(async id=>{if(id!=='meridian'){const image=new Image();image.src='void-runner/art/concourse-'+id+'.png';await image.decode();}state.location=id;state.contract=null;dock();},id);await page.waitForFunction(()=>[...document.images].every(i=>i.complete));await page.screenshot({path:path.join(output,'station-'+id+'.png'),fullPage:true});}}
+ await page.setViewportSize({width:390,height:844});await page.evaluate(()=>{state.location='rusthaven';dock();});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  if(output)await page.screenshot({path:path.join(output,'station-mobile.png'),fullPage:true});
  await page.evaluate(()=>{leaveMenu();dock('shop');});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  if(output)await page.screenshot({path:path.join(output,'credit-upgrades-mobile.png'),fullPage:true});

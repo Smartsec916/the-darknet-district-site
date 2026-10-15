@@ -1,6 +1,6 @@
 /* One metre-space plan drives exterior shells, walkable walls and collisions. */
 (function(root){
- const palettes={meridian:['#56616a','#6981a0'],kepler:['#879497','#688ca6'],undertow:['#645959','#544a6d'],foundry:['#595955','#88654b'],'sol-belt':['#879497','#607f99'],vesper:['#655f56','#627c79']};
+ const palettes={meridian:['#56616a','#6981a0'],kepler:['#879497','#688ca6'],rusthaven:['#645959','#544a6d'],foundry:['#595955','#88654b'],'sol-belt':['#879497','#607f99'],vesper:['#655f56','#627c79']};
  const appearances={
   mara:{coat:'#596449',hair:'#c4c7c5',skin:'#b88d74',style:'short'},
   elias:{coat:'#68503c',hair:'#90938d',skin:'#b7957c',style:'beard',archive:true},
@@ -36,7 +36,7 @@
   // Nonwalkable strips outside the narrow corridor are collision volumes, not visual walls.
   solids.push({id:'outside-left',size:[14,20,13],position:[-11,0,11]},{id:'outside-right',size:[14,20,13],position:[11,0,11]}, {id:'ship',size:[7,4,11],position:[-7,2,-9]});
   const interactions=[{id:'board',action:'board',label:'BOARD YOUR SHIP',position:[-2,1.7,-14],range:3.5},{id:'services',action:'services',label:'SHIP OUTFITTER',position:[-10,1.7,26],range:3},{id:'jobs',action:'jobs',label:'MISSION TERMINAL',position:[-4,1.7,31],range:3}];
-  const people=id==='meridian'?['rook','nyx']:id==='kepler'?['sol']:id==='undertow'?['iona']:id==='vesper'?['mara','elias']:[];
+  const people=id==='meridian'?['rook','nyx']:id==='kepler'?['sol']:id==='rusthaven'?['iona']:id==='vesper'?['mara','elias']:[];
   people.forEach((character,i)=>interactions.push({id:character,action:'talk',character,label:(character==='elias'?'PLAY ARCHIVE / ':'TALK / ')+character.toUpperCase(),position:id==='vesper'?[i?5:0,1.7,i?-10:-12]:[i?13:8,1.7,i?31:25],range:3}));
   return {id,name:id.toUpperCase(),kind:'station',bounds:[18,34],spawn:[0,1.7,-17],ship,color:(palettes[id]||palettes.meridian)[0],shell,solids,interactions,signs:[{id:'hangar',position:[0,6,3.5],text:'HANGAR  /  CONCOURSE →',color:'#9fcbba'},{id:'concourse',position:[0,4,33.5],text:id==='meridian'?'THE DEAD CHANNEL / OUTFITTER':id.toUpperCase()+' / CREW SERVICES',color:'#a4c3b6'}]};
  }

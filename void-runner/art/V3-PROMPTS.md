@@ -24,5 +24,5 @@ Shared prompt: Wide 16:9 space skybox BACKGROUND asset for cinematic cyberpunk s
 
 - meridian: deep teal and pale gold dust clouds, a distant tilted spiral galaxy toward the upper right, dark central flight lane, restrained tiny stars
 - kepler: cobalt blue and sea-green nebula wisps around the edges, silver distant galaxy at far left, deep navy open center
-- undertow: violet and magenta emission nebula, intricate dark dust lanes, distant pale lavender galaxy to upper left, very dark open center
+- rusthaven: violet and magenta emission nebula, intricate dark dust lanes, distant pale lavender galaxy to upper left, very dark open center
 - foundry: burnt orange and copper nebula with charcoal dust pillars at the far edges, tiny warm stars, faint distant golden galaxy, open dark center

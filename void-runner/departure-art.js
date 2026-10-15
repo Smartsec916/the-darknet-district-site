@@ -1,5 +1,5 @@
 /* Painted RGBA environments. Only the departure phase can draw this mesh. */
-const departureImages=Object.fromEntries(['meridian','kepler','undertow','foundry'].map(id=>[id,texture(`hangar-${id}.png`,true)]));
+const departureImages=Object.fromEntries(['meridian','kepler','rusthaven','foundry'].map(id=>[id,texture(`hangar-${id}.png`,true)]));
 const departureMesh=[];
 for(let y=0;y<10;y++)for(let x=0;x<16;x++){
  const a=[x/16,y/10],b=[(x+1)/16,y/10],c=[(x+1)/16,(y+1)/10],d=[x/16,(y+1)/10];

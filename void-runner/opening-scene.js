@@ -32,8 +32,9 @@
   const hemi=scene.lights.find(l=>l.name==='ambient');if(hemi){hemi.intensity=.38;hemi.diffuse=B.Color3.FromHexString('#b7d3ec');hemi.groundColor=B.Color3.FromHexString('#a78461');}shadowLight.direction=v(-.55,-.8,.25);shadowLight.intensity=2.2;shadowLight.diffuse=B.Color3.FromHexString('#ffe0ad');shadowLight.position=v(45,75,-30);shadowLight.shadowMinZ=1;shadowLight.shadowMaxZ=180;shadowLight.autoUpdateExtends=false;shadowLight.orthoLeft=-65;shadowLight.orthoRight=65;shadowLight.orthoBottom=-65;shadowLight.orthoTop=65;
   const previousLook={tone:scene.imageProcessingConfiguration.toneMappingEnabled,exposure:scene.imageProcessingConfiguration.exposure,contrast:scene.imageProcessingConfiguration.contrast};scene.imageProcessingConfiguration.toneMappingEnabled=true;scene.imageProcessingConfiguration.exposure=1.18;scene.imageProcessingConfiguration.contrast=1.08;
   // The whole horizon is a continuous 3D heightfield. Flight can look down or behind the shop.
-  const rock=mat('rock','#927056',.94,0),ridgeMat=mat('mesa','#ffffff',.96,0);ridgeMat.backFaceCulling=false;
+  const rock=mat('rock','#a0684a',.94,0),ridgeMat=mat('mesa','#ffffff',.96,0);ridgeMat.backFaceCulling=false;
   VoidVesperVisuals.mountainRing(B,scene,parent,ridgeMat,quality);
+  const butteField=VoidVesperVisuals.buttes(B,scene,parent,quality);owned.push(...butteField.materials);textures.push(butteField.materials[0].diffuseTexture);
   const moonMat=mat('moon','#d9dfeb',1,0,'#242937');moonMat.fogEnabled=false;moonMat.albedoTexture=texture('moon','moon','#bdc9dd');moonMat.albedoColor.set(1,1,1);const moon=add(B.MeshBuilder.CreateSphere('distant-moon',{diameter:240,segments:32},scene),moonMat,[410,270,850],parent,false);moon.receiveShadows=false;const companion=add(B.MeshBuilder.CreateSphere('vesper-companion',{diameter:38,segments:16},scene),moonMat,[285,245,760],parent,false);companion.receiveShadows=false;
   // Independent open-front workshop; no station shell, solar arrays or interior corridor.
   hook('workshop',[0,0,0],()=>{box('workshop-slab',[29,.25,28],[0,-.1,-10],floorMat);for(const x of [-13,13]){bevel('wall-panel',[.35,6,24],[x,3,-11.5]);for(let z=-21;z<1;z+=4)bevel('support-column',[.42,6.2,.5],[x*.97,3.1,z],steel);}
@@ -91,7 +92,7 @@
   for(let i=0;i<5;i++)bevel('floor-expansion-joint',[25,.012,.025],[0,.036,-20+i*4.5],dark);
   for(let i=0;i<55;i++)box('drain-slot',[.08,.016,.5],[-11+i*.4,.045,.6],dark);
   for(let i=0;i<10;i++){const z=-18+i*1.7;bevel('electrical-conduit',[.045,.045,1.55],[-12.7,2.4,z],steel);}
-  for(let i=0;i<62;i++){const x=rand()*92-46,z=5+rand()*72;if(Math.abs(x-12)<14&&Math.abs(z-25)<15||Math.abs(x)<16&&z<10)continue;const stone=B.MeshBuilder.CreatePolyhedron('apron-stone',{type:1,size:.12+rand()*.55},scene);add(stone,rock,[x,.08,z]);stone.scaling.y=.5;}
+  for(let i=0;i<62;i++){const x=rand()*92-46,z=5+rand()*72;if(Math.abs(x-12)<14&&Math.abs(z-25)<15||Math.abs(x)<16&&z<10)continue;const stone=VoidVesperVisuals.boulder(B,scene,'apron-stone',.1+rand()*.45,rand()*90,'low');add(stone,rock,[x,0,z]);stone.rotation.y=rand()*6.28;}
   // Landing apron and maintained, older Kestrel. A single hook owns its replacement.
   box('landing-pad',[22,.12,24],[12,-.005,25],floorMat);for(const x of [2,22])for(let z=16;z<36;z+=3)box('pad-stripe',[.18,.025,1.8],[x,.07,z],rust);
   const ship=hook('kestrel',[12,1.8,25],()=>{const n=shipModel('starter','friendly',parent);n.position.set(12,2,25);n.scaling.set(2.4,2.4,2.8);n.rotation.y=Math.PI+.4;return n;});
@@ -146,11 +147,11 @@
   commerce('store',-50,23,2.12);commerce('bar',-62,41,2.20);
   for(const [x,z] of [[-29,27],[-44,29],[-55,48],[-68,54]]){cylinder('village-comms-pole',.065,8.5,[x,4.25,z],steel);box('utility-crossarm',[2.1,.10,.12],[x,7.3,z],paint);for(const side of [-1,1]){cylinder('insulator',.11,.22,[x+side*.85,7.4,z],dark);box('lamp-head',[.50,.14,.35],[x+side*.85,5.3,z],warm);}bevel('pole-control-box',[.65,.84,.4],[x,.95,z],habitatTrim);}
   for(const [x,z] of [[-24,8],[-31,12],[-47,51],[-70,35]]){cylinder('storage-drum',.33,.9,[x,.45,z],rust);bevel('utility-case',[1.0,.58,.8],[x+1.1,.30,z+.5],paint);}
-  if(!low)for(const [x,z] of [[-30,30],[-52,15],[-70,45],[-48,63]])for(let i=0;i<7;i++){const pebble=B.MeshBuilder.CreatePolyhedron('village-rock',{type:1,size:.12+rand()*.38},scene);add(pebble,rock,[x+rand()*5,.03,z+rand()*5]);pebble.scaling.y=.46;}
+  if(!low)for(const [x,z] of [[-30,30],[-52,15],[-70,45],[-48,63]])for(let i=0;i<7;i++){const pebble=VoidVesperVisuals.boulder(B,scene,'village-rock',.1+rand()*.32,rand()*90,'low');add(pebble,rock,[x+rand()*5,0,z+rand()*5]);pebble.rotation.y=rand()*6.28;}
   const scrub=mat('desert-scrub','#625f43',1,0),dryScrub=mat('dry-scrub','#8a7a52',1,0);
   // Tyre ruts from the pad to the village, and weathered outcrops around the flats.
   const rut=mat('tyre-rut','#6f553f',1,0);for(const off of [-.9,.9]){const pts=[];for(let t=0;t<=1;t+=.05){const x=10-t*48+off,z=18+t*28+Math.sin(t*6)*2.5;pts.push(v(x,.03,z));}const ribbon=B.MeshBuilder.CreateRibbon('tyre-rut',{pathArray:[pts.map(p=>p.add(v(-.18,0,0))),pts.map(p=>p.add(v(.18,0,0)))]},scene);add(ribbon,rut,[0,0,0],parent,false);}
-  if(!low)for(const [x,z,sz] of [[-88,-30,9],[60,40,7],[70,-40,11],[-95,80,8],[25,95,10],[-20,-70,7]]){for(let i=0;i<5;i++){const o=B.MeshBuilder.CreatePolyhedron('outcrop',{type:i%2?2:3,size:sz*(.35+rand()*.45)},scene);add(o,rock,[x+rand()*sz*1.4,sz*.18,z+rand()*sz*1.4]);o.scaling.y=.55+rand()*.5;o.rotation.y=rand()*6.28;}}
+  if(!low)for(const [x,z,sz] of [[-88,-30,9],[60,40,7],[70,-40,11],[-95,80,8],[25,95,10],[-20,-70,7]]){for(let i=0;i<5;i++){const o=VoidVesperVisuals.boulder(B,scene,'outcrop',sz*(.3+rand()*.4),rand()*90,quality);add(o,rock,[x+rand()*sz*1.4,0,z+rand()*sz*1.4]);o.scaling.y=.7+rand()*.6;o.rotation.y=rand()*6.28;}}
   for(let i=0;i<(low?20:70);i++){const x=-110+rand()*220,z=-90+rand()*200;if(Math.abs(x)<16&&z<26&&z>-26||Math.abs(x-12)<10&&Math.abs(z-25)<10||x>34&&x<50&&z>-18&&z<2)continue;const c=add(B.MeshBuilder.CreatePolyhedron('dry-scrub',{type:1,size:.2+rand()*.3},scene),i%3?dryScrub:scrub,[x,.12,z]);c.scaling.set(.8,.45,1.1);c.rotation.y=rand()*6.28;}
   for(let i=0;i<(low?32:88);i++){const x=-70+rand()*72,z=9+rand()*65;if(Math.abs(x+48)<12&&z>17&&z<50||Math.abs(x-12)<15&&z<38)continue;const clump=add(B.MeshBuilder.CreatePolyhedron('desert-scrub',{type:1,size:.18+rand()*.22},scene),scrub,[x,.10,z]);clump.scaling.set(.65,.35,1.2);clump.rotation.y=rand()*6.28;}
   // The exterior shell shares the interior frame, but gains a visible working facade.
@@ -158,7 +159,7 @@
   for(const x of [-11,-6,6,11]){bevel('garage-header-bracket',[.65,.36,.55],[x,5.9,1.15],steel);box('garage-threshold-warning',[.45,.025,.65],[x,.08,1.46],warning);}
   for(const [x,z] of [[-18,-9],[-20,-1],[-17,7]]){bevel('outdoor-parts-case',[1.7,1.2,1.1],[x,.62,z],paint);bevel('outdoor-parts-lid',[1.78,.16,1.16],[x,1.27,z],steel);}
   // Shooting lane faces away from settlement and landing pad, into a dirt backstop.
-  const berm=B.MeshBuilder.CreateCylinder('range-berm',{height:7,diameterTop:4,diameterBottom:12,tessellation:8},scene);add(berm,rock,[48.5,1.2,-8]);berm.scaling.set(.8,.75,2.6);
+  const berm=VoidVesperVisuals.boulder(B,scene,'range-berm',5,41,quality);add(berm,rock,[48.5,0,-8]);berm.scaling.set(.9,1.1,2.5);
   bevel('target-shelf',[1,.2,14],[39,1.02,-8],steel);for(const z of [-14,-2])bevel('rack-leg',[.16,1,.16],[39,.5,z],rust);
   // Labelled tins, a plank across drums, sandbags and a painted target board.
   const canLabels=[['#b2302a','#f3e2c4','VESPER COLA'],['#2f5f8f','#e9eef0','RATION PACK'],['#d1a02d','#2a2016','FUEL GEL'],['#3c7a4c','#ecf0e2','GREEN TEA'],['#7a2f6b','#f3d7ea','PINK NOISE'],['#c95a1f','#fbead8','HOT BEANS']];

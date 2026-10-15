@@ -465,7 +465,7 @@
       g = t.getContext();
     const gas = id === 'meridian',
       ocean = id === 'kepler' || id === 'earth',
-      ice = id === 'undertow';
+      ice = id === 'rusthaven';
     g.fillStyle = ocean ? '#1b4662' : ice ? '#7a919b' : gas ? '#aa8366' : '#6c3826';
     g.fillRect(0, 0, 512, 256);
     for (let i = 0; i < 600; i++) {
@@ -507,7 +507,7 @@
         ['station:' + id]: VoidAssets.models.stations[id]||VoidMeridian.model
       } : {})
     },task), 'registered space models');
-    const texturePath = ['meridian', 'kepler', 'undertow', 'foundry'].includes(id) ? id : 'kepler';
+    const texturePath = ['meridian', 'kepler', 'rusthaven', 'foundry'].includes(id) ? id : 'kepler';
     sky = b.MeshBuilder.CreateSphere('painted-sky', {
       diameter: 3000,
       segments: 16,

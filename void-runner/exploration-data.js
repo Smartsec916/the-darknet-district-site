@@ -3,7 +3,7 @@
   const systems = {
     erebus: {
       name: 'EREBUS SYSTEM',
-      destinations: ['meridian', 'kepler', 'undertow', 'foundry']
+      destinations: ['meridian', 'kepler', 'rusthaven', 'foundry']
     },
     sol: {
       name: 'TESSALY',

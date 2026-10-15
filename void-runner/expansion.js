@@ -55,7 +55,7 @@ dock=function(tab='dock') {
   expansionDock(tab);
   if(tab==='dock'&&state.location!=='meridian'){
     scene('dock');screen.classList.add('station-dock');
-    const descriptions={kepler:'Scuffed deck plates, exposed pipes and a canteen full of tired freight crews.',undertow:'A weathered crescent of salvage docks, patched hull plating and magenta harbor lights.',foundry:'Hot steel, cargo cranes and the steady thunder of the refinery.'};
+    const descriptions={kepler:'Scuffed deck plates, exposed pipes and a canteen full of tired freight crews.',rusthaven:'A weathered crescent of salvage docks, patched hull plating and magenta harbor lights.',foundry:'Hot steel, cargo cranes and the steady thunder of the refinery.'};
     screen.querySelector('.lead p')?.insertAdjacentHTML('beforeend','<br><span class="station-detail">'+descriptions[state.location]+'</span>');
   }
 };

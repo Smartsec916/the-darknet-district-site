@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><meta charset="utf-8"><title>VOID travel QA</title>
 <style>body{margin:0;background:#030913;color:#bfffee;font:14px monospace}nav{padding:10px;display:flex;gap:10px;align-items:center}button{background:#142832;color:#bfffee;padding:9px;border:1px solid #58ffe1}iframe{width:100%;height:calc(100vh - 58px);border:0}#status{margin-left:auto}</style>
-<nav><b>LOCAL TRAVEL QA</b><button data-origin="meridian" data-destination="kepler">Meridian → Kepler</button><button data-origin="kepler" data-destination="meridian">Kepler → Meridian</button><button data-origin="undertow" data-destination="foundry">Rusthaven → Foundry</button><button data-origin="foundry" data-destination="undertow">Foundry → Rusthaven</button><button id="clear">Clear encounter</button><span id="status">Loading…</span></nav>
+<nav><b>LOCAL TRAVEL QA</b><button data-origin="meridian" data-destination="kepler">Meridian → Kepler</button><button data-origin="kepler" data-destination="meridian">Kepler → Meridian</button><button data-origin="rusthaven" data-destination="foundry">Rusthaven → Foundry</button><button data-origin="foundry" data-destination="rusthaven">Foundry → Rusthaven</button><button id="clear">Clear encounter</button><span id="status">Loading…</span></nav>
 <iframe src="../void-runner.html" title="Game preview"></iframe>
 <script>
 if(!['localhost','127.0.0.1'].includes(location.hostname))throw Error('This QA fixture is local-only.');

@@ -12,7 +12,7 @@
   const stations=Story.content.locations;for(const [id,def] of Object.entries(U.locations))stations[id]={...stations[id],...def};
   const contracts = [
     { id: 'medicine', name: 'Cold chain', cargo: 'Refrigerated clinic supplies', legal: true, destination: 'kepler', reward: 650, enemies: 8, tier: 1, duration: 38, contact: 'Dr. Sol', briefing: 'Our clinics need these before the next shift. Keep the containers intact. Raider activity has increased along the route.' },
-    { id: 'ghost', name: 'Ghost hardware', cargo: 'Unlicensed neural processors', legal: false, destination: 'undertow', reward: 1000, enemies: 12, tier: 2, duration: 45, contact: 'Iona Vale', briefing: 'The people buying these cannot afford corporate leases on their own minds. Expect armored interceptors. Upgrade before you leave.' },
+    { id: 'ghost', name: 'Ghost hardware', cargo: 'Unlicensed neural processors', legal: false, destination: 'rusthaven', reward: 1000, enemies: 12, tier: 2, duration: 45, contact: 'Iona Vale', briefing: 'The people buying these cannot afford corporate leases on their own minds. Expect armored interceptors. Upgrade before you leave.' },
     { id: 'foundry', name: 'A debt in steel', cargo: 'Restricted fabrication cores', legal: false, destination: 'foundry', reward: 1500, enemies: 16, tier: 3, duration: 52, contact: 'Rook', briefing: 'The Foundry is building something the corporations would rather stay broken. A gunship guards the approach. Bring armor and a better reactor.' }
   ];
   const upgrades = {
@@ -22,11 +22,29 @@
     shields: { name: 'Deflector shield', get description(){return B.shieldPerTier+' shield capacity per tier. Regenerates '+B.shieldRechargeRate+' per second after '+B.shieldRechargeDelay+' seconds without a hit.';}, prices: [300, 650, 1000] }
   };
   const quests = ['inheritance', 'arrival', 'legal-offer', 'legal-run', 'return', 'illegal-offer', 'illegal-run', 'open'];
-  const allContracts = [...contracts, ...content.missions];
+  // Rook keeps freight moving once the opening runs are done. Each run is numbered so
+  // the Mission Log keeps a separate entry, and a newly opened system gets the next run.
+  const rookCargo=['Sealed reactor couplings','Med-gel canisters','Unmarked data cores','Hydroponic seed stock','Salvaged drive coils','Encrypted ledger drives','Coolant cells','Surplus targeting optics'];
+  const rookRunBase={ id: 'rook-run', name: 'Rook freight run', cargo: 'Rook freight', legal: true, destination: 'meridian', reward: 500, enemies: 4, tier: 1, duration: 36, contact: 'Rook', briefing: 'Rook always has another crate that needs to be somewhere else.' };
+  function rookRunNumber(s){return (Number.isSafeInteger(s.story?.flags?.rookRuns)?s.story.flags.rookRuns:0)+1;}
+  function rookRunTarget(s){
+    const u=s.universe||U.fresh(),served=String(s.story?.flags?.rookSystems||'erebus').split(',');
+    const fresh=(u.discoveredSystems||[]).find(id=>U.systems[id]&&!served.includes(id)&&U.systems[id].hub!==s.location);
+    if(fresh)return U.systems[fresh].hub;
+    const pool=Object.keys(U.locations).filter(id=>id!=='vesper'&&id!==s.location&&(u.discoveredLocations||[]).includes(id));
+    return pool.length?pool[(rookRunNumber(s)-1)%pool.length]:'meridian';
+  }
+  function rookRun(s){
+    const n=rookRunNumber(s),step=Math.min(n-1,8),to=s.story?.flags?.rookRunTo;
+    const destination=s.contract==='rook-run'&&typeof to==='string'&&Object.hasOwn(stations,to)?to:rookRunTarget(s);
+    return {...rookRunBase,id:'rook-run-'+n,number:n,name:'Rook freight run #'+n,cargo:rookCargo[(n-1)%rookCargo.length],legal:n%2===1,destination,reward:Math.min(2000,500+150*step),enemies:4+step,tier:1+step*.3,duration:36+step*2};
+  }
+  const allContracts = [...contracts, rookRunBase, ...content.missions];
   function fresh() { return { version: 2, progression:P.fresh(), universe:U.fresh(), story:Story.fresh(), savedAt:null, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], ownedShips:['starter'], activeShip:'starter', standardGear:['pulse1','shield1'], shipLoadouts:{}, combatRuns:0, missileOfferSeen:false, missileUnlocked:false, travel:null, destination:null, loadout: {weapon:null,shield:null,utility:null,missile:null} }; }
   function restore(raw) {
     try {
-      const s = JSON.parse(raw);
+      // Rusthaven used the internal id 'undertow' in older saves.
+      const s = JSON.parse(String(raw).replace(/"undertow"/g,'"rusthaven"'));
       if (!s || ![1,2].includes(s.version) || !quests.includes(s.quest) || !Object.hasOwn(stations, s.location)) return null;
       for (const k of ['credits', 'completed']) if (!Number.isSafeInteger(s[k]) || s[k] < 0 || s[k] > 100000000) return null;
       if(s.upgrades && s.upgrades.shields===undefined)s.upgrades.shields=0;
@@ -60,8 +78,9 @@
     if (s.quest === 'arrival') return { ...base, name: 'A ship of your own', destination: 'meridian' };
     if (s.quest === 'legal-run') return { ...base, name: 'An honest living', cargo: 'Water filtration parts', destination: 'kepler', enemies: 1, duration: 28, reward: 350 };
     if (s.quest === 'return') return { ...base, name: 'Back to the Dead Channel', destination: 'meridian', duration: 18 };
-    if (s.quest === 'illegal-run') return { ...base, name: 'No questions asked', cargo: 'Unregistered memory wafers', legal: false, destination: 'undertow', enemies: 6, tier: 1, duration: 36, reward: 800 };
+    if (s.quest === 'illegal-run') return { ...base, name: 'No questions asked', cargo: 'Unregistered memory wafers', legal: false, destination: 'rusthaven', enemies: 6, tier: 1, duration: 36, reward: 800 };
     if(s.quest==='open'&&!s.progression.flags.missileFired&&!s.contract)return {...base,id:'prologue-missiles',name:'Rook / Missile qualification',destination:s.location==='meridian'?'kepler':'meridian',enemies:1,tier:0,duration:18};
+    if (s.quest === 'open' && s.contract==='rook-run'){const r=rookRun(s);return {...r,destination:r.destination===s.location?'meridian':r.destination};}
     if (s.quest === 'open' && s.contract) {
       const c = allContracts.find(c => c.id === s.contract);
       if (!c) return null;
@@ -73,7 +92,9 @@
   }
   function flight(s){
     let mission=missionFlight({...s,destination:null});
-    if(mission&&U.system(s.location)!==U.system(mission.destination))mission={name:'Interstellar connection',destination:U.nextHop(s.location,mission.destination),duration:24,enemies:0,tier:0,reward:0,legal:true,cargo:'Cargo retained in hold',kind:'transit'};
+    // A run whose destination is the other system's hub is flown in one interstellar leg.
+    if(mission&&U.system(s.location)!==U.system(mission.destination)&&U.nextHop(s.location,mission.destination)===mission.destination)mission={...mission,duration:Math.max(mission.duration,24)};
+    else if(mission&&U.system(s.location)!==U.system(mission.destination))mission={name:'Interstellar connection',destination:U.nextHop(s.location,mission.destination),duration:24,enemies:0,tier:0,reward:0,legal:true,cargo:'Cargo retained in hold',kind:'transit'};
     if(!s.universe?.freeTravel||!s.destination||s.destination===s.location)return mission;
     if(mission?.destination===s.destination)return mission;
     const policy=U.route(s.location,s.destination);
@@ -85,7 +106,9 @@
     const c = allContracts.find(c => c.id === id);
     if (s.contract || !c || !unlocked(s,c)) return false;
     if(!c.dataCargo&&(s.progression.cargo||[]).reduce((n,x)=>n+x.units,0)>=P.systems(s).cargo)return false;
-    s.destination=null;s.contract = id;Missions.acquire(s,id);Story.emit(s,'missionAccepted',id);return true;
+    s.destination=null;s.contract = id;
+    if(id==='rook-run'){s.story.flags.rookRunTo=rookRunTarget(s);Missions.acquire(s,rookRun(s).id);Story.emit(s,'missionAccepted',id);return true;}
+    Missions.acquire(s,id);Story.emit(s,'missionAccepted',id);return true;
   }
   function complete(s) {
     const f = flight(s); if (!f) return null;
@@ -113,7 +136,13 @@
     else if (previous === 'legal-run') s.quest = 'return';
     else if (previous === 'return') s.quest = 'illegal-offer';
     else if (previous === 'illegal-run') { s.quest = 'open'; s.upgrades.guns = Math.max(1, s.upgrades.guns); }
-    else s.contract = null;
+    else {
+      if(s.contract==='rook-run'){
+        const f=s.story.flags,served=new Set(String(f.rookSystems||'erebus').split(','));served.add(U.system(s.location));
+        f.rookRuns=(Number.isSafeInteger(f.rookRuns)?f.rookRuns:0)+1;f.rookSystems=[...served].join(',');delete f.rookRunTo;
+      }
+      s.contract = null;
+    }
     s.story.chapter=s.quest;Story.emit(s,'missionComplete',f.id||previous);Story.emit(s,'arriveLocation',s.location);Story.emit(s,'dock',s.location);
     return { ...f, missileOffer:s.missileUnlocked&&!s.missileOfferSeen, repairCharged, gunReward: previous === 'illegal-run' };
   }
@@ -204,7 +233,7 @@
       }
     };
   }
-  const api = { stations, contracts, allContracts, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
+  const api = { stations, contracts, allContracts, rookRun, rookRunTarget, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

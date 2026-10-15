@@ -116,7 +116,7 @@ function draw() {
   const dest = current && (mode === 'play' || mode === 'pause') ? current.destination : state.location;
   const color = C.stations[dest].color;
   const glow = ctx.createRadialGradient(W * .7, H * .4, 0, W * .7, H * .4, W * .7);
-  glow.addColorStop(0, dest === 'undertow' ? '#2b1449' : dest === 'foundry' ? '#38222c' : '#122d43'); glow.addColorStop(.5, '#0b1326'); glow.addColorStop(1, '#030713'); ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+  glow.addColorStop(0, dest === 'rusthaven' ? '#2b1449' : dest === 'foundry' ? '#38222c' : '#122d43'); glow.addColorStop(.5, '#0b1326'); glow.addColorStop(1, '#030713'); ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
   drawDeepSpace(dest);
   drawPlanets(dest);
   drawAsteroids();

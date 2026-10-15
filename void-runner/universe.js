@@ -4,7 +4,7 @@
  const systems={erebus:{name:'Erebus System',hub:'meridian',ownerFaction:null,securityFaction:'erebus-local',populationPool:[],shopPool:[],missionPool:[]},sol:{name:'Tessaly System',hub:'sol-belt',ownerFaction:null,securityFaction:'sol-local',populationPool:[],shopPool:[],missionPool:[]}};
  const locations={
   vesper:{system:'erebus',name:'Vesper',district:'WARD FREIGHT WORKSHOP',color:'#c2a584',bar:'Workshop'},
-  meridian:{system:'erebus'},kepler:{system:'erebus'},undertow:{system:'erebus'},foundry:{system:'erebus'},
+  meridian:{system:'erebus'},kepler:{system:'erebus'},rusthaven:{system:'erebus'},foundry:{system:'erebus'},
   'sol-belt':{system:'sol',name:'Tessaly Belt Anchorage',district:'TESSALY / ASTEROID BELT',color:'#8dbea9',bar:'Belt Canteen'},
   earth:{system:'sol',name:'NeoChinatown',district:'TESSALY / CITY LANDING',color:'#9b7bff',bar:'The Darknet District'},
   mars:{system:'sol',name:'Vantor / Underground City',district:'TESSALY / SUBSURFACE ACCESS',color:'#ba6847',bar:'Transit Canteen'}
@@ -26,7 +26,7 @@
    out.missions[id]={acquired:true,completed:entry.completed===true,objectives};
   }
   out.completedObjectives=Array.isArray(raw.completedObjectives)?raw.completedObjectives.filter(x=>typeof x==='string'&&x.length<80).slice(0,200):[];
-  if(state.quest==='open')out.discoveredLocations=[...new Set([...out.discoveredLocations,'kepler','undertow','foundry'])];
+  if(state.quest==='open')out.discoveredLocations=[...new Set([...out.discoveredLocations,'kepler','rusthaven','foundry'])];
   if(out.freeTravel){out.discoveredSystems=['erebus','sol'];out.discoveredLocations=[...new Set([...out.discoveredLocations,'sol-belt','earth','mars'])];}
   if(raw.station?.location===state.location)out.station={location:state.location};return out;
  }
