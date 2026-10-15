@@ -368,6 +368,16 @@ From the master plan and doc 05:
 - **Rook:** runs into a faction system are held until the player has made Admin's delivery there (approved). After that, Rook's new-system rule sends the next run there.
 - **Server:** `save-manifest.json` lists the new locations, systems and contract ids; `clean_save()` reads allowed systems from the manifest.
 
+### 9.2.2 Adaptive music (IMPLEMENTED; David approved procedural music now, his own files later)
+
+- **Files:** `music-director.js` (what plays: location, District zone, combat cooldown, warp, dialogue ducking, bar speakers; unit-tested), `music-score.js` (each location's key, tempo, harmony, instruments and description, as data), `music-engine.js` (performs the score live in Web Audio with crossfades), `music-integration.js` (game-loop hook). Tests: `tests/music.test.cjs`, `tests/music-engine.test.cjs`.
+- **Original, generated live:** no music files ship. A shared four-note VOID//RUNNER motif links the styles. Every location has its own style; the four working stations share one theme with different mixes; space takes on Communion or Natural Order colour in their systems.
+- **District zones:** street, entry and scan, hallway, store (quiet), arcade, pods and meeting room (near silence), smoking terrace (muffled), with 1.4 s hysteresis. Bar music in the Dead Channel and the District bar comes from in-world speakers and fades with distance; it does not reach Admin and Iris's store.
+- **States:** combat raises intensity with a 7 s cool-down; watching a faction battle adds only a tension layer; dialogue ducks music by 30%.
+- **Your own tracks:** add `{styleId: 'path/to/file.ogg'}` to `files` in `music-score.js` and that style plays the file instead, with the same crossfades and volume.
+- **New Ambient volume slider** (Settings). The old drone bed in `ship-audio.js` is silenced while the engine runs.
+- **Not yet:** on-foot combat music (the derelict has its own tense score instead). Arcade, sleeping-pod playlist and recorded NPC voices come later.
+
 ### 9.3 Rook cargo runs
 
 Done; see §4.3. Possible follow-ups:
