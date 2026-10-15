@@ -382,6 +382,13 @@ From the master plan and doc 05:
 - **New Ambient volume slider** (Settings). The old drone bed in `ship-audio.js` is silenced while the engine runs.
 - **Not yet:** on-foot combat music (the derelict has its own tense score instead). Arcade, sleeping-pod playlist and recorded NPC voices come later.
 
+### 9.2.3 Recorded NPC voices (IMPLEMENTED; Kokoro, approved)
+
+- 103 fixed NPC lines are pre-recorded with Kokoro-82M (Apache-2.0), rendered offline: about 2.8 MB of Ogg/Opus in `void-runner/assets/audio/voice/`, loaded only when spoken. Licences: `assets/audio/voice/LICENSES.md`.
+- `manifest.json` gives each line a stable id (`speaker-hash`), the text, and the per-NPC voice cast: Mara af_nicole, Elias bm_george (hologram tone), Rook am_fenrir, Admin am_michael, Iris bf_emma (android treatment), Elara bf_isabella, Marcus am_eric, Nyx af_river, Iona af_kore, Dr. Sol bm_lewis, District bartender am_liam, arcade attendant am_puck. **David should listen and recast any voice that doesn't fit.**
+- `voice-clips.js` plays the clip on the voice channel; subtitles pace to the clip; a REPLAY button replays the line; skipping stops it. Lines built at runtime (prices, destinations) and any failed clip use the browser voice. The player is never voiced.
+- After any dialogue change: `node tools/voice/extract-lines.cjs` then `python tools/voice/generate.py --models <folder>`. `npm test` fails if a line has no clip.
+
 ### 9.3 Rook cargo runs
 
 Done; see §4.3. Possible follow-ups:

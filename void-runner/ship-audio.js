@@ -394,11 +394,12 @@
     const score = v => (/natural|neural|enhanced|premium/i.test(v.name) ? 20 : 0) + (p.preferred?.some(n => v.name.toLowerCase().includes(n)) ? 5 : 0);
     return matches.sort((a,b) => score(b)-score(a) || a.name.localeCompare(b.name))[0] || null;
   }
-  function speak(id, text, waitedForVoices = false) {
+  function speak(id, text, waitedForVoices = false, browserOnly = false) {
     cancel();
     if (!settings.enabled || !settings.voiceEnabled || !settings.voice) return false;
     const p = profiles[content.characters[id]?.voiceProfile || id] || profiles.rook;
-    if (voiceProvider) {
+    // Recorded clips when the line has one; otherwise (or if a clip fails) the browser voice.
+    if (voiceProvider && !browserOnly && (!voiceProvider.has || voiceProvider.has(id, text))) {
       try {
         speaking = true;
         mix();
@@ -409,7 +410,7 @@
           profile: p,
           volume: settings.master * settings.voice,
           bus: buses?.voice
-        })).catch(error => {console.warn('[VOID voice]',{character:id,recovery:'subtitles',reason:error.message});}).finally(() => {
+        })).catch(error => {console.warn('[VOID voice]',{character:id,recovery:'browser voice',reason:error.message});if (token === current) speak(id, text, false, true);}).finally(() => {
           if (token === current) {
             speaking = false;
             mix();
