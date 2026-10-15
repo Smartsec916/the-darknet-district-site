@@ -58,16 +58,17 @@
       let skyline=0;for(const [at,scale] of peaks){const d=wrap(angular-at);skyline+=scale*Math.exp(-d*d/.027);}
       // Integer angular frequencies keep the first and last columns identical.
       const crest=34+skyline*73+12*Math.sin(angle*12)+6*Math.sin(angle*28+.6);
-      const radial=Math.max(0,Math.min(1,(r-270)/400));
+      // Open desert floor out to the buttes; the ridge ring rises only as the distant hazy range.
+      const radial=Math.max(0,Math.min(1,(r-820)/420));
       const shelves=Math.sin(r*.043+Math.sin(angle*15)*2.2)*5+Math.sin(r*.11+angle*31)*2;
       // Mesa profile: tall crests flatten into table tops with steep stratified walls.
-      let raw=(crest+shelves)*radial+(r>500?Math.sin(angle*7+r*.013)*15:0);const cap=38+skyline*30+Math.sin(angle*9)*5;if(raw>cap)raw=cap+(raw-cap)*.12;
+      let raw=(crest+shelves)*radial+(r>900?Math.sin(angle*7+r*.013)*15:0)+(r>300&&r<900?2.5*Math.sin(angle*9+r*.03):0);const cap=38+skyline*30+Math.sin(angle*9)*5;if(raw>cap)raw=cap+(raw-cap)*.12;
       const y=ring===0?-.035:Math.max(-.035,raw);
       positions.push(Math.sin(angle)*r,y,Math.cos(angle)*r);
       const shade=.79+.13*Math.sin(angle*23+r*.014)+.06*Math.sin(r*.18+angle*37);
       // Sandstone strata: alternating pale and rust bands by height, darker desert varnish near the tops.
       const band=Math.sin(y*.42+Math.sin(angle*5)*.6),strata=band>.55?1.13:band<-.6?.86:1,varnish=y>40?1-Math.min(.22,(y-40)/260):1,dist=1-Math.min(.25,(r-245)/3600);
-      const k=shade*strata*varnish;colors.push(Math.min(1,.74*k*dist+.06*(1-dist)),Math.min(1,.52*k*dist+.08*(1-dist)),Math.min(1,.37*k*dist+.12*(1-dist)),1);
+      const k=shade*strata*varnish,haze=Math.min(.78,Math.max(0,(r-420)/900));colors.push(Math.min(1,.74*k*(1-haze)+.52*haze),Math.min(1,.5*k*(1-haze)+.44*haze),Math.min(1,.36*k*(1-haze)+.56*haze),1);
       uvs.push(i/segments*16,ring*1.5);
     }
     for(let ring=0;ring<radii.length-1;ring++)for(let i=0;i<segments;i++){
@@ -79,5 +80,41 @@
     mesh.parent=parent;mesh.material=material;mesh.isPickable=false;mesh.receiveShadows=false;return mesh;
   }
 
-  root.VoidVesperVisuals={surfaceTexture,mountainRing};
+  // Monument-valley buttes and spires: sheer stratified sandstone walls on talus
+  // skirts, in full 3D so they hold up when the Kestrel climbs away from Vesper.
+  function strataTexture(B,scene,quality){
+    const size=quality==='low'?256:512,t=new B.DynamicTexture('vesper-strata',{width:size,height:size},scene,true),g=t.getContext(),rand=random(5521);
+    const grad=g.createLinearGradient(0,0,0,size);grad.addColorStop(0,'#b8673a');grad.addColorStop(.55,'#a2522c');grad.addColorStop(1,'#7a3c22');g.fillStyle=grad;g.fillRect(0,0,size,size);
+    let y=0;while(y<size){const h=8+rand()*46,tone=rand();g.fillStyle=tone>.7?'rgba(232,170,120,.22)':tone<.3?'rgba(70,30,18,.22)':'rgba(190,110,70,.12)';g.fillRect(0,y,size,h);g.fillStyle='rgba(40,18,10,.35)';g.fillRect(0,y+h-1,size,1);y+=h;}
+    for(let i=0;i<220;i++){const x=rand()*size,w=1+rand()*5,top=rand()*size*.6,len=size*(.15+rand()*.6);const sg=g.createLinearGradient(0,top,0,top+len);sg.addColorStop(0,'rgba(45,22,14,0)');sg.addColorStop(.3,'rgba(45,22,14,'+(.1+rand()*.25)+')');sg.addColorStop(1,'rgba(45,22,14,0)');g.fillStyle=sg;g.fillRect(x,top,w,len);}
+    for(let i=0;i<9000;i++){g.fillStyle='rgba('+(rand()<.5?'255,220,180':'30,12,8')+','+(rand()*.07)+')';g.fillRect(rand()*size,rand()*size,1+rand()*3,1+rand()*2);}
+    t.update();t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;t.anisotropicFilteringLevel=quality==='low'?2:8;return t;
+  }
+  function buttes(B,scene,parent,quality='medium'){
+    const rand=random(9173),low=quality==='low',wall=new B.StandardMaterial('vesper-butte-walls',scene),talus=new B.StandardMaterial('vesper-butte-talus',scene);
+    wall.diffuseTexture=strataTexture(B,scene,quality);wall.specularColor=new B.Color3(.04,.03,.02);wall.ambientColor=new B.Color3(.4,.3,.26);
+    talus.diffuseColor=B.Color3.FromHexString('#6c4029');talus.specularColor=B.Color3.Black();talus.ambientColor=new B.Color3(.32,.24,.2);
+    const W={p:[],i:[],u:[]},T={p:[],i:[],u:[]};
+    function ring(target,n,radii,ys,cx,cz,uv){const start=target.p.length/3;for(let r=0;r<ys.length;r++)for(let k=0;k<=n;k++){const a=k/n*Math.PI*2,rad=radii[r][k%n];target.p.push(cx+Math.cos(a)*rad,ys[r],cz+Math.sin(a)*rad);target.u.push(uv?k/n*uv[0]:k/n*4,uv?ys[r]/uv[1]:r);}for(let r=0;r<ys.length-1;r++)for(let k=0;k<n;k++){const a=start+r*(n+1)+k,b=a+n+1;target.i.push(a,b,a+1,a+1,b,b+1);}return start;}
+    function cap(target,n,radius,y,cx,cz){const c=target.p.length/3;target.p.push(cx,y,cz);target.u.push(.5,y/60);for(let k=0;k<=n;k++){const a=k/n*Math.PI*2;target.p.push(cx+Math.cos(a)*radius[k%n],y,cz+Math.sin(a)*radius[k%n]);target.u.push(.5+Math.cos(a)*.5,.5+Math.sin(a)*.5);}for(let k=0;k<n;k++)target.i.push(c,c+2+k,c+1+k);}
+    function butte(cx,cz,R,H,spire){const n=spire?9:24,stretch=spire?1:1+rand()*1.6,rot=rand()*Math.PI,ph=rand()*6;
+      // Elongated, notched footprint with vertical buttresses so walls read as eroded rock, not drums.
+      const shape=Array.from({length:n},(_,k)=>{const a=k/n*Math.PI*2,e=Math.hypot(Math.cos(a-rot)*stretch,Math.sin(a-rot))/Math.max(1,stretch)*1.15,flute=spire?1:(1+.08*Math.sin(a*11+ph)+.05*Math.sin(a*23+ph*2));return Math.max(.35,e*flute*(.82+rand()*.26));});const taper=spire?.5:.93;
+      const wallR=[shape.map(v=>v*R*1.02),shape.map(v=>v*R*(1-(1-taper)*.5)),shape.map(v=>v*R*taper)];const wallY=[H*.28,H*.66,H];
+      ring(W,n,wallR,wallY,cx,cz,[Math.max(1,Math.round(R*stretch*2*Math.PI/70)),Math.max(45,H*1.4)]);cap(W,n,wallR[2],H,cx,cz);
+      // Ledges: a slight overhang band partway up the wall reads as a harder stratum.
+      if(!spire&&H>50){const lr=shape.map(v=>v*R*1.06);ring(W,n,[lr,lr],[H*.62,H*.645],cx,cz,[4,H]);}
+      const talusR=[shape.map(v=>v*R*(spire?1.8:2.1)*(.9+rand()*.25)),shape.map(v=>v*R*1.5),shape.map(v=>v*R*1.04)];ring(T,n,talusR,[-.5,H*.12,H*.3],cx,cz,null);}
+    const sites=[];
+    for(let i=0;i<(low?10:18);i++){let a,d,ok;let tries=0;do{a=rand()*Math.PI*2;d=300+rand()*480;ok=sites.every(s=>Math.hypot(Math.cos(a)*d-s[0],Math.sin(a)*d-s[1])>s[2]+60);tries++;}while(!ok&&tries<40);
+      const R=18+rand()*36,H=60+rand()*95;sites.push([Math.cos(a)*d,Math.sin(a)*d,R*2.3]);butte(Math.cos(a)*d,Math.sin(a)*d,R,H,false);
+      // Spires cluster beside the larger buttes, like the reference's needles.
+      const spires=low?1:2+Math.floor(rand()*3);for(let k=0;k<spires;k++){const sa=a+(rand()-.5)*.35,sd=d+(rand()-.5)*R*3.5;butte(Math.cos(sa)*sd,Math.sin(sa)*sd,4+rand()*6,40+rand()*70,true);}}
+    const out=[];for(const [name,data,m] of [['vesper-buttes',W,wall],['vesper-talus',T,talus]]){const mesh=new B.Mesh(name,scene),vd=new B.VertexData(),normals=[];
+      // Faces were wound for an outward view; flip so Babylon's front faces point out.
+      for(let k=0;k<data.i.length;k+=3)[data.i[k+1],data.i[k+2]]=[data.i[k+2],data.i[k+1]];
+      B.VertexData.ComputeNormals(data.p,data.i,normals);Object.assign(vd,{positions:data.p,indices:data.i,normals,uvs:data.u});vd.applyToMesh(mesh);mesh.parent=parent;mesh.material=m;mesh.isPickable=false;mesh.receiveShadows=false;out.push(mesh);}
+    return {meshes:out,materials:[wall,talus],dispose(){for(const m of out)m.dispose();wall.diffuseTexture?.dispose();wall.dispose();talus.dispose();}};
+  }
+  root.VoidVesperVisuals={surfaceTexture,mountainRing,buttes};
 })(globalThis);
