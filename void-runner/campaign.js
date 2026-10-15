@@ -72,6 +72,8 @@
     if(!d)return false;
     if(s.contract===d.id)s.contract=null;
     s.story.flags[d.flag]='delivered';
+    // Admin is "occupied" only while the first delivery's payment waits with Iris (doc 06).
+    if(d.kind!=='supply'&&s.story.flags.factionFirst===faction)s.story.flags.adminOccupied=true;
     // A supply delivery opens the recipient's homeworld offer; it stays with them until taken.
     if(d.kind==='supply'&&!originState(s,faction))s.story.flags[originMissions[faction].flag]='offered';
     Missions.complete(s,d.id,'arrive');Missions.complete(s,d.id,'deliver');Story.emit(s,'factionDelivered',faction);return d;
@@ -80,6 +82,7 @@
   function collectFactionPayment(s){
     const paid=[];
     for(const d of payable)if(stageOf(s,d)==='delivered'){s.story.flags[d.flag]='paid';s.credits+=d.payment;s.completed++;Missions.complete(s,d.id,'payment');paid.push(d);}
+    if(paid.length)delete s.story.flags.adminOccupied;
     if(paid.length&&factionList.every(d=>factionStage(s,d.faction)==='paid'))s.story.flags.factionsVisited=true;
     return paid;
   }
@@ -235,7 +238,9 @@
     out.progression=P.restore(raw.progression,raw);out.universe=U.restore(raw.universe,out);P.sync(out);
     out.destination=out.universe.freeTravel&&stations[raw.destination]&&raw.destination!==out.location?raw.destination:null;
     const f=flight(out);out.travel=f&&raw.travel?Warp.restore(raw.travel,out.location,f.destination,f.id||out.quest,f.enemies>0||['salvage','hazard','escort'].includes(f.kind)):null;
-    out.story=Story.restore(raw.story);out.savedAt=Number.isSafeInteger(raw.savedAt)&&raw.savedAt>0?raw.savedAt:null;
+    out.story=Story.restore(raw.story);
+    // Admin stays in the store except while the first faction payment waits (replaces the old adminAway flag).
+    {const f=out.story.flags,first=factionDeliveries[f.factionFirst];delete f.adminAway;if(first&&stageOf(out,first)==='delivered')f.adminOccupied=true;else delete f.adminOccupied;}out.savedAt=Number.isSafeInteger(raw.savedAt)&&raw.savedAt>0?raw.savedAt:null;
     if(!raw.story&&out.quest!=='inheritance'){out.story.flags.metMara=true;out.story.met=['mara','elias'];out.story.events=['mara_workshop_intro'];out.story.chapter=out.quest;if(out.completed>0){out.story.flags.rookIntroduced=true;out.story.met.push('rook');}}
     if(!Object.hasOwn(stations,out.progression.checkpoint.location))out.progression.checkpoint={location:out.location};
     if(stations[out.progression.checkpoint.location]){out.location=out.progression.checkpoint.location;out.universe.station={location:out.location};}

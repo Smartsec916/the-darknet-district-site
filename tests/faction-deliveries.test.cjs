@@ -32,7 +32,7 @@ test('arriving does not pay; the recipient takes the cargo and the goal returns 
   let m=mission(s,'communion-delivery');assert(!m.completed);assert.equal(m.objective,'Deliver the equipment to Dr. Elara Voss');assert.equal(m.interaction,'elara');
   assert(C.deliverFaction(s,'communion'));assert(!C.deliverFaction(s,'communion'));
   m=mission(s,'communion-delivery');assert.equal(m.destination,'earth');assert.equal(m.interaction,'district-iris');assert.equal(m.objective,'Return to The Darknet District and collect payment');
-  assert.equal(s.story.flags.adminAway,true);assert.equal(s.universe.trackedMission,'communion-delivery');
+  assert.equal(s.story.flags.adminOccupied,true);assert.equal(s.universe.trackedMission,'communion-delivery');
 });
 test('Iris pays once, then offers the remaining delivery',()=>{
   const s=district();C.acceptFaction(s,'natural-order');
@@ -68,7 +68,11 @@ test('older saves without faction state are unchanged',()=>{
   const s=district();delete s.story.flags.metAdmin;const r=C.restore(JSON.stringify(s));
   assert.deepEqual(r.universe.discoveredSystems.sort(),['erebus','sol']);assert.deepEqual(C.factionOffers(r),[]);
 });
-test('Admin is hidden once a delivery is made, using the notFlags condition',()=>{
-  const Story=require('../void-runner/story.js'),s=district(),hidden={notFlags:{adminAway:true}};
-  assert(Story.matches(s,hidden));C.acceptFaction(s,'communion');C.complete(s);C.deliverFaction(s,'communion');assert(!Story.matches(s,hidden));
+test('Admin is only away while the first payment waits, then always back at the counter',()=>{
+  const Story=require('../void-runner/story.js'),s=district(),present={notFlags:{adminOccupied:true}};
+  assert(Story.matches(s,present));C.acceptFaction(s,'communion');assert(Story.matches(s,present));C.complete(s);C.deliverFaction(s,'communion');assert(!Story.matches(s,present),'occupied while Iris pays the first delivery');
+  s.location='earth';C.collectFactionPayment(s);assert(Story.matches(s,present));
+  C.acceptFaction(s,'natural-order');C.complete(s);C.deliverFaction(s,'natural-order');assert(Story.matches(s,present),'present for the second delivery');
+  // Saves from before this change (adminAway) load with Admin present.
+  s.story.flags.adminAway=true;const r=C.restore(JSON.stringify(s));assert(Story.matches(r,present));assert.equal(r.story.flags.adminAway,undefined);
 });

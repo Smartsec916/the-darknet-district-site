@@ -43,7 +43,13 @@
   'meet-admin':{title:'MEET ADMIN',type:'main',description:'Find Rook’s contact in NeoChinatown, Tessaly.',giver:'Rook',source:'story',start:'meridian',end:'earth',completion:{event:'talk',interaction:'admin'},destination:'earth',interaction:'tdd',objectives:[{id:'meet-admin',label:'Find Admin at The Darknet District, NeoChinatown'}]},
   // The District's faction deliveries. After handing over the cargo the goal moves back to Iris.
   'communion-delivery':{title:'COMMUNION DELIVERY',type:'cargo',description:'Advanced electronics and research equipment for Dr. Elara Voss at The Vigil, Cantor System. Payment is collected at The Darknet District.',giver:'The Darknet District',source:'story',start:'earth',end:'earth',destination:'vigil',interaction:'elara',rewards:1200,after:{deliver:{destination:'earth',interaction:'district-iris'}},objectives:[{id:'arrive',label:'Fly the cargo to The Vigil, Cantor System'},{id:'deliver',label:'Deliver the equipment to Dr. Elara Voss'},{id:'payment',label:'Return to The Darknet District and collect payment'}]},
-  'order-delivery':{title:'NATURAL ORDER DELIVERY',type:'cargo',description:'Mechanical components and industrial supplies for Marcus Vale at Holdfast, Garrow System. Payment is collected at The Darknet District.',giver:'The Darknet District',source:'story',start:'earth',end:'earth',destination:'holdfast',interaction:'marcus',rewards:1200,after:{deliver:{destination:'earth',interaction:'district-iris'}},objectives:[{id:'arrive',label:'Fly the cargo to Holdfast, Garrow System'},{id:'deliver',label:'Deliver the components to Marcus Vale'},{id:'payment',label:'Return to The Darknet District and collect payment'}]}
+  'order-delivery':{title:'NATURAL ORDER DELIVERY',type:'cargo',description:'Mechanical components and industrial supplies for Marcus Vale at Holdfast, Garrow System. Payment is collected at The Darknet District.',giver:'The Darknet District',source:'story',start:'earth',end:'earth',destination:'holdfast',interaction:'marcus',rewards:1200,after:{deliver:{destination:'earth',interaction:'district-iris'}},objectives:[{id:'arrive',label:'Fly the cargo to Holdfast, Garrow System'},{id:'deliver',label:'Deliver the components to Marcus Vale'},{id:'payment',label:'Return to The Darknet District and collect payment'}]},
+  // Iris's follow-up contracts (doc 09).
+  'communion-supply':{title:'COMMUNION SUPPLY CONTRACT',type:'cargo',description:'Advanced processing modules, high-precision sensor assemblies and specialized research electronics for Dr. Elara Voss at The Vigil, Cantor System. Payment is collected from Iris at The Darknet District.',giver:'Iris',source:'story',start:'earth',end:'earth',destination:'vigil',interaction:'elara',rewards:1500,after:{deliver:{destination:'earth',interaction:'district-iris'}},objectives:[{id:'arrive',label:'Fly the cargo to The Vigil, Cantor System'},{id:'deliver',label:'Deliver the shipment to Dr. Elara Voss'},{id:'payment',label:'Return to The Darknet District and collect payment'}]},
+  'order-supply':{title:'NATURAL ORDER SUPPLY CONTRACT',type:'cargo',description:'Industrial control assemblies, heavy-duty mechanical components, and replacement machinery and repair equipment for Marcus Vale at Holdfast, Garrow System. Payment is collected from Iris at The Darknet District.',giver:'Iris',source:'story',start:'earth',end:'earth',destination:'holdfast',interaction:'marcus',rewards:1500,after:{deliver:{destination:'earth',interaction:'district-iris'}},objectives:[{id:'arrive',label:'Fly the cargo to Holdfast, Garrow System'},{id:'deliver',label:'Deliver the shipment to Marcus Vale'},{id:'payment',label:'Return to The Darknet District and collect payment'}]},
+  // Homeworld missions: placeholders awaiting David's design. No destination, rewards or completion.
+  'communion-origin-mission-01':{title:'COMMUNION HOMEWORLD MISSION',type:'campaign',placeholder:true,description:'Dr. Elara Voss has a delivery on the Communion homeworld that would help her people. Not yet available: this mission is still being designed.',giver:'Dr. Elara Voss',source:'story',objectives:[{id:'awaiting-design',label:'Not yet available (mission in design)'}]},
+  'natural-order-origin-mission-01':{title:'NATURAL ORDER HOMEWORLD MISSION',type:'campaign',placeholder:true,description:'Marcus Vale has a job on the Natural Order homeworld that could make a real difference to his people. Not yet available: this mission is still being designed.',giver:'Marcus Vale',source:'story',objectives:[{id:'awaiting-design',label:'Not yet available (mission in design)'}]}
  };
  // Auto-tracking picks the first active mission in this order.
  const priority=['ground-training','flight-training','meet-rook','first-station','legal-run','return','illegal-run','combat-qualification'];
@@ -61,7 +67,8 @@
  }
  function complete(s,id,objective='arrive',C){
   const definition=description(s,C,id);
-  if(tutorials.includes(id)||!definition.objectives.some(o=>o.id===objective))return false;
+  // Placeholder missions (awaiting design) can never be completed.
+  if(tutorials.includes(id)||definition.placeholder||!definition.objectives.some(o=>o.id===objective))return false;
   const entry=acquire(s,id);if(!entry)return false;
   if(entry.objectives[objective]===true)return false;
   entry.objectives[objective]=true;
@@ -115,7 +122,8 @@
   return all(s,C);
  }
  function nextMission(s,C){
-  const active=Object.entries(records(s)).filter(([,entry])=>entry?.acquired&&!entry.completed).map(([id])=>id);
+  // Placeholder missions are never picked automatically; the player can still track them by hand.
+  const active=Object.entries(records(s)).filter(([id,entry])=>entry?.acquired&&!entry.completed&&!definitions[id]?.placeholder).map(([id])=>id);
   if(!active.length)return null;
   const rank=id=>{const i=priority.indexOf(id);return i>=0?i:id==='meet-admin'?priority.length+1:priority.length;};
   return active.sort((a,b)=>rank(a)-rank(b))[0];
