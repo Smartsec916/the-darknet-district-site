@@ -1,6 +1,6 @@
 /* Shared ship/ground allegiance and bounded loaded-area combat. No galaxy simulation. */
 (function(root){
- const factions={player:{name:'Player'},civilian:{name:'Civilian'},pirate:{name:'Pirates'},'erebus-local':{name:'Erebus local'},'sol-local':{name:'Sol local'},communion:{name:'The Communion',futureSystem:'communion'},'natural-order':{name:'The Natural Order',futureSystem:'natural-order'},neutral:{name:'Independent'}};
+ const factions={player:{name:'Player'},civilian:{name:'Civilian'},pirate:{name:'Pirates'},'erebus-local':{name:'Erebus local'},'sol-local':{name:'The Function'},communion:{name:'The Communion',futureSystem:'communion'},'natural-order':{name:'The Natural Order',futureSystem:'natural-order'},neutral:{name:'Independent'}};
  const relationships=[['communion','natural-order',-100],['pirate','civilian',-100],['pirate','erebus-local',-100],['pirate','sol-local',-100],['pirate','player',-100],['player','erebus-local',40],['player','sol-local',40]];
  const tuning={range:220,fireRange:90,damage:6,cooldown:1.4,speed:12,maxActors:24,retarget:.4};
  function relation(a,b){if(a===b)return 100;return relationships.find(([x,y])=>x===a&&y===b||x===b&&y===a)?.[2]||0;}

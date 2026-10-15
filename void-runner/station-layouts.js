@@ -7,7 +7,9 @@
   rook:{coat:'#2e3039',hair:'#181c22',skin:'#b28c77',style:'undercut',eye:'#ffb750'},
   iona:{coat:'#414656',hair:'#8b579d',skin:'#6e4736',style:'braids'},
   sol:{coat:'#3b757a',hair:'#343633',skin:'#c69f82',style:'glasses'},
-  nyx:{coat:'#303544',hair:'#e1e1db',skin:'#b09b90',style:'undercut',eye:'#a7d4e2'}
+  nyx:{coat:'#303544',hair:'#e1e1db',skin:'#b09b90',style:'undercut',eye:'#a7d4e2'},
+  admin:{coat:'#1c1e21',hair:'#c9cbcc',skin:'#b98f78',style:'beard',eye:'#e0a03a'},
+  iris:{coat:'#26232c',hair:'#eceaf0',skin:'#ddd6d2',style:'undercut',eye:'#5fe0ff'}
  };
  function layout(id,ship='starter'){
   if(id==='meridian')return (typeof module!=='undefined'?require('./meridian-interior.js'):root.VoidMeridianInterior).layout(ship);

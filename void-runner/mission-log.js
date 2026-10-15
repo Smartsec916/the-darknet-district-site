@@ -40,7 +40,7 @@
   'legal-run':{title:'AN HONEST LIVING',type:'cargo',description:'Deliver water filtration parts to Kepler.',giver:'Rook',destination:'kepler',rewards:350,objectives:[{id:'arrive',label:'Deliver the filters and dock at Kepler'}]},
   'return':{title:'BACK TO THE DEAD CHANNEL',type:'main',description:'Return to Meridian with the completed delivery.',giver:'Rook',destination:'meridian',objectives:[{id:'arrive',label:'Dock at Meridian Station'}]},
   'illegal-run':{title:'NO QUESTIONS ASKED',type:'cargo',description:'Deliver unregistered memory wafers to Undertow.',giver:'Rook',destination:'undertow',rewards:800,objectives:[{id:'arrive',label:'Deliver the wafers and dock at Undertow'}]},
-  'meet-admin':{title:'MEET ADMIN',type:'main',description:'Find Rook’s contact in Sacramento.',giver:'Rook',source:'story',start:'meridian',end:'earth',completion:{event:'talk',interaction:'admin'},destination:'earth',interaction:'tdd',objectives:[{id:'meet-admin',label:'Find Admin at The Darknet District, Sacramento'}]}
+  'meet-admin':{title:'MEET ADMIN',type:'main',description:'Find Rook’s contact in NeoChinatown, Tessaly.',giver:'Rook',source:'story',start:'meridian',end:'earth',completion:{event:'talk',interaction:'admin'},destination:'earth',interaction:'tdd',objectives:[{id:'meet-admin',label:'Find Admin at The Darknet District, NeoChinatown'}]}
  };
  // Auto-tracking picks the first active mission in this order.
  const priority=['ground-training','flight-training','meet-rook','first-station','legal-run','return','illegal-run','combat-qualification'];
