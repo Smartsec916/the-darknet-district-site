@@ -65,7 +65,7 @@ const worldRenderLine=renderLine;
 renderLine=function(){worldRenderLine();if(walkingLocation){screen.dataset.scene='';screen.classList.remove('cinematic');screen.querySelectorAll('.portrait').forEach(el=>el.remove());}};
 barRoom=()=>resumeWalking();bar=barRoom;contacts=function(){campaignBoard();};
 const originalRookConversation=rookConversation;
-rookConversation=function(){if(state.location==='meridian'){VoidMissions.complete(state,'meet-rook','enter',C);VoidMissions.complete(state,'meet-rook','locate',C);VoidMissions.complete(state,'meet-rook','speak',C);save();}if(state.missileUnlocked&&!state.missileOfferSeen){state.missileOfferSeen=true;VoidUniverse.unlock(state);save();talk('',[rookMissileLine],resumeWalking,'RETURN TO STATION');return;}if(state.quest==='open'){talk('',[{who:'rook',text:state.progression?.completed?'The cargo board still has work. Admin is over in SOL if you want a longer run. '+VoidInput.label(VoidInput.bindings.missionLog||'KeyL')+' opens your Mission Log.':'Finish your missile qualification: acquire the launcher, install it at the maintenance terminal, then select, lock and fire on a hostile in your next run.'}],resumeWalking,'RETURN TO STATION');return;}originalRookConversation();};
+rookConversation=function(){if(state.location==='meridian'){VoidMissions.complete(state,'meet-rook','enter',C);VoidMissions.complete(state,'meet-rook','locate',C);VoidMissions.complete(state,'meet-rook','speak',C);save();}if(state.missileUnlocked&&!state.missileOfferSeen){state.missileOfferSeen=true;VoidUniverse.unlock(state);save();talk('',[rookMissileLine],resumeWalking,'RETURN TO STATION');return;}if(state.quest==='open'){talk('',[{who:'rook',text:state.progression?.completed?'The cargo board still has work. Admin is over in Tessaly if you want a longer run. '+VoidInput.label(VoidInput.bindings.missionLog||'KeyL')+' opens your Mission Log.':'Finish your missile qualification: acquire the launcher, install it at the maintenance terminal, then select, lock and fire on a hostile in your next run.'}],resumeWalking,'RETURN TO STATION');return;}originalRookConversation();};
 VoidInteractions.register('talk',({item})=>{
  if(item.character==='rook')return rookConversation();
  if(item.character==='mara')return playStoryScene('mara_workshop_intro');
@@ -130,9 +130,10 @@ const guidanceDraw=draw;draw=function(){guidanceDraw();drawMissionWaypoint();};
 function drawMissionWaypoint(){
  if(mode!=='walking'||!trackedWalkWaypoint||!walker)return;
  const p=trackedWalkWaypoint.position,dx=p[0]-walker.x,dz=p[2]-walker.z,label=Math.round(Math.hypot(dx,dz))+' m',pulse=reducedMotion?1:.75+.25*Math.sin(time*4);
- const angle=Math.atan2(dx,dz)-walker.yaw,r=Math.min(W,H)*.2;
+ const angle=Math.atan2(dx,dz)-walker.yaw,r=Math.min(W,H)*.15;
  ctx.save();ctx.lineJoin='round';ctx.font='bold 13px Consolas, monospace';ctx.textAlign='center';
- ctx.translate(W*.5+Math.sin(angle)*r,H*.5-Math.cos(angle)*r);ctx.rotate(angle);
+ // Ring sits below the crosshair so a goal straight ahead is pointed at near floor level.
+ ctx.translate(W*.5+Math.sin(angle)*r,H*.7-Math.cos(angle)*r);ctx.rotate(angle);
  ctx.shadowColor='#000';ctx.shadowBlur=12;ctx.fillStyle='rgba(255,214,120,'+(.6+.35*pulse)+')';ctx.strokeStyle='#1a1206';ctx.lineWidth=3;
  ctx.beginPath();ctx.moveTo(0,-26);ctx.lineTo(-17,10);ctx.lineTo(0,2);ctx.lineTo(17,10);ctx.closePath();ctx.stroke();ctx.fill();
  ctx.rotate(-angle);ctx.shadowBlur=4;ctx.fillStyle='#ffe7a8';ctx.fillText(label,0,32);

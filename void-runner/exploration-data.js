@@ -6,7 +6,7 @@
       destinations: ['meridian', 'kepler', 'undertow', 'foundry']
     },
     sol: {
-      name: 'SOL',
+      name: 'TESSALY',
       interstellar: true,
       unlockQuest: 'open',
       destinations: ['earth', 'mars']
@@ -14,7 +14,7 @@
   };
   const destinations = {
     earth: {
-      name: 'EARTH — SACRAMENTO',
+      name: 'NEOCHINATOWN',
       system: 'sol',
       location: 'sacramento',
       color: '#609cb5'
@@ -78,7 +78,7 @@
       }]
     },
     sacramento: {
-      name: 'EARTH / SACRAMENTO LANDING ZONE',
+      name: 'NEOCHINATOWN / CITY LANDING',
       kind: 'city',
       bounds: [22, 36],
       spawn: [0, 1.7, -27],
@@ -124,12 +124,12 @@
       signs: [{
         id: 'city',
         position: [-5, 6, -16],
-        text: 'SACRAMENTO / MUNICIPAL LANDING',
+        text: 'NEOCHINATOWN / CITY LANDING',
         color: '#b6a888'
       }, {
         id: 'ad',
         position: [7, 7, 7],
-        text: 'SOLNET / SECURITY IS A SERVICE',
+        text: 'THE FUNCTION / SECURITY IS A SERVICE',
         color: '#b59775',
         animation: 'flicker'
       }, {
@@ -215,7 +215,7 @@
       tracks: []
     },
     solnet: {
-      name: 'SOLNET NEWS',
+      name: 'FUNCTION NEWS NETWORK',
       regions: ['sol', 'earth', 'mars'],
       tracks: []
     },

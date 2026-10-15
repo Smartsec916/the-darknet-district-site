@@ -60,10 +60,14 @@
       const crest=34+skyline*73+12*Math.sin(angle*12)+6*Math.sin(angle*28+.6);
       const radial=Math.max(0,Math.min(1,(r-270)/400));
       const shelves=Math.sin(r*.043+Math.sin(angle*15)*2.2)*5+Math.sin(r*.11+angle*31)*2;
-      const y=ring===0?-.035:Math.max(-.035,(crest+shelves)*radial+(r>500?Math.sin(angle*7+r*.013)*15:0));
+      // Mesa profile: tall crests flatten into table tops with steep stratified walls.
+      let raw=(crest+shelves)*radial+(r>500?Math.sin(angle*7+r*.013)*15:0);const cap=38+skyline*30+Math.sin(angle*9)*5;if(raw>cap)raw=cap+(raw-cap)*.12;
+      const y=ring===0?-.035:Math.max(-.035,raw);
       positions.push(Math.sin(angle)*r,y,Math.cos(angle)*r);
       const shade=.79+.13*Math.sin(angle*23+r*.014)+.06*Math.sin(r*.18+angle*37);
-      colors.push(Math.min(1,.67*shade),Math.min(1,.51*shade),Math.min(1,.38*shade),1);
+      // Sandstone strata: alternating pale and rust bands by height, darker desert varnish near the tops.
+      const band=Math.sin(y*.42+Math.sin(angle*5)*.6),strata=band>.55?1.13:band<-.6?.86:1,varnish=y>40?1-Math.min(.22,(y-40)/260):1,dist=1-Math.min(.25,(r-245)/3600);
+      const k=shade*strata*varnish;colors.push(Math.min(1,.74*k*dist+.06*(1-dist)),Math.min(1,.52*k*dist+.08*(1-dist)),Math.min(1,.37*k*dist+.12*(1-dist)),1);
       uvs.push(i/segments*16,ring*1.5);
     }
     for(let ring=0;ring<radii.length-1;ring++)for(let i=0;i<segments;i++){

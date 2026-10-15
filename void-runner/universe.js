@@ -1,13 +1,13 @@
 /* Stable location IDs and route policy shared by campaign, saves and HUD. */
 (function(root){
  const progression=typeof module!=='undefined'?require('./progression.js'):root.VoidProgression;
- const systems={erebus:{name:'Erebus System',hub:'meridian',ownerFaction:null,securityFaction:'erebus-local',populationPool:[],shopPool:[],missionPool:[]},sol:{name:'Sol System',hub:'sol-belt',ownerFaction:null,securityFaction:'sol-local',populationPool:[],shopPool:[],missionPool:[]}};
+ const systems={erebus:{name:'Erebus System',hub:'meridian',ownerFaction:null,securityFaction:'erebus-local',populationPool:[],shopPool:[],missionPool:[]},sol:{name:'Tessaly System',hub:'sol-belt',ownerFaction:null,securityFaction:'sol-local',populationPool:[],shopPool:[],missionPool:[]}};
  const locations={
   vesper:{system:'erebus',name:'Vesper',district:'WARD FREIGHT WORKSHOP',color:'#c2a584',bar:'Workshop'},
   meridian:{system:'erebus'},kepler:{system:'erebus'},undertow:{system:'erebus'},foundry:{system:'erebus'},
-  'sol-belt':{system:'sol',name:'Sol Belt Anchorage',district:'SOL / ASTEROID BELT',color:'#8dbea9',bar:'Belt Canteen'},
-  earth:{system:'sol',name:'Earth / Sacramento',district:'SOL / MUNICIPAL LANDING',color:'#609cb5',bar:'District Approach'},
-  mars:{system:'sol',name:'Mars / Underground City',district:'SOL / SUBSURFACE ACCESS',color:'#ba6847',bar:'Transit Canteen'}
+  'sol-belt':{system:'sol',name:'Tessaly Belt Anchorage',district:'TESSALY / ASTEROID BELT',color:'#8dbea9',bar:'Belt Canteen'},
+  earth:{system:'sol',name:'NeoChinatown',district:'TESSALY / CITY LANDING',color:'#9b7bff',bar:'The Darknet District'},
+  mars:{system:'sol',name:'Mars / Underground City',district:'TESSALY / SUBSURFACE ACCESS',color:'#ba6847',bar:'Transit Canteen'}
  };
  for(const location of Object.values(locations)){location.ownerFaction??=null;location.securityFaction??=location.system==='sol'?'sol-local':'erebus-local';}
  function system(id){return locations[id]?.system||'erebus';}
