@@ -1,0 +1,186 @@
+<title>VOID//RUNNER Mission Tree</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a flight-plan sheet. Legend strip, the tree as the hero, then a mission register grouped by act. */
+:root{
+  --bg:#f3f1ec; --panel:#fbfaf7; --ink:#1d2226; --muted:#5d666b; --line:#cfd3d1;
+  --built:#1f7a6c; --built-bg:#dff1ec;
+  --proposed:#a8641b; --proposed-bg:#f8ead6;
+  --legacy:#6d5aa8; --legacy-bg:#ebe6f6;
+  --accent:#b8492f;
+  --display:"Chakra Petch", "Arial Narrow", sans-serif;
+  --body:"IBM Plex Sans", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c1117; --panel:#121a22; --ink:#e3e8ea; --muted:#93a1a8; --line:#28343e;
+  --built:#5fd0bc; --built-bg:#12302c; --proposed:#f0ad5c; --proposed-bg:#33240f;
+  --legacy:#b4a5ec; --legacy-bg:#231e3a; --accent:#f07a5c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1117; --panel:#121a22; --ink:#e3e8ea; --muted:#93a1a8; --line:#28343e;
+  --built:#5fd0bc; --built-bg:#12302c; --proposed:#f0ad5c; --proposed-bg:#33240f;
+  --legacy:#b4a5ec; --legacy-bg:#231e3a; --accent:#f07a5c; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:28px}
+header{display:grid;gap:6px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,5vw,44px);line-height:1.05;margin:0;letter-spacing:.01em;text-wrap:balance}
+h1 b{color:var(--accent);font-weight:700}
+.lede{max-width:68ch;color:var(--muted);margin:0}
+.legend{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;font-size:13px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:3px;border:1px solid currentColor;white-space:nowrap}
+.c-built{color:var(--built);background:var(--built-bg)}
+.c-proposed{color:var(--proposed);background:var(--proposed-bg);border-style:dashed}
+.c-legacy{color:var(--legacy);background:var(--legacy-bg)}
+.tree{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px;overflow-x:auto}
+.tree pre.mermaid{margin:0;min-width:980px;background:transparent}
+h2{font-family:var(--display);font-size:22px;margin:0 0 4px;letter-spacing:.02em}
+.acts{display:grid;gap:22px}
+.act{display:grid;gap:10px}
+.act p.note{margin:0;color:var(--muted);max-width:70ch}
+table{width:100%;border-collapse:collapse;font-size:14px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.id{font-family:var(--mono);font-weight:600;white-space:nowrap}
+td.where{white-space:nowrap;color:var(--muted)}
+.decide{border-left:3px solid var(--accent);padding:10px 14px;background:var(--panel);display:grid;gap:6px}
+.decide h2{font-size:18px}
+.decide ol{margin:0;padding-left:20px;display:grid;gap:4px}
+@media (max-width:640px){td.where{white-space:normal}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Campaign planning sheet · Erebus → Tessaly</div>
+    <h1>VOID//RUNNER <b>Mission Tree</b></h1>
+    <p class="lede">What players can play today, and the proposed branches waiting for your decision. Nothing marked proposed is canon until you approve it.</p>
+  </header>
+
+  <div class="legend" aria-label="Legend">
+    <span class="chip c-built">In game</span><span>Built and playable now</span>
+    <span class="chip c-proposed">Proposed</span><span>Awaiting your approval</span>
+    <span class="chip c-legacy">Legacy</span><span>In the code, not in the master plan: keep, rework or cut</span>
+  </div>
+
+  <section class="tree" aria-label="Mission tree diagram">
+<pre class="mermaid">
+flowchart LR
+  classDef built fill:#dff1ec,stroke:#1f7a6c,color:#12302c,stroke-width:1.5px
+  classDef proposed fill:#f8ead6,stroke:#a8641b,color:#3b2508,stroke-dasharray:5 4
+  classDef legacy fill:#ebe6f6,stroke:#6d5aa8,color:#231e3a
+  classDef place fill:transparent,stroke:transparent,color:#7a8790
+
+  subgraph V["VESPER"]
+    T1["TUT-001<br/>Ground Training"]:::built --> T2["TUT-002<br/>Flight Training"]:::built
+  end
+  subgraph M["MERIDIAN STATION"]
+    M1["MAIN-001<br/>Meet Rook"]:::built
+    T3["TUT-003<br/>First Station"]:::built
+    M2["MAIN-002<br/>Back to the Dead Channel"]:::built
+    T4["TUT-004<br/>Combat Qualification"]:::built
+  end
+  T2 --> M1
+  M1 --> T3
+  M1 --> C1["CARGO-001<br/>An Honest Living<br/>to Kepler"]:::built
+  C1 -.-> OA["Option A<br/>Meet Dr. Sol on Kepler dock"]:::proposed
+  C1 -.-> OB["Option B<br/>The Sealed Crate"]:::proposed
+  C1 -.-> OC["Option C<br/>The Missing Courier<br/>(Elias thread)"]:::proposed
+  C1 -.-> OD["Option D<br/>Rook's Debt at the Foundry"]:::proposed
+  C1 --> M2 --> C2["CARGO-002<br/>No Questions Asked<br/>to Rusthaven"]:::built --> T4
+  T4 --> K1["CONTRACT<br/>Cold Chain · Dr. Sol"]:::built
+  T4 --> K2["CONTRACT<br/>Ghost Hardware · Iona Vale"]:::built
+  T4 --> K3["CONTRACT<br/>A Debt in Steel · Rook"]:::built
+  T4 --> M3["MAIN-003<br/>Meet Admin<br/>moving to NeoChinatown, Tessaly"]:::built
+  M3 -.-> MID["Middle game<br/>Dead Channels"]:::proposed -.-> LATE["Late game<br/>The Silent God"]:::proposed
+  T4 --> L1["Ghost Belt<br/>4 missions"]:::legacy
+  T4 --> L2["Corporate Lockdown<br/>4 missions"]:::legacy
+  T4 --> L3["Beyond the Gate<br/>4 missions"]:::legacy
+</pre>
+  </section>
+
+  <div class="acts">
+    <section class="act" aria-labelledby="a1">
+      <h2 id="a1">Built today</h2>
+      <p class="note">The order a player follows now. Contracts and the Sol trip open after Combat Qualification.</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>ID</th><th>Mission</th><th>Where</th><th>Given by</th><th>What happens</th></tr></thead>
+        <tbody>
+          <tr><td class="id">TUT-001</td><td>Ground Training</td><td class="where">Vesper</td><td>Mara</td><td>Elias's recording, the pistol, movement and can practice.</td></tr>
+          <tr><td class="id">TUT-002</td><td>Flight Training</td><td class="where">Vesper</td><td>Mara</td><td>Practice circuit: throttle, steering, roll, beacon jump, landing.</td></tr>
+          <tr><td class="id">MAIN-001</td><td>Meet Rook</td><td class="where">Meridian</td><td>Mara</td><td>Fly to Meridian, dock, find Rook.</td></tr>
+          <tr><td class="id">TUT-003</td><td>First Station</td><td class="where">Any hangar</td><td>Rook</td><td>Ship inventory, maintenance, buy and install a module.</td></tr>
+          <tr><td class="id">CARGO-001</td><td>An Honest Living</td><td class="where">→ Kepler</td><td>Rook</td><td>Water filtration parts, 350 cr. Currently fly and dock only.</td></tr>
+          <tr><td class="id">MAIN-002</td><td>Back to the Dead Channel</td><td class="where">→ Meridian</td><td>Rook</td><td>Return with the completed delivery.</td></tr>
+          <tr><td class="id">CARGO-002</td><td>No Questions Asked</td><td class="where">→ Rusthaven</td><td>Rook</td><td>Unregistered memory wafers, 800 cr. Iona fits MK2 cannons.</td></tr>
+          <tr><td class="id">TUT-004</td><td>Combat Qualification</td><td class="where">Erebus</td><td>Rook</td><td>Lasers, launcher voucher, lock and fire a missile. Opens free travel.</td></tr>
+          <tr><td class="id">CONTRACT</td><td>Cold Chain</td><td class="where">→ Kepler</td><td>Dr. Sol</td><td>Clinic supplies, 650 cr.</td></tr>
+          <tr><td class="id">CONTRACT</td><td>Ghost Hardware</td><td class="where">→ Rusthaven</td><td>Iona Vale</td><td>Unlicensed neural processors, 1,000 cr.</td></tr>
+          <tr><td class="id">CONTRACT</td><td>A Debt in Steel</td><td class="where">→ Foundry</td><td>Rook</td><td>Restricted fabrication cores, 1,500 cr.</td></tr>
+          <tr><td class="id">MAIN-003</td><td>Meet Admin</td><td class="where">Earth, Sol (in game today)<br>→ NeoChinatown, Tessaly (approved)</td><td>Rook</td><td>Reach The Darknet District, meet Admin and Iris. Current end of story. Approved to move to Tessaly; not built yet.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="act" aria-labelledby="a2">
+      <h2 id="a2">Proposed: Rook's first job</h2>
+      <p class="note">Options for expanding CARGO-001. My recommendation is A first, then C as the next job.</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Option</th><th>Status</th><th>Where</th><th>Hook</th><th>Effort</th></tr></thead>
+        <tbody>
+          <tr><td class="id">A</td><td><span class="chip c-proposed">Proposed</span></td><td class="where">Kepler dock</td><td>Deliver to Dr. Sol's failing water plant; walkable dock; small follow-up job.</td><td>Low–medium</td></tr>
+          <tr><td class="id">B</td><td><span class="chip c-proposed">Proposed</span></td><td class="where">→ Rusthaven</td><td>Sealed crate, customs hail: dump, bluff or run.</td><td>Medium</td></tr>
+          <tr><td class="id">C</td><td><span class="chip c-proposed">Proposed</span></td><td class="where">Ghost Belt</td><td>Lost courier carrying something for Elias; recover the flight recorder.</td><td>Low–medium</td></tr>
+          <tr><td class="id">D</td><td><span class="chip c-proposed">Proposed</span></td><td class="where">The Foundry</td><td>Collect Rook's debt: threaten, negotiate or take goods.</td><td>Medium–high</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="act" aria-labelledby="a3">
+      <h2 id="a3">Legacy chapters in the code</h2>
+      <p class="note">Twelve missions from an earlier version. They don't appear in the master plan.</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Chapter</th><th>Missions</th><th>Conflict with the plan</th><th>Suggestion</th></tr></thead>
+        <tbody>
+          <tr><td>Ghost Belt</td><td>Dead Reckoning · Shattered Lane · Last Light · The Iron Mouth</td><td>None; fits Erebus salvage work.</td><td>Keep as material for side jobs and Option C.</td></tr>
+          <tr><td>Corporate Lockdown</td><td>Unlisted Passengers · Cut the Power · Evidence Locker · Hostile Takeover</td><td>Fits now: The Function is Tessaly's corporate government.</td><td>Rework as a Tessaly / Function chapter.</td></tr>
+          <tr><td>Beyond the Gate</td><td>Event Horizon · Voices in the Static · The Other Side · Void Sentinel</td><td>Introduces aliens, which the plan saves for an expansion.</td><td>Defer until the alien expansion.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="act" aria-labelledby="a4">
+      <h2 id="a4">Approved canon</h2>
+      <p class="note">Decisions you've confirmed. Approved here means agreed design, not built in the game.</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Topic</th><th>Decision</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Tessaly system</td><td>Replaces Sol everywhere in the design. A heavily corporatized system where profit comes before everything. It sells to every other system, which keeps it neutral. Advertising is everywhere, in the style of Blackout Protocol.</td><td><span class="chip c-built">Approved</span></td></tr>
+          <tr><td>NeoChinatown</td><td>The city in Tessaly where the player lands. Tall skyscrapers. David will add points of interest.</td><td><span class="chip c-built">Approved</span></td></tr>
+          <tr><td>The Darknet District</td><td>In an alley near the NeoChinatown landing location.</td><td><span class="chip c-built">Approved</span></td></tr>
+          <tr><td>The Function</td><td>The corporate government of all of Tessaly.</td><td><span class="chip c-built">Approved</span></td></tr>
+          <tr><td>Earth / Sacramento</td><td>Removed for now.</td><td><span class="chip c-built">Approved</span></td></tr>
+          <tr><td>Mars</td><td>Renamed. Working name in the game: Vantor, a Tessaly mining world with an underground city.</td><td><span class="chip c-proposed">Name proposed</span></td></tr>
+          <tr><td>Tutorial</td><td>Optional. Mara asks first; declining sends the pilot straight to Rook.</td><td><span class="chip c-built">Approved</span></td></tr>
+          <tr><td>Tessaly advertising</td><td>Its own dark, adult, corporate style selling ship parts, weapons and services. Not Blackout Protocol's ads.</td><td><span class="chip c-built">Approved</span></td></tr>
+          <tr><td>The Darknet District book</td><td>Mood and reference only, not a game guide. Nothing from it is canon unless approved.</td><td><span class="chip c-built">Approved</span></td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="decide" aria-labelledby="d1">
+      <h2 id="d1">Decisions waiting on you</h2>
+      <ol>
+        <li>Confirm Vantor as Mars's new name, or pick another.</li>
+        <li>Choose an option for CARGO-001 (A, B, C, D, or a mix).</li>
+        <li>Approve or reject Elias's past as the thread that links the opening to the faction story.</li>
+        <li>Keep, rework or cut each legacy chapter.</li>
+        <li>Approve, revise or reject the proposed Darknet District layout.</li>
+        <li>Choose the first District mission: A Membership, B Breach, C Rogue AI, D Raven's Plan.</li>
+      </ol>
+    </section>
+  </div>
+</div>

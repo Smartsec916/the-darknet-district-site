@@ -1,0 +1,489 @@
+# VOID//RUNNER: Development Handoff
+
+**As of:** 2026-10-15 · **`main` at:** PR #47 merged (`24a7071`) plus this handoff PR · **Owner and creative authority:** David (GitHub `Smartsec916`)
+
+This document moves VOID//RUNNER development from a long Claude conversation to Claude Code. Read it together with `CLAUDE.md`, which covers how to work in the repo. David's original design documents are in `docs/void-runner/design-source/`. That folder's README says which parts later decisions have superseded.
+
+## 0. Status labels used in this document
+
+| Label | Meaning |
+|---|---|
+| **IMPLEMENTED** | In `main` and playable. |
+| **APPROVED** | David agreed to it. Not necessarily built. |
+| **DAVID'S SCRIPT** | Dialogue or scene text David wrote himself. Treat it as approved content. Anything it leaves open still needs a proposal. |
+| **PROPOSED** | Suggested and waiting on David. Not canon. Do not build. |
+| **CLAUDE-WRITTEN, UNREVIEWED** | Built as functional placeholder text. David has not reviewed the wording. |
+| **REJECTED / REMOVED** | Do not reintroduce. |
+| **DEFERRED** | Saved for later. Do not build now. |
+
+---
+
+## 1. Vision and design (APPROVED; source: `design-source/01-master-plan-oct-2026.md`)
+
+VOID//RUNNER is a browser-based industrial sci-fi action/adventure game built with Babylon.js. It is set in The Darknet District universe. It combines:
+
+- first-person exploration and combat
+- spaceflight and ship combat
+- cargo hauling and smuggling
+- bounty hunting
+- station and derelict exploration
+- ship buying and customization
+- character dialogue
+- political factions with player choice
+- an evolving campaign with optional side missions
+
+**Principles:**
+- Player freedom; believable, inhabited places; meaningful progression.
+- No survival grind. Short sessions must not lose progress.
+- Preserve working systems, avoid rewrites, and keep saves compatible.
+- Centralize mission logic and balance data.
+- Optimize for browsers. Target hardware includes the ASUS ROG Ally Extreme.
+- Keep Iris integrations isolated from core game systems and from the website chatbot.
+
+**Art direction:**
+- Grounded, worn, industrial sci-fi, with cyberpunk commercial environments in Tessaly.
+- David's concept art for the Kestrel, Mara, Meridian Station, Vesper and the derelict station is on his PC under `D:\Pictures\Game\Start\…`. It is not in the repo, so ask him for images when needed.
+- David plans to make new 3D assets in **Blender** (GLB/glTF). The asset hook system (`asset-pipeline.js`, `VoidAssets.instance('opening:<id>', …)`) lets imported models replace the built-in geometry.
+
+**Process (binding; `design-source/02-world-expansion-design-brief.md`):**
+- Story and world are designed collaboratively.
+- Give options (3–5) using the mission proposal format in §13 of that brief.
+- Use the approval stages, and do not implement unapproved story.
+- Challenge weak ideas honestly.
+
+---
+
+## 2. What the game does today (IMPLEMENTED)
+
+- **Menu:**
+  - Login (Google or a District "handle"), New Campaign, Load, Settings/Keybindings, Logout.
+  - **Skirmish** is separate from the campaign: flight skirmish and FPS skirmish in station and derelict environments.
+- **Opening on Vesper (starting planet, Erebus system):**
+  - **Mara asks whether you want the tutorial.** "Yes" runs Ground Training then Flight Training. "No" skips straight to the cargo campaign: you get Elias's pistol, the Kestrel, and Meet Rook tracked.
+  - Elias Ward's hologram recording, the pistol (10-round magazine), shooting cans at the range, and the flight practice circuit over Vesper.
+  - The Vesper settlement:
+    - workshop/garage, habitats, store, bar, roads, poles, tanks
+    - sparse NPC ship traffic
+    - Monument Valley-style 3D buttes and spires, ranges built from layered noise, and sandstone boulders (PR #47)
+- **Flight:**
+  - Throttle, braking, yaw/pitch/roll, heat and power, damage, repair.
+  - Ace Combat-style missile lock with lock-on warnings, lasers, and enemy AI.
+  - Warp travel with a cinematic fly-by. Local jumps take about 14 s and interstellar jumps about 28 s.
+  - A painted Kestrel **cockpit overlay** (`cockpit-overlay.js`), framed with wide windows. David approved it as "perfect".
+  - Head-on docking into hangars.
+- **Stations:** all walkable in first person.
+  - Meridian Station (Rook, Nyx, outfitter, the Dead Channel bar, mission terminal, textured pressure door).
+  - Kepler (Dr. Sol), Rusthaven Port (Iona Vale), the Foundry, Tessaly Belt Anchorage.
+  - The derelict station, with a walkable, fightable upper catwalk level.
+- **Tessaly:**
+  - **NeoChinatown** city landing: skyscrapers, corporate ads everywhere.
+  - **The Darknet District** in an alley near the landing: security door, vestibule badge scan, hallway, VR/arcade, bar, Admin and Iris's shop, vending, sleep pods (which save), meeting room, and stairs to the smoking area.
+  - Vantor (the underground city formerly called Mars).
+- **Mission Log:**
+  - Opened with the **L** key (rebindable) or the on-screen "MISSION LOG · L" button.
+  - Shows active and completed missions, objectives, destinations and rewards.
+  - Track/untrack. Untracking never abandons a mission.
+  - Auto-tracks the next mission unless the player explicitly untracks.
+  - **One yellow 3D direction arrow** points at the tracked goal in the current area, or at the warp marker or ship when the goal is elsewhere.
+- **Economy and ships:**
+  - Credits; upgrades for guns, armor, engines and shields; credit gear (vector drive, scout drone, missile launcher).
+  - Ships: Kestrel/01 (starter, **cargo 2 units**), Peregrine/02 (1,000 cr, cargo 2), Spectre/03 (premium, real-money concept).
+- **Saves:**
+  - Local save, plus a cloud save validated by the server.
+  - Autosave on docking, landing and purchases, and at checkpoints.
+  - Death returns you to the last checkpoint.
+
+---
+
+## 3. Completed development work (merged PRs)
+
+Earlier work, PRs #1–#31, was largely delivered by Codex and uploaded in packages. It covered the foundation:
+
+- Babylon renderer, flight overhaul, network/premium travel
+- hangars and flight HUD, menu/story/audio
+- progression, opening, Meridian menu, Vesper
+- derelict and skirmish, reliability, tutorial/menu/save
+
+The reports for that work are the `VOID-RUNNER-*.md` files in the repo root.
+
+This conversation (Claude), 2026-10-14 to 2026-10-15:
+
+| PR | What it delivered |
+|---|---|
+| #32–#36 | Site-wide work, not game work: Iris chat hardening, security headers, CI, SEO, faster loads, homepage tech accents, District handles (sign-in without Google). |
+| #38 | Tutorial split from the cargo campaign; Mission Log on **L**; auto-tracking; post-processing pass. |
+| #39 | Painted Kestrel cockpit, later widened so more window shows. |
+| #40 | Clearer mission waypoint arrow, linked to the tracked mission. The floating marker over the goal was removed. |
+| #41, #42 | Art pass: Vesper, Kestrel, Meridian Station, derelict hangar; NPC ships around Vesper. |
+| #43 | Kestrel hold raised to 2 units; derelict catwalks became a walkable, fightable upper level. |
+| #44 | NeoChinatown and The Darknet District, built from David's facility layout; Sol renamed to Tessaly in the UI; Vesper outdoor art; Meridian door texture; lower arrow; less Vesper traffic. |
+| #45 | Optional tutorial (Mara asks); Mission Log key hint; Tessaly's own ad style (12 brands, `ad-art.js`); Mars renamed to Vantor in the UI. |
+| #47 | Natural Vesper terrain (replaced #46); internal id `undertow`→`rusthaven` with save migration; repeating Rook freight runs. |
+
+---
+
+## 4. Mission tree and progression
+
+`docs/void-runner/mission-tree.html` is the visual version, though slightly stale.
+
+### 4.1 Tutorial: optional (IMPLEMENTED)
+
+| ID | Mission | Starts | Ends | Giver |
+|---|---|---|---|---|
+| `ground-training` | Ground Training | Vesper | Vesper (range) | Mara |
+| `flight-training` | Flight Training | Vesper | Vesper (practice circuit) | Mara |
+| `first-station` | First Station / Outfitting | any hangar | any hangar | Rook |
+| `combat-qualification` | Combat Qualification (2 combat runs, launcher voucher, lock and fire a missile) | Erebus | Erebus | Rook |
+
+If the player declines the tutorial, `story.flags.tutorialSkipped=true` and `progression.groundDone()` returns true.
+
+### 4.2 Main cargo campaign (IMPLEMENTED; quest state machine in `campaign.js`)
+
+| Quest / ID | Mission | Starts | Ends | Giver | Pay |
+|---|---|---|---|---|---|
+| `meet-rook` (`arrival`) | Cargo Delivery / Meet Rook | Vesper | Meridian | Mara | 200 bonus |
+| `legal-run` | An Honest Living: water filters | Meridian | Kepler | Rook | 350 |
+| `return` | Back to the Dead Channel | Kepler | Meridian | Rook | — |
+| `illegal-run` | No Questions Asked: memory wafers | Meridian | Rusthaven | Rook | 800; Iona fits MK2 guns |
+| `open` | Free play; contracts unlock | — | — | — | — |
+| `meet-admin` | Meet Admin | Meridian | NeoChinatown → The Darknet District | Rook | — |
+
+Free travel and Tessaly unlock when the prologue completes, meaning the missile qualification is done. At that point `meet-admin` is acquired and tracked. **Meet Admin is currently the end of the main story.**
+
+### 4.3 Repeating Rook freight runs (IMPLEMENTED in PR #47; CLAUDE-WRITTEN, UNREVIEWED dialogue)
+
+David's instruction: *"Let the Rook cargo missions keep going. If a new System opens up have it be to that System."*
+
+- After the prologue (`quest==='open'` and `progression.completed`), talking to **Rook at Meridian** offers "Rook freight run #N". The player chooses ACCEPT RUN or NOT NOW.
+- **Destination:** the first run after a system is newly discovered goes to **that system's hub**; today that is Tessaly → `sol-belt`. Otherwise runs rotate through discovered locations, excluding Vesper and the current location.
+- **Pay and danger rise with each run:**
+  - reward = 500 + 150 per step, capped at 2,000
+  - enemies = 4 + step
+  - tier = 1 + 0.3 per step
+  - steps cap at 8
+  - legality alternates: odd-numbered runs are legal, even-numbered runs illegal
+- **State:**
+  - `state.contract='rook-run'`
+  - `story.flags.rookRuns` (int, completed count)
+  - `story.flags.rookRunTo` (destination of the active run)
+  - `story.flags.rookSystems` (comma list of systems already served, default `erebus`)
+- **Mission Log:** each run is its own entry (`rook-run-1`, `rook-run-2`, …) and is tracked on accept.
+- **Code:**
+  - `campaign.js`: `rookRun`, `rookRunTarget`, the `missionFlight` branch, and `accept`/`complete`
+  - `world-integration.js`: `rookFreightOffer`
+  - `mission-log.js`: titles
+  - `save-manifest.json`: `rook-run`
+  - Tests: `tests/rook-runs.test.cjs` and `tests/test_story_save.py`
+- **Fix in the same PR:** a run whose destination is another system's hub flies as one interstellar leg. Before, it ended as a transit stop and the run never completed.
+- Delivery is paid on arrival and docking. A return to Rook is not required.
+
+### 4.4 Side contracts (IMPLEMENTED; cargo board after the prologue)
+
+| ID | Contract | Giver | Ends | Pay |
+|---|---|---|---|---|
+| `medicine` | Cold Chain | Dr. Sol | Kepler | 650 |
+| `ghost` | Ghost Hardware | Iona Vale | Rusthaven | 1,000 |
+| `foundry` | A Debt in Steel | Rook | Foundry | 1,500 |
+
+### 4.5 Legacy chapters (IMPLEMENTED in code; their future is **UNDECIDED**)
+
+Twelve missions from an earlier version, all given by Rook and unlocked in order:
+
+- **Ghost Belt:**
+  - `belt-1` Dead Reckoning → Kepler
+  - `belt-2` Shattered Lane → Foundry
+  - `belt-3` Last Light → Meridian
+  - `belt-4` The Iron Mouth → Foundry
+- **Corporate Lockdown:**
+  - `lockdown-1` Unlisted Passengers → Rusthaven
+  - `lockdown-2` Cut the Power → Kepler
+  - `lockdown-3` Evidence Locker → Meridian
+  - `lockdown-4` Hostile Takeover → Rusthaven
+- **Beyond the Gate:**
+  - `gate-1` Event Horizon → Rusthaven
+  - `gate-2` Voices in the Static → Kepler
+  - `gate-3` The Other Side → Foundry
+  - `gate-4` Void Sentinel → Meridian
+
+Claude's suggestions, all PROPOSED:
+- Keep Ghost Belt as side-job material.
+- Rework Lockdown as a Tessaly / The Function chapter.
+- Defer Beyond the Gate to the alien expansion.
+
+David has not decided. Several of these, plus Rook's runs and the contracts, overlap with each other.
+
+### 4.6 Next story content: approved scripts, not yet built (see §6 and §9.2)
+
+- **Admin introduces the Communion and the Natural Order** (DAVID'S SCRIPT, doc 05).
+- **Return to the District for payment, where Iris offers the remaining delivery** (DAVID'S SCRIPT, doc 06).
+- After both deliveries, Claude must **propose several next-chapter directions**. Doc 06 §7 lists them: Rook, Admin/Iris, Communion, Natural Order, independent cargo, exploration/bounty. Nothing may be finalized without approval.
+
+---
+
+## 5. Approved storylines and dialogue
+
+- **Opening (APPROVED; IMPLEMENTED):**
+  - The player is a mechanic on Vesper who worked for **Elias Ward**: older, fair-minded, now dead, appears by hologram.
+  - **Mara** gives the pistol and the Kestrel and sends the player to **Rook** at Meridian.
+- **Tutorial offer (APPROVED; IMPLEMENTED):**
+  - Mara asks before starting the tutorial. If the player declines, she sends them to Rook and starts the first cargo mission.
+  - The player is told L opens the Mission Log.
+  - The exact wording of her offer is Claude's.
+- **Rook's opening lines** (filters to Kepler, wafers to Rusthaven, missile line): existing game text from before this conversation.
+- **Rook freight-run lines** (PR #47): CLAUDE-WRITTEN, UNREVIEWED. Example: "Lanes into Tessaly System just opened up. Get in before everyone else does…"
+- **Admin/Iris greeting at the District** (`prologue-integration.js`, `admin` interaction):
+  - CLAUDE-WRITTEN PLACEHOLDER.
+  - It completes `meet-admin` and sets `story.flags.metAdmin` and `story.flags.metIris`.
+  - **David's doc-05 script should replace it.** In that script Admin greets "the pilot Rook sent" and introduces the factions and two deliveries.
+- **David's scripts** (verbatim in `docs/void-runner/design-source/05-*.md` and `06-*.md`):
+  - **Doc 05 (Admin):**
+    - The player can ask about either delivery before deciding. Asking never accepts.
+    - Three final choices: Communion delivery, Natural Order delivery, or "I'll think about it".
+    - The chosen delivery auto-tracks and shows in navigation. The other contract stays available.
+    - No faction allegiance, and no major faction secrets revealed.
+  - **Doc 06 (Iris):**
+    - After the first delivery the objective becomes "Return to The Darknet District and collect payment". **No payment on delivery.**
+    - Iris (Chief Security Officer) is at the counter; Admin is "occupied". Do not explain his absence unless approved.
+    - Iris pays, then offers the remaining delivery. The player can take it or leave it for later.
+    - The second delivery is paid the same way, and Iris has a closing line.
+    - Record which faction was first. Both factions stay accessible.
+    - Unlock "the next approved campaign chapter when available".
+
+---
+
+## 6. The Communion and the Natural Order (lore APPROVED; locations and NPCs NOT approved)
+
+From the master plan and doc 05:
+
+- **The Communion:**
+  - A religious civilization that embraces AI and cybernetic augmentation.
+  - It once worshipped a powerful planetary AI that was destroyed. Since then it has regressed technologically and socially, and many believers await the AI's return.
+  - Technology: advanced targeting, augmentation, electronics. Admin: *"practically worship the stuff."*
+  - Admin's delivery to them: advanced electronics and research equipment.
+- **The Natural Order:**
+  - Opposes AI and augmentation, and prefers older, less AI-dependent technology. Its ships and equipment should look it.
+  - Sometimes raids through the neutral commercial system, which was "Sol" in the plan and is now Tessaly.
+  - Admin's delivery to them: mechanical components and industrial supplies.
+- The two have argued for generations and occasionally shoot at each other. Admin: *"Trouble's good for business. Long as it stays somewhere else."*
+- **Player choice later in the campaign:** support the Communion, support the Natural Order, or stay neutral. Neutral must remain viable. Faction choices affect missions, relationships, equipment and opportunities.
+- A fourth, alien faction is DEFERRED to a future expansion.
+- **Iris is an android.** Her relationship to either faction is a rich opportunity, but it **must not be assumed or established without approval**. The District is not aligned with either faction.
+- **Not decided:** where Communion and Natural Order territory is (new systems? which locations?), their NPCs, delivery events, and follow-up chains.
+  - All of these must be **proposed (3–5 options) before building doc 05/06**.
+  - The last open question to David was exactly this: *"Want me to propose 3–5 options for where those two places are?"* He has not answered yet.
+- `factions.js` exists, with relay and reputation scaffolding. Check what it already supports before adding faction state.
+
+---
+
+## 7. Established NPCs
+
+| NPC | Where | Role | Status |
+|---|---|---|---|
+| **Elias Ward** | Vesper (hologram) | The player's late employer; fair-minded. | Canon. A proposal to make his past the thread linking the opening to the faction story is PROPOSED, not approved. |
+| **Mara** (Mara Voss in game text) | Vesper workshop | Older, subdued mechanic; tutorial; gives pistol and ship; sends the player to Rook. | Canon. David said he'll work on characters later. |
+| **Rook** | Meridian, the Dead Channel booth | Cargo contact. Jobs grow in value, risk, distance and illegality (smuggling, pirates, interdiction). Sends the player to Admin. | Canon. |
+| **Nyx** | Meridian bar | Bartender; points the player to Rook and the shop. | Existing game character. |
+| **Dr. Sol** | Kepler | Clinic contact; gives Cold Chain. | Existing game character. Its name is unrelated to the old Sol system. |
+| **Iona Vale** | Rusthaven | Keeps Rusthaven running; gives Ghost Hardware. | Existing game character. |
+| **Admin** | The Darknet District shop, NeoChinatown | Central District figure: knowledgeable, resourceful, hard to intimidate, casual and pragmatic. Indifferent to faction ideology. Has a shop, missions and story connections. | Canon (doc 03). David said "I'll work on characters later, Admin and Iris". Do not invent his backstory. |
+| **Iris** | The Darknet District | Female android, **Chief Security Officer**, associated with Admin. Intelligent, observant, dry and sarcastic but competent. Runs the counter while Admin is away. | Canon (doc 03 and doc 06). Keep her separate from the website's Iris chatbot. |
+
+---
+
+## 8. Systems and locations
+
+| System (id) | Location (id) | Display name | Notes |
+|---|---|---|---|
+| Erebus (`erebus`) | `vesper` | Vesper | Starting barren planet: Ward Freight Workshop, monument-valley desert. Returning never restarts the tutorial. |
+| | `meridian` | Meridian Station | Erebus hub. Layout: hangar → shop/outfitter → corridor → Dead Channel bar at the far end. |
+| | `kepler` | Kepler | Working station, freight crews. |
+| | `rusthaven` | **Rusthaven Port** | Salvage port, magenta beacons. Internal id was `undertow` before PR #47. |
+| | `foundry` | The Foundry | Industrial. |
+| | (derelict) | Derelict space station | Gangs and pirates; FPS combat; catwalk level. |
+| **Tessaly** (`sol`) | `sol-belt` | Tessaly Belt Anchorage | Tessaly hub and interstellar arrival point. |
+| | `earth` | **NeoChinatown** | City landing with tall skyscrapers. David will add POIs. **The Darknet District is in an alley near the landing.** |
+| | `mars` | **Vantor** / Underground City | Renamed from Mars. "Vantor" is a working name awaiting David's confirmation. |
+
+**Tessaly canon (APPROVED):**
+- Heavily corporatized and profit-first. It sells to every system, which keeps it neutral.
+- **Advertising everywhere.** It is inspired by David's Blackout Protocol game but has **its own style**: better graphics, dark, adult and corporate, selling ship parts, weapons and services, and less jokey.
+- **The Function** is the corporate government of all of Tessaly and runs NeoChinatown. Admin's placeholder line: "The Function charges for parking…".
+- Tessaly **replaces Sol everywhere**, so there are no real-world landmark comparisons.
+
+---
+
+## 9. Current state of ongoing work
+
+### 9.1 Mission tracking (IMPLEMENTED)
+
+- **Code:** `mission-log.js` is the centralized manager:
+  - `definitions`, `acquire`, `complete`, `sync`, `track`/`untrack`, `nextMission`, `guidance`
+  - The priority order for auto-tracking is in `priority`.
+  - Missions without a definition (contracts, chapters, Rook runs) are described from `campaign.missionFlight`.
+- **Arrow:** `world-integration.js` and `prologue-integration.js` set `trackedWalkWaypoint` for the 3D arrow.
+  - David wants **only the arrow**, not a floating marker over the goal.
+  - In the same area the arrow points at the object. Elsewhere it points at the warp marker or ship.
+  - It was lowered so it points at the goal better.
+- **Adding a new story mission:**
+  1. Add a definition (with `objectives`, `destination`, `interaction`).
+  2. Acquire it where the story grants it.
+  3. Complete objectives from the relevant interaction.
+  4. Add tests in `tests/mission-system.test.cjs`.
+
+### 9.2 Faction deliveries (NOT STARTED; scripts approved, destinations not)
+
+Recommended order:
+1. **Propose** 3–5 options for Communion and Natural Order destinations: where they are, how they unlock (Rook's "new system opens up" rule will then route a freight run there automatically), and the receiving NPCs. Get approval.
+2. Replace the Admin placeholder with doc 05.
+3. Implement doc 06's two-step deliver-then-return-for-payment flow with Iris.
+
+**Save fields doc 06 requires** (first faction accepted, delivered, paid, remaining contract available/accepted/delivered/paid; no duplicate payment or cargo):
+- Fit them in `story.flags`, which the server already accepts (bool, string ≤200, int).
+- Or extend both `campaign.js restore` and `void_runner_api.py clean_save`.
+- Add the new contract ids to `save-manifest.json`.
+
+**Note:** the current contract system pays on arrival. Doc 06 needs a "delivered, awaiting payment" state, plus a "return to the District" objective that is tracked automatically.
+
+### 9.3 Rook cargo runs
+
+Done; see §4.3. Possible follow-ups:
+- David reviewing the dialogue.
+- Rook currently gives runs only at Meridian.
+- The cargo-loss-on-death rule from the master plan has not been verified for runs.
+
+### 9.4 Save system
+
+- **Local:** `localStorage` via `C.restore()`. Restore validates and migrates (`migrate()`).
+- **Cloud:** `void_runner_api.py clean_save()` whitelists fields against `save-manifest.json`.
+- **Migrations in place:**
+  - v1 → v2
+  - pre-story saves
+  - `undertow` → `rusthaven` (string replace of the quoted id, on both client and server)
+  - The tutorial-skip flag.
+- Untracking never resets missions. Completed tutorials never re-activate.
+- **Test after any state change:** `tests/campaign.test.cjs`, `tests/tutorial-recovery.test.cjs`, `tests/test_story_save.py`, `tests/test_progression_save.py`.
+
+---
+
+## 10. Outstanding bugs and incomplete features
+
+**Known issues and gaps in what is built:**
+- Admin/Iris dialogue at the District is a placeholder (§5).
+- Butte walls can show faint vertical banding up close.
+- The view of the terrain from the air has not been checked: headless tests can't fly the ship.
+- `docs/void-runner/mission-tree.html` and the published artifact are slightly out of date.
+- **Browser tests:**
+  - Most `tests/*-browser.cjs` scripts use Playwright's `msedge` channel, so they don't run in Linux containers.
+  - The Node unit tests are the reliable gate.
+  - `tests/test_void_runner_api.py` needs `stripe` installed.
+- **Overlapping content:** Rook runs, the side contracts and the legacy chapters all hand out similar Erebus deliveries. David needs to decide on the legacy chapters (§4.5).
+- **Scene text:**
+  - The cinematic 2D `scenes.js` arrival line picks a speaker by destination. For a Rook run to Rusthaven it says "Iona".
+  - The 2D cinematic path is mostly a fallback for the walkable stations.
+
+**From the master plan, not done or not verified:**
+- A fully 3D, Babylon-geometry cockpit. A painted overlay is used now; `cockpit-3d.js` exists.
+- Bounty missions with stealth targets.
+- War-flying, scanning, emissions control and jammers. `sensors.js` has a basic version.
+- Escort and data-retrieval variety.
+- NPC animation states.
+- Cargo loss on destruction (verify).
+- The Visual Balance Lab as a separate tool (`dev-tools.js` has some).
+- A high-speed rail link: this was tied to Sacramento, which is removed.
+- Iris API costs.
+- Spectre/03 real-money payment feasibility.
+- Faction reputation rules and the final star map.
+
+---
+
+## 11. Decision log
+
+### Approved
+
+- Tutorial separate from the cargo campaign; Mission Log with tracking.
+- Mission Log key is **L**, because the game runs in a browser and F1 conflicts.
+- Mara **asks** whether to do the tutorial. Declining sends the player to Rook and the first cargo mission.
+- Tell the player that L opens the Mission Log.
+- Kestrel cargo is 2 units. Derelict catwalks are a real, fightable upper level.
+- Painted cockpit with closer, larger windows ("perfect").
+- **Tessaly** replaces **Sol** everywhere.
+  - **NeoChinatown** is its city, with tall skyscrapers.
+  - **The Darknet District** is in an alley near the NeoChinatown landing.
+  - **The Function** is the corporate government of Tessaly.
+  - Tessaly sells to everyone and stays neutral.
+- Tessaly ads: everywhere, in their own dark, adult, corporate style selling ship parts and weapons. Similar in spirit to Blackout Protocol but **not** copies, and less funny.
+- The Darknet District facility layout (doc 04): built.
+- Mars renamed. "Vantor" is in the UI as a working name pending confirmation.
+- Vesper: fewer NPC ships ("not super busy … not entirely dead"); Meridian's door is textured and less bright; the mission arrow is lower.
+- Vesper mountains should be natural, monument-valley-like and full 3D, with **all** of them redone, not just the cliffs.
+- Internal id `undertow` renamed to `rusthaven`.
+- Rook cargo runs keep going; a newly opened system gets the next run.
+
+### Rejected or removed (do not reintroduce)
+
+- F1 as the Mission Log key.
+- A floating marker over the mission goal. Keep **only** the arrow.
+- Forcing the player into the tutorial.
+- Copying Blackout Protocol's ads or its jokey tone in Tessaly.
+- Sol / Earth / **Sacramento / J Street / Old Sacramento** as game locations. The District is no longer on Earth.
+- Treating The Darknet District book as a game guide. It is reference only.
+- The old 2D mountain card around Vesper ("looked bad when flying away").
+- **Site-wide:** a full 2049-style site redesign ("worse and cheesy"); Iris on game pages.
+
+### Pending David's decision (PROPOSED)
+
+- Confirm **Vantor**, or pick another name.
+- **CARGO-001 expansion options:** A, Dr. Sol's water plant on Kepler; B, the sealed crate and a customs hail; C, a missing courier (Elias thread); D, Rook's debt at the Foundry. Claude recommended A, then C.
+- Whether **Elias's past** becomes the thread linking the opening to the faction story.
+- Keep, rework or cut each **legacy chapter** (§4.5).
+- **First District mission** options: A Membership, B Breach, C Rogue AI, D Raven's Plan. These may be superseded by David's doc-05/06 faction scripts. Ask.
+- **Communion and Natural Order destinations, NPCs and chains** (§6). This is the next question to ask.
+- The middle game ("Dead Channels") and late game ("The Silent God") arcs from the mission tree are only proposed.
+- Cleaning up stale merged `claude/*` branches was offered, not requested.
+
+---
+
+## 12. Planned improvements and roadmap
+
+These are the master plan phases, with a status note for each.
+
+- **A, Stabilization:** largely done (tutorial split, softlocks, save migrations).
+- **B, Mission interface:** done (Mission Log, tracking, arrow, history).
+- **C, Meridian Station:** largely done. Could still improve NPC navigation and station life.
+- **D, Cockpit and flight:** painted cockpit done; a real 3D cockpit is optional and future.
+- **E, Core gameplay:**
+  - Rook cargo loop done (repeating runs).
+  - Next: bounty hunting, more derelict missions, FPS combat depth.
+- **F, World expansion:**
+  - Tessaly, NeoChinatown, the District and Vantor exist.
+  - Next: **Communion and Natural Order territories**, after approval; more ships; David's NeoChinatown POIs.
+- **G, Advanced systems:** radar, scanning, stealth and jamming; NPC behavior; balance; skirmish options.
+- **Art:** David will replace procedural art with his Blender models over time through the asset hooks. Keep hooks intact and procedural fallbacks working.
+
+---
+
+## 13. GitHub status (2026-10-15)
+
+- **`main`** is at `24a7071` (PR #47 merged), plus the handoff PR that adds this file and `CLAUDE.md`.
+- **Open PRs:** none other than the handoff PR.
+- **Remote branches:** `claude/cargo-catwalks`, `cockpit-art`, `district-and-fixes`, `mission-arrow`, `rusthaven-rook-runs`, `tutorial-choice-ads`, `tutorial-split-mission-log`, `vesper-buttes` and `vesper-workshop`.
+  - All are merged or superseded. `vesper-buttes` (PR #46) was closed and folded into #47.
+  - Safe to delete **only if David asks**.
+- **CI:** Node unit tests on PRs and on `main`.
+- **Service worker build:** `2026-10-15-rusthaven-rook-terrain-1`.
+- **Tests at handoff:** 206/206 Node; Python story and progression save tests OK.
+
+---
+
+## 14. Practical notes for Claude Code
+
+- **Screenshots in a Linux container:**
+  - Run `node tests/serve-modern.cjs &`.
+  - Then use Python Playwright: `chromium.launch(args=['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist'])`.
+  - Route `**/api/**` to a 503 so the game runs offline.
+  - Wait for `window.VoidStartup?.started`.
+  - Click `[data-action=menu-campaign]`, then `[data-action=menu-new]`, then `[data-action=tutorial-yes]` to reach Vesper.
+  - Position the camera with `walker.x/z/yaw/pitch`.
+- **Jump straight into states:** set `state=C.fresh()` and adjust fields, then `VoidMissions.sync(state,C);save();dock();` to stand in a station, or `await launch()` to fly.
+- **Dialogue:** the speech UI types out text. Advance it with `document.querySelector('[data-action=speech-next]').click()` after a short wait.
+- **Before telling David something is done:** tests pass, screenshots have been checked, `BUILD` is bumped, and `static/void-runner.html` is synced.
