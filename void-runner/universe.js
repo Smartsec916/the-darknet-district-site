@@ -1,13 +1,17 @@
 /* Stable location IDs and route policy shared by campaign, saves and HUD. */
 (function(root){
  const progression=typeof module!=='undefined'?require('./progression.js'):root.VoidProgression;
- const systems={erebus:{name:'Erebus System',hub:'meridian',ownerFaction:null,securityFaction:'erebus-local',populationPool:[],shopPool:[],missionPool:[]},sol:{name:'Tessaly System',hub:'sol-belt',ownerFaction:null,securityFaction:'sol-local',populationPool:[],shopPool:[],missionPool:[]}};
+ const systems={erebus:{name:'Erebus System',hub:'meridian',ownerFaction:null,securityFaction:'erebus-local',populationPool:[],shopPool:[],missionPool:[]},sol:{name:'Tessaly System',hub:'sol-belt',ownerFaction:null,securityFaction:'sol-local',populationPool:[],shopPool:[],missionPool:[]},
+  // Faction territory. Each system opens when the player accepts its District delivery.
+  communion:{name:'Cantor System',hub:'vigil',ownerFaction:'communion',securityFaction:'communion',populationPool:[],shopPool:[],missionPool:[]},'natural-order':{name:'Garrow System',hub:'holdfast',ownerFaction:'natural-order',securityFaction:'natural-order',populationPool:[],shopPool:[],missionPool:[]}};
  const locations={
   vesper:{system:'erebus',name:'Vesper',district:'WARD FREIGHT WORKSHOP',color:'#c2a584',bar:'Workshop'},
   meridian:{system:'erebus'},kepler:{system:'erebus'},rusthaven:{system:'erebus'},foundry:{system:'erebus'},
   'sol-belt':{system:'sol',name:'Tessaly Belt Anchorage',district:'TESSALY / ASTEROID BELT',color:'#8dbea9',bar:'Belt Canteen'},
   earth:{system:'sol',name:'NeoChinatown',district:'TESSALY / CITY LANDING',color:'#9b7bff',bar:'The Darknet District'},
-  mars:{system:'sol',name:'Vantor / Underground City',district:'TESSALY / SUBSURFACE ACCESS',color:'#ba6847',bar:'Transit Canteen'}
+  mars:{system:'sol',name:'Vantor / Underground City',district:'TESSALY / SUBSURFACE ACCESS',color:'#ba6847',bar:'Transit Canteen'},
+  vigil:{system:'communion',name:'The Vigil',district:'CANTOR / COMMUNION STATION',color:'#9fd2ec',bar:'Refectory',ownerFaction:'communion',securityFaction:'communion'},
+  holdfast:{system:'natural-order',name:'Holdfast',district:'GARROW / NATURAL ORDER OUTPOST',color:'#d08a3c',bar:'Mess Hall',ownerFaction:'natural-order',securityFaction:'natural-order'}
  };
  for(const location of Object.values(locations)){location.ownerFaction??=null;location.securityFaction??=location.system==='sol'?'sol-local':'erebus-local';}
  function system(id){return locations[id]?.system||'erebus';}
@@ -27,12 +31,15 @@
   }
   out.completedObjectives=Array.isArray(raw.completedObjectives)?raw.completedObjectives.filter(x=>typeof x==='string'&&x.length<80).slice(0,200):[];
   if(state.quest==='open')out.discoveredLocations=[...new Set([...out.discoveredLocations,'kepler','rusthaven','foundry'])];
-  if(out.freeTravel){out.discoveredSystems=['erebus','sol'];out.discoveredLocations=[...new Set([...out.discoveredLocations,'sol-belt','earth','mars'])];}
+  if(out.freeTravel)out.discoveredLocations=[...new Set([...out.discoveredLocations,'sol-belt','earth','mars'])];
+  // Known systems follow known locations, so a newly opened faction system survives a reload.
+  out.discoveredSystems=[...new Set(['erebus',...(out.freeTravel?['sol']:[]),...out.discoveredLocations.map(system)])];
   if(raw.station?.location===state.location)out.station={location:state.location};return out;
  }
  function unlock(s){const travel=s.progression?.completed===true||s.progression?.flags?.missileFired===true||s.universe?.freeTravel===true;s.universe=restore({...s.universe,missionLogUnlocked:true,freeTravel:travel},s);if(travel&&!s.universe.trackingInitialized&&!s.universe.trackedMission)s.universe.trackedMission='meet-admin';}
- function visit(s){const u=s.universe;u.currentSystem=system(s.location);for(const key of ['visitedLocations','discoveredLocations'])if(!u[key].includes(s.location))u[key].push(s.location);u.station={location:s.location};}
+ function visit(s){const u=s.universe;u.currentSystem=system(s.location);for(const key of ['visitedLocations','discoveredLocations'])if(!u[key].includes(s.location))u[key].push(s.location);if(!u.discoveredSystems.includes(u.currentSystem))u.discoveredSystems.push(u.currentSystem);u.station={location:s.location};}
+ function discover(s,id){const u=s.universe;if(!Object.hasOwn(locations,id))return false;if(!u.discoveredLocations.includes(id))u.discoveredLocations.push(id);if(!u.discoveredSystems.includes(system(id)))u.discoveredSystems.push(system(id));return true;}
  function destinations(s){const u=s.universe||fresh();return u.discoveredLocations.filter(id=>id!==s.location&&(system(id)===system(s.location)||id===systems[system(id)].hub));}
  function nextHop(origin,target){return system(origin)===system(target)?target:systems[system(target)].hub;}
- const api={systems,locations,system,route,fresh,restore,unlock,visit,destinations,nextHop};if(typeof module!=='undefined')module.exports=api;else root.VoidUniverse=api;
+ const api={systems,locations,system,route,fresh,restore,unlock,visit,discover,destinations,nextHop};if(typeof module!=='undefined')module.exports=api;else root.VoidUniverse=api;
 })(globalThis);

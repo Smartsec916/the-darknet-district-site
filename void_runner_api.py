@@ -273,12 +273,12 @@ def clean_save(value):
     if not isinstance(universe, dict):
         raise ApiError('Invalid universe state.')
     cleaned_universe = {}
-    for key, allowed, default in [('discoveredSystems', ['erebus','sol'], ['erebus']), ('discoveredLocations', locations, ['vesper','meridian']), ('visitedLocations', locations, ['vesper'])]:
+    for key, allowed, default in [('discoveredSystems', manifest.get('systems',['erebus','sol']), ['erebus']), ('discoveredLocations', locations, ['vesper','meridian']), ('visitedLocations', locations, ['vesper'])]:
         entries = universe.get(key, default)
         if not isinstance(entries,list) or len(entries)>256 or any(x not in allowed for x in entries):
             raise ApiError('Invalid universe locations.')
         cleaned_universe[key] = list(dict.fromkeys(entries))
-    cleaned_universe['currentSystem'] = 'sol' if result['location'] in ['sol-belt','earth','mars'] else 'erebus'
+    cleaned_universe['currentSystem'] = {'sol-belt':'sol','earth':'sol','mars':'sol','vigil':'communion','holdfast':'natural-order'}.get(result['location'],'erebus')
     for key in ['missionLogUnlocked','freeTravel']:
         cleaned_universe[key] = universe.get(key) is True or result['missileOfferSeen']
     tracked = universe.get('trackedMission')

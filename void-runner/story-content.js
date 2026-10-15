@@ -28,7 +28,7 @@
   };
   const characters = {
     mara: {
-      name: 'Mara Voss',
+      name: 'Mara',
       role: 'FREIGHT MECHANIC',
       cell: '0% 0%',
       faction: 'independent',

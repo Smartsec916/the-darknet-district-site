@@ -7,13 +7,23 @@
     "vesper",
     "sol-belt",
     "earth",
-    "mars"
+    "mars",
+    "vigil",
+    "holdfast"
+  ],
+  "systems": [
+    "erebus",
+    "sol",
+    "communion",
+    "natural-order"
   ],
   "missions": [
     "medicine",
     "ghost",
     "foundry",
     "rook-run",
+    "communion-delivery",
+    "order-delivery",
     "belt-1",
     "belt-2",
     "belt-3",

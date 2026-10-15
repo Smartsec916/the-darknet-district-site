@@ -40,7 +40,10 @@
   'legal-run':{title:'AN HONEST LIVING',type:'cargo',description:'Deliver water filtration parts to Kepler.',giver:'Rook',destination:'kepler',rewards:350,objectives:[{id:'arrive',label:'Deliver the filters and dock at Kepler'}]},
   'return':{title:'BACK TO THE DEAD CHANNEL',type:'main',description:'Return to Meridian with the completed delivery.',giver:'Rook',destination:'meridian',objectives:[{id:'arrive',label:'Dock at Meridian Station'}]},
   'illegal-run':{title:'NO QUESTIONS ASKED',type:'cargo',description:'Deliver unregistered memory wafers to Rusthaven.',giver:'Rook',destination:'rusthaven',rewards:800,objectives:[{id:'arrive',label:'Deliver the wafers and dock at Rusthaven'}]},
-  'meet-admin':{title:'MEET ADMIN',type:'main',description:'Find Rook’s contact in NeoChinatown, Tessaly.',giver:'Rook',source:'story',start:'meridian',end:'earth',completion:{event:'talk',interaction:'admin'},destination:'earth',interaction:'tdd',objectives:[{id:'meet-admin',label:'Find Admin at The Darknet District, NeoChinatown'}]}
+  'meet-admin':{title:'MEET ADMIN',type:'main',description:'Find Rook’s contact in NeoChinatown, Tessaly.',giver:'Rook',source:'story',start:'meridian',end:'earth',completion:{event:'talk',interaction:'admin'},destination:'earth',interaction:'tdd',objectives:[{id:'meet-admin',label:'Find Admin at The Darknet District, NeoChinatown'}]},
+  // The District's faction deliveries. After handing over the cargo the goal moves back to Iris.
+  'communion-delivery':{title:'COMMUNION DELIVERY',type:'cargo',description:'Advanced electronics and research equipment for Dr. Elara Voss at The Vigil, Cantor System. Payment is collected at The Darknet District.',giver:'The Darknet District',source:'story',start:'earth',end:'earth',destination:'vigil',interaction:'elara',rewards:1200,after:{deliver:{destination:'earth',interaction:'district-iris'}},objectives:[{id:'arrive',label:'Fly the cargo to The Vigil, Cantor System'},{id:'deliver',label:'Deliver the equipment to Dr. Elara Voss'},{id:'payment',label:'Return to The Darknet District and collect payment'}]},
+  'order-delivery':{title:'NATURAL ORDER DELIVERY',type:'cargo',description:'Mechanical components and industrial supplies for Marcus Vale at Holdfast, Garrow System. Payment is collected at The Darknet District.',giver:'The Darknet District',source:'story',start:'earth',end:'earth',destination:'holdfast',interaction:'marcus',rewards:1200,after:{deliver:{destination:'earth',interaction:'district-iris'}},objectives:[{id:'arrive',label:'Fly the cargo to Holdfast, Garrow System'},{id:'deliver',label:'Deliver the components to Marcus Vale'},{id:'payment',label:'Return to The Darknet District and collect payment'}]}
  };
  // Auto-tracking picks the first active mission in this order.
  const priority=['ground-training','flight-training','meet-rook','first-station','legal-run','return','illegal-run','combat-qualification'];
@@ -132,9 +135,11 @@
   if(!s?.universe)return [];
   return Object.entries(records(s)).filter(([,entry])=>entry?.acquired).map(([id,entry])=>{
    const def=description(s,C,id),objectives=def.objectives.map(objective=>({...objective,complete:entry.objectives?.[objective.id]===true}));
+   // A finished objective can move the goal (a delivery returns the player to the District).
+   const stage=Object.entries(def.after||{}).filter(([key])=>entry.objectives?.[key]===true).map(([,next])=>next).pop();
    const complete=entry.completed===true||!tutorials.includes(id)&&objectives.filter(objective=>objective.required!==false).every(objective=>objective.complete);
-   const destination=id==='flight-training'&&pastWorkshop(s)?C?.missionFlight?.({...s,destination:null})?.destination||def.destination:id==='meet-rook'&&entry.objectives?.dock?'meridian':def.destination;
-   return {id,title:def.title,type:def.type,description:def.description||'',destination,rewards:def.rewards||null,interaction:def.interaction,objectives,objective:objectives.find(objective=>objective.required!==false&&!objective.complete)?.label||'Complete',completed:complete,tracked:s.universe.trackedMission===id};
+   const destination=stage?.destination?stage.destination:id==='flight-training'&&pastWorkshop(s)?C?.missionFlight?.({...s,destination:null})?.destination||def.destination:id==='meet-rook'&&entry.objectives?.dock?'meridian':def.destination;
+   return {id,title:def.title,type:def.type,description:def.description||'',destination,rewards:def.rewards||null,interaction:stage?.interaction||def.interaction,objectives,objective:objectives.find(objective=>objective.required!==false&&!objective.complete)?.label||'Complete',completed:complete,tracked:s.universe.trackedMission===id};
   });
  }
  function active(s,C){sync(s,C);return all(s,C).filter(mission=>!mission.completed);}

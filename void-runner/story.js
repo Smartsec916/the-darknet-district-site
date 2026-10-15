@@ -43,7 +43,7 @@
 
   function matches(s, c = {}) {
     const t = s.story;
-    return (!c.flags || Object.entries(c.flags).every(([k, v]) => t.flags[k] === v)) && (!c.completed || c
+    return (!c.flags || Object.entries(c.flags).every(([k, v]) => t.flags[k] === v)) && (!c.notFlags || Object.entries(c.notFlags).every(([k, v]) => t.flags[k] !== v)) && (!c.completed || c
       .completed.every(id => s.cleared.includes(id))) && (!c.events || c.events.every(id => t.events
       .includes(id))) && (!c.met || c.met.every(id => t.met.includes(id))) && (!c.alive || c.alive.every(
       id => !['dead', 'removed'].includes(t.characters[id]))) && (!c.ship || s.ownedShips.includes(c
