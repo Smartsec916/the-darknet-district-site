@@ -248,9 +248,10 @@
   if(shipRoute){leadIndex=route.length;mara.position.set(3,0,22);}else if(leadIndex===3)mara.position.set(24,0,-8);
   // Ambient sky traffic over the settlement: ships cross, circle and climb out while
   // the player is on the ground. Purely visual; no collisions or radar contacts.
-  const traffic=[['courier','friendly',{r:140,h:55,speed:.045,phase:0,cx:-40,cz:60}],['shuttle','friendly',{r:220,h:85,speed:-.03,phase:2.1,cx:30,cz:120}],['security','friendly',{r:95,h:38,speed:.07,phase:4.2,cx:-90,cz:-20}],['courier','friendly',{climb:true,phase:1.3}]].slice(0,low?2:4).map(([type,side,path])=>{const n=shipModel(type,side,parent);n.scaling.setAll(2.6);for(const m of n.getChildMeshes()){m.isPickable=false;m.receiveShadows=false;}return {node:n,path};});
+  // A quiet frontier system: one distant shuttle loop and an occasional departure.
+  const traffic=[['shuttle','friendly',{r:240,h:90,speed:-.025,phase:2.1,cx:30,cz:140}],['courier','friendly',{climb:true,phase:.15}]].map(([type,side,path])=>{const n=shipModel(type,side,parent);n.scaling.setAll(2.6);for(const m of n.getChildMeshes()){m.isPickable=false;m.receiveShadows=false;}return {node:n,path};});
   function flyTraffic(time){for(const {node,path} of traffic){
-   if(path.climb){const t=((time*.06+path.phase)%1),x=-160+t*520,z=260-t*90,y=6+Math.pow(t,1.6)*170;node.position.set(x,y,z);node.rotation.set(-.35*Math.min(1,t*3),Math.atan2(520,-90),0);continue;}
+   if(path.climb){const cycle=((time*.018+path.phase)%1);node.setEnabled(cycle<.35);if(cycle>=.35)continue;const t=cycle/.35,x=-160+t*520,z=260-t*90,y=6+Math.pow(t,1.6)*170;node.position.set(x,y,z);node.rotation.set(-.35*Math.min(1,t*3),Math.atan2(520,-90),0);continue;}
    const a=path.phase+time*path.speed,x=path.cx+Math.cos(a)*path.r,z=path.cz+Math.sin(a)*path.r;node.position.set(x,path.h+Math.sin(a*2)*6,z);
    const dir=Math.sign(path.speed);node.rotation.set(0,Math.atan2(-Math.sin(a)*dir,Math.cos(a)*dir),-.35*dir);}}
   flyTraffic(0);

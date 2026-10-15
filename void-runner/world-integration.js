@@ -130,9 +130,10 @@ const guidanceDraw=draw;draw=function(){guidanceDraw();drawMissionWaypoint();};
 function drawMissionWaypoint(){
  if(mode!=='walking'||!trackedWalkWaypoint||!walker)return;
  const p=trackedWalkWaypoint.position,dx=p[0]-walker.x,dz=p[2]-walker.z,label=Math.round(Math.hypot(dx,dz))+' m',pulse=reducedMotion?1:.75+.25*Math.sin(time*4);
- const angle=Math.atan2(dx,dz)-walker.yaw,r=Math.min(W,H)*.2;
+ const angle=Math.atan2(dx,dz)-walker.yaw,r=Math.min(W,H)*.15;
  ctx.save();ctx.lineJoin='round';ctx.font='bold 13px Consolas, monospace';ctx.textAlign='center';
- ctx.translate(W*.5+Math.sin(angle)*r,H*.5-Math.cos(angle)*r);ctx.rotate(angle);
+ // Ring sits below the crosshair so a goal straight ahead is pointed at near floor level.
+ ctx.translate(W*.5+Math.sin(angle)*r,H*.7-Math.cos(angle)*r);ctx.rotate(angle);
  ctx.shadowColor='#000';ctx.shadowBlur=12;ctx.fillStyle='rgba(255,214,120,'+(.6+.35*pulse)+')';ctx.strokeStyle='#1a1206';ctx.lineWidth=3;
  ctx.beginPath();ctx.moveTo(0,-26);ctx.lineTo(-17,10);ctx.lineTo(0,2);ctx.lineTo(17,10);ctx.closePath();ctx.stroke();ctx.fill();
  ctx.rotate(-angle);ctx.shadowBlur=4;ctx.fillStyle='#ffe7a8';ctx.fillText(label,0,32);

@@ -349,11 +349,28 @@
     return node;
   }
 
+  // Worn steel pressure door: panel seams, centre split, hazard bands and status lamps.
+  function doorMaterial(){
+    if(materials['pressure-door'])return materials['pressure-door'];
+    const b=B(),t=new b.DynamicTexture('pressure-door',{width:512,height:256},scene,true),g=t.getContext();
+    g.fillStyle='#2a3035';g.fillRect(0,0,512,256);
+    for(let i=0;i<900;i++){g.fillStyle='rgba('+(Math.random()<.5?'0,0,0':'120,130,135')+','+(Math.random()*.08)+')';g.fillRect(Math.random()*512,Math.random()*256,2+Math.random()*10,1+Math.random()*3);}
+    g.strokeStyle='#14181b';g.lineWidth=3;for(const x of [40,128,212,300,384,472])g.strokeRect(x-36,24,72,208);
+    g.fillStyle='#0c0f11';g.fillRect(253,0,6,256);
+    for(let x=0;x<512;x+=28){g.fillStyle='#b8862e';g.beginPath();g.moveTo(x,226);g.lineTo(x+14,226);g.lineTo(x+28,256);g.lineTo(x+14,256);g.fill();}
+    g.fillStyle='#14181b';g.fillRect(0,222,512,4);
+    g.fillStyle='#4a545a';for(let y=40;y<210;y+=34)for(const x of [232,280])g.fillRect(x-6,y,12,6);
+    g.fillStyle='#d9a441';g.fillRect(200,10,112,14);g.fillStyle='#14181b';g.font='bold 12px monospace';g.textAlign='center';g.fillText('PRESSURE DOOR',256,21);
+    g.fillStyle='#ef5b4c';g.fillRect(222,30,10,6);g.fillStyle='#5fd0a0';g.fillRect(280,30,10,6);
+    t.update();
+    const m=new b.StandardMaterial('pressure-door',scene);m.diffuseTexture=t;m.specularColor=new b.Color3(.12,.13,.14);m.emissiveColor=new b.Color3(.02,.02,.02);
+    materials['pressure-door']=m;return m;
+  }
   function stationModel(id, parent, exterior=false,layoutDef=null) {
     if(id==='meridian'&&exterior){const imported=VoidAssets.instance('station:meridian',parent);if(imported){imported.metadata={identity:'meridian',source:'shared-glb'};return imported;}return VoidMeridian.build(scene,parent);}
     const b=B(),node=new b.TransformNode('station-'+id,scene);node.parent=parent;
     const def=layoutDef||VoidStationLayouts.layout(id),hull=material('station',def.color),metal=material('truss','#343e47'),trim=material('navigation','#a9d7c5',true);
-    for(const p of def.shell){const colors={frame:'#252c31',panel:'#61676a',seat:'#735a42',ceramic:'#b0b9b5',counter:'#655846',door:'#59656c',amber:'#d7a465',teal:'#82beb0'};const mesh=box(p.id,p.size,p.position,p.kind==='glass'?material('window','#6cabbc',false,.12):p.kind==='floor'?material('floor','#29333c'):colors[p.kind]?material(p.kind,colors[p.kind],['amber','teal'].includes(p.kind)):hull,node);if(p.kind==='door')mesh.metadata={stationDoor:p};}
+    for(const p of def.shell){const colors={frame:'#252c31',panel:'#61676a',seat:'#735a42',ceramic:'#b0b9b5',counter:'#655846',door:'#59656c',amber:'#d7a465',teal:'#82beb0'};const mesh=box(p.id,p.size,p.position,p.kind==='glass'?material('window','#6cabbc',false,.12):p.kind==='floor'?material('floor','#29333c'):colors[p.kind]?material(p.kind,colors[p.kind],['amber','teal'].includes(p.kind)):hull,node);if(p.kind==='door'){mesh.metadata={stationDoor:p};mesh.material=doorMaterial();}}
     if(id==='meridian'){
       const exterior=VoidMeridian.build(scene,node,{occupied:true});node.metadata={layout:id,exterior};return node;
     }
