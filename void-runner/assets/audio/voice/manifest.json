@@ -64,6 +64,16 @@
    "voice": "am_puck",
    "speed": 1.05,
    "note": "District arcade attendant"
+  },
+  "kess": {
+   "voice": "bm_daniel",
+   "speed": 0.95,
+   "note": "Mature, educated, calm, slightly weary"
+  },
+  "mercer": {
+   "voice": "am_onyx",
+   "speed": 1,
+   "note": "Mature, slightly rough, conversational"
   }
  },
  "lines": {
@@ -469,6 +479,108 @@
    "file": "iris-f6abd88af5.ogg",
    "source": "faction-scenes.js"
   },
+  "kess-0a4c88990e": {
+   "speaker": "kess",
+   "text": "Thank you. As promised, the scanner. Any hangar can fit it to your ship.",
+   "file": "kess-0a4c88990e.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "kess-1010253438": {
+   "speaker": "kess",
+   "text": "Some believe the Nexus can hear them. Others simply hope that one day it will answer.",
+   "file": "kess-1010253438.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "kess-2f01842095": {
+   "speaker": "kess",
+   "text": "The Nexus happened. Or rather, what happened to it.",
+   "file": "kess-2f01842095.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "kess-319e269712": {
+   "speaker": "kess",
+   "text": "We have equipment that needs repairing, supplies that need moving, and people who could use a little help.",
+   "file": "kess-319e269712.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "kess-464b47e453": {
+   "speaker": "kess",
+   "text": "It is. But I should warn you about something.",
+   "file": "kess-464b47e453.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "kess-4a3290b7ba": {
+   "speaker": "kess",
+   "text": "Actually, there may be something you could help us with.",
+   "file": "kess-4a3290b7ba.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "kess-54eb8e3c8b": {
+   "speaker": "kess",
+   "text": "Good. Very good. We’ve been waiting for these supplies.",
+   "file": "kess-54eb8e3c8b.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "kess-72a96e7b23": {
+   "speaker": "kess",
+   "text": "Understood. The offer will remain open.",
+   "file": "kess-72a96e7b23.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "kess-96746792b1": {
+   "speaker": "kess",
+   "text": "You must be the pilot Elara sent.",
+   "file": "kess-96746792b1.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "kess-98ff13f9f0": {
+   "speaker": "kess",
+   "text": "We have a scanner upgrade. Communion technology. It can significantly reduce the time your ship needs to acquire a missile lock.",
+   "file": "kess-98ff13f9f0.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "kess-9f2e906220": {
+   "speaker": "kess",
+   "text": "We are. Most of our people spent their entire lives connected to the Nexus. It helped us communicate, work, learn... practically everything.",
+   "file": "kess-9f2e906220.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "kess-a814e42f6c": {
+   "speaker": "kess",
+   "text": "Without it, many of us are having to learn how to live all over again.",
+   "file": "kess-a814e42f6c.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "kess-b4b0f8bc41": {
+   "speaker": "kess",
+   "text": "The Natural Order used an electromagnetic weapon against our central systems. The damage was catastrophic.",
+   "file": "kess-b4b0f8bc41.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "kess-bff0a00489": {
+   "speaker": "kess",
+   "text": "Everything’s here. Thank you. You have no idea how difficult it has become to keep things functioning.",
+   "file": "kess-bff0a00489.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "kess-c56e81c693": {
+   "speaker": "kess",
+   "text": "Nothing glamorous. Repairing essential systems. Delivering medical supplies. Helping restore basic services.",
+   "file": "kess-c56e81c693.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "kess-d2e853d2fe": {
+   "speaker": "kess",
+   "text": "The Natural Order won’t appreciate seeing Communion technology installed on your ship. Particularly something like this.",
+   "file": "kess-d2e853d2fe.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "kess-d84fb6c904": {
+   "speaker": "kess",
+   "text": "So, are you interested?",
+   "file": "kess-d84fb6c904.ogg",
+   "source": "homeworld-scenes.js"
+  },
   "mara-084b8b04d0": {
    "speaker": "mara",
    "text": "Take her to Meridian Station. Rook will be waiting.",
@@ -648,6 +760,102 @@
    "text": "Depends who you ask. Officially, they’re keeping the peace. Unofficially, they don’t like people who refuse to let machines run their lives.",
    "file": "marcus-e602a2330d.ogg",
    "source": "faction-scenes.js"
+  },
+  "mercer-0c798bcc09": {
+   "speaker": "mercer",
+   "text": "Just understand something. The Communion won’t be thrilled if they see Natural Order hardware bolted onto your ship.",
+   "file": "mercer-0c798bcc09.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "mercer-2633e4c3e2": {
+   "speaker": "mercer",
+   "text": "So, interested?",
+   "file": "mercer-2633e4c3e2.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "mercer-366a2be45a": {
+   "speaker": "mercer",
+   "text": "Good work. The thrusters are yours. Any hangar can fit them.",
+   "file": "mercer-366a2be45a.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "mercer-4c8e9a65e1": {
+   "speaker": "mercer",
+   "text": "They don’t particularly like our approach to engineering. And they like being reminded of it even less.",
+   "file": "mercer-4c8e9a65e1.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "mercer-5071219b06": {
+   "speaker": "mercer",
+   "text": "Everything’s here. Appreciate it.",
+   "file": "mercer-5071219b06.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "mercer-53d39f1b63": {
+   "speaker": "mercer",
+   "text": "You the pilot Marcus sent?",
+   "file": "mercer-53d39f1b63.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "mercer-6a67a68c3e": {
+   "speaker": "mercer",
+   "text": "Improve your ship’s handling. Faster maneuvering, better response when changing direction.",
+   "file": "mercer-6a67a68c3e.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "mercer-6b7bd96ae8": {
+   "speaker": "mercer",
+   "text": "We’ve got a set of maneuvering thrusters. Simple design, reliable components, and plenty of power.",
+   "file": "mercer-6b7bd96ae8.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "mercer-8231f84fd0": {
+   "speaker": "mercer",
+   "text": "Good. We could certainly use it.",
+   "file": "mercer-8231f84fd0.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "mercer-8716599e70": {
+   "speaker": "mercer",
+   "text": "Always do. Crops don’t plant themselves. Machines don’t fix themselves either.",
+   "file": "mercer-8716599e70.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "mercer-b493ff0b6b": {
+   "speaker": "mercer",
+   "text": "We’ve got farms waiting on equipment, settlements short on food, and solar installations that need replacement parts.",
+   "file": "mercer-b493ff0b6b.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "mercer-c03b9c2ecf": {
+   "speaker": "mercer",
+   "text": "We automate what makes sense. But there’s a difference between a machine doing a job and a machine deciding how we ought to live.",
+   "file": "mercer-c03b9c2ecf.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "mercer-ca386df06d": {
+   "speaker": "mercer",
+   "text": "Mostly. Some hands-on work too.",
+   "file": "mercer-ca386df06d.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "mercer-d900e6d0a4": {
+   "speaker": "mercer",
+   "text": "Suit yourself. We’ll have work if you change your mind.",
+   "file": "mercer-d900e6d0a4.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "mercer-e143214e8c": {
+   "speaker": "mercer",
+   "text": "People here prefer to make their own decisions.",
+   "file": "mercer-e143214e8c.ogg",
+   "source": "homeworld-scenes.js"
+  },
+  "mercer-e7be9df3ed": {
+   "speaker": "mercer",
+   "text": "Actually, if you’ve got some time, we could use another pair of hands.",
+   "file": "mercer-e7be9df3ed.ogg",
+   "source": "homeworld-scenes.js"
   },
   "nyx-4dd4670e57": {
    "speaker": "nyx",

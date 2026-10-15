@@ -4,7 +4,7 @@
 (function(root){
  const config={zoneHold:1.4,combatCooldown:7,dialogueDuck:.3};
  // Location id -> musical identity. Stations share one theme with per-station mixes.
- const locations={vesper:'vesper',meridian:'meridian',kepler:'station-kepler',rusthaven:'station-rusthaven',foundry:'station-foundry','sol-belt':'station-belt',earth:'neochinatown',mars:'vantor',vigil:'communion',holdfast:'natural-order'};
+ const locations={vesper:'vesper',meridian:'meridian',kepler:'station-kepler',rusthaven:'station-rusthaven',foundry:'station-foundry','sol-belt':'station-belt',earth:'neochinatown',mars:'vantor',vigil:'communion',holdfast:'natural-order',nexus:'nexus','order-homeworld':'order-homeworld'};
  // In-world speakers: music that belongs to a room and fades with distance (bar music).
  const speakers={meridian:{style:'dead-channel',x:0,z:60,inner:6,outer:24},station:{style:'dead-channel',x:11,z:29,inner:4,outer:16},neochinatown:{style:'district-bar',x:10,z:37.2,inner:3,outer:9}};
  // The Darknet District zones (neochinatown.js coordinates). First match wins.

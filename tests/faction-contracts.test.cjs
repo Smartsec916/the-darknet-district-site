@@ -28,16 +28,13 @@ test('arrival pays nothing; delivery sends the player back to Iris',()=>{
   const credits=s.credits;C.complete(s);assert(s.credits<=credits);C.deliverFaction(s,'natural-order');
   const m=mission(s,'order-supply');assert.equal(m.destination,'earth');assert.equal(m.interaction,'district-iris');assert.equal(m.objective,'Return to The Darknet District and collect payment');
 });
-test('the recipient offers a homeworld mission that stays available and is only a placeholder',()=>{
+test('the recipient offers a homeworld delivery that stays available until accepted',()=>{
   const s=regular();C.acceptSupply(s,'communion');C.complete(s);assert.equal(C.originState(s,'communion'),null);
   C.deliverFaction(s,'communion');assert.equal(C.originState(s,'communion'),'offered');assert.equal(C.originState(s,'natural-order'),null);
   // Leaving to collect payment keeps the offer with Elara.
   s.location='earth';C.collectFactionPayment(s);assert.equal(C.originState(s,'communion'),'offered');
-  assert(C.acceptOrigin(s,'communion'));assert(!C.acceptOrigin(s,'communion'));
-  const m=mission(s,'communion-origin-mission-01');assert(m&&!m.completed);assert.equal(m.destination,undefined);assert.equal(m.rewards,null);
-  assert.equal(M.complete(s,'communion-origin-mission-01','awaiting-design',C),false,'cannot be completed');
-  assert.notEqual(M.nextMission(s,C),'communion-origin-mission-01','never auto-tracked');
-  assert(M.track(s,'communion-origin-mission-01',C),'can still be tracked by hand');
+  assert(C.acceptOrigin(s,'communion'));assert(!C.acceptOrigin(s,'communion'));assert.equal(C.originState(s,'communion'),'loaded','cargo loads when the hold is free');
+  const m=mission(s,'communion-origin-mission-01');assert(m&&!m.completed);assert.equal(m.destination,'nexus');assert(s.universe.discoveredLocations.includes('nexus'));
 });
 test('the generic cargo board cannot hand out these contracts early',()=>{
   const s=district();assert(!C.accept(s,'communion-supply'));const r=regular();assert(C.accept(r,'order-supply'));assert.equal(r.story.flags.orderSupply,'accepted');
@@ -45,6 +42,6 @@ test('the generic cargo board cannot hand out these contracts early',()=>{
 test('follow-up contracts and homeworld offers survive save and load',()=>{
   const s=regular();C.acceptSupply(s,'communion');let r=C.restore(JSON.stringify(s));assert.equal(r.contract,'communion-supply');assert.equal(C.flight(r).destination,'vigil');
   C.complete(r);C.deliverFaction(r,'communion');r=C.restore(JSON.stringify(r));assert.equal(C.supplyStage(r,'communion'),'delivered');assert.equal(C.originState(r,'communion'),'offered');
-  C.acceptOrigin(r,'communion');r=C.restore(JSON.stringify(r));assert.equal(C.originState(r,'communion'),'accepted');assert(mission(r,'communion-origin-mission-01'));
+  C.acceptOrigin(r,'communion');r=C.restore(JSON.stringify(r));assert.equal(C.originState(r,'communion'),'loaded');assert.equal(r.contract,'communion-origin-mission-01');assert(mission(r,'communion-origin-mission-01'));
   assert.deepEqual(C.supplyOffers(r),['natural-order']);
 });

@@ -38,6 +38,18 @@
   // Homeworld missions are placeholders until David designs them: they can be offered and
   // accepted, but have no destination, objectives or rewards and never complete.
   const originMissions={communion:{id:'communion-origin-mission-01',faction:'communion',flag:'communionOrigin',giver:'elara'},'natural-order':{id:'natural-order-origin-mission-01',faction:'natural-order',flag:'orderOrigin',giver:'marcus'}};
+  // Homeworlds (design doc 10). Elara and Marcus send a shipment down to their homeworld; Kess and
+  // Mercer receive it, then offer optional work paid with a faction ship module. Origin stages:
+  // offered -> accepted (agreed) -> loaded (cargo aboard) -> delivered. Work: offered -> accepted -> complete.
+  const homeworlds={
+    communion:{planet:'nexus',reward:'communion-scanner',earned:'communionScanner',
+      contract:{id:'communion-origin-mission-01',faction:'communion',kind:'origin',name:'Delivery to The Nexus',cargo:'Recovery supplies for The Nexus',legal:true,destination:'nexus',reward:0,enemies:0,tier:0,duration:30,contact:'Dr. Elara Voss',recipient:'kess',briefing:'Dr. Elara Voss\'s shipment for Dr. Adrian Kess on The Nexus.'},
+      work:{id:'communion-restoration-01',flag:'communionWork',steps:{'nexus-depot':['nexusSupplies','todo','carrying','supplies-collect'],'nexus-aid':['nexusSupplies','carrying','done','supplies'],'nexus-relay':['nexusRepair','todo','done','repair'],'nexus-power':['nexusPower','todo','done','power']}}},
+    'natural-order':{planet:'order-homeworld',reward:'order-thrusters',earned:'orderThrusters',
+      contract:{id:'natural-order-origin-mission-01',faction:'natural-order',kind:'origin',name:'Delivery to the Natural Order Homeworld',cargo:'Supplies for the Natural Order homeworld',legal:true,destination:'order-homeworld',reward:0,enemies:0,tier:0,duration:30,contact:'Marcus Vale',recipient:'mercer',briefing:'Marcus Vale\'s shipment for Daniel Mercer on the Natural Order homeworld.'},
+      work:{id:'natural-order-agriculture-01',flag:'orderWork',steps:{'order-depot':['orderEquipment','todo','carrying','equipment-collect'],'order-farm':['orderEquipment','carrying','done','equipment'],'order-granary':['orderFood','todo','carrying','food-collect'],'order-market':['orderFood','carrying','done','food'],'order-workshop':['orderSolar','todo','carrying','solar-collect'],'order-solar':['orderSolar','carrying','done','solar']}}}
+  };
+  const homeContracts=Object.values(homeworlds).map(h=>h.contract);
   const stageOf=(s,d)=>{const v=s.story?.flags?.[d.flag];return ['accepted','delivered','paid'].includes(v)?v:null;};
   function factionStage(s,faction){return factionDeliveries[faction]?stageOf(s,factionDeliveries[faction]):null;}
   function supplyStage(s,faction){return supplyDeliveries[faction]?stageOf(s,supplyDeliveries[faction]):null;}
@@ -48,8 +60,45 @@
     if((s.progression?.cargo||[]).reduce((n,x)=>n+x.units,0)>=P.systems(s).cargo)return false;
     s.story.flags[d.flag]='accepted';s.destination=null;s.contract=d.id;U.discover(s,d.destination);Missions.acquire(s,d.id);Story.emit(s,'missionAccepted',d.id);return true;
   }
-  function originState(s,faction){const v=s.story?.flags?.[originMissions[faction]?.flag];return ['offered','accepted'].includes(v)?v:null;}
-  function acceptOrigin(s,faction){const o=originMissions[faction];if(!o||originState(s,faction)!=='offered')return false;s.story.flags[o.flag]='accepted';Missions.acquire(s,o.id);return true;}
+  function originState(s,faction){const v=s.story?.flags?.[originMissions[faction]?.flag];return ['offered','accepted','loaded','delivered'].includes(v)?v:null;}
+  // Agreeing opens the homeworld and loads the shipment if the hold is free (otherwise it waits with the giver).
+  function acceptOrigin(s,faction){const o=originMissions[faction];if(!o||originState(s,faction)!=='offered')return false;s.story.flags[o.flag]='accepted';Missions.acquire(s,o.id);U.discover(s,homeworlds[faction].planet);loadOrigin(s,faction);return true;}
+  function loadOrigin(s,faction){
+    const o=originMissions[faction],c=homeworlds[faction].contract;
+    if(originState(s,faction)!=='accepted'||s.contract)return false;
+    if((s.progression?.cargo||[]).reduce((n,x)=>n+x.units,0)>=P.systems(s).cargo)return false;
+    s.story.flags[o.flag]='loaded';s.contract=c.id;s.destination=null;U.discover(s,c.destination);Missions.acquire(s,o.id);Missions.complete(s,o.id,'cargo');return true;
+  }
+  function deliverOrigin(s,faction){
+    const o=originMissions[faction],h=homeworlds[faction];
+    if(originState(s,faction)!=='loaded'||s.location!==h.planet)return false;
+    if(s.contract===h.contract.id)s.contract=null;
+    s.story.flags[o.flag]='delivered';if(!workState(s,faction))s.story.flags[h.work.flag]='offered';
+    Missions.complete(s,o.id,'arrive');Missions.complete(s,o.id,'deliver');return true;
+  }
+  function workState(s,faction){const v=s.story?.flags?.[homeworlds[faction]?.work.flag];return ['offered','accepted','complete'].includes(v)?v:null;}
+  function acceptWork(s,faction){
+    const w=homeworlds[faction]?.work;if(!w||workState(s,faction)!=='offered')return false;
+    s.story.flags[w.flag]='accepted';for(const [flag,from] of Object.values(w.steps))if(from==='todo')s.story.flags[flag]='todo';
+    Missions.acquire(s,w.id);return true;
+  }
+  // One on-foot task step at its own interaction point; steps only move forward.
+  function workStep(s,faction,action){
+    const h=homeworlds[faction],step=h?.work.steps[action];
+    if(!step||workState(s,faction)!=='accepted'||s.location!==h.planet||s.story.flags[step[0]]!==step[1])return false;
+    s.story.flags[step[0]]=step[2];Missions.complete(s,h.work.id,step[3]);return true;
+  }
+  function workReady(s,faction){const w=homeworlds[faction]?.work;return workState(s,faction)==='accepted'&&Object.values(w.steps).every(([flag])=>s.story.flags[flag]==='done');}
+  // Finishing the work pays the faction module once; it is installed at any hangar like other modules.
+  function completeWork(s,faction){
+    const h=homeworlds[faction];if(!workReady(s,faction)||s.location!==h.planet)return false;
+    s.story.flags[h.work.flag]='complete';s.story.flags[h.earned]=true;
+    const owned=s.progression.equipment.owned;if(!owned.includes(h.reward))owned.push(h.reward);
+    Missions.complete(s,h.work.id,'return');return true;
+  }
+  // What each faction could notice on the player's ship, for future dialogue. No reactions yet.
+  function factionEquipment(s){const installed=Object.values(s.progression?.equipment?.installed?.[s.activeShip]||{});
+    return {scannerEarned:s.story?.flags?.communionScanner===true,scannerInstalled:installed.includes('communion-scanner'),thrustersEarned:s.story?.flags?.orderThrusters===true,thrustersInstalled:installed.includes('order-thrusters')};}
   // Admin offers both until one is taken; Iris offers the other once the first is paid.
   function factionOffers(s){
     if(s.quest!=='open'||!s.universe?.freeTravel||s.story?.flags?.metAdmin!==true)return [];
@@ -98,7 +147,8 @@
     const u=s.universe||U.fresh(),served=String(s.story?.flags?.rookSystems||'erebus').split(',');
     const fresh=(u.discoveredSystems||[]).find(id=>U.systems[id]&&!served.includes(id)&&U.systems[id].hub!==s.location&&!heldForAdmin(s,id));
     if(fresh)return U.systems[fresh].hub;
-    const pool=Object.keys(U.locations).filter(id=>id!=='vesper'&&id!==s.location&&(u.discoveredLocations||[]).includes(id)&&!heldForAdmin(s,U.system(id)));
+    // Rook doesn't run freight to the faction homeworlds.
+    const pool=Object.keys(U.locations).filter(id=>id!=='vesper'&&id!=='nexus'&&id!=='order-homeworld'&&id!==s.location&&(u.discoveredLocations||[]).includes(id)&&!heldForAdmin(s,U.system(id)));
     return pool.length?pool[(rookRunNumber(s)-1)%pool.length]:'meridian';
   }
   function rookRun(s){
@@ -106,7 +156,7 @@
     const destination=s.contract==='rook-run'&&typeof to==='string'&&Object.hasOwn(stations,to)?to:rookRunTarget(s);
     return {...rookRunBase,id:'rook-run-'+n,number:n,name:'Rook freight run #'+n,cargo:rookCargo[(n-1)%rookCargo.length],legal:n%2===1,destination,reward:Math.min(2000,500+150*step),enemies:4+step,tier:1+step*.3,duration:36+step*2};
   }
-  const allContracts = [...contracts, rookRunBase, ...factionList, ...supplyList, ...content.missions];
+  const allContracts = [...contracts, rookRunBase, ...factionList, ...supplyList, ...homeContracts, ...content.missions];
   function fresh() { return { version: 2, progression:P.fresh(), universe:U.fresh(), story:Story.fresh(), savedAt:null, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], ownedShips:['starter'], activeShip:'starter', standardGear:['pulse1','shield1'], shipLoadouts:{}, combatRuns:0, missileOfferSeen:false, missileUnlocked:false, travel:null, destination:null, loadout: {weapon:null,shield:null,utility:null,missile:null} }; }
   function restore(raw) {
     try {
@@ -172,7 +222,7 @@
     if (s.quest === 'legal-offer') { s.quest = 'legal-run';Missions.acquire(s,'legal-run'); return true; }
     if (s.quest === 'illegal-offer') { s.quest = 'illegal-run';Missions.acquire(s,'illegal-run'); return true; }
     const c = allContracts.find(c => c.id === id);
-    if (c?.faction) return c.kind === 'supply' ? acceptSupply(s, c.faction) : acceptFaction(s, c.faction);
+    if (c?.faction) return c.kind === 'supply' ? acceptSupply(s, c.faction) : c.kind === 'origin' ? loadOrigin(s, c.faction) : acceptFaction(s, c.faction);
     if (s.contract || !c || !unlocked(s,c)) return false;
     if(!c.dataCargo&&(s.progression.cargo||[]).reduce((n,x)=>n+x.units,0)>=P.systems(s).cargo)return false;
     s.destination=null;s.contract = id;
@@ -304,7 +354,7 @@
       }
     };
   }
-  const api = { stations, contracts, allContracts, rookRun, rookRunTarget, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
+  const api = { stations, contracts, allContracts, rookRun, rookRunTarget, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
