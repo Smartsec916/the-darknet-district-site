@@ -286,9 +286,63 @@
     return loadPromise;
   }
 
+  // Faction ships (design doc 08). The Communion builds smooth, pale, automated hulls with cyan
+  // light; the Natural Order builds boxy, plated, crewed hulls with exposed pipes and amber burners.
+  // Imported models registered as 'ship:<name>' replace these through the asset hook above.
+  function factionShipModel(name, parent) {
+    const b = B(), node = new b.TransformNode(name, scene), heavy = /warden|hauler/.test(name);node.parent = parent;
+    const ellipsoid = (id, scale, pos, mat, rot) => {const m = b.MeshBuilder.CreateSphere(id, {diameter: 1, segments: 10}, scene);m.parent = node;m.scaling.set(...scale);m.position.set(...pos);if (rot) m.rotation.set(...rot);m.material = mat;return m;};
+    const tube = (id, height, diameter, pos, mat) => {const m = b.MeshBuilder.CreateCylinder(id, {height, diameter, tessellation: 10}, scene);m.parent = node;m.rotation.x = Math.PI / 2;m.position.set(...pos);m.material = mat;return m;};
+    if (name.startsWith('communion-')) {
+      const shell = material('communion-shell', '#e2e8ec'), silver = material('communion-silver', '#a9b6c1'), glow = material('communion-glow', '#7fe6ff', true), eye = material('communion-eye', '#24425c');
+      shell.emissiveColor = new b.Color3(.12, .13, .14);silver.emissiveColor = new b.Color3(.06, .07, .08);
+      const span = heavy ? 3.6 : 2.8;
+      ellipsoid('communion-fuselage', [heavy ? 1.15 : .9, .55, heavy ? 5.2 : 4.6], [0, 0, 0], shell);
+      ellipsoid('communion-prow', [.5, .34, 1.5], [0, .02, 2.05], silver);
+      ellipsoid('communion-sensor', [.42, .16, .9], [0, .24, .95], eye);
+      for (const side of [-1, 1]) {
+        ellipsoid('communion-blade', [span, .08, 1.25], [side * (span * .45), -.05, -.45], silver, [0, side * .38, side * -.06]);
+        const tip = b.MeshBuilder.CreateSphere('communion-tip-light', {diameter: .16, segments: 6}, scene);tip.parent = node;tip.position.set(side * span * .86, -.05, -.95);tip.material = glow;
+      }
+      box('communion-spine-light', [.06, .04, 3.1], [0, .29, -.2], glow, node);
+      for (const z of heavy ? [-2.35, -1.75] : [-2.3]) {
+        const halo = b.MeshBuilder.CreateTorus('communion-halo', {diameter: heavy ? 1.4 : 1.1, thickness: .11, tessellation: 24}, scene);halo.parent = node;halo.rotation.x = Math.PI / 2;halo.position.set(0, 0, z);halo.material = glow;
+      }
+      const burn = b.MeshBuilder.CreateDisc('communion-drive', {radius: heavy ? .5 : .4, tessellation: 20}, scene);burn.parent = node;burn.position.set(0, 0, heavy ? -2.6 : -2.35);burn.rotation.y = Math.PI;burn.material = glow;
+      if (heavy) ellipsoid('communion-keel', [.12, .9, 2.2], [0, -.45, -.6], silver);
+    } else {
+      const steel = material('order-steel', '#2c2e31'), plate = material('order-plate', '#4b4944'), vent = material('order-vent', '#121314'), orange = material('order-stripe', '#a8602a'), pipe = material('order-pipe', '#55524c'), amber = material('order-burn', '#ffa640', true), glass = material('order-glass', '#3a2c16');
+      steel.emissiveColor = new b.Color3(.03, .03, .03);plate.emissiveColor = new b.Color3(.04, .04, .035);steel.specularColor = plate.specularColor = new b.Color3(.07, .07, .07);glass.emissiveColor = new b.Color3(.16, .1, .03);
+      const w = heavy ? 2.2 : 1.6, h = heavy ? 1.1 : .9, l = heavy ? 4.6 : 3.8;
+      box('order-hull', [w, h, l], [0, 0, 0], steel, node);
+      const nose = box('order-nose', [w * .7, h * .66, 1], [0, -.05, l / 2 + .35], plate, node);nose.rotation.x = .12;
+      box('order-dorsal-plate', [w * .75, .12, l * .55], [0, h / 2 + .06, -.1], plate, node);
+      box('order-stripe', [w + .04, .14, .32], [0, .05, l * .32], orange, node);
+      box('order-canopy', [.62, .3, .72], [0, h / 2 + .2, l * .28], glass, node);
+      for (const side of [-1, 1]) {
+        box('order-side-armor', [.12, h * .8, l * .7], [side * (w / 2 + .06), 0, -.1], plate, node);
+        // Worn, repairable plating: seams, a service band, intake vents and underside pipework.
+        for (let k = 0; k < 4; k++) box('order-seam', [.14, h * .82, .06], [side * (w / 2 + .07), 0, -l * .3 + k * l * .2], steel, node);
+        box('order-side-band', [.15, .2, l * .36], [side * (w / 2 + .08), h * .18, l * .08], orange, node);
+        box('order-vent', [.15, .2, .8], [side * (w / 2 + .08), -h * .22, -l * .28], vent, node);
+        tube('order-under-pipe', l * .75, .13, [side * w * .34, -h / 2 - .08, -.15], pipe);
+        box('order-nose-lamp', [.08, .08, .1], [side * w * .3, .05, l / 2 + .86], amber, node);
+        box('order-stub-wing', [1.3, .16, 1.1], [side * (w / 2 + .65), -.15, -.5], steel, node);
+        tube('order-cannon', 1.5, .15, [side * (w / 2 + 1.1), -.15, .45], pipe);
+        tube('order-pipe', l * .8, .11, [side * w * .3, h / 2 + .1, -.2], pipe);
+        tube('order-engine', 1.25, .62, [side * w * .3, -.05, -l / 2 - .45], plate);
+        const burn = b.MeshBuilder.CreateDisc('order-burner', {radius: .25, tessellation: 14}, scene);burn.parent = node;burn.position.set(side * w * .3, -.05, -l / 2 - 1.09);burn.rotation.y = Math.PI;burn.material = amber;
+        box('order-lamp', [.1, .08, .12], [side * (w / 2 + 1.25), -.15, -.95], amber, node);
+      }
+      if (heavy) {box('order-turret', [.7, .4, .8], [0, h / 2 + .32, -.9], plate, node);tube('order-turret-gun', 1.3, .13, [0, h / 2 + .38, -.1], pipe);tube('order-engine', 1.25, .7, [0, .25, -l / 2 - .45], plate);}
+    }
+    node.metadata = {placeholder: true, faction: name.startsWith('communion-') ? 'communion' : 'natural-order'};
+    return node;
+  }
   function shipModel(name, allegiance, parent) {
     const model = VoidAssets.instance('ship:' + name, parent);
     if (model) return model;
+    if (/^(communion|order)-/.test(name)) return factionShipModel(name, parent);
     const b = B(),
       node = new b.TransformNode(name, scene),
       metal = material('hull', name==='starter'?'#a8a299':'#465964'),
@@ -777,6 +831,8 @@
       };
       node.rotation.y = Math.atan2(v.x, v.z);
       node.rotation.x = Math.atan2(v.y, Math.hypot(v.x, v.z));
+      // Battle wrecks tumble slowly and read darker than live ships.
+      if (e.wreck) {node.rotation.z = (e.spin || .3) * snapshot.time;node.rotation.x += (e.spin || .3) * .4 * snapshot.time;if (!node.metadata?.wrecked) {node.getChildMeshes().forEach(m => m.visibility = .7);node.metadata = {...node.metadata, wrecked: true};}}
       const wake=node.metadata?.warpWake;
       if(wake){wake.setEnabled(e.warp>0);wake.scaling.set(1+e.warp*2,1+e.warp*2,1+e.warp*25);node.scaling.z*=1+e.warp*5;node.getChildMeshes().forEach(m=>m.visibility=1-e.warp);}
     }
@@ -787,6 +843,10 @@
       }
     setPool('laser', snapshot.bullets, '#75ffe0', .16);
     setPool('hostile', snapshot.hostile, '#ff715f', .2);
+    // Faction battle bolts: precise cyan Communion fire, heavier amber Natural Order bursts.
+    const factionShots = snapshot.factionShots || [];
+    setPool('communion-bolt', factionShots.filter(q => q.side === 'communion'), '#8ff0ff', .12);
+    setPool('order-bolt', factionShots.filter(q => q.side !== 'communion'), '#ffae4a', .19);
     setPool('missile', snapshot.missiles, '#ffca7d', .35);
     let count = 0;
     const activeEffects = new Set(snapshot.effects.slice(-12));

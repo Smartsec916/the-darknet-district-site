@@ -17,6 +17,8 @@
   const before=r.phase;dt=Math.max(0,Math.min(.25,dt));
   if(r.phase==='departure'){r.departure+=dt;if(r.departure>=config.departureSeconds)r.phase='align';}
   else if(r.phase==='align'){
+   // After a drop-out (a faction battle) the drive recharges before the jump can resume.
+   if(r.recharge>0){r.recharge=Math.max(0,r.recharge-dt);r.aligned=0;return before!==r.phase;}
    const alignment=forward.x*r.vector.x+forward.y*r.vector.y+forward.z*r.vector.z;
    r.aligned=alignment>=config.alignmentCos?r.aligned+dt:0;
    if(r.aligned>=config.hold)r.phase='warp';

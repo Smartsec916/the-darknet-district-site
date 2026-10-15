@@ -225,7 +225,7 @@ David has not decided. Several of these, plus Rook's runs and the contracts, ove
 - From then on Admin is "occupied" (absent, no explanation) and Iris runs the counter. She pays, then offers the remaining delivery, which the player can take or leave for later.
 - The second delivery is paid the same way, and Iris closes with her last line.
 - After both deliveries, Claude must **propose several next-chapter directions**. Doc 06 §7 lists them: Rook, Admin/Iris, Communion, Natural Order, independent cargo, exploration/bounty. Nothing may be finalized without approval.
-- **Next requested feature:** the small faction battles on the way to each delivery (doc 08).
+- **Faction battles (IMPLEMENTED; doc 08):** each delivery's outbound jump drops out once, halfway, beside a small Communion vs Natural Order fight. See §9.2.1.
 
 ---
 
@@ -368,6 +368,28 @@ From the master plan and doc 05:
 - **Rook:** runs into a faction system are held until the player has made Admin's delivery there (approved). After that, Rook's new-system rule sends the next run there.
 - **Server:** `save-manifest.json` lists the new locations, systems and contract ids; `clean_save()` reads allowed systems from the manifest.
 
+### 9.2.1 Faction battles (IMPLEMENTED; design doc 08)
+
+- **When:** on the outbound jump of each District delivery, while that cargo is aboard. The warp drops out once at the halfway point ("WARP DROP · Weapons fire near the Cantor/Garrow System border"). The drive recharges for 8 seconds (`route.recharge` in `warp.js`), then the player re-aligns and jumps on whenever they like. The trip is no longer overall, and the warp resumes from where it stopped.
+- **Placement choice (Claude's, flagged for David):** interstellar jumps had no mid-route stop before. The drop reuses the existing re-align-to-resume step. The alternative would be to show the fight only in passing during arrival, with no control.
+- **The fights:** 2 Communion vs 2 Natural Order ships, opening about 15° off the nose and 135–140 m out, never straight ahead. They last 30–60 seconds; then the survivors break off and jump out.
+  - **Cantor route:** Natural Order raiders (brawler + hauler) hit a Communion lancer picket.
+  - **Garrow route:** a Communion patrol (warden + lancer) presses two Natural Order brawlers, with a Natural Order wreck already drifting.
+  - Outcomes vary run to run. Usually one or two ships are destroyed (small explosion and a slowly tumbling wreck). Damaged ships trail smoke.
+- **Ship designs (`factionShipModel` in `babylon-renderer.js`; imported models named `ship:communion-lancer` etc. replace them):**
+  - **Communion lancer / warden:** smooth elongated white hull, silver blade wings, sensor visor instead of a cockpit, cyan spine light, cyan halo-ring drive. Precise single cyan bolts, smooth turns, wingman holds formation, controlled jinks when hit.
+  - **Natural Order brawler / hauler:** boxy gunmetal hull, bolted side armour with seams, orange service band, crew canopy, stub-wing cannons, exposed pipes, twin (hauler: triple) amber burners, turret on the hauler. Heavy 4-round amber bursts, direct attack runs, abrupt jinks.
+- **Neutral player, enforced in code:**
+  - Battle ships are never in the game's enemy list, so they can't be targeted, locked or fired upon by combat code, and they never fire at the player.
+  - They target only the opposing faction.
+  - Their bolts are deleted before they get within 14 m of the player.
+  - They steer away from the player and never ram.
+  - No reputation, hails or scans.
+  - Player shots pass through them; no retaliation was added, as the brief asked.
+- **Saved:** `story.flags.communionBattle` / `orderBattle` are set when the fight starts, so it never repeats (including after death or reload). Skipping or leaving it never blocks the delivery.
+- **Cleanup:** resuming the warp, docking, dying or leaving flight removes every battle ship, bolt and wreck.
+- **Limitations:** drawn only by the Babylon renderer, not the old 2D fallback. A pilot who stays aligned and does nothing sees about 8 seconds before the jump resumes.
+
 ### 9.3 Rook cargo runs
 
 Done; see §4.3. Possible follow-ups:
@@ -452,7 +474,7 @@ Done; see §4.3. Possible follow-ups:
 - The delivery flights carry normal light risk; the only scripted event is the faction battle from doc 08.
 - Returning to Admin after "I'll think about it" reopens with his "So, what do you think?…" line.
 - Docs 05/06 replace the earlier "First District mission" options A–D (Membership, Breach, Rogue AI, Raven's Plan).
-- Faction ship battles on the way to each delivery (doc 08): requested feature, to be built next.
+- Faction ship battles on the way to each delivery (doc 08): requested feature, built (§9.2.1). The border drop-out placement is Claude's choice and awaits David's review.
 
 ### Rejected or removed (do not reintroduce)
 
@@ -505,8 +527,8 @@ These are the master plan phases, with a status note for each.
   - All are merged or superseded. `vesper-buttes` (PR #46) was closed and folded into #47.
   - Safe to delete **only if David asks**.
 - **CI:** Node unit tests on PRs and on `main`.
-- **Service worker build:** `2026-10-15-faction-deliveries-1` (faction deliveries PR).
-- **Tests at handoff:** 206/206 Node; Python story and progression save tests OK. After the faction deliveries PR: 216/216 Node.
+- **Service worker build:** `2026-10-15-faction-battles-1` (faction battles PR, stacked on the deliveries PR).
+- **Tests at handoff:** 206/206 Node; Python story and progression save tests OK. After the faction deliveries PR: 217/217 Node. After the battles PR: 226/226 Node.
 
 ---
 
