@@ -59,7 +59,7 @@
     solids:solids.map(s=>({...s,position:s.position.slice(),size:s.size.slice()})),interactions:interactions.map(i=>({...i,position:i.position.slice()})),signs:[]};}
 
   // ---- Presentation -------------------------------------------------------
-  const ads=['neuroforge','oxygen','skinshift','holocompanion','zen','rent','dreampass','botforce','obey','sentry','bulletcoffee','happyfeed','drinkoil','pinknoise','touchless','novaarms'];
+  const ads=()=>(root.VoidAds?.brands||[]).map(b=>b.id);
   function build({scene,parent,quality,characterModel,shipModel,state}){
     const B=root.BABYLON,low=quality==='low',owned=[],textures=[],staticMeshes=new Map(),dynamic=[],v=(x,y,z)=>new B.Vector3(x,y,z);
     let seed=4127;const rand=()=>((seed=seed*16807%2147483647)-1)/2147483646;
@@ -77,8 +77,9 @@
     function texMat(name,t,{glow=false,alpha=false}={}){const m=new B.StandardMaterial('ncz-'+name,scene);owned.push(m);if(glow){m.diffuseColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;}else{m.diffuseTexture=t;m.specularColor=new B.Color3(.08,.08,.1);}if(alpha){m.opacityTexture=t;}return m;}
     function plane(name,w,h,p,m,ry=0,merge=false){const mesh=B.MeshBuilder.CreatePlane(name,{width:w,height:h,sideOrientation:B.Mesh.DOUBLESIDE},scene);add(mesh,m,p,merge);mesh.rotation.y=ry;return mesh;}
     function neon(name,lines,colors,w,h,p,ry=0,bg='rgba(0,0,0,0)'){const t=texture(name,512,Math.round(512*h/w),(g,W,H)=>{g.fillStyle=bg;g.fillRect(0,0,W,H);const n=lines.length;lines.forEach((text,i)=>{const size=Math.min(H/n*.62,W/(Math.max(4,text.length)*.62));g.font='bold '+size+'px "Noto Sans SC","Microsoft YaHei",sans-serif';g.textAlign='center';g.textBaseline='middle';const c=colors[i%colors.length];g.shadowColor=c;g.shadowBlur=18;g.fillStyle=c;g.fillText(text,W/2,H*(i+.5)/n);g.shadowBlur=0;g.fillStyle='rgba(255,255,255,.85)';g.fillText(text,W/2,H*(i+.5)/n);});});return plane(name,w,h,p,texMat(name,t,{glow:true,alpha:true}),ry);}
-    const adMats={};function adMat(id){if(adMats[id])return adMats[id];const t=new B.Texture(new URL('art/ads/'+id+'.webp',base).href,scene,true,true);textures.push(t);const m=new B.StandardMaterial('ncz-ad-'+id,scene);m.diffuseColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;owned.push(m);adMats[id]=m;return m;}
-    let adIndex=0;const nextAd=()=>ads[(adIndex++)%ads.length];
+    // Tessaly ads are painted locally (ad-art.js): ship parts, weapons, security, labour.
+    const adMats={},adIds=ads();function adMat(id){if(adMats[id])return adMats[id];const brand=root.VoidAds.brands.find(b=>b.id===id)||root.VoidAds.brands[0];const t=texture('ad-'+brand.id,low?256:512,low?384:768,(g,W,H)=>root.VoidAds.paint(g,W,H,brand));const m=new B.StandardMaterial('ncz-ad-'+brand.id,scene);m.diffuseColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;owned.push(m);adMats[id]=m;return m;}
+    let adIndex=0;const nextAd=()=>adIds[(adIndex++)%adIds.length];
     function billboard(w,p,ry){const id=nextAd();const frame=box('billboard-frame',[w+.4,w*1.5+.4,.25],[p[0]+Math.sin(ry)*.15,p[1],p[2]+Math.cos(ry)*.15],mat('frame','#15151a',{rough:.5,metal:.7}));frame.rotation.y=ry;return plane('billboard',w,w*1.5,p,adMat(id),ry);}
 
     // Shared surfaces.
@@ -111,8 +112,10 @@
     const shopSigns=[[['夜市','NIGHT MARKET'],['#ff5bd0','#7ff0ff']],[['龍麵館','DRAGON NOODLES'],['#ffcf5a','#ff5b5b']],[['電子','ELECTRONICS'],['#7ff0ff','#9b7bff']],[['藥房','PHARMACY 24H'],['#6cff9e','#e8f0ff']],[['茶','TEA HOUSE'],['#ffb347','#ffe9c4']],[['功能','THE FUNCTION PROVIDES'],['#e8f0ff','#ff4a4a']]];
     shopSigns.forEach(([lines,colors],i)=>{const side=i%2?1:-1,z=-54+i*9;const s=neon('shop-sign-'+i,lines,colors,2.4,4.4,[side*11.55,4.6,z],side>0?Math.PI/2:-Math.PI/2);});
     neon('function-banner',['THE FUNCTION WATCHES OVER YOU','功能 · 秩序 · 利潤'],['#e8f0ff','#ff4a4a'],16,2.6,[0,16,-63.6],Math.PI);
+    // Eye-level ad kiosks on both sidewalks, facing the road.
+    for(let z=-56,i=0;z<-4;z+=8,i++){const side=i%2?-1:1,x=side*9.2;box('kiosk-frame',[.3,2.9,1.9],[x+side*.18,1.45,z],frame);plane('kiosk-ad',1.6,2.4,[x,1.55,z],adMat(nextAd()),side>0?Math.PI/2:-Math.PI/2);box('kiosk-trim',[.06,.06,1.9],[x,2.85,z],[cyan,magenta,amber][i%3]);}
     // Ground-floor storefront glow along the sidewalks.
-    for(const side of [-1,1])for(let z=-60;z<-2;z+=7){box('storefront',[.1,3,5.5],[side*11.95,1.6,z+2.5],[cyan,magenta,amber,violet][Math.floor(rand()*4)]);box('awning',[1.2,.12,5.8],[side*11.4,3.4,z+2.5],frame);}
+    for(const side of [-1,1])for(let z=-60;z<-2;z+=7){box('storefront',[.1,3,5.5],[side*11.95,1.6,z+2.5],[glowMat('shop-cyan','#38e8ff',.32),glowMat('shop-magenta','#ff3fb4',.32),glowMat('shop-amber','#ffb347',.3),glowMat('shop-violet','#9b5cff',.32)][Math.floor(rand()*4)]);box('awning',[1.2,.12,5.8],[side*11.4,3.4,z+2.5],frame);}
     // IronEye drones patrol above the street.
     const drones=[];const droneBody=mat('ironeye','#1d1f24',{rough:.4,metal:.8});for(let i=0;i<(low?2:4);i++){const n=new B.TransformNode('ironeye-'+i,scene);n.parent=parent;const body=add(B.MeshBuilder.CreateSphere('ironeye-body',{diameter:.9,segments:10},scene),droneBody,[0,0,0],false);body.parent=n;body.scaling.y=.6;const eye=add(B.MeshBuilder.CreateDisc('ironeye-eye',{radius:.16,tessellation:12},scene),red,[0,0,-.46],false);eye.parent=n;for(const s of [-1,1]){const rot=box('ironeye-rotor',[.9,.04,.12],[s*.55,.25,0],frame,false);rot.parent=n;}drones.push({n,phase:i*1.7,z:-50+i*14});}
     // Street pedestrians.
@@ -168,14 +171,14 @@
     for(const x of [6.5,9,11.5,14])cyl('bar-stool',.25,.8,[x,.4,37.2],frame,true,10);
     for(const z of [29.5,32.5]){box('booth-seat',[3.5,.5,1],[14.5,.25,z],mat('booth','#4a1d2e',{rough:.8}));box('booth-table',[2.6,.08,1],[14.5,.8,z+1],frame);}
     characterModel('nyx-district',parent,[10,0,40],false);characterModel('crew-bar1',parent,[7,0,36.6],true);characterModel('crew-bar2',parent,[14.5,0,30],true);
-    plane('bar-menu',2.2,1.2,[16.8,2.4,35],adMat('drinkoil'),Math.PI/2);box('bar-light',[8,.05,.3],[10,4,36],amber);
+    plane('bar-menu',2.2,1.2,[16.8,2.4,35],texMat('bar-menu',texture('bar-menu',384,210,(g,W,H)=>{g.fillStyle='#0d0a08';g.fillRect(0,0,W,H);g.fillStyle='#ffb347';g.font='bold 22px monospace';g.fillText('BAR · LOUNGE',16,32);g.font='15px monospace';[['FILTERED AIR, 10 MIN','12'],['VANTOR STOUT','9'],['RECLAIMED-WATER GIN','14'],['SYNTH WHISKEY','18'],['NO CREDIT · NO TABS','']].forEach(([a,b],i)=>{g.fillStyle=i===4?'#9b7bff':'#e8e0d0';g.fillText(a,16,66+i*30);g.fillText(b,W-48,66+i*30);});}),{glow:true}),Math.PI/2);box('bar-light',[8,.05,.3],[10,4,36],amber);
 
     // Admin & Iris shop: counter, display cases, shelves, workstation.
     box('shop-counter',[8,1.1,1.1],[10,.55,47.2],mat('shop-counter','#1f2228',{rough:.35,metal:.7}));box('shop-counter-glow',[8,.05,.05],[10,1.1,46.62],violet);
     for(let i=0;i<3;i++){const z=44.5+i*2.8;box('display-case',[1,2.4,2.2],[16.3,1.2,z],mat('case-glass','#8fd8ff',{rough:.05,metal:.1,alpha:.25}));box('case-light',[.05,2.2,.05],[15.78,1.2,z-1],[cyan,red,cyan][i]);for(let k=0;k<4;k++)box('display-item',[.6,.12,1.2],[16.3,.5+k*.5,z],[pipe,frame][k%2]);}
     box('shop-shelf',[6.4,2.6,.6],[11,1.3,43.55],frame);for(let k=0;k<4;k++)box('shelf-goods',[5.8,.25,.4],[11,.5+k*.6,43.75],[cyan,amber,violet,magenta][k]);
     box('admin-workstation',[2,.9,1],[8,.45,50.8],frame);plane('admin-screen',1.6,.9,[8,1.5,51.3],texMat('admin-screen',texture('admin-screen',256,144,(g,W,H)=>{g.fillStyle='#04060a';g.fillRect(0,0,W,H);g.fillStyle='#38e8ff';g.font='12px monospace';for(let i=0;i<9;i++)g.fillText(['> trace sovereign','> relay: tessaly-07','> badge db sync','> iris.status OK','> mainframe 98%','> firewall ACTIVE','> cams 12/12','> vend restock','> _'][i],8,16+i*14);}),{glow:true}),0);
-    plane('shop-holo',1.6,2.4,[10,2.6,52.8],adMat('neuroforge'),0);
+    plane('shop-holo',1.6,2.4,[10,2.6,52.8],adMat('helix'),0);
     characterModel('admin',parent,[8,0,48.6],false);characterModel('iris',parent,[12.5,0,48.6],false);
 
     // Vending alcove: three lit machines.
@@ -213,5 +216,5 @@
     function tick(time){for(const d of drones){d.n.position.set(Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
     return {tick,dispose(){for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;}};
   }
-  const api={layout,build,ads};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
+  const api={layout,build};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
 })(globalThis);

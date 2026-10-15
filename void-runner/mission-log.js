@@ -76,7 +76,9 @@
  function sync(s,C){
   if(!s?.universe)return [];
   const entries=records(s),p=s.progression,f=p?.flags||{};
-  if(p&&(p.opening?.pistol||p.personal?.weapon==='ward-pistol'||f.board||pastWorkshop(s))){
+  // A pilot who declined Mara's lessons gets no tutorial entries unless they already had them.
+  const declined=s.story?.flags?.tutorialSkipped===true&&!entries['ground-training'];
+  if(!declined&&p&&(p.opening?.pistol||p.personal?.weapon==='ward-pistol'||f.board||pastWorkshop(s))){
    const v1=p.opening?.version!==2;
    mirror(s,'ground-training',groundIds,id=>id==='recording'?(v1||p.opening.hologram===true||p.opening.pistol===true):id==='receive-gun'?(p.opening?.pistol===true||p.personal?.weapon==='ward-pistol'):id==='groundCombat'?(f.groundCombat===true||f.shootingTutorialComplete===true||p.opening?.cans?.length>=4):f[id]===true,()=>P.groundDone(s)||pastWorkshop(s));
    // Older saves already hold a single combined entry; its flags carry over unchanged.

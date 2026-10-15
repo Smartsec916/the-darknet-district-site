@@ -20,7 +20,7 @@
       color: '#609cb5'
     },
     mars: {
-      name: 'MARS — UNDERGROUND CITY',
+      name: 'VANTOR — UNDERGROUND CITY',
       system: 'sol',
       location: 'mars-terminal',
       color: '#ba6847'
@@ -141,7 +141,7 @@
       }]
     },
     'mars-terminal': {
-      name: 'MARS / SUBSURFACE ACCESS',
+      name: 'VANTOR / SUBSURFACE ACCESS',
       kind: 'underground',
       bounds: [16, 30],
       spawn: [0, 1.7, -23],
@@ -210,7 +210,7 @@
       tracks: []
     },
     mars: {
-      name: 'MARS RADIO',
+      name: 'VANTOR DEEP RADIO',
       regions: ['mars'],
       tracks: []
     },
