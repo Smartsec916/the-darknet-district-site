@@ -22,7 +22,7 @@ for(const id of ['starter','ship2','ship3'])test('Campaign '+id+' configuration 
  const {c,owner,state}=harness(id),config=owner.craft.config,r=owner.craft.resources;
  assert.deepEqual(config.stats,copy(c.C.stats(state)));assert.deepEqual(config.systems,copy(P.systems(state)));assert.equal(config.shipId,id);
  assert.equal(r.hp,config.stats.hull);assert.equal(r.shieldHP,config.stats.shield);assert.equal(r.weaponBank.energy,config.systems.capacity);assert.equal(r.missileState.missileCapacity,Ships.ships[id].missile.capacity);assert.equal(r.missileState.missilesLoaded,4);
- assert.equal(config.systems.cargo,id==='ship3'?3:1);assert(Object.isFrozen(config.stats.flight));assert(Object.isFrozen(config.ship));
+ assert.equal(config.systems.cargo,id==='ship3'?3:2);assert(Object.isFrozen(config.stats.flight));assert(Object.isFrozen(config.ship));
 });
 test('configuration records validated loadout and installed modules without source aliases',()=>{
  const {c,owner,state}=harness();assert.equal(owner.craft.config.modules.power,'capacitor');assert.equal(owner.craft.config.loadout.missile,'launcher');

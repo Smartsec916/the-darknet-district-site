@@ -1,7 +1,7 @@
 /* Persisted prologue, equipment and safe checkpoints. No renderer or account authority. */
 (function(root){
  const Ships=typeof module!=='undefined'?require('./ships.js'):root.VoidShips;
- const tuning={jump:{local:14,interstellar:28},ground:{magazine:10,reserve:48,damage:12,reload:1.1,cooldown:.25,hostileHull:36,hostileDamage:5},ships:{starter:{capacity:72,recharge:12,cooling:18,heatLimit:100,cargo:1},ship2:{capacity:96,recharge:16,cooling:22,heatLimit:110,cargo:1},ship3:{capacity:125,recharge:18,cooling:20,heatLimit:120,cargo:3}},laser:{cost:6,heat:13,recover:.35}};
+ const tuning={jump:{local:14,interstellar:28},ground:{magazine:10,reserve:48,damage:12,reload:1.1,cooldown:.25,hostileHull:36,hostileDamage:5},ships:{starter:{capacity:72,recharge:12,cooling:18,heatLimit:100,cargo:2},ship2:{capacity:96,recharge:16,cooling:22,heatLimit:110,cargo:2},ship3:{capacity:125,recharge:18,cooling:20,heatLimit:120,cargo:3}},laser:{cost:6,heat:13,recover:.35}};
  const modules={
   capacitor:{name:'Reserve capacitor',slot:'power',price:150,icon:'power',stats:{capacity:24,recharge:3},compatible:['starter','ship2','ship3']},
   cooling:{name:'Ward cooling loop',slot:'cooling',price:120,icon:'cooling',stats:{cooling:8,heatLimit:15},compatible:['starter','ship2','ship3']},
