@@ -34,6 +34,7 @@
   // The whole horizon is a continuous 3D heightfield. Flight can look down or behind the shop.
   const rock=mat('rock','#927056',.94,0),ridgeMat=mat('mesa','#ffffff',.96,0);ridgeMat.backFaceCulling=false;
   VoidVesperVisuals.mountainRing(B,scene,parent,ridgeMat,quality);
+  const butteField=VoidVesperVisuals.buttes(B,scene,parent,quality);owned.push(...butteField.materials);textures.push(butteField.materials[0].diffuseTexture);
   const moonMat=mat('moon','#d9dfeb',1,0,'#242937');moonMat.fogEnabled=false;moonMat.albedoTexture=texture('moon','moon','#bdc9dd');moonMat.albedoColor.set(1,1,1);const moon=add(B.MeshBuilder.CreateSphere('distant-moon',{diameter:240,segments:32},scene),moonMat,[410,270,850],parent,false);moon.receiveShadows=false;const companion=add(B.MeshBuilder.CreateSphere('vesper-companion',{diameter:38,segments:16},scene),moonMat,[285,245,760],parent,false);companion.receiveShadows=false;
   // Independent open-front workshop; no station shell, solar arrays or interior corridor.
   hook('workshop',[0,0,0],()=>{box('workshop-slab',[29,.25,28],[0,-.1,-10],floorMat);for(const x of [-13,13]){bevel('wall-panel',[.35,6,24],[x,3,-11.5]);for(let z=-21;z<1;z+=4)bevel('support-column',[.42,6.2,.5],[x*.97,3.1,z],steel);}
