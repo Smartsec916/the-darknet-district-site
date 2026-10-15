@@ -21,6 +21,46 @@
     engines: { name: 'Vector thrusters', description: 'Faster movement and more responsive handling.', prices: [250, 500, 900] },
     shields: { name: 'Deflector shield', get description(){return B.shieldPerTier+' shield capacity per tier. Regenerates '+B.shieldRechargeRate+' per second after '+B.shieldRechargeDelay+' seconds without a hit.';}, prices: [300, 650, 1000] }
   };
+  // The District's faction deliveries (David's docs 05/06). Delivering the cargo and collecting
+  // payment from Iris at The Darknet District are separate steps. Progress lives in story.flags.
+  const factionDeliveries={
+    communion:{id:'communion-delivery',faction:'communion',flag:'communionDelivery',name:'Communion delivery',cargo:'Advanced electronics and research equipment',legal:true,destination:'vigil',payment:1200,reward:1200,enemies:3,tier:1,duration:40,contact:'Admin',recipient:'elara',briefing:'Advanced electronics and research equipment for Dr. Elara Voss at The Vigil, Cantor System. Payment is collected at The Darknet District.'},
+    'natural-order':{id:'order-delivery',faction:'natural-order',flag:'orderDelivery',name:'Natural Order delivery',cargo:'Mechanical components and industrial supplies',legal:true,destination:'holdfast',payment:1200,reward:1200,enemies:3,tier:1,duration:40,contact:'Admin',recipient:'marcus',briefing:'Mechanical components and industrial supplies for Marcus Vale at Holdfast, Garrow System. Payment is collected at The Darknet District.'}
+  };
+  const factionList=Object.values(factionDeliveries);
+  function factionStage(s,faction){const v=s.story?.flags?.[factionDeliveries[faction]?.flag];return ['accepted','delivered','paid'].includes(v)?v:null;}
+  // Admin offers both until one is taken; Iris offers the other once the first is paid.
+  function factionOffers(s){
+    if(s.quest!=='open'||!s.universe?.freeTravel||s.story?.flags?.metAdmin!==true)return [];
+    const first=s.story.flags.factionFirst;
+    if(!factionDeliveries[first])return Object.keys(factionDeliveries);
+    if(factionStage(s,first)!=='paid')return [];
+    return Object.keys(factionDeliveries).filter(id=>id!==first&&!factionStage(s,id));
+  }
+  function acceptFaction(s,faction){
+    const d=factionDeliveries[faction];
+    if(!d||s.contract||!factionOffers(s).includes(faction))return false;
+    if((s.progression?.cargo||[]).reduce((n,x)=>n+x.units,0)>=P.systems(s).cargo)return false;
+    const f=s.story.flags;f[d.flag]='accepted';if(!factionDeliveries[f.factionFirst])f.factionFirst=faction;
+    s.destination=null;s.contract=d.id;U.discover(s,d.destination);Missions.acquire(s,d.id);Story.emit(s,'missionAccepted',d.id);return true;
+  }
+  // The recipient takes the cargo in person; payment waits for the District.
+  function deliverFaction(s,faction){
+    const d=factionDeliveries[faction];
+    if(!d||factionStage(s,faction)!=='accepted'||s.location!==d.destination)return false;
+    if(s.contract===d.id)s.contract=null;
+    s.story.flags[d.flag]='delivered';s.story.flags.adminAway=true;
+    Missions.complete(s,d.id,'arrive');Missions.complete(s,d.id,'deliver');Story.emit(s,'factionDelivered',faction);return true;
+  }
+  // Each delivered contract is paid exactly once.
+  function collectFactionPayment(s){
+    const paid=[];
+    for(const d of factionList)if(factionStage(s,d.faction)==='delivered'){s.story.flags[d.flag]='paid';s.credits+=d.payment;s.completed++;Missions.complete(s,d.id,'payment');paid.push(d);}
+    if(paid.length&&factionList.every(d=>factionStage(s,d.faction)==='paid'))s.story.flags.factionsVisited=true;
+    return paid;
+  }
+  // Rook routes no freight into a faction system until the player has made Admin's delivery there.
+  function heldForAdmin(s,system){const d=factionList.find(x=>U.system(x.destination)===system);return !!d&&!['delivered','paid'].includes(factionStage(s,d.faction));}
   const quests = ['inheritance', 'arrival', 'legal-offer', 'legal-run', 'return', 'illegal-offer', 'illegal-run', 'open'];
   // Rook keeps freight moving once the opening runs are done. Each run is numbered so
   // the Mission Log keeps a separate entry, and a newly opened system gets the next run.
@@ -29,9 +69,9 @@
   function rookRunNumber(s){return (Number.isSafeInteger(s.story?.flags?.rookRuns)?s.story.flags.rookRuns:0)+1;}
   function rookRunTarget(s){
     const u=s.universe||U.fresh(),served=String(s.story?.flags?.rookSystems||'erebus').split(',');
-    const fresh=(u.discoveredSystems||[]).find(id=>U.systems[id]&&!served.includes(id)&&U.systems[id].hub!==s.location);
+    const fresh=(u.discoveredSystems||[]).find(id=>U.systems[id]&&!served.includes(id)&&U.systems[id].hub!==s.location&&!heldForAdmin(s,id));
     if(fresh)return U.systems[fresh].hub;
-    const pool=Object.keys(U.locations).filter(id=>id!=='vesper'&&id!==s.location&&(u.discoveredLocations||[]).includes(id));
+    const pool=Object.keys(U.locations).filter(id=>id!=='vesper'&&id!==s.location&&(u.discoveredLocations||[]).includes(id)&&!heldForAdmin(s,U.system(id)));
     return pool.length?pool[(rookRunNumber(s)-1)%pool.length]:'meridian';
   }
   function rookRun(s){
@@ -39,7 +79,7 @@
     const destination=s.contract==='rook-run'&&typeof to==='string'&&Object.hasOwn(stations,to)?to:rookRunTarget(s);
     return {...rookRunBase,id:'rook-run-'+n,number:n,name:'Rook freight run #'+n,cargo:rookCargo[(n-1)%rookCargo.length],legal:n%2===1,destination,reward:Math.min(2000,500+150*step),enemies:4+step,tier:1+step*.3,duration:36+step*2};
   }
-  const allContracts = [...contracts, rookRunBase, ...content.missions];
+  const allContracts = [...contracts, rookRunBase, ...factionList, ...content.missions];
   function fresh() { return { version: 2, progression:P.fresh(), universe:U.fresh(), story:Story.fresh(), savedAt:null, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], ownedShips:['starter'], activeShip:'starter', standardGear:['pulse1','shield1'], shipLoadouts:{}, combatRuns:0, missileOfferSeen:false, missileUnlocked:false, travel:null, destination:null, loadout: {weapon:null,shield:null,utility:null,missile:null} }; }
   function restore(raw) {
     try {
@@ -84,8 +124,9 @@
     if (s.quest === 'open' && s.contract) {
       const c = allContracts.find(c => c.id === s.contract);
       if (!c) return null;
-      const pressure = c.chapter ? 0 : Math.min(6, Math.floor(Math.max(0, s.completed - 2) / 2));
-      return { ...c, enemies: c.enemies + pressure * 2, tier: c.tier + pressure * .4, duration: c.duration + pressure * 2, pressure, destination: c.destination === s.location ? 'meridian' : c.destination };
+      const pressure = c.chapter || c.faction ? 0 : Math.min(6, Math.floor(Math.max(0, s.completed - 2) / 2));
+      // Faction deliveries are paid by Iris in the District, never on arrival.
+      return { ...c, enemies: c.enemies + pressure * 2, tier: c.tier + pressure * .4, duration: c.duration + pressure * 2, pressure, destination: c.destination === s.location ? 'meridian' : c.destination, ...(c.faction ? { reward: 0 } : {}) };
     }
     if(s.quest==='open'&&s.destination&&stations[s.destination]&&s.destination!==s.location)return {...base,name:'Free transit',destination:s.destination,duration:20,enemies:3,tier:1,reward:0,kind:'transit'};
     return null;
@@ -104,6 +145,7 @@
     if (s.quest === 'legal-offer') { s.quest = 'legal-run';Missions.acquire(s,'legal-run'); return true; }
     if (s.quest === 'illegal-offer') { s.quest = 'illegal-run';Missions.acquire(s,'illegal-run'); return true; }
     const c = allContracts.find(c => c.id === id);
+    if (c?.faction) return acceptFaction(s, c.faction);
     if (s.contract || !c || !unlocked(s,c)) return false;
     if(!c.dataCargo&&(s.progression.cargo||[]).reduce((n,x)=>n+x.units,0)>=P.systems(s).cargo)return false;
     s.destination=null;s.contract = id;
@@ -128,7 +170,7 @@
     if (f.chapter && !s.cleared.includes(f.id)) s.cleared.push(f.id);
     if(f.kind==='transit'){s.story.chapter=s.quest;Story.emit(s,'arriveLocation',s.location);return {...f,repairCharged,gunReward:false};}
     if(f.id==='prologue-missiles')return {...f,repairCharged,gunReward:false};
-    if(!s.universe.completedObjectives.includes(f.id||previous))s.universe.completedObjectives.push(f.id||previous);
+    if(!f.faction&&!s.universe.completedObjectives.includes(f.id||previous))s.universe.completedObjectives.push(f.id||previous);
     if(previous==='arrival'&&s.location==='meridian'){
       for(const objective of ['travel','dock'])Missions.complete(s,'meet-rook',objective,{missionFlight});
     } else Missions.complete(s,f.id||previous);
@@ -233,7 +275,7 @@
       }
     };
   }
-  const api = { stations, contracts, allContracts, rookRun, rookRunTarget, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
+  const api = { stations, contracts, allContracts, rookRun, rookRunTarget, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

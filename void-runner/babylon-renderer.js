@@ -366,6 +366,33 @@
     const m=new b.StandardMaterial('pressure-door',scene);m.diffuseTexture=t;m.specularColor=new b.Color3(.12,.13,.14);m.emissiveColor=new b.Color3(.02,.02,.02);
     materials['pressure-door']=m;return m;
   }
+  // Faction outposts share the walkable plan but not the look: the Communion's Vigil is smooth,
+  // pale and lit in cyan; the Natural Order's Holdfast is riveted steel, pipework and amber lamps.
+  function factionDressing(id,node){
+    const b=B();
+    if(id==='vigil'){
+      const glow=material('vigil-glow','#7fe6ff',true),dim=material('vigil-votive','#2c5b6c',true),pale=material('vigil-shell','#dfe6ea'),silver=material('vigil-silver','#9fb0bc');
+      for(const side of [-1,1]){
+        box('vigil-light-strip',[.08,.08,28],[side*17.6,7.6,-11],glow,node);box('vigil-corridor-light',[.06,.06,13],[side*3.65,4.6,11],glow,node);box('vigil-hall-light',[.08,.08,15],[side*17.6,5.6,26],glow,node);
+        for(let i=0;i<4;i++)box('vigil-rib',[.35,8.4,.5],[side*17.5,4.4,-23+i*8],silver,node);
+      }
+      // A wall of small lit panels in the hall, kept like votive lights.
+      for(let r=0;r<4;r++)for(let c=0;c<12;c++)box('vigil-panel',[.5,.32,.06],[-8.25+c*1.5,1+r*.6,33.6],(r*12+c)%5===0?glow:dim,node);
+      const halo=b.MeshBuilder.CreateTorus('vigil-halo',{diameter:120,thickness:2.2,tessellation:96},scene);halo.parent=node;halo.position.set(0,6,4);halo.material=pale;
+      const ring=b.MeshBuilder.CreateTorus('vigil-halo-light',{diameter:120,thickness:.5,tessellation:96},scene);ring.parent=node;ring.position.set(0,7.3,4);ring.material=glow;
+      const spire=b.MeshBuilder.CreateCylinder('vigil-spire',{height:60,diameterTop:.4,diameterBottom:7,tessellation:24},scene);spire.parent=node;spire.position.set(0,40,26);spire.material=pale;
+      return;
+    }
+    const amber=material('holdfast-lamp','#ffb04a',true),steel=material('holdfast-steel','#3d3a36'),rust=material('holdfast-rust','#6b4a2e'),pipe=material('holdfast-pipe','#57524a');
+    for(const side of [-1,1]){
+      for(let i=0;i<5;i++){box('holdfast-beam',[.6,8.6,.6],[side*17.4,4.3,-24+i*6.5],steel,node);box('holdfast-lamp',[.5,.3,.5],[side*16.9,7.8,-24+i*6.5],amber,node);}
+      for(let k=0;k<3;k++){const p=b.MeshBuilder.CreateCylinder('holdfast-pipe',{height:30,diameter:.35+k*.1,tessellation:10},scene);p.parent=node;p.rotation.x=Math.PI/2;p.position.set(side*(17.1-k*.5),6.6+k*.55,-11);p.material=pipe;}
+      box('holdfast-plate',[.2,3,28],[side*17.6,1.5,-11],rust,node);
+    }
+    for(let i=0;i<6;i++)box('holdfast-crate',[1.6,1.2+(i%3)*.4,1.6],[12.4+(i%3)*1.9,.6+(i%3)*.2,-20+Math.floor(i/3)*2.1],i%2?rust:steel,node);
+    box('holdfast-gantry',[36,.8,.8],[0,8.4,-18],steel,node);box('holdfast-hook',[.25,3,.25],[4,6.6,-18],pipe,node);
+    for(let i=0;i<5;i++)box('holdfast-hall-lamp',[1.6,.1,.45],[-12+i*6,5.85,26],amber,node);
+  }
   function stationModel(id, parent, exterior=false,layoutDef=null) {
     if(id==='meridian'&&exterior){const imported=VoidAssets.instance('station:meridian',parent);if(imported){imported.metadata={identity:'meridian',source:'shared-glb'};return imported;}return VoidMeridian.build(scene,parent);}
     const b=B(),node=new b.TransformNode('station-'+id,scene);node.parent=parent;
@@ -390,6 +417,7 @@
       for(let z=-34;z<-24;z+=3)box('approach-light',[.35,.25,.8],[side*9,.4,z],trim,node);
       box('antenna',[.15,8,.15],[side*15,10,29],metal,node);
     }
+    if(id==='vigil'||id==='holdfast')factionDressing(id,node);
     node.metadata={layout:id,doors,arrays,placeholder:true};return node;
   }
 
@@ -465,13 +493,15 @@
       g = t.getContext();
     const gas = id === 'meridian',
       ocean = id === 'kepler' || id === 'earth',
-      ice = id === 'rusthaven';
-    g.fillStyle = ocean ? '#1b4662' : ice ? '#7a919b' : gas ? '#aa8366' : '#6c3826';
+      ice = id === 'rusthaven',
+      pale = id === 'vigil',
+      dust = id === 'holdfast';
+    g.fillStyle = pale ? '#3e4952' : dust ? '#7b5a39' : ocean ? '#1b4662' : ice ? '#7a919b' : gas ? '#aa8366' : '#6c3826';
     g.fillRect(0, 0, 512, 256);
     for (let i = 0; i < 600; i++) {
       const x = (i * 137.29) % 512,
         y = (i * 73.61) % 256;
-      g.fillStyle = gas ? i % 2 ? '#cba789' : '#715747' : ocean ? i % 3 ? '#496a50' : '#a3bbc0' : ice ? '#bacbd0' : i % 2 ? '#a36642' : '#352b26';
+      g.fillStyle = pale ? i % 9 ? '#5b6873' : '#86dcf2' : dust ? i % 2 ? '#a07a4f' : '#4f3a26' : gas ? i % 2 ? '#cba789' : '#715747' : ocean ? i % 3 ? '#496a50' : '#a3bbc0' : ice ? '#bacbd0' : i % 2 ? '#a36642' : '#352b26';
       g.globalAlpha = .2 + (i % 3) * .12;
       g.beginPath();
       g.ellipse(x, y, gas ? 260 : 5 + i % 21, gas ? 2 + i % 4 : 3 + i % 12, .2, 0, Math.PI * 2);

@@ -119,6 +119,7 @@ This conversation (Claude), 2026-10-14 to 2026-10-15:
 | #44 | NeoChinatown and The Darknet District, built from David's facility layout; Sol renamed to Tessaly in the UI; Vesper outdoor art; Meridian door texture; lower arrow; less Vesper traffic. |
 | #45 | Optional tutorial (Mara asks); Mission Log key hint; Tessaly's own ad style (12 brands, `ad-art.js`); Mars renamed to Vantor in the UI. |
 | #47 | Natural Vesper terrain (replaced #46); internal id `undertow`→`rusthaven` with save migration; repeating Rook freight runs. |
+| (this PR) | Faction deliveries: Cantor System / The Vigil and Garrow System / Holdfast; Admin (doc 05), Elara Voss and Marcus Vale (doc 07), Iris's payment and second offer (doc 06). |
 
 ---
 
@@ -212,11 +213,19 @@ Claude's suggestions, all PROPOSED:
 
 David has not decided. Several of these, plus Rook's runs and the contracts, overlap with each other.
 
-### 4.6 Next story content: approved scripts, not yet built (see §6 and §9.2)
+### 4.6 Faction deliveries (IMPLEMENTED; DAVID'S SCRIPTS, docs 05, 06 and 07)
 
-- **Admin introduces the Communion and the Natural Order** (DAVID'S SCRIPT, doc 05).
-- **Return to the District for payment, where Iris offers the remaining delivery** (DAVID'S SCRIPT, doc 06).
+| ID | Mission | Starts | Ends | Giver | Pay |
+|---|---|---|---|---|---|
+| `communion-delivery` | Communion delivery: advanced electronics and research equipment | The Darknet District | The Vigil, Cantor System → back to the District | Admin (or Iris, if taken second) | 1,200, paid by Iris |
+| `order-delivery` | Natural Order delivery: mechanical components and industrial supplies | The Darknet District | Holdfast, Garrow System → back to the District | Admin (or Iris, if taken second) | 1,200, paid by Iris |
+
+- Admin offers both after Meet Admin. The player can ask about either, take one, or think about it.
+- Arriving pays nothing. Handing the cargo to Dr. Elara Voss or Marcus Vale counts as delivered, and the goal becomes "Return to The Darknet District and collect payment".
+- From then on Admin is "occupied" (absent, no explanation) and Iris runs the counter. She pays, then offers the remaining delivery, which the player can take or leave for later.
+- The second delivery is paid the same way, and Iris closes with her last line.
 - After both deliveries, Claude must **propose several next-chapter directions**. Doc 06 §7 lists them: Rook, Admin/Iris, Communion, Natural Order, independent cargo, exploration/bounty. Nothing may be finalized without approval.
+- **Next requested feature:** the small faction battles on the way to each delivery (doc 08).
 
 ---
 
@@ -231,10 +240,15 @@ David has not decided. Several of these, plus Rook's runs and the contracts, ove
   - The exact wording of her offer is Claude's.
 - **Rook's opening lines** (filters to Kepler, wafers to Rusthaven, missile line): existing game text from before this conversation.
 - **Rook freight-run lines** (PR #47): CLAUDE-WRITTEN, UNREVIEWED. Example: "Lanes into Tessaly System just opened up. Get in before everyone else does…"
-- **Admin/Iris greeting at the District** (`prologue-integration.js`, `admin` interaction):
-  - CLAUDE-WRITTEN PLACEHOLDER.
-  - It completes `meet-admin` and sets `story.flags.metAdmin` and `story.flags.metIris`.
-  - **David's doc-05 script should replace it.** In that script Admin greets "the pilot Rook sent" and introduces the factions and two deliveries.
+- **Admin/Iris at the District** (`faction-scenes.js` replaces the old placeholder `admin` interaction):
+  - Admin plays doc 05, completes `meet-admin`, and sets `story.flags.metAdmin` and `story.flags.metIris`.
+  - Iris plays doc 06. Elara and Marcus play doc 07.
+  - **CLAUDE-WRITTEN, UNREVIEWED** functional lines, shown only in edge cases:
+    - Admin, while a delivery is under way: "You've got a delivery to make. Come back when it's done."
+    - Admin, if the player is carrying another contract: "Finish the job you're carrying first. Then we'll talk."
+    - Iris, same case: "You're already carrying someone else's cargo. Come back when your hold is free."
+  - When the player returns to Admin after "I'll think about it", Admin reopens with his own line from doc 05 ("So, what do you think?…"), as approved. If the player declines Iris's offer, she repeats her offer lines from doc 06 on the next visit.
+  - The script's stage directions (glances, pauses) are not shown; there is no animation for them yet.
 - **David's scripts** (verbatim in `docs/void-runner/design-source/05-*.md` and `06-*.md`):
   - **Doc 05 (Admin):**
     - The player can ask about either delivery before deciding. Asking never accepts.
@@ -251,7 +265,7 @@ David has not decided. Several of these, plus Rook's runs and the contracts, ove
 
 ---
 
-## 6. The Communion and the Natural Order (lore APPROVED; locations and NPCs NOT approved)
+## 6. The Communion and the Natural Order (lore APPROVED; first locations and recipients APPROVED)
 
 From the master plan and doc 05:
 
@@ -268,9 +282,14 @@ From the master plan and doc 05:
 - **Player choice later in the campaign:** support the Communion, support the Natural Order, or stay neutral. Neutral must remain viable. Faction choices affect missions, relationships, equipment and opportunities.
 - A fourth, alien faction is DEFERRED to a future expansion.
 - **Iris is an android.** Her relationship to either faction is a rich opportunity, but it **must not be assumed or established without approval**. The District is not aligned with either faction.
-- **Not decided:** where Communion and Natural Order territory is (new systems? which locations?), their NPCs, delivery events, and follow-up chains.
-  - All of these must be **proposed (3–5 options) before building doc 05/06**.
-  - The last open question to David was exactly this: *"Want me to propose 3–5 options for where those two places are?"* He has not answered yet.
+- **Territory (APPROVED, Option 1 + Set A names, 2026-10-15):** two new systems, one outpost each, both one interstellar jump from Tessaly.
+  - Communion: **Cantor System** (`communion`), station **The Vigil** (`vigil`): pale, smooth, cyan-lit, with a halo ring and a wall of small lit panels.
+  - Natural Order: **Garrow System** (`natural-order`), outpost **Holdfast** (`holdfast`): riveted steel, pipework, amber lamps, cargo crates.
+  - A system opens on the map only when the player **accepts** that delivery.
+  - The Communion's dead-AI world is deliberately left unnamed.
+- **Recipients (DAVID'S SCRIPT, doc 07):** Dr. Elara Voss, Research Logistics Coordinator (The Vigil); Marcus Vale, Industrial Supply Supervisor (Holdfast). Neither is a leader. Their views are personal opinion and rumor.
+  - Elara Voss is unrelated to Mara (Mara's in-game surname "Voss" was dropped). Marcus Vale and Iona Vale are unrelated.
+- **Still not decided:** follow-up chains, faction reputation rules, and anything beyond these first visits.
 - `factions.js` exists, with relay and reputation scaffolding. Check what it already supports before adding faction state.
 
 ---
@@ -280,13 +299,15 @@ From the master plan and doc 05:
 | NPC | Where | Role | Status |
 |---|---|---|---|
 | **Elias Ward** | Vesper (hologram) | The player's late employer; fair-minded. | Canon. A proposal to make his past the thread linking the opening to the faction story is PROPOSED, not approved. |
-| **Mara** (Mara Voss in game text) | Vesper workshop | Older, subdued mechanic; tutorial; gives pistol and ship; sends the player to Rook. | Canon. David said he'll work on characters later. |
+| **Mara** (no surname; "Voss" removed from game text 2026-10-15) | Vesper workshop | Older, subdued mechanic; tutorial; gives pistol and ship; sends the player to Rook. | Canon. David said he'll work on characters later. |
 | **Rook** | Meridian, the Dead Channel booth | Cargo contact. Jobs grow in value, risk, distance and illegality (smuggling, pirates, interdiction). Sends the player to Admin. | Canon. |
 | **Nyx** | Meridian bar | Bartender; points the player to Rook and the shop. | Existing game character. |
 | **Dr. Sol** | Kepler | Clinic contact; gives Cold Chain. | Existing game character. Its name is unrelated to the old Sol system. |
 | **Iona Vale** | Rusthaven | Keeps Rusthaven running; gives Ghost Hardware. | Existing game character. |
 | **Admin** | The Darknet District shop, NeoChinatown | Central District figure: knowledgeable, resourceful, hard to intimidate, casual and pragmatic. Indifferent to faction ideology. Has a shop, missions and story connections. | Canon (doc 03). David said "I'll work on characters later, Admin and Iris". Do not invent his backstory. |
 | **Iris** | The Darknet District | Female android, **Chief Security Officer**, associated with Admin. Intelligent, observant, dry and sarcastic but competent. Runs the counter while Admin is away. | Canon (doc 03 and doc 06). Keep her separate from the website's Iris chatbot. |
+| **Dr. Elara Voss** | The Vigil, Cantor System | Communion research logistics coordinator; receives the Communion delivery. Pale coat, glasses, cyan implant. | Canon (doc 07). Available for future missions. |
+| **Marcus Vale** | Holdfast, Garrow System | Natural Order industrial supply supervisor; receives the Natural Order delivery. Brown work coat, beard, no implants. | Canon (doc 07). Available for future missions. |
 
 ---
 
@@ -303,6 +324,8 @@ From the master plan and doc 05:
 | **Tessaly** (`sol`) | `sol-belt` | Tessaly Belt Anchorage | Tessaly hub and interstellar arrival point. |
 | | `earth` | **NeoChinatown** | City landing with tall skyscrapers. David will add POIs. **The Darknet District is in an alley near the landing.** |
 | | `mars` | **Vantor** / Underground City | Renamed from Mars. "Vantor" is a working name awaiting David's confirmation. |
+| **Cantor** (`communion`) | `vigil` | **The Vigil** | Communion station and system hub. Opens when the Communion delivery is accepted. |
+| **Garrow** (`natural-order`) | `holdfast` | **Holdfast** | Natural Order outpost and system hub. Opens when the Natural Order delivery is accepted. |
 
 **Tessaly canon (APPROVED):**
 - Heavily corporatized and profit-first. It sells to every system, which keeps it neutral.
@@ -330,19 +353,20 @@ From the master plan and doc 05:
   3. Complete objectives from the relevant interaction.
   4. Add tests in `tests/mission-system.test.cjs`.
 
-### 9.2 Faction deliveries (NOT STARTED; scripts approved, destinations not)
+### 9.2 Faction deliveries (IMPLEMENTED; see §4.6)
 
-Recommended order:
-1. **Propose** 3–5 options for Communion and Natural Order destinations: where they are, how they unlock (Rook's "new system opens up" rule will then route a freight run there automatically), and the receiving NPCs. Get approval.
-2. Replace the Admin placeholder with doc 05.
-3. Implement doc 06's two-step deliver-then-return-for-payment flow with Iris.
-
-**Save fields doc 06 requires** (first faction accepted, delivered, paid, remaining contract available/accepted/delivered/paid; no duplicate payment or cargo):
-- Fit them in `story.flags`, which the server already accepts (bool, string ≤200, int).
-- Or extend both `campaign.js restore` and `void_runner_api.py clean_save`.
-- Add the new contract ids to `save-manifest.json`.
-
-**Note:** the current contract system pays on arrival. Doc 06 needs a "delivered, awaiting payment" state, plus a "return to the District" objective that is tracked automatically.
+- **Rules (`campaign.js`, unit-tested in `tests/faction-deliveries.test.cjs`):** `factionDeliveries`, `factionOffers`, `acceptFaction`, `deliverFaction`, `collectFactionPayment`, `heldForAdmin`. The generic `accept()` routes these contracts through `acceptFaction`, so the cargo board cannot bypass the offer rules.
+- **Scenes (`faction-scenes.js`):** Admin, Iris, Elara and Marcus; a small choice-menu helper (`ask`), styled by `.choice-menu` in `game.css`. It also leads the arrow through the District door to Iris when payment is due.
+- **Save state (all in `story.flags`, so old saves and the server need no new fields):**
+  - `factionFirst`: `communion` or `natural-order`
+  - `communionDelivery`, `orderDelivery`: `accepted` → `delivered` → `paid`
+  - `adminAway`: true after the first delivery (hides Admin; his interaction uses the new `notFlags` condition in `story.js`)
+  - `factionIntro`: Admin's full introduction has played
+  - `factionsVisited`: both deliveries paid
+- **Mission Log:** definitions in `mission-log.js` with objectives arrive → deliver → payment. A new `after` field moves the goal back to the District once the cargo is delivered.
+- **Universe:** known systems are now derived from known locations on load, so a newly opened faction system survives a reload. `U.discover()` opens a location without visiting it.
+- **Rook:** runs into a faction system are held until the player has made Admin's delivery there (approved). After that, Rook's new-system rule sends the next run there.
+- **Server:** `save-manifest.json` lists the new locations, systems and contract ids; `clean_save()` reads allowed systems from the manifest.
 
 ### 9.3 Rook cargo runs
 
@@ -368,7 +392,9 @@ Done; see §4.3. Possible follow-ups:
 ## 10. Outstanding bugs and incomplete features
 
 **Known issues and gaps in what is built:**
-- Admin/Iris dialogue at the District is a placeholder (§5).
+- A few edge-case Admin/Iris lines are Claude-written and unreviewed (§5).
+- The Vigil and Holdfast reuse the generic station interior plan with their own dressing; their flight-approach exterior is the generic station. David's Blender models can replace both later.
+- At window shapes taller than 16:9 the game's dialogue box sits partly below the screen (existing behavior). Choice menus are pinned to the visible window to avoid this.
 - Butte walls can show faint vertical banding up close.
 - The view of the terrain from the air has not been checked: headless tests can't fly the ship.
 - `docs/void-runner/mission-tree.html` and the published artifact are slightly out of date.
@@ -418,6 +444,15 @@ Done; see §4.3. Possible follow-ups:
 - Vesper mountains should be natural, monument-valley-like and full 3D, with **all** of them redone, not just the cliffs.
 - Internal id `undertow` renamed to `rusthaven`.
 - Rook cargo runs keep going; a newly opened system gets the next run.
+- **Faction territory, Option 1:** two new systems, one outpost each. A system opens when its delivery is accepted.
+- **Names, Set A:** Cantor System / The Vigil (Communion); Garrow System / Holdfast (Natural Order).
+- **Recipients:** Dr. Elara Voss and Marcus Vale (David's doc 07). Mara's in-game surname "Voss" is dropped; Iona Vale and Marcus Vale are unrelated.
+- Rook holds freight runs into a faction system until the player has made Admin's delivery there.
+- Each faction delivery pays 1,200 credits and takes 2 cargo units, paid by Iris in the District.
+- The delivery flights carry normal light risk; the only scripted event is the faction battle from doc 08.
+- Returning to Admin after "I'll think about it" reopens with his "So, what do you think?…" line.
+- Docs 05/06 replace the earlier "First District mission" options A–D (Membership, Breach, Rogue AI, Raven's Plan).
+- Faction ship battles on the way to each delivery (doc 08): requested feature, to be built next.
 
 ### Rejected or removed (do not reintroduce)
 
@@ -436,8 +471,8 @@ Done; see §4.3. Possible follow-ups:
 - **CARGO-001 expansion options:** A, Dr. Sol's water plant on Kepler; B, the sealed crate and a customs hail; C, a missing courier (Elias thread); D, Rook's debt at the Foundry. Claude recommended A, then C.
 - Whether **Elias's past** becomes the thread linking the opening to the faction story.
 - Keep, rework or cut each **legacy chapter** (§4.5).
-- **First District mission** options: A Membership, B Breach, C Rogue AI, D Raven's Plan. These may be superseded by David's doc-05/06 faction scripts. Ask.
-- **Communion and Natural Order destinations, NPCs and chains** (§6). This is the next question to ask.
+- **What follows the faction deliveries:** next-chapter directions (doc 06 §7) must be proposed after the battles are built.
+- **Faction follow-up chains** and reputation rules (§6).
 - The middle game ("Dead Channels") and late game ("The Silent God") arcs from the mission tree are only proposed.
 - Cleaning up stale merged `claude/*` branches was offered, not requested.
 
@@ -470,8 +505,8 @@ These are the master plan phases, with a status note for each.
   - All are merged or superseded. `vesper-buttes` (PR #46) was closed and folded into #47.
   - Safe to delete **only if David asks**.
 - **CI:** Node unit tests on PRs and on `main`.
-- **Service worker build:** `2026-10-15-rusthaven-rook-terrain-1`.
-- **Tests at handoff:** 206/206 Node; Python story and progression save tests OK.
+- **Service worker build:** `2026-10-15-faction-deliveries-1` (faction deliveries PR).
+- **Tests at handoff:** 206/206 Node; Python story and progression save tests OK. After the faction deliveries PR: 216/216 Node.
 
 ---
 

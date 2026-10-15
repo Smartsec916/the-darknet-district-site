@@ -1,6 +1,6 @@
 /* One metre-space plan drives exterior shells, walkable walls and collisions. */
 (function(root){
- const palettes={meridian:['#56616a','#6981a0'],kepler:['#879497','#688ca6'],rusthaven:['#645959','#544a6d'],foundry:['#595955','#88654b'],'sol-belt':['#879497','#607f99'],vesper:['#655f56','#627c79']};
+ const palettes={meridian:['#56616a','#6981a0'],kepler:['#879497','#688ca6'],rusthaven:['#645959','#544a6d'],foundry:['#595955','#88654b'],'sol-belt':['#879497','#607f99'],vesper:['#655f56','#627c79'],vigil:['#c9d3da','#7fb6d6'],holdfast:['#5b544c','#b0703a']};
  const appearances={
   mara:{coat:'#596449',hair:'#c4c7c5',skin:'#b88d74',style:'short'},
   elias:{coat:'#68503c',hair:'#90938d',skin:'#b7957c',style:'beard',archive:true},
@@ -9,7 +9,9 @@
   sol:{coat:'#3b757a',hair:'#343633',skin:'#c69f82',style:'glasses'},
   nyx:{coat:'#303544',hair:'#e1e1db',skin:'#b09b90',style:'undercut',eye:'#a7d4e2'},
   admin:{coat:'#1c1e21',hair:'#c9cbcc',skin:'#b98f78',style:'beard',eye:'#e0a03a'},
-  iris:{coat:'#26232c',hair:'#eceaf0',skin:'#ddd6d2',style:'undercut',eye:'#5fe0ff'}
+  iris:{coat:'#26232c',hair:'#eceaf0',skin:'#ddd6d2',style:'undercut',eye:'#5fe0ff'},
+  elara:{coat:'#d6dde2',hair:'#2b2a30',skin:'#c69e80',style:'glasses',eye:'#7fe6ff'},
+  marcus:{coat:'#5a4630',hair:'#4a4038',skin:'#a5785c',style:'beard'}
  };
  function layout(id,ship='starter'){
   if(id==='meridian')return (typeof module!=='undefined'?require('./meridian-interior.js'):root.VoidMeridianInterior).layout(ship);
@@ -36,9 +38,10 @@
   // Nonwalkable strips outside the narrow corridor are collision volumes, not visual walls.
   solids.push({id:'outside-left',size:[14,20,13],position:[-11,0,11]},{id:'outside-right',size:[14,20,13],position:[11,0,11]}, {id:'ship',size:[7,4,11],position:[-7,2,-9]});
   const interactions=[{id:'board',action:'board',label:'BOARD YOUR SHIP',position:[-2,1.7,-14],range:3.5},{id:'services',action:'services',label:'SHIP OUTFITTER',position:[-10,1.7,26],range:3},{id:'jobs',action:'jobs',label:'MISSION TERMINAL',position:[-4,1.7,31],range:3}];
-  const people=id==='meridian'?['rook','nyx']:id==='kepler'?['sol']:id==='rusthaven'?['iona']:id==='vesper'?['mara','elias']:[];
-  people.forEach((character,i)=>interactions.push({id:character,action:'talk',character,label:(character==='elias'?'PLAY ARCHIVE / ':'TALK / ')+character.toUpperCase(),position:id==='vesper'?[i?5:0,1.7,i?-10:-12]:[i?13:8,1.7,i?31:25],range:3}));
-  return {id,name:id.toUpperCase(),kind:'station',bounds:[18,34],spawn:[0,1.7,-17],ship,color:(palettes[id]||palettes.meridian)[0],shell,solids,interactions,signs:[{id:'hangar',position:[0,6,3.5],text:'HANGAR  /  CONCOURSE →',color:'#9fcbba'},{id:'concourse',position:[0,4,33.5],text:id==='meridian'?'THE DEAD CHANNEL / OUTFITTER':id.toUpperCase()+' / CREW SERVICES',color:'#a4c3b6'}]};
+  const people=id==='meridian'?['rook','nyx']:id==='kepler'?['sol']:id==='rusthaven'?['iona']:id==='vigil'?['elara']:id==='holdfast'?['marcus']:id==='vesper'?['mara','elias']:[];
+  const names={elara:'DR. ELARA VOSS',marcus:'MARCUS VALE'};
+  people.forEach((character,i)=>interactions.push({id:character,action:'talk',character,label:(character==='elias'?'PLAY ARCHIVE / ':'TALK / ')+(names[character]||character.toUpperCase()),position:id==='vesper'?[i?5:0,1.7,i?-10:-12]:[i?13:8,1.7,i?31:25],range:3}));
+  return {id,name:id.toUpperCase(),kind:'station',bounds:[18,34],spawn:[0,1.7,-17],ship,color:(palettes[id]||palettes.meridian)[0],shell,solids,interactions,signs:[{id:'hangar',position:[0,6,3.5],text:'HANGAR  /  CONCOURSE →',color:'#9fcbba'},{id:'concourse',position:[0,4,33.5],text:id==='meridian'?'THE DEAD CHANNEL / OUTFITTER':id==='vigil'?'THE VIGIL / RECEIVING':id==='holdfast'?'HOLDFAST / SUPPLY YARD':id.toUpperCase()+' / CREW SERVICES',color:'#a4c3b6'}]};
  }
  const api={layout,palettes,appearances};if(typeof module!=='undefined')module.exports=api;else root.VoidStationLayouts=api;
 })(globalThis);
