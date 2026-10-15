@@ -11,7 +11,10 @@
   earth:{system:'sol',name:'NeoChinatown',district:'TESSALY / CITY LANDING',color:'#9b7bff',bar:'The Darknet District'},
   mars:{system:'sol',name:'Vantor / Underground City',district:'TESSALY / SUBSURFACE ACCESS',color:'#ba6847',bar:'Transit Canteen'},
   vigil:{system:'communion',name:'The Vigil',district:'CANTOR / COMMUNION STATION',color:'#9fd2ec',bar:'Refectory',ownerFaction:'communion',securityFaction:'communion'},
-  holdfast:{system:'natural-order',name:'Holdfast',district:'GARROW / NATURAL ORDER OUTPOST',color:'#d08a3c',bar:'Mess Hall',ownerFaction:'natural-order',securityFaction:'natural-order'}
+  holdfast:{system:'natural-order',name:'Holdfast',district:'GARROW / NATURAL ORDER OUTPOST',color:'#d08a3c',bar:'Mess Hall',ownerFaction:'natural-order',securityFaction:'natural-order'},
+  // Faction homeworlds (doc 10): open when the homeworld offer is accepted. The Natural Order world has no name yet.
+  nexus:{system:'communion',name:'The Nexus',district:'CANTOR / COMMUNION HOMEWORLD',color:'#8fd4ee',bar:'Aid Station',ownerFaction:'communion',securityFaction:'communion',planet:true},
+  'order-homeworld':{system:'natural-order',name:'Natural Order Homeworld',district:'GARROW / NATURAL ORDER HOMEWORLD (NAME PENDING)',color:'#c9a24a',bar:'Cooperative Hall',ownerFaction:'natural-order',securityFaction:'natural-order',planet:true}
  };
  for(const location of Object.values(locations)){location.ownerFaction??=null;location.securityFaction??=location.system==='sol'?'sol-local':'erebus-local';}
  function system(id){return locations[id]?.system||'erebus';}

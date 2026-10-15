@@ -9,7 +9,9 @@
     "earth",
     "mars",
     "vigil",
-    "holdfast"
+    "holdfast",
+    "nexus",
+    "order-homeworld"
   ],
   "systems": [
     "erebus",
@@ -26,6 +28,8 @@
     "order-delivery",
     "communion-supply",
     "order-supply",
+    "communion-origin-mission-01",
+    "natural-order-origin-mission-01",
     "belt-1",
     "belt-2",
     "belt-3",

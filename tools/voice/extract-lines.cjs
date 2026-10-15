@@ -5,7 +5,7 @@
 const fs=require('fs'),path=require('path'),crypto=require('crypto');
 const root=path.join(__dirname,'..','..'),src=path.join(root,'void-runner'),out=path.join(src,'assets','audio','voice');
 // Who speaks in game -> voice-file speaker id. The player's own lines are never voiced.
-const speakers={mara:'mara',elias:'elias',rook:'rook',nyx:'nyx',iona:'iona',sol:'sol',Admin:'admin',admin:'admin',Iris:'iris',iris:'iris',elara:'elara',marcus:'marcus',Bartender:'bartender','Arcade attendant':'attendant'};
+const speakers={mara:'mara',elias:'elias',rook:'rook',nyx:'nyx',iona:'iona',sol:'sol',Admin:'admin',admin:'admin',Iris:'iris',iris:'iris',elara:'elara',marcus:'marcus',Bartender:'bartender','Arcade attendant':'attendant',kess:'kess',mercer:'mercer'};
 const Q="'((?:[^'\\\\]|\\\\.)*)'";
 const unescape=s=>s.replace(/\\(.)/g,'$1');
 const lines=new Map();
@@ -27,6 +27,8 @@ for(const file of fs.readdirSync(src).filter(f=>f.endsWith('.js'))){
   for(const m of code.matchAll(new RegExp("districtLine\\('([A-Za-z ]+)'\\s*,\\s*[^?]+\\?"+Q+":"+Q+"\\)",'g'))){add(m[1],unescape(m[2]),file);add(m[1],unescape(m[3]),file);}
   // Station one-liners: const texts={nyx:'...',iona:'...'}
   for(const block of code.matchAll(/const texts={([^}]*)}/g))for(const m of block[1].matchAll(new RegExp("([a-z]+):"+Q,'g')))add(m[1],unescape(m[2]),file);
+  // Homeworld scene helpers: kess('...'), mercer('...')
+  if(file==='homeworld-scenes.js')for(const m of code.matchAll(new RegExp("\\b(kess|mercer)\\("+Q+"\\)",'g')))add(m[1],unescape(m[2]),file);
   if(file==='faction-scenes.js'){
     // Scene helpers: admin('...'), iris('...'), elara('...'), marcus('...')
     for(const m of code.matchAll(new RegExp("\\b(admin|iris|elara|marcus)\\("+Q+"\\)",'g')))add(m[1],unescape(m[2]),file);
@@ -51,7 +53,9 @@ const cast={
   iona:{voice:'af_kore',speed:1,note:'Rusthaven engineer'},
   sol:{voice:'bm_lewis',speed:.97,note:'Kepler clinic doctor'},
   bartender:{voice:'am_liam',speed:1,note:'District bartender'},
-  attendant:{voice:'am_puck',speed:1.05,note:'District arcade attendant'}
+  attendant:{voice:'am_puck',speed:1.05,note:'District arcade attendant'},
+  kess:{voice:'bm_daniel',speed:.95,note:'Mature, educated, calm, slightly weary'},
+  mercer:{voice:'am_onyx',speed:1,note:'Mature, slightly rough, conversational'}
 };
 const manifest={version:1,engine:'kokoro-82m-v1.0 (Apache-2.0)',format:'ogg/opus 24 kHz mono',cast,lines:{}};
 for(const l of [...lines.values()].sort((a,b)=>a.id.localeCompare(b.id)))manifest.lines[l.id]={speaker:l.speaker,text:l.text,file:l.id+'.ogg',source:l.source};

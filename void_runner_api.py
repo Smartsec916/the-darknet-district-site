@@ -278,7 +278,7 @@ def clean_save(value):
         if not isinstance(entries,list) or len(entries)>256 or any(x not in allowed for x in entries):
             raise ApiError('Invalid universe locations.')
         cleaned_universe[key] = list(dict.fromkeys(entries))
-    cleaned_universe['currentSystem'] = {'sol-belt':'sol','earth':'sol','mars':'sol','vigil':'communion','holdfast':'natural-order'}.get(result['location'],'erebus')
+    cleaned_universe['currentSystem'] = {'sol-belt':'sol','earth':'sol','mars':'sol','vigil':'communion','holdfast':'natural-order','nexus':'communion','order-homeworld':'natural-order'}.get(result['location'],'erebus')
     for key in ['missionLogUnlocked','freeTravel']:
         cleaned_universe[key] = universe.get(key) is True or result['missileOfferSeen']
     tracked = universe.get('trackedMission')

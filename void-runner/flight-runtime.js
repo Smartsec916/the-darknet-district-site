@@ -5,7 +5,7 @@
  function configure({stats,systems,upgrades,loadout,modules={},missiles,balance}){
   const ship=stats.ship,m=ship.missile;
   return freeze(copy({shipId:ship.id,ship,stats,systems,upgrades,loadout,modules,missiles,
-   missileBalance:{...balance,missileDamage:balance.missileDamage*m.damage,missileLockTime:balance.missileLockTime*m.lock,missileCooldown:balance.missileCooldown*m.cooldown}}));
+   missileBalance:{...balance,missileDamage:balance.missileDamage*m.damage,missileLockTime:balance.missileLockTime*m.lock*(stats.lockTime||1),missileCooldown:balance.missileCooldown*m.cooldown}}));
  }
  function create(configuration){
   // Copy even test/alternate inputs: neither configuration nor mutable resource objects alias their source.

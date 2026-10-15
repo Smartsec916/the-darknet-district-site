@@ -873,7 +873,7 @@
     });
     return mesh;
   }
-  let openingHandle=null,derelictHandle=null,districtHandle=null;
+  let openingHandle=null,derelictHandle=null,districtHandle=null,planetHandle=null;
   async function prepareRoom(def, task) {
     if(!task)return VoidPreparation.run(t=>prepareRoom(def,t));
     if(def.kind==='station')return prepareStation(def,task);
@@ -894,6 +894,11 @@
     if(def.district&&root.VoidNeoChinatown){
       districtHandle=VoidNeoChinatown.build({scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{}});
       await task.wait('scene',()=>scene.whenReadyAsync(),'neochinatown');
+      diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
+    }
+    if(def.planet&&root.VoidPlanets){
+      planetHandle=VoidPlanets.build(def.planet,{scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{}});
+      await task.wait('scene',()=>scene.whenReadyAsync(),'homeworld');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
     if(def.kind==='derelict'){
@@ -971,7 +976,7 @@
     roomRoot?.metadata?.art?.dispose?.();
     roomRoot?.metadata?.exterior?.metadata?.dispose?.();
     openingHandle?.dispose();openingHandle=null;
-    derelictHandle?.dispose();derelictHandle=null;districtHandle?.dispose();districtHandle=null;
+    derelictHandle?.dispose();derelictHandle=null;districtHandle?.dispose();districtHandle=null;planetHandle?.dispose();planetHandle=null;
     for (const s of signs) {
       s.texture.dispose();
       s.material.dispose();
@@ -1000,7 +1005,7 @@
     for(const mesh of roomRoot.getChildMeshes()){const d=mesh.metadata?.stationDoor;if(d)mesh.position.y=d.position[1]+(d.open?3.5:0);}
     for(const actor of actors){if(actor.activity){const a=actor.activity,seated=a.state==='sit'||a.state==='drink';actor.node.position.set(a.x,seated?-.35:0,a.z);actor.node.rotation.y=a.yaw;actor.cup?.setEnabled(a.state==='drink'||a.state==='get-drink');for(const mesh of actor.node.getChildMeshes()){if(mesh.name==='arm')mesh.rotation.x=a.state==='walk'?Math.sin(time*5+a.id)*.25:a.state==='talk'?Math.sin(time*2+a.id)*.15:a.state==='drink'?-.9+Math.sin(time)*.15:a.gesture==='device'?-.65:0;if(mesh.name==='leg')mesh.rotation.x=seated?-1.15:a.state==='walk'?Math.sin(time*5+(mesh.position.x<0?Math.PI:0))*.3:0;if(mesh.name==='head')mesh.rotation.y=a.gesture==='look'?Math.sin(time)*.18:0;}continue;}if(openingHandle&&actor.node===openingHandle.mara)continue;if(actor.traffic){actor.node.position.set((actor.lane%2?-1:1)*(25+actor.lane*8),5+actor.lane*2,((time*(5+actor.lane)+actor.lane*37)%140)-55);actor.node.rotation.y=0;}else{actor.node.rotation.y=Math.sin(time*.3+actor.base[0])*.13;if(actor.ambient)actor.node.position.z=actor.base[2]+Math.sin(time*.2+actor.base[0])*1.2;}}
     roomRoot.metadata?.arrays?.forEach((n,i)=>n.rotation.z=.14+Math.sin(time*.015+i*.2)*.08);
-    openingHandle?.tick(time);districtHandle?.tick(time);
+    openingHandle?.tick(time);districtHandle?.tick(time);planetHandle?.tick(time);
     scene.render();
     diagnostics.frames++;
     return surface;

@@ -389,6 +389,15 @@ From the master plan and doc 05:
 - `voice-clips.js` plays the clip on the voice channel; subtitles pace to the clip; a REPLAY button replays the line; skipping stops it. Lines built at runtime (prices, destinations) and any failed clip use the browser voice. The player is never voiced.
 - After any dialogue change: `node tools/voice/extract-lines.cjs` then `python tools/voice/generate.py --models <folder>`. `npm test` fails if a line has no clip.
 
+### 9.2.4 Faction homeworlds (IMPLEMENTED; doc 10)
+
+- **Places:** **The Nexus** (`nexus`, Cantor System) and the **Natural Order Homeworld** (`order-homeworld`, Garrow System; name pending). Both are focused walkable landing areas (`planets.js`); each opens when Elara's or Marcus's homeworld offer is accepted. Rook never sends freight there.
+- **Flow:** accepting the offer loads a shipment (`communion-origin-mission-01` / `natural-order-origin-mission-01`; no pay; flown without combat). If the hold is busy, it waits with Elara or Marcus. Dr. Adrian Kess or Daniel Mercer receives it (doc 10 dialogue word for word) and offers optional work: **Helping Hands** (`communion-restoration-01`: supplies to the aid station, relay repair, power terminal) or **Keeping Things Running** (`natural-order-agriculture-01`: farm equipment, food, solar repair). Task points appear only when relevant and the arrow follows each step.
+- **Rewards (ship modules, own slots, fitted at any hangar, never sold):** Communion Targeting Scanner (sensor slot): missile lock time ×0.7 (Kestrel 1.5 s → 1.05 s). Natural Order Maneuvering Thrusters (thruster slot): turn rates ×1.12, turn response ×1.4, settling ×1.25; no top-speed change. `C.factionEquipment()` reports earned and installed status for future dialogue. No hostility or reputation effects.
+- **Flags:** `communionOrigin`/`orderOrigin` offered→accepted→loaded→delivered; `communionWork`/`orderWork` offered→accepted→complete; task flags `nexusSupplies`, `nexusRepair`, `nexusPower`, `orderEquipment`, `orderFood`, `orderSolar`; `communionScanner`/`orderThrusters` earned.
+- **UNREVIEWED placeholder lines:** Kess and Mercer's reward hand-over lines. "Tell me more" shows the module's real numbers as a notice rather than invented dialogue.
+- **Lighting:** each homeworld lowers the global exposure while you are there (as Vesper does). Music: `nexus` (ethereal, melancholic) and `order-homeworld` (warm, percussive). Kess (bm_daniel) and Mercer (am_onyx) are voiced.
+
 ### 9.3 Rook cargo runs
 
 Done; see §4.3. Possible follow-ups:

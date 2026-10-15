@@ -174,9 +174,15 @@
   marcus('I’ll explain the details when you’re ready to head down there.')];
  recipients['natural-order'].origin=recipients['natural-order'].supply[8];
  const paymentDue=()=>announce('MISSION UPDATE · Return to The Darknet District to collect payment.');
+ // After agreeing to a homeworld run: either the shipment is aboard, or it waits for a free hold.
+ function loaded(faction){
+  const h=C.homeworlds[faction],owed=Object.values(C.supplyDeliveries).some(d=>C.supplyStage(state,d.faction)==='delivered');save();resumeWalking();
+  if(C.originState(state,faction)==='loaded'){VoidMissions.track(state,h.contract.id,C);save();announce('SHIPMENT LOADED · '+h.contract.name.toUpperCase()+' tracked.'+(owed?' Iris still owes you for the last delivery.':''));}
+  else announce('Your hold is busy. Come back with a free hold to collect the shipment.');
+ }
  function originOptions(faction){
   const title=faction==='communion'?'COMMUNION HOMEWORLD MISSION':'NATURAL ORDER HOMEWORLD MISSION',owed=()=>Object.values(C.supplyDeliveries).some(d=>C.supplyStage(state,d.faction)==='delivered');
-  return [{label:'I’M INTERESTED',run:()=>{C.acceptOrigin(state,faction);VoidMissions.sync(state,C);save();resumeWalking();announce(title+' · Not yet available. This mission is still being designed.'+(owed()?' Collect your payment from Iris in the meantime.':''));}},
+  return [{label:'I’M INTERESTED',run:()=>{C.acceptOrigin(state,faction);VoidMissions.sync(state,C);loaded(faction);}},
    {label:'NOT RIGHT NOW',quiet:true,run:()=>{save();resumeWalking();if(owed())paymentDue();}}];
  }
  function recipientOptions(faction){const r=recipients[faction],update=()=>announce('MISSION UPDATE · Return to The Darknet District to collect payment.');
@@ -187,6 +193,8 @@
   const faction=Object.keys(recipients).find(id=>D[id].recipient===arg?.item?.character);if(!faction)return stationTalk(arg);
   const r=recipients[faction],delivered=C.deliverFaction(state,faction);
   if(delivered){VoidMissions.sync(state,C);save();if(delivered.kind==='supply')return ask(r.supply,originOptions(faction));return ask(r.intro,recipientOptions(faction));}
+  // Agreed earlier with a full hold: the shipment is collected now.
+  if(C.originState(state,faction)==='accepted'){C.loadOrigin(state,faction);VoidMissions.sync(state,C);return loaded(faction);}
   // The homeworld offer stays with the recipient until the player takes it.
   if(C.originState(state,faction)==='offered')return ask([r.origin],originOptions(faction));
   return leave([r.who(r.farewell)],'RETURN TO STATION');
