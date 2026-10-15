@@ -5,7 +5,7 @@ const defaults=require('../void-runner/balance.js').defaults;
  const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||'msedge'});
  const page=await browser.newPage({viewport:{width:1440,height:900},reducedMotion:'reduce'}),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
- let admin=false,cloud={version:2,quest:'open',location:'undertow',credits:9800,reputation:25,completed:8,upgrades:{guns:3,armor:2,engines:2,shields:2},cleared:['belt-1'],contract:'ghost',creditGear:['scout'],loadout:{weapon:'wraith',shield:'aegis',utility:'scout'},loginOfferSeen:true},revision=3;
+ let admin=false,cloud={version:2,quest:'open',location:'rusthaven',credits:9800,reputation:25,completed:8,upgrades:{guns:3,armor:2,engines:2,shields:2},cleared:['belt-1'],contract:'ghost',creditGear:['scout'],loadout:{weapon:'wraith',shield:'aegis',utility:'scout'},loginOfferSeen:true},revision=3;
  const originalCloud=JSON.stringify(cloud);let balance={values:{...defaults},revision:0,preset:'NORMAL'};
  await page.route('**/firebase-auth.js',r=>r.fulfill({contentType:'text/javascript',body:`export const auth={currentUser:null},provider={};let listener;const user={uid:'pilot',displayName:'Test Pilot',getIdToken:async()=> 'test-token'};export const onAuthStateChanged=(a,fn)=>{listener=fn;queueMicrotask(()=>fn(null));};export const getRedirectResult=async()=>null;export const signInWithPopup=async()=>{auth.currentUser=user;listener(user);return {user};};export const signOut=async()=>{auth.currentUser=null;listener(null);};`}));
  await page.route('**/api/void-runner/**',async r=>{

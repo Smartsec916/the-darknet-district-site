@@ -39,7 +39,7 @@
   'combat-qualification':{title:'COMBAT QUALIFICATION',type:'tutorial',description:'Rook wants proof you can defend a hold. After two combat runs, claim the launcher voucher at the outfitter.',giver:'Rook',source:'story',objectives:objectives(combat)},
   'legal-run':{title:'AN HONEST LIVING',type:'cargo',description:'Deliver water filtration parts to Kepler.',giver:'Rook',destination:'kepler',rewards:350,objectives:[{id:'arrive',label:'Deliver the filters and dock at Kepler'}]},
   'return':{title:'BACK TO THE DEAD CHANNEL',type:'main',description:'Return to Meridian with the completed delivery.',giver:'Rook',destination:'meridian',objectives:[{id:'arrive',label:'Dock at Meridian Station'}]},
-  'illegal-run':{title:'NO QUESTIONS ASKED',type:'cargo',description:'Deliver unregistered memory wafers to Undertow.',giver:'Rook',destination:'undertow',rewards:800,objectives:[{id:'arrive',label:'Deliver the wafers and dock at Undertow'}]},
+  'illegal-run':{title:'NO QUESTIONS ASKED',type:'cargo',description:'Deliver unregistered memory wafers to Rusthaven.',giver:'Rook',destination:'rusthaven',rewards:800,objectives:[{id:'arrive',label:'Deliver the wafers and dock at Rusthaven'}]},
   'meet-admin':{title:'MEET ADMIN',type:'main',description:'Find Rook’s contact in NeoChinatown, Tessaly.',giver:'Rook',source:'story',start:'meridian',end:'earth',completion:{event:'talk',interaction:'admin'},destination:'earth',interaction:'tdd',objectives:[{id:'meet-admin',label:'Find Admin at The Darknet District, NeoChinatown'}]}
  };
  // Auto-tracking picks the first active mission in this order.
@@ -122,7 +122,8 @@
   const f=C?.missionFlight?.({...s,destination:null});
   const isCurrent=f&&f.kind!=='transit'&&(f.id||s.quest)===id;
   const contract=(C?.allContracts||C?.contracts)?.find?.(item=>item.id===id);
-  const title=isCurrent?f.name:contract?.name||id.replace(/-/g,' ').toUpperCase();
+  const run=/^rook-run-(\d+)$/.exec(id);
+  const title=isCurrent?f.name:run?'Rook freight run #'+run[1]:contract?.name||id.replace(/-/g,' ').toUpperCase();
   const destination=isCurrent?f.destination:contract?.destination;
   const cargo=isCurrent?f.cargo:contract?.cargo;
   return {title,type:cargo&&cargo!=='Empty hold'?'cargo':'campaign',description:contract?.briefing||((cargo&&cargo!=='Empty hold')?'Deliver '+cargo+' to '+(U.locations[destination]?.name||destination)+'.':'Travel to '+(U.locations[destination]?.name||destination||'the destination')+'.'),rewards:(isCurrent?f.reward:contract?.reward)||null,destination,source:'mission-terminal',giver:contract?.contact||'Campaign',start:contract?.start||null,end:destination,prerequisites:contract?.requires?[contract.requires]:[],availability:{},storyFlags:{},factionFlags:{},completion:{event:'dock',location:destination},objectives:[{id:'arrive',label:cargo&&cargo!=='Empty hold'?'Deliver '+cargo:'Reach the destination and dock'}]};

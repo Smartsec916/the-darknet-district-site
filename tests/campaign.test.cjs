@@ -6,7 +6,7 @@ test('optional dock servicing charges once and keeps credits valid',()=>{
   finally{B.apply(B.defaults);}
 });
 test('v1 saves migrate without losing credits, location or upgrades',()=>{
-  const old={version:1,quest:'open',location:'undertow',credits:2450,reputation:10,completed:4,contract:'ghost',upgrades:{guns:2,armor:1,engines:3}};
+  const old={version:1,quest:'open',location:'rusthaven',credits:2450,reputation:10,completed:4,contract:'ghost',upgrades:{guns:2,armor:1,engines:3}};
   const s=C.restore(JSON.stringify(old));assert.equal(s.version,2);assert.equal(s.credits,2450);assert.deepEqual(s.upgrades,{...old.upgrades,shields:0});assert.deepEqual(s.cleared,[]);assert.equal(s.contract,'ghost');
 });
 test('all 12 chapter missions unlock in order and pay once per acceptance',()=>{

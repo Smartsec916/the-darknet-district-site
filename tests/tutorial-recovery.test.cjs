@@ -26,7 +26,7 @@ test('owned content, mission objectives and safe checkpoint survive a local save
  P.buy(s,'capacitor');P.install(s,'power','capacitor');s.progression.personal.attachments=['red-dot'];s.progression.personal.optic='red-dot';
  s.progression.missiles=3;s.progression.cargo=[{id:'salvage',units:1}];s.progression.data=['archive'];
  s.universe.missions={repair:{acquired:true,completed:false,objectives:{parts:true}}};s.universe.trackedMission='repair';s.universe.trackingInitialized=true;
- P.checkpoint(s,'kepler');s.location='undertow';const r=C.restore(JSON.stringify(s));
+ P.checkpoint(s,'kepler');s.location='rusthaven';const r=C.restore(JSON.stringify(s));
  assert.equal(r.location,'kepler');assert.equal(r.activeShip,'ship2');for(const id of s.ownedShips)assert.deepEqual(r.shipLoadouts[id],s.shipLoadouts[id]);
  assert.equal(r.progression.equipment.installed.ship2.power,'capacitor');assert.equal(r.progression.personal.optic,'red-dot');assert.equal(r.progression.missiles,3);
  assert.deepEqual(r.progression.cargo,s.progression.cargo);assert.deepEqual(r.progression.data,s.progression.data);assert.deepEqual(r.universe.missions.repair,s.universe.missions.repair);

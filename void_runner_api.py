@@ -197,6 +197,8 @@ def clean_save(value):
         raise ApiError('Unsupported save format.')
     from pathlib import Path
     import json
+    # Rusthaven used the internal id 'undertow' in older saves.
+    value=json.loads(json.dumps(value).replace('"undertow"','"rusthaven"'))
     manifest=json.loads((Path(__file__).parent/'void-runner'/'save-manifest.json').read_text())
     if value.get('quest') not in ['inheritance','arrival','legal-offer','legal-run','return','illegal-offer','illegal-run','open'] or value.get('location') not in manifest['locations']:
         raise ApiError('Invalid campaign state.')

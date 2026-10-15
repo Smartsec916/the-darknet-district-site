@@ -6,7 +6,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
  try{
  await page.goto('http://127.0.0.1:5000/void-runner.html?renderer=legacy');await page.waitForFunction(()=>window.VoidStartup?.started);
  const assets=[];
- for(const origin of ['meridian','kepler','undertow','foundry']){
+ for(const origin of ['meridian','kepler','rusthaven','foundry']){
   const result=await page.evaluate(async origin=>{
    save=()=>{};state=C.fresh();state.quest='open';state.completed=2;state.location=origin;C.chooseDestination(state,origin==='kepler'?'meridian':'kepler');launch();mode='pause';const ok=await departureImages[origin].load();await skyboxes[origin].load();if(!ok)throw Error('Missing hangar '+origin);
    const image=departureImages[origin],c=document.createElement('canvas');c.width=image.naturalWidth;c.height=image.naturalHeight;const g=c.getContext('2d');g.drawImage(image,0,0);const alpha=g.getImageData(Math.floor(c.width*.5),Math.floor(c.height*.44),1,1).data[3];

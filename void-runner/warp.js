@@ -2,7 +2,7 @@
 (function(root){
  const U=typeof module!=='undefined'?require('./universe.js'):root.VoidUniverse;
  const config={alignmentCos:Math.cos(8*Math.PI/180),hold:.65,departureSeconds:4,warpSeconds:U.route('meridian','kepler').seconds,destinationRevealSeconds:8,decelerationSeconds:3,approachSeconds:3,interruption:.42};
- function create(origin,destination,mission,encounter=false){const heading={meridian:-.55,kepler:.65,undertow:-.8,foundry:.9}[destination]||.55;const policy=U.route(origin,destination);encounter=encounter&&policy.interdiction;return {policy,origin,destination,mission:mission||null,progress:0,phase:'departure',departure:0,aligned:0,encounter:{type:encounter?'combat':'none',state:encounter?'pending':'cleared'},vector:{x:Math.sin(heading),y:0,z:Math.cos(heading)}};}
+ function create(origin,destination,mission,encounter=false){const heading={meridian:-.55,kepler:.65,rusthaven:-.8,foundry:.9}[destination]||.55;const policy=U.route(origin,destination);encounter=encounter&&policy.interdiction;return {policy,origin,destination,mission:mission||null,progress:0,phase:'departure',departure:0,aligned:0,encounter:{type:encounter?'combat':'none',state:encounter?'pending':'cleared'},vector:{x:Math.sin(heading),y:0,z:Math.cos(heading)}};}
  function restore(raw,origin,destination,mission,encounter){
   const r=create(origin,destination,mission,encounter);
   if(!raw||raw.origin!==origin||raw.destination!==destination||raw.mission!==r.mission)return r;

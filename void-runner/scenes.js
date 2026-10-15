@@ -52,8 +52,8 @@ function brief(id){const c=C.contracts.find(c=>c.id===id);if(!c)return;const who
 const originalArrive=arrive;
 arrive=function(){
  const f=current;originalArrive();if(mode!=='arrival'||!f?.reward)return;
- const who=f.destination==='undertow'?'iona':f.destination==='foundry'?'rook':'sol';
- const line=f.destination==='undertow'&&state.completed===2?'Delivered. 800 credits. These MK 2 guns are my thanks. Shops are open to you now.':`Delivered. ${f.reward} credits. ${state.quest==='return'?'Head back to Rook at Meridian.':'Good flying.'}`;
+ const who=f.destination==='rusthaven'?'iona':f.destination==='foundry'?'rook':'sol';
+ const line=f.destination==='rusthaven'&&state.completed===2?'Delivered. 800 credits. These MK 2 guns are my thanks. Shops are open to you now.':`Delivered. ${f.reward} credits. ${state.quest==='return'?'Head back to Rook at Meridian.':'Good flying.'}`;
  talk('dock',[{who,text:line+(f.repairCharged?` Dock servicing costs ${f.repairCharged} credits.`:'')}],()=>dock(),'GO BACK TO YOUR SHIP →','Delivery confirmed');
 };
 screen.addEventListener('click',e=>{const a=e.target.closest('button')?.dataset.action;if(a==='speech-next')advanceSpeech();else if(a==='talk-rook')rookConversation();else if(a==='talk-nyx')talk('bar',[{who:'nyx',text:state.quest==='legal-offer'?'Rook has work. He’s in the booth.':state.quest==='illegal-offer'?'Rook is waiting. This job pays better.':'Need work? Visit the cargo contacts. Need upgrades? Try the shop.'}],barRoom,'BACK TO THE BAR','At the counter');else if(a==='contacts')contacts();else if(a?.startsWith('brief:'))brief(a.slice(6));});
@@ -61,7 +61,7 @@ addEventListener('keydown',e=>{if(speech&&['Space','Enter'].includes(e.code)&&e.
 const planetTypes={
  meridian:{name:'AUREL / RINGED GAS GIANT',base:'#d6b58a',shade:'#443248',ring:true,kind:'gas',side:1},
  kepler:{name:'PELAGOS / OCEAN WORLD',base:'#41a6c7',shade:'#081e48',kind:'ocean',side:-1},
- undertow:{name:'NYX / FROZEN MOON',base:'#b7d4f0',shade:'#27355e',kind:'ice',side:1},
+ rusthaven:{name:'NYX / FROZEN MOON',base:'#b7d4f0',shade:'#27355e',kind:'ice',side:1},
  foundry:{name:'CINDER / VOLCANIC WORLD',base:'#db7454',shade:'#351623',kind:'rock',side:-1}
 };
 function planetPosition(progress,width=W,height=H){

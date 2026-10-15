@@ -57,7 +57,7 @@ Example location event, added to the `events` array:
 ```js
 {
   id:'engineer_after_filters',
-  trigger:{type:'dock',subject:'undertow'},
+  trigger:{type:'dock',subject:'rusthaven'},
   when:{flags:{rookIntroduced:true}, events:['rusthaven_unlocked']},
   scene:'repair_offer',
   effects:{flags:{engineerAvailable:true}}
@@ -81,7 +81,7 @@ Add a tuple to `definitions` in `content.js` following `belt-1`:
 
 The existing conversion creates the mission object. The optional eleventh tuple field is `requires`: append `'belt-4'` to depend on that mission, or `null` to start a separate chain. If omitted, it depends on the preceding tuple, matching the existing campaign. Existing mechanics are cargo/combat, salvage, hazard, escort, generator and boss. New mechanics require engine work; new stories using those mechanics do not. Add chapter title/color metadata to the existing `chapters` array. Run the sync script so server validation recognizes new mission IDs. Keep IDs stable after release so old saves retain completion.
 
-Locations live in `story-content.js.locations` and are consumed by the campaign. The four current location IDs are `meridian`, `kepler`, `undertow` (Rusthaven), and `foundry`. A new playable destination also needs its sky/station/interior art and the corresponding existing world/warp presentation mappings; adding a story event at an existing station needs none of that work.
+Locations live in `story-content.js.locations` and are consumed by the campaign. The four current location IDs are `meridian`, `kepler`, `rusthaven` (Rusthaven), and `foundry`. A new playable destination also needs its sky/station/interior art and the corresponding existing world/warp presentation mappings; adding a story event at an existing station needs none of that work.
 
 ## Friendly, neutral and hostile ships / encounters
 
@@ -102,7 +102,7 @@ Declare these entries inside their respective objects/array. An event queues an 
 
 `ship-audio.js` is the only audio manager and AudioContext owner. It owns master/music/effects/voice gain buses, engine voices, procedural chord beds, rhythmic tension, low-health cues, filtered noise transients, distance attenuation and stereo panning. Music profiles cover menu, flight, each station and the bar. Frequencies, low-pass filtering and gain changes transition smoothly; combat/danger add layers to the existing bed. Pausing stops simulation/engine activity and selects menu music. Page hiding suspends audio. A real pointer/key interaction unlocks it.
 
-Add a profile to `musicProfiles` using `undertow` as a reference: `{root:46.25,chord:[1,1.189,1.5],pulse:1.3,wave:'sawtooth',ambient:29}`. `VoidAudio.scene(profileId, combat, danger)` selects it. Add an effect to `effects` as `[frequency,duration,wave,level]`, then call `VoidAudio.event(name, ship, relativeWorldPosition, cameraBasis)` at the actual event. Omit position for UI/cockpit sounds. An event at 100 world units is audible; at 2,000 it is silent. Stereo uses the camera’s right vector. Do not construct another AudioContext or scatter `new Audio()` calls.
+Add a profile to `musicProfiles` using `rusthaven` as a reference: `{root:46.25,chord:[1,1.189,1.5],pulse:1.3,wave:'sawtooth',ambient:29}`. `VoidAudio.scene(profileId, combat, danger)` selects it. Add an effect to `effects` as `[frequency,duration,wave,level]`, then call `VoidAudio.event(name, ship, relativeWorldPosition, cameraBasis)` at the actual event. Omit position for UI/cockpit sounds. An event at 100 world units is audible; at 2,000 it is silent. Stereo uses the camera’s right vector. Do not construct another AudioContext or scatter `new Audio()` calls.
 
 Music/effects/voice sliders and mute persist under the existing `void-runner-audio-v1` key. Keybindings use `void-runner-controls-v1`. Browser storage failure leaves the session playable. Voice zero cancels current speech. A new line, menu, scene change or early dialogue advance cancels the previous line.
 

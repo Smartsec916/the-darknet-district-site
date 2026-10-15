@@ -13,7 +13,7 @@
       color: '#ffbd69',
       bar: 'The Loading Bay'
     },
-    undertow: {
+    rusthaven: {
       name: 'Rusthaven Port',
       district: 'SECTOR 19 / OFF THE GRID',
       color: '#ef79ff',
@@ -245,13 +245,13 @@
     id: 'rusthaven_unlocked',
     trigger: {
       type: 'dock',
-      subject: 'undertow'
+      subject: 'rusthaven'
     },
     effects: {
       flags: {
         rusthavenUnlocked: true
       },
-      unlock: ['undertow']
+      unlock: ['rusthaven']
     }
   }];
   const api = {

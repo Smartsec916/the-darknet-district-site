@@ -13,8 +13,8 @@ function texture(path,lazy=false){
 for (const id of Object.keys(C.stations)) skyboxes[id] = texture('sky-' + id + '.png',true);
 const stationTexture = texture('station.png',true);
 const keplerStationTexture = texture('station-kepler.png',true);
-const undertowStationTexture = texture('station-undertow.png',true);
-const stationImages={meridian:stationTexture,kepler:keplerStationTexture,undertow:undertowStationTexture};
+const rusthavenStationTexture = texture('station-rusthaven.png',true);
+const stationImages={meridian:stationTexture,kepler:keplerStationTexture,rusthaven:rusthavenStationTexture};
 function ensureLocationAssets(id){skyboxes[id]?.load();stationImages[id]?.load();}
 function drawStationExterior(id,x,y,width){
  const img=stationImages[id];
@@ -42,9 +42,9 @@ stationScene = function(color) {
  const arrival=flying?Math.min(1,approachTime/3):1;
  const width=Math.min(W*(flying?.18+arrival*.58:.66),1200);
  const destination=flying?current.destination:state.location;
- if(destination==='undertow'&&undertowStationTexture.complete&&undertowStationTexture.naturalWidth){
-  const height=width*undertowStationTexture.naturalHeight/undertowStationTexture.naturalWidth;
-  ctx.save();ctx.globalAlpha=1;ctx.drawImage(undertowStationTexture,W*.69-width/2,H*.49-height/2,width,height);ctx.restore();return;
+ if(destination==='rusthaven'&&rusthavenStationTexture.complete&&rusthavenStationTexture.naturalWidth){
+  const height=width*rusthavenStationTexture.naturalHeight/rusthavenStationTexture.naturalWidth;
+  ctx.save();ctx.globalAlpha=1;ctx.drawImage(rusthavenStationTexture,W*.69-width/2,H*.49-height/2,width,height);ctx.restore();return;
  }
  if(destination==='kepler'&&keplerStationTexture.complete&&keplerStationTexture.naturalWidth){
   const height=width*keplerStationTexture.naturalHeight/keplerStationTexture.naturalWidth;
@@ -59,8 +59,8 @@ stationScene = function(color) {
 // Distinct exterior silhouettes complement each station's illustrated concourse.
 function drawStationStructure(id,x,y,width){
  ctx.save();ctx.translate(x,y);ctx.scale(width/800,width/800);
- const palette=id==='meridian'?['#587887','#102631','#58ffe1']:id==='kepler'?['#776f64','#251f17','#ffbd69']:id==='undertow'?['#695977','#21182d','#ef79ff']:['#635a51','#241d1b','#ff9a43'];
- if(id!=='foundry'){ctx.strokeStyle=palette[0];ctx.lineWidth=id==='undertow'?38:22;ctx.beginPath();ctx.ellipse(0,0,260,id==='kepler'?90:145,0,id==='undertow'?.3:0,id==='undertow'?5.7:Math.PI*2);ctx.stroke();ctx.strokeStyle=palette[2];ctx.lineWidth=3;ctx.stroke();for(const side of [-1,1]){ctx.fillStyle=palette[0];ctx.fillRect(side*210-30,-95,60,185);ctx.fillStyle=palette[2];ctx.fillRect(side*210-20,-60,40,3);}ctx.fillStyle=palette[0];ctx.fillRect(-160,-32,320,64);ctx.fillStyle=palette[2];ctx.fillRect(-140,-4,280,5);ctx.restore();return;}
+ const palette=id==='meridian'?['#587887','#102631','#58ffe1']:id==='kepler'?['#776f64','#251f17','#ffbd69']:id==='rusthaven'?['#695977','#21182d','#ef79ff']:['#635a51','#241d1b','#ff9a43'];
+ if(id!=='foundry'){ctx.strokeStyle=palette[0];ctx.lineWidth=id==='rusthaven'?38:22;ctx.beginPath();ctx.ellipse(0,0,260,id==='kepler'?90:145,0,id==='rusthaven'?.3:0,id==='rusthaven'?5.7:Math.PI*2);ctx.stroke();ctx.strokeStyle=palette[2];ctx.lineWidth=3;ctx.stroke();for(const side of [-1,1]){ctx.fillStyle=palette[0];ctx.fillRect(side*210-30,-95,60,185);ctx.fillStyle=palette[2];ctx.fillRect(side*210-20,-60,40,3);}ctx.fillStyle=palette[0];ctx.fillRect(-160,-32,320,64);ctx.fillStyle=palette[2];ctx.fillRect(-140,-4,280,5);ctx.restore();return;}
  const metal=ctx.createLinearGradient(0,-150,0,150);metal.addColorStop(0,palette[0]);metal.addColorStop(1,palette[1]);
  function box(bx,by,bw,bh){ctx.fillStyle=metal;ctx.strokeStyle=palette[0];ctx.lineWidth=2;ctx.fillRect(bx,by,bw,bh);ctx.strokeRect(bx,by,bw,bh);ctx.fillStyle=palette[2];for(let wx=bx+8;wx<bx+bw-5;wx+=14)ctx.fillRect(wx,by+bh*.45,5,3);}
    box(-280,15,540,55);box(-225,85,460,30);
