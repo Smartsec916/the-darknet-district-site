@@ -28,7 +28,28 @@
     'natural-order':{id:'order-delivery',faction:'natural-order',flag:'orderDelivery',name:'Natural Order delivery',cargo:'Mechanical components and industrial supplies',legal:true,destination:'holdfast',payment:1200,reward:1200,enemies:3,tier:1,duration:40,contact:'Admin',recipient:'marcus',briefing:'Mechanical components and industrial supplies for Marcus Vale at Holdfast, Garrow System. Payment is collected at The Darknet District.'}
   };
   const factionList=Object.values(factionDeliveries);
-  function factionStage(s,faction){const v=s.story?.flags?.[factionDeliveries[faction]?.flag];return ['accepted','delivered','paid'].includes(v)?v:null;}
+  // Iris's follow-up contracts (design doc 09), offered once both introductory deliveries are paid.
+  // Same deliver-then-collect flow; both stay available independently.
+  const supplyDeliveries={
+    communion:{id:'communion-supply',faction:'communion',kind:'supply',flag:'communionSupply',name:'Communion supply contract',cargo:'Advanced processing modules, high-precision sensor assemblies and specialized research electronics',legal:true,destination:'vigil',payment:1500,reward:1500,enemies:3,tier:1,duration:40,contact:'Iris',recipient:'elara',briefing:'Specialized processing modules, sensor components and research hardware for Dr. Elara Voss at The Vigil, Cantor System. Payment is collected at The Darknet District.'},
+    'natural-order':{id:'order-supply',faction:'natural-order',kind:'supply',flag:'orderSupply',name:'Natural Order supply contract',cargo:'Industrial control assemblies, heavy-duty mechanical components, and replacement machinery and repair equipment',legal:true,destination:'holdfast',payment:1500,reward:1500,enemies:3,tier:1,duration:40,contact:'Iris',recipient:'marcus',briefing:'Industrial control assemblies, replacement machinery and heavy-duty mechanical components for Marcus Vale at Holdfast, Garrow System. Payment is collected at The Darknet District.'}
+  };
+  const supplyList=Object.values(supplyDeliveries),payable=[...factionList,...supplyList];
+  // Homeworld missions are placeholders until David designs them: they can be offered and
+  // accepted, but have no destination, objectives or rewards and never complete.
+  const originMissions={communion:{id:'communion-origin-mission-01',faction:'communion',flag:'communionOrigin',giver:'elara'},'natural-order':{id:'natural-order-origin-mission-01',faction:'natural-order',flag:'orderOrigin',giver:'marcus'}};
+  const stageOf=(s,d)=>{const v=s.story?.flags?.[d.flag];return ['accepted','delivered','paid'].includes(v)?v:null;};
+  function factionStage(s,faction){return factionDeliveries[faction]?stageOf(s,factionDeliveries[faction]):null;}
+  function supplyStage(s,faction){return supplyDeliveries[faction]?stageOf(s,supplyDeliveries[faction]):null;}
+  function supplyOffers(s){if(s.quest!=='open'||s.story?.flags?.factionsVisited!==true)return [];return Object.keys(supplyDeliveries).filter(id=>!supplyStage(s,id));}
+  function acceptSupply(s,faction){
+    const d=supplyDeliveries[faction];
+    if(!d||s.contract||!supplyOffers(s).includes(faction))return false;
+    if((s.progression?.cargo||[]).reduce((n,x)=>n+x.units,0)>=P.systems(s).cargo)return false;
+    s.story.flags[d.flag]='accepted';s.destination=null;s.contract=d.id;U.discover(s,d.destination);Missions.acquire(s,d.id);Story.emit(s,'missionAccepted',d.id);return true;
+  }
+  function originState(s,faction){const v=s.story?.flags?.[originMissions[faction]?.flag];return ['offered','accepted'].includes(v)?v:null;}
+  function acceptOrigin(s,faction){const o=originMissions[faction];if(!o||originState(s,faction)!=='offered')return false;s.story.flags[o.flag]='accepted';Missions.acquire(s,o.id);return true;}
   // Admin offers both until one is taken; Iris offers the other once the first is paid.
   function factionOffers(s){
     if(s.quest!=='open'||!s.universe?.freeTravel||s.story?.flags?.metAdmin!==true)return [];
@@ -45,17 +66,23 @@
     s.destination=null;s.contract=d.id;U.discover(s,d.destination);Missions.acquire(s,d.id);Story.emit(s,'missionAccepted',d.id);return true;
   }
   // The recipient takes the cargo in person; payment waits for the District.
+  // The recipient takes whichever of their faction's contracts is aboard; returns that contract.
   function deliverFaction(s,faction){
-    const d=factionDeliveries[faction];
-    if(!d||factionStage(s,faction)!=='accepted'||s.location!==d.destination)return false;
+    const d=[factionDeliveries[faction],supplyDeliveries[faction]].find(x=>x&&stageOf(s,x)==='accepted'&&s.location===x.destination);
+    if(!d)return false;
     if(s.contract===d.id)s.contract=null;
-    s.story.flags[d.flag]='delivered';s.story.flags.adminAway=true;
-    Missions.complete(s,d.id,'arrive');Missions.complete(s,d.id,'deliver');Story.emit(s,'factionDelivered',faction);return true;
+    s.story.flags[d.flag]='delivered';
+    // Admin is "occupied" only while the first delivery's payment waits with Iris (doc 06).
+    if(d.kind!=='supply'&&s.story.flags.factionFirst===faction)s.story.flags.adminOccupied=true;
+    // A supply delivery opens the recipient's homeworld offer; it stays with them until taken.
+    if(d.kind==='supply'&&!originState(s,faction))s.story.flags[originMissions[faction].flag]='offered';
+    Missions.complete(s,d.id,'arrive');Missions.complete(s,d.id,'deliver');Story.emit(s,'factionDelivered',faction);return d;
   }
   // Each delivered contract is paid exactly once.
   function collectFactionPayment(s){
     const paid=[];
-    for(const d of factionList)if(factionStage(s,d.faction)==='delivered'){s.story.flags[d.flag]='paid';s.credits+=d.payment;s.completed++;Missions.complete(s,d.id,'payment');paid.push(d);}
+    for(const d of payable)if(stageOf(s,d)==='delivered'){s.story.flags[d.flag]='paid';s.credits+=d.payment;s.completed++;Missions.complete(s,d.id,'payment');paid.push(d);}
+    if(paid.length)delete s.story.flags.adminOccupied;
     if(paid.length&&factionList.every(d=>factionStage(s,d.faction)==='paid'))s.story.flags.factionsVisited=true;
     return paid;
   }
@@ -79,7 +106,7 @@
     const destination=s.contract==='rook-run'&&typeof to==='string'&&Object.hasOwn(stations,to)?to:rookRunTarget(s);
     return {...rookRunBase,id:'rook-run-'+n,number:n,name:'Rook freight run #'+n,cargo:rookCargo[(n-1)%rookCargo.length],legal:n%2===1,destination,reward:Math.min(2000,500+150*step),enemies:4+step,tier:1+step*.3,duration:36+step*2};
   }
-  const allContracts = [...contracts, rookRunBase, ...factionList, ...content.missions];
+  const allContracts = [...contracts, rookRunBase, ...factionList, ...supplyList, ...content.missions];
   function fresh() { return { version: 2, progression:P.fresh(), universe:U.fresh(), story:Story.fresh(), savedAt:null, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], ownedShips:['starter'], activeShip:'starter', standardGear:['pulse1','shield1'], shipLoadouts:{}, combatRuns:0, missileOfferSeen:false, missileUnlocked:false, travel:null, destination:null, loadout: {weapon:null,shield:null,utility:null,missile:null} }; }
   function restore(raw) {
     try {
@@ -145,7 +172,7 @@
     if (s.quest === 'legal-offer') { s.quest = 'legal-run';Missions.acquire(s,'legal-run'); return true; }
     if (s.quest === 'illegal-offer') { s.quest = 'illegal-run';Missions.acquire(s,'illegal-run'); return true; }
     const c = allContracts.find(c => c.id === id);
-    if (c?.faction) return acceptFaction(s, c.faction);
+    if (c?.faction) return c.kind === 'supply' ? acceptSupply(s, c.faction) : acceptFaction(s, c.faction);
     if (s.contract || !c || !unlocked(s,c)) return false;
     if(!c.dataCargo&&(s.progression.cargo||[]).reduce((n,x)=>n+x.units,0)>=P.systems(s).cargo)return false;
     s.destination=null;s.contract = id;
@@ -211,7 +238,9 @@
     out.progression=P.restore(raw.progression,raw);out.universe=U.restore(raw.universe,out);P.sync(out);
     out.destination=out.universe.freeTravel&&stations[raw.destination]&&raw.destination!==out.location?raw.destination:null;
     const f=flight(out);out.travel=f&&raw.travel?Warp.restore(raw.travel,out.location,f.destination,f.id||out.quest,f.enemies>0||['salvage','hazard','escort'].includes(f.kind)):null;
-    out.story=Story.restore(raw.story);out.savedAt=Number.isSafeInteger(raw.savedAt)&&raw.savedAt>0?raw.savedAt:null;
+    out.story=Story.restore(raw.story);
+    // Admin stays in the store except while the first faction payment waits (replaces the old adminAway flag).
+    {const f=out.story.flags,first=factionDeliveries[f.factionFirst];delete f.adminAway;if(first&&stageOf(out,first)==='delivered')f.adminOccupied=true;else delete f.adminOccupied;}out.savedAt=Number.isSafeInteger(raw.savedAt)&&raw.savedAt>0?raw.savedAt:null;
     if(!raw.story&&out.quest!=='inheritance'){out.story.flags.metMara=true;out.story.met=['mara','elias'];out.story.events=['mara_workshop_intro'];out.story.chapter=out.quest;if(out.completed>0){out.story.flags.rookIntroduced=true;out.story.met.push('rook');}}
     if(!Object.hasOwn(stations,out.progression.checkpoint.location))out.progression.checkpoint={location:out.location};
     if(stations[out.progression.checkpoint.location]){out.location=out.progression.checkpoint.location;out.universe.station={location:out.location};}
@@ -275,7 +304,7 @@
       }
     };
   }
-  const api = { stations, contracts, allContracts, rookRun, rookRunTarget, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
+  const api = { stations, contracts, allContracts, rookRun, rookRunTarget, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

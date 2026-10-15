@@ -222,10 +222,11 @@ David has not decided. Several of these, plus Rook's runs and the contracts, ove
 
 - Admin offers both after Meet Admin. The player can ask about either, take one, or think about it.
 - Arriving pays nothing. Handing the cargo to Dr. Elara Voss or Marcus Vale counts as delivered, and the goal becomes "Return to The Darknet District and collect payment".
-- From then on Admin is "occupied" (absent, no explanation) and Iris runs the counter. She pays, then offers the remaining delivery, which the player can take or leave for later.
+- On the visit where the first payment waits, Admin is "occupied" (not shown) and Iris runs the counter. She pays, then offers the remaining delivery, which the player can take or leave for later. On every other visit Admin and Iris are both behind the counter (doc 09).
 - The second delivery is paid the same way, and Iris closes with her last line.
 - After both deliveries, Claude must **propose several next-chapter directions**. Doc 06 §7 lists them: Rook, Admin/Iris, Communion, Natural Order, independent cargo, exploration/bounty. Nothing may be finalized without approval.
 - **Next requested feature:** the small faction battles on the way to each delivery (doc 08).
+- **Iris follow-up contracts (IMPLEMENTED; doc 09):** once both introductory deliveries are paid, Iris offers a Communion and a Natural Order supply contract (`communion-supply`, `order-supply`; placeholder pay 1,500 each, David will balance later). Each is delivered to Elara or Marcus and paid by Iris. Delivering one makes that recipient offer a homeworld mission ("I'm interested" / "Not right now"); the offer stays with them until taken. Accepted homeworld missions (`communion-origin-mission-01`, `natural-order-origin-mission-01`) are placeholders: no destination, objectives or rewards, never completable, never auto-tracked; the game says they are not yet available.
 
 ---
 
@@ -245,6 +246,7 @@ David has not decided. Several of these, plus Rook's runs and the contracts, ove
   - Iris plays doc 06. Elara and Marcus play doc 07.
   - **CLAUDE-WRITTEN, UNREVIEWED** functional lines, shown only in edge cases:
     - Admin, while a delivery is under way: "You've got a delivery to make. Come back when it's done."
+    - Admin, once introductions are done and nothing is under way: "Iris has the contracts. I just make the introductions."
     - Admin, if the player is carrying another contract: "Finish the job you're carrying first. Then we'll talk."
     - Iris, same case: "You're already carrying someone else's cargo. Come back when your hold is free."
   - When the player returns to Admin after "I'll think about it", Admin reopens with his own line from doc 05 ("So, what do you think?…"), as approved. If the player declines Iris's offer, she repeats her offer lines from doc 06 on the next visit.
@@ -360,7 +362,9 @@ From the master plan and doc 05:
 - **Save state (all in `story.flags`, so old saves and the server need no new fields):**
   - `factionFirst`: `communion` or `natural-order`
   - `communionDelivery`, `orderDelivery`: `accepted` → `delivered` → `paid`
-  - `adminAway`: true after the first delivery (hides Admin; his interaction uses the new `notFlags` condition in `story.js`)
+  - `adminOccupied`: true only while the first faction payment waits (hides Admin; `notFlags` condition in `story.js`). The older `adminAway` flag is removed on load.
+  - `communionSupply`, `orderSupply`: `accepted` → `delivered` → `paid`
+  - `communionOrigin`, `orderOrigin`: `offered` → `accepted` (homeworld placeholders)
   - `factionIntro`: Admin's full introduction has played
   - `factionsVisited`: both deliveries paid
 - **Mission Log:** definitions in `mission-log.js` with objectives arrive → deliver → payment. A new `after` field moves the goal back to the District once the cargo is delivered.
@@ -452,6 +456,8 @@ Done; see §4.3. Possible follow-ups:
 - The delivery flights carry normal light risk; the only scripted event is the faction battle from doc 08.
 - Returning to Admin after "I'll think about it" reopens with his "So, what do you think?…" line.
 - Docs 05/06 replace the earlier "First District mission" options A–D (Membership, Breach, Rogue AI, Raven's Plan).
+- **Admin and Iris are both always in the store**, except Admin is "occupied" (not shown) on the first-payment visit (David, 2026-10-15).
+- Iris's follow-up contracts and the homeworld offers (doc 09). Homeworld buttons "I'm interested" / "Not right now" approved for now; pay to be balanced by David later.
 - Faction ship battles on the way to each delivery (doc 08): requested feature, to be built next.
 
 ### Rejected or removed (do not reintroduce)
@@ -471,7 +477,7 @@ Done; see §4.3. Possible follow-ups:
 - **CARGO-001 expansion options:** A, Dr. Sol's water plant on Kepler; B, the sealed crate and a customs hail; C, a missing courier (Elias thread); D, Rook's debt at the Foundry. Claude recommended A, then C.
 - Whether **Elias's past** becomes the thread linking the opening to the faction story.
 - Keep, rework or cut each **legacy chapter** (§4.5).
-- **What follows the faction deliveries:** next-chapter directions (doc 06 §7) must be proposed after the battles are built.
+- **Homeworld missions:** David will design the planets and missions; nothing beyond placeholders may be built (doc 09 §7–8).
 - **Faction follow-up chains** and reputation rules (§6).
 - The middle game ("Dead Channels") and late game ("The Silent God") arcs from the mission tree are only proposed.
 - Cleaning up stale merged `claude/*` branches was offered, not requested.

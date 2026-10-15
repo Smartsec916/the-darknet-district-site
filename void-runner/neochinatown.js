@@ -43,8 +43,8 @@
     {id:'terminal',label:'LANDING TERMINAL',position:[7,1.7,-44],action:'terminal',range:3},
     {id:'tdd',label:'ENTER THE DARKNET DISTRICT',position:[0,1.7,19.2],action:'tdd',range:3},
     {id:'district-scan',label:'PRESENT BADGE TO SCANNER',position:[2.2,1.7,24.5],action:'district-scan',range:2.6,when:{flags:{districtDoor:true}}},
-    // Admin is 'occupied' once a faction delivery has been made; Iris runs the counter (doc 06).
-    {id:'admin',label:'SPEAK WITH ADMIN',position:[8,1.7,46.2],action:'admin',range:3,when:{notFlags:{adminAway:true}}},
+    // Admin and Iris are both at the counter, except while the first faction payment waits and Admin is 'occupied' (doc 06).
+    {id:'admin',label:'SPEAK WITH ADMIN',position:[8,1.7,46.2],action:'admin',range:3,when:{notFlags:{adminOccupied:true}}},
     {id:'district-iris',label:'SPEAK WITH IRIS',position:[12.5,1.7,46.2],action:'district-iris',range:3},
     {id:'district-shop',label:'BROWSE THE SHOP',position:[14.8,1.7,50.5],action:'district-shop',range:2.8},
     {id:'district-bar',label:'TALK TO THE BARTENDER',position:[10,1.7,37.2],action:'district-bar',range:3},
@@ -180,7 +180,7 @@
     box('shop-shelf',[6.4,2.6,.6],[11,1.3,43.55],frame);for(let k=0;k<4;k++)box('shelf-goods',[5.8,.25,.4],[11,.5+k*.6,43.75],[cyan,amber,violet,magenta][k]);
     box('admin-workstation',[2,.9,1],[8,.45,50.8],frame);plane('admin-screen',1.6,.9,[8,1.5,51.3],texMat('admin-screen',texture('admin-screen',256,144,(g,W,H)=>{g.fillStyle='#04060a';g.fillRect(0,0,W,H);g.fillStyle='#38e8ff';g.font='12px monospace';for(let i=0;i<9;i++)g.fillText(['> trace sovereign','> relay: tessaly-07','> badge db sync','> iris.status OK','> mainframe 98%','> firewall ACTIVE','> cams 12/12','> vend restock','> _'][i],8,16+i*14);}),{glow:true}),0);
     plane('shop-holo',1.6,2.4,[10,2.6,52.8],adMat('helix'),0);
-    if(state?.story?.flags?.adminAway!==true)characterModel('admin',parent,[8,0,48.6],false);characterModel('iris',parent,[12.5,0,48.6],false);
+    if(state?.story?.flags?.adminOccupied!==true)characterModel('admin',parent,[8,0,48.6],false);characterModel('iris',parent,[12.5,0,48.6],false);
 
     // Vending alcove: three lit machines.
     for(let i=0;i<3;i++){const z=47.6+i*1.9;box('vending-body',[1,2.2,1.6],[-6.3,1.1,z],mat('vend','#16161d',{rough:.5,metal:.6}));plane('vending-front',.05+1.3,1.7,[-5.78,1.25,z],texMat('vend-'+i,texture('vend-'+i,128,170,(g,W,H)=>{g.fillStyle=['#0b2a33','#2b0b26','#2a220b'][i];g.fillRect(0,0,W,H);for(let y=10;y<H-30;y+=24)for(let x=8;x<W-10;x+=22){g.fillStyle=['#38e8ff','#ff5bd0','#ffb347','#6cff9e'][(x+y)%4];g.fillRect(x,y,14,16);}g.fillStyle='#e8f0ff';g.font='bold 14px sans-serif';g.fillText(['DRINKS','SNACKS','TECH'][i],10,H-10);}),{glow:true}),-Math.PI/2);}
