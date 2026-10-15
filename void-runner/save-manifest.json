@@ -24,6 +24,8 @@
     "rook-run",
     "communion-delivery",
     "order-delivery",
+    "communion-supply",
+    "order-supply",
     "belt-1",
     "belt-2",
     "belt-3",
