@@ -144,19 +144,9 @@
     for(const side of [-1,1]){const array=box('solar-array',[side*17,0,0],[11,.2,5],'dark',0,false);array.parent=outpost;for(let i=0;i<5;i++){const stripe=box('array-grid',[side*17,0.12,-2+i],[10,.03,.06],'cold',0,false);stripe.parent=outpost;}}
     const glow=(name,pos,c,intensity,radius)=>{const light=new B.PointLight(name,new B.Vector3(...pos),scene);light.diffuse=B.Color3.FromHexString(c);light.intensity=intensity;light.range=radius;light.parent=parent;dynamic.push(light);};
     for(const [z,color] of [[-58,'#f6ad69'],[-36,'#9ccbd6'],[-11,'#89bdcd'],[22,'#f2b36e'],[55,'#d8825f'],[85,'#d44e53']])glow('derelict-local-light',[0,6,z],color,quality==='low'?.45:.8,23);
-    // Reference-art hangar pass: upper catwalks with railings and stairs on both walls,
-    // a lit control room overlooking the bay, red emergency lighting, hanging chains
-    // and a gang banner. Overhead/visual only; floor collision and cover are unchanged.
-    for(const side of [-1,1]){
-      const x=side*15.4;
-      box('catwalk-deck',[x,5.2,-52],[4.2,.25,46],'frame');
-      for(let z=-74;z<=-30;z+=4){box('catwalk-strut',[x-side*1.9,2.6,z],[.25,5.2,.25],'frame');box('catwalk-bracket',[x,5.0,z],[4.2,.2,.2],'dark');}
-      box('catwalk-rail',[x-side*2.05,6.25,-52],[.08,.08,46],'trim');box('catwalk-midrail',[x-side*2.05,5.75,-52],[.06,.06,46],'trim');
-      for(let z=-74;z<=-30;z+=2)box('catwalk-post',[x-side*2.05,5.75,z],[.07,1.05,.07],'trim');
-      for(let i=0;i<9;i++)box('catwalk-stair',[side*12.6,.3+i*.56,-34-i*.7],[2,.12,.7],'frame');
-      box('stair-stringer',[side*11.7,2.6,-36.8],[.12,.4,6.6],'dark',side*0).rotation.x=-.68;
-      for(const z of [-68,-56,-44])box('emergency-lamp',[side*17.4,4.2,z],[.25,.35,.6],'red');
-    }
+    // Reference-art hangar pass: a lit control room overlooking the bay, red emergency
+    // lighting, hanging chains and a gang banner. The walkable catwalks are above.
+    for(const side of [-1,1])for(const z of [-68,-56,-44])box('emergency-lamp',[side*17.4,4.0,z],[.25,.35,.6],'red');
     for(const z of [-66,-50,-38])glow('derelict-emergency',[0,4.6,z],'#ff3b30',quality==='low'?.35:.65,14);
     box('control-room',[0,7.2,-74.6],[14,3.6,4],'frame');box('control-room-window',[0,7.4,-72.55],[12,1.8,.12],'glass');
     box('control-room-light',[0,8.6,-74],[11,.15,.4],'cold');box('control-room-sill',[0,6.35,-72.4],[14,.25,.6],'trim');
