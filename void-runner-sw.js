@@ -1,5 +1,5 @@
 /* VOID//RUNNER only. Increment BUILD when deploying changed game files. */
-const BUILD='2026-10-15-music-system-2';
+const BUILD='2026-10-15-npc-voices-1';
 const CORE='void-runner-core-'+BUILD;
 const ASSETS='void-runner-assets-'+BUILD;
 const PAGE=new URL('./void-runner.html',self.location).pathname;
