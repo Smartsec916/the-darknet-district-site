@@ -1,6 +1,6 @@
 # VOID//RUNNER: WarFlying, Relay, Privacy and Piracy — Audit and Plan
 
-**As of:** 2026-10-16 · **Brief:** `docs/void-runner/design-source/11-warflying-relay-privacy-piracy.md` and Admin's scene `12-scene-admin-warflying-intro.md` (both David's, word for word) · **Status:** PROPOSED, awaiting David's approval.
+**As of:** 2026-10-16 · **Brief:** `docs/void-runner/design-source/11-warflying-relay-privacy-piracy.md` and Admin's scene `12-scene-admin-warflying-intro.md` (both David's, word for word) · **Status:** decisions APPROVED 2026-10-16 (see §2).
 
 ## 1. Audit: what the game has today
 
@@ -26,7 +26,15 @@
 | Economy / stores | **Partial** | Upgrade shop, credit gear, ships, module purchases; **no selling** of anything | Cargo buyers |
 | Documentation | **Working** | Handoff doc, design sources, voice production doc | WarFlying docs as built |
 
-## 2. Decisions needed from David (before building)
+## 2. Decisions (David, 2026-10-16)
+
+**Outcome:**
+- **1:** APPROVED.
+- **2, 5 and 6:** approved as recommended.
+- **3:** REVISED. Admin sells **only the WarFlying Scrambler**, because he sees WarFlying as an invasion of privacy. **WarFlying scanners are sold in every other store.** The Signal Tracker is listed but can't be bought yet.
+- **4:** APPROVED, unless David changes it later.
+
+The original recommendations follow for reference.
 
 1. **"Don't Ask Questions" must be trouble-free (§23).**
    - **The conflict:** PR #59 gave Admin's sealed run a patrol line. It forces a drop-out, can hail you, and can confiscate the crate.
