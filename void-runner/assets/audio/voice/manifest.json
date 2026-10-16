@@ -3,6 +3,10 @@
  "engine": "kokoro-v1.0.onnx (Apache-2.0 (hexgrad/Kokoro-82M))",
  "format": "ogg/opus 24 kHz mono",
  "cast": {
+  "rook": {
+   "voice": "bm_fable",
+   "status": "approved"
+  },
   "iris": {
    "voice": "bf_emma",
    "effect": "android",
@@ -18,10 +22,6 @@
   },
   "marcus": {
    "voice": "am_eric",
-   "status": "approved"
-  },
-  "rook": {
-   "voice": "bm_fable",
    "status": "approved"
   },
   "kess": {
@@ -70,10 +70,31 @@
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
+  "admin-0f80e227e1": {
+   "speaker": "admin",
+   "text": "Tessaly patrols have been scanning outbound traffic lately. Keep your head down and you’ll be fine. Rook pays well.",
+   "file": "admin-0f80e227e1.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
+  "admin-1284d30153": {
+   "speaker": "admin",
+   "text": "Happens. Rook still needs one. I’ve got another, if you’re feeling luckier.",
+   "file": "admin-1284d30153.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
   "admin-1a2c7e9f7e": {
    "speaker": "admin",
    "text": "Things have been getting a little interesting out there lately. The Communion and the Natural Order are at each other’s throats again.",
    "file": "admin-1a2c7e9f7e.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
+  "admin-1f36cdf475": {
+   "speaker": "admin",
+   "text": "Got a minute? I’ve got something for Rook. Small crate. Sealed.",
+   "file": "admin-1f36cdf475.ogg",
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
@@ -91,6 +112,13 @@
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
+  "admin-2c4f8d06b3": {
+   "speaker": "admin",
+   "text": "Suit yourself. It’ll keep.",
+   "file": "admin-2c4f8d06b3.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
   "admin-2cdccb5d8e": {
    "speaker": "admin",
    "text": "You’ve got a delivery to make. Come back when it’s done.",
@@ -98,10 +126,24 @@
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
+  "admin-3d0b874ad8": {
+   "speaker": "admin",
+   "text": "Something Rook paid for, and something you don’t need to know about. It stays sealed.",
+   "file": "admin-3d0b874ad8.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
   "admin-49704bf026": {
    "speaker": "admin",
    "text": "Been arguing about it for generations. Occasionally they shoot at each other. Usually somewhere inconvenient for the rest of us.",
    "file": "admin-49704bf026.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
+  "admin-4aa8253ec4": {
+   "speaker": "admin",
+   "text": "Rook’s expecting it. Don’t open it.",
+   "file": "admin-4aa8253ec4.ogg",
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
@@ -126,10 +168,24 @@
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
+  "admin-81d2b95dad": {
+   "speaker": "admin",
+   "text": "Then you’ve got a choice to make. Pay the fine and lose the crate, or don’t. Just don’t lead them back here.",
+   "file": "admin-81d2b95dad.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
   "admin-837b9e0a9b": {
    "speaker": "admin",
    "text": "Communion’s big on artificial intelligence. Practically worship the stuff. Natural Order? They’d rather smash a computer than let one make a decision for them.",
    "file": "admin-837b9e0a9b.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
+  "admin-881f867cc7": {
+   "speaker": "admin",
+   "text": "Heard you ran into a patrol.",
+   "file": "admin-881f867cc7.ogg",
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
@@ -158,6 +214,13 @@
    "speaker": "admin",
    "text": "Advanced electronics. Research equipment, mostly. They’re always building something over there. Pays well enough.",
    "file": "admin-bef8ca5f24.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
+  "admin-c82db58455": {
+   "speaker": "admin",
+   "text": "That crate for Rook is still here, if you want it.",
+   "file": "admin-c82db58455.ogg",
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
@@ -980,11 +1043,32 @@
    "source": "world-integration.js",
    "configHash": "74b28864fe22"
   },
+  "rook-512fb8eb8d": {
+   "speaker": "rook",
+   "text": "Heard a patrol chased you halfway to the gate. Nice flying.",
+   "file": "rook-512fb8eb8d.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "43ded265d771"
+  },
   "rook-6f06e2d496": {
    "speaker": "rook",
    "text": "Two hot runs and you’re still breathing. I’ve got something for the next one. Head to the station shop. Tell them Rook sent you. They’ll fit a missile launcher — installation’s on me. I know a guy in Tessaly with more work. Admin. Runs The Darknet District in NeoChinatown with his partner Iris. I’ve marked the Tessaly Belt Anchorage. Press L for your Mission Log; pick what you want to track. Complete your missile qualification before choosing independent routes. Acquire the launcher here, fit it in the hangar, and demonstrate target selection, lock and firing on your next run.",
    "file": "rook-6f06e2d496.ogg",
    "source": "hangar.js",
+   "configHash": "43ded265d771"
+  },
+  "rook-7efffedda1": {
+   "speaker": "rook",
+   "text": "Seal’s intact. Good.",
+   "file": "rook-7efffedda1.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "43ded265d771"
+  },
+  "rook-8b8d017501": {
+   "speaker": "rook",
+   "text": "Here’s your cut. And you never carried it.",
+   "file": "rook-8b8d017501.ogg",
+   "source": "faction-scenes.js",
    "configHash": "43ded265d771"
   },
   "rook-a3a0f56420": {

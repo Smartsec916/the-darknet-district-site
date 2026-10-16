@@ -339,10 +339,29 @@
     node.metadata = {placeholder: true, faction: name.startsWith('communion-') ? 'communion' : 'natural-order'};
     return node;
   }
+  // Tessaly police cutter (Admin's sealed-cargo patrols): navy and white hull, red and blue light bar.
+  function policeShipModel(parent) {
+    const b = B(), node = new b.TransformNode('police-cutter', scene);node.parent = parent;
+    const white = material('police-white', '#d9dee4'), navy = material('police-navy', '#1d2b45'), dark = material('police-dark', '#10151d'), red = material('police-red', '#ff3b3b', true), blue = material('police-blue', '#3b7bff', true), burn = material('police-burn', '#7fb4ff', true);
+    white.emissiveColor = new b.Color3(.1, .11, .12);navy.emissiveColor = new b.Color3(.03, .04, .07);
+    box('police-hull', [1.3, .7, 4.2], [0, 0, 0], navy, node);
+    const nose = box('police-nose', [.9, .5, 1.2], [0, -.05, 2.5], white, node);nose.rotation.x = .18;
+    box('police-dorsal', [1.1, .12, 2.6], [0, .41, .3], white, node);
+    box('police-canopy', [.6, .28, .8], [0, .55, 1.2], dark, node);
+    box('police-lightbar-red', [.34, .14, .3], [-.22, .68, .2], red, node);box('police-lightbar-blue', [.34, .14, .3], [.22, .68, .2], blue, node);
+    for (const side of [-1, 1]) {
+      const wing = box('police-wing', [1.8, .1, 1.4], [side * 1.4, -.1, -.6], white, node);wing.rotation.y = side * .25;
+      const stripe = box('police-wing-stripe', [1.6, .11, .2], [side * 1.45, -.09, -.25], blue, node);stripe.rotation.y = side * .25;
+      const pod = b.MeshBuilder.CreateCylinder('police-engine', {height: 1.4, diameter: .55, tessellation: 12}, scene);pod.parent = node;pod.rotation.x = Math.PI / 2;pod.position.set(side * .75, -.05, -2);pod.material = dark;
+      const glow = b.MeshBuilder.CreateDisc('police-burn', {radius: .24, tessellation: 16}, scene);glow.parent = node;glow.position.set(side * .75, -.05, -2.72);glow.rotation.y = Math.PI;glow.material = burn;
+    }
+    return node;
+  }
   function shipModel(name, allegiance, parent) {
     const model = VoidAssets.instance('ship:' + name, parent);
     if (model) return model;
     if (/^(communion|order)-/.test(name)) return factionShipModel(name, parent);
+    if (name === 'police-cutter') return policeShipModel(parent);
     const b = B(),
       node = new b.TransformNode(name, scene),
       metal = material('hull', name==='starter'?'#a8a299':'#465964'),

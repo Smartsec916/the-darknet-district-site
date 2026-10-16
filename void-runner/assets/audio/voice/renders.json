@@ -932,5 +932,77 @@
   "generatedAt": "2026-10-15",
   "runtime": "kokoro-onnx 0.6.1",
   "note": "recorded at registry creation; rendered with these settings"
+ },
+ "admin-0f80e227e1": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "d971d310d6d7",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-1284d30153": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "641170ba0f7d",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-1f36cdf475": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "c3176e600acd",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-2c4f8d06b3": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "0aa2b48d4c21",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-3d0b874ad8": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "fb45ea7668c4",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-4aa8253ec4": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "0f709805bb7b",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-81d2b95dad": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "3d70e1b557d1",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-881f867cc7": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "a587f993fd19",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-c82db58455": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "07adf98fed00",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "rook-512fb8eb8d": {
+  "configHash": "43ded265d771",
+  "textHash": "1a5a17e00476",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "rook-7efffedda1": {
+  "configHash": "43ded265d771",
+  "textHash": "8c7cff0af60f",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "rook-8b8d017501": {
+  "configHash": "43ded265d771",
+  "textHash": "7c9c0c4ef3e0",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
  }
 }
