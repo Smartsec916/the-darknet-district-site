@@ -73,5 +73,5 @@ test('each ship keeps its own Utility module across ship changes and reloads',()
 });
 test('continuous listening in one place is one sighting, not hundreds',()=>{
   const db=W.fresh();for(let i=0;i<120;i++)see(db,'beacon:erebus-1','confirmed','erebus:meridian>kepler',1000+i*500);
-  assert.equal(db.records['beacon:erebus-1'].k,2,'two sightings: the first, and again after a minute');
+  assert.equal(db.records['beacon:erebus-1'].k,1,'an unbroken minute of listening is one sighting');see(db,'beacon:erebus-1','confirmed','erebus:meridian>kepler',1000+120*500+61000);assert.equal(db.records['beacon:erebus-1'].k,2,'heard again after a gap: a new sighting');
 });
