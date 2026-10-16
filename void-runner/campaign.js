@@ -137,6 +137,34 @@
   }
   // Rook routes no freight into a faction system until the player has made Admin's delivery there.
   function heldForAdmin(s,system){const d=factionList.find(x=>U.system(x.destination)===system);return !!d&&!['delivered','paid'].includes(factionStage(s,d.faction));}
+  // Admin's sealed cargo for Rook (David's step 3, Option A). Offered once the first District
+  // delivery is paid and Admin is free. Tessaly patrols scan the run (police-patrol.js); complying
+  // costs a fine and the crate, and Admin offers the job again. Rook pays on handover at Meridian.
+  // story.flags.sealedCargo: accepted -> delivered, or accepted -> seized -> accepted again.
+  const sealedCargo={id:'admin-sealed-cargo-01',kind:'sealed',flag:'sealedCargo',name:'Sealed cargo for Rook',cargo:'Sealed container (contents undisclosed)',legal:false,destination:'meridian',payment:1800,reward:1800,enemies:0,tier:0,duration:36,contact:'Admin',recipient:'rook',briefing:'A sealed container from Admin for Rook at Meridian. It stays sealed. Tessaly patrols are scanning outbound traffic.'};
+  function sealedStage(s){const v=s.story?.flags?.sealedCargo;return ['accepted','delivered','seized'].includes(v)?v:null;}
+  function sealedOffered(s){const f=s.story?.flags||{};return s.quest==='open'&&s.universe?.freeTravel===true&&f.metAdmin===true&&f.adminOccupied!==true&&!!factionDeliveries[f.factionFirst]&&factionStage(s,f.factionFirst)==='paid'&&[null,'seized'].includes(sealedStage(s));}
+  function acceptSealed(s){
+    if(!sealedOffered(s)||s.contract)return false;
+    if((s.progression?.cargo||[]).reduce((n,x)=>n+x.units,0)>=P.systems(s).cargo)return false;
+    s.story.flags.sealedCargo='accepted';delete s.story.flags.sealedPatrol;
+    s.destination=null;s.contract=sealedCargo.id;Missions.acquire(s,sealedCargo.id);Story.emit(s,'missionAccepted',sealedCargo.id);return true;
+  }
+  // The pilot chose to comply with a patrol: the fine is paid, the crate is impounded and the flight continues empty.
+  function seizeSealed(s,fine){
+    if(sealedStage(s)!=='accepted'||s.contract!==sealedCargo.id)return null;
+    const paid=Math.max(0,Math.min(s.credits,Math.round(fine)||0));s.credits-=paid;
+    s.story.flags.sealedCargo='seized';s.contract=null;s.destination=sealedCargo.destination;
+    const u=s.universe;if(u?.missions)delete u.missions[sealedCargo.id];if(u?.trackedMission===sealedCargo.id)u.trackedMission=null;
+    return paid;
+  }
+  function sealedDeliverable(s){return sealedStage(s)==='accepted'&&s.location===sealedCargo.destination&&s.contract!==sealedCargo.id;}
+  function deliverSealed(s){
+    if(!sealedDeliverable(s))return false;
+    s.story.flags.sealedCargo='delivered';s.credits+=sealedCargo.payment;s.completed++;
+    if(!s.universe.completedObjectives.includes(sealedCargo.id))s.universe.completedObjectives.push(sealedCargo.id);
+    Missions.complete(s,sealedCargo.id,'arrive');Missions.complete(s,sealedCargo.id,'deliver');Story.emit(s,'missionComplete',sealedCargo.id);return true;
+  }
   const quests = ['inheritance', 'arrival', 'legal-offer', 'legal-run', 'return', 'illegal-offer', 'illegal-run', 'open'];
   // Rook keeps freight moving once the opening runs are done. Each run is numbered so
   // the Mission Log keeps a separate entry, and a newly opened system gets the next run.
@@ -156,7 +184,7 @@
     const destination=s.contract==='rook-run'&&typeof to==='string'&&Object.hasOwn(stations,to)?to:rookRunTarget(s);
     return {...rookRunBase,id:'rook-run-'+n,number:n,name:'Rook freight run #'+n,cargo:rookCargo[(n-1)%rookCargo.length],legal:n%2===1,destination,reward:Math.min(2000,500+150*step),enemies:4+step,tier:1+step*.3,duration:36+step*2};
   }
-  const allContracts = [...contracts, rookRunBase, ...factionList, ...supplyList, ...homeContracts, ...content.missions];
+  const allContracts = [...contracts, rookRunBase, ...factionList, ...supplyList, ...homeContracts, sealedCargo, ...content.missions];
   function fresh() { return { version: 2, progression:P.fresh(), universe:U.fresh(), story:Story.fresh(), savedAt:null, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], ownedShips:['starter'], activeShip:'starter', standardGear:['pulse1','shield1'], shipLoadouts:{}, combatRuns:0, missileOfferSeen:false, missileUnlocked:false, travel:null, destination:null, loadout: {weapon:null,shield:null,utility:null,missile:null} }; }
   function restore(raw) {
     try {
@@ -201,9 +229,9 @@
     if (s.quest === 'open' && s.contract) {
       const c = allContracts.find(c => c.id === s.contract);
       if (!c) return null;
-      const pressure = c.chapter || c.faction ? 0 : Math.min(6, Math.floor(Math.max(0, s.completed - 2) / 2));
+      const pressure = c.chapter || c.faction || c.kind === 'sealed' ? 0 : Math.min(6, Math.floor(Math.max(0, s.completed - 2) / 2));
       // Faction deliveries are paid by Iris in the District, never on arrival.
-      return { ...c, enemies: c.enemies + pressure * 2, tier: c.tier + pressure * .4, duration: c.duration + pressure * 2, pressure, destination: c.destination === s.location ? 'meridian' : c.destination, ...(c.faction ? { reward: 0 } : {}) };
+      return { ...c, enemies: c.enemies + pressure * 2, tier: c.tier + pressure * .4, duration: c.duration + pressure * 2, pressure, destination: c.destination === s.location ? 'meridian' : c.destination, ...(c.faction || c.kind === 'sealed' ? { reward: 0 } : {}) };
     }
     if(s.quest==='open'&&s.destination&&stations[s.destination]&&s.destination!==s.location)return {...base,name:'Free transit',destination:s.destination,duration:20,enemies:3,tier:1,reward:0,kind:'transit'};
     return null;
@@ -222,6 +250,7 @@
     if (s.quest === 'legal-offer') { s.quest = 'legal-run';Missions.acquire(s,'legal-run'); return true; }
     if (s.quest === 'illegal-offer') { s.quest = 'illegal-run';Missions.acquire(s,'illegal-run'); return true; }
     const c = allContracts.find(c => c.id === id);
+    if (c?.kind === 'sealed') return acceptSealed(s);
     if (c?.faction) return c.kind === 'supply' ? acceptSupply(s, c.faction) : c.kind === 'origin' ? loadOrigin(s, c.faction) : acceptFaction(s, c.faction);
     if (s.contract || !c || !unlocked(s,c)) return false;
     if(!c.dataCargo&&(s.progression.cargo||[]).reduce((n,x)=>n+x.units,0)>=P.systems(s).cargo)return false;
@@ -247,7 +276,7 @@
     if (f.chapter && !s.cleared.includes(f.id)) s.cleared.push(f.id);
     if(f.kind==='transit'){s.story.chapter=s.quest;Story.emit(s,'arriveLocation',s.location);return {...f,repairCharged,gunReward:false};}
     if(f.id==='prologue-missiles')return {...f,repairCharged,gunReward:false};
-    if(!f.faction&&!s.universe.completedObjectives.includes(f.id||previous))s.universe.completedObjectives.push(f.id||previous);
+    if(!f.faction&&f.kind!=='sealed'&&!s.universe.completedObjectives.includes(f.id||previous))s.universe.completedObjectives.push(f.id||previous);
     if(previous==='arrival'&&s.location==='meridian'){
       for(const objective of ['travel','dock'])Missions.complete(s,'meet-rook',objective,{missionFlight});
     } else Missions.complete(s,f.id||previous);
@@ -354,7 +383,7 @@
       }
     };
   }
-  const api = { stations, contracts, allContracts, rookRun, rookRunTarget, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
+  const api = { stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, seizeSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

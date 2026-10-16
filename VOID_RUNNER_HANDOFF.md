@@ -420,6 +420,23 @@ From the master plan and doc 05:
 - **UNREVIEWED placeholder lines:** Kess and Mercer's reward hand-over lines. "Tell me more" shows the module's real numbers as a notice rather than invented dialogue.
 - **Lighting:** each homeworld lowers the global exposure while you are there (as Vesper does). Music: `nexus` (ethereal, melancholic) and `order-homeworld` (warm, percussive). Kess (bm_daniel) and Mercer (am_onyx) are voiced.
 
+### 9.2.5 Admin's sealed cargo and Tessaly patrols (IMPLEMENTED; Option A)
+
+- **Offer:** once the first District delivery is paid and Admin isn't "occupied", Admin offers a sealed crate for Rook (`admin-sealed-cargo-01`, `story.flags.sealedCargo`: accepted → delivered, or accepted → seized). The contents are never revealed.
+- **Route:** NeoChinatown → Meridian. The outbound jump drops out once at a **Tessaly patrol line** while the drive recharges (26 s). Three police cutters fly fixed loops; inside a cutter's scan range a **scan meter** fills, faster up close. The range follows the ship's signature, so **going dark** and easing off the throttle shrink it. Patrols show as blue radar blips.
+- **Hail (never a forced stop):** a full meter brings a hail with three choices:
+  - **Comply:** a 400-credit fine (never more than the pilot has); the crate is impounded, the flight continues empty, and Admin offers the job again.
+  - **Run:** the drive spools in 6 s; the cutters chase and fire, holding off rather than ramming, until you jump.
+  - **Talk your way out:** one try, 50% chance.
+- The outcome is stored in `sealedPatrolOutcome` (avoided / released / seized / evaded) for future reactions; Rook mentions an escape.
+- **Pay:** Rook pays **1,800** (placeholder) in person at Meridian. The crate keeps the hold busy, so there are no Rook freight runs until it's handed over.
+- **Placeholders for David:**
+  - all Admin, Rook and patrol lines (marked UNREVIEWED in `faction-scenes.js` and `police-patrols.js`)
+  - who runs the police (left neutral as "Tessaly patrol")
+  - pay, fine and talk odds (`police-patrol.js` config)
+- **Voices:** Admin and Rook's new lines are recorded with their approved voices. The patrol is text-only until a police voice is cast.
+- **Code:** rules are in `campaign.js` (sealed contract) and `police-patrol.js` (patrols, tested in `tests/sealed-cargo.test.cjs`). `police-patrols.js` wires them into flight, and the cutter model is in `babylon-renderer.js`.
+
 ### 9.3 Rook cargo runs
 
 Done; see §4.3. Possible follow-ups:
@@ -507,6 +524,8 @@ Done; see §4.3. Possible follow-ups:
 - **Admin and Iris are both always in the store**, except Admin is "occupied" (not shown) on the first-payment visit (David, 2026-10-15).
 - Iris's follow-up contracts and the homeworld offers (doc 09). Homeworld buttons "I'm interested" / "Not right now" approved for now; pay to be balanced by David later.
 - Faction ship battles on the way to each delivery (doc 08): requested feature, built (§9.2.1). The border drop-out placement is Claude's choice and awaits David's review.
+
+- **Admin's sealed cargo (step 3): Option A, "patrols you can avoid"** (2026-10-16). No forced inspection; the player always chooses. David's original sections 17–20 of the homeworld brief were lost from the session, so the dialogue is placeholder (see §9.2.5).
 
 ### Rejected or removed (do not reintroduce)
 
