@@ -495,12 +495,12 @@
     for(let i=0;i<5;i++)box('holdfast-hall-lamp',[1.6,.1,.45],[-12+i*6,5.85,26],amber,node);
   }
   function stationModel(id, parent, exterior=false,layoutDef=null) {
-    if(id==='meridian'&&exterior){const imported=VoidAssets.instance('station:meridian',parent);if(imported){imported.metadata={identity:'meridian',source:'shared-glb'};return imported;}return VoidMeridian.build(scene,parent);}
+    if(id==='meridian'&&exterior){const imported=VoidAssets.instance('station:meridian',parent);if(imported){imported.metadata={identity:'meridian',source:'shared-glb'};return imported;}const built=VoidMeridian.build(scene,parent);globalThis.VoidMeridianKitbash?.dress(scene,built,'kit:');return built;}
     const b=B(),node=new b.TransformNode('station-'+id,scene);node.parent=parent;
     const def=layoutDef||VoidStationLayouts.layout(id),hull=material('station',def.color),metal=material('truss','#343e47'),trim=material('navigation','#a9d7c5',true);
     for(const p of def.shell){const colors={frame:'#252c31',panel:'#61676a',seat:'#735a42',ceramic:'#b0b9b5',counter:'#655846',door:'#59656c',amber:'#d7a465',teal:'#82beb0'};const mesh=box(p.id,p.size,p.position,p.kind==='glass'?material('window','#6cabbc',false,.12):p.kind==='floor'?material('floor','#29333c'):colors[p.kind]?material(p.kind,colors[p.kind],['amber','teal'].includes(p.kind)):hull,node);if(p.kind==='door'){mesh.metadata={stationDoor:p};mesh.material=doorMaterial();}}
     if(id==='meridian'){
-      const exterior=VoidMeridian.build(scene,node,{occupied:true});node.metadata={layout:id,exterior};return node;
+      const exterior=VoidMeridian.build(scene,node,{occupied:true});globalThis.VoidMeridianKitbash?.dress(scene,exterior,'kit:',{occupied:true});node.metadata={layout:id,exterior};return node;
     }
     // Open physical aperture at z=-26; split pressure doors slide into the jambs.
     const doors=[-1,1].map(side=>box('hangar-door',[9.8,7,.35],[side*15,3.5,-26],metal,node));
@@ -648,6 +648,8 @@
       ...extraModels,
       ...(id==='vesper'?Object.fromEntries(Object.entries(VoidOpening.hooks).filter(([,d])=>d.src).map(([key,d])=>['opening:'+key,d])):{}),
       ...Object.fromEntries(Object.entries(VoidAssets.models.ships).filter(([key]) => shipTypes.includes(key)).map(([key, value]) => ['ship:' + key, value])),
+      // Meridian's hull cladding (meridian-kitbash.js), so every scene that shows Meridian clads it.
+      ...(id==='meridian'&&globalThis.VoidMeridianKitbash?VoidMeridianKitbash.definitions('kit:'):{}),
       ...((VoidAssets.models.stations[id]||(id==='meridian'&&VoidMeridian.model.src?VoidMeridian.model:null)) ? {
         ['station:' + id]: VoidAssets.models.stations[id]||VoidMeridian.model
       } : {})
