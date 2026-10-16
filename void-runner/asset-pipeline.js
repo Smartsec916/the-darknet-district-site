@@ -40,6 +40,15 @@
     return loader;
   }
   async function load(id, def, scene, task) {
+    const container = await loadContainer(def, scene, task, id);
+    containers.set(id, {
+      container,
+      def
+    });
+    return container;
+  }
+  // Loads and validates a model into a container the caller owns (not tracked or released here).
+  async function loadContainer(def, scene, task, id = def.src) {
     const url = new URL(def.src, base);
     if (url.origin !== location.origin || !url.pathname.endsWith('.glb')) throw Error('Model must be a locally hosted GLB.');
     let buffer;
@@ -61,10 +70,6 @@
     task?.check();
     const container = await BABYLON.SceneLoader.LoadAssetContainerAsync(url.href.slice(0, url.href.lastIndexOf('/') + 1), url.href.slice(url.href.lastIndexOf('/') + 1), scene);
     if(task?.signal.aborted){container.dispose();task.check();}
-    containers.set(id, {
-      container,
-      def
-    });
     return container;
   }
 
@@ -94,8 +99,10 @@
       of containers.values()) container.dispose();
     containers.clear();
   }
+  // The loaded container for an id (for builders that place many copies themselves), or null.
+  function container(id){return containers.get(id)?.container||null;}
   const api = {
-    models,unload,
+    models,unload,container,loadContainer,
     validate,
     load,
     instance,

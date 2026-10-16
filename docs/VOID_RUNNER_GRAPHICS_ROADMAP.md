@@ -35,8 +35,15 @@
 - **Retired:** the old painted ring-station image (`art/station.png`). It looked nothing like the 3D station and was only used by the old 2D renderer, which never runs, yet it was downloaded (2.7 MB) on every visit. Verified: no longer requested.
 - **Screenshots:** `docs/void-runner/graphics/meridian-consistency/` (menu, arrival exterior, interior).
 
-**Still outdated:**
-- **The Meridian exterior** is the shared procedural build; it isn't modernized. It's consistent everywhere, and a future approved exterior model goes in one slot (`VoidMeridian.model` / `VoidAssets.models.stations.meridian`) and then appears in the menu, campaign and skirmish together. Free candidates found so far don't fit; this needs a choice: a kitbash from the MegaKit, a Sketchfab CC-BY model, or a paid model.
+**Exterior cladding (approved by David 2026-10-16, with plainer roofs):** `meridian-kitbash.js` covers the shared design's hangars and modules with about 1,440 MegaKit pieces. It's applied wherever Meridian is built: the menu, the campaign exterior (arrivals and docked screens), and the station scene seen from the hangar.
+- **Pieces:** panels, structural ribs, one plain deck plate, pipe racks, vents and light strips.
+- **One definition:** the module sizes now live in `VoidMeridian.design.modules`, so the builder and the cladding can't drift apart.
+- **Never half-clad:** if any piece fails to load, the plain hull stays.
+- **Cost:** pieces are drawn as thin instances, about 20 draw objects. Measured flight rendering was 0.4 ms per frame without cladding and 0.9 ms with it; a first version using separate instances cost 13.5 ms and was rewritten. The menu loads its own copies, freed with its scene.
+- **Screenshots:** `docs/void-runner/graphics/meridian-kitbash/`.
+
+**Still outdated or open:**
+- **Layout versus David's reference art:** the reference (`D:/Pictures/Game/Start/Meridan Station/`) shows H01–H03 side by side under the "MERIDIAN STATION / FUEL · REPAIRS · SUPPLIES" block, with tall solar wings above and below, stacked orange-banded tanks aft, the docking ring lower right and a hanging module underneath. The game's layout spreads H02 and H03 to the sides. Matching the reference is an architecture change and needs approval. H01, the walkable interior, would not need to move.
 - **Mirrored sign:** "SUPPLIES / OUTFITTER" reads mirrored from inside the concourse. It predates this work.
 
 ## Not done / known limits

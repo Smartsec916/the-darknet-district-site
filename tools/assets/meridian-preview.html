@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meridian Kitbash Preview</title>
+<style>
+body{margin:0;background:#05080d;color:#dde3ea;font:14px system-ui,sans-serif}
+header{padding:12px 16px}h1{margin:0;font-size:17px}p{margin:6px 0;color:#8b95a5}
+#grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:0 16px 20px}
+figure{margin:0;background:#0d1219;border:1px solid #232b37;border-radius:8px;overflow:hidden}figure img{display:block;width:100%}
+figcaption{padding:6px 10px;color:#9aa5b5;font-size:13px}
+@media (max-width:700px){#grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><h1>Meridian Station: current vs MegaKit kitbash (proposal)</h1><p id="status">Loading…</p></header>
+<main id="grid"></main>
+<script src="/vendor/babylon-8.26.0.js"></script>
+<script src="/vendor/babylonjs-loaders-8.26.0.min.js"></script>
+<script src="/game/meridian-station.js"></script>
+<script src="/game/meridian-kitbash.js"></script>
+<script>
+// Same look as the game: ACES at the game's exposure, ambient + sun, and the code-built reflection room.
+function stage(engine){
+ const B=BABYLON,s=new B.Scene(engine);s.clearColor=new B.Color4(.008,.018,.035,1);
+ const ip=s.imageProcessingConfiguration;ip.toneMappingEnabled=true;ip.toneMappingType=B.ImageProcessingConfiguration.TONEMAPPING_ACES;ip.exposure=1.55;ip.contrast=1.06;
+ const hemi=new B.HemisphericLight('ambient',new B.Vector3(0,1,0),s);hemi.intensity=.48;hemi.groundColor=new B.Color3(.12,.15,.21);
+ const sun=new B.DirectionalLight('sun',new B.Vector3(.6,-.7,.4),s);sun.intensity=1.5;
+ const helper=new B.Scene(engine),hc=new B.FreeCamera('c',B.Vector3.Zero(),helper);helper.activeCamera=hc;
+ const dome=B.MeshBuilder.CreateSphere('d',{diameter:400,segments:16,sideOrientation:B.Mesh.BACKSIDE},helper),tex=new B.DynamicTexture('g',{width:8,height:256},helper,false),g=tex.getContext(),grad=g.createLinearGradient(0,0,0,256);
+ grad.addColorStop(0,'#9aa6b4');grad.addColorStop(.45,'#4a5360');grad.addColorStop(.55,'#2a2f36');grad.addColorStop(1,'#0c0e11');g.fillStyle=grad;g.fillRect(0,0,8,256);tex.update();
+ const dm=new B.StandardMaterial('d',helper);dm.emissiveTexture=tex;dm.disableLighting=true;dome.material=dm;
+ const probe=new B.ReflectionProbe('p',128,helper);probe.refreshRate=B.RenderTargetTexture.REFRESHRATE_RENDER_ONCE;probe.renderList.push(dome);
+ for(let i=0;i<4;i++){const st=B.MeshBuilder.CreatePlane('s',{width:120,height:10},helper),a=i*Math.PI/2;st.position.set(Math.cos(a)*150,90,Math.sin(a)*150);st.lookAt(B.Vector3.Zero());const m=new B.StandardMaterial('s',helper);m.emissiveColor=new B.Color3(1.6,1.55,1.45);m.disableLighting=true;st.material=m;probe.renderList.push(st);}
+ helper.render();s.environmentTexture=probe.cubeTexture;s.environmentIntensity=.7;
+ const cam=new B.FreeCamera('cam',B.Vector3.Zero(),s);cam.minZ=.5;cam.maxZ=4000;cam.fov=.8;
+ return {s,cam};
+}
+const views={
+ menu:{label:'Menu-style view',pos:[-210,110,-260],target:[5,8,15]},
+ approach:{label:'Approach to H01',pos:[-35,14,-95],target:[0,6,-10]},
+ spine:{label:'Spine and habitation',pos:[60,40,-60],target:[-5,10,35]},
+ close:{label:'Close: H02 hull',pos:[85,16,-40],target:[45,6,1]}
+};
+async function render(){
+ const off=document.createElement('canvas');off.width=960;off.height=540;const engine=new BABYLON.Engine(off,true,{preserveDrawingBuffer:true,stencil:true});
+ const base='/library/megakit/megakit/modular-scifi-megakit-standard-gltf-',containers={};
+ for(const view of Object.keys(views))for(const kit of [false,true]){
+  document.getElementById('status').textContent='Rendering '+views[view].label+(kit?' (kitbash)':' (current)');
+  const {s,cam}=stage(engine),rootNode=new BABYLON.TransformNode('root',s);
+  VoidMeridian.build(s,rootNode);
+  if(kit){
+   for(const [key,id] of Object.entries(VoidMeridianKitbash.pieces))containers[key]=await BABYLON.SceneLoader.LoadAssetContainerAsync(base,id+'.glb',s);
+   const skin=VoidMeridianKitbash.apply(s,rootNode,VoidMeridian.design,containers);window.kitPieces=skin.metadata.pieces;
+  }
+  const v=views[view];cam.position.set(...v.pos);cam.setTarget(new BABYLON.Vector3(...v.target));
+  for(let i=0;i<200&&!s.isReady();i++){s.render();await new Promise(r=>setTimeout(r,10));}s.render();s.render();
+  const fig=document.createElement('figure');fig.innerHTML='<img alt=""><figcaption>'+v.label+' · '+(kit?'MegaKit kitbash ('+window.kitPieces+' pieces)':'current')+'</figcaption>';fig.querySelector('img').src=off.toDataURL('image/jpeg',.9);
+  document.getElementById('grid').append(fig);
+  s.dispose();
+ }
+ engine.dispose();document.getElementById('status').textContent='done';
+}
+render().catch(e=>{document.getElementById('status').textContent='Error: '+e.message;console.error(e);});
+</script>
+</body>
+</html>

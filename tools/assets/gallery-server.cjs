@@ -35,6 +35,9 @@ http.createServer((req,res)=>{
  if(url==='/'||url==='/index.html')return file(res,__dirname,'/gallery.html');
  if(url==='/api/models'){res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});return res.end(JSON.stringify(list()));}
  if(url.startsWith('/vendor/'))return file(res,path.join(repo,'void-runner','vendor'),url.slice(7));
+ // Game scripts, read-only, for previews such as the Meridian kitbash (meridian-preview.html).
+ if(url.startsWith('/game/'))return file(res,path.join(repo,'void-runner'),url.slice(5));
+ if(url==='/meridian')return file(res,__dirname,'/meridian-preview.html');
  if(url.startsWith('/library/'))return file(res,library,url.slice(8));
  res.writeHead(404);res.end('not found');
 }).listen(port,'127.0.0.1',()=>console.log('Asset gallery: http://127.0.0.1:'+port+'/  (library: '+library+')'));

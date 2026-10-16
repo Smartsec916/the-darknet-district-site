@@ -1,5 +1,5 @@
 /* VOID//RUNNER only. Increment BUILD when deploying changed game files. */
-const BUILD='2026-10-16-models-wf-b';
+const BUILD='2026-10-16-meridian-kit-wf-b';
 const CORE='void-runner-core-'+BUILD;
 const ASSETS='void-runner-assets-'+BUILD;
 const PAGE=new URL('./void-runner.html',self.location).pathname;

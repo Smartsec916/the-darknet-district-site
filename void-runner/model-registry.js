@@ -15,6 +15,10 @@
    shuttle:{src:'assets/models/ships/imperial.glb',scale:.32,yaw:0,model:'Imperial',pack:'Ultimate Spaceships',license:quaternius},
    security:{src:'assets/models/ships/omen.glb',scale:.38,yaw:0,model:'Omen',pack:'Ultimate Spaceships',license:quaternius}
   },
+  // Meridian exterior cladding (approved 2026-10-16), applied by meridian-kitbash.js wherever the
+  // station is built: main menu, campaign and skirmish. Textures 512 px (seen at a distance).
+  kit:Object.fromEntries(Object.entries({wall:'Walls/ShortWall_Metal2_Straight',wallDark:'Walls/ShortWall_DarkMetal2_Straight',wallBand:'Walls/ShortWall_Band2_Straight',wallCables:'Walls/TopCables_Straight',deck:'Platforms/Platform_Metal2',rib:'Columns/Column_Large_Straight',pipes:'Props/Prop_PipeHolder',vent:'Props/Prop_Vent_Big',light:'Props/Prop_Light_Wide'})
+   .map(([key,model])=>[key,{src:'assets/models/meridian-kit/'+key+'.glb',scale:1,model,pack:'Modular Sci-Fi MegaKit',license:quaternius}])),
   // Station dressing in real metres (approved 2026-10-16).
   props:{
    crate:{src:'assets/models/props/crate.glb',scale:1,model:'Prop_Crate',pack:'Sci-Fi Essentials Kit',license:quaternius},
@@ -28,6 +32,6 @@
   }
  };
  const assets=root.VoidAssets;
- if(assets){Object.assign(assets.models.ships,registry.ships);assets.models.props=Object.assign(assets.models.props||{},registry.props);}
+ if(assets){Object.assign(assets.models.ships,registry.ships);assets.models.props=Object.assign(assets.models.props||{},registry.props);assets.models.kit=Object.assign(assets.models.kit||{},registry.kit);}
  if(typeof module!=='undefined')module.exports=registry;else root.VoidModelRegistry=registry;
 })(globalThis);

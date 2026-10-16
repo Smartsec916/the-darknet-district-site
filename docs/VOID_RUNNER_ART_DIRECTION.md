@@ -57,6 +57,14 @@
   - Iris: android CSO
 - Generic crowds may come from one coordinated character set.
 
+## David's reference images (local, not in the repo)
+`D:/Pictures/Game/Start/` has folders for Derelict space station, Kestrel, Mara, Meridian Station (exterior plus an interior sheet: main hub, bar, store, hangars H01–H03, corridors, sleeping quarters, restrooms, docking collar, module connector) and Vesper. Use them as the target look:
+- **Kestrel:** weathered off-white panels, a red stripe, swept wings and big twin engines.
+- **Mara:** grey-haired mechanic in a worn work jacket and harness.
+- **Meridian:** weathered grey modules with orange accents and lit window bands.
+
+Note: the interior sheet labels the bar "The Drift"; the game calls it the Dead Channel. Don't change the name without David's decision.
+
 ## How assets are judged
 Every candidate is scored (brief §9), with licence as a pass/fail gate:
 - visual theme: 30%
