@@ -1,7 +1,7 @@
 /* Builds void-runner/assets/audio/voice/manifest.json: every fixed NPC line in the game with a
    stable id, its speaker and the voice cast for that speaker. Lines assembled at runtime (prices,
    destinations) are not listed and use the browser voice fallback.
-   Usage: node tools/voice/extract-lines.cjs */
+   Usage: node tools/audio/extract-lines.cjs [--check] */
 const fs=require('fs'),path=require('path'),crypto=require('crypto');
 const root=path.join(__dirname,'..','..'),src=path.join(root,'void-runner'),out=path.join(src,'assets','audio','voice');
 // Who speaks in game -> voice-file speaker id. The player's own lines are never voiced.
@@ -40,32 +40,31 @@ for(const file of fs.readdirSync(src).filter(f=>f.endsWith('.js'))){
     }
   }
 }
-// Voice casting (Kokoro v1.0 voices). `speed` < 1 is slower; `effect` is applied live in the game.
-const cast={
-  mara:{voice:'af_nicole',speed:.94,note:'Mature, weary, practical mechanic'},
-  elias:{voice:'bm_george',speed:.92,effect:'hologram',note:'Older, warm, reassuring; heard as a recording'},
-  rook:{voice:'am_fenrir',speed:1,note:'Gravelly, streetwise, business-like'},
-  admin:{voice:'am_michael',speed:.97,note:'Relaxed, confident, dry'},
-  iris:{voice:'bf_emma',speed:1,effect:'android',note:'Smooth, articulate, faintly synthetic'},
-  elara:{voice:'bf_isabella',speed:.98,note:'Educated, composed, thoughtful'},
-  marcus:{voice:'am_eric',speed:1,note:'Rough, practical, skeptical'},
-  nyx:{voice:'af_river',speed:1,note:'Bartender at the Dead Channel'},
-  iona:{voice:'af_kore',speed:1,note:'Rusthaven engineer'},
-  sol:{voice:'bm_lewis',speed:.97,note:'Kepler clinic doctor'},
-  bartender:{voice:'am_liam',speed:1,note:'District bartender'},
-  attendant:{voice:'am_puck',speed:1.05,note:'District arcade attendant'},
-  kess:{voice:'bm_daniel',speed:.95,note:'Mature, educated, calm, slightly weary'},
-  mercer:{voice:'am_onyx',speed:1,note:'Mature, slightly rough, conversational'}
-};
-const manifest={version:1,engine:'kokoro-82m-v1.0 (Apache-2.0)',format:'ogg/opus 24 kHz mono',cast,lines:{}};
-for(const l of [...lines.values()].sort((a,b)=>a.id.localeCompare(b.id)))manifest.lines[l.id]={speaker:l.speaker,text:l.text,file:l.id+'.ogg',source:l.source};
-// --check: fail if the game's dialogue no longer matches the manifest or a clip is missing.
+// Voices come from the permanent registry (tools/audio/npc-voice-registry.json); never cast here.
+const Registry=require('./voice-registry.cjs'),reg=Registry.load(),problems=Registry.validate(reg);
+if(problems.length){console.error('Voice registry problems:\n - '+problems.join('\n - '));process.exit(1);}
+const cast={},missingSpeakers=new Set();
+for(const l of lines.values()){const e=reg.npcs[l.speaker];if(!e){missingSpeakers.add(l.speaker);continue;}cast[l.speaker]={voice:e.voice,...(e.profile!=='none'?{effect:e.profile}:{}),status:e.status};}
+if(missingSpeakers.size){console.error('Speakers missing from the registry: '+[...missingSpeakers].join(', '));process.exit(1);}
+const manifest={version:2,engine:reg.engine.model+' ('+reg.engine.license+')',format:'ogg/opus 24 kHz mono',cast,lines:{}};
+for(const l of [...lines.values()].sort((a,b)=>a.id.localeCompare(b.id)))manifest.lines[l.id]={speaker:l.speaker,text:l.text,file:l.id+'.ogg',source:l.source,configHash:Registry.configHash(reg.npcs[l.speaker],reg.engine)};
+const rendersFile=path.join(out,'renders.json'),renders=fs.existsSync(rendersFile)?JSON.parse(fs.readFileSync(rendersFile,'utf8')):{};
+// What still needs rendering: new or changed lines, or a voice whose settings changed. Protected clips are never re-rendered automatically.
+function status(m){
+  const report={missingClips:[],staleClips:[],protectedStale:[],notInManifest:[]};
+  for(const [id,l] of Object.entries(m.lines)){const r=renders[id];
+    if(!fs.existsSync(path.join(out,l.file)))report.missingClips.push(id);
+    else if(!r||r.configHash!==l.configHash)(r?.protected?report.protectedStale:report.staleClips).push(id);}
+  return report;
+}
+// --check: fail if the game's dialogue, the registry and the recordings disagree.
 if(process.argv.includes('--check')){
-  const current=JSON.parse(fs.readFileSync(path.join(out,'manifest.json'),'utf8'));
-  const stale=Object.keys(manifest.lines).filter(id=>!current.lines[id]),missing=Object.values(current.lines).filter(l=>!fs.existsSync(path.join(out,l.file))).map(l=>l.file);
-  if(stale.length||missing.length){console.error(JSON.stringify({notInManifest:stale,missingClips:missing}));process.exit(1);}
-  console.log('voice manifest up to date:',Object.keys(current.lines).length,'lines');process.exit(0);
+  const current=JSON.parse(fs.readFileSync(path.join(out,'manifest.json'),'utf8')),report=status(manifest);
+  report.notInManifest=Object.keys(manifest.lines).filter(id=>!current.lines[id]||current.lines[id].configHash!==manifest.lines[id].configHash);
+  if(report.missingClips.length||report.staleClips.length||report.notInManifest.length){console.error(JSON.stringify(report,null,1));console.error('Run: node tools/audio/extract-lines.cjs && python tools/audio/generate.py --models <folder>');process.exit(1);}
+  console.log('voice manifest up to date:',Object.keys(current.lines).length,'lines'+(report.protectedStale.length?' ('+report.protectedStale.length+' protected clips kept from an older voice setting)':''));process.exit(0);
 }
 fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'manifest.json'),JSON.stringify(manifest,null,1)+'\n');
 const counts={};for(const l of lines.values())counts[l.speaker]=(counts[l.speaker]||0)+1;
-console.log(lines.size+' lines',counts);
+const report=status(manifest);
+console.log(lines.size+' lines',counts);console.log('to render:',report.missingClips.length,'new,',report.staleClips.length,'changed voice,',report.protectedStale.length,'protected (kept)');

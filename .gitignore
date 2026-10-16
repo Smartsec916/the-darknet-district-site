@@ -27,3 +27,12 @@ scrape_hak5.py
 *.tmp[0-9]*
 test-results/
 playwright-report/
+
+# Voice pipeline: models, environments and audition samples stay local
+*.onnx
+voices-v1.0.bin
+venv/
+.venv/
+piper-venv/
+tools/audio/audition/samples/
+voice-comparison/

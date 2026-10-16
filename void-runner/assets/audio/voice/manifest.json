@@ -1,79 +1,65 @@
 {
- "version": 1,
- "engine": "kokoro-82m-v1.0 (Apache-2.0)",
+ "version": 2,
+ "engine": "kokoro-v1.0.onnx (Apache-2.0 (hexgrad/Kokoro-82M))",
  "format": "ogg/opus 24 kHz mono",
  "cast": {
-  "mara": {
-   "voice": "af_nicole",
-   "speed": 0.94,
-   "note": "Mature, weary, practical mechanic"
-  },
-  "elias": {
-   "voice": "bm_george",
-   "speed": 0.92,
-   "effect": "hologram",
-   "note": "Older, warm, reassuring; heard as a recording"
-  },
-  "rook": {
-   "voice": "am_fenrir",
-   "speed": 1,
-   "note": "Gravelly, streetwise, business-like"
+  "iris": {
+   "voice": "bf_emma",
+   "effect": "android",
+   "status": "provisional"
   },
   "admin": {
    "voice": "am_michael",
-   "speed": 0.97,
-   "note": "Relaxed, confident, dry"
-  },
-  "iris": {
-   "voice": "bf_emma",
-   "speed": 1,
-   "effect": "android",
-   "note": "Smooth, articulate, faintly synthetic"
+   "status": "provisional"
   },
   "elara": {
    "voice": "bf_isabella",
-   "speed": 0.98,
-   "note": "Educated, composed, thoughtful"
+   "status": "provisional"
   },
   "marcus": {
    "voice": "am_eric",
-   "speed": 1,
-   "note": "Rough, practical, skeptical"
+   "status": "provisional"
   },
-  "nyx": {
-   "voice": "af_river",
-   "speed": 1,
-   "note": "Bartender at the Dead Channel"
-  },
-  "iona": {
-   "voice": "af_kore",
-   "speed": 1,
-   "note": "Rusthaven engineer"
-  },
-  "sol": {
-   "voice": "bm_lewis",
-   "speed": 0.97,
-   "note": "Kepler clinic doctor"
-  },
-  "bartender": {
-   "voice": "am_liam",
-   "speed": 1,
-   "note": "District bartender"
-  },
-  "attendant": {
-   "voice": "am_puck",
-   "speed": 1.05,
-   "note": "District arcade attendant"
+  "rook": {
+   "voice": "am_fenrir",
+   "status": "provisional"
   },
   "kess": {
    "voice": "bm_daniel",
-   "speed": 0.95,
-   "note": "Mature, educated, calm, slightly weary"
+   "status": "provisional"
   },
   "mercer": {
    "voice": "am_onyx",
-   "speed": 1,
-   "note": "Mature, slightly rough, conversational"
+   "status": "provisional"
+  },
+  "elias": {
+   "voice": "bm_george",
+   "effect": "hologram",
+   "status": "provisional"
+  },
+  "mara": {
+   "voice": "af_nicole",
+   "status": "provisional"
+  },
+  "bartender": {
+   "voice": "am_liam",
+   "status": "provisional"
+  },
+  "attendant": {
+   "voice": "am_puck",
+   "status": "provisional"
+  },
+  "nyx": {
+   "voice": "af_river",
+   "status": "provisional"
+  },
+  "iona": {
+   "voice": "af_kore",
+   "status": "provisional"
+  },
+  "sol": {
+   "voice": "bm_lewis",
+   "status": "provisional"
   }
  },
  "lines": {
@@ -81,817 +67,953 @@
    "speaker": "admin",
    "text": "Ah, you must be the pilot Rook sent. He mentioned you might stop by. Says you’re reliable enough. That’s usually all I need to hear.",
    "file": "admin-026ac0a844.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
   },
   "admin-1a2c7e9f7e": {
    "speaker": "admin",
    "text": "Things have been getting a little interesting out there lately. The Communion and the Natural Order are at each other’s throats again.",
    "file": "admin-1a2c7e9f7e.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
   },
   "admin-2504462831": {
    "speaker": "admin",
    "text": "Rook said you might make the trip. Welcome to The Darknet District. Your ship is fine on the landing pad; The Function charges for parking, not for staying.",
    "file": "admin-2504462831.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "a5a42e62b17a"
   },
   "admin-2ae436a20b": {
    "speaker": "admin",
    "text": "Iris has the contracts. I just make the introductions.",
    "file": "admin-2ae436a20b.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
   },
   "admin-2cdccb5d8e": {
    "speaker": "admin",
    "text": "You’ve got a delivery to make. Come back when it’s done.",
    "file": "admin-2cdccb5d8e.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
   },
   "admin-49704bf026": {
    "speaker": "admin",
    "text": "Been arguing about it for generations. Occasionally they shoot at each other. Usually somewhere inconvenient for the rest of us.",
    "file": "admin-49704bf026.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
   },
   "admin-66b33b1847": {
    "speaker": "admin",
    "text": "So, what do you think? Which direction you feel like heading?",
    "file": "admin-66b33b1847.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
   },
   "admin-6b6ac0def5": {
    "speaker": "admin",
    "text": "Always got work. Just depends on where you’re willing to go.",
    "file": "admin-6b6ac0def5.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
   },
   "admin-77f3b62781": {
    "speaker": "admin",
    "text": "Well, nothing that’s supposed to be exciting.",
    "file": "admin-77f3b62781.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
   },
   "admin-837b9e0a9b": {
    "speaker": "admin",
    "text": "Communion’s big on artificial intelligence. Practically worship the stuff. Natural Order? They’d rather smash a computer than let one make a decision for them.",
    "file": "admin-837b9e0a9b.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
   },
   "admin-8e0fda2b2f": {
    "speaker": "admin",
    "text": "Finish the job you’re carrying first. Then we’ll talk.",
    "file": "admin-8e0fda2b2f.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
   },
   "admin-916f7a1279": {
    "speaker": "admin",
    "text": "Anyway, I’ve got two deliveries that need moving. One’s headed into Communion territory, the other’s going to a Natural Order outpost. Both pay decent.",
    "file": "admin-916f7a1279.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
   },
   "admin-b29df7912e": {
    "speaker": "admin",
    "text": "Eh. Trouble’s good for business. Long as it stays somewhere else.",
    "file": "admin-b29df7912e.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
   },
   "admin-bef8ca5f24": {
    "speaker": "admin",
    "text": "Advanced electronics. Research equipment, mostly. They’re always building something over there. Pays well enough.",
    "file": "admin-bef8ca5f24.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
   },
   "admin-c83a93dcf2": {
    "speaker": "admin",
    "text": "Mechanical components. Industrial supplies. They prefer things that don’t think for themselves. Can’t say I blame them sometimes.",
    "file": "admin-c83a93dcf2.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
   },
   "admin-f8f9b948ab": {
    "speaker": "admin",
    "text": "Equipment. Supplies. Nothing particularly exciting.",
    "file": "admin-f8f9b948ab.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
   },
   "attendant-2c51df66ff": {
    "speaker": "attendant",
    "text": "Every rig is booked tonight. Come back later.",
    "file": "attendant-2c51df66ff.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "a47c75df8031"
   },
   "bartender-4e05c4bdfe": {
    "speaker": "bartender",
    "text": "Private. Admin opens this room when he needs it.",
    "file": "bartender-4e05c4bdfe.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "827569c45d66"
   },
   "bartender-cbd0d30d99": {
    "speaker": "bartender",
    "text": "Filtered air is free, the drinks are not. Pilots talk too much in here, so listen.",
    "file": "bartender-cbd0d30d99.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "827569c45d66"
   },
   "bartender-ebb7d2f21c": {
    "speaker": "bartender",
    "text": "The meeting room is open.",
    "file": "bartender-ebb7d2f21c.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "827569c45d66"
   },
   "elara-074a9eed0d": {
    "speaker": "elara",
    "text": "Should I be? They’ve been threatening us since before I was born. Eventually you learn to get on with your day.",
    "file": "elara-074a9eed0d.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "0b85923080b1"
   },
   "elara-212d04a841": {
    "speaker": "elara",
    "text": "Actually, since you’re here, there may be something else you could help us with.",
    "file": "elara-212d04a841.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "0b85923080b1"
   },
   "elara-416a7e9f97": {
    "speaker": "elara",
    "text": "Excellent. We’ve been waiting for these components.",
    "file": "elara-416a7e9f97.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "0b85923080b1"
   },
   "elara-475b826519": {
    "speaker": "elara",
    "text": "You must be our delivery. From The Darknet District?",
    "file": "elara-475b826519.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "0b85923080b1"
   },
   "elara-6d7ed7f071": {
    "speaker": "elara",
    "text": "They think we’re giving machines too much control. We think they’re afraid of anything they don’t understand. Truth’s probably more complicated.",
    "file": "elara-6d7ed7f071.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "0b85923080b1"
   },
   "elara-7c7f9f89bc": {
    "speaker": "elara",
    "text": "Everything looks to be in order. Thank you.",
    "file": "elara-7c7f9f89bc.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "0b85923080b1"
   },
   "elara-8600acd207": {
    "speaker": "elara",
    "text": "Back again? I was hoping we’d see you.",
    "file": "elara-8600acd207.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "0b85923080b1"
   },
   "elara-9551f3f3cb": {
    "speaker": "elara",
    "text": "Good. We’ve been waiting on this shipment. Things have been a little unpredictable lately.",
    "file": "elara-9551f3f3cb.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "0b85923080b1"
   },
   "elara-9d39e9b3a0": {
    "speaker": "elara",
    "text": "Funny. Most of us are just trying to keep civilization running.",
    "file": "elara-9d39e9b3a0.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "0b85923080b1"
   },
   "elara-a793d2a561": {
    "speaker": "elara",
    "text": "Anyway, that’s above my pay grade. Let’s get this unloaded.",
    "file": "elara-a793d2a561.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "0b85923080b1"
   },
   "elara-c72b4f1eee": {
    "speaker": "elara",
    "text": "Hard to say. They’ve been moving ships around near the border. Probably just trying to make a point.",
    "file": "elara-c72b4f1eee.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "0b85923080b1"
   },
   "elara-c95d3894f5": {
    "speaker": "elara",
    "text": "We do. There’s quite a bit of work underway, and the situation with the Natural Order isn’t making things any easier.",
    "file": "elara-c95d3894f5.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "0b85923080b1"
   },
   "elara-d82417fb63": {
    "speaker": "elara",
    "text": "Nothing new, really. The Natural Order’s been making noise again. They don’t much care for the way we do things here.",
    "file": "elara-d82417fb63.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "0b85923080b1"
   },
   "elara-edafe9b098": {
    "speaker": "elara",
    "text": "Appreciate the delivery. Tell Admin everything arrived intact.",
    "file": "elara-edafe9b098.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "0b85923080b1"
   },
   "elara-f02437af25": {
    "speaker": "elara",
    "text": "A delivery on our homeworld. Something that would help our people. I’d rather explain the details once you’re there.",
    "file": "elara-f02437af25.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "0b85923080b1"
   },
   "elara-fa07db9424": {
    "speaker": "elara",
    "text": "Among other things. They seem convinced we’re building something that’s going to destroy civilization.",
    "file": "elara-fa07db9424.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "0b85923080b1"
   },
   "elias-df9465093a": {
    "speaker": "elias",
    "text": "The ship is yours. Go make a life of your own.",
    "file": "elias-df9465093a.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "d7e7acafa322"
   },
   "iona-a0bb687952": {
    "speaker": "iona",
    "text": "Rusthaven stays alive because people keep bringing what we need.",
    "file": "iona-a0bb687952.ogg",
-   "source": "world-integration.js"
+   "source": "world-integration.js",
+   "configHash": "377ff78e9811"
   },
   "iris-0752334a19": {
    "speaker": "iris",
    "text": "I run security here. Talk to Admin first; he likes to meet new pilots himself.",
    "file": "iris-0752334a19.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "cc45a4967278"
   },
   "iris-22e618d378": {
    "speaker": "iris",
    "text": "Some of it is actually rather interesting.",
    "file": "iris-22e618d378.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-253d186079": {
    "speaker": "iris",
    "text": "Occupied. I’m handling things for now. Don’t worry, he left instructions to pay you.",
    "file": "iris-253d186079.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-289d8f6046": {
    "speaker": "iris",
    "text": "You’re already carrying someone else’s cargo. Come back when your hold is free.",
    "file": "iris-289d8f6046.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-350f086927": {
    "speaker": "iris",
    "text": "So I see. Both shipments delivered, both clients satisfied. Remarkable, considering they can barely tolerate each other’s existence.",
    "file": "iris-350f086927.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-43fe62eb93": {
    "speaker": "iris",
    "text": "Essentially. Although these shipments are a little more specialized.",
    "file": "iris-43fe62eb93.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-4bd7d18fd7": {
    "speaker": "iris",
    "text": "Of course. I’ll keep the contract available. For now.",
    "file": "iris-4bd7d18fd7.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-60d1e75870": {
    "speaker": "iris",
    "text": "Let’s see... cargo received, delivery confirmed, and no complaints from the recipient. How refreshingly uneventful.",
    "file": "iris-60d1e75870.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-6ff0b6fe1b": {
    "speaker": "iris",
    "text": "At least, not by my standards.",
    "file": "iris-6ff0b6fe1b.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-7c99dd74b4": {
    "speaker": "iris",
    "text": "Oh, before you go. Admin had another shipment lined up. The one you didn’t take.",
    "file": "iris-7c99dd74b4.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-80898cd5ff": {
    "speaker": "iris",
    "text": "They haven’t said. And I find it’s generally best not to ask too many questions when someone is paying for delivery.",
    "file": "iris-80898cd5ff.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-8de0d32531": {
    "speaker": "iris",
    "text": "We keep our own records here. Get settled, meet the locals, and keep your eyes open.",
    "file": "iris-8de0d32531.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "cc45a4967278"
   },
   "iris-8eb4245512": {
    "speaker": "iris",
    "text": "This one’s headed to the Natural Order. Mechanical components, industrial supplies. Nothing terribly sophisticated.",
    "file": "iris-8eb4245512.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-99ff84d0aa": {
    "speaker": "iris",
    "text": "Industrial control assemblies, replacement machinery, and heavy-duty mechanical components.",
    "file": "iris-99ff84d0aa.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-9fc9952136": {
    "speaker": "iris",
    "text": "Actually, I have a little more work available. Both factions have requested additional supplies.",
    "file": "iris-9fc9952136.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-a4deddb144": {
    "speaker": "iris",
    "text": "Back again. You’re becoming something of a regular.",
    "file": "iris-a4deddb144.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-a64fb13827": {
    "speaker": "iris",
    "text": "Cameras are clean, the mainframe is happy, and nobody has tried anything stupid today. Yet.",
    "file": "iris-a64fb13827.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "cc45a4967278"
   },
   "iris-a84756227b": {
    "speaker": "iris",
    "text": "Oh, they use computers. They simply prefer theirs to remain obedient.",
    "file": "iris-a84756227b.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-a9b66d62ad": {
    "speaker": "iris",
    "text": "Scan accepted. Rook vouched for you, so you get a visitor badge. Behave, and it stays valid.",
    "file": "iris-a9b66d62ad.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "cc45a4967278"
   },
   "iris-b5bcb93160": {
    "speaker": "iris",
    "text": "There you are. All settled.",
    "file": "iris-b5bcb93160.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-b833d7e8ea": {
    "speaker": "iris",
    "text": "There you are. Payment received. Pleasure doing business with you.",
    "file": "iris-b833d7e8ea.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-b89cf1438a": {
    "speaker": "iris",
    "text": "This shipment’s for the Communion. Electronics and research equipment. They do seem to have an endless appetite for technology.",
    "file": "iris-b89cf1438a.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-bf9dacfbc2": {
    "speaker": "iris",
    "text": "Each faction has rather particular requirements. The Communion wants technology. The Natural Order prefers equipment they can maintain without asking a machine for permission.",
    "file": "iris-bf9dacfbc2.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-c0fc703e5b": {
    "speaker": "iris",
    "text": "Apparently. Nobody’s been particularly eager to collect it.",
    "file": "iris-c0fc703e5b.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-c62c2705d6": {
    "speaker": "iris",
    "text": "Specialized processing modules, sensor components, and research hardware. Apparently they’re expanding one of their projects.",
    "file": "iris-c62c2705d6.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-ce8b7cb415": {
    "speaker": "iris",
    "text": "Both destinations should be familiar to you by now. Interested?",
    "file": "iris-ce8b7cb415.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-d8ad5e87e9": {
    "speaker": "iris",
    "text": "Excellent. I’ve transferred the shipping details to your mission log. Try not to lose anything expensive.",
    "file": "iris-d8ad5e87e9.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-e655b867a0": {
    "speaker": "iris",
    "text": "Ah, Rook’s pilot. Back in one piece, I see. That’s encouraging.",
    "file": "iris-e655b867a0.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "iris-f6abd88af5": {
    "speaker": "iris",
    "text": "Of course. The contracts will remain available.",
    "file": "iris-f6abd88af5.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "cc45a4967278"
   },
   "kess-0a4c88990e": {
    "speaker": "kess",
    "text": "Thank you. As promised, the scanner. Any hangar can fit it to your ship.",
    "file": "kess-0a4c88990e.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "272e5f39b640"
   },
   "kess-1010253438": {
    "speaker": "kess",
    "text": "Some believe the Nexus can hear them. Others simply hope that one day it will answer.",
    "file": "kess-1010253438.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "272e5f39b640"
   },
   "kess-2f01842095": {
    "speaker": "kess",
    "text": "The Nexus happened. Or rather, what happened to it.",
    "file": "kess-2f01842095.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "272e5f39b640"
   },
   "kess-319e269712": {
    "speaker": "kess",
    "text": "We have equipment that needs repairing, supplies that need moving, and people who could use a little help.",
    "file": "kess-319e269712.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "272e5f39b640"
   },
   "kess-464b47e453": {
    "speaker": "kess",
    "text": "It is. But I should warn you about something.",
    "file": "kess-464b47e453.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "272e5f39b640"
   },
   "kess-4a3290b7ba": {
    "speaker": "kess",
    "text": "Actually, there may be something you could help us with.",
    "file": "kess-4a3290b7ba.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "272e5f39b640"
   },
   "kess-54eb8e3c8b": {
    "speaker": "kess",
    "text": "Good. Very good. We’ve been waiting for these supplies.",
    "file": "kess-54eb8e3c8b.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "272e5f39b640"
   },
   "kess-72a96e7b23": {
    "speaker": "kess",
    "text": "Understood. The offer will remain open.",
    "file": "kess-72a96e7b23.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "272e5f39b640"
   },
   "kess-96746792b1": {
    "speaker": "kess",
    "text": "You must be the pilot Elara sent.",
    "file": "kess-96746792b1.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "272e5f39b640"
   },
   "kess-98ff13f9f0": {
    "speaker": "kess",
    "text": "We have a scanner upgrade. Communion technology. It can significantly reduce the time your ship needs to acquire a missile lock.",
    "file": "kess-98ff13f9f0.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "272e5f39b640"
   },
   "kess-9f2e906220": {
    "speaker": "kess",
    "text": "We are. Most of our people spent their entire lives connected to the Nexus. It helped us communicate, work, learn... practically everything.",
    "file": "kess-9f2e906220.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "272e5f39b640"
   },
   "kess-a814e42f6c": {
    "speaker": "kess",
    "text": "Without it, many of us are having to learn how to live all over again.",
    "file": "kess-a814e42f6c.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "272e5f39b640"
   },
   "kess-b4b0f8bc41": {
    "speaker": "kess",
    "text": "The Natural Order used an electromagnetic weapon against our central systems. The damage was catastrophic.",
    "file": "kess-b4b0f8bc41.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "272e5f39b640"
   },
   "kess-bff0a00489": {
    "speaker": "kess",
    "text": "Everything’s here. Thank you. You have no idea how difficult it has become to keep things functioning.",
    "file": "kess-bff0a00489.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "272e5f39b640"
   },
   "kess-c56e81c693": {
    "speaker": "kess",
    "text": "Nothing glamorous. Repairing essential systems. Delivering medical supplies. Helping restore basic services.",
    "file": "kess-c56e81c693.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "272e5f39b640"
   },
   "kess-d2e853d2fe": {
    "speaker": "kess",
    "text": "The Natural Order won’t appreciate seeing Communion technology installed on your ship. Particularly something like this.",
    "file": "kess-d2e853d2fe.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "272e5f39b640"
   },
   "kess-d84fb6c904": {
    "speaker": "kess",
    "text": "So, are you interested?",
    "file": "kess-d84fb6c904.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "272e5f39b640"
   },
   "mara-084b8b04d0": {
    "speaker": "mara",
    "text": "Take her to Meridian Station. Rook will be waiting.",
    "file": "mara-084b8b04d0.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "8c503f5969da"
   },
   "mara-152b009cbc": {
    "speaker": "mara",
    "text": "Come around the side with me. A few cans, a safe dirt bank. Let’s see if it still works.",
    "file": "mara-152b009cbc.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "8c503f5969da"
   },
   "mara-1b438eda4c": {
    "speaker": "mara",
    "text": "Aim toward the dirt bank. Knock down four cans, then reload. No rush.",
    "file": "mara-1b438eda4c.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "8c503f5969da"
   },
   "mara-45ca35cbcb": {
    "speaker": "mara",
    "text": "Clean landing. That’s the basics; the rest you learn out there.",
    "file": "mara-45ca35cbcb.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "8c503f5969da"
   },
   "mara-548425c949": {
    "speaker": "mara",
    "text": "One circuit. Get a feel for the throttle, steering and roll, jump to the training beacon, then put her back on this pad.",
    "file": "mara-548425c949.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "8c503f5969da"
   },
   "mara-63e4870cb2": {
    "speaker": "mara",
    "text": "Fly her to Meridian Station and find Rook. If you ever want a refresher, I’m here.",
    "file": "mara-63e4870cb2.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "8c503f5969da"
   },
   "mara-6edb97cb0a": {
    "speaker": "mara",
    "text": "Elias passed away last night. He left you the Kestrel — and this pistol. He wanted you to have a chance out there.",
    "file": "mara-6edb97cb0a.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "8c503f5969da"
   },
   "mara-7fd39bcb68": {
    "speaker": "mara",
    "text": "Then take these. Elias’s pistol, and the Kestrel is yours.",
    "file": "mara-7fd39bcb68.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "8c503f5969da"
   },
   "mara-936e938e2f": {
    "speaker": "mara",
    "text": "Keep her flying. Rook will be waiting.",
    "file": "mara-936e938e2f.ogg",
-   "source": "story-content.js"
+   "source": "story-content.js",
+   "configHash": "8c503f5969da"
   },
   "mara-abdef6955b": {
    "speaker": "mara",
    "text": "Before you go anywhere, take her up for one practice circuit over Vesper. Jump to the training beacon, then land back on this pad.",
    "file": "mara-abdef6955b.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "8c503f5969da"
   },
   "mara-bc46dc72ac": {
    "speaker": "mara",
    "text": "Still works. The Kestrel is yours now.",
    "file": "mara-bc46dc72ac.ogg",
-   "source": "prologue-integration.js"
+   "source": "prologue-integration.js",
+   "configHash": "8c503f5969da"
   },
   "mara-d6545d87ff": {
    "speaker": "mara",
    "text": "Elias passed away last night. You worked for him for years. In his will, he left you the Kestrel.",
    "file": "mara-d6545d87ff.ogg",
-   "source": "story-content.js"
+   "source": "story-content.js",
+   "configHash": "8c503f5969da"
   },
   "mara-e287f62ffa": {
    "speaker": "mara",
    "text": "You have 100 credits. This is the Erebus System. Fly to Meridian and meet Rook at the bar. He has work.",
    "file": "mara-e287f62ffa.ogg",
-   "source": "story-content.js"
+   "source": "story-content.js",
+   "configHash": "8c503f5969da"
   },
   "marcus-0122a9a3d0": {
    "speaker": "marcus",
    "text": "I’ll explain the details when you’re ready to head down there.",
    "file": "marcus-0122a9a3d0.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "80d9d059c750"
   },
   "marcus-394b883891": {
    "speaker": "marcus",
    "text": "You’re the pilot from The Darknet District?",
    "file": "marcus-394b883891.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "80d9d059c750"
   },
   "marcus-3fa00ab9d8": {
    "speaker": "marcus",
    "text": "Well, look who’s back. Starting to think you’re the only pilot out there who delivers anything on time.",
    "file": "marcus-3fa00ab9d8.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "80d9d059c750"
   },
   "marcus-48a48c491c": {
    "speaker": "marcus",
    "text": "Funny thing is, we used to get along well enough. Trade, repairs, the occasional argument. Now everyone’s acting like the next war’s just around the corner.",
    "file": "marcus-48a48c491c.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "80d9d059c750"
   },
   "marcus-50456254a4": {
    "speaker": "marcus",
    "text": "Everything’s here. That’s a relief.",
    "file": "marcus-50456254a4.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "80d9d059c750"
   },
   "marcus-5a7c817cb2": {
    "speaker": "marcus",
    "text": "Some of it. Communion patrols have been getting a little too curious about what comes through here.",
    "file": "marcus-5a7c817cb2.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "80d9d059c750"
   },
   "marcus-6b35cbf681": {
    "speaker": "marcus",
    "text": "I think people with expensive ships and important titles have too much time on their hands.",
    "file": "marcus-6b35cbf681.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "80d9d059c750"
   },
   "marcus-6fd605237a": {
    "speaker": "marcus",
    "text": "About time. We’ve had three deliveries delayed this week.",
    "file": "marcus-6fd605237a.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "80d9d059c750"
   },
   "marcus-84f7c1bc1c": {
    "speaker": "marcus",
    "text": "Actually, now that you mention it, there’s another job. Down on our homeworld. Something that could make a real difference to our people.",
    "file": "marcus-84f7c1bc1c.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "80d9d059c750"
   },
   "marcus-865cd1f363": {
    "speaker": "marcus",
    "text": "Nothing wrong with a useful machine. It’s when the machine starts deciding what’s useful about you that I get nervous.",
    "file": "marcus-865cd1f363.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "80d9d059c750"
   },
   "marcus-8e1507f6cc": {
    "speaker": "marcus",
    "text": "Appreciate it. Tell Admin the shipment arrived. And watch yourself on the way back.",
    "file": "marcus-8e1507f6cc.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "80d9d059c750"
   },
   "marcus-930c5167f5": {
    "speaker": "marcus",
    "text": "Me? I just need these parts to keep the machinery running.",
    "file": "marcus-930c5167f5.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "80d9d059c750"
   },
   "marcus-9a3318a7e8": {
    "speaker": "marcus",
    "text": "Nothing we can’t handle. Just seems like every time we get one thing running, something else needs fixing.",
    "file": "marcus-9a3318a7e8.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "80d9d059c750"
   },
   "marcus-9e1e649159": {
    "speaker": "marcus",
    "text": "And with the Communion stirring things up, supplies aren’t getting any easier to come by.",
    "file": "marcus-9e1e649159.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "80d9d059c750"
   },
   "marcus-b4ecd7fc0b": {
    "speaker": "marcus",
    "text": "Good. We can use these parts.",
    "file": "marcus-b4ecd7fc0b.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "80d9d059c750"
   },
   "marcus-c892761f7a": {
    "speaker": "marcus",
    "text": "Wouldn’t surprise me. But rumors travel faster than ships out here. Half of what you hear is nonsense.",
    "file": "marcus-c892761f7a.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "80d9d059c750"
   },
   "marcus-e602a2330d": {
    "speaker": "marcus",
    "text": "Depends who you ask. Officially, they’re keeping the peace. Unofficially, they don’t like people who refuse to let machines run their lives.",
    "file": "marcus-e602a2330d.ogg",
-   "source": "faction-scenes.js"
+   "source": "faction-scenes.js",
+   "configHash": "80d9d059c750"
   },
   "mercer-0c798bcc09": {
    "speaker": "mercer",
    "text": "Just understand something. The Communion won’t be thrilled if they see Natural Order hardware bolted onto your ship.",
    "file": "mercer-0c798bcc09.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "001915d23640"
   },
   "mercer-2633e4c3e2": {
    "speaker": "mercer",
    "text": "So, interested?",
    "file": "mercer-2633e4c3e2.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "001915d23640"
   },
   "mercer-366a2be45a": {
    "speaker": "mercer",
    "text": "Good work. The thrusters are yours. Any hangar can fit them.",
    "file": "mercer-366a2be45a.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "001915d23640"
   },
   "mercer-4c8e9a65e1": {
    "speaker": "mercer",
    "text": "They don’t particularly like our approach to engineering. And they like being reminded of it even less.",
    "file": "mercer-4c8e9a65e1.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "001915d23640"
   },
   "mercer-5071219b06": {
    "speaker": "mercer",
    "text": "Everything’s here. Appreciate it.",
    "file": "mercer-5071219b06.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "001915d23640"
   },
   "mercer-53d39f1b63": {
    "speaker": "mercer",
    "text": "You the pilot Marcus sent?",
    "file": "mercer-53d39f1b63.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "001915d23640"
   },
   "mercer-6a67a68c3e": {
    "speaker": "mercer",
    "text": "Improve your ship’s handling. Faster maneuvering, better response when changing direction.",
    "file": "mercer-6a67a68c3e.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "001915d23640"
   },
   "mercer-6b7bd96ae8": {
    "speaker": "mercer",
    "text": "We’ve got a set of maneuvering thrusters. Simple design, reliable components, and plenty of power.",
    "file": "mercer-6b7bd96ae8.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "001915d23640"
   },
   "mercer-8231f84fd0": {
    "speaker": "mercer",
    "text": "Good. We could certainly use it.",
    "file": "mercer-8231f84fd0.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "001915d23640"
   },
   "mercer-8716599e70": {
    "speaker": "mercer",
    "text": "Always do. Crops don’t plant themselves. Machines don’t fix themselves either.",
    "file": "mercer-8716599e70.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "001915d23640"
   },
   "mercer-b493ff0b6b": {
    "speaker": "mercer",
    "text": "We’ve got farms waiting on equipment, settlements short on food, and solar installations that need replacement parts.",
    "file": "mercer-b493ff0b6b.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "001915d23640"
   },
   "mercer-c03b9c2ecf": {
    "speaker": "mercer",
    "text": "We automate what makes sense. But there’s a difference between a machine doing a job and a machine deciding how we ought to live.",
    "file": "mercer-c03b9c2ecf.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "001915d23640"
   },
   "mercer-ca386df06d": {
    "speaker": "mercer",
    "text": "Mostly. Some hands-on work too.",
    "file": "mercer-ca386df06d.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "001915d23640"
   },
   "mercer-d900e6d0a4": {
    "speaker": "mercer",
    "text": "Suit yourself. We’ll have work if you change your mind.",
    "file": "mercer-d900e6d0a4.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "001915d23640"
   },
   "mercer-e143214e8c": {
    "speaker": "mercer",
    "text": "People here prefer to make their own decisions.",
    "file": "mercer-e143214e8c.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "001915d23640"
   },
   "mercer-e7be9df3ed": {
    "speaker": "mercer",
    "text": "Actually, if you’ve got some time, we could use another pair of hands.",
    "file": "mercer-e7be9df3ed.ogg",
-   "source": "homeworld-scenes.js"
+   "source": "homeworld-scenes.js",
+   "configHash": "001915d23640"
   },
   "nyx-4dd4670e57": {
    "speaker": "nyx",
    "text": "Rook is in the booth. The outfitter is across the concourse.",
    "file": "nyx-4dd4670e57.ogg",
-   "source": "world-integration.js"
+   "source": "world-integration.js",
+   "configHash": "74b28864fe22"
   },
   "rook-6f06e2d496": {
    "speaker": "rook",
    "text": "Two hot runs and you’re still breathing. I’ve got something for the next one. Head to the station shop. Tell them Rook sent you. They’ll fit a missile launcher — installation’s on me. I know a guy in Tessaly with more work. Admin. Runs The Darknet District in NeoChinatown with his partner Iris. I’ve marked the Tessaly Belt Anchorage. Press L for your Mission Log; pick what you want to track. Complete your missile qualification before choosing independent routes. Acquire the launcher here, fit it in the hangar, and demonstrate target selection, lock and firing on your next run.",
    "file": "rook-6f06e2d496.ogg",
-   "source": "hangar.js"
+   "source": "hangar.js",
+   "configHash": "d3b5cd5a352a"
   },
   "rook-a3a0f56420": {
    "speaker": "rook",
    "text": "Finish your missile qualification: acquire the launcher, install it at the maintenance terminal, then select, lock and fire on a hostile in your next run.",
    "file": "rook-a3a0f56420.ogg",
-   "source": "world-integration.js"
+   "source": "world-integration.js",
+   "configHash": "d3b5cd5a352a"
   },
   "rook-e6886e327f": {
    "speaker": "rook",
    "text": "Finish the job you are carrying. Then come see me.",
    "file": "rook-e6886e327f.ogg",
-   "source": "world-integration.js"
+   "source": "world-integration.js",
+   "configHash": "d3b5cd5a352a"
   },
   "rook-ef4bdcd50d": {
    "speaker": "rook",
    "text": "Deliver the cargo. Then come back for more work.",
    "file": "rook-ef4bdcd50d.ogg",
-   "source": "scenes.js"
+   "source": "scenes.js",
+   "configHash": "d3b5cd5a352a"
   },
   "sol-58689e80f5": {
    "speaker": "sol",
    "text": "The clinics are short on supplies. Check the mission terminal before you go.",
    "file": "sol-58689e80f5.ogg",
-   "source": "world-integration.js"
+   "source": "world-integration.js",
+   "configHash": "f719ef95c06f"
   }
  }
 }
