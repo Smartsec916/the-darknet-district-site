@@ -365,6 +365,8 @@ def clean_save(value):
 
     if 'story' in value:
         result['story'] = cleaned
+    if 'warflying' in value:
+        result['warflying'] = clean_warflying(value['warflying'])
     saved_at = value.get('savedAt')
     if saved_at is not None and (type(saved_at) is not int or not 0<saved_at<=9007199254740991):
         raise ApiError('Invalid save timestamp.')
@@ -515,3 +517,28 @@ def webhook():
     elif event['type'] in ['charge.refunded','charge.dispute.created']:
         revoke_payment(db, obj.get('payment_intent'))
     return jsonify(received=True)
+
+
+def clean_warflying(raw):
+    """WarFlying discovery records (void-runner/warflying.js). Shape-checked and capped here; the
+    game re-checks every source id against its signal registry when the save loads."""
+    import re
+    if not isinstance(raw, dict):
+        raise ApiError('Invalid WarFlying state.')
+    records = raw.get('records', {})
+    if not isinstance(records, dict) or len(records) > 2000:
+        raise ApiError('Invalid WarFlying records.')
+    cleaned = {}
+    for source_id, r in records.items():
+        if not isinstance(source_id, str) or not re.fullmatch(r'[a-z]+:[a-z0-9-]{1,48}', source_id) or not isinstance(r, dict):
+            raise ApiError('Invalid WarFlying record.')
+        conf = r.get('conf') if r.get('conf') in ('partial', 'confirmed') else 'partial'
+        stamp = lambda v: v if type(v) is int and 0 <= v <= 9007199254740991 else 0
+        places = [x for x in r.get('places', []) if isinstance(x, str) and re.fullmatch(r'[a-z0-9][a-z0-9:>-]{0,47}', x)][-6:] if isinstance(r.get('places'), list) else []
+        entry = {'c': r.get('c') if isinstance(r.get('c'), str) and len(r.get('c')) <= 24 else 'transmitter', 'f': stamp(r.get('f')), 'l': stamp(r.get('l')),
+                 'k': r.get('k') if type(r.get('k')) is int and 0 < r.get('k') <= 1000000 else 1, 'conf': conf, 'places': places,
+                 'p': 1 if conf == 'confirmed' and r.get('p') == 1 else 0, 'u': r.get('u') if r.get('u') in ('local', 'pending', 'uploaded') else 'local'}
+        if type(r.get('s')) in (int, float) and 0 <= r['s'] <= 1:
+            entry['s'] = r['s']
+        cleaned[source_id] = entry
+    return {'version': 1, 'records': cleaned, 'autoUpload': raw.get('autoUpload') is not False}

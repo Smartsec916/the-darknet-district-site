@@ -10,8 +10,20 @@
   engine:{name:'Maneuvering vanes',slot:'engine',price:200,icon:'engine',stats:{turn:1.12,acceleration:1.08},compatible:['starter','ship2','ship3']},
   // Faction rewards (doc 10): earned through homeworld work, never sold. Own slots so both can be fitted.
   'communion-scanner':{name:'Communion Targeting Scanner',slot:'sensor',price:0,reward:true,icon:'sensor',stats:{lockTime:.7},compatible:['starter','ship2','ship3'],faction:'communion',technology:'ai-assisted'},
-  'order-thrusters':{name:'Natural Order Maneuvering Thrusters',slot:'thrusters',price:0,reward:true,icon:'thrusters',stats:{turn:1.12,angularAcceleration:1.4,angularDamping:1.25},compatible:['starter','ship2','ship3'],faction:'natural-order',technology:'mechanical'}
+  'order-thrusters':{name:'Natural Order Maneuvering Thrusters',slot:'thrusters',price:0,reward:true,icon:'thrusters',stats:{turn:1.12,angularAcceleration:1.4,angularDamping:1.25},compatible:['starter','ship2','ship3'],faction:'natural-order',technology:'mechanical'},
+  // WarFlying (doc 11 §26): one Utility slot (internal id 'signal') that holds exactly one of these.
+  // Scanners are sold at outfitters, the scrambler only by Admin. The Signal Tracker is reserved for
+  // future bounty hunting: defined, but it can't be bought or fitted yet.
+  'warflying-module':{name:'WarFlying Module',slot:'signal',price:600,icon:'sensor',stats:{},vendor:'outfitter',listed:false,compatible:['starter','ship2','ship3']},
+  'warflying-scrambler':{name:'WarFlying Scrambler',slot:'signal',price:900,icon:'sensor',stats:{},vendor:'admin',compatible:['starter','ship2','ship3']},
+  'signal-tracker':{name:'Signal Tracker',slot:'signal',price:0,icon:'sensor',stats:{},vendor:null,available:false,compatible:['starter','ship2','ship3']}
  };
+ // Player-facing slot names where they differ from the internal id. The booster/drone slot
+ // (content.js 'utility') is shown as DRIVE; the WarFlying slot ('signal') is the UTILITY slot.
+ const slotLabels={signal:'UTILITY',utility:'DRIVE'};
+ const slotLabel=slot=>slotLabels[slot]||slot;
+ // Which WarFlying-slot module the active ship has fitted (one at most), or null.
+ function utility(s){const id=s.progression?.equipment?.installed?.[s.activeShip]?.signal;return id&&modules[id]&&s.progression.equipment.owned.includes(id)?id:null;}
  for(const m of Object.values(modules)){m.faction??=null;m.technology??='conventional';m.requiresAugmentation=0;}
  const ground=['move','look','sprint','jump','interact','pickup','draw','aim','fire','reload','holster','groundCombat','inventory','sightOwned','sightEquipped','sightAim'];
  const flight=['board','throttle','steer','roll','navigation','jumpTravel','dock','shipInventory','hangar','moduleInstalled','vendor','modulePurchased','purchasedInstalled','laserCombat','missileSelected','targetSelected','missileLocked','missileFired'];
@@ -28,7 +40,7 @@
   repairOpening({progression:p,quest:s.quest});
   p.completed=raw.completed===true&&groundDone({progression:p})&&flight.every(id=>p.flags[id]);p.migrated=raw.migrated===true;
   const a=raw.personal||{};p.personal.ammo=number(a.ammo,tuning.ground.magazine,tuning.ground.magazine);p.personal.reserve=number(a.reserve,tuning.ground.reserve,999);p.personal.items=(a.items||[]).filter(x=>x==='ward-kit');p.personal.attachments=(a.attachments||[]).filter(x=>x==='red-dot');p.personal.optic=a.optic==='red-dot'&&p.personal.attachments.includes('red-dot')?'red-dot':null;
-  p.equipment.owned=[...new Set((raw.equipment?.owned||[]).filter(id=>Object.hasOwn(modules,id)))];
+  p.equipment.owned=[...new Set((raw.equipment?.owned||[]).filter(id=>Object.hasOwn(modules,id)&&modules[id].available!==false))];
   for(const ship of ['starter','ship2','ship3']){p.equipment.installed[ship]={};for(const [slot,id] of Object.entries(raw.equipment?.installed?.[ship]||{}))if(p.equipment.owned.includes(id)&&modules[id].slot===slot)p.equipment.installed[ship][slot]=id;}
   p.missiles=raw.missiles===null?null:Math.floor(number(raw.missiles,0,30));p.checkpoint={location:typeof raw.checkpoint?.location==='string'?raw.checkpoint.location:s.location};
   for(const [id,v]of Object.entries(raw.reputation||{}))if(/^[a-z][a-z-]{0,39}$/.test(id)&&Number.isFinite(v))p.reputation[id]=Math.max(-100,Math.min(100,v));
@@ -61,13 +73,13 @@
  }
  function stage(s){if(s.progression.completed)return 'ACT-01_OPEN_WORLD';if(!groundDone(s))return 'PROLOGUE-01_GROUND';if(s.quest==='inheritance')return 'PROLOGUE-02_SHIP_ACQUISITION';if(!s.progression.flags.dock)return 'PROLOGUE-03_FLIGHT';if(!s.progression.flags.purchasedInstalled)return 'PROLOGUE-04_FIRST_STATION';if(!s.missileUnlocked)return 'PROLOGUE-05_COMBAT';return s.creditGear.includes('launcher')?'PROLOGUE-07_MISSILE_TRAINING':'PROLOGUE-06_MISSILE_ACQUISITION';}
  function next(s){sync(s);return (groundDone(s)?flight:s.progression.opening?.version===2?openingGround:ground).find(id=>!s.progression.flags[id])||null;}
- function buy(s,id){const m=modules[id],p=s.progression;if(!m||m.reward||p.equipment.owned.includes(id)||s.credits<m.price)return false;s.credits-=m.price;p.equipment.owned.push(id);mark(s,'modulePurchased');return true;}
- function install(s,slot,id){const p=s.progression,m=modules[id];if(id!==null&&(!m||m.slot!==slot||!m.compatible.includes(s.activeShip)||!p.equipment.owned.includes(id)))return false;if(!['weapon','shield','power','cooling','engine','sensor','thrusters'].includes(slot))return false;(p.equipment.installed[s.activeShip]??={})[slot]=id;sync(s);return true;}
+ function buy(s,id,vendor='outfitter'){const m=modules[id],p=s.progression;if(!m||m.reward||m.available===false||(m.vendor||'outfitter')!==vendor||p.equipment.owned.includes(id)||s.credits<m.price)return false;s.credits-=m.price;p.equipment.owned.push(id);mark(s,'modulePurchased');return true;}
+ function install(s,slot,id){const p=s.progression,m=modules[id];if(id!==null&&(!m||m.slot!==slot||m.available===false||!m.compatible.includes(s.activeShip)||!p.equipment.owned.includes(id)))return false;if(!['weapon','shield','power','cooling','engine','sensor','thrusters','signal'].includes(slot))return false;(p.equipment.installed[s.activeShip]??={})[slot]=id;sync(s);return true;}
  function systems(s){const ship=Ships.get(s).id,t={...tuning.ships[ship],cost:tuning.laser.cost,heat:tuning.laser.heat};for(const id of Object.values(s.progression?.equipment.installed[ship]||{})){const m=modules[id];if(!m||!s.progression.equipment.owned.includes(id))continue;for(const [k,v]of Object.entries(m.stats))if(['capacity','recharge','cooling','heatLimit'].includes(k))t[k]+=v;else if(k==='cost'||k==='heat')t[k]*=v;}return t;}
  function stats(s,value){const out={...value,flight:{...value.flight}};for(const id of Object.values(s.progression?.equipment.installed[s.activeShip]||{})){const m=modules[id];if(!m||!s.progression.equipment.owned.includes(id))continue;for(const [k,v]of Object.entries(m.stats)){if(k==='damage')out.damage*=v;if(k==='shield'||k==='shieldRegen')out[k]+=v;if(k==='turn')for(const a of ['yawRate','pitchRate','rollRate'])out.flight[a]*=v;if(k==='acceleration')out.flight.acceleration*=v;if(k==='angularAcceleration')out.flight.angularAcceleration*=v;if(k==='angularDamping')out.flight.angularDamping*=v;if(k==='lockTime')out.lockTime=(out.lockTime||1)*v;}}return out;}
  function powerStep(bank,s,dt,t=systems(s)){bank.energy=Math.min(t.capacity,bank.energy+dt*t.recharge);bank.heat=Math.max(0,bank.heat-dt*t.cooling);if(bank.heat<t.heatLimit*tuning.laser.recover)bank.overheated=false;}
  function consume(bank,s,t=systems(s)){if(bank.overheated||bank.energy<t.cost)return false;bank.energy-=t.cost;bank.heat=Math.min(t.heatLimit,bank.heat+t.heat);if(bank.heat>=t.heatLimit)bank.overheated=true;return true;}
  function checkpoint(s,location){s.progression.checkpoint={location};s.travel=null;}
  function respawn(s){s.story.cursor=null;s.location=s.progression.checkpoint.location;s.travel=null;s.destination=null;s.universe.station={location:s.location};s.progression.personal.ammo=tuning.ground.magazine;s.progression.personal.reserve=Math.max(24,s.progression.personal.reserve);}
- const api={tuning,modules,ground,flight,flags,fresh,restore,repairOpening,mark,groundDone,sync,stage,next,buy,install,systems,stats,powerStep,consume,checkpoint,respawn};if(typeof module!=='undefined')module.exports=api;else root.VoidProgression=api;
+ const api={tuning,modules,ground,flight,flags,fresh,restore,repairOpening,mark,groundDone,sync,stage,next,buy,install,systems,stats,powerStep,consume,checkpoint,respawn,slotLabels,slotLabel,utility};if(typeof module!=='undefined')module.exports=api;else root.VoidProgression=api;
 })(globalThis);

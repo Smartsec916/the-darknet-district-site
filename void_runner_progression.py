@@ -3,7 +3,7 @@ import json
 
 FLAGS = 'move look sprint jump interact pickup draw aim fire reload holster groundCombat inventory sightOwned sightEquipped sightAim board throttle steer roll navigation jumpTravel dock shipInventory hangar moduleInstalled vendor modulePurchased purchasedInstalled laserCombat missileSelected targetSelected missileLocked missileFired shootingTutorialComplete maraShipHandoff'.split()
 FLIGHT_FLAGS = FLAGS[16:35]
-MODULES = {'capacitor':'power','cooling':'cooling','pulse':'weapon','shield':'shield','engine':'engine','communion-scanner':'sensor','order-thrusters':'thrusters'}
+MODULES = {'capacitor':'power','cooling':'cooling','pulse':'weapon','shield':'shield','engine':'engine','communion-scanner':'sensor','order-thrusters':'thrusters','warflying-module':'signal','warflying-scrambler':'signal'}  # the Signal Tracker can't be owned yet
 
 def clean_progression(raw, locations):
     if not isinstance(raw, dict) or len(json.dumps(raw)) > 16000:
