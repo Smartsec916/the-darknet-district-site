@@ -23,6 +23,22 @@
   - **Reflection environment** for PBR materials, built in code with no downloads. Vesper was checked and looks unchanged.
 - **Total model download size for players:** about 6 MB (models load only in scenes that use them).
 
+## Meridian Station consistency (David's requirement, 2026-10-16)
+
+**Where Meridian is drawn, all from one shared definition:**
+- **Exterior:** `VoidMeridian` in `void-runner/meridian-station.js` holds the station's design (hangars H01–H03, solar arrays, docking collar, comms, windows, tanks), builder and model slot. It's used by:
+  - the **main menu** (`VoidMeridian.menu`)
+  - the **campaign exterior**: departures, arrivals, docked and arrival screens (`stationModel` in `babylon-renderer.js`, which only hides pieces overlapping the walkable interior)
+  - **skirmish**, whose flight arena ends at Meridian
+- **Interior:** one layout, `meridian-interior.js`, plus the approved props from `model-registry.js`. Skirmish's on-foot mode uses the derelict station, not Meridian.
+- **Loading and transitions:** the 3D renderer draws every non-menu mode, including docked and arrival screens.
+- **Retired:** the old painted ring-station image (`art/station.png`). It looked nothing like the 3D station and was only used by the old 2D renderer, which never runs, yet it was downloaded (2.7 MB) on every visit. Verified: no longer requested.
+- **Screenshots:** `docs/void-runner/graphics/meridian-consistency/` (menu, arrival exterior, interior).
+
+**Still outdated:**
+- **The Meridian exterior** is the shared procedural build; it isn't modernized. It's consistent everywhere, and a future approved exterior model goes in one slot (`VoidMeridian.model` / `VoidAssets.models.stations.meridian`) and then appears in the menu, campaign and skirmish together. Free candidates found so far don't fit; this needs a choice: a kitbash from the MegaKit, a Sketchfab CC-BY model, or a paid model.
+- **Mirrored sign:** "SUPPLIES / OUTFITTER" reads mirrored from inside the concourse. It predates this work.
+
 ## Not done / known limits
 - **Kestrel and faction ships:** still procedural (by decision).
 - **Named NPCs:** still box figures. No free set of realistic clothed humans has been found; this needs David's choice (a Sketchfab CC-BY set or a paid pack).
