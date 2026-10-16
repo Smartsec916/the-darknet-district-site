@@ -9,6 +9,8 @@
 (function(root){
  'use strict';
  const U=typeof module!=='undefined'?require('./universe.js'):root.VoidUniverse;
+ const Story=typeof module!=='undefined'?require('./story.js'):root.VoidStory;
+ const placeName=id=>U.locations[id]?.name||Story?.content?.locations?.[id]?.name||id;
  const categories={
   civilian:'Civilian craft',cargo:'Cargo ship',passenger:'Passenger ship',police:'Police ship',military:'Military ship',pirate:'Pirate ship',
   communion:'Communion ship','natural-order':'Natural Order ship',station:'Station',settlement:'Settlement',beacon:'Navigation beacon',
@@ -30,7 +32,7 @@
   if(!U.systems[system])return [];
   const code=systemNames[system],out=[];
   for(const [id,l] of Object.entries(U.locations))if(U.system(id)===system)
-   out.push({id:'station:'+id,category:settlements.includes(id)?'settlement':'station',name:l.name||id,system,location:id,affiliation:l.ownerFaction||null});
+   out.push({id:'station:'+id,category:settlements.includes(id)?'settlement':'station',name:placeName(id),system,location:id,affiliation:l.ownerFaction||null});
   for(let n=1;n<=3;n++)out.push({id:'beacon:'+system+'-'+n,category:'beacon',name:'NAV '+code+'-'+n,system,affiliation:null});
   for(let n=1;n<=2;n++)out.push({id:'satellite:'+system+'-'+n,category:'satellite',name:'COMSAT '+code+'-'+n,system,affiliation:null});
   return out;
@@ -45,9 +47,11 @@
   return out;
  }
  // The faction ships in the border battles (faction-battle.js layouts) are the same crews each time.
- function battleSource(faction,index,className){
-  if(!['communion','natural-order'].includes(faction))return null;
-  return {id:'ship:battle-'+faction+'-'+index,category:className?.startsWith('communion')?'communion':'natural-order',name:null,system:faction,affiliation:className?.startsWith('communion')?'communion':'natural-order'};
+ // layout: which delivery's battle; side: the ship's own faction; index: its place in that layout.
+ const sides=['communion','natural-order'];
+ function battleSource(layout,index,side){
+  if(!sides.includes(layout)||!sides.includes(side)||!Number.isInteger(index)||index<0||index>20)return null;
+  return {id:'ship:battle-'+layout+'-'+side+'-'+index,category:side,name:null,system:layout,affiliation:side};
  }
  // Picks a roster vessel for a spawn. Returns null when this system has no such role.
  function pick(system,role,rng=Math.random){const list=roster(system,role);return list.length?list[Math.floor(rng()*list.length)%list.length]:null;}
@@ -57,7 +61,7 @@
   if(typeof id!=='string'||!idPattern.test(id))return null;
   index??=new Map(all().map(s=>[s.id,s]));
   if(index.has(id))return index.get(id);
-  const b=/^ship:battle-(communion|natural-order)-(\d{1,2})$/.exec(id);return b?battleSource(b[1],Number(b[2]),b[1]==='communion'?'communion-lancer':'order-brawler'):null;
+  const b=/^ship:battle-(communion|natural-order)-(communion|natural-order)-(\d{1,2})$/.exec(id);return b?battleSource(b[1],Number(b[3]),b[2]):null;
  }
  // Every source that can ever exist: the ceiling on WarFlying points.
  function all(){return systemsList().flatMap(system=>[...staticSources(system),...Object.keys(roles).flatMap(role=>roster(system,role))]);}

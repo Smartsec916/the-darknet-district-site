@@ -541,4 +541,5 @@ def clean_warflying(raw):
         if type(r.get('s')) in (int, float) and 0 <= r['s'] <= 1:
             entry['s'] = r['s']
         cleaned[source_id] = entry
-    return {'version': 1, 'records': cleaned, 'autoUpload': raw.get('autoUpload') is not False}
+    clock = raw.get('clock')
+    return {'version': 1, 'records': cleaned, 'autoUpload': raw.get('autoUpload') is not False, 'clock': clock if type(clock) is int and 0 <= clock <= 1000000000 else 0}
