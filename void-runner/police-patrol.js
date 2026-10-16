@@ -1,5 +1,4 @@
-/* Tessaly police patrols on Admin's sealed-cargo run (David's step 3, Option A: patrols you can
-   avoid). The outbound jump drops out once at a patrol line while the drive recharges. Patrol
+/* Tessaly police patrols (built for step 3, Option A; now unused, see `mission` below). The outbound jump drops out once at a patrol line while the drive recharges. Patrol
    cutters fly fixed loops; inside a cutter's scan range a scan meter fills, faster when closer.
    Scan range follows the player's own sensor signature (sensors.js), so going dark and easing off
    the throttle shrink it. A full meter brings a hail, and the player always chooses: comply (fine,
@@ -9,14 +8,16 @@
  'use strict';
  const config={dropAt:.3,recharge:26,scanRange:78,fill:.38,decay:.12,fine:400,talkChance:.5,runRecharge:6,
   cruise:15,pursuit:38,standoff:28,turn:1.6,fireEvery:1.4,bolt:115,damage:7,shotRange:150,hitRadius:2.2,cleanup:2400};
- const mission='admin-sealed-cargo-01';
+ // No run uses the patrol line: "Don't Ask Questions" must stay trouble-free (doc 11 §23). The rules are kept
+ // for the deferred police and wanted systems (doc 11 §35), which will name the runs that meet patrols.
+ const mission=null;
  const v=(x=0,y=0,z=0)=>({x,y,z}),add=(a,b,k=1)=>v(a.x+b.x*k,a.y+b.y*k,a.z+b.z*k),sub=(a,b)=>v(a.x-b.x,a.y-b.y,a.z-b.z),len=a=>Math.hypot(a.x,a.y,a.z);
  const unit=a=>{const l=len(a)||1;return v(a.x/l,a.y/l,a.z/l);};
  // Three loops around the drop point, laid out in the player's frame when the drop happens:
  // one across the route ahead and one on each flank. Each loop passes close to the start now and then.
  const loops=[{ahead:115,right:0,up:4,radius:70,speed:.2,phase:0},{ahead:40,right:58,up:-6,radius:50,speed:-.27,phase:2.2},{ahead:70,right:-62,up:10,radius:58,speed:.24,phase:4.1}];
 
- function due(s,current,route){return current?.id===mission&&s.contract===mission&&route?.phase==='warp'&&route.progress>=config.dropAt&&s.story?.flags?.sealedPatrol!==true;}
+ function due(s,current,route){return !!mission&&current?.id===mission&&s.contract===mission&&route?.phase==='warp'&&route.progress>=config.dropAt&&s.story?.flags?.sealedPatrol!==true;}
  function begin(s,route){s.story.flags.sealedPatrol=true;route.progress=config.dropAt;route.phase='align';route.aligned=0;route.recharge=config.recharge;}
 
  // World frame: the drop point is the origin; the player's position is integrated from its velocity.

@@ -137,11 +137,11 @@
   }
   // Rook routes no freight into a faction system until the player has made Admin's delivery there.
   function heldForAdmin(s,system){const d=factionList.find(x=>U.system(x.destination)===system);return !!d&&!['delivered','paid'].includes(factionStage(s,d.faction));}
-  // Admin's sealed cargo for Rook (David's step 3, Option A). Offered once the first District
-  // delivery is paid and Admin is free. Tessaly patrols scan the run (police-patrol.js); complying
-  // costs a fine and the crate, and Admin offers the job again. Rook pays on handover at Meridian.
-  // story.flags.sealedCargo: accepted -> delivered, or accepted -> seized -> accepted again.
-  const sealedCargo={id:'admin-sealed-cargo-01',kind:'sealed',flag:'sealedCargo',name:'Sealed cargo for Rook',cargo:'Sealed container (contents undisclosed)',legal:false,destination:'meridian',payment:1800,reward:1800,enemies:0,tier:0,duration:36,contact:'Admin',recipient:'rook',briefing:'A sealed container from Admin for Rook at Meridian. It stays sealed. Tessaly patrols are scanning outbound traffic.'};
+  // "Don't Ask Questions" (David's brief doc 11 §23): Admin's sealed cargo for Rook. Offered once the
+  // first District delivery is paid and Admin is free. The run is trouble-free: no patrols, inspection,
+  // confiscation or interdiction, and the contents are never revealed. Rook pays on handover at Meridian.
+  // story.flags.sealedCargo: accepted -> delivered. ('seized' exists only in saves from PR #59; Admin offers again.)
+  const sealedCargo={id:'admin-sealed-cargo-01',kind:'sealed',flag:'sealedCargo',name:'Don’t Ask Questions',cargo:'Sealed container (contents undisclosed)',legal:false,destination:'meridian',payment:1800,reward:1800,enemies:0,tier:0,duration:36,contact:'Admin',recipient:'rook',briefing:'A sealed container from Admin for Rook at Meridian. It stays sealed.'};
   function sealedStage(s){const v=s.story?.flags?.sealedCargo;return ['accepted','delivered','seized'].includes(v)?v:null;}
   function sealedOffered(s){const f=s.story?.flags||{};return s.quest==='open'&&s.universe?.freeTravel===true&&f.metAdmin===true&&f.adminOccupied!==true&&!!factionDeliveries[f.factionFirst]&&factionStage(s,f.factionFirst)==='paid'&&[null,'seized'].includes(sealedStage(s));}
   function acceptSealed(s){
@@ -149,14 +149,6 @@
     if((s.progression?.cargo||[]).reduce((n,x)=>n+x.units,0)>=P.systems(s).cargo)return false;
     s.story.flags.sealedCargo='accepted';delete s.story.flags.sealedPatrol;
     s.destination=null;s.contract=sealedCargo.id;Missions.acquire(s,sealedCargo.id);Story.emit(s,'missionAccepted',sealedCargo.id);return true;
-  }
-  // The pilot chose to comply with a patrol: the fine is paid, the crate is impounded and the flight continues empty.
-  function seizeSealed(s,fine){
-    if(sealedStage(s)!=='accepted'||s.contract!==sealedCargo.id)return null;
-    const paid=Math.max(0,Math.min(s.credits,Math.round(fine)||0));s.credits-=paid;
-    s.story.flags.sealedCargo='seized';s.contract=null;s.destination=sealedCargo.destination;
-    const u=s.universe;if(u?.missions)delete u.missions[sealedCargo.id];if(u?.trackedMission===sealedCargo.id)u.trackedMission=null;
-    return paid;
   }
   function sealedDeliverable(s){return sealedStage(s)==='accepted'&&s.location===sealedCargo.destination&&s.contract!==sealedCargo.id;}
   function deliverSealed(s){
@@ -383,7 +375,7 @@
       }
     };
   }
-  const api = { stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, seizeSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
+  const api = { stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

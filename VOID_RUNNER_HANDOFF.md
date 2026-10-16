@@ -420,22 +420,18 @@ From the master plan and doc 05:
 - **UNREVIEWED placeholder lines:** Kess and Mercer's reward hand-over lines. "Tell me more" shows the module's real numbers as a notice rather than invented dialogue.
 - **Lighting:** each homeworld lowers the global exposure while you are there (as Vesper does). Music: `nexus` (ethereal, melancholic) and `order-homeworld` (warm, percussive). Kess (bm_daniel) and Mercer (am_onyx) are voiced.
 
-### 9.2.5 Admin's sealed cargo and Tessaly patrols (IMPLEMENTED; Option A)
+### 9.2.5 "Don't Ask Questions": Admin's sealed cargo (IMPLEMENTED; trouble-free per doc 11 §23)
 
-- **Offer:** once the first District delivery is paid and Admin isn't "occupied", Admin offers a sealed crate for Rook (`admin-sealed-cargo-01`, `story.flags.sealedCargo`: accepted → delivered, or accepted → seized). The contents are never revealed.
-- **Route:** NeoChinatown → Meridian. The outbound jump drops out once at a **Tessaly patrol line** while the drive recharges (26 s). Three police cutters fly fixed loops; inside a cutter's scan range a **scan meter** fills, faster up close. The range follows the ship's signature, so **going dark** and easing off the throttle shrink it. Patrols show as blue radar blips.
-- **Hail (never a forced stop):** a full meter brings a hail with three choices:
-  - **Comply:** a 400-credit fine (never more than the pilot has); the crate is impounded, the flight continues empty, and Admin offers the job again.
-  - **Run:** the drive spools in 6 s; the cutters chase and fire, holding off rather than ramming, until you jump.
-  - **Talk your way out:** one try, 50% chance.
-- The outcome is stored in `sealedPatrolOutcome` (avoided / released / seized / evaded) for future reactions; Rook mentions an escape.
-- **Pay:** Rook pays **1,800** (placeholder) in person at Meridian. The crate keeps the hold busy, so there are no Rook freight runs until it's handed over.
-- **Placeholders for David:**
-  - all Admin, Rook and patrol lines (marked UNREVIEWED in `faction-scenes.js` and `police-patrols.js`)
-  - who runs the police (left neutral as "Tessaly patrol")
-  - pay, fine and talk odds (`police-patrol.js` config)
-- **Voices:** Admin and Rook's new lines are recorded with their approved voices. The patrol is text-only until a police voice is cast.
-- **Code:** rules are in `campaign.js` (sealed contract) and `police-patrol.js` (patrols, tested in `tests/sealed-cargo.test.cjs`). `police-patrols.js` wires them into flight, and the cutter model is in `babylon-renderer.js`.
+- **Offer:** once the first District delivery is paid and Admin isn't "occupied", Admin offers a sealed crate for Rook (`admin-sealed-cargo-01`; `story.flags.sealedCargo`: accepted → delivered). The contents are never revealed.
+- **The run is trouble-free.** NeoChinatown → Meridian with:
+  - no patrols, inspection, confiscation, interdiction or combat
+  - no wanted status
+- **Pay:** Rook pays **1,800** (placeholder) in person at Meridian. The crate keeps the hold busy until it's handed over.
+- **Lines:** Admin's and Rook's are UNREVIEWED placeholders.
+- **Next (Stage C):** David's WarFlying scene (`design-source/12-…`) follows this delivery.
+- **History:** PR #59 first added a Tessaly patrol line with a hail and confiscation (Option A). Doc 11 §23 forbids that for this run, so it was removed.
+  - The rules (`police-patrol.js`, `police-patrols.js`, the police cutter model) stay, unused, for the deferred police and wanted systems (doc 11 §35).
+  - Saves where a patrol took the crate (`sealedCargo: 'seized'`) simply get the offer again.
 
 ### 9.2.6 The Relay, phase 1: radio channel (IMPLEMENTED; no content yet)
 
@@ -549,7 +545,13 @@ Done; see §4.3. Possible follow-ups:
 - Iris's follow-up contracts and the homeworld offers (doc 09). Homeworld buttons "I'm interested" / "Not right now" approved for now; pay to be balanced by David later.
 - Faction ship battles on the way to each delivery (doc 08): requested feature, built (§9.2.1). The border drop-out placement is Claude's choice and awaits David's review.
 
-- **Admin's sealed cargo (step 3): Option A, "patrols you can avoid"** (2026-10-16). No forced inspection; the player always chooses. David's original sections 17–20 of the homeworld brief were lost from the session, so the dialogue is placeholder (see §9.2.5).
+- **Admin's sealed cargo is "Don't Ask Questions" and must be trouble-free** (doc 11 §23, 2026-10-16). This replaced the patrol line from Option A (PR #59).
+- **WarFlying decisions** (doc 11; `docs/VOID_RUNNER_WARFLYING_AUDIT_AND_PLAN.md` §2, 2026-10-16):
+  - The booster/drone slot is renamed "Drive", and the WarFlying slot is "Utility".
+  - **Admin sells only the WarFlying Scrambler** (he sees WarFlying as an invasion of privacy). **Scanners are sold in every other store.**
+  - Satellite coverage: connected in every system, disconnected in warp (until David changes it).
+  - Leaderboard news is text captions.
+  - Stolen cargo sells at Rusthaven; Meridian and Kepler refuse it.
 
 - **The Relay (step 4): Option D**, phased: the radio channel now, station screens later (2026-10-16). The broadcast scripts must come from David; nothing is invented.
 
