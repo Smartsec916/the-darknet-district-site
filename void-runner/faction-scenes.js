@@ -67,22 +67,19 @@
   admin('Well, nothing that’s supposed to be exciting.'),
   adminPrompt
  ];
- // ---- Admin's sealed cargo for Rook (step 3, Option A). UNREVIEWED: all lines are Claude's placeholders for David to rewrite. ----
+ // ---- "Don't Ask Questions": Admin's sealed cargo for Rook. UNREVIEWED: Claude's placeholder lines for David to rewrite. ----
  function sealedOffer(){
-  const f=state.story.flags,again=f.sealedCargo==='seized',first=!f.sealedIntro;f.sealedIntro=true;save();
-  const opening=again?[admin('Heard you ran into a patrol.'),you('They took the crate.'),admin('Happens. Rook still needs one. I’ve got another, if you’re feeling luckier.')]
-   :first?[admin('Got a minute? I’ve got something for Rook. Small crate. Sealed.'),you('What’s in it?'),admin('Something Rook paid for, and something you don’t need to know about. It stays sealed.'),admin('Tessaly patrols have been scanning outbound traffic lately. Keep your head down and you’ll be fine. Rook pays well.')]
+  const f=state.story.flags,first=!f.sealedIntro;f.sealedIntro=true;save();
+  const opening=first?[admin('Got a minute? I’ve got something for Rook. Small crate. Sealed.'),you('What’s in it?'),admin('Something Rook paid for, and something you don’t need to know about. It stays sealed.')]
    :[admin('That crate for Rook is still here, if you want it.')];
-  const options=()=>[
-   {label:'WHAT IF THEY SCAN ME?',quiet:true,run:()=>ask([you('What if they scan me?'),admin('Then you’ve got a choice to make. Pay the fine and lose the crate, or don’t. Just don’t lead them back here.')],options(),HEAD)},
+  ask(opening,[
    {label:'I’LL TAKE IT',run:()=>{
     if(!C.acceptSealed(state))return leave([admin('Finish the job you’re carrying first. Then we’ll talk.')]);
     VoidMissions.track(state,C.sealedCargo.id,C);save();
-    leave([you('I’ll take it.'),admin('Rook’s expecting it. Don’t open it.')],'RETURN TO DISTRICT',()=>announce('SEALED CARGO ACCEPTED · Rook, Meridian Station tracked. Tessaly patrols are scanning the outbound lane.'));
+    leave([you('I’ll take it.'),admin('Rook’s expecting it. Don’t open it.')],'RETURN TO DISTRICT',()=>announce('DON’T ASK QUESTIONS ACCEPTED · Rook, Meridian Station tracked.'));
    }},
    {label:'NOT RIGHT NOW',quiet:true,run:()=>leave([you('Not right now.'),admin('Suit yourself. It’ll keep.')])}
-  ];
-  ask(opening,options(),HEAD);
+  ],HEAD);
  }
  VoidInteractions.register('admin',()=>{
   const f=state.story.flags;
@@ -97,14 +94,13 @@
   leave([busy?admin('You’ve got a delivery to make. Come back when it’s done.'):admin('Iris has the contracts. I just make the introductions.')]);
  });
 
- // ---- Rook takes the sealed crate at Meridian and pays (UNREVIEWED placeholder lines) ----
+ // ---- Rook takes the sealed crate at Meridian and pays ("Don't Ask Questions") (UNREVIEWED placeholder lines) ----
  const sealedRook=rookConversation;
  rookConversation=function(){
   if(!C.sealedDeliverable(state))return sealedRook();
-  const evaded=state.story.flags.sealedPatrolOutcome==='evaded';
   C.deliverSealed(state);VoidMissions.sync(state,C);save();hud();
-  talk('',[you('Package from Admin.'),{who:'rook',text:'Seal’s intact. Good.'},...(evaded?[{who:'rook',text:'Heard a patrol chased you halfway to the gate. Nice flying.'}]:[]),{who:'rook',text:'Here’s your cut. And you never carried it.'}],
-   ()=>{announce('PAYMENT RECEIVED · '+C.sealedCargo.payment.toLocaleString()+' credits · SEALED CARGO DELIVERED');resumeWalking();},'RETURN TO STATION');
+  talk('',[you('Package from Admin.'),{who:'rook',text:'Seal’s intact. Good.'},{who:'rook',text:'Here’s your cut. And you never carried it.'}],
+   ()=>{announce('PAYMENT RECEIVED · '+C.sealedCargo.payment.toLocaleString()+' credits · DON’T ASK QUESTIONS COMPLETE');resumeWalking();},'RETURN TO STATION');
  };
 
  // ---- Iris (doc 06) ----

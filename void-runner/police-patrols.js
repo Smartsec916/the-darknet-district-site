@@ -1,4 +1,4 @@
-/* Tessaly police patrols in flight on Admin's sealed-cargo run. Rules live in police-patrol.js.
+/* Tessaly police patrols in flight (currently no run triggers them; see police-patrol.js). Rules live in police-patrol.js.
    The hail lines are Claude's UNREVIEWED placeholders for David to rewrite; the patrol is not voiced. */
 (function(){
  const PP=VoidPolicePatrol;let zone=null,zoneRoute=null,hail=null;
@@ -40,8 +40,8 @@
   if(r.outcome==='refused')return showHail(lines.refused,options(),lines.talk);
   closeHail();
   if(r.outcome==='released'){flags().sealedPatrolOutcome='released';save();announce('Released. The patrol waves you through. Wait for the drive, then align and jump.');return;}
-  if(r.outcome==='seized'){const paid=C.seizeSealed(state,r.fine);flags().sealedPatrolOutcome='seized';VoidMissions.sync(state,C);save();hud();
-   announce('FINE PAID · '+(paid||0).toLocaleString()+' credits. Crate impounded. Admin may have another job.');return;}
+  // Complying pays the fine; what happens to cargo is for the future police system to decide.
+  if(r.outcome==='seized'){const paid=Math.min(state.credits,r.fine);state.credits-=paid;save();hud();announce('FINE PAID · '+paid.toLocaleString()+' credits.');return;}
   if(r.outcome==='pursuit'){zoneRoute.recharge=Math.min(zoneRoute.recharge||0,r.recharge);announce('PURSUIT · '+lines.run+' Drive spooling: align with your route and jump.');}
  }
  addEventListener('keydown',e=>{if(!hail||mode!=='play')return;const n=Number(e.key);const b=hail.querySelectorAll('button')[n-1];if(b){e.preventDefault();answer(b.dataset.choice);}},true);

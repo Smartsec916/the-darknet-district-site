@@ -70,20 +70,6 @@
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
-  "admin-0f80e227e1": {
-   "speaker": "admin",
-   "text": "Tessaly patrols have been scanning outbound traffic lately. Keep your head down and you’ll be fine. Rook pays well.",
-   "file": "admin-0f80e227e1.ogg",
-   "source": "faction-scenes.js",
-   "configHash": "a5a42e62b17a"
-  },
-  "admin-1284d30153": {
-   "speaker": "admin",
-   "text": "Happens. Rook still needs one. I’ve got another, if you’re feeling luckier.",
-   "file": "admin-1284d30153.ogg",
-   "source": "faction-scenes.js",
-   "configHash": "a5a42e62b17a"
-  },
   "admin-1a2c7e9f7e": {
    "speaker": "admin",
    "text": "Things have been getting a little interesting out there lately. The Communion and the Natural Order are at each other’s throats again.",
@@ -168,24 +154,10 @@
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
-  "admin-81d2b95dad": {
-   "speaker": "admin",
-   "text": "Then you’ve got a choice to make. Pay the fine and lose the crate, or don’t. Just don’t lead them back here.",
-   "file": "admin-81d2b95dad.ogg",
-   "source": "faction-scenes.js",
-   "configHash": "a5a42e62b17a"
-  },
   "admin-837b9e0a9b": {
    "speaker": "admin",
    "text": "Communion’s big on artificial intelligence. Practically worship the stuff. Natural Order? They’d rather smash a computer than let one make a decision for them.",
    "file": "admin-837b9e0a9b.ogg",
-   "source": "faction-scenes.js",
-   "configHash": "a5a42e62b17a"
-  },
-  "admin-881f867cc7": {
-   "speaker": "admin",
-   "text": "Heard you ran into a patrol.",
-   "file": "admin-881f867cc7.ogg",
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
@@ -1042,13 +1014,6 @@
    "file": "nyx-4dd4670e57.ogg",
    "source": "world-integration.js",
    "configHash": "74b28864fe22"
-  },
-  "rook-512fb8eb8d": {
-   "speaker": "rook",
-   "text": "Heard a patrol chased you halfway to the gate. Nice flying.",
-   "file": "rook-512fb8eb8d.ogg",
-   "source": "faction-scenes.js",
-   "configHash": "43ded265d771"
   },
   "rook-6f06e2d496": {
    "speaker": "rook",

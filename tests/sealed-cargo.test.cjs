@@ -23,13 +23,14 @@ test('accepting loads the crate for Rook at Meridian with pay held until the han
   const before=s.credits;assert(C.deliverSealed(s));assert.equal(s.credits,before+1800);assert.equal(s.story.flags.sealedCargo,'delivered');
   assert(s.universe.missions[ID].completed);assert(!C.deliverSealed(s),'paid once');assert(!C.sealedOffered(s));
 });
-test('complying with a patrol costs the fine and the crate; Admin offers it again',()=>{
-  const s=afterFirstPayment();s.credits=250;assert(C.accept(s,ID));
-  assert.equal(C.seizeSealed(s,400),250,'never more than the pilot has');assert.equal(s.credits,0);
-  assert.equal(s.contract,null);assert.equal(s.story.flags.sealedCargo,'seized');assert.equal(s.universe.missions[ID],undefined);
-  // The flight carries on empty to Meridian, where there is nothing to hand over.
-  const f=C.flight(s);assert.equal(f.destination,'meridian');assert.equal(f.kind,'transit');C.complete(s);assert(!C.sealedDeliverable(s));
-  s.location='earth';assert(C.sealedOffered(s));assert(C.acceptSealed(s));assert.equal(s.story.flags.sealedPatrol,undefined,'a new run meets the patrol again');
+test('"Don’t Ask Questions" is trouble-free: no patrol line, inspection or seizure (doc 11 §23)',()=>{
+  const s=afterFirstPayment();assert(C.accept(s,ID));assert.equal(C.sealedCargo.name,'Don’t Ask Questions');
+  assert.equal(C.seizeSealed,undefined,'nothing can confiscate the crate');
+  const f=C.flight(s);assert.equal(f.enemies,0);assert.equal(U.route('earth','meridian').interdiction,false);
+  for(const progress of [.1,.3,.5,.9])assert.equal(PP.due(s,{...f,id:ID},{phase:'warp',progress}),false);
+  const entry=M.all(s,C).find(m=>m.id===ID);assert.equal(entry.title,'DON’T ASK QUESTIONS');assert.doesNotMatch(entry.description+f.briefing,/patrol|scan/i);
+  // Saves from PR #59 where a patrol took the crate: Admin simply offers it again.
+  const old=afterFirstPayment();old.story.flags.sealedCargo='seized';assert(C.sealedOffered(old));assert(C.acceptSealed(old));
 });
 test('the crate keeps the hold busy and survives a save round trip',()=>{
   const s=afterFirstPayment();assert(C.accept(s,ID));assert(!C.accept(s,'rook-run'));
@@ -37,12 +38,8 @@ test('the crate keeps the hold busy and survives a save round trip',()=>{
   assert(require('../void-runner/save-manifest.json').missions.includes(ID));
 });
 
-test('the patrol line drops the run out once, with the drive recharging',()=>{
-  const s=afterFirstPayment();C.accept(s,ID);const current=C.flight(s),route={phase:'warp',progress:.35};
-  assert.equal(PP.due(s,{...current,id:ID},route),true);PP.begin(s,route);
-  assert.equal(route.phase,'align');assert.equal(route.progress,PP.config.dropAt);assert(route.recharge>20);
-  assert.equal(PP.due(s,{...current,id:ID},{phase:'warp',progress:.5}),false);
-  assert.equal(PP.due(s,{id:'communion-delivery'},{phase:'warp',progress:.5}),false);
+test('the patrol rules stay available for future police work but no run triggers them',()=>{
+  assert.equal(PP.mission,null);const route={phase:'warp',progress:.5};assert.equal(PP.due({contract:null,story:{flags:{}}},{id:'anything'},route),false);
 });
 test('going dark and easing off the throttle shrinks the patrol scan range',()=>{
   assert(Math.abs(PP.scanRange(1.5)-PP.config.scanRange)<1e-9);assert(PP.scanRange(.08)<PP.config.scanRange*.25);assert(PP.scanRange(.9)<PP.scanRange(2));
