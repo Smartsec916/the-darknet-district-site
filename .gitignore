@@ -36,3 +36,6 @@ venv/
 piper-venv/
 tools/audio/audition/samples/
 voice-comparison/
+
+# Browser test screenshots
+work/
