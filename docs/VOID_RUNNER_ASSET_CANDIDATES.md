@@ -1,6 +1,6 @@
 # VOID//RUNNER: Asset Candidates
 
-**As of:** 2026-10-16 · **Nothing has been downloaded or imported.** Scores follow `VOID_RUNNER_ART_DIRECTION.md` (theme 30, function 20, geometry and materials 20, environment 15, technical 15; licence pass/fail; 85 to approve).
+**As of:** 2026-10-16 · **Downloaded and test-rendered (§ "Review round 1"); nothing is used by the game yet.** Scores follow `VOID_RUNNER_ART_DIRECTION.md` (theme 30, function 20, geometry and materials 20, environment 15, technical 15; licence pass/fail; 85 to approve).
 
 **How these were judged:** I looked at each creator's own preview images on its official page (checked 2026-10-16). Those images are lit presentation renders, so every score is **provisional until the models are rendered in our game**. None is approved yet.
 
@@ -24,3 +24,21 @@
 3. Ultimate Spaceships Pack, from the creator's Google Drive folder (size shown on download)
 
 They'd be downloaded to a working folder **outside** the repo. Only selected GLB files, after an in-game look, would be committed.
+
+## Review round 1 (2026-10-16): downloaded, imported and rendered
+
+David approved downloading the three free Standard editions. They're kept outside the repo in `%LOCALAPPDATA%/void-runner-assets/`:
+- MegaKit: 46 MB
+- Essentials Kit: 159 MB
+- Spaceships pack: 145 MB from the creator's public Google Drive folder, whose `License.txt` states CC0 1.0
+
+All three were converted to self-contained GLBs with `tools/assets/import-models.cjs` (237 models, 1 broken file in the MegaKit itself) and rendered in the developer gallery (`tools/assets/gallery-server.cjs`), using game-like lighting plus a reflection environment built in code.
+
+| Pack | What the renders show | Revised score | Recommendation |
+|---|---|---|---|
+| **Ultimate Spaceships** (11 ships, 750–8,300 triangles) | Weathered orange, grey and black industrial hulls with real engines, cockpits and wings; detail is mostly in textures. The purple glow in the promo was an effect added for that image, not part of the models. **Placed in a real flight** as raider (Striker), interceptor (Challenger) and gunship (Insurgent): they read clearly at combat range and are a large step up from the box ships. | 84 (24/18/14/13/15) | Use for **pirates and traffic** (raider, interceptor, gunship, courier, shuttle, security) pending David's review. **Not for the Kestrel or faction ships.** |
+| **Sci-Fi Essentials Kit**: props | Crates, large crates, barrels, ammo cases, lockers, shelving, desks and a pilot-style chair: solid industrial PBR. The blue tarp crates and the green health items are brighter than the art direction. | 86 for crates, barrels, lockers, shelving and desks (25/18/16/13/14) | **Shortlist** for Meridian hangar and bar dressing. |
+| **Sci-Fi Essentials Kit**: robots and syringe/health items | Toy-like robots, bright green consumables | — | Reject. |
+| **Modular Sci-Fi MegaKit** (free edition) | Good shapes (crates, pipe racks, rails, vents, walls), but the free edition's materials are near-black trim textures; the pack's colour masks only come with the paid Source edition. It needs the new reflection environment to read at all. | 78 (24/18/13/12/11) | Hold. Use a few props (pipe holder, rails, vents, crate4) if they read well in the game; whole interiors would need recolouring or the paid edition (needs approval). |
+
+**Screenshots** (in the review folder, not committed): `ingame-fighters.jpg` (real models in flight), plus contact sheets `ships.jpg`, `essentials-props.jpg`, `megakit-props.jpg` and `megakit-walls.jpg`.
