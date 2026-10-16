@@ -79,6 +79,12 @@ This repository is David's website, The Darknet District (https://thedarknetdist
 - No new dependencies without a strong reason. Keep things fast on the ASUS ROG Ally Extreme: instancing, merged meshes, quality tiers (`low`/`medium`/`high`).
 - Keep changes scoped. Do not make unrelated gameplay changes.
 
+## NPC voices
+
+- Voice identities are in `tools/audio/npc-voice-registry.json`. **Never change an approved voice** (or the model files) without David's approval; the change goes through the audition tool (`tools/audio/audition/server.py`). Don't assign the reserved special-character slot or invent broadcast voices.
+- After changing dialogue: `node tools/audio/extract-lines.cjs`, then `python tools/audio/generate.py --models <folder>` (`--dry-run` first). Ask before bulk-generating hundreds of clips. Never commit models, virtual environments or audition samples.
+- Details: `docs/VOID_RUNNER_VOICE_PRODUCTION.md`.
+
 ## Testing
 
 - `npm test` (`node --test tests/*.test.cjs`): about 206 unit tests. They must pass.

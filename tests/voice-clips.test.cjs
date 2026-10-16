@@ -3,8 +3,8 @@ const {execFileSync}=require('child_process'),fs=require('fs'),path=require('pat
 const dir=path.join(__dirname,'..','void-runner','assets','audio','voice'),manifest=require(path.join(dir,'manifest.json'));
 
 test('every fixed NPC line has a recorded clip and the manifest matches the game',()=>{
-  // Fails if dialogue was edited without re-running tools/voice/extract-lines.cjs and generate.py.
-  execFileSync(process.execPath,[path.join(__dirname,'..','tools','voice','extract-lines.cjs'),'--check'],{stdio:'pipe'});
+  // Fails if dialogue was edited without re-running tools/audio/extract-lines.cjs and generate.py.
+  execFileSync(process.execPath,[path.join(__dirname,'..','tools','audio','extract-lines.cjs'),'--check'],{stdio:'pipe'});
 });
 test('each recurring NPC has a distinct voice and the player is never voiced',()=>{
   const voices=Object.values(manifest.cast).map(c=>c.voice);assert.equal(new Set(voices).size,voices.length,'no two NPCs share a voice');

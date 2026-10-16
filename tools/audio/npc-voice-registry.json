@@ -1,0 +1,47 @@
+{
+ "version": 1,
+ "about": "Permanent voice identities for VOID//RUNNER. Edit only through tools/audio/audition (or by hand for provisional entries). An approved entry is locked: its approvedConfigHash must match its current settings, or generation stops.",
+ "engine": {
+  "name": "kokoro-onnx",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0",
+  "model": "kokoro-v1.0.onnx",
+  "modelSha256": "7d5df8ecf7d4b1878015a32686053fd0eebe2bc377234608764cc0ef3636a6c5",
+  "voices": "voices-v1.0.bin",
+  "voicesSha256": "bca610b8308e8d99f32e6fe4197e7ec01679264efed0cac9140fe9c29f1fbf7d",
+  "license": "Apache-2.0 (hexgrad/Kokoro-82M)",
+  "source": "https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0"
+ },
+ "processingProfiles": {
+  "none": "Clean recording, no live processing.",
+  "android": "Iris only: ~95% natural. Faint 2.3 ms comb resonance, +2.5 dB high shelf, tiny chorus; applied live in voice-clips.js.",
+  "hologram": "Elias's archived recording: 240 Hz-4.8 kHz band limit with a slight 7 Hz flicker; applied live in voice-clips.js.",
+  "radio": "Reserved for Relay broadcasts (transmission filtering); separate from voice identity. Not built yet."
+ },
+ "npcs": {
+  "mara": {"displayName": "Mara", "role": "Older mechanic, Vesper", "voice": "af_nicole", "speed": 0.94, "lang": "en-us", "profile": "none", "status": "provisional", "approvedConfigHash": null, "approvedAt": null, "notes": "Mature, somewhat subdued, natural and reassuring."},
+  "elias": {"displayName": "Elias Ward", "role": "Late employer, hologram recording", "voice": "bm_george", "speed": 0.92, "lang": "en-gb", "profile": "hologram", "status": "provisional", "approvedConfigHash": null, "approvedAt": null, "notes": "Older, compassionate; the hologram effect is separate from the voice."},
+  "rook": {"displayName": "Rook", "role": "Cargo broker, Meridian", "voice": "am_fenrir", "speed": 1, "lang": "en-us", "profile": "none", "status": "provisional", "approvedConfigHash": null, "approvedAt": null, "notes": "Experienced, practical; slightly rough is fine, no distortion."},
+  "admin": {"displayName": "Admin", "role": "The Darknet District", "voice": "am_michael", "speed": 0.97, "lang": "en-us", "profile": "none", "status": "provisional", "approvedConfigHash": null, "approvedAt": null, "notes": "Pragmatic, dry, slightly cynical."},
+  "iris": {"displayName": "Iris", "role": "Android Chief Security Officer", "voice": "bf_emma", "speed": 1, "lang": "en-gb", "profile": "android", "status": "provisional", "approvedConfigHash": null, "approvedAt": null, "notes": "Calm, intelligent, professional; ~95% natural, 5% synthetic. Separate from the website chatbot."},
+  "elara": {"displayName": "Dr. Elara Voss", "role": "Communion logistics coordinator", "voice": "bf_isabella", "speed": 0.98, "lang": "en-gb", "profile": "none", "status": "provisional", "approvedConfigHash": null, "approvedAt": null, "notes": "Clear, precise, composed."},
+  "marcus": {"displayName": "Marcus Vale", "role": "Natural Order industrial supply supervisor", "voice": "am_eric", "speed": 1, "lang": "en-us", "profile": "none", "status": "provisional", "approvedConfigHash": null, "approvedAt": null, "notes": "Grounded, practical, natural."},
+  "kess": {"displayName": "Dr. Adrian Kess", "role": "Nexus infrastructure recovery coordinator", "voice": "bm_daniel", "speed": 0.95, "lang": "en-gb", "profile": "none", "status": "provisional", "approvedConfigHash": null, "approvedAt": null, "notes": "Intelligent, measured, slightly weary."},
+  "mercer": {"displayName": "Daniel Mercer", "role": "Natural Order agricultural supply coordinator", "voice": "am_onyx", "speed": 1, "lang": "en-us", "profile": "none", "status": "provisional", "approvedConfigHash": null, "approvedAt": null, "notes": "Warm, practical, natural."},
+  "nyx": {"displayName": "Nyx", "role": "Bartender, the Dead Channel", "voice": "af_river", "speed": 1, "lang": "en-us", "profile": "none", "status": "provisional", "approvedConfigHash": null, "approvedAt": null, "notes": ""},
+  "iona": {"displayName": "Iona Vale", "role": "Rusthaven engineer", "voice": "af_kore", "speed": 1, "lang": "en-us", "profile": "none", "status": "provisional", "approvedConfigHash": null, "approvedAt": null, "notes": "Unrelated to Marcus Vale."},
+  "sol": {"displayName": "Dr. Sol", "role": "Kepler clinic network", "voice": "bm_lewis", "speed": 0.97, "lang": "en-gb", "profile": "none", "status": "provisional", "approvedConfigHash": null, "approvedAt": null, "notes": ""},
+  "bartender": {"displayName": "District bartender", "role": "The Darknet District bar", "voice": "am_liam", "speed": 1, "lang": "en-us", "profile": "none", "status": "provisional", "approvedConfigHash": null, "approvedAt": null, "notes": ""},
+  "attendant": {"displayName": "Arcade attendant", "role": "The Darknet District VR rigs", "voice": "am_puck", "speed": 1.05, "lang": "en-us", "profile": "none", "status": "provisional", "approvedConfigHash": null, "approvedAt": null, "notes": ""}
+ },
+ "broadcast": {
+  "news-anchor": {"displayName": "Relay news anchor", "voice": null, "status": "unassigned", "notes": "Natural, professional broadcast delivery. The Relay is not built yet."},
+  "warflying-host": {"displayName": "WarFlying announcer", "voice": null, "status": "unassigned", "notes": "Energetic, theatrical sports commentator."},
+  "police-recruiter": {"displayName": "Police recruitment announcer", "voice": null, "status": "unassigned", "notes": "Enthusiastic, slightly cheesy commercial delivery."},
+  "communion-spokesperson": {"displayName": "Communion spokesperson", "voice": null, "status": "unassigned", "notes": "Controlled, composed, persuasive."},
+  "natural-order-spokesperson": {"displayName": "Natural Order spokesperson", "voice": null, "status": "unassigned", "notes": "Confident, grounded, direct."},
+  "the-function": {"displayName": "The Function", "voice": null, "status": "unassigned", "notes": "Provisional identity. Any unusual voice treatment needs David's approval. Do not invent its nature."}
+ },
+ "reserved": {
+  "special-character": {"status": "reserved", "notes": "Reserved for one special character David will introduce later. Do not assign a voice or write dialogue."}
+ }
+}

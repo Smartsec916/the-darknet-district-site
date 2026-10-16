@@ -1,0 +1,954 @@
+{
+ "admin-026ac0a844": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "53960f988864",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "admin-1a2c7e9f7e": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "750dea054b0f",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "admin-2504462831": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "53d9f8ac119f",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "admin-2ae436a20b": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "9f28118e658e",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "admin-2cdccb5d8e": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "50786db0bbd7",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "admin-49704bf026": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "c6fadcddc34c",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "admin-66b33b1847": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "eae859c8ce0a",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "admin-6b6ac0def5": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "9c1d7eece38f",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "admin-77f3b62781": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "42c111454557",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "admin-837b9e0a9b": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "d9d34a4a670a",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "admin-8e0fda2b2f": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "ea1ef379b075",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "admin-916f7a1279": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "1a4e89eaf8b4",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "admin-b29df7912e": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "e6f0aa6dbe0f",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "admin-bef8ca5f24": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "c2a65dda9434",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "admin-c83a93dcf2": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "a3e06ed51525",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "admin-f8f9b948ab": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "2ee75a7e616f",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "attendant-2c51df66ff": {
+  "configHash": "a47c75df8031",
+  "textHash": "d21f7f9099bc",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "bartender-4e05c4bdfe": {
+  "configHash": "827569c45d66",
+  "textHash": "74dffb4ebc8e",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "bartender-cbd0d30d99": {
+  "configHash": "827569c45d66",
+  "textHash": "51039a9612c2",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "bartender-ebb7d2f21c": {
+  "configHash": "827569c45d66",
+  "textHash": "321565e43a42",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "elara-074a9eed0d": {
+  "configHash": "0b85923080b1",
+  "textHash": "0c76af29b766",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "elara-212d04a841": {
+  "configHash": "0b85923080b1",
+  "textHash": "5f056a779c78",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "elara-416a7e9f97": {
+  "configHash": "0b85923080b1",
+  "textHash": "994206b0b8be",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "elara-475b826519": {
+  "configHash": "0b85923080b1",
+  "textHash": "22c5c0172504",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "elara-6d7ed7f071": {
+  "configHash": "0b85923080b1",
+  "textHash": "8f7502fe0ef9",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "elara-7c7f9f89bc": {
+  "configHash": "0b85923080b1",
+  "textHash": "b614b627a846",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "elara-8600acd207": {
+  "configHash": "0b85923080b1",
+  "textHash": "ff13dd4971e6",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "elara-9551f3f3cb": {
+  "configHash": "0b85923080b1",
+  "textHash": "c6f45cb92942",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "elara-9d39e9b3a0": {
+  "configHash": "0b85923080b1",
+  "textHash": "be85c365211c",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "elara-a793d2a561": {
+  "configHash": "0b85923080b1",
+  "textHash": "b7d193fcd07d",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "elara-c72b4f1eee": {
+  "configHash": "0b85923080b1",
+  "textHash": "ed7b68ffb6b1",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "elara-c95d3894f5": {
+  "configHash": "0b85923080b1",
+  "textHash": "7fd319967b83",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "elara-d82417fb63": {
+  "configHash": "0b85923080b1",
+  "textHash": "8b7d23ccbc61",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "elara-edafe9b098": {
+  "configHash": "0b85923080b1",
+  "textHash": "0cd15f8c0f47",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "elara-f02437af25": {
+  "configHash": "0b85923080b1",
+  "textHash": "1bb50f5379da",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "elara-fa07db9424": {
+  "configHash": "0b85923080b1",
+  "textHash": "bf4d69842d6b",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "elias-df9465093a": {
+  "configHash": "d7e7acafa322",
+  "textHash": "852a2fe008b3",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iona-a0bb687952": {
+  "configHash": "377ff78e9811",
+  "textHash": "127ae79a694e",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-0752334a19": {
+  "configHash": "cc45a4967278",
+  "textHash": "dd5627539fc5",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-22e618d378": {
+  "configHash": "cc45a4967278",
+  "textHash": "78d233ccb249",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-253d186079": {
+  "configHash": "cc45a4967278",
+  "textHash": "c20cf1a5be2b",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-289d8f6046": {
+  "configHash": "cc45a4967278",
+  "textHash": "c046b7af2c83",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-350f086927": {
+  "configHash": "cc45a4967278",
+  "textHash": "0fe575f567e1",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-43fe62eb93": {
+  "configHash": "cc45a4967278",
+  "textHash": "f72202584acf",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-4bd7d18fd7": {
+  "configHash": "cc45a4967278",
+  "textHash": "acf48e628d37",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-60d1e75870": {
+  "configHash": "cc45a4967278",
+  "textHash": "bf230c6f308e",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-6ff0b6fe1b": {
+  "configHash": "cc45a4967278",
+  "textHash": "d3c54aaf7aff",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-7c99dd74b4": {
+  "configHash": "cc45a4967278",
+  "textHash": "7cf3fad36b93",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-80898cd5ff": {
+  "configHash": "cc45a4967278",
+  "textHash": "232bbad8e74c",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-8de0d32531": {
+  "configHash": "cc45a4967278",
+  "textHash": "e419a8d93d9e",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-8eb4245512": {
+  "configHash": "cc45a4967278",
+  "textHash": "ab4426b48169",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-99ff84d0aa": {
+  "configHash": "cc45a4967278",
+  "textHash": "757f6a970580",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-9fc9952136": {
+  "configHash": "cc45a4967278",
+  "textHash": "b6e49d5f2fa2",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-a4deddb144": {
+  "configHash": "cc45a4967278",
+  "textHash": "1b4d9de5926c",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-a64fb13827": {
+  "configHash": "cc45a4967278",
+  "textHash": "252df4657f9c",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-a84756227b": {
+  "configHash": "cc45a4967278",
+  "textHash": "c0f562f3cfbc",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-a9b66d62ad": {
+  "configHash": "cc45a4967278",
+  "textHash": "c922f9caa1fd",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-b5bcb93160": {
+  "configHash": "cc45a4967278",
+  "textHash": "1c98af3a84a9",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-b833d7e8ea": {
+  "configHash": "cc45a4967278",
+  "textHash": "e61b7110a9a4",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-b89cf1438a": {
+  "configHash": "cc45a4967278",
+  "textHash": "9ec6233c5426",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-bf9dacfbc2": {
+  "configHash": "cc45a4967278",
+  "textHash": "8476fead0f0b",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-c0fc703e5b": {
+  "configHash": "cc45a4967278",
+  "textHash": "7a62d82c7899",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-c62c2705d6": {
+  "configHash": "cc45a4967278",
+  "textHash": "9e91a395129e",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-ce8b7cb415": {
+  "configHash": "cc45a4967278",
+  "textHash": "8c14b618542b",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-d8ad5e87e9": {
+  "configHash": "cc45a4967278",
+  "textHash": "1dfd95564109",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-e655b867a0": {
+  "configHash": "cc45a4967278",
+  "textHash": "21d445653c00",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "iris-f6abd88af5": {
+  "configHash": "cc45a4967278",
+  "textHash": "97ee7c74a9b6",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "kess-0a4c88990e": {
+  "configHash": "272e5f39b640",
+  "textHash": "ccd8a9d9db05",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "kess-1010253438": {
+  "configHash": "272e5f39b640",
+  "textHash": "3313ee4fae9e",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "kess-2f01842095": {
+  "configHash": "272e5f39b640",
+  "textHash": "0dcda09dab69",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "kess-319e269712": {
+  "configHash": "272e5f39b640",
+  "textHash": "490d865f6de4",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "kess-464b47e453": {
+  "configHash": "272e5f39b640",
+  "textHash": "43e10d937af8",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "kess-4a3290b7ba": {
+  "configHash": "272e5f39b640",
+  "textHash": "0027bf76c98b",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "kess-54eb8e3c8b": {
+  "configHash": "272e5f39b640",
+  "textHash": "cac95edbb93a",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "kess-72a96e7b23": {
+  "configHash": "272e5f39b640",
+  "textHash": "2b11bc01fd9c",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "kess-96746792b1": {
+  "configHash": "272e5f39b640",
+  "textHash": "8d31a7a49315",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "kess-98ff13f9f0": {
+  "configHash": "272e5f39b640",
+  "textHash": "370104f60463",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "kess-9f2e906220": {
+  "configHash": "272e5f39b640",
+  "textHash": "1a7a1670d188",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "kess-a814e42f6c": {
+  "configHash": "272e5f39b640",
+  "textHash": "91c390398fbc",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "kess-b4b0f8bc41": {
+  "configHash": "272e5f39b640",
+  "textHash": "6829dcd3f14b",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "kess-bff0a00489": {
+  "configHash": "272e5f39b640",
+  "textHash": "e4c70dc586b8",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "kess-c56e81c693": {
+  "configHash": "272e5f39b640",
+  "textHash": "475e77fa8985",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "kess-d2e853d2fe": {
+  "configHash": "272e5f39b640",
+  "textHash": "68d60cc5b805",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "kess-d84fb6c904": {
+  "configHash": "272e5f39b640",
+  "textHash": "8d4134d50946",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mara-084b8b04d0": {
+  "configHash": "8c503f5969da",
+  "textHash": "ede6a7970e3f",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mara-152b009cbc": {
+  "configHash": "8c503f5969da",
+  "textHash": "87d05f3f48d3",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mara-1b438eda4c": {
+  "configHash": "8c503f5969da",
+  "textHash": "d43a9087805b",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mara-45ca35cbcb": {
+  "configHash": "8c503f5969da",
+  "textHash": "164d3f09fbb1",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mara-548425c949": {
+  "configHash": "8c503f5969da",
+  "textHash": "3f10488dfde6",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mara-63e4870cb2": {
+  "configHash": "8c503f5969da",
+  "textHash": "6a89d7b74410",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mara-6edb97cb0a": {
+  "configHash": "8c503f5969da",
+  "textHash": "8acbf0d955e7",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mara-7fd39bcb68": {
+  "configHash": "8c503f5969da",
+  "textHash": "9a2da744b7fb",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mara-936e938e2f": {
+  "configHash": "8c503f5969da",
+  "textHash": "7d41c6694071",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mara-abdef6955b": {
+  "configHash": "8c503f5969da",
+  "textHash": "0e14754450d8",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mara-bc46dc72ac": {
+  "configHash": "8c503f5969da",
+  "textHash": "b93522439821",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mara-d6545d87ff": {
+  "configHash": "8c503f5969da",
+  "textHash": "3275f2056a4d",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mara-e287f62ffa": {
+  "configHash": "8c503f5969da",
+  "textHash": "b12530b3e767",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "marcus-0122a9a3d0": {
+  "configHash": "80d9d059c750",
+  "textHash": "62888e64927c",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "marcus-394b883891": {
+  "configHash": "80d9d059c750",
+  "textHash": "d3733ceb208e",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "marcus-3fa00ab9d8": {
+  "configHash": "80d9d059c750",
+  "textHash": "38c5a23102bb",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "marcus-48a48c491c": {
+  "configHash": "80d9d059c750",
+  "textHash": "9992cfc1af9c",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "marcus-50456254a4": {
+  "configHash": "80d9d059c750",
+  "textHash": "631ab84b561e",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "marcus-5a7c817cb2": {
+  "configHash": "80d9d059c750",
+  "textHash": "661a27a71820",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "marcus-6b35cbf681": {
+  "configHash": "80d9d059c750",
+  "textHash": "a553f0faf208",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "marcus-6fd605237a": {
+  "configHash": "80d9d059c750",
+  "textHash": "a844f735208a",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "marcus-84f7c1bc1c": {
+  "configHash": "80d9d059c750",
+  "textHash": "177bb7e8d810",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "marcus-865cd1f363": {
+  "configHash": "80d9d059c750",
+  "textHash": "9fec63b4b1d9",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "marcus-8e1507f6cc": {
+  "configHash": "80d9d059c750",
+  "textHash": "a0dcc1c33264",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "marcus-930c5167f5": {
+  "configHash": "80d9d059c750",
+  "textHash": "23af3bd2214e",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "marcus-9a3318a7e8": {
+  "configHash": "80d9d059c750",
+  "textHash": "601454ccea0e",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "marcus-9e1e649159": {
+  "configHash": "80d9d059c750",
+  "textHash": "238a1741ddad",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "marcus-b4ecd7fc0b": {
+  "configHash": "80d9d059c750",
+  "textHash": "0f1db68efcfe",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "marcus-c892761f7a": {
+  "configHash": "80d9d059c750",
+  "textHash": "be8d57ea4531",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "marcus-e602a2330d": {
+  "configHash": "80d9d059c750",
+  "textHash": "3f8844b23ea6",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mercer-0c798bcc09": {
+  "configHash": "001915d23640",
+  "textHash": "81b2cd61342d",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mercer-2633e4c3e2": {
+  "configHash": "001915d23640",
+  "textHash": "319a415a26cd",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mercer-366a2be45a": {
+  "configHash": "001915d23640",
+  "textHash": "c9f3e28e1f09",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mercer-4c8e9a65e1": {
+  "configHash": "001915d23640",
+  "textHash": "39a7b35da192",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mercer-5071219b06": {
+  "configHash": "001915d23640",
+  "textHash": "fa3baa967686",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mercer-53d39f1b63": {
+  "configHash": "001915d23640",
+  "textHash": "7edcf0d0fce5",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mercer-6a67a68c3e": {
+  "configHash": "001915d23640",
+  "textHash": "618127b3be28",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mercer-6b7bd96ae8": {
+  "configHash": "001915d23640",
+  "textHash": "b2a7fabc9b6f",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mercer-8231f84fd0": {
+  "configHash": "001915d23640",
+  "textHash": "7f9c4e0a1444",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mercer-8716599e70": {
+  "configHash": "001915d23640",
+  "textHash": "18c544165683",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mercer-b493ff0b6b": {
+  "configHash": "001915d23640",
+  "textHash": "59fc07cb47dd",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mercer-c03b9c2ecf": {
+  "configHash": "001915d23640",
+  "textHash": "4d27ede0912f",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mercer-ca386df06d": {
+  "configHash": "001915d23640",
+  "textHash": "0779300395d8",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mercer-d900e6d0a4": {
+  "configHash": "001915d23640",
+  "textHash": "0be6d9710e12",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mercer-e143214e8c": {
+  "configHash": "001915d23640",
+  "textHash": "583c2caff4ae",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "mercer-e7be9df3ed": {
+  "configHash": "001915d23640",
+  "textHash": "34b91114eeeb",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "nyx-4dd4670e57": {
+  "configHash": "74b28864fe22",
+  "textHash": "6a7d871766ae",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "rook-6f06e2d496": {
+  "configHash": "d3b5cd5a352a",
+  "textHash": "25cc192b430b",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "rook-a3a0f56420": {
+  "configHash": "d3b5cd5a352a",
+  "textHash": "281827f87e66",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "rook-e6886e327f": {
+  "configHash": "d3b5cd5a352a",
+  "textHash": "ded1ef625b8e",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "rook-ef4bdcd50d": {
+  "configHash": "d3b5cd5a352a",
+  "textHash": "db1f2d44ca16",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ },
+ "sol-58689e80f5": {
+  "configHash": "f719ef95c06f",
+  "textHash": "d067c5f1f3e6",
+  "generatedAt": "2026-10-15",
+  "runtime": "kokoro-onnx 0.6.1",
+  "note": "recorded at registry creation; rendered with these settings"
+ }
+}
