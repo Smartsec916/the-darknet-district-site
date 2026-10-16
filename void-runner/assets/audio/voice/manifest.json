@@ -6,60 +6,60 @@
   "iris": {
    "voice": "bf_emma",
    "effect": "android",
-   "status": "provisional"
+   "status": "approved"
   },
   "admin": {
    "voice": "am_michael",
-   "status": "provisional"
+   "status": "approved"
   },
   "elara": {
    "voice": "bf_isabella",
-   "status": "provisional"
+   "status": "approved"
   },
   "marcus": {
    "voice": "am_eric",
-   "status": "provisional"
+   "status": "approved"
   },
   "rook": {
-   "voice": "am_fenrir",
-   "status": "provisional"
+   "voice": "bm_fable",
+   "status": "approved"
   },
   "kess": {
    "voice": "bm_daniel",
-   "status": "provisional"
+   "status": "approved"
   },
   "mercer": {
    "voice": "am_onyx",
-   "status": "provisional"
+   "status": "approved"
   },
   "elias": {
-   "voice": "bm_george",
+   "voice": "am_santa",
    "effect": "hologram",
-   "status": "provisional"
+   "status": "approved"
   },
   "mara": {
-   "voice": "af_nicole",
-   "status": "provisional"
+   "voice": "af_bella",
+   "status": "approved"
   },
   "bartender": {
    "voice": "am_liam",
-   "status": "provisional"
+   "status": "approved"
   },
   "attendant": {
    "voice": "am_puck",
-   "status": "provisional"
+   "status": "approved"
   },
   "nyx": {
    "voice": "af_river",
-   "status": "provisional"
+   "status": "approved"
   },
   "iona": {
    "voice": "af_kore",
-   "status": "provisional"
+   "status": "approved"
   },
   "sol": {
    "voice": "bm_lewis",
-   "status": "provisional"
+   "status": "approved"
   }
  },
  "lines": {
@@ -320,7 +320,7 @@
    "text": "The ship is yours. Go make a life of your own.",
    "file": "elias-df9465093a.ogg",
    "source": "prologue-integration.js",
-   "configHash": "d7e7acafa322"
+   "configHash": "c692269e1911"
   },
   "iona-a0bb687952": {
    "speaker": "iona",
@@ -656,91 +656,91 @@
    "text": "Take her to Meridian Station. Rook will be waiting.",
    "file": "mara-084b8b04d0.ogg",
    "source": "prologue-integration.js",
-   "configHash": "8c503f5969da"
+   "configHash": "2b2afe60ca06"
   },
   "mara-152b009cbc": {
    "speaker": "mara",
    "text": "Come around the side with me. A few cans, a safe dirt bank. Let’s see if it still works.",
    "file": "mara-152b009cbc.ogg",
    "source": "prologue-integration.js",
-   "configHash": "8c503f5969da"
+   "configHash": "2b2afe60ca06"
   },
   "mara-1b438eda4c": {
    "speaker": "mara",
    "text": "Aim toward the dirt bank. Knock down four cans, then reload. No rush.",
    "file": "mara-1b438eda4c.ogg",
    "source": "prologue-integration.js",
-   "configHash": "8c503f5969da"
+   "configHash": "2b2afe60ca06"
   },
   "mara-45ca35cbcb": {
    "speaker": "mara",
    "text": "Clean landing. That’s the basics; the rest you learn out there.",
    "file": "mara-45ca35cbcb.ogg",
    "source": "prologue-integration.js",
-   "configHash": "8c503f5969da"
+   "configHash": "2b2afe60ca06"
   },
   "mara-548425c949": {
    "speaker": "mara",
    "text": "One circuit. Get a feel for the throttle, steering and roll, jump to the training beacon, then put her back on this pad.",
    "file": "mara-548425c949.ogg",
    "source": "prologue-integration.js",
-   "configHash": "8c503f5969da"
+   "configHash": "2b2afe60ca06"
   },
   "mara-63e4870cb2": {
    "speaker": "mara",
    "text": "Fly her to Meridian Station and find Rook. If you ever want a refresher, I’m here.",
    "file": "mara-63e4870cb2.ogg",
    "source": "prologue-integration.js",
-   "configHash": "8c503f5969da"
+   "configHash": "2b2afe60ca06"
   },
   "mara-6edb97cb0a": {
    "speaker": "mara",
    "text": "Elias passed away last night. He left you the Kestrel — and this pistol. He wanted you to have a chance out there.",
    "file": "mara-6edb97cb0a.ogg",
    "source": "prologue-integration.js",
-   "configHash": "8c503f5969da"
+   "configHash": "2b2afe60ca06"
   },
   "mara-7fd39bcb68": {
    "speaker": "mara",
    "text": "Then take these. Elias’s pistol, and the Kestrel is yours.",
    "file": "mara-7fd39bcb68.ogg",
    "source": "prologue-integration.js",
-   "configHash": "8c503f5969da"
+   "configHash": "2b2afe60ca06"
   },
   "mara-936e938e2f": {
    "speaker": "mara",
    "text": "Keep her flying. Rook will be waiting.",
    "file": "mara-936e938e2f.ogg",
    "source": "story-content.js",
-   "configHash": "8c503f5969da"
+   "configHash": "2b2afe60ca06"
   },
   "mara-abdef6955b": {
    "speaker": "mara",
    "text": "Before you go anywhere, take her up for one practice circuit over Vesper. Jump to the training beacon, then land back on this pad.",
    "file": "mara-abdef6955b.ogg",
    "source": "prologue-integration.js",
-   "configHash": "8c503f5969da"
+   "configHash": "2b2afe60ca06"
   },
   "mara-bc46dc72ac": {
    "speaker": "mara",
    "text": "Still works. The Kestrel is yours now.",
    "file": "mara-bc46dc72ac.ogg",
    "source": "prologue-integration.js",
-   "configHash": "8c503f5969da"
+   "configHash": "2b2afe60ca06"
   },
   "mara-d6545d87ff": {
    "speaker": "mara",
    "text": "Elias passed away last night. You worked for him for years. In his will, he left you the Kestrel.",
    "file": "mara-d6545d87ff.ogg",
    "source": "story-content.js",
-   "configHash": "8c503f5969da"
+   "configHash": "2b2afe60ca06"
   },
   "mara-e287f62ffa": {
    "speaker": "mara",
    "text": "You have 100 credits. This is the Erebus System. Fly to Meridian and meet Rook at the bar. He has work.",
    "file": "mara-e287f62ffa.ogg",
    "source": "story-content.js",
-   "configHash": "8c503f5969da"
+   "configHash": "2b2afe60ca06"
   },
   "marcus-0122a9a3d0": {
    "speaker": "marcus",
@@ -985,28 +985,28 @@
    "text": "Two hot runs and you’re still breathing. I’ve got something for the next one. Head to the station shop. Tell them Rook sent you. They’ll fit a missile launcher — installation’s on me. I know a guy in Tessaly with more work. Admin. Runs The Darknet District in NeoChinatown with his partner Iris. I’ve marked the Tessaly Belt Anchorage. Press L for your Mission Log; pick what you want to track. Complete your missile qualification before choosing independent routes. Acquire the launcher here, fit it in the hangar, and demonstrate target selection, lock and firing on your next run.",
    "file": "rook-6f06e2d496.ogg",
    "source": "hangar.js",
-   "configHash": "d3b5cd5a352a"
+   "configHash": "43ded265d771"
   },
   "rook-a3a0f56420": {
    "speaker": "rook",
    "text": "Finish your missile qualification: acquire the launcher, install it at the maintenance terminal, then select, lock and fire on a hostile in your next run.",
    "file": "rook-a3a0f56420.ogg",
    "source": "world-integration.js",
-   "configHash": "d3b5cd5a352a"
+   "configHash": "43ded265d771"
   },
   "rook-e6886e327f": {
    "speaker": "rook",
    "text": "Finish the job you are carrying. Then come see me.",
    "file": "rook-e6886e327f.ogg",
    "source": "world-integration.js",
-   "configHash": "d3b5cd5a352a"
+   "configHash": "43ded265d771"
   },
   "rook-ef4bdcd50d": {
    "speaker": "rook",
    "text": "Deliver the cargo. Then come back for more work.",
    "file": "rook-ef4bdcd50d.ogg",
    "source": "scenes.js",
-   "configHash": "d3b5cd5a352a"
+   "configHash": "43ded265d771"
   },
   "sol-58689e80f5": {
    "speaker": "sol",
