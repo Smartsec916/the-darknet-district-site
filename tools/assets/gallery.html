@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asset Gallery</title>
+<style>
+:root{--bg:#0b0e13;--panel:#141922;--line:#262d3a;--text:#e5e8ee;--dim:#8a93a5;--ok:#7bd88f;--bad:#ef6f6c;--accent:#4fd1c5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,Segoe UI,sans-serif}
+header{padding:14px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}h1{margin:0;font-size:18px;letter-spacing:.05em}
+select,input,button{font:inherit;color:var(--text);background:#0f131a;border:1px solid var(--line);border-radius:6px;padding:5px 8px}button{cursor:pointer}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:0 16px 30px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}.tile img{display:block;width:100%;aspect-ratio:16/10;background:#06080c;object-fit:cover}
+.tile .meta{padding:8px 10px;font-size:12px;color:var(--dim)}.tile .name{color:var(--text);font-weight:600;font-size:13px;word-break:break-all}
+.tile.shortlisted{border-color:#2f6b3d}.tile.rejected{opacity:.45}.row{display:flex;gap:6px;margin-top:6px}
+#view{position:fixed;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:5}#view canvas{width:min(1100px,96vw);height:min(680px,80vh);border-radius:8px}
+#view .close{position:absolute;top:14px;right:16px}
+@media (max-width:440px){header,#grid{padding-left:16px;padding-right:16px}}
+</style>
+</head>
+<body>
+<header><h1>VOID//RUNNER · Asset Gallery (developer only)</h1>
+<label>Pack <select id="pack"></select></label><label>Filter <input id="filter" placeholder="e.g. crate, wall, ship"></label><button id="render">Render</button><span id="status" style="color:var(--dim)"></span></header>
+<main id="grid"></main>
+<div id="view"><canvas id="big"></canvas><button class="close" id="close">Close</button></div>
+<script src="/vendor/babylon-8.26.0.js"></script>
+<script src="/vendor/babylonjs-loaders-8.26.0.min.js"></script>
+<script>
+let packs={},engine,scene,camera;
+const $=id=>document.getElementById(id);
+// Lighting close to the game's: ACES tone mapping, a cool fill and a warm key, dark backdrop.
+function stage(canvas,engine){
+ const e=engine||new BABYLON.Engine(canvas,true,{preserveDrawingBuffer:true,stencil:true}),s=new BABYLON.Scene(e);
+ s.clearColor=new BABYLON.Color4(.035,.045,.06,1);
+ const ip=s.imageProcessingConfiguration;ip.toneMappingEnabled=true;ip.toneMappingType=BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;ip.exposure=1.25;
+ const hemi=new BABYLON.HemisphericLight('fill',new BABYLON.Vector3(0,1,0),s);hemi.intensity=.55;hemi.diffuse=new BABYLON.Color3(.75,.85,1);hemi.groundColor=new BABYLON.Color3(.15,.15,.18);
+ const key=new BABYLON.DirectionalLight('key',new BABYLON.Vector3(-.6,-.8,.5),s);key.intensity=2.4;key.diffuse=new BABYLON.Color3(1,.95,.88);
+ const rim=new BABYLON.DirectionalLight('rim',new BABYLON.Vector3(.7,-.2,-.7),s);rim.intensity=1.1;rim.diffuse=new BABYLON.Color3(.6,.8,1);
+ // Reflection environment built in code: a dim industrial "room" (gradient dome plus strip lights)
+ // captured once by a probe. Metal/rough PBR materials need this to show their detail.
+ const dome=BABYLON.MeshBuilder.CreateSphere('env-dome',{diameter:400,segments:16,sideOrientation:BABYLON.Mesh.BACKSIDE},s);
+ const tex=new BABYLON.DynamicTexture('env-grad',{width:8,height:256},s,false),g=tex.getContext(),grad=g.createLinearGradient(0,0,0,256);
+ grad.addColorStop(0,'#9aa6b4');grad.addColorStop(.45,'#4a5360');grad.addColorStop(.55,'#2a2f36');grad.addColorStop(1,'#0c0e11');g.fillStyle=grad;g.fillRect(0,0,8,256);tex.update();
+ const domeMat=new BABYLON.StandardMaterial('env-dome',s);domeMat.emissiveTexture=tex;domeMat.disableLighting=true;dome.material=domeMat;
+ const strips=[];for(let i=0;i<4;i++){const p=BABYLON.MeshBuilder.CreatePlane('env-strip',{width:120,height:10},s);const a=i*Math.PI/2;p.position.set(Math.cos(a)*150,90,Math.sin(a)*150);p.lookAt(BABYLON.Vector3.Zero());const m=new BABYLON.StandardMaterial('env-strip',s);m.emissiveColor=new BABYLON.Color3(1.6,1.55,1.45);m.disableLighting=true;p.material=m;strips.push(p);}
+ const probe=new BABYLON.ReflectionProbe('env-probe',128,s);probe.refreshRate=BABYLON.RenderTargetTexture.REFRESHRATE_RENDER_ONCE;probe.renderList.push(dome,...strips);
+ s.environmentTexture=probe.cubeTexture;s.environmentIntensity=1;
+ dome.isPickable=false;
+ s.clearColor=new BABYLON.Color4(.035,.045,.06,1);
+ const cam=new BABYLON.ArcRotateCamera('cam',-Math.PI*.65,Math.PI*.38,10,BABYLON.Vector3.Zero(),s);cam.minZ=.01;cam.wheelPrecision=40;
+ return {e,s,cam};
+}
+async function show(model,target,cam){
+ // Remove only the previous model, never the environment.
+ const old=target.metadata?.imported;if(old){for(const g of old.animationGroups)g.dispose();for(const m of old.meshes)m.dispose(false,true);for(const n of old.transformNodes)n.dispose();}
+ const result=await BABYLON.SceneLoader.ImportMeshAsync('',model.url.slice(0,model.url.lastIndexOf('/')+1),model.url.slice(model.url.lastIndexOf('/')+1),target);
+ (target.metadata??={}).imported=result;
+ const {min,max}=result.meshes.filter(m=>m.getTotalVertices()>0).reduce((b,m)=>{m.computeWorldMatrix(true);const bi=m.getBoundingInfo().boundingBox;return {min:BABYLON.Vector3.Minimize(b.min,bi.minimumWorld),max:BABYLON.Vector3.Maximize(b.max,bi.maximumWorld)};},{min:new BABYLON.Vector3(1e9,1e9,1e9),max:new BABYLON.Vector3(-1e9,-1e9,-1e9)});
+ cam.target=min.add(max).scale(.5);cam.radius=Math.max(.5,max.subtract(min).length()*1.05);
+}
+async function render(){
+ const list=(packs[$('pack').value]||[]).filter(m=>m.id.includes($('filter').value.toLowerCase().trim())).slice(0,60);
+ $('grid').replaceChildren();const off=document.createElement('canvas');off.width=520;off.height=325;
+ const engine=new BABYLON.Engine(off,true,{preserveDrawingBuffer:true,stencil:true});let n=0;
+ for(const m of list){
+  $('status').textContent='Rendering '+(++n)+' / '+list.length;
+  // A fresh scene per model, so nothing from the previous one leaks in.
+  const st=stage(off,engine);
+  try{await show(m,st.s,st.cam);for(let i=0;i<200&&!st.s.isReady();i++){st.s.render();await new Promise(r=>setTimeout(r,10));}st.s.render();tile(m,off.toDataURL('image/jpeg',.88));}
+  catch(error){tile(m,null,error.message);}
+  st.s.dispose();
+ }
+ engine.dispose();$('status').textContent=list.length+' models';
+}
+function tile(m,img,error){
+ const t=document.createElement('article');t.className='tile '+(m.decision?.status||'');
+ t.innerHTML=(img?'<img alt="" src="'+img+'">':'<div style="padding:30px;color:var(--bad)">'+error+'</div>')+'<div class="meta"><div class="name"></div>'+m.triangles+' triangles · '+(m.size||[]).join(' × ')+' m · '+m.textures+' textures'+(m.animations?.length?' · anim: '+m.animations.join(', '):'')+'<div class="row"><button data-s="shortlisted">Shortlist</button><button data-s="rejected">Reject</button><button data-v>3D view</button></div></div>';
+ t.querySelector('.name').textContent=m.id;
+ t.onclick=async e=>{const s=e.target.dataset.s;if(s){await fetch('/api/decision',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:m.id,status:s})});t.className='tile '+s;}
+  if(e.target.dataset.v!==undefined)view(m);};
+ $('grid').append(t);
+}
+async function view(m){$('view').style.display='flex';if(!engine){({e:engine,s:scene,cam:camera}=stage($('big')));camera.attachControl($('big'),true);engine.runRenderLoop(()=>scene.render());}await show(m,scene,camera);}
+$('close').onclick=()=>{$('view').style.display='none';};
+$('render').onclick=render;
+fetch('/api/models').then(r=>r.json()).then(p=>{packs=p;$('pack').replaceChildren(...Object.keys(p).map(k=>new Option(k+' ('+p[k].length+')',k)));const q=new URLSearchParams(location.search);if(q.get('pack'))$('pack').value=q.get('pack');if(q.get('filter'))$('filter').value=q.get('filter');if(q.get('auto'))render();});
+</script>
+</body>
+</html>

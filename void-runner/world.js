@@ -14,7 +14,10 @@ for (const id of Object.keys(C.stations)) skyboxes[id] = texture('sky-' + id + '
 const stationTexture = texture('station.png',true);
 const keplerStationTexture = texture('station-kepler.png',true);
 const rusthavenStationTexture = texture('station-rusthaven.png',true);
-const stationImages={meridian:stationTexture,kepler:keplerStationTexture,rusthaven:rusthavenStationTexture};
+// Meridian is always drawn from the shared 3D design (meridian-station.js, VoidMeridian) in every mode.
+// The old painted ring-station image is retired: it no longer matched the station and was downloaded
+// on every visit without being shown.
+const stationImages={kepler:keplerStationTexture,rusthaven:rusthavenStationTexture};
 function ensureLocationAssets(id){skyboxes[id]?.load();stationImages[id]?.load();}
 function drawStationExterior(id,x,y,width){
  const img=stationImages[id];

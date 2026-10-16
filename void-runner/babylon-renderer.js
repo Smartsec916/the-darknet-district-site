@@ -197,6 +197,33 @@
   }
   // Shared camera look: ACES tone mapping, anti-aliasing, bloom and emissive glow.
   // Low quality keeps only tone mapping so slower devices pay no extra passes.
+  // Reflection environment for PBR materials (imported models need one to show their detail).
+  // Built in code, no downloads: a dim industrial room (gradient dome plus overhead strip lights),
+  // captured once into a small cube map in a separate helper scene and shared with the game scene.
+  const reflections = {
+    helper: null, cube: null,
+    apply(target, intensity = .7) {
+      const b = B();
+      if (!this.cube) {
+        const s = this.helper = new b.Scene(target.getEngine());s.autoClear = true;
+        const cam = new b.FreeCamera('env-camera', b.Vector3.Zero(), s);s.activeCamera = cam;
+        const dome = b.MeshBuilder.CreateSphere('env-dome', {diameter: 400, segments: 16, sideOrientation: b.Mesh.BACKSIDE}, s);
+        const tex = new b.DynamicTexture('env-gradient', {width: 8, height: 256}, s, false), g = tex.getContext(), grad = g.createLinearGradient(0, 0, 0, 256);
+        grad.addColorStop(0, '#9aa6b4');grad.addColorStop(.45, '#4a5360');grad.addColorStop(.55, '#2a2f36');grad.addColorStop(1, '#0c0e11');g.fillStyle = grad;g.fillRect(0, 0, 8, 256);tex.update();
+        const domeMat = new b.StandardMaterial('env-dome', s);domeMat.emissiveTexture = tex;domeMat.disableLighting = true;dome.material = domeMat;
+        const probe = new b.ReflectionProbe('env-probe', 128, s);probe.refreshRate = b.RenderTargetTexture.REFRESHRATE_RENDER_ONCE;probe.renderList.push(dome);
+        for (let i = 0; i < 4; i++) {
+          const strip = b.MeshBuilder.CreatePlane('env-strip', {width: 120, height: 10}, s), a = i * Math.PI / 2;
+          strip.position.set(Math.cos(a) * 150, 90, Math.sin(a) * 150);strip.lookAt(b.Vector3.Zero());
+          const m = new b.StandardMaterial('env-strip', s);m.emissiveColor = new b.Color3(1.6, 1.55, 1.45);m.disableLighting = true;strip.material = m;probe.renderList.push(strip);
+        }
+        this.cube = probe.cubeTexture;this.probe = probe;s.render();
+        // A lost graphics context empties the cube; draw it again on restore.
+        target.getEngine().onContextRestoredObservable.add(() => {probe.refreshRate = b.RenderTargetTexture.REFRESHRATE_RENDER_ONCE;this.helper.render();});
+      }
+      target.environmentTexture = this.cube;target.environmentIntensity = intensity;
+    }
+  };
   const look = {
     apply(targetScene, targetCamera, level = quality) {
       const b = B(), ip = targetScene.imageProcessingConfiguration, state = targetScene.metadata ??= {};
@@ -266,6 +293,7 @@
       const sun = new b.DirectionalLight('sun', new b.Vector3(.6, -.7, .4), scene);
       sun.intensity = 1.5;
       look.apply(scene, camera);
+      reflections.apply(scene);
       diagnostics.ready = true;
       engine.onContextLostObservable.add(() => {
         diagnostics.ready = false;
@@ -515,9 +543,21 @@
     }
     node.metadata={placeholder:true,reference:'art/characters.png',character:id,ambient};actors.push({node,base:position.slice(),ambient});return node;
   }
+  // Places a layout's approved props. Each group replaces its procedural fittings only when every
+  // model in the group loaded, so a missing file never leaves a hole. Collision is not touched.
+  function placeProps(def,parent){
+    const groups={};
+    for(const p of def.props||[]){const g=groups[p.group]??={ok:true,replaces:new Set(),nodes:[]};for(const id of p.replaces||[])g.replaces.add(id);
+      const node=VoidAssets.instance('prop:'+p.model,parent);if(!node){g.ok=false;continue;}node.position.set(...p.position);node.rotation.y=p.yaw||0;g.nodes.push(node);}
+    for(const g of Object.values(groups)){
+      if(!g.ok){for(const n of g.nodes)n.dispose();continue;}
+      for(const m of parent.getChildMeshes(true))if(g.replaces.has(m.name))m.setEnabled(false);
+    }
+  }
   async function prepareStation(def,task){
     release(); // A new visit owns exactly one room and its actors, signs and lights.
-    await prepareSpace(def.id,['raider','courier','shuttle','security',def.ship],task,Object.fromEntries(def.interactions.filter(i=>i.character&&VoidAssets.models.characters[i.character]).map(i=>['character:'+i.character,VoidAssets.models.characters[i.character]])));task.check();station.setEnabled(false);rocks.forEach((mesh,i)=>{mesh.position.set((i%2?-1:1)*(75+i*6),30+Math.sin(i)*24,90+i*17);mesh.scaling.setAll(2+i%5);});
+    const propModels=Object.fromEntries((def.props||[]).filter(p=>VoidAssets.models.props?.[p.model]).map(p=>['prop:'+p.model,VoidAssets.models.props[p.model]]));
+    await prepareSpace(def.id,['raider','courier','shuttle','security',def.ship],task,{...propModels,...Object.fromEntries(def.interactions.filter(i=>i.character&&VoidAssets.models.characters[i.character]).map(i=>['character:'+i.character,VoidAssets.models.characters[i.character]]))});task.check();station.setEnabled(false);rocks.forEach((mesh,i)=>{mesh.position.set((i%2?-1:1)*(75+i*6),30+Math.sin(i)*24,90+i*17);mesh.scaling.setAll(2+i%5);});
     roomRoot=stationModel(def.id,null,false,def);room=def;actors=[];stationActivity=def.activityPoints?VoidStationActivities.create(def):null;lastActivityTime=null;
     const ship=shipModel(def.ship,'friendly',roomRoot);ship.position.set(-7,2,-9);ship.scaling.setAll(2);
     for(const item of def.interactions)if(item.character)characterModel(item.character,roomRoot,item.visualPosition||item.position);
@@ -527,6 +567,8 @@
     colors.forEach((c,i)=>box('outfitter-category',[.55,.9,.12],[-14+i*1.5,1.7,29],material('shop',c,true),roomRoot));
     for(let z=-20;z<32;z+=7){box('floor-guide',[.12,.025,3],[0,.03,z],material('guide','#80baaa',true),roomRoot);if(z<4||z>18)box('ceiling-light',[8,.06,.2],[0,z<4?8.7:5.7,z],material('lamp','#d1d4be',true),roomRoot);}
     for(const signDef of def.signs)sign(signDef,roomRoot);
+    // Props first: the fit-out then batches the remaining static pieces, skipping the hidden ones.
+    placeProps(def,roomRoot);
     if(def.id==='meridian'){fitoutMeridian(roomRoot);planet.position.set(340,-65,140);}
     const roomLight=new BABYLON.PointLight('concourse-light',new BABYLON.Vector3(0,4,25),scene);roomLight.parent=roomRoot;roomLight.diffuse=new BABYLON.Color3(1,.69,.38);roomLight.intensity=1.4;roomLight.range=28;
     const fill=new BABYLON.PointLight('hangar-light',new BABYLON.Vector3(0,6,-9),scene);fill.parent=roomRoot;fill.intensity=1.25;fill.range=60;

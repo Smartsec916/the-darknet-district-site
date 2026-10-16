@@ -36,3 +36,9 @@ venv/
 piper-venv/
 tools/audio/audition/samples/
 voice-comparison/
+
+# Browser test screenshots
+work/
+
+# Local model trials (never committed)
+void-runner/assets/models/_staging/
