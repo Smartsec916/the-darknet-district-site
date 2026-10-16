@@ -437,6 +437,30 @@ From the master plan and doc 05:
 - **Voices:** Admin and Rook's new lines are recorded with their approved voices. The patrol is text-only until a police voice is cast.
 - **Code:** rules are in `campaign.js` (sealed contract) and `police-patrol.js` (patrols, tested in `tests/sealed-cargo.test.cjs`). `police-patrols.js` wires them into flight, and the cutter model is in `babylon-renderer.js`.
 
+### 9.2.6 The Relay, phase 1: radio channel (IMPLEMENTED; no content yet)
+
+- **Where to hear it:** **THE RELAY** is a station on the radio (Settings > Radio). It plays short broadcast segments with a caption: "THE RELAY · NEWS" and so on.
+- **Scripts:** they live in `void-runner/relay-content.json`, which is **empty until David re-sends the broadcast scripts**. Until then the station reads "AWAITING TRANSMISSIONS" and plays nothing. Segment kinds:
+  - news, breaking, public information and station notices
+  - ads and police recruitment
+  - WarFlying
+  - Communion and Natural Order propaganda
+  - The Function
+- **What plays where:** Communion lines play only in Cantor, Natural Order lines only in Garrow, and Function lines only in Tessaly; everything else plays everywhere. A segment can narrow this with `systems` or story conditions (`when`).
+- **Rules (from David's voice brief):**
+  - Mission dialogue, combat, the police hail or chase, pause and menus cut a broadcast at once, and the interrupted segment comes back after.
+  - It is **silent on foot in The Darknet District** (NeoChinatown).
+  - Music ducks under a broadcast.
+  - No back-to-back repeats, and gaps of 5–11 s between segments.
+- **Voices:**
+  - Broadcasters are cast in the audition tool's new "Relay broadcasters" section and then lock like NPCs.
+  - Their lines are recorded by the normal pipeline once cast.
+  - A transmission filter is added live in the game, separate from the voice.
+  - An uncast broadcaster is shown as a caption only, never a browser voice.
+  - The Function stays uncast until David decides its voice treatment.
+- **Next phase (approved, later):** station screens and PA announcements reusing the same content.
+- **Code:** rules are in `relay.js` (tested in `tests/relay.test.cjs`), playback in `relay-radio.js`, and the transmission filter in `voice-clips.js`.
+
 ### 9.3 Rook cargo runs
 
 Done; see §4.3. Possible follow-ups:
@@ -526,6 +550,8 @@ Done; see §4.3. Possible follow-ups:
 - Faction ship battles on the way to each delivery (doc 08): requested feature, built (§9.2.1). The border drop-out placement is Claude's choice and awaits David's review.
 
 - **Admin's sealed cargo (step 3): Option A, "patrols you can avoid"** (2026-10-16). No forced inspection; the player always chooses. David's original sections 17–20 of the homeworld brief were lost from the session, so the dialogue is placeholder (see §9.2.5).
+
+- **The Relay (step 4): Option D**, phased: the radio channel now, station screens later (2026-10-16). The broadcast scripts must come from David; nothing is invented.
 
 ### Rejected or removed (do not reintroduce)
 

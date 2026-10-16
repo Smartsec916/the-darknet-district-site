@@ -43,11 +43,17 @@ for(const file of fs.readdirSync(src).filter(f=>f.endsWith('.js'))){
 // Voices come from the permanent registry (tools/audio/npc-voice-registry.json); never cast here.
 const Registry=require('./voice-registry.cjs'),reg=Registry.load(),problems=Registry.validate(reg);
 if(problems.length){console.error('Voice registry problems:\n - '+problems.join('\n - '));process.exit(1);}
+// Relay broadcasts (void-runner/relay-content.json) are recorded once David casts the broadcaster.
+const Relay=require(path.join(src,'relay.js')),relayContent=JSON.parse(fs.readFileSync(path.join(src,'relay-content.json'),'utf8'));
+const relayProblems=Relay.validate(relayContent);if(relayProblems.length){console.error('Relay content problems:\n - '+relayProblems.join('\n - '));process.exit(1);}
+const voiced=Registry.voiced(reg);
+for(const s of relayContent.segments){const speaker=Relay.speakerOf(s);if(!voiced[speaker])continue;const key=speaker+'|'+s.text;
+  if(!lines.has(key))lines.set(key,{id:speaker+'-'+crypto.createHash('sha1').update(key).digest('hex').slice(0,10),speaker,text:s.text,source:'relay-content.json'});}
 const cast={},missingSpeakers=new Set();
-for(const l of lines.values()){const e=reg.npcs[l.speaker];if(!e){missingSpeakers.add(l.speaker);continue;}cast[l.speaker]={voice:e.voice,...(e.profile!=='none'?{effect:e.profile}:{}),status:e.status};}
+for(const l of lines.values()){const e=voiced[l.speaker];if(!e){missingSpeakers.add(l.speaker);continue;}cast[l.speaker]={voice:e.voice,...(e.profile!=='none'?{effect:e.profile}:{}),status:e.status};}
 if(missingSpeakers.size){console.error('Speakers missing from the registry: '+[...missingSpeakers].join(', '));process.exit(1);}
 const manifest={version:2,engine:reg.engine.model+' ('+reg.engine.license+')',format:'ogg/opus 24 kHz mono',cast,lines:{}};
-for(const l of [...lines.values()].sort((a,b)=>a.id.localeCompare(b.id)))manifest.lines[l.id]={speaker:l.speaker,text:l.text,file:l.id+'.ogg',source:l.source,configHash:Registry.configHash(reg.npcs[l.speaker],reg.engine)};
+for(const l of [...lines.values()].sort((a,b)=>a.id.localeCompare(b.id)))manifest.lines[l.id]={speaker:l.speaker,text:l.text,file:l.id+'.ogg',source:l.source,configHash:Registry.configHash(voiced[l.speaker],reg.engine)};
 const rendersFile=path.join(out,'renders.json'),renders=fs.existsSync(rendersFile)?JSON.parse(fs.readFileSync(rendersFile,'utf8')):{};
 // What still needs rendering: new or changed lines, or a voice whose settings changed. Protected clips are never re-rendered automatically.
 function status(m){

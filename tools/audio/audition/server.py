@@ -15,6 +15,11 @@ ROOT = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
 REGISTRY = os.path.join(ROOT, 'tools', 'audio', 'npc-voice-registry.json')
 CLIPS = os.path.join(ROOT, 'void-runner', 'assets', 'audio', 'voice')
 SAMPLES = os.path.join(HERE, 'samples')
+RELAY = os.path.join(ROOT, 'void-runner', 'relay-content.json')
+# Default broadcaster per Relay kind (same as kinds in void-runner/relay.js).
+KIND_SPEAKERS = {'news': 'news-anchor', 'breaking': 'news-anchor', 'public': 'news-anchor', 'police': 'police-recruiter',
+                 'warflying': 'warflying-host', 'communion': 'communion-spokesperson',
+                 'natural-order': 'natural-order-spokesperson', 'function': 'the-function'}
 sys.path.insert(0, os.path.dirname(HERE))
 from generate import config_hash, level, sha256  # same fingerprint and levelling as the pipeline
 
@@ -64,7 +69,22 @@ def candidate(body, reg):
 
 def lines_for(speaker):
     manifest = load(os.path.join(CLIPS, 'manifest.json'))
-    return [{'id': i, 'text': l['text'], 'file': l['file']} for i, l in manifest['lines'].items() if l['speaker'] == speaker]
+    found = [{'id': i, 'text': l['text'], 'file': l['file']} for i, l in manifest['lines'].items() if l['speaker'] == speaker]
+    # Relay scripts for a broadcaster who has no recordings yet.
+    known = {l['text'] for l in found}
+    for s in load(RELAY)['segments'] if os.path.exists(RELAY) else []:
+        if (s.get('speaker') or KIND_SPEAKERS.get(s.get('kind'))) == speaker and s['text'] not in known:
+            found.append({'id': s['id'], 'text': s['text'], 'file': None})
+    return found
+
+def cast_voices(reg, skip):
+    """Voices already used by any NPC or cast broadcaster except `skip`."""
+    out = {}
+    for group in ('npcs', 'broadcast'):
+        for k, e in reg.get(group, {}).items():
+            if k != skip and e.get('voice') and e.get('status') != 'unassigned':
+                out[e['voice']] = e['displayName']
+    return out
 
 def render_sample(c, text):
     key = hashlib.sha256(('%s|%.3f|%s|%s' % (c['voice'], c['speed'], c['lang'], text)).encode('utf-8')).hexdigest()[:16]
@@ -83,14 +103,17 @@ def approve(body):
     with lock:
         reg = load(REGISTRY)
         npc = body.get('npc')
-        entry = reg['npcs'].get(npc)
+        entry = reg['npcs'].get(npc) or reg.get('broadcast', {}).get(npc)
         if not entry:
-            raise ValueError('not an NPC in the registry: %s' % npc)
+            raise ValueError('not a character in the registry: %s' % npc)
         c = candidate(body, reg)
-        for other, e in reg['npcs'].items():
-            if other != npc and e['voice'] == c['voice']:
-                raise ValueError('%s is already %s\'s voice; every character keeps a distinct voice' % (c['voice'], e['displayName']))
-        changed = any(entry[k] != c[k] for k in c)
+        taken = cast_voices(reg, npc)
+        if c['voice'] in taken:
+            raise ValueError('%s is already %s\'s voice; every character keeps a distinct voice' % (c['voice'], taken[c['voice']]))
+        if npc in reg.get('broadcast', {}):
+            # Casting a Relay broadcaster: the transmission filter is applied live in the game.
+            entry.setdefault('profile', 'radio')
+        changed = any(entry.get(k) != c[k] for k in c)
         if entry['status'] == 'approved' and changed and body.get('confirmChange') is not True:
             return 409, {'error': 'locked', 'message': '%s already has an approved voice (%s, speed %s). Changing it re-records every %s line. Confirm to replace it.' % (entry['displayName'], entry['voice'], entry['speed'], entry['displayName'])}
         if body.get('status') == 'provisional':
@@ -128,7 +151,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.file(HERE, 'index.html', 'text/html; charset=utf-8')
         if url == '/api/state':
             reg = load(REGISTRY)
-            return self.send(200, {'registry': reg, 'voices': sorted(voices), 'lines': {n: lines_for(n) for n in reg['npcs']}})
+            people = list(reg['npcs']) + list(reg.get('broadcast', {}))
+            return self.send(200, {'registry': reg, 'voices': sorted(voices), 'lines': {n: lines_for(n) for n in people}})
         if url.startswith('/samples/'):
             return self.file(SAMPLES, url[9:], 'audio/wav')
         if url.startswith('/clips/'):

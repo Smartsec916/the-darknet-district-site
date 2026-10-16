@@ -1,0 +1,5 @@
+{
+ "version": 1,
+ "about": "The Relay's broadcast scripts. Only David's approved lines go here; nothing is invented. Each segment: id (lowercase, hyphens), kind (news, breaking, public, station, ad, police, warflying, communion, natural-order, function), speaker (a broadcast id from tools/audio/npc-voice-registry.json; optional for kinds that have a default), text, optional systems (erebus, sol, communion, natural-order) and optional when (story conditions). After editing: node tools/audio/extract-lines.cjs.",
+ "segments": []
+}
