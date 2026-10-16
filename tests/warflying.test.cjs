@@ -31,7 +31,7 @@ test('identities are stable, rosters are finite, and pirates broadcast no name',
   const ids=S.all().map(s=>s.id);assert.equal(new Set(ids).size,ids.length,'unique ids');
   assert(S.roster('erebus','pirate').every(s=>s.name===null));assert.deepEqual(S.roster('erebus','police'),[]);assert.equal(S.roster('sol','police').length,4);
   assert.equal(S.source('station:earth').category,'settlement');assert.equal(S.source('station:meridian').category,'station');
-  assert.equal(S.source('ship:battle-communion-0').category,'communion');
+  assert.equal(S.source('ship:battle-communion-natural-order-2').category,'natural-order');assert.equal(S.source('ship:battle-communion-communion-0').category,'communion');assert.equal(S.source('ship:battle-communion-0'),null);
   // Respawned traffic draws from the roster, so points are capped by the number of real sources.
   const db=W.fresh();for(let i=0;i<500;i++)see(db,S.pick('erebus','cargo',Math.random).id);assert(W.points(db)<=S.roster('erebus','cargo').length);
 });
@@ -70,4 +70,8 @@ test('each ship keeps its own Utility module across ship changes and reloads',()
   const s=pilot();P.buy(s,'warflying-module');P.install(s,'signal','warflying-module');
   const r=C.restore(JSON.stringify(s));assert.equal(P.utility(r),'warflying-module');
   r.activeShip='ship2';assert.equal(P.utility(r),null,'another hull has its own slot');
+});
+test('continuous listening in one place is one sighting, not hundreds',()=>{
+  const db=W.fresh();for(let i=0;i<120;i++)see(db,'beacon:erebus-1','confirmed','erebus:meridian>kepler',1000+i*500);
+  assert.equal(db.records['beacon:erebus-1'].k,2,'two sightings: the first, and again after a minute');
 });
