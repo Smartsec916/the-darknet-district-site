@@ -14,7 +14,7 @@ test('each recurring NPC has a distinct voice and the player is never voiced',()
 });
 test('clips are small Ogg files with stable ids',()=>{
   for(const [id,l] of Object.entries(manifest.lines)){
-    assert.match(id,/^[a-z]+-[0-9a-f]{10}$/);assert.equal(l.file,id+'.ogg');
+    assert.match(id,/^[a-z]+(-[a-z]+)*-[0-9a-f]{10}$/);assert.equal(l.file,id+'.ogg');
     const bytes=fs.readFileSync(path.join(dir,l.file));assert.equal(bytes.subarray(0,4).toString(),'OggS',l.file);assert(bytes.length<200000,l.file+' size');
   }
 });

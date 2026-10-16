@@ -57,8 +57,14 @@ Then run `npm test`.
 - Failures are listed at the end; the game shows subtitles (and the browser voice) for any line without a clip.
 - Ask David before a run that would record hundreds of clips.
 
+## Relay broadcasters
+
+The Relay's scripts are in `void-runner/relay-content.json`. Each segment has an id, a kind, the text and optionally a speaker.
+- **Casting:** cast a broadcaster in the audition tool's **Relay broadcasters** section. Tick "Preview with the Relay transmission filter" to hear it as players will. Casting and approving locks the voice exactly like an NPC's.
+- **Recording:** run the usual two commands. Only lines whose broadcaster has a voice are recorded; the rest show as captions in the game.
+- **The filter** is applied live and is never baked into the recording.
+
 ## Not built yet
 
-- **Broadcast voices** (Relay news anchor, WarFlying host, police recruiter, faction spokespeople, The Function) are listed as unassigned and get cast when the Relay is built.
-- The `radio` processing profile is reserved for those broadcasts.
+- **Broadcast scripts:** the Relay is built, but its script file is empty until David sends the lines.
 - The special-character slot stays reserved until David introduces that character.

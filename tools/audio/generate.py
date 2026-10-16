@@ -30,6 +30,12 @@ def config_hash(entry, engine):
     key = '|'.join([engine['model'], engine['modelSha256'][:16], entry['voice'], '%.3f' % float(entry['speed']), entry['lang']])
     return hashlib.sha256(key.encode('utf-8')).hexdigest()[:12]
 
+def voiced(registry):
+    """NPCs plus Relay broadcasters David has cast (same as voiced() in voice-registry.cjs)."""
+    out = dict(registry['npcs'])
+    out.update({k: v for k, v in registry.get('broadcast', {}).items() if v.get('status') != 'unassigned'})
+    return out
+
 def sha256(path):
     h = hashlib.sha256()
     with open(path, 'rb') as f:
@@ -74,12 +80,12 @@ def main():
         print('protected:' if a.protect else 'unprotected:', ', '.join(a.protect or a.unprotect))
         return
 
-    engine, problems = registry['engine'], []
-    for npc_id, entry in registry['npcs'].items():
+    engine, problems, cast = registry['engine'], [], voiced(registry)
+    for npc_id, entry in cast.items():
         if entry['status'] == 'approved' and entry.get('approvedConfigHash') != config_hash(entry, engine):
             problems.append('%s: approved voice changed without re-approval' % npc_id)
     for line_id, line in manifest['lines'].items():
-        entry = registry['npcs'].get(line['speaker'])
+        entry = cast.get(line['speaker'])
         if not entry:
             problems.append('%s: speaker %s is not in the registry' % (line_id, line['speaker']))
         elif config_hash(entry, engine) != line['configHash']:
@@ -125,7 +131,7 @@ def main():
     failures = []
     for line_id in todo:
         line = manifest['lines'][line_id]
-        entry = registry['npcs'][line['speaker']]
+        entry = cast[line['speaker']]
         try:
             samples, rate = kokoro.create(line['text'], voice=entry['voice'], speed=float(entry['speed']), lang=entry['lang'])
             sf.write(os.path.join(OUT, line['file']), level(samples, rate), rate, format='OGG', subtype='OPUS')

@@ -26,10 +26,19 @@ test('a different model file invalidates approvals',()=>{
   reg.engine.modelSha256='0'.repeat(64);assert.match(Registry.validate(reg).join(),/mara: APPROVED VOICE CHANGED/);
 });
 test('two characters can never share a voice',()=>{
-  const reg=clone();reg.npcs.marcus.voice=reg.npcs.rook.voice;assert.match(Registry.validate(reg).join(),/shared with another NPC/);
+  const reg=clone();reg.npcs.marcus.voice=reg.npcs.rook.voice;assert.match(Registry.validate(reg).join(),/shared with another character/);
 });
 test('the fingerprint matches the Python pipeline',()=>{
   // Same key as config_hash() in tools/audio/generate.py; pinned so neither side drifts.
   const reg=Registry.load(),e={voice:'af_nicole',speed:.94,lang:'en-us'};
   assert.equal(Registry.configHash(e,reg.engine),require('crypto').createHash('sha256').update('kokoro-v1.0.onnx|7d5df8ecf7d4b187|af_nicole|0.940|en-us').digest('hex').slice(0,12));
+});
+test('Relay broadcasters stay unassigned until cast, then follow the same lock',()=>{
+  const reg=clone();for(const e of Object.values(reg.broadcast))assert.equal(e.status,'unassigned');
+  reg.broadcast['news-anchor'].voice='bm_lewis';assert.match(Registry.validate(reg).join(),/unassigned broadcaster has no voice/);
+  const cast=clone(),e=Object.assign(cast.broadcast['news-anchor'],{voice:'am_adam',speed:1,lang:'en-us',profile:'radio',status:'approved'});
+  e.approvedConfigHash=Registry.configHash(e,cast.engine);assert.deepEqual(Registry.validate(cast),[]);assert(Registry.voiced(cast)['news-anchor']);
+  e.speed=1.1;assert.match(Registry.validate(cast).join(),/news-anchor: APPROVED VOICE CHANGED/);
+  const clash=clone();Object.assign(clash.broadcast['news-anchor'],{voice:clash.npcs.rook.voice,speed:1,lang:'en-us',profile:'radio',status:'provisional'});
+  assert.match(Registry.validate(clash).join(),/shared with another character/);
 });

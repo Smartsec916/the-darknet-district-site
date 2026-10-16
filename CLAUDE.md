@@ -83,6 +83,7 @@ This repository is David's website, The Darknet District (https://thedarknetdist
 
 - Voice identities are in `tools/audio/npc-voice-registry.json`. **Never change an approved voice** (or the model files) without David's approval; the change goes through the audition tool (`tools/audio/audition/server.py`). Don't assign the reserved special-character slot or invent broadcast voices.
 - After changing dialogue: `node tools/audio/extract-lines.cjs`, then `python tools/audio/generate.py --models <folder>` (`--dry-run` first). Ask before bulk-generating hundreds of clips. Never commit models, virtual environments or audition samples.
+- The Relay's broadcast scripts go in `void-runner/relay-content.json` and must be David's own lines. Never invent broadcasts, and never give The Function a voice or treatment without his approval.
 - Details: `docs/VOID_RUNNER_VOICE_PRODUCTION.md`.
 
 ## Testing
