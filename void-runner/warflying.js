@@ -8,10 +8,11 @@
  'use strict';
  const Signals=typeof module!=='undefined'?require('./signals.js'):root.VoidSignals;
  const POINTS_PER_SOURCE=1;
- const limits={records:2000,places:6,text:48};
+ const limits={records:2000,places:6,text:48,sightingGap:60000};
  const confidence=['partial','confirmed'],uploads=['local','pending','uploaded'];
  const placePattern=/^[a-z0-9][a-z0-9:>-]{0,47}$/;
- function fresh(){return {version:1,records:{},autoUpload:true};}
+ // clock: seconds of play, which paces the leaderboard rivals.
+ function fresh(){return {version:1,records:{},autoUpload:true,clock:0};}
  // The only scoring rule. Every category counts the same.
  function pointsFor(record){return record?.p===1?POINTS_PER_SOURCE:0;}
  function points(db){return Object.values(db?.records||{}).reduce((n,r)=>n+pointsFor(r),0);}
@@ -29,8 +30,12 @@
    if(Object.keys(db.records).length>=limits.records)return {status:'ignored',points:0,record:null};
    r=db.records[src.id]={c:src.category,n:null,f:now,l:now,k:0,conf:'partial',places:[],aff:src.affiliation||null,p:0,u:'local'};status='new';
   }
-  r.k=Math.min(r.k+1,1e6);r.l=Math.max(r.l,now);
-  if(r.places[r.places.length-1]!==place){r.places.push(place);if(r.places.length>limits.places)r.places.shift();}
+  // A sighting is one encounter: continuous listening in the same place within a minute is the
+  // same observation, not a new one.
+  const moved=r.places[r.places.length-1]!==place;
+  if(status==='new'||moved||now-r.l>=limits.sightingGap)r.k=Math.min(r.k+1,1e6);
+  r.l=Math.max(r.l,now);
+  if(moved){r.places.push(place);if(r.places.length>limits.places)r.places.shift();}
   if(typeof obs.strength==='number'&&Number.isFinite(obs.strength))r.s=Math.round(Math.max(0,Math.min(1,obs.strength))*100)/100;
   let earned=0;
   if(obs.confidence==='confirmed'){
@@ -43,7 +48,7 @@
  // Validates a saved database; anything unknown or malformed is dropped, never trusted.
  function restore(raw){
   const db=fresh();if(!raw||typeof raw!=='object')return db;
-  db.autoUpload=raw.autoUpload!==false;
+  db.autoUpload=raw.autoUpload!==false;db.clock=Number.isSafeInteger(raw.clock)&&raw.clock>0?Math.min(raw.clock,1e9):0;
   for(const [id,r] of Object.entries(raw.records||{}).slice(0,limits.records)){
    const src=Signals.source(id);if(!src||!r||typeof r!=='object')continue;
    const f=Number.isSafeInteger(r.f)&&r.f>0?r.f:0,l=Number.isSafeInteger(r.l)&&r.l>=f?r.l:f;

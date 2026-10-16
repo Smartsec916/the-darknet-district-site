@@ -12,9 +12,9 @@
   'communion-scanner':{name:'Communion Targeting Scanner',slot:'sensor',price:0,reward:true,icon:'sensor',stats:{lockTime:.7},compatible:['starter','ship2','ship3'],faction:'communion',technology:'ai-assisted'},
   'order-thrusters':{name:'Natural Order Maneuvering Thrusters',slot:'thrusters',price:0,reward:true,icon:'thrusters',stats:{turn:1.12,angularAcceleration:1.4,angularDamping:1.25},compatible:['starter','ship2','ship3'],faction:'natural-order',technology:'mechanical'},
   // WarFlying (doc 11 §26): one Utility slot (internal id 'signal') that holds exactly one of these.
-  // Scanners are sold at outfitters, the scrambler only by Admin. The Signal Tracker is reserved for
+  // Scanners are sold at station outfitters (never in The Darknet District), the scrambler only by Admin. The Signal Tracker is reserved for
   // future bounty hunting: defined, but it can't be bought or fitted yet.
-  'warflying-module':{name:'WarFlying Module',slot:'signal',price:600,icon:'sensor',stats:{},vendor:'outfitter',listed:false,compatible:['starter','ship2','ship3']},
+  'warflying-module':{name:'WarFlying Module',slot:'signal',price:600,icon:'sensor',stats:{},vendor:'outfitter',compatible:['starter','ship2','ship3']},
   'warflying-scrambler':{name:'WarFlying Scrambler',slot:'signal',price:900,icon:'sensor',stats:{},vendor:'admin',compatible:['starter','ship2','ship3']},
   'signal-tracker':{name:'Signal Tracker',slot:'signal',price:0,icon:'sensor',stats:{},vendor:null,available:false,compatible:['starter','ship2','ship3']}
  };
