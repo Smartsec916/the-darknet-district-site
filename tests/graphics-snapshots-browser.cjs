@@ -11,6 +11,8 @@ const scenes=[
  {name:'menu-meridian',run:async page=>{}},
  {name:'meridian-hangar-kestrel',location:'meridian',walk:true},
  {name:'meridian-bar-rook',location:'meridian',walk:true,stand:[-4,49.5],face:[-4,55]},
+ {name:'meridian-hangar-cargo',location:'meridian',walk:true,stand:[8.5,-11],face:[15,-17.5]},
+ {name:'meridian-supplies',location:'meridian',walk:true,stand:[-12,33.5],face:[-15.5,26]},
  {name:'district-admin',location:'earth',walk:true,stand:[8,43],face:[8,46.2]},
  {name:'vesper-workshop-mara',location:'vesper',walk:true,stand:[3,-5],face:[7,-5]},
  {name:'flight-raider',location:'meridian',flight:true}

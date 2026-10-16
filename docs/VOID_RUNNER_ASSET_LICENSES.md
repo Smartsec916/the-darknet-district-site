@@ -11,7 +11,27 @@ Every third-party model, texture or HDRI in the game is listed here before it sh
 
 ## Inventory
 
-*No third-party 3D models, textures or HDRIs have been imported yet (2026-10-16).*
+All files are under `void-runner/assets/models/`. Every entry was approved by David on 2026-10-16 and is mapped in `void-runner/model-registry.js`.
+- **Creator:** Quaternius (https://quaternius.com).
+- **Licence:** CC0 1.0 Universal (public domain dedication). Commercial use, modification and redistribution are allowed, and no attribution is required (credit given in `void-runner/assets/models/CREDITS.md`).
+- **Changes made:** converted from glTF to a self-contained GLB, and textures resized to at most 1024 px and re-encoded (JPEG, or PNG where transparency is needed).
+
+| File | Model | Pack (source URL) | Used for | Downloaded | Status |
+|---|---|---|---|---|---|
+| ships/striker.glb | Striker | Ultimate Spaceships, May 2021 (https://quaternius.com/packs/ultimatespaceships.html; the creator's public Google Drive folder, whose License.txt states CC0 1.0) | ship:raider | 2026-10-16 | Approved, in game |
+| ships/challenger.glb | Challenger | Ultimate Spaceships, May 2021 (https://quaternius.com/packs/ultimatespaceships.html; the creator's public Google Drive folder, whose License.txt states CC0 1.0) | ship:interceptor | 2026-10-16 | Approved, in game |
+| ships/insurgent.glb | Insurgent | Ultimate Spaceships, May 2021 (https://quaternius.com/packs/ultimatespaceships.html; the creator's public Google Drive folder, whose License.txt states CC0 1.0) | ship:gunship | 2026-10-16 | Approved, in game |
+| ships/dispatcher.glb | Dispatcher | Ultimate Spaceships, May 2021 (https://quaternius.com/packs/ultimatespaceships.html; the creator's public Google Drive folder, whose License.txt states CC0 1.0) | ship:courier | 2026-10-16 | Approved, in game |
+| ships/imperial.glb | Imperial | Ultimate Spaceships, May 2021 (https://quaternius.com/packs/ultimatespaceships.html; the creator's public Google Drive folder, whose License.txt states CC0 1.0) | ship:shuttle | 2026-10-16 | Approved, in game |
+| ships/omen.glb | Omen | Ultimate Spaceships, May 2021 (https://quaternius.com/packs/ultimatespaceships.html; the creator's public Google Drive folder, whose License.txt states CC0 1.0) | ship:security | 2026-10-16 | Approved, in game |
+| props/crate.glb | Prop_Crate | Sci-Fi Essentials Kit, Standard (https://quaternius.itch.io/sci-fi-essentials-kit, CC0 stated on the pack page) | Meridian dressing | 2026-10-16 | Approved, in game |
+| props/crate-large.glb | Prop_Crate_Large | Sci-Fi Essentials Kit, Standard (https://quaternius.itch.io/sci-fi-essentials-kit, CC0 stated on the pack page) | Meridian dressing | 2026-10-16 | Approved, in game |
+| props/barrel1.glb | Prop_Barrel1 | Sci-Fi Essentials Kit, Standard (https://quaternius.itch.io/sci-fi-essentials-kit, CC0 stated on the pack page) | Meridian dressing | 2026-10-16 | Approved, in game |
+| props/barrel2-closed.glb | Prop_Barrel2_Closed | Sci-Fi Essentials Kit, Standard (https://quaternius.itch.io/sci-fi-essentials-kit, CC0 stated on the pack page) | Meridian dressing | 2026-10-16 | Approved, in game |
+| props/locker.glb | Prop_Locker | Sci-Fi Essentials Kit, Standard (https://quaternius.itch.io/sci-fi-essentials-kit, CC0 stated on the pack page) | Meridian dressing | 2026-10-16 | Approved, in game |
+| props/shelves-widetall.glb | Prop_Shelves_WideTall | Sci-Fi Essentials Kit, Standard (https://quaternius.itch.io/sci-fi-essentials-kit, CC0 stated on the pack page) | Meridian dressing | 2026-10-16 | Approved, in game |
+| props/shelves-wideshort.glb | Prop_Shelves_WideShort | Sci-Fi Essentials Kit, Standard (https://quaternius.itch.io/sci-fi-essentials-kit, CC0 stated on the pack page) | Meridian dressing | 2026-10-16 | Approved, in game |
+| props/desk-medium.glb | Prop_Desk_Medium | Sci-Fi Essentials Kit, Standard (https://quaternius.itch.io/sci-fi-essentials-kit, CC0 stated on the pack page) | Meridian dressing | 2026-10-16 | Approved, in game |
 
 Existing third-party code and media are documented elsewhere:
 - Babylon.js: `void-runner/vendor/BABYLON-LICENSE.md`

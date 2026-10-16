@@ -38,7 +38,19 @@
   interactions.push({id:'board',action:'board',label:'BOARD YOUR SHIP',position:[-2,1.7,-14],range:3.5},{id:'services',action:'services',label:'SHIP OUTFITTER',position:[-10,1.7,26],range:3},{id:'jobs',action:'jobs',label:'MISSION TERMINAL',position:[-4,1.7,31],range:3},{id:'rook',action:'talk',character:'rook',label:'TALK / ROOK',position:[-4,1.7,55],range:3},{id:'nyx',action:'talk',character:'nyx',label:'TALK / NYX',position:[0,1.7,59],visualPosition:[0,1.7,63],range:3});
   sign('concourse','MERIDIAN / CREW CONCOURSE',[0,4.8,18.5]);sign('supply','SUPPLIES / OUTFITTER',[-11,3.2,29]);sign('lounge','THE DEAD CHANNEL / LOUNGE',[0,4.7,56]);sign('quarters','RESTROOMS ←   CREW QUARTERS →',[0,4.7,48]);sign('return','HANGAR H01 / RETURN TO SHIP',[0,4,19]);
   for(const [id,x,z,facing,activities]of [['window-left',-16.4,35,-Math.PI/2,['window']],['window-right',16.4,39,Math.PI/2,['window']],['terminal',-4,30,0,['terminal']],['drinks',3,57,0,['get-drink']],['chat-a',-2,38,0,['talk']],['chat-b',-2,40,Math.PI,['talk']],['idle-a',3,44,0,['idle']],['idle-b',-3,54,Math.PI,['idle']]])activityPoints.push({id,position:[x,0,z],facing,activities,animation:activities[0]});
-  return {id:'meridian',name:'MERIDIAN STATION',kind:'station',bounds:[18,66],spawn:[0,1.7,-17],ship,color:'#505962',shell,solids,interactions,signs,activityPoints};
+  // Approved 3D props (model-registry.js) dressing existing fittings in place. Visual only: the
+  // collision solids above are unchanged. A group's procedural pieces are hidden only if all of its
+  // models loaded; otherwise the procedural fittings stay.
+  const props=[
+   {model:'crate-large',position:[16.3,0,-18.6],yaw:Math.PI/2,group:'hangar-cargo',replaces:['cargo-crate']},
+   {model:'crate',position:[14.2,0,-18.3],yaw:.08,group:'hangar-cargo'},{model:'crate',position:[14.2,1.5,-18.3],yaw:-.12,group:'hangar-cargo'},
+   {model:'crate',position:[14.3,0,-16.4],yaw:.2,group:'hangar-cargo'},
+   {model:'barrel',position:[12.8,0,-15],yaw:.4,group:'hangar-cargo'},{model:'barrel-closed',position:[13.6,0,-14.1],yaw:1.1,group:'hangar-cargo'},
+   ...[22,25,28,31].map(z=>({model:'shelves-tall',position:[-16.2,0,z],yaw:Math.PI/2,group:'supplies',replaces:['supply-shelf','supply-case']})),
+   ...[49,59].map(z=>({model:'locker',position:[16.2,0,z],yaw:-Math.PI/2,group:'lockers',replaces:['locker']})),
+   {model:'desk',position:[-12.45,0,29],yaw:0,group:'outfitter',replaces:['shop-counter']},{model:'desk',position:[-9.6,0,29],yaw:0,group:'outfitter'}
+  ];
+  return {id:'meridian',name:'MERIDIAN STATION',kind:'station',bounds:[18,66],spawn:[0,1.7,-17],ship,color:'#505962',shell,solids,interactions,signs,activityPoints,props};
  }
  const api={layout};if(typeof module!=='undefined')module.exports=api;else root.VoidMeridianInterior=api;
 })(globalThis);

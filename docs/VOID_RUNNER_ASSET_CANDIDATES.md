@@ -1,6 +1,6 @@
 # VOID//RUNNER: Asset Candidates
 
-**As of:** 2026-10-16 · **Downloaded and test-rendered (§ "Review round 1"); nothing is used by the game yet.** Scores follow `VOID_RUNNER_ART_DIRECTION.md` (theme 30, function 20, geometry and materials 20, environment 15, technical 15; licence pass/fail; 85 to approve).
+**As of:** 2026-10-16 · **Approved by David (2026-10-16):** Ultimate Spaceships models for pirates and traffic; Essentials crates, barrels, lockers, shelves and desks for Meridian. **Now in the game**; see `VOID_RUNNER_GRAPHICS_ROADMAP.md`. Scores follow `VOID_RUNNER_ART_DIRECTION.md` (theme 30, function 20, geometry and materials 20, environment 15, technical 15; licence pass/fail; 85 to approve).
 
 **How these were judged:** I looked at each creator's own preview images on its official page (checked 2026-10-16). Those images are lit presentation renders, so every score is **provisional until the models are rendered in our game**. None is approved yet.
 
