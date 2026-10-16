@@ -105,7 +105,7 @@ function navigateExpansion(action){
   if(['play','pause'].includes(mode)){if(action==='leave-trial'&&trialGear){trialGear=null;current=null;market();}return;}
   if(action==='campaign')campaignBoard();else if(action==='market')market();else if(action==='ship-home')shipHome();
   else if(action==='shop')shop();
-  else if(action?.startsWith('credit-gear:')){if(C.buyGear(state,action.slice(12))){save();hud();shop();announce('Standard utility installed.');}}
+  else if(action?.startsWith('credit-gear:')){if(C.buyGear(state,action.slice(12))){save();hud();shop();announce('Drive module installed.');}}
   else if(action?.startsWith('mission:')){if(C.accept(state,action.slice(8))){save();dock();}}
   else if(action?.startsWith('equip:'))equipGear(action.slice(6));
   else if(action?.startsWith('trial:')){trialGear=action.slice(6);if(VoidContent.gear[trialGear])launch();}

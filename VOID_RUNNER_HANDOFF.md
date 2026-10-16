@@ -457,6 +457,26 @@ From the master plan and doc 05:
 - **Next phase (approved, later):** station screens and PA announcements reusing the same content.
 - **Code:** rules are in `relay.js` (tested in `tests/relay.test.cjs`), playback in `relay-radio.js`, and the transmission filter in `voice-clips.js`.
 
+### 9.2.7 WarFlying, Stage A: foundation (IMPLEMENTED; nothing playable yet)
+
+Doc 11; plan in `docs/VOID_RUNNER_WARFLYING_AUDIT_AND_PLAN.md`.
+- **Utility slot:** a new ship slot shown as **UTILITY** (internal id `signal`). It holds exactly one of:
+  - the **WarFlying Module** (600, outfitters; hidden from the shop until Stage B makes it work)
+  - the **WarFlying Scrambler** (900, Admin only; his store comes in Stage C)
+  - the **Signal Tracker** (defined, but it can't be bought, fitted or loaded from a save)
+  The old booster/drone slot (internal id `utility`) is now *shown* as **DRIVE**. No save migration was needed.
+- **Signal identities** (`signals.js`): 132 stable sources:
+  - every station and settlement
+  - 3 navigation beacons and 2 comms satellites per system
+  - fixed rosters of civilian, cargo, passenger and pirate vessels per system, plus 4 Tessaly patrol cutters
+  - the faction battle crews
+  Ships carry neutral registration codes (e.g. FRT-E214); pirates broadcast no name. Respawns reuse the roster, so points can't be farmed.
+- **Discovery database** (`warflying.js`, saved as `warflying` and checked by `clean_warflying()` on the server):
+  - one record per source: first and last seen, count, the last 6 places, confidence, upload status
+  - **one point per source, awarded once on its first confident identification**; partial contacts are recorded without a point
+  - no cargo or contents are ever stored
+- **Tests:** `tests/warflying.test.cjs` and `tests/test_warflying_save.py`.
+
 ### 9.3 Rook cargo runs
 
 Done; see §4.3. Possible follow-ups:

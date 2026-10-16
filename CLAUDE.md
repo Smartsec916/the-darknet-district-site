@@ -62,6 +62,8 @@ This repository is David's website, The Darknet District (https://thedarknetdist
   | `vigil` | **The Vigil** (Communion station; Dr. Elara Voss) |
   | `natural-order` (system) | **Garrow System** (Natural Order territory) |
   | `holdfast` | **Holdfast** (Natural Order outpost; Marcus Vale) |
+  | ship slot `signal` | **UTILITY** slot (WarFlying Module / Scrambler / Signal Tracker) |
+  | ship slot `utility` (`loadout.utility`) | **DRIVE** slot (boosters and drones) |
 
   If an id must change, migrate old saves in **both** `campaign.js restore()` and `void_runner_api.py clean_save()`, as was done for `undertow`→`rusthaven`.
 - Save compatibility matters. Players have local and cloud saves. New state should go in tolerant places (`story.flags` accepts booleans, strings up to 200 characters, and safe integers), or the server validator must be extended.
