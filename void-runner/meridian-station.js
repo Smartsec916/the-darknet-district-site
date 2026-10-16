@@ -1,7 +1,10 @@
 /* One exterior identity for the front end, flight approach and occupied Meridian. */
 (function(root){
  const model={src:null,path:'assets/models/stations/meridian.glb',scale:1,yaw:0};
- const design={id:'meridian',hangars:[{id:'H01',x:0,z:-11,w:36,h:9,d:30},{id:'H02',x:45,z:1,w:30,h:12,d:40},{id:'H03',x:-39,z:16,w:24,h:10,d:28}],features:['H01','H02','H03','solar arrays','docking collar','communications','warm windows','light tanks'],model};
+ const design={id:'meridian',hangars:[{id:'H01',x:0,z:-11,w:36,h:9,d:30},{id:'H02',x:45,z:1,w:30,h:12,d:40},{id:'H03',x:-39,z:16,w:24,h:10,d:28}],features:['H01','H02','H03','solar arrays','docking collar','communications','warm windows','light tanks'],model,
+  // Pressurised modules behind the hangars: one source for the builder and any cladding (meridian-kitbash.js).
+  modules:[{id:'rear-service-spine',size:[100,7,10],position:[3,5,40],finish:'hull'},{id:'port-link',size:[16,5,7],position:[-23,3,11],finish:'panel'},{id:'starboard-link',size:[16,5,10],position:[26,4,9],finish:'panel'},
+   {id:'habitation',size:[30,10,12],position:[-18,12,35],finish:'panel'},{id:'bar-business-module',size:[22,7,10],position:[17,11,39],finish:'hull'},{id:'raised-communications',size:[14,13,13],position:[-8,18,43],finish:'edge'}]};
  function build(scene,parent,{occupied=false}={}){
   const B=BABYLON,node=new B.TransformNode('meridian-exterior',scene);node.parent=parent;const materials=[],textures=[],batches=new Map(),blink=[];
   function mat(name,hex,glow=false){const m=new B.StandardMaterial('meridian-'+name,scene);m.diffuseColor=B.Color3.FromHexString(hex);m.specularColor=new B.Color3(.22,.25,.28);m.specularPower=48;if(glow){m.emissiveColor=m.diffuseColor.clone();m.disableLighting=true;}materials.push(m);return m;}
@@ -22,8 +25,7 @@
    for(let i=0;i<3;i++)box('roof-service',[3,.6,4],[h.x-h.w*.28+i*h.w*.28,h.h+.7,h.z+4],i%2?panel:edge);
   }
   // Modules extend the real H01/concourse footprint instead of changing its walkable plan.
-  box('rear-service-spine',[100,7,10],[3,5,40]);box('port-link',[16,5,7],[-23,3,11],panel);box('starboard-link',[16,5,10],[26,4,9],panel);
-  box('habitation',[30,10,12],[-18,12,35],panel);box('bar-business-module',[22,7,10],[17,11,39]);box('raised-communications',[14,13,13],[-8,18,43],edge);
+  for(const m of design.modules)box(m.id,m.size,m.position,{hull,panel,edge}[m.finish]);
   for(let x=-31;x<28;x+=3)for(const y of [12,15])box('warm-window',[1.6,.7,.12],[x,y,28.85],warm);
   label('MERIDIAN',[13,17,33.8],20,3.4);
   // Lighter pressure vessels with circumferential safety bands.
