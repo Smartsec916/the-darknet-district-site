@@ -222,10 +222,11 @@ David has not decided. Several of these, plus Rook's runs and the contracts, ove
 
 - Admin offers both after Meet Admin. The player can ask about either, take one, or think about it.
 - Arriving pays nothing. Handing the cargo to Dr. Elara Voss or Marcus Vale counts as delivered, and the goal becomes "Return to The Darknet District and collect payment".
-- From then on Admin is "occupied" (absent, no explanation) and Iris runs the counter. She pays, then offers the remaining delivery, which the player can take or leave for later.
+- On the visit where the first payment waits, Admin is "occupied" (not shown) and Iris runs the counter. She pays, then offers the remaining delivery, which the player can take or leave for later. On every other visit Admin and Iris are both behind the counter (doc 09).
 - The second delivery is paid the same way, and Iris closes with her last line.
 - After both deliveries, Claude must **propose several next-chapter directions**. Doc 06 §7 lists them: Rook, Admin/Iris, Communion, Natural Order, independent cargo, exploration/bounty. Nothing may be finalized without approval.
 - **Faction battles (IMPLEMENTED; doc 08):** each delivery's outbound jump drops out once, halfway, beside a small Communion vs Natural Order fight. See §9.2.1.
+- **Iris follow-up contracts (IMPLEMENTED; doc 09):** once both introductory deliveries are paid, Iris offers a Communion and a Natural Order supply contract (`communion-supply`, `order-supply`; placeholder pay 1,500 each, David will balance later). Each is delivered to Elara or Marcus and paid by Iris. Delivering one makes that recipient offer a homeworld mission ("I'm interested" / "Not right now"); the offer stays with them until taken. Accepted homeworld missions (`communion-origin-mission-01`, `natural-order-origin-mission-01`) are placeholders: no destination, objectives or rewards, never completable, never auto-tracked; the game says they are not yet available.
 
 ---
 
@@ -245,6 +246,7 @@ David has not decided. Several of these, plus Rook's runs and the contracts, ove
   - Iris plays doc 06. Elara and Marcus play doc 07.
   - **CLAUDE-WRITTEN, UNREVIEWED** functional lines, shown only in edge cases:
     - Admin, while a delivery is under way: "You've got a delivery to make. Come back when it's done."
+    - Admin, once introductions are done and nothing is under way: "Iris has the contracts. I just make the introductions."
     - Admin, if the player is carrying another contract: "Finish the job you're carrying first. Then we'll talk."
     - Iris, same case: "You're already carrying someone else's cargo. Come back when your hold is free."
   - When the player returns to Admin after "I'll think about it", Admin reopens with his own line from doc 05 ("So, what do you think?…"), as approved. If the player declines Iris's offer, she repeats her offer lines from doc 06 on the next visit.
@@ -360,7 +362,9 @@ From the master plan and doc 05:
 - **Save state (all in `story.flags`, so old saves and the server need no new fields):**
   - `factionFirst`: `communion` or `natural-order`
   - `communionDelivery`, `orderDelivery`: `accepted` → `delivered` → `paid`
-  - `adminAway`: true after the first delivery (hides Admin; his interaction uses the new `notFlags` condition in `story.js`)
+  - `adminOccupied`: true only while the first faction payment waits (hides Admin; `notFlags` condition in `story.js`). The older `adminAway` flag is removed on load.
+  - `communionSupply`, `orderSupply`: `accepted` → `delivered` → `paid`
+  - `communionOrigin`, `orderOrigin`: `offered` → `accepted` (homeworld placeholders)
   - `factionIntro`: Admin's full introduction has played
   - `factionsVisited`: both deliveries paid
 - **Mission Log:** definitions in `mission-log.js` with objectives arrive → deliver → payment. A new `after` field moves the goal back to the District once the cargo is delivered.
@@ -389,6 +393,32 @@ From the master plan and doc 05:
 - **Saved:** `story.flags.communionBattle` / `orderBattle` are set when the fight starts, so it never repeats (including after death or reload). Skipping or leaving it never blocks the delivery.
 - **Cleanup:** resuming the warp, docking, dying or leaving flight removes every battle ship, bolt and wreck.
 - **Limitations:** drawn only by the Babylon renderer, not the old 2D fallback. A pilot who stays aligned and does nothing sees about 8 seconds before the jump resumes.
+
+### 9.2.2 Adaptive music (IMPLEMENTED; David approved procedural music now, his own files later)
+
+- **Files:** `music-director.js` (what plays: location, District zone, combat cooldown, warp, dialogue ducking, bar speakers; unit-tested), `music-score.js` (each location's key, tempo, harmony, instruments and description, as data), `music-engine.js` (performs the score live in Web Audio with crossfades), `music-integration.js` (game-loop hook). Tests: `tests/music.test.cjs`, `tests/music-engine.test.cjs`.
+- **Original, generated live:** no music files ship. A shared four-note VOID//RUNNER motif links the styles. Every location has its own style; the four working stations share one theme with different mixes; space takes on Communion or Natural Order colour in their systems.
+- **District zones:** street, entry and scan, hallway, store (quiet), arcade, pods and meeting room (near silence), smoking terrace (muffled), with 1.4 s hysteresis. Bar music in the Dead Channel and the District bar comes from in-world speakers and fades with distance; it does not reach Admin and Iris's store.
+- **States:** combat raises intensity with a 7 s cool-down; watching a faction battle adds only a tension layer; dialogue ducks music by 30%.
+- **Your own tracks:** add `{styleId: 'path/to/file.ogg'}` to `files` in `music-score.js` and that style plays the file instead, with the same crossfades and volume.
+- **New Ambient volume slider** (Settings). The old drone bed in `ship-audio.js` is silenced while the engine runs.
+- **Not yet:** on-foot combat music (the derelict has its own tense score instead). Arcade, sleeping-pod playlist and recorded NPC voices come later.
+
+### 9.2.3 Recorded NPC voices (IMPLEMENTED; Kokoro, approved)
+
+- 103 fixed NPC lines are pre-recorded with Kokoro-82M (Apache-2.0), rendered offline: about 2.8 MB of Ogg/Opus in `void-runner/assets/audio/voice/`, loaded only when spoken. Licences: `assets/audio/voice/LICENSES.md`.
+- `manifest.json` gives each line a stable id (`speaker-hash`), the text, and the per-NPC voice cast: Mara af_nicole, Elias bm_george (hologram tone), Rook am_fenrir, Admin am_michael, Iris bf_emma (android treatment), Elara bf_isabella, Marcus am_eric, Nyx af_river, Iona af_kore, Dr. Sol bm_lewis, District bartender am_liam, arcade attendant am_puck. **David should listen and recast any voice that doesn't fit.**
+- `voice-clips.js` plays the clip on the voice channel; subtitles pace to the clip; a REPLAY button replays the line; skipping stops it. Lines built at runtime (prices, destinations) and any failed clip use the browser voice. The player is never voiced.
+- After any dialogue change: `node tools/voice/extract-lines.cjs` then `python tools/voice/generate.py --models <folder>`. `npm test` fails if a line has no clip.
+
+### 9.2.4 Faction homeworlds (IMPLEMENTED; doc 10)
+
+- **Places:** **The Nexus** (`nexus`, Cantor System) and the **Natural Order Homeworld** (`order-homeworld`, Garrow System; name pending). Both are focused walkable landing areas (`planets.js`); each opens when Elara's or Marcus's homeworld offer is accepted. Rook never sends freight there.
+- **Flow:** accepting the offer loads a shipment (`communion-origin-mission-01` / `natural-order-origin-mission-01`; no pay; flown without combat). If the hold is busy, it waits with Elara or Marcus. Dr. Adrian Kess or Daniel Mercer receives it (doc 10 dialogue word for word) and offers optional work: **Helping Hands** (`communion-restoration-01`: supplies to the aid station, relay repair, power terminal) or **Keeping Things Running** (`natural-order-agriculture-01`: farm equipment, food, solar repair). Task points appear only when relevant and the arrow follows each step.
+- **Rewards (ship modules, own slots, fitted at any hangar, never sold):** Communion Targeting Scanner (sensor slot): missile lock time ×0.7 (Kestrel 1.5 s → 1.05 s). Natural Order Maneuvering Thrusters (thruster slot): turn rates ×1.12, turn response ×1.4, settling ×1.25; no top-speed change. `C.factionEquipment()` reports earned and installed status for future dialogue. No hostility or reputation effects.
+- **Flags:** `communionOrigin`/`orderOrigin` offered→accepted→loaded→delivered; `communionWork`/`orderWork` offered→accepted→complete; task flags `nexusSupplies`, `nexusRepair`, `nexusPower`, `orderEquipment`, `orderFood`, `orderSolar`; `communionScanner`/`orderThrusters` earned.
+- **UNREVIEWED placeholder lines:** Kess and Mercer's reward hand-over lines. "Tell me more" shows the module's real numbers as a notice rather than invented dialogue.
+- **Lighting:** each homeworld lowers the global exposure while you are there (as Vesper does). Music: `nexus` (ethereal, melancholic) and `order-homeworld` (warm, percussive). Kess (bm_daniel) and Mercer (am_onyx) are voiced.
 
 ### 9.3 Rook cargo runs
 
@@ -474,6 +504,8 @@ Done; see §4.3. Possible follow-ups:
 - The delivery flights carry normal light risk; the only scripted event is the faction battle from doc 08.
 - Returning to Admin after "I'll think about it" reopens with his "So, what do you think?…" line.
 - Docs 05/06 replace the earlier "First District mission" options A–D (Membership, Breach, Rogue AI, Raven's Plan).
+- **Admin and Iris are both always in the store**, except Admin is "occupied" (not shown) on the first-payment visit (David, 2026-10-15).
+- Iris's follow-up contracts and the homeworld offers (doc 09). Homeworld buttons "I'm interested" / "Not right now" approved for now; pay to be balanced by David later.
 - Faction ship battles on the way to each delivery (doc 08): requested feature, built (§9.2.1). The border drop-out placement is Claude's choice and awaits David's review.
 
 ### Rejected or removed (do not reintroduce)
@@ -493,7 +525,7 @@ Done; see §4.3. Possible follow-ups:
 - **CARGO-001 expansion options:** A, Dr. Sol's water plant on Kepler; B, the sealed crate and a customs hail; C, a missing courier (Elias thread); D, Rook's debt at the Foundry. Claude recommended A, then C.
 - Whether **Elias's past** becomes the thread linking the opening to the faction story.
 - Keep, rework or cut each **legacy chapter** (§4.5).
-- **What follows the faction deliveries:** next-chapter directions (doc 06 §7) must be proposed after the battles are built.
+- **Homeworld missions:** David will design the planets and missions; nothing beyond placeholders may be built (doc 09 §7–8).
 - **Faction follow-up chains** and reputation rules (§6).
 - The middle game ("Dead Channels") and late game ("The Silent God") arcs from the mission tree are only proposed.
 - Cleaning up stale merged `claude/*` branches was offered, not requested.

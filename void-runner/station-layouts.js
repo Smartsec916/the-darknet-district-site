@@ -11,7 +11,9 @@
   admin:{coat:'#1c1e21',hair:'#c9cbcc',skin:'#b98f78',style:'beard',eye:'#e0a03a'},
   iris:{coat:'#26232c',hair:'#eceaf0',skin:'#ddd6d2',style:'undercut',eye:'#5fe0ff'},
   elara:{coat:'#d6dde2',hair:'#2b2a30',skin:'#c69e80',style:'glasses',eye:'#7fe6ff'},
-  marcus:{coat:'#5a4630',hair:'#4a4038',skin:'#a5785c',style:'beard'}
+  marcus:{coat:'#5a4630',hair:'#4a4038',skin:'#a5785c',style:'beard'},
+  kess:{coat:'#e1e6ea',hair:'#8d8f92',skin:'#b48f73',style:'glasses',eye:'#7fe6ff'},
+  mercer:{coat:'#6b5a3a',hair:'#5a4a36',skin:'#9c6f52',style:'beard'}
  };
  function layout(id,ship='starter'){
   if(id==='meridian')return (typeof module!=='undefined'?require('./meridian-interior.js'):root.VoidMeridianInterior).layout(ship);

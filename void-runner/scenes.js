@@ -25,7 +25,7 @@ function advanceSpeech(){
  if(speech.index<speech.lines.length-1){speech.index++;renderLine();return;}
  const done=speech.done;speech=null;globalThis.VoidAudio?.cancel();done();
 }
-function updateSpeech(dt){if(!speech)return;const line=speech.lines[speech.index];speech.shown=Math.min(line.text.length,speech.shown+dt*48);$('spoken-text').textContent=line.text.slice(0,Math.floor(speech.shown));const finished=speech.shown>=line.text.length;$('speech-next').textContent=finished?nextLabel():'SHOW FULL LINE';$('speech-status').textContent=finished?`${speech.index+1} / ${speech.lines.length} · END OF LINE`:'● SPEAKING';}
+function updateSpeech(dt){if(!speech)return;const line=speech.lines[speech.index];speech.shown=Math.min(line.text.length,speech.shown+dt*(speech.rate||48));$('spoken-text').textContent=line.text.slice(0,Math.floor(speech.shown));const finished=speech.shown>=line.text.length;$('speech-next').textContent=finished?nextLabel():'SHOW FULL LINE';$('speech-status').textContent=finished?`${speech.index+1} / ${speech.lines.length} · END OF LINE`:'● SPEAKING';}
 const originalUpdate=update;update=function(dt){originalUpdate(dt);updateSpeech(dt);};
 function barRoom(){
  speech=null;mode='dock';view='bar';clearInput();flightUI(false);scene('bar');screen.classList.remove('hidden');

@@ -6,6 +6,7 @@
       music: .45,
       effects: .45,
       voice: .8,
+      ambient: .5,
       voiceEnabled: true,
       enabled: true
     };
@@ -87,7 +88,7 @@
     const s = {
       ...defaults
     };
-    for (const k of ['master', 'music', 'effects', 'voice'])
+    for (const k of ['master', 'music', 'effects', 'voice', 'ambient'])
       if (Number.isFinite(raw?.[k])) s[k] = Math.max(0, Math.min(1, raw[k]));
     for (const k of ['enabled', 'voiceEnabled'])
       if (typeof raw?.[k] === 'boolean') s[k] = raw[k];
@@ -125,6 +126,7 @@
     target(buses.music.gain, settings.music * (speaking ? .4 : 1));
     target(buses.effects.gain, settings.effects);
     target(buses.voice.gain, settings.voice);
+    target(buses.ambient.gain, settings.ambient);
   }
 
   function cancel() {
@@ -160,9 +162,9 @@
       if (!context) {
         context = new Audio();
         buses = {};
-        for (const id of ['master', 'music', 'effects', 'voice']) buses[id] = context.createGain();
+        for (const id of ['master', 'music', 'effects', 'voice', 'ambient']) buses[id] = context.createGain();
         buses.master.connect(context.destination);
-        for (const id of ['music', 'effects', 'voice']) buses[id].connect(buses.master);
+        for (const id of ['music', 'effects', 'voice', 'ambient']) buses[id].connect(buses.master);
         mix();
       }
     } catch {
@@ -305,7 +307,8 @@
     danger = lowHealth;
   }
 
-  let mediaPlaying = false;
+  // `composer` is set while music-engine.js plays the score; the old drone bed then stays silent.
+  let mediaPlaying = false, composer = false;
   function tick(dt) {
     ensureContext();
     if (!context || context.state !== 'running') return;
@@ -313,24 +316,24 @@
     const p = musicProfiles[profile];
     if (!bed) {
       bed = p.chord.map(n => oscillator(p.wave, p.root * n, 'music'));
-      ambient = oscillator('triangle', p.ambient, 'effects');
+      ambient = oscillator('triangle', p.ambient, 'ambient');
       tension = oscillator('sine', p.root * 2.01, 'music');
     }
     bed.forEach((v, i) => {
       v.o.type = p.wave;
       target(v.o.frequency, p.root * p.chord[i], 1.5);
-      target(v.g.gain, mediaPlaying ? 0 : (i ? .012 : .018) * (profile === 'bar' ? .65 : 1), 1.2);
+      target(v.g.gain, mediaPlaying || composer ? 0 : (i ? .012 : .018) * (profile === 'bar' ? .65 : 1), 1.2);
       target(v.filter.frequency, profile === 'bar' ? 180 : p.wave === 'sawtooth' ? 260 : 600, 1);
     });
     target(ambient.o.frequency, p.ambient, 1.5);
     target(ambient.g.gain, profile === 'menu' ? 0 : profile === 'flight' ? .003 : .008, 1.2);
-    target(tension.g.gain, !mediaPlaying && (combat || danger) ? (danger ? .012 : .007) : 0, 1);
+    target(tension.g.gain, !mediaPlaying && !composer && (combat || danger) ? (danger ? .012 : .007) : 0, 1);
     target(tension.o.frequency, p.root * (danger ? 2.12 : 2.01), 1);
     beat -= Math.min(.2, dt);
     if (beat <= 0) {
       beat = 1 / (p.pulse * (combat ? 2 : 1));
-      if (!mediaPlaying) tone(p.root * 4, .45, 'sine', combat ? .028 : .01, null, null, 'music');
-      if (combat && !mediaPlaying) tone(54, .15, 'triangle', .025, null, null, 'music');
+      if (!mediaPlaying && !composer) tone(p.root * 4, .45, 'sine', combat ? .028 : .01, null, null, 'music');
+      if (combat && !mediaPlaying && !composer) tone(54, .15, 'triangle', .025, null, null, 'music');
       if (danger) tone(220, .18, 'sine', .012);
     }
   }
@@ -391,11 +394,12 @@
     const score = v => (/natural|neural|enhanced|premium/i.test(v.name) ? 20 : 0) + (p.preferred?.some(n => v.name.toLowerCase().includes(n)) ? 5 : 0);
     return matches.sort((a,b) => score(b)-score(a) || a.name.localeCompare(b.name))[0] || null;
   }
-  function speak(id, text, waitedForVoices = false) {
+  function speak(id, text, waitedForVoices = false, browserOnly = false) {
     cancel();
     if (!settings.enabled || !settings.voiceEnabled || !settings.voice) return false;
     const p = profiles[content.characters[id]?.voiceProfile || id] || profiles.rook;
-    if (voiceProvider) {
+    // Recorded clips when the line has one; otherwise (or if a clip fails) the browser voice.
+    if (voiceProvider && !browserOnly && (!voiceProvider.has || voiceProvider.has(id, text))) {
       try {
         speaking = true;
         mix();
@@ -406,7 +410,7 @@
           profile: p,
           volume: settings.master * settings.voice,
           bus: buses?.voice
-        })).catch(error => {console.warn('[VOID voice]',{character:id,recovery:'subtitles',reason:error.message});}).finally(() => {
+        })).catch(error => {console.warn('[VOID voice]',{character:id,recovery:'browser voice',reason:error.message});if (token === current) speak(id, text, false, true);}).finally(() => {
           if (token === current) {
             speaking = false;
             mix();
@@ -467,6 +471,9 @@
     availableVoices() { refreshVoices(); return voices; },
     get ready() { return !!context && context.state === 'running'; },
     mediaActive(value) { mediaPlaying = value === true; },
+    composerActive(value) { composer = value === true; },
+    // A category channel for the music engine (and other players) to connect to.
+    bus(name) { ensureContext(); return context && buses?.[name] ? {context, node: buses[name]} : null; },
     // Locally hosted tracks share the gesture gate, master/category gain and pause lifecycle.
     connectMedia(element, category = 'music') {
       ensureContext();

@@ -104,7 +104,7 @@ screen.addEventListener('change', e => {
 function settingsPage() {
   const s = VoidAudio.settings;
   menuShell('settings',
-    `<section class="settings-panel">${button('BACK','menu-back',true)}<h1 tabindex="-1">Settings</h1>${[['music','Music volume'],['effects','Sound effects volume'],['voice','Voice volume']].map(([id,label])=>`<label>${label}<input type="range" min="0" max="100" step="1" data-setting="${id}" value="${Math.round(s[id]*100)}"><output>${Math.round(s[id]*100)}</output></label>`).join('')}${button('KEYBINDINGS','menu-bindings')}${button(s.enabled?'MUTE ALL':'UNMUTE ALL','menu-mute',true)}<p class="fine">Audio starts after interaction. Voices use this device’s speech engine. Set a category to zero to mute it.</p>${voiceSettingsHTML()}</section>`
+    `<section class="settings-panel">${button('BACK','menu-back',true)}<h1 tabindex="-1">Settings</h1>${[['music','Music volume'],['effects','Sound effects volume'],['ambient','Ambient volume'],['voice','Voice volume']].map(([id,label])=>`<label>${label}<input type="range" min="0" max="100" step="1" data-setting="${id}" value="${Math.round(s[id]*100)}"><output>${Math.round(s[id]*100)}</output></label>`).join('')}${button('KEYBINDINGS','menu-bindings')}${button(s.enabled?'MUTE ALL':'UNMUTE ALL','menu-mute',true)}<p class="fine">Audio starts after interaction. Voices use this device’s speech engine. Set a category to zero to mute it.</p>${voiceSettingsHTML()}</section>`
     );
 }
 

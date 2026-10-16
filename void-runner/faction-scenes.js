@@ -74,8 +74,9 @@
   if(offers.length&&!f.factionIntro){f.factionIntro=true;save();ask(adminIntro,adminOptions(),HEAD);return;}
   save();
   if(offers.length===2)return ask([adminPrompt],adminOptions(),HEAD);
-  // UNREVIEWED: Admin while a delivery is under way.
-  leave([admin('You’ve got a delivery to make. Come back when it’s done.')]);
+  // UNREVIEWED: Admin's idle lines once the introductions are done.
+  const busy=[...Object.values(D),...Object.values(C.supplyDeliveries)].some(d=>['accepted','delivered'].includes(state.story.flags[d.flag]));
+  leave([busy?admin('You’ve got a delivery to make. Come back when it’s done.'):admin('Iris has the contracts. I just make the introductions.')]);
  });
 
  // ---- Iris (doc 06) ----
@@ -89,6 +90,24 @@
    {label:'NOT RIGHT NOW',quiet:true,run:()=>leave([you('Not right now.'),iris('Of course. I’ll keep the contract available. For now.')])}
   ],HEAD);
  }
+ // ---- Iris's follow-up contracts (doc 09) ----
+ const S=C.supplyDeliveries,supplyPrompt=iris('Both destinations should be familiar to you by now. Interested?');
+ function takeSupply(faction){
+  const d=S[faction];
+  // UNREVIEWED: shown only if the player is already carrying another contract.
+  if(!C.acceptSupply(state,faction))return leave([iris('You’re already carrying someone else’s cargo. Come back when your hold is free.')]);
+  VoidMissions.track(state,d.id,C);save();
+  leave([you(faction==='communion'?'I’ll take the Communion delivery.':'I’ll take the Natural Order delivery.')],'RETURN TO DISTRICT',()=>announce(d.name.toUpperCase()+' ACCEPTED · '+C.stations[d.destination].name+', '+VoidUniverse.systems[VoidUniverse.system(d.destination)].name+' tracked.'));
+ }
+ function supplyOptions(){
+  const open=C.supplyOffers(state),options=[];
+  if(open.includes('communion'))options.push({label:'TELL ME ABOUT THE COMMUNION SHIPMENT',quiet:true,run:()=>ask([you('Tell me about the Communion shipment.'),iris('Specialized processing modules, sensor components, and research hardware. Apparently they’re expanding one of their projects.'),you('What kind of project?'),iris('They haven’t said. And I find it’s generally best not to ask too many questions when someone is paying for delivery.')],supplyOptions(),HEAD)});
+  if(open.includes('natural-order'))options.push({label:'WHAT DOES THE NATURAL ORDER NEED?',quiet:true,run:()=>ask([you('What does the Natural Order need?'),iris('Industrial control assemblies, replacement machinery, and heavy-duty mechanical components.'),you('Nothing computerized?'),iris('Oh, they use computers. They simply prefer theirs to remain obedient.')],supplyOptions(),HEAD)});
+  if(open.includes('communion'))options.push({label:'I’LL TAKE THE COMMUNION DELIVERY',run:()=>takeSupply('communion')});
+  if(open.includes('natural-order'))options.push({label:'I’LL TAKE THE NATURAL ORDER DELIVERY',run:()=>takeSupply('natural-order')});
+  options.push({label:'I’LL THINK ABOUT IT',quiet:true,run:()=>leave([you('I’ll think about it.'),iris('Of course. The contracts will remain available.')])});
+  return options;
+ }
  const irisDefault=VoidInteractions.handlers.get('district-iris');
  VoidInteractions.register('district-iris',arg=>{
   const delivered=Object.values(D).find(d=>C.factionStage(state,d.faction)==='delivered');
@@ -96,12 +115,21 @@
    const other=Object.values(D).find(d=>d!==delivered),second=C.factionStage(state,other.faction)==='paid';
    const paid=C.collectFactionPayment(state);state.story.flags.metIris=true;VoidMissions.sync(state,C);save();hud();
    const credited=()=>announce('PAYMENT RECEIVED · '+paid.reduce((n,d)=>n+d.payment,0).toLocaleString()+' credits · '+delivered.name.toUpperCase()+' COMPLETE');
-   if(second){leave([iris('Back again. You’re becoming something of a regular.'),you('Delivery’s finished.'),iris('So I see. Both shipments delivered, both clients satisfied. Remarkable, considering they can barely tolerate each other’s existence.'),iris('There you go. All settled.'),iris('Funny thing about those two. They disagree about practically everything, but somehow they both manage to keep us in business.')],'RETURN TO DISTRICT',credited);return;}
+   // Doc 09 replaces doc 06's closing: Iris pays, then offers the follow-up contracts.
+   if(second){credited();ask([iris('Back again. You’re becoming something of a regular.'),you('Finished the delivery.'),iris('So I see. Both shipments delivered, both clients satisfied. Remarkable, considering they can barely tolerate each other’s existence.'),iris('There you are. All settled.'),iris('Actually, I have a little more work available. Both factions have requested additional supplies.'),you('More deliveries?'),iris('Essentially. Although these shipments are a little more specialized.'),you('Specialized how?'),iris('Each faction has rather particular requirements. The Communion wants technology. The Natural Order prefers equipment they can maintain without asking a machine for permission.'),supplyPrompt],supplyOptions(),HEAD);return;}
    talk('',[iris('Ah, Rook’s pilot. Back in one piece, I see. That’s encouraging.'),you('Where’s Admin?'),iris('Occupied. I’m handling things for now. Don’t worry, he left instructions to pay you.'),iris('Let’s see... cargo received, delivery confirmed, and no complaints from the recipient. How refreshingly uneventful.'),iris('There you are. Payment received. Pleasure doing business with you.')],()=>{credited();if(C.factionOffers(state).includes(other.faction))irisOffer(other.faction,true);else resumeWalking();},'NEXT →',HEAD);
    return;
   }
+  // A delivered follow-up contract is paid with Iris's established line, then any remaining contract is offered.
+  const supply=Object.values(C.supplyDeliveries).find(d=>C.supplyStage(state,d.faction)==='delivered');
+  if(supply){
+   const paid=C.collectFactionPayment(state);VoidMissions.sync(state,C);save();hud();
+   const after=()=>{announce('PAYMENT RECEIVED · '+paid.reduce((n,d)=>n+d.payment,0).toLocaleString()+' credits · '+supply.name.toUpperCase()+' COMPLETE');if(C.supplyOffers(state).length)ask([supplyPrompt],supplyOptions(),HEAD);else resumeWalking();};
+   talk('',[iris('There you are. Payment received. Pleasure doing business with you.')],after,'CONTINUE',HEAD);return;
+  }
   const remaining=C.factionOffers(state);
   if(state.story.flags.factionFirst&&remaining.length)return irisOffer(remaining[0],false);
+  if(C.supplyOffers(state).length)return ask([supplyPrompt],supplyOptions(),HEAD);
   return irisDefault(arg);
  });
 
@@ -129,14 +157,47 @@
     ['THINK THE COMMUNION’S PLANNING SOMETHING?','Think the Communion’s planning something?','Wouldn’t surprise me. But rumors travel faster than ships out here. Half of what you hear is nonsense.']],
    farewell:'Appreciate it. Tell Admin the shipment arrived. And watch yourself on the way back.'}
  };
+ // Follow-up deliveries (doc 09): each recipient then raises a homeworld mission, kept as a placeholder.
+ recipients.communion.supply=[
+  elara('Back again? I was hoping we’d see you.'),you('I’ve got another shipment from The Darknet District.'),elara('Excellent. We’ve been waiting for these components.'),
+  elara('Everything looks to be in order. Thank you.'),you('Seems like you need a lot of equipment.'),
+  elara('We do. There’s quite a bit of work underway, and the situation with the Natural Order isn’t making things any easier.'),
+  elara('Actually, since you’re here, there may be something else you could help us with.'),you('What kind of help?'),
+  elara('A delivery on our homeworld. Something that would help our people. I’d rather explain the details once you’re there.')];
+ recipients.communion.origin=recipients.communion.supply[recipients.communion.supply.length-1];
+ recipients['natural-order'].supply=[
+  marcus('Well, look who’s back. Starting to think you’re the only pilot out there who delivers anything on time.'),you('Got another shipment for you.'),
+  marcus('Good. We can use these parts.'),marcus('Everything’s here. That’s a relief.'),you('Having problems?'),
+  marcus('Nothing we can’t handle. Just seems like every time we get one thing running, something else needs fixing.'),
+  marcus('And with the Communion stirring things up, supplies aren’t getting any easier to come by.'),you('Sounds like you could use some help.'),
+  marcus('Actually, now that you mention it, there’s another job. Down on our homeworld. Something that could make a real difference to our people.'),you('What needs doing?'),
+  marcus('I’ll explain the details when you’re ready to head down there.')];
+ recipients['natural-order'].origin=recipients['natural-order'].supply[8];
+ const paymentDue=()=>announce('MISSION UPDATE · Return to The Darknet District to collect payment.');
+ // After agreeing to a homeworld run: either the shipment is aboard, or it waits for a free hold.
+ function loaded(faction){
+  const h=C.homeworlds[faction],owed=Object.values(C.supplyDeliveries).some(d=>C.supplyStage(state,d.faction)==='delivered');save();resumeWalking();
+  if(C.originState(state,faction)==='loaded'){VoidMissions.track(state,h.contract.id,C);save();announce('SHIPMENT LOADED · '+h.contract.name.toUpperCase()+' tracked.'+(owed?' Iris still owes you for the last delivery.':''));}
+  else announce('Your hold is busy. Come back with a free hold to collect the shipment.');
+ }
+ function originOptions(faction){
+  const title=faction==='communion'?'COMMUNION HOMEWORLD MISSION':'NATURAL ORDER HOMEWORLD MISSION',owed=()=>Object.values(C.supplyDeliveries).some(d=>C.supplyStage(state,d.faction)==='delivered');
+  return [{label:'I’M INTERESTED',run:()=>{C.acceptOrigin(state,faction);VoidMissions.sync(state,C);loaded(faction);}},
+   {label:'NOT RIGHT NOW',quiet:true,run:()=>{save();resumeWalking();if(owed())paymentDue();}}];
+ }
  function recipientOptions(faction){const r=recipients[faction],update=()=>announce('MISSION UPDATE · Return to The Darknet District to collect payment.');
   return [...r.questions.map(([label,question,answer])=>({label,quiet:true,run:()=>ask([you(question),r.who(answer)],recipientOptions(faction))})),
    {label:'I’LL LEAVE YOU TO IT',run:()=>leave([you('I’ll leave you to it.'),r.who(r.farewell)],'RETURN TO STATION',update)}];}
  const stationTalk=VoidInteractions.handlers.get('talk');
  VoidInteractions.register('talk',arg=>{
   const faction=Object.keys(recipients).find(id=>D[id].recipient===arg?.item?.character);if(!faction)return stationTalk(arg);
-  if(!C.deliverFaction(state,faction))return leave([recipients[faction].who(recipients[faction].farewell)],'RETURN TO STATION');
-  VoidMissions.sync(state,C);save();ask(recipients[faction].intro,recipientOptions(faction));
+  const r=recipients[faction],delivered=C.deliverFaction(state,faction);
+  if(delivered){VoidMissions.sync(state,C);save();if(delivered.kind==='supply')return ask(r.supply,originOptions(faction));return ask(r.intro,recipientOptions(faction));}
+  // Agreed earlier with a full hold: the shipment is collected now.
+  if(C.originState(state,faction)==='accepted'){C.loadOrigin(state,faction);VoidMissions.sync(state,C);return loaded(faction);}
+  // The homeworld offer stays with the recipient until the player takes it.
+  if(C.originState(state,faction)==='offered')return ask([r.origin],originOptions(faction));
+  return leave([r.who(r.farewell)],'RETURN TO STATION');
  });
 
  // In NeoChinatown the arrow leads through the District door to Iris when payment is due.
