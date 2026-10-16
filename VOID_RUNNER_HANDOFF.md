@@ -477,6 +477,19 @@ Doc 11; plan in `docs/VOID_RUNNER_WARFLYING_AUDIT_AND_PLAN.md`.
   - no cargo or contents are ever stored
 - **Tests:** `tests/warflying.test.cjs` and `tests/test_warflying_save.py`.
 
+### 9.2.8 WarFlying, Stage B: scanning, log and leaderboard (IMPLEMENTED)
+
+- **Buying and fitting:** the WarFlying Module is sold at **station outfitters** (600; never in the District) and fitted in the Utility slot at a hangar.
+- **Scanning:** when fitted, the ship **listens twice a second while flying** (`warflying-scanner.js`, rules in `warflying-scan.js`).
+  - **Fixed emitters:** the origin station on departure, the destination on arrival, and about a third of each system's beacons and satellites along each route. Different routes pass different ones.
+  - **Moving ships:** traffic, pirates and faction battle crews, heard by their own emissions (a ship running dark is only heard up close). Near the edge of hearing a ship is "partial" (no point) until identified. Respawns reuse roster identities, so nothing can be farmed.
+- **Limits:** nothing is collected on foot, so nothing inside The Darknet District. It works without any Relay connection.
+- **Notices and HUD:** "WARFLYING +1 · CIV-E709 · Civilian craft · 5 PTS", and a small "WARFLYING · LISTENING" line in flight.
+- **Sightings:** continuous listening counts as one sighting per place per minute.
+- **The log** is a WARFLYING section in the Mission Log (L): scanner status, points, partial contacts, the leaderboard, recent discoveries and last known observations.
+- **Leaderboard:** the rivals (GhostVector, SignalWraith, EchoNine, VoidWalker, RiftRunner) start at 6–48 points and gain about one point per 40–90 minutes of play, each with a ceiling below the 132 real signals, so a thorough player can reach first place. Play time is saved as `warflying.clock`.
+- **Not yet (Stage C):** Relay uploads, the connection state and the scrambler's effect.
+
 ### 9.3 Rook cargo runs
 
 Done; see §4.3. Possible follow-ups:
