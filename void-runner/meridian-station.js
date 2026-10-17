@@ -1,7 +1,9 @@
 /* One exterior identity for the front end, flight approach and occupied Meridian. */
 (function(root){
  const model={src:null,path:'assets/models/stations/meridian.glb',scale:1,yaw:0};
- const design={id:'meridian',hangars:[{id:'H01',x:0,z:-11,w:36,h:9,d:30},{id:'H02',x:45,z:1,w:30,h:12,d:40},{id:'H03',x:-39,z:16,w:24,h:10,d:28}],features:['H01','H02','H03','solar arrays','docking collar','communications','warm windows','light tanks'],model,
+ // H01–H03 stand side by side, mouths in one line, as in David's reference art (approved 2026-10-16).
+ // H01 is the walkable hangar and never moves. The large-ship collar sits past H03.
+ const design={id:'meridian',hangars:[{id:'H01',x:0,z:-11,w:36,h:9,d:30},{id:'H02',x:38,z:-11,w:36,h:9,d:30},{id:'H03',x:76,z:-11,w:36,h:9,d:30}],features:['H01','H02','H03','solar arrays','docking collar','communications','warm windows','light tanks'],model,
   // Pressurised modules behind the hangars: one source for the builder and any cladding (meridian-kitbash.js).
   modules:[{id:'rear-service-spine',size:[100,7,10],position:[3,5,40],finish:'hull'},{id:'port-link',size:[16,5,7],position:[-23,3,11],finish:'panel'},{id:'starboard-link',size:[16,5,10],position:[26,4,9],finish:'panel'},
    {id:'habitation',size:[30,10,12],position:[-18,12,35],finish:'panel'},{id:'bar-business-module',size:[22,7,10],position:[17,11,39],finish:'hull'},{id:'raised-communications',size:[14,13,13],position:[-8,18,43],finish:'edge'}]};
@@ -37,13 +39,13 @@
    for(let x=-wing.w/2;x<=wing.w/2;x+=10)box('solar-rail',[.25,.15,wing.d],[wing.x+x,3.6,wing.z],panel);
   }
   // Large ship berthing collar on the starboard flank.
-  beam([57,2,25],[76,2,8],2);const collar=add(B.MeshBuilder.CreateTorus('large-ship-docking-collar',{diameter:17,thickness:2,tessellation:32},scene),panel,[76,3,2]);collar.rotation.x=Math.PI/2;
-  const seal=add(B.MeshBuilder.CreateTorus('docking-seal',{diameter:13,thickness:.8,tessellation:32},scene),hazard,[76,3,1.7]);seal.rotation.x=Math.PI/2;
-  for(const s of [-1,1])box('docking-clamp',[3,4,5],[76+s*9,3,3],edge);
+  beam([77,2,25],[114,2,8],2);const collar=add(B.MeshBuilder.CreateTorus('large-ship-docking-collar',{diameter:17,thickness:2,tessellation:32},scene),panel,[114,3,2]);collar.rotation.x=Math.PI/2;
+  const seal=add(B.MeshBuilder.CreateTorus('docking-seal',{diameter:13,thickness:.8,tessellation:32},scene),hazard,[114,3,1.7]);seal.rotation.x=Math.PI/2;
+  for(const s of [-1,1])box('docking-clamp',[3,4,5],[114+s*9,3,3],edge);
   beam([-8,25,43],[-8,43,43],.65);for(let y=29;y<41;y+=4)box('antenna',[10,.15,.15],[-8,y,43],panel);
   const dish=add(B.MeshBuilder.CreateSphere('communications-dish',{diameter:9,segments:16,slice:.5},scene),tank,[-20,21,40]);dish.scaling.y=.28;dish.rotation.z=.5;beam([-20,15,40],[-20,21,40]);
   for(const x of [-48,58]){beam([x,10,30],[x,25,30],.23);box('comms-panel',[2,4,.25],[x,21,30],panel);}
-  for(const p of [[-103,4,0],[112,4,17],[-8,44,43],[76,3,-.5]]){const lamp=add(B.MeshBuilder.CreateSphere('navigation-beacon',{diameter:.85,segments:6},scene),p[0]<0?red:nav,p,false);blink.push(lamp);}
+  for(const p of [[-103,4,0],[112,4,17],[-8,44,43],[114,3,-.5]]){const lamp=add(B.MeshBuilder.CreateSphere('navigation-beacon',{diameter:.85,segments:6},scene),p[0]<0?red:nav,p,false);blink.push(lamp);}
   // Reference-art pass: lit window bands along the spine, orange-banded pressure
   // tanks on the aft end, tall vertical solar wings, a sensor spire and the full
   // MERIDIAN STATION / FUEL · REPAIRS · SUPPLIES lettering.
