@@ -47,6 +47,11 @@
   // Ties: the rival who got there first stays ahead.
   return rows.sort((x,y)=>y.points-x.points||(x.player?1:y.player?-1:0)).map((r,i)=>({...r,rank:i+1}));
  }
- const api={config,hearingRange,classify,routeSources,passed,role,rivals,leaderboard};
+ // ---- Other pilots logging the player's ship (doc 11 §25, Admin's scene) ----
+ // Hobbyists are out on most routes: about half the routes flown end with someone having logged
+ // the player's ship. Decided per route and moment, so it can't be farmed or predicted.
+ const watched={share:55};
+ function noticed(origin,destination,moment){return hash(origin+'>'+destination+'|'+moment)%100<watched.share;}
+ const api={config,hearingRange,classify,routeSources,passed,role,rivals,leaderboard,watched,noticed};
  if(typeof module!=='undefined')module.exports=api;else root.VoidWarFlyingScan=api;
 })(globalThis);

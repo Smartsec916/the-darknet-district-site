@@ -65,7 +65,7 @@ The original recommendations follow for reference.
 | **0. Fix** | Decision 1 (trouble-free "Don't Ask Questions") | Small; first |
 | **A. Foundation** ✅ built (PR: WarFlying Stage A) | A **signal registry** with stable identities for stations, beacons, satellites and a named roster of recurring ships per system (traffic draws from it, so respawns are the same vessel); the **discovery database** (one record per source: first and last seen, the last 8 locations, count, category, confidence, upload status); **one point per unique source**, in one function; the utility slot | Pure rules with tests, save block and server validation |
 | **B. WarFlying gameplay** ✅ built | The WarFlying Module; passive scanning every 0.5 s, not every frame; detection follows distance and the source's own signature, so dark or distant ships aren't seen and are only "partially identified" at the edge of range; a compact HUD line, discovery notices and a log panel in the Mission Log screen; NPC leaderboard (GhostVector, SignalWraith, EchoNine, VoidWalker, RiftRunner) advancing slowly with game time | No cargo or contents are ever shown |
-| **C. Comms and privacy** | Communications state per region (connected / degraded / disconnected / unavailable) with a hook for future missions; upload queue (auto or manual, no duplicates, survives reloads); scrambler; District policy (no collection or broadcasts on the premises; music, arcade, pods and store still work); Admin's WarFlying scene word for word, plus the store | Scrambler: your own sightings by others become "unconfirmed", which breaks links between sightings. It never hides you from radar, eyes or police. |
+| **C. Comms and privacy** ✅ built (see §4) | Communications state per region (connected / degraded / disconnected / unavailable) with a hook for future missions; upload queue (auto or manual, no duplicates, survives reloads); scrambler; District policy (no collection or broadcasts on the premises; music, arcade, pods and store still work); Admin's WarFlying scene word for word, plus the store | Scrambler: your own sightings by others become "unconfirmed", which breaks links between sightings. It never hides you from radar, eyes or police. |
 | **D. Relay integration** | One shared content model for radio and screens (spoken text plus short headline); leaderboard and upload items; public screens in Meridian and the station bars (phase 2, approved) | Uses your scripts when they arrive |
 | **E. Piracy** | Attackable cargo traffic; **one** physical cargo pod per destroyed cargo ship (never duplicated); pickup respects hold space; provenance on cargo; buyers per decision 6; an evidence log (crime → witness → recorded → transmitted → received → identified), with no automatic wanted status | Needs decision 6 |
 | **F. Throughout** | Unit tests for every rule, browser play-tests, save migration notes, and a final report as §42 asks | |
@@ -79,3 +79,38 @@ The original recommendations follow for reference.
 - new criminal factions
 
 The Signal Tracker is defined as equipment but stays non-purchasable and inert.
+
+## 4. Stage C as built (2026-10-16)
+
+- **Relay link** (`comms.js`):
+  - The link has four states: connected, weak signal, no signal and offline.
+  - It's connected in every system and drops only while in warp between systems.
+  - A future mission can change one system's link with `VoidComms.setRegion(state, system, value)`. This is stored as the story flag `comms-<system>`, so no save change was needed. Nothing uses it yet.
+  - Radar and scanning never depend on the link.
+- **Uploads** (`warflying.js`, `warflying-scanner.js`):
+  - Any new sighting or identification puts the record in the upload queue.
+  - With auto-upload on, records send in batches whenever the link allows: 10 at a time on a good link, 3 at a time on a weak one.
+  - With auto-upload off, they wait for **UPLOAD NOW** in the Mission Log.
+  - A dropped link abandons the batch in transit, and its records stay queued. A record that changes while being sent stays queued, so nothing is lost or sent twice.
+  - The queue and the auto-upload setting are saved.
+  - Points never depend on uploading.
+- **The Darknet District:**
+  - One location policy covers Relay broadcasts, WarFlying collection and uploads on the premises. The radio now uses the same policy.
+  - Music, arcade, pods, private messages and the store aren't touched.
+- **Scrambler:**
+  - On about half of your routes, another pilot logs your ship on arrival and uploads it. This is "your ship on the Relay" in the Mission Log.
+  - Without a scrambler, those sightings are tied to you. With one, they're unidentified.
+  - Earlier sightings are never changed. Radar, police, inspections and visual checks are unaffected.
+  - The HUD shows SCRAMBLER · ACTIVE.
+  - The scanner and the scrambler share the one Utility slot, so fitting one removes the other.
+- **Admin:**
+  - His WarFlying scene (doc 12) plays word for word the first time you see him after "Don't Ask Questions". All 19 of his lines are voiced with his approved voice.
+  - After the scene, and on later visits, he offers his stock: only the WarFlying Scrambler, 900 CR. Nothing is bought or fitted automatically.
+- **Claude's wording for David to review** (UI text, not dialogue):
+  - the "Admin's briefing" journal note in the Mission Log
+  - the scrambler's store description
+  - the choice buttons SHOW ME THE SCRAMBLER and NOT RIGHT NOW
+- **Tests:**
+  - `tests/warflying-comms.test.cjs` (unit tests)
+  - `tests/warflying-c-browser.cjs` (play-test: Admin's scene and store, auto and manual uploads, warp outage, District, scrambler)
+  - `tests/test_warflying_save.py` (server save check)
