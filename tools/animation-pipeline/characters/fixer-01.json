@@ -1,0 +1,73 @@
+{
+ "name": "fixer_01",
+ "about": "Corporate fixer: charcoal-violet suit with magenta trim, silver bob, amber shades. MakeHuman CC0 assets.",
+ "phenotype": {
+  "gender": 0.0,
+  "age": 0.5,
+  "muscle": 0.45,
+  "weight": 0.4,
+  "height": 0.6,
+  "cupsize": 0.5,
+  "race": {
+   "asian": 0.3,
+   "caucasian": 0.6,
+   "african": 0.1
+  }
+ },
+ "skin": "middleage_caucasian_female",
+ "hair": "bob02",
+ "clothes": [
+  "female_elegantsuit01",
+  "shoes03"
+ ],
+ "style": {
+  "female_elegantsuit01": {
+   "recolor": [
+    {
+     "color": [
+      0.13,
+      0.1,
+      0.17
+     ],
+     "level": 0.85
+    }
+   ],
+   "glow": [
+    {
+     "mode": "boundary",
+     "color": [
+      1.0,
+      0.15,
+      0.75
+     ],
+     "width": 2,
+     "strength": 2.0
+    }
+   ]
+  },
+  "hair": {
+   "recolor": [
+    {
+     "color": [
+      0.88,
+      0.84,
+      1.0
+     ],
+     "level": 1.0
+    }
+   ]
+  }
+ },
+ "accessories": [
+  {
+   "type": "shades",
+   "glow": [
+    1.0,
+    0.55,
+    0.05
+   ],
+   "strength": 1.2
+  }
+ ],
+ "save_blend": true
+}

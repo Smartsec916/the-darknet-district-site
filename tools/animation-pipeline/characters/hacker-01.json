@@ -1,0 +1,95 @@
+{
+ "name": "hacker_01",
+ "about": "Street hacker: blacked-out jacket and jeans with cyan piping, cyan hair, visor. MakeHuman CC0 assets.",
+ "phenotype": {
+  "gender": 1.0,
+  "age": 0.4,
+  "muscle": 0.5,
+  "weight": 0.4,
+  "height": 0.55,
+  "race": {
+   "asian": 0.8,
+   "caucasian": 0.1,
+   "african": 0.1
+  }
+ },
+ "skin": "young_asian_male",
+ "hair": "short02",
+ "clothes": [
+  "male_casualsuit05",
+  "shoes03"
+ ],
+ "style": {
+  "male_casualsuit05": {
+   "recolor": [
+    {
+     "color": [
+      0.06,
+      0.07,
+      0.1
+     ],
+     "level": 0.9,
+     "select": {
+      "hue": [
+       0.5,
+       0.7
+      ],
+      "sat": [
+       0.2,
+       1
+      ]
+     }
+    },
+    {
+     "color": [
+      0.07,
+      0.07,
+      0.08
+     ],
+     "level": 0.8,
+     "select": {
+      "sat": [
+       0,
+       0.2
+      ]
+     }
+    }
+   ],
+   "glow": [
+    {
+     "mode": "boundary",
+     "color": [
+      0.1,
+      0.95,
+      1.0
+     ],
+     "width": 2,
+     "strength": 2.0
+    }
+   ]
+  },
+  "hair": {
+   "recolor": [
+    {
+     "color": [
+      0.1,
+      0.85,
+      0.95
+     ],
+     "level": 0.95
+    }
+   ]
+  }
+ },
+ "accessories": [
+  {
+   "type": "visor",
+   "glow": [
+    0.1,
+    0.95,
+    1.0
+   ]
+  }
+ ],
+ "save_blend": true
+}

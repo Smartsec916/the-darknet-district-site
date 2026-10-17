@@ -1,0 +1,93 @@
+{
+ "name": "techie_01",
+ "about": "Techie: dark skinsuit with guardian bracers and boots, amber-lit edges, electric-blue afro, glowing collar. MakeHuman CC0 assets.",
+ "phenotype": {
+  "gender": 1.0,
+  "age": 0.35,
+  "muscle": 0.45,
+  "weight": 0.35,
+  "height": 0.5,
+  "race": {
+   "asian": 0.1,
+   "caucasian": 0.2,
+   "african": 0.7
+  }
+ },
+ "skin": "young_african_male",
+ "hair": "afro01",
+ "clothes": [
+  "matcreator_mc-skinsuit_2022",
+  "matcreator_mc-scifi-armor_guardian"
+ ],
+ "style": {
+  "matcreator_mc-skinsuit_2022": {
+   "recolor": [
+    {
+     "color": [
+      0.12,
+      0.12,
+      0.14
+     ],
+     "level": 0.8
+    }
+   ]
+  },
+  "matcreator_mc-scifi-armor_guardian": {
+   "recolor": [
+    {
+     "color": [
+      0.2,
+      0.2,
+      0.23
+     ],
+     "level": 0.9
+    }
+   ],
+   "glow": [
+    {
+     "mode": "key",
+     "color": [
+      1.0,
+      0.55,
+      0.05
+     ],
+     "width": 1,
+     "strength": 2.0,
+     "select": {
+      "sat": [
+       0,
+       0.18
+      ],
+      "val": [
+       0.72,
+       1
+      ]
+     }
+    }
+   ]
+  },
+  "hair": {
+   "recolor": [
+    {
+     "color": [
+      0.15,
+      0.35,
+      1.0
+     ],
+     "level": 0.95
+    }
+   ]
+  }
+ },
+ "accessories": [
+  {
+   "type": "collar",
+   "glow": [
+    1.0,
+    0.55,
+    0.05
+   ]
+  }
+ ],
+ "save_blend": true
+}

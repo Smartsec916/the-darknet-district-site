@@ -19,6 +19,9 @@ from bl_ext.user_default.mpfb.services.targetservice import TargetService
 from bl_ext.user_default.mpfb.services.exportservice import ExportService
 from bl_ext.user_default.mpfb.services.rigservice import RigService
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import mpfb_styling  # noqa: E402
+
 args = sys.argv[sys.argv.index('--') + 1:]
 spec = json.loads(Path(args[0]).read_text(encoding='utf-8'))
 output_path = Path(args[1])
@@ -41,7 +44,7 @@ info['phenotype']['race'].update(spec['phenotype'].get('race', {}))
 info.update({
     'name': spec['name'], 'rig': 'mixamo',
     'eyes': 'low-poly.mhclo', 'eyebrows': spec.get('eyebrows', 'eyebrow001') + '.mhclo',
-    'eyelashes': spec.get('eyelashes', 'eyelashes01') + '.mhclo', 'hair': spec['hair'] + '.mhclo',
+    'eyelashes': spec.get('eyelashes', 'eyelashes01') + '.mhclo', 'hair': (spec['hair'] + '.mhclo') if spec.get('hair') else '',
     'clothes': [c + '.mhclo' for c in spec['clothes']],
     'skin_mhmat': spec['skin'] + '.mhmat', 'skin_material_type': 'GAMEENGINE',
     'eyes_material_type': 'MAKESKIN', 'clothes_material_type': 'MAKESKIN',
@@ -86,6 +89,7 @@ def game_material(obj):
 
 for obj in [basemesh] + [c for c in rig.children if c.type == 'MESH' and c is not basemesh]:
     game_material(obj)
+mpfb_styling.apply_style(spec, rig, basemesh)
 
 
 def rot3(m):
@@ -142,6 +146,7 @@ if clips:
     RigService.apply_pose_as_rest_pose(rig)
     bpy.data.objects.remove(reference, do_unlink=True)
 
+mpfb_styling.add_accessories(rig, basemesh, spec.get('accessories'), spec['name'])
 tgt_rest = world_rest(rig)
 tgt_rest_rot = {n: rot3(m) for n, m in tgt_rest.items()}
 arm_rot_inv = rot3(rig.matrix_world).inverted()
