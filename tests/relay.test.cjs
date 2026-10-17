@@ -32,7 +32,9 @@ test('the shipped Relay content is valid, and every report has a headline and a 
   assert.deepEqual(R.validate(content),[]);
   for(const s of content.segments){assert.ok(s.headline,s.id);assert.ok(R.speakerOf(s),s.id);assert.ok(Array.isArray(s.lines),s.id);}
   const events=new Set(content.events.map(e=>e.id));for(const s of content.segments)if(s.event)assert.ok(events.has(s.event));
-  assert.ok(!content.segments.some(s=>s.kind==='function'&&s.event),'The Function stays unattached to any event');
+  // The Function may comment on an event, but never confirms it, and stays caption-only until David approves a voice.
+  for(const s of content.segments.filter(s=>s.kind==='function'))assert.notEqual(s.standing,'confirmed',s.id);
+  assert.equal(require('../tools/audio/npc-voice-registry.json').broadcast['the-function'].status,'unassigned');
 });
 test('validation catches bad reports and bad events',()=>{
   const bad={events:[{id:'e',summary:'x',occurs:{}},{id:'e',summary:'',occurs:{at:1}}],segments:[seg('x','gossip'),seg('Bad Id','news'),{id:'t',kind:'news',text:''},seg('n1','news',{systems:['mars']}),seg('n1','news'),

@@ -60,6 +60,30 @@
   "sol": {
    "voice": "bm_lewis",
    "status": "approved"
+  },
+  "news-anchor": {
+   "voice": "af_heart",
+   "status": "provisional"
+  },
+  "communion-spokesperson": {
+   "voice": "af_nova",
+   "status": "provisional"
+  },
+  "natural-order-spokesperson": {
+   "voice": "bm_george",
+   "status": "provisional"
+  },
+  "warflying-host": {
+   "voice": "am_adam",
+   "status": "provisional"
+  },
+  "commercial-announcer": {
+   "voice": "af_sarah",
+   "status": "provisional"
+  },
+  "police-recruiter": {
+   "voice": "am_echo",
+   "status": "provisional"
   }
  },
  "lines": {
@@ -370,6 +394,286 @@
    "file": "bartender-ebb7d2f21c.ogg",
    "source": "prologue-integration.js",
    "configHash": "827569c45d66"
+  },
+  "commercial-announcer-0395bf23b8": {
+   "speaker": "commercial-announcer",
+   "text": "Remember: repairs cost money. Explosions cost everything!",
+   "file": "commercial-announcer-0395bf23b8.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-1c3c044664": {
+   "speaker": "commercial-announcer",
+   "text": "Small holes in the hull happen, briefly.",
+   "file": "commercial-announcer-1c3c044664.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-1c8c5dae00": {
+   "speaker": "commercial-announcer",
+   "text": "Meeting strangers in poorly lit corridors?",
+   "file": "commercial-announcer-1c8c5dae00.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-1e654e4520": {
+   "speaker": "commercial-announcer",
+   "text": "Discover the convenience of missile lock-on technology!",
+   "file": "commercial-announcer-1e654e4520.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-21e183fb07": {
+   "speaker": "commercial-announcer",
+   "text": "Upgrade your navigation suite and find your destination the first time!",
+   "file": "commercial-announcer-21e183fb07.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-2fe81d1ea5": {
+   "speaker": "commercial-announcer",
+   "text": "Rent a sleep pod at participating stations.",
+   "file": "commercial-announcer-2fe81d1ea5.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-38a0d10f0e": {
+   "speaker": "commercial-announcer",
+   "text": "Acquire. Lock. Launch.",
+   "file": "commercial-announcer-38a0d10f0e.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-41a3848964": {
+   "speaker": "commercial-announcer",
+   "text": "Unless you survived it.",
+   "file": "commercial-announcer-41a3848964.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-41c3293db6": {
+   "speaker": "commercial-announcer",
+   "text": "Are pirates completing entire conversations while you attempt to maneuver?",
+   "file": "commercial-announcer-41c3293db6.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-4342ba5a31": {
+   "speaker": "commercial-announcer",
+   "text": "Lost again?",
+   "file": "commercial-announcer-4342ba5a31.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-5ec5670e85": {
+   "speaker": "commercial-announcer",
+   "text": "Because the universe is a dangerous place, and harsh language has limited stopping power!",
+   "file": "commercial-announcer-5ec5670e85.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-6f22823dad": {
+   "speaker": "commercial-announcer",
+   "text": "Quiet. Clean. Approximately your size.",
+   "file": "commercial-announcer-6f22823dad.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-7203aa5325": {
+   "speaker": "commercial-announcer",
+   "text": "Shields taking a beating?",
+   "file": "commercial-announcer-7203aa5325.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-762b08c29f": {
+   "speaker": "commercial-announcer",
+   "text": "Still trying to hit moving targets the old-fashioned way?",
+   "file": "commercial-announcer-762b08c29f.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-7805f7a4f1": {
+   "speaker": "commercial-announcer",
+   "text": "Visit participating retailers for details.",
+   "file": "commercial-announcer-7805f7a4f1.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-7b37e5f556": {
+   "speaker": "commercial-announcer",
+   "text": "Dents happen.",
+   "file": "commercial-announcer-7b37e5f556.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-8423dbfb08": {
+   "speaker": "commercial-announcer",
+   "text": "Because “I think it was left at the nebula” is not a flight plan!",
+   "file": "commercial-announcer-8423dbfb08.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-8b01cae365": {
+   "speaker": "commercial-announcer",
+   "text": "Long haul? Short temper?",
+   "file": "commercial-announcer-8b01cae365.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-976b2cfdfa": {
+   "speaker": "commercial-announcer",
+   "text": "Scrapes happen.",
+   "file": "commercial-announcer-976b2cfdfa.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-9c081a7cb7": {
+   "speaker": "commercial-announcer",
+   "text": "Exploring an abandoned station?",
+   "file": "commercial-announcer-9c081a7cb7.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-aae0c632bd": {
+   "speaker": "commercial-announcer",
+   "text": "Ask your local equipment dealer about upgraded maneuvering thrusters!",
+   "file": "commercial-announcer-aae0c632bd.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-ae32ddd427": {
+   "speaker": "commercial-announcer",
+   "text": "Wake up rested, or at least horizontal.",
+   "file": "commercial-announcer-ae32ddd427.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-aecf111ef7": {
+   "speaker": "commercial-announcer",
+   "text": "Available from participating licensed equipment dealers.",
+   "file": "commercial-announcer-aecf111ef7.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-b755e37751": {
+   "speaker": "commercial-announcer",
+   "text": "Is your ship turning like a loaded cargo hauler?",
+   "file": "commercial-announcer-b755e37751.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-b7bf8ce711": {
+   "speaker": "commercial-announcer",
+   "text": "Professional hull repair at participating stations. Fly in damaged. Fly out a little less damaged.",
+   "file": "commercial-announcer-b7bf8ce711.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-be63fe6bf6": {
+   "speaker": "commercial-announcer",
+   "text": "Because sometimes the problem is moving faster than your patience!",
+   "file": "commercial-announcer-be63fe6bf6.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-c82c9b7672": {
+   "speaker": "commercial-announcer",
+   "text": "The Darknet District. Apparel for people who prefer their privacy with a little style.",
+   "file": "commercial-announcer-c82c9b7672.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-cde8a46f54": {
+   "speaker": "commercial-announcer",
+   "text": "Your hull wasn’t designed to negotiate with incoming laser fire!",
+   "file": "commercial-announcer-cde8a46f54.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-ce3d6ec5cf": {
+   "speaker": "commercial-announcer",
+   "text": "Upgrade your defensive systems today!",
+   "file": "commercial-announcer-ce3d6ec5cf.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-d68ee3e7ea": {
+   "speaker": "commercial-announcer",
+   "text": "Consider reliable personal defense equipment!",
+   "file": "commercial-announcer-d68ee3e7ea.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-ee94c3ad5b": {
+   "speaker": "commercial-announcer",
+   "text": "Out here, nobody remembers what you wore to your last firefight.",
+   "file": "commercial-announcer-ee94c3ad5b.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-f25c0bba7f": {
+   "speaker": "commercial-announcer",
+   "text": "Because eventually, you should be facing the thing shooting at you!",
+   "file": "commercial-announcer-f25c0bba7f.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "commercial-announcer-f62d689225": {
+   "speaker": "commercial-announcer",
+   "text": "Is your star chart older than your co-pilot?",
+   "file": "commercial-announcer-f62d689225.ogg",
+   "source": "relay-content.json",
+   "configHash": "609df98b25bc"
+  },
+  "communion-spokesperson-50c4647358": {
+   "speaker": "communion-spokesperson",
+   "text": "The work at The Vigil is not about machines. It is about the people they serve.",
+   "file": "communion-spokesperson-50c4647358.ogg",
+   "source": "relay-content.json",
+   "configHash": "6d287144aa02"
+  },
+  "communion-spokesperson-6ded9d4d1c": {
+   "speaker": "communion-spokesperson",
+   "text": "Progress is not the enemy of humanity.",
+   "file": "communion-spokesperson-6ded9d4d1c.ogg",
+   "source": "relay-content.json",
+   "configHash": "6d287144aa02"
+  },
+  "communion-spokesperson-7ba2f4dc4d": {
+   "speaker": "communion-spokesperson",
+   "text": "A diagnosis that comes an hour earlier is an hour given back to a family.",
+   "file": "communion-spokesperson-7ba2f4dc4d.ogg",
+   "source": "relay-content.json",
+   "configHash": "6d287144aa02"
+  },
+  "communion-spokesperson-d32525dd20": {
+   "speaker": "communion-spokesperson",
+   "text": "Across The Nexus, families continue to endure the consequences of an attack against the systems that once supported their daily lives.",
+   "file": "communion-spokesperson-d32525dd20.ogg",
+   "source": "relay-content.json",
+   "configHash": "6d287144aa02"
+  },
+  "communion-spokesperson-d94dbdccb9": {
+   "speaker": "communion-spokesperson",
+   "text": "We will share what we learn.",
+   "file": "communion-spokesperson-d94dbdccb9.ogg",
+   "source": "relay-content.json",
+   "configHash": "6d287144aa02"
+  },
+  "communion-spokesperson-fb5c37e22a": {
+   "speaker": "communion-spokesperson",
+   "text": "Restoration is not merely a technological objective. It is a humanitarian responsibility.",
+   "file": "communion-spokesperson-fb5c37e22a.ogg",
+   "source": "relay-content.json",
+   "configHash": "6d287144aa02"
+  },
+  "communion-spokesperson-fb677878cb": {
+   "speaker": "communion-spokesperson",
+   "text": "The Communion remains committed to rebuilding what was lost.",
+   "file": "communion-spokesperson-fb677878cb.ogg",
+   "source": "relay-content.json",
+   "configHash": "6d287144aa02"
   },
   "elara-074a9eed0d": {
    "speaker": "elara",
@@ -1141,12 +1445,544 @@
    "source": "homeworld-scenes.js",
    "configHash": "001915d23640"
   },
+  "natural-order-spokesperson-6100299403": {
+   "speaker": "natural-order-spokesperson",
+   "text": "Progress belongs to humanity.",
+   "file": "natural-order-spokesperson-6100299403.ogg",
+   "source": "relay-content.json",
+   "configHash": "a7ea1a6e3fef"
+  },
+  "natural-order-spokesperson-86a1705de4": {
+   "speaker": "natural-order-spokesperson",
+   "text": "This season, our farmers fed our settlements with soil, water, and work.",
+   "file": "natural-order-spokesperson-86a1705de4.ogg",
+   "source": "relay-content.json",
+   "configHash": "a7ea1a6e3fef"
+  },
+  "natural-order-spokesperson-88e3234823": {
+   "speaker": "natural-order-spokesperson",
+   "text": "We built what we needed, and we can repair what we built.",
+   "file": "natural-order-spokesperson-88e3234823.ogg",
+   "source": "relay-content.json",
+   "configHash": "a7ea1a6e3fef"
+  },
+  "natural-order-spokesperson-9c0f630223": {
+   "speaker": "natural-order-spokesperson",
+   "text": "Across our settlements, engineers, farmers, and technicians continue to demonstrate that reliable infrastructure does not require surrendering every decision to a central intelligence.",
+   "file": "natural-order-spokesperson-9c0f630223.ogg",
+   "source": "relay-content.json",
+   "configHash": "a7ea1a6e3fef"
+  },
+  "natural-order-spokesperson-a80e36bede": {
+   "speaker": "natural-order-spokesperson",
+   "text": "A machine should serve the people who built it.",
+   "file": "natural-order-spokesperson-a80e36bede.ogg",
+   "source": "relay-content.json",
+   "configHash": "a7ea1a6e3fef"
+  },
+  "natural-order-spokesperson-bc5223822b": {
+   "speaker": "natural-order-spokesperson",
+   "text": "We believe technology should be understandable, repairable, and accountable.",
+   "file": "natural-order-spokesperson-bc5223822b.ogg",
+   "source": "relay-content.json",
+   "configHash": "a7ea1a6e3fef"
+  },
+  "natural-order-spokesperson-bf63edf304": {
+   "speaker": "natural-order-spokesperson",
+   "text": "We have the tools. We have the knowledge. We will share both with anyone willing to learn.",
+   "file": "natural-order-spokesperson-bf63edf304.ogg",
+   "source": "relay-content.json",
+   "configHash": "a7ea1a6e3fef"
+  },
+  "natural-order-spokesperson-e7a1d15c89": {
+   "speaker": "natural-order-spokesperson",
+   "text": "No central intelligence planned it. No machine took the credit.",
+   "file": "natural-order-spokesperson-e7a1d15c89.ogg",
+   "source": "relay-content.json",
+   "configHash": "a7ea1a6e3fef"
+  },
+  "natural-order-spokesperson-ed4f5bbd98": {
+   "speaker": "natural-order-spokesperson",
+   "text": "The people of The Nexus deserve systems they can understand and repair with their own hands.",
+   "file": "natural-order-spokesperson-ed4f5bbd98.ogg",
+   "source": "relay-content.json",
+   "configHash": "a7ea1a6e3fef"
+  },
+  "news-anchor-04347ce47f": {
+   "speaker": "news-anchor",
+   "text": "A WarFlying enthusiast has reportedly spent six hours investigating an unidentified electronic signal.",
+   "file": "news-anchor-04347ce47f.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-0ab61676ca": {
+   "speaker": "news-anchor",
+   "text": "Communion officials described the delivery as uneventful, which they say is exactly how they like them.",
+   "file": "news-anchor-0ab61676ca.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-156e3e8db0": {
+   "speaker": "news-anchor",
+   "text": "Rationing on the lower decks has ended. Station management thanks residents for their patience, and asks them to stop storing water in their boots.",
+   "file": "news-anchor-156e3e8db0.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-166bb2acb3": {
+   "speaker": "news-anchor",
+   "text": "Settlement councils say surplus may be offered for trade later in the season.",
+   "file": "news-anchor-166bb2acb3.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-17febec705": {
+   "speaker": "news-anchor",
+   "text": "Maintenance crews at a commercial station have announced the successful repair of a malfunctioning automatic door.",
+   "file": "news-anchor-17febec705.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-1a60b2481d": {
+   "speaker": "news-anchor",
+   "text": "Two workers at the Foundry were treated for minor injuries after an accident during a shift change.",
+   "file": "news-anchor-1a60b2481d.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-1c17987fe3": {
+   "speaker": "news-anchor",
+   "text": "Officials described the event as a major operational milestone.",
+   "file": "news-anchor-1c17987fe3.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-24a989374d": {
+   "speaker": "news-anchor",
+   "text": "The door reportedly opened without incident.",
+   "file": "news-anchor-24a989374d.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-27f2f4430d": {
+   "speaker": "news-anchor",
+   "text": "We interrupt our regularly scheduled programming with a developing report from the Tessaly System.",
+   "file": "news-anchor-27f2f4430d.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-2aaf18641c": {
+   "speaker": "news-anchor",
+   "text": "One production line has been paused while a safety review is carried out. The cause has not been confirmed.",
+   "file": "news-anchor-2aaf18641c.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-2c21733f23": {
+   "speaker": "news-anchor",
+   "text": "Organizers have declined to comment on the competitive implications.",
+   "file": "news-anchor-2c21733f23.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-2dda1cc3e3": {
+   "speaker": "news-anchor",
+   "text": "Messages and broadcasts will resume when your ship arrives. Thank you for travelling safely.",
+   "file": "news-anchor-2dda1cc3e3.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-5035e5110f": {
+   "speaker": "news-anchor",
+   "text": "Neither position settles the question of when, or whether, the central AI can be restored.",
+   "file": "news-anchor-5035e5110f.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-5119753473": {
+   "speaker": "news-anchor",
+   "text": "Relay service is not available during warp between systems.",
+   "file": "news-anchor-5119753473.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-5f83dc4a1c": {
+   "speaker": "news-anchor",
+   "text": "Single gloves now outnumber every other item in its care.",
+   "file": "news-anchor-5f83dc4a1c.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-63ab02b081": {
+   "speaker": "news-anchor",
+   "text": "The captain has declined to comment.",
+   "file": "news-anchor-63ab02b081.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-68dcd00729": {
+   "speaker": "news-anchor",
+   "text": "The ship was located earlier today.",
+   "file": "news-anchor-68dcd00729.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-7c27fb794b": {
+   "speaker": "news-anchor",
+   "text": "An update on the communications disruption in the Tessaly System.",
+   "file": "news-anchor-7c27fb794b.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-7f37c4da8c": {
+   "speaker": "news-anchor",
+   "text": "Communion researchers at The Vigil have announced an improved medical diagnostic network, which they say can identify illness earlier and with fewer errors.",
+   "file": "news-anchor-7f37c4da8c.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-80a331eb91": {
+   "speaker": "news-anchor",
+   "text": "A major communications disruption has been reported near a commercial shipping corridor.",
+   "file": "news-anchor-80a331eb91.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-81fa38232f": {
+   "speaker": "news-anchor",
+   "text": "Recovery supplies have reached The Nexus aboard an independent ship.",
+   "file": "news-anchor-81fa38232f.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-82035e5be3": {
+   "speaker": "news-anchor",
+   "text": "Repairs to the navigation buoy in the Tessaly System are complete, and traffic in the commercial corridor has returned to normal.",
+   "file": "news-anchor-82035e5be3.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-862680cca4": {
+   "speaker": "news-anchor",
+   "text": "The signal was eventually traced to a malfunctioning coffee maker.",
+   "file": "news-anchor-862680cca4.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-8644941fa0": {
+   "speaker": "news-anchor",
+   "text": "Natural Order settlements in the Garrow System are reporting a strong harvest, with yields above the seasonal average.",
+   "file": "news-anchor-8644941fa0.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-8931653c67": {
+   "speaker": "news-anchor",
+   "text": "Recovery work continues on The Nexus, where the loss of its central AI still affects communication, repair, and everyday life.",
+   "file": "news-anchor-8931653c67.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-8dc5ed1737": {
+   "speaker": "news-anchor",
+   "text": "Partial service has been restored. Vessels in the area are advised to keep their distance from the buoy until repairs are complete.",
+   "file": "news-anchor-8dc5ed1737.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-9812661c89": {
+   "speaker": "news-anchor",
+   "text": "It was drifting after a navigation fault. All four crew members are safe and in good spirits, though one has asked never to hear the words “manual course correction” again.",
+   "file": "news-anchor-9812661c89.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-9996582af8": {
+   "speaker": "news-anchor",
+   "text": "Dock supervisors say a replacement part is on its way. Haulers waiting on the Erebus routes are advised to expect delays.",
+   "file": "news-anchor-9996582af8.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-9e8822d1dc": {
+   "speaker": "news-anchor",
+   "text": "More information as it becomes available.",
+   "file": "news-anchor-9e8822d1dc.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-a2fac19868": {
+   "speaker": "news-anchor",
+   "text": "Authorities have not confirmed the cause. Several vessels are reporting intermittent contact with nearby navigation infrastructure.",
+   "file": "news-anchor-a2fac19868.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-a61f9999d0": {
+   "speaker": "news-anchor",
+   "text": "Communion officials say restoring the system is a humanitarian priority. Natural Order representatives say the population should not depend on it again.",
+   "file": "news-anchor-a61f9999d0.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-a6ad753291": {
+   "speaker": "news-anchor",
+   "text": "Authorities have concluded their search for a cargo vessel reported missing yesterday.",
+   "file": "news-anchor-a6ad753291.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-a756183021": {
+   "speaker": "news-anchor",
+   "text": "Independent results have not yet been published.",
+   "file": "news-anchor-a756183021.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-a9c9e93385": {
+   "speaker": "news-anchor",
+   "text": "Authorities have recorded the incident as an equipment failure. A routine review of the buoy network continues.",
+   "file": "news-anchor-a9c9e93385.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-bb14f9a248": {
+   "speaker": "news-anchor",
+   "text": "The cargo hauler reported overdue on the Rusthaven route has been found.",
+   "file": "news-anchor-bb14f9a248.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-be29a8e145": {
+   "speaker": "news-anchor",
+   "text": "Meridian Station has finished upgrading its water recycling plant, ahead of schedule.",
+   "file": "news-anchor-be29a8e145.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-c89dfbe18a": {
+   "speaker": "news-anchor",
+   "text": "Search crews are looking for a cargo hauler reported overdue on the Rusthaven route.",
+   "file": "news-anchor-c89dfbe18a.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-cd292cf5c8": {
+   "speaker": "news-anchor",
+   "text": "The paused production line has reopened. New inspection steps have been added to the maintenance checklist.",
+   "file": "news-anchor-cd292cf5c8.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-d3888e9f26": {
+   "speaker": "news-anchor",
+   "text": "The whereabouts of the matching gloves remain unknown. The office has asked anyone with information to come forward.",
+   "file": "news-anchor-d3888e9f26.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-d7051e737e": {
+   "speaker": "news-anchor",
+   "text": "Investigators are looking into why the ship’s distress beacon failed to activate.",
+   "file": "news-anchor-d7051e737e.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-db732393e9": {
+   "speaker": "news-anchor",
+   "text": "Public information for travellers.",
+   "file": "news-anchor-db732393e9.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-dc4f429103": {
+   "speaker": "news-anchor",
+   "text": "Ore shipments out of Kepler Exchange are running several hours late after a loading crane failed during the evening shift.",
+   "file": "news-anchor-dc4f429103.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-e386962103": {
+   "speaker": "news-anchor",
+   "text": "The safety review at the Foundry has found that a pressure valve was fitted backwards during scheduled maintenance.",
+   "file": "news-anchor-e386962103.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-edd7e560e0": {
+   "speaker": "news-anchor",
+   "text": "Recovery coordinators say the shipment will go to districts where communication and repair services are still limited.",
+   "file": "news-anchor-edd7e560e0.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-f14e4e1e72": {
+   "speaker": "news-anchor",
+   "text": "Engineers have traced the outage to a failed signal amplifier aboard a navigation buoy near the shipping corridor.",
+   "file": "news-anchor-f14e4e1e72.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-f2ed3458ef": {
+   "speaker": "news-anchor",
+   "text": "The ship has missed two scheduled check-ins. Pilots in the area are asked to keep their sensors open and report any contact.",
+   "file": "news-anchor-f2ed3458ef.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-f3a61c6d4c": {
+   "speaker": "news-anchor",
+   "text": "In its assigned hangar.",
+   "file": "news-anchor-f3a61c6d4c.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-f3f228c49f": {
+   "speaker": "news-anchor",
+   "text": "The discovery was awarded one point after officials confirmed it represented a unique electronic source.",
+   "file": "news-anchor-f3f228c49f.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-f49e823c2d": {
+   "speaker": "news-anchor",
+   "text": "A Holdfast supervisor said the parts arrived on time, which he called “a refreshing change.”",
+   "file": "news-anchor-f49e823c2d.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-f5eb5a68e0": {
+   "speaker": "news-anchor",
+   "text": "The Vigil has confirmed the arrival of a shipment of research equipment, delivered by an independent courier.",
+   "file": "news-anchor-f5eb5a68e0.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-f8dae71738": {
+   "speaker": "news-anchor",
+   "text": "Holdfast has confirmed the arrival of a shipment of industrial parts, delivered by an independent courier.",
+   "file": "news-anchor-f8dae71738.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
+  "news-anchor-ff55bcf2e0": {
+   "speaker": "news-anchor",
+   "text": "Meridian Station’s lost-and-found office reports a new record.",
+   "file": "news-anchor-ff55bcf2e0.ogg",
+   "source": "relay-content.json",
+   "configHash": "0e8d4d8591ad"
+  },
   "nyx-4dd4670e57": {
    "speaker": "nyx",
    "text": "Rook is in the booth. The outfitter is across the concourse.",
    "file": "nyx-4dd4670e57.ogg",
    "source": "world-integration.js",
    "configHash": "74b28864fe22"
+  },
+  "police-recruiter-0645a52041": {
+   "speaker": "police-recruiter",
+   "text": "LOOKING FOR ADVENTURE?",
+   "file": "police-recruiter-0645a52041.ogg",
+   "source": "relay-content.json",
+   "configHash": "ac9f12a4d1a2"
+  },
+  "police-recruiter-11f4221808": {
+   "speaker": "police-recruiter",
+   "text": "JOIN THE POLICE FORCE TODAY!",
+   "file": "police-recruiter-11f4221808.ogg",
+   "source": "relay-content.json",
+   "configHash": "ac9f12a4d1a2"
+  },
+  "police-recruiter-133dc97447": {
+   "speaker": "police-recruiter",
+   "text": "JOIN THE POLICE FORCE!",
+   "file": "police-recruiter-133dc97447.ogg",
+   "source": "relay-content.json",
+   "configHash": "ac9f12a4d1a2"
+  },
+  "police-recruiter-15579312be": {
+   "speaker": "police-recruiter",
+   "text": "IT’S A REASON TO ASK FOR IDENTIFICATION!",
+   "file": "police-recruiter-15579312be.ogg",
+   "source": "relay-content.json",
+   "configHash": "ac9f12a4d1a2"
+  },
+  "police-recruiter-274642a36c": {
+   "speaker": "police-recruiter",
+   "text": "Do you appreciate paperwork?",
+   "file": "police-recruiter-274642a36c.ogg",
+   "source": "relay-content.json",
+   "configHash": "ac9f12a4d1a2"
+  },
+  "police-recruiter-3c6bb8d33b": {
+   "speaker": "police-recruiter",
+   "text": "IT’S NOT JUST A CAREER!",
+   "file": "police-recruiter-3c6bb8d33b.ogg",
+   "source": "relay-content.json",
+   "configHash": "ac9f12a4d1a2"
+  },
+  "police-recruiter-40bf4b437a": {
+   "speaker": "police-recruiter",
+   "text": "VISIT EXOTIC SPACE STATIONS!",
+   "file": "police-recruiter-40bf4b437a.ogg",
+   "source": "relay-content.json",
+   "configHash": "ac9f12a4d1a2"
+  },
+  "police-recruiter-758e94f51c": {
+   "speaker": "police-recruiter",
+   "text": "Do you enjoy authority?",
+   "file": "police-recruiter-758e94f51c.ogg",
+   "source": "relay-content.json",
+   "configHash": "ac9f12a4d1a2"
+  },
+  "police-recruiter-7cf97018cb": {
+   "speaker": "police-recruiter",
+   "text": "TIRED OF YOUR BORING JOB?",
+   "file": "police-recruiter-7cf97018cb.ogg",
+   "source": "relay-content.json",
+   "configHash": "ac9f12a4d1a2"
+  },
+  "police-recruiter-8ac4717ed2": {
+   "speaker": "police-recruiter",
+   "text": "ASK COMPLETE STRANGERS WHAT THEY’RE CARRYING IN THEIR CARGO HOLDS!",
+   "file": "police-recruiter-8ac4717ed2.ogg",
+   "source": "relay-content.json",
+   "configHash": "ac9f12a4d1a2"
+  },
+  "police-recruiter-aa89e4649b": {
+   "speaker": "police-recruiter",
+   "text": "MEET INTERESTING PEOPLE!",
+   "file": "police-recruiter-aa89e4649b.ogg",
+   "source": "relay-content.json",
+   "configHash": "ac9f12a4d1a2"
+  },
+  "police-recruiter-ae74d4431f": {
+   "speaker": "police-recruiter",
+   "text": "Uniforms provided. Enthusiasm mandatory.",
+   "file": "police-recruiter-ae74d4431f.ogg",
+   "source": "relay-content.json",
+   "configHash": "ac9f12a4d1a2"
+  },
+  "police-recruiter-c4277abd57": {
+   "speaker": "police-recruiter",
+   "text": "LAW ENFORCEMENT!",
+   "file": "police-recruiter-c4277abd57.ogg",
+   "source": "relay-content.json",
+   "configHash": "ac9f12a4d1a2"
+  },
+  "police-recruiter-e14174b2e6": {
+   "speaker": "police-recruiter",
+   "text": "THEN WE HAVE A CAREER FOR YOU!",
+   "file": "police-recruiter-e14174b2e6.ogg",
+   "source": "relay-content.json",
+   "configHash": "ac9f12a4d1a2"
+  },
+  "police-recruiter-e2cb305f7a": {
+   "speaker": "police-recruiter",
+   "text": "Have you ever looked at a perfectly ordinary cargo ship and thought, ‘That deserves an inspection’?",
+   "file": "police-recruiter-e2cb305f7a.ogg",
+   "source": "relay-content.json",
+   "configHash": "ac9f12a4d1a2"
   },
   "rook-6f06e2d496": {
    "speaker": "rook",
@@ -1196,6 +2032,139 @@
    "file": "sol-58689e80f5.ogg",
    "source": "world-integration.js",
    "configHash": "f719ef95c06f"
+  },
+  "warflying-host-01cde02f78": {
+   "speaker": "warflying-host",
+   "text": "Several thousand sightings, however, can make for a fascinating travel history!",
+   "file": "warflying-host-01cde02f78.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-02c97aeb77": {
+   "speaker": "warflying-host",
+   "text": "Today’s WarFlying coverage is brought to you by the people who insist they’re not tracking anybody!",
+   "file": "warflying-host-02c97aeb77.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-05bf1f196f": {
+   "speaker": "warflying-host",
+   "text": "Just pure, unfiltered, one-point glory!",
+   "file": "warflying-host-05bf1f196f.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-2e6deb64cd": {
+   "speaker": "warflying-host",
+   "text": "Nobody knows where this challenger came from!",
+   "file": "warflying-host-2e6deb64cd.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-30eaf0459c": {
+   "speaker": "warflying-host",
+   "text": "THE LEADERBOARD WILL NEVER BE THE SAME!",
+   "file": "warflying-host-30eaf0459c.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-3bb5736e34": {
+   "speaker": "warflying-host",
+   "text": "ONE!",
+   "file": "warflying-host-3bb5736e34.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-549a2f004c": {
+   "speaker": "warflying-host",
+   "text": "Critics called the season finished!",
+   "file": "warflying-host-549a2f004c.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-6f06733cd3": {
+   "speaker": "warflying-host",
+   "text": "LADIES AND GENTLEMEN, WE HAVE A DEVELOPMENT!",
+   "file": "warflying-host-6f06733cd3.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-761b73dc6e": {
+   "speaker": "warflying-host",
+   "text": "A reminder for our new viewers!",
+   "file": "warflying-host-761b73dc6e.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-7a633bf3b8": {
+   "speaker": "warflying-host",
+   "text": "WE HAVE A NEW CONTENDER!",
+   "file": "warflying-host-7a633bf3b8.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-83687cd618": {
+   "speaker": "warflying-host",
+   "text": "No bonuses! No multipliers!",
+   "file": "warflying-host-83687cd618.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-8c12b494be": {
+   "speaker": "warflying-host",
+   "text": "In WarFlying, every unique signal is worth exactly one point!",
+   "file": "warflying-host-8c12b494be.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-91e668d019": {
+   "speaker": "warflying-host",
+   "text": "THIS IS WHY WE WATCH WARFLYING!",
+   "file": "warflying-host-91e668d019.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-a0848a24d5": {
+   "speaker": "warflying-host",
+   "text": "ABSOLUTELY UNBELIEVABLE!",
+   "file": "warflying-host-a0848a24d5.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-a94d9c965a": {
+   "speaker": "warflying-host",
+   "text": "THAT’S ONE POINT!",
+   "file": "warflying-host-a94d9c965a.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-b20a3c875b": {
+   "speaker": "warflying-host",
+   "text": "A previously unranked pilot has entered the WarFlying standings!",
+   "file": "warflying-host-b20a3c875b.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-c1cb95c5b3": {
+   "speaker": "warflying-host",
+   "text": "BACK TO THE LEADERBOARD!",
+   "file": "warflying-host-c1cb95c5b3.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-d1f2044eda": {
+   "speaker": "warflying-host",
+   "text": "But one thing is certain!",
+   "file": "warflying-host-d1f2044eda.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
+  },
+  "warflying-host-f0577d8031": {
+   "speaker": "warflying-host",
+   "text": "Remember, folks: a single sighting means very little!",
+   "file": "warflying-host-f0577d8031.ogg",
+   "source": "relay-content.json",
+   "configHash": "dba1b040ba69"
   }
  }
 }

@@ -1088,5 +1088,815 @@
   "textHash": "ab68a6f8fa2a",
   "generatedAt": "2026-10-16",
   "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-0395bf23b8": {
+  "configHash": "609df98b25bc",
+  "textHash": "975e6e28a794",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-1c3c044664": {
+  "configHash": "609df98b25bc",
+  "textHash": "ddb59a4534f1",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-1c8c5dae00": {
+  "configHash": "609df98b25bc",
+  "textHash": "42ba25c88a29",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-1e654e4520": {
+  "configHash": "609df98b25bc",
+  "textHash": "50a7744718a9",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-21e183fb07": {
+  "configHash": "609df98b25bc",
+  "textHash": "035001c16454",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-2fe81d1ea5": {
+  "configHash": "609df98b25bc",
+  "textHash": "95f1b30af414",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-38a0d10f0e": {
+  "configHash": "609df98b25bc",
+  "textHash": "833ae4780b2f",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-41a3848964": {
+  "configHash": "609df98b25bc",
+  "textHash": "db275249b23b",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-41c3293db6": {
+  "configHash": "609df98b25bc",
+  "textHash": "db2121ee9daf",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-4342ba5a31": {
+  "configHash": "609df98b25bc",
+  "textHash": "a5ceef17bea3",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-5ec5670e85": {
+  "configHash": "609df98b25bc",
+  "textHash": "ca6d5967853d",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-6f22823dad": {
+  "configHash": "609df98b25bc",
+  "textHash": "947708588c7d",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-7203aa5325": {
+  "configHash": "609df98b25bc",
+  "textHash": "cf7545c952f7",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-762b08c29f": {
+  "configHash": "609df98b25bc",
+  "textHash": "57cda5004ab9",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-7805f7a4f1": {
+  "configHash": "609df98b25bc",
+  "textHash": "7f44d14b82c3",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-7b37e5f556": {
+  "configHash": "609df98b25bc",
+  "textHash": "be257c02b02a",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-8423dbfb08": {
+  "configHash": "609df98b25bc",
+  "textHash": "ccca58959e7a",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-8b01cae365": {
+  "configHash": "609df98b25bc",
+  "textHash": "0e4bdaa11bce",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-976b2cfdfa": {
+  "configHash": "609df98b25bc",
+  "textHash": "c515f904a367",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-9c081a7cb7": {
+  "configHash": "609df98b25bc",
+  "textHash": "1a142e780e64",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-aae0c632bd": {
+  "configHash": "609df98b25bc",
+  "textHash": "b904fff78e04",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-ae32ddd427": {
+  "configHash": "609df98b25bc",
+  "textHash": "10f7d8c664f5",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-aecf111ef7": {
+  "configHash": "609df98b25bc",
+  "textHash": "8d59c721a80a",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-b755e37751": {
+  "configHash": "609df98b25bc",
+  "textHash": "1d21bfefcad2",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-b7bf8ce711": {
+  "configHash": "609df98b25bc",
+  "textHash": "fba60ed57ff3",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-be63fe6bf6": {
+  "configHash": "609df98b25bc",
+  "textHash": "807035b9ab5f",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-c82c9b7672": {
+  "configHash": "609df98b25bc",
+  "textHash": "7807ee40b728",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-cde8a46f54": {
+  "configHash": "609df98b25bc",
+  "textHash": "14cacaa63500",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-ce3d6ec5cf": {
+  "configHash": "609df98b25bc",
+  "textHash": "4931dbd054a1",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-d68ee3e7ea": {
+  "configHash": "609df98b25bc",
+  "textHash": "87dc64db08c2",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-ee94c3ad5b": {
+  "configHash": "609df98b25bc",
+  "textHash": "24fa30123972",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-f25c0bba7f": {
+  "configHash": "609df98b25bc",
+  "textHash": "0da0f0d056fc",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "commercial-announcer-f62d689225": {
+  "configHash": "609df98b25bc",
+  "textHash": "8bbd0ea71238",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "communion-spokesperson-50c4647358": {
+  "configHash": "6d287144aa02",
+  "textHash": "176711ecc205",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "communion-spokesperson-6ded9d4d1c": {
+  "configHash": "6d287144aa02",
+  "textHash": "497d66b9566b",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "communion-spokesperson-7ba2f4dc4d": {
+  "configHash": "6d287144aa02",
+  "textHash": "cfb9c5a2e13f",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "communion-spokesperson-d32525dd20": {
+  "configHash": "6d287144aa02",
+  "textHash": "7b96bfa88bbf",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "communion-spokesperson-d94dbdccb9": {
+  "configHash": "6d287144aa02",
+  "textHash": "f3db1587ffb2",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "communion-spokesperson-fb5c37e22a": {
+  "configHash": "6d287144aa02",
+  "textHash": "28f1b8a3645b",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "communion-spokesperson-fb677878cb": {
+  "configHash": "6d287144aa02",
+  "textHash": "5523055b43cc",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "natural-order-spokesperson-6100299403": {
+  "configHash": "a7ea1a6e3fef",
+  "textHash": "98c998e5d631",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "natural-order-spokesperson-86a1705de4": {
+  "configHash": "a7ea1a6e3fef",
+  "textHash": "5362e07503ab",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "natural-order-spokesperson-88e3234823": {
+  "configHash": "a7ea1a6e3fef",
+  "textHash": "ddcd316d103e",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "natural-order-spokesperson-9c0f630223": {
+  "configHash": "a7ea1a6e3fef",
+  "textHash": "488b3f0b2fc5",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "natural-order-spokesperson-a80e36bede": {
+  "configHash": "a7ea1a6e3fef",
+  "textHash": "b4114c3cca6d",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "natural-order-spokesperson-bc5223822b": {
+  "configHash": "a7ea1a6e3fef",
+  "textHash": "b15968335d0b",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "natural-order-spokesperson-bf63edf304": {
+  "configHash": "a7ea1a6e3fef",
+  "textHash": "32c70504e0c5",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "natural-order-spokesperson-e7a1d15c89": {
+  "configHash": "a7ea1a6e3fef",
+  "textHash": "d844d5a93ba5",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "natural-order-spokesperson-ed4f5bbd98": {
+  "configHash": "a7ea1a6e3fef",
+  "textHash": "8a65d66b4ba9",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-04347ce47f": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "cd582fc85053",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-0ab61676ca": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "a0e59f2e3424",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-156e3e8db0": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "0e9fd83defec",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-166bb2acb3": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "7e5092202103",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-17febec705": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "5f1411da7b76",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-1a60b2481d": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "2bcc3f41f5c6",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-1c17987fe3": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "13495ef34bdd",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-24a989374d": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "9c8dbb8f5cc2",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-27f2f4430d": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "246ffda431f8",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-2aaf18641c": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "4f6ec8a26329",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-2c21733f23": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "98e6b717f076",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-2dda1cc3e3": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "e2b25a0b61dd",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-5035e5110f": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "17a0966afeb1",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-5119753473": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "3de6a67c79d2",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-5f83dc4a1c": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "fd8f369f0b9b",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-63ab02b081": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "8e461f8af916",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-68dcd00729": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "7661e4dd795f",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-7c27fb794b": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "14207f412785",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-7f37c4da8c": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "3259e0f3c93d",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-80a331eb91": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "484901670f26",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-81fa38232f": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "d49a490b78ba",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-82035e5be3": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "e7d631dcc01d",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-862680cca4": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "4304317da0ae",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-8644941fa0": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "44a1daa337d0",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-8931653c67": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "12eda79082ce",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-8dc5ed1737": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "f8237a8b4e33",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-9812661c89": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "38f68f8d7a81",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-9996582af8": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "cd5cd785b3a9",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-9e8822d1dc": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "314f7955b0a9",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-a2fac19868": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "7f7a0b1d0985",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-a61f9999d0": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "66bd86984421",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-a6ad753291": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "b0614cfd9635",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-a756183021": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "4c1a13387625",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-a9c9e93385": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "98b934bd0477",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-bb14f9a248": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "a72b0a7e4906",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-be29a8e145": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "330185f0bcc7",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-c89dfbe18a": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "5192fcc87f3f",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-cd292cf5c8": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "dfcbfbe01c9f",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-d3888e9f26": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "be80e3259c21",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-d7051e737e": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "f37c83a15d2c",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-db732393e9": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "d3f09dee9ff2",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-dc4f429103": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "a817110e0a03",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-e386962103": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "e6a6fae72458",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-edd7e560e0": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "36959a74ab7f",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-f14e4e1e72": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "a6f8e54e9892",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-f2ed3458ef": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "92a9ab23bcd6",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-f3a61c6d4c": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "2111009db3cc",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-f3f228c49f": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "66d42bb22383",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-f49e823c2d": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "c5713fc99131",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-f5eb5a68e0": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "396dd692db73",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-f8dae71738": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "a5335d4ad9a7",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "news-anchor-ff55bcf2e0": {
+  "configHash": "0e8d4d8591ad",
+  "textHash": "1812d22e0275",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "police-recruiter-0645a52041": {
+  "configHash": "ac9f12a4d1a2",
+  "textHash": "74d0b88011f5",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "police-recruiter-11f4221808": {
+  "configHash": "ac9f12a4d1a2",
+  "textHash": "96f9debba6c3",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "police-recruiter-133dc97447": {
+  "configHash": "ac9f12a4d1a2",
+  "textHash": "bb2f3f0f0f28",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "police-recruiter-15579312be": {
+  "configHash": "ac9f12a4d1a2",
+  "textHash": "2a6f42746b8e",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "police-recruiter-274642a36c": {
+  "configHash": "ac9f12a4d1a2",
+  "textHash": "df44e488a5ff",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "police-recruiter-3c6bb8d33b": {
+  "configHash": "ac9f12a4d1a2",
+  "textHash": "810d3ff76a90",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "police-recruiter-40bf4b437a": {
+  "configHash": "ac9f12a4d1a2",
+  "textHash": "b402914a5b6f",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "police-recruiter-758e94f51c": {
+  "configHash": "ac9f12a4d1a2",
+  "textHash": "b803c0db2bca",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "police-recruiter-7cf97018cb": {
+  "configHash": "ac9f12a4d1a2",
+  "textHash": "ebdc6b3dccf7",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "police-recruiter-8ac4717ed2": {
+  "configHash": "ac9f12a4d1a2",
+  "textHash": "93e4e0d877df",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "police-recruiter-aa89e4649b": {
+  "configHash": "ac9f12a4d1a2",
+  "textHash": "b44fef5eef4c",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "police-recruiter-ae74d4431f": {
+  "configHash": "ac9f12a4d1a2",
+  "textHash": "601618b9c49c",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "police-recruiter-c4277abd57": {
+  "configHash": "ac9f12a4d1a2",
+  "textHash": "99969caa8948",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "police-recruiter-e14174b2e6": {
+  "configHash": "ac9f12a4d1a2",
+  "textHash": "409547293069",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "police-recruiter-e2cb305f7a": {
+  "configHash": "ac9f12a4d1a2",
+  "textHash": "049b552461ae",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-01cde02f78": {
+  "configHash": "dba1b040ba69",
+  "textHash": "63358984fb1a",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-02c97aeb77": {
+  "configHash": "dba1b040ba69",
+  "textHash": "e34153143c61",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-05bf1f196f": {
+  "configHash": "dba1b040ba69",
+  "textHash": "2b88da739275",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-2e6deb64cd": {
+  "configHash": "dba1b040ba69",
+  "textHash": "d0fa679e5ced",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-30eaf0459c": {
+  "configHash": "dba1b040ba69",
+  "textHash": "1889fce1c078",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-3bb5736e34": {
+  "configHash": "dba1b040ba69",
+  "textHash": "24f1afcf33a8",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-549a2f004c": {
+  "configHash": "dba1b040ba69",
+  "textHash": "7287780b2b04",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-6f06733cd3": {
+  "configHash": "dba1b040ba69",
+  "textHash": "df8dd6760bdf",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-761b73dc6e": {
+  "configHash": "dba1b040ba69",
+  "textHash": "e043e6fb3ace",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-7a633bf3b8": {
+  "configHash": "dba1b040ba69",
+  "textHash": "e9cd853d9ec2",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-83687cd618": {
+  "configHash": "dba1b040ba69",
+  "textHash": "125ee4767589",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-8c12b494be": {
+  "configHash": "dba1b040ba69",
+  "textHash": "d8cdf95a7772",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-91e668d019": {
+  "configHash": "dba1b040ba69",
+  "textHash": "03ee50d9b360",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-a0848a24d5": {
+  "configHash": "dba1b040ba69",
+  "textHash": "f015fba1b7ff",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-a94d9c965a": {
+  "configHash": "dba1b040ba69",
+  "textHash": "766fc2dc9d7d",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-b20a3c875b": {
+  "configHash": "dba1b040ba69",
+  "textHash": "75f6c0779129",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-c1cb95c5b3": {
+  "configHash": "dba1b040ba69",
+  "textHash": "1b921db6681a",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-d1f2044eda": {
+  "configHash": "dba1b040ba69",
+  "textHash": "4f57b252d31c",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "warflying-host-f0577d8031": {
+  "configHash": "dba1b040ba69",
+  "textHash": "cc67de046516",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
  }
 }

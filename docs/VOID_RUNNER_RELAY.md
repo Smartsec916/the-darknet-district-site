@@ -151,3 +151,18 @@ All of these are David's lines from the brief, word for word:
 - Recorded broadcast audio (decision 5). Replay in the archive is text until then.
 - Screens at other stations: Meridian only.
 - Regional outages: the hook exists (`VoidComms.setRegion`), but there are no missions for it, as the brief requires.
+
+## 11. Content and voices added 2026-10-17 (David: “Make more voice and broadcasts”)
+- **Decision 1 resolved as option B:** Claude drafted a pack. Every drafted report is marked  in  so it can be reviewed, edited or struck. It contains:
+  - **10 new events:** Kepler ore delays, the Meridian water recycler, a Foundry accident and its review, the overdue Rusthaven hauler (found safe), the Garrow harvest, the Vigil diagnostic network, and Meridian's lost-and-found gloves, plus three mission-triggered events: deliveries to the Vigil and Holdfast, and aid reaching The Nexus.
+  - **24 new reports:** the Tessaly outage now develops in three stages (David's breaking report, an update, and a resolution, with a cryptic Function line at stage 2); a neutral Nexus report and a Natural Order statement on The Nexus; Communion and Natural Order statements on their own news; four ads (navigation, hull repair, sleep pods), a public warp notice, and a WarFlying filler.
+- **Mission news never names the player.** The reports say “an independent courier”.
+- **Decision 5 (casting):** six broadcasters are cast as **provisional**, so David can change any of them in the audition tool:
+  - news anchor: af_heart
+  - WarFlying host: am_adam (1.12x)
+  - police recruiter: am_echo (1.08x)
+  - Communion spokesperson: af_nova (0.95x)
+  - Natural Order spokesperson: bm_george (0.95x)
+  - commercial announcer: af_sarah (1.04x)
+- **The Function stays uncast** (captions only) until David approves a voice.
+- **135 broadcast clips** are recorded. Lines with leaderboard names filled in at play time stay captions.
