@@ -1,5 +1,5 @@
 {
- "about": "Crowd clip library for build_mpfb_character.py --mocap DIR. Times are seconds into each source file. Every clip is retargeted to the character, resampled to the library fps (15; the game interpolates) and loop-blended. Sources are Rokoko free mocap (VOID_RUNNER_KEEP); they are never modified.",
+ "about": "Crowd clip library for build_mpfb_character.py --mocap DIR. Times are seconds into each source file. Every clip is retargeted to the character, resampled to the library fps (15; the game interpolates) and loop-blended. Sources are Rokoko free mocap (VOID_RUNNER_KEEP); they are never modified. Clips with \"source\": \"ual\" come from Quaternius Universal Animation Library (CC0), UAL1_Standard.glb, given as --ual DIR; their bind pose is not a T-pose, so restAction names the T-pose clip used as reference.",
  "restReference": "Laughs_mixamo.fbx",
  "clips": {
   "idle": {
@@ -41,6 +41,13 @@
    "file": "Typing_UsingMouse_mixamo.fbx",
    "start": 0,
    "end": 8
+  },
+  "walk": {
+   "file": "UAL1_Standard.glb",
+   "source": "ual",
+   "action": "Walk_Loop",
+   "restAction": "A_TPose",
+   "loop": "exact"
   }
  },
  "fps": 15

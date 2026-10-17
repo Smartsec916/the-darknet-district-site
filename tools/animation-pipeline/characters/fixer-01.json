@@ -62,7 +62,8 @@
   "idle",
   "talk",
   "watch",
-  "sit"
+  "sit",
+  "walk"
  ],
  "accessories": [
   {

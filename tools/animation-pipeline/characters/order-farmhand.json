@@ -74,7 +74,8 @@
   "idle",
   "talk",
   "work",
-  "watch"
+  "watch",
+  "walk"
  ],
  "lean": true,
  "maxGarmentVerts": 9000

@@ -50,7 +50,8 @@
   "idle",
   "talk",
   "sit",
-  "smoke"
+  "smoke",
+  "walk"
  ],
  "accessories": [
   {

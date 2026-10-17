@@ -61,4 +61,6 @@ blender -b --python tools/animation-pipeline/build_mpfb_character.py -- characte
 node tools/assets/optimize-textures.cjs OUT-full.glb void-runner/assets/models/crowd/vesper-mechanic.glb 512
 ```
 
+The walk comes from the Quaternius Universal Animation Library (Standard, CC0; free download from quaternius.itch.io). Pass its `Unreal-Godot` folder as `--ual DIR`; `clips.json` names the action (`Walk_Loop`) and the T-pose clip used as the reference pose (`A_TPose`), and marks it an exact loop (no end blend).
+
 Keep a spec's `clips` and its entry in `crowd.js` in step (`tests/crowd.test.cjs` checks). Named characters never use crowd looks.

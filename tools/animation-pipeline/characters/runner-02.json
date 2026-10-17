@@ -65,7 +65,8 @@
  "clips": [
   "idle",
   "talk",
-  "watch"
+  "watch",
+  "walk"
  ],
  "accessories": [
   {

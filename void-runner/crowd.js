@@ -5,12 +5,12 @@
  const base='assets/models/crowd/';
  // Clips each look carries (must match its character spec).
  const clips={
-  'vesper-mechanic':['idle','talk','work','watch'],'vesper-pilot':['idle','talk','work','watch','sit'],'vesper-trader':['idle','talk','work','watch','sit'],
-  'order-farmhand':['idle','talk','work','watch'],'order-grower':['idle','talk','work','watch'],'order-militia':['idle','talk','work','watch'],
-  'communion-worker':['idle','talk','work','watch'],'communion-tech':['idle','talk','work','watch','sit'],'cyborg-01':['idle','talk','work','watch','sit'],
-  'ncz-neon':['idle','talk','watch'],'fixer-01':['idle','talk','watch','sit'],'runner-02':['idle','talk','watch'],
-  'hacker-01':['idle','talk','sit','smoke','watch'],'district-smuggler':['idle','talk','sit','smoke'],'district-resident':['idle','talk','sit','smoke'],
-  'outlaw-01':['idle','talk','sit','smoke','watch'],'regular-01':['idle','talk','sit','watch']
+  'vesper-mechanic':['idle','talk','work','watch','walk'],'vesper-pilot':['idle','talk','work','watch','sit','walk'],'vesper-trader':['idle','talk','work','watch','sit','walk'],
+  'order-farmhand':['idle','talk','work','watch','walk'],'order-grower':['idle','talk','work','watch','walk'],'order-militia':['idle','talk','work','watch','walk'],
+  'communion-worker':['idle','talk','work','watch','walk'],'communion-tech':['idle','talk','work','watch','sit','walk'],'cyborg-01':['idle','talk','work','watch','sit','walk'],
+  'ncz-neon':['idle','talk','watch','walk'],'fixer-01':['idle','talk','watch','sit','walk'],'runner-02':['idle','talk','watch','walk'],
+  'hacker-01':['idle','talk','sit','smoke','watch','walk'],'district-smuggler':['idle','talk','sit','smoke','walk'],'district-resident':['idle','talk','sit','smoke','walk'],
+  'outlaw-01':['idle','talk','sit','smoke','watch','walk'],'regular-01':['idle','talk','sit','watch','walk']
  };
  // Each place has its own feel; the order spreads looks across a scene's crew.
  const frontierMix=['vesper-mechanic','regular-01','vesper-pilot','communion-worker','outlaw-01'];
@@ -62,9 +62,10 @@
    const next=list.find(g=>g.name===name||g.name.endsWith('-'+name))||list[0];if(!next)return;for(const g of list)if(g!==next)g.stop();
    next.start(true,speed,next.from,next.to);next.goToFrame(next.from+(next.to-next.from)*((hash(node.name+name)%100)/100));current=next;
   }
-  // No walk clip exists in the mocap set: while walking, the figure holds the idle clip's first pose (arms down)
-  // and its legs and arms swing from there.
+  // Walking plays the Quaternius walk loop (CC0). A look without it holds the idle clip's first pose (arms down)
+  // and swings its legs and arms from there.
   function walk(time){
+   if(clipIn(look,'walk')==='walk'){play('walk');return;}
    const B=root.BABYLON;
    if(!walking){const idle=list.find(g=>g.name==='idle'||g.name.endsWith('-idle'))||list[0];for(const g of list)if(g!==idle)g.stop();
     if(idle){idle.start(false,1,idle.from,idle.to);idle.goToFrame(idle.from);idle.pause();}current=null;walking=true;

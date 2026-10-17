@@ -31,6 +31,12 @@ FPS = 24
 clips = []
 rest_reference = None
 rest_args = args[2:]
+sources = {}
+for flag, key in (('--ual', 'ual'),):
+    if flag in rest_args:
+        i = rest_args.index(flag)
+        sources[key] = Path(rest_args[i + 1])
+        del rest_args[i:i + 2]
 if '--mocap' in rest_args:
     i = rest_args.index('--mocap')
     mocap = Path(rest_args[i + 1])
@@ -41,14 +47,16 @@ if '--mocap' in rest_args:
     rest_reference = mocap / library_doc['restReference']
     for name in spec.get('clips', []):
         c = library[name]
-        clips.append((name, mocap / c['file'], (c['start'], c['end'])))
+        folder = sources[c['source']] if c.get('source') else mocap
+        span = (c['start'], c['end']) if 'start' in c else None
+        clips.append((name, folder / c['file'], span, c))
 for item in rest_args:
     name, src = item.split('=', 1)
     span = None
     if ':' in src[3:]:
         src, rng = src.rsplit(':', 1)
         span = tuple(float(v) for v in rng.split('-'))
-    clips.append((name, Path(src), span))
+    clips.append((name, Path(src), span, {}))
 
 for obj in list(bpy.data.objects):
     bpy.data.objects.remove(obj, do_unlink=True)
@@ -127,11 +135,26 @@ def rot3(m):
     return m.to_3x3().normalized()
 
 
+# Quaternius UAL / Unreal-style bone names -> Mixamo names (without the mixamorig: prefix).
+UE = {'pelvis': 'Hips', 'spine_01': 'Spine', 'spine_02': 'Spine1', 'spine_03': 'Spine2', 'neck_01': 'Neck', 'Head': 'Head'}
+for side, S in (('l', 'Left'), ('r', 'Right')):
+    UE.update({f'clavicle_{side}': f'{S}Shoulder', f'upperarm_{side}': f'{S}Arm', f'lowerarm_{side}': f'{S}ForeArm', f'hand_{side}': f'{S}Hand',
+               f'thigh_{side}': f'{S}UpLeg', f'calf_{side}': f'{S}Leg', f'foot_{side}': f'{S}Foot', f'ball_{side}': f'{S}ToeBase'})
+    for f, F in (('index', 'Index'), ('middle', 'Middle'), ('ring', 'Ring'), ('pinky', 'Pinky'), ('thumb', 'Thumb')):
+        for k in (1, 2, 3):
+            UE[f'{f}_0{k}_{side}'] = f'{S}Hand{F}{k}'
+UE_BACK = {'mixamorig:' + v: k for k, v in UE.items()}
+
+
 def import_source(path):
     """Imports a clip's armature and returns it with a map from target bone to source bone.
-    Mixamo clips match by name; HumanIK clips use Character1_ instead of mixamorig:."""
+    Mixamo clips match by name; HumanIK clips use Character1_ instead of mixamorig:; Quaternius UAL uses
+    Unreal-style names (pelvis, thigh_l, ...)."""
     before = set(bpy.data.objects)
-    bpy.ops.import_scene.fbx(filepath=str(path), use_anim=True)
+    if path.suffix.lower() in ('.glb', '.gltf'):
+        bpy.ops.import_scene.gltf(filepath=str(path))
+    else:
+        bpy.ops.import_scene.fbx(filepath=str(path), use_anim=True)
     new = set(bpy.data.objects) - before
     arm = next(o for o in new if o.type == 'ARMATURE')
     for o in new:
@@ -140,7 +163,7 @@ def import_source(path):
     have = {b.name for b in arm.data.bones}
     names = {}
     for n in bones:
-        for cand in (n, n.replace('mixamorig:', 'Character1_')):
+        for cand in (n, n.replace('mixamorig:', 'Character1_'), UE_BACK.get(n)):
             if cand in have:
                 names[n] = cand
                 break
@@ -202,11 +225,32 @@ for pb in rig.pose.bones:
 
 
 # 3. Retarget each clip, resampled to 24 fps. The last 0.6 s blends into the first pose so loops are seamless.
-def retarget(name, path, span):
+def pick_action(arm, name):
+    act = bpy.data.actions.get(name) or next((a for a in bpy.data.actions if a.name.startswith(name)), None)
+    assert act, f'no action {name}'
+    arm.animation_data_create()
+    if arm.animation_data.nla_tracks:
+        for t in list(arm.animation_data.nla_tracks):
+            arm.animation_data.nla_tracks.remove(t)
+    arm.animation_data.action = act
+    if act.slots:
+        arm.animation_data.action_slot = act.slots[0]
+    return act
+
+
+def retarget(name, path, span, opts=None):
+    opts = opts or {}
     src, smap = import_source(path)
     scene = bpy.context.scene
     src_fps = scene.render.fps / scene.render.fps_base
     rest_all = world_rest(src)
+    if opts.get('restAction'):
+        # The source's bind pose is not a T-pose; its T-pose clip is the reference instead.
+        ra = pick_action(src, opts['restAction'])
+        scene.frame_set(int(ra.frame_range[0]))
+        rest_all = {b.name: src.matrix_world @ src.pose.bones[b.name].matrix for b in src.data.bones}
+    if opts.get('action'):
+        pick_action(src, opts['action'])
     s_rest = {n: rest_all[smap[n]] for n in smap}
     s_rest_inv = {n: rot3(m).inverted() for n, m in s_rest.items()}
     action = src.animation_data.action
@@ -245,7 +289,7 @@ def retarget(name, path, span):
         head_world = tgt_rest[hips].to_translation() + Vector((first.x, first.y, sh.z)) * ratio
         head_arm = rig.matrix_world.inverted() @ head_world
         hip_locs.append(local_rest[hips].to_3x3().inverted() @ (head_arm - local_rest[hips].to_translation()))
-    blend = min(int(0.6 * FPS), count // 3)
+    blend = 0 if opts.get('loop') == 'exact' else min(int(0.6 * FPS), count // 3)
     for j in range(blend):
         k = count - blend + j
         w = (j + 1) / blend

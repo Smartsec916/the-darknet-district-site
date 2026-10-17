@@ -9,5 +9,6 @@ Seventeen looks that dress the ambient `crew-*` NPCs, chosen per place in `void-
 - **Motion:** Rokoko free mocap clips (David's VOID_RUNNER_KEEP set), retargeted, resampled to 15 fps and trimmed
   to 8-second loops. Rokoko's free-clip pages allow use "in any animation, VFX, game… including for commercial use";
   they do not address redistribution, so confirm Rokoko's terms before this ships publicly.
+- **Walking:** `Walk_Loop` from the Quaternius Universal Animation Library (Standard, **CC0**, quaternius.com), retargeted from its Unreal-style rig using its T-pose clip as the reference pose.
 - Textures at 512 px, no normal maps, heavy garments decimated: about 2.5–3.5 MB per look, 49 MB in total.
   A place loads only its own looks (3–8). Low graphics quality loads none and keeps the procedural crew.
