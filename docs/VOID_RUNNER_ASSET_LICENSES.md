@@ -58,6 +58,10 @@ All files are under `void-runner/assets/models/`. Every entry was approved by Da
 | meridian-interior/crate-tarp.glb | Prop_Crate_Tarp | Sci-Fi Essentials Kit (https://quaternius.com, CC0 1.0) | Meridian interior dressing (textures 512–1024 px; tinted to painted gunmetal in code) | 2026-10-17 | Proposed, in preview |
 | meridian-interior/ammo-case.glb | Prop_Ammo | Sci-Fi Essentials Kit (https://quaternius.com, CC0 1.0) | Meridian interior dressing (textures 512–1024 px; tinted to painted gunmetal in code) | 2026-10-17 | Proposed, in preview |
 
+| district/couch.glb | Couch_Medium1 | Ultimate House Interior Pack, June 2020 (https://opengameart.org/node/126986, quaternius, CC0 1.0; OBJ converted with tools/assets/obj-to-glb.cjs) | Darknet District VR lounge couch | 2026-10-17 | In game |
+| district/bin.glb | Trashcan_Small1 | Ultimate House Interior Pack, June 2020 (https://opengameart.org/node/126986, quaternius, CC0 1.0; OBJ converted with tools/assets/obj-to-glb.cjs) | Darknet District hallway bins | 2026-10-17 | In game |
+| district/chair.glb | Prop_Chair | Sci-Fi Essentials Kit (https://quaternius.com, CC0 1.0) | Darknet District VR monitor desks | 2026-10-17 | In game |
+
 Existing third-party code and media are documented elsewhere:
 - Babylon.js: `void-runner/vendor/BABYLON-LICENSE.md`
 - Voices: `void-runner/assets/audio/voice/LICENSES.md`
