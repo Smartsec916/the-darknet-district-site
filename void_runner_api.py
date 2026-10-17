@@ -542,4 +542,11 @@ def clean_warflying(raw):
             entry['s'] = r['s']
         cleaned[source_id] = entry
     clock = raw.get('clock')
-    return {'version': 1, 'records': cleaned, 'autoUpload': raw.get('autoUpload') is not False, 'clock': clock if type(clock) is int and 0 <= clock <= 1000000000 else 0}
+    count = lambda v: v if type(v) is int and 0 <= v <= 1000000 else 0
+    trail = raw.get('trail') if isinstance(raw.get('trail'), dict) else {}
+    recent = trail.get('recent') if isinstance(trail.get('recent'), list) else []
+    trail = {'linked': count(trail.get('linked')), 'unlinked': count(trail.get('unlinked')),
+             'recent': [{'t': e['t'] if type(e.get('t')) is int and 0 <= e['t'] <= 9007199254740991 else 0,
+                         'place': e['place'] if isinstance(e.get('place'), str) and re.fullmatch(r'[a-z0-9][a-z0-9:>-]{0,47}', e['place']) else 'unknown',
+                         'linked': 0 if e.get('linked') == 0 else 1} for e in recent if isinstance(e, dict)][-8:]}
+    return {'version': 1, 'records': cleaned, 'autoUpload': raw.get('autoUpload') is not False, 'clock': clock if type(clock) is int and 0 <= clock <= 1000000000 else 0, 'trail': trail}

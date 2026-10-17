@@ -43,6 +43,15 @@ class WarFlyingSaveTests(unittest.TestCase):
         out = clean_warflying({'records': {'ship:erebus-cargo-1': {'conf': 'confirmed', 'p': 1, 'cargo': ['contraband'], 'n': 'x'}}})
         self.assertNotIn('cargo', out['records']['ship:erebus-cargo-1'])
 
+    def test_the_trail_of_your_own_sightings_is_bounded_and_shape_checked(self):
+        recent = [{'t': i, 'place': 'erebus:meridian>kepler', 'linked': i % 2} for i in range(20)] + [{'t': -1, 'place': 'Bad Place', 'linked': 'x', 'cargo': 1}, 'junk']
+        out = clean_warflying({'records': {}, 'trail': {'linked': 4, 'unlinked': -2, 'recent': recent}})
+        self.assertEqual(out['trail']['linked'], 4)
+        self.assertEqual(out['trail']['unlinked'], 0)
+        self.assertEqual(len(out['trail']['recent']), 8)
+        self.assertEqual(out['trail']['recent'][-1], {'t': 0, 'place': 'unknown', 'linked': 1})
+        self.assertEqual(clean_warflying({'records': {}})['trail'], {'linked': 0, 'unlinked': 0, 'recent': []})
+
 
 if __name__ == '__main__':
     unittest.main()

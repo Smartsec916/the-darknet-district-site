@@ -40,8 +40,8 @@
  const relayUpdate=update;
  update=function(dt){
   relayUpdate(dt);
-  // On foot at NeoChinatown is The Darknet District (as music-director.js treats it).
-  const sealed=!!walkingLocation&&state?.location==='earth';
+  // The location policy (comms.js): no Relay broadcasts on The Darknet District's premises.
+  const sealed=!VoidComms.allows(state?.location,!!walkingLocation,'relay');
   const priority=['dialogue','pause','menu','recovery','over'].includes(mode)||!!(typeof speech!=='undefined'&&speech)
    ||mode==='play'&&(enemies.some(VoidStory.hostile)||flight.route?.phase==='encounter'||!!document.getElementById('police-hail')||globalThis.VoidPolicePatrolState?.()?.state==='pursuit');
   const ctx={on,system:state?.universe?.currentSystem||'erebus',protected:sealed,priority,ended,matches:w=>VoidStory.matches(state,w)};
