@@ -367,6 +367,8 @@ def clean_save(value):
         result['story'] = cleaned
     if 'warflying' in value:
         result['warflying'] = clean_warflying(value['warflying'])
+    if 'relay' in value:
+        result['relay'] = clean_relay(value['relay'])
     saved_at = value.get('savedAt')
     if saved_at is not None and (type(saved_at) is not int or not 0<saved_at<=9007199254740991):
         raise ApiError('Invalid save timestamp.')
@@ -550,3 +552,37 @@ def clean_warflying(raw):
                          'place': e['place'] if isinstance(e.get('place'), str) and re.fullmatch(r'[a-z0-9][a-z0-9:>-]{0,47}', e['place']) else 'unknown',
                          'linked': 0 if e.get('linked') == 0 else 1} for e in recent if isinstance(e, dict)][-8:]}
     return {'version': 1, 'records': cleaned, 'autoUpload': raw.get('autoUpload') is not False, 'clock': clock if type(clock) is int and 0 <= clock <= 1000000000 else 0, 'trail': trail}
+def clean_relay(raw):
+    """The Relay's news state (void-runner/relay.js): events made public, reports heard, the
+    archive, queued breaking news and the last leaderboard. Shape-checked and capped; the game
+    re-checks ids against its content when the save loads."""
+    import re
+    if not isinstance(raw, dict):
+        raise ApiError('Invalid Relay state.')
+    ident = lambda x: isinstance(x, str) and re.fullmatch(r'[a-z][a-z0-9-]{0,63}', x)
+    sec = lambda v: v if type(v) is int and 0 <= v <= 1000000000 else None
+    out = {'version': 1, 'occurred': {}, 'heard': {}, 'archive': [], 'pending': [], 'board': None, 'said': {}}
+    for key in ('occurred', 'heard'):
+        entries = raw.get(key, {})
+        if not isinstance(entries, dict) or len(entries) > 400:
+            raise ApiError('Invalid Relay state.')
+        out[key] = {k: sec(v) for k, v in entries.items() if ident(k) and sec(v) is not None}
+    archive = raw.get('archive', [])
+    if not isinstance(archive, list) or len(archive) > 200:
+        raise ApiError('Invalid Relay archive.')
+    for a in archive[-80:]:
+        if isinstance(a, dict) and ident(a.get('id')) and sec(a.get('clock')) is not None:
+            entry = {'id': a['id'], 'clock': a['clock'], 'time': a['time'] if type(a.get('time')) is int and 0 < a['time'] <= 9007199254740991 else 0}
+            if isinstance(a.get('vars'), dict):
+                entry['vars'] = {k: v for k, v in list(a['vars'].items())[:12] if isinstance(k, str) and re.fullmatch(r'[a-zA-Z]{1,16}', k) and (isinstance(v, str) and len(v) <= 40 or type(v) is int and abs(v) <= 9007199254740991)}
+            out['archive'].append(entry)
+    pending = raw.get('pending', [])
+    out['pending'] = list(dict.fromkeys(x for x in pending if ident(x)))[:8] if isinstance(pending, list) else []
+    board = raw.get('board')
+    if isinstance(board, list):
+        out['board'] = [{'name': r['name'], 'points': r['points'], 'rank': r['rank'], 'player': r.get('player') is True} for r in board[:12]
+                        if isinstance(r, dict) and isinstance(r.get('name'), str) and len(r['name']) <= 24 and type(r.get('points')) is int and type(r.get('rank')) is int]
+    said = raw.get('said', {})
+    out['said'] = {k: True for k, v in list(said.items())[:32] if ident(k) and v is True} if isinstance(said, dict) else {}
+    return out
+

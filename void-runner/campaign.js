@@ -9,7 +9,7 @@
   const P=typeof module!=='undefined'?require('./progression.js'):root.VoidProgression;
   const U=typeof module!=='undefined'?require('./universe.js'):root.VoidUniverse;
   const Missions=typeof module!=='undefined'?require('./mission-log.js'):root.VoidMissions;
-  const WarFlying=typeof module!=='undefined'?require('./warflying.js'):root.VoidWarFlying;
+  const WarFlying=typeof module!=='undefined'?require('./warflying.js'):root.VoidWarFlying;const Relay=typeof module!=='undefined'?require('./relay.js'):root.VoidRelay;
   const stations=Story.content.locations;for(const [id,def] of Object.entries(U.locations))stations[id]={...stations[id],...def};
   const contracts = [
     { id: 'medicine', name: 'Cold chain', cargo: 'Refrigerated clinic supplies', legal: true, destination: 'kepler', reward: 650, enemies: 8, tier: 1, duration: 38, contact: 'Dr. Sol', briefing: 'Our clinics need these before the next shift. Keep the containers intact. Raider activity has increased along the route.' },
@@ -178,7 +178,7 @@
     return {...rookRunBase,id:'rook-run-'+n,number:n,name:'Rook freight run #'+n,cargo:rookCargo[(n-1)%rookCargo.length],legal:n%2===1,destination,reward:Math.min(2000,500+150*step),enemies:4+step,tier:1+step*.3,duration:36+step*2};
   }
   const allContracts = [...contracts, rookRunBase, ...factionList, ...supplyList, ...homeContracts, sealedCargo, ...content.missions];
-  function fresh() { return { version: 2, progression:P.fresh(), universe:U.fresh(), story:Story.fresh(), warflying:WarFlying.fresh(), savedAt:null, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], ownedShips:['starter'], activeShip:'starter', standardGear:['pulse1','shield1'], shipLoadouts:{}, combatRuns:0, missileOfferSeen:false, missileUnlocked:false, travel:null, destination:null, loadout: {weapon:null,shield:null,utility:null,missile:null} }; }
+  function fresh() { return { version: 2, progression:P.fresh(), universe:U.fresh(), story:Story.fresh(), warflying:WarFlying.fresh(), relay:Relay.fresh(), savedAt:null, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], ownedShips:['starter'], activeShip:'starter', standardGear:['pulse1','shield1'], shipLoadouts:{}, combatRuns:0, missileOfferSeen:false, missileUnlocked:false, travel:null, destination:null, loadout: {weapon:null,shield:null,utility:null,missile:null} }; }
   function restore(raw) {
     try {
       // Rusthaven used the internal id 'undertow' in older saves.
@@ -310,7 +310,7 @@
     out.progression=P.restore(raw.progression,raw);out.universe=U.restore(raw.universe,out);P.sync(out);
     out.destination=out.universe.freeTravel&&stations[raw.destination]&&raw.destination!==out.location?raw.destination:null;
     const f=flight(out);out.travel=f&&raw.travel?Warp.restore(raw.travel,out.location,f.destination,f.id||out.quest,f.enemies>0||['salvage','hazard','escort'].includes(f.kind)):null;
-    out.story=Story.restore(raw.story);out.warflying=WarFlying.restore(raw.warflying);
+    out.story=Story.restore(raw.story);out.warflying=WarFlying.restore(raw.warflying);out.relay=Relay.restore(raw.relay);
     // Admin stays in the store except while the first faction payment waits (replaces the old adminAway flag).
     {const f=out.story.flags,first=factionDeliveries[f.factionFirst];delete f.adminAway;if(first&&stageOf(out,first)==='delivered')f.adminOccupied=true;else delete f.adminOccupied;}out.savedAt=Number.isSafeInteger(raw.savedAt)&&raw.savedAt>0?raw.savedAt:null;
     if(!raw.story&&out.quest!=='inheritance'){out.story.flags.metMara=true;out.story.met=['mara','elias'];out.story.events=['mara_workshop_intro'];out.story.chapter=out.quest;if(out.completed>0){out.story.flags.rookIntroduced=true;out.story.met.push('rook');}}

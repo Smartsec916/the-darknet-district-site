@@ -19,7 +19,7 @@ class UtilitySlotSaveTests(unittest.TestCase):
 
 
 try:
-    from void_runner_api import clean_warflying, ApiError
+    from void_runner_api import clean_warflying, clean_relay, ApiError
 except ImportError:  # the API needs Flask; CI installs it
     clean_warflying = None
 
@@ -51,6 +51,28 @@ class WarFlyingSaveTests(unittest.TestCase):
         self.assertEqual(len(out['trail']['recent']), 8)
         self.assertEqual(out['trail']['recent'][-1], {'t': 0, 'place': 'unknown', 'linked': 1})
         self.assertEqual(clean_warflying({'records': {}})['trail'], {'linked': 0, 'unlinked': 0, 'recent': []})
+
+
+@unittest.skipIf(clean_warflying is None, 'void_runner_api needs Flask')
+class RelaySaveTests(unittest.TestCase):
+    def test_news_state_round_trips_and_is_bounded(self):
+        raw = {'occurred': {'tessaly-corridor-comms-disruption': 2400, 'Bad Id': 1}, 'heard': {'ad-shield-systems': 90, 'x': -5},
+               'archive': [{'id': 'news-station-door-repaired', 'clock': i, 'time': 5, 'vars': {'name': 'GhostVector', 'bad': {}}} for i in range(120)],
+               'pending': ['breaking-tessaly-comms-disruption', 'breaking-tessaly-comms-disruption', 'Bad'],
+               'board': [{'name': 'GhostVector', 'points': 48, 'rank': 1}, {'name': 3}], 'said': {'warflying-new-contender': True, 'x': 1}}
+        out = clean_relay(raw)
+        self.assertEqual(out['occurred'], {'tessaly-corridor-comms-disruption': 2400})
+        self.assertEqual(out['heard'], {'ad-shield-systems': 90})
+        self.assertEqual(len(out['archive']), 80)
+        self.assertEqual(out['archive'][0]['vars'], {'name': 'GhostVector'})
+        self.assertEqual(out['pending'], ['breaking-tessaly-comms-disruption'])
+        self.assertEqual(out['board'], [{'name': 'GhostVector', 'points': 48, 'rank': 1, 'player': False}])
+        self.assertEqual(out['said'], {'warflying-new-contender': True})
+
+    def test_rejects_oversized_or_malformed_state(self):
+        for raw in [[], {'occurred': []}, {'archive': [{}] * 201}, {'heard': {str(i): 1 for i in range(401)}}]:
+            with self.assertRaises(ApiError):
+                clean_relay(raw)
 
 
 if __name__ == '__main__':
