@@ -1,0 +1,10 @@
+{
+ "name": "runner_01",
+ "about": "Test crowd character: a runner in a black-and-red suit. All assets are MakeHuman CC0.",
+ "phenotype": {"gender": 0.0, "age": 0.42, "muscle": 0.55, "weight": 0.4, "height": 0.5, "cupsize": 0.5, "race": {"asian": 0.7, "caucasian": 0.2, "african": 0.1}},
+ "skin": "young_asian_female",
+ "hair": "bob01",
+ "eyebrows": "eyebrow010",
+ "clothes": ["culturalibre_heroine_suit_2", "shoes03"],
+ "save_blend": true
+}
