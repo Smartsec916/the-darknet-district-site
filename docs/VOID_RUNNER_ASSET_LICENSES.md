@@ -58,6 +58,11 @@ All files are under `void-runner/assets/models/`. Every entry was approved by Da
 | meridian-interior/crate-tarp.glb | Prop_Crate_Tarp | Sci-Fi Essentials Kit (https://quaternius.com, CC0 1.0) | Meridian interior dressing (textures 512–1024 px; tinted to painted gunmetal in code) | 2026-10-17 | Proposed, in preview |
 | meridian-interior/ammo-case.glb | Prop_Ammo | Sci-Fi Essentials Kit (https://quaternius.com, CC0 1.0) | Meridian interior dressing (textures 512–1024 px; tinted to painted gunmetal in code) | 2026-10-17 | Proposed, in preview |
 
+| meridian-interior/house-bed-bunk.glb | Bed_Bunk | Ultimate House Interior Pack, June 2020 (https://opengameart.org/node/126986, quaternius, CC0 1.0; OBJ converted with tools/assets/obj-to-glb.cjs) | crew quarters bunks | 2026-10-17 | Approved (download approved by David), in game |
+| meridian-interior/house-bathroom-toilet.glb | Bathroom_Toilet | Ultimate House Interior Pack, June 2020 (https://opengameart.org/node/126986, quaternius, CC0 1.0; OBJ converted with tools/assets/obj-to-glb.cjs) | crew quarters toilets | 2026-10-17 | Approved (download approved by David), in game |
+| meridian-interior/house-bathroom-sink.glb | Bathroom_Sink | Ultimate House Interior Pack, June 2020 (https://opengameart.org/node/126986, quaternius, CC0 1.0; OBJ converted with tools/assets/obj-to-glb.cjs) | crew quarters washbasins | 2026-10-17 | Approved (download approved by David), in game |
+| meridian-interior/house-stool.glb | Stool | Ultimate House Interior Pack, June 2020 (https://opengameart.org/node/126986, quaternius, CC0 1.0; OBJ converted with tools/assets/obj-to-glb.cjs) | Dead Channel bar stools | 2026-10-17 | Approved (download approved by David), in game |
+
 Existing third-party code and media are documented elsewhere:
 - Babylon.js: `void-runner/vendor/BABYLON-LICENSE.md`
 - Voices: `void-runner/assets/audio/voice/LICENSES.md`
