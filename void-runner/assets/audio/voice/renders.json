@@ -974,5 +974,119 @@
   "textHash": "7c9c0c4ef3e0",
   "generatedAt": "2026-10-16",
   "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-05ba6ff006": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "55d8d48e8492",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-0ecfd5aa2a": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "6effe64280a8",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-1a632a7246": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "00c0c97d158e",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-1d35e28b99": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "19b7fa9a593a",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-333907c00e": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "6f3be44d41ba",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-4e61f8a0b4": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "d73e8a2abc6d",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-4f98747e23": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "c08693300caf",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-71c42e16be": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "dfd83ab4c3b5",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-806b88daf7": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "5795b5335e29",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-8ab239b3f8": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "47a5d862329e",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-94e057dd36": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "ba3d1d41ee6a",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-9f33a7c83e": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "26f4cb629d1d",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-b6f83a5671": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "27b4fc0120a7",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-c4aae6d08d": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "eafba55b582d",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-c6223565a0": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "6a39451ea711",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-d6540cb18c": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "7a454abbc541",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-dd18a61a4b": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "71f918c783d8",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-e4cbbe1ffd": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "b29b6cfa5216",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "admin-f398986e4e": {
+  "configHash": "a5a42e62b17a",
+  "textHash": "ab68a6f8fa2a",
+  "generatedAt": "2026-10-16",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
  }
 }

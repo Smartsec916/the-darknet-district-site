@@ -10,7 +10,8 @@
  const css=document.createElement('style');
  css.textContent='#warflying-hud{position:fixed;right:16px;bottom:252px;z-index:24;padding:4px 9px;background:#07111ccc;border:1px solid #3d6f62;color:#9fe3c9;font:11px/1.4 monospace;letter-spacing:.08em;pointer-events:none}'
   +'#mission-log .warflying table{width:100%;border-collapse:collapse;font:13px monospace}#mission-log .warflying td{padding:3px 6px;border-bottom:1px solid #ffffff14}#mission-log .warflying tr.you td{color:#ffe58b}'
-  +'#mission-log .warflying ul{list-style:none;padding:0}#mission-log .warflying li{padding:2px 0}';
+  +'#mission-log .warflying ul{list-style:none;padding:0}#mission-log .warflying li{padding:2px 0}'
+  +'#mission-log .warflying .relay-actions{display:flex;flex-wrap:wrap;gap:8px}#mission-log .warflying .relay-actions button{width:auto;flex:0 0 auto;min-width:180px}#mission-log .warflying .journal{color:#c9d6d2;border-left:2px solid #3d6f62;padding-left:10px}';
  document.head.append(css);
  const hudEl=document.createElement('div');hudEl.id='warflying-hud';hudEl.hidden=true;document.body.append(hudEl);
  const installed=()=>P.utility(state)==='warflying-module';
@@ -56,15 +57,55 @@
    log(id,heard,1-distance/X.hearingRange(signature));
   }
  }
+ // ---- The Relay link and the upload queue (Stage C; rules in comms.js and warflying.js) ----
+ const M=VoidComms;
+ let transfer=null,wasUp=true,noticedRoute=null;
+ const onFoot=()=>!!(typeof walkingLocation!=='undefined'&&walkingLocation);
+ const link=()=>M.status(state,{route:mode==='play'?flight.route:null,onFoot:onFoot()});
+ const scrambled=()=>P.utility(state)==='warflying-scrambler';
+ // Starts a transfer if the link allows one. manual: the player pressed UPLOAD.
+ function upload(manual){
+  const db=state?.warflying,st=link();
+  if(!db||transfer||!M.canUpload(st))return false;
+  const batch=W.beginUpload(db,M.transfer[st.state].batch);if(!batch.length)return false;
+  transfer={batch,left:M.transfer[st.state].seconds,manual,sent:0};return true;
+ }
+ function uplink(dt){
+  const db=state?.warflying;if(!db||['menu','pause','recovery'].includes(mode))return;
+  const st=link(),up=M.canUpload(st);
+  // A dropped link interrupts the transfer: the batch is abandoned and its records stay queued.
+  if(transfer&&!up){transfer=null;}
+  if(transfer){
+   transfer.left-=dt;
+   if(transfer.left<=0){
+    const t=transfer;transfer=null;t.sent+=W.finishUpload(db,t.batch);save();
+    // A manual upload keeps going until the queue is empty, then reports once.
+    if(t.manual){if(!upload(true))announce('RELAY · '+t.sent+' WarFlying record'+(t.sent===1?'':'s')+' uploaded');else transfer.sent=t.sent;}
+   }
+  }
+  if(up&&!wasUp&&db.autoUpload&&W.queue(db).length)announce('RELAY LINK RESTORED · uploading '+W.queue(db).length+' queued record'+(W.queue(db).length===1?'':'s'));
+  wasUp=up;
+  if(up&&db.autoUpload&&!transfer)upload(false);
+ }
+ // Other pilots log the player's ship: decided once, when a route arrives.
+ function watched(){
+  const r=flight.route;if(!r||r.phase!=='arrived'||noticedRoute===r)return;noticedRoute=r;
+  if(globalThis.VoidFlightSkirmish?.active||!X.noticed(r.origin,r.destination,state.warflying.clock))return;
+  W.noteSighting(state.warflying,{place:U.system(r.destination)+':'+r.origin+'>'+r.destination,time:Date.now(),scrambled:scrambled()});save();
+ }
  const scannerUpdate=update;
  update=function(dt){
   scannerUpdate(dt);
   // Play time paces the leaderboard rivals.
   if(state?.warflying&&!['menu','pause','recovery'].includes(mode)){seconds+=dt;if(seconds>=1){state.warflying.clock=Math.min(1e9,(state.warflying.clock||0)+Math.floor(seconds));seconds%=1;}}
-  const flying=mode==='play'&&!globalThis.VoidFlightSkirmish?.active&&installed();
-  hudEl.hidden=!flying;
-  if(!flying){lastRoute=null;return;}
-  hudEl.textContent='WARFLYING · LISTENING · '+W.points(state.warflying)+' PTS';
+  uplink(dt);
+  const inFlight=mode==='play'&&!globalThis.VoidFlightSkirmish?.active;
+  if(inFlight&&state?.warflying)watched();
+  const flying=inFlight&&installed()&&M.allows(state.location,false,'collection');
+  hudEl.hidden=!(flying||inFlight&&scrambled());
+  if(!flying){lastRoute=null;if(inFlight&&scrambled())hudEl.textContent='SCRAMBLER · ACTIVE';return;}
+  const st=link(),queued=W.queue(state.warflying).length;
+  hudEl.textContent='WARFLYING · LISTENING · '+W.points(state.warflying)+' PTS · RELAY '+M.labels[st.state]+(transfer?' · UPLOADING':queued?' · '+queued+' QUEUED':'');
   tick-=dt;if(tick>0)return;tick=X.config.interval;scan();
  };
 
@@ -75,8 +116,16 @@
   const recent=Object.entries(db.records).filter(([,r])=>r.p===1).sort((a,b)=>b[1].f-a[1].f).slice(0,6);
   const latest=Object.entries(db.records).sort((a,b)=>b[1].l-a[1].l).slice(0,6);
   const owned=state.progression.equipment.owned.includes('warflying-module');
+  const st=link(),queued=W.queue(db).length,trail=db.trail||{linked:0,unlinked:0,recent:[]};
+  const why=st.reason==='premises'?' · no uploads inside The Darknet District':st.reason==='warp'?' · out of satellite range in warp':st.reason==='region'?' · regional outage':'';
   return '<section class="warflying"><h2>WARFLYING</h2>'
+   +(state.story.flags.warflyingIntro?'<p class="journal">Admin’s briefing: WarFlying hobbyists scan ships, stations, satellites and beacons for points, and many upload what they log to The Relay, the shared news and broadcast network. Enough sightings of one ship can show where it travels. A scanner joins in; a scrambler makes your own ship hard to identify. Both use the one Utility slot.</p>':'')
    +'<p>Scanner: '+(fitted?'<strong>installed</strong> · listening whenever you fly':owned?'owned, not installed · fit it in the Utility slot at a hangar':'not owned · sold at station outfitters')+'</p>'
+   +'<h3>RELAY LINK</h3><p>'+M.labels[st.state]+why+' · '+queued+' record'+(queued===1?'':'s')+' waiting to upload'+(transfer?' · uploading now':'')+'</p>'
+   +'<p class="relay-actions">'+button('AUTO-UPLOAD: '+(db.autoUpload?'ON':'OFF'),'warflying-auto',true)+button('UPLOAD NOW','warflying-upload',false,!queued||!M.canUpload(st)||!!transfer)+'</p>'
+   +'<p>Your discoveries and points are kept aboard and never depend on uploading.</p>'
+   +'<h3>YOUR SHIP ON THE RELAY</h3><p>'+(trail.linked+trail.unlinked?'Other pilots have uploaded '+(trail.linked+trail.unlinked)+' sighting'+(trail.linked+trail.unlinked===1?'':'s')+' of your ship: '+trail.linked+' identified as you, '+trail.unlinked+' unidentified.':'No uploaded sightings of your ship yet.')
+   +(P.utility(state)==='warflying-scrambler'?' Your scrambler is active: new sightings can’t be tied to your ship. It doesn’t hide you from radar or a direct inspection.':'')+'</p>'
    +'<p>'+points+' points · '+W.discoveries(db)+' unique signals identified · '+(records.length-W.discoveries(db))+' partial contacts awaiting identification</p>'
    +'<h3>LEADERBOARD</h3><table>'+board.map(r=>'<tr'+(r.player?' class="you"':'')+'><td>'+r.rank+'</td><td>'+escapeText(r.name)+'</td><td>'+r.points+'</td></tr>').join('')+'</table>'
    +'<h3>RECENT DISCOVERIES</h3>'+(recent.length?'<ul>'+recent.map(([,r])=>'<li>+1 · '+escapeText(label(r)+kind(r))+' · '+escapeText(placeText(r.places[0]||''))+'</li>').join('')+'</ul>':'<p>None yet.</p>')
@@ -86,8 +135,16 @@
  const warflyingLog=openMissionLog;
  openMissionLog=function(){
   const result=warflyingLog.apply(this,arguments);
-  if(typeof missionPanel!=='undefined'&&missionPanel&&state?.warflying)missionPanel.querySelector('[data-close]')?.insertAdjacentHTML('beforebegin',section());
+  if(typeof missionPanel!=='undefined'&&missionPanel&&state?.warflying){
+   missionPanel.querySelector('[data-close]')?.insertAdjacentHTML('beforebegin',section());
+   if(!missionPanel.dataset.warflying)missionPanel.dataset.warflying='1',missionPanel.addEventListener('click',e=>{
+    const a=e.target.closest('section.warflying button')?.dataset.action;if(!a?.startsWith('warflying-'))return;e.stopPropagation();
+    if(a==='warflying-auto'){state.warflying.autoUpload=!state.warflying.autoUpload;save();}
+    if(a==='warflying-upload')upload(true);
+    const old=missionPanel.querySelector('section.warflying');old?.insertAdjacentHTML('afterend',section());old?.remove();
+   });
+  }
   return result;
  };
- globalThis.VoidWarFlyingScanner={scan,section,get installed(){return installed();}};
+ globalThis.VoidWarFlyingScanner={scan,section,upload,link,get transfer(){return transfer;},get installed(){return installed();}};
 })();

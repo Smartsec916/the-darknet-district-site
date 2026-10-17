@@ -81,17 +81,63 @@
    {label:'NOT RIGHT NOW',quiet:true,run:()=>leave([you('Not right now.'),admin('Suit yourself. It’ll keep.')])}
   ],HEAD);
  }
+ // ---- Admin introduces WarFlying (doc 12, David's script word for word) after "Don't Ask Questions" ----
+ const warflyingIntro=[
+  admin('So, you made it back. Good. Rook said everything arrived.'),
+  admin('Lucky you.'),
+  you('Lucky?'),
+  admin('You ever hear of WarFlying?'),
+  you('Can’t say I have.'),
+  admin('It’s a hobby. People fly around scanning electronic signals. Ships, stations, satellites, navigation beacons. Anything broadcasting something interesting.'),
+  admin('Every new signal they discover earns them a point. There’s even a leaderboard. People get surprisingly competitive about it.'),
+  you('Doesn’t sound particularly dangerous.'),
+  admin('That’s because you’re thinking about the people collecting points.'),
+  admin('Now think about the people looking at the information.'),
+  admin('Every time someone scans your ship, they might record your electronic signature, where you were, and when you were there.'),
+  admin('One sighting doesn’t tell much of a story. A hundred sightings? Suddenly someone knows where you travel, which stations you visit, and how often you make a particular run.'),
+  you('Who would care about that?'),
+  admin('Police. Bounty hunters. Pirates. Competitors. Anyone with enough curiosity and questionable intentions.'),
+  admin('Some of those hobbyists upload their discoveries to The Relay. Wonderful little network. News, advertisements, leaderboards, and a convenient record of who’s been seen where.'),
+  you('So anyone can track me?'),
+  admin('Not exactly. They’re sightings, not a live tracking beacon. But give someone enough sightings and they can start making educated guesses.'),
+  admin('Of course, there are ways to make your ship harder to identify.'),
+  you('Such as?'),
+  admin('WarFlying scramblers. They interfere with the electronic signatures those scanners use to identify ships.'),
+  admin('Won’t make you invisible. Won’t stop a police officer from looking through your cockpit window. But it can make life considerably more frustrating for anyone trying to piece together your travel history.'),
+  you('You’re selling these, aren’t you?'),
+  admin('Naturally.'),
+  admin('Scanner if you want to join the game. Scrambler if you’d rather not be part of someone else’s.'),
+  admin('One utility slot, though. You’ll have to decide which matters more.'),
+  you('And you think I need a scrambler?'),
+  admin('After that last delivery? I’d say you got lucky.')
+ ];
+ const warflyingDue=()=>state.story.flags.sealedCargo==='delivered'&&state.story.flags.warflyingIntro!==true;
+ // Admin's stock: only the WarFlying Scrambler (David, 2026-10-16). Nothing is bought or fitted for the player.
+ function adminStore(){
+  const id='warflying-scrambler',m=P.modules[id],owned=state.progression.equipment.owned.includes(id);
+  localPanel('Admin’s <em>stock.</em>','<p>Admin sells one thing here. WarFlying Modules are sold at station outfitters. Fit either at a hangar maintenance terminal; they share the one Utility slot.</p><div class="module-grid"><article>'+equipmentIcon(m.icon)+'<h2>'+m.name+'</h2><p>'+m.price+' CR · '+P.slotLabel(m.slot)+' slot · all current hulls</p>'
+   +'<p>Interferes with the electronic signatures WarFlying scanners use to identify ships, so new sightings of your ship can’t be tied together. It doesn’t hide you from radar, stop a visual check or an inspection, or remove sightings already uploaded. It can’t be fitted with a WarFlying Module.</p>'
+   +button(owned?'OWNED':'BUY · '+m.price+' CR','admin-buy:'+id,false,owned||state.credits<m.price)+'</article></div>');
+ }
+ screen.addEventListener('click',e=>{
+  const a=e.target.closest('button')?.dataset.action;if(!a?.startsWith('admin-buy:'))return;
+  if(P.buy(state,a.slice(10),'admin'))save();adminStore();
+ });
+ const storeOptions=()=>[{label:'SHOW ME THE SCRAMBLER',run:adminStore},{label:'NOT RIGHT NOW',quiet:true,run:resumeWalking}];
  VoidInteractions.register('admin',()=>{
   const f=state.story.flags;
   if(!state.universe.completedObjectives.includes('meet-admin'))state.universe.completedObjectives.push('meet-admin');
   f.metAdmin=true;f.metIris=true;const offers=C.factionOffers(state);
   if(offers.length&&!f.factionIntro){f.factionIntro=true;save();ask(adminIntro,adminOptions(),HEAD);return;}
+  if(warflyingDue()){f.warflyingIntro=true;save();ask(warflyingIntro,storeOptions(),HEAD);return;}
   save();
   if(offers.length===2)return ask([adminPrompt],adminOptions(),HEAD);
   if(C.sealedOffered(state)&&!state.contract)return sealedOffer();
   // UNREVIEWED: Admin's idle lines once the introductions are done.
   const busy=[...Object.values(D),...Object.values(C.supplyDeliveries)].some(d=>['accepted','delivered'].includes(state.story.flags[d.flag]));
-  leave([busy?admin('You’ve got a delivery to make. Come back when it’s done.'):admin('Iris has the contracts. I just make the introductions.')]);
+  const idle=busy?admin('You’ve got a delivery to make. Come back when it’s done.'):admin('Iris has the contracts. I just make the introductions.');
+  if(f.warflyingIntro===true)return ask([idle],storeOptions(),HEAD);
+  leave([idle]);
  });
 
  // ---- Rook takes the sealed crate at Meridian and pays ("Don't Ask Questions") (UNREVIEWED placeholder lines) ----

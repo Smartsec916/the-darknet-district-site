@@ -70,10 +70,38 @@
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
+  "admin-05ba6ff006": {
+   "speaker": "admin",
+   "text": "Not exactly. They’re sightings, not a live tracking beacon. But give someone enough sightings and they can start making educated guesses.",
+   "file": "admin-05ba6ff006.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
+  "admin-0ecfd5aa2a": {
+   "speaker": "admin",
+   "text": "It’s a hobby. People fly around scanning electronic signals. Ships, stations, satellites, navigation beacons. Anything broadcasting something interesting.",
+   "file": "admin-0ecfd5aa2a.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
   "admin-1a2c7e9f7e": {
    "speaker": "admin",
    "text": "Things have been getting a little interesting out there lately. The Communion and the Natural Order are at each other’s throats again.",
    "file": "admin-1a2c7e9f7e.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
+  "admin-1a632a7246": {
+   "speaker": "admin",
+   "text": "Naturally.",
+   "file": "admin-1a632a7246.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
+  "admin-1d35e28b99": {
+   "speaker": "admin",
+   "text": "Every time someone scans your ship, they might record your electronic signature, where you were, and when you were there.",
+   "file": "admin-1d35e28b99.ogg",
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
@@ -112,6 +140,13 @@
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
+  "admin-333907c00e": {
+   "speaker": "admin",
+   "text": "Won’t make you invisible. Won’t stop a police officer from looking through your cockpit window. But it can make life considerably more frustrating for anyone trying to piece together your travel history.",
+   "file": "admin-333907c00e.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
   "admin-3d0b874ad8": {
    "speaker": "admin",
    "text": "Something Rook paid for, and something you don’t need to know about. It stays sealed.",
@@ -133,6 +168,20 @@
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
+  "admin-4e61f8a0b4": {
+   "speaker": "admin",
+   "text": "After that last delivery? I’d say you got lucky.",
+   "file": "admin-4e61f8a0b4.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
+  "admin-4f98747e23": {
+   "speaker": "admin",
+   "text": "So, you made it back. Good. Rook said everything arrived.",
+   "file": "admin-4f98747e23.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
   "admin-66b33b1847": {
    "speaker": "admin",
    "text": "So, what do you think? Which direction you feel like heading?",
@@ -147,6 +196,13 @@
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
+  "admin-71c42e16be": {
+   "speaker": "admin",
+   "text": "WarFlying scramblers. They interfere with the electronic signatures those scanners use to identify ships.",
+   "file": "admin-71c42e16be.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
   "admin-77f3b62781": {
    "speaker": "admin",
    "text": "Well, nothing that’s supposed to be exciting.",
@@ -154,10 +210,24 @@
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
+  "admin-806b88daf7": {
+   "speaker": "admin",
+   "text": "That’s because you’re thinking about the people collecting points.",
+   "file": "admin-806b88daf7.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
   "admin-837b9e0a9b": {
    "speaker": "admin",
    "text": "Communion’s big on artificial intelligence. Practically worship the stuff. Natural Order? They’d rather smash a computer than let one make a decision for them.",
    "file": "admin-837b9e0a9b.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
+  "admin-8ab239b3f8": {
+   "speaker": "admin",
+   "text": "One utility slot, though. You’ll have to decide which matters more.",
+   "file": "admin-8ab239b3f8.ogg",
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
@@ -175,6 +245,20 @@
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
+  "admin-94e057dd36": {
+   "speaker": "admin",
+   "text": "Of course, there are ways to make your ship harder to identify.",
+   "file": "admin-94e057dd36.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
+  "admin-9f33a7c83e": {
+   "speaker": "admin",
+   "text": "One sighting doesn’t tell much of a story. A hundred sightings? Suddenly someone knows where you travel, which stations you visit, and how often you make a particular run.",
+   "file": "admin-9f33a7c83e.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
   "admin-b29df7912e": {
    "speaker": "admin",
    "text": "Eh. Trouble’s good for business. Long as it stays somewhere else.",
@@ -182,10 +266,31 @@
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
+  "admin-b6f83a5671": {
+   "speaker": "admin",
+   "text": "Every new signal they discover earns them a point. There’s even a leaderboard. People get surprisingly competitive about it.",
+   "file": "admin-b6f83a5671.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
   "admin-bef8ca5f24": {
    "speaker": "admin",
    "text": "Advanced electronics. Research equipment, mostly. They’re always building something over there. Pays well enough.",
    "file": "admin-bef8ca5f24.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
+  "admin-c4aae6d08d": {
+   "speaker": "admin",
+   "text": "Now think about the people looking at the information.",
+   "file": "admin-c4aae6d08d.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
+  "admin-c6223565a0": {
+   "speaker": "admin",
+   "text": "Lucky you.",
+   "file": "admin-c6223565a0.ogg",
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
@@ -200,6 +305,34 @@
    "speaker": "admin",
    "text": "Mechanical components. Industrial supplies. They prefer things that don’t think for themselves. Can’t say I blame them sometimes.",
    "file": "admin-c83a93dcf2.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
+  "admin-d6540cb18c": {
+   "speaker": "admin",
+   "text": "You ever hear of WarFlying?",
+   "file": "admin-d6540cb18c.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
+  "admin-dd18a61a4b": {
+   "speaker": "admin",
+   "text": "Police. Bounty hunters. Pirates. Competitors. Anyone with enough curiosity and questionable intentions.",
+   "file": "admin-dd18a61a4b.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
+  "admin-e4cbbe1ffd": {
+   "speaker": "admin",
+   "text": "Scanner if you want to join the game. Scrambler if you’d rather not be part of someone else’s.",
+   "file": "admin-e4cbbe1ffd.ogg",
+   "source": "faction-scenes.js",
+   "configHash": "a5a42e62b17a"
+  },
+  "admin-f398986e4e": {
+   "speaker": "admin",
+   "text": "Some of those hobbyists upload their discoveries to The Relay. Wonderful little network. News, advertisements, leaderboards, and a convenient record of who’s been seen where.",
+   "file": "admin-f398986e4e.ogg",
    "source": "faction-scenes.js",
    "configHash": "a5a42e62b17a"
   },
