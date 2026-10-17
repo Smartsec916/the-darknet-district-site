@@ -553,6 +553,8 @@
       if(!g.ok){for(const n of g.nodes)n.dispose();continue;}
       for(const m of parent.getChildMeshes(true))if(g.replaces.has(m.name))m.setEnabled(false);
     }
+    // Which groups are modelled, so later passes (meridian-art.js) don't add their own versions.
+    parent.metadata={...parent.metadata,propGroups:Object.fromEntries(Object.entries(groups).map(([k,g])=>[k,g.ok]))};
   }
   async function prepareStation(def,task){
     release(); // A new visit owns exactly one room and its actors, signs and lights.

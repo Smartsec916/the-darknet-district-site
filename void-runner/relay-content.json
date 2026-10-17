@@ -1,63 +1,305 @@
 {
  "version": 2,
- "about": "The Relay's content (rules in relay.js). EVENTS are the canonical record: what happened, what is confirmed, what is unknown, when it becomes public (occurs: at = minutes of play, story = a game event, always). SEGMENTS are reports: lines (spoken in order), kind, optional speaker, headline (screens and archive), event, perspective, standing, priority, stage/after (developing stories), cooldown (minutes; null = once), trigger (real leaderboard moments), systems, when. Script lines are David's own; nothing here is invented. Headlines and event summaries are short labels for screens and the archive. After editing: node tools/audio/extract-lines.cjs.",
+ "about": "The Relay's content (rules in relay.js). EVENTS are the canonical record: what happened, what is confirmed, what is unknown, when it becomes public (occurs: at = minutes of play, story = a game event, always). SEGMENTS are reports: lines (spoken in order), kind, optional speaker, headline (screens and archive), event, perspective, standing, priority, stage/after (developing stories), cooldown (minutes; null = once), trigger (real leaderboard moments), systems, when. Script lines marked \"draft\": true were written by Claude at David's request (2026-10-17) for his review; the rest are David's own lines. Headlines and event summaries are short labels for screens and the archive. After editing: node tools/audio/extract-lines.cjs.",
  "events": [
   {
    "id": "nexus-humanitarian-crisis",
    "category": "humanitarian",
-   "systems": ["communion"],
+   "systems": [
+    "communion"
+   ],
    "summary": "A Natural Order EMP attack severely damaged the Nexus AI, the planetary system that ran daily life on The Nexus. The humanitarian crisis continues.",
-   "confirmed": ["The Nexus AI was severely damaged by a Natural Order EMP attack.", "Many citizens still struggle with communication, labour, repair and household tasks."],
-   "unknown": ["When, or whether, the central AI can be restored."],
-   "factions": ["communion", "natural-order"],
+   "confirmed": [
+    "The Nexus AI was severely damaged by a Natural Order EMP attack.",
+    "Many citizens still struggle with communication, labour, repair and household tasks."
+   ],
+   "unknown": [
+    "When, or whether, the central AI can be restored."
+   ],
+   "factions": [
+    "communion",
+    "natural-order"
+   ],
    "visibility": "public",
-   "occurs": {"always": true},
+   "occurs": {
+    "always": true
+   },
    "priority": "important"
   },
   {
    "id": "tessaly-corridor-comms-disruption",
    "category": "communications",
-   "systems": ["sol"],
+   "systems": [
+    "sol"
+   ],
    "summary": "A major communications disruption was reported near a commercial shipping corridor in the Tessaly System.",
-   "confirmed": ["Several vessels reported intermittent contact with nearby navigation infrastructure."],
-   "unknown": ["The cause of the disruption."],
+   "confirmed": [
+    "Several vessels reported intermittent contact with nearby navigation infrastructure."
+   ],
+   "unknown": [
+    "The cause of the disruption."
+   ],
    "factions": [],
    "visibility": "public",
-   "occurs": {"at": 40},
+   "occurs": {
+    "at": 40
+   },
    "priority": "breaking"
   },
   {
    "id": "missing-cargo-vessel-found",
    "category": "shipping",
    "summary": "A cargo vessel reported missing was found in its assigned hangar.",
-   "confirmed": ["The search was concluded.", "The ship was located in its assigned hangar."],
+   "confirmed": [
+    "The search was concluded.",
+    "The ship was located in its assigned hangar."
+   ],
    "unknown": [],
    "factions": [],
    "visibility": "public",
-   "occurs": {"at": 15},
+   "occurs": {
+    "at": 15
+   },
    "priority": "routine"
   },
   {
    "id": "warflying-coffee-maker",
    "category": "warflying",
    "summary": "A WarFlying enthusiast's six-hour investigation traced an unidentified signal to a malfunctioning coffee maker, which scored one point.",
-   "confirmed": ["The signal came from a malfunctioning coffee maker.", "It was awarded one point as a unique electronic source."],
-   "unknown": ["The competitive implications."],
+   "confirmed": [
+    "The signal came from a malfunctioning coffee maker.",
+    "It was awarded one point as a unique electronic source."
+   ],
+   "unknown": [
+    "The competitive implications."
+   ],
    "factions": [],
    "visibility": "public",
-   "occurs": {"at": 70},
+   "occurs": {
+    "at": 70
+   },
    "priority": "routine"
   },
   {
    "id": "station-door-repaired",
    "category": "station",
    "summary": "Maintenance crews at a commercial station repaired a malfunctioning automatic door.",
-   "confirmed": ["The door opened without incident."],
+   "confirmed": [
+    "The door opened without incident."
+   ],
    "unknown": [],
    "factions": [],
    "visibility": "public",
-   "occurs": {"at": 110},
+   "occurs": {
+    "at": 110
+   },
    "priority": "routine"
+  },
+  {
+   "id": "kepler-ore-delays",
+   "factions": [],
+   "visibility": "public",
+   "category": "shipping",
+   "summary": "Ore shipments out of Kepler Exchange were delayed by a loading-crane fault.",
+   "confirmed": [
+    "A loading crane at Kepler Exchange failed during a heavy shift.",
+    "Outbound ore shipments were delayed by several hours."
+   ],
+   "unknown": [
+    "Whether contracts will be penalised for the delay."
+   ],
+   "occurs": {
+    "at": 25
+   },
+   "priority": "routine"
+  },
+  {
+   "id": "meridian-water-recycler",
+   "factions": [],
+   "visibility": "public",
+   "category": "station",
+   "summary": "Meridian Station completed an upgrade to its water recycling plant.",
+   "confirmed": [
+    "The upgrade finished ahead of schedule.",
+    "Water rationing on the lower decks has ended."
+   ],
+   "unknown": [],
+   "occurs": {
+    "at": 55
+   },
+   "priority": "routine"
+  },
+  {
+   "id": "foundry-shift-accident",
+   "factions": [],
+   "visibility": "public",
+   "category": "industrial",
+   "summary": "An accident during a shift change at the Foundry left two workers with minor injuries.",
+   "confirmed": [
+    "Two workers were treated for minor injuries.",
+    "Production on one line was paused."
+   ],
+   "unknown": [
+    "The cause, pending a safety review."
+   ],
+   "occurs": {
+    "at": 90
+   },
+   "priority": "important"
+  },
+  {
+   "id": "rusthaven-overdue-hauler",
+   "factions": [],
+   "visibility": "public",
+   "category": "search-and-rescue",
+   "summary": "A cargo hauler on the Rusthaven route was reported overdue; it was later found adrift with its crew safe.",
+   "confirmed": [
+    "The hauler missed two scheduled check-ins.",
+    "It was found adrift after a navigation fault; all four crew are safe."
+   ],
+   "unknown": [
+    "Why its distress beacon did not activate."
+   ],
+   "occurs": {
+    "at": 130
+   },
+   "priority": "important"
+  },
+  {
+   "id": "garrow-harvest",
+   "factions": [
+    "natural-order"
+   ],
+   "visibility": "public",
+   "category": "agriculture",
+   "systems": [
+    "natural-order"
+   ],
+   "summary": "Natural Order settlements in the Garrow System reported a strong harvest.",
+   "confirmed": [
+    "Settlements report above-average yields."
+   ],
+   "unknown": [
+    "How much will be traded outside Garrow."
+   ],
+   "occurs": {
+    "at": 65
+   },
+   "priority": "routine"
+  },
+  {
+   "id": "vigil-diagnostic-network",
+   "factions": [
+    "communion"
+   ],
+   "visibility": "public",
+   "category": "research",
+   "systems": [
+    "communion"
+   ],
+   "summary": "Communion researchers at The Vigil announced an improved medical diagnostic network.",
+   "confirmed": [
+    "The Communion has announced the system."
+   ],
+   "unknown": [
+    "Independent results have not been published."
+   ],
+   "occurs": {
+    "at": 80
+   },
+   "priority": "routine"
+  },
+  {
+   "id": "meridian-lost-and-found",
+   "factions": [],
+   "visibility": "public",
+   "category": "station",
+   "summary": "Meridian Station’s lost-and-found reported a record number of single gloves.",
+   "confirmed": [
+    "Single gloves now outnumber all other items."
+   ],
+   "unknown": [
+    "Where the other gloves go."
+   ],
+   "occurs": {
+    "at": 45
+   },
+   "priority": "routine"
+  },
+  {
+   "id": "vigil-delivery-received",
+   "factions": [
+    "communion"
+   ],
+   "visibility": "public",
+   "category": "shipping",
+   "systems": [
+    "communion"
+   ],
+   "summary": "An independent courier delivered research equipment to The Vigil.",
+   "confirmed": [
+    "The Vigil confirmed receipt of the shipment."
+   ],
+   "unknown": [
+    "The courier was not named."
+   ],
+   "occurs": {
+    "story": {
+     "type": "factionDelivered",
+     "subject": "communion"
+    }
+   },
+   "priority": "routine"
+  },
+  {
+   "id": "holdfast-delivery-received",
+   "factions": [
+    "natural-order"
+   ],
+   "visibility": "public",
+   "category": "shipping",
+   "systems": [
+    "natural-order"
+   ],
+   "summary": "An independent courier delivered industrial parts to Holdfast.",
+   "confirmed": [
+    "Holdfast confirmed receipt of the shipment."
+   ],
+   "unknown": [
+    "The courier was not named."
+   ],
+   "occurs": {
+    "story": {
+     "type": "factionDelivered",
+     "subject": "natural-order"
+    }
+   },
+   "priority": "routine"
+  },
+  {
+   "id": "nexus-aid-arrives",
+   "factions": [
+    "communion"
+   ],
+   "visibility": "public",
+   "category": "humanitarian",
+   "systems": [
+    "communion"
+   ],
+   "summary": "Recovery supplies reached The Nexus aboard an independent ship.",
+   "confirmed": [
+    "Supplies were received by recovery coordinators on The Nexus."
+   ],
+   "unknown": [
+    "The ship and pilot were not named."
+   ],
+   "occurs": {
+    "story": {
+     "type": "missionComplete",
+     "subject": "communion-origin-mission-01"
+    }
+   },
+   "priority": "important"
   }
  ],
  "segments": [
@@ -290,6 +532,326 @@
     "JOIN THE POLICE FORCE TODAY!",
     "Uniforms provided. Enthusiasm mandatory."
    ]
+  },
+  {
+   "id": "news-tessaly-disruption-update",
+   "kind": "news",
+   "draft": true,
+   "lines": [
+    "An update on the communications disruption in the Tessaly System.",
+    "Engineers have traced the outage to a failed signal amplifier aboard a navigation buoy near the shipping corridor.",
+    "Partial service has been restored. Vessels in the area are advised to keep their distance from the buoy until repairs are complete."
+   ],
+   "event": "tessaly-corridor-comms-disruption",
+   "standing": "confirmed",
+   "stage": 2,
+   "after": 25,
+   "headline": "Tessaly outage traced to a failed buoy amplifier"
+  },
+  {
+   "id": "function-tessaly-interval",
+   "kind": "function",
+   "draft": true,
+   "lines": [
+    "A signal stops.",
+    "A signal resumes.",
+    "The interval was not empty."
+   ],
+   "event": "tessaly-corridor-comms-disruption",
+   "stage": 2,
+   "after": 25,
+   "standing": "commentary",
+   "headline": "An unscheduled transmission",
+   "cooldown": null
+  },
+  {
+   "id": "news-tessaly-disruption-resolved",
+   "kind": "news",
+   "draft": true,
+   "lines": [
+    "Repairs to the navigation buoy in the Tessaly System are complete, and traffic in the commercial corridor has returned to normal.",
+    "Authorities have recorded the incident as an equipment failure. A routine review of the buoy network continues."
+   ],
+   "event": "tessaly-corridor-comms-disruption",
+   "standing": "confirmed",
+   "stage": 3,
+   "after": 60,
+   "headline": "Tessaly corridor back to normal after buoy repair"
+  },
+  {
+   "id": "news-kepler-ore-delays",
+   "kind": "news",
+   "draft": true,
+   "lines": [
+    "Ore shipments out of Kepler Exchange are running several hours late after a loading crane failed during the evening shift.",
+    "Dock supervisors say a replacement part is on its way. Haulers waiting on the Erebus routes are advised to expect delays."
+   ],
+   "event": "kepler-ore-delays",
+   "standing": "confirmed",
+   "headline": "Crane fault delays ore shipments at Kepler"
+  },
+  {
+   "id": "news-meridian-water-recycler",
+   "kind": "news",
+   "draft": true,
+   "lines": [
+    "Meridian Station has finished upgrading its water recycling plant, ahead of schedule.",
+    "Rationing on the lower decks has ended. Station management thanks residents for their patience, and asks them to stop storing water in their boots."
+   ],
+   "event": "meridian-water-recycler",
+   "standing": "confirmed",
+   "headline": "Meridian water rationing ends after recycler upgrade"
+  },
+  {
+   "id": "news-foundry-accident",
+   "kind": "news",
+   "draft": true,
+   "lines": [
+    "Two workers at the Foundry were treated for minor injuries after an accident during a shift change.",
+    "One production line has been paused while a safety review is carried out. The cause has not been confirmed."
+   ],
+   "event": "foundry-shift-accident",
+   "standing": "confirmed",
+   "headline": "Two hurt in Foundry shift accident; cause under review"
+  },
+  {
+   "id": "news-foundry-review",
+   "kind": "news",
+   "draft": true,
+   "lines": [
+    "The safety review at the Foundry has found that a pressure valve was fitted backwards during scheduled maintenance.",
+    "The paused production line has reopened. New inspection steps have been added to the maintenance checklist."
+   ],
+   "event": "foundry-shift-accident",
+   "standing": "confirmed",
+   "stage": 2,
+   "after": 40,
+   "headline": "Foundry review: valve fitted backwards"
+  },
+  {
+   "id": "news-overdue-hauler",
+   "kind": "news",
+   "draft": true,
+   "lines": [
+    "Search crews are looking for a cargo hauler reported overdue on the Rusthaven route.",
+    "The ship has missed two scheduled check-ins. Pilots in the area are asked to keep their sensors open and report any contact."
+   ],
+   "event": "rusthaven-overdue-hauler",
+   "standing": "unverified",
+   "headline": "Hauler overdue on the Rusthaven route",
+   "priority": "important"
+  },
+  {
+   "id": "news-overdue-hauler-found",
+   "kind": "news",
+   "draft": true,
+   "lines": [
+    "The cargo hauler reported overdue on the Rusthaven route has been found.",
+    "It was drifting after a navigation fault. All four crew members are safe and in good spirits, though one has asked never to hear the words “manual course correction” again.",
+    "Investigators are looking into why the ship’s distress beacon failed to activate."
+   ],
+   "event": "rusthaven-overdue-hauler",
+   "standing": "confirmed",
+   "stage": 2,
+   "after": 40,
+   "headline": "Overdue hauler found adrift; all four crew safe"
+  },
+  {
+   "id": "news-meridian-lost-and-found",
+   "kind": "news",
+   "draft": true,
+   "lines": [
+    "Meridian Station’s lost-and-found office reports a new record.",
+    "Single gloves now outnumber every other item in its care.",
+    "The whereabouts of the matching gloves remain unknown. The office has asked anyone with information to come forward."
+   ],
+   "event": "meridian-lost-and-found",
+   "standing": "confirmed",
+   "headline": "Meridian lost-and-found sets a single-glove record"
+  },
+  {
+   "id": "news-garrow-harvest",
+   "kind": "news",
+   "draft": true,
+   "lines": [
+    "Natural Order settlements in the Garrow System are reporting a strong harvest, with yields above the seasonal average.",
+    "Settlement councils say surplus may be offered for trade later in the season."
+   ],
+   "event": "garrow-harvest",
+   "standing": "confirmed",
+   "systems": [
+    "natural-order"
+   ],
+   "headline": "Garrow settlements report a strong harvest"
+  },
+  {
+   "id": "natural-order-harvest",
+   "kind": "natural-order",
+   "draft": true,
+   "lines": [
+    "This season, our farmers fed our settlements with soil, water, and work.",
+    "No central intelligence planned it. No machine took the credit.",
+    "We built what we needed, and we can repair what we built."
+   ],
+   "event": "garrow-harvest",
+   "standing": "opinion",
+   "cooldown": 60,
+   "headline": "Natural Order: a harvest built by hand"
+  },
+  {
+   "id": "news-vigil-diagnostics",
+   "kind": "news",
+   "draft": true,
+   "lines": [
+    "Communion researchers at The Vigil have announced an improved medical diagnostic network, which they say can identify illness earlier and with fewer errors.",
+    "Independent results have not yet been published."
+   ],
+   "event": "vigil-diagnostic-network",
+   "standing": "unverified",
+   "systems": [
+    "communion"
+   ],
+   "headline": "The Vigil announces a new diagnostic network"
+  },
+  {
+   "id": "communion-diagnostics",
+   "kind": "communion",
+   "draft": true,
+   "lines": [
+    "A diagnosis that comes an hour earlier is an hour given back to a family.",
+    "The work at The Vigil is not about machines. It is about the people they serve.",
+    "We will share what we learn."
+   ],
+   "event": "vigil-diagnostic-network",
+   "standing": "claim",
+   "cooldown": 60,
+   "headline": "Communion: earlier diagnosis gives time back to families"
+  },
+  {
+   "id": "news-nexus-recovery",
+   "kind": "news",
+   "draft": true,
+   "lines": [
+    "Recovery work continues on The Nexus, where the loss of its central AI still affects communication, repair, and everyday life.",
+    "Communion officials say restoring the system is a humanitarian priority. Natural Order representatives say the population should not depend on it again.",
+    "Neither position settles the question of when, or whether, the central AI can be restored."
+   ],
+   "event": "nexus-humanitarian-crisis",
+   "standing": "confirmed",
+   "cooldown": 90,
+   "headline": "Nexus recovery continues; its future remains disputed"
+  },
+  {
+   "id": "natural-order-nexus",
+   "kind": "natural-order",
+   "draft": true,
+   "lines": [
+    "The people of The Nexus deserve systems they can understand and repair with their own hands.",
+    "We have the tools. We have the knowledge. We will share both with anyone willing to learn."
+   ],
+   "event": "nexus-humanitarian-crisis",
+   "standing": "claim",
+   "cooldown": 75,
+   "headline": "Natural Order: The Nexus deserves systems people can repair"
+  },
+  {
+   "id": "news-vigil-delivery",
+   "kind": "news",
+   "draft": true,
+   "lines": [
+    "The Vigil has confirmed the arrival of a shipment of research equipment, delivered by an independent courier.",
+    "Communion officials described the delivery as uneventful, which they say is exactly how they like them."
+   ],
+   "event": "vigil-delivery-received",
+   "standing": "confirmed",
+   "headline": "Research shipment arrives at The Vigil"
+  },
+  {
+   "id": "news-holdfast-delivery",
+   "kind": "news",
+   "draft": true,
+   "lines": [
+    "Holdfast has confirmed the arrival of a shipment of industrial parts, delivered by an independent courier.",
+    "A Holdfast supervisor said the parts arrived on time, which he called “a refreshing change.”"
+   ],
+   "event": "holdfast-delivery-received",
+   "standing": "confirmed",
+   "headline": "Industrial parts arrive at Holdfast"
+  },
+  {
+   "id": "news-nexus-aid",
+   "kind": "news",
+   "draft": true,
+   "lines": [
+    "Recovery supplies have reached The Nexus aboard an independent ship.",
+    "Recovery coordinators say the shipment will go to districts where communication and repair services are still limited."
+   ],
+   "event": "nexus-aid-arrives",
+   "standing": "confirmed",
+   "headline": "Recovery supplies reach The Nexus",
+   "priority": "important"
+  },
+  {
+   "id": "public-warp-relay-notice",
+   "kind": "public",
+   "draft": true,
+   "lines": [
+    "Public information for travellers.",
+    "Relay service is not available during warp between systems.",
+    "Messages and broadcasts will resume when your ship arrives. Thank you for travelling safely."
+   ],
+   "standing": "confirmed",
+   "cooldown": 90,
+   "headline": "Reminder: no Relay service in warp"
+  },
+  {
+   "id": "warflying-one-point-glory",
+   "kind": "warflying",
+   "draft": true,
+   "lines": [
+    "A reminder for our new viewers!",
+    "In WarFlying, every unique signal is worth exactly one point!",
+    "No bonuses! No multipliers!",
+    "Just pure, unfiltered, one-point glory!"
+   ],
+   "standing": "commentary",
+   "headline": "WarFlying: one signal, one point"
+  },
+  {
+   "id": "ad-navigation-suite",
+   "kind": "ad",
+   "draft": true,
+   "lines": [
+    "Lost again?",
+    "Is your star chart older than your co-pilot?",
+    "Upgrade your navigation suite and find your destination the first time!",
+    "Because “I think it was left at the nebula” is not a flight plan!"
+   ],
+   "headline": "Navigation suites"
+  },
+  {
+   "id": "ad-hull-repairs",
+   "kind": "ad",
+   "draft": true,
+   "lines": [
+    "Dents happen.",
+    "Scrapes happen.",
+    "Small holes in the hull happen, briefly.",
+    "Professional hull repair at participating stations. Fly in damaged. Fly out a little less damaged."
+   ],
+   "headline": "Hull repairs"
+  },
+  {
+   "id": "ad-sleep-pods",
+   "kind": "ad",
+   "draft": true,
+   "lines": [
+    "Long haul? Short temper?",
+    "Rent a sleep pod at participating stations.",
+    "Quiet. Clean. Approximately your size.",
+    "Wake up rested, or at least horizontal."
+   ],
+   "headline": "Sleep pods"
   }
  ]
 }

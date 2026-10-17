@@ -73,7 +73,12 @@
    {model:'barrel',position:[12.8,0,-15],yaw:.4,group:'hangar-cargo'},{model:'barrel-closed',position:[13.6,0,-14.1],yaw:1.1,group:'hangar-cargo'},
    ...furniture.store.shelves.map(z=>({model:'shelves-tall',position:[-16.2,0,z],yaw:Math.PI/2,group:'supplies',replaces:['supply-shelf','supply-case']})),
    ...furniture.lockers.map(l=>({model:'locker',position:[l.x,0,l.z],yaw:Math.PI,group:'lockers',replaces:['locker']})),
-   {model:'desk',position:[-12.5,0,31.55],yaw:-Math.PI/2,group:'outfitter',replaces:['shop-counter']},{model:'desk',position:[-12.5,0,34.4],yaw:-Math.PI/2,group:'outfitter'}
+   {model:'desk',position:[-12.5,0,31.55],yaw:-Math.PI/2,group:'outfitter',replaces:['shop-counter']},{model:'desk',position:[-12.5,0,34.4],yaw:-Math.PI/2,group:'outfitter'},
+   // Crew quarters and bar furniture (Ultimate House Interior Pack). The art pass skips its own versions of these when they load.
+   ...furniture.bunks.map(b=>({model:'bunk',position:[-16.6,0,b.z],yaw:Math.PI/2,group:'quarters-beds',replaces:['bunk-frame','bunk-mattress']})),
+   ...furniture.toilets.map(t=>({model:'toilet',position:[t.x,0,17.3],yaw:Math.PI,group:'quarters-toilets',replaces:['sanitary-fixture']})),
+   ...furniture.basins.map(b=>({model:'basin',position:[b.x,.1,4.55],yaw:b.facing>0?0:Math.PI,group:'quarters-basins',replaces:['washbasin']})),
+   ...furniture.stools.map(s=>({model:'bar-stool',position:[s.x,0,s.z],yaw:Math.PI/2,group:'bar-stools',replaces:['bar-stool']}))
   ];
   return {id:'meridian',name:'MERIDIAN STATION',kind:'station',bounds:[18,66],spawn:[0,1.7,-17],ship,color:'#505962',shell,solids,interactions,signs,activityPoints,props,furniture};
  }

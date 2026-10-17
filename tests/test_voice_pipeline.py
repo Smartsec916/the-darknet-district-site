@@ -19,7 +19,10 @@ class VoicePipelineTest(unittest.TestCase):
         with open(os.path.join(ROOT, 'void-runner', 'assets', 'audio', 'voice', 'manifest.json'), encoding='utf-8') as f:
             manifest = json.load(f)
         for line_id, line in manifest['lines'].items():
-            self.assertEqual(line['configHash'], generate.config_hash(registry['npcs'][line['speaker']], registry['engine']), line_id)
+            # Lines belong to an NPC or to a cast Relay broadcaster.
+            cast = registry['npcs'].get(line['speaker']) or registry.get('broadcast', {}).get(line['speaker'])
+            self.assertIsNotNone(cast, line_id)
+            self.assertEqual(line['configHash'], generate.config_hash(cast, registry['engine']), line_id)
 
 
 if __name__ == '__main__':
