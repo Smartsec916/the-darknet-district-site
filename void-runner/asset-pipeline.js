@@ -90,12 +90,40 @@
     return node;
   }
   async function prepare(scene, definitions, task) {
-    release();
-    await Promise.all(Object.entries(definitions).map(async ([id,def])=>{try{await VoidPreparation.run(t=>t.wait('optional',()=>load(id,def,scene,t),def.src));}catch(error){console.warn('[VOID optional model]',{id,asset:def.src,recovery:'procedural modern placeholder',reason:error.message});}}));task?.check();
+    release();const gen=generation,later=[];
+    await Promise.all(Object.entries(definitions).map(async ([id,def])=>{
+      // Large optional models (crowd figures) load with the scene only when already in the offline cache.
+      // Otherwise they wait until the scene is on screen, so they never slow it down, and are swapped in
+      // when they arrive (onLoaded); a finished download is cached for next time.
+      if(def.background&&!(await cached(def))){later.push([id,def]);return;}
+      try{await VoidPreparation.run(t=>t.wait('optional',()=>load(id,def,scene,t),def.src));}catch(error){console.warn('[VOID optional model]',{id,asset:def.src,recovery:'procedural modern placeholder',reason:error.message});}
+    }));task?.check();
+    if(later.length)scene.onAfterRenderObservable.addOnce(()=>{if(gen===generation)queue.push(...later.map(([id,def])=>({id,def,scene,gen})));pump();});
   }
+  async function cached(def){try{return typeof caches!=='undefined'&&!!(await caches.match(new URL(def.src,base).href));}catch{return false;}}
+  // Background downloads, two at a time. Released scenes cancel theirs, so the next place loads at full speed.
+  const backgroundLimit=120000,parallel=2;let generation=0;const listeners=new Set(),jobs=new Set(),queue=[];
+  function pump(){
+    while(jobs.size<parallel&&queue.length){const next=queue.shift();if(next.gen===generation&&!next.scene.isDisposed)background(next);}
+  }
+  function background({id,def,scene,gen}){
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(Error('Background model timed out.')),backgroundLimit);
+    const task={signal:controller.signal,check(){if(controller.signal.aborted)throw controller.signal.reason;}},job={controller,gen};jobs.add(job);
+    return loadContainer(def,scene,task,id).then(container=>{
+      if(gen!==generation||scene.isDisposed){container.dispose();return false;}
+      containers.set(id,{container,def});
+      for(const listener of listeners)try{listener(id);}catch(error){console.warn('[VOID//RUNNER assets] listener',error);}
+      return true;
+    },error=>{if(gen===generation)console.warn('[VOID optional model]',{id,asset:def.src,recovery:'procedural modern placeholder',reason:error.message});return false;})
+     .finally(()=>{clearTimeout(timer);jobs.delete(job);pump();});
+  }
+  // Called with a model id whenever a background model becomes available for the current scene.
+  function onLoaded(listener){listeners.add(listener);return ()=>listeners.delete(listener);}
+  const pending=()=>jobs.size+queue.length;
 
   function unload(id){const item=containers.get(id);if(item){item.container.dispose();containers.delete(id);}}
   function release() {
+    generation++;queue.length=0;for(const job of jobs)job.controller.abort(Error('Scene released.'));
     for (const {
         container
       }
@@ -105,7 +133,7 @@
   // The loaded container for an id (for builders that place many copies themselves), or null.
   function container(id){return containers.get(id)?.container||null;}
   const api = {
-    models,unload,container,loadContainer,
+    models,unload,container,loadContainer,onLoaded,get pending(){return pending();},
     validate,
     load,
     instance,
