@@ -1,0 +1,85 @@
+{
+ "name": "armour_01",
+ "about": "Armoured runner: black bodysuit, gunmetal armour with red edges, hot-pink ponytail. MakeHuman CC0 assets.",
+ "phenotype": {
+  "gender": 0.0,
+  "age": 0.38,
+  "muscle": 0.6,
+  "weight": 0.38,
+  "height": 0.55,
+  "cupsize": 0.5,
+  "race": {
+   "asian": 0.5,
+   "caucasian": 0.3,
+   "african": 0.2
+  }
+ },
+ "skin": "young_asian_female",
+ "hair": "ponytail01",
+ "clothes": [
+  "matcreator_mc-bodysuit-2021",
+  "matcreator_mc-scifi-armor_helios",
+  "shoes03"
+ ],
+ "style": {
+  "matcreator_mc-bodysuit-2021": {
+   "recolor": [
+    {
+     "color": [
+      0.09,
+      0.09,
+      0.11
+     ],
+     "level": 0.8
+    }
+   ]
+  },
+  "matcreator_mc-scifi-armor_helios": {
+   "recolor": [
+    {
+     "color": [
+      0.36,
+      0.38,
+      0.44
+     ],
+     "level": 0.9
+    }
+   ],
+   "glow": [
+    {
+     "mode": "key",
+     "color": [
+      1.0,
+      0.1,
+      0.15
+     ],
+     "width": 1,
+     "strength": 2.0,
+     "select": {
+      "sat": [
+       0,
+       0.18
+      ],
+      "val": [
+       0.72,
+       1
+      ]
+     }
+    }
+   ]
+  },
+  "hair": {
+   "recolor": [
+    {
+     "color": [
+      1.0,
+      0.2,
+      0.6
+     ],
+     "level": 0.95
+    }
+   ]
+  }
+ },
+ "save_blend": true
+}

@@ -1,0 +1,57 @@
+{
+ "name": "order_militia",
+ "about": "Natural Order: militia in an olive bodysuit with faded khaki plate bracers and boots, no glowing tech. MakeHuman CC0.",
+ "phenotype": {
+  "gender": 1,
+  "age": 0.45,
+  "muscle": 0.75,
+  "weight": 0.45,
+  "height": 0.6,
+  "race": {
+   "asian": 0.3,
+   "caucasian": 0.4,
+   "african": 0.3
+  }
+ },
+ "skin": "middleage_asian_male",
+ "hair": "short01",
+ "clothes": [
+  "matcreator_mc-bodysuit-2021",
+  "matcreator_mc-scifi-armor_guardian"
+ ],
+ "style": {
+  "matcreator_mc-bodysuit-2021": {
+   "recolor": [
+    {
+     "color": [
+      0.3,
+      0.32,
+      0.18
+     ],
+     "level": 0.8
+    }
+   ]
+  },
+  "matcreator_mc-scifi-armor_guardian": {
+   "recolor": [
+    {
+     "color": [
+      0.5,
+      0.47,
+      0.33
+     ],
+     "level": 0.85
+    }
+   ]
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "work",
+  "watch",
+  "walk"
+ ],
+ "lean": true,
+ "maxGarmentVerts": 9000
+}

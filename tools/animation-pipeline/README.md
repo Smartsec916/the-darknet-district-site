@@ -40,3 +40,27 @@ For HumanIK, map `Character1_*` bones to the canonical hierarchy in Blender, che
 Before production use, review each selected clip's actual action boundaries, loop seam, root travel, feet, pelvis, scale, orientation, shoulders, wrists, finger deformation, props, and weapon sockets. The current low-poly proxy is only a rig/playback test. A production Mara mesh must be rigged to the canonical skeleton or replaced by an approved character model. Future motions should ship as location/role-specific GLBs or animation-only glTF assets, loaded on demand and shared on disk; do not ship all 113 FBX files or load every clip for every NPC.
 
 The 113 source FBX files total about 427 MB before ZIP compression. The two-clip processed GLB is about 544 KB; the local Babylon loader is about 307 KB. These are development measurements, not a 113-clip size forecast. `NEEDS_REVIEW`, `NEEDS_RETARGET`, `NEEDS_PROP`, and `DISABLED` in `catalog.json` prevent automatic assignment. The next pass should approve a production character mesh and a neutral idle, then retarget a small role-specific set and test it in a real scene without changing gameplay anchors.
+
+## MakeHuman crowd characters (test, 2026-10-16)
+
+`build_mpfb_character.py` builds a CC0 MakeHuman character with MPFB 2 (Blender extension) on MPFB's built-in `mixamo` rig, whose 52 bones match `VR_Humanoid_v1`, and retargets Mixamo-rig clips onto it. The character's rest pose is first bent to the clips' T-pose; each clip then copies every bone's world-space rotation change from rest, with horizontal hips held in place. Materials export as solid (skin, eyes) or alpha-tested (clothes, hair) so nothing relies on transparency sorting. Looks are described in `characters/*.json` (phenotype, skin, hair, clothes by MakeHuman asset name).
+
+```text
+blender -b --python tools/animation-pipeline/build_mpfb_character.py -- characters/street-01.json OUT.glb laughs=Laughs_mixamo.fbx:1-240 ...
+node tools/assets/optimize-textures.cjs OUT.glb OUT-1k.glb 1024
+```
+
+Requires MPFB 2.0.18 with the MakeHuman system assets and Suits 02 packs in its user data folder (CC0). Never use the Suits 02 known-character costumes (spider-gwen, rei_ayanami, yoko_tsuno). Styling (`mpfb_styling.py`): recolouring from a texture's own brightness, glowing trims (garment edges, UV seams, or painted texture areas such as armour trim bands) and simple visor, shades, mask and collar pieces parented to the head or neck bone. The Helios armour (about 113k vertices) and `joachip_cyborg_suit` (a crude, oversized block shell) are not used.
+
+### Crowd looks in the game (2026-10-16)
+
+Seventeen looks dress the ambient `crew-*` NPCs; `void-runner/crowd.js` picks them per place and `crowd-looks.txt` lists them. Crowd specs set `lean` (no normal maps) and `maxGarmentVerts` (decimation), and name their clips from `clips.json` (HumanIK and Mixamo sources, retargeted by bone name, resampled to 15 fps, 8-second loops with a 0.6 s blend back to the first pose). Build one look:
+
+```text
+blender -b --python tools/animation-pipeline/build_mpfb_character.py -- characters/vesper-mechanic.json OUT-full.glb --mocap <VOID_RUNNER_KEEP folder>
+node tools/assets/optimize-textures.cjs OUT-full.glb void-runner/assets/models/crowd/vesper-mechanic.glb 512
+```
+
+The walk comes from the Quaternius Universal Animation Library (Standard, CC0; free download from quaternius.itch.io). Pass its `Unreal-Godot` folder as `--ual DIR`; `clips.json` names the action (`Walk_Loop`) and the T-pose clip used as the reference pose (`A_TPose`), and marks it an exact loop (no end blend).
+
+Keep a spec's `clips` and its entry in `crowd.js` in step (`tests/crowd.test.cjs` checks). Named characters never use crowd looks.

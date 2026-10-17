@@ -1,0 +1,79 @@
+{
+ "name": "ncz_neon",
+ "about": "NeoChinatown: black and violet streetwear with magenta-lit edges, long green hair, lit choker. MakeHuman CC0.",
+ "phenotype": {
+  "gender": 0,
+  "age": 0.35,
+  "muscle": 0.45,
+  "weight": 0.35,
+  "height": 0.5,
+  "race": {
+   "asian": 0.5,
+   "caucasian": 0.2,
+   "african": 0.3
+  },
+  "cupsize": 0.5
+ },
+ "skin": "young_caucasian_female",
+ "hair": "long01",
+ "clothes": [
+  "female_sportsuit01",
+  "shoes05"
+ ],
+ "style": {
+  "female_sportsuit01": {
+   "recolor": [
+    {
+     "color": [
+      0.12,
+      0.08,
+      0.16
+     ],
+     "level": 0.8
+    }
+   ],
+   "glow": [
+    {
+     "mode": "boundary",
+     "color": [
+      1.0,
+      0.15,
+      0.75
+     ],
+     "width": 2,
+     "strength": 2.0
+    }
+   ]
+  },
+  "hair": {
+   "recolor": [
+    {
+     "color": [
+      0.2,
+      0.9,
+      0.45
+     ],
+     "level": 0.95
+    }
+   ]
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "watch",
+  "walk"
+ ],
+ "accessories": [
+  {
+   "type": "collar",
+   "glow": [
+    1.0,
+    0.15,
+    0.75
+   ]
+  }
+ ],
+ "lean": true,
+ "maxGarmentVerts": 9000
+}

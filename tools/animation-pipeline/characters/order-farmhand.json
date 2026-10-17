@@ -1,0 +1,82 @@
+{
+ "name": "order_farmhand",
+ "about": "Natural Order: farmhand in olive overalls, tan shirt and straw-coloured hat. MakeHuman CC0.",
+ "phenotype": {
+  "gender": 1,
+  "age": 0.35,
+  "muscle": 0.6,
+  "weight": 0.45,
+  "height": 0.6,
+  "race": {
+   "asian": 0.1,
+   "caucasian": 0.6,
+   "african": 0.3
+  }
+ },
+ "skin": "young_caucasian_male",
+ "hair": "short03",
+ "clothes": [
+  "male_worksuit01",
+  "shoes02",
+  "fedora_cocked"
+ ],
+ "style": {
+  "male_worksuit01": {
+   "recolor": [
+    {
+     "color": [
+      0.3,
+      0.32,
+      0.18
+     ],
+     "level": 0.85,
+     "select": {
+      "hue": [
+       0.5,
+       0.72
+      ],
+      "sat": [
+       0.15,
+       1
+      ]
+     }
+    },
+    {
+     "color": [
+      0.55,
+      0.45,
+      0.32
+     ],
+     "level": 0.85,
+     "select": {
+      "sat": [
+       0,
+       0.15
+      ]
+     }
+    }
+   ]
+  },
+  "fedora_cocked": {
+   "recolor": [
+    {
+     "color": [
+      0.7,
+      0.6,
+      0.4
+     ],
+     "level": 0.95
+    }
+   ]
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "work",
+  "watch",
+  "walk"
+ ],
+ "lean": true,
+ "maxGarmentVerts": 9000
+}

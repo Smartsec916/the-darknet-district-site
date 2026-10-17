@@ -45,7 +45,7 @@
   function texture(name,w,h,draw){const t=new B.DynamicTexture('hw-'+name,{width:w,height:h},scene,true);draw(t.getContext(),w,h);t.update();textures.push(t);return t;}
   function screen(name,w,h,p,ry,draw,k=1){const t=texture(name,256,Math.round(256*h/w),draw),m=new B.StandardMaterial('hw-'+name,scene);m.diffuseColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;m.emissiveColor=new B.Color3(k,k,k);owned.push(m);const mesh=B.MeshBuilder.CreatePlane(name,{width:w,height:h,sideOrientation:B.Mesh.DOUBLESIDE},scene);put(mesh,m,p,false);mesh.rotation.y=ry;return {mesh,mat:m};}
   const point=(p,c,i,r)=>{if(low)return;const l=new B.PointLight('hw-light',new B.Vector3(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=parent;lights.push(l);};
-  const person=(name,p,kneel=false)=>{const n=characterModel(name,parent,p,true);if(kneel&&n){n.scaling.y=.66;}return n;};
+  const person=(name,p,kneel=false)=>{const n=characterModel(name,parent,p,true);if(kneel&&n&&!n.metadata?.crowd){n.scaling.y=.66;}return n;};
   const flags=()=>state?.story?.flags||{};
   const ground=(hex,size=96)=>{const g=B.MeshBuilder.CreateGround('hw-ground',{width:size,height:size},scene);g.material=mat('ground',hex);g.parent=parent;g.isPickable=false;g.position.y=-.01;return g;};
   // The player's ship on its pad.

@@ -1,0 +1,99 @@
+{
+ "name": "communion_worker",
+ "about": "Communion: industrial worker in grey workwear with cyan-lit seams, cyan implant visor and neck port. MakeHuman CC0.",
+ "phenotype": {
+  "gender": 1,
+  "age": 0.5,
+  "muscle": 0.6,
+  "weight": 0.55,
+  "height": 0.55,
+  "race": {
+   "asian": 0.4,
+   "caucasian": 0.4,
+   "african": 0.2
+  }
+ },
+ "skin": "middleage_asian_male",
+ "hair": "short01",
+ "clothes": [
+  "male_worksuit01",
+  "shoes03"
+ ],
+ "style": {
+  "male_worksuit01": {
+   "recolor": [
+    {
+     "color": [
+      0.28,
+      0.3,
+      0.32
+     ],
+     "level": 0.85,
+     "select": {
+      "hue": [
+       0.5,
+       0.72
+      ],
+      "sat": [
+       0.15,
+       1
+      ]
+     }
+    },
+    {
+     "color": [
+      0.16,
+      0.17,
+      0.18
+     ],
+     "level": 0.85,
+     "select": {
+      "sat": [
+       0,
+       0.15
+      ]
+     }
+    }
+   ],
+   "glow": [
+    {
+     "mode": "boundary",
+     "color": [
+      0.5,
+      0.9,
+      1.0
+     ],
+     "width": 1,
+     "strength": 1.8
+    }
+   ]
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "work",
+  "watch",
+  "walk"
+ ],
+ "accessories": [
+  {
+   "type": "visor",
+   "glow": [
+    0.5,
+    0.9,
+    1.0
+   ]
+  },
+  {
+   "type": "collar",
+   "glow": [
+    0.5,
+    0.9,
+    1.0
+   ]
+  }
+ ],
+ "lean": true,
+ "maxGarmentVerts": 9000
+}

@@ -84,6 +84,9 @@
     for (const mesh of result.rootNodes) mesh.parent = asset;
     asset.scaling.setAll(item.def.scale || 1);
     asset.rotation.y = item.def.yaw || 0;
+    // Cloned clips belong to this copy; they start stopped and the caller picks one (crowd figures).
+    for (const group of result.animationGroups) group.stop();
+    node.metadata = { animationGroups: result.animationGroups };
     return node;
   }
   async function prepare(scene, definitions, task) {

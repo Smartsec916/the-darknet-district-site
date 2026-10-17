@@ -1,0 +1,84 @@
+{
+ "name": "runner_02",
+ "about": "Runner: black suit with glowing red stripes, violet bob, magenta shades. MakeHuman CC0 assets.",
+ "phenotype": {
+  "gender": 0.0,
+  "age": 0.4,
+  "muscle": 0.55,
+  "weight": 0.4,
+  "height": 0.5,
+  "cupsize": 0.5,
+  "race": {
+   "asian": 0.7,
+   "caucasian": 0.2,
+   "african": 0.1
+  }
+ },
+ "skin": "young_asian_female",
+ "hair": "bob01",
+ "clothes": [
+  "culturalibre_heroine_suit_2",
+  "shoes03"
+ ],
+ "style": {
+  "culturalibre_heroine_suit_2": {
+   "glow": [
+    {
+     "mode": "key",
+     "color": [
+      1.0,
+      0.1,
+      0.15
+     ],
+     "width": 1,
+     "strength": 1.6,
+     "select": {
+      "hue": [
+       0.95,
+       0.05
+      ],
+      "sat": [
+       0.5,
+       1
+      ],
+      "val": [
+       0.3,
+       1
+      ]
+     }
+    }
+   ]
+  },
+  "hair": {
+   "recolor": [
+    {
+     "color": [
+      0.55,
+      0.2,
+      1.0
+     ],
+     "level": 0.95
+    }
+   ]
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "watch",
+  "walk"
+ ],
+ "accessories": [
+  {
+   "type": "shades",
+   "glow": [
+    1.0,
+    0.15,
+    0.75
+   ],
+   "strength": 1.2
+  }
+ ],
+ "lean": true,
+ "maxGarmentVerts": 9000
+}
