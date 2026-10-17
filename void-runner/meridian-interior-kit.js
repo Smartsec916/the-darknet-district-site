@@ -14,6 +14,7 @@
  // finished face toward -x. face(): a run of panels on one wall; normal is the direction it faces.
  const yawFor={'-x':0,'+x':Math.PI,'-z':-Math.PI/2,'+z':Math.PI/2};
  function plan(){
+  const F=(typeof module!=='undefined'?require('./meridian-interior.js'):root.VoidMeridianInterior).layout().furniture;
   const out=[],put=(key,position,yaw=0,size=null)=>out.push({key,position,yaw,size});
   function face(x0,z0,x1,z1,normal,rows){
    // rows: [[piece, bottom, height, thickness]]. The run is cut into equal 4 m-ish bays.
@@ -31,24 +32,31 @@
   face(4.3,3.7,17.7,3.7,'-z',hangarRows);face(-17.7,3.7,-4.3,3.7,'-z',hangarRows);
   face(10.3,-25.7,17.7,-25.7,'+z',hangarRows);face(-17.7,-25.7,-10.3,-25.7,'+z',hangarRows);
   for(const s of [-1,1])for(let z=-22;z<=2;z+=8)put('column',[s*17.3,4.5,z],s>0?0:Math.PI,[.5,9,.95]);
-  // The corridor to the concourse.
-  face(3.7,4.3,3.7,17.7,'-x',[['wall-band',0,3,.2],['wall-cables',3,1.9,.28]]);face(-3.7,4.3,-3.7,17.7,'+x',[['wall-band',0,3,.2],['wall-cables',3,1.9,.28]]);
+  // The corridor to the concourse; the port wall leaves the crew quarters doorway (z 9–13) clear.
+  const corridorRows=[['wall-band',0,3,.2],['wall-cables',3,1.9,.28]];
+  face(3.7,4.3,3.7,17.7,'-x',corridorRows);face(-3.7,4.3,-3.7,8.8,'+x',corridorRows);face(-3.7,13.2,-3.7,17.7,'+x',corridorRows);
+  // Crew quarters: all three walls of the room.
+  face(-17.7,4.3,-17.7,17.7,'+x',corridorRows);face(-17.7,17.7,-4.3,17.7,'-z',corridorRows);face(-17.7,4.3,-4.3,4.3,'+z',corridorRows);
+  for(const x of [-15.7,-12.35,-9])for(const z of [6,9.35,12.7,16.05])put('floor-plates',[x,.025,z],0,[3.35,.01,3.35]);
   for(const z of [7,11,15])put('pipes',[0,4.55,z],Math.PI/2,[4,.6,.8]);
-  // Concourse: the entry wall either side of the corridor, and the crew rooms' fronts.
+  // Concourse: the entry wall either side of the corridor, and the solid port wall behind the store and bar.
   const commerceRows=[['wall-band',0,3,.22],['wall-panel',3,2.9,.3]];
   face(4.3,18.3,17.7,18.3,'+z',commerceRows);face(-17.7,18.3,-4.3,18.3,'+z',commerceRows);
-  face(10.2,45.8,17.7,45.8,'-z',commerceRows);face(-17.7,45.8,-10.2,45.8,'-z',commerceRows);
+  face(-17.7,18.3,-17.7,65.7,'+x',commerceRows);
+  // The store's and bar's front walls (both faces) and the wall between them.
+  for(const [z0,z1] of [[18.3,29],[37,41.8],[42.2,45],[55,65.7]]){face(-6.8,z0,-6.8,z1,'+x',commerceRows);face(-7.2,z0,-7.2,z1,'-x',commerceRows);}
+  face(-17.7,41.8,-7.2,41.8,'-z',commerceRows);face(-17.7,42.2,-7.2,42.2,'+z',commerceRows);
   // Decks: dark plates in the hangar, squared plates in the concourse.
   for(let x=-16;x<=16;x+=4)for(let z=-23.5;z<=2;z+=3.75)put('floor-plates',[x,.025,z],0,[4,.01,3.75]);
-  for(let x=-16;x<=16;x+=4)for(let z=20;z<=44;z+=4)put('floor-squares',[x,.025,z],0,[4,.01,4]);
+  for(let x=-16;x<=16;x+=4)for(let z=20;z<=64;z+=4)put('floor-squares',[x,.025,z],0,[4,.01,4]);
   // Hangar cargo, kept to the walls and clear of the ship, the boarding point and the route.
   for(const [key,x,z,yaw] of [['crate-tarp',-15.6,-21,0],['case-ribbed',-15.9,-18.4,.2],['case',-14.6,-18.2,0],['case',-15.9,-16.9,.4],['drum',-14.4,-16.6,0],['drum',-14.1,-15.9,0],
    ['chest',-16.6,-1,Math.PI/2],['case-ribbed',-15.6,1.6,0],['case',-14.3,1.9,.3],['access-point',-12.8,3.2,Math.PI],['computer',-11.6,3.1,Math.PI],
-   ['crate-tarp',15.4,-23,0],['case',16.2,-20.6,0],['case',16.2,-19.5,.2],['drum',15,-20.3,0],['chest',16.6,-6,-Math.PI/2],['case-ribbed',15.9,-3.4,0],['drum',16.4,-1.8,0],['access-point',12.8,3.2,Math.PI]])
+   ['crate-tarp',15.4,-23.2,0],['case',13.2,-24.6,0],['drum',12.2,-24.3,0],['chest',16.6,-6,-Math.PI/2],['case-ribbed',15.9,-3.4,0],['drum',16.4,-1.8,0],['access-point',12.8,3.2,Math.PI]])
    put(key,[x,0,z],yaw,null);
   // The outfitter: stock on the four existing shelves (meridian-interior.js props) and the counter.
-  for(const z of [22,25,28,31])for(const [y,dz,key] of [[.12,-.7,'ammo-case'],[.12,.6,'ammo-case'],[.9,-.6,'ammo-case'],[.9,.7,'ammo-case'],[1.68,-.4,'ammo-case'],[1.68,.75,'ammo-case']])put(key,[-16.2,y,z+dz],Math.PI/2+(dz>0?.15:-.1),null);
-  for(const [x,y] of [[-12.6,1.15],[-9.4,1.15]])put('ammo-case',[x,y,29],0,null);
+  for(const z of F.store.shelves)for(const [y,dz,key] of [[.12,-.7,'ammo-case'],[.12,.6,'ammo-case'],[.9,-.6,'ammo-case'],[.9,.7,'ammo-case'],[1.68,-.4,'ammo-case'],[1.68,.75,'ammo-case']])put(key,[-16.2,y,z+dz],Math.PI/2+(dz>0?.15:-.1),null);
+  for(const dz of [-1.5,1.5])put('ammo-case',[F.store.x,.94,F.store.z+dz],Math.PI/2,null);
   return out;
  }
  function measure(container){
