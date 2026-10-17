@@ -43,7 +43,9 @@
 - **Screenshots:** `docs/void-runner/graphics/meridian-kitbash/`.
 
 **Still outdated or open:**
-- **Layout versus David's reference art:** the reference (`D:/Pictures/Game/Start/Meridan Station/`) shows H01–H03 side by side under the "MERIDIAN STATION / FUEL · REPAIRS · SUPPLIES" block, with tall solar wings above and below, stacked orange-banded tanks aft, the docking ring lower right and a hanging module underneath. The game's layout spreads H02 and H03 to the sides. Matching the reference is an architecture change and needs approval. H01, the walkable interior, would not need to move.
+- **Layout versus David's reference art** (`D:/Pictures/Game/Start/Meridan Station/`):
+  - **Done** (approved 2026-10-16): H01–H03 now stand side by side at the same size, with their mouths in one line. H02 and H03 continue the row past H01, which didn't move, and the large-ship docking collar now sits past H03. Screenshots are in `docs/void-runner/graphics/meridian-hangar-row/`. These are visuals only: there's no exterior collision, and the walkable H01 interior is unchanged.
+  - **Still different from the reference, each needing its own approval:** the "MERIDIAN STATION / FUEL · REPAIRS · SUPPLIES" block directly above the hangars, solar wings above and below, the tanks stacked aft, and the hanging module underneath.
 - **Mirrored sign:** "SUPPLIES / OUTFITTER" reads mirrored from inside the concourse. It predates this work.
 
 ## Not done / known limits
