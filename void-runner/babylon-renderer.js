@@ -557,7 +557,7 @@
   async function prepareStation(def,task){
     release(); // A new visit owns exactly one room and its actors, signs and lights.
     const propModels=Object.fromEntries((def.props||[]).filter(p=>VoidAssets.models.props?.[p.model]).map(p=>['prop:'+p.model,VoidAssets.models.props[p.model]]));
-    await prepareSpace(def.id,['raider','courier','shuttle','security',def.ship],task,{...propModels,...Object.fromEntries(def.interactions.filter(i=>i.character&&VoidAssets.models.characters[i.character]).map(i=>['character:'+i.character,VoidAssets.models.characters[i.character]]))});task.check();station.setEnabled(false);rocks.forEach((mesh,i)=>{mesh.position.set((i%2?-1:1)*(75+i*6),30+Math.sin(i)*24,90+i*17);mesh.scaling.setAll(2+i%5);});
+    await prepareSpace(def.id,['raider','courier','shuttle','security',def.ship],task,{...propModels,...(def.id==='meridian'&&globalThis.VoidMeridianInteriorKit?VoidMeridianInteriorKit.definitions('ikit:'):{}),...Object.fromEntries(def.interactions.filter(i=>i.character&&VoidAssets.models.characters[i.character]).map(i=>['character:'+i.character,VoidAssets.models.characters[i.character]]))});task.check();station.setEnabled(false);rocks.forEach((mesh,i)=>{mesh.position.set((i%2?-1:1)*(75+i*6),30+Math.sin(i)*24,90+i*17);mesh.scaling.setAll(2+i%5);});
     roomRoot=stationModel(def.id,null,false,def);room=def;actors=[];stationActivity=def.activityPoints?VoidStationActivities.create(def):null;lastActivityTime=null;
     const ship=shipModel(def.ship,'friendly',roomRoot);ship.position.set(-7,2,-9);ship.scaling.setAll(2);
     for(const item of def.interactions)if(item.character)characterModel(item.character,roomRoot,item.visualPosition||item.position);
@@ -569,7 +569,9 @@
     for(const signDef of def.signs)sign(signDef,roomRoot);
     // Props first: the fit-out then batches the remaining static pieces, skipping the hidden ones.
     placeProps(def,roomRoot);
-    if(def.id==='meridian'){fitoutMeridian(roomRoot);planet.position.set(340,-65,140);}
+    if(def.id==='meridian'){fitoutMeridian(roomRoot);planet.position.set(340,-65,140);
+      // Interior dressing from the reference sheet (meridian-interior-kit.js): visual only, after the fit-out so it is never merged.
+      globalThis.VoidMeridianInteriorKit?.dress(scene,roomRoot,'ikit:');}
     const roomLight=new BABYLON.PointLight('concourse-light',new BABYLON.Vector3(0,4,25),scene);roomLight.parent=roomRoot;roomLight.diffuse=new BABYLON.Color3(1,.69,.38);roomLight.intensity=1.4;roomLight.range=28;
     const fill=new BABYLON.PointLight('hangar-light',new BABYLON.Vector3(0,6,-9),scene);fill.parent=roomRoot;fill.intensity=1.25;fill.range=60;
     // These routes are station-relative and visible through the observation apertures.
