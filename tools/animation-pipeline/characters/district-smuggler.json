@@ -1,0 +1,80 @@
+{
+ "name": "district_smuggler",
+ "about": "The Darknet District: smuggler in a black shirt and jeans with thin red edges and a black hat, black shades. MakeHuman CC0.",
+ "phenotype": {
+  "gender": 1,
+  "age": 0.5,
+  "muscle": 0.55,
+  "weight": 0.45,
+  "height": 0.6,
+  "race": {
+   "asian": 0.2,
+   "caucasian": 0.6,
+   "african": 0.2
+  }
+ },
+ "skin": "middleage_caucasian_male",
+ "hair": "short04",
+ "clothes": [
+  "male_casualsuit01",
+  "shoes03",
+  "fedora_cocked"
+ ],
+ "style": {
+  "male_casualsuit01": {
+   "recolor": [
+    {
+     "color": [
+      0.09,
+      0.09,
+      0.1
+     ],
+     "level": 0.8
+    }
+   ],
+   "glow": [
+    {
+     "mode": "boundary",
+     "color": [
+      1.0,
+      0.1,
+      0.15
+     ],
+     "width": 1,
+     "strength": 1.6
+    }
+   ]
+  },
+  "fedora_cocked": {
+   "recolor": [
+    {
+     "color": [
+      0.08,
+      0.08,
+      0.08
+     ],
+     "level": 0.8
+    }
+   ]
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "sit",
+  "smoke"
+ ],
+ "accessories": [
+  {
+   "type": "shades",
+   "color": [
+    0.02,
+    0.02,
+    0.02
+   ],
+   "glow": null
+  }
+ ],
+ "lean": true,
+ "maxGarmentVerts": 9000
+}

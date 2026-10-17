@@ -25,14 +25,30 @@ import mpfb_styling  # noqa: E402
 args = sys.argv[sys.argv.index('--') + 1:]
 spec = json.loads(Path(args[0]).read_text(encoding='utf-8'))
 output_path = Path(args[1])
+FPS = 24
+# Clips: either name=FILE[:START-END] arguments (seconds), or the spec's "clips" list resolved through
+# clips.json (name -> file, start, end) with the mocap folder given as --mocap DIR.
 clips = []
-for item in args[2:]:
+rest_reference = None
+rest_args = args[2:]
+if '--mocap' in rest_args:
+    i = rest_args.index('--mocap')
+    mocap = Path(rest_args[i + 1])
+    del rest_args[i:i + 2]
+    library_doc = json.loads((Path(__file__).resolve().parent / 'clips.json').read_text(encoding='utf-8'))
+    library = library_doc['clips']
+    FPS = library_doc.get('fps', FPS)
+    rest_reference = mocap / library_doc['restReference']
+    for name in spec.get('clips', []):
+        c = library[name]
+        clips.append((name, mocap / c['file'], (c['start'], c['end'])))
+for item in rest_args:
     name, src = item.split('=', 1)
-    frames = None
+    span = None
     if ':' in src[3:]:
         src, rng = src.rsplit(':', 1)
-        frames = tuple(int(v) for v in rng.split('-'))
-    clips.append((name, Path(src), frames))
+        span = tuple(float(v) for v in rng.split('-'))
+    clips.append((name, Path(src), span))
 
 for obj in list(bpy.data.objects):
     bpy.data.objects.remove(obj, do_unlink=True)
@@ -84,9 +100,24 @@ def game_material(obj):
             links.new(source, rnd.inputs[0])
             links.new(rnd.outputs[0], alpha)
         mat.surface_render_method = 'DITHERED'
+        if spec.get('lean'):
+            # Crowd figures are seen at a distance: no normal maps (smaller downloads).
+            for link in list(bsdf.inputs['Normal'].links):
+                mat.node_tree.links.remove(link)
         mat.use_backface_culling = solid or obj.name.endswith('shoes03')
 
 
+# Heavy garments are decimated (weights are interpolated) so every figure stays light.
+for obj in [c for c in rig.children if c.type == 'MESH' and c is not basemesh]:
+    limit = spec.get('maxGarmentVerts')
+    if limit and len(obj.data.vertices) > limit:
+        before = len(obj.data.vertices)
+        mod = obj.modifiers.new('lighten', 'DECIMATE')
+        mod.ratio = limit / before
+        bpy.context.view_layer.objects.active = obj
+        bpy.ops.object.modifier_move_to_index(modifier=mod.name, index=0)
+        bpy.ops.object.modifier_apply(modifier=mod.name)
+        print('VR_DECIMATE', obj.name, before, '->', len(obj.data.vertices))
 for obj in [basemesh] + [c for c in rig.children if c.type == 'MESH' and c is not basemesh]:
     game_material(obj)
 mpfb_styling.apply_style(spec, rig, basemesh)
@@ -97,6 +128,8 @@ def rot3(m):
 
 
 def import_source(path):
+    """Imports a clip's armature and returns it with a map from target bone to source bone.
+    Mixamo clips match by name; HumanIK clips use Character1_ instead of mixamorig:."""
     before = set(bpy.data.objects)
     bpy.ops.import_scene.fbx(filepath=str(path), use_anim=True)
     new = set(bpy.data.objects) - before
@@ -104,9 +137,17 @@ def import_source(path):
     for o in new:
         if o != arm:
             bpy.data.objects.remove(o, do_unlink=True)
-    missing = set(bones) - {b.name for b in arm.data.bones}
-    assert not missing, f'{path.name} lacks {sorted(missing)[:4]}'
-    return arm
+    have = {b.name for b in arm.data.bones}
+    names = {}
+    for n in bones:
+        for cand in (n, n.replace('mixamorig:', 'Character1_')):
+            if cand in have:
+                names[n] = cand
+                break
+    core = ['Hips', 'Spine', 'Neck', 'Head', 'LeftArm', 'RightArm', 'LeftForeArm', 'RightForeArm', 'LeftUpLeg', 'RightUpLeg', 'LeftLeg', 'RightLeg', 'LeftFoot', 'RightFoot']
+    missing = [c for c in core if 'mixamorig:' + c not in names]
+    assert not missing, f'{path.name} lacks {missing}'
+    return arm, names
 
 
 def world_rest(arm):
@@ -127,12 +168,15 @@ def order(arm):
 
 # 2. Bend the character's rest pose to the source T-pose (bone directions only), then apply it as rest.
 if clips:
-    reference = import_source(clips[0][1])
-    src_rest = world_rest(reference)
+    reference, ref_names = import_source(rest_reference or clips[0][1])
+    ref_rest = world_rest(reference)
+    src_rest = {n: ref_rest[s] for n, s in ref_names.items()}
     rig.data.pose_position = 'POSE'
     for pb in rig.pose.bones:
         pb.rotation_mode = 'QUATERNION'
     for name in order(rig):
+        if name not in src_rest:
+            continue
         pb = rig.pose.bones[name]
         bpy.context.view_layer.update()
         posed = rig.matrix_world @ pb.matrix
@@ -157,52 +201,79 @@ for pb in rig.pose.bones:
     pb.rotation_mode = 'QUATERNION'
 
 
-# 3. Retarget each clip.
-def retarget(name, path, frames):
-    src = import_source(path)
-    s_rest = world_rest(src)
+# 3. Retarget each clip, resampled to 24 fps. The last 0.6 s blends into the first pose so loops are seamless.
+def retarget(name, path, span):
+    src, smap = import_source(path)
+    scene = bpy.context.scene
+    src_fps = scene.render.fps / scene.render.fps_base
+    rest_all = world_rest(src)
+    s_rest = {n: rest_all[smap[n]] for n in smap}
     s_rest_inv = {n: rot3(m).inverted() for n, m in s_rest.items()}
     action = src.animation_data.action
-    start, end = frames or (int(action.frame_range[0]), int(action.frame_range[1]))
+    first_frame, last_frame = action.frame_range
+    t0, t1 = span or (0.0, (last_frame - first_frame) / src_fps)
+    t1 = min(t1, (last_frame - first_frame) / src_fps)
+    count = int((t1 - t0) * FPS) + 1
     hips = 'mixamorig:Hips'
     ratio = tgt_rest[hips].to_translation().z / s_rest[hips].to_translation().z
+    poses, hip_locs, first = [], [], None
+    for k in range(count):
+        f = first_frame + (t0 + k / FPS) * src_fps
+        scene.frame_set(int(f), subframe=f - int(f))
+        want = {}
+        for n in names:
+            if n in smap:
+                w = rot3(src.matrix_world @ src.pose.bones[smap[n]].matrix) @ s_rest_inv[n] @ tgt_rest_rot[n]
+                want[n] = arm_rot_inv @ w
+        pose = {}
+        for n in names:
+            if n not in want:
+                continue
+            rest = local_rest[n].to_3x3()
+            p = parent_of[n]
+            if p and p in want:
+                basis = rest.inverted() @ local_rest[p].to_3x3() @ want[p].inverted() @ want[n]
+            elif p:
+                basis = rest.inverted() @ local_rest[p].to_3x3() @ tgt_rest_rot[p].inverted() @ rot3(rig.matrix_world) @ want[n]
+            else:
+                basis = rest.inverted() @ want[n]
+            pose[n] = basis.to_quaternion()
+        poses.append(pose)
+        sh = (src.matrix_world @ src.pose.bones[smap[hips]].matrix).to_translation() - s_rest[hips].to_translation()
+        if first is None:
+            first = sh.copy()
+        head_world = tgt_rest[hips].to_translation() + Vector((first.x, first.y, sh.z)) * ratio
+        head_arm = rig.matrix_world.inverted() @ head_world
+        hip_locs.append(local_rest[hips].to_3x3().inverted() @ (head_arm - local_rest[hips].to_translation()))
+    blend = min(int(0.6 * FPS), count // 3)
+    for j in range(blend):
+        k = count - blend + j
+        w = (j + 1) / blend
+        for n, q in poses[k].items():
+            a = q.copy()
+            if a.dot(poses[0][n]) < 0:
+                a.negate()
+            poses[k][n] = a.slerp(poses[0][n], w)
+        hip_locs[k] = hip_locs[k].lerp(hip_locs[0], w)
     out = bpy.data.actions.new(name)
     rig.animation_data_create()
     rig.animation_data.action = out
-    scene = bpy.context.scene
-    first = None
-    for f in range(start, end + 1):
-        scene.frame_set(f)
-        want = {}
-        for n in names:
-            w = rot3(src.matrix_world @ src.pose.bones[n].matrix) @ s_rest_inv[n] @ tgt_rest_rot[n]
-            want[n] = arm_rot_inv @ w
-        for n in names:
-            rest = local_rest[n].to_3x3()
-            p = parent_of[n]
-            if p:
-                basis = rest.inverted() @ local_rest[p].to_3x3() @ want[p].inverted() @ want[n]
-            else:
-                basis = rest.inverted() @ want[n]
+    for k, pose in enumerate(poses):
+        for n, q in pose.items():
             pb = rig.pose.bones[n]
-            pb.rotation_quaternion = basis.to_quaternion()
-            pb.keyframe_insert('rotation_quaternion', frame=f - start + 1, group=n)
-        sh = (src.matrix_world @ src.pose.bones[hips].matrix).to_translation() - s_rest[hips].to_translation()
-        if first is None:
-            first = sh.copy()
-        offset = Vector((first.x, first.y, sh.z)) * ratio
-        head_world = tgt_rest[hips].to_translation() + offset
-        head_arm = rig.matrix_world.inverted() @ head_world
+            pb.rotation_quaternion = q
+            pb.keyframe_insert('rotation_quaternion', frame=k + 1, group=n)
         pbh = rig.pose.bones[hips]
-        pbh.location = local_rest[hips].to_3x3().inverted() @ (head_arm - local_rest[hips].to_translation())
-        pbh.keyframe_insert('location', frame=f - start + 1, group=hips)
+        pbh.location = hip_locs[k]
+        pbh.keyframe_insert('location', frame=k + 1, group=hips)
     rig.animation_data.action = None
     bpy.data.objects.remove(src, do_unlink=True)
     for a in list(bpy.data.actions):
         if a is not out and a.users == 0:
             bpy.data.actions.remove(a)
     out.use_fake_user = True
-    print('VR_CLIP', name, path.name, start, end)
+    scene.render.fps, scene.render.fps_base = FPS, 1
+    print('VR_CLIP', name, path.name, f'{t0:.1f}-{t1:.1f}s', count, 'frames from', src_fps, 'fps')
     return out
 
 
@@ -219,7 +290,8 @@ for pb in rig.pose.bones:
     pb.matrix_basis = Matrix()
 bpy.context.scene.frame_set(1)
 output_path.parent.mkdir(parents=True, exist_ok=True)
-if len(args) and spec.get('save_blend'):
+bpy.context.scene.render.fps, bpy.context.scene.render.fps_base = FPS, 1
+if spec.get('save_blend'):
     bpy.ops.wm.save_as_mainfile(filepath=str(output_path.with_suffix('.blend')))
 bpy.ops.export_scene.gltf(filepath=str(output_path), export_format='GLB',
     export_animations=True, export_animation_mode='NLA_TRACKS', export_skins=True,

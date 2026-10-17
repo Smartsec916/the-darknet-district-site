@@ -144,7 +144,13 @@
    if(isBar){for(const side of [-1,1]){cylinder('bar-patio-table',.60,.14,[side*3,.8,7.0],steel,n,10,false);cylinder('bar-table-post',.055,.76,[side*3,.38,7],steel,n,8,false);for(const off of [-.85,.85])cylinder('bar-stool',.26,.45,[side*3+off,.23,7],rust,n,8,false);}}else for(let i=0;i<4;i++){bevel('store-cargo-crate',[.9,.7,.82],[-4.2+i*1.2,.37,7.3],i%2?paint:rust,n,.06,false);}
    mergeModule(n);return n;
   }
-  commerce('store',-50,23,2.12);commerce('bar',-62,41,2.20);
+  const store=commerce('store',-50,23,2.12),bar=commerce('bar',-62,41,2.20);
+  // A few villagers (David, 2026-10-16): patio talk at the Dust Bar, a trader at Frontier Supply, a mechanic up a comms pole.
+  // They are background crew (no dialogue; skipped on low quality); the workshop stays Mara's.
+  const villager=(id,node,p,yaw)=>{if(low)return null;const n=characterModel(id,node,p,true);if(n)n.rotation.y=yaw;return n;};
+  villager('crew-vesper-sit1',bar,[2.15,0,7],Math.PI/2);villager('crew-vesper-sit2',bar,[3.85,0,7],-Math.PI/2);
+  villager('crew-vesper-talk1',bar,[-2.3,0,6.2],Math.PI/2);villager('crew-vesper-talk2',bar,[-1.1,0,6.2],-Math.PI/2);
+  villager('crew-vesper-watch',store,[2.6,0,6.3],.3);villager('crew-vesper-work',parent,[-29,0,27.9],Math.PI);
   for(const [x,z] of [[-29,27],[-44,29],[-55,48],[-68,54]]){cylinder('village-comms-pole',.065,8.5,[x,4.25,z],steel);box('utility-crossarm',[2.1,.10,.12],[x,7.3,z],paint);for(const side of [-1,1]){cylinder('insulator',.11,.22,[x+side*.85,7.4,z],dark);box('lamp-head',[.50,.14,.35],[x+side*.85,5.3,z],warm);}bevel('pole-control-box',[.65,.84,.4],[x,.95,z],habitatTrim);}
   for(const [x,z] of [[-24,8],[-31,12],[-47,51],[-70,35]]){cylinder('storage-drum',.33,.9,[x,.45,z],rust);bevel('utility-case',[1.0,.58,.8],[x+1.1,.30,z+.5],paint);}
   if(!low)for(const [x,z] of [[-30,30],[-52,15],[-70,45],[-48,63]])for(let i=0;i<7;i++){const pebble=VoidVesperVisuals.boulder(B,scene,'village-rock',.1+rand()*.32,rand()*90,'low');add(pebble,rock,[x+rand()*5,0,z+rand()*5]);pebble.rotation.y=rand()*6.28;}

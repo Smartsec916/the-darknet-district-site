@@ -1,0 +1,93 @@
+{
+ "name": "vesper_trader",
+ "about": "Vesper (desert frontier): merchant and traveller in a faded rust shirt and khaki trousers, wide hat, sand face scarf. MakeHuman CC0.",
+ "phenotype": {
+  "gender": 1,
+  "age": 0.6,
+  "muscle": 0.45,
+  "weight": 0.55,
+  "height": 0.5,
+  "race": {
+   "asian": 0.3,
+   "caucasian": 0.3,
+   "african": 0.4
+  }
+ },
+ "skin": "middleage_african_male",
+ "hair": "short02",
+ "clothes": [
+  "male_casualsuit03",
+  "shoes01",
+  "fedora01"
+ ],
+ "style": {
+  "male_casualsuit03": {
+   "recolor": [
+    {
+     "color": [
+      0.5,
+      0.47,
+      0.33
+     ],
+     "level": 0.85,
+     "select": {
+      "hue": [
+       0.5,
+       0.72
+      ],
+      "sat": [
+       0.15,
+       1
+      ]
+     }
+    },
+    {
+     "color": [
+      0.45,
+      0.22,
+      0.12
+     ],
+     "level": 0.85,
+     "select": {
+      "hue": [
+       0.75,
+       0.5
+      ]
+     }
+    }
+   ]
+  },
+  "fedora01": {
+   "recolor": [
+    {
+     "color": [
+      0.62,
+      0.52,
+      0.38
+     ],
+     "level": 0.9
+    }
+   ]
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "work",
+  "watch",
+  "sit"
+ ],
+ "accessories": [
+  {
+   "type": "mask",
+   "color": [
+    0.55,
+    0.46,
+    0.34
+   ],
+   "glow": null
+  }
+ ],
+ "lean": true,
+ "maxGarmentVerts": 9000
+}

@@ -1,0 +1,89 @@
+{
+ "name": "vesper_pilot",
+ "about": "Vesper (desert frontier): pilot in olive and tan flight wear, brown ponytail, flight goggles. MakeHuman CC0.",
+ "phenotype": {
+  "gender": 0,
+  "age": 0.4,
+  "muscle": 0.55,
+  "weight": 0.4,
+  "height": 0.5,
+  "race": {
+   "asian": 0.6,
+   "caucasian": 0.3,
+   "african": 0.1
+  },
+  "cupsize": 0.5
+ },
+ "skin": "young_asian_female",
+ "hair": "ponytail01",
+ "clothes": [
+  "female_sportsuit01",
+  "shoes03"
+ ],
+ "style": {
+  "female_sportsuit01": {
+   "recolor": [
+    {
+     "color": [
+      0.3,
+      0.32,
+      0.18
+     ],
+     "level": 0.8,
+     "select": {
+      "val": [
+       0,
+       0.6
+      ]
+     }
+    },
+    {
+     "color": [
+      0.55,
+      0.45,
+      0.32
+     ],
+     "level": 0.9,
+     "select": {
+      "val": [
+       0.6,
+       1
+      ]
+     }
+    }
+   ]
+  },
+  "hair": {
+   "recolor": [
+    {
+     "color": [
+      0.32,
+      0.22,
+      0.14
+     ],
+     "level": 0.85
+    }
+   ]
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "work",
+  "watch",
+  "sit"
+ ],
+ "accessories": [
+  {
+   "type": "shades",
+   "color": [
+    0.08,
+    0.06,
+    0.04
+   ],
+   "glow": null
+  }
+ ],
+ "lean": true,
+ "maxGarmentVerts": 9000
+}

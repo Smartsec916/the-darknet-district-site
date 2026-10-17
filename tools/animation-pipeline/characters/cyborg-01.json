@@ -1,6 +1,6 @@
 {
  "name": "cyborg_01",
- "about": "Cyborg trooper: gunmetal Jupiter-7 plate over a black skinsuit, green-lit plate edges, green visor and collar. MakeHuman CC0 assets.",
+ "about": "Cyborg trooper: gunmetal Jupiter-7 plate over a black skinsuit, cyan-lit plate edges, cyan visor and neck port. MakeHuman CC0 assets.",
  "phenotype": {
   "gender": 1.0,
   "age": 0.5,
@@ -47,9 +47,9 @@
     {
      "mode": "key",
      "color": [
-      0.3,
-      1.0,
-      0.4
+      0.5,
+      0.9,
+      1.0
      ],
      "width": 1,
      "strength": 2.0,
@@ -67,23 +67,31 @@
    ]
   }
  },
+ "clips": [
+  "idle",
+  "talk",
+  "work",
+  "watch",
+  "sit"
+ ],
  "accessories": [
   {
    "type": "visor",
    "glow": [
-    0.3,
-    1.0,
-    0.4
+    0.5,
+    0.9,
+    1.0
    ]
   },
   {
    "type": "collar",
    "glow": [
-    0.3,
-    1.0,
-    0.4
+    0.5,
+    0.9,
+    1.0
    ]
   }
  ],
- "save_blend": true
+ "lean": true,
+ "maxGarmentVerts": 9000
 }

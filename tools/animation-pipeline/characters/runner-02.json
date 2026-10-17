@@ -62,6 +62,11 @@
    ]
   }
  },
+ "clips": [
+  "idle",
+  "talk",
+  "watch"
+ ],
  "accessories": [
   {
    "type": "shades",
@@ -73,5 +78,6 @@
    "strength": 1.2
   }
  ],
- "save_blend": true
+ "lean": true,
+ "maxGarmentVerts": 9000
 }

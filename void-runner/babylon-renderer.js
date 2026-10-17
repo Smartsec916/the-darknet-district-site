@@ -522,9 +522,9 @@
     node.metadata={layout:id,doors,arrays,placeholder:true};return node;
   }
 
-  let actors=[],stationActivity=null,lastActivityTime=null;
+  let actors=[],stationActivity=null,lastActivityTime=null,crowdLocation=null;
   function characterModel(id,parent,position,ambient=false){
-    const model=VoidAssets.instance('character:'+id,parent);if(model){model.position.set(position[0],0,position[2]);actors.push({node:model,base:position.slice(),ambient});return model;}
+    const model=VoidAssets.instance('character:'+id,parent);if(model){model.position.set(position[0],0,position[2]);actors.push({node:model,base:position.slice(),ambient});return model;}const look=ambient&&id.startsWith('crew-')&&root.VoidCrowd?VoidCrowd.pick(crowdLocation,id):null,figure=look&&VoidAssets.instance('crowd:'+look,parent);if(figure){figure.position.set(position[0],0,position[2]);figure.metadata={...figure.metadata,crowd:look,character:id,ambient};actors.push({node:figure,base:position.slice(),ambient,crowd:VoidCrowd.animate(figure,look,VoidCrowd.clipFor(id))});return figure;}
     const b=B(),a=VoidStationLayouts.appearances[id]||{coat:['#48565b','#665541','#566249','#4d5264'][Number(id.slice(-1))%4]||'#59676e',hair:'#30363c',skin:['#ae8a70','#75533f','#c7a184'][Number(id.slice(-1))%3]||'#ae8a70'},node=new b.TransformNode('npc-'+id,scene);
     node.parent=parent;node.position.set(...position);node.position.y=0;
     const coat=material('coat',a.coat),skin=material('skin',a.skin),dark=material('clothing','#252b33');
@@ -559,7 +559,7 @@
   async function prepareStation(def,task){
     release(); // A new visit owns exactly one room and its actors, signs and lights.
     const propModels=Object.fromEntries((def.props||[]).filter(p=>VoidAssets.models.props?.[p.model]).map(p=>['prop:'+p.model,VoidAssets.models.props[p.model]]));
-    await prepareSpace(def.id,['raider','courier','shuttle','security',def.ship],task,{...propModels,...(def.id==='meridian'&&globalThis.VoidMeridianInteriorKit?VoidMeridianInteriorKit.definitions('ikit:'):{}),...Object.fromEntries(def.interactions.filter(i=>i.character&&VoidAssets.models.characters[i.character]).map(i=>['character:'+i.character,VoidAssets.models.characters[i.character]]))});task.check();station.setEnabled(false);rocks.forEach((mesh,i)=>{mesh.position.set((i%2?-1:1)*(75+i*6),30+Math.sin(i)*24,90+i*17);mesh.scaling.setAll(2+i%5);});
+    crowdLocation=def.id;root.VoidCrowd?.begin();await prepareSpace(def.id,['raider','courier','shuttle','security',def.ship],task,{...(root.VoidCrowd?.models(def.id,quality)||{}),...propModels,...(def.id==='meridian'&&globalThis.VoidMeridianInteriorKit?VoidMeridianInteriorKit.definitions('ikit:'):{}),...Object.fromEntries(def.interactions.filter(i=>i.character&&VoidAssets.models.characters[i.character]).map(i=>['character:'+i.character,VoidAssets.models.characters[i.character]]))});task.check();station.setEnabled(false);rocks.forEach((mesh,i)=>{mesh.position.set((i%2?-1:1)*(75+i*6),30+Math.sin(i)*24,90+i*17);mesh.scaling.setAll(2+i%5);});
     roomRoot=stationModel(def.id,null,false,def);room=def;actors=[];stationActivity=def.activityPoints?VoidStationActivities.create(def):null;lastActivityTime=null;
     const ship=shipModel(def.ship,'friendly',roomRoot);ship.position.set(-7,2,-9);ship.scaling.setAll(2);
     for(const item of def.interactions)if(item.character)characterModel(item.character,roomRoot,item.visualPosition||item.position);
@@ -1013,7 +1013,7 @@
     room = def;
     camera.unfreezeProjectionMatrix();
     if(def.kind==='workshop'){
-      const definitions=Object.fromEntries(Object.entries(VoidOpening.hooks).filter(([,d])=>d.src).map(([id,d])=>['opening:'+id,d]));
+      crowdLocation='vesper';root.VoidCrowd?.begin();const definitions={...(root.VoidCrowd?.models('vesper',quality)||{}),...Object.fromEntries(Object.entries(VoidOpening.hooks).filter(([,d])=>d.src).map(([id,d])=>['opening:'+id,d]))};
       if(VoidAssets.models.ships.starter)definitions['ship:starter']=VoidAssets.models.ships.starter;
       await task.wait('assets',()=>VoidAssets.prepare(scene,definitions,task),'workshop models');
       openingHandle=VoidOpeningScene.build({scene,parent:roomRoot,quality,shadowLight:scene.getLightByName('sun'),characterModel,shipModel,state,camera});
@@ -1021,12 +1021,12 @@
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
     if(def.district&&root.VoidNeoChinatown){
-      await task.wait('assets',()=>VoidAssets.prepare(scene,VoidNeoChinatown.models||{},task),'district models');
+      crowdLocation='neochinatown';root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,{...(root.VoidCrowd?.models('neochinatown',quality)||{}),...(VoidNeoChinatown.models||{})},task),'district models');
       districtHandle=VoidNeoChinatown.build({scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{},instance:(id,parent)=>VoidAssets.instance(id,parent)});
       await task.wait('scene',()=>scene.whenReadyAsync(),'neochinatown');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
-    if(def.planet&&root.VoidPlanets){
+    if(def.planet&&root.VoidPlanets){crowdLocation=def.planet;root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,root.VoidCrowd?.models(def.planet,quality)||{},task),'crowd models');
       planetHandle=VoidPlanets.build(def.planet,{scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{}});
       await task.wait('scene',()=>scene.whenReadyAsync(),'homeworld');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
@@ -1036,7 +1036,7 @@
       await task.wait('scene',()=>scene.whenReadyAsync(),'derelict station');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
-    const definitions = Object.fromEntries((def.models || []).map(m => [m.id, m]));
+    crowdLocation=def.id;root.VoidCrowd?.begin();const definitions = {...(root.VoidCrowd?.models(def.id,quality)||{}),...Object.fromEntries((def.models || []).map(m => [m.id, m]))};
     const hullId=def.ship||'starter';if(VoidAssets.models.ships[hullId])definitions['ship:'+hullId]=VoidAssets.models.ships[hullId];
     await task.wait('assets',()=>VoidAssets.prepare(scene, definitions,task),'room models');
     for (const defn of def.models || []) {
@@ -1105,7 +1105,7 @@
   function clearRoom() {
     roomRoot?.metadata?.art?.dispose?.();
     roomRoot?.metadata?.exterior?.metadata?.dispose?.();
-    openingHandle?.dispose();openingHandle=null;
+    openingHandle?.dispose();openingHandle=null;root.VoidCrowd?.release();
     derelictHandle?.dispose();derelictHandle=null;districtHandle?.dispose();districtHandle=null;planetHandle?.dispose();planetHandle=null;
     for (const s of signs) {
       s.texture.dispose();
@@ -1133,7 +1133,7 @@
     }
     if(stationActivity){VoidStationActivities.step(stationActivity,lastActivityTime===null?0:Math.min(.1,Math.max(0,time-lastActivityTime)));lastActivityTime=time;}
     for(const mesh of roomRoot.getChildMeshes()){const d=mesh.metadata?.stationDoor;if(d)mesh.position.y=d.position[1]+(d.open?3.5:0);}
-    for(const actor of actors){if(actor.activity){const a=actor.activity,seated=a.state==='sit'||a.state==='drink';actor.node.position.set(a.x,seated?-.35:0,a.z);actor.node.rotation.y=a.yaw;actor.cup?.setEnabled(a.state==='drink'||a.state==='get-drink');for(const mesh of actor.node.getChildMeshes()){if(mesh.name==='arm')mesh.rotation.x=a.state==='walk'?Math.sin(time*5+a.id)*.25:a.state==='talk'?Math.sin(time*2+a.id)*.15:a.state==='drink'?-.9+Math.sin(time)*.15:a.gesture==='device'?-.65:0;if(mesh.name==='leg')mesh.rotation.x=seated?-1.15:a.state==='walk'?Math.sin(time*5+(mesh.position.x<0?Math.PI:0))*.3:0;if(mesh.name==='head')mesh.rotation.y=a.gesture==='look'?Math.sin(time)*.18:0;}continue;}if(openingHandle&&actor.node===openingHandle.mara)continue;if(actor.traffic){actor.node.position.set((actor.lane%2?-1:1)*(25+actor.lane*8),5+actor.lane*2,((time*(5+actor.lane)+actor.lane*37)%140)-55);actor.node.rotation.y=0;}else{actor.node.rotation.y=Math.sin(time*.3+actor.base[0])*.13;if(actor.ambient)actor.node.position.z=actor.base[2]+Math.sin(time*.2+actor.base[0])*1.2;}}
+    for(const actor of actors){if(actor.crowd){const a=actor.activity;if(a){actor.node.position.set(a.x,0,a.z);actor.node.rotation.y=a.yaw;actor.cup?.setEnabled(false);if(a.state==='walk')actor.crowd.walk(time+a.id);else actor.crowd.play(VoidCrowd.activityClip[a.state]||'idle');}continue;}if(actor.activity){const a=actor.activity,seated=a.state==='sit'||a.state==='drink';actor.node.position.set(a.x,seated?-.35:0,a.z);actor.node.rotation.y=a.yaw;actor.cup?.setEnabled(a.state==='drink'||a.state==='get-drink');for(const mesh of actor.node.getChildMeshes()){if(mesh.name==='arm')mesh.rotation.x=a.state==='walk'?Math.sin(time*5+a.id)*.25:a.state==='talk'?Math.sin(time*2+a.id)*.15:a.state==='drink'?-.9+Math.sin(time)*.15:a.gesture==='device'?-.65:0;if(mesh.name==='leg')mesh.rotation.x=seated?-1.15:a.state==='walk'?Math.sin(time*5+(mesh.position.x<0?Math.PI:0))*.3:0;if(mesh.name==='head')mesh.rotation.y=a.gesture==='look'?Math.sin(time)*.18:0;}continue;}if(openingHandle&&actor.node===openingHandle.mara)continue;if(actor.traffic){actor.node.position.set((actor.lane%2?-1:1)*(25+actor.lane*8),5+actor.lane*2,((time*(5+actor.lane)+actor.lane*37)%140)-55);actor.node.rotation.y=0;}else{actor.node.rotation.y=Math.sin(time*.3+actor.base[0])*.13;if(actor.ambient)actor.node.position.z=actor.base[2]+Math.sin(time*.2+actor.base[0])*1.2;}}
     roomRoot.metadata?.arrays?.forEach((n,i)=>n.rotation.z=.14+Math.sin(time*.015+i*.2)*.08);
     openingHandle?.tick(time);districtHandle?.tick(time);planetHandle?.tick(time);
     scene.render();

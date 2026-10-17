@@ -1,0 +1,88 @@
+{
+ "name": "order_grower",
+ "about": "Natural Order: grower in brown and rust workwear with a long braid, dust scarf. MakeHuman CC0.",
+ "phenotype": {
+  "gender": 0,
+  "age": 0.5,
+  "muscle": 0.5,
+  "weight": 0.5,
+  "height": 0.5,
+  "race": {
+   "asian": 0.2,
+   "caucasian": 0.4,
+   "african": 0.4
+  },
+  "cupsize": 0.5
+ },
+ "skin": "middleage_african_female",
+ "hair": "braid01",
+ "clothes": [
+  "female_sportsuit01",
+  "shoes02"
+ ],
+ "style": {
+  "female_sportsuit01": {
+   "recolor": [
+    {
+     "color": [
+      0.3,
+      0.2,
+      0.13
+     ],
+     "level": 0.85,
+     "select": {
+      "val": [
+       0,
+       0.6
+      ]
+     }
+    },
+    {
+     "color": [
+      0.45,
+      0.22,
+      0.12
+     ],
+     "level": 0.9,
+     "select": {
+      "val": [
+       0.6,
+       1
+      ]
+     }
+    }
+   ]
+  },
+  "hair": {
+   "recolor": [
+    {
+     "color": [
+      0.18,
+      0.12,
+      0.08
+     ],
+     "level": 0.8
+    }
+   ]
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "work",
+  "watch"
+ ],
+ "accessories": [
+  {
+   "type": "mask",
+   "color": [
+    0.4,
+    0.26,
+    0.15
+   ],
+   "glow": null
+  }
+ ],
+ "lean": true,
+ "maxGarmentVerts": 9000
+}

@@ -1,6 +1,6 @@
 {
  "name": "hacker_01",
- "about": "Street hacker: blacked-out jacket and jeans with cyan piping, cyan hair, visor. MakeHuman CC0 assets.",
+ "about": "Street hacker: blacked-out jacket and jeans with cyan piping, cyan hair, cyan visor. MakeHuman CC0 assets.",
  "phenotype": {
   "gender": 1.0,
   "age": 0.4,
@@ -81,6 +81,13 @@
    ]
   }
  },
+ "clips": [
+  "idle",
+  "talk",
+  "sit",
+  "smoke",
+  "watch"
+ ],
  "accessories": [
   {
    "type": "visor",
@@ -91,5 +98,6 @@
    ]
   }
  ],
- "save_blend": true
+ "lean": true,
+ "maxGarmentVerts": 9000
 }

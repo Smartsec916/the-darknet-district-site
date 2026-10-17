@@ -1,0 +1,47 @@
+{
+ "about": "Crowd clip library for build_mpfb_character.py --mocap DIR. Times are seconds into each source file. Every clip is retargeted to the character, resampled to the library fps (15; the game interpolates) and loop-blended. Sources are Rokoko free mocap (VOID_RUNNER_KEEP); they are never modified.",
+ "restReference": "Laughs_mixamo.fbx",
+ "clips": {
+  "idle": {
+   "file": "Idle_02_HUMANIK_TF1.fbx",
+   "start": 2,
+   "end": 10
+  },
+  "talk": {
+   "file": "Idle_Conversation_Loop_HUMANIK_769_segment-2.fbx",
+   "start": 0,
+   "end": 8
+  },
+  "sit": {
+   "file": "Sitting_Idle01_HUMANIK_769.fbx",
+   "start": 2,
+   "end": 10
+  },
+  "watch": {
+   "file": "Idle_WatchingSomething_Loop_HUMANIK_769_segment.fbx",
+   "start": 0,
+   "end": 8
+  },
+  "smoke": {
+   "file": "Leaning_Idle02_Smoking_HUMANIK_769.fbx",
+   "start": 2,
+   "end": 10
+  },
+  "work": {
+   "file": "Smearballs_Hammer_HUMANIK_FTC.fbx",
+   "start": 1,
+   "end": 9
+  },
+  "drink": {
+   "file": "DancingwithDrink_mixamo.fbx",
+   "start": 0,
+   "end": 8
+  },
+  "typing": {
+   "file": "Typing_UsingMouse_mixamo.fbx",
+   "start": 0,
+   "end": 8
+  }
+ },
+ "fps": 15
+}

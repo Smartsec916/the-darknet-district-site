@@ -50,4 +50,15 @@ blender -b --python tools/animation-pipeline/build_mpfb_character.py -- characte
 node tools/assets/optimize-textures.cjs OUT.glb OUT-1k.glb 1024
 ```
 
-Requires MPFB 2.0.18 with the MakeHuman system assets and Suits 02 packs in its user data folder (CC0). Never use the Suits 02 known-character costumes (spider-gwen, rei_ayanami, yoko_tsuno). Styling (`mpfb_styling.py`): recolouring from a texture's own brightness, glowing trims (garment edges, UV seams, or painted texture areas such as armour trim bands) and simple visor, shades, mask and collar pieces parented to the head or neck bone. Nine looks exist in `characters/` (street, runner, hacker, fixer, cyborg trooper, armoured runner, bar regular, runner 02, techie); none is in the game. The Helios armour is about 113k vertices and needs a lighter version before game use. `joachip_cyborg_suit` was tried and rejected: it is a crude, oversized block shell. HumanIK clips are not supported by this script yet. Rokoko's free-clip pages allow commercial use in games but do not address redistribution; confirm before shipping processed clips from this public repository.
+Requires MPFB 2.0.18 with the MakeHuman system assets and Suits 02 packs in its user data folder (CC0). Never use the Suits 02 known-character costumes (spider-gwen, rei_ayanami, yoko_tsuno). Styling (`mpfb_styling.py`): recolouring from a texture's own brightness, glowing trims (garment edges, UV seams, or painted texture areas such as armour trim bands) and simple visor, shades, mask and collar pieces parented to the head or neck bone. The Helios armour (about 113k vertices) and `joachip_cyborg_suit` (a crude, oversized block shell) are not used.
+
+### Crowd looks in the game (2026-10-16)
+
+Seventeen looks dress the ambient `crew-*` NPCs; `void-runner/crowd.js` picks them per place and `crowd-looks.txt` lists them. Crowd specs set `lean` (no normal maps) and `maxGarmentVerts` (decimation), and name their clips from `clips.json` (HumanIK and Mixamo sources, retargeted by bone name, resampled to 15 fps, 8-second loops with a 0.6 s blend back to the first pose). Build one look:
+
+```text
+blender -b --python tools/animation-pipeline/build_mpfb_character.py -- characters/vesper-mechanic.json OUT-full.glb --mocap <VOID_RUNNER_KEEP folder>
+node tools/assets/optimize-textures.cjs OUT-full.glb void-runner/assets/models/crowd/vesper-mechanic.glb 512
+```
+
+Keep a spec's `clips` and its entry in `crowd.js` in step (`tests/crowd.test.cjs` checks). Named characters never use crowd looks.

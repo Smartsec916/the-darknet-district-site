@@ -8,7 +8,8 @@ Spec keys (see characters/*.json):
              Paints an emission texture: "boundary" lights the garment's open edges (hems, cuffs, collar),
              "seams" also lights its UV seams (piping), "key" lights texture areas matched by "select".
     select:  {"hue": [lo, hi], "sat": [lo, hi], "val": [lo, hi]} in 0..1 (hue may wrap, e.g. [0.95, 0.05]).
-  "accessories": [{"type": "visor"|"shades"|"mask"|"collar", "color": [r,g,b], "glow": [r,g,b]}]
+  "accessories": [{"type": "visor"|"shades"|"mask"|"collar", "color": [r,g,b], "glow": [r,g,b] or null}]
+             glow null = no light (dark goggles, a plain scarf or collar). A mask with no glow reads as a face scarf.
              Simple hard-surface pieces fitted to the head or neck and parented to that bone.
 Colours are 0..1 sRGB. Textures are worked at 1024 px; nothing outside this character is changed.
 """
@@ -238,19 +239,19 @@ def add_accessories(rig, basemesh, accessories, name):
     head = rig.matrix_world @ rig.data.bones['mixamorig:Head'].head_local
     neck = rig.matrix_world @ rig.data.bones['mixamorig:Neck'].head_local
     for i, acc in enumerate(accessories):
-        kind, color, glow = acc['type'], acc.get('color', [0.03, 0.035, 0.045]), acc.get('glow')
+        kind, color, glow = acc['type'], acc.get('color', [0.03, 0.035, 0.045]), acc.get('glow', 'default')
         tag = f'{name}.{kind}{i}'
         if kind in ('visor', 'shades'):
             z0, z1 = (ez - 0.02, ez + 0.022) if kind == 'visor' else (ez - 0.012, ez + 0.012)
             c, r = _slice([basemesh], z0, z1, head, 0.14)
             band = _band(tag, c, r, z0, z1, 210 if kind == 'visor' else 160, 0.012)
-            _attach(band, rig, 'mixamorig:Head', _material(tag, color, glow or [0.1, 0.9, 1.0], acc.get('strength', 0.45), 0.8, 0.15))
+            _attach(band, rig, 'mixamorig:Head', _material(tag, color, [0.1, 0.9, 1.0] if glow == 'default' else glow, acc.get('strength', 0.45), 0.8, 0.15))
         elif kind == 'mask':
             z0, z1 = ez - 0.105, ez - 0.032
             c, r = _slice([basemesh], z0, z1, head, 0.14)
             band = _band(tag, c, r, z0, z1, 200, 0.007, 0.005)
             _attach(band, rig, 'mixamorig:Head', _material(tag, color, None, 0, 0.3, 0.55))
-            if glow:
+            if glow and glow != 'default':
                 for j, dz in enumerate((0.022, 0.042)):
                     slit = _band(f'{tag}.slit{j}', c, r, z0 + dz, z0 + dz + 0.004, 70, 0.0125, 0.002, 16)
                     _attach(slit, rig, 'mixamorig:Head', _material(f'{tag}.slit{j}', [0.05, 0.05, 0.05], glow, acc.get('strength', 2.0)))
@@ -258,7 +259,7 @@ def add_accessories(rig, basemesh, accessories, name):
             z0, z1 = neck.z + 0.0, neck.z + 0.03
             c, r = _slice(kids, z0, z1, neck, 0.16)
             band = _band(tag, c, r, z0, z1, 360, 0.004, 0.006, 48)
-            _attach(band, rig, 'mixamorig:Neck', _material(tag, color, glow, acc.get('strength', 2.0)))
+            _attach(band, rig, 'mixamorig:Neck', _material(tag, color, None if glow == 'default' else glow, acc.get('strength', 2.0)))
         print('VR_ACCESSORY', tag)
 
 

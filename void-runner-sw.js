@@ -1,5 +1,5 @@
 /* VOID//RUNNER only. Increment BUILD when deploying changed game files. */
-const BUILD='2026-10-17-district-furniture-voices';
+const BUILD='2026-10-16-crowd-looks';
 const CORE='void-runner-core-'+BUILD;
 const ASSETS='void-runner-assets-'+BUILD;
 const PAGE=new URL('./void-runner.html',self.location).pathname;

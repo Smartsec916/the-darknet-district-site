@@ -1,0 +1,91 @@
+{
+ "name": "vesper_mechanic",
+ "about": "Vesper (desert frontier): spaceport mechanic in rust overalls and a sand shirt, dark welding goggles. MakeHuman CC0.",
+ "phenotype": {
+  "gender": 1,
+  "age": 0.55,
+  "muscle": 0.6,
+  "weight": 0.5,
+  "height": 0.55,
+  "race": {
+   "asian": 0.2,
+   "caucasian": 0.5,
+   "african": 0.3
+  }
+ },
+ "skin": "middleage_caucasian_male",
+ "hair": "short01",
+ "clothes": [
+  "male_worksuit01",
+  "shoes03"
+ ],
+ "style": {
+  "male_worksuit01": {
+   "recolor": [
+    {
+     "color": [
+      0.45,
+      0.22,
+      0.12
+     ],
+     "level": 0.85,
+     "select": {
+      "hue": [
+       0.5,
+       0.72
+      ],
+      "sat": [
+       0.15,
+       1
+      ]
+     }
+    },
+    {
+     "color": [
+      0.62,
+      0.52,
+      0.38
+     ],
+     "level": 0.85,
+     "select": {
+      "sat": [
+       0,
+       0.15
+      ]
+     }
+    }
+   ]
+  },
+  "hair": {
+   "recolor": [
+    {
+     "color": [
+      0.25,
+      0.2,
+      0.16
+     ],
+     "level": 0.8
+    }
+   ]
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "work",
+  "watch"
+ ],
+ "accessories": [
+  {
+   "type": "visor",
+   "color": [
+    0.06,
+    0.05,
+    0.04
+   ],
+   "glow": null
+  }
+ ],
+ "lean": true,
+ "maxGarmentVerts": 9000
+}

@@ -1,0 +1,72 @@
+{
+ "name": "district_resident",
+ "about": "The Darknet District: resident in dark grey streetwear, black braid, mask with red slits. MakeHuman CC0.",
+ "phenotype": {
+  "gender": 0,
+  "age": 0.3,
+  "muscle": 0.45,
+  "weight": 0.45,
+  "height": 0.45,
+  "race": {
+   "asian": 0.7,
+   "caucasian": 0.2,
+   "african": 0.1
+  },
+  "cupsize": 0.5
+ },
+ "skin": "young_asian_female",
+ "hair": "braid01",
+ "clothes": [
+  "female_sportsuit01",
+  "shoes04"
+ ],
+ "style": {
+  "female_sportsuit01": {
+   "recolor": [
+    {
+     "color": [
+      0.16,
+      0.16,
+      0.18
+     ],
+     "level": 0.8
+    }
+   ]
+  },
+  "hair": {
+   "recolor": [
+    {
+     "color": [
+      0.06,
+      0.06,
+      0.07
+     ],
+     "level": 0.8
+    }
+   ]
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "sit",
+  "smoke"
+ ],
+ "accessories": [
+  {
+   "type": "mask",
+   "color": [
+    0.04,
+    0.04,
+    0.05
+   ],
+   "glow": [
+    1.0,
+    0.1,
+    0.15
+   ]
+  }
+ ],
+ "lean": true,
+ "maxGarmentVerts": 9000
+}

@@ -1,6 +1,6 @@
 {
  "name": "techie_01",
- "about": "Techie: dark skinsuit with guardian bracers and boots, amber-lit edges, electric-blue afro, glowing collar. MakeHuman CC0 assets.",
+ "about": "Techie: dark skinsuit with guardian bracers and boots, amber-lit edges, electric-blue afro. MakeHuman CC0 assets.",
  "phenotype": {
   "gender": 1.0,
   "age": 0.35,
@@ -79,15 +79,5 @@
    ]
   }
  },
- "accessories": [
-  {
-   "type": "collar",
-   "glow": [
-    1.0,
-    0.55,
-    0.05
-   ]
-  }
- ],
  "save_blend": true
 }

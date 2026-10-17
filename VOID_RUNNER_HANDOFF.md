@@ -590,6 +590,8 @@ Done; see §4.3. Possible follow-ups:
 
 - **Meridian interior layout** (David, 2026-10-17): through the hangar’s pressure door, a door on the left of the corridor opens into minimal crew quarters (bunks and toilet stalls). Further down the concourse, the store is on the left and the Dead Channel bar is at the far end on the left, each a recessed room with its own entrance (“they should have their own separate areas”), with seating across from the bar along windows looking out to space. The old crew rooms at the far end are removed. The hangar, the corridor and the pressure door are unchanged.
 - **Meridian interior dressing** from David’s reference sheet, using the approved CC0 Quaternius packs: PROPOSED, renders in the PR.
+- **Crowd looks** (David, 2026-10-16, his NPC customization brief, with artistic licence): background crew-* NPCs wear CC0 MakeHuman figures dressed per place (recolours, glow trims, simple visors, scarves, masks and collars) and play the Rokoko mocap clips. Named characters keep their existing looks. Low quality keeps the procedural crew. Details: tools/animation-pipeline/README.md. In review (PR).
+- **Vesper villagers** (David, 2026-10-16: "populate Vesper's village area a little"): six background villagers at the Dust Bar patio, Frontier Supply and a comms pole. No dialogue; the workshop stays Mara's.
 
 ### Rejected or removed (do not reintroduce)
 

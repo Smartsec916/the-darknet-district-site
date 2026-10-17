@@ -1,10 +1,24 @@
 {
  "name": "street_01",
  "about": "Test crowd character: The Darknet District street look. All assets are MakeHuman CC0.",
- "phenotype": {"gender": 1.0, "age": 0.45, "muscle": 0.55, "weight": 0.45, "height": 0.55, "race": {"asian": 0.8, "caucasian": 0.1, "african": 0.1}},
+ "phenotype": {
+  "gender": 1.0,
+  "age": 0.45,
+  "muscle": 0.55,
+  "weight": 0.45,
+  "height": 0.55,
+  "race": {
+   "asian": 0.8,
+   "caucasian": 0.1,
+   "african": 0.1
+  }
+ },
  "skin": "young_asian_male",
  "hair": "short04",
  "eyebrows": "eyebrow001",
- "clothes": ["male_casualsuit05", "shoes03"],
+ "clothes": [
+  "male_casualsuit05",
+  "shoes03"
+ ],
  "save_blend": true
 }

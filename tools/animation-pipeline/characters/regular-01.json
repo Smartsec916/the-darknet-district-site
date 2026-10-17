@@ -1,6 +1,6 @@
 {
  "name": "regular_01",
- "about": "Bar regular: olive work overalls, charcoal shirt, face mask with teal slits. MakeHuman CC0 assets.",
+ "about": "Bar regular: olive work overalls, charcoal shirt, mask with teal slits. MakeHuman CC0 assets.",
  "phenotype": {
   "gender": 1.0,
   "age": 0.6,
@@ -69,6 +69,12 @@
    ]
   }
  },
+ "clips": [
+  "idle",
+  "talk",
+  "sit",
+  "watch"
+ ],
  "accessories": [
   {
    "type": "mask",
@@ -84,5 +90,6 @@
    ]
   }
  ],
- "save_blend": true
+ "lean": true,
+ "maxGarmentVerts": 9000
 }
