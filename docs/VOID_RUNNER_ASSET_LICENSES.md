@@ -62,6 +62,9 @@ All files are under `void-runner/assets/models/`. Every entry was approved by Da
 | meridian-interior/house-bathroom-toilet.glb | Bathroom_Toilet | Ultimate House Interior Pack, June 2020 (https://opengameart.org/node/126986, quaternius, CC0 1.0; OBJ converted with tools/assets/obj-to-glb.cjs) | crew quarters toilets | 2026-10-17 | Approved (download approved by David), in game |
 | meridian-interior/house-bathroom-sink.glb | Bathroom_Sink | Ultimate House Interior Pack, June 2020 (https://opengameart.org/node/126986, quaternius, CC0 1.0; OBJ converted with tools/assets/obj-to-glb.cjs) | crew quarters washbasins | 2026-10-17 | Approved (download approved by David), in game |
 | meridian-interior/house-stool.glb | Stool | Ultimate House Interior Pack, June 2020 (https://opengameart.org/node/126986, quaternius, CC0 1.0; OBJ converted with tools/assets/obj-to-glb.cjs) | Dead Channel bar stools | 2026-10-17 | Approved (download approved by David), in game |
+| district/couch.glb | Couch_Medium1 | Ultimate House Interior Pack, June 2020 (https://opengameart.org/node/126986, quaternius, CC0 1.0; OBJ converted with tools/assets/obj-to-glb.cjs) | Darknet District VR lounge couch | 2026-10-17 | In game |
+| district/bin.glb | Trashcan_Small1 | Ultimate House Interior Pack, June 2020 (https://opengameart.org/node/126986, quaternius, CC0 1.0; OBJ converted with tools/assets/obj-to-glb.cjs) | Darknet District hallway bins | 2026-10-17 | In game |
+| district/chair.glb | Prop_Chair | Sci-Fi Essentials Kit (https://quaternius.com, CC0 1.0) | Darknet District VR monitor desks | 2026-10-17 | In game |
 
 Existing third-party code and media are documented elsewhere:
 - Babylon.js: `void-runner/vendor/BABYLON-LICENSE.md`

@@ -61,7 +61,7 @@
 
   // ---- Presentation -------------------------------------------------------
   const ads=()=>(root.VoidAds?.brands||[]).map(b=>b.id);
-  function build({scene,parent,quality,characterModel,shipModel,state}){
+  function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance}){
     const B=root.BABYLON,low=quality==='low',owned=[],textures=[],staticMeshes=new Map(),dynamic=[],v=(x,y,z)=>new B.Vector3(x,y,z);
     let seed=4127;const rand=()=>((seed=seed*16807%2147483647)-1)/2147483646;
     const previous={clear:scene.clearColor.clone(),fogMode:scene.fogMode,fogDensity:scene.fogDensity,fogColor:scene.fogColor.clone()};
@@ -82,6 +82,11 @@
     const adMats={},adIds=ads();function adMat(id){if(adMats[id])return adMats[id];const brand=root.VoidAds.brands.find(b=>b.id===id)||root.VoidAds.brands[0];const t=texture('ad-'+brand.id,low?256:512,low?384:768,(g,W,H)=>root.VoidAds.paint(g,W,H,brand));const m=new B.StandardMaterial('ncz-ad-'+brand.id,scene);m.diffuseColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;owned.push(m);adMats[id]=m;return m;}
     let adIndex=0;const nextAd=()=>adIds[(adIndex++)%adIds.length];
     function billboard(w,p,ry){const id=nextAd();const frame=box('billboard-frame',[w+.4,w*1.5+.4,.25],[p[0]+Math.sin(ry)*.15,p[1],p[2]+Math.cos(ry)*.15],mat('frame','#15151a',{rough:.5,metal:.7}));frame.rotation.y=ry;return plane('billboard',w,w*1.5,p,adMat(id),ry);}
+
+    // Clear glass: barely tinted, no environment glare, so what is behind it stays readable.
+    function glass(key,hex,alpha){if(mats[key])return mats[key];const m=new B.StandardMaterial('ncz-'+key,scene);m.diffuseColor=B.Color3.FromHexString(hex);m.emissiveColor=B.Color3.FromHexString(hex).scale(.08);m.specularColor=new B.Color3(.25,.25,.3);m.alpha=alpha;m.backFaceCulling=false;owned.push(m);mats[key]=m;return m;}
+    // Imported models (models below); null when one isn't loaded, so callers keep their built version.
+    const instance=(key,p,yaw=0)=>{const n=modelInstance?.('district:'+key,parent);if(!n)return null;n.position.set(...p);n.rotation.y=yaw;return n;};
 
     // Shared surfaces.
     const asphaltTex=texture('asphalt',512,512,(g,W,H)=>{g.fillStyle='#16161c';g.fillRect(0,0,W,H);for(let i=0;i<9000;i++){g.fillStyle='rgba('+(rand()<.5?'255,255,255':'0,0,0')+','+(rand()*.06)+')';g.fillRect(rand()*W,rand()*H,1+rand()*3,1+rand()*3);}for(let i=0;i<14;i++){const x=rand()*W,y=rand()*H,r=20+rand()*70,gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(40,30,60,.5)');gr.addColorStop(1,'rgba(40,30,60,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);}});
@@ -146,9 +151,13 @@
     if(!state.story?.flags?.districtBadge){const inner=box('district-inner-door',[5.6,3.1,.28],[0,1.55,26],mat('door-inner','#1d2026',{rough:.35,metal:.9}),false);inner.name='district-inner-door';box('inner-door-light',[5.6,.06,.06],[0,3.15,25.84],red,false).name='district-inner-door-light';}
 
     // ---- Hallway and room shells -----------------------------------------
-    add(B.MeshBuilder.CreateGround('district-floor',{width:34,height:52},scene),floor,[0,.02,52]);
+    // Dark wet-look tiles (David's reference pictures, 2026-10-17): low roughness so the neon reads in them.
+    const tileTex=texture('district-tiles',512,512,(g,W,H)=>{g.fillStyle='#0d0e14';g.fillRect(0,0,W,H);for(let y=0;y<H;y+=64)for(let x=0;x<W;x+=64){const s=15+rand()*9|0;g.fillStyle='rgb('+s+','+s+','+(s+7)+')';g.fillRect(x+2,y+2,60,60);}g.strokeStyle='#050608';g.lineWidth=3;for(let i=0;i<=W;i+=64){g.beginPath();g.moveTo(i,0);g.lineTo(i,H);g.stroke();g.beginPath();g.moveTo(0,i);g.lineTo(W,i);g.stroke();}for(let i=0;i<10;i++){const x=rand()*W,y=rand()*H,r=30+rand()*60,gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(0,0,0,.4)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);}});tileTex.uScale=6;tileTex.vScale=9;
+    const tiles=mat('wet-tiles','#ffffff',{rough:.16,metal:.5});tiles.albedoTexture=tileTex;
+    add(B.MeshBuilder.CreateGround('district-floor',{width:34,height:52},scene),tiles,[0,.02,52]);
     box('district-ceiling',[34,.3,52],[0,4.2,52],frame);
-    for(const s of solids){if(!/^(hall|vr|vend|pods|bar|shop|meet)-/.test(s.id))continue;box('district-wall',[Math.max(.3,s.size[0]),4.2,Math.max(.3,s.size[2])],[s.position[0],2.1,s.position[2]],metal);}
+    // Walls only: furniture collision blocks (counters, the pod row) are drawn by their rooms, not as walls.
+    for(const s of solids){if(!/^(hall|vr|vend|pods|bar|shop|meet)-/.test(s.id)||/-(counter|row|table)$/.test(s.id))continue;box('district-wall',[Math.max(.3,s.size[0]),4.2,Math.max(.3,s.size[2])],[s.position[0],2.1,s.position[2]],metal);}
     for(let z=28;z<78;z+=4){box('hall-beam',[6,.3,.3],[0,3.9,z],frame);box('hall-led',[.08,.05,3.6],[-2.6,3.85,z+2],z%8?cyan:magenta);box('hall-led',[.08,.05,3.6],[2.6,3.85,z+2],z%8?magenta:cyan);}
     for(const [z,side] of [[30.5,1],[46,-1],[58,1],[66,-1]])plane('hall-ad',1.2,1.8,[side*2.82,2.2,z],adMat(nextAd()),side>0?Math.PI/2:-Math.PI/2);
     for(const z of [40,72])box('hall-camera',[.2,.2,.4],[2.7,3.6,z],frame);
@@ -162,7 +171,7 @@
     // VR / arcade: rigs, cabinets, seating, players.
     for(let i=0;i<4;i++){const x=-13+i*2.6;box('vr-chair',[1.1,.6,1.1],[x,.3,32],mat('chair','#2a2340',{rough:.7}));box('vr-back',[1.1,1.2,.2],[x,1,31.5],mat('chair','#2a2340',{rough:.7}));box('vr-ring',[1.4,.06,1.4],[x,2.6,32],[cyan,magenta][i%2]);plane('vr-screen',1.4,.9,[x,1.9,30.1],adMat(nextAd()),Math.PI);characterModel('crew-vr'+i,parent,[x,0,32.3],true);}
     for(let i=0;i<5;i++){const z=31+i*2.4;box('arcade-cabinet',[1,2.1,1.4],[-16.2,1.05,z],mat('cabinet','#141420',{rough:.5,metal:.5}));plane('arcade-screen',.9,.8,[-15.68,1.55,z],adMat(nextAd()),-Math.PI/2);box('arcade-marquee',[.1,.3,1.3],[-15.66,2.2,z],[magenta,cyan,amber,violet][i%4]);}
-    box('vr-bench',[4,.45,1],[-9,.22,42.5],mat('chair','#2a2340',{rough:.7}));characterModel('crew-vr-watch',parent,[-9,0,42.3],true);
+    if(!instance('couch',[-9,0,42.6],Math.PI))box('vr-bench',[4,.45,1],[-9,.22,42.5],mat('chair','#2a2340',{rough:.7}));characterModel('crew-vr-watch',parent,[-9,0,42.3],true);
     for(let i=0;i<3;i++)box('vr-floor-strip',[12,.02,.08],[-10,.03,36+i*2],[cyan,magenta,violet][i]);
 
     // Bar and lounge: counter, bottles, booths, bartender, patrons.
@@ -183,19 +192,58 @@
     if(state?.story?.flags?.adminOccupied!==true)characterModel('admin',parent,[8,0,48.6],false);characterModel('iris',parent,[12.5,0,48.6],false);
 
     // Vending alcove: three lit machines.
-    for(let i=0;i<3;i++){const z=47.6+i*1.9;box('vending-body',[1,2.2,1.6],[-6.3,1.1,z],mat('vend','#16161d',{rough:.5,metal:.6}));plane('vending-front',.05+1.3,1.7,[-5.78,1.25,z],texMat('vend-'+i,texture('vend-'+i,128,170,(g,W,H)=>{g.fillStyle=['#0b2a33','#2b0b26','#2a220b'][i];g.fillRect(0,0,W,H);for(let y=10;y<H-30;y+=24)for(let x=8;x<W-10;x+=22){g.fillStyle=['#38e8ff','#ff5bd0','#ffb347','#6cff9e'][(x+y)%4];g.fillRect(x,y,14,16);}g.fillStyle='#e8f0ff';g.font='bold 14px sans-serif';g.fillText(['DRINKS','SNACKS','TECH'][i],10,H-10);}),{glow:true}),-Math.PI/2);}
+    // Machines (reference: glass fronts over lit shelves of goods, a payment panel at the side, a bright top light).
+    const vendGlass=glass('vend-glass','#cfe8ff',.08),vendBody=mat('vend','#16161d',{rough:.5,metal:.6}),itemColors=['#38e8ff','#ff5bd0','#ffb347','#6cff9e','#e8f0ff'];
+    for(let i=0;i<3;i++){const z=47.6+i*1.9,x=-6.3;
+     // A hollow cabinet: back, top, base and sides, open at the front behind the glass.
+     box('vending-back',[.5,2.2,1.6],[x-.25,1.1,z],vendBody);box('vending-top',[.5,.26,1.6],[x+.25,2.07,z],vendBody);box('vending-base',[.5,.34,1.6],[x+.25,.17,z],vendBody);box('vending-side',[.5,2.2,.07],[x+.25,1.1,z-.765],vendBody);box('vending-side',[.5,2.2,.36],[x+.25,1.1,z+.62],vendBody);box('vending-back-glow',[.04,1.6,1.1],[x+.12,1.15,z-.12],glowMat('vend-back-'+i,['#12384a','#3a1236','#3a2e10'][i],1));
+     for(let s=0;s<4;s++){const sy=.5+s*.42;box('vending-shelf',[.62,.03,1.1],[x+.2,sy,z-.12],frame);for(let k=0;k<5;k++){const h=.16+((i*7+s*3+k)%3)*.05,c=(i+s*2+k)%5;box('vending-item',[.22,h,.16],[x+.3,sy+h/2+.02,z-.55+k*.21],glowMat('vend-item-'+c,itemColors[c],.5));}}
+     box('vending-led',[.05,.05,1.1],[x+.48,1.97,z-.12],glowMat('vend-led','#f4f8ff',1.5));box('vending-glass',[.02,1.68,1.14],[x+.51,1.18,z-.12],vendGlass,false);
+     box('vending-panel',[.06,1.5,.32],[x+.5,1.1,z+.6],frame);box('vending-pay',[.02,.26,.2],[x+.535,1.38,z+.6],glowMat('vend-pay','#6cff9e',.9));box('vending-card',[.02,.1,.18],[x+.535,1.08,z+.6],amber);
+     neon('vend-label-'+i,[['DRINKS','SNACKS','TECH'][i]],[['#38e8ff','#ff5bd0','#ffb347'][i]],1.1,.22,[x+.52,2.08,z-.12],-Math.PI/2,'rgba(8,8,12,.92)');}
     box('vend-bin',[.5,.8,.5],[-3.6,.4,52],pipe);
 
     // Sleep pods: two stacked rows with ring-lit hatches and numbers.
-    for(let row=0;row<2;row++)for(let i=0;i<5;i++){const z=57+i*2.6,y=.9+row*1.7;box('pod-shell',[2.6,1.5,2.3],[-15.4,y,z],mat('pod','#202028',{rough:.4,metal:.6}));const ring=add(B.MeshBuilder.CreateTorus('pod-ring',{diameter:1.1,thickness:.08,tessellation:20},scene),[magenta,cyan][(i+row)%2],[-14.08,y,z]);ring.rotation.z=Math.PI/2;neon('pod-no-'+row+i,[String(row*5+i+1).padStart(2,'0')],['#e8f0ff'],.4,.25,[-14.06,y+.62,z+.8],-Math.PI/2);}
+    // Capsules (reference: rounded pods with glowing oval hatches, glass, a warm-lit bed inside).
+    const podShell=mat('pod-shell','#56637e',{rough:.3,metal:.55}),podGlass=glass('pod-glass','#a8dcff',.1),podInner=glowMat('pod-inner','#ffc98a',.45),mattress=mat('pod-mattress','#e6dfd2',{rough:.9,metal:0}),podBlanket=mat('pod-blanket','#5a3a5e',{rough:.95,metal:0});
+    // The pod's front: one solid panel with an oval window cut out (in the y–z plane, facing the room).
+    function ovalPanel(p,width,height,rz,ry){const pos=[],idx=[],n=40;for(let k=0;k<=n;k++){const a=k/n*Math.PI*2,c=Math.cos(a),s=Math.sin(a),reach=Math.min(width/2/Math.max(Math.abs(c),1e-6),height/2/Math.max(Math.abs(s),1e-6));pos.push(0,s*ry,c*rz,0,s*reach,c*reach);if(k<n){const q=k*2;idx.push(q,q+1,q+2,q+1,q+3,q+2,q,q+2,q+1,q+1,q+2,q+3);}}
+     const mesh=new B.Mesh('pod-front',scene),vd=new B.VertexData();vd.positions=pos;vd.indices=idx;// Faces the room (+x) on both windings, so it lights like the rest of the shell.
+     vd.normals=pos.map((_,k)=>k%3===0?1:0);const uvs=[];for(let k=0;k<pos.length;k+=3)uvs.push(pos[k+2]/width+.5,pos[k+1]/height+.5);vd.uvs=uvs;vd.applyToMesh(mesh);return add(mesh,podShell,p);}
+    for(let row=0;row<2;row++)for(let i=0;i<5;i++){const z=57+i*2.6,y=.9+row*1.7,hatch=[amber,magenta][(i+row)%2];
+     // A hollow capsule: back, top, floor, sides and a fascia framing the hatch, so the bed shows through the glass.
+     box('pod-back',[.12,1.5,2.3],[-16.64,y,z],podShell);for(const s of [-1,1]){box('pod-roof',[2.6,.1,2.3],[-15.4,y+s*.7,z],podShell);box('pod-side',[2.6,1.5,.1],[-15.4,y,z+s*1.1],podShell);}
+     ovalPanel([-14.15,y,z],2.3,1.5,.95,.575);for(const s of [-1,1])box('pod-trim',[2.6,.08,.08],[-15.4,y+s*.72,z+1.11],frame);
+     box('pod-inner-light',[.03,.9,1.7],[-16.56,y+.05,z],podInner);box('pod-ceiling-light',[2,.03,1.2],[-15.4,y+.63,z],podInner);
+     const ring=add(B.MeshBuilder.CreateTorus('pod-ring',{diameter:1,thickness:.07,tessellation:32},scene),hatch,[-14.04,y,z]);ring.rotation.z=Math.PI/2;ring.scaling.set(1.15,1,1.9);
+     const glass=add(B.MeshBuilder.CreateDisc('pod-glass',{radius:.5,tessellation:32,sideOrientation:B.Mesh.DOUBLESIDE},scene),podGlass,[-14.06,y,z],false);glass.rotation.y=Math.PI/2;glass.scaling.set(1.85,1.1,1);
+     box('pod-mattress',[2.38,.24,2.08],[-15.39,y-.53,z],mattress);box('pod-pillow',[.45,.14,1.5],[-16.25,y-.34,z],mattress);box('pod-blanket',[1.1,.05,2.06],[-14.95,y-.39,z],podBlanket);
+     neon('pod-no-'+row+i,[String(row*5+i+1).padStart(2,'0')],['#e8f0ff'],.4,.25,[-14.06,y+.62,z+.8],-Math.PI/2);}
     box('pod-ladder',[.1,3.2,.6],[-14,1.6,69],pipe);box('pod-terminal',[.4,1.2,.4],[-6,.6,57],frame);box('pod-terminal-screen',[.05,.4,.3],[-5.78,1.1,57],cyan);
-    box('pods-light',[.3,.05,13],[-9,4,62.5],glowMat('pod-dim','#5a3c8a',.6));
+    for(let z=56.8;z<69;z+=2.4)box('pods-ceiling-panel',[1,.04,1],[-9,4.03,z],glowMat('pod-panel','#7fe6ff',.9));
 
     // Meeting room: glass wall to the hallway, table, chairs, screen.
     if(!state.story?.flags?.meetingOpen)box('meeting-door',[.25,3.1,4],[3,1.55,62.5],mat('door-inner','#1d2026',{rough:.35,metal:.9}),false).name='meeting-door';
     box('meeting-table',[4,.12,2.4],[9,.8,62.5],mat('bar-top','#2b1d18',{rough:.35,metal:.2}));for(const [dx,dz] of [[-1.4,-1.6],[0,-1.6],[1.4,-1.6],[-1.4,1.6],[0,1.6],[1.4,1.6]])box('meeting-chair',[.6,.9,.6],[9+dx,.45,62.5+dz],frame);
-    plane('meeting-screen',3,1.7,[14.8,2.2,62.5],texMat('meeting-screen',texture('meeting-screen',256,144,(g,W,H)=>{g.fillStyle='#05070c';g.fillRect(0,0,W,H);g.strokeStyle='#9b7bff';g.lineWidth=2;g.strokeRect(10,10,W-20,H-20);g.fillStyle='#9b7bff';g.font='bold 16px monospace';g.fillText('TESSALY / SECURE LINK',20,36);g.fillStyle='#38e8ff';g.font='12px monospace';g.fillText('ENCRYPTION: ACTIVE',20,60);g.fillText('PARTICIPANTS: 0',20,80);}),{glow:true}),Math.PI/2);
+    // Holo map wall (reference: a pink-framed map of routes and contacts). Abstract star systems, not real places.
+    const mapTex=texture('meeting-map',768,384,(g,W,H)=>{g.fillStyle='#040a12';g.fillRect(0,0,W,H);g.strokeStyle='rgba(56,232,255,.14)';g.lineWidth=1;for(let x=0;x<W;x+=32){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke();}for(let y=0;y<H;y+=32){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}const pts=[];for(let i=0;i<70;i++)pts.push([40+rand()*(W-80),44+rand()*(H-90)]);g.strokeStyle='rgba(56,232,255,.35)';for(let i=1;i<pts.length;i+=2){g.beginPath();g.moveTo(pts[i-1][0],pts[i-1][1]);g.lineTo(pts[i][0],pts[i][1]);g.stroke();}for(const [x,y] of pts){g.fillStyle='#38e8ff';g.fillRect(x-2,y-2,4,4);}g.strokeStyle='#ff3fb4';g.lineWidth=2;for(let i=0;i<6;i++){const [x,y]=pts[i*9];g.beginPath();g.arc(x,y,11,0,Math.PI*2);g.stroke();}g.fillStyle='#ff3fb4';g.font='bold 22px monospace';g.fillText('TESSALY / SECURE LINK',18,30);g.fillStyle='#38e8ff';g.font='14px monospace';g.fillText('ENCRYPTION: ACTIVE',18,H-14);});
+    plane('meeting-screen',5,2.5,[14.8,2.3,62.5],texMat('meeting-map',mapTex,{glow:true}),Math.PI/2);
+    for(const [size,p] of [[[.06,.1,5.3],[14.76,3.6,62.5]],[[.06,.1,5.3],[14.76,1,62.5]],[[.06,2.7,.1],[14.76,2.3,59.85]],[[.06,2.7,.1],[14.76,2.3,65.15]]])box('meeting-map-frame',size,p,magenta);
+    const rackTex=texture('server-rack',128,256,(g,W,H)=>{g.fillStyle='#0a0c10';g.fillRect(0,0,W,H);for(let y=8;y<H-8;y+=14){g.fillStyle='#15181e';g.fillRect(6,y,W-12,11);for(let k=0;k<6;k++){g.fillStyle=['#38e8ff','#6cff9e','#ff3b3b','#ffb347'][(y+k*5)%4];if(rand()<.6)g.fillRect(12+k*8,y+4,3,3);}g.fillStyle='#2a2f38';g.fillRect(W-40,y+3,28,5);}}),rackFront=texMat('server-rack',rackTex,{glow:true});
+    for(const x of [5,6,12,13]){box('server-rack',[.9,2.4,.8],[x,1.2,56.6],frame);plane('server-rack-front',.84,2.3,[x,1.2,57.01],rackFront,Math.PI,true);box('server-rack',[.9,2.4,.8],[x,1.2,68.4],frame);plane('server-rack-front',.84,2.3,[x,1.2,67.99],rackFront,0,true);}
 
+    // ---- Upgrades from David's District reference pictures (2026-10-17) ----
+    // VR / arcade: red and cyan ceiling tubes, headsets on the players, a row of glowing monitors.
+    for(const x of [-14,-10,-6])box('vr-neon',[.06,.06,14],[x,4.02,36],red);for(const z of [30,36,42])box('vr-neon',[12,.06,.06],[-10,4.02,z],cyan);
+    for(let i=0;i<4;i++){const x=-13+i*2.6;box('vr-headset',[.3,.13,.2],[x,1.63,32.12],frame);box('vr-headset-glow',[.24,.025,.01],[x,1.63,32.01],[cyan,red][i%2]);box('vr-headset-strap',[.32,.05,.3],[x,1.66,32.3],pipe);}
+    const screenTex=k=>texture('vr-monitor-'+k,256,160,(g,W,H)=>{g.fillStyle='#030810';g.fillRect(0,0,W,H);for(let i=0;i<9;i++){g.fillStyle=['#38e8ff','#ff3fb4','#ffb347'][(i+k)%3];g.globalAlpha=.85;g.fillRect(12,14+i*15,20+rand()*200,6);}g.globalAlpha=1;g.strokeStyle='#38e8ff';g.strokeRect(4,4,W-8,H-8);});
+    for(const [x,k] of [[-15,0],[-13.2,1],[-5,2]]){box('vr-desk',[1.6,.06,.7],[x,.76,43.25],frame);for(const dx of [-.7,.7])box('vr-desk-leg',[.05,.76,.6],[x+dx,.38,43.25],pipe);box('vr-monitor',[.75,.47,.04],[x,1.12,43.45],frame);plane('vr-monitor-screen',.7,.42,[x,1.12,43.42],texMat('vr-monitor-'+k,screenTex(k),{glow:true}),0);instance('chair',[x,0,42.4],Math.PI);}
+    // Hallway: pipes and a duct overhead, cables at the walls, the neon reflected in the wet floor, bins.
+    for(const [x,r,y,m] of [[-1.9,.15,3.72,pipe],[-1.5,.08,3.82,rust],[1.75,.2,3.68,pipe],[2.2,.07,3.85,pipe]]){const c=cyl('hall-pipe',r,50,[x,y,53],m);c.rotation.x=Math.PI/2;}
+    box('hall-duct',[.9,.34,50],[0,3.86,53],metal);for(const x of [-2.82,2.82]){const c=cyl('hall-cable',.03,50,[x,.05,53],frame,true,6);c.rotation.x=Math.PI/2;}
+    const streak=c=>{const m=glowMat('reflection-'+c,c,.4);m.alpha=.3;return m;};
+    for(let z=28;z<78;z+=4)for(const [x,c] of [[-2.25,z%8?'#38e8ff':'#ff3fb4'],[2.25,z%8?'#ff3fb4':'#38e8ff']])box('neon-reflection',[.32,.004,3.2],[x,.034,z+2],streak(c));
+    for(const [x,z] of [[2.55,44.2],[-2.55,53.5]])instance('bin',[x,0,z],x>0?-Math.PI/2:Math.PI/2);
     // Stairs at the hallway end rise into the ceiling.
     for(let i=0;i<8;i++)box('stair-step',[3,.2,.5],[0,.1+i*.45,74+i*.45],pipe);box('stair-rail',[.08,.08,4.5],[1.6,2.6,75.6],amber);
 
@@ -217,5 +265,7 @@
     function tick(time){for(const d of drones){d.n.position.set(Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
     return {tick,dispose(){for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;}};
   }
-  const api={layout,build};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
+  // Licensed models (docs/VOID_RUNNER_ASSET_LICENSES.md) dressing the District; loaded before build().
+  const models={'district:couch':{src:'assets/models/district/couch.glb',scale:.5},'district:bin':{src:'assets/models/district/bin.glb',scale:.6},'district:chair':{src:'assets/models/district/chair.glb',scale:1}};
+  const api={layout,build,models};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
 })(globalThis);
