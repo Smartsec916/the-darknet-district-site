@@ -5,8 +5,8 @@
 (function(){
  const R=VoidRelay;
  // Meridian interior positions (metres): hanging in the concourse facing arrivals from the hangar, and
- // above the Dead Channel bar.
- const places=[{id:'concourse',position:[0,4.1,26],rotation:0,size:[4.4,2.48],ceiling:6},{id:'bar',position:[0,3.75,63.6],rotation:0,size:[4,2.25]}];
+ // on the Dead Channel's back wall above the bottle shelves, facing the bar (meridian-interior.js furniture.bar).
+ const places=[{id:'concourse',position:[0,4.1,26],rotation:0,size:[4.4,2.48],ceiling:6},{id:'bar',position:[-16.85,4,54],rotation:-Math.PI/2,size:[3.4,1.91]}];
  let screens=[],scene=null,timer=0,card=0;
  const atMeridian=()=>typeof walkingLocation!=='undefined'&&walkingLocation?.kind==='station'&&state?.location==='meridian';
  function build(){

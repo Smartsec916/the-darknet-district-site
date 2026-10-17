@@ -38,7 +38,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
  assert.equal(heads[0],'Communications disruption near Tessaly shipping corridor');
  await page.evaluate(()=>{walker.x=0;walker.z=19.5;walker.yaw=0;walker.pitch=-.32;VoidRelayScreens.draw();for(let i=0;i<3;i++)update(.016);draw();});
  await page.screenshot({path:'work/relay-screen-concourse.png'});
- await page.evaluate(()=>{walker.x=0;walker.z=54;walker.yaw=0;walker.pitch=-.12;for(let i=0;i<3;i++)update(.016);draw();});
+ await page.evaluate(()=>{walker.x=-8.6;walker.z=54;walker.yaw=-Math.PI/2;walker.pitch=-.28;for(let i=0;i<3;i++)update(.016);draw();});
  await page.screenshot({path:'work/relay-screen-bar.png'});
  // 5. The archive in the Mission Log: the story with what is confirmed and unknown, labelled reports.
  await page.evaluate(()=>openMissionLog());
