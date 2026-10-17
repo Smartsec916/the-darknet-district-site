@@ -44,7 +44,9 @@
  function models(location,quality){
   if(quality==='low'||!casts[location])return {};
   const set=new Set(casts[location]);if(location==='neochinatown')casts.district.forEach(l=>set.add(l));
-  return Object.fromEntries([...set].map(l=>['crowd:'+l,{src:base+l+'.glb'}]));
+  // Background: a figure that isn't downloaded within the scene's few seconds keeps loading and is
+  // swapped in when it arrives (asset-pipeline.js), instead of being dropped for the procedural crew.
+  return Object.fromEntries([...set].map(l=>['crowd:'+l,{src:base+l+'.glb',background:true}]));
  }
  // Looks are dealt round-robin per place so neighbours differ, skipping looks without the clip that spot needs.
  let dealt=new Map();

@@ -1,5 +1,5 @@
 /* VOID//RUNNER only. Increment BUILD when deploying changed game files. */
-const BUILD='2026-10-16-sky-warp';
+const BUILD='2026-10-17-crowd-background';
 const CORE='void-runner-core-'+BUILD;
 const ASSETS='void-runner-assets-'+BUILD;
 const PAGE=new URL('./void-runner.html',self.location).pathname;
@@ -20,9 +20,12 @@ async function store(cacheName,request,response){
   try{await (await caches.open(cacheName)).put(request,response.clone());}catch(error){console.warn('[VOID//RUNNER cache] storage unavailable',error?.name||error);}
   return response;
 }
+// Game files are always checked with the server (a 304 when unchanged), so a copy the browser kept from an
+// earlier deploy can never be frozen into this build's cache.
+const fresh=request=>request.mode==='navigate'?fetch(request):fetch(request,{cache:'no-cache'});
 async function networkThenCache(request,cacheName){
   try{
-    const response=await fetch(request);
+    const response=await fresh(request);
     if(response.status>=500){const cached=await (await caches.open(cacheName)).match(request);if(cached)return cached;}
     return await store(cacheName,request,response);
   }
@@ -53,7 +56,7 @@ self.addEventListener('message',event=>{
     const urls=event.data.urls.filter(path=>typeof path==='string'&&(path===PAGE||path.startsWith(GAME)&&allowed.test(path)));
     const cache=await caches.open(CORE);
     for(const path of urls){
-      try{if(await cache.match(path))continue;await store(CORE,new Request(path),await fetch(path,{cache:path===PAGE?'no-cache':'force-cache'}));}
+      try{if(await cache.match(path))continue;await store(CORE,new Request(path),await fetch(path,{cache:'no-cache'}));}
       catch(error){console.warn('[VOID//RUNNER cache] warm skipped',path,error?.message||error);}
     }
     let count=0;for(const path of urls)if(await cache.match(path))count++;

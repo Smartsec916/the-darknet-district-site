@@ -1,6 +1,8 @@
 /* Bounded, phase-aware readiness. No simulation or render loop is owned here. */
 (function(root){
- const limits={module:240000,assets:8000,scene:10000,artwork:3000,optional:3000,total:270000};
+ // optional: one optional model. assets: a scene's whole model set, loaded in parallel. A first visit on an
+ // ordinary home connection needs several seconds for a station's set; later visits come from the cache.
+ const limits={module:240000,assets:15000,scene:10000,artwork:3000,optional:10000,total:270000};
  let current=null;const tasks=new Set();
  async function run(action){
   const controller=new AbortController(),started=performance.now();

@@ -522,7 +522,7 @@
     node.metadata={layout:id,doors,arrays,placeholder:true};return node;
   }
 
-  let actors=[],stationActivity=null,lastActivityTime=null,crowdLocation=null;
+  let actors=[],stationActivity=null,lastActivityTime=null,crowdLocation=null,waitingCrowd=[];
   function characterModel(id,parent,position,ambient=false){
     const model=VoidAssets.instance('character:'+id,parent);if(model){model.position.set(position[0],0,position[2]);actors.push({node:model,base:position.slice(),ambient});return model;}const look=ambient&&id.startsWith('crew-')&&root.VoidCrowd?VoidCrowd.pick(crowdLocation,id):null,figure=look&&VoidAssets.instance('crowd:'+look,parent);if(figure){figure.position.set(position[0],0,position[2]);figure.metadata={...figure.metadata,crowd:look,character:id,ambient};actors.push({node:figure,base:position.slice(),ambient,crowd:VoidCrowd.animate(figure,look,VoidCrowd.clipFor(id))});return figure;}
     const b=B(),a=VoidStationLayouts.appearances[id]||{coat:['#48565b','#665541','#566249','#4d5264'][Number(id.slice(-1))%4]||'#59676e',hair:'#30363c',skin:['#ae8a70','#75533f','#c7a184'][Number(id.slice(-1))%3]||'#ae8a70'},node=new b.TransformNode('npc-'+id,scene);
@@ -541,8 +541,11 @@
       const pieces=node.getChildMeshes();for(const old of pieces){if(['torso','arm','leg','hair'].includes(old.name)){const size=old.getBoundingInfo().boundingBox.extendSize.scale(2),shape=old.name==='hair'?b.MeshBuilder.CreateSphere('crew-hair',{diameter:1,segments:12},scene):b.MeshBuilder.CreateCapsule(old.name,{height:size.y,radius:Math.min(size.x,size.z)/2,tessellation:10},scene);shape.parent=node;shape.position.copyFrom(old.position);shape.rotation.copyFrom(old.rotation);shape.material=old.material;if(old.name==='torso')shape.scaling.x=1.65;if(old.name==='hair')shape.scaling.set(size.x,.2,size.z);old.dispose();}}
       for(const x of [-.07,.07]){const eye=b.MeshBuilder.CreateSphere('crew-eye',{diameter:.035,segments:6},scene);eye.parent=node;eye.position.set(x,1.73,.162);eye.material=dark;}box('crew-nose',[.055,.08,.07],[0,1.67,.18],skin,node);box('crew-belt',[.46,.08,.33],[0,.86,0],dark,node);box('crew-badge',[.08,.13,.02],[-.15,1.3,.16],material('badge','#d1b879'),node);
     }
-    node.metadata={placeholder:true,reference:'art/characters.png',character:id,ambient};actors.push({node,base:position.slice(),ambient});return node;
+    node.metadata={placeholder:true,reference:'art/characters.png',character:id,ambient};actors.push({node,base:position.slice(),ambient});if(look)waitingCrowd.push({node,look,id,parent});return node;
   }
+  // A crowd figure that was still downloading when the scene was built replaces its stand-in when it
+  // arrives (asset-pipeline.js background models): same spot, facing, activity and cup.
+  root.VoidAssets?.onLoaded?.(id=>{if(!id.startsWith('crowd:'))return;const look=id.slice(6);waitingCrowd=waitingCrowd.filter(p=>{if(p.look!==look)return true;if(p.node.isDisposed()||p.parent?.isDisposed?.())return false;const figure=VoidAssets.instance(id,p.parent);if(!figure)return true;figure.position.copyFrom(p.node.position);figure.rotation.copyFrom(p.node.rotation);figure.metadata={...figure.metadata,crowd:look,character:p.id,ambient:true};const actor=actors.find(a=>a.node===p.node),crowd=VoidCrowd.animate(figure,look,VoidCrowd.clipFor(p.id));if(actor){actor.node=figure;actor.crowd=crowd;if(actor.cup)actor.cup.parent=figure;}p.node.dispose();return false;});});
   // Places a layout's approved props. Each group replaces its procedural fittings only when every
   // model in the group loaded, so a missing file never leaves a hole. Collision is not touched.
   function placeProps(def,parent){
@@ -560,7 +563,7 @@
     release(); // A new visit owns exactly one room and its actors, signs and lights.
     const propModels=Object.fromEntries((def.props||[]).filter(p=>VoidAssets.models.props?.[p.model]).map(p=>['prop:'+p.model,VoidAssets.models.props[p.model]]));
     crowdLocation=def.id;root.VoidCrowd?.begin();await prepareSpace(def.id,['raider','courier','shuttle','security',def.ship],task,{...(root.VoidCrowd?.models(def.id,quality)||{}),...propModels,...(def.id==='meridian'&&globalThis.VoidMeridianInteriorKit?VoidMeridianInteriorKit.definitions('ikit:'):{}),...Object.fromEntries(def.interactions.filter(i=>i.character&&VoidAssets.models.characters[i.character]).map(i=>['character:'+i.character,VoidAssets.models.characters[i.character]]))});task.check();station.setEnabled(false);rocks.forEach((mesh,i)=>{mesh.position.set((i%2?-1:1)*(75+i*6),30+Math.sin(i)*24,90+i*17);mesh.scaling.setAll(2+i%5);});
-    roomRoot=stationModel(def.id,null,false,def);room=def;actors=[];stationActivity=def.activityPoints?VoidStationActivities.create(def):null;lastActivityTime=null;
+    roomRoot=stationModel(def.id,null,false,def);room=def;actors=[];waitingCrowd=[];stationActivity=def.activityPoints?VoidStationActivities.create(def):null;lastActivityTime=null;
     const ship=shipModel(def.ship,'friendly',roomRoot);ship.position.set(-7,2,-9);ship.scaling.setAll(2);
     for(const item of def.interactions)if(item.character)characterModel(item.character,roomRoot,item.visualPosition||item.position);
     if(stationActivity){for(const a of stationActivity.actors){const node=characterModel('crew-'+a.id,roomRoot,[a.x,0,a.z],true);actors[actors.length-1].activity=a;const cup=box('crew-cup',[.1,.16,.1],[.4,1.4,.2],material('cup','#b7b2a1'),node);cup.setEnabled(false);actors[actors.length-1].cup=cup;}}else for(let i=0;i<4;i++)characterModel('crew-'+i,roomRoot,[i<2?-13:13,0,i<2?-8+i*7:20+i*3],true);
@@ -1114,7 +1117,7 @@
     signs = [];
     disposeNode(roomRoot);
     roomRoot = null;
-    room = null;actors=[];stationActivity=null;lastActivityTime=null;
+    room = null;actors=[];waitingCrowd=[];stationActivity=null;lastActivityTime=null;
   }
 
   function renderRoom(player, width, height, time, allowed = () => true) {
