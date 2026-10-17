@@ -34,12 +34,12 @@
   "attendant": {"displayName": "Arcade attendant", "role": "The Darknet District VR rigs", "voice": "am_puck", "speed": 1.05, "lang": "en-us", "profile": "none", "status": "approved", "approvedConfigHash": "a47c75df8031", "approvedAt": "2026-10-16", "notes": ""}
  },
  "broadcast": {
-  "news-anchor": {"displayName": "Relay news anchor", "voice": null, "status": "unassigned", "notes": "Natural, professional broadcast delivery. The Relay is not built yet."},
-  "warflying-host": {"displayName": "WarFlying announcer", "voice": null, "status": "unassigned", "notes": "Energetic, theatrical sports commentator."},
-  "police-recruiter": {"displayName": "Police recruitment announcer", "voice": null, "status": "unassigned", "notes": "Enthusiastic, slightly cheesy commercial delivery."},
-  "commercial-announcer": {"displayName": "Commercial announcer", "voice": null, "status": "unassigned", "notes": "Relay advertisements: adaptable but recognisable, from professional to cheerfully cheesy."},
-  "communion-spokesperson": {"displayName": "Communion spokesperson", "voice": null, "status": "unassigned", "notes": "Controlled, composed, persuasive."},
-  "natural-order-spokesperson": {"displayName": "Natural Order spokesperson", "voice": null, "status": "unassigned", "notes": "Confident, grounded, direct."},
+  "news-anchor": {"displayName": "Relay news anchor", "voice": "af_heart", "speed": 1, "lang": "en-us", "profile": "none", "status": "provisional", "castBy": "Claude, at David's request (2026-10-17); change in the audition tool", "notes": "Natural, professional broadcast delivery. The Relay is not built yet."},
+  "warflying-host": {"displayName": "WarFlying announcer", "voice": "am_adam", "speed": 1.12, "lang": "en-us", "profile": "none", "status": "provisional", "castBy": "Claude, at David's request (2026-10-17); change in the audition tool", "notes": "Energetic, theatrical sports commentator."},
+  "police-recruiter": {"displayName": "Police recruitment announcer", "voice": "am_echo", "speed": 1.08, "lang": "en-us", "profile": "none", "status": "provisional", "castBy": "Claude, at David's request (2026-10-17); change in the audition tool", "notes": "Enthusiastic, slightly cheesy commercial delivery."},
+  "commercial-announcer": {"displayName": "Commercial announcer", "voice": "af_sarah", "speed": 1.04, "lang": "en-us", "profile": "none", "status": "provisional", "castBy": "Claude, at David's request (2026-10-17); change in the audition tool", "notes": "Relay advertisements: adaptable but recognisable, from professional to cheerfully cheesy."},
+  "communion-spokesperson": {"displayName": "Communion spokesperson", "voice": "af_nova", "speed": 0.95, "lang": "en-us", "profile": "none", "status": "provisional", "castBy": "Claude, at David's request (2026-10-17); change in the audition tool", "notes": "Controlled, composed, persuasive."},
+  "natural-order-spokesperson": {"displayName": "Natural Order spokesperson", "voice": "bm_george", "speed": 0.95, "lang": "en-gb", "profile": "none", "status": "provisional", "castBy": "Claude, at David's request (2026-10-17); change in the audition tool", "notes": "Confident, grounded, direct."},
   "the-function": {"displayName": "The Function", "voice": null, "status": "unassigned", "notes": "Provisional identity. Any unusual voice treatment needs David's approval. Do not invent its nature."}
  },
  "reserved": {
