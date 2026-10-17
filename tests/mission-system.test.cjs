@@ -125,13 +125,15 @@ test('tracking and independent objectives survive legacy save restoration',()=>{
  assert.equal(M.all(restored,C).find(m=>m.id==='meet-rook').objectives.find(o=>o.id==='speak').complete,false);
 });
 
-test('Meridian keeps the outfitter by the entrance and the bartender reachable beyond the corridor',()=>{
+test('Meridian: crew quarters off the corridor, the store and then the bar on the port side, the hall clear',()=>{
  const room=Meridian.layout();
- assert.equal(room.shell.find(o=>o.id==='shop-counter').position[2],29);
- assert(room.shell.find(o=>o.id==='bar-counter').position[2]>55);
+ const shop=room.shell.find(o=>o.id==='shop-counter').position,bar=room.shell.find(o=>o.id==='bar-counter').position,quarters=room.shell.find(o=>o.id==='quarters-door').position;
+ assert.ok(quarters[0]<0&&quarters[2]>4&&quarters[2]<18,'quarters door on the left of the corridor');
+ assert.ok(shop[0]<0&&bar[0]<0&&shop[2]<bar[2],'store, then bar, both on the left');
+ assert.ok(room.shell.find(o=>o.id==='observation-glass').position[0]>0,'windows on the right, across from the bar');
  const door=room.shell.find(o=>o.id==='crew-pressure-door');door.open=true;
  for(let z=5;z<=57;z+=1)assert.equal(Explorer.blocked(0,z,room),false,'corridor blocked at z='+z);
- assert.equal(Explorer.select({x:0,z:57,yaw:0},room)?.id,'nyx');
+ assert.equal(Explorer.select({x:-7.5,z:57,yaw:-Math.PI/2},room)?.id,'nyx');
 });
 
 test('a registered multi-objective mission completes only after each required event',()=>{
