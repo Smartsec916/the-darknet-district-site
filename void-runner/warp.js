@@ -1,8 +1,10 @@
 /* Serializable route checkpoints. Encounters have a type so later events need no new route loop. */
 (function(root){
  const U=typeof module!=='undefined'?require('./universe.js'):root.VoidUniverse;
- const config={alignmentCos:Math.cos(8*Math.PI/180),hold:.65,departureSeconds:4,warpSeconds:U.route('meridian','kepler').seconds,destinationRevealSeconds:8,decelerationSeconds:3,approachSeconds:3,interruption:.42};
- function create(origin,destination,mission,encounter=false){const heading={meridian:-.55,kepler:.65,rusthaven:-.8,foundry:.9}[destination]||.55;const policy=U.route(origin,destination);encounter=encounter&&policy.interdiction;return {policy,origin,destination,mission:mission||null,progress:0,phase:'departure',departure:0,aligned:0,encounter:{type:encounter?'combat':'none',state:encounter?'pending':'cleared'},vector:{x:Math.sin(heading),y:0,z:Math.cos(heading)}};}
+ const config={skyPitch:18*Math.PI/180,alignmentCos:Math.cos(8*Math.PI/180),hold:.65,departureSeconds:4,warpSeconds:U.route('meridian','kepler').seconds,destinationRevealSeconds:8,decelerationSeconds:3,approachSeconds:3,interruption:.42};
+ function create(origin,destination,mission,encounter=false){const heading={meridian:-.55,kepler:.65,rusthaven:-.8,foundry:.9}[destination]||.55;const policy=U.route(origin,destination);encounter=encounter&&policy.interdiction;return {policy,origin,destination,mission:mission||null,progress:0,phase:'departure',departure:0,aligned:0,encounter:{type:encounter?'combat':'none',state:encounter?'pending':'cleared'},vector:skyward(origin,{x:Math.sin(heading),y:0,z:Math.cos(heading)})};}
+ // Leaving a planet the jump point is up in the sky, never on the horizon behind the mountains.
+ function skyward(origin,v){if(!U.planetside?.(origin))return v;const c=Math.cos(config.skyPitch);return {x:v.x*c,y:-Math.sin(config.skyPitch),z:v.z*c};} // flight space has +y pointing down
  function restore(raw,origin,destination,mission,encounter){
   const r=create(origin,destination,mission,encounter);
   if(!raw||raw.origin!==origin||raw.destination!==destination||raw.mission!==r.mission)return r;
@@ -29,5 +31,5 @@
   }else if(r.phase==='encounter'&&clear){r.encounter.state='cleared';r.phase='align';r.aligned=0;}
   return before!==r.phase;
  }
- const api={config,create,restore,step};if(typeof module!=='undefined')module.exports=api;else root.VoidWarp=api;
+ const api={config,create,restore,step,skyward};if(typeof module!=='undefined')module.exports=api;else root.VoidWarp=api;
 })(globalThis);

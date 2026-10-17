@@ -5,11 +5,11 @@
   // Faction territory. Each system opens when the player accepts its District delivery.
   communion:{name:'Cantor System',hub:'vigil',ownerFaction:'communion',securityFaction:'communion',populationPool:[],shopPool:[],missionPool:[]},'natural-order':{name:'Garrow System',hub:'holdfast',ownerFaction:'natural-order',securityFaction:'natural-order',populationPool:[],shopPool:[],missionPool:[]}};
  const locations={
-  vesper:{system:'erebus',name:'Vesper',district:'WARD FREIGHT WORKSHOP',color:'#c2a584',bar:'Workshop'},
+  vesper:{system:'erebus',surface:true,name:'Vesper',district:'WARD FREIGHT WORKSHOP',color:'#c2a584',bar:'Workshop'},
   meridian:{system:'erebus'},kepler:{system:'erebus'},rusthaven:{system:'erebus'},foundry:{system:'erebus'},
   'sol-belt':{system:'sol',name:'Tessaly Belt Anchorage',district:'TESSALY / ASTEROID BELT',color:'#8dbea9',bar:'Belt Canteen'},
-  earth:{system:'sol',name:'NeoChinatown',district:'TESSALY / CITY LANDING',color:'#9b7bff',bar:'The Darknet District'},
-  mars:{system:'sol',name:'Vantor / Underground City',district:'TESSALY / SUBSURFACE ACCESS',color:'#ba6847',bar:'Transit Canteen'},
+  earth:{system:'sol',surface:true,name:'NeoChinatown',district:'TESSALY / CITY LANDING',color:'#9b7bff',bar:'The Darknet District'},
+  mars:{system:'sol',surface:true,name:'Vantor / Underground City',district:'TESSALY / SUBSURFACE ACCESS',color:'#ba6847',bar:'Transit Canteen'},
   vigil:{system:'communion',name:'The Vigil',district:'CANTOR / COMMUNION STATION',color:'#9fd2ec',bar:'Refectory',ownerFaction:'communion',securityFaction:'communion'},
   holdfast:{system:'natural-order',name:'Holdfast',district:'GARROW / NATURAL ORDER OUTPOST',color:'#d08a3c',bar:'Mess Hall',ownerFaction:'natural-order',securityFaction:'natural-order'},
   // Faction homeworlds (doc 10): open when the homeworld offer is accepted. The Natural Order world has no name yet.
@@ -18,6 +18,8 @@
  };
  for(const location of Object.values(locations)){location.ownerFaction??=null;location.securityFaction??=location.system==='sol'?'sol-local':'erebus-local';}
  function system(id){return locations[id]?.system||'erebus';}
+ // Planetside locations (on the ground, not docked in space): departures from them warp up into the sky.
+ function planetside(id){const l=locations[id];return !!(l&&(l.surface||l.planet));}
  function route(a,b){const interstellar=system(a)!==system(b);return {kind:interstellar?'interstellar':'local',seconds:progression.tuning.jump[interstellar?'interstellar':'local'],interdiction:!interstellar};}
  function fresh(){return {currentSystem:'erebus',discoveredSystems:['erebus'],discoveredLocations:['vesper','meridian'],visitedLocations:['vesper'],missionLogUnlocked:false,freeTravel:false,trackedMission:null,trackingInitialized:false,autoTrack:true,missions:{},completedObjectives:[],station:null};}
  function restore(raw={},state={}){const out={...fresh()},valid=xs=>Array.isArray(xs)?[...new Set(xs.filter(x=>Object.hasOwn(locations,x)))]:[];
@@ -44,5 +46,5 @@
  function discover(s,id){const u=s.universe;if(!Object.hasOwn(locations,id))return false;if(!u.discoveredLocations.includes(id))u.discoveredLocations.push(id);if(!u.discoveredSystems.includes(system(id)))u.discoveredSystems.push(system(id));return true;}
  function destinations(s){const u=s.universe||fresh();return u.discoveredLocations.filter(id=>id!==s.location&&(system(id)===system(s.location)||id===systems[system(id)].hub));}
  function nextHop(origin,target){return system(origin)===system(target)?target:systems[system(target)].hub;}
- const api={systems,locations,system,route,fresh,restore,unlock,visit,discover,destinations,nextHop};if(typeof module!=='undefined')module.exports=api;else root.VoidUniverse=api;
+ const api={systems,locations,system,planetside,route,fresh,restore,unlock,visit,discover,destinations,nextHop};if(typeof module!=='undefined')module.exports=api;else root.VoidUniverse=api;
 })(globalThis);
