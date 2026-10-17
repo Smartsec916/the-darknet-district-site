@@ -1,5 +1,295 @@
 {
- "version": 1,
- "about": "The Relay's broadcast scripts. Only David's approved lines go here; nothing is invented. Each segment: id (lowercase, hyphens), kind (news, breaking, public, station, ad, police, warflying, communion, natural-order, function), speaker (a broadcast id from tools/audio/npc-voice-registry.json; optional for kinds that have a default), text, optional systems (erebus, sol, communion, natural-order) and optional when (story conditions). After editing: node tools/audio/extract-lines.cjs.",
- "segments": []
+ "version": 2,
+ "about": "The Relay's content (rules in relay.js). EVENTS are the canonical record: what happened, what is confirmed, what is unknown, when it becomes public (occurs: at = minutes of play, story = a game event, always). SEGMENTS are reports: lines (spoken in order), kind, optional speaker, headline (screens and archive), event, perspective, standing, priority, stage/after (developing stories), cooldown (minutes; null = once), trigger (real leaderboard moments), systems, when. Script lines are David's own; nothing here is invented. Headlines and event summaries are short labels for screens and the archive. After editing: node tools/audio/extract-lines.cjs.",
+ "events": [
+  {
+   "id": "nexus-humanitarian-crisis",
+   "category": "humanitarian",
+   "systems": ["communion"],
+   "summary": "A Natural Order EMP attack severely damaged the Nexus AI, the planetary system that ran daily life on The Nexus. The humanitarian crisis continues.",
+   "confirmed": ["The Nexus AI was severely damaged by a Natural Order EMP attack.", "Many citizens still struggle with communication, labour, repair and household tasks."],
+   "unknown": ["When, or whether, the central AI can be restored."],
+   "factions": ["communion", "natural-order"],
+   "visibility": "public",
+   "occurs": {"always": true},
+   "priority": "important"
+  },
+  {
+   "id": "tessaly-corridor-comms-disruption",
+   "category": "communications",
+   "systems": ["sol"],
+   "summary": "A major communications disruption was reported near a commercial shipping corridor in the Tessaly System.",
+   "confirmed": ["Several vessels reported intermittent contact with nearby navigation infrastructure."],
+   "unknown": ["The cause of the disruption."],
+   "factions": [],
+   "visibility": "public",
+   "occurs": {"at": 40},
+   "priority": "breaking"
+  },
+  {
+   "id": "missing-cargo-vessel-found",
+   "category": "shipping",
+   "summary": "A cargo vessel reported missing was found in its assigned hangar.",
+   "confirmed": ["The search was concluded.", "The ship was located in its assigned hangar."],
+   "unknown": [],
+   "factions": [],
+   "visibility": "public",
+   "occurs": {"at": 15},
+   "priority": "routine"
+  },
+  {
+   "id": "warflying-coffee-maker",
+   "category": "warflying",
+   "summary": "A WarFlying enthusiast's six-hour investigation traced an unidentified signal to a malfunctioning coffee maker, which scored one point.",
+   "confirmed": ["The signal came from a malfunctioning coffee maker.", "It was awarded one point as a unique electronic source."],
+   "unknown": ["The competitive implications."],
+   "factions": [],
+   "visibility": "public",
+   "occurs": {"at": 70},
+   "priority": "routine"
+  },
+  {
+   "id": "station-door-repaired",
+   "category": "station",
+   "summary": "Maintenance crews at a commercial station repaired a malfunctioning automatic door.",
+   "confirmed": ["The door opened without incident."],
+   "unknown": [],
+   "factions": [],
+   "visibility": "public",
+   "occurs": {"at": 110},
+   "priority": "routine"
+  }
+ ],
+ "segments": [
+  {
+   "id": "breaking-tessaly-comms-disruption",
+   "kind": "breaking",
+   "event": "tessaly-corridor-comms-disruption",
+   "standing": "unverified",
+   "headline": "Communications disruption near Tessaly shipping corridor",
+   "lines": [
+    "We interrupt our regularly scheduled programming with a developing report from the Tessaly System.",
+    "A major communications disruption has been reported near a commercial shipping corridor.",
+    "Authorities have not confirmed the cause. Several vessels are reporting intermittent contact with nearby navigation infrastructure.",
+    "More information as it becomes available."
+   ]
+  },
+  {
+   "id": "communion-progress-not-the-enemy",
+   "kind": "communion",
+   "event": "nexus-humanitarian-crisis",
+   "standing": "claim",
+   "cooldown": 60,
+   "headline": "Communion: restoring The Nexus is a humanitarian responsibility",
+   "lines": [
+    "Progress is not the enemy of humanity.",
+    "Across The Nexus, families continue to endure the consequences of an attack against the systems that once supported their daily lives.",
+    "Restoration is not merely a technological objective. It is a humanitarian responsibility.",
+    "The Communion remains committed to rebuilding what was lost."
+   ]
+  },
+  {
+   "id": "natural-order-machine-should-serve",
+   "kind": "natural-order",
+   "standing": "opinion",
+   "headline": "Natural Order: technology should be understandable, repairable and accountable",
+   "lines": [
+    "A machine should serve the people who built it.",
+    "Across our settlements, engineers, farmers, and technicians continue to demonstrate that reliable infrastructure does not require surrendering every decision to a central intelligence.",
+    "We believe technology should be understandable, repairable, and accountable.",
+    "Progress belongs to humanity."
+   ]
+  },
+  {
+   "id": "function-every-system",
+   "kind": "function",
+   "standing": "commentary",
+   "headline": "An unscheduled transmission",
+   "lines": [
+    "Every system produces a pattern.",
+    "Every pattern contains a deviation.",
+    "Every deviation is eventually observed.",
+    "Continue."
+   ]
+  },
+  {
+   "id": "news-missing-cargo-vessel",
+   "kind": "news",
+   "event": "missing-cargo-vessel-found",
+   "standing": "confirmed",
+   "headline": "Missing cargo vessel found in its own hangar",
+   "lines": [
+    "Authorities have concluded their search for a cargo vessel reported missing yesterday.",
+    "The ship was located earlier today.",
+    "In its assigned hangar.",
+    "The captain has declined to comment."
+   ]
+  },
+  {
+   "id": "news-warflying-coffee-maker",
+   "kind": "news",
+   "event": "warflying-coffee-maker",
+   "standing": "confirmed",
+   "headline": "Six-hour WarFlying hunt ends at a coffee maker",
+   "lines": [
+    "A WarFlying enthusiast has reportedly spent six hours investigating an unidentified electronic signal.",
+    "The signal was eventually traced to a malfunctioning coffee maker.",
+    "The discovery was awarded one point after officials confirmed it represented a unique electronic source.",
+    "Organizers have declined to comment on the competitive implications."
+   ]
+  },
+  {
+   "id": "news-station-door-repaired",
+   "kind": "news",
+   "event": "station-door-repaired",
+   "standing": "confirmed",
+   "headline": "Station celebrates a working door",
+   "lines": [
+    "Maintenance crews at a commercial station have announced the successful repair of a malfunctioning automatic door.",
+    "The door reportedly opened without incident.",
+    "Officials described the event as a major operational milestone."
+   ]
+  },
+  {
+   "id": "warflying-one-point",
+   "kind": "warflying",
+   "trigger": "warflying-one-point",
+   "standing": "commentary",
+   "headline": "{name} moves into {rank} place",
+   "lines": [
+    "LADIES AND GENTLEMEN, WE HAVE A DEVELOPMENT!",
+    "{name} has discovered an unregistered navigation beacon!",
+    "THAT’S ONE POINT!",
+    "ONE!",
+    "AND THAT SINGLE POINT HAS MOVED {NAME} INTO {RANK} PLACE!",
+    "ABSOLUTELY UNBELIEVABLE!"
+   ]
+  },
+  {
+   "id": "warflying-comeback",
+   "kind": "warflying",
+   "trigger": "warflying-comeback",
+   "standing": "commentary",
+   "headline": "{name} climbs {positions}",
+   "lines": [
+    "Nobody believed {name} could make a comeback!",
+    "Critics called the season finished!",
+    "But after discovering {count} previously unrecorded electronic signals, {name} has climbed {positions}!",
+    "{COUNT} SIGNALS! {COUNT} POINTS!",
+    "THIS IS WHY WE WATCH WARFLYING!"
+   ]
+  },
+  {
+   "id": "warflying-privacy-disclaimer",
+   "kind": "warflying",
+   "standing": "commentary",
+   "headline": "WarFlying coverage",
+   "lines": [
+    "Today’s WarFlying coverage is brought to you by the people who insist they’re not tracking anybody!",
+    "Remember, folks: a single sighting means very little!",
+    "Several thousand sightings, however, can make for a fascinating travel history!",
+    "BACK TO THE LEADERBOARD!"
+   ]
+  },
+  {
+   "id": "warflying-new-contender",
+   "kind": "warflying",
+   "trigger": "warflying-new-contender",
+   "standing": "commentary",
+   "headline": "A new contender enters the WarFlying standings",
+   "lines": [
+    "WE HAVE A NEW CONTENDER!",
+    "A previously unranked pilot has entered the WarFlying standings!",
+    "Nobody knows where this challenger came from!",
+    "But one thing is certain!",
+    "THE LEADERBOARD WILL NEVER BE THE SAME!"
+   ]
+  },
+  {
+   "id": "ad-maneuvering-thrusters",
+   "kind": "ad",
+   "headline": "Upgraded maneuvering thrusters",
+   "lines": [
+    "Is your ship turning like a loaded cargo hauler?",
+    "Are pirates completing entire conversations while you attempt to maneuver?",
+    "Ask your local equipment dealer about upgraded maneuvering thrusters!",
+    "Because eventually, you should be facing the thing shooting at you!"
+   ]
+  },
+  {
+   "id": "ad-shield-systems",
+   "kind": "ad",
+   "headline": "Upgrade your defensive systems",
+   "lines": [
+    "Shields taking a beating?",
+    "Your hull wasn’t designed to negotiate with incoming laser fire!",
+    "Upgrade your defensive systems today!",
+    "Remember: repairs cost money. Explosions cost everything!"
+   ]
+  },
+  {
+   "id": "ad-missile-lock",
+   "kind": "ad",
+   "headline": "Missile lock-on technology",
+   "lines": [
+    "Still trying to hit moving targets the old-fashioned way?",
+    "Discover the convenience of missile lock-on technology!",
+    "Acquire. Lock. Launch.",
+    "Because sometimes the problem is moving faster than your patience!"
+   ]
+  },
+  {
+   "id": "ad-personal-defense",
+   "kind": "ad",
+   "headline": "Personal defense equipment",
+   "lines": [
+    "Exploring an abandoned station?",
+    "Meeting strangers in poorly lit corridors?",
+    "Consider reliable personal defense equipment!",
+    "Available from participating licensed equipment dealers.",
+    "Because the universe is a dangerous place, and harsh language has limited stopping power!"
+   ]
+  },
+  {
+   "id": "ad-darknet-district-apparel",
+   "kind": "ad",
+   "cooldown": 90,
+   "headline": "The Darknet District apparel",
+   "lines": [
+    "Out here, nobody remembers what you wore to your last firefight.",
+    "Unless you survived it.",
+    "The Darknet District. Apparel for people who prefer their privacy with a little style.",
+    "Visit participating retailers for details."
+   ]
+  },
+  {
+   "id": "police-join-the-force",
+   "kind": "police",
+   "headline": "Join the police force",
+   "lines": [
+    "TIRED OF YOUR BORING JOB?",
+    "LOOKING FOR ADVENTURE?",
+    "JOIN THE POLICE FORCE!",
+    "MEET INTERESTING PEOPLE!",
+    "VISIT EXOTIC SPACE STATIONS!",
+    "ASK COMPLETE STRANGERS WHAT THEY’RE CARRYING IN THEIR CARGO HOLDS!",
+    "LAW ENFORCEMENT!",
+    "IT’S NOT JUST A CAREER!",
+    "IT’S A REASON TO ASK FOR IDENTIFICATION!"
+   ]
+  },
+  {
+   "id": "police-enjoy-authority",
+   "kind": "police",
+   "headline": "A career in law enforcement",
+   "lines": [
+    "Do you enjoy authority?",
+    "Do you appreciate paperwork?",
+    "Have you ever looked at a perfectly ordinary cargo ship and thought, ‘That deserves an inspection’?",
+    "THEN WE HAVE A CAREER FOR YOU!",
+    "JOIN THE POLICE FORCE TODAY!",
+    "Uniforms provided. Enthusiasm mandatory."
+   ]
+  }
+ ]
 }

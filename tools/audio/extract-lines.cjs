@@ -47,8 +47,11 @@ if(problems.length){console.error('Voice registry problems:\n - '+problems.join(
 const Relay=require(path.join(src,'relay.js')),relayContent=JSON.parse(fs.readFileSync(path.join(src,'relay-content.json'),'utf8'));
 const relayProblems=Relay.validate(relayContent);if(relayProblems.length){console.error('Relay content problems:\n - '+relayProblems.join('\n - '));process.exit(1);}
 const voiced=Registry.voiced(reg);
-for(const s of relayContent.segments){const speaker=Relay.speakerOf(s);if(!voiced[speaker])continue;const key=speaker+'|'+s.text;
-  if(!lines.has(key))lines.set(key,{id:speaker+'-'+crypto.createHash('sha1').update(key).digest('hex').slice(0,10),speaker,text:s.text,source:'relay-content.json'});}
+// Each line of a report is its own clip. Lines with leaderboard names filled in at play time
+// ({name} and the like) can't be recorded ahead, so they stay captions.
+for(const s of relayContent.segments){const speaker=Relay.speakerOf(s);if(!voiced[speaker])continue;
+  for(const text of Relay.lines(s)){if(/\{\w+\}/.test(text))continue;const key=speaker+'|'+text;
+   if(!lines.has(key))lines.set(key,{id:speaker+'-'+crypto.createHash('sha1').update(key).digest('hex').slice(0,10),speaker,text,source:'relay-content.json'});}}
 const cast={},missingSpeakers=new Set();
 for(const l of lines.values()){const e=voiced[l.speaker];if(!e){missingSpeakers.add(l.speaker);continue;}cast[l.speaker]={voice:e.voice,...(e.profile!=='none'?{effect:e.profile}:{}),status:e.status};}
 if(missingSpeakers.size){console.error('Speakers missing from the registry: '+[...missingSpeakers].join(', '));process.exit(1);}

@@ -17,7 +17,7 @@ CLIPS = os.path.join(ROOT, 'void-runner', 'assets', 'audio', 'voice')
 SAMPLES = os.path.join(HERE, 'samples')
 RELAY = os.path.join(ROOT, 'void-runner', 'relay-content.json')
 # Default broadcaster per Relay kind (same as kinds in void-runner/relay.js).
-KIND_SPEAKERS = {'news': 'news-anchor', 'breaking': 'news-anchor', 'public': 'news-anchor', 'police': 'police-recruiter',
+KIND_SPEAKERS = {'news': 'news-anchor', 'breaking': 'news-anchor', 'public': 'news-anchor', 'police': 'police-recruiter', 'ad': 'commercial-announcer',
                  'warflying': 'warflying-host', 'communion': 'communion-spokesperson',
                  'natural-order': 'natural-order-spokesperson', 'function': 'the-function'}
 sys.path.insert(0, os.path.dirname(HERE))
@@ -73,8 +73,12 @@ def lines_for(speaker):
     # Relay scripts for a broadcaster who has no recordings yet.
     known = {l['text'] for l in found}
     for s in load(RELAY)['segments'] if os.path.exists(RELAY) else []:
-        if (s.get('speaker') or KIND_SPEAKERS.get(s.get('kind'))) == speaker and s['text'] not in known:
-            found.append({'id': s['id'], 'text': s['text'], 'file': None})
+        if (s.get('speaker') or KIND_SPEAKERS.get(s.get('kind'))) == speaker:
+            # A report is a list of lines (or one text); lines with {name} placeholders are left out.
+            for n, text in enumerate(s.get('lines') or [s.get('text', '')]):
+                if text and '{' not in text and text not in known:
+                    known.add(text)
+                    found.append({'id': s['id'] + '-' + str(n + 1), 'text': text, 'file': None})
     return found
 
 def cast_voices(reg, skip):

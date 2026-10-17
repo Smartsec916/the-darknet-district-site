@@ -37,6 +37,7 @@
   "news-anchor": {"displayName": "Relay news anchor", "voice": null, "status": "unassigned", "notes": "Natural, professional broadcast delivery. The Relay is not built yet."},
   "warflying-host": {"displayName": "WarFlying announcer", "voice": null, "status": "unassigned", "notes": "Energetic, theatrical sports commentator."},
   "police-recruiter": {"displayName": "Police recruitment announcer", "voice": null, "status": "unassigned", "notes": "Enthusiastic, slightly cheesy commercial delivery."},
+  "commercial-announcer": {"displayName": "Commercial announcer", "voice": null, "status": "unassigned", "notes": "Relay advertisements: adaptable but recognisable, from professional to cheerfully cheesy."},
   "communion-spokesperson": {"displayName": "Communion spokesperson", "voice": null, "status": "unassigned", "notes": "Controlled, composed, persuasive."},
   "natural-order-spokesperson": {"displayName": "Natural Order spokesperson", "voice": null, "status": "unassigned", "notes": "Confident, grounded, direct."},
   "the-function": {"displayName": "The Function", "voice": null, "status": "unassigned", "notes": "Provisional identity. Any unusual voice treatment needs David's approval. Do not invent its nature."}

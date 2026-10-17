@@ -66,5 +66,5 @@ The Relay's scripts are in `void-runner/relay-content.json`. Each segment has an
 
 ## Not built yet
 
-- **Broadcast scripts:** the Relay is built, but its script file is empty until David sends the lines.
+- **Broadcast voices:** the Relay's scripts are in (David's lines from his Relay brief; see `docs/VOID_RUNNER_RELAY.md`), but no broadcaster is cast yet, so they show as captions. Each report line is recorded as its own clip; lines with leaderboard names filled in at play time stay captions.
 - The special-character slot stays reserved until David introduces that character.
