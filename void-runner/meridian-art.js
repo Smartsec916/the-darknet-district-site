@@ -21,7 +21,7 @@
   function ellipsoid(name,p,size,mat){const m=B.MeshBuilder.CreateSphere(name,{diameter:1,segments:quality==='low'?10:16},scene);m.position.set(...p);m.scaling.set(...size);m.parent=parent;m.material=mat;return m;}
   function rail(a,b,r=.035,mat=trim){const start=B.Vector3.FromArray(a),end=B.Vector3.FromArray(b),delta=end.subtract(start),m=B.MeshBuilder.CreateCylinder('furniture-tube',{height:delta.length(),diameter:r*2,tessellation:10},scene);m.parent=parent;m.position=start.add(end).scale(.5);m.rotationQuaternion=B.Quaternion.FromUnitVectorsToRef(B.Axis.Y,delta.normalize(),new B.Quaternion());m.material=mat;return m;}
   // Furniture positions come from the walkable plan (meridian-interior.js), so the detail follows the rooms.
-  const F=root.VoidMeridianInterior.layout().furniture;
+  const F=root.VoidMeridianInterior.layout().furniture,G=parent.metadata?.propGroups||{};
   // Actual chair frames and padded seats; their positions match the existing activity points.
   for(const {x,z} of F.tables)for(const side of [-1,1]){
    const cx=x+side*1.6;
@@ -30,14 +30,14 @@
    box('chair-back-frame',[.07,.7,.72],[cx+side*.32,.83,z],frame,parent);ellipsoid('padded-back',[cx+side*.28,.85,z],[.18,.74,.72],leather);
    for(const dz of [-.37,.37]){rail([cx+side*.3,.55,z+dz],[cx+side*.3,.82,z+dz]);rail([cx-side*.26,.79,z+dz],[cx+side*.3,.82,z+dz],.025);}
   }
-  for(const {x,z} of F.stools){cylinder('stool-foot',[x,.04,z],.65,.08,frame);cylinder('stool-column',[x,.28,z],.12,.48,trim);cylinder('stool-seat',[x,.56,z],.62,.12,leather);const ring=B.MeshBuilder.CreateTorus('stool-footrest',{diameter:.42,thickness:.035,tessellation:16},scene);ring.parent=parent;ring.position.set(x,.23,z);ring.material=trim;}
+  if(!G['bar-stools'])for(const {x,z} of F.stools){cylinder('stool-foot',[x,.04,z],.65,.08,frame);cylinder('stool-column',[x,.28,z],.12,.48,trim);cylinder('stool-seat',[x,.56,z],.62,.12,leather);const ring=B.MeshBuilder.CreateTorus('stool-footrest',{diameter:.42,thickness:.035,tessellation:16},scene);ring.parent=parent;ring.position.set(x,.23,z);ring.material=trim;}
   const glass=metal('bottle-glass','#3e7664',.1,.2),amber=metal('amber-glass','#8a542e',.1,.25);
   const bx=F.bar.backX+.3;for(let i=0;i<14;i++){const x=bx,z=F.bar.z-F.bar.length/2+.75+i*(F.bar.length-1.5)/13,mat=i%3?glass:amber;cylinder('bottle-body',[x,1.92,z],.15,.34,mat);cylinder('bottle-neck',[x,2.14,z],.065,.13,mat);cylinder('bottle-cap',[x,2.22,z],.072,.035,trim);}
   for(const y of [1.68,2.5])box('backbar-shelf',[.6,.09,F.bar.length-.2],[bx,y,F.bar.z],trim,parent);
-  for(const {x,z,head} of F.bunks){box('bunk-mattress',[3.6,.2,1.6],[x,.55,z],fabric,parent);ellipsoid('pillow',[x+head*1.25,.74,z],[.64,.25,1.25],ceramic);box('folded-blanket',[1.7,.07,1.63],[x-head*.8,.71,z],leather,parent);box('berth-shelf',[.6,.08,1.3],[x+head*1.7,1.2,z],trim,parent);}
+  if(!G['quarters-beds'])for(const {x,z,head} of F.bunks){box('bunk-mattress',[3.6,.2,1.6],[x,.55,z],fabric,parent);ellipsoid('pillow',[x+head*1.25,.74,z],[.64,.25,1.25],ceramic);box('folded-blanket',[1.7,.07,1.63],[x-head*.8,.71,z],leather,parent);box('berth-shelf',[.6,.08,1.3],[x+head*1.7,1.2,z],trim,parent);}
   for(const {x,z} of F.lockers){for(const y of [.32,1.6])box('locker-handle',[.07,.27,.045],[x,y,z-.55],trim,parent);box('locker-vent',[.6,.22,.02],[x,2.05,z-.53],frame,parent);}
-  for(const {x,z,facing} of F.basins){box('sink-vanity',[1.4,.8,.7],[x,.4,z],frame,parent);ellipsoid('basin',[x,.84,z],[1.15,.2,.63],ceramic);rail([x,.85,z-facing*.2],[x,1.15,z-facing*.2],.025);rail([x,1.15,z-facing*.2],[x,1.15,z],.025);}
-  for(const {x,z} of F.toilets){ellipsoid('sanitary-bowl',[x,.32,z-.1],[.62,.5,.85],ceramic);box('sanitary-cistern',[.6,.6,.22],[x,.7,z+.32],ceramic,parent);}
+  if(!G['quarters-basins'])for(const {x,z,facing} of F.basins){box('sink-vanity',[1.4,.8,.7],[x,.4,z],frame,parent);ellipsoid('basin',[x,.84,z],[1.15,.2,.63],ceramic);rail([x,.85,z-facing*.2],[x,1.15,z-facing*.2],.025);rail([x,1.15,z-facing*.2],[x,1.15,z],.025);}
+  if(!G['quarters-toilets'])for(const {x,z} of F.toilets){ellipsoid('sanitary-bowl',[x,.32,z-.1],[.62,.5,.85],ceramic);box('sanitary-cistern',[.6,.6,.22],[x,.7,z+.32],ceramic,parent);}
   // Soft floor contacts anchor furniture without adding shadow-map passes on low quality.
   const shadowTexture=new B.DynamicTexture('meridian-contact',128,scene,false),sg=shadowTexture.getContext(),gradient=sg.createRadialGradient(64,64,5,64,64,64);gradient.addColorStop(0,'rgba(0,0,0,.5)');gradient.addColorStop(1,'rgba(0,0,0,0)');sg.fillStyle=gradient;sg.fillRect(0,0,128,128);shadowTexture.update();shadowTexture.hasAlpha=true;textures.push(shadowTexture);
   const shadow=new B.StandardMaterial('meridian-contact-shadow',scene);shadow.diffuseTexture=shadowTexture;shadow.useAlphaFromDiffuseTexture=true;shadow.disableLighting=true;shadow.emissiveColor=B.Color3.White();owned.push(shadow);

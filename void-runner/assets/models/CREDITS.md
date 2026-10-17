@@ -3,6 +3,7 @@
 - **Ships** (`ships/`): "Ultimate Spaceships Pack" by Quaternius, CC0 1.0. https://quaternius.com
 - **Meridian cladding** (`meridian-kit/`): "Modular Sci-Fi MegaKit" by Quaternius, CC0 1.0. https://quaternius.com
 - **Meridian interior** (`meridian-interior/`): "Modular Sci-Fi MegaKit" and "Sci-Fi Essentials Kit" by Quaternius, CC0 1.0. https://quaternius.com
+- **Meridian furniture** (`meridian-interior/house-*`): "Ultimate House Interior Pack" by Quaternius, CC0 1.0. https://opengameart.org/node/126986
 - **Props** (`props/`): "Sci-Fi Essentials Kit" by Quaternius, CC0 1.0. https://quaternius.com
 
 CC0 needs no attribution; this credit is given anyway. Full inventory: `docs/VOID_RUNNER_ASSET_LICENSES.md`.
