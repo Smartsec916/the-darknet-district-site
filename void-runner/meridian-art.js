@@ -10,7 +10,7 @@
   let disposed=false;
   const authored=new B.Texture('void-runner/assets/textures/meridian-panels-v1.png',scene,false,false,B.Texture.TRILINEAR_SAMPLINGMODE,()=>{if(!disposed){wall.albedoTexture=authored;deck.albedoTexture=authored;}},()=>{});authored.anisotropicFilteringLevel=quality==='low'?2:8;textures.push(authored);
   function metreUV(mesh,scale=3){const p=mesh.getVerticesData(B.VertexBuffer.PositionKind),n=mesh.getVerticesData(B.VertexBuffer.NormalKind);if(!p||!n)return;const uv=[];for(let i=0;i<p.length;i+=3){const x=Math.abs(n[i]),y=Math.abs(n[i+1]);uv.push((x>.5?p[i+2]:p[i])/scale,(y>.5?p[i+2]:p[i+1])/scale);}mesh.setVerticesData(B.VertexBuffer.UVKind,uv);}
-  const oldFurniture=new Set(['lounge-chair','chair-back','chair-metal-leg','bar-stool','bottle','bunk-mattress','washbasin','sanitary-fixture']);
+  const oldFurniture=new Set(['lounge-chair','chair-back','chair-metal-leg','bar-stool','bottle','bunk-mattress','pod-bank','pod-bank-2','washbasin','sanitary-fixture']);
   for(const mesh of [...parent.getChildMeshes()]){
    if(mesh.parent!==parent)continue;
    if(oldFurniture.has(mesh.name)){mesh.dispose();continue;}
@@ -35,7 +35,7 @@
   const bx=F.bar.backX+.3;for(let i=0;i<14;i++){const x=bx,z=F.bar.z-F.bar.length/2+.75+i*(F.bar.length-1.5)/13,mat=i%3?glass:amber;cylinder('bottle-body',[x,1.92,z],.15,.34,mat);cylinder('bottle-neck',[x,2.14,z],.065,.13,mat);cylinder('bottle-cap',[x,2.22,z],.072,.035,trim);}
   for(const y of [1.68,2.5])box('backbar-shelf',[.6,.09,F.bar.length-.2],[bx,y,F.bar.z],trim,parent);
   if(!G['quarters-beds'])for(const {x,z,head} of F.bunks){box('bunk-mattress',[3.6,.2,1.6],[x,.55,z],fabric,parent);ellipsoid('pillow',[x+head*1.25,.74,z],[.64,.25,1.25],ceramic);box('folded-blanket',[1.7,.07,1.63],[x-head*.8,.71,z],leather,parent);box('berth-shelf',[.6,.08,1.3],[x+head*1.7,1.2,z],trim,parent);}
-  for(const {x,z} of F.lockers){for(const y of [.32,1.6])box('locker-handle',[.07,.27,.045],[x,y,z-.55],trim,parent);box('locker-vent',[.6,.22,.02],[x,2.05,z-.53],frame,parent);}
+  for(const {x,z} of F.lockers){for(const y of [.32,1.6])box('locker-handle',[.045,.27,.07],[x+.42,y,z+.25],trim,parent);box('locker-vent',[.02,.22,.6],[x+.41,2.05,z],frame,parent);}
   if(!G['quarters-basins'])for(const {x,z,facing} of F.basins){box('sink-vanity',[1.4,.8,.7],[x,.4,z],frame,parent);ellipsoid('basin',[x,.84,z],[1.15,.2,.63],ceramic);rail([x,.85,z-facing*.2],[x,1.15,z-facing*.2],.025);rail([x,1.15,z-facing*.2],[x,1.15,z],.025);}
   if(!G['quarters-toilets'])for(const {x,z} of F.toilets){ellipsoid('sanitary-bowl',[x,.32,z-.1],[.62,.5,.85],ceramic);box('sanitary-cistern',[.6,.6,.22],[x,.7,z+.32],ceramic,parent);}
   // Soft floor contacts anchor furniture without adding shadow-map passes on low quality.
@@ -43,8 +43,37 @@
   const shadow=new B.StandardMaterial('meridian-contact-shadow',scene);shadow.diffuseTexture=shadowTexture;shadow.useAlphaFromDiffuseTexture=true;shadow.disableLighting=true;shadow.emissiveColor=B.Color3.White();owned.push(shadow);
   for(const [x,z,w,d]of [...F.tables.map(t=>[t.x,t.z,5.4,2.4]),[F.bar.x,F.bar.z,3,F.bar.length+1],[F.store.x,F.store.z,3,F.store.length+2]]){const m=B.MeshBuilder.CreateGround('furniture-contact',{width:w,height:d},scene);m.parent=parent;m.position.set(x,.034,z);m.material=shadow;m.isPickable=false;}
   // Operational details are physical panels, shelving and pressure-frame hardware.
-  for(const side of [1])for(let z=22;z<63;z+=4){box('window-seal',[.13,.18,3.75],[side*17.55,1.14,z],frame,parent);box('window-seal',[.13,.14,3.75],[side*17.55,3.94,z],frame,parent);for(const y of [1.45,3.55])cylinder('pressure-fastener',[side*17.5,y,z],.065,.09,trim);}
-  for(const x of [-3.8,3.8])for(let z=6;z<18;z+=3){if(x<0&&z>8.5&&z<13.5)continue;box('connector-rib',[.15,4.6,.22],[x,2.3,z],frame,parent);box('connector-lamp',[.08,.9,.12],[x*.98,2.8,z],material('lamp','#ffd39a',true),parent);}
+  // Observation windows: pressure seals and fasteners along the hall's starboard and aft glass.
+  for(let z=42;z<61;z+=4){box('window-seal',[.13,.18,3.75],[16.2,1.14,z],frame,parent);box('window-seal',[.13,.14,3.75],[16.2,3.4,z],frame,parent);for(const y of [1.45,3.1])cylinder('pressure-fastener',[16.15,y,z],.065,.09,trim);}
+  for(let x=-14;x<15;x+=4){box('window-seal',[3.75,.18,.13],[x,1.04,62.15],frame,parent);box('window-seal',[3.75,.14,.13],[x,3.4,62.15],frame,parent);}
+  // Sleeping pods: two tiers of capsules along the living area's walls, hatches facing into the room.
+  // Each has a padded berth, its own warm light, a part-drawn privacy cover, an occupancy light and a drawer.
+  const podLight=material('pod-light','#ffcf8e',true),free=material('pod-free','#7fe0b0',true),taken=material('pod-taken','#ffad5c',true),glassMat=material('pod-glass','#9fd2e6',false,.18);
+  for(const [i,p] of (F.pods||[]).entries()){
+   // Local pod space: u across the hatch, v along the berth (+v toward the hatch). A pod facing +x is turned a quarter.
+   const side=Math.abs((p.facing??Math.PI)-Math.PI/2)<.01,shut=i%3===1,{y}=p;
+   const P=(u,h,v)=>side?[p.x+v,y+h,p.z-u]:[p.x+u,y+h,p.z+v],S=(a,b,c)=>side?[c,b,a]:[a,b,c];
+   const put=(name,size,u,h,v,mat)=>box(name,S(...size),P(u,h,v),mat,parent),front=1.12;
+   put('pod-floor',[1.5,.1,2.3],0,.05,0,frame);put('pod-roof',[1.5,.1,2.3],0,1.1,0,frame);
+   for(const s of [-1,1])put('pod-side',[.08,1.15,2.3],s*.71,.575,0,wall);put('pod-back',[1.5,1.15,.08],0,.575,-1.11,wall);
+   put('pod-berth',[1.3,.14,2.05],0,.17,.02,fabric);ellipsoid('pod-pillow',P(0,.29,-.8),S(.95,.16,.42),ceramic);put('pod-blanket',[1.28,.06,1.1],0,.27,.35,leather);
+   put('pod-light-strip',[1.2,.03,.05],0,1.03,front-.12,podLight);
+   for(const s of [-1,1])put('pod-hatch-rail',[.06,1.15,.07],s*.72,.575,front,trim);put('pod-hatch-rail',[1.5,.06,.07],0,1.12,front,trim);put('pod-hatch-rail',[1.5,.06,.07],0,.03,front,trim);
+   // The privacy cover slides along the hatch: most part-drawn, some closed.
+   put('pod-privacy-cover',[shut?1.36:.62,.95,.04],shut?0:.35,.6,front+.05,glassMat);
+   put('pod-occupancy',[.16,.08,.02],.5,1.02,front+.05,shut?taken:free);put('pod-drawer',[1.1,.08,.02],0,.12,front+.05,frame);
+   if(p.level){for(const s of [-1,1])box('pod-ladder-rail',S(.04,1.62,.04),[...P(-.55+s*.18,0,front+.25)].map((v,k)=>k===1?.81:v),trim,parent);for(let r=.35;r<1.62;r+=.4)box('pod-ladder-rung',S(.36,.035,.035),[...P(-.55,0,front+.25)].map((v,k)=>k===1?r:v),trim,parent);}
+  }
+  // The Dead Channel's glow (reference sheet): violet neon along the back bar's shelves and the counter's edge.
+  {const neon=material('bar-neon','#b46cff',true),pink=material('bar-neon-pink','#ff5fb4',true),B0=F.bar;
+   for(const y of [1.6,2.42])box('backbar-neon',[.04,.04,B0.length-.4],[B0.backX+.62,y,B0.z],neon,parent);
+   box('counter-neon',[.04,.04,B0.length-.2],[B0.x+.63,1.12,B0.z],pink,parent);box('backbar-canopy',[1.6,.08,B0.length],[B0.backX+.6,3.1,B0.z],frame,parent);
+   for(const dz of [-B0.length/2+.3,B0.length/2-.3])box('canopy-neon',[1.2,.04,.04],[B0.backX+.6,3.04,B0.z+dz],neon,parent);}
+  // Potted plants in the hall's corners and at the corridor's end, as on the reference sheet.
+  {const pot=metal('planter','#3a3f44',.4,.5),leaf=metal('leaves','#3f6b3a',0,.8),leaf2=metal('leaves-light','#5b8a45',0,.8);
+   for(const [x,z,s] of F.plants||[]){cylinder('planter',[x,.3,z],.55*s,.6,pot,.65*s);for(let k=0;k<7;k++){const a=k*2.4,r=.18*s;ellipsoid('foliage',[x+Math.cos(a)*r,.75+(k%3)*.18*s,z+Math.sin(a)*r],[.42*s,.55*s,.42*s],k%2?leaf:leaf2);}}}
+  // Sofas under the windows: leather cushions on the plain frames.
+  for(const {x,z,length} of F.sofas||[]){for(const dz of [-length/4,length/4])ellipsoid('sofa-cushion',[x,.52,z+dz],[.95,.22,length/2-.08],leather);ellipsoid('sofa-back-cushion',[x+.48,.92,z],[.26,.62,length-.1],leather);}
   const api={dispose(){disposed=true;for(const m of owned)m.dispose(false,false);for(const t of textures)t.dispose();}};return api;
  }
  root.VoidMeridianArt={enhance};
