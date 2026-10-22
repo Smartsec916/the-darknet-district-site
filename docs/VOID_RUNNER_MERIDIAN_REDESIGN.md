@@ -83,6 +83,11 @@
 **Named NPCs** (Rook, Nyx) keep their looks, places and dialogue.
 
 ## 6. Animated broadcasts and ads (relay-screens.js)
+- **Update (2026-10-22, David: "these screens are supposed to scroll through the different ads and news"):**
+  - Every news screen is now a channel. It cycles 8-second slides: each news story the player has received with an ad after it, the WarFlying standings (bars grow in), and a station notice. Slides have animated entries and exits.
+  - The backgrounds move visibly: a travelling light band, drifting stripes and particles, and a turning orbit ring.
+  - The bar screen now hangs over the bar, clear of the wall pipe, lamps and canopy.
+  - The corridor ad panels were hidden behind the wall dressing; they now stand in front of it.
 - **News screens:**
   - moving backgrounds and scanlines, a blinking LIVE dot
   - a breaking-news red header
