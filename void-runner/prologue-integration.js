@@ -20,7 +20,8 @@ function refreshOpeningObjective(){
  const next=VoidOpening.next(state);if(!next)return;
  tutorialUI.textContent=openingPrompts[next];
  if(state.progression.flags.shootingTutorialComplete)VoidBabylon.opening?.meetShip();
- if(walkingLocation?.kind==='workshop'){
+ // The workshop lessons guide only while a tutorial is tracked: untracking it in the Mission Log clears the arrow and caption.
+ if(walkingLocation?.kind==='workshop'&&VoidMissions.tutorials.includes(state.universe.trackedMission)){
   const id=next==='recording'?'recording':['ship','depart'].includes(next)?'board':['move','look'].includes(next)?null:'mara';
   trackedWalkWaypoint=id?walkingLocation.interactions.find(i=>i.id===id):null;
   $('walking-caption').textContent=openingPrompts[next];
