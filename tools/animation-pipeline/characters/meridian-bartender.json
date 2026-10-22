@@ -1,0 +1,82 @@
+{
+ "name": "meridian_bartender",
+ "about": "Meridian: the Dead Channel bartender, charcoal waistcoat suit with teal piping, black bob, amber shades. MakeHuman CC0.",
+ "phenotype": {
+  "gender": 0.0,
+  "age": 0.5,
+  "muscle": 0.5,
+  "weight": 0.45,
+  "height": 0.55,
+  "cupsize": 0.5,
+  "race": {
+   "asian": 0.5,
+   "caucasian": 0.2,
+   "african": 0.3
+  }
+ },
+ "skin": "middleage_asian_female",
+ "hair": "bob01",
+ "clothes": [
+  "female_elegantsuit01",
+  "shoes03"
+ ],
+ "style": {
+  "female_elegantsuit01": {
+   "recolor": [
+    {
+     "color": [
+      0.1,
+      0.1,
+      0.12
+     ],
+     "level": 0.85
+    }
+   ],
+   "glow": [
+    {
+     "mode": "boundary",
+     "color": [
+      0.2,
+      0.95,
+      0.85
+     ],
+     "width": 2,
+     "strength": 1.8
+    }
+   ]
+  },
+  "hair": {
+   "recolor": [
+    {
+     "color": [
+      0.06,
+      0.06,
+      0.07
+     ],
+     "level": 0.8
+    }
+   ]
+  }
+ },
+ "accessories": [
+  {
+   "type": "shades",
+   "glow": [
+    1.0,
+    0.55,
+    0.05
+   ],
+   "strength": 1.0
+  }
+ ],
+ "clips": [
+  "idle",
+  "talk",
+  "interact",
+  "pickup",
+  "wipe",
+  "walk"
+ ],
+ "lean": true,
+ "maxGarmentVerts": 9000
+}

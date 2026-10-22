@@ -49,6 +49,7 @@
   // Sleeping pods: two tiers of capsules along the living area's walls, hatches facing into the room.
   // Each has a padded berth, its own warm light, a part-drawn privacy cover, an occupancy light and a drawer.
   const podLight=material('pod-light','#ffcf8e',true),free=material('pod-free','#7fe0b0',true),taken=material('pod-taken','#ffad5c',true),glassMat=material('pod-glass','#9fd2e6',false,.18);
+  const pods=[];
   for(const [i,p] of (F.pods||[]).entries()){
    // Local pod space: u across the hatch, v along the berth (+v toward the hatch). A pod facing +x is turned a quarter.
    const side=Math.abs((p.facing??Math.PI)-Math.PI/2)<.01,shut=i%3===1,{y}=p;
@@ -60,10 +61,17 @@
    put('pod-light-strip',[1.2,.03,.05],0,1.03,front-.12,podLight);
    for(const s of [-1,1])put('pod-hatch-rail',[.06,1.15,.07],s*.72,.575,front,trim);put('pod-hatch-rail',[1.5,.06,.07],0,1.12,front,trim);put('pod-hatch-rail',[1.5,.06,.07],0,.03,front,trim);
    // The privacy cover slides along the hatch: most part-drawn, some closed.
-   put('pod-privacy-cover',[shut?1.36:.62,.95,.04],shut?0:.35,.6,front+.05,glassMat);
-   put('pod-occupancy',[.16,.08,.02],.5,1.02,front+.05,shut?taken:free);put('pod-drawer',[1.1,.08,.02],0,.12,front+.05,frame);
+   // The privacy cover slides along the hatch (animated below); its occupancy light shows free or taken.
+   const cover=put('pod-privacy-cover',[1.36,.95,.04],0,.6,front+.05,glassMat),occ=put('pod-occupancy',[.16,.08,.02],.5,1.02,front+.05,shut?taken:free);
+   cover.metadata={animated:true};occ.metadata={animated:true};pods.push({cover,occ,side,P,front,f:shut?1:0,target:shut?1:0});put('pod-drawer',[1.1,.08,.02],0,.12,front+.05,frame);
    if(p.level){for(const s of [-1,1])box('pod-ladder-rail',S(.04,1.62,.04),[...P(-.55+s*.18,0,front+.25)].map((v,k)=>k===1?.81:v),trim,parent);for(let r=.35;r<1.62;r+=.4)box('pod-ladder-rung',S(.36,.035,.035),[...P(-.55,0,front+.25)].map((v,k)=>k===1?r:v),trim,parent);}
   }
+  // Now and then someone turns in or gets up: one cover slides shut or open and its light changes.
+  const placeCover=q=>{const w=.62+(1.36-.62)*q.f,u=.35*(1-q.f);if(q.side)q.cover.scaling.z=w/1.36;else q.cover.scaling.x=w/1.36;q.cover.position.set(...q.P(u,.6,q.front+.05));};
+  pods.forEach(placeCover);let nextToggle=8+Math.random()*12,last=performance.now();
+  const podObserver=pods.length?scene.onBeforeRenderObservable.add(()=>{const now=performance.now(),dt=Math.min(.1,(now-last)/1000);last=now;nextToggle-=dt;
+   if(nextToggle<=0){const q=pods[Math.floor(Math.random()*pods.length)];q.target=1-q.target;nextToggle=20+Math.random()*25;}
+   for(const q of pods)if(q.f!==q.target){q.f=q.target>q.f?Math.min(q.target,q.f+dt/1.6):Math.max(q.target,q.f-dt/1.6);placeCover(q);if(q.f===q.target)q.occ.material=q.f?taken:free;}}):null;
   // The Dead Channel's glow (reference sheet): violet neon along the back bar's shelves and the counter's edge.
   {const neon=material('bar-neon','#b46cff',true),pink=material('bar-neon-pink','#ff5fb4',true),B0=F.bar;
    for(const y of [1.6,2.42])box('backbar-neon',[.04,.04,B0.length-.4],[B0.backX+.62,y,B0.z],neon,parent);
@@ -74,7 +82,7 @@
    for(const [x,z,s] of F.plants||[]){cylinder('planter',[x,.3,z],.55*s,.6,pot,.65*s);for(let k=0;k<7;k++){const a=k*2.4,r=.18*s;ellipsoid('foliage',[x+Math.cos(a)*r,.75+(k%3)*.18*s,z+Math.sin(a)*r],[.42*s,.55*s,.42*s],k%2?leaf:leaf2);}}}
   // Sofas under the windows: leather cushions on the plain frames.
   for(const {x,z,length} of F.sofas||[]){for(const dz of [-length/4,length/4])ellipsoid('sofa-cushion',[x,.52,z+dz],[.95,.22,length/2-.08],leather);ellipsoid('sofa-back-cushion',[x+.48,.92,z],[.26,.62,length-.1],leather);}
-  const api={dispose(){disposed=true;for(const m of owned)m.dispose(false,false);for(const t of textures)t.dispose();}};return api;
+  const api={dispose(){disposed=true;if(podObserver)scene.onBeforeRenderObservable.remove(podObserver);for(const m of owned)m.dispose(false,false);for(const t of textures)t.dispose();}};return api;
  }
  root.VoidMeridianArt={enhance};
 })(globalThis);

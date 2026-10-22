@@ -528,7 +528,7 @@
   // The clip for a crew member's routine state; one-shot moves (sitting down, standing up, reaching) play once on entering the state.
   function crewClip(actor,a,time){const c=actor.crowd,s=a.state,was=actor.was;actor.was=s;
     if(s==='walk'){c.walk(time+a.id);return;}
-    if(s!==was){if(s==='sit-down'){c.playOnce('sit-enter','sit');return;}if(s==='stand'){c.playOnce('sit-exit','idle');return;}if(s==='get-drink'||s==='terminal'||s==='browse'){c.playOnce('interact',VoidCrowd.activityClip[s]);return;}}
+    if(s!==was){const o=VoidCrowd.onceClip[s];if(o){c.playOnce(o[0],o[1]);return;}}
     if(!c.busy)c.play(VoidCrowd.activityClip[s]||'idle');}
   function characterModel(id,parent,position,ambient=false){
     const model=VoidAssets.instance('character:'+id,parent);if(model){model.position.set(position[0],0,position[2]);actors.push({node:model,base:position.slice(),ambient});return model;}const look=ambient&&id.startsWith('crew-')&&root.VoidCrowd?VoidCrowd.pick(crowdLocation,id):null,figure=look&&VoidAssets.instance('crowd:'+look,parent);if(figure){figure.position.set(position[0],0,position[2]);figure.metadata={...figure.metadata,crowd:look,character:id,ambient};actors.push({node:figure,base:position.slice(),ambient,crowd:VoidCrowd.animate(figure,look,VoidCrowd.clipFor(id))});return figure;}
@@ -615,7 +615,7 @@
     parent.metadata={...parent.metadata,art:globalThis.VoidMeridianArt?.enhance({B:b,scene,parent,box,material,quality})};
     for(const m of parent.getChildMeshes())if(m.material)m.material.maxSimultaneousLights=8;
     // Static fittings share material batches; NPCs, signs and doors keep individual nodes.
-    const batches=new Map();for(const m of parent.getChildMeshes()){if(m.parent!==parent||m.metadata?.stationDoor||!m.isVisible||!m.isEnabled())continue;const list=batches.get(m.material)||[];list.push(m);batches.set(m.material,list);}for(const [mat,list] of batches)if(list.length>1){const mesh=b.Mesh.MergeMeshes(list,true,true,undefined,false,false);mesh.name='meridian-interior-'+mat.name;mesh.parent=parent;mesh.material=mat;mesh.isPickable=false;}
+    const batches=new Map();for(const m of parent.getChildMeshes()){if(m.parent!==parent||m.metadata?.stationDoor||m.metadata?.animated||!m.isVisible||!m.isEnabled())continue;const list=batches.get(m.material)||[];list.push(m);batches.set(m.material,list);}for(const [mat,list] of batches)if(list.length>1){const mesh=b.Mesh.MergeMeshes(list,true,true,undefined,false,false);mesh.name='meridian-interior-'+mat.name;mesh.parent=parent;mesh.material=mat;mesh.isPickable=false;}
 
   }
 

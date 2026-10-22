@@ -5,12 +5,13 @@
  const base='assets/models/crowd/';
  // Clips each look carries (must match its character spec).
  const clips={
-  'vesper-mechanic':['idle','talk','work','watch','walk'],'vesper-pilot':['idle','talk','work','watch','sit','walk'],'vesper-trader':['idle','talk','work','watch','sit','walk'],
+  'vesper-mechanic':['idle','talk','work','watch','walk'],'vesper-pilot':['idle','talk','work','watch','sit','walk'],'vesper-trader':['idle','talk','work','watch','sit','walk','sit-enter','sit-exit','sit-talk','interact','look'],
   'order-farmhand':['idle','talk','work','watch','walk'],'order-grower':['idle','talk','work','watch','walk'],'order-militia':['idle','talk','work','watch','walk'],
-  'communion-worker':['idle','talk','work','watch','walk'],'communion-tech':['idle','talk','work','watch','sit','walk'],'cyborg-01':['idle','talk','work','watch','sit','walk'],
-  'ncz-neon':['idle','talk','watch','walk'],'fixer-01':['idle','talk','watch','sit','walk'],'runner-02':['idle','talk','watch','walk'],
-  'hacker-01':['idle','talk','sit','smoke','watch','walk'],'district-smuggler':['idle','talk','sit','smoke','walk'],'district-resident':['idle','talk','sit','smoke','walk'],
-  'outlaw-01':['idle','talk','sit','smoke','watch','walk'],'regular-01':['idle','talk','sit','watch','walk']
+  'communion-worker':['idle','talk','work','watch','walk'],'communion-tech':['idle','talk','work','watch','sit','walk'],'cyborg-01':['idle','talk','work','watch','sit','walk','sit-enter','sit-exit','sit-talk','interact','look'],
+  'ncz-neon':['idle','talk','watch','walk'],'fixer-01':['idle','talk','watch','sit','walk','sit-enter','sit-exit','sit-talk','interact','look'],'runner-02':['idle','talk','watch','walk'],
+  'hacker-01':['idle','talk','sit','smoke','watch','walk','sit-enter','sit-exit','sit-talk','interact','look'],'district-smuggler':['idle','talk','sit','smoke','walk'],'district-resident':['idle','talk','sit','smoke','walk'],
+  'outlaw-01':['idle','talk','sit','smoke','watch','walk','sit-enter','sit-exit','sit-talk','interact','look'],'regular-01':['idle','talk','sit','watch','walk','sit-enter','sit-exit','sit-talk','interact','look'],
+  'meridian-bartender':['idle','talk','interact','pickup','wipe','walk']
  };
  // Each place has its own feel; the order spreads looks across a scene's crew.
  const frontierMix=['vesper-mechanic','regular-01','vesper-pilot','communion-worker','outlaw-01'];
@@ -26,7 +27,8 @@
  };
  // NeoChinatown and The Darknet District share one scene; these crew belong to the District.
  const districtCrew=/^crew-(vr|bar|smoke)/;
- function castFor(location,id){return location==='neochinatown'&&districtCrew.test(id)?casts.district:casts[location]||null;}
+ const staff={meridian:['meridian-bartender']};
+ function castFor(location,id){if(id==='crew-bartender')return staff[location]||null;return location==='neochinatown'&&districtCrew.test(id)?casts.district:casts[location]||null;}
  function hash(s){let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h;}
  function clipFor(id){
   if(/smoke/.test(id))return 'smoke';
@@ -38,14 +40,17 @@
   return ['idle','talk','watch'][hash(id)%3];
  }
  // Which station activity state plays which clip (Meridian's moving crew).
- const activityClip={sit:'sit',drink:'sit',device:'sit','talk-seated':'sit-talk','sit-down':'sit',stand:'idle',talk:'talk',window:'look',terminal:'typing',browse:'watch','get-drink':'idle',waiting:'idle',idle:'idle'};
+ const activityClip={sit:'sit',drink:'sit',device:'sit','talk-seated':'sit-talk','sit-down':'sit',stand:'idle',talk:'talk',window:'look',terminal:'typing',browse:'watch','get-drink':'idle',waiting:'idle',idle:'idle',
+  serve:'talk',wipe:'wipe',pour:'wipe',shelf:'idle'};
+ // One-shot moves played on entering a state: [move, then loop].
+ const onceClip={'sit-down':['sit-enter','sit'],stand:['sit-exit','idle'],'get-drink':['interact','idle'],terminal:['interact','typing'],browse:['interact','watch'],pour:['pickup','wipe'],shelf:['interact','idle']};
  // A look without a clip falls back to the nearest one it has, then to idle.
  const fallback={look:'watch','sit-talk':'sit',typing:'watch'};
  function clipIn(look,want){const have=clips[look]||[];for(let w=want;w;w=fallback[w])if(have.includes(w))return w;return 'idle';}
  // Model definitions to preload for a place. Low quality keeps the light procedural crew.
  function models(location,quality){
   if(quality==='low'||!casts[location])return {};
-  const set=new Set(casts[location]);if(location==='neochinatown')casts.district.forEach(l=>set.add(l));
+  const set=new Set([...casts[location],...(staff[location]||[])]);if(location==='neochinatown')casts.district.forEach(l=>set.add(l));
   // Background: a figure that isn't downloaded within the scene's few seconds keeps loading and is
   // swapped in when it arrives (asset-pipeline.js), instead of being dropped for the procedural crew.
   return Object.fromEntries([...set].map(l=>['crowd:'+l,{src:base+l+'.glb',background:true}]));
@@ -98,6 +103,6 @@
  }
  function release(){for(const g of groups)g.dispose();groups.clear();}
 
- const api={casts,clips,castFor,clipFor,activityClip,clipIn,models,begin,pick,animate,release};
+ const api={casts,staff,clips,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,release};
  if(typeof module!=='undefined')module.exports=api;else root.VoidCrowd=api;
 })(globalThis);

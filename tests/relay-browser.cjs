@@ -33,7 +33,8 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
  assert.equal(cut,'breaking-tessaly-comms-disruption');
  // 4. Meridian's screens show the same story.
  await page.evaluate(()=>{VoidRelayScreens.draw();});
- const screens=await page.evaluate(()=>VoidRelayScreens.screens.length);assert.equal(screens,2);
+ // Two news screens (hall entrance, behind the bar) and two animated ad panels in the corridor (Meridian brief, Phase 7).
+const screens=await page.evaluate(()=>VoidRelayScreens.screens.map(s=>s.place.type));assert.equal(screens.filter(t=>t==='news').length,2);assert.equal(screens.filter(t=>t==='ad').length,2);
  const heads=await page.evaluate(()=>VoidRelay.headlines(state.relay,VoidRelayRadio.content,{system:'erebus',clock:state.warflying.clock,matches:()=>true},6).map(h=>h.headline));
  assert.equal(heads[0],'Communications disruption near Tessaly shipping corridor');
  await page.evaluate(()=>{walker.x=0;walker.z=19.5;walker.yaw=0;walker.pitch=-.32;VoidRelayScreens.draw();for(let i=0;i<3;i++)update(.016);draw();});

@@ -108,6 +108,12 @@
   for(const z of [46,56]){add('lounge-sofa',[1,.45,3.2],[15.1,.225,z],'seat');add('sofa-back',[.3,.9,3.2],[15.65,.6,z],'seat');furniture.sofas.push({x:15.1,z,length:3.2,facing:-Math.PI/2});
    for(const dz of [-.8,.8])activityPoints.push({id:'sofa-'+z+'-'+dz,position:[14.75,0,z+dz],facing:-Math.PI/2,activities:['sit','talk-seated'],animation:'seated',seat:true});}
 
+  // Behind the bar (between the counter and the back bar): where the bartender serves, pours, polishes and reaches.
+  // Nyx keeps her spot behind the bar: the bartender's spots stay clear of it and routes go round it.
+  const staffPoints=[];{const front=B.x-1.2,back=B.backX+.95,nyx=[-13,51];solids.push({id:'nyx-spot',size:[.9,2,.9],position:[nyx[0],1,nyx[1]]});
+   for(let i=0;i<6;i++){const z=B.z-5.5+i*2.2;staffPoints.push({id:'serve-'+i,position:[front,0,z],facing:Math.PI/2,activities:['serve'],stool:'bar-'+i});}
+   for(const z of [B.z-3.5,B.z+2.6,B.z+5])staffPoints.push({id:'wipe-'+z,position:[front,0,z],facing:Math.PI/2,activities:['wipe','pour']});
+   for(const z of [B.z-4.5,B.z+4])staffPoints.push({id:'shelf-'+z,position:[back,0,z],facing:-Math.PI/2,activities:['shelf']});}
   solids.push({id:'ship',size:[7,4,11],position:[-7,2,-9]});
   for(const [x,z,s] of furniture.plants)solids.push({id:'planter',size:[.75*s,1,.75*s],position:[x,.5,z]});
   interactions.push({id:'board',action:'board',label:'BOARD YOUR SHIP',position:[-2,1.7,-14],range:3.5},
@@ -140,7 +146,7 @@
    ...furniture.basins.map(b=>({model:'basin',position:[b.x,.1,22.05],yaw:Math.PI,group:'quarters-basins',replaces:['washbasin']})),
    ...furniture.stools.map(s=>({model:'bar-stool',position:[s.x,0,s.z],yaw:Math.PI/2,group:'bar-stools',replaces:['bar-stool']}))
   ];
-  return {id:'meridian',name:'MERIDIAN STATION',kind:'station',bounds:[18,64],spawn:[0,1.7,-17],ship,color:'#505962',shell,solids,interactions,signs,activityPoints,props,furniture,walls,floors,rooms:R};
+  return {id:'meridian',name:'MERIDIAN STATION',kind:'station',bounds:[18,64],spawn:[0,1.7,-17],ship,color:'#505962',shell,solids,interactions,signs,activityPoints,staffPoints,staffStart:[furniture.bar.x-1.2,furniture.bar.z+3.5],props,furniture,walls,floors,rooms:R};
  }
  const api={layout,rooms:R};if(typeof module!=='undefined')module.exports=api;else root.VoidMeridianInterior=api;
 })(globalThis);
