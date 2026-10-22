@@ -522,7 +522,14 @@
     node.metadata={layout:id,doors,arrays,placeholder:true};return node;
   }
 
-  let actors=[],stationActivity=null,lastActivityTime=null,crowdLocation=null,waitingCrowd=[];
+  let actors=[],stationActivity=null,lastActivityTime=null,crowdLocation=null,waitingCrowd=[],lastRoomTime=null;
+  // Turns toward a heading along the short way round.
+  const turnToward=(from,to,k)=>{let d=((to-from+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;return from+d*Math.min(1,k);};
+  // The clip for a crew member's routine state; one-shot moves (sitting down, standing up, reaching) play once on entering the state.
+  function crewClip(actor,a,time){const c=actor.crowd,s=a.state,was=actor.was;actor.was=s;
+    if(s==='walk'){c.walk(time+a.id);return;}
+    if(s!==was){const o=VoidCrowd.onceClip[s];if(o){c.playOnce(o[0],o[1]);return;}}
+    if(!c.busy)c.play(VoidCrowd.activityClip[s]||'idle');}
   function characterModel(id,parent,position,ambient=false){
     const model=VoidAssets.instance('character:'+id,parent);if(model){model.position.set(position[0],0,position[2]);actors.push({node:model,base:position.slice(),ambient});return model;}const look=ambient&&id.startsWith('crew-')&&root.VoidCrowd?VoidCrowd.pick(crowdLocation,id):null,figure=look&&VoidAssets.instance('crowd:'+look,parent);if(figure){figure.position.set(position[0],0,position[2]);figure.metadata={...figure.metadata,crowd:look,character:id,ambient};actors.push({node:figure,base:position.slice(),ambient,crowd:VoidCrowd.animate(figure,look,VoidCrowd.clipFor(id))});return figure;}
     const b=B(),a=VoidStationLayouts.appearances[id]||{coat:['#48565b','#665541','#566249','#4d5264'][Number(id.slice(-1))%4]||'#59676e',hair:'#30363c',skin:['#ae8a70','#75533f','#c7a184'][Number(id.slice(-1))%3]||'#ae8a70'},node=new b.TransformNode('npc-'+id,scene);
@@ -588,22 +595,27 @@
     const b=B(),steel=material('brushed-steel','#454e55'),warm=material('lamp-warm','#ffd39a',true),rubber=material('rubber','#232a30'),copper=material('copper','#967053');
     const F=room?.furniture||VoidMeridianInterior.layout().furniture;
     scene.getLightByName('ambient').intensity=.22;scene.getLightByName('sun').intensity=.28;
+    const R=room?.rooms||VoidMeridianInterior.rooms,C=R.corridor,H=R.hall;
     function pipe(x,y,z,length){const m=b.MeshBuilder.CreateCylinder('service-pipe',{diameter:.13,height:length,tessellation:10},scene);m.parent=parent;m.position.set(x,y,z);m.rotation.x=Math.PI/2;m.material=copper;}
-    for(let z=20;z<66;z+=4){
-      for(const x of [-5.5,5.5]){box('luminaire-housing',[1.8,.22,.45],[x,5.45,z],steel,parent);box('warm-diffuser',[1.5,.04,.3],[x,5.31,z],warm,parent);}
-      for(const x of [-16.8,16.8]){pipe(x,5.2,z,4);box('pressure-frame',[.22,4.5,.25],[x,2.25,z],steel,parent);box('amber-wall-lamp',[.12,1.3,.15],[x*.985,2.5,z],warm,parent);}
-      for(const x of [-12,-6,0,6,12]){box('floor-expansion-joint',[.04,.018,4],[x,.027,z],rubber,parent);for(const s of [-1,1])box('deck-fastener',[.09,.025,.09],[x+s*.15,.032,z-1.8],steel,parent);}
-    }
-    for(const [x,z]of F.lights){const light=new b.PointLight('warm-crew-light',new b.Vector3(x,4.7,z),scene);light.parent=parent;light.diffuse=new b.Color3(1,.68,.35);light.intensity=1.6;light.range=22;}
+    function luminaire(x,y,z,along='x'){const w=along==='x'?[1.8,.22,.45]:[.45,.22,1.8],d=along==='x'?[1.5,.04,.3]:[.3,.04,1.5];box('luminaire-housing',w,[x,y,z],steel,parent);box('warm-diffuser',d,[x,y-.14,z],warm,parent);}
+    // The corridor: a line of ceiling lights, service pipes, ribs on both walls and deck joints. Ribs skip the doorways.
+    for(let z=C.z0+2;z<C.z1;z+=4){luminaire(0,C.h-.12,z,'z');for(const s of [-1,1]){pipe(s*1.55,C.h-.3,z,4);box('floor-expansion-joint',[C.x1-C.x0,.018,.04],[0,.027,z+2],rubber,parent);}}
+    for(let z=C.z0+1;z<C.z1;z+=2.4)for(const x of [C.x0+.1,C.x1-.1]){if(x<0&&(z>10.2&&z<13.8||z>25.2&&z<30.8))continue;box('corridor-rib',[.14,C.h-.1,.2],[x,(C.h-.1)/2,z],steel,parent);}
+    for(const z of F.portholes){box('porthole-frame',[.12,1.12,1.62],[C.x1-.05,1.75,z],steel,parent);box('porthole-lamp',[.06,.08,1],[C.x1-.08,2.45,z],warm,parent);}
+    // Living area and store: luminaires across each room.
+    for(const r of [R.living,R.store])for(let z=r.z0+3;z<r.z1-1;z+=5)for(let x=r.x0+3;x<r.x1-1;x+=5)luminaire(x,r.h-.12,z);
+    // The hall: two rows of lights, pipes along the bar wall, amber lamps on the solid wall, deck joints.
+    for(let z=H.z0+3;z<H.z1-1;z+=4){for(const x of [-6,6])luminaire(x,H.h-.25,z);pipe(H.x0+.8,H.h-.35,z,4);box('pressure-frame',[.22,H.h-.5,.25],[H.x0+.2,(H.h-.5)/2,z],steel,parent);box('amber-wall-lamp',[.12,1.3,.15],[H.x0+.32,2.8,z],warm,parent);
+     for(const x of [-12,-6,0,6,12])box('floor-expansion-joint',[.04,.018,4],[x,.027,z],rubber,parent);}
+    for(const [x,z]of F.lights){const light=new b.PointLight('warm-crew-light',new b.Vector3(x,Math.min(4.6,(x>R.corridor.x0&&x<R.corridor.x1&&z<C.z1||z<R.hall.z0?C.h:H.h)-.5),z),scene);light.parent=parent;light.diffuse=new b.Color3(1,.68,.35);light.intensity=1.5;light.range=z<R.hall.z0?14:22;}
     for(const {x,z} of F.tables){const lamp=b.MeshBuilder.CreateCylinder('table-lamp',{diameterTop:.16,diameterBottom:.32,height:.24,tessellation:12},scene);lamp.parent=parent;lamp.position.set(x,1.12,z);lamp.material=warm;box('table-light-base',[.12,.16,.12],[x,.92,z],steel,parent);for(const s of [-1,1]){box('chair-metal-leg',[.08,.48,.08],[x+s*1.6,.24,z-.24],steel,parent);box('chair-metal-leg',[.08,.48,.08],[x+s*1.6,.24,z+.24],steel,parent);}}
-    {const front=F.bar.x+.64;for(let i=0;i<4;i++){const z=F.bar.z-F.bar.length/2+1.5+i*3;box('bar-service-panel',[.045,.76,2.7],[front,.65,z],steel,parent);box('bar-underlight',[.04,.035,2.6],[front+.05,1.04,z],warm,parent);}}
-    const terminal=box('crew-terminal',[1,.7,.15],[-4,1.3,31],steel,parent);box('terminal-display',[.8,.45,.04],[-4,1.4,30.9],material('screen','#74bba8',true),parent);box('terminal-stand',[.18,1,.2],[-4,.5,31],steel,parent);
-    // Crew quarters: a ceiling luminaire over the bunks and one over the stalls.
-    for(const [x,z] of [[-14,9.6],[-9,15.5]]){box('luminaire-housing',[1.8,.22,.45],[x,4.75,z],steel,parent);box('warm-diffuser',[1.5,.04,.3],[x,4.61,z],warm,parent);}
+    {const front=F.bar.x+.64,n=Math.floor(F.bar.length/3.4);for(let i=0;i<n;i++){const z=F.bar.z-F.bar.length/2+1.7+i*3.4;box('bar-service-panel',[.045,.76,3.1],[front,.65,z],steel,parent);box('bar-underlight',[.04,.035,3],[front+.05,1.04,z],warm,parent);}}
+    // The mission terminal on the corridor's outer wall.
+    {const T=F.terminal;box('crew-terminal',[.15,.7,1],[T.x-.08,1.3,T.z],steel,parent);box('terminal-display',[.04,.45,.8],[T.x-.17,1.4,T.z],material('screen','#74bba8',true),parent);box('terminal-stand',[.2,1,.18],[T.x-.05,.5,T.z],steel,parent);}
     parent.metadata={...parent.metadata,art:globalThis.VoidMeridianArt?.enhance({B:b,scene,parent,box,material,quality})};
     for(const m of parent.getChildMeshes())if(m.material)m.material.maxSimultaneousLights=8;
     // Static fittings share material batches; NPCs, signs and doors keep individual nodes.
-    const batches=new Map();for(const m of parent.getChildMeshes()){if(m.parent!==parent||m.metadata?.stationDoor||!m.isVisible||!m.isEnabled())continue;const list=batches.get(m.material)||[];list.push(m);batches.set(m.material,list);}for(const [mat,list] of batches)if(list.length>1){const mesh=b.Mesh.MergeMeshes(list,true,true,undefined,false,false);mesh.name='meridian-interior-'+mat.name;mesh.parent=parent;mesh.material=mat;mesh.isPickable=false;}
+    const batches=new Map();for(const m of parent.getChildMeshes()){if(m.parent!==parent||m.metadata?.stationDoor||m.metadata?.animated||!m.isVisible||!m.isEnabled())continue;const list=batches.get(m.material)||[];list.push(m);batches.set(m.material,list);}for(const [mat,list] of batches)if(list.length>1){const mesh=b.Mesh.MergeMeshes(list,true,true,undefined,false,false);mesh.name='meridian-interior-'+mat.name;mesh.parent=parent;mesh.material=mat;mesh.isPickable=false;}
 
   }
 
@@ -1134,9 +1146,14 @@
       s.material.alpha = s.def.animation === 'flicker' ? .72 + Math.sin(time * 13) * .07 : s.def.animation === 'pulse' ? .8 + Math.sin(time) * .08 : .9;
       if (s.def.animation === 'rotate') s.mesh.rotation.y = time * .2;
     }
+    const roomDt=lastRoomTime===null?0:Math.min(.1,Math.max(0,time-lastRoomTime));lastRoomTime=time;
     if(stationActivity){VoidStationActivities.step(stationActivity,lastActivityTime===null?0:Math.min(.1,Math.max(0,time-lastActivityTime)));lastActivityTime=time;}
-    for(const mesh of roomRoot.getChildMeshes()){const d=mesh.metadata?.stationDoor;if(d)mesh.position.y=d.position[1]+(d.open?3.5:0);}
-    for(const actor of actors){if(actor.crowd){const a=actor.activity;if(a){actor.node.position.set(a.x,0,a.z);actor.node.rotation.y=a.yaw;actor.cup?.setEnabled(false);if(a.state==='walk')actor.crowd.walk(time+a.id);else actor.crowd.play(VoidCrowd.activityClip[a.state]||'idle');}continue;}if(actor.activity){const a=actor.activity,seated=a.state==='sit'||a.state==='drink';actor.node.position.set(a.x,seated?-.35:0,a.z);actor.node.rotation.y=a.yaw;actor.cup?.setEnabled(a.state==='drink'||a.state==='get-drink');for(const mesh of actor.node.getChildMeshes()){if(mesh.name==='arm')mesh.rotation.x=a.state==='walk'?Math.sin(time*5+a.id)*.25:a.state==='talk'?Math.sin(time*2+a.id)*.15:a.state==='drink'?-.9+Math.sin(time)*.15:a.gesture==='device'?-.65:0;if(mesh.name==='leg')mesh.rotation.x=seated?-1.15:a.state==='walk'?Math.sin(time*5+(mesh.position.x<0?Math.PI:0))*.3:0;if(mesh.name==='head')mesh.rotation.y=a.gesture==='look'?Math.sin(time)*.18:0;}continue;}if(openingHandle&&actor.node===openingHandle.mara)continue;if(actor.traffic){actor.node.position.set((actor.lane%2?-1:1)*(25+actor.lane*8),5+actor.lane*2,((time*(5+actor.lane)+actor.lane*37)%140)-55);actor.node.rotation.y=0;}else{actor.node.rotation.y=Math.sin(time*.3+actor.base[0])*.13;if(actor.ambient)actor.node.position.z=actor.base[2]+Math.sin(time*.2+actor.base[0])*1.2;}}
+    // Doors slide rather than snap. Inner doors open for crew walking through and close behind them, unless the player opened them.
+    for(const mesh of roomRoot.getChildMeshes()){const d=mesh.metadata?.stationDoor;if(!d)continue;
+      if(stationActivity&&d.id!=='crew-pressure-door'){const near=(x,z,m)=>Math.abs(x-d.position[0])<d.size[0]/2+m&&Math.abs(z-d.position[2])<d.size[2]/2+m,crew=stationActivity.actors.some(a=>near(a.x,a.z,1.6));
+        if(crew&&!d.open){d.open=true;d.byCrew=true;}else if(!crew&&d.byCrew&&!near(player.x,player.z,1.2)){d.open=false;d.byCrew=false;}}
+      const target=d.position[1]+(d.open?3.5:0);mesh.position.y+=(target-mesh.position.y)*(roomDt?Math.min(1,roomDt*5):1);}
+    for(const actor of actors){if(actor.crowd){const a=actor.activity;if(a){actor.node.position.set(a.x,0,a.z);actor.node.rotation.y=turnToward(actor.node.rotation.y,a.yaw,roomDt*6);actor.cup?.setEnabled(false);crewClip(actor,a,time);}continue;}if(actor.activity){const a=actor.activity,seated=a.state==='sit'||a.state==='drink';actor.node.position.set(a.x,seated?-.35:0,a.z);actor.node.rotation.y=a.yaw;actor.cup?.setEnabled(a.state==='drink'||a.state==='get-drink');for(const mesh of actor.node.getChildMeshes()){if(mesh.name==='arm')mesh.rotation.x=a.state==='walk'?Math.sin(time*5+a.id)*.25:a.state==='talk'?Math.sin(time*2+a.id)*.15:a.state==='drink'?-.9+Math.sin(time)*.15:a.gesture==='device'?-.65:0;if(mesh.name==='leg')mesh.rotation.x=seated?-1.15:a.state==='walk'?Math.sin(time*5+(mesh.position.x<0?Math.PI:0))*.3:0;if(mesh.name==='head')mesh.rotation.y=a.gesture==='look'?Math.sin(time)*.18:0;}continue;}if(openingHandle&&actor.node===openingHandle.mara)continue;if(actor.traffic){actor.node.position.set((actor.lane%2?-1:1)*(25+actor.lane*8),5+actor.lane*2,((time*(5+actor.lane)+actor.lane*37)%140)-55);actor.node.rotation.y=0;}else{actor.node.rotation.y=Math.sin(time*.3+actor.base[0])*.13;if(actor.ambient)actor.node.position.z=actor.base[2]+Math.sin(time*.2+actor.base[0])*1.2;}}
     roomRoot.metadata?.arrays?.forEach((n,i)=>n.rotation.z=.14+Math.sin(time*.015+i*.2)*.08);
     openingHandle?.tick(time);districtHandle?.tick(time);planetHandle?.tick(time);
     scene.render();

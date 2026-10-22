@@ -14,7 +14,7 @@
  // finished face toward -x. face(): a run of panels on one wall; normal is the direction it faces.
  const yawFor={'-x':0,'+x':Math.PI,'-z':-Math.PI/2,'+z':Math.PI/2};
  function plan(){
-  const F=(typeof module!=='undefined'?require('./meridian-interior.js'):root.VoidMeridianInterior).layout().furniture;
+  const layout=(typeof module!=='undefined'?require('./meridian-interior.js'):root.VoidMeridianInterior).layout(),F=layout.furniture;
   const out=[],put=(key,position,yaw=0,size=null)=>out.push({key,position,yaw,size});
   function face(x0,z0,x1,z1,normal,rows){
    // rows: [[piece, bottom, height, thickness]]. The run is cut into equal 4 m-ish bays.
@@ -26,37 +26,31 @@
      put(key,p,yawFor[normal],[thick,height,bay]);
     }}
   }
-  const hangarRows=[['wall-band',0,3,.22],['wall-panel',3,4,.32],['wall-cables',7,1.9,.3]];
-  // Hangar H01: both side walls, the back wall either side of the corridor, the mouth's jambs.
-  face(17.7,-25.7,17.7,3.7,'-x',hangarRows);face(-17.7,-25.7,-17.7,3.7,'+x',hangarRows);
-  face(4.3,3.7,17.7,3.7,'-z',hangarRows);face(-17.7,3.7,-4.3,3.7,'-z',hangarRows);
-  face(10.3,-25.7,17.7,-25.7,'+z',hangarRows);face(-17.7,-25.7,-10.3,-25.7,'+z',hangarRows);
+  // Every wall run in the plan (meridian-interior.js walls) gets panels by room: tall banded panels in the
+  // hangar, a band and cable run in the low rooms, a band and panels in the hall. Window walls stay glass.
+  const rowsFor={
+   hangar:h=>[['wall-band',0,3,.22],['wall-panel',3,4,.32],['wall-cables',7,h-7.1,.3]],
+   low:h=>[['wall-band',0,2.4,.2],['wall-cables',2.4,h-2.45,.28]],
+   hall:h=>[['wall-band',0,3,.22],['wall-panel',3,h-3.05,.3]]
+  };
+  for(const w of layout.walls){if(w.window)continue;const rows=(w.room==='hangar'?rowsFor.hangar:w.room==='hall'?rowsFor.hall:rowsFor.low)(w.h);
+   if(w.axis==='z')face(w.fixed,w.from,w.fixed,w.to,w.normal,rows);else face(w.from,w.fixed,w.to,w.fixed,w.normal,rows);}
   for(const s of [-1,1])for(let z=-22;z<=2;z+=8)put('column',[s*17.3,4.5,z],s>0?0:Math.PI,[.5,9,.95]);
-  // The corridor to the concourse; the port wall leaves the crew quarters doorway (z 9–13) clear.
-  const corridorRows=[['wall-band',0,3,.2],['wall-cables',3,1.9,.28]];
-  face(3.7,4.3,3.7,17.7,'-x',corridorRows);face(-3.7,4.3,-3.7,8.8,'+x',corridorRows);face(-3.7,13.2,-3.7,17.7,'+x',corridorRows);
-  // Crew quarters: all three walls of the room.
-  face(-17.7,4.3,-17.7,17.7,'+x',corridorRows);face(-17.7,17.7,-4.3,17.7,'-z',corridorRows);face(-17.7,4.3,-4.3,4.3,'+z',corridorRows);
-  for(const x of [-15.7,-12.35,-9])for(const z of [6,9.35,12.7,16.05])put('floor-plates',[x,.025,z],0,[3.35,.01,3.35]);
-  for(const z of [7,11,15])put('pipes',[0,4.55,z],Math.PI/2,[4,.6,.8]);
-  // Concourse: the entry wall either side of the corridor, and the solid port wall behind the store and bar.
-  const commerceRows=[['wall-band',0,3,.22],['wall-panel',3,2.9,.3]];
-  face(4.3,18.3,17.7,18.3,'+z',commerceRows);face(-17.7,18.3,-4.3,18.3,'+z',commerceRows);
-  face(-17.7,18.3,-17.7,65.7,'+x',commerceRows);
-  // The store's and bar's front walls (both faces) and the wall between them.
-  for(const [z0,z1] of [[18.3,29],[37,41.8],[42.2,45],[55,65.7]]){face(-6.8,z0,-6.8,z1,'+x',commerceRows);face(-7.2,z0,-7.2,z1,'-x',commerceRows);}
-  face(-17.7,41.8,-7.2,41.8,'-z',commerceRows);face(-17.7,42.2,-7.2,42.2,'+z',commerceRows);
-  // Decks: dark plates in the hangar, squared plates in the concourse.
-  for(let x=-16;x<=16;x+=4)for(let z=-23.5;z<=2;z+=3.75)put('floor-plates',[x,.025,z],0,[4,.01,3.75]);
-  for(let x=-16;x<=16;x+=4)for(let z=20;z<=64;z+=4)put('floor-squares',[x,.025,z],0,[4,.01,4]);
+  // Decks: dark plates in the hangar, the living area and the store; squared plates in the corridor and hall.
+  for(const r of layout.floors){const key=['hangar','living','store'].includes(r.id)?'floor-plates':'floor-squares',w=r.x1-r.x0,d=r.z1-r.z0,nx=Math.max(1,Math.round(w/4)),nz=Math.max(1,Math.round(d/4)),sx=w/nx,sz=d/nz;
+   for(let i=0;i<nx;i++)for(let j=0;j<nz;j++)put(key,[r.x0+sx*(i+.5),.025,r.z0+sz*(j+.5)],0,[sx,.01,sz]);}
   // Hangar cargo, kept to the walls and clear of the ship, the boarding point and the route.
   for(const [key,x,z,yaw] of [['crate-tarp',-15.6,-21,0],['case-ribbed',-15.9,-18.4,.2],['case',-14.6,-18.2,0],['case',-15.9,-16.9,.4],['drum',-14.4,-16.6,0],['drum',-14.1,-15.9,0],
    ['chest',-16.6,-1,Math.PI/2],['case-ribbed',-15.6,1.6,0],['case',-14.3,1.9,.3],['access-point',-12.8,3.2,Math.PI],['computer',-11.6,3.1,Math.PI],
    ['crate-tarp',15.4,-23.2,0],['case',13.2,-24.6,0],['drum',12.2,-24.3,0],['chest',16.6,-6,-Math.PI/2],['case-ribbed',15.9,-3.4,0],['drum',16.4,-1.8,0],['access-point',12.8,3.2,Math.PI]])
    put(key,[x,0,z],yaw,null);
-  // The outfitter: stock on the four existing shelves (meridian-interior.js props) and the counter.
-  for(const z of F.store.shelves)for(const [y,dz,key] of [[.12,-.7,'ammo-case'],[.12,.6,'ammo-case'],[.9,-.6,'ammo-case'],[.9,.7,'ammo-case'],[1.68,-.4,'ammo-case'],[1.68,.75,'ammo-case']])put(key,[-16.2,y,z+dz],Math.PI/2+(dz>0?.15:-.1),null);
+  // Living area: personal kit by the lockers.
+  for(const [key,x,z,yaw] of [['case',-14.4,18.9,.2],['case-ribbed',-13.3,18.9,0]])put(key,[x,0,z],yaw,null);
+  // The outfitter: stock on the shelves (meridian-interior.js props) and on the counter.
+  for(const z of F.store.shelves)for(const [y,dz,key] of [[.12,-.6,'ammo-case'],[.12,.6,'ammo-case'],[.9,-.5,'ammo-case'],[.9,.6,'ammo-case'],[1.68,-.4,'ammo-case'],[1.68,.65,'ammo-case']])put(key,[F.store.shelfX-.2,y,z+dz],Math.PI/2+(dz>0?.15:-.1),null);
   for(const dz of [-1.5,1.5])put('ammo-case',[F.store.x,.94,F.store.z+dz],Math.PI/2,null);
+  // The hall: supplies stacked at the bar's far end and service drums in the corner by the windows.
+  for(const [key,x,z,yaw] of [['crate-tarp',-14.6,60.6,0],['drum',-12.9,61,0],['drum',14.6,61,0],['case',15,41.2,.3]])put(key,[x,0,z],yaw,null);
   return out;
  }
  function measure(container){

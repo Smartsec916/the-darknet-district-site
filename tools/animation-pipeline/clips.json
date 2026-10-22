@@ -48,6 +48,51 @@
    "action": "Walk_Loop",
    "restAction": "A_TPose",
    "loop": "exact"
+  },
+  "sit-enter": {
+   "file": "UAL1_Standard.glb",
+   "source": "ual",
+   "action": "Sitting_Enter",
+   "restAction": "A_TPose",
+   "loop": "exact"
+  },
+  "sit-exit": {
+   "file": "UAL1_Standard.glb",
+   "source": "ual",
+   "action": "Sitting_Exit",
+   "restAction": "A_TPose",
+   "loop": "exact"
+  },
+  "sit-talk": {
+   "file": "UAL1_Standard.glb",
+   "source": "ual",
+   "action": "Sitting_Talking_Loop",
+   "restAction": "A_TPose",
+   "loop": "exact"
+  },
+  "interact": {
+   "file": "UAL1_Standard.glb",
+   "source": "ual",
+   "action": "Interact",
+   "restAction": "A_TPose",
+   "loop": "exact"
+  },
+  "pickup": {
+   "file": "UAL1_Standard.glb",
+   "source": "ual",
+   "action": "PickUp_Table",
+   "restAction": "A_TPose",
+   "loop": "exact"
+  },
+  "look": {
+   "file": "Idle_LookingAround_HUMANIK_769.fbx",
+   "start": 2,
+   "end": 10
+  },
+  "wipe": {
+   "file": "Clipboard_Lever_Computer_mixamo.fbx",
+   "start": 0,
+   "end": 12
   }
  },
  "fps": 15

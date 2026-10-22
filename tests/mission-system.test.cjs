@@ -125,15 +125,20 @@ test('tracking and independent objectives survive legacy save restoration',()=>{
  assert.equal(M.all(restored,C).find(m=>m.id==='meet-rook').objectives.find(o=>o.id==='speak').complete,false);
 });
 
-test('Meridian: crew quarters off the corridor, the store and then the bar on the port side, the hall clear',()=>{
- const room=Meridian.layout();
- const shop=room.shell.find(o=>o.id==='shop-counter').position,bar=room.shell.find(o=>o.id==='bar-counter').position,quarters=room.shell.find(o=>o.id==='quarters-door').position;
- assert.ok(quarters[0]<0&&quarters[2]>4&&quarters[2]<18,'quarters door on the left of the corridor');
- assert.ok(shop[0]<0&&bar[0]<0&&shop[2]<bar[2],'store, then bar, both on the left');
- assert.ok(room.shell.find(o=>o.id==='observation-glass').position[0]>0,'windows on the right, across from the bar');
- const door=room.shell.find(o=>o.id==='crew-pressure-door');door.open=true;
- for(let z=5;z<=57;z+=1)assert.equal(Explorer.blocked(0,z,room),false,'corridor blocked at z='+z);
- assert.equal(Explorer.select({x:-7.5,z:57,yaw:-Math.PI/2},room)?.id,'nyx');
+test('Meridian follows David’s reference: hangar, door, narrow corridor, living area and store on the left, bar and seating at the end',()=>{
+ const room=Meridian.layout(),R=room.rooms,find=id=>room.shell.find(o=>o.id===id).position;
+ const door=room.shell.find(o=>o.id==='crew-pressure-door');assert.ok(door.position[2]===R.hangar.z1&&door.position[2]===R.corridor.z0,'the hangar door leads straight into the corridor');
+ assert.ok(R.corridor.x1-R.corridor.x0<=door.size[0]+1.5,'the corridor is only a little wider than its door');
+ assert.ok(R.living.z0>=R.hangar.z1,'the living area is not in the hangar');
+ const quarters=find('quarters-door'),shop=find('shop-counter'),bar=find('bar-counter');
+ assert.ok(quarters[0]<0&&quarters[2]>R.corridor.z0&&quarters[2]<R.store.z0,'living area off the left of the corridor, before the store');
+ assert.ok(shop[0]<0&&shop[2]>quarters[2]&&shop[2]<R.hall.z0,'the store off the corridor, between the living area and the bar');
+ assert.ok(bar[0]<0&&bar[2]>R.hall.z0,'the bar at the far end, on the left');
+ assert.ok(room.furniture.tables.every(t=>t.x>0&&t.z>R.hall.z0)&&room.furniture.sofas.every(s=>s.x>0),'seating across from the bar');
+ assert.ok(find('observation-glass')[0]>0&&find('aft-window')[2]>=R.hall.z1,'windows along the seating side and the end of the hall');
+ assert.ok(room.furniture.pods.length>=8&&!room.furniture.bunks.length,'sleeping pods, not beds');
+ door.open=true;for(let z=5;z<=61;z+=1)assert.equal(Explorer.blocked(0,z,room),false,'route blocked at z='+z);
+ assert.equal(Explorer.select({x:-7.4,z:51,yaw:-Math.PI/2},room)?.id,'nyx');
 });
 
 test('a registered multi-objective mission completes only after each required event',()=>{

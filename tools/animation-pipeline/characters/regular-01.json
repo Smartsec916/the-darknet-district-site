@@ -74,7 +74,12 @@
   "talk",
   "sit",
   "watch",
-  "walk"
+  "walk",
+  "sit-enter",
+  "sit-exit",
+  "sit-talk",
+  "interact",
+  "look"
  ],
  "accessories": [
   {

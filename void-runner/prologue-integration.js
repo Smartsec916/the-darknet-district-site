@@ -140,6 +140,8 @@ VoidInteractions.register('district-bar',()=>districtLine('Bartender','Filtered 
 VoidInteractions.register('district-vr',()=>districtLine('Arcade attendant','Every rig is booked tonight. Come back later.'));
 VoidInteractions.register('district-vending',()=>{announce('The machine hums and drops a can of Drink Oil. It tastes like a warm battery.');resumeWalking();});
 VoidInteractions.register('district-pod',()=>{save();announce('You rest in a sleep pod. Progress saved.');resumeWalking();});
+// Meridian's living area has the same pods (meridian-interior.js): rest and save.
+VoidInteractions.register('meridian-pod',()=>{save();announce('You rest in a sleep pod. Progress saved.');resumeWalking();});
 VoidInteractions.register('district-meeting',()=>{announce(state.story.flags.meetingOpen?'The meeting room is open.':'Private. Admin opens this room when he needs it.');resumeWalking();});
 VoidInteractions.register('district-stairs',()=>{if(walker){walker.x=30.6;walker.z=66.5;walker.yaw=Math.PI/2;}resumeWalking();});
 VoidInteractions.register('district-stairs-down',()=>{if(walker){walker.x=0;walker.z=72.5;walker.yaw=Math.PI;}resumeWalking();});
