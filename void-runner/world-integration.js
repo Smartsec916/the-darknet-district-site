@@ -108,7 +108,8 @@ update=function(dt){
  worldUpdate(dt);
  if(mode==='play'&&state.universe.freeTravel&&flight.route?.phase==='align'&&VoidNavigationReveal.opacity(navigationReveal)>0){routeMarkers=flightRoutes();const chosen=routeMarkers.find(r=>FM.dot(flightBasis().f,r.vector)>.993);if(chosen&&chosen.id!==current.destination)setFlightDestination(chosen.id);const marker=routeMarkers.find(r=>r.id===current.destination);if(marker){flight.route.vector=marker.vector;flight.nav={x:marker.vector.x*140,y:marker.vector.y*140,z:marker.vector.z*140};}}
  const tracked=['play','walking'].includes(mode)&&!globalThis.VoidFlightSkirmish?.active?VoidMissions.tracked(state,C):null;missionTracker.hidden=!tracked;if(tracked){const label=tracked.title+' / '+tracked.objective;if(missionTracker.textContent!==label)missionTracker.textContent=label;}
- missionLogButton.hidden=!state.universe.missionLogUnlocked||!['play','walking'].includes(mode)||!!globalThis.VoidFlightSkirmish?.active;
+ // The on-screen reminder only shows in the starting area (Vesper); L opens the log anywhere.
+ missionLogButton.hidden=!state.universe.missionLogUnlocked||state.location!=='vesper'||!['play','walking'].includes(mode)||!!globalThis.VoidFlightSkirmish?.active;
  {const key=VoidInput.label(VoidInput.bindings.missionLog||'KeyL'),text='MISSION LOG · '+key;if(missionLogButton.textContent!==text)missionLogButton.textContent=text;
   // First time the log becomes available, say how to open it.
   if(!missionLogButton.hidden&&state.story&&!state.story.flags.missionLogHint){state.story.flags.missionLogHint=true;announce('Mission Log unlocked. Press '+key+' to open it and choose what to track.');save();}}
