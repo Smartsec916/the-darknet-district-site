@@ -48,6 +48,18 @@
     return B().Color3.FromHexString(hex);
   }
 
+  // Station window glass: almost clear, with faint scratches and scuffs and a little specular glint, so the view
+  // outside reads true instead of through a green-teal tint (David, 2026-10-23).
+  function windowGlass(){
+    if(materials['window-glass-clear'])return materials['window-glass-clear'];
+    const b=B(),t=new b.DynamicTexture('window-scratches',{width:512,height:512},scene,true),g=t.getContext();let seed=11;const rnd=()=>((seed=seed*16807%2147483647)-1)/2147483646;
+    g.clearRect(0,0,512,512);g.fillStyle='rgba(200,220,230,.035)';g.fillRect(0,0,512,512);
+    for(let i=0;i<70;i++){const x=rnd()*512,y=rnd()*512,a=(rnd()-.5)*.6+(i%3?0:Math.PI/2),l=20+rnd()*140;g.strokeStyle='rgba(235,245,250,'+(.08+rnd()*.22)+')';g.lineWidth=.6+rnd()*.9;g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(a)*l,y+Math.sin(a)*l);g.stroke();}
+    for(let i=0;i<14;i++){const x=rnd()*512,y=rnd()*512,r=10+rnd()*36,s=g.createRadialGradient(x,y,0,x,y,r);s.addColorStop(0,'rgba(220,230,235,.07)');s.addColorStop(1,'rgba(220,230,235,0)');g.fillStyle=s;g.fillRect(x-r,y-r,r*2,r*2);}
+    t.update();t.hasAlpha=true;t.uScale=4;t.vScale=1;
+    const m=new b.StandardMaterial('window-glass-clear',scene);m.diffuseTexture=t;m.useAlphaFromDiffuseTexture=true;m.diffuseColor=new b.Color3(.85,.92,.96);m.specularColor=new b.Color3(.55,.6,.65);m.specularPower=96;m.backFaceCulling=false;
+    return materials['window-glass-clear']=m;
+  }
   function material(name, hex, emissive = false, alpha = 1) {
     const key = name + hex + alpha;
     if (materials[key]) return materials[key];
@@ -385,7 +397,7 @@
     }
     return node;
   }
-  function shipModel(name, allegiance, parent) {
+  function shipModel(name, allegiance, parent, opts = {}) {
     const model = VoidAssets.instance('ship:' + name, parent);
     if (model) return model;
     if (/^(communion|order)-/.test(name)) return factionShipModel(name, parent);
@@ -401,7 +413,7 @@
       for(const [z,w,h]of rings)for(let i=0;i<8;i++){const a=i*Math.PI/4+Math.PI/8;positions.push(Math.cos(a)*w,Math.sin(a)*h,z);uvs.push(i/8,(z+2)/4.15);}
       for(let r=0;r<3;r++)for(let i=0;i<8;i++){const a=r*8+i,c=r*8+(i+1)%8;indices.push(a,c,c+8,a,c+8,a+8);}for(let i=1;i<7;i++){indices.push(0,i+1,i,24,24+i,24+i+1);}
       for(let i=0;i<indices.length;i+=3)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];b.VertexData.ComputeNormals(positions,indices,normals);const hull=new b.Mesh('kestrel-hull',scene),data=new b.VertexData();Object.assign(data,{positions,indices,normals,uvs});data.applyToMesh(hull);hull.parent=node;hull.material=metal;hull.convertToFlatShadedMesh();
-      for(const side of [-1,1]){const stripe=box('service-stripe',[.035,.28,1.5],[side*.66,.05,-.1],material('kestrel-stripe','#8e2c26'),node);stripe.rotation.y=side*.07;for(let z=-1.5;z<.5;z+=.35)box('service-vent',[.035,.05,.16],[side*.7,.1,z],dark,node);}
+      // Sleek flanks (David, 2026-10-23): no service stripes, vents, side panels or cheek plates; the cargo is carried inside.
       const armor=material('kestrel-armor','#a5a297'),panel=material('kestrel-panel','#727a76'),wingMat=material('kestrel-wing','#a8a39b'),rust=material('kestrel-rust','#9d6550');
       if(!armor.diffuseTexture){armor.diffuseTexture=new b.Texture(new URL('art/vesper-weathered-panels.webp',base).href,scene,true,false);armor.diffuseTexture.uScale=2;armor.diffuseTexture.vScale=2;armor.diffuseColor=b.Color3.White();}
       // The landing-pad view sees the working ship from below; retain readable hull panels in shade.
@@ -412,16 +424,16 @@
       plate('kestrel-nose-armor',[[-.42,1.20],[.42,1.20],[.26,2.12],[-.26,2.12]],.14,.06,panel);
       for(const side of [-1,1]){
         const wing=plate('kestrel-swept-wing',[[side*.52,.20],[side*2.45,-.65],[side*2.75,-1.28],[side*1.15,-1.62]],-.13,.15,wingMat);wing.material.backFaceCulling=false;
-        plate('kestrel-side-cheek',[[side*.60,-.60],[side*.76,-.15],[side*.58,1.02],[side*.38,1.38]],-.21,.085,wingMat);
+        
         const border=box('kestrel-wing-edge',[1.45,.075,.10],[side*1.7,-.04,-1.20],dark,node);border.rotation.y=side*.35;
-        const marking=box('kestrel-wing-service-paint',[.38,.016,.52],[side*1.76,-.043,-.88],rust,node);marking.rotation.y=side*.35;
+        
         box('kestrel-weapon-pylon',[.25,.18,1.18],[side*2.35,-.28,-.98],dark,node);
         const cannon=b.MeshBuilder.CreateCylinder('kestrel-laser-barrel',{height:1.25,diameter:.105,tessellation:10},scene);cannon.parent=node;cannon.rotation.x=Math.PI/2;cannon.position.set(side*2.35,-.30,-.04);cannon.material=panel;
         box('kestrel-empty-missile-rail',[.16,.08,.72],[side*1.45,-.31,-.88],dark,node);
         const intake=b.MeshBuilder.CreateCylinder('kestrel-engine-cowl',{height:1.20,diameter:.72,tessellation:12},scene);intake.parent=node;intake.rotation.x=Math.PI/2;intake.position.set(side*1.06,-.03,-1.50);intake.material=panel;
         const ring=b.MeshBuilder.CreateTorus('kestrel-exhaust-ring',{diameter:.60,thickness:.07,tessellation:16},scene);ring.parent=node;ring.position.set(side*1.06,-.03,-2.22);ring.material=armor;
-        box('kestrel-cockpit-side-frame',[.07,.15,1.17],[side*.42,.54,.72],panel,node);
-        for(let z=-1.45;z<.40;z+=.46)box('kestrel-hull-service-panel',[.025,.16,.32],[side*.76,-.12,z],z<-.4?armor:panel,node);
+        
+        
       }
       box('kestrel-canopy-rear-frame',[.91,.06,.06],[0,.60,.14],armor,node);
       box('kestrel-canopy-front-frame',[.69,.06,.06],[0,.56,1.28],armor,node);
@@ -445,10 +457,33 @@
     if(name==='ship2')node.scaling.x=1.2;if(name==='ship3')node.scaling.z=1.3;
     node.metadata = {
       placeholder: true,
-      reference: 'art/ships.png'
+      reference: 'art/ships.png',
+      landed: !!opts.landed && name==='starter'
     };
     return node;
   }
+  // A landed Kestrel gets boarding stairs up to the cockpit's right side, a lit ring at their foot and a KESTREL / BOARD
+  // sign, as on Vesper. The ring is the boarding spot: the room's BOARD YOUR SHIP point moves onto it.
+  function landBoarding(def){
+    const b=B();if(!roomRoot)return;
+    for(const ship of roomRoot.getDescendants(false)){
+      if(!ship.metadata?.landed||ship.metadata.boarding)continue;ship.computeWorldMatrix(true);
+      // Ship space: the hull's side is at x .72 and the deck at y -1 (the ship stands 1 unit up); the cockpit runs z 0 to 1.3,
+      // clear of the wing and guns (they end at z .6). Steps climb from the deck to the hull's side by the cockpit.
+      const k=ship.scaling.y||1,ground=-ship.position.y/k,top=-.12,x0=.8,x1=1.9,z0=1.05,steps=6,steel=material('kestrel-steps','#7c858a'),lamp=material('kestrel-boarding-lamp','#ffcf80',true);
+      for(let i=0;i<steps;i++){const f=(i+1)/steps,h=ground+(top-ground)*f;const s=box('kestrel-boarding-step',[(x1-x0)/steps+.04,.035,.5],[x1-(x1-x0)*(i+.5)/steps,h-.018,z0],steel,ship);s.isPickable=false;}
+      for(const dz of [-.26,.26]){const len=Math.hypot(x1-x0,top-ground),r=b.MeshBuilder.CreateCylinder('kestrel-boarding-handrail',{diameter:.03,height:len},scene);r.parent=ship;r.position.set((x0+x1)/2,(ground+top)/2+.3,z0+dz);r.rotation.z=Math.atan2(x1-x0,top-ground);r.material=steel;r.isPickable=false;
+        const post=b.MeshBuilder.CreateCylinder('kestrel-boarding-handrail',{diameter:.03,height:.3},scene);post.parent=ship;post.position.set(x1,ground+.15+.035,z0+dz);post.material=steel;post.isPickable=false;}
+      const foot=new b.Vector3(x1+.55,ground,z0),ring=b.MeshBuilder.CreateTorus('kestrel-boarding-locus',{diameter:1.5/k,thickness:.03/k,tessellation:28},scene);ring.parent=ship;ring.position.set(foot.x,ground+.03/k,foot.z);ring.material=lamp;ring.isPickable=false;
+      const t=new b.DynamicTexture('kestrel-board-sign',{width:256,height:48},scene,true),g=t.getContext();g.fillStyle='#0b1218';g.fillRect(0,0,256,48);g.fillStyle='#d4bd87';g.font='bold 26px monospace';g.textAlign='center';g.fillText('KESTREL / BOARD',128,33);t.update();
+      const sm=new b.StandardMaterial('kestrel-board-sign',scene);sm.diffuseTexture=t;sm.emissiveTexture=t;sm.disableLighting=true;const sign=b.MeshBuilder.CreatePlane('kestrel-board-sign',{width:1.1/k*1.4,height:.21/k*1.4,sideOrientation:b.Mesh.DOUBLESIDE},scene);sign.parent=ship;sign.position.set(x1+.3,ground+1.1/k*1.6,z0+.75);sign.rotation.y=-Math.PI/2;sign.material=sm;sign.isPickable=false;
+      const post=b.MeshBuilder.CreateCylinder('kestrel-board-sign-post',{diameter:.03,height:1.1/k*1.6},scene);post.parent=ship;post.position.set(x1+.3,ground+.55/k*1.6,z0+.75);post.material=steel;post.isPickable=false;
+      ship.metadata.boarding=true;
+      const w=b.Vector3.TransformCoordinates(foot,ship.getWorldMatrix()),board=def?.interactions?.find(i=>i.id==='board'||i.action==='board');
+      if(board){board.position=[w.x,1.7,w.z];board.range=2.2;}
+    }
+  }
+
 
   // Worn steel pressure door: panel seams, centre split, hazard bands and status lamps.
   function doorMaterial(){
@@ -498,7 +533,7 @@
     if(id==='meridian'&&exterior){const imported=VoidAssets.instance('station:meridian',parent);if(imported){imported.metadata={identity:'meridian',source:'shared-glb'};return imported;}const built=VoidMeridian.build(scene,parent);globalThis.VoidMeridianKitbash?.dress(scene,built,'kit:');return built;}
     const b=B(),node=new b.TransformNode('station-'+id,scene);node.parent=parent;
     const def=layoutDef||VoidStationLayouts.layout(id),hull=material('station',def.color),metal=material('truss','#343e47'),trim=material('navigation','#a9d7c5',true);
-    for(const p of def.shell){const colors={frame:'#252c31',panel:'#61676a',seat:'#735a42',ceramic:'#b0b9b5',counter:'#655846',door:'#59656c',amber:'#d7a465',teal:'#82beb0'};const mesh=box(p.id,p.size,p.position,p.kind==='glass'?material('window','#6cabbc',false,.12):p.kind==='floor'?material('floor','#29333c'):colors[p.kind]?material(p.kind,colors[p.kind],['amber','teal'].includes(p.kind)):hull,node);if(p.kind==='door'){mesh.metadata={stationDoor:p};mesh.material=doorMaterial();}}
+    for(const p of def.shell){const colors={frame:'#252c31',panel:'#61676a',seat:'#735a42',ceramic:'#b0b9b5',counter:'#655846',door:'#59656c',amber:'#d7a465',teal:'#82beb0'};const mesh=box(p.id,p.size,p.position,p.kind==='glass'?windowGlass():p.kind==='floor'?material('floor','#29333c'):colors[p.kind]?material(p.kind,colors[p.kind],['amber','teal'].includes(p.kind)):hull,node);if(p.kind==='door'){mesh.metadata={stationDoor:p};mesh.material=doorMaterial();}}
     if(id==='meridian'){
       const exterior=VoidMeridian.build(scene,node,{occupied:true});globalThis.VoidMeridianKitbash?.dress(scene,exterior,'kit:',{occupied:true});node.metadata={layout:id,exterior};return node;
     }
@@ -571,7 +606,7 @@
     const propModels=Object.fromEntries((def.props||[]).filter(p=>VoidAssets.models.props?.[p.model]).map(p=>['prop:'+p.model,VoidAssets.models.props[p.model]]));
     crowdLocation=def.id;root.VoidCrowd?.begin();await prepareSpace(def.id,['raider','courier','shuttle','security',def.ship],task,{...(root.VoidCrowd?.models(def.id,quality)||{}),...propModels,...(def.id==='meridian'&&globalThis.VoidMeridianInteriorKit?VoidMeridianInteriorKit.definitions('ikit:'):{}),...Object.fromEntries(def.interactions.filter(i=>i.character&&VoidAssets.models.characters[i.character]).map(i=>['character:'+i.character,VoidAssets.models.characters[i.character]]))});task.check();station.setEnabled(false);rocks.forEach((mesh,i)=>{mesh.position.set((i%2?-1:1)*(75+i*6),30+Math.sin(i)*24,90+i*17);mesh.scaling.setAll(2+i%5);});
     roomRoot=stationModel(def.id,null,false,def);room=def;actors=[];waitingCrowd=[];stationActivity=def.activityPoints?VoidStationActivities.create(def):null;lastActivityTime=null;
-    const ship=shipModel(def.ship,'friendly',roomRoot);ship.position.set(-7,2,-9);ship.scaling.setAll(2);
+    const ship=shipModel(def.ship,'friendly',roomRoot,{landed:true});ship.position.set(-7,2,-9);ship.scaling.setAll(2);landBoarding(def);
     for(const item of def.interactions)if(item.character)characterModel(item.character,roomRoot,item.visualPosition||item.position);
     if(stationActivity){for(const a of stationActivity.actors){const node=characterModel('crew-'+a.id,roomRoot,[a.x,0,a.z],true);actors[actors.length-1].activity=a;const cup=box('crew-cup',[.1,.16,.1],[.4,1.4,.2],material('cup','#b7b2a1'),node);cup.setEnabled(false);actors[actors.length-1].cup=cup;}}else for(let i=0;i<4;i++)characterModel('crew-'+i,roomRoot,[i<2?-13:13,0,i<2?-8+i*7:20+i*3],true);
     for(let i=0;i<5;i++)box('cargo-crate',[1.3,1.3,1.3],[12+(i%2)*1.5,.65,-17+Math.floor(i/2)*1.5],material('cargo','#716b56'),roomRoot);
@@ -585,7 +620,7 @@
       // Interior dressing from the reference sheet (meridian-interior-kit.js): visual only, after the fit-out so it is never merged.
       globalThis.VoidMeridianInteriorKit?.dress(scene,roomRoot,'ikit:');}
     const roomLight=new BABYLON.PointLight('concourse-light',new BABYLON.Vector3(0,4,25),scene);roomLight.parent=roomRoot;roomLight.diffuse=new BABYLON.Color3(1,.69,.38);roomLight.intensity=1.4;roomLight.range=28;
-    const fill=new BABYLON.PointLight('hangar-light',new BABYLON.Vector3(0,6,-9),scene);fill.parent=roomRoot;fill.intensity=1.25;fill.range=60;
+    const fill=new BABYLON.PointLight('hangar-light',new BABYLON.Vector3(-3,7,-9),scene);fill.parent=roomRoot;fill.diffuse=new BABYLON.Color3(1,.8,.76);fill.specular=new BABYLON.Color3(.5,.4,.38);fill.intensity=1.5;fill.range=34;fill.falloffType=BABYLON.Light.FALLOFF_STANDARD; // brighter, slightly red (David, 2026-10-23); range falloff so the PBR wall panels 15 m out still catch it
     // These routes are station-relative and visible through the observation apertures.
     for(let i=0;i<3;i++){const n=shipModel(i?'shuttle':'courier','neutral',roomRoot);n.metadata={...n.metadata,traffic:true,lane:i};actors.push({node:n,traffic:true,lane:i});}
     await task.wait('scene',()=>scene.whenReadyAsync(),'station-'+def.id);diagnostics.location=def.id;
@@ -596,6 +631,9 @@
     const F=room?.furniture||VoidMeridianInterior.layout().furniture;
     scene.getLightByName('ambient').intensity=.22;scene.getLightByName('sun').intensity=.28;
     const R=room?.rooms||VoidMeridianInterior.rooms,C=R.corridor,H=R.hall;
+    // Red light strips along the hangar's side walls, high and at the deck edge, for a slight red cast (no extra lights).
+    {const G=R.hangar,red=material('hangar-red-strip','#ff3a2c',true),glowRed=material('hangar-red-soft','#7a1612',true);
+     for(const x of [G.x0+.42,G.x1-.42]){box('hangar-red-strip',[.06,.08,G.z1-G.z0-2],[x,G.h-1.4,(G.z0+G.z1)/2],red,parent);box('hangar-red-strip',[.06,.05,G.z1-G.z0-2],[x,.12,(G.z0+G.z1)/2],red,parent);box('hangar-red-wash',[.03,1.2,G.z1-G.z0-2],[x+(x<0?.02:-.02),G.h-2.1,(G.z0+G.z1)/2],glowRed,parent);}}
     function pipe(x,y,z,length){const m=b.MeshBuilder.CreateCylinder('service-pipe',{diameter:.13,height:length,tessellation:10},scene);m.parent=parent;m.position.set(x,y,z);m.rotation.x=Math.PI/2;m.material=copper;}
     function luminaire(x,y,z,along='x'){const w=along==='x'?[1.8,.22,.45]:[.45,.22,1.8],d=along==='x'?[1.5,.04,.3]:[.3,.04,1.5];box('luminaire-housing',w,[x,y,z],steel,parent);box('warm-diffuser',d,[x,y-.14,z],warm,parent);}
     // The corridor: a line of ceiling lights, service pipes, ribs on both walls and deck joints. Ribs skip the doorways.
@@ -1037,12 +1075,12 @@
     }
     if(def.district&&root.VoidNeoChinatown){
       crowdLocation='neochinatown';root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,{...(root.VoidCrowd?.models('neochinatown',quality)||{}),...(VoidNeoChinatown.models||{})},task),'district models');
-      districtHandle=VoidNeoChinatown.build({scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{},instance:(id,parent)=>VoidAssets.instance(id,parent)});
+      districtHandle=VoidNeoChinatown.build({scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{},instance:(id,parent)=>VoidAssets.instance(id,parent)});landBoarding(def);
       await task.wait('scene',()=>scene.whenReadyAsync(),'neochinatown');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
     if(def.planet&&root.VoidPlanets){crowdLocation=def.planet;root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,root.VoidCrowd?.models(def.planet,quality)||{},task),'crowd models');
-      planetHandle=VoidPlanets.build(def.planet,{scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{}});
+      planetHandle=VoidPlanets.build(def.planet,{scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{}});landBoarding(def);
       await task.wait('scene',()=>scene.whenReadyAsync(),'homeworld');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }

@@ -96,7 +96,7 @@
    const v1=p.opening?.version!==2;
    mirror(s,'ground-training',groundIds,id=>id==='recording'?(v1||p.opening.hologram===true||p.opening.pistol===true):id==='receive-gun'?(p.opening?.pistol===true||p.personal?.weapon==='ward-pistol'):id==='groundCombat'?(f.groundCombat===true||f.shootingTutorialComplete===true||p.opening?.cans?.length>=4):f[id]===true,()=>P.groundDone(s)||pastWorkshop(s));
    // Older saves already hold a single combined entry; its flags carry over unchanged.
-   if((P.groundDone(s)||pastWorkshop(s))&&(f.maraShipHandoff||f.board||pastWorkshop(s)||entries['flight-training']))mirror(s,'flight-training',trainingIds,id=>f[id]===true,()=>trainingIds.every(id=>f[id]===true));
+   if((P.groundDone(s)||pastWorkshop(s))&&(f.maraShipHandoff||f.board||pastWorkshop(s)||entries['flight-training']))mirror(s,'flight-training',trainingIds,id=>f[id]===true,()=>trainingIds.every(id=>f[id]===true)||pastMeridianArrival(s)); // Once at Meridian the circuit is behind you, even with a maneuver skipped.
   }
   if(p&&(flightTrainingDone(s)||pastWorkshop(s))){
    const cargo=acquire(s,'meet-rook');

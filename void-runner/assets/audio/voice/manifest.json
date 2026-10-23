@@ -1984,10 +1984,10 @@
    "source": "relay-content.json",
    "configHash": "ac9f12a4d1a2"
   },
-  "rook-6f06e2d496": {
+  "rook-2d2b77c05a": {
    "speaker": "rook",
-   "text": "Two hot runs and you’re still breathing. I’ve got something for the next one. Head to the station shop. Tell them Rook sent you. They’ll fit a missile launcher — installation’s on me. I know a guy in Tessaly with more work. Admin. Runs The Darknet District in NeoChinatown with his partner Iris. I’ve marked the Tessaly Belt Anchorage. Press L for your Mission Log; pick what you want to track. Complete your missile qualification before choosing independent routes. Acquire the launcher here, fit it in the hangar, and demonstrate target selection, lock and firing on your next run.",
-   "file": "rook-6f06e2d496.ogg",
+   "text": "Two hot runs and you’re still breathing. I’ve got something for the next one. Head to the station shop. Tell them Rook sent you. They’ll fit a missile launcher — installation’s on me. I know a guy in Tessaly with more work. Admin. Runs The Darknet District in NeoChinatown with his partner Iris. I’ve marked the Tessaly Belt Anchorage. Press L for your Mission Log; pick what you want to track.",
+   "file": "rook-2d2b77c05a.ogg",
    "source": "hangar.js",
    "configHash": "43ded265d771"
   },

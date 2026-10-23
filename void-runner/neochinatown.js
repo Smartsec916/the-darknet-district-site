@@ -105,7 +105,7 @@
     for(let z=-58;z<-2;z+=6)box('lane-mark',[.18,.02,2.6],[0,.02,z],glowMat('lane','#d7c06a',.55));
     box('landing-pad',[16,.12,16],[0,.06,-52],mat('pad','#26262c',{rough:.6,metal:.4}));
     for(const [x,z] of [[-7.6,-59.6],[7.6,-59.6],[-7.6,-44.4],[7.6,-44.4]])cyl('pad-light',.2,.14,[x,.14,z],amber,true,8);
-    const ship=shipModel('starter','friendly',parent);ship.position.set(0,1.9,-55);ship.scaling.setAll(2.2);ship.rotation.y=Math.PI;
+    const ship=shipModel('starter','friendly',parent,{landed:true});ship.position.set(0,1.9,-55);ship.scaling.setAll(2.2);ship.rotation.y=Math.PI;
     for(let i=0;i<10;i++){const z=-58+i*6,x=(i%2?-1:1)*(4+rand()*4);const p=add(B.MeshBuilder.CreateDisc('puddle',{radius:.8+rand()*1.4,tessellation:18},scene),mat('puddle','#0c0c14',{rough:.04,metal:.9}),[x,.025,z]);p.rotation.x=Math.PI/2;p.scaling.y=.55;}
     // Tower faces: lit window grids. Each tower picks a palette.
     const windowMats=['#ffd08a','#7fe8ff','#ff8ad8'].map((c,k)=>{const t=texture('windows-'+k,256,512,(g,W,H)=>{g.fillStyle='#0b0b12';g.fillRect(0,0,W,H);for(let y=6;y<H;y+=14)for(let x=6;x<W;x+=12){if(rand()<.42){g.fillStyle=c;g.globalAlpha=.25+rand()*.75;g.fillRect(x,y,7,8);}}g.globalAlpha=1;});const m=new B.StandardMaterial('ncz-windows-'+k,scene);m.diffuseColor=new B.Color3(.05,.05,.07);m.emissiveTexture=t;owned.push(m);return m;});

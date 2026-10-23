@@ -80,7 +80,7 @@
    bar:{x:-10.5,z:51,length:14,backX:-15.6},store:{x:-6.2,z:28,length:5,shelves:[24.6,27.6,30.6],shelfX:-12.4},
    terminal:{x:2,z:20,facing:-Math.PI/2},portholes,
    lights:[[-9,13],[-8,28],[9,51]], // the bar's own amber light is added by meridian-art.js
-   plants:[[-15.1,41,1],[15.1,61.1,.9],[-15.1,61.1,1],[3.2,41,.8],[-3.2,41,.8],[1.6,5,.7]]};
+   plants:[]}; // potted plants removed (David, 2026-10-23)
   // Sleeping pods: two tiers of five, ends against the hangar-side wall, hatches facing into the room.
   for(let i=0;i<5;i++)for(const level of [0,1]){const x=-13.9+i*1.6;furniture.pods.push({id:'pod-'+(i*2+level+1),x,z:5.75,level,y:level?1.62:.3,facing:Math.PI});}
   add('pod-bank',[8.2,2.9,2.5],[-10.7,1.45,5.6],'frame');
