@@ -82,8 +82,8 @@
    for(const [x,z,s] of F.plants||[]){cylinder('planter',[x,.3,z],.55*s,.6,pot,.65*s);for(let k=0;k<7;k++){const a=k*2.4,r=.18*s;ellipsoid('foliage',[x+Math.cos(a)*r,.75+(k%3)*.18*s,z+Math.sin(a)*r],[.42*s,.55*s,.42*s],k%2?leaf:leaf2);}}}
   // Hall lighting pass (David, 2026-10-23: closer to the reference art). Mostly glowing and additive surfaces, which
   // cost little: two real lights at the bar (amber over the counter, violet behind it), warm light pools on the floor
-  // under the bar and tables, neon reflections on the floor in front of the counter, a warm cove line under the hall
-  // ceiling, and space with a planet's edge beyond the hall windows (instead of the station's own hull).
+  // under the bar and tables, neon reflections on the floor in front of the counter, and a warm cove line under the hall
+  // ceiling. The windows show the real view outside (David, 2026-10-23).
   const H=root.VoidMeridianInterior?.rooms?.hall,B0=F.bar,lights=[];
   if(H&&B0){
    // One real light (it replaces the plain ceiling light over the bar, so the scene stays within 8 lights).
@@ -109,20 +109,6 @@
    const cove=material('cove-warm','#ffb466',true);
    box('hall-cove',[.06,.06,H.z1-H.z0-1],[H.x0+.36,H.h-.28,(H.z0+H.z1)/2],cove,parent);
    for(const [a,b] of [[H.x0+.6,-2.6],[2.6,H.x1-.6]])box('hall-cove',[b-a,.06,.06],[(a+b)/2,H.h-.28,H.z0+.36],cove,parent);
-   // Beyond the windows: deep space, a planet's lit edge and stars, instead of the station's own hull.
-   const space=new B.DynamicTexture('meridian-window-space',{width:2048,height:512},scene,false);textures.push(space);
-   {const g=space.getContext(),W=2048,Hh=512;let seed=7;const rnd=()=>((seed=seed*16807%2147483647)-1)/2147483646;
-    const bg=g.createLinearGradient(0,0,0,Hh);bg.addColorStop(0,'#02040a');bg.addColorStop(1,'#060b18');g.fillStyle=bg;g.fillRect(0,0,W,Hh);
-    for(let i=0;i<5;i++){const x=rnd()*W,y=rnd()*Hh,r=120+rnd()*260,n=g.createRadialGradient(x,y,0,x,y,r);n.addColorStop(0,i%2?'rgba(90,60,140,.18)':'rgba(40,90,140,.16)');n.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=n;g.fillRect(0,0,W,Hh);}
-    for(let i=0;i<1400;i++){const b=rnd(),s=b>.985?4:b>.9?3:2;g.fillStyle='rgba('+(200+rnd()*55|0)+','+(205+rnd()*50|0)+',255,'+(.35+rnd()*.65)+')';g.fillRect(rnd()*W,rnd()*Hh,s,s);}
-    // The planet: a dark disc low on the right with a thin blue atmosphere along its lit edge (as on the reference sheet).
-    const px=W*.86,py=Hh*1.55,pr=Hh*1.2;g.save();g.beginPath();g.arc(px,py,pr,0,Math.PI*2);g.fillStyle='#04070d';g.fill();g.clip();const shade=g.createRadialGradient(px-pr*.35,py-pr*.55,pr*.2,px,py,pr);shade.addColorStop(0,'#1d3d66');shade.addColorStop(.55,'#0b1a2e');shade.addColorStop(1,'#03060c');g.fillStyle=shade;g.fillRect(px-pr,py-pr,pr*2,pr*2);g.restore();
-    const rim=g.createRadialGradient(px,py,pr*.985,px,py,pr*1.06);rim.addColorStop(0,'rgba(120,190,255,.0)');rim.addColorStop(.3,'rgba(140,205,255,.85)');rim.addColorStop(1,'rgba(80,140,255,0)');g.fillStyle=rim;g.beginPath();g.arc(px,py,pr*1.06,0,Math.PI*2);g.fill();
-    space.update();}
-   const view=new B.StandardMaterial('meridian-window-space',scene);view.diffuseColor=B.Color3.Black();view.specularColor=B.Color3.Black();view.emissiveTexture=space;view.disableLighting=true;owned.push(view);
-   function backdrop(name,w,h,x,y,z,ry,u0=0,u1=1){const p=B.MeshBuilder.CreatePlane('hall-'+name,{width:w,height:h,frontUVs:new B.Vector4(u0,0,u1,1),sideOrientation:B.Mesh.DOUBLESIDE},scene);p.parent=parent;p.position.set(x,y,z);p.rotation.y=ry;p.material=view;p.isPickable=false;return p;}
-   // Just behind the glass, so the station's own hull outside can't show in front. The planet shows through the end window.
-   backdrop('space-starboard',H.z1-H.z0+1,3.6,H.x1+.42,2.3,(H.z0+H.z1)/2,Math.PI/2,0,.45);backdrop('space-aft',H.x1-H.x0+1,3.6,0,2.3,H.z1+.42,0);
   }
   // Sofas under the windows: deep red leather, as on the reference sheet.
   const sofaLeather=metal('sofa-leather','#6b1d24',0,.62);
