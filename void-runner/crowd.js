@@ -27,7 +27,8 @@
  };
  // NeoChinatown and The Darknet District share one scene; these crew belong to the District.
  const districtCrew=/^crew-(vr|bar|smoke)/;
- const staff={meridian:['meridian-bartender']};
+ // Behind each bar: Meridian's own bartender; elsewhere a local look (they polish and pour with the reach move).
+ const staff={meridian:['meridian-bartender'],kepler:['regular-01'],rusthaven:['outlaw-01'],foundry:['fixer-01'],'sol-belt':['regular-01'],vigil:['cyborg-01'],holdfast:['order-militia']};
  function castFor(location,id){if(id==='crew-bartender')return staff[location]||null;return location==='neochinatown'&&districtCrew.test(id)?casts.district:casts[location]||null;}
  function hash(s){let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h;}
  function clipFor(id){
@@ -45,7 +46,7 @@
  // One-shot moves played on entering a state: [move, then loop].
  const onceClip={'sit-down':['sit-enter','sit'],stand:['sit-exit','idle'],'get-drink':['interact','idle'],terminal:['interact','typing'],browse:['interact','watch'],pour:['pickup','wipe'],shelf:['interact','idle']};
  // A look without a clip falls back to the nearest one it has, then to idle.
- const fallback={look:'watch','sit-talk':'sit',typing:'watch'};
+ const fallback={look:'watch','sit-talk':'sit',typing:'watch',wipe:'interact',pickup:'interact'};
  function clipIn(look,want){const have=clips[look]||[];for(let w=want;w;w=fallback[w])if(have.includes(w))return w;return 'idle';}
  // Model definitions to preload for a place. Low quality keeps the light procedural crew.
  function models(location,quality){

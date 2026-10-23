@@ -530,12 +530,12 @@
     for(let i=0;i<5;i++)box('holdfast-hall-lamp',[1.6,.1,.45],[-12+i*6,5.85,26],amber,node);
   }
   function stationModel(id, parent, exterior=false,layoutDef=null) {
-    if(id==='meridian'&&exterior){const imported=VoidAssets.instance('station:meridian',parent);if(imported){imported.metadata={identity:'meridian',source:'shared-glb'};return imported;}const built=VoidMeridian.build(scene,parent);globalThis.VoidMeridianKitbash?.dress(scene,built,'kit:');return built;}
+    if(VoidStationLayouts.meridianClass.includes(id)&&exterior){const imported=id==='meridian'&&VoidAssets.instance('station:meridian',parent);if(imported){imported.metadata={identity:'meridian',source:'shared-glb'};return imported;}const built=VoidMeridian.build(scene,parent,{name:VoidStationLayouts.labels[id]});globalThis.VoidMeridianKitbash?.dress(scene,built,'kit:');return built;}
     const b=B(),node=new b.TransformNode('station-'+id,scene);node.parent=parent;
     const def=layoutDef||VoidStationLayouts.layout(id),hull=material('station',def.color),metal=material('truss','#343e47'),trim=material('navigation','#a9d7c5',true);
     for(const p of def.shell){const colors={frame:'#252c31',panel:'#61676a',seat:'#735a42',ceramic:'#b0b9b5',counter:'#655846',door:'#59656c',amber:'#d7a465',teal:'#82beb0'};const mesh=box(p.id,p.size,p.position,p.kind==='glass'?windowGlass():p.kind==='floor'?material('floor','#29333c'):colors[p.kind]?material(p.kind,colors[p.kind],['amber','teal'].includes(p.kind)):hull,node);if(p.kind==='door'){mesh.metadata={stationDoor:p};mesh.material=doorMaterial();}}
-    if(id==='meridian'){
-      const exterior=VoidMeridian.build(scene,node,{occupied:true});globalThis.VoidMeridianKitbash?.dress(scene,exterior,'kit:',{occupied:true});node.metadata={layout:id,exterior};return node;
+    if(def.rooms){ // every station shares Meridian's design; only the hull lettering differs
+      const exterior=VoidMeridian.build(scene,node,{occupied:true,name:VoidStationLayouts.labels[id]});globalThis.VoidMeridianKitbash?.dress(scene,exterior,'kit:',{occupied:true});node.metadata={layout:id,exterior};return node;
     }
     // Open physical aperture at z=-26; split pressure doors slide into the jambs.
     const doors=[-1,1].map(side=>box('hangar-door',[9.8,7,.35],[side*15,3.5,-26],metal,node));
@@ -604,7 +604,7 @@
   async function prepareStation(def,task){
     release(); // A new visit owns exactly one room and its actors, signs and lights.
     const propModels=Object.fromEntries((def.props||[]).filter(p=>VoidAssets.models.props?.[p.model]).map(p=>['prop:'+p.model,VoidAssets.models.props[p.model]]));
-    crowdLocation=def.id;root.VoidCrowd?.begin();await prepareSpace(def.id,['raider','courier','shuttle','security',def.ship],task,{...(root.VoidCrowd?.models(def.id,quality)||{}),...propModels,...(def.id==='meridian'&&globalThis.VoidMeridianInteriorKit?VoidMeridianInteriorKit.definitions('ikit:'):{}),...Object.fromEntries(def.interactions.filter(i=>i.character&&VoidAssets.models.characters[i.character]).map(i=>['character:'+i.character,VoidAssets.models.characters[i.character]]))});task.check();station.setEnabled(false);rocks.forEach((mesh,i)=>{mesh.position.set((i%2?-1:1)*(75+i*6),30+Math.sin(i)*24,90+i*17);mesh.scaling.setAll(2+i%5);});
+    crowdLocation=def.id;root.VoidCrowd?.begin();await prepareSpace(def.id,['raider','courier','shuttle','security',def.ship],task,{...(root.VoidCrowd?.models(def.id,quality)||{}),...propModels,...(def.rooms&&globalThis.VoidMeridianInteriorKit?VoidMeridianInteriorKit.definitions('ikit:'):{}),...Object.fromEntries(def.interactions.filter(i=>i.character&&VoidAssets.models.characters[i.character]).map(i=>['character:'+i.character,VoidAssets.models.characters[i.character]]))});task.check();station.setEnabled(false);rocks.forEach((mesh,i)=>{mesh.position.set((i%2?-1:1)*(75+i*6),30+Math.sin(i)*24,90+i*17);mesh.scaling.setAll(2+i%5);});
     roomRoot=stationModel(def.id,null,false,def);room=def;actors=[];waitingCrowd=[];stationActivity=def.activityPoints?VoidStationActivities.create(def):null;lastActivityTime=null;
     const ship=shipModel(def.ship,'friendly',roomRoot,{landed:true});ship.position.set(-7,2,-9);ship.scaling.setAll(2);landBoarding(def);
     for(const item of def.interactions)if(item.character)characterModel(item.character,roomRoot,item.visualPosition||item.position);
@@ -616,7 +616,7 @@
     for(const signDef of def.signs)sign(signDef,roomRoot);
     // Props first: the fit-out then batches the remaining static pieces, skipping the hidden ones.
     placeProps(def,roomRoot);
-    if(def.id==='meridian'){fitoutMeridian(roomRoot);planet.position.set(340,-65,140);
+    if(def.rooms){fitoutMeridian(roomRoot);if(def.id==='meridian')planet.position.set(340,-65,140);
       // Interior dressing from the reference sheet (meridian-interior-kit.js): visual only, after the fit-out so it is never merged.
       globalThis.VoidMeridianInteriorKit?.dress(scene,roomRoot,'ikit:');}
     const roomLight=new BABYLON.PointLight('concourse-light',new BABYLON.Vector3(0,4,25),scene);roomLight.parent=roomRoot;roomLight.diffuse=new BABYLON.Color3(1,.69,.38);roomLight.intensity=1.4;roomLight.range=28;
@@ -708,7 +708,7 @@
       ...(id==='vesper'?Object.fromEntries(Object.entries(VoidOpening.hooks).filter(([,d])=>d.src).map(([key,d])=>['opening:'+key,d])):{}),
       ...Object.fromEntries(Object.entries(VoidAssets.models.ships).filter(([key]) => shipTypes.includes(key)).map(([key, value]) => ['ship:' + key, value])),
       // Meridian's hull cladding (meridian-kitbash.js), so every scene that shows Meridian clads it.
-      ...(id==='meridian'&&globalThis.VoidMeridianKitbash?VoidMeridianKitbash.definitions('kit:'):{}),
+      ...(VoidStationLayouts.meridianClass.includes(id)&&globalThis.VoidMeridianKitbash?VoidMeridianKitbash.definitions('kit:'):{}),
       ...((VoidAssets.models.stations[id]||(id==='meridian'&&VoidMeridian.model.src?VoidMeridian.model:null)) ? {
         ['station:' + id]: VoidAssets.models.stations[id]||VoidMeridian.model
       } : {})

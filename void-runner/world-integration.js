@@ -54,9 +54,13 @@ leaveWalking=async function(){
 };
 // Delivery reward/state remains authoritative in Campaign.complete; station entry is automatic.
 const worldArrive=arrive;
-arrive=function(){const previous=state.location,quest=state.quest;worldArrive();if(!['arrival','dialogue'].includes(mode)||state.location===previous&&state.quest===quest)return;
+let solHandover=null;
+arrive=function(){const previous=state.location,quest=state.quest;solHandover=null;worldArrive();if(!['arrival','dialogue'].includes(mode)||state.location===previous&&state.quest===quest)return;
  const lines=speech?.lines.slice(),label=speech?.label;speech=null;
- const docking=dock(),token=preparationGeneration;Promise.resolve(docking).then(()=>{if(token===preparationGeneration&&lines&&mode==='walking')talk('',lines,()=>{if(walkingLocation)resumeWalking();},label||'EXPLORE STATION');});
+ const docking=dock(),token=preparationGeneration;Promise.resolve(docking).then(()=>{
+  // A delivery to Kepler is handed over to Dr. Sol at the bar (David, 2026-10-23): his lines wait until you talk to him.
+  if(token===preparationGeneration&&lines&&mode==='walking'&&state.location==='kepler'&&lines[0]?.who==='sol'&&walkingLocation?.interactions.some(i=>i.id==='sol')){solHandover={lines,label};announce('Hand the delivery to Dr. Sol at the bar.');return;}
+  if(token===preparationGeneration&&lines&&mode==='walking')talk('',lines,()=>{if(walkingLocation)resumeWalking();},label||'EXPLORE STATION');});
 };
 // Keep conversations and service overlays in the same physical station.
 const worldTalk=talk;
@@ -80,6 +84,7 @@ rookConversation=function(){if(state.location==='meridian'){VoidMissions.complet
 VoidInteractions.register('talk',({item})=>{
  if(item.character==='rook')return rookConversation();
  if(item.character==='mara')return playStoryScene('mara_workshop_intro');
+ if(item.character==='sol'&&solHandover){const h=solHandover;solHandover=null;return talk('',h.lines,resumeWalking,h.label||'RETURN TO STATION');}
  if(state.quest==='open'&&item.character==='sol')return brief('medicine');if(state.quest==='open'&&item.character==='iona')return brief('ghost');
  const texts={elias:'The ship is yours. Go make a life of your own.',nyx:'Rook is in the booth. The outfitter is across the concourse.',iona:'Rusthaven stays alive because people keep bringing what we need.',sol:'The clinics are short on supplies. Check the mission terminal before you go.'};
  talk('',[{who:item.character,text:texts[item.character]}],resumeWalking,'RETURN TO STATION');
@@ -113,7 +118,9 @@ update=function(dt){
  {const key=VoidInput.label(VoidInput.bindings.missionLog||'KeyL'),text='MISSION LOG · '+key;if(missionLogButton.textContent!==text)missionLogButton.textContent=text;
   // First time the log becomes available, say how to open it.
   if(!missionLogButton.hidden&&state.story&&!state.story.flags.missionLogHint){state.story.flags.missionLogHint=true;announce('Mission Log unlocked. Press '+key+' to open it and choose what to track.');save();}}
- trackedWalkWaypoint=null;if(mode==='walking'&&walker){const m=VoidMissions.tracked(state,C),g=VoidMissions.guidance(state,m,true);if(g){const item=walkingLocation.interactions.find(i=>i.id===g.interaction)||(g.interaction==='rook'?walkingLocation.interactions.find(i=>i.id==='jobs'):null);let waypoint=item;if(item){if(walker.z<3&&item.position[2]>4)waypoint={position:[0,1.7,3]};else if(walker.z<18&&item.position[2]>18)waypoint={position:[0,1.7,19]};else if(walker.z>19&&item.position[2]<18)waypoint={position:[0,1.7,19]};else if(walker.z>4&&item.position[2]<4)waypoint={position:[0,1.7,3]};}trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · '+g.label+(waypoint?' · '+Math.round(Math.hypot(waypoint.position[0]-walker.x,waypoint.position[2]-walker.z))+'m':'');}}
+ trackedWalkWaypoint=null;if(mode==='walking'&&walker){const m=VoidMissions.tracked(state,C),g=VoidMissions.guidance(state,m,true);if(g){const item=walkingLocation.interactions.find(i=>i.id===g.interaction)||(g.interaction==='rook'?walkingLocation.interactions.find(i=>i.id==='jobs'):null);let waypoint=item;if(item){if(walker.z<3&&item.position[2]>4)waypoint={position:[0,1.7,3]};else if(walker.z<18&&item.position[2]>18)waypoint={position:[0,1.7,19]};else if(walker.z>19&&item.position[2]<18)waypoint={position:[0,1.7,19]};else if(walker.z>4&&item.position[2]<4)waypoint={position:[0,1.7,3]};}trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · '+g.label+(waypoint?' · '+Math.round(Math.hypot(waypoint.position[0]-walker.x,waypoint.position[2]-walker.z))+'m':'');}
+  // The Kepler hand-over leads to Dr. Sol at the bar (through the door and corridor, as above).
+  const sol=solHandover&&state.location==='kepler'&&walkingLocation?.interactions.find(i=>i.id==='sol');if(sol){const waypoint=walker.z<3?{position:[0,1.7,3]}:walker.z<18?{position:[0,1.7,19]}:sol;trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · Hand the delivery to Dr. Sol at the bar · '+Math.round(Math.hypot(waypoint.position[0]-walker.x,waypoint.position[2]-walker.z))+'m';}}
 };
 const worldMarker=drawWarpMarker;
 drawWarpMarker=function(){

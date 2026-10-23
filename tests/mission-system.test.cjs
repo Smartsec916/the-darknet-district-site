@@ -40,11 +40,11 @@ test('finishing later qualification allows travel while a skipped maneuver remai
  U.unlock(s);M.sync(s,C);
  assert.equal(s.progression.completed,false);
  assert.equal(s.universe.freeTravel,true);
- assert.equal(M.all(s,C).find(m=>m.id==='flight-training').completed,false);
+ assert.equal(M.all(s,C).find(m=>m.id==='flight-training').completed,true); // past Meridian arrival the circuit is behind you
  M.untrack(s);assert(C.chooseDestination(s,'kepler'));
  assert.equal(C.flight(s).kind,'transit');
- M.track(s,'flight-training',C);
- assert.equal(M.tracked(s,C).objectives.find(o=>!o.complete).id,'steer');
+ // The skipped maneuver no longer keeps the circuit open (it stayed on screen long after Vesper).
+ assert.equal(M.track(s,'flight-training',C),false);
 });
 
 test('Mara handoff starts the Vesper practice circuit; Rook waits until it is flown',()=>{
@@ -82,7 +82,7 @@ test('a skipped tutorial maneuver on older saves does not block Rook',()=>{
  s.location='meridian';s.quest='legal-offer';M.sync(s,C);
  for(const id of ['enter','locate','speak'])M.complete(s,'meet-rook',id,C);
  assert.equal(M.all(s,C).find(m=>m.id==='meet-rook').completed,true);
- assert.equal(M.all(s,C).find(m=>m.id==='flight-training').completed,false);
+ assert.equal(M.all(s,C).find(m=>m.id==='flight-training').completed,true); // past Meridian arrival the circuit is behind you
  assert(C.accept(s));
  assert.equal(s.quest,'legal-run');
 });
@@ -102,7 +102,7 @@ test('later prologue lessons appear as their own Mission Log entries',()=>{
 
 test('auto-tracking follows completions but respects an explicit untrack',()=>{
  const s=C.fresh();s.quest='legal-offer';s.location='meridian';s.story.flags.rookIntroduced=true;M.sync(s,C);
- assert.equal(M.tracked(s,C)?.id,'flight-training','unfinished training ranks first');
+ assert.equal(M.tracked(s,C)?.id,'first-station','at Meridian the flight circuit is behind you');
  M.untrack(s);M.sync(s,C);assert.equal(M.tracked(s,C),null);
  assert.equal(C.restore(JSON.stringify(s)).universe.autoTrack,false);
  for(const id of M.trainingIds)P.mark(s,id);M.sync(s,C);
