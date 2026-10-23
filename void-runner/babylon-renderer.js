@@ -469,15 +469,16 @@
     for(const ship of roomRoot.getDescendants(false)){
       if(!ship.metadata?.landed||ship.metadata.boarding)continue;ship.computeWorldMatrix(true);
       // Ship space: the hull's side is at x .72 and the deck at y -1 (the ship stands 1 unit up); the cockpit runs z 0 to 1.3,
-      // clear of the wing and guns (they end at z .6). Steps climb from the deck to the hull's side by the cockpit.
-      const k=ship.scaling.y||1,ground=-ship.position.y/k,top=-.12,x0=.8,x1=1.9,z0=1.05,steps=6,steel=material('kestrel-steps','#7c858a'),lamp=material('kestrel-boarding-lamp','#ffcf80',true);
-      for(let i=0;i<steps;i++){const f=(i+1)/steps,h=ground+(top-ground)*f;const s=box('kestrel-boarding-step',[(x1-x0)/steps+.04,.035,.5],[x1-(x1-x0)*(i+.5)/steps,h-.018,z0],steel,ship);s.isPickable=false;}
+      // clear of the wing and guns (they end at z .6). Steps climb from the deck to the hull's side by the cockpit, on the
+      // left (sd -1): the right side is where the hangar's maintenance terminal stands, and the two must not share a spot.
+      const k=ship.scaling.y||1,ground=-ship.position.y/k,top=-.12,sd=-1,x0=sd*.8,x1=sd*1.9,z0=1.05,steps=6,steel=material('kestrel-steps','#7c858a'),lamp=material('kestrel-boarding-lamp','#ffcf80',true);
+      for(let i=0;i<steps;i++){const f=(i+1)/steps,h=ground+(top-ground)*f;const s=box('kestrel-boarding-step',[Math.abs(x1-x0)/steps+.04,.035,.5],[x1-(x1-x0)*(i+.5)/steps,h-.018,z0],steel,ship);s.isPickable=false;}
       for(const dz of [-.26,.26]){const len=Math.hypot(x1-x0,top-ground),r=b.MeshBuilder.CreateCylinder('kestrel-boarding-handrail',{diameter:.03,height:len},scene);r.parent=ship;r.position.set((x0+x1)/2,(ground+top)/2+.3,z0+dz);r.rotation.z=Math.atan2(x1-x0,top-ground);r.material=steel;r.isPickable=false;
         const post=b.MeshBuilder.CreateCylinder('kestrel-boarding-handrail',{diameter:.03,height:.3},scene);post.parent=ship;post.position.set(x1,ground+.15+.035,z0+dz);post.material=steel;post.isPickable=false;}
-      const foot=new b.Vector3(x1+.55,ground,z0),ring=b.MeshBuilder.CreateTorus('kestrel-boarding-locus',{diameter:1.5/k,thickness:.03/k,tessellation:28},scene);ring.parent=ship;ring.position.set(foot.x,ground+.03/k,foot.z);ring.material=lamp;ring.isPickable=false;
+      const foot=new b.Vector3(x1+sd*.55,ground,z0),ring=b.MeshBuilder.CreateTorus('kestrel-boarding-locus',{diameter:1.5/k,thickness:.03/k,tessellation:28},scene);ring.parent=ship;ring.position.set(foot.x,ground+.03/k,foot.z);ring.material=lamp;ring.isPickable=false;
       const t=new b.DynamicTexture('kestrel-board-sign',{width:256,height:48},scene,true),g=t.getContext();g.fillStyle='#0b1218';g.fillRect(0,0,256,48);g.fillStyle='#d4bd87';g.font='bold 26px monospace';g.textAlign='center';g.fillText('KESTREL / BOARD',128,33);t.update();
-      const sm=new b.StandardMaterial('kestrel-board-sign',scene);sm.diffuseTexture=t;sm.emissiveTexture=t;sm.disableLighting=true;const sign=b.MeshBuilder.CreatePlane('kestrel-board-sign',{width:1.1/k*1.4,height:.21/k*1.4,sideOrientation:b.Mesh.DOUBLESIDE},scene);sign.parent=ship;sign.position.set(x1+.3,ground+1.1/k*1.6,z0+.75);sign.rotation.y=-Math.PI/2;sign.material=sm;sign.isPickable=false;
-      const post=b.MeshBuilder.CreateCylinder('kestrel-board-sign-post',{diameter:.03,height:1.1/k*1.6},scene);post.parent=ship;post.position.set(x1+.3,ground+.55/k*1.6,z0+.75);post.material=steel;post.isPickable=false;
+      const sm=new b.StandardMaterial('kestrel-board-sign',scene);sm.diffuseTexture=t;sm.emissiveTexture=t;sm.disableLighting=true;const sign=b.MeshBuilder.CreatePlane('kestrel-board-sign',{width:1.1/k*1.4,height:.21/k*1.4},scene);sign.parent=ship;sign.position.set(x1+sd*.3,ground+1.1/k*1.6,z0+.75);sign.rotation.y=-sd*Math.PI/2;sign.material=sm;sign.isPickable=false;const back=sign.clone('kestrel-board-sign-back');back.rotation.y+=Math.PI; // readable from both sides, never mirrored
+      const post=b.MeshBuilder.CreateCylinder('kestrel-board-sign-post',{diameter:.03,height:1.1/k*1.6},scene);post.parent=ship;post.position.set(x1+sd*.3,ground+.55/k*1.6,z0+.75);post.material=steel;post.isPickable=false;
       ship.metadata.boarding=true;
       const w=b.Vector3.TransformCoordinates(foot,ship.getWorldMatrix()),board=def?.interactions?.find(i=>i.id==='board'||i.action==='board');
       if(board){board.position=[w.x,1.7,w.z];board.range=2.2;}
