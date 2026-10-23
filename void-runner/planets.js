@@ -50,7 +50,7 @@
   const ground=(hex,size=96)=>{const g=B.MeshBuilder.CreateGround('hw-ground',{width:size,height:size},scene);g.material=mat('ground',hex);g.parent=parent;g.isPickable=false;g.position.y=-.01;return g;};
   // The player's ship on its pad.
   cyl('pad',5,.12,[-4,.06,-29],mat('pad','#3a3f44',{rough:.6,metal:.4}),true,32);
-  const ship=shipModel('starter','friendly',parent);if(ship){ship.position.set(-4,1.1,-29);ship.scaling.setAll(1.6);ship.rotation.y=.3;}
+  const ship=shipModel('starter','friendly',parent,{landed:true});if(ship){ship.position.set(-4,1.1,-29);ship.scaling.setAll(1.6);ship.rotation.y=.3;}
   let tick=()=>{};
   if(id==='nexus'){
    scene.clearColor=new B.Color4(.42,.5,.57,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.012;scene.fogColor=new B.Color3(.55,.62,.68);

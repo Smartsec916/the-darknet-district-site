@@ -41,7 +41,7 @@
   out.discoveredSystems=[...new Set(['erebus',...(out.freeTravel?['sol']:[]),...out.discoveredLocations.map(system)])];
   if(raw.station?.location===state.location)out.station={location:state.location};return out;
  }
- function unlock(s){const travel=s.progression?.completed===true||s.progression?.flags?.missileFired===true||s.universe?.freeTravel===true;s.universe=restore({...s.universe,missionLogUnlocked:true,freeTravel:travel},s);if(travel&&!s.universe.trackingInitialized&&!s.universe.trackedMission)s.universe.trackedMission='meet-admin';}
+ function unlock(s){const travel=s.progression?.completed===true||s.progression?.flags?.missileFired===true||s.missileOfferSeen===true||s.universe?.freeTravel===true;s.universe=restore({...s.universe,missionLogUnlocked:true,freeTravel:travel},s);if(travel&&!s.universe.trackingInitialized&&!s.universe.trackedMission)s.universe.trackedMission='meet-admin';}
  function visit(s){const u=s.universe;u.currentSystem=system(s.location);for(const key of ['visitedLocations','discoveredLocations'])if(!u[key].includes(s.location))u[key].push(s.location);if(!u.discoveredSystems.includes(u.currentSystem))u.discoveredSystems.push(u.currentSystem);u.station={location:s.location};}
  function discover(s,id){const u=s.universe;if(!Object.hasOwn(locations,id))return false;if(!u.discoveredLocations.includes(id))u.discoveredLocations.push(id);if(!u.discoveredSystems.includes(system(id)))u.discoveredSystems.push(system(id));return true;}
  function destinations(s){const u=s.universe||fresh();return u.discoveredLocations.filter(id=>id!==s.location&&(system(id)===system(s.location)||id===systems[system(id)].hub));}

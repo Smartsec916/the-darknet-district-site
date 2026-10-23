@@ -27,7 +27,8 @@ test('Meridian preloads the bartender look and only gives it to the bartender',(
  assert.deepEqual(C.castFor('meridian','crew-bartender'),['meridian-bartender']);
  assert.ok(C.models('meridian','high')['crowd:meridian-bartender']);
  assert.ok(!C.casts.meridian.includes('meridian-bartender'));
- assert.equal(C.castFor('vigil','crew-bartender'),null);
+ assert.deepEqual(C.castFor('vigil','crew-bartender'),['cyborg-01']); // every station has a bar now, with a local bartender
+ for(const id of ['kepler','rusthaven','foundry','sol-belt','vigil','holdfast'])assert.ok(!C.castFor(id,'crew-bartender').includes('meridian-bartender'));
  for(const s of ['serve','wipe','pour','shelf'])assert.ok(C.clips['meridian-bartender'].includes(C.clipIn('meridian-bartender',C.activityClip[s])));
 });
 

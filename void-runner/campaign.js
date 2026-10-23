@@ -217,7 +217,7 @@
     if (s.quest === 'legal-run') return { ...base, name: 'An honest living', cargo: 'Water filtration parts', destination: 'kepler', enemies: 1, duration: 28, reward: 350 };
     if (s.quest === 'return') return { ...base, name: 'Back to the Dead Channel', destination: 'meridian', duration: 18 };
     if (s.quest === 'illegal-run') return { ...base, name: 'No questions asked', cargo: 'Unregistered memory wafers', legal: false, destination: 'rusthaven', enemies: 6, tier: 1, duration: 36, reward: 800 };
-    if(s.quest==='open'&&!s.progression.flags.missileFired&&!s.contract)return {...base,id:'prologue-missiles',name:'Rook / Missile qualification',destination:s.location==='meridian'?'kepler':'meridian',enemies:1,tier:0,duration:18};
+    if(s.quest==='open'&&!s.progression.flags.missileFired&&!s.contract&&!s.universe?.freeTravel)return {...base,id:'prologue-missiles',name:'Rook / Missile qualification',destination:s.location==='meridian'?'kepler':'meridian',enemies:1,tier:0,duration:18};
     if (s.quest === 'open' && s.contract==='rook-run'){const r=rookRun(s);return {...r,destination:r.destination===s.location?'meridian':r.destination};}
     if (s.quest === 'open' && s.contract) {
       const c = allContracts.find(c => c.id === s.contract);

@@ -23,7 +23,9 @@
  // The slide showing at time t in a playlist of {dur} slides, and how far into it.
  function at(list,t){const total=list.reduce((s,x)=>s+x.dur,0);if(!total)return null;let r=((t%total)+total)%total,i=0;for(;i<list.length-1&&r>=list[i].dur;i++)r-=list[i].dur;return {slide:list[i],index:i,local:r};}
  let screens=[],scene=null,timer=0,clock=0,data=null,dataTimer=0;
- const atMeridian=()=>typeof walkingLocation!=='undefined'&&walkingLocation?.kind==='station'&&state?.location==='meridian';
+ // Every station is built on Meridian's plan, so every station hall has these screens, named for where you are.
+ const atMeridian=()=>typeof walkingLocation!=='undefined'&&walkingLocation?.kind==='station'&&!!walkingLocation.rooms;
+ const here=()=>(C.stations[state?.location]?.name||'Meridian Station').toUpperCase(),bar=()=>(C.stations[state?.location]?.bar||'The Dead Channel').toUpperCase();
  function build(){
   const B=BABYLON,s=VoidBabylon.scene;scene=s;
   screens=places.map((p,i)=>{
@@ -53,7 +55,7 @@
   slides.push({type:'station'});
   while(slides.length<6&&ads.length)slides.push({type:'ad',ad:ads[a++%ads.length]});
   for(const s of slides)s.dur=s.type==='ad'?adTime(s.ad):READ[s.type];
-  data={live,cards,board,ads,slides,adSlides:ads.map(ad=>({ad,dur:adTime(ad)})),ticker:[...cards.map(c=>c.headline),...board.length?['WARFLYING STANDINGS: '+board.map(r=>r.rank+'. '+r.name+' '+r.points).join('   ')]:[],'MERIDIAN STATION · DOCKING OPEN · DEAD CHANNEL OPEN · OUTFITTER OPEN'].join('   ◆   ')};
+  data={live,cards,board,ads,slides,adSlides:ads.map(ad=>({ad,dur:adTime(ad)})),ticker:[...cards.map(c=>c.headline),...board.length?['WARFLYING STANDINGS: '+board.map(r=>r.rank+'. '+r.name+' '+r.points).join('   ')]:[],here()+' · DOCKING OPEN · '+bar().replace(/^THE /,'')+' OPEN · OUTFITTER OPEN'].join('   ◆   ')};
  }
  const ease=t=>t<0?0:t>1?1:1-Math.pow(1-t,3);
  // Moving news backdrop: a blue gradient with a travelling light band, drifting stripes, slow particles and an
@@ -92,8 +94,8 @@
    g.fillStyle=r.name==='YOU'?'#9fe3c9':'#d9a441';g.fillRect(260,y-30,w,40);g.fillStyle='#f0ece2';g.font='bold 32px monospace';g.fillText(r.rank+'. '+r.name,28,y);g.fillText(String(Math.round(r.points*grow)),270+w,y);});
  }
  function drawStation(g,W,H,t,local){
-  backdrop(g,W,H,t,'#14243a');header(g,W,t,'MERIDIAN STATION',false);
-  const rows=[['DOCKING','OPEN'],['THE DEAD CHANNEL','OPEN'],['SHIP OUTFITTER','OPEN'],['LIVING AREA','PODS AVAILABLE']];
+  backdrop(g,W,H,t,'#14243a');header(g,W,t,here(),false);
+  const rows=[['DOCKING','OPEN'],[bar(),'OPEN'],['SHIP OUTFITTER','OPEN'],['LIVING AREA','PODS AVAILABLE']];
   rows.forEach(([k,v],i)=>{const y=140+i*70,show=ease((local-.2-i*.2)/.5);g.globalAlpha=show;g.fillStyle='#9fb6c6';g.font='bold 34px monospace';g.fillText(k,40+(1-show)*-60,y);
    g.fillStyle=Math.sin(t*3+i)>-.2?'#9fe3c9':'#6fb79b';g.textAlign='right';g.fillText(v,W-60,y);g.textAlign='left';g.globalAlpha=1;});
  }
@@ -128,7 +130,7 @@
  }
  function drawAd(s,t){
   const g=s.texture.getContext(),[W,H]=s.place.res,{ads,live}=data;
-  if(!live||!ads.length){g.fillStyle='#05090e';g.fillRect(0,0,W,H);g.fillStyle='#596570';g.font='bold 36px monospace';g.textAlign='center';g.fillText(live?'MERIDIAN STATION':'NO SIGNAL',W/2,H/2+12);g.textAlign='left';glitch(g,s,t,W,H);return;}
+  if(!live||!ads.length){g.fillStyle='#05090e';g.fillRect(0,0,W,H);g.fillStyle='#596570';g.font='bold 36px monospace';g.textAlign='center';g.fillText(live?here():'NO SIGNAL',W/2,H/2+12);g.textAlign='left';glitch(g,s,t,W,H);return;}
   // Each corridor panel starts at a different ad, then runs through them all at reading pace.
   const list=data.adSlides,start=list.slice(0,s.place.style*5%list.length).reduce((n,x)=>n+x.dur,0),now=at(list,t+start);
   drawAdSlide(g,W,H,t,now.local,now.slide.dur,now.slide.ad,s.place.style+now.index);transition(g,W,H,now.local,now.slide.dur);glitch(g,s,t,W,H);

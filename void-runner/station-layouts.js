@@ -15,8 +15,27 @@
   kess:{coat:'#e1e6ea',hair:'#8d8f92',skin:'#b48f73',style:'glasses',eye:'#7fe6ff'},
   mercer:{coat:'#6b5a3a',hair:'#5a4a36',skin:'#9c6f52',style:'beard'}
  };
+ // Every station is built on Meridian's plan (David, 2026-10-23): hangar, pressure door, corridor with the living area and
+ // store, then the bar and seating hall. Each keeps its own name, colours, bar, contacts and crowd.
+ const meridianClass=['meridian','kepler','rusthaven','foundry','sol-belt','vigil','holdfast'];
+ const stationNames={kepler:['KEPLER EXCHANGE','KEPLER / EXCHANGE','THE LOADING BAY'],rusthaven:['RUSTHAVEN PORT','RUSTHAVEN / PORT','LOW FREQUENCY'],foundry:['THE FOUNDRY','THE / FOUNDRY','AFTERBURN'],
+  'sol-belt':['TESSALY BELT ANCHORAGE','BELT / ANCHORAGE','BELT CANTEEN'],vigil:['THE VIGIL','THE / VIGIL','REFECTORY'],holdfast:['HOLDFAST','HOLDFAST / OUTPOST','MESS HALL']};
+ // The name on each station's hull, seen from outside.
+ const labels={meridian:'MERIDIAN',kepler:'KEPLER',rusthaven:'RUSTHAVEN',foundry:'FOUNDRY','sol-belt':'ANCHORAGE',vigil:'VIGIL',holdfast:'HOLDFAST'};
+ const contacts={kepler:['sol'],rusthaven:['iona'],vigil:['elara'],holdfast:['marcus']};
+ function meridianLike(id,ship){
+  const d=(typeof module!=='undefined'?require('./meridian-interior.js'):root.VoidMeridianInterior).layout(ship);if(id==='meridian')return d;
+  const [name,door,bar]=stationNames[id];d.id=id;d.name=name;d.color=palettes[id][0];
+  d.interactions=d.interactions.filter(i=>i.id!=='rook'&&i.id!=='nyx');
+  for(const character of contacts[id]||[])d.interactions.push(character==='sol'
+   // Dr. Sol waits at the near end of the bar, where clinic deliveries are handed over.
+   ?{id:'sol',action:'talk',character:'sol',label:'TALK / DR. SOL',position:[-7.2,1.7,43.4],visualPosition:[-8.4,1.7,43.1],range:3}
+   :{id:character,action:'talk',character,label:'TALK / '+({elara:'DR. ELARA VOSS',marcus:'MARCUS VALE'}[character]||character.toUpperCase()),position:[-5.6,1.7,44],range:3});
+  for(const s of d.signs){if(s.id==='crew-pressure-door-sign')s.text=door;if(s.id==='lounge')s.text=bar.replace(/^THE /,'');}
+  return d;
+ }
  function layout(id,ship='starter'){
-  if(id==='meridian')return (typeof module!=='undefined'?require('./meridian-interior.js'):root.VoidMeridianInterior).layout(ship);
+  if(meridianClass.includes(id))return meridianLike(id,ship);
   const shell=[],solids=[];const add=(name,size,position,kind='hull',collision=true)=>{const part={id:name,size,position,kind};shell.push(part);if(collision)solids.push(part);};
   // Hangar [-18,18] x [-26,4], corridor [-4,4] x [4,18], commerce [-18,18] x [18,34].
   for(const side of [-1,1]){
@@ -45,5 +64,5 @@
   people.forEach((character,i)=>interactions.push({id:character,action:'talk',character,label:(character==='elias'?'PLAY ARCHIVE / ':'TALK / ')+(names[character]||character.toUpperCase()),position:id==='vesper'?[i?5:0,1.7,i?-10:-12]:[i?13:8,1.7,i?31:25],range:3}));
   return {id,name:id.toUpperCase(),kind:'station',bounds:[18,34],spawn:[0,1.7,-17],ship,color:(palettes[id]||palettes.meridian)[0],shell,solids,interactions,signs:[{id:'hangar',position:[0,6,3.5],text:'HANGAR  /  CONCOURSE →',color:'#9fcbba'},{id:'concourse',position:[0,4,33.5],text:id==='meridian'?'THE DEAD CHANNEL / OUTFITTER':id==='vigil'?'THE VIGIL / RECEIVING':id==='holdfast'?'HOLDFAST / SUPPLY YARD':id.toUpperCase()+' / CREW SERVICES',color:'#a4c3b6'}]};
  }
- const api={layout,palettes,appearances};if(typeof module!=='undefined')module.exports=api;else root.VoidStationLayouts=api;
+ const api={layout,palettes,appearances,meridianClass,labels};if(typeof module!=='undefined')module.exports=api;else root.VoidStationLayouts=api;
 })(globalThis);

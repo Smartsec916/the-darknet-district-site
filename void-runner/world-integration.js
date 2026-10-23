@@ -54,9 +54,13 @@ leaveWalking=async function(){
 };
 // Delivery reward/state remains authoritative in Campaign.complete; station entry is automatic.
 const worldArrive=arrive;
-arrive=function(){const previous=state.location,quest=state.quest;worldArrive();if(!['arrival','dialogue'].includes(mode)||state.location===previous&&state.quest===quest)return;
+let solHandover=null;
+arrive=function(){const previous=state.location,quest=state.quest;solHandover=null;worldArrive();if(!['arrival','dialogue'].includes(mode)||state.location===previous&&state.quest===quest)return;
  const lines=speech?.lines.slice(),label=speech?.label;speech=null;
- const docking=dock(),token=preparationGeneration;Promise.resolve(docking).then(()=>{if(token===preparationGeneration&&lines&&mode==='walking')talk('',lines,()=>{if(walkingLocation)resumeWalking();},label||'EXPLORE STATION');});
+ const docking=dock(),token=preparationGeneration;Promise.resolve(docking).then(()=>{
+  // A delivery to Kepler is handed over to Dr. Sol at the bar (David, 2026-10-23): his lines wait until you talk to him.
+  if(token===preparationGeneration&&lines&&mode==='walking'&&state.location==='kepler'&&lines[0]?.who==='sol'&&walkingLocation?.interactions.some(i=>i.id==='sol')){solHandover={lines,label};announce('Hand the delivery to Dr. Sol at the bar.');return;}
+  if(token===preparationGeneration&&lines&&mode==='walking')talk('',lines,()=>{if(walkingLocation)resumeWalking();},label||'EXPLORE STATION');});
 };
 // Keep conversations and service overlays in the same physical station.
 const worldTalk=talk;
@@ -76,10 +80,11 @@ function rookFreightOffer(){
  talk('',[{who:'rook',text:lead+' '+r.cargo+' to '+place(r.destination)+(far?' — an interstellar run':'')+'. '+(r.legal?'Legal.':'Not legal.')+' '+r.reward+' credits. '+(r.number===1?'Admin is over in Tessaly if you want other work. '+key+' opens your Mission Log.':'')}],()=>{if(C.accept(state,'rook-run')){VoidMissions.track(state,C.rookRun(state).id,C);save();announce('Cargo loaded. '+place(r.destination)+' tracked.');}resumeWalking();},'ACCEPT RUN →','Rook’s booth');
  screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',button('NOT NOW','walk-resume',true));
 }
-rookConversation=function(){if(state.location==='meridian'){VoidMissions.complete(state,'meet-rook','enter',C);VoidMissions.complete(state,'meet-rook','locate',C);VoidMissions.complete(state,'meet-rook','speak',C);save();}if(state.missileUnlocked&&!state.missileOfferSeen){state.missileOfferSeen=true;VoidUniverse.unlock(state);save();talk('',[rookMissileLine],resumeWalking,'RETURN TO STATION');return;}if(state.quest==='open'){if(state.progression?.completed){rookFreightOffer();return;}talk('',[{who:'rook',text:'Finish your missile qualification: acquire the launcher, install it at the maintenance terminal, then select, lock and fire on a hostile in your next run.'}],resumeWalking,'RETURN TO STATION');return;}originalRookConversation();};
+rookConversation=function(){if(state.location==='meridian'){VoidMissions.complete(state,'meet-rook','enter',C);VoidMissions.complete(state,'meet-rook','locate',C);VoidMissions.complete(state,'meet-rook','speak',C);save();}if(state.missileUnlocked&&!state.missileOfferSeen){state.missileOfferSeen=true;VoidUniverse.unlock(state);save();talk('',[rookMissileLine],resumeWalking,'RETURN TO STATION');return;}if(state.quest==='open'){if(state.progression?.completed||state.universe.freeTravel){rookFreightOffer();return;}talk('',[{who:'rook',text:'Finish your missile qualification: acquire the launcher, install it at the maintenance terminal, then select, lock and fire on a hostile in your next run.'}],resumeWalking,'RETURN TO STATION');return;}originalRookConversation();};
 VoidInteractions.register('talk',({item})=>{
  if(item.character==='rook')return rookConversation();
  if(item.character==='mara')return playStoryScene('mara_workshop_intro');
+ if(item.character==='sol'&&solHandover){const h=solHandover;solHandover=null;return talk('',h.lines,resumeWalking,h.label||'RETURN TO STATION');}
  if(state.quest==='open'&&item.character==='sol')return brief('medicine');if(state.quest==='open'&&item.character==='iona')return brief('ghost');
  const texts={elias:'The ship is yours. Go make a life of your own.',nyx:'Rook is in the booth. The outfitter is across the concourse.',iona:'Rusthaven stays alive because people keep bringing what we need.',sol:'The clinics are short on supplies. Check the mission terminal before you go.'};
  talk('',[{who:item.character,text:texts[item.character]}],resumeWalking,'RETURN TO STATION');
@@ -113,7 +118,9 @@ update=function(dt){
  {const key=VoidInput.label(VoidInput.bindings.missionLog||'KeyL'),text='MISSION LOG · '+key;if(missionLogButton.textContent!==text)missionLogButton.textContent=text;
   // First time the log becomes available, say how to open it.
   if(!missionLogButton.hidden&&state.story&&!state.story.flags.missionLogHint){state.story.flags.missionLogHint=true;announce('Mission Log unlocked. Press '+key+' to open it and choose what to track.');save();}}
- trackedWalkWaypoint=null;if(mode==='walking'&&walker){const m=VoidMissions.tracked(state,C),g=VoidMissions.guidance(state,m,true);if(g){const item=walkingLocation.interactions.find(i=>i.id===g.interaction)||(g.interaction==='rook'?walkingLocation.interactions.find(i=>i.id==='jobs'):null);let waypoint=item;if(item){if(walker.z<3&&item.position[2]>4)waypoint={position:[0,1.7,3]};else if(walker.z<18&&item.position[2]>18)waypoint={position:[0,1.7,19]};else if(walker.z>19&&item.position[2]<18)waypoint={position:[0,1.7,19]};else if(walker.z>4&&item.position[2]<4)waypoint={position:[0,1.7,3]};}trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · '+g.label+(waypoint?' · '+Math.round(Math.hypot(waypoint.position[0]-walker.x,waypoint.position[2]-walker.z))+'m':'');}}
+ trackedWalkWaypoint=null;if(mode==='walking'&&walker){const m=VoidMissions.tracked(state,C),g=VoidMissions.guidance(state,m,true);if(g){const item=walkingLocation.interactions.find(i=>i.id===g.interaction)||(g.interaction==='rook'?walkingLocation.interactions.find(i=>i.id==='jobs'):null);let waypoint=item;if(item){if(walker.z<3&&item.position[2]>4)waypoint={position:[0,1.7,3]};else if(walker.z<18&&item.position[2]>18)waypoint={position:[0,1.7,19]};else if(walker.z>19&&item.position[2]<18)waypoint={position:[0,1.7,19]};else if(walker.z>4&&item.position[2]<4)waypoint={position:[0,1.7,3]};}trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · '+g.label+(waypoint?' · '+Math.round(Math.hypot(waypoint.position[0]-walker.x,waypoint.position[2]-walker.z))+'m':'');}
+  // The Kepler hand-over leads to Dr. Sol at the bar (through the door and corridor, as above).
+  const sol=solHandover&&state.location==='kepler'&&walkingLocation?.interactions.find(i=>i.id==='sol');if(sol){const waypoint=walker.z<3?{position:[0,1.7,3]}:walker.z<18?{position:[0,1.7,19]}:sol;trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · Hand the delivery to Dr. Sol at the bar · '+Math.round(Math.hypot(waypoint.position[0]-walker.x,waypoint.position[2]-walker.z))+'m';}}
 };
 const worldMarker=drawWarpMarker;
 drawWarpMarker=function(){
@@ -131,7 +138,8 @@ function openMissionLog(){
  const missions=VoidMissions.sync(state,C);
  const card=m=>'<article class="mission-entry"><h2>'+escapeText(m.title)+' <small>'+escapeText(m.completed?'COMPLETE':m.tracked?'TRACKED':'ACTIVE')+'</small></h2><p>'+escapeText(m.description)+'</p><p class="mission-meta">'+escapeText(m.type.toUpperCase())+(m.destination?' · '+escapeText(C.stations[m.destination]?.name||m.destination):m.type==='tutorial'?'':' · DESTINATION UNKNOWN')+(m.rewards?' · '+escapeText(String(m.rewards))+' CR':'')+'</p><ul>'+m.objectives.map(o=>'<li class="'+(o.complete?'complete':'pending')+'">'+(o.complete?'✓ ':'○ ')+escapeText(o.label)+'</li>').join('')+'</ul>'+(m.completed?'':m.tracked?'<button data-untrack="'+escapeText(m.id)+'">UNTRACK MISSION</button>':'<button data-track="'+escapeText(m.id)+'">TRACK MISSION</button>')+'</article>';
  missionPanel.innerHTML='<h1>MISSION LOG</h1><h2>ACTIVE MISSIONS</h2>'+(missions.filter(m=>!m.completed).map(card).join('')||'<p>No active missions.</p>')+'<h2>COMPLETED MISSIONS</h2>'+(missions.filter(m=>m.completed).map(card).join('')||'<p>No completed missions yet.</p>')+'<button data-close>CLOSE / '+escapeText(VoidInput.label(VoidInput.bindings.missionLog||'KeyL'))+'</button>';
- missionPanel.onclick=e=>{const id=e.target.closest('[data-track]')?.dataset.track,untrack=e.target.closest('[data-untrack]')?.dataset.untrack;if(id&&VoidMissions.track(state,id,C)){save();closeMissionLog();}else if(untrack&&state.universe.trackedMission===untrack){VoidMissions.untrack(state);save();closeMissionLog();}if(e.target.closest('[data-close]'))closeMissionLog();};
+ missionPanel.onclick=e=>{const id=e.target.closest('[data-track]')?.dataset.track,untrack=e.target.closest('[data-untrack]')?.dataset.untrack;// Tracking changes refresh the log in place; it stays open until L (or its close button).
+const refresh=()=>{const top=missionPanel.scrollTop;closeMissionLog();openMissionLog();if(missionPanel)missionPanel.scrollTop=top;};if(id&&VoidMissions.track(state,id,C)){save();refresh();return;}else if(untrack&&state.universe.trackedMission===untrack){VoidMissions.untrack(state);save();refresh();return;}if(e.target.closest('[data-close]'))closeMissionLog();};
  document.body.append(missionPanel);missionPanel.querySelector('button')?.focus();
 }
 addEventListener('keydown',e=>{if(e.code===(VoidInput.bindings.missionLog||'KeyL')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){if(!['play','walking','dock','dialogue','mission-log'].includes(mode))return;e.preventDefault();if(!e.repeat)openMissionLog();}if(e.code==='Escape'&&missionPanel){e.preventDefault();closeMissionLog();}});
@@ -145,7 +153,9 @@ const guidanceDraw=draw;draw=function(){guidanceDraw();drawMissionWaypoint();};
 function drawMissionWaypoint(){
  if(mode!=='walking'||!trackedWalkWaypoint||!walker)return;
  const p=trackedWalkWaypoint.position,dx=p[0]-walker.x,dz=p[2]-walker.z,label=Math.round(Math.hypot(dx,dz))+' m',pulse=reducedMotion?1:.75+.25*Math.sin(time*4);
- const angle=Math.atan2(dx,dz)-walker.yaw,r=Math.min(W,H)*.15;
+ let angle=Math.atan2(dx,dz)-walker.yaw;const r=Math.min(W,H)*.15;
+ // When the goal is in front of the camera, aim at where it actually is on screen (its height and offset included).
+ {const s=globalThis.VoidBabylon?.scene,cam=s?.activeCamera,B=globalThis.BABYLON;if(cam&&B){const v=new B.Vector3(p[0],Math.max(.4,(p[1]??1.7)-.5),p[2]);if(B.Vector3.TransformCoordinates(v,cam.getViewMatrix()).z>.4){const sp=B.Vector3.Project(v,B.Matrix.Identity(),s.getTransformMatrix(),cam.viewport.toGlobal(W,H));angle=Math.atan2(sp.x-W*.5,(H*.7)-sp.y);}}}
  ctx.save();ctx.lineJoin='round';ctx.font='bold 13px Consolas, monospace';ctx.textAlign='center';
  // Ring sits below the crosshair so a goal straight ahead is pointed at near floor level.
  ctx.translate(W*.5+Math.sin(angle)*r,H*.7-Math.cos(angle)*r);ctx.rotate(angle);

@@ -66,7 +66,8 @@
   if(s.universe){
    // A pilot may revisit skipped training maneuvers after completing the missile
    // qualification. Travel access does not certify those missing objectives.
-   s.universe.freeTravel=p.completed||p.flags.missileFired===true||s.universe.freeTravel===true;
+   // Rook's launcher offer opens independent routes; the missile drill is an optional tutorial (David, 2026-10-23).
+   s.universe.freeTravel=p.completed||p.flags.missileFired===true||s.missileOfferSeen===true||s.universe.freeTravel===true;
    s.universe.missionLogUnlocked=p.opening?.pistol===true||p.completed||s.missileOfferSeen===true||s.quest!=='inheritance';
   }
   return p.completed;

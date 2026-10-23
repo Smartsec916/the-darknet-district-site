@@ -7,7 +7,7 @@
   // Pressurised modules behind the hangars: one source for the builder and any cladding (meridian-kitbash.js).
   modules:[{id:'rear-service-spine',size:[100,7,10],position:[3,5,40],finish:'hull'},{id:'port-link',size:[16,5,7],position:[-23,3,11],finish:'panel'},{id:'starboard-link',size:[16,5,10],position:[26,4,9],finish:'panel'},
    {id:'habitation',size:[30,10,12],position:[-18,12,35],finish:'panel'},{id:'bar-business-module',size:[22,7,10],position:[17,11,39],finish:'hull'},{id:'raised-communications',size:[14,13,13],position:[-8,18,43],finish:'edge'}]};
- function build(scene,parent,{occupied=false}={}){
+ function build(scene,parent,{occupied=false,name='MERIDIAN'}={}){ // name: the hull lettering (every station shares this design)
   const B=BABYLON,node=new B.TransformNode('meridian-exterior',scene);node.parent=parent;const materials=[],textures=[],batches=new Map(),blink=[];
   function mat(name,hex,glow=false){const m=new B.StandardMaterial('meridian-'+name,scene);m.diffuseColor=B.Color3.FromHexString(hex);m.specularColor=new B.Color3(.22,.25,.28);m.specularPower=48;if(glow){m.emissiveColor=m.diffuseColor.clone();m.disableLighting=true;}materials.push(m);return m;}
   const hull=mat('graphite','#4b535b'),panel=mat('patch-panels','#61686c'),edge=mat('frames','#272f37'),tank=mat('ceramic-tanks','#c5c6b9'),hazard=mat('hazard','#d9782c'),dark=mat('hangar-depth','#0b151e'),solar=mat('solar-cells','#294664'),warm=mat('inhabited','#b49a6b',true),nav=mat('navigation','#8dd9d0',true),red=mat('navigation-red','#cc7964',true);
@@ -29,7 +29,7 @@
   // Modules extend the real H01/concourse footprint instead of changing its walkable plan.
   for(const m of design.modules)box(m.id,m.size,m.position,{hull,panel,edge}[m.finish]);
   for(let x=-31;x<28;x+=3)for(const y of [12,15])box('warm-window',[1.6,.7,.12],[x,y,28.85],warm);
-  label('MERIDIAN',[13,17,33.8],20,3.4);
+  label(name,[13,17,33.8],20,3.4);
   // Lighter pressure vessels with circumferential safety bands.
   for(let i=0;i<4;i++){const x=-23+i*7,z=-39+(i%2)*2;const body=cylinder('fuel-storage-tank',2.6,18,[x,-5,z]);body.rotation.x=Math.PI/2;for(const end of [-1,1]){const cap=add(B.MeshBuilder.CreateSphere('tank-end',{diameter:5.2,segments:12},scene),tank,[x,-5,z+end*9]);cap.scaling.z=.4;const band=cylinder('tank-hazard-band',2.65,.8,[x,-5,z+end*6.6],hazard);band.rotation.x=Math.PI/2;}box('tank-reflector',[.8,.2,12],[x,-2.33,z],warm);beam([x,-3,z],[x,1,z],.45);}
   // Asymmetric trussed solar outriggers; blue cell faces remain visible from approach.
