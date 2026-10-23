@@ -22,8 +22,9 @@
   ['modulePurchased','Buy a ship module'],['purchasedInstalled','Install the module you bought']
  ];
  const combat=[
-  ['laserCombat','Fire your lasers in combat'],['missileSelected','Claim and install Rook’s missile launcher'],
-  ['targetSelected','Select a hostile target'],['missileLocked','Acquire a missile lock'],['missileFired','Fire a locked missile']
+  // One plain step each, in the order you do them (David, 2026-10-23: the old wording was unclear).
+  ['laserCombat','In flight, fire your lasers at a hostile'],['missileSelected','Get the free missile launcher at the Ship Outfitter, then fit it to your ship at the Hangar / Maintenance terminal'],
+  ['targetSelected','In flight, target a hostile (T targets the nearest)'],['missileLocked','Keep it in the targeting ring until it shows LOCKED'],['missileFired','Fire a missile (F or right-click) while locked']
  ];
  const objectives=list=>list.map(([id,label,required])=>({id,label:required===false?label+' (optional)':label,...(required===false?{required:false}:{})}));
  const trainingIds=training.map(([id])=>id),groundIds=ground.map(([id])=>id),stationIds=station.map(([id])=>id),combatIds=combat.map(([id])=>id);
@@ -36,7 +37,7 @@
    {id:'dock',label:'Dock at Meridian Station'}, {id:'enter',label:'Enter the station'},
    {id:'locate',label:'Locate Rook'}, {id:'speak',label:'Speak with Rook'}]},
   'first-station':{title:'FIRST STATION / OUTFITTING',type:'tutorial',description:'Learn the hangar maintenance terminal and the ship outfitter. Any station with a hangar will do.',giver:'Rook',source:'story',objectives:objectives(station)},
-  'combat-qualification':{title:'COMBAT QUALIFICATION',type:'tutorial',description:'Rook wants proof you can defend a hold. After two combat runs, claim the launcher voucher at the outfitter.',giver:'Rook',source:'story',objectives:objectives(combat)},
+  'combat-qualification':{title:'COMBAT QUALIFICATION',type:'tutorial',description:'Optional drill. After two combat runs Rook gives you a voucher for a free missile launcher. Collect it at the Ship Outfitter, fit it at the Hangar / Maintenance terminal, then lock on and fire in your next fight.',giver:'Rook',source:'story',objectives:objectives(combat)},
   'legal-run':{title:'AN HONEST LIVING',type:'cargo',description:'Deliver water filtration parts to Kepler.',giver:'Rook',destination:'kepler',rewards:350,objectives:[{id:'arrive',label:'Deliver the filters and dock at Kepler'}]},
   'return':{title:'BACK TO THE DEAD CHANNEL',type:'main',description:'Return to Meridian with the completed delivery.',giver:'Rook',destination:'meridian',objectives:[{id:'arrive',label:'Dock at Meridian Station'}]},
   'illegal-run':{title:'NO QUESTIONS ASKED',type:'cargo',description:'Deliver unregistered memory wafers to Rusthaven.',giver:'Rook',destination:'rusthaven',rewards:800,objectives:[{id:'arrive',label:'Deliver the wafers and dock at Rusthaven'}]},
