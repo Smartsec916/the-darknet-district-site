@@ -80,9 +80,54 @@
   // Potted plants in the hall's corners and at the corridor's end, as on the reference sheet.
   {const pot=metal('planter','#3a3f44',.4,.5),leaf=metal('leaves','#3f6b3a',0,.8),leaf2=metal('leaves-light','#5b8a45',0,.8);
    for(const [x,z,s] of F.plants||[]){cylinder('planter',[x,.3,z],.55*s,.6,pot,.65*s);for(let k=0;k<7;k++){const a=k*2.4,r=.18*s;ellipsoid('foliage',[x+Math.cos(a)*r,.75+(k%3)*.18*s,z+Math.sin(a)*r],[.42*s,.55*s,.42*s],k%2?leaf:leaf2);}}}
-  // Sofas under the windows: leather cushions on the plain frames.
-  for(const {x,z,length} of F.sofas||[]){for(const dz of [-length/4,length/4])ellipsoid('sofa-cushion',[x,.52,z+dz],[.95,.22,length/2-.08],leather);ellipsoid('sofa-back-cushion',[x+.48,.92,z],[.26,.62,length-.1],leather);}
-  const api={dispose(){disposed=true;if(podObserver)scene.onBeforeRenderObservable.remove(podObserver);for(const m of owned)m.dispose(false,false);for(const t of textures)t.dispose();}};return api;
+  // Hall lighting pass (David, 2026-10-23: closer to the reference art). Mostly glowing and additive surfaces, which
+  // cost little: two real lights at the bar (amber over the counter, violet behind it), warm light pools on the floor
+  // under the bar and tables, neon reflections on the floor in front of the counter, a warm cove line under the hall
+  // ceiling, and space with a planet's edge beyond the hall windows (instead of the station's own hull).
+  const H=root.VoidMeridianInterior?.rooms?.hall,B0=F.bar,lights=[];
+  if(H&&B0){
+   // One real light (it replaces the plain ceiling light over the bar, so the scene stays within 8 lights).
+   {const l=new B.PointLight('bar-amber-light',new B.Vector3(B0.x+1.2,2.4,B0.z),scene);l.parent=parent;l.diffuse=new B.Color3(1,.58,.28);l.specular=new B.Color3(.6,.35,.17);l.intensity=1.8;l.range=13;lights.push(l);}
+   // Additive glow: a radial pool or a streak that fades along its length. Black adds nothing, so only the glow shows.
+   function glowTexture(name,rgb,streak,band){const t=new B.DynamicTexture('meridian-'+name,{width:256,height:256},scene,true);textures.push(t);const g=t.getContext();g.fillStyle='#000';g.fillRect(0,0,256,256); // Additive: black adds nothing, so the glow fades to nothing.
+    const grad=band?g.createLinearGradient(0,256,0,0):streak?g.createLinearGradient(0,0,0,256):g.createRadialGradient(128,128,2,128,128,128);
+    if(band){grad.addColorStop(0,'rgba('+rgb+',.9)');grad.addColorStop(.35,'rgba('+rgb+',.45)');grad.addColorStop(1,'rgba('+rgb+',0)');}else{grad.addColorStop(0,'rgba('+rgb+',1)');grad.addColorStop(.45,'rgba('+rgb+',.38)');grad.addColorStop(1,'rgba('+rgb+',0)');}
+    g.fillStyle=grad;g.fillRect(0,0,256,256);t.update();return t;}
+   function glow(name,texture,strength){const m=new B.StandardMaterial('meridian-'+name,scene);m.diffuseColor=B.Color3.Black();m.specularColor=B.Color3.Black();m.emissiveTexture=texture;m.disableLighting=true;m.alphaMode=B.Engine.ALPHA_ADD;m.alpha=strength;m.backFaceCulling=false;owned.push(m);return m;}
+   function floorGlow(name,mat,x,z,w,d,ry=0,y=.06){const p=B.MeshBuilder.CreateGround('hall-'+name,{width:w,height:d},scene);p.parent=parent;p.position.set(x,y,z);p.rotation.y=ry;p.material=mat;p.isPickable=false;return p;}
+   const amber=glow('pool-amber',glowTexture('pool-amber','255,150,70'),1),violet=glow('pool-violet',glowTexture('pool-violet','170,90,255'),.8),warm=glow('pool-warm',glowTexture('pool-warm','255,190,120'),.95);
+   const pink=glow('streak-pink',glowTexture('streak-pink','255,95,180',true),.85),purple=glow('streak-violet',glowTexture('streak-violet','180,108,255',true),.8);
+   // A long amber pool along the front of the counter, violet light on the floor behind it, warm pools under the tables.
+   floorGlow('bar-pool',amber,B0.x+2.1,B0.z,4.2,B0.length+2.5);floorGlow('backbar-pool',violet,(B0.x+B0.backX)/2,B0.z,3.6,B0.length+1);
+   for(const t of F.tables||[])floorGlow('table-pool',warm,t.x,t.z,4.4,3.4);
+   // A violet wash over the back bar and its bottles (glow, not a light).
+   {const wash=B.MeshBuilder.CreatePlane('hall-backbar-wash',{width:B0.length,height:2.4},scene);wash.parent=parent;wash.position.set(B0.backX+.27,1.75,B0.z);wash.rotation.y=-Math.PI/2;wash.material=glow('backbar-wash',glowTexture('backbar-wash','170,90,255',false,true),.45);wash.isPickable=false;}
+   for(const s of F.sofas||[])floorGlow('sofa-pool',warm,s.x-.9,s.z,2.6,s.length+1.2);
+   // Neon reflections: streaks on the floor running out from the counter's pink edge, brightest at the counter.
+   for(let i=0;i<Math.floor(B0.length/.9);i++){const z=B0.z-B0.length/2+.45+i*.9,len=1.6+(i%3)*.5;floorGlow('neon-reflection',i%2?purple:pink,B0.x+.62+len/2,z,len,.16,Math.PI/2,.065);}
+   // Warm cove light under the hall ceiling along the bar wall and the entry wall.
+   const cove=material('cove-warm','#ffb466',true);
+   box('hall-cove',[.06,.06,H.z1-H.z0-1],[H.x0+.36,H.h-.28,(H.z0+H.z1)/2],cove,parent);
+   for(const [a,b] of [[H.x0+.6,-2.6],[2.6,H.x1-.6]])box('hall-cove',[b-a,.06,.06],[(a+b)/2,H.h-.28,H.z0+.36],cove,parent);
+   // Beyond the windows: deep space, a planet's lit edge and stars, instead of the station's own hull.
+   const space=new B.DynamicTexture('meridian-window-space',{width:2048,height:512},scene,false);textures.push(space);
+   {const g=space.getContext(),W=2048,Hh=512;let seed=7;const rnd=()=>((seed=seed*16807%2147483647)-1)/2147483646;
+    const bg=g.createLinearGradient(0,0,0,Hh);bg.addColorStop(0,'#02040a');bg.addColorStop(1,'#060b18');g.fillStyle=bg;g.fillRect(0,0,W,Hh);
+    for(let i=0;i<5;i++){const x=rnd()*W,y=rnd()*Hh,r=120+rnd()*260,n=g.createRadialGradient(x,y,0,x,y,r);n.addColorStop(0,i%2?'rgba(90,60,140,.18)':'rgba(40,90,140,.16)');n.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=n;g.fillRect(0,0,W,Hh);}
+    for(let i=0;i<1400;i++){const b=rnd(),s=b>.985?4:b>.9?3:2;g.fillStyle='rgba('+(200+rnd()*55|0)+','+(205+rnd()*50|0)+',255,'+(.35+rnd()*.65)+')';g.fillRect(rnd()*W,rnd()*Hh,s,s);}
+    // The planet: a dark disc low on the right with a thin blue atmosphere along its lit edge (as on the reference sheet).
+    const px=W*.86,py=Hh*1.55,pr=Hh*1.2;g.save();g.beginPath();g.arc(px,py,pr,0,Math.PI*2);g.fillStyle='#04070d';g.fill();g.clip();const shade=g.createRadialGradient(px-pr*.35,py-pr*.55,pr*.2,px,py,pr);shade.addColorStop(0,'#1d3d66');shade.addColorStop(.55,'#0b1a2e');shade.addColorStop(1,'#03060c');g.fillStyle=shade;g.fillRect(px-pr,py-pr,pr*2,pr*2);g.restore();
+    const rim=g.createRadialGradient(px,py,pr*.985,px,py,pr*1.06);rim.addColorStop(0,'rgba(120,190,255,.0)');rim.addColorStop(.3,'rgba(140,205,255,.85)');rim.addColorStop(1,'rgba(80,140,255,0)');g.fillStyle=rim;g.beginPath();g.arc(px,py,pr*1.06,0,Math.PI*2);g.fill();
+    space.update();}
+   const view=new B.StandardMaterial('meridian-window-space',scene);view.diffuseColor=B.Color3.Black();view.specularColor=B.Color3.Black();view.emissiveTexture=space;view.disableLighting=true;owned.push(view);
+   function backdrop(name,w,h,x,y,z,ry,u0=0,u1=1){const p=B.MeshBuilder.CreatePlane('hall-'+name,{width:w,height:h,frontUVs:new B.Vector4(u0,0,u1,1),sideOrientation:B.Mesh.DOUBLESIDE},scene);p.parent=parent;p.position.set(x,y,z);p.rotation.y=ry;p.material=view;p.isPickable=false;return p;}
+   // Just behind the glass, so the station's own hull outside can't show in front. The planet shows through the end window.
+   backdrop('space-starboard',H.z1-H.z0+1,3.6,H.x1+.42,2.3,(H.z0+H.z1)/2,Math.PI/2,0,.45);backdrop('space-aft',H.x1-H.x0+1,3.6,0,2.3,H.z1+.42,0);
+  }
+  // Sofas under the windows: deep red leather, as on the reference sheet.
+  const sofaLeather=metal('sofa-leather','#6b1d24',0,.62);
+  for(const {x,z,length} of F.sofas||[]){for(const dz of [-length/4,length/4])ellipsoid('sofa-cushion',[x,.52,z+dz],[.95,.22,length/2-.08],sofaLeather);ellipsoid('sofa-back-cushion',[x+.48,.92,z],[.26,.62,length-.1],sofaLeather);}
+  const api={dispose(){disposed=true;for(const l of lights)l.dispose();if(podObserver)scene.onBeforeRenderObservable.remove(podObserver);for(const m of owned)m.dispose(false,false);for(const t of textures)t.dispose();}};return api;
  }
  root.VoidMeridianArt={enhance};
 })(globalThis);
