@@ -148,7 +148,7 @@ test('nothing in the published site is a fabricated or sample record', () => {
 
 test('the District links to The Function and keeps its own navigation', () => {
   const home = read('index.html');
-  assert.match(home, /<a class="tdd-function" href="function\/">[\s\S]*Discover The Function[\s\S]*Observe the activities of the corporation that governs beyond the District\.[\s\S]*<\/a>/);
+  assert.match(home, /<a class="tdd-function" href="function\/">[\s\S]*Back door to The Function's website[\s\S]*Observe the activities of the corporation that governs beyond the District\.[\s\S]*<\/a>/);
   for (const link of ['href="/">Home', 'href="games-list.html">Arcade', 'href="store-first-page.html">Store', 'href="resources.html">Resources', 'href="about.html">About']) {
     assert.ok(home.includes(link), link);
   }

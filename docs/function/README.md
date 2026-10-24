@@ -10,7 +10,7 @@ Naming rule: **The Function**, always singular.
 
 | Piece | State |
 |---|---|
-| Homepage link "Discover The Function" | **Built.** In the homepage hero, under the VOID//RUNNER panel. |
+| Homepage link "Back door to The Function's website" | **Built.** In the homepage hero, under the VOID//RUNNER panel. |
 | Portal, `/function/` | **Built.** Department directory. Only Signal Intelligence is open; the other four departments say "No public release". No scripts. |
 | Frequencies page, `/function/frequencies/` | **Built.** Monitoring status, priority channels, search and filters, record view, case files, archive standards. |
 | Public read-only API (`frequencies_api.py`) | **Built, tested, switched off.** While `FUNCTION_ARCHIVE_ENABLED` is unset it answers with an empty, uncommissioned archive and touches no database. |
