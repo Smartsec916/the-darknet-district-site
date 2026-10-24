@@ -117,12 +117,12 @@
   solids.push({id:'ship',size:[7,4,11],position:[-7,2,-9]});
   for(const [x,z,s] of furniture.plants)solids.push({id:'planter',size:[.75*s,1,.75*s],position:[x,.5,z]});
   interactions.push({id:'board',action:'board',label:'BOARD YOUR SHIP',position:[-2,1.7,-14],range:3.5},
-   {id:'services',action:'services',label:'SHIP OUTFITTER',position:[-4.6,1.7,28],range:3},
+   {id:'services',action:'services',label:'SHIP OUTFITTER · BUY EQUIPMENT',position:[-4.6,1.7,28],range:3},
    {id:'jobs',action:'jobs',label:'MISSION TERMINAL',position:[1.3,1.7,20],range:2.5},
    {id:'meridian-pod',action:'meridian-pod',label:'REST IN A SLEEP POD',position:[-10.7,1.7,7.8],range:3},
    {id:'rook',action:'talk',character:'rook',label:'TALK / ROOK',position:[-5.6,1.7,44],range:3},
    {id:'nyx',action:'talk',character:'nyx',label:'TALK / NYX',position:[-7.6,1.7,51],visualPosition:[-13,1.7,51],range:3});
-  sign('quarters','LIVING AREA',[-2.05,2.95,12],-Math.PI/2);sign('supply','SUPPLIES',[-2.05,2.95,28],-Math.PI/2);
+  sign('quarters','LIVING AREA',[-2.05,2.95,12],-Math.PI/2);sign('supply','SHIP OUTFITTER · BUY',[-2.05,2.95,28],-Math.PI/2);
   sign('lounge','DEAD CHANNEL',[0,3,39.6]);
   // Ambient activity points: windows face outward, the terminal faces its screen, chats face each other.
   for(const [id,x,z,facing,activities]of [
