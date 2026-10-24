@@ -54,15 +54,36 @@ Every editable thing gets a permanent developer ID: `M` mission, `S` store, `N` 
 
 | Stage | Contents | Status |
 |---|---|---|
-| 1. Audit and plan | This document | Done (this PR) |
-| 2. Gameplay fixes | Pointer lock that never fires on capture; Esc pauses; the mouse comes back after dialogue and menus; dialogue always fits the window; mouse-wheel weapon select (unarmed / pistol, rifle-ready); a visible hangar maintenance terminal; clearer buy-then-install | Done (this PR) |
+| 1. Audit and plan | This document | Done (PR 87) |
+| 2. Gameplay fixes | Pointer lock that never fires on capture; Esc pauses; the mouse comes back after dialogue and menus; dialogue always fits the window; mouse-wheel weapon select (unarmed / pistol, rifle-ready); a visible hangar maintenance terminal; clearer buy-then-install | Done (PR 87) |
 | 3. Missions and guidance | Universal objective markers; an optional Guidance menu (separate from missions); Rook as a cargo network with payment rules; in-person versus remote dialogue rules | Next |
 | 4. Data foundation | ID registry, JSON schemas, validator, import/export, the game reading missions, dialogue and stores from data | Planned |
 | 5. Visual editor | Node canvas (drag, connect, branch), dialogue graph, property panels, search and Jump To, undo/redo, store editor | Planned |
-| 6. Developer testing | Isolated test sessions, jump to a location, mission stage or dialogue, inventory states, server-checked access | Planned |
+| 6. Developer testing | Isolated test sessions, jump to a location, mission stage or dialogue, inventory states, server-checked access | Started early: Test & Jump To (place + story stage + test kit) is built. Mission-by-ID, dialogue and inventory tests come with the data in stage 4. |
 | 7. Integration | The full edit → export → PR → deploy → play loop, and the required test list | Planned |
 
-## 5. Stage 2 details (this PR)
+## 5. Developer Tools window (2026-10-24)
+
+David asked to know which developer tools really exist and to have one Developer Tools window.
+
+**Access, verified:**
+- The window opens only after the server confirms the signed-in Firebase account is on the developer list. That list is the `VOID_ADMIN_UIDS` setting on Render: Firebase account ids, never email addresses.
+- David's account already passes this check; that is why he sees the balance panel.
+- Ordinary accounts never see the button or the menu entry. Every save of balance values, and the start of every test session, is checked again by the server.
+
+**Where to find it:**
+- the DEVELOPER TOOLS button at the top right
+- DEVELOPER TOOLS in the game menu, for developers only
+
+**Sections in the window:**
+
+| Section | State |
+|---|---|
+| Combat Balance | Works: every setting has a plain name, a description, its internal key, its range and its default, grouped as the game uses them. Presets, Preview, Save (server) and Missile training are unchanged. |
+| Test & Jump To | Works: pick any place and any story stage, optionally with a test kit (10,000 credits, Ward pistol, launcher, every place discovered). Nothing is saved while testing; EXIT TEST reloads the real save untouched (checked in the browser). |
+| Missions & Dialogue, NPCs, Locations, Stores & Items, Tutorials & Guidance, Ships & Equipment, Import / Export, ID search | **Not built yet.** They need the data foundation (stage 4): today missions, dialogue and stores live inside the game code, so an editor would have nothing real to save into. They are not shown as empty tabs. |
+
+## 6. Stage 2 details (PR 87)
 
 - **`mouse-control.js` (new):**
   - One owner for pointer lock in first-person modes.
