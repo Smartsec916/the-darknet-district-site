@@ -36,9 +36,6 @@
  document.addEventListener('click',e=>{if(e.target!==canvas&&e.target.closest?.('button'))reacquire();});
  addEventListener('keyup',e=>{if(['Enter','Space','Escape'].includes(e.code))reacquire();});
 
- // "Click to control" while the mouse is free in play.
- const hint=document.createElement('div');hint.id='mouse-capture-hint';hint.hidden=true;hint.setAttribute('role','status');
- hint.innerHTML='<b>CLICK TO CONTROL</b><span>Esc releases the mouse</span>';document.body.append(hint);
 
  // ---- Weapon selection: Unarmed, Ward pistol, Rifle (the rifle slot waits for a rifle to exist and be owned) ----
  const campaign={
@@ -71,7 +68,6 @@
  function frame(){requestAnimationFrame(frame);frames++;try{draw();}catch(e){lastError=e.message;}}
  function draw(){
   const c=context(),play=fps();
-  hint.hidden=!(play&&mouse()&&!locked()&&!unavailable);
   // Dialogue, menus and panels always get the cursor back.
   if(locked()&&!play)document.exitPointerLock?.();
   chip.hidden=!(play&&c);
