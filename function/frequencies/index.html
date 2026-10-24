@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Permissions-Policy" content="geolocation=(), camera=(), microphone=()">
+  <!--
+    Radio content is untrusted. Scripts come only from this site, the archive API is the
+    only network peer, and Trusted Types blocks every raw-HTML sink, so decoded text can
+    only ever be drawn as text.
+  -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self' https://the-darknet-district-site.onrender.com; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types 'none'">
+  <meta name="description" content="Frequencies: The Function's public archive of real radio observations. Empty until the monitoring station is commissioned.">
+  <meta name="robots" content="index, follow">
+  <meta property="og:title" content="Frequencies — The Function">
+  <meta property="og:description" content="A searchable archive of real radio observations.">
+  <meta property="og:url" content="https://thedarknetdistrict.com/function/frequencies/">
+  <meta property="og:type" content="website">
+  <title>Frequencies — The Function</title>
+  <link rel="icon" href="../seal.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../function.css">
+  <script src="archive-core.js" defer></script>
+  <script src="archive-ui.js" defer></script>
+</head>
+<body>
+  <a class="fn-skip" href="#main">Skip to content</a>
+
+  <div class="fn-marking" role="note">
+    <div class="fn-wrap"><span>Signal Intelligence · Public archive</span><span>All times UTC</span></div>
+  </div>
+
+  <header class="fn-masthead">
+    <div class="fn-wrap">
+      <a class="fn-brand" href="../">
+        <img class="fn-seal" src="../seal.svg" alt="" width="44" height="44">
+        <span><span class="fn-brand-name">The Function</span><span class="fn-brand-sub">Public access terminal</span></span>
+      </a>
+      <nav class="fn-mast-links" aria-label="The Function">
+        <a href="../">Directory</a>
+        <a href="./" aria-current="page">Frequencies</a>
+        <a href="../../">Return to the District</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="fn-wrap">
+    <nav class="fn-crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="../../">The Darknet District</a></li>
+        <li><a href="../">The Function</a></li>
+        <li>Signal Intelligence</li>
+        <li aria-current="page">Frequencies</li>
+      </ol>
+    </nav>
+  </div>
+
+  <main id="main" class="fn-wrap">
+    <p class="fn-kicker">SIG-03 · Department of Signal Intelligence</p>
+    <h1>Frequencies</h1>
+    <p class="fn-lede">An archive of radio signals received by The Function's monitoring station. Every record is a real observation, kept apart from any automated analysis of it.</p>
+
+    <section class="fn-section" aria-labelledby="status-heading">
+      <h2 id="status-heading">Monitoring status</h2>
+      <dl class="fn-status" id="status-board" aria-live="polite">
+        <div><dt>Receiver</dt><dd data-status="receiver">Checking</dd></div>
+        <div><dt>Last observation</dt><dd data-status="last_observation">—</dd></div>
+        <div><dt>Last synchronization</dt><dd data-status="last_sync">—</dd></div>
+        <div><dt>Total observations</dt><dd data-status="observations">—</dd></div>
+        <div><dt>Identified signals</dt><dd data-status="identified">—</dd></div>
+        <div><dt>Unidentified signals</dt><dd data-status="unidentified">—</dd></div>
+        <div><dt>Decoded messages</dt><dd data-status="decoded">—</dd></div>
+        <div><dt>Active monitoring sources</dt><dd data-status="sources">—</dd></div>
+      </dl>
+      <div class="fn-notice" id="archive-notice" role="status">
+        <strong id="notice-title">Contacting archive</strong>
+        <p id="notice-text">Requesting the archive's current status. The archive service can take up to a minute to wake.</p>
+        <button class="fn-button fn-button--quiet" id="notice-retry" type="button" hidden>Try again</button>
+      </div>
+      <noscript>
+        <div class="fn-notice"><strong>Archive query unavailable</strong><p>JavaScript is needed to read the archive. The rest of this page works without it.</p></div>
+      </noscript>
+    </section>
+
+    <section class="fn-section" aria-labelledby="priority-heading">
+      <h2 id="priority-heading">Priority channels</h2>
+      <div class="fn-panel">
+        <div class="fn-table-wrap">
+          <table class="fn-table">
+            <caption class="fn-sr">Channels designated for continuous monitoring</caption>
+            <thead><tr><th scope="col">Channel</th><th scope="col">Frequency</th><th scope="col">Mode</th><th scope="col">Monitoring</th></tr></thead>
+            <tbody>
+              <tr><td data-label="Channel">CB Channel 19</td><td data-label="Frequency" class="fn-mono">27.185 MHz</td><td data-label="Mode" class="fn-mono">AM</td><td data-label="Monitoring" data-priority="27185000">Not yet monitored</td></tr>
+              <tr><td data-label="Channel">CB Channel 9</td><td data-label="Frequency" class="fn-mono">27.065 MHz</td><td data-label="Mode" class="fn-mono">AM</td><td data-label="Monitoring" data-priority="27065000">Not yet monitored</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="fn-lede">These two channels are meant to be watched continuously, without interruption from scanning. "Monitored" appears here only when a receiver has reported the channel within the last fifteen minutes.</p>
+      <div id="gaps" hidden>
+        <h3 class="fn-section">Recent coverage gaps</h3>
+        <div class="fn-panel fn-table-wrap">
+          <table class="fn-table">
+            <thead><tr><th scope="col">From</th><th scope="col">To</th><th scope="col">Frequency</th><th scope="col">Reason</th></tr></thead>
+            <tbody id="gap-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="fn-section" aria-labelledby="search-heading">
+      <h2 id="search-heading">Search the archive</h2>
+      <form class="fn-panel fn-panel-pad fn-filters" id="filters" novalidate>
+        <div class="fn-field fn-field--wide">
+          <label for="f-q">Search decoded text, identifications and IDs</label>
+          <input id="f-q" name="q" type="search" maxlength="100" autocomplete="off" spellcheck="false" placeholder="Words, call signs, observation IDs">
+        </div>
+        <div class="fn-field">
+          <label for="f-id">Observation ID</label>
+          <input id="f-id" name="id" type="text" maxlength="52" autocomplete="off" spellcheck="false" placeholder="OBS-…">
+        </div>
+        <div class="fn-field">
+          <fieldset>
+            <legend>Date range (UTC)</legend>
+            <div class="fn-pair">
+              <input id="f-from" name="from" type="date" aria-label="From date">
+              <span>to</span>
+              <input id="f-to" name="to" type="date" aria-label="To date">
+            </div>
+          </fieldset>
+        </div>
+        <div class="fn-field">
+          <fieldset>
+            <legend>Frequency range (MHz)</legend>
+            <div class="fn-pair">
+              <input id="f-fmin" name="fmin" type="text" inputmode="decimal" maxlength="12" placeholder="27.000" aria-label="Lowest frequency in megahertz">
+              <span>to</span>
+              <input id="f-fmax" name="fmax" type="text" inputmode="decimal" maxlength="12" placeholder="27.405" aria-label="Highest frequency in megahertz">
+            </div>
+          </fieldset>
+        </div>
+        <div class="fn-field">
+          <label for="f-band">Band</label>
+          <select id="f-band" name="band">
+            <option value="">Any band</option>
+            <option value="LF">LF · 30–300 kHz</option>
+            <option value="MF">MF · 0.3–3 MHz</option>
+            <option value="HF">HF · 3–30 MHz</option>
+            <option value="VHF">VHF · 30–300 MHz</option>
+            <option value="UHF">UHF · 300 MHz–3 GHz</option>
+            <option value="SHF">SHF · 3–30 GHz</option>
+          </select>
+        </div>
+        <div class="fn-field">
+          <label for="f-classification">Classification</label>
+          <select id="f-classification" name="classification">
+            <option value="">Any classification</option>
+          </select>
+        </div>
+        <div class="fn-field">
+          <label for="f-mode">Signal type</label>
+          <select id="f-mode" name="mode">
+            <option value="">Any signal type</option>
+          </select>
+        </div>
+        <div class="fn-field">
+          <label for="f-status">Identification</label>
+          <select id="f-status" name="status">
+            <option value="">Any status</option>
+          </select>
+        </div>
+        <div class="fn-field">
+          <label for="f-decoded">Decoded content</label>
+          <select id="f-decoded" name="decoded">
+            <option value="">Either</option>
+            <option value="yes">Has decoded content</option>
+            <option value="no">No decoded content</option>
+          </select>
+        </div>
+        <div class="fn-field">
+          <label for="f-sort">Sort by</label>
+          <select id="f-sort" name="sort">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="freq_asc">Frequency, low to high</option>
+            <option value="freq_desc">Frequency, high to low</option>
+          </select>
+        </div>
+        <div class="fn-field">
+          <label for="f-per-page">Records per page</label>
+          <select id="f-per-page" name="per_page">
+            <option value="10">10</option>
+            <option value="25" selected>25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+        <p class="fn-form-error" id="filter-error" role="alert"></p>
+        <div class="fn-actions">
+          <button class="fn-button" type="submit">Search</button>
+          <button class="fn-button fn-button--quiet" type="reset">Clear filters</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="fn-section" aria-labelledby="results-heading">
+      <div class="fn-results-head">
+        <h2 id="results-heading">Observation records</h2>
+        <p id="results-summary" aria-live="polite">No query has run yet.</p>
+      </div>
+      <div class="fn-panel">
+        <div class="fn-table-wrap">
+          <table class="fn-table" id="results-table" hidden>
+            <thead>
+              <tr>
+                <th scope="col">Observation</th>
+                <th scope="col">UTC time</th>
+                <th scope="col">Frequency</th>
+                <th scope="col">Band</th>
+                <th scope="col">Classification</th>
+                <th scope="col">Signal type</th>
+                <th scope="col">Duration</th>
+                <th scope="col">Identification</th>
+              </tr>
+            </thead>
+            <tbody id="results-rows"></tbody>
+          </table>
+        </div>
+        <p class="fn-empty" id="results-empty">Records appear here once the archive responds.</p>
+      </div>
+      <nav class="fn-pager" id="pager" aria-label="Archive pages" hidden>
+        <button class="fn-button fn-button--quiet" id="page-prev" type="button">Previous page</button>
+        <span id="page-label"></span>
+        <button class="fn-button fn-button--quiet" id="page-next" type="button">Next page</button>
+      </nav>
+
+      <article class="fn-panel fn-record" id="record" tabindex="-1" hidden aria-labelledby="record-title"></article>
+    </section>
+
+    <section class="fn-section" aria-labelledby="cases-heading">
+      <h2 id="cases-heading">Unidentified signal case files</h2>
+      <div class="fn-cases" id="cases">
+        <p class="fn-panel fn-empty" id="cases-empty">Case files appear here once the archive responds. A case file is opened only for a signal that has been observed more than once and remains unidentified.</p>
+      </div>
+    </section>
+
+    <section class="fn-section fn-panel fn-panel-pad" aria-labelledby="standards-heading">
+      <h2 id="standards-heading">Archive standards</h2>
+      <ul class="fn-notes">
+        <li>Records come only from real signals received by the station. Nothing is invented, simulated or filled in to make the archive look busy.</li>
+        <li>Each record keeps three things apart: what was observed, what automated analysis concluded, and any identification that is not confirmed.</li>
+        <li>Transcripts never fill in missing words. Unclear passages are marked <span class="fn-mono">[unintelligible]</span> and uncertain words are marked <span class="fn-mono">[?word?]</span>.</li>
+        <li>Receiving a signal does not make it publishable. Private, protected and encrypted traffic is not published, and no attempt is made to defeat encryption. Where publication is not clearly lawful, only metadata is published or nothing at all.</li>
+        <li>A possible numbers-station match is listed as a candidate until the evidence confirms it. Encrypted number groups are never "decrypted".</li>
+        <li>Receivers are named by alias only. Location, network details and equipment identifiers are never published.</li>
+        <li>Decoded text is shown exactly as received, as plain text. It is never run, followed or treated as an instruction.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="fn-footer">
+    <div class="fn-wrap">
+      <p>The Function is a fictional organization within The Darknet District. The Frequencies archive is not fiction: it holds only real radio observations.</p>
+      <a href="../">Return to The Function directory</a>
+    </div>
+  </footer>
+</body>
+</html>
