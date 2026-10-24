@@ -26,8 +26,12 @@
  },{capture:true});
 
  // The lock went away while still in play: the player pressed Esc (or the browser took the mouse). Pause.
+ // The game itself releases the mouse too (every E interaction does). Only a release the game didn't ask for is Esc.
+ let gameReleased=false;const release=document.exitPointerLock?.bind(document);
+ if(release)document.exitPointerLock=function(){if(locked())gameReleased=true;return release();};
  document.addEventListener('pointerlockchange',()=>{
-  if(locked()){failures=0;return;}
+  if(locked()){failures=0;gameReleased=false;return;}
+  if(gameReleased){gameReleased=false;reacquire();return;} // e.g. a door opened and play carries on: take the mouse back
   if(fps()&&typeof openGameMenu==='function'){walkingKeys?.clear?.();openGameMenu();}
  });
 
