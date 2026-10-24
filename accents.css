@@ -410,6 +410,55 @@ body.site-home[data-hud="immersive"] > .digital-rain {
 }
 
 /* ---------------------------------------------------------------------------
+   THE FUNCTION LINK. A plain institutional plaque in The Function's own
+   gray, olive and amber, so it reads as a door out of the District.
+   --------------------------------------------------------------------------- */
+body.site-home .tdd-function {
+  display: grid;
+  gap: 4px;
+  margin: 26px auto 0;
+  padding: 14px 22px 15px;
+  width: min(440px, calc(100vw - 32px));
+  text-align: left;
+  text-decoration: none;
+  background: rgba(21, 23, 25, 0.88);
+  border: 1px solid #3a4045;
+  border-left: 3px solid #8d9a63;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+body.site-home .tdd-function:hover,
+body.site-home .tdd-function:focus-visible {
+  background: rgba(28, 31, 34, 0.95);
+  border-color: #59615c;
+  border-left-color: #c99a45;
+}
+
+body.site-home .tdd-function:focus-visible {
+  outline: 2px solid #c99a45;
+  outline-offset: 3px;
+}
+
+body.site-home .tdd-function-kicker {
+  font: 10px/1.4 monospace;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #8e948b;
+}
+
+body.site-home .tdd-function-title {
+  font: 600 15px/1.3 "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #d4d6cf;
+}
+
+body.site-home .tdd-function-desc {
+  font: 13px/1.45 "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color: #a7ac9f;
+}
+
+/* ---------------------------------------------------------------------------
    SMALL SCREENS AND REDUCED MOTION
    --------------------------------------------------------------------------- */
 @media (max-width: 640px) {

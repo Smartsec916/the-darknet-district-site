@@ -60,6 +60,8 @@ CORS(app, resources={
     r"/api/identity/.*": {"origins": [*SITE_ORIGINS, *_extra_origins("VOID_EXTRA_ORIGINS"), *_extra_origins("BLACKOUT_EXTRA_ORIGINS")]},
     # The chat spends OpenAI credits, so only the site itself may call it from a browser.
     r"/api/(chat|devtools)/.*": {"origins": [*SITE_ORIGINS, *_extra_origins("CHAT_EXTRA_ORIGINS")]},
+    # The Frequencies archive is read-only for browsers; station uploads are signed server-to-server calls.
+    r"/api/function/.*": {"origins": [*SITE_ORIGINS, *_extra_origins("FUNCTION_EXTRA_ORIGINS")]},
     r"/api/health": {"origins": "*"},
 }, methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type", "Authorization"], max_age=600)
 from void_runner_api import api as void_runner_api
@@ -68,6 +70,8 @@ from blackout_api import api as blackout_api
 app.register_blueprint(blackout_api)
 from identity_api import api as identity_api
 app.register_blueprint(identity_api)
+from frequencies_api import api as frequencies_api
+app.register_blueprint(frequencies_api)
 
 
 @app.get('/void-runner/<path:filename>')

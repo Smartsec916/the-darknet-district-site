@@ -1,0 +1,12 @@
+// Merge these matches into the Firebase project's existing Firestore rules.
+// Do not replace rules for the homepage, VOID//RUNNER, Blackout Protocol or other services.
+// The Frequencies archive is read through the Flask API; only Firebase Admin on the
+// trusted server may read or write these collections. Browsers get nothing directly.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /fn_meta/{document=**} { allow read, write: if false; }
+    match /fn_obs/{document=**} { allow read, write: if false; }
+    match /fn_cases/{document=**} { allow read, write: if false; }
+  }
+}
