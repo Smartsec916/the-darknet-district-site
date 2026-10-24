@@ -1,4 +1,4 @@
-/* Loaded last. Dialogue always fits the visible window; mouse-capture hint; weapon chip (David's editor brief, parts 7–9). */
+/* Loaded last. Dialogue always fits the visible window; weapon chip (David's editor brief, parts 7–9). */
 
 /* Dialogue: pinned to the bottom of the visible window at every size. Long text scrolls inside the box;
    the Next and choice buttons stay in view, so the page itself never has to scroll. */
@@ -16,12 +16,6 @@
   .dialogue-window .speaker{min-height:0!important;padding-top:0!important}}
 @media (max-height:560px){.dialogue-window .portrait{display:none}.dialogue-window #spoken-text{font-size:15px;min-height:0}}
 .dialogue-window .speech-controls button:focus-visible{outline:2px solid #f2b33d;outline-offset:2px}
-
-/* Shown while the mouse is free in first-person play. */
-#mouse-capture-hint{position:fixed;left:50%;top:58%;transform:translateX(-50%);z-index:4;pointer-events:none;
-  display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 16px;border:1px solid #7fe0c866;
-  background:#06101dcc;color:#e6f4ef;font:600 13px/1.3 monospace;letter-spacing:.12em;text-align:center}
-#mouse-capture-hint span{font-weight:400;font-size:11px;letter-spacing:.08em;color:#9fc1b8}
 
 /* Weapon chip: what you hold, and what the wheel cycles through. */
 #weapon-select-hud{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:120px;z-index:3;pointer-events:none;

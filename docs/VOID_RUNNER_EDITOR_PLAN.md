@@ -69,7 +69,7 @@ Every editable thing gets a permanent developer ID: `M` mission, `S` store, `N` 
   - The click that captures the mouse is swallowed, so it never fires.
   - Esc (the browser releasing the lock) opens the pause menu.
   - Clicking or pressing a key to close a dialogue or menu takes the mouse back right away.
-  - A "click to control" hint shows while the mouse is free.
+  - No on-screen hint while the mouse is free (David asked for the CLICK TO CONTROL box to be removed, 2026-10-23).
   - If the browser refuses pointer lock, clicks go back to normal, so the game never gets stuck.
 - **Weapon wheel:**
   - The mouse wheel cycles the weapons you own: Unarmed, Ward pistol, then a Rifle slot. The rifle is skipped until a rifle exists and is owned.
