@@ -153,14 +153,15 @@ routeClear = function() {
   return migrationRouteClear() && (!escortShip || escortShip.progress >= 1 && Math.hypot(escortShip.x, escortShip.y, escortShip.z) <= escortShip.range);
 };
 // Neutral traffic gathers at the port being left or approached (Vesper's pad, or a station hangar); elsewhere is open space.
+// Vesper is a quiet frontier pad: two ships at most.
 function trafficPort(phase) {
   const r = flight.route;
   if (!r) return {};
   if ((phase === 'departure' || phase === 'align') && r.progress === 0) return r.origin === 'vesper'
-    ? {port:'origin', landing:{x:-12, y:3 + Math.pow(Math.min(4, r.departure || 0), 2) * 4, z:departureStation.z - 10}, out:{x:0,y:-1,z:0}}
+    ? {port:'origin', landing:{x:-12, y:3 + Math.pow(Math.min(4, r.departure || 0), 2) * 4, z:departureStation.z - 10}, out:{x:0,y:-1,z:0}, quiet:true}
     : {port:'origin', landing:departureStation, out:{x:0,y:0,z:1}};
   if (phase === 'arrived') return r.destination === 'vesper'
-    ? {port:'destination', landing:{x:-12, y:Math.max(3, 45 - (approachTime || 0) * 40), z:-25}, out:{x:0,y:-1,z:0}}
+    ? {port:'destination', landing:{x:-12, y:Math.max(3, 45 - (approachTime || 0) * 40), z:-25}, out:{x:0,y:-1,z:0}, quiet:true}
     : {port:'destination', landing:{x:0, y:4, z:120 - 105 * Math.min(1, (approachTime || 0) / VoidWarp.config.approachSeconds)}, out:{x:0,y:0,z:-1}};
   return {};
 }

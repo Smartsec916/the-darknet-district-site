@@ -2,7 +2,7 @@
    Ports are busy: most traffic arrives at, leaves or crosses the landing area. Open space is sparse and random.
    New contacts enter far off or out of warp, so nothing pops in beside the player. */
 (function(root){
- const config={emptyChance:0,maxContacts:3,port:{seed:[2,4],max:5,delay:[2.5,7]},open:{max:2,delay:[9,26],distance:[260,520]},warpIn:1.2,mouth:8,clearance:60};
+ const config={emptyChance:0,maxContacts:3,port:{seed:[2,4],max:5,delay:[2.5,7]},quiet:{seed:[1,2],max:2,delay:[8,18]},open:{max:2,delay:[9,26],distance:[260,520]},warpIn:1.2,mouth:8,clearance:60};
  const definitions={courier:{model:'courier',relationship:'neutral',role:'courier',behavior:'crossing',speed:[18,32],lifetime:[14,26],spawn:{distance:[90,170],altitude:[5,18]},marker:'contact'},transport:{model:'shuttle',relationship:'neutral',role:'transport',behavior:'crossing',speed:[10,20],lifetime:[20,35],spawn:{distance:[120,210],altitude:[8,25]},marker:'contact'}};
  const range=(rng,bounds)=>bounds[0]+rng()*(bounds[1]-bounds[0]);
  const behaviors={crossing:(rng,{side,speed})=>({x:-side*speed,y:(rng()-.5)*5,z:(rng()-.5)*speed})};
@@ -40,25 +40,27 @@
  function spawn(rng,area,seeded){return area.landing?port(rng,area,seeded):open(rng);}
  // Where traffic gathers: a port (landing point plus the direction its approach opens toward) or open space.
  function locate(area,options={}){
-  const where=options.landing?{port:options.port||'port',landing:{...options.landing},out:unit(options.out||defaultPort.out)}:{port:null,landing:null,out:null};
+  const where=options.landing?{port:options.port||'port',landing:{...options.landing},out:unit(options.out||defaultPort.out),quiet:!!options.quiet}:{port:null,landing:null,out:null,quiet:false};
   const changed=where.port!==area.port;Object.assign(area,where);return changed;
  }
- function seed(rng,area){const count=Math.round(range(rng,config.port.seed));for(let i=0;i<count;i++)area.contacts.push(spawn(rng,area,true));}
+ // A quiet port (Vesper) sees only a couple of ships at a time.
+ const pace=area=>area.landing?(area.quiet?config.quiet:config.port):config.open;
+ function seed(rng,area){const count=Math.round(range(rng,pace(area).seed));for(let i=0;i<count;i++)area.contacts.push(spawn(rng,area,true));}
  function create(rng=Math.random,combat=false,options={port:'origin',...defaultPort}){
   const area={contacts:[],clock:0,next:0,port:null,landing:null,out:null};locate(area,options);
   if(combat||rng()<config.emptyChance)return area;
   if(area.landing)seed(rng,area);
-  area.next=range(rng,(area.landing?config.port:config.open).delay);
+  area.next=range(rng,pace(area).delay);
   return area;
  }
  // Hostile activity, warp and interdictions clear traffic; it returns gradually afterwards, never all at once.
- function hold(area,rng=Math.random,options={}){area.contacts=[];if(!area.held){area.held=true;area.next=area.clock+range(rng,(options.landing?config.port:config.open).delay);}}
+ function hold(area,rng=Math.random,options={}){area.contacts=[];if(!area.held){area.held=true;area.next=area.clock+range(rng,pace({landing:options.landing,quiet:options.quiet}).delay);}}
  function step(area,dt,playerVelocity={x:0,y:0,z:0},options=null){
   area.clock+=dt;area.held=false;
   if(options?.rng){
    // Arriving at a new port finds it already busy; open space and returning traffic trickle in.
-   if(locate(area,options)&&area.landing){seed(options.rng,area);area.next=area.clock+range(options.rng,config.port.delay);}
-   const mode=area.landing?config.port:config.open;
+   if(locate(area,options)&&area.landing){seed(options.rng,area);area.next=area.clock+range(options.rng,pace(area).delay);}
+   const mode=pace(area);
    if(area.clock>=area.next){if(area.contacts.length<mode.max)area.contacts.push(spawn(options.rng,area,false));area.next=area.clock+range(options.rng,mode.delay);}
   }
   for(const e of area.contacts){

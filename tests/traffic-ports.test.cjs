@@ -57,3 +57,13 @@ test('arriving at a new port finds it already busy',()=>{
  assert.ok(area.contacts.length>=T.config.port.seed[0]);
  for(const c of area.contacts)assert.ok(far(c,destination.landing)<400,'seeded ships are at the destination port');
 });
+
+test('Vesper is a quiet port: two ships at most, still coming and going',()=>{
+ const vesper={port:'origin',landing:{x:-12,y:3,z:-25},out:{x:0,y:-1,z:0},quiet:true};let seen=0;
+ for(let seed=1;seed<40;seed++){
+  const r=rng(seed*31),area=T.create(r,false,vesper);
+  assert.ok(area.contacts.length>=1&&area.contacts.length<=2);
+  for(let i=0;i<1200;i++){T.step(area,.1,{x:0,y:0,z:0},{rng:r,...vesper});assert.ok(area.contacts.length<=2);seen+=area.contacts.length;}
+ }
+ assert.ok(seen>0);
+});
