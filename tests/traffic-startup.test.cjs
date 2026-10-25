@@ -13,11 +13,12 @@ test('station traffic is populated, independent, varied and neutral',()=>{
  assert.equal(Traffic.create(()=>.9,true).contacts.length,0);
 });
 test('traffic subtracts player translation without steering or matching player velocity',()=>{
- const a=Traffic.create(rng(9000)),b=structuredClone(a);assert(a.contacts.length);
+ let seed=9000;while(Traffic.create(rng(seed)).contacts.every(c=>c.docking))seed++;// a port area with at least one ship that leaves by warp
+ const a=Traffic.create(rng(seed)),b=structuredClone(a);assert(a.contacts.length);
  const v={...a.contacts[0].velocity};Traffic.step(a,1,{x:100,y:20,z:40});Traffic.step(b,1);
  assert.deepEqual(a.contacts[0].velocity,v);
  for(const [axis,n]of Object.entries({x:100,y:20,z:40}))assert(Math.abs(b.contacts[0][axis]-a.contacts[0][axis]-n)<1e-8);
- a.contacts[0].age=a.contacts[0].lifetime;Traffic.step(a,.5);assert(a.contacts[0].warp>0);
+ const leaver=a.contacts.find(c=>!c.docking);leaver.age=leaver.lifetime;Traffic.step(a,.5);assert(leaver.warp>0);
 });
 test('relationships drive hostility and marker colors with old scripted allegiance compatibility',()=>{
  assert.equal(Story.contactColors.hostile,'#ff718a');assert.equal(Story.contactColors.neutral,'#bbc2cc');assert.equal(Story.contactColors.friendly,'#58ffe1');
