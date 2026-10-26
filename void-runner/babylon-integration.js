@@ -154,15 +154,18 @@ routeClear = function() {
 };
 // Neutral traffic gathers at the port being left or approached (Vesper's pad, or a station hangar); elsewhere is open space.
 // Vesper is a quiet frontier pad: two ships at most.
+// Every station is Meridian-class: its hull's front face stands 49 m out from the landing point (apron, with margin).
+// On arrival the renderer slides the port toward the player, so traffic follows the port instead of the ship's velocity.
+const stationApron = 55;
 function trafficPort(phase) {
   const r = flight.route;
   if (!r) return {};
   if ((phase === 'departure' || phase === 'align') && r.progress === 0) return r.origin === 'vesper'
     ? {port:'origin', landing:{x:-12, y:3 + Math.pow(Math.min(4, r.departure || 0), 2) * 4, z:departureStation.z - 10}, out:{x:0,y:-1,z:0}, quiet:true}
-    : {port:'origin', landing:departureStation, out:{x:0,y:0,z:1}};
+    : {port:'origin', landing:departureStation, out:{x:0,y:0,z:1}, apron:stationApron};
   if (phase === 'arrived') return r.destination === 'vesper'
-    ? {port:'destination', landing:{x:-12, y:Math.max(3, 45 - (approachTime || 0) * 40), z:-25}, out:{x:0,y:-1,z:0}, quiet:true}
-    : {port:'destination', landing:{x:0, y:4, z:120 - 105 * Math.min(1, (approachTime || 0) / VoidWarp.config.approachSeconds)}, out:{x:0,y:0,z:-1}};
+    ? {port:'destination', landing:{x:-12, y:Math.max(3, 45 - (approachTime || 0) * 40), z:-25}, out:{x:0,y:-1,z:0}, quiet:true, follow:true}
+    : {port:'destination', landing:{x:0, y:4, z:120 - 105 * Math.min(1, (approachTime || 0) / VoidWarp.config.approachSeconds)}, out:{x:0,y:0,z:-1}, apron:stationApron, follow:true};
   return {};
 }
 const migrationArrive = arrive;
@@ -424,7 +427,7 @@ update = function(dt) {
       escortHP = escortShip.health;
     }
     if(phase==='warp'||phase==='encounter'||enemies.some(VoidStory.hostile)) VoidTraffic.hold(ambientTraffic,Math.random,trafficPort(phase));
-    else VoidTraffic.step(ambientTraffic,dt,flight.velocity,{rng:Math.random,...trafficPort(phase)});
+    else VoidTraffic.step(ambientTraffic,dt,phase==='arrived'?undefined:flight.velocity,{rng:Math.random,...trafficPort(phase)});
     if(phase==='departure'||phase==='align') for(const axis of ['x','y','z']) departureStation[axis]-=(flight.velocity?.[axis]||0)*dt;
     enemies = enemies.filter(e => !e.dead);
     if (activeRenderer === 'babylon' && phase === 'warp' && preparedDestination !== current.destination) prepareDestination();
