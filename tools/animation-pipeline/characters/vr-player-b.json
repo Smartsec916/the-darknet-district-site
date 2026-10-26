@@ -1,0 +1,71 @@
+{
+ "name": "vr_player_b",
+ "about": "VR arcade player two (dance, virtual dining, menus): orange and black sportswear, ponytail, slim VR headset with magenta lens and wrist trackers. MakeHuman CC0.",
+ "phenotype": {
+  "gender": 0,
+  "age": 0.4,
+  "muscle": 0.45,
+  "weight": 0.4,
+  "height": 0.5,
+  "cupsize": 0.5,
+  "race": {
+   "caucasian": 0.45,
+   "asian": 0.3,
+   "african": 0.25
+  }
+ },
+ "skin": "young_caucasian_female",
+ "hair": "ponytail01",
+ "clothes": [
+  "female_sportsuit01",
+  "shoes05"
+ ],
+ "style": {
+  "female_sportsuit01": {
+   "recolor": [
+    {
+     "color": [
+      0.85,
+      0.38,
+      0.08
+     ],
+     "level": 0.65
+    }
+   ]
+  }
+ },
+ "clips": [
+  "idle",
+  "dance",
+  "pickup",
+  "interact",
+  "menu",
+  "menu-tap",
+  "talk"
+ ],
+ "accessories": [
+  {
+   "type": "headset",
+   "color": [
+    0.05,
+    0.055,
+    0.065
+   ],
+   "glow": [
+    1,
+    0.2,
+    0.75
+   ]
+  },
+  {
+   "type": "trackers",
+   "glow": [
+    1,
+    0.2,
+    0.75
+   ]
+  }
+ ],
+ "lean": true,
+ "maxGarmentVerts": 9000
+}

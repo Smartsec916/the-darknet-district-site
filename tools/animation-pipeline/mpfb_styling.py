@@ -255,6 +255,27 @@ def add_accessories(rig, basemesh, accessories, name):
                 for j, dz in enumerate((0.022, 0.042)):
                     slit = _band(f'{tag}.slit{j}', c, r, z0 + dz, z0 + dz + 0.004, 70, 0.0125, 0.002, 16)
                     _attach(slit, rig, 'mixamorig:Head', _material(f'{tag}.slit{j}', [0.05, 0.05, 0.05], glow, acc.get('strength', 2.0)))
+        elif kind == 'headset':
+            # A slim VR headset: a dark shell across the eyes, a lit strip on its front and a strap round the head.
+            z0, z1 = ez - 0.035, ez + 0.03
+            c, r = _slice([basemesh], z0, z1, head, 0.14)
+            shell = _band(tag, c, r, z0, z1, 200, 0.018, 0.022)
+            _attach(shell, rig, 'mixamorig:Head', _material(tag, color, None, 0, 0.5, 0.35))
+            lens = _band(f'{tag}.lens', c, r, ez - 0.006, ez + 0.004, 150, 0.041, 0.003)
+            _attach(lens, rig, 'mixamorig:Head', _material(f'{tag}.lens', [0.05, 0.05, 0.05], [0.1, 0.9, 1.0] if glow == 'default' else glow, acc.get('strength', 1.6)))
+            zs = ez + 0.045
+            c2, r2 = _slice([basemesh], zs, zs + 0.015, head, 0.14)
+            strap = _band(f'{tag}.strap', c2, r2, zs, zs + 0.015, 360, 0.006, 0.005, 48)
+            _attach(strap, rig, 'mixamorig:Head', _material(f'{tag}.strap', [0.02, 0.02, 0.025], None, 0, 0.2, 0.6))
+        elif kind == 'trackers':
+            # Small lit tracking pucks at both wrists (VR motion tracking, no controllers in the hands).
+            for side in ('Left', 'Right'):
+                bone = f'mixamorig:{side}Hand'
+                p = rig.matrix_world @ rig.data.bones[bone].head_local
+                bpy.ops.mesh.primitive_cube_add(size=0.035, location=(p.x, p.y, p.z + 0.02))
+                puck = bpy.context.active_object
+                puck.name = f'{tag}.{side}'
+                _attach(puck, rig, bone, _material(puck.name, [0.04, 0.04, 0.05], [0.1, 0.9, 1.0] if glow == 'default' else glow, acc.get('strength', 1.4)))
         elif kind == 'collar':
             z0, z1 = neck.z + 0.0, neck.z + 0.03
             c, r = _slice(kids, z0, z1, neck, 0.16)
