@@ -173,7 +173,7 @@
     for(const [x0,x1,z] of [[2,152,-12.5]])for(let x=x0+4;x<x1-2;x+=6)box('lane-mark',[2.6,.02,.18],[x,.02,z],glowMat('lane','#d7c06a',.55));
     for(let z=-120;z<-22;z+=6)box('lane-mark',[.18,.02,2.6],[61,.02,z],glowMat('lane','#d7c06a',.55));
     // The avenue runs on into the wider city: closed barriers and the lit towers beyond.
-    for(const x of [2.4,151.6]){box('road-barrier',[.4,1.1,14],[x,.55,-12.5],mat('barrier','#c9b14a',{rough:.6,metal:.2}));for(let z=-18;z<=-7;z+=2.2)box('barrier-light',[.45,.18,.4],[x,1.2,z],red);neon('road-closed-'+x,['封路 · ROAD CLOSED'],['#ffcf5a'],4,.7,[x+(x<50?.25:-.25),2,-12.5],x<50?Math.PI/2:-Math.PI/2,'rgba(10,8,4,.9)');}
+    for(const x of [2.4,151.6]){box('road-barrier',[.4,1.1,14],[x,.55,-12.5],mat('barrier','#c9b14a',{rough:.6,metal:.2}));for(let z=-18;z<=-7;z+=2.2)box('barrier-light',[.45,.18,.4],[x,1.2,z],red);neon('road-closed-'+x,['封路 · ROAD CLOSED'],['#ffcf5a'],4,.7,[x+(x<50?.25:-.25),2,-12.5],x<50?-Math.PI/2:Math.PI/2,'rgba(10,8,4,.9)');}
     // Landing pad: the Kestrel, pad lights, a low wall and the landing terminal.
     box('landing-pad',[18,.12,16],[24,.06,-96],mat('pad','#26262c',{rough:.6,metal:.4}));
     for(const [x,z] of [[15.4,-103.6],[32.6,-103.6],[15.4,-88.4],[32.6,-88.4]])cyl('pad-light',.2,.14,[x,.14,z],amber,true,8);
@@ -184,6 +184,21 @@
     // The Function's banner over the avenue where the main street meets it.
     neon('function-banner',['THE FUNCTION WATCHES OVER YOU','功能 · 秩序 · 利潤'],['#e8f0ff','#ff4a4a'],16,2.6,[61,16,-4.6],0);
     if(!low)for(let i=0;i<46;i++){const a=i/46*Math.PI*2,r=120+rand()*90,x=77+Math.sin(a)*r,z=-62+Math.cos(a)*r;tower(x,z,12+rand()*14,12+rand()*14,60+rand()*170,i);}
+    // Nothing you can't walk into should look open (David, 2026-10-27). Every city block between the streets is
+    // built up in plots of up to 18 m, set back 0.35 m from the street so the storefronts stay in front, and a
+    // ring of buildings closes the edge of the map. Plain night-facade boxes, merged with the rest of the city.
+    function mass(x0,x1,z0,z1,h,k){if(x1-x0<.5||z1-z0<.5)return;const w=x1-x0,d=z1-z0,m=windowMats[k%3],[tw,th]=m.metadata.tile,side=a=>new B.Vector4(0,0,a/tw,h/th),cap=new B.Vector4(0,0,.01,.01);add(B.MeshBuilder.CreateBox('block-building',{width:w,height:h,depth:d,faceUV:[side(w),side(w),side(d),side(d),cap,cap],wrap:true},scene),m,[(x0+x1)/2,h/2,(z0+z1)/2]);}
+    const openNear=(x0,x1,z0,z1)=>[...Object.values(S),...Object.values(footprints)].some(([a,b,c,d])=>x0<b&&x1>a&&z0<d&&z1>c);
+    for(const s of cityBlocks){const [cx,,cz]=s.position,[w,,d]=s.size,X0=cx-w/2,Z0=cz-d/2,nx=Math.ceil(w/18),nz=Math.ceil(d/18),I=.35,E=.3;
+     for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){let x0=X0+w*i/nx,x1=X0+w*(i+1)/nx,z0=Z0+d*j/nz,z1=Z0+d*(j+1)/nz;
+      const [a,b,c,e]=[x0,x1,z0,z1];if(openNear(a-E,a,c,e))x0+=I;if(openNear(b,b+E,c,e))x1-=I;if(openNear(a,b,c-E,c))z0+=I;if(openNear(a,b,e,e+E))z1-=I;
+      mass(x0,x1,z0,z1,20+rand()*45,i+j*2+s.id.length);}}
+    // The outer ring: north of the avenue, south of the access road, and both sides, leaving the avenue's ends
+    // open to the closed road beyond its barriers, where a further row of buildings ends the view.
+    const ring=[[-24,178,-3,15],[-24,178,-148,-126],[-24,0,-126,-20],[-24,0,-5,-3],[154,178,-126,-20],[154,178,-5,-3],[-48,-36,-20,-5],[190,202,-20,-5]];
+    ring.forEach(([x0,x1,z0,z1],k)=>{const along=x1-x0>z1-z0,n=Math.ceil((along?x1-x0:z1-z0)/16);for(let i=0;i<n;i++){const a=i/n,b=(i+1)/n;along?mass(x0+(x1-x0)*a,x0+(x1-x0)*b,z0,z1,40+rand()*80,i+k):mass(x0,x1,z0+(z1-z0)*a,z0+(z1-z0)*b,40+rand()*80,i+k);}});
+    // The closed avenue runs on to that last row.
+    for(const [x0,x1] of [[-36,0],[154,190]])ground('ncz-avenue-beyond',[x0,x1,-20,-5],asphalt,0,4);
     // IronEye drones patrol above the main street and the avenue.
     const drones=[];const droneBody=mat('ironeye','#1d1f24',{rough:.4,metal:.8});for(let i=0;i<(low?2:4);i++){const n=new B.TransformNode('ironeye-'+i,scene);n.parent=parent;const body=add(B.MeshBuilder.CreateSphere('ironeye-body',{diameter:.9,segments:10},scene),droneBody,[0,0,0],false);body.parent=n;body.scaling.y=.6;const eye=add(B.MeshBuilder.CreateDisc('ironeye-eye',{radius:.16,tessellation:12},scene),red,[0,0,-.46],false);eye.parent=n;for(const s of [-1,1]){const rot=box('ironeye-rotor',[.9,.04,.12],[s*.55,.25,0],frame,false);rot.parent=n;}drones.push({n,phase:i*1.7,x:i<3?61:100,z:i<3?-100+i*30:-12.5});}
     // Street pedestrians on the sidewalks.
