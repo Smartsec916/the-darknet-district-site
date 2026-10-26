@@ -8,7 +8,9 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),path
   await page.goto('http://127.0.0.1:5187/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);
   assert.equal(await page.locator('[data-action="menu-continue"]').isDisabled(),true);
   await page.locator('[data-action="menu-campaign"]').click();assert.equal(await page.evaluate(()=>hasSave),false);
-  await page.locator('[data-action="menu-new"]').click();await page.waitForFunction(()=>mode==='walking',null,{timeout:90000});
+  await page.locator('[data-action="menu-new"]').click();
+  // Mara offers the optional basics on a fresh campaign; this suite plays them.
+  await page.locator('[data-action="tutorial-yes"]').click({timeout:90000});await page.waitForFunction(()=>mode==='walking'&&state.story.flags.tutorialChoice==='tutorial');
   async function speech(){await page.evaluate(()=>{for(let i=0;i<15&&speech;i++){speech.shown=Infinity;advanceSpeech();}});}
   // Invoke the registered interactions, then exercise the actual raycast and weapon action.
   await page.evaluate(()=>{const item=walkingLocation.interactions.find(i=>i.id==='recording');VoidInteractions.handlers.get(item.action)({item});});

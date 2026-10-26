@@ -96,8 +96,8 @@
  const scannerUpdate=update;
  update=function(dt){
   scannerUpdate(dt);
-  // Play time paces the leaderboard rivals.
-  if(state?.warflying&&!['menu','pause','recovery'].includes(mode)){seconds+=dt;if(seconds>=1){state.warflying.clock=Math.min(1e9,(state.warflying.clock||0)+Math.floor(seconds));seconds%=1;}}
+  // Campaign play time paces the leaderboard rivals. FPS Skirmish shares the Campaign state, so its screens never advance it.
+  if(state?.warflying&&!['menu','pause','recovery'].includes(mode)&&!mode.includes('skirmish')){seconds+=dt;if(seconds>=1){state.warflying.clock=Math.min(1e9,(state.warflying.clock||0)+Math.floor(seconds));seconds%=1;}}
   uplink(dt);
   const inFlight=mode==='play'&&!globalThis.VoidFlightSkirmish?.active;
   if(inFlight&&state?.warflying)watched();
