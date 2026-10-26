@@ -126,7 +126,7 @@
     const S=streets,overlaps=(x0,x1,z0,z1,m=.4)=>[...Object.values(S),...Object.values(footprints)].some(([a,b,c,d])=>x0<b+m&&x1>a-m&&z0<d+m&&z1>c-m);
     // Ground surfaces keep a 10 m texture repeat whatever their size.
     function ground(name,[x0,x1,z0,z1],m,y=0,repeat=10){const g=add(B.MeshBuilder.CreateGround(name,{width:x1-x0,height:z1-z0},scene),m,[(x0+x1)/2,y,(z0+z1)/2]);g.setVerticesData(B.VertexBuffer.UVKind,g.getVerticesData(B.VertexBuffer.UVKind).map((u,i)=>u*(i%2?(z1-z0):(x1-x0))/repeat));return g;}
-    asphaltTex.uScale=asphaltTex.vScale=1;
+    asphaltTex.uScale=asphaltTex.vScale=1;asphaltTex.wrapU=asphaltTex.wrapV=B.Texture.WRAP_ADDRESSMODE;
     const windowMats=['#ffd08a','#7fe8ff','#ff8ad8'].map((c,k)=>{const t=texture('windows-'+k,256,512,(g,W,H)=>{g.fillStyle='#0b0b12';g.fillRect(0,0,W,H);for(let y=6;y<H;y+=14)for(let x=6;x<W;x+=12){if(rand()<.42){g.fillStyle=c;g.globalAlpha=.25+rand()*.75;g.fillRect(x,y,7,8);}}g.globalAlpha=1;});const m=new B.StandardMaterial('ncz-windows-'+k,scene);m.diffuseColor=new B.Color3(.05,.05,.07);m.emissiveTexture=t;owned.push(m);return m;});
     function tower(x,z,w,d,h,k){const m=windowMats[k%3];const b=box('tower',[w,h,d],[x,h/2,z],m);const roofY=h+.5;box('tower-crown',[w*.6,1.2,d*.6],[x,roofY,z],frame);if(rand()<.7){cyl('tower-mast',.15,6+rand()*8,[x,roofY+4,z],pipe);add(B.MeshBuilder.CreateSphere('tower-beacon',{diameter:.7,segments:6},scene),red,[x,roofY+9,z]);}if(rand()<.6)box('tower-neon-strip',[.25,h*.7,.25],[x+(w/2+.13)*(x<0?1:-1),h*.45,z-d/2+.6],[cyan,magenta,violet][k%3]);return b;}
     for(const [name,r] of Object.entries(S))if(name!=='alley')ground('ncz-'+name,r,asphalt);
@@ -199,7 +199,8 @@
      g.strokeStyle='rgba(0,0,0,.7)';g.lineWidth=1.2;for(let i=0;i<7;i++){let x=rand()*W,y=rand()*H;g.beginPath();g.moveTo(x,y);for(let k=0;k<6;k++){x+=(rand()-.5)*24;y+=6+rand()*12;g.lineTo(x,y);}g.stroke();}
     });
     const brickNormal=texture('alley-brick-normal',512,512,(g,W,H)=>{const img=g.createImageData(W,H);for(let y=0;y<H;y++)for(let x=0;x<W;x++){const h=(xx,yy)=>brickH[((yy+H)%H)*W+((xx+W)%W)],dx=(h(x-1,y)-h(x+1,y))*1.6,dy=(h(x,y-1)-h(x,y+1))*1.6,l=Math.hypot(dx,dy,1),i=(y*W+x)*4;img.data[i]=(dx/l*.5+.5)*255;img.data[i+1]=(dy/l*.5+.5)*255;img.data[i+2]=(1/l*.5+.5)*255;img.data[i+3]=255;}g.putImageData(img,0,0);});
-    const brick=new B.StandardMaterial('ncz-alley-brick',scene);brick.diffuseTexture=brickTex;brick.bumpTexture=brickNormal;brick.specularColor=new B.Color3(.12,.1,.1);brick.specularPower=24;brick.emissiveColor=new B.Color3(.16,.11,.11);owned.push(brick);
+    for(const tex of [brickTex,brickNormal])tex.wrapU=tex.wrapV=B.Texture.WRAP_ADDRESSMODE; // repeat along and up the walls
+    const brick=new B.StandardMaterial('ncz-alley-brick',scene);brick.diffuseTexture=brickTex;brick.bumpTexture=brickNormal;brick.specularColor=new B.Color3(.12,.1,.1);brick.specularPower=24;brick.emissiveColor=new B.Color3(.3,.21,.2);owned.push(brick);
     // A brick wall box whose texture repeats every 3 m along and 1.2 m up.
     function brickWall(name,x0,z0,x1,z1,h,y0=0,t=.4){const len=Math.hypot(x1-x0,z1-z0),u=len/3,vv=h/1.2,ut=t/3,uv=[new B.Vector4(0,0,u,vv),new B.Vector4(0,0,u,vv),new B.Vector4(0,0,ut,vv),new B.Vector4(0,0,ut,vv),new B.Vector4(0,0,u,ut),new B.Vector4(0,0,u,ut)];
      const m=B.MeshBuilder.CreateBox(name,{width:x0===x1?t:len,height:h,depth:x0===x1?len:t,faceUV:x0===x1?[uv[2],uv[3],uv[0],uv[1],uv[4],uv[5]]:uv,wrap:true},scene);return add(m,brick,[(x0+x1)/2,y0+h/2,(z0+z1)/2]);}
