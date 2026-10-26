@@ -190,7 +190,7 @@ David asked to know which developer tools really exist and to have one Developer
 
 ### Voice
 
-- **New voiced line:** one, Rook's "Client confirmed the drop. Here's your pay." It is UNREVIEWED and awaits David's approval. It is rendered in Rook's existing voice (`rook-c5d856b671.ogg`); `extract-lines.cjs --check` passes.
+- **New voiced line:** one, Rook's "Client confirmed the drop. Here's your pay." David approved it on 2026-10-27. It is rendered in Rook's existing voice (`rook-c5d856b671.ogg`); `extract-lines.cjs --check` passes.
 - **Not voiced:**
   - job details on the board (data, not dialogue)
   - the receiver's arrival lines (not a cast voice)

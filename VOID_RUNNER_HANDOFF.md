@@ -566,6 +566,7 @@ Done; see §4.3. Possible follow-ups:
 - Vesper mountains should be natural, monument-valley-like and full 3D, with **all** of them redone, not just the cliffs.
 - Internal id `undertow` renamed to `rusthaven`.
 - Rook cargo runs keep going; a newly opened system gets the next run.
+- Rook's payment line for pay-at-Rook cargo jobs: "Client confirmed the drop. Here's your pay." (2026-10-27, editor brief stage 3 part 2; clip `rook-c5d856b671`).
 - **Faction territory, Option 1:** two new systems, one outpost each. A system opens when its delivery is accepted.
 - **Names, Set A:** Cantor System / The Vigil (Communion); Garrow System / Holdfast (Natural Order).
 - **Recipients:** Dr. Elara Voss and Marcus Vale (David's doc 07). Mara's in-game surname "Voss" is dropped; Iona Vale and Marcus Vale are unrelated.

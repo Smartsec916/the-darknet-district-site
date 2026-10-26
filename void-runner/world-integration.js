@@ -71,12 +71,12 @@ barRoom=()=>resumeWalking();bar=barRoom;contacts=function(){campaignBoard();};
 const originalRookConversation=rookConversation;
 // Rook's cargo network (campaign.js): he pays what he owes first, then shows the jobs on his board.
 // Each job says what it is, where it goes, how much hold it takes, what it pays and who pays.
-// Lines marked UNREVIEWED are Claude's functional placeholders for David.
+// Rook's payment line approved by David, 2026-10-27.
 function rookFreightOffer(){
  const key=VoidInput.label(VoidInput.bindings.missionLog||'KeyL'),place=id=>C.stations[id]?.name||id,far=id=>VoidUniverse.system(id)!==VoidUniverse.system(state.location);
  const owed=C.rookOwed(state);
  if(owed){const paid=C.collectRook(state);if(paid){VoidMissions.sync(state,C);save();hud();
-  talk('',[{who:'rook',text:'Client confirmed the drop. Here’s your pay.'}]/* UNREVIEWED */,()=>{announce('PAYMENT RECEIVED · '+paid.toLocaleString()+' credits · ROOK FREIGHT RUN #'+owed.number+' COMPLETE');rookFreightOffer();},'NEXT →','Rook’s booth');return;}}
+  talk('',[{who:'rook',text:'Client confirmed the drop. Here’s your pay.'}],()=>{announce('PAYMENT RECEIVED · '+paid.toLocaleString()+' credits · ROOK FREIGHT RUN #'+owed.number+' COMPLETE');rookFreightOffer();},'NEXT →','Rook’s booth');return;}}
  if(state.contract==='rook-run'){const r=C.rookRun(state);
   talk('',[{who:'rook',text:'The '+r.cargo.toLowerCase()+' are still in your hold. '+place(r.destination)+' is waiting on them.'}],resumeWalking,'RETURN TO STATION');
   // Handing the cargo back ends the job without pay or penalty.
