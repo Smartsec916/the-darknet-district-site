@@ -135,6 +135,7 @@
  }
  function description(s,C,id){
   if(definitions[id])return definitions[id];
+  const rook=/^rook-run-(\d+)$/.exec(id),info=rook&&C?.rookRunInfo?.(s,Number(rook[1]));if(info)return rookDescription(info);
   const f=C?.missionFlight?.({...s,destination:null});
   const isCurrent=f&&f.kind!=='transit'&&(f.id||s.quest)===id;
   const contract=(C?.allContracts||C?.contracts)?.find?.(item=>item.id===id);
@@ -143,6 +144,13 @@
   const destination=isCurrent?f.destination:contract?.destination;
   const cargo=isCurrent?f.cargo:contract?.cargo;
   return {title,type:cargo&&cargo!=='Empty hold'?'cargo':'campaign',description:contract?.briefing||((cargo&&cargo!=='Empty hold')?'Deliver '+cargo+' to '+(U.locations[destination]?.name||destination)+'.':'Travel to '+(U.locations[destination]?.name||destination||'the destination')+'.'),rewards:(isCurrent?f.reward:contract?.reward)||null,destination,source:'mission-terminal',giver:contract?.contact||'Campaign',start:contract?.start||null,end:destination,prerequisites:contract?.requires?[contract.requires]:[],availability:{},storyFlags:{},factionFlags:{},completion:{event:'dock',location:destination},objectives:[{id:'arrive',label:cargo&&cargo!=='Empty hold'?'Deliver '+cargo:'Reach the destination and dock'}]};
+ }
+ // A Rook cargo-board run: pick up at Rook's booth, deliver, and (for some jobs) collect pay from Rook at Meridian.
+ function rookDescription(r){
+  const place=U.locations[r.destination]?.name||r.destination,byRook=r.payAt==='rook';
+  const pay=r.payment?(byRook?r.payment+' credits, paid by Rook at Meridian after delivery.':r.payment+' credits, paid by the receiver on delivery.'):'';
+  const objectives=r.kind==='legacy'?[{id:'arrive',label:'Deliver '+r.cargo+' to '+place}]:[{id:'pickup',label:'Collect the cargo from Rook'},{id:'arrive',label:'Deliver '+r.cargo+' to '+place},...(byRook?[{id:'payment',label:'Collect '+r.payment+' credits from Rook at Meridian',destination:'meridian',interaction:'rook'}]:[])];
+  return {title:r.name+(r.label?' · '+r.label:''),type:'cargo',description:(r.label?r.label+'. ':'')+r.cargo+' to '+place+(r.units>1?' ('+r.units+' hold spaces)':'')+'. '+(r.legal===false?'Not legal. ':'')+pay,rewards:r.payment||null,destination:r.destination,source:'rook',giver:'Rook',start:'meridian',end:r.destination,prerequisites:[],availability:{},storyFlags:{},factionFlags:{},completion:{event:'dock',location:r.destination},objectives};
  }
  function all(s,C){
   if(!s?.universe)return [];

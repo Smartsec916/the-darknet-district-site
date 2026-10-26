@@ -1904,5 +1904,11 @@
   "textHash": "31566d20cde7",
   "generatedAt": "2026-10-23",
   "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "rook-c5d856b671": {
+  "configHash": "43ded265d771",
+  "textHash": "7a155b65370b",
+  "generatedAt": "2026-10-26",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
  }
 }

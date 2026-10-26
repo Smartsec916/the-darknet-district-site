@@ -56,7 +56,7 @@ Every editable thing gets a permanent developer ID: `M` mission, `S` store, `N` 
 |---|---|---|
 | 1. Audit and plan | This document | Done (PR 87) |
 | 2. Gameplay fixes | Pointer lock that never fires on capture; Esc pauses; the mouse comes back after dialogue and menus; dialogue always fits the window; mouse-wheel weapon select (unarmed / pistol, rifle-ready); a visible hangar maintenance terminal; clearer buy-then-install | Done (PR 87) |
-| 3. Missions and guidance | Universal objective markers; an optional Guidance menu (separate from missions); Rook as a cargo network with payment rules; in-person versus remote dialogue rules | Markers and Guidance done (2026-10-27, `world-markers.js`). Rook restructure and dialogue rules: next |
+| 3. Missions and guidance | Universal objective markers; an optional Guidance menu (separate from missions); Rook as a cargo network with payment rules; in-person versus remote dialogue rules | Done. Markers and Guidance (PR 99); Rook cargo network, payment rules and in-person rules (§8) |
 | 4. Data foundation | ID registry, JSON schemas, validator, import/export, the game reading missions, dialogue and stores from data | Planned |
 | 5. Visual editor | Node canvas (drag, connect, branch), dialogue graph, property panels, search and Jump To, undo/redo, store editor | Planned |
 | 6. Developer testing | Isolated test sessions, jump to a location, mission stage or dialogue, inventory states, server-checked access | Started early: Test & Jump To (place + story stage + test kit) is built. Mission-by-ID, dialogue and inventory tests come with the data in stage 4. |
@@ -128,3 +128,78 @@ David asked to know which developer tools really exist and to have one Developer
   - The launcher topic skips the purchase once you own it and skips installing once it is fitted.
   - Away from a station, it says to go to any station.
 - **No rewards:** Guidance never grants anything. The choice is saved in `story.flags` (`guideTopic`, `guidanceOff`), which cloud saves already accept.
+
+## 8. Stage 3, part 2: Rook's cargo network and in-person rules (2026-10-27)
+
+### Rook's cargo board (`campaign.js`, shown in `world-integration.js`)
+
+- **Built on what was there:** Rook's numbered freight runs, the single-contract hold (`state.contract='rook-run'`), the ship's cargo capacity, the Mission Log and `story.flags`. No new save fields; cloud saves already accept everything used.
+- **The board:** Rook shows one routine job at first, two from the second run, and three from the fourth. Each line says the job type, cargo, destination (and if it is interstellar), hold space, whether it is legal, the pay, and who pays.
+- **Job types:**
+
+  | Type | Legal | Hold | Pay | Paid by |
+  |---|---|---|---|---|
+  | Routine freight | yes | 1 | base | the receiver, on delivery |
+  | Long-haul freight | yes | 1 | base + 300 | the receiver, on delivery |
+  | High-value freight | yes | 2 | base + 500 | Rook, in person at Meridian, after delivery |
+  | Dangerous lane | yes | 1 | base + 600 | the receiver, on delivery |
+  | Restricted cargo | **no** | 1 | base + 500 | Rook, in person at Meridian, after delivery |
+
+  Base pay is unchanged from the old runs (500, +150 per run, up to 2,000).
+- **Legal stays legal:** only the restricted job is illegal, and it says so before you take it. The old runs turned every second job illegal automatically; that is gone.
+- **New jobs over time:** the board changes after each finished run, and a newly opened system still gets the next routine job ("Lanes into … just opened up"). The board depends only on the save, so reloading cannot reroll it.
+- **Pickup:** taking a job at Rook's booth loads the cargo; the Mission Log ticks "Collect the cargo from Rook".
+- **Hold space:** a job that needs more room than the hold has free (salvage counts) shows NO HOLD SPACE and cannot be taken.
+- **Handing the cargo back:** while carrying a board job, Rook offers HAND THE CARGO BACK. The job ends with no pay and no penalty, and the same run can be taken again.
+- **History:** the last five runs are kept in `story.flags.rookLog`. Older finished run entries leave the Mission Log, which keeps saves inside the cloud's 100-entry limit. Rook's runs no longer go into `completedObjectives`, which used to grow by one per run toward its 200 limit.
+- **Older saves:** a run accepted before this update keeps its original terms and is paid on delivery.
+- **Admin's sealed cargo ("Don't Ask Questions"):** unchanged. Trouble-free, contents unknown, paid by Rook on handover.
+
+### Payment rules
+
+- **One job, one payment.** A pay-on-delivery job pays when the cargo is unloaded. The contract is cleared in the same step, so docking again pays nothing.
+- **Pay at Rook:** delivery records what Rook owes (`story.flags.rookOwed`). Rook pays only in person, at Meridian, and clears the debt in the same step. A second talk, or reloading the paid save, pays nothing. Reloading a save from before payment still shows the debt, because that save also has the lower credit total.
+- **No new job while Rook owes you:** talking to him pays first, then shows the board.
+- **Failed or abandoned jobs never pay.** A lost fight retries the route; handing the cargo back pays nothing.
+- **Mission Log:** pay-at-Rook runs stay open after delivery with "Collect N credits from Rook at Meridian", and the tracked marker moves to Rook. The description always says who pays.
+- **Markers:** Rook's **!** shows only when he owes you pay, or when a job on the board fits your hold and you carry nothing else. It goes away once you take a job or are paid.
+
+### In-person and remote dialogue
+
+- **In person:** a conversation inside a station or the District now names the place in its heading (for example MERIDIAN STATION). Before this, every in-person conversation with a heading (Rook's booth, Admin and Iris in the District) was labelled INCOMING TRANSMISSION.
+- **Remote:** calls and messages keep INCOMING TRANSMISSION:
+  - Rook's missile message ("A message from Rook")
+  - Mara on the comm after the practice circuit
+  - the mission terminal's cargo contacts when that person is not in the station. The button says CALL / name instead of TALK / name, and the heading says "Comms channel · cargo job".
+- **Deliveries:** the person who speaks on arrival is someone actually at that dock:
+  - **Kepler:** Dr. Sol, still handed over at the bar.
+  - **Rusthaven:** Iona.
+  - **Everywhere else:** the dock's cargo receiver.
+
+  Before this, Dr. Sol "spoke" on arrival at every station, and Rook at the Foundry, where neither is.
+- **Checked and already correct:**
+  - Rook and Nyx: Meridian.
+  - Admin and Iris: the District.
+  - Dr. Elara Voss: The Vigil.
+  - Marcus Vale: Holdfast.
+  - Dr. Adrian Kess: The Nexus.
+  - Daniel Mercer: the Natural Order homeworld.
+  - Mara: Vesper, or on the comm.
+
+  Each talks only through an interaction where they stand. No NPC was moved or duplicated.
+
+### Voice
+
+- **New voiced line:** one, Rook's "Client confirmed the drop. Here's your pay." David approved it on 2026-10-27. It is rendered in Rook's existing voice (`rook-c5d856b671.ogg`); `extract-lines.cjs --check` passes.
+- **Not voiced:**
+  - job details on the board (data, not dialogue)
+  - the receiver's arrival lines (not a cast voice)
+
+### Not in this stage
+
+- Destination NPCs offering their own jobs.
+- Other givers using the cargo board.
+- Paying at a third contact.
+- Faction, WarFlying, Relay, piracy and wanted-level work.
+
+The payment rules support a third contact, but no job uses one yet. Any new giver or contact is a story decision for David.

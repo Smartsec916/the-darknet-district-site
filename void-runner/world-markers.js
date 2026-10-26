@@ -14,7 +14,8 @@
   const C=globalThis.VoidCampaign,f=flags(),id=item.character||item.id;if(!C||!state)return false;
   const D=C.factionDeliveries||{},S=C.supplyDeliveries||{},stage=k=>safe(()=>C.factionStage(state,k)),supply=k=>safe(()=>C.supplyStage(state,k)),origin=k=>safe(()=>C.originState(state,k));
   switch(id){
-   case 'rook':return ['legal-offer','illegal-offer'].includes(state.quest)||(state.quest==='open'&&!state.contract)||(state.missileUnlocked&&!state.missileOfferSeen)||safe(()=>C.sealedDeliverable(state));
+   // Rook: an opening offer, pay he owes, or a board job that fits the hold (not while carrying other cargo).
+   case 'rook':return ['legal-offer','illegal-offer'].includes(state.quest)||!!safe(()=>C.rookOwed(state))||(state.quest==='open'&&!state.contract&&!!safe(()=>C.rookBoard(state).some(j=>j.units<=C.holdFree(state))))||(state.missileUnlocked&&!state.missileOfferSeen)||safe(()=>C.sealedDeliverable(state));
    case 'admin':{const offers=safe(()=>C.factionOffers(state))||[];return (offers.length&&(!f.factionIntro||offers.length===2))||(safe(()=>C.sealedOffered(state))&&!state.contract)||(f.sealedCargo==='delivered'&&f.warflyingIntro!==true);}
    case 'district-iris':return Object.keys(D).some(k=>stage(k)==='delivered')||Object.keys(S).some(k=>supply(k)==='delivered')||(!!f.factionFirst&&(safe(()=>C.factionOffers(state))||[]).length>0)||(safe(()=>C.supplyOffers(state))||[]).length>0;
    case 'elara':case 'marcus':{const k=id==='elara'?'communion':'natural-order';return stage(k)==='accepted'||supply(k)==='accepted'||['offered','accepted'].includes(origin(k));}

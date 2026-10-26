@@ -47,12 +47,13 @@ function contacts(){
  speech=null;scene('dock');mode='dock';view='bar';screen.classList.remove('hidden');
  screen.innerHTML=`<section class="cinematic-space"><div class="scene-heading"><div class="eyebrow">CARGO DOCK</div><h1>Find a job.</h1></div>${C.contracts.map(c=>{const id=c.id==='medicine'?'sol':c.id==='ghost'?'iona':'rook';return '<button class="place contact-'+id+'" data-action="brief:'+c.id+'" '+(state.contract?'disabled':'')+'>'+characters[id].name+'<br>'+(state.contract?'CARGO LOADED':c.reward+' CR · TALK')+'</button>';}).join('')}<button class="place cargo-exit" data-action="bar">BAR →</button></section>`;
 }
-function brief(id){const c=C.contracts.find(c=>c.id===id);if(!c)return;const who=id==='medicine'?'sol':id==='ghost'?'iona':'rook';talk('dock',[{who,text: `${c.cargo}. ${c.legal?'Legal':'Illegal'}. To ${C.stations[c.destination===state.location?'meridian':c.destination].name}. ${c.reward} credits.`}],()=>{if(C.accept(state,id)){save();dock();}else contacts();},'ACCEPT JOB →','Cargo job');screen.querySelector('.speech-controls').insertAdjacentHTML('beforeend',button('BACK','contacts',true));}
+function brief(id){const c=C.contracts.find(c=>c.id===id);if(!c)return;const who=id==='medicine'?'sol':id==='ghost'?'iona':'rook',here=typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.interactions?.some(i=>i.character===who);talk('dock',[{who,text: `${c.cargo}. ${c.legal?'Legal':'Illegal'}. To ${C.stations[c.destination===state.location?'meridian':c.destination].name}. ${c.reward} credits.`}],()=>{if(C.accept(state,id)){save();dock();}else contacts();},'ACCEPT JOB →',here?'Cargo job':'Comms channel · cargo job');screen.querySelector('.speech-controls').insertAdjacentHTML('beforeend',button('BACK','contacts',true));}
 
 const originalArrive=arrive;
 arrive=function(){
- const f=current;originalArrive();if(mode!=='arrival'||!f?.reward)return;
- const who=f.destination==='rusthaven'?'iona':f.destination==='foundry'?'rook':'sol';
+ const f=current;originalArrive();if(mode!=='arrival'||!f?.reward&&f?.payAt!=='rook')return;
+ const who=f.destination==='rusthaven'?'iona':f.destination==='kepler'?'sol':'Receiver';
+ if(f.payAt==='rook'){talk('dock',[{who,text:'Delivery confirmed. Rook has your pay at Meridian.'+(f.repairCharged?` Dock servicing costs ${f.repairCharged} credits.`:'')}],()=>dock(),'GO BACK TO YOUR SHIP →','Delivery confirmed');return;}
  const line=f.destination==='rusthaven'&&state.completed===2?'Delivered. 800 credits. These MK 2 guns are my thanks. Shops are open to you now.':`Delivered. ${f.reward} credits. ${state.quest==='return'?'Head back to Rook at Meridian.':'Good flying.'}`;
  talk('dock',[{who,text:line+(f.repairCharged?` Dock servicing costs ${f.repairCharged} credits.`:'')}],()=>dock(),'GO BACK TO YOUR SHIP →','Delivery confirmed');
 };
