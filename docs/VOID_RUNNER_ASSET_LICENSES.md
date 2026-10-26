@@ -73,3 +73,24 @@ Existing third-party code and media are documented elsewhere:
 ## Licences of shortlisted sources (checked 2026-10-16)
 - **Quaternius** packs (Modular Sci-Fi MegaKit, Sci-Fi Essentials Kit, Ultimate Spaceships Pack): CC0, stated on each pack page. Free for personal, educational and commercial use, with no attribution required. Only the free "Standard" editions are considered.
 - **Poly Haven:** all assets CC0 (https://polyhaven.com/license).
+
+## NeoChinatown surface textures (2026-10-26)
+
+David asked for the existing buildings, roads and sidewalks to be upgraded, with nothing new added. These textures replace the procedural ones. No geometry changed.
+- **Creator:** ambientCG (Lennart Demes, https://ambientcg.com).
+- **Licence:** CC0 1.0 Universal; the official page (https://docs.ambientcg.com/license/) says *"All ambientCG assets are provided under the Creative Commons CC0 1.0 Universal License."* Commercial use, modification and redistribution are allowed, and no attribution is required.
+- **Download:** the 1K-JPG sets, on 2026-10-26, to `%LOCALAPPDATA%/void-runner-assets/downloads/ambientcg/`, which is outside the repo.
+- **Changes:** colour and glow maps are re-encoded at 1024 px; normal maps at 512 px. The 14 files total 1.5 MB, in `void-runner/assets/textures/ncz/`.
+- **Status:** approved by David (2026-10-26).
+
+| File(s) | ambientCG set (https://ambientcg.com/view?id=…) | Replaces |
+|---|---|---|
+| `facade-office-color/glow.jpg` | Facade017 | the painted window grid on a third of the towers |
+| `facade-apartment-color/glow.jpg` | Facade013 | the painted window grid on a third of the towers |
+| `facade-glass-color/glow.jpg` | Facade011 | the painted window grid on a third of the towers |
+| `road-color/normal.jpg` | Road012A | the procedural asphalt of the streets, pad and terrace |
+| `road-cracked-color/normal.jpg` | Road013A | the alley floor |
+| `sidewalk-color/normal.jpg` | PavingStones136 (tinted grey) | the plain concrete sidewalks |
+| `brick-color/normal.jpg` | Bricks097 (darkened) | the procedural alley brick |
+
+Looked at and not used: Asphalt033, PavingStones142 (cobbles), Bricks059/066/075A/076A (too clean or not brick), Facade009/014.

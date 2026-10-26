@@ -127,9 +127,16 @@
     // Ground surfaces keep a 10 m texture repeat whatever their size.
     function ground(name,[x0,x1,z0,z1],m,y=0,repeat=10){const g=add(B.MeshBuilder.CreateGround(name,{width:x1-x0,height:z1-z0},scene),m,[(x0+x1)/2,y,(z0+z1)/2]);g.setVerticesData(B.VertexBuffer.UVKind,g.getVerticesData(B.VertexBuffer.UVKind).map((u,i)=>u*(i%2?(z1-z0):(x1-x0))/repeat));return g;}
     asphaltTex.uScale=asphaltTex.vScale=1;asphaltTex.wrapU=asphaltTex.wrapV=B.Texture.WRAP_ADDRESSMODE;
-    const windowMats=['#ffd08a','#7fe8ff','#ff8ad8'].map((c,k)=>{const t=texture('windows-'+k,256,512,(g,W,H)=>{g.fillStyle='#0b0b12';g.fillRect(0,0,W,H);for(let y=6;y<H;y+=14)for(let x=6;x<W;x+=12){if(rand()<.42){g.fillStyle=c;g.globalAlpha=.25+rand()*.75;g.fillRect(x,y,7,8);}}g.globalAlpha=1;});const m=new B.StandardMaterial('ncz-windows-'+k,scene);m.diffuseColor=new B.Color3(.05,.05,.07);m.emissiveTexture=t;owned.push(m);return m;});
-    function tower(x,z,w,d,h,k){const m=windowMats[k%3];const b=box('tower',[w,h,d],[x,h/2,z],m);const roofY=h+.5;box('tower-crown',[w*.6,1.2,d*.6],[x,roofY,z],frame);if(rand()<.7){cyl('tower-mast',.15,6+rand()*8,[x,roofY+4,z],pipe);add(B.MeshBuilder.CreateSphere('tower-beacon',{diameter:.7,segments:6},scene),red,[x,roofY+9,z]);}if(rand()<.6)box('tower-neon-strip',[.25,h*.7,.25],[x+(w/2+.13)*(x<0?1:-1),h*.45,z-d/2+.6],[cyan,magenta,violet][k%3]);return b;}
-    for(const [name,r] of Object.entries(S))if(name!=='alley')ground('ncz-'+name,r,asphalt);
+    // Upgraded surfaces (ambientCG, CC0; docs/VOID_RUNNER_ASSET_LICENSES.md): roads, paving, alley brick, night facades.
+    const acg=name=>{const url=(base?new URL('assets/textures/ncz/'+name+'.jpg',base).href:'assets/textures/ncz/'+name+'.jpg'),t=new B.Texture(url,scene,false,true);t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;textures.push(t);return t;};
+    asphalt.albedoTexture=acg('road-color');asphalt.bumpTexture=acg('road-normal');asphalt.roughness=.35;asphalt.metallic=.2; // a little wet
+    const paving=mat('paving','#5a6680',{rough:.75,metal:.05});paving.albedoTexture=acg('sidewalk-color');paving.bumpTexture=acg('sidewalk-normal');
+    // Sidewalk slabs: the paving repeats every 2 m on top and runs round the kerb.
+    const slab=([w,h,d],p)=>{const top=new B.Vector4(0,0,w/2,d/2),kerb=new B.Vector4(0,0,Math.max(w,d)/2,.1);return add(B.MeshBuilder.CreateBox('sidewalk',{width:w,height:h,depth:d,faceUV:[kerb,kerb,kerb,kerb,top,top],wrap:true},scene),paving,p);};
+    // Night facades: the face by day, darkened, with its own lit windows. tile = metres one copy covers (wide, high).
+    const windowMats=[['office',[28,34]],['apartment',[40,52]],['glass',[30,36]]].map(([n,tile])=>{const m=new B.StandardMaterial('ncz-facade-'+n,scene);m.diffuseTexture=acg('facade-'+n+'-color');m.emissiveTexture=acg('facade-'+n+'-glow');m.diffuseColor=new B.Color3(.3,.3,.36);m.specularColor=new B.Color3(.08,.08,.1);m.metadata={tile};owned.push(m);return m;});
+    function tower(x,z,w,d,h,k){const m=windowMats[k%3],[tw,th]=m.metadata.tile,side=a=>new B.Vector4(0,0,a/tw,h/th),cap=new B.Vector4(0,0,.01,.01);const b=add(B.MeshBuilder.CreateBox('tower',{width:w,height:h,depth:d,faceUV:[side(w),side(w),side(d),side(d),cap,cap],wrap:true},scene),m,[x,h/2,z]);const roofY=h+.5;box('tower-crown',[w*.6,1.2,d*.6],[x,roofY,z],frame);if(rand()<.7){cyl('tower-mast',.15,6+rand()*8,[x,roofY+4,z],pipe);add(B.MeshBuilder.CreateSphere('tower-beacon',{diameter:.7,segments:6},scene),red,[x,roofY+9,z]);}if(rand()<.6)box('tower-neon-strip',[.25,h*.7,.25],[x+(w/2+.13)*(x<0?1:-1),h*.45,z-d/2+.6],[cyan,magenta,violet][k%3]);return b;}
+    for(const [name,r] of Object.entries(S))if(name!=='alley')ground('ncz-'+name,r,asphalt,0,4);
     // Street edges, outward normal pointing into the buildings, with gaps where another street joins.
     const edges=[
      {street:'avenue',a:[2,-5],b:[152,-5],n:[0,1],gaps:[]},{street:'avenue',a:[2,-20],b:[152,-20],n:[0,-1],gaps:[[51,71]]},
@@ -148,7 +155,7 @@
      // Sidewalk strip, storefronts, awnings and signs on the wide streets; facades on the rest.
      for(let s=0;s<len;s+=7){const t0=s/len,t1=Math.min(1,(s+7)/len),p=along(e,(t0+t1)/2),seg=(t1-t0)*len;if(inGap(e,p))continue;
       const into=[-e.n[0],-e.n[1]],wall=[p[0]+e.n[0]*.05,p[1]+e.n[1]*.05];
-      if(sw){const c=[p[0]+into[0]*sw/2,p[1]+into[1]*sw/2];box('sidewalk',e.n[0]?[sw,.18,seg]:[seg,.18,sw],[c[0],.09,c[1]],concrete);}
+      if(sw){const c=[p[0]+into[0]*sw/2,p[1]+into[1]*sw/2];slab(e.n[0]?[sw,.18,seg]:[seg,.18,sw],[c[0],.09,c[1]]);}
       if(e.street==='pad')continue;
       const glow=[glowMat('shop-cyan','#38e8ff',.32),glowMat('shop-magenta','#ff3fb4',.32),glowMat('shop-amber','#ffb347',.3),glowMat('shop-violet','#9b5cff',.32)][Math.floor(rand()*4)];
       box('storefront',e.n[0]?[.1,3,seg-1.5]:[seg-1.5,3,.1],[wall[0],1.6,wall[1]],glow);
@@ -182,30 +189,15 @@
     const streetLights=[];if(!low)for(const [p,c,i,r] of [[[61,7,-40],'#ff5bd0',.9,34],[[61,7,-12],'#38e8ff',.8,30]]){const l=new B.PointLight('ncz-street-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=parent;streetLights.push(l);owned.push(l);}
 
     // ---- Alley: old dark brick, counterculture graffiti, pipes and vents ----
-    // Weathered brick (procedural): dark red to charcoal bricks, uneven mortar, soot and water stains, patched
-    // repairs, cracks. A matching normal map gives the mortar depth.
-    const brickH=new Float32Array(512*512);
-    const brickTex=texture('alley-brick',512,512,(g,W,H)=>{
-     g.fillStyle='#1a1314';g.fillRect(0,0,W,H);const bw=64,bh=24;
-     for(let row=0;row*bh<H;row++)for(let x=-(row%2)*bw/2;x<W;x+=bw){const k=rand(),base=k<.45?[78,34,30]:k<.75?[58,30,29]:k<.9?[44,40,42]:[96,52,40],j=.75+rand()*.45;
-      g.fillStyle='rgb('+base.map(c=>c*j|0).join(',')+')';g.fillRect(x+2,row*bh+2,bw-4,bh-4);
-      for(let i=0;i<14;i++){g.fillStyle='rgba(0,0,0,'+rand()*.18+')';g.fillRect(x+2+rand()*(bw-8),row*bh+2+rand()*(bh-6),2+rand()*6,1+rand()*3);}
-      for(let y=row*bh+2;y<row*bh+bh-2;y++)for(let xx=Math.max(0,x+2);xx<Math.min(W,x+bw-2);xx++)brickH[y*W+xx]=1;}
-     // Soot from the top, damp from the bottom, rain streaks.
-     let gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'rgba(0,0,0,.35)');gr.addColorStop(.35,'rgba(0,0,0,0)');gr.addColorStop(.8,'rgba(10,14,18,.1)');gr.addColorStop(1,'rgba(8,10,14,.5)');g.fillStyle=gr;g.fillRect(0,0,W,H);
-     for(let i=0;i<26;i++){const x=rand()*W,w=3+rand()*10,l=60+rand()*300;const s=g.createLinearGradient(0,0,0,l);s.addColorStop(0,'rgba(5,6,8,.35)');s.addColorStop(1,'rgba(5,6,8,0)');g.fillStyle=s;g.fillRect(x,rand()*H*.4,w,l);}
-     // Patched repairs and cracks.
-     for(let i=0;i<4;i++){g.fillStyle='rgba(70,64,60,.55)';const px=rand()*W,py=rand()*H;g.fillRect(px,py,40+rand()*70,20+rand()*40);}
-     g.strokeStyle='rgba(0,0,0,.7)';g.lineWidth=1.2;for(let i=0;i<7;i++){let x=rand()*W,y=rand()*H;g.beginPath();g.moveTo(x,y);for(let k=0;k<6;k++){x+=(rand()-.5)*24;y+=6+rand()*12;g.lineTo(x,y);}g.stroke();}
-    });
-    const brickNormal=texture('alley-brick-normal',512,512,(g,W,H)=>{const img=g.createImageData(W,H);for(let y=0;y<H;y++)for(let x=0;x<W;x++){const h=(xx,yy)=>brickH[((yy+H)%H)*W+((xx+W)%W)],dx=(h(x-1,y)-h(x+1,y))*1.6,dy=(h(x,y-1)-h(x,y+1))*1.6,l=Math.hypot(dx,dy,1),i=(y*W+x)*4;img.data[i]=(dx/l*.5+.5)*255;img.data[i+1]=(dy/l*.5+.5)*255;img.data[i+2]=(1/l*.5+.5)*255;img.data[i+3]=255;}g.putImageData(img,0,0);});
+    // Old, dirty red brick (ambientCG Bricks097, CC0), darkened toward charcoal by its material.
+    const brickTex=acg('brick-color'),brickNormal=acg('brick-normal');
     for(const tex of [brickTex,brickNormal])tex.wrapU=tex.wrapV=B.Texture.WRAP_ADDRESSMODE; // repeat along and up the walls
-    const brick=new B.StandardMaterial('ncz-alley-brick',scene);brick.diffuseTexture=brickTex;brick.bumpTexture=brickNormal;brick.specularColor=new B.Color3(.12,.1,.1);brick.specularPower=24;brick.emissiveColor=new B.Color3(.3,.21,.2);owned.push(brick);
-    // A brick wall box whose texture repeats every 3 m along and 1.2 m up.
-    function brickWall(name,x0,z0,x1,z1,h,y0=0,t=.4){const len=Math.hypot(x1-x0,z1-z0),u=len/3,vv=h/1.2,ut=t/3,uv=[new B.Vector4(0,0,u,vv),new B.Vector4(0,0,u,vv),new B.Vector4(0,0,ut,vv),new B.Vector4(0,0,ut,vv),new B.Vector4(0,0,u,ut),new B.Vector4(0,0,u,ut)];
+    const brick=new B.StandardMaterial('ncz-alley-brick',scene);brick.diffuseTexture=brickTex;brick.bumpTexture=brickNormal;brick.diffuseColor=new B.Color3(.34,.29,.29);brick.specularColor=new B.Color3(.12,.1,.1);brick.specularPower=24;brick.emissiveColor=new B.Color3(.17,.12,.12);owned.push(brick);
+    // A brick wall box whose texture repeats every 2 m along and 1.6 m up (one copy of the photo).
+    function brickWall(name,x0,z0,x1,z1,h,y0=0,t=.4){const len=Math.hypot(x1-x0,z1-z0),u=len/2,vv=h/1.6,ut=t/2,uv=[new B.Vector4(0,0,u,vv),new B.Vector4(0,0,u,vv),new B.Vector4(0,0,ut,vv),new B.Vector4(0,0,ut,vv),new B.Vector4(0,0,u,ut),new B.Vector4(0,0,u,ut)];
      const m=B.MeshBuilder.CreateBox(name,{width:x0===x1?t:len,height:h,depth:x0===x1?len:t,faceUV:x0===x1?[uv[2],uv[3],uv[0],uv[1],uv[4],uv[5]]:uv,wrap:true},scene);return add(m,brick,[(x0+x1)/2,y0+h/2,(z0+z1)/2]);}
     const A=S.alley;
-    ground('alley-floor',A,mat('alley-asphalt','#ffffff',{rough:.18,metal:.4}),.012,6).material.albedoTexture=asphaltTex;
+    {const alleyRoad=mat('alley-asphalt','#b4b4bc',{rough:.22,metal:.35});alleyRoad.albedoTexture=acg('road-cracked-color');alleyRoad.bumpTexture=acg('road-cracked-normal');ground('alley-floor',A,alleyRoad,.012,4);}
     // North side: a row of old brick buildings; south side: brick up to the District's front.
     for(let x=A[0];x<A[1];){const w=10+rand()*12,x1=Math.min(A[1],x+w),h=11+rand()*9;brickWall('alley-building',x,A[3]+.2,x1,A[3]+.2,h);brickWall('alley-building-side',x,A[3]+.2,x,A[3]+8,h);box('alley-roof',[x1-x,.4,8],[(x+x1)/2,h,A[3]+4.2],concrete);x=x1;}
     const doorX=[DOOR.x-3,DOOR.x+3];
