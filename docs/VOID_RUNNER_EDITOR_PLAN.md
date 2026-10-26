@@ -56,7 +56,7 @@ Every editable thing gets a permanent developer ID: `M` mission, `S` store, `N` 
 |---|---|---|
 | 1. Audit and plan | This document | Done (PR 87) |
 | 2. Gameplay fixes | Pointer lock that never fires on capture; Esc pauses; the mouse comes back after dialogue and menus; dialogue always fits the window; mouse-wheel weapon select (unarmed / pistol, rifle-ready); a visible hangar maintenance terminal; clearer buy-then-install | Done (PR 87) |
-| 3. Missions and guidance | Universal objective markers; an optional Guidance menu (separate from missions); Rook as a cargo network with payment rules; in-person versus remote dialogue rules | Next |
+| 3. Missions and guidance | Universal objective markers; an optional Guidance menu (separate from missions); Rook as a cargo network with payment rules; in-person versus remote dialogue rules | Markers and Guidance done (2026-10-27, `world-markers.js`). Rook restructure and dialogue rules: next |
 | 4. Data foundation | ID registry, JSON schemas, validator, import/export, the game reading missions, dialogue and stores from data | Planned |
 | 5. Visual editor | Node canvas (drag, connect, branch), dialogue graph, property panels, search and Jump To, undo/redo, store editor | Planned |
 | 6. Developer testing | Isolated test sessions, jump to a location, mission stage or dialogue, inventory states, server-checked access | Started early: Test & Jump To (place + story stage + test kit) is built. Mission-by-ID, dialogue and inventory tests come with the data in stage 4. |
@@ -105,3 +105,26 @@ David asked to know which developer tools really exist and to have one Developer
   - The outfitter is labelled SHIP OUTFITTER · BUY.
   - The terminal is labelled HANGAR / MAINTENANCE · INSTALL.
 - **Buy then install:** after a purchase the outfitter says where to install the item. Maintenance opens with a READY TO INSTALL list of owned items that aren't fitted, each with a one-click install, including the missile launcher.
+
+## 7. Stage 3, part 1: markers and Guidance (2026-10-27)
+
+- **Markers (`world-markers.js`), with Guidance on or off:**
+  - The tracked objective gets a diamond with its distance, coloured by mission type: main gold, cargo cyan, side violet, tutorial blue.
+  - A yellow **!** marks anyone with work, a delivery or payment for you: Rook, Admin, Iris, Dr. Elara Voss, Marcus Vale, Dr. Adrian Kess, Daniel Mercer, Dr. Sol and Iona.
+  - Quiet labels (OUTFITTER, HANGAR, JOBS, PODS, SHOP …) appear on services within 14 m.
+  - The off-screen arrow is unchanged.
+- **Guidance:** opened from **GUIDANCE** in the game menu, with an on/off switch and 10 topics:
+  - movement
+  - weapons
+  - the Mission Log
+  - finding people
+  - buying equipment
+  - installing modules
+  - the missile launcher
+  - targeting and missiles
+  - flying
+  - travelling between systems
+- **How it works:** a small card shows the next step for where you actually are, and the place to go gets a pulsing **GUIDE** ring.
+  - The launcher topic skips the purchase once you own it and skips installing once it is fitted.
+  - Away from a station, it says to go to any station.
+- **No rewards:** Guidance never grants anything. The choice is saved in `story.flags` (`guideTopic`, `guidanceOff`), which cloud saves already accept.
