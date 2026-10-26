@@ -34,3 +34,5 @@
 #guidance-card button{font-size:10px;padding:5px 8px}
 #guidance-card.done{border-left-color:#6cff9e}
 .guide-topics{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin:12px 0}
+/* Rook's cargo board: one line per job (what, where, hold space, legality, pay and who pays). */
+.rook-board{list-style:none;margin:8px 0 10px;padding:0;display:grid;gap:6px;font-size:13px;line-height:1.45}.rook-board li{padding:7px 10px;border-left:3px solid #38e8ff;background:rgba(56,232,255,.06)}.rook-board b{color:#f2b33d}.rook-board em{color:#ff8a7a;font-style:normal}

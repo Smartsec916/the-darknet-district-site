@@ -2005,10 +2005,10 @@
    "source": "faction-scenes.js",
    "configHash": "43ded265d771"
   },
-  "rook-a3a0f56420": {
+  "rook-c5d856b671": {
    "speaker": "rook",
-   "text": "Finish your missile qualification: acquire the launcher, install it at the maintenance terminal, then select, lock and fire on a hostile in your next run.",
-   "file": "rook-a3a0f56420.ogg",
+   "text": "Client confirmed the drop. Here’s your pay.",
+   "file": "rook-c5d856b671.ogg",
    "source": "world-integration.js",
    "configHash": "43ded265d771"
   },

@@ -66,20 +66,38 @@ arrive=function(){const previous=state.location,quest=state.quest;solHandover=nu
 const worldTalk=talk;
 talk=function(background,lines,done,label,heading){worldTalk(walkingLocation?'':background,lines,done,label,heading);if(walkingLocation){screen.dataset.scene='';screen.classList.remove('cinematic');screen.querySelectorAll('.portrait').forEach(el=>el.remove());}};
 const worldRenderLine=renderLine;
-renderLine=function(){worldRenderLine();if(walkingLocation){screen.dataset.scene='';screen.classList.remove('cinematic');screen.querySelectorAll('.portrait').forEach(el=>el.remove());}};
+renderLine=function(){worldRenderLine();if(walkingLocation){screen.dataset.scene='';screen.classList.remove('cinematic');screen.querySelectorAll('.portrait').forEach(el=>el.remove());/* A conversation in a station is in person: name the place. Only comms calls and messages are transmissions. */const eyebrow=screen.querySelector('.scene-heading .eyebrow');if(eyebrow&&!/comms|message|transmission/i.test(speech?.heading||''))eyebrow.textContent=(C.stations[state.location]?.name||'').toUpperCase();}};
 barRoom=()=>resumeWalking();bar=barRoom;contacts=function(){campaignBoard();};
 const originalRookConversation=rookConversation;
-// Rook's freight runs keep going after the opening jobs. A newly opened system gets the next run.
+// Rook's cargo network (campaign.js): he pays what he owes first, then shows the jobs on his board.
+// Each job says what it is, where it goes, how much hold it takes, what it pays and who pays.
+// Lines marked UNREVIEWED are Claude's functional placeholders for David.
 function rookFreightOffer(){
- const key=VoidInput.label(VoidInput.bindings.missionLog||'KeyL'),place=id=>C.stations[id]?.name||id;
- if(state.contract==='rook-run'){const r=C.rookRun(state);talk('',[{who:'rook',text:'The '+r.cargo.toLowerCase()+' are still in your hold. '+place(r.destination)+' is waiting on them.'}],resumeWalking,'RETURN TO STATION');return;}
+ const key=VoidInput.label(VoidInput.bindings.missionLog||'KeyL'),place=id=>C.stations[id]?.name||id,far=id=>VoidUniverse.system(id)!==VoidUniverse.system(state.location);
+ const owed=C.rookOwed(state);
+ if(owed){const paid=C.collectRook(state);if(paid){VoidMissions.sync(state,C);save();hud();
+  talk('',[{who:'rook',text:'Client confirmed the drop. Here’s your pay.'}]/* UNREVIEWED */,()=>{announce('PAYMENT RECEIVED · '+paid.toLocaleString()+' credits · ROOK FREIGHT RUN #'+owed.number+' COMPLETE');rookFreightOffer();},'NEXT →','Rook’s booth');return;}}
+ if(state.contract==='rook-run'){const r=C.rookRun(state);
+  talk('',[{who:'rook',text:'The '+r.cargo.toLowerCase()+' are still in your hold. '+place(r.destination)+' is waiting on them.'}],resumeWalking,'RETURN TO STATION');
+  // Handing the cargo back ends the job without pay or penalty.
+  if(r.kind!=='legacy')screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',button('HAND THE CARGO BACK','rook-cancel',true));return;}
  if(state.contract){talk('',[{who:'rook',text:'Finish the job you are carrying. Then come see me.'}],resumeWalking,'RETURN TO STATION');return;}
- const r=C.rookRun({...state,contract:null}),far=VoidUniverse.system(r.destination)!==VoidUniverse.system(state.location);
+ const board=C.rookBoard({...state,contract:null}),r=board[0],free=C.holdFree(state);
  const served=String(state.story.flags.rookSystems||'erebus').split(','),opening=!served.includes(VoidUniverse.system(r.destination));
  const lead=opening?'Lanes into '+VoidUniverse.systems[VoidUniverse.system(r.destination)].name+' just opened up. Get in before everyone else does.':r.number===1?'Opening jobs are done. I keep freight moving, and you look like you could use steady work.':'Back for more? Good.';
- talk('',[{who:'rook',text:lead+' '+r.cargo+' to '+place(r.destination)+(far?' — an interstellar run':'')+'. '+(r.legal?'Legal.':'Not legal.')+' '+r.reward+' credits. '+(r.number===1?'Admin is over in Tessaly if you want other work. '+key+' opens your Mission Log.':'')}],()=>{if(C.accept(state,'rook-run')){VoidMissions.track(state,C.rookRun(state).id,C);save();announce('Cargo loaded. '+place(r.destination)+' tracked.');}resumeWalking();},'ACCEPT RUN →','Rook’s booth');
- screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',button('NOT NOW','walk-resume',true));
+ const jobs=board.map(j=>'<li><b>'+escapeText(j.label.toUpperCase())+'</b> · '+escapeText(j.cargo)+' to '+escapeText(place(j.destination))+(far(j.destination)?' (interstellar)':'')+' · '+(j.units>1?j.units+' hold spaces':'1 hold space')+' · '+(j.legal?'legal':'<em>not legal</em>')+' · <b>'+j.payment.toLocaleString()+' CR</b> '+(j.payAt==='rook'?'paid by Rook here after delivery':'paid on delivery')+'</li>').join('');
+ talk('',[{who:'rook',text:lead+(r.number===1?' Admin is over in Tessaly if you want other work. '+key+' opens your Mission Log.':'')}],resumeWalking,'NOT NOW','Rook’s booth');
+ speech.shown=speech.lines[0].text.length;$('speech-next').style.display='none';
+ screen.querySelector('.dialogue-window')?.classList.add('choice-menu');
+ screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class="rook-board">'+jobs+'</ul>');
+ screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',board.map(j=>button(j.units>free?'NO HOLD SPACE · '+j.label.toUpperCase():'TAKE '+j.label.toUpperCase()+' →','rook-job:'+j.kind,false,j.units>free)).join('')+button('NOT NOW','walk-resume',true));
 }
+screen.addEventListener('click',e=>{const a=e.target.closest('button')?.dataset.action;if(!a||!state)return;
+ if(a.startsWith('rook-job:')){speech=null;globalThis.VoidAudio?.cancel?.();
+  if(C.accept(state,a)){const r=C.rookRun(state);VoidMissions.track(state,r.id,C);save();announce('Cargo loaded. '+(C.stations[r.destination]?.name||r.destination)+' tracked. '+(r.payAt==='rook'?'Rook pays when you are back.':'Paid on delivery.'));}
+  else announce('Not enough free hold space for that job.');resumeWalking();}
+ else if(a==='rook-cancel'){speech=null;globalThis.VoidAudio?.cancel?.();if(C.cancelRook(state)){VoidMissions.sync(state,C);save();announce('Rook’s crew takes the cargo back. No pay, no hard feelings.');}resumeWalking();}
+});
 rookConversation=function(){if(state.location==='meridian'){VoidMissions.complete(state,'meet-rook','enter',C);VoidMissions.complete(state,'meet-rook','locate',C);VoidMissions.complete(state,'meet-rook','speak',C);save();}if(state.missileUnlocked&&!state.missileOfferSeen){state.missileOfferSeen=true;VoidUniverse.unlock(state);save();talk('',[rookMissileLine],resumeWalking,'RETURN TO STATION');return;}if(state.quest==='open'){rookFreightOffer();return;}/* freight never waits on the missile drill (David, 2026-10-23) */originalRookConversation();};
 VoidInteractions.register('talk',({item})=>{
  if(item.character==='rook')return rookConversation();
@@ -93,7 +111,7 @@ VoidInteractions.register('services',()=>{shop();screen.querySelector('.shop-hea
 VoidInteractions.register('jobs',()=>{campaignBoard();});
 // Existing mission-board function name is kept isolated here for service interactions.
 const physicalCampaignBoard=campaignBoard;
-campaignBoard=function(){if(state.quest!=='open'){announce('Rook has your next job.');resumeWalking();return;}physicalCampaignBoard();screen.querySelector('.shop-layout')?.insertAdjacentHTML('beforeend','<h2>CARGO CONTACTS</h2><div class="hangar-grid">'+C.contracts.map(c=>'<article class="card"><h3>'+escapeText(c.name)+'</h3><p>'+escapeText(c.briefing)+'</p>'+button('TALK / '+escapeText(c.contact),'brief:'+c.id,false,!!state.contract)+'</article>').join('')+'</div>');screen.querySelector('.actions,.shop-heading')?.insertAdjacentHTML('beforeend',button('RETURN TO STATION','walk-resume',true));}
+campaignBoard=function(){if(state.quest!=='open'){announce('Rook has your next job.');resumeWalking();return;}physicalCampaignBoard();screen.querySelector('.shop-layout')?.insertAdjacentHTML('beforeend','<h2>CARGO CONTACTS</h2><div class="hangar-grid">'+C.contracts.map(c=>'<article class="card"><h3>'+escapeText(c.name)+'</h3><p>'+escapeText(c.briefing)+'</p>'+button((walkingLocation?.interactions?.some(i=>i.character===({'Dr. Sol':'sol','Iona Vale':'iona','Rook':'rook'})[c.contact])?'TALK / ':'CALL / ')+escapeText(c.contact),'brief:'+c.id,false,!!state.contract)+'</article>').join('')+'</div>');screen.querySelector('.actions,.shop-heading')?.insertAdjacentHTML('beforeend',button('RETURN TO STATION','walk-resume',true));}
 const worldWorkshop=workshopOpening;
 workshopOpening=async function(){await enterWalking('vesper');};
 // Remove disconnected SOL prototype entry points. All travel uses Campaign.flight + VoidWarp.
