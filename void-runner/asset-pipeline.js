@@ -70,6 +70,11 @@
     task?.check();
     const container = await BABYLON.SceneLoader.LoadAssetContainerAsync(url.href.slice(0, url.href.lastIndexOf('/') + 1), url.href.slice(url.href.lastIndexOf('/') + 1), scene);
     if(task?.signal.aborted){container.dispose();task.check();}
+    // When a model finishes loading, the glTF loader raises every material in the scene to one light slot per
+    // light in the scene. Busy scenes (NeoChinatown has 14) then need more uniform buffers than many GPUs allow
+    // (12 on ANGLE/D3D11): shaders fail to compile and models and walls silently stop drawing. Put them back
+    // within eight lights, the most any scene here is built for (Meridian).
+    for(const m of [...container.materials,...scene.materials])if(m.maxSimultaneousLights>8)m.maxSimultaneousLights=8;
     return container;
   }
 

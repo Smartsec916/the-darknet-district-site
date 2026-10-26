@@ -1,6 +1,8 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const D=require('../void-runner/music-director.js'),S=require('../void-runner/music-score.js'),U=require('../void-runner/universe.js');
 const walk=(location,x,z,extra={})=>({mode:'walking',location,walker:{x,z},layoutKind:location==='earth'?'city':'station',...extra});
+// NeoChinatown's District has its own plan (neochinatown.js); these helpers place a District spot in the world.
+const N=require('../void-runner/neochinatown.js'),inDistrict=(x,z,extra)=>{const [wx,wz]=N.toWorld(x,z);return walk('earth',wx,wz,extra);};
 function settle(d,c,seconds=3){let r;for(let t=0;t<seconds;t+=.1)r=D.step(d,c,.1);return r;}
 
 test('every location in the game has its own musical identity',()=>{
@@ -18,18 +20,18 @@ test('every style is playable: valid key, harmony and known layer types',()=>{
 });
 test('District zones are distinguished by where the player stands',()=>{
   assert.equal(D.zoneStyle(walk('earth',0,-40)),'neochinatown');
-  assert.equal(D.zoneStyle(walk('earth',1,23)),'district-entry');
-  assert.equal(D.zoneStyle(walk('earth',0,32)),'district-hall');
-  assert.equal(D.zoneStyle(walk('earth',10,47)),'district-store');
-  assert.equal(D.zoneStyle(walk('earth',-9,40)),'district-arcade');
-  assert.equal(D.zoneStyle(walk('earth',-12.5,62.5)),'district-rest');
-  assert.equal(D.zoneStyle(walk('earth',30,68)),'district-terrace');
+  assert.equal(D.zoneStyle(inDistrict(1,23)),'district-entry');
+  assert.equal(D.zoneStyle(inDistrict(0,32)),'district-hall');
+  assert.equal(D.zoneStyle(inDistrict(10,47)),'district-store');
+  assert.equal(D.zoneStyle(inDistrict(-9,40)),'district-arcade');
+  assert.equal(D.zoneStyle(inDistrict(-12.5,62.5)),'district-rest');
+  assert.equal(D.zoneStyle(inDistrict(30,68)),'district-terrace');
 });
 test('walking between District zones waits a moment so the music never flickers',()=>{
-  const d=D.create();settle(d,walk('earth',0,32));assert.equal(d.style,'district-hall');
-  D.step(d,walk('earth',10,47),.5);assert.equal(d.style,'district-hall','still holding');
-  D.step(d,walk('earth',0,32),.5);D.step(d,walk('earth',10,47),.5);assert.equal(d.style,'district-hall','a brief step in and out never switches');
-  settle(d,walk('earth',10,47),2);assert.equal(d.style,'district-store');
+  const d=D.create();settle(d,inDistrict(0,32));assert.equal(d.style,'district-hall');
+  D.step(d,inDistrict(10,47),.5);assert.equal(d.style,'district-hall','still holding');
+  D.step(d,inDistrict(0,32),.5);D.step(d,inDistrict(10,47),.5);assert.equal(d.style,'district-hall','a brief step in and out never switches');
+  settle(d,inDistrict(10,47),2);assert.equal(d.style,'district-store');
 });
 test('big context changes switch at once',()=>{
   const d=D.create();settle(d,walk('meridian',0,0));assert.equal(D.step(d,{mode:'play',location:'meridian',phase:'align'},.1).style,'space');
@@ -50,12 +52,12 @@ test('watching a faction battle adds tension, never player-combat music',()=>{
 test('bar music comes from in-world speakers and fades with distance',()=>{
   const near=D.speaker(walk('meridian',0,58)),mid=D.speaker(walk('meridian',0,45)),far=D.speaker(walk('meridian',0,10));
   assert.equal(near.style,'dead-channel');assert.equal(near.level,1);assert(mid.level>0&&mid.level<1);assert.equal(far,null);
-  assert.equal(D.speaker(walk('earth',10,38)).style,'district-bar');
-  assert.equal(D.speaker(walk('earth',10,46.5)),null,'the bar music stays out of Admin and Iris’s store');
+  assert.equal(D.speaker(inDistrict(10,38)).style,'district-bar');
+  assert.equal(D.speaker(inDistrict(10,46.5)),null,'the bar music stays out of Admin and Iris’s store');
   assert.equal(D.speaker({mode:'play',location:'meridian'}),null,'no bar speakers in flight');
 });
 test('dialogue ducks the music without stopping it',()=>{
-  const r=D.step(D.create(),{...walk('earth',10,46),mode:'dialogue',dialogue:true},.1);assert.equal(r.duck,D.config.dialogueDuck);assert(r.style);
+  const r=D.step(D.create(),{...inDistrict(10,46),mode:'dialogue',dialogue:true},.1);assert.equal(r.duck,D.config.dialogueDuck);assert(r.style);
 });
 test('the VOID//RUNNER motif and harmony resolve to real notes in every style',()=>{
   for(const s of Object.values(S.styles)){const notes=S.motif.map(i=>S.midi(s,i));assert(notes.every(n=>n>=24&&n<=96));assert.equal(S.triad(s,S.chord(s,0)).length,3);}

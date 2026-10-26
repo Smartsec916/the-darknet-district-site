@@ -93,6 +93,69 @@
    "file": "Clipboard_Lever_Computer_mixamo.fbx",
    "start": 0,
    "end": 12
+  },
+  "vr-aim": {
+   "file": "UAL1_Standard.glb",
+   "source": "ual",
+   "action": "Pistol_Aim_Neutral",
+   "restAction": "A_TPose",
+   "loop": "exact"
+  },
+  "vr-aim-up": {
+   "file": "UAL1_Standard.glb",
+   "source": "ual",
+   "action": "Pistol_Aim_Up",
+   "restAction": "A_TPose",
+   "loop": "exact"
+  },
+  "vr-aim-down": {
+   "file": "UAL1_Standard.glb",
+   "source": "ual",
+   "action": "Pistol_Aim_Down",
+   "restAction": "A_TPose",
+   "loop": "exact"
+  },
+  "vr-shoot": {
+   "file": "UAL1_Standard.glb",
+   "source": "ual",
+   "action": "Pistol_Shoot",
+   "restAction": "A_TPose",
+   "loop": "exact"
+  },
+  "vr-hit": {
+   "file": "UAL1_Standard.glb",
+   "source": "ual",
+   "action": "Hit_Chest",
+   "restAction": "A_TPose",
+   "loop": "exact"
+  },
+  "vr-duck": {
+   "file": "UAL1_Standard.glb",
+   "source": "ual",
+   "action": "Crouch_Idle_Loop",
+   "restAction": "A_TPose",
+   "loop": "exact"
+  },
+  "dance": {
+   "file": "UAL1_Standard.glb",
+   "source": "ual",
+   "action": "Dance_Loop",
+   "restAction": "A_TPose",
+   "loop": "exact"
+  },
+  "menu": {
+   "file": "UAL1_Standard.glb",
+   "source": "ual",
+   "action": "Spell_Simple_Idle_Loop",
+   "restAction": "A_TPose",
+   "loop": "exact"
+  },
+  "menu-tap": {
+   "file": "UAL1_Standard.glb",
+   "source": "ual",
+   "action": "Spell_Simple_Shoot",
+   "restAction": "A_TPose",
+   "loop": "exact"
   }
  },
  "fps": 15

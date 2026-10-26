@@ -1,0 +1,70 @@
+{
+ "name": "vr_player_a",
+ "about": "VR arcade player one (VR shooter): grey and teal streetwear, short hair, slim VR headset with cyan lens and wrist trackers. No weapon: the gun exists only in the game. MakeHuman CC0.",
+ "phenotype": {
+  "gender": 1,
+  "age": 0.3,
+  "muscle": 0.5,
+  "weight": 0.4,
+  "height": 0.55,
+  "race": {
+   "african": 0.5,
+   "caucasian": 0.3,
+   "asian": 0.2
+  }
+ },
+ "skin": "young_african_male",
+ "hair": "short02",
+ "clothes": [
+  "male_casualsuit03",
+  "shoes01"
+ ],
+ "style": {
+  "male_casualsuit03": {
+   "recolor": [
+    {
+     "color": [
+      0.16,
+      0.2,
+      0.22
+     ],
+     "level": 0.7
+    }
+   ]
+  }
+ },
+ "clips": [
+  "idle",
+  "vr-aim",
+  "vr-aim-up",
+  "vr-aim-down",
+  "vr-shoot",
+  "vr-hit",
+  "vr-duck"
+ ],
+ "accessories": [
+  {
+   "type": "headset",
+   "color": [
+    0.05,
+    0.055,
+    0.065
+   ],
+   "glow": [
+    0.1,
+    0.9,
+    1
+   ]
+  },
+  {
+   "type": "trackers",
+   "glow": [
+    0.1,
+    0.9,
+    1
+   ]
+  }
+ ],
+ "lean": true,
+ "maxGarmentVerts": 9000
+}
