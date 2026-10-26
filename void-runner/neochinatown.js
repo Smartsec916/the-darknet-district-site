@@ -199,7 +199,7 @@
      g.strokeStyle='rgba(0,0,0,.7)';g.lineWidth=1.2;for(let i=0;i<7;i++){let x=rand()*W,y=rand()*H;g.beginPath();g.moveTo(x,y);for(let k=0;k<6;k++){x+=(rand()-.5)*24;y+=6+rand()*12;g.lineTo(x,y);}g.stroke();}
     });
     const brickNormal=texture('alley-brick-normal',512,512,(g,W,H)=>{const img=g.createImageData(W,H);for(let y=0;y<H;y++)for(let x=0;x<W;x++){const h=(xx,yy)=>brickH[((yy+H)%H)*W+((xx+W)%W)],dx=(h(x-1,y)-h(x+1,y))*1.6,dy=(h(x,y-1)-h(x,y+1))*1.6,l=Math.hypot(dx,dy,1),i=(y*W+x)*4;img.data[i]=(dx/l*.5+.5)*255;img.data[i+1]=(dy/l*.5+.5)*255;img.data[i+2]=(1/l*.5+.5)*255;img.data[i+3]=255;}g.putImageData(img,0,0);});
-    const brick=new B.StandardMaterial('ncz-alley-brick',scene);brick.diffuseTexture=brickTex;brick.bumpTexture=brickNormal;brick.specularColor=new B.Color3(.12,.1,.1);brick.specularPower=24;owned.push(brick);
+    const brick=new B.StandardMaterial('ncz-alley-brick',scene);brick.diffuseTexture=brickTex;brick.bumpTexture=brickNormal;brick.specularColor=new B.Color3(.12,.1,.1);brick.specularPower=24;brick.emissiveColor=new B.Color3(.16,.11,.11);owned.push(brick);
     // A brick wall box whose texture repeats every 3 m along and 1.2 m up.
     function brickWall(name,x0,z0,x1,z1,h,y0=0,t=.4){const len=Math.hypot(x1-x0,z1-z0),u=len/3,vv=h/1.2,ut=t/3,uv=[new B.Vector4(0,0,u,vv),new B.Vector4(0,0,u,vv),new B.Vector4(0,0,ut,vv),new B.Vector4(0,0,ut,vv),new B.Vector4(0,0,u,ut),new B.Vector4(0,0,u,ut)];
      const m=B.MeshBuilder.CreateBox(name,{width:x0===x1?t:len,height:h,depth:x0===x1?len:t,faceUV:x0===x1?[uv[2],uv[3],uv[0],uv[1],uv[4],uv[5]]:uv,wrap:true},scene);return add(m,brick,[(x0+x1)/2,y0+h/2,(z0+z1)/2]);}
@@ -218,7 +218,8 @@
     for(const z of [A[3]-.3,A[2]+.25])for(let i=0;i<3;i++){const c=cyl('alley-cable',.025,A[1]-A[0],[(A[0]+A[1])/2,5+i*.45,z],frame,true,6);c.rotation.z=Math.PI/2;}
     box('dumpster',[2.6,1.3,1.6],[86,.65,-57],mat('dumpster','#2d4a3a',{rough:.7,metal:.4}));box('dumpster-lid',[2.7,.1,1.7],[86,1.35,-57],frame);
     box('alley-crates',[1,1,1],[97,.5,-60.7],rust);box('alley-crates',[.8,.8,.8],[97.1,1.4,-60.7],rust);box('alley-crates',[1,1,1],[133,.5,-56.4],rust);
-    for(const x of [80,100,118,133]){box('alley-lamp',[.5,.12,.3],[x,5.2,A[3]-.4],amber);box('alley-lamp-arm',[.06,.06,.5],[x,5.3,A[3]-.2],frame);}
+    const poolTex=texture('alley-lamp-pool',256,256,(g,W,H)=>{g.fillStyle='#000';g.fillRect(0,0,W,H);const r=g.createRadialGradient(W/2,H/2,4,W/2,H/2,W/2);r.addColorStop(0,'rgba(255,170,90,1)');r.addColorStop(.5,'rgba(255,140,70,.35)');r.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=r;g.fillRect(0,0,W,H);}),pool=new B.StandardMaterial('ncz-lamp-pool',scene);pool.diffuseColor=B.Color3.Black();pool.specularColor=B.Color3.Black();pool.emissiveTexture=poolTex;pool.disableLighting=true;pool.alphaMode=B.Engine.ALPHA_ADD;pool.alpha=.55;owned.push(pool);
+    for(const x of [80,100,118,133]){box('alley-lamp',[.5,.12,.3],[x,5.2,A[3]-.4],amber);box('alley-lamp-arm',[.06,.06,.5],[x,5.3,A[3]-.2],frame);const f=add(B.MeshBuilder.CreateGround('alley-lamp-pool',{width:6,height:6},scene),pool,[x,.03,A[3]-2.6],false);const w=add(B.MeshBuilder.CreatePlane('alley-lamp-wash',{width:6,height:5},scene),pool,[x,3.4,A[3]-.06],false);}
     for(let x=A[0]+6;x<A[1];x+=11)box('drain-grate',[.9,.02,.5],[x,.03,(A[2]+A[3])/2],mat('drain','#0d0e10',{rough:.5,metal:.8}));
     box('camera-arm',[.06,.06,.6],[DOOR.x-3.3,3.9,A[2]+.1],frame);box('camera-body',[.25,.2,.45],[DOOR.x-3.3,3.8,A[2]+.42],frame);box('camera-led',[.05,.05,.02],[DOOR.x-3.3,3.8,A[2]+.66],red);
     neon('alley-sign',['小心','WATCH YOUR STEP'],['#ff5bd0','#7ff0ff'],1.4,2.2,[A[0]+3,4.2,A[3]-.25],0);
@@ -231,7 +232,7 @@
     function graffiti(text,style,color,outline){const words=text.split(' '),lines=style==='stencil'||text.length<16?[text]:[words.slice(0,Math.ceil(words.length/2)).join(' '),words.slice(Math.ceil(words.length/2)).join(' ')];
      return texture('graffiti-'+text,1024,lines.length>1?512:256,(g,W,H)=>{g.clearRect(0,0,W,H);
       // A ghost of older paint underneath.
-      g.globalAlpha=.18;g.fillStyle=['#7ff0ff','#ff5bd0','#e8e2d0'][Math.floor(rand()*3)];g.font='bold 120px Impact,"Arial Black",sans-serif';g.save();g.translate(W*.5,H*.6);g.rotate(-.08);g.fillText('▲ ✕ ◯',-160,0);g.restore();g.globalAlpha=1;
+      g.globalAlpha=.16;g.fillStyle=['#7ff0ff','#ff5bd0','#e8e2d0'][Math.floor(rand()*3)];g.font='italic bold 150px "Segoe Print",cursive';g.save();g.translate(W*.55,H*.62);g.rotate(-.12);g.fillText(['KR0W','ZER0','N1GHT','D.X.'][Math.floor(rand()*4)],-170,0);g.restore();g.globalAlpha=1;
       const size=Math.min(H/lines.length*.72,W/(Math.max(...lines.map(l=>l.length))*.56));
       lines.forEach((line,i)=>{const y=(i+.5)*H/lines.length;g.save();g.translate(W/2,y);g.rotate((rand()-.5)*.07);g.textAlign='center';g.textBaseline='middle';
        if(style==='stencil'){g.font='bold '+size+'px "Courier New",monospace';g.fillStyle=color;g.fillText(line,0,0);g.globalCompositeOperation='destination-out';for(let k=-3;k<=3;k++)g.fillRect(-W/2,k*size*.32-1,W,size*.06);g.globalCompositeOperation='source-over';}
@@ -242,7 +243,7 @@
        g.fillStyle=color;for(let k=0;k<(style==='stencil'?3:9);k++){const x=W*.12+rand()*W*.76,l=10+rand()*55;g.globalAlpha=.75;g.fillRect(x,y+size*.32,3+rand()*3,l);g.beginPath();g.arc(x+2.5,y+size*.32+l,3.5,0,Math.PI*2);g.fill();g.globalAlpha=1;}});
       // Overspray speckle.
       for(let k=0;k<500;k++){g.fillStyle=color;g.globalAlpha=rand()*.35;g.fillRect(rand()*W,rand()*H,1.5,1.5);}g.globalAlpha=1;});}
-    function decal(t,w,h,p,ry){const m=new B.StandardMaterial('ncz-graffiti',scene);m.diffuseTexture=t;m.diffuseTexture.hasAlpha=true;m.useAlphaFromDiffuseTexture=true;m.emissiveTexture=t;m.emissiveColor=new B.Color3(0,0,0);m.specularColor=new B.Color3(0,0,0);owned.push(m);
+    function decal(t,w,h,p,ry){const m=new B.StandardMaterial('ncz-graffiti',scene);m.diffuseTexture=t;m.diffuseTexture.hasAlpha=true;m.useAlphaFromDiffuseTexture=true;m.emissiveColor=new B.Color3(.32,.3,.3);m.specularColor=new B.Color3(.05,.05,.05);owned.push(m);
      const d=B.MeshBuilder.CreatePlane('graffiti',{width:w,height:h},scene);add(d,m,p,false);d.rotation.y=ry;return d;}
     // North wall faces south (into the alley): plane front -z means rotation 0. South wall faces north: rotation pi.
     const spots=[[78,2.4,'n',7],[90,4.6,'n',9],[104,1.9,'n',6],[116,3.4,'n',8],[128,5.4,'n',6],[82,2.2,'s',7.5],[95,3.8,'s',8],[106,1.8,'s',5],[113,5.6,'s',6],[134.5,2.4,'n',4],[121,6.6,'s',4.5],[73.5,6,'n',3.6]];
@@ -272,7 +273,7 @@
     add(B.MeshBuilder.CreateGround('district-floor',{width:34,height:52},scene),tiles,[0,.02,52]);
     box('district-ceiling',[34,.3,52],[0,4.2,52],frame);
     // Walls only: furniture collision blocks (counters, the pod row) are drawn by their rooms, not as walls.
-    for(const s of solids){if(!/^(hall|vr|vend|pods|bar|shop|meet)-/.test(s.id)||/-(counter|row|table)$/.test(s.id))continue;box('district-wall',[Math.max(.3,s.size[0]),4.2,Math.max(.3,s.size[2])],[s.position[0],2.1,s.position[2]],metal);}
+    for(const s of solids){if(!/^(hall|vr|vend|pods|bar|shop|meet)-/.test(s.id)||/-(counter|row|table)$/.test(s.id)||/glass|partition/.test(s.id))continue;/* glass booths are drawn by the VR arcade */box('district-wall',[Math.max(.3,s.size[0]),4.2,Math.max(.3,s.size[2])],[s.position[0],2.1,s.position[2]],metal);}
     for(let z=28;z<78;z+=4){box('hall-beam',[6,.3,.3],[0,3.9,z],frame);box('hall-led',[.08,.05,3.6],[-2.6,3.85,z+2],z%8?cyan:magenta);box('hall-led',[.08,.05,3.6],[2.6,3.85,z+2],z%8?magenta:cyan);}
     for(const [z,side] of [[30.5,1],[46,-1],[58,1],[66,-1]])plane('hall-ad',1.2,1.8,[side*2.82,2.2,z],adMat(nextAd()),side>0?Math.PI/2:-Math.PI/2);
     for(const z of [40,72])box('hall-camera',[.2,.2,.4],[2.7,3.6,z],frame);
