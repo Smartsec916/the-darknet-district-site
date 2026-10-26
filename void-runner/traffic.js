@@ -2,7 +2,7 @@
    Ports are busy: most traffic arrives at, leaves or crosses the landing area. Open space is sparse and random.
    New contacts enter far off or out of warp, so nothing pops in beside the player. */
 (function(root){
- const config={emptyChance:0,maxContacts:3,port:{seed:[2,4],max:5,delay:[2.5,7]},quiet:{seed:[1,2],max:2,delay:[8,18]},open:{max:2,delay:[9,26],distance:[260,520]},warpIn:1.2,mouth:8,clearance:60};
+ const config={emptyChance:0,maxContacts:3,port:{seed:[2,4],max:5,delay:[2.5,7]},quiet:{seed:[1,2],max:2,delay:[8,18]},open:{max:2,delay:[9,26],distance:[260,520]},warpIn:1.2,mouth:8,clearance:60,slot:.15};
  const definitions={courier:{model:'courier',relationship:'neutral',role:'courier',behavior:'crossing',speed:[18,32],lifetime:[14,26],spawn:{distance:[90,170],altitude:[5,18]},marker:'contact'},transport:{model:'shuttle',relationship:'neutral',role:'transport',behavior:'crossing',speed:[10,20],lifetime:[20,35],spawn:{distance:[120,210],altitude:[8,25]},marker:'contact'}};
  const range=(rng,bounds)=>bounds[0]+rng()*(bounds[1]-bounds[0]);
  const behaviors={crossing:(rng,{side,speed})=>({x:-side*speed,y:(rng()-.5)*5,z:(rng()-.5)*speed})};
@@ -20,14 +20,17 @@
  function port(rng,area,seeded){
   const out=area.out,mouth=add(area.landing,out,config.mouth),roll=rng(),def=pick(rng);
   const side=unit(Math.abs(out.y)>.9?{x:1,y:0,z:0}:{x:out.z,y:0,z:-out.x}),sign=rng()<.5?-1:1;
+  // A station hangar is a slot set back into the hull (apron: landing point to the hull's front face).
+  // Traffic measures its distances from that face, and ships entering or leaving keep within the slot.
+  const reach=Math.max(0,(area.apron||0)-config.mouth),spread=reach?config.slot:null;
   // Arrivals come in from the open side of the port and disappear into it.
-  if(roll<.45)return contact(rng,def,'cargo arrival',add(mouth,around(rng,out,.9),seeded?range(rng,[60,260]):range(rng,[160,300])),mouth,{docking:true,warpIn:!seeded});
+  if(roll<.45)return contact(rng,def,'cargo arrival',add(mouth,around(rng,out,spread??.9),reach+(seeded?range(rng,[60,260]):range(rng,[160,300]))),mouth,{docking:true,warpIn:!seeded});
   // Departures leave the mouth and jump. While the player is still in the mouth, none launch through them;
   // ones already under way are well clear and off to one side.
-  const playerInMouth=Math.hypot(mouth.x,mouth.y,mouth.z)<config.clearance;
-  if(roll<.8&&(seeded||!playerInMouth)){const start=seeded?add(add(mouth,out,range(rng,[60,160])),side,sign*range(rng,[15,40])):mouth;return contact(rng,def,'civilian departure',start,add(start,around(rng,out,.8),range(rng,[160,320])));}
-  // Transfers cross the approach lane close to the port.
-  const lane=add(mouth,out,range(rng,[25,110]));
+  const playerInMouth=Math.hypot(mouth.x,mouth.y,mouth.z)<config.clearance+reach;
+  if(roll<.8&&(seeded||!playerInMouth)){const start=seeded?add(add(mouth,out,reach+range(rng,[60,160])),side,sign*range(rng,[15,40])):mouth;return contact(rng,def,'civilian departure',start,add(start,around(rng,out,seeded?.8:spread??.8),reach+range(rng,[160,320])));}
+  // Transfers cross the approach lane close to the port, outside the hull.
+  const lane=add(mouth,out,reach+range(rng,[25,110]));
   const start=add(add(lane,side,-sign*range(rng,[120,220])),{x:0,y:1,z:0},(rng()-.5)*30);
   return contact(rng,def,'mining transfer',start,add(start,side,sign*range(rng,[240,420])),{warpIn:!seeded});
  }
@@ -40,7 +43,7 @@
  function spawn(rng,area,seeded){return area.landing?port(rng,area,seeded):open(rng);}
  // Where traffic gathers: a port (landing point plus the direction its approach opens toward) or open space.
  function locate(area,options={}){
-  const where=options.landing?{port:options.port||'port',landing:{...options.landing},out:unit(options.out||defaultPort.out),quiet:!!options.quiet}:{port:null,landing:null,out:null,quiet:false};
+  const where=options.landing?{port:options.port||'port',landing:{...options.landing},out:unit(options.out||defaultPort.out),quiet:!!options.quiet,apron:options.apron||0}:{port:null,landing:null,out:null,quiet:false,apron:0};
   const changed=where.port!==area.port;Object.assign(area,where);return changed;
  }
  // A quiet port (Vesper) sees only a couple of ships at a time.
@@ -58,7 +61,11 @@
  function step(area,dt,playerVelocity={x:0,y:0,z:0},options=null){
   area.clock+=dt;area.held=false;
   if(options?.rng){
+   // A port that is moved on screen rather than flown to (the scripted docking approach) carries its traffic
+   // with it, so ships keep their paths relative to the station instead of the station sliding through them.
+   const from=options.follow&&options.landing&&area.landing&&options.port===area.port?area.landing:null;
    // Arriving at a new port finds it already busy; open space and returning traffic trickle in.
+   if(from){const d={x:options.landing.x-from.x,y:options.landing.y-from.y,z:options.landing.z-from.z};for(const e of area.contacts){for(const axis of ['x','y','z']){e[axis]+=d[axis];e.destination[axis]+=d[axis];}}}
    if(locate(area,options)&&area.landing){seed(options.rng,area);area.next=area.clock+range(options.rng,pace(area).delay);}
    const mode=pace(area);
    if(area.clock>=area.next){if(area.contacts.length<mode.max)area.contacts.push(spawn(options.rng,area,false));area.next=area.clock+range(options.rng,mode.delay);}
