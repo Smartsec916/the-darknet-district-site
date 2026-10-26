@@ -132,6 +132,8 @@
     asphalt.albedoTexture=acg('road-color');asphalt.bumpTexture=acg('road-normal');asphalt.roughness=.35;asphalt.metallic=.2; // a little wet
     const paving=mat('paving','#5a6680',{rough:.75,metal:.05});paving.albedoTexture=acg('sidewalk-color');paving.bumpTexture=acg('sidewalk-normal');
     // Sidewalk slabs: the paving repeats every 2 m on top and runs round the kerb.
+    // Shopfront panels: dark grey with the worn-asphalt grain, so they read as weathered render rather than flat colour.
+    const shopfront=mat('shopfront','#5c6067',{rough:.85,metal:.1});shopfront.albedoTexture=acg('road-color');shopfront.bumpTexture=acg('road-normal');shopfront.emissiveTexture=acg('road-color');shopfront.emissiveColor=new B.Color3(.2,.2,.22); // a faint self-light so the grain reads on the dim street
     const slab=([w,h,d],p)=>{const top=new B.Vector4(0,0,w/2,d/2),kerb=new B.Vector4(0,0,Math.max(w,d)/2,.1);return add(B.MeshBuilder.CreateBox('sidewalk',{width:w,height:h,depth:d,faceUV:[kerb,kerb,kerb,kerb,top,top],wrap:true},scene),paving,p);};
     // Night facades: the face by day, darkened, with its own lit windows. tile = metres one copy covers (wide, high).
     const windowMats=[['office',[28,34]],['apartment',[40,52]],['glass',[30,36]]].map(([n,tile])=>{const m=new B.StandardMaterial('ncz-facade-'+n,scene);m.diffuseTexture=acg('facade-'+n+'-color');m.emissiveTexture=acg('facade-'+n+'-glow');m.diffuseColor=new B.Color3(.3,.3,.36);m.specularColor=new B.Color3(.08,.08,.1);m.metadata={tile};owned.push(m);return m;});
@@ -157,8 +159,9 @@
       const into=[-e.n[0],-e.n[1]],wall=[p[0]+e.n[0]*.05,p[1]+e.n[1]*.05];
       if(sw){const c=[p[0]+into[0]*sw/2,p[1]+into[1]*sw/2];slab(e.n[0]?[sw,.18,seg]:[seg,.18,sw],[c[0],.09,c[1]]);}
       if(e.street==='pad')continue;
-      const glow=[glowMat('shop-cyan','#38e8ff',.32),glowMat('shop-magenta','#ff3fb4',.32),glowMat('shop-amber','#ffb347',.3),glowMat('shop-violet','#9b5cff',.32)][Math.floor(rand()*4)];
-      box('storefront',e.n[0]?[.1,3,seg-1.5]:[seg-1.5,3,.1],[wall[0],1.6,wall[1]],glow);
+      // Ground-floor shopfronts: plain dark grey, lightly textured, for now (David, 2026-10-26). rand() still runs so the signs stay put.
+      rand();const run=seg-1.5,face=new B.Vector4(0,0,run/3,1),edge=new B.Vector4(0,0,.05,1);
+      add(B.MeshBuilder.CreateBox('storefront',{width:e.n[0]?.1:run,height:3,depth:e.n[0]?run:.1,faceUV:e.n[0]?[edge,edge,face,face,edge,edge]:[face,face,edge,edge,edge,edge],wrap:true},scene),shopfront,[wall[0],1.6,wall[1]]);
       box('awning',e.n[0]?[1.2,.12,seg-1.2]:[seg-1.2,.12,1.2],[p[0]+into[0]*.6,3.4,p[1]+into[1]*.6],frame);
       if(wide&&rand()<.55){const [lines,colors]=shopSigns[signIndex++%shopSigns.length];neon('shop-sign-'+signIndex,lines,colors,2.4,4.4,[p[0]+into[0]*.25,5.2,p[1]+into[1]*.25],ry);}
       if(wide&&rand()<.35)billboard(5.5+rand()*2,[p[0]+into[0]*.3,12+rand()*18,p[1]+into[1]*.3],ry);
