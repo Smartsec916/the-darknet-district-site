@@ -38,7 +38,7 @@ function renderMainMenu() {
   const a = window.VoidAccount,
     u = a?.user;
   menuShell('main',
-    `<section class="main-menu"><p class="menu-kicker">THE DARKNET DISTRICT / FLIGHT SYSTEMS ONLINE</p><h1 class="game-logo" tabindex="-1">VOID<span>//</span>RUNNER</h1><p class="menu-subtitle">CARGO & CONSEQUENCES</p><nav class="menu-options" aria-label="Main menu">${VoidMenu.returnTo?button('RESUME GAME','menu-resume'):''}${button('CONTINUE CAMPAIGN','menu-continue',false,!hasSave)}${button('CAMPAIGN','menu-campaign')}${button('SKIRMISH','menu-skirmish')}${button('SETTINGS / KEYBINDINGS','menu-settings')}${VoidMenu.returnTo?button('MAIN MENU','menu-main',true):''}${button('LOGOUT','menu-logout',false,!u||a?.busy)}</nav><div class="menu-account">${u?'SIGNED IN':'LOCAL PILOT · NOT SIGNED IN'}${button(u?'ACCOUNT / CLOUD SAVES':'SIGN IN','menu-account',true)}</div><p class="menu-save">${hasSave?saveDescription(state):'Your journey begins on Vesper.'}</p></section>`
+    `<section class="main-menu"><p class="menu-kicker">THE DARKNET DISTRICT / FLIGHT SYSTEMS ONLINE</p><h1 class="game-logo" tabindex="-1">VOID<span>//</span>RUNNER</h1><p class="menu-subtitle">CARGO & CONSEQUENCES</p><nav class="menu-options" aria-label="Main menu">${VoidMenu.returnTo?button('RESUME GAME','menu-resume'):''}${button('CONTINUE CAMPAIGN','menu-continue',false,!hasSave)}${button('CAMPAIGN','menu-campaign')}${button('SKIRMISH','menu-skirmish')}${(typeof VoidDevTools!=='undefined'&&VoidDevTools.authorized)?button('DEVELOPER TOOLS','menu-devtools'):''}${button('SETTINGS / KEYBINDINGS','menu-settings')}${VoidMenu.returnTo?button('MAIN MENU','menu-main',true):''}${button('LOGOUT','menu-logout',false,!u||a?.busy)}</nav><div class="menu-account">${u?'SIGNED IN':'LOCAL PILOT · NOT SIGNED IN'}${button(u?'ACCOUNT / CLOUD SAVES':'SIGN IN','menu-account',true)}</div><p class="menu-save">${hasSave?saveDescription(state):'Your journey begins on Vesper.'}</p></section>`
     );
 }
 
@@ -149,6 +149,7 @@ async function mainAction(a) {
   else if (a === 'menu-campaign') campaignMenu();
   else if (a === 'menu-skirmish') VoidSkirmish.setup();
   else if (a === 'menu-settings') settingsPage();
+  else if (a === 'menu-devtools') VoidDevTools.open();
   else if (a === 'menu-mute') {
     VoidAudio.set({
       enabled: !VoidAudio.settings.enabled

@@ -3,7 +3,13 @@
 #dev-balance[hidden],#dev-balance-open[hidden],#combat-debug[hidden]{display:none}
 .dev-heading{display:flex;align-items:center;justify-content:space-between;gap:20px}.dev-heading h2{font-size:18px}
 .dev-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:20px 0}
-.dev-fields label{display:grid;gap:5px;font:12px Consolas,monospace}.dev-fields input,#dev-preset{background:#102331;border:1px solid #456270;color:#fff;padding:9px;min-width:0}
+.dev-fields label{display:grid;gap:5px;font:12px Consolas,monospace;align-content:start}
+.dev-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 6px;border-bottom:1px solid #2b4a55;padding-bottom:10px}.dev-tabs button{font-size:11px;background:#102331;color:#9fc7c0;border:1px solid #456270}.dev-tabs button.on{background:#58ffe1;color:#03121a;border-color:#58ffe1}
+.dev-group{font:600 13px Consolas,monospace;letter-spacing:.1em;text-transform:uppercase;color:#f2b33d;margin:22px 0 0;border-bottom:1px solid #2b4a55;padding-bottom:6px}
+.dev-field .dev-name{font:600 13px Consolas,monospace;color:#e8f6f2}.dev-field .dev-help{font:12px/1.45 system-ui,sans-serif;color:#b5cbc6}.dev-field .dev-range{font:10px Consolas,monospace;color:#6f8f96}
+.dev-test-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:14px 0}.dev-test-grid label{display:grid;gap:6px;font:12px Consolas,monospace}.dev-test-grid select{background:#102331;border:1px solid #456270;color:#fff;padding:9px}
+.dev-note{font:12px/1.5 system-ui,sans-serif;color:#b5cbc6;max-width:80ch}
+#dev-test-banner{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:70;display:flex;gap:12px;align-items:center;padding:6px 12px;background:#f2b33d;color:#03121a;font:700 12px Consolas,monospace;letter-spacing:.1em}#dev-test-banner button{font-size:11px;padding:6px 10px;background:#03121a;color:#f2b33d;border:0}#dev-test-banner[hidden]{display:none}.dev-fields input,#dev-preset{background:#102331;border:1px solid #456270;color:#fff;padding:9px;min-width:0}
 .dev-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.dev-actions button{font-size:11px}
 #combat-debug{position:fixed;top:270px;left:15px;z-index:34;background:#03101bce;color:#8effde;font:11px/1.5 Consolas,monospace;padding:10px;pointer-events:none;white-space:pre-wrap;max-width:290px}
 #flash{z-index:5;box-shadow:none}

@@ -8,7 +8,11 @@
   // Procedural material stays usable if the optional authored texture fails to load.
   const fallback=new B.DynamicTexture('meridian-panel-fallback',256,scene,true);textures.push(fallback);const g=fallback.getContext();g.fillStyle='#aaa9a2';g.fillRect(0,0,256,256);g.strokeStyle='#474c4c';g.lineWidth=3;g.strokeRect(3,3,250,250);g.strokeRect(10,10,236,236);for(const x of [16,240])for(const y of [16,240]){g.fillStyle='#414746';g.beginPath();g.arc(x,y,3,0,Math.PI*2);g.fill();}fallback.update();wall.albedoTexture=fallback;deck.albedoTexture=fallback;
   let disposed=false;
-  const authored=new B.Texture('void-runner/assets/textures/meridian-panels-v1.png',scene,false,false,B.Texture.TRILINEAR_SAMPLINGMODE,()=>{if(!disposed){wall.albedoTexture=authored;deck.albedoTexture=authored;}},()=>{});authored.anisotropicFilteringLevel=quality==='low'?2:8;textures.push(authored);
+  // Downloaded before it becomes a texture: a scene texture still downloading holds up the scene's readiness check,
+  // and on a first visit these panels (2.6 MB) queue behind the models and time preparation out. The fallback
+  // shows until they arrive; the service worker still caches the download.
+  fetch('void-runner/assets/textures/meridian-panels-v1.png').then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.blob();}).then(blob=>{if(disposed)return;const src=URL.createObjectURL(blob);
+   const authored=new B.Texture(src,scene,false,false,B.Texture.TRILINEAR_SAMPLINGMODE,()=>{URL.revokeObjectURL(src);if(!disposed){wall.albedoTexture=authored;deck.albedoTexture=authored;}},()=>URL.revokeObjectURL(src));authored.anisotropicFilteringLevel=quality==='low'?2:8;textures.push(authored);}).catch(()=>{});
   function metreUV(mesh,scale=3){const p=mesh.getVerticesData(B.VertexBuffer.PositionKind),n=mesh.getVerticesData(B.VertexBuffer.NormalKind);if(!p||!n)return;const uv=[];for(let i=0;i<p.length;i+=3){const x=Math.abs(n[i]),y=Math.abs(n[i+1]);uv.push((x>.5?p[i+2]:p[i])/scale,(y>.5?p[i+2]:p[i+1])/scale);}mesh.setVerticesData(B.VertexBuffer.UVKind,uv);}
   const oldFurniture=new Set(['lounge-chair','chair-back','chair-metal-leg','bar-stool','bottle','bunk-mattress','pod-bank','pod-bank-2','washbasin','sanitary-fixture']);
   for(const mesh of [...parent.getChildMeshes()]){

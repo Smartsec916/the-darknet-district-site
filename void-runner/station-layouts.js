@@ -58,7 +58,7 @@
   add('shop-counter',[6,1.15,1.2],[-11,.575,29],'counter');
   // Nonwalkable strips outside the narrow corridor are collision volumes, not visual walls.
   solids.push({id:'outside-left',size:[14,20,13],position:[-11,0,11]},{id:'outside-right',size:[14,20,13],position:[11,0,11]}, {id:'ship',size:[7,4,11],position:[-7,2,-9]});
-  const interactions=[{id:'board',action:'board',label:'BOARD YOUR SHIP',position:[-2,1.7,-14],range:3.5},{id:'services',action:'services',label:'SHIP OUTFITTER',position:[-10,1.7,26],range:3},{id:'jobs',action:'jobs',label:'MISSION TERMINAL',position:[-4,1.7,31],range:3}];
+  const interactions=[{id:'board',action:'board',label:'BOARD YOUR SHIP',position:[-2,1.7,-14],range:3.5},{id:'services',action:'services',label:'SHIP OUTFITTER · BUY EQUIPMENT',position:[-10,1.7,26],range:3},{id:'jobs',action:'jobs',label:'MISSION TERMINAL',position:[-4,1.7,31],range:3}];
   const people=id==='meridian'?['rook','nyx']:id==='kepler'?['sol']:id==='rusthaven'?['iona']:id==='vigil'?['elara']:id==='holdfast'?['marcus']:id==='vesper'?['mara','elias']:[];
   const names={elara:'DR. ELARA VOSS',marcus:'MARCUS VALE'};
   people.forEach((character,i)=>interactions.push({id:character,action:'talk',character,label:(character==='elias'?'PLAY ARCHIVE / ':'TALK / ')+(names[character]||character.toUpperCase()),position:id==='vesper'?[i?5:0,1.7,i?-10:-12]:[i?13:8,1.7,i?31:25],range:3}));

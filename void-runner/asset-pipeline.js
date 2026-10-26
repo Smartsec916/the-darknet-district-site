@@ -70,6 +70,11 @@
     task?.check();
     const container = await BABYLON.SceneLoader.LoadAssetContainerAsync(url.href.slice(0, url.href.lastIndexOf('/') + 1), url.href.slice(url.href.lastIndexOf('/') + 1), scene);
     if(task?.signal.aborted){container.dispose();task.check();}
+    // When a model finishes loading, the glTF loader raises every material in the scene to one light slot per
+    // light in the scene. Busy scenes (NeoChinatown has 14) then need more uniform buffers than many GPUs allow
+    // (12 on ANGLE/D3D11): shaders fail to compile and models and walls silently stop drawing. Put them back
+    // within eight lights, the most any scene here is built for (Meridian).
+    for(const m of [...container.materials,...scene.materials])if(m.maxSimultaneousLights>8)m.maxSimultaneousLights=8;
     return container;
   }
 
@@ -90,15 +95,23 @@
     return node;
   }
   async function prepare(scene, definitions, task) {
-    release();const gen=generation,later=[];
+    release();const gen=generation,later=[],missed=[];
     await Promise.all(Object.entries(definitions).map(async ([id,def])=>{
       // Large optional models (crowd figures) load with the scene only when already in the offline cache.
       // Otherwise they wait until the scene is on screen, so they never slow it down, and are swapped in
       // when they arrive (onLoaded); a finished download is cached for next time.
       if(def.background&&!(await cached(def))){later.push([id,def]);return;}
-      try{await VoidPreparation.run(t=>t.wait('optional',()=>load(id,def,scene,t),def.src));}catch(error){console.warn('[VOID optional model]',{id,asset:def.src,recovery:'procedural modern placeholder',reason:error.message});}
-    }));task?.check();
-    if(later.length)scene.onAfterRenderObservable.addOnce(()=>{if(gen===generation)queue.push(...later.map(([id,def])=>({id,def,scene,gen})));pump();});
+      try{await VoidPreparation.run(t=>t.wait('optional',()=>load(id,def,scene,t),def.src));}catch(error){
+        missed.push({id,asset:def.src,reason:error.message});
+        // A timeout cancels the download and the service worker caches only finished ones, so a slow
+        // connection would miss on every visit. Finish it in the background so the next visit has it.
+        if(/timed out/.test(error.message)&&gen===generation&&!(await cached(def)))later.push([id,def]);
+      }
+    }));
+    if(missed.length)console.warn('[VOID optional models] '+missed.length+' using procedural placeholders; timed-out downloads continue in the background for the next visit',missed);
+    task?.check();
+    // Once the scene is ready, so background downloads and parsing never hold up its readiness check.
+    if(later.length)scene.executeWhenReady(()=>{if(gen===generation)queue.push(...later.map(([id,def])=>({id,def,scene,gen})));pump();});
   }
   async function cached(def){try{return typeof caches!=='undefined'&&!!(await caches.match(new URL(def.src,base).href));}catch{return false;}}
   // Background downloads, two at a time. Released scenes cancel theirs, so the next place loads at full speed.
@@ -111,6 +124,8 @@
     const task={signal:controller.signal,check(){if(controller.signal.aborted)throw controller.signal.reason;}},job={controller,gen};jobs.add(job);
     return loadContainer(def,scene,task,id).then(container=>{
       if(gen!==generation||scene.isDisposed){container.dispose();return false;}
+      // Not a swap-in model (a timed-out prop or fitting): the finished download is now cached for the next visit.
+      if(!def.background){container.dispose();return true;}
       containers.set(id,{container,def});
       for(const listener of listeners)try{listener(id);}catch(error){console.warn('[VOID//RUNNER assets] listener',error);}
       return true;

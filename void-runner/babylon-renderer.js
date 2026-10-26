@@ -615,6 +615,8 @@
     const shelfZ=def.furniture?.store?.shelves;colors.forEach((c,i)=>shelfZ?box('outfitter-category',[.12,.6,.9],[-17.55,3.35,shelfZ[0]-.6+i*(shelfZ[shelfZ.length-1]-shelfZ[0]+1.2)/4],material('shop',c,true),roomRoot):box('outfitter-category',[.55,.9,.12],[-14+i*1.5,1.7,29],material('shop',c,true),roomRoot));
     for(let z=-20;z<32;z+=7){box('floor-guide',[.12,.025,3],[0,.03,z],material('guide','#80baaa',true),roomRoot);if(z<4||z>18)box('ceiling-light',[8,.06,.2],[0,z<4?8.7:5.7,z],material('lamp','#d1d4be',true),roomRoot);}
     for(const signDef of def.signs)sign(signDef,roomRoot);
+    // Hangar / Maintenance is a real console: install, remove and configure equipment here (the outfitter only sells).
+    for(const item of def.interactions.filter(i=>i.action==='maintenance'))maintenanceTerminal(item.position,roomRoot);
     // Props first: the fit-out then batches the remaining static pieces, skipping the hidden ones.
     placeProps(def,roomRoot);
     if(def.rooms){fitoutMeridian(roomRoot);if(def.id==='meridian')planet.position.set(340,-65,140);
@@ -627,6 +629,21 @@
     await task.wait('scene',()=>scene.whenReadyAsync(),'station-'+def.id);diagnostics.location=def.id;
   }
 
+  function maintenanceTerminal([x,,z],parent){
+    const b=B(),frame=material('maintenance-frame','#2c353b'),trim=material('maintenance-trim','#f2b33d',true),glow=material('maintenance-ring','#7fe0c8',true);
+    const node=new b.TransformNode('hangar-maintenance-terminal',scene);node.parent=parent;node.position.set(x,0,z+1.25);node.rotation.y=Math.PI; // screen faces the hangar floor (-z)
+    box('maintenance-base',[1.5,.9,.7],[0,.45,0],frame,node);box('maintenance-hazard',[1.52,.08,.72],[0,.06,0],trim,node);
+    box('maintenance-arm',[.12,1.1,.12],[-.62,1.45,.12],frame,node);box('maintenance-arm',[.12,1.1,.12],[.62,1.45,.12],frame,node);
+    const t=new b.DynamicTexture('maintenance-screen',{width:512,height:320},scene,true),g=t.getContext();
+    g.fillStyle='#071419';g.fillRect(0,0,512,320);g.strokeStyle='#7fe0c8';g.lineWidth=6;g.strokeRect(10,10,492,300);
+    g.fillStyle='#f2b33d';g.font='bold 44px monospace';g.textAlign='center';g.fillText('HANGAR /',256,92);g.fillText('MAINTENANCE',256,146);
+    g.fillStyle='#bfeee2';g.font='bold 28px monospace';g.fillText('INSTALL · REMOVE',256,210);g.fillText('CONFIGURE EQUIPMENT',256,248);
+    g.fillStyle='#7fe0c8';g.font='22px monospace';g.fillText('[E] OPEN',256,292);t.update();
+    const sm=new b.StandardMaterial('maintenance-screen',scene);sm.diffuseTexture=t;sm.emissiveTexture=t;sm.disableLighting=true;
+    const screen=b.MeshBuilder.CreatePlane('maintenance-screen',{width:1.3,height:.82},scene);screen.parent=node;screen.position.set(0,1.42,.05);screen.rotation.set(-.18,Math.PI,0);screen.material=sm; // faces -z (plane front is -z; turned to face the player)
+    const ring=b.MeshBuilder.CreateTorus('maintenance-floor-ring',{diameter:2.6,thickness:.05,tessellation:40},scene);ring.parent=node;ring.position.set(0,.03,1.25);ring.material=glow;ring.isPickable=false;
+    node.metadata={animated:true};for(const m of node.getChildMeshes())m.metadata={...m.metadata,animated:true};
+  }
   function fitoutMeridian(parent){
     const b=B(),steel=material('brushed-steel','#454e55'),warm=material('lamp-warm','#ffd39a',true),rubber=material('rubber','#232a30'),copper=material('copper','#967053');
     const F=room?.furniture||VoidMeridianInterior.layout().furniture;
@@ -1156,7 +1173,19 @@
     diagnostics.meshCount = scene.meshes.length;
   }
 
+  // First-person Ward pistol for rooms other than Vesper (which builds its own). Same pieces, colours and poses.
+  let handGun=null;
+  function handWeapon(drawn,aim=false,reloading=false){
+    const camera=scene?.activeCamera;if(!camera)return;
+    if(handGun&&(handGun.isDisposed()||handGun.parent!==camera)){handGun.dispose();handGun=null;}
+    if(!handGun){if(!drawn)return;const b=B();handGun=new b.TransformNode('hand-ward-pistol',scene);handGun.parent=camera;
+      const steel=material('hand-pistol-steel','#464b4a'),dark=material('hand-pistol-rubber','#222b2e'),sight=material('hand-pistol-sight','#b4773a');
+      for(const [name,size,p,m] of [['pistol-slide',[.065,.085,.29],[0,0,0],steel],['pistol-grip',[.058,.14,.08],[0,-.085,-.07],dark],['pistol-front-sight',[.012,.014,.018],[0,.048,.12],sight],['pistol-rear-sight',[.06,.02,.022],[0,.05,-.105],dark]]){
+        const mesh=b.MeshBuilder.CreateBox(name,{width:size[0],height:size[1],depth:size[2]},scene);mesh.parent=handGun;mesh.position.set(...p);mesh.material=m;mesh.renderingGroupId=1;mesh.isPickable=false;}}
+    handGun.setEnabled(drawn);handGun.position.set(aim?0:.21,reloading?-.40:aim?-.07:-.23,aim?.5:.55);handGun.rotation.set(reloading?.65:0,0,reloading?.4:0);
+  }
   function clearRoom() {
+    handGun?.dispose();handGun=null;
     roomRoot?.metadata?.art?.dispose?.();
     roomRoot?.metadata?.exterior?.metadata?.dispose?.();
     openingHandle?.dispose();openingHandle=null;root.VoidCrowd?.release();
@@ -1222,6 +1251,7 @@
   root.VoidBabylon = {prepareMenu,renderMenu,releaseMenu,get menuScene(){return menuHandle?.scene;},
     resizeViewport(width,height){if(engine)resize(width,height);},
     initialize,
+    handWeapon,
     prepareSpace,
     prepareRoom,
     renderFlight,

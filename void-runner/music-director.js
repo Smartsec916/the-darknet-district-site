@@ -26,14 +26,15 @@
    return systemSpace[c.system]||'space';
   }
   if(c.layoutKind==='derelict')return 'derelict';
-  if(c.location==='earth'&&c.walker)return districtZones.find(z=>z.test(c.walker)).style;
+  if(c.location==='earth'&&c.walker){const N=typeof module!=='undefined'?require('./neochinatown.js'):root.VoidNeoChinatown,p=N?N.zone(c.walker):{area:'district',...c.walker};return p.area==='street'?'neochinatown':p.area==='terrace'?'district-terrace':districtZones.find(z=>z.test(p)).style;}
   return locations[c.location]||'meridian';
  }
  function speaker(c){
   if(c.mode!=='walking'&&c.mode!=='dialogue'||!c.walker)return null;
   const s=c.location==='earth'?speakers.neochinatown:c.location==='meridian'?speakers.meridian:c.layoutKind==='station'?speakers.station:null;
   if(!s)return null;
-  const d=Math.hypot(c.walker.x-s.x,c.walker.z-s.z),level=d<=s.inner?1:d>=s.outer?0:1-(d-s.inner)/(s.outer-s.inner);
+  const N=c.location==='earth'?(typeof module!=='undefined'?require('./neochinatown.js'):root.VoidNeoChinatown):null,w=N?N.zone(c.walker):c.walker;
+  const d=Math.hypot(w.x-s.x,w.z-s.z),level=d<=s.inner?1:d>=s.outer?0:1-(d-s.inner)/(s.outer-s.inner);
   return level>0?{style:s.style,level:Math.round(level*1000)/1000}:null;
  }
  function create(){return {style:null,pending:null,pendingTime:0,combatTimer:0,intensity:0};}

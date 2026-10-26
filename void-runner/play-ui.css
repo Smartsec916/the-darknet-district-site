@@ -1,0 +1,28 @@
+/* Loaded last. Dialogue always fits the visible window; weapon chip (David's editor brief, parts 7–9). */
+
+/* Dialogue: pinned to the bottom of the visible window at every size. Long text scrolls inside the box;
+   the Next and choice buttons stay in view, so the page itself never has to scroll. */
+.dialogue-window,.cinematic-space .dialogue-window,.dialogue-window.choice-menu{
+  position:fixed!important;left:max(10px,3vw)!important;right:max(10px,3vw)!important;top:auto!important;
+  bottom:calc(64px + env(safe-area-inset-bottom,0px))!important;margin:0!important; /* clears the footer bar (MENU) */
+  max-height:min(72vh,calc(100vh - 84px));max-height:min(72dvh,calc(100dvh - 84px));
+  display:flex!important;align-items:stretch;z-index:6;overflow:hidden}
+.dialogue-window .speech-body{display:flex;flex-direction:column;min-height:0;overflow:auto;overscroll-behavior:contain}
+.dialogue-window #spoken-text{flex:0 0 auto}
+.dialogue-window .speech-controls{position:sticky;bottom:0;flex:none;padding-top:10px;background:linear-gradient(#06101d00,#06101d 30%)}
+.dialogue-window .portrait{flex:none}
+@media (max-width:800px){
+  .dialogue-window .portrait{width:72px!important;float:none!important;margin:12px 0 0 12px!important;align-self:flex-start}
+  .dialogue-window .speaker{min-height:0!important;padding-top:0!important}}
+@media (max-height:560px){.dialogue-window .portrait{display:none}.dialogue-window #spoken-text{font-size:15px;min-height:0}}
+.dialogue-window .speech-controls button:focus-visible{outline:2px solid #f2b33d;outline-offset:2px}
+
+/* Weapon chip: what you hold, and what the wheel cycles through. */
+#weapon-select-hud{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:120px;z-index:3;pointer-events:none;
+  display:flex;gap:6px;align-items:center;font:600 11px monospace;letter-spacing:.1em}
+#weapon-select-hud span{padding:5px 8px;border:1px solid #ffffff22;background:#06101daa;color:#7f949b}
+#weapon-select-hud span.on{color:#06101d;background:#f2b33d;border-color:#f2b33d}
+#weapon-select-hud i{font-style:normal;font-weight:400;color:#7f949b;padding-left:2px}
+#weapon-select-hud.fresh span.on{box-shadow:0 0 0 2px #f2b33d55}
+/* While a conversation is open, the screen behind it is exactly one window tall, so nothing below needs scrolling. */
+#screen:has(.dialogue-window){height:100vh;height:100dvh;min-height:0!important;overflow:hidden}
