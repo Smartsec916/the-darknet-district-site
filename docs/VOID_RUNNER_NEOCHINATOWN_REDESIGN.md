@@ -79,3 +79,50 @@ World metres: x runs east, z runs north. All of it is in `void-runner/neochinato
   - Both VR players were seen animating: the shooter ran shoot, aim up, duck, aim down; the second player ran dance, interact, menu.
   - There are 0 shader errors after the light cap.
 - **Browser suites:** `meridian-menu-browser`, `relay-browser`, `unified-controls-browser` and `flight-skirmish-browser` pass. `tutorial-menu-save-browser` fails on `main` too; PR 86 fixes it.
+
+## Visual overhaul (2026-10-27)
+
+David's brief: make NeoChinatown look like his four references (an old, crowded neighbourhood under a vast megacity) without changing the layout. `VoidNeoChinatown.layout()` (walls, doors, interactions, spawn) is byte-identical to before; only what is drawn changed.
+
+- **Lighting (NeoChinatown only, restored on leaving):**
+  - teal-black sky; blue-green EXP2 haze (0.0028)
+  - exposure 1.3, contrast 1.18, environment light 0.3
+  - a dim teal sky light outdoors (0.5)
+  - inside the District, the original level comes back as you walk in
+  - exposure is re-applied every frame, so a quality change can't reset it
+- **Old neighbourhood:**
+  - **Buildings:** the tall modern towers along the streets are gone. Every city block is built up in 12 m plots of weathered corrugated steel, old concrete and leaking plate (ambientCG, CC0). Each plot is set 0.35 m back from the street, so storefronts stay in front.
+  - **Heights:** 18–30 m on the avenue and main street, 9–17 m elsewhere; an outer ring 26–46 m.
+  - **Facades:** each texture glows faintly (as if lit by the haze), so the weathering reads in the dark.
+  - **Windows and walls:** lit and dark windows, wall AC units, balconies, drainpipes, conduits.
+  - **Roofs:** parapets, AC units, water tanks, antennas with red lights, satellite dishes, small rooftop shacks.
+- **Megacity:**
+  - two rings of night towers (radius 160–250 m, 110–320 m tall; and 280–460 m, 220–620 m tall)
+  - set-back crowns, spires, beacons, corner light strips
+  - giant vertical ad screens; five nearer ones change every ~10 s
+  - a haze dome that glows at the horizon
+  - no collision; one thinner ring on low quality
+- **Neon and light:**
+  - **Blade signs:** sixteen vertical signs sticking out from the walls (拉麵, 旅館, 當鋪, 診所, 電器, 網吧, 麻將, HOTEL, PHO, KEBAB, CYBERWARE, TATTOO, PAWN, BAR, NOODLES, CLINIC), readable from both directions. A few flicker briefly now and then.
+  - **Wall lamps:** amber and white.
+  - **Light spill:** every sign, lamp and the new pad floodlights spill light onto the wall and wet ground as additive glow. These are not real lights: the scene already has more lights than its shaders use.
+- **Infrastructure:**
+  - **Cables:** sagging overhead cables across the main street, avenue, access road, passage and alley, 7–11 m up, ending on junction boxes.
+  - **Graffiti:** eight new pieces on the access road, passage and pad walls (brief's slogans), all readable the right way round.
+- **Wet streets and rain:**
+  - Puddles: glossy, haze-tinted water rather than black discs; 26 more on medium and high.
+  - Rain: particle streaks that follow the camera outdoors and stop inside the District. Off on low quality; 1,800 or 3,400 per second.
+- **The District's front, kept discreet:**
+  - a small backlit plaque, THE DARKNET DISTRICT
+  - thin dim violet trim round the door
+  - a second camera
+  - a violet pool on the alley floor
+- **Performance:**
+  - Windows, AC units, parapets and roof parts are written straight into one mesh per material (batches) instead of about 6,500 separate meshes.
+  - Building NeoChinatown takes about 1.0 s, against 4.4 s before batching. Entering takes about 1.7 s here.
+  - A render at the main street takes 16.9 ms, against 16.5 ms on `main` (medium quality, this PC).
+- **Not done:**
+  - no imported 3D models: no suitable CC0 building or prop packs in this style were found, so props are simple geometry
+  - no rain splashes and no rain sound
+  - no real-time reflections; puddles and light pools approximate them
+  - the grey storefront panels are unchanged (David's earlier choice)

@@ -87,10 +87,16 @@
   function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance}){
     const B=root.BABYLON,low=quality==='low',owned=[],districtRoot=new root.BABYLON.TransformNode('district-root',scene);let target=parent,disposed=false;districtRoot.parent=parent;districtRoot.position.set(DOOR.x,0,DOOR.z+20);districtRoot.rotation.y=Math.PI;const textures=[],staticMeshes=new Map(),dynamic=[],v=(x,y,z)=>new B.Vector3(x,y,z);
     let seed=4127;const rand=()=>((seed=seed*16807%2147483647)-1)/2147483646;
-    const previous={clear:scene.clearColor.clone(),fogMode:scene.fogMode,fogDensity:scene.fogDensity,fogColor:scene.fogColor.clone()};
-    scene.clearColor=new B.Color4(.035,.03,.07,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.0085;scene.fogColor=new B.Color3(.10,.07,.16);
-    const sun=scene.getLightByName('sun'),ambient=scene.getLightByName('ambient');const lightState={sun:sun?.intensity,ambient:ambient?.intensity};
-    if(sun)sun.intensity=.25;if(ambient){ambient.intensity=.8;}
+    // Night in a megacity (David's references, 2026-10-27): a teal-black sky, blue-green haze that swallows the distant
+    // towers, and little ambient light outdoors, so neon, windows and lamps do the lighting. NeoChinatown only: everything
+    // is put back on leaving, and the exposure is re-applied each frame in case a quality change resets it.
+    const ip=scene.imageProcessingConfiguration,previous={clear:scene.clearColor.clone(),fogMode:scene.fogMode,fogDensity:scene.fogDensity,fogColor:scene.fogColor.clone(),exposure:ip.exposure,contrast:ip.contrast,env:scene.environmentIntensity};
+    scene.clearColor=new B.Color4(.02,.05,.06,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.0028;scene.fogColor=new B.Color3(.075,.155,.17);
+    const look={exposure:1.3,contrast:1.18},applyLook=()=>{if(ip.exposure!==look.exposure)ip.exposure=look.exposure;if(ip.contrast!==look.contrast)ip.contrast=look.contrast;};applyLook();scene.environmentIntensity=Math.min(previous.env??1,.3);
+    const sun=scene.getLightByName('sun'),ambient=scene.getLightByName('ambient');const lightState={sun:sun?.intensity,ambient:ambient?.intensity,diffuse:ambient?.diffuse?.clone(),ground:ambient?.groundColor?.clone()};
+    // Outdoors: a dim teal sky light. Inside the District the original warm level returns (see tick).
+    const outdoor={intensity:low?.6:.5,diffuse:new B.Color3(.42,.62,.72),ground:new B.Color3(.12,.07,.16)},indoor={intensity:.8,diffuse:lightState.diffuse,ground:lightState.ground};
+    if(sun)sun.intensity=.04;if(ambient){ambient.intensity=outdoor.intensity;ambient.diffuse=outdoor.diffuse;if(ambient.groundColor)ambient.groundColor=outdoor.ground;}
     const mats={};
     function mat(key,hex,{rough=.8,metal=.2,glow=null,alpha=1}={}){if(mats[key])return mats[key];const m=new B.PBRMaterial('ncz-'+key,scene);m.albedoColor=B.Color3.FromHexString(hex);m.roughness=rough;m.metallic=metal;if(glow)m.emissiveColor=B.Color3.FromHexString(glow);if(alpha<1){m.alpha=alpha;m.transparencyMode=2;}owned.push(m);mats[key]=m;return m;}
     function glowMat(key,hex,intensity=1){if(mats[key])return mats[key];const m=new B.StandardMaterial('ncz-'+key,scene);m.diffuseColor=B.Color3.Black();m.emissiveColor=B.Color3.FromHexString(hex).scale(intensity);m.disableLighting=true;owned.push(m);mats[key]=m;return m;}
@@ -151,7 +157,7 @@
     const along=(e,t)=>[e.a[0]+(e.b[0]-e.a[0])*t,e.a[1]+(e.b[1]-e.a[1])*t];
     const inGap=(e,p)=>e.gaps.some(([g0,g1])=>{const c=e.n[0]?p[1]:p[0];return c>g0-1.5&&c<g1+1.5;});
     const shopSigns=[[['夜市','NIGHT MARKET'],['#ff5bd0','#7ff0ff']],[['龍麵館','DRAGON NOODLES'],['#ffcf5a','#ff5b5b']],[['電子','ELECTRONICS'],['#7ff0ff','#9b7bff']],[['藥房','PHARMACY 24H'],['#6cff9e','#e8f0ff']],[['茶','TEA HOUSE'],['#ffb347','#ffe9c4']],[['TACOS · 24H'],['#ffb347','#ff5b5b']],[['RAMEN · BAR'],['#ff5bd0','#ffe9c4']],[['REPAIR · 修理'],['#7ff0ff','#ffcf5a']],[['LAUNDRY'],['#e8f0ff','#9b7bff']],[['BIO-CLINIC'],['#6cff9e','#e8f0ff']],[['CHAI · 茶'],['#ffb347','#ff8ad8']],[['NOODLES'],['#ffcf5a','#7ff0ff']]];
-    let signIndex=0;
+    const signSpots=[];let signIndex=0;
     for(const e of edges){
      const len=Math.hypot(e.b[0]-e.a[0],e.b[1]-e.a[1]),wide=e.street==='avenue'||e.street==='main',sw=wide?3:e.street==='road'?1.5:0,ry=faceInto(e.n);
      // Sidewalk strip, storefronts, awnings and signs on the wide streets; facades on the rest.
@@ -163,12 +169,9 @@
       rand();const run=seg-1.5,face=new B.Vector4(0,0,run/3,1),edge=new B.Vector4(0,0,.05,1);
       add(B.MeshBuilder.CreateBox('storefront',{width:e.n[0]?.1:run,height:3,depth:e.n[0]?run:.1,faceUV:e.n[0]?[edge,edge,face,face,edge,edge]:[face,face,edge,edge,edge,edge],wrap:true},scene),shopfront,[wall[0],1.6,wall[1]]);
       box('awning',e.n[0]?[1.2,.12,seg-1.2]:[seg-1.2,.12,1.2],[p[0]+into[0]*.6,3.4,p[1]+into[1]*.6],frame);
-      if(wide&&rand()<.55){const [lines,colors]=shopSigns[signIndex++%shopSigns.length];neon('shop-sign-'+signIndex,lines,colors,2.4,4.4,[p[0]+into[0]*.25,5.2,p[1]+into[1]*.25],ry);}
-      if(wide&&rand()<.35)billboard(5.5+rand()*2,[p[0]+into[0]*.3,12+rand()*18,p[1]+into[1]*.3],ry);
+      if(wide&&rand()<.55){const [lines,colors]=shopSigns[signIndex++%shopSigns.length];neon('shop-sign-'+signIndex,lines,colors,2.4,4.4,[p[0]+into[0]*.25,5.2,p[1]+into[1]*.25],ry);signSpots.push({c:colors[0],f:{x:p[0]+e.n[0]*.35,z:p[1]+e.n[1]*.35,tx:e.n[0]?0:1,tz:e.n[0]?1:0,nx:-e.n[0],nz:-e.n[1]}});}
+      if(wide&&rand()<.35)billboard(5.5+rand()*2,[p[0]+into[0]*.3,10+rand()*2.5,p[1]+into[1]*.3],ry);
       if(wide&&rand()<.4){const k=[p[0]+into[0]*(sw-.4),p[1]+into[1]*(sw-.4)];box('kiosk-frame',e.n[0]?[.3,2.9,1.9]:[1.9,2.9,.3],[k[0],1.45,k[1]],frame);plane('kiosk-ad',1.6,2.4,[k[0]+into[0]*.17,1.55,k[1]+into[1]*.17],adMat(nextAd()),ry);}}
-     // Towers behind the edge (outside every street, the District and the terrace).
-     for(let s=0;s<len;){const d=6+rand()*9,w=10+rand()*8,t=(s+d/2)/len;if(t>1)break;const p=along(e,t),c=[p[0]+e.n[0]*(w/2+.3),p[1]+e.n[1]*(w/2+.3)],sx=e.n[0]?w:d,sz=e.n[0]?d:w;
-      if(!overlaps(c[0]-sx/2,c[0]+sx/2,c[1]-sz/2,c[1]+sz/2,.2))tower(c[0],c[1],sx,sz,e.street==='avenue'||e.street==='main'?36+rand()*110:18+rand()*34,signIndex+s|0);s+=d+.6;}
     }
     for(const [x0,x1,z] of [[2,152,-12.5]])for(let x=x0+4;x<x1-2;x+=6)box('lane-mark',[2.6,.02,.18],[x,.02,z],glowMat('lane','#d7c06a',.55));
     for(let z=-120;z<-22;z+=6)box('lane-mark',[.18,.02,2.6],[61,.02,z],glowMat('lane','#d7c06a',.55));
@@ -180,25 +183,84 @@
     for(let i=0;i<4;i++)box('pad-stripe',[18,.02,.25],[24,.13,-104+i*5.3],glowMat('pad-stripe','#f2b33d',.35));
     const ship=shipModel('starter','friendly',parent,{landed:true});ship.position.set(22,1.9,-96);ship.scaling.setAll(2.2);ship.rotation.y=Math.PI;
     box('terminal-base',[.9,1.3,.6],[35.6,.65,-103],frame);plane('terminal-screen',.8,.55,[35.28,1.45,-103],texMat('landing-terminal',texture('landing-terminal',256,176,(g,W,H)=>{g.fillStyle='#04080e';g.fillRect(0,0,W,H);g.fillStyle='#7ff0ff';g.font='bold 22px monospace';g.fillText('LANDING',20,40);g.fillText('TERMINAL',20,66);g.fillStyle='#ffb347';g.font='15px monospace';g.fillText('PAD 07 · KESTREL',20,104);g.fillText('PARKING: THE FUNCTION',20,128);g.fillText('[E] CONNECT',20,156);}),{glow:true}),-Math.PI/2);
-    for(let i=0;i<14;i++){const r=Object.values(S)[i%5],x=r[0]+rand()*(r[1]-r[0]),z=r[2]+rand()*(r[3]-r[2]);const p=add(B.MeshBuilder.CreateDisc('puddle',{radius:.8+rand()*1.4,tessellation:18},scene),mat('puddle','#0c0c14',{rough:.04,metal:.9}),[x,.025,z]);p.rotation.x=Math.PI/2;p.scaling.y=.55;}
+    // Puddles: glossy dark water that catches the haze and the lights, not black holes.
+    const puddle=new B.StandardMaterial('ncz-puddle',scene);puddle.diffuseColor=new B.Color3(.02,.03,.04);puddle.specularColor=new B.Color3(.7,.8,.9);puddle.specularPower=180;puddle.emissiveColor=new B.Color3(.05,.1,.115);puddle.alpha=.82;owned.push(puddle);
+    for(let i=0;i<14;i++){const r=Object.values(S)[i%5],x=r[0]+rand()*(r[1]-r[0]),z=r[2]+rand()*(r[3]-r[2]);const p=add(B.MeshBuilder.CreateDisc('puddle',{radius:.8+rand()*1.4,tessellation:18},scene),puddle,[x,.025,z]);p.rotation.x=Math.PI/2;p.scaling.y=.55;}
     // The Function's banner over the avenue where the main street meets it.
     neon('function-banner',['THE FUNCTION WATCHES OVER YOU','功能 · 秩序 · 利潤'],['#e8f0ff','#ff4a4a'],16,2.6,[61,16,-4.6],0);
-    if(!low)for(let i=0;i<46;i++){const a=i/46*Math.PI*2,r=120+rand()*90,x=77+Math.sin(a)*r,z=-62+Math.cos(a)*r;tower(x,z,12+rand()*14,12+rand()*14,60+rand()*170,i);}
-    // Nothing you can't walk into should look open (David, 2026-10-27). Every city block between the streets is
-    // built up in plots of up to 18 m, set back 0.35 m from the street so the storefronts stay in front, and a
-    // ring of buildings closes the edge of the map. Plain night-facade boxes, merged with the rest of the city.
-    function mass(x0,x1,z0,z1,h,k){if(x1-x0<.5||z1-z0<.5)return;const w=x1-x0,d=z1-z0,m=windowMats[k%3],[tw,th]=m.metadata.tile,side=a=>new B.Vector4(0,0,a/tw,h/th),cap=new B.Vector4(0,0,.01,.01);add(B.MeshBuilder.CreateBox('block-building',{width:w,height:h,depth:d,faceUV:[side(w),side(w),side(d),side(d),cap,cap],wrap:true},scene),m,[(x0+x1)/2,h/2,(z0+z1)/2]);}
+    // Batched geometry: thousands of windows, AC units, parapets and roof parts written straight into one mesh per
+    // material instead of one mesh each, so entering NeoChinatown stays quick. Same convention as a Babylon plane:
+    // a quad turned by r about y faces (-sin r, 0, -cos r).
+    const batches=new Map();
+    function quadAt(m,c,ax,ay,n,w,h){let b=batches.get(m);if(!b)batches.set(m,b={p:[],n:[],u:[],i:[]});const k=b.p.length/3;for(const [sx,sy,u,vv] of [[-1,-1,0,0],[1,-1,1,0],[1,1,1,1],[-1,1,0,1]]){b.p.push(c[0]+(ax[0]*sx*w+ay[0]*sy*h)/2,c[1]+(ax[1]*sx*w+ay[1]*sy*h)/2,c[2]+(ax[2]*sx*w+ay[2]*sy*h)/2);b.n.push(...n);b.u.push(u,vv);}b.i.push(k,k+1,k+2,k,k+2,k+3);}
+    const quad=(m,c,w,h,r)=>quadAt(m,c,[Math.cos(r),0,-Math.sin(r)],[0,1,0],[-Math.sin(r),0,-Math.cos(r)],w,h);
+    function cuboid(m,[sx,sy,sz],[x,y,z]){quad(m,[x,y,z-sz/2],sx,sy,0);quad(m,[x,y,z+sz/2],sx,sy,Math.PI);quad(m,[x+sx/2,y,z],sz,sy,-Math.PI/2);quad(m,[x-sx/2,y,z],sz,sy,Math.PI/2);quadAt(m,[x,y+sy/2,z],[1,0,0],[0,0,1],[0,1,0],sx,sz);quadAt(m,[x,y-sy/2,z],[1,0,0],[0,0,-1],[0,-1,0],sx,sz);}
+    const bbox=(name,size,p,m)=>cuboid(m,size,p);
+    // ---- Old neighbourhood (foreground): weathered low-rise blocks under the megacity (David's references, 2026-10-27) ----
+    // Corrugated steel, old concrete and leaking plate (ambientCG, CC0), small lit windows, wall AC units, balconies and
+    // pipes, and roofs cluttered with tanks, AC units, antennas and dishes. Boxes on the old plots: collision is unchanged.
+    const old=[['corrugated-rust',.6,4,.2],['corrugated-green',.6,4,.17],['corrugated-blue',.7,4,.24],['concrete-old',.7,6,.26],['concrete-mold',.72,6,.26],['metal-leaks',.72,5,.26]].map(([n,tint,tile,haze])=>{const m=new B.StandardMaterial('ncz-old-'+n,scene);m.diffuseTexture=acg(n+'-color');m.bumpTexture=acg(n+'-normal');m.diffuseColor=new B.Color3(tint,tint,tint*1.1);m.specularColor=new B.Color3(.05,.05,.06);m.metadata={tile};
+     // A dimmed copy of the texture glows faintly, as if lit by the city's haze, so the weathering reads in the dark.
+     const e=m.diffuseTexture.clone();e.level=haze;m.emissiveTexture=e;textures.push(e);owned.push(m);return m;});
+    // Windows: a dark frame with glass, or a warm or cool room seen through blinds.
+    const windowTex=(name,c)=>texture('window-'+name,64,96,(g,W,H)=>{g.fillStyle='#07090c';g.fillRect(0,0,W,H);g.fillStyle=c||'#10161d';g.fillRect(5,5,W-10,H-10);if(c){g.fillStyle='rgba(0,0,0,.38)';for(let y=9;y<H-6;y+=7)g.fillRect(5,y,W-10,2);g.fillStyle='rgba(0,0,0,.55)';g.fillRect(W/2-1,5,2,H-10);g.fillRect(5,H*.55,W-10,3);}else{g.fillStyle='rgba(120,170,200,.10)';g.fillRect(9,9,9,H-18);}});
+    const windowLit=[['warm','#d9894a'],['lamp','#e8b878'],['cyan','#4fb8cc'],['pink','#c45a9a'],['tv','#8fd0b0']].map(([n,c])=>texMat('window-'+n,windowTex(n,c),{glow:true})),windowDark=texMat('window-dark',windowTex('dark',null));
+    const faceRot=(nx,nz)=>nz<0?0:nz>0?Math.PI:nx>0?-Math.PI/2:Math.PI/2;
+    // A facade: start corner (x, z), direction along it (tx, tz), length, outward normal (nx, nz).
+    const faceOf=(x0,x1,z0,z1,side)=>({s:{x:x0,z:z0,tx:1,tz:0,len:x1-x0,nx:0,nz:-1},n:{x:x0,z:z1,tx:1,tz:0,len:x1-x0,nx:0,nz:1},w:{x:x0,z:z0,tx:0,tz:1,len:z1-z0,nx:-1,nz:0},e:{x:x1,z:z0,tx:0,tz:1,len:z1-z0,nx:1,nz:0}})[side];
+    const onFace=(f,s,y,out=.05)=>[f.x+f.tx*s+f.nx*out,y,f.z+f.tz*s+f.nz*out];
+    function oldBox(x0,x1,z0,z1,y0,h,k){const w=x1-x0,d=z1-z0,m=old[k%old.length],t=m.metadata.tile,side=a=>new B.Vector4(0,0,a/t,h/t),cap=new B.Vector4(0,0,w/6,d/6);return add(B.MeshBuilder.CreateBox('old-building',{width:w,height:h,depth:d,faceUV:[side(w),side(w),side(d),side(d),cap,cap],wrap:true},scene),m,[(x0+x1)/2,y0+h/2,(z0+z1)/2]);}
+    function facadeDetail(f,h,first=5.6){
+     const cols=Math.floor((f.len-1.2)/2.6),floors=Math.floor((h-first-.6)/3.2)+1;if(cols<1||floors<1)return;const pad=(f.len-cols*2.6)/2,ry=faceRot(f.nx,f.nz),along=f.tx!==0;
+     for(let fl=0;fl<floors;fl++)for(let c=0;c<cols;c++){const s=pad+1.3+c*2.6,y=first+fl*3.2;if(rand()<.1)continue;
+      const lit=rand()<.34;quad(lit?windowLit[Math.floor(rand()*windowLit.length)]:windowDark,onFace(f,s,y),1.1,1.4,ry);
+      if(rand()<.14)bbox('wall-ac',along?[.85,.6,.5]:[.5,.6,.85],onFace(f,s,y-1.1,.28),pipe);
+      else if(rand()<.05&&fl>0){bbox('balcony',along?[2.2,.12,1]:[1,.12,2.2],onFace(f,s,y-.85,.5),frame);bbox('balcony-rail',along?[2.2,.9,.05]:[.05,.9,2.2],onFace(f,s,y-.4,.98),frame);}}
+     if(f.len>6){bbox('downpipe',[.14,h,.14],onFace(f,f.len*(.1+rand()*.8),h/2,.12),rust);if(rand()<.6)bbox('conduit',along?[f.len*.6,.08,.08]:[.08,.08,f.len*.6],onFace(f,f.len/2,first-1.6,.1),frame);}
+    }
+    function roofClutter(x0,x1,z0,z1,h){const w=x1-x0,d=z1-z0,at=()=>[x0+w*(.2+rand()*.6),z0+d*(.2+rand()*.6)];
+     bbox('parapet',[w,.6,.2],[(x0+x1)/2,h+.3,z0+.1],concrete);bbox('parapet',[w,.6,.2],[(x0+x1)/2,h+.3,z1-.1],concrete);bbox('parapet',[.2,.6,d],[x0+.1,h+.3,(z0+z1)/2],concrete);bbox('parapet',[.2,.6,d],[x1-.1,h+.3,(z0+z1)/2],concrete);
+     for(let i=0,n=1+Math.floor(rand()*3);i<n;i++){const [x,z]=at();bbox('roof-ac',[1.6,1.1,1.2],[x,h+.55,z],pipe);bbox('roof-ac-grille',[1,.04,.9],[x,h+1.12,z],frame);}
+     if(rand()<.5){const [x,z]=at();cyl('water-tank',1.1,2.2,[x,h+1.75,z],rust,true,12);for(const [dx,dz] of [[-.7,-.7],[.7,-.7],[-.7,.7],[.7,.7]])bbox('tank-leg',[.1,.65,.1],[x+dx,h+.33,z+dz],frame);}
+     if(rand()<.55){const [x,z]=at(),mh=4+rand()*7;bbox('antenna',[.1,mh,.1],[x,h+mh/2,z],frame);for(let k=1;k<=3;k++)bbox('antenna-bar',[1.5-k*.35,.04,.04],[x,h+mh*(.5+k*.14),z],frame);bbox('antenna-light',[.15,.15,.15],[x,h+mh+.05,z],red);}
+     if(rand()<.45){const [x,z]=at(),dish=add(B.MeshBuilder.CreateSphere('dish',{diameter:1.6,segments:8,slice:.5,sideOrientation:B.Mesh.DOUBLESIDE},scene),metal,[x,h+1.5,z]);dish.rotation.x=-1.1;dish.rotation.y=rand()*6.28;bbox('dish-post',[.1,1.1,.1],[x,h+.55,z],frame);}
+     if(rand()<.35&&w>6&&d>6){const sw=w*(.3+rand()*.2),sd=d*(.3+rand()*.2),[x,z]=at();oldBox(x-sw/2,x+sw/2,z-sd/2,z+sd/2,h,2.6+rand()*1.8,Math.floor(rand()*3));}
+    }
+    // An old building on a plot: body, windows and wall clutter on the faces that show, roof clutter on top.
+    function lowrise(x0,x1,z0,z1,h,k,faces,first){if(x1-x0<.5||z1-z0<.5)return;oldBox(x0,x1,z0,z1,0,h,k);for(const side of faces)facadeDetail(faceOf(x0,x1,z0,z1,side),h,first);if(faces.length&&(!low||rand()<.5))roofClutter(x0,x1,z0,z1,h);}
+    // Every city block between the streets is built up in plots of up to 12 m, set back 0.35 m from the street so the
+    // storefronts stay in front. Plots on the avenue and the main street are taller; nothing you can't walk into looks open.
     const openNear=(x0,x1,z0,z1)=>[...Object.values(S),...Object.values(footprints)].some(([a,b,c,d])=>x0<b&&x1>a&&z0<d&&z1>c);
-    for(const s of cityBlocks){const [cx,,cz]=s.position,[w,,d]=s.size,X0=cx-w/2,Z0=cz-d/2,nx=Math.ceil(w/18),nz=Math.ceil(d/18),I=.35,E=.3;
-     for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){let x0=X0+w*i/nx,x1=X0+w*(i+1)/nx,z0=Z0+d*j/nz,z1=Z0+d*(j+1)/nz;
-      const [a,b,c,e]=[x0,x1,z0,z1];if(openNear(a-E,a,c,e))x0+=I;if(openNear(b,b+E,c,e))x1-=I;if(openNear(a,b,c-E,c))z0+=I;if(openNear(a,b,e,e+E))z1-=I;
-      mass(x0,x1,z0,z1,20+rand()*45,i+j*2+s.id.length);}}
-    // The outer ring: north of the avenue, south of the access road, and both sides, leaving the avenue's ends
-    // open to the closed road beyond its barriers, where a further row of buildings ends the view.
-    const ring=[[-24,178,-3,15],[-24,178,-148,-126],[-24,0,-126,-20],[-24,0,-5,-3],[154,178,-126,-20],[154,178,-5,-3],[-48,-36,-20,-5],[190,202,-20,-5]];
-    ring.forEach(([x0,x1,z0,z1],k)=>{const along=x1-x0>z1-z0,n=Math.ceil((along?x1-x0:z1-z0)/16);for(let i=0;i<n;i++){const a=i/n,b=(i+1)/n;along?mass(x0+(x1-x0)*a,x0+(x1-x0)*b,z0,z1,40+rand()*80,i+k):mass(x0,x1,z0+(z1-z0)*a,z0+(z1-z0)*b,40+rand()*80,i+k);}});
+    const onWide=(x0,x1,z0,z1)=>[S.avenue,S.main].some(([a,b,c,d])=>x0-.6<b&&x1+.6>a&&z0-.6<d&&z1+.6>c);
+    for(const s of cityBlocks){const [cx,,cz]=s.position,[w,,d]=s.size,X0=cx-w/2,Z0=cz-d/2,nx=Math.ceil(w/12),nz=Math.ceil(d/12),I=.35,E=.3;
+     for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){let x0=X0+w*i/nx,x1=X0+w*(i+1)/nx,z0=Z0+d*j/nz,z1=Z0+d*(j+1)/nz;const faces=[];
+      const [a,b,c,e]=[x0,x1,z0,z1];if(openNear(a-E,a,c,e)){x0+=I;faces.push('w');}if(openNear(b,b+E,c,e)){x1-=I;faces.push('e');}if(openNear(a,b,c-E,c)){z0+=I;faces.push('s');}if(openNear(a,b,e,e+E)){z1-=I;faces.push('n');}
+      const wide=onWide(a,b,c,e);lowrise(x0,x1,z0,z1,wide?18+rand()*12:9+rand()*8,i+j*2+s.id.length,faces,wide?7.4:4.6);}}
+    // The outer ring: older mid-rise blocks north of the avenue, south of the access road and on both sides, leaving the
+    // avenue's ends open to the closed road beyond its barriers, where a last row ends the view.
+    const ring=[[-24,178,-3,15,'s'],[-24,178,-148,-126,'n'],[-24,0,-126,-20,'e'],[-24,0,-5,-3,'e'],[154,178,-126,-20,'w'],[154,178,-5,-3,'w'],[-48,-36,-20,-5,'e'],[190,202,-20,-5,'w']];
+    ring.forEach(([x0,x1,z0,z1,face],k)=>{const along=x1-x0>z1-z0,n=Math.ceil((along?x1-x0:z1-z0)/14);for(let i=0;i<n;i++){const a=i/n,b=(i+1)/n,r=along?[x0+(x1-x0)*a,x0+(x1-x0)*b,z0,z1]:[x0,x1,z0+(z1-z0)*a,z0+(z1-z0)*b];lowrise(...r,26+rand()*20,i+k,[face],8);}});
     // The closed avenue runs on to that last row.
     for(const [x0,x1] of [[-36,0],[154,190]])ground('ncz-avenue-beyond',[x0,x1,-20,-5],asphalt,0,4);
+
+    // ---- The megacity (background): enormous lit towers far beyond the old blocks ----
+    // Two rings of night towers (ambientCG facades) with set-back crowns, giant ad screens, light strips and beacons.
+    // No collision; the haze fades them with distance. One thinner ring on low quality.
+    const screens=[],sky=low?[[30,170,260,100,260]]:[[44,160,250,110,320],[58,280,460,220,620]];
+    sky.forEach(([n,r0,r1,h0,h1],ring)=>{for(let i=0;i<n;i++){const a=(i+rand()*.7)/n*Math.PI*2,r=r0+rand()*(r1-r0),dir=[Math.sin(a),Math.cos(a)],perp=[Math.cos(a),-Math.sin(a)],x=77+dir[0]*r,z=-62+dir[1]*r,w=18+rand()*26,d=18+rand()*26,h=h0+rand()*(h1-h0),k=i*7+ring;
+      const m=windowMats[k%3],[tw,th]=m.metadata.tile,side=q=>new B.Vector4(0,0,q/tw,h/th),cap=new B.Vector4(0,0,.01,.01);
+      add(B.MeshBuilder.CreateBox('skyline',{width:w,height:h,depth:d,faceUV:[side(w),side(w),side(d),side(d),cap,cap],wrap:true},scene),m,[x,h/2,z]).rotation.y=a;
+      // A set-back crown or a spire on some.
+      if(rand()<.45){const cw=w*(.45+rand()*.25),ch=h*(.08+rand()*.12);add(B.MeshBuilder.CreateBox('skyline-crown',{width:cw,height:ch,depth:d*.6,faceUV:[side(cw),side(cw),side(d*.6),side(d*.6),cap,cap],wrap:true},scene),m,[x,h+ch/2,z]).rotation.y=a;if(rand()<.6){const sh=20+rand()*50;cyl('skyline-spire',.6,sh,[x,h+ch+sh/2,z],frame,true,6);box('skyline-beacon',[1.2,1.2,1.2],[x,h+ch+sh,z],red);}}
+      else box('skyline-beacon',[1.4,1.4,1.4],[x,h+.7,z],red);
+      // Light strips down the corners that face the neighbourhood.
+      if(rand()<.4){const c=[magenta,cyan,violet][Math.floor(rand()*3)];for(const sgn of [-1,1]){const p=[x+perp[0]*sgn*w/2-dir[0]*d/2,z+perp[1]*sgn*w/2-dir[1]*d/2];box('skyline-strip',[.9,h*.85,.9],[p[0],h*.5,p[1]],c).rotation.y=a;}}
+      // Giant vertical ad screens facing the neighbourhood; a few nearer ones change.
+      if(rand()<(ring?.25:.5)){const sw=Math.min(w*.75,30),sh=sw*1.5,y=Math.max(sh/2+20,h*(.4+rand()*.3)),p=[x-dir[0]*(d/2+.6),y,z-dir[1]*(d/2+.6)],live=!ring&&screens.length<5;
+       const sc=add(B.MeshBuilder.CreatePlane('skyline-screen',{width:sw,height:sh},scene),adMat(nextAd()),p,!live);sc.rotation.y=a;if(live)screens.push({mesh:sc,next:4+screens.length*2.3});}}});
+    // A haze dome: the fog colour glowing at the horizon, darkening overhead. Unfogged, behind everything.
+    {const t=texture('haze-dome',8,256,(g,W,H)=>{const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#040a0d');gr.addColorStop(.4,'#0a1d22');gr.addColorStop(.75,'#14363b');gr.addColorStop(.9,'#1b4448');gr.addColorStop(1,'#13292c');g.fillStyle=gr;g.fillRect(0,0,W,H);});
+     const m=texMat('haze-dome',t,{glow:true});m.fogEnabled=false;m.backFaceCulling=false;const dome=add(B.MeshBuilder.CreateCylinder('haze-dome',{diameter:2600,height:1500,tessellation:32,cap:B.Mesh.NO_CAP,sideOrientation:B.Mesh.BACKSIDE},scene),m,[77,620,-62],false);dome.infiniteDistance=false;dome.applyFog=false;}
     // IronEye drones patrol above the main street and the avenue.
     const drones=[];const droneBody=mat('ironeye','#1d1f24',{rough:.4,metal:.8});for(let i=0;i<(low?2:4);i++){const n=new B.TransformNode('ironeye-'+i,scene);n.parent=parent;const body=add(B.MeshBuilder.CreateSphere('ironeye-body',{diameter:.9,segments:10},scene),droneBody,[0,0,0],false);body.parent=n;body.scaling.y=.6;const eye=add(B.MeshBuilder.CreateDisc('ironeye-eye',{radius:.16,tessellation:12},scene),red,[0,0,-.46],false);eye.parent=n;for(const s of [-1,1]){const rot=box('ironeye-rotor',[.9,.04,.12],[s*.55,.25,0],frame,false);rot.parent=n;}drones.push({n,phase:i*1.7,x:i<3?61:100,z:i<3?-100+i*30:-12.5});}
     // Street pedestrians on the sidewalks.
@@ -420,11 +482,78 @@
     const lights=[];const point=(p,c,i,r)=>{const l=new B.PointLight('ncz-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=target;lights.push(l);};
     if(!low){point([0,3,23],'#9be8ff',.6,8);point([-10,3,36],'#38e8ff',.9,14);point([10,3,36],'#ffb347',1.4,14);point([13,3,33],'#ff8a5c',.9,10);point([10,3,48],'#c9b4ff',1.5,12);point([14,3,51],'#38e8ff',.8,8);point([-10,3,62],'#ff5bd0',.6,12);point([38,4,68],'#ffb347',.6,14);point([0,3.5,40],'#e8f0ff',.6,16);point([0,3.5,64],'#e8f0ff',.6,16);}
 
+    let weather=null;
+    // ---- Street detail: neon light spill, blade signs, wall lamps, cables, graffiti, the District's front, rain ----
+    {const saved=target;target=parent;
+     // Light pools: an additive glow on the wall and the wet ground near each light, instead of many real lights
+     // (the scene already has more lights than its shaders use).
+     const washMats={};function washMat(c,k){const key=c+k;if(washMats[key])return washMats[key];const t=texture('wash-'+c,128,128,(g,W,H)=>{g.fillStyle='#000';g.fillRect(0,0,W,H);const r=g.createRadialGradient(W/2,H/2,1,W/2,H/2,W/2);r.addColorStop(0,c);r.addColorStop(.35,c+'88');r.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=r;g.fillRect(0,0,W,H);});
+      const m=new B.StandardMaterial('ncz-wash',scene);m.diffuseColor=B.Color3.Black();m.specularColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;m.alphaMode=B.Engine.ALPHA_ADD;m.alpha=k;m.disableDepthWrite=true;owned.push(m);washMats[key]=m;return m;}
+     const wallWash=(c,f,s,y,w,h,k)=>{const p=add(B.MeshBuilder.CreatePlane('wall-wash',{width:w,height:h},scene),washMat(c,k),onFace(f,s,y,.09));p.rotation.y=faceRot(f.nx,f.nz);return p;};
+     const floorWash=(c,x,z,w,d,y,k)=>add(B.MeshBuilder.CreateGround('floor-wash',{width:w,height:d},scene),washMat(c,k),[x,y,z]);
+     // Shop-sign spill: each storefront neon lights its patch of wall and the sidewalk under it.
+     for(const {c,f} of signSpots){wallWash(c,f,0,5.2,5,6.5,.4);const g=onFace(f,0,0,1.6);floorWash(c,g[0],g[2],f.tx?4:2.8,f.tx?2.8:4,.2,.3);}
+     // The street faces (outward normal into the street) of the avenue and the main street, with the gaps where streets join.
+     const fronts=[[{x:2,z:-20.35,tx:1,tz:0,len:150,nx:0,nz:1},[[51,71]]],[{x:2,z:-4.65,tx:1,tz:0,len:150,nx:0,nz:-1},[]],[{x:50.65,z:-124,tx:0,tz:1,len:104,nx:1,nz:0},[[-121,-116]]],[{x:71.35,z:-124,tx:0,tz:1,len:104,nx:-1,nz:0},[[-61.6,-55.5]]]];
+     const inGapF=(f,s,gaps)=>{const c=f.tx?f.x+s:f.z+s;return gaps.some(([g0,g1])=>c>g0-2&&c<g1+2);};
+     // Blade signs: vertical neon sticking out from the wall, readable from both directions (two single-sided faces).
+     const blades=[['拉麵','#ff5b5b'],['旅館','#7ff0ff'],['當鋪','#ffcf5a'],['診所','#6cff9e'],['電器','#9b7bff'],['HOTEL','#ff5bd0'],['PHO','#ffb347'],['KEBAB','#ffcf5a'],['CYBERWARE','#7ff0ff'],['網吧','#38e8ff'],['TATTOO','#ff5bd0'],['麻將','#ff5b5b'],['PAWN','#ffcf5a'],['BAR','#ff5bd0'],['NOODLES','#ffb347'],['CLINIC','#6cff9e']];
+     const flickers=[],bladeMats={};let bladeIndex=0;
+     function blade(f,s,y){const [word,c]=blades[bladeIndex++%blades.length],chars=[...word],hh=chars.length*.9+.5;
+      const m=bladeMats[word]??=texMat('blade-'+word,texture('blade-'+word,128,Math.round(128*hh/1.1),(g,W,H)=>{g.fillStyle='rgba(6,6,10,.94)';g.fillRect(0,0,W,H);g.strokeStyle=c;g.lineWidth=5;g.shadowColor=c;g.shadowBlur=10;g.strokeRect(6,6,W-12,H-12);const n=chars.length,size=Math.min(W*.62,(H-24)/n*.86);g.font='bold '+size+'px "Noto Sans SC","Microsoft YaHei",sans-serif';g.textAlign='center';g.textBaseline='middle';chars.forEach((ch,i)=>{const yy=12+(H-24)*(i+.5)/n;g.shadowBlur=16;g.fillStyle=c;g.fillText(ch,W/2,yy);g.shadowBlur=0;g.fillStyle='rgba(255,255,255,.8)';g.fillText(ch,W/2,yy);});}),{glow:true});
+      // The sign stands at right angles to the wall: its faces look along the street.
+      const ry=faceRot(f.tx,f.tz),mid=onFace(f,s,y,1.05),parts=[];
+      for(const [flip,o] of [[0,-.03],[Math.PI,.03]]){const p=B.MeshBuilder.CreatePlane('blade-sign',{width:1.1,height:hh},scene);add(p,m,[mid[0]-f.tx*o,y,mid[2]-f.tz*o],false);p.rotation.y=ry+flip;parts.push(p);}
+      bbox('blade-arm',f.tx?[.06,.06,1]:[1,.06,.06],onFace(f,s,y+hh/2-.2,.5),frame);
+      wallWash(c,f,s,y,4.5,hh+3,.42);if(rand()<.25)flickers.push({meshes:parts,next:2+rand()*6,off:0});}
+     // Wall lamps over the sidewalks: amber sodium or cold white, each with its pool on the wet paving.
+     function lamp(f,s){const warm=rand()<.6,c=warm?'#ffb35c':'#bfe9ff';bbox('wall-lamp',f.tx?[.6,.14,.35]:[.35,.14,.6],onFace(f,s,4.4,.35),warm?amber:white);bbox('wall-lamp-arm',f.tx?[.06,.06,.4]:[.4,.06,.06],onFace(f,s,4.5,.15),frame);
+      wallWash(c,f,s,3.4,6,5,.32);const g=onFace(f,s,0,1.5);floorWash(c,g[0],g[2],f.tx?5:3,f.tx?3:5,.2,.3);}
+     for(const [f,gaps] of fronts)for(let s=4;s<f.len-3;s+=3.5){if(inGapF(f,s,gaps))continue;const r=rand();if(r<.2)blade(f,s,7.2+rand()*2.5);else if(r<.33)lamp(f,s);}
+     // Overhead cables: sagging bundles strung between facing buildings, 7-11 m up, each end on a junction box.
+     const cableMat=mat('cable','#0a0a0c',{rough:.6,metal:.3});
+     function cable(a,b,sag,r){const pts=[];for(let i=0;i<=12;i++){const t=i/12;pts.push(v(a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t-Math.sin(Math.PI*t)*sag,a[2]+(b[2]-a[2])*t));}add(B.MeshBuilder.CreateTube('cable',{path:pts,radius:r,tessellation:4},scene),cableMat,[0,0,0]);}
+     function span(a,b,n){for(let i=0;i<n;i++){const A=[a[0],7+rand()*4,a[1]],Bp=[b[0],7+rand()*4,b[1]];cable(A,Bp,.6+rand()*1.2,.025+rand()*.02);bbox('junction-box',[.35,.45,.35],A,frame);bbox('junction-box',[.35,.45,.35],Bp,frame);}}
+     for(let z=-118;z<-24;z+=8+rand()*5)span([51.45,z],[70.55,z+(rand()-.5)*6],2+Math.floor(rand()*2));
+     for(let x=6;x<150;x+=9+rand()*6){if(x>49&&x<73)continue;span([x,-19.55],[x+(rand()-.5)*6,-5.45],1+Math.floor(rand()*2));}
+     for(let x=16;x<50;x+=7+rand()*4)span([x,-120.55],[x+(rand()-.5)*4,-116.45],1+Math.floor(rand()*2));
+     for(let z=-114;z<-94;z+=6+rand()*3)span([37.95,z],[43.55,z+(rand()-.5)*3],1);
+     for(let x=A[0]+4;x<A[1]-2;x+=7+rand()*5)if(Math.abs(x-DOOR.x)>5)span([x,A[3]-.2],[x+(rand()-.5)*3,A[2]+.2],1+Math.floor(rand()*2));
+     // Graffiti on the quieter streets: the access road, the passage and the pad's walls, above the shopfront line.
+     const tags=[['QUESTION THE SYSTEM','spray','#e8e2d0','#b52a2a'],['PRIVACY IS RESISTANCE','stencil','#7ff0ff'],['YOU ARE NOT A PRODUCT','hand','#ffcf5a'],['WHO WATCHES THE WATCHERS?','stencil','#f2f0e8'],['DISCONNECT TO EXIST','spray','#6cff9e','#101814'],['OBEY / CONSUME / REPEAT','stencil','#ff5bd0'],['NO GODS. NO ALGORITHMS.','hand','#e8e2d0'],['YOUR DATA IS NOT YOURS','spray','#9b7bff','#120c1c']];
+     [[{x:13,z:-121.3,tx:1,tz:0,nx:0,nz:1},9,4.6,7],[{x:13,z:-115.7,tx:1,tz:0,nx:0,nz:-1},12,4.4,6],[{x:37.15,z:-116,tx:0,tz:1,nx:1,nz:0},14,4.2,5.5],[{x:44.35,z:-116,tx:0,tz:1,nx:-1,nz:0},8,4.2,6],[{x:12.7,z:-106,tx:0,tz:1,nx:1,nz:0},10,3.6,7],[{x:13,z:-85.7,tx:1,tz:0,nx:0,nz:-1},15,4,6.5],[{x:13,z:-106.3,tx:1,tz:0,nx:0,nz:1},6,3.4,5],[{x:13,z:-121.3,tx:1,tz:0,nx:0,nz:1},29,5,5.5]]
+      .forEach(([f,s,y,w],i)=>{const [text,style,c,o]=tags[i%tags.length],lines=style==='stencil'||text.length<16?1:2;decal(graffiti(text,style,c,o),w,w*(lines>1?.5:.25),onFace(f,s,y,.06),faceRot(f.nx,f.nz));});
+     // Wet streets: more dark mirror puddles on the higher settings.
+     for(let i=0;i<(low?0:26);i++){const r=[S.main,S.avenue,S.road,S.pad,S.passage][i%5],x=r[0]+2+rand()*(r[1]-r[0]-4),z=r[2]+2+rand()*(r[3]-r[2]-4);const p=add(B.MeshBuilder.CreateDisc('puddle',{radius:.6+rand()*1.6,tessellation:16},scene),puddle,[x,.026,z]);p.rotation.x=Math.PI/2;p.scaling.y=.5+rand()*.4;}
+     // Landing pad: four wall floodlights, cold white, lighting the pad and the Kestrel's surroundings.
+     for(const [x,z,f] of [[13.4,-100,{x:13.35,z:-106,tx:0,tz:1,nx:1,nz:0}],[13.4,-91,{x:13.35,z:-106,tx:0,tz:1,nx:1,nz:0}],[19,-86.4,{x:13,z:-86.35,tx:1,tz:0,nx:0,nz:-1}],[30,-105.6,{x:13,z:-106.35,tx:1,tz:0,nx:0,nz:1}]]){const s=f.tx?x-f.x:z-f.z;box('pad-flood',f.tx?[1.2,.5,.4]:[.4,.5,1.2],onFace(f,s,6.5,.3),white);wallWash('#cfefff',f,s,5,8,7,.35);const g=onFace(f,s,0,5);floorWash('#cfefff',g[0],g[2],11,11,.14,.42);}
+     // The District's front stays discreet: a dim violet pool on the wet alley floor at its door.
+     {const [dx,dz]=toWorld(0,18.4);floorWash('#9b7bff',dx,dz,6,3,.035,.35);}
+     // Rain: streaks that follow the camera outdoors and stop inside the District. Off on low quality.
+     let rain=null;
+     if(!low&&B.ParticleSystem){const drop=texture('raindrop',8,64,(g,W,H)=>{g.clearRect(0,0,W,H);const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'rgba(190,225,255,0)');gr.addColorStop(1,'rgba(190,225,255,.85)');g.fillStyle=gr;g.fillRect(W/2-1.5,0,3,H);});drop.hasAlpha=true;
+      const hi=quality==='high';rain=new B.ParticleSystem('ncz-rain',hi?3200:1700,scene);rain.particleTexture=drop;rain.emitter=v(31,0,-96);rain.minEmitBox=v(-24,12,-24);rain.maxEmitBox=v(24,17,24);rain.direction1=v(-.8,-24,-.4);rain.direction2=v(-.3,-28,.4);rain.minLifeTime=rain.maxLifeTime=.72;rain.minSize=.03;rain.maxSize=.045;rain.minScaleX=rain.maxScaleX=1;rain.minScaleY=11;rain.maxScaleY=15;rain.billboardMode=B.ParticleSystem.BILLBOARDMODE_STRETCHED;rain.color1=new B.Color4(.55,.72,.85,.3);rain.color2=new B.Color4(.45,.62,.78,.2);rain.colorDead=new B.Color4(.4,.5,.6,0);rain.emitRate=hi?3400:1800;rain.blendMode=B.ParticleSystem.BLENDMODE_ADD;rain.start();}
+     weather={flickers,rain,rainRate:rain?.emitRate||0};
+     target=saved;}
+    // The District's front: a small backlit plaque, violet trim round the reinforced door and a second camera.
+    {const saved=target;target=districtRoot;
+     neon('district-plaque',['THE DARKNET DISTRICT'],['#c9b4ff'],2.3,.32,[0,4.05,19.6],0,'rgba(8,6,14,.94)');
+     const trim=glowMat('violet-trim','#6c44b8',.6);box('district-trim',[6,.035,.035],[0,3.56,19.62],trim);for(const sx of [-1,1])box('district-trim',[.035,3.56,.035],[sx*2.96,1.78,19.62],trim);
+     box('camera-arm-2',[.06,.06,.6],[3.4,3.95,19.6],frame);box('camera-body-2',[.25,.2,.45],[3.4,3.85,19.28],frame);box('camera-led-2',[.05,.05,.02],[3.4,3.85,19.04],red);
+     target=saved;}
+
+    for(const [m,b] of batches){const mesh=new B.Mesh('ncz-batch',scene),vd=new B.VertexData();vd.positions=b.p;vd.normals=b.n;vd.uvs=b.u;vd.indices=b.i;vd.applyToMesh(mesh);mesh.material=m;mesh.parent=parent;mesh.isPickable=false;}
     // Merge static meshes by material to keep draw calls low.
     for(const [m,list] of staticMeshes)if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(merged){merged.parent=parent;merged.material=m;merged.isPickable=false;}}
     let lastTick=null;
-    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;vrTick(dt);for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
-    return {tick,dispose(){disposed=true;districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;}};
+    function atmosphere(time,dt){applyLook();const cam=scene.activeCamera?.globalPosition,inside=!!cam&&zone({x:cam.x,z:cam.z}).area==='district',sky=inside?indoor:outdoor;
+     if(ambient){ambient.intensity+=(sky.intensity-ambient.intensity)*Math.min(1,dt*3);if(inside!==wasInside){if(sky.diffuse)ambient.diffuse=sky.diffuse;if(sky.ground&&ambient.groundColor)ambient.groundColor=sky.ground;wasInside=inside;}}
+     if(weather?.rain&&cam){weather.rain.emitter.x=cam.x;weather.rain.emitter.z=cam.z;weather.rain.emitRate=inside?0:weather.rainRate;}
+     for(const fl of weather?.flickers||[]){if(fl.off>0){fl.off-=dt;if(fl.off<=0)for(const m of fl.meshes)m.isVisible=true;}else if(time>fl.next){fl.off=.05+Math.random()*.12;fl.next=time+2+Math.random()*7;for(const m of fl.meshes)m.isVisible=false;}}
+     for(const s of screens)if(time>s.next){s.mesh.material=adMat(nextAd());s.next=time+9+Math.random()*4;}}
+    let wasInside=null;
+    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;vrTick(dt);atmosphere(time,dt);for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
+    return {tick,dispose(){disposed=true;districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
   }
   // Licensed models (docs/VOID_RUNNER_ASSET_LICENSES.md) dressing the District; loaded before build().
   const models={'crowd:vr-player-a':{src:'assets/models/crowd/vr-player-a.glb',background:true},'crowd:vr-player-b':{src:'assets/models/crowd/vr-player-b.glb',background:true},'district:couch':{src:'assets/models/district/couch.glb',scale:.5},'district:bin':{src:'assets/models/district/bin.glb',scale:.6},'district:chair':{src:'assets/models/district/chair.glb',scale:1}};
