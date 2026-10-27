@@ -100,6 +100,8 @@
   for(let i=0;i<=36;i++){const k=i/36,e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;walker.x=from.x+(bx-from.x)*e;walker.z=from.z+(bz-from.z)*e;walker.yaw=from.yaw+((Math.atan2(bx-from.x,bz-from.z)-from.yaw+Math.PI*3)%(Math.PI*2)-Math.PI)*Math.min(1,e*1.6);await wait(30);}
   const raw=snapshot();state.story.flags.vrReturn=true;baseSave();saveBlocked=true;
   session={id,exp,opts,raw,booth,settings:{...(exp.defaults||{})},world:null,ammo:{ammo:12,reserve:999}};
+  // A simulation that needs a sidearm lends one (the snapshot puts the real kit back on exit).
+  if(exp.weapon&&!state.progression.personal.weapon)state.progression.personal.weapon='ward-pistol';
   audioStart({});
   await transition('out',exp.title.toUpperCase());
   const def=exp.layout(opts);def.vr=id;def.kind='vr';
@@ -139,6 +141,8 @@
   // One press, one toggle (a key press can reach here twice: directly and through the game menu's Esc handling).
   if(e.code==='Escape'){e.preventDefault();e.stopPropagation();if(performance.now()-lastToggle<150)return;lastToggle=performance.now();return pauseMenu?closePause():openPause();}
  },true);
+ // A world's own overlay (the range's scoreboard), drawn over the view.
+ const vrDraw=draw;draw=function(){vrDraw();if(session&&!busy&&['walking','vr-seated'].includes(mode))try{session.world?.overlay?.(ctx,W,H);}catch{}};
  let prevView=false;
  const vrUpdate=update;update=function(dt){vrUpdate(dt);
   let pad=null;try{pad=[...(navigator.getGamepads?.()||[])].find(p=>p&&p.connected!==false);}catch{}const view=!!pad?.buttons?.[8]?.pressed;if(view&&!prevView&&session&&!busy)exit();prevView=view;

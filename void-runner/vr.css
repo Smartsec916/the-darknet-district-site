@@ -23,4 +23,4 @@
 #vr-chip button{font:inherit;background:#12222a;color:#ffd98a;border:1px solid #6b5a1f;padding:5px 10px;cursor:pointer}
 #vr-transition{position:fixed;inset:0;z-index:80;width:100vw;height:100vh;pointer-events:none}
 /* Inside a simulation the real world's captions, mission banner and Guidance card are hidden. */
-body.vr-session #walking-caption,body.vr-session #guidance-card{display:none!important}
+body.vr-session #walking-caption,body.vr-session #guidance-card,body.vr-session #mission-tracker,body.vr-session #tutorial-prompt{display:none!important}

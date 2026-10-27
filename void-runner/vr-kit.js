@@ -46,10 +46,10 @@
    // Alpha-tested foliage material (no sorting problems, both sides).
    foliage(name,tex,hex='#ffffff'){const m=own(new B.StandardMaterial('vr-'+name,scene));m.diffuseTexture=tex;m.useAlphaFromDiffuseTexture=true;m.transparencyMode=B.Material.MATERIAL_ALPHATEST;m.alphaCutOff=.45;m.backFaceCulling=false;m.diffuseColor=B.Color3.FromHexString(hex);m.specularColor=new B.Color3(.05,.06,.04);return m;},
    // A tileable water normal map from summed waves, and a water material that scrolls it.
-   water(name,{hex='#1d4a50',alpha=.82,sky,scale=4}={}){const t=k.paint(name+'-normal',256,256,(g,W,H)=>{const img=g.createImageData(W,H),h=(x,y)=>Math.sin(x*Math.PI*2*3/W+y*Math.PI*2*2/H)*.5+Math.sin(x*Math.PI*2*5/W-y*Math.PI*2*4/H)*.3+Math.sin(y*Math.PI*2*7/H+x*Math.PI*2/W)*.2;
+   water(name,{hex='#1d4a50',alpha=.82,sky,scale=4,reflect=.45,spec=.9}={}){const t=k.paint(name+'-normal',256,256,(g,W,H)=>{const img=g.createImageData(W,H),h=(x,y)=>Math.sin(x*Math.PI*2*3/W+y*Math.PI*2*2/H)*.5+Math.sin(x*Math.PI*2*5/W-y*Math.PI*2*4/H)*.3+Math.sin(y*Math.PI*2*7/H+x*Math.PI*2/W)*.2;
      for(let y=0;y<H;y++)for(let x=0;x<W;x++){const dx=h(x+1,y)-h(x-1,y),dy=h(x,y+1)-h(x,y-1),n=Math.hypot(dx,dy,.5),i=(y*W+x)*4;img.data[i]=128+dx/n*127;img.data[i+1]=128+dy/n*127;img.data[i+2]=128+.5/n*127;img.data[i+3]=255;}g.putImageData(img,0,0);});
-    t.uScale=t.vScale=scale;t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;const m=own(new B.StandardMaterial('vr-'+name,scene));m.diffuseColor=B.Color3.FromHexString(hex);m.bumpTexture=t;m.specularColor=new B.Color3(.9,.9,.9);m.specularPower=96;m.alpha=alpha;
-    if(sky){const r=own(new B.Texture(base+'sky/'+sky+'.jpg',scene));r.coordinatesMode=B.Texture.EQUIRECTANGULAR_MODE;m.reflectionTexture=r;m.reflectionTexture.level=.45;}
+    t.uScale=t.vScale=scale;t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;const m=own(new B.StandardMaterial('vr-'+name,scene));m.diffuseColor=B.Color3.FromHexString(hex);m.bumpTexture=t;m.specularColor=new B.Color3(spec,spec,spec);m.specularPower=96;m.alpha=alpha;
+    if(sky){const r=own(new B.Texture(base+'sky/'+sky+'.jpg',scene));r.coordinatesMode=B.Texture.EQUIRECTANGULAR_MODE;m.reflectionTexture=r;m.reflectionTexture.level=reflect;}
     k.every(dt=>{t.uOffset+=dt*.018;t.vOffset+=dt*.011;});return m;},
    // Ground that follows a height function, with its walk height for the camera.
    terrain(name,size,div,height,material){const g=B.MeshBuilder.CreateGround('vr-'+name,{width:size,height:size,subdivisions:div,updatable:true},scene);const p=g.getVerticesData(B.VertexBuffer.PositionKind);
