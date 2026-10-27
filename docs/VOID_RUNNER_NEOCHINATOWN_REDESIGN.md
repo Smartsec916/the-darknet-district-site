@@ -82,7 +82,7 @@ World metres: x runs east, z runs north. All of it is in `void-runner/neochinato
 
 ## Visual overhaul (2026-10-27)
 
-David's brief: make NeoChinatown look like his four references (an old, crowded neighbourhood under a vast megacity) without changing the layout.  (walls, doors, interactions, spawn) is byte-identical to before; only what is drawn changed.
+David's brief: make NeoChinatown look like his four references (an old, crowded neighbourhood under a vast megacity) without changing the layout. `VoidNeoChinatown.layout()` (walls, doors, interactions, spawn) is byte-identical to before; only what is drawn changed.
 
 - **Lighting (NeoChinatown only, restored on leaving):**
   - teal-black sky; blue-green EXP2 haze (0.0028)
@@ -120,7 +120,7 @@ David's brief: make NeoChinatown look like his four references (an old, crowded 
 - **Performance:**
   - Windows, AC units, parapets and roof parts are written straight into one mesh per material (batches) instead of about 6,500 separate meshes.
   - Building NeoChinatown takes about 1.0 s, against 4.4 s before batching. Entering takes about 1.7 s here.
-  - A render at the main street takes 16.9 ms, against 16.5 ms on  (medium quality, this PC).
+  - A render at the main street takes 16.9 ms, against 16.5 ms on `main` (medium quality, this PC).
 - **Not done:**
   - no imported 3D models: no suitable CC0 building or prop packs in this style were found, so props are simple geometry
   - no rain splashes and no rain sound
