@@ -7,6 +7,8 @@
   musicUpdate(dt);
   try{
    if(!VoidAudio.settings.enabled)return;
+   // Inside a VR simulation the city's score gives way to the simulation's own ambience (vr-core.js).
+   if(globalThis.VoidVR?.active||globalThis.VoidVR?.busy){E.stop?.();return;}
    VoidAudio.composerActive(true);
    const walking=!!walkingLocation&&!!walker&&['walking','dialogue','mission-log'].includes(mode);
    const flying=['play','pause','preparing-flight'].includes(mode)&&!!flight.route||mode==='play';

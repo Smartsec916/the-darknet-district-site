@@ -1073,7 +1073,7 @@
     });
     return mesh;
   }
-  let openingHandle=null,derelictHandle=null,districtHandle=null,planetHandle=null;
+  let openingHandle=null,derelictHandle=null,districtHandle=null,planetHandle=null,vrHandle=null;
   async function prepareRoom(def, task) {
     if(!task)return VoidPreparation.run(t=>prepareRoom(def,t));
     if(def.kind==='station')return prepareStation(def,task);
@@ -1102,6 +1102,9 @@
       await task.wait('scene',()=>scene.whenReadyAsync(),'homeworld');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
+    // VR arcade simulations (vr-core.js): each experience builds its own world here.
+    if(def.vr&&root.VoidVR){vrHandle=await root.VoidVR.buildWorld(def,{scene,parent:roomRoot,quality,task,camera,characterModel,assets:VoidAssets});
+      await task.wait('scene',()=>scene.whenReadyAsync(),'vr');diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;}
     if(def.kind==='derelict'){
       derelictHandle=VoidDerelictStation.build({scene,parent:roomRoot,quality,shipModel});
       await task.wait('scene',()=>scene.whenReadyAsync(),'derelict station');
@@ -1189,7 +1192,7 @@
     roomRoot?.metadata?.art?.dispose?.();
     roomRoot?.metadata?.exterior?.metadata?.dispose?.();
     openingHandle?.dispose();openingHandle=null;root.VoidCrowd?.release();
-    derelictHandle?.dispose();derelictHandle=null;districtHandle?.dispose();districtHandle=null;planetHandle?.dispose();planetHandle=null;
+    derelictHandle?.dispose();derelictHandle=null;districtHandle?.dispose();districtHandle=null;planetHandle?.dispose();planetHandle=null;vrHandle?.dispose?.();vrHandle=null;
     for (const s of signs) {
       s.texture.dispose();
       s.material.dispose();
@@ -1223,7 +1226,7 @@
       const target=d.position[1]+(d.open?3.5:0);mesh.position.y+=(target-mesh.position.y)*(roomDt?Math.min(1,roomDt*5):1);}
     for(const actor of actors){if(actor.crowd){const a=actor.activity;if(a){actor.node.position.set(a.x,0,a.z);actor.node.rotation.y=turnToward(actor.node.rotation.y,a.yaw,roomDt*6);actor.cup?.setEnabled(false);crewClip(actor,a,time);}continue;}if(actor.activity){const a=actor.activity,seated=a.state==='sit'||a.state==='drink';actor.node.position.set(a.x,seated?-.35:0,a.z);actor.node.rotation.y=a.yaw;actor.cup?.setEnabled(a.state==='drink'||a.state==='get-drink');for(const mesh of actor.node.getChildMeshes()){if(mesh.name==='arm')mesh.rotation.x=a.state==='walk'?Math.sin(time*5+a.id)*.25:a.state==='talk'?Math.sin(time*2+a.id)*.15:a.state==='drink'?-.9+Math.sin(time)*.15:a.gesture==='device'?-.65:0;if(mesh.name==='leg')mesh.rotation.x=seated?-1.15:a.state==='walk'?Math.sin(time*5+(mesh.position.x<0?Math.PI:0))*.3:0;if(mesh.name==='head')mesh.rotation.y=a.gesture==='look'?Math.sin(time)*.18:0;}continue;}if(openingHandle&&actor.node===openingHandle.mara)continue;if(actor.traffic){actor.node.position.set((actor.lane%2?-1:1)*(25+actor.lane*8),5+actor.lane*2,((time*(5+actor.lane)+actor.lane*37)%140)-55);actor.node.rotation.y=0;}else{actor.node.rotation.y=Math.sin(time*.3+actor.base[0])*.13;if(actor.ambient)actor.node.position.z=actor.base[2]+Math.sin(time*.2+actor.base[0])*1.2;}}
     roomRoot.metadata?.arrays?.forEach((n,i)=>n.rotation.z=.14+Math.sin(time*.015+i*.2)*.08);
-    openingHandle?.tick(time);districtHandle?.tick(time);planetHandle?.tick(time);
+    openingHandle?.tick(time);districtHandle?.tick(time);planetHandle?.tick(time);vrHandle?.tick?.(time);
     scene.render();
     diagnostics.frames++;
     return surface;

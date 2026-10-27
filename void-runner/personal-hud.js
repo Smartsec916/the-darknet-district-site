@@ -54,6 +54,7 @@
  }
  function open(which){
   if(panel){if(which&&which!==tab){tab=which;render();}return;}
+  if(globalThis.VoidVR?.active){announce('The Personal HUD is offline inside the simulation. Esc opens the VR menu.');return;}
   if(!openModes.includes(mode)||globalThis.VoidFlightSkirmish?.active||(typeof VoidGraphics!=='undefined'&&VoidGraphics.busy)||!state?.universe)return;
   if(which)tab=which;returnMode=mode;mode='hud';clearInput();walkingKeys?.clear?.();document.exitPointerLock?.();
   panel=document.createElement('section');panel.id='personal-hud';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Personal HUD');panel.setAttribute('aria-modal','true');

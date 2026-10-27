@@ -70,7 +70,7 @@
     {id:'district-iris',label:'SPEAK WITH IRIS',position:[12.5,1.7,46.2],action:'district-iris',range:3},
     {id:'district-shop',label:'BROWSE THE SHOP',position:[14.8,1.7,50.5],action:'district-shop',range:2.8},
     {id:'district-bar',label:'TALK TO THE BARTENDER',position:[10,1.7,37.2],action:'district-bar',range:3},
-    {id:'district-vr',label:'VR ARCADE',position:[-6.2,1.7,36],action:'district-vr',range:3},
+    {id:'district-vr',label:'ACCESS VR EXPERIENCES',position:[-6.2,1.7,36],action:'district-vr',range:3},
     {id:'district-vending',label:'VENDING MACHINES',position:[-5,1.7,49.5],action:'district-vending',range:2.6},
     {id:'district-pod',label:'REST IN A SLEEP POD',position:[-12.5,1.7,62.5],action:'district-pod',range:3},
     {id:'district-meeting',label:'MEETING ROOM / PRIVATE',position:[2.4,1.7,62.5],action:'district-meeting',range:2.6},
@@ -419,7 +419,14 @@
     // Second player: a dance, then a virtual meal, then working menus and talking to someone only they can see.
     const social=[['dance',9,0],['idle',1.6,0],['pickup',0,0,'idle'],['interact',0,0,'idle'],['idle',1.2,0],['pickup',0,.2,'idle'],['interact',0,.2,'idle'],['idle',1.8,0],['menu',2.6,-.2],['menu-tap',0,-.2,'menu'],['menu',1.4,.25],['menu-tap',0,.25,'menu'],['talk',3.4,0],['idle',2.2,0]];
     vrPlayer('vr-player-a',-12.6,32.4,shooter);vrPlayer('vr-player-b',-12.6,39.6,social);
-    function vrTick(dt){for(const p of vrPlayers){if(p.node.isDisposed())continue;p.timer-=dt;
+    // The arcade terminal (vr-core.js): a booth's player takes off the session and steps to the corner for a visitor.
+    // The scene is rebuilt after the simulation, so they are back at their rig when the visitor returns.
+    root.VoidNeoChinatown&&(root.VoidNeoChinatown.booths={stepAside(i){const z=[32.4,39.6][i],p=vrPlayers.find(p=>Math.abs(p.node.position.z-z)<.5);if(!p||p.aside)return false;
+     p.aside={t:0,from:[p.node.position.x,p.node.position.z],to:[-15.6,z+(i?2.6:-2.6)]};try{p.c.play('walk');}catch{try{p.c.play('idle');}catch{}}return true;}});
+    function vrTick(dt){for(const p of vrPlayers){if(p.node.isDisposed())continue;
+      if(p.aside){const a=p.aside;a.t=Math.min(1,a.t+dt/1.4);const e=a.t<.5?2*a.t*a.t:1-Math.pow(-2*a.t+2,2)/2;p.node.position.x=a.from[0]+(a.to[0]-a.from[0])*e;p.node.position.z=a.from[1]+(a.to[1]-a.from[1])*e;
+       p.node.rotation.y=a.t<1?Math.atan2(a.to[0]-a.from[0],a.to[1]-a.from[1]):Math.PI/2;if(a.t>=1&&!a.idle){a.idle=true;try{p.c.play('idle');}catch{}}continue;}
+      p.timer-=dt;
       // Small turns of the whole body toward where the virtual action is; the arms and legs come from the clips.
       p.turn+=(p.want-p.turn)*Math.min(1,dt*2.5);p.node.rotation.y=p.base+p.turn;
       if(p.timer>0||p.c.busy)continue;const [clip,hold,turn,after]=p.routine[p.step++%p.routine.length];p.want=turn;
