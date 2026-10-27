@@ -92,5 +92,13 @@ David asked for the existing buildings, roads and sidewalks to be upgraded, with
 | `road-cracked-color/normal.jpg` | Road013A | the alley floor |
 | `sidewalk-color/normal.jpg` | PavingStones136 (tinted grey) | the plain concrete sidewalks |
 | `brick-color/normal.jpg` | Bricks097 (darkened) | the procedural alley brick |
+| `corrugated-rust-color/normal.jpg` | CorrugatedSteel008C (2026-10-27) | the old low-rise blocks (new; the visual overhaul) |
+| `corrugated-green-color/normal.jpg` | CorrugatedSteel006C (2026-10-27) | the old low-rise blocks |
+| `corrugated-blue-color/normal.jpg` | CorrugatedSteel007C (2026-10-27) | the old low-rise blocks |
+| `concrete-old-color/normal.jpg` | Concrete036 (2026-10-27) | the old low-rise blocks |
+| `concrete-mold-color/normal.jpg` | Concrete032 (2026-10-27) | the old low-rise blocks |
+| `metal-leaks-color/normal.jpg` | Metal021 (2026-10-27) | the old low-rise blocks |
+
+The 2026-10-27 sets were downloaded as 1K-JPG to `%LOCALAPPDATA%/void-runner-assets/downloads/ambientcg-2/` (outside the repo) under David's brief for the NeoChinatown visual overhaul. Colour maps are re-encoded at 512 px and normal maps at 256 px: 12 files, 0.4 MB. Same CC0 licence; no attribution required. Looked at and not used: CorrugatedSteel008A/006A/007A (too clean).
 
 Looked at and not used: Asphalt033, PavingStones142 (cobbles), Bricks059/066/075A/076A (too clean or not brick), Facade009/014.
