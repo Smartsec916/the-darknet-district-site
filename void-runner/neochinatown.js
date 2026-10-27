@@ -91,11 +91,11 @@
     // towers, and little ambient light outdoors, so neon, windows and lamps do the lighting. NeoChinatown only: everything
     // is put back on leaving, and the exposure is re-applied each frame in case a quality change resets it.
     const ip=scene.imageProcessingConfiguration,previous={clear:scene.clearColor.clone(),fogMode:scene.fogMode,fogDensity:scene.fogDensity,fogColor:scene.fogColor.clone(),exposure:ip.exposure,contrast:ip.contrast,env:scene.environmentIntensity};
-    scene.clearColor=new B.Color4(.012,.03,.038,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.0034;scene.fogColor=new B.Color3(.045,.1,.115);
+    scene.clearColor=new B.Color4(.02,.05,.06,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.0028;scene.fogColor=new B.Color3(.075,.155,.17);
     const look={exposure:1.3,contrast:1.18},applyLook=()=>{if(ip.exposure!==look.exposure)ip.exposure=look.exposure;if(ip.contrast!==look.contrast)ip.contrast=look.contrast;};applyLook();scene.environmentIntensity=Math.min(previous.env??1,.3);
     const sun=scene.getLightByName('sun'),ambient=scene.getLightByName('ambient');const lightState={sun:sun?.intensity,ambient:ambient?.intensity,diffuse:ambient?.diffuse?.clone(),ground:ambient?.groundColor?.clone()};
     // Outdoors: a dim teal sky light. Inside the District the original warm level returns (see tick).
-    const outdoor={intensity:low?.55:.4,diffuse:new B.Color3(.42,.62,.72),ground:new B.Color3(.12,.07,.16)},indoor={intensity:.8,diffuse:lightState.diffuse,ground:lightState.ground};
+    const outdoor={intensity:low?.6:.5,diffuse:new B.Color3(.42,.62,.72),ground:new B.Color3(.12,.07,.16)},indoor={intensity:.8,diffuse:lightState.diffuse,ground:lightState.ground};
     if(sun)sun.intensity=.04;if(ambient){ambient.intensity=outdoor.intensity;ambient.diffuse=outdoor.diffuse;if(ambient.groundColor)ambient.groundColor=outdoor.ground;}
     const mats={};
     function mat(key,hex,{rough=.8,metal=.2,glow=null,alpha=1}={}){if(mats[key])return mats[key];const m=new B.PBRMaterial('ncz-'+key,scene);m.albedoColor=B.Color3.FromHexString(hex);m.roughness=rough;m.metallic=metal;if(glow)m.emissiveColor=B.Color3.FromHexString(glow);if(alpha<1){m.alpha=alpha;m.transparencyMode=2;}owned.push(m);mats[key]=m;return m;}
@@ -183,13 +183,25 @@
     for(let i=0;i<4;i++)box('pad-stripe',[18,.02,.25],[24,.13,-104+i*5.3],glowMat('pad-stripe','#f2b33d',.35));
     const ship=shipModel('starter','friendly',parent,{landed:true});ship.position.set(22,1.9,-96);ship.scaling.setAll(2.2);ship.rotation.y=Math.PI;
     box('terminal-base',[.9,1.3,.6],[35.6,.65,-103],frame);plane('terminal-screen',.8,.55,[35.28,1.45,-103],texMat('landing-terminal',texture('landing-terminal',256,176,(g,W,H)=>{g.fillStyle='#04080e';g.fillRect(0,0,W,H);g.fillStyle='#7ff0ff';g.font='bold 22px monospace';g.fillText('LANDING',20,40);g.fillText('TERMINAL',20,66);g.fillStyle='#ffb347';g.font='15px monospace';g.fillText('PAD 07 · KESTREL',20,104);g.fillText('PARKING: THE FUNCTION',20,128);g.fillText('[E] CONNECT',20,156);}),{glow:true}),-Math.PI/2);
-    for(let i=0;i<14;i++){const r=Object.values(S)[i%5],x=r[0]+rand()*(r[1]-r[0]),z=r[2]+rand()*(r[3]-r[2]);const p=add(B.MeshBuilder.CreateDisc('puddle',{radius:.8+rand()*1.4,tessellation:18},scene),mat('puddle','#0c0c14',{rough:.04,metal:.9}),[x,.025,z]);p.rotation.x=Math.PI/2;p.scaling.y=.55;}
+    // Puddles: glossy dark water that catches the haze and the lights, not black holes.
+    const puddle=new B.StandardMaterial('ncz-puddle',scene);puddle.diffuseColor=new B.Color3(.02,.03,.04);puddle.specularColor=new B.Color3(.7,.8,.9);puddle.specularPower=180;puddle.emissiveColor=new B.Color3(.05,.1,.115);puddle.alpha=.82;owned.push(puddle);
+    for(let i=0;i<14;i++){const r=Object.values(S)[i%5],x=r[0]+rand()*(r[1]-r[0]),z=r[2]+rand()*(r[3]-r[2]);const p=add(B.MeshBuilder.CreateDisc('puddle',{radius:.8+rand()*1.4,tessellation:18},scene),puddle,[x,.025,z]);p.rotation.x=Math.PI/2;p.scaling.y=.55;}
     // The Function's banner over the avenue where the main street meets it.
     neon('function-banner',['THE FUNCTION WATCHES OVER YOU','功能 · 秩序 · 利潤'],['#e8f0ff','#ff4a4a'],16,2.6,[61,16,-4.6],0);
+    // Batched geometry: thousands of windows, AC units, parapets and roof parts written straight into one mesh per
+    // material instead of one mesh each, so entering NeoChinatown stays quick. Same convention as a Babylon plane:
+    // a quad turned by r about y faces (-sin r, 0, -cos r).
+    const batches=new Map();
+    function quadAt(m,c,ax,ay,n,w,h){let b=batches.get(m);if(!b)batches.set(m,b={p:[],n:[],u:[],i:[]});const k=b.p.length/3;for(const [sx,sy,u,vv] of [[-1,-1,0,0],[1,-1,1,0],[1,1,1,1],[-1,1,0,1]]){b.p.push(c[0]+(ax[0]*sx*w+ay[0]*sy*h)/2,c[1]+(ax[1]*sx*w+ay[1]*sy*h)/2,c[2]+(ax[2]*sx*w+ay[2]*sy*h)/2);b.n.push(...n);b.u.push(u,vv);}b.i.push(k,k+1,k+2,k,k+2,k+3);}
+    const quad=(m,c,w,h,r)=>quadAt(m,c,[Math.cos(r),0,-Math.sin(r)],[0,1,0],[-Math.sin(r),0,-Math.cos(r)],w,h);
+    function cuboid(m,[sx,sy,sz],[x,y,z]){quad(m,[x,y,z-sz/2],sx,sy,0);quad(m,[x,y,z+sz/2],sx,sy,Math.PI);quad(m,[x+sx/2,y,z],sz,sy,-Math.PI/2);quad(m,[x-sx/2,y,z],sz,sy,Math.PI/2);quadAt(m,[x,y+sy/2,z],[1,0,0],[0,0,1],[0,1,0],sx,sz);quadAt(m,[x,y-sy/2,z],[1,0,0],[0,0,-1],[0,-1,0],sx,sz);}
+    const bbox=(name,size,p,m)=>cuboid(m,size,p);
     // ---- Old neighbourhood (foreground): weathered low-rise blocks under the megacity (David's references, 2026-10-27) ----
     // Corrugated steel, old concrete and leaking plate (ambientCG, CC0), small lit windows, wall AC units, balconies and
     // pipes, and roofs cluttered with tanks, AC units, antennas and dishes. Boxes on the old plots: collision is unchanged.
-    const old=[['corrugated-rust',.36,4],['corrugated-green',.46,4],['corrugated-blue',.42,4],['concrete-old',.4,6],['concrete-mold',.42,6],['metal-leaks',.42,5]].map(([n,tint,tile])=>{const m=new B.StandardMaterial('ncz-old-'+n,scene);m.diffuseTexture=acg(n+'-color');m.bumpTexture=acg(n+'-normal');m.diffuseColor=new B.Color3(tint,tint,tint*1.1);m.specularColor=new B.Color3(.05,.05,.06);m.metadata={tile};owned.push(m);return m;});
+    const old=[['corrugated-rust',.6,4,.2],['corrugated-green',.6,4,.17],['corrugated-blue',.7,4,.24],['concrete-old',.7,6,.26],['concrete-mold',.72,6,.26],['metal-leaks',.72,5,.26]].map(([n,tint,tile,haze])=>{const m=new B.StandardMaterial('ncz-old-'+n,scene);m.diffuseTexture=acg(n+'-color');m.bumpTexture=acg(n+'-normal');m.diffuseColor=new B.Color3(tint,tint,tint*1.1);m.specularColor=new B.Color3(.05,.05,.06);m.metadata={tile};
+     // A dimmed copy of the texture glows faintly, as if lit by the city's haze, so the weathering reads in the dark.
+     const e=m.diffuseTexture.clone();e.level=haze;m.emissiveTexture=e;textures.push(e);owned.push(m);return m;});
     // Windows: a dark frame with glass, or a warm or cool room seen through blinds.
     const windowTex=(name,c)=>texture('window-'+name,64,96,(g,W,H)=>{g.fillStyle='#07090c';g.fillRect(0,0,W,H);g.fillStyle=c||'#10161d';g.fillRect(5,5,W-10,H-10);if(c){g.fillStyle='rgba(0,0,0,.38)';for(let y=9;y<H-6;y+=7)g.fillRect(5,y,W-10,2);g.fillStyle='rgba(0,0,0,.55)';g.fillRect(W/2-1,5,2,H-10);g.fillRect(5,H*.55,W-10,3);}else{g.fillStyle='rgba(120,170,200,.10)';g.fillRect(9,9,9,H-18);}});
     const windowLit=[['warm','#d9894a'],['lamp','#e8b878'],['cyan','#4fb8cc'],['pink','#c45a9a'],['tv','#8fd0b0']].map(([n,c])=>texMat('window-'+n,windowTex(n,c),{glow:true})),windowDark=texMat('window-dark',windowTex('dark',null));
@@ -201,17 +213,17 @@
     function facadeDetail(f,h,first=5.6){
      const cols=Math.floor((f.len-1.2)/2.6),floors=Math.floor((h-first-.6)/3.2)+1;if(cols<1||floors<1)return;const pad=(f.len-cols*2.6)/2,ry=faceRot(f.nx,f.nz),along=f.tx!==0;
      for(let fl=0;fl<floors;fl++)for(let c=0;c<cols;c++){const s=pad+1.3+c*2.6,y=first+fl*3.2;if(rand()<.1)continue;
-      const lit=rand()<.34,w=add(B.MeshBuilder.CreatePlane('window',{width:1.1,height:1.4},scene),lit?windowLit[Math.floor(rand()*windowLit.length)]:windowDark,onFace(f,s,y));w.rotation.y=ry;
-      if(rand()<.14)box('wall-ac',along?[.85,.6,.5]:[.5,.6,.85],onFace(f,s,y-1.1,.28),pipe);
-      else if(rand()<.05&&fl>0){box('balcony',along?[2.2,.12,1]:[1,.12,2.2],onFace(f,s,y-.85,.5),frame);box('balcony-rail',along?[2.2,.9,.05]:[.05,.9,2.2],onFace(f,s,y-.4,.98),frame);}}
-     if(f.len>6){cyl('downpipe',.07,h,onFace(f,f.len*(.1+rand()*.8),h/2,.12),rust,true,6);if(rand()<.6)box('conduit',along?[f.len*.6,.08,.08]:[.08,.08,f.len*.6],onFace(f,f.len/2,first-1.6,.1),frame);}
+      const lit=rand()<.34;quad(lit?windowLit[Math.floor(rand()*windowLit.length)]:windowDark,onFace(f,s,y),1.1,1.4,ry);
+      if(rand()<.14)bbox('wall-ac',along?[.85,.6,.5]:[.5,.6,.85],onFace(f,s,y-1.1,.28),pipe);
+      else if(rand()<.05&&fl>0){bbox('balcony',along?[2.2,.12,1]:[1,.12,2.2],onFace(f,s,y-.85,.5),frame);bbox('balcony-rail',along?[2.2,.9,.05]:[.05,.9,2.2],onFace(f,s,y-.4,.98),frame);}}
+     if(f.len>6){bbox('downpipe',[.14,h,.14],onFace(f,f.len*(.1+rand()*.8),h/2,.12),rust);if(rand()<.6)bbox('conduit',along?[f.len*.6,.08,.08]:[.08,.08,f.len*.6],onFace(f,f.len/2,first-1.6,.1),frame);}
     }
     function roofClutter(x0,x1,z0,z1,h){const w=x1-x0,d=z1-z0,at=()=>[x0+w*(.2+rand()*.6),z0+d*(.2+rand()*.6)];
-     box('parapet',[w,.6,.2],[(x0+x1)/2,h+.3,z0+.1],concrete);box('parapet',[w,.6,.2],[(x0+x1)/2,h+.3,z1-.1],concrete);box('parapet',[.2,.6,d],[x0+.1,h+.3,(z0+z1)/2],concrete);box('parapet',[.2,.6,d],[x1-.1,h+.3,(z0+z1)/2],concrete);
-     for(let i=0,n=1+Math.floor(rand()*3);i<n;i++){const [x,z]=at();box('roof-ac',[1.6,1.1,1.2],[x,h+.55,z],pipe);box('roof-ac-grille',[1,.04,.9],[x,h+1.12,z],frame);}
-     if(rand()<.5){const [x,z]=at();cyl('water-tank',1.1,2.2,[x,h+1.75,z],rust,true,12);for(const [dx,dz] of [[-.7,-.7],[.7,-.7],[-.7,.7],[.7,.7]])box('tank-leg',[.1,.65,.1],[x+dx,h+.33,z+dz],frame);}
-     if(rand()<.55){const [x,z]=at(),mh=4+rand()*7;cyl('antenna',.05,mh,[x,h+mh/2,z],frame,true,5);for(let k=1;k<=3;k++)box('antenna-bar',[1.5-k*.35,.04,.04],[x,h+mh*(.5+k*.14),z],frame);box('antenna-light',[.15,.15,.15],[x,h+mh+.05,z],red);}
-     if(rand()<.45){const [x,z]=at(),dish=add(B.MeshBuilder.CreateSphere('dish',{diameter:1.6,segments:8,slice:.5,sideOrientation:B.Mesh.DOUBLESIDE},scene),metal,[x,h+1.5,z]);dish.rotation.x=-1.1;dish.rotation.y=rand()*6.28;cyl('dish-post',.05,1.1,[x,h+.55,z],frame,true,5);}
+     bbox('parapet',[w,.6,.2],[(x0+x1)/2,h+.3,z0+.1],concrete);bbox('parapet',[w,.6,.2],[(x0+x1)/2,h+.3,z1-.1],concrete);bbox('parapet',[.2,.6,d],[x0+.1,h+.3,(z0+z1)/2],concrete);bbox('parapet',[.2,.6,d],[x1-.1,h+.3,(z0+z1)/2],concrete);
+     for(let i=0,n=1+Math.floor(rand()*3);i<n;i++){const [x,z]=at();bbox('roof-ac',[1.6,1.1,1.2],[x,h+.55,z],pipe);bbox('roof-ac-grille',[1,.04,.9],[x,h+1.12,z],frame);}
+     if(rand()<.5){const [x,z]=at();cyl('water-tank',1.1,2.2,[x,h+1.75,z],rust,true,12);for(const [dx,dz] of [[-.7,-.7],[.7,-.7],[-.7,.7],[.7,.7]])bbox('tank-leg',[.1,.65,.1],[x+dx,h+.33,z+dz],frame);}
+     if(rand()<.55){const [x,z]=at(),mh=4+rand()*7;bbox('antenna',[.1,mh,.1],[x,h+mh/2,z],frame);for(let k=1;k<=3;k++)bbox('antenna-bar',[1.5-k*.35,.04,.04],[x,h+mh*(.5+k*.14),z],frame);bbox('antenna-light',[.15,.15,.15],[x,h+mh+.05,z],red);}
+     if(rand()<.45){const [x,z]=at(),dish=add(B.MeshBuilder.CreateSphere('dish',{diameter:1.6,segments:8,slice:.5,sideOrientation:B.Mesh.DOUBLESIDE},scene),metal,[x,h+1.5,z]);dish.rotation.x=-1.1;dish.rotation.y=rand()*6.28;bbox('dish-post',[.1,1.1,.1],[x,h+.55,z],frame);}
      if(rand()<.35&&w>6&&d>6){const sw=w*(.3+rand()*.2),sd=d*(.3+rand()*.2),[x,z]=at();oldBox(x-sw/2,x+sw/2,z-sd/2,z+sd/2,h,2.6+rand()*1.8,Math.floor(rand()*3));}
     }
     // An old building on a plot: body, windows and wall clutter on the faces that show, roof clutter on top.
@@ -247,7 +259,7 @@
       if(rand()<(ring?.25:.5)){const sw=Math.min(w*.75,30),sh=sw*1.5,y=Math.max(sh/2+20,h*(.4+rand()*.3)),p=[x-dir[0]*(d/2+.6),y,z-dir[1]*(d/2+.6)],live=!ring&&screens.length<5;
        const sc=add(B.MeshBuilder.CreatePlane('skyline-screen',{width:sw,height:sh},scene),adMat(nextAd()),p,!live);sc.rotation.y=a;if(live)screens.push({mesh:sc,next:4+screens.length*2.3});}}});
     // A haze dome: the fog colour glowing at the horizon, darkening overhead. Unfogged, behind everything.
-    {const t=texture('haze-dome',8,256,(g,W,H)=>{const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#03070a');gr.addColorStop(.45,'#071318');gr.addColorStop(.78,'#0f2328');gr.addColorStop(.9,'#16302f');gr.addColorStop(1,'#0d1c20');g.fillStyle=gr;g.fillRect(0,0,W,H);});
+    {const t=texture('haze-dome',8,256,(g,W,H)=>{const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#040a0d');gr.addColorStop(.4,'#0a1d22');gr.addColorStop(.75,'#14363b');gr.addColorStop(.9,'#1b4448');gr.addColorStop(1,'#13292c');g.fillStyle=gr;g.fillRect(0,0,W,H);});
      const m=texMat('haze-dome',t,{glow:true});m.fogEnabled=false;m.backFaceCulling=false;const dome=add(B.MeshBuilder.CreateCylinder('haze-dome',{diameter:2600,height:1500,tessellation:32,cap:B.Mesh.NO_CAP,sideOrientation:B.Mesh.BACKSIDE},scene),m,[77,620,-62],false);dome.infiniteDistance=false;dome.applyFog=false;}
     // IronEye drones patrol above the main street and the avenue.
     const drones=[];const droneBody=mat('ironeye','#1d1f24',{rough:.4,metal:.8});for(let i=0;i<(low?2:4);i++){const n=new B.TransformNode('ironeye-'+i,scene);n.parent=parent;const body=add(B.MeshBuilder.CreateSphere('ironeye-body',{diameter:.9,segments:10},scene),droneBody,[0,0,0],false);body.parent=n;body.scaling.y=.6;const eye=add(B.MeshBuilder.CreateDisc('ironeye-eye',{radius:.16,tessellation:12},scene),red,[0,0,-.46],false);eye.parent=n;for(const s of [-1,1]){const rot=box('ironeye-rotor',[.9,.04,.12],[s*.55,.25,0],frame,false);rot.parent=n;}drones.push({n,phase:i*1.7,x:i<3?61:100,z:i<3?-100+i*30:-12.5});}
@@ -492,16 +504,16 @@
       // The sign stands at right angles to the wall: its faces look along the street.
       const ry=faceRot(f.tx,f.tz),mid=onFace(f,s,y,1.05),parts=[];
       for(const [flip,o] of [[0,-.03],[Math.PI,.03]]){const p=B.MeshBuilder.CreatePlane('blade-sign',{width:1.1,height:hh},scene);add(p,m,[mid[0]-f.tx*o,y,mid[2]-f.tz*o],false);p.rotation.y=ry+flip;parts.push(p);}
-      box('blade-arm',f.tx?[.06,.06,1]:[1,.06,.06],onFace(f,s,y+hh/2-.2,.5),frame);
+      bbox('blade-arm',f.tx?[.06,.06,1]:[1,.06,.06],onFace(f,s,y+hh/2-.2,.5),frame);
       wallWash(c,f,s,y,4.5,hh+3,.42);if(rand()<.25)flickers.push({meshes:parts,next:2+rand()*6,off:0});}
      // Wall lamps over the sidewalks: amber sodium or cold white, each with its pool on the wet paving.
-     function lamp(f,s){const warm=rand()<.6,c=warm?'#ffb35c':'#bfe9ff';box('wall-lamp',f.tx?[.6,.14,.35]:[.35,.14,.6],onFace(f,s,4.4,.35),warm?amber:white);box('wall-lamp-arm',f.tx?[.06,.06,.4]:[.4,.06,.06],onFace(f,s,4.5,.15),frame);
+     function lamp(f,s){const warm=rand()<.6,c=warm?'#ffb35c':'#bfe9ff';bbox('wall-lamp',f.tx?[.6,.14,.35]:[.35,.14,.6],onFace(f,s,4.4,.35),warm?amber:white);bbox('wall-lamp-arm',f.tx?[.06,.06,.4]:[.4,.06,.06],onFace(f,s,4.5,.15),frame);
       wallWash(c,f,s,3.4,6,5,.32);const g=onFace(f,s,0,1.5);floorWash(c,g[0],g[2],f.tx?5:3,f.tx?3:5,.2,.3);}
      for(const [f,gaps] of fronts)for(let s=4;s<f.len-3;s+=3.5){if(inGapF(f,s,gaps))continue;const r=rand();if(r<.2)blade(f,s,7.2+rand()*2.5);else if(r<.33)lamp(f,s);}
      // Overhead cables: sagging bundles strung between facing buildings, 7-11 m up, each end on a junction box.
      const cableMat=mat('cable','#0a0a0c',{rough:.6,metal:.3});
      function cable(a,b,sag,r){const pts=[];for(let i=0;i<=12;i++){const t=i/12;pts.push(v(a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t-Math.sin(Math.PI*t)*sag,a[2]+(b[2]-a[2])*t));}add(B.MeshBuilder.CreateTube('cable',{path:pts,radius:r,tessellation:4},scene),cableMat,[0,0,0]);}
-     function span(a,b,n){for(let i=0;i<n;i++){const A=[a[0],7+rand()*4,a[1]],Bp=[b[0],7+rand()*4,b[1]];cable(A,Bp,.6+rand()*1.2,.025+rand()*.02);box('junction-box',[.35,.45,.35],A,frame);box('junction-box',[.35,.45,.35],Bp,frame);}}
+     function span(a,b,n){for(let i=0;i<n;i++){const A=[a[0],7+rand()*4,a[1]],Bp=[b[0],7+rand()*4,b[1]];cable(A,Bp,.6+rand()*1.2,.025+rand()*.02);bbox('junction-box',[.35,.45,.35],A,frame);bbox('junction-box',[.35,.45,.35],Bp,frame);}}
      for(let z=-118;z<-24;z+=8+rand()*5)span([51.45,z],[70.55,z+(rand()-.5)*6],2+Math.floor(rand()*2));
      for(let x=6;x<150;x+=9+rand()*6){if(x>49&&x<73)continue;span([x,-19.55],[x+(rand()-.5)*6,-5.45],1+Math.floor(rand()*2));}
      for(let x=16;x<50;x+=7+rand()*4)span([x,-120.55],[x+(rand()-.5)*4,-116.45],1+Math.floor(rand()*2));
@@ -512,7 +524,9 @@
      [[{x:13,z:-121.3,tx:1,tz:0,nx:0,nz:1},9,4.6,7],[{x:13,z:-115.7,tx:1,tz:0,nx:0,nz:-1},12,4.4,6],[{x:37.15,z:-116,tx:0,tz:1,nx:1,nz:0},14,4.2,5.5],[{x:44.35,z:-116,tx:0,tz:1,nx:-1,nz:0},8,4.2,6],[{x:12.7,z:-106,tx:0,tz:1,nx:1,nz:0},10,3.6,7],[{x:13,z:-85.7,tx:1,tz:0,nx:0,nz:-1},15,4,6.5],[{x:13,z:-106.3,tx:1,tz:0,nx:0,nz:1},6,3.4,5],[{x:13,z:-121.3,tx:1,tz:0,nx:0,nz:1},29,5,5.5]]
       .forEach(([f,s,y,w],i)=>{const [text,style,c,o]=tags[i%tags.length],lines=style==='stencil'||text.length<16?1:2;decal(graffiti(text,style,c,o),w,w*(lines>1?.5:.25),onFace(f,s,y,.06),faceRot(f.nx,f.nz));});
      // Wet streets: more dark mirror puddles on the higher settings.
-     for(let i=0;i<(low?0:26);i++){const r=[S.main,S.avenue,S.road,S.pad,S.passage][i%5],x=r[0]+2+rand()*(r[1]-r[0]-4),z=r[2]+2+rand()*(r[3]-r[2]-4);const p=add(B.MeshBuilder.CreateDisc('puddle',{radius:.6+rand()*1.6,tessellation:16},scene),mat('puddle','#0c0c14',{rough:.04,metal:.9}),[x,.026,z]);p.rotation.x=Math.PI/2;p.scaling.y=.5+rand()*.4;}
+     for(let i=0;i<(low?0:26);i++){const r=[S.main,S.avenue,S.road,S.pad,S.passage][i%5],x=r[0]+2+rand()*(r[1]-r[0]-4),z=r[2]+2+rand()*(r[3]-r[2]-4);const p=add(B.MeshBuilder.CreateDisc('puddle',{radius:.6+rand()*1.6,tessellation:16},scene),puddle,[x,.026,z]);p.rotation.x=Math.PI/2;p.scaling.y=.5+rand()*.4;}
+     // Landing pad: four wall floodlights, cold white, lighting the pad and the Kestrel's surroundings.
+     for(const [x,z,f] of [[13.4,-100,{x:13.35,z:-106,tx:0,tz:1,nx:1,nz:0}],[13.4,-91,{x:13.35,z:-106,tx:0,tz:1,nx:1,nz:0}],[19,-86.4,{x:13,z:-86.35,tx:1,tz:0,nx:0,nz:-1}],[30,-105.6,{x:13,z:-106.35,tx:1,tz:0,nx:0,nz:1}]]){const s=f.tx?x-f.x:z-f.z;box('pad-flood',f.tx?[1.2,.5,.4]:[.4,.5,1.2],onFace(f,s,6.5,.3),white);wallWash('#cfefff',f,s,5,8,7,.35);const g=onFace(f,s,0,5);floorWash('#cfefff',g[0],g[2],11,11,.14,.42);}
      // The District's front stays discreet: a dim violet pool on the wet alley floor at its door.
      {const [dx,dz]=toWorld(0,18.4);floorWash('#9b7bff',dx,dz,6,3,.035,.35);}
      // Rain: streaks that follow the camera outdoors and stop inside the District. Off on low quality.
@@ -523,11 +537,12 @@
      target=saved;}
     // The District's front: a small backlit plaque, violet trim round the reinforced door and a second camera.
     {const saved=target;target=districtRoot;
-     neon('district-plaque',['THE DARKNET DISTRICT'],['#c9b4ff'],2.3,.32,[0,4.05,19.82],0,'rgba(8,6,14,.94)');
-     box('district-trim',[6.5,.07,.07],[0,3.64,19.86],violet);for(const sx of [-1,1])box('district-trim',[.07,3.6,.07],[sx*3.24,1.8,19.86],violet);
+     neon('district-plaque',['THE DARKNET DISTRICT'],['#c9b4ff'],2.3,.32,[0,4.05,19.6],0,'rgba(8,6,14,.94)');
+     const trim=glowMat('violet-trim','#6c44b8',.6);box('district-trim',[6,.035,.035],[0,3.56,19.62],trim);for(const sx of [-1,1])box('district-trim',[.035,3.56,.035],[sx*2.96,1.78,19.62],trim);
      box('camera-arm-2',[.06,.06,.6],[3.4,3.95,19.6],frame);box('camera-body-2',[.25,.2,.45],[3.4,3.85,19.28],frame);box('camera-led-2',[.05,.05,.02],[3.4,3.85,19.04],red);
      target=saved;}
 
+    for(const [m,b] of batches){const mesh=new B.Mesh('ncz-batch',scene),vd=new B.VertexData();vd.positions=b.p;vd.normals=b.n;vd.uvs=b.u;vd.indices=b.i;vd.applyToMesh(mesh);mesh.material=m;mesh.parent=parent;mesh.isPickable=false;}
     // Merge static meshes by material to keep draw calls low.
     for(const [m,list] of staticMeshes)if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(merged){merged.parent=parent;merged.material=m;merged.isPickable=false;}}
     let lastTick=null;
