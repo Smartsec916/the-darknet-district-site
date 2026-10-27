@@ -126,3 +126,22 @@ David's brief: make NeoChinatown look like his four references (an old, crowded 
   - no rain splashes and no rain sound
   - no real-time reflections; puddles and light pools approximate them
   - the grey storefront panels are unchanged (David's earlier choice)
+
+## Purple gaps and invisible walls (2026-10-27)
+
+- **Root cause:**
+  - There was no ground outside the streets. Every gap between buildings, the land past the outer ring and between the distant blocks showed straight through to the sky and haze colour, which looked like open space.
+  - Buildings stood 0.35 m behind the collision line, with no ground in that strip. This left a sky-coloured seam at the foot of the walls, and the solid edge stopped you short of the visible wall.
+- **Fix:**
+  - **Ground:** one ground plane (cracked asphalt) under the whole city, out to the horizon, just below the streets.
+  - **Walls:** they now stand 0.12 m behind the collision line, just behind the storefront panels. Blade signs, lamps, light pools, graffiti, pad floodlights and cable anchors moved with them.
+  - **Roofs:** every building gets a dark tar roof. Plots inside the blocks get parapets and roof equipment, so the city reads as dense from a taxi or a rooftop instead of a checkerboard of plain boxes. All of it is batched.
+- **Collision:** unchanged. `layout()` is byte-identical; the visuals were brought to the existing collision.
+- **Check:** a scan with the sky made pure magenta, run from every street (8 directions, every 8 m) and from 25 m and 70 m over the whole city.
+
+  | View | Before | After |
+  |---|---|---|
+  | From the air | 193 views showed void | 0 |
+  | Street level, below the horizon | up to 4.1% of the view | 0 |
+
+  What remains is sky above the roofline.

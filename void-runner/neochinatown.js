@@ -227,7 +227,10 @@
     // A facade: start corner (x, z), direction along it (tx, tz), length, outward normal (nx, nz).
     const faceOf=(x0,x1,z0,z1,side)=>({s:{x:x0,z:z0,tx:1,tz:0,len:x1-x0,nx:0,nz:-1},n:{x:x0,z:z1,tx:1,tz:0,len:x1-x0,nx:0,nz:1},w:{x:x0,z:z0,tx:0,tz:1,len:z1-z0,nx:-1,nz:0},e:{x:x1,z:z0,tx:0,tz:1,len:z1-z0,nx:1,nz:0}})[side];
     const onFace=(f,s,y,out=.05)=>[f.x+f.tx*s+f.nx*out,y,f.z+f.tz*s+f.nz*out];
-    function oldBox(x0,x1,z0,z1,y0,h,k){const w=x1-x0,d=z1-z0,m=old[k%old.length],t=m.metadata.tile,side=a=>new B.Vector4(0,0,a/t,h/t),cap=new B.Vector4(0,0,w/6,d/6);return add(B.MeshBuilder.CreateBox('old-building',{width:w,height:h,depth:d,faceUV:[side(w),side(w),side(d),side(d),cap,cap],wrap:true},scene),m,[(x0+x1)/2,y0+h/2,(z0+z1)/2]);}
+    const roofTar=mat('roof-tar','#3a3b42',{rough:.95,metal:0});roofTar.albedoTexture=acg('road-cracked-color');
+    // A roof skin just above a building's top, its texture repeating every 8 m.
+    const roofTop=(x0,x1,z0,z1,h)=>quadAt(roofTar,[(x0+x1)/2,h+.02,(z0+z1)/2],[1,0,0],[0,0,1],[0,1,0],x1-x0,z1-z0,(x1-x0)/8,(z1-z0)/8);
+    function oldBox(x0,x1,z0,z1,y0,h,k){roofTop(x0,x1,z0,z1,y0+h);const w=x1-x0,d=z1-z0,m=old[k%old.length],t=m.metadata.tile,side=a=>new B.Vector4(0,0,a/t,h/t),cap=new B.Vector4(0,0,w/6,d/6);return add(B.MeshBuilder.CreateBox('old-building',{width:w,height:h,depth:d,faceUV:[side(w),side(w),side(d),side(d),cap,cap],wrap:true},scene),m,[(x0+x1)/2,y0+h/2,(z0+z1)/2]);}
     function facadeDetail(f,h,first=5.6){
      const cols=Math.floor((f.len-1.2)/2.6),floors=Math.floor((h-first-.6)/3.2)+1;if(cols<1||floors<1)return;const pad=(f.len-cols*2.6)/2,ry=faceRot(f.nx,f.nz),along=f.tx!==0;
      for(let fl=0;fl<floors;fl++)for(let c=0;c<cols;c++){const s=pad+1.3+c*2.6,y=first+fl*3.2;if(rand()<.1)continue;
@@ -245,7 +248,7 @@
      if(rand()<.35&&w>6&&d>6){const sw=w*(.3+rand()*.2),sd=d*(.3+rand()*.2),[x,z]=at();oldBox(x-sw/2,x+sw/2,z-sd/2,z+sd/2,h,2.6+rand()*1.8,Math.floor(rand()*3));}
     }
     // An old building on a plot: body, windows and wall clutter on the faces that show, roof clutter on top.
-    function lowrise(x0,x1,z0,z1,h,k,faces,first){if(x1-x0<.5||z1-z0<.5)return;if(!faces.length){const m=old[k%old.length];return cuboid(m,[x1-x0,h,z1-z0],[(x0+x1)/2,h/2,(z0+z1)/2],[m.metadata.tile,m.metadata.tile]);}oldBox(x0,x1,z0,z1,0,h,k);for(const side of faces)facadeDetail(faceOf(x0,x1,z0,z1,side),h,first);if(faces.length&&(!low||rand()<.5))roofClutter(x0,x1,z0,z1,h);}
+    function lowrise(x0,x1,z0,z1,h,k,faces,first){if(x1-x0<.5||z1-z0<.5)return;if(!faces.length){const m=old[k%old.length];cuboid(m,[x1-x0,h,z1-z0],[(x0+x1)/2,h/2,(z0+z1)/2],[m.metadata.tile,m.metadata.tile]);roofTop(x0,x1,z0,z1,h);if(!low&&rand()<.7)roofClutter(x0,x1,z0,z1,h);return;}oldBox(x0,x1,z0,z1,0,h,k);for(const side of faces)facadeDetail(faceOf(x0,x1,z0,z1,side),h,first);if(faces.length&&(!low||rand()<.5))roofClutter(x0,x1,z0,z1,h);}
     // Ground under the whole city out to the horizon, just below the streets. Without it, every gap between buildings, the
     // strip at the foot of each wall and the land past the outer ring showed straight through to the sky (David, 2026-10-27).
     {const c=[(cityBox[0]+cityBox[1])/2,(cityBox[2]+cityBox[3])/2],ground0=mat('city-ground','#1c1d22',{rough:.92,metal:.05});ground0.albedoTexture=acg('road-cracked-color');
@@ -265,7 +268,7 @@
     // ---- The city in between: plain lit blocks from the outer ring out to the megacity, seen from a taxi or a roof ----
     {const [X0,X1,Z0,Z1]=cityBox,c=[(X0+X1)/2,(Z0+Z1)/2],R=low?280:300;
      for(let x=c[0]-R;x<c[0]+R;x+=26)for(let z=c[1]-R;z<c[1]+R;z+=26){if(Math.hypot(x+13-c[0],z+13-c[1])>R||x+26>X0-44&&x<X1+44&&z+26>Z0-40&&z<Z1+40)continue;
-      const w=18+rand()*6,d=18+rand()*6,h=18+rand()*48,m=windowMats[Math.floor(rand()*3)];cuboid(m,[w,h,d],[x+13,h/2,z+13],m.metadata.tile);}}
+      const w=18+rand()*6,d=18+rand()*6,h=18+rand()*48,m=windowMats[Math.floor(rand()*3)];cuboid(m,[w,h,d],[x+13,h/2,z+13],m.metadata.tile);roofTop(x+13-w/2,x+13+w/2,z+13-d/2,z+13+d/2,h);}}
     // ---- The megacity (background): enormous lit towers far beyond the old blocks ----
     // Two rings of night towers (ambientCG facades) with set-back crowns, giant ad screens, light strips and beacons.
     // No collision; the haze fades them with distance. One thinner ring on low quality.
