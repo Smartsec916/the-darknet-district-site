@@ -187,7 +187,7 @@
       rand();const run=seg-1.5,face=new B.Vector4(0,0,run/3,1),edge=new B.Vector4(0,0,.05,1);
       add(B.MeshBuilder.CreateBox('storefront',{width:e.n[0]?.1:run,height:3,depth:e.n[0]?run:.1,faceUV:e.n[0]?[edge,edge,face,face,edge,edge]:[face,face,edge,edge,edge,edge],wrap:true},scene),shopfront,[wall[0],1.6,wall[1]]);
       box('awning',e.n[0]?[1.2,.12,seg-1.2]:[seg-1.2,.12,1.2],[p[0]+into[0]*.6,3.4,p[1]+into[1]*.6],frame);
-      if(wide&&rand()<.55){const [lines,colors]=shopSigns[signIndex++%shopSigns.length];neon('shop-sign-'+signIndex,lines,colors,2.4,4.4,[p[0]+into[0]*.25,5.2,p[1]+into[1]*.25],ry);signSpots.push({c:colors[0],f:{x:p[0]+e.n[0]*.35,z:p[1]+e.n[1]*.35,tx:e.n[0]?0:1,tz:e.n[0]?1:0,nx:-e.n[0],nz:-e.n[1]}});}
+      if(wide&&rand()<.55){const [lines,colors]=shopSigns[signIndex++%shopSigns.length];neon('shop-sign-'+signIndex,lines,colors,2.4,4.4,[p[0]+into[0]*.25,5.2,p[1]+into[1]*.25],ry);signSpots.push({c:colors[0],f:{x:p[0]+e.n[0]*.12,z:p[1]+e.n[1]*.12,tx:e.n[0]?0:1,tz:e.n[0]?1:0,nx:-e.n[0],nz:-e.n[1]}});}
       if(wide&&rand()<.35)billboard(5.5+rand()*2,[p[0]+into[0]*.3,10+rand()*2.5,p[1]+into[1]*.3],ry);
       if(wide&&rand()<.4){const k=[p[0]+into[0]*(sw-.4),p[1]+into[1]*(sw-.4)];box('kiosk-frame',e.n[0]?[.3,2.9,1.9]:[1.9,2.9,.3],[k[0],1.45,k[1]],frame);plane('kiosk-ad',1.6,2.4,[k[0]+into[0]*.17,1.55,k[1]+into[1]*.17],adMat(nextAd()),ry);}}
     }
@@ -246,11 +246,15 @@
     }
     // An old building on a plot: body, windows and wall clutter on the faces that show, roof clutter on top.
     function lowrise(x0,x1,z0,z1,h,k,faces,first){if(x1-x0<.5||z1-z0<.5)return;if(!faces.length){const m=old[k%old.length];return cuboid(m,[x1-x0,h,z1-z0],[(x0+x1)/2,h/2,(z0+z1)/2],[m.metadata.tile,m.metadata.tile]);}oldBox(x0,x1,z0,z1,0,h,k);for(const side of faces)facadeDetail(faceOf(x0,x1,z0,z1,side),h,first);if(faces.length&&(!low||rand()<.5))roofClutter(x0,x1,z0,z1,h);}
+    // Ground under the whole city out to the horizon, just below the streets. Without it, every gap between buildings, the
+    // strip at the foot of each wall and the land past the outer ring showed straight through to the sky (David, 2026-10-27).
+    {const c=[(cityBox[0]+cityBox[1])/2,(cityBox[2]+cityBox[3])/2],ground0=mat('city-ground','#1c1d22',{rough:.92,metal:.05});ground0.albedoTexture=acg('road-cracked-color');
+     ground('city-ground',[c[0]-1400,c[0]+1400,c[1]-1400,c[1]+1400],ground0,-.03,12);}
     // Every city block between the streets is built up in plots of up to 12 m, set back 0.35 m from the street so the
     // storefronts stay in front. Plots on the avenue and the main street are taller; nothing you can't walk into looks open.
     const openNear=(x0,x1,z0,z1)=>[...Object.values(S),...Object.values(footprints)].some(([a,b,c,d])=>x0<b&&x1>a&&z0<d&&z1>c);
     const onWide=(x0,x1,z0,z1)=>[S.avenue,S.main].some(([a,b,c,d])=>x0-.6<b&&x1+.6>a&&z0-.6<d&&z1+.6>c);
-    for(const s of cityBlocks){const [cx,,cz]=s.position,[w,,d]=s.size,X0=cx-w/2,Z0=cz-d/2,nx=Math.ceil(w/12),nz=Math.ceil(d/12),I=.35,E=.3;
+    for(const s of cityBlocks){const [cx,,cz]=s.position,[w,,d]=s.size,X0=cx-w/2,Z0=cz-d/2,nx=Math.ceil(w/12),nz=Math.ceil(d/12),I=.12,E=.3;
      for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){let x0=X0+w*i/nx,x1=X0+w*(i+1)/nx,z0=Z0+d*j/nz,z1=Z0+d*(j+1)/nz;const faces=[];
       const [a,b,c,e]=[x0,x1,z0,z1];if(openNear(a-E,a,c,e)){x0+=I;faces.push('w');}if(openNear(b,b+E,c,e)){x1-=I;faces.push('e');}if(openNear(a,b,c-E,c)){z0+=I;faces.push('s');}if(openNear(a,b,e,e+E)){z1-=I;faces.push('n');}
       const wide=onWide(a,b,c,e);lowrise(x0,x1,z0,z1,wide?18+rand()*12:9+rand()*8,i+j*2+s.id.length,faces,wide?7.4:4.6);}}
@@ -537,7 +541,7 @@
      // Shop-sign spill: each storefront neon lights its patch of wall and the sidewalk under it.
      for(const {c,f} of signSpots){wallWash(c,f,0,5.2,5,6.5,.4);const g=onFace(f,0,0,1.6);floorWash(c,g[0],g[2],f.tx?4:2.8,f.tx?2.8:4,.2,.3);}
      // The street faces (outward normal into the street) of the avenue and the main street, with the gaps where streets join.
-     const fronts=[[{x:2,z:-20.35,tx:1,tz:0,len:150,nx:0,nz:1},[[51,71]]],[{x:2,z:-4.65,tx:1,tz:0,len:150,nx:0,nz:-1},[]],[{x:50.65,z:-124,tx:0,tz:1,len:104,nx:1,nz:0},[[-121,-116]]],[{x:71.35,z:-124,tx:0,tz:1,len:104,nx:-1,nz:0},[[-61.6,-55.5]]]];
+     const fronts=[[{x:2,z:-20.12,tx:1,tz:0,len:150,nx:0,nz:1},[[51,71]]],[{x:2,z:-4.88,tx:1,tz:0,len:150,nx:0,nz:-1},[]],[{x:50.88,z:-124,tx:0,tz:1,len:104,nx:1,nz:0},[[-121,-116]]],[{x:71.12,z:-124,tx:0,tz:1,len:104,nx:-1,nz:0},[[-61.6,-55.5]]]];
      const inGapF=(f,s,gaps)=>{const c=f.tx?f.x+s:f.z+s;return gaps.some(([g0,g1])=>c>g0-2&&c<g1+2);};
      // Blade signs: vertical neon sticking out from the wall, readable from both directions (two single-sided faces).
      const blades=[['拉麵','#ff5b5b'],['旅館','#7ff0ff'],['當鋪','#ffcf5a'],['診所','#6cff9e'],['電器','#9b7bff'],['HOTEL','#ff5bd0'],['PHO','#ffb347'],['KEBAB','#ffcf5a'],['CYBERWARE','#7ff0ff'],['網吧','#38e8ff'],['TATTOO','#ff5bd0'],['麻將','#ff5b5b'],['PAWN','#ffcf5a'],['BAR','#ff5bd0'],['NOODLES','#ffb347'],['CLINIC','#6cff9e']];
@@ -557,19 +561,19 @@
      const cableMat=mat('cable','#0a0a0c',{rough:.6,metal:.3});
      function cable(a,b,sag,r){const pts=[];for(let i=0;i<=12;i++){const t=i/12;pts.push(v(a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t-Math.sin(Math.PI*t)*sag,a[2]+(b[2]-a[2])*t));}add(B.MeshBuilder.CreateTube('cable',{path:pts,radius:r,tessellation:4},scene),cableMat,[0,0,0]);}
      function span(a,b,n){if(taxiZones.some(z=>Math.hypot((a[0]+b[0])/2-z.position[0],(a[1]+b[1])/2-z.position[1])<8))return;for(let i=0;i<n;i++){const A=[a[0],7+rand()*4,a[1]],Bp=[b[0],7+rand()*4,b[1]];cable(A,Bp,.6+rand()*1.2,.025+rand()*.02);bbox('junction-box',[.35,.45,.35],A,frame);bbox('junction-box',[.35,.45,.35],Bp,frame);}}
-     for(let z=-118;z<-24;z+=8+rand()*5)span([51.45,z],[70.55,z+(rand()-.5)*6],2+Math.floor(rand()*2));
-     for(let x=6;x<150;x+=9+rand()*6){if(x>49&&x<73)continue;span([x,-19.55],[x+(rand()-.5)*6,-5.45],1+Math.floor(rand()*2));}
-     for(let x=16;x<50;x+=7+rand()*4)span([x,-120.55],[x+(rand()-.5)*4,-116.45],1+Math.floor(rand()*2));
-     for(let z=-114;z<-94;z+=6+rand()*3)span([37.95,z],[43.55,z+(rand()-.5)*3],1);
+     for(let z=-118;z<-24;z+=8+rand()*5)span([51.05,z],[70.95,z+(rand()-.5)*6],2+Math.floor(rand()*2));
+     for(let x=6;x<150;x+=9+rand()*6){if(x>49&&x<73)continue;span([x,-19.95],[x+(rand()-.5)*6,-5.05],1+Math.floor(rand()*2));}
+     for(let x=16;x<50;x+=7+rand()*4)span([x,-120.95],[x+(rand()-.5)*4,-116.05],1+Math.floor(rand()*2));
+     for(let z=-114;z<-94;z+=6+rand()*3)span([37.55,z],[43.95,z+(rand()-.5)*3],1);
      for(let x=A[0]+4;x<A[1]-2;x+=7+rand()*5)if(Math.abs(x-DOOR.x)>5)span([x,A[3]-.2],[x+(rand()-.5)*3,A[2]+.2],1+Math.floor(rand()*2));
      // Graffiti on the quieter streets: the access road, the passage and the pad's walls, above the shopfront line.
      const tags=[['QUESTION THE SYSTEM','spray','#e8e2d0','#b52a2a'],['PRIVACY IS RESISTANCE','stencil','#7ff0ff'],['YOU ARE NOT A PRODUCT','hand','#ffcf5a'],['WHO WATCHES THE WATCHERS?','stencil','#f2f0e8'],['DISCONNECT TO EXIST','spray','#6cff9e','#101814'],['OBEY / CONSUME / REPEAT','stencil','#ff5bd0'],['NO GODS. NO ALGORITHMS.','hand','#e8e2d0'],['YOUR DATA IS NOT YOURS','spray','#9b7bff','#120c1c']];
-     [[{x:13,z:-121.3,tx:1,tz:0,nx:0,nz:1},9,4.6,7],[{x:13,z:-115.7,tx:1,tz:0,nx:0,nz:-1},12,4.4,6],[{x:37.15,z:-116,tx:0,tz:1,nx:1,nz:0},14,4.2,5.5],[{x:44.35,z:-116,tx:0,tz:1,nx:-1,nz:0},8,4.2,6],[{x:12.7,z:-106,tx:0,tz:1,nx:1,nz:0},10,3.6,7],[{x:13,z:-85.7,tx:1,tz:0,nx:0,nz:-1},15,4,6.5],[{x:13,z:-106.3,tx:1,tz:0,nx:0,nz:1},6,3.4,5],[{x:13,z:-121.3,tx:1,tz:0,nx:0,nz:1},29,5,5.5]]
+     [[{x:13,z:-121.12,tx:1,tz:0,nx:0,nz:1},9,4.6,7],[{x:13,z:-115.88,tx:1,tz:0,nx:0,nz:-1},12,4.4,6],[{x:37.38,z:-116,tx:0,tz:1,nx:1,nz:0},14,4.2,5.5],[{x:44.12,z:-116,tx:0,tz:1,nx:-1,nz:0},8,4.2,6],[{x:12.88,z:-106,tx:0,tz:1,nx:1,nz:0},10,3.6,7],[{x:13,z:-85.88,tx:1,tz:0,nx:0,nz:-1},15,4,6.5],[{x:13,z:-106.12,tx:1,tz:0,nx:0,nz:1},6,3.4,5],[{x:13,z:-121.12,tx:1,tz:0,nx:0,nz:1},29,5,5.5]]
       .forEach(([f,s,y,w],i)=>{const [text,style,c,o]=tags[i%tags.length],lines=style==='stencil'||text.length<16?1:2;decal(graffiti(text,style,c,o),w,w*(lines>1?.5:.25),onFace(f,s,y,.06),faceRot(f.nx,f.nz));});
      // Wet streets: more dark mirror puddles on the higher settings.
      for(let i=0;i<(low?0:26);i++){const r=[S.main,S.avenue,S.road,S.pad,S.passage][i%5],x=r[0]+2+rand()*(r[1]-r[0]-4),z=r[2]+2+rand()*(r[3]-r[2]-4);const p=add(B.MeshBuilder.CreateDisc('puddle',{radius:.6+rand()*1.6,tessellation:16},scene),puddle,[x,.026,z]);p.rotation.x=Math.PI/2;p.scaling.y=.5+rand()*.4;}
      // Landing pad: four wall floodlights, cold white, lighting the pad and the Kestrel's surroundings.
-     for(const [x,z,f] of [[13.4,-100,{x:13.35,z:-106,tx:0,tz:1,nx:1,nz:0}],[13.4,-91,{x:13.35,z:-106,tx:0,tz:1,nx:1,nz:0}],[19,-86.4,{x:13,z:-86.35,tx:1,tz:0,nx:0,nz:-1}],[30,-105.6,{x:13,z:-106.35,tx:1,tz:0,nx:0,nz:1}]]){const s=f.tx?x-f.x:z-f.z;box('pad-flood',f.tx?[1.2,.5,.4]:[.4,.5,1.2],onFace(f,s,6.5,.3),white);wallWash('#cfefff',f,s,5,8,7,.35);const g=onFace(f,s,0,5);floorWash('#cfefff',g[0],g[2],11,11,.14,.42);}
+     for(const [x,z,f] of [[13.4,-100,{x:12.88,z:-106,tx:0,tz:1,nx:1,nz:0}],[13.4,-91,{x:12.88,z:-106,tx:0,tz:1,nx:1,nz:0}],[19,-86.4,{x:13,z:-85.88,tx:1,tz:0,nx:0,nz:-1}],[30,-105.6,{x:13,z:-106.12,tx:1,tz:0,nx:0,nz:1}]]){const s=f.tx?x-f.x:z-f.z;box('pad-flood',f.tx?[1.2,.5,.4]:[.4,.5,1.2],onFace(f,s,6.5,.3),white);wallWash('#cfefff',f,s,5,8,7,.35);const g=onFace(f,s,0,5);floorWash('#cfefff',g[0],g[2],11,11,.14,.42);}
      // The District's front stays discreet: a dim violet pool on the wet alley floor at its door.
      {const [dx,dz]=toWorld(0,18.4);floorWash('#9b7bff',dx,dz,6,3,.035,.35);}
      // Rain: streaks that follow the camera outdoors and stop inside the District. Off on low quality.
