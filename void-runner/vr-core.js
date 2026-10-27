@@ -16,8 +16,8 @@
  const TERMINAL=[-6.2,36],BOOTHS=[{z:32.4,name:'NEON STRIKE'},{z:39.6,name:'SKYLINE SOCIAL'}];
  function register(exp){if(!registry.has(exp.id))order.push(exp.id);registry.set(exp.id,exp);}
  // ---- Isolation: what a session may never change ----
- function snapshot(){const p=state.progression;return JSON.stringify({credits:state.credits,personal:p.personal,cargo:p.cargo,data:p.data,missiles:p.missiles,equipment:p.equipment,creditGear:state.creditGear,loadout:state.loadout,contract:state.contract,missions:state.universe.missions,tracked:state.universe.trackedMission});}
- function restore(raw){const o=JSON.parse(raw),p=state.progression;state.credits=o.credits;p.personal=o.personal;p.cargo=o.cargo;p.data=o.data;p.missiles=o.missiles;p.equipment=o.equipment;state.creditGear=o.creditGear;state.loadout=o.loadout;state.contract=o.contract;state.universe.missions=o.missions;state.universe.trackedMission=o.tracked;}
+ function snapshot(){const p=state.progression;return JSON.stringify({met:state.story.met,events:state.story.events,credits:state.credits,personal:p.personal,cargo:p.cargo,data:p.data,missiles:p.missiles,equipment:p.equipment,creditGear:state.creditGear,loadout:state.loadout,contract:state.contract,missions:state.universe.missions,tracked:state.universe.trackedMission});}
+ function restore(raw){const o=JSON.parse(raw),p=state.progression;state.story.met=o.met;state.story.events=o.events;state.credits=o.credits;p.personal=o.personal;p.cargo=o.cargo;p.data=o.data;p.missiles=o.missiles;p.equipment=o.equipment;state.creditGear=o.creditGear;state.loadout=o.loadout;state.contract=o.contract;state.universe.missions=o.missions;state.universe.trackedMission=o.tracked;}
  const baseSave=save;save=function(...a){if(saveBlocked)return;return baseSave.apply(this,a);};
  // ---- Procedural ambience: wind, water, waves, birds, gulls and soft pads. No audio files. ----
  const audio={ctx:null,master:null,layers:[],timers:[]};

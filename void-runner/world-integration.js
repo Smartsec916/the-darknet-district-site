@@ -66,7 +66,7 @@ arrive=function(){const previous=state.location,quest=state.quest;solHandover=nu
 const worldTalk=talk;
 talk=function(background,lines,done,label,heading){worldTalk(walkingLocation?'':background,lines,done,label,heading);if(walkingLocation){screen.dataset.scene='';screen.classList.remove('cinematic');screen.querySelectorAll('.portrait').forEach(el=>el.remove());}};
 const worldRenderLine=renderLine;
-renderLine=function(){worldRenderLine();if(walkingLocation){screen.dataset.scene='';screen.classList.remove('cinematic');screen.querySelectorAll('.portrait').forEach(el=>el.remove());/* A conversation in a station is in person: name the place. Only comms calls and messages are transmissions. */const eyebrow=screen.querySelector('.scene-heading .eyebrow');if(eyebrow&&!/comms|message|transmission/i.test(speech?.heading||''))eyebrow.textContent=(C.stations[state.location]?.name||'').toUpperCase();}};
+renderLine=function(){worldRenderLine();if(walkingLocation){screen.dataset.scene='';screen.classList.remove('cinematic');screen.querySelectorAll('.portrait').forEach(el=>el.remove());/* A conversation in a station is in person: name the place. Only comms calls and messages are transmissions. */const eyebrow=screen.querySelector('.scene-heading .eyebrow');if(eyebrow&&!/comms|message|transmission/i.test(speech?.heading||''))eyebrow.textContent=globalThis.VoidVR?.active?'VR · '+VoidVR.session.exp.title.toUpperCase():(C.stations[state.location]?.name||'').toUpperCase();}};
 barRoom=()=>resumeWalking();bar=barRoom;contacts=function(){campaignBoard();};
 const originalRookConversation=rookConversation;
 // Rook's cargo network (campaign.js): he pays what he owes first, then shows the jobs on his board.

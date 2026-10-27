@@ -1,0 +1,12 @@
+{
+ "name": "vr_companion_f",
+ "about": "VR arcade, Play in a Bedroom: the female companion (an original adult character, about thirty). Deep wine evening suit, long dark hair. MakeHuman CC0.",
+ "phenotype": {"gender": 0.0, "age": 0.55, "muscle": 0.45, "weight": 0.45, "height": 0.55, "cupsize": 0.5, "race": {"caucasian": 0.35, "asian": 0.25, "african": 0.4}},
+ "skin": "young_african_female",
+ "hair": "long01",
+ "clothes": ["female_elegantsuit01", "shoes03"],
+ "style": {"female_elegantsuit01": {"recolor": [{"color": [0.38, 0.05, 0.12], "level": 0.75}]}},
+ "clips": ["idle", "talk", "walk", "sit", "sit-enter", "sit-exit", "sit-talk", "dance", "interact"],
+ "lean": true,
+ "maxGarmentVerts": 9000
+}
