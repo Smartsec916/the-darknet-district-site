@@ -14,7 +14,18 @@
   // door faces the alley and the hallway runs south. A half turn is its own inverse: toWorld also maps back.
   const DOOR={x:126.9,z:-61.9};
   const toWorld=(x,z)=>[DOOR.x-x,DOOR.z+20-z];
-  const streets={avenue:[2,152,-20,-5],main:[51,71,-124,-20],alley:[71,136,-61.6,-55.5],road:[13,51,-121,-116],passage:[37.5,44,-116,-92],pad:[13,37.5,-106,-86]};
+  const streets={avenue:[2,152,-20,-5],main:[51,71,-124,-20],alley:[71,136,-61.6,-55.5],road:[13,51,-121,-116],passage:[37.5,44,-116,-92],pad:[13,37.5,-106,-86],
+    // City expansion (David's brief, 2026-10-27): walkable streets out to three future districts. The neighbourhood above is
+    // unchanged; only the avenue's closed ends and the main street's south end now open onto these.
+    avenueWest:[-60,2,-20,-5],corporate:[-120,-60,-40,15],avenueEast:[152,200,-20,-5],milked:[200,240,-30,5],mainSouth:[56,66,-190,-124],containers:[30,100,-250,-190]};
+  // Future districts: placeholders until David supplies their designs. Each streams its own detail as you approach.
+  const districts=[
+    {id:'corporate',name:'Corporate District',lines:['CORPORATE DISTRICT','PLACEHOLDER'],rect:streets.corporate,center:[-90,-12.5],taxi:[-90,-12.5],heading:Math.PI/2,placeholder:true},
+    {id:'milked',name:'Milked',lines:['MILKED','FUTURE LOCATION'],rect:streets.milked,center:[220,-12.5],taxi:[220,-12.5],heading:-Math.PI/2,placeholder:true},
+    {id:'containers',name:'Container Settlement',lines:['CONTAINER SETTLEMENT','PLACEHOLDER'],rect:streets.containers,center:[65,-220],taxi:[65,-215],heading:0,placeholder:true}];
+  // Taxi landing zones: open street wide enough for the cab, clear of doors, the ship and the sidewalk crowd.
+  const taxiZones=[{id:'main',name:'Main Street',position:[61,-100],heading:0},{id:'avenue',name:'The avenue',position:[40,-12.5],heading:Math.PI/2},{id:'alley-mouth',name:'Main Street by the alley',position:[61,-66],heading:0},{id:'passage',name:'The passage by the landing pad',position:[40.75,-101],heading:0},
+    ...districts.map(d=>({id:d.id,name:d.name,position:d.taxi,heading:d.heading,district:d.id}))];
   // Places with their own walls: the District (with its front wall on the alley) and the roof terrace.
   const footprints={district:[109.4,144.4,-120.4,-61.6],terrace:[78.4,99.4,-116.4,-95.4]};
   const inside=([x0,x1,z0,z1],x,z,m=0)=>x>=x0-m&&x<=x1+m&&z>=z0-m&&z<=z1+m;
@@ -68,9 +79,16 @@
   ];
   // The city blocks between the streets: solid wherever there is no street, District or terrace.
   // A half-metre grid merged into row runs, then runs of equal width stacked into boxes.
+  // The walled area: the old neighbourhood plus the expansion (x west..east, z south..north).
+  const cityBox=[-140,250,-262,20];
   function blocks(){
-    const S=.5,X0=0,X1=154,Z0=-126,Z1=-3,open=[...Object.values(streets),...Object.values(footprints)],runs=new Map(),out=[];
-    for(let z=Z0;z<Z1;z+=S){let start=null;for(let x=X0;x<=X1;x+=S){const solid=x<X1&&!open.some(r=>inside(r,x+S/2,z+S/2));if(solid&&start===null)start=x;if(!solid&&start!==null){const key=start+':'+x,prev=runs.get(key);if(prev&&prev.z1===z)prev.z1=z+S;else{const r={x0:start,x1:x,z0:z,z1:z+S};runs.set(key,r);out.push(r);}start=null;}}}
+    const S=.5,[X0,X1,Z0,Z1]=cityBox,open=[...Object.values(streets),...Object.values(footprints)],runs=new Map(),out=[];
+    // Row by row: the open cells are those whose centres fall inside a street or footprint, so each row's solid runs are the
+    // gaps between the open intervals, snapped to the half-metre grid (the same boxes a cell-by-cell scan gives, much faster).
+    const cells=(X1-X0)/S;
+    for(let z=Z0;z<Z1;z+=S){const cz=z+S/2,spans=open.filter(r=>cz>=r[2]&&cz<=r[3]).map(r=>[Math.max(0,Math.ceil((r[0]-X0-S/2)/S)),Math.min(cells,Math.floor((r[1]-X0-S/2)/S)+1)]).filter(([i,j])=>j>i).sort((p,q)=>p[0]-q[0]);
+     let i=0;const solid=[];for(const [a,b] of spans){if(a>i)solid.push([i,a]);i=Math.max(i,b);}if(i<cells)solid.push([i,cells]);
+     for(const [a,b] of solid){const x0=X0+a*S,x1=X0+b*S,key=x0+':'+x1,prev=runs.get(key);if(prev&&prev.z1===z)prev.z1=z+S;else{const r={x0,x1,z0:z,z1:z+S};runs.set(key,r);out.push(r);}}}
     return out.map((r,i)=>({id:'city-block-'+i,position:[(r.x0+r.x1)/2,15,(r.z0+r.z1)/2],size:[r.x1-r.x0,30,r.z1-r.z0]}));
   }
   const cityBlocks=blocks();
@@ -78,7 +96,7 @@
   function layout(){
     const placed=solids.map(s=>{const [x,z]=toWorld(s.position[0],s.position[2]);return {...s,position:[x,s.position[1],z],size:s.size.slice()};});
     const items=interactions.map(i=>{const [x,z]=toWorld(i.position[0],i.position[2]);return {...i,position:[x,i.position[1],z]};});
-    return {id:'neochinatown',name:'NEOCHINATOWN / TESSALY',kind:'city',district:true,bounds:[156,128],spawn:[31,1.7,-96],yaw:2.44,color:'#3a2f4a',music:'earth',ship:'starter',
+    return {id:'neochinatown',name:'NEOCHINATOWN / TESSALY',kind:'city',district:true,bounds:[260,270],spawn:[31,1.7,-96],yaw:2.44,color:'#3a2f4a',music:'earth',ship:'starter',
     solids:[...placed,...cityBlocks.map(s=>({...s,position:s.position.slice(),size:s.size.slice()})),{id:'ship',position:[22,2,-96],size:[3.6,4,10.5]}],
     interactions:[{id:'board',label:'BOARD YOUR SHIP',position:[27,1.7,-98],action:'board',range:3.5},{id:'terminal',label:'LANDING TERMINAL',position:[34.5,1.7,-103],action:'terminal',range:3},...items],signs:[]};}
 
@@ -175,8 +193,7 @@
     }
     for(const [x0,x1,z] of [[2,152,-12.5]])for(let x=x0+4;x<x1-2;x+=6)box('lane-mark',[2.6,.02,.18],[x,.02,z],glowMat('lane','#d7c06a',.55));
     for(let z=-120;z<-22;z+=6)box('lane-mark',[.18,.02,2.6],[61,.02,z],glowMat('lane','#d7c06a',.55));
-    // The avenue runs on into the wider city: closed barriers and the lit towers beyond.
-    for(const x of [2.4,151.6]){box('road-barrier',[.4,1.1,14],[x,.55,-12.5],mat('barrier','#c9b14a',{rough:.6,metal:.2}));for(let z=-18;z<=-7;z+=2.2)box('barrier-light',[.45,.18,.4],[x,1.2,z],red);neon('road-closed-'+x,['封路 · ROAD CLOSED'],['#ffcf5a'],4,.7,[x+(x<50?.25:-.25),2,-12.5],x<50?-Math.PI/2:Math.PI/2,'rgba(10,8,4,.9)');}
+    // The avenue runs on into the wider city: its ends open onto the expansion streets (streets.avenueWest / avenueEast).
     // Landing pad: the Kestrel, pad lights, a low wall and the landing terminal.
     box('landing-pad',[18,.12,16],[24,.06,-96],mat('pad','#26262c',{rough:.6,metal:.4}));
     for(const [x,z] of [[15.4,-103.6],[32.6,-103.6],[15.4,-88.4],[32.6,-88.4]])cyl('pad-light',.2,.14,[x,.14,z],amber,true,8);
@@ -192,9 +209,10 @@
     // material instead of one mesh each, so entering NeoChinatown stays quick. Same convention as a Babylon plane:
     // a quad turned by r about y faces (-sin r, 0, -cos r).
     const batches=new Map();
-    function quadAt(m,c,ax,ay,n,w,h){let b=batches.get(m);if(!b)batches.set(m,b={p:[],n:[],u:[],i:[]});const k=b.p.length/3;for(const [sx,sy,u,vv] of [[-1,-1,0,0],[1,-1,1,0],[1,1,1,1],[-1,1,0,1]]){b.p.push(c[0]+(ax[0]*sx*w+ay[0]*sy*h)/2,c[1]+(ax[1]*sx*w+ay[1]*sy*h)/2,c[2]+(ax[2]*sx*w+ay[2]*sy*h)/2);b.n.push(...n);b.u.push(u,vv);}b.i.push(k,k+1,k+2,k,k+2,k+3);}
-    const quad=(m,c,w,h,r)=>quadAt(m,c,[Math.cos(r),0,-Math.sin(r)],[0,1,0],[-Math.sin(r),0,-Math.cos(r)],w,h);
-    function cuboid(m,[sx,sy,sz],[x,y,z]){quad(m,[x,y,z-sz/2],sx,sy,0);quad(m,[x,y,z+sz/2],sx,sy,Math.PI);quad(m,[x+sx/2,y,z],sz,sy,-Math.PI/2);quad(m,[x-sx/2,y,z],sz,sy,Math.PI/2);quadAt(m,[x,y+sy/2,z],[1,0,0],[0,0,1],[0,1,0],sx,sz);quadAt(m,[x,y-sy/2,z],[1,0,0],[0,0,-1],[0,-1,0],sx,sz);}
+    function quadAt(m,c,ax,ay,n,w,h,us=1,vs=1){let b=batches.get(m);if(!b)batches.set(m,b={p:[],n:[],u:[],i:[]});const k=b.p.length/3;for(const [sx,sy,u,vv] of [[-1,-1,0,0],[1,-1,1,0],[1,1,1,1],[-1,1,0,1]]){b.p.push(c[0]+(ax[0]*sx*w+ay[0]*sy*h)/2,c[1]+(ax[1]*sx*w+ay[1]*sy*h)/2,c[2]+(ax[2]*sx*w+ay[2]*sy*h)/2);b.n.push(...n);b.u.push(u*us,vv*vs);}b.i.push(k,k+1,k+2,k,k+2,k+3);}
+    const quad=(m,c,w,h,r,us,vs)=>quadAt(m,c,[Math.cos(r),0,-Math.sin(r)],[0,1,0],[-Math.sin(r),0,-Math.cos(r)],w,h,us,vs);
+    // tile: metres one copy of the texture covers ([across, up]); without it a face shows the texture once.
+    function cuboid(m,[sx,sy,sz],[x,y,z],tile){const [tw,th]=tile||[sx,sy],us=a=>tile?a/tw:1,vs=tile?sy/th:1;quad(m,[x,y,z-sz/2],sx,sy,0,us(sx),vs);quad(m,[x,y,z+sz/2],sx,sy,Math.PI,us(sx),vs);quad(m,[x+sx/2,y,z],sz,sy,-Math.PI/2,us(sz),vs);quad(m,[x-sx/2,y,z],sz,sy,Math.PI/2,us(sz),vs);quadAt(m,[x,y+sy/2,z],[1,0,0],[0,0,1],[0,1,0],sx,sz);quadAt(m,[x,y-sy/2,z],[1,0,0],[0,0,-1],[0,-1,0],sx,sz);}
     const bbox=(name,size,p,m)=>cuboid(m,size,p);
     // ---- Old neighbourhood (foreground): weathered low-rise blocks under the megacity (David's references, 2026-10-27) ----
     // Corrugated steel, old concrete and leaking plate (ambientCG, CC0), small lit windows, wall AC units, balconies and
@@ -227,7 +245,7 @@
      if(rand()<.35&&w>6&&d>6){const sw=w*(.3+rand()*.2),sd=d*(.3+rand()*.2),[x,z]=at();oldBox(x-sw/2,x+sw/2,z-sd/2,z+sd/2,h,2.6+rand()*1.8,Math.floor(rand()*3));}
     }
     // An old building on a plot: body, windows and wall clutter on the faces that show, roof clutter on top.
-    function lowrise(x0,x1,z0,z1,h,k,faces,first){if(x1-x0<.5||z1-z0<.5)return;oldBox(x0,x1,z0,z1,0,h,k);for(const side of faces)facadeDetail(faceOf(x0,x1,z0,z1,side),h,first);if(faces.length&&(!low||rand()<.5))roofClutter(x0,x1,z0,z1,h);}
+    function lowrise(x0,x1,z0,z1,h,k,faces,first){if(x1-x0<.5||z1-z0<.5)return;if(!faces.length){const m=old[k%old.length];return cuboid(m,[x1-x0,h,z1-z0],[(x0+x1)/2,h/2,(z0+z1)/2],[m.metadata.tile,m.metadata.tile]);}oldBox(x0,x1,z0,z1,0,h,k);for(const side of faces)facadeDetail(faceOf(x0,x1,z0,z1,side),h,first);if(faces.length&&(!low||rand()<.5))roofClutter(x0,x1,z0,z1,h);}
     // Every city block between the streets is built up in plots of up to 12 m, set back 0.35 m from the street so the
     // storefronts stay in front. Plots on the avenue and the main street are taller; nothing you can't walk into looks open.
     const openNear=(x0,x1,z0,z1)=>[...Object.values(S),...Object.values(footprints)].some(([a,b,c,d])=>x0<b&&x1>a&&z0<d&&z1>c);
@@ -236,18 +254,19 @@
      for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){let x0=X0+w*i/nx,x1=X0+w*(i+1)/nx,z0=Z0+d*j/nz,z1=Z0+d*(j+1)/nz;const faces=[];
       const [a,b,c,e]=[x0,x1,z0,z1];if(openNear(a-E,a,c,e)){x0+=I;faces.push('w');}if(openNear(b,b+E,c,e)){x1-=I;faces.push('e');}if(openNear(a,b,c-E,c)){z0+=I;faces.push('s');}if(openNear(a,b,e,e+E)){z1-=I;faces.push('n');}
       const wide=onWide(a,b,c,e);lowrise(x0,x1,z0,z1,wide?18+rand()*12:9+rand()*8,i+j*2+s.id.length,faces,wide?7.4:4.6);}}
-    // The outer ring: older mid-rise blocks north of the avenue, south of the access road and on both sides, leaving the
-    // avenue's ends open to the closed road beyond its barriers, where a last row ends the view.
-    const ring=[[-24,178,-3,15,'s'],[-24,178,-148,-126,'n'],[-24,0,-126,-20,'e'],[-24,0,-5,-3,'e'],[154,178,-126,-20,'w'],[154,178,-5,-3,'w'],[-48,-36,-20,-5,'e'],[190,202,-20,-5,'w']];
-    ring.forEach(([x0,x1,z0,z1,face],k)=>{const along=x1-x0>z1-z0,n=Math.ceil((along?x1-x0:z1-z0)/14);for(let i=0;i<n;i++){const a=i/n,b=(i+1)/n,r=along?[x0+(x1-x0)*a,x0+(x1-x0)*b,z0,z1]:[x0,x1,z0+(z1-z0)*a,z0+(z1-z0)*b];lowrise(...r,26+rand()*20,i+k,[face],8);}});
-    // The closed avenue runs on to that last row.
-    for(const [x0,x1] of [[-36,0],[154,190]])ground('ncz-avenue-beyond',[x0,x1,-20,-5],asphalt,0,4);
+    // The outer ring: older mid-rise blocks all round the city's edge (cityBox), facing inward.
+    {const [X0,X1,Z0,Z1]=cityBox,ring=[[X0-24,X1+24,Z1,Z1+18,'s'],[X0-24,X1+24,Z0-18,Z0,'n'],[X0-24,X0,Z0,Z1,'e'],[X1,X1+24,Z0,Z1,'w']];
+     ring.forEach(([x0,x1,z0,z1,face],k)=>{const along=x1-x0>z1-z0,n=Math.ceil((along?x1-x0:z1-z0)/14);for(let i=0;i<n;i++){const a=i/n,b=(i+1)/n,r=along?[x0+(x1-x0)*a,x0+(x1-x0)*b,z0,z1]:[x0,x1,z0+(z1-z0)*a,z0+(z1-z0)*b];lowrise(...r,26+rand()*20,i+k,[face],8);}});}
 
+    // ---- The city in between: plain lit blocks from the outer ring out to the megacity, seen from a taxi or a roof ----
+    {const [X0,X1,Z0,Z1]=cityBox,c=[(X0+X1)/2,(Z0+Z1)/2],R=low?280:300;
+     for(let x=c[0]-R;x<c[0]+R;x+=26)for(let z=c[1]-R;z<c[1]+R;z+=26){if(Math.hypot(x+13-c[0],z+13-c[1])>R||x+26>X0-44&&x<X1+44&&z+26>Z0-40&&z<Z1+40)continue;
+      const w=18+rand()*6,d=18+rand()*6,h=18+rand()*48,m=windowMats[Math.floor(rand()*3)];cuboid(m,[w,h,d],[x+13,h/2,z+13],m.metadata.tile);}}
     // ---- The megacity (background): enormous lit towers far beyond the old blocks ----
     // Two rings of night towers (ambientCG facades) with set-back crowns, giant ad screens, light strips and beacons.
     // No collision; the haze fades them with distance. One thinner ring on low quality.
-    const screens=[],sky=low?[[30,170,260,100,260]]:[[44,160,250,110,320],[58,280,460,220,620]];
-    sky.forEach(([n,r0,r1,h0,h1],ring)=>{for(let i=0;i<n;i++){const a=(i+rand()*.7)/n*Math.PI*2,r=r0+rand()*(r1-r0),dir=[Math.sin(a),Math.cos(a)],perp=[Math.cos(a),-Math.sin(a)],x=77+dir[0]*r,z=-62+dir[1]*r,w=18+rand()*26,d=18+rand()*26,h=h0+rand()*(h1-h0),k=i*7+ring;
+    const screens=[],skyCentre=[(cityBox[0]+cityBox[1])/2,(cityBox[2]+cityBox[3])/2],sky=low?[[30,290,370,100,260]]:[[44,290,370,110,320],[58,400,560,220,620]];
+    sky.forEach(([n,r0,r1,h0,h1],ring)=>{for(let i=0;i<n;i++){const a=(i+rand()*.7)/n*Math.PI*2,r=r0+rand()*(r1-r0),dir=[Math.sin(a),Math.cos(a)],perp=[Math.cos(a),-Math.sin(a)],x=skyCentre[0]+dir[0]*r,z=skyCentre[1]+dir[1]*r,w=18+rand()*26,d=18+rand()*26,h=h0+rand()*(h1-h0),k=i*7+ring;
       const m=windowMats[k%3],[tw,th]=m.metadata.tile,side=q=>new B.Vector4(0,0,q/tw,h/th),cap=new B.Vector4(0,0,.01,.01);
       add(B.MeshBuilder.CreateBox('skyline',{width:w,height:h,depth:d,faceUV:[side(w),side(w),side(d),side(d),cap,cap],wrap:true},scene),m,[x,h/2,z]).rotation.y=a;
       // A set-back crown or a spire on some.
@@ -260,7 +279,7 @@
        const sc=add(B.MeshBuilder.CreatePlane('skyline-screen',{width:sw,height:sh},scene),adMat(nextAd()),p,!live);sc.rotation.y=a;if(live)screens.push({mesh:sc,next:4+screens.length*2.3});}}});
     // A haze dome: the fog colour glowing at the horizon, darkening overhead. Unfogged, behind everything.
     {const t=texture('haze-dome',8,256,(g,W,H)=>{const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#040a0d');gr.addColorStop(.4,'#0a1d22');gr.addColorStop(.75,'#14363b');gr.addColorStop(.9,'#1b4448');gr.addColorStop(1,'#13292c');g.fillStyle=gr;g.fillRect(0,0,W,H);});
-     const m=texMat('haze-dome',t,{glow:true});m.fogEnabled=false;m.backFaceCulling=false;const dome=add(B.MeshBuilder.CreateCylinder('haze-dome',{diameter:2600,height:1500,tessellation:32,cap:B.Mesh.NO_CAP,sideOrientation:B.Mesh.BACKSIDE},scene),m,[77,620,-62],false);dome.infiniteDistance=false;dome.applyFog=false;}
+     const m=texMat('haze-dome',t,{glow:true});m.fogEnabled=false;m.backFaceCulling=false;const dome=add(B.MeshBuilder.CreateCylinder('haze-dome',{diameter:2600,height:1500,tessellation:32,cap:B.Mesh.NO_CAP,sideOrientation:B.Mesh.BACKSIDE},scene),m,[skyCentre[0],620,skyCentre[1]],false);dome.infiniteDistance=false;dome.applyFog=false;}
     // IronEye drones patrol above the main street and the avenue.
     const drones=[];const droneBody=mat('ironeye','#1d1f24',{rough:.4,metal:.8});for(let i=0;i<(low?2:4);i++){const n=new B.TransformNode('ironeye-'+i,scene);n.parent=parent;const body=add(B.MeshBuilder.CreateSphere('ironeye-body',{diameter:.9,segments:10},scene),droneBody,[0,0,0],false);body.parent=n;body.scaling.y=.6;const eye=add(B.MeshBuilder.CreateDisc('ironeye-eye',{radius:.16,tessellation:12},scene),red,[0,0,-.46],false);eye.parent=n;for(const s of [-1,1]){const rot=box('ironeye-rotor',[.9,.04,.12],[s*.55,.25,0],frame,false);rot.parent=n;}drones.push({n,phase:i*1.7,x:i<3?61:100,z:i<3?-100+i*30:-12.5});}
     // Street pedestrians on the sidewalks.
@@ -482,6 +501,30 @@
     const lights=[];const point=(p,c,i,r)=>{const l=new B.PointLight('ncz-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=target;lights.push(l);};
     if(!low){point([0,3,23],'#9be8ff',.6,8);point([-10,3,36],'#38e8ff',.9,14);point([10,3,36],'#ffb347',1.4,14);point([13,3,33],'#ff8a5c',.9,10);point([10,3,48],'#c9b4ff',1.5,12);point([14,3,51],'#38e8ff',.8,8);point([-10,3,62],'#ff5bd0',.6,12);point([38,4,68],'#ffb347',.6,14);point([0,3.5,40],'#e8f0ff',.6,16);point([0,3.5,64],'#e8f0ff',.6,16);}
 
+    // Taxi zones: a painted box and TAXI on the road, so players know where cabs set down.
+    {const t=texture('taxi-zone',256,256,(g,W,H)=>{g.clearRect(0,0,W,H);g.strokeStyle='rgba(242,179,61,.85)';g.lineWidth=8;g.setLineDash([22,14]);g.strokeRect(10,10,W-20,H-20);g.setLineDash([]);g.fillStyle='rgba(242,179,61,.8)';g.font='bold 64px Consolas,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText('TAXI',W/2,H/2);});t.hasAlpha=true;
+     const m=texMat('taxi-zone',t);m.useAlphaFromDiffuseTexture=true;m.emissiveColor=new B.Color3(.35,.25,.08);
+     for(const z of taxiZones){const g=add(B.MeshBuilder.CreateGround('taxi-zone',{width:5,height:7},scene),m,[z.position[0],.03,z.position[1]],false);g.rotation.y=z.heading||0;}}
+    // ---- Future districts: placeholders that stream (city expansion, 2026-10-27) ----
+    // Each district's own detail is built when the camera comes within 90 m and disposed beyond 140 m. The streets, walls
+    // and surrounding buildings are always there. A placeholder holds no game state, so loading it again changes nothing.
+    const city={live:new Map(),loads:0,unloads:0};
+    function placeholder(d){const node=new B.TransformNode('district-'+d.id,scene),own=[];node.parent=parent;
+     const [x0,x1,z0,z1]=d.rect,cx=(x0+x1)/2,cz=(z0+z1)/2,face=d.id==='corporate'?[x0+.4,cz,-Math.PI/2]:d.id==='milked'?[x1-.4,cz,Math.PI/2]:[cx,z0+.4,Math.PI];
+     const t=new B.DynamicTexture('ncz-district-sign-'+d.id,{width:1024,height:256},scene,true),g=t.getContext();g.fillStyle='#07090c';g.fillRect(0,0,1024,256);g.strokeStyle='#5ff2ff';g.lineWidth=6;g.strokeRect(8,8,1008,240);g.textAlign='center';g.textBaseline='middle';
+     g.fillStyle='#e8f4f6';g.font='bold 78px Consolas,monospace';g.fillText(d.lines[0],512,100);g.fillStyle='#f2b33d';g.font='bold 44px Consolas,monospace';g.fillText(d.lines[1],512,186);t.update();
+     const m=new B.StandardMaterial('ncz-district-sign-'+d.id,scene);m.diffuseColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;own.push(t,m);
+     const sign=B.MeshBuilder.CreatePlane('district-sign',{width:14,height:3.5},scene);sign.material=m;sign.parent=node;sign.position.set(face[0],7,face[1]);sign.rotation.y=face[2];sign.isPickable=false;
+     const frameM=new B.StandardMaterial('ncz-district-frame-'+d.id,scene);frameM.diffuseColor=new B.Color3(.08,.09,.1);own.push(frameM);
+     const back=B.MeshBuilder.CreateBox('district-sign-back',{width:14.6,height:4.1,depth:.3},scene);back.material=frameM;back.parent=node;back.position.set(face[0]+Math.sin(face[2])*.2,7,face[1]+Math.cos(face[2])*.2);back.rotation.y=face[2];back.isPickable=false;
+     // Bollard lights round the plaza edge (flat-topped, low), so the placeholder reads at night.
+     const lamp=new B.StandardMaterial('ncz-district-lamp-'+d.id,scene);lamp.emissiveColor=B.Color3.FromHexString('#5ff2ff');lamp.disableLighting=true;own.push(lamp);
+     for(const [px,pz] of [[x0+1,z0+1],[x1-1,z0+1],[x0+1,z1-1],[x1-1,z1-1]]){const b=B.MeshBuilder.CreateBox('district-bollard',{width:.3,height:.5,depth:.3},scene);b.material=lamp;b.parent=node;b.position.set(px,.25,pz);b.isPickable=false;}
+     return {dispose(){node.dispose(false,true);for(const x of own)x.dispose();}};}
+    const rectDistance=([x0,x1,z0,z1],x,z)=>Math.hypot(Math.max(x0-x,0,x-x1),Math.max(z0-z,0,z-z1));
+    function streamDistricts(cam){if(!cam)return;for(const d of districts){const near=rectDistance(d.rect,cam.x,cam.z),live=city.live.get(d.id);
+     if(!live&&near<90){city.live.set(d.id,placeholder(d));city.loads++;}else if(live&&near>140){live.dispose();city.live.delete(d.id);city.unloads++;}}}
+    root.VoidNeoChinatown&&(root.VoidNeoChinatown.city=city);
     let weather=null;
     // ---- Street detail: neon light spill, blade signs, wall lamps, cables, graffiti, the District's front, rain ----
     {const saved=target;target=parent;
@@ -513,7 +556,7 @@
      // Overhead cables: sagging bundles strung between facing buildings, 7-11 m up, each end on a junction box.
      const cableMat=mat('cable','#0a0a0c',{rough:.6,metal:.3});
      function cable(a,b,sag,r){const pts=[];for(let i=0;i<=12;i++){const t=i/12;pts.push(v(a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t-Math.sin(Math.PI*t)*sag,a[2]+(b[2]-a[2])*t));}add(B.MeshBuilder.CreateTube('cable',{path:pts,radius:r,tessellation:4},scene),cableMat,[0,0,0]);}
-     function span(a,b,n){for(let i=0;i<n;i++){const A=[a[0],7+rand()*4,a[1]],Bp=[b[0],7+rand()*4,b[1]];cable(A,Bp,.6+rand()*1.2,.025+rand()*.02);bbox('junction-box',[.35,.45,.35],A,frame);bbox('junction-box',[.35,.45,.35],Bp,frame);}}
+     function span(a,b,n){if(taxiZones.some(z=>Math.hypot((a[0]+b[0])/2-z.position[0],(a[1]+b[1])/2-z.position[1])<8))return;for(let i=0;i<n;i++){const A=[a[0],7+rand()*4,a[1]],Bp=[b[0],7+rand()*4,b[1]];cable(A,Bp,.6+rand()*1.2,.025+rand()*.02);bbox('junction-box',[.35,.45,.35],A,frame);bbox('junction-box',[.35,.45,.35],Bp,frame);}}
      for(let z=-118;z<-24;z+=8+rand()*5)span([51.45,z],[70.55,z+(rand()-.5)*6],2+Math.floor(rand()*2));
      for(let x=6;x<150;x+=9+rand()*6){if(x>49&&x<73)continue;span([x,-19.55],[x+(rand()-.5)*6,-5.45],1+Math.floor(rand()*2));}
      for(let x=16;x<50;x+=7+rand()*4)span([x,-120.55],[x+(rand()-.5)*4,-116.45],1+Math.floor(rand()*2));
@@ -548,14 +591,15 @@
     let lastTick=null;
     function atmosphere(time,dt){applyLook();const cam=scene.activeCamera?.globalPosition,inside=!!cam&&zone({x:cam.x,z:cam.z}).area==='district',sky=inside?indoor:outdoor;
      if(ambient){ambient.intensity+=(sky.intensity-ambient.intensity)*Math.min(1,dt*3);if(inside!==wasInside){if(sky.diffuse)ambient.diffuse=sky.diffuse;if(sky.ground&&ambient.groundColor)ambient.groundColor=sky.ground;wasInside=inside;}}
+     streamDistricts(cam);
      if(weather?.rain&&cam){weather.rain.emitter.x=cam.x;weather.rain.emitter.z=cam.z;weather.rain.emitRate=inside?0:weather.rainRate;}
      for(const fl of weather?.flickers||[]){if(fl.off>0){fl.off-=dt;if(fl.off<=0)for(const m of fl.meshes)m.isVisible=true;}else if(time>fl.next){fl.off=.05+Math.random()*.12;fl.next=time+2+Math.random()*7;for(const m of fl.meshes)m.isVisible=false;}}
      for(const s of screens)if(time>s.next){s.mesh.material=adMat(nextAd());s.next=time+9+Math.random()*4;}}
     let wasInside=null;
     function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;vrTick(dt);atmosphere(time,dt);for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
-    return {tick,dispose(){disposed=true;districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
+    return {tick,city,dispose(){disposed=true;for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
   }
   // Licensed models (docs/VOID_RUNNER_ASSET_LICENSES.md) dressing the District; loaded before build().
   const models={'crowd:vr-player-a':{src:'assets/models/crowd/vr-player-a.glb',background:true},'crowd:vr-player-b':{src:'assets/models/crowd/vr-player-b.glb',background:true},'district:couch':{src:'assets/models/district/couch.glb',scale:.5},'district:bin':{src:'assets/models/district/bin.glb',scale:.6},'district:chair':{src:'assets/models/district/chair.glb',scale:1}};
-  const api={layout,build,models,toWorld,zone,streets,footprints,door:DOOR};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
+  const api={layout,build,models,toWorld,zone,streets,footprints,door:DOOR,districts,taxiZones,cityBox};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
 })(globalThis);
