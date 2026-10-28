@@ -12,7 +12,13 @@ test('the four experiences are registered with titles, descriptions and a status
   for(const e of registered){assert.ok(e.title&&e.description,e.id);assert.equal(e.status,'ready');assert.equal(typeof e.layout,'function');assert.equal(typeof e.build,'function');}
 });
 test('Play in a Bedroom asks for a companion first, with a female and a male choice',()=>{
-  const s=registered.find(e=>e.id==='suite');assert.deepEqual(s.options.choices.map(c=>c.id),['f','m']);
+  globalThis.VoidCrowd=require('../void-runner/crowd.js');const s=registered.find(e=>e.id==='suite'),p=s.picker;
+  assert.deepEqual(p.steps[0].choices([]).map(c=>c.id),['female','male']);
+  assert.deepEqual(p.steps[1].choices(['female']).map(c=>c.id),['seren']);assert.deepEqual(p.steps[1].choices(['male']).map(c=>c.id),['kai']);
+  assert.deepEqual(p.options(['female','seren']),{companion:'seren'});
+});
+test('the Combat Simulator is registered but not offered at the terminal',()=>{
+  assert.equal(registered.find(e=>e.id==='combat').listed,false);assert.deepEqual(registered.filter(e=>e.listed!==false).map(e=>e.id).sort(),['forest','suite','tropical']);
 });
 test('every world spawns on open floor and every interaction is reachable on foot',()=>{
   for(const e of registered){const L=e.layout({choice:'f'});assert.equal(E.blocked(L.spawn[0],L.spawn[2],L),false,e.id+' spawn');

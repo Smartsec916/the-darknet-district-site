@@ -1,5 +1,5 @@
 {
- "about": "Crowd clip library for build_mpfb_character.py --mocap DIR. Times are seconds into each source file. Every clip is retargeted to the character, resampled to the library fps (15; the game interpolates) and loop-blended. Sources are Rokoko free mocap (VOID_RUNNER_KEEP); they are never modified. Clips with \"source\": \"ual\" come from Quaternius Universal Animation Library (CC0), UAL1_Standard.glb, given as --ual DIR; their bind pose is not a T-pose, so restAction names the T-pose clip used as reference.",
+ "about": "Crowd clip library for build_mpfb_character.py --mocap DIR. Times are seconds into each source file. Every clip is retargeted to the character, resampled to the library fps (15; the game interpolates) and loop-blended. Sources are Rokoko free mocap (VOID_RUNNER_KEEP); they are never modified. Clips with \"source\": \"ual\" come from Quaternius Universal Animation Library (CC0), UAL1_Standard.glb, given as --ual DIR; their bind pose is not a T-pose, so restAction names the T-pose clip used as reference. Clips with \"source\": \"mixamo\" are Mixamo animations David downloaded (Adobe Mixamo licence: free for use in games, baked onto our characters, never redistributed as raw files), given as --mixamo DIR (the downloaded FBX files, and the needed files extracted from his Mixamo pack ZIPs).",
  "restReference": "Laughs_mixamo.fbx",
  "clips": {
   "idle": {
@@ -156,6 +156,110 @@
    "action": "Spell_Simple_Shoot",
    "restAction": "A_TPose",
    "loop": "exact"
+  },
+  "blow-kiss": {
+   "file": "Flirty_mixamo.fbx",
+   "start": 8.5,
+   "end": 13.8
+  },
+  "wave": {
+   "file": "Flirty_mixamo.fbx",
+   "start": 30.5,
+   "end": 34.5
+  },
+  "coy": {
+   "file": "Flirty_mixamo.fbx",
+   "start": 17,
+   "end": 25
+  },
+  "head-tilt": {
+   "file": "HeadTilts_mixamo.fbx",
+   "start": 3,
+   "end": 11
+  },
+  "hips": {
+   "file": "HeadTilts_mixamo.fbx",
+   "start": 22,
+   "end": 30
+  },
+  "laugh": {
+   "file": "Laughs_mixamo.fbx",
+   "start": 8,
+   "end": 16
+  },
+  "glance-back": {
+   "file": "LookBehind_LetsGo_HUMANIK_769.fbx",
+   "start": 13,
+   "end": 19
+  },
+  "slow-dance": {
+   "file": "GentleSwayingDancing_mixamo.fbx",
+   "start": 3,
+   "end": 11
+  },
+  "sit-relax": {
+   "file": "Sitting_Idle02_HUMANIK_769.fbx",
+   "start": 5,
+   "end": 13
+  },
+  "sit-wave": {
+   "file": "Pilot_Wave_HUMANIK_769.fbx",
+   "start": 8.5,
+   "end": 12.5
+  },
+  "shrug": {
+   "file": "Shrugging_mixamo.fbx",
+   "start": 26,
+   "end": 30
+  },
+  "idle-f2": {
+   "file": "female idle.fbx",
+   "source": "mixamo",
+   "start": 0,
+   "end": 8.3
+  },
+  "idle-m2": {
+   "file": "xbot idle.fbx",
+   "source": "mixamo",
+   "start": 0,
+   "end": 8.3
+  },
+  "walk-f": {
+   "file": "Female Walk.fbx",
+   "source": "mixamo",
+   "loop": "exact"
+  },
+  "dance-belly": {
+   "file": "Bellydancing.fbx",
+   "source": "mixamo",
+   "start": 2.5,
+   "end": 10.5
+  },
+  "dance-samba": {
+   "file": "samba dancing.fbx",
+   "source": "mixamo",
+   "start": 2,
+   "end": 10
+  },
+  "recline": {
+   "file": "Female Laying Pose.fbx",
+   "source": "mixamo",
+   "loop": "exact"
+  },
+  "drunk-walk": {
+   "file": "Drunk Walk.fbx",
+   "source": "mixamo",
+   "loop": "exact"
+  },
+  "drunk-idle": {
+   "file": "Drunk Idle Variation.fbx",
+   "source": "mixamo"
+  },
+  "drunk-sway": {
+   "file": "drunk idle.fbx",
+   "source": "mixamo",
+   "start": 0,
+   "end": 7.4
   }
  },
  "fps": 15

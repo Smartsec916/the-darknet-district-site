@@ -6,7 +6,7 @@
  "hair": "short02",
  "clothes": ["male_elegantsuit01", "shoes01"],
  "style": {"male_elegantsuit01": {"recolor": [{"color": [0.12, 0.12, 0.14], "level": 0.8}]}},
- "clips": ["idle", "talk", "walk", "sit", "sit-enter", "sit-exit", "sit-talk", "dance", "interact"],
+ "clips": ["idle", "talk", "walk", "sit", "sit-enter", "sit-exit", "sit-talk", "dance", "interact", "idle-m2", "blow-kiss", "head-tilt", "laugh", "glance-back", "slow-dance", "dance-samba", "sit-relax", "sit-wave", "shrug", "recline"],
  "lean": true,
  "maxGarmentVerts": 9000
 }
