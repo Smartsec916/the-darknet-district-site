@@ -1266,7 +1266,7 @@
     get quality() {
       return quality;
     },
-    get opening(){return openingHandle;},
+    get opening(){return openingHandle;},get district(){return districtHandle;},
     get scene() {
       return scene;
     }
