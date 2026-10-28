@@ -1,0 +1,12 @@
+{
+ "name": "vr_companion_m",
+ "about": "VR arcade, Play in a Bedroom: the male companion (an original adult character, about thirty). Charcoal suit, short dark hair. MakeHuman CC0.",
+ "phenotype": {"gender": 1.0, "age": 0.55, "muscle": 0.6, "weight": 0.45, "height": 0.6, "race": {"caucasian": 0.4, "asian": 0.35, "african": 0.25}},
+ "skin": "young_caucasian_male",
+ "hair": "short02",
+ "clothes": ["male_elegantsuit01", "shoes01"],
+ "style": {"male_elegantsuit01": {"recolor": [{"color": [0.12, 0.12, 0.14], "level": 0.8}]}},
+ "clips": ["idle", "talk", "walk", "sit", "sit-enter", "sit-exit", "sit-talk", "dance", "interact"],
+ "lean": true,
+ "maxGarmentVerts": 9000
+}

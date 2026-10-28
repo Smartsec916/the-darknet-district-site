@@ -13,7 +13,9 @@
   'outlaw-01':['idle','talk','sit','smoke','watch','walk','sit-enter','sit-exit','sit-talk','interact','look'],'regular-01':['idle','talk','sit','watch','walk','sit-enter','sit-exit','sit-talk','interact','look'],
   'meridian-bartender':['idle','talk','interact','pickup','wipe','walk'],
   // The District's VR arcade players (neochinatown.js runs their routines).
-  'vr-player-a':['idle','vr-aim','vr-aim-up','vr-aim-down','vr-shoot','vr-hit','vr-duck'],'vr-player-b':['idle','dance','pickup','interact','menu','menu-tap','talk']
+  'vr-player-a':['idle','vr-aim','vr-aim-up','vr-aim-down','vr-shoot','vr-hit','vr-duck'],'vr-player-b':['idle','dance','pickup','interact','menu','menu-tap','talk'],
+  // VR arcade companions (vr-suite.js).
+  'vr-companion-f':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact'],'vr-companion-m':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact']
  };
  // Each place has its own feel; the order spreads looks across a scene's crew.
  const frontierMix=['vesper-mechanic','regular-01','vesper-pilot','communion-worker','outlaw-01'];
