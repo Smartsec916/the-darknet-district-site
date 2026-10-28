@@ -21,3 +21,16 @@ test('every world spawns on open floor and every interaction is reachable on foo
 test('the combat range keeps the player behind the firing line',()=>{
   const L=registered.find(e=>e.id==='combat').layout({}),cells=reachable(L);assert.ok(cells.length>100);assert.ok(cells.every(([,z])=>z<-14.4),'nothing past the firing line can be reached');
 });
+test('the bedroom keeps every seat and its companion spots off the furniture, and its interactions unchanged',()=>{
+  const L=registered.find(e=>e.id==='suite').layout({choice:'f'});
+  assert.deepEqual(L.interactions.map(i=>i.label),['TALK','MOOD LIGHTING','MUSIC','CURTAINS','SIT ON THE SOFA','SIT ON THE BED','SIT IN THE ARMCHAIR','LEAN ON THE BALCONY RAIL']);
+  // Where the companion stands, and the spot it walks to before sitting, are open floor.
+  for(const [x,z] of [[3.6,.3],[-3.7,.55]])assert.equal(E.blocked(x,z,L),false,x+','+z);
+});
+test('the bedroom geometry builds outward-facing boxes and draped cloth',()=>{
+  require('../void-runner/vr-suite-room.js');const {box}=globalThis.VoidVRSuiteRoom;
+  for(const d of [box([1,2,3]),box([.8,.2,.5],.09,1.4,8)]){assert.equal(d.p.length,d.n.length);assert.equal(d.uv.length/2,d.p.length/3);
+   // Every triangle faces the same way as its normals (Babylon's convention: (p1-p2) x (p3-p2)).
+   for(let t=0;t<d.i.length;t+=3){const [a,b,c]=[d.i[t]*3,d.i[t+1]*3,d.i[t+2]*3],P=d.p,N=d.n,u=[P[a]-P[b],P[a+1]-P[b+1],P[a+2]-P[b+2]],v=[P[c]-P[b],P[c+1]-P[b+1],P[c+2]-P[b+2]];
+    const f=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];assert.ok(f[0]*(N[a]+N[b]+N[c])+f[1]*(N[a+1]+N[b+1]+N[c+1])+f[2]*(N[a+2]+N[b+2]+N[c+2])>=-1e-9);}}
+});

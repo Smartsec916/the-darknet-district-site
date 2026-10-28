@@ -9,7 +9,7 @@
   const saved={clear:scene.clearColor.clone(),fogMode:scene.fogMode,fogDensity:scene.fogDensity,fogColor:scene.fogColor.clone(),exposure:ip.exposure,contrast:ip.contrast,env:scene.environmentIntensity,
    sun:sun&&{i:sun.intensity,d:sun.diffuse.clone(),dir:sun.direction?.clone()},amb:amb&&{i:amb.intensity,d:amb.diffuse.clone(),g:amb.groundColor?.clone()}};
   const own=x=>{owned.push(x);return x;};
-  const k={B,scene,parent,base,
+  const k={B,scene,parent,base,own,
    // Daylight, fog and exposure for this world. sunDir points from the sun toward the ground.
    light({clear=[.5,.6,.7],fog=[.6,.7,.8],fogDensity=.006,sunColor=[1,.95,.85],sunIntensity=1.2,sunDir=[-.4,-1,.3],sky=[.8,.85,.95],ground=[.3,.28,.22],ambient=.75,exposure=1.05,contrast=1.08,env=1}={}){
     scene.clearColor=new B.Color4(...clear,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=fogDensity;scene.fogColor=new B.Color3(...fog);
