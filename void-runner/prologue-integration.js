@@ -65,7 +65,7 @@ screen.addEventListener('click',e=>{const a=e.target.closest('button')?.dataset.
 const tutorialLayout=VoidStationLayouts.layout;
 VoidStationLayouts.layout=function(id,ship){const d=tutorialLayout(id,ship);d.interactions.push({id:'maintenance',action:'maintenance',label:'HANGAR / MAINTENANCE · INSTALL EQUIPMENT',position:[-2,1.7,-7],range:3});return d;};
 const prologuePrepare=VoidBabylon.prepareRoom;
-VoidBabylon.prepareRoom=async function(def,task){if(def.kind==='city'){const f=state.story.flags;def.solids=def.solids.filter(s=>!(s.id==='district-door'&&f.districtDoor||s.id==='district-inner-door'&&f.districtBadge||s.id==='meeting-door'&&f.meetingOpen));}await prologuePrepare(def,task);if(def.kind==='city'&&state.story.flags.districtDoor)VoidBabylon.scene.getMeshByName('entrance')?.setEnabled(false);};
+VoidBabylon.prepareRoom=async function(def,task){if(def.kind==='city'){const f=state.story.flags;def.solids=def.solids.filter(s=>!(s.id==='meeting-door'&&f.meetingOpen));}await prologuePrepare(def,task);if(def.kind==='city'&&state.story.flags.districtDoor)VoidBabylon.scene.getMeshByName('entrance')?.setEnabled(false);};
 VoidInteractions.register('maintenance',()=>maintenance()); /* the handler's argument is the interaction, not a slot */VoidInteractions.register('services',equipmentShop);VoidInteractions.register('personal-shop',personalVendor);
 VoidInteractions.register('opening-recording',()=>{talk('',[{who:'elias',text:'The ship is yours. Go make a life of your own.'}],()=>{state.progression.opening.hologram=true;stamp('interact');save();resumeWalking();},'CLOSE RECORDING');});
 VoidInteractions.register('opening-mara',()=>{
@@ -139,7 +139,9 @@ canvas.addEventListener('mouseup',e=>{if(e.button===2)groundState.aim=false;});c
 // NeoChinatown, Tessaly: landing street, alley, vestibule and The Darknet District.
 const city=VoidNeoChinatown.layout();VoidExplorationData.locations.sacramento=city;
 const districtLine=(who,text,label='CONTINUE')=>talk('',[{who,text}],resumeWalking,label);
-function openDistrictDoor(id,flag){state.story.flags[flag]=true;city.solids=city.solids.filter(s=>s.id!==id);if(walkingLocation?.solids)walkingLocation.solids=walkingLocation.solids.filter(s=>s.id!==id);for(const name of [id,id+'-light'])VoidBabylon.scene?.getMeshByName(name)?.setEnabled(false);save();}
+// The door itself slides open (neochinatown.js doors): unlocking sets the story flag and gives it a push; from then on
+// it opens as you approach and closes behind you, and its collision follows it.
+function openDistrictDoor(id,flag){state.story.flags[flag]=true;const doors=VoidBabylon.district?.doors;if(doors)doors.kick(id,4);else{city.solids=city.solids.filter(s=>s.id!==id);if(walkingLocation?.solids)walkingLocation.solids=walkingLocation.solids.filter(s=>s.id!==id);}save();}
 VoidInteractions.register('district-scan',()=>{if(state.story.flags.districtBadge){announce('Inner door already open.');resumeWalking();return;}openDistrictDoor('district-inner-door','districtBadge');talk('',[{who:'Iris',text:'Scan accepted. Rook vouched for you, so you get a visitor badge. Behave, and it stays valid.'}],resumeWalking,'ENTER');});
 VoidInteractions.register('district-iris',()=>districtLine('Iris',state.story.flags.metIris?'Cameras are clean, the mainframe is happy, and nobody has tried anything stupid today. Yet.':'I run security here. Talk to Admin first; he likes to meet new pilots himself.'));
 VoidInteractions.register('district-shop',()=>{shop();screen.querySelector('.shop-heading,.actions')?.insertAdjacentHTML('beforeend',button('RETURN TO THE DISTRICT','walk-resume',true));});

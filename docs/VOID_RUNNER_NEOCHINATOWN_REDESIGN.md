@@ -145,3 +145,37 @@ David's brief: make NeoChinatown look like his four references (an old, crowded 
   | Street level, below the horizon | up to 4.1% of the view | 0 |
 
   What remains is sky above the roofline.
+
+## Sky, crowd, District doors (2026-10-28)
+
+- **Sky:**
+  - **Why there was a circle:** the old haze was an open-topped cylinder, and looking up showed its rim against the plain background colour.
+  - **What replaced it:** a closed sphere whose colour depends only on height:
+    - the fog colour at the horizon, so distant towers fade straight into it
+    - a band of city light pollution just above that
+    - polluted haze higher up
+    - dark overhead
+  - **Smog:** a flattened cloud deck of drifting blotches, mapped flat from above so nothing pinches overhead and tiled so no seam shows. It's lit warmer toward the horizon and kept out of the glow layer.
+  - **Cost:** two meshes and one 512 px texture; no smog on Low.
+- **Why pedestrians looked blocky:**
+  - **Every visit re-downloads them:** the offline cache (service worker) has been a stub for a while, so each visit downloads every crowd model again (11 looks, about 35 MB).
+  - **Stand-ins until then:** until a model arrived, its person showed as a blocky procedural stand-in. On a slow connection a download could time out after 2 minutes and leave the stand-in for the whole visit.
+  - **Low quality:** it never loaded the models at all.
+- **What changed for loading:**
+  - **No stand-ins:** ambient people now wait hidden and appear when their model arrives.
+  - **Failures:** a failed model is logged, listed in `VoidAssets.failed`, and its people switch to another look that did load.
+  - **Speed and quality:** downloads run four at a time instead of two, and every quality loads the real figures.
+- **Crowd density (`ncz-nightlife.js` config):**
+  - **Walkers:** 44 (High), 28 (Medium) or 12 (Low).
+  - **People standing about:** about 40 / 23 / 8 — groups of 2–3 talking, couples, window-shoppers facing storefronts, people leaning or smoking on walls. They're on clear sidewalk only, never at doors, taxi stands or the static crew, and walkers step round them.
+  - **Coming and going:** walkers may leave at a street's end and reappear later on another street.
+  - **Variety:** all eight NeoChinatown and District looks walk the streets.
+  - **Adaptive:** figures more than 90 m from the camera are switched off. A frame-rate governor hides the furthest people below 45 fps and brings them back above 56.
+  - **Measured (Edge, desktop GPU):** 64–81 people visible around you on High, 15–21 on Low, at 60 fps.
+- **District doors:**
+  - **Frame:** the entrance frame was one solid slab across the doorway, so the door never looked open. It's now two jambs and a header.
+  - **Doors:** both the entrance and the inner door are now two panels that slide into the walls.
+  - **Locked:** until the story opens a door (`districtDoor` / `districtBadge`, unchanged), it stays shut and blocks you.
+  - **Unlocking:** pressing E slides it open, and its status light turns green.
+  - **After that:** the door opens as you approach from either side and closes behind you.
+  - **Collision:** follows the door (the solid's `open` flag at 80% open), and a door never closes while you stand in it.

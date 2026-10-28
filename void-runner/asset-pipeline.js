@@ -134,7 +134,7 @@
   }
   async function cached(def){try{return typeof caches!=='undefined'&&!!(await caches.match(new URL(def.src,base).href));}catch{return false;}}
   // Background downloads, two at a time. Released scenes cancel theirs, so the next place loads at full speed.
-  const backgroundLimit=120000,parallel=2;let generation=0;const listeners=new Set(),jobs=new Set(),queue=[];
+  const backgroundLimit=120000,parallel=4;let generation=0;const listeners=new Set(),jobs=new Set(),queue=[],failed=new Map();
   function pump(){
     while(jobs.size<parallel&&queue.length){const next=queue.shift();if(next.gen===generation&&!next.scene.isDisposed)background(next);}
   }
@@ -145,10 +145,14 @@
       if(gen!==generation||scene.isDisposed){container.dispose();return false;}
       // Not a swap-in model (a timed-out prop or fitting): the finished download is now cached for the next visit.
       if(!def.background){container.dispose();return true;}
-      containers.set(id,{container,def});
-      for(const listener of listeners)try{listener(id);}catch(error){console.warn('[VOID//RUNNER assets] listener',error);}
+      containers.set(id,{container,def});failed.delete(id);
+      for(const listener of listeners)try{listener(id,true);}catch(error){console.warn('[VOID//RUNNER assets] listener',error);}
       return true;
-    },error=>{if(gen===generation)console.warn('[VOID optional model]',{id,asset:def.src,recovery:'procedural modern placeholder',reason:error.message});return false;})
+    },error=>{if(gen!==generation)return false;
+      // Reported, not silent: the console says which model and why, VoidAssets.failed lists it, and listeners hear
+      // (id, false) so stand-ins can switch to a look that did load.
+      console.warn('[VOID optional model] failed',{id,asset:def.src,reason:error.message});failed.set(id,error.message);
+      for(const listener of listeners)try{listener(id,false);}catch(e){console.warn('[VOID//RUNNER assets] listener',e);}return false;})
      .finally(()=>{clearTimeout(timer);jobs.delete(job);pump();});
   }
   // Called with a model id whenever a background model becomes available for the current scene.
@@ -167,7 +171,7 @@
   // The loaded container for an id (for builders that place many copies themselves), or null.
   function container(id){return containers.get(id)?.container||null;}
   const api = {
-    models,unload,container,loadContainer,onLoaded,get pending(){return pending();},
+    models,unload,container,loadContainer,onLoaded,get pending(){return pending();},get failed(){return new Map(failed);},
     validate,
     unpack,
     load,

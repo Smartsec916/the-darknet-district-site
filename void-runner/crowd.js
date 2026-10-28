@@ -56,9 +56,10 @@
  // A look without a clip falls back to the nearest one it has, then to idle.
  const fallback={look:'watch','sit-talk':'sit',typing:'watch',wipe:'interact',pickup:'interact'};
  function clipIn(look,want){const have=clips[look]||[];for(let w=want;w;w=fallback[w])if(have.includes(w))return w;return 'idle';}
- // Model definitions to preload for a place. Low quality keeps the light procedural crew.
+ // Model definitions to preload for a place, at every quality (David, 2026-10-28: no primitive stand-ins on the
+ // street). Low quality simply has fewer people (ncz-nightlife.js).
  function models(location,quality){
-  if(quality==='low'||!casts[location])return {};
+  if(!casts[location])return {};
   const set=new Set([...casts[location],...(staff[location]||[])]);if(location==='neochinatown')casts.district.forEach(l=>set.add(l));
   // Background: a figure that isn't downloaded within the scene's few seconds keeps loading and is
   // swapped in when it arrives (asset-pipeline.js), instead of being dropped for the procedural crew.

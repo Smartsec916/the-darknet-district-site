@@ -46,6 +46,7 @@
   // VR arcade (west, z 28..44): two glass booths along the back, a viewing strip by the hallway.
   wall('vr-north',-17,28,-3,28);wall('vr-west',-17,28,-17,44);wall('vr-south',-17,44,-3,44);
   wall('vr-booth-glass',-8.5,29,-8.5,43,3,.15);wall('vr-booth-partition',-17,36,-8.5,36,3,.15);
+  solids.push({id:'arcade-terminal',position:[-6.85,.8,36],size:[.7,1.6,1.1]}); // the VR terminal kiosk
   // Vending alcove (west, z 46.5..52.5).
   wall('vend-back',-7,46.5,-7,52.5);wall('vend-n',-7,46.5,-3,46.5);wall('vend-s',-7,52.5,-3,52.5);
   // Sleeping pods (west, z 55..70).
@@ -284,15 +285,36 @@
       // Giant vertical ad screens facing the neighbourhood; a few nearer ones change.
       if(rand()<(ring?.25:.5)){const sw=Math.min(w*.75,30),sh=sw*1.5,y=Math.max(sh/2+20,h*(.4+rand()*.3)),p=[x-dir[0]*(d/2+.6),y,z-dir[1]*(d/2+.6)],live=!ring&&screens.length<5;
        const sc=add(B.MeshBuilder.CreatePlane('skyline-screen',{width:sw,height:sh},scene),adMat(nextAd()),p,!live);sc.rotation.y=a;if(live)screens.push({mesh:sc,next:4+screens.length*2.3});}}});
-    // A haze dome: the fog colour glowing at the horizon, darkening overhead. Unfogged, behind everything.
-    {const t=texture('haze-dome',8,256,(g,W,H)=>{const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#040a0d');gr.addColorStop(.4,'#0a1d22');gr.addColorStop(.75,'#14363b');gr.addColorStop(.9,'#1b4448');gr.addColorStop(1,'#13292c');g.fillStyle=gr;g.fillRect(0,0,W,H);});
-     const m=texMat('haze-dome',t,{glow:true});m.fogEnabled=false;m.backFaceCulling=false;const dome=add(B.MeshBuilder.CreateCylinder('haze-dome',{diameter:2600,height:1500,tessellation:32,cap:B.Mesh.NO_CAP,sideOrientation:B.Mesh.BACKSIDE},scene),m,[skyCentre[0],620,skyCentre[1]],false);dome.infiniteDistance=false;dome.applyFog=false;}
+    // The night sky (David, 2026-10-28: no visible dome edge). A closed sphere whose colour depends only on
+    // elevation, so it has no rim, cap or seam: the fog colour at the horizon (distant towers fade straight into it),
+    // a band of light pollution just above, polluted haze, then near-black overhead matching the clear colour.
+    // A slower, flatter smog shell of drifting, wrap-around blotches lit from below by the neon sits inside it.
+    const skyShells=[];{const fog=scene.fogColor,stops=[[-90,fog],[0,fog],[3,[.17,.3,.32]],[9,[.14,.25,.27]],[20,[.11,.2,.22]],[40,[.085,.155,.175]],[65,[.07,.125,.145]],[90,[.06,.11,.13]]],
+     colour=e=>{for(let k=1;k<stops.length;k++)if(e<=stops[k][0]){const [e0,c0]=stops[k-1],[e1,c1]=stops[k],t=(e-e0)/(e1-e0),a=c0.r!=null?[c0.r,c0.g,c0.b]:c0,b2=c1.r!=null?[c1.r,c1.g,c1.b]:c1;return a.map((v,j)=>v+(b2[j]-v)*t);}return stops[stops.length-1][1];};
+     const shell=(name,diameter,flat,paint)=>{const m=B.MeshBuilder.CreateSphere(name,{diameter,segments:low?16:28,sideOrientation:B.Mesh.BACKSIDE},scene),pos=m.getVerticesData(B.VertexBuffer.PositionKind),cols=[];
+      for(let k=0;k<pos.length;k+=3){const e=Math.asin(Math.max(-1,Math.min(1,pos[k+1]/(diameter/2))))*180/Math.PI;cols.push(...paint(e));}
+      m.setVerticesData(B.VertexBuffer.ColorKind,cols);m.scaling.y=flat;m.position.set(skyCentre[0],-40,skyCentre[1]);m.parent=target;m.isPickable=false;m.applyFog=false;m.infiniteDistance=false;skyShells.push(m);return m;};
+     const dome=shell('night-sky',2900,1,e=>[...colour(e),1]),dm=new B.StandardMaterial('ncz-night-sky',scene);owned.push(dm);
+     dm.disableLighting=true;dm.emissiveColor=B.Color3.White();dm.diffuseColor=B.Color3.Black();dm.specularColor=B.Color3.Black();dm.fogEnabled=false;dome.material=dm;dome.useVertexColors=true;
+     scene.clearColor=new B.Color4(.06,.11,.13,1);
+     if(!low){// Smog: tiling blotches (each drawn again across every edge so no seam shows), mapped flat from above
+      // like a cloud deck, so nothing pinches overhead.
+      const t=texture('smog',512,512,(g,W,H)=>{g.fillStyle='#000';g.fillRect(0,0,W,H);for(let n=0;n<110;n++){const x=rand()*W,y=rand()*H,r=20+rand()*70,a=.22+rand()*.35;
+        for(const dx of [-W,0,W])for(const dy of [-H,0,H]){const gr=g.createRadialGradient(x+dx,y+dy,0,x+dx,y+dy,r);gr.addColorStop(0,'rgba(255,255,255,'+a+')');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.beginPath();g.ellipse(x+dx,y+dy,r*1.6,r*.8,0,0,Math.PI*2);g.fill();}}});
+      t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;
+      // A cloud deck lit from below: warmer (neon) toward the horizon, thinning a little straight overhead.
+      const smog=shell('smog-shell',2500,.55,e=>{const a=e<-2?0:e<8?(e+2)/10:e<70?1:1-(e-70)/40,warm=Math.max(0,1-e/35);return [.2+.2*warm,.27+.03*warm,.33+.12*warm,a*.75];});
+      {const pos=smog.getVerticesData(B.VertexBuffer.PositionKind),uv=[];for(let k=0;k<pos.length;k+=3)uv.push(pos[k]/1250*2.2,pos[k+2]/1250*2.2);smog.setVerticesData(B.VertexBuffer.UVKind,uv);}
+      const sm=new B.StandardMaterial('ncz-smog',scene);owned.push(sm);sm.disableLighting=true;sm.diffuseColor=B.Color3.Black();sm.specularColor=B.Color3.Black();sm.emissiveColor=B.Color3.White();sm.opacityTexture=t;t.getAlphaFromRGB=true;sm.useAlphaFromDiffuseTexture=false;
+      sm.fogEnabled=false;sm.backFaceCulling=false;smog.material=sm;smog.useVertexColors=true;smog.hasVertexAlpha=true;smog.alphaIndex=-10;}
+     // Kept out of the glow layer (it would bloom the whole sky).
+     const glow=scene.effectLayers?.find(l=>l.name==='void-glow');if(glow)for(const m of skyShells)glow.addExcludedMesh(m);}
     // IronEye drones patrol above the main street and the avenue.
     const drones=[];const droneBody=mat('ironeye','#1d1f24',{rough:.4,metal:.8});for(let i=0;i<(low?2:4);i++){const n=new B.TransformNode('ironeye-'+i,scene);n.parent=parent;const body=add(B.MeshBuilder.CreateSphere('ironeye-body',{diameter:.9,segments:10},scene),droneBody,[0,0,0],false);body.parent=n;body.scaling.y=.6;const eye=add(B.MeshBuilder.CreateDisc('ironeye-eye',{radius:.16,tessellation:12},scene),red,[0,0,-.46],false);eye.parent=n;for(const s of [-1,1]){const rot=box('ironeye-rotor',[.9,.04,.12],[s*.55,.25,0],frame,false);rot.parent=n;}drones.push({n,phase:i*1.7,x:i<3?61:100,z:i<3?-100+i*30:-12.5});}
     // Street pedestrians on the sidewalks.
     for(const [x,z,i] of [[52.6,-40,1],[69.4,-78,2],[52.6,-100,3],[34,-6.6,4],[98,-18.4,5]])characterModel('crew-ncz'+i,parent,[x,0,z],true);
-    // Nightlife: people walking the sidewalks, a few of them drunk (ncz-nightlife.js). Not on low quality.
-    const nightlife=root.VoidNightlife&&modelInstance&&!low?root.VoidNightlife.start({B,scene,parent,quality,instance:modelInstance}):null;
+    // Nightlife: people walking and standing about on the sidewalks, a few of them drunk (ncz-nightlife.js).
+    const nightlife=root.VoidNightlife&&modelInstance?root.VoidNightlife.start({B,scene,parent,quality,instance:modelInstance}):null;
     // Two street lights (the District's own lights are added with its rooms).
     const streetLights=[];if(!low)for(const [p,c,i,r] of [[[61,7,-40],'#ff5bd0',.9,34],[[61,7,-12],'#38e8ff',.8,30]]){const l=new B.PointLight('ncz-street-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=parent;streetLights.push(l);owned.push(l);}
 
@@ -354,9 +376,14 @@
     for(const [x,side] of [[87,'n'],[101,'s'],[124,'n']]){const t=texture('poster-'+x,256,360,(g,W,H)=>{g.fillStyle='#d8d0bc';g.fillRect(0,0,W,H);g.fillStyle='#1b1b1b';g.font='bold 34px Impact,sans-serif';g.textAlign='center';g.fillText('PRIVACY IS',W/2,90);g.fillText('RESISTANCE',W/2,130);g.font='22px monospace';g.fillText('— THE NETWORK —',W/2,320);g.globalCompositeOperation='destination-out';g.beginPath();g.moveTo(W,H*.55);for(let k=0;k<12;k++)g.lineTo(W-k*20,H*.55+(rand()-.5)*30+k*12);g.lineTo(W,H);g.fill();g.globalCompositeOperation='source-over';});
      decal(t,1,1.4,[x,1.7,side==='n'?A[3]-.05:A[2]+.05],side==='n'?0:Math.PI);}
     target=districtRoot;
-    // Understated entrance: reinforced door, small mark, camera.
-    box('district-door-frame',[6.4,3.6,.5],[0,1.8,20.15],frame);
-    if(!state.story?.flags?.districtDoor){const door=box('district-door',[5.6,3.1,.28],[0,1.55,20],mat('door-steel','#2b2e33',{rough:.4,metal:.85}),false);door.name='district-door';}
+    // Understated entrance: reinforced sliding door, small mark, camera. The frame is two jambs and a header (it
+    // used to be one solid slab across the doorway, which is why the opened door never looked open).
+    for(const x of [-3.05,3.05])box('district-door-jamb',[.3,3.6,.5],[x,1.8,20.15],frame);box('district-door-header',[6.4,.5,.5],[0,3.35,20.15],frame);
+    // Both District doors are pairs of panels that slide into the walls (doors.tick below). Locked until the story
+    // opens them, then automatic: they open as you approach from either side and close behind you.
+    const doorPanels=(id,z,m,lightZ)=>{const panels=[-1,1].map(s=>{const p=box(id+'-panel',[2.82,3.1,.24],[s*1.41,1.55,z],m,false);p.name=id+(s<0?'-left':'-right');return p;});
+     const seam=box(id+'-seam',[.04,3.1,.26],[0,1.55,z],frame,false);const light=box(id+'-status',[5.6,.06,.06],[0,3.15,lightZ],red,false);return {panels,seam,light};};
+    const outerDoor=doorPanels('district-door',20,mat('door-steel','#2b2e33',{rough:.4,metal:.85}),19.84);
     neon('district-mark',['DD'],['#9b7bff'],.7,.4,[2.6,2.9,19.7],0);
 
     // ---- Vestibule --------------------------------------------------------
@@ -365,7 +392,20 @@
     box('scanner-post',[.35,1.3,.35],[2.6,.65,24.5],frame);box('scanner-face',[.3,.4,.05],[2.6,1.25,24.31],cyan);
     for(const z of [21.5,24.5])box('status-display',[.05,.6,1],[-2.92,2.2,z],[cyan,magenta][z>23?1:0]);
     box('vestibule-light',[4,.05,.3],[0,3.42,23],white);
-    if(!state.story?.flags?.districtBadge){const inner=box('district-inner-door',[5.6,3.1,.28],[0,1.55,26],mat('door-inner','#1d2026',{rough:.35,metal:.9}),false);inner.name='district-inner-door';box('inner-door-light',[5.6,.06,.06],[0,3.15,25.84],red,false).name='district-inner-door-light';}
+    const innerDoor=doorPanels('district-inner-door',26,mat('door-inner','#1d2026',{rough:.35,metal:.9}),25.84);
+    const doors=(()=>{const list=[{id:'district-door',flag:'districtDoor',z:20,...outerDoor,open:0,kick:0},{id:'district-inner-door',flag:'districtBadge',z:26,...innerDoor,open:0,kick:0}];
+     const green=mat('door-ok','#1d6b4a',{glow:'#3dffa8'}),solidOf=d=>d.solid||(d.solid=(typeof walkingLocation!=='undefined'?walkingLocation?.solids:null)?.find?.(s=>s.id===d.id)||null);
+     for(const d of list)if(state.story?.flags?.[d.flag])d.light.material=green;
+     // Each frame: open toward 1 when unlocked and you're near (or just pressed E), else close; the collision box is
+     // there whenever the door is less than 80% open, and a door never closes on you while you're in the doorway.
+     function tick(dt){const cam=scene.activeCamera?.globalPosition,flags=(typeof state!=='undefined'?state:null)?.story?.flags||{};
+      const [lx,lz]=cam?toWorld(cam.x,cam.z):[99,99];
+      for(const d of list){const unlocked=!!flags[d.flag];if(unlocked&&d.light.material!==green)d.light.material=green;d.kick=Math.max(0,d.kick-dt);
+       const near=Math.abs(lx)<3.4&&Math.abs(lz-d.z)<3,inDoorway=Math.abs(lx)<3.2&&Math.abs(lz-d.z)<1.1,want=unlocked&&(near||d.kick>0)||(d.open>.05&&inDoorway)?1:0;
+       const before=d.open;d.open=Math.max(0,Math.min(1,d.open+(want?1:-1)*dt*1.25));const e=d.open*d.open*(3-2*d.open);
+       if(d.open!==before){d.panels[0].position.x=-1.41-e*2.75;d.panels[1].position.x=1.41+e*2.75;d.seam.setEnabled(e<.02);}
+       const solid=solidOf(d);if(solid)solid.open=d.open>=.8;}}
+     return {tick,list,kick(id,seconds=4){const d=list.find(x=>x.id===id);if(d){d.kick=seconds;}},state:()=>list.map(d=>({id:d.id,open:+d.open.toFixed(2),locked:!(typeof state!=='undefined'&&state?.story?.flags?.[d.flag]),blocking:!!solidOf(d)&&!solidOf(d).open}))};})();
 
     // ---- Hallway and room shells -----------------------------------------
     // Dark wet-look tiles (David's reference pictures, 2026-10-17): low roughness so the neon reads in them.
@@ -408,6 +448,35 @@
     box('vr-floor-line',[.05,.02,13.6],[-7.9,.04,36],violet);
     if(!instance('couch',[-4.6,0,41.5],-Math.PI/2))box('vr-bench',[1,.45,3],[-4.6,.22,41.5],mat('chair','#2a2340',{rough:.7}));
     characterModel('crew-vr-watch',target,[-5.4,0,33],true);
+
+    // The VR terminal (David, 2026-10-28): a dark kiosk on the spot where E opens the VR menu, facing the hallway, with
+    // cyan/magenta edge light and a live screen (experience list, scan line, pulsing prompt). Its collision is the
+    // 'arcade-terminal' solid; the interaction prompt sits at its screen.
+    const terminal=(()=>{const X=-6.85,Z=36,face=-Math.PI/2,dark=mat('kiosk-shell','#121419',{rough:.32,metal:.85}),trim=mat('kiosk-trim','#24272e',{rough:.25,metal:.9});
+     box('kiosk-plinth',[.72,.1,1.12],[X,.05,Z],trim,false);box('kiosk-pedestal',[.34,.95,.62],[X-.04,.57,Z],dark,false);
+     const head=box('kiosk-head',[.2,.86,1.14],[X+.03,1.42,Z],dark,false);head.rotation.z=.26;
+     for(const s of [-1,1]){const strip=box('kiosk-edge',[.03,.86,.03],[X+.14,1.42,Z+s*.58],s<0?cyan:magenta,false);strip.rotation.z=.26;}
+     const halo=box('kiosk-halo',[.04,.03,1.0],[X-.07,1.86,Z],cyan,false);void halo;
+     box('kiosk-base-glow',[.9,.01,1.3],[X+.05,.012,Z],mat('kiosk-floor','#05060a',{glow:'#1b5e66'}),false);
+     // The screen: drawn on a canvas each fifth of a second.
+     const W=256,H=320,t=new B.DynamicTexture('ncz-vr-terminal-screen',{width:W,height:H},scene,true);textures.push(t);
+     const sm=new B.StandardMaterial('ncz-vr-terminal-screen',scene);owned.push(sm);sm.diffuseColor=B.Color3.Black();sm.specularColor=B.Color3.Black();sm.emissiveTexture=t;sm.disableLighting=true;
+     // On the head's front face, so it leans back with it.
+     const screen=B.MeshBuilder.CreatePlane('kiosk-screen',{width:.98,height:.74},scene);screen.material=sm;screen.parent=head;screen.isPickable=false;
+     screen.position.set(.102,.02,0);screen.rotation.y=face;
+     // The terminal's own list (hidden experiences such as the Combat Simulator never appear).
+     const items=(root.VoidVR?.listed?.()||[]).map(e=>e.title.toUpperCase()).slice(0,4);if(!items.length)items.push('RELAX IN A FOREST','TROPICAL ESCAPE','PLAY IN A BEDROOM');let clock=0,redraw=0;
+     function draw(){const g=t.getContext();g.fillStyle='#04060b';g.fillRect(0,0,W,H);
+      g.strokeStyle='rgba(56,232,255,.55)';g.lineWidth=2;g.strokeRect(6,6,W-12,H-12);
+      g.fillStyle='#38e8ff';g.font='bold 22px monospace';g.fillText('VR // ARCADE',18,40);g.fillStyle='#ff3fb4';g.fillRect(18,50,90,3);
+      g.font='14px monospace';items.forEach((it,i)=>{const y=86+i*42,hot=Math.floor(clock/1.6)%items.length===i;g.fillStyle=hot?'rgba(56,232,255,.18)':'rgba(255,255,255,.04)';g.fillRect(14,y-20,W-28,32);
+       g.fillStyle=hot?'#e8fbff':'#7f97a8';g.fillText((hot?'> ':'  ')+it,20,y);});
+      // Little live bars and a sweeping scan line.
+      for(let i=0;i<10;i++){const h=6+Math.abs(Math.sin(clock*2+i*.9))*20;g.fillStyle=i%2?'#ff3fb4':'#38e8ff';g.fillRect(20+i*14,250-h,9,h);}
+      const pulse=.55+.45*Math.sin(clock*4);g.fillStyle='rgba(232,251,255,'+pulse.toFixed(2)+')';g.font='bold 16px monospace';g.fillText('[E] SELECT EXPERIENCE',20,284);
+      const sy=(clock*60)%H;g.fillStyle='rgba(56,232,255,.08)';g.fillRect(8,sy,W-16,6);t.update();}
+     draw();
+     return {tick(dt){clock+=dt;redraw-=dt;if(redraw<=0){redraw=.2;draw();}},screen};})();
 
     // The two players. Each keeps to the middle of its booth and runs its own routine of whole moves (a start, a
     // middle and an end), with uneven pauses, so they never look like synchronised machines.
@@ -612,8 +681,8 @@
      for(const fl of weather?.flickers||[]){if(fl.off>0){fl.off-=dt;if(fl.off<=0)for(const m of fl.meshes)m.isVisible=true;}else if(time>fl.next){fl.off=.05+Math.random()*.12;fl.next=time+2+Math.random()*7;for(const m of fl.meshes)m.isVisible=false;}}
      for(const s of screens)if(time>s.next){s.mesh.material=adMat(nextAd());s.next=time+9+Math.random()*4;}}
     let wasInside=null;
-    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;vrTick(dt);nightlife?.tick(dt);atmosphere(time,dt);for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
-    return {tick,city,nightlife,dispose(){disposed=true;nightlife?.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
+    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);doors.tick(dt);terminal.tick(dt);nightlife?.tick(dt);atmosphere(time,dt);for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
+    return {tick,city,nightlife,doors,dispose(){disposed=true;nightlife?.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
   }
   // Licensed models (docs/VOID_RUNNER_ASSET_LICENSES.md) dressing the District; loaded before build().
   const models={'crowd:vr-player-a':{src:'assets/models/crowd/vr-player-a.glb',background:true},'crowd:vr-player-b':{src:'assets/models/crowd/vr-player-b.glb',background:true},'district:couch':{src:'assets/models/district/couch.glb',scale:.5},'district:bin':{src:'assets/models/district/bin.glb',scale:.6},'district:chair':{src:'assets/models/district/chair.glb',scale:1}};
