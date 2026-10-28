@@ -22,10 +22,10 @@ test('scrambled models round-trip and are not readable as GLB',()=>{
  assert.throws(()=>assets.unpack(asArrayBuffer(glb)),/VRPK/);
 });
 
-test('FC1 ships scrambled, within budget, with her clips and blinks',()=>{
- const e=C.get('fc1');
+test('Nadia (FC1 model) ships scrambled, within budget, with her clips and blinks',()=>{
+ const e=C.get('nadia');
  assert.equal(e.sex,'female');assert.equal(C.file(e),'vr-companion-fc1.vrpak');
- assert.ok(C.list({sex:'female',has:m=>crowd.clips[m]}).find(x=>x.id==='fc1').usable);
+ assert.ok(C.list({sex:'female',has:m=>crowd.clips[m]}).find(x=>x.id==='nadia').usable);
  const raw=fs.readFileSync(path.join(models,'vr-companion-fc1.vrpak')),buf=Buffer.from(assets.unpack(asArrayBuffer(raw)));
  assets.validate(asArrayBuffer(buf));
  const j=glbJson(buf);

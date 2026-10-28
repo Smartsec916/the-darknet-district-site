@@ -115,12 +115,39 @@
    aside:['You\'ve got a great laugh. Just so you know.','I could stay up here all night with you.','You make this city look quiet.'],
    comeHere:['Coming.','Right here.'],recline:['Not bad, right? Best ceiling in NeoChinatown.']}});
 
- // FC1: "Realistic Contemporary Woman FC1" by Ludovisions (CGTrader, free, Royalty Free License - no AI),
- // converted by build_imported_character.py. "FC1" is a working name: until David names her and gives her a
- // personality, she shares Seren's settings and DRAFT lines. Her licence asks that the file not be easy to
- // extract, so she ships scrambled (.vrpak).
- register({...get('seren'),id:'fc1',name:'FC1',model:'vr-companion-fc1',file:'vr-companion-fc1.vrpak',preview:'void-runner/assets/vr/companions/fc1.jpg',
-  about:'Working name. Realistic, with a face that blinks. Shares Seren\'s personality for now.'});
+ // Nadia (named and characterised by David, 2026-10-28): grounded, warm and direct; grew up in NeoChinatown and
+ // teases you for being an outsider. Model: "Realistic Contemporary Woman FC1" by Ludovisions (CGTrader, free,
+ // Royalty Free License - no AI), converted by build_imported_character.py. Her licence asks that the file not be
+ // easy to extract, so she ships scrambled (.vrpak). Every line is a DRAFT for David's review.
+ register({id:'nadia',name:'Nadia',sex:'female',model:'vr-companion-fc1',file:'vr-companion-fc1.vrpak',preview:'void-runner/assets/vr/companions/nadia.jpg',
+  about:'Grounded, warm and direct. Born and raised in NeoChinatown, and she\'ll never let you forget you weren\'t.',voice:null,
+  personality:{initiative:.56,flirtatiousness:.5,approachFrequency:.7,attention:.88,personalSpace:.9,remarkCooldown:18},
+  clips:{greet:['wave'],flirt:['head-tilt','laugh','coy'],shy:['head-tilt'],idleAlt:['idle-f2','hips'],walk:['walk-f'],dance:['slow-dance'],playfulDance:['dance-belly'],confident:['hips'],laugh:['laugh']},
+  dialogue:{
+   greet:['There you are, outsider. Shoes off, the floor\'s new.','Hey. You found the place without a guide. I\'m impressed.','You made it up the stairs. Most tourists take the lift and get lost.'],
+   chat:['I grew up six blocks from here. Same noodle stand, same leaky gutter, my whole life.','See that red sign? It\'s been flickering since I was a kid. Nobody fixes it. Nobody wants to.','You still walk like you\'re new here. Eyes up, reading every sign. It\'s cute.','Every street down there has a story. Most of them are true. Some of them are mine.','Tell me where you\'re really from. Not the answer you give at customs.'],
+   compliment:['Smooth. Did they teach you that off-world?','Okay. That one landed. Don\'t get used to it.','Ha. You\'re learning how we talk around here.'],
+   flirt:['Careful. Locals don\'t fall for lines. Usually.','Say that again and I might believe it.','You\'re bolder than you look, outsider.'],
+   sit:['Sit. You\'re making the room nervous.','Better. Now you look like you live here.'],
+   dance:['You dance like a tourist. Here, follow me.','Loosen up. Nobody up here is watching but me.','There you go. Almost a local.'],
+   hands:['Your hands are cold. Off-world blood.','Hold on. I\'ll show you how it\'s done.'],
+   kiss:['Come here.'],kissAfter:['Well. Welcome to NeoChinatown.','Hm. Not bad for an outsider.'],
+   notYet:['Easy. Talk to me a bit first.','Slow down, outsider. We\'ve got all night.'],
+   notNow:['Sit with me first, or ask me to dance.'],
+   relax:['Listen. You can hear the market closing up from here.','Just breathe. The city can run itself for an hour.'],
+   bye:['Go on. Try not to get lost on the way down.','Night, outsider. Come back before you forget the way.'],
+   // Her own initiative (DRAFT).
+   approach:['Don\'t stand there like you\'re waiting for a taxi. Come talk.','You keep drifting off. Something on your mind, or just the view?','Hey. Come here, I want to show you something.'],
+   window:['That alley there? I broke my wrist falling off that fire escape. Worth it.','From up here you can tell which stalls are lying about being open.'],
+   joinSofa:['Scoot over. Locals get the good side.','Mind if I join you? Rhetorical question.'],
+   inviteSit:['Come sit. I\'ll tell you which of the signs out there are lying.','Sit with me a while. Your feet must hurt from all that sightseeing.'],
+   inviteDance:['This one\'s an old street song. Dance with me, I\'ll teach you.','Up. One dance. Consider it a cultural lesson.'],
+   inviteRecline:['Lie back a minute. The ceiling glow is the only quiet light in this city.'],
+   accepted:['Good. You\'re learning.','See? Easy.'],
+   declined:['Suit yourself, outsider. Offer stands.','Fine. I\'ll ask again when you\'ve loosened up.'],
+   welcomeBack:['Back again? Careful, people will start thinking you live here.','You came back. They always do.'],
+   aside:['You\'re staring again. Locals notice that.','You\'re not so bad, for someone from out there.','The city likes you. I can tell. So do I, a little.'],
+   comeHere:['Coming, coming.','What, lost already?'],recline:['Best ceiling in NeoChinatown. Don\'t tell anyone.']}});
 
  // Lines drawn from a pool never repeat the last one used.
  function pick(pool,mem,key,rnd=Math.random){if(!pool?.length)return '';const options=pool.length>1?pool.filter(l=>l!==mem[key]):pool;const l=options[Math.floor(rnd()*options.length)]||pool[0];mem[key]=l;return l;}

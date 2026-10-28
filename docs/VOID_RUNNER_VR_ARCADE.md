@@ -119,9 +119,10 @@ David's briefs: believable, attentive companions with their own initiative, a tw
 
   The real game's credits, kit, missions and story stayed unchanged.
 
-## FC1, the first converted companion (2026-10-28)
+## Nadia, the first converted companion (2026-10-28)
 
-- **Who she is:** David's free CGTrader model "Realistic Contemporary Woman FC1" by Ludovisions, now a third companion in the Female gallery. "FC1" is a working name. Until David names her and gives her a personality, she shares Seren's settings and DRAFT lines.
+- **Who she is:** **Nadia** (named by David): grounded, warm and direct. She grew up in NeoChinatown and teases you for being an outsider. She has her own settings: medium initiative and flirtatiousness, she comes over often, and she speaks a little more often than Seren. Her lines are her own DRAFTs.
+- **Her model:** David's free CGTrader model "Realistic Contemporary Woman FC1" by Ludovisions. It is now a third companion in the Female gallery. The model's internal name stays `vr-companion-fc1`.
 - **How she was made:** `tools/animation-pipeline/build_imported_character.py` with `characters/vr-companion-fc1.json`:
   - **Skeleton:** her bones are renamed to our Mixamo names, so head tracking and all 24 companion clips work. Her own A-pose rest pose is kept, and the clips are mapped from their T-pose.
   - **Size:** she was cut from 775,000 polygons to about 55,000 triangles:
@@ -140,7 +141,7 @@ David's briefs: believable, attentive companions with their own initiative, a tw
 
 - **Companions:** their names (Seren, Kai), personalities and every line are **drafts**, including the new lines for their initiative and the drunks' remarks in `ncz-nightlife.js`. They are unvoiced until their voices are approved through the audition tool.
 - **Experience descriptions:** the menu descriptions too.
-- **FC1:** her name, personality and lines (she borrows Seren's for now).
+- **Nadia:** every line is a draft written in her voice (local, teasing the outsider).
 
 ## Not done yet
 
