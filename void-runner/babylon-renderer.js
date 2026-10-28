@@ -477,7 +477,7 @@
         const post=b.MeshBuilder.CreateCylinder('kestrel-boarding-handrail',{diameter:.03,height:.3},scene);post.parent=ship;post.position.set(x1,ground+.15+.035,z0+dz);post.material=steel;post.isPickable=false;}
       const foot=new b.Vector3(x1+sd*.55,ground,z0),ring=b.MeshBuilder.CreateTorus('kestrel-boarding-locus',{diameter:1.5/k,thickness:.03/k,tessellation:28},scene);ring.parent=ship;ring.position.set(foot.x,ground+.03/k,foot.z);ring.material=lamp;ring.isPickable=false;
       const t=new b.DynamicTexture('kestrel-board-sign',{width:256,height:48},scene,true),g=t.getContext();g.fillStyle='#0b1218';g.fillRect(0,0,256,48);g.fillStyle='#d4bd87';g.font='bold 26px monospace';g.textAlign='center';g.fillText('KESTREL / BOARD',128,33);t.update();
-      const sm=new b.StandardMaterial('kestrel-board-sign',scene);sm.diffuseTexture=t;sm.emissiveTexture=t;sm.disableLighting=true;const sign=b.MeshBuilder.CreatePlane('kestrel-board-sign',{width:1.1/k*1.4,height:.21/k*1.4},scene);sign.parent=ship;sign.position.set(x1+sd*.3,ground+1.1/k*1.6,z0+.75);sign.rotation.y=-sd*Math.PI/2;sign.material=sm;sign.isPickable=false;const back=sign.clone('kestrel-board-sign-back');back.rotation.y+=Math.PI; // readable from both sides, never mirrored
+      const sm=new b.StandardMaterial('kestrel-board-sign',scene);sm.diffuseTexture=t;sm.emissiveTexture=t;sm.disableLighting=true;const sign=b.MeshBuilder.CreatePlane('kestrel-board-sign',{width:1.1/k*1.4,height:.21/k*1.4},scene);sign.parent=ship;sign.position.set(x1+sd*.3,ground+1.1/k*1.6,z0+.75);sign.rotation.y=-sd*Math.PI/2;sign.material=sm;sign.onDisposeObservable.add(()=>{sm.dispose();t.dispose();});sign.isPickable=false;const back=sign.clone('kestrel-board-sign-back');back.rotation.y+=Math.PI; // readable from both sides, never mirrored
       const post=b.MeshBuilder.CreateCylinder('kestrel-board-sign-post',{diameter:.03,height:1.1/k*1.6},scene);post.parent=ship;post.position.set(x1+sd*.3,ground+.55/k*1.6,z0+.75);post.material=steel;post.isPickable=false;
       ship.metadata.boarding=true;
       const w=b.Vector3.TransformCoordinates(foot,ship.getWorldMatrix()),board=def?.interactions?.find(i=>i.id==='board'||i.action==='board');
@@ -565,7 +565,10 @@
   function crewClip(actor,a,time){const c=actor.crowd,s=a.state,was=actor.was;actor.was=s;
     if(s==='walk'){c.walk(time+a.id);return;}
     if(s!==was){const o=VoidCrowd.onceClip[s];if(o){c.playOnce(o[0],o[1]);return;}}
-    if(!c.busy)c.play(VoidCrowd.activityClip[s]||'idle');}
+    if(!c.busy){const base=VoidCrowd.activityClip[s]||'idle';if(!vary(actor,c,base))c.play(base);}}
+  // Every 12-30 s an ambient figure may play a one-off from its look's variety (crowd.js), then return to its loop.
+  function vary(actor,c,base,dt=1/60){actor.varyIn=(actor.varyIn??6+Math.random()*14)-dt;if(actor.varyIn>0)return false;actor.varyIn=12+Math.random()*18;
+   const options=VoidCrowd.varietyFor?.(c.look,base)||[];if(!options.length||Math.random()<.35)return false;return c.playOnce(options[Math.floor(Math.random()*options.length)],base)>0;}
   function characterModel(id,parent,position,ambient=false){
     const model=VoidAssets.instance('character:'+id,parent);if(model){model.position.set(position[0],0,position[2]);actors.push({node:model,base:position.slice(),ambient});return model;}const look=ambient&&id.startsWith('crew-')&&root.VoidCrowd?VoidCrowd.pick(crowdLocation,id):null,figure=look&&VoidAssets.instance('crowd:'+look,parent);if(figure){figure.position.set(position[0],0,position[2]);figure.metadata={...figure.metadata,crowd:look,character:id,ambient};actors.push({node:figure,base:position.slice(),ambient,crowd:VoidCrowd.animate(figure,look,VoidCrowd.clipFor(id))});return figure;}
     const b=B(),a=VoidStationLayouts.appearances[id]||{coat:['#48565b','#665541','#566249','#4d5264'][Number(id.slice(-1))%4]||'#59676e',hair:'#30363c',skin:['#ae8a70','#75533f','#c7a184'][Number(id.slice(-1))%3]||'#ae8a70'},node=new b.TransformNode('npc-'+id,scene);
@@ -1224,7 +1227,7 @@
       if(stationActivity&&d.id!=='crew-pressure-door'){const near=(x,z,m)=>Math.abs(x-d.position[0])<d.size[0]/2+m&&Math.abs(z-d.position[2])<d.size[2]/2+m,crew=stationActivity.actors.some(a=>near(a.x,a.z,1.6));
         if(crew&&!d.open){d.open=true;d.byCrew=true;}else if(!crew&&d.byCrew&&!near(player.x,player.z,1.2)){d.open=false;d.byCrew=false;}}
       const target=d.position[1]+(d.open?3.5:0);mesh.position.y+=(target-mesh.position.y)*(roomDt?Math.min(1,roomDt*5):1);}
-    for(const actor of actors){if(actor.crowd){const a=actor.activity;if(a){actor.node.position.set(a.x,0,a.z);actor.node.rotation.y=turnToward(actor.node.rotation.y,a.yaw,roomDt*6);actor.cup?.setEnabled(false);crewClip(actor,a,time);}continue;}if(actor.activity){const a=actor.activity,seated=a.state==='sit'||a.state==='drink';actor.node.position.set(a.x,seated?-.35:0,a.z);actor.node.rotation.y=a.yaw;actor.cup?.setEnabled(a.state==='drink'||a.state==='get-drink');for(const mesh of actor.node.getChildMeshes()){if(mesh.name==='arm')mesh.rotation.x=a.state==='walk'?Math.sin(time*5+a.id)*.25:a.state==='talk'?Math.sin(time*2+a.id)*.15:a.state==='drink'?-.9+Math.sin(time)*.15:a.gesture==='device'?-.65:0;if(mesh.name==='leg')mesh.rotation.x=seated?-1.15:a.state==='walk'?Math.sin(time*5+(mesh.position.x<0?Math.PI:0))*.3:0;if(mesh.name==='head')mesh.rotation.y=a.gesture==='look'?Math.sin(time)*.18:0;}continue;}if(openingHandle&&actor.node===openingHandle.mara)continue;if(actor.traffic){actor.node.position.set((actor.lane%2?-1:1)*(25+actor.lane*8),5+actor.lane*2,((time*(5+actor.lane)+actor.lane*37)%140)-55);actor.node.rotation.y=0;}else{actor.node.rotation.y=Math.sin(time*.3+actor.base[0])*.13;if(actor.ambient)actor.node.position.z=actor.base[2]+Math.sin(time*.2+actor.base[0])*1.2;}}
+    for(const actor of actors){if(actor.crowd){const a=actor.activity;if(a){actor.node.position.set(a.x,0,a.z);actor.node.rotation.y=turnToward(actor.node.rotation.y,a.yaw,roomDt*6);actor.cup?.setEnabled(false);crewClip(actor,a,time);}else if(actor.ambient&&!actor.crowd.busy)vary(actor,actor.crowd,actor.base?.clip||VoidCrowd.clipFor(actor.node.metadata?.character||''),roomDt);continue;}if(actor.activity){const a=actor.activity,seated=a.state==='sit'||a.state==='drink';actor.node.position.set(a.x,seated?-.35:0,a.z);actor.node.rotation.y=a.yaw;actor.cup?.setEnabled(a.state==='drink'||a.state==='get-drink');for(const mesh of actor.node.getChildMeshes()){if(mesh.name==='arm')mesh.rotation.x=a.state==='walk'?Math.sin(time*5+a.id)*.25:a.state==='talk'?Math.sin(time*2+a.id)*.15:a.state==='drink'?-.9+Math.sin(time)*.15:a.gesture==='device'?-.65:0;if(mesh.name==='leg')mesh.rotation.x=seated?-1.15:a.state==='walk'?Math.sin(time*5+(mesh.position.x<0?Math.PI:0))*.3:0;if(mesh.name==='head')mesh.rotation.y=a.gesture==='look'?Math.sin(time)*.18:0;}continue;}if(openingHandle&&actor.node===openingHandle.mara)continue;if(actor.traffic){actor.node.position.set((actor.lane%2?-1:1)*(25+actor.lane*8),5+actor.lane*2,((time*(5+actor.lane)+actor.lane*37)%140)-55);actor.node.rotation.y=0;}else{actor.node.rotation.y=Math.sin(time*.3+actor.base[0])*.13;if(actor.ambient)actor.node.position.z=actor.base[2]+Math.sin(time*.2+actor.base[0])*1.2;}}
     roomRoot.metadata?.arrays?.forEach((n,i)=>n.rotation.z=.14+Math.sin(time*.015+i*.2)*.08);
     openingHandle?.tick(time);districtHandle?.tick(time);planetHandle?.tick(time);vrHandle?.tick?.(time);
     scene.render();
@@ -1266,7 +1269,7 @@
     get quality() {
       return quality;
     },
-    get opening(){return openingHandle;},
+    get opening(){return openingHandle;},get district(){return districtHandle;},
     get scene() {
       return scene;
     }

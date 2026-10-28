@@ -32,7 +32,7 @@ clips = []
 rest_reference = None
 rest_args = args[2:]
 sources = {}
-for flag, key in (('--ual', 'ual'),):
+for flag, key in (('--ual', 'ual'), ('--mixamo', 'mixamo')):
     if flag in rest_args:
         i = rest_args.index(flag)
         sources[key] = Path(rest_args[i + 1])

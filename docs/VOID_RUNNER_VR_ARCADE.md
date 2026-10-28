@@ -75,14 +75,61 @@ David's brief: make the District's VR play area a working entertainment system. 
   - **Affection and the kiss:** affection grows through conversation. A kiss is only offered when you're close (sitting or dancing) and have talked a while; before that, the companion declines kindly. The kiss is shown as a lean-in and a warm fade, never explicit.
   - **Optional:** everything here is optional; you can simply enjoy the room.
 
+## Companions, choosing one, and life on the streets (2026-10-28)
+
+David's briefs: believable, attentive companions with their own initiative, a two-step companion choice built for many more models later, the Combat Simulator off the terminal for now, and nightlife in NeoChinatown. The bedroom's look is unchanged: the same eight camera views, compared pixel by pixel before and after, differ by under 1 brightness level out of 255. The only changed pixels are moving things: traffic, the cycling ad and the music screen.
+
+- **Terminal:**
+  - **Experiences offered:** Relax in a Forest, Tropical Escape and Play in a Bedroom.
+  - **Combat Simulator:** still registered (`listed:false` in `vr-combat.js`), with its code and assets kept. It can't be launched from the terminal or by normal play.
+- **Choosing a companion:**
+  - **The steps:** Play in a Bedroom → **Female / Male** → a gallery of that category's companions, each with a picture, name, short description and a selected tick → **Enter VR**. Back returns to the step before.
+  - **Only usable companions can be picked.** The gallery checks each model's file and the clips it carries. A missing or incompatible one shows why and can't be chosen.
+  - **Changing companion:** leave the simulation and choose again.
+- **The companion registry (`void-runner/vr-companions.js`):** each entry holds the companion's id, name, category, model, preview picture, rig profile, clip roles (their own gestures), voice (none yet), personality settings and dialogue.
+  - **Adding a companion:** build a MakeHuman look with the companion clips (`tools/animation-pipeline`), list it in `crowd.js`, then `register()` it. Neither the terminal nor the bedroom needs changing. Only the chosen companion is loaded.
+- **Attention:**
+  - **Head tracking:** the chest, neck and head turn so the face points at your eyes wherever you walk, while standing, sitting, talking or mid-gesture. Measured in the browser, they're within 1–5° of your eyes, sideways and up or down.
+  - **Body turning:** if you go round behind them, they turn their whole body.
+  - **Glances:** now and then they look away (out of the window, or to one side), then come back to you smoothly.
+  - **Eyes and face:** the MakeHuman models have no eye bones or face shapes, so eyes, blinking and smiles aren't animated.
+- **Initiative (the "brain"):**
+  - **Who starts things:** they come over to you, comment on the view when you're at the window, and ask to join you when you sit on the sofa. If you stand near them without doing anything, they make a remark or a flirtatious aside, or invite you to dance, sit or lie back on the bed. "Not now" is respected: they won't ask that again for three minutes.
+  - **When you come and go:** they greet you again after time apart, and watch you go when you walk away.
+  - **On their own:** they wander, look out of the window, sit on the sofa, or play a gesture.
+  - **How they move:** they walk round the furniture on a path (A* over the room's collision). Their remarks are subtitles, so they never stop you moving.
+- **Flirting and gestures:** a blown kiss, a shy finger-wave, a coy look, a head tilt, hands on hips (Seren), a laugh, a look over the shoulder, a shrug when you decline, a slow romantic sway, a playful dance (Seren's belly dance, Kai's samba), a seated wave and a relaxed seated idle. New menu options: **Come over here** (from across the room) and **Lie back together** (they stretch out on the bed and you sit at its edge).
+- **Personalities:** Seren is playful, warm and teasing (more initiative, more flirtatious). Kai is relaxed, attentive and wry (looks at you more, comes over less).
+- **Behaviour settings (`defaults` in `vr-companions.js`; each personality overrides some):** initiative, flirtatiousness, approach frequency, attention, personal space, cooldowns for invitations, declines, approaches and remarks, idle-activity timing, walking speed, head-tracking strength, maximum head turn and tilt, and the body-turn thresholds.
+- **NeoChinatown nightlife (`void-runner/ncz-nightlife.js`):**
+  - **The crowd:** 22 people (High) or 14 (Medium) walk the sidewalks of Main Street, the avenue and the alley by the District. Low quality keeps the five standing people only.
+  - **Drunks:** about 8% are drunk (configurable), and only on the nightlife lanes. They stagger and sway, stop to steady themselves, lean on walls, laugh and mutter a remark when you're near. Half of them have a sober friend walking beside them.
+  - **Passers-by:** they glance, step round a drunk and sometimes laugh. Pairs walk together. Everyone steps round you and the standing crew. Nobody stops at the District door or the taxi stands, and no collision was added.
+  - **Performance:** 60 fps in the browser test.
+- **Crowd variety:** District and Meridian figures now and then break their loop with a laugh or a drink (`varietyFor` in `crowd.js`).
+- **Testing:** Seren and Kai were both checked in the browser:
+  - the picker
+  - head tracking
+  - body turning
+  - paths
+  - invitations and declines
+  - sitting and lying back
+  - gestures
+  - three entries and exits
+
+  The real game's credits, kit, missions and story stayed unchanged.
+
 ## Needs David's review
 
 - **Lines that still mention the sea:** the companions' draft lines were written for the old seaside suite. Three mention the sea or salt air ("the sea and the sky", "the air smells like salt", "the colour of honey" at sundown). They are unchanged here because dialogue was out of scope; they can be rewritten for the city if David wants.
 
-- **Companions:** their names (Seren, Kai), personalities and every line are **drafts**. They are unvoiced until their voices are approved through the audition tool.
+- **Companions:** their names (Seren, Kai), personalities and every line are **drafts**, including the new lines for their initiative and the drunks' remarks in `ncz-nightlife.js`. They are unvoiced until their voices are approved through the audition tool.
 - **Experience descriptions:** the menu descriptions too.
 
 ## Not done yet
+
+- **Hug:** none of the animation sources has a hug, so there's no hug animation.
+- **Leftover textures:** leaving and re-entering NeoChinatown (with or without VR) leaves about a dozen texture copies behind each time. This predates the companion work. The board sign's copy is fixed; the rest come from the crowd figures and are small (they share their image data).
 
 - **Animation:** no dedicated kiss or hand-holding motion. The companion steps close and plays a gesture.
 - **Arcade players:** they have no walking clip, so stepping aside is a short slide.

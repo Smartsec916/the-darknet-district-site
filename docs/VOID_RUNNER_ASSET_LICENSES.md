@@ -117,4 +117,16 @@ Every asset here is **CC0** (public domain), from its source’s own licence pag
 
 The bedroom redesign (2026-10-28) builds its furniture, bedding, curtains and city in code and reuses the fabric, carpet and wood-floor textures above plus the NeoChinatown concrete set. It removed the suite's first furniture (Quaternius Bed_King, NightStand_2, Light_Floor2, Curtains_Double, Carpet_Round, Houseplant_4; Poly Haven Sofa_01, ArmChair_01, modern_ceiling_lamp_01), the Wallpaper002A texture and the qwantani_dusk_1 sky. Only the calathea remains.
 
+**Companion and nightlife animation (2026-10-28).** Clips are retargeted onto our own MakeHuman characters and shipped only inside their GLBs, never as raw animation files.
+
+| Clips | Source | Licence |
+|---|---|---|
+| blow-kiss, wave, coy (Flirty), head-tilt, hips (HeadTilts), laugh (Laughs), glance-back (LookBehind_LetsGo), slow-dance (GentleSwayingDancing), sit-relax (Sitting_Idle02), sit-wave (Pilot_Wave), shrug (Shrugging), drink (DancingwithDrink) | Rokoko free mocap library (David's VOID_RUNNER_KEEP set), as for the crowd | Rokoko free mocap licence: free to use in commercial projects |
+| idle-f2 (female idle), idle-m2 (idle), walk-f (Female Walk), dance-belly (Bellydancing), dance-samba (samba dancing), recline (Female Laying Pose), drunk-walk (Drunk Walk), drunk-idle (Drunk Idle Variation), drunk-sway (drunk idle) | Adobe Mixamo, downloaded by David (Female Locomotion, Free Test and Male Drunk packs, single files) | Mixamo: royalty-free for commercial games, used as part of a game character; raw files are not redistributed |
+| `assets/vr/companions/seren.jpg`, `kai.jpg` | Screenshots of the game's own companions, for the gallery | the project's own |
+
+Looked at and not used: Booty Hip Hop Dance (too nightclub for the room).
+
+**New character models supplied 2026-10-28 (not used).** Freya.blend, body_female.fbx (with its BMP textures) and ludovisions_FC1.fbx came with no licence or source information. ludovisions_FC1 looks like a Character Creator export, which usually restricts redistribution. They were inspected only, and not converted or committed, until David confirms where each came from and its terms. The Rainy and realistic+girl downloads were incomplete (0-byte .rar files, partial .part files).
+
 Not used: Poly Haven’s tree models (fir_tree_01 487 MB, jacaranda_tree 215 MB, island trees 46–66 MB), as far too large for the browser. Trees, palms, birds and water are built in code.

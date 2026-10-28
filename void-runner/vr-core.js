@@ -73,25 +73,46 @@
  function openMenu(){if(busy||session||menu)return;mode='vr-menu';clearInput();walkingKeys?.clear?.();document.exitPointerLock?.();
   menu=document.createElement('section');menu.id='vr-menu';menu.setAttribute('role','dialog');menu.setAttribute('aria-label','VR experiences');document.body.append(menu);renderMenu();}
  let menuPage={view:'list'};
- function renderMenu(){if(!menu)return;const exps=order.map(id=>registry.get(id));
+ // Experiences marked listed:false (the Combat Simulator, for now) keep their code but are not offered.
+ const listed=()=>order.map(id=>registry.get(id)).filter(e=>e.listed!==false);
+ function renderMenu(){if(!menu)return;const exps=listed();
+  if(menuPage.view==='pick')return renderPicker();
   if(menuPage.view==='list')menu.innerHTML='<div class="vr-head"><b>DARKNET DISTRICT · VR ARCADE</b><span>Choose a simulation. Nothing inside counts out here: no credits, ammunition or injuries carry over.</span><button type="button" data-vr="close">CLOSE · ESC</button></div><div class="vr-grid">'+
    exps.map(e=>'<article class="vr-card'+(e.status!=='ready'?' vr-soon':'')+'">'+(e.preview?'<img alt="" src="'+esc(e.preview)+'">':'<div class="vr-preview" style="background:'+esc(e.tint||'#0b2a31')+'"></div>')+'<h2>'+esc(e.title)+'</h2><p>'+esc(e.description)+'</p>'+
-    (e.status==='ready'?'<button type="button" data-vr="pick:'+esc(e.id)+'">'+(e.options?'CHOOSE →':'LAUNCH →')+'</button>':'<p class="vr-tag">IN DEVELOPMENT · NOT YET PLAYABLE</p>')+'</article>').join('')+'</div>';
+    (e.status==='ready'?'<button type="button" data-vr="pick:'+esc(e.id)+'">'+(e.options||e.picker?'CHOOSE →':'LAUNCH →')+'</button>':'<p class="vr-tag">IN DEVELOPMENT · NOT YET PLAYABLE</p>')+'</article>').join('')+'</div>';
   else{const e=registry.get(menuPage.id),opt=e.options;
    menu.innerHTML='<div class="vr-head"><b>'+esc(e.title.toUpperCase())+'</b><span>'+esc(opt.prompt)+'</span><button type="button" data-vr="back">← BACK</button></div><div class="vr-grid">'+
     opt.choices.map(c=>'<article class="vr-card">'+(c.preview?'<img alt="" src="'+esc(c.preview)+'">':'')+'<h2>'+esc(c.label)+'</h2><p>'+esc(c.description||'')+'</p><button type="button" data-vr="launch:'+esc(e.id)+':'+esc(c.id)+'">LAUNCH →</button></article>').join('')+'</div>';}
   menu.querySelector('button')?.focus();}
+ // A step-by-step picker (Play in a Bedroom: sex, then a gallery of companion models). Each step's choices come
+ // from the experience; a final step is chosen, then confirmed. Unusable choices show why and can't be picked.
+ function renderPicker(){const e=registry.get(menuPage.id),steps=e.picker.steps,i=menuPage.step,step=steps[i],last=i===steps.length-1,choices=step.choices(menuPage.picks);
+  const sel=menuPage.selected,card=c=>'<article class="vr-card vr-choice'+(c.usable===false?' vr-soon':'')+(last&&sel===c.id?' vr-selected':'')+'" data-choice="'+esc(c.id)+'">'+
+   (c.preview?'<img alt="" src="'+esc(c.preview)+'" onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),{className:\'vr-preview\'}))">':'<div class="vr-preview" style="background:'+esc(c.tint||'#0b2a31')+'"></div>')+
+   '<h2>'+esc(c.label)+(last&&sel===c.id?' <span class="vr-check">✓ SELECTED</span>':'')+'</h2><p>'+esc(c.description||'')+'</p>'+
+   (c.usable===false?'<p class="vr-tag">'+esc(c.reason||'Not available.')+'</p>':'<button type="button" data-vr="choose:'+esc(c.id)+'">'+(last?(sel===c.id?'SELECTED':'SELECT'):'NEXT →')+'</button>')+'</article>';
+  menu.innerHTML='<div class="vr-head"><b>'+esc(e.title.toUpperCase())+' · '+esc(step.title||'')+'</b><span>'+esc(step.prompt)+'</span><button type="button" data-vr="back">← BACK</button></div>'+
+   (choices.length?'<div class="vr-grid">'+choices.map(card).join('')+'</div>':'<p class="vr-empty">No companions are available in this category yet.</p>')+
+   (last?'<div class="vr-confirm"><button type="button" data-vr="confirm"'+(sel?'':' disabled')+'>'+(sel?'ENTER VR WITH '+esc((choices.find(c=>c.id===sel)||{}).label||'').toUpperCase()+' →':'SELECT A COMPANION')+'</button></div>':'');
+  (menu.querySelector('[data-vr="confirm"]:not([disabled])')||menu.querySelector('[data-vr^="choose:"]')||menu.querySelector('button'))?.focus();}
+ function openPicker(e){menuPage={view:'pick',id:e.id,step:0,picks:[],selected:null};renderMenu();Promise.resolve(e.picker.prepare?.()).then(()=>{if(menu&&menuPage.view==='pick')renderMenu();});}
  function closeMenu(){if(!menu)return;menu.remove();menu=null;menuPage={view:'list'};if(mode==='vr-menu')resumeWalking();}
  document.addEventListener('click',e=>{const b=e.target.closest('[data-vr]');if(!b)return;const a=b.dataset.vr;e.stopPropagation();
-  if(a==='close')return closeMenu();if(a==='back'){menuPage={view:'list'};return renderMenu();}
-  if(a.startsWith('pick:')){const exp=registry.get(a.slice(5));if(exp.options){menuPage={view:'options',id:exp.id};return renderMenu();}return launch(exp.id,{});}
+  if(a==='close')return closeMenu();
+  if(a==='back'){if(menuPage.view==='pick'&&menuPage.step>0){menuPage.step--;menuPage.picks.pop();menuPage.selected=null;}else menuPage={view:'list'};return renderMenu();}
+  if(a.startsWith('pick:')){const exp=registry.get(a.slice(5));if(!exp||exp.listed===false)return;if(exp.picker)return openPicker(exp);if(exp.options){menuPage={view:'options',id:exp.id};return renderMenu();}return launch(exp.id,{});}
+  if(a.startsWith('choose:')&&menuPage.view==='pick'){const id=a.slice(7),e=registry.get(menuPage.id),step=e.picker.steps[menuPage.step],c=step.choices(menuPage.picks).find(x=>x.id===id);if(!c||c.usable===false)return;
+   if(menuPage.step<e.picker.steps.length-1){menuPage.picks.push(id);menuPage.step++;menuPage.selected=null;}else menuPage.selected=id;return renderMenu();}
+  if(a==='confirm'&&menuPage.view==='pick'&&menuPage.selected){const e=registry.get(menuPage.id);return launch(e.id,e.picker.options([...menuPage.picks,menuPage.selected]));}
   if(a.startsWith('launch:')){const [,id,choice]=a.split(':');return launch(id,{choice});}
   if(a==='exit')return exit();if(a==='resume')return closePause();
   if(a.startsWith('opt:')){const [,key,val]=a.split(':');session?.world?.setOption?.(key,val);session.settings[key]=val;return renderPause();}},true);
  // ---- Launch ----
  const wait=ms=>new Promise(r=>setTimeout(r,ms));
  async function launch(id,opts){
-  const exp=registry.get(id);if(!exp||exp.status!=='ready'||busy||session)return false;
+  const exp=registry.get(id);if(!exp||exp.status!=='ready'||busy||session)return false;if(exp.listed===false&&!opts?.allowHidden)return false;
+  // A picked option that can't load (missing or incompatible model) is refused here, before anything changes.
+  if(exp.validate&&!exp.validate(opts||{})){announce('That choice is not available right now.');return false;}
   busy=true;menu?.remove();menu=null;menuPage={view:'list'};mode='vr-transition';clearInput();walkingKeys?.clear?.();document.exitPointerLock?.();
   const booth=exp.station??1,b=BOOTHS[booth],n=N();
   // The booth's player steps aside; you take the station and face the rig.
@@ -162,6 +183,6 @@
  // ---- Called by the renderer (prepareRoom) to build a world, and each frame through the room's tick ----
  async function buildWorld(def,ctx){const exp=registry.get(def.vr);const world=await exp.build({...ctx,opts:session?.opts||{},settings:session?.settings||{},api});if(session)session.world=world;return world;}
  const audioSet=(key,val)=>{if(audio.named)audio.named[key]=val;};
- const api={register,launch,exit,openMenu,sit,stand,sfx,audioLevel,audioSet,setPad,transition,buildWorld,get active(){return !!session;},get debug(){return {session:!!session,busy,pauseMenu:!!pauseMenu,menu:!!menu,overlay:!!overlay};},get busy(){return busy;},get session(){return session;},registry,order};
+ const api={register,launch,exit,openMenu,sit,stand,sfx,audioLevel,audioSet,setPad,transition,buildWorld,get active(){return !!session;},get debug(){return {session:!!session,busy,pauseMenu:!!pauseMenu,menu:!!menu,overlay:!!overlay,page:{...menuPage}};},listed,get busy(){return busy;},get session(){return session;},registry,order};
  globalThis.VoidVR=api;
 })();

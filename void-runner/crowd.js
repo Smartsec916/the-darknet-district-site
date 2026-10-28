@@ -8,14 +8,14 @@
   'vesper-mechanic':['idle','talk','work','watch','walk'],'vesper-pilot':['idle','talk','work','watch','sit','walk'],'vesper-trader':['idle','talk','work','watch','sit','walk','sit-enter','sit-exit','sit-talk','interact','look'],
   'order-farmhand':['idle','talk','work','watch','walk'],'order-grower':['idle','talk','work','watch','walk'],'order-militia':['idle','talk','work','watch','walk'],
   'communion-worker':['idle','talk','work','watch','walk'],'communion-tech':['idle','talk','work','watch','sit','walk'],'cyborg-01':['idle','talk','work','watch','sit','walk','sit-enter','sit-exit','sit-talk','interact','look'],
-  'ncz-neon':['idle','talk','watch','walk'],'fixer-01':['idle','talk','watch','sit','walk','sit-enter','sit-exit','sit-talk','interact','look'],'runner-02':['idle','talk','watch','walk'],
-  'hacker-01':['idle','talk','sit','smoke','watch','walk','sit-enter','sit-exit','sit-talk','interact','look'],'district-smuggler':['idle','talk','sit','smoke','walk'],'district-resident':['idle','talk','sit','smoke','walk'],
-  'outlaw-01':['idle','talk','sit','smoke','watch','walk','sit-enter','sit-exit','sit-talk','interact','look'],'regular-01':['idle','talk','sit','watch','walk','sit-enter','sit-exit','sit-talk','interact','look'],
+  'ncz-neon':['idle','talk','watch','walk','drunk-walk','drunk-idle','drunk-sway','laugh','smoke'],'fixer-01':['idle','talk','watch','sit','walk','sit-enter','sit-exit','sit-talk','interact','look'],'runner-02':['idle','talk','watch','walk','drunk-walk','drunk-idle','drunk-sway','laugh'],
+  'hacker-01':['idle','talk','sit','smoke','watch','walk','sit-enter','sit-exit','sit-talk','interact','look'],'district-smuggler':['idle','talk','sit','smoke','walk'],'district-resident':['idle','talk','sit','smoke','walk','drink','laugh','dance'],
+  'outlaw-01':['idle','talk','sit','smoke','watch','walk','sit-enter','sit-exit','sit-talk','interact','look','laugh','drink'],'regular-01':['idle','talk','sit','watch','walk','sit-enter','sit-exit','sit-talk','interact','look','laugh','drink'],
   'meridian-bartender':['idle','talk','interact','pickup','wipe','walk'],
   // The District's VR arcade players (neochinatown.js runs their routines).
   'vr-player-a':['idle','vr-aim','vr-aim-up','vr-aim-down','vr-shoot','vr-hit','vr-duck'],'vr-player-b':['idle','dance','pickup','interact','menu','menu-tap','talk'],
   // VR arcade companions (vr-suite.js).
-  'vr-companion-f':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact'],'vr-companion-m':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact']
+  'vr-companion-f':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-f2','walk-f','wave','blow-kiss','coy','head-tilt','hips','laugh','glance-back','slow-dance','dance-belly','sit-relax','sit-wave','shrug','recline'],'vr-companion-m':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-m2','blow-kiss','head-tilt','laugh','glance-back','slow-dance','dance-samba','sit-relax','sit-wave','shrug','recline']
  };
  // Each place has its own feel; the order spreads looks across a scene's crew.
  const frontierMix=['vesper-mechanic','regular-01','vesper-pilot','communion-worker','outlaw-01'];
@@ -49,6 +49,10 @@
   serve:'talk',wipe:'wipe',pour:'wipe',shelf:'idle'};
  // One-shot moves played on entering a state: [move, then loop].
  const onceClip={'sit-down':['sit-enter','sit'],stand:['sit-exit','idle'],'get-drink':['interact','idle'],terminal:['interact','typing'],browse:['interact','watch'],pour:['pickup','wipe'],shelf:['interact','idle']};
+ // Now and then a figure breaks its loop with a one-off that suits it (a laugh in conversation, a drink and a sway
+ // at the bar); only clips the look actually carries are used.
+ const variety={talk:['laugh','drink'],idle:['laugh','drink'],watch:['laugh'],'sit-talk':['laugh']};
+ const varietyFor=(look,base)=>(variety[base]||[]).filter(c=>(clips[look]||[]).includes(c));
  // A look without a clip falls back to the nearest one it has, then to idle.
  const fallback={look:'watch','sit-talk':'sit',typing:'watch',wipe:'interact',pickup:'interact'};
  function clipIn(look,want){const have=clips[look]||[];for(let w=want;w;w=fallback[w])if(have.includes(w))return w;return 'idle';}
@@ -88,7 +92,8 @@
   let once=null;
   function playOnce(name,after){
    const g=clipIn(look,name)===name?groupFor(name):null;if(!g){if(after)play(after);return 0;}
-   for(const o of list)if(o!==g)o.stop();walking=false;current=g;once=g;
+   // Claim the figure first: stopping the previous one-shot fires its end handler, which must not start another clip.
+   walking=false;current=g;once=g;for(const o of list)if(o!==g)o.stop();
    g.start(false,1,g.from,g.to);g.onAnimationGroupEndObservable.addOnce(()=>{if(once===g){once=null;if(after)play(after);}});
    return (g.to-g.from)/(g.animatables[0]?.animation?.framePerSecond||g.targetedAnimations[0]?.animation.framePerSecond||15);
   }
@@ -108,6 +113,6 @@
  }
  function release(){for(const g of groups)g.dispose();groups.clear();}
 
- const api={casts,staff,clips,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,release};
+ const api={casts,staff,clips,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,release,variety,varietyFor};
  if(typeof module!=='undefined')module.exports=api;else root.VoidCrowd=api;
 })(globalThis);

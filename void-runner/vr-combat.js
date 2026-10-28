@@ -63,7 +63,8 @@
     else if(id==='level'){const order=['easy','normal','hard'];s.level=order[(order.indexOf(s.level)+1)%3];api.session.settings.level=s.level;drawBoard();announce('Difficulty: '+s.level.toUpperCase()+'.');}},
    setOption(key,val){if(key==='level'&&levels[val]){s.level=val;drawBoard();}}};
  }
- VoidVR.register({id:'combat',title:'Combat Simulator',status:'ready',station:0,weapon:true,tint:'linear-gradient(135deg,#05121a,#ff3fb4)',
+ // Kept but not offered at the terminal for now (David, 2026-10-28): listed:false hides it; its code and assets stay for later.
+ VoidVR.register({id:'combat',title:'Combat Simulator',status:'ready',listed:false,station:0,weapon:true,tint:'linear-gradient(135deg,#05121a,#ff3fb4)',
   description:'A holographic range: pop-up and sliding targets, then drones that fire back. Timed challenge, score, accuracy and three difficulty levels. Simulated weapon; nothing carries over.',
   defaults:{level:'normal'},settings:[{key:'level',label:'Difficulty',values:[['easy','Easy'],['normal','Normal'],['hard','Hard']]}],
   ambience:()=>({hum:.025}),layout,build});

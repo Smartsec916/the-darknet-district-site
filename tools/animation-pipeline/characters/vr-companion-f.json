@@ -6,7 +6,7 @@
  "hair": "long01",
  "clothes": ["female_elegantsuit01", "shoes03"],
  "style": {"female_elegantsuit01": {"recolor": [{"color": [0.38, 0.05, 0.12], "level": 0.75}]}},
- "clips": ["idle", "talk", "walk", "sit", "sit-enter", "sit-exit", "sit-talk", "dance", "interact"],
+ "clips": ["idle", "talk", "walk", "sit", "sit-enter", "sit-exit", "sit-talk", "dance", "interact", "idle-f2", "walk-f", "wave", "blow-kiss", "coy", "head-tilt", "hips", "laugh", "glance-back", "slow-dance", "dance-belly", "sit-relax", "sit-wave", "shrug", "recline"],
  "lean": true,
  "maxGarmentVerts": 9000
 }

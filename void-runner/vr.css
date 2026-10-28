@@ -24,3 +24,10 @@
 #vr-transition{position:fixed;inset:0;z-index:80;width:100vw;height:100vh;pointer-events:none}
 /* Inside a simulation the real world's captions, mission banner and Guidance card are hidden. */
 body.vr-session #walking-caption,body.vr-session #guidance-card,body.vr-session #mission-tracker,body.vr-session #tutorial-prompt{display:none!important}
+/* Companion picker: the chosen card, its tick, and the confirm bar. */
+#vr-menu .vr-selected{border-color:#ff4fb0;box-shadow:0 0 0 1px #ff4fb0,0 0 22px rgba(255,79,176,.25)}
+#vr-menu .vr-check{color:#ff7cc4;font-size:11px;letter-spacing:.12em;margin-left:6px}
+#vr-menu .vr-confirm{display:flex;justify-content:center;padding:6px 26px 28px}
+#vr-menu .vr-confirm button{min-width:320px}
+#vr-menu .vr-confirm button[disabled]{opacity:.45;cursor:default}
+#vr-menu .vr-empty{color:#b9c8ce;text-align:center;padding:40px}
