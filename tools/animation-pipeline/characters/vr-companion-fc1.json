@@ -1,0 +1,144 @@
+{
+ "name": "vr-companion-fc1",
+ "source": "Realistic Contemporary Woman FC1 by Ludovisions (CGTrader, free, Royalty Free License no AI)",
+ "bonePrefix": "ludovisions_FC1_",
+ "bones": {
+  "Hip": "Hips",
+  "Waist": "Spine",
+  "Spine01": "Spine1",
+  "Spine02": "Spine2",
+  "NeckTwist01": "Neck",
+  "Head": "Head",
+  "L_Clavicle": "LeftShoulder",
+  "L_Upperarm": "LeftArm",
+  "L_Forearm": "LeftForeArm",
+  "L_Hand": "LeftHand",
+  "L_Thigh": "LeftUpLeg",
+  "L_Calf": "LeftLeg",
+  "L_Foot": "LeftFoot",
+  "L_ToeBase": "LeftToeBase",
+  "L_Thumb1": "LeftHandThumb1",
+  "L_Thumb2": "LeftHandThumb2",
+  "L_Thumb3": "LeftHandThumb3",
+  "L_Index1": "LeftHandIndex1",
+  "L_Index2": "LeftHandIndex2",
+  "L_Index3": "LeftHandIndex3",
+  "L_Mid1": "LeftHandMiddle1",
+  "L_Mid2": "LeftHandMiddle2",
+  "L_Mid3": "LeftHandMiddle3",
+  "L_Ring1": "LeftHandRing1",
+  "L_Ring2": "LeftHandRing2",
+  "L_Ring3": "LeftHandRing3",
+  "L_Pinky1": "LeftHandPinky1",
+  "L_Pinky2": "LeftHandPinky2",
+  "L_Pinky3": "LeftHandPinky3",
+  "R_Clavicle": "RightShoulder",
+  "R_Upperarm": "RightArm",
+  "R_Forearm": "RightForeArm",
+  "R_Hand": "RightHand",
+  "R_Thigh": "RightUpLeg",
+  "R_Calf": "RightLeg",
+  "R_Foot": "RightFoot",
+  "R_ToeBase": "RightToeBase",
+  "R_Thumb1": "RightHandThumb1",
+  "R_Thumb2": "RightHandThumb2",
+  "R_Thumb3": "RightHandThumb3",
+  "R_Index1": "RightHandIndex1",
+  "R_Index2": "RightHandIndex2",
+  "R_Index3": "RightHandIndex3",
+  "R_Mid1": "RightHandMiddle1",
+  "R_Mid2": "RightHandMiddle2",
+  "R_Mid3": "RightHandMiddle3",
+  "R_Ring1": "RightHandRing1",
+  "R_Ring2": "RightHandRing2",
+  "R_Ring3": "RightHandRing3",
+  "R_Pinky1": "RightHandPinky1",
+  "R_Pinky2": "RightHandPinky2",
+  "R_Pinky3": "RightHandPinky3"
+ },
+ "meshes": {
+  "mesh_01": {
+   "name": "body",
+   "shapeKeys": [
+    "Eye_Blink_L",
+    "Eye_Blink_R"
+   ],
+   "hiddenUnder": [
+    "dress",
+    "shoes"
+   ]
+  },
+  "mesh_02": {
+   "name": "tongue",
+   "drop": true
+  },
+  "mesh_03": {
+   "name": "eyes",
+   "maxTris": 1500,
+   "dropMaterials": [
+    "ludovisions_FC1_mat_13",
+    "ludovisions_FC1_mat_14"
+   ]
+  },
+  "mesh_04": {
+   "name": "teeth",
+   "maxTris": 600
+  },
+  "mesh_05": {
+   "name": "shoes",
+   "maxTris": 1800
+  },
+  "mesh_06": {
+   "name": "hair",
+   "cutout": true,
+   "alphaCutoff": 0.12,
+   "cardSegments": 4,
+   "keepCards": {
+    "mat_02": 0.55,
+    "mat_19": 0.45,
+    "mat_01": 0.4,
+    "mat_20": 0.3
+   }
+  },
+  "mesh_07": {
+   "name": "dress",
+   "maxTris": 4500,
+   "doubleSided": true,
+   "cutout": true
+  },
+  "mesh_08": {
+   "name": "pendant",
+   "maxTris": 600,
+   "cutout": true
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "walk",
+  "sit",
+  "sit-enter",
+  "sit-exit",
+  "sit-talk",
+  "dance",
+  "interact",
+  "idle-f2",
+  "walk-f",
+  "wave",
+  "blow-kiss",
+  "coy",
+  "head-tilt",
+  "hips",
+  "laugh",
+  "glance-back",
+  "slow-dance",
+  "dance-belly",
+  "sit-relax",
+  "sit-wave",
+  "shrug",
+  "recline"
+ ],
+ "cutoutMaterials": [
+  "ludovisions_FC1_mat_22"
+ ]
+}

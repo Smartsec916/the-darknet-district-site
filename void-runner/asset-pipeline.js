@@ -21,6 +21,21 @@
     return data;
   }
 
+  // Licensed models whose terms ask games to keep the file from casual extraction ship as .vrpak: the GLB
+  // with a "VRPK" header and its bytes XOR-scrambled by a fixed xorshift stream (tools/assets/pack-model.cjs).
+  // This only stops casual saving; it is not encryption.
+  function unpack(buffer) {
+    const v = new DataView(buffer);
+    if (v.byteLength < 8 || v.getUint32(0, true) !== 0x4b505256) throw Error('Expected a VRPK model.');
+    const out = new Uint8Array(buffer.byteLength - 8), src = new Uint8Array(buffer, 8);
+    let x = (0x9e3779b9 ^ v.getUint32(4, true)) >>> 0 || 1;
+    for (let i = 0; i < out.length; i++) {
+      if ((i & 3) === 0) { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; }
+      out[i] = src[i] ^ (x >>> ((i & 3) * 8)) & 255;
+    }
+    return out.buffer;
+  }
+
   function loadPlugin(task) {
     if (loader) return loader;
     loader = new Promise((resolve, reject) => {
@@ -50,7 +65,8 @@
   // Loads and validates a model into a container the caller owns (not tracked or released here).
   async function loadContainer(def, scene, task, id = def.src) {
     const url = new URL(def.src, base);
-    if (url.origin !== location.origin || !url.pathname.endsWith('.glb')) throw Error('Model must be a locally hosted GLB.');
+    const packed = url.pathname.endsWith('.vrpak');
+    if (url.origin !== location.origin || !(packed || url.pathname.endsWith('.glb'))) throw Error('Model must be a locally hosted GLB.');
     let buffer;
     for(let attempt=1;attempt<=2;attempt++){
       task?.check();
@@ -58,6 +74,7 @@
         const response=await fetch(url,{signal:task?.signal});
         if(!response.ok)throw Error('Model HTTP '+response.status);
         buffer=await response.arrayBuffer();
+        if(packed)buffer=unpack(buffer);
         validate(buffer);
         break;
       }catch(error){
@@ -68,7 +85,9 @@
     }
     await loadPlugin(task);
     task?.check();
-    const container = await BABYLON.SceneLoader.LoadAssetContainerAsync(url.href.slice(0, url.href.lastIndexOf('/') + 1), url.href.slice(url.href.lastIndexOf('/') + 1), scene);
+    const container = packed
+      ? await BABYLON.SceneLoader.LoadAssetContainerAsync('', new Uint8Array(buffer), scene, null, '.glb')
+      : await BABYLON.SceneLoader.LoadAssetContainerAsync(url.href.slice(0, url.href.lastIndexOf('/') + 1), url.href.slice(url.href.lastIndexOf('/') + 1), scene);
     if(task?.signal.aborted){container.dispose();task.check();}
     // When a model finishes loading, the glTF loader raises every material in the scene to one light slot per
     // light in the scene. Busy scenes (NeoChinatown has 14) then need more uniform buffers than many GPUs allow
@@ -150,6 +169,7 @@
   const api = {
     models,unload,container,loadContainer,onLoaded,get pending(){return pending();},
     validate,
+    unpack,
     load,
     instance,
     prepare,

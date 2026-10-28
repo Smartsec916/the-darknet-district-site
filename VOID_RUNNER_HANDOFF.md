@@ -595,6 +595,8 @@ Done; see §4.3. Possible follow-ups:
 - **Meridian redesign** (David, 2026-10-18 brief and reference sheet): hangar → door → narrow corridor (living area with sleeping pods, then the store, off the left) → the Dead Channel bar with seating across and windows. NPC walking fixed at the source; crew sit, stand, chat, watch windows and use the bar; a bartender works the bar; animated news screens and ad panels. Details: docs/VOID_RUNNER_MERIDIAN_REDESIGN.md. In review (PR).
 - **Vesper villagers** (David, 2026-10-16: "populate Vesper's village area a little"): six background villagers at the Dust Bar patio, Frontier Supply and a comms pole. No dialogue; the workshop stays Mara's.
 
+- **Nadia** (David, 2026-10-28): the VR bedroom companion built from the FC1 model is named Nadia. She is grounded, warm and direct, grew up in NeoChinatown, and teases the player for being an outsider. Her lines are DRAFT until David approves them.
+
 ### Rejected or removed (do not reintroduce)
 
 - F1 as the Mission Log key.
