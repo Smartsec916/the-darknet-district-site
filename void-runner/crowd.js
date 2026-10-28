@@ -10,7 +10,7 @@
   'communion-worker':['idle','talk','work','watch','walk'],'communion-tech':['idle','talk','work','watch','sit','walk'],'cyborg-01':['idle','talk','work','watch','sit','walk','sit-enter','sit-exit','sit-talk','interact','look'],
   'ncz-neon':['idle','talk','watch','walk','drunk-walk','drunk-idle','drunk-sway','laugh','smoke'],'fixer-01':['idle','talk','watch','sit','walk','sit-enter','sit-exit','sit-talk','interact','look'],'runner-02':['idle','talk','watch','walk','drunk-walk','drunk-idle','drunk-sway','laugh'],
   'hacker-01':['idle','talk','sit','smoke','watch','walk','sit-enter','sit-exit','sit-talk','interact','look'],'district-smuggler':['idle','talk','sit','smoke','walk'],'district-resident':['idle','talk','sit','smoke','walk','drink','laugh','dance'],
-  'outlaw-01':['idle','talk','sit','smoke','watch','walk','sit-enter','sit-exit','sit-talk','interact','look'],'regular-01':['idle','talk','sit','watch','walk','sit-enter','sit-exit','sit-talk','interact','look'],
+  'outlaw-01':['idle','talk','sit','smoke','watch','walk','sit-enter','sit-exit','sit-talk','interact','look','laugh','drink'],'regular-01':['idle','talk','sit','watch','walk','sit-enter','sit-exit','sit-talk','interact','look','laugh','drink'],
   'meridian-bartender':['idle','talk','interact','pickup','wipe','walk'],
   // The District's VR arcade players (neochinatown.js runs their routines).
   'vr-player-a':['idle','vr-aim','vr-aim-up','vr-aim-down','vr-shoot','vr-hit','vr-duck'],'vr-player-b':['idle','dance','pickup','interact','menu','menu-tap','talk'],
@@ -49,6 +49,10 @@
   serve:'talk',wipe:'wipe',pour:'wipe',shelf:'idle'};
  // One-shot moves played on entering a state: [move, then loop].
  const onceClip={'sit-down':['sit-enter','sit'],stand:['sit-exit','idle'],'get-drink':['interact','idle'],terminal:['interact','typing'],browse:['interact','watch'],pour:['pickup','wipe'],shelf:['interact','idle']};
+ // Now and then a figure breaks its loop with a one-off that suits it (a laugh in conversation, a drink and a sway
+ // at the bar); only clips the look actually carries are used.
+ const variety={talk:['laugh','drink'],idle:['laugh','drink'],watch:['laugh'],'sit-talk':['laugh']};
+ const varietyFor=(look,base)=>(variety[base]||[]).filter(c=>(clips[look]||[]).includes(c));
  // A look without a clip falls back to the nearest one it has, then to idle.
  const fallback={look:'watch','sit-talk':'sit',typing:'watch',wipe:'interact',pickup:'interact'};
  function clipIn(look,want){const have=clips[look]||[];for(let w=want;w;w=fallback[w])if(have.includes(w))return w;return 'idle';}
@@ -109,6 +113,6 @@
  }
  function release(){for(const g of groups)g.dispose();groups.clear();}
 
- const api={casts,staff,clips,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,release};
+ const api={casts,staff,clips,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,release,variety,varietyFor};
  if(typeof module!=='undefined')module.exports=api;else root.VoidCrowd=api;
 })(globalThis);
