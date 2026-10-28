@@ -149,8 +149,11 @@ test('nothing in the published site is a fabricated or sample record', () => {
 test('the District links to The Function and keeps its own navigation', () => {
   const home = read('index.html');
   assert.match(home, /<a class="tdd-function" href="function\/">[\s\S]*Back door to The Function's website[\s\S]*Observe the activities of the corporation that governs beyond the District\.[\s\S]*<\/a>/);
-  for (const link of ['href="/">Home', 'href="games-list.html">Arcade', 'href="store-first-page.html">Store', 'href="resources.html">Resources', 'href="about.html">About']) {
-    assert.ok(home.includes(link), link);
+  const navigation = /<nav\b[^>]*aria-label="Main navigation"[^>]*>([\s\S]*?)<\/nav>/.exec(home)[1];
+  for (const [href, label] of [['/', 'Home'], ['games-list.html', 'Arcade'], ['store-first-page.html', 'Store'], ['resources.html', 'Resources'], ['sleeping_pod.html', 'Sleeping Pod'], ['about.html', 'About']]) {
+    const link = [...navigation.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)].find(match => match[1] === href);
+    assert.ok(link, href);
+    assert.match(link[2].replace(/<[^>]*>/g, ' '), new RegExp(label), href);
   }
   assert.match(home, /id="chatButton"/);
   assert.match(read('sitemap.xml'), /\/function\/frequencies\//);
