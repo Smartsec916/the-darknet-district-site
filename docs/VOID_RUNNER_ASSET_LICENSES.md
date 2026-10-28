@@ -127,6 +127,13 @@ The bedroom redesign (2026-10-28) builds its furniture, bedding, curtains and ci
 
 Looked at and not used: Booty Hip Hop Dance (too nightclub for the room).
 
-**New character models supplied 2026-10-28 (not used).** Freya.blend, body_female.fbx (with its BMP textures) and ludovisions_FC1.fbx came with no licence or source information. ludovisions_FC1 looks like a Character Creator export, which usually restricts redistribution. They were inspected only, and not converted or committed, until David confirms where each came from and its terms. The Rainy and realistic+girl downloads were incomplete (0-byte .rar files, partial .part files).
+**New character models supplied 2026-10-28.**
+
+| Model | Source | Licence | Status |
+|---|---|---|---|
+| FC1 ("Realistic Contemporary Woman 3D Model Rigged Game Ready Female", file ludovisions_FC1.fbx) | Ludovisions on CGTrader, free: https://www.cgtrader.com/free-3d-models/character/woman/realistic-contemporary-woman-3d-model-rigged-game-ready-female-character-fc1 | CGTrader **Royalty Free License (no AI)**: commercial use in games allowed, no reselling or redistributing the raw files, no use for machine learning or AI training. CGTrader §21A.3 asks games to take "commercially reasonable measures" so players can't get at the model. | **Used** as the companion `fc1` (`vr-companion-fc1.vrpak`). Converted with ordinary Blender scripts (no AI training). Shipped scrambled (.vrpak, `tools/assets/pack-model.cjs`) to meet §21A.3 as far as a web game can; the original download and the Blender master stay outside the repository. |
+| Japan Young Woman (BloJpn.glb) | YØD (@YOD3DD) on Sketchfab: https://sketchfab.com/3d-models/japan-young-woman-1c7f142755b24de99ed75d530549d19a | **CC BY 4.0** (commercial use allowed with credit to the author). The page says it was "Generated with AI". | **Not used:** the model ends at mid-thigh (no lower legs or feet), is one fused 1.5-million-triangle mesh with no skeleton, and is dressed only in lingerie. If it is ever used, credit "Japan Young Woman by YØD, CC BY 4.0". |
+| Freya.blend, body_female.fbx | CGTrader per David; product pages not yet identified | unknown | Not used until the product pages are found. |
+| Rainy, realistic+girl | — | — | Downloads incomplete (0-byte .rar files). |
 
 Not used: Poly Haven’s tree models (fir_tree_01 487 MB, jacaranda_tree 215 MB, island trees 46–66 MB), as far too large for the browser. Trees, palms, birds and water are built in code.

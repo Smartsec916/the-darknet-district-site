@@ -119,12 +119,28 @@ David's briefs: believable, attentive companions with their own initiative, a tw
 
   The real game's credits, kit, missions and story stayed unchanged.
 
+## FC1, the first converted companion (2026-10-28)
+
+- **Who she is:** David's free CGTrader model "Realistic Contemporary Woman FC1" by Ludovisions, now a third companion in the Female gallery. "FC1" is a working name. Until David names her and gives her a personality, she shares Seren's settings and DRAFT lines.
+- **How she was made:** `tools/animation-pipeline/build_imported_character.py` with `characters/vr-companion-fc1.json`:
+  - **Skeleton:** her bones are renamed to our Mixamo names, so head tracking and all 24 companion clips work. Her own A-pose rest pose is kept, and the clips are mapped from their T-pose.
+  - **Size:** she was cut from 775,000 polygons to about 55,000 triangles:
+    - The hair is kept as about 45% of its strips, each cut to 4 segments, with a low alpha cut-out.
+    - The clear eye shells and the tongue are removed.
+    - Skin hidden under the dress and shoes is removed; see-through lace keeps the skin under it.
+    - Shoes, dress, teeth and pendant are decimated.
+  - **Textures:** 512 px. The file is 8.8 MB.
+- **Blinking:** her face keeps its two blink shapes, and the bedroom blinks any companion whose model has them, every 2–6 s.
+- **Protection:** the model ships as `vr-companion-fc1.vrpak`, which the asset loader unscrambles (CGTrader's licence asks games to keep the model from casual extraction). It is not encryption.
+- **Outside the repository:** the editable master (`FC1-master.blend`, full detail with the renamed rig) and the original download are in `%LOCALAPPDATA%/void-runner-assets/work/characters-2026-10-28/fc1` and `.../downloads/characters-2026-10-28/ludo`.
+
 ## Needs David's review
 
 - **Lines that still mention the sea:** the companions' draft lines were written for the old seaside suite. Three mention the sea or salt air ("the sea and the sky", "the air smells like salt", "the colour of honey" at sundown). They are unchanged here because dialogue was out of scope; they can be rewritten for the city if David wants.
 
 - **Companions:** their names (Seren, Kai), personalities and every line are **drafts**, including the new lines for their initiative and the drunks' remarks in `ncz-nightlife.js`. They are unvoiced until their voices are approved through the audition tool.
 - **Experience descriptions:** the menu descriptions too.
+- **FC1:** her name, personality and lines (she borrows Seren's for now).
 
 ## Not done yet
 

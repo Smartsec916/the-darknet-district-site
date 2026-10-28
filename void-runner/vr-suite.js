@@ -33,7 +33,7 @@
   function mood(name){room.mood(name);k.mood=moods[name]?name:'rose';}
   mood(ctx.settings.mood||'rose');room.music(ctx.settings.music||'lounge');
   // ---- The companion (vr-companions.js: registry, settings, brain, tracking maths, paths) ----
-  const container=await VoidAssets.loadContainer({src:'assets/models/crowd/'+look+'.glb'},k.scene,ctx.task,'vr:'+look);(k._containers||(k._containers=[])).push(container);
+  const container=await VoidAssets.loadContainer({src:'assets/models/crowd/'+C.file(who)},k.scene,ctx.task,'vr:'+look);(k._containers||(k._containers=[])).push(container);
   const inst=container.instantiateModelsToScene(n=>look+'-'+n,false,{doNotInstantiate:true}),node=new B.TransformNode('vr-companion',k.scene),asset=new B.TransformNode('vr-companion-asset',k.scene);node.parent=k.parent;asset.parent=node;for(const r of inst.rootNodes)r.parent=asset;
   for(const g of inst.animationGroups)g.stop();node.metadata={animationGroups:inst.animationGroups};for(const m of node.getChildMeshes())m.isPickable=false;
   const has=n=>VoidCrowd.clipIn(look,n)===n,clip=role=>C.clipFor(who,role,has);
@@ -165,6 +165,10 @@
   // The kiss: the companion leans in and the view softens into a warm glow for a moment (nothing explicit).
   k.overlayFn=(g,W,H)=>{if(!(k.kiss>0))return;const a=Math.sin(Math.min(1,k.kiss/1.6)*Math.PI);g.save();const r=g.createRadialGradient(W/2,H/2,H*.2,W/2,H/2,H*.9);r.addColorStop(0,'rgba(255,170,150,'+a*.25+')');r.addColorStop(1,'rgba(40,10,20,'+a*.85+')');g.fillStyle=r;g.fillRect(0,0,W,H);g.restore();};
   k.every(dt=>{if(k.kiss>0)k.kiss-=dt;});
+  // Models with blink shapes (FC1) blink every 2-6 s, now and then twice; a blink closes and opens in 0.18 s.
+  const blinks=node.getChildMeshes().flatMap(m=>{const mt=m.morphTargetManager;return mt?Array.from({length:mt.numTargets},(_,i)=>mt.getTarget(i)).filter(t=>/^Eye_Blink_[LR]$/.test(t.name)):[];});
+  if(blinks.length){let next=1.5,t=-1;k.every(dt=>{next-=dt;if(next<=0&&t<0){t=0;next=Math.random()<.15?.3:2+Math.random()*4;}
+   if(t>=0){t+=dt;const w=t<.07?t/.07:t<.18?1-(t-.07)/.11:0;for(const b of blinks)b.influence=Math.max(0,w);if(t>=.18)t=-1;}});}
   const dispose=()=>{k.scene.onAfterAnimationsObservable.remove(lookObserver);screen.removeEventListener('click',onChoice);line.remove();for(const c2 of k._containers||[])c2.dispose();k.dispose();};
   return {tick:k.tick,dispose,anim,companion:node,who,config:cfg,brain,attention:att,bones,state:c,act,overlay:(g,W,H)=>k.overlayFn(g,W,H),
    onEnter(){setTimeout(()=>{if(api.session&&mode==='walking'){c.greeted=true;gesture('greet');say(C.pick(L.greet,mem,'greet'));}},1200);},
@@ -182,7 +186,7 @@
   picker:{
    // Model files are checked when the picker opens; a missing one is shown but can't be chosen.
    installed:{},
-   prepare(){const models=[...new Set([...C.companions.values()].map(e=>e.model))];return Promise.all(models.map(m=>fetch('void-runner/assets/models/crowd/'+m+'.glb',{method:'HEAD'}).then(r=>{this.installed[m]=r.ok;}).catch(()=>{})));},
+   prepare(){const byModel=new Map([...C.companions.values()].map(e=>[e.model,e]));return Promise.all([...byModel.values()].map(e=>fetch('void-runner/assets/models/crowd/'+C.file(e),{method:'HEAD'}).then(r=>{this.installed[e.model]=r.ok;}).catch(()=>{})));},
    usable(sex){return C.list({sex,has:m=>VoidCrowd.clips[m]||[],installed:this.installed});},
    steps:[
     {title:'COMPANION',prompt:'Who would you like to spend the evening with? Every companion is an original adult character of this simulation.',

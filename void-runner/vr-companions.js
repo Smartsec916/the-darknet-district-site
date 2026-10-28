@@ -1,8 +1,9 @@
 /* VR companions for Play in a Bedroom: the registry the terminal's picker reads, each companion's behaviour
    settings, the small "brain" that gives them initiative, head-tracking maths and furniture-aware paths.
    Pure parts run in Node (tests/vr-companions.test.cjs); the bone work runs in the browser (vr-suite.js).
-   Adding a companion: build a MakeHuman look with the companion clips (tools/animation-pipeline), list it in
-   crowd.js, then register() an entry here with its model, preview, dialogue and personality. Nothing else changes.
+   Adding a companion: build a MakeHuman look with the companion clips (tools/animation-pipeline), or convert a
+   licensed model with build_imported_character.py, list it in crowd.js, then register() an entry here with its
+   model, preview, dialogue and personality. Nothing else changes.
    DRAFT: every line of companion dialogue is Claude's placeholder for David's review. Companions are unvoiced. */
 (function(root){
  const DEG=Math.PI/180;
@@ -39,6 +40,8 @@
   if(!e.id||!e.name||!['female','male'].includes(e.sex)||!e.model)throw new Error('companion needs id, name, sex (female|male) and model');
   companions.set(e.id,e);return e;}
  const get=id=>companions.get(id)||null;
+ // The model's file in assets/models/crowd: <model>.glb, or a scrambled .vrpak where its licence asks for one.
+ const file=entry=>entry?.file||entry?.model+'.glb';
  // Which companions can be chosen now. `has(model)` reports the clips a model carries (crowd.js); `installed`
  // marks models whose file is known to be present (false = missing). Unusable ones carry the reason.
  function list({sex,has,installed}={}){
@@ -111,6 +114,13 @@
    welcomeBack:['There you are. I was saving your spot.','Welcome back. The view was getting lonely.'],
    aside:['You\'ve got a great laugh. Just so you know.','I could stay up here all night with you.','You make this city look quiet.'],
    comeHere:['Coming.','Right here.'],recline:['Not bad, right? Best ceiling in NeoChinatown.']}});
+
+ // FC1: "Realistic Contemporary Woman FC1" by Ludovisions (CGTrader, free, Royalty Free License - no AI),
+ // converted by build_imported_character.py. "FC1" is a working name: until David names her and gives her a
+ // personality, she shares Seren's settings and DRAFT lines. Her licence asks that the file not be easy to
+ // extract, so she ships scrambled (.vrpak).
+ register({...get('seren'),id:'fc1',name:'FC1',model:'vr-companion-fc1',file:'vr-companion-fc1.vrpak',preview:'void-runner/assets/vr/companions/fc1.jpg',
+  about:'Working name. Realistic, with a face that blinks. Shares Seren\'s personality for now.'});
 
  // Lines drawn from a pool never repeat the last one used.
  function pick(pool,mem,key,rnd=Math.random){if(!pool?.length)return '';const options=pool.length>1?pool.filter(l=>l!==mem[key]):pool;const l=options[Math.floor(rnd()*options.length)]||pool[0];mem[key]=l;return l;}
@@ -187,6 +197,6 @@
   const out=[];let at=from;for(let i=1;i<cells.length;i++)if(!clear(at,cells[i])){out.push(cells[i-1]);at=cells[i-1];}
   out.push(cells[cells.length-1]);return out;}
 
- const api={defaults,settings,register,get,list,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,path,companions};
+ const api={defaults,settings,register,get,list,file,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,path,companions};
  if(typeof module!=='undefined')module.exports=api;else root.VoidVRCompanions=api;
 })(globalThis);
