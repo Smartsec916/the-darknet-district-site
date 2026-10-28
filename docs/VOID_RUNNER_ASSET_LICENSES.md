@@ -109,10 +109,12 @@ Every asset here is **CC0** (public domain), from its source’s own licence pag
 
 | Files (`void-runner/assets/vr/…`) | Source | Licence |
 |---|---|---|
-| `models/fern, grass, boulder, log, moss, bench, shell, patio-set, coast-rocks, sofa, armchair, ceiling-lamp, plant.glb` | Poly Haven: fern_02, grass_medium_01, boulder_01, dead_tree_trunk, moss_01, painted_wooden_bench, lambis_shell, outdoor_table_chair_set_01, coast_rocks_01, Sofa_01, ArmChair_01, modern_ceiling_lamp_01, calathea_orbifolia_01 | CC0 (polyhaven.com/license) |
-| `models/bed, nightstand, floor-lamp, curtains, rug, houseplant.glb` | Quaternius, Ultimate House Interior Pack (June 2020): Bed_King, NightStand_2, Light_Floor2, Curtains_Double, Carpet_Round, Houseplant_4 | CC0 |
-| `textures/grass, forest-floor, bark, sand, fabric, wallpaper, carpet, wood-floor` | ambientCG: Grass004, Ground078, Bark012, Ground054, Fabric086, Wallpaper002A, Carpet016, WoodFloor043 | CC0 |
-| `sky/forest, beach-day, beach-sunset, suite-dusk.jpg` | Poly Haven HDRIs (tonemapped JPG, reduced to 2048×1024): forest_slope, qwantani_afternoon_puresky, qwantani_dusk_2_puresky, qwantani_dusk_1_puresky | CC0 |
+| `models/fern, grass, boulder, log, moss, bench, shell, patio-set, coast-rocks, plant.glb` | Poly Haven: fern_02, grass_medium_01, boulder_01, dead_tree_trunk, moss_01, painted_wooden_bench, lambis_shell, outdoor_table_chair_set_01, coast_rocks_01, calathea_orbifolia_01 | CC0 (polyhaven.com/license) |
+| `textures/grass, forest-floor, bark, sand, fabric, carpet, wood-floor` | ambientCG: Grass004, Ground078, Bark012, Ground054, Fabric086, Carpet016, WoodFloor043 | CC0 |
+| `sky/forest, beach-day, beach-sunset.jpg` | Poly Haven HDRIs (tonemapped JPG, reduced to 2048×1024): forest_slope, qwantani_afternoon_puresky, qwantani_dusk_2_puresky | CC0 |
+| `preview-suite.jpg` | A screenshot of the game's own suite, for the VR menu card | the project's own |
 | `void-runner/assets/models/crowd/vr-companion-f.glb`, `vr-companion-m.glb` | MakeHuman/MPFB system assets (CC0). Animation: Quaternius Universal Animation Library (CC0) and David’s Rokoko free mocap set, as for the existing crowd | CC0 / as for the crowd |
+
+The bedroom redesign (2026-10-28) builds its furniture, bedding, curtains and city in code and reuses the fabric, carpet and wood-floor textures above plus the NeoChinatown concrete set. It removed the suite's first furniture (Quaternius Bed_King, NightStand_2, Light_Floor2, Curtains_Double, Carpet_Round, Houseplant_4; Poly Haven Sofa_01, ArmChair_01, modern_ceiling_lamp_01), the Wallpaper002A texture and the qwantani_dusk_1 sky. Only the calathea remains.
 
 Not used: Poly Haven’s tree models (fir_tree_01 487 MB, jacaranda_tree 215 MB, island trees 46–66 MB), as far too large for the browser. Trees, palms, birds and water are built in code.

@@ -33,7 +33,7 @@ David's brief: make the District's VR play area a working entertainment system. 
   - **Forest:** wind, leaves, a stream that gets louder near it, and birds.
   - **Beach:** surf, louder near the shore, and gulls.
   - **Range:** a low hum and target sounds.
-  - **Suite:** a soft chord pad in three presets.
+  - **Suite:** a soft chord pad in three presets over a low city hum.
 - **Music:** the city's score stops while you're inside.
 
 ## The four experiences
@@ -51,8 +51,22 @@ David's brief: make the District's VR play area a working entertainment system. 
   - **Scoring and difficulty:** score, accuracy, time and health on a board and on screen; Easy, Normal or Hard; start and reset consoles.
   - **The weapon:** a simulated pistol is lent if you have none; the real kit is put back on exit.
 - **Play in a Bedroom:**
-  - **The suite:** a furnished suite above a dusk sea, with a picture window and a glass door to a balcony.
-  - **Controls:** four mood-lighting presets (warm, rose, night, candlelight), three music presets, curtains, and seats on the sofa, bed, armchair and balcony rail.
+  - **The apartment (redesigned 2026-10-28):** a dark, private bedroom high above NeoChinatown at night (`vr-suite-room.js`).
+    - **Room:** charcoal plaster walls with large panels on one side, a fluted walnut feature wall behind the bed, a soffit around a raised ceiling with a hidden violet cove, and amber downlights.
+    - **The bed:** a low walnut platform on a hidden plinth with magenta light underneath. It has a channel-tufted velvet headboard with a magenta halo, a draped charcoal duvet, a magenta throw, and stacked pillows.
+    - **Furniture:** floating walnut nightstands with marble tops, pendant globes, candles and books. There is also a low velvet sofa, a marble coffee table and a slim floor lamp.
+    - **Decor and workstation:** an ink-and-neon painting with a picture light, a backlit shelf over a credenza, and a floating desk whose holo screen shows the music and an equaliser. A leather lounge chair sits by the glass, with two calatheas.
+    - **The view:** floor-to-ceiling glass with heavy curtains, partly drawn, and a sliding door onto a balcony with a glass rail.
+    - **Outside:** about 170 lit towers, around 40 vertical Chinese neon signs and three Tessaly ads (one cycles), with amber avenues far below. Haze rises off the streets, flying traffic moves in both directions, and a far skyline fades into a magenta haze.
+    - **Lighting:** magenta leads, with violet, muted pink and warm amber. There are six lights:
+      - a magenta key behind the headboard
+      - two amber pendants
+      - a lounge lamp
+      - the city's light through the glass, which drifts slowly between violet, magenta and cyan
+      - a soft light that stays in front of the companion's face
+    - **Light washes:** painted washes add the glows on walls, floor and ceiling.
+    - **Reflections:** the floor reflects the room and the city on High quality.
+  - **Controls:** four mood-lighting presets (Rose, the magenta default; Warm; Night; Candlelight), three music presets, curtains (partly drawn or pulled back), and seats on the sofa, the bed's edge facing the view, the lounge chair and the balcony rail.
   - **Companions:** choose Seren (female) or Kai (male), two original adult characters built with MakeHuman and animated with idle, talk, walk, sit, dance and gesture clips that cross-fade.
   - **Companion behaviour:**
     - The companion greets you, turns to face you, and talks through the game's own dialogue panel.
@@ -62,6 +76,8 @@ David's brief: make the District's VR play area a working entertainment system. 
   - **Optional:** everything here is optional; you can simply enjoy the room.
 
 ## Needs David's review
+
+- **Lines that still mention the sea:** the companions' draft lines were written for the old seaside suite. Three mention the sea or salt air ("the sea and the sky", "the air smells like salt", "the colour of honey" at sundown). They are unchanged here because dialogue was out of scope; they can be rewritten for the city if David wants.
 
 - **Companions:** their names (Seren, Kai), personalities and every line are **drafts**. They are unvoiced until their voices are approved through the audition tool.
 - **Experience descriptions:** the menu descriptions too.
@@ -75,4 +91,4 @@ David's brief: make the District's VR play area a working entertainment system. 
 
 ## Assets
 
-About 6.7 MB of models, textures and skies, plus 6.1 MB for the two companions. Sources and licences are in `docs/VOID_RUNNER_ASSET_LICENSES.md` (VR arcade section).
+About 5.9 MB of models, textures and skies (the bedroom redesign removed about 0.6 MB of furniture, wallpaper and sky), plus 6.1 MB for the two companions. Sources and licences are in `docs/VOID_RUNNER_ASSET_LICENSES.md` (VR arcade section).
