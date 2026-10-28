@@ -88,7 +88,8 @@
   let once=null;
   function playOnce(name,after){
    const g=clipIn(look,name)===name?groupFor(name):null;if(!g){if(after)play(after);return 0;}
-   for(const o of list)if(o!==g)o.stop();walking=false;current=g;once=g;
+   // Claim the figure first: stopping the previous one-shot fires its end handler, which must not start another clip.
+   walking=false;current=g;once=g;for(const o of list)if(o!==g)o.stop();
    g.start(false,1,g.from,g.to);g.onAnimationGroupEndObservable.addOnce(()=>{if(once===g){once=null;if(after)play(after);}});
    return (g.to-g.from)/(g.animatables[0]?.animation?.framePerSecond||g.targetedAnimations[0]?.animation.framePerSecond||15);
   }

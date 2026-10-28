@@ -54,29 +54,44 @@
    let tx=walker.x+dx/d*gap,tz=walker.z+dz/d*gap;if(blockedAt(tx,tz)){for(const a of [.6,-.6,1.2,-1.2,1.8,-1.8]){const ang=Math.atan2(dx,dz)+a,x=walker.x+Math.sin(ang)*gap,z=walker.z+Math.cos(ang)*gap;if(!blockedAt(x,z)){tx=x;tz=z;break;}}}walkTo(tx,tz,then);}
   function stand(quiet){if(c.sitting){c.sitting=false;if(!quiet)anim.playOnce('sit-exit','idle');}if(c.reclining){c.reclining=false;node.position.y=0;}}
   const face=(yaw,dt,rate)=>{const d=C.wrap(yaw-node.rotation.y);node.rotation.y+=d*Math.min(1,dt*rate);return Math.abs(d);};
-  // ---- Attention: head, neck and chest turn toward your eyes on top of whatever clip plays ----
+  // ---- Attention: chest, neck and head turn so the face points at your eyes, whatever the clip is doing ----
+  // Each frame, after the clip has posed the body, the head's actual facing is measured and corrected toward the
+  // wanted direction (clamped to a natural range), shared out down the chain. Nothing accumulates between frames.
   const bones={};for(const t of node.getDescendants(false))for(const [b] of C.chain)if(t.name.endsWith('mixamorig:'+b))bones[b]=t;
-  const att={yaw:0,pitch:0,weight:0,glance:null,glanceIn:2+Math.random()*4,last:{},base:{}},
-   M1=new B.Matrix(),M2=new B.Matrix(),M3=new B.Matrix(),qW=new B.Quaternion(),qP=new B.Quaternion(),Y=B.Axis.Y;
+  const att={yaw:0,pitch:0,weight:0,glance:null,glanceIn:2+Math.random()*4,last:{},base:{},axis:null,err:{yaw:0,pitch:0}},
+   M1=new B.Matrix(),M2=new B.Matrix(),M3=new B.Matrix(),qW=new B.Quaternion(),qP=new B.Quaternion(),ID=B.Quaternion.Identity();
+  // World matrices from the figure's root down to a bone, so a just-animated pose is measured, not last frame's.
+  const refresh=b=>{const chain=[];for(let n=b;n&&n!==k.parent;n=n.parent)chain.unshift(n);for(const n of chain)n.computeWorldMatrix(true);};
+  const forward=()=>{refresh(bones.Head);return B.Vector3.TransformNormal(att.axis,bones.Head.getWorldMatrix()).normalize();};
   function applyLook(dt){
-   const cam=k.scene.activeCamera;if(!cam||!bones.Head)return;const head=bones.Head.getAbsolutePosition();
+   const cam=k.scene.activeCamera;if(!cam||!bones.Head)return;
+   // Restore any bone a paused clip didn't overwrite, so the correction is measured from the clip's own pose.
+   for(const [name] of C.chain){const b=bones[name];if(b?.rotationQuaternion&&att.last[name]&&b.rotationQuaternion.equals(att.last[name]))b.rotationQuaternion.copyFrom(att.base[name]);if(b?.rotationQuaternion)(att.base[name]??=new B.Quaternion()).copyFrom(b.rotationQuaternion);}
+   // The head bone's own "forward" axis: the one that points where the body faces (found once).
+   if(!att.axis){refresh(bones.Head);const m=bones.Head.getWorldMatrix(),f=new B.Vector3(Math.sin(node.rotation.y),0,Math.cos(node.rotation.y));let best=null;
+    for(const a of [[1,0,0],[0,1,0],[0,0,1],[-1,0,0],[0,-1,0],[0,0,-1]]){const v=B.Vector3.TransformNormal(new B.Vector3(...a),m).normalize(),d=B.Vector3.Dot(v,f);if(!best||d>best.d)best={a,d};}att.axis=new B.Vector3(...best.a);}
+   const head=bones.Head.getAbsolutePosition();
    // Now and then they glance away (out of the window, or to one side), then come back to you.
    att.glanceIn-=dt;if(att.glance){att.glance.t-=dt;if(att.glance.t<=0){att.glance=null;att.glanceIn=cfg.glanceEvery[0]+Math.random()*(cfg.glanceEvery[1]-cfg.glanceEvery[0]);}}
    else if(att.glanceIn<=0&&!c.kissing){if(Math.random()>cfg.attention||c.state==='window'){const side=Math.random()<.5?-1:1,a=node.rotation.y+side*(.7+Math.random()*.5);att.glance={t:cfg.glanceFor[0]+Math.random()*(cfg.glanceFor[1]-cfg.glanceFor[0]),x:c.state==='window'?7:head.x+Math.sin(a)*3,y:head.y+(Math.random()-.6)*.6,z:c.state==='window'?node.position.z+(Math.random()-.5)*3:head.z+Math.cos(a)*3};}else att.glanceIn=2+Math.random()*3;}
-   const target=att.glance||cam.globalPosition,L=C.look(node.rotation.y,head,target,cfg,c.turning);
+   const target=att.glance||cam.globalPosition,seated=c.sitting||c.reclining,lim={...cfg,maxHeadYaw:cfg.maxHeadYaw*(seated?1.2:1)},L=C.look(node.rotation.y,head,target,lim,c.turning);
    // Standing still, they turn their whole body once you are well round to one side.
-   if(c.state==='idle'&&!c.sitting&&!c.reclining&&!att.glance&&!c.busy){if(L.turn){c.turning=true;if(face(L.want,dt,2.2)<cfg.bodyTurnUntil)c.turning=false;}else c.turning=false;}
+   const free=c.state==='idle'&&!seated&&!att.glance&&!(c.busy>0);
+   if(free){if(L.turn){c.turning=true;if(face(L.want,dt,2.4)<cfg.bodyTurnUntil)c.turning=false;}else c.turning=false;}
    else if(c.dancing&&!att.glance)face(L.want,dt,1.4);
    const w=(c.state==='walk'?.35:c.reclining?.55:c.dancing?.75:1)*cfg.headTracking*(c.state==='window'&&!att.glance?.4:1);
-   att.yaw=C.ease(att.yaw,L.yaw,4,dt);att.pitch=C.ease(att.pitch,L.pitch,4,dt);att.weight=C.ease(att.weight,w,2.5,dt);
-   for(const [name,ys,ps] of C.chain){const b=bones[name];if(!b?.rotationQuaternion)continue;
-    // A clip that is not overwriting this bone (paused) would let the turn accumulate; start from its own pose.
-    if(att.last[name]&&b.rotationQuaternion.equals(att.last[name]))b.rotationQuaternion.copyFrom(att.base[name]);(att.base[name]??=new B.Quaternion()).copyFrom(b.rotationQuaternion);
-    b.parent.computeWorldMatrix(true);b.computeWorldMatrix(true);b.getWorldMatrix().decompose(undefined,qW);b.parent.getWorldMatrix().decompose(undefined,qP);
-    const yaw=att.yaw*ys*att.weight,pitch=att.pitch*ps*att.weight,dir=node.rotation.y+att.yaw,right=new B.Vector3(Math.cos(dir),0,-Math.sin(dir));
-    const D=B.Quaternion.RotationAxis(Y,yaw).multiply(B.Quaternion.RotationAxis(right,-pitch));
-    B.Matrix.FromQuaternionToRef(qW,M1);B.Matrix.FromQuaternionToRef(D,M2);M1.multiplyToRef(M2,M3);B.Matrix.FromQuaternionToRef(qP,M1);M1.invert();M3.multiplyToRef(M1,M2);
-    M2.decompose(undefined,b.rotationQuaternion);b.computeWorldMatrix(true);(att.last[name]??=new B.Quaternion()).copyFrom(b.rotationQuaternion);}}
+   att.yaw=C.ease(att.yaw,L.yaw,5,dt);att.pitch=C.ease(att.pitch,L.pitch,5,dt);att.weight=C.ease(att.weight,w,2.5,dt);
+   // Where the face should point. Each bone takes its share of the remaining turn, worked out in its parent's own
+   // space (the glTF root mirrors the skeleton, so world-space rotations would flip the vertical part).
+   const yw=node.rotation.y+att.yaw,want=new B.Vector3(Math.sin(yw)*Math.cos(att.pitch),Math.sin(att.pitch),Math.cos(yw)*Math.cos(att.pitch)).normalize(),f=forward();
+   const yawOf=v=>Math.atan2(v.x,v.z);att.err={yaw:C.wrap(yawOf(want)-yawOf(f)),pitch:Math.asin(want.y)-Math.asin(Math.max(-1,Math.min(1,f.y)))};
+   let done=0,acc=0;
+   for(const [name,share] of C.chain){const b=bones[name];acc+=share;if(!b?.rotationQuaternion)continue;
+    const goal=acc*att.weight,frac=done>=1?0:Math.max(0,Math.min(1,(goal-done)/(1-done)));done=goal;if(!frac)continue;
+    const now=forward();refresh(b);b.parent.getWorldMatrix().invertToRef(M1);
+    const fp=B.Vector3.TransformNormal(now,M1).normalize(),wp=B.Vector3.TransformNormal(want,M1).normalize(),Q=new B.Quaternion();B.Quaternion.FromUnitVectorsToRef(fp,wp,Q);
+    B.Quaternion.Slerp(ID,Q,frac).multiplyToRef(b.rotationQuaternion,qW);b.rotationQuaternion.copyFrom(qW);b.computeWorldMatrix(true);(att.last[name]??=new B.Quaternion()).copyFrom(b.rotationQuaternion);}
+   if(att.debug){const f2=forward();att.post={want:want.asArray().map(v=>+v.toFixed(3)),before:f.asArray().map(v=>+v.toFixed(3)),after:f2.asArray().map(v=>+v.toFixed(3)),w:+att.weight.toFixed(2)};}}
   let lastAnimTime=performance.now();const lookObserver=k.scene.onAfterAnimationsObservable.add(()=>{const now=performance.now(),dt=Math.min(.1,(now-lastAnimTime)/1000);lastAnimTime=now;try{applyLook(dt);}catch(e){console.warn('[VR companion look]',e);}});
   // ---- Remarks they make on their own: a subtitle, never a blocking panel ----
   const line=document.createElement('div');line.id='vr-companion-line';line.setAttribute('aria-live','polite');document.body.append(line);let lineTime=0;
