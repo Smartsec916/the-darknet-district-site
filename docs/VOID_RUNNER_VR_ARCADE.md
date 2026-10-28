@@ -135,6 +135,19 @@ David's briefs: believable, attentive companions with their own initiative, a tw
 - **Protection:** the model ships as `vr-companion-fc1.vrpak`, which the asset loader unscrambles (CGTrader's licence asks games to keep the model from casual extraction). It is not encryption.
 - **Outside the repository:** the editable master (`FC1-master.blend`, full detail with the renamed rig) and the original download are in `%LOCALAPPDATA%/void-runner-assets/work/characters-2026-10-28/fc1` and `.../downloads/characters-2026-10-28/ludo`.
 
+## The VR terminal and a compact companion menu (2026-10-28)
+
+- **The terminal:** the VR menu used to open at an invisible spot. It now has a physical kiosk standing on that spot in the viewing strip by the booths' glass partition (`neochinatown.js`, `terminal`), facing the hallway.
+  - **How it looks:** a dark plinth and pedestal, an angled console head with cyan and magenta edge strips, a halo light and a floor glow.
+  - **The screen:** a live screen listing the terminal's own experiences, so the hidden Combat Simulator never shows. A highlight cycles through them, with small level bars, a scan line and a pulsing "[E] SELECT EXPERIENCE".
+  - **Collision and prompt:** its collision is the `arcade-terminal` solid, and the E prompt sits at the screen.
+- **Companion conversation (VR sessions only; `vr.css`, `body.vr-session`):**
+  - **Plain lines:** a slim, fully opaque subtitle box at the bottom (620 px wide at most).
+  - **The choice menu:** an opaque side panel (400 px) on the right, with compact buttons grouped Talk / Together / Leave in two columns. It scrolls on small screens and becomes one column on phones.
+  - **Controls:** arrows, WASD or the d-pad move the highlight; Enter, Space, E or A choose; Escape or B closes the menu (Never mind / Not now). The first option is highlighted when it opens.
+  - **Unchanged:** every interaction is still there, and story dialogue outside VR keeps its usual panel.
+  - **Weapon chip:** hidden in VR (it overlapped the menu, and you're never armed there).
+
 ## Needs David's review
 
 - **Lines that still mention the sea:** the companions' draft lines were written for the old seaside suite. Three mention the sea or salt air ("the sea and the sky", "the air smells like salt", "the colour of honey" at sundown). They are unchanged here because dialogue was out of scope; they can be rewritten for the city if David wants.

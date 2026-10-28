@@ -587,11 +587,18 @@
       const pieces=node.getChildMeshes();for(const old of pieces){if(['torso','arm','leg','hair'].includes(old.name)){const size=old.getBoundingInfo().boundingBox.extendSize.scale(2),shape=old.name==='hair'?b.MeshBuilder.CreateSphere('crew-hair',{diameter:1,segments:12},scene):b.MeshBuilder.CreateCapsule(old.name,{height:size.y,radius:Math.min(size.x,size.z)/2,tessellation:10},scene);shape.parent=node;shape.position.copyFrom(old.position);shape.rotation.copyFrom(old.rotation);shape.material=old.material;if(old.name==='torso')shape.scaling.x=1.65;if(old.name==='hair')shape.scaling.set(size.x,.2,size.z);old.dispose();}}
       for(const x of [-.07,.07]){const eye=b.MeshBuilder.CreateSphere('crew-eye',{diameter:.035,segments:6},scene);eye.parent=node;eye.position.set(x,1.73,.162);eye.material=dark;}box('crew-nose',[.055,.08,.07],[0,1.67,.18],skin,node);box('crew-belt',[.46,.08,.33],[0,.86,0],dark,node);box('crew-badge',[.08,.13,.02],[-.15,1.3,.16],material('badge','#d1b879'),node);
     }
-    node.metadata={placeholder:true,reference:'art/characters.png',character:id,ambient};actors.push({node,base:position.slice(),ambient});if(look)waitingCrowd.push({node,look,id,parent});return node;
+    node.metadata={placeholder:true,reference:'art/characters.png',character:id,ambient};actors.push({node,base:position.slice(),ambient});
+    // A crowd look still downloading: the person waits hidden (no primitive stand-in) and appears when it arrives.
+    if(look){waitingCrowd.push({node,look,id,parent});node.setEnabled(false);}return node;
   }
   // A crowd figure that was still downloading when the scene was built replaces its stand-in when it
   // arrives (asset-pipeline.js background models): same spot, facing, activity and cup.
-  root.VoidAssets?.onLoaded?.(id=>{if(!id.startsWith('crowd:'))return;const look=id.slice(6);waitingCrowd=waitingCrowd.filter(p=>{if(p.look!==look)return true;if(p.node.isDisposed()||p.parent?.isDisposed?.())return false;const figure=VoidAssets.instance(id,p.parent);if(!figure)return true;figure.position.copyFrom(p.node.position);figure.rotation.copyFrom(p.node.rotation);figure.metadata={...figure.metadata,crowd:look,character:p.id,ambient:true};const actor=actors.find(a=>a.node===p.node),crowd=VoidCrowd.animate(figure,look,VoidCrowd.clipFor(p.id));if(actor){actor.node=figure;actor.crowd=crowd;if(actor.cup)actor.cup.parent=figure;}p.node.dispose();return false;});});
+  // If a look fails to download, its people take another look of the same place that has loaded (and the clip).
+  root.VoidAssets?.onLoaded?.((id,ok=true)=>{if(!id.startsWith('crowd:'))return;const failedLook=id.slice(6);
+   if(!ok){for(const p of waitingCrowd)if(p.look===failedLook){const cast=VoidCrowd.castFor(crowdLocation,p.id)||[],clip=VoidCrowd.clipFor(p.id),alt=cast.find(l=>l!==failedLook&&VoidAssets.container('crowd:'+l)&&VoidCrowd.clips[l]?.includes(clip))||cast.find(l=>l!==failedLook&&!VoidAssets.failed.has('crowd:'+l));if(alt){p.look=alt;console.info('[VOID//RUNNER crowd] '+p.id+': '+failedLook+' failed, using '+alt);}}
+    const ready=[...new Set(waitingCrowd.map(p=>p.look))].filter(l=>VoidAssets.container('crowd:'+l));for(const l of ready)swapIn('crowd:'+l);return;}
+   swapIn(id);});
+  function swapIn(id){const look=id.slice(6);waitingCrowd=waitingCrowd.filter(p=>{if(p.look!==look)return true;if(p.node.isDisposed()||p.parent?.isDisposed?.())return false;const figure=VoidAssets.instance(id,p.parent);if(!figure)return true;figure.position.copyFrom(p.node.position);figure.rotation.copyFrom(p.node.rotation);figure.metadata={...figure.metadata,crowd:look,character:p.id,ambient:true};const actor=actors.find(a=>a.node===p.node),crowd=VoidCrowd.animate(figure,look,VoidCrowd.clipFor(p.id));if(actor){actor.node=figure;actor.crowd=crowd;if(actor.cup)actor.cup.parent=figure;}p.node.dispose();return false;});}
   // Places a layout's approved props. Each group replaces its procedural fittings only when every
   // model in the group loaded, so a missing file never leaves a hole. Collision is not touched.
   function placeProps(def,parent){

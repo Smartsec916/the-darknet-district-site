@@ -136,11 +136,32 @@
   // ---- Conversation: the game's own dialogue panel, with a choice menu ----
   const say=(text,done,label='CONTINUE')=>{talk('',[{who:who.name,text}],()=>{done?done():resumeWalking();},label);anim.play(c.sitting?'sit-talk':c.dancing?c.danceClip:c.reclining?'recline':'talk');brain.note('talked');};
   let choices=null;
-  function ask2(text,opts){c.youSeat=mode==='vr-seated'?{...api.session.seat}:null;say(text,()=>{},'');speech.shown=speech.lines[0].text.length;$('speech-next').style.display='none';screen.querySelector('.dialogue-window')?.classList.add('choice-menu');
-   choices=opts;screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',opts.map(([l],i)=>button(l.toUpperCase(),'vr-choice:'+i,i===opts.length-1)).join(''));}
+  // The choice panel (vr.css: compact, opaque, beside the room rather than across it). Options may carry a group
+  // (Talk / Together / Leave); arrows, WASD or the d-pad move the highlight, Enter / Space / E or A choose, Escape or B
+  // closes (the last option: "Never mind" / "Not now").
+  function ask2(text,opts){c.youSeat=mode==='vr-seated'?{...api.session.seat}:null;say(text,()=>{},'');speech.shown=speech.lines[0].text.length;$('speech-next').style.display='none';screen.querySelector('.dialogue-window')?.classList.add('choice-menu','vr-companion-menu');
+   choices=opts;let html='',group=null;opts.forEach(([l,,g],i)=>{if(g&&g!==group){html+=(group?'</div>':'')+'<div class="vr-choice-group" role="group" aria-label="'+g+'"><div class="vr-choice-head">'+g.toUpperCase()+'</div>';group=g;}
+    html+='<button data-action="vr-choice:'+i+'" role="menuitem" class="vr-choice'+(i===opts.length-1?' quiet':'')+'">'+l.toUpperCase()+'</button>';});if(group)html+='</div>';
+   screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend','<div class="vr-choices" role="menu">'+html+'</div>');focusChoice(0);}
+  const choiceButtons=()=>[...screen.querySelectorAll('.vr-companion-menu button.vr-choice')];
+  function focusChoice(i){const all=choiceButtons();if(!all.length)return;const b=all[(i+all.length)%all.length];b.focus({preventScroll:true});b.scrollIntoView({block:'nearest'});}
+  // Moves the highlight to the nearest option in a direction (the options sit in a grid on wide screens).
+  function moveChoice(dx,dy){const all=choiceButtons(),cur=all.indexOf(document.activeElement);if(cur<0)return focusChoice(0);const a=all[cur].getBoundingClientRect();let best=null;
+   for(const [i,b] of all.entries()){if(i===cur)continue;const r=b.getBoundingClientRect(),vx=r.left-a.left,vy=r.top-a.top;if(dx&&Math.sign(vx)!==dx||dy&&Math.sign(vy)!==dy)continue;if(dx&&Math.abs(vy)>a.height*1.5&&!dy)continue;
+    const d=Math.hypot(vx*(dy?3:1),vy*(dx?3:1));if(!best||d<best.d)best={i,d};}
+   if(best)focusChoice(best.i);else if(dy)focusChoice(dy>0?0:all.length-1);}
+  function chooseFocused(){const b=document.activeElement?.closest?.('button.vr-choice');(b||choiceButtons()[0])?.click();}
+  function closeChoices(){const all=choiceButtons();all[all.length-1]?.click();}
+  function onMenuKey(e){if(!choices||!screen.querySelector('.vr-companion-menu'))return;const k=e.key;
+   const map={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0],W:[0,-1],S:[0,1],A:[-1,0],D:[1,0]};
+   if(map[k]){moveChoice(...map[k]);}else if(k==='Enter'||k===' '||k==='e'||k==='E'){chooseFocused();}else if(k==='Escape'){closeChoices();}else return;e.preventDefault();e.stopImmediatePropagation();}
+  window.addEventListener('keydown',onMenuKey,true);
+  let padPrev=[];k.every(()=>{if(!choices)return padPrev=[];const pad=[...(navigator.getGamepads?.()||[])].find(p=>p&&p.connected!==false);if(!pad)return;const now=pad.buttons.map(b=>b.pressed),ly=pad.axes[1]||0,lx=pad.axes[0]||0;
+   now[12]=now[12]||ly<-.6;now[13]=now[13]||ly>.6;now[14]=now[14]||lx<-.6;now[15]=now[15]||lx>.6;const hit=i=>now[i]&&!padPrev[i];
+   if(hit(12))moveChoice(0,-1);else if(hit(13))moveChoice(0,1);else if(hit(14))moveChoice(-1,0);else if(hit(15))moveChoice(1,0);else if(hit(0))chooseFocused();else if(hit(1))closeChoices();padPrev=now;});
   function menu(){const far=Math.hypot(walker.x-node.position.x,walker.z-node.position.z)>2.8&&!c.sitting;
-   const opts=far?[['Come over here',comeHere],['Sit together',()=>sitTogether()],[c.dancing?'Stop dancing':'Dance together',()=>dance()],['Never mind',()=>{resumeWalking();idle();}]]:
-    [['Chat',chat],['Compliment them',compliment],['Flirt',flirt],['Sit together',()=>sitTogether()],[c.dancing?'Stop dancing':'Dance together',()=>dance()],...(has('recline')?[['Lie back together',()=>recline()]]:[]),['Hold hands',hands],['Kiss',kiss],['Relax together',relax],['Say goodnight',goodbye],['Never mind',()=>{resumeWalking();idle();}]];
+   const opts=far?[['Come over here',comeHere,'Together'],['Sit together',()=>sitTogether(),'Together'],[c.dancing?'Stop dancing':'Dance together',()=>dance(),'Together'],['Never mind',()=>{resumeWalking();idle();},'Leave']]:
+    [['Chat',chat,'Talk'],['Compliment them',compliment,'Talk'],['Flirt',flirt,'Talk'],['Sit together',()=>sitTogether(),'Together'],[c.dancing?'Stop dancing':'Dance together',()=>dance(),'Together'],...(has('recline')?[['Lie back together',()=>recline(),'Together']]:[]),['Hold hands',hands,'Together'],['Kiss',kiss,'Together'],['Relax together',relax,'Together'],['Say goodnight',goodbye,'Leave'],['Never mind',()=>{resumeWalking();idle();},'Leave']];
    const opening=c.greeted?C.pick(L.chat,mem,'menu'):C.pick(L.greet,mem,'greet');c.greeted=true;ask2(far?C.pick(L.approach,mem,'menu-far'):opening,opts);}
   screen.addEventListener('click',onChoice);
   function onChoice(e){const a=e.target.closest('button')?.dataset.action;if(!a?.startsWith('vr-choice:')||!choices)return;const f=choices[+a.slice(10)][1];choices=null;speech=null;f();}
@@ -169,7 +190,7 @@
   const blinks=node.getChildMeshes().flatMap(m=>{const mt=m.morphTargetManager;return mt?Array.from({length:mt.numTargets},(_,i)=>mt.getTarget(i)).filter(t=>/^Eye_Blink_[LR]$/.test(t.name)):[];});
   if(blinks.length){let next=1.5,t=-1;k.every(dt=>{next-=dt;if(next<=0&&t<0){t=0;next=Math.random()<.15?.3:2+Math.random()*4;}
    if(t>=0){t+=dt;const w=t<.07?t/.07:t<.18?1-(t-.07)/.11:0;for(const b of blinks)b.influence=Math.max(0,w);if(t>=.18)t=-1;}});}
-  const dispose=()=>{k.scene.onAfterAnimationsObservable.remove(lookObserver);screen.removeEventListener('click',onChoice);line.remove();for(const c2 of k._containers||[])c2.dispose();k.dispose();};
+  const dispose=()=>{k.scene.onAfterAnimationsObservable.remove(lookObserver);screen.removeEventListener('click',onChoice);window.removeEventListener('keydown',onMenuKey,true);line.remove();for(const c2 of k._containers||[])c2.dispose();k.dispose();};
   return {tick:k.tick,dispose,anim,companion:node,who,config:cfg,brain,attention:att,bones,state:c,act,overlay:(g,W,H)=>k.overlayFn(g,W,H),
    onEnter(){setTimeout(()=>{if(api.session&&mode==='walking'){c.greeted=true;gesture('greet');say(C.pick(L.greet,mem,'greet'));}},1200);},
    onStand(){c.withYou=false;if(c.sitting||c.reclining){stand();c.state='idle';walkTo(...home);}},

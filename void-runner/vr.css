@@ -31,3 +31,35 @@ body.vr-session #walking-caption,body.vr-session #guidance-card,body.vr-session 
 #vr-menu .vr-confirm button{min-width:320px}
 #vr-menu .vr-confirm button[disabled]{opacity:.45;cursor:default}
 #vr-menu .vr-empty{color:#b9c8ce;text-align:center;padding:40px}
+
+/* Companion conversation in VR (David, 2026-10-28): compact, fully opaque, at the side so most of the room stays
+   visible. Plain lines are a slim subtitle box at the bottom; the choice menu is a side panel with grouped compact
+   buttons, a clear highlight and its own scroll. Only during VR sessions; story dialogue elsewhere is unchanged. */
+body.vr-session .dialogue-window,body.vr-session .cinematic-space .dialogue-window{left:0!important;right:0!important;margin:0 auto!important;
+  width:min(620px,calc(100vw - 24px))!important;max-height:min(34vh,260px)!important;background:#070b12!important;opacity:1!important;backdrop-filter:none!important;
+  border:1px solid #1f4752!important;border-radius:6px;box-shadow:0 12px 40px rgba(0,0,0,.65)!important;padding:0!important}
+body.vr-session .dialogue-window .speech-body{padding:10px 14px 10px!important;gap:4px}
+body.vr-session .dialogue-window .speaker{min-height:0!important;padding:0!important;margin:0!important}
+body.vr-session .dialogue-window .speaker h2{font-size:15px!important;margin:0!important;color:#5ff2e0}
+body.vr-session .dialogue-window .speaker span{display:none}
+body.vr-session .dialogue-window #spoken-text{font-size:15px!important;line-height:1.45!important;margin:2px 0 0!important;min-height:0!important;color:#e9f2f6}
+body.vr-session .dialogue-window .speech-controls{background:#070b12!important;padding-top:8px!important;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:flex-end}
+body.vr-session .dialogue-window .speech-controls button{min-height:32px!important;padding:6px 12px!important;font-size:11px!important;letter-spacing:.08em}
+body.vr-session .dialogue-window #speech-status{font-size:10px;margin-right:auto}
+/* The choice menu: a side panel. */
+body.vr-session .dialogue-window.vr-companion-menu{left:auto!important;right:max(12px,2vw)!important;margin:0!important;width:min(400px,calc(100vw - 24px))!important;
+  max-height:min(66vh,calc(100dvh - 160px))!important;border-color:#2b6e7a!important}
+body.vr-session .vr-companion-menu .speech-controls{display:block;position:static!important}
+body.vr-session .vr-companion-menu .speech-controls>button:not(.vr-choice){margin:0 0 8px}
+body.vr-session .vr-choices{display:flex;flex-direction:column;gap:8px}
+body.vr-session .vr-choice-group{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+body.vr-session .vr-choice-head{grid-column:1/-1;font:600 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;color:#6d8b96;padding:2px 2px 0}
+body.vr-session button.vr-choice{all:unset;box-sizing:border-box;display:block;width:100%;min-height:34px;padding:8px 10px;cursor:pointer;
+  background:#0d1620;border:1px solid #1e3a45;border-radius:4px;color:#cfe9ef;font:600 11px/1.2 'JetBrains Mono',monospace;letter-spacing:.07em;text-align:left}
+body.vr-session button.vr-choice:hover{background:#12222d;border-color:#2f6f7c}
+body.vr-session button.vr-choice:focus,body.vr-session button.vr-choice:focus-visible{background:#163844;border-color:#5ff2e0;color:#ffffff;outline:none;box-shadow:inset 3px 0 0 #5ff2e0}
+body.vr-session button.vr-choice.quiet{color:#8fa6ae}
+@media (max-width:520px){body.vr-session .vr-choice-group{grid-template-columns:1fr}body.vr-session .dialogue-window.vr-companion-menu{right:12px!important;left:12px!important;width:auto!important}}
+@media (max-height:560px){body.vr-session .dialogue-window.vr-companion-menu{max-height:calc(100dvh - 120px)!important}}
+/* No weapons in VR, and the chip would sit on the companion menu. */
+body.vr-session #weapon-select-hud{display:none!important}

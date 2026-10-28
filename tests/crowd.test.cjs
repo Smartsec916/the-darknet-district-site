@@ -46,10 +46,11 @@ test('picking deals varied looks and only ones with the needed clip',()=>{
  for(let i=0;i<4;i++)assert.ok(C.clips[C.pick('vesper','crew-vesper-sit'+i)].includes('sit'));
 });
 
-test('named characters, unknown places and low quality get no crowd looks',()=>{
+test('named characters and unknown places get no crowd looks; every quality loads the real figures',()=>{
  C.begin();
  assert.equal(C.pick('derelict','crew-1'),null);
- assert.deepEqual(C.models('vesper','low'),{});
+ assert.deepEqual(Object.keys(C.models('vesper','low')).sort(),Object.keys(C.models('vesper','high')).sort());
+ assert.ok(Object.keys(C.models('neochinatown','low')).length>=8);
  assert.deepEqual(C.models('nowhere','high'),{});
  for(const cast of Object.values(C.casts))for(const look of cast)assert.ok(!/mara|rook|nyx|admin|iris|elias|kess|mercer|elara|marcus/.test(look));
 });
