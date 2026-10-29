@@ -16,37 +16,40 @@
  const TERMINAL=[-6.2,36],BOOTHS=[{z:32.4,name:'NEON STRIKE'},{z:39.6,name:'SKYLINE SOCIAL'}];
  function register(exp){if(!registry.has(exp.id))order.push(exp.id);registry.set(exp.id,exp);}
  // ---- Isolation: what a session may never change ----
- function snapshot(){const p=state.progression;return JSON.stringify({met:state.story.met,events:state.story.events,credits:state.credits,personal:p.personal,cargo:p.cargo,data:p.data,missiles:p.missiles,equipment:p.equipment,creditGear:state.creditGear,loadout:state.loadout,contract:state.contract,missions:state.universe.missions,tracked:state.universe.trackedMission});}
- function restore(raw){const o=JSON.parse(raw),p=state.progression;state.story.met=o.met;state.story.events=o.events;state.credits=o.credits;p.personal=o.personal;p.cargo=o.cargo;p.data=o.data;p.missiles=o.missiles;p.equipment=o.equipment;state.creditGear=o.creditGear;state.loadout=o.loadout;state.contract=o.contract;state.universe.missions=o.missions;state.universe.trackedMission=o.tracked;}
- const baseSave=save;save=function(...a){if(saveBlocked)return;return baseSave.apply(this,a);};
+ function snapshot(){return {ground:{...groundState},power:{...weaponBank}};}
+ function restore(runtime){state=VoidSimulationEffects.end()||state;Object.assign(groundState,runtime.ground);Object.assign(weaponBank,runtime.power);}
+ const baseSave=save;save=function(...a){if(saveBlocked)return false;return baseSave.apply(this,a);};
  // ---- Procedural ambience: wind, water, waves, birds, gulls and soft pads. No audio files. ----
- const audio={ctx:null,master:null,layers:[],timers:[]};
+ const audio={ctx:null,master:null,layers:[],timers:new Set(),nodes:new Set(),generation:0};
+ function later(fn,ms){const generation=audio.generation,t=setTimeout(()=>{audio.timers.delete(t);if(generation===audio.generation&&audio.master)fn();},ms);audio.timers.add(t);return t;}
+ function audioNode(ctx,name){const n=ctx[name]();audio.nodes.add(n);if(name==='createOscillator'||name==='createBufferSource')n.addEventListener('ended',()=>{audio.nodes.delete(n);n.disconnect();},{once:true});return n;}
+ function endAudio(source,...nodes){source.addEventListener('ended',()=>{for(const n of nodes){n.disconnect();audio.nodes.delete(n);}},{once:true});}
  function audioStart(spec){audioStop();if(globalThis.VoidAudio?.settings?.enabled===false)return;
   try{const A=globalThis.AudioContext||globalThis.webkitAudioContext;audio.ctx=audio.ctx||new A();const c=audio.ctx;c.resume?.();
-   audio.master=c.createGain();audio.master.gain.value=0;audio.master.connect(c.destination);audio.master.gain.linearRampToValueAtTime(.55*(globalThis.VoidAudio?.settings?.volume??1),c.currentTime+2.5);
-   const noise=()=>{const b=c.createBuffer(1,c.sampleRate*2,c.sampleRate),d=b.getChannelData(0);let last=0;for(let i=0;i<d.length;i++){const w=Math.random()*2-1;last=(last+.02*w)/1.02;d[i]=w*.5+last*3;}const s=c.createBufferSource();s.buffer=b;s.loop=true;s.start();return s;};
-   const filtered=(type,freq,q,gain)=>{const s=noise(),f=c.createBiquadFilter(),g=c.createGain();f.type=type;f.frequency.value=freq;f.Q.value=q;g.gain.value=gain;s.connect(f);f.connect(g);g.connect(audio.master);audio.layers.push({stop:()=>s.stop(),gain:g});return g;};
-   const lfo=(param,rate,depth,base)=>{const o=c.createOscillator(),g=c.createGain();o.frequency.value=rate;g.gain.value=depth;o.connect(g);g.connect(param);param.value=base;o.start();audio.layers.push({stop:()=>o.stop()});};
+   audio.master=audioNode(c,'createGain');audio.master.gain.value=0;audio.master.connect(c.destination);audio.master.gain.linearRampToValueAtTime(.55*(globalThis.VoidAudio?.settings?.volume??1),c.currentTime+2.5);
+   const noise=()=>{const b=c.createBuffer(1,c.sampleRate*2,c.sampleRate),d=b.getChannelData(0);let last=0;for(let i=0;i<d.length;i++){const w=Math.random()*2-1;last=(last+.02*w)/1.02;d[i]=w*.5+last*3;}const s=audioNode(c,'createBufferSource');s.buffer=b;s.loop=true;s.start();return s;};
+   const filtered=(type,freq,q,gain)=>{const s=noise(),f=audioNode(c,'createBiquadFilter'),g=audioNode(c,'createGain');f.type=type;f.frequency.value=freq;f.Q.value=q;g.gain.value=gain;s.connect(f);f.connect(g);g.connect(audio.master);audio.layers.push({stop:()=>s.stop(),gain:g});return g;};
+   const lfo=(param,rate,depth,base)=>{const o=audioNode(c,'createOscillator'),g=audioNode(c,'createGain');o.frequency.value=rate;g.gain.value=depth;o.connect(g);g.connect(param);param.value=base;o.start();audio.layers.push({stop:()=>o.stop()});};
    const named={};
    if(spec.wind){const g=filtered('bandpass',420,.6,spec.wind);lfo(g.gain,.07,spec.wind*.6,spec.wind);named.wind=g;}
    if(spec.leaves){const g=filtered('highpass',3200,.4,spec.leaves);lfo(g.gain,.13,spec.leaves*.8,spec.leaves*.4);named.leaves=g;}
    if(spec.water)named.water=filtered('bandpass',900,.35,0);
    if(spec.waves){const g=filtered('lowpass',520,.3,spec.waves);lfo(g.gain,.11,spec.waves*.85,spec.waves);named.waves=g;}
-   if(spec.hum){const o=c.createOscillator(),g=c.createGain();o.type='sawtooth';o.frequency.value=55;const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=180;g.gain.value=spec.hum;o.connect(f);f.connect(g);g.connect(audio.master);o.start();audio.layers.push({stop:()=>o.stop()});}
+   if(spec.hum){const o=audioNode(c,'createOscillator'),g=audioNode(c,'createGain');o.type='sawtooth';o.frequency.value=55;const f=audioNode(c,'createBiquadFilter');f.type='lowpass';f.frequency.value=180;g.gain.value=spec.hum;o.connect(f);f.connect(g);g.connect(audio.master);o.start();audio.layers.push({stop:()=>o.stop()});}
    if(spec.pad)named.pad=pad(spec.pad);
-   const chirp=(base,len)=>{const o=c.createOscillator(),g=c.createGain(),t=c.currentTime;o.type='sine';o.frequency.setValueAtTime(base,t);o.frequency.exponentialRampToValueAtTime(base*(1.3+Math.random()*.6),t+len*.5);o.frequency.exponentialRampToValueAtTime(base*.9,t+len);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.05*(named.birdLevel??1),t+.01);g.gain.exponentialRampToValueAtTime(.0005,t+len);o.connect(g);g.connect(audio.master);o.start(t);o.stop(t+len+.05);};
-   const schedule=(fn,min,max)=>{const tick=()=>{fn();audio.timers.push(setTimeout(tick,min+Math.random()*(max-min)));};audio.timers.push(setTimeout(tick,min));};
-   if(spec.birds)schedule(()=>{const n=2+Math.floor(Math.random()*4),base=2400+Math.random()*2200;for(let i=0;i<n;i++)setTimeout(()=>chirp(base*(1+Math.random()*.15),.09+Math.random()*.08),i*120);},1500,5200);
-   if(spec.gulls)schedule(()=>{for(let i=0;i<3;i++)setTimeout(()=>chirp(1100+Math.random()*300,.35),i*260);},6000,14000);
+   const chirp=(base,len)=>{const o=audioNode(c,'createOscillator'),g=audioNode(c,'createGain'),t=c.currentTime;o.type='sine';o.frequency.setValueAtTime(base,t);o.frequency.exponentialRampToValueAtTime(base*(1.3+Math.random()*.6),t+len*.5);o.frequency.exponentialRampToValueAtTime(base*.9,t+len);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.05*(named.birdLevel??1),t+.01);g.gain.exponentialRampToValueAtTime(.0005,t+len);o.connect(g);g.connect(audio.master);o.start(t);o.stop(t+len+.05);endAudio(o,g);};
+   const schedule=(fn,min,max)=>{const tick=()=>{fn();later(tick,min+Math.random()*(max-min));};later(tick,min);};
+   if(spec.birds)schedule(()=>{const n=2+Math.floor(Math.random()*4),base=2400+Math.random()*2200;for(let i=0;i<n;i++)later(()=>chirp(base*(1+Math.random()*.15),.09+Math.random()*.08),i*120);},1500,5200);
+   if(spec.gulls)schedule(()=>{for(let i=0;i<3;i++)later(()=>chirp(1100+Math.random()*300,.35),i*260);},6000,14000);
    audio.named=named;
   }catch(e){console.warn('[VOID VR audio]',e.message);}}
  // A slow chord pad: the suite's music presets.
  const padChords={lounge:[220,277.2,329.6,415.3],velvet:[196,246.9,293.7,369.9],midnight:[174.6,220,261.6,329.6]};
- function pad(preset){const c=audio.ctx,g=c.createGain(),f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=900;g.gain.value=.05;f.connect(g);g.connect(audio.master);const osc=(padChords[preset]||padChords.lounge).flatMap(fr=>[0,4].map(d=>{const o=c.createOscillator();o.type='triangle';o.frequency.value=fr;o.detune.value=d;o.connect(f);o.start();return o;}));audio.layers.push({stop:()=>osc.forEach(o=>o.stop()),pad:true});return {gain:g,osc};}
+ function pad(preset){const c=audio.ctx,g=audioNode(c,'createGain'),f=audioNode(c,'createBiquadFilter');f.type='lowpass';f.frequency.value=900;g.gain.value=.05;f.connect(g);g.connect(audio.master);const osc=(padChords[preset]||padChords.lounge).flatMap(fr=>[0,4].map(d=>{const o=audioNode(c,'createOscillator');o.type='triangle';o.frequency.value=fr;o.detune.value=d;o.connect(f);o.start();return o;}));audio.layers.push({stop:()=>{osc.forEach(o=>o.stop());for(const n of [g,f]){n.disconnect();audio.nodes.delete(n);}},pad:true});return {gain:g,osc};}
  function setPad(preset){if(!audio.ctx)return;for(const l of audio.layers.filter(l=>l.pad)){l.stop();l.dead=true;}audio.layers=audio.layers.filter(l=>!l.dead);if(preset&&preset!=='off')audio.named.pad=pad(preset);}
  function audioLevel(name,v,ramp=.4){const g=audio.named?.[name],node=g?.gain instanceof AudioParam?g:g?.gain;if(node&&audio.ctx)node.gain.linearRampToValueAtTime(v,audio.ctx.currentTime+ramp);}
- function sfx(freq,len,type='square',vol=.06){if(!audio.ctx||!audio.master)return;const c=audio.ctx,o=c.createOscillator(),g=c.createGain(),t=c.currentTime;o.type=type;o.frequency.setValueAtTime(freq,t);o.frequency.exponentialRampToValueAtTime(Math.max(40,freq*.4),t+len);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0005,t+len);o.connect(g);g.connect(audio.master);o.start(t);o.stop(t+len+.02);}
- function audioStop(){for(const t of audio.timers)clearTimeout(t);audio.timers=[];for(const l of audio.layers)try{l.stop();}catch{}audio.layers=[];try{audio.master?.disconnect();}catch{}audio.master=null;audio.named={};}
+ function sfx(freq,len,type='square',vol=.06){if(!audio.ctx||!audio.master)return;const c=audio.ctx,o=audioNode(c,'createOscillator'),g=audioNode(c,'createGain'),t=c.currentTime;o.type=type;o.frequency.setValueAtTime(freq,t);o.frequency.exponentialRampToValueAtTime(Math.max(40,freq*.4),t+len);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0005,t+len);o.connect(g);g.connect(audio.master);o.start(t);o.stop(t+len+.02);endAudio(o,g);}
+ function audioStop(){audio.generation++;for(const t of audio.timers)clearTimeout(t);audio.timers.clear();for(const l of audio.layers)try{l.stop();}catch{}audio.layers=[];try{audio.master?.disconnect();}catch{}audio.master=null;audio.named={};for(const n of audio.nodes)try{n.disconnect();}catch{}audio.nodes.clear();}
  // ---- Digital transition: the frame breaks into glowing cells, a data void, then the new world assembles ----
  function makeOverlay(){overlay=document.createElement('canvas');overlay.id='vr-transition';overlay.width=innerWidth;overlay.height=innerHeight;document.body.append(overlay);return overlay;}
  function transition(dir,title,wait){return new Promise(resolve=>{
@@ -110,7 +113,7 @@
  // ---- Launch ----
  const wait=ms=>new Promise(r=>setTimeout(r,ms));
  async function launch(id,opts){
-  const exp=registry.get(id);if(!exp||exp.status!=='ready'||busy||session)return false;if(exp.listed===false&&!opts?.allowHidden)return false;
+  const exp=registry.get(id);if(!exp||exp.status!=='ready'||busy||session||!walker||walkingLocation?.id!=='neochinatown')return false;if(exp.listed===false&&!opts?.allowHidden)return false;
   // A picked option that can't load (missing or incompatible model) is refused here, before anything changes.
   if(exp.validate&&!exp.validate(opts||{})){announce('That choice is not available right now.');return false;}
   busy=true;menu?.remove();menu=null;menuPage={view:'list'};mode='vr-transition';clearInput();walkingKeys?.clear?.();document.exitPointerLock?.();
@@ -119,11 +122,11 @@
   n?.booths?.stepAside(booth);
   const from={x:walker.x,z:walker.z,yaw:walker.yaw},[bx,bz]=n.toWorld(-12.6,b.z);
   for(let i=0;i<=36;i++){const k=i/36,e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;walker.x=from.x+(bx-from.x)*e;walker.z=from.z+(bz-from.z)*e;walker.yaw=from.yaw+((Math.atan2(bx-from.x,bz-from.z)-from.yaw+Math.PI*3)%(Math.PI*2)-Math.PI)*Math.min(1,e*1.6);await wait(30);}
-  const raw=snapshot();state.story.flags.vrReturn=true;baseSave();saveBlocked=true;
+  const raw=snapshot();state.story.flags.vrReturn=true;baseSave();const simulation=VoidSimulationEffects.begin(state);state=simulation.state;saveBlocked=true;
   session={id,exp,opts,raw,booth,settings:{...(exp.defaults||{})},world:null,ammo:{ammo:12,reserve:999}};
   // A simulation that needs a sidearm lends one (the snapshot puts the real kit back on exit).
   if(exp.weapon&&!state.progression.personal.weapon)state.progression.personal.weapon='ward-pistol';
-  audioStart({});
+  try{audioStart({});
   await transition('out',exp.title.toUpperCase());
   const def=exp.layout(opts);def.vr=id;def.kind='vr';
   const loading=VoidBabylon.prepareRoom(def);let ok=true;
@@ -131,12 +134,13 @@
   if(!ok){await recover('That simulation could not load. You are back at the terminal.');return false;}
   walker={x:def.spawn[0],y:def.spawn[1],z:def.spawn[2],yaw:def.yaw||0,pitch:0};walkingLocation=def;resumeWalking();document.body.classList.add('vr-session');
   audioStart(exp.ambience?.(opts)||{});for(const [key,val] of Object.entries(session.settings))session.world?.setOption?.(key,val);session.world?.onEnter?.();showChip();
-  await transition('in',exp.title.toUpperCase());busy=false;announce(exp.title+' · Esc for the VR menu · Backspace to exit');return true;}
+  await transition('in',exp.title.toUpperCase());busy=false;announce(exp.title+' · Esc for the VR menu · Backspace to exit');return true;
+  }catch(error){console.error('[VOID VR session]',error);await recover('That simulation could not load. You are back at the terminal.');return false;}
+ }
  // ---- Exit: back to the terminal, everything as it was ----
  async function exit(){
   if(!session||busy)return false;busy=true;closePause(true);hideChip();mode='vr-transition';clearInput();walkingKeys?.clear?.();document.exitPointerLock?.();
-  const title=session.exp.title.toUpperCase();session.world?.onExit?.();
-  await transition('out',title);audioStop();await back();busy=false;return true;}
+  const title=session.exp.title.toUpperCase();try{session.world?.onExit?.();await transition('out',title);}finally{audioStop();try{await back();}finally{busy=false;}}return true;}
  async function back(){document.body.classList.remove('vr-session');const s=session;restore(s.raw);session=null;saveBlocked=false;delete state.story.flags.vrReturn;walkingLocation=walker=null;
   const loading=enterWalking('sacramento');await transition('hold','THE DARKNET DISTRICT',loading);atTerminal();baseSave();await transition('in','THE DARKNET DISTRICT');}
  async function recover(message){document.body.classList.remove('vr-session');audioStop();hideChip();const s=session;if(s){restore(s.raw);session=null;}saveBlocked=false;delete state.story.flags.vrReturn;walkingLocation=walker=null;
@@ -183,6 +187,6 @@
  // ---- Called by the renderer (prepareRoom) to build a world, and each frame through the room's tick ----
  async function buildWorld(def,ctx){const exp=registry.get(def.vr);const world=await exp.build({...ctx,opts:session?.opts||{},settings:session?.settings||{},api});if(session)session.world=world;return world;}
  const audioSet=(key,val)=>{if(audio.named)audio.named[key]=val;};
- const api={register,launch,exit,openMenu,sit,stand,sfx,audioLevel,audioSet,setPad,transition,buildWorld,get active(){return !!session;},get debug(){return {session:!!session,busy,pauseMenu:!!pauseMenu,menu:!!menu,overlay:!!overlay,page:{...menuPage}};},listed,get busy(){return busy;},get session(){return session;},registry,order};
+ const api={register,launch,exit,openMenu,sit,stand,sfx,audioLevel,audioSet,setPad,transition,buildWorld,get active(){return !!session;},get debug(){return {session:!!session,busy,pauseMenu:!!pauseMenu,menu:!!menu,overlay:!!overlay,page:{...menuPage},audio:{nodes:audio.nodes.size,timers:audio.timers.size}};},listed,get busy(){return busy;},get session(){return session;},registry,order};
  globalThis.VoidVR=api;
 })();

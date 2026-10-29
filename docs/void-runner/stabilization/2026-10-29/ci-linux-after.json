@@ -1,0 +1,126 @@
+{
+  "resources": [
+    {
+      "mode": "walking",
+      "error": null,
+      "meshes": 671,
+      "textures": 56,
+      "materials": 271,
+      "skeletons": 8,
+      "groups": 74,
+      "playing": 7
+    },
+    {
+      "mode": "walking",
+      "error": null,
+      "meshes": 671,
+      "textures": 56,
+      "materials": 271,
+      "skeletons": 8,
+      "groups": 74,
+      "playing": 7
+    },
+    {
+      "mode": "walking",
+      "error": null,
+      "meshes": 671,
+      "textures": 56,
+      "materials": 271,
+      "skeletons": 8,
+      "groups": 74,
+      "playing": 7
+    }
+  ],
+  "vr": [
+    {
+      "id": "forest",
+      "opts": {},
+      "isolation": true,
+      "resources": {
+        "mode": "walking",
+        "error": null,
+        "meshes": 655,
+        "textures": 219,
+        "materials": 309,
+        "skeletons": 7,
+        "groups": 61,
+        "playing": 7
+      }
+    }
+  ],
+  "timing": [
+    {
+      "normal": {
+        "metrics": {
+          "ready": true,
+          "samples": 90,
+          "elapsed": 58.747599999999984,
+          "interval": 433.20000000001164,
+          "ms": 532.5459802175177,
+          "fps": 1.8777721307586461
+        },
+        "raf": 533.3000000000029,
+        "crowd": {
+          "people": 21,
+          "walkers": 12,
+          "standing": 9,
+          "spawned": 21,
+          "shown": 9,
+          "away": 0,
+          "drunk": 1,
+          "budget": 9,
+          "fps": 2
+        }
+      }
+    },
+    {
+      "slow": {
+        "metrics": {
+          "ready": true,
+          "samples": 90,
+          "elapsed": 60.16429999999997,
+          "interval": 500,
+          "ms": 526.4008386962768,
+          "fps": 1.8996930219121115
+        },
+        "crowd": {
+          "people": 21,
+          "walkers": 12,
+          "standing": 9,
+          "spawned": 21,
+          "shown": 9,
+          "away": 0,
+          "drunk": 1,
+          "budget": 9,
+          "fps": 2
+        },
+        "paused": 12
+      }
+    },
+    {
+      "recovered": {
+        "metrics": {
+          "ready": true,
+          "samples": 90,
+          "elapsed": 69.56390000000013,
+          "interval": 66.60000000000582,
+          "ms": 78.11580192431875,
+          "fps": 12.801507190169207
+        },
+        "crowd": {
+          "people": 21,
+          "walkers": 12,
+          "standing": 9,
+          "spawned": 21,
+          "shown": 9,
+          "away": 1,
+          "drunk": 1,
+          "budget": 9,
+          "fps": 13
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "interruption": true
+}

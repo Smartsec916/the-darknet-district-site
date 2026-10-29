@@ -17,6 +17,7 @@ function random() { seed = seed * 16807 % 2147483647; return (seed - 1) / 214748
 const stars = Array.from({ length: 320 }, () => ({ x: (random() - .5) * 300, y: (random() - .5) * 190, z: random() * 260 + 1 }));
 function resize() { W = innerWidth; H = innerHeight; D = Math.min(devicePixelRatio || 1, 2); canvas.width = W * D; canvas.height = H * D; ctx.setTransform(D, 0, 0, D, 0, 0); }
 addEventListener('resize', resize); resize();
+const frameMetrics=globalThis.VoidFrameMetrics=VoidFrameTiming.create();
 let lastCampaignPayload=null;
 function save() {
  if(globalThis.VoidSkirmish?.active||globalThis.VoidFlightSkirmish?.active)return false;
@@ -125,5 +126,5 @@ function draw() {
   $('flash').style.opacity = reducedMotion ? 0 : damageTime * .8;
 }
 let last = performance.now();
-function loop(now) { const dt = Math.min((now - last) / 1000, .04); last = now; if(VoidLoading.graphicsLost){requestAnimationFrame(loop);return;}try{update(dt);draw();}catch(error){console.error('[VOID frame]',{mode,location:state.location,phase:typeof flight!=='undefined'?flight.route?.phase:null,error});mode='recovery';if(typeof walkingLocation!=='undefined'){walkingLocation=walker=null;}if(globalThis.VoidFlightSession){if(VoidFlightSession.active)VoidFlightSession.end();else VoidFlightSession.exclusive(()=>VoidBabylon.release());}else globalThis.VoidBabylon?.release();clearInput();flightUI(false);panel('FLIGHT RECOVERY','Flight <em>held.</em>','<p>Your last checkpoint is safe. Retry the route or return to the station.</p>',button('RETRY ROUTE','launch')+button('RETURN TO STATION','dock',true));}finally{requestAnimationFrame(loop);} }
+function loop(now) { frameMetrics.sample(now,['walking','play','skirmish-fps','vr-seated','taxi'].includes(mode)&&!document.hidden); const dt = Math.min((now - last) / 1000, .04); last = now; if(VoidLoading.graphicsLost){requestAnimationFrame(loop);return;}try{update(dt);draw();}catch(error){console.error('[VOID frame]',{mode,location:state.location,phase:typeof flight!=='undefined'?flight.route?.phase:null,error});mode='recovery';if(typeof walkingLocation!=='undefined'){walkingLocation=walker=null;}if(globalThis.VoidFlightSession){if(VoidFlightSession.active)VoidFlightSession.end();else VoidFlightSession.exclusive(()=>VoidBabylon.release());}else globalThis.VoidBabylon?.release();clearInput();flightUI(false);panel('FLIGHT RECOVERY','Flight <em>held.</em>','<p>Your last checkpoint is safe. Retry the route or return to the station.</p>',button('RETRY ROUTE','launch')+button('RETURN TO STATION','dock',true));}finally{requestAnimationFrame(loop);} }
 // bootstrap.js starts the only animation loop after all modules are registered.

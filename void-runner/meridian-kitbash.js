@@ -16,7 +16,7 @@
  function measure(container){
   const r=container.instantiateModelsToScene(n=>'measure-'+n,false,{doNotInstantiate:true}),node=r.rootNodes[0];
   node.computeWorldMatrix(true);const {min,max}=node.getHierarchyBoundingVectors(true);
-  r.rootNodes.forEach(n=>n.dispose());r.animationGroups.forEach(g=>g.dispose());
+  r.rootNodes.forEach(n=>n.dispose());r.animationGroups.forEach(g=>g.dispose());r.skeletons.forEach(s=>s.dispose());
   return {center:min.add(max).scale(.5),size:max.subtract(min)};
  }
  /* containers: {pieceKey: AssetContainer}. Returns the skin node. occupied: the campaign hides H01
@@ -43,7 +43,8 @@
    for(const [key,list] of Object.entries(matrices)){
     if(!list.length)continue;
     const r=containers[key].instantiateModelsToScene(n=>'kit-'+key+'-'+n,false,{doNotInstantiate:true}),rootNode=r.rootNodes[0];
-    rootNode.position.subtractInPlace(sizes[key].center);rootNode.computeWorldMatrix(true);
+    root.VoidAssets.ownInstance(r,skin);
+   rootNode.position.subtractInPlace(sizes[key].center);rootNode.computeWorldMatrix(true);
     const data=new Float32Array(list.length*16);list.forEach((mat,i)=>mat.copyToArray(data,i*16));
     for(const mesh of rootNode.getChildMeshes(false)){
      if(!mesh.getTotalVertices())continue;
