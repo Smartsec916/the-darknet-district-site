@@ -1,0 +1,84 @@
+{
+  "resources": [
+    {
+      "mode": "walking",
+      "error": null,
+      "meshes": 671,
+      "textures": 56,
+      "materials": 271,
+      "skeletons": 8,
+      "groups": 74,
+      "playing": 7
+    },
+    {
+      "mode": "walking",
+      "error": null,
+      "meshes": 671,
+      "textures": 56,
+      "materials": 271,
+      "skeletons": 8,
+      "groups": 74,
+      "playing": 7
+    },
+    {
+      "mode": "walking",
+      "error": null,
+      "meshes": 671,
+      "textures": 56,
+      "materials": 271,
+      "skeletons": 8,
+      "groups": 74,
+      "playing": 7
+    }
+  ],
+  "vr": [],
+  "timing": [
+    {
+      "normal": {
+        "metrics": {
+          "ready": false,
+          "samples": 0,
+          "elapsed": 0,
+          "ms": 0,
+          "fps": 0
+        },
+        "raf": 1133.2999999999884,
+        "crowd": {
+          "people": 20,
+          "walkers": 12,
+          "standing": 8,
+          "spawned": 19,
+          "shown": 18,
+          "away": 0,
+          "drunk": 1,
+          "budget": 20,
+          "fps": 0
+        }
+      }
+    },
+    {
+      "slow": {
+        "metrics": {
+          "ready": false,
+          "samples": 0,
+          "elapsed": 0,
+          "ms": 0,
+          "fps": 0
+        },
+        "crowd": {
+          "people": 20,
+          "walkers": 12,
+          "standing": 8,
+          "spawned": 19,
+          "shown": 18,
+          "away": 0,
+          "drunk": 1,
+          "budget": 20,
+          "fps": 0
+        },
+        "paused": 1
+      }
+    }
+  ],
+  "errors": []
+}
