@@ -1,9 +1,9 @@
-/* Homepage review prototype. Opt-in only; other pages retain their navigation. */
-body.site-home {
+/* Approved District navigation; generated headers share this stylesheet. */
+body.site-navigation {
   padding-top: 0;
 }
 
-body.site-home[data-hud="immersive"] > .district-nav {
+body.site-navigation > .district-nav {
   --nav-cyan: #61eee9;
   --nav-muted: #8caaaF;
   position: sticky;
@@ -36,7 +36,7 @@ body.site-home[data-hud="immersive"] > .district-nav {
 
 .district-nav__links {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
   max-width: 1100px;
   margin: 0 auto;
@@ -44,7 +44,7 @@ body.site-home[data-hud="immersive"] > .district-nav {
   list-style: none;
 }
 
-body.site-home .district-nav a {
+body.site-navigation .district-nav a {
   position: relative;
   isolation: isolate;
   display: flex;
@@ -72,8 +72,8 @@ body.site-home .district-nav a {
   touch-action: manipulation;
 }
 
-body.site-home .district-nav a::before,
-body.site-home .district-nav a::after {
+body.site-navigation .district-nav a::before,
+body.site-navigation .district-nav a::after {
   content: none;
 }
 
@@ -106,7 +106,7 @@ body.site-home .district-nav a::after {
 .district-nav__index { color: var(--nav-muted); font-size: 9px; font-weight: 400; letter-spacing: 0; }
 .district-nav__label { white-space: nowrap; }
 
-body.site-home .district-nav a[aria-current="page"] {
+body.site-navigation .district-nav a[aria-current="page"] {
   color: #c9fffa;
 }
 .district-nav a[aria-current="page"] .district-nav__panel {
@@ -124,13 +124,13 @@ body.site-home .district-nav a[aria-current="page"] {
 }
 
 @media (hover: hover) {
-  body.site-home .district-nav a:hover { color: #f1ffff; background: none; box-shadow: none; }
+  body.site-navigation .district-nav a:hover { color: #f1ffff; background: none; box-shadow: none; }
   .district-nav a:hover .district-nav__panel { fill: #122d37; stroke: #8cfff6; }
   .district-nav a:hover .district-nav__rail { opacity: 1; }
   .district-nav a:hover .district-nav__accent { opacity: 1; }
 }
 
-body.site-home .district-nav a:focus-visible {
+body.site-navigation .district-nav a:focus-visible {
   outline: 2px solid #fff0c9;
   outline-offset: 4px;
   color: #fff;
@@ -138,19 +138,19 @@ body.site-home .district-nav a:focus-visible {
   box-shadow: none;
 }
 .district-nav a:focus-visible .district-nav__panel { stroke: #c9fffa; fill: #18333d; }
-body.site-home .district-nav a:active .district-nav__panel { fill: #21454d; }
+body.site-navigation .district-nav a:active .district-nav__panel { fill: #21454d; }
 
 @media (max-width: 900px) {
   .district-nav__links { gap: 8px; }
-  body.site-home .district-nav a { gap: 6px; font-size: 11px; padding-inline: 8px; letter-spacing: .02em; }
-  .district-nav__index { display: none; }
+  body.site-navigation .district-nav a { gap: 6px; font-size: 11px; padding-inline: 8px; letter-spacing: .02em; }
+  .district-nav__index { font-size: 9px; }
 }
 
 @media (max-width: 680px) {
-  body.site-home[data-hud="immersive"] > .district-nav { padding: 12px 16px 14px; }
+  body.site-navigation > .district-nav { padding: 12px 16px 14px; }
   .district-nav__meta { font-size: 9px; letter-spacing: .1em; margin-bottom: 9px; }
   .district-nav__links { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-  body.site-home .district-nav a { font-size: 11px; min-height: 48px; }
+  body.site-navigation .district-nav a { font-size: 11px; min-height: 48px; }
 }
 
 @media (max-width: 359px) {
@@ -159,13 +159,18 @@ body.site-home .district-nav a:active .district-nav__panel { fill: #21454d; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body.site-home .district-nav a,
+  body.site-navigation .district-nav a,
   .district-nav__panel { transition: none !important; animation: none !important; }
 }
 
 @media (forced-colors: active) {
-  body.site-home .district-nav a { border: 1px solid LinkText; color: LinkText; }
+  body.site-navigation .district-nav a { border: 1px solid LinkText; color: LinkText; }
   .district-nav__frame { display: none; }
-  body.site-home .district-nav a[aria-current="page"] { border-bottom-width: 3px; color: LinkText; }
-  body.site-home .district-nav a:focus-visible { outline-color: Highlight; }
+  body.site-navigation .district-nav a[aria-current="page"] { border-bottom-width: 3px; color: LinkText; }
+  body.site-navigation .district-nav a:focus-visible { outline-color: Highlight; }
 }
+
+/* Sleeping Pod keeps a single quiet exit, using the approved button frame. */
+body.site-navigation > .district-nav--quiet { position: relative; padding: 10px 16px; background: #071116; box-shadow: none; }
+.district-nav--quiet .district-nav__links { display: block; max-width: none; }
+.district-nav--quiet li { width: 140px; }

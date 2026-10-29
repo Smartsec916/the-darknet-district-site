@@ -1,0 +1,110 @@
+{
+  "counts": [
+    {
+      "textures": 57,
+      "materials": 261,
+      "skeletons": 9
+    },
+    {
+      "textures": 67,
+      "materials": 272,
+      "skeletons": 18
+    },
+    {
+      "textures": 77,
+      "materials": 263,
+      "skeletons": 27
+    }
+  ],
+  "retained": [
+    {
+      "id": 1258,
+      "name": "data:EnvironmentBRDFTexture1"
+    },
+    {
+      "id": 16817,
+      "name": ""
+    },
+    {
+      "id": 18674,
+      "name": ""
+    },
+    {
+      "id": 20528,
+      "name": ""
+    },
+    {
+      "id": 22225,
+      "name": ""
+    },
+    {
+      "id": 24392,
+      "name": ""
+    },
+    {
+      "id": 26248,
+      "name": ""
+    },
+    {
+      "id": 28259,
+      "name": ""
+    },
+    {
+      "id": 29290,
+      "name": "maintenance-screen"
+    },
+    {
+      "id": 31084,
+      "name": ""
+    },
+    {
+      "id": 31191,
+      "name": ""
+    },
+    {
+      "id": 31257,
+      "name": "relay-screen-hall"
+    },
+    {
+      "id": 31268,
+      "name": "relay-screen-bar"
+    },
+    {
+      "id": 31279,
+      "name": "relay-screen-corridor-ad-1"
+    },
+    {
+      "id": 31286,
+      "name": "relay-screen-corridor-ad-2"
+    }
+  ],
+  "skeletons": [
+    "crowd:hacker-01-hacker_01",
+    "crowd:vesper-trader-vesper_trader",
+    "crowd:fixer-01-fixer_01",
+    "crowd:outlaw-01-outlaw_01",
+    "crowd:cyborg-01-cyborg_01",
+    "crowd:regular-01-regular_01",
+    "crowd:meridian-bartender-meridian_bartender",
+    "measure-Chest_Armature",
+    "ikit-chest-Chest_Armature",
+    "measure-Chest_Armature",
+    "ikit-chest-Chest_Armature",
+    "crowd:hacker-01-hacker_01",
+    "crowd:vesper-trader-vesper_trader",
+    "crowd:fixer-01-fixer_01",
+    "crowd:outlaw-01-outlaw_01",
+    "crowd:cyborg-01-cyborg_01",
+    "crowd:regular-01-regular_01",
+    "crowd:meridian-bartender-meridian_bartender",
+    "crowd:hacker-01-hacker_01",
+    "crowd:vesper-trader-vesper_trader",
+    "crowd:fixer-01-fixer_01",
+    "crowd:outlaw-01-outlaw_01",
+    "crowd:cyborg-01-cyborg_01",
+    "crowd:regular-01-regular_01",
+    "crowd:meridian-bartender-meridian_bartender",
+    "measure-Chest_Armature",
+    "ikit-chest-Chest_Armature"
+  ]
+}

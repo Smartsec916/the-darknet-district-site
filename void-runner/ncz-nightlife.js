@@ -25,7 +25,7 @@
   reactRadius:2.6,reactCooldown:10,remarkRadius:5,remarkCooldown:28,
   activeRadius:140,        // beyond this from you, walkers pause (cheap)
   showRadius:90,           // beyond this from the camera, figures are switched off entirely
-  fps:{low:45,high:56,step:4,every:2},  // frame-rate governor: hide the furthest people below low, restore above high
+  fps:{low:45,high:56,step:4,recoverStep:2,every:2,warmup:3,minShare:.4,fade:.65},  // frame-rate governor: hide the furthest people below low, restore above high
   spacing:1.1};            // how close two people get before one steps round
  // Sidewalk lanes (NeoChinatown coordinates): a line to walk, the wall side (for leaning) and how lively it is.
  // Nightlife lanes may hold drunks; the avenue's quieter east end has fewer people.
@@ -69,17 +69,27 @@
     people.push({id:'stand-'+(k++),fixed:true,kind,lane:s.l.id,t:s.t,side:s.side,x,z,face,clip:kind==='lean'?(rnd()<.5?'smoke':'idle'):kind==='shop'?(rnd()<.5?'watch':'idle'):'talk'});}}
   return people;}
 
+ // Hysteresis uses the main loop's measured frame intervals, never Babylon's unmaintained FPS counter.
+ function createBudget(total,cfg=config.fps){let budget=total,warm=0,check=0;
+  return {get value(){return budget;},step(dt,metrics){
+   if(!metrics?.ready){warm=0;check=0;return budget;}
+   warm+=dt;if(warm<(cfg.warmup??3))return budget;check-=dt;if(check>0)return budget;check=cfg.every;
+   if(metrics.fps<cfg.low)budget=Math.max(Math.ceil(total*(cfg.minShare??.4)),budget-cfg.step);
+   else if(metrics.fps>cfg.high)budget=Math.min(total,budget+(cfg.recoverStep??2));
+   return budget;
+  }};
+ }
  // Browser: figures, routines and reactions.
  function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=['ncz-neon','fixer-01','runner-02','communion-tech','district-resident','hacker-01','outlaw-01','district-smuggler'],drunkCast=['runner-02','ncz-neon'],rnd=Math.random,cfg=config}){
   const people=plan(quality,rnd,cfg).map(p=>({...p,l:lanes.find(l=>l.id===p.lane),state:'walk',timer:stopIn(p),node:null,anim:null,look:null,react:0,sway:rnd()*6,yaw:0}));
   const byId=new Map(people.map(p=>[p.id,p]));let remarkCool=8,dealt=Math.floor(rnd()*8),disposed=false;
-  const gov={budget:people.length,fps:60,check:cfg.fps.every},cam=()=>scene?.activeCamera?.globalPosition||null;
+  const budget=createBudget(people.length,cfg.fps),gov={budget:people.length,fps:0,check:0},cam=()=>scene?.activeCamera?.globalPosition||null;
   function stopIn(p){const [a,b]=p.drunk?cfg.drunkStopEvery:cfg.stopEvery;return a+rnd()*(b-a);}
   // Figures appear as their looks finish downloading; until then the person is simply not there yet.
   function spawn(p){if(p.node||disposed)return;const looks=p.drunk?drunkCast:cast;let node=null,look=null;
    // Try the next look; one still downloading is skipped for one that is ready.
    for(let i=0;i<looks.length&&!node;i++){look=looks[(dealt++)%looks.length];node=instance('crowd:'+look,parent);}if(!node)return;
-   node.metadata={...node.metadata,crowd:look,nightlife:p.id};p.node=node;p.look=look;
+   node.metadata={...node.metadata,crowd:look,nightlife:p.id};p.node=node;p.look=look;p.fade=0;p.parts=node.getChildMeshes().map(m=>[m,m.visibility]);for(const [m]of p.parts)m.visibility=0;
    if(p.fixed){p.anim=animate(node,look,p.clip);node.position.set(p.x,0,p.z);node.rotation.y=p.yaw=Math.atan2(p.face[0]-p.x,p.face[1]-p.z);return;}
    p.anim=animate(node,look,p.drunk?'drunk-walk':'walk');place(p,0);}
   const has=(p,c)=>p.anim?.has?.(c);
@@ -90,10 +100,16 @@
    if(p.faceTo){want=Math.atan2(p.faceTo[0]-x,p.faceTo[1]-z);}
    const d=((want-p.yaw+Math.PI*3)%(Math.PI*2))-Math.PI;p.yaw+=d*Math.min(1,dt*(p.drunk?2.5:5));p.node.position.set(x,0,z);p.node.rotation.y=p.yaw;}
   // Frame-rate governor and distance culling: the people nearest the camera stay; the rest are switched off.
-  function density(dt){const c=cam(),engineFps=scene?.getEngine?.().getFps?.();gov.fps+=((engineFps||(dt>0?1/dt:60))-gov.fps)*Math.min(1,dt*2);gov.check-=dt;
-   if(gov.check<=0){gov.check=cfg.fps.every;if(gov.fps<cfg.fps.low)gov.budget=Math.max(Math.ceil(people.length*.4),gov.budget-cfg.fps.step);else if(gov.fps>cfg.fps.high)gov.budget=Math.min(people.length,gov.budget+cfg.fps.step);}
-   if(!c)return;const shown=people.filter(p=>p.node&&!p.away).map(p=>({p,d:Math.hypot(p.node.position.x-c.x,p.node.position.z-c.z)})).sort((a,b)=>a.d-b.d);
-   shown.forEach(({p,d},i)=>{const on=d<cfg.showRadius&&i<gov.budget;if(p.node.isEnabled()!==on)p.node.setEnabled(on);p.hidden=!on;});}
+  function density(dt){const c=cam(),metrics=root.VoidFrameMetrics?.stats;gov.fps=metrics?.fps||0;gov.budget=budget.step(Math.min((metrics?.interval||0)/1000,2),metrics);gov.check-=dt;
+   if(c&&gov.check<=0){gov.check=.2;
+    const shown=people.filter(p=>p.node&&!p.away).map(p=>({p,d:Math.hypot(p.node.position.x-c.x,p.node.position.z-c.z)})).sort((a,b)=>a.d-b.d);
+    shown.forEach(({p,d},i)=>p.show=d<cfg.showRadius&&(i<gov.budget||d<10));
+   }
+   for(const p of people){if(!p.node)continue;const to=p.show&&!p.away?1:0;p.fade=Math.max(0,Math.min(1,(p.fade||0)+(to?1:-1)*dt/(cfg.fps.fade||.65)));
+    const on=p.fade>0;if(p.node.isEnabled()!==on)p.node.setEnabled(on);p.anim?.setActive?.(on);p.hidden=!on;
+    if(p.lastFade!==p.fade){for(const [m,v]of p.parts)m.visibility=v*p.fade;p.lastFade=p.fade;}
+   }
+  }
   function stats(){return {people:people.length,walkers:people.filter(p=>!p.fixed).length,standing:people.filter(p=>p.fixed).length,spawned:people.filter(p=>p.node).length,
    shown:people.filter(p=>p.node&&!p.hidden&&!p.away).length,away:people.filter(p=>p.away).length,drunk:people.filter(p=>p.drunk).length,budget:gov.budget,fps:Math.round(gov.fps)};}
   // At a street's end some walkers leave (round the corner, into a doorway) and come back later on another street.
@@ -131,8 +147,8 @@
     if(p.drunk&&me&&remarkCool<=0&&Math.hypot(p.node.position.x-me.x,p.node.position.z-me.z)<cfg.remarkRadius){remarkCool=cfg.remarkCooldown;say('A drunk passer-by: "'+remarks[Math.floor(rnd()*remarks.length)]+'"');}
     place(p,dt);}}
   function sideOf(l,o){const p=[o.node.position.x,o.node.position.z],L=len(l),ux=(l.b[0]-l.a[0])/L,uz=(l.b[1]-l.a[1])/L,t=along(l,p),bx=l.a[0]+ux*t,bz=l.a[1]+uz*t;return (p[0]-bx)*l.wall[0]+(p[1]-bz)*l.wall[1];}
-  function dispose(){disposed=true;for(const p of people)p.node?.dispose(false,true);people.length=0;}
+  function dispose(){disposed=true;for(const p of people)p.node?.dispose(false,false);people.length=0;}
   return {tick,dispose,people,stats,config:cfg};}
- const api={config,lanes,keepClear,standing,remarks,plan,at,canLean,start};
+ const api={config,lanes,keepClear,standing,remarks,plan,at,canLean,start,createBudget};
  if(typeof module!=='undefined')module.exports=api;else root.VoidNightlife=api;
 })(globalThis);

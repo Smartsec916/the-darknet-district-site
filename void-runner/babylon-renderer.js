@@ -650,6 +650,7 @@
     g.fillStyle='#bfeee2';g.font='bold 28px monospace';g.fillText('INSTALL · REMOVE',256,210);g.fillText('CONFIGURE EQUIPMENT',256,248);
     g.fillStyle='#7fe0c8';g.font='22px monospace';g.fillText('[E] OPEN',256,292);t.update();
     const sm=new b.StandardMaterial('maintenance-screen',scene);sm.diffuseTexture=t;sm.emissiveTexture=t;sm.disableLighting=true;
+    node.onDisposeObservable.addOnce(()=>{sm.dispose(false,false);t.dispose();});
     const screen=b.MeshBuilder.CreatePlane('maintenance-screen',{width:1.3,height:.82},scene);screen.parent=node;screen.position.set(0,1.42,.05);screen.rotation.set(-.18,Math.PI,0);screen.material=sm; // faces -z (plane front is -z; turned to face the player)
     const ring=b.MeshBuilder.CreateTorus('maintenance-floor-ring',{diameter:2.6,thickness:.05,tessellation:40},scene);ring.parent=node;ring.position.set(0,.03,1.25);ring.material=glow;ring.isPickable=false;
     node.metadata={animated:true};for(const m of node.getChildMeshes())m.metadata={...m.metadata,animated:true};
@@ -1198,6 +1199,7 @@
     handGun.setEnabled(drawn);handGun.position.set(aim?0:.21,reloading?-.40:aim?-.07:-.23,aim?.5:.55);handGun.rotation.set(reloading?.65:0,0,reloading?.4:0);
   }
   function clearRoom() {
+    root.VoidRelayScreens?.release();
     handGun?.dispose();handGun=null;
     roomRoot?.metadata?.art?.dispose?.();
     roomRoot?.metadata?.exterior?.metadata?.dispose?.();

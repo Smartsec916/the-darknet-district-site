@@ -6,10 +6,12 @@
  function kit(ctx){
   const B=BABYLON,scene=ctx.scene,parent=ctx.parent,particlesBefore=new Set(ctx.scene.particleSystems),owned=[],containers=[],tickers=[],ip=scene.imageProcessingConfiguration;
   const sun=scene.getLightByName('sun'),amb=scene.getLightByName('ambient');
+  const timers=new Set();let disposed=false;
   const saved={clear:scene.clearColor.clone(),fogMode:scene.fogMode,fogDensity:scene.fogDensity,fogColor:scene.fogColor.clone(),exposure:ip.exposure,contrast:ip.contrast,env:scene.environmentIntensity,
    sun:sun&&{i:sun.intensity,d:sun.diffuse.clone(),dir:sun.direction?.clone()},amb:amb&&{i:amb.intensity,d:amb.diffuse.clone(),g:amb.groundColor?.clone()}};
   const own=x=>{owned.push(x);return x;};
   const k={B,scene,parent,base,own,
+   after(fn,ms){const timer=setTimeout(()=>{timers.delete(timer);if(!disposed)fn();},ms);timers.add(timer);return timer;},
    // Daylight, fog and exposure for this world. sunDir points from the sun toward the ground.
    light({clear=[.5,.6,.7],fog=[.6,.7,.8],fogDensity=.006,sunColor=[1,.95,.85],sunIntensity=1.2,sunDir=[-.4,-1,.3],sky=[.8,.85,.95],ground=[.3,.28,.22],ambient=.75,exposure=1.05,contrast=1.08,env=1}={}){
     scene.clearColor=new B.Color4(...clear,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=fogDensity;scene.fogColor=new B.Color3(...fog);
@@ -29,10 +31,10 @@
    // Models: loaded into containers this world owns (disposed with it).
    async model(name){const c=await VoidAssets.loadContainer({src:'assets/vr/models/'+name+'.glb'},scene,ctx.task,'vr:'+name);containers.push(c);return c;},
    // One copy of a model, placed. s: uniform scale.
-   place(container,p,r=0,s=1){const inst=container.instantiateModelsToScene(n=>'vr-'+n,false,{doNotInstantiate:true});const n=new B.TransformNode('vr-model',scene);n.parent=parent;for(const r0 of inst.rootNodes)r0.parent=n;n.position.set(...p);n.rotation.y=r;n.scaling.setAll(s);
+   place(container,p,r=0,s=1){const inst=container.instantiateModelsToScene(n=>'vr-'+n,false,{doNotInstantiate:true});const n=new B.TransformNode('vr-model',scene);n.parent=parent;VoidAssets.ownInstance(inst,n);for(const r0 of inst.rootNodes)r0.parent=n;n.position.set(...p);n.rotation.y=r;n.scaling.setAll(s);
     for(const m of n.getChildMeshes())m.isPickable=false;return n;},
    // Many copies of a model drawn as thin instances (one draw per part). items: [{p:[x,y,z], r, s}].
-   scatter(container,items){if(!items.length)return [];const inst=container.instantiateModelsToScene(n=>'vr-'+n,false,{doNotInstantiate:true});const out=[];
+   scatter(container,items){if(!items.length)return [];const inst=container.instantiateModelsToScene(n=>'vr-'+n,false,{doNotInstantiate:true});const out=[];VoidAssets.ownInstance(inst,parent);
     for(const r0 of inst.rootNodes){r0.computeWorldMatrix(true);for(const m of r0.getChildMeshes(false)){if(!m.getTotalVertices())continue;m.computeWorldMatrix(true);m.setParent(null);m.makeGeometryUnique();m.bakeCurrentTransformIntoVertices();
       const buf=new Float32Array(items.length*16);items.forEach((it,i)=>B.Matrix.Compose(new B.Vector3(it.s||1,it.s||1,it.s||1),B.Quaternion.RotationYawPitchRoll(it.r||0,0,0),new B.Vector3(...it.p)).copyToArray(buf,i*16));
       m.thinInstanceSetBuffer('matrix',buf,16);m.thinInstanceRefreshBoundingInfo(true);m.parent=parent;m.isPickable=false;out.push(m);}r0.dispose();}return out;},
@@ -57,7 +59,7 @@
    // Merge meshes that share a material (fewer draw calls).
    merge(list,material){const m=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(m){m.material=material;m.parent=parent;m.isPickable=false;}return m;},
    tick(time){const dt=k.last==null?0:Math.min(.1,Math.max(0,time-k.last));k.last=time;if(k.look){if(ip.exposure!==k.look.exposure)ip.exposure=k.look.exposure;if(ip.contrast!==k.look.contrast)ip.contrast=k.look.contrast;}for(const f of tickers)f(dt,time);},
-   dispose(){for(const p of [...scene.particleSystems])if(!particlesBefore.has(p))p.dispose();for(const c of containers)c.dispose();for(const x of owned)try{x.dispose();}catch{}scene.clearColor=saved.clear;scene.fogMode=saved.fogMode;scene.fogDensity=saved.fogDensity;scene.fogColor=saved.fogColor;ip.exposure=saved.exposure;ip.contrast=saved.contrast;scene.environmentIntensity=saved.env;
+   dispose(){if(disposed)return;disposed=true;for(const timer of timers)clearTimeout(timer);timers.clear();tickers.length=0;for(const p of [...scene.particleSystems])if(!particlesBefore.has(p))p.dispose();for(const c of containers)c.dispose();for(const x of owned)try{x.dispose();}catch{}scene.clearColor=saved.clear;scene.fogMode=saved.fogMode;scene.fogDensity=saved.fogDensity;scene.fogColor=saved.fogColor;ip.exposure=saved.exposure;ip.contrast=saved.contrast;scene.environmentIntensity=saved.env;
     if(sun&&saved.sun){sun.intensity=saved.sun.i;sun.diffuse=saved.sun.d;if(saved.sun.dir)sun.direction=saved.sun.dir;}if(amb&&saved.amb){amb.intensity=saved.amb.i;amb.diffuse=saved.amb.d;if(saved.amb.g)amb.groundColor=saved.amb.g;}}};
   return k;}
  // A seat or spot to interact with: an interaction for the layout.
