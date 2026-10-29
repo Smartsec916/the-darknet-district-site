@@ -41,7 +41,7 @@ The mission graph does not invent links from display order, infer all runtime av
 - characters, voice references, structured scenes, line records and source references;
 - graph edges, validation warnings, explicit coverage limits, source hashes and current save-manifest reference.
 
-The UI keys disambiguate engine origins; they are not new game mission IDs. Refresh with `node tools/admin-inventory.cjs`. `--check` and the Node suite detect stale projections. Every source hash uses the current repository file bytes; no timestamp-only freshness claim is made.
+The UI keys disambiguate engine origins; they are not new game mission IDs. Refresh with `node tools/admin-inventory.cjs`. `--check` and the Node suite detect stale projections. Source hashes use UTF-8 text with canonical LF line endings so Windows and Linux checkouts agree; no timestamp-only freshness claim is made.
 
 `GET /api/void-runner/developer/content` requires verified sign-in and an allowlisted UID. It reads only the fixed repository inventory file, checks its schema, returns JSON and performs **zero database calls**. POST/PUT/PATCH/DELETE have no route. No request-supplied path, evaluation, SQL, shell, mission action or reward calculation exists. Existing API limits and cache policy remain in force.
 
@@ -58,7 +58,7 @@ The UI keys disambiguate engine origins; they are not new game mission IDs. Refr
 
 ## Validation
 
-- **409 Node tests passed** (404 existing + five projection/graph/voice/UI boundary regressions).
+- **410 Node tests passed** (404 existing + six projection/graph/voice/UI boundary regressions).
 - **98 API/save Python tests passed**, including six new authorization/read-only tests; **six Blackout API tests** also passed.
 - Auth tests: missing, forged and revoked tokens → 401; verified user not on server UID list → 403; allowlisted verified UID → 200 with `no-store`; disabled infrastructure/bad artifact schema → 503; mutating methods → 405; no database calls.
 - Browser: signed-out and denied states, authorized mission inspector/search, character filtering, structured branching preview, HTML injection resistance, sign-out cleanup, GET-only inventory requests, companion lines and mobile no-overflow checks passed with no page errors.
@@ -84,3 +84,5 @@ Stage 3C remains validate/publish/history/diff/rollback: atomic publication, ser
 Stage 4 remains queued and must reuse that same authorization, draft, revision and publication infrastructure for existing stores, item IDs, direct prices/stock and mission dependency checks. No store editor or dynamic economy is implemented now.
 
 No PR has been merged or deployed. Review this foundation and the proposed write/publication architecture before beginning Stage 3B.
+
+CI portability follow-up: the first Node run caught mixed LF/CRLF checkout bytes in source fingerprints, while all content/security tests and Python CI passed. Fingerprints now canonicalize line endings only; a regression verifies LF/CRLF equivalence while still detecting changed content. The complete projection is still compared for drift. No game source files were normalized or modified.

@@ -1,7 +1,7 @@
 /* Read-only projection of existing registries, not an alternative mission engine. */
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const root=path.resolve(__dirname,'..'),source=path.join(root,'void-runner');
-const read=f=>fs.readFileSync(path.join(root,f),'utf8'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
+const read=f=>fs.readFileSync(path.join(root,f),'utf8'),hash=s=>crypto.createHash('sha256').update(s.replace(/\r\n/g,'\n')).digest('hex');
 function build(){
  const missions=require('../void-runner/mission-log.js').definitions,content=require('../void-runner/content.js'),story=require('../void-runner/story-content.js'),companions=require('../void-runner/vr-companions.js').list();
  const voices=JSON.parse(read('tools/audio/npc-voice-registry.json')).npcs,manifest=JSON.parse(read('void-runner/assets/audio/voice/manifest.json'));
@@ -24,4 +24,4 @@ function build(){
 }
 const target=path.join(root,'void_runner_admin_inventory.json');
 if(require.main===module){const value=JSON.stringify(build(),null,2)+'\n';if(process.argv.includes('--check')){if(!fs.existsSync(target)||fs.readFileSync(target,'utf8')!==value){console.error('Admin inventory stale: run node tools/admin-inventory.cjs');process.exitCode=1;}}else{fs.writeFileSync(target,value);console.log('Wrote read-only inventory.');}}
-module.exports={build,target};
+module.exports={build,target,hash};
