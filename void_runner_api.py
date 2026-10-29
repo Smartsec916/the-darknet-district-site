@@ -159,6 +159,19 @@ def public_balance():
     return jsonify(values=balance_record(db)['values'])
 
 
+@api.get('/developer/content')
+@signed_in
+def developer_content(db, uid):
+    """Read-only projection. No save, draft, publish or executable action surface."""
+    if not balance_admin(uid):
+        raise ApiError('Administrator access is not authorized.', 403)
+    inventory_path = Path(__file__).parent / 'void_runner_admin_inventory.json'
+    result = json.loads(inventory_path.read_text(encoding='utf-8'))
+    if result.get('schemaVersion') != 1 or result.get('readOnly') is not True:
+        raise ApiError('The content inventory is not available.', 503)
+    return jsonify(result)
+
+
 @api.route('/developer/balance', methods=['GET', 'POST'])
 @signed_in
 def developer_balance(db, uid):

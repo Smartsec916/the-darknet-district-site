@@ -1,0 +1,34 @@
+.........INFO:test_function_archive:Function ingest key=station-a accepted=1 duplicates=0 retracted=0 cases=0 replayed_batch=False
+INFO:test_function_archive:Function ingest key=station-a accepted=0 duplicates=2 retracted=0 cases=0 replayed_batch=False
+.INFO:test_function_archive:Function ingest key=station-a accepted=0 duplicates=0 retracted=0 cases=0 replayed_batch=False
+INFO:test_function_archive:Function ingest key=station-a accepted=0 duplicates=0 retracted=0 cases=0 replayed_batch=False
+....INFO:test_function_archive:Function ingest key=station-a accepted=1 duplicates=0 retracted=0 cases=0 replayed_batch=False
+.INFO:test_function_archive:Function ingest key=station-a accepted=1 duplicates=0 retracted=0 cases=0 replayed_batch=False
+INFO:test_function_archive:Function ingest key=station-a accepted=0 duplicates=0 retracted=0 cases=0 replayed_batch=True
+..INFO:test_function_archive:Function ingest key=station-a accepted=1 duplicates=0 retracted=0 cases=0 replayed_batch=False
+...INFO:test_function_archive:Function ingest key=station-a accepted=12 duplicates=0 retracted=0 cases=0 replayed_batch=False
+.INFO:test_function_archive:Function ingest key=station-a accepted=12 duplicates=0 retracted=0 cases=0 replayed_batch=False
+.INFO:test_function_archive:Function ingest key=station-a accepted=12 duplicates=0 retracted=0 cases=0 replayed_batch=False
+INFO:test_function_archive:Function ingest key=station-a accepted=0 duplicates=0 retracted=0 cases=0 replayed_batch=False
+.INFO:test_function_archive:Function ingest key=station-a accepted=12 duplicates=0 retracted=0 cases=0 replayed_batch=False
+INFO:test_function_archive:Function ingest key=station-a accepted=0 duplicates=0 retracted=0 cases=0 replayed_batch=False
+.INFO:test_function_archive:Function ingest key=station-a accepted=12 duplicates=0 retracted=0 cases=0 replayed_batch=False
+.INFO:test_function_archive:Function ingest key=station-a accepted=12 duplicates=0 retracted=0 cases=0 replayed_batch=False
+.INFO:test_function_archive:Function ingest key=station-a accepted=12 duplicates=0 retracted=0 cases=0 replayed_batch=False
+..INFO:test_function_archive:Function ingest key=station-a accepted=1 duplicates=0 retracted=0 cases=1 replayed_batch=False
+.INFO:test_function_archive:Function ingest key=station-a accepted=0 duplicates=0 retracted=0 cases=0 replayed_batch=False
+.INFO:test_function_archive:Function ingest key=station-a accepted=2 duplicates=0 retracted=0 cases=0 replayed_batch=False
+INFO:test_function_archive:Function ingest key=station-a accepted=0 duplicates=0 retracted=1 cases=0 replayed_batch=False
+.INFO:test_function_archive:Function ingest key=station-a accepted=5 duplicates=0 retracted=0 cases=0 replayed_batch=False
+INFO:test_function_archive:Function ingest key=station-a accepted=5 duplicates=0 retracted=0 cases=0 replayed_batch=False
+INFO:test_function_archive:Function ingest key=station-a accepted=5 duplicates=0 retracted=0 cases=0 replayed_batch=False
+INFO:test_function_archive:Function ingest key=station-a accepted=5 duplicates=0 retracted=0 cases=0 replayed_batch=False
+.INFO:test_function_archive:Function ingest key=station-a accepted=1 duplicates=0 retracted=0 cases=0 replayed_batch=False
+.INFO:test_function_archive:Function ingest key=station-a accepted=1 duplicates=0 retracted=0 cases=0 replayed_batch=False
+.INFO:test_function_archive:Function ingest key=station-a accepted=1 duplicates=0 retracted=0 cases=0 replayed_batch=False
+.....INFO:test_function_archive:Function ingest key=station-a accepted=1 duplicates=0 retracted=0 cases=0 replayed_batch=False
+...........................................................
+----------------------------------------------------------------------
+Ran 98 tests in 0.886s
+
+OK
