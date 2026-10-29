@@ -1,0 +1,9 @@
+// Merge into existing rules after inspecting the DEPLOYED rules; no deployment performed here.
+// A permissive overlapping match can still grant access: audit the full ruleset.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /vr_content_drafts/{document=**} { allow read, write: if false; }
+    match /vr_content_workspaces/{document=**} { allow read, write: if false; }
+  }
+}
