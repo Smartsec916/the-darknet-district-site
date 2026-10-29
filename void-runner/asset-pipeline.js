@@ -97,6 +97,16 @@
     return container;
   }
 
+  // Clones own skeletons (including their bone textures) and animation groups; materials stay with the container.
+  function ownInstance(result, owner) {
+    let disposed=false;
+    const dispose=()=>{if(disposed)return;disposed=true;
+      for(const g of result.animationGroups||[]){g.stop();g.dispose();}
+      for(const s of result.skeletons||[])s.dispose();
+    };
+    owner.onDisposeObservable.addOnce(dispose);
+    return dispose;
+  }
   function instance(id, parent) {
     const item = containers.get(id);
     if (!item) return null;
@@ -111,6 +121,7 @@
     // Cloned clips belong to this copy; they start stopped and the caller picks one (crowd figures).
     for (const group of result.animationGroups) group.stop();
     node.metadata = { animationGroups: result.animationGroups };
+    ownInstance(result,node);
     return node;
   }
   async function prepare(scene, definitions, task) {
@@ -130,11 +141,15 @@
     if(missed.length)console.warn('[VOID optional models] '+missed.length+' using procedural placeholders; timed-out downloads continue in the background for the next visit',missed);
     task?.check();
     // Once the scene is ready, so background downloads and parsing never hold up its readiness check.
-    if(later.length)scene.executeWhenReady(()=>{if(gen===generation)queue.push(...later.map(([id,def])=>({id,def,scene,gen})));pump();});
+    if(later.length){
+      // First presentation is the readiness boundary: background parsing must not re-block whenReadyAsync.
+      const batch={scene,items:later,observer:null};scheduled.add(batch);
+      batch.observer=scene.onAfterRenderObservable.addOnce(()=>{scheduled.delete(batch);if(gen===generation){queue.push(...later.map(([id,def])=>({id,def,scene,gen})));pump();}});
+    }
   }
   async function cached(def){try{return typeof caches!=='undefined'&&!!(await caches.match(new URL(def.src,base).href));}catch{return false;}}
   // Background downloads, two at a time. Released scenes cancel theirs, so the next place loads at full speed.
-  const backgroundLimit=120000,parallel=4;let generation=0;const listeners=new Set(),jobs=new Set(),queue=[],failed=new Map();
+  const backgroundLimit=120000,parallel=4;let generation=0;const listeners=new Set(),jobs=new Set(),scheduled=new Set(),queue=[],failed=new Map();
   function pump(){
     while(jobs.size<parallel&&queue.length){const next=queue.shift();if(next.gen===generation&&!next.scene.isDisposed)background(next);}
   }
@@ -157,11 +172,11 @@
   }
   // Called with a model id whenever a background model becomes available for the current scene.
   function onLoaded(listener){listeners.add(listener);return ()=>listeners.delete(listener);}
-  const pending=()=>jobs.size+queue.length;
+  const pending=()=>jobs.size+queue.length+[...scheduled].reduce((n,b)=>n+b.items.length,0);
 
   function unload(id){const item=containers.get(id);if(item){item.container.dispose();containers.delete(id);}}
   function release() {
-    generation++;queue.length=0;for(const job of jobs)job.controller.abort(Error('Scene released.'));
+    generation++;queue.length=0;for(const b of scheduled)b.scene.onAfterRenderObservable.remove(b.observer);scheduled.clear();for(const job of jobs)job.controller.abort(Error('Scene released.'));
     for (const {
         container
       }
@@ -171,7 +186,7 @@
   // The loaded container for an id (for builders that place many copies themselves), or null.
   function container(id){return containers.get(id)?.container||null;}
   const api = {
-    models,unload,container,loadContainer,onLoaded,get pending(){return pending();},get failed(){return new Map(failed);},
+    models,unload,container,loadContainer,ownInstance,onLoaded,get pending(){return pending();},get failed(){return new Map(failed);},
     validate,
     unpack,
     load,

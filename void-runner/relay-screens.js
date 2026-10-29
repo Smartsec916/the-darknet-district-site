@@ -159,5 +159,5 @@
   dataTimer-=dt;if(dataTimer<=0){dataTimer=4;refresh();}
   timer-=dt;if(timer<=0){timer=1/fps;draw();}
  };
- globalThis.VoidRelayScreens={get screens(){return screens;},draw,places,refresh,get slides(){return data?.slides||[];}};
+ globalThis.VoidRelayScreens={get screens(){return screens;},draw,places,refresh,release,get slides(){return data?.slides||[];}};
 })();
