@@ -62,4 +62,4 @@ body.vr-session button.vr-choice.quiet{color:#8fa6ae}
 @media (max-width:520px){body.vr-session .vr-choice-group{grid-template-columns:1fr}body.vr-session .dialogue-window.vr-companion-menu{right:12px!important;left:12px!important;width:auto!important}}
 @media (max-height:560px){body.vr-session .dialogue-window.vr-companion-menu{max-height:calc(100dvh - 120px)!important}}
 /* No weapons in VR, and the chip would sit on the companion menu. */
-body.vr-session #weapon-select-hud{display:none!important}
+/* Ground weapon visibility is owned by mouse-control.js and the common [hidden] rule. */

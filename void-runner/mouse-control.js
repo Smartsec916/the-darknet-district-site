@@ -74,7 +74,7 @@
   const c=context(),play=fps();
   // Dialogue, menus and panels always get the cursor back.
   if(locked()&&!play)document.exitPointerLock?.();
-  chip.hidden=!(play&&c);
+  chip.hidden=!(play&&c)||!!globalThis.VoidVR?.active;
   if(c){const cur=c.current(),list=available(c);chip.classList.toggle('fresh',performance.now()<flashUntil);
    chip.innerHTML=list.map(w=>'<span class="'+(w.id===cur?'on':'')+'">'+w.name+'</span>').join('')+(list.length>1?'<i>WHEEL</i>':'');}
   // Stations and planets show the same first-person pistol as Vesper (which draws its own).
