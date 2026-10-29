@@ -1,0 +1,13 @@
+FACTION ENCOUNTER {
+  start: 2,
+  actors: [
+    { id: 'a', target: null, hp: 6, dead: false },
+    { id: 'b', target: 'a', hp: 0, dead: true }
+  ],
+  renderer: 'babylon'
+}
+PASS opt-in visible faction combat, no player target, no population persistence, repeat Vesper resources and compact inventory return. [
+  { meshes: 246, materials: 70, textures: 33, skeletons: 0, groups: 0 },
+  { meshes: 246, materials: 70, textures: 33, skeletons: 0, groups: 0 },
+  { meshes: 246, materials: 70, textures: 33, skeletons: 0, groups: 0 }
+]
