@@ -100,7 +100,7 @@
    if(p.faceTo){want=Math.atan2(p.faceTo[0]-x,p.faceTo[1]-z);}
    const d=((want-p.yaw+Math.PI*3)%(Math.PI*2))-Math.PI;p.yaw+=d*Math.min(1,dt*(p.drunk?2.5:5));p.node.position.set(x,0,z);p.node.rotation.y=p.yaw;}
   // Frame-rate governor and distance culling: the people nearest the camera stay; the rest are switched off.
-  function density(dt){const c=cam(),metrics=root.VoidFrameMetrics?.stats;gov.fps=metrics?.fps||0;gov.budget=budget.step(dt,metrics);gov.check-=dt;
+  function density(dt){const c=cam(),metrics=root.VoidFrameMetrics?.stats;gov.fps=metrics?.fps||0;gov.budget=budget.step(Math.min((metrics?.interval||0)/1000,2),metrics);gov.check-=dt;
    if(c&&gov.check<=0){gov.check=.2;
     const shown=people.filter(p=>p.node&&!p.away).map(p=>({p,d:Math.hypot(p.node.position.x-c.x,p.node.position.z-c.z)})).sort((a,b)=>a.d-b.d);
     shown.forEach(({p,d},i)=>p.show=d<cfg.showRadius&&(i<gov.budget||d<10));

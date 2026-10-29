@@ -10,8 +10,8 @@ test('frame timing measures presented intervals, not a clamped simulation delta 
 });
 test('frame timing resets on pauses and long gaps instead of treating loading as sustained slowdown',()=>{
  const m=Timing.create();for(let t=0;t<4000;t+=16.67)m.sample(t);assert(m.stats.ready);
- m.sample(4000,false);assert(!m.stats.ready);m.sample(20000);m.sample(21000);assert.equal(m.stats.samples,0);
- m.sample(21016);assert.equal(m.stats.samples,1);assert(!m.stats.ready);
+ m.sample(4000,false);assert(!m.stats.ready);m.sample(20000);m.sample(31000);assert.equal(m.stats.samples,0);
+ m.sample(31016);assert.equal(m.stats.samples,1);assert(!m.stats.ready);
 });
 test('crowd budget warms up, reduces under sustained slowdown, and keeps a density floor',()=>{
  const b=N.createBudget(50);for(let i=0;i<20;i++)b.step(.1,{ready:false,fps:20});assert.equal(b.value,50);
@@ -47,4 +47,10 @@ test('optional crowd loading waits for first presentation, is counted while sche
  await Assets.prepare(scene,{'crowd:test':{src:'test.glb',background:true}});
  assert.equal(typeof callback,'function');assert.equal(Assets.pending,1);
  Assets.release();assert.equal(Assets.pending,0);assert.equal(removed,1);
+});
+
+test('sustained one-FPS active rendering remains measurable and reduces work in wall time',()=>{
+ const m=Timing.create(),b=N.createBudget(21);for(let t=0;t<=40000;t+=1100){m.sample(t);b.step(Math.min(m.stats.interval/1000,2),m.stats);}
+ assert(m.stats.ready);assert(Math.abs(m.stats.fps-1000/1100)<.01);assert.equal(b.value,9);
+ m.sample(41000,false);assert(!m.stats.ready);assert.equal(m.stats.interval,0);
 });

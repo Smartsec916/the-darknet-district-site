@@ -18,9 +18,9 @@ The extended soak also exposed optional model parsing restarting before scene re
 
 | Probe | Textures | Skeletons | Result |
 |---|---:|---:|---|
-| Independent audit, repeated Meridian visits | 168 → 178 → 188 | 119 → 128 → 137 | Accumulation in an already exercised session |
-| Fresh baseline probe on this base | 57 → 67 → 77 | 9 → 18 → 27 | Reproduced growth in three visits |
-| Fixed, visits 1–10 | 56 every visit | 8 every visit | Plateau with real assets |
+| Independent audit, repeated Meridian visits | 168 â†’ 178 â†’ 188 | 119 â†’ 128 â†’ 137 | Accumulation in an already exercised session |
+| Fresh baseline probe on this base | 57 â†’ 67 â†’ 77 | 9 â†’ 18 â†’ 27 | Reproduced growth in three visits |
+| Fixed, visits 1â€“10 | 56 every visit | 8 every visit | Plateau with real assets |
 
 All ten fixed visits also held **671 meshes, 271 materials, 74 animation groups and 7 playing groups**. Three Vesper visits held 246 meshes / 70 materials / 33 textures / 0 skeletons / 0 groups. These are scene resource counts, not GPU byte measurements. See `resource-before.json`, `results.json` and `faction-browser.cjs.log`.
 
@@ -30,7 +30,7 @@ The engine FPS statistic could report 60 while the application's presentation lo
 
 The crowd governor reduces its budget by four below 45 FPS and restores two above 56 FPS, no more than once every two seconds after warmup. The minimum is 40% of configured population. Decisions are ranked every 0.2 seconds; figures fade over 0.65 seconds, with nearby pedestrians retained. Hidden controllers pause their animation groups and resume when shown. Realistic models and nightlife routines remain intact.
 
-In the full Low-quality city run, adding 55 ms of controlled rendering work produced **73.81 ms / 13.55 FPS**, reduced the budget **21 → 9**, and paused **12 controllers**. After removing the load and facing an inexpensive view, timing recovered to **16.68 ms / 59.94 FPS** and the budget gradually returned to **21**. The early normal sample was still in warmup (24.87 ms smoothed, 16.7 ms RAF median); it is not a steady-state benchmark. The audit's prior 33.4 ms median / 50.3 ms p95 describes a different scene run. No claim is made that this patch guarantees 60 FPS in busy city views.
+In the full Low-quality city run, adding 55 ms of controlled rendering work produced **73.81 ms / 13.55 FPS**, reduced the budget **21 â†’ 9**, and paused **12 controllers**. After removing the load and facing an inexpensive view, timing recovered to **16.68 ms / 59.94 FPS** and the budget gradually returned to **21**. The early normal sample was still in warmup (24.87 ms smoothed, 16.7 ms RAF median); it is not a steady-state benchmark. The audit's prior 33.4 ms median / 50.3 ms p95 describes a different scene run. No claim is made that this patch guarantees 60 FPS in busy city views.
 
 ### VR campaign boundary
 
@@ -60,7 +60,7 @@ Reproduce: install existing dev dependencies, run `node tests/serve-modern.cjs`,
 
 After-fix captures: [Meridian](meridian.png), [NeoChinatown](neochinatown.png), [Forest](vr-forest.png), [Tropical](vr-tropical.png), [Seren suite](vr-suite-seren.png), [Kai suite](vr-suite-kai.png), [Nadia suite](vr-suite-nadia.png), [flight](flight.png), [taxi](taxi.png). They document retained presentation; this stage adds no artwork. Before-fix resource evidence is in `resource-before.json` and the original independent audit.
 
-Measured with headless Microsoft Edge on the available Windows integrated-GPU host at 1280×720, Low quality. **No physical ASUS ROG Ally validation** and no Firefox/Safari certification. Resource plateau is demonstrated for these repeated scenes, not a proof against every possible leak. Browser storage recovery was tested offline; cloud, payment and entitlement behavior was not changed or exercised against production. Offline service-worker caching remains a separate audit item. Existing prototype geometry and graphics quality are unchanged.
+Measured with headless Microsoft Edge on the available Windows integrated-GPU host at 1280Ã—720, Low quality. **No physical ASUS ROG Ally validation** and no Firefox/Safari certification. Resource plateau is demonstrated for these repeated scenes, not a proof against every possible leak. Browser storage recovery was tested offline; cloud, payment and entitlement behavior was not changed or exercised against production. Offline service-worker caching remains a separate audit item. Existing prototype geometry and graphics quality are unchanged.
 
 ## Changed files
 
@@ -97,3 +97,9 @@ The evidence and report in this directory are additional documentation files.
 ## Next stage awaiting approval
 
 Stage 2 will reuse the approved cyan homepage navigation across applicable main pages, centrally omit the current destination while preserving numbering, give Sleeping Pod exactly one styled Home control, and keep navigation out of active VOID//RUNNER gameplay. It will include desktop/mobile screenshots and link/accessibility checks in a separate reviewable change. It has not begun. Stages 3 and 4 remain unimplemented and need architectural review before editing/publishing infrastructure is chosen.
+
+## Linux CI timing follow-up
+
+The failed Linux artifact measured a 1133.3 ms RAF median but reported zero timing samples, zero FPS and `ready:false`. All three scene visits still plateaued at 56 textures / 8 skeletons. This was an actual measurement/governor starvation issue exposed by headless software rendering, not an ownership regression. Every frame exceeded the original 500 ms gap cutoff; additionally, crowd warmup advanced using a 40 ms capped simulation delta.
+
+Active intervals up to ten seconds now count; explicit inactive/hidden modes still reset measurements, and a longer suspension remains excluded. The sampler exposes the actual interval, and the crowd governor advances its warmup/check cadence with that interval (bounded to two seconds per update). This lets genuinely slow active rendering reduce work while preserving hysteresis, minimum density and gradual recovery. The browser assertion now waits for a nonzero ready measurement and a reduced budget rather than assuming ten wall-clock seconds suffices everywhere. It still requires actual slowdown and reduced population; zero FPS cannot falsely satisfy it. A new unit regression samples sustained 1100 ms intervals and verifies the 40% floor and inactivity reset. Node suite: 413 passed.
