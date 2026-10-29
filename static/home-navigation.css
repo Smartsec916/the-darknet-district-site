@@ -173,4 +173,4 @@ body.site-navigation .district-nav a:active .district-nav__panel { fill: #21454d
 /* Sleeping Pod keeps a single quiet exit, using the approved button frame. */
 body.site-navigation > .district-nav--quiet { position: relative; padding: 10px 16px; background: #071116; box-shadow: none; }
 .district-nav--quiet .district-nav__links { display: block; max-width: none; }
-.district-nav--quiet li { width: 140px; }
+.district-nav--quiet li { width: 140px; margin-inline: auto; }
