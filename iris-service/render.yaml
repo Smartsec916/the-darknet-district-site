@@ -1,0 +1,39 @@
+# Render Blueprint for the Iris chat service. It is a separate web service from the
+# existing Python API (server.py) and does not change it. Nothing here is active until
+# someone creates a Blueprint in the Render dashboard and points it at this file.
+# Secrets are never stored here: every `sync: false` value is entered in the dashboard.
+services:
+  - type: web
+    name: iris-chat
+    runtime: node
+    plan: free
+    rootDir: iris-service
+    # Deploy only when you choose to, not on every push
+    autoDeploy: false
+    # The build needs Vite and esbuild (devDependencies), and the server still loads
+    # Vite's config at startup, so dev packages must be installed even in production
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm run start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: OPENAI_API_KEY
+        sync: false
+      # Postgres connection string. The code uses Neon's serverless driver, so this
+      # must be a Neon database (Neon's free tier works; Render Postgres does not).
+      - key: DATABASE_URL
+        sync: false
+      # Passphrases (12+ characters) that verify the real Admin or Eva so they can
+      # recall stored conversations. Leave unset and nobody can recall them.
+      - key: IRIS_ADMIN_PASSPHRASE
+        sync: false
+      - key: IRIS_EVA_PASSPHRASE
+        sync: false
+      # Sites allowed to call the chat API from a browser
+      - key: ALLOWED_ORIGINS
+        value: https://thedarknetdistrict.com,https://www.thedarknetdistrict.com
+      - key: CHAT_LIMIT_PER_DAY
+        value: "150"
+      - key: CHAT_GLOBAL_DAILY_LIMIT
+        value: "3000"

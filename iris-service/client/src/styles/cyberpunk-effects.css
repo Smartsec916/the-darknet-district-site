@@ -1,0 +1,420 @@
+/* Advanced Cyberpunk Visual Effects */
+
+/* Holographic effect for chat window */
+.holographic-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.holographic-effect::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 0, 153, 0.05) 0%,
+    rgba(0, 255, 255, 0.05) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+  animation: hologramShift 8s ease infinite;
+}
+
+.holographic-effect::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    rgba(255, 0, 238, 0.03) 1px,
+    rgba(255, 0, 238, 0.03) 2px,
+    transparent 3px
+  );
+  z-index: 2;
+  pointer-events: none;
+  animation: scanUp 8s linear infinite;
+}
+
+/* Digital noise overlay for the chat interface */
+.digital-noise {
+  position: relative;
+}
+
+.digital-noise::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.1'/%3E%3C/svg%3E");
+  z-index: 3;
+  opacity: 0.2;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+/* Neon glow effects for borders */
+.neon-border {
+  box-shadow: 
+    0 0 5px rgba(236, 72, 153, 0.7),
+    0 0 10px rgba(236, 72, 153, 0.5),
+    0 0 20px rgba(236, 72, 153, 0.3),
+    inset 0 0 5px rgba(236, 72, 153, 0.2);
+  animation: neonPulse 2s ease-in-out infinite alternate;
+}
+
+/* Matrix-like text effect for incoming messages */
+.matrix-text {
+  position: relative;
+}
+
+.matrix-text::before {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: rgba(0, 255, 0, 0.3);
+  text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+  z-index: -1;
+  animation: matrixShift 0.3s linear infinite alternate;
+}
+
+/* Circuit trace border effects */
+.circuit-border {
+  position: relative;
+  border: 2px solid transparent !important;
+  background-clip: padding-box;
+}
+
+.circuit-border::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  z-index: -1;
+  background: linear-gradient(45deg, #ff00cc, #00ffcc, #ff00cc);
+  background-size: 200% 200%;
+  animation: circuitFlow 3s linear infinite;
+}
+
+/* Glitch text effect for error messages */
+.glitch-text {
+  position: relative;
+  animation: glitchText 0.5s infinite;
+}
+
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.glitch-text::before {
+  left: 2px;
+  text-shadow: -2px 0 #ff00cc;
+  clip: rect(44px, 450px, 56px, 0);
+  animation: glitchText 5s infinite linear alternate-reverse;
+}
+
+.glitch-text::after {
+  left: -2px;
+  text-shadow: 2px 0 #00ffcc;
+  clip: rect(44px, 450px, 56px, 0);
+  animation: glitchText 6s infinite linear alternate-reverse;
+}
+
+/* Enhanced typing indicator with neon glow */
+.enhanced-typing-indicator {
+  width: 10px;
+  height: 18px;
+  background: linear-gradient(to top, #ec4899, #f472b6);
+  box-shadow: 
+    0 0 5px rgba(236, 72, 153, 0.7),
+    0 0 10px rgba(236, 72, 153, 0.5),
+    0 0 15px rgba(236, 72, 153, 0.3);
+  animation: enhancedBlink 1s step-end infinite;
+  display: inline-block;
+}
+
+/* Enhanced terminal scanline effect */
+.enhanced-scanline {
+  width: 100%;
+  height: 8px; /* Thinner scanline */
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(236, 72, 153, 0.2),
+    rgba(0, 255, 255, 0.1),
+    transparent
+  );
+  position: absolute;
+  animation: enhancedScan 3s linear infinite;
+  pointer-events: none;
+  z-index: 3;
+  top: 0;
+  opacity: 0.7;
+}
+
+/* Hexagon background pattern */
+.hex-pattern {
+  position: relative;
+}
+
+.hex-pattern::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill='%23ec4899' fill-opacity='0.03'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z'/%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.5;
+  z-index: -1;
+}
+
+/* Data stream effect */
+.data-stream {
+  position: relative;
+  overflow: hidden;
+}
+
+.data-stream::after {
+  content: "10100111 01011010 11100101 01010110";
+  position: absolute;
+  font-family: monospace;
+  font-size: 5px;
+  color: rgba(236, 72, 153, 0.15);
+  white-space: nowrap;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  animation: dataScroll 10s linear infinite;
+  z-index: -1;
+}
+
+/* Cybernetic accent corner */
+.corner-accent::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 10px;
+  height: 10px;
+  border-top: 2px solid #ec4899;
+  border-left: 2px solid #ec4899;
+}
+
+.corner-accent::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  border-bottom: 2px solid #ec4899;
+  border-right: 2px solid #ec4899;
+}
+
+/* Retro terminal glow for message input */
+.terminal-glow {
+  box-shadow: 0 0 10px #ec4899, 0 0 20px rgba(236, 72, 153, 0.5), 0 0 30px rgba(236, 72, 153, 0.2);
+  animation: terminalPulse 2s infinite alternate;
+}
+
+/* Enhanced digital distortion */
+.digital-distortion {
+  animation: digitalDistort 0.5s infinite;
+}
+
+/* Keyframe Animations */
+@keyframes hologramShift {
+  0% {
+    opacity: 0.3;
+    background-position: 0% 0%;
+  }
+  50% {
+    opacity: 0.5;
+    background-position: 100% 100%;
+  }
+  100% {
+    opacity: 0.3;
+    background-position: 0% 0%;
+  }
+}
+
+@keyframes scanUp {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes neonPulse {
+  0% {
+    box-shadow: 
+      0 0 5px rgba(236, 72, 153, 0.5),
+      0 0 10px rgba(236, 72, 153, 0.3),
+      0 0 15px rgba(236, 72, 153, 0.1);
+  }
+  100% {
+    box-shadow: 
+      0 0 10px rgba(236, 72, 153, 0.7),
+      0 0 20px rgba(236, 72, 153, 0.5),
+      0 0 30px rgba(236, 72, 153, 0.3);
+  }
+}
+
+@keyframes matrixShift {
+  0% {
+    transform: translateX(-1px) translateY(1px);
+  }
+  100% {
+    transform: translateX(1px) translateY(-1px);
+  }
+}
+
+@keyframes circuitFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes glitchText {
+  0% {
+    clip: rect(24px, 550px, 90px, 0);
+  }
+  20% {
+    clip: rect(62px, 550px, 130px, 0);
+  }
+  40% {
+    clip: rect(58px, 550px, 14px, 0);
+  }
+  60% {
+    clip: rect(64px, 550px, 52px, 0);
+  }
+  80% {
+    clip: rect(115px, 550px, 36px, 0);
+  }
+  100% {
+    clip: rect(53px, 550px, 27px, 0);
+  }
+}
+
+@keyframes enhancedBlink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes enhancedScan {
+  0% {
+    top: -8px;
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    top: 100%;
+    opacity: 0.5;
+  }
+}
+
+@keyframes dataScroll {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes terminalPulse {
+  0% {
+    box-shadow: 0 0 10px rgba(236, 72, 153, 0.5), 0 0 20px rgba(236, 72, 153, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 15px rgba(236, 72, 153, 0.7), 0 0 30px rgba(236, 72, 153, 0.5);
+  }
+}
+
+@keyframes digitalDistort {
+  0% {
+    transform: skew(0deg, 0deg);
+  }
+  20% {
+    transform: skew(0.5deg, 0.5deg);
+  }
+  40% {
+    transform: skew(-0.5deg, -0.5deg);
+  }
+  60% {
+    transform: skew(0.5deg, -0.5deg);
+  }
+  80% {
+    transform: skew(-0.5deg, 0.5deg);
+  }
+  100% {
+    transform: skew(0deg, 0deg);
+  }
+}
+
+/* Holographic text effect */
+.holographic-text {
+  color: white;
+  text-shadow: 
+    0 0 5px rgba(255, 255, 255, 0.5),
+    0 0 10px rgba(0, 255, 255, 0.3),
+    0 0 15px rgba(0, 255, 255, 0.1);
+  position: relative;
+}
+
+.holographic-text::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: transparent;
+  text-shadow: 
+    0 0 5px rgba(255, 0, 255, 0.5),
+    0 0 10px rgba(255, 0, 255, 0.3);
+  animation: hologramTextShift 2s ease infinite alternate;
+}
+
+@keyframes hologramTextShift {
+  0% {
+    opacity: 0.3;
+    transform: translateX(-1px);
+  }
+  100% {
+    opacity: 0.7;
+    transform: translateX(1px);
+  }
+}

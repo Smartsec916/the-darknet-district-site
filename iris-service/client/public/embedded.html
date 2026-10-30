@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iris Chat Interface (Direct Embed)</title>
+  <style>
+    :root {
+      --primary-color: #ff0099;
+      --secondary-color: #0F9;
+      --background-color: rgba(0, 0, 0, 0.65);
+      --text-color: #e0e0e0;
+      --border-color: rgba(255, 0, 153, 0.7);
+      --shadow-color: rgba(0, 255, 153, 0.5);
+      --chat-width: 400px;
+      --chat-height: 600px;
+    }
+    
+    /* Main chat button */
+    #iris-chat-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      border: 2px solid var(--secondary-color);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 100000;
+      box-shadow: 0 0 15px var(--shadow-color);
+      font-family: 'Courier New', monospace;
+      transition: all 0.3s ease;
+    }
+    
+    #iris-chat-button img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    
+    #iris-chat-button:hover {
+      transform: scale(1.1);
+    }
+    
+    /* Chat container */
+    #iris-chat-container {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      width: var(--chat-width);
+      height: var(--chat-height);
+      background-color: var(--background-color);
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      z-index: 99999;
+      overflow: hidden;
+      display: none;
+      flex-direction: column;
+      color: var(--text-color);
+      font-family: 'Courier New', monospace;
+      box-shadow: 0 0 20px var(--shadow-color);
+    }
+    
+    /* Chat header */
+    .chat-header {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      background-color: rgba(0, 0, 0, 0.7);
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .chat-header img {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    
+    .chat-header h3 {
+      margin: 0;
+      flex-grow: 1;
+      color: var(--primary-color);
+    }
+    
+    .close-chat {
+      color: var(--text-color);
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    
+    /* Chat messages */
+    .chat-messages {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .message {
+      max-width: 80%;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .user-message {
+      align-self: flex-end;
+      background-color: rgba(255, 0, 153, 0.3);
+      border: 1px solid var(--border-color);
+    }
+    
+    .iris-message {
+      align-self: flex-start;
+      background-color: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--secondary-color);
+    }
+    
+    /* Chat input */
+    .chat-input {
+      display: flex;
+      padding: 10px;
+      background-color: rgba(0, 0, 0, 0.5);
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .chat-input input {
+      flex-grow: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      background-color: rgba(0, 0, 0, 0.3);
+      color: var(--text-color);
+      margin-right: 10px;
+      font-family: 'Courier New', monospace;
+    }
+    
+    .chat-input button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 15px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+    }
+    
+    /* Cyberpunk effects */
+    .scan-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, 
+        rgba(0, 0, 0, 0) 0%, 
+        rgba(0, 255, 153, 0.04) 50%, 
+        rgba(0, 0, 0, 0) 100%);
+      animation: scan 8s linear infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    @keyframes scan {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100%); }
+    }
+    
+    /* Typing indicator */
+    .typing-indicator {
+      display: none;
+      align-self: flex-start;
+      background-color: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--secondary-color);
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .typing-indicator span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--secondary-color);
+      margin-right: 5px;
+      animation: typing 1s infinite;
+    }
+    
+    .typing-indicator span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .typing-indicator span:nth-child(3) {
+      animation-delay: 0.4s;
+      margin-right: 0;
+    }
+    
+    @keyframes typing {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    
+    .message p {
+      margin: 0;
+      word-break: break-word;
+    }
+    
+    /* Glitch effects */
+    .glitch {
+      position: relative;
+    }
+    
+    .glitch::before, .glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.8;
+    }
+    
+    .glitch::before {
+      left: -2px;
+      text-shadow: 2px 0 #0F9;
+      animation: glitch-1 2s infinite linear alternate-reverse;
+    }
+    
+    .glitch::after {
+      left: 2px;
+      text-shadow: -2px 0 #FF0099;
+      animation: glitch-2 3s infinite linear alternate-reverse;
+    }
+    
+    @keyframes glitch-1 {
+      0%, 80%, 100% { clip-path: inset(0 0 0 0); }
+      20% { clip-path: inset(10% 0 80% 0); }
+      40% { clip-path: inset(50% 0 40% 0); }
+      60% { clip-path: inset(30% 0 60% 0); }
+    }
+    
+    @keyframes glitch-2 {
+      0%, 80%, 100% { clip-path: inset(0 0 0 0); }
+      20% { clip-path: inset(60% 0 20% 0); }
+      40% { clip-path: inset(10% 0 70% 0); }
+      60% { clip-path: inset(70% 0 10% 0); }
+    }
+    
+    /* Button styles for direct link */
+    #direct-link {
+      color: var(--secondary-color);
+      text-decoration: none;
+      margin-left: 10px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Iris Chat Button -->
+  <div id="iris-chat-button">
+    <img src="data:image/png;base64,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" alt="Iris Avatar">
+  </div>
+  
+  <!-- Iris Chat Container -->
+  <div id="iris-chat-container">
+    <div class="scan-line"></div>
+    <div class="chat-header">
+      <img src="data:image/png;base64,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" alt="Iris">
+      <h3>Iris AI</h3>
+      <a id="direct-link" href="https://iris-chat-interface-smartsec916.replit.app/" target="_blank">Full View</a>
+      <button class="close-chat">×</button>
+    </div>
+    
+    <div class="chat-messages">
+      <!-- Messages will be dynamically added here -->
+      <div class="message iris-message">
+        <p>Connection established. I'm Iris, your digital guide to the Darknet District. How can I assist you today?</p>
+      </div>
+      <div class="typing-indicator">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+    
+    <div class="chat-input">
+      <input type="text" placeholder="Type your message...">
+      <button>Send</button>
+    </div>
+  </div>
+
+  <script>
+    // Set up chat functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const chatButton = document.getElementById('iris-chat-button');
+      const chatContainer = document.getElementById('iris-chat-container');
+      const closeButton = document.querySelector('.close-chat');
+      const chatInput = document.querySelector('.chat-input input');
+      const sendButton = document.querySelector('.chat-input button');
+      const messagesContainer = document.querySelector('.chat-messages');
+      const typingIndicator = document.querySelector('.typing-indicator');
+      
+      // Session ID for Iris
+      let sessionId = null;
+      
+      // Toggle chat container visibility
+      chatButton.addEventListener('click', function() {
+        if (chatContainer.style.display === 'none' || chatContainer.style.display === '') {
+          chatContainer.style.display = 'flex';
+          setTimeout(() => chatInput.focus(), 300);
+          
+          // Initialize chat session if needed
+          if (!sessionId) {
+            initChatSession();
+          }
+        } else {
+          chatContainer.style.display = 'none';
+        }
+      });
+      
+      // Close chat on button click
+      closeButton.addEventListener('click', function() {
+        chatContainer.style.display = 'none';
+      });
+      
+      // Send message on button click or Enter key
+      function sendMessage() {
+        const message = chatInput.value.trim();
+        if (message && sessionId) {
+          // Add user message to chat
+          addMessage('user', message);
+          chatInput.value = '';
+          
+          // Show typing indicator
+          typingIndicator.style.display = 'block';
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+          
+          // Send to Iris API
+          fetch('https://iris-chat-interface-smartsec916.replit.app/api/chat/message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId, message })
+          })
+          .then(response => response.json())
+          .then(data => {
+            // Hide typing indicator and add Iris response
+            typingIndicator.style.display = 'none';
+            if (data && data.response) {
+              addMessage('iris', data.response);
+            } else {
+              addMessage('iris', "I'm having trouble connecting to my systems. Can you try again?");
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            typingIndicator.style.display = 'none';
+            addMessage('iris', "Connection error. I seem to be having trouble reaching my network. Please try again later.");
+          });
+        }
+      }
+      
+      // Initialize chat session with backend
+      function initChatSession() {
+        fetch('https://iris-chat-interface-smartsec916.replit.app/api/chat/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.sessionId) {
+            sessionId = data.sessionId;
+            console.log("Chat session initialized:", sessionId);
+          }
+        })
+        .catch(error => {
+          console.error('Session initialization error:', error);
+        });
+      }
+      
+      // Add message to chat container
+      function addMessage(sender, text) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message`;
+        
+        const messageText = document.createElement('p');
+        messageText.textContent = text;
+        messageDiv.appendChild(messageText);
+        
+        messagesContainer.appendChild(messageDiv);
+        
+        // Auto-scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+      
+      // Event listeners
+      sendButton.addEventListener('click', sendMessage);
+      chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

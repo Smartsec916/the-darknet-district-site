@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html, body, #root {
+    @apply font-sans antialiased text-foreground;
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+}
+
+@layer utilities {
+  /* Custom Scrollbar Styling */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #ec4899 #000000; /* Use direct color instead of CSS var for better cross-browser support */
+    -webkit-overflow-scrolling: touch; /* Improved scrolling on iOS */
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px; /* Slightly wider for better usability */
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #000000;
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #ec4899; /* Pink to match the theme */
+    border-radius: 10px;
+    border: 1px solid #000000;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #f472b6; /* Lighter pink on hover */
+  }
+  
+  /* Iris chat scrollbar specifics */
+  .iris-chat-window .overflow-y-auto {
+    overflow-y: scroll !important; /* Force visible scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: #ec4899 #000000;
+  }
+  
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
