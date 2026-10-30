@@ -1,0 +1,82 @@
+{
+  "checks": [
+    "Desktop seven pages, actual Shopify titles/prices, filters and native category keyboard navigation",
+    "Mobile seven pages, actual Shopify titles/prices, filters and native category keyboard navigation",
+    "No Add to Cart, checkout, payment or external purchase was submitted"
+  ],
+  "products": [
+    {
+      "mobile": false,
+      "title": "Holographic \"Fuck the System\" Sticker",
+      "price": "\n            Regular price \n            $5.50\n          ",
+      "color": "rgb(241, 244, 255)"
+    },
+    {
+      "mobile": false,
+      "title": "Holographic QR Code \"Corpo-Scum!\" Sticker",
+      "price": "\n            Regular price \n            $5.50\n          ",
+      "color": "rgb(241, 244, 255)"
+    },
+    {
+      "mobile": false,
+      "title": "The Darknet District: Rebellion Edition – T-Shirt",
+      "price": "\n            Regular price \n            $28.50\n          ",
+      "color": "rgb(241, 244, 255)"
+    },
+    {
+      "mobile": false,
+      "title": "Zen Zephyr: T-shirt",
+      "price": "\n            Regular price \n            $28.50\n          ",
+      "color": "rgb(241, 244, 255)"
+    },
+    {
+      "mobile": false,
+      "title": "Milked: Authorized Collection Rag",
+      "price": "\n            Regular price \n            $13.00\n          ",
+      "color": "rgb(241, 244, 255)"
+    },
+    {
+      "mobile": false,
+      "title": "Admin: Surveillance Countermeasure T-Shirt",
+      "price": "\n            Regular price \n            $28.50\n          ",
+      "color": "rgb(241, 244, 255)"
+    },
+    {
+      "mobile": true,
+      "title": "Holographic \"Fuck the System\" Sticker",
+      "price": "\n            Regular price \n            $5.50\n          ",
+      "color": "rgb(241, 244, 255)"
+    },
+    {
+      "mobile": true,
+      "title": "Holographic QR Code \"Corpo-Scum!\" Sticker",
+      "price": "\n            Regular price \n            $5.50\n          ",
+      "color": "rgb(241, 244, 255)"
+    },
+    {
+      "mobile": true,
+      "title": "The Darknet District: Rebellion Edition – T-Shirt",
+      "price": "\n            Regular price \n            $28.50\n          ",
+      "color": "rgb(241, 244, 255)"
+    },
+    {
+      "mobile": true,
+      "title": "Zen Zephyr: T-shirt",
+      "price": "\n            Regular price \n            $28.50\n          ",
+      "color": "rgb(241, 244, 255)"
+    },
+    {
+      "mobile": true,
+      "title": "Milked: Authorized Collection Rag",
+      "price": "\n            Regular price \n            $13.00\n          ",
+      "color": "rgb(241, 244, 255)"
+    },
+    {
+      "mobile": true,
+      "title": "Admin: Surveillance Countermeasure T-Shirt",
+      "price": "\n            Regular price \n            $28.50\n          ",
+      "color": "rgb(241, 244, 255)"
+    }
+  ],
+  "errors": []
+}

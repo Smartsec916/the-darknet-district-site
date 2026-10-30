@@ -657,3 +657,63 @@ def content_draft_validate(db, uid):
     if os.getenv('VOID_CONTENT_DRAFTS_ENABLED') == 'true':
         heads = {d['id']: d for d in content_drafts.listing(db, uid)['drafts']}
     return jsonify(content_drafts.validate(document, content_drafts.inventory(), heads))
+import void_runner_publication as content_releases
+
+
+@api.get('/developer/releases/schema')
+@signed_in
+def content_release_schema(db, uid):
+    content_drafts.editor(uid, balance_admin, enabled=False)
+    return jsonify(roles=content_releases.roles(uid, balance_admin),
+                   limits={'revisions': content_releases.MAX_RELEASES, 'packageBytes': content_releases.MAX_PACKAGE_BYTES},
+                   status='private-candidate-only')
+
+
+@api.get('/developer/releases')
+@signed_in
+def content_release_history(db, uid):
+    content_releases.authorize(uid, balance_admin)
+    return jsonify(content_releases.history(db, uid))
+
+
+@api.get('/developer/releases/<int:revision>')
+@signed_in
+def content_release_revision(db, uid, revision):
+    content_releases.authorize(uid, balance_admin)
+    return jsonify(content_releases.load(db, uid, revision))
+
+
+@api.post('/developer/releases/plan')
+@signed_in
+def content_release_plan(db, uid):
+    content_releases.authorize(uid, balance_admin)
+    return jsonify(content_releases.prepare(db, uid, request.get_json(silent=True), content_drafts.inventory(), plan=True))
+
+
+@api.post('/developer/releases/prepare')
+@signed_in
+def content_release_prepare(db, uid):
+    content_releases.authorize(uid, balance_admin, write=True)
+    return jsonify(content_releases.prepare(db, uid, request.get_json(silent=True), content_drafts.inventory()))
+
+
+@api.post('/developer/releases/rollback')
+@signed_in
+def content_release_rollback(db, uid):
+    content_releases.authorize(uid, balance_admin, write=True)
+    return jsonify(content_releases.prepare(db, uid, request.get_json(silent=True), content_drafts.inventory(), rollback=True))
+
+@api.get('/developer/releases/compare')
+@signed_in
+def content_release_compare(db, uid):
+    content_releases.authorize(uid, balance_admin)
+    numbers = []
+    for key in ['from', 'to']:
+        value = request.args.get(key, '')
+        if not value.isdigit() or len(value) > 3:
+            raise DraftError('Choose bounded release revision numbers.')
+        numbers.append(int(value))
+    before, after = [content_releases.load(db, uid, n) for n in numbers]
+    return jsonify(fromRevision=numbers[0], toRevision=numbers[1],
+                   diff=content_releases.comparison(before['documents'], after['documents']),
+                   writes=0, liveActivationImplemented=False)

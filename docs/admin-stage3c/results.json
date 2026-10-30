@@ -1,0 +1,7 @@
+{
+  "checks": [
+    "Real Flask plan performs zero writes; prepare r1/r2 and rollback r3 preserve immutable r1 and campaign storage",
+    "Mobile fits; sign-out clears release documents and history"
+  ],
+  "errors": []
+}
