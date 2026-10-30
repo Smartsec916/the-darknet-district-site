@@ -54,9 +54,14 @@ def comparison(old, new, path='$'):
     if type(old) is type(new) and isinstance(old, dict):
         out = []
         for key in sorted(set(old) | set(new)):
-            out.extend(comparison(old.get(key), new.get(key), path + '.' + key))
+            if key not in old:
+                out.append({'path': path + '.' + key, 'before': None, 'after': new[key], 'change': 'added'})
+            elif key not in new:
+                out.append({'path': path + '.' + key, 'before': old[key], 'after': None, 'change': 'removed'})
+            else:
+                out.extend(comparison(old[key], new[key], path + '.' + key))
         return out
-    if old == new:
+    if type(old) is type(new) and old == new:
         return []
     return [{'path': path, 'before': old, 'after': new}]
 

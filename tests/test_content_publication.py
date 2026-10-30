@@ -101,3 +101,7 @@ class ReleaseTests(unittest.TestCase):
         self.assertIn('Second private revised dialogue.',str(comparison.json['diff']))
         self.assertEqual(self.client.get('/api/void-runner/developer/releases/compare?from=1&to=2').status_code,401)
         self.assertEqual(self.client.get('/api/void-runner/developer/releases/compare?from=x&to=2',headers=self.header).status_code,400)
+    def test_diff_distinguishes_types_and_missing_null_fields(self):
+        self.assertTrue(releases.comparison(True,1))
+        self.assertEqual(releases.comparison({}, {"x":None})[0]["change"],"added")
+        self.assertEqual(releases.comparison({"x":None}, {})[0]["change"],"removed")

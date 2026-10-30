@@ -1,4 +1,4 @@
-..................................INFO:test_function_archive:Function ingest key=station-a accepted=1 duplicates=0 retracted=0 cases=0 replayed_batch=False
+...................................INFO:test_function_archive:Function ingest key=station-a accepted=1 duplicates=0 retracted=0 cases=0 replayed_batch=False
 INFO:test_function_archive:Function ingest key=station-a accepted=0 duplicates=2 retracted=0 cases=0 replayed_batch=False
 .INFO:test_function_archive:Function ingest key=station-a accepted=0 duplicates=0 retracted=0 cases=0 replayed_batch=False
 INFO:test_function_archive:Function ingest key=station-a accepted=0 duplicates=0 retracted=0 cases=0 replayed_batch=False
@@ -29,6 +29,6 @@ INFO:test_function_archive:Function ingest key=station-a accepted=5 duplicates=0
 .....INFO:test_function_archive:Function ingest key=station-a accepted=1 duplicates=0 retracted=0 cases=0 replayed_batch=False
 ...........................................................
 ----------------------------------------------------------------------
-Ran 123 tests in 2.177s
+Ran 124 tests in 4.070s
 
 OK
