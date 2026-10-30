@@ -1,0 +1,91 @@
+{
+  "pages": [
+    {
+      "file": "index.html",
+      "device": "desktop",
+      "links": 5,
+      "overflow": false
+    },
+    {
+      "file": "index.html",
+      "device": "mobile",
+      "links": 5,
+      "overflow": false
+    },
+    {
+      "file": "games-list.html",
+      "device": "desktop",
+      "links": 5,
+      "overflow": false
+    },
+    {
+      "file": "games-list.html",
+      "device": "mobile",
+      "links": 5,
+      "overflow": false
+    },
+    {
+      "file": "store-first-page.html",
+      "device": "desktop",
+      "links": 5,
+      "overflow": false
+    },
+    {
+      "file": "store-first-page.html",
+      "device": "mobile",
+      "links": 5,
+      "overflow": false
+    },
+    {
+      "file": "resources.html",
+      "device": "desktop",
+      "links": 5,
+      "overflow": false
+    },
+    {
+      "file": "resources.html",
+      "device": "mobile",
+      "links": 5,
+      "overflow": false
+    },
+    {
+      "file": "sleeping_pod.html",
+      "device": "desktop",
+      "links": 1,
+      "overflow": false
+    },
+    {
+      "file": "sleeping_pod.html",
+      "device": "mobile",
+      "links": 1,
+      "overflow": false
+    },
+    {
+      "file": "about.html",
+      "device": "desktop",
+      "links": 5,
+      "overflow": false
+    },
+    {
+      "file": "about.html",
+      "device": "mobile",
+      "links": 5,
+      "overflow": false
+    }
+  ],
+  "checks": [
+    "All generated root/static headers match; legacy header variants removed",
+    "Computed navigation text contrast meets WCAG AA (4.5:1)",
+    "Five keyboard stops, visible focus, Enter follows destination",
+    "Touch follows Arcade; all six destination routes return 200",
+    "Approved hover fill, reduced motion, forced colors",
+    "All main headers and navigation work without JavaScript",
+    "Sleeping Pod retains music and lighting controls with exactly one Home link",
+    "VOID//RUNNER fullscreen control and actual flight work without a website navigation overlay"
+  ],
+  "errors": [],
+  "externalServiceErrors": [
+    "ShopifyBuy is not defined",
+    "ShopifyBuy is not defined"
+  ]
+}

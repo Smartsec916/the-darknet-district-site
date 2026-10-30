@@ -1,0 +1,74 @@
+/* Approved District frame language, scoped to commerce. No gameplay or navigation overrides. */
+body.storefront,body.directory-panels{--store-text:#f1f4ff;--store-muted:#cbd6e3;--store-surface:#101824;--store-purchase:#86efb4;--store-ink:#071a13;--store-violet:#b7a1fa;--store-blue:#7eafe9;--store-magenta:#df95cf}
+body.storefront .categories-grid,body.storefront .category-grid{gap:22px;align-items:stretch}
+body.storefront .category-card,body.storefront .product-card,body.storefront .product-cell,body.directory-panels .district-panel{--frame-accent:var(--store-violet);position:relative;isolation:isolate;min-width:0;border:0;border-radius:0;background:var(--frame-accent);clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);box-shadow:none;padding:24px;animation:none!important;transform:none;transition:background-color 160ms ease;color:var(--store-text)}
+body.storefront .category-card::before,body.storefront .product-card::before,body.storefront .product-cell::before,body.directory-panels .district-panel::before{content:'';position:absolute;z-index:-1;inset:1px;clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);background:linear-gradient(145deg,#131a29f5,#0b141ff5)}
+body.storefront .category-card::after,body.storefront .product-card::after,body.storefront .product-cell::after,body.directory-panels .district-panel::after{content:'';position:absolute;pointer-events:none;top:6px;right:6px;width:34px;height:9px;border-top:2px solid var(--frame-accent);border-right:2px solid var(--frame-accent);opacity:.8}
+body.storefront .category-card{--frame-accent:var(--store-magenta);display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:172px;text-decoration:none;cursor:pointer}
+body.storefront .category-card .category-title{color:#f0c3e7;text-shadow:none;font-size:18px;letter-spacing:.06em;line-height:1.4}
+body.storefront .category-description,body.storefront .product-card p{color:var(--store-muted);line-height:1.65;text-shadow:none}
+body.storefront .product-card{width:100%;max-width:none;margin-bottom:24px}
+body.storefront .product-card h3{color:var(--store-text);text-shadow:none;line-height:1.4}
+body.storefront .product-card img{max-width:100%;max-height:320px;object-fit:contain;border-radius:0;filter:none!important;background:#0a111b;padding:8px}
+body.storefront .product-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;max-width:1120px;margin-inline:auto;padding:20px 0;background:none;border-radius:0;box-shadow:none}
+body.storefront .product-cell,body.directory-panels .district-panel{--frame-accent:var(--store-blue);justify-content:start;min-height:0;padding:22px}
+body.storefront .product-cell>div{max-width:100%;min-width:0;width:100%}
+body.storefront .product-cell iframe{max-width:100%;width:100%}
+body.storefront .filter-bar{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+body.storefront .filter-bar button{background:#112433;color:#dceeff;border:1px solid #719cc4;border-radius:0;min-height:44px;padding:10px 18px;text-shadow:none;box-shadow:none;transition:background-color 160ms ease,border-color 160ms ease;animation:none!important}
+body.storefront .filter-bar button[aria-pressed=true]{background:#35213d;border-color:#edb0dc;color:#fff0fb;box-shadow:inset 0 -3px #df95cf}
+body.storefront .filter-bar button:disabled{background:#1b2732;border-color:#697888;color:#b8c4d1;cursor:not-allowed}
+body.storefront .product-card .button,body.storefront .product-card .buy-button,body.storefront .product-card .download-button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;background:var(--store-purchase)!important;color:var(--store-ink)!important;border:1px solid #a6f5c7;border-radius:0;padding:10px 18px;box-shadow:none;text-shadow:none;font-weight:bold;text-decoration:none;margin:8px 8px 0 0}
+body.storefront .product-card .button[href*='Book.html']{background:#2e2346!important;color:#f0e7ff!important;border-color:#c2a3eb}
+body.storefront .category-card:focus-visible,body.storefront .filter-bar button:focus-visible,body.storefront .product-card a:focus-visible{outline:2px solid #ffe8ad;outline-offset:-4px;box-shadow:inset 0 0 0 3px #ffe8ad}
+@media(hover:hover){body.storefront .category-card:hover,body.storefront .product-card:hover,body.storefront .product-cell:hover,body.directory-panels .district-panel:hover{background:#e6c8fa;box-shadow:none;transform:none}body.storefront .filter-bar button:hover{background:#322144;border-color:#db9df5;color:#fff}body.storefront .product-card .button:hover,body.storefront .product-card .buy-button:hover{background:#b8ffd4!important}}
+@media(max-width:680px){body.storefront .product-grid{grid-template-columns:minmax(0,1fr);padding-inline:0;gap:18px}body.storefront .category-card,body.storefront .product-card,body.storefront .product-cell,body.directory-panels .district-panel{padding:20px}body.storefront .content{max-width:100%;min-width:0}body.storefront .filter-bar button{flex:1 1 125px}}
+@media(prefers-reduced-motion:reduce){body.storefront .category-card,body.storefront .product-card,body.storefront .product-cell,body.storefront .filter-bar button{transition:none!important;animation:none!important}}
+@media(forced-colors:active){body.storefront .category-card,body.storefront .product-card,body.storefront .product-cell,body.directory-panels .district-panel{border:1px solid CanvasText;clip-path:none}body.storefront .category-card::before,body.storefront .product-card::before,body.storefront .product-cell::before,body.directory-panels .district-panel::before{display:none}body.storefront .filter-bar button[aria-pressed=true]{border:3px solid Highlight}}
+body.storefront .store-bg>.product-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));max-width:1200px}
+body.storefront .category-card{margin:0}
+/* The ambient HUD makes direct children relative; Shopify's off-canvas cart must remain fixed. */
+body.storefront .shopify-buy-frame--cart{position:fixed!important;top:0!important;right:0!important;left:auto!important;max-width:100vw;z-index:10000}
+
+/* Directory pages share the storefront frame, without commerce behavior. */
+body.directory-panels{font-family:'Courier New',monospace;color:var(--store-text)}
+body.directory-panels .district-panel{--frame-accent:var(--store-blue);box-sizing:border-box;overflow-wrap:anywhere;text-decoration:none}
+body.directory-panels .game-card,body.directory-panels .nav-button{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;min-height:190px;width:100%;margin:0}
+body.directory-panels .nav-button{--frame-accent:var(--store-magenta);height:100%}
+body.directory-panels .nav-button.curious,body.directory-panels .resource-card,body.directory-panels .product-card{--frame-accent:var(--store-violet)}
+body.directory-panels .district-panel h2,body.directory-panels .district-panel h3,body.directory-panels .button-title{color:var(--store-text);text-shadow:none;line-height:1.4;margin:0 0 12px;font-size:clamp(18px,2vw,23px)}
+body.directory-panels .nav-button.curious .button-title{color:#f0c3e7;text-shadow:none}
+body.directory-panels .district-panel p,body.directory-panels .button-description{color:var(--store-muted);line-height:1.65;text-shadow:none;margin:0 0 12px}
+body.directory-panels .district-panel a{color:#c3dfff}
+body.directory-panels .status-tag,body.directory-panels .button,body.directory-panels .back-button,body.directory-panels .curious-link{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:44px;padding:10px 16px;border:1px solid #a6f5c7;border-radius:0;background:var(--store-purchase)!important;color:var(--store-ink)!important;font-weight:bold;text-shadow:none;box-shadow:none;text-decoration:none;transform:none;transition:background-color 160ms ease;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+body.directory-panels .game-card[aria-disabled=true]{--frame-accent:#9c906c;cursor:default}
+body.directory-panels .coming-soon{background:#392f1c!important;color:#f3d89d!important;border-color:#aa9460}
+body.directory-panels .games-grid{box-sizing:border-box;width:100%;max-width:1200px;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:24px;padding:20px}
+body.directory-panels .content{box-sizing:border-box;border:0;border-radius:0;box-shadow:none;background:transparent;max-width:900px;width:100%;padding:32px 20px}
+body.directory-panels .section{margin-bottom:24px}
+body.directory-panels .intro-text{max-width:800px}
+body.directory-panels .product-card{box-sizing:border-box;max-width:800px;margin:32px auto;padding:28px}
+body.directory-panels .product-card img{max-width:100%;object-fit:contain}
+body.directory-panels .district-panel:focus-visible,body.directory-panels a:focus-visible{outline:2px solid #ffe8ad;outline-offset:-4px;box-shadow:inset 0 0 0 3px #ffe8ad}
+@media(hover:hover){body.directory-panels a.district-panel:hover{background:#e6c8fa;transform:none;box-shadow:none}body.directory-panels .back-button:hover,body.directory-panels .button:hover{background:#b8ffd4!important}}
+@media(max-width:680px){body.directory-panels .nav-button{padding:24px 18px}body.directory-panels .games-grid{padding:16px}body.directory-panels .resources-title,body.directory-panels .title{font-size:28px;overflow-wrap:anywhere}body.directory-panels .product-card{max-width:100%!important;padding:20px}body.directory-panels .additional-resources-grid{max-width:100%;grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:reduce){body.directory-panels .district-panel,body.directory-panels .back-button,body.directory-panels .button{animation:none!important;transition:none!important}}
+@media(forced-colors:active){body.directory-panels .district-panel{border:1px solid CanvasText;clip-path:none}body.directory-panels .district-panel::before,body.directory-panels .district-panel::after{display:none}}
+
+/* Equal tracks accommodate the longest resource description without truncation. */
+body.directory-panels .nav-container,body.directory-panels .additional-resources-grid{width:calc(100% - 40px);max-width:1100px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:1fr;gap:24px;align-items:stretch}
+body.directory-panels .nav-container .nav-button,body.directory-panels .additional-resources-grid .resource-card{width:100%;max-width:none;min-height:280px;height:100%;margin:0;padding:28px;box-sizing:border-box;text-align:center}
+body.directory-panels .additional-resources-grid .resource-card{display:flex;flex-direction:column;justify-content:center}
+body.directory-panels .additional-resources-grid .curious-link{margin-top:auto;padding:10px 16px}
+body.directory-panels .cyberpunk-title::before{width:100%}
+@media(max-width:680px){body.directory-panels .nav-container,body.directory-panels .additional-resources-grid{grid-template-columns:minmax(0,1fr);width:calc(100% - 32px)}body.directory-panels .nav-container .nav-button,body.directory-panels .additional-resources-grid .resource-card{padding:24px 18px;min-height:280px}}
+
+body.directory-panels .district-panel h3,body.directory-panels .district-panel::before{animation:none!important}
+
+/* Let the decorative HUD follow natural directory height after responsive reflow. */
+body.directory-panels{height:auto;min-height:100vh}
+body.directory-panels[data-hud] .tdnd-hud-layer{height:100%}
+/* Override the older mobile reset only for the shared equal-height resource collection. */
+@media(max-width:720px){body.directory-panels .nav-container.additional-resources-grid{grid-auto-rows:1fr!important}body.directory-panels .nav-container.additional-resources-grid>.district-panel{height:100%!important;min-height:280px!important}}
+
+body.directory-panels .resources-bg{overflow:clip;width:100%}
