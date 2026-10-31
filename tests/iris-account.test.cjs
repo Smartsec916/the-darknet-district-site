@@ -30,8 +30,8 @@ test('the account menu: IRIS CONTROLS only for a server-confirmed administrator;
   const ids = state => menuItems(state).map(item => item.id);
   assert.deepEqual(ids({ signedIn: false, admin: false }), []);
   assert.deepEqual(ids({ signedIn: false, admin: true }), [], 'signed out shows nothing, whatever the flag says');
-  assert.deepEqual(ids({ signedIn: true, admin: false }), ['identity', 'link', 'forget', 'copy-id', 'logout']);
-  assert.deepEqual(ids({ signedIn: true, admin: true }), ['identity', 'controls', 'copy-id', 'logout']);
+  assert.deepEqual(ids({ signedIn: true, admin: false }), ['settings', 'link', 'forget', 'switch', 'logout']);
+  assert.deepEqual(ids({ signedIn: true, admin: true }), ['settings', 'controls', 'switch', 'logout']);
   assert.ok(!ids({ signedIn: true, admin: false }).includes('controls'));
 });
 
@@ -143,7 +143,7 @@ test('the shared Firebase project and the games are untouched', () => {
 
 test('the sign-in panel is attached to the page, uses safe DOM calls, and anonymous browsing needs nothing from it', () => {
   const account = read('iris-account.js');
-  assert.ok(account.includes('document.body.append(menu, modal)'), 'the menu and sign-in panel are attached to the page itself');
+  assert.ok(account.includes('document.body.append(menu, modal, settings)'), 'the menu and both panels are attached to the page itself');
   assert.ok(!/innerHTML\s*=/.test(account) && !/document\.write/.test(account), 'no HTML built from strings of user data');
   assert.ok(!/insertAdjacentHTML\((?!'beforeend', FRAME)/.test(account), 'the only HTML inserted is the fixed button frame');
   assert.match(account, /if \(root\) \{/, 'nothing happens on a page without the placeholder');
@@ -178,4 +178,33 @@ test('the legacy copy of the homepage stays inert', () => {
   const copy = read('static/index.html');
   assert.match(copy, /data-district-account hidden/);
   assert.ok(!/iris-account\.js/.test(copy), 'the legacy copy does not load the account script, so its placeholder never shows');
+});
+
+test('account details: only what the account holds, never a token, empty rows left out', async () => {
+  const { accountDetails, providerLabel } = await core();
+  const user = { displayName: 'Neo', email: 'neo@example.test', emailVerified: false, uid: 'uid-1', providerData: [{ providerId: 'google.com' }, { providerId: 'password' }],
+    metadata: { creationTime: 'Tue, 01 Sep 2026 10:00:00 GMT', lastSignInTime: 'garbage' }, accessToken: 'SECRET-TOKEN', stsTokenManager: { refreshToken: 'SECRET-REFRESH' } };
+  const rows = accountDetails(user, { admin: true });
+  assert.deepEqual(rows.map(row => row[0]), ['NAME', 'EMAIL', 'SIGN-IN METHOD', 'EMAIL VERIFIED', 'MEMBER SINCE', 'IRIS ACCESS', 'ACCOUNT ID']);
+  assert.equal(Object.fromEntries(rows)['SIGN-IN METHOD'], 'Google + Email link');
+  assert.equal(Object.fromEntries(rows)['EMAIL VERIFIED'], 'No');
+  assert.equal(Object.fromEntries(rows)['MEMBER SINCE'], '2026-09-01');
+  assert.ok(!JSON.stringify(rows).includes('SECRET'), 'no token or credential ever reaches the panel');
+  assert.deepEqual(accountDetails(null, null), []);
+  assert.equal(providerLabel({ isAnonymous: true }), 'Game handle (not connected to Google or email)');
+  assert.equal(providerLabel({ providerData: [] }), null);
+  assert.equal(accountDetails({ uid: 'u', providerData: [] }, { admin: false }).some(row => row[0] === 'IRIS ACCESS'), false);
+});
+
+test('the menu and panels cannot be pushed into the page by the site\'s own styles, and the account button never scrolls the page', () => {
+  const css = read('iris-account.css');
+  assert.match(css, /body > \.district-account__menu \{\s*position: fixed !important;\s*z-index: 100000 !important;/);
+  assert.match(css, /body > \.district-login \{\s*position: fixed !important;[^}]*z-index: 100000 !important;/);
+  assert.match(read('hud.css'), /body\[data-hud="immersive"\] > :not\(\.tdnd-hud-layer\)/, 'the rule this guards against still exists');
+  const account = read('iris-account.js');
+  assert.match(account, /event\.preventDefault\(\); \/\/ the account name is a button/);
+  assert.match(account, /focus\(\{ preventScroll: true \}\)/);
+  assert.match(account, /select_account/);
+  assert.ok(account.indexOf('await signOut(auth);') < account.indexOf("chooser.setCustomParameters"), 'signs out before the chooser');
+  assert.ok(!/localStorage\.(clear|removeItem)|sessionStorage\.clear|indexedDB\.deleteDatabase/.test(account), 'logging out never deletes stored data');
 });

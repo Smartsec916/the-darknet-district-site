@@ -27,15 +27,54 @@ export function accountLabel(user) {
  */
 export function menuItems({ signedIn, admin }) {
   if (!signedIn) return [];
-  const items = [{ id: 'identity', label: 'SIGNED IN', disabled: true }];
+  const items = [{ id: 'settings', label: 'ACCOUNT SETTINGS' }];
   if (admin) items.push({ id: 'controls', label: 'IRIS CONTROLS' });
   else {
     items.push({ id: 'link', label: 'LINK MY IRIS HISTORY' });
     items.push({ id: 'forget', label: 'FORGET WHAT IRIS REMEMBERS' });
   }
-  items.push({ id: 'copy-id', label: 'COPY ACCOUNT ID' });
+  items.push({ id: 'switch', label: 'SWITCH ACCOUNT' });
   items.push({ id: 'logout', label: 'LOG OUT' });
   return items;
+}
+
+const PROVIDERS = {
+  'google.com': 'Google',
+  password: 'Email link',
+  'emailLink': 'Email link',
+};
+
+/** How this account signs in, in plain words; null when Firebase does not say. */
+export function providerLabel(user) {
+  if (!user) return null;
+  if (user.isAnonymous) return 'Game handle (not connected to Google or email)';
+  const ids = (user.providerData || []).map(entry => entry && entry.providerId).filter(Boolean);
+  if (!ids.length) return null;
+  return ids.map(id => PROVIDERS[id] || id).join(' + ');
+}
+
+const day = text => {
+  const time = Date.parse(text);
+  return Number.isFinite(time) ? new Date(time).toISOString().slice(0, 10) : null;
+};
+
+/**
+ * The rows of the account information panel. Only what the account itself holds: never a token, a
+ * credential or anything Iris remembers. Rows with no value are left out.
+ */
+export function accountDetails(user, me) {
+  if (!user) return [];
+  const rows = [
+    ['NAME', user.displayName || null],
+    ['EMAIL', user.email || null],
+    ['SIGN-IN METHOD', providerLabel(user)],
+    ['EMAIL VERIFIED', user.email ? (user.emailVerified ? 'Yes' : 'No') : null],
+    ['MEMBER SINCE', day(user.metadata && user.metadata.creationTime)],
+    ['LAST SIGN-IN', day(user.metadata && user.metadata.lastSignInTime)],
+    ['IRIS ACCESS', me && me.admin ? 'Administrator' : null],
+    ['ACCOUNT ID', user.uid || null],
+  ];
+  return rows.filter(([, value]) => value);
 }
 
 /** A short, plain message for each sign-in problem. */

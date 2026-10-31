@@ -70,9 +70,11 @@
 .district-account__button:focus-visible { outline: 2px solid #fff0c9; outline-offset: 4px; }
 .district-account__button:active .district-account__panel { fill: #14393d; }
 
+/* hud.css sets position: relative; z-index: 2 on every direct child of <body> with higher specificity than a
+   plain class, so these two declarations must be !important or the menu and panels sink into the page */
 body > .district-account__menu {
-  position: fixed;
-  z-index: 100000;
+  position: fixed !important;
+  z-index: 100000 !important;
   display: flex;
   flex-direction: column;
   min-width: 250px;
@@ -105,7 +107,7 @@ body > .district-account__menu[hidden] { display: none; }
 body > .district-login {
   position: fixed !important;
   inset: 0;
-  z-index: 100000;
+  z-index: 100000 !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -175,4 +177,39 @@ body > .district-login[hidden] { display: none; }
   .district-account__button { border: 1px solid LinkText; color: LinkText; }
   .district-account__frame { display: none; }
   .district-account__button:focus-visible { outline-color: Highlight; }
+}
+
+/* Who is signed in, at the top of the menu */
+.district-account__who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #1f5f58;
+  font: 12px/1.4 'Courier New', Courier, monospace;
+  color: var(--acct-text);
+  overflow-wrap: anywhere;
+}
+.district-account__who strong { font-size: 13px; letter-spacing: .06em; color: #e6fffc; }
+.district-account__who span { color: #9cc9c4; }
+.district-account__who .district-account__provider { color: #7fcfc4; font-size: 11px; letter-spacing: .08em; }
+
+/* Account settings panel */
+.district-account__details { margin: 0; display: grid; gap: 8px; }
+.district-account__detail { display: grid; grid-template-columns: minmax(96px, 36%) 1fr; gap: 10px; align-items: baseline; }
+.district-account__detail dt { font-size: 10px; letter-spacing: .14em; color: #7fcfc4; }
+.district-account__detail dd { margin: 0; font-size: 13px; color: #e6fffc; overflow-wrap: anywhere; }
+.district-account__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.district-account__row .district-login__action { flex: 0 1 auto; padding: 10px 14px; }
+@media (max-width: 420px) {
+  .district-account__detail { grid-template-columns: 1fr; gap: 2px; }
+}
+
+/* The menu and panels sit on the page, outside the header, so they carry the account colors themselves */
+body > .district-account__menu,
+body > .district-login {
+  --acct: #2ee6c4;
+  --acct-bright: #8bfff0;
+  --acct-text: #c9fffa;
 }
