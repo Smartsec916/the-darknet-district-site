@@ -17,8 +17,8 @@ courtesy; the server checks every request.
 import {
   auth, provider, signInWithPopup, signInWithRedirect, linkWithPopup, onAuthStateChanged, signOut,
 } from './firebase-auth.js';
-import { sendEmailLink, completeEmailLink } from './district-identity.js';
-import { accountDetails, accountLabel, irisBase, menuItems, modeBadge, modeNote, providerLabel, signInMessage } from './iris-account-core.js';
+import { sendEmailLink, completeEmailLink, fetchHandle, claimHandle, checkHandle, handleOf } from './district-identity.js';
+import { accountDetails, accountLabel, handleHint, irisBase, menuItems, modeBadge, modeNote, providerLabel, signInMessage } from './iris-account-core.js';
 
 const root = document.querySelector('[data-district-account]');
 const identity = window.IrisIdentity;
@@ -37,6 +37,26 @@ function el(tag, className, text) {
 
 let me = { authenticated: false, admin: false };
 let currentUser = null;
+// The public handle from the handle registry: undefined while unknown (or the handle service is down), null when the
+// account has none yet, otherwise the handle. Never derived from the Firebase display name, which can be a real name.
+let handle;
+let handleNextChange = null;
+
+async function refreshHandle() {
+  handle = undefined;
+  handleNextChange = null;
+  const user = currentUser;
+  if (!user) return;
+  try {
+    const mine = await fetchHandle(user);
+    if (user !== currentUser) return;
+    handle = mine.handle || null;
+    handleNextChange = mine.nextChangeAt || null;
+  } catch {
+    // Handle service asleep or switched off: show only what is safe (a game-handle account's own name)
+    if (user === currentUser) handle = handleOf(user) || undefined;
+  }
+}
 
 async function api(path, { method = 'GET', body } = {}) {
   const token = await currentUser.getIdToken();
@@ -97,12 +117,16 @@ if (root) {
   const details = el('dl', 'district-account__details');
   const settingsNote = el('p', 'district-login__text', 'This is what your account holds. Your game progress and your Iris chats are not affected by anything on this page.');
   const settingsActions = el('div', 'district-account__row');
+  const handleNote = el('p', 'district-login__text');
+  const handleButton = el('button', 'district-login__action', 'CHANGE HANDLE');
+  handleButton.type = 'button';
+  handleButton.dataset.action = 'change-handle';
   const copyButton = el('button', 'district-login__action district-login__action--quiet', 'COPY ACCOUNT ID');
   copyButton.type = 'button';
   const settingsClose = el('button', 'district-login__close', 'CLOSE');
   settingsClose.type = 'button';
-  settingsActions.append(copyButton, settingsClose);
-  settingsPanel.append(settingsTitle, details, settingsNote, settingsActions);
+  settingsActions.append(handleButton, copyButton, settingsClose);
+  settingsPanel.append(settingsTitle, details, handleNote, settingsNote, settingsActions);
   settings.append(settingsPanel);
 
   const modal = el('div', 'district-login');
@@ -133,10 +157,39 @@ if (root) {
   panel.append(title, intro, google, emailLabel, email, send, status, forgetBrowser, close);
   modal.append(panel);
 
+  // Choose or change the public handle. The server decides (unique, 3-20 letters/numbers/underscores, not reserved);
+  // the checks here only save a round trip.
+  const handleModal = el('div', 'district-login');
+  handleModal.id = 'districtHandle';
+  handleModal.hidden = true;
+  handleModal.setAttribute('role', 'dialog');
+  handleModal.setAttribute('aria-modal', 'true');
+  handleModal.setAttribute('aria-labelledby', 'districtHandleTitle');
+  const handlePanel = el('div', 'district-login__panel');
+  const handleTitle = el('h2', 'district-login__title', 'CHOOSE YOUR HANDLE');
+  handleTitle.id = 'districtHandleTitle';
+  const handleIntro = el('p', 'district-login__text');
+  const handleLabel = el('label', 'district-login__label', 'PUBLIC HANDLE');
+  handleLabel.setAttribute('for', 'districtHandleInput');
+  const handleInput = el('input', 'district-login__input');
+  handleInput.id = 'districtHandleInput'; handleInput.type = 'text'; handleInput.autocomplete = 'off'; handleInput.spellcheck = false;
+  handleInput.maxLength = 20; handleInput.placeholder = 'Ghost_01';
+  const handleCheck = el('button', 'district-login__action district-login__action--quiet', 'CHECK AVAILABILITY');
+  handleCheck.type = 'button';
+  const handleSave = el('button', 'district-login__action', 'SAVE HANDLE');
+  handleSave.type = 'button';
+  const handleStatus = el('p', 'district-login__status');
+  handleStatus.setAttribute('role', 'status');
+  handleStatus.setAttribute('aria-live', 'polite');
+  const handleClose = el('button', 'district-login__close', 'NOT NOW');
+  handleClose.type = 'button';
+  handlePanel.append(handleTitle, handleIntro, handleLabel, handleInput, handleCheck, handleSave, handleStatus, handleClose);
+  handleModal.append(handlePanel);
+
   root.append(button);
   // The menu and the sign-in panel live on the page itself, not inside the header, so nothing on the page
   // (the header's own stacking, the hero content) can cover or clip them
-  document.body.append(menu, modal, settings);
+  document.body.append(menu, modal, settings, handleModal);
 
   const setStatus = (text, isError = false) => {
     status.textContent = text;
@@ -154,10 +207,76 @@ if (root) {
   }
   function closeModal() { modal.hidden = true; button.focus(); }
   function closeSettings() { settings.hidden = true; button.focus(); }
+  const renderLabel = () => {
+    label.textContent = accountLabel(currentUser, handle);
+    button.setAttribute('aria-label', currentUser ? `Account menu for ${label.textContent}` : 'Log in');
+  };
+  const setHandleStatus = (text, isError = false) => {
+    handleStatus.textContent = text;
+    handleStatus.dataset.state = isError ? 'error' : 'ok';
+  };
+  const promptKey = () => `districtHandlePrompt:${currentUser?.uid}`;
+  function openHandle({ first = false } = {}) {
+    if (!currentUser) return;
+    closeMenu();
+    const changing = Boolean(handle);
+    handleTitle.textContent = changing ? 'CHANGE YOUR HANDLE' : 'CHOOSE YOUR HANDLE';
+    handleIntro.textContent = (changing
+      ? `Your handle is ${handle}. `
+      : 'This is the name other players see in the games and on leaderboards, instead of your Google or email name. ')
+      + '3 to 20 letters, numbers or underscores. Your progress, purchases and Iris chats stay exactly as they are. You can change it once every 30 days.';
+    handleClose.textContent = first ? 'NOT NOW' : 'CANCEL';
+    handleInput.value = handle || '';
+    setHandleStatus(handleHint(handleInput.value));
+    handleModal.hidden = false;
+    handleInput.focus({ preventScroll: true });
+    handleInput.select();
+  }
+  function dismissHandlePrompt() {
+    try { sessionStorage.setItem(promptKey(), '1'); } catch { /* the prompt may simply show again next page */ }
+    handleModal.hidden = true;
+    button.focus({ preventScroll: true });
+  }
+  async function checkTypedHandle() {
+    const value = handleInput.value.trim();
+    const hint = handleHint(value);
+    if (hint) { setHandleStatus(hint, true); return; }
+    setHandleStatus('Checking…');
+    try {
+      const { available } = await checkHandle(value);
+      setHandleStatus(available ? `${value} is available.` : `${value} is already taken. Try another.`, !available);
+    } catch (error) { setHandleStatus(error.message, true); }
+  }
+  let savingHandle = false;
+  async function saveTypedHandle() {
+    if (savingHandle) return;
+    const value = handleInput.value.trim();
+    const hint = handleHint(value);
+    if (hint) { setHandleStatus(hint, true); return; }
+    savingHandle = true;
+    handleSave.disabled = true;
+    setHandleStatus('Saving…');
+    try {
+      const saved = await claimHandle(value);
+      handle = saved.handle;
+      handleNextChange = saved.nextChangeAt || null;
+      renderLabel();
+      handleModal.hidden = true;
+      button.focus({ preventScroll: true });
+    } catch (error) {
+      setHandleStatus(error.message || 'Could not save the handle. Try again shortly.', true);
+    } finally { savingHandle = false; handleSave.disabled = false; }
+  }
   function openSettings() {
     closeMenu();
     details.replaceChildren();
-    for (const [name, value] of accountDetails(currentUser, me)) {
+    handleButton.textContent = handle ? 'CHANGE HANDLE' : 'CHOOSE HANDLE';
+    const waiting = handleNextChange && handleNextChange * 1000 > Date.now();
+    handleNote.textContent = handle === undefined
+      ? 'Your handle could not be loaded just now. It is the name other players see. Try again shortly.'
+      : waiting ? `Your handle is the name other players see. You can change it again on ${new Date(handleNextChange * 1000).toISOString().slice(0, 10)}.`
+        : 'Your handle is the name other players see in the games and on leaderboards.';
+    for (const [name, value] of accountDetails(currentUser, me, handle)) {
       const row = el('div', 'district-account__detail');
       row.append(el('dt', undefined, name), el('dd', undefined, value));
       details.append(row);
@@ -291,6 +410,7 @@ if (root) {
   }
 
   const actions = {
+    handle: () => openHandle(),
     settings: openSettings,
     controls: () => { location.href = './iris-controls.html'; },
     link: linkHistory,
@@ -305,8 +425,7 @@ if (root) {
     menu.replaceChildren();
     const who = el('div', 'district-account__who');
     who.append(
-      el('strong', undefined, currentUser.displayName || currentUser.email || 'Account'),
-      ...(currentUser.email && currentUser.displayName ? [el('span', undefined, currentUser.email)] : []),
+      el('strong', undefined, handle || 'Account'),
       ...(providerLabel(currentUser) ? [el('span', 'district-account__provider', providerLabel(currentUser))] : []),
     );
     menu.append(who);
@@ -314,7 +433,7 @@ if (root) {
       const mode = el('div', 'district-account__modeline' + (modeBadge(me) ? ' district-account__modeline--test' : ''), modeNote(me));
       menu.append(mode);
     }
-    for (const item of menuItems({ signedIn: true, admin: me.admin })) {
+    for (const item of menuItems({ signedIn: true, admin: me.admin, needsHandle: handle === null })) {
       const entry = el('button', 'district-account__item', item.label);
       entry.type = 'button';
       entry.setAttribute('role', 'menuitem');
@@ -364,6 +483,13 @@ if (root) {
   modal.addEventListener('click', event => { if (event.target === modal) closeModal(); });
   settingsClose.addEventListener('click', closeSettings);
   settings.addEventListener('click', event => { if (event.target === settings) closeSettings(); });
+  handleButton.addEventListener('click', () => { settings.hidden = true; openHandle(); });
+  handleCheck.addEventListener('click', checkTypedHandle);
+  handleSave.addEventListener('click', saveTypedHandle);
+  handleInput.addEventListener('input', () => setHandleStatus(handleHint(handleInput.value)));
+  handleInput.addEventListener('keydown', event => { if (event.key === 'Enter') saveTypedHandle(); });
+  handleClose.addEventListener('click', dismissHandlePrompt);
+  handleModal.addEventListener('click', event => { if (event.target === handleModal) dismissHandlePrompt(); });
   copyButton.addEventListener('click', async () => {
     try { await navigator.clipboard.writeText(currentUser?.uid || ''); copyButton.textContent = 'COPIED'; }
     catch { window.prompt('Copy your account ID:', currentUser?.uid || ''); }
@@ -371,7 +497,8 @@ if (root) {
   });
   document.addEventListener('keydown', event => {
     if (event.key !== 'Escape') return;
-    if (!settings.hidden) closeSettings();
+    if (!handleModal.hidden) dismissHandlePrompt();
+    else if (!settings.hidden) closeSettings();
     else if (!modal.hidden) closeModal();
     else if (!menu.hidden) { closeMenu(); button.focus({ preventScroll: true }); }
   });
@@ -380,8 +507,9 @@ if (root) {
 
   onAuthStateChanged(auth, async user => {
     currentUser = user;
-    label.textContent = accountLabel(user);
-    button.setAttribute('aria-label', user ? `Account menu for ${label.textContent}` : 'Log in');
+    handle = undefined;
+    handleNextChange = null;
+    renderLabel();
     // The chat sends this with each message so the server can verify who is talking; signed out it sends nothing
     identity?.setTokenProvider(user ? force => user.getIdToken(Boolean(force)) : null);
     // Remember (in this browser) whether anyone is signed in, and tell the chat the answer is now known, so its first
@@ -389,9 +517,15 @@ if (root) {
     identity?.setSignedInHint(Boolean(user));
     identity?.markReady();
     if (user && !modal.hidden) closeModal();
-    if (!user) { closeMenu(); settings.hidden = true; }
-    await refreshMe();
+    if (!user) { closeMenu(); settings.hidden = true; handleModal.hidden = true; }
+    await Promise.all([refreshMe(), refreshHandle()]);
+    if (user !== currentUser) return;
+    renderLabel();
     renderMode();
+    // First sign-in without a handle: ask once per browser session (never blocks anything; NOT NOW is always there)
+    let asked = false;
+    try { asked = Boolean(sessionStorage.getItem(promptKey())); } catch { /* no storage: ask */ }
+    if (user && handle === null && !asked && handleModal.hidden && modal.hidden) openHandle({ first: true });
   });
 
   // Finish an email sign-in if this page was opened from the emailed link
