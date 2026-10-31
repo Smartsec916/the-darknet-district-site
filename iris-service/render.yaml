@@ -39,6 +39,9 @@ services:
         value: "150"
       - key: CHAT_GLOBAL_DAILY_LIMIT
         value: "3000"
+      # Visitors are told apart by trusting Render's proxy and Cloudflare's published ranges
+      # (server/clientIp.ts); nothing needs setting. TRUSTED_PROXY_HOPS and TRUSTED_PROXY_RANGES
+      # exist only as fallbacks; see docs/RATE-LIMITS.md before adding either.
 
       # --- Conversation viewer (off by default; see docs/LOGGING-AND-REPORTS.md) ---
       - key: IRIS_ADMIN_VIEWER

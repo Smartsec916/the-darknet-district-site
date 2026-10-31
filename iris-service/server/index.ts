@@ -6,6 +6,7 @@ import { closeDatabase } from "./db";
 import { ensureSchema } from "./migrate";
 import { log, logError } from "./logger";
 import { allowedOrigins } from "./origins";
+import { configureClientIp, logClientIpDiagnostic } from "./clientIp";
 
 const startedAt = Date.now();
 const app = express();
@@ -48,13 +49,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// Trust proxy for X-Forwarded-For headers (fixes express-rate-limit warning)
-app.set('trust proxy', 1);
+// Who is the visitor behind Render's proxies and Cloudflare? Every per-visitor rate limit
+// uses req.ip, so this must resolve the real visitor and ignore forged X-Forwarded-For
+// entries (see clientIp.ts).
+const proxyTrust = configureClientIp(app);
 
 // One line per API request: route pattern, status and time. Never the path's ids, the
 // request body, the response body or any header, so no conversation or token is logged.
 const SLOW_REQUEST_MS = 5000;
 app.use((req, res, next) => {
+  if (req.path.startsWith("/api") && req.path !== "/api/health") logClientIpDiagnostic(req, proxyTrust);
   const start = Date.now();
   res.on("finish", () => {
     if (!req.path.startsWith("/api")) return;

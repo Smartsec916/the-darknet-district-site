@@ -137,6 +137,8 @@ One JSON object per line. Search the log for the event name.
 |---|---|
 | `server_started` / `server_stopping` / `server_stopped` | start (with which settings are present, never their values) and clean shutdown on Render's SIGTERM |
 | `schema_ready` / `schema_incomplete` / `schema_setup_failed` | database tables checked on start |
+| `client_ip_configured` / `client_ip_diagnostic` | how visitors are told apart behind Render and Cloudflare, and a throttled health signal (never an address); see `RATE-LIMITS.md` |
+| `trusted_proxy_hops_ignored` / `trusted_proxy_range_ignored` | an invalid `TRUSTED_PROXY_HOPS` or `TRUSTED_PROXY_RANGES` entry was ignored |
 | `http_request` | every `/api` request: route pattern, status, milliseconds; `slow` over 5 s; `fallback`, `saved`, `language`, `replay` for chat |
 | `openai_request_failed` | an OpenAI call failed: status, error code, whether it timed out |
 | `iris_fallback_reply` / `iris_fallback_welcome` | a canned line replaced a real reply |
