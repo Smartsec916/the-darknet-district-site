@@ -194,7 +194,7 @@
  // Una and the two base figures (CGTrader packages David supplied, 2026-10-31). Una was a static model: she is rigged
  // on the Female Base skeleton (prepare_una.py); the base figures come rigged (prepare_basemesh.py). Like Ava and Eva:
  // their own empty personality, dialogue and voice, offered only on a local development server, able to come along
- // in pairs. The two base figures' names are placeholders until David names them; the male figure comes in briefs
+ // in pairs. The two base figures are Yuki and Dex (names by David, 2026-10-31; ids base-f / base-m); Dex comes in briefs
  // only, until David adds clothing.
  // Una's outfits are David's Style A (default), B and C made from her own clothes, plus the original. A look may
  // also set material values (`materials`: roughness factors) for a glossier finish.
@@ -207,9 +207,9 @@
     {id:'nightlife',label:'Nightlife (violet shorts, jacket)',parts:['jacket','shorts','piping_shorts'],textures:{outfit_pants:'pants-violet'},materials:{outfit_jacket:{roughness:.55},outfit_top:{roughness:.35},outfit_pants:{roughness:.3}}},
     {id:'elegant',label:'Elegant (violet jacket)',parts:['jacket','jacket_item','leggings','piping_jacket'],textures:{outfit_jacket:'jacket-violet'}},
     {id:'original',label:'Original (black leather)',parts:['jacket','jacket_item','leggings']}]}]});
- register({id:'base-f',name:'Female companion',sex:'female',model:'vr-companion-bf',file:'vr-companion-bf.vrpak',preview:'void-runner/assets/vr/companions/base-f.jpg',
+ register({id:'base-f',name:'Yuki',sex:'female',model:'vr-companion-bf',file:'vr-companion-bf.vrpak',preview:'void-runner/assets/vr/companions/base-f.jpg',
   listed:'dev',pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-base-f',voiceId:null},clips:{walk:['walk-f'],idleAlt:['idle-f2']}});
- register({id:'base-m',name:'Male companion',sex:'male',model:'vr-companion-bm',file:'vr-companion-bm.vrpak',preview:'void-runner/assets/vr/companions/base-m.jpg',
+ register({id:'base-m',name:'Dex',sex:'male',model:'vr-companion-bm',file:'vr-companion-bm.vrpak',preview:'void-runner/assets/vr/companions/base-m.jpg',
   listed:'dev',pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-base-m',voiceId:null},clips:{}});
 
  // ---- Looks: outfit, hairstyle, glasses, colours. A group's options each show their `parts` (mesh names; parts no
