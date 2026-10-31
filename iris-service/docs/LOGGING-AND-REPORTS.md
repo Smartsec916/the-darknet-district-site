@@ -27,7 +27,8 @@ site generates. Passphrase messages (Admin/Eva verification) are never stored.
 Existing rows are never changed or deleted. On start the service only creates what is missing
 (`CREATE ... IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`). This also fixes the old error
 `relation "chat_user_profiles" does not exist`, which meant the tables had never been created
-in that database (`npm run db:push` had not been run against it).
+in that database. Tables are now created only by the service itself, at start (see
+`SCHEMA-MIGRATIONS.md`); the build step does not touch the database.
 
 Check a database without changing it:
 

@@ -3,9 +3,11 @@
 // Every statement is additive and idempotent (CREATE ... IF NOT EXISTS, ADD COLUMN
 // IF NOT EXISTS). Nothing here drops, truncates, renames, rewrites or updates an
 // existing row or column, so it is safe to run against the production database on
-// every start. It exists because a fresh Neon database has no tables until
-// `npm run db:push` has been run, and the service used to fail every save with
-// `relation "chat_user_profiles" does not exist` until then.
+// every start. It is the ONLY place the schema is created or changed: a fresh Neon
+// database has no tables, and the service used to fail every save with
+// `relation "chat_user_profiles" does not exist` until they existed. (drizzle-kit
+// push is disabled; it would drop the tables that only this file creates.)
+// To change the schema, follow docs/SCHEMA-MIGRATIONS.md.
 import { dbQuery } from "./db";
 import { log, logError } from "./logger";
 

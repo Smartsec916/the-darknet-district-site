@@ -11,7 +11,9 @@ services:
     # Deploy only when you choose to, not on every push
     autoDeploy: false
     # The build needs Vite and esbuild (devDependencies), and the server still loads
-    # Vite's config at startup, so dev packages must be installed even in production
+    # Vite's config at startup, so dev packages must be installed even in production.
+    # No database step belongs here: tables are created, additively, when the service
+    # starts (server/migrate.ts). Do not add drizzle-kit push; see docs/SCHEMA-MIGRATIONS.md.
     buildCommand: npm ci --include=dev && npm run build
     startCommand: npm run start
     healthCheckPath: /api/health
