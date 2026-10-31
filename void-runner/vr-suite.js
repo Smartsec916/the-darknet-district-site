@@ -94,9 +94,9 @@
    for(const g of inst.animationGroups)g.stop();node.metadata={animationGroups:inst.animationGroups,companion:who.id};for(const m of node.getChildMeshes())m.isPickable=false;
    // Looks (vr-companions.js): the saved or default outfit, hairstyle, glasses and colours. Parts are shown or hidden;
    // colour variants are separate textures loaded the first time they are chosen.
-   const lookParts=new Set(C.looks(who).flatMap(g=>g.options.flatMap(o=>o.parts||[]))),partOf=m=>{const n=m.name.replace(/_primitive\d+$/,'');for(const p of lookParts)if(n.endsWith('_'+p))return p;return null;};
+   const lookParts=new Set(C.looks(who).flatMap(g=>g.options.flatMap(o=>o.parts||[]))),partOf=m=>{const n=m.name.replace(/_primitive\d+$/,'');let hit=null;for(const p of lookParts)if(n.endsWith('_'+p)&&(!hit||p.length>hit.length))hit=p;return hit;};// the longest part wins: "piping_jacket" is not "jacket"
    const materials=name=>{const out=new Set();for(const m of node.getChildMeshes())for(const x of m.material?.subMaterials||[m.material])if(x?.name===name)out.add(x);return [...out];};
-   let picked=C.savedLooks(who);const own={},loaded={};
+   let picked=C.savedLooks(who);const own={},ownMat={},loaded={};
    function variant(file){return loaded[file]??=(async()=>{const r=await fetch('void-runner/assets/models/crowd/'+look+'/'+file+'.vrtex');if(!r.ok)throw Error('Look texture HTTP '+r.status);
     // A variant is a scrambled PNG, JPEG or KTX2 (kept compressed on the GPU, like the model's own textures).
     const bytes=new Uint8Array(VoidAssets.unpack(await r.arrayBuffer())),ktx2=bytes[0]===0xab&&bytes[1]===0x4b&&bytes[2]===0x54&&bytes[3]===0x58;
@@ -108,6 +108,9 @@
     if(api.session)for(const [g,v] of Object.entries(C.chosen(who,picked)))api.session.settings['look-'+who.id+'-'+g]=v;
     await Promise.all(C.variantTextures(who).flatMap(name=>materials(name).map(async mat=>{if(!(name in own))own[name]=mat.albedoTexture;const file=want[name];if(!file){mat.albedoTexture=own[name];return;}
      try{const t=await variant(file);if(C.lookTextures(who,picked)[name]!==file)return;t.hasAlpha=!!own[name]?.hasAlpha;t.coordinatesIndex=own[name]?.coordinatesIndex||0;mat.albedoTexture=t;}catch(e){console.warn('[VR companion look]',file,e.message);}})));
+    // Material values (a glossier finish) for the chosen looks; materials no look sets keep their own.
+    const wantMat=C.lookMaterials(who,picked);
+    for(const name of C.variantMaterials(who))for(const mat of materials(name)){const base=ownMat[name]??={roughness:mat.roughness};mat.roughness=wantMat[name]?.roughness??base.roughness;}
     // Variants no longer worn give their GPU memory back (choosing one again reloads it, under a tenth of a second).
     const inUse=new Set(Object.values(C.lookTextures(who,picked)));
     for(const file of Object.keys(loaded))if(!inUse.has(file)){const p=loaded[file];delete loaded[file];p.then(t=>t.dispose(),()=>{});}
@@ -123,7 +126,8 @@
    const loop=()=>c.reclining?'recline':c.sitting?(Math.random()<.35?clip('sitAlt'):'sit'):c.dancing?c.danceClip:'idle';
    const idle=()=>anim.play(loop());
    // One-shot gesture, then back to whatever they were doing. Keeps them "busy" (the brain waits) meanwhile.
-   function gesture(role){if(c.state==='walk')return;const name=typeof role==='string'&&has(role)?role:gestureFor(role),len=anim.playOnce(name,loop());if(len)c.busy=Math.max(c.busy,len);}
+   function gesture(role){if(c.state==='walk')return;const name=typeof role==='string'&&has(role)?role:gestureFor(role),len=anim.playOnce(name,loop());if(len)c.busy=Math.max(c.busy,len);
+    if(['greet','flirt','laugh','confident','shy'].includes(role)){self.smile?.(1.2+Math.random()*1.5);for(const o of others(self))o.react?.(self);}}
    const at=()=>[node.position.x,node.position.z],dest=()=>c.state==='walk'&&c.path.length?c.path[c.path.length-1]:at();
    // Walking: a path round the furniture (A* on the room's collision), then `then` on arrival. Destinations keep
    // clear of the other companion unless `exact` (a seat).
@@ -152,7 +156,8 @@
     const head=bones.Head.getAbsolutePosition();
     // Now and then they glance away (out of the window, or to one side), then come back to you.
     att.glanceIn-=dt;if(att.glance){att.glance.t-=dt;if(att.glance.t<=0){att.glance=null;att.glanceIn=cfg.glanceEvery[0]+Math.random()*(cfg.glanceEvery[1]-cfg.glanceEvery[0]);}}
-    else if(att.glanceIn<=0&&!c.kissing){if(Math.random()>cfg.attention||c.state==='window'){const side=Math.random()<.5?-1:1,a=node.rotation.y+side*(.7+Math.random()*.5);att.glance={t:cfg.glanceFor[0]+Math.random()*(cfg.glanceFor[1]-cfg.glanceFor[0]),x:c.state==='window'?7:head.x+Math.sin(a)*3,y:head.y+(Math.random()-.6)*.6,z:c.state==='window'?node.position.z+(Math.random()-.5)*3:head.z+Math.cos(a)*3};}else att.glanceIn=2+Math.random()*3;}
+    else if(att.glanceIn<=0&&!c.kissing){const other=others(self)[0];if(other&&c.state!=='window'&&Math.random()<.18){const h=other.bones.Head?.getAbsolutePosition?.();if(h){att.glance={t:1.2+Math.random()*1.4,x:h.x,y:h.y,z:h.z};}}
+     else if(Math.random()>cfg.attention||c.state==='window'){const side=Math.random()<.5?-1:1,a=node.rotation.y+side*(.7+Math.random()*.5);att.glance={t:cfg.glanceFor[0]+Math.random()*(cfg.glanceFor[1]-cfg.glanceFor[0]),x:c.state==='window'?7:head.x+Math.sin(a)*3,y:head.y+(Math.random()-.6)*.6,z:c.state==='window'?node.position.z+(Math.random()-.5)*3:head.z+Math.cos(a)*3};}else att.glanceIn=2+Math.random()*3;}
     const target=att.glance||cam.globalPosition,seated=c.sitting||c.reclining,lim={...cfg,maxHeadYaw:cfg.maxHeadYaw*(seated?1.2:1)},Lk=C.look(node.rotation.y,head,target,lim,c.turning);
     // Standing still, they turn their whole body once you are well round to one side.
     const free=c.state==='idle'&&!seated&&!att.glance&&!(c.busy>0);
@@ -264,6 +269,17 @@
    const blinks=node.getChildMeshes().flatMap(m=>{const mt=m.morphTargetManager;return mt?Array.from({length:mt.numTargets},(_,i)=>mt.getTarget(i)).filter(t=>/^Eye_Blink_[LR]$/.test(t.name)):[];});
    if(blinks.length){let next=1.5+slot,t=-1;k.every(dt=>{next-=dt;if(next<=0&&t<0){t=0;next=Math.random()<.15?.3:2+Math.random()*4;}
     if(t>=0){t+=dt;const w=t<.07?t/.07:t<.18?1-(t-.07)/.11:0;for(const b of blinks)b.influence=Math.max(0,w);if(t>=.18)t=-1;}});}
+   // Life between interactions (David, 2026-10-31): now and then a smile (models with smile shapes), and a reaction to
+   // the other companion's gestures (a look, a laugh or a shy tilt, a smile). Occasional by design: each has its own
+   // random interval and cooldown, and nothing starts while they're walking, busy, or in a scene with you.
+   const smiles=node.getChildMeshes().flatMap(m=>{const mt=m.morphTargetManager;return mt?Array.from({length:mt.numTargets},(_,i)=>mt.getTarget(i)).filter(t=>/^Smile_[LR]$/.test(t.name)):[];});
+   const sm={w:0,hold:0,next:6+Math.random()*10};self.smile=dur=>{if(smiles.length)sm.hold=Math.max(sm.hold,dur);};
+   if(smiles.length)k.every(dt=>{sm.next-=dt;if(sm.next<=0){sm.next=7+Math.random()*12;if(Math.random()<.4&&!c.kissing)sm.hold=1.5+Math.random()*2;}
+    if(sm.hold>0)sm.hold-=dt;sm.w+=((sm.hold>0?.75:0)-sm.w)*Math.min(1,dt*4);for(const t of smiles)t.influence=sm.w;});
+   let reactAt=-1e9;self.react=from=>{const now=performance.now()/1000;if(now-reactAt<8||c.state!=='idle'||c.busy>0||c.sitting||c.dancing||c.kissing)return;
+    const [fx,fz]=from.at();if(Math.hypot(fx-node.position.x,fz-node.position.z)>4.5||Math.random()>.35)return;reactAt=now;
+    const h=from.bones.Head?.getAbsolutePosition?.();if(h)att.glance={t:1.6,x:h.x,y:h.y,z:h.z};
+    k.after(()=>{if(api.session&&c.state==='idle'&&!(c.busy>0)){self.smile(1.5+Math.random());const r=Math.random();if(r<.5)gesture(has('laugh')?'laugh':'shy');else if(r<.8)gesture('shy');}},600+Math.random()*600);};
    Object.assign(self,{node,anim,c,brain,att,bones,act,at,dest,talks,menu,gesture,wear,idle,
     talking(){anim.play(c.sitting?'sit-talk':c.dancing?c.danceClip:c.reclining?'recline':'talk');},
     greet(){c.greeted=true;gesture('greet');if(talks)say(self,C.pick(L.greet,mem,'greet'));},

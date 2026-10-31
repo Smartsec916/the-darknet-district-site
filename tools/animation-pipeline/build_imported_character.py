@@ -67,7 +67,8 @@ for b in rig.data.bones:
         b.name = b.name[len(prefix):]
 rig.name = spec['name']
 for o in meshes:
-    part = next((k for k in spec['meshes'] if o.name.endswith(k)), None)
+    # An exact name wins over a suffix ("piping_top" must not be taken for "top").
+    part = o.name if o.name in spec['meshes'] else next((k for k in spec['meshes'] if o.name.endswith(k)), None)
     o.name = spec['name'] + '_' + (spec['meshes'][part]['name'] if part else o.name)
 bpy.ops.file.pack_all()
 if opts.get('master'):

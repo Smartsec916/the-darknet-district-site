@@ -53,3 +53,12 @@ void-runner/assets/vr/companions/eva.jpg
 
 # Purchased Cyberpunk City pack models (CGTrader; licence for release not confirmed): built locally, not published.
 void-runner/assets/models/ncz/
+
+# Una and the Male/Female Base figures (CGTrader; licences not confirmed for release): built locally, not published.
+void-runner/assets/models/crowd/vr-companion-una.vrpak
+void-runner/assets/models/crowd/vr-companion-una/
+void-runner/assets/models/crowd/vr-companion-bf.vrpak
+void-runner/assets/models/crowd/vr-companion-bm.vrpak
+void-runner/assets/vr/companions/una.jpg
+void-runner/assets/vr/companions/base-f.jpg
+void-runner/assets/vr/companions/base-m.jpg

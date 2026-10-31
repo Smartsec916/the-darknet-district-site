@@ -45,7 +45,9 @@ function gpuProcessMB(pid){if(process.platform!=='win32'||!pid)return null;
  const frame=()=>page.evaluate(async()=>{const s=VoidBabylon.scene,inst=new BABYLON.SceneInstrumentation(s);inst.captureRenderTime=true;const t=[];await new Promise(r=>{let l=performance.now(),n=0;function f(x){t.push(x-l);l=x;if(++n===150)r();else requestAnimationFrame(f);}requestAnimationFrame(f);});t.sort((a,b)=>a-b);const rt=inst.renderTimeCounter.average;inst.dispose();return {medianFrameMs:+t[75].toFixed(2),p95FrameMs:+t[142].toFixed(2),avgRenderMs:+rt.toFixed(2)};});
  const idle=ms=>page.waitForTimeout(ms);
  await idle(3000);const before=await textures(),gpuBefore=gpuProcessMB(gpuPid);report.outside={textures:before.length,textureMB:+(sum(before)/1e6).toFixed(1),gpuProcess:gpuBefore};console.log('outside VR',JSON.stringify(report.outside));
- for(const [name,opts] of [['seren',{companion:'seren'}],['ava',{companion:'ava'}],['eva',{companion:'eva'}],['ava+eva',{companions:['ava','eva']}]]){
+ // SCENARIOS (JSON [[name,launchOptions],...]) measures other companions, e.g. the dev-only Una and base figures.
+ const scenarios=process.env.SCENARIOS?JSON.parse(process.env.SCENARIOS):[['seren',{companion:'seren'}],['ava',{companion:'ava'}],['eva',{companion:'eva'}],['ava+eva',{companions:['ava','eva']}]];
+ for(const [name,opts] of scenarios){
   bytesIn=0;const t0=Date.now();await page.evaluate(o=>VoidVR.launch('suite',o),opts);await page.waitForFunction(()=>VoidVR.session?.world&&VoidAssets.pending===0,null,{timeout:240000});const loadMs=Date.now()-t0;
   await page.evaluate(()=>{const cs=VoidVR.session.world.companions,cx=cs.reduce((s,x)=>s+x.node.position.x,0)/cs.length,cz=cs.reduce((s,x)=>s+x.node.position.z,0)/cs.length;walker.x=cx-3.6;walker.z=cz;walker.yaw=Math.PI/2;walker.pitch=.15;});
   await idle(4000);const all=await textures(),own=await companionTextures(),gpu=gpuProcessMB(gpuPid),f=await frame();
