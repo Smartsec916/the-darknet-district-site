@@ -18,7 +18,11 @@ import {
   applyEmotion, buildRelationshipPrompt, effectiveMood, emotionEnabled, neutralizeMarker,
   type EmotionSignal, type Mood,
 } from "./emotion";
-import { dropLiveState, forgetVisitor, saveRelationship, sessionEmotionMap, startEmotionSession } from "./relationships";
+import {
+  dropLiveState, forgetVisitor, recordEmotionEvent, saveRelationship, sessionEmotionMap, startEmotionSession,
+} from "./relationships";
+import { resolveIdentity } from "./identity";
+import { createOwnerRouter } from "./ownerControls";
 
 // What the /embed widget page may do: run its own inline script and style, show its
 // built-in portrait, and talk only to this service. It can be framed only by the
@@ -77,6 +81,19 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 function isSpecialUserName(name: string): boolean {
   const lower = name.toLowerCase();
   return lower === "admin" || lower === "eva" || ["伊娃", "王力", "王", "力"].includes(name);
+}
+
+// The owner's own relationship starts warm: she knows who built the place
+const OWNER_SEED = { trust: 4, familiarity: 0.6, affection: 0.4, respect: 0.9, mood: "professional" as const };
+
+// Starts a chat's memory over, as for a stranger: used when the administrator switches mode or resets a test visitor
+function resetChatContext(sessionId: string) {
+  openaiService.initializeSession(sessionId);
+  const maps: Array<Map<string, unknown>> = [
+    sessionMoodMap, sessionTrustMap, sessionFlirtCountMap, sessionUserNameMap, sessionMessageCountMap,
+    sessionAskedForNameMap, sessionSpecialNameInstructionMap, sessionVerifiedUserMap,
+  ];
+  for (const map of maps) map.delete(sessionId);
 }
 
 // Used when the model's state line is missing or unreadable: nothing about the mood or relationship changes
@@ -250,6 +267,8 @@ export async function registerRoutes(app: Express): Promise<Express> {
 
   // Private administrator viewer and report endpoint (404 unless explicitly enabled; see admin.ts)
   app.use(createAdminRouter());
+  // Single sign-in: /api/me and the administrator's Iris controls (Firebase-verified; see ownerControls.ts)
+  app.use(createOwnerRouter());
 
   // 4. Security headers middleware
   app.use((req: Request, res: Response, next: NextFunction) => {
@@ -321,7 +340,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
       const trust = initializeTrustLevel();
       
       // Try to get client ID for persistent user identification
-      const clientId = req.body.clientId || req.headers['x-client-id'] as string || '';
+      // Who this is is decided on the server: a verified sign-in, else the browser's random id (see identity.ts)
+      const identity = await resolveIdentity(req, req.body?.clientId);
+      const clientId = identity.key ?? '';
       let userName = "";
       let preferredMood = mood;
       
@@ -347,10 +368,13 @@ export async function registerRoutes(app: Express): Promise<Express> {
       
       // With the emotional model on, a returning visitor starts from what Iris remembers of them and a new one
       // from an even-keeled default, instead of a random mood and trust
+      if (identity.kind === "owner") { userName = "Admin"; sessionVerifiedUserMap.set(sessionId, "Admin"); }
       let startMood = preferredMood;
       let startTrust = trust;
       if (emotionEnabled()) {
-        const emo = await startEmotionSession(sessionId, clientId || undefined);
+        const emo = await startEmotionSession(sessionId, clientId || undefined, Date.now(), {
+          seed: identity.kind === "owner" ? OWNER_SEED : undefined, tag: identity.tag, label: identity.key ?? "test-new:" + identity.uid,
+        });
         startMood = effectiveMood(emo.rel);
         startTrust = emo.rel.trust;
       }
@@ -796,7 +820,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         messageCount: z.number().int().optional()
       });
       
-      const { sessionId, message, clientId, messageCount: clientMessageCount } = messageSchema.parse(req.body);
+      const { sessionId, message, clientId: bodyClientId, messageCount: clientMessageCount } = messageSchema.parse(req.body);
 
       if (message.length > MAX_MESSAGE_CHARS) {
         return res.status(413).json({
@@ -810,9 +834,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
       if (passphraseUser) {
         sessionVerifiedUserMap.set(sessionId, passphraseUser);
         sessionUserNameMap.set(sessionId, passphraseUser);
-        if (clientId) {
+        if (bodyClientId) {
           try {
-            await storage.createOrUpdateUserProfile({ clientId, displayName: passphraseUser });
+            await storage.createOrUpdateUserProfile({ clientId: bodyClientId, displayName: passphraseUser });
           } catch (err) {
             logError("failed_to_persist_verified_profile", err);
           }
@@ -822,6 +846,24 @@ export async function registerRoutes(app: Express): Promise<Express> {
             ? "Identity confirmed. Welcome back, Admin."
             : "Identity confirmed. Welcome back, Eva."
         });
+      }
+
+      // Who this is, from a verified sign-in on this very request (never from the chat text). A change of
+      // identity (mode switch, test-visitor reset, signing in or out) starts this chat's emotional state over;
+      // for the administrator's modes it also clears the chat itself so nothing is inherited.
+      const identity = await resolveIdentity(req, bodyClientId);
+      const clientId = identity.key;
+      const ownerNow = identity.kind === "owner";
+      let currentEmotion = sessionEmotionMap.get(sessionId);
+      if (emotionEnabled() && currentEmotion && currentEmotion.tag !== undefined && currentEmotion.tag !== identity.tag) {
+        if (/^(owner|test-)/.test(currentEmotion.tag) || /^(owner|test-)/.test(identity.tag)) resetChatContext(sessionId);
+        sessionEmotionMap.delete(sessionId);
+        currentEmotion = undefined;
+      }
+      if (ownerNow) {
+        // The verified owner is the real Admin character; no one else is, whatever they type
+        sessionVerifiedUserMap.set(sessionId, "Admin");
+        sessionUserNameMap.set(sessionId, "Admin");
       }
       const verifiedUser = sessionVerifiedUserMap.get(sessionId);
 
@@ -860,9 +902,12 @@ export async function registerRoutes(app: Express): Promise<Express> {
       // Process special security triggers immediately
       if (isDebugTrigger) {
         let response: string;
-        
+
         // Handle security triggers with predefined responses
-        if (message.includes("[user triggered inspect]")) {
+        if (ownerNow) {
+          // The verified owner opening developer tools is just work
+          response = message.includes("[user triggered inspect]") ? "Dev tools open? Good. Break something useful." : "Noted. Carry on, boss.";
+        } else if (message.includes("[user triggered inspect]")) {
           if (mood === "flirty") {
             response = "Could've just asked if you wanted to see my backend.";
           } else if (mood === "cold") {
@@ -883,8 +928,16 @@ export async function registerRoutes(app: Express): Promise<Express> {
         }
         
         // Update mood and trust for debug triggers
-        const { mood: newMood, trust: newTrust, flirtCount: newFlirtCount } = 
+        let { mood: newMood, trust: newTrust, flirtCount: newFlirtCount } =
           adjustMood(mood, trustLevel, flirtCount, true, false, false, false, userName);
+        if (ownerNow) {
+          // Nothing changes for the owner
+          newMood = mood; newTrust = trustLevel; newFlirtCount = flirtCount;
+        } else if (emotionEnabled() && !isSpecialUserName(userName)) {
+          // Opening developer tools is curiosity, not proof of an attack: she is a little guarded, not hostile
+          newTrust = Math.max(-1, trustLevel - 0.3);
+          newMood = mood === "cold" || mood === "sarcastic" ? mood : "sarcastic";
+        }
         
         // Store updated session metadata
         sessionMoodMap.set(sessionId, newMood);
@@ -913,12 +966,18 @@ export async function registerRoutes(app: Express): Promise<Express> {
       // Ordinary visitors: the mood only moves from the model's reading of the conversation (applied after the
       // reply). Admin and Eva, and IRIS_EMOTION=off, keep the original behavior.
       const emotionOn = emotionEnabled();
-      const emo = emotionOn && !isSpecialUserName(userName)
-        ? (sessionEmotionMap.get(sessionId) ?? await startEmotionSession(sessionId, clientId))
+      const emo = emotionOn && (!isSpecialUserName(userName) || ownerNow)
+        ? (currentEmotion ?? await startEmotionSession(sessionId, clientId, Date.now(), {
+            seed: ownerNow ? OWNER_SEED : undefined, tag: identity.tag, label: identity.key ?? "test-new:" + identity.uid,
+          }))
         : undefined;
       if (emo && !emo.counted) { emo.counted = true; emo.rel.visits += 1; }
       const { mood: newMood, trust: newTrust, flirtCount: newFlirtCount, specialUserReminder } = emo
-        ? { mood: effectiveMood(emo.rel) as string, trust: emo.rel.trust, flirtCount, specialUserReminder: undefined as string | undefined }
+        ? {
+            mood: effectiveMood(emo.rel) as string, trust: emo.rel.trust, flirtCount,
+            // The owner keeps the established Admin character's notes; her mood and trust come from the emotional model
+            specialUserReminder: ownerNow ? adjustMood(mood, trustLevel, flirtCount, false, false, false, false, userName).specialUserReminder : undefined,
+          }
         : adjustMood(mood, trustLevel, flirtCount, false, isRude, isPraise, isFlirty, userName);
       
       // Increment message count
@@ -1337,7 +1396,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       const relationshipPrompt = emo
         ? buildRelationshipPrompt(emo, Date.now(), { recapDue: emo.rel.messages > 0 && emo.rel.messages % 6 === 5 })
         : undefined;
-      const reply = await openaiService.getResponse(sessionId, neutralizeMarker(message), promptAddition, { relationshipPrompt });
+      const reply = await openaiService.getResponse(sessionId, neutralizeMarker(message), promptAddition, { relationshipPrompt, isEva });
       
       // Process translation for special users if needed
       let translatedResponse = reply.text;
@@ -1402,7 +1461,14 @@ export async function registerRoutes(app: Express): Promise<Express> {
       // says nothing about the visitor, and nothing here can fail the chat.
       if (emo && !reply.fallback) {
         try {
-          applyEmotion(emo, reply.emotion ?? NEUTRAL_SIGNAL, Date.now());
+          const beforeMood = emo.rel.mood, beforeTrust = emo.rel.trust;
+          const signalUsed = reply.emotion ?? NEUTRAL_SIGNAL;
+          applyEmotion(emo, signalUsed, Date.now());
+          recordEmotionEvent(emo.label ?? emo.clientId ?? "unlabelled", {
+            at: Date.now(), mood: emo.rel.mood, moodChanged: emo.rel.mood !== beforeMood, trust: Math.round(emo.rel.trust * 100) / 100,
+            trustDelta: Math.round((emo.rel.trust - beforeTrust) * 100) / 100, warmth: signalUsed.warmth, hostility: signalUsed.hostility,
+            flirt: signalUsed.flirt, humor: signalUsed.humor, read: Boolean(reply.emotion),
+          });
           sessionMoodMap.set(sessionId, effectiveMood(emo.rel));
           sessionTrustMap.set(sessionId, emo.rel.trust);
           if (emo.clientId) void saveRelationship(emo.clientId, emo.rel);

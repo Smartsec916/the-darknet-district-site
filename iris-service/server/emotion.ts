@@ -182,6 +182,8 @@ export interface SessionEmotion {
   heldFor: number;        // messages the current mood has lasted
   pendingMood?: Mood;
   pendingCount: number;
+  tag?: string;           // which identity this state belongs to; a different tag means start over
+  label?: string;         // the name the administrator's panel finds this state by (memory key, or the test-visitor name)
 }
 
 const BASELINE_TRUST = 1;

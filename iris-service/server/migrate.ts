@@ -20,6 +20,7 @@ export const REQUIRED_TABLES = [
   "iris_daily_reports",
   "iris_report_parts",
   "iris_relationships",
+  "iris_owner_state",
 ];
 
 const STATEMENTS = [
@@ -79,6 +80,12 @@ const STATEMENTS = [
      flirt_cooldown integer NOT NULL DEFAULT 0, minor boolean NOT NULL DEFAULT false,
      updated_at timestamp NOT NULL DEFAULT now())`,
   `CREATE INDEX IF NOT EXISTS iris_relationships_last_seen_idx ON iris_relationships (last_seen)`,
+
+  // The administrator's Iris interaction mode (Owner / New Visitor / Returning Visitor) and test resets
+  `CREATE TABLE IF NOT EXISTS iris_owner_state (
+     uid text PRIMARY KEY, mode text NOT NULL DEFAULT 'owner',
+     new_nonce integer NOT NULL DEFAULT 0, returning_nonce integer NOT NULL DEFAULT 0,
+     updated_at timestamp NOT NULL DEFAULT now())`,
 ];
 
 let schemaReady = false;

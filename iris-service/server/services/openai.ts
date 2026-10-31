@@ -179,6 +179,7 @@ const sessionLanguages = new Map<string, Set<string>>();
 export function initializeSession(sessionId: string): void {
   sessionMessages.set(sessionId, [{ role: "system", content: SYSTEM_PROMPT }]);
   sessionLanguages.set(sessionId, new Set<string>(["english"])); // Default to English
+  sessionSystemSlots.delete(sessionId); // a restarted chat carries none of the old instructions
 }
 
 // Extra system instructions per session, one per slot. Each turn's mood context
@@ -867,15 +868,16 @@ export interface IrisReply {
 // What the caller adds to a reply request for the emotional upgrade
 export interface ReplyOptions {
   relationshipPrompt?: string; // private context about this visitor, ending with the state-line format
+  isEva?: boolean; // the caller knows who is talking; without it the prompt text is searched, which also matches the Admin's notes
 }
 
 // Process a user message and get a response
 export async function getResponse(sessionId: string, userMessage: string, promptAddition?: string, options: ReplyOptions = {}): Promise<IrisReply> {
   // Check if the user is Eva based on the prompt addition
-  const isEva = promptAddition?.includes("Eva Wang Li") || 
+  const isEva = options.isEva ?? (promptAddition?.includes("Eva Wang Li") || 
                 promptAddition?.includes("伊娃") || 
                 promptAddition?.includes("王力") || 
-                promptAddition?.includes("SPECIAL ATTRACTION");
+                promptAddition?.includes("SPECIAL ATTRACTION"));
   
   // Detect if Eva is flirting with Iris
   const evaIsFlirting = isEva && isEvaFlirting(userMessage);

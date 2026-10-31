@@ -43,6 +43,11 @@ window.addEventListener("load", () => {
         if (hasDevtools && !devtoolsTriggered) {
             devtoolsTriggered = true;
 
+            // The signed-in site owner (confirmed by the server, see iris-account.js) opening developer tools
+            // is development, not an intrusion: no warning, no greeting. Visitors, and the owner while
+            // testing as a New or Returning Visitor, get the normal reaction.
+            if (window.IrisIdentity && window.IrisIdentity.mode === 'owner') return;
+
             // Clear and print messages once
             console.clear();
             const logs = [

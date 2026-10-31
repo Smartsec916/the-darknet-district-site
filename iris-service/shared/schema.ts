@@ -94,3 +94,12 @@ export const irisRelationships = pgTable("iris_relationships", {
   minor: boolean("minor").notNull().default(false),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// The administrator's chosen Iris interaction mode and test-visitor resets (see server/identity.ts)
+export const irisOwnerState = pgTable("iris_owner_state", {
+  uid: text("uid").primaryKey(),
+  mode: text("mode").notNull().default("owner"),
+  newNonce: integer("new_nonce").notNull().default(0),
+  returningNonce: integer("returning_nonce").notNull().default(0),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});

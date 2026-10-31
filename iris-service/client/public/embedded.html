@@ -485,10 +485,25 @@
         return 'session_' + Math.random().toString(36).slice(2, 11) + '_' + Date.now();
       }
 
+      // A random id this browser keeps (the same one the full chat page uses on this address), so Iris can
+      // recognize a returning visitor. Nothing else about the visitor is used.
+      function irisClientId() {
+        try {
+          let id = localStorage.getItem('irisClientId');
+          if (!id) {
+            id = (crypto.randomUUID ? crypto.randomUUID() : 'client_' + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2));
+            localStorage.setItem('irisClientId', id);
+          }
+          return id;
+        } catch (error) {
+          return undefined;
+        }
+      }
+
       // Initialize chat session with backend
       function initChatSession() {
         if (sessionId || sessionStarting) return sessionStarting;
-        sessionStarting = postWithRetry('/api/chat/session', {})
+        sessionStarting = postWithRetry('/api/chat/session', { clientId: irisClientId() })
           .then(({ response, data }) => {
             if (response.ok && data && data.sessionId) {
               sessionId = data.sessionId;
@@ -559,6 +574,7 @@
             sessionId: id,
             message,
             messageCount: count,
+            clientId: irisClientId(),
             timestamp: Date.now()
           });
           // 413 (too long) and 429 (rate limited) still carry an in-character reply
