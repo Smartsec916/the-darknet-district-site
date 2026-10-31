@@ -42,6 +42,12 @@
     button.action.quiet { background: none; border-color: var(--line); }
     button.action.danger { border-color: var(--warn); }
     .field { padding: 9px 10px; background: #050d10; color: var(--text); border: 1px solid var(--line); font: 13px 'Courier New', monospace; min-width: 260px; }
+    .banner { padding: 10px 12px; border: 1px solid var(--warn); color: var(--warn); background: #1a1405; }
+    .result { min-height: 1.5em; padding: 8px 10px; margin: 8px 0 0; border-left: 3px solid var(--line); color: var(--muted); }
+    .result[data-state="ok"] { border-left-color: var(--good); color: var(--good); }
+    .result[data-state="warn"] { border-left-color: var(--warn); color: var(--warn); }
+    .result[data-state="error"] { border-left-color: var(--bad); color: var(--bad); }
+    .result:empty { display: none; }
     #gate { padding: 24px 0; }
     #note { min-height: 1.5em; color: var(--muted); }
     #note[data-state="error"] { color: var(--bad); }
@@ -58,6 +64,7 @@
   <div id="gate" role="status">Checking your access&hellip;</div>
 
   <div id="panel" hidden>
+    <p id="modeBanner" class="banner" role="status" hidden></p>
     <p id="note" role="status" aria-live="polite"></p>
 
     <section class="full" aria-labelledby="modeTitle">
@@ -100,11 +107,13 @@
           <button type="button" class="action danger" id="deleteOwnerMemory">DELETE OWNER CONVERSATIONS</button>
           <button type="button" class="action danger" id="deleteReturningMemory">DELETE RETURNING-VISITOR CONVERSATIONS</button>
         </div>
-        <p class="muted">Bring an earlier chat into the owner's memory (the session id is shown in the conversation viewer; only chats not yet filed under anyone can be adopted):</p>
+        <p class="muted">Bring one earlier chat into the owner's memory. Paste its session id (copy it from the database or the conversation viewer rather than typing it). CHECK shows what is stored for it, as counts and times only; ADOPT files only the messages that belong to no one.</p>
         <div class="actions">
-          <input id="adoptSession" class="field" maxlength="128" placeholder="session id" aria-label="Session id to adopt">
-          <button type="button" class="action quiet" id="adoptButton">ADOPT CHAT</button>
+          <input id="adoptSession" class="field" maxlength="160" placeholder="session id" aria-label="Session id to adopt" autocomplete="off" spellcheck="false">
+          <button type="button" class="action quiet" id="checkButton">CHECK</button>
+          <button type="button" class="action" id="adoptButton">ADOPT CHAT</button>
         </div>
+        <p id="adoptResult" class="result" role="status" aria-live="polite"></p>
       </section>
       <section class="full" aria-labelledby="resetTitle">
         <h2 id="resetTitle">RESET SIMULATED VISITORS</h2>

@@ -27,7 +27,8 @@ import {
 } from "./relationships";
 import { storage } from "./storage";
 import {
-  adoptSession, countFallbacksLast24h, countStored, deleteStored, DELETE_CONFIRMATION, memoryEnabled, memoryKeysFor,
+  adoptSession, countFallbacksLast24h, countStored, deleteStored, DELETE_CONFIRMATION, identityMix, memoryEnabled, memoryKeysFor,
+  normalizeSessionId, sessionSummary,
   recentRetrievals, recordLink, removeLinks, clearRetrievals, approxTokens as tokensFor,
 } from "./memory";
 import { recentFallbacks } from "./services/openai";
@@ -119,15 +120,27 @@ async function memoryDiagnostics(activeKey: string, mode: string) {
     storedMessages: persistent ? await countStored(keys) : 0,
     linkedBrowsers: Math.max(0, keys.length - 1),
     retention: "never (messages stay until deleted)",
-    lastLookups: lookups.slice(0, 8).map(r => ({ at: new Date(r.at).toISOString(), kind: r.kind, ok: r.ok, failure: r.failure ?? null, found: r.found, ms: r.ms })),
+    // found = stored messages handed to Iris; candidates = rows ranked; excludedAsInChat = already in this chat;
+    // droppedAsRecallQuestions = earlier questions about the past (and the answers) deliberately not treated as memories
+    lastLookups: lookups.slice(0, 8).map(r => ({
+      at: new Date(r.at).toISOString(), kind: r.kind, ok: r.ok, failure: r.failure ?? null, found: r.found, ms: r.ms,
+      candidates: r.candidates ?? null, excludedAsInChat: r.excluded ?? null, droppedAsRecallQuestions: r.dropped ?? null, mode: r.mode ?? null,
+    })),
+    // mode: grounded (matching messages given), partial (only the latest conversation), absent (nothing to recall; the
+    // tokens are just the notice), failed (memory unreadable), unrecognized (visitor cannot be remembered), none
     latestRequest: latestRequest
-      ? { at: new Date(latestRequest.at).toISOString(), messagesIncluded: latestRequest.included, approxTokens: latestRequest.approxTokens, ok: latestRequest.ok }
+      ? { at: new Date(latestRequest.at).toISOString(), messagesIncluded: latestRequest.included, approxTokens: latestRequest.approxTokens, ok: latestRequest.ok, mode: latestRequest.mode ?? "none" }
       : null,
+    // Who the last 24 hours of visitor messages were filed under (counts only): "none" while the owner is chatting means a sign-in went missing
+    identityMix: await identityMix(),
+    server: { version: (process.env.RENDER_GIT_COMMIT ?? "").slice(0, 7) || null, startedAt: new Date(STARTED_AT).toISOString() },
     lookupFailuresRecent: lookups.filter(r => !r.ok).length,
     estimatedAddedTokens: { requestsWithMemory: requests.length, tokens, costUSD: Math.round((tokens * priceIn) / 1e4) / 100 },
     fallbacks: { last24hInDatabase: await countFallbacksLast24h(), sinceServerStart: fallbacks.length, byReason },
   };
 }
+
+const STARTED_AT = Date.now();
 
 export function createOwnerRouter(): Router {
   const router = Router();
@@ -259,14 +272,35 @@ export function createOwnerRouter(): Router {
     res.json({ deleted });
   });
 
+  // What is stored for one chat session, before deciding to adopt it: counts and times only, never message text.
+  // Spaces and invisible characters that come along when an id is copied are removed first.
+  router.get("/api/owner/session-summary", failedLimiter, requireOwner, async (req, res) => {
+    const sessionId = normalizeSessionId(typeof req.query.sessionId === "string" ? req.query.sessionId : "");
+    if (!sessionId || sessionId.length > 128) return res.status(400).json({ error: "Send a session id." });
+    const summary = await sessionSummary(sessionId, ownerKey(req.account!.uid));
+    if (!summary) return res.status(503).json({ error: "Database unavailable." });
+    res.json({ sessionId, ...summary });
+  });
+
   // Brings an earlier chat (saved before messages carried a memory key) into the owner's own memory. Only rows that
-  // belong to no one are claimed; the session id comes from the conversation viewer.
+  // belong to no one are claimed, and one session at a time. The answer says exactly what happened: it is never a
+  // success unless messages were really adopted.
   router.post("/api/owner/adopt-session", failedLimiter, requireOwner, async (req, res) => {
-    const sessionId = (req.body as { sessionId?: unknown } | undefined)?.sessionId;
-    if (typeof sessionId !== "string" || !sessionId || sessionId.length > 128) return res.status(400).json({ error: "Send a session id." });
-    const adopted = await adoptSession(sessionId, ownerKey(req.account!.uid));
-    if (adopted === null) return res.status(503).json({ error: "Database unavailable." });
-    res.json({ adopted });
+    const given = (req.body as { sessionId?: unknown } | undefined)?.sessionId;
+    const sessionId = typeof given === "string" ? normalizeSessionId(given) : "";
+    if (!sessionId || sessionId.length > 128) return res.status(400).json({ error: "Send a session id.", code: "bad_request" });
+    const result = await adoptSession(sessionId, ownerKey(req.account!.uid));
+    if (result === null) return res.status(503).json({ error: "The database is not available. Nothing was changed.", code: "database_unavailable" });
+    if (!result.found) {
+      return res.status(404).json({ error: "No session with that ID was found. Check the ID (copy it from the database instead of typing it) and try again.", code: "not_found", sessionId });
+    }
+    if (result.adopted === 0) {
+      return res.status(409).json({
+        error: `Nothing to adopt: all ${result.messages} message(s) in that session are already filed (${result.filedUnderOwner} under your owner memory, ${result.filedElsewhere} under someone else).`,
+        code: "already_filed", sessionId, ...result,
+      });
+    }
+    res.json({ sessionId, ...result });
   });
 
   router.post("/api/owner/mode", failedLimiter, requireOwner, async (req, res) => {

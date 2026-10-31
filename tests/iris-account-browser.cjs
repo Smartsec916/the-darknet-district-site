@@ -127,6 +127,62 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     await context.close();
   });
 
+  await check('a signed-in message the server cannot verify is refreshed and retried, then sent anonymously rather than lost; a signed-out one never asks', async () => {
+    const { page, context, seen } = await open({ signedIn: { uid: 'uid-visitor', displayName: 'Neo' }, me: { authenticated: true, admin: false } });
+    await page.unroute('**/api/chat/message');
+    const attempts = [];
+    await page.route('**/api/chat/message', async r => {
+      const h = r.request().headers();
+      attempts.push({ auth: h.authorization, marker: h['x-iris-signed-in'], clientId: r.request().postDataJSON().clientId });
+      if (attempts.length <= 2) return json(r, { error: 'Sign in again.', code: 'signin_required' }, 401);
+      return json(r, { response: 'Hello from the stand-in.' });
+    });
+    await page.goto(base + '/index.html');
+    await page.waitForFunction(() => document.querySelector('.district-account__label').textContent === 'NEO');
+    await sendChat(page, 'will the server accept me?');
+    assert.equal(attempts.length, 3, 'tried with the sign-in, tried again with a fresh one, then as an anonymous visitor');
+    assert.equal(attempts[0].auth, 'Bearer token-for-uid-visitor');
+    assert.equal(attempts[0].marker, '1');
+    assert.equal(attempts[1].auth, 'Bearer token-for-uid-visitor');
+    assert.equal(attempts[2].auth, undefined);
+    assert.equal(attempts[2].clientId, attempts[0].clientId, 'the same browser, so nothing is lost');
+    await context.close();
+
+    const anonymous = await open();
+    let tries = 0;
+    await anonymous.page.unroute('**/api/chat/message');
+    await anonymous.page.route('**/api/chat/message', async r => { tries++; await json(r, { response: 'Hello from the stand-in.' }); });
+    await anonymous.page.goto(base + '/index.html');
+    const waited = await anonymous.page.evaluate(async () => { const t = performance.now(); await window.IrisIdentity.authHeaders(); return performance.now() - t; });
+    assert.ok(waited < 500, 'no waiting for a sign-in that does not exist');
+    await sendChat(anonymous.page, 'hello');
+    assert.equal(tries, 1);
+    await anonymous.context.close();
+  });
+
+  await check('the first message after a reload carries the saved sign-in, never an anonymous one', async () => {
+    const { page, context, seen } = await open({ signedIn: { uid: 'uid-owner', displayName: 'Smart Sec' }, me: { authenticated: true, admin: true, mode: 'owner' } });
+    await page.addInitScript(() => localStorage.setItem('irisSignedIn', '1'));
+    await page.goto(base + '/index.html');
+    await sendChat(page, 'right away');
+    assert.equal(seen.chat[0].headers.authorization, 'Bearer token-for-uid-owner');
+    await context.close();
+  });
+
+  await check('the administrator sees a clear tag whenever Iris is not in Owner mode', async () => {
+    const test = await open({ signedIn: { uid: 'uid-owner', displayName: 'Smart Sec' }, me: { authenticated: true, admin: true, mode: 'new', accountId: 'uid-owner' } });
+    await test.page.goto(base + '/index.html');
+    await test.page.waitForFunction(() => document.querySelector('.district-account__mode').textContent === 'NEW');
+    await openMenu(test.page);
+    assert.match(await test.page.locator('.district-account__modeline').innerText(), /NEW VISITOR/);
+    await test.context.close();
+    const owner = await open({ signedIn: { uid: 'uid-owner', displayName: 'Smart Sec' }, me: { authenticated: true, admin: true, mode: 'owner', accountId: 'uid-owner' } });
+    await owner.page.goto(base + '/index.html');
+    await owner.page.waitForFunction(() => document.querySelector('.district-account__label').textContent === 'SMART SEC');
+    assert.equal(await owner.page.locator('.district-account__mode').innerText(), '', 'no tag in Owner mode');
+    await owner.context.close();
+  });
+
   await check('log in with Google, stay signed in across a reload, then log out', async () => {
     const { page, context, seen } = await open({ nextUser: { uid: 'uid-visitor', displayName: 'Neo Anderson' } });
     await page.goto(base + '/index.html');
@@ -209,8 +265,10 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
       active: { mode, live: { mood: 'playful', trust: 3.9, messagesThisChat: 4 }, recentChanges: [{ at: '2026-11-01T10:00:00.000Z', mood: 'playful', moodChanged: true, trust: 3.9, trustDelta: 0.25, warmth: 1, hostility: 0, flirt: 0, humor: 1, read: true }] },
       memory: {
         enabled: true, storesConversations: mode !== 'new', storedMessages: 42, linkedBrowsers: 1, retention: 'never (messages stay until deleted)',
-        lastLookups: [{ at: '2026-11-01T10:00:00.000Z', kind: 'recall', ok: false, failure: 'query_failed', found: 0, ms: 12 }],
-        latestRequest: { at: '2026-11-01T10:00:00.000Z', messagesIncluded: 5, approxTokens: 420, ok: true }, lookupFailuresRecent: 1,
+        lastLookups: [{ at: '2026-11-01T10:00:00.000Z', kind: 'recall', ok: false, failure: 'query_failed', found: 0, ms: 12, candidates: 31, excludedAsInChat: 2, droppedAsRecallQuestions: 4, mode: 'grounded' }],
+        latestRequest: { at: '2026-11-01T10:00:00.000Z', messagesIncluded: 5, approxTokens: 420, ok: true, mode: 'grounded' }, lookupFailuresRecent: 1,
+        identityMix: { owner: 12, account: 1, browser: 3, none: 2, noneLastHour: 1 },
+        server: { version: 'abc1234', startedAt: '2026-11-01T09:00:00.000Z' },
         estimatedAddedTokens: { requestsWithMemory: 3, tokens: 1260, costUSD: 0.31 },
         fallbacks: { last24hInDatabase: 2, sinceServerStart: 2, byReason: { server_error: 1, quota: 1 } },
       },
@@ -236,7 +294,9 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     await owner.page.route('**/api/owner/state', r => json(r, state(current)));
     await owner.page.route('**/api/owner/mode', async r => { current = r.request().postDataJSON().mode; posts.push(['mode', current, r.request().headers().authorization]); await json(r, { mode: current }); });
     await owner.page.route('**/api/owner/memory/delete', async r => { posts.push(['delete', r.request().postDataJSON().target, r.request().postDataJSON().confirm]); await json(r, { deleted: 7 }); });
-    await owner.page.route('**/api/owner/adopt-session', async r => { posts.push(['adopt', r.request().postDataJSON().sessionId]); await json(r, { adopted: 3 }); });
+    const summaries = { session_abc123: { found: true, messages: 6, unkeyed: 3, filedUnderOwner: 1, filedElsewhere: 2, firstAt: '2026-10-30T10:00:00Z', lastAt: '2026-10-30T10:30:00Z' }, session_filed: { found: true, messages: 2, unkeyed: 0, filedUnderOwner: 0, filedElsewhere: 2, firstAt: '2026-10-30T10:00:00Z', lastAt: '2026-10-30T10:01:00Z' } };
+    await owner.page.route('**/api/owner/session-summary**', r => json(r, { sessionId: 'x', ...(summaries[new URL(r.request().url()).searchParams.get('sessionId')] ?? { found: false }) }));
+    await owner.page.route('**/api/owner/adopt-session', async r => { posts.push(['adopt', r.request().postDataJSON().sessionId]); await json(r, { adopted: 3, filedUnderOwner: 4 }); });
     await owner.page.route('**/api/owner/reset', async r => { posts.push(['reset', r.request().postDataJSON().target]); await json(r, { reset: r.request().postDataJSON().target }); });
     owner.page.on('dialog', d => d.accept());
     await owner.page.goto(base + '/iris-controls.html');
@@ -252,9 +312,29 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     for (const expected of ['Persistent memory', 'ON', 'Stored messages', '42', 'never (messages stay until deleted)', 'about 420 tokens', 'OpenAI canned replies', 'server_error', 'FAILED: query_failed']) assert.ok(panelText.includes(expected), expected);
     await owner.page.locator('#deleteOwnerMemory').click();
     await owner.page.waitForTimeout(300);
-    await owner.page.fill('#adoptSession', 'session_abc123');
+    // diagnostics say what the numbers mean
+    for (const expected of ['31', 'Rows searched', 'Left out: already in this chat', 'Left out: earlier questions', 'matching stored message(s) were given to Iris', 'nobody 2', 'version abc1234']) assert.ok(panelText.includes(expected), expected);
+    assert.ok(panelText.includes('saved under nobody'), 'a visitor message saved under nobody in the last hour is flagged');
+    assert.equal(await owner.page.locator('#modeBanner').isVisible(), true, 'a test mode is announced at the top of the page');
+    assert.match(await owner.page.locator('#modeBanner').innerText(), /NEW VISITOR/);
+    // Adopt Chat: the outcome is always visible, right under the form, with the numbers
+    await owner.page.fill('#adoptSession', 'does_not_exist');
     await owner.page.locator('#adoptButton').click();
+    await owner.page.waitForFunction(() => /No session with that ID was found/.test(document.getElementById('adoptResult').textContent));
+    await owner.page.fill('#adoptSession', 'session_filed');
+    await owner.page.locator('#adoptButton').click();
+    await owner.page.waitForFunction(() => /Nothing to adopt/.test(document.getElementById('adoptResult').textContent));
+    await owner.page.fill('#adoptSession', 'session_abc123');
+    await owner.page.locator('#checkButton').click();
+    await owner.page.waitForFunction(() => /Found\. 6 message\(s\)/.test(document.getElementById('adoptResult').textContent));
+    assert.ok(!posts.some(p => p[0] === 'adopt'), 'CHECK changes nothing');
+    await owner.page.locator('#adoptButton').click();
+    await owner.page.waitForFunction(() => /Adopted 3 message\(s\)/.test(document.getElementById('adoptResult').textContent));
     await owner.page.waitForTimeout(300);
+    const result = owner.page.locator('#adoptResult');
+    assert.equal(await result.isVisible(), true, 'the result is visible');
+    assert.equal(await result.evaluate(el => { const b = el.getBoundingClientRect(); return b.top >= 0 && b.bottom <= window.innerHeight + 1; }), true, 'and on screen, not off to the side');
+    assert.match(await result.innerText(), /Adopted 3 message\(s\)/, 'and it stays after the panel refreshes');
     assert.deepEqual(posts, [
       ['mode', 'new', 'Bearer token-for-uid-owner'], ['reset', 'returning'],
       ['delete', 'owner', 'delete my memories'], ['adopt', 'session_abc123'],

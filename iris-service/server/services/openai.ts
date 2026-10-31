@@ -185,7 +185,8 @@ export function initializeSession(sessionId: string): void {
 // Extra system instructions per session, one per slot. Each turn's mood context
 // replaces the previous one instead of piling up, so old moods can't contradict
 // the current one and the prompt stays the same size.
-type SystemSlot = "context" | "relationship" | "memory" | "distraction" | "flirtBoost";
+// "tail" is the one slot placed AFTER the conversation, as the last thing the model reads before it answers
+type SystemSlot = "context" | "relationship" | "memory" | "distraction" | "flirtBoost" | "tail";
 const sessionSystemSlots = new Map<string, Map<SystemSlot, string>>();
 
 function setSystemSlot(sessionId: string, slot: SystemSlot, content: string): void {
@@ -198,6 +199,14 @@ function setSystemSlot(sessionId: string, slot: SystemSlot, content: string): vo
 // Whether this chat's short-term history is in memory (it is not after a restart, a deploy or a sleep)
 export function hasSession(sessionId: string): boolean {
   return sessionMessages.has(sessionId);
+}
+
+// A reply that did not need the model (for example "I have no record of that"): still part of this chat's history
+export function recordTurn(sessionId: string, userMessage: string, assistantText: string): IrisReply {
+  if (!sessionMessages.has(sessionId)) initializeSession(sessionId);
+  addMessage(sessionId, "user", userMessage);
+  addMessage(sessionId, "assistant", assistantText);
+  return { text: assistantText, fallback: false, language: "english", emotion: null };
 }
 
 // What a restart does to the server: every chat's in-memory window is gone (used by tests to simulate one)
@@ -245,9 +254,11 @@ function addMessage(sessionId: string, role: "user" | "assistant", content: stri
 // What is sent to OpenAI: the base system message, the current slot instructions, then the history
 function buildRequestMessages(sessionId: string): Message[] {
   const [base, ...history] = sessionMessages.get(sessionId) || [{ role: "system", content: SYSTEM_PROMPT }];
-  const slots = Array.from(sessionSystemSlots.get(sessionId)?.values() ?? [])
-    .map(content => ({ role: "system" as const, content }));
-  return [base, ...slots, ...history];
+  const all = sessionSystemSlots.get(sessionId);
+  const slots = Array.from(all?.entries() ?? []).filter(([slot]) => slot !== "tail")
+    .map(([, content]) => ({ role: "system" as const, content }));
+  const tail = all?.get("tail") ? [{ role: "system" as const, content: all.get("tail")! }] : [];
+  return [base, ...slots, ...history, ...tail];
 }
 
 // Cache for welcome messages to reduce API calls
@@ -917,6 +928,10 @@ export interface ReplyOptions {
   relationshipPrompt?: string; // private context about this visitor, ending with the state-line format
   isEva?: boolean; // the caller knows who is talking; without it the prompt text is searched, which also matches the Admin's notes
   memoryPrompt?: string | null; // verified stored-conversation memory for this reply only (see memory.ts)
+  // The rule for answering a question about the past, placed last in the request (after the conversation) for this
+  // reply only; and calmer sampling for such questions (no randomness that invents, no penalty on repeating a stored phrase)
+  tailReminder?: string | null;
+  sampling?: { temperature: number; presence_penalty: number; frequency_penalty: number };
 }
 
 // Process a user message and get a response
@@ -1052,6 +1067,8 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     // Stored-conversation memory, for this reply only (replaced every turn, never accumulated)
     if (options.memoryPrompt) setSystemSlot(sessionId, "memory", options.memoryPrompt);
     else sessionSystemSlots.get(sessionId)?.delete("memory");
+    if (options.tailReminder) setSystemSlot(sessionId, "tail", options.tailReminder);
+    else sessionSystemSlots.get(sessionId)?.delete("tail");
     
     // Add user message to history
     addMessage(sessionId, "user", userMessage);
@@ -1221,10 +1238,10 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     const response = await openai.chat.completions.create({
       model: MODEL,
       messages: updatedMessages,
-      temperature: 0.95, // Significantly increased for much more varied responses
+      temperature: options.sampling?.temperature ?? 0.95, // Significantly increased for much more varied responses
       max_tokens: maxTokens + 20 + (options.relationshipPrompt ? 60 : 0), // room for the state line when it is requested
-      presence_penalty: 0.6, // Significantly increased to avoid repetitive patterns
-      frequency_penalty: 0.5, // Increased to strongly encourage more diverse vocabulary
+      presence_penalty: options.sampling?.presence_penalty ?? 0.6, // Significantly increased to avoid repetitive patterns
+      frequency_penalty: options.sampling?.frequency_penalty ?? 0.5, // Increased to strongly encourage more diverse vocabulary
     });
     
     // The state line (if any) is removed before anything else sees the reply; a missing or damaged one is simply ignored

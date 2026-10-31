@@ -18,7 +18,7 @@ import {
   auth, provider, signInWithPopup, signInWithRedirect, linkWithPopup, onAuthStateChanged, signOut,
 } from './firebase-auth.js';
 import { sendEmailLink, completeEmailLink } from './district-identity.js';
-import { accountDetails, accountLabel, irisBase, menuItems, providerLabel, signInMessage } from './iris-account-core.js';
+import { accountDetails, accountLabel, irisBase, menuItems, modeBadge, modeNote, providerLabel, signInMessage } from './iris-account-core.js';
 
 const root = document.querySelector('[data-district-account]');
 const identity = window.IrisIdentity;
@@ -73,7 +73,13 @@ if (root) {
   const index = el('span', 'district-account__index', 'ID');
   index.setAttribute('aria-hidden', 'true');
   const label = el('span', 'district-account__label', 'LOG IN');
-  button.append(index, label);
+  // Administrator only: shows NEW or RET while Iris is not treating them as the owner (hidden when empty)
+  const modeTag = el('span', 'district-account__mode');
+  button.append(index, label, modeTag);
+  const renderMode = () => {
+    modeTag.textContent = modeBadge(me);
+    modeTag.title = modeNote(me);
+  };
 
   const menu = el('div', 'district-account__menu');
   menu.setAttribute('role', 'menu');
@@ -304,6 +310,10 @@ if (root) {
       ...(providerLabel(currentUser) ? [el('span', 'district-account__provider', providerLabel(currentUser))] : []),
     );
     menu.append(who);
+    if (modeNote(me)) {
+      const mode = el('div', 'district-account__modeline' + (modeBadge(me) ? ' district-account__modeline--test' : ''), modeNote(me));
+      menu.append(mode);
+    }
     for (const item of menuItems({ signedIn: true, admin: me.admin })) {
       const entry = el('button', 'district-account__item', item.label);
       entry.type = 'button';
@@ -324,6 +334,7 @@ if (root) {
     button.setAttribute('aria-expanded', 'true');
     menuButtons()[0]?.focus({ preventScroll: true });
     refreshMe().then(() => {
+      renderMode();
       if (menu.hidden || !currentUser) return;
       const position = menuButtons().indexOf(document.activeElement);
       renderMenu();
@@ -372,10 +383,15 @@ if (root) {
     label.textContent = accountLabel(user);
     button.setAttribute('aria-label', user ? `Account menu for ${label.textContent}` : 'Log in');
     // The chat sends this with each message so the server can verify who is talking; signed out it sends nothing
-    identity?.setTokenProvider(user ? () => user.getIdToken() : null);
+    identity?.setTokenProvider(user ? force => user.getIdToken(Boolean(force)) : null);
+    // Remember (in this browser) whether anyone is signed in, and tell the chat the answer is now known, so its first
+    // message is never sent before the saved sign-in has been restored
+    identity?.setSignedInHint(Boolean(user));
+    identity?.markReady();
     if (user && !modal.hidden) closeModal();
     if (!user) { closeMenu(); settings.hidden = true; }
     await refreshMe();
+    renderMode();
   });
 
   // Finish an email sign-in if this page was opened from the emailed link

@@ -77,6 +77,23 @@ export function accountDetails(user, me) {
   return rows.filter(([, value]) => value);
 }
 
+/**
+ * For the administrator only: a short tag on the account button whenever Iris is NOT treating them as the owner, so a
+ * test mode can never be left on unnoticed. Empty in Owner mode and for everyone else.
+ */
+export function modeBadge(me) {
+  if (!me || !me.admin) return '';
+  return me.mode === 'new' ? 'NEW' : me.mode === 'returning' ? 'RET' : '';
+}
+
+/** One plain sentence about the administrator's current Iris mode (empty for everyone else). */
+export function modeNote(me) {
+  if (!me || !me.admin) return '';
+  if (me.mode === 'new') return 'Iris mode: NEW VISITOR. Iris treats you as a stranger and nothing you say is remembered.';
+  if (me.mode === 'returning') return 'Iris mode: RETURNING VISITOR. A separate test visitor with its own memory, not yours.';
+  return 'Iris mode: OWNER. Iris knows you and remembers your conversations.';
+}
+
 /** A short, plain message for each sign-in problem. */
 export function signInMessage(code) {
   switch (code) {

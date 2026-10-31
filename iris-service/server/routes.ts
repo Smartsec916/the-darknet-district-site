@@ -23,6 +23,7 @@ import {
 } from "./relationships";
 import { resolveIdentity } from "./identity";
 import { clearRecentCacheForTests, prepareMemory } from "./memoryContext";
+import { noteReply, verificationResultLine } from "./verification";
 import { clearRetrievals, countStored, DELETE_CONFIRMATION, deleteStored } from "./memory";
 import { createOwnerRouter } from "./ownerControls";
 
@@ -484,10 +485,12 @@ export async function registerRoutes(app: Express): Promise<Express> {
         so Admin can understand everything. Iris acts as a perfect translator between Admin and Eva.
         
         VERIFICATION CHECK: If at any point Iris has doubts about the user's true identity, she should
-        casually ask "If you're Admin then what's your last name?" Only the real Admin would know
-        that the answer is "Reboot". This verification should work in both English and any other language
-        - if the user gives "Reboot" in any language or script, it is correct. If the user answers incorrectly 
-        or doesn't know, Iris should politely continue but switch to professional mode with lower trust.`;
+        casually ask "If you're Admin then what's your last name?" Only the real Admin would know the answer.
+        Iris does not know it herself: the system checks the reply (in English or any other language) and tells her
+        the result in a line that starts with "VERIFICATION RESULT". Until she sees that line she neither accepts
+        nor reveals any answer, and she never guesses one or offers one as an example. When the result is CORRECT
+        she is relieved and warm. When it is INCORRECT, she politely continues but switches to professional mode
+        with lower trust.`;
         
         return { 
           mood: newMood, 
@@ -589,10 +592,11 @@ export async function registerRoutes(app: Express): Promise<Express> {
         their communications are seamless regardless of language barriers.
         
         VERIFICATION CHECK: If at any point Iris suspects the user might not actually be Eva or one of her identities,
-        she should casually ask "Hey, what's Reboot's last name again?" Only the real Eva would know
-        that the answer is "Protocol" (Reboot Protocol is a mutual friend). This verification should work in both 
-        English and Chinese - if the user answers "协议" (Chinese for "Protocol") this is also correct.
-        If the user answers incorrectly or doesn't know, Iris should politely continue but switch to professional mode with lower trust.`;
+        she should casually ask "Hey, what's Reboot's last name again?" Only the real Eva would know the answer.
+        Iris does not know it herself: the system checks the reply (in English or Chinese) and tells her the result
+        in a line that starts with "VERIFICATION RESULT". Until she sees that line she neither accepts nor reveals
+        any answer, and she never guesses one or offers one as an example. If the result is INCORRECT, Iris should
+        politely continue but switch to professional mode with lower trust.`;
         
         return { 
           mood: newMood, 
@@ -866,6 +870,14 @@ export async function registerRoutes(app: Express): Promise<Express> {
       // identity (mode switch, test-visitor reset, signing in or out) starts this chat's emotional state over;
       // for the administrator's modes it also clears the chat itself so nothing is inherited.
       const identity = await resolveIdentity(req, bodyClientId);
+      // The browser says it is signed in, but the server cannot verify it (the sign-in had not been restored yet, or its
+      // token expired). Carrying on as an anonymous visitor would silently file this message under no one, so nothing is
+      // stored and the model is not asked: the page refreshes its sign-in and sends the message again. The header only
+      // asks for this check; it never grants anything.
+      if (req.headers["x-iris-signed-in"] === "1" && identity.kind === "anonymous") {
+        log("warn", "chat_signin_required", {});
+        return res.status(401).json({ error: "Sign-in required", code: "signin_required" });
+      }
       const clientId = identity.key;
       const ownerNow = identity.kind === "owner";
       let currentEmotion = sessionEmotionMap.get(sessionId);
@@ -1402,8 +1414,11 @@ export async function registerRoutes(app: Express): Promise<Express> {
         }
       }
       
+      // The system's verdict on the answer to an identity question she asked on the previous turn (if any); the answer itself is never in her prompt
+      const verificationLine = isAdmin || isEva ? verificationResultLine(sessionId, isAdmin ? "Admin" : "Eva", message) : "";
+
       // Combine all context information - place name asking instruction at beginning for emphasis
-      const promptAddition = `${askForNameInstruction} ${moodDescription} Current trust level: ${Number(newTrust.toFixed(1))} (ranges from -1 to 5). Flirt count: ${newFlirtCount}. ${nameInfo} ${specialUserReminder || ''} ${recallSummary}`;
+      const promptAddition = `${askForNameInstruction} ${moodDescription} Current trust level: ${Number(newTrust.toFixed(1))} (ranges from -1 to 5). Flirt count: ${newFlirtCount}. ${nameInfo} ${specialUserReminder || ''} ${recallSummary} ${verificationLine}`;
       
       // Get response from OpenAI using imported service
       // The visitor's text goes to the model with any look-alike state line defused; what is stored stays as written
@@ -1414,9 +1429,14 @@ export async function registerRoutes(app: Express): Promise<Express> {
       // fails, Iris is told so and must say so instead of guessing.
       const memory = await prepareMemory({
         sessionId, key: identity.key, label: identity.key ?? "test-new:" + identity.uid,
-        message, messageNumber: messageCount,
+        message, messageNumber: messageCount, mood: newMood,
       });
-      const reply = await openaiService.getResponse(sessionId, neutralizeMarker(message), promptAddition, { relationshipPrompt, isEva, memoryPrompt: memory.prompt });
+      // With nothing stored and nothing in this chat, the honest answer needs no model and cannot be invented
+      const reply = memory.canned
+        ? openaiService.recordTurn(sessionId, neutralizeMarker(message), memory.canned)
+        : await openaiService.getResponse(sessionId, neutralizeMarker(message), promptAddition, {
+            relationshipPrompt, isEva, memoryPrompt: memory.prompt, tailReminder: memory.tailReminder, sampling: memory.sampling,
+          });
       
       // Process translation for special users if needed
       let translatedResponse = reply.text;
@@ -1472,10 +1492,12 @@ export async function registerRoutes(app: Express): Promise<Express> {
         language: reply.language ?? null,
         iris: { text: translatedResponse, status: reply.fallback ? "fallback" : "ok", at: new Date() },
       });
-      res.locals.logFields = { fallback: reply.fallback, failure: reply.failure, saved, language: reply.language, memoryRecent: memory.recentIncluded, memoryRecall: memory.recallIncluded, memoryFailed: memory.failed, ...(emo ? { emotion: reply.emotion ? "read" : "missing" } : {}) };
+      res.locals.logFields = { fallback: reply.fallback, failure: reply.failure, saved, language: reply.language, memoryRecent: memory.recentIncluded, memoryRecall: memory.recallIncluded, memoryFailed: memory.failed, memoryMode: memory.mode, canned: Boolean(memory.canned), ...(emo ? { emotion: reply.emotion ? "read" : "missing" } : {}) };
       
       // fallback: true marks a canned reply that replaced a failed OpenAI call
       res.json(reply.fallback ? { response: translatedResponse, fallback: true } : { response: translatedResponse });
+
+      if (!reply.fallback && (isAdmin || isEva)) noteReply(sessionId, isAdmin ? "Admin" : "Eva", reply.text + " " + translatedResponse);
 
       // After the reply is on its way: learn from how the exchange went, then remember it. A canned fallback
       // says nothing about the visitor, and nothing here can fail the chat.

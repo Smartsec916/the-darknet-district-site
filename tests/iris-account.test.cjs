@@ -51,11 +51,11 @@ test('the Iris address is Render on the live site and the same origin elsewhere'
 
 function loadIdentity({ storage, crypto: cryptoApi = crypto.webcrypto } = {}) {
   const window = { crypto: cryptoApi, localStorage: storage };
-  vm.runInNewContext(read('iris-identity.js'), { window, Uint8Array, Math, Array });
+  vm.runInNewContext(read('iris-identity.js'), { window, Uint8Array, Math, Array, setTimeout, clearTimeout });
   return window.IrisIdentity;
 }
 const plain = value => JSON.parse(JSON.stringify(value));
-const memoryStorage = () => { const data = new Map(); return { getItem: k => (data.has(k) ? data.get(k) : null), setItem: (k, v) => data.set(k, String(v)), data }; };
+const memoryStorage = () => { const data = new Map(); return { getItem: k => (data.has(k) ? data.get(k) : null), setItem: (k, v) => data.set(k, String(v)), removeItem: k => data.delete(k), data }; };
 
 test('each browser gets one random id, kept for next time, never tied to anything else', () => {
   const storage = memoryStorage();
@@ -78,14 +78,44 @@ test('signed out the chat sends no sign-in header; signed in it sends the curren
   const identity = loadIdentity({ storage: memoryStorage() });
   assert.deepEqual(plain(await identity.authHeaders()), {});
   identity.setTokenProvider(async () => 'token-123');
-  assert.deepEqual(plain(await identity.authHeaders()), { Authorization: 'Bearer token-123' });
+  assert.deepEqual(plain(await identity.authHeaders()), { Authorization: 'Bearer token-123', 'X-Iris-Signed-In': '1' });
+  identity.setSignedInHint(true);
   identity.setTokenProvider(async () => { throw new Error('offline'); });
-  assert.deepEqual(plain(await identity.authHeaders()), {}, 'a token problem means anonymous, not a failed message');
+  assert.deepEqual(plain(await identity.authHeaders()), { 'X-Iris-Signed-In': '1' }, 'a token problem sends only the advisory marker, never blocks the message');
+  identity.setSignedInHint(false);
   identity.setTokenProvider(null);
   assert.deepEqual(plain(await identity.authHeaders()), {});
+  assert.deepEqual(plain(identity.anonymousHeaders()), {});
   assert.equal(identity.mode, null);
   identity.setMode('owner');
   assert.equal(identity.mode, 'owner');
+});
+
+test('a forced refresh asks the token provider for a new token', async () => {
+  const identity = loadIdentity({ storage: memoryStorage() });
+  const asked = [];
+  identity.setTokenProvider(async force => { asked.push(force); return 'fresh'; });
+  await identity.authHeaders();
+  await identity.authHeaders(true);
+  assert.deepEqual(asked, [false, true]);
+});
+
+test('a browser that expects to be signed in waits for the sign-in to be restored; an anonymous one never waits', async () => {
+  const waiting = memoryStorage();
+  waiting.setItem('irisSignedIn', '1');
+  const identity = loadIdentity({ storage: waiting });
+  let settled = false;
+  const pending = identity.authHeaders().then(h => { settled = true; return h; });
+  await new Promise(r => setTimeout(r, 30));
+  assert.equal(settled, false, 'held back while the saved sign-in is being restored');
+  identity.setTokenProvider(async () => 'restored');
+  identity.markReady();
+  assert.deepEqual(plain(await pending), { Authorization: 'Bearer restored', 'X-Iris-Signed-In': '1' });
+
+  const stranger = loadIdentity({ storage: memoryStorage() });
+  const started = Date.now();
+  assert.deepEqual(plain(await stranger.authHeaders()), {});
+  assert.ok(Date.now() - started < 200, 'no delay for someone who is not signed in');
 });
 
 // ------------------------------------------------------------------ the homepage
@@ -121,7 +151,8 @@ test('the account script, styles and sign-in identity are loaded by the homepage
   }
   const chatScript = read('script.js');
   assert.match(chatScript, /window\.IrisIdentity/);
-  assert.match(chatScript, /\.\.\.authHeaders/);
+  assert.match(chatScript, /...extraHeaders/);
+  assert.match(chatScript, /signin_required/, 'a refused sign-in is refreshed and retried');
   assert.match(chatScript, /clientId: identity\.clientId/);
   assert.ok(!/signIn|signOut|firebase/i.test(chatScript.replace(/firebase-auth/gi, '')) || true);
 });
