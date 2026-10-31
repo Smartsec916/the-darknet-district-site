@@ -11,20 +11,24 @@ const channel = process.env.BROWSER_CHANNEL || 'msedge';
 // browser, so a reload or another page on the site is still signed in.
 const firebaseMock = `
 const KEY = 'mockFirebaseUser';
-const make = raw => raw && ({ ...raw, isAnonymous: !!raw.isAnonymous, getIdToken: async () => 'token-for-' + raw.uid });
+const make = raw => raw && ({ providerData: [{ providerId: 'google.com' }], emailVerified: true, metadata: { creationTime: 'Tue, 01 Sep 2026 10:00:00 GMT', lastSignInTime: 'Sat, 31 Oct 2026 08:00:00 GMT' }, ...raw, isAnonymous: !!raw.isAnonymous, getIdToken: async () => 'token-for-' + raw.uid });
+const log = name => { window.__authEvents = [...(window.__authEvents || []), name]; };
 export const auth = { currentUser: make(JSON.parse(localStorage.getItem(KEY) || 'null')) };
-export const provider = {};
+export class GoogleAuthProvider { setCustomParameters(p) { this.params = p; } }
+export const provider = new GoogleAuthProvider();
 const listeners = [];
 const emit = () => listeners.forEach(fn => fn(auth.currentUser));
 export function onAuthStateChanged(_a, fn) { listeners.push(fn); queueMicrotask(() => fn(auth.currentUser)); return () => {}; }
 export async function getRedirectResult() { return null; }
-export async function signInWithPopup() {
+export async function signInWithPopup(_a, used) {
+  log('popup'); window.__popupParams = used && used.params;
+  if (localStorage.getItem('mockPopupMode') === 'cancel') throw Object.assign(new Error('closed'), { code: 'auth/popup-closed-by-user' });
   const raw = JSON.parse(localStorage.getItem('mockNextUser') || '{"uid":"uid-visitor","displayName":"Neo Anderson"}');
   localStorage.setItem(KEY, JSON.stringify(raw)); auth.currentUser = make(raw); emit();
 }
 export async function signInWithRedirect() { return signInWithPopup(); }
 export async function linkWithPopup() { return signInWithPopup(); }
-export async function signOut() { localStorage.removeItem(KEY); auth.currentUser = null; emit(); }
+export async function signOut() { log('signOut'); localStorage.removeItem(KEY); auth.currentUser = null; emit(); }
 export async function signInAnonymously() {}
 export async function sendSignInLinkToEmail() {}
 export function isSignInWithEmailLink() { return false; }
@@ -63,9 +67,24 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     return { page, context, seen };
   }
   const rect = async (page, selector) => page.locator(selector).first().evaluate(e => { const b = e.getBoundingClientRect(); return { l: b.left, r: b.right, t: b.top, b: b.bottom, w: b.width, h: b.height }; });
+  // Opens the account menu and checks it floats over the page: fixed, inside the screen, on top, and the page did not scroll
   const openMenu = async page => {
+    const before = await page.evaluate(() => scrollY);
     await page.locator('.district-account__button').click();
     await page.locator('.district-account__item').first().waitFor();
+    await page.waitForTimeout(400);
+    const seen = await page.evaluate(() => {
+      const menu = document.querySelector('.district-account__menu');
+      const box = menu.getBoundingClientRect();
+      const first = menu.querySelector('.district-account__item');
+      const f = first.getBoundingClientRect();
+      const topmost = document.elementFromPoint(f.left + f.width / 2, f.top + f.height / 2);
+      return { y: scrollY, position: getComputedStyle(menu).position, z: Number(getComputedStyle(menu).zIndex), box: [box.left, box.top, box.right, box.bottom], vw: innerWidth, vh: innerHeight, onTop: menu.contains(topmost) };
+    });
+    assert.equal(seen.position, 'fixed', 'the menu floats instead of sitting in the page');
+    assert.equal(seen.y, before, 'opening the menu does not scroll the page');
+    assert.ok(seen.box[0] >= 0 && seen.box[2] <= seen.vw && seen.box[1] >= 0 && seen.box[3] <= seen.vh, `the menu is on screen ${seen.box}`);
+    assert.ok(seen.z >= 1000 && seen.onTop, 'the menu is above the rest of the page');
   };
   const sendChat = async (page, text) => {
     await page.locator('#chatButton').click();
@@ -104,7 +123,7 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     assert.equal(seen.chat[0].headers.authorization, undefined);
     assert.equal(seen.me, 0, 'a signed-out visitor makes no account request at all');
     assert.ok(!/log in|sign in|account/i.test(await page.locator('#chatContainer').innerText()));
-    assert.equal(await page.locator('#chatContainer .district-account, #chatContainer .district-login').count(), 0);
+    assert.equal(await page.locator('#chatContainer .district-account, #chatContainer #districtLogin').count(), 0);
     await context.close();
   });
 
@@ -112,13 +131,13 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     const { page, context, seen } = await open({ nextUser: { uid: 'uid-visitor', displayName: 'Neo Anderson' } });
     await page.goto(base + '/index.html');
     await page.locator('.district-account__button').click();
-    await page.locator('.district-login').waitFor({ state: 'visible' });
+    await page.locator('#districtLogin').waitFor({ state: 'visible' });
     await page.keyboard.press('Escape');
-    assert.ok(await page.locator('.district-login').isHidden(), 'Escape closes the panel');
+    assert.ok(await page.locator('#districtLogin').isHidden(), 'Escape closes the panel');
     await page.locator('.district-account__button').click();
     await page.getByText('CONTINUE WITH GOOGLE').click();
     await page.waitForFunction(() => /NEO ANDERSON/.test(document.querySelector('.district-account__label').textContent));
-    assert.ok(await page.locator('.district-login').isHidden(), 'the panel closes after sign-in');
+    assert.ok(await page.locator('#districtLogin').isHidden(), 'the panel closes after sign-in');
 
     await page.reload();
     await page.waitForFunction(() => /NEO ANDERSON/.test(document.querySelector('.district-account__label').textContent));
@@ -223,6 +242,141 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     assert.deepEqual(posts, [['mode', 'new', 'Bearer token-for-uid-owner'], ['reset', 'returning']]);
     assert.ok(!(await owner.page.locator('#panel').innerText()).includes('RESET OWNER'), 'there is no way to reset the owner memory here');
     await owner.context.close();
+  });
+
+
+  const accountOf = { uid: 'uid-neo', displayName: 'Neo Anderson', email: 'neo@example.test' };
+  const meOf = { authenticated: true, admin: false, accountId: 'uid-neo' };
+  const menuText = page => page.locator('.district-account__menu').innerText();
+  const label = page => page.locator('.district-account__label').innerText();
+  const waitLabel = (page, text) => page.waitForFunction(expected => document.querySelector('.district-account__label').textContent === expected, text);
+
+  await check('account dropdown: who is signed in, the actions, open and close by button, outside click, Escape and the keyboard', async () => {
+    const { page, context } = await open({ signedIn: accountOf, me: meOf });
+    await page.goto(base + '/index.html');
+    await waitLabel(page, 'NEO ANDERSON');
+    await openMenu(page);
+    const text = await menuText(page);
+    for (const expected of ['Neo Anderson', 'neo@example.test', 'Google', 'ACCOUNT SETTINGS', 'SWITCH ACCOUNT', 'LOG OUT']) assert.ok(text.includes(expected), expected + ' in ' + text);
+    assert.equal(await page.locator('.district-account__button').getAttribute('aria-expanded'), 'true');
+
+    await page.locator('.district-account__button').click();
+    assert.ok(await page.locator('.district-account__menu').isHidden(), 'the same button closes it');
+
+    await openMenu(page);
+    await page.mouse.click(40, 560);
+    assert.ok(await page.locator('.district-account__menu').isHidden(), 'clicking outside closes it');
+
+    await openMenu(page);
+    await page.keyboard.press('Escape');
+    assert.ok(await page.locator('.district-account__menu').isHidden(), 'Escape closes it');
+    assert.equal(await page.evaluate(() => document.activeElement.className), 'district-account__button', 'and focus goes back to the button');
+
+    await openMenu(page);
+    const focused = () => page.evaluate(() => document.activeElement.textContent);
+    assert.equal(await focused(), 'ACCOUNT SETTINGS', 'focus starts on the first action');
+    await page.keyboard.press('ArrowDown');
+    assert.equal(await focused(), 'LINK MY IRIS HISTORY');
+    await page.keyboard.press('End');
+    assert.equal(await focused(), 'LOG OUT');
+    await page.keyboard.press('ArrowDown');
+    assert.equal(await focused(), 'ACCOUNT SETTINGS', 'arrows wrap around');
+    await page.keyboard.press('ArrowUp');
+    assert.equal(await focused(), 'LOG OUT');
+    await page.keyboard.press('Home');
+    assert.equal(await focused(), 'ACCOUNT SETTINGS');
+    await page.keyboard.press('Tab');
+    assert.ok(await page.locator('.district-account__menu').isHidden(), 'Tab leaves the menu and closes it');
+    assert.equal(await page.evaluate(() => document.activeElement.className), 'district-account__button', 'focus returns to the account button');
+    await context.close();
+  });
+
+  await check('account settings: the account\'s own details, no tokens, closes with Escape, page stays put', async () => {
+    const { page, context } = await open({ signedIn: accountOf, me: meOf });
+    await page.goto(base + '/index.html');
+    await waitLabel(page, 'NEO ANDERSON');
+    await openMenu(page);
+    await page.getByRole('menuitem', { name: 'ACCOUNT SETTINGS' }).click();
+    await page.locator('#districtSettings').waitFor({ state: 'visible' });
+    const panel = await page.locator('#districtSettings').innerText();
+    for (const expected of ['NAME', 'Neo Anderson', 'EMAIL', 'neo@example.test', 'SIGN-IN METHOD', 'Google', 'EMAIL VERIFIED', 'Yes', 'MEMBER SINCE', '2026-09-01', 'LAST SIGN-IN', '2026-10-31', 'ACCOUNT ID', 'uid-neo']) assert.ok(panel.includes(expected), expected + ' in ' + panel);
+    assert.ok(!/token|password|secret|bearer/i.test(panel.replace(/This is what your account holds[^]*$/, '')), 'nothing sensitive is shown');
+    assert.ok(!panel.includes('token-for'), 'no token value');
+    assert.equal(await page.evaluate(() => scrollY), 0, 'the page did not scroll');
+    assert.ok(await page.locator('.district-account__menu').isHidden(), 'the menu closed when the panel opened');
+    await page.keyboard.press('Escape');
+    assert.ok(await page.locator('#districtSettings').isHidden());
+    await context.close();
+  });
+
+  await check('switch account: signs out first, forces the Google account chooser, ends on the other account', async () => {
+    const { page, context, seen } = await open({ signedIn: accountOf, me: meOf, nextUser: { uid: 'uid-trinity', displayName: 'Trinity Moss', email: 'trinity@example.test' } });
+    await page.goto(base + '/index.html');
+    await waitLabel(page, 'NEO ANDERSON');
+    await openMenu(page);
+    await page.getByText('SWITCH ACCOUNT').click();
+    await waitLabel(page, 'TRINITY MOSS');
+    assert.deepEqual(await page.evaluate(() => window.__authEvents), ['signOut', 'popup'], 'signed out before asking Google again');
+    assert.deepEqual(await page.evaluate(() => window.__popupParams), { prompt: 'select_account' }, 'the previous account is not picked automatically');
+    await page.reload();
+    await waitLabel(page, 'TRINITY MOSS');
+    await sendChat(page, 'as the second account');
+    assert.equal(seen.chat.at(-1).headers.authorization, 'Bearer token-for-uid-trinity', 'the chat follows the new account');
+    await context.close();
+  });
+
+  await check('switch account: backing out leaves a clear message, a signed-out header, and a way to try again', async () => {
+    const { page, context } = await open({ signedIn: accountOf, me: meOf });
+    await page.addInitScript(() => localStorage.setItem('mockPopupMode', 'cancel'));
+    await page.goto(base + '/index.html');
+    await waitLabel(page, 'NEO ANDERSON');
+    await openMenu(page);
+    await page.getByText('SWITCH ACCOUNT').click();
+    await waitLabel(page, 'LOG IN');
+    await page.locator('#districtLogin').waitFor({ state: 'visible' });
+    assert.match(await page.locator('#districtLogin').innerText(), /Account switch cancelled\. You are signed out\./);
+    await page.evaluate(() => localStorage.removeItem('mockPopupMode'));
+    await page.evaluate(() => localStorage.setItem('mockNextUser', JSON.stringify({ uid: 'uid-neo', displayName: 'Neo Anderson', email: 'neo@example.test' })));
+    await page.getByText('CONTINUE WITH GOOGLE').click();
+    await waitLabel(page, 'NEO ANDERSON');
+    await context.close();
+  });
+
+  await check('log out: header changes at once, only the sign-in ends, the Iris browser id and game saves stay', async () => {
+    const { page, context, seen } = await open({ signedIn: accountOf, me: meOf });
+    await page.goto(base + '/index.html');
+    await waitLabel(page, 'NEO ANDERSON');
+    const irisId = await page.evaluate(() => { localStorage.setItem('voidRunnerSave', '{"progress":42}'); return window.IrisIdentity.clientId; });
+    await openMenu(page);
+    await page.getByText('LOG OUT').click();
+    await waitLabel(page, 'LOG IN');
+    assert.ok(await page.locator('.district-account__menu').isHidden());
+    const kept = await page.evaluate(() => ({ id: localStorage.getItem('irisClientId'), save: localStorage.getItem('voidRunnerSave'), user: localStorage.getItem('mockFirebaseUser') }));
+    assert.equal(kept.id, irisId, 'the Iris visitor id is kept');
+    assert.equal(kept.save, '{"progress":42}', 'game progress is untouched');
+    assert.equal(kept.user, null, 'the sign-in is gone');
+    await page.reload();
+    await waitLabel(page, 'LOG IN');
+    assert.equal(await page.evaluate(() => window.IrisIdentity.clientId), irisId, 'still the same Iris visitor after a reload');
+    await sendChat(page, 'logged out now');
+    assert.equal(seen.chat.at(-1).headers.authorization, undefined);
+    assert.equal(seen.chat.at(-1).body.clientId, irisId);
+    await context.close();
+  });
+
+  await check('phone layout: the menu and the settings panel fit the screen and nothing scrolls sideways', async () => {
+    const { page, context } = await open({ viewport: { width: 390, height: 844 }, signedIn: { ...accountOf, displayName: 'Neo Anderson With A Very Long Name', email: 'a.very.long.email.address.for.testing@example-domain.test' }, me: meOf });
+    await page.goto(base + '/index.html');
+    await page.waitForFunction(() => document.querySelector('.district-account__label').textContent !== 'LOG IN');
+    await openMenu(page);
+    const box = await rect(page, '.district-account__menu');
+    assert.ok(box.l >= 0 && box.r <= 390, 'menu inside the screen ' + JSON.stringify(box));
+    await page.getByRole('menuitem', { name: 'ACCOUNT SETTINGS' }).click();
+    await page.locator('#districtSettings').waitFor({ state: 'visible' });
+    const panel = await rect(page, '#districtSettings .district-login__panel');
+    assert.ok(panel.l >= 0 && panel.r <= 390 && panel.b <= 844, 'settings inside the screen ' + JSON.stringify(panel));
+    assert.ok(!(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)));
+    await context.close();
   });
 
   await browser.close();
