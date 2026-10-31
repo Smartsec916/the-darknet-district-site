@@ -64,6 +64,7 @@ export const chatMessages = pgTable("chat_messages", {
   language: text("language"), // language Iris detected for this exchange
   status: text("status").notNull().default("ok"), // ok | fallback (canned reply) | error (no reply produced)
   requestId: text("request_id"), // server-side key that stops the same exchange being saved twice
+  memoryKey: text("memory_key"), // whose conversation this is, for long-term memory (null on older rows)
 });
 
 export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
@@ -102,4 +103,11 @@ export const irisOwnerState = pgTable("iris_owner_state", {
   newNonce: integer("new_nonce").notNull().default(0),
   returningNonce: integer("returning_nonce").notNull().default(0),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Anonymous browsers a signed-in account has chosen to bring into its memory (see server/memory.ts)
+export const irisMemoryLinks = pgTable("iris_memory_links", {
+  accountKey: text("account_key").notNull(),
+  sourceKey: text("source_key").notNull(),
+  linkedAt: timestamp("linked_at").defaultNow().notNull(),
 });

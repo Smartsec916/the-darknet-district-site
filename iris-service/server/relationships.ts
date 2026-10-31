@@ -82,6 +82,7 @@ export async function saveRelationship(clientId: string, rel: Relationship): Pro
 
 // Old memories are removed, at most once an hour and only as a side effect of a save
 export async function purgeExpired(force = false): Promise<number> {
+  if (retentionDays() === 0) return 0; // the default: nothing expires
   if (!force && Date.now() - lastPurge < 3_600_000) return 0;
   lastPurge = Date.now();
   try {

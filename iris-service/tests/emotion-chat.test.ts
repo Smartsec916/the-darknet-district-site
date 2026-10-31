@@ -206,12 +206,13 @@ test("forgetting: a visitor can erase their own memory, and no one else's", asyn
   await settle();
   assert.ok(await stored("c-forget"));
   const other = await openSession("c-forget-other");
-  assert.equal((await post("/api/chat/forget", { sessionId: other.sessionId, clientId: "c-forget" })).status, 403, "someone else's id with my session");
-  assert.equal((await post("/api/chat/forget", { sessionId: "nonexistent", clientId: "c-forget" })).status, 403);
-  assert.equal((await post("/api/chat/forget", { clientId: "c-forget" })).status, 400);
+  // Deleting needs the browser's own id AND the confirmation phrase (see long-term-memory.test.ts for the full set)
+  assert.equal((await post("/api/chat/forget", { clientId: "c-forget" })).status, 400, "no confirmation, nothing happens");
+  assert.equal((await post("/api/chat/forget", { clientId: "user:someone", confirm: "delete my memories" })).status, 400, "an account's key is not a browser id");
   assert.ok(await stored("c-forget"), "refused requests erased nothing");
-  assert.equal((await post("/api/chat/forget", { sessionId: mine.sessionId, clientId: "c-forget" })).status, 200);
+  assert.equal((await post("/api/chat/forget", { clientId: "c-forget", confirm: "delete my memories", scope: "relationship" })).status, 200);
   assert.equal(await stored("c-forget"), undefined);
+  assert.ok(other.sessionId, "another visitor's session is unaffected");
   assert.ok((await dbQuery(`SELECT 1 FROM chat_messages WHERE session_id = $1`, [mine.sessionId])).rows.length > 0, "the stored conversation is not part of it");
   script = [`${stateLine({ warmth: 2 })}\nok`];
   await say(mine.sessionId, "still here", "c-forget");
@@ -245,10 +246,12 @@ test("the administrator can erase a visitor's memory too, with the admin token o
   }
 });
 
-test("old memories expire", async () => {
+test("relationship records are removed for age only if an operator explicitly opts in (default: never)", async () => {
   await relationships.saveRelationship("c-old", relationships.newRelationship(Date.now()));
   await relationships.saveRelationship("c-new", relationships.newRelationship(Date.now()));
   await dbQuery(`UPDATE iris_relationships SET last_seen = now() - interval '400 days' WHERE client_id = 'c-old'`);
+  assert.equal(await relationships.purgeExpired(true), 0, "by default nothing expires");
+  assert.ok(await stored("c-old"));
   process.env.IRIS_MEMORY_RETENTION_DAYS = "180";
   assert.equal(await relationships.purgeExpired(true), 1);
   assert.equal(await stored("c-old"), undefined);

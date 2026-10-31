@@ -41,7 +41,8 @@ become romantic on their own.
 `iris_relationships`: five numbers, mood, counters, first/last seen, up to five short likes,
 a recap of up to 240 characters, a flirting cooldown and a minor flag. Nothing else.
 
-- Expires after `IRIS_MEMORY_RETENTION_DAYS` (default 180) without a visit.
+- Never expires by default. Setting `IRIS_MEMORY_RETENTION_DAYS` to a number of days is an explicit opt-in that removes relationship
+  records unseen that long (it has never touched stored conversations). See `IRIS-MEMORY.md`.
 - A visitor's browser can ask Iris to forget: `POST /api/chat/forget` with `{sessionId, clientId}`
   (accepted only when that session was created with that client id).
 - The administrator can erase one visitor: `DELETE /api/admin/relationships/<clientId>` with the

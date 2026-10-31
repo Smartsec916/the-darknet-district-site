@@ -26,6 +26,11 @@ import {
   clearEmotionEvents, dropLiveState, forgetVisitor, linkAnonymousHistory, liveStateFor, loadRelationship, recentEmotionEvents,
 } from "./relationships";
 import { storage } from "./storage";
+import {
+  adoptSession, countFallbacksLast24h, countStored, deleteStored, DELETE_CONFIRMATION, memoryEnabled, memoryKeysFor,
+  recentRetrievals, recordLink, removeLinks, clearRetrievals, approxTokens as tokensFor,
+} from "./memory";
+import { recentFallbacks } from "./services/openai";
 import type { VerifiedUser } from "./firebaseAuth";
 
 declare module "express-serve-static-core" {
@@ -95,6 +100,35 @@ async function usageLast24h() {
   }
 }
 
+// What the panel shows about long-term memory for the identity being tested: counts and categories, never text
+async function memoryDiagnostics(activeKey: string, mode: string) {
+  const persistent = mode !== "new";
+  const keys = persistent ? await memoryKeysFor(activeKey) : [];
+  const records = recentRetrievals(activeKey);
+  const requests = records.filter(r => r.kind === "request");
+  const lookups = records.filter(r => r.kind !== "request");
+  const latestRequest = requests[0];
+  const fallbacks = recentFallbacks().filter(f => Date.now() - f.at < 86_400_000);
+  const byReason: Record<string, number> = {};
+  for (const f of fallbacks) byReason[f.reason] = (byReason[f.reason] ?? 0) + 1;
+  const tokens = requests.reduce((sum, r) => sum + r.approxTokens, 0);
+  const priceIn = Number(process.env.OPENAI_PRICE_INPUT_PER_M) || 2.5;
+  return {
+    enabled: memoryEnabled(),
+    storesConversations: persistent,
+    storedMessages: persistent ? await countStored(keys) : 0,
+    linkedBrowsers: Math.max(0, keys.length - 1),
+    retention: "never (messages stay until deleted)",
+    lastLookups: lookups.slice(0, 8).map(r => ({ at: new Date(r.at).toISOString(), kind: r.kind, ok: r.ok, failure: r.failure ?? null, found: r.found, ms: r.ms })),
+    latestRequest: latestRequest
+      ? { at: new Date(latestRequest.at).toISOString(), messagesIncluded: latestRequest.included, approxTokens: latestRequest.approxTokens, ok: latestRequest.ok }
+      : null,
+    lookupFailuresRecent: lookups.filter(r => !r.ok).length,
+    estimatedAddedTokens: { requestsWithMemory: requests.length, tokens, costUSD: Math.round((tokens * priceIn) / 1e4) / 100 },
+    fallbacks: { last24hInDatabase: await countFallbacksLast24h(), sinceServerStart: fallbacks.length, byReason },
+  };
+}
+
 export function createOwnerRouter(): Router {
   const router = Router();
   router.use(["/api/me", "/api/owner"], generalLimiter);
@@ -121,7 +155,12 @@ export function createOwnerRouter(): Router {
     const user = req.account!;
     if (isAdminUser(user)) return res.status(409).json({ error: "The administrator account keeps its own separate memory." });
     if (/^(user|owner|test-new|test-returning):/.test(parsed.data.clientId)) return res.status(400).json({ error: "Not a browser id." });
-    const result = await linkAnonymousHistory(parsed.data.clientId, userKey(user.uid));
+    let result = await linkAnonymousHistory(parsed.data.clientId, userKey(user.uid));
+    // Conversations are linked on the same consent, even if there is no relationship record to copy
+    const storedHere = await countStored([parsed.data.clientId]);
+    if (storedHere && storedHere > 0) {
+      result = (await recordLink(userKey(user.uid), parsed.data.clientId)) ? "linked" : "failed";
+    }
     if (result === "linked") {
       // The remembered name travels with it, if the account does not have one yet
       try {
@@ -133,6 +172,39 @@ export function createOwnerRouter(): Router {
       log("info", "iris_history_linked", {});
     }
     res.status(result === "failed" ? 503 : 200).json({ result });
+  });
+
+  // What Iris holds for this account, so a person can see it before deciding (counts only, never content)
+  router.get("/api/me/memory", failedLimiter, requireAccount, async (req, res) => {
+    const user = req.account!;
+    const key = isAdminUser(user) ? ownerKey(user.uid) : userKey(user.uid);
+    const keys = await memoryKeysFor(key);
+    res.json({
+      conversationMessages: await countStored(keys),
+      relationship: Boolean(await loadRelationship(key)),
+      linkedBrowsers: keys.length - 1,
+      confirmation: DELETE_CONFIRMATION,
+    });
+  });
+
+  // Deletes what Iris remembers about this account. Nothing happens without the exact confirmation phrase.
+  //   conversations  the stored messages Iris can recall (including any browsers the account chose to link)
+  //   relationship   her mood, trust and notes about the account
+  //   all            both, and the links
+  // Game progress, the browser's own Iris id and the sign-in are never touched.
+  router.delete("/api/me/memory", failedLimiter, requireAccount, async (req, res) => {
+    const body = (req.body ?? {}) as { confirm?: unknown; scope?: unknown };
+    if (body.confirm !== DELETE_CONFIRMATION) return res.status(400).json({ error: "Confirmation required.", confirmation: DELETE_CONFIRMATION });
+    const scope = body.scope === "conversations" || body.scope === "relationship" ? body.scope : "all";
+    const user = req.account!;
+    const key = isAdminUser(user) ? ownerKey(user.uid) : userKey(user.uid);
+    const keys = await memoryKeysFor(key);
+    const result: { conversationMessages?: number | null; relationship?: boolean } = {};
+    if (scope !== "relationship") result.conversationMessages = await deleteStored(keys);
+    if (scope !== "conversations") { dropLiveState(key); clearEmotionEvents(key); result.relationship = await forgetVisitor(key); }
+    if (scope === "all") await removeLinks(key);
+    clearRetrievals(key);
+    res.json({ deleted: scope, ...result });
   });
 
   router.post("/api/me/forget", failedLimiter, requireAccount, async (req, res) => {
@@ -162,15 +234,39 @@ export function createOwnerRouter(): Router {
         live: live ? { mood: live.rel.mood, trust: Math.round(live.rel.trust * 100) / 100, messagesThisChat: live.sessionMessages } : null,
         recentChanges: activeKey ? recentEmotionEvents(activeKey).map(e => ({ ...e, at: new Date(e.at).toISOString() })) : [],
       },
+      memory: await memoryDiagnostics(activeKey, state.mode),
       persistence: {
         emotionSystem: emotionEnabled() ? "on" : "off",
         database: await ensureSchema(),
-        retentionDays: retentionDays(),
+        retentionDays: retentionDays() || "never",
         flirtLevel: flirtLevel(),
         recentChangesKeptInMemory: true,
       },
       usageLast24h: await usageLast24h(),
     });
+  });
+
+  // Delete an identity's stored conversations (Owner or the Returning test visitor; a New Visitor stores nothing)
+  router.post("/api/owner/memory/delete", failedLimiter, requireOwner, async (req, res) => {
+    const body = (req.body ?? {}) as { target?: unknown; confirm?: unknown };
+    if (body.confirm !== DELETE_CONFIRMATION) return res.status(400).json({ error: "Confirmation required.", confirmation: DELETE_CONFIRMATION });
+    if (body.target !== "owner" && body.target !== "returning") return res.status(400).json({ error: "target must be owner or returning." });
+    const uid = req.account!.uid;
+    const state = await getOwnerState(uid);
+    const key = body.target === "owner" ? ownerKey(uid) : returningKey(uid, state.returningNonce);
+    const deleted = await deleteStored([key]);
+    clearRetrievals(key);
+    res.json({ deleted });
+  });
+
+  // Brings an earlier chat (saved before messages carried a memory key) into the owner's own memory. Only rows that
+  // belong to no one are claimed; the session id comes from the conversation viewer.
+  router.post("/api/owner/adopt-session", failedLimiter, requireOwner, async (req, res) => {
+    const sessionId = (req.body as { sessionId?: unknown } | undefined)?.sessionId;
+    if (typeof sessionId !== "string" || !sessionId || sessionId.length > 128) return res.status(400).json({ error: "Send a session id." });
+    const adopted = await adoptSession(sessionId, ownerKey(req.account!.uid));
+    if (adopted === null) return res.status(503).json({ error: "Database unavailable." });
+    res.json({ adopted });
   });
 
   router.post("/api/owner/mode", failedLimiter, requireOwner, async (req, res) => {

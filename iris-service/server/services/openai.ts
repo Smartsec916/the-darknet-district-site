@@ -185,7 +185,7 @@ export function initializeSession(sessionId: string): void {
 // Extra system instructions per session, one per slot. Each turn's mood context
 // replaces the previous one instead of piling up, so old moods can't contradict
 // the current one and the prompt stays the same size.
-type SystemSlot = "context" | "relationship" | "distraction" | "flirtBoost";
+type SystemSlot = "context" | "relationship" | "memory" | "distraction" | "flirtBoost";
 const sessionSystemSlots = new Map<string, Map<SystemSlot, string>>();
 
 function setSystemSlot(sessionId: string, slot: SystemSlot, content: string): void {
@@ -193,6 +193,33 @@ function setSystemSlot(sessionId: string, slot: SystemSlot, content: string): vo
   slots.delete(slot); // re-insert so the newest instruction comes last
   slots.set(slot, content);
   sessionSystemSlots.set(sessionId, slots);
+}
+
+// Whether this chat's short-term history is in memory (it is not after a restart, a deploy or a sleep)
+export function hasSession(sessionId: string): boolean {
+  return sessionMessages.has(sessionId);
+}
+
+// What a restart does to the server: every chat's in-memory window is gone (used by tests to simulate one)
+export function forgetAllSessionsForTests(): void {
+  sessionMessages.clear();
+  sessionLanguages.clear();
+  sessionSystemSlots.clear();
+}
+
+// Rebuilds a chat's short-term window from stored messages after a restart. Only genuine stored turns are used.
+export function seedSession(sessionId: string, turns: Array<{ role: "user" | "assistant"; content: string }>): void {
+  initializeSession(sessionId);
+  for (const turn of turns.slice(-9)) addMessage(sessionId, turn.role, turn.content);
+}
+
+// What the short-term window already holds, so a retrieved memory is not repeated back to the model
+export function windowTexts(sessionId: string): Set<string> {
+  const out = new Set<string>();
+  for (const m of sessionMessages.get(sessionId) ?? []) {
+    if (m.role !== "system") out.add(m.content.trim().toLowerCase().replace(/\s+/g, " ").slice(0, 200));
+  }
+  return out;
 }
 
 // Add a user or assistant message to the conversation history
@@ -863,12 +890,33 @@ export interface IrisReply {
   fallback: boolean;
   language?: string; // language detected for the visitor's message
   emotion?: EmotionSignal | null; // the state line Iris put at the start of her reply, already removed from text
+  failure?: FallbackReason; // set when the reply is a canned one: why the model could not answer
+}
+
+export type FallbackReason = "timeout" | "network" | "rate_limit" | "quota" | "server_error" | "auth" | "bad_request" | "internal";
+
+// The kind of each recent canned reply (no text, no visitor, no prompt): for the administrator's panel
+const fallbackLog: Array<{ at: number; reason: FallbackReason }> = [];
+export const recentFallbacks = () => [...fallbackLog].reverse();
+
+function classifyFailure(error: unknown): FallbackReason {
+  if (error instanceof OpenAI.APIConnectionTimeoutError) return "timeout";
+  if (error instanceof OpenAI.APIConnectionError) return "network";
+  if (error instanceof OpenAI.APIError) {
+    const status = error.status ?? 0;
+    if (status === 429) return /quota|billing/i.test(error.message) ? "quota" : "rate_limit";
+    if (status === 401 || status === 403) return "auth";
+    if (status >= 500) return "server_error";
+    if (status >= 400) return "bad_request";
+  }
+  return "internal";
 }
 
 // What the caller adds to a reply request for the emotional upgrade
 export interface ReplyOptions {
   relationshipPrompt?: string; // private context about this visitor, ending with the state-line format
   isEva?: boolean; // the caller knows who is talking; without it the prompt text is searched, which also matches the Admin's notes
+  memoryPrompt?: string | null; // verified stored-conversation memory for this reply only (see memory.ts)
 }
 
 // Process a user message and get a response
@@ -1001,6 +1049,9 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     // Private relationship context for this reply only (replaced every turn, never accumulated)
     if (options.relationshipPrompt) setSystemSlot(sessionId, "relationship", options.relationshipPrompt);
     else sessionSystemSlots.get(sessionId)?.delete("relationship");
+    // Stored-conversation memory, for this reply only (replaced every turn, never accumulated)
+    if (options.memoryPrompt) setSystemSlot(sessionId, "memory", options.memoryPrompt);
+    else sessionSystemSlots.get(sessionId)?.delete("memory");
     
     // Add user message to history
     addMessage(sessionId, "user", userMessage);
@@ -1241,19 +1292,22 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     return { text: assistantResponse, fallback: false, language, emotion };
   } catch (error) {
     // Every canned reply that replaced a real one (the cause is in the openai_request_failed event just before)
-    log("error", "iris_fallback_reply", { reason: error instanceof OpenAI.APIError ? `openai_${error.status ?? "error"}` : "internal_error" });
+    const failure = classifyFailure(error);
+    fallbackLog.push({ at: Date.now(), reason: failure });
+    if (fallbackLog.length > 50) fallbackLog.shift();
+    log("error", "iris_fallback_reply", { reason: error instanceof OpenAI.APIError ? `openai_${error.status ?? "error"}` : "internal_error", failure });
     
     // More detailed error handling
     if (error instanceof Error) {
       if (error.message.includes("exceeded your current quota")) {
-        return { text: "System resources are currently limited. Let me help with what I know about the District.", fallback: true, language };
+        return { text: "System resources are currently limited. Let me help with what I know about the District.", fallback: true, language, failure };
       }
       if (error.message.includes("rate limit")) {
-        return { text: "So many requests flowing through the District right now. Can we try again in a moment?", fallback: true, language };
+        return { text: "So many requests flowing through the District right now. Can we try again in a moment?", fallback: true, language, failure };
       }
     }
     
-    return { text: "Sorry, I got distracted for a second. Mind repeating that?", fallback: true, language };
+    return { text: "Sorry, I got distracted for a second. Mind repeating that?", fallback: true, language, failure };
   } finally {
     // The venue distraction applies to one reply only
     sessionSystemSlots.get(sessionId)?.delete("distraction");

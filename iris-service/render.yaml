@@ -49,7 +49,12 @@ services:
       - key: IRIS_FLIRT_LEVEL
         value: "2"              # 0 none, 1 light teasing, 2 bold and cheeky, 3 very forward
       - key: IRIS_MEMORY_RETENTION_DAYS
-        value: "180"            # a visitor's saved relationship is deleted after this many days unseen
+        value: "0"              # 0 = nothing ever expires (the default). A number of days would remove relationship
+                                # records unseen that long; stored conversations are never expired either way
+      - key: IRIS_PERSISTENT_MEMORY
+        value: "on"             # "off" stops Iris reading stored conversations (they are still saved); see docs/IRIS-MEMORY.md
+      - key: IRIS_MEMORY_BUDGET_CHARS
+        value: "3000"           # most characters of stored conversation added to one request (about 4 per token)
 
       # --- Website sign-in and the owner's Iris controls (see docs/IRIS-ACCOUNTS.md) ---
       # Exact Firebase account ids (not emails) allowed to use the owner controls. Empty: nobody, and the

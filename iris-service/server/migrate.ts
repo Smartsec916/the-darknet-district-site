@@ -21,6 +21,7 @@ export const REQUIRED_TABLES = [
   "iris_report_parts",
   "iris_relationships",
   "iris_owner_state",
+  "iris_memory_links",
 ];
 
 const STATEMENTS = [
@@ -82,6 +83,16 @@ const STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS iris_relationships_last_seen_idx ON iris_relationships (last_seen)`,
 
   // The administrator's Iris interaction mode (Owner / New Visitor / Returning Visitor) and test resets
+  // Long-term conversation memory. memory_key says whose conversation a stored message is (the same keys the
+  // relationship memory uses); older rows have none and stay exactly as they were. Nothing is ever expired.
+  `ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS memory_key text`,
+  `CREATE INDEX IF NOT EXISTS chat_messages_memory_key_idx ON chat_messages (memory_key, id)`,
+  `CREATE INDEX IF NOT EXISTS chat_sessions_client_idx ON chat_sessions (client_id)`,
+  // A signed-in account that chose to bring an anonymous browser's conversations along (consent recorded here)
+  `CREATE TABLE IF NOT EXISTS iris_memory_links (
+     account_key text NOT NULL, source_key text NOT NULL, linked_at timestamp NOT NULL DEFAULT now(),
+     PRIMARY KEY (account_key, source_key))`,
+
   `CREATE TABLE IF NOT EXISTS iris_owner_state (
      uid text PRIMARY KEY, mode text NOT NULL DEFAULT 'owner',
      new_nonce integer NOT NULL DEFAULT 0, returning_nonce integer NOT NULL DEFAULT 0,

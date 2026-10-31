@@ -41,6 +41,7 @@
     button.action { padding: 10px 14px; background: #0b2b2b; color: var(--text); border: 1px solid var(--line-bright); font: 600 12px 'Courier New', monospace; letter-spacing: .08em; cursor: pointer; }
     button.action.quiet { background: none; border-color: var(--line); }
     button.action.danger { border-color: var(--warn); }
+    .field { padding: 9px 10px; background: #050d10; color: var(--text); border: 1px solid var(--line); font: 13px 'Courier New', monospace; min-width: 260px; }
     #gate { padding: 24px 0; }
     #note { min-height: 1.5em; color: var(--muted); }
     #note[data-state="error"] { color: var(--bad); }
@@ -90,6 +91,20 @@
         <h2 id="changesTitle">RECENT EMOTIONAL CHANGES (THIS IDENTITY)</h2>
         <div id="changes"></div>
         <p class="muted">Kept in memory only: numbers about mood and trust, never what anyone wrote. They clear when the service restarts.</p>
+      </section>
+      <section class="full" aria-labelledby="memoryTitle">
+        <h2 id="memoryTitle">CONVERSATION MEMORY (THIS IDENTITY)</h2>
+        <div id="memory"></div>
+        <p class="muted">Counts and categories only. Conversations are kept until someone deletes them: there is no automatic expiry.</p>
+        <div class="actions">
+          <button type="button" class="action danger" id="deleteOwnerMemory">DELETE OWNER CONVERSATIONS</button>
+          <button type="button" class="action danger" id="deleteReturningMemory">DELETE RETURNING-VISITOR CONVERSATIONS</button>
+        </div>
+        <p class="muted">Bring an earlier chat into the owner's memory (the session id is shown in the conversation viewer; only chats not yet filed under anyone can be adopted):</p>
+        <div class="actions">
+          <input id="adoptSession" class="field" maxlength="128" placeholder="session id" aria-label="Session id to adopt">
+          <button type="button" class="action quiet" id="adoptButton">ADOPT CHAT</button>
+        </div>
       </section>
       <section class="full" aria-labelledby="resetTitle">
         <h2 id="resetTitle">RESET SIMULATED VISITORS</h2>
