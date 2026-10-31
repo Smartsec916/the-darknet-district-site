@@ -13,10 +13,14 @@ export function irisBase(hostname, override) {
     : '';
 }
 
-/** What the header button says: LOG IN when signed out, otherwise a short uppercase name. */
-export function accountLabel(user) {
+/**
+ * What the header button says: LOG IN when signed out, otherwise the public handle in uppercase. The Firebase display
+ * name is never used, because for a Google account it is the person's real name; until the handle is known the
+ * button just says ACCOUNT.
+ */
+export function accountLabel(user, handle) {
   if (!user) return 'LOG IN';
-  const name = String(user.displayName || '').replace(/[^\p{L}\p{N}_\- ]/gu, '').trim();
+  const name = String(handle || '').replace(/[^A-Za-z0-9_]/g, '');
   if (!name) return 'ACCOUNT';
   return name.length > 12 ? name.slice(0, 11).toUpperCase() + '…' : name.toUpperCase();
 }
@@ -25,9 +29,11 @@ export function accountLabel(user) {
  * The account menu, from what the server confirmed. IRIS CONTROLS appears only when the server said
  * this account is an administrator; hiding it here is a courtesy, the server checks every request.
  */
-export function menuItems({ signedIn, admin }) {
+export function menuItems({ signedIn, admin, needsHandle }) {
   if (!signedIn) return [];
-  const items = [{ id: 'settings', label: 'ACCOUNT SETTINGS' }];
+  const items = [];
+  if (needsHandle) items.push({ id: 'handle', label: 'CHOOSE YOUR HANDLE' });
+  items.push({ id: 'settings', label: 'ACCOUNT SETTINGS' });
   if (admin) items.push({ id: 'controls', label: 'IRIS CONTROLS' });
   else {
     items.push({ id: 'link', label: 'LINK MY IRIS HISTORY' });
@@ -62,11 +68,11 @@ const day = text => {
  * The rows of the account information panel. Only what the account itself holds: never a token, a
  * credential or anything Iris remembers. Rows with no value are left out.
  */
-export function accountDetails(user, me) {
+export function accountDetails(user, me, handle) {
   if (!user) return [];
   const rows = [
-    ['NAME', user.displayName || null],
-    ['EMAIL', user.email || null],
+    ['HANDLE', handle || null],
+    ['EMAIL (PRIVATE)', user.email || null],
     ['SIGN-IN METHOD', providerLabel(user)],
     ['EMAIL VERIFIED', user.email ? (user.emailVerified ? 'Yes' : 'No') : null],
     ['MEMBER SINCE', day(user.metadata && user.metadata.creationTime)],
@@ -104,4 +110,17 @@ export function signInMessage(code) {
     case 'auth/operation-not-allowed': return 'This sign-in method is not turned on yet.';
     default: return 'Sign-in did not work. Try again shortly.';
   }
+}
+
+/** Mirrors the server's rule, so the form can answer before asking: 3-20 letters, numbers and underscores. */
+export const HANDLE_PATTERN = /^[A-Za-z0-9_]{3,20}$/;
+
+/** One plain sentence for the handle form while typing; empty when the shape is fine. */
+export function handleHint(value) {
+  const text = String(value || '').trim();
+  if (!text) return 'Pick 3 to 20 letters, numbers or underscores.';
+  if (text.length < 3) return 'At least 3 characters.';
+  if (text.length > 20) return 'At most 20 characters.';
+  if (!HANDLE_PATTERN.test(text)) return 'Letters, numbers and underscores only.';
+  return '';
 }

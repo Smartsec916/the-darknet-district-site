@@ -44,10 +44,39 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
   const failures = [];
   const check = async (name, fn) => { try { await fn(); console.log('PASS', name); } catch (error) { failures.push(name); console.error('FAIL', name, '\n  ', error.message.split('\n').slice(0, 9).join(' / '), '\n  at', (String(error.stack).split('\n').find(l => l.includes('iris-account-browser')) || '').trim()); } };
 
-  async function open({ viewport = { width: 1440, height: 900 }, me = { authenticated: false, admin: false }, nextUser, signedIn } = {}) {
+  async function open({ viewport = { width: 1440, height: 900 }, me = { authenticated: false, admin: false }, nextUser, signedIn, handles = {}, handleServiceDown = false, takenBy = {} } = {}) {
     const context = await browser.newContext({ viewport, isMobile: viewport.width < 700, hasTouch: viewport.width < 700, bypassCSP: true });
     const page = await context.newPage();
-    const seen = { chat: [], me: 0, link: null, forget: 0, errors: [] };
+    const seen = { chat: [], me: 0, link: null, forget: 0, errors: [], handleCalls: [] };
+    // A stand-in for the handle registry: unique ignoring case, reserved words refused, one change per 30 days
+    const registry = { mine: { 'uid-visitor': 'Neo', 'uid-owner': 'Smart_Sec', 'uid-neo': 'Neo_Anderson', 'uid-trinity': 'Trinity', ...handles }, next: {}, takenBy: { ghost_01: 'uid-other', ...takenBy } };
+    seen.registry = registry;
+    await page.route('**/api/identity/**', async r => {
+      const request = r.request();
+      const url = new URL(request.url());
+      const path = url.pathname.replace('/api/identity', '');
+      const uid = (request.headers().authorization || '').replace('Bearer token-for-', '') || null;
+      seen.handleCalls.push({ method: request.method(), path, uid, body: request.method() === 'POST' ? request.postDataJSON() : null });
+      if (handleServiceDown) return json(r, { error: 'Handles are opening soon. Local play is available.' }, 503);
+      if (path === '/me') return uid ? json(r, { handle: registry.mine[uid] || null, nextChangeAt: registry.next[uid] || null }) : json(r, { error: 'Sign in or register a handle to continue.' }, 401);
+      const available = /^\/handles\/([^/]+)\/available$/.exec(path);
+      if (available) { const owner = registry.takenBy[decodeURIComponent(available[1]).toLowerCase()]; return json(r, { available: !owner || owner === uid }); }
+      if (path === '/handle' && request.method() === 'POST') {
+        const body = request.postDataJSON();
+        if (!uid) return json(r, { error: 'Sign in or register a handle to continue.' }, 401);
+        if (Object.keys(body).join() !== 'handle' || !/^[A-Za-z0-9_]{3,20}$/.test(body.handle)) return json(r, { error: 'Use 3\u201320 letters, numbers, or underscores.' }, 400);
+        if (/^(admin|iris|system|moderator)$/i.test(body.handle)) return json(r, { error: 'This handle is reserved. Choose another.' }, 400);
+        const owner = registry.takenBy[body.handle.toLowerCase()];
+        if (owner && owner !== uid) return json(r, { error: 'That handle is taken.' }, 409);
+        if (registry.next[uid] && registry.next[uid] * 1000 > Date.now() && registry.mine[uid] !== body.handle) return json(r, { error: 'You can change your handle again in 12 days.' }, 429);
+        for (const key of Object.keys(registry.takenBy)) if (registry.takenBy[key] === uid) delete registry.takenBy[key];
+        registry.takenBy[body.handle.toLowerCase()] = uid;
+        registry.mine[uid] = body.handle;
+        registry.next[uid] = Math.floor(Date.now() / 1000) + 30 * 86400;
+        return json(r, { handle: body.handle, nextChangeAt: registry.next[uid] });
+      }
+      return json(r, { error: 'not found' }, 404);
+    });
     page.on('pageerror', e => seen.errors.push(e.message));
     await page.route('**/firebase-auth.js', r => r.fulfill({ contentType: 'text/javascript', body: firebaseMock }));
     await page.route(/gstatic\.com|googletagmanager\.com|googleapis\.com/, r => r.fulfill({ contentType: 'text/javascript', body: '' }));
@@ -178,7 +207,7 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     await test.context.close();
     const owner = await open({ signedIn: { uid: 'uid-owner', displayName: 'Smart Sec' }, me: { authenticated: true, admin: true, mode: 'owner', accountId: 'uid-owner' } });
     await owner.page.goto(base + '/index.html');
-    await owner.page.waitForFunction(() => document.querySelector('.district-account__label').textContent === 'SMART SEC');
+    await owner.page.waitForFunction(() => document.querySelector('.district-account__label').textContent === 'SMART_SEC');
     assert.equal(await owner.page.locator('.district-account__mode').innerText(), '', 'no tag in Owner mode');
     await owner.context.close();
   });
@@ -192,11 +221,11 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     assert.ok(await page.locator('#districtLogin').isHidden(), 'Escape closes the panel');
     await page.locator('.district-account__button').click();
     await page.getByText('CONTINUE WITH GOOGLE').click();
-    await page.waitForFunction(() => /NEO ANDERSON/.test(document.querySelector('.district-account__label').textContent));
+    await page.waitForFunction(() => document.querySelector('.district-account__label').textContent === 'NEO');
     assert.ok(await page.locator('#districtLogin').isHidden(), 'the panel closes after sign-in');
 
     await page.reload();
-    await page.waitForFunction(() => /NEO ANDERSON/.test(document.querySelector('.district-account__label').textContent));
+    await page.waitForFunction(() => document.querySelector('.district-account__label').textContent === 'NEO');
 
     await sendChat(page, 'signed in now');
     assert.equal(seen.chat.at(-1).headers.authorization, 'Bearer token-for-uid-visitor', 'the chat carries the sign-in so the server can verify it');
@@ -246,7 +275,7 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
 
     const owner = await open({ signedIn: { uid: 'uid-owner', displayName: 'Smart Sec' }, me: { authenticated: true, admin: true, mode: 'owner', accountId: 'uid-owner' } });
     await owner.page.goto(base + '/index.html');
-    await owner.page.waitForFunction(() => document.querySelector('.district-account__label').textContent === 'SMART SEC');
+    await owner.page.waitForFunction(() => document.querySelector('.district-account__label').textContent === 'SMART_SEC');
     await openMenu(owner.page);
     const items = await owner.page.locator('.district-account__item').allInnerTexts();
     assert.ok(items.includes('IRIS CONTROLS') && !items.includes('LINK MY IRIS HISTORY'), items.join(' | '));
@@ -353,10 +382,11 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
   await check('account dropdown: who is signed in, the actions, open and close by button, outside click, Escape and the keyboard', async () => {
     const { page, context } = await open({ signedIn: accountOf, me: meOf });
     await page.goto(base + '/index.html');
-    await waitLabel(page, 'NEO ANDERSON');
+    await waitLabel(page, 'NEO_ANDERSON');
     await openMenu(page);
     const text = await menuText(page);
-    for (const expected of ['Neo Anderson', 'neo@example.test', 'Google', 'ACCOUNT SETTINGS', 'SWITCH ACCOUNT', 'LOG OUT']) assert.ok(text.includes(expected), expected + ' in ' + text);
+    for (const expected of ['Neo_Anderson', 'Google', 'ACCOUNT SETTINGS', 'SWITCH ACCOUNT', 'LOG OUT']) assert.ok(text.includes(expected), expected + ' in ' + text);
+    for (const hidden of ['Neo Anderson', 'neo@example.test']) assert.ok(!text.includes(hidden), 'the menu never shows the Google name or email: ' + hidden);
     assert.equal(await page.locator('.district-account__button').getAttribute('aria-expanded'), 'true');
 
     await page.locator('.district-account__button').click();
@@ -393,12 +423,12 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
   await check('account settings: the account\'s own details, no tokens, closes with Escape, page stays put', async () => {
     const { page, context } = await open({ signedIn: accountOf, me: meOf });
     await page.goto(base + '/index.html');
-    await waitLabel(page, 'NEO ANDERSON');
+    await waitLabel(page, 'NEO_ANDERSON');
     await openMenu(page);
     await page.getByRole('menuitem', { name: 'ACCOUNT SETTINGS' }).click();
     await page.locator('#districtSettings').waitFor({ state: 'visible' });
     const panel = await page.locator('#districtSettings').innerText();
-    for (const expected of ['NAME', 'Neo Anderson', 'EMAIL', 'neo@example.test', 'SIGN-IN METHOD', 'Google', 'EMAIL VERIFIED', 'Yes', 'MEMBER SINCE', '2026-09-01', 'LAST SIGN-IN', '2026-10-31', 'ACCOUNT ID', 'uid-neo']) assert.ok(panel.includes(expected), expected + ' in ' + panel);
+    for (const expected of ['HANDLE', 'Neo_Anderson', 'EMAIL (PRIVATE)', 'neo@example.test', 'SIGN-IN METHOD', 'Google', 'EMAIL VERIFIED', 'Yes', 'MEMBER SINCE', '2026-09-01', 'LAST SIGN-IN', '2026-10-31', 'ACCOUNT ID', 'uid-neo']) assert.ok(panel.includes(expected), expected + ' in ' + panel);
     assert.ok(!/token|password|secret|bearer/i.test(panel.replace(/This is what your account holds[^]*$/, '')), 'nothing sensitive is shown');
     assert.ok(!panel.includes('token-for'), 'no token value');
     assert.equal(await page.evaluate(() => scrollY), 0, 'the page did not scroll');
@@ -411,14 +441,14 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
   await check('switch account: signs out first, forces the Google account chooser, ends on the other account', async () => {
     const { page, context, seen } = await open({ signedIn: accountOf, me: meOf, nextUser: { uid: 'uid-trinity', displayName: 'Trinity Moss', email: 'trinity@example.test' } });
     await page.goto(base + '/index.html');
-    await waitLabel(page, 'NEO ANDERSON');
+    await waitLabel(page, 'NEO_ANDERSON');
     await openMenu(page);
     await page.getByText('SWITCH ACCOUNT').click();
-    await waitLabel(page, 'TRINITY MOSS');
+    await waitLabel(page, 'TRINITY');
     assert.deepEqual(await page.evaluate(() => window.__authEvents), ['signOut', 'popup'], 'signed out before asking Google again');
     assert.deepEqual(await page.evaluate(() => window.__popupParams), { prompt: 'select_account' }, 'the previous account is not picked automatically');
     await page.reload();
-    await waitLabel(page, 'TRINITY MOSS');
+    await waitLabel(page, 'TRINITY');
     await sendChat(page, 'as the second account');
     assert.equal(seen.chat.at(-1).headers.authorization, 'Bearer token-for-uid-trinity', 'the chat follows the new account');
     await context.close();
@@ -428,7 +458,7 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     const { page, context } = await open({ signedIn: accountOf, me: meOf });
     await page.addInitScript(() => localStorage.setItem('mockPopupMode', 'cancel'));
     await page.goto(base + '/index.html');
-    await waitLabel(page, 'NEO ANDERSON');
+    await waitLabel(page, 'NEO_ANDERSON');
     await openMenu(page);
     await page.getByText('SWITCH ACCOUNT').click();
     await waitLabel(page, 'LOG IN');
@@ -437,14 +467,14 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     await page.evaluate(() => localStorage.removeItem('mockPopupMode'));
     await page.evaluate(() => localStorage.setItem('mockNextUser', JSON.stringify({ uid: 'uid-neo', displayName: 'Neo Anderson', email: 'neo@example.test' })));
     await page.getByText('CONTINUE WITH GOOGLE').click();
-    await waitLabel(page, 'NEO ANDERSON');
+    await waitLabel(page, 'NEO_ANDERSON');
     await context.close();
   });
 
   await check('log out: header changes at once, only the sign-in ends, the Iris browser id and game saves stay', async () => {
     const { page, context, seen } = await open({ signedIn: accountOf, me: meOf });
     await page.goto(base + '/index.html');
-    await waitLabel(page, 'NEO ANDERSON');
+    await waitLabel(page, 'NEO_ANDERSON');
     const irisId = await page.evaluate(() => { localStorage.setItem('voidRunnerSave', '{"progress":42}'); return window.IrisIdentity.clientId; });
     await openMenu(page);
     await page.getByText('LOG OUT').click();
@@ -487,7 +517,7 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
       await json(r, r.request().method() === 'GET' ? { conversationMessages: 12, relationship: true, linkedBrowsers: 1, confirmation: 'delete my memories' } : { deleted: 'all', conversationMessages: 12, relationship: true });
     });
     await page.goto(base + '/index.html');
-    await waitLabel(page, 'NEO ANDERSON');
+    await waitLabel(page, 'NEO_ANDERSON');
     const asked = [];
     page.on('dialog', async dialog => { asked.push(dialog.message()); await (asked.length === 1 ? dialog.dismiss() : dialog.accept()); });
     await openMenu(page);
@@ -523,6 +553,144 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     assert.deepEqual(sent, [['memory', { clientId: id }], ['forget', { clientId: id, confirm: 'delete my memories', scope: 'all' }]]);
     assert.match(await page.locator('#districtLogin').innerText(), /4 saved messages were deleted/);
     assert.equal(await page.evaluate(() => localStorage.getItem('irisClientId')), id, 'the browser\'s own Iris id is kept');
+    await context.close();
+  });
+
+
+  // ---------------------------------------------------------------- user-created handles
+  const handleDialog = page => page.locator('#districtHandle');
+  const signedInNeo = { uid: 'uid-neo', displayName: 'Neo Anderson', email: 'neo@example.test' };
+
+  await check('handles: the button shows the handle, never the Google name or the email, on every part of the page', async () => {
+    const { page, context } = await open({ signedIn: signedInNeo, me: meOf });
+    await page.goto(base + '/index.html');
+    await waitLabel(page, 'NEO_ANDERSON');
+    const everything = await page.evaluate(() => document.body.innerText + document.querySelector('.district-account__button').getAttribute('aria-label'));
+    assert.ok(!/Neo Anderson|NEO ANDERSON|neo@example/i.test(everything), 'no real name or email on the page');
+    await context.close();
+  });
+
+  await check('handles: first sign-in without a handle asks once; NOT NOW closes it and it does not come back this session', async () => {
+    const { page, context, seen } = await open({ signedIn: signedInNeo, me: meOf, handles: { 'uid-neo': null } });
+    await page.goto(base + '/index.html');
+    await handleDialog(page).waitFor({ state: 'visible' });
+    assert.match(await handleDialog(page).innerText(), /CHOOSE YOUR HANDLE/);
+    assert.equal(await label(page), 'ACCOUNT', 'until a handle exists the button does not show the Google name');
+    assert.ok(!/Neo Anderson/.test(await handleDialog(page).innerText()));
+    await page.getByRole('button', { name: 'NOT NOW' }).click();
+    await handleDialog(page).waitFor({ state: 'hidden' });
+    await page.reload();
+    await page.waitForFunction(() => document.querySelector('.district-account__label').textContent === 'ACCOUNT');
+    await page.waitForTimeout(500);
+    assert.equal(await handleDialog(page).isVisible(), false, 'asked once per session');
+    await openMenu(page);
+    assert.match(await menuText(page), /CHOOSE YOUR HANDLE/, 'still reachable from the menu');
+    assert.deepEqual(seen.errors, []);
+    await context.close();
+  });
+
+  await check('handles: checks shape first, then the server decides: reserved, look-alike taken (any case), then success updates the button without touching Iris', async () => {
+    const { page, context, seen } = await open({ signedIn: signedInNeo, me: meOf, handles: { 'uid-neo': null } });
+    await page.goto(base + '/index.html');
+    await handleDialog(page).waitFor({ state: 'visible' });
+    const input = page.locator('#districtHandleInput');
+    const status = page.locator('#districtHandle .district-login__status');
+    await input.fill('ab');
+    assert.match(await status.innerText(), /At least 3/);
+    await input.fill('has space');
+    assert.match(await status.innerText(), /Letters, numbers and underscores only/);
+    await page.getByRole('button', { name: 'SAVE HANDLE' }).click();
+    assert.equal(seen.handleCalls.filter(c => c.method === 'POST').length, 0, 'a malformed handle is not even sent');
+    await input.fill('Iris');
+    await page.getByRole('button', { name: 'SAVE HANDLE' }).click();
+    await page.waitForFunction(() => /reserved/.test(document.querySelector('#districtHandle .district-login__status').textContent));
+    await input.fill('GHOST_01');
+    await page.getByRole('button', { name: 'CHECK AVAILABILITY' }).click();
+    await page.waitForFunction(() => /already taken/.test(document.querySelector('#districtHandle .district-login__status').textContent));
+    await page.getByRole('button', { name: 'SAVE HANDLE' }).click();
+    await page.waitForFunction(() => /taken/.test(document.querySelector('#districtHandle .district-login__status').textContent));
+    assert.equal(await handleDialog(page).isVisible(), true, 'a conflict keeps the form open for another try');
+    await input.fill('Neo_Runner');
+    await page.getByRole('button', { name: 'SAVE HANDLE' }).click();
+    await handleDialog(page).waitFor({ state: 'hidden' });
+    await waitLabel(page, 'NEO_RUNNER');
+    const saves = seen.handleCalls.filter(c => c.method === 'POST' && c.body.handle === 'Neo_Runner');
+    assert.equal(saves.length, 1);
+    assert.deepEqual(saves[0].body, { handle: 'Neo_Runner' }, 'the request carries only the handle: the account comes from the verified token');
+    assert.equal(saves[0].uid, 'uid-neo');
+    assert.equal(seen.forget, 0);
+    assert.equal(seen.chat.length, 0, 'choosing a handle sends nothing to Iris');
+    await context.close();
+  });
+
+  await check('handles: Change Handle in Account Settings; the new handle shows everywhere, and a second change inside the cooldown is explained', async () => {
+    const { page, context } = await open({ signedIn: signedInNeo, me: meOf });
+    await page.goto(base + '/index.html');
+    await waitLabel(page, 'NEO_ANDERSON');
+    await openMenu(page);
+    await page.getByRole('menuitem', { name: 'ACCOUNT SETTINGS' }).click();
+    const settings = page.locator('#districtSettings');
+    await settings.waitFor({ state: 'visible' });
+    assert.match(await settings.innerText(), /Neo_Anderson/);
+    await settings.getByRole('button', { name: 'CHANGE HANDLE' }).click();
+    await handleDialog(page).waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#districtHandleInput').inputValue(), 'Neo_Anderson');
+    await page.locator('#districtHandleInput').fill('Thomas_A');
+    await page.getByRole('button', { name: 'SAVE HANDLE' }).click();
+    await waitLabel(page, 'THOMAS_A');
+    await openMenu(page);
+    assert.match(await menuText(page), /Thomas_A/);
+    await page.getByRole('menuitem', { name: 'ACCOUNT SETTINGS' }).click();
+    await settings.waitFor({ state: 'visible' });
+    assert.match(await settings.innerText(), /change it again on \d{4}-\d{2}-\d{2}/);
+    await settings.getByRole('button', { name: 'CHANGE HANDLE' }).click();
+    await page.locator('#districtHandleInput').fill('Another_One');
+    await page.getByRole('button', { name: 'SAVE HANDLE' }).click();
+    await page.waitForFunction(() => /again in 12 days/.test(document.querySelector('#districtHandle .district-login__status').textContent));
+    assert.equal(await label(page), 'THOMAS_A', 'a refused change leaves the handle alone');
+    await context.close();
+  });
+
+  await check('handles: two browsers racing for one handle - exactly one wins and the other is told plainly', async () => {
+    const one = await open({ signedIn: { uid: 'uid-neo', displayName: 'Neo Anderson' }, me: meOf, handles: { 'uid-neo': null } });
+    const two = await open({ signedIn: { uid: 'uid-trinity', displayName: 'Trinity Moss' }, me: { authenticated: true, admin: false }, handles: { 'uid-trinity': null } });
+    // Both stand-ins share one registry, like the real server
+    two.seen.registry.takenBy = one.seen.registry.takenBy;
+    for (const { page } of [one, two]) await page.goto(base + '/index.html');
+    for (const { page } of [one, two]) { await handleDialog(page).waitFor({ state: 'visible' }); await page.locator('#districtHandleInput').fill('Cipher_9'); }
+    await Promise.all([one, two].map(({ page }) => page.getByRole('button', { name: 'SAVE HANDLE' }).click()));
+    await Promise.all([one, two].map(({ page }) => page.waitForFunction(() => document.querySelector('.district-account__label').textContent === 'CIPHER_9' || /taken/.test(document.querySelector('#districtHandle .district-login__status').textContent))));
+    const labels = await Promise.all([one, two].map(({ page }) => label(page)));
+    assert.equal(labels.filter(text => text === 'CIPHER_9').length, 1, 'only one account holds the handle: ' + labels);
+    await one.context.close(); await two.context.close();
+  });
+
+  await check('handles: when the handle service is unavailable nothing is blocked, no prompt appears, and the message is plain', async () => {
+    const { page, context, seen } = await open({ signedIn: signedInNeo, me: meOf, handleServiceDown: true });
+    await page.goto(base + '/index.html');
+    await page.waitForFunction(() => document.querySelector('.district-account__label').textContent === 'ACCOUNT');
+    await page.waitForTimeout(500);
+    assert.equal(await handleDialog(page).isVisible(), false);
+    await openMenu(page);
+    await page.getByRole('menuitem', { name: 'ACCOUNT SETTINGS' }).click();
+    assert.match(await page.locator('#districtSettings').innerText(), /could not be loaded/);
+    await page.locator('#districtSettings').getByRole('button', { name: 'CHOOSE HANDLE' }).click();
+    await page.locator('#districtHandleInput').fill('Neo_Free');
+    await page.getByRole('button', { name: 'SAVE HANDLE' }).click();
+    await page.waitForFunction(() => /opening soon/.test(document.querySelector('#districtHandle .district-login__status').textContent));
+    assert.deepEqual(seen.errors, []);
+    await context.close();
+  });
+
+  await check('handles: Iris owner recognition is untouched - the handle never changes the account id or the Iris requests', async () => {
+    const { page, context, seen } = await open({ signedIn: { uid: 'uid-owner', displayName: 'Smart Sec' }, me: { authenticated: true, admin: true, mode: 'owner', accountId: 'uid-owner' } });
+    await page.goto(base + '/index.html');
+    await waitLabel(page, 'SMART_SEC');
+    await openMenu(page);
+    assert.match(await menuText(page), /IRIS CONTROLS/);
+    await sendChat(page, 'hello');
+    assert.equal(seen.chat.at(-1).headers.authorization, 'Bearer token-for-uid-owner');
+    assert.equal(seen.chat.at(-1).body.handle, undefined, 'the handle is not sent to Iris');
     await context.close();
   });
 

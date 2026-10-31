@@ -98,6 +98,7 @@ def me():
     uid = identity(auth, app)
     profile = db.collection('bp_profiles').document(registry.player_id(uid)).get().to_dict() or {}
     changed = profile.get('changedAt')
+    # Only the public handle leaves this endpoint: never the email address or the name Google holds.
     return jsonify(handle=profile.get('handle'),
                    nextChangeAt=changed + registry.HANDLE_COOLDOWN if changed else None)
 
@@ -107,6 +108,10 @@ def claim():
     db, auth, app = services()
     uid = identity(auth, app)
     display, changed_at = registry.claim_public_handle(db, uid, handle_from_body())
-    # The handle becomes the account's display name in every game.
-    auth.update_user(uid, display_name=display, app=app)
+    # The handle becomes the account's display name in every game. The registry above is the source of truth,
+    # so a failure here must not turn a successful claim into an error.
+    try:
+        auth.update_user(uid, display_name=display, app=app)
+    except Exception:
+        current_app.logger.warning('Could not mirror the handle to the Firebase display name')
     return jsonify(handle=display, nextChangeAt=changed_at + registry.HANDLE_COOLDOWN)

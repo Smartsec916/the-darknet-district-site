@@ -384,7 +384,7 @@
         <p>Welcome to The Darknet District, <span class="pilot-name"></span>!</p>
         <p>Neural link established...</p>
       `;
-      welcomeMsg.querySelector('.pilot-name').textContent = user.displayName || 'Pilot';
+      welcomeMsg.querySelector('.pilot-name').textContent = user.isAnonymous && user.displayName ? user.displayName : 'Pilot';
       document.body.appendChild(welcomeMsg);
 
       setTimeout(() => {

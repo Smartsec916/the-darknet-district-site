@@ -12,17 +12,31 @@ const core = () => import(path.join(root, 'iris-account-core.js').replace(/\\/g,
 
 // ------------------------------------------------------------------ the account button's logic
 
-test('the button says LOG IN when signed out and a short, safe name when signed in', async () => {
+test('the button says LOG IN when signed out and the public handle when signed in - never the Google name', async () => {
   const { accountLabel } = await core();
   assert.equal(accountLabel(null), 'LOG IN');
   assert.equal(accountLabel(undefined), 'LOG IN');
-  assert.equal(accountLabel({ displayName: 'Neo' }), 'NEO');
-  assert.equal(accountLabel({ displayName: '' }), 'ACCOUNT');
-  assert.equal(accountLabel({ displayName: null }), 'ACCOUNT');
-  assert.equal(accountLabel({ displayName: '<img src=x onerror=alert(1)>' }), 'IMG SRCX ON…');
-  assert.ok(!/[<>"'&]/.test(accountLabel({ displayName: '<b>"hi"</b>&' })));
-  assert.ok(accountLabel({ displayName: 'A very long display name indeed' }).length <= 12);
-  assert.equal(accountLabel({ displayName: '王力' }), '王力');
+  assert.equal(accountLabel({ displayName: 'Neo Anderson' }, 'Neo'), 'NEO');
+  assert.equal(accountLabel({ displayName: 'Neo Anderson', email: 'neo@example.test' }), 'ACCOUNT', 'no handle yet: the real name is not shown');
+  assert.equal(accountLabel({ displayName: 'Neo Anderson' }, null), 'ACCOUNT');
+  assert.equal(accountLabel({}, ''), 'ACCOUNT');
+  assert.equal(accountLabel({}, '<img src=x onerror=alert(1)>'), 'IMGSRCXONER…', 'markup characters are stripped');
+  assert.ok(!/[<>"'&]/.test(accountLabel({}, '<b>"hi"</b>&')));
+  assert.equal(accountLabel({}, 'Ghost_01'), 'GHOST_01');
+  assert.ok(accountLabel({}, 'A_very_long_handle_indeed').length <= 12);
+});
+
+test('handle hints mirror the server rule: 3-20 letters, numbers and underscores', async () => {
+  const { handleHint, HANDLE_PATTERN } = await core();
+  assert.match(handleHint(''), /3 to 20/);
+  assert.match(handleHint('ab'), /At least 3/);
+  assert.match(handleHint('x'.repeat(21)), /At most 20/);
+  assert.match(handleHint('has space'), /underscores only/);
+  assert.match(handleHint('emoji\u{1F600}x'), /underscores only/u);
+  assert.match(handleHint('Ghost-01'), /underscores only/);
+  assert.equal(handleHint('Ghost_01'), '');
+  assert.equal(handleHint('  Ghost_01  '), '');
+  assert.ok(HANDLE_PATTERN.test('abc') && HANDLE_PATTERN.test('a'.repeat(20)) && !HANDLE_PATTERN.test('a'.repeat(21)));
 });
 
 test('the account menu: IRIS CONTROLS only for a server-confirmed administrator; everyone signed in can log out', async () => {
@@ -33,6 +47,8 @@ test('the account menu: IRIS CONTROLS only for a server-confirmed administrator;
   assert.deepEqual(ids({ signedIn: true, admin: false }), ['settings', 'link', 'forget', 'switch', 'logout']);
   assert.deepEqual(ids({ signedIn: true, admin: true }), ['settings', 'controls', 'switch', 'logout']);
   assert.ok(!ids({ signedIn: true, admin: false }).includes('controls'));
+  assert.deepEqual(ids({ signedIn: true, admin: false, needsHandle: true }), ['handle', 'settings', 'link', 'forget', 'switch', 'logout'], 'a handle is offered first until one is chosen');
+  assert.deepEqual(ids({ signedIn: false, needsHandle: true }), []);
 });
 
 test('the Iris address is Render on the live site and the same origin elsewhere', async () => {
@@ -174,7 +190,7 @@ test('the shared Firebase project and the games are untouched', () => {
 
 test('the sign-in panel is attached to the page, uses safe DOM calls, and anonymous browsing needs nothing from it', () => {
   const account = read('iris-account.js');
-  assert.ok(account.includes('document.body.append(menu, modal, settings)'), 'the menu and both panels are attached to the page itself');
+  assert.ok(account.includes('document.body.append(menu, modal, settings, handleModal)'), 'the menu and the panels are attached to the page itself');
   assert.ok(!/innerHTML\s*=/.test(account) && !/document\.write/.test(account), 'no HTML built from strings of user data');
   assert.ok(!/insertAdjacentHTML\((?!'beforeend', FRAME)/.test(account), 'the only HTML inserted is the fixed button frame');
   assert.match(account, /if \(root\) \{/, 'nothing happens on a page without the placeholder');
@@ -215,13 +231,15 @@ test('account details: only what the account holds, never a token, empty rows le
   const { accountDetails, providerLabel } = await core();
   const user = { displayName: 'Neo', email: 'neo@example.test', emailVerified: false, uid: 'uid-1', providerData: [{ providerId: 'google.com' }, { providerId: 'password' }],
     metadata: { creationTime: 'Tue, 01 Sep 2026 10:00:00 GMT', lastSignInTime: 'garbage' }, accessToken: 'SECRET-TOKEN', stsTokenManager: { refreshToken: 'SECRET-REFRESH' } };
-  const rows = accountDetails(user, { admin: true });
-  assert.deepEqual(rows.map(row => row[0]), ['NAME', 'EMAIL', 'SIGN-IN METHOD', 'EMAIL VERIFIED', 'MEMBER SINCE', 'IRIS ACCESS', 'ACCOUNT ID']);
+  const rows = accountDetails(user, { admin: true }, 'Neo');
+  assert.deepEqual(rows.map(row => row[0]), ['HANDLE', 'EMAIL (PRIVATE)', 'SIGN-IN METHOD', 'EMAIL VERIFIED', 'MEMBER SINCE', 'IRIS ACCESS', 'ACCOUNT ID']);
   assert.equal(Object.fromEntries(rows)['SIGN-IN METHOD'], 'Google + Email link');
   assert.equal(Object.fromEntries(rows)['EMAIL VERIFIED'], 'No');
   assert.equal(Object.fromEntries(rows)['MEMBER SINCE'], '2026-09-01');
   assert.ok(!JSON.stringify(rows).includes('SECRET'), 'no token or credential ever reaches the panel');
   assert.deepEqual(accountDetails(null, null), []);
+  assert.ok(!rows.some(row => row[1] === 'Neo' && row[0] === 'NAME'), 'the Google name is no longer listed');
+  assert.equal(accountDetails({ uid: 'u', displayName: 'Real Name', providerData: [] }, null).some(row => row[1] === 'Real Name'), false);
   assert.equal(providerLabel({ isAnonymous: true }), 'Game handle (not connected to Google or email)');
   assert.equal(providerLabel({ providerData: [] }), null);
   assert.equal(accountDetails({ uid: 'u', providerData: [] }, { admin: false }).some(row => row[0] === 'IRIS ACCESS'), false);
