@@ -14,7 +14,7 @@ services:
     # Vite's config at startup, so dev packages must be installed even in production
     buildCommand: npm ci --include=dev && npm run build
     startCommand: npm run start
-    healthCheckPath: /
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
         value: "22"
@@ -37,3 +37,23 @@ services:
         value: "150"
       - key: CHAT_GLOBAL_DAILY_LIMIT
         value: "3000"
+
+      # --- Conversation viewer (off by default; see docs/LOGGING-AND-REPORTS.md) ---
+      - key: IRIS_ADMIN_VIEWER
+        value: "off"            # set to "on" only after the token below is set
+      - key: IRIS_ADMIN_TOKEN   # 32+ random characters; opens the private viewer
+        sync: false
+
+      # --- Daily email report (off by default) ---
+      - key: IRIS_REPORTS_ENABLED
+        value: "false"          # "true" starts real transcript emails: needs your approval first
+      - key: IRIS_REPORT_TOKEN  # 32+ random characters; the scheduler can only trigger the report with it
+        sync: false
+      - key: BREVO_API_KEY      # from the email provider; never put it in the repository
+        sync: false
+      - key: REPORT_SENDER_EMAIL # a sender address verified with the email provider
+        sync: false
+      - key: REPORT_SENDER_NAME
+        value: "Iris — The Darknet District"
+      - key: REPORT_RECIPIENT   # the only address reports are ever sent to
+        sync: false

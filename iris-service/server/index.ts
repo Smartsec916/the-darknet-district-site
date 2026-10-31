@@ -1,8 +1,12 @@
 import express, { type Request, Response, NextFunction } from "express";
+import type { Server } from "http";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
-import { createServer } from "http"; // <-- Required to support server.listen
+import { setupVite, serveStatic } from "./vite";
+import { closeDatabase } from "./db";
+import { ensureSchema } from "./migrate";
+import { log, logError } from "./logger";
 
+const startedAt = Date.now();
 const app = express();
 // Chat bodies are capped at 1,000 characters, so anything near this size is abuse
 app.use(express.json({ limit: "16kb" }));
@@ -19,8 +23,10 @@ const allowedOrigins = new Set(
 
 // CORS for the allowed origins, plus headers that allow iframe embedding
 app.use((req, res, next) => {
+  // The administrator viewer and its API are same-origin only: no CORS for them
+  const adminPath = req.path === "/admin" || req.path.startsWith("/api/admin");
   const origin = req.headers.origin;
-  if (origin && allowedOrigins.has(origin)) {
+  if (!adminPath && origin && allowedOrigins.has(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     // Allow credentials (cookies, authorization headers, etc)
     res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -35,61 +41,90 @@ app.use((req, res, next) => {
 
   // Remove X-Frame-Options to allow embedding in iframes
   res.removeHeader('X-Frame-Options');
-  
+
   // Set Content-Security-Policy to allow embedding
   res.setHeader('Content-Security-Policy', "frame-ancestors *");
-  
+
   // Preflight OPTIONS request handling
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
-  
+
   next();
 });
 
 // Trust proxy for X-Forwarded-For headers (fixes express-rate-limit warning)
 app.set('trust proxy', 1);
 
+// One line per API request: route pattern, status and time. Never the path's ids, the
+// request body, the response body or any header, so no conversation or token is logged.
+const SLOW_REQUEST_MS = 5000;
 app.use((req, res, next) => {
   const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
   res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      // Response bodies hold visitors' conversations, so log only whether it was a fallback
-      if (capturedJsonResponse?.fallback) {
-        logLine += " [fallback]";
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
-    }
+    if (!req.path.startsWith("/api")) return;
+    const ms = Date.now() - start;
+    const route = req.route?.path ?? "unmatched";
+    if (route === "/api/health" && res.statusCode < 400) return; // warm-up pings are noise
+    const level = res.statusCode >= 500 ? "error" : res.statusCode >= 400 || ms > SLOW_REQUEST_MS ? "warn" : "info";
+    log(level, "http_request", {
+      method: req.method, route, status: res.statusCode, ms, slow: ms > SLOW_REQUEST_MS || undefined,
+      ...(res.locals.logFields ?? {}),
+    });
   });
-
   next();
+});
+
+// Cheap liveness check with no database or OpenAI call. The website pings it when a
+// visitor opens the chat, so Render's free tier wakes before the first message.
+app.get("/api/health", (_req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.json({ ok: true, uptimeSeconds: Math.round((Date.now() - startedAt) / 1000) });
+});
+
+let httpServer: Server | undefined;
+let stopping = false;
+
+function shutdown(signal: string) {
+  if (stopping) return;
+  stopping = true;
+  log("info", "server_stopping", { signal });
+  const force = setTimeout(() => {
+    log("warn", "server_stop_forced");
+    process.exit(1);
+  }, 10_000);
+  force.unref();
+  const finish = async () => {
+    await closeDatabase();
+    log("info", "server_stopped");
+    process.exit(0);
+  };
+  if (httpServer) httpServer.close(() => void finish());
+  else void finish();
+}
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("unhandledRejection", reason => logError("unhandled_rejection", reason));
+process.on("uncaughtException", err => {
+  logError("uncaught_exception", err);
+  process.exit(1);
 });
 
 (async () => {
   const server = await registerRoutes(app);
 
+  // Anything under /api that no route handled is a 404, not the chat page
+  app.use("/api", (_req, res) => {
+    res.status(404).json({ error: "Not found" });
+  });
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
+    // Parser errors (413 too large, 400 bad JSON) carry text from the request body,
+    // so only the status and type are logged
+    log(status >= 500 ? "error" : "warn", "request_error", { status, type: err.type ?? err.name });
+    if (res.headersSent) return;
+    res.status(status).json({ message: status >= 500 ? "Internal Server Error" : err.message || "Bad request" });
   });
 
   // Importantly, only setup Vite in development and after
@@ -102,14 +137,24 @@ app.use((req, res, next) => {
 
   // Render (and most hosts) assign the port through PORT; 5000 stays the Replit default
   const port = Number(process.env.PORT) || 5000;
-  server.listen(
+  httpServer = server.listen(
     {
       port,
       host: "0.0.0.0",
       reusePort: true,
     },
     () => {
-      log(`serving on port ${port}`);
+      log("info", "server_started", {
+        port,
+        node: process.version,
+        // Only whether each setting is present, never its value
+        openaiKeySet: Boolean(process.env.OPENAI_API_KEY),
+        databaseUrlSet: Boolean(process.env.DATABASE_URL) || process.env.IRIS_TEST_DB === "pglite",
+        adminViewerOn: process.env.IRIS_ADMIN_VIEWER === "on",
+        reportsEnabled: process.env.IRIS_REPORTS_ENABLED === "true",
+      });
+      // Create any missing tables now rather than on the first visitor's message
+      void ensureSchema();
     }
   );
 })();

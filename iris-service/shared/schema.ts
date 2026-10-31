@@ -60,6 +60,10 @@ export const chatMessages = pgTable("chat_messages", {
   sender: text("sender").notNull(), // 'user' or 'iris'
   message: text("message").notNull(),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
+  // Added for conversation history; see server/migrate.ts (all additive)
+  language: text("language"), // language Iris detected for this exchange
+  status: text("status").notNull().default("ok"), // ok | fallback (canned reply) | error (no reply produced)
+  requestId: text("request_id"), // server-side key that stops the same exchange being saved twice
 });
 
 export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({

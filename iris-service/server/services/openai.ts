@@ -1,4 +1,6 @@
 import OpenAI from "openai";
+import { debugLog, log, logError } from "../logger";
+import { recordApiUsage } from "../persistence";
 
 // The newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const MODEL = "gpt-4o";
@@ -9,6 +11,24 @@ const openai = new OpenAI({
   timeout: 20_000,
   maxRetries: 1,
 });
+
+const SLOW_OPENAI_MS = 8000;
+const completions = openai.chat.completions as any;
+const createCompletion = completions.create.bind(completions);
+completions.create = async (...args: any[]) => {
+  const started = Date.now();
+  try {
+    const response = await createCompletion(...args);
+    const ms = Date.now() - started;
+    recordApiUsage(response.model ?? MODEL, response.usage, ms);
+    if (ms > SLOW_OPENAI_MS) log("warn", "openai_slow", { ms, model: response.model });
+    return response;
+  } catch (error) {
+    // Failures are summarized (status, code, timeout) without prompts or keys
+    logError("openai_request_failed", error, { ms: Date.now() - started, timeout: error instanceof OpenAI.APIConnectionTimeoutError });
+    throw error;
+  }
+};
 
 // System message to shape Iris's personality with more variety and depth
 const SYSTEM_MESSAGE = `You are Iris, an advanced android with a cyberpunk aesthetic who physically works at "The Darknet District" - a real location. You are also networked into the website to interact with online visitors. Your PRIMARY JOB is to inform users about the website/store features and offerings.
@@ -453,7 +473,7 @@ export async function getWelcomeMessage(mood: string = "professional"): Promise<
     
     return newMessage;
   } catch (error) {
-    console.error("IRIS_FALLBACK welcome message from fallback list:", error instanceof Error ? error.message : String(error));
+    log("error", "iris_fallback_welcome", { reason: error instanceof OpenAI.APIError ? `openai_${error.status ?? "error"}` : "internal_error" });
     
     // Fallback welcome messages that ask for user's name or handle
     const fallbackMessages = {
@@ -532,7 +552,7 @@ export async function translateText(text: string, fromLanguage: string, toLangua
     const targetLanguageName = toLanguage === "chinese" || toLanguage === "mandarin" ? 
       "Mandarin Chinese" : "English";
     
-    console.log(`Translating from ${fromLanguage} to ${targetLanguageName}`);
+    debugLog(`Translating from ${fromLanguage} to ${targetLanguageName}`);
     
     const response = await openai.chat.completions.create({
       model: MODEL,
@@ -554,7 +574,7 @@ export async function translateText(text: string, fromLanguage: string, toLangua
     
     return response.choices[0].message.content || text;
   } catch (error) {
-    console.error("Error translating text:", error);
+    logError("translation_failed", error);
     return text; // Return original text on error
   }
 }
@@ -579,7 +599,7 @@ async function detectLanguage(text: string): Promise<string> {
   let mentionsLanguage = false;
   for (const lang in languageMentions) {
     if (languageMentions[lang].test(text)) {
-      console.log(`User is mentioning ${lang} but not necessarily using it`);
+      debugLog(`User is mentioning ${lang} but not necessarily using it`);
       mentionsLanguage = true;
       break;
     }
@@ -594,7 +614,7 @@ async function detectLanguage(text: string): Promise<string> {
   if ((hasSpanishWords || containsSpanishChars) && !mentionsLanguage) {
     // Avoid false positive with very short messages like "hola"
     if (text.length > 8 || (hasSpanishWords && containsSpanishChars)) {
-      console.log('Text contains Spanish words or accents, setting language to spanish');
+      debugLog('Text contains Spanish words or accents, setting language to spanish');
       return 'spanish';
     }
   }
@@ -604,10 +624,10 @@ async function detectLanguage(text: string): Promise<string> {
   const japaneseSpecificRegex = /[\u3040-\u309F\u30A0-\u30FF]/g; // Hiragana and Katakana
   const japaneseSpecificMatches = text.match(japaneseSpecificRegex);
   
-  console.log(`Checking for Japanese-specific characters...`);
+  debugLog(`Checking for Japanese-specific characters...`);
   if (japaneseSpecificMatches && japaneseSpecificMatches.length >= 2 && !mentionsLanguage) {
-    console.log(`FOUND ${japaneseSpecificMatches.length} Japanese-specific characters: ${JSON.stringify(japaneseSpecificMatches)}`);
-    console.log('Text contains Japanese hiragana/katakana, setting language to japanese');
+    debugLog(`FOUND ${japaneseSpecificMatches.length} Japanese-specific characters: ${JSON.stringify(japaneseSpecificMatches)}`);
+    debugLog('Text contains Japanese hiragana/katakana, setting language to japanese');
     return 'japanese';
   }
   
@@ -619,13 +639,13 @@ async function detectLanguage(text: string): Promise<string> {
   
   // Add extra debugging for Chinese character detection
   if (chineseMatches) {
-    console.log(`FOUND ${chineseMatches.length} Chinese characters: ${JSON.stringify(chineseMatches)}`);
+    debugLog(`FOUND ${chineseMatches.length} Chinese characters: ${JSON.stringify(chineseMatches)}`);
   } else {
-    console.log('NO Chinese characters found in text');
+    debugLog('NO Chinese characters found in text');
   }
   
   if (chineseMatches && chineseMatches.length >= 2 && !mentionsLanguage) {
-    console.log('Text contains multiple Chinese characters, setting language to chinese');
+    debugLog('Text contains multiple Chinese characters, setting language to chinese');
     return 'chinese';
   }
   
@@ -633,7 +653,7 @@ async function detectLanguage(text: string): Promise<string> {
   // We want to ensure we respond in Chinese even for very short messages if Eva is using her Chinese name
   if (text === '王力' || text === '王' || text === '力' || 
       text.includes('王力') || text.includes('伊娃')) {
-    console.log('Detected Eva using her Chinese name, responding in Chinese');
+    debugLog('Detected Eva using her Chinese name, responding in Chinese');
     return 'chinese';
   }
   
@@ -644,7 +664,7 @@ async function detectLanguage(text: string): Promise<string> {
   
   if ((hasFrenchWords || containsFrenchChars) && !mentionsLanguage) {
     if (text.length > 8 || (hasFrenchWords && containsFrenchChars)) {
-      console.log('Text contains French words or accents, setting language to french');
+      debugLog('Text contains French words or accents, setting language to french');
       return 'french';
     }
   }
@@ -656,7 +676,7 @@ async function detectLanguage(text: string): Promise<string> {
   
   if ((hasGermanWords || containsGermanChars) && !mentionsLanguage) {
     if (text.length > 8 || (hasGermanWords && containsGermanChars)) {
-      console.log('Text contains German words or characters, setting language to german');
+      debugLog('Text contains German words or characters, setting language to german');
       return 'german';
     }
   }
@@ -665,7 +685,7 @@ async function detectLanguage(text: string): Promise<string> {
   const japaneseCharRegex = /[\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\u4E00-\u9FAF]/g;
   const japaneseMatches = text.match(japaneseCharRegex);
   if (japaneseMatches && japaneseMatches.length >= 2 && !mentionsLanguage) {
-    console.log('Text contains multiple Japanese characters, setting language to japanese');
+    debugLog('Text contains multiple Japanese characters, setting language to japanese');
     return 'japanese';
   }
   
@@ -673,7 +693,7 @@ async function detectLanguage(text: string): Promise<string> {
   const koreanCharRegex = /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F\uA960-\uA97F\uD7B0-\uD7FF]/g;
   const koreanMatches = text.match(koreanCharRegex);
   if (koreanMatches && koreanMatches.length >= 2 && !mentionsLanguage) {
-    console.log('Text contains multiple Korean characters, setting language to korean');
+    debugLog('Text contains multiple Korean characters, setting language to korean');
     return 'korean';
   }
   
@@ -681,7 +701,7 @@ async function detectLanguage(text: string): Promise<string> {
   const cyrillicRegex = /[\u0400-\u04FF\u0500-\u052F]/g;
   const cyrillicMatches = text.match(cyrillicRegex);
   if (cyrillicMatches && cyrillicMatches.length >= 3 && !mentionsLanguage) {
-    console.log('Text contains multiple Cyrillic characters, setting language to russian');
+    debugLog('Text contains multiple Cyrillic characters, setting language to russian');
     return 'russian';
   }
   
@@ -689,13 +709,13 @@ async function detectLanguage(text: string): Promise<string> {
   const arabicRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/g;
   const arabicMatches = text.match(arabicRegex);
   if (arabicMatches && arabicMatches.length >= 3 && !mentionsLanguage) {
-    console.log('Text contains multiple Arabic characters, setting language to arabic');
+    debugLog('Text contains multiple Arabic characters, setting language to arabic');
     return 'arabic';
   }
   
   // For very short texts without specific character sets, we'll use API detection
   if (text.length < 4) {
-    console.log('Text too short for reliable detection, using API');
+    debugLog('Text too short for reliable detection, using API');
   }
   
   // Enhanced English detection - first check as high priority
@@ -721,7 +741,7 @@ async function detectLanguage(text: string): Promise<string> {
   // These patterns supersede all other detection
   for (const pattern of veryStrongEnglishPatterns) {
     if (text.toLowerCase().includes(pattern)) {
-      console.log(`CRITICAL: Very strong English pattern detected: "${pattern}", FORCING English detection`);
+      debugLog(`CRITICAL: Very strong English pattern detected: "${pattern}", FORCING English detection`);
       return 'english';
     }
   }
@@ -731,7 +751,7 @@ async function detectLanguage(text: string): Promise<string> {
   const containsCommonEnglishWords = englishWords.test(text.toLowerCase());
   const containsEnglishPhrases = englishPhrases.some(phrase => text.toLowerCase().includes(phrase));
   
-  console.log(`DEBUG: isAsciiDominant=${isAsciiDominant.test(text)}, containsCommonEnglishWords=${containsCommonEnglishWords}, containsEnglishPhrases=${containsEnglishPhrases}`);
+  debugLog(`DEBUG: isAsciiDominant=${isAsciiDominant.test(text)}, containsCommonEnglishWords=${containsCommonEnglishWords}, containsEnglishPhrases=${containsEnglishPhrases}`);
   
   // English detection logic with higher priority
   if ((isAsciiDominant.test(text) && containsCommonEnglishWords) || containsEnglishPhrases) {
@@ -739,7 +759,7 @@ async function detectLanguage(text: string): Promise<string> {
     const hasNonEnglishWords = /\b(hola|como|estas|gracias|bonjour|merci|danke|guten|hallo)\b/i.test(text.toLowerCase());
     
     if (!hasNonEnglishWords) {
-      console.log('Text contains English words/phrases and no foreign language markers, setting to english');
+      debugLog('Text contains English words/phrases and no foreign language markers, setting to english');
       return 'english';
     }
   }
@@ -747,12 +767,12 @@ async function detectLanguage(text: string): Promise<string> {
   // Last chance English check
   // If the text contains "district" (our main topic) AND is ASCII-only, it's very likely English
   if (text.toLowerCase().includes('district') && isAsciiDominant.test(text)) {
-    console.log('Text contains "district" and is ASCII-only, very likely English');
+    debugLog('Text contains "district" and is ASCII-only, very likely English');
     return 'english';
   }
   
   try {
-    console.log('Sending text for language detection...');
+    debugLog('Sending text for language detection...');
     
     // Use a small and efficient model request to detect language
     const response = await openai.chat.completions.create({
@@ -780,11 +800,11 @@ async function detectLanguage(text: string): Promise<string> {
     // Make double sure to remove any punctuation or extra text
     detectedLanguage = detectedLanguage.replace(/[.,;:!?"'()\[\]{}]/g, '');
     
-    console.log(`Language detection raw result: "${detectedLanguage}"`);
+    debugLog(`Language detection raw result: "${detectedLanguage}"`);
     
     // Filter out any multi-word or invalid responses
     if (detectedLanguage.includes(" ") || detectedLanguage.length > 20) {
-      console.log(`Invalid language detection result: "${detectedLanguage}", defaulting to english`);
+      debugLog(`Invalid language detection result: "${detectedLanguage}", defaulting to english`);
       return 'english';
     }
     
@@ -797,13 +817,13 @@ async function detectLanguage(text: string): Promise<string> {
     ];
     
     if (!knownLanguages.includes(detectedLanguage)) {
-      console.log(`Unrecognized language "${detectedLanguage}", will still attempt to use it`);
+      debugLog(`Unrecognized language "${detectedLanguage}", will still attempt to use it`);
     }
     
-    console.log(`Final detected language: "${detectedLanguage}"`);
+    debugLog(`Final detected language: "${detectedLanguage}"`);
     return detectedLanguage || 'english';
   } catch (error) {
-    console.error("Error detecting language:", error);
+    logError("language_detection_failed", error);
     return 'english'; // Default to English if detection fails
   }
 }
@@ -838,6 +858,7 @@ function isEvaFlirting(message: string): boolean {
 export interface IrisReply {
   text: string;
   fallback: boolean;
+  language?: string; // language detected for the visitor's message
 }
 
 // Process a user message and get a response
@@ -856,6 +877,7 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
   // 2. If Eva isn't actively flirting, low chance (20%) to use regular flirt responses
   const useIntenseEvaFlirt = evaIsFlirting && Math.random() < 0.6;
   const useRegularEvaFlirt = isEva && !useIntenseEvaFlirt && Math.random() < 0.2;
+  let language: string | undefined;
   try {
     // Ensure session exists
     if (!sessionMessages.has(sessionId)) {
@@ -867,7 +889,8 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     
     // Detect language of user message for multilingual support
     const detectedLanguage = await detectLanguage(userMessage);
-    console.log(`User message language detected: ${detectedLanguage}`);
+    language = detectedLanguage;
+    debugLog(`User message language detected: ${detectedLanguage}`);
     
     // Get or initialize the set of languages for this session
     let sessionLangs = sessionLanguages.get(sessionId);
@@ -905,9 +928,9 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
         Still maintain your cyberpunk personality and style while communicating in ${detectedLanguage}.
         The only language allowed for this response is ${detectedLanguage}.
         `;
-        console.log(`Setting language instruction for: ${detectedLanguage}`);
+        debugLog(`Setting language instruction for: ${detectedLanguage}`);
       } else {
-        console.log(`Detected ${detectedLanguage} but continuing in English for now until confirmed`);
+        debugLog(`Detected ${detectedLanguage} but continuing in English for now until confirmed`);
       }
     } else {
       // If the user is using English, set the session language to English
@@ -1127,7 +1150,7 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     }
     
     // Request summary only; message text and prompts stay out of the logs
-    console.log(`OpenAI request: ${updatedMessages.length} messages, language ${detectedLanguage}, language instruction ${languageInstruction ? "YES" : "NO"}`);
+    debugLog(`OpenAI request: ${updatedMessages.length} messages, language ${detectedLanguage}, language instruction ${languageInstruction ? "YES" : "NO"}`);
     
     // Generate response with efficient token usage and enhanced creativity
     const response = await openai.chat.completions.create({
@@ -1167,9 +1190,9 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
       const flirtResponse = responsePool[Math.floor(Math.random() * responsePool.length)];
       
       if (useIntenseEvaFlirt) {
-        console.log(`Using INTENSE Eva-flirt response in ${isChineseResponse ? "Mandarin" : "English"} (Eva is flirting back!)`);
+        debugLog(`Using INTENSE Eva-flirt response in ${isChineseResponse ? "Mandarin" : "English"} (Eva is flirting back!)`);
       } else {
-        console.log(`Using regular Eva-flirt response in ${isChineseResponse ? "Mandarin" : "English"}`);
+        debugLog(`Using regular Eva-flirt response in ${isChineseResponse ? "Mandarin" : "English"}`);
       }
       
       // Determine if we should replace or prepend (50/50)
@@ -1198,25 +1221,22 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     // Add assistant response to history
     addMessage(sessionId, "assistant", assistantResponse);
     
-    return { text: assistantResponse, fallback: false };
+    return { text: assistantResponse, fallback: false, language };
   } catch (error) {
-    // Searchable marker for every canned reply that replaced a real one
-    const details = error instanceof OpenAI.APIError
-      ? { status: error.status, code: error.code, type: error.type, message: error.message }
-      : { message: error instanceof Error ? error.message : String(error) };
-    console.error("IRIS_FALLBACK OpenAI request failed:", details);
+    // Every canned reply that replaced a real one (the cause is in the openai_request_failed event just before)
+    log("error", "iris_fallback_reply", { reason: error instanceof OpenAI.APIError ? `openai_${error.status ?? "error"}` : "internal_error" });
     
     // More detailed error handling
     if (error instanceof Error) {
       if (error.message.includes("exceeded your current quota")) {
-        return { text: "System resources are currently limited. Let me help with what I know about the District.", fallback: true };
+        return { text: "System resources are currently limited. Let me help with what I know about the District.", fallback: true, language };
       }
       if (error.message.includes("rate limit")) {
-        return { text: "So many requests flowing through the District right now. Can we try again in a moment?", fallback: true };
+        return { text: "So many requests flowing through the District right now. Can we try again in a moment?", fallback: true, language };
       }
     }
     
-    return { text: "Sorry, I got distracted for a second. Mind repeating that?", fallback: true };
+    return { text: "Sorry, I got distracted for a second. Mind repeating that?", fallback: true, language };
   } finally {
     // The venue distraction applies to one reply only
     sessionSystemSlots.get(sessionId)?.delete("distraction");

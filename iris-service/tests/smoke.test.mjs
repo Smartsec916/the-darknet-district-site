@@ -80,7 +80,8 @@ test("OpenAI failures are flagged as fallback replies and logged", async () => {
   const body = await res.json();
   assert.equal(body.fallback, true);
   assert.equal(typeof body.response, "string");
-  assert.match(logs, /IRIS_FALLBACK/);
+  assert.match(logs, /"event":"openai_request_failed"/);
+  assert.match(logs, /"event":"iris_fallback_reply"/);
 });
 
 test("claiming to be Admin does not unlock stored conversations", async () => {
@@ -113,6 +114,41 @@ test("chat history needs a session the server knows", async () => {
 test("visitor message text is not written to the logs", async () => {
   await chat("privacy", "my secret test phrase is marmalade");
   assert.ok(!logs.includes("marmalade"));
+});
+
+test("health check answers without touching the database or OpenAI", async () => {
+  const res = await fetch(BASE + "/api/health");
+  assert.equal(res.status, 200);
+  assert.equal((await res.json()).ok, true);
+});
+
+test("unknown API paths are a JSON 404, not the chat page", async () => {
+  const res = await fetch(BASE + "/api/definitely-not-here");
+  assert.equal(res.status, 404);
+  assert.match(res.headers.get("content-type") ?? "", /json/);
+});
+
+test("the administrator viewer and report endpoint do not exist by default", async () => {
+  assert.equal((await fetch(BASE + "/admin")).status, 404);
+  assert.equal((await fetch(BASE + "/api/admin/stats", { headers: { Authorization: "Bearer " + "x".repeat(40) } })).status, 404);
+  const report = await fetch(BASE + "/api/admin/reports/daily", { method: "POST", headers: { Authorization: "Bearer " + "x".repeat(40) } });
+  assert.equal(report.status, 404);
+});
+
+test("admin routes send no CORS headers, even to the site", async () => {
+  const res = await fetch(BASE + "/api/admin/stats", { method: "OPTIONS", headers: { Origin: "https://thedarknetdistrict.com" } });
+  assert.equal(res.headers.get("access-control-allow-origin"), null);
+});
+
+test("database failures are logged without credentials or message text, and chat still answers", async () => {
+  const res = await chat("dbdown", "my other secret phrase is gooseberry");
+  assert.equal(res.status, 200);
+  assert.equal(typeof (await res.json()).response, "string");
+  assert.match(logs, /"event":"(conversation_save_failed|schema_setup_failed)"/);
+  assert.match(logs, /"event":"http_request"/);
+  assert.ok(!logs.includes("gooseberry"));
+  assert.ok(!logs.includes("user:pass"));
+  assert.ok(!logs.includes("sk-smoke-test-not-a-real-key"));
 });
 
 test("the global daily cap stops further OpenAI calls", async () => {

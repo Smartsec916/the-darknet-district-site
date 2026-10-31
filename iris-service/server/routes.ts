@@ -9,6 +9,10 @@ import rateLimit from "express-rate-limit";
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
+import { debugLog, log, logError } from "./logger";
+import { ensureSchema } from "./migrate";
+import { findStoredReply, requestKey, saveExchange } from "./persistence";
+import { createAdminRouter } from "./admin";
 
 // Moods and tracking maps
 const moods = ["professional", "sarcastic", "cold", "flirty", "playful", "busy"];
@@ -214,6 +218,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
     message: { error: "Iris is at capacity for today, please come back tomorrow", response: "The District's uplink is maxed out for today. Try me again tomorrow." }
   });
 
+  // Private administrator viewer and report endpoint (404 unless explicitly enabled; see admin.ts)
+  app.use(createAdminRouter());
+
   // 4. Security headers middleware
   app.use((req: Request, res: Response, next: NextFunction) => {
     // Add security headers
@@ -260,7 +267,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       const welcomeMessage = await openaiService.getWelcomeMessage(mood);
       res.json({ message: welcomeMessage });
     } catch (error) {
-      console.error("Error generating welcome message:", error);
+      logError("error_generating_welcome_message", error);
       // Fallback welcome messages if OpenAI fails
       const welcomeMessages = [
         "Welcome back to the District. I'm Iris. Let's get you where you need to go.",
@@ -278,6 +285,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
   app.post("/api/chat/session", async (req, res) => {
     try {
       // Generate session ID and initialize character traits
+      await ensureSchema();
       const sessionId = nanoid();
       const mood = moods[Math.floor(Math.random() * moods.length)];
       const trust = initializeTrustLevel();
@@ -292,7 +300,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         const userProfile = await storage.getUserProfile(clientId);
         
         if (userProfile) {
-          console.log(`Found existing user profile for client: ${clientId}`);
+          debugLog(`Found existing user profile for client: ${clientId}`);
           
           // Use stored user data for personalization
           userName = userProfile.displayName;
@@ -327,7 +335,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         userName: userName || undefined
       });
     } catch (error) {
-      console.error("Error creating chat session:", error);
+      logError("error_creating_chat_session", error);
       res.status(500).json({ message: "Failed to create chat session" });
     }
   });
@@ -361,7 +369,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         // Admin gets maximum trust and a professional but friendly mood
         newTrust = 5; // Maximum trust
         newMood = "professional"; 
-        console.log(`Detected ADMIN user: Setting professional mood and maximum trust`);
+        debugLog(`Detected ADMIN user: Setting professional mood and maximum trust`);
         
         // Special instructions for Admin interactions
         const specialUserReminder = `SPECIAL USER DETECTED: This is Admin who runs The Darknet District and the website. 
@@ -420,7 +428,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         newTrust = Math.min(5, trustLevel + 2); // Give Eva even more trust
         newFlirtCount = Math.max(flirtCount + 2, 3); // Ensure Eva always gets flirty responses
         newMood = "flirty"; // Eva always gets the flirty mood
-        console.log(`Detected VIP user ${userName}: Setting flirty mood and increasing trust (Iris's circuits are going haywire!)`);
+        debugLog(`Detected VIP user ${userName}: Setting flirty mood and increasing trust (Iris's circuits are going haywire!)`);
         
         // Prepare special reminder that will be sent to OpenAI
         const specialUserReminder = `SPECIAL USER DETECTED: ${userName} is Eva Wang Li (王力), who Iris knows personally. 
@@ -585,7 +593,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       // If no translation needed, return original
       return message;
     } catch (error) {
-      console.error("Translation error:", error);
+      logError("translation_error", error);
       return message; // Return original on error
     }
   }
@@ -697,7 +705,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
                   containsChinese
                 );
               } catch (error) {
-                console.error('Translation error:', error);
+                logError("translation_error", error);
                 // Keep original message on error
               }
             }
@@ -731,21 +739,24 @@ export async function registerRoutes(app: Express): Promise<Express> {
       
       return res.json({ summary });
     } catch (error) {
-      console.error("Error in special user recall:", error);
+      logError("error_in_special_user_recall", error);
       return res.status(400).json({ error: "Invalid request for conversation recall" });
     }
   });
 
   // Process a message and get a response - optimized with rate limiting and validation
   app.post("/api/chat/message", chatLimiter, dailyChatLimiter, globalDailyChatLimiter, async (req, res) => {
+    // Set once the message is accepted, so a failure after that point still records the visitor's message
+    let received: { sessionId: string; message: string; requestId: string; at: Date } | null = null;
     try {
       const messageSchema = z.object({
-        sessionId: z.string(),
+        sessionId: z.string().min(1).max(128),
         message: z.string(),
-        clientId: z.string().optional()
+        clientId: z.string().max(128).optional(),
+        messageCount: z.number().int().optional()
       });
-
-      const { sessionId, message, clientId } = messageSchema.parse(req.body);
+      
+      const { sessionId, message, clientId, messageCount: clientMessageCount } = messageSchema.parse(req.body);
 
       if (message.length > MAX_MESSAGE_CHARS) {
         return res.status(413).json({
@@ -763,7 +774,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
           try {
             await storage.createOrUpdateUserProfile({ clientId, displayName: passphraseUser });
           } catch (err) {
-            console.error("Failed to persist verified profile:", err);
+            logError("failed_to_persist_verified_profile", err);
           }
         }
         return res.json({
@@ -773,6 +784,17 @@ export async function registerRoutes(app: Express): Promise<Express> {
         });
       }
       const verifiedUser = sessionVerifiedUserMap.get(sessionId);
+
+      const requestId = requestKey(sessionId, message, clientMessageCount);
+      received = { sessionId, message, requestId, at: new Date() };
+      if (Number.isInteger(clientMessageCount)) {
+        // The same message was already answered (for example a retry after a slow wake-up)
+        const stored = await findStoredReply(requestId);
+        if (stored) {
+          res.locals.logFields = { replay: true };
+          return res.json(stored.status === "fallback" ? { response: stored.text, fallback: true } : { response: stored.text });
+        }
+      }
 
       // Get session metadata - clone to avoid race conditions
       let mood = sessionMoodMap.get(sessionId) || "professional";
@@ -835,11 +857,11 @@ export async function registerRoutes(app: Express): Promise<Express> {
           sessionMessageCountMap.set(sessionId, 0);
         }
         
-        // Save messages to database 
-        Promise.all([
-          storage.saveChatMessage({ sessionId, sender: "user", message }),
-          storage.saveChatMessage({ sessionId, sender: "iris", message: response })
-        ]).catch(err => console.error("Background save error:", err));
+        // Save the exchange before replying so a restart cannot lose it
+        res.locals.logFields = { saved: await saveExchange({
+          sessionId, requestId, visitorText: message, visitorAt: received.at, visitorStatus: "ok",
+          language: "english", iris: { text: response, status: "ok", at: new Date() },
+        }) };
         
         // Return immediately for security triggers
         return res.json({ response });
@@ -892,7 +914,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
             
             if (correctedName && correctedName.trim().length > 1) {
               extractedName = correctedName.trim();
-              console.log(`Detected name correction: "${userName}" -> "${extractedName}"`);
+              debugLog(`Detected name correction: "${userName}" -> "${extractedName}"`);
               break;
             }
           }
@@ -953,7 +975,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
                 extractedName.toLowerCase().includes(' the ') ||
                 extractedName.toLowerCase().includes(' your ') || 
                 extractedName.toLowerCase().includes(' my ')) {
-              console.log(`Rejected "${extractedName}" - too long or contains sentence structure`);
+              debugLog(`Rejected "${extractedName}" - too long or contains sentence structure`);
               extractedName = "";
               continue;
             }
@@ -963,7 +985,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         
         // If we extracted a name, filter and store it
         if (extractedName) {
-          console.log(`Potential name extracted: "${extractedName}"`);
+          debugLog(`Potential name extracted: "${extractedName}"`);
           
           // Filter out common words that might be mistaken for names
           const commonWords = [
@@ -1011,7 +1033,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
           const isInvalidName = !isSpecialName && (commonWords.includes(lowerName) || lowerName.length < 2);
           
           if (isInvalidName) {
-            console.log(`Rejected extracted name "${extractedName}" - common word or too short`);
+            debugLog(`Rejected extracted name "${extractedName}" - common word or too short`);
           } else {
             // Initialize variable for processed name
             let processedName = "";
@@ -1081,7 +1103,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
             userName = processedName;
             
             sessionUserNameMap.set(sessionId, userName);
-            console.log(`Extracted and stored user name: "${userName}"`);
+            debugLog(`Extracted and stored user name: "${userName}"`);
             
             // If we have a client ID, save the name to the persistent database
             if (clientId) {
@@ -1103,10 +1125,10 @@ export async function registerRoutes(app: Express): Promise<Express> {
                     trustLevel: newTrust,
                     preferredMood: newMood
                   });
-                  console.log(`Persisted user profile for ${userName} with client ID: ${profileClientId}`);
+                  debugLog(`Persisted user profile for ${userName} with client ID: ${profileClientId}`);
                 }
               } catch (err) {
-                console.error("Failed to persist user profile:", err);
+                logError("failed_to_persist_user_profile", err);
               }
             }
           }
@@ -1129,7 +1151,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
           // Store in the session map for reference later
           sessionSpecialNameInstructionMap.set(sessionId, specialInstruction);
           
-          console.log(`Will ask for name at message count: ${messageCount}`);
+          debugLog(`Will ask for name at message count: ${messageCount}`);
           
           // Record that we asked in this message
           sessionAskedForNameMap.set(sessionId, messageCount);
@@ -1207,7 +1229,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
           const requestingUser = isAdmin ? "Admin" : "Eva";
           const targetUser = isAdmin ? "Eva" : "Admin";
           
-          console.log(`Conversation recall requested by ${requestingUser} about ${targetUser}`);
+          debugLog(`Conversation recall requested by ${requestingUser} about ${targetUser}`);
           
           // Get recent conversations between them
           const recentMessages = await storage.getRecentMessagesForSpecialUser(targetUser, 30);
@@ -1249,11 +1271,11 @@ export async function registerRoutes(app: Express): Promise<Express> {
                 }
               }
               
-              console.log("Added conversation recall context to prompt");
+              debugLog("Added conversation recall context to prompt");
             }
           }
         } catch (error) {
-          console.error("Error processing conversation recall:", error);
+          logError("error_processing_conversation_recall", error);
         }
       }
       
@@ -1276,15 +1298,15 @@ export async function registerRoutes(app: Express): Promise<Express> {
           // If not in Chinese, translate it to Chinese for Eva
           if (!containsChinese) {
             try {
-              console.log("Translating response to Chinese for Eva...");
+              debugLog("Translating response to Chinese for Eva...");
               translatedResponse = await translateMessageForUser(
                 translatedResponse, 
                 false, // not admin (Eva)
                 false  // not containing Chinese
               );
-              console.log("Successfully translated response to Chinese");
+              debugLog("Successfully translated response to Chinese");
             } catch (error) {
-              console.error("Failed to translate response for Eva:", error);
+              logError("failed_to_translate_response_for_eva", error);
               // Keep original response on translation error
             }
           }
@@ -1295,31 +1317,41 @@ export async function registerRoutes(app: Express): Promise<Express> {
           // If in Chinese, translate it to English for Admin
           if (containsChinese) {
             try {
-              console.log("Translating response to English for Admin...");
+              debugLog("Translating response to English for Admin...");
               translatedResponse = await translateMessageForUser(
                 translatedResponse,
                 true,  // is admin
                 true   // contains Chinese
               );
-              console.log("Successfully translated response to English");
+              debugLog("Successfully translated response to English");
             } catch (error) {
-              console.error("Failed to translate response for Admin:", error);
+              logError("failed_to_translate_response_for_admin", error);
               // Keep original response on translation error
             }
           }
         }
       }
       
-      // Save messages to database async for faster response time
-      Promise.all([
-        storage.saveChatMessage({ sessionId, sender: "user", message }),
-        storage.saveChatMessage({ sessionId, sender: "iris", message: translatedResponse })
-      ]).catch(err => console.error("Background save error:", err));
+      // Save the exchange (visitor message, then Iris's reply, as shown to the visitor)
+      // before replying, so a Render restart cannot lose it
+      const saved = await saveExchange({
+        sessionId, requestId, visitorText: message, visitorAt: received.at, visitorStatus: "ok",
+        language: reply.language ?? null,
+        iris: { text: translatedResponse, status: reply.fallback ? "fallback" : "ok", at: new Date() },
+      });
+      res.locals.logFields = { fallback: reply.fallback, saved, language: reply.language };
       
       // fallback: true marks a canned reply that replaced a failed OpenAI call
       res.json(reply.fallback ? { response: translatedResponse, fallback: true } : { response: translatedResponse });
     } catch (error) {
-      console.error("Error processing message:", error);
+      logError("chat_message_failed", error);
+      // Keep the visitor's message, flagged as unanswered. No reply is invented.
+      if (received) {
+        await saveExchange({
+          sessionId: received.sessionId, requestId: received.requestId, visitorText: received.message,
+          visitorAt: received.at, visitorStatus: "error",
+        });
+      }
       res.status(500).json({ message: "Failed to process message" });
     }
   });
@@ -1331,7 +1363,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       const messages = await storage.getChatHistory(sessionId);
       res.json({ messages });
     } catch (error) {
-      console.error("Error fetching chat history:", error);
+      logError("error_fetching_chat_history", error);
       res.status(500).json({ message: "Failed to fetch chat history" });
     }
   });
@@ -1437,7 +1469,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       
       return res.json({ summary });
     } catch (error) {
-      console.error("Error in special user recall:", error);
+      logError("error_in_special_user_recall", error);
       return res.status(400).json({ error: "Invalid request for conversation recall" });
     }
   });
