@@ -67,8 +67,10 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',errors=[],report={};fs.mkdir
  report.stay={eva:{before:[evaAt.x,evaAt.z],after:[ps[1].x,ps[1].z]},avaToYou:+Math.hypot(ps[0].x-3,ps[0].z+3).toFixed(2),modes:ps.map(p=>p.mode)};console.log('stay',JSON.stringify(report.stay));
  assert(Math.hypot(ps[1].x-evaAt.x,ps[1].z-evaAt.z)<.3,'Eva stays');assert(Math.hypot(ps[0].x-3,ps[0].z+3)<2.6,'Ava follows');assert.deepEqual(ps.map(p=>p.mode),['follow','stay']);
  // Go back: each returns to their own spot.
- await command(0,'Go back to your spot');await command(1,'Go back to your spot');await page.waitForTimeout(9000);ps=await probe();report.home=ps.map(p=>[p.x,p.z]);
- assert(Math.hypot(ps[0].x-3.6,ps[0].z-.3)<.5&&Math.hypot(ps[1].x-3.6,ps[1].z+1.5)<.5,'both back at their own spots '+JSON.stringify(report.home));
+ // Go back: each reaches her own spot (once there she is free again and may wander off, so arrival is what counts).
+ await command(0,'Go back to your spot');await command(1,'Go back to your spot');const best=[Infinity,Infinity];
+ for(let t=0;t<30&&(best[0]>=.5||best[1]>=.5);t++){await page.waitForTimeout(400);ps=await probe();best[0]=Math.min(best[0],Math.hypot(ps[0].x-3.6,ps[0].z-.3));best[1]=Math.min(best[1],Math.hypot(ps[1].x-3.6,ps[1].z+1.5));}
+ report.home=best.map(d=>+d.toFixed(2));assert(best[0]<.5&&best[1]<.5,'both reached their own spots '+JSON.stringify(report.home));
  // Looks: each changes independently; Eva's colour variants load as textures.
  const texOf=(slot,mat)=>page.evaluate(([s,m])=>{const n=VoidVR.session.world.companions[s].node;for(const x of n.getChildMeshes())if(x.material?.name===m)return x.material.albedoTexture?.name||x.material.albedoTexture?.url||null;return null;},[slot,mat]);
  const hairBefore=await texOf(1,'hair'),clothBefore=await texOf(1,'cloth');
