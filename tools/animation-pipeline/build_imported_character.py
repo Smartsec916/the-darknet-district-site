@@ -1,4 +1,5 @@
-"""Blender 5.2: turn a bought or downloaded rigged character (FBX) into a light companion GLB with our clips.
+"""Blender 5.2: turn a bought or downloaded rigged character (FBX, or a .blend from a prepare_*.py script)
+into a light companion GLB with our clips.
 
 blender -b --factory-startup --python build_imported_character.py -- SPEC.json OUT.glb --source MODEL.fbx \
     --mocap DIR [--ual DIR] [--mixamo DIR] [--master MASTER.blend]
@@ -40,8 +41,16 @@ rest_reference = opts['mocap'] / library_doc['restReference']
 for obj in list(bpy.data.objects):
     bpy.data.objects.remove(obj, do_unlink=True)
 
-# 1. Import, make the scale real (FBX centimetres) and rename the rig.
-bpy.ops.import_scene.fbx(filepath=str(opts['source']), use_anim=False)
+# 1. Import, make the scale real (FBX centimetres) and rename the rig. A .blend source (one prepared by a
+# prepare_*.py script) brings in its armature and meshes as they are.
+if opts['source'].suffix.lower() == '.blend':
+    with bpy.data.libraries.load(str(opts['source'])) as (src_data, dst_data):
+        dst_data.objects = list(src_data.objects)
+    for o in dst_data.objects:
+        if o and o.type in ('ARMATURE', 'MESH'):
+            bpy.context.scene.collection.objects.link(o)
+else:
+    bpy.ops.import_scene.fbx(filepath=str(opts['source']), use_anim=False)
 rig = next(o for o in bpy.data.objects if o.type == 'ARMATURE')
 meshes = [o for o in bpy.data.objects if o.type == 'MESH']
 for o in [rig] + meshes:

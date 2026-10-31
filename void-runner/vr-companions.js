@@ -48,9 +48,22 @@
   return [...companions.values()].filter(e=>!sex||e.sex===sex).map(e=>{const clips=has?has(e.model):null,missing=clips&&requiredClips.filter(c=>!clips.includes(c));
    const reason=!e.enabled?'Not available yet.':installed&&installed[e.model]===false?'Model file is missing.':missing?.length?'Model lacks '+missing.join(', ')+'.':'';
    return {...e,usable:!reason,reason};});}
- // Old saves and links used choice f/m.
+ // Old saves and links used choice f/m. A retired companion names its successor (replacedBy), so anything that
+ // still asks for them gets the successor instead.
  const legacy={f:'seren',m:'kai'};
- const resolve=opts=>get(opts?.companion)||get(legacy[opts?.choice])||null;
+ const current=e=>{for(let i=0;e?.replacedBy&&i<4;i++)e=get(e.replacedBy)||e;return e||null;};
+ const resolve=opts=>current(get(Array.isArray(opts?.companions)?opts.companions[0]:opts?.companion)||get(legacy[opts?.choice]));
+ // Who comes along: one companion, or up to `partySize` together (all of them must be pairable). Unknown ids drop out.
+ const partySize=2;
+ function party(opts){
+  const ids=Array.isArray(opts?.companions)?opts.companions:[];
+  const many=[...new Set(ids.map(id=>current(get(id))).filter(Boolean))].slice(0,partySize);
+  if(many.length>1&&many.every(e=>e.pairable))return many;
+  const one=many[0]||resolve(opts);return one?[one]:[];}
+ // Offered at the terminal: listed:false never; listed:'dev' only on a local development server (models whose
+ // licence isn't confirmed for release yet).
+ const localHost=h=>/^(localhost|127\.0\.0\.1|\[::1\])$/.test(h||'');
+ const offered=(e,host=globalThis.location?.hostname)=>e.listed!==false&&!e.replacedBy&&(e.listed!=='dev'||localHost(host));
  // A companion's own clip for a role (its personality picks its gestures), falling back through common names.
  function clipFor(entry,role,has){const want=[...(entry.clips[role]||[]),role,...(fallbackClips[role]||[])];for(const c of want)if(!has||has(c))return c;return 'idle';}
  const fallbackClips={greet:['wave','interact'],flirt:['blow-kiss','coy','head-tilt','interact'],laugh:['laugh','talk'],shy:['coy','head-tilt'],idleAlt:['idle'],dance:['slow-dance','dance'],
@@ -149,6 +162,53 @@
    aside:['You\'re staring again. Locals notice that.','You\'re not so bad, for someone from out there.','The city likes you. I can tell. So do I, a little.'],
    comeHere:['Coming, coming.','What, lost already?'],recline:['Best ceiling in NeoChinatown. Don\'t tell anyone.']}});
 
+ // Ava and Eva (names by David, 2026-10-30): characters from models David supplied from CGTrader, "Ava" v2.0 by
+ // BGShop and "PrettyGirl_01" (Eva), prepared by prepare_ava.py / prepare_prettygirl.py and converted by
+ // build_imported_character.py. Their personalities, lines and voices are still to come from David: each has its
+ // own empty personality and dialogue and its own voice identity to fill, and nothing of Seren's. Without lines they
+ // don't speak, and the bedroom offers only what needs no words. They can come along together (pairable). Until
+ // their licences are confirmed for release they are offered only on a local development server (listed:'dev').
+ // Default looks are David's picks: Ava in the red top and skirt with the bob and no glasses (the bikini bottom is
+ // worn under the skirt, so nothing shows when she sits); Eva in the white slip dress with her natural
+ // orange-and-white hair.
+ register({id:'ava',name:'Ava',sex:'female',model:'vr-companion-ava',file:'vr-companion-ava.vrpak',preview:'void-runner/assets/vr/companions/ava.jpg',
+  listed:'dev',pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-ava',voiceId:null},
+  clips:{walk:['walk-f'],idleAlt:['idle-f2']},
+  looks:[
+   {key:'outfit',label:'Outfit',default:'red',options:[{id:'red',label:'Red top and skirt',parts:['top_red','skirt_red','bikini_bottom']},{id:'bikini',label:'Bikini',parts:['bikini_top','bikini_bottom','skin_under']}]},
+   {key:'hair',label:'Hairstyle',default:'bob',options:[{id:'bob',label:'Bob',parts:['hair_bob']},{id:'long',label:'Long',parts:['hair_long']},{id:'pixie',label:'Pixie',parts:['hair_pixie']}]},
+   {key:'glasses',label:'Glasses',default:'none',options:[{id:'none',label:'None',parts:[]},{id:'round',label:'Round',parts:['glasses_round']},{id:'wire',label:'Wire',parts:['glasses_wire']}]},
+   {key:'face',label:'Make-up',default:'natural',options:[{id:'natural',label:'Natural'},{id:'makeup',label:'Make-up',textures:{head:'face-makeup',lips:'face-makeup'}}]}]});
+ // Colour and make-up variants are separate textures (assets/models/crowd/<model>/*.vrtex), loaded only when chosen;
+ // `textures` maps a material to its variant file.
+ const variant=(id,label,dflt,map)=>({id,label,...(id===dflt?{}:{textures:map(id)})});
+ register({id:'eva',name:'Eva',sex:'female',model:'vr-companion-pg',file:'vr-companion-pg.vrpak',preview:'void-runner/assets/vr/companions/eva.jpg',
+  listed:'dev',pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-eva',voiceId:null},
+  clips:{walk:['walk-f'],idleAlt:['idle-f2']},
+  looks:[
+   {key:'outfit',label:'Outfit',default:'white',options:[['white','White slip dress'],['blue','Blue floral slip dress'],['pink','Pink cherry slip dress'],['grey','Grey slip dress']].map(([id,label])=>({id,label,parts:['dress_'+id,'slippers_'+id]}))},
+   {key:'hair',label:'Hair colour',default:'natural',options:[['natural','Natural'],['black','Black'],['blond','Blond'],['ginger','Ginger'],['red','Red'],['white','White'],['blue','Blue']].map(([id,label])=>variant(id,label,'natural',c=>({hair:'hair-'+c})))},
+   {key:'eyes',label:'Eye colour',default:'brown',options:[['brown','Brown'],['blue','Blue'],['green','Green'],['hazel','Hazel']].map(([id,label])=>variant(id,label,'brown',c=>({eye_r3:'eyes-'+c,eye_l3:'eyes-'+c})))},
+   {key:'face',label:'Make-up',default:'5',options:['1','2','3','4','5','6'].map(n=>variant(n,'Look '+n,'5',()=>({head5:'face-0'+n})))}]});
+
+ // ---- Looks: outfit, hairstyle, glasses, colours. A group's options each show their `parts` (mesh names; parts no
+ // option names are always shown) and may swap `textures`. The choices are a preference kept per browser, like
+ // graphics and audio settings (not in the Campaign save, so no save depends on them).
+ const lookKey='void-runner-companion-looks-v1';
+ const looks=entry=>entry?.looks||[];
+ function option(entry,key,id){const g=looks(entry).find(x=>x.key===key);return g?g.options.find(o=>o.id===id)||g.options.find(o=>o.id===g.default)||g.options[0]||null:null;}
+ const chosen=(entry,picked={})=>Object.fromEntries(looks(entry).map(g=>[g.key,option(entry,g.key,picked?.[g.key]).id]));
+ function wears(entry,picked){const c=chosen(entry,picked),managed=new Set(looks(entry).flatMap(g=>g.options.flatMap(o=>o.parts||[]))),on=new Set(looks(entry).flatMap(g=>option(entry,g.key,c[g.key]).parts||[]));
+  return part=>!managed.has(part)||on.has(part);}
+ // Material -> variant texture file for the chosen looks (materials not listed keep the model's own texture).
+ const lookTextures=(entry,picked)=>{const c=chosen(entry,picked);return Object.assign({},...looks(entry).map(g=>option(entry,g.key,c[g.key]).textures||{}));};
+ const variantTextures=entry=>[...new Set(looks(entry).flatMap(g=>g.options.flatMap(o=>Object.keys(o.textures||{}))))];
+ function readLooks(store){try{return JSON.parse(store?.getItem(lookKey)||'{}')||{};}catch{return {};}}
+ const savedLooks=(entry,store=globalThis.localStorage)=>chosen(entry,readLooks(store)[entry.id]);
+ function saveLook(entry,key,id,store=globalThis.localStorage){const o=option(entry,key,id);if(!o)return false;try{const all=readLooks(store);all[entry.id]={...chosen(entry,all[entry.id]),[key]:o.id};store.setItem(lookKey,JSON.stringify(all));return true;}catch{return false;}}
+ // Whether a companion has lines yet (Ava and Eva don't, until David writes them).
+ const speaks=entry=>Object.values(entry?.dialogue||{}).some(p=>p?.length);
+
  // Lines drawn from a pool never repeat the last one used.
  function pick(pool,mem,key,rnd=Math.random){if(!pool?.length)return '';const options=pool.length>1?pool.filter(l=>l!==mem[key]):pool;const l=options[Math.floor(rnd()*options.length)]||pool[0];mem[key]=l;return l;}
 
@@ -224,6 +284,6 @@
   const out=[];let at=from;for(let i=1;i<cells.length;i++)if(!clear(at,cells[i])){out.push(cells[i-1]);at=cells[i-1];}
   out.push(cells[cells.length-1]);return out;}
 
- const api={defaults,settings,register,get,list,file,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,path,companions};
+ const api={defaults,settings,register,get,list,file,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,path,companions,party,partySize,offered,looks,option,chosen,wears,lookTextures,variantTextures,savedLooks,saveLook,speaks};
  if(typeof module!=='undefined')module.exports=api;else root.VoidVRCompanions=api;
 })(globalThis);

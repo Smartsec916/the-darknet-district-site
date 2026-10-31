@@ -1,0 +1,163 @@
+{
+ "name": "vr-companion-pg",
+ "source": "PrettyGirl_01 (CGTrader); SK_PrettyGirl_01_var1.fbx prepared by prepare_prettygirl.py",
+ "bonePrefix": "",
+ "bones": {
+  "pelvis": "Hips",
+  "spine_01": "Spine",
+  "spine_03": "Spine1",
+  "spine_05": "Spine2",
+  "neck_01": "Neck",
+  "head": "Head",
+  "clavicle_l": "LeftShoulder",
+  "upperarm_l": "LeftArm",
+  "lowerarm_l": "LeftForeArm",
+  "hand_l": "LeftHand",
+  "thigh_l": "LeftUpLeg",
+  "calf_l": "LeftLeg",
+  "foot_l": "LeftFoot",
+  "ball_l": "LeftToeBase",
+  "thumb_01_l": "LeftHandThumb1",
+  "thumb_02_l": "LeftHandThumb2",
+  "thumb_03_l": "LeftHandThumb3",
+  "index_01_l": "LeftHandIndex1",
+  "index_02_l": "LeftHandIndex2",
+  "index_03_l": "LeftHandIndex3",
+  "middle_01_l": "LeftHandMiddle1",
+  "middle_02_l": "LeftHandMiddle2",
+  "middle_03_l": "LeftHandMiddle3",
+  "ring_01_l": "LeftHandRing1",
+  "ring_02_l": "LeftHandRing2",
+  "ring_03_l": "LeftHandRing3",
+  "pinky_01_l": "LeftHandPinky1",
+  "pinky_02_l": "LeftHandPinky2",
+  "pinky_03_l": "LeftHandPinky3",
+  "clavicle_r": "RightShoulder",
+  "upperarm_r": "RightArm",
+  "lowerarm_r": "RightForeArm",
+  "hand_r": "RightHand",
+  "thigh_r": "RightUpLeg",
+  "calf_r": "RightLeg",
+  "foot_r": "RightFoot",
+  "ball_r": "RightToeBase",
+  "thumb_01_r": "RightHandThumb1",
+  "thumb_02_r": "RightHandThumb2",
+  "thumb_03_r": "RightHandThumb3",
+  "index_01_r": "RightHandIndex1",
+  "index_02_r": "RightHandIndex2",
+  "index_03_r": "RightHandIndex3",
+  "middle_01_r": "RightHandMiddle1",
+  "middle_02_r": "RightHandMiddle2",
+  "middle_03_r": "RightHandMiddle3",
+  "ring_01_r": "RightHandRing1",
+  "ring_02_r": "RightHandRing2",
+  "ring_03_r": "RightHandRing3",
+  "pinky_01_r": "RightHandPinky1",
+  "pinky_02_r": "RightHandPinky2",
+  "pinky_03_r": "RightHandPinky3"
+ },
+ "meshes": {
+  "SK_Body": {
+   "name": "body",
+   "hiddenUnder": [
+    "dress_white",
+    "slippers_white"
+   ]
+  },
+  "SK_Hair": {
+   "name": "hair",
+   "cutout": true,
+   "doubleSided": true,
+   "alphaCutoff": 0.3
+  },
+  "SK_Bang_01": {
+   "name": "fringe_a",
+   "cutout": true,
+   "doubleSided": true,
+   "alphaCutoff": 0.3
+  },
+  "SK_Bang_02": {
+   "name": "fringe_b",
+   "cutout": true,
+   "doubleSided": true,
+   "alphaCutoff": 0.3
+  },
+  "SK_Bracelet": {
+   "name": "bracelet"
+  },
+  "SK_Earring_02": {
+   "name": "earrings"
+  },
+  "SK_Neckless_01": {
+   "name": "necklace_a"
+  },
+  "SK_Neckless_02": {
+   "name": "necklace_b"
+  },
+  "SK_Dress_white": {
+   "name": "dress_white",
+   "cutout": true,
+   "doubleSided": true
+  },
+  "SK_Slippers_01_white": {
+   "name": "slippers_white",
+   "cutout": true
+  },
+  "SK_Dress_blue": {
+   "name": "dress_blue",
+   "cutout": true,
+   "doubleSided": true
+  },
+  "SK_Slippers_01_blue": {
+   "name": "slippers_blue",
+   "cutout": true
+  },
+  "SK_Dress_pink": {
+   "name": "dress_pink",
+   "cutout": true,
+   "doubleSided": true
+  },
+  "SK_Slippers_01_pink": {
+   "name": "slippers_pink",
+   "cutout": true
+  },
+  "SK_Dress_grey": {
+   "name": "dress_grey",
+   "cutout": true,
+   "doubleSided": true
+  },
+  "SK_Slippers_01_grey": {
+   "name": "slippers_grey",
+   "cutout": true
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "walk",
+  "sit",
+  "sit-enter",
+  "sit-exit",
+  "sit-talk",
+  "dance",
+  "interact",
+  "idle-f2",
+  "walk-f",
+  "wave",
+  "blow-kiss",
+  "coy",
+  "head-tilt",
+  "hips",
+  "laugh",
+  "glance-back",
+  "slow-dance",
+  "dance-belly",
+  "sit-relax",
+  "sit-wave",
+  "shrug",
+  "recline"
+ ],
+ "cutoutMaterials": [
+  "lashes3"
+ ]
+}

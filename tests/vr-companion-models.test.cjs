@@ -6,8 +6,11 @@ const asArrayBuffer=buf=>buf.buffer.slice(buf.byteOffset,buf.byteOffset+buf.leng
 
 test('every companion has its model file, a clip list matching its spec and a preview',()=>{
  for(const e of C.companions.values()){
-  assert.ok(fs.existsSync(path.join(models,C.file(e))),e.id+': '+C.file(e)+' missing');
-  assert.ok(fs.existsSync(path.join(__dirname,'..',e.preview)),e.id+': preview missing');
+  // Companions offered only in local development (models whose licence isn't confirmed for release, e.g. Ava and
+  // Eva) keep their model and preview out of the repository; where they're built locally, they're checked too.
+  const local=e.listed==='dev'&&!fs.existsSync(path.join(models,C.file(e)));
+  if(!local){assert.ok(fs.existsSync(path.join(models,C.file(e))),e.id+': '+C.file(e)+' missing');
+   assert.ok(fs.existsSync(path.join(__dirname,'..',e.preview)),e.id+': preview missing');}
   const spec=JSON.parse(fs.readFileSync(path.join(specs,e.model+'.json'),'utf8'));
   assert.deepEqual([...spec.clips].sort(),[...crowd.clips[e.model]].sort(),e.model+' clips differ from its spec');
   for(const c of C.requiredClips)assert.ok(crowd.clips[e.model].includes(c),e.model+' lacks '+c);

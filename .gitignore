@@ -42,3 +42,11 @@ work/
 
 # Local model trials (never committed)
 void-runner/assets/models/_staging/
+
+# Ava and Eva (CGTrader models whose licences aren't confirmed for release yet): built locally, not published.
+void-runner/assets/models/crowd/vr-companion-ava.vrpak
+void-runner/assets/models/crowd/vr-companion-pg.vrpak
+void-runner/assets/models/crowd/vr-companion-ava/
+void-runner/assets/models/crowd/vr-companion-pg/
+void-runner/assets/vr/companions/ava.jpg
+void-runner/assets/vr/companions/eva.jpg
