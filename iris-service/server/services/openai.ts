@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { debugLog, log, logError } from "../logger";
 import { recordApiUsage } from "../persistence";
+import { CHARACTER_CORE, emotionEnabled, extractEmotion, type EmotionSignal } from "../emotion";
 
 // The newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const MODEL = "gpt-4o";
@@ -158,6 +159,10 @@ Refer to website visitors as "netrunners," "users," or "operatives" with occasio
 - "node"
 - "interface"`;
 
+// The permanent character sheet. With the emotional upgrade on (the default; IRIS_EMOTION=off restores
+// the previous behavior exactly) it also carries the core traits that hold in every mood.
+const SYSTEM_PROMPT = emotionEnabled() ? SYSTEM_MESSAGE + CHARACTER_CORE : SYSTEM_MESSAGE;
+
 // Context history for a session to maintain conversation history
 interface Message {
   role: "system" | "user" | "assistant";
@@ -170,19 +175,16 @@ const sessionMessages = new Map<string, Message[]>();
 // Store the language used in each session
 const sessionLanguages = new Map<string, Set<string>>();
 
-// Cache for system prompts to reduce token usage
-const cachedSystemPrompts = new Map<string, string>();
-
 // Initialize a new session with the system message
 export function initializeSession(sessionId: string): void {
-  sessionMessages.set(sessionId, [{ role: "system", content: SYSTEM_MESSAGE }]);
+  sessionMessages.set(sessionId, [{ role: "system", content: SYSTEM_PROMPT }]);
   sessionLanguages.set(sessionId, new Set<string>(["english"])); // Default to English
 }
 
 // Extra system instructions per session, one per slot. Each turn's mood context
 // replaces the previous one instead of piling up, so old moods can't contradict
 // the current one and the prompt stays the same size.
-type SystemSlot = "context" | "distraction" | "flirtBoost";
+type SystemSlot = "context" | "relationship" | "distraction" | "flirtBoost";
 const sessionSystemSlots = new Map<string, Map<SystemSlot, string>>();
 
 function setSystemSlot(sessionId: string, slot: SystemSlot, content: string): void {
@@ -195,7 +197,7 @@ function setSystemSlot(sessionId: string, slot: SystemSlot, content: string): vo
 // Add a user or assistant message to the conversation history
 function addMessage(sessionId: string, role: "user" | "assistant", content: string): void {
   // Get existing messages or create new array with cached system message
-  const messages = sessionMessages.get(sessionId) || [{ role: "system", content: SYSTEM_MESSAGE }];
+  const messages = sessionMessages.get(sessionId) || [{ role: "system", content: SYSTEM_PROMPT }];
 
   // Add the new message
   messages.push({ role, content });
@@ -214,7 +216,7 @@ function addMessage(sessionId: string, role: "user" | "assistant", content: stri
 
 // What is sent to OpenAI: the base system message, the current slot instructions, then the history
 function buildRequestMessages(sessionId: string): Message[] {
-  const [base, ...history] = sessionMessages.get(sessionId) || [{ role: "system", content: SYSTEM_MESSAGE }];
+  const [base, ...history] = sessionMessages.get(sessionId) || [{ role: "system", content: SYSTEM_PROMPT }];
   const slots = Array.from(sessionSystemSlots.get(sessionId)?.values() ?? [])
     .map(content => ({ role: "system" as const, content }));
   return [base, ...slots, ...history];
@@ -859,10 +861,16 @@ export interface IrisReply {
   text: string;
   fallback: boolean;
   language?: string; // language detected for the visitor's message
+  emotion?: EmotionSignal | null; // the state line Iris put at the start of her reply, already removed from text
+}
+
+// What the caller adds to a reply request for the emotional upgrade
+export interface ReplyOptions {
+  relationshipPrompt?: string; // private context about this visitor, ending with the state-line format
 }
 
 // Process a user message and get a response
-export async function getResponse(sessionId: string, userMessage: string, promptAddition?: string): Promise<IrisReply> {
+export async function getResponse(sessionId: string, userMessage: string, promptAddition?: string, options: ReplyOptions = {}): Promise<IrisReply> {
   // Check if the user is Eva based on the prompt addition
   const isEva = promptAddition?.includes("Eva Wang Li") || 
                 promptAddition?.includes("伊娃") || 
@@ -940,8 +948,9 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     
     // Add character state context if provided (use cached version if available)
     if (promptAddition) {
-      const cacheKey = `${sessionId}:${promptAddition.substring(0, 20)}`; // Use first 20 chars as part of cache key
-      let systemPrompt = cachedSystemPrompts.get(cacheKey);
+      // Built fresh every turn. It used to be cached under the first 20 characters of the text, which served
+      // stale trust, name and recall context whenever the mood stayed the same.
+      let systemPrompt: string | undefined;
       
       if (!systemPrompt) {
         systemPrompt = `Mood context: ${promptAddition} 
@@ -976,7 +985,6 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
         
         ${languageInstruction}`;
         
-        cachedSystemPrompts.set(cacheKey, systemPrompt);
       }
       
       // If we have a non-English language but it's not in the cached prompt,
@@ -987,6 +995,10 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
       
       setSystemSlot(sessionId, "context", systemPrompt);
     }
+
+    // Private relationship context for this reply only (replaced every turn, never accumulated)
+    if (options.relationshipPrompt) setSystemSlot(sessionId, "relationship", options.relationshipPrompt);
+    else sessionSystemSlots.get(sessionId)?.delete("relationship");
     
     // Add user message to history
     addMessage(sessionId, "user", userMessage);
@@ -1157,12 +1169,15 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
       model: MODEL,
       messages: updatedMessages,
       temperature: 0.95, // Significantly increased for much more varied responses
-      max_tokens: maxTokens + 20, // Added tokens for more expressive responses
+      max_tokens: maxTokens + 20 + (options.relationshipPrompt ? 60 : 0), // room for the state line when it is requested
       presence_penalty: 0.6, // Significantly increased to avoid repetitive patterns
       frequency_penalty: 0.5, // Increased to strongly encourage more diverse vocabulary
     });
     
-    let assistantResponse = response.choices[0].message.content || "How can I assist you further with your District experience?";
+    // The state line (if any) is removed before anything else sees the reply; a missing or damaged one is simply ignored
+    const parsed = extractEmotion(response.choices[0].message.content || "");
+    const emotion = options.relationshipPrompt ? parsed.signal : null;
+    let assistantResponse = parsed.text || "How can I assist you further with your District experience?";
     
     // Use the appropriate Eva flirt response based on whether Eva is flirting back
     if ((useIntenseEvaFlirt || useRegularEvaFlirt) && (evaFlirtResponses || evaIntenseFlirtResponses)) {
@@ -1221,7 +1236,7 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     // Add assistant response to history
     addMessage(sessionId, "assistant", assistantResponse);
     
-    return { text: assistantResponse, fallback: false, language };
+    return { text: assistantResponse, fallback: false, language, emotion };
   } catch (error) {
     // Every canned reply that replaced a real one (the cause is in the openai_request_failed event just before)
     log("error", "iris_fallback_reply", { reason: error instanceof OpenAI.APIError ? `openai_${error.status ?? "error"}` : "internal_error" });

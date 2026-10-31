@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, real, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -74,3 +74,23 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
 
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
+
+// Iris's memory of each visitor (see server/relationships.ts); created by server/migrate.ts
+export const irisRelationships = pgTable("iris_relationships", {
+  clientId: text("client_id").primaryKey(),
+  trust: real("trust").notNull().default(1),
+  familiarity: real("familiarity").notNull().default(0),
+  affection: real("affection").notNull().default(0),
+  respect: real("respect").notNull().default(0.5),
+  playfulness: real("playfulness").notNull().default(0.3),
+  mood: text("mood").notNull().default("professional"),
+  visits: integer("visits").notNull().default(0),
+  messages: integer("messages").notNull().default(0),
+  firstSeen: timestamp("first_seen").defaultNow().notNull(),
+  lastSeen: timestamp("last_seen").defaultNow().notNull(),
+  preferences: text("preferences").notNull().default("[]"),
+  recap: text("recap").notNull().default(""),
+  flirtCooldown: integer("flirt_cooldown").notNull().default(0),
+  minor: boolean("minor").notNull().default(false),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});

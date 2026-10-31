@@ -43,6 +43,14 @@ services:
       # (server/clientIp.ts); nothing needs setting. TRUSTED_PROXY_HOPS and TRUSTED_PROXY_RANGES
       # exist only as fallbacks; see docs/RATE-LIMITS.md before adding either.
 
+      # --- Personality and memory (see docs/IRIS-PERSONALITY.md) ---
+      - key: IRIS_EMOTION
+        value: "on"             # "off" restores the previous keyword-and-random mood system exactly
+      - key: IRIS_FLIRT_LEVEL
+        value: "2"              # 0 none, 1 light teasing, 2 bold and cheeky, 3 very forward
+      - key: IRIS_MEMORY_RETENTION_DAYS
+        value: "180"            # a visitor's saved relationship is deleted after this many days unseen
+
       # --- Conversation viewer (off by default; see docs/LOGGING-AND-REPORTS.md) ---
       - key: IRIS_ADMIN_VIEWER
         value: "off"            # set to "on" only after the token below is set

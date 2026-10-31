@@ -14,6 +14,11 @@ import { ensureSchema } from "./migrate";
 import { findStoredReply, requestKey, saveExchange } from "./persistence";
 import { createAdminRouter } from "./admin";
 import { allowedOrigins, SERVICE_ORIGIN } from "./origins";
+import {
+  applyEmotion, buildRelationshipPrompt, effectiveMood, emotionEnabled, neutralizeMarker,
+  type EmotionSignal, type Mood,
+} from "./emotion";
+import { dropLiveState, forgetVisitor, saveRelationship, sessionEmotionMap, startEmotionSession } from "./relationships";
 
 // What the /embed widget page may do: run its own inline script and style, show its
 // built-in portrait, and talk only to this service. It can be framed only by the
@@ -66,6 +71,16 @@ function matchSpecialPassphrase(message: string): SpecialUser | undefined {
 // Each chat message costs OpenAI calls, so cap size and daily volume.
 const MAX_MESSAGE_CHARS = 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Admin and Eva are established characters with their own hand-written behavior (below); the context-aware
+// emotional model leaves them exactly as they were
+function isSpecialUserName(name: string): boolean {
+  const lower = name.toLowerCase();
+  return lower === "admin" || lower === "eva" || ["伊娃", "王力", "王", "力"].includes(name);
+}
+
+// Used when the model's state line is missing or unreadable: nothing about the mood or relationship changes
+const NEUTRAL_SIGNAL: EmotionSignal = { warmth: 0, hostility: 0, flirt: 0, humor: 0, minor: false };
 
 // Helper functions for character behavior
 function initializeTrustLevel(): number {
@@ -330,9 +345,19 @@ export async function registerRoutes(app: Express): Promise<Express> {
         }
       }
       
+      // With the emotional model on, a returning visitor starts from what Iris remembers of them and a new one
+      // from an even-keeled default, instead of a random mood and trust
+      let startMood = preferredMood;
+      let startTrust = trust;
+      if (emotionEnabled()) {
+        const emo = await startEmotionSession(sessionId, clientId || undefined);
+        startMood = effectiveMood(emo.rel);
+        startTrust = emo.rel.trust;
+      }
+
       // Set session metadata
-      sessionMoodMap.set(sessionId, preferredMood);
-      sessionTrustMap.set(sessionId, trust);
+      sessionMoodMap.set(sessionId, startMood);
+      sessionTrustMap.set(sessionId, startTrust);
       sessionFlirtCountMap.set(sessionId, 0);
       sessionMessageCountMap.set(sessionId, 0);
       sessionUserNameMap.set(sessionId, userName);
@@ -346,7 +371,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       res.json({ 
         sessionId, 
         isNew: true,
-        mood: preferredMood,
+        mood: startMood,
         userName: userName || undefined
       });
     } catch (error) {
@@ -861,9 +886,11 @@ export async function registerRoutes(app: Express): Promise<Express> {
         const { mood: newMood, trust: newTrust, flirtCount: newFlirtCount } = 
           adjustMood(mood, trustLevel, flirtCount, true, false, false, false, userName);
         
-        // Store updated session metadata 
+        // Store updated session metadata
         sessionMoodMap.set(sessionId, newMood);
         sessionTrustMap.set(sessionId, newTrust);
+        const live = sessionEmotionMap.get(sessionId);
+        if (live && emotionEnabled()) { live.rel.mood = newMood as Mood; live.rel.trust = newTrust; live.heldFor = 0; }
         sessionFlirtCountMap.set(sessionId, newFlirtCount);
         
         // Don't increment message count for debug triggers
@@ -883,8 +910,16 @@ export async function registerRoutes(app: Express): Promise<Express> {
       }
       
       // For normal messages, adjust mood and generate response via API
-      const { mood: newMood, trust: newTrust, flirtCount: newFlirtCount, specialUserReminder } = 
-        adjustMood(mood, trustLevel, flirtCount, false, isRude, isPraise, isFlirty, userName);
+      // Ordinary visitors: the mood only moves from the model's reading of the conversation (applied after the
+      // reply). Admin and Eva, and IRIS_EMOTION=off, keep the original behavior.
+      const emotionOn = emotionEnabled();
+      const emo = emotionOn && !isSpecialUserName(userName)
+        ? (sessionEmotionMap.get(sessionId) ?? await startEmotionSession(sessionId, clientId))
+        : undefined;
+      if (emo && !emo.counted) { emo.counted = true; emo.rel.visits += 1; }
+      const { mood: newMood, trust: newTrust, flirtCount: newFlirtCount, specialUserReminder } = emo
+        ? { mood: effectiveMood(emo.rel) as string, trust: emo.rel.trust, flirtCount, specialUserReminder: undefined as string | undefined }
+        : adjustMood(mood, trustLevel, flirtCount, false, isRude, isPraise, isFlirty, userName);
       
       // Increment message count
       messageCount++;
@@ -1137,7 +1172,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
                   await storage.createOrUpdateUserProfile({
                     clientId: profileClientId,
                     displayName: userName,
-                    trustLevel: newTrust,
+                    trustLevel: Math.round(newTrust),
                     preferredMood: newMood
                   });
                   debugLog(`Persisted user profile for ${userName} with client ID: ${profileClientId}`);
@@ -1295,10 +1330,14 @@ export async function registerRoutes(app: Express): Promise<Express> {
       }
       
       // Combine all context information - place name asking instruction at beginning for emphasis
-      const promptAddition = `${askForNameInstruction} ${moodDescription} Current trust level: ${newTrust} (ranges from -1 to 5). Flirt count: ${newFlirtCount}. ${nameInfo} ${specialUserReminder || ''} ${recallSummary}`;
+      const promptAddition = `${askForNameInstruction} ${moodDescription} Current trust level: ${Number(newTrust.toFixed(1))} (ranges from -1 to 5). Flirt count: ${newFlirtCount}. ${nameInfo} ${specialUserReminder || ''} ${recallSummary}`;
       
       // Get response from OpenAI using imported service
-      const reply = await openaiService.getResponse(sessionId, message, promptAddition);
+      // The visitor's text goes to the model with any look-alike state line defused; what is stored stays as written
+      const relationshipPrompt = emo
+        ? buildRelationshipPrompt(emo, Date.now(), { recapDue: emo.rel.messages > 0 && emo.rel.messages % 6 === 5 })
+        : undefined;
+      const reply = await openaiService.getResponse(sessionId, neutralizeMarker(message), promptAddition, { relationshipPrompt });
       
       // Process translation for special users if needed
       let translatedResponse = reply.text;
@@ -1354,10 +1393,23 @@ export async function registerRoutes(app: Express): Promise<Express> {
         language: reply.language ?? null,
         iris: { text: translatedResponse, status: reply.fallback ? "fallback" : "ok", at: new Date() },
       });
-      res.locals.logFields = { fallback: reply.fallback, saved, language: reply.language };
+      res.locals.logFields = { fallback: reply.fallback, saved, language: reply.language, ...(emo ? { emotion: reply.emotion ? "read" : "missing" } : {}) };
       
       // fallback: true marks a canned reply that replaced a failed OpenAI call
       res.json(reply.fallback ? { response: translatedResponse, fallback: true } : { response: translatedResponse });
+
+      // After the reply is on its way: learn from how the exchange went, then remember it. A canned fallback
+      // says nothing about the visitor, and nothing here can fail the chat.
+      if (emo && !reply.fallback) {
+        try {
+          applyEmotion(emo, reply.emotion ?? NEUTRAL_SIGNAL, Date.now());
+          sessionMoodMap.set(sessionId, effectiveMood(emo.rel));
+          sessionTrustMap.set(sessionId, emo.rel.trust);
+          if (emo.clientId) void saveRelationship(emo.clientId, emo.rel);
+        } catch (err) {
+          logError("emotion_update_failed", err);
+        }
+      }
     } catch (error) {
       logError("chat_message_failed", error);
       // Keep the visitor's message, flagged as unanswered. No reply is invented.
@@ -1368,6 +1420,22 @@ export async function registerRoutes(app: Express): Promise<Express> {
         });
       }
       res.status(500).json({ message: "Failed to process message" });
+    }
+  });
+
+  // A visitor can have Iris forget her memory of them (mood, trust, what they told her). Only the browser that
+  // owns the session can ask: the session must have been created with that client id. Stored conversations are
+  // not part of this.
+  app.post("/api/chat/forget", async (req, res) => {
+    try {
+      const { sessionId, clientId } = z.object({ sessionId: z.string().min(1).max(128), clientId: z.string().min(1).max(128) }).parse(req.body);
+      const session = await storage.getChatSession(sessionId);
+      if (!session || session.clientId !== clientId) return res.status(403).json({ error: "Not allowed" });
+      dropLiveState(clientId);
+      await forgetVisitor(clientId);
+      res.json({ ok: true });
+    } catch {
+      res.status(400).json({ error: "Bad request" });
     }
   });
 

@@ -16,6 +16,7 @@ import { ensureSchema } from "./migrate";
 import { logError, logThrottled } from "./logger";
 import { runDailyReport, runScheduledReports, listReports } from "./reports";
 import { ADMIN_VIEWER_HTML } from "./adminViewer";
+import { dropLiveState, forgetVisitor } from "./relationships";
 
 const MIN_TOKEN_LENGTH = 32;
 
@@ -200,6 +201,13 @@ export function createAdminRouter(): Router {
   }));
 
   // Called by the external scheduler (see docs). The recipient is never read from the request.
+  // Erases Iris's emotional memory of one visitor (by their client id). Stored conversations are not touched.
+  router.delete("/api/admin/relationships/:clientId", failedAuthLimiter, requireAdmin, guarded("forget_visitor", async (req, res) => {
+    const clientId = String(req.params.clientId).slice(0, 128);
+    dropLiveState(clientId);
+    res.json({ erased: await forgetVisitor(clientId) });
+  }));
+
   router.post("/api/admin/reports/daily", failedAuthLimiter, requireReportAuth, async (req, res) => {
     try {
       const body = (req.body ?? {}) as { date?: unknown; dryRun?: unknown };
