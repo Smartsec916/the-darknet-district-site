@@ -40,6 +40,7 @@ jobs:
           IRIS_URL: ${{ vars.IRIS_URL || 'https://darknet-district-iris.onrender.com' }}
           DATE_INPUT: ${{ github.event.inputs.date }}
           DRY_RUN: ${{ github.event.inputs.dry_run }}
+          SCHEDULE: ${{ github.event.schedule }}
         run: |
           set -u
           if [ -z "${IRIS_REPORT_TOKEN:-}" ]; then
@@ -74,6 +75,12 @@ jobs:
           echo "HTTP $status, outcome: ${outcome:-unknown}"
           case "$status" in
             200) ;;
+            202)
+              # Part of a long report is still waiting; the next run sends the rest, none twice
+              if [ "${SCHEDULE:-}" = "35 12 * * *" ]; then
+                echo "::error::Report is still incomplete after the last scheduled retry"; exit 1
+              fi
+              echo "::warning::Report is partly sent; the next run continues it" ;;
             503) echo "::warning::Reports are disabled or email is not configured on the service" ;;
             *) echo "::error::Report request failed"; exit 1 ;;
           esac

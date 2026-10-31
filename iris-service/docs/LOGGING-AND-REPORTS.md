@@ -66,46 +66,95 @@ separate piece of work.
 
 ## Daily email report (off by default)
 
-**What it sends:** at about 08:05 UTC, the previous UTC day: counts (conversations, visitor
-messages, Iris replies, errors, OpenAI tokens and estimated cost) and every transcript in order.
-A day under about 60 KB is in the email body; a larger day is split into numbered `.txt`
-attachments (about 1 MB each) and sent as "Part 1 of N", so nothing is cut off. A day with no
-conversations sends a short zero-activity email.
+**What it sends:** at about 08:05 UTC, the previous *complete* UTC day (00:00:00 to 23:59:59).
+Every email is plain text and starts with a summary (reporting period in UTC, conversations,
+visitor messages, Iris replies, failed or incomplete exchanges, OpenAI tokens and estimated cost
+when recorded), followed by the full transcripts. A day with no conversations sends one short
+"No conversations on this day." email.
 
-**Email service: Brevo** (https://www.brevo.com). Free plan: 300 emails/day, REST API, no
-card needed. Resend (3,000/month, 100/day) is the main alternative but requires a verified
-sending domain before it will deliver anywhere useful. Proton has no sending API, so Proton is
-only the *recipient*. Expected cost: **$0** (a report is one to a few emails a day).
+**Transcript format.** Conversations are in the order they started, messages in time order
+(ties broken by arrival order). Each conversation:
 
-**Set-up (you do these; they need your accounts):**
+```
+==================== Conversation 2 of 14 ====================
+Session: <session id>
+Started: 2026-10-31 14:02:11 UTC
+14:02:11 UTC — Visitor:
+    <the visitor's words, every line indented>
+14:02:14 UTC — Iris:
+    <Iris's reply, every line indented>
+```
 
-1. Create a Brevo account and verify a sender (Senders, Domains & Dedicated IPs). Authenticating
-   `thedarknetdistrict.com` with the DNS records Brevo shows (SPF/DKIM) gives the best
-   delivery to Proton; a single verified sender address works but is more likely to land in spam.
-2. Create an API key (SMTP & API, API keys).
-3. In Render, set: `BREVO_API_KEY`, `REPORT_SENDER_EMAIL` (the verified sender),
-   `REPORT_RECIPIENT` (the Proton address), and `IRIS_REPORT_TOKEN` (32+ random characters).
-4. In GitHub (Settings, Secrets and variables, Actions) add the secret `IRIS_REPORT_TOKEN`
-   with the same value.
-5. Run the **Iris daily report** workflow manually with *dry run* ticked. It sends nothing and the
-   public log shows only the outcome.
-6. Only when you approve the privacy points below: set `IRIS_REPORTS_ENABLED=true` on Render.
+Failed exchanges are labelled on the header line: "Iris: (canned fallback reply; OpenAI
+failed)" or "(no reply was produced; processing error)". Nothing is summarised, rewritten or
+invented; any language and emoji are kept as written. The only changes are safety ones:
+every line of visitor text is indented (so a visitor cannot forge a "UTC — Iris:" header or a
+conversation separator), and control and text-direction-override characters are shown as
+`[U+202E]`-style markers instead of being applied. There is no HTML part, so nothing in a
+message can run or render in the mail client. No IP addresses or browser details are stored in
+the chat tables, so none can appear; the session id is the only identifier.
 
-**Scheduling.** Render's free tier sleeps, so an in-process timer would miss runs. A GitHub
-Actions schedule (`.github/workflows/iris-daily-report.yml`, free) wakes the service and calls
-`POST /api/admin/reports/daily` with `IRIS_REPORT_TOKEN`. That token can trigger a report but
-cannot read a conversation, and the request cannot choose the recipient (it is always
-`REPORT_RECIPIENT`). The workflow retries at 09:35 and 12:35 UTC; a day already sent is never sent
-again. Caveats: GitHub can delay scheduled runs by many minutes, runs scheduled workflows only
-from the default branch (so it does nothing until merged), and pauses schedules in a repository
-with no activity for 60 days (re-enable under the Actions tab).
+**Long days.** An email holds about 200 KB (`REPORT_PART_MAX_BYTES`). A longer day becomes
+"Part 1 of N", "Part 2 of N" and so on, in order, split between messages, each repeating the
+summary and saying "email k of n". Read in order they are the whole transcript. Messages are
+read from the database in pages (`REPORT_PAGE_SIZE`), so a very large day never loads at once.
 
-**Failure behaviour.** Each part is recorded when sent. A rejected or rate-limited send is retried
-up to three times. After a timeout the email may already have arrived, so it is *not* retried
-automatically; the next scheduled run resends it, which can occasionally mean one duplicate part
-rather than a missing one. If a later part fails, the next run sends only the unsent parts.
-Failures appear in Render's logs as `report_part_failed` / `report_failed` and the workflow turns
-red (GitHub emails you).
+**Email service: Brevo** (https://www.brevo.com). Free plan: 300 emails/day. Proton has no
+sending API, so Proton is only the *recipient*. Expected cost: **$0**.
+
+**Settings (Render environment unless noted):**
+
+| Setting | Value |
+| --- | --- |
+| `IRIS_REPORTS_ENABLED` | `true` to send, anything else (or unset) to send nothing |
+| `BREVO_API_KEY` | Brevo API key (secret) |
+| `REPORT_SENDER_EMAIL` | `reports@thedarknetdistrict.com` (authenticated domain) |
+| `REPORT_RECIPIENT` | `thedarknetdistrict@proton.me` (the only address ever mailed) |
+| `IRIS_REPORT_TOKEN` | 32+ random characters; same value as the GitHub secret of that name |
+
+**Scheduling.** Render's free tier sleeps, so GitHub Actions
+(`.github/workflows/iris-daily-report.yml`, free) wakes the service and calls
+`POST /api/admin/reports/daily` with `IRIS_REPORT_TOKEN`. Runs: **08:05 UTC** (main), **09:35
+UTC** and **12:35 UTC** (retries). GitHub cron is always UTC. The token can trigger a report but
+cannot read a conversation, and the request cannot choose the recipient. GitHub can delay
+scheduled runs by many minutes, runs them only from the default branch (so nothing is scheduled
+until the workflow is on `main`), and pauses schedules in a repository with 60 days of no
+activity (re-enable under the Actions tab). The public workflow log shows only
+"HTTP status, outcome", never counts or text.
+
+**Reliability.**
+- *No duplicates.* Each day and each email part has a row in Neon (`iris_daily_reports`,
+  `iris_report_parts`) with its status. A day is claimed atomically, so two overlapping runs
+  cannot both send it, and a retried workflow finds the day already "sent" and sends nothing.
+- *Catch-up.* A scheduled run reports every complete day after the last reported one (at most
+  `REPORT_CATCHUP_DAYS`, default 7), oldest first, and never today. The first run ever reports
+  yesterday only. A failed day is retried before later days.
+- *Partial delivery.* A rejected or rate-limited send is retried up to three times, honouring
+  Brevo's `Retry-After`. Sends are spaced (`REPORT_SEND_SPACING_MS`) and capped per run
+  (`REPORT_MAX_PARTS_PER_RUN`, default 25, `REPORT_RUN_BUDGET_MS`). If a run stops with parts
+  unsent the service answers HTTP 202 (`partial`); the next run sends only the missing parts.
+  If the day's data changed after some parts were already mailed, the report stops with an error
+  instead of guessing where the parts split.
+- *Timeouts.* After a timeout the email may have arrived, so the unsent part is retried by the
+  next run; the worst case is one duplicate email, never a missing one.
+- *Public chat unaffected.* Reports run in their own request; a failure only marks the day
+  "failed" in Neon and logs `report_part_failed` / `report_failed` (counts and codes, never text).
+  The workflow goes red, and GitHub emails you.
+- Conversations are never deleted or changed by reporting.
+
+**Enable / disable.**
+1. Test first: run the workflow by hand with *dry run* ticked (sends nothing).
+2. Send one real test: set `IRIS_REPORTS_ENABLED=true` on Render, run the workflow with a `date`
+   that has real conversations. Check the email arrived complete.
+3. Set `IRIS_REPORTS_ENABLED=false` again until you decide to start daily delivery; then set it
+   `true` and leave it. To stop at any time: set it to `false` (takes effect on the next run),
+   or disable the workflow in the Actions tab.
+Note: the test day counts as reported, so the first scheduled run continues from the next day.
+
+**Limitations.** Free-tier cold starts add up to about 80 s. The cost estimate uses the prices
+in `OPENAI_PRICE_INPUT_PER_M` / `OPENAI_PRICE_OUTPUT_PER_M` and only covers calls recorded in
+`iris_api_usage`. Email is not end-to-end encrypted between Brevo and Proton. A day with a very
+large volume can need several runs (the 202 / retry mechanism handles this).
 
 ## Privacy: decide before enabling reports
 
