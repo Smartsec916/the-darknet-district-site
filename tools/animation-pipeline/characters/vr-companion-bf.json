@@ -1,0 +1,138 @@
+{
+ "name": "vr-companion-bf",
+ "source": "Female Base (CGTrader), FemaleBaseUnreal(FromBlender).fbx prepared by prepare_basemesh.py",
+ "bonePrefix": "",
+ "bones": {
+  "pelvis": "Hips",
+  "spine_01": "Spine",
+  "spine_02": "Spine1",
+  "spine_03": "Spine2",
+  "neck_01": "Neck",
+  "head": "Head",
+  "clavicle_l": "LeftShoulder",
+  "upperarm_l": "LeftArm",
+  "lowerarm_l": "LeftForeArm",
+  "hand_l": "LeftHand",
+  "thigh_l": "LeftUpLeg",
+  "calf_l": "LeftLeg",
+  "foot_l": "LeftFoot",
+  "ball_l": "LeftToeBase",
+  "thumb_01_l": "LeftHandThumb1",
+  "thumb_02_l": "LeftHandThumb2",
+  "thumb_03_l": "LeftHandThumb3",
+  "index_01_l": "LeftHandIndex1",
+  "index_02_l": "LeftHandIndex2",
+  "index_03_l": "LeftHandIndex3",
+  "middle_01_l": "LeftHandMiddle1",
+  "middle_02_l": "LeftHandMiddle2",
+  "middle_03_l": "LeftHandMiddle3",
+  "ring_01_l": "LeftHandRing1",
+  "ring_02_l": "LeftHandRing2",
+  "ring_03_l": "LeftHandRing3",
+  "pinky_01_l": "LeftHandPinky1",
+  "pinky_02_l": "LeftHandPinky2",
+  "pinky_03_l": "LeftHandPinky3",
+  "clavicle_r": "RightShoulder",
+  "upperarm_r": "RightArm",
+  "lowerarm_r": "RightForeArm",
+  "hand_r": "RightHand",
+  "thigh_r": "RightUpLeg",
+  "calf_r": "RightLeg",
+  "foot_r": "RightFoot",
+  "ball_r": "RightToeBase",
+  "thumb_01_r": "RightHandThumb1",
+  "thumb_02_r": "RightHandThumb2",
+  "thumb_03_r": "RightHandThumb3",
+  "index_01_r": "RightHandIndex1",
+  "index_02_r": "RightHandIndex2",
+  "index_03_r": "RightHandIndex3",
+  "middle_01_r": "RightHandMiddle1",
+  "middle_02_r": "RightHandMiddle2",
+  "middle_03_r": "RightHandMiddle3",
+  "ring_01_r": "RightHandRing1",
+  "ring_02_r": "RightHandRing2",
+  "ring_03_r": "RightHandRing3",
+  "pinky_01_r": "RightHandPinky1",
+  "pinky_02_r": "RightHandPinky2",
+  "pinky_03_r": "RightHandPinky3"
+ },
+ "meshes": {
+  "FemaleBase_geo": {
+   "name": "body",
+   "shapeKeys": [
+    "Eye_Blink_L",
+    "Eye_Blink_R",
+    "Smile_L",
+    "Smile_R"
+   ]
+  },
+  "HairA_Geo": {
+   "name": "hair",
+   "cutout": true,
+   "doubleSided": true,
+   "alphaCutoff": 0.3
+  },
+  "HairB_Geo": {
+   "name": "hair_tail",
+   "cutout": true,
+   "doubleSided": true,
+   "alphaCutoff": 0.3
+  },
+  "HairBand_Geo": {
+   "name": "hair_tie"
+  },
+  "L_Eyes": {
+   "name": "eye_l",
+   "dropMaterials": [
+    "EyeGluss_M.001"
+   ]
+  },
+  "R_Eyes": {
+   "name": "eye_r",
+   "dropMaterials": [
+    "EyeGluss_M.001"
+   ]
+  },
+  "BraPanty_Geo": {
+   "name": "underwear"
+  },
+  "UpperTeeth_Geo": {
+   "name": "teeth_up"
+  },
+  "LowerTeethGeo": {
+   "name": "teeth_down"
+  },
+  "Tongue_Geo": {
+   "name": "tongue"
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "walk",
+  "sit",
+  "sit-enter",
+  "sit-exit",
+  "sit-talk",
+  "dance",
+  "interact",
+  "idle-f2",
+  "walk-f",
+  "wave",
+  "blow-kiss",
+  "coy",
+  "head-tilt",
+  "hips",
+  "laugh",
+  "glance-back",
+  "slow-dance",
+  "dance-belly",
+  "sit-relax",
+  "sit-wave",
+  "shrug",
+  "recline"
+ ],
+ "cutoutMaterials": [
+  "Eyelash_M"
+ ]
+}
