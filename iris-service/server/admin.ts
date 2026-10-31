@@ -17,6 +17,7 @@ import { logError, logThrottled } from "./logger";
 import { runDailyReport, runScheduledReports, listReports } from "./reports";
 import { ADMIN_VIEWER_HTML } from "./adminViewer";
 import { dropLiveState, forgetVisitor } from "./relationships";
+import { DELETE_CONFIRMATION, deleteStored, memoryKeysFor, removeLinks } from "./memory";
 
 const MIN_TOKEN_LENGTH = 32;
 
@@ -206,6 +207,20 @@ export function createAdminRouter(): Router {
     const clientId = String(req.params.clientId).slice(0, 128);
     dropLiveState(clientId);
     res.json({ erased: await forgetVisitor(clientId) });
+  }));
+
+  // Deletes one visitor's stored conversations (and, with scope=all, their relationship memory), by memory key.
+  // Needs the exact confirmation phrase: ?confirm=delete%20my%20memories&scope=conversations|relationship|all
+  router.delete("/api/admin/memory/:key", failedAuthLimiter, requireAdmin, guarded("delete_memory", async (req, res) => {
+    if (oneString(req.query.confirm) !== DELETE_CONFIRMATION) return res.status(400).json({ error: "Confirmation required.", confirmation: DELETE_CONFIRMATION });
+    const key = String(req.params.key).slice(0, 160);
+    const scope = oneString(req.query.scope);
+    const keys = await memoryKeysFor(key);
+    const out: { conversationMessages?: number | null; relationship?: boolean } = {};
+    if (scope !== "relationship") out.conversationMessages = await deleteStored(keys);
+    if (scope !== "conversations") { dropLiveState(key); out.relationship = await forgetVisitor(key); }
+    if (scope === "all" || scope === "") await removeLinks(key);
+    res.json({ deleted: scope || "all", ...out });
   }));
 
   router.post("/api/admin/reports/daily", failedAuthLimiter, requireReportAuth, async (req, res) => {

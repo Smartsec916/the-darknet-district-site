@@ -68,6 +68,41 @@ function describeRelationship(rel) {
   return wrap;
 }
 
+const DELETE_CONFIRMATION = 'delete my memories';
+
+function renderMemory(memory) {
+  const box = $('memory'); box.replaceChildren();
+  const row = (label, value, detail) => {
+    const line = el('div', undefined, 'meter');
+    line.append(el('b', label), el('span', value), ...(detail ? [el('span', ' ' + detail, 'muted')] : []));
+    box.append(line);
+  };
+  row('Persistent memory', memory.enabled ? 'ON' : 'OFF', memory.enabled ? '' : 'Iris is not reading stored conversations');
+  row('Stored messages', memory.storesConversations ? String(memory.storedMessages ?? 'unavailable') : 'none (a New Visitor is never stored)',
+    memory.linkedBrowsers ? `including ${memory.linkedBrowsers} connected browser(s)` : '');
+  row('Retention', memory.retention);
+  row('Latest request', memory.latestRequest
+    ? `${memory.latestRequest.messagesIncluded} stored message(s), about ${memory.latestRequest.approxTokens} tokens${memory.latestRequest.ok ? '' : ' (lookup failed)'}`
+    : 'no memory sent yet');
+  const added = memory.estimatedAddedTokens;
+  row('Added by memory (this run)', `${added.requestsWithMemory} request(s), about ${added.tokens} tokens`, added.tokens ? `≈ $${added.costUSD} at list price` : '');
+  row('Lookup failures (recent)', String(memory.lookupFailuresRecent));
+  const fb = memory.fallbacks;
+  const reasons = Object.entries(fb.byReason).map(([k, v]) => `${k} ×${v}`).join(', ');
+  row('OpenAI canned replies', `${fb.last24hInDatabase ?? '?'} in 24 h`, `since the service started: ${fb.sinceServerStart}${reasons ? ' (' + reasons + ')' : ''}`);
+  if (memory.lastLookups.length) {
+    const table = document.createElement('table');
+    const head = table.createTHead().insertRow();
+    for (const text of ['When (UTC)', 'Lookup', 'Result', 'Found', 'ms']) head.append(el('th', text));
+    const body = table.createTBody();
+    for (const l of memory.lastLookups) {
+      const r = body.insertRow();
+      [l.at.replace('T', ' ').slice(0, 19), l.kind, l.ok ? 'ok' : 'FAILED: ' + l.failure, l.found, l.ms].forEach(text => r.insertCell().textContent = String(text));
+    }
+    box.append(table);
+  }
+}
+
 function render(state) {
   document.querySelectorAll('.mode').forEach(button => button.setAttribute('aria-checked', String(button.dataset.mode === state.mode)));
 
@@ -102,6 +137,8 @@ function render(state) {
       el('div', `Estimated cost: $${state.usageLast24h.estimatedCostUSD} (list prices)`),
     );
   } else usage.append(el('p', 'Unavailable.', 'muted'));
+
+  renderMemory(state.memory);
 
   const ids = $('identities'); ids.replaceChildren();
   const table = document.createElement('table');
@@ -149,6 +186,24 @@ async function chooseMode(mode) {
   await refresh();
 }
 
+async function deleteMemory(target) {
+  const label = target === 'owner' ? "the owner's" : 'the Returning Visitor simulation\'s';
+  if (!window.confirm(`Delete ${label} stored conversations?\n\nIris will no longer be able to recall them. This cannot be undone. Relationship records and the other identity are not affected.`)) return;
+  const { status, data } = await call('/api/owner/memory/delete', { method: 'POST', body: { target, confirm: DELETE_CONFIRMATION } });
+  say(status === 200 ? `Deleted ${data.deleted ?? 0} stored messages.` : (data.error || 'Could not delete.'), status !== 200);
+  await refresh();
+}
+
+async function adopt() {
+  const sessionId = $('adoptSession').value.trim();
+  if (!sessionId) { say('Enter a session id first.', true); return; }
+  if (!window.confirm('Add this earlier chat to the owner\'s memory? Only messages not yet filed under anyone are added.')) return;
+  const { status, data } = await call('/api/owner/adopt-session', { method: 'POST', body: { sessionId } });
+  say(status === 200 ? `Adopted ${data.adopted} message(s) into the owner's memory.` : (data.error || 'Could not adopt.'), status !== 200);
+  $('adoptSession').value = '';
+  await refresh();
+}
+
 async function reset(target) {
   const label = target === 'new' ? 'the New Visitor' : 'the Returning Visitor';
   if (!window.confirm(`Reset ${label} simulation? It will start over as a stranger.`)) return;
@@ -158,6 +213,9 @@ async function reset(target) {
 }
 
 document.querySelectorAll('.mode').forEach(button => button.addEventListener('click', () => chooseMode(button.dataset.mode)));
+$('deleteOwnerMemory').addEventListener('click', () => deleteMemory('owner'));
+$('deleteReturningMemory').addEventListener('click', () => deleteMemory('returning'));
+$('adoptButton').addEventListener('click', adopt);
 $('resetNew').addEventListener('click', () => reset('new'));
 $('resetReturning').addEventListener('click', () => reset('returning'));
 $('refresh').addEventListener('click', () => { say(''); refresh(); });

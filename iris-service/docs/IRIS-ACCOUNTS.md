@@ -65,5 +65,6 @@ Authorized domains for Google and email-link sign-in. The games already depend o
 
 ## Database
 
-Two additive tables are created at start-up (`iris_relationships` from the personality upgrade, and
-`iris_owner_state`). Nothing existing is changed.
+Additive objects are created at start-up: tables `iris_relationships`, `iris_owner_state` and `iris_memory_links`, a nullable
+column `chat_messages.memory_key`, and indexes. Nothing existing is changed or removed. Long-term conversation memory is
+described in `IRIS-MEMORY.md`.

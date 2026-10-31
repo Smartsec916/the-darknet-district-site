@@ -19,9 +19,11 @@ import {
   type EmotionSignal, type Mood,
 } from "./emotion";
 import {
-  dropLiveState, forgetVisitor, recordEmotionEvent, saveRelationship, sessionEmotionMap, startEmotionSession,
+  dropLiveState, forgetVisitor, loadRelationship, recordEmotionEvent, saveRelationship, sessionEmotionMap, startEmotionSession,
 } from "./relationships";
 import { resolveIdentity } from "./identity";
+import { clearRecentCacheForTests, prepareMemory } from "./memoryContext";
+import { clearRetrievals, countStored, DELETE_CONFIRMATION, deleteStored } from "./memory";
 import { createOwnerRouter } from "./ownerControls";
 
 // What the /embed widget page may do: run its own inline script and style, show its
@@ -94,6 +96,18 @@ function resetChatContext(sessionId: string) {
     sessionAskedForNameMap, sessionSpecialNameInstructionMap, sessionVerifiedUserMap,
   ];
   for (const map of maps) map.delete(sessionId);
+}
+
+// Simulates a server restart for tests: everything held only in the process is dropped, as a Render sleep, restart or
+// deploy would. Stored data is untouched.
+export function resetChatStateForTests(): void {
+  const maps: Array<Map<string, unknown>> = [
+    sessionMoodMap, sessionTrustMap, sessionFlirtCountMap, sessionUserNameMap, sessionMessageCountMap,
+    sessionAskedForNameMap, sessionSpecialNameInstructionMap, sessionVerifiedUserMap, sessionEmotionMap,
+  ];
+  for (const map of maps) map.clear();
+  openaiService.forgetAllSessionsForTests();
+  clearRecentCacheForTests();
 }
 
 // Used when the model's state line is missing or unreadable: nothing about the mood or relationship changes
@@ -811,7 +825,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
   // Process a message and get a response - optimized with rate limiting and validation
   app.post("/api/chat/message", chatLimiter, dailyChatLimiter, globalDailyChatLimiter, async (req, res) => {
     // Set once the message is accepted, so a failure after that point still records the visitor's message
-    let received: { sessionId: string; message: string; requestId: string; at: Date } | null = null;
+    let received: { sessionId: string; message: string; requestId: string; at: Date; memoryKey?: string } | null = null;
     try {
       const messageSchema = z.object({
         sessionId: z.string().min(1).max(128),
@@ -868,7 +882,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       const verifiedUser = sessionVerifiedUserMap.get(sessionId);
 
       const requestId = requestKey(sessionId, message, clientMessageCount);
-      received = { sessionId, message, requestId, at: new Date() };
+      received = { sessionId, message, requestId, at: new Date(), memoryKey: identity.key };
       if (Number.isInteger(clientMessageCount)) {
         // The same message was already answered (for example a retry after a slow wake-up)
         const stored = await findStoredReply(requestId);
@@ -954,7 +968,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         
         // Save the exchange before replying so a restart cannot lose it
         res.locals.logFields = { saved: await saveExchange({
-          sessionId, requestId, visitorText: message, visitorAt: received.at, visitorStatus: "ok",
+          sessionId, requestId, visitorText: message, visitorAt: received.at, visitorStatus: "ok", memoryKey: identity.key,
           language: "english", iris: { text: response, status: "ok", at: new Date() },
         }) };
         
@@ -1396,7 +1410,13 @@ export async function registerRoutes(app: Express): Promise<Express> {
       const relationshipPrompt = emo
         ? buildRelationshipPrompt(emo, Date.now(), { recapDue: emo.rel.messages > 0 && emo.rel.messages % 6 === 5 })
         : undefined;
-      const reply = await openaiService.getResponse(sessionId, neutralizeMarker(message), promptAddition, { relationshipPrompt, isEva });
+      // Verified stored-conversation memory for this reply (see memoryContext.ts). It never throws: if the lookup
+      // fails, Iris is told so and must say so instead of guessing.
+      const memory = await prepareMemory({
+        sessionId, key: identity.key, label: identity.key ?? "test-new:" + identity.uid,
+        message, messageNumber: messageCount,
+      });
+      const reply = await openaiService.getResponse(sessionId, neutralizeMarker(message), promptAddition, { relationshipPrompt, isEva, memoryPrompt: memory.prompt });
       
       // Process translation for special users if needed
       let translatedResponse = reply.text;
@@ -1448,11 +1468,11 @@ export async function registerRoutes(app: Express): Promise<Express> {
       // Save the exchange (visitor message, then Iris's reply, as shown to the visitor)
       // before replying, so a Render restart cannot lose it
       const saved = await saveExchange({
-        sessionId, requestId, visitorText: message, visitorAt: received.at, visitorStatus: "ok",
+        sessionId, requestId, visitorText: message, visitorAt: received.at, visitorStatus: "ok", memoryKey: identity.key,
         language: reply.language ?? null,
         iris: { text: translatedResponse, status: reply.fallback ? "fallback" : "ok", at: new Date() },
       });
-      res.locals.logFields = { fallback: reply.fallback, saved, language: reply.language, ...(emo ? { emotion: reply.emotion ? "read" : "missing" } : {}) };
+      res.locals.logFields = { fallback: reply.fallback, failure: reply.failure, saved, language: reply.language, memoryRecent: memory.recentIncluded, memoryRecall: memory.recallIncluded, memoryFailed: memory.failed, ...(emo ? { emotion: reply.emotion ? "read" : "missing" } : {}) };
       
       // fallback: true marks a canned reply that replaced a failed OpenAI call
       res.json(reply.fallback ? { response: translatedResponse, fallback: true } : { response: translatedResponse });
@@ -1482,24 +1502,45 @@ export async function registerRoutes(app: Express): Promise<Express> {
       if (received) {
         await saveExchange({
           sessionId: received.sessionId, requestId: received.requestId, visitorText: received.message,
-          visitorAt: received.at, visitorStatus: "error",
+          visitorAt: received.at, visitorStatus: "error", memoryKey: received.memoryKey,
         });
       }
       res.status(500).json({ message: "Failed to process message" });
     }
   });
 
-  // A visitor can have Iris forget her memory of them (mood, trust, what they told her). Only the browser that
-  // owns the session can ask: the session must have been created with that client id. Stored conversations are
-  // not part of this.
+  // An anonymous visitor's own deletion of what Iris remembers about this browser. The browser's random id is the
+  // proof (nobody else has it; ids that belong to signed-in accounts or the owner can never be given here).
+  //   POST /api/chat/memory  { clientId }                           what is stored (counts only)
+  //   POST /api/chat/forget  { clientId, confirm, scope? }          delete it (conversations, relationship, or all)
+  // The sign-in, game progress and the browser's own id are never touched.
+  const browserId = z.string().min(1).max(128).refine(id => !/^(user|owner|test-new|test-returning):/.test(id), "not a browser id");
+
+  app.post("/api/chat/memory", async (req, res) => {
+    try {
+      const { clientId } = z.object({ clientId: browserId }).parse(req.body);
+      res.json({
+        conversationMessages: await countStored([clientId]),
+        relationship: Boolean(await loadRelationship(clientId)),
+        confirmation: DELETE_CONFIRMATION,
+      });
+    } catch {
+      res.status(400).json({ error: "Bad request" });
+    }
+  });
+
   app.post("/api/chat/forget", async (req, res) => {
     try {
-      const { sessionId, clientId } = z.object({ sessionId: z.string().min(1).max(128), clientId: z.string().min(1).max(128) }).parse(req.body);
-      const session = await storage.getChatSession(sessionId);
-      if (!session || session.clientId !== clientId) return res.status(403).json({ error: "Not allowed" });
-      dropLiveState(clientId);
-      await forgetVisitor(clientId);
-      res.json({ ok: true });
+      const { clientId, confirm, scope } = z.object({
+        clientId: browserId, confirm: z.string(), scope: z.enum(["conversations", "relationship", "all"]).optional(),
+      }).parse(req.body);
+      if (confirm !== DELETE_CONFIRMATION) return res.status(400).json({ error: "Confirmation required.", confirmation: DELETE_CONFIRMATION });
+      const chosen = scope ?? "all";
+      const out: { conversationMessages?: number | null; relationship?: boolean } = {};
+      if (chosen !== "relationship") out.conversationMessages = await deleteStored([clientId]);
+      if (chosen !== "conversations") { dropLiveState(clientId); out.relationship = await forgetVisitor(clientId); }
+      clearRetrievals(clientId);
+      res.json({ ok: true, deleted: chosen, ...out });
     } catch {
       res.status(400).json({ error: "Bad request" });
     }

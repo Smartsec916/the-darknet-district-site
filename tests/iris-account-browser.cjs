@@ -207,7 +207,14 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
         new: { persistent: false, resets: 0, relationship: null },
       },
       active: { mode, live: { mood: 'playful', trust: 3.9, messagesThisChat: 4 }, recentChanges: [{ at: '2026-11-01T10:00:00.000Z', mood: 'playful', moodChanged: true, trust: 3.9, trustDelta: 0.25, warmth: 1, hostility: 0, flirt: 0, humor: 1, read: true }] },
-      persistence: { emotionSystem: 'on', database: true, retentionDays: 180, flirtLevel: 2, recentChangesKeptInMemory: true },
+      memory: {
+        enabled: true, storesConversations: mode !== 'new', storedMessages: 42, linkedBrowsers: 1, retention: 'never (messages stay until deleted)',
+        lastLookups: [{ at: '2026-11-01T10:00:00.000Z', kind: 'recall', ok: false, failure: 'query_failed', found: 0, ms: 12 }],
+        latestRequest: { at: '2026-11-01T10:00:00.000Z', messagesIncluded: 5, approxTokens: 420, ok: true }, lookupFailuresRecent: 1,
+        estimatedAddedTokens: { requestsWithMemory: 3, tokens: 1260, costUSD: 0.31 },
+        fallbacks: { last24hInDatabase: 2, sinceServerStart: 2, byReason: { server_error: 1, quota: 1 } },
+      },
+      persistence: { emotionSystem: 'on', database: true, retentionDays: 'never', flirtLevel: 2, recentChangesKeptInMemory: true },
       usageLast24h: { calls: 12, inputTokens: 34000, outputTokens: 900, estimatedCostUSD: 0.094 },
     });
 
@@ -228,6 +235,8 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     const posts = [];
     await owner.page.route('**/api/owner/state', r => json(r, state(current)));
     await owner.page.route('**/api/owner/mode', async r => { current = r.request().postDataJSON().mode; posts.push(['mode', current, r.request().headers().authorization]); await json(r, { mode: current }); });
+    await owner.page.route('**/api/owner/memory/delete', async r => { posts.push(['delete', r.request().postDataJSON().target, r.request().postDataJSON().confirm]); await json(r, { deleted: 7 }); });
+    await owner.page.route('**/api/owner/adopt-session', async r => { posts.push(['adopt', r.request().postDataJSON().sessionId]); await json(r, { adopted: 3 }); });
     await owner.page.route('**/api/owner/reset', async r => { posts.push(['reset', r.request().postDataJSON().target]); await json(r, { reset: r.request().postDataJSON().target }); });
     owner.page.on('dialog', d => d.accept());
     await owner.page.goto(base + '/iris-controls.html');
@@ -239,7 +248,17 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     await owner.page.waitForFunction(() => document.querySelector('.mode[data-mode="new"]').getAttribute('aria-checked') === 'true');
     await owner.page.locator('#resetReturning').click();
     await owner.page.waitForTimeout(300);
-    assert.deepEqual(posts, [['mode', 'new', 'Bearer token-for-uid-owner'], ['reset', 'returning']]);
+    const panelText = await owner.page.locator('#panel').innerText();
+    for (const expected of ['Persistent memory', 'ON', 'Stored messages', '42', 'never (messages stay until deleted)', 'about 420 tokens', 'OpenAI canned replies', 'server_error', 'FAILED: query_failed']) assert.ok(panelText.includes(expected), expected);
+    await owner.page.locator('#deleteOwnerMemory').click();
+    await owner.page.waitForTimeout(300);
+    await owner.page.fill('#adoptSession', 'session_abc123');
+    await owner.page.locator('#adoptButton').click();
+    await owner.page.waitForTimeout(300);
+    assert.deepEqual(posts, [
+      ['mode', 'new', 'Bearer token-for-uid-owner'], ['reset', 'returning'],
+      ['delete', 'owner', 'delete my memories'], ['adopt', 'session_abc123'],
+    ]);
     assert.ok(!(await owner.page.locator('#panel').innerText()).includes('RESET OWNER'), 'there is no way to reset the owner memory here');
     await owner.context.close();
   });
@@ -376,6 +395,54 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     const panel = await rect(page, '#districtSettings .district-login__panel');
     assert.ok(panel.l >= 0 && panel.r <= 390 && panel.b <= 844, 'settings inside the screen ' + JSON.stringify(panel));
     assert.ok(!(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)));
+    await context.close();
+  });
+
+
+  await check('forgetting (signed in): shows what is stored, deletes only after OK, and never sends the confirmation unprompted', async () => {
+    const { page, context } = await open({ signedIn: accountOf, me: meOf });
+    const calls = [];
+    await page.route('**/api/me/memory', async r => {
+      calls.push([r.request().method(), r.request().method() === 'DELETE' ? r.request().postDataJSON() : null]);
+      await json(r, r.request().method() === 'GET' ? { conversationMessages: 12, relationship: true, linkedBrowsers: 1, confirmation: 'delete my memories' } : { deleted: 'all', conversationMessages: 12, relationship: true });
+    });
+    await page.goto(base + '/index.html');
+    await waitLabel(page, 'NEO ANDERSON');
+    const asked = [];
+    page.on('dialog', async dialog => { asked.push(dialog.message()); await (asked.length === 1 ? dialog.dismiss() : dialog.accept()); });
+    await openMenu(page);
+    await page.getByRole('menuitem', { name: 'FORGET WHAT IRIS REMEMBERS' }).click({ noWaitAfter: true });
+    await page.waitForTimeout(500);
+    assert.match(asked[0], /12 saved messages/);
+    assert.match(asked[0], /1 connected browser/);
+    assert.match(asked[0], /cannot be undone/);
+    assert.match(asked[0], /game progress.*not affected/i);
+    assert.deepEqual(calls.map(c => c[0]), ['GET'], 'declining deletes nothing');
+    await openMenu(page);
+    await page.getByRole('menuitem', { name: 'FORGET WHAT IRIS REMEMBERS' }).click({ noWaitAfter: true });
+    await page.waitForTimeout(600);
+    assert.deepEqual(calls.at(-1), ['DELETE', { confirm: 'delete my memories', scope: 'all' }]);
+    assert.match(asked.at(-1), /12 saved messages were deleted/);
+    await context.close();
+  });
+
+  await check('forgetting (not signed in): the sign-in panel offers to delete this browser\'s memories, with the browser id and a confirmation', async () => {
+    const { page, context } = await open();
+    const sent = [];
+    await page.route('**/api/chat/memory', async r => { sent.push(['memory', r.request().postDataJSON()]); await json(r, { conversationMessages: 4, relationship: true, confirmation: 'delete my memories' }); });
+    await page.route('**/api/chat/forget', async r => { sent.push(['forget', r.request().postDataJSON()]); await json(r, { ok: true, deleted: 'all', conversationMessages: 4 }); });
+    await page.goto(base + '/index.html');
+    const id = await page.evaluate(() => window.IrisIdentity.clientId);
+    let message = '';
+    page.on('dialog', async dialog => { message = dialog.message(); await dialog.accept(); });
+    await page.locator('.district-account__button').click();
+    await page.locator('#districtLogin').waitFor({ state: 'visible' });
+    await page.getByText('DELETE WHAT IRIS REMEMBERS ABOUT THIS BROWSER').click({ noWaitAfter: true });
+    await page.waitForTimeout(600);
+    assert.match(message, /4 saved messages/);
+    assert.deepEqual(sent, [['memory', { clientId: id }], ['forget', { clientId: id, confirm: 'delete my memories', scope: 'all' }]]);
+    assert.match(await page.locator('#districtLogin').innerText(), /4 saved messages were deleted/);
+    assert.equal(await page.evaluate(() => localStorage.getItem('irisClientId')), id, 'the browser\'s own Iris id is kept');
     await context.close();
   });
 

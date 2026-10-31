@@ -117,12 +117,14 @@ if (root) {
   email.id = 'districtLoginEmail'; email.type = 'email'; email.autocomplete = 'email'; email.placeholder = 'you@example.com'; email.maxLength = 120;
   const send = el('button', 'district-login__action district-login__action--quiet', 'EMAIL ME A LINK');
   send.type = 'button';
+  const forgetBrowser = el('button', 'district-login__close district-login__forget', "DELETE WHAT IRIS REMEMBERS ABOUT THIS BROWSER");
+  forgetBrowser.type = 'button';
   const status = el('p', 'district-login__status');
   status.setAttribute('role', 'status');
   status.setAttribute('aria-live', 'polite');
   const close = el('button', 'district-login__close', 'CLOSE');
   close.type = 'button';
-  panel.append(title, intro, google, emailLabel, email, send, status, close);
+  panel.append(title, intro, google, emailLabel, email, send, status, forgetBrowser, close);
   modal.append(panel);
 
   root.append(button);
@@ -202,8 +204,8 @@ if (root) {
   async function linkHistory() {
     closeMenu();
     const ok = window.confirm(
-      'Connect the Iris chats from this browser to your account?\n\n'
-      + 'Iris will remember them under your account from now on. The anonymous record stays where it is, '
+      'Connect the Iris conversations from this browser to your account?\n\n'
+      + 'Iris will be able to remember them under your account from now on. The anonymous record stays where it is, '
       + 'and nothing is connected unless you choose OK.');
     if (!ok) return;
     try {
@@ -212,13 +214,46 @@ if (root) {
     } catch (error) { window.alert(error.message); }
   }
 
+  // What Iris holds is counted first, then deleted only after an explicit OK. Game progress, your sign-in and this
+  // browser's own Iris id are not touched.
   async function forgetMemory() {
     closeMenu();
-    if (!window.confirm('Erase what Iris remembers about your account (her mood toward you, trust and what you told her)? Your chat transcripts are not affected.')) return;
     try {
-      const { erased } = await api('/api/me/forget', { method: 'POST' });
-      window.alert(erased ? 'Iris has forgotten you.' : 'Iris had nothing saved for your account.');
+      const held = await api('/api/me/memory');
+      const messages = held.conversationMessages ?? 0;
+      if (!messages && !held.relationship) { window.alert('Iris has nothing saved about your account.'); return; }
+      const ok = window.confirm(
+        `Delete what Iris remembers about your account?\n\n`
+        + `• ${messages} saved message${messages === 1 ? '' : 's'} from your conversations`
+        + (held.linkedBrowsers ? ` (including ${held.linkedBrowsers} connected browser${held.linkedBrowsers === 1 ? '' : 's'})` : '') + `\n`
+        + `• Her notes and feelings about you\n\n`
+        + 'This cannot be undone. Your game progress, your sign-in and this browser\'s Iris ID are not affected.');
+      if (!ok) return;
+      const done = await api('/api/me/memory', { method: 'DELETE', body: { confirm: held.confirmation, scope: 'all' } });
+      window.alert(`Done. ${done.conversationMessages ?? 0} saved messages were deleted and Iris has forgotten you.`);
     } catch (error) { window.alert(error.message); }
+  }
+
+  // The same, for someone who has not signed in: this browser's own anonymous memories. The browser's random id is the proof.
+  async function forgetThisBrowser() {
+    try {
+      const url = base + '/api/chat/';
+      const post = async (path, body) => {
+        const response = await fetch(url + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), cache: 'no-store' });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'Iris did not answer. Try again shortly.');
+        return data;
+      };
+      const held = await post('memory', { clientId: identity?.clientId });
+      const messages = held.conversationMessages ?? 0;
+      if (!messages && !held.relationship) { setStatus('Iris has nothing saved about this browser.'); return; }
+      const ok = window.confirm(
+        `Delete what Iris remembers about this browser?\n\n• ${messages} saved message${messages === 1 ? '' : 's'}\n• Her notes about you\n\n`
+        + 'This cannot be undone. Game progress and your sign-in are not affected.');
+      if (!ok) return;
+      const done = await post('forget', { clientId: identity?.clientId, confirm: held.confirmation, scope: 'all' });
+      setStatus(`Done. ${done.conversationMessages ?? 0} saved messages were deleted.`);
+    } catch (error) { setStatus(error.message, true); }
   }
 
   // Sign out of this Firebase session first, then ask Google again with the account chooser forced, so the
@@ -311,6 +346,7 @@ if (root) {
     button.focus({ preventScroll: true });
   });
   google.addEventListener('click', googleSignIn);
+  forgetBrowser.addEventListener('click', forgetThisBrowser);
   send.addEventListener('click', emailSignIn);
   email.addEventListener('keydown', event => { if (event.key === 'Enter') emailSignIn(); });
   close.addEventListener('click', closeModal);

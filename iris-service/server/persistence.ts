@@ -16,6 +16,8 @@ export interface ExchangeInput {
   visitorStatus: "ok" | "error";
   language?: string | null;
   iris?: { text: string; status: ReplyStatus; at: Date };
+  // Whose conversation this is (see identity.ts); absent for a simulated New Visitor, which is never remembered
+  memoryKey?: string;
 }
 
 // Stored timestamps are UTC. They are written explicitly from the app instead of
@@ -38,22 +40,22 @@ async function attempt(input: ExchangeInput): Promise<void> {
   );
   const rows: unknown[][] = [[
     input.sessionId, "user", input.visitorText, utc(input.visitorAt),
-    input.language ?? null, input.visitorStatus, input.requestId,
+    input.language ?? null, input.visitorStatus, input.requestId, input.memoryKey ?? null,
   ]];
   if (input.iris) {
     rows.push([
       input.sessionId, "iris", input.iris.text, utc(input.iris.at),
-      input.language ?? null, input.iris.status, input.requestId,
+      input.language ?? null, input.iris.status, input.requestId, input.memoryKey ?? null,
     ]);
   }
   const params: unknown[] = [];
   const tuples = rows.map(row => {
     const base = params.length;
     params.push(...row);
-    return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}::timestamp, $${base + 5}, $${base + 6}, $${base + 7})`;
+    return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}::timestamp, $${base + 5}, $${base + 6}, $${base + 7}, $${base + 8})`;
   });
   await dbQuery(
-    `INSERT INTO chat_messages (session_id, sender, message, timestamp, language, status, request_id)
+    `INSERT INTO chat_messages (session_id, sender, message, timestamp, language, status, request_id, memory_key)
      VALUES ${tuples.join(", ")}
      ON CONFLICT (request_id, sender) WHERE request_id IS NOT NULL DO NOTHING`,
     params,

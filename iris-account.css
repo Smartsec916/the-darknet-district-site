@@ -153,6 +153,7 @@ body > .district-login[hidden] { display: none; }
 .district-login__action:hover { background: #14393d; }
 .district-login__action:focus-visible,
 .district-login__close:focus-visible { outline: 2px solid #fff0c9; outline-offset: 3px; }
+.district-login__forget { align-self: flex-start; padding-left: 0; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
 .district-login__status { min-height: 1.4em; margin: 0; font-size: 12px; color: #9cc9c4; }
 .district-login__status[data-state="error"] { color: #ff9aa8; }
 .district-login__close {
