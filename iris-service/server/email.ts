@@ -9,6 +9,9 @@ export interface EmailAttachment { name: string; content: string } // content is
 export interface OutgoingEmail { subject: string; text: string; attachments?: EmailAttachment[] }
 
 export class EmailError extends Error {
+  // Set when the provider asked us to wait (HTTP Retry-After), in milliseconds
+  retryAfterMs?: number;
+
   constructor(
     message: string,
     // true: the provider rejected or never received it, so sending again is safe
@@ -81,5 +84,9 @@ export async function sendReportEmail(email: OutgoingEmail, timeoutMs = 25_000):
   // The provider's error text can echo request details, so only the status is kept
   const retryable = response.status === 429 || response.status >= 500;
   log("warn", "email_provider_rejected", { status: response.status });
-  throw new EmailError(`email provider returned HTTP ${response.status}`, retryable, false, response.status);
+  const error = new EmailError(`email provider returned HTTP ${response.status}`, retryable, false, response.status);
+  // When the provider is rate limiting it says how long to wait
+  const wait = Number(response.headers.get("retry-after"));
+  if (Number.isFinite(wait) && wait >= 0) error.retryAfterMs = wait * 1000;
+  throw error;
 }

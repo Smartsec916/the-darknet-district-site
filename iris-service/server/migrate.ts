@@ -61,6 +61,8 @@ const STATEMENTS = [
      locked_at timestamp, last_error text,
      created_at timestamp NOT NULL DEFAULT now(), updated_at timestamp NOT NULL DEFAULT now(),
      sent_at timestamp)`,
+  // Fingerprint of the transcript a report was cut from, so a resumed run can tell if the data changed
+  `ALTER TABLE iris_daily_reports ADD COLUMN IF NOT EXISTS content_hash text`,
   `CREATE TABLE IF NOT EXISTS iris_report_parts (
      report_date date NOT NULL, part_no integer NOT NULL, status text NOT NULL,
      sent_at timestamp, provider_message_id text, last_error text,

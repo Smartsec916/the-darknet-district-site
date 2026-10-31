@@ -14,7 +14,7 @@ import rateLimit from "express-rate-limit";
 import { dbQuery } from "./db";
 import { ensureSchema } from "./migrate";
 import { logError, logThrottled } from "./logger";
-import { runDailyReport, listReports } from "./reports";
+import { runDailyReport, runScheduledReports, listReports } from "./reports";
 import { ADMIN_VIEWER_HTML } from "./adminViewer";
 
 const MIN_TOKEN_LENGTH = 32;
@@ -203,11 +203,14 @@ export function createAdminRouter(): Router {
   router.post("/api/admin/reports/daily", failedAuthLimiter, requireReportAuth, async (req, res) => {
     try {
       const body = (req.body ?? {}) as { date?: unknown; dryRun?: unknown };
-      const outcome = await runDailyReport({
-        date: typeof body.date === "string" ? body.date : undefined,
-        dryRun: body.dryRun === true,
-      });
+      const dryRun = body.dryRun === true;
+      // A date reports exactly that day. With no date this is the scheduled run: yesterday, plus
+      // any earlier day that is unfinished or was missed (oldest first, nothing sent twice).
+      const outcome = typeof body.date === "string"
+        ? await runDailyReport({ date: body.date, dryRun })
+        : await runScheduledReports({ dryRun });
       const code = outcome.status === "failed" ? 502
+        : outcome.status === "partial" ? 202 // more emails follow at the next scheduled run
         : outcome.status === "invalid_date" ? 400
         : outcome.status === "disabled" || outcome.status === "not_configured" ? 503
         : 200;

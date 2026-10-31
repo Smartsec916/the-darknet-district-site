@@ -63,9 +63,11 @@ beforeEach(() => {
     REPORT_SENDER_EMAIL: "iris@example.test",
     REPORT_RECIPIENT: "admin@example.test",
     REPORT_EMAIL_TIMEOUT_MS: "3000",
+    REPORT_SEND_SPACING_MS: "0", // production waits a second between emails; the tests do not
   });
-  delete process.env.REPORT_INLINE_MAX_BYTES;
-  delete process.env.REPORT_PART_MAX_BYTES;
+  for (const name of ["REPORT_PART_MAX_BYTES", "REPORT_PAGE_SIZE", "REPORT_MAX_PARTS_PER_RUN", "REPORT_RUN_BUDGET_MS", "REPORT_CATCHUP_DAYS"]) {
+    delete process.env[name];
+  }
 });
 
 async function seed(sessionId: string, rows: Array<[string, string, string, string?]>) {
@@ -76,9 +78,6 @@ async function seed(sessionId: string, rows: Array<[string, string, string, stri
   }
 }
 const sentText = () => received.map(r => r.body.textContent as string).join("\n");
-const attachments = () => received.flatMap(r => (r.body.attachment ?? []).map((a: any) => ({
-  name: a.name as string, text: Buffer.from(a.content, "base64").toString("utf8"),
-})));
 
 test("report dates are previous closed UTC days", () => {
   assert.equal(previousUtcDate(new Date("2026-10-30T08:00:00Z")), "2026-10-29");
@@ -145,12 +144,13 @@ test("a report with several conversations is emailed once, to the configured add
   assert.match(text, /Conversations:\s+3/);
   assert.match(text, /Visitor messages:\s+4/);
   assert.match(text, /Iris responses:\s+3/);
-  assert.match(text, /Errors:\s+2 /); // one fallback reply, one unanswered message
+  assert.match(text, /Reporting period \(UTC\): 2026-09-10 00:00:00 to 2026-09-10 23:59:59/);
+  assert.match(text, /Failed or incomplete:\s+2 \(1 canned fallback replies because OpenAI failed, 1 visitor messages with no reply\)/);
   assert.match(text, /2000000 prompt \+ 500000 completion tokens/);
   assert.match(text, /\$10\.0000/); // 2M * $2.50/M + 0.5M * $10/M
   assert.match(text, /Conversation 1 of 3[\s\S]*Session: rep-a/);
-  assert.match(text, /14:32:05 UTC — Visitor:\nWhat is Darknet District\?/);
-  assert.match(text, /14:32:07 UTC — Iris:\nWelcome to the District\.\.\./);
+  assert.match(text, /14:32:05 UTC — Visitor:\n    What is Darknet District\?/);
+  assert.match(text, /14:32:07 UTC — Iris:\n    Welcome to the District\.\.\./);
   assert.match(text, /你好，伊娃/);
   assert.match(text, /Iris \(canned fallback reply; OpenAI failed\)/);
   assert.match(text, /Visitor \(no reply was produced; processing error\)/);
@@ -178,7 +178,6 @@ test("a day with no conversations still sends a short zero-activity report", asy
 });
 
 test("a long day is split into numbered parts with every message exactly once", async () => {
-  process.env.REPORT_INLINE_MAX_BYTES = "1500";
   process.env.REPORT_PART_MAX_BYTES = "3500";
   const ids: string[] = [];
   for (let c = 0; c < 6; c++) {
@@ -193,13 +192,13 @@ test("a long day is split into numbered parts with every message exactly once", 
   const outcome = await runDailyReport({ date: "2026-07-05", now: NOW, retryDelayMs: 0 });
   assert.equal(outcome.status, "sent");
   assert.ok(received.length > 2, `expected several parts, got ${received.length}`);
-  const files = attachments();
-  assert.equal(files.length, received.length);
-  files.forEach((f, i) => assert.equal(f.name, `iris-conversations-2026-07-05-part-${i + 1}-of-${files.length}.txt`));
+  // Numbered emails with the transcripts in the body itself: no attachments, no HTML
+  assert.ok(received.every(r => r.body.attachment === undefined && r.body.htmlContent === undefined));
   received.forEach((r, i) => assert.match(r.body.subject, new RegExp(`\\(Part ${i + 1} of ${received.length}\\)$`)));
-  const all = files.map(f => f.text).join("\n");
+  received.forEach((r, i) => assert.match(r.body.textContent, new RegExp(`This is email ${i + 1} of ${received.length} for this day`)));
+  const all = sentText();
   for (const id of ids) assert.equal(all.split(id).length - 1, 1, `${id.slice(0, 12)} must appear exactly once`);
-  files.forEach(f => assert.ok(Buffer.byteLength(f.text) <= 3500));
+  received.forEach(r => assert.ok(Buffer.byteLength(r.body.textContent) <= 3500 + 1500, "each email stays near the size limit"));
 });
 
 test("one huge conversation is split across parts without losing a message", async () => {
@@ -209,7 +208,7 @@ test("one huge conversation is split across parts without losing a message", asy
       sender: i % 2 ? "iris" : "user", text: `line ${i} ` + "y".repeat(80), at: "2026-07-06T00:00:00Z", status: "ok", language: null,
     })),
   }];
-  const parts = buildParts(conversations, { inline: 500, part: 4000 });
+  const parts = buildParts(conversations, { part: 4000 });
   assert.ok(parts.length > 3);
   assert.ok(parts.every(p => p.bytes <= 4000));
   const joined = parts.map(p => p.text).join("\n");
@@ -228,7 +227,6 @@ test("temporary provider errors are retried without sending a copy", async () =>
 });
 
 test("a failed delivery resumes later and sends only the parts that were not sent", async () => {
-  process.env.REPORT_INLINE_MAX_BYTES = "800";
   process.env.REPORT_PART_MAX_BYTES = "2500";
   for (let c = 0; c < 4; c++) {
     await seed(`resume-${c}`, Array.from({ length: 8 }, (_, m) => [m % 2 ? "iris" : "user", `resume-${c}-${m}-${"z".repeat(70)}`, `2026-05-03 1${c}:0${m}:00`] as [string, string, string]));
