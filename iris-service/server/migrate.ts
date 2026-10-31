@@ -19,6 +19,7 @@ export const REQUIRED_TABLES = [
   "iris_api_usage",
   "iris_daily_reports",
   "iris_report_parts",
+  "iris_relationships",
 ];
 
 const STATEMENTS = [
@@ -67,6 +68,17 @@ const STATEMENTS = [
      report_date date NOT NULL, part_no integer NOT NULL, status text NOT NULL,
      sent_at timestamp, provider_message_id text, last_error text,
      PRIMARY KEY (report_date, part_no))`,
+
+  // Iris's memory of each visitor (trust, mood, a few stated likes); erasable per visitor, expires unused
+  `CREATE TABLE IF NOT EXISTS iris_relationships (
+     client_id text PRIMARY KEY, trust real NOT NULL DEFAULT 1, familiarity real NOT NULL DEFAULT 0,
+     affection real NOT NULL DEFAULT 0, respect real NOT NULL DEFAULT 0.5, playfulness real NOT NULL DEFAULT 0.3,
+     mood text NOT NULL DEFAULT 'professional', visits integer NOT NULL DEFAULT 0, messages integer NOT NULL DEFAULT 0,
+     first_seen timestamp NOT NULL DEFAULT now(), last_seen timestamp NOT NULL DEFAULT now(),
+     preferences text NOT NULL DEFAULT '[]', recap text NOT NULL DEFAULT '',
+     flirt_cooldown integer NOT NULL DEFAULT 0, minor boolean NOT NULL DEFAULT false,
+     updated_at timestamp NOT NULL DEFAULT now())`,
+  `CREATE INDEX IF NOT EXISTS iris_relationships_last_seen_idx ON iris_relationships (last_seen)`,
 ];
 
 let schemaReady = false;
