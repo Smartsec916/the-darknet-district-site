@@ -51,6 +51,21 @@
     return out.buffer;
   }
 
+  // On the live site the licensed models are encrypted instead (CGTrader's licence asks games to take "commercially
+  // reasonable measures" such as "encrypting the Product data"): a "VRPE" header, a 12-byte IV, then AES-256-GCM.
+  // tools/assets/build-pages.cjs encrypts them at deploy time and writes the key here. The browser has to hold the key
+  // to draw the model, so a determined player can still extract it; this keeps the files out of reach of casual
+  // saving and off the public repository, nothing more. Local builds keep the placeholder and the scrambled files.
+  const ASSET_KEY = '__VOID_ASSET_KEY__';
+  let assetKey = null;
+  async function open(buffer) {
+    const v = new DataView(buffer);
+    if (v.byteLength < 32 || v.getUint32(0, true) !== 0x45505256) return unpack(buffer);
+    if (ASSET_KEY.startsWith('__')) throw Error('Encrypted model, but this build has no asset key.');
+    assetKey ??= root.crypto.subtle.importKey('raw', Uint8Array.from(root.atob(ASSET_KEY), c => c.charCodeAt(0)), 'AES-GCM', false, ['decrypt']);
+    return root.crypto.subtle.decrypt({name: 'AES-GCM', iv: new Uint8Array(buffer, 4, 12)}, await assetKey, new Uint8Array(buffer, 16));
+  }
+
   function loadPlugin(task) {
     useKTX2Locally();
     if (loader) return loader;
@@ -90,7 +105,7 @@
         const response=await fetch(url,{signal:task?.signal});
         if(!response.ok)throw Error('Model HTTP '+response.status);
         buffer=await response.arrayBuffer();
-        if(packed)buffer=unpack(buffer);
+        if(packed)buffer=await open(buffer);
         validate(buffer);
         break;
       }catch(error){
@@ -211,6 +226,7 @@
     models,unload,container,loadContainer,ownInstance,onLoaded,get pending(){return pending();},get failed(){return new Map(failed);},
     validate,
     unpack,
+    open,
     useKTX2Locally,
     load,
     instance,

@@ -99,7 +99,7 @@
    let picked=C.savedLooks(who);const own={},ownMat={},loaded={};
    function variant(file){return loaded[file]??=(async()=>{const r=await fetch('void-runner/assets/models/crowd/'+look+'/'+file+'.vrtex');if(!r.ok)throw Error('Look texture HTTP '+r.status);
     // A variant is a scrambled PNG, JPEG or KTX2 (kept compressed on the GPU, like the model's own textures).
-    const bytes=new Uint8Array(VoidAssets.unpack(await r.arrayBuffer())),ktx2=bytes[0]===0xab&&bytes[1]===0x4b&&bytes[2]===0x54&&bytes[3]===0x58;
+    const bytes=new Uint8Array(await VoidAssets.open(await r.arrayBuffer())),ktx2=bytes[0]===0xab&&bytes[1]===0x4b&&bytes[2]===0x54&&bytes[3]===0x58;
     const src=URL.createObjectURL(new Blob([bytes],{type:ktx2?'image/ktx2':bytes[0]===0x89?'image/png':'image/jpeg'}));if(ktx2)VoidAssets.useKTX2Locally();
     return new Promise((ok,no)=>{const t=new B.Texture(src,k.scene,{noMipmap:false,invertY:false,samplingMode:B.Texture.TRILINEAR_SAMPLINGMODE,forcedExtension:ktx2?'.ktx2':undefined,
      onLoad:()=>{URL.revokeObjectURL(src);ok(t);},onError:m=>{URL.revokeObjectURL(src);no(Error(m||'Look texture failed'));}});});})();}

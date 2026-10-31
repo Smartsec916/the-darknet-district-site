@@ -61,7 +61,8 @@
   if(many.length>1&&many.every(e=>e.pairable))return many;
   const one=many[0]||resolve(opts);return one?[one]:[];}
  // Offered at the terminal: listed:false never; listed:'dev' only on a local development server (models whose
- // licence isn't confirmed for release yet).
+ // licence isn't confirmed for release yet). licensed:true marks purchased models kept out of the public repository:
+ // the live site gets them, encrypted, from the private asset repository (tools/assets/build-pages.cjs).
  const localHost=h=>/^(localhost|127\.0\.0\.1|\[::1\])$/.test(h||'');
  const offered=(e,host=globalThis.location?.hostname)=>e.listed!==false&&!e.replacedBy&&(e.listed!=='dev'||localHost(host));
  // A companion's own clip for a role (its personality picks its gestures), falling back through common names.
@@ -166,13 +167,13 @@
  // BGShop and "PrettyGirl_01" (Eva), prepared by prepare_ava.py / prepare_prettygirl.py and converted by
  // build_imported_character.py. Their personalities, lines and voices are still to come from David: each has its
  // own empty personality and dialogue and its own voice identity to fill, and nothing of Seren's. Without lines they
- // don't speak, and the bedroom offers only what needs no words. They can come along together (pairable). Until
- // their licences are confirmed for release they are offered only on a local development server (listed:'dev').
+ // don't speak, and the bedroom offers only what needs no words. They can come along together (pairable). Released on
+ // the live site (David, 2026-10-31: CGTrader Royalty Free licences, subscription kept active).
  // Default looks are David's picks: Ava in the red top and skirt with the bob and no glasses (the bikini bottom is
  // worn under the skirt, so nothing shows when she sits); Eva in the white slip dress with her natural
  // orange-and-white hair.
  register({id:'ava',name:'Ava',sex:'female',model:'vr-companion-ava',file:'vr-companion-ava.vrpak',preview:'void-runner/assets/vr/companions/ava.jpg',
-  listed:'dev',pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-ava',voiceId:null},
+  licensed:true,pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-ava',voiceId:null},
   clips:{walk:['walk-f'],idleAlt:['idle-f2']},
   looks:[
    {key:'outfit',label:'Outfit',default:'red',options:[{id:'red',label:'Red top and skirt',parts:['top_red','skirt_red','bikini_bottom']},{id:'bikini',label:'Bikini',parts:['bikini_top','bikini_bottom','skin_under']}]},
@@ -183,7 +184,7 @@
  // `textures` maps a material to its variant file.
  const variant=(id,label,dflt,map)=>({id,label,...(id===dflt?{}:{textures:map(id)})});
  register({id:'eva',name:'Eva',sex:'female',model:'vr-companion-pg',file:'vr-companion-pg.vrpak',preview:'void-runner/assets/vr/companions/eva.jpg',
-  listed:'dev',pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-eva',voiceId:null},
+  licensed:true,pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-eva',voiceId:null},
   clips:{walk:['walk-f'],idleAlt:['idle-f2']},
   looks:[
    {key:'outfit',label:'Outfit',default:'white',options:[['white','White slip dress'],['blue','Blue floral slip dress'],['pink','Pink cherry slip dress'],['grey','Grey slip dress']].map(([id,label])=>variant(id,label,'white',c=>({cloth:'cloth-'+c})))},
@@ -193,13 +194,14 @@
 
  // Una and the two base figures (CGTrader packages David supplied, 2026-10-31). Una was a static model: she is rigged
  // on the Female Base skeleton (prepare_una.py); the base figures come rigged (prepare_basemesh.py). Like Ava and Eva:
- // their own empty personality, dialogue and voice, offered only on a local development server, able to come along
- // in pairs. The two base figures are Yuki and Dex (names by David, 2026-10-31; ids base-f / base-m); Dex comes in briefs
+ // their own empty personality, dialogue and voice, able to come along in pairs. Yuki and Dex are released on the live
+ // site (Male Female Base Rig, CGTrader #4027823, Royalty Free no AI); Una stays on a local development server until
+ // her product page and licence are identified. The two base figures are Yuki and Dex (names by David, 2026-10-31; ids base-f / base-m); Dex comes in briefs
  // only, until David adds clothing.
  // Una's outfits are David's Style A (default), B and C made from her own clothes, plus the original. A look may
  // also set material values (`materials`: roughness factors) for a glossier finish.
  register({id:'una',name:'Una',sex:'female',model:'vr-companion-una',file:'vr-companion-una.vrpak',preview:'void-runner/assets/vr/companions/una.jpg',
-  listed:'dev',pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-una',voiceId:null},
+  listed:'dev',licensed:true,pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-una',voiceId:null},
   clips:{walk:['walk-f'],idleAlt:['idle-f2']},
   looks:[
    {key:'outfit',label:'Outfit',default:'minimalist',options:[
@@ -208,9 +210,9 @@
     {id:'elegant',label:'Elegant (violet jacket)',parts:['jacket','jacket_item','leggings','piping_jacket'],textures:{outfit_jacket:'jacket-violet'}},
     {id:'original',label:'Original (black leather)',parts:['jacket','jacket_item','leggings']}]}]});
  register({id:'base-f',name:'Yuki',sex:'female',model:'vr-companion-bf',file:'vr-companion-bf.vrpak',preview:'void-runner/assets/vr/companions/base-f.jpg',
-  listed:'dev',pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-base-f',voiceId:null},clips:{walk:['walk-f'],idleAlt:['idle-f2']}});
+  licensed:true,pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-base-f',voiceId:null},clips:{walk:['walk-f'],idleAlt:['idle-f2']}});
  register({id:'base-m',name:'Dex',sex:'male',model:'vr-companion-bm',file:'vr-companion-bm.vrpak',preview:'void-runner/assets/vr/companions/base-m.jpg',
-  listed:'dev',pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-base-m',voiceId:null},clips:{}});
+  licensed:true,pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-base-m',voiceId:null},clips:{}});
 
  // ---- Looks: outfit, hairstyle, glasses, colours. A group's options each show their `parts` (mesh names; parts no
  // option names are always shown) and may swap `textures`. The choices are a preference kept per browser, like

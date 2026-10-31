@@ -14,7 +14,7 @@ test('the four experiences are registered with titles, descriptions and a status
 test('Play in a Bedroom asks for a companion first, with a female and a male choice',()=>{
   globalThis.VoidCrowd=require('../void-runner/crowd.js');const s=registered.find(e=>e.id==='suite'),p=s.picker;
   assert.deepEqual(p.steps[0].choices([]).map(c=>c.id),['female','male']);
-  assert.deepEqual(p.steps[1].choices(['female']).map(c=>c.id),['seren','nadia']);assert.deepEqual(p.steps[1].choices(['male']).map(c=>c.id),['kai']);
+  assert.deepEqual(p.steps[1].choices(['female']).map(c=>c.id),['seren','nadia','ava','eva','base-f']);assert.deepEqual(p.steps[1].choices(['male']).map(c=>c.id),['kai','base-m']);
   assert.deepEqual(p.options(['female','seren']),{companion:'seren'});
 });
 test('the Combat Simulator is registered but not offered at the terminal',()=>{

@@ -1,0 +1,67 @@
+name: Deploy site
+
+# Publishes thedarknetdistrict.com to GitHub Pages: the repository's site plus the licensed companion models from the
+# private repository Smartsec916/void-runner-licensed-assets, encrypted (tools/assets/build-pages.cjs).
+# Needs, once: Settings > Pages > Source "GitHub Actions"; secrets LICENSED_ASSETS_TOKEN (a fine-grained token with
+# read access to that repository's contents) and VOID_ASSET_KEY (node tools/assets/build-pages.cjs --new-key).
+# Pull requests run the build and its checks only; deploying happens from main.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.event_name == 'pull_request' && github.ref || 'live' }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - name: Licensed models (private repository)
+        uses: actions/checkout@v4
+        with:
+          repository: Smartsec916/void-runner-licensed-assets
+          token: ${{ secrets.LICENSED_ASSETS_TOKEN }}
+          path: _licensed
+          lfs: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build the site and encrypt the models
+        env:
+          VOID_ASSET_KEY: ${{ secrets.VOID_ASSET_KEY }}
+        run: node tools/assets/build-pages.cjs _licensed _site
+      - name: Check the build
+        run: |
+          crowd=_site/void-runner/assets/models/crowd
+          for f in vr-companion-ava vr-companion-pg vr-companion-bf vr-companion-bm vr-companion-fc1; do
+            test "$(head -c 4 "$crowd/$f.vrpak")" = VRPE || { echo "$f.vrpak is missing or not encrypted"; exit 1; }
+          done
+          test ! -e "$crowd/vr-companion-una.vrpak" || { echo "Una must not be published"; exit 1; }
+          ! grep -q "__VOID_ASSET_KEY__" _site/void-runner/asset-pipeline.js || { echo "Key not injected"; exit 1; }
+          test ! -e _site/.github && test ! -e _site/_licensed && test -e _site/CNAME
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

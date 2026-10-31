@@ -91,12 +91,11 @@ test('the picker brings both when a second pairable companion is chosen, and rem
  assert.deepEqual(suite.picker.options(['female','seren']),{companion:'seren'});
 });
 
-test('Ava and Eva are offered only on a local development server until their licences are confirmed',()=>{
- for(const id of ['ava','eva']){const e=C.get(id);assert.equal(e.listed,'dev');
-  assert.equal(C.offered(e,'localhost'),true);assert.equal(C.offered(e,'127.0.0.1'),true);
-  assert.equal(C.offered(e,'thedarknetdistrict.com'),false);assert.equal(C.offered(e,undefined),false);}
+test('Ava and Eva are released on the live site, their models from the private asset repository',()=>{
+ for(const id of ['ava','eva']){const e=C.get(id);assert.equal(e.listed,undefined);assert.equal(e.licensed,true);
+  assert.equal(C.offered(e,'localhost'),true);assert.equal(C.offered(e,'thedarknetdistrict.com'),true);}
  assert.equal(C.offered(C.get('seren'),'thedarknetdistrict.com'),true);
- assert.deepEqual(suite.picker.steps[1].choices(['female']).map(c=>c.id),['seren','nadia'],'the public picker is unchanged');
+ assert.deepEqual(suite.picker.steps[1].choices(['female']).map(c=>c.id),['seren','nadia','ava','eva','base-f'],'the public female gallery adds the released companions');
 });
 
 test('the VR menu has look rows per companion, named when two are in the room',()=>{
