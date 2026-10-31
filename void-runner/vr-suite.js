@@ -98,13 +98,19 @@
    const materials=name=>{const out=new Set();for(const m of node.getChildMeshes())for(const x of m.material?.subMaterials||[m.material])if(x?.name===name)out.add(x);return [...out];};
    let picked=C.savedLooks(who);const own={},loaded={};
    function variant(file){return loaded[file]??=(async()=>{const r=await fetch('void-runner/assets/models/crowd/'+look+'/'+file+'.vrtex');if(!r.ok)throw Error('Look texture HTTP '+r.status);
-    const bytes=new Uint8Array(VoidAssets.unpack(await r.arrayBuffer())),src=URL.createObjectURL(new Blob([bytes],{type:bytes[0]===0x89?'image/png':'image/jpeg'}));
-    return new Promise((ok,no)=>{const t=new B.Texture(src,k.scene,false,false,B.Texture.TRILINEAR_SAMPLINGMODE,()=>{URL.revokeObjectURL(src);ok(t);},m=>{URL.revokeObjectURL(src);no(Error(m||'Look texture failed'));});});})();}
+    // A variant is a scrambled PNG, JPEG or KTX2 (kept compressed on the GPU, like the model's own textures).
+    const bytes=new Uint8Array(VoidAssets.unpack(await r.arrayBuffer())),ktx2=bytes[0]===0xab&&bytes[1]===0x4b&&bytes[2]===0x54&&bytes[3]===0x58;
+    const src=URL.createObjectURL(new Blob([bytes],{type:ktx2?'image/ktx2':bytes[0]===0x89?'image/png':'image/jpeg'}));if(ktx2)VoidAssets.useKTX2Locally();
+    return new Promise((ok,no)=>{const t=new B.Texture(src,k.scene,{noMipmap:false,invertY:false,samplingMode:B.Texture.TRILINEAR_SAMPLINGMODE,forcedExtension:ktx2?'.ktx2':undefined,
+     onLoad:()=>{URL.revokeObjectURL(src);ok(t);},onError:m=>{URL.revokeObjectURL(src);no(Error(m||'Look texture failed'));}});});})();}
    async function wear(key,id){if(key)picked={...picked,[key]:C.option(who,key,id)?.id};const on=C.wears(who,picked),want=C.lookTextures(who,picked);
     for(const m of node.getChildMeshes()){const p=partOf(m);if(p)m.setEnabled(on(p));}
     if(api.session)for(const [g,v] of Object.entries(C.chosen(who,picked)))api.session.settings['look-'+who.id+'-'+g]=v;
     await Promise.all(C.variantTextures(who).flatMap(name=>materials(name).map(async mat=>{if(!(name in own))own[name]=mat.albedoTexture;const file=want[name];if(!file){mat.albedoTexture=own[name];return;}
      try{const t=await variant(file);if(C.lookTextures(who,picked)[name]!==file)return;t.hasAlpha=!!own[name]?.hasAlpha;t.coordinatesIndex=own[name]?.coordinatesIndex||0;mat.albedoTexture=t;}catch(e){console.warn('[VR companion look]',file,e.message);}})));
+    // Variants no longer worn give their GPU memory back (choosing one again reloads it, under a tenth of a second).
+    const inUse=new Set(Object.values(C.lookTextures(who,picked)));
+    for(const file of Object.keys(loaded))if(!inUse.has(file)){const p=loaded[file];delete loaded[file];p.then(t=>t.dispose(),()=>{});}
     return C.chosen(who,picked);}
    await wear();
    const has=n=>VoidCrowd.clipIn(look,n)===n,clip=role=>C.clipFor(who,role,has);

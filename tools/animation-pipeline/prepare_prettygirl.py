@@ -6,15 +6,13 @@ blender -b --factory-startup --python prepare_prettygirl.py -- SK_PrettyGirl_01_
 The FBX's material paths point at the author's machine, so every material is rebuilt from the supplied
 textures (Unreal ORM packing: occlusion R, roughness G, metallic B). The look is the one chosen for the game:
 face 05, natural hair, brown eyes, body tone 01. The slip dress and slippers share one texture atlas that comes
-in four prints; each print gets its own copy of the dress and slippers (about 4.7k triangles each), so the game
-switches outfits by showing one copy, with no texture loading.
+in four prints; the model carries the white one, and the game swaps in the others as textures.
 """
 import bpy
 import sys
 from pathlib import Path
 
 src, tex, out = (Path(a) for a in sys.argv[sys.argv.index('--') + 1:][:3])
-PRINTS = ['White', 'Blue', 'Pink', 'Grey']
 
 for o in list(bpy.data.objects):
     bpy.data.objects.remove(o, do_unlink=True)
@@ -106,22 +104,15 @@ for o in [o for o in bpy.data.objects if o.type == 'MESH']:
         elif base != 'cloth':
             print('MATERIAL_AS_IS', m.name if m else None)
 
-# One dress and slippers copy per print, named for the print.
-scene = bpy.context.scene
+# One dress and slippers, in the white print (David's default) on one material, "cloth"; the other prints are
+# separate textures the game loads only when chosen (pack-variant-textures.cjs), so only the worn print is in GPU
+# memory.
+mat = bpy.data.materials.new('cloth')
+principled(mat, bc='Cloth/T_Cloth_BC_White.png', bc_alpha=True, n='Cloth/T_Cloth_N.png', orm='Cloth/T_Cloth_ORM.png')
 for name in ('SK_Dress', 'SK_Slippers_01'):
-    orig = bpy.data.objects[name]
-    for i, pr in enumerate(PRINTS):
-        o = orig if i == 0 else orig.copy()
-        if i:
-            o.data = orig.data.copy()
-            scene.collection.objects.link(o)
-        mat = bpy.data.materials.get('cloth_' + pr.lower())
-        if not mat:
-            mat = bpy.data.materials.new('cloth_' + pr.lower())
-            principled(mat, bc=f'Cloth/T_Cloth_BC_{pr}.png', bc_alpha=True, n='Cloth/T_Cloth_N.png', orm='Cloth/T_Cloth_ORM.png')
-        o.data.materials.clear()
-        o.data.materials.append(mat)
-        o.name = name + '_' + pr.lower()
+    o = bpy.data.objects[name]
+    o.data.materials.clear()
+    o.data.materials.append(mat)
 
 for o in bpy.data.objects:
     if o.type == 'MESH':

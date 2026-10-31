@@ -16,9 +16,24 @@
     const data = JSON.parse(new TextDecoder().decode(new Uint8Array(buffer, 20, length)));
     for (const item of [...data.buffers || [], ...data.images || []])
       if (item.uri && !item.uri.startsWith('data:')) throw Error('Use a self-contained GLB; external asset URIs are not enabled.');
-    const compressed = ['KHR_draco_mesh_compression', 'EXT_meshopt_compression', 'KHR_texture_basisu'];
-    if ((data.extensionsUsed || []).some(e => compressed.includes(e))) throw Error('Compressed models need a configured, locally hosted decoder. Export an uncompressed GLB for this milestone.');
+    // KTX2 / Basis Universal textures (KHR_texture_basisu) are decoded by the locally hosted transcoder in
+    // vendor/ktx2 (useKTX2Locally); compressed geometry still has no decoder here.
+    const compressed = ['KHR_draco_mesh_compression', 'EXT_meshopt_compression'];
+    if ((data.extensionsUsed || []).some(e => compressed.includes(e))) throw Error('Compressed geometry needs a configured, locally hosted decoder. Export an uncompressed GLB for this milestone.');
     return data;
+  }
+
+  // KTX2 textures stay compressed on the GPU (BC7, ASTC or ETC, whichever the device supports; plain RGBA where it
+  // supports none). Babylon's decoder and the Basis Universal / UASTC / Zstandard transcoders are served from
+  // vendor/ktx2 (see its README for sources and licences), never from a CDN.
+  function useKTX2Locally() {
+    const K = root.BABYLON?.KhronosTextureContainer2;
+    if (!K || !base || K.URLConfig.jsDecoderModule?.startsWith(base.origin)) return;
+    const at = f => new URL('vendor/ktx2/' + f, base).href;
+    K.URLConfig = {jsDecoderModule: at('babylon.ktx2Decoder.js'), wasmUASTCToASTC: at('uastc_astc.wasm'), wasmUASTCToBC7: at('uastc_bc7.wasm'),
+      wasmUASTCToRGBA_UNORM: at('uastc_rgba8_unorm_v2.wasm'), wasmUASTCToRGBA_SRGB: at('uastc_rgba8_srgb_v2.wasm'), wasmUASTCToR8_UNORM: at('uastc_r8_unorm.wasm'),
+      wasmUASTCToRG8_UNORM: at('uastc_rg8_unorm.wasm'), jsMSCTranscoder: at('msc_basis_transcoder.js'), wasmMSCTranscoder: at('msc_basis_transcoder.wasm'), wasmZSTDDecoder: at('zstddec.wasm')};
+    K.DefaultNumWorkers = Math.max(1, Math.min(2, (root.navigator?.hardwareConcurrency || 2) - 1));
   }
 
   // Licensed models whose terms ask games to keep the file from casual extraction ship as .vrpak: the GLB
@@ -37,6 +52,7 @@
   }
 
   function loadPlugin(task) {
+    useKTX2Locally();
     if (loader) return loader;
     loader = new Promise((resolve, reject) => {
       const s = document.createElement('script');
@@ -189,6 +205,7 @@
     models,unload,container,loadContainer,ownInstance,onLoaded,get pending(){return pending();},get failed(){return new Map(failed);},
     validate,
     unpack,
+    useKTX2Locally,
     load,
     instance,
     prepare,

@@ -186,7 +186,7 @@
   listed:'dev',pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-eva',voiceId:null},
   clips:{walk:['walk-f'],idleAlt:['idle-f2']},
   looks:[
-   {key:'outfit',label:'Outfit',default:'white',options:[['white','White slip dress'],['blue','Blue floral slip dress'],['pink','Pink cherry slip dress'],['grey','Grey slip dress']].map(([id,label])=>({id,label,parts:['dress_'+id,'slippers_'+id]}))},
+   {key:'outfit',label:'Outfit',default:'white',options:[['white','White slip dress'],['blue','Blue floral slip dress'],['pink','Pink cherry slip dress'],['grey','Grey slip dress']].map(([id,label])=>variant(id,label,'white',c=>({cloth:'cloth-'+c})))},
    {key:'hair',label:'Hair colour',default:'natural',options:[['natural','Natural'],['black','Black'],['blond','Blond'],['ginger','Ginger'],['red','Red'],['white','White'],['blue','Blue']].map(([id,label])=>variant(id,label,'natural',c=>({hair:'hair-'+c})))},
    {key:'eyes',label:'Eye colour',default:'brown',options:[['brown','Brown'],['blue','Blue'],['green','Green'],['hazel','Hazel']].map(([id,label])=>variant(id,label,'brown',c=>({eye_r3:'eyes-'+c,eye_l3:'eyes-'+c})))},
    {key:'face',label:'Make-up',default:'5',options:['1','2','3','4','5','6'].map(n=>variant(n,'Look '+n,'5',()=>({head5:'face-0'+n})))}]});

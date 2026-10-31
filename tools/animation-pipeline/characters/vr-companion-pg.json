@@ -60,8 +60,8 @@
   "SK_Body": {
    "name": "body",
    "hiddenUnder": [
-    "dress_white",
-    "slippers_white"
+    "dress",
+    "slippers"
    ]
   },
   "SK_Hair": {
@@ -94,40 +94,13 @@
   "SK_Neckless_02": {
    "name": "necklace_b"
   },
-  "SK_Dress_white": {
-   "name": "dress_white",
+  "SK_Dress": {
+   "name": "dress",
    "cutout": true,
    "doubleSided": true
   },
-  "SK_Slippers_01_white": {
-   "name": "slippers_white",
-   "cutout": true
-  },
-  "SK_Dress_blue": {
-   "name": "dress_blue",
-   "cutout": true,
-   "doubleSided": true
-  },
-  "SK_Slippers_01_blue": {
-   "name": "slippers_blue",
-   "cutout": true
-  },
-  "SK_Dress_pink": {
-   "name": "dress_pink",
-   "cutout": true,
-   "doubleSided": true
-  },
-  "SK_Slippers_01_pink": {
-   "name": "slippers_pink",
-   "cutout": true
-  },
-  "SK_Dress_grey": {
-   "name": "dress_grey",
-   "cutout": true,
-   "doubleSided": true
-  },
-  "SK_Slippers_01_grey": {
-   "name": "slippers_grey",
+  "SK_Slippers_01": {
+   "name": "slippers",
    "cutout": true
   }
  },

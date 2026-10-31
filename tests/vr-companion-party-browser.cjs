@@ -71,14 +71,14 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',errors=[],report={};fs.mkdir
  assert(Math.hypot(ps[0].x-3.6,ps[0].z-.3)<.5&&Math.hypot(ps[1].x-3.6,ps[1].z+1.5)<.5,'both back at their own spots '+JSON.stringify(report.home));
  // Looks: each changes independently; Eva's colour variants load as textures.
  const texOf=(slot,mat)=>page.evaluate(([s,m])=>{const n=VoidVR.session.world.companions[s].node;for(const x of n.getChildMeshes())if(x.material?.name===m)return x.material.albedoTexture?.name||x.material.albedoTexture?.url||null;return null;},[slot,mat]);
- const hairBefore=await texOf(1,'hair');
+ const hairBefore=await texOf(1,'hair'),clothBefore=await texOf(1,'cloth');
  for(const [k,v] of [['look-ava-outfit','bikini'],['look-ava-hair','long'],['look-ava-glasses','round'],['look-ava-face','makeup'],['look-eva-outfit','blue'],['look-eva-hair','ginger'],['look-eva-eyes','green'],['look-eva-face','2']])await setLook(k,v);
  await page.waitForTimeout(2500);const hairAfter=await texOf(1,'hair');report.looks={hairBefore:String(hairBefore).slice(0,60),hairAfter:String(hairAfter).slice(0,60)};
  assert.notEqual(hairAfter,hairBefore,'Eva\'s hair texture changed');
  const settings=await page.evaluate(()=>({...VoidVR.session.settings}));assert.equal(settings['look-ava-hair'],'long');assert.equal(settings['look-eva-eyes'],'green');
  const visible=await page.evaluate(()=>VoidVR.session.world.companions.map(x=>x.node.getChildMeshes().filter(m=>m.isEnabled()).map(m=>m.name.replace(/^.*?_(?=[a-z])/,'').replace(/_primitive\d+$/,''))));
  assert(visible[0].includes('hair_long')&&!visible[0].includes('hair_bob')&&visible[0].includes('glasses_round')&&visible[0].includes('bikini_top'),'Ava wears her new looks');
- assert(visible[1].includes('dress_blue')&&!visible[1].includes('dress_white'),'Eva wears blue');
+ assert.notEqual(await texOf(1,'cloth'),clothBefore,'Eva\'s dress print changed');
  await view(4.2);await shot('together-new-looks');
  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('void-runner-companion-looks-v1')));report.saved=saved;
  assert.deepEqual(saved,{ava:{outfit:'bikini',hair:'long',glasses:'round',face:'makeup'},eva:{outfit:'blue',hair:'ginger',eyes:'green',face:'2'}});
@@ -98,7 +98,7 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',errors=[],report={};fs.mkdir
  await boot();const initial=await page.evaluate(()=>VoidVR.registry.get('suite').picker.steps[1].initial(['female']));report.rememberedParty=initial;
  assert.deepEqual(initial,['ava','eva'],'the picker remembers Ava and Eva');
  await enter({companions:['ava','eva']});const vis=await page.evaluate(()=>VoidVR.session.world.companions.map(x=>x.node.getChildMeshes().filter(m=>m.isEnabled()).map(m=>m.name)));
- assert(vis[0].some(n=>/hair_pixie/.test(n))&&!vis[0].some(n=>/hair_bob/.test(n)),'Ava\'s saved hairstyle is restored');assert(vis[1].some(n=>/dress_pink/.test(n)),'Eva\'s saved outfit is restored');
+ assert(vis[0].some(n=>/hair_pixie/.test(n))&&!vis[0].some(n=>/hair_bob/.test(n)),'Ava\'s saved hairstyle is restored');assert.equal(await page.evaluate(()=>VoidVR.session.settings['look-eva-outfit']),'pink','Eva\'s saved outfit is restored');
  await page.evaluate(()=>localStorage.removeItem('void-runner-companion-looks-v1'));await page.evaluate(()=>VoidVR.exit());
  // 4. An old link to Seren still opens the suite with Seren (she stays until Ava's and Eva's lines arrive).
  await enter({choice:'f'});assert.deepEqual((await probe()).map(p=>p.name),['Seren']);await page.evaluate(()=>VoidVR.exit());

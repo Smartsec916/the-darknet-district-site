@@ -37,7 +37,7 @@ test('a look shows its own parts and hides the rest of its group; other parts ar
  assert.ok(red('hair_bob')&&!red('hair_long')&&!red('hair_pixie')&&!red('glasses_round')&&!red('glasses_wire'));
  assert.ok(bikini('bikini_top')&&bikini('skin_under')&&!bikini('top_red')&&bikini('hair_pixie')&&!bikini('hair_bob')&&bikini('glasses_round'));
  for(const shared of ['body','brows','sandals'])assert.ok(red(shared)&&bikini(shared),shared);
- const eva=C.get('eva'),pink=C.wears(eva,{outfit:'pink'});assert.ok(pink('dress_pink')&&pink('slippers_pink')&&!pink('dress_white'));
+ const eva=C.get('eva');assert.deepEqual(C.lookTextures(eva,{outfit:'pink'}),{cloth:'cloth-pink'});assert.deepEqual(C.lookTextures(eva,{outfit:'white'}),{});
  assert.deepEqual(C.lookTextures(eva,{hair:'ginger',eyes:'green',face:'2'}),{hair:'hair-ginger',eye_r3:'eyes-green',eye_l3:'eyes-green',head5:'face-02'});
  assert.equal(C.option(ava,'hair','no-such-style').id,'bob');
 });
