@@ -123,7 +123,8 @@
     owner.onDisposeObservable.addOnce(dispose);
     return dispose;
   }
-  function instance(id, parent) {
+  // `only` names one model of a kit file (several models sharing their textures): the copy keeps just that one.
+  function instance(id, parent, only) {
     const item = containers.get(id);
     if (!item) return null;
     const result = item.container.instantiateModelsToScene(name => id + '-' + name, false),
@@ -132,6 +133,11 @@
     node.parent = parent;
     asset.parent = node;
     for (const mesh of result.rootNodes) mesh.parent = asset;
+    if (only) {
+      const keep = id + '-' + only, pieces = result.rootNodes.flatMap(r => r.getChildren());
+      if (!pieces.some(p => p.name === keep)) { for (const r of result.rootNodes) r.dispose(); node.dispose(); asset.dispose(); return null; }
+      for (const p of pieces) if (p.name !== keep) p.dispose();
+    }
     asset.scaling.setAll(item.def.scale || 1);
     asset.rotation.y = item.def.yaw || 0;
     // Cloned clips belong to this copy; they start stopped and the caller picks one (crowd figures).

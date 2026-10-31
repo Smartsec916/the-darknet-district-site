@@ -146,3 +146,11 @@ Male gallery: only Kai so far; no male character models have been supplied.
 Not used: Poly Haven’s tree models (fir_tree_01 487 MB, jacaranda_tree 215 MB, island trees 46–66 MB), as far too large for the browser. Trees, palms, birds and water are built in code.
 
 **Texture compression (2026-10-31).** `void-runner/vendor/ktx2`: Babylon.js KTX2 decoder 8.26.0 and its Basis Universal / UASTC transcoders (Apache-2.0; Binomial LLC, Arm, Mark Callow) and the zstddec 0.1.0 WebAssembly (MIT and BSD-3-Clause; Don McCurdy, Zstandard by Facebook). Licences beside the files; sources, versions and checksums in its README. Build only, not shipped: npm dev dependency `ktx2-encoder` 0.6.0 (MIT; bundles the Basis Universal encoder, Apache-2.0).
+
+**Cyberpunk City pack (2026-10-31).** "ULTRA Detailled Cyberpunk City - Small Version" on CGTrader
+(https://www.cgtrader.com/3d-models/exterior/cityscape/ultra-detailled-cyberpunk-city-blend-files-small-version), bought by
+David. Licence type on the listing not yet recorded here; no licence file in the download. Third-party content inside it:
+about 50 Textures.com textures (not redistributable as textures), one image named like a Midjourney generation, a "Ford1965"
+car texture. **Local development only**: the converted models (`void-runner/assets/models/ncz/`, git-ignored) are requested
+only on localhost, never committed, uploaded or deployed until David confirms the licence. Not to be used for AI training.
+See `docs/void-runner/ncz-upgrade/README.md`.

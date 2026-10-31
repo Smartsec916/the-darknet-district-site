@@ -1,7 +1,7 @@
 /* Re-encodes the textures inside a GLB as KTX2 / Basis Universal (KHR_texture_basisu), which the GPU keeps compressed
    (BC7 or ASTC where supported, transcoded on load) instead of expanding every image to 32-bit RGBA. Geometry,
    materials and animations are untouched; texture resolution is kept.
-   Usage: node tools/assets/ktx2-glb.mjs <in.glb> <out.glb> [--recipe JSON]
+   Usage: node tools/assets/ktx2-glb.mjs <in.glb> <out.glb> [--recipe JSON] [--etc1s-color]
           node tools/assets/ktx2-glb.mjs --image <in.png|jpg> <out.ktx2> <color|normal|data> [--alpha]
    How each image is encoded follows how the materials use it:
    - base colour (skin, eyes, hair, clothes, make-up; with alpha where the material cuts out): UASTC, sRGB, light
@@ -9,6 +9,8 @@
    - normal maps: UASTC, linear, Basis normal-map tuning, Zstandard;
    - roughness / metal / occlusion data: ETC1S, linear (smaller download; transcodes to BC7 or ASTC like the rest).
    --recipe can override per image name, e.g. {"head_d":{"rdo":0}} to turn off RDO for one texture.
+   --etc1s-color encodes base colour as ETC1S too (much smaller downloads, a little softer): for scenery such as
+   buildings and props, not for characters.
    Images are decoded in the installed Microsoft Edge (Playwright) and encoded with ktx2-encoder (MIT; Basis
    Universal, Apache-2.0). Build tool only: nothing here ships with the game. */
 import fs from 'node:fs';
@@ -34,19 +36,22 @@ let browser,page;
 async function decode(bytes,mime){
  if(!page){browser=await chromium.launch({channel:process.env.BROWSER_CHANNEL||'msedge',headless:true});page=await browser.newPage();}
  const b64=await page.evaluate(async src=>{const bmp=await createImageBitmap(await (await fetch(src)).blob(),{premultiplyAlpha:'none',colorSpaceConversion:'none'});
-  const c=new OffscreenCanvas(bmp.width,bmp.height),g=c.getContext('2d',{colorSpace:'srgb'});g.drawImage(bmp,0,0);const d=g.getImageData(0,0,bmp.width,bmp.height).data;
-  let s='';for(let i=0;i<d.length;i+=32768)s+=String.fromCharCode(...d.subarray(i,i+32768));return [bmp.width,bmp.height,btoa(s)];},'data:'+mime+';base64,'+Buffer.from(bytes).toString('base64'));
+  // GPU block formats need sizes in multiples of 4 (and mipmaps want powers of two): other sizes are resampled to
+  // the nearest power of two.
+  const pot=n=>Math.max(4,2**Math.round(Math.log2(n))),W=pot(bmp.width),H=pot(bmp.height);
+  const c=new OffscreenCanvas(W,H),g=c.getContext('2d',{colorSpace:'srgb'});g.imageSmoothingQuality='high';g.drawImage(bmp,0,0,W,H);const d=g.getImageData(0,0,W,H).data;
+  let s='';for(let i=0;i<d.length;i+=32768)s+=String.fromCharCode(...d.subarray(i,i+32768));return [W,H,btoa(s)];},'data:'+mime+';base64,'+Buffer.from(bytes).toString('base64'));
  return {width:b64[0],height:b64[1],data:new Uint8Array(Buffer.from(b64[2],'base64'))};}
 async function encode(bytes,mime,kind,over){const img=await decode(bytes,mime);return Buffer.from(await encodeToKTX2(new Uint8Array(1),{...options(kind,over),imageDecoder:async()=>img}));}
 
-async function glb(input,output,recipe){
+async function glb(input,output,recipe,etc1sColor){
  const {json,bin}=read(fs.readFileSync(input));
  const role={};for(const m of json.materials||[]){const p=m.pbrMetallicRoughness||{};const mark=(t,k)=>{if(t){const s=json.textures[t.index].source;role[s]=role[s]==='color'||k==='color'?'color':role[s]||k;}};
   mark(p.baseColorTexture,'color');mark(m.emissiveTexture,'color');mark(m.normalTexture,'normal');mark(p.metallicRoughnessTexture,'data');mark(m.occlusionTexture,'data');}
  const views=json.bufferViews.map(v=>bin.subarray(v.byteOffset||0,(v.byteOffset||0)+v.byteLength));let before=0,after=0;const t0=Date.now();
  for(const [i,img] of (json.images||[]).entries()){
   if(img.bufferView===undefined||img.mimeType==='image/ktx2')continue;const kind=role[i]||'color',src=views[img.bufferView];before+=src.length;
-  const k=await encode(src,img.mimeType,kind,recipe[img.name]||{});views[img.bufferView]=k;after+=k.length;img.mimeType='image/ktx2';
+  const k=await encode(src,img.mimeType,kind,{...(etc1sColor&&kind==='color'?{uastc:false}:{}),...(recipe[img.name]||{})});views[img.bufferView]=k;after+=k.length;img.mimeType='image/ktx2';
   console.log(' ',(img.name||i).toString().padEnd(34),kind.padEnd(6),(src.length/1e6).toFixed(2),'->',(k.length/1e6).toFixed(2),'MB');}
  // Textures point at their KTX2 image through KHR_texture_basisu (no fallback image: the decoder transcodes to RGBA
  // on GPUs without a compressed format, so one copy serves every device).
@@ -60,5 +65,5 @@ const args=process.argv.slice(2);
 try{
  if(args[0]==='--image'){const [,inp,out,kind='color']=args;const bytes=fs.readFileSync(inp);const k=await encode(bytes,/\.jpe?g$/i.test(inp)?'image/jpeg':'image/png',kind,{});fs.writeFileSync(out,k);console.log(path.basename(out),(bytes.length/1e6).toFixed(2),'->',(k.length/1e6).toFixed(2),'MB');}
  else{const [inp,out]=args;if(!inp||!out){console.error('Usage: node tools/assets/ktx2-glb.mjs <in.glb> <out.glb> [--recipe JSON]');process.exit(1);}
-  const ri=args.indexOf('--recipe');await glb(inp,out,ri>0?JSON.parse(args[ri+1]):{});}
+  const ri=args.indexOf('--recipe');await glb(inp,out,ri>0?JSON.parse(args[ri+1]):{},args.includes('--etc1s-color'));}
 }finally{await browser?.close();}

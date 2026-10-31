@@ -1104,7 +1104,7 @@
     }
     if(def.district&&root.VoidNeoChinatown){
       crowdLocation='neochinatown';root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,{...(root.VoidCrowd?.models('neochinatown',quality)||{}),...(VoidNeoChinatown.models||{})},task),'district models');
-      districtHandle=VoidNeoChinatown.build({scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{},instance:(id,parent)=>VoidAssets.instance(id,parent)});landBoarding(def);
+      districtHandle=VoidNeoChinatown.build({scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{},instance:(id,parent,only)=>VoidAssets.instance(id,parent,only)});landBoarding(def);
       await task.wait('scene',()=>scene.whenReadyAsync(),'neochinatown');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
