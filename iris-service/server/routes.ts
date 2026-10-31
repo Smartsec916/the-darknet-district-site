@@ -13,6 +13,21 @@ import { debugLog, log, logError } from "./logger";
 import { ensureSchema } from "./migrate";
 import { findStoredReply, requestKey, saveExchange } from "./persistence";
 import { createAdminRouter } from "./admin";
+import { allowedOrigins, SERVICE_ORIGIN } from "./origins";
+
+// What the /embed widget page may do: run its own inline script and style, show its
+// built-in portrait, and talk only to this service. It can be framed only by the
+// allowed websites.
+const EMBED_CSP = [
+  "default-src 'none'",
+  "script-src 'unsafe-inline'",
+  "style-src 'unsafe-inline'",
+  "img-src data:",
+  `connect-src 'self' ${SERVICE_ORIGIN}`,
+  "base-uri 'none'",
+  "form-action 'none'",
+  `frame-ancestors 'self' ${Array.from(allowedOrigins).join(" ")}`,
+].join("; ");
 
 // Moods and tracking maps
 const moods = ["professional", "sarcastic", "cold", "flirty", "playful", "busy"];
@@ -136,11 +151,11 @@ export async function registerRoutes(app: Express): Promise<Express> {
         return;
       }
       
-      // Set headers for CORS and embedding
+      // Framing is limited to the allowed websites by the CSP below (frame-ancestors).
+      // CORS headers for those same websites come from the global middleware.
       res.setHeader('Content-Type', 'text/html');
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('X-Frame-Options', 'ALLOWALL');
-      res.setHeader('Content-Security-Policy', "frame-ancestors *");
+      res.removeHeader('X-Frame-Options');
+      res.setHeader('Content-Security-Policy', EMBED_CSP);
       res.send(data);
     });
   });

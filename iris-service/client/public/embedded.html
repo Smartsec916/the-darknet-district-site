@@ -381,7 +381,7 @@
     <div class="chat-header">
       <span class="iris-avatar-img profile-pic" role="img" aria-label="Iris"></span>
       <h3>Iris AI</h3>
-      <a id="direct-link" href="https://iris-chat-interface-smartsec916.replit.app/" target="_blank">Full View</a>
+      <a id="direct-link" href="https://darknet-district-iris.onrender.com/" target="_blank" rel="noopener">Full View</a>
       <button class="close-chat">×</button>
     </div>
     
@@ -413,17 +413,114 @@
       const sendButton = document.querySelector('.chat-input button');
       const messagesContainer = document.querySelector('.chat-messages');
       const typingIndicator = document.querySelector('.typing-indicator');
-      
-      // Session ID for Iris
+
+      // The Iris service: the same backend and the same /api/chat/message request the
+      // homepage chat uses. A host page cannot change this; window.IRIS_API_BASE only
+      // exists so tests can point the widget at a local server.
+      const DEFAULT_API_BASE = 'https://darknet-district-iris.onrender.com';
+      const apiBase = () => (typeof window.IRIS_API_BASE === 'string' ? window.IRIS_API_BASE : DEFAULT_API_BASE);
+
+      // Render's free tier sleeps when idle; the first request after a quiet spell can
+      // take well over a minute. These keep that from looking like a crash.
+      const REQUEST_TIMEOUT_MS = 120000; // give up after two minutes
+      const SLOW_NOTICE_MS = 8000;       // tell the visitor Iris is waking up
+      const RETRY_DELAY_MS = 3000;
+
+      // Session handling: one session id for the whole conversation, and a counter that
+      // goes up by one per message. A retry carries the same counter, so the service
+      // recognises it as the same message and answers and stores it only once.
       let sessionId = null;
-      
+      let sessionStarting = null;
+      let messageCount = 0;
+      let warmedUp = false;
+
+      function wait(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+
+      // Wake the service while the visitor is still reading the welcome line
+      function warmUp() {
+        if (warmedUp) return;
+        warmedUp = true;
+        fetch(`${apiBase()}/api/health`, { mode: 'no-cors', cache: 'no-store' }).catch(() => {});
+      }
+
+      // One POST with a timeout. Returns the response and its parsed JSON body.
+      async function postJson(path, payload) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+        try {
+          const response = await fetch(`${apiBase()}${path}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+          });
+          const data = await response.json().catch(() => ({}));
+          return { response, data };
+        } finally {
+          clearTimeout(timer);
+        }
+      }
+
+      // POST with one retry: a dropped connection or a 502/503/504 (the service still
+      // starting) is tried once more; a timeout is not, since the visitor already waited.
+      async function postWithRetry(path, payload) {
+        for (let attempt = 1; ; attempt++) {
+          try {
+            const result = await postJson(path, payload);
+            if ([502, 503, 504].includes(result.response.status) && attempt < 2) {
+              await wait(RETRY_DELAY_MS);
+              continue;
+            }
+            return result;
+          } catch (error) {
+            if (error.name === 'AbortError' || attempt >= 2) throw error;
+            await wait(RETRY_DELAY_MS);
+          }
+        }
+      }
+
+      function newLocalSessionId() {
+        return 'session_' + Math.random().toString(36).slice(2, 11) + '_' + Date.now();
+      }
+
+      // Initialize chat session with backend
+      function initChatSession() {
+        if (sessionId || sessionStarting) return sessionStarting;
+        sessionStarting = postWithRetry('/api/chat/session', {})
+          .then(({ response, data }) => {
+            if (response.ok && data && data.sessionId) {
+              sessionId = data.sessionId;
+            }
+          })
+          .catch(error => {
+            console.error('Session initialization error:', error);
+          })
+          .then(() => {
+            sessionStarting = null;
+          });
+        return sessionStarting;
+      }
+
+      // A message is never dropped for lack of a session: wait for the one in progress,
+      // and if the service could not create one, use a local id (the service accepts
+      // any id and keeps the conversation under it, as the homepage chat does).
+      async function ensureSession() {
+        if (!sessionId && !sessionStarting) initChatSession();
+        if (!sessionId && sessionStarting) await sessionStarting;
+        if (!sessionId) sessionId = newLocalSessionId();
+        return sessionId;
+      }
+
       // Toggle chat container visibility
       chatButton.addEventListener('click', function() {
         if (chatContainer.style.display === 'none' || chatContainer.style.display === '') {
           chatContainer.style.display = 'flex';
           setTimeout(() => chatInput.focus(), 300);
-          
+
           // Initialize chat session if needed
+          warmUp();
           if (!sessionId) {
             initChatSession();
           }
@@ -431,81 +528,70 @@
           chatContainer.style.display = 'none';
         }
       });
-      
+
       // Close chat on button click
       closeButton.addEventListener('click', function() {
         chatContainer.style.display = 'none';
       });
-      
+
       // Send message on button click or Enter key
-      function sendMessage() {
+      async function sendMessage() {
         const message = chatInput.value.trim();
-        if (message && sessionId) {
-          // Add user message to chat
-          addMessage('user', message);
-          chatInput.value = '';
-          
-          // Show typing indicator
-          typingIndicator.style.display = 'block';
-          messagesContainer.scrollTop = messagesContainer.scrollHeight;
-          
-          // Send to Iris API
-          fetch('https://iris-chat-interface-smartsec916.replit.app/api/chat/message', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sessionId, message })
-          })
-          .then(response => response.json())
-          .then(data => {
-            // Hide typing indicator and add Iris response
-            typingIndicator.style.display = 'none';
-            if (data && data.response) {
-              addMessage('iris', data.response);
-            } else {
-              addMessage('iris', "I'm having trouble connecting to my systems. Can you try again?");
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            typingIndicator.style.display = 'none';
-            addMessage('iris', "Connection error. I seem to be having trouble reaching my network. Please try again later.");
+        if (!message) return;
+
+        // Add user message to chat
+        addMessage('user', message);
+        chatInput.value = '';
+
+        // Show typing indicator
+        typingIndicator.style.display = 'block';
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        const count = ++messageCount;
+        const slowNotice = setTimeout(() => {
+          addMessage('iris', 'Uplink is waking up. Give me a moment...');
+        }, SLOW_NOTICE_MS);
+
+        // Send to Iris API
+        try {
+          const id = await ensureSession();
+          const { response, data } = await postWithRetry('/api/chat/message', {
+            sessionId: id,
+            message,
+            messageCount: count,
+            timestamp: Date.now()
           });
+          // 413 (too long) and 429 (rate limited) still carry an in-character reply
+          const replyable = response.ok || response.status === 413 || response.status === 429;
+          if (replyable && data && data.response) {
+            addMessage('iris', data.response);
+          } else {
+            addMessage('iris', "I'm having trouble connecting to my systems. Can you try again?");
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          addMessage('iris', "Connection error. I seem to be having trouble reaching my network. Please try again later.");
+        } finally {
+          clearTimeout(slowNotice);
+          typingIndicator.style.display = 'none';
         }
       }
-      
-      // Initialize chat session with backend
-      function initChatSession() {
-        fetch('https://iris-chat-interface-smartsec916.replit.app/api/chat/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data && data.sessionId) {
-            sessionId = data.sessionId;
-            console.log("Chat session initialized:", sessionId);
-          }
-        })
-        .catch(error => {
-          console.error('Session initialization error:', error);
-        });
-      }
-      
+
       // Add message to chat container
       function addMessage(sender, text) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}-message`;
-        
+
         const messageText = document.createElement('p');
         messageText.textContent = text;
         messageDiv.appendChild(messageText);
-        
+
         messagesContainer.appendChild(messageDiv);
-        
+
         // Auto-scroll to bottom
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       }
-      
+
       // Event listeners
       sendButton.addEventListener('click', sendMessage);
       chatInput.addEventListener('keypress', function(e) {

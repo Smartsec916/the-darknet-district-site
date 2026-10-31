@@ -5,6 +5,7 @@ import { setupVite, serveStatic } from "./vite";
 import { closeDatabase } from "./db";
 import { ensureSchema } from "./migrate";
 import { log, logError } from "./logger";
+import { allowedOrigins } from "./origins";
 
 const startedAt = Date.now();
 const app = express();
@@ -13,13 +14,7 @@ app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: false, limit: "16kb" }));
 
 // The chat spends OpenAI credits, so only The Darknet District's own sites may call
-// the API from a browser. Add more origins with ALLOWED_ORIGINS (comma-separated).
-const allowedOrigins = new Set(
-  (process.env.ALLOWED_ORIGINS || "https://thedarknetdistrict.com,https://www.thedarknetdistrict.com")
-    .split(",")
-    .map(origin => origin.trim())
-    .filter(Boolean)
-);
+// the API from a browser (see origins.ts; add more with ALLOWED_ORIGINS).
 
 // CORS for the allowed origins, plus headers that allow iframe embedding
 app.use((req, res, next) => {

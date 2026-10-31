@@ -61,6 +61,22 @@ test("embed page loads", async () => {
   assert.equal((await fetch(BASE + "/embed")).status, 200);
 });
 
+test("the embed page can be framed only by the allowed sites and may only talk to this service", async () => {
+  const res = await fetch(BASE + "/embed");
+  assert.equal(res.status, 200);
+  const csp = res.headers.get("content-security-policy") ?? "";
+  assert.ok(
+    csp.endsWith("frame-ancestors 'self' https://thedarknetdistrict.com https://www.thedarknetdistrict.com"),
+    "only the allowed sites may frame it",
+  );
+  assert.ok(!csp.includes("frame-ancestors *") && !csp.split(";").some(d => d.includes("frame-ancestors") && d.includes(" * ")), "not embeddable by every site");
+  assert.ok(csp.includes("default-src 'none'"));
+  assert.ok(csp.includes("connect-src 'self' https://darknet-district-iris.onrender.com"));
+  assert.equal(res.headers.get("access-control-allow-origin"), null, "no wildcard CORS on the page");
+  const html = await res.text();
+  assert.ok(html.includes("darknet-district-iris.onrender.com") && !/replit/i.test(html));
+});
+
 test("CORS is granted only to allowed origins", async () => {
   const allowed = await fetch(BASE + "/api/chat/message", { method: "OPTIONS", headers: { Origin: "https://thedarknetdistrict.com" } });
   assert.equal(allowed.headers.get("access-control-allow-origin"), "https://thedarknetdistrict.com");
