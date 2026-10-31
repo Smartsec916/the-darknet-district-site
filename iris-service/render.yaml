@@ -51,6 +51,14 @@ services:
       - key: IRIS_MEMORY_RETENTION_DAYS
         value: "180"            # a visitor's saved relationship is deleted after this many days unseen
 
+      # --- Website sign-in and the owner's Iris controls (see docs/IRIS-ACCOUNTS.md) ---
+      # Exact Firebase account ids (not emails) allowed to use the owner controls. Empty: nobody, and the
+      # controls do not exist. Copy the id from the account menu on the homepage (COPY ACCOUNT ID).
+      - key: IRIS_ADMIN_UIDS
+        sync: false
+      # The Firebase project that issues sign-ins; the default is The Darknet District's own project
+      # (the-darknet-district-71873), so this normally needs no setting.
+
       # --- Conversation viewer (off by default; see docs/LOGGING-AND-REPORTS.md) ---
       - key: IRIS_ADMIN_VIEWER
         value: "off"            # set to "on" only after the token below is set

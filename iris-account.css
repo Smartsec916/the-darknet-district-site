@@ -1,0 +1,178 @@
+/* Account button and sign-in panel: the District navigation's shape, in teal. Not part of the chat. */
+.district-account {
+  --acct: #2ee6c4;
+  --acct-bright: #8bfff0;
+  --acct-text: #c9fffa;
+  position: absolute;
+  top: 38px;
+  right: clamp(16px, 2vw, 32px);
+  z-index: 3;
+  font-family: 'Courier New', Courier, monospace;
+}
+.district-account[hidden] { display: none; }
+
+/* On screens too narrow to leave a clear gap beside the navigation, the button gets its own row at the far right */
+@media (max-width: 1499px) {
+  .district-account {
+    position: static;
+    display: flex;
+    justify-content: flex-end;
+    margin: 0 0 10px;
+  }
+  .district-account[hidden] { display: none; }
+}
+
+.district-account__button {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 132px;
+  min-height: 48px;
+  padding: 10px 16px;
+  border: 0;
+  background: none;
+  color: var(--acct-text);
+  font: 600 12px/1.4 'Courier New', Courier, monospace;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  -webkit-tap-highlight-color: #2ee6c42b;
+  touch-action: manipulation;
+}
+.district-account__frame {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100% !important;
+  overflow: visible;
+  pointer-events: none;
+}
+.district-account__panel {
+  fill: #0a1f22;
+  stroke: #2a8f84;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  transition: fill 160ms ease, stroke 160ms ease;
+}
+.district-account__rail { fill: none; stroke: var(--acct); stroke-width: 2; opacity: .7; vector-effect: non-scaling-stroke; }
+.district-account__index { color: #7fcfc4; font-size: 9px; font-weight: 400; letter-spacing: 0; }
+.district-account__label { white-space: nowrap; }
+
+@media (hover: hover) {
+  .district-account__button:hover { color: #f1ffff; }
+  .district-account__button:hover .district-account__panel { fill: #0e2c30; stroke: var(--acct-bright); }
+  .district-account__button:hover .district-account__rail { opacity: 1; }
+}
+.district-account__button:focus-visible { outline: 2px solid #fff0c9; outline-offset: 4px; }
+.district-account__button:active .district-account__panel { fill: #14393d; }
+
+body > .district-account__menu {
+  position: fixed;
+  z-index: 100000;
+  display: flex;
+  flex-direction: column;
+  min-width: 250px;
+  max-width: calc(100vw - 16px);
+  padding: 6px;
+  border: 1px solid #2a8f84;
+  border-top-color: var(--acct);
+  background: #071417;
+  box-shadow: 0 10px 28px #000a;
+  font-family: 'Courier New', Courier, monospace;
+}
+body > .district-account__menu[hidden] { display: none; }
+.district-account__item {
+  padding: 11px 12px;
+  border: 0;
+  background: none;
+  color: var(--acct-text);
+  font: 600 11px/1.4 'Courier New', Courier, monospace;
+  letter-spacing: .08em;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.district-account__item:disabled { color: #7fcfc4; cursor: default; }
+.district-account__item:not(:disabled):hover,
+.district-account__item:focus-visible { background: #0e2c30; color: #f1ffff; outline: none; }
+.district-account__item:focus-visible { box-shadow: inset 0 0 0 2px #fff0c9; }
+
+/* Sign-in panel */
+body > .district-login {
+  position: fixed !important;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: #02080acc;
+  font-family: 'Courier New', Courier, monospace;
+}
+body > .district-login[hidden] { display: none; }
+.district-login__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(100%, 420px);
+  padding: 22px 20px;
+  border: 1px solid #2a8f84;
+  border-top: 3px solid #2ee6c4;
+  background: linear-gradient(160deg, #071417, #0a1219);
+  box-shadow: 0 0 40px #2ee6c41f;
+  color: #c9fffa;
+}
+.district-login__title { margin: 0; color: #2ee6c4; font-size: 16px; letter-spacing: .18em; }
+.district-login__text { margin: 0; font-size: 12px; line-height: 1.6; color: #9cc9c4; }
+.district-login__label { font-size: 10px; letter-spacing: .14em; color: #7fcfc4; margin-top: 4px; }
+.district-login__input {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #2a8f84;
+  background: #050d10;
+  color: #e6fffc;
+  font: 14px 'Courier New', Courier, monospace;
+}
+.district-login__input:focus-visible { outline: 2px solid #fff0c9; outline-offset: 2px; }
+.district-login__action {
+  padding: 12px;
+  border: 1px solid #2ee6c4;
+  background: #0e2c30;
+  color: #e6fffc;
+  font: 600 12px 'Courier New', Courier, monospace;
+  letter-spacing: .1em;
+  cursor: pointer;
+}
+.district-login__action--quiet { border-color: #2a8f84; background: none; }
+.district-login__action:hover { background: #14393d; }
+.district-login__action:focus-visible,
+.district-login__close:focus-visible { outline: 2px solid #fff0c9; outline-offset: 3px; }
+.district-login__status { min-height: 1.4em; margin: 0; font-size: 12px; color: #9cc9c4; }
+.district-login__status[data-state="error"] { color: #ff9aa8; }
+.district-login__close {
+  align-self: flex-end;
+  padding: 6px 10px;
+  border: 0;
+  background: none;
+  color: #7fcfc4;
+  font: 600 11px 'Courier New', Courier, monospace;
+  letter-spacing: .1em;
+  cursor: pointer;
+}
+
+@media (max-width: 680px) {
+  .district-account { margin: 0 0 10px; }
+  .district-account__button { min-width: 116px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .district-account__panel { transition: none; }
+}
+@media (forced-colors: active) {
+  .district-account__button { border: 1px solid LinkText; color: LinkText; }
+  .district-account__frame { display: none; }
+  .district-account__button:focus-visible { outline-color: Highlight; }
+}

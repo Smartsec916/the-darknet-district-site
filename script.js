@@ -130,10 +130,14 @@ async function postToIris(payload) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), IRIS_REQUEST_TIMEOUT_MS);
   try {
+    // A random id this browser keeps (so Iris can recognize a returning visitor) and, only when signed in,
+    // the sign-in token; see iris-identity.js. Signed out, the request is as it always was plus the id.
+    const identity = window.IrisIdentity;
+    const authHeaders = identity ? await identity.authHeaders() : {};
     const response = await fetch(`${window.IRIS_API_BASE}/api/chat/message`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
+      body: JSON.stringify(identity ? { ...payload, clientId: identity.clientId } : payload),
       signal: controller.signal
     });
     const data = await response.json().catch(() => ({}));

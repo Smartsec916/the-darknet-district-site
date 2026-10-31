@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Iris Controls</title>
+  <style>
+    :root {
+      --bg: #050b0e; --panel: #081418; --line: #1f6b63; --line-bright: #2ee6c4; --text: #c9fffa; --muted: #7fcfc4;
+      --dim: #4f8a84; --warn: #ffb86b; --bad: #ff9aa8; --good: #7dffb0;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: radial-gradient(1200px 600px at 80% -10%, #0c2a2c55, transparent), var(--bg); color: var(--text); font: 14px/1.55 'Courier New', Courier, monospace; }
+    main { max-width: 980px; margin: 0 auto; padding: 20px 16px 60px; }
+    header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 18px; }
+    h1 { margin: 0; font-size: 18px; letter-spacing: .2em; color: var(--line-bright); }
+    h2 { margin: 0 0 10px; font-size: 12px; letter-spacing: .18em; color: var(--muted); font-weight: 600; }
+    a { color: var(--muted); }
+    .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); }
+    section { background: var(--panel); border: 1px solid var(--line); border-top: 2px solid var(--line-bright); padding: 14px; }
+    .full { grid-column: 1 / -1; }
+    .modes { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .mode { text-align: left; padding: 12px; background: #06100f; color: var(--text); border: 1px solid var(--line); font: inherit; cursor: pointer; }
+    .mode strong { display: block; letter-spacing: .12em; font-size: 13px; }
+    .mode span { display: block; margin-top: 4px; color: var(--dim); font-size: 12px; }
+    .mode[aria-checked="true"] { border-color: var(--line-bright); background: #0b2b2b; box-shadow: inset 0 0 0 1px var(--line-bright); }
+    .mode:focus-visible, button:focus-visible { outline: 2px solid #fff0c9; outline-offset: 2px; }
+    .meter { margin: 8px 0; }
+    .meter b { display: inline-block; min-width: 110px; font-weight: 400; color: var(--muted); }
+    .bar { display: inline-block; vertical-align: middle; width: 140px; height: 8px; background: #0b1a1c; border: 1px solid var(--line); }
+    .bar i { display: block; height: 100%; background: var(--line-bright); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { text-align: left; padding: 5px 8px 5px 0; border-bottom: 1px solid #12383a; vertical-align: top; }
+    th { color: var(--muted); font-weight: 400; }
+    .muted { color: var(--dim); }
+    .pill { display: inline-block; padding: 1px 8px; border: 1px solid var(--line); font-size: 11px; letter-spacing: .1em; }
+    .pill.on { color: var(--good); border-color: var(--good); }
+    .pill.off { color: var(--warn); border-color: var(--warn); }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    button.action { padding: 10px 14px; background: #0b2b2b; color: var(--text); border: 1px solid var(--line-bright); font: 600 12px 'Courier New', monospace; letter-spacing: .08em; cursor: pointer; }
+    button.action.quiet { background: none; border-color: var(--line); }
+    button.action.danger { border-color: var(--warn); }
+    #gate { padding: 24px 0; }
+    #note { min-height: 1.5em; color: var(--muted); }
+    #note[data-state="error"] { color: var(--bad); }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>IRIS CONTROLS</h1>
+    <a href="./index.html">&larr; Back to the District</a>
+  </header>
+
+  <div id="gate" role="status">Checking your access&hellip;</div>
+
+  <div id="panel" hidden>
+    <p id="note" role="status" aria-live="polite"></p>
+
+    <section class="full" aria-labelledby="modeTitle">
+      <h2 id="modeTitle">INTERACTION MODE</h2>
+      <div class="modes" role="radiogroup" aria-labelledby="modeTitle">
+        <button type="button" class="mode" role="radio" data-mode="owner"><strong>OWNER</strong><span>Iris knows you as the owner and uses your own relationship and memory.</span></button>
+        <button type="button" class="mode" role="radio" data-mode="new"><strong>NEW VISITOR</strong><span>A first-time stranger. Nothing is remembered.</span></button>
+        <button type="button" class="mode" role="radio" data-mode="returning"><strong>RETURNING VISITOR</strong><span>A separate test visitor with its own lasting memory.</span></button>
+      </div>
+      <p class="muted">The mode applies to your next message in the homepage chat. Your real administrator sign-in stays active in every mode; the other two are simulations only.</p>
+    </section>
+
+    <div class="grid">
+      <section aria-labelledby="liveTitle">
+        <h2 id="liveTitle">RIGHT NOW</h2>
+        <div id="live"></div>
+      </section>
+      <section aria-labelledby="persistTitle">
+        <h2 id="persistTitle">MEMORY AND SYSTEM</h2>
+        <div id="persist"></div>
+      </section>
+      <section aria-labelledby="usageTitle">
+        <h2 id="usageTitle">API USAGE, LAST 24 HOURS (ALL VISITORS)</h2>
+        <div id="usage"></div>
+      </section>
+      <section class="full" aria-labelledby="idTitle">
+        <h2 id="idTitle">RELATIONSHIPS BY IDENTITY</h2>
+        <div id="identities"></div>
+      </section>
+      <section class="full" aria-labelledby="changesTitle">
+        <h2 id="changesTitle">RECENT EMOTIONAL CHANGES (THIS IDENTITY)</h2>
+        <div id="changes"></div>
+        <p class="muted">Kept in memory only: numbers about mood and trust, never what anyone wrote. They clear when the service restarts.</p>
+      </section>
+      <section class="full" aria-labelledby="resetTitle">
+        <h2 id="resetTitle">RESET SIMULATED VISITORS</h2>
+        <div class="actions">
+          <button type="button" class="action danger" id="resetNew">RESET NEW VISITOR</button>
+          <button type="button" class="action danger" id="resetReturning">RESET RETURNING VISITOR</button>
+          <button type="button" class="action quiet" id="refresh">REFRESH</button>
+        </div>
+        <p class="muted">A reset starts that simulated visitor over as a stranger. It never touches the Owner memory, real visitors, or any stored conversation.</p>
+      </section>
+    </div>
+  </div>
+</main>
+<script type="module" src="iris-controls.js"></script>
+</body>
+</html>

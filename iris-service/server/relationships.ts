@@ -118,14 +118,20 @@ export const sessionEmotionMap = new Map<string, SessionEmotion>();
 
 // Begins (or restores after a restart) a session's emotional state: the visitor's saved relationship if they
 // have one, aged by the time since they were last seen, otherwise a fresh one. Never throws.
-export async function startEmotionSession(sessionId: string, clientId?: string, now = Date.now()): Promise<SessionEmotion> {
+export async function startEmotionSession(
+  sessionId: string,
+  clientId?: string,
+  now = Date.now(),
+  options: { seed?: Partial<Relationship>; tag?: string; label?: string } = {},
+): Promise<SessionEmotion> {
   const saved = clientId ? await loadRelationship(clientId) : null;
   let gapMs: number | null = null;
-  const rel = saved ?? newRelationship(now);
+  const rel = saved ?? { ...newRelationship(now), ...(options.seed ?? {}) };
   if (saved) gapMs = applyAbsence(rel, now);
   if (rel.mood === "flirty" && !flirtAllowed(rel)) rel.mood = "playful";
   const state: SessionEmotion = {
     rel, clientId: clientId || undefined, gapMs, counted: false, sessionMessages: 0, heldFor: 0, pendingCount: 0,
+    tag: options.tag, label: options.label ?? (clientId || undefined),
   };
   sessionEmotionMap.delete(sessionId);
   sessionEmotionMap.set(sessionId, state);
@@ -145,5 +151,81 @@ export function dropLiveState(clientId: string, now = Date.now()): void {
       state.clientId = undefined;
       state.gapMs = null;
     }
+  }
+}
+
+// ---------------------------------------------------------------- recent changes, for the administrator's panel
+
+export interface EmotionEvent {
+  at: number;
+  mood: Mood;
+  moodChanged: boolean;
+  trust: number;
+  trustDelta: number;
+  warmth: number;
+  hostility: number;
+  flirt: number;
+  humor: number;
+  read: boolean; // false: the model's state line was missing, so nothing changed
+}
+
+// Kept in memory only (a restart clears it): numbers about moods, never anything a visitor wrote
+const MAX_EVENTS = 30;
+const MAX_EVENT_KEYS = 200;
+const events = new Map<string, EmotionEvent[]>();
+
+export function recordEmotionEvent(key: string, event: EmotionEvent): void {
+  const list = events.get(key) ?? [];
+  list.push(event);
+  if (list.length > MAX_EVENTS) list.shift();
+  events.delete(key);
+  events.set(key, list);
+  while (events.size > MAX_EVENT_KEYS) {
+    const oldest = events.keys().next().value;
+    if (oldest === undefined) break;
+    events.delete(oldest);
+  }
+}
+
+export const recentEmotionEvents = (key: string): EmotionEvent[] => [...(events.get(key) ?? [])].reverse();
+export const clearEmotionEvents = (key: string): void => { events.delete(key); };
+
+// The most recent open chat belonging to an identity key (for the live mood in the panel)
+export function liveStateFor(key: string): SessionEmotion | undefined {
+  let found: SessionEmotion | undefined;
+  for (const state of sessionEmotionMap.values()) if ((state.label ?? state.clientId) === key) found = state;
+  return found;
+}
+
+// ---------------------------------------------------------------- joining an anonymous history to an account
+
+// Copies what Iris remembers about an anonymous browser into a signed-in account's memory, only when the
+// person asked. The anonymous record stays where it is. Where the account already has memories, the two
+// are combined conservatively: the account's trust and mood win, the counts add up, and a "minor"
+// flag from either one is kept.
+export async function linkAnonymousHistory(anonymousId: string, accountKey: string): Promise<"linked" | "nothing" | "failed"> {
+  try {
+    const anonymous = await loadRelationship(anonymousId);
+    if (!anonymous) return "nothing";
+    const existing = await loadRelationship(accountKey);
+    const merged: Relationship = existing
+      ? {
+          ...existing,
+          familiarity: Math.max(existing.familiarity, anonymous.familiarity),
+          affection: Math.max(existing.affection, anonymous.affection),
+          visits: existing.visits + anonymous.visits,
+          messages: existing.messages + anonymous.messages,
+          firstSeen: Math.min(existing.firstSeen, anonymous.firstSeen),
+          lastSeen: Math.max(existing.lastSeen ?? 0, anonymous.lastSeen ?? 0) || null,
+          preferences: Array.from(new Set([...anonymous.preferences, ...existing.preferences])).slice(-5),
+          recap: existing.recap || anonymous.recap,
+          minor: existing.minor || anonymous.minor,
+          flirtCooldown: Math.max(existing.flirtCooldown, anonymous.flirtCooldown),
+        }
+      : { ...anonymous };
+    return (await saveRelationship(accountKey, merged)) ? "linked" : "failed";
+  } catch (err) {
+    logError("relationship_link_failed", err);
+    return "failed";
   }
 }
