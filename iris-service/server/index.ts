@@ -33,7 +33,7 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
   // Allow common headers
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,Authorization,X-Iris-Signed-In');
 
   // Remove X-Frame-Options to allow embedding in iframes
   res.removeHeader('X-Frame-Options');
@@ -78,7 +78,7 @@ app.use((req, res, next) => {
 // visitor opens the chat, so Render's free tier wakes before the first message.
 app.get("/api/health", (_req, res) => {
   res.setHeader("Cache-Control", "no-store");
-  res.json({ ok: true, uptimeSeconds: Math.round((Date.now() - startedAt) / 1000) });
+  res.json({ ok: true, uptimeSeconds: Math.round((Date.now() - startedAt) / 1000), ...(process.env.RENDER_GIT_COMMIT ? { version: process.env.RENDER_GIT_COMMIT.slice(0, 7) } : {}) });
 });
 
 let httpServer: Server | undefined;

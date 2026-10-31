@@ -214,3 +214,22 @@ body > .district-login {
   --acct-bright: #8bfff0;
   --acct-text: #c9fffa;
 }
+
+/* Administrator only: Iris is not treating them as the owner (a test mode is on) */
+.district-account__mode {
+  margin-left: 6px;
+  padding: 1px 5px;
+  border: 1px solid #ffb86b;
+  color: #ffb86b;
+  font-size: 9px;
+  letter-spacing: .1em;
+}
+.district-account__mode:empty { display: none; }
+.district-account__modeline {
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #1f5f58;
+  font: 11px/1.45 'Courier New', Courier, monospace;
+  color: #9cc9c4;
+}
+.district-account__modeline--test { color: #ffb86b; }

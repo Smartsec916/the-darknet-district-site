@@ -106,6 +106,69 @@ five 60-character samples. For the Admin it fetches Eva's conversations, not the
 compatibility approach (not done, needs a lore decision first): feed it the same `memory_key` queries so Admin recall of
 Eva's conversations uses keyed, most-recent-first data, leaving the lore wording and the verification rules intact.
 
+## Grounded recall (what the model is told, and in what order)
+
+A question about the past ("what was my test phrase?") is answered from stored messages, never from guesswork:
+
+- **Order of a request:** character sheet, Admin/Eva notes, relationship, the stored-memory block, then the chat itself, then one
+  short strict rule at the very end (what she may rely on for this kind of question). The last thing she reads is the rule.
+- **Earlier recall questions and the answers to them are not memories.** A question about the past and the reply to it are
+  left out of the searched memories and of the recent context, so a wrong answer she once gave cannot be quoted back as a
+  fact, and a stored question cannot outrank the sentence that was actually said. The visitor's own statements stay.
+- **Nothing found is not guessed at.** If a recall question has no stored support and the subject is not in the current chat,
+  an English question gets a short in-character "no record" reply without calling the model; other languages go to the model
+  with the strict rule (state that nothing is stored, never invent). If memory cannot be read, she says so (same two paths).
+  `IRIS_RECALL_GUARD=off` disables the canned replies (the strict rule stays).
+- **Calm sampling:** recall turns use temperature 0.3 and no presence/frequency penalty so the stored wording is repeated, not varied.
+- **"Remember this: …" is not a recall question.** Only questions about the past take the recall path.
+
+## Administrator verification (Admin and Eva)
+
+The verification answers used to sit in the prompt, where she could reach for them when asked to "recall a phrase" (the owner was
+told "Reboot"). They now live only in `server/verification.ts`. She still asks her question; when the next message arrives the
+server checks it and gives her one line, "VERIFICATION RESULT: CORRECT" or "INCORRECT". The check applies only if she actually asked
+(her last reply contained the question), only to the next message, only for ten minutes, once, and in any language. The answers
+are in no prompt, log or Iris Controls page.
+
+## Not losing who is signed in
+
+Every chat message is saved under the identity the server verified. To stop a signed-in person from silently becoming "nobody"
+(for example when the browser had not yet restored the saved sign-in, or the token had expired):
+
+- the page remembers in this browser that someone was signed in; the first message waits up to 3 seconds for the sign-in to be
+  restored (a visitor who is not signed in never waits);
+- such a request carries `X-Iris-Signed-In: 1`. The header is advisory: with it but without a valid token the server answers
+  401 `signin_required` and saves **nothing**; without it, the visitor is an ordinary anonymous one. It grants no access;
+- on that 401 the chat refreshes the token and sends the same message again, and as a last resort sends it as an anonymous
+  visitor rather than lose it (it is then saved under the browser id, as before);
+- the administrator's account button shows **NEW** or **RET** whenever Iris is not in Owner mode, and the account menu says which
+  mode is active, so a test mode cannot be left on unnoticed. Iris Controls shows the same as a banner.
+
+## Adopt Chat (Iris Controls)
+
+Brings **one** earlier chat that belongs to no one into the owner's memory. Unassigned conversations are never adopted automatically.
+Paste the session id (copied, not typed: spaces and invisible characters are stripped). **CHECK** shows counts and times only:
+how many messages, how many are unfiled, already yours, or filed under someone else. **ADOPT CHAT** asks for confirmation and
+reports exactly what happened, under the form, until the next action:
+
+| Result | HTTP | Meaning |
+| --- | --- | --- |
+| Adopted n message(s) | 200 | n rows were filed under the owner (only rows with no memory key are ever touched) |
+| No session with that ID was found | 404 | nothing changed |
+| Nothing to adopt | 409 | every message is already filed (the answer says how many under whom) |
+| Database unavailable | 503 | nothing changed |
+
+## Reading the Iris Controls memory diagnostics
+
+- **Latest request** says in words what was given to Iris (matching stored messages, only her latest conversation, nothing to recall,
+  memory unreadable, or visitor not recognizable). With nothing to recall the tokens shown are just the short notice.
+- **Lookups table:** *Given to Iris* = stored messages sent to the model; *Rows searched*; *Left out: already in this chat*;
+  *Left out: earlier questions*. 0 with "ok" means the search worked and nothing matched, which is not an error.
+- **Visitor messages by identity (24 h):** owner/test, signed-in accounts, browsers, nobody. A warning appears if messages in the
+  last hour were saved under nobody.
+- **Server:** version (first 7 characters of `RENDER_GIT_COMMIT`, also in `/api/health`) and start time, so a deploy still
+  serving the old instance is visible.
+
 ## Settings
 
 | Setting | Default | Meaning |
@@ -113,6 +176,7 @@ Eva's conversations uses keyed, most-recent-first data, leaving the lore wording
 | `IRIS_PERSISTENT_MEMORY` | `on` | `off` stops reading stored conversations (they are still saved) |
 | `IRIS_MEMORY_BUDGET_CHARS` | `3000` | most stored conversation added to a request |
 | `IRIS_MEMORY_RETENTION_DAYS` | `0` | `0` never; a number removes relationship records unseen that long (opt-in) |
+| `IRIS_RECALL_GUARD` | `on` | `off` stops the canned "no record" replies (the strict rule at the end of the request stays) |
 
 ## Cost and speed
 
@@ -132,7 +196,7 @@ Iris Controls shows the counts and an estimate for the identity under test.
 
 ## Rollback
 
-- Instant, no deploy: set `IRIS_PERSISTENT_MEMORY=off` in Render (saving continues; reading stops).
+- Instant, no deploy: set `IRIS_PERSISTENT_MEMORY=off` in Render (saving continues; reading stops). `IRIS_RECALL_GUARD=off` turns off only the canned replies.
 - Code: redeploy the previous commit. The new column and tables are additive and harmless to older code.
 - Nothing is deleted by deploying or rolling back.
 
@@ -140,5 +204,7 @@ Iris Controls shows the counts and an estimate for the identity under test.
 
 - Anonymous memory is only as private as the browser's id: anyone holding that id is that visitor. Signing in is stronger.
 - The search is keyword and time based, not semantic; a question that shares no words with what was said may miss it.
+- Which questions count as recall questions is decided by wording rules, so an unusual phrasing may take the ordinary path; the strict rule at the end still applies to anything that looks like recall.
+- The canned "no record" replies are English only.
 - Recent changes and retrieval counts in Iris Controls live in server memory and reset on restart.
 - The administrator's earlier chats saved before this feature have no key; adopt them from Iris Controls.

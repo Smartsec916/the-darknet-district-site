@@ -133,15 +133,29 @@ async function postToIris(payload) {
     // A random id this browser keeps (so Iris can recognize a returning visitor) and, only when signed in,
     // the sign-in token; see iris-identity.js. Signed out, the request is as it always was plus the id.
     const identity = window.IrisIdentity;
-    const authHeaders = identity ? await identity.authHeaders() : {};
-    const response = await fetch(`${window.IRIS_API_BASE}/api/chat/message`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeaders },
-      body: JSON.stringify(identity ? { ...payload, clientId: identity.clientId } : payload),
-      signal: controller.signal
-    });
-    const data = await response.json().catch(() => ({}));
-    return { response, data };
+    const send = async (extraHeaders) => {
+      const response = await fetch(`${window.IRIS_API_BASE}/api/chat/message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...extraHeaders },
+        body: JSON.stringify(identity ? { ...payload, clientId: identity.clientId } : payload),
+        signal: controller.signal
+      });
+      const data = await response.json().catch(() => ({}));
+      return { response, data };
+    };
+    const refused = (result) => result.response.status === 401 && result.data && result.data.code === 'signin_required';
+    let result = await send(identity ? await identity.authHeaders() : {});
+    if (identity && refused(result)) {
+      // The server could not verify the sign-in this browser says it has (not restored yet, or the token expired).
+      // Nothing was saved. Refresh the sign-in and send the same message again.
+      result = await send(await identity.authHeaders(true));
+      if (refused(result)) {
+        // Still cannot be verified: send it as an ordinary anonymous message rather than lose it
+        console.warn('Iris: sign-in could not be verified; sending this message as an anonymous visitor.');
+        result = await send(identity.anonymousHeaders());
+      }
+    }
+    return result;
   } finally {
     clearTimeout(timer);
   }
