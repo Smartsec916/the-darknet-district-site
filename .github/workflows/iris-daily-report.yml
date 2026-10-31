@@ -1,0 +1,79 @@
+# Asks the Iris service to email yesterday's conversation report.
+#
+# GitHub runs scheduled workflows only from the default branch, so this does nothing
+# until it is merged. Even then the service sends nothing unless IRIS_REPORTS_ENABLED=true
+# on Render (see iris-service/docs/LOGGING-AND-REPORTS.md).
+#
+# Repository secret required: IRIS_REPORT_TOKEN (the same value as on Render). That token
+# can only trigger the report; it cannot read any conversation.
+name: Iris daily report
+
+on:
+  schedule:
+    - cron: "5 8 * * *"    # main run, about 08:05 UTC
+    - cron: "35 9 * * *"   # retry; a day that was already sent is never sent twice
+    - cron: "35 12 * * *"  # last retry
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "UTC day to report (YYYY-MM-DD). Empty means yesterday."
+        required: false
+      dry_run:
+        description: "Only count; send nothing"
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: iris-daily-report
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Request the report
+        env:
+          IRIS_REPORT_TOKEN: ${{ secrets.IRIS_REPORT_TOKEN }}
+          IRIS_URL: ${{ vars.IRIS_URL || 'https://darknet-district-iris.onrender.com' }}
+          DATE_INPUT: ${{ github.event.inputs.date }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          set -u
+          if [ -z "${IRIS_REPORT_TOKEN:-}" ]; then
+            echo "::error::IRIS_REPORT_TOKEN is not set as a repository secret"
+            exit 1
+          fi
+
+          body='{}'
+          if [ -n "${DATE_INPUT:-}" ]; then
+            if ! printf '%s' "$DATE_INPUT" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
+              echo "::error::date must look like 2026-10-29"
+              exit 1
+            fi
+            body="{\"date\":\"$DATE_INPUT\"}"
+          fi
+          if [ "${DRY_RUN:-false}" = "true" ]; then
+            body=$(printf '%s' "$body" | sed 's/}$/,"dryRun":true}/; s/{,/{/')
+          fi
+
+          # Render's free tier sleeps when idle and can take a minute or more to wake
+          curl -sS --max-time 150 --retry 3 --retry-delay 20 --retry-all-errors \
+            "$IRIS_URL/api/health" -o /dev/null || echo "warm-up request did not answer; continuing"
+
+          status=$(curl -sS -o response.json -w '%{http_code}' --max-time 900 \
+            --retry 2 --retry-delay 30 --retry-all-errors \
+            -X POST "$IRIS_URL/api/admin/reports/daily" \
+            -H "Authorization: Bearer $IRIS_REPORT_TOKEN" \
+            -H 'Content-Type: application/json' -d "$body") || status=000
+
+          # This log is public. Only the outcome is printed, never counts or conversations.
+          outcome=$(sed -n 's/.*"status":"\([a-z_]*\)".*/\1/p' response.json | head -n1)
+          echo "HTTP $status, outcome: ${outcome:-unknown}"
+          case "$status" in
+            200) ;;
+            503) echo "::warning::Reports are disabled or email is not configured on the service" ;;
+            *) echo "::error::Report request failed"; exit 1 ;;
+          esac
