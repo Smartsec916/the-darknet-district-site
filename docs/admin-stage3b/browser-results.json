@@ -1,0 +1,9 @@
+{
+  "checks": [
+    "Real Flask draft save/read, atomic revision conflict and explicit reload retain unsaved edits",
+    "Mission duplication creates separate private identity",
+    "Structured dialogue/choices are editable; preview and saves leave campaign storage unchanged",
+    "Mobile controls fit; sign-out clears all unpublished content"
+  ],
+  "errors": []
+}

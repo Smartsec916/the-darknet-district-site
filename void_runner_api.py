@@ -599,3 +599,61 @@ def clean_relay(raw):
     out['said'] = {k: True for k, v in list(said.items())[:32] if ident(k) and v is True} if isinstance(said, dict) else {}
     return out
 
+
+
+# Private unpublished content. No route consumes this collection in gameplay.
+from void_runner_drafts import DraftError
+import void_runner_drafts as content_drafts
+
+
+@api.errorhandler(DraftError)
+def content_draft_error(error):
+    return jsonify(error=error.message, **error.details), error.status
+
+
+@api.get('/developer/drafts/schema')
+@signed_in
+def content_draft_schema(db, uid):
+    content_drafts.editor(uid, balance_admin, enabled=False)
+    inv = content_drafts.inventory()
+    return jsonify(registry=content_drafts.schema(inv), roles=content_drafts.roles(uid, balance_admin), baseRevision=inv['revision'])
+
+
+@api.get('/developer/drafts/template')
+@signed_in
+def content_draft_template(db, uid):
+    content_drafts.editor(uid, balance_admin, enabled=False)
+    return jsonify(document=content_drafts.template(request.args.get('kind'), request.args.get('source'), content_drafts.inventory()))
+
+
+@api.get('/developer/drafts')
+@signed_in
+def content_draft_list(db, uid):
+    content_drafts.editor(uid, balance_admin)
+    return jsonify(content_drafts.listing(db, uid))
+
+
+@api.route('/developer/drafts/<draft_id>', methods=['GET', 'POST'])
+@signed_in
+def content_draft_record(db, uid, draft_id):
+    content_drafts.editor(uid, balance_admin)
+    if request.method == 'GET':
+        revision = request.args.get('revision')
+        if revision is not None:
+            if not revision.isdigit():
+                raise DraftError('Invalid draft revision.')
+            revision = int(revision)
+        return jsonify(content_drafts.load(db, uid, draft_id, revision))
+    return jsonify(content_drafts.save(db, uid, draft_id, request.get_json(silent=True), content_drafts.inventory()))
+
+
+@api.post('/developer/drafts/validate')
+@signed_in
+def content_draft_validate(db, uid):
+    content_drafts.editor(uid, balance_admin, enabled=False)
+    document = request.get_json(silent=True)
+    # Pure single-draft validation needs no storage and never executes actions.
+    heads = {}
+    if os.getenv('VOID_CONTENT_DRAFTS_ENABLED') == 'true':
+        heads = {d['id']: d for d in content_drafts.listing(db, uid)['drafts']}
+    return jsonify(content_drafts.validate(document, content_drafts.inventory(), heads))
