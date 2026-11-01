@@ -1,0 +1,19 @@
+// Stage 3B.1 review file: NOT deployed. Merge these matches into the project's existing deployed Firestore rules
+// (the-darknet-district-71873) after reading the full deployed ruleset. Do not replace other services' rules.
+//
+// Stage 3B.1 adds no new collection: archive state, revision history and source snapshots live inside the existing
+// documents. All private content collections are server-only. Firebase Admin on the Render service bypasses these
+// rules; browsers (signed in or not) must get nothing directly. A broader allow elsewhere in the ruleset, such as
+// `match /{document=**} { allow read: if request.auth != null; }`, would override these denials: remove or narrow it.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Draft heads and their immutable revisions (subcollection vr_content_revisions)
+    match /vr_content_drafts/{document=**} { allow read, write: if false; }
+    // Per-owner draft index: active and archived lists
+    match /vr_content_workspaces/{document=**} { allow read, write: if false; }
+    // Stage 3C private release candidates and their pointer (kept disabled)
+    match /vr_content_releases/{document=**} { allow read, write: if false; }
+    match /vr_content_release_workspaces/{document=**} { allow read, write: if false; }
+  }
+}

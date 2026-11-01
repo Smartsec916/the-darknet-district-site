@@ -170,6 +170,8 @@ def prepare(db, uid, payload, inv, rollback=False, plan=False):
                 record = owned(ref.get(transaction=tx).to_dict(), uid)
                 if not record or record['revision'] != selection['revision']:
                     raise drafts.DraftError('Selected draft changed; compare its latest revision.', 409)
+                if record.get('archived'):
+                    raise drafts.DraftError('Archived drafts cannot be released. Restore it from the archive first.', 409)
                 doc = copy.deepcopy(record['document'])
                 documents[doc['kind'] + ':' + doc['data']['id']] = doc
                 sources.append(copy.deepcopy(selection))
