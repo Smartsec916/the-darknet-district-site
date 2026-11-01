@@ -17,7 +17,7 @@
  let forced=null;
  // Off by default. `?nightclub=1` on the page address (or localStorage 'void-nightclub' = '1') turns it on for a local build;
  // flip the default here once David has cleared the licence for the live site. Tests turn it on with force(true).
- const asked=()=>{try{return /[?&]nightclub=1/.test(root.location?.search||'')||root.localStorage?.getItem('void-nightclub')==='1';}catch(e){return false;}};
+ const asked=()=>{try{return /[?&]nightclub=1/.test(root.location?.search||'')||root.localStorage?.getItem('void-nightclub')==='1';}catch(e){return false;}};
  const enabled=()=>forced!==null?forced:asked();
  const inRect=([x0,x1,z0,z1],x,z,m=0)=>x>=x0-m&&x<=x1+m&&z>=z0-m&&z<=z1+m;
  const inside=p=>!!p&&inRect(HALL,p.x,p.z);
@@ -87,14 +87,20 @@
   // Sweeping beams: a small fixture hung from the ceiling trusses with a thin additive cone under it, one colour each
   // (magenta, cyan, blue, violet). Spots are world x, z; the trusses run about 6.7 m up.
   const BEAM_SPOTS=[[24,-63.5],[30,-53.5],[36,-63.5],[42,-53.5],[27,-58.5],[45,-58.5],[33,-58.5],[39,-58.5]];
+  let fade=null;
+  function fadeTexture(){if(fade)return fade;fade=new B.DynamicTexture('ncz-club-beam-fade',{width:4,height:64},scene,false);const g=fade.getContext(),r=g.createLinearGradient(0,0,0,64);
+   r.addColorStop(0,'#fff');r.addColorStop(.35,'#999');r.addColorStop(1,'#000');g.fillStyle=r;g.fillRect(0,0,4,64);fade.update();own.push(fade);return fade;}
   function placeBeams(){
    const colours=[[1,.2,.75],[.2,.9,1],[.3,.45,1],[.75,.35,1]],body=new B.StandardMaterial('ncz-club-fixture',scene);body.diffuseColor=new B.Color3(.05,.05,.07);body.specularColor=new B.Color3(.4,.4,.5);own.push(body);
    BEAM_SPOTS.slice(0,low?4:BEAM_SPOTS.length).forEach(([x,z],i)=>{
     const c=colours[i%4],pivot=new B.TransformNode('ncz-club-beam-pivot',scene);pivot.parent=parent;pivot.position.set(x,6.7,z);
     const fixture=B.MeshBuilder.CreateBox('ncz-club-fixture',{width:.34,height:.3,depth:.34},scene);fixture.material=body;fixture.parent=pivot;fixture.isPickable=false;
     const cone=B.MeshBuilder.CreateCylinder('ncz-club-beam',{diameterTop:.1,diameterBottom:2.4,height:7,tessellation:low?10:16,cap:B.Mesh.NO_CAP},scene);
+    // The cone fades to nothing toward its open bottom end (an opacity gradient along its height), so it has no hard rim hanging in the air.
+    const uv=cone.getVerticesData('uv'),pos=cone.getVerticesData('position');for(let k=0;k<pos.length/3;k++)uv[k*2+1]=Math.max(0,Math.min(1,(pos[k*3+1]+3.5)/7));cone.setVerticesData('uv',uv);
     const m=new B.StandardMaterial('ncz-club-beam-'+i,scene);m.disableLighting=true;m.emissiveColor=new B.Color3(...c);m.diffuseColor=B.Color3.Black();m.specularColor=B.Color3.Black();
-    m.alpha=low?.04:.06;m.alphaMode=B.Engine.ALPHA_ADD;m.backFaceCulling=false;m.disableDepthWrite=true;own.push(m);
+    m.opacityTexture=fadeTexture();m.opacityTexture.getAlphaFromRGB=true;
+    m.alpha=low?.12:.2;m.alphaMode=B.Engine.ALPHA_ADD;m.backFaceCulling=false;m.disableDepthWrite=true;own.push(m);
     cone.material=m;cone.parent=pivot;cone.position.y=-3.6;cone.isPickable=false;
     beams.push({pivot,i});});}
 
@@ -114,7 +120,7 @@
    }catch(error){state.phase='failed';state.error=error.message;console.warn('[VOID//RUNNER nightclub] unavailable, the door stays shut:',error.message);}
   }
   function unload(){
-   if(!model)return;setOpen(false);const gone=new Set(model.getChildMeshes(false));for(const l of excluded)l.excludedMeshes=l.excludedMeshes.filter(m=>!gone.has(m));excluded=[];for(const l of lights)l.dispose();lights=[];for(const b of beams)b.pivot.dispose(false,true);beams=[];for(const o of own)o.dispose();own=[];cones=[];interior=[];ball=null;
+   if(!model)return;setOpen(false);const gone=new Set(model.getChildMeshes(false));for(const l of excluded)l.excludedMeshes=l.excludedMeshes.filter(m=>!gone.has(m));excluded=[];for(const l of lights)l.dispose();lights=[];for(const b of beams)b.pivot.dispose(false,true);beams=[];for(const o of own)o.dispose();own=[];fade=null;cones=[];interior=[];ball=null;
    model.dispose(false,true);model=null;assets.unload(ID);state.phase='idle';state.unloads++;}
 
   // Ambience made here, nothing recorded or licensed: a low crowd murmur and a muffled four-on-the-floor thump.
