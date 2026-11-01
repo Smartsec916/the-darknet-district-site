@@ -4,7 +4,7 @@
    Adding a companion: build a MakeHuman look with the companion clips (tools/animation-pipeline), or convert a
    licensed model with build_imported_character.py, list it in crowd.js, then register() an entry here with its
    model, preview, dialogue and personality. Nothing else changes.
-   DRAFT: every line of companion dialogue is Claude's placeholder for David's review. Companions are unvoiced. */
+   DRAFT: every line of companion dialogue is Claude's placeholder for David's review. Seren's, Kai's and Nadia's lines are recorded (tools/audio, provisional voices). */
 (function(root){
  const DEG=Math.PI/180;
  // ---- Behaviour settings (sensible defaults; a companion's personality overrides any of them) ----
@@ -40,6 +40,9 @@
   if(!e.id||!e.name||!['female','male'].includes(e.sex)||!e.model)throw new Error('companion needs id, name, sex (female|male) and model');
   companions.set(e.id,e);return e;}
  const get=id=>companions.get(id)||null;
+ // The voice a line spoken under a companion's name uses: recorded clips by characterId (tools/audio, Kokoro), else
+ // a browser voice of the companion's sex.
+ const voiceOf=name=>{const e=[...companions.values()].find(x=>x.name===name);return e?{characterId:e.voice?.characterId||'vr-'+e.id,sex:e.sex}:null;};
  // The model's file in assets/models/crowd: <model>.glb, or a scrambled .vrpak where its licence asks for one.
  const file=entry=>entry?.file||entry?.model+'.glb';
  // Which companions can be chosen now. `has(model)` reports the clips a model carries (crowd.js); `installed`
@@ -48,9 +51,26 @@
   return [...companions.values()].filter(e=>!sex||e.sex===sex).map(e=>{const clips=has?has(e.model):null,missing=clips&&requiredClips.filter(c=>!clips.includes(c));
    const reason=!e.enabled?'Not available yet.':installed&&installed[e.model]===false?'Model file is missing.':missing?.length?'Model lacks '+missing.join(', ')+'.':'';
    return {...e,usable:!reason,reason};});}
- // Old saves and links used choice f/m.
+ // Old saves and links used choice f/m. A retired companion names its successor (replacedBy), so anything that
+ // still asks for them gets the successor instead.
  const legacy={f:'seren',m:'kai'};
- const resolve=opts=>get(opts?.companion)||get(legacy[opts?.choice])||null;
+ const current=e=>{for(let i=0;e?.replacedBy&&i<4;i++)e=get(e.replacedBy)||e;return e||null;};
+ const resolve=opts=>current(get(Array.isArray(opts?.companions)?opts.companions[0]:opts?.companion)||get(legacy[opts?.choice]));
+ // Who comes along: one companion, or up to `partySize` together (all pairable and of one sex: David, 2026-10-31,
+ // "Ava and Dex shouldn't be together"). Unknown ids drop out.
+ const partySize=2;
+ // Rooms for two offered at the terminal, beside each one's own room (David, 2026-10-31).
+ const pairs=[{id:'ava+eva',name:'Ava & Eva',companions:['ava','eva']}];
+ function party(opts){
+  const ids=Array.isArray(opts?.companions)?opts.companions:[];
+  const many=[...new Set(ids.map(id=>current(get(id))).filter(Boolean))].slice(0,partySize);
+  if(many.length>1&&many.every(e=>e.pairable&&e.sex===many[0].sex))return many;
+  const one=many[0]||resolve(opts);return one?[one]:[];}
+ // Offered at the terminal: listed:false never; listed:'dev' only on a local development server (models whose
+ // licence isn't confirmed for release yet). licensed:true marks purchased models kept out of the public repository:
+ // the live site gets them, encrypted, from the private asset repository (tools/assets/build-pages.cjs).
+ const localHost=h=>/^(localhost|127\.0\.0\.1|\[::1\])$/.test(h||'');
+ const offered=(e,host=globalThis.location?.hostname)=>e.listed!==false&&!e.replacedBy&&(e.listed!=='dev'||localHost(host));
  // A companion's own clip for a role (its personality picks its gestures), falling back through common names.
  function clipFor(entry,role,has){const want=[...(entry.clips[role]||[]),role,...(fallbackClips[role]||[])];for(const c of want)if(!has||has(c))return c;return 'idle';}
  const fallbackClips={greet:['wave','interact'],flirt:['blow-kiss','coy','head-tilt','interact'],laugh:['laugh','talk'],shy:['coy','head-tilt'],idleAlt:['idle'],dance:['slow-dance','dance'],
@@ -58,7 +78,7 @@
 
  // Seren and Kai (original adult characters; MakeHuman CC0, Mixamo and Rokoko mocap). DRAFT lines throughout.
  register({id:'seren',name:'Seren',sex:'female',model:'vr-companion-f',preview:'void-runner/assets/vr/companions/seren.jpg',
-  about:'Warm, quick-witted and a little teasing. She notices everything.',voice:null,
+  about:'Warm, quick-witted and a little teasing. She notices everything.',voice:{characterId:'vr-seren',voiceId:null},
   personality:{initiative:.68,flirtatiousness:.7,approachFrequency:.6,personalSpace:.95},
   clips:{greet:['wave'],flirt:['blow-kiss','coy','head-tilt','hips'],shy:['coy'],idleAlt:['idle-f2','hips','head-tilt'],walk:['walk-f'],dance:['slow-dance'],playfulDance:['dance-belly'],confident:['hips']},
   dialogue:{
@@ -87,7 +107,7 @@
    aside:['You\'re staring. I like it.','Careful. I could get used to this.','You have no idea how good you look in this light.'],
    comeHere:['On my way.','Mm, you called?'],recline:['This is my favourite view. The ceiling glow, and you.']}});
  register({id:'kai',name:'Kai',sex:'male',model:'vr-companion-m',preview:'void-runner/assets/vr/companions/kai.jpg',
-  about:'Calm, wry and attentive. He listens more than he talks.',voice:null,
+  about:'Calm, wry and attentive. He listens more than he talks.',voice:{characterId:'vr-kai',voiceId:null},
   personality:{initiative:.45,flirtatiousness:.5,approachFrequency:.42,attention:.92,personalSpace:1.15,walkSpeed:1.05},
   clips:{greet:['head-tilt'],flirt:['blow-kiss','head-tilt','laugh'],shy:['head-tilt'],idleAlt:['idle-m2','head-tilt'],dance:['slow-dance'],playfulDance:['dance-samba']},
   dialogue:{
@@ -120,7 +140,7 @@
  // Royalty Free License - no AI), converted by build_imported_character.py. Her licence asks that the file not be
  // easy to extract, so she ships scrambled (.vrpak). Every line is a DRAFT for David's review.
  register({id:'nadia',name:'Nadia',sex:'female',model:'vr-companion-fc1',file:'vr-companion-fc1.vrpak',preview:'void-runner/assets/vr/companions/nadia.jpg',
-  about:'Grounded, warm and direct. Born and raised in NeoChinatown, and she\'ll never let you forget you weren\'t.',voice:null,
+  about:'Grounded, warm and direct. Born and raised in NeoChinatown, and she\'ll never let you forget you weren\'t.',voice:{characterId:'vr-nadia',voiceId:null},
   personality:{initiative:.56,flirtatiousness:.5,approachFrequency:.7,attention:.88,personalSpace:.9,remarkCooldown:18},
   clips:{greet:['wave'],flirt:['head-tilt','laugh','coy'],shy:['head-tilt'],idleAlt:['idle-f2','hips'],walk:['walk-f'],dance:['slow-dance'],playfulDance:['dance-belly'],confident:['hips'],laugh:['laugh']},
   dialogue:{
@@ -148,6 +168,78 @@
    welcomeBack:['Back again? Careful, people will start thinking you live here.','You came back. They always do.'],
    aside:['You\'re staring again. Locals notice that.','You\'re not so bad, for someone from out there.','The city likes you. I can tell. So do I, a little.'],
    comeHere:['Coming, coming.','What, lost already?'],recline:['Best ceiling in NeoChinatown. Don\'t tell anyone.']}});
+
+ // Ava and Eva (names by David, 2026-10-30): characters from models David supplied from CGTrader, "Ava" v2.0 by
+ // BGShop and "PrettyGirl_01" (Eva), prepared by prepare_ava.py / prepare_prettygirl.py and converted by
+ // build_imported_character.py. Their personalities, lines and voices are still to come from David: each has its
+ // own empty personality and dialogue and its own voice identity to fill, and nothing of Seren's. Without lines they
+ // don't speak, and the bedroom offers only what needs no words. They can come along together (pairable). Released on
+ // the live site (David, 2026-10-31: CGTrader Royalty Free licences, subscription kept active).
+ // Default looks are David's picks: Ava in the red top and skirt with the bob and no glasses (the bikini bottom is
+ // worn under the skirt, so nothing shows when she sits); Eva in the white slip dress with her natural
+ // orange-and-white hair.
+ register({id:'ava',name:'Ava',sex:'female',model:'vr-companion-ava',file:'vr-companion-ava.vrpak',preview:'void-runner/assets/vr/companions/ava.jpg',
+  licensed:true,pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-ava',voiceId:null},
+  clips:{walk:['walk-f'],idleAlt:['idle-f2']},
+  looks:[
+   {key:'outfit',label:'Outfit',default:'red',options:[{id:'red',label:'Red top and skirt',parts:['top_red','skirt_red','bikini_bottom']},{id:'bikini',label:'Bikini',parts:['bikini_top','bikini_bottom','skin_under']}]},
+   {key:'hair',label:'Hairstyle',default:'bob',options:[{id:'bob',label:'Bob',parts:['hair_bob']},{id:'long',label:'Long',parts:['hair_long']},{id:'pixie',label:'Pixie',parts:['hair_pixie']}]},
+   {key:'glasses',label:'Glasses',default:'none',options:[{id:'none',label:'None',parts:[]},{id:'round',label:'Round',parts:['glasses_round']},{id:'wire',label:'Wire',parts:['glasses_wire']}]},
+   {key:'face',label:'Make-up',default:'natural',options:[{id:'natural',label:'Natural'},{id:'makeup',label:'Make-up',textures:{head:'face-makeup',lips:'face-makeup'}}]}]});
+ // Colour and make-up variants are separate textures (assets/models/crowd/<model>/*.vrtex), loaded only when chosen;
+ // `textures` maps a material to its variant file.
+ const variant=(id,label,dflt,map)=>({id,label,...(id===dflt?{}:{textures:map(id)})});
+ register({id:'eva',name:'Eva',sex:'female',model:'vr-companion-pg',file:'vr-companion-pg.vrpak',preview:'void-runner/assets/vr/companions/eva.jpg',
+  licensed:true,pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-eva',voiceId:null},
+  clips:{walk:['walk-f'],idleAlt:['idle-f2']},
+  looks:[
+   {key:'outfit',label:'Outfit',default:'white',options:[['white','White slip dress'],['blue','Blue floral slip dress'],['pink','Pink cherry slip dress'],['grey','Grey slip dress']].map(([id,label])=>variant(id,label,'white',c=>({cloth:'cloth-'+c})))},
+   {key:'hair',label:'Hair colour',default:'natural',options:[['natural','Natural'],['black','Black'],['blond','Blond'],['ginger','Ginger'],['red','Red'],['white','White'],['blue','Blue']].map(([id,label])=>variant(id,label,'natural',c=>({hair:'hair-'+c})))},
+   {key:'eyes',label:'Eye colour',default:'brown',options:[['brown','Brown'],['blue','Blue'],['green','Green'],['hazel','Hazel']].map(([id,label])=>variant(id,label,'brown',c=>({eye_r3:'eyes-'+c,eye_l3:'eyes-'+c})))},
+   {key:'face',label:'Make-up',default:'5',options:['1','2','3','4','5','6'].map(n=>variant(n,'Look '+n,'5',()=>({head5:'face-0'+n})))}]});
+
+ // Una and the two base figures (CGTrader packages David supplied, 2026-10-31). Una was a static model: she is rigged
+ // on the Female Base skeleton (prepare_una.py); the base figures come rigged (prepare_basemesh.py). Like Ava and Eva:
+ // their own empty personality, dialogue and voice, able to come along in pairs. Yuki and Dex are released on the live
+ // site (Male Female Base Rig, CGTrader #4027823, Royalty Free no AI); Una stays on a local development server until
+ // her product page and licence are identified. The two base figures are Yuki and Dex (names by David, 2026-10-31; ids base-f / base-m); Dex comes in briefs
+ // only, until David adds clothing.
+ // Una's outfits are David's Style A (default), B and C made from her own clothes, plus the original. A look may
+ // also set material values (`materials`: roughness factors) for a glossier finish.
+ register({id:'una',name:'Una',sex:'female',model:'vr-companion-una',file:'vr-companion-una.vrpak',preview:'void-runner/assets/vr/companions/una.jpg',
+  listed:'dev',licensed:true,pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-una',voiceId:null},
+  clips:{walk:['walk-f'],idleAlt:['idle-f2']},
+  looks:[
+   {key:'outfit',label:'Outfit',default:'minimalist',options:[
+    {id:'minimalist',label:'Minimalist (charcoal, cyan piping)',parts:['leggings','piping_top','piping_waist'],textures:{outfit_top:'top-charcoal',outfit_pants:'pants-charcoal'}},
+    {id:'nightlife',label:'Nightlife (violet shorts, jacket)',parts:['jacket','shorts','piping_shorts'],textures:{outfit_pants:'pants-violet'},materials:{outfit_jacket:{roughness:.55},outfit_top:{roughness:.35},outfit_pants:{roughness:.3}}},
+    {id:'elegant',label:'Elegant (violet jacket)',parts:['jacket','jacket_item','leggings','piping_jacket'],textures:{outfit_jacket:'jacket-violet'}},
+    {id:'original',label:'Original (black leather)',parts:['jacket','jacket_item','leggings']}]}]});
+ register({id:'base-f',name:'Yuki',sex:'female',model:'vr-companion-bf',file:'vr-companion-bf.vrpak',preview:'void-runner/assets/vr/companions/base-f.jpg',
+  licensed:true,pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-base-f',voiceId:null},clips:{walk:['walk-f'],idleAlt:['idle-f2']}});
+ register({id:'base-m',name:'Dex',sex:'male',model:'vr-companion-bm',file:'vr-companion-bm.vrpak',preview:'void-runner/assets/vr/companions/base-m.jpg',
+  licensed:true,pairable:false,personality:{},dialogue:{},voice:{characterId:'vr-base-m',voiceId:null},clips:{}});
+
+ // ---- Looks: outfit, hairstyle, glasses, colours. A group's options each show their `parts` (mesh names; parts no
+ // option names are always shown) and may swap `textures`. The choices are a preference kept per browser, like
+ // graphics and audio settings (not in the Campaign save, so no save depends on them).
+ const lookKey='void-runner-companion-looks-v1';
+ const looks=entry=>entry?.looks||[];
+ function option(entry,key,id){const g=looks(entry).find(x=>x.key===key);return g?g.options.find(o=>o.id===id)||g.options.find(o=>o.id===g.default)||g.options[0]||null:null;}
+ const chosen=(entry,picked={})=>Object.fromEntries(looks(entry).map(g=>[g.key,option(entry,g.key,picked?.[g.key]).id]));
+ function wears(entry,picked){const c=chosen(entry,picked),managed=new Set(looks(entry).flatMap(g=>g.options.flatMap(o=>o.parts||[]))),on=new Set(looks(entry).flatMap(g=>option(entry,g.key,c[g.key]).parts||[]));
+  return part=>!managed.has(part)||on.has(part);}
+ // Material -> variant texture file for the chosen looks (materials not listed keep the model's own texture).
+ const lookTextures=(entry,picked)=>{const c=chosen(entry,picked);return Object.assign({},...looks(entry).map(g=>option(entry,g.key,c[g.key]).textures||{}));};
+ const variantTextures=entry=>[...new Set(looks(entry).flatMap(g=>g.options.flatMap(o=>Object.keys(o.textures||{}))))];
+ // Material values the chosen looks set ({material: {roughness}}), and every material any look touches.
+ const lookMaterials=(entry,picked)=>{const c=chosen(entry,picked);return Object.assign({},...looks(entry).map(g=>option(entry,g.key,c[g.key]).materials||{}));};
+ const variantMaterials=entry=>[...new Set(looks(entry).flatMap(g=>g.options.flatMap(o=>Object.keys(o.materials||{}))))];
+ function readLooks(store){try{return JSON.parse(store?.getItem(lookKey)||'{}')||{};}catch{return {};}}
+ const savedLooks=(entry,store=globalThis.localStorage)=>chosen(entry,readLooks(store)[entry.id]);
+ function saveLook(entry,key,id,store=globalThis.localStorage){const o=option(entry,key,id);if(!o)return false;try{const all=readLooks(store);all[entry.id]={...chosen(entry,all[entry.id]),[key]:o.id};store.setItem(lookKey,JSON.stringify(all));return true;}catch{return false;}}
+ // Whether a companion has lines yet (Ava and Eva don't, until David writes them).
+ const speaks=entry=>Object.values(entry?.dialogue||{}).some(p=>p?.length);
 
  // Lines drawn from a pool never repeat the last one used.
  function pick(pool,mem,key,rnd=Math.random){if(!pool?.length)return '';const options=pool.length>1?pool.filter(l=>l!==mem[key]):pool;const l=options[Math.floor(rnd()*options.length)]||pool[0];mem[key]=l;return l;}
@@ -224,6 +316,6 @@
   const out=[];let at=from;for(let i=1;i<cells.length;i++)if(!clear(at,cells[i])){out.push(cells[i-1]);at=cells[i-1];}
   out.push(cells[cells.length-1]);return out;}
 
- const api={defaults,settings,register,get,list,file,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,path,companions};
+ const api={defaults,settings,register,get,voiceOf,pairs,list,file,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,path,companions,party,partySize,offered,looks,option,chosen,wears,lookTextures,variantTextures,lookMaterials,variantMaterials,savedLooks,saveLook,speaks};
  if(typeof module!=='undefined')module.exports=api;else root.VoidVRCompanions=api;
 })(globalThis);

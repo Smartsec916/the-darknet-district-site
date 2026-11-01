@@ -43,6 +43,11 @@ window.addEventListener("load", () => {
         if (hasDevtools && !devtoolsTriggered) {
             devtoolsTriggered = true;
 
+            // The signed-in site owner (confirmed by the server, see iris-account.js) opening developer tools
+            // is development, not an intrusion: no warning, no greeting. Visitors, and the owner while
+            // testing as a New or Returning Visitor, get the normal reaction.
+            if (window.IrisIdentity && window.IrisIdentity.mode === 'owner') return;
+
             // Clear and print messages once
             console.clear();
             const logs = [
@@ -68,7 +73,7 @@ window.addEventListener("load", () => {
                 }
                 
                 // Get varied greeting from backend
-                fetch(`${window.IRIS_API_BASE || ''}/api/chat/greeting`)
+                fetch(`${window.IRIS_LEGACY_API_BASE ?? window.IRIS_API_BASE ?? ''}/api/chat/greeting`)
                     .then(response => response.json())
                     .then(data => {
                         setTimeout(() => {
@@ -82,7 +87,7 @@ window.addEventListener("load", () => {
                     });
                 
                 // Get devtools message from backend
-                fetch(`${window.IRIS_API_BASE || ''}/api/devtools/message`)
+                fetch(`${window.IRIS_LEGACY_API_BASE ?? window.IRIS_API_BASE ?? ''}/api/devtools/message`)
                     .then(response => response.json())
                     .then(data => {
                         setTimeout(() => {

@@ -1,0 +1,227 @@
+/* CRT Monitor Effects */
+.crt::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+              linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.06));
+  z-index: 2;
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
+}
+
+.crt::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: rgba(18, 16, 16, 0.1);
+  opacity: 0;
+  z-index: 2;
+  pointer-events: none;
+  animation: flicker 0.15s infinite;
+}
+
+.scanline {
+  width: 100%;
+  height: 20px;
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.2), transparent);
+  position: absolute;
+  animation: scan 2s linear infinite;
+  pointer-events: none;
+  z-index: 3;
+  top: 0;
+}
+
+/* Typing indicator */
+.typing-indicator {
+  width: 10px;
+  height: 16px;
+  background-color: hsl(var(--primary));
+  margin-left: 5px;
+  animation: blink 1s step-end infinite;
+  display: inline-block;
+}
+
+/* Typing animation for Iris's messages */
+.typing-text::after {
+  content: "...";
+  animation: dotTyping 1.5s infinite;
+  will-change: content;
+}
+
+.typing-complete {
+  display: inline-block;
+  overflow: hidden;
+  animation: typeEffect 1.5s steps(40, end);
+  white-space: pre-wrap;
+  will-change: width;
+}
+
+/* Hide scrollbar but allow scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Glow effects */
+.text-glow {
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.7), 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.box-glow {
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.7), 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Screen flicker effect */
+@keyframes flicker {
+  0% { opacity: 0.12; }
+  5% { opacity: 0.15; }
+  10% { opacity: 0.12; }
+  15% { opacity: 0.1; }
+  20% { opacity: 0.15; }
+  25% { opacity: 0.12; }
+  30% { opacity: 0.1; }
+  35% { opacity: 0.05; }
+  40% { opacity: 0.1; }
+  45% { opacity: 0.09; }
+  50% { opacity: 0.1; }
+  55% { opacity: 0.05; }
+  60% { opacity: 0.07; }
+  65% { opacity: 0.05; }
+  70% { opacity: 0.1; }
+  75% { opacity: 0.07; }
+  80% { opacity: 0.1; }
+  85% { opacity: 0.05; }
+  90% { opacity: 0.12; }
+  95% { opacity: 0.08; }
+  100% { opacity: 0.12; }
+}
+
+/* Scanline animation */
+@keyframes scan {
+  0% { top: -20px; }
+  100% { top: 100%; }
+}
+
+/* Cursor blink animation */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Typing dots animation */
+@keyframes dotTyping {
+  0% { content: ""; }
+  25% { content: "."; }
+  50% { content: ".."; }
+  75% { content: "..."; }
+  100% { content: ""; }
+}
+
+/* Text typing effect */
+@keyframes typeEffect {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+/* Glitch storm effects for when security is breached */
+.glitch-storm {
+  position: relative;
+  overflow: hidden;
+}
+
+.glitch-storm::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(rgba(18, 16, 16, 0.2) 50%, rgba(0, 0, 0, 0.35) 50%);
+  background-size: 100% 4px;
+  z-index: 1000;
+  pointer-events: none;
+  animation: glitchBg 0.2s infinite;
+  opacity: 0.3;
+}
+
+.glitch-storm .iris-chat-window {
+  animation: shakeGlitch 0.1s infinite;
+}
+
+.glitch-storm .iris-message {
+  position: relative;
+}
+
+.glitch-storm .iris-message::before {
+  content: attr(data-text);
+  position: absolute;
+  left: -2px;
+  text-shadow: 1px 0 #ff00cc;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  opacity: 0.8;
+  animation: glitchText 3s infinite;
+  clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+}
+
+.glitch-storm .iris-message::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 2px;
+  text-shadow: -1px 0 #00ffea;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  opacity: 0.8;
+  animation: glitchText 2s infinite reverse;
+  clip-path: polygon(0 60%, 100% 60%, 100% 100%, 0 100%);
+}
+
+@keyframes glitchText {
+  0% { transform: translate3d(calc(-1 * 0px), 0, 0) skew(0deg); }
+  10% { transform: translate3d(calc(-1 * 1px), -1px, 0) skew(0.5deg); }
+  20% { transform: translate3d(calc(-1 * 0px), 1px, 0) skew(0deg); }
+  30% { transform: translate3d(calc(-1 * 1px), -1px, 0) skew(-0.5deg); }
+  40% { transform: translate3d(calc(-1 * 0px), 0, 0) skew(0deg); }
+  50% { transform: translate3d(calc(-1 * 1px), 1px, 0) skew(0.5deg); }
+  60% { transform: translate3d(calc(-1 * 0px), -1px, 0) skew(0deg); }
+  70% { transform: translate3d(calc(-1 * 1px), 1px, 0) skew(-0.5deg); }
+  80% { transform: translate3d(calc(-1 * 0px), 0, 0) skew(0deg); }
+  90% { transform: translate3d(calc(-1 * 1px), -1px, 0) skew(0.5deg); }
+  100% { transform: translate3d(calc(-1 * 0px), 0, 0) skew(0deg); }
+}
+
+@keyframes glitchBg {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 4px; }
+}
+
+@keyframes shakeGlitch {
+  0% { transform: translate(0, 0) skew(0deg); }
+  10% { transform: translate(-1px, 0) skew(0.5deg); }
+  20% { transform: translate(1px, 0) skew(0deg); }
+  30% { transform: translate(-1px, 0) skew(-0.5deg); }
+  40% { transform: translate(0, 0) skew(0deg); }
+  50% { transform: translate(1px, 0) skew(0.5deg); }
+  60% { transform: translate(0, 0) skew(0deg); }
+  70% { transform: translate(-1px, 0) skew(-0.5deg); }
+  80% { transform: translate(0, 0) skew(0deg); }
+  90% { transform: translate(1px, 0) skew(0.5deg); }
+  100% { transform: translate(0, 0) skew(0deg); }
+}

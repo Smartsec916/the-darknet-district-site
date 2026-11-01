@@ -1,11 +1,19 @@
 /* Firebase identity + authenticated API. Cloud save replacement is always explicit.
    Sign-in: a District handle (no Google needed), an email link, or Google. */
-const account = window.VoidAccount = {user:null,products:[],status:'Verified purchases require a connection.',busy:false,revision:0,cloud:null,savedAt:null};
+const account = window.VoidAccount = {user:null,products:[],status:'Verified purchases require a connection.',busy:false,revision:0,cloud:null,savedAt:null,handle:undefined,handleNextChange:null};
 let authInitialization=null,unsubscribe=null;
 let firebase, generation=0, pendingCheckout=new URLSearchParams(location.search).get('checkout');
 let saveReady=false,verifiedUntil=0,ownershipTimer,refreshTimer,serviceRetryTimer,lastRefreshAttempt=0;
 // Handles, email links and Google linking are shared with every District game.
 let identityModule=null;const identity=()=>identityModule??=import('../district-identity.js');
+// The public handle comes from the handle registry, never from the Firebase display name (a Google account's is a real name).
+// undefined = unknown (service unreachable), null = none chosen yet, otherwise the handle.
+async function loadHandle(){
+  const user=account.user,epoch=generation;if(!user)return;
+  try{const mine=await (await identity()).fetchHandle(user);if(epoch!==generation)return;account.handle=mine.handle||null;account.handleNextChange=mine.nextChangeAt||null;}
+  catch{if(epoch!==generation)return;account.handle=(await identity()).handleOf(user)||undefined;}
+  render();
+}
 function render(){
   globalThis.VoidMenu?.refreshAccount();
   if(mode==='dock'&&view==='market')market();
@@ -47,7 +55,7 @@ function emailField(cta,quiet=false){
 }
 function accountPage(){
   view='account';
-  const user=account.user,anonymous=!!user?.isAnonymous,name=user?.displayName||user?.email||'Pilot';
+  const user=account.user,anonymous=!!user?.isAnonymous,name=account.handle||'Pilot';
   let body;
   if(!user){
     body=`<p class="account-detail">Register a handle to keep cloud saves and buy equipment. No Google account needed, and you can keep playing locally without one.</p>
@@ -55,10 +63,11 @@ function accountPage(){
       <details class="account-other"><summary>Already have an account?</summary>${emailField('SEND LINK',true)}<div class="account-actions">${button('SIGN IN WITH GOOGLE','sign-in',true,account.busy||!firebase)}${!firebase?button('RETRY CONNECTION','auth-retry',true,account.busy):''}</div></details>`;
   } else {
     body=`<p class="account-detail">Signed in as <strong>${escapeText(name)}</strong>.</p>`;
-    if(!user.displayName)body+=handleField('vr-handle','Choose your public handle','register-handle','CLAIM HANDLE');
+    if(account.handle===undefined)body+=`<p class="account-detail">Your handle could not be loaded right now. Try again shortly.</p>`;
+    if(account.handle===null)body+=handleField('vr-handle','Choose your public handle','register-handle','CLAIM HANDLE');
     if(anonymous)body+=`<div class="account-warning"><strong>Handle not secured.</strong> It lives only in this browser. Add an email or Google so you can sign in anywhere. Required before buying equipment.</div>${emailField('SECURE WITH EMAIL')}<div class="account-actions">${button('SECURE WITH GOOGLE','secure-google',true,account.busy||!firebase)}</div>`;
     body+=`<div class="manifest">${row('This browser',state.completed+' deliveries / '+state.credits+' CR')}${row('Cloud save',escapeText(cloudDescription()))}${row('Owned equipment',ownedGear.length+' verified items')}</div><p>Choose when to copy progress between this browser and your account. Start New Campaign replaces the local campaign; it never deletes purchases.</p><div class="account-actions">${button('SAVE THIS JOURNEY TO CLOUD','cloud-save-prompt',false,account.busy||!saveReady)}${button('LOAD CLOUD JOURNEY','cloud-load-prompt',true,account.busy||!account.cloud||!saveReady)}${button('REFRESH / RESTORE PURCHASES','account-refresh',true,account.busy)}${button('SIGN OUT','sign-out',true,account.busy)}</div>`;
-    if(user.displayName)body+=`<details class="account-other"><summary>Change public handle</summary>${handleField('vr-handle-change','New handle','change-handle','CHANGE HANDLE',user.displayName)}<small>Handles can be changed once every 30 days.</small></details>`;
+    if(account.handle)body+=`<details class="account-other"><summary>Change public handle</summary>${handleField('vr-handle-change','New handle','change-handle','CHANGE HANDLE',account.handle)}<small>Handles can be changed once every 30 days. Your progress and purchases are not affected.</small></details>`;
   }
   menuPage('PILOT ACCOUNT','Pilot account',body+`<p class="fine">Cloud saves copy campaign progress only. Paid ownership is checked separately with the server. Your browser save remains available if the account service is offline.</p>`);
   const back=screen.querySelector('.shop-heading button');if(back){back.dataset.action='account-main-menu';back.textContent='BACK TO MAIN MENU';}
@@ -66,6 +75,7 @@ function accountPage(){
 function fieldValue(id){return screen.querySelector('#'+id)?.value.trim()||'';}
 async function afterIdentityChange(){
   account.user=firebase.auth.currentUser;
+  loadHandle();
   try{await confirmCheckout();await refresh();}catch(error){render();}
 }
 async function run(action,quiet=false){
@@ -91,9 +101,9 @@ function initializeAuth(){
     try{
       firebase=await import('../firebase-auth.js');
       if(!unsubscribe)unsubscribe=firebase.onAuthStateChanged(firebase.auth,user=>{
-        generation++;clearTimeout(ownershipTimer);clearTimeout(refreshTimer);verifiedUntil=0;account.user=user;VoidDevTools.identity(null);account.cloud=null;account.revision=0;saveReady=false;setOwnedGear([]);render();
+        generation++;clearTimeout(ownershipTimer);clearTimeout(refreshTimer);verifiedUntil=0;account.user=user;account.handle=undefined;account.handleNextChange=null;VoidDevTools.identity(null);account.cloud=null;account.revision=0;saveReady=false;setOwnedGear([]);render();
         VoidNetwork.report('identity','ready');
-        if(user)run(async()=>{await confirmCheckout();await refresh();},true);
+        if(user){loadHandle();run(async()=>{await confirmCheckout();await refresh();},true);}
       });
       await firebase.getRedirectResult(firebase.auth);
       try{const done=await (await identity()).completeEmailLink();
@@ -113,9 +123,10 @@ function requestAction(action){
   // Read typed values first: run() redraws the page (busy state) before the action starts.
   if(action==='register-handle'||action==='change-handle'){const handle=fieldValue(action==='register-handle'?'vr-handle':'vr-handle-change');run(async()=>{
     if(!firebase)throw new Error('Account service is still connecting. Try again shortly.');
-    const user=await (await identity()).registerHandle(handle);
-    await afterIdentityChange();
-    announce(`Handle ${user.displayName} is yours.${user.isAnonymous?' Secure it with an email or Google to keep it on other devices.':''}`);
+    const saved=await (await identity()).claimHandle(handle),user=saved.user;
+    account.handle=saved.handle;account.handleNextChange=saved.nextChangeAt||null;
+    await afterIdentityChange();account.handle=saved.handle;
+    announce(`Handle ${saved.handle} is yours.${user.isAnonymous?' Secure it with an email or Google to keep it on other devices.':''}`);
   });}
   if(action==='email-link'){const typed=fieldValue('vr-email');run(async()=>{
     const email=await (await identity()).sendEmailLink(typed);

@@ -8,11 +8,18 @@ and the Iris widget. Functions must tolerate pages that do not include their DOM
 */
 
 // GitHub Pages hosts the public site but has no API, so the live domain talks to
-// the Render backend. Anywhere else (local dev, Render itself) uses same-origin.
+// Render backends. Anywhere else (local dev, Render itself) uses same-origin.
+const IRIS_ON_LIVE_SITE = /(^|\.)thedarknetdistrict\.com$|\.github\.io$/.test(location.hostname);
+
+// Iris (Node/GPT-4o service): the chat conversation
 window.IRIS_API_BASE = window.IRIS_API_BASE ?? (
-  /(^|\.)thedarknetdistrict\.com$|\.github\.io$/.test(location.hostname)
-    ? 'https://the-darknet-district-site.onrender.com'
-    : ''
+  IRIS_ON_LIVE_SITE ? 'https://darknet-district-iris.onrender.com' : ''
+);
+
+// The original Python backend keeps the two small canned-message endpoints
+// (/api/chat/greeting and /api/devtools/message) that the Iris service does not have.
+window.IRIS_LEGACY_API_BASE = window.IRIS_LEGACY_API_BASE ?? (
+  IRIS_ON_LIVE_SITE ? 'https://the-darknet-district-site.onrender.com' : ''
 );
 
 // ============================================================================
@@ -104,10 +111,63 @@ function generateSessionId() {
   return 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
 }
 
+// Render's free tier sleeps when idle, and the first request after a quiet spell can take
+// well over a minute while the service wakes. These keep that from looking like a crash.
+const IRIS_REQUEST_TIMEOUT_MS = 120000; // give up after two minutes
+const IRIS_SLOW_NOTICE_MS = 8000;       // tell the visitor Iris is waking up
+const IRIS_RETRY_DELAY_MS = 3000;
+let irisWarmedUp = false;
+
+function warmUpIris() {
+  if (irisWarmedUp) return;
+  irisWarmedUp = true;
+  // Fire and forget; the response is not needed, only the wake-up
+  fetch(`${window.IRIS_API_BASE}/api/health`, { mode: 'no-cors', cache: 'no-store' }).catch(() => {});
+}
+
+// One POST to Iris with a timeout. Returns the response and its parsed JSON body.
+async function postToIris(payload) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), IRIS_REQUEST_TIMEOUT_MS);
+  try {
+    // A random id this browser keeps (so Iris can recognize a returning visitor) and, only when signed in,
+    // the sign-in token; see iris-identity.js. Signed out, the request is as it always was plus the id.
+    const identity = window.IrisIdentity;
+    const send = async (extraHeaders) => {
+      const response = await fetch(`${window.IRIS_API_BASE}/api/chat/message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...extraHeaders },
+        body: JSON.stringify(identity ? { ...payload, clientId: identity.clientId } : payload),
+        signal: controller.signal
+      });
+      const data = await response.json().catch(() => ({}));
+      return { response, data };
+    };
+    const refused = (result) => result.response.status === 401 && result.data && result.data.code === 'signin_required';
+    let result = await send(identity ? await identity.authHeaders() : {});
+    if (identity && refused(result)) {
+      // The server could not verify the sign-in this browser says it has (not restored yet, or the token expired).
+      // Nothing was saved. Refresh the sign-in and send the same message again.
+      result = await send(await identity.authHeaders(true));
+      if (refused(result)) {
+        // Still cannot be verified: send it as an ordinary anonymous message rather than lose it
+        console.warn('Iris: sign-in could not be verified; sending this message as an anonymous visitor.');
+        result = await send(identity.anonymousHeaders());
+      }
+    }
+    return result;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // Chat toggle functionality
 function toggleChat() {
   const container = document.getElementById('chatContainer');
   container.style.display = container.style.display === 'none' ? 'block' : 'none';
+
+  // Wake the Iris service while the visitor is still reading the welcome line
+  if (container.style.display === 'block') warmUpIris();
 
   // Add welcome message if chat is being opened for first time
   if (container.style.display === 'block' && chatState.messageCount === 0) {
@@ -257,21 +317,35 @@ async function sendMessage() {
   }
 
   // IRIS_API_BASE points the live site at Render; elsewhere it is same-origin.
+  const slowNotice = setTimeout(() => {
+    addMessage('Uplink is waking up. Give me a moment...', false);
+  }, IRIS_SLOW_NOTICE_MS);
   try {
-    const response = await fetch(`${window.IRIS_API_BASE}/api/chat/message`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ 
-        message,
-        sessionId: chatState.sessionId,
-        messageCount: chatState.messageCount,
-        timestamp: Date.now()
-      })
-    });
-
-    const data = await response.json().catch(() => ({}));
+    // The same messageCount makes a retry the same request, so Iris never answers (or stores) it twice
+    const payload = {
+      message,
+      sessionId: chatState.sessionId,
+      messageCount: chatState.messageCount,
+      timestamp: Date.now()
+    };
+    let result;
+    for (let attempt = 1; ; attempt++) {
+      try {
+        result = await postToIris(payload);
+        // 502/503/504 mean the service was still starting; try once more
+        if ([502, 503, 504].includes(result.response.status) && attempt < 2) {
+          await new Promise(resolve => setTimeout(resolve, IRIS_RETRY_DELAY_MS));
+          continue;
+        }
+        break;
+      } catch (networkError) {
+        // A dropped connection during wake-up is worth one retry; a timeout is not
+        if (networkError.name === 'AbortError' || attempt >= 2) throw networkError;
+        await new Promise(resolve => setTimeout(resolve, IRIS_RETRY_DELAY_MS));
+      }
+    }
+    clearTimeout(slowNotice);
+    const { response, data } = result;
     // 413 (too long) and 429 (rate limited) still carry an in-character reply.
     const replyable = response.ok || response.status === 413 || response.status === 429;
     if (!replyable || typeof data.response !== 'string' || !data.response.trim()) {
@@ -284,6 +358,7 @@ async function sendMessage() {
     }, 500 + Math.random() * 1000);
 
   } catch (error) {
+    clearTimeout(slowNotice);
     console.error('Iris chat request failed:', error);
     setTimeout(() => {
       addMessage('Neural interface disrupted. Please try again.', false);
