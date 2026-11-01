@@ -1,0 +1,10 @@
+{
+  "checks": [
+    "Signed-out page exposes no inventory",
+    "403 does not reveal inventory",
+    "Mission inspection/search, character filtering and isolated branch preview",
+    "Markup is inert text; sign-out clears inventory",
+    "Mobile layout and companion lines; graph scroll stays contained"
+  ],
+  "errors": []
+}
