@@ -1,0 +1,5 @@
+dist/
+node_modules/
+# The site's root .gitignore skips every lib/ and components/ folder; Iris's own are source code
+!client/src/lib/
+!client/src/components/

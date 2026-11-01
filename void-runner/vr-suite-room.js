@@ -204,15 +204,18 @@
   function mood(name){M=moods[name]||moods.rose;for(const [l,[c,i]] of [[L.head,M.head],[L.lampL,M.lamp],[L.lampR,M.lamp],[L.lounge,M.lounge],[L.face,M.face]]){l.diffuse=hex(B,c);l.intensity=i;}
    for(const key of ['mag','vio','amb']){const [c,l]=M.led[key];led[key].emissiveColor=hex(B,c,l);wash[key].emissiveColor=hex(B,c,M.wash[key]);}globe.emissiveColor=hex(B,M.lamp[0],1.1+M.lamp[1]*.4);}
   // City light through the glass drifts slowly between its colour, magenta and cyan; candles flicker; the face light follows.
-  let comp=null,headY=()=>1.8;const tmp=new B.Color3();
+  const comps=[];const tmp=new B.Color3();
   tick.push((dt,t)=>{const a=(Math.sin(t*.21)+1)/2,c=B.Color3.Lerp(hex(B,M.city),a>.5?hex(B,'#ff3f9a'):hex(B,'#3fc0ff'),Math.abs(a-.5)*.9);L.city.diffuse=c;L.city.intensity=1.05+.15*Math.sin(t*.53);wash.city.emissiveColor=c.scaleToRef(.42,tmp).clone();
    flame.emissiveColor=hex(B,'#ffb050',M.candle*(1.25+.25*Math.sin(t*23)*Math.sin(t*7.3)));
-   if(comp){const dx=walker.x-comp.position.x,dz=walker.z-comp.position.z,l=Math.hypot(dx,dz)||1;L.face.position.set(comp.position.x+dx/l*.85,headY()+.25,comp.position.z+dz/l*.85);blob.position.x=comp.position.x;blob.position.z=comp.position.z;}});
+   // Each companion has its own floor shadow; the face light lights whichever one is nearest to you.
+   let near=null,nearD=Infinity;for(const f of comps){f.blob.position.x=f.node.position.x;f.blob.position.z=f.node.position.z;const d=Math.hypot(walker.x-f.node.position.x,walker.z-f.node.position.z);if(d<nearD){nearD=d;near=f;}}
+   if(near){const comp=near.node,dx=walker.x-comp.position.x,dz=walker.z-comp.position.z,l=Math.hypot(dx,dz)||1;L.face.position.set(comp.position.x+dx/l*.85,near.headY()+.25,comp.position.z+dz/l*.85);}});
   return {mood,meshes:b.meshes,city,
    curtains(open){curtainTarget=open?.42:1;},
    music(name){track=String(name||'off').toUpperCase();},
-   // The companion: full lighting, a floor shadow, a face light, and a place in the floor reflection.
-   follow(node,head){comp=node;headY=head||headY;blob.isVisible=true;for(const m of node.getChildMeshes()){if(m.material)m.material.maxSimultaneousLights=8;mirror?.renderList.push(m);}},
+   // A companion (one or more): full lighting, a floor shadow, the face light, and a place in the floor reflection.
+   follow(node,head){const own=comps.length?blob.clone('vr-companion-blob-'+comps.length):blob;own.isVisible=true;comps.push({node,headY:head||(()=>1.8),blob:own});
+    for(const m of node.getChildMeshes()){if(m.material)m.material.maxSimultaneousLights=8;mirror?.renderList.push(m);}},
    tick(dt,t){for(const f of tick)f(dt,t);}};
  }
 

@@ -38,6 +38,7 @@ async function request(path, { method = 'GET', body, user, timeout = 8000 } = {}
     return data;
   } catch (error) {
     if (error.name === 'AbortError') throw new Error('The handle service timed out. Try again shortly.');
+    if (error instanceof TypeError) throw new Error('The handle service is unreachable right now. Check your connection and try again.');
     throw error;
   } finally {
     clearTimeout(timer);
@@ -49,8 +50,18 @@ export function isSecured(user) {
   return Boolean(user && !user.isAnonymous);
 }
 
+/**
+ * The public handle of a signed-in account, from the handle registry (never from the Firebase display name, which
+ * can be the real name Google holds). Resolves { handle: string | null, nextChangeAt }; rejects when the handle
+ * service cannot be reached, so callers can tell "no handle yet" from "unknown".
+ */
+export function fetchHandle(user) {
+  return request('/me', { user });
+}
+
+/** A handle that is safe to show for an account whose registry entry is not known: only anonymous handle accounts. */
 export function handleOf(user) {
-  return user?.displayName || null;
+  return user?.isAnonymous && HANDLE_PATTERN.test(user.displayName || '') ? user.displayName : null;
 }
 
 export function checkHandle(handle) {
@@ -63,6 +74,11 @@ export function checkHandle(handle) {
  * account first when nobody is signed in. Returns the signed-in user.
  */
 export async function registerHandle(handle) {
+  return (await claimHandle(handle)).user;
+}
+
+/** Like registerHandle, but also returns the handle exactly as the server stored it: { handle, nextChangeAt, user }. */
+export async function claimHandle(handle) {
   handle = String(handle || '').trim();
   if (!HANDLE_PATTERN.test(handle)) throw new Error('Use 3–20 letters, numbers, or underscores.');
   const fb = await firebase();
@@ -76,11 +92,10 @@ export async function registerHandle(handle) {
     }
   }
   const user = fb.auth.currentUser;
-  await request('/handle', { method: 'POST', body: { handle }, user });
-  // Pick up the display name the server just set.
-  await user.reload();
-  await user.getIdToken(true);
-  return fb.auth.currentUser;
+  const saved = await request('/handle', { method: 'POST', body: { handle }, user });
+  // Pick up the display name the server just set. The registry answer above is what counts, so a failure here is harmless.
+  try { await user.reload(); await user.getIdToken(true); } catch { /* the handle is saved either way */ }
+  return { handle: saved.handle, nextChangeAt: saved.nextChangeAt, user: fb.auth.currentUser };
 }
 
 /** Email a one-time sign-in link. Secures an anonymous handle when opened. */

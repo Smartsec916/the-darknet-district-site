@@ -1,0 +1,167 @@
+{
+ "name": "vr-companion-ava",
+ "source": "Ava - Beautiful Female Character v2.0 (EEVEE) by BGShop, bought on CGTrader; prepared by prepare_ava.py",
+ "bonePrefix": "",
+ "bones": {
+  "DEF-spine": "Hips",
+  "DEF-spine.001": "Spine",
+  "DEF-spine.002": "Spine1",
+  "DEF-spine.003": "Spine2",
+  "DEF-spine.004": "Neck",
+  "DEF-spine.006": "Head",
+  "DEF-shoulder.L": "LeftShoulder",
+  "DEF-upper_arm.L": "LeftArm",
+  "DEF-forearm.L": "LeftForeArm",
+  "DEF-hand.L": "LeftHand",
+  "DEF-thigh.L": "LeftUpLeg",
+  "DEF-shin.L": "LeftLeg",
+  "DEF-foot.L": "LeftFoot",
+  "DEF-toe.L": "LeftToeBase",
+  "DEF-thumb.01.L": "LeftHandThumb1",
+  "DEF-thumb.02.L": "LeftHandThumb2",
+  "DEF-thumb.03.L": "LeftHandThumb3",
+  "DEF-f_index.01.L": "LeftHandIndex1",
+  "DEF-f_index.02.L": "LeftHandIndex2",
+  "DEF-f_index.03.L": "LeftHandIndex3",
+  "DEF-f_middle.01.L": "LeftHandMiddle1",
+  "DEF-f_middle.02.L": "LeftHandMiddle2",
+  "DEF-f_middle.03.L": "LeftHandMiddle3",
+  "DEF-f_ring.01.L": "LeftHandRing1",
+  "DEF-f_ring.02.L": "LeftHandRing2",
+  "DEF-f_ring.03.L": "LeftHandRing3",
+  "DEF-f_pinky.01.L": "LeftHandPinky1",
+  "DEF-f_pinky.02.L": "LeftHandPinky2",
+  "DEF-f_pinky.03.L": "LeftHandPinky3",
+  "DEF-shoulder.R": "RightShoulder",
+  "DEF-upper_arm.R": "RightArm",
+  "DEF-forearm.R": "RightForeArm",
+  "DEF-hand.R": "RightHand",
+  "DEF-thigh.R": "RightUpLeg",
+  "DEF-shin.R": "RightLeg",
+  "DEF-foot.R": "RightFoot",
+  "DEF-toe.R": "RightToeBase",
+  "DEF-thumb.01.R": "RightHandThumb1",
+  "DEF-thumb.02.R": "RightHandThumb2",
+  "DEF-thumb.03.R": "RightHandThumb3",
+  "DEF-f_index.01.R": "RightHandIndex1",
+  "DEF-f_index.02.R": "RightHandIndex2",
+  "DEF-f_index.03.R": "RightHandIndex3",
+  "DEF-f_middle.01.R": "RightHandMiddle1",
+  "DEF-f_middle.02.R": "RightHandMiddle2",
+  "DEF-f_middle.03.R": "RightHandMiddle3",
+  "DEF-f_ring.01.R": "RightHandRing1",
+  "DEF-f_ring.02.R": "RightHandRing2",
+  "DEF-f_ring.03.R": "RightHandRing3",
+  "DEF-f_pinky.01.R": "RightHandPinky1",
+  "DEF-f_pinky.02.R": "RightHandPinky2",
+  "DEF-f_pinky.03.R": "RightHandPinky3"
+ },
+ "meshes": {
+  "body": {
+   "name": "body",
+   "shapeKeys": [
+    "Eye_Blink_L",
+    "Eye_Blink_R"
+   ],
+   "dropMaterials": [
+    "lacrimal"
+   ]
+  },
+  "skin_under": {
+   "name": "skin_under",
+   "dropMaterials": [
+    "lacrimal"
+   ]
+  },
+  "eyebrow": {
+   "name": "brows",
+   "cutout": true
+  },
+  "eye": {
+   "name": "eyes",
+   "dropMaterials": [
+    "cornea"
+   ]
+  },
+  "nail": {
+   "name": "nails"
+  },
+  "dress": {
+   "name": "top_red",
+   "doubleSided": true
+  },
+  "skirt": {
+   "name": "skirt_red",
+   "doubleSided": true
+  },
+  "underwear.001": {
+   "name": "bikini_bottom",
+   "doubleSided": true
+  },
+  "shoes": {
+   "name": "sandals"
+  },
+  "bikini_top": {
+   "name": "bikini_top",
+   "doubleSided": true
+  },
+  "hair_01": {
+   "name": "hair_long",
+   "cutout": true,
+   "doubleSided": true,
+   "alphaCutoff": 0.3
+  },
+  "inner": {
+   "name": "hair_bob",
+   "cutout": true,
+   "doubleSided": true,
+   "alphaCutoff": 0.3
+  },
+  "outer": {
+   "name": "hair_pixie",
+   "cutout": true,
+   "doubleSided": true,
+   "alphaCutoff": 0.3
+  },
+  "glasses_01": {
+   "name": "glasses_wire",
+   "maxTris": 6000
+  },
+  "glasses_02": {
+   "name": "glasses_round",
+   "maxTris": 8000,
+   "dropMaterials": [
+    "glass"
+   ]
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "walk",
+  "sit",
+  "sit-enter",
+  "sit-exit",
+  "sit-talk",
+  "dance",
+  "interact",
+  "idle-f2",
+  "walk-f",
+  "wave",
+  "blow-kiss",
+  "coy",
+  "head-tilt",
+  "hips",
+  "laugh",
+  "glance-back",
+  "slow-dance",
+  "dance-belly",
+  "sit-relax",
+  "sit-wave",
+  "shrug",
+  "recline"
+ ],
+ "cutoutMaterials": [
+  "eyelash"
+ ]
+}

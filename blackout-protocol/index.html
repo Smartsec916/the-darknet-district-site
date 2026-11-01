@@ -20,9 +20,10 @@ if(!scores.length)list.textContent='No signals recorded. Make the first run.';
 const identity=document.getElementById('identity'),error=document.getElementById('accountError'),$=id=>document.getElementById(id);
 async function renderAccount(event){
   const user=Account.currentUser(),anonymous=!!user?.isAnonymous;
-  const name=user?.displayName||user?.email||'';
-  identity.textContent=!user?'Playing as guest. Register a handle to compete globally. No Google account needed.'
-    :anonymous?`Signed in as ${name||'a new pilot'}.`:`Signed in as ${name}.`;
+  // Only a game-handle account's own name is safe to show before the registry answers; a Google name or email never is.
+  const showName=handle=>identity.textContent=!user?'Playing as guest. Register a handle to compete globally. No Google account needed.'
+    :handle?`Signed in as ${handle}.`:anonymous&&user.displayName?`Signed in as ${user.displayName}.`:'Signed in. Choose a public handle to compete.';
+  showName();
   $('stats').hidden=!user;$('signOut').hidden=!user;$('signIn').hidden=!!user;$('secureGoogle').hidden=!anonymous;
   $('secure').hidden=!anonymous;$('emailForm').hidden=!!user&&!anonymous;
   $('emailLabel').textContent=anonymous?'Secure with an email sign-in link':'Already have an account? Get an email sign-in link';
@@ -32,10 +33,11 @@ async function renderAccount(event){
   try{
     const data=await Account.leaderboard();
     const me=data.me||{};
-    $('handle').value=me.handle||user.displayName||'';
+    showName(me.handle);
+    $('handle').value=me.handle||(anonymous?user.displayName:'')||'';
     $('stats').textContent=`${me.handle||'No handle yet'} · Personal best: ${me.bestScore||0} · Global rank: ${me.rank?'#'+me.rank:'—'} · Highest level: ${me.highestCompletedLevel||0}`;
     if(!event?.detail?.message)error.textContent='';
-  }catch(e){if(!user.displayName)error.textContent=e.message;else $('handle').value=user.displayName;}
+  }catch(e){if(!(anonymous&&user.displayName))error.textContent=e.message;else $('handle').value=user.displayName;}
 }
 addEventListener('blackout-auth', renderAccount);
 Account.authReady().then(()=>renderAccount());

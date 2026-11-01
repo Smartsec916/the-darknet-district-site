@@ -380,6 +380,18 @@
     feminine: /\b(zira|hazel|susan|samantha|victoria|karen|moira|tessa|fiona|ava|allison|siri female|female|jenny|aria|sonia|libby|sara|jane|nancy|joanna|salli|amy|emma)\b/i,
     masculine: /\b(david|mark|george|james|daniel|alex|fred|tom|oliver|guy|ryan|christopher|eric|roger|brian|male|siri male)\b/i
   };
+  // VR companions speak under their own names; a companion without a profile gets a browser voice of its sex
+  // (vr-companions.js voiceOf), never Rook's.
+  const companionVoices = {
+    feminine: {pitch: 1.03, rate: .97, volume: .85, presentation: 'feminine', preferred: ['aria', 'jenny', 'sonia', 'zira']},
+    masculine: {pitch: .95, rate: .96, volume: .85, presentation: 'masculine', preferred: ['guy', 'ryan', 'david', 'mark']}
+  };
+  function profileOf(id) {
+    const p = profiles[content.characters[id]?.voiceProfile || id];
+    if (p) return p;
+    const companion = root.VoidVRCompanions?.voiceOf?.(id);
+    return companion ? companionVoices[companion.sex === 'male' ? 'masculine' : 'feminine'] : profiles.rook;
+  }
   function chooseVoice(id, uri) {
     if (!content.characters[id]) return;
     if (uri) voiceChoices[id] = uri; else delete voiceChoices[id];
@@ -387,7 +399,7 @@
     cancel();
   }
   function selectVoice(id, pool = voices) {
-    const p = profiles[content.characters[id]?.voiceProfile || id] || profiles.rook;
+    const p = profileOf(id);
     const explicit = pool.find(v => v.voiceURI === voiceChoices[id] || v.voiceURI === p.voiceId || v.name === p.voiceId);
     if (explicit) return explicit;
     const matches = pool.filter(v => voiceNames[p.presentation]?.test(v.name));
@@ -397,7 +409,7 @@
   function speak(id, text, waitedForVoices = false, browserOnly = false) {
     cancel();
     if (!settings.enabled || !settings.voiceEnabled || !settings.voice) return false;
-    const p = profiles[content.characters[id]?.voiceProfile || id] || profiles.rook;
+    const p = profileOf(id);
     // Recorded clips when the line has one; otherwise (or if a clip fails) the browser voice.
     if (voiceProvider && !browserOnly && (!voiceProvider.has || voiceProvider.has(id, text))) {
       try {

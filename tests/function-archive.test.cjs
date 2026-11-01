@@ -150,11 +150,12 @@ test('the District links to The Function and keeps its own navigation', () => {
   const home = read('index.html');
   assert.match(home, /<a class="tdd-function" href="function\/">[\s\S]*Back door to The Function's website[\s\S]*Observe the activities of the corporation that governs beyond the District\.[\s\S]*<\/a>/);
   const navigation = /<nav\b[^>]*aria-label="Main navigation"[^>]*>([\s\S]*?)<\/nav>/.exec(home)[1];
-  for (const [href, label] of [['/', 'Home'], ['games-list.html', 'Arcade'], ['store-first-page.html', 'Store'], ['resources.html', 'Resources'], ['sleeping_pod.html', 'Sleeping Pod'], ['about.html', 'About']]) {
+  for (const [href, label] of [['games-list.html', 'Arcade'], ['store-first-page.html', 'Store'], ['resources.html', 'Resources'], ['sleeping_pod.html', 'Sleeping Pod'], ['about.html', 'About']]) {
     const link = [...navigation.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)].find(match => match[1] === href);
     assert.ok(link, href);
     assert.match(link[2].replace(/<[^>]*>/g, ' '), new RegExp(label), href);
   }
+  assert.doesNotMatch(navigation, /class="district-nav__label">Home</);
   assert.match(home, /id="chatButton"/);
   assert.match(read('sitemap.xml'), /\/function\/frequencies\//);
 });

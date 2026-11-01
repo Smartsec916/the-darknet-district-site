@@ -1,0 +1,65 @@
+{
+  "pages": [
+    {
+      "file": "games-list.html",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "file": "resources.html",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "file": "about.html",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "file": "sleeping_pod.html",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "file": "games-list.html",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "file": "resources.html",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "file": "about.html",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "file": "sleeping_pod.html",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "file": "games-list.html",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "file": "resources.html",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "file": "about.html",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "file": "sleeping_pod.html",
+      "width": 320,
+      "overflow": false
+    }
+  ],
+  "errors": []
+}

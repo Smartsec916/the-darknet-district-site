@@ -89,14 +89,19 @@
   menu.querySelector('button')?.focus();}
  // A step-by-step picker (Play in a Bedroom: sex, then a gallery of companion models). Each step's choices come
  // from the experience; a final step is chosen, then confirmed. Unusable choices show why and can't be picked.
+ // A choice with `previews` shows them side by side (a gallery, a room for two); with initial() a final step starts
+ // from the last choice.
  function renderPicker(){const e=registry.get(menuPage.id),steps=e.picker.steps,i=menuPage.step,step=steps[i],last=i===steps.length-1,choices=step.choices(menuPage.picks);
-  const sel=menuPage.selected,card=c=>'<article class="vr-card vr-choice'+(c.usable===false?' vr-soon':'')+(last&&sel===c.id?' vr-selected':'')+'" data-choice="'+esc(c.id)+'">'+
-   (c.preview?'<img alt="" src="'+esc(c.preview)+'" onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),{className:\'vr-preview\'}))">':'<div class="vr-preview" style="background:'+esc(c.tint||'#0b2a31')+'"></div>')+
-   '<h2>'+esc(c.label)+(last&&sel===c.id?' <span class="vr-check">✓ SELECTED</span>':'')+'</h2><p>'+esc(c.description||'')+'</p>'+
-   (c.usable===false?'<p class="vr-tag">'+esc(c.reason||'Not available.')+'</p>':'<button type="button" data-vr="choose:'+esc(c.id)+'">'+(last?(sel===c.id?'SELECTED':'SELECT'):'NEXT →')+'</button>')+'</article>';
+  if(last&&menuPage.selected===null&&step.initial)menuPage.selected=step.initial(menuPage.picks)||'';
+  const picked=[].concat(menuPage.selected||[]).filter(id=>choices.some(c=>c.id===id&&c.usable!==false)),sel=picked.length?picked:null,on=id=>picked.includes(id);
+  const card=c=>'<article class="vr-card vr-choice'+(c.usable===false?' vr-soon':'')+(last&&on(c.id)?' vr-selected':'')+'" data-choice="'+esc(c.id)+'">'+
+   (c.previews?.length?'<div class="vr-preview vr-mosaic" style="background:'+esc(c.tint||'#0b2a31')+'">'+c.previews.map(p=>'<img alt="" src="'+esc(p)+'" onerror="this.remove()">').join('')+'</div>':
+    c.preview?'<img alt="" src="'+esc(c.preview)+'" onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),{className:\'vr-preview\'}))">':'<div class="vr-preview" style="background:'+esc(c.tint||'#0b2a31')+'"></div>')+
+   '<h2>'+esc(c.label)+(last&&on(c.id)?' <span class="vr-check">✓ SELECTED</span>':'')+'</h2><p>'+esc(c.description||'')+'</p>'+
+   (c.usable===false?'<p class="vr-tag">'+esc(c.reason||'Not available.')+'</p>':'<button type="button" data-vr="choose:'+esc(c.id)+'">'+(last?(on(c.id)?'SELECTED':'SELECT'):'NEXT →')+'</button>')+'</article>';
   menu.innerHTML='<div class="vr-head"><b>'+esc(e.title.toUpperCase())+' · '+esc(step.title||'')+'</b><span>'+esc(step.prompt)+'</span><button type="button" data-vr="back">← BACK</button></div>'+
    (choices.length?'<div class="vr-grid">'+choices.map(card).join('')+'</div>':'<p class="vr-empty">No companions are available in this category yet.</p>')+
-   (last?'<div class="vr-confirm"><button type="button" data-vr="confirm"'+(sel?'':' disabled')+'>'+(sel?'ENTER VR WITH '+esc((choices.find(c=>c.id===sel)||{}).label||'').toUpperCase()+' →':'SELECT A COMPANION')+'</button></div>':'');
+   (last?'<div class="vr-confirm"><button type="button" data-vr="confirm"'+(sel?'':' disabled')+'>'+(sel?'ENTER VR WITH '+esc(picked.map(id=>(choices.find(c=>c.id===id)||{}).label||'').join(' & ')).toUpperCase()+' →':'SELECT A COMPANION')+'</button></div>':'');
   (menu.querySelector('[data-vr="confirm"]:not([disabled])')||menu.querySelector('[data-vr^="choose:"]')||menu.querySelector('button'))?.focus();}
  function openPicker(e){menuPage={view:'pick',id:e.id,step:0,picks:[],selected:null};renderMenu();Promise.resolve(e.picker.prepare?.()).then(()=>{if(menu&&menuPage.view==='pick')renderMenu();});}
  function closeMenu(){if(!menu)return;menu.remove();menu=null;menuPage={view:'list'};if(mode==='vr-menu')resumeWalking();}
@@ -105,8 +110,8 @@
   if(a==='back'){if(menuPage.view==='pick'&&menuPage.step>0){menuPage.step--;menuPage.picks.pop();menuPage.selected=null;}else menuPage={view:'list'};return renderMenu();}
   if(a.startsWith('pick:')){const exp=registry.get(a.slice(5));if(!exp||exp.listed===false)return;if(exp.picker)return openPicker(exp);if(exp.options){menuPage={view:'options',id:exp.id};return renderMenu();}return launch(exp.id,{});}
   if(a.startsWith('choose:')&&menuPage.view==='pick'){const id=a.slice(7),e=registry.get(menuPage.id),step=e.picker.steps[menuPage.step],c=step.choices(menuPage.picks).find(x=>x.id===id);if(!c||c.usable===false)return;
-   if(menuPage.step<e.picker.steps.length-1){menuPage.picks.push(id);menuPage.step++;menuPage.selected=null;}else menuPage.selected=id;return renderMenu();}
-  if(a==='confirm'&&menuPage.view==='pick'&&menuPage.selected){const e=registry.get(menuPage.id);return launch(e.id,e.picker.options([...menuPage.picks,menuPage.selected]));}
+   if(menuPage.step<e.picker.steps.length-1){menuPage.picks.push(id);menuPage.step++;menuPage.selected=null;}else menuPage.selected=step.select?step.select(menuPage.selected,id):id;return renderMenu();}
+  if(a==='confirm'&&menuPage.view==='pick'&&[].concat(menuPage.selected||[]).length){const e=registry.get(menuPage.id);return launch(e.id,e.picker.options([...menuPage.picks,menuPage.selected]));}
   if(a.startsWith('launch:')){const [,id,choice]=a.split(':');return launch(id,{choice});}
   if(a==='exit')return exit();if(a==='resume')return closePause();
   if(a.startsWith('opt:')){const [,key,val]=a.split(':');session?.world?.setOption?.(key,val);session.settings[key]=val;return renderPause();}},true);
@@ -152,7 +157,7 @@
  function showChip(){hideChip();chip=document.createElement('div');chip.id='vr-chip';chip.innerHTML='<span>VR · '+esc(session.exp.title.toUpperCase())+'</span><button type="button" data-vr="exit">EXIT VR · BACKSPACE</button>';document.body.append(chip);}
  function hideChip(){chip?.remove();chip=null;}
  function openPause(){if(!session||busy||pauseMenu)return;session.returnMode=mode;mode='vr-pause';clearInput();walkingKeys?.clear?.();document.exitPointerLock?.();pauseMenu=document.createElement('section');pauseMenu.id='vr-menu';pauseMenu.className='vr-pause';document.body.append(pauseMenu);renderPause();}
- function renderPause(){if(!pauseMenu)return;const opts=session.exp.settings||[];
+ function renderPause(){if(!pauseMenu)return;const s=session.exp.settings,opts=(typeof s==='function'?s(session.opts):s)||[];
   pauseMenu.innerHTML='<div class="vr-head"><b>VR · '+esc(session.exp.title.toUpperCase())+'</b><span>Simulation controls. Nothing here affects the real world.</span><button type="button" data-vr="resume">RESUME · ESC</button></div>'+
    opts.map(o=>'<div class="vr-setting"><h2>'+esc(o.label)+'</h2><div>'+o.values.map(([v,l])=>'<button type="button" data-vr="opt:'+esc(o.key)+':'+esc(v)+'"'+(session.settings[o.key]===v?' aria-pressed="true"':'')+'>'+esc(l)+'</button>').join('')+'</div></div>').join('')+
    '<div class="vr-setting"><button type="button" class="vr-exit" data-vr="exit">EXIT VR → BACK TO THE TERMINAL</button></div>';pauseMenu.querySelector('button')?.focus();}
