@@ -6,9 +6,9 @@
  update=function(dt){
   musicUpdate(dt);
   try{
-   if(!VoidAudio.settings.enabled)return;
+   if(!VoidAudio.settings.enabled){globalThis.VoidClubAudio?.update({active:false,dt});return;}
    // Inside a VR simulation the city's score gives way to the simulation's own ambience (vr-core.js).
-   if(globalThis.VoidVR?.active||globalThis.VoidVR?.busy){E.stop?.();return;}
+   if(globalThis.VoidVR?.active||globalThis.VoidVR?.busy){E.stop?.();globalThis.VoidClubAudio?.update({active:false,dt});return;}
    VoidAudio.composerActive(true);
    const walking=!!walkingLocation&&!!walker&&['walking','dialogue','mission-log'].includes(mode);
    const flying=['play','pause','preparing-flight'].includes(mode)&&!!flight.route||mode==='play';
@@ -27,7 +27,10 @@
     layoutKind:walking?walkingLocation.kind:null,
     walker:walking?{x:walker.x,z:walker.z}:null
    };
-   E.update(D.step(director,c,dt));
+   // The nightclub's own sound (ncz-club-audio.js) decides how much of the city's music is left around it; the score keeps playing underneath.
+   const club=globalThis.VoidClubAudio?.update({active:walking&&state?.location==='earth',dt,walker:walking?{x:walker.x,z:walker.z,yaw:walker.yaw}:null,doorOpen:!!globalThis.VoidNeoChinatown?.nightclub?.isOpen?.()}),target=D.step(director,c,dt);
+   target.cityLevel=club?.city??1;
+   E.update(target);
   }catch(error){if(!warned){warned=true;console.warn('[VOID music]',error.message);}}
  };
  globalThis.VoidMusicDebug=()=>({style:E.current,speaker:E.speaker,director:{...director}});

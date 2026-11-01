@@ -120,13 +120,15 @@
     param?.setTargetAtTime(value, context.currentTime, seconds);
   }
 
+  // Places with a sound of their own (the nightclub) turn the street's ambience down without touching the player's setting.
+  const trims = {ambient: 1};
   function mix() {
     if (!context) return;
     target(buses.master.gain, settings.enabled ? settings.master : 0, .05);
     target(buses.music.gain, settings.music * (speaking ? .4 : 1));
     target(buses.effects.gain, settings.effects);
     target(buses.voice.gain, settings.voice);
-    target(buses.ambient.gain, settings.ambient);
+    target(buses.ambient.gain, settings.ambient * trims.ambient);
   }
 
   function cancel() {
@@ -484,6 +486,7 @@
     get ready() { return !!context && context.state === 'running'; },
     mediaActive(value) { mediaPlaying = value === true; },
     composerActive(value) { composer = value === true; },
+    trim(name, value) { if (name in trims) trims[name] = Math.max(0, Math.min(1, +value || 0)); },
     // A category channel for the music engine (and other players) to connect to.
     bus(name) { ensureContext(); return context && buses?.[name] ? {context, node: buses[name]} : null; },
     // Locally hosted tracks share the gesture gate, master/category gain and pause lifecycle.
