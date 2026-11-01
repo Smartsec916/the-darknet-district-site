@@ -177,6 +177,27 @@ function toggleChat() {
   }
 }
 
+// Keep the phone chat window clear of the sticky navigation and the on-screen keyboard (see accents.css)
+let chatBaselineHeight = 0;
+let chatBaselineWidth = 0;
+function syncChatViewport() {
+  const root = document.documentElement;
+  const nav = document.querySelector('.district-nav');
+  root.style.setProperty('--iris-nav-h', (nav ? nav.offsetHeight : 0) + 'px');
+
+  const button = document.getElementById('chatButton');
+  if (button) root.style.setProperty('--iris-btn-w', button.offsetWidth + 'px');
+
+  // Browsers either shrink the layout viewport for the keyboard (innerHeight drops) or only the visual one
+  if (Math.abs(window.innerWidth - chatBaselineWidth) > 50) { chatBaselineWidth = window.innerWidth; chatBaselineHeight = 0; }
+  chatBaselineHeight = Math.max(chatBaselineHeight, window.innerHeight);
+  const vv = window.visualViewport;
+  const covered = vv ? Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)) : 0;
+  const shrunk = chatBaselineHeight - window.innerHeight > 150;
+  root.style.setProperty('--iris-kb', (covered > 80 ? covered : 0) + 'px');
+  root.classList.toggle('iris-kb-open', covered > 80 || shrunk);
+}
+
 // Rare response lines (1% chance)
 const rareIrisLines = [
   "Sometimes I wonder if the humans are the real programs here.",
@@ -941,6 +962,16 @@ function rotateFeaturedProducts() {
 
 // Initialize featured products when page loads
 document.addEventListener('DOMContentLoaded', function() {
+  syncChatViewport();
+  window.addEventListener('resize', syncChatViewport);
+  window.addEventListener('orientationchange', syncChatViewport);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', syncChatViewport);
+    window.visualViewport.addEventListener('scroll', syncChatViewport);
+  }
+  const districtNav = document.querySelector('.district-nav');
+  if (districtNav && window.ResizeObserver) new ResizeObserver(syncChatViewport).observe(districtNav);
+
   // Set up chat button event listener
   const chatButton = document.getElementById('chatButton');
   if (chatButton) {

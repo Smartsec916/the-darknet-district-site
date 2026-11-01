@@ -482,3 +482,91 @@ body.site-home .tdd-function-desc {
     display: none;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   IRIS CHAT WINDOW ON PHONES
+   The desktop window is a fixed 300x450 box. On phones (and short, coarse-pointer
+   landscape screens) it fills the free space between the sticky District navigation
+   and the Chat with Iris button instead. The header and input bar stay put; only the
+   message list scrolls, so messages are clipped at the header's lower edge.
+   script.js keeps --iris-nav-h (navigation height) and --iris-kb (on-screen keyboard
+   height) current. In short landscape the window sits beside the button, not above it.
+   Desktop rules are untouched: nothing here applies above 720px
+   unless the pointer is coarse and the screen is short.
+   --------------------------------------------------------------------------- */
+@media (max-width: 720px), (pointer: coarse) and (max-height: 500px) {
+  body.site-home > #chatContainer.chat-container {
+    --iris-bottom: 80px;
+    --iris-min: 180px;
+    box-sizing: border-box;
+    top: max(8px, min(calc(var(--iris-nav-h, 150px) + 8px), calc(100% - var(--iris-bottom) - var(--iris-min))));
+    bottom: var(--iris-bottom);
+    left: max(12px, env(safe-area-inset-left, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px));
+    width: auto;
+    max-width: 640px;
+    height: auto;
+    margin-left: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* With the keyboard up the Chat with Iris button is under it; sit just above the keyboard */
+  html.iris-kb-open body.site-home > #chatContainer.chat-container {
+    --iris-bottom: calc(var(--iris-kb, 0px) + 8px);
+  }
+
+  /* script.js shows the window with display: block; make it a column so the header and input keep their size */
+  body.site-home > #chatContainer.chat-container[style*="display: block"] {
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    body.site-home > #chatContainer.chat-container,
+    html.iris-kb-open body.site-home > #chatContainer.chat-container {
+      --iris-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+      right: calc(max(20px, env(safe-area-inset-right, 0px)) + var(--iris-btn-w, 190px) + 12px);
+      max-width: none;
+      margin-left: 0;
+    }
+
+    #chatContainer .chat-header { padding-top: 8px; padding-bottom: 8px; }
+    #chatContainer .chat-input { padding-top: 6px; padding-bottom: 6px; }
+  }
+
+  /* The same pink, over a dark base, so the page behind the window cannot show through the header */
+  #chatContainer .chat-header {
+    position: relative;
+    z-index: 1;
+    flex: none;
+    background:
+      linear-gradient(45deg, rgba(255, 51, 102, 0.6), rgba(255, 0, 68, 0.6)),
+      rgb(18, 10, 16);
+  }
+
+  #chatContainer .chat-messages {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    overflow-wrap: anywhere;
+  }
+
+  #chatContainer .chat-input {
+    flex: none;
+    padding-right: max(10px, env(safe-area-inset-right, 0px));
+    padding-left: max(10px, env(safe-area-inset-left, 0px));
+  }
+
+  /* 16px stops iOS Safari zooming the page when the field is focused */
+  #chatContainer .chat-input input {
+    min-width: 0;
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  #chatContainer .chat-input button {
+    min-height: 44px;
+  }
+}
