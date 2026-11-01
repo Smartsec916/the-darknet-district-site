@@ -570,3 +570,104 @@ body.site-home .tdd-function-desc {
     min-height: 44px;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   IRIS CHAT WINDOW ON DESKTOP — about a quarter of the screen's area (36% of the
+   width × 70% of the height = 25.2%), from 1366×768 to 2560×1440, clamped for very
+   small and very large windows and kept clear of the navigation (--iris-nav-h) and
+   the Chat with Iris button. The phone rules above still apply below 721px and on
+   short touch screens. Nearly opaque instead of blurred: easier to read and cheaper
+   to draw at this size.
+   --------------------------------------------------------------------------- */
+@media (min-width: 721px) and (min-height: 501px), (min-width: 721px) and (pointer: fine) {
+  body.site-home > #chatContainer.chat-container {
+    box-sizing: border-box;
+    width: min(clamp(360px, 36vw, 960px), calc(100vw - 40px));
+    height: min(clamp(420px, 70vh, 1040px), calc(100vh - 96px - var(--iris-nav-h, 60px)));
+    background: linear-gradient(180deg, rgba(16, 9, 20, 0.94), rgba(8, 8, 14, 0.96));
+    backdrop-filter: none;
+    border-radius: 14px;
+    box-shadow: 0 0 0 1px rgba(255, 51, 102, 0.25), 0 18px 60px rgba(0, 0, 0, 0.55), 0 0 32px rgba(255, 51, 102, 0.18);
+  }
+
+  /* script.js shows the window with display: block; a column keeps the header and input their size */
+  body.site-home > #chatContainer.chat-container[style*="display: block"] {
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  body.site-home > #chatContainer .chat-header {
+    position: relative;
+    z-index: 1;
+    flex: none;
+    padding: 14px 18px;
+    background:
+      linear-gradient(45deg, rgba(255, 51, 102, 0.6), rgba(255, 0, 68, 0.6)),
+      rgb(18, 10, 16);
+  }
+
+  body.site-home > #chatContainer .profile-pic {
+    width: 44px;
+    height: 44px;
+  }
+
+  body.site-home > #chatContainer .chat-title {
+    font-size: 18px;
+    letter-spacing: 0.04em;
+  }
+
+  body.site-home > #chatContainer .chat-messages {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+    padding: 20px 22px;
+    background: transparent;
+    overscroll-behavior: contain;
+    overflow-wrap: anywhere;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 51, 102, 0.6) transparent;
+  }
+
+  body.site-home > #chatContainer .message {
+    max-width: 78%;
+    margin-bottom: 14px;
+    padding: 12px 16px;
+    font-size: 15px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+  }
+
+  body.site-home > #chatContainer .bot-message {
+    background: rgba(255, 255, 255, 0.07);
+    box-shadow: inset 0 0 0 1px rgba(255, 51, 102, 0.12);
+  }
+
+  body.site-home > #chatContainer .chat-input {
+    flex: none;
+    gap: 10px;
+    padding: 14px 16px;
+    background: rgba(0, 0, 0, 0.35);
+  }
+
+  body.site-home > #chatContainer .chat-input input {
+    min-width: 0;
+    min-height: 46px;
+    margin-right: 0;
+    padding: 10px 14px;
+    font-size: 15px;
+  }
+
+  body.site-home > #chatContainer .chat-input button {
+    min-height: 46px;
+    padding: 0 22px;
+    font-size: 15px;
+  }
+}
+
+/* Calm the window for visitors who ask for less motion */
+@media (prefers-reduced-motion: reduce) {
+  #chatContainer.chat-container,
+  #chatContainer.chat-container::before {
+    animation: none;
+  }
+}

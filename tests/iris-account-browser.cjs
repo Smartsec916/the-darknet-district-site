@@ -697,16 +697,55 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     await context.close();
   });
 
-  await check('desktop chat window is unchanged: 300x450 at the bottom right', async () => {
-    const { page, context } = await open({ viewport: { width: 1440, height: 900 } });
+  // The desktop chat window: about a quarter of the screen's area (accents.css), inside the screen and clear of the
+  // navigation and the Chat with Iris button, with the header fixed and long text wrapped
+  for (const [width, height] of [[1366, 768], [1920, 1080], [2560, 1440]]) {
+    await check(`desktop chat window ${width}x${height}: about a quarter of the screen, header fixed, input reachable, nothing covered`, async () => {
+      const { page, context } = await open({ viewport: { width, height } });
+      await page.goto(base + '/index.html');
+      await page.locator('#chatButton').click();
+      const { overflows } = await fillChat(page);
+      assert.ok(overflows, 'enough messages to need scrolling');
+      await page.evaluate(() => addMessage('x'.repeat(400) + ' https://example.com/' + 'a'.repeat(200), true));
+      const before = await chatGeometry(page);
+      const area = (before.chat.r - before.chat.l) * (before.chat.b - before.chat.t) / (before.vw * before.vh);
+      assert.ok(area >= 0.22 && area <= 0.28, 'about a quarter of the screen: ' + area.toFixed(3) + ' ' + JSON.stringify(before.chat));
+      assert.ok(before.chat.l >= 0 && before.chat.r <= before.vw && before.chat.b <= before.vh, 'inside the screen');
+      assert.ok(before.chat.t >= before.nav.b - 0.5, 'below the navigation ' + JSON.stringify({ nav: before.nav.b, chat: before.chat.t }));
+      assert.ok(before.button.t >= before.chat.b - 0.5, 'the Chat with Iris button is not covered');
+      assert.ok(Math.abs(before.msgs.t - before.head.b) < 1 && before.input.b <= before.vh && before.send.r <= before.vw, 'header, messages and input stack inside the window');
+      await page.mouse.move((before.msgs.l + before.msgs.r) / 2, (before.msgs.t + before.msgs.b) / 2);
+      await page.mouse.wheel(0, -400);
+      const after = await chatGeometry(page);
+      assert.ok(Math.abs(after.head.t - before.head.t) < 1, 'the header does not move while messages scroll');
+      assert.ok(await page.evaluate(() => { const list = document.getElementById('chatMessages'); return list.scrollWidth <= list.clientWidth + 1; }), 'long words and links wrap instead of scrolling sideways');
+      assert.ok(await page.evaluate(() => document.activeElement === document.getElementById('messageInput')), 'the input is focused when the window opens');
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth <= 3), 'no sideways page scrolling');
+      await context.close();
+    });
+  }
+
+  await check('desktop chat window: minimize button and Escape hide it, the conversation survives, a resize keeps it', async () => {
+    const { page, context } = await open({ viewport: { width: 1920, height: 1080 } });
     await page.goto(base + '/index.html');
-    await page.locator('#chatButton').click();
-    const g = await chatGeometry(page);
-    assert.equal(Math.round(g.chat.r - g.chat.l), 300);
-    assert.equal(Math.round(g.chat.b - g.chat.t), 450);
-    assert.equal(Math.round(g.vw - g.chat.r), 20);
-    assert.equal(Math.round(g.vh - g.chat.b), 80);
-    assert.equal(Math.round(g.msgs.b - g.msgs.t), 300);
+    const button = page.locator('#chatButton');
+    assert.equal(await button.getAttribute('aria-expanded'), 'false');
+    await button.click();
+    assert.equal(await button.getAttribute('aria-expanded'), 'true');
+    await page.evaluate(() => { addMessage('Remember this line', true); addMessage('Noted, runner.', false); });
+    const count = await page.locator('#chatMessages .message').count();
+    await page.locator('#chatMinimize').click();
+    assert.ok(await page.locator('#chatContainer').isHidden(), 'the minimize button hides the window');
+    assert.equal(await button.getAttribute('aria-expanded'), 'false');
+    assert.ok(await page.evaluate(() => document.activeElement === document.getElementById('chatButton')), 'focus returns to the Chat with Iris button');
+    await button.click();
+    await page.locator('#messageInput').press('Escape');
+    assert.ok(await page.locator('#chatContainer').isHidden(), 'Escape hides the window');
+    await button.click();
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await page.setViewportSize({ width: 2560, height: 1440 });
+    assert.equal(await page.locator('#chatMessages .message').count(), count, 'minimizing and resizing keep every message');
+    assert.ok(await page.locator('#chatMessages').getByText('Remember this line').isVisible());
     await context.close();
   });
 

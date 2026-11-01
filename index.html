@@ -185,6 +185,26 @@
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
+    .chat-minimize {
+      margin-left: auto;
+      width: 36px;
+      height: 36px;
+      flex: none;
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.25);
+      color: #fff;
+      font: bold 20px/1 'Courier New', monospace;
+      cursor: pointer;
+    }
+
+    .chat-minimize:hover,
+    .chat-minimize:focus-visible {
+      background: rgba(0, 0, 0, 0.5);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+      outline: none;
+    }
+
     .chat-messages {
       height: 300px;
       overflow-y: auto;
@@ -309,15 +329,16 @@
 
 
   <!-- Chat Interface - AI chatbot Iris -->
-  <button class="chat-button" id="chatButton">Chat with Iris</button>
-  <div class="chat-container" id="chatContainer" style="display: none;">
+  <button class="chat-button" id="chatButton" aria-controls="chatContainer" aria-expanded="false">Chat with Iris</button>
+  <div class="chat-container" id="chatContainer" style="display: none;" role="region" aria-label="Chat with Iris">
     <!-- Chat header with Iris profile -->
     <div class="chat-header">
       <img src="attached_assets/Iris 01.webp" alt="Iris" class="profile-pic">
       <h3 class="chat-title">Chatting with Iris</h3>
+      <button class="chat-minimize" id="chatMinimize" type="button" aria-label="Minimize chat" title="Minimize (Esc)">&#8211;</button>
     </div>
     <!-- Messages display area -->
-    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-messages" id="chatMessages" role="log" aria-live="polite"></div>
     <!-- User input area -->
     <div class="chat-input">
       <input type="text" id="messageInput" placeholder="Type your message...">

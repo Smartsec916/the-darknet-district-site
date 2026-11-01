@@ -165,9 +165,21 @@ async function postToIris(payload) {
 function toggleChat() {
   const container = document.getElementById('chatContainer');
   container.style.display = container.style.display === 'none' ? 'block' : 'none';
+  const open = container.style.display === 'block';
+
+  // Tell assistive technology whether the window is open, and put the keyboard where the visitor needs it.
+  // Only the window is hidden: the conversation in it stays as it was.
+  const button = document.getElementById('chatButton');
+  if (button) button.setAttribute('aria-expanded', String(open));
+  if (open) {
+    const input = document.getElementById('messageInput');
+    if (input && window.matchMedia('(pointer: fine)').matches) input.focus({ preventScroll: true });
+  } else if (button && container.contains(document.activeElement)) {
+    button.focus({ preventScroll: true });
+  }
 
   // Wake the Iris service while the visitor is still reading the welcome line
-  if (container.style.display === 'block') warmUpIris();
+  if (open) warmUpIris();
 
   // Add welcome message if chat is being opened for first time
   if (container.style.display === 'block' && chatState.messageCount === 0) {
@@ -976,6 +988,16 @@ document.addEventListener('DOMContentLoaded', function() {
   const chatButton = document.getElementById('chatButton');
   if (chatButton) {
     chatButton.addEventListener('click', toggleChat);
+  }
+
+  // Minimize from inside the window (the button or Escape); it opens again with the same conversation
+  const chatMinimize = document.getElementById('chatMinimize');
+  if (chatMinimize) chatMinimize.addEventListener('click', toggleChat);
+  const chatContainer = document.getElementById('chatContainer');
+  if (chatContainer) {
+    chatContainer.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape' && chatContainer.style.display === 'block') toggleChat();
+    });
   }
 
   // Set up chat input event listeners
