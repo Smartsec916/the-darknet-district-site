@@ -1,6 +1,6 @@
 # Supplied companion asset compatibility — 2026-10-29
 
-No supplied model is included in the production release. Existing Seren, Kai and Nadia, their dialogue, voices and interactions remain unchanged. Counts below are inspection results, not proof of a successful Babylon conversion.
+This is a snapshot of six candidate models assessed on 2026-10-29. None of them is used in the game. When it was written the live companions were Seren, Kai and Nadia; since 2026-10-31 Ava, Eva, Yuki and Dex are live too (Una on local development servers only). Those companions, their licences and how their files are protected are documented in [VOID_RUNNER_ASSET_LICENSES.md](../VOID_RUNNER_ASSET_LICENSES.md), which is the current record. Counts below are inspection results, not proof of a successful Babylon conversion.
 
 | Family / supplied formats | Geometry and rig | Expressions / clips | Assessment |
 |---|---|---|---|
