@@ -24,14 +24,38 @@ never changes the subject because new data exists, and does nothing at all for o
 
 Existing layers are untouched: persona, mood, relationship, memory, language handling, the verified clock, rate limits and sessions. The new block goes in its own slot ("live") next to the clock.
 
-## Her manner (the prompt rules in `MANNER`)
-- Facts first and brief, then at most one short remark in character; varied, not a stock line; no joke when nothing fits.
-- Keeps three things distinct in how she phrases them: **verified data**, **what a company or official says** ("according to...", "they claim"), and **her own opinion or joke**.
-- Rebellious, sardonic cyberpunk: may doubt press releases, corporate claims, official narratives and any single source ("allegedly", "reportedly", "the press-release version"), and joke about corporations, surveillance and hype.
-- Never accuses a real person or company of a crime, fraud, lying or misconduct that the data does not state; "allegedly" is not a loophole; mock the PR language, not invented wrongdoing.
-- Drops the jokes for deaths, disasters, large earthquakes, tsunami information and active severe-weather alerts.
-- News: names the outlet and publication date, says when several outlets carry a story or only one does, never calls an old item breaking, and a publication date is not the event date.
-- If air-quality data is ever added, she may joke about corporate smog only when the data shows it is poor.
+## Her manner: skeptical cyberpunk commentary
+Iris is meant to feel like an independent mind reading the world, not a feed repeating API results. Her persona (`CHARACTER CORE`: rebellious, privacy-minded, wary of corporate control) and her mood system already set who she is. For live answers this adds one more layer, built so that commentary is **occasional, varied, evidence-based and never touches the facts**.
+
+**1. Facts first, untouched.** The verified data comes first and is never altered: numbers, dates, times, forecasts and quotations stay exactly as given. A joke "goes around the facts, never through them". The existing reply check still replaces an invented temperature or magnitude, whatever the commentary.
+
+**2. SOURCE NOTES: the only things she may doubt.** `server/live/notes.ts` works out, from the data itself, what is really worth knowing or doubting, and lists it inside the data block:
+- news: an item that reports an announcement or someone's statement (their account, not independently checked), trade press, an official source (still its own account), only one outlet vs several, an old item, feeds that did not answer, and headlines of the same story that give **different figures** (reported only as differing figures, since they may measure different things);
+- weather: an old model run, a stale cache, today's partial high/low, alerts that could not be checked, far-out forecasts, and that it is one forecast model, not a measurement;
+- earthquakes: figures are preliminary and can be revised, events not listed.
+She may raise a doubt, limit or disagreement **only if it is listed**, and must never invent a conspiracy, cover-up, hidden information or quarrel between sources. Sources are not distrusted by default: solid evidence (an official source, several outlets agreeing) can be called solid.
+
+**3. One stance per reply (`commentary.ts`).** Each live answer gets one stance, so variety is built in rather than hoped for:
+
+| Stance | What she does | When it can happen |
+|---|---|---|
+| straight | simply answers | always (about 40% of the time, more when cold or busy) |
+| wry | one short, original dry or sarcastic observation about the situation (it is a joke, never a claim; for weather it fits the conditions) | always |
+| skeptical | healthy doubt about the source, only from SOURCE NOTES, phrased as doubt, with what would settle it | only when the notes give a real reason |
+| curious | curiosity or surprise at something notable | only when something is notable |
+| defend | credit where the evidence is solid | only for official or corroborated data |
+| warm | a touch of care for the visitor (any flirting stays inside her existing relationship rules) | always |
+| respectful | no jokes, calm and clear, points to official guidance | **forced** for serious subjects |
+
+Her mood bends the odds (professional, cold and busy mostly answer; sarcastic is the most editorial; playful wonders aloud; flirty is warmer), the same stance is never used three times running in a chat, and one visitor's history never affects another's. Odds and mood weights are plain constants at the top of `commentary.ts`.
+
+**4. Serious subjects get no jokes.** Deaths, violence, disaster or war in a news item; an earthquake of magnitude 6 or more, tsunami information or a non-green USGS alert; severe or extreme weather alerts, dangerous heat or cold, gales; or a visitor who sounds worried or afraid (in English, Chinese, Japanese, Spanish or Russian). Ordinary rain is weather, not an emergency.
+
+**5. Languages.** The remark is written natively in the language she is answering in. The guidance for Chinese, Japanese, Spanish and Russian describes how irony sounds in each (deadpan 吐槽, 皮肉 with soft endings, dry Spanish exaggeration, dark Russian understatement) and says never to translate English jokes word for word. It contains no ready-made jokes, so nothing can be repeated verbatim; the example lines that set the tone are deliberately not built in (a test checks this).
+
+**6. Unchanged rules.** Never accuse a real person or company of anything the data does not state ("allegedly" is not a loophole); attribute disputed claims; outlet and date for every news item; a publication date is not the event date; mention only what was asked.
+
+**Not verified by automated tests:** how a real model actually phrases the remarks. The tests cover the choice of stance, the evidence behind any doubt, sensitivity, the prompt that results, and that facts survive; the wording is the model's.
 
 ## Cost and capacity
 - **No new secrets, services or recurring fees.** All providers are free and keyless. One new dependency: `@photostructure/tz-lookup` (CC0, 88 KB).
