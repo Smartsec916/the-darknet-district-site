@@ -27,6 +27,8 @@ import { noteReply, verificationResultLine } from "./verification";
 import { clearRetrievals, countStored, DELETE_CONFIRMATION, deleteStored } from "./memory";
 import { createOwnerRouter } from "./ownerControls";
 import { clock, clockPrompt, enforceVerifiedTime, LANGUAGE_NAME, planTimeAnswer, timeRule, verifiedReply, type TimePlan } from "./timeService";
+import { prepareLive, type LivePrep } from "./live";
+import { resolveUnknownPlace } from "./live/timePlaces";
 
 // What the /embed widget page may do: run its own inline script and style, show its
 // built-in portrait, and talk only to this service. It can be framed only by the
@@ -1438,16 +1440,27 @@ export async function registerRoutes(app: Express): Promise<Express> {
       const nowMs = clock.now();
       let timePlan: TimePlan | null = null;
       try { timePlan = planTimeAnswer(message, nowMs); } catch (err) { logError("time_plan_failed", err); }
+      // A place the built-in list lacks is looked up, so any place on Earth gets a verified clock (live/timePlaces.ts)
+      if (timePlan?.outcome === "ask_unknown" && !memory.canned && !memory.recallAsked) {
+        try { timePlan = await resolveUnknownPlace(timePlan); } catch (err) { logError("time_place_lookup_failed", err); }
+      }
       const timeDirect = Boolean(timePlan?.direct && !memory.canned && !memory.recallAsked);
+      // Weather, earthquakes and news, only when the visitor asks (live/index.ts). Fetched before the model is called;
+      // if nothing is asked, or the visitor asked the time, this does nothing and costs nothing.
+      let live: LivePrep | null = null;
+      if (!memory.canned && !memory.recallAsked && !timeDirect) {
+        try { live = await prepareLive({ message, sessionId, nowMs }); } catch (err) { logError("live_prepare_failed", err); }
+      }
       // With nothing stored and nothing in this chat, the honest answer needs no model and cannot be invented
       const reply = memory.canned
         ? openaiService.recordTurn(sessionId, neutralizeMarker(message), memory.canned)
         : timeDirect && timePlan
         ? openaiService.recordTurn(sessionId, neutralizeMarker(message), verifiedReply(timePlan), LANGUAGE_NAME[timePlan.query.lang])
         : await openaiService.getResponse(sessionId, neutralizeMarker(message), promptAddition, {
-            relationshipPrompt, isEva, memoryPrompt: memory.prompt, sampling: memory.sampling,
-            tailReminder: [memory.tailReminder, timePlan ? timeRule(timePlan) : null].filter(Boolean).join("\n\n") || null,
+            relationshipPrompt, isEva, memoryPrompt: memory.prompt, sampling: memory.sampling ?? live?.sampling,
+            tailReminder: [memory.tailReminder, timePlan ? timeRule(timePlan) : null, live?.tail].filter(Boolean).join("\n\n") || null,
             clockPrompt: clockPrompt(nowMs, timePlan),
+            livePrompt: live?.prompt, maxTokens: live?.maxTokens,
           });
       
       // Process translation for special users if needed
@@ -1507,6 +1520,14 @@ export async function registerRoutes(app: Express): Promise<Express> {
           timeOutcome = checked.repaired ? "repaired" : "corrected";
         }
       }
+      // The live-data check: figures and links in the finished reply must be the ones she was given
+      let liveCorrected = false;
+      if (live && !reply.fallback && !memory.canned) {
+        try {
+          const verified = live.check(translatedResponse);
+          if (verified.replaced) { translatedResponse = verified.text; openaiService.replaceLastReply(sessionId, verified.text); liveCorrected = true; }
+        } catch (err) { logError("live_check_failed", err); }
+      }
 
       // Save the exchange (visitor message, then Iris's reply, as shown to the visitor)
       // before replying, so a Render restart cannot lose it
@@ -1515,7 +1536,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         language: reply.language ?? null,
         iris: { text: translatedResponse, status: reply.fallback ? "fallback" : "ok", at: new Date() },
       });
-      res.locals.logFields = { fallback: reply.fallback, failure: reply.failure, saved, language: reply.language, memoryRecent: memory.recentIncluded, memoryRecall: memory.recallIncluded, memoryFailed: memory.failed, memoryMode: memory.mode, canned: Boolean(memory.canned), ...(timeOutcome ? { time: timeOutcome } : {}), ...(emo ? { emotion: reply.emotion ? "read" : "missing" } : {}) };
+      res.locals.logFields = { fallback: reply.fallback, failure: reply.failure, saved, language: reply.language, memoryRecent: memory.recentIncluded, memoryRecall: memory.recallIncluded, memoryFailed: memory.failed, memoryMode: memory.mode, canned: Boolean(memory.canned), ...(timeOutcome ? { time: timeOutcome } : {}), ...(live ? { ...live.log, ...(liveCorrected ? { liveCorrected: true } : {}) } : {}), ...(emo ? { emotion: reply.emotion ? "read" : "missing" } : {}) };
       
       // fallback: true marks a canned reply that replaced a failed OpenAI call
       res.json(reply.fallback ? { response: translatedResponse, fallback: true } : { response: translatedResponse });

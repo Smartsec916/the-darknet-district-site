@@ -198,7 +198,7 @@ export function initializeSession(sessionId: string): void {
 // the current one and the prompt stays the same size.
 // "tail" is the one slot placed AFTER the conversation, as the last thing the model reads before it answers
 // "langTail" (which language to answer in) comes just before "tail", so the recall rule stays the very last thing read
-type SystemSlot = "context" | "clock" | "relationship" | "memory" | "distraction" | "flirtBoost" | "langTail" | "tail";
+type SystemSlot = "context" | "clock" | "live" | "relationship" | "memory" | "distraction" | "flirtBoost" | "langTail" | "tail";
 const sessionSystemSlots = new Map<string, Map<SystemSlot, string>>();
 
 function setSystemSlot(sessionId: string, slot: SystemSlot, content: string): void {
@@ -961,6 +961,8 @@ export interface ReplyOptions {
   tailReminder?: string | null;
   sampling?: { temperature: number; presence_penalty: number; frequency_penalty: number };
   clockPrompt?: string | null; // the current time from the server's clock, and verified local times (see timeService.ts)
+  livePrompt?: string | null;  // weather, earthquakes or news the visitor asked for, for this reply only (see live/index.ts)
+  maxTokens?: number;          // a longer reply than the usual short one, when she is reporting live information
 }
 
 // Process a user message and get a response
@@ -1057,6 +1059,9 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     // The server's clock for this reply only (replaced every turn), so she never has to guess what time it is
     if (options.clockPrompt) setSystemSlot(sessionId, "clock", options.clockPrompt);
     else sessionSystemSlots.get(sessionId)?.delete("clock");
+    // Live information for this reply only (replaced every turn, never accumulated, never stored)
+    if (options.livePrompt) setSystemSlot(sessionId, "live", options.livePrompt);
+    else sessionSystemSlots.get(sessionId)?.delete("live");
     // Private relationship context for this reply only (replaced every turn, never accumulated)
     if (options.relationshipPrompt) setSystemSlot(sessionId, "relationship", options.relationshipPrompt);
     else sessionSystemSlots.get(sessionId)?.delete("relationship");
@@ -1111,7 +1116,7 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
       userMessage.toLowerCase().includes('marketplace');
     
     // Allow for more tokens in general to support more engaging and varied conversations
-    const maxTokens = isProductOrDistrictQuestion ? 150 : 120;
+    const maxTokens = options.maxTokens ?? (isProductOrDistrictQuestion ? 150 : 120);
     
     // Randomly decide if Iris should mention being distracted by the physical venue (10% chance)
     const shouldMentionPhysicalDistraction = Math.random() < 0.1;

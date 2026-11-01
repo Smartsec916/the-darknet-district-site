@@ -453,6 +453,15 @@ export interface TimePlan {
   guard: boolean;       // the model's reply is checked against the verified values
 }
 
+// A place the built-in list does not know, found by the place lookup (live/timePlaces.ts): the same verified answer, for
+// any place on Earth. The time zone comes from the coordinates, the clock from the server, the conversion from Intl.
+export function planWithPlace(plan: TimePlan, place: Place): TimePlan {
+  return { ...plan, query: { ...plan.query, places: [place], unknownPlace: null, ambiguous: null }, readings: [readZone(plan.nowMs, place)], outcome: "answer" };
+}
+export function planAmbiguous(plan: TimePlan, name: string, options: Place[]): TimePlan {
+  return { ...plan, query: { ...plan.query, unknownPlace: null, ambiguous: { name, options, labels: [name] } }, outcome: "ask_ambiguous" };
+}
+
 export function planTimeAnswer(text: string, nowMs: number = clock.now()): TimePlan | null {
   const query = analyzeTimeQuestion(text);
   if (!query) return null;
