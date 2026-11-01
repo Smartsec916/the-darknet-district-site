@@ -556,7 +556,7 @@
      for(let s=0;s<4;s++){const sy=.5+s*.42;box('vending-shelf',[.62,.03,1.1],[x+.2,sy,z-.12],frame);for(let k=0;k<5;k++){const h=.16+((i*7+s*3+k)%3)*.05,c=(i+s*2+k)%5;box('vending-item',[.22,h,.16],[x+.3,sy+h/2+.02,z-.55+k*.21],glowMat('vend-item-'+c,itemColors[c],.5));}}
      box('vending-led',[.05,.05,1.1],[x+.48,1.97,z-.12],glowMat('vend-led','#f4f8ff',1.5));box('vending-glass',[.02,1.68,1.14],[x+.51,1.18,z-.12],vendGlass,false);
      box('vending-panel',[.06,1.5,.32],[x+.5,1.1,z+.6],frame);box('vending-pay',[.02,.26,.2],[x+.535,1.38,z+.6],glowMat('vend-pay','#6cff9e',.9));box('vending-card',[.02,.1,.18],[x+.535,1.08,z+.6],amber);}
-     neon('vend-label-'+i,[['DRINKS','SNACKS','TECH'][i]],[['#38e8ff','#ff5bd0','#ffb347'][i]],1.1,.22,[x+.52,2.08,z-.12],-Math.PI/2,'rgba(8,8,12,.92)');}
+     neon('vend-label-'+i,[['DRINKS','SNACKS','NEUROHACKERS'][i]],[['#38e8ff','#ff5bd0','#ffb347'][i]],[1.1,1.1,1.3][i],.22,[x+.52,2.08,z-.12],-Math.PI/2,'rgba(8,8,12,.92)');}
     box('vend-bin',[.5,.8,.5],[-3.6,.4,52],pipe);
 
     // Sleep pods: two stacked rows with ring-lit hatches and numbers.
