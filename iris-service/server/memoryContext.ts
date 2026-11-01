@@ -19,7 +19,7 @@
 import * as openaiService from "./services/openai";
 import {
   approxTokens, buildMemoryPrompt, extractTerms, isRecallQuestion, limits, loadRecent, loadSession, memoryEnabled,
-  memoryKeysFor, recordRetrieval, searchMemory, type Loaded, type RecallMode, type StoredMessage,
+  loadSessionLanguage, memoryKeysFor, recordRetrieval, searchMemory, type Loaded, type RecallMode, type StoredMessage,
 } from "./memory";
 
 export interface PreparedMemory {
@@ -128,6 +128,9 @@ export async function prepareMemory(args: {
       if (stored.ok && stored.value.length) {
         openaiService.seedSession(args.sessionId, stored.value.map(m => ({ role: m.sender === "iris" ? "assistant" : "user", content: m.text })));
         rebuilt = stored.value.length;
+        // ...and the language the chat was being held in, from the language stored with the visitor's messages
+        const held = await loadSessionLanguage(keys, args.sessionId);
+        if (held.ok) openaiService.seedPreferredLanguage(args.sessionId, held.value);
       }
     }
   }

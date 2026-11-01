@@ -18,6 +18,7 @@ import { dbQuery } from "./db";
 import { ensureSchema } from "./migrate";
 import { logError, logThrottled } from "./logger";
 import { cleanMemoryText, describeGap } from "./emotion";
+import { preferredFromStored } from "./language";
 
 export const memoryEnabled = () => process.env.IRIS_PERSISTENT_MEMORY !== "off";
 
@@ -273,6 +274,21 @@ export function loadSession(keys: string[], sessionId: string, max = 9) {
       [sessionId, max, ...o.params],
     );
     return rows.map(toMessage).reverse();
+  });
+}
+
+// The language this chat was being held in, rebuilt after a restart from the language already stored with the
+// visitor's own messages (no new column or table). Only this visitor's rows of this chat are read.
+export function loadSessionLanguage(keys: string[], sessionId: string, max = 12) {
+  return guarded<string>("session_language", "english", async () => {
+    const o = owned(keys, 3);
+    const { rows } = await dbQuery(
+      `SELECT m.message, m.language FROM chat_messages m
+       WHERE ${o.sql} AND ${ELIGIBLE} AND m.session_id = $1 AND m.sender = 'user'
+       ORDER BY m.id DESC LIMIT $2`,
+      [sessionId, max, ...o.params],
+    );
+    return preferredFromStored(rows.reverse().map((r: any) => ({ text: String(r.message), language: r.language ?? null })));
   });
 }
 

@@ -85,3 +85,17 @@ measurements against the live API.
 - Visitors with no client id, or who clear their browser storage, are strangers again.
 - Conversational initiative is encouraged in the prompt, not scheduled: Iris never messages anyone
   unprompted.
+
+## Reply language
+
+Each message is detected on its own and that detection is what is stored with it (so the admin viewer is unchanged). The language of
+the reply comes from the conversation's **default language** (`server/language.ts`):
+
+- a message clearly in another language moves the default; a short or ambiguous English message ("ok", "thanks", "hello") does not;
+- a clear English sentence moves it back to English;
+- explicit requests are always honored: translate (one reply, the default stays), answer in two languages (one reply), or switch
+  language (the new default);
+- after a restart the default is rebuilt from the language already stored with the visitor's own messages in that chat (no new
+  column or table); a visitor with no memory identity (New Visitor mode) starts from English again;
+- the model reads one short `LANGUAGE:` note after the conversation (before the recall rule). It allows names and District or game
+  terms in English and never forbids a requested translation.
