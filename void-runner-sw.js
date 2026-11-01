@@ -1,7 +1,7 @@
 /* VOID//RUNNER only. Increment BUILD when deploying changed game files (the Pages build also stamps it with the commit,
    tools/assets/build-pages.cjs, so a deploy always starts a fresh cache). Restored 2026-10-31: a merge on 2026-10-26
    (f6f582e) had reduced this file to its BUILD line, which left the game without its offline cache. */
-const BUILD='2026-11-01-neurohackers';
+const BUILD='2026-11-01-nightclub';
 const CORE='void-runner-core-'+BUILD;
 const ASSETS='void-runner-assets-'+BUILD;
 const PAGE=new URL('./void-runner.html',self.location).pathname;

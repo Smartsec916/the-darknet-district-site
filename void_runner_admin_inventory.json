@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "2ce3e6ab33a90c5c",
+  "revision": "85a170e2144eb8d3",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -7242,13 +7242,13 @@
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 83,
+      "line": 85,
       "text": "function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=['ncz-neon','fixer-01','runner-02','communion-tech','district-resident','hacker-01','outlaw-01','district-smuggler'],drunkCast=['runner-02','ncz-neon'],rnd=Math.random,cfg=config}){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 147,
+      "line": 149,
       "text": "if(p.drunk&&me&&remarkCool<=0&&Math.hypot(p.node.position.x-me.x,p.node.position.z-me.z)<cfg.remarkRadius){remarkCool=cfg.remarkCooldown;say('A drunk passer-by: \"'+remarks[Math.floor(rnd()*remarks.length)]+'\"');}",
       "kind": "source-reference"
     },
@@ -8342,8 +8342,9 @@
     "void-runner/music-integration.js": "4d0fb52f85f3375a2bcd5385886e63c569a65209e2c5de32ab3f5b0cd465c02d",
     "void-runner/music-score.js": "2371893bd722e910f8325ce5d436f48f6dfac32c9fad259e7239ef7745783fc6",
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
-    "void-runner/ncz-nightlife.js": "4f57fced82871bdf76415cee854eb7204c095e9abc0a242ed2df49e3188fead6",
-    "void-runner/neochinatown.js": "34442af1993ca00d60c12df623d55a98f6ae539e37255e765d951775ae7cc23d",
+    "void-runner/ncz-nightclub.js": "539749892f0fec3ab387395c9aec998c4ba0b10d7884f69222a95dd4234a7ded",
+    "void-runner/ncz-nightlife.js": "4c6e4d7ca34309a6e1a190bfc70d78123ef746ccab8f29c74b7c77041e038fba",
+    "void-runner/neochinatown.js": "b711f17fa29b0d3156fe062f8ba3997447686f9c1355e52a56263befd15673ec",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "ff9fa180e9a3992b9ce1a5cee323060343983028e46405da8a0c7bfecae29031",
     "void-runner/opening-scene.js": "da1674b96960e03052332b46f33745a5db4f738ad2a38d06cef1eaa912b1ecbb",

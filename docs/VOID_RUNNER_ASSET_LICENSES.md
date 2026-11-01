@@ -182,3 +182,22 @@ machines (`district/vending-neon.vrpak`, from the private repository, encrypted;
 "Cyberpunk Vending Machine Grimy Sci Fi Dystopian Prop" (CGTrader, Royalty Free License (no AI)): **not used yet**, the
 supplied FBX references a "Vending Machine Textures Official" folder (base colour, emission, metallic, roughness, normal)
 that wasn't in the download. Originals of both are kept outside the repository.
+
+**Cyber Club nightclub (2026-11-01).** "cyberpunk - Cyber Club" on CGTrader (https://www.cgtrader.com/3d-models/interior/hall/cyberpunk-cyber-club,
+item 5665404, $12.50), downloaded by David through a **CGTrader subscription** ("subscriptionDownloads"). Package: a 1.9 MB
+animated FBX (363 meshes, 66.5k triangles, 18 materials, 16 FBX clips), 286 MB of 2K TGA/TIF/PNG textures, an Unreal 4 project
+(185 MB) and a Unity HDRP package (381 MB). The saved download dialog (`cyberpunk-cyber-club.zip`, actually JSON) was
+read for the item id and file list only; it is not in the repository. The listing's licence type was **not** checked from
+the product page (it needs a sign-in); CGTrader's published terms (§19A, §21A) say subscription downloads are always the
+**No AI** Royalty Free licence, may be used after the subscription ends only in projects completed while it was active, and
+games must keep the raw model from end users ("a proprietary format", "encrypting the Product data"). A plain `.glb` on the
+public site or in this public repository would not meet that. So, as with the city pack and the vending machines:
+**local development only until David confirms**: `tools/assets/prepare_nightclub.py` (Blender) makes the GLB, `pack-model.cjs` makes
+`void-runner/assets/models/ncz/nightclub.vrpak` (git-ignored); the club is off unless the page is opened with `?nightclub=1`.
+To release: confirm the licence on the product page, put the `.vrpak` in the private asset repository
+(`void-runner-licensed-assets`, `void-runner/assets/models/ncz/`), and change the default in `ncz-nightclub.js` `enabled()`.
+Inspected and unused: the UE and Unity packages, the loose vending-machine FBX/GLB/OBJ files that sat in the same download folder
+(a different product), and the 16 FBX clips (a 100x scale; the beams are rebuilt in code). Changes to the model: textures
+1024 px (JPEG), static meshes merged per material, mirror ball kept, FBX moving heads and beam cones left out (they could not be
+placed without their clips), one 4 m wall tile removed at the street entrance. Ambient sound is made in code (noise murmur and a
+muffled 124 BPM thump), nothing recorded or licensed.

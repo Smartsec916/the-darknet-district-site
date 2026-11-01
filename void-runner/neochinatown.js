@@ -27,7 +27,9 @@
   const taxiZones=[{id:'main',name:'Main Street',position:[61,-100],heading:0},{id:'avenue',name:'The avenue',position:[40,-12.5],heading:Math.PI/2},{id:'alley-mouth',name:'Main Street by the alley',position:[61,-66],heading:0},{id:'passage',name:'The passage by the landing pad',position:[40.75,-101],heading:0},
     ...districts.map(d=>({id:d.id,name:d.name,position:d.taxi,heading:d.heading,district:d.id}))];
   // Places with their own walls: the District (with its front wall on the alley) and the roof terrace.
-  const footprints={district:[109.4,144.4,-120.4,-61.6],terrace:[78.4,99.4,-116.4,-95.4]};
+  // The nightclub (ncz-nightclub.js) is on a local server only until its licence is cleared; elsewhere nothing below changes.
+  const NC=typeof module!=='undefined'?require('./ncz-nightclub.js'):root.VoidNightclub,club=NC&&NC.enabled()?NC:null;
+  const footprints={district:[109.4,144.4,-120.4,-61.6],terrace:[78.4,99.4,-116.4,-95.4],...(club?{club:club.RECT}:{})};
   const inside=([x0,x1,z0,z1],x,z,m=0)=>x>=x0-m&&x<=x1+m&&z>=z0-m&&z<=z1+m;
   // Where a world point is: the streets, the District interior or the terrace (music, comms and tests use this).
   function zone(p){const [lx,lz]=toWorld(p.x,p.z);if(inside(footprints.terrace,p.x,p.z))return {area:'terrace',x:lx,z:lz};if(inside(footprints.district,p.x,p.z,.01)&&lz>=19.8)return {area:'district',x:lx,z:lz};return {area:'street',x:p.x,z:p.z};}
@@ -98,7 +100,7 @@
     const placed=solids.map(s=>{const [x,z]=toWorld(s.position[0],s.position[2]);return {...s,position:[x,s.position[1],z],size:s.size.slice()};});
     const items=interactions.map(i=>{const [x,z]=toWorld(i.position[0],i.position[2]);return {...i,position:[x,i.position[1],z]};});
     return {id:'neochinatown',name:'NEOCHINATOWN / TESSALY',kind:'city',district:true,bounds:[260,270],spawn:[31,1.7,-96],yaw:2.44,color:'#3a2f4a',music:'earth',ship:'starter',
-    solids:[...placed,...cityBlocks.map(s=>({...s,position:s.position.slice(),size:s.size.slice()})),{id:'ship',position:[22,2,-96],size:[3.6,4,10.5]}],
+    solids:[...placed,...(club?club.solids():[]),...cityBlocks.map(s=>({...s,position:s.position.slice(),size:s.size.slice()})),{id:'ship',position:[22,2,-96],size:[3.6,4,10.5]}],
     interactions:[{id:'board',label:'BOARD YOUR SHIP',position:[27,1.7,-98],action:'board',range:3.5},{id:'terminal',label:'LANDING TERMINAL',position:[34.5,1.7,-103],action:'terminal',range:3},...items],signs:[]};}
 
   // ---- Presentation -------------------------------------------------------
@@ -114,7 +116,7 @@
     const look={exposure:1.3,contrast:1.18},applyLook=()=>{if(ip.exposure!==look.exposure)ip.exposure=look.exposure;if(ip.contrast!==look.contrast)ip.contrast=look.contrast;};applyLook();scene.environmentIntensity=Math.min(previous.env??1,.3);
     const sun=scene.getLightByName('sun'),ambient=scene.getLightByName('ambient');const lightState={sun:sun?.intensity,ambient:ambient?.intensity,diffuse:ambient?.diffuse?.clone(),ground:ambient?.groundColor?.clone()};
     // Outdoors: a dim teal sky light. Inside the District the original warm level returns (see tick).
-    const outdoor={intensity:low?.6:.5,diffuse:new B.Color3(.42,.62,.72),ground:new B.Color3(.12,.07,.16)},indoor={intensity:.8,diffuse:lightState.diffuse,ground:lightState.ground};
+    const outdoor={intensity:low?.6:.5,diffuse:new B.Color3(.42,.62,.72),ground:new B.Color3(.12,.07,.16)},indoor={intensity:.8,diffuse:lightState.diffuse,ground:lightState.ground},clubSky={intensity:1.7,diffuse:new B.Color3(.72,.5,.95),ground:new B.Color3(.3,.12,.42)};
     if(sun)sun.intensity=.04;if(ambient){ambient.intensity=outdoor.intensity;ambient.diffuse=outdoor.diffuse;if(ambient.groundColor)ambient.groundColor=outdoor.ground;}
     const mats={};
     function mat(key,hex,{rough=.8,metal=.2,glow=null,alpha=1}={}){if(mats[key])return mats[key];const m=new B.PBRMaterial('ncz-'+key,scene);m.albedoColor=B.Color3.FromHexString(hex);m.roughness=rough;m.metallic=metal;if(glow)m.emissiveColor=B.Color3.FromHexString(glow);if(alpha<1){m.alpha=alpha;m.transparencyMode=2;}owned.push(m);mats[key]=m;return m;}
@@ -191,7 +193,7 @@
     // row of street stalls fronts the street from z -76.6 to -49.4, replacing two procedural plots.
     // Both files or neither: the building alone would leave the stall row empty (a first visit on a slow connection can
     // finish one in time and not the other; the late one is cached for the next visit).
-    {const front=51,z0=-76.6,z1=-49.4,face=Math.PI/2,stallTop=4.65,both=['ncz:building5','ncz:storefronts'].every(id=>root.VoidAssets?.container?.(id)),
+    {const front=51,z0=-76.6,z1=-49.4,face=Math.PI/2,stallTop=4.65,both=!club&&['ncz:building5','ncz:storefronts'].every(id=>root.VoidAssets?.container?.(id)),
      b=both?piece('building5',null,[front-11.91/2,stallTop,(z0+z1)/2],face):null;
      if(b){upgraded.push({rect:[front-11.95,front,z0,z1],street:'main'});
       const stalls=[['Store1',3.73],['Store.001',3.57],['Store3',3.71],['StoreFurniture1.007',3.57],['Store.002',3.57],['Store3',3.71]],w=4.02,start=(z0+z1)/2-stalls.length*w/2;
@@ -200,6 +202,22 @@
       box('blockA-fascia',[.6,stallTop-4.2,z1-z0],[front-.3,4.2+(stallTop-4.2)/2,(z0+z1)/2],frame);
       for(const [a,c] of [[z0,start],[start+stalls.length*w,z1]])if(c-a>.05)box('blockA-end',[3.7,stallTop,c-a],[front-1.85,stallTop/2,(a+c)/2],shopfront);}}
     const upgradedAt=(x,z,m=0)=>upgraded.some(u=>inside(u.rect,x,z,m));
+    // ---- Nightclub front (ncz-nightclub.js): the street wall of the club on Main Street's west side, with its doorway ----
+    // The store row there is dropped; the club's own 1 m thick front takes its place. A shutter fills the doorway until the model has loaded.
+    let clubShutter=null;
+    if(club){upgraded.push({rect:club.RECT.slice(),street:'main'});
+     const D=club.DOOR,R=club.RECT,front=mat('club-front','#171221',{rough:.45,metal:.8}),hot=glowMat('club-magenta','#ff3fb4',1.2),ice=glowMat('club-cyan','#38e8ff',1.1),
+      z0=R[2]-.4,z1=R[3]+.4,h=8.4,wall=(id,a,b,y0,y1)=>box(id,[1,y1-y0,b-a],[R[1]-.5,(y0+y1)/2,(a+b)/2],front);
+     wall('club-front-south',z0,D.z-D.half,0,h);wall('club-front-north',D.z+D.half,z1,0,h);wall('club-front-lintel',D.z-D.half,D.z+D.half,D.height,h);
+     // Trim in the District's colours: cyan round the door, magenta up the front, a canopy over the pavement.
+     for(const s of [-1,1])box('club-door-jamb',[.06,D.height,.12],[R[1]+.03,D.height/2,D.z+s*(D.half+.06)],ice);
+     box('club-door-header',[.06,.12,D.half*2+.24],[R[1]+.03,D.height+.06,D.z],ice);
+     for(const z of [-66.8,-64.2,-51.8,-49.6])box('club-strip',[.06,h-.8,.14],[R[1]+.03,h/2,z],hot);
+     for(const y of [.3,h-.2])box('club-rail',[.06,.12,z1-z0-.4],[R[1]+.03,y,(z0+z1)/2],y<1?ice:hot);
+     box('club-canopy',[1.7,.14,D.half*2+2.4],[R[1]+.85,D.height+.35,D.z],frame);box('club-canopy-light',[1.4,.05,D.half*2+2],[R[1]+.85,D.height+.26,D.z],hot);
+     neon('club-sign',['NIGHTCLUB','夜總會'],['#ff3fb4','#38e8ff'],8.4,2.4,[R[1]+.08,6.1,D.z],-Math.PI/2,'rgba(10,6,20,.92)');
+     box('club-door-glow',[3,.02,D.half*2+3],[R[1]+1.6,.05,D.z],glowMat('club-spill','#ff3fb4',.22));
+     clubShutter=box('club-shutter',[.1,D.height,D.half*2],[R[1]-.5,D.height/2,D.z],mat('club-shutter','#0d0b14',{rough:.5,metal:.9}),false);}
     for(const e of edges){
      const len=Math.hypot(e.b[0]-e.a[0],e.b[1]-e.a[1]),wide=e.street==='avenue'||e.street==='main',sw=wide?3:e.street==='road'?1.5:0,ry=faceInto(e.n);
      // Sidewalk strip, storefronts, awnings and signs on the wide streets; facades on the rest.
@@ -211,9 +229,9 @@
       rand();const run=seg-1.5,face=new B.Vector4(0,0,run/3,1),edge=new B.Vector4(0,0,.05,1),up=upgradedAt(wall[0]+e.n[0]*.5,wall[1]+e.n[1]*.5);discard=up;
       add(B.MeshBuilder.CreateBox('storefront',{width:e.n[0]?.1:run,height:3,depth:e.n[0]?run:.1,faceUV:e.n[0]?[edge,edge,face,face,edge,edge]:[face,face,edge,edge,edge,edge],wrap:true},scene),shopfront,[wall[0],1.6,wall[1]]);
       box('awning',e.n[0]?[1.2,.12,seg-1.2]:[seg-1.2,.12,1.2],[p[0]+into[0]*.6,3.4,p[1]+into[1]*.6],frame);discard=false;
-      if(wide&&rand()<.55){const [lines,colors]=shopSigns[signIndex++%shopSigns.length];neon('shop-sign-'+signIndex,lines,colors,2.4,4.4,[p[0]+into[0]*.25,5.2,p[1]+into[1]*.25],ry);signSpots.push({c:colors[0],f:{x:p[0]+e.n[0]*.12,z:p[1]+e.n[1]*.12,tx:e.n[0]?0:1,tz:e.n[0]?1:0,nx:-e.n[0],nz:-e.n[1]}});}
+      if(wide&&rand()<.55&&!(club&&up)){const [lines,colors]=shopSigns[signIndex++%shopSigns.length];neon('shop-sign-'+signIndex,lines,colors,2.4,4.4,[p[0]+into[0]*.25,5.2,p[1]+into[1]*.25],ry);signSpots.push({c:colors[0],f:{x:p[0]+e.n[0]*.12,z:p[1]+e.n[1]*.12,tx:e.n[0]?0:1,tz:e.n[0]?1:0,nx:-e.n[0],nz:-e.n[1]}});}
       if(wide&&rand()<.35&&!(discard=up))billboard(5.5+rand()*2,[p[0]+into[0]*.3,10+rand()*2.5,p[1]+into[1]*.3],ry);
-      discard=false;if(wide&&rand()<.4){const k=[p[0]+into[0]*(sw-.4),p[1]+into[1]*(sw-.4)];box('kiosk-frame',e.n[0]?[.3,2.9,1.9]:[1.9,2.9,.3],[k[0],1.45,k[1]],frame);plane('kiosk-ad',1.6,2.4,[k[0]+into[0]*.17,1.55,k[1]+into[1]*.17],adMat(nextAd()),ry);}}
+      discard=false;if(wide&&rand()<.4&&!(club&&up)){const k=[p[0]+into[0]*(sw-.4),p[1]+into[1]*(sw-.4)];box('kiosk-frame',e.n[0]?[.3,2.9,1.9]:[1.9,2.9,.3],[k[0],1.45,k[1]],frame);plane('kiosk-ad',1.6,2.4,[k[0]+into[0]*.17,1.55,k[1]+into[1]*.17],adMat(nextAd()),ry);}}
     }
     for(const [x0,x1,z] of [[2,152,-12.5]])for(let x=x0+4;x<x1-2;x+=6)box('lane-mark',[2.6,.02,.18],[x,.02,z],glowMat('lane','#d7c06a',.55));
     for(let z=-120;z<-22;z+=6)box('lane-mark',[.18,.02,2.6],[61,.02,z],glowMat('lane','#d7c06a',.55));
@@ -638,6 +656,9 @@
      if(!live&&near<90){city.live.set(d.id,placeholder(d));city.loads++;}else if(live&&near>140){live.dispose();city.live.delete(d.id);city.unloads++;}}}
     root.VoidNeoChinatown&&(root.VoidNeoChinatown.city=city);
     let weather=null;
+    // The club itself streams in when the player comes near and out again when they leave (ncz-nightclub.js).
+    const clubCtl=club&&root.VoidAssets?club.create({B,scene,parent,quality,assets:root.VoidAssets,getSolids:()=>typeof walkingLocation!=='undefined'?walkingLocation?.solids:null,onChange:open=>{if(clubShutter)clubShutter.setEnabled(!open);}}):null;
+    root.VoidNeoChinatown&&(root.VoidNeoChinatown.nightclub=clubCtl);
     // ---- Street detail: neon light spill, blade signs, wall lamps, cables, graffiti, the District's front, rain ----
     {const saved=target;target=parent;
      // Light pools: an additive glow on the wall and the wet ground near each light, instead of many real lights
@@ -701,15 +722,17 @@
     // Merge static meshes by material to keep draw calls low.
     for(const [m,list] of staticMeshes)if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(merged){merged.parent=parent;merged.material=m;merged.isPickable=false;}}
     let lastTick=null;
-    function atmosphere(time,dt){applyLook();const cam=scene.activeCamera?.globalPosition,inside=!!cam&&zone({x:cam.x,z:cam.z}).area==='district',sky=inside?indoor:outdoor;
-     if(ambient){ambient.intensity+=(sky.intensity-ambient.intensity)*Math.min(1,dt*3);if(inside!==wasInside){if(sky.diffuse)ambient.diffuse=sky.diffuse;if(sky.ground&&ambient.groundColor)ambient.groundColor=sky.ground;wasInside=inside;}}
+    function atmosphere(time,dt){applyLook();const cam=scene.activeCamera?.globalPosition,inClub=!!cam&&!!clubCtl&&clubCtl.inside(cam),inside=inClub||!!cam&&zone({x:cam.x,z:cam.z}).area==='district',sky=inClub?clubSky:inside?indoor:outdoor,key=inClub?'club':inside?'district':'street';
+     if(ambient){ambient.intensity+=(sky.intensity-ambient.intensity)*Math.min(1,dt*3);if(key!==wasInside){if(sky.diffuse)ambient.diffuse=sky.diffuse;if(sky.ground&&ambient.groundColor)ambient.groundColor=sky.ground;wasInside=key;}}
+     // Haze: thicker and violet inside the club, the street's teal fog everywhere else.
+     if(clubCtl){const f=Math.min(1,dt*2),d=inClub?.017:previous.fogDensity===undefined?.0028:.0028;scene.fogDensity+=(d-scene.fogDensity)*f;scene.fogColor=B.Color3.Lerp(scene.fogColor,inClub?new B.Color3(.1,.04,.15):new B.Color3(.075,.155,.17),f);clubCtl.tick(cam,dt,time);}
      streamDistricts(cam);
      if(weather?.rain&&cam){weather.rain.emitter.x=cam.x;weather.rain.emitter.z=cam.z;weather.rain.emitRate=inside?0:weather.rainRate;}
      for(const fl of weather?.flickers||[]){if(fl.off>0){fl.off-=dt;if(fl.off<=0)for(const m of fl.meshes)m.isVisible=true;}else if(time>fl.next){fl.off=.05+Math.random()*.12;fl.next=time+2+Math.random()*7;for(const m of fl.meshes)m.isVisible=false;}}
      for(const s of screens)if(time>s.next){s.mesh.material=adMat(nextAd());s.next=time+9+Math.random()*4;}}
     let wasInside=null;
     function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);doors.tick(dt);terminal.tick(dt);nightlife?.tick(dt);atmosphere(time,dt);for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
-    return {tick,city,nightlife,doors,dispose(){disposed=true;nightlife?.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
+    return {tick,city,nightlife,doors,dispose(){disposed=true;clubCtl?.dispose();nightlife?.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
   }
   // Licensed models (docs/VOID_RUNNER_ASSET_LICENSES.md) dressing the District; loaded before build().
   const models={'crowd:vr-player-a':{src:'assets/models/crowd/vr-player-a.glb',background:true},'crowd:vr-player-b':{src:'assets/models/crowd/vr-player-b.glb',background:true},'district:couch':{src:'assets/models/district/couch.glb',scale:.5},'district:bin':{src:'assets/models/district/bin.glb',scale:.6},'district:chair':{src:'assets/models/district/chair.glb',scale:1},

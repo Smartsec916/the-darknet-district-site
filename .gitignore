@@ -65,3 +65,6 @@ void-runner/assets/vr/companions/base-m.jpg
 _site/
 _licensed/
 void-runner/assets/models/district/vending-neon.vrpak
+
+# Purchased Cyber Club assets: licence forbids public redistribution of the raw files. Local only.
+void-runner/art/nightclub-local/

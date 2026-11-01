@@ -29,8 +29,10 @@
   spacing:1.1};            // how close two people get before one steps round
  // Sidewalk lanes (NeoChinatown coordinates): a line to walk, the wall side (for leaning) and how lively it is.
  // Nightlife lanes may hold drunks; the avenue's quieter east end has fewer people.
+ const NC=typeof module!=='undefined'?require('./ncz-nightclub.js'):root.VoidNightclub,club=!!NC&&NC.enabled();
  const lanes=[
-  {id:'main-west',a:[52.6,-121],b:[52.6,-22],wall:[-1,0],half:1,nightlife:true,weight:3},
+  // Nobody leans on the club's front by its door (ncz-nightclub.js, local server only for now).
+  {id:'main-west',a:[52.6,-121],b:[52.6,-22],wall:[-1,0],half:1,nightlife:true,weight:3,...(club?{noLean:[[-61,-55.6]]}:{})},
   {id:'main-east',a:[69.4,-121],b:[69.4,-22],wall:[1,0],half:1,nightlife:true,weight:3,noLean:[[-62.5,-54.5]]},
   {id:'alley',a:[73,-59.3],b:[117,-59.3],wall:[0,1],half:.6,nightlife:true,weight:2,noLean:[[0,999]]},
   {id:'avenue-north',a:[6,-6.6],b:[148,-6.6],wall:[0,1],half:1,nightlife:false,weight:2},
