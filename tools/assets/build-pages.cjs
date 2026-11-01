@@ -44,6 +44,11 @@ function build(licensed,out,key){
  const loader=path.join(out,'void-runner/asset-pipeline.js'),src=fs.readFileSync(loader,'utf8');
  if(src.split("'__VOID_ASSET_KEY__'").length!==2)throw Error('Key placeholder not found once in asset-pipeline.js');
  fs.writeFileSync(loader,src.replace("'__VOID_ASSET_KEY__'","'"+key.toString('base64')+"'"));
+ // Every deploy starts a fresh offline cache (void-runner-sw.js caches game files per BUILD), so a forgotten BUILD
+ // bump or a new key can never leave players on stale files.
+ const sw=path.join(out,'void-runner-sw.js'),worker=fs.readFileSync(sw,'utf8'),stamp=(process.env.GITHUB_SHA||Date.now().toString(36)).slice(0,10);
+ if(!/const BUILD='[^']*';/.test(worker))throw Error('BUILD not found in void-runner-sw.js');
+ fs.writeFileSync(sw,worker.replace(/const BUILD='([^']*)';/,(m,b)=>`const BUILD='${b}+${stamp}';`));
  if(bytes>PAGES_LIMIT)throw Error(`Site is ${(bytes/1048576).toFixed(0)} MB, over GitHub Pages' 1 GB limit`);
  return {files,added,sealed,mb:+(bytes/1048576).toFixed(1)};}
 

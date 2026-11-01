@@ -180,6 +180,12 @@ David's briefs: believable, attentive companions with their own initiative, a tw
 - **Not in the repository:** the three models, Una's variants and the previews (`una.jpg`, `base-f.jpg`, `base-m.jpg`) are git-ignored; their sources, Blender masters and builds stay in `%LOCALAPPDATA%/void-runner-assets/work/companions-2026-10-31b`.
 - **Tests:** `tests/vr-companion-new-roster.test.cjs` (registration, dev-only listing, Una's looks, pairs, public roster unchanged).
 
+## Rooms for two, gallery pictures and voices (2026-10-31, second pass)
+
+- **Who shares a room:** only the rooms David asked for. The Female gallery has **Ava & Eva** as its own card (both in one room) beside Ava and Eva alone; any other companion comes alone. Two companions of different sexes never share a room, even from an old saved choice or link (`C.party`). Dex is not pairable: he has a room of his own. Rooms for two are listed in `C.pairs` (`vr-companions.js`).
+- **Gallery pictures:** the Female and Male cards show a strip of up to four of that gallery's companions instead of a plain pink or blue panel; the Ava & Eva card shows both.
+- **Voices:** a companion's lines used to fall back to Rook's browser voice (a man's), so Seren and Nadia spoke as men. Now Seren, Kai and Nadia have recorded lines (Kokoro-82M, `tools/audio`; 164 clips): Seren `af_nicole`, Nadia `af_aoede`, Kai `am_fenrir`, all **provisional** for David to approve or change in the audition tool (`tools/audio/audition`). Companions without recordings (Ava, Eva, Yuki, Dex, Una: no lines yet) get a browser voice of their own sex. When their lines exist, Kokoro has women's voices free; for a man the registry has none left (Dex would need a voice moved from a provisional radio broadcaster).
+
 ## Needs David's review
 
 - **Lines that still mention the sea:** the companions' draft lines were written for the old seaside suite. Three mention the sea or salt air ("the sea and the sky", "the air smells like salt", "the colour of honey" at sundown). They are unchanged here because dialogue was out of scope; they can be rewritten for the city if David wants.

@@ -79,23 +79,26 @@ test('the bedroom has a talk spot per companion and every spot is reachable',()=
  for(const [x,z] of [[3.6,.3],[3.6,-1.5],[-3.7,.55],[-3.7,-1.95]])assert.equal(E.blocked(x,z,two),false,'slot spot '+x+','+z);
 });
 
-test('the picker brings both when a second pairable companion is chosen, and remembers the choice',()=>{
- const step=suite.picker.steps[1];
- assert.deepEqual(step.select(null,'ava'),['ava']);
- assert.deepEqual(step.select(['ava'],'eva'),['ava','eva']);
- assert.deepEqual(step.select(['ava','eva'],'eva'),['ava']);
- assert.deepEqual(step.select(['ava'],'seren'),['seren'],'Seren comes alone');
- assert.deepEqual(step.select(['seren'],'ava'),['ava']);
- assert.deepEqual(suite.picker.options(['female',['ava','eva']]),{companions:['ava','eva']});
- assert.deepEqual(suite.picker.options(['female',['eva']]),{companion:'eva'});
+test('the female gallery offers Ava and Eva alone and an "Ava & Eva" room; one choice at a time',()=>{
+ const step=suite.picker.steps[1];assert.equal(step.select,undefined,'one card is one room');
+ const pair=step.choices(['female']).find(c=>c.id==='ava+eva');
+ assert.equal(pair.label,'Ava & Eva');assert.deepEqual(pair.previews,[C.get('ava').preview,C.get('eva').preview]);
+ assert.ok(step.choices(['female']).some(c=>c.id==='ava')&&step.choices(['female']).some(c=>c.id==='eva'),'each alone too');
+ assert.ok(!step.choices(['male']).some(c=>c.id.includes('+')),'no rooms for two in the male gallery');
+ assert.deepEqual(suite.picker.options(['female','ava+eva']),{companions:['ava','eva']});
+ assert.deepEqual(suite.picker.options(['female','eva']),{companion:'eva'});
  assert.deepEqual(suite.picker.options(['female','seren']),{companion:'seren'});
+ assert.deepEqual(suite.picker.options(['male','base-m']),{companion:'base-m'});
+ // Companions of different sexes never share a room (Ava and Dex), even from an old link.
+ assert.deepEqual(C.party({companions:['ava','base-m']}).map(e=>e.id),['ava']);
+ assert.equal(C.get('base-m').pairable,false,'Dex has a room of his own');
 });
 
 test('Ava and Eva are released on the live site, their models from the private asset repository',()=>{
  for(const id of ['ava','eva']){const e=C.get(id);assert.equal(e.listed,undefined);assert.equal(e.licensed,true);
   assert.equal(C.offered(e,'localhost'),true);assert.equal(C.offered(e,'thedarknetdistrict.com'),true);}
  assert.equal(C.offered(C.get('seren'),'thedarknetdistrict.com'),true);
- assert.deepEqual(suite.picker.steps[1].choices(['female']).map(c=>c.id),['seren','nadia','ava','eva','base-f'],'the public female gallery adds the released companions');
+ assert.deepEqual(suite.picker.steps[1].choices(['female']).map(c=>c.id),['seren','nadia','ava','eva','base-f','ava+eva'],'the public female gallery adds the released companions and the room for two');
 });
 
 test('the VR menu has look rows per companion, named when two are in the room',()=>{

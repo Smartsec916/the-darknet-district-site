@@ -40,6 +40,10 @@ for(const file of fs.readdirSync(src).filter(f=>f.endsWith('.js'))){
     }
   }
 }
+// VR companions (vr-companions.js): every line of their dialogue, under their voice id (vr-seren and so on).
+for(const e of require(path.join(src,'vr-companions.js')).companions.values())for(const text of Object.values(e.dialogue||{}).flat()){
+  const speaker=e.voice?.characterId;if(!speaker||typeof text!=='string'||!text)continue;const key=speaker+'|'+text;
+  if(!lines.has(key))lines.set(key,{id:speaker+'-'+crypto.createHash('sha1').update(key).digest('hex').slice(0,10),speaker,text,source:'vr-companions.js'});}
 // Voices come from the permanent registry (tools/audio/npc-voice-registry.json); never cast here.
 const Registry=require('./voice-registry.cjs'),reg=Registry.load(),problems=Registry.validate(reg);
 if(problems.length){console.error('Voice registry problems:\n - '+problems.join('\n - '));process.exit(1);}

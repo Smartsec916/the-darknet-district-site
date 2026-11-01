@@ -5,7 +5,7 @@ const C=require('../void-runner/vr-companions.js');
 
 test('Una and the female base figure are female companions; the male base figure is male',()=>{
  assert.equal(C.get('una').sex,'female');assert.equal(C.get('base-f').sex,'female');assert.equal(C.get('base-m').sex,'male');
- for(const id of ['una','base-f','base-m']){const e=C.get(id);assert.equal(e.licensed,true);assert.ok(e.pairable);assert.deepEqual(e.dialogue,{});assert.ok(e.voice.characterId);
+ for(const id of ['una','base-f','base-m']){const e=C.get(id);assert.equal(e.licensed,true);assert.equal(e.pairable,id!=='base-m');assert.deepEqual(e.dialogue,{});assert.ok(e.voice.characterId);
   assert.equal(C.offered(e,'localhost'),true);assert.equal(C.offered(e,'thedarknetdistrict.com'),id!=='una');}
  assert.equal(C.get('una').listed,'dev');
  assert.ok(C.list({sex:'male'}).some(e=>e.id==='base-m'));assert.ok(!C.list({sex:'female'}).some(e=>e.id==='base-m'));
@@ -24,8 +24,8 @@ test('Una wears Style A (minimalist) by default; every outfit shows its own part
  assert.equal(C.lookMaterials(una,{outfit:'nightlife'}).outfit_jacket.roughness,.55);assert.deepEqual(C.lookMaterials(una,{}),{});
 });
 
-test('pairs work across the new companions, and the public roster is unchanged',()=>{
+test('two women can share a room, never a man and a woman; the public roster',()=>{
  assert.deepEqual(C.party({companions:['una','ava']}).map(e=>e.id),['una','ava']);
- assert.deepEqual(C.party({companions:['base-m','base-f']}).map(e=>e.id),['base-m','base-f']);
+ assert.deepEqual(C.party({companions:['base-m','base-f']}).map(e=>e.id),['base-m']);
  assert.deepEqual([...C.companions.values()].filter(e=>C.offered(e,'thedarknetdistrict.com')).map(e=>e.id).sort(),['ava','base-f','base-m','eva','kai','nadia','seren']);
 });

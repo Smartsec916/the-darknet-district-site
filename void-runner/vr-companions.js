@@ -4,7 +4,7 @@
    Adding a companion: build a MakeHuman look with the companion clips (tools/animation-pipeline), or convert a
    licensed model with build_imported_character.py, list it in crowd.js, then register() an entry here with its
    model, preview, dialogue and personality. Nothing else changes.
-   DRAFT: every line of companion dialogue is Claude's placeholder for David's review. Companions are unvoiced. */
+   DRAFT: every line of companion dialogue is Claude's placeholder for David's review. Seren's, Kai's and Nadia's lines are recorded (tools/audio, provisional voices). */
 (function(root){
  const DEG=Math.PI/180;
  // ---- Behaviour settings (sensible defaults; a companion's personality overrides any of them) ----
@@ -40,6 +40,9 @@
   if(!e.id||!e.name||!['female','male'].includes(e.sex)||!e.model)throw new Error('companion needs id, name, sex (female|male) and model');
   companions.set(e.id,e);return e;}
  const get=id=>companions.get(id)||null;
+ // The voice a line spoken under a companion's name uses: recorded clips by characterId (tools/audio, Kokoro), else
+ // a browser voice of the companion's sex.
+ const voiceOf=name=>{const e=[...companions.values()].find(x=>x.name===name);return e?{characterId:e.voice?.characterId||'vr-'+e.id,sex:e.sex}:null;};
  // The model's file in assets/models/crowd: <model>.glb, or a scrambled .vrpak where its licence asks for one.
  const file=entry=>entry?.file||entry?.model+'.glb';
  // Which companions can be chosen now. `has(model)` reports the clips a model carries (crowd.js); `installed`
@@ -53,12 +56,15 @@
  const legacy={f:'seren',m:'kai'};
  const current=e=>{for(let i=0;e?.replacedBy&&i<4;i++)e=get(e.replacedBy)||e;return e||null;};
  const resolve=opts=>current(get(Array.isArray(opts?.companions)?opts.companions[0]:opts?.companion)||get(legacy[opts?.choice]));
- // Who comes along: one companion, or up to `partySize` together (all of them must be pairable). Unknown ids drop out.
+ // Who comes along: one companion, or up to `partySize` together (all pairable and of one sex: David, 2026-10-31,
+ // "Ava and Dex shouldn't be together"). Unknown ids drop out.
  const partySize=2;
+ // Rooms for two offered at the terminal, beside each one's own room (David, 2026-10-31).
+ const pairs=[{id:'ava+eva',name:'Ava & Eva',companions:['ava','eva']}];
  function party(opts){
   const ids=Array.isArray(opts?.companions)?opts.companions:[];
   const many=[...new Set(ids.map(id=>current(get(id))).filter(Boolean))].slice(0,partySize);
-  if(many.length>1&&many.every(e=>e.pairable))return many;
+  if(many.length>1&&many.every(e=>e.pairable&&e.sex===many[0].sex))return many;
   const one=many[0]||resolve(opts);return one?[one]:[];}
  // Offered at the terminal: listed:false never; listed:'dev' only on a local development server (models whose
  // licence isn't confirmed for release yet). licensed:true marks purchased models kept out of the public repository:
@@ -72,7 +78,7 @@
 
  // Seren and Kai (original adult characters; MakeHuman CC0, Mixamo and Rokoko mocap). DRAFT lines throughout.
  register({id:'seren',name:'Seren',sex:'female',model:'vr-companion-f',preview:'void-runner/assets/vr/companions/seren.jpg',
-  about:'Warm, quick-witted and a little teasing. She notices everything.',voice:null,
+  about:'Warm, quick-witted and a little teasing. She notices everything.',voice:{characterId:'vr-seren',voiceId:null},
   personality:{initiative:.68,flirtatiousness:.7,approachFrequency:.6,personalSpace:.95},
   clips:{greet:['wave'],flirt:['blow-kiss','coy','head-tilt','hips'],shy:['coy'],idleAlt:['idle-f2','hips','head-tilt'],walk:['walk-f'],dance:['slow-dance'],playfulDance:['dance-belly'],confident:['hips']},
   dialogue:{
@@ -101,7 +107,7 @@
    aside:['You\'re staring. I like it.','Careful. I could get used to this.','You have no idea how good you look in this light.'],
    comeHere:['On my way.','Mm, you called?'],recline:['This is my favourite view. The ceiling glow, and you.']}});
  register({id:'kai',name:'Kai',sex:'male',model:'vr-companion-m',preview:'void-runner/assets/vr/companions/kai.jpg',
-  about:'Calm, wry and attentive. He listens more than he talks.',voice:null,
+  about:'Calm, wry and attentive. He listens more than he talks.',voice:{characterId:'vr-kai',voiceId:null},
   personality:{initiative:.45,flirtatiousness:.5,approachFrequency:.42,attention:.92,personalSpace:1.15,walkSpeed:1.05},
   clips:{greet:['head-tilt'],flirt:['blow-kiss','head-tilt','laugh'],shy:['head-tilt'],idleAlt:['idle-m2','head-tilt'],dance:['slow-dance'],playfulDance:['dance-samba']},
   dialogue:{
@@ -134,7 +140,7 @@
  // Royalty Free License - no AI), converted by build_imported_character.py. Her licence asks that the file not be
  // easy to extract, so she ships scrambled (.vrpak). Every line is a DRAFT for David's review.
  register({id:'nadia',name:'Nadia',sex:'female',model:'vr-companion-fc1',file:'vr-companion-fc1.vrpak',preview:'void-runner/assets/vr/companions/nadia.jpg',
-  about:'Grounded, warm and direct. Born and raised in NeoChinatown, and she\'ll never let you forget you weren\'t.',voice:null,
+  about:'Grounded, warm and direct. Born and raised in NeoChinatown, and she\'ll never let you forget you weren\'t.',voice:{characterId:'vr-nadia',voiceId:null},
   personality:{initiative:.56,flirtatiousness:.5,approachFrequency:.7,attention:.88,personalSpace:.9,remarkCooldown:18},
   clips:{greet:['wave'],flirt:['head-tilt','laugh','coy'],shy:['head-tilt'],idleAlt:['idle-f2','hips'],walk:['walk-f'],dance:['slow-dance'],playfulDance:['dance-belly'],confident:['hips'],laugh:['laugh']},
   dialogue:{
@@ -212,7 +218,7 @@
  register({id:'base-f',name:'Yuki',sex:'female',model:'vr-companion-bf',file:'vr-companion-bf.vrpak',preview:'void-runner/assets/vr/companions/base-f.jpg',
   licensed:true,pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-base-f',voiceId:null},clips:{walk:['walk-f'],idleAlt:['idle-f2']}});
  register({id:'base-m',name:'Dex',sex:'male',model:'vr-companion-bm',file:'vr-companion-bm.vrpak',preview:'void-runner/assets/vr/companions/base-m.jpg',
-  licensed:true,pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-base-m',voiceId:null},clips:{}});
+  licensed:true,pairable:false,personality:{},dialogue:{},voice:{characterId:'vr-base-m',voiceId:null},clips:{}});
 
  // ---- Looks: outfit, hairstyle, glasses, colours. A group's options each show their `parts` (mesh names; parts no
  // option names are always shown) and may swap `textures`. The choices are a preference kept per browser, like
@@ -310,6 +316,6 @@
   const out=[];let at=from;for(let i=1;i<cells.length;i++)if(!clear(at,cells[i])){out.push(cells[i-1]);at=cells[i-1];}
   out.push(cells[cells.length-1]);return out;}
 
- const api={defaults,settings,register,get,list,file,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,path,companions,party,partySize,offered,looks,option,chosen,wears,lookTextures,variantTextures,lookMaterials,variantMaterials,savedLooks,saveLook,speaks};
+ const api={defaults,settings,register,get,voiceOf,pairs,list,file,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,path,companions,party,partySize,offered,looks,option,chosen,wears,lookTextures,variantTextures,lookMaterials,variantMaterials,savedLooks,saveLook,speaks};
  if(typeof module!=='undefined')module.exports=api;else root.VoidVRCompanions=api;
 })(globalThis);
