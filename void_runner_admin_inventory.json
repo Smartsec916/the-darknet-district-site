@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "85a170e2144eb8d3",
+  "revision": "9b052b43b1e03c2d",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -8342,7 +8342,7 @@
     "void-runner/music-integration.js": "4d0fb52f85f3375a2bcd5385886e63c569a65209e2c5de32ab3f5b0cd465c02d",
     "void-runner/music-score.js": "2371893bd722e910f8325ce5d436f48f6dfac32c9fad259e7239ef7745783fc6",
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
-    "void-runner/ncz-nightclub.js": "539749892f0fec3ab387395c9aec998c4ba0b10d7884f69222a95dd4234a7ded",
+    "void-runner/ncz-nightclub.js": "dd7f3cab81c1fdaf94e864d4ee24fbfa3d2d93c040a89ade74e52cccdec1417a",
     "void-runner/ncz-nightlife.js": "4c6e4d7ca34309a6e1a190bfc70d78123ef746ccab8f29c74b7c77041e038fba",
     "void-runner/neochinatown.js": "b711f17fa29b0d3156fe062f8ba3997447686f9c1355e52a56263befd15673ec",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
