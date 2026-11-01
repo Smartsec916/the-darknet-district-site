@@ -189,7 +189,10 @@
     const upgraded=[];
     // Block A (prototype, 2026-10-31): Main Street's west side across from the alley mouth. An apartment block over a
     // row of street stalls fronts the street from z -76.6 to -49.4, replacing two procedural plots.
-    {const front=51,z0=-76.6,z1=-49.4,face=Math.PI/2,stallTop=4.65,b=piece('building5',null,[front-11.91/2,stallTop,(z0+z1)/2],face);
+    // Both files or neither: the building alone would leave the stall row empty (a first visit on a slow connection can
+    // finish one in time and not the other; the late one is cached for the next visit).
+    {const front=51,z0=-76.6,z1=-49.4,face=Math.PI/2,stallTop=4.65,both=['ncz:building5','ncz:storefronts'].every(id=>root.VoidAssets?.container?.(id)),
+     b=both?piece('building5',null,[front-11.91/2,stallTop,(z0+z1)/2],face):null;
      if(b){upgraded.push({rect:[front-11.95,front,z0,z1],street:'main'});
       const stalls=[['Store1',3.73],['Store.001',3.57],['Store3',3.71],['StoreFurniture1.007',3.57],['Store.002',3.57],['Store3',3.71]],w=4.02,start=(z0+z1)/2-stalls.length*w/2;
       stalls.forEach(([name,depth],i)=>piece('storefronts',name,[front-depth/2,0,start+w*(i+.5)],face));
