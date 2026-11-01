@@ -206,6 +206,11 @@ test('developer tools: the verified owner is left alone, everyone else gets the 
   const detector = read('devtoolsDetector.js');
   assert.match(detector, /window\.IrisIdentity && window\.IrisIdentity\.mode === 'owner'\) return;/);
   assert.match(detector, /greeting/, 'the visitor reaction is still there');
+  // phones and tablets have no developer tools; toolbars and the keyboard must not look like an open console
+  assert.match(detector, /maxTouchPoints/);
+  assert.match(detector, /pointer: coarse/);
+  assert.match(detector, /Android\|iPhone\|iPad\|iPod\|Mobile/);
+  assert.ok(detector.indexOf('mobileAgent) return;') < detector.indexOf('const checkDevTools'), 'skipped before any check runs');
 });
 
 test('the controls page holds no secret, is not indexed, and shows nothing without the server\'s say-so', () => {

@@ -203,6 +203,20 @@ test("a conversation shows only its own messages, in order, with UTC times", asy
   assert.equal((await get("/api/admin/conversations/does-not-exist", ADMIN_TOKEN)).status, 404);
 });
 
+test("the viewer marks automatic browser-trigger exchanges and leaves ordinary chat unmarked", async () => {
+  process.env.IRIS_ADMIN_VIEWER = "on";
+  process.env.IRIS_ADMIN_TOKEN = ADMIN_TOKEN;
+  await exchange("auto-a", "你好", "你好，我是 Iris。", "2026-12-02T08:00:00Z");
+  await exchange("auto-a", "[user triggered inspect]", "Oh, peeking under the hood?", "2026-12-02T08:01:00Z");
+  await exchange("auto-a", "还有别的吗", "当然。", "2026-12-02T08:02:00Z");
+  const d = await (await get("/api/admin/conversations/auto-a", ADMIN_TOKEN)).json();
+  assert.deepEqual(d.messages.map((m: any) => m.automated), [false, false, true, true, false, false]);
+  assert.equal(d.messages.length, 6, "nothing is hidden or removed, only labelled");
+  const html = await (await get("/admin")).text();
+  assert.match(html, /automatic browser trigger/);
+  assert.match(html, /never appear here/, "the viewer says what it cannot show");
+});
+
 test("repeated wrong tokens are rate limited", async () => {
   process.env.IRIS_ADMIN_VIEWER = "on";
   process.env.IRIS_ADMIN_TOKEN = ADMIN_TOKEN;
