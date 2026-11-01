@@ -35,10 +35,6 @@ export function menuItems({ signedIn, admin, needsHandle }) {
   if (needsHandle) items.push({ id: 'handle', label: 'CHOOSE YOUR HANDLE' });
   items.push({ id: 'settings', label: 'ACCOUNT SETTINGS' });
   if (admin) items.push({ id: 'controls', label: 'IRIS CONTROLS' });
-  else {
-    items.push({ id: 'link', label: 'LINK MY IRIS HISTORY' });
-    items.push({ id: 'forget', label: 'FORGET WHAT IRIS REMEMBERS' });
-  }
   items.push({ id: 'switch', label: 'SWITCH ACCOUNT' });
   items.push({ id: 'logout', label: 'LOG OUT' });
   return items;

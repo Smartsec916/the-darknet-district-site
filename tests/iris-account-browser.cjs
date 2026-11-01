@@ -232,35 +232,13 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
 
     await openMenu(page);
     const items = await page.locator('.district-account__item').allInnerTexts();
-    assert.ok(items.includes('LOG OUT') && items.includes('LINK MY IRIS HISTORY') && !items.includes('IRIS CONTROLS'), items.join(' | '));
+    assert.ok(items.includes('LOG OUT') && !items.includes('LINK MY IRIS HISTORY') && !items.includes('FORGET WHAT IRIS REMEMBERS') && !items.includes('IRIS CONTROLS'), items.join(' | '));
     await page.getByText('LOG OUT').click();
     await page.waitForFunction(() => document.querySelector('.district-account__label').textContent === 'LOG IN');
     await page.locator('#messageInput').fill('anonymous again');
     await page.locator('#sendButton').click();
     await page.waitForFunction(() => document.getElementById('chatMessages').innerText.split('stand-in').length > 2);
     assert.equal(seen.chat.at(-1).headers.authorization, undefined, 'after logging out the chat is anonymous again');
-    await context.close();
-  });
-
-  await check('joining an anonymous history needs the visitor to say yes', async () => {
-    const { page, context, seen } = await open({ signedIn: { uid: 'uid-visitor', displayName: 'Neo' }, me: { authenticated: true, admin: false, accountId: 'uid-visitor' } });
-    await page.goto(base + '/index.html');
-    await page.waitForFunction(() => document.querySelector('.district-account__label').textContent === 'NEO');
-    let asked = null;
-    page.on('dialog', async dialog => { asked = dialog.message(); await (dialog.type() === 'confirm' && dialog.message().startsWith('Connect') ? dialog.dismiss() : dialog.accept()); });
-    await openMenu(page);
-    await page.getByText('LINK MY IRIS HISTORY').click({ noWaitAfter: true });
-    await page.waitForTimeout(500);
-    assert.match(asked, /nothing is connected unless you choose OK/);
-    assert.equal(seen.link, null, 'declining sends nothing');
-    page.removeAllListeners('dialog');
-    page.on('dialog', d => d.accept());
-    await openMenu(page);
-    await page.getByText('LINK MY IRIS HISTORY').click({ noWaitAfter: true });
-    await page.waitForTimeout(500);
-    assert.equal(seen.link.body.consent, true);
-    assert.match(seen.link.body.clientId, /^[0-9a-f-]{36}$/);
-    assert.equal(seen.link.headers.authorization, 'Bearer token-for-uid-visitor');
     await context.close();
   });
 
@@ -405,7 +383,7 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     const focused = () => page.evaluate(() => document.activeElement.textContent);
     assert.equal(await focused(), 'ACCOUNT SETTINGS', 'focus starts on the first action');
     await page.keyboard.press('ArrowDown');
-    assert.equal(await focused(), 'LINK MY IRIS HISTORY');
+    assert.equal(await focused(), 'SWITCH ACCOUNT');
     await page.keyboard.press('End');
     assert.equal(await focused(), 'LOG OUT');
     await page.keyboard.press('ArrowDown');
@@ -508,33 +486,6 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     await context.close();
   });
 
-
-  await check('forgetting (signed in): shows what is stored, deletes only after OK, and never sends the confirmation unprompted', async () => {
-    const { page, context } = await open({ signedIn: accountOf, me: meOf });
-    const calls = [];
-    await page.route('**/api/me/memory', async r => {
-      calls.push([r.request().method(), r.request().method() === 'DELETE' ? r.request().postDataJSON() : null]);
-      await json(r, r.request().method() === 'GET' ? { conversationMessages: 12, relationship: true, linkedBrowsers: 1, confirmation: 'delete my memories' } : { deleted: 'all', conversationMessages: 12, relationship: true });
-    });
-    await page.goto(base + '/index.html');
-    await waitLabel(page, 'NEO_ANDERSON');
-    const asked = [];
-    page.on('dialog', async dialog => { asked.push(dialog.message()); await (asked.length === 1 ? dialog.dismiss() : dialog.accept()); });
-    await openMenu(page);
-    await page.getByRole('menuitem', { name: 'FORGET WHAT IRIS REMEMBERS' }).click({ noWaitAfter: true });
-    await page.waitForTimeout(500);
-    assert.match(asked[0], /12 saved messages/);
-    assert.match(asked[0], /1 connected browser/);
-    assert.match(asked[0], /cannot be undone/);
-    assert.match(asked[0], /game progress.*not affected/i);
-    assert.deepEqual(calls.map(c => c[0]), ['GET'], 'declining deletes nothing');
-    await openMenu(page);
-    await page.getByRole('menuitem', { name: 'FORGET WHAT IRIS REMEMBERS' }).click({ noWaitAfter: true });
-    await page.waitForTimeout(600);
-    assert.deepEqual(calls.at(-1), ['DELETE', { confirm: 'delete my memories', scope: 'all' }]);
-    assert.match(asked.at(-1), /12 saved messages were deleted/);
-    await context.close();
-  });
 
   await check('forgetting (not signed in): the sign-in panel offers to delete this browser\'s memories, with the browser id and a confirmation', async () => {
     const { page, context } = await open();
