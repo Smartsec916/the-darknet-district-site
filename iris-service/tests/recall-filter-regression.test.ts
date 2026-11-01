@@ -173,3 +173,39 @@ test("plain recall questions are still set aside, and statements are never class
     "Iris, can you remember this phrase: " + SECRET, "Please remember \"" + SECRET + "\"",
   ]) assert.equal(memory.carriesContent(s), true, s);
 });
+
+// ================================================================ recall questions in Chinese (full-width marks, no spaces)
+
+test("Chinese recall questions are recognised with full-width marks or a question particle, and statements are not", () => {
+  for (const q of ["你还记得我的测试短语吗？", "你还记得我的测试短语吗", "我的测试短语是什么？", "我刚才告诉你的短语是什么", "我上次说过的话你记得吗"]) {
+    assert.equal(memory.isRecallQuestion(q), true, q);
+  }
+  for (const s of ["请记住这个短语：紫色霓虹菠萝7392", "我的测试短语是紫色霓虹菠萝7392。你记得吗？", "今天天气很好"]) {
+    assert.equal(memory.carriesContent(s) || !memory.isRecallQuestion(s), true, s);
+  }
+  assert.equal(memory.isRecallQuestion("请记住这个短语：紫色霓虹菠萝7392"), false, "an instruction to remember is not a question");
+  assert.equal(memory.carriesContent("你还记得我的测试短语吗？"), false);
+  assert.equal(memory.carriesContent("你好。你还记得我的测试短语吗？"), false, "a greeting does not make it a statement");
+  assert.equal(memory.carriesContent("你还记得吗？我的短语是：紫色霓虹菠萝7392"), true, "a full-width colon hands over the phrase");
+  // English is unchanged
+  assert.equal(memory.isRecallQuestion("what was my test phrase"), true);
+  assert.equal(memory.carriesContent("Iris, what was my test phrase?"), false);
+});
+
+test("production sequence in Chinese: the phrase is retrieved, wrong earlier answers stay out", async () => {
+  const phrase = "紫色霓虹菠萝7392";
+  await put(null, "user", "Iris，请记住这个短语：" + phrase, "2026-10-30 10:00:00", { session: "zh-phrase" });
+  await put(null, "iris", "好的，我记住了。", "2026-10-30 10:00:05", { session: "zh-phrase" });
+  await put(`owner:${OWNER}`, "user", "你还记得我的测试短语吗？", "2026-10-31 09:00:00", { session: "zh2" });
+  await put(`owner:${OWNER}`, "iris", "你的管理员验证短语是 Reboot。", "2026-10-31 09:00:04", { session: "zh2" });
+  await put(`owner:${OWNER}`, "user", "我的测试短语是什么？", "2026-10-31 09:05:00", { session: "zh2" });
+  await put(`owner:${OWNER}`, "iris", "Protocol。", "2026-10-31 09:05:04", { session: "zh2" });
+  assert.equal((await call("POST", "/api/owner/adopt-session", ownerToken(), { sessionId: "zh-phrase" })).status, 200);
+  const r = await say("zh-fresh", "你还记得我的测试短语吗？", { token: ownerToken() });
+  assert.ok(r.request, "the model is asked");
+  assert.ok(block(r.request).includes(phrase), "the Chinese phrase is in the request");
+  assert.ok(!wholeRequest(r.request).includes("Reboot") && !wholeRequest(r.request).includes("Protocol"));
+  const state = ((await (await call("GET", "/api/owner/state", ownerToken())).json()) as any).memory;
+  assert.equal(state.latestRequest.mode, "grounded", "a Chinese recall question is now answered from the stored messages");
+  assert.ok(r.request.temperature <= 0.3, "calm sampling, like an English recall question");
+});

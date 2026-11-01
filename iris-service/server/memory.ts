@@ -145,7 +145,7 @@ const RECALL = new RegExp([
   "\\bdid i (tell|say|mention|ask|give)\\b",
   "\\bwhat did we\\b",
   "\\bour (last|previous|earlier) \\w+\\b",
-  "记得|还记得|上次|之前|昨天|以前|说过|告诉过|聊过",
+  "记得|還記得|还记得|上次|之前|昨天|以前|说过|說過|告诉过|告訴過|聊过|刚才|刚刚|剛才|剛剛|我的.{0,12}(?:是什么|是什麼|是啥|是多少)",
   "recuerdas|recuerda|ayer|antes|te dije|te conté",
   "помнишь|вчера|раньше|я говорил|я сказал",
 ].join("|"), "iu");
@@ -156,28 +156,35 @@ export const looksLikeRecall = (text: string) => RECALL.test(text);
 // about the past, so it is never answered from memory, never trips the "nothing found" notice, and is never dropped.
 const IMPERATIVE_REMEMBER = /^\W*(?:(?:hey|hi|iris)\W+)*(?:please\s+)?(?:remember|memorize|memorise|keep in mind|note|save|store|write down)\b/i;
 const PAST_REFERENCE = /\b(?:i|we) (?:told|said|gave|asked|mentioned|showed|talked|discussed)\b|\b(?:told|gave|showed) you\b|\b(?:earlier|previously|yesterday|last (?:time|night|week|month)|before|ago)\b|\b(?:what|when|who|where)\b/i;
-export const isRememberInstruction = (text: string) => !text.includes("?") && IMPERATIVE_REMEMBER.test(text) && !PAST_REFERENCE.test(text);
+// A question mark in any script ("?", full-width "？", Spanish "¿"), or a Chinese question particle / question word at the end
+const QUESTION_MARK = /[?？¿]/;
+const CJK_QUESTION_END = /(?:[吗嗎呢么麼]|什么|什麼|啥|哪里|哪裡|哪儿|谁|誰|多少)[\s。.!！]*$/;
+const isAsking = (text: string) => QUESTION_MARK.test(text) || CJK_QUESTION_END.test(text);
+// How long a message is: words, with two Chinese characters counting as about one word (Chinese has no spaces)
+const sizeOf = (text: string) =>
+  text.replace(/[一-鿿]+/g, " ").trim().split(/\s+/).filter(Boolean).length + Math.ceil((text.match(/[一-鿿]/g) ?? []).length / 2);
+export const isRememberInstruction = (text: string) => !QUESTION_MARK.test(text) && IMPERATIVE_REMEMBER.test(text) && !PAST_REFERENCE.test(text);
 
 // A question (or request) about the past: question-shaped, and about something earlier. A statement that merely
 // contains the word "earlier" is not one.
 const QUESTION_SHAPE = /^\W*(?:(?:hey|hi|iris)\W+)*(?:please\s+)?(?:recall|remind me|tell me|can you (?:tell me|recall|remember)|could you (?:tell me|recall|remember)|do you (?:still )?(?:remember|recall|know)|what (?:was|were|did|is|are)|where|when|who|which|how (?:much|many|did)|did i)\b/i;
 export const isRecallQuestion = (text: string) =>
-  looksLikeRecall(text) && !isRememberInstruction(text) && (text.includes("?") || QUESTION_SHAPE.test(text));
+  looksLikeRecall(text) && !isRememberInstruction(text) && (isAsking(text) || QUESTION_SHAPE.test(text));
 
 // Does the message also SAY something? "Can you remember this phrase: X?" is phrased as a question but hands over X.
 // A sentence says something when it is a plain statement (not a question, not a request to recall), or an instruction to
 // remember, or it introduces something after a colon or in quotes.
 export function carriesContent(text: string): boolean {
-  if (/:\s*\S/.test(text) || /["“][^"”]{3,}["”]/.test(text)) return true;
-  return text.split(/(?<=[.!?])\s+|\n+/).some(sentence => {
+  if (/[:：]\s*\S/.test(text) || /["“「][^"”」]{3,}["”」]/.test(text)) return true;
+  return text.split(/(?<=[.!?])\s+|(?<=[。！？])\s*|\n+/).some(sentence => {
     const s = sentence.trim();
-    if (s.split(/\s+/).length < 3 || s.includes("?")) return false;
+    if (sizeOf(s) < 3 || isAsking(s)) return false;
     return isRememberInstruction(s) || (!QUESTION_SHAPE.test(s) && !looksLikeRecall(s));
   });
 }
 
 // A short, pure question about the past ("recall the test phrase"): it says nothing new about the visitor
-const isPureRecallQuestion = (text: string) => isRecallQuestion(text) && text.trim().split(/\s+/).length <= 14 && !carriesContent(text);
+const isPureRecallQuestion = (text: string) => isRecallQuestion(text) && sizeOf(text) <= 14 && !carriesContent(text);
 
 // Short questions about the past, and Iris's answers to them, are not evidence of anything. If they were kept as
 // "verified memories", an earlier wrong answer would be put back in front of her as a fact, and the old question
