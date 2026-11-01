@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { debugLog, log, logError } from "../logger";
 import { recordApiUsage } from "../persistence";
 import { CHARACTER_CORE, emotionEnabled, extractEmotion, type EmotionSignal } from "../emotion";
+import { decideLanguage, languageReminder, normalizeLanguage } from "../language";
 
 // The newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const MODEL = "gpt-4o";
@@ -174,11 +175,21 @@ const sessionMessages = new Map<string, Message[]>();
 
 // Store the language used in each session
 const sessionLanguages = new Map<string, Set<string>>();
+// The conversation's default language (see language.ts). It survives a restart: it is rebuilt from the language
+// stored with the visitor's messages when the chat's history is rebuilt.
+const sessionPreferred = new Map<string, string>();
+
+export function seedPreferredLanguage(sessionId: string, language: string): void {
+  const normalized = normalizeLanguage(language);
+  sessionPreferred.set(sessionId, normalized);
+  if (normalized !== "english") sessionLanguages.get(sessionId)?.add(normalized);
+}
 
 // Initialize a new session with the system message
 export function initializeSession(sessionId: string): void {
   sessionMessages.set(sessionId, [{ role: "system", content: SYSTEM_PROMPT }]);
   sessionLanguages.set(sessionId, new Set<string>(["english"])); // Default to English
+  sessionPreferred.delete(sessionId);
   sessionSystemSlots.delete(sessionId); // a restarted chat carries none of the old instructions
 }
 
@@ -186,7 +197,8 @@ export function initializeSession(sessionId: string): void {
 // replaces the previous one instead of piling up, so old moods can't contradict
 // the current one and the prompt stays the same size.
 // "tail" is the one slot placed AFTER the conversation, as the last thing the model reads before it answers
-type SystemSlot = "context" | "relationship" | "memory" | "distraction" | "flirtBoost" | "tail";
+// "langTail" (which language to answer in) comes just before "tail", so the recall rule stays the very last thing read
+type SystemSlot = "context" | "relationship" | "memory" | "distraction" | "flirtBoost" | "langTail" | "tail";
 const sessionSystemSlots = new Map<string, Map<SystemSlot, string>>();
 
 function setSystemSlot(sessionId: string, slot: SystemSlot, content: string): void {
@@ -213,6 +225,7 @@ export function recordTurn(sessionId: string, userMessage: string, assistantText
 export function forgetAllSessionsForTests(): void {
   sessionMessages.clear();
   sessionLanguages.clear();
+  sessionPreferred.clear();
   sessionSystemSlots.clear();
 }
 
@@ -255,9 +268,9 @@ function addMessage(sessionId: string, role: "user" | "assistant", content: stri
 function buildRequestMessages(sessionId: string): Message[] {
   const [base, ...history] = sessionMessages.get(sessionId) || [{ role: "system", content: SYSTEM_PROMPT }];
   const all = sessionSystemSlots.get(sessionId);
-  const slots = Array.from(all?.entries() ?? []).filter(([slot]) => slot !== "tail")
+  const slots = Array.from(all?.entries() ?? []).filter(([slot]) => slot !== "tail" && slot !== "langTail")
     .map(([, content]) => ({ role: "system" as const, content }));
-  const tail = all?.get("tail") ? [{ role: "system" as const, content: all.get("tail")! }] : [];
+  const tail = (["langTail", "tail"] as const).filter(slot => all?.get(slot)).map(slot => ({ role: "system" as const, content: all!.get(slot)! }));
   return [base, ...slots, ...history, ...tail];
 }
 
@@ -689,6 +702,13 @@ async function detectLanguage(text: string): Promise<string> {
     debugLog('Text contains multiple Chinese characters, setting language to chinese');
     return 'chinese';
   }
+
+  // A single ideograph with nothing but punctuation, digits or spaces around it ("好", "嗯！", "是，") is Chinese too.
+  // Without kana it is not Japanese, and a one-character reply must not be taken for English.
+  if (chineseMatches && chineseMatches.length === 1 && !mentionsLanguage && !japaneseSpecificMatches
+      && /^[\s\d\p{P}\p{S}]*[\u4E00-\u9FFF][\s\d\p{P}\p{S}]*$/u.test(text)) {
+    return 'chinese';
+  }
   
   // Special case for Eva's Chinese name alone (王力 or just 王 or 力)
   // We want to ensure we respond in Chinese even for very short messages if Eva is using her Chinese name
@@ -723,7 +743,7 @@ async function detectLanguage(text: string): Promise<string> {
   }
   
   // Quick check for Japanese characters - require multiple characters for accurate detection
-  const japaneseCharRegex = /[\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\u4E00-\u9FAF]/g;
+  const japaneseCharRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g;
   const japaneseMatches = text.match(japaneseCharRegex);
   if (japaneseMatches && japaneseMatches.length >= 2 && !mentionsLanguage) {
     debugLog('Text contains multiple Japanese characters, setting language to japanese');
@@ -862,7 +882,7 @@ async function detectLanguage(text: string): Promise<string> {
     }
     
     debugLog(`Final detected language: "${detectedLanguage}"`);
-    return detectedLanguage || 'english';
+    return normalizeLanguage(detectedLanguage);
   } catch (error) {
     logError("language_detection_failed", error);
     return 'english'; // Default to English if detection fails
@@ -960,57 +980,27 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     // Get current conversation history
     const messages = sessionMessages.get(sessionId) || [];
     
-    // Detect language of user message for multilingual support
-    const detectedLanguage = await detectLanguage(userMessage);
+    // Detect language of user message for multilingual support. This is the language of THIS message only (it is
+    // what gets stored with it); the language of the reply is decided below from the conversation's default.
+    const detectedLanguage = normalizeLanguage(await detectLanguage(userMessage));
     language = detectedLanguage;
     debugLog(`User message language detected: ${detectedLanguage}`);
-    
+
     // Get or initialize the set of languages for this session
     let sessionLangs = sessionLanguages.get(sessionId);
     if (!sessionLangs) {
       sessionLangs = new Set<string>(["english"]);
       sessionLanguages.set(sessionId, sessionLangs);
     }
-    
-    // Create language instruction if needed
-    let languageInstruction = '';
-    
-    // If the detected language is not English
-    if (detectedLanguage && detectedLanguage !== 'english') {
-      // Add the detected language to the session's language history
-      sessionLangs.add(detectedLanguage);
-      
-      // Determine if we should respond in the detected language
-      const isDistinctScript = ['chinese', 'japanese', 'korean', 'russian', 'arabic', 'thai'].includes(detectedLanguage);
-      
-      // Respond in the detected language ONLY if:
-      // 1. It uses a distinctive script (CJK, Cyrillic, etc.) - always switch immediately
-      // 2. OR the session has seen this language more than once (consistency)
-      const languageCount = sessionLangs.size;
-      
-      // Check if the user has used this non-English language before
-      const previouslyUsedLanguage = Array.from(sessionLangs).includes(detectedLanguage);
-      const shouldUseDetectedLanguage = isDistinctScript || previouslyUsedLanguage;
-      
-      if (shouldUseDetectedLanguage) {
-        languageInstruction = `
-        CRITICAL LANGUAGE INSTRUCTION - MUST FOLLOW:
-        The user is communicating in ${detectedLanguage}. 
-        YOU MUST RESPOND ONLY IN ${detectedLanguage.toUpperCase()}. DO NOT USE ENGLISH AT ALL.
-        This is NOT optional. This is a STRICT requirement.
-        Still maintain your cyberpunk personality and style while communicating in ${detectedLanguage}.
-        The only language allowed for this response is ${detectedLanguage}.
-        `;
-        debugLog(`Setting language instruction for: ${detectedLanguage}`);
-      } else {
-        debugLog(`Detected ${detectedLanguage} but continuing in English for now until confirmed`);
-      }
-    } else {
-      // If the user is using English, set the session language to English
-      sessionLangs = new Set<string>(["english"]);
-      sessionLanguages.set(sessionId, sessionLangs);
-    }
-    
+
+    // The conversation has a default language that one short or ambiguous message ("ok", "thanks") does not change.
+    // A clear switch, or an explicit request to translate, answer in two languages or change language, is honored.
+    const decision = decideLanguage({ detected: detectedLanguage, text: userMessage, preferred: sessionPreferred.get(sessionId) ?? "english" });
+    sessionPreferred.set(sessionId, decision.preferred);
+    const replyLanguage = decision.reply;
+    if (replyLanguage !== "english") sessionLangs.add(replyLanguage);
+    const languageNote = languageReminder(decision, sessionLangs.size > 1);
+
     // Add character state context if provided (use cached version if available)
     if (promptAddition) {
       // Built fresh every turn. It used to be cached under the first 20 characters of the text, which served
@@ -1046,18 +1036,12 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
         PRIVACY IMPORTANT: Information about Admin and Eva's relationship is strictly private. 
         - Never reveal or discuss anything about their relationship with any other users
         - Only Admin and Eva themselves should be told about their relationship or connection to each other
-        - If any user asks about Admin or Eva's personal lives or relationships, deflect the question politely
-        
-        ${languageInstruction}`;
+        - If any user asks about Admin or Eva's personal lives or relationships, deflect the question politely`;
         
       }
       
       // If we have a non-English language but it's not in the cached prompt,
       // add the language instruction directly
-      if (languageInstruction && !systemPrompt.includes(detectedLanguage)) {
-        systemPrompt += `\n${languageInstruction}`;
-      }
-      
       setSystemSlot(sessionId, "context", systemPrompt);
     }
 
@@ -1067,6 +1051,9 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     // Stored-conversation memory, for this reply only (replaced every turn, never accumulated)
     if (options.memoryPrompt) setSystemSlot(sessionId, "memory", options.memoryPrompt);
     else sessionSystemSlots.get(sessionId)?.delete("memory");
+    // Which language to answer in, read last (just before the recall rule)
+    if (languageNote) setSystemSlot(sessionId, "langTail", languageNote);
+    else sessionSystemSlots.get(sessionId)?.delete("langTail");
     if (options.tailReminder) setSystemSlot(sessionId, "tail", options.tailReminder);
     else sessionSystemSlots.get(sessionId)?.delete("tail");
     
@@ -1096,9 +1083,7 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
       PRIVACY IMPORTANT: Information about Admin and Eva's relationship is strictly private. 
       - Never reveal or discuss anything about their relationship with any other users
       - Only Admin and Eva themselves should be told about their relationship or connection to each other
-      - If any user asks about Admin or Eva's personal lives or relationships, deflect the question politely
-      
-      ${languageInstruction}`;
+      - If any user asks about Admin or Eva's personal lives or relationships, deflect the question politely`;
       
       setSystemSlot(sessionId, "context", artisticLicensePrompt);
     }
@@ -1220,10 +1205,10 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
       Start your response with this distraction, then continue answering the user's query normally.`;
       
       // If non-English, add language reminder to distraction
-      if (detectedLanguage && detectedLanguage !== 'english') {
+      if (replyLanguage !== 'english') {
         distractionPrompt += `
         
-        REMEMBER: You MUST respond in ${detectedLanguage} only. Translate the distraction if needed.`;
+        REMEMBER: Respond in ${replyLanguage}. Translate the distraction if needed.`;
       }
       
       // Add the instruction
@@ -1232,7 +1217,7 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     }
     
     // Request summary only; message text and prompts stay out of the logs
-    debugLog(`OpenAI request: ${updatedMessages.length} messages, language ${detectedLanguage}, language instruction ${languageInstruction ? "YES" : "NO"}`);
+    debugLog(`OpenAI request: ${updatedMessages.length} messages, message language ${detectedLanguage}, reply language ${replyLanguage}, language note ${languageNote ? "YES" : "NO"}`);
     
     // Generate response with efficient token usage and enhanced creativity
     const response = await openai.chat.completions.create({
@@ -1252,7 +1237,7 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     // Use the appropriate Eva flirt response based on whether Eva is flirting back
     if ((useIntenseEvaFlirt || useRegularEvaFlirt) && (evaFlirtResponses || evaIntenseFlirtResponses)) {
       // Filter responses by language
-      const isChineseResponse = detectedLanguage === "chinese" || detectedLanguage === "mandarin";
+      const isChineseResponse = replyLanguage === "chinese";
       
       // Choose the appropriate response pool based on flirtation level
       const responseArray = useIntenseEvaFlirt ? evaIntenseFlirtResponses : evaFlirtResponses;
