@@ -328,6 +328,18 @@ const PLACE_INTENT: Array<[Kind, RegExp]> = [
   ["time", /几点|幾點|时间|時間|何時|時刻|\bwhat time\b|\btime\b|\bhora\b|\bвремя\b|\bчас\b/u],
 ];
 
+// The word "time" or "date" is not always a clock question: "time complexity", "a time machine", "I had a great time in
+// Tokyo", "a date in Paris". The fixed wordings above are specific enough; the weak ones are only taken for a short
+// fragment about a place, never for a sentence that merely contains the word.
+const NOT_A_CLOCK = /\btime (?:complexity|machine|travel(?:l?er|l?ing)?|series|management|limit|line|lapse|bomb|slot|frame|loop|out|share|sheet|stamp|signature|capsule|trial)\b|\btimeline\b|\b(?:blind|first|hot|double|romantic|release|due|expiry|expiration|launch|birth|start|end|closing) dates?\b|\b(?:a|an|my|our|your|his|her|their) dates?\b/;
+const NOT_FOR_ME_TO_ANSWER = /\b(?:a|an|my|our|your|their|great|good|nice|bad|long|short|hard|fun|wonderful|first|last|next|every|same|any|some|free|spare|real|big|lot of|much|more|less) (?:time|date)\b|\b(?:i|i'm|i'd|i've|i'll|me|we)\b|\bwhen\b|[我私僕俺]/;
+function weakIntentAllowed(raw: string, folded: string): boolean {
+  if (NOT_FOR_ME_TO_ANSWER.test(folded)) return false;
+  const cjk = (raw.match(/[぀-ヿ㐀-鿿]/g) ?? []).length;
+  const words = raw.replace(/[぀-ヿ㐀-鿿]+/g, " ").trim().split(/\s+/).filter(Boolean).length;
+  return words + Math.ceil(cjk / 2) <= 7;
+}
+
 // A place-like phrase we could not resolve: "in Ulaanbaatar", "在乌兰巴托", "en Asunción", "в Улан-Баторе"
 function unknownPlaceIn(text: string): string | null {
   const zone = /\b[A-Z][A-Za-z_]+\/[A-Z][A-Za-z_\-]+(?:\/[A-Z][A-Za-z_\-]+)?\b/.exec(text);
@@ -350,6 +362,7 @@ function unknownPlaceIn(text: string): string | null {
 export function analyzeTimeQuestion(text: string): TimeQuery | null {
   if (typeof text !== "string" || !text.trim() || text.length > 2000) return null;
   const f = fold(text);
+  if (NOT_A_CLOCK.test(f)) return null;
 
   // Places, longest names first, never overlapping
   const taken: Array<[number, number]> = [];
@@ -410,7 +423,7 @@ export function analyzeTimeQuestion(text: string): TimeQuery | null {
       kind = k; break;
     }
   }
-  if (!kind && hasPlace) kind = PLACE_INTENT.find(([, re]) => re.test(f))?.[0] ?? null;
+  if (!kind && hasPlace && weakIntentAllowed(text, f)) kind = PLACE_INTENT.find(([, re]) => re.test(f))?.[0] ?? null;
   if (!kind) return null;
 
   const lang = detectLang(text);
