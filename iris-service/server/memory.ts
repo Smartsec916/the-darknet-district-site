@@ -164,8 +164,20 @@ const QUESTION_SHAPE = /^\W*(?:(?:hey|hi|iris)\W+)*(?:please\s+)?(?:recall|remin
 export const isRecallQuestion = (text: string) =>
   looksLikeRecall(text) && !isRememberInstruction(text) && (text.includes("?") || QUESTION_SHAPE.test(text));
 
+// Does the message also SAY something? "Can you remember this phrase: X?" is phrased as a question but hands over X.
+// A sentence says something when it is a plain statement (not a question, not a request to recall), or an instruction to
+// remember, or it introduces something after a colon or in quotes.
+export function carriesContent(text: string): boolean {
+  if (/:\s*\S/.test(text) || /["“][^"”]{3,}["”]/.test(text)) return true;
+  return text.split(/(?<=[.!?])\s+|\n+/).some(sentence => {
+    const s = sentence.trim();
+    if (s.split(/\s+/).length < 3 || s.includes("?")) return false;
+    return isRememberInstruction(s) || (!QUESTION_SHAPE.test(s) && !looksLikeRecall(s));
+  });
+}
+
 // A short, pure question about the past ("recall the test phrase"): it says nothing new about the visitor
-const isPureRecallQuestion = (text: string) => isRecallQuestion(text) && text.trim().split(/\s+/).length <= 14;
+const isPureRecallQuestion = (text: string) => isRecallQuestion(text) && text.trim().split(/\s+/).length <= 14 && !carriesContent(text);
 
 // Short questions about the past, and Iris's answers to them, are not evidence of anything. If they were kept as
 // "verified memories", an earlier wrong answer would be put back in front of her as a fact, and the old question
@@ -338,7 +350,21 @@ export function searchMemory(
     const dropped = byId.size - kept.length;
     const candidates = kept.filter(m => !skipTexts.has(normalize(m.text)));
     const excluded = kept.length - candidates.length;
-    const ranked = rank(candidates, terms, nowMs, hint);
+    let ranked = rank(candidates, terms, nowMs, hint);
+    let rescued = 0;
+    // Before concluding that there is nothing, one more look for what the visitor themself said: their own statements
+    // are evidence even when the exchange was marked as having no reply or the first pass set it aside. Only their words.
+    if (!ranked.length && likeParams.length) {
+      const extra = await dbQuery(
+        `SELECT ${COLUMNS} FROM chat_messages m WHERE ${o.sql} AND m.sender = 'user' AND m.status IN ('ok', 'error')
+         AND m.message NOT LIKE '[user triggered%' AND (${likeSql(likeParams.length, " OR ")}) ORDER BY m.id DESC LIMIT 40`,
+        [...o.params, ...likeParams],
+      );
+      const said = extra.rows.map(toMessage).filter(m => !isPureRecallQuestion(m.text) && !skipTexts.has(normalize(m.text)));
+      for (const m of said) known.set(m.id, m);
+      ranked = rank(said, terms, nowMs, hint);
+      rescued = ranked.length;
+    }
     const top = ranked.slice(0, lim.recallHits).map(m => m.message);
     if (!top.length) return { hits: [], candidates: candidates.length, matched: 0, excluded, dropped };
 
@@ -358,7 +384,7 @@ export function searchMemory(
         if (m && !placed.has(m.id)) { placed.add(m.id); ordered.push(m); }
       }
     }
-    return { hits: ordered, candidates: candidates.length, matched: top.length, excluded, dropped };
+    return { hits: ordered, candidates: candidates.length + rescued, matched: top.length, excluded, dropped };
   });
 }
 
