@@ -3,35 +3,15 @@
 // Chat messages here are the built-in "[user triggered resize]" reply, so no OpenAI call is made.
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import path from "node:path";
+import { startBuiltServer } from "./helpers/server.mjs";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const EDGE_1 = "173.245.48.1";
 const EDGE_2 = "162.158.0.9";
 
-let nextPort = 5900 + Math.floor(Math.random() * 400);
-async function startServer(env = {}) {
-  const port = nextPort++;
-  const preload = process.platform === "win32" ? ["--require", path.join(root, "tests", "no-reuseport.cjs")] : [];
-  const child = spawn(process.execPath, [...preload, "dist/index.js"], {
-    cwd: root,
-    env: {
-      ...process.env, NODE_ENV: "production", PORT: String(port), IRIS_TEST_DB: "pglite",
-      OPENAI_API_KEY: "sk-test-not-a-real-key", OPENAI_BASE_URL: "http://127.0.0.1:9/v1",
-      CHAT_LIMIT_PER_DAY: "10000", CHAT_GLOBAL_DAILY_LIMIT: "100000",
-      ...env,
-    },
-  });
-  const server = { base: `http://127.0.0.1:${port}`, logs: "", stop: () => child.kill() };
-  child.stdout.on("data", c => { server.logs += c; });
-  child.stderr.on("data", c => { server.logs += c; });
-  for (let i = 0; i < 60; i++) {
-    try { await fetch(server.base + "/api/health"); return server; } catch { await new Promise(r => setTimeout(r, 200)); }
-  }
-  throw new Error("server did not start:\n" + server.logs);
-}
+// Each server gets a port the OS reports free (helpers/server.mjs) and its own in-memory database.
+const startServer = (env = {}) => startBuiltServer({
+  IRIS_TEST_DB: "pglite", CHAT_LIMIT_PER_DAY: "10000", CHAT_GLOBAL_DAILY_LIMIT: "100000", ...env,
+});
 
 // One chat request as it would arrive through Cloudflare: "<visitor>, <edge>", optionally with
 // entries the visitor forged to the left
@@ -156,12 +136,12 @@ describe("TRUSTED_PROXY_HOPS fallback", () => {
       assert.deepEqual(await statuses(one, [chain("198.51.100.101"), chain("198.51.100.102"), chain("198.51.100.103")]), [200, 200, 429],
         "with one hop unrelated visitors share the Cloudflare edge's bucket");
       assert.match(one.logs, /"event":"client_ip_configured","mode":"hops","hops":1/);
-    } finally { one.stop(); }
+    } finally { await one.stop(); }
     const two = await startServer({ CHAT_LIMIT_PER_DAY: "2", TRUSTED_PROXY_HOPS: "2" });
     try {
       assert.deepEqual(await statuses(two, [chain("198.51.100.101"), chain("198.51.100.102"), chain("198.51.100.103")]), [200, 200, 200]);
       assert.deepEqual(await statuses(two, [chain("198.51.100.101", EDGE_1, "6.6.6.6"), chain("198.51.100.101"), chain("198.51.100.101")]), [200, 429, 429], "forged entries are still ignored with two hops");
-    } finally { two.stop(); }
+    } finally { await two.stop(); }
   });
 });
 
@@ -190,7 +170,7 @@ describe("the production verification script, against an emulated Render + Cloud
     const server = await startServer(env);
     const emulator = await startChainEmulator(server.base, "198.51.100.77");
     const originalLog = console.log; console.log = () => {};
-    try { return await runVerification(emulator.base); } finally { console.log = originalLog; emulator.close(); server.stop(); }
+    try { return await runVerification(emulator.base); } finally { console.log = originalLog; emulator.close(); await server.stop(); }
   }
   test("the fix passes: one steady countdown although the edge changes every request and headers are forged", async () => {
     const result = await verdictFor({});

@@ -3,48 +3,24 @@
 // every chat reply is a fallback; the tests check security and limits, not Iris's words.
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import path from "node:path";
+import { startBuiltServer } from "./helpers/server.mjs";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const PORT = 5187 + Math.floor(Math.random() * 500);
-const BASE = `http://127.0.0.1:${PORT}`;
 const PASSPHRASE = "smoke-test-admin-passphrase";
 const GLOBAL_LIMIT = 12;
 let server;
-let logs = "";
+let BASE;
 
 before(async () => {
-  // Windows rejects the reusePort listen option that Linux hosts accept
-  const preload = process.platform === "win32" ? ["--require", path.join(root, "tests", "no-reuseport.cjs")] : [];
-  server = spawn(process.execPath, [...preload, "dist/index.js"], {
-    cwd: root,
-    env: {
-      ...process.env,
-      NODE_ENV: "production",
-      PORT: String(PORT),
-      DATABASE_URL: "postgres://user:pass@127.0.0.1:1/none",
-      OPENAI_API_KEY: "sk-smoke-test-not-a-real-key",
-      OPENAI_BASE_URL: "http://127.0.0.1:9/v1",
-      IRIS_ADMIN_PASSPHRASE: PASSPHRASE,
-      CHAT_GLOBAL_DAILY_LIMIT: String(GLOBAL_LIMIT),
-    },
-  });
-  server.stdout.on("data", chunk => { logs += chunk; });
-  server.stderr.on("data", chunk => { logs += chunk; });
-  for (let i = 0; i < 50; i++) {
-    try {
-      await fetch(BASE + "/");
-      return;
-    } catch {
-      await new Promise(resolve => setTimeout(resolve, 200));
-    }
-  }
-  throw new Error("server did not start:\n" + logs);
+  server = await startBuiltServer({
+    DATABASE_URL: "postgres://user:pass@127.0.0.1:1/none",
+    OPENAI_API_KEY: "sk-smoke-test-not-a-real-key",
+    IRIS_ADMIN_PASSPHRASE: PASSPHRASE,
+    CHAT_GLOBAL_DAILY_LIMIT: String(GLOBAL_LIMIT),
+  }, { readyPath: "/" });
+  BASE = server.base;
 });
 
-after(() => server?.kill());
+after(() => server?.stop());
 
 const chat = (sessionId, message, headers = {}) =>
   fetch(BASE + "/api/chat/message", {
@@ -96,8 +72,8 @@ test("OpenAI failures are flagged as fallback replies and logged", async () => {
   const body = await res.json();
   assert.equal(body.fallback, true);
   assert.equal(typeof body.response, "string");
-  assert.match(logs, /"event":"openai_request_failed"/);
-  assert.match(logs, /"event":"iris_fallback_reply"/);
+  assert.match(server.logs, /"event":"openai_request_failed"/);
+  assert.match(server.logs, /"event":"iris_fallback_reply"/);
 });
 
 test("claiming to be Admin does not unlock stored conversations", async () => {
@@ -120,7 +96,7 @@ test("the passphrase verifies a session and is never logged", async () => {
   });
   // Past the identity check; the stand-in database then fails the lookup
   assert.notEqual(recall.status, 403);
-  assert.ok(!logs.includes(PASSPHRASE));
+  assert.ok(!server.logs.includes(PASSPHRASE));
 });
 
 test("chat history needs a session the server knows", async () => {
@@ -129,7 +105,7 @@ test("chat history needs a session the server knows", async () => {
 
 test("visitor message text is not written to the logs", async () => {
   await chat("privacy", "my secret test phrase is marmalade");
-  assert.ok(!logs.includes("marmalade"));
+  assert.ok(!server.logs.includes("marmalade"));
 });
 
 test("health check answers without touching the database or OpenAI", async () => {
@@ -160,11 +136,11 @@ test("database failures are logged without credentials or message text, and chat
   const res = await chat("dbdown", "my other secret phrase is gooseberry");
   assert.equal(res.status, 200);
   assert.equal(typeof (await res.json()).response, "string");
-  assert.match(logs, /"event":"(conversation_save_failed|schema_setup_failed)"/);
-  assert.match(logs, /"event":"http_request"/);
-  assert.ok(!logs.includes("gooseberry"));
-  assert.ok(!logs.includes("user:pass"));
-  assert.ok(!logs.includes("sk-smoke-test-not-a-real-key"));
+  assert.match(server.logs, /"event":"(conversation_save_failed|schema_setup_failed)"/);
+  assert.match(server.logs, /"event":"http_request"/);
+  assert.ok(!server.logs.includes("gooseberry"));
+  assert.ok(!server.logs.includes("user:pass"));
+  assert.ok(!server.logs.includes("sk-smoke-test-not-a-real-key"));
 });
 
 test("the global daily cap stops further OpenAI calls", async () => {
