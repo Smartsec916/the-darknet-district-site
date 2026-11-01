@@ -44,8 +44,8 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
   const failures = [];
   const check = async (name, fn) => { try { await fn(); console.log('PASS', name); } catch (error) { failures.push(name); console.error('FAIL', name, '\n  ', error.message.split('\n').slice(0, 9).join(' / '), '\n  at', (String(error.stack).split('\n').find(l => l.includes('iris-account-browser')) || '').trim()); } };
 
-  async function open({ viewport = { width: 1440, height: 900 }, me = { authenticated: false, admin: false }, nextUser, signedIn, handles = {}, handleServiceDown = false, takenBy = {} } = {}) {
-    const context = await browser.newContext({ viewport, isMobile: viewport.width < 700, hasTouch: viewport.width < 700, bypassCSP: true });
+  async function open({ viewport = { width: 1440, height: 900 }, phone = viewport.width < 700, me = { authenticated: false, admin: false }, nextUser, signedIn, handles = {}, handleServiceDown = false, takenBy = {} } = {}) {
+    const context = await browser.newContext({ viewport, isMobile: phone, hasTouch: phone, bypassCSP: true });
     const page = await context.newPage();
     const seen = { chat: [], me: 0, link: null, forget: 0, errors: [], handleCalls: [] };
     // A stand-in for the handle registry: unique ignoring case, reserved words refused, one change per 30 days
@@ -642,6 +642,71 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     await sendChat(page, 'hello');
     assert.equal(seen.chat.at(-1).headers.authorization, 'Bearer token-for-uid-owner');
     assert.equal(seen.chat.at(-1).body.handle, undefined, 'the handle is not sent to Iris');
+    await context.close();
+  });
+
+  // The phone chat window: header fixed, messages scroll under it, nav and input stay reachable (accents.css + syncChatViewport)
+  const chatGeometry = page => page.evaluate(() => {
+    const box = selector => { const b = document.querySelector(selector).getBoundingClientRect(); return { l: b.left, t: b.top, r: b.right, b: b.bottom }; };
+    return { vw: innerWidth, vh: innerHeight, nav: box('.district-nav'), chat: box('#chatContainer'), head: box('.chat-header'), msgs: box('#chatMessages'), input: box('#messageInput'), send: box('#sendButton'), button: box('#chatButton') };
+  });
+  const fillChat = page => page.evaluate(() => {
+    for (let i = 0; i < 40; i++) addMessage('Message ' + i + ' lorem ipsum dolor sit amet consectetur adipiscing elit', i % 2 === 0);
+    const list = document.getElementById('chatMessages');
+    return { overflows: list.scrollHeight > list.clientHeight };
+  });
+  for (const [name, width, height] of [['iPhone portrait', 390, 844], ['Android portrait', 360, 740], ['small phone', 320, 568], ['phone landscape', 844, 390]]) {
+    await check(`phone chat window (${name} ${width}x${height}): large, header stays put, messages scroll under it, nav and input reachable`, async () => {
+      const { page, context } = await open({ viewport: { width, height }, phone: true });
+      await page.goto(base + '/index.html');
+      await page.locator('#chatButton').click();
+      const { overflows } = await fillChat(page);
+      assert.ok(overflows, 'enough messages to need scrolling');
+      const before = await chatGeometry(page);
+      await page.locator('#chatMessages').evaluate(el => { el.scrollTop = el.scrollHeight / 2; });
+      await page.mouse.move((before.msgs.l + before.msgs.r) / 2, (before.msgs.t + before.msgs.b) / 2);
+      await page.mouse.wheel(0, 300);
+      const after = await chatGeometry(page);
+      assert.ok(Math.abs(after.head.t - before.head.t) < 1 && Math.abs(after.head.b - before.head.b) < 1, 'the header does not move while messages scroll');
+      assert.ok(Math.abs(after.msgs.t - after.head.b) < 1, 'messages begin exactly at the header edge ' + JSON.stringify(after));
+      const header = await page.evaluate(({ x, y }) => document.elementFromPoint(x, y).closest('.chat-header') !== null, { x: (after.head.l + after.head.r) / 2, y: (after.head.t + after.head.b) / 2 });
+      assert.ok(header, 'nothing from the conversation is drawn over the header');
+      assert.ok(after.chat.t >= after.nav.b - 0.5, 'the window starts below the navigation ' + JSON.stringify({ nav: after.nav.b, chat: after.chat.t }));
+      assert.ok(after.chat.l >= 0 && after.chat.r <= after.vw && after.chat.b <= after.vh, 'the window is inside the screen');
+      assert.ok(after.chat.r - after.chat.l >= Math.min(after.vw * 0.6, 500), 'the window uses the screen width ' + JSON.stringify(after.chat));
+      assert.ok(after.input.b <= after.vh && after.send.b <= after.vh && after.send.r <= after.vw, 'input and Send are on screen');
+      assert.ok(after.button.t >= after.chat.b - 0.5 || after.button.l >= after.chat.r - 0.5, 'the Chat with Iris button is not covered');
+      const links = await page.evaluate(() => [...document.querySelectorAll('.district-nav a')].every(a => { const b = a.getBoundingClientRect(); const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return hit && a.contains(hit); }));
+      assert.ok(links, 'every navigation button can still be clicked');
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth <= 3), 'no sideways scrolling');
+      await context.close();
+    });
+  }
+
+  await check('phone chat window: with the keyboard open (viewport shrinks) the input stays visible and the header stays on top', async () => {
+    const { page, context } = await open({ viewport: { width: 390, height: 844 } });
+    await page.goto(base + '/index.html');
+    await page.locator('#chatButton').click();
+    await fillChat(page);
+    await page.setViewportSize({ width: 390, height: 500 });
+    await page.waitForFunction(() => document.documentElement.classList.contains('iris-kb-open'));
+    const geometry = await chatGeometry(page);
+    assert.ok(geometry.input.b <= geometry.vh && geometry.send.b <= geometry.vh, 'input and Send fit above the keyboard ' + JSON.stringify(geometry));
+    assert.ok(geometry.chat.t >= geometry.nav.b - 0.5, 'the navigation is still clear at this height');
+    assert.ok(geometry.head.t >= 0 && Math.abs(geometry.msgs.t - geometry.head.b) < 1);
+    await context.close();
+  });
+
+  await check('desktop chat window is unchanged: 300x450 at the bottom right', async () => {
+    const { page, context } = await open({ viewport: { width: 1440, height: 900 } });
+    await page.goto(base + '/index.html');
+    await page.locator('#chatButton').click();
+    const g = await chatGeometry(page);
+    assert.equal(Math.round(g.chat.r - g.chat.l), 300);
+    assert.equal(Math.round(g.chat.b - g.chat.t), 450);
+    assert.equal(Math.round(g.vw - g.chat.r), 20);
+    assert.equal(Math.round(g.vh - g.chat.b), 80);
+    assert.equal(Math.round(g.msgs.b - g.msgs.t), 300);
     await context.close();
   });
 
