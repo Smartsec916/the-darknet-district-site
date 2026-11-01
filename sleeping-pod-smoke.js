@@ -48,7 +48,7 @@
 
   var mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
   var gl = null, prog = null, buf = null, uni = {}, disabled = false;
-  var raf = 0, timer = 0, state = null, first = true, last = 0, slow = 0, quality = 1, cuts = 0;
+  var raf = 0, timer = 0, state = null, first = true, last = 0, slow = 0, quality = 1;
 
   function rand(a, b) { return a + Math.random() * (b - a); }
 
@@ -64,13 +64,14 @@
     try {
       gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, powerPreference: 'low-power' });
     } catch (e) { gl = null; }
-    if (!gl) { disabled = true; return false; }
+    if (!gl) { disabled = true; note('WebGL unavailable'); return false; }
+    try { var dbg = gl.getExtension('WEBGL_debug_renderer_info'); glInfo = dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : ''; } catch (e) { glInfo = ''; }
     var v = compile(gl.VERTEX_SHADER, VERT), f = compile(gl.FRAGMENT_SHADER, FRAG);
-    if (!v || !f) { teardown(); disabled = true; return false; }
+    if (!v || !f) { teardown(); disabled = true; note('shader compile failed'); return false; }
     prog = gl.createProgram();
     gl.attachShader(prog, v); gl.attachShader(prog, f); gl.linkProgram(prog);
     gl.deleteShader(v); gl.deleteShader(f);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { teardown(); disabled = true; return false; }
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { teardown(); disabled = true; note('shader link failed'); return false; }
     gl.useProgram(prog);
     buf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
@@ -95,11 +96,40 @@
     gl = prog = buf = null;
   }
 
+  // Developer diagnostics: only active with ?smokedebug in the URL (add &force to ignore reduced motion).
+  // Shows a status panel, logs to the console and exposes window.podSmoke.exhale(); press X to exhale.
+  var params = new URLSearchParams(location.search);
+  var debug = params.has('smokedebug'), force = debug && params.has('force');
+  var hud = null, frames = 0, fpsAt = 0, fps = 0, lastReason = 'idle', glInfo = '';
+  function reduced() { return mq.matches && !force; }
+  function note(msg) { lastReason = msg; if (debug) console.info('[podSmoke] ' + msg); }
+  function report() {
+    if (!debug) return;
+    if (!hud) {
+      hud = document.createElement('pre');
+      hud.style.cssText = 'position:fixed;left:8px;top:8px;z-index:2000;margin:0;padding:6px 8px;background:rgba(0,0,0,.75);color:#7dffb0;font:11px/1.35 monospace;pointer-events:none;white-space:pre';
+      document.body.appendChild(hud);
+    }
+    var rect = canvas.getBoundingClientRect();
+    hud.textContent = [
+      'podSmoke debug (X = exhale now)',
+      'webgl: ' + (gl ? 'ok ' + glInfo : disabled ? 'FAILED' : 'not started'),
+      'reduced-motion: ' + mq.matches + (force ? ' (forced on)' : ''),
+      'hidden: ' + document.hidden + '  quality: ' + quality.toFixed(2),
+      'canvas: ' + canvas.width + 'x' + canvas.height + ' display=' + canvas.style.display,
+      'in viewport: ' + (rect.width > 0 && rect.bottom > 0 && rect.top < innerHeight),
+      'running: ' + !!state + (state ? '  age ' + state.age.toFixed(1) + '/' + state.dur.toFixed(1) + 's  fps ' + fps : ''),
+      'next exhale timer: ' + (timer ? 'armed' : 'none'),
+      'last: ' + lastReason
+    ].join('\n');
+  }
+  if (debug) setInterval(report, 250);
+
   function resize() {
     var cw = window.innerWidth, ch = window.innerHeight;
-    var f = Math.min(0.5, Math.sqrt(420000 / Math.max(1, cw * ch))) * quality;
-    canvas.width = Math.max(64, Math.round(cw * f));
-    canvas.height = Math.max(64, Math.round(ch * f));
+    var f = Math.min(0.4, Math.sqrt(300000 / Math.max(1, cw * ch))) * quality;
+    canvas.width = Math.max(96, Math.round(cw * f));
+    canvas.height = Math.max(96, Math.round(ch * f));
     if (gl) gl.viewport(0, 0, canvas.width, canvas.height);
   }
 
@@ -110,26 +140,30 @@
     stopFrames(); state = null;
     canvas.style.display = 'none';
     if (gl) { gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); }
+    note('exhale finished');
     schedule();
   }
 
-  function schedule() {
+  function schedule(delaySeconds) {
     stopTimer();
-    if (disabled || mq.matches || document.hidden) return;
-    var delay = first ? rand(7, 13) : rand(20, 40);
+    if (disabled || reduced() || document.hidden) { note(disabled ? 'disabled (no WebGL)' : reduced() ? 'paused: reduced motion' : 'paused: tab hidden'); return; }
+    var delay = delaySeconds || (first ? rand(7, 13) : rand(20, 40));
     timer = setTimeout(startExhale, delay * 1000);
+    note('next exhale in ' + Math.round(delay) + 's');
   }
 
   function startExhale() {
     timer = 0; first = false;
-    if (disabled || mq.matches || document.hidden || !init()) return;
+    if (disabled || reduced() || document.hidden) { schedule(); return; }
+    if (!init()) { if (!disabled) schedule(10); return; }
     resize();
     state = {
       age: 0, dur: rand(8.5, 11.5), seed: [rand(0, 9), rand(0, 9)],
       drift: rand(-.08, .08), size: rand(.88, 1.15), twist: rand(.5, 1.1) * (Math.random() < .5 ? -1 : 1)
     };
     canvas.style.display = 'block';
-    last = performance.now(); slow = 0;
+    last = performance.now(); slow = 0; frames = 0; fpsAt = last;
+    note('exhale started');
     raf = requestAnimationFrame(frame);
   }
 
@@ -137,14 +171,13 @@
     raf = 0;
     if (!state || !gl) return;
     var raw = (now - last) / 1000; last = now;
-    // Adaptive quality: halve the work on slow GPUs, give up entirely if still struggling.
-    if (raw > 0.036) slow++; else if (slow > 0) slow--;
-    if (slow > 40) {
-      slow = 0; cuts++;
-      if (cuts > 3) { disabled = true; endExhale(); teardown(); return; }
-      quality *= 0.7; resize();
-    }
-    state.age += Math.min(0.05, raw);
+    frames++; if (now - fpsAt >= 1000) { fps = frames; frames = 0; fpsAt = now; }
+    // Adaptive quality: slow GPUs get a smaller render target (the smoke is soft, so it still looks right).
+    // Never switch the effect off because of speed: a slower, blurrier plume beats no plume.
+    if (raw > 0.04) slow++; else if (slow > 0) slow--;
+    if (slow > 12 && quality > 0.3) { slow = 0; quality *= 0.75; resize(); note('slow frames, quality ' + quality.toFixed(2)); }
+    // Wall-clock aging keeps the exhale the same length even when frames are slow.
+    state.age += Math.min(0.25, raw);
     if (state.age >= state.dur) { endExhale(); return; }
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform2f(uni.uRes, canvas.width, canvas.height);
@@ -158,19 +191,21 @@
   function abort() { stopFrames(); stopTimer(); state = null; canvas.style.display = 'none'; }
 
   document.addEventListener('visibilitychange', function () {
-    if (document.hidden) { stopFrames(); stopTimer(); }
+    if (document.hidden) { stopFrames(); stopTimer(); note('paused: tab hidden'); }
     else if (state) { last = performance.now(); raf = requestAnimationFrame(frame); }
     else schedule();
   });
-  var onMotion = function () { if (mq.matches) abort(); else if (!state && !timer) schedule(); };
+  var onMotion = function () { if (reduced()) abort(); else if (!state && !timer) schedule(); };
   if (mq.addEventListener) mq.addEventListener('change', onMotion); else if (mq.addListener) mq.addListener(onMotion);
   window.addEventListener('resize', function () { if (state) resize(); });
-  canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); abort(); gl = null; });
-  canvas.addEventListener('webglcontextrestored', function () { gl = null; schedule(); });
+  canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); abort(); gl = prog = buf = null; note('WebGL context lost'); });
+  canvas.addEventListener('webglcontextrestored', function () { gl = prog = buf = null; note('WebGL context restored'); schedule(); });
   window.addEventListener('pagehide', function () { abort(); teardown(); });
 
-  // Manual trigger for testing/demo: podSmoke.exhale()
-  window.podSmoke = { exhale: function () { if (!state && !disabled && !mq.matches) { stopTimer(); startExhale(); } } };
+  if (debug) {
+    window.podSmoke = { exhale: function () { if (!state) { stopTimer(); startExhale(); } } };
+    document.addEventListener('keydown', function (e) { if ((e.key === 'x' || e.key === 'X') && !e.ctrlKey && !e.metaKey && !e.altKey) window.podSmoke.exhale(); });
+  }
 
   schedule();
 })();
