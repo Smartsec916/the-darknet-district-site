@@ -42,11 +42,16 @@
    out.push({id:'club-'+kind+'-'+i,position:[(xa+xb)/2,.5,(za+zb)/2],size:[Math.abs(xb-xa),1,Math.abs(zb-za)]});});
   return out;}
 
+ // Where the club's sound comes from (world metres): the six speaker stacks and the DJ desk (for ncz-club-audio.js).
+ function emitters(){
+  const out=[];for(const kind of ['speaker','dj-desk'])FURNITURE[kind].forEach(([gx0,gx1,gz0,gz1],i)=>{const [xa,za]=toWorld(gx0,gz0),[xb,zb]=toWorld(gx1,gz1);out.push({id:kind+'-'+i,kind,x:(xa+xb)/2,y:kind==='speaker'?1.7:1.3,z:(za+zb)/2});});
+  return out;}
+
  // ---- Presentation (browser only) -------------------------------------
  // create() returns { tick(cam,dt,time), inside(cam), state(), dispose() }. `assets` is VoidAssets.
  function create({B,scene,parent,quality,assets,getSolids,onChange}){
   const low=quality==='low',state={phase:'idle',loads:0,unloads:0,error:null};
-  let model=null,own=[],excluded=[],lights=[],beams=[],ball=null,interior=[],cones=[],clock=0,ambience=null,disposed=false,shutter=null;
+  let model=null,own=[],excluded=[],lights=[],beams=[],ball=null,interior=[],cones=[],clock=0,disposed=false,shutter=null;
   const solidShutter=()=>shutter||(shutter=(getSolids?.()||[]).find(s=>s.id==='club-shutter')||null);
   const setOpen=open=>{const s=solidShutter();if(s)s.open=open;onChange?.(open);};
   setOpen(false);
@@ -123,29 +128,12 @@
    if(!model)return;setOpen(false);const gone=new Set(model.getChildMeshes(false));for(const l of excluded)l.excludedMeshes=l.excludedMeshes.filter(m=>!gone.has(m));excluded=[];for(const l of lights)l.dispose();lights=[];for(const b of beams)b.pivot.dispose(false,true);beams=[];for(const o of own)o.dispose();own=[];fade=null;cones=[];interior=[];ball=null;
    model.dispose(false,true);model=null;assets.unload(ID);state.phase='idle';state.unloads++;}
 
-  // Ambience made here, nothing recorded or licensed: a low crowd murmur and a muffled four-on-the-floor thump.
-  function makeAmbience(){
-   const AC=root.AudioContext||root.webkitAudioContext;if(!AC)return null;
-   const ctx=new AC(),master=ctx.createGain();master.gain.value=0;master.connect(ctx.destination);
-   const len=ctx.sampleRate*4,buf=ctx.createBuffer(1,len,ctx.sampleRate),d=buf.getChannelData(0);let last=0;
-   for(let i=0;i<len;i++){last=(last+.02*(Math.random()*2-1))/1.02;d[i]=last*3.2;}
-   const src=ctx.createBufferSource();src.buffer=buf;src.loop=true;
-   const band=ctx.createBiquadFilter();band.type='bandpass';band.frequency.value=430;band.Q.value=.6;const murmur=ctx.createGain();murmur.gain.value=.55;
-   src.connect(band);band.connect(murmur);murmur.connect(master);src.start();
-   const thump=ctx.createBiquadFilter();thump.type='lowpass';thump.frequency.value=170;thump.connect(master);
-   let next=ctx.currentTime+.1;const beat=60/124;
-   return {ctx,level(l){master.gain.setTargetAtTime(Math.min(1,l)*.32,ctx.currentTime,.5);},
-    schedule(){if(ctx.state==='suspended')ctx.resume().catch(()=>{});
-     while(next<ctx.currentTime+.4){const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(95,next);o.frequency.exponentialRampToValueAtTime(42,next+.14);
-      g.gain.setValueAtTime(.0001,next);g.gain.exponentialRampToValueAtTime(.9,next+.008);g.gain.exponentialRampToValueAtTime(.0001,next+.22);o.connect(g);g.connect(thump);o.start(next);o.stop(next+.25);next+=beat;}},
-    close(){try{ctx.close();}catch(e){/* already closed */}}};}
-
   function tick(cam,dt,time){
    if(disposed||!cam)return;clock+=dt;
    const d=distance(cam.x,cam.z),here=inside(cam);
    if(state.phase==='idle'&&d<70)load();
    else if(state.phase==='ready'&&d>130)unload();
-   if(state.phase!=='ready'){ambience?.level(0);return;}
+   if(state.phase!=='ready')return;
    // Interior detail and lights only while the club could be seen into; the shell stays for the skyline.
    const near=d<45;for(const m of interior)if(m.isEnabled()!==near)m.setEnabled(near);
    const live=d<28;
@@ -153,12 +141,10 @@
    for(const b of beams){b.pivot.setEnabled(near);if(!near)continue;
     b.pivot.rotation.x=.25+.55*Math.abs(Math.sin(clock*(.35+b.i*.05)+b.i));b.pivot.rotation.y=clock*(.22+b.i*.04)*(b.i%2?-1:1)+b.i*1.3;}
    if(near&&ball)ball.rotate(B.Axis.Y,dt*.5,B.Space.LOCAL);
-   const level=here?1:d<6?.35:d<14?.12:0;
-   if(level>0&&!ambience){try{ambience=makeAmbience();}catch(e){ambience=false;}}
-   if(ambience){ambience.level(level);if(level>0)ambience.schedule();}}
+  }
 
-  return {tick,inside,state:()=>({...state}),get model(){return model;},dispose(){disposed=true;unload();ambience?.close?.();ambience=null;setOpen(false);}};
+  return {tick,inside,isOpen:()=>state.phase==='ready',state:()=>({...state}),get model(){return model;},dispose(){disposed=true;unload();setOpen(false);}};
  }
- const api={enabled,force:v=>{forced=v;},RECT,HALL,DOOR,FIT,ID,SRC,toWorld,inside,distance,solids,create};
+ const api={enabled,force:v=>{forced=v;},RECT,HALL,DOOR,FIT,ID,SRC,toWorld,inside,distance,solids,emitters,create};
  if(typeof module!=='undefined')module.exports=api;else root.VoidNightclub=api;
 })(globalThis);

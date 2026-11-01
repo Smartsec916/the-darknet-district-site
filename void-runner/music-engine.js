@@ -4,16 +4,19 @@
    music channel, so the existing music volume, mute and suspend all apply. */
 (function(root){
  const S=root.VoidMusicScore,mtof=m=>440*Math.pow(2,(m-69)/12),lookahead=.25,fade=3;
- let ctx=null,out=null,comp=null,noise=null,main=null,speakerInst=null,retiring=[],duck=1;
+ let ctx=null,out=null,city=null,comp=null,noise=null,main=null,speakerInst=null,retiring=[],duck=1,cityLevel=1;
+ const world=new Set(); // persistent in-world sources (worldSource): they outlive style changes and keep their place in the song
  // Deterministic variation: the same bar always plays the same way.
  const hash=(a,b)=>{let h=(a*374761393+b*668265263)|0;h=(h^(h>>>13))*1274126177;return ((h^(h>>>16))>>>0)/4294967296;};
  function ensure(){
   const bus=root.VoidAudio?.bus?.('music');if(!bus)return false;
   if(ctx===bus.context&&out)return true;
   // A new audio context starts clean: nothing from the old one may be revived.
-  main=speakerInst=null;retiring=[];duck=1;
+  for(const inst of world)try{inst.bus.disconnect();}catch{}
+  world.clear();main=speakerInst=null;retiring=[];duck=1;cityLevel=1;
   ctx=bus.context;comp=ctx.createDynamicsCompressor();comp.threshold.value=-18;comp.ratio.value=4;
-  out=ctx.createGain();out.gain.value=.7;out.connect(comp);comp.connect(bus.node);
+  // out -> city -> comp: `city` carries every street/room style, so a place with its own sound (the club) can take the city's music away smoothly.
+  out=ctx.createGain();out.gain.value=.7;city=ctx.createGain();out.connect(city);city.connect(comp);comp.connect(bus.node);
   const b=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;noise=b;return true;
  }
  // ---- Instruments: each builds short-lived nodes for one note and cleans up when it ends ----
@@ -59,10 +62,10 @@
    default:if(hit(layer.pattern))voices[layer.type]?.(dest,t,vel,layer);
   }
  }
- function start(id,inherit){
+ function start(id,inherit,dest){
   const style=S.styles[id];if(!style)return null;
   const bus=ctx.createGain();bus.gain.value=0;let node=bus;
-  if(style.filter){const f=lp(out,style.filter);bus.connect(f);}else bus.connect(out);
+  const to=dest||out;if(style.filter){const f=lp(to,style.filter);bus.connect(f);}else bus.connect(to);
   const inst={id,style,bus,gain:0,step:0,next:ctx.currentTime+.05,intensity:0,tension:0,audio:null,play};
   // Same family (e.g. District zones): keep the beat so the change lands musically.
   if(inherit&&inherit.style.family&&inherit.style.family===style.family&&inherit.style.bpm===style.bpm){inst.step=inherit.step;inst.next=inherit.next;}
@@ -99,8 +102,26 @@
   const d=1-(target.duck||0);if(d!==duck){duck=d;out.gain.setTargetAtTime(.7*d,now,.4);}
   for(const inst of [main,speakerInst,...retiring])if(inst)run(inst,now);
   retiring=retiring.filter(inst=>{if(now<inst.until)return true;dispose(inst);return false;});
+  // The city's share of the mix (1 on the street, 0 inside the club): set by whoever owns the place, smoothed by them.
+  const cl=target.cityLevel==null?1:Math.max(0,Math.min(1,target.cityLevel));if(cl!==cityLevel){cityLevel=cl;city.gain.setTargetAtTime(cl,now,.05);}
+  for(const inst of world)if(!inst.suspended)run(inst,now);
  }
  function stop(){for(const inst of [main,speakerInst,...retiring])if(inst)retire(inst);main=speakerInst=null;}
- const api={update,stop,voices,get current(){return main?.id||null;},get speaker(){return speakerInst?.id||null;}};
+
+ // A persistent source for a place in the world (the club): its own song, played into `dest` instead of the city mix.
+ // It keeps its place in the song: while suspended nothing is scheduled, and resume() lands where the song would be by now
+ // (generated tracks are deterministic per step; a recorded file seeks to elapsed time modulo its length).
+ function worldSource(id,dest,{intensity=1}={}){
+  if(!ensure()||!dest)return null;
+  const inst=start(id,null,dest);if(!inst)return null;
+  inst.intensity=intensity;inst.gain=1;inst.bus.gain.value=inst.style.gain;inst.t0=ctx.currentTime;inst.next=inst.t0+.05;inst.suspended=false;world.add(inst);
+  const sd=()=>60/inst.style.bpm/4;
+  return {get suspended(){return inst.suspended;},get step(){return inst.step;},get style(){return inst.id;},get audio(){return inst.audio?.a||null;},
+   suspend(){if(inst.suspended)return;inst.suspended=true;inst.audio?.a.pause();},
+   resume(){if(!inst.suspended)return;inst.suspended=false;const now=ctx.currentTime,elapsed=now-inst.t0;
+    if(inst.audio){const a=inst.audio.a;if(a.duration>0)a.currentTime=elapsed%a.duration;a.play().catch(()=>{});}
+    else{inst.step=Math.ceil(elapsed/sd());inst.next=Math.max(now+.02,inst.t0+inst.step*sd());}},
+   dispose(){world.delete(inst);dispose(inst);}};}
+ const api={worldSource,context(){return ensure()?ctx:null;},update,stop,voices,get current(){return main?.id||null;},get speaker(){return speakerInst?.id||null;}};
  root.VoidMusicEngine=api;
 })(globalThis);

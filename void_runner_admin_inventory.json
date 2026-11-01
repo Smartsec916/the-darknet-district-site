@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "9b052b43b1e03c2d",
+  "revision": "da9920f3a6bbd1b3",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -7560,61 +7560,61 @@
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 135,
+      "line": 137,
       "text": "clearTimeout(speechTimer);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 137,
+      "line": 139,
       "text": "root.speechSynthesis?.cancel();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 368,
+      "line": 370,
       "text": "voices = (root.speechSynthesis?.getVoices() || []).filter(v => /^en(?:-|_)/i.test(v.lang)).sort((a,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 374,
+      "line": 376,
       "text": "root.speechSynthesis?.addEventListener?.('voiceschanged', refreshVoices);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 437,
+      "line": 439,
       "text": "if (!root.speechSynthesis || !root.SpeechSynthesisUtterance) return false;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 442,
+      "line": 444,
       "text": "speechTimer = setTimeout(() => { if(token === current) speak(id, text, true); }, 1000);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 447,
+      "line": 449,
       "text": "const u = new root.SpeechSynthesisUtterance(text);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 459,
+      "line": 461,
       "text": "clearTimeout(speechTimer);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 463,
+      "line": 465,
       "text": "root.speechSynthesis.speak(u);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 464,
+      "line": 466,
       "text": "speechTimer = setTimeout(() => {",
       "kind": "source-reference"
     },
@@ -8338,11 +8338,12 @@
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
     "void-runner/mouse-control.js": "e22165f19bef53595dba679424375e039e776e19359e075fbea720cc4d10ca95",
     "void-runner/music-director.js": "a751c57ffcc8fd9928ecd8baa1f962d21f86ae842b87a3724e31c045887795a8",
-    "void-runner/music-engine.js": "33e60fcf7ebc912f7ecbbe9af733fc57b95ff5302457190aa5467fc4f07ac8e0",
-    "void-runner/music-integration.js": "4d0fb52f85f3375a2bcd5385886e63c569a65209e2c5de32ab3f5b0cd465c02d",
-    "void-runner/music-score.js": "2371893bd722e910f8325ce5d436f48f6dfac32c9fad259e7239ef7745783fc6",
+    "void-runner/music-engine.js": "5078e1a0fedff9d09a7f23823126d3ef8a834a1806edb7675c54e3b668014a8b",
+    "void-runner/music-integration.js": "46e2a4b1d65a7b9cdabcf808352540191011dc50879a8efbf8855e2b024ed46e",
+    "void-runner/music-score.js": "87751174ef61afbb0be20d98b5b01127d833ee63c06e727bf1a2d6e985b8b7e7",
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
-    "void-runner/ncz-nightclub.js": "dd7f3cab81c1fdaf94e864d4ee24fbfa3d2d93c040a89ade74e52cccdec1417a",
+    "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
+    "void-runner/ncz-nightclub.js": "b4dbe1c5e0e47b7f18dc94ae4fa7da5c1463be4b1ed01d75f628800cc6661b56",
     "void-runner/ncz-nightlife.js": "4c6e4d7ca34309a6e1a190bfc70d78123ef746ccab8f29c74b7c77041e038fba",
     "void-runner/neochinatown.js": "b711f17fa29b0d3156fe062f8ba3997447686f9c1355e52a56263befd15673ec",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
@@ -8363,7 +8364,7 @@
     "void-runner/scenes.js": "a6bdbc20299c5ecb1a5f99546faa103e5b05777b1abfdabd25676181717686f8",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
-    "void-runner/ship-audio.js": "0c197d6b4d43dfa761566daee04a34c061d24efb12abd4b30914281bee68e357",
+    "void-runner/ship-audio.js": "8cb0ef9954a8e074a1f036340d3b8bf42459452a8a808a2457f16fcce43df2d5",
     "void-runner/ships.js": "0d0d01d12425f5608f2135f662d687739e837b09c931ce1052ad4768cb94508f",
     "void-runner/signals.js": "c4b44b7d838b52d35c5a6d57afa3b437be789b78f43eff9e1adc4a7dfa26e5b6",
     "void-runner/simulation-effects.js": "f6aac1ce655f6f79e900da09e79938ecf7c162aa6d5c765187b294510793342a",
