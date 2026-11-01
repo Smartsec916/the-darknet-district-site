@@ -545,11 +545,14 @@
     // Machines (reference: glass fronts over lit shelves of goods, a payment panel at the side, a bright top light).
     const vendGlass=glass('vend-glass','#cfe8ff',.08),vendBody=mat('vend','#16161d',{rough:.5,metal:.6}),itemColors=['#38e8ff','#ff5bd0','#ffb347','#6cff9e','#e8f0ff'];
     for(let i=0;i<3;i++){const z=47.6+i*1.9,x=-6.3;
+     // The licensed Neon Urban Utility machine (Astral-3D; docs/VOID_RUNNER_ASSET_LICENSES.md), back to the alcove wall,
+     // front where the built machines' glass was; the built machine below stays as the fallback if it isn't there.
+     if(!instance('vending-neon',[-6.4,0,z],Math.PI/2)){
      // A hollow cabinet: back, top, base and sides, open at the front behind the glass.
      box('vending-back',[.5,2.2,1.6],[x-.25,1.1,z],vendBody);box('vending-top',[.5,.26,1.6],[x+.25,2.07,z],vendBody);box('vending-base',[.5,.34,1.6],[x+.25,.17,z],vendBody);box('vending-side',[.5,2.2,.07],[x+.25,1.1,z-.765],vendBody);box('vending-side',[.5,2.2,.36],[x+.25,1.1,z+.62],vendBody);box('vending-back-glow',[.04,1.6,1.1],[x+.12,1.15,z-.12],glowMat('vend-back-'+i,['#12384a','#3a1236','#3a2e10'][i],1));
      for(let s=0;s<4;s++){const sy=.5+s*.42;box('vending-shelf',[.62,.03,1.1],[x+.2,sy,z-.12],frame);for(let k=0;k<5;k++){const h=.16+((i*7+s*3+k)%3)*.05,c=(i+s*2+k)%5;box('vending-item',[.22,h,.16],[x+.3,sy+h/2+.02,z-.55+k*.21],glowMat('vend-item-'+c,itemColors[c],.5));}}
      box('vending-led',[.05,.05,1.1],[x+.48,1.97,z-.12],glowMat('vend-led','#f4f8ff',1.5));box('vending-glass',[.02,1.68,1.14],[x+.51,1.18,z-.12],vendGlass,false);
-     box('vending-panel',[.06,1.5,.32],[x+.5,1.1,z+.6],frame);box('vending-pay',[.02,.26,.2],[x+.535,1.38,z+.6],glowMat('vend-pay','#6cff9e',.9));box('vending-card',[.02,.1,.18],[x+.535,1.08,z+.6],amber);
+     box('vending-panel',[.06,1.5,.32],[x+.5,1.1,z+.6],frame);box('vending-pay',[.02,.26,.2],[x+.535,1.38,z+.6],glowMat('vend-pay','#6cff9e',.9));box('vending-card',[.02,.1,.18],[x+.535,1.08,z+.6],amber);}
      neon('vend-label-'+i,[['DRINKS','SNACKS','TECH'][i]],[['#38e8ff','#ff5bd0','#ffb347'][i]],1.1,.22,[x+.52,2.08,z-.12],-Math.PI/2,'rgba(8,8,12,.92)');}
     box('vend-bin',[.5,.8,.5],[-3.6,.4,52],pipe);
 
@@ -705,11 +708,14 @@
     function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);doors.tick(dt);terminal.tick(dt);nightlife?.tick(dt);atmosphere(time,dt);for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
     return {tick,city,nightlife,doors,dispose(){disposed=true;nightlife?.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
   }
-  const localDev=()=>/^(localhost|127\.0\.0\.1|\[::1\])$/.test(root.location?.hostname||'');
   // Licensed models (docs/VOID_RUNNER_ASSET_LICENSES.md) dressing the District; loaded before build().
   const models={'crowd:vr-player-a':{src:'assets/models/crowd/vr-player-a.glb',background:true},'crowd:vr-player-b':{src:'assets/models/crowd/vr-player-b.glb',background:true},'district:couch':{src:'assets/models/district/couch.glb',scale:.5},'district:bin':{src:'assets/models/district/bin.glb',scale:.6},'district:chair':{src:'assets/models/district/chair.glb',scale:1},
-   // Purchased Cyberpunk City pack (upgraded blocks above): requested only on a local development server until its
-   // licence is confirmed for release, so the public site never asks for files it doesn't have.
-   ...(localDev()?{'ncz:building5':{src:'assets/models/ncz/building5.vrpak'},'ncz:storefronts':{src:'assets/models/ncz/storefronts.vrpak'}}:{})};
+   // Purchased vending machine (CGTrader, Royalty Free no AI): kept out of the public repository; the live site gets it,
+   // encrypted, from the private asset repository (tools/assets/build-pages.cjs). Without it the built machines stay.
+   'district:vending-neon':{src:'assets/models/district/vending-neon.vrpak',scale:1},
+   // Purchased Cyberpunk City pack (CGTrader #4757767, Royalty Free no AI; upgraded blocks above): kept out of the
+   // public repository; the live site gets it, encrypted, from the private asset repository. Without it the block
+   // keeps its built buildings.
+   'ncz:building5':{src:'assets/models/ncz/building5.vrpak'},'ncz:storefronts':{src:'assets/models/ncz/storefronts.vrpak'}};
   const api={layout,build,models,toWorld,zone,streets,footprints,door:DOOR,districts,taxiZones,cityBox};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
 })(globalThis);
