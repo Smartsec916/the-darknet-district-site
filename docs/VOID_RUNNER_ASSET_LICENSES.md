@@ -171,4 +171,14 @@ car texture. **Local development only**: the converted models (`void-runner/asse
 only on localhost, never committed, uploaded or deployed until David confirms the licence. Not to be used for AI training.
 See `docs/void-runner/ncz-upgrade/README.md`. Listing checked 2026-10-31: Model ID #4757767, **Royalty Free License (no AI)**;
 CGTrader notes some textures are made from Textures.com photographs, which "may not be redistributed by default" (as
-textures on their own). It could go live like the companions (private repository, encrypted); not yet done.
+textures on their own). **Released 2026-11-01** (block A: `ncz/building5.vrpak`, `ncz/storefronts.vrpak`) like the
+companions: private repository, encrypted at deploy. Checked first: neither file carries the Midjourney-like advert or the
+"Ford1965" texture; the block keeps its built buildings where the files are absent.
+
+**Vending machines (2026-11-01).** "Cyberpunk Vending Machine 3D Model Neon Urban Utility" by Astral-3D on CGTrader
+(subscription download, item 6592682), **Royalty Free License (no AI)**: **used** for the District's three vending
+machines (`district/vending-neon.vrpak`, from the private repository, encrypted; `tools/animation-pipeline/prepare_vending.py`:
+1.95 m, emission taken from its own painted neon, 25k triangles, KTX2). The built machines stay as the fallback.
+"Cyberpunk Vending Machine Grimy Sci Fi Dystopian Prop" (CGTrader, Royalty Free License (no AI)): **not used yet**, the
+supplied FBX references a "Vending Machine Textures Official" folder (base colour, emission, metallic, roughness, normal)
+that wasn't in the download. Originals of both are kept outside the repository.
