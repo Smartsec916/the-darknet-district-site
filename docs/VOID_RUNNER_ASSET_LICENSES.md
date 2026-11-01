@@ -187,8 +187,8 @@ that wasn't in the download. Originals of both are kept outside the repository.
 item 5665404, $12.50), downloaded by David through a **CGTrader subscription** ("subscriptionDownloads"). Package: a 1.9 MB
 animated FBX (363 meshes, 66.5k triangles, 18 materials, 16 FBX clips), 286 MB of 2K TGA/TIF/PNG textures, an Unreal 4 project
 (185 MB) and a Unity HDRP package (381 MB). The saved download dialog (`cyberpunk-cyber-club.zip`, actually JSON) was
-read for the item id and file list only; it is not in the repository. The listing's licence type was **not** checked from
-the product page (it needs a sign-in); CGTrader's published terms (§19A, §21A) say subscription downloads are always the
+read for the item id and file list only; it is not in the repository. Listing checked 2026-11-01 (seller iilranch, published 2024-11-25): **Royalty Free License (no AI)**, no third-party
+texture notice on the page; sold as a Unity package with FBX, UAsset and PNG exchange files. CGTrader's published terms (§19A, §21A) say subscription downloads are always the
 **No AI** Royalty Free licence, may be used after the subscription ends only in projects completed while it was active, and
 games must keep the raw model from end users ("a proprietary format", "encrypting the Product data"). A plain `.glb` on the
 public site or in this public repository would not meet that. So, as with the city pack and the vending machines:
