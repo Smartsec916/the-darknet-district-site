@@ -308,9 +308,10 @@
  const registered={id:'suite',title:'Play in a Bedroom',status:'ready',station:1,tint:'linear-gradient(135deg,#1a0820,#ff2d96)',preview:'void-runner/assets/vr/preview-suite.jpg',
   description:'A private apartment high above NeoChinatown at night, with an adult companion of your choice. Talk, sit together, dance, or simply enjoy the room. Romance is optional and never explicit.',
   picker:{
-   // Model files are checked when the picker opens; a missing one is shown but can't be chosen.
+   // Model files are checked when the picker opens; a missing one is shown but can't be chosen. Only companions
+   // offered here are checked (Una's file isn't published, so asking for it would only log a 404).
    installed:{},
-   prepare(){const byModel=new Map([...C.companions.values()].map(e=>[e.model,e]));return Promise.all([...byModel.values()].map(e=>fetch('void-runner/assets/models/crowd/'+C.file(e),{method:'HEAD'}).then(r=>{this.installed[e.model]=r.ok;}).catch(()=>{})));},
+   prepare(){const byModel=new Map([...C.companions.values()].filter(e=>C.offered(e)).map(e=>[e.model,e]));return Promise.all([...byModel.values()].map(e=>fetch('void-runner/assets/models/crowd/'+C.file(e),{method:'HEAD'}).then(r=>{this.installed[e.model]=r.ok;}).catch(()=>{})));},
    usable(sex){return C.list({sex,has:m=>VoidCrowd.clips[m]||[],installed:this.installed}).filter(e=>C.offered(e));},
    steps:[
     {title:'COMPANION',prompt:'Who would you like to spend the evening with? Every companion is an original adult character of this simulation.',
