@@ -4,3 +4,9 @@
 .release-row{border:1px solid #486576;padding:16px;margin-block:12px}.release-row button{margin:6px}#release-drafts{width:100%;min-height:130px}#release-reason{width:100%;min-height:90px}#release-comparison{max-height:480px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
 
 #release-workspace .draft-actions{display:flex;flex-wrap:wrap;gap:8px}
+
+/* Stage 3B.1 draft recovery: confirmation, history, comparisons */
+.draft-confirm{position:sticky;top:8px;z-index:5;border:1px solid #d090c7;background:#1b1426;padding:14px 16px;margin:12px 0;display:flex;flex-wrap:wrap;gap:10px;align-items:center}.draft-confirm p{flex:1 1 100%;margin:0;color:#f5aee6}
+.draft-tools{border-top:1px solid #29424f;margin-top:18px;padding-top:12px}.draft-history-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border:1px solid #29424f;padding:8px 10px;margin:6px 0}.draft-history-row span{flex:1 1 240px;font:12px/1.5 monospace;color:#c3d6df}
+#draft-recovery pre,#draft-archive pre{max-height:360px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;background:#0b1721;padding:10px;margin:4px 0}
+.draft-diff{border:1px solid #486576;padding:10px;margin:10px 0}.draft-diff strong{display:block;color:var(--cyan);font:12px monospace;margin-bottom:6px}.draft-diff-columns{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}.draft-diff-columns span{font:10px monospace;color:#c3d6df}.draft-diff-columns pre{max-height:240px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;background:#0b1721;padding:8px;margin:2px 0}

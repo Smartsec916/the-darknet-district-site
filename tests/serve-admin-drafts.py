@@ -16,4 +16,10 @@ if __name__ == '__main__':
     app=Flask(__name__,static_folder=str(Path(__file__).resolve().parents[1]),static_url_path='')
     app.register_blueprint(vr.api)
     with patch.object(vr,'services',return_value=(db,SimpleNamespace(verify_id_token=verify),None)), patch('firebase_admin.firestore.transactional',transactional):
+        if os.environ.get('VOID_TEST_SEED_STALE_DRAFT')=='1':
+            # A synthetic draft saved before a game update, in memory only, so the rebase review can be exercised.
+            import copy
+            import void_runner_drafts as drafts
+            older=copy.deepcopy(drafts.inventory());older['revision']='older-'+older['revision']
+            drafts.save(db,'owner','stale-flight',{'revision':0,'document':drafts.template('mission','registry:flight-training',older)},older)
         app.run(host='127.0.0.1',port=5196,debug=False)

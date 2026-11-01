@@ -657,6 +657,83 @@ def content_draft_validate(db, uid):
     if os.getenv('VOID_CONTENT_DRAFTS_ENABLED') == 'true':
         heads = {d['id']: d for d in content_drafts.listing(db, uid)['drafts']}
     return jsonify(content_drafts.validate(document, content_drafts.inventory(), heads))
+
+
+# Stage 3B.1 recovery operations. Each needs the configured editor and enabled private storage; every change is
+# a transaction that checks the draft's current revision and is confirmed explicitly by the administrator.
+def draft_body():
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        raise DraftError('A JSON object is required.')
+    return body
+
+
+def revision_arg(name, required=True):
+    value = request.args.get(name)
+    if value is None and not required:
+        return None
+    if value is None or not value.isdigit():
+        raise DraftError('Invalid draft revision.')
+    return int(value)
+
+
+@api.get('/developer/drafts/export')
+@signed_in
+def content_draft_export(db, uid):
+    content_drafts.editor(uid, balance_admin)
+    history = request.args.get('history', 'all')
+    if history not in ['all', 'heads']:
+        raise DraftError('Unsupported export option.')
+    return jsonify(content_drafts.export(db, uid, content_drafts.inventory(), history == 'all'))
+
+
+@api.get('/developer/drafts/<draft_id>/compare')
+@signed_in
+def content_draft_compare(db, uid, draft_id):
+    content_drafts.editor(uid, balance_admin)
+    return jsonify(content_drafts.compare(db, uid, draft_id, revision_arg('from'), revision_arg('to', required=False)))
+
+
+@api.post('/developer/drafts/<draft_id>/rebase/plan')
+@signed_in
+def content_draft_rebase_plan(db, uid, draft_id):
+    content_drafts.editor(uid, balance_admin)
+    return jsonify(content_drafts.plan_rebase(db, uid, draft_id, draft_body(), content_drafts.inventory()))
+
+
+@api.post('/developer/drafts/<draft_id>/rebase')
+@signed_in
+def content_draft_rebase(db, uid, draft_id):
+    content_drafts.editor(uid, balance_admin)
+    return jsonify(content_drafts.rebase(db, uid, draft_id, draft_body(), content_drafts.inventory()))
+
+
+@api.post('/developer/drafts/<draft_id>/restore')
+@signed_in
+def content_draft_restore(db, uid, draft_id):
+    content_drafts.editor(uid, balance_admin)
+    return jsonify(content_drafts.restore(db, uid, draft_id, draft_body(), content_drafts.inventory()))
+
+
+@api.post('/developer/drafts/<draft_id>/archive')
+@signed_in
+def content_draft_archive(db, uid, draft_id):
+    content_drafts.editor(uid, balance_admin)
+    return jsonify(content_drafts.set_archived(db, uid, draft_id, draft_body(), True))
+
+
+@api.post('/developer/drafts/<draft_id>/unarchive')
+@signed_in
+def content_draft_unarchive(db, uid, draft_id):
+    content_drafts.editor(uid, balance_admin)
+    return jsonify(content_drafts.set_archived(db, uid, draft_id, draft_body(), False))
+
+
+@api.post('/developer/drafts/<draft_id>/continue')
+@signed_in
+def content_draft_continue(db, uid, draft_id):
+    content_drafts.editor(uid, balance_admin)
+    return jsonify(content_drafts.continue_as_new(db, uid, draft_id, draft_body(), content_drafts.inventory()))
 import void_runner_publication as content_releases
 
 
