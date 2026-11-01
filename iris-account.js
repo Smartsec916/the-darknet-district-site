@@ -326,39 +326,6 @@ if (root) {
     }
   }
 
-  async function linkHistory() {
-    closeMenu();
-    const ok = window.confirm(
-      'Connect the Iris conversations from this browser to your account?\n\n'
-      + 'Iris will be able to remember them under your account from now on. The anonymous record stays where it is, '
-      + 'and nothing is connected unless you choose OK.');
-    if (!ok) return;
-    try {
-      const { result } = await api('/api/me/link-history', { method: 'POST', body: { clientId: identity?.clientId, consent: true } });
-      window.alert(result === 'linked' ? 'Done. Iris will remember you under your account.' : 'Iris has no earlier chats from this browser to connect.');
-    } catch (error) { window.alert(error.message); }
-  }
-
-  // What Iris holds is counted first, then deleted only after an explicit OK. Game progress, your sign-in and this
-  // browser's own Iris id are not touched.
-  async function forgetMemory() {
-    closeMenu();
-    try {
-      const held = await api('/api/me/memory');
-      const messages = held.conversationMessages ?? 0;
-      if (!messages && !held.relationship) { window.alert('Iris has nothing saved about your account.'); return; }
-      const ok = window.confirm(
-        `Delete what Iris remembers about your account?\n\n`
-        + `• ${messages} saved message${messages === 1 ? '' : 's'} from your conversations`
-        + (held.linkedBrowsers ? ` (including ${held.linkedBrowsers} connected browser${held.linkedBrowsers === 1 ? '' : 's'})` : '') + `\n`
-        + `• Her notes and feelings about you\n\n`
-        + 'This cannot be undone. Your game progress, your sign-in and this browser\'s Iris ID are not affected.');
-      if (!ok) return;
-      const done = await api('/api/me/memory', { method: 'DELETE', body: { confirm: held.confirmation, scope: 'all' } });
-      window.alert(`Done. ${done.conversationMessages ?? 0} saved messages were deleted and Iris has forgotten you.`);
-    } catch (error) { window.alert(error.message); }
-  }
-
   // The same, for someone who has not signed in: this browser's own anonymous memories. The browser's random id is the proof.
   async function forgetThisBrowser() {
     try {
@@ -413,8 +380,6 @@ if (root) {
     handle: () => openHandle(),
     settings: openSettings,
     controls: () => { location.href = './iris-controls.html'; },
-    link: linkHistory,
-    forget: forgetMemory,
     switch: switchAccount,
     logout: logOut,
   };

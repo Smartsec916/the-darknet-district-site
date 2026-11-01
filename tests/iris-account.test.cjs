@@ -44,10 +44,10 @@ test('the account menu: IRIS CONTROLS only for a server-confirmed administrator;
   const ids = state => menuItems(state).map(item => item.id);
   assert.deepEqual(ids({ signedIn: false, admin: false }), []);
   assert.deepEqual(ids({ signedIn: false, admin: true }), [], 'signed out shows nothing, whatever the flag says');
-  assert.deepEqual(ids({ signedIn: true, admin: false }), ['settings', 'link', 'forget', 'switch', 'logout']);
+  assert.deepEqual(ids({ signedIn: true, admin: false }), ['settings', 'switch', 'logout']);
   assert.deepEqual(ids({ signedIn: true, admin: true }), ['settings', 'controls', 'switch', 'logout']);
   assert.ok(!ids({ signedIn: true, admin: false }).includes('controls'));
-  assert.deepEqual(ids({ signedIn: true, admin: false, needsHandle: true }), ['handle', 'settings', 'link', 'forget', 'switch', 'logout'], 'a handle is offered first until one is chosen');
+  assert.deepEqual(ids({ signedIn: true, admin: false, needsHandle: true }), ['handle', 'settings', 'switch', 'logout'], 'a handle is offered first until one is chosen');
   assert.deepEqual(ids({ signedIn: false, needsHandle: true }), []);
 });
 
