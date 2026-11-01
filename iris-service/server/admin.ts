@@ -182,7 +182,10 @@ export function createAdminRouter(): Router {
     const sessionId = String(req.params.sessionId).slice(0, 128);
     const type = oneString(req.query.type);
     const { rows } = await dbQuery(
-      `SELECT id, sender, message, ${TS("timestamp")} AS ts, language, status FROM chat_messages
+      `SELECT id, sender, message, ${TS("timestamp")} AS ts, language, status,
+              (m.message ILIKE '[user triggered%' OR (m.request_id IS NOT NULL AND EXISTS (
+                SELECT 1 FROM chat_messages t WHERE t.request_id = m.request_id AND t.sender = 'user' AND t.message ILIKE '[user triggered%'))) AS automated
+       FROM chat_messages m
        WHERE session_id = $1 ${type === "visitor" ? "AND sender = 'user'" : type === "iris" ? "AND sender = 'iris'" : ""}
        ORDER BY timestamp, id`,
       [sessionId],
@@ -192,7 +195,7 @@ export function createAdminRouter(): Router {
     res.json({
       sessionId, startedAt: started,
       messages: rows.map((r: any) => ({
-        id: r.id, sender: r.sender, message: r.message, timestamp: r.ts, language: r.language, status: r.status,
+        id: r.id, sender: r.sender, message: r.message, timestamp: r.ts, language: r.language, status: r.status, automated: Boolean(r.automated),
       })),
     });
   }));

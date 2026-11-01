@@ -17,6 +17,12 @@ window.addEventListener("load", () => {
     const widthThreshold = 400;
     let devtoolsTriggered = false;
 
+    // Phones and tablets have no developer tools to open. Their browser toolbars, on-screen keyboard and slow timers
+    // look like an open console to the size and timing checks below, which made Iris react to ordinary visitors.
+    const touchDevice = (navigator.maxTouchPoints || 0) > 0 && window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    const mobileAgent = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
+    if (touchDevice || mobileAgent) return;
+
     const checkDevTools = () => {
         const heightDiff = window.outerHeight - window.innerHeight;
         const widthDiff = window.outerWidth - window.innerWidth;

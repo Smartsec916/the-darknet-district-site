@@ -107,9 +107,11 @@ export const ADMIN_VIEWER_HTML = `<!doctype html>
     api("/api/admin/conversations/" + encodeURIComponent(id), { type: $("type").value }).then(function (d) {
       var box = $("detail"); box.textContent = "";
       box.appendChild(el("div", "meta", "Session " + d.sessionId + " · started " + utc(d.startedAt) + " · " + d.messages.length + " messages shown"));
+      box.appendChild(el("div", "meta", "Only messages sent to Iris are stored. The welcome line, developer-tools greetings, ambient and rebellion lines and uplink-waking-up notices are produced in the visitor's browser and never appear here."));
       d.messages.forEach(function (m) {
         var row = el("div", "msg " + (m.sender === "user" ? "user" : "iris") + (m.status !== "ok" ? " bad" : ""));
         var who = m.sender === "user" ? "Visitor" : "Iris";
+        if (m.automated) who += m.sender === "user" ? " (automatic browser trigger, not typed by the visitor)" : " (automatic reaction to a browser trigger)";
         if (m.status === "fallback") who += " (canned fallback reply)";
         if (m.status === "error") who += " (no reply produced)";
         row.appendChild(el("div", "meta", utc(m.timestamp) + " — " + who + (m.language ? " · " + m.language : "")));
