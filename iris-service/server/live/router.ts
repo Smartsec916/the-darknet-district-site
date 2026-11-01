@@ -43,7 +43,7 @@ function wordCount(text: string): number {
 }
 
 const PLACE_STOP = /^(?:it|its|it's|the|my|your|our|a|an|this|that|these|those|here|there|general|case|fact|order|terms|time|any|every|some|all|case|particular|short|long|total|detail|real|truth|theory|principle|practice|addition|spite|front|back|touch|love|charge|control|person|public|private|nature|reality)\b/i;
-const TRAILING = /\s+(?:today|tomorrow|tonight|now|right|this|next|please|and|or|but|then|currently|at|on|with|because|since|so|is|will|looks?|like|the|a|weekend|week|morning|afternoon|evening)$/i;
+const TRAILING = /\s+(?:today|tomorrow|tonight|now|right|this|next|please|pls|plz|and|or|but|then|currently|at|on|with|because|since|so|is|will|looks?|like|the|a|weekend|week|morning|afternoon|evening|again|too|there|though|anyway|thanks|lol|btw|exactly)$/i;
 const CITY_RE = /(?:\b(?:in|at|for|near|around|across|over|from|en)|(?<![\p{L}])в)\s+([\p{L}][\p{L}.'’-]*(?:[ ,]+[\p{L}][\p{L}.'’-]*){0,3})/giu;
 
 export function extractPlace(text: string): string | null {
