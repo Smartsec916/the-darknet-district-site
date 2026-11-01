@@ -1,0 +1,9 @@
+{
+  "checks": [
+    "seren: selectable, real model loaded, campaign/save isolation and audio disposal",
+    "kai: selectable, real model loaded, campaign/save isolation and audio disposal",
+    "nadia: selectable, real model loaded, campaign/save isolation and audio disposal"
+  ],
+  "errors": [],
+  "consoleErrors": []
+}

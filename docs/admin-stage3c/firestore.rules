@@ -1,0 +1,3 @@
+// Merge fragment only. Review complete deployed rules/IAM before enabling private storage.
+match /vr_content_releases/{document=**} { allow read, write: if false; }
+match /vr_content_release_workspaces/{document=**} { allow read, write: if false; }
