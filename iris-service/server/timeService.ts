@@ -245,6 +245,7 @@ export function fold(text: string): string {
     .replace(/(\p{Script=Latin})\p{M}+/gu, "$1").normalize("NFC").toLowerCase();
 }
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const WORD_CHAR = "\\p{Script=Latin}\\p{Script=Cyrillic}\\p{N}";
 
 interface Matcher { len: number; find: (text: string) => Array<[number, number]>; target: (typeof names)[number]["target"] }
 const matchers: Matcher[] = names.map(({ name, target }): Matcher => {
@@ -260,7 +261,9 @@ const matchers: Matcher[] = names.map(({ name, target }): Matcher => {
       return out;
     } };
   }
-  const re = new RegExp(`(?<![\\p{L}\\p{N}])${escapeRe(folded)}${stem ? "\\p{L}{0,3}" : ""}(?![\\p{L}\\p{N}])`, "gu");
+  // A word edge is any character that is not a Latin or Cyrillic letter or a digit, so "UTC" and "Tokyo" are found
+  // inside Chinese or Japanese text too ("UTCで", "在Tokyo")
+  const re = new RegExp(`(?<![${WORD_CHAR}])${escapeRe(folded)}${stem ? `[${WORD_CHAR}]{0,3}` : ""}(?![${WORD_CHAR}])`, "gu");
   return { len: folded.length, target, find: (text: string) => [...text.matchAll(re)].map(m => [m.index!, m.index! + m[0].length] as [number, number]) };
 }).sort((a, b) => b.len - a.len);
 
@@ -492,15 +495,17 @@ interface Phrases {
   askAmbiguous(name: string, options: string[]): string;
   askUnknown(name: string, hm: string): string;
 }
+// Every time is written right after the place it belongs to, and every date right after its time (or its place),
+// so the check below can tell whose time each one is
 const PHRASES: Record<Lang, Phrases> = {
   en: {
     time: (L, r, d) => `In ${L} it's ${r.hm} (${h12(r)}) on ${d} (${offsetLabel(r.offsetMinutes)}).`,
     date: (L, r, d) => `In ${L} it's ${d}, ${r.hm} local time (${offsetLabel(r.offsetMinutes)}).`,
-    ahead: (A, dA, hA, R, dR) => `Yes. In ${A} it's already ${dA}, ${hA}, while ${R} is still on ${dR}.`,
-    same: (A, dA, hA, R) => `No. ${A} and ${R} are on the same date, ${dA} (${hA} in ${A}).`,
-    behindDate: (A, dA, hA, R, dR) => `No. ${A} is still on ${dA}, ${hA}, an earlier date than ${R} (${dR}).`,
+    ahead: (A, dA, hA, R, dR) => `Yes. In ${A} it's already ${hA} on ${dA}, while ${R} is still on ${dR}.`,
+    same: (A, dA, hA, R) => `No. In ${A} it's ${hA} on ${dA}, the same date as ${R}.`,
+    behindDate: (A, dA, hA, R, dR) => `No. In ${A} it's still ${hA} on ${dA}, an earlier date than ${R} (${dR}).`,
     compareMine: "Tell me where you are and I'll compare it with your own date.",
-    diff: (A, B, dur, ahead, a, b) => `${A} is ${dur} ${ahead ? "ahead of" : "behind"} ${B} right now: ${a[0]} on ${a[1]} in ${A}, ${b[0]} on ${b[1]} in ${B}.`,
+    diff: (A, B, dur, ahead, a, b) => `${A} is ${dur} ${ahead ? "ahead of" : "behind"} ${B} right now. In ${A} it's ${a[0]} on ${a[1]}; in ${B} it's ${b[0]} on ${b[1]}.`,
     sameTime: (A, B, hm) => `${A} and ${B} are on the same time right now: ${hm}.`,
     askLocal: (hm, d) => `I can't see your clock from here, and I won't guess it. Right now it's ${hm} UTC on ${d}. Tell me your city or time zone and I'll give you your local time.`,
     askAmbiguous: (n, o) => `"${n}" could mean more than one place: ${o.join("; ")}. Which one do you mean?`,
@@ -509,11 +514,11 @@ const PHRASES: Record<Lang, Phrases> = {
   "zh-Hans": {
     time: (L, r, d) => `${L}现在是${r.hm}，${d}（${offsetLabel(r.offsetMinutes)}）。`,
     date: (L, r, d) => `${L}今天是${d}，当地时间${r.hm}（${offsetLabel(r.offsetMinutes)}）。`,
-    ahead: (A, dA, hA, R, dR) => `是的。${A}已经是${dA} ${hA}了，而${R}还是${dR}。`,
-    same: (A, dA, hA, R) => `还没有。${A}和${R}是同一天：${dA}（${A}现在${hA}）。`,
-    behindDate: (A, dA, hA, R, dR) => `没有。${A}还是${dA} ${hA}，日期比${R}（${dR}）早。`,
+    ahead: (A, dA, hA, R, dR) => `是的。${A}已经是${hA}（${dA}）了，而${R}还是${dR}。`,
+    same: (A, dA, hA, R) => `还没有。${A}现在是${hA}（${dA}），和${R}是同一天。`,
+    behindDate: (A, dA, hA, R, dR) => `没有。${A}还是${hA}（${dA}），日期比${R}（${dR}）早。`,
     compareMine: "告诉我你在哪儿，我再跟你那边的日期比。",
-    diff: (A, B, dur, ahead, a, b) => `${A}比${B}${ahead ? "快" : "慢"}${dur}：${A}现在是${a[1]} ${a[0]}，${B}是${b[1]} ${b[0]}。`,
+    diff: (A, B, dur, ahead, a, b) => `${A}比${B}${ahead ? "快" : "慢"}${dur}。${A}现在是${a[0]}（${a[1]}），${B}是${b[0]}（${b[1]}）。`,
     sameTime: (A, B, hm) => `${A}和${B}现在时间相同：${hm}。`,
     askLocal: (hm, d) => `我看不到你那边的时钟，也不会乱猜。现在是UTC（协调世界时）${hm}，${d}。告诉我你在哪个城市或时区，我帮你换算成当地时间。`,
     askAmbiguous: (n, o) => `“${n}”可能指好几个地方：${o.join("、")}。你说的是哪一个？`,
@@ -522,11 +527,11 @@ const PHRASES: Record<Lang, Phrases> = {
   "zh-Hant": {
     time: (L, r, d) => `${L}現在是${r.hm}，${d}（${offsetLabel(r.offsetMinutes)}）。`,
     date: (L, r, d) => `${L}今天是${d}，當地時間${r.hm}（${offsetLabel(r.offsetMinutes)}）。`,
-    ahead: (A, dA, hA, R, dR) => `是的。${A}已經是${dA} ${hA}了，而${R}還是${dR}。`,
-    same: (A, dA, hA, R) => `還沒有。${A}和${R}是同一天：${dA}（${A}現在${hA}）。`,
-    behindDate: (A, dA, hA, R, dR) => `沒有。${A}還是${dA} ${hA}，日期比${R}（${dR}）早。`,
+    ahead: (A, dA, hA, R, dR) => `是的。${A}已經是${hA}（${dA}）了，而${R}還是${dR}。`,
+    same: (A, dA, hA, R) => `還沒有。${A}現在是${hA}（${dA}），和${R}是同一天。`,
+    behindDate: (A, dA, hA, R, dR) => `沒有。${A}還是${hA}（${dA}），日期比${R}（${dR}）早。`,
     compareMine: "告訴我你在哪裡，我再跟你那邊的日期比。",
-    diff: (A, B, dur, ahead, a, b) => `${A}比${B}${ahead ? "快" : "慢"}${dur}：${A}現在是${a[1]} ${a[0]}，${B}是${b[1]} ${b[0]}。`,
+    diff: (A, B, dur, ahead, a, b) => `${A}比${B}${ahead ? "快" : "慢"}${dur}。${A}現在是${a[0]}（${a[1]}），${B}是${b[0]}（${b[1]}）。`,
     sameTime: (A, B, hm) => `${A}和${B}現在時間相同：${hm}。`,
     askLocal: (hm, d) => `我看不到你那邊的時鐘，也不會亂猜。現在是UTC（協調世界時）${hm}，${d}。告訴我你在哪個城市或時區，我幫你換算成當地時間。`,
     askAmbiguous: (n, o) => `「${n}」可能指好幾個地方：${o.join("、")}。你說的是哪一個？`,
@@ -535,35 +540,35 @@ const PHRASES: Record<Lang, Phrases> = {
   ja: {
     time: (L, r, d) => `${L}は今${r.hm}、${d}です（${offsetLabel(r.offsetMinutes)}）。`,
     date: (L, r, d) => `${L}は今日${d}、現地時間${r.hm}です（${offsetLabel(r.offsetMinutes)}）。`,
-    ahead: (A, dA, hA, R, dR) => `はい。${A}はもう${dA} ${hA}で、${R}はまだ${dR}です。`,
-    same: (A, dA, hA, R) => `いいえ。${A}と${R}は同じ日付、${dA}です（${A}は今${hA}）。`,
-    behindDate: (A, dA, hA, R, dR) => `いいえ。${A}はまだ${dA} ${hA}で、${R}（${dR}）より前の日付です。`,
+    ahead: (A, dA, hA, R, dR) => `はい。${A}はもう${hA}（${dA}）で、${R}はまだ${dR}です。`,
+    same: (A, dA, hA, R) => `いいえ。${A}は今${hA}（${dA}）で、${R}と同じ日付です。`,
+    behindDate: (A, dA, hA, R, dR) => `いいえ。${A}はまだ${hA}（${dA}）で、${R}（${dR}）より前の日付です。`,
     compareMine: "どこにいるか教えてくれたら、そっちの日付と比べるよ。",
-    diff: (A, B, dur, ahead, a, b) => `${A}は${B}より${dur}${ahead ? "進んでいます" : "遅れています"}。${A}は${a[1]} ${a[0]}、${B}は${b[1]} ${b[0]}です。`,
+    diff: (A, B, dur, ahead, a, b) => `${A}は${B}より${dur}${ahead ? "進んでいます" : "遅れています"}。${A}は${a[0]}（${a[1]}）、${B}は${b[0]}（${b[1]}）です。`,
     sameTime: (A, B, hm) => `${A}と${B}は今同じ時刻、${hm}です。`,
     askLocal: (hm, d) => `あなたの時計はここからは見えないし、推測もしない。今はUTCで${hm}、${d}。都市かタイムゾーンを教えてくれたら現地時間を出すよ。`,
     askAmbiguous: (n, o) => `「${n}」は複数の場所を指すかもしれない：${o.join("、")}。どれのこと？`,
     askUnknown: (n, hm) => `「${n}」の確かな時計はここにはない。近くの大都市かタイムゾーン（例：Asia/Tokyo）を教えて。ちなみに今はUTCで${hm}。`,
   },
   es: {
-    time: (L, r, d) => `En ${L} son las ${r.hm}; es ${d} (${offsetLabel(r.offsetMinutes)}).`,
-    date: (L, r, d) => `En ${L} hoy es ${d}; hora local ${r.hm} (${offsetLabel(r.offsetMinutes)}).`,
-    ahead: (A, dA, hA, R, dR) => `Sí. En ${A} ya es ${dA}, ${hA}, mientras que en ${R} todavía es ${dR}.`,
-    same: (A, dA, hA, R) => `No. ${A} y ${R} están en la misma fecha, ${dA} (en ${A} son las ${hA}).`,
-    behindDate: (A, dA, hA, R, dR) => `No. En ${A} todavía es ${dA}, ${hA}, una fecha anterior a la de ${R} (${dR}).`,
+    time: (L, r, d) => `En ${L} son las ${r.hm}, ${d} (${offsetLabel(r.offsetMinutes)}).`,
+    date: (L, r, d) => `En ${L} hoy es ${d}, hora local ${r.hm} (${offsetLabel(r.offsetMinutes)}).`,
+    ahead: (A, dA, hA, R, dR) => `Sí. En ${A} ya son las ${hA} (${dA}), mientras que en ${R} todavía es ${dR}.`,
+    same: (A, dA, hA, R) => `No. En ${A} son las ${hA} (${dA}), la misma fecha que en ${R}.`,
+    behindDate: (A, dA, hA, R, dR) => `No. En ${A} todavía son las ${hA} (${dA}), una fecha anterior a la de ${R} (${dR}).`,
     compareMine: "Dime dónde estás y lo comparo con tu fecha.",
-    diff: (A, B, dur, ahead, a, b) => `${A} va ${dur} ${ahead ? "por delante de" : "por detrás de"} ${B}: en ${A} son las ${a[0]} (${a[1]}) y en ${B} las ${b[0]} (${b[1]}).`,
+    diff: (A, B, dur, ahead, a, b) => `${A} va ${dur} ${ahead ? "por delante de" : "por detrás de"} ${B}. En ${A} son las ${a[0]} (${a[1]}); en ${B}, las ${b[0]} (${b[1]}).`,
     sameTime: (A, B, hm) => `${A} y ${B} tienen ahora la misma hora: ${hm}.`,
-    askLocal: (hm, d) => `Desde aquí no veo tu reloj y no voy a adivinarlo. Ahora mismo son las ${hm} UTC; es ${d}. Dime tu ciudad o zona horaria y te doy la hora local.`,
+    askLocal: (hm, d) => `Desde aquí no veo tu reloj y no voy a adivinarlo. Ahora mismo son las ${hm} UTC (${d}). Dime tu ciudad o zona horaria y te doy la hora local.`,
     askAmbiguous: (n, o) => `"${n}" puede referirse a varios lugares: ${o.join("; ")}. ¿Cuál quieres decir?`,
     askUnknown: (n, hm) => `No tengo un reloj verificado para ${n}. Dime la gran ciudad más cercana o su zona horaria (por ejemplo Asia/Tokyo) y lo compruebo. Como referencia, ahora son las ${hm} UTC.`,
   },
   ru: {
     time: (L, r, d) => `${L}: сейчас ${r.hm}, ${d} (${offsetLabel(r.offsetMinutes)}).`,
     date: (L, r, d) => `${L}: сегодня ${d}, местное время ${r.hm} (${offsetLabel(r.offsetMinutes)}).`,
-    ahead: (A, dA, hA, R, dR) => `Да. ${A}: уже ${dA}, ${hA}. ${R}: ещё ${dR}.`,
-    same: (A, dA, hA, R) => `Нет. ${A} и ${R}: одна и та же дата, ${dA} (${A}: ${hA}).`,
-    behindDate: (A, dA, hA, R, dR) => `Нет. ${A}: ещё ${dA}, ${hA}, дата раньше, чем ${R} (${dR}).`,
+    ahead: (A, dA, hA, R, dR) => `Да. ${A}: уже ${hA}, ${dA}. ${R}: ещё ${dR}.`,
+    same: (A, dA, hA, R) => `Нет. ${A}: ${hA}, ${dA}, та же дата, что и ${R}.`,
+    behindDate: (A, dA, hA, R, dR) => `Нет. ${A}: ещё ${hA}, ${dA}, дата раньше, чем ${R} (${dR}).`,
     compareMine: "Скажи, где ты, и я сравню с твоей датой.",
     diff: (A, B, dur, ahead, a, b) => `${A} ${ahead ? "впереди" : "позади"} на ${dur} относительно: ${B}. ${A}: ${a[0]}, ${a[1]}. ${B}: ${b[0]}, ${b[1]}.`,
     sameTime: (A, B, hm) => `${A} и ${B}: сейчас одинаковое время, ${hm}.`,
@@ -575,36 +580,38 @@ const PHRASES: Record<Lang, Phrases> = {
 
 const randomPick = <T>(items: T[]) => items[Math.floor(Math.random() * items.length)];
 
-// The verified answer, word for word. `pick` chooses her one-line remark (tests pass a fixed choice).
-export function verifiedReply(plan: TimePlan, pick: <T>(items: T[]) => T = randomPick): string {
+// The verified facts for an "answer" plan, in one language, without her remark
+function verifiedBody(plan: TimePlan, lang: Lang): string {
   const { query: q, nowMs, utc, readings } = plan;
-  const lang = q.lang, t = PHRASES[lang];
+  const t = PHRASES[lang];
   const date = (r: Reading) => longDate(nowMs, r.zone, lang);
   const L = (r: Reading) => label(r.place, lang);
-  let body: string;
-  if (plan.outcome === "ask_ambiguous") {
-    body = t.askAmbiguous(q.ambiguous!.name, q.ambiguous!.options.map(p => label(p, lang)));
-    return body; // a question back, no remark needed
-  } else if (plan.outcome === "ask_unknown") {
-    return t.askUnknown(q.unknownPlace!, utc.hm);
-  } else if (plan.outcome === "ask_local") {
-    return t.askLocal(utc.hm, date(utc));
-  } else if (q.kind === "difference") {
+  if (q.kind === "difference") {
     const [a, b] = readings;
     const minutes = a.offsetMinutes - b.offsetMinutes;
-    body = minutes === 0 ? t.sameTime(L(a), L(b), a.hm)
+    return minutes === 0 ? t.sameTime(L(a), L(b), a.hm)
       : t.diff(L(a), L(b), duration(Math.abs(minutes), lang), minutes > 0, [a.hm, date(a)], [b.hm, date(b)]);
-  } else if (q.kind === "tomorrow") {
+  }
+  if (q.kind === "tomorrow") {
     const a = readings[0], ref = readings[1] ?? utc;
     const R = readings[1] ? L(ref) : "UTC";
     const cmp = a.dateKey.localeCompare(ref.dateKey);
-    body = cmp > 0 ? t.ahead(L(a), date(a), a.hm, R, date(ref)) : cmp === 0 ? t.same(L(a), date(a), a.hm, R) : t.behindDate(L(a), date(a), a.hm, R, date(ref));
-    if (!readings[1]) body += " " + t.compareMine;
-  } else {
-    const line = q.kind === "date" ? t.date : t.time;
-    body = readings.map(r => line(L(r), r, date(r))).join(lang === "en" || lang === "es" || lang === "ru" ? " " : "");
+    const body = cmp > 0 ? t.ahead(L(a), date(a), a.hm, R, date(ref)) : cmp === 0 ? t.same(L(a), date(a), a.hm, R) : t.behindDate(L(a), date(a), a.hm, R, date(ref));
+    return readings[1] ? body : body + " " + t.compareMine;
   }
-  return `${pick(REMARKS[lang])} ${body}`;
+  const line = q.kind === "date" ? t.date : t.time;
+  return readings.map(r => line(L(r), r, date(r))).join(lang === "en" || lang === "es" || lang === "ru" ? " " : "");
+}
+
+// The verified answer, word for word. `pick` chooses her one-line remark (tests pass a fixed choice).
+export function verifiedReply(plan: TimePlan, pick: <T>(items: T[]) => T = randomPick): string {
+  const { query: q, nowMs, utc } = plan;
+  const lang = q.lang, t = PHRASES[lang];
+  // A question back needs no remark
+  if (plan.outcome === "ask_ambiguous") return t.askAmbiguous(q.ambiguous!.name, q.ambiguous!.options.map(p => label(p, lang)));
+  if (plan.outcome === "ask_unknown") return t.askUnknown(q.unknownPlace!, utc.hm);
+  if (plan.outcome === "ask_local") return t.askLocal(utc.hm, longDate(nowMs, utc.zone, lang));
+  return `${pick(REMARKS[lang])} ${verifiedBody(plan, lang)}`;
 }
 
 // ---------------------------------------------------------------- what the model is told
@@ -673,28 +680,30 @@ const periodOf = (s: string | undefined): Period => {
   return null;
 };
 
-export interface ClockMention { text: string; minutes: number[] }
-// Clock times written in a reply: 21:50, 9:50 PM, 9 pm, 21点50分, 下午9点半, 九点五十分, 21時50分
+export interface ClockMention { text: string; minutes: number[]; at: number; end: number; twelveHour: boolean }
+// Clock times written in a reply, with where they are: 21:50, 9:50 PM, 9 pm, 21点50分, 下午9点半, 九点五十分, 21時50分
 export function extractClockTimes(text: string): ClockMention[] {
   const t = text.normalize("NFKC");
   const out: ClockMention[] = [];
   const colon = /(?<![\d+\-−±:])(\d{1,2})\s*[:：]\s*(\d{2})(?![\d:])(?:\s*([ap]\.?\s?m\.?)(?![a-z]))?/gi;
   for (const m of t.matchAll(colon)) {
     // "UTC+5:45" is an offset, not a clock time
-    if (/(?:utc|gmt)\s*[+\-−±]?\s*$/i.test(t.slice(Math.max(0, m.index! - 6), m.index!))) continue;
-    const before = /(上午|下午|早上|晚上|凌晨|中午|傍晚|午前|午後)\s*$/.exec(t.slice(Math.max(0, m.index! - 3), m.index!))?.[1];
-    out.push({ text: m[0], minutes: candidates(+m[1], +m[2], periodOf(m[3]?.replace(/\s/g, "")) ?? periodOf(before)) });
+    if (/(?:utc|gmt)\s*[+\-−±]\s*$/i.test(t.slice(Math.max(0, m.index! - 6), m.index!))) continue;
+    const before = /(上午|下午|早上|晚上|凌晨|中午|傍晚|午前|午後)\s*$/.exec(t.slice(Math.max(0, m.index! - 4), m.index!));
+    const at = before ? m.index! - before[0].length : m.index!, end = m.index! + m[0].length;
+    out.push({ text: t.slice(at, end), at, end, twelveHour: Boolean(m[3]), minutes: candidates(+m[1], +m[2], periodOf(m[3]?.replace(/\s/g, "")) ?? periodOf(before?.[1])) });
   }
   for (const m of t.matchAll(/(?<![\d:])(\d{1,2})\s*([ap]\.?\s?m\.?)(?![a-z])/gi)) {
-    out.push({ text: m[0], minutes: candidates(+m[1], 0, periodOf(m[2].replace(/\s/g, ""))) });
+    out.push({ text: m[0], at: m.index!, end: m.index! + m[0].length, twelveHour: true, minutes: candidates(+m[1], 0, periodOf(m[2].replace(/\s/g, ""))) });
   }
   const cjk = /(上午|下午|早上|早晨|晚上|凌晨|清晨|中午|傍晚|夜里|夜裡|深夜|午前|午後|夜)?\s*(\d{1,2}|[零〇一二两兩三四五六七八九十]{1,3})\s*(?:点|點|时(?![间間差区區刻])|時(?![間间差区區刻]))(?:\s*(\d{1,2}|[零〇一二两兩三四五六七八九十]{1,3}|半)\s*分?)?/g;
   for (const m of t.matchAll(cjk)) {
     const h = cnNumber(m[2]), mm = m[3] ? cnNumber(m[3]) : 0;
     if (h === null || mm === null || Number.isNaN(h) || Number.isNaN(mm)) continue;
-    out.push({ text: m[0], minutes: candidates(h, mm, periodOf(m[1])) });
+    const at = m.index! + (m[0].length - m[0].trimStart().length);
+    out.push({ text: m[0].trim(), at, end: m.index! + m[0].trimEnd().length, twelveHour: false, minutes: candidates(h, mm, periodOf(m[1])) });
   }
-  return out;
+  return out.sort((a, b) => a.at - b.at);
 }
 
 const MONTHS: Array<[RegExp, number]> = [
@@ -704,41 +713,201 @@ const MONTHS: Array<[RegExp, number]> = [
 ];
 const monthOf = (w: string) => MONTHS.find(([re]) => re.test(w.toLowerCase()))?.[1] ?? null;
 const MONTH_WORD = "(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept?|oct|nov|dec|enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre|январ\\p{L}*|феврал\\p{L}*|март\\p{L}*|апрел\\p{L}*|ма[яй]|июн\\p{L}*|июл\\p{L}*|август\\p{L}*|сентябр\\p{L}*|октябр\\p{L}*|ноябр\\p{L}*|декабр\\p{L}*)";
+export interface DateMention { key: string; text: string; at: number; end: number }
 // Calendar dates written in a reply, as month-day: "1 November", "November 1st", "1 de noviembre", "1 ноября", "11月1日"
-export function extractDates(text: string): string[] {
+export function extractDates(text: string): DateMention[] {
   const t = text.normalize("NFKC");
-  const out: string[] = [];
-  const add = (m: number | null, d: number) => { if (m && d >= 1 && d <= 31) out.push(`${pad(m)}-${pad(d)}`); };
-  for (const m of t.matchAll(new RegExp(`(?<![\\d\\p{L}])(\\d{1,2})(?:st|nd|rd|th)?\\s+(?:of\\s+|de\\s+)?${MONTH_WORD}(?![\\p{L}])`, "giu"))) add(monthOf(m[2]), +m[1]);
-  for (const m of t.matchAll(new RegExp(`(?<![\\p{L}])${MONTH_WORD}\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?(?![\\d])`, "giu"))) add(monthOf(m[1]), +m[2]);
-  for (const m of t.matchAll(/(\d{1,2})\s*月\s*(\d{1,2})\s*[日号號]/g)) add(+m[1], +m[2]);
-  return out;
+  const out: DateMention[] = [];
+  const add = (m: RegExpMatchArray, month: number | null, day: number) => {
+    if (month && day >= 1 && day <= 31) out.push({ key: `${pad(month)}-${pad(day)}`, text: m[0], at: m.index!, end: m.index! + m[0].length });
+  };
+  for (const m of t.matchAll(new RegExp(`(?<![\\d\\p{L}])(\\d{1,2})(?:st|nd|rd|th)?\\s+(?:of\\s+|de\\s+)?${MONTH_WORD}(?![\\p{L}])`, "giu"))) add(m, monthOf(m[2]), +m[1]);
+  for (const m of t.matchAll(new RegExp(`(?<![\\p{L}])${MONTH_WORD}\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?(?![\\d])`, "giu"))) add(m, monthOf(m[1]), +m[2]);
+  for (const m of t.matchAll(/(\d{1,2})\s*月\s*(\d{1,2})\s*[日号號]/g)) add(m, +m[1], +m[2]);
+  return out.sort((a, b) => a.at - b.at);
+}
+
+// ---------------------------------------------------------------- whose time is it?
+//
+// A time is only right if it is right FOR THE PLACE IT IS GIVEN FOR. "北京时间13:50" is wrong even though 13:50 is the
+// correct UTC time: that is exactly the original bug. So every time and date in her reply is tied to the place written
+// next to it (in the same sentence; the nearest name, before or after; a name after a comma belongs to what follows),
+// and checked against that place's own clock:
+//   - a named place: its verified time (any recognized place, read from the same instant);
+//   - "UTC"/"GMT"/"协调世界时" written next to it: UTC (an offset such as "UTC+8" is not a UTC label);
+//   - nothing named: the place asked about, if there is exactly one; never UTC;
+//   - two different names hard up against the same time ("北京时间13:50 UTC"), the visitor's own place ("你那边"), or an
+//     ambiguous name: wrong, because it cannot be verified.
+
+interface Ref { at: number; end: number; zone: string | null; what: "place" | "utc" | "visitor" | "ambiguous" }
+const UTC_WORDS = new RegExp(`协调世界时|協調世界時|協定世界時|世界时|世界時|(?<![${WORD_CHAR}])(?:utc|gmt)(?![${WORD_CHAR}])(?!\\s*[+\\-−±]\\s*\\d)`, "gu");
+const VISITOR_WORDS = /\byour (?:time|local time|clock|side|time ?zone|place)\b|\bwhere you are\b|\bfor you\b|你那边|你那邊|你那里|你那裡|你那儿|你那兒|你这边|你這邊|你当地|你當地|あなたのところ|あなたの時間|そっち|tu hora|donde estas|у тебя|по-твоему/gu;
+// Sentence ends ("p.m.", "D.C.", "St." and the Russian "г." are not)
+const SENTENCE_END = /(?<!(?:^|[^\p{L}])\p{L})(?<![ap]\.m)(?<!\bst)[.!?](?=\s|$)|[。！？；;\n]/gu;
+// A new clause: a name on the other side of "and", "和", "→" ... labels the time in that clause, not this one
+const NEW_CLAUSE = /(?<![a-z])(?:and|while|but|vs|whereas|y|mientras)(?![a-z])|(?<![\p{L}])[иа](?![\p{L}])|和|而|与|與|と|→|->|=>/u;
+// A comma also ends what a time is labelled by from behind ("21:50, London 13:50"), but not from in front ("In Beijing, 21:50")
+const SOFT_BREAK = /[,，、]/;
+
+function placesNamedIn(t: string): Ref[] {
+  const out: Ref[] = [];
+  const add = (at: number, end: number, zone: string | null, what: Ref["what"]) => {
+    if (!out.some(r => at < r.end && end > r.at)) out.push({ at, end, zone, what });
+  };
+  for (const m of t.matchAll(UTC_WORDS)) add(m.index!, m.index! + m[0].length, "Etc/UTC", "utc");
+  for (const m of t.matchAll(VISITOR_WORDS)) add(m.index!, m.index! + m[0].length, null, "visitor");
+  for (const m of matchers) {
+    if ("place" in m.target && m.target.place.id === "utc") continue; // only an explicit UTC label counts as UTC
+    for (const [s, e] of m.find(t)) {
+      if ("place" in m.target) add(s, e, m.target.place.zone, "place");
+      else add(s, e, null, "ambiguous");
+    }
+  }
+  return out.sort((a, b) => a.at - b.at);
+}
+
+const minutesOf = (r: Reading) => r.hour * 60 + r.minute;
+const near = (a: number, b: number) => Math.min(Math.abs(a - b), 1440 - Math.abs(a - b)) <= 1;
+
+interface Issue {
+  kind: "time" | "date" | "missing" | "duration";
+  reason: string;
+  at?: number; end?: number;
+  expected?: Reading;   // what it should be, when that is known (then it can be corrected in place)
+  twelveHour?: boolean;
+}
+
+function audit(reply: string, plan: TimePlan): Issue[] {
+  const t = fold(reply);
+  const refs = placesNamedIn(t);
+  const ends = [...t.matchAll(SENTENCE_END)].map(m => m.index!);
+  const sentence = (pos: number) => ends.filter(b => b < pos).length;
+  const key = (r: Ref) => r.what === "place" || r.what === "utc" ? r.zone : r.what;
+  const zones = new Map(plan.readings.map(r => [r.zone, r]));
+  const only = zones.size === 1 ? plan.readings[0] : null;
+  const readingFor = (ref: Ref): Reading | null => {
+    if (!ref.zone || !isValidZone(ref.zone)) return null;
+    if (ref.zone === "Etc/UTC") return plan.utc;
+    return zones.get(ref.zone) ?? readZone(plan.nowMs, { id: "named:" + ref.zone, zone: ref.zone, city: true, labels: [ref.zone] });
+  };
+  const clockSpans = extractClockTimes(t);
+  // "北京21:50（UTC 13:50）": a name that opens a bracket holding another time labels that time, not this one
+  const labelsBracketedTime = (e: number, r: Ref) =>
+    /[(（]/.test(t.slice(e, r.at)) && clockSpans.some(c => c.at >= r.end && !/[)）]/.test(t.slice(r.end, c.at)));
+  const ownerOf = (s: number, e: number): Ref | "conflict" | null => {
+    const here = refs.filter(r => sentence(r.at) === sentence(s));
+    const before = here.filter(r => r.end <= s && !NEW_CLAUSE.test(t.slice(r.end, s))).pop();
+    const after = here.find(r => r.at >= e && !SOFT_BREAK.test(t.slice(e, r.at)) && !NEW_CLAUSE.test(t.slice(e, r.at)) && !labelsBracketedTime(e, r));
+    if (before && after) {
+      const dBefore = s - before.end, dAfter = after.at - e;
+      if (dBefore <= 8 && dAfter <= 8 && key(before) !== key(after)) return "conflict";
+      return dAfter < dBefore ? after : before;
+    }
+    return before ?? after ?? null;
+  };
+  // Who a time or date belongs to, and what it should be
+  const resolve = (s: number, e: number): { target: Reading | null; reason: string; free: boolean } => {
+    const who = ownerOf(s, e);
+    if (who === "conflict") return { target: null, reason: "is labelled with two different places", free: false };
+    if (who === null) {
+      if (only) return { target: only, reason: "", free: false };
+      return { target: null, reason: plan.readings.length ? "is not tied to any place" : "is a local time with no verified place", free: plan.readings.length > 1 };
+    }
+    if (who.what === "visitor") return { target: null, reason: "guesses the visitor's own time", free: false };
+    if (who.what === "ambiguous") return { target: null, reason: "is given for an ambiguous place", free: false };
+    return { target: readingFor(who), reason: "", free: false };
+  };
+  const name = (r: Reading) => r.zone === "Etc/UTC" ? "UTC" : label(r.place, "en");
+  const issues: Issue[] = [];
+
+  const times = clockSpans.map(m => {
+    const { target, reason, free } = resolve(m.at, m.end);
+    // With several places asked about and no name next to it, it must at least be one of theirs
+    const chosen = free ? plan.readings.find(r => m.minutes.some(x => near(x, minutesOf(r)))) ?? null : target;
+    const ok = Boolean(chosen) && m.minutes.some(x => near(x, minutesOf(chosen!)));
+    if (!ok) {
+      issues.push({
+        kind: "time", at: m.at, end: m.end, expected: free ? undefined : target ?? undefined, twelveHour: m.twelveHour,
+        reason: `"${m.text}" ${reason || `is not the time in ${name(target!)} (${target!.hm})`}`,
+      });
+    }
+    return { m, target: chosen, ok };
+  });
+
+  for (const d of extractDates(t)) {
+    // A date written right after a time (no other name in between) belongs to that time's place
+    const lastTime = times.filter(x => x.m.end <= d.at && sentence(x.m.at) === sentence(d.at)).pop();
+    let target: Reading | null, reason = "", free = false;
+    if (lastTime && !refs.some(r => r.at >= lastTime.m.end && r.end <= d.at)) target = lastTime.target;
+    else ({ target, reason, free } = resolve(d.at, d.end));
+    const chosen = free ? plan.readings.find(r => r.dateKey.slice(5) === d.key) ?? null : target;
+    if (!chosen || chosen.dateKey.slice(5) !== d.key) {
+      issues.push({ kind: "date", at: d.at, end: d.end, expected: free ? undefined : target ?? undefined, reason: `date "${d.text}" ${reason || (target ? `is not the date in ${name(target)} (${target.dateKey})` : "cannot be verified")}` });
+    }
+  }
+
+  if (plan.outcome === "answer" && plan.query.kind === "time") {
+    for (const r of zones.values()) {
+      if (!times.some(x => x.ok && x.target?.zone === r.zone)) issues.push({ kind: "missing", expected: r, reason: `no verified time for ${name(r)}` });
+    }
+  }
+  if (plan.outcome === "answer" && plan.query.kind === "difference") {
+    const [a, b] = plan.readings, want = Math.abs(a.offsetMinutes - b.offsetMinutes);
+    const spans = [...t.matchAll(/(\d{1,2})\s*(?:hours?|hrs?|个小时|個小時|小时|小時|時間|horas?|час\p{L}*)(?:\s*(?:and\s+|y\s+)?(\d{1,2})\s*(?:minutes?|mins?|分钟|分鐘|分|minutos?|минут\p{L}*))?/gu)];
+    for (const m of spans) {
+      const got = +m[1] * 60 + (m[2] ? +m[2] : 0);
+      if (got !== want) issues.push({ kind: "duration", reason: `difference "${m[0]}" is not ${duration(want, "en") || "0 minutes"}` });
+    }
+    if (!spans.length && !times.some(x => x.ok && x.target && zones.has(x.target.zone))) issues.push({ kind: "missing", reason: "no verified difference or time" });
+  }
+  return issues;
 }
 
 export interface Check { ok: boolean; problems: string[] }
-// Does her reply agree with the verified values? Every clock time and calendar date she writes must be one of them
-// (UTC's included), and an answer about a place must actually contain that place's verified time.
+// Does her reply agree with the verified values, place by place?
 export function checkReply(reply: string, plan: TimePlan): Check {
   if (!plan.guard) return { ok: true, problems: [] };
-  const allowed = [plan.utc, ...plan.readings];
-  const allowedMinutes = allowed.map(r => r.hour * 60 + r.minute);
-  const near = (a: number, b: number) => Math.min(Math.abs(a - b), 1440 - Math.abs(a - b)) <= 1;
-  const problems: string[] = [];
-  const times = extractClockTimes(reply);
-  for (const t of times) {
-    if (!t.minutes.some(m => allowedMinutes.some(a => near(m, a)))) problems.push(`unverified time "${t.text}"`);
-  }
-  const allowedDates = new Set(allowed.map(r => r.dateKey.slice(5)));
-  for (const d of extractDates(reply)) if (!allowedDates.has(d)) problems.push(`unverified date ${d}`);
-  if (plan.outcome === "answer" && (plan.query.kind === "time" || plan.query.kind === "difference")) {
-    const placeMinutes = plan.readings.map(r => r.hour * 60 + r.minute);
-    if (!times.some(t => t.minutes.some(m => placeMinutes.some(a => near(m, a))))) problems.push("verified time missing");
-  }
+  const problems = audit(reply, plan).map(i => i.reason);
   return { ok: problems.length === 0, problems };
 }
 
-// The safeguard: a reply that contradicts (or leaves out) the verified time is replaced by the verified answer
-export function enforceVerifiedTime(reply: string, plan: TimePlan, pick?: <T>(items: T[]) => T): { text: string; replaced: boolean; problems: string[] } {
-  const check = checkReply(reply, plan);
-  return check.ok ? { text: reply, replaced: false, problems: [] } : { text: verifiedReply(plan, pick), replaced: true, problems: check.problems };
+const monthDay = (nowMs: number, zone: string, lang: Lang) =>
+  new Intl.DateTimeFormat(LOCALE[lang], { timeZone: zone, month: "long", day: "numeric" }).format(new Date(nowMs));
+
+// Her own words with only the wrong values corrected: a wrong time or date for a known place is swapped for the
+// verified one, and a missing time is added after what she said. Anything that cannot be pinned to a place is not
+// guessed at: it returns null and the whole verified answer is used instead.
+function correctInPlace(reply: string, plan: TimePlan, issues: Issue[]): string | null {
+  if (issues.some(i => i.kind === "duration" || ((i.kind === "time" || i.kind === "date") && !i.expected))) return null;
+  const edits = issues.filter(i => i.kind === "time" || i.kind === "date");
+  if (edits.length && fold(reply).length !== reply.length) return null; // positions would not line up
+  const lang = detectLang(reply);
+  let out = reply;
+  for (const i of edits.sort((a, b) => b.at! - a.at!)) {
+    const r = i.expected!;
+    const value = i.kind === "time" ? (i.twelveHour ? h12(r) : r.hm) : monthDay(plan.nowMs, r.zone, lang);
+    out = out.slice(0, i.at) + value + out.slice(i.end);
+  }
+  // A place whose wrong time was just corrected is no longer missing
+  const fixedZones = new Set(edits.filter(i => i.kind === "time").map(i => i.expected!.zone));
+  const missing = issues.filter(i => i.kind === "missing" && !(i.expected && fixedZones.has(i.expected.zone)));
+  if (missing.length) {
+    const added = plan.query.kind === "difference" ? verifiedBody(plan, lang)
+      : missing.map(i => PHRASES[lang].time(label(i.expected!.place, lang), i.expected!, longDate(plan.nowMs, i.expected!.zone, lang))).join(lang === "en" || lang === "es" || lang === "ru" ? " " : "");
+    out = out.trimEnd() + (/[぀-ヿ一-鿿。！？]$/.test(out.trimEnd()) ? "" : " ") + added;
+  }
+  return out;
+}
+
+// The safeguard. A reply that agrees with the verified values goes out as she wrote it. One with a wrong or missing
+// value is corrected in place when every wrong value can be pinned to a place (her personality stays); otherwise it is
+// replaced by the verified answer. Either way, what goes out is checked again and is never wrong.
+export function enforceVerifiedTime(reply: string, plan: TimePlan, pick?: <T>(items: T[]) => T): { text: string; replaced: boolean; repaired: boolean; problems: string[] } {
+  if (!plan.guard) return { text: reply, replaced: false, repaired: false, problems: [] };
+  const issues = audit(reply, plan);
+  if (!issues.length) return { text: reply, replaced: false, repaired: false, problems: [] };
+  const problems = issues.map(i => i.reason);
+  const corrected = correctInPlace(reply, plan, issues);
+  if (corrected !== null && audit(corrected, plan).length === 0) return { text: corrected, replaced: true, repaired: true, problems };
+  return { text: verifiedReply(plan, pick), replaced: true, repaired: false, problems };
 }

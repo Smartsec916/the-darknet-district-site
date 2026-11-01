@@ -101,7 +101,7 @@ test("the clock is read again for every message", async () => {
   assert.equal(calls, 3);
 });
 
-test("a longer message goes to the model with the verified time, and a wrong time she writes is replaced", async () => {
+test("a longer message goes to the model with the verified time, and a wrong time she writes is corrected in her own words", async () => {
   const { sessionId } = await openSession();
   script = ["Ha. It's 14:50 in Beijing right now, runner, and the District is buzzing."];
   const reply = await say(sessionId, "Hey Iris, I lost track of time down here. What time is it in Beijing right now? And is the District busy tonight?");
@@ -110,8 +110,7 @@ test("a longer message goes to the model with the verified time, and a wrong tim
   assert.match(systemText(call), /it is 2026-10-30 13:50 UTC/);
   assert.match(systemText(call), /VERIFIED CLOCK[\s\S]*Beijing \(Asia\/Shanghai, UTC\+8\): 2026-10-30 21:50/);
   assert.match(call.body.messages.at(-1).content, /TIME RULE/, "the rule is the last thing she reads");
-  assert.match(reply, /21:50/);
-  assert.doesNotMatch(reply, /14:50/);
+  assert.equal(reply, "Ha. It's 21:50 in Beijing right now, runner, and the District is buzzing.");
   assert.deepEqual(await storedReplies(sessionId), [reply], "the stored record holds what the visitor saw");
   // Her own short-term history holds the corrected reply too, so she does not repeat the wrong time later
   script = ["Anything else?"];
@@ -147,4 +146,30 @@ test("her own time: she asks where the visitor is instead of guessing", async ()
   assert.match(reply, /13:50/);
   assert.doesNotMatch(reply, /21:50/, "a Chinese question is not taken to mean Beijing");
   assert.match(reply, /哪个城市或时区/);
+});
+
+test("the original bug through the real route: UTC's time presented as Beijing time never reaches the visitor", async () => {
+  const { sessionId } = await openSession();
+  // 13:50 is the correct UTC time at this instant, which is why a check that only asked "is this a verified time?"
+  // would have let it through
+  script = ["北京时间现在是13:50，夜猫子，区里正热闹。"];
+  const reply = await say(sessionId, "嘿，Iris，我在区里逛了一晚上，完全忘了时间。现在是北京时间几点？今晚区里热闹吗？");
+  assert.equal(mainCalls().length, 1, "the longer message went to the model");
+  assert.equal(reply, "北京时间现在是21:50，夜猫子，区里正热闹。");
+  assert.deepEqual(await storedReplies(sessionId), [reply]);
+});
+
+test("several cities through the real route: swapped times are put back, each with its own city", async () => {
+  const { sessionId } = await openSession();
+  script = ["Tokyo's sitting at 13:50 and London at 22:50, runner. Both cities are wide awake."];
+  const reply = await say(sessionId, "Hey Iris, settle a bet for me: what time is it in Tokyo and London right now? And who's awake?");
+  assert.equal(reply, "Tokyo's sitting at 22:50 and London at 13:50, runner. Both cities are wide awake.");
+});
+
+test("a reply that cannot be pinned to a place is replaced by the verified answer", async () => {
+  const { sessionId } = await openSession();
+  script = ["北京时间13:50（UTC），别熬夜了。"];
+  const reply = await say(sessionId, "嘿，Iris，我在区里逛了一晚上。现在是北京时间几点？今晚区里热闹吗？");
+  assert.match(reply, /北京现在是21:50，2026年10月30日星期五（UTC\+8）。$/);
+  assert.doesNotMatch(reply, /13:50/);
 });

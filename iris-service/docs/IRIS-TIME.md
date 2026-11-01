@@ -22,9 +22,19 @@ stored messages, which made a UTC-looking guess labelled as local time likely.
    with one short in-character line ("Synced to the District's master clock."). The model is not asked.
 4. **Longer messages** that also ask the time go to the model with a `VERIFIED CLOCK` block (the exact local times and
    dates) and a rule, read last, to copy those values and not calculate.
-5. **The safeguard.** Before her reply is sent or saved, every clock time and calendar date in it is checked against
-   the verified values (UTC included). If one disagrees, or the answer leaves the time out, the reply is replaced by the
-   verified answer, in the visitor's language. Her short-term chat history gets the corrected reply as well.
+5. **The safeguard.** Before her reply is sent or saved, every clock time and calendar date in it is tied to the place
+   written next to it and checked against **that place's** clock:
+   - "北京时间13:50" is wrong even though 13:50 is the correct UTC time (the original bug);
+   - with several cities, each time must be its own city's (swapped times are caught);
+   - UTC counts only when labelled "UTC", "GMT" or "协调世界时" (an offset like "UTC+8" is not a UTC label);
+   - a time with no place named is taken as the one place asked about, never as UTC;
+   - a time given for the visitor's own place ("你那边"), an ambiguous place, or two places at once is rejected;
+   - a stated time difference must be the verified one, and an answer must actually contain each place's time.
+
+   When every wrong value can be pinned to a place, only that value is corrected and the rest of her reply, her
+   personality included, is kept ("Mmm, Beijing's glowing at 13:50 tonight, runner." becomes "...at 21:50 tonight,
+   runner."). A missing time is added after what she said. Otherwise the whole reply is replaced by the verified answer.
+   The result is checked again before it goes out, and her short-term chat history gets the corrected reply as well.
 6. **Every message** carries the current UTC time and a rule: she does not know the visitor's own time zone, never
    presents UTC as their local time, and never guesses it from their language.
 

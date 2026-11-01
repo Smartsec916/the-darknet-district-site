@@ -1504,7 +1504,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         if (checked.replaced) {
           translatedResponse = checked.text;
           openaiService.replaceLastReply(sessionId, checked.text);
-          timeOutcome = "corrected";
+          timeOutcome = checked.repaired ? "repaired" : "corrected";
         }
       }
 

@@ -78,7 +78,7 @@ test("across the international date line", () => {
   const p = planTimeAnswer("What's the time difference between Kiritimati and Pago Pago?", at(t))!;
   assert.match(verifiedReply(p, first), /Kiritimati \(Kiribati\) is 25 hours ahead of American Samoa/);
   const tomorrow = planTimeAnswer("Is it tomorrow in Kiritimati compared to American Samoa?", at(t))!;
-  assert.match(verifiedReply(tomorrow, first), /^.+ Yes\. In Kiritimati .* already Saturday, 31 October 2026, 00:30, while American Samoa is still on Thursday, 29 October 2026\./);
+  assert.match(verifiedReply(tomorrow, first), /^.+ Yes\. In Kiritimati .* already 00:30 on Saturday, 31 October 2026, while American Samoa is still on Thursday, 29 October 2026\./);
 });
 
 test("places are recognized in English, Chinese (both scripts), Japanese, Spanish and Russian", () => {
@@ -202,9 +202,9 @@ test("every zone in the place list is a real IANA zone", () => {
 test("differences between two places, in every supported language", () => {
   const t = at(BUG);
   const expect: Array<[string, RegExp]> = [
-    ["What's the time difference between Beijing and Sacramento?", /Beijing is 15 hours ahead of Sacramento right now: 21:50 .* 06:50/],
+    ["What's the time difference between Beijing and Sacramento?", /Beijing is 15 hours ahead of Sacramento right now\. In Beijing it's 21:50 .*; in Sacramento it's 06:50/],
     ["What's the time difference between Sacramento and Beijing?", /Sacramento is 15 hours behind Beijing/],
-    ["北京和萨克拉门托的时差是多少？", /北京比萨克拉门托快15小时：北京现在是.*21:50，萨克拉门托是.*06:50/],
+    ["北京和萨克拉门托的时差是多少？", /北京比萨克拉门托快15小时。北京现在是21:50（.*），萨克拉门托是06:50/],
     ["北京和舊金山的時差是多少？", /北京比舊金山快15小時/],
     ["東京とロンドンの時差は？", /東京はロンドンより9時間進んでいます/],
     ["¿Cuál es la diferencia horaria entre Madrid y Lima?", /Madrid va 6 horas por delante de Lima/],
@@ -223,17 +223,17 @@ test("differences between two places, in every supported language", () => {
 test("today's date and is-it-tomorrow answers", () => {
   const late = at("2026-10-30T15:30:00Z"); // 00:30 on Saturday in Tokyo, still Friday in UTC
   const q1 = planTimeAnswer("Is it tomorrow in Japan?", late)!;
-  assert.match(verifiedReply(q1, first), /Yes\. In Japan it's already Saturday, 31 October 2026, 00:30, while UTC is still on Friday, 30 October 2026\./);
+  assert.match(verifiedReply(q1, first), /Yes\. In Japan it's already 00:30 on Saturday, 31 October 2026, while UTC is still on Friday, 30 October 2026\./);
   const q2 = planTimeAnswer("Is it tomorrow in Japan?", at(BUG))!;
-  assert.match(verifiedReply(q2, first), /No\. Japan and UTC are on the same date/);
+  assert.match(verifiedReply(q2, first), /No\. In Japan it's 22:50 on Friday, 30 October 2026, the same date as UTC\./);
   const q3 = planTimeAnswer("日本已经是明天了吗？", late)!;
-  assert.match(verifiedReply(q3, first), /是的。日本已经是2026年10月31日星期六 00:30了/);
+  assert.match(verifiedReply(q3, first), /是的。日本已经是00:30（2026年10月31日星期六）了/);
   const q4 = planTimeAnswer("Is it tomorrow in Tokyo compared to Sacramento?", late)!;
-  assert.match(verifiedReply(q4, first), /Yes\. In Tokyo it's already Saturday, 31 October 2026, 00:30, while Sacramento is still on Friday, 30 October 2026\./);
+  assert.match(verifiedReply(q4, first), /Yes\. In Tokyo it's already 00:30 on Saturday, 31 October 2026, while Sacramento is still on Friday, 30 October 2026\./);
   const d = planTimeAnswer("今天中国的日期是几号？", at("2026-10-30T16:05:00Z"))!;
   assert.match(verifiedReply(d, first), /中国今天是2026年10月31日星期六，当地时间00:05（UTC\+8）/);
   const es = planTimeAnswer("¿Qué fecha es hoy en Tokio?", late)!;
-  assert.match(verifiedReply(es, first), /En Tokio hoy es sábado, 31 de octubre de 2026; hora local 00:30/);
+  assert.match(verifiedReply(es, first), /En Tokio hoy es sábado, 31 de octubre de 2026, hora local 00:30/);
 });
 
 test("the safeguard: a reply that contradicts the verified time is caught and replaced", () => {
@@ -245,8 +245,9 @@ test("the safeguard: a reply that contradicts the verified time is caught and re
     assert.equal(c.ok, false, wrong);
     const fixed = enforceVerifiedTime(wrong, p, first);
     assert.equal(fixed.replaced, true, wrong);
-    assert.match(fixed.text, /21:50/);
-    assert.doesNotMatch(fixed.text, /14:50/);
+    assert.match(fixed.text, /21:50|9:50 PM/);
+    assert.doesNotMatch(fixed.text, /14:50|2:50/);
+    assert.ok(checkReply(fixed.text, p).ok, fixed.text);
   }
   for (const right of ["北京现在是21:50。", "北京时间晚上9点50分，夜猫子。", "It's 9:50 PM in Beijing, runner.", "Beijing: 21:50 on Friday, 30 October."]) {
     assert.ok(checkReply(right, p).ok, right);
@@ -299,7 +300,7 @@ test("written times and dates are read correctly", () => {
   assert.deepEqual(extractClockTimes("21時50分").map(t => t.minutes), [[1310]]);
   assert.deepEqual(extractClockTimes("２１：５０").map(t => t.minutes), [[1310]]); // full-width
   assert.deepEqual(extractClockTimes("UTC+5:45, 5小时45分钟, 5時間, 时差"), []);
-  assert.deepEqual(extractDates("Friday, 30 October 2026; November 1st; 1 de noviembre; 1 ноября; 11月1日"), ["10-30", "11-01", "11-01", "11-01", "11-01"]);
+  assert.deepEqual(extractDates("Friday, 30 October 2026; November 1st; 1 de noviembre; 1 ноября; 11月1日").map(d => d.key), ["10-30", "11-01", "11-01", "11-01", "11-01"]);
 });
 
 test("the reply language follows the visitor's script, not a guess", () => {
@@ -365,4 +366,110 @@ test("no current time is hard-coded in the service", () => {
       assert.equal(`${r.dateKey}, ${r.hm}`, expected.replace(/\s+/g, " "), `${id} at ${new Date(ms).toISOString()}`);
     }
   }
+});
+
+// ---------------------------------------------------------------- each time must be right for the place it is given for
+
+test("the original bug: UTC's time labelled as Beijing time is caught, even though 13:50 is a correct UTC time", () => {
+  const p = planTimeAnswer("现在是北京时间几点?", at(BUG))!;
+  assert.equal(p.utc.hm, "13:50");
+  assert.equal(p.readings[0].hm, "21:50");
+  for (const wrong of ["现在北京时间是13:50。", "It's 13:50 in Beijing, runner.", "Beijing time: 13:50.", "北京现在13:50，夜猫子。", "In Beijing it's 1:50 PM."]) {
+    const c = checkReply(wrong, p);
+    assert.equal(c.ok, false, wrong);
+    assert.match(c.problems.join(" "), /Beijing \(21:50\)/, wrong);
+  }
+  // With no place named, a time is taken to be the one place asked about, never UTC
+  assert.equal(checkReply("It's 13:50 right now, night owl.", p).ok, false);
+  assert.equal(checkReply("13:50 (UTC+8).", p).ok, false); // an offset is not a UTC label
+  // Two different labels hard up against one time cannot be verified
+  assert.equal(checkReply("北京时间13:50（UTC）。", p).ok, false);
+  assert.equal(checkReply("Beijing time 13:50 UTC.", p).ok, false);
+});
+
+test("UTC is accepted only when it is clearly labelled as UTC", () => {
+  const p = planTimeAnswer("现在是北京时间几点?", at(BUG))!;
+  for (const right of [
+    "It's 13:50 UTC, which makes it 21:50 in Beijing.", "现在是UTC 13:50，北京是21:50。", "北京21:50（UTC 13:50）。",
+    "UTC 13:50 → Beijing 21:50.", "13:50 GMT; Beijing is at 21:50.", "协调世界时13:50，北京时间21:50。", "UTCで13:50、北京は21:50。",
+  ]) assert.ok(checkReply(right, p).ok, `${right}: ${checkReply(right, p).problems}`);
+  // UTC labelled with Beijing's time is wrong the other way round
+  assert.equal(checkReply("It's 21:50 UTC and 21:50 in Beijing.", p).ok, false);
+  // When she has to ask where the visitor is, an unlabelled time is not allowed at all
+  const local = planTimeAnswer("现在几点了？", at(BUG))!;
+  assert.equal(checkReply("现在是13:50。", local).ok, false);
+  assert.equal(checkReply("你那边应该是晚上9点50分吧。", local).ok, false);
+  assert.ok(checkReply("现在是UTC 13:50，你在哪个城市？", local).ok);
+  assert.ok(checkReply("Right now it's 13:50 UTC. Where are you?", local).ok);
+});
+
+test("several cities: each city's time must be that city's", () => {
+  const p = planTimeAnswer("What time is it in Tokyo and London?", at(BUG))!; // Tokyo 22:50, London 13:50 (GMT)
+  assert.deepEqual(p.readings.map(r => r.hm), ["22:50", "13:50"]);
+  for (const right of ["Tokyo is at 22:50 and London at 13:50.", "东京现在是22:50，伦敦是13:50。", "London 13:50, Tokyo 22:50.", "It's 22:50 in Tokyo and 13:50 in London."]) {
+    assert.ok(checkReply(right, p).ok, `${right}: ${checkReply(right, p).problems}`);
+  }
+  // Both values are real verified times, but swapped: the old check let this through
+  for (const swapped of ["Tokyo is at 13:50 and London at 22:50.", "东京现在是13:50，伦敦是22:50。", "It's 13:50 in Tokyo and 22:50 in London."]) {
+    assert.equal(checkReply(swapped, p).ok, false, swapped);
+  }
+  // A city she mentions without being asked is checked against its own clock too
+  assert.equal(checkReply("Tokyo 22:50, London 13:50, and Beijing's at 14:50.", p).ok, false);
+  assert.ok(checkReply("Tokyo 22:50, London 13:50, and Beijing's at 21:50.", p).ok);
+  // Leaving one city out is not an answer
+  assert.equal(checkReply("Tokyo is at 22:50.", p).ok, false);
+  // Dates are tied to their place as well
+  const late = planTimeAnswer("What's the date in Tokyo and Sacramento?", at("2026-10-30T15:30:00Z"))!;
+  assert.ok(checkReply("In Tokyo it's 31 October; in Sacramento it's 30 October.", late).ok);
+  assert.equal(checkReply("In Tokyo it's 30 October; in Sacramento it's 31 October.", late).ok, false);
+});
+
+test("the correction keeps her words and fixes only the wrong value when it can", () => {
+  const p = planTimeAnswer("现在是北京时间几点?", at(BUG))!;
+  const fix = (text: string) => enforceVerifiedTime(text, p, first);
+  const cases: Array<[string, string]> = [
+    ["现在北京时间是13:50。", "现在北京时间是21:50。"],
+    ["Mmm, Beijing's glowing at 13:50 tonight, runner. Want me to ping someone there?", "Mmm, Beijing's glowing at 21:50 tonight, runner. Want me to ping someone there?"],
+    ["Beijing? 2:50 PM, darling.", "Beijing? 9:50 PM, darling."],
+    ["北京现在下午2点50分，夜色正浓。", "北京现在21:50，夜色正浓。"],
+    ["Beijing: 21:50 on 31 October, runner.", "Beijing: 21:50 on 30 October, runner."],
+    ["It's 13:50 right now, night owl.", "It's 21:50 right now, night owl."],
+  ];
+  for (const [wrong, right] of cases) {
+    const r = fix(wrong);
+    assert.equal(r.replaced, true, wrong);
+    assert.equal(r.repaired, true, wrong);
+    assert.equal(r.text, right);
+    assert.ok(checkReply(r.text, p).ok);
+  }
+  // A missing time is added after what she said
+  const added = fix("Beijing never sleeps, runner.");
+  assert.equal(added.repaired, true);
+  assert.match(added.text, /^Beijing never sleeps, runner\. In Beijing it's 21:50 \(9:50 PM\) on Friday, 30 October 2026 \(UTC\+8\)\.$/);
+  // Swapped cities are put right, each in place
+  const two = planTimeAnswer("What time is it in Tokyo and London?", at(BUG))!;
+  assert.equal(enforceVerifiedTime("Tokyo is at 13:50 and London at 22:50, sleepyhead.", two, first).text, "Tokyo is at 22:50 and London at 13:50, sleepyhead.");
+  // What cannot be pinned to a place is not guessed at: the whole verified answer is used
+  for (const [wrong, plan] of [
+    ["北京时间13:50（UTC）。", p],
+    ["你那边应该是晚上9点50分吧。", planTimeAnswer("现在几点了？", at(BUG))!],
+    ["现在是13:50。", planTimeAnswer("现在几点了？", at(BUG))!],
+    ["北京比萨克拉门托快8小时。", planTimeAnswer("北京和萨克拉门托的时差是多少？", at(BUG))!],
+  ] as Array<[string, typeof p]>) {
+    const r = enforceVerifiedTime(wrong, plan, first);
+    assert.equal(r.replaced, true, wrong);
+    assert.equal(r.repaired, false, wrong);
+    assert.equal(r.text, verifiedReply(plan, first), wrong);
+  }
+  // A correct reply is never touched
+  assert.deepEqual(fix("北京时间晚上9点50分，夜猫子。"), { text: "北京时间晚上9点50分，夜猫子。", replaced: false, repaired: false, problems: [] });
+});
+
+test("a time difference she states must be the verified one", () => {
+  const p = planTimeAnswer("北京和萨克拉门托的时差是多少？", at(BUG))!;
+  assert.ok(checkReply("北京比萨克拉门托快15小时。", p).ok);
+  assert.ok(checkReply("Beijing is 15 hours ahead of Sacramento.", p).ok);
+  assert.equal(checkReply("Beijing is 16 hours ahead of Sacramento.", p).ok, false);
+  const k = planTimeAnswer("What's the time difference between Kathmandu and Kolkata?", at(BUG))!;
+  assert.equal(checkReply("Kathmandu is 1 hour ahead of Kolkata.", k).ok, false);
 });
