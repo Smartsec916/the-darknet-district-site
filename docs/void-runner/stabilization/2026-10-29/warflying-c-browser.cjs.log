@@ -1,0 +1,21 @@
+PASS WarFlying Stage C {
+  flight1: {
+    mode: 'play',
+    installed: true,
+    skirmish: false,
+    loc: 'meridian',
+    queued: 3,
+    after: 0,
+    hud: 'WARFLYING · LISTENING · 3 PTS · RELAY CONNECTED',
+    link: 'connected',
+    transfer: null,
+    auto: true
+  },
+  warp: {
+    link: 'disconnected',
+    queued: 1,
+    hud: 'WARFLYING · LISTENING · 4 PTS · RELAY NO SIGNAL · 1 QUEUED',
+    points: 4
+  },
+  trail: { linked: 0, unlinked: 1, recent: [ [Object] ] }
+}

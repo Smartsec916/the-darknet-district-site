@@ -16,9 +16,24 @@
     const data = JSON.parse(new TextDecoder().decode(new Uint8Array(buffer, 20, length)));
     for (const item of [...data.buffers || [], ...data.images || []])
       if (item.uri && !item.uri.startsWith('data:')) throw Error('Use a self-contained GLB; external asset URIs are not enabled.');
-    const compressed = ['KHR_draco_mesh_compression', 'EXT_meshopt_compression', 'KHR_texture_basisu'];
-    if ((data.extensionsUsed || []).some(e => compressed.includes(e))) throw Error('Compressed models need a configured, locally hosted decoder. Export an uncompressed GLB for this milestone.');
+    // KTX2 / Basis Universal textures (KHR_texture_basisu) are decoded by the locally hosted transcoder in
+    // vendor/ktx2 (useKTX2Locally); compressed geometry still has no decoder here.
+    const compressed = ['KHR_draco_mesh_compression', 'EXT_meshopt_compression'];
+    if ((data.extensionsUsed || []).some(e => compressed.includes(e))) throw Error('Compressed geometry needs a configured, locally hosted decoder. Export an uncompressed GLB for this milestone.');
     return data;
+  }
+
+  // KTX2 textures stay compressed on the GPU (BC7, ASTC or ETC, whichever the device supports; plain RGBA where it
+  // supports none). Babylon's decoder and the Basis Universal / UASTC / Zstandard transcoders are served from
+  // vendor/ktx2 (see its README for sources and licences), never from a CDN.
+  function useKTX2Locally() {
+    const K = root.BABYLON?.KhronosTextureContainer2;
+    if (!K || !base || K.URLConfig.jsDecoderModule?.startsWith(base.origin)) return;
+    const at = f => new URL('vendor/ktx2/' + f, base).href;
+    K.URLConfig = {jsDecoderModule: at('babylon.ktx2Decoder.js'), wasmUASTCToASTC: at('uastc_astc.wasm'), wasmUASTCToBC7: at('uastc_bc7.wasm'),
+      wasmUASTCToRGBA_UNORM: at('uastc_rgba8_unorm_v2.wasm'), wasmUASTCToRGBA_SRGB: at('uastc_rgba8_srgb_v2.wasm'), wasmUASTCToR8_UNORM: at('uastc_r8_unorm.wasm'),
+      wasmUASTCToRG8_UNORM: at('uastc_rg8_unorm.wasm'), jsMSCTranscoder: at('msc_basis_transcoder.js'), wasmMSCTranscoder: at('msc_basis_transcoder.wasm'), wasmZSTDDecoder: at('zstddec.wasm')};
+    K.DefaultNumWorkers = Math.max(1, Math.min(2, (root.navigator?.hardwareConcurrency || 2) - 1));
   }
 
   // Licensed models whose terms ask games to keep the file from casual extraction ship as .vrpak: the GLB
@@ -36,7 +51,23 @@
     return out.buffer;
   }
 
+  // On the live site the licensed models are encrypted instead (CGTrader's licence asks games to take "commercially
+  // reasonable measures" such as "encrypting the Product data"): a "VRPE" header, a 12-byte IV, then AES-256-GCM.
+  // tools/assets/build-pages.cjs encrypts them at deploy time and writes the key here. The browser has to hold the key
+  // to draw the model, so a determined player can still extract it; this keeps the files out of reach of casual
+  // saving and off the public repository, nothing more. Local builds keep the placeholder and the scrambled files.
+  const ASSET_KEY = '__VOID_ASSET_KEY__';
+  let assetKey = null;
+  async function open(buffer) {
+    const v = new DataView(buffer);
+    if (v.byteLength < 32 || v.getUint32(0, true) !== 0x45505256) return unpack(buffer);
+    if (ASSET_KEY.startsWith('__')) throw Error('Encrypted model, but this build has no asset key.');
+    assetKey ??= root.crypto.subtle.importKey('raw', Uint8Array.from(root.atob(ASSET_KEY), c => c.charCodeAt(0)), 'AES-GCM', false, ['decrypt']);
+    return root.crypto.subtle.decrypt({name: 'AES-GCM', iv: new Uint8Array(buffer, 4, 12)}, await assetKey, new Uint8Array(buffer, 16));
+  }
+
   function loadPlugin(task) {
+    useKTX2Locally();
     if (loader) return loader;
     loader = new Promise((resolve, reject) => {
       const s = document.createElement('script');
@@ -74,7 +105,7 @@
         const response=await fetch(url,{signal:task?.signal});
         if(!response.ok)throw Error('Model HTTP '+response.status);
         buffer=await response.arrayBuffer();
-        if(packed)buffer=unpack(buffer);
+        if(packed)buffer=await open(buffer);
         validate(buffer);
         break;
       }catch(error){
@@ -97,7 +128,18 @@
     return container;
   }
 
-  function instance(id, parent) {
+  // Clones own skeletons (including their bone textures) and animation groups; materials stay with the container.
+  function ownInstance(result, owner) {
+    let disposed=false;
+    const dispose=()=>{if(disposed)return;disposed=true;
+      for(const g of result.animationGroups||[]){g.stop();g.dispose();}
+      for(const s of result.skeletons||[])s.dispose();
+    };
+    owner.onDisposeObservable.addOnce(dispose);
+    return dispose;
+  }
+  // `only` names one model of a kit file (several models sharing their textures): the copy keeps just that one.
+  function instance(id, parent, only) {
     const item = containers.get(id);
     if (!item) return null;
     const result = item.container.instantiateModelsToScene(name => id + '-' + name, false),
@@ -106,11 +148,17 @@
     node.parent = parent;
     asset.parent = node;
     for (const mesh of result.rootNodes) mesh.parent = asset;
+    if (only) {
+      const keep = id + '-' + only, pieces = result.rootNodes.flatMap(r => r.getChildren());
+      if (!pieces.some(p => p.name === keep)) { for (const r of result.rootNodes) r.dispose(); node.dispose(); asset.dispose(); return null; }
+      for (const p of pieces) if (p.name !== keep) p.dispose();
+    }
     asset.scaling.setAll(item.def.scale || 1);
     asset.rotation.y = item.def.yaw || 0;
     // Cloned clips belong to this copy; they start stopped and the caller picks one (crowd figures).
     for (const group of result.animationGroups) group.stop();
     node.metadata = { animationGroups: result.animationGroups };
+    ownInstance(result,node);
     return node;
   }
   async function prepare(scene, definitions, task) {
@@ -130,11 +178,15 @@
     if(missed.length)console.warn('[VOID optional models] '+missed.length+' using procedural placeholders; timed-out downloads continue in the background for the next visit',missed);
     task?.check();
     // Once the scene is ready, so background downloads and parsing never hold up its readiness check.
-    if(later.length)scene.executeWhenReady(()=>{if(gen===generation)queue.push(...later.map(([id,def])=>({id,def,scene,gen})));pump();});
+    if(later.length){
+      // First presentation is the readiness boundary: background parsing must not re-block whenReadyAsync.
+      const batch={scene,items:later,observer:null};scheduled.add(batch);
+      batch.observer=scene.onAfterRenderObservable.addOnce(()=>{scheduled.delete(batch);if(gen===generation){queue.push(...later.map(([id,def])=>({id,def,scene,gen})));pump();}});
+    }
   }
   async function cached(def){try{return typeof caches!=='undefined'&&!!(await caches.match(new URL(def.src,base).href));}catch{return false;}}
   // Background downloads, two at a time. Released scenes cancel theirs, so the next place loads at full speed.
-  const backgroundLimit=120000,parallel=4;let generation=0;const listeners=new Set(),jobs=new Set(),queue=[],failed=new Map();
+  const backgroundLimit=120000,parallel=4;let generation=0;const listeners=new Set(),jobs=new Set(),scheduled=new Set(),queue=[],failed=new Map();
   function pump(){
     while(jobs.size<parallel&&queue.length){const next=queue.shift();if(next.gen===generation&&!next.scene.isDisposed)background(next);}
   }
@@ -157,11 +209,11 @@
   }
   // Called with a model id whenever a background model becomes available for the current scene.
   function onLoaded(listener){listeners.add(listener);return ()=>listeners.delete(listener);}
-  const pending=()=>jobs.size+queue.length;
+  const pending=()=>jobs.size+queue.length+[...scheduled].reduce((n,b)=>n+b.items.length,0);
 
   function unload(id){const item=containers.get(id);if(item){item.container.dispose();containers.delete(id);}}
   function release() {
-    generation++;queue.length=0;for(const job of jobs)job.controller.abort(Error('Scene released.'));
+    generation++;queue.length=0;for(const b of scheduled)b.scene.onAfterRenderObservable.remove(b.observer);scheduled.clear();for(const job of jobs)job.controller.abort(Error('Scene released.'));
     for (const {
         container
       }
@@ -171,9 +223,11 @@
   // The loaded container for an id (for builders that place many copies themselves), or null.
   function container(id){return containers.get(id)?.container||null;}
   const api = {
-    models,unload,container,loadContainer,onLoaded,get pending(){return pending();},get failed(){return new Map(failed);},
+    models,unload,container,loadContainer,ownInstance,onLoaded,get pending(){return pending();},get failed(){return new Map(failed);},
     validate,
     unpack,
+    open,
+    useKTX2Locally,
     load,
     instance,
     prepare,

@@ -61,6 +61,18 @@
    "voice": "bm_lewis",
    "status": "approved"
   },
+  "vr-seren": {
+   "voice": "af_nicole",
+   "status": "provisional"
+  },
+  "vr-kai": {
+   "voice": "am_fenrir",
+   "status": "provisional"
+  },
+  "vr-nadia": {
+   "voice": "af_aoede",
+   "status": "provisional"
+  },
   "news-anchor": {
    "voice": "af_heart",
    "status": "provisional"
@@ -2032,6 +2044,1154 @@
    "file": "sol-58689e80f5.ogg",
    "source": "world-integration.js",
    "configHash": "f719ef95c06f"
+  },
+  "vr-kai-0394e32039": {
+   "speaker": "vr-kai",
+   "text": "That's the best thing I've heard all week.",
+   "file": "vr-kai-0394e32039.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-05ac273bfb": {
+   "speaker": "vr-kai",
+   "text": "You've got a great laugh. Just so you know.",
+   "file": "vr-kai-05ac273bfb.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-079d815bb4": {
+   "speaker": "vr-kai",
+   "text": "See? Nothing to it.",
+   "file": "vr-kai-079d815bb4.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-07ce47cc8d": {
+   "speaker": "vr-kai",
+   "text": "Stay a while.",
+   "file": "vr-kai-07ce47cc8d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-1631599461": {
+   "speaker": "vr-kai",
+   "text": "One dance. Humour me.",
+   "file": "vr-kai-1631599461.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-1735044cc5": {
+   "speaker": "vr-kai",
+   "text": "Sit with me a while.",
+   "file": "vr-kai-1735044cc5.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-19f85882a0": {
+   "speaker": "vr-kai",
+   "text": "You look like you need somewhere quiet. You found it.",
+   "file": "vr-kai-19f85882a0.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-24825ed47e": {
+   "speaker": "vr-kai",
+   "text": "This is good. Just this.",
+   "file": "vr-kai-24825ed47e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-2997b27ffc": {
+   "speaker": "vr-kai",
+   "text": "Welcome back. The view was getting lonely.",
+   "file": "vr-kai-2997b27ffc.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-2a3956b058": {
+   "speaker": "vr-kai",
+   "text": "There you are. I was saving your spot.",
+   "file": "vr-kai-2a3956b058.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-2affa42544": {
+   "speaker": "vr-kai",
+   "text": "I like this hour. The light goes soft and everything slows down.",
+   "file": "vr-kai-2affa42544.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-2b29518035": {
+   "speaker": "vr-kai",
+   "text": "All that noise down there. Up here it's just us.",
+   "file": "vr-kai-2b29518035.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-2b75ebf8d9": {
+   "speaker": "vr-kai",
+   "text": "Sit with me.",
+   "file": "vr-kai-2b75ebf8d9.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-3556565298": {
+   "speaker": "vr-kai",
+   "text": "Fair enough. I'll ask again when you least expect it.",
+   "file": "vr-kai-3556565298.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-386347d784": {
+   "speaker": "vr-kai",
+   "text": "Let's talk a little first. I like getting to know you.",
+   "file": "vr-kai-386347d784.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-47a7c3228d": {
+   "speaker": "vr-kai",
+   "text": "I could stay up here all night with you.",
+   "file": "vr-kai-47a7c3228d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-4acdeb9b9b": {
+   "speaker": "vr-kai",
+   "text": "I've been wanting to do that.",
+   "file": "vr-kai-4acdeb9b9b.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-528ec1a5c4": {
+   "speaker": "vr-kai",
+   "text": "No pressure. The offer stands.",
+   "file": "vr-kai-528ec1a5c4.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-52b0dbe4c3": {
+   "speaker": "vr-kai",
+   "text": "I was hoping you'd say that.",
+   "file": "vr-kai-52b0dbe4c3.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-53d8a6374f": {
+   "speaker": "vr-kai",
+   "text": "Mind if I sit? I promise I'm good company.",
+   "file": "vr-kai-53d8a6374f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-544b6680fb": {
+   "speaker": "vr-kai",
+   "text": "Close your eyes for a minute. I've got the watch.",
+   "file": "vr-kai-544b6680fb.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-587a8b8a14": {
+   "speaker": "vr-kai",
+   "text": "Come sit with me, or ask me to dance.",
+   "file": "vr-kai-587a8b8a14.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-5b70cd635e": {
+   "speaker": "vr-kai",
+   "text": "Thought I'd come over before you got lost in your head.",
+   "file": "vr-kai-5b70cd635e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-608bfb2e6c": {
+   "speaker": "vr-kai",
+   "text": "Hey. Glad you came up. The city can wait an hour.",
+   "file": "vr-kai-608bfb2e6c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-7444ffa992": {
+   "speaker": "vr-kai",
+   "text": "You're easy to be around. Not many people are.",
+   "file": "vr-kai-7444ffa992.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-7508850f09": {
+   "speaker": "vr-kai",
+   "text": "Come here.",
+   "file": "vr-kai-7508850f09.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-7525489341": {
+   "speaker": "vr-kai",
+   "text": "Goodnight. The view will be here.",
+   "file": "vr-kai-7525489341.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-7ab9ffe53b": {
+   "speaker": "vr-kai",
+   "text": "Up here it's just the sea and the sky. No ads, no drones.",
+   "file": "vr-kai-7ab9ffe53b.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-8ce6ebd191": {
+   "speaker": "vr-kai",
+   "text": "You make this city look quiet.",
+   "file": "vr-kai-8ce6ebd191.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-8e95712249": {
+   "speaker": "vr-kai",
+   "text": "There you are. Come in, the view is the best part.",
+   "file": "vr-kai-8e95712249.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-8ec45ab5a3": {
+   "speaker": "vr-kai",
+   "text": "Dance with me? I'll try not to step on you.",
+   "file": "vr-kai-8ec45ab5a3.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-92caaa3dad": {
+   "speaker": "vr-kai",
+   "text": "You've got a way with words. I noticed.",
+   "file": "vr-kai-92caaa3dad.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-95cb5870f9": {
+   "speaker": "vr-kai",
+   "text": "I keep the window open a little. The air smells like salt.",
+   "file": "vr-kai-95cb5870f9.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-96e5d0cbf0": {
+   "speaker": "vr-kai",
+   "text": "Go on. Come back when the city gets loud.",
+   "file": "vr-kai-96e5d0cbf0.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-9749a92177": {
+   "speaker": "vr-kai",
+   "text": "Lie back with me for a bit? The ceiling's worth it.",
+   "file": "vr-kai-9749a92177.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-9cff28cff9": {
+   "speaker": "vr-kai",
+   "text": "Is that so? Tell me more.",
+   "file": "vr-kai-9cff28cff9.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-a291c0ed22": {
+   "speaker": "vr-kai",
+   "text": "Not bad, right? Best ceiling in NeoChinatown.",
+   "file": "vr-kai-a291c0ed22.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-a92c21336e": {
+   "speaker": "vr-kai",
+   "text": "Steady hands.",
+   "file": "vr-kai-a92c21336e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-bf2f2d3421": {
+   "speaker": "vr-kai",
+   "text": "Room for one more?",
+   "file": "vr-kai-bf2f2d3421.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-c22c1c23d5": {
+   "speaker": "vr-kai",
+   "text": "Yeah? Good.",
+   "file": "vr-kai-c22c1c23d5.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-c587226f3a": {
+   "speaker": "vr-kai",
+   "text": "Then dance with me. No one's watching.",
+   "file": "vr-kai-c587226f3a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-cc5891c0f1": {
+   "speaker": "vr-kai",
+   "text": "Now you're just being kind. Keep going.",
+   "file": "vr-kai-cc5891c0f1.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-d4c0948628": {
+   "speaker": "vr-kai",
+   "text": "Come here. The sofa's better with two.",
+   "file": "vr-kai-d4c0948628.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-d71e8e4a47": {
+   "speaker": "vr-kai",
+   "text": "Coming.",
+   "file": "vr-kai-d71e8e4a47.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-d921cdad70": {
+   "speaker": "vr-kai",
+   "text": "Follow me. There. Just like that.",
+   "file": "vr-kai-d921cdad70.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-dc2320e672": {
+   "speaker": "vr-kai",
+   "text": "You're dangerous. I like it.",
+   "file": "vr-kai-dc2320e672.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-ddba11da24": {
+   "speaker": "vr-kai",
+   "text": "You don't have to tell me about your day. But I'd listen.",
+   "file": "vr-kai-ddba11da24.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-deeaecf461": {
+   "speaker": "vr-kai",
+   "text": "Right here.",
+   "file": "vr-kai-deeaecf461.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-dfd13c25d4": {
+   "speaker": "vr-kai",
+   "text": "Say it like you mean it.",
+   "file": "vr-kai-dfd13c25d4.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-e37ad95f70": {
+   "speaker": "vr-kai",
+   "text": "Well. Hello to you too.",
+   "file": "vr-kai-e37ad95f70.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-eeefee6c54": {
+   "speaker": "vr-kai",
+   "text": "Better. I like you here.",
+   "file": "vr-kai-eeefee6c54.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-f468a2b1fa": {
+   "speaker": "vr-kai",
+   "text": "Best seat in the city. Second best, now that you're here.",
+   "file": "vr-kai-f468a2b1fa.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-fa75b186fa": {
+   "speaker": "vr-kai",
+   "text": "Not yet. There's no rush.",
+   "file": "vr-kai-fa75b186fa.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-kai-fcc905b54c": {
+   "speaker": "vr-kai",
+   "text": "Hey. You looked like you could use some company.",
+   "file": "vr-kai-fcc905b54c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "dda3e7c22d35"
+  },
+  "vr-nadia-00540567c0": {
+   "speaker": "vr-nadia",
+   "text": "Go on. Try not to get lost on the way down.",
+   "file": "vr-nadia-00540567c0.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-007bcb2e80": {
+   "speaker": "vr-nadia",
+   "text": "Careful. Locals don't fall for lines. Usually.",
+   "file": "vr-nadia-007bcb2e80.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-008effaa26": {
+   "speaker": "vr-nadia",
+   "text": "Loosen up. Nobody up here is watching but me.",
+   "file": "vr-nadia-008effaa26.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-00d8dbfd3a": {
+   "speaker": "vr-nadia",
+   "text": "Up. One dance. Consider it a cultural lesson.",
+   "file": "vr-nadia-00d8dbfd3a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-02d85c5343": {
+   "speaker": "vr-nadia",
+   "text": "Night, outsider. Come back before you forget the way.",
+   "file": "vr-nadia-02d85c5343.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-07e2641397": {
+   "speaker": "vr-nadia",
+   "text": "You keep drifting off. Something on your mind, or just the view?",
+   "file": "vr-nadia-07e2641397.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-1d0b82c869": {
+   "speaker": "vr-nadia",
+   "text": "You dance like a tourist. Here, follow me.",
+   "file": "vr-nadia-1d0b82c869.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-1d20b974db": {
+   "speaker": "vr-nadia",
+   "text": "Say that again and I might believe it.",
+   "file": "vr-nadia-1d20b974db.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-27bac49a29": {
+   "speaker": "vr-nadia",
+   "text": "From up here you can tell which stalls are lying about being open.",
+   "file": "vr-nadia-27bac49a29.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-2bbcad3b0a": {
+   "speaker": "vr-nadia",
+   "text": "There you go. Almost a local.",
+   "file": "vr-nadia-2bbcad3b0a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-2ec40e3842": {
+   "speaker": "vr-nadia",
+   "text": "Suit yourself, outsider. Offer stands.",
+   "file": "vr-nadia-2ec40e3842.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-35295e175a": {
+   "speaker": "vr-nadia",
+   "text": "You're not so bad, for someone from out there.",
+   "file": "vr-nadia-35295e175a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-3e5928d3d9": {
+   "speaker": "vr-nadia",
+   "text": "Okay. That one landed. Don't get used to it.",
+   "file": "vr-nadia-3e5928d3d9.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-4812137d35": {
+   "speaker": "vr-nadia",
+   "text": "That alley there? I broke my wrist falling off that fire escape. Worth it.",
+   "file": "vr-nadia-4812137d35.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-4d8c651895": {
+   "speaker": "vr-nadia",
+   "text": "Sit with me first, or ask me to dance.",
+   "file": "vr-nadia-4d8c651895.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-5051c07481": {
+   "speaker": "vr-nadia",
+   "text": "Scoot over. Locals get the good side.",
+   "file": "vr-nadia-5051c07481.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-5ad742f6d1": {
+   "speaker": "vr-nadia",
+   "text": "You came back. They always do.",
+   "file": "vr-nadia-5ad742f6d1.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-64d273b6cd": {
+   "speaker": "vr-nadia",
+   "text": "You're bolder than you look, outsider.",
+   "file": "vr-nadia-64d273b6cd.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-6bb93c9793": {
+   "speaker": "vr-nadia",
+   "text": "Just breathe. The city can run itself for an hour.",
+   "file": "vr-nadia-6bb93c9793.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-6e2b36ad7a": {
+   "speaker": "vr-nadia",
+   "text": "Lie back a minute. The ceiling glow is the only quiet light in this city.",
+   "file": "vr-nadia-6e2b36ad7a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-6ecceb828d": {
+   "speaker": "vr-nadia",
+   "text": "Sit with me a while. Your feet must hurt from all that sightseeing.",
+   "file": "vr-nadia-6ecceb828d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-70b864010e": {
+   "speaker": "vr-nadia",
+   "text": "Coming, coming.",
+   "file": "vr-nadia-70b864010e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-70febf036a": {
+   "speaker": "vr-nadia",
+   "text": "Fine. I'll ask again when you've loosened up.",
+   "file": "vr-nadia-70febf036a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-787ad19337": {
+   "speaker": "vr-nadia",
+   "text": "Don't stand there like you're waiting for a taxi. Come talk.",
+   "file": "vr-nadia-787ad19337.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-7a76de3634": {
+   "speaker": "vr-nadia",
+   "text": "Hey. Come here, I want to show you something.",
+   "file": "vr-nadia-7a76de3634.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-7efc9de91d": {
+   "speaker": "vr-nadia",
+   "text": "Your hands are cold. Off-world blood.",
+   "file": "vr-nadia-7efc9de91d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-7f0d5aa778": {
+   "speaker": "vr-nadia",
+   "text": "Better. Now you look like you live here.",
+   "file": "vr-nadia-7f0d5aa778.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-90f5008216": {
+   "speaker": "vr-nadia",
+   "text": "Easy. Talk to me a bit first.",
+   "file": "vr-nadia-90f5008216.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-98046405b8": {
+   "speaker": "vr-nadia",
+   "text": "Best ceiling in NeoChinatown. Don't tell anyone.",
+   "file": "vr-nadia-98046405b8.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-9a6d213d80": {
+   "speaker": "vr-nadia",
+   "text": "You're staring again. Locals notice that.",
+   "file": "vr-nadia-9a6d213d80.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-9ce47bdac5": {
+   "speaker": "vr-nadia",
+   "text": "What, lost already?",
+   "file": "vr-nadia-9ce47bdac5.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-9dae28e31f": {
+   "speaker": "vr-nadia",
+   "text": "Every street down there has a story. Most of them are true. Some of them are mine.",
+   "file": "vr-nadia-9dae28e31f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-aa2cc43533": {
+   "speaker": "vr-nadia",
+   "text": "Sit. You're making the room nervous.",
+   "file": "vr-nadia-aa2cc43533.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-ac5f2e5df8": {
+   "speaker": "vr-nadia",
+   "text": "Slow down, outsider. We've got all night.",
+   "file": "vr-nadia-ac5f2e5df8.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-ad1ff93b7d": {
+   "speaker": "vr-nadia",
+   "text": "Mind if I join you? Rhetorical question.",
+   "file": "vr-nadia-ad1ff93b7d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-b8ed2c5d93": {
+   "speaker": "vr-nadia",
+   "text": "Back again? Careful, people will start thinking you live here.",
+   "file": "vr-nadia-b8ed2c5d93.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-bb487b0bab": {
+   "speaker": "vr-nadia",
+   "text": "Well. Welcome to NeoChinatown.",
+   "file": "vr-nadia-bb487b0bab.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-c0f514094d": {
+   "speaker": "vr-nadia",
+   "text": "I grew up six blocks from here. Same noodle stand, same leaky gutter, my whole life.",
+   "file": "vr-nadia-c0f514094d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-c2d86cf650": {
+   "speaker": "vr-nadia",
+   "text": "This one's an old street song. Dance with me, I'll teach you.",
+   "file": "vr-nadia-c2d86cf650.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-c3043b941e": {
+   "speaker": "vr-nadia",
+   "text": "Come sit. I'll tell you which of the signs out there are lying.",
+   "file": "vr-nadia-c3043b941e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-c30c6a354b": {
+   "speaker": "vr-nadia",
+   "text": "Hold on. I'll show you how it's done.",
+   "file": "vr-nadia-c30c6a354b.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-c526771cde": {
+   "speaker": "vr-nadia",
+   "text": "Ha. You're learning how we talk around here.",
+   "file": "vr-nadia-c526771cde.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-c52ed86356": {
+   "speaker": "vr-nadia",
+   "text": "There you are, outsider. Shoes off, the floor's new.",
+   "file": "vr-nadia-c52ed86356.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-c693bb322f": {
+   "speaker": "vr-nadia",
+   "text": "Tell me where you're really from. Not the answer you give at customs.",
+   "file": "vr-nadia-c693bb322f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-d81670fd59": {
+   "speaker": "vr-nadia",
+   "text": "See that red sign? It's been flickering since I was a kid. Nobody fixes it. Nobody wants to.",
+   "file": "vr-nadia-d81670fd59.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-defeda7f67": {
+   "speaker": "vr-nadia",
+   "text": "Smooth. Did they teach you that off-world?",
+   "file": "vr-nadia-defeda7f67.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-e0966689ef": {
+   "speaker": "vr-nadia",
+   "text": "Listen. You can hear the market closing up from here.",
+   "file": "vr-nadia-e0966689ef.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-e459cf8c8f": {
+   "speaker": "vr-nadia",
+   "text": "Hm. Not bad for an outsider.",
+   "file": "vr-nadia-e459cf8c8f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-e7f050b506": {
+   "speaker": "vr-nadia",
+   "text": "The city likes you. I can tell. So do I, a little.",
+   "file": "vr-nadia-e7f050b506.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-ed99337056": {
+   "speaker": "vr-nadia",
+   "text": "You still walk like you're new here. Eyes up, reading every sign. It's cute.",
+   "file": "vr-nadia-ed99337056.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-ee06942c83": {
+   "speaker": "vr-nadia",
+   "text": "Good. You're learning.",
+   "file": "vr-nadia-ee06942c83.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-fe404da6bc": {
+   "speaker": "vr-nadia",
+   "text": "Come here.",
+   "file": "vr-nadia-fe404da6bc.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-feb25ee8cc": {
+   "speaker": "vr-nadia",
+   "text": "You made it up the stairs. Most tourists take the lift and get lost.",
+   "file": "vr-nadia-feb25ee8cc.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-fef590db59": {
+   "speaker": "vr-nadia",
+   "text": "See? Easy.",
+   "file": "vr-nadia-fef590db59.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-nadia-ff121bdffa": {
+   "speaker": "vr-nadia",
+   "text": "Hey. You found the place without a guide. I'm impressed.",
+   "file": "vr-nadia-ff121bdffa.ogg",
+   "source": "vr-companions.js",
+   "configHash": "2e1aa009be3d"
+  },
+  "vr-seren-007b884bf7": {
+   "speaker": "vr-seren",
+   "text": "There you are. I was starting to think the city kept you.",
+   "file": "vr-seren-007b884bf7.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-0c3622701a": {
+   "speaker": "vr-seren",
+   "text": "Room for two. Come here.",
+   "file": "vr-seren-0c3622701a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-0e05961edf": {
+   "speaker": "vr-seren",
+   "text": "See? You're a natural.",
+   "file": "vr-seren-0e05961edf.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-119d70f82e": {
+   "speaker": "vr-seren",
+   "text": "Is that a line? It's working, a little.",
+   "file": "vr-seren-119d70f82e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-12756898b3": {
+   "speaker": "vr-seren",
+   "text": "Missed me? Don't answer that, I can tell.",
+   "file": "vr-seren-12756898b3.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-2bf8727d50": {
+   "speaker": "vr-seren",
+   "text": "Come sit with me. I don't bite. Much.",
+   "file": "vr-seren-2bf8727d50.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-3d6b22abbf": {
+   "speaker": "vr-seren",
+   "text": "You have no idea how good you look in this light.",
+   "file": "vr-seren-3d6b22abbf.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-4057042871": {
+   "speaker": "vr-seren",
+   "text": "I knew you'd say yes.",
+   "file": "vr-seren-4057042871.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-4a6e3cd1d8": {
+   "speaker": "vr-seren",
+   "text": "Mm, you called?",
+   "file": "vr-seren-4a6e3cd1d8.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-4bbf53ed44": {
+   "speaker": "vr-seren",
+   "text": "You keep wandering off. I'm starting to take it personally.",
+   "file": "vr-seren-4bbf53ed44.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-4c5099aabc": {
+   "speaker": "vr-seren",
+   "text": "Not yet. I like the anticipation.",
+   "file": "vr-seren-4c5099aabc.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-55064087ca": {
+   "speaker": "vr-seren",
+   "text": "Come here.",
+   "file": "vr-seren-55064087ca.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-58d653866c": {
+   "speaker": "vr-seren",
+   "text": "This song's too good to waste. Dance with me?",
+   "file": "vr-seren-58d653866c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-5bda9dbb61": {
+   "speaker": "vr-seren",
+   "text": "I like how quiet you get when you're thinking. It's a good look.",
+   "file": "vr-seren-5bda9dbb61.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-5df5dd2626": {
+   "speaker": "vr-seren",
+   "text": "Fine. But I'm asking again later.",
+   "file": "vr-seren-5df5dd2626.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-5fd5a9e7a4": {
+   "speaker": "vr-seren",
+   "text": "Well. That was worth waiting for.",
+   "file": "vr-seren-5fd5a9e7a4.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-608578113a": {
+   "speaker": "vr-seren",
+   "text": "Is that an invitation? Then lead.",
+   "file": "vr-seren-608578113a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-6ae7e69ecc": {
+   "speaker": "vr-seren",
+   "text": "Dance with me. One song.",
+   "file": "vr-seren-6ae7e69ecc.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-6bf2a9884f": {
+   "speaker": "vr-seren",
+   "text": "Goodnight. Don't let the city keep you too long.",
+   "file": "vr-seren-6bf2a9884f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-6c737fca37": {
+   "speaker": "vr-seren",
+   "text": "There. Now don't let go too soon.",
+   "file": "vr-seren-6c737fca37.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-6d8be67dee": {
+   "speaker": "vr-seren",
+   "text": "Up here, nobody is selling anything. I like that about this place.",
+   "file": "vr-seren-6d8be67dee.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-759866c99b": {
+   "speaker": "vr-seren",
+   "text": "You're sweet. I noticed you noticed, by the way.",
+   "file": "vr-seren-759866c99b.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-80019481bf": {
+   "speaker": "vr-seren",
+   "text": "Don't look at your feet. Look at me.",
+   "file": "vr-seren-80019481bf.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-882584c424": {
+   "speaker": "vr-seren",
+   "text": "Your loss. I'll be right here.",
+   "file": "vr-seren-882584c424.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-8b325269e1": {
+   "speaker": "vr-seren",
+   "text": "There you are. I was just thinking about you.",
+   "file": "vr-seren-8b325269e1.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-8bdebef9d4": {
+   "speaker": "vr-seren",
+   "text": "You're staring. I like it.",
+   "file": "vr-seren-8bdebef9d4.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-8f62ac0257": {
+   "speaker": "vr-seren",
+   "text": "Mm. I was hoping you'd do that.",
+   "file": "vr-seren-8f62ac0257.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-8fd04aa8d2": {
+   "speaker": "vr-seren",
+   "text": "Say that again, slower.",
+   "file": "vr-seren-8fd04aa8d2.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-926947e390": {
+   "speaker": "vr-seren",
+   "text": "Save me a spot. Actually, I'll make one.",
+   "file": "vr-seren-926947e390.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-93dbe416d8": {
+   "speaker": "vr-seren",
+   "text": "That's better. I like having you close.",
+   "file": "vr-seren-93dbe416d8.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-9587661dc2": {
+   "speaker": "vr-seren",
+   "text": "Your hands are warm.",
+   "file": "vr-seren-9587661dc2.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-9607132570": {
+   "speaker": "vr-seren",
+   "text": "Lie back with me a minute? Just to watch the lights.",
+   "file": "vr-seren-9607132570.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-970c88aec0": {
+   "speaker": "vr-seren",
+   "text": "The rain never reaches this room. I made sure of it.",
+   "file": "vr-seren-970c88aec0.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-9832153934": {
+   "speaker": "vr-seren",
+   "text": "I come out to the balcony when the sun goes down. Everything turns the colour of honey.",
+   "file": "vr-seren-9832153934.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-9be1a79d55": {
+   "speaker": "vr-seren",
+   "text": "All those lights, and you're still the most interesting thing in the room.",
+   "file": "vr-seren-9be1a79d55.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-a624445194": {
+   "speaker": "vr-seren",
+   "text": "Just breathe. Nothing out there can find you in here.",
+   "file": "vr-seren-a624445194.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-ab4b8c21cc": {
+   "speaker": "vr-seren",
+   "text": "My feet hurt and the sofa's lonely. Sit with me?",
+   "file": "vr-seren-ab4b8c21cc.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-bafb0cacb1": {
+   "speaker": "vr-seren",
+   "text": "Careful. Keep saying things like that and I'll believe you.",
+   "file": "vr-seren-bafb0cacb1.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-bd9813d077": {
+   "speaker": "vr-seren",
+   "text": "Tell me something nobody else knows about you. I'll keep it, I promise.",
+   "file": "vr-seren-bd9813d077.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-bdfa870d50": {
+   "speaker": "vr-seren",
+   "text": "This is nice. No need to say anything.",
+   "file": "vr-seren-bdfa870d50.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-bfbaf9d4a5": {
+   "speaker": "vr-seren",
+   "text": "Slow down, you. Talk to me a little first.",
+   "file": "vr-seren-bfbaf9d4a5.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-c1b27a2a7a": {
+   "speaker": "vr-seren",
+   "text": "Go on, then. Come back soon; I'll keep the lights low.",
+   "file": "vr-seren-c1b27a2a7a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-c33664c39e": {
+   "speaker": "vr-seren",
+   "text": "Mm. You're trouble. The good kind.",
+   "file": "vr-seren-c33664c39e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-c594e3741a": {
+   "speaker": "vr-seren",
+   "text": "Mind if I join you? Too late, I'm coming over.",
+   "file": "vr-seren-c594e3741a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-dabf2fdbbb": {
+   "speaker": "vr-seren",
+   "text": "Back already? I knew you would be.",
+   "file": "vr-seren-dabf2fdbbb.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-e4f43c51f5": {
+   "speaker": "vr-seren",
+   "text": "Good answer.",
+   "file": "vr-seren-e4f43c51f5.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-e87461ef68": {
+   "speaker": "vr-seren",
+   "text": "Sit with me first, or ask me to dance.",
+   "file": "vr-seren-e87461ef68.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-f09850a9a6": {
+   "speaker": "vr-seren",
+   "text": "Well. That's made my whole evening.",
+   "file": "vr-seren-f09850a9a6.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-f478e71f41": {
+   "speaker": "vr-seren",
+   "text": "On my way.",
+   "file": "vr-seren-f478e71f41.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-f4e523ac38": {
+   "speaker": "vr-seren",
+   "text": "You made it. Leave NeoChinatown at the door; it's just us up here.",
+   "file": "vr-seren-f4e523ac38.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-f5c678768b": {
+   "speaker": "vr-seren",
+   "text": "Don't hide over there. Come talk to me.",
+   "file": "vr-seren-f5c678768b.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-fa6bef6dd7": {
+   "speaker": "vr-seren",
+   "text": "This is my favourite view. The ceiling glow, and you.",
+   "file": "vr-seren-fa6bef6dd7.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-fbacd365e9": {
+   "speaker": "vr-seren",
+   "text": "Pretty, isn't it? From up here even the city looks like it's flirting.",
+   "file": "vr-seren-fbacd365e9.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-fc7c9144ff": {
+   "speaker": "vr-seren",
+   "text": "Careful. I could get used to this.",
+   "file": "vr-seren-fc7c9144ff.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
+  },
+  "vr-seren-ff62123201": {
+   "speaker": "vr-seren",
+   "text": "Hey, you. Come in, the view is better from over here.",
+   "file": "vr-seren-ff62123201.ogg",
+   "source": "vr-companions.js",
+   "configHash": "8cad2df23a29"
   },
   "warflying-host-01cde02f78": {
    "speaker": "warflying-host",

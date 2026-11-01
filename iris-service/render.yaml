@@ -1,0 +1,85 @@
+# Render Blueprint for the Iris chat service. It is a separate web service from the
+# existing Python API (server.py) and does not change it. Nothing here is active until
+# someone creates a Blueprint in the Render dashboard and points it at this file.
+# Secrets are never stored here: every `sync: false` value is entered in the dashboard.
+services:
+  - type: web
+    name: iris-chat
+    runtime: node
+    plan: free
+    rootDir: iris-service
+    # Deploy only when you choose to, not on every push
+    autoDeploy: false
+    # The build needs Vite and esbuild (devDependencies), and the server still loads
+    # Vite's config at startup, so dev packages must be installed even in production.
+    # No database step belongs here: tables are created, additively, when the service
+    # starts (server/migrate.ts). Do not add drizzle-kit push; see docs/SCHEMA-MIGRATIONS.md.
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: OPENAI_API_KEY
+        sync: false
+      # Postgres connection string. The code uses Neon's serverless driver, so this
+      # must be a Neon database (Neon's free tier works; Render Postgres does not).
+      - key: DATABASE_URL
+        sync: false
+      # Passphrases (12+ characters) that verify the real Admin or Eva so they can
+      # recall stored conversations. Leave unset and nobody can recall them.
+      - key: IRIS_ADMIN_PASSPHRASE
+        sync: false
+      - key: IRIS_EVA_PASSPHRASE
+        sync: false
+      # Sites allowed to call the chat API from a browser
+      - key: ALLOWED_ORIGINS
+        value: https://thedarknetdistrict.com,https://www.thedarknetdistrict.com
+      - key: CHAT_LIMIT_PER_DAY
+        value: "150"
+      - key: CHAT_GLOBAL_DAILY_LIMIT
+        value: "3000"
+      # Visitors are told apart by trusting Render's proxy and Cloudflare's published ranges
+      # (server/clientIp.ts); nothing needs setting. TRUSTED_PROXY_HOPS and TRUSTED_PROXY_RANGES
+      # exist only as fallbacks; see docs/RATE-LIMITS.md before adding either.
+
+      # --- Personality and memory (see docs/IRIS-PERSONALITY.md) ---
+      - key: IRIS_EMOTION
+        value: "on"             # "off" restores the previous keyword-and-random mood system exactly
+      - key: IRIS_FLIRT_LEVEL
+        value: "2"              # 0 none, 1 light teasing, 2 bold and cheeky, 3 very forward
+      - key: IRIS_MEMORY_RETENTION_DAYS
+        value: "0"              # 0 = nothing ever expires (the default). A number of days would remove relationship
+                                # records unseen that long; stored conversations are never expired either way
+      - key: IRIS_PERSISTENT_MEMORY
+        value: "on"             # "off" stops Iris reading stored conversations (they are still saved); see docs/IRIS-MEMORY.md
+      - key: IRIS_MEMORY_BUDGET_CHARS
+        value: "3000"           # most characters of stored conversation added to one request (about 4 per token)
+
+      # --- Website sign-in and the owner's Iris controls (see docs/IRIS-ACCOUNTS.md) ---
+      # Exact Firebase account ids (not emails) allowed to use the owner controls. Empty: nobody, and the
+      # controls do not exist. Copy the id from the account menu on the homepage (COPY ACCOUNT ID).
+      - key: IRIS_ADMIN_UIDS
+        sync: false
+      # The Firebase project that issues sign-ins; the default is The Darknet District's own project
+      # (the-darknet-district-71873), so this normally needs no setting.
+
+      # --- Conversation viewer (off by default; see docs/LOGGING-AND-REPORTS.md) ---
+      - key: IRIS_ADMIN_VIEWER
+        value: "off"            # set to "on" only after the token below is set
+      - key: IRIS_ADMIN_TOKEN   # 32+ random characters; opens the private viewer
+        sync: false
+
+      # --- Daily email report (off by default) ---
+      - key: IRIS_REPORTS_ENABLED
+        value: "false"          # "true" starts real transcript emails: needs your approval first
+      - key: IRIS_REPORT_TOKEN  # 32+ random characters; the scheduler can only trigger the report with it
+        sync: false
+      - key: BREVO_API_KEY      # from the email provider; never put it in the repository
+        sync: false
+      - key: REPORT_SENDER_EMAIL # a sender address verified with the email provider
+        sync: false
+      - key: REPORT_SENDER_NAME
+        value: "Iris — The Darknet District"
+      - key: REPORT_RECIPIENT   # the only address reports are ever sent to
+        sync: false

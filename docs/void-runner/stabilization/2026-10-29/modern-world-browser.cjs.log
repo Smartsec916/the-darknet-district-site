@@ -1,0 +1,40 @@
+CONSOLE Failed to load resource: the server responded with a status of 503 (Service Unavailable)
+CONSOLE Failed to load resource: net::ERR_FAILED
+CONSOLE Failed to load resource: net::ERR_FAILED
+CONSOLE Failed to load resource: the server responded with a status of 503 (Service Unavailable)
+CONSOLE Failed to load resource: the server responded with a status of 503 (Service Unavailable)
+BOOT { mode: 'menu', frames: 0 }
+CONSOLE Failed to load resource: net::ERR_FAILED
+CONSOLE Failed to load resource: net::ERR_FAILED
+CONSOLE Failed to load resource: the server responded with a status of 503 (Service Unavailable)
+CONSOLE Failed to load resource: net::ERR_FAILED
+LAUNCH { mode: 'play', phase: 'departure', traffic: 2 }
+CONSOLE Failed to load resource: net::ERR_FAILED
+CONSOLE Failed to load resource: net::ERR_FAILED
+CONSOLE Failed to load resource: net::ERR_FAILED
+ROUTE {
+  origin: 'meridian',
+  destination: 'sol-belt',
+  policy: { kind: 'interstellar', seconds: 28, interdiction: false }
+}
+CONSOLE Failed to load resource: net::ERR_FAILED
+ROUTE {
+  origin: 'sol-belt',
+  destination: 'earth',
+  policy: { kind: 'local', seconds: 14, interdiction: true }
+}
+CONSOLE Failed to load resource: net::ERR_FAILED
+ROUTE {
+  origin: 'earth',
+  destination: 'sol-belt',
+  policy: { kind: 'local', seconds: 14, interdiction: true }
+}
+CONSOLE Failed to load resource: net::ERR_FAILED
+ROUTE {
+  origin: 'sol-belt',
+  destination: 'meridian',
+  policy: { kind: 'interstellar', seconds: 28, interdiction: false }
+}
+CONSOLE Failed to load resource: net::ERR_FAILED
+PASS modern startup without art, Vesper, physical Rook, job acceptance, departure, docking, mission log and Tessaly round trip
+ERRORS []

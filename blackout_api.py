@@ -4,6 +4,7 @@ import os
 import re
 import time
 import uuid
+from itertools import groupby
 from functools import wraps
 
 from flask import Blueprint, current_app, jsonify, request
@@ -21,6 +22,35 @@ POINTS = {'hack': 20, 'shot': 10, 'coin': 5, 'relay': 50, 'relayBonus': 100, 'ju
 BLOCKED_HANDLES = {'admin', 'administrator', 'moderator', 'mod', 'support', 'staff',
                    'official', 'firebase', 'google', 'developer', 'system', 'null'}
 BLOCKED_FRAGMENTS = {'nigger', 'faggot', 'kike', 'rape'}
+# Names that would let someone pass for staff, the site or its characters. Matched after folding look-alikes
+# (1/l -> i, 0 -> o, 3 -> e, 4 -> a, 5/$ -> s, 7 -> t), dropping underscores and trailing digits, and collapsing repeats.
+IMPERSONATION_WORDS = {'admin', 'administrator', 'moderator', 'mod', 'support', 'staff', 'official', 'system',
+                       'root', 'owner', 'superuser', 'sysadmin', 'security', 'helpdesk', 'server', 'firebase',
+                       'google', 'iris', 'darknet', 'darknetdistrict', 'thedarknetdistrict', 'district',
+                       'voidrunner', 'blackout', 'blackoutprotocol', 'david', 'smartsec', 'anonymous', 'null'}
+IMPERSONATION_AFFIXES = {'', 'the', 'real', 'official', 'bot', 'ai', 'team', 'staff', 'support', 'admin', 'mod',
+                         'dev', 'hq', 'help', 'x', 'xx', 'ceo'}
+_squeeze = lambda text: ''.join(char for char, _ in groupby(text))
+_LOOKALIKES = str.maketrans({'0': 'o', '1': 'i', 'l': 'i', '3': 'e', '4': 'a', '5': 's', '$': 's', '7': 't'})
+
+
+def fold_handle(key):
+    """The shape of a handle with look-alike characters, underscores and trailing numbers removed."""
+    folded = re.sub(r'\d+$', '', key.replace('_', '')).translate(_LOOKALIKES)
+    return _squeeze(folded)
+
+
+AFFIXES = {_squeeze(a.translate(_LOOKALIKES)) for a in IMPERSONATION_AFFIXES}
+
+
+def impersonates(key):
+    folded = fold_handle(key)
+    for word in IMPERSONATION_WORDS:
+        word = _squeeze(word.translate(_LOOKALIKES))
+        if folded == word or (folded.startswith(word) and folded[len(word):] in AFFIXES) \
+                or (folded.endswith(word) and folded[:-len(word)] in AFFIXES):
+            return True
+    return False
 
 
 class ApiError(Exception):
@@ -102,7 +132,7 @@ def clean_handle(value):
     if not isinstance(value, str) or not HANDLE.fullmatch(value):
         raise ApiError('Use 3–20 letters, numbers, or underscores.')
     key = value.lower()
-    if key in BLOCKED_HANDLES or any(part in key for part in BLOCKED_FRAGMENTS) or key.startswith(('admin_', 'mod_', 'support_')):
+    if key in BLOCKED_HANDLES or any(part in key for part in BLOCKED_FRAGMENTS) or key.startswith(('admin_', 'mod_', 'support_')) or impersonates(key):
         raise ApiError('This handle is reserved. Choose another.')
     return value, key
 
@@ -239,7 +269,8 @@ def claim_public_handle(db, uid, handle):
         if prior.get('handle') == display:
             return prior.get('changedAt', now)
         if prior.get('changedAt') and now - prior['changedAt'] < HANDLE_COOLDOWN and prior.get('handle') != display:
-            raise ApiError('Handles can be changed every 30 days.', 429)
+            days = -(-(prior['changedAt'] + HANDLE_COOLDOWN - now) // 86400)
+            raise ApiError(f'You can change your handle again in {days} day{"" if days == 1 else "s"}.', 429)
         if old_key and old_key != key:
             tx.delete(db.collection('bp_handles').document(old_key))
         tx.set(reservation, {'playerId': pid, 'reservedAt': now})

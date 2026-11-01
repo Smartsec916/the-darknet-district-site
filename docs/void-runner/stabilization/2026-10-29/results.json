@@ -1,0 +1,259 @@
+{
+  "resources": [
+    {
+      "mode": "walking",
+      "error": null,
+      "meshes": 671,
+      "textures": 56,
+      "materials": 271,
+      "skeletons": 8,
+      "groups": 74,
+      "playing": 7
+    },
+    {
+      "mode": "walking",
+      "error": null,
+      "meshes": 671,
+      "textures": 56,
+      "materials": 271,
+      "skeletons": 8,
+      "groups": 74,
+      "playing": 7
+    },
+    {
+      "mode": "walking",
+      "error": null,
+      "meshes": 671,
+      "textures": 56,
+      "materials": 271,
+      "skeletons": 8,
+      "groups": 74,
+      "playing": 7
+    },
+    {
+      "mode": "walking",
+      "error": null,
+      "meshes": 671,
+      "textures": 56,
+      "materials": 271,
+      "skeletons": 8,
+      "groups": 74,
+      "playing": 7
+    },
+    {
+      "mode": "walking",
+      "error": null,
+      "meshes": 671,
+      "textures": 56,
+      "materials": 271,
+      "skeletons": 8,
+      "groups": 74,
+      "playing": 7
+    },
+    {
+      "mode": "walking",
+      "error": null,
+      "meshes": 671,
+      "textures": 56,
+      "materials": 271,
+      "skeletons": 8,
+      "groups": 74,
+      "playing": 7
+    },
+    {
+      "mode": "walking",
+      "error": null,
+      "meshes": 671,
+      "textures": 56,
+      "materials": 271,
+      "skeletons": 8,
+      "groups": 74,
+      "playing": 7
+    },
+    {
+      "mode": "walking",
+      "error": null,
+      "meshes": 671,
+      "textures": 56,
+      "materials": 271,
+      "skeletons": 8,
+      "groups": 74,
+      "playing": 7
+    },
+    {
+      "mode": "walking",
+      "error": null,
+      "meshes": 671,
+      "textures": 56,
+      "materials": 271,
+      "skeletons": 8,
+      "groups": 74,
+      "playing": 7
+    },
+    {
+      "mode": "walking",
+      "error": null,
+      "meshes": 671,
+      "textures": 56,
+      "materials": 271,
+      "skeletons": 8,
+      "groups": 74,
+      "playing": 7
+    }
+  ],
+  "vr": [
+    {
+      "id": "forest",
+      "opts": {},
+      "isolation": true,
+      "resources": {
+        "mode": "walking",
+        "error": null,
+        "meshes": 738,
+        "textures": 242,
+        "materials": 368,
+        "skeletons": 24,
+        "groups": 211,
+        "playing": 21
+      }
+    },
+    {
+      "id": "tropical",
+      "opts": {},
+      "isolation": true,
+      "resources": {
+        "mode": "walking",
+        "error": null,
+        "meshes": 748,
+        "textures": 243,
+        "materials": 368,
+        "skeletons": 25,
+        "groups": 213,
+        "playing": 20
+      }
+    },
+    {
+      "id": "suite",
+      "opts": {
+        "companion": "seren"
+      },
+      "isolation": true,
+      "resources": {
+        "mode": "walking",
+        "error": null,
+        "meshes": 783,
+        "textures": 247,
+        "materials": 368,
+        "skeletons": 29,
+        "groups": 249,
+        "playing": 23
+      }
+    },
+    {
+      "id": "suite",
+      "opts": {
+        "companion": "kai"
+      },
+      "isolation": true,
+      "resources": {
+        "mode": "walking",
+        "error": null,
+        "meshes": 736,
+        "textures": 242,
+        "materials": 368,
+        "skeletons": 24,
+        "groups": 213,
+        "playing": 22
+      }
+    },
+    {
+      "id": "suite",
+      "opts": {
+        "companion": "nadia"
+      },
+      "isolation": true,
+      "resources": {
+        "mode": "walking",
+        "error": null,
+        "meshes": 756,
+        "textures": 250,
+        "materials": 368,
+        "skeletons": 26,
+        "groups": 229,
+        "playing": 25
+      }
+    }
+  ],
+  "timing": [
+    {
+      "normal": {
+        "metrics": {
+          "ready": false,
+          "samples": 90,
+          "elapsed": 2.0688000000000026,
+          "ms": 24.86563313447831,
+          "fps": 40.21614871384132
+        },
+        "raf": 16.69999999999709,
+        "crowd": {
+          "people": 21,
+          "walkers": 12,
+          "standing": 9,
+          "spawned": 20,
+          "shown": 19,
+          "away": 0,
+          "drunk": 1,
+          "budget": 21,
+          "fps": 40
+        }
+      }
+    },
+    {
+      "slow": {
+        "metrics": {
+          "ready": true,
+          "samples": 90,
+          "elapsed": 20.104800000000008,
+          "ms": 73.81205209651638,
+          "fps": 13.54792302336214
+        },
+        "crowd": {
+          "people": 21,
+          "walkers": 12,
+          "standing": 9,
+          "spawned": 21,
+          "shown": 9,
+          "away": 0,
+          "drunk": 1,
+          "budget": 9,
+          "fps": 14
+        },
+        "paused": 12
+      }
+    },
+    {
+      "recovered": {
+        "metrics": {
+          "ready": true,
+          "samples": 90,
+          "elapsed": 34.25270000000012,
+          "ms": 16.68430239899791,
+          "fps": 59.93657847271228
+        },
+        "crowd": {
+          "people": 21,
+          "walkers": 12,
+          "standing": 9,
+          "spawned": 21,
+          "shown": 12,
+          "away": 0,
+          "drunk": 1,
+          "budget": 21,
+          "fps": 60
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "interruption": true
+}

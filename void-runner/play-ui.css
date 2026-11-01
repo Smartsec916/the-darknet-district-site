@@ -20,6 +20,7 @@
 /* Weapon chip: what you hold, and what the wheel cycles through. */
 #weapon-select-hud{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:120px;z-index:3;pointer-events:none;
   display:flex;gap:6px;align-items:center;font:600 11px monospace;letter-spacing:.1em}
+#weapon-select-hud[hidden]{display:none}
 #weapon-select-hud span{padding:5px 8px;border:1px solid #ffffff22;background:#06101daa;color:#7f949b}
 #weapon-select-hud span.on{color:#06101d;background:#f2b33d;border-color:#f2b33d}
 #weapon-select-hud i{font-style:normal;font-weight:400;color:#7f949b;padding-left:2px}

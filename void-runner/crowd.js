@@ -15,7 +15,8 @@
   // The District's VR arcade players (neochinatown.js runs their routines).
   'vr-player-a':['idle','vr-aim','vr-aim-up','vr-aim-down','vr-shoot','vr-hit','vr-duck'],'vr-player-b':['idle','dance','pickup','interact','menu','menu-tap','talk'],
   // VR arcade companions (vr-suite.js).
-  'vr-companion-f':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-f2','walk-f','wave','blow-kiss','coy','head-tilt','hips','laugh','glance-back','slow-dance','dance-belly','sit-relax','sit-wave','shrug','recline'],'vr-companion-fc1':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-f2','walk-f','wave','blow-kiss','coy','head-tilt','hips','laugh','glance-back','slow-dance','dance-belly','sit-relax','sit-wave','shrug','recline'],'vr-companion-m':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-m2','blow-kiss','head-tilt','laugh','glance-back','slow-dance','dance-samba','sit-relax','sit-wave','shrug','recline']
+  'vr-companion-f':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-f2','walk-f','wave','blow-kiss','coy','head-tilt','hips','laugh','glance-back','slow-dance','dance-belly','sit-relax','sit-wave','shrug','recline'],'vr-companion-fc1':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-f2','walk-f','wave','blow-kiss','coy','head-tilt','hips','laugh','glance-back','slow-dance','dance-belly','sit-relax','sit-wave','shrug','recline'],
+  'vr-companion-ava':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-f2','walk-f','wave','blow-kiss','coy','head-tilt','hips','laugh','glance-back','slow-dance','dance-belly','sit-relax','sit-wave','shrug','recline'],'vr-companion-pg':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-f2','walk-f','wave','blow-kiss','coy','head-tilt','hips','laugh','glance-back','slow-dance','dance-belly','sit-relax','sit-wave','shrug','recline'],'vr-companion-una':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-f2','walk-f','wave','blow-kiss','coy','head-tilt','hips','laugh','glance-back','slow-dance','dance-belly','sit-relax','sit-wave','shrug','recline'],'vr-companion-bf':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-f2','walk-f','wave','blow-kiss','coy','head-tilt','hips','laugh','glance-back','slow-dance','dance-belly','sit-relax','sit-wave','shrug','recline'],'vr-companion-bm':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-f2','walk-f','wave','blow-kiss','coy','head-tilt','hips','laugh','glance-back','slow-dance','dance-belly','sit-relax','sit-wave','shrug','recline'],'vr-companion-m':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-m2','blow-kiss','head-tilt','laugh','glance-back','slow-dance','dance-samba','sit-relax','sit-wave','shrug','recline']
  };
  // Each place has its own feel; the order spreads looks across a scene's crew.
  const frontierMix=['vesper-mechanic','regular-01','vesper-pilot','communion-worker','outlaw-01'];
@@ -71,11 +72,11 @@
  function pick(location,id,clip=clipFor(id)){const cast=castFor(location,id);if(!cast)return null;const key=cast===casts.district?'district':location,n=dealt.get(key)||0;dealt.set(key,n+1);for(let i=0;i<cast.length;i++){const look=cast[(n+i)%cast.length];if(clips[look].includes(clip))return look;}return cast[n%cast.length];}
 
  // Browser side: one controller per figure, playing a clip from its own cloned animation groups.
- const groups=new Set();
+ const groups=new Set(),controllers=new Set();
  function animate(node,look,clip){
   const list=node.metadata?.animationGroups||[];list.forEach(g=>groups.add(g));
   const bones={};for(const t of node.getDescendants(false))for(const b of ['LeftUpLeg','RightUpLeg','LeftLeg','RightLeg','LeftArm','RightArm'])if(t.name.endsWith('mixamorig:'+b)&&t.rotationQuaternion)bones[b]={node:t,rest:t.rotationQuaternion.clone()};
-  const speed=.9+(hash(node.name)%20)/100;let current=null,walking=false;
+  const speed=.9+(hash(node.name)%20)/100;let current=null,walking=false,active=true,disposed=false;
   // Clips cross-fade instead of snapping.
   for(const g of list){g.enableBlending=true;g.blendingSpeed=.06;}
   const groupFor=name=>list.find(g=>g.name===name||g.name.endsWith('-'+name));
@@ -83,20 +84,21 @@
   // the figure's prefix (crowd:look-walk), so compare the group itself, never the bare clip name. Comparing
   // names restarted the clip each frame and froze it on one pose while the figure slid along.
   function play(name){
-   name=clipIn(look,name);const next=groupFor(name)||list[0];if(!next)return;
+   if(disposed)return;name=clipIn(look,name);const next=groupFor(name)||list[0];if(!next)return;
    if(current===next&&!walking&&!once)return;walking=false;once=null;
    for(const g of list)if(g!==next)g.stop();
-   next.start(true,speed,next.from,next.to);next.goToFrame(next.from+(next.to-next.from)*((hash(node.name+name)%100)/100));current=next;
+   next.start(true,speed,next.from,next.to);next.goToFrame(next.from+(next.to-next.from)*((hash(node.name+name)%100)/100));current=next;if(!active)next.pause();
   }
   // A one-shot clip (sitting down, standing up, reaching), then `after` (a clip name) loops. Returns its length in
   // seconds, or 0 if the figure lacks it (the caller then just switches clips).
   let once=null;
   function playOnce(name,after){
+   if(disposed)return 0;
    const g=clipIn(look,name)===name?groupFor(name):null;if(!g){if(after)play(after);return 0;}
    // Claim the figure first: stopping the previous one-shot fires its end handler, which must not start another clip.
    walking=false;current=g;once=g;for(const o of list)if(o!==g)o.stop();
-   g.start(false,1,g.from,g.to);g.onAnimationGroupEndObservable.addOnce(()=>{if(once===g){once=null;if(after)play(after);}});
-   return (g.to-g.from)/(g.animatables[0]?.animation?.framePerSecond||g.targetedAnimations[0]?.animation.framePerSecond||15);
+   g.start(false,1,g.from,g.to);g.onAnimationGroupEndObservable.addOnce(()=>{if(!disposed&&!node.isDisposed?.()&&once===g){once=null;if(after)play(after);}});
+   if(!active)g.pause();return (g.to-g.from)/(g.animatables[0]?.animation?.framePerSecond||g.targetedAnimations[0]?.animation.framePerSecond||15);
   }
   // Walking plays the Quaternius walk loop (CC0). A look without it holds the idle clip's first pose (arms down)
   // and swings its legs and arms from there.
@@ -110,9 +112,14 @@
    const swing=(b,angle)=>{const k=bones[b];if(k?.base)k.node.rotationQuaternion.copyFrom(k.base.multiply(B.Quaternion.RotationAxis(B.Axis.X,angle)));};
    swing('LeftUpLeg',s*.36);swing('RightUpLeg',-s*.36);swing('LeftLeg',bend(-Math.sin(time*5.2+1.3)));swing('RightLeg',bend(Math.sin(time*5.2+1.3)));swing('LeftArm',-s*.18);swing('RightArm',s*.18);
   }
-  play(clip);return {play,playOnce,walk,look,has:name=>clipIn(look,name)===name,get busy(){return !!once;}};
+  function setActive(value){if(disposed||active===value)return;active=value;
+   if(!active){for(const g of list)g.pause();}else if(current)current.play(current.loopAnimation);
+  }
+  function dispose(){if(disposed)return;disposed=true;once=null;for(const g of list){groups.delete(g);g.stop();}controllers.delete(api);}
+  const api={play,playOnce,walk,look,setActive,dispose,has:name=>clipIn(look,name)===name,get busy(){return !!once;},get active(){return active;}};
+  controllers.add(api);node.onDisposeObservable?.addOnce(dispose);play(clip);return api;
  }
- function release(){for(const g of groups)g.dispose();groups.clear();}
+ function release(){for(const c of [...controllers])c.dispose();groups.clear();}
 
  const api={casts,staff,clips,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,release,variety,varietyFor};
  if(typeof module!=='undefined')module.exports=api;else root.VoidCrowd=api;

@@ -1,0 +1,52 @@
+[
+  {
+    "name": "tutorial-menu-save-browser.cjs",
+    "code": 0,
+    "seconds": 26,
+    "pass": true
+  },
+  {
+    "name": "flight-skirmish-browser.cjs",
+    "code": 0,
+    "seconds": 10,
+    "pass": true
+  },
+  {
+    "name": "missile-threat-browser.cjs",
+    "code": 0,
+    "seconds": 2,
+    "pass": true
+  },
+  {
+    "name": "mission-browser.cjs",
+    "code": 0,
+    "seconds": 40,
+    "pass": true,
+    "note": "Passed individually after final fixture correction; duration retained from earlier suite run."
+  },
+  {
+    "name": "modern-world-browser.cjs",
+    "code": 0,
+    "seconds": 43,
+    "pass": true
+  },
+  {
+    "name": "warflying-c-browser.cjs",
+    "code": 0,
+    "seconds": 9,
+    "pass": true
+  },
+  {
+    "name": "faction-browser.cjs",
+    "code": 0,
+    "seconds": 10,
+    "pass": true,
+    "note": "Passed individually after final fixture correction; duration retained from earlier suite run."
+  },
+  {
+    "name": "unified-controls-browser.cjs",
+    "code": 0,
+    "seconds": 23,
+    "pass": true
+  }
+]

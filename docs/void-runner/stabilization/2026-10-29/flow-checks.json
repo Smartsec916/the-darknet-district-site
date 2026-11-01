@@ -1,0 +1,12 @@
+{
+  "checks": [
+    "Actual new-campaign UI: skip tutorial grants pistol and skip persists through reload/Continue",
+    "L opens Mission Log at Meridian despite intentionally hidden Vesper-only reminder button",
+    "Current physical Rook interaction offers water-filter run; old modern-world browser coordinates are stale",
+    "Flight weapon HUD hidden; boarding starts authoritative flight to Kepler and renders cockpit",
+    "Latest District door opens on approach; physical collision opens with the panels",
+    "Actual boarded taxi hides ground weapon HUD",
+    "Seeded taxi: request, landing, boarding, one fare, cruise, arrival and exit work with accelerated simulation steps"
+  ],
+  "errors": []
+}

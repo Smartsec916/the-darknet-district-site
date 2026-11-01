@@ -1,0 +1,9 @@
+# Directory panels and consistent Resources cards
+
+Arcade, Resources and About now reuse the storefront's original angular CSS frame and color tokens. Content, images and destinations are preserved. Four playable Arcade cards are native links, including the existing new-tab Origins behavior; Project X remains unavailable. About retains biographies and contact links. Sleeping Pod keeps exactly one HOME button, now centered at every viewport width.
+
+All nine Resources destinations share one equal-track grid. Desktop uses two columns and mobile one. The longest description determines equal card heights; descriptions are neither shortened nor clipped. The previous mobile reset had forced automatic unequal heights, so the scoped resource grid overrides that reset. Decorative scanlines are bounded to the Resources background rather than extending a second blank page; directory HUD height follows natural content reflow.
+
+Verification: 425 Node tests pass. Browser tests cover four pages at 1440, 390 and 320px; check all nine resource widths/heights, unclipped content, no horizontal overflow, five normal navigation destinations, native Arcade links, visible keyboard focus and centered single Home. Eight desktop/mobile screenshots are included. Root/static style files match; generated navigation remains current. No gameplay, admin, commerce business logic, prices, routes or backend configuration changes.
+
+Shared styles: storefront.css (and static copy); quiet alignment: home-navigation.css (and static copy). Page opt-ins/card classes: games-list.html, resources.html, about.html and their static copies. New tests: tests/directory-panels.test.cjs and tests/directory-panels-browser.cjs.
