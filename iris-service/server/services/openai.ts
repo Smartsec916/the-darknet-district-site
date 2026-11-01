@@ -198,7 +198,7 @@ export function initializeSession(sessionId: string): void {
 // the current one and the prompt stays the same size.
 // "tail" is the one slot placed AFTER the conversation, as the last thing the model reads before it answers
 // "langTail" (which language to answer in) comes just before "tail", so the recall rule stays the very last thing read
-type SystemSlot = "context" | "relationship" | "memory" | "distraction" | "flirtBoost" | "langTail" | "tail";
+type SystemSlot = "context" | "clock" | "relationship" | "memory" | "distraction" | "flirtBoost" | "langTail" | "tail";
 const sessionSystemSlots = new Map<string, Map<SystemSlot, string>>();
 
 function setSystemSlot(sessionId: string, slot: SystemSlot, content: string): void {
@@ -214,11 +214,19 @@ export function hasSession(sessionId: string): boolean {
 }
 
 // A reply that did not need the model (for example "I have no record of that"): still part of this chat's history
-export function recordTurn(sessionId: string, userMessage: string, assistantText: string): IrisReply {
+export function recordTurn(sessionId: string, userMessage: string, assistantText: string, language = "english"): IrisReply {
   if (!sessionMessages.has(sessionId)) initializeSession(sessionId);
   addMessage(sessionId, "user", userMessage);
   addMessage(sessionId, "assistant", assistantText);
-  return { text: assistantText, fallback: false, language: "english", emotion: null };
+  return { text: assistantText, fallback: false, language, emotion: null };
+}
+
+// A reply corrected after the model wrote it (the time safeguard): the chat's history keeps what the visitor saw
+export function replaceLastReply(sessionId: string, text: string): void {
+  const messages = sessionMessages.get(sessionId) ?? [];
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === "assistant") { messages[i] = { role: "assistant", content: text }; return; }
+  }
 }
 
 // What a restart does to the server: every chat's in-memory window is gone (used by tests to simulate one)
@@ -952,6 +960,7 @@ export interface ReplyOptions {
   // reply only; and calmer sampling for such questions (no randomness that invents, no penalty on repeating a stored phrase)
   tailReminder?: string | null;
   sampling?: { temperature: number; presence_penalty: number; frequency_penalty: number };
+  clockPrompt?: string | null; // the current time from the server's clock, and verified local times (see timeService.ts)
 }
 
 // Process a user message and get a response
@@ -1045,6 +1054,9 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
       setSystemSlot(sessionId, "context", systemPrompt);
     }
 
+    // The server's clock for this reply only (replaced every turn), so she never has to guess what time it is
+    if (options.clockPrompt) setSystemSlot(sessionId, "clock", options.clockPrompt);
+    else sessionSystemSlots.get(sessionId)?.delete("clock");
     // Private relationship context for this reply only (replaced every turn, never accumulated)
     if (options.relationshipPrompt) setSystemSlot(sessionId, "relationship", options.relationshipPrompt);
     else sessionSystemSlots.get(sessionId)?.delete("relationship");

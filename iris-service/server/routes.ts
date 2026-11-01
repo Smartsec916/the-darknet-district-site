@@ -26,6 +26,7 @@ import { clearRecentCacheForTests, prepareMemory } from "./memoryContext";
 import { noteReply, verificationResultLine } from "./verification";
 import { clearRetrievals, countStored, DELETE_CONFIRMATION, deleteStored } from "./memory";
 import { createOwnerRouter } from "./ownerControls";
+import { clock, clockPrompt, enforceVerifiedTime, LANGUAGE_NAME, planTimeAnswer, timeRule, verifiedReply, type TimePlan } from "./timeService";
 
 // What the /embed widget page may do: run its own inline script and style, show its
 // built-in portrait, and talk only to this service. It can be framed only by the
@@ -1431,11 +1432,22 @@ export async function registerRoutes(app: Express): Promise<Express> {
         sessionId, key: identity.key, label: identity.key ?? "test-new:" + identity.uid,
         message, messageNumber: messageCount, mood: newMood,
       });
+      // The time and date come from the server's clock, read now for this message (see timeService.ts). A plain time
+      // question is answered word for word without the model; otherwise she gets the verified values, and her reply is
+      // checked against them below.
+      const nowMs = clock.now();
+      let timePlan: TimePlan | null = null;
+      try { timePlan = planTimeAnswer(message, nowMs); } catch (err) { logError("time_plan_failed", err); }
+      const timeDirect = Boolean(timePlan?.direct && !memory.canned && !memory.recallAsked);
       // With nothing stored and nothing in this chat, the honest answer needs no model and cannot be invented
       const reply = memory.canned
         ? openaiService.recordTurn(sessionId, neutralizeMarker(message), memory.canned)
+        : timeDirect && timePlan
+        ? openaiService.recordTurn(sessionId, neutralizeMarker(message), verifiedReply(timePlan), LANGUAGE_NAME[timePlan.query.lang])
         : await openaiService.getResponse(sessionId, neutralizeMarker(message), promptAddition, {
-            relationshipPrompt, isEva, memoryPrompt: memory.prompt, tailReminder: memory.tailReminder, sampling: memory.sampling,
+            relationshipPrompt, isEva, memoryPrompt: memory.prompt, sampling: memory.sampling,
+            tailReminder: [memory.tailReminder, timePlan ? timeRule(timePlan) : null].filter(Boolean).join("\n\n") || null,
+            clockPrompt: clockPrompt(nowMs, timePlan),
           });
       
       // Process translation for special users if needed
@@ -1485,6 +1497,17 @@ export async function registerRoutes(app: Express): Promise<Express> {
         }
       }
       
+      // The time safeguard: what the visitor finally reads cannot contradict the verified time or date
+      let timeOutcome: string | undefined = timePlan ? (timeDirect ? "direct" : "checked") : undefined;
+      if (timePlan && !reply.fallback && !memory.canned) {
+        const checked = enforceVerifiedTime(translatedResponse, timePlan);
+        if (checked.replaced) {
+          translatedResponse = checked.text;
+          openaiService.replaceLastReply(sessionId, checked.text);
+          timeOutcome = checked.repaired ? "repaired" : "corrected";
+        }
+      }
+
       // Save the exchange (visitor message, then Iris's reply, as shown to the visitor)
       // before replying, so a Render restart cannot lose it
       const saved = await saveExchange({
@@ -1492,7 +1515,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         language: reply.language ?? null,
         iris: { text: translatedResponse, status: reply.fallback ? "fallback" : "ok", at: new Date() },
       });
-      res.locals.logFields = { fallback: reply.fallback, failure: reply.failure, saved, language: reply.language, memoryRecent: memory.recentIncluded, memoryRecall: memory.recallIncluded, memoryFailed: memory.failed, memoryMode: memory.mode, canned: Boolean(memory.canned), ...(emo ? { emotion: reply.emotion ? "read" : "missing" } : {}) };
+      res.locals.logFields = { fallback: reply.fallback, failure: reply.failure, saved, language: reply.language, memoryRecent: memory.recentIncluded, memoryRecall: memory.recallIncluded, memoryFailed: memory.failed, memoryMode: memory.mode, canned: Boolean(memory.canned), ...(timeOutcome ? { time: timeOutcome } : {}), ...(emo ? { emotion: reply.emotion ? "read" : "missing" } : {}) };
       
       // fallback: true marks a canned reply that replaced a failed OpenAI call
       res.json(reply.fallback ? { response: translatedResponse, fallback: true } : { response: translatedResponse });
