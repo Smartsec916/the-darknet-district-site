@@ -151,8 +151,9 @@ test('the login button is in the header, outside the navigation links, and hidde
 test('the chat interface is exactly what it was: no login, registration or account controls anywhere in it', () => {
   const html = read('index.html');
   const chat = between(html, '<!-- Chat Interface', '<!-- Hero section');
-  assert.equal(crypto.createHash('sha256').update(chat).digest('hex'), 'c2cdd1f06284cc58f258cd620cb3d597ba65ee652327e05cbfb53db5714b6f9a', 'the chat markup changed');
+  assert.equal(crypto.createHash('sha256').update(chat).digest('hex'), '8a405f1fe247f3f13069f5449b487256ded3dd75c10035f06855461db6fa3681', 'the chat markup changed (last intended change: the desktop window added a minimize button and accessibility labels)');
   assert.ok(!/log ?in|sign ?in|register|account|password/i.test(chat));
+  assert.match(chat, /id="chatMinimize"/, 'the minimize button is part of the chat window');
   const css = read('iris-account.css');
   assert.ok(!/chat/i.test(css.replace(/\/\*[^]*?\*\//g, '')), 'the account styles never touch the chat');
 });
