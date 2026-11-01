@@ -193,6 +193,11 @@ body.site-home .cyberpunk-title.is-slicing .tdd-ghost { opacity: 0.85; }
    VOID RUNNER TEASER — replaces Enter the District until the game launches.
    The logo uses the same type treatment as the game's main menu.
    --------------------------------------------------------------------------- */
+body.site-home {
+  /* Shared so the Function plaque below can match the logo's width. */
+  --tdd-vr-logo-size: clamp(40px, 7vw, 92px);
+}
+
 body.site-home .tdd-vr {
   position: relative;
   isolation: isolate;
@@ -265,7 +270,7 @@ body.site-home .tdd-vr-kicker {
 body.site-home .tdd-vr-logo {
   margin: 4px 0 0;
   font-family: Impact, 'Arial Narrow', sans-serif;
-  font-size: clamp(40px, 7vw, 92px);
+  font-size: var(--tdd-vr-logo-size);
   font-weight: 900;
   letter-spacing: -0.025em;
   line-height: 0.94;
@@ -416,9 +421,11 @@ body.site-home[data-hud="immersive"] > .digital-rain {
 body.site-home .tdd-function {
   display: grid;
   gap: 4px;
-  margin: 26px auto 0;
+  margin: clamp(44px, 6vw, 72px) auto 0;
   padding: 14px 22px 15px;
-  width: min(440px, calc(100vw - 32px));
+  /* About as wide as the VOID//RUNNER logo (about 5.4 times its font size),
+     never narrower than 320px so the text stays readable, and never wider than the screen. */
+  width: min(max(320px, calc(var(--tdd-vr-logo-size) * 5.4)), calc(100vw - 32px));
   text-align: left;
   text-decoration: none;
   background: rgba(21, 23, 25, 0.88);
