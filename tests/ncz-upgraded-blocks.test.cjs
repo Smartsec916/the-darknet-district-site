@@ -1,12 +1,11 @@
 // NeoChinatown's upgraded blocks (purchased Cyberpunk City pack): presentation only. The layout (streets, collision,
-// interactions, taxi zones) is identical with or without them, the pack is only requested on a local development
-// server, and block A sits inside its city block, clear of the sidewalk and the alley mouth.
+// interactions, taxi zones) is identical with or without them, the pack is requested everywhere (block A falls back to
+// its built buildings without the files), and block A sits inside its city block, clear of the sidewalk and the alley mouth.
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const load=host=>{globalThis.location=host?{hostname:host}:undefined;delete require.cache[require.resolve('../void-runner/neochinatown.js')];return require('../void-runner/neochinatown.js');};
 
-test('the pack is requested only on a local development server',()=>{
- for(const host of [undefined,'thedarknetdistrict.com','smartsec916.github.io'])assert.ok(!Object.keys(load(host).models).some(k=>k.startsWith('ncz:')),String(host));
- for(const host of ['localhost','127.0.0.1'])assert.deepEqual(Object.keys(load(host).models).filter(k=>k.startsWith('ncz:')).sort(),['ncz:building5','ncz:storefronts']);
+test('the pack is requested everywhere (released 2026-11-01; its files come from the private asset repository)',()=>{
+ for(const host of [undefined,'thedarknetdistrict.com','localhost','127.0.0.1'])assert.deepEqual(Object.keys(load(host).models).filter(k=>k.startsWith('ncz:')).sort(),['ncz:building5','ncz:storefronts'],String(host));
  load(undefined);
 });
 
