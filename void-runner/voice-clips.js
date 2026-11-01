@@ -8,7 +8,7 @@
  let manifest=null,lookup=new Map(),source=null,stopTimer=null;const cache=new Map();
  fetch(new URL('manifest.json',base)).then(r=>r.ok?r.json():null).then(m=>{if(!m)return;manifest=m;
   for(const [id,l] of Object.entries(m.lines))lookup.set(l.speaker+'|'+l.text,{id,...l});}).catch(()=>{});
- const key=(who,text)=>(alias[who]||who)+'|'+text;
+ const key=(who,text)=>(alias[who]||root.VoidVRCompanions?.voiceOf?.(who)?.characterId||who)+'|'+text;
  function has(who,text){return lookup.has(key(who,text));}
  async function clip(context,line){
   if(cache.has(line.id))return cache.get(line.id);

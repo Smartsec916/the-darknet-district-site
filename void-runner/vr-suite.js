@@ -315,16 +315,19 @@
    steps:[
     {title:'COMPANION',prompt:'Who would you like to spend the evening with? Every companion is an original adult character of this simulation.',
      choices(){return [['female','Female','Women companions'],['male','Male','Men companions']].map(([id,label,about])=>{const n=suitePicker().usable(id).filter(e=>e.usable).length;
-      return {id,label,description:n?about+' · '+n+' available':'None available yet.',usable:n>0,reason:'No companions available.',tint:id==='female'?'linear-gradient(135deg,#2a0c22,#ff4fb0)':'linear-gradient(135deg,#0c1a2a,#5a7bff)'};});}},
-    {title:'CHOOSE A COMPANION',prompt:'Pick who you would like to meet. Some can come together: select a second one to bring both. You can change your mind by leaving the simulation and choosing again.',
-     choices([sex]){return suitePicker().usable(sex).map(e=>({id:e.id,label:e.name,description:[e.about,e.pairable?'Can come with another companion.':''].filter(Boolean).join(' '),preview:e.preview,usable:e.usable,reason:e.reason}));},
-     // Choosing a card picks it; choosing a second pairable one while a pairable one is picked brings both (up to
-     // C.partySize); choosing a picked one again leaves it out.
-     select(cur,id){const now=[].concat(cur||[]),e=C.get(id);if(now.includes(id))return now.filter(x=>x!==id);
-      return e?.pairable&&now.length<C.partySize&&now.every(x=>C.get(x)?.pairable)?[...now,id]:[id];},
-     // The last choice is remembered and picked again (where those companions can still be chosen here).
-     initial([sex]){const ids=lastParty().filter(id=>suitePicker().usable(sex).some(e=>e.id===id&&e.usable));return ids.length?ids:null;}}],
-   options:([,sel])=>{const ids=[].concat(sel||[]);rememberParty(ids);return ids.length>1?{companions:ids}:{companion:ids[0]};}},
+      // The card shows who is in that gallery (up to four portraits) over its tint.
+      const previews=suitePicker().usable(id).filter(e=>e.usable&&e.preview).slice(0,4).map(e=>e.preview);
+      return {id,label,description:n?about+' · '+n+' available':'None available yet.',usable:n>0,reason:'No companions available.',previews,tint:id==='female'?'linear-gradient(135deg,#2a0c22,#ff4fb0)':'linear-gradient(135deg,#0c1a2a,#5a7bff)'};});}},
+    {title:'CHOOSE A COMPANION',prompt:'Pick who you would like to meet: one companion alone, or two together where a card says so. You can change your mind by leaving the simulation and choosing again.',
+     // Each companion alone, then the rooms for two (C.pairs) whose companions are all in this gallery.
+     choices([sex]){const usable=suitePicker().usable(sex),one=usable.map(e=>({id:e.id,label:e.name,description:e.about||'',preview:e.preview,usable:e.usable,reason:e.reason}));
+      const two=C.pairs.map(p=>({p,members:p.companions.map(id=>usable.find(e=>e.id===id))})).filter(x=>x.members.every(Boolean)).map(({p,members})=>({id:p.id,label:p.name,
+       description:'Both of them, together in the same room.',previews:members.map(e=>e.preview),usable:members.every(e=>e.usable),reason:members.find(e=>!e.usable)?.reason}));
+      return [...one,...two];},
+     // The last choice is remembered and picked again (where it can still be chosen here).
+     initial([sex]){const ids=lastParty(),id=C.pairs.find(p=>p.companions.join()===ids.join())?.id||(ids.length===1?ids[0]:null);
+      return id&&this.choices([sex]).some(c=>c.id===id&&c.usable!==false)?id:null;}}],
+   options:([,sel])=>{const p=C.pairs.find(x=>x.id===sel),ids=p?p.companions:[sel];rememberParty(ids);return ids.length>1?{companions:ids}:{companion:ids[0]};}},
   validate:opts=>{const all=C.list({has:m=>(globalThis.VoidCrowd?.clips[m]||[]),installed:suitePicker().installed}),party=C.party(opts);return party.length>0&&party.every(e=>all.find(x=>x.id===e.id)?.usable);},
   defaults:{mood:'rose',music:'lounge'},
   // The VR menu's settings: mood and music, then each companion's looks (outfit, hairstyle, glasses, colours) that

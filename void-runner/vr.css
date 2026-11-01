@@ -10,6 +10,7 @@
 #vr-menu .vr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;padding:22px 26px;max-width:1240px;margin:0 auto}
 #vr-menu .vr-card{background:#0b1115;border:1px solid #1a3238;display:flex;flex-direction:column;gap:10px;padding:0 0 16px}
 #vr-menu .vr-card img,#vr-menu .vr-preview{width:100%;height:140px;object-fit:cover;display:block;border-bottom:1px solid #1a3238}
+#vr-menu .vr-mosaic{display:flex;overflow:hidden}#vr-menu .vr-mosaic img{flex:1 1 0;min-width:0;width:auto;height:100%;border:0;border-right:1px solid #1a3238}#vr-menu .vr-mosaic img:last-child{border-right:0}
 #vr-menu .vr-card h2{margin:0 16px;color:#f0f6f8;font-size:16px;letter-spacing:.06em}
 #vr-menu .vr-card p{margin:0 16px;color:#b9c8ce}
 #vr-menu .vr-card button{margin:auto 16px 0}

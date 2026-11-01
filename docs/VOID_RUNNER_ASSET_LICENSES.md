@@ -169,4 +169,6 @@ David. Licence type on the listing not yet recorded here; no licence file in the
 about 50 Textures.com textures (not redistributable as textures), one image named like a Midjourney generation, a "Ford1965"
 car texture. **Local development only**: the converted models (`void-runner/assets/models/ncz/`, git-ignored) are requested
 only on localhost, never committed, uploaded or deployed until David confirms the licence. Not to be used for AI training.
-See `docs/void-runner/ncz-upgrade/README.md`.
+See `docs/void-runner/ncz-upgrade/README.md`. Listing checked 2026-10-31: Model ID #4757767, **Royalty Free License (no AI)**;
+CGTrader notes some textures are made from Textures.com photographs, which "may not be redistributed by default" (as
+textures on their own). It could go live like the companions (private repository, encrypted); not yet done.

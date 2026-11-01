@@ -89,13 +89,14 @@
   menu.querySelector('button')?.focus();}
  // A step-by-step picker (Play in a Bedroom: sex, then a gallery of companion models). Each step's choices come
  // from the experience; a final step is chosen, then confirmed. Unusable choices show why and can't be picked.
- // A final step with select() can hold several choices (Ava and Eva together); with initial() it starts from the
- // last choice.
+ // A choice with `previews` shows them side by side (a gallery, a room for two); with initial() a final step starts
+ // from the last choice.
  function renderPicker(){const e=registry.get(menuPage.id),steps=e.picker.steps,i=menuPage.step,step=steps[i],last=i===steps.length-1,choices=step.choices(menuPage.picks);
   if(last&&menuPage.selected===null&&step.initial)menuPage.selected=step.initial(menuPage.picks)||'';
   const picked=[].concat(menuPage.selected||[]).filter(id=>choices.some(c=>c.id===id&&c.usable!==false)),sel=picked.length?picked:null,on=id=>picked.includes(id);
   const card=c=>'<article class="vr-card vr-choice'+(c.usable===false?' vr-soon':'')+(last&&on(c.id)?' vr-selected':'')+'" data-choice="'+esc(c.id)+'">'+
-   (c.preview?'<img alt="" src="'+esc(c.preview)+'" onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),{className:\'vr-preview\'}))">':'<div class="vr-preview" style="background:'+esc(c.tint||'#0b2a31')+'"></div>')+
+   (c.previews?.length?'<div class="vr-preview vr-mosaic" style="background:'+esc(c.tint||'#0b2a31')+'">'+c.previews.map(p=>'<img alt="" src="'+esc(p)+'" onerror="this.remove()">').join('')+'</div>':
+    c.preview?'<img alt="" src="'+esc(c.preview)+'" onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),{className:\'vr-preview\'}))">':'<div class="vr-preview" style="background:'+esc(c.tint||'#0b2a31')+'"></div>')+
    '<h2>'+esc(c.label)+(last&&on(c.id)?' <span class="vr-check">✓ SELECTED</span>':'')+'</h2><p>'+esc(c.description||'')+'</p>'+
    (c.usable===false?'<p class="vr-tag">'+esc(c.reason||'Not available.')+'</p>':'<button type="button" data-vr="choose:'+esc(c.id)+'">'+(last?(on(c.id)?'SELECTED':'SELECT'):'NEXT →')+'</button>')+'</article>';
   menu.innerHTML='<div class="vr-head"><b>'+esc(e.title.toUpperCase())+' · '+esc(step.title||'')+'</b><span>'+esc(step.prompt)+'</span><button type="button" data-vr="back">← BACK</button></div>'+
