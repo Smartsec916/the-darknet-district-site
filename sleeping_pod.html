@@ -7,77 +7,108 @@
   <title>Sleeping Pod - The Darknet District</title>
   <link rel="stylesheet" href="style.css">
   <style>
+    /* Music player + control buttons: neon-green cyberpunk accents echoing the district navigation frames. */
+    :root {
+      --pod-green: #35ff8f;
+      --pod-green-soft: #8dffc0;
+      --pod-teal: #2fe0c4;
+      --pod-ink: rgba(3, 13, 11, 0.86);
+    }
+
+    .pod-btn {
+      position: relative;
+      isolation: isolate;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex: 1 1 150px;
+      min-width: 0;
+      max-width: 230px;
+      min-height: 52px;
+      padding: 12px 20px;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      color: #d6ffe8;
+      font: 700 13px/1.3 'Courier New', Courier, monospace;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 160ms ease;
+      -webkit-tap-highlight-color: rgba(53, 255, 143, 0.25);
+      touch-action: manipulation;
+    }
+    .pod-btn--icon { flex: 0 0 auto; min-width: 56px; max-width: none; min-height: 48px; padding: 10px 14px; }
+    .pod-btn__frame {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+      filter: drop-shadow(0 0 5px rgba(53, 255, 143, 0.35));
+      transition: filter 160ms ease;
+    }
+    .pod-btn__panel { fill: var(--pod-ink); stroke: var(--pod-green); stroke-width: 1.25; vector-effect: non-scaling-stroke; transition: fill 160ms ease, stroke 160ms ease; }
+    .pod-btn__rail, .pod-btn__accent { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }
+    .pod-btn__rail { stroke: var(--pod-green); opacity: .8; }
+    .pod-btn__accent { stroke: #61eee9; opacity: .85; }
+    .pod-btn__icon { width: 20px; height: 20px; fill: currentColor; display: block; }
+    @media (hover: hover) {
+      .pod-btn:hover { color: #fff; }
+      .pod-btn:hover .pod-btn__frame { filter: drop-shadow(0 0 10px rgba(53, 255, 143, 0.7)); }
+      .pod-btn:hover .pod-btn__panel { fill: rgba(10, 48, 32, 0.92); stroke: var(--pod-green-soft); }
+    }
+    .pod-btn:active .pod-btn__panel { fill: rgba(20, 85, 55, 0.95); }
+    .pod-btn:focus-visible { outline: 2px solid #fff0c9; outline-offset: 4px; }
+    .pod-btn[aria-expanded="true"] .pod-btn__panel { fill: rgba(10, 48, 32, 0.92); stroke: var(--pod-green-soft); }
+
     .audio-player {
       display: none;
-      background: rgba(0, 0, 0, 0.9);
-      border: 1px solid #00ff9d;
-      padding: 10px;
-      border-radius: 3px;
       position: fixed;
       bottom: 120px;
       left: 50%;
       transform: translateX(-50%);
-      box-shadow: 0 0 15px rgba(0, 255, 157, 0.2);
-      width: 200px;
-      transition: all 0.3s ease;
+      width: min(340px, calc(100vw - 32px));
+      padding: 12px;
+      border: 1px solid rgba(47, 224, 196, 0.55);
+      border-radius: 2px;
+      background: linear-gradient(160deg, rgba(4, 18, 20, 0.82), rgba(6, 10, 18, 0.88));
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 0 18px rgba(47, 224, 196, 0.18), inset 0 0 22px rgba(0, 0, 0, 0.45);
+      color: #b9f5e8;
+      font-family: 'Courier New', Courier, monospace;
       z-index: 1000;
     }
-
-    .audio-player.active {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .audio-controls {
-      display: flex;
-      gap: 10px;
-      margin-top: 5px;
-    }
-
-    .audio-btn {
-      background: transparent;
-      color: #00ff9d;
-      border: 1px solid #00ff9d;
-      padding: 4px 8px;
-      cursor: pointer;
-      font-size: 12px;
-      transition: all 0.3s ease;
-    }
-
-    .audio-btn:hover {
-      background: rgba(0, 255, 157, 0.1);
-    }
-
-    .audio-player audio {
-      width: 100%;
-      height: 30px;
-      filter: hue-rotate(180deg);
-    }
-
-    .audio-player audio::-webkit-media-controls-time-remaining-display,
-    .audio-player audio::-webkit-media-controls-current-time-display {
-      color: lightblue;
-    }
-
-    .audio-player::before {
+    .audio-player.active { display: flex; flex-direction: column; gap: 8px; }
+    /* Corner brackets: teal here, versus the buttons' neon green. */
+    .audio-player::before, .audio-player::after {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      border: 1px solid #00ff9d;
+      width: 14px;
+      height: 14px;
       pointer-events: none;
-      animation: glow 2s infinite;
+      border: 2px solid var(--pod-teal);
     }
+    .audio-player::before { top: -3px; left: -3px; border-right: 0; border-bottom: 0; }
+    .audio-player::after { bottom: -3px; right: -3px; border-left: 0; border-top: 0; }
 
-    @keyframes glow {
-      0% { box-shadow: 0 0 5px #00ff9d; }
-      50% { box-shadow: 0 0 20px #00ff9d; }
-      100% { box-shadow: 0 0 5px #00ff9d; }
+    .pod-spectrum {
+      display: block;
+      width: 100%;
+      height: 68px;
+      background: #03090a;
+      border: 1px solid rgba(47, 224, 196, 0.3);
+      border-radius: 1px;
     }
+    .pod-player__meta { display: flex; align-items: baseline; gap: 8px; min-width: 0; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+    .pod-player__tag { flex: none; color: var(--pod-teal); }
+    .pod-player__title { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #e6fff7; }
+    .pod-player__row { display: flex; align-items: center; gap: 8px; }
+    .audio-player audio { flex: 1 1 auto; min-width: 0; width: 100%; height: 36px; color-scheme: dark; }
 
     .top-nav {
       transition: filter 1.5s ease;
@@ -99,29 +130,30 @@
 
     .control-buttons {
       display: flex;
-      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px 20px;
+      width: min(100%, 520px);
       margin-bottom: 40px;
       margin-top: calc(100vh - 200px);
       z-index: 2;
     }
 
-    .control-button {
-      background: rgba(0, 0, 0, 0.7);
-      color: rgba(0, 255, 157, 0.8);
-      border: 1px solid rgba(0, 255, 157, 0.8);
-      padding: 8px 16px;
-      font-family: 'Courier New', monospace;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-transform: uppercase;
-      font-size: 12px;
-      letter-spacing: 1px;
-      border-radius: 3px;
+    /* First-person smoke overlay (sleeping-pod-smoke.js). Never intercepts input. */
+    .pod-smoke {
+      display: none;
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 3;
+      pointer-events: none;
+      transition: filter 1.5s ease;
     }
 
-    .control-button:hover {
-      background: rgba(0, 255, 157, 0.15);
-      box-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+    @media (prefers-reduced-motion: reduce) {
+      .pod-btn, .pod-btn__frame, .pod-btn__panel { transition: none; }
+      .pod-smoke { display: none !important; }
     }
   </style>
   <link href="./home-navigation.css" rel="stylesheet" type="text/css">
@@ -142,25 +174,32 @@
     <!-- Control buttons for pod environment -->
     <div class="control-buttons">
       <!-- Light control button -->
-      <button class="control-button" onclick="dimLights()">Dim the lights</button>
+      <button type="button" class="pod-btn" id="dimButton" onclick="dimLights()"><svg class="pod-btn__frame" viewBox="0 0 180 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="pod-btn__panel" d="M10 .5H179.5V37.5L169.5 47.5H.5V10Z"/><path class="pod-btn__rail" d="M16 4H47M1 19V33M133 44H161"/><path class="pod-btn__accent" d="M171 5H175V14"/></svg><span class="pod-btn__label">Dim the lights</span></button>
       <!-- Music player toggle button -->
-      <button class="control-button" onclick="playMusic()">Play Music</button>
-      <!-- Hidden audio player interface -->
-      <div class="audio-player" id="audioPlayer">
-        <!-- HTML5 audio element -->
+      <button type="button" class="pod-btn" id="musicButton" aria-controls="audioPlayer" aria-expanded="false" onclick="playMusic()"><svg class="pod-btn__frame" viewBox="0 0 180 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="pod-btn__panel" d="M10 .5H179.5V37.5L169.5 47.5H.5V10Z"/><path class="pod-btn__rail" d="M16 4H47M1 19V33M133 44H161"/><path class="pod-btn__accent" d="M171 5H175V14"/></svg><span class="pod-btn__label">Play Music</span></button>
+    </div>
+
+    <!-- Expanded music player (shown while music plays) -->
+    <div class="audio-player" id="audioPlayer" role="region" aria-label="Music player">
+      <!-- Real-time LED spectrum analyzer (sleeping-pod-spectrum.js) -->
+      <canvas class="pod-spectrum" id="podSpectrum" role="img" aria-label="Audio spectrum analyzer"></canvas>
+      <div class="pod-player__meta"><span class="pod-player__tag">Now playing</span><span class="pod-player__title" id="trackTitle" aria-live="polite"></span></div>
+      <div class="pod-player__row">
+        <button type="button" class="pod-btn pod-btn--icon" aria-label="Previous track" onclick="previousTrack()"><svg class="pod-btn__frame" viewBox="0 0 180 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="pod-btn__panel" d="M10 .5H179.5V37.5L169.5 47.5H.5V10Z"/><path class="pod-btn__rail" d="M16 4H47M1 19V33M133 44H161"/><path class="pod-btn__accent" d="M171 5H175V14"/></svg><svg class="pod-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 5h2.5v14H6zM20 5v14L9.5 12z"/></svg></button>
+        <!-- HTML5 audio element: play/pause, seek and volume -->
         <audio controls>
           <source src="attached_assets/Android Love.mp3" type="audio/mp3">
           Your browser does not support the audio element.
         </audio>
-        <!-- Track navigation controls -->
-        <div class="audio-controls">
-          <button class="audio-btn" onclick="previousTrack()">◀</button>
-          <button class="audio-btn" onclick="nextTrack()">▶</button>
-        </div>
+        <button type="button" class="pod-btn pod-btn--icon" aria-label="Next track" onclick="nextTrack()"><svg class="pod-btn__frame" viewBox="0 0 180 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="pod-btn__panel" d="M10 .5H179.5V37.5L169.5 47.5H.5V10Z"/><path class="pod-btn__rail" d="M16 4H47M1 19V33M133 44H161"/><path class="pod-btn__accent" d="M171 5H175V14"/></svg><svg class="pod-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 5H18v14h-2.5zM4 5l10.5 7L4 19z"/></svg></button>
       </div>
     </div>
   </section>
 
+  <!-- Exhaled-smoke overlay: decorative, rendered with WebGL -->
+  <canvas class="pod-smoke" id="podSmoke" aria-hidden="true"></canvas>
+
+  <script src="sleeping-pod-spectrum.js"></script>
   <!-- Sleeping pod interactive JavaScript -->
   <script>
     // Environment state variables
@@ -169,6 +208,12 @@
     // Audio player DOM references
     const audioPlayer = document.getElementById('audioPlayer');
     const audioElement = audioPlayer.querySelector('audio');
+    const musicLabel = document.querySelector('#musicButton .pod-btn__label');
+    const dimLabel = document.querySelector('#dimButton .pod-btn__label');
+    const smokeCanvas = document.getElementById('podSmoke');
+    const trackTitle = document.getElementById('trackTitle');
+    // LED spectrum analyzer: taps the existing <audio> element, does not replace it
+    const spectrum = createPodSpectrum(document.getElementById('podSpectrum'), audioElement);
     // Audio settings
     let currentVolume = 1;
     let currentTrackIndex = 0;
@@ -225,26 +270,42 @@
 
     // Toggle music player visibility and playback
     function playMusic() {
-      const button = document.querySelector('[onclick="playMusic()"]');
+      const button = document.getElementById('musicButton');
 
       if (!isPlaying) {
         audioPlayer.classList.add('active');
-        button.textContent = 'Hide Music';
+        musicLabel.textContent = 'Hide Music';
+        button.setAttribute('aria-expanded', 'true');
+        // Created inside the click so the browser's autoplay policy lets the AudioContext start.
+        spectrum.connect();
         audioElement.volume = 0;
-        audioElement.play();
+        const started = audioElement.play();
+        if (started && started.catch) started.catch(e => console.log('Playback failed:', e));
+        spectrum.start();
         fadeAudio(0, currentVolume, 1000);
         isPlaying = true;
       } else {
         fadeAudio(currentVolume, 0, 1000);
         setTimeout(() => {
           audioPlayer.classList.remove('active');
-          button.textContent = 'Play Music';
+          musicLabel.textContent = 'Play Music';
+          button.setAttribute('aria-expanded', 'false');
           audioElement.pause();
           audioElement.volume = currentVolume;
         }, 1000);
         isPlaying = false;
       }
     }
+
+    // Show the current file name (read from the real source, so it is always accurate)
+    function updateTrackTitle() {
+      const src = audioElement.currentSrc || audioElement.getAttribute('src') || '';
+      let name = src.split('/').pop().split('?')[0];
+      try { name = decodeURIComponent(name); } catch (e) { /* keep raw name */ }
+      trackTitle.textContent = name.replace(/\.mp3$/i, '').replace(/_\d{10,}$/, '');
+    }
+    audioElement.addEventListener('loadstart', updateTrackTitle);
+    updateTrackTitle();
 
     // Change to a specific track with fade effects
     function changeTrack(index) {
@@ -254,6 +315,7 @@
         audioElement.src = playlist[currentTrackIndex];
         audioElement.load();
         audioElement.play().catch(e => console.log('Playback failed:', e));
+        spectrum.start();
         fadeAudio(0, currentVolume, 500);
       }, 500);
     }
@@ -287,19 +349,20 @@
 
     // Toggle pod lighting between bright and dimmed
     function dimLights() {
-      const button = document.querySelector('[onclick="dimLights()"]');
       const podSection = document.querySelector('.pod-section');
       const topNav = document.querySelector('.district-nav');
 
       if (!isDimmed) {
         podSection.style.filter = 'brightness(0.3)';
         topNav.style.filter = 'brightness(0.3)';
-        button.textContent = 'Turn the lights on';
+        smokeCanvas.style.filter = 'brightness(0.3)';
+        dimLabel.textContent = 'Turn the lights on';
         isDimmed = true;
       } else {
         podSection.style.filter = 'brightness(1)';
         topNav.style.filter = 'brightness(1)';
-        button.textContent = 'Dim the lights';
+        smokeCanvas.style.filter = 'brightness(1)';
+        dimLabel.textContent = 'Dim the lights';
         isDimmed = false;
       }
     }
@@ -307,5 +370,6 @@
     </script>
 
   <script src="script.js"></script>
+  <script src="sleeping-pod-smoke.js" defer></script>
 </body>
 </html>
