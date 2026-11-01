@@ -41,6 +41,8 @@ const { resetWeatherForTests } = await import("../server/live/weather");
 const { resetQuakesForTests } = await import("../server/live/quakes");
 const { resetNewsForTests } = await import("../server/live/news");
 const { resetLiveForTests } = await import("../server/live");
+const { dice, resetCommentaryForTests } = await import("../server/live/commentary");
+const realDice = dice.next;
 
 const fixture = (name: string) => fs.readFileSync(new URL(`./fixtures/live/${name}`, import.meta.url), "utf8");
 const ok = (body: string) => new Response(body, { status: 200, headers: { "content-type": "application/json" } });
@@ -82,6 +84,7 @@ after(async () => { clock.now = realNow; net.fetch = realFetch; api.close(); fak
 beforeEach(() => {
   captured = []; script = []; calls = []; providersDown = false; clock.now = () => AT;
   resetGeocodeForTests(); resetWeatherForTests(); resetQuakesForTests(); resetNewsForTests(); resetLiveForTests(); setGeocodeGapForTests(0);
+  resetCommentaryForTests(); dice.next = realDice;
   standardNetwork();
 });
 
@@ -220,4 +223,31 @@ test("her ordinary conversation is unchanged: no live block, no extra requests, 
     assert.ok(!/LIVE DATA/.test(systemText(mainCalls()[0])), `${text}: no live block`);
     assert.ok(mainCalls()[0].body.max_tokens <= 230, `${text}: normal length (${mainCalls()[0].body.max_tokens})`);
   }
+});
+
+test("commentary through the route: the stance sits beside her mood layer, serious subjects are respectful, other languages get native guidance", async () => {
+  const { sessionId } = await openSession();
+  dice.next = () => 0.5; // lands on a remark for an ordinary reply
+  script = ["Sacramento is 11°C and clear. Even the sky looks overpaid."];
+  const reply = await say(sessionId, "What's the weather in Sacramento?");
+  assert.equal(reply, "Sacramento is 11°C and clear. Even the sky looks overpaid.", "her remark passes through untouched when the facts are right");
+  const sys = systemText(mainCalls()[0]);
+  assert.match(sys, /COMMENTARY FOR THIS REPLY \(stance: (wry|skeptical|curious|warm|defend)\)/);
+  assert.match(sys, /SOURCE NOTES[\s\S]*One forecast model is the only source/);
+  assert.match(sys, /Mood context:/, "her mood layer is still there, and the stance does not replace it");
+  assert.match(sys, /CHARACTER CORE/, "so is her persona");
+  // a joke cannot carry a wrong number
+  captured = []; resetCommentaryForTests(); script = ["It is 99°F, which is hilarious."];
+  const wrong = await say(sessionId, "what's the weather in Sacramento again?");
+  assert.ok(!wrong.includes("99"));
+  // serious: the day's earthquake list contains a magnitude 6
+  net.fetch = async (url: string) => (new URL(url).hostname === "earthquake.usgs.gov" ? ok(fixture("usgs-4.5-day.json")) : new Response("no", { status: 404 }));
+  clock.now = () => 1793553753000; captured = []; script = ["A magnitude 6 off Vanuatu leads the list. I hope everyone there is safe."];
+  await say(sessionId, "any earthquakes today?");
+  assert.match(systemText(mainCalls()[0]), /stance: respectful/);
+  assert.match(systemText(mainCalls()[0]), /No jokes, no sarcasm, no flirting/);
+  // Spanish: native guidance, whatever the stance gave her a remark
+  standardNetwork(); clock.now = () => AT; resetCommentaryForTests(); dice.next = () => 0.5; captured = []; script = ["Sacramento tiene 11°C y cielo despejado."];
+  await say(sessionId, "¿Qué tiempo hace en Sacramento?");
+  assert.match(systemText(mainCalls()[0]), /colloquial Spanish/);
 });

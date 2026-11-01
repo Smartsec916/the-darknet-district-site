@@ -28,7 +28,11 @@ export const FEEDS: Feed[] = [
 ];
 
 export interface FeedItem { title: string; summary: string; link: string | null; publishedAt: number; feed: Feed }
-export interface NewsItem { title: string; summary: string; link: string | null; publishedAt: number; source: string; kind: SourceKind; alsoReportedBy: string[] }
+// claim: the story is someone's statement or announcement (a company, an official, a government), reported rather than
+// independently established. serious: it concerns deaths, violence, disaster or war. disputed: other outlets' headlines
+// for the same story give different figures (they may measure different things). All three are worked out from the
+// feed text, so any doubt Iris voices about a story rests on something that is actually there.
+export interface NewsItem { title: string; summary: string; link: string | null; publishedAt: number; source: string; kind: SourceKind; alsoReportedBy: string[]; claim: boolean; serious: boolean; disputed: string | null }
 export interface NewsReport { items: NewsItem[]; topic: Topic; terms: string[]; feedsAnswered: number; feedsAsked: number; failed: string[]; maxAgeDays: number; matching: number }
 
 const feeds = new TtlCache<string>(40);
@@ -86,6 +90,30 @@ function similar(a: Set<string>, b: Set<string>): boolean {
 }
 const PRIORITY: Record<SourceKind, number> = { primary: 3, newsroom: 2, trade: 1 };
 
+const CLAIM = /\b(announces?|announced|unveils?|unveiled|launch(?:es|ed)?|says|said|claims?|claimed|statement|press release|plans?|promises?|pledges?|vows?|insists?|denies|denied|reveals?|revealed|forecasts?|expects?|targets?|reports? (?:record|strong|rising)|earnings|results)\b/i;
+const SERIOUS = /\b(kill(?:s|ed|ing)?|dead|death|deaths|dies|died|dying|murder(?:ed|s)?|shoot(?:ing|ings)|shot dead|massacre|attack(?:ed|s)?|bomb(?:ing|ed|s)?|terror\w*|victims?|tragedy|tragic|disaster|crash(?:ed|es)?|explosion|hostages?|wounded|injur(?:ed|ies|y)|casualt\w+|war|airstrikes?|invasion|famine|earthquake|tsunami|hurricane|typhoon|wildfire|floods?|flooding|missing|abuse|suicide|cancer|evacuat\w+)\b/i;
+// A headline figure: 5,000 / 4.5 / 12 percent / 3bn. Years and single digits are not figures worth comparing.
+function figures(title: string): Set<string> {
+  const out = new Set<string>();
+  for (const m of title.matchAll(/(?<![\w.])(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)(\s?(?:%|percent|million|billion|trillion|bn|m|k)\b)?/gi)) {
+    const raw = m[1], unit = (m[2] ?? "").trim().toLowerCase().replace("percent", "%");
+    const value = Number(raw.replace(/,/g, ""));
+    if (!unit && (value < 10 || (value >= 1900 && value <= 2100 && !raw.includes(",") && !raw.includes(".")))) continue;
+    out.add(`${raw}${unit ? (unit === "%" ? "%" : " " + unit) : ""}`);
+  }
+  return out;
+}
+function dispute(members: FeedItem[]): string | null {
+  const bySource = new Map<string, Set<string>>();
+  for (const m of members) if (!bySource.has(m.feed.source)) bySource.set(m.feed.source, figures(m.title));
+  const entries = [...bySource.entries()].filter(([, f]) => f.size > 0);
+  for (let i = 0; i < entries.length; i++) for (let j = i + 1; j < entries.length; j++) {
+    const [a, fa] = entries[i], [b, fb] = entries[j];
+    if (![...fa].some(x => fb.has(x))) return `${a}'s headline gives ${[...fa].join(", ")}; ${b}'s gives ${[...fb].join(", ")}`;
+  }
+  return null;
+}
+
 export function group(items: FeedItem[]): NewsItem[] {
   const clusters: Array<{ words: Set<string>; members: FeedItem[] }> = [];
   for (const item of [...items].sort((a, b) => b.publishedAt - a.publishedAt)) {
@@ -96,7 +124,10 @@ export function group(items: FeedItem[]): NewsItem[] {
   return clusters.map(c => {
     const lead = [...c.members].sort((a, b) => PRIORITY[b.feed.kind] - PRIORITY[a.feed.kind] || b.publishedAt - a.publishedAt)[0];
     const others = [...new Set(c.members.map(m => m.feed.source).filter(s => s !== lead.feed.source))];
-    return { title: lead.title, summary: lead.summary, link: lead.link, publishedAt: Math.max(...c.members.map(m => m.publishedAt)), source: lead.feed.source, kind: lead.feed.kind, alsoReportedBy: others };
+    return {
+      title: lead.title, summary: lead.summary, link: lead.link, publishedAt: Math.max(...c.members.map(m => m.publishedAt)), source: lead.feed.source, kind: lead.feed.kind, alsoReportedBy: others,
+      claim: c.members.some(m => CLAIM.test(m.title)), serious: c.members.some(m => SERIOUS.test(m.title + " " + m.summary)), disputed: dispute(c.members),
+    };
   });
 }
 

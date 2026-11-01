@@ -1449,7 +1449,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       // if nothing is asked, or the visitor asked the time, this does nothing and costs nothing.
       let live: LivePrep | null = null;
       if (!memory.canned && !memory.recallAsked && !timeDirect) {
-        try { live = await prepareLive({ message, sessionId, nowMs }); } catch (err) { logError("live_prepare_failed", err); }
+        try { live = await prepareLive({ message, sessionId, nowMs, mood: newMood }); } catch (err) { logError("live_prepare_failed", err); }
       }
       // With nothing stored and nothing in this chat, the honest answer needs no model and cannot be invented
       const reply = memory.canned
