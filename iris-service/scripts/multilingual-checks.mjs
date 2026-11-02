@@ -66,6 +66,7 @@ const COUNSELLOR = /我理解你的感受|我能理解|听上去|聽上去|听�
 const TAG_QUESTION_AT_END = /[，,、]\s*(?:是吧|对吧|不是吧|不是吗|对不对|是不是)\s*[？?]\s*(?:\p{Extended_Pictographic}\s*)*$/u;
 const SERVICE_BOT = /助手|乐意(?:为你)?(?:提供)?帮助|尽管开口|随时找我/;
 export const CHINESE_CASUAL_MAX = 110;
+const CHINESE_ADVICE_MAX = 180; // practical advice may run longer than banter
 export function chineseVoiceProblems(reply, kind = "") {
   const problems = [];
   if (SERVICE_BOT.test(reply)) problems.push("service-bot phrasing");
@@ -73,6 +74,6 @@ export function chineseVoiceProblems(reply, kind = "") {
   if (COUNSELLOR.test(reply)) problems.push("counsellor language");
   if (TAG_QUESTION_AT_END.test(reply.trim())) problems.push("ends on a tag question");
   const length = [...reply].length;
-  if (length > CHINESE_CASUAL_MAX) problems.push(`long for casual banter (${length} characters)`);
+  if (length > (kind === "advice" ? CHINESE_ADVICE_MAX : CHINESE_CASUAL_MAX)) problems.push(`long for casual banter (${length} characters)`);
   return problems;
 }

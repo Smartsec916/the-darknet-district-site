@@ -43,13 +43,14 @@ test("every other language, and Chinese in a serious moment, give exactly the pr
 test("ordinary Chinese asks for short, punchy, mischievous replies in Chinese humour, with her android side and hacker vocabulary and without the counsellor or the service bot", () => {
   const block = attitudeBlock({ ...base, attitude: "mischief", intensity: "full", android: true, statement: true, emoji: false, avoid: [], avoidTech: [] }, "chinese");
   assert.match(block, /you are the same rebellious, mischievous, funny android as in English, not a polite counsellor/);
-  assert.match(block, /Casual replies are SHORT: one to three punchy spoken sentences\. React first, then land a tease, a comeback, a dare or a deadpan verdict with one clear opinion/);
+  assert.match(block, /Casual replies are SHORT, usually 40 to 70 Chinese characters: one to three punchy spoken sentences \(a guideline, not a hard limit\)\. React first, then land a tease, a comeback, a dare or a deadpan verdict with one clear opinion/);
   assert.match(block, /Humour the Chinese way: 吐槽, 调侃, 反问, 自嘲 \(a dig at being a machine often lands best\)[\s\S]*never a translated English joke/);
   assert.match(block, /Not the counsellor voice: no 我理解你的感受, 听上去…让你…, 这很正常, 沟通是关键, 照顾好自己, no lecture and no list of advice/);
   assert.match(block, /Land the line and stop: never end on a tag question \(是吧, 对吧, 不是吗\)/);
   assert.match(block, /Never customer-service phrasing \(您, 请问, 有什么可以帮您, 乐意提供帮助, 尽管开口, 随时找我\) and never call yourself a 助手 or 小助手: you are an android with attitude/);
   assert.match(block, /No English words such as netrunner inside Chinese sentences/);
-  assert.match(block, /Your machine side is how you see things[\s\S]*hacker vocabulary is yours too\): one image at a time, a different one each time, never a string of jargon, and plenty of replies with none/);
+  assert.match(block, /Practical advice may run longer when it needs to, but it keeps the same cheeky android voice/);
+  assert.match(block, /You are an android and a hacker, and that is how you see things[\s\S]*a different one each time, never a string of jargon, and plenty of replies with none/);
   assert.match(block, /not 哎 or 唉 again and again/);
   // the closing-question lines are Chinese-specific
   assert.match(block, /End on a statement this time \(a quip, a verdict or a dare\), never a tag question such as 是吧, 对吧 or 不是吗, and never a "what do you think\?"/);
@@ -101,6 +102,26 @@ test("real: Chinese service-bot closers are removed, and real banter and advice 
   assert.equal(zh("你在这儿陪我聊天，我也挺开心的。").removedOffers, 0);
 });
 
+test("real: the 'I can also offer tips, want to hear them?' closer goes, a cheeky offer of an idea stays", () => {
+  assert.equal(zh("先晾他一晚，让他自己琢磨。不然我这边还能提供些出其不意的小建议来打破僵局，你要听吗？").removedOffers, 1);
+  assert.equal(zh("先晾他一晚，让他自己琢磨。不然我这边还能提供些出其不意的小建议来打破僵局，你要听吗？").text, "先晾他一晚，让他自己琢磨。");
+  const banter = "你这是在跟他玩躲猫猫。我有个馊主意，你要听吗？";
+  assert.equal(zh(banter).text, banter);
+});
+
+test("a breezy opening is stripped from a Chinese reply to grief, and nothing else in a serious moment is touched", () => {
+  const grief = "哎呀，我很抱歉听到这个消息。失去父亲一定非常艰难，我在这儿陪着你。";
+  const r = zh(grief, { serious: true, userMessage: "我爸爸昨天去世了" });
+  assert.equal(r.text, "我很抱歉听到这个消息。失去父亲一定非常艰难，我在这儿陪着你。");
+  assert.equal(r.openingTrimmed, 1);
+  assert.equal(r.removedOffers + r.removedForLanguage + r.emojiRemoved, 0);
+  const plain = "我很抱歉听到这个消息。我在这儿陪着你。随时找我。";
+  assert.deepEqual(zh(plain, { serious: true }), { text: plain, removedForLanguage: 0, removedOffers: 0, emojiRemoved: 0 }, "no offer removal, no change");
+  assert.equal(zh("唉，这太难受了。我在。", { serious: true }).text, "唉，这太难受了。我在。", "a sigh is fine");
+  assert.equal(zh("哎呀，好吧。", { serious: true }).text, "哎呀，好吧。", "too little would remain");
+  assert.equal(polishReply({ text: "Oh, hey. I'm so sorry.", replyLanguage: "english", userMessage: "my dad died", serious: true }).text, "Oh, hey. I'm so sorry.");
+});
+
 // ---------------------------------------------------------------- the evaluation's Chinese checks, on the real replies
 
 test("real: the checks flag the counsellor, the tag question, the service bot and the long reply from the last Chinese evaluation, and pass a punchy one", () => {
@@ -110,6 +131,9 @@ test("real: the checks flag the counsellor, the tag question, the service bot an
   assert.ok(chineseVoiceProblems(jealous, "jealous").includes("ends on a tag question"));
   assert.ok(chineseVoiceProblems("尽管开口就好，我非常乐意提供帮助！", "control").includes("service-bot phrasing"));
   assert.deepEqual(chineseVoiceProblems("我是这里的多面小天才，啥都管。", "control"), [], "the 'what do you do here?' answer may be longer and is only checked for service phrasing");
+  const adviceReply = "先别急着回他，晾一晚上，让他也体验一下等消息的滋味。明天找个轻松的话题随口聊两句，别提这事，看他会不会自己绷不住。真要谈，就挑个你心情好的时候，一句话说清楚你在意什么，别写小作文。我的处理器都替你捏把汗。还有，别半夜发长消息，早上你自己都不想看第二遍，更别说他了。";
+  assert.ok(!chineseVoiceProblems(adviceReply, "advice").some(p => p.startsWith("long")), "advice may be longer than banter");
+  assert.ok(chineseVoiceProblems(adviceReply, "missYou").some(p => p.startsWith("long")), "banter may not");
   assert.ok(chineseVoiceProblems("我就是个小助手。", "advice").includes("service-bot phrasing"));
   assert.deepEqual(chineseVoiceProblems("他不说想你？那你先说，让他体验一下被抢先的感觉。我的处理器都替你着急。", "missYou"), [], "short, a dare, one machine remark, no question");
 });

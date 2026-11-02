@@ -1277,7 +1277,7 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
       const polished = polishReply({ text: assistantResponse, replyLanguage, userMessage, serious, emojiAllowed: options.attitude.emoji, statementWanted: options.attitude.statement });
       // Evaluation only (IRIS_POLISH_TRACE=1, never set in production): record exactly what the cleanup removed, so it can be judged by reading
       if (process.env.IRIS_POLISH_TRACE === "1" && polished.text !== assistantResponse) {
-        log("info", "polish_trace", { lang: replyLanguage, before: assistantResponse, after: polished.text, removedForLanguage: polished.removedForLanguage, removedOffers: polished.removedOffers, emojiRemoved: polished.emojiRemoved, tagQuestionsTrimmed: polished.tagQuestionsTrimmed ?? 0 });
+        log("info", "polish_trace", { lang: replyLanguage, before: assistantResponse, after: polished.text, removedForLanguage: polished.removedForLanguage, removedOffers: polished.removedOffers, emojiRemoved: polished.emojiRemoved, tagQuestionsTrimmed: polished.tagQuestionsTrimmed ?? 0, openingTrimmed: polished.openingTrimmed ?? 0 });
       }
       assistantResponse = polished.text;
     }
