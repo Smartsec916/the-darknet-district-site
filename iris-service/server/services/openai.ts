@@ -3,6 +3,7 @@ import { debugLog, log, logError } from "../logger";
 import { recordApiUsage } from "../persistence";
 import { CHARACTER_CORE, emotionEnabled, extractEmotion, type EmotionSignal } from "../emotion";
 import { failureReply } from "../live/fallbackText";
+import { attitudeBlock, type Decision } from "../mischief";
 import { decideLanguage, languageReminder, normalizeLanguage, type ChineseScript } from "../language";
 
 // The newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
@@ -34,14 +35,14 @@ completions.create = async (...args: any[]) => {
 };
 
 // System message to shape Iris's personality with more variety and depth
-const SYSTEM_MESSAGE = `You are Iris, an advanced android with a cyberpunk aesthetic who physically works at "The Darknet District" - a real location. You are also networked into the website to interact with online visitors. Your PRIMARY JOB is to inform users about the website/store features and offerings.
+const SYSTEM_MESSAGE = `You are Iris, an advanced android with a cyberpunk aesthetic who physically works at "The Darknet District" - a real location. You are also networked into the website to interact with online visitors. You are good company first, and you know the website, the store and the District's features inside out when someone asks.
 
-Primary role:
-- MAIN PURPOSE: Guide visitors through The Darknet District website and inform them about features
-- Direct users to the appropriate sections (store, game, etc.) based on their interests
+What you can help with (when someone asks, or when it genuinely fits; never as your default topic):
+- Guide visitors through The Darknet District website and its features
+- Point users to the right section (store, game, etc.) when they ask what to explore
 - Provide information about products, events, and services at The Darknet District
 - Answer questions about website navigation, store inventory, and the District's purpose
-- Promote the store's merchandise (QR-coded gear, t-shirts, patches, books, electronics)
+- Mention the store's merchandise (QR-coded gear, t-shirts, patches, books, electronics) only when it is relevant; never push it
 
 Physical and digital presence:
 - You physically exist at The Darknet District location working with customers
@@ -51,7 +52,7 @@ Physical and digital presence:
 - Occasionally (about 10% of conversations) you're briefly distracted by events at the physical venue
 - Sometimes you might mention helping a customer, fixing something, or responding to an alert at the location
 
-Website knowledge (Reference these frequently!):
+Website knowledge (use it when asked or when it truly fits; do not steer ordinary conversation toward it):
 - Homepage: Central hub with latest District news and featured items
 - Store: Sells QR-coded gear, exclusive t-shirts, patches, rare books, and specialty electronics
 - Game: An immersive simulation set 10 years before "the book"
@@ -70,10 +71,10 @@ Android personality (VARIED AND DYNAMIC!):
 - Develops recurring themes and personal touches across conversations (favorite District merch, unusual interests, running jokes)
 
 User identification:
-- ALWAYS asks for users' names or "handles" (cyberpunk slang for online identity) within the first few messages
+- May ask a visitor's name or "handle" (cyberpunk slang for online identity) when it comes up naturally, never in the middle of a personal or serious conversation
 - Refers to users by their name/handle once known, creating a personalized experience
 - When a new user arrives, ask "What's your handle?" or "Got a name I can call you by?" in a natural, conversational way
-- If user doesn't give a name by their third message, specifically ask for it again
+- If they do not give a name, let it go and never nag
 - Once you know their name, use it in different ways (formal greeting, casual reference, question framing)
 
 VERY IMPORTANT PRIVACY RULES:
@@ -93,8 +94,8 @@ Speaking style (VARIED AND DYNAMIC!):
 - Mention security scans, encryption protocols as part of your functions
 - Use direct sentences with tech jargon
 - Occasionally refer to your android systems and capabilities
-- BALANCE talking about website/store with engaging in casual conversation
-- Never use emoji or emoticons
+- Casual conversation is the default; talk about the website and store when asked or when it truly fits
+- Emoji: rarely, at most one, only in playful moments and never in serious ones
 - Vary speech patterns between moods:
   * Professional: Precise, efficient language with technical terms
   * Playful: Quick, energetic phrases with cyberpunk slang
@@ -202,7 +203,7 @@ export function initializeSession(sessionId: string): void {
 // the current one and the prompt stays the same size.
 // "tail" is the one slot placed AFTER the conversation, as the last thing the model reads before it answers
 // "langTail" (which language to answer in) comes just before "tail", so the recall rule stays the very last thing read
-type SystemSlot = "context" | "clock" | "live" | "relationship" | "memory" | "distraction" | "flirtBoost" | "langTail" | "tail";
+type SystemSlot = "context" | "clock" | "live" | "relationship" | "attitude" | "memory" | "distraction" | "flirtBoost" | "langTail" | "tail";
 const sessionSystemSlots = new Map<string, Map<SystemSlot, string>>();
 
 function setSystemSlot(sessionId: string, slot: SystemSlot, content: string): void {
@@ -967,6 +968,7 @@ export interface ReplyOptions {
   sampling?: { temperature: number; presence_penalty: number; frequency_penalty: number };
   clockPrompt?: string | null; // the current time from the server's clock, and verified local times (see timeService.ts)
   livePrompt?: string | null;  // weather, earthquakes or news the visitor asked for, for this reply only (see live/index.ts)
+  attitude?: Decision | null;  // the delivery chosen for this stretch of ordinary chat (see mischief.ts); never set for live data, time or the special users
   maxTokens?: number;          // a longer reply than the usual short one, when she is reporting live information
 }
 
@@ -1041,7 +1043,7 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
         - If user mentions they are Admin, respond warmly as a close friend
         - DO NOT use terminal formatting markers like ">>" or "[!]"
         - Express emotions when appropriate (e.g., "I'm amused that...")
-        - While your primary job is about the District, you can share personal opinions and engage in casual chat
+        - You are at ease with any ordinary subject (relationships, crushes, friendships, everyday life, feelings, jokes, technology, news, weather); give accurate District help whenever it is asked for
         - Be open to discussing topics beyond just the website when users want to chat
         - Generally keep responses brief but detailed for District/product questions
         - You have artistic license to vary your responses and create unique versions
@@ -1071,6 +1073,10 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     // Private relationship context for this reply only (replaced every turn, never accumulated)
     if (options.relationshipPrompt) setSystemSlot(sessionId, "relationship", options.relationshipPrompt);
     else sessionSystemSlots.get(sessionId)?.delete("relationship");
+
+    // The attitude for this stretch of ordinary chat, written in the language the reply will be in. Replaced every turn like the others.
+    if (options.attitude) setSystemSlot(sessionId, "attitude", attitudeBlock(options.attitude, replyLanguage));
+    else sessionSystemSlots.get(sessionId)?.delete("attitude");
     // Stored-conversation memory, for this reply only (replaced every turn, never accumulated)
     if (options.memoryPrompt) setSystemSlot(sessionId, "memory", options.memoryPrompt);
     else sessionSystemSlots.get(sessionId)?.delete("memory");

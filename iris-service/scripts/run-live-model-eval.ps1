@@ -12,7 +12,7 @@
 # account on this PC can decrypt it. It is outside every repository. It is read into this process's environment for the
 # evaluation only and removed again when the script ends. Use a restricted key (an OpenAI project key with its own monthly
 # budget limit of a few dollars) and revoke it when you are done.
-param([switch]$SetupKey, [switch]$ClearKey, [string]$Langs = '', [double]$Cap = 0.85)
+param([switch]$SetupKey, [switch]$ClearKey, [string]$Langs = '', [string]$Suite = '', [double]$Cap = 0.85)
 $ErrorActionPreference = 'Stop'
 $dir = Join-Path $env:USERPROFILE '.darknet-iris-eval'
 $file = Join-Path $dir 'openai-key.dpapi'
@@ -33,6 +33,7 @@ try {
   Set-Location (Join-Path $PSScriptRoot '..')
   $nodeArgs = @('scripts/live-model-eval.mjs', '--cap', $Cap)
   if ($Langs) { $nodeArgs += @('--langs', $Langs) }
+  if ($Suite) { $nodeArgs += @('--suite', $Suite) }
   & node @nodeArgs
   exit $LASTEXITCODE
 } finally { Remove-Item Env:OPENAI_API_KEY -ErrorAction SilentlyContinue }

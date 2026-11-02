@@ -446,7 +446,7 @@ test("if memory cannot be read, the chat still works and Iris is told to say so 
 test("honest when there is nothing to recall, and the whole thing can be switched off", async () => {
   const none = await say("n1", "do you remember my favorite color?", { clientId: "empty-visitor" });
   assert.equal(none.request, undefined, "nothing stored: an honest canned reply, no model call");
-  assert.match(none.body.response, /no record|nothing|logs|file|vault|memory/i);
+  assert.match(none.body.response, /no record|nothing|logs|file|vault|memory|records/i);
   const foreign = await say("n1b", "Dime, recuerdas mi color favorito?", { clientId: "empty-visitor" });
   assert.match(block(foreign.request), /found nothing matching|Nothing in your stored/, "other languages go to the model with the strict rule");
   await put("switch", "user", `a phrase ${PHRASE}`, "2026-11-01 10:00:00");

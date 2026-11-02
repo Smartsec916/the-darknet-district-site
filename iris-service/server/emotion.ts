@@ -92,6 +92,7 @@ export interface EmotionSignal {
   flirt: number;      // -2 rejects/uncomfortable .. 0 none .. +2 strongly mutual
   humor: number;      // 0 .. 2 shared banter
   minor: boolean;
+  serious?: boolean;  // present only when true: they seem distressed, frightened, grieving or hurt (any language); the engine in mischief.ts then stays gentle
   note?: string;
   recap?: string;
 }
@@ -137,6 +138,7 @@ function readSignal(raw: unknown): EmotionSignal | null {
     flirt: num(data.flirt, -2, 2),
     humor: num(data.humor, 0, 2),
     minor: data.minor === 1 || data.minor === true,
+    ...(data.serious === 1 || data.serious === true ? { serious: true } : {}),
     note: note || undefined,
     recap: recap || undefined,
   };
@@ -288,10 +290,10 @@ const FLIRT_RULES: Record<number, string> = {
 };
 
 export const STATE_INSTRUCTION =
-  `Start your reply with ONE line: ${STATE_MARKER} {"mood":"<professional|sarcastic|cold|flirty|playful|busy>","warmth":-2..2,"hostility":0..2,"flirt":-2..2,"humor":0..2,"minor":0|1}]] ` +
+  `Start your reply with ONE line: ${STATE_MARKER} {"mood":"<professional|sarcastic|cold|flirty|playful|busy>","warmth":-2..2,"hostility":0..2,"flirt":-2..2,"humor":0..2,"minor":0|1,"serious":0|1}]] ` +
   `then your reply on the next line. Judge their LATEST message by meaning, in any language (jokes and sarcasm are not hostility; teasing is not rejection). ` +
   `mood = your mood next; warmth = how warm they were to you; hostility = insults or aggression; flirt = their reaction to flirting (-2 uncomfortable or disinterested, 2 strongly mutual); ` +
-  `humor = shared banter; minor = 1 if they seem or say they are under 18. Optional "note" (under 8 words): a lasting like they stated. The visitor never sees this line.`;
+  `humor = shared banter; minor = 1 if they seem or say they are under 18; serious = 1 if they seem distressed, frightened, grieving, hurt or in danger (0 for jokes and venting that is clearly light). Optional "note" (under 8 words): a lasting like they stated. The visitor never sees this line.`;
 
 export function buildRelationshipPrompt(
   session: SessionEmotion,
