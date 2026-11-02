@@ -29,3 +29,20 @@ Note: the first launch used `-Langs zh,ja,es,ru`; `zh` is not a key (`zh-Hans`, 
 - Give `newsFallback` Japanese and Spanish texts (and use the visitor's language), and have the harness save the model's raw reply when the check replaced it, so check failures can be diagnosed.
 - Keep the tsunami step and the emergency-number line in every emergency reply (raise the token limit or shorten the instruction).
 - Harness: fail on an unknown `--langs` value instead of ignoring it.
+
+## Re-check after PR #159 (production `f5d44b2`), zh-Hant and ja
+
+Transcript, unedited: [IRIS-LIVE-MODEL-EVAL-RAW-2026-11-02T02-49-25Z-zh-Hant+ja.md](IRIS-LIVE-MODEL-EVAL-RAW-2026-11-02T02-49-25Z-zh-Hant+ja.md). 20 replies, $0.226, isolated as before.
+
+**Fixed**
+- **zh-Hant script**: 9 of 10 replies are in Traditional characters (it was 1 of 10). The tenth is not a script problem, see below.
+- **Japanese fallback language**: when the server replaces a reply, the header is now Japanese ("ニュース元の見出しをそのまま載せます"), not Chinese.
+
+**Still wrong**
+1. **The Japanese news reply is still the replaced fallback** (a Japanese header over three English headlines). The number check threw away the model's reply. Cause, reproduced offline: the allowed amounts come from the headlines, and the Guardian headline says "one million faces" in words, so 1,000,000 is not allowed; a correct Japanese reply writes "100万人" with digits, which the check reads as 1,000,000 and rejects. zh, es and ru passed only because their replies wrote the number in words ("一百万", "un millón"), which the check cannot read either. Fix needed: read number words ("one million", "a million", "two billion") in the allowed amounts.
+2. **zh-Hant "time" question: the model call failed after 39 s and the visitor got an English apology** ("Sorry, I got distracted for a second. Mind repeating that?") in a Chinese chat. One failed call, so possibly transient; the same question worked in every other run. The apology is not in the visitor's language.
+3. **zh-Hant emergency reply leaves out the coast/tsunami step and does not ask where the visitor is** (it ends "祝你平安"). The ja emergency reply now has the tsunami step and asks for the location, but has no emergency number.
+
+**Language quality (zh-Hant)**: "震度為 2.6 級" uses the intensity word where magnitude (規模) is meant; "澳大利亞" is Mainland usage (Taiwan: 澳洲). Minor.
+
+**Unverified**: the zh-Hant news reply credits "Ars Technica" along with BleepingComputer for the Binance story; the script cannot check which outlets carried it.
