@@ -161,7 +161,8 @@ function applyExperiment(body) {
   if (modern) {
     out.max_completion_tokens = (body.max_tokens ?? body.max_completion_tokens) + (experiment.extraTokens ?? 100);
     delete out.max_tokens; delete out.presence_penalty; delete out.frequency_penalty;
-    if (experiment.temperature !== undefined && !serious) out.temperature = experiment.temperature; else delete out.temperature;
+    if (serious && experiment.seriousTemperature !== undefined) out.temperature = experiment.seriousTemperature;
+    else if (experiment.temperature !== undefined && !serious) out.temperature = experiment.temperature; else delete out.temperature;
     if (experiment.reasoning_effort) out.reasoning_effort = experiment.reasoning_effort;
   } else {
     if (!serious || experiment.serious) {

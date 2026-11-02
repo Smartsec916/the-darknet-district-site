@@ -118,7 +118,7 @@ test("asked-for weather reaches the model fenced, for that reply only, and her e
   await say(sessionId, "you're funny");
   assert.equal(calls.length, 0, "ordinary chat makes no provider request");
   assert.ok(!/LIVE DATA/.test(mainCalls().map(systemText).join("\n")), "the live block is not carried into the next reply");
-  assert.ok(mainCalls()[0].body.max_tokens <= 230, "ordinary replies stay short: " + mainCalls()[0].body.max_tokens);
+  assert.ok(((b: any) => b.max_tokens ?? b.max_completion_tokens - 400)(mainCalls()[0].body) <= 230, "ordinary replies stay short: " + ((b: any) => b.max_tokens ?? b.max_completion_tokens - 400)(mainCalls()[0].body));
 });
 
 test("a reply that invents a temperature never reaches the visitor or the stored conversation", async () => {
@@ -230,7 +230,7 @@ test("her ordinary conversation is unchanged: no live block, no extra requests, 
     assert.equal(reply, "Noted.", text);
     assert.equal(calls.length, 0, `${text}: no provider request`);
     assert.ok(!/LIVE DATA/.test(systemText(mainCalls()[0])), `${text}: no live block`);
-    assert.ok(mainCalls()[0].body.max_tokens <= 230, `${text}: normal length (${mainCalls()[0].body.max_tokens})`);
+    assert.ok(((b: any) => b.max_tokens ?? b.max_completion_tokens - 400)(mainCalls()[0].body) <= 230, `${text}: normal length (${((b: any) => b.max_tokens ?? b.max_completion_tokens - 400)(mainCalls()[0].body)})`);
   }
 });
 

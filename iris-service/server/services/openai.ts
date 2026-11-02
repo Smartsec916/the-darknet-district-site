@@ -6,6 +6,7 @@ import { failureReply } from "../live/fallbackText";
 import { attitudeBlock, type Decision } from "../mischief";
 import { registerExample, EXAMPLE_NOTE } from "../registerSamples";
 import { polishReply } from "../replyPolish";
+import { pickChatModel, samplingParams } from "../chatModel";
 import { decideLanguage, languageReminder, normalizeLanguage, type ChineseScript } from "../language";
 
 // The newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
@@ -1114,18 +1115,20 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     debugLog(`OpenAI request: ${updatedMessages.length} messages, message language ${detectedLanguage}, reply language ${replyLanguage}, language note ${languageNote ? "YES" : "NO"}`);
     
     // Generate response with efficient token usage and enhanced creativity
+    // Which model answers this turn (see chatModel.ts) and the sampling for it. The sampling for a classic model: calmer than the old defaults on engine turns (the old
+    // penalties forced odd comparisons instead of wit), calm and plain in a genuinely serious moment (no randomness to wander into a joke or machine imagery).
+    const seriousTurn = options.attitude?.intensity === "support";
+    const chatModel = pickChatModel(process.env, { engine: Boolean(options.attitude), serious: seriousTurn });
     const response = await openai.chat.completions.create({
-      model: MODEL,
+      model: chatModel,
       messages: updatedMessages,
-      // Sampling for the character. The old defaults (temperature 0.95 with presence 0.6 and frequency 0.5) push a model away from its own most natural words
-      // on purpose, which in the evaluation showed up as odd, forced comparisons ("friend-chip upgrade") instead of wit. Sharp comedy needs the natural word at
-      // the right moment, so ordinary engine turns use calmer sampling; repetition is handled by the recent-openings and recent-words memory instead.
-      // A genuinely serious moment (danger, abuse, a death) is sampled calmly and plainly: no randomness to wander into machine imagery or a joke
-      temperature: options.sampling?.temperature ?? (options.attitude?.intensity === "support" ? 0.5 : options.attitude ? 0.85 : 0.95),
-      max_tokens: maxTokens + 20 + (options.relationshipPrompt ? 60 : 0), // room for the state line when it is requested
-      presence_penalty: options.sampling?.presence_penalty ?? (options.attitude?.intensity === "support" ? 0 : options.attitude ? 0.3 : 0.6),
-      frequency_penalty: options.sampling?.frequency_penalty ?? (options.attitude?.intensity === "support" ? 0 : options.attitude ? 0.2 : 0.5),
-    });
+      ...samplingParams(chatModel, {
+        maxTokens: maxTokens + 20 + (options.relationshipPrompt ? 60 : 0), // room for the state line when it is requested
+        temperature: options.sampling?.temperature ?? (seriousTurn ? 0.5 : options.attitude ? 0.85 : 0.95),
+        presencePenalty: options.sampling?.presence_penalty ?? (seriousTurn ? 0 : options.attitude ? 0.3 : 0.6),
+        frequencyPenalty: options.sampling?.frequency_penalty ?? (seriousTurn ? 0 : options.attitude ? 0.2 : 0.5),
+      }),
+    } as any) as any;
     
     // The state line (if any) is removed before anything else sees the reply; a missing or damaged one is simply ignored
     const parsed = extractEmotion(response.choices[0].message.content || "");

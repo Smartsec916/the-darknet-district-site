@@ -513,3 +513,23 @@ test("route: an ordinary reply is sent one invented register example just before
     assert.ok(rows.every(r => !/STYLE REFERENCE/.test(r.message) && !messages[noteAt + 2]?.content || !r.message.includes(messages[noteAt + 2]?.content)), "nothing of the example is stored");
   }
 });
+
+test("route: an ordinary engine reply goes to the chat model with its own token limit; a serious reply, a non-engine reply and the language check stay on gpt-4o with calm sampling", async () => {
+  mischief.dice.next = () => 0.3;
+  const cases: Array<[string, Record<string, unknown>, string, boolean]> = [
+    ["my boss is a clown", {}, "gpt-5.4-mini", true],
+    ["He hits me and I'm scared to go home", {}, "gpt-4o", false],
+  ];
+  for (const [i, [message, over, model, modern]] of cases.entries()) {
+    const v = await visitor("m-model-" + i, over);
+    script.push(stateLine() + "\nReply.");
+    captured = [];
+    await say(v, message);
+    const main = mainCalls()[0].body;
+    assert.equal(main.model, model, message);
+    if (modern) { assert.ok(main.max_completion_tokens >= 400, "reasoning headroom"); assert.equal(main.max_tokens, undefined); assert.equal(main.temperature, undefined); assert.equal(main.presence_penalty, undefined); }
+    else { assert.ok(main.max_tokens > 0 && main.max_tokens <= 250); assert.equal(main.temperature, 0.5, "calm and plain in a serious moment"); assert.equal(main.presence_penalty, 0); }
+    const check = captured.find(c => c.body.max_tokens === 10)?.body;
+    if (check) assert.equal(check.model, "gpt-4o", "the language check never moves");
+  }
+});

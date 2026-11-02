@@ -114,7 +114,7 @@ test("the added prompt stays small and is replaced every turn, never stacked", a
   assert.ok(addition < 3200, `the per-message addition is ${addition} characters (about ${Math.round(addition / 4)} tokens)`);
   const sizes = calls.map(c => JSON.stringify(c.body.messages).length);
   assert.ok(sizes[3] - sizes[1] < 3000, "history grows by the messages themselves, not by repeated instructions");
-  assert.ok(calls.every(c => c.body.max_tokens <= 150 + 20 + 60), "reply budget grows by only the room the state line needs");
+  assert.ok(calls.every(c => (c.body.max_tokens ?? c.body.max_completion_tokens - 400) <= 150 + 20 + 60), "reply budget grows by only the room the state line needs");
 });
 
 // ------------------------------------------------------------------ the state line never reaches a visitor

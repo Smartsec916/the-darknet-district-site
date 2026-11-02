@@ -26,6 +26,19 @@ const pageSize = () => Math.max(1, Number(process.env.REPORT_PAGE_SIZE) || 1000)
 // Brevo's free plan allows 300 emails a day: at most this many per run, resumed at the next run
 const maxPartsPerRun = () => Number(process.env.REPORT_MAX_PARTS_PER_RUN) || 25;
 const runBudgetMs = () => Number(process.env.REPORT_RUN_BUDGET_MS) || 240_000;
+// The estimate from token counts by model (exported for its test)
+export function estimateCostUsd(perModel: Array<{ model: string | null; prompt: string | number; completion: string | number }>, env: Record<string, string | undefined> = process.env): number {
+  const overrideIn = Number(env.OPENAI_PRICE_INPUT_PER_M) || 0;
+  const overrideOut = Number(env.OPENAI_PRICE_OUTPUT_PER_M) || 0;
+  return perModel.reduce((sum, row) => {
+    const [pin, pout] = MODEL_PRICES[String(row.model ?? "").replace(/-\d{4}-\d{2}-\d{2}$/, "")] ?? MODEL_PRICES["gpt-4o"];
+    return sum + (Number(row.prompt) / 1e6) * (overrideIn || pin) + (Number(row.completion) / 1e6) * (overrideOut || pout);
+  }, 0);
+}
+
+const MODEL_PRICES: Record<string, [number, number]> = {
+  "gpt-4o": [2.5, 10], "gpt-4.1": [2, 8], "gpt-4o-mini": [0.15, 0.6], "gpt-5.4-mini": [0.75, 4.5], "gpt-5.4": [2.5, 15], "gpt-5.6-luna": [0.2, 1.2], "gpt-5.6-terra": [2, 12],
+};
 const sendSpacingMs = () => (process.env.REPORT_SEND_SPACING_MS ? Number(process.env.REPORT_SEND_SPACING_MS) : 1000);
 const catchupDays = () => Math.min(14, Math.max(1, Number(process.env.REPORT_CATCHUP_DAYS) || 7));
 const STALE_LOCK_MS = 15 * 60_000;   // a crashed run does not block the day forever
@@ -170,9 +183,14 @@ export async function loadDay(date: string): Promise<{ summary: DaySummary; conv
   )).rows[0];
   const promptTokens = Number(usage.prompt);
   const completionTokens = Number(usage.completion);
-  // gpt-4o list prices in USD per million tokens; override if pricing changes
-  const inPrice = Number(process.env.OPENAI_PRICE_INPUT_PER_M) || 2.5;
-  const outPrice = Number(process.env.OPENAI_PRICE_OUTPUT_PER_M) || 10;
+  // List prices in USD per million tokens (input, output) by model: ordinary chat now runs on a cheaper model than serious replies and the clock/memory answers.
+  // A model not listed is priced like gpt-4o, which can only overstate. OPENAI_PRICE_INPUT_PER_M / OPENAI_PRICE_OUTPUT_PER_M, if set, price every call.
+  const perModel = (await dbQuery(
+    `SELECT model, COALESCE(SUM(prompt_tokens), 0) AS prompt, COALESCE(SUM(completion_tokens), 0) AS completion
+     FROM iris_api_usage WHERE created_at >= $1::timestamp AND created_at < $2::timestamp GROUP BY model`,
+    [start, end],
+  )).rows as Array<{ model: string | null; prompt: string | number; completion: string | number }>;
+  const estimatedCostUsd = estimateCostUsd(perModel);
 
   const all = conversations.flatMap(c => c.messages);
   const fallbackReplies = all.filter(m => m.status === "fallback").length;
@@ -192,7 +210,7 @@ export async function loadDay(date: string): Promise<{ summary: DaySummary; conv
       apiCalls: Number(usage.calls),
       promptTokens,
       completionTokens,
-      estimatedCostUsd: (promptTokens / 1e6) * inPrice + (completionTokens / 1e6) * outPrice,
+      estimatedCostUsd,
     },
   };
 }
@@ -267,7 +285,7 @@ export function summaryText(s: DaySummary): string {
     `Iris responses:        ${s.irisMessages}`,
     `Failed or incomplete:  ${s.errors} (${s.fallbackReplies} canned fallback replies because OpenAI failed, ${s.unanswered} visitor messages with no reply)`,
     `OpenAI usage:          ${s.apiCalls} calls, ${s.promptTokens} prompt + ${s.completionTokens} completion tokens`,
-    `Estimated API cost:    $${s.estimatedCostUsd.toFixed(4)} (estimate from token counts at gpt-4o list prices)`,
+    `Estimated API cost:    $${s.estimatedCostUsd.toFixed(4)} (estimate from token counts at list prices, by model)`,
   ].join("\n");
 }
 
