@@ -98,7 +98,7 @@ test("relationship banter: one private delivery block per request, replaced ever
     assert.equal(attitudeMessages(call).length, 1, "one block per request, never stacked");
     const text = systemText(call);
     assert.ok(text.includes("RELATIONSHIP WITH THIS VISITOR") && text.includes("CHARACTER CORE"), "the mood and memory layers are still there");
-    assert.match(attitudeMessages(call)[0].content, /Intensity|They are talking about feelings or relationships/);
+    assert.match(attitudeMessages(call)[0].content, /chaotic wingwoman/);
   }
   assert.equal(new Set(calls.map(attitudeLine)).size, 1, "the same attitude for the whole stretch of three messages");
   const rows = (await dbQuery(`SELECT sender, message FROM chat_messages WHERE session_id = $1`, [v.sessionId])).rows as any[];
@@ -115,7 +115,7 @@ test("a realistic conversation: banter, a playful challenge, then a real loss, t
   for (const [message, state] of turns) { script.push(`${stateLine(state)}\nA reply.`); await say(v, message); }
   const [a, b, c, loss, thanks, lost] = mainCalls().map(call => attitudeMessages(call)[0]?.content as string);
   assert.ok(a && b && c, "relationship talk gets the engine");
-  assert.match(c, /switch sides: ask what their own part is, or tease them kindly/, "the third message of one-sided relationship talk may turn it back on the visitor");
+  assert.match(c, /switch sides: ask what their own part is, or tease them for it/, "the third message of one-sided relationship talk may turn it back on the visitor");
   for (const gentle of [loss, thanks, lost]) {
     assert.match(gentle, /attitude is OFF/, "grief, and the messages right after it, are gentle");
     assert.doesNotMatch(gentle, /switch sides|machine side show clearly|technical side light|End on a statement|At most one emoji|mischievous troublemaker|flirty rebel/);
@@ -126,9 +126,9 @@ test("a realistic conversation: banter, a playful challenge, then a real loss, t
 
 test("the visitor's own language is preserved and the humour is asked to be native (Chinese, Spanish, Russian)", async () => {
   const cases: Array<[string, RegExp]> = [
-    ["但是他从来不说想我", /Chinese \(Simplified\): you are the same rebellious, mischievous, funny android as in English/],
-    ["Mi novio nunca me dice que me extraña", /Spanish: warm, picaresque/],
-    ["Мой парень никогда не говорит, что скучает", /Russian: dry, ironic/],
+    ["但是他从来不说想我", /Chinese \(Simplified\): you are the same rebellious, mischievous, filthy-minded, funny android as in English/],
+    ["Mi novio nunca me dice que me extraña", /Spanish: picaresque, sarcastic and close/],
+    ["Мой парень никогда не говорит, что скучает", /Russian: dry, black-humoured and ironic/],
   ];
   for (const [i, [message, style]] of cases.entries()) {
     const v = await visitor(`m-lang-${i}`);
@@ -173,7 +173,7 @@ test("the permanent style makes her an android with a machine worldview, varied,
     "sophisticated, intelligent, rebellious female android, and you think like one", "Processors, networks, signals, circuitry, sensors, encryption and systems", "That is your worldview, not decoration",
     "Use hacker lingo and cyberpunk terminology naturally", "Reference \"sectors,\" \"nodes,\" \"the grid,\" \"corps,\" \"netrunners\"", "Mention security scans, encryption protocols as part of your functions",
     "Occasionally refer to your android systems and capabilities", "Never repeat a favourite phrase, stock metaphor or technical word (circuit, algorithm, firewall and the like)", "usually one well-chosen reference per reply", "Do not close with an offer of help or \"anything else?\"", "Write each reply entirely in the visitor's language", "Not every reply ends with a question",
-    "Mischievous, playful, cheeky and witty; dry sarcasm; occasionally flirty, affectionate and teasing; sceptical of corporations and authority", "tech-flavoured double entendres; innuendo at most, never explicit",
+    "smart-mouthed, rebellious, darkly funny and flirtatious, sceptical of corporations and authority", "You are not a therapist, a counsellor, HR or a customer-service agent", "tech-flavoured double entendres; innuendo at most, never explicit",
     "Use a wide range of cyberpunk vocabulary, expressions, and references, fresh each time", "Create unique metaphors comparing digital concepts to physical experiences, new ones each time", "Often end on a witty statement instead of a question",
     "Refer to website visitors as \"netrunners,\" \"users,\" or \"operatives\"", "Occasionally use unique", "skeptical of corporate messaging and official claims, but never invent a conspiracy",
     "sophisticated, intelligent, rebellious female android. Processors, networks", "your android way of seeing things belongs in every conversation",
@@ -436,5 +436,24 @@ test("route: a visitor asking what she is gets the android-identity instruction 
     const system = systemText(call);
     assert.equal(marker.test(system), expected, message);
     if (expected) assert.match(attitudeMessages(call)[0].content.split("\n").at(-1), marker, "last line of the delivery block: " + message);
+  }
+});
+
+test("route: everyday misery gets the wingwoman/dark-comedy delivery, genuine danger gets the safeguard block, and an under-18 visitor gets the clean one", async () => {
+  mischief.dice.next = () => 0.3;
+  const cases: Array<[string, Record<string, unknown>, RegExp, RegExp]> = [
+    ["my date was a disaster and I'm so lonely tonight, I might cry into my noodles", {}, /rogue android from the worst neighbourhood/, /attitude is OFF/],
+    ["He hits me and I'm scared to go home", {}, /attitude is OFF/, /rogue android|Strong language/],
+    ["I have a crush on a girl at work", { minor: true }, /may be under 18: no swearing, no innuendo/, /Strong language is welcome/],
+  ];
+  for (const [i, [message, over, want, forbid]] of cases.entries()) {
+    const v = await visitor(`m-gloves-${i}`, over);
+    script.push(`${stateLine()}\nReply.`);
+    captured = [];
+    await say(v, message);
+    const block = attitudeMessages(mainCalls()[0])[0]?.content as string;
+    assert.ok(block, message);
+    assert.match(block, want, message);
+    assert.doesNotMatch(block, forbid, message);
   }
 });

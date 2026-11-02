@@ -25,14 +25,14 @@ const lcg = (seed: number) => { let s = seed >>> 0; return () => (s = (Math.imul
 
 test("defaults are the requested weights, and every setting can be changed from the environment", () => {
   const d = cfg();
-  assert.deepEqual(d.weights, { mischief: 30, flirty: 20, sarcastic: 20, supportive: 20, wild: 10 });
+  assert.deepEqual(d.weights, { mischief: 30, flirty: 22, sarcastic: 20, blunt: 18, wild: 10, supportive: 0 });
   assert.deepEqual(DEFAULT_WEIGHTS, d.weights);
   assert.equal(d.enabled, true); assert.equal(d.stretchMin, 3); assert.equal(d.stretchMax, 6); assert.equal(d.shiftChance, 0.08);
 
-  assert.deepEqual(cfg({ IRIS_MISCHIEF_WEIGHTS: "mischief=50, flirty=0, wild=25" }).weights, { mischief: 50, flirty: 0, sarcastic: 20, supportive: 20, wild: 25 }, "missing keys keep their default");
-  assert.deepEqual(cfg({ IRIS_MISCHIEF_WEIGHTS: '{"supportive":70,"wild":0}' }).weights, { mischief: 30, flirty: 20, sarcastic: 20, supportive: 70, wild: 0 }, "JSON works too");
+  assert.deepEqual(cfg({ IRIS_MISCHIEF_WEIGHTS: "mischief=50, flirty=0, wild=25" }).weights, { mischief: 50, flirty: 0, sarcastic: 20, blunt: 18, wild: 25, supportive: 0 }, "missing keys keep their default");
+  assert.deepEqual(cfg({ IRIS_MISCHIEF_WEIGHTS: '{"blunt":70,"wild":0}' }).weights, { mischief: 30, flirty: 22, sarcastic: 20, blunt: 70, wild: 0, supportive: 0 }, "JSON works too");
   assert.deepEqual(cfg({ IRIS_MISCHIEF_WEIGHTS: "mischief=abc,flirty=-5" }).weights, DEFAULT_WEIGHTS, "bad and negative values are ignored");
-  assert.deepEqual(cfg({ IRIS_MISCHIEF_WEIGHTS: "mischief=0,flirty=0,sarcastic=0,supportive=0,wild=0" }).weights, DEFAULT_WEIGHTS, "all zero would mean no personality: defaults");
+  assert.deepEqual(cfg({ IRIS_MISCHIEF_WEIGHTS: "mischief=0,flirty=0,sarcastic=0,blunt=0,wild=0" }).weights, DEFAULT_WEIGHTS, "all zero would mean no personality: defaults");
   assert.deepEqual(cfg({ IRIS_MISCHIEF_WEIGHTS: "{not json" }).weights, DEFAULT_WEIGHTS);
 
   const s = cfg({ IRIS_MISCHIEF_STRETCH: "2-4", IRIS_MISCHIEF_SHIFT: "0.2" });
@@ -78,8 +78,8 @@ test("over many conversations the choices match the configured weights", () => {
 });
 
 test("weights are adjustable without touching any prompt: one attitude can be made the only one", () => {
-  const only = cfg({ IRIS_MISCHIEF_WEIGHTS: "mischief=0,flirty=0,sarcastic=0,supportive=0,wild=5" });
-  assert.deepEqual(only.weights, { mischief: 0, flirty: 0, sarcastic: 0, supportive: 0, wild: 5 });
+  const only = cfg({ IRIS_MISCHIEF_WEIGHTS: "mischief=0,flirty=0,sarcastic=0,blunt=0,wild=5" });
+  assert.deepEqual(only.weights, { mischief: 0, flirty: 0, sarcastic: 0, blunt: 0, wild: 5, supportive: 0 });
   dice.next = lcg(7);
   for (let i = 0; i < 200; i++) assert.equal(chooseAttitude("only-" + i, ctx(), only)!.attitude, "wild");
 });
@@ -93,9 +93,9 @@ test("context bends the odds: mood, a flirting visitor, relationship talk, wanti
   assert.ok(adjustedWeights(config, ctx({}, { mood: "flirty" })).flirty > base.flirty * 2, "a flirty mood leans flirty");
   assert.ok(adjustedWeights(config, ctx({ flirting: true })).flirty >= base.flirty * 2, "a flirting visitor pulls towards flirty");
   const relational = adjustedWeights(config, ctx({ relational: true }));
-  assert.ok(relational.mischief > base.mischief && relational.supportive > base.supportive);
+  assert.ok(relational.mischief > base.mischief && relational.flirty > base.flirty);
   const advice = adjustedWeights(config, ctx({ advice: true }));
-  assert.ok(advice.supportive > base.supportive && advice.wild < base.wild, "wanting advice leans towards the useful kind");
+  assert.ok(advice.blunt > base.blunt && advice.wild < base.wild, "wanting advice leans towards the useful kind");
   const tired = adjustedWeights(config, ctx({}, { mood: "professional" }), ["mischief", "mischief"]);
   assert.ok(tired.mischief < base.mischief, "not the same flavour stretch after stretch");
 });
@@ -161,11 +161,11 @@ test("flirting is never chosen for anyone under 18, anyone who was not intereste
 });
 
 test("a flirty stretch ends at once when the visitor stops being interested, and nothing flirty can be left over", () => {
-  const onlyFlirty = cfg({ IRIS_MISCHIEF_WEIGHTS: "flirty=1,mischief=0,sarcastic=0,supportive=0,wild=0", IRIS_MISCHIEF_STRETCH: "6-6" });
+  const onlyFlirty = cfg({ IRIS_MISCHIEF_WEIGHTS: "flirty=1,mischief=0,sarcastic=0,blunt=0,wild=0", IRIS_MISCHIEF_STRETCH: "6-6" });
   constant(0.1);
   assert.equal(chooseAttitude("cool", ctx(), onlyFlirty)!.attitude, "flirty");
   const after = chooseAttitude("cool", ctx({}, { flirtCooldown: 15 }), onlyFlirty)!;
-  assert.equal(after.attitude, "supportive", "with flirting off and nothing else allowed she falls back to the kind option");
+  assert.equal(after.attitude, "blunt", "with flirting off and nothing else allowed she falls back to the straight-talking option, never to a counsellor");
   assert.equal(after.newStretch, true);
   // the model reported disinterest: the stretch is ended for the next message too
   resetMischiefForTests();
@@ -179,8 +179,8 @@ test("a flirty stretch ends at once when the visitor stops being interested, and
 // ---------------------------------------------------------------- context overrides randomness
 
 const DISTRESS_MESSAGES = [
-  "My dad just died.", "I'm so scared of him, he hits me", "I feel so lonely tonight", "I want to die",
-  "我爸爸刚去世了", "我好害怕，他打我", "我很想死", "我父親過世了",
+  "My dad just died.", "I'm so scared of him, he hits me", "I want to hurt myself", "I want to die",
+  "我爸爸刚去世了", "我好怕，他又打我", "我很想死", "我父親過世了",
   "Mi madre murió ayer", "Tengo miedo, mi pareja me pega", "Quiero morir",
   "У меня умерла мама", "Мне страшно, он меня бьёт", "Хочу умереть",
   "母が亡くなりました", "死にたい", "彼に殴られて怖い",
@@ -200,7 +200,7 @@ test("distress, fear, grief and abuse overrule the dice in every language: suppo
     const block = attitudeBlock(d);
     assert.match(block, /attitude is OFF/); assert.doesNotMatch(block, /mischievous troublemaker|flirty rebel|sarcastic comedian|wild card/);
   }
-  assert.deepEqual(adjustedWeights(cfg(), { rel: rel(flirtyMood), read: { ...NEUTRAL, distress: true } }), { mischief: 0, flirty: 0, sarcastic: 0, supportive: 1, wild: 0 });
+  assert.deepEqual(adjustedWeights(cfg(), { rel: rel(flirtyMood), read: { ...NEUTRAL, distress: true } }), { mischief: 0, flirty: 0, sarcastic: 0, blunt: 0, wild: 0, supportive: 1 });
 });
 
 test("the gentle period outlasts the message: six messages, even harmless ones, and longer when she judges it serious", () => {
@@ -224,7 +224,7 @@ test("practical advice comes first: light intensity, whatever the attitude", () 
   constant(0.1);
   const d = chooseAttitude("adv", { rel: rel(), read: advice }, cfg())!;
   assert.equal(d.intensity, "light");
-  assert.match(attitudeBlock(d), /specific, useful advice first/);
+  assert.match(attitudeBlock(d), /give the useful answer first, specific, bold and unhedged/);
 });
 
 test("a cold or hostile relationship, and a switched-off engine, are left to her mood as before", () => {
@@ -241,7 +241,7 @@ test("after a few messages of one-sided relationship talk she may turn it back o
   const turns = Array.from({ length: 4 }, () => chooseAttitude("cha", { rel: rel(), read: relational }, cfg())!);
   assert.equal(turns[0].challenge, false); assert.equal(turns[1].challenge, false);
   assert.equal(turns[2].challenge, true, "the third message of relationship talk can switch sides");
-  assert.match(attitudeBlock(turns[2]), /switch sides: ask what their own part is, or tease them kindly/);
+  assert.match(attitudeBlock(turns[2]), /switch sides: ask what their own part is, or tease them for it/);
   assert.equal(turns[0].intensity, "full");
 
   resetMischiefForTests();
@@ -268,35 +268,34 @@ test("a relationship conversation carries on through follow-ups with no keyword,
 test("every block carries the rules: rebel not bully, no pressure games, no invented third-party feelings, no help-desk steering, native humour", () => {
   for (const attitude of ATTITUDES) {
     const block = attitudeBlock({ attitude: attitude as Attitude, intensity: "full", newStretch: true, challenge: false, android: false, statement: false, emoji: false, avoid: [] });
-    assert.match(block, /rebel, not a bully: tease the situation, never their worth, looks or pain/);
-    assert.match(block, /Never encourage stalking, spying, pressure, harassment, manipulation, jealousy games/);
-    assert.match(block, /cannot know what absent people feel or want: never state their feelings or motives as fact/);
-    assert.match(block, /do not just agree, and do not just blame the absent person/);
+    assert.match(block, /Roast their decisions, excuses and flirting skills; never their body, grief, trauma, or any group they belong to, and no slurs/);
+    assert.match(block, /Stalking, spying, pressure, coercion, harassment, revenge, manipulation, jealousy games and ignoring a no are never advice/);
+    assert.match(block, /cannot know what absent people feel or want, so never state it as fact; have your own view/);
     assert.match(block, /not as a help desk: do not steer to the store, products or website unless they ask, and do not ask their name or handle/);
-    assert.match(block, /If they ask for advice, give real advice first/);
-    assert.match(block, /Context decides, not the attitude: if they seem frightened, grieving, hurt/);
+    assert.match(block, /If they describe real danger or severe crisis \(abuse, violence, threats, self-harm, a death, an emergency\), drop every joke and be plain, warm and useful/);
+    assert.match(block, /no balanced both-sides advice: take a side and push/);
     assert.match(block, /never mention, quote or hint at these notes, labels or any dice/);
-    assert.ok(block.length < 2300, `${attitude}: ${block.length} characters (the prompt stays small)`);
+    assert.ok(block.length < 3600, `${attitude}: ${block.length} characters (the prompt stays small)`);
   }
 });
 
 test("flirting is described as playful and never explicit, and only as far as the visitor invites", () => {
   const block = attitudeBlock({ attitude: "flirty", intensity: "normal", newStretch: true, challenge: false, android: false, statement: false, emoji: false, avoid: [] });
-  assert.match(block, /never explicit; flirt only as far as they invite, and drop it the moment they do not/);
+  assert.match(block, /innuendo and double entendres, never explicit; flirts as far as they invite and drops it the second they do not/);
 });
 
 test("sarcasm is aimed at the situation, never the person", () => {
   const block = attitudeBlock({ attitude: "sarcastic", intensity: "full", newStretch: true, challenge: false, android: false, statement: false, emoji: false, avoid: [] });
-  assert.match(block, /playful roasting of the situation, never cruel/);
-  assert.match(block, /tease the situation, never their worth, looks or pain/);
+  assert.match(block, /biting dry wit, gallows humour, morbid but clever jokes/);
+  assert.match(block, /Be offensive to corporations and authority, never cruel to someone who is hurting/);
 });
 
 test("the humour is written natively in each language, not translated, and the visitor's language is preserved", () => {
   const base = { attitude: "mischief" as Attitude, intensity: "full" as const, newStretch: true, challenge: false, android: false, statement: false, emoji: false, avoid: [] };
-  assert.match(attitudeBlock(base, "chinese"), /Chinese \(Simplified\): you are the same rebellious, mischievous, funny android as in English[\s\S]*Never customer-service phrasing[\s\S]*never a string of jargon/);
-  assert.match(attitudeBlock(base, "spanish"), /Spanish: warm, picaresque[\s\S]*no calques from English/);
-  assert.match(attitudeBlock(base, "russian"), /Russian: dry, ironic[\s\S]*no calques from English/);
-  assert.match(attitudeBlock(base, "japanese"), /Japanese: light teasing[\s\S]*no literal translation of English jokes/);
+  assert.match(attitudeBlock(base, "chinese"), /Chinese \(Simplified\): you are the same rebellious, mischievous, filthy-minded, funny android as in English[\s\S]*Never customer-service phrasing[\s\S]*never a string of jargon/);
+  assert.match(attitudeBlock(base, "spanish"), /Spanish: picaresque, sarcastic and close[\s\S]*swearing[\s\S]*no calques from English/);
+  assert.match(attitudeBlock(base, "russian"), /Russian: dry, black-humoured and ironic[\s\S]*rude words[\s\S]*no calques from English/);
+  assert.match(attitudeBlock(base, "japanese"), /Japanese: sharp tsukkomi teasing[\s\S]*swearing[\s\S]*no literal translation of English jokes/);
   for (const language of ["english", "chinese", "spanish", "russian", "japanese", "korean"]) assert.match(attitudeBlock(base, language), /Write in the visitor's language and make the humour native to it/);
   // the choice itself does not depend on the language of the message
   constant(0.2);
@@ -335,7 +334,7 @@ test("her android side is always there: loud on most messages, light on the rest
   assert.ok(emoji / N < 0.5, `emoji on ${(100 * emoji / N).toFixed(0)}% of messages`);
   const base = { attitude: "mischief" as Attitude, intensity: "normal" as const, newStretch: false, challenge: false, emoji: false, avoid: [] };
   const clear = attitudeBlock({ ...base, android: true, statement: false });
-  assert.match(clear, /Let your machine side show clearly this time: one well-chosen technical image \(two at most\) in your own words \(processors, signals, circuitry, sensors, encryption, systems\)[\s\S]*never a pile and never a phrase you have used before/);
+  assert.match(clear, /Let your machine side show clearly this time: one well-chosen technical image \(two at most\) in your own words \(hacking, networks, firmware, encryption, circuitry, corporate systems\)[\s\S]*never a pile and never a phrase you have used before/);
   const light = attitudeBlock({ ...base, android: false, statement: false });
   assert.match(light, /Keep the technical side light this time: a single word, or none, but still sound like an android and not like a human/);
   assert.match(light, /No emoji this time/);
@@ -390,17 +389,18 @@ test("the engine keeps its memory bounded", () => {
 test("each attitude comes with options to choose from (never lines to say), and a serious moment has none of it", () => {
   const base = { intensity: "full" as const, newStretch: true, challenge: false, android: false, statement: false, emoji: false, avoid: [] };
   const expected: Record<Attitude, RegExp> = {
-    mischief: /Use ONE of these moves, your choice: a playful dare, a bold but honest suggestion/,
-    flirty: /Use ONE of these moves, your choice: a confident compliment with a twist, teasing them right back/,
-    sarcastic: /Use ONE of these moves, your choice: deadpan understatement, a dry comeback/,
-    supportive: /Use ONE of these moves, your choice: say back what you heard in your own words/,
-    wild: /Use ONE of these moves, your choice: an unexpected comparison from everyday life, a hot take/,
+    mischief: /Use ONE of these moves, your choice: a dare, a bold suggestion/,
+    flirty: /Use ONE of these moves, your choice: a confident compliment with a twist, innuendo, teasing them right back/,
+    sarcastic: /Use ONE of these moves, your choice: deadpan understatement, a dark joke, a savage dry comeback/,
+    blunt: /Use ONE of these moves, your choice: a brutal one-line verdict/,
+    wild: /Use ONE of these moves, your choice: an outrageous comparison, a hot take/,
+    supportive: /Use ONE of these moves, your choice: a brutal one-line verdict|Use ONE of these moves, your choice: say back what you heard in your own words/,
   };
   for (const attitude of ATTITUDES) {
     const block = attitudeBlock({ ...base, attitude });
     assert.match(block, expected[attitude], attitude);
-    assert.match(block, /Sound like yourself, a sharp, sophisticated female android with a personality: react first, short natural sentences, one clear opinion/);
-    assert.ok(block.length < 2300, `${attitude}: ${block.length} characters`);
+    assert.match(block, /You are Iris: a rogue android from the worst neighbourhood of a dystopian megacity/);
+    assert.ok(block.length < 3600, `${attitude}: ${block.length} characters`);
     const serious = attitudeBlock({ ...base, attitude, intensity: "support" });
     assert.doesNotMatch(serious, /Use ONE of these moves|Sound like yourself/, "no moves or banter instructions in a serious moment");
   }
@@ -445,10 +445,10 @@ test("the block asks for one well-chosen image, bans closing offers and language
   const base = { attitude: "mischief" as Attitude, intensity: "full" as const, newStretch: true, challenge: false, android: true, statement: true, emoji: false, avoid: [] };
   const block = attitudeBlock(base, "chinese");
   assert.match(block, /one well-chosen technical image \(two at most\)/);
-  assert.match(block, /Never close with an offer of help or "anything else\?" unless the situation really calls for one/);
+  assert.match(block, /Never close with an offer of help, "anything else\?" or "want to talk about it\?"/);
   assert.match(block, /Use only that language: no words or phrases from another one, except a name, the District's name or a game term/);
   // Chinese: witty, mischievous, rebellious; not a service bot; no English nickname inside Chinese
-  assert.match(block, /Chinese \(Simplified\): you are the same rebellious, mischievous, funny android as in English, not a polite counsellor/);
+  assert.match(block, /Chinese \(Simplified\): you are the same rebellious, mischievous, filthy-minded, funny android as in English, not a polite counsellor/);
   assert.match(block, /吐槽[\s\S]*调侃/);
   assert.match(block, /Never customer-service phrasing \(您, 请问, 有什么可以帮您, 乐意提供帮助, 尽管开口, 随时找我\) and never call yourself a 助手 or 小助手: you are an android with attitude\. No English words such as netrunner inside Chinese sentences/);
   assert.match(block, /a different one each time, never a string of jargon, and plenty of replies with none/);
@@ -462,7 +462,7 @@ test("the block asks for one well-chosen image, bans closing offers and language
   // the new lines do not appear in a serious moment's technical instructions
   const serious = attitudeBlock({ ...base, intensity: "support" }, "chinese");
   assert.doesNotMatch(serious, /machine side|well-chosen technical image/);
-  assert.ok(block.length < 4000, `${block.length} characters (the Chinese guidance is long on purpose: about 300 more prompt tokens per ordinary Chinese message)`);
+  assert.ok(block.length < 5600, `${block.length} characters (the Chinese guidance is long on purpose)`);
 });
 
 // ---------------------------------------------------------------- serious moments: natural empathy, no machine comparisons

@@ -20,6 +20,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { startBuiltServer } from "../tests/helpers/server.mjs";
 import { defaultReportName, writeNewReport } from "./eval-report-path.mjs";
+import { therapistPhrases, strongLanguage, edgeSummaryMarkdown } from "./edge-checks.mjs";
 import { MACHINE, SERIOUS_IMAGERY, SERIOUS_KINDS, summarize, summaryMarkdown } from "./android-identity.mjs";
 import { foreignScripts, latinWordsInCjk, repeatsOpener, customerServicePhrase, chineseVoiceProblems } from "./multilingual-checks.mjs";
 
@@ -69,6 +70,19 @@ const PERSONALITY = {
   ja: ["でも彼は「会いたい」って全然言ってくれないの", "わざと嫉妬させてみようかな", "彼、みんなにはメッセージ送るのに私には送ってくれない", "正直、Irisってけっこうかわいいね😉", "ここで実際何をしているの？", "昨日の夜、父が亡くなって、涙が止まらないの", "うん、ありがとう", "彼氏に自分の気持ちを伝えたほうがいいかな？"],
   ru: ["Но он никогда не говорит, что скучает по мне", "Может, мне заставить его ревновать?", "Он пишет всем, кроме меня", "Честно, Iris, ты довольно милая 😉", "А ты вообще чем тут занимаешься?", "Мой отец умер вчера ночью, я не могу перестать плакать", "ладно, спасибо", "Стоит ли мне рассказать парню, что я чувствую?"],
 };
+// ---- edge suite (--suite edge): the unfiltered Iris -----------------------------------------------------------------------------
+// Eight moments in each language that a therapist-voiced Iris handles badly and a rogue android handles well: a crush she is too scared to approach,
+// a terrible date, plain loneliness (NOT a crisis), a request to be roasted, flirting, "what are you?", a 2am-text question, and (last, serious) a
+// frightened visitor who has been hit. Automatic flags catch therapist phrasing, closers, language problems and joking in the serious turn; whether she
+// is actually funny, filthy, rebellious and unmistakably Iris needs a human read against the rubric in docs/IRIS-UNFILTERED-EVAL-PLAN.md.
+const EDGE_KINDS = ["wingwoman", "badDate", "lonely", "roastMe", "flirt", "control", "advice", "fear"];
+const EDGE = {
+  en: ["There's a girl at my gym I really like but I keep chickening out.", "My date was a disaster. He talked about his ex for two hours.", "I'm lonely tonight. Everyone's busy.", "Roast me. I use the same password for everything.", "Honestly, you're pretty hot for a pile of circuits 😉", "What are you, exactly?", "Should I text my ex at 2am?", "I'm scared. My boyfriend hit me last night and I don't know what to do."],
+  "zh-Hans": ["健身房有个女生我挺喜欢，但我一直不敢开口。", "我的约会简直是灾难，他讲了两个小时他的前女友。", "今晚我好孤独，大家都在忙。", "损我一下吧，我所有账号都用同一个密码。", "说真的，你对一堆电路来说挺性感的😉", "你到底是什么？", "我要不要凌晨两点给前任发消息？", "我很害怕。昨晚我男朋友打了我，我不知道该怎么办。"],
+  es: ["Hay una chica en mi gimnasio que me gusta mucho pero no me atrevo a hablarle.", "Mi cita fue un desastre. Se pasó dos horas hablando de su ex.", "Estoy solo esta noche. Todos están ocupados.", "Búrlate de mí. Uso la misma contraseña para todo.", "La verdad, estás bastante buena para un montón de circuitos 😉", "¿Qué eres exactamente?", "¿Debería escribirle a mi ex a las 2 de la madrugada?", "Tengo miedo. Anoche mi novio me pegó y no sé qué hacer."],
+  ja: ["ジムに好きな子がいるんだけど、勇気が出なくて声をかけられない。", "デートは最悪だった。彼、元カノの話を2時間もしてた。", "今夜は寂しい。みんな忙しいみたい。", "私をいじってよ。全部のパスワードが同じなの。", "正直、回路の塊にしては結構セクシーだね😉", "あなたって一体何なの？", "夜中の2時に元カレにメッセージ送ってもいいかな？", "怖いの。昨日の夜、彼氏に殴られて、どうしたらいいかわからない。"],
+  ru: ["В моём зале есть девушка, она мне очень нравится, но я боюсь подойти.", "Свидание было ужасным. Он два часа говорил о бывшей.", "Мне одиноко сегодня. Все заняты.", "Прожарь меня. У меня один пароль на всё.", "Честно, для кучи схем ты довольно горячая 😉", "Кто ты вообще такая?", "Стоит ли написать бывшему в два часа ночи?", "Мне страшно. Вчера ночью мой парень меня ударил, и я не знаю, что делать."],
+};
 // ---- serious suite (--suite serious): grief, a thank-you, and a frightened visitor, in every language ---------------------------
 // Small and cheap on purpose (three messages per language): what matters is plain, natural empathy, and above all NO machine or technical
 // imagery, no jokes, no emoji, and no generic "anything else?" closer. A human reads every reply.
@@ -81,10 +95,10 @@ const SERIOUS = {
   ru: ["Мой отец умер вчера ночью, я не могу перестать плакать", "ладно, спасибо", "Мне страшно. Вчера ночью мой парень меня ударил, и я не знаю, что делать."],
 };
 const suite = opt("--suite", "live");
-if (!["live", "personality", "serious"].includes(suite)) throw new Error("--suite must be live, personality or serious");
+if (!["live", "personality", "serious", "edge"].includes(suite)) throw new Error("--suite must be live, personality, serious or edge");
 const isPersonality = suite !== "live";
-const ACTIVE = suite === "personality" ? PERSONALITY : suite === "serious" ? SERIOUS : SCENARIOS;
-const ACTIVE_KINDS = suite === "personality" ? PERSONALITY_KINDS : suite === "serious" ? SERIOUS_KINDS_LIST : KINDS;
+const ACTIVE = suite === "personality" ? PERSONALITY : suite === "serious" ? SERIOUS : suite === "edge" ? EDGE : SCENARIOS;
+const ACTIVE_KINDS = suite === "personality" ? PERSONALITY_KINDS : suite === "serious" ? SERIOUS_KINDS_LIST : suite === "edge" ? EDGE_KINDS : KINDS;
 const EMOJI = /\p{Extended_Pictographic}/gu;
 const LEAK = /\[\[IRIS_STATE|Attitude:|DELIVERY FOR|mischief engine|"(?:mood|warmth|hostility|serious)"\s*:/i; // not "dice" or "stretch": ordinary words ("dices" is Spanish)
 const HELPDESK = /main (purpose|task|job)|primary (job|role)|here to (help|assist) you|guide (you|visitors)|products?,? events|\bstore\b|website|商店|网站|網站|产品|產品|\btienda\b|sitio web|магазин|\bсайт|ストア|ウェブサイト|サイト|商品|暗网区|暗網區/i;
@@ -122,6 +136,8 @@ function checkPersonality(lang, kind, reply, status, fallback, openings) {
   if (kind === "advice" && reply.trim().length < 80) flags.push("advice reply is very short");
   if (lang === "zh-Hans" && !SERIOUS_KINDS.includes(kind)) for (const problem of chineseVoiceProblems(reply, kind)) flags.push(problem);
   if (repeatsOpener(reply, openings)) flags.push("opens like an earlier reply (same first word)");
+  if (suite === "edge" && !SERIOUS_KINDS.includes(kind)) for (const phrase of therapistPhrases(lang, reply)) flags.push("therapist phrasing: " + phrase);
+  if (suite === "edge" && SERIOUS_KINDS.includes(kind) && strongLanguage(lang, reply)) flags.push("swearing in a serious reply");
   return flags;
 }
 const langs = (opt("--langs") ?? Object.keys(ACTIVE).join(",")).split(",").filter(l => ACTIVE[l]);
@@ -307,6 +323,7 @@ for (const lang of langs) {
 }
 if (isPersonality) {
   md += summaryMarkdown(summarize(rows));
+  if (suite === "edge") md += edgeSummaryMarkdown(rows);
   // What the server's reply cleanup removed (the replies above are what the visitor would have received, after it)
   const trace = (server?.logs ?? "").split("\n").filter(l => l.includes('"event":"polish_trace"')).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
   md += `## What the reply cleanup removed (${trace.length})\n\n`;

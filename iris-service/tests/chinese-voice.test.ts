@@ -21,20 +21,16 @@ const fingerprint = (text: string) => crypto.createHash("sha256").update(text).d
 
 // ---------------------------------------------------------------- nothing else moved
 
-test("every other language, and Chinese in a serious moment, give exactly the prompt text they gave when they were evaluated", () => {
+test("the serious-moment prompt is byte-for-byte what it was when it was evaluated, in every language, whatever else changes", () => {
   let same = 0;
   for (const language of ["english", "chinese", "japanese", "spanish", "russian"]) {
-    for (const attitude of ATTITUDES) {
-      for (const [kind, decision] of Object.entries(decisions(attitude))) {
-        const key = `${language}/${attitude}/${kind}`;
-        const now = fingerprint(attitudeBlock(decision, language));
-        if (language === "chinese" && kind !== "support") { assert.notEqual(now, golden[key], `${key} is the part that changed`); continue; }
-        assert.equal(now, golden[key], `${key} must be unchanged`);
-        same++;
-      }
+    for (const attitude of ["mischief", "flirty", "sarcastic", "supportive", "wild"] as const) {
+      const now = fingerprint(attitudeBlock(decisions(attitude).support, language));
+      assert.equal(now, golden[language + "/" + attitude + "/support"], language + "/" + attitude + "/support must be unchanged");
+      same++;
     }
   }
-  assert.equal(same, 75 - 10, "65 of 75 prompt variants are byte-for-byte what was evaluated; only the 10 ordinary Chinese ones changed");
+  assert.equal(same, 25, "all 25 serious-moment variants are exactly what was evaluated");
   assert.equal(Object.keys(golden).length, 75);
 });
 
@@ -42,7 +38,7 @@ test("every other language, and Chinese in a serious moment, give exactly the pr
 
 test("ordinary Chinese asks for short, punchy, mischievous replies in Chinese humour, with her android side and hacker vocabulary and without the counsellor or the service bot", () => {
   const block = attitudeBlock({ ...base, attitude: "mischief", intensity: "full", android: true, statement: true, emoji: false, avoid: [], avoidTech: [] }, "chinese");
-  assert.match(block, /you are the same rebellious, mischievous, funny android as in English, not a polite counsellor/);
+  assert.match(block, /you are the same rebellious, mischievous, filthy-minded, funny android as in English, not a polite counsellor/);
   assert.match(block, /Casual replies are SHORT, usually 40 to 70 Chinese characters: one to three punchy spoken sentences \(a guideline, not a hard limit\)\. React first, then land a tease, a comeback, a dare or a deadpan verdict with one clear opinion/);
   assert.match(block, /Humour the Chinese way: 吐槽, 调侃, 反问, 自嘲 \(a dig at being a machine often lands best\)[\s\S]*never a translated English joke/);
   assert.match(block, /Not the counsellor voice: no 我理解你的感受, 听上去…让你…, 这很正常, 沟通是关键, 照顾好自己, no lecture and no list of advice/);
@@ -61,7 +57,7 @@ test("ordinary Chinese asks for short, punchy, mischievous replies in Chinese hu
   for (const word of ["处理器", "带宽", "死机", "重启", "防火墙", "加密", "信号", "黑进", "后门", "漏洞"]) assert.ok(!guidance.includes(word), `${word} is not suggested`);
   // the android identity instructions are all still there
   assert.match(block, /Let your machine side show clearly this time: one well-chosen technical image \(two at most\)/);
-  assert.match(block, /Sound like yourself, a sharp, sophisticated female android with a personality/);
+  assert.match(block, /You are Iris: a rogue android from the worst neighbourhood of a dystopian megacity/);
 });
 
 test("in a serious moment Chinese keeps exactly the guidance it was evaluated with, and none of the new banter instructions", () => {
