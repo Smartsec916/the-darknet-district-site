@@ -80,6 +80,10 @@ restores a saved sign-in a moment after the page loads, so:
     clientId: clientId,
     // The administrator's current Iris mode ('owner', 'new', 'returning'), or null for everyone else
     mode: null,
+    // True on a page that carries the chat but not the account button (everything except the homepage, see iris-widget.js):
+    // nothing there can supply a sign-in token, so the chat goes out as this browser's returning-visitor id and nothing else.
+    // It neither waits for a sign-in that cannot arrive nor sends the signed-in marker the server would refuse.
+    anonymousPage: false,
     setMode: function (mode) { this.mode = mode || null; },
     // provider(forceRefresh) returns the current sign-in token (a fresh one when forceRefresh is true)
     setTokenProvider: function (provider) { tokenProvider = typeof provider === 'function' ? provider : null; },
@@ -91,6 +95,7 @@ restores a saved sign-in a moment after the page loads, so:
 
     // The headers for a chat request. Never throws: a token problem means "no token", and the server decides.
     authHeaders: function (forceRefresh) {
+      if (this.anonymousPage) return Promise.resolve({});
       var wait = !tokenProvider && readHint() && !ready ? whenReady(WAIT_MS) : Promise.resolve();
       return wait.then(function () {
         var expectsSignIn = readHint();
