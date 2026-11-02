@@ -59,3 +59,21 @@ Transcript, unedited: [IRIS-LIVE-MODEL-EVAL-RAW-2026-11-02T03-44-04Z-ja.md](IRIS
 3. **Register**: weather and follow-up replies use casual "〜だよ" while other replies use "〜です"; not wrong, just uneven (Priority 3).
 
 Everything else in ja is unchanged from the earlier run and fine: Portland, Atlantis, London time, quakes (M2.5 Gilroy, M4.5 Yilan, magnitudes match USGS), the Apple question.
+
+## Re-check after PR #161 (production `e66cb66`), zh-Hant and ja
+
+Transcript, unedited: [IRIS-LIVE-MODEL-EVAL-RAW-2026-11-02T04-08-11Z-zh-Hant+ja.md](IRIS-LIVE-MODEL-EVAL-RAW-2026-11-02T04-08-11Z-zh-Hant+ja.md). 20 replies, $0.224, isolated as before.
+
+**Fixed (verified against the real model)**
+- **Emergency, zh-Hant and ja**: all six steps in order, including the coast step, the same number list in both languages (911, 112, 999, and 119 fire/ambulance with 110 police for Japan, no single number chosen from the language), and the closing question about the visitor's city and country.
+- **zh-Hant script**: every reply is in Traditional characters.
+- **Failed-call replies**: no failed call happened in this run, so the localized apologies are covered by tests only.
+
+**Still wrong**
+1. **ja news was the replaced fallback again** (Japanese header over three English headlines). The earlier run, after the number-word fix, passed. So the fix helps but something else in the model's Japanese reply still trips the number check in some runs. The harness records only the final reply, so I cannot say what. Needed: save the model's reply before the check changes it.
+2. **zh-Hant news blends two sources**: it credits the $6.3 billion theft and the FBI finding to BBC News, but those come from BleepingComputer (BBC carries the $3.6 billion withdrawal story). No dates given. One reply of ten.
+3. **zh-Hant weather volunteers a guess about air quality** ("I could not get data, but it probably is not bad enough to make breathing hard"). The instruction says never to guess air quality.
+4. **zh-Hant quakes**: "the closest to Sacramento is Gilroy" is not in the data (the question was worldwide).
+5. **Both languages' greeting replies ask the visitor for a name or handle**, unprompted (personality, Priority 3, untouched).
+
+False positives: the Apple flag (nothing recent found, so no outlet), and the ja greeting flag ("latest news" mentioned as a site feature).
