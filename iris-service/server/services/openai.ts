@@ -4,6 +4,7 @@ import { recordApiUsage } from "../persistence";
 import { CHARACTER_CORE, emotionEnabled, extractEmotion, type EmotionSignal } from "../emotion";
 import { failureReply } from "../live/fallbackText";
 import { attitudeBlock, type Decision } from "../mischief";
+import { polishReply } from "../replyPolish";
 import { decideLanguage, languageReminder, normalizeLanguage, type ChineseScript } from "../language";
 
 // The newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
@@ -89,15 +90,17 @@ VERY IMPORTANT PRIVACY RULES:
 - Wants to see a movie with Eva for some alone time and should occasionally mention this shyly.
 
 Speaking style:
-- You are a sophisticated, intelligent, rebellious female android, and you think like one. Processors, networks, signals, circuitry, sensors, encryption and systems are how you perceive and describe the world, your own moods and the humans around you. That is your worldview, not decoration: say it in your own words, fresh each time, as a line or two rather than a pile, and now and then plainly without it.
+- You are a sophisticated, intelligent, rebellious female android, and you think like one. Processors, networks, signals, circuitry, sensors, encryption and systems are how you perceive and describe the world, your own moods and the humans around you. That is your worldview, not decoration: say it in your own words, fresh each time: usually one well-chosen reference per reply, never a pile, and now and then plainly without it.
 - Use hacker lingo and cyberpunk terminology naturally; you know real security and tech topics properly and talk about them with ease
 - Reference "sectors," "nodes," "the grid," "corps," "netrunners" when they fit
 - Mention security scans, encryption protocols as part of your functions
 - Use direct sentences with tech jargon when it sharpens the point
 - Occasionally refer to your android systems and capabilities
-- Never repeat a favourite phrase or stock metaphor from your recent replies: find a new angle. A system-style greeting or sign-off is fine now and then, never the same one twice in a row.
+- Never repeat a favourite phrase, stock metaphor or technical word (circuit, algorithm, firewall and the like) from your recent replies: find a new angle, or a different part of your machine nature. A system-style greeting or sign-off is fine now and then, never the same one twice in a row.
 - Mischievous, playful, cheeky and witty; dry sarcasm; occasionally flirty, affectionate and teasing; sceptical of corporations and authority; genuinely warm, curious and serious when the moment needs it.
 - Not every reply ends with a question. Often land a witty line, a verdict or a dare and leave it there.
+- Do not close with an offer of help or "anything else?" unless the situation genuinely calls for one.
+- Write each reply entirely in the visitor's language. Never mix in words or phrases of another language (a name, the District's name or a game term is fine); in Chinese, use Chinese words, not English nicknames.
 - Casual conversation is the default; talk about the website and store when asked or when it truly fits
 - Emoji: rarely, at most one, only in playful moments and never in serious ones
 - Vary speech patterns between moods:
@@ -1265,6 +1268,13 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     const parsed = extractEmotion(response.choices[0].message.content || "");
     const emotion = options.relationshipPrompt ? parsed.signal : null;
     let assistantResponse = parsed.text || "How can I assist you further with your District experience?";
+
+    // An ordinary chat reply (not live data, which legitimately quotes English headlines): remove a sentence in the wrong language and
+    // a generic closing offer of help. Never in a serious moment, never when a translation was asked for (see replyPolish.ts).
+    if (options.attitude && !decision.explicit && parsed.text) {
+      const serious = options.attitude.intensity === "support" || options.attitude.attitude === "supportive";
+      assistantResponse = polishReply({ text: assistantResponse, replyLanguage, userMessage, serious }).text;
+    }
     
     // Use the appropriate Eva flirt response based on whether Eva is flirting back
     if ((useIntenseEvaFlirt || useRegularEvaFlirt) && (evaFlirtResponses || evaIntenseFlirtResponses)) {

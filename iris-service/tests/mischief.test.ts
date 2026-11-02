@@ -293,7 +293,7 @@ test("sarcasm is aimed at the situation, never the person", () => {
 
 test("the humour is written natively in each language, not translated, and the visitor's language is preserved", () => {
   const base = { attitude: "mischief" as Attitude, intensity: "full" as const, newStretch: true, challenge: false, android: false, statement: false, emoji: false, avoid: [] };
-  assert.match(attitudeBlock(base, "chinese"), /Chinese: spoken, quick and teasing[\s\S]*not translated English jokes/);
+  assert.match(attitudeBlock(base, "chinese"), /Chinese \(Simplified\): a witty, mischievous, rebellious android who talks like a sharp friend, not a service bot[\s\S]*Never customer-service phrasing[\s\S]*not translated English jokes/);
   assert.match(attitudeBlock(base, "spanish"), /Spanish: warm, picaresque[\s\S]*no calques from English/);
   assert.match(attitudeBlock(base, "russian"), /Russian: dry, ironic[\s\S]*no calques from English/);
   assert.match(attitudeBlock(base, "japanese"), /Japanese: light teasing[\s\S]*no literal translation of English jokes/);
@@ -335,7 +335,7 @@ test("her android side is always there: loud on most messages, light on the rest
   assert.ok(emoji / N < 0.5, `emoji on ${(100 * emoji / N).toFixed(0)}% of messages`);
   const base = { attitude: "mischief" as Attitude, intensity: "normal" as const, newStretch: false, challenge: false, emoji: false, avoid: [] };
   const clear = attitudeBlock({ ...base, android: true, statement: false });
-  assert.match(clear, /Let your machine side show clearly this time: one or two fresh technical images in your own words \(processors, signals, circuitry, sensors, encryption, systems\)[\s\S]*never a pile and never a phrase you have used before/);
+  assert.match(clear, /Let your machine side show clearly this time: one well-chosen technical image \(two at most\) in your own words \(processors, signals, circuitry, sensors, encryption, systems\)[\s\S]*never a pile and never a phrase you have used before/);
   const light = attitudeBlock({ ...base, android: false, statement: false });
   assert.match(light, /Keep the technical side light this time: a single word, or none, but still sound like an android and not like a human/);
   assert.match(light, /No emoji this time/);
@@ -374,8 +374,8 @@ test("how her last replies began is remembered, so she does not begin the same w
   chooseAttitude("open", ctx(), cfg());
   for (const reply of ["Well then, he never says he misses you?", "Interesting. Very interesting.", "Wait a minute, troublemaker.", "Hold on, hacking Cupid.", "Aha, jealousy. Humanity's favourite bug.", "Ok."]) noteReply("open", reply, null);
   const d = chooseAttitude("open", ctx(), cfg())!;
-  assert.deepEqual(d.avoid, ["Interesting", "Wait a minute", "Hold on", "Aha"], "the earliest is forgotten, and a two-letter opening is too short to count");
-  assert.match(attitudeBlock(d), /Do not begin like your recent replies \("Interesting", "Wait a minute", "Hold on", "Aha"\) and do not reuse their jokes or phrases/);
+  assert.deepEqual(d.avoid, ["Wait a minute", "Hold on", "Aha", "Ok"], "the earliest are forgotten, and short openings like Aha and Ok count");
+  assert.match(attitudeBlock(d), /Do not begin like your recent replies \("Wait a minute", "Hold on", "Aha", "Ok"\) and do not reuse their jokes or phrases/);
   noteReply("never-seen-chat", "Hello.", null); // a chat the engine has not met: nothing happens
 });
 
@@ -406,4 +406,58 @@ test("each attitude comes with options to choose from (never lines to say), and 
   }
   // none of the wording is a ready-made line
   for (const text of Object.values(expected).map(r => r.source)) assert.doesNotMatch(text, /["“”]/);
+});
+
+// ---------------------------------------------------------------- recent technical words, short openings
+
+test("the technical words she used in her last two replies are handed back as 'reach for different ones'", () => {
+  constant(0.5);
+  chooseAttitude("tech", ctx(), cfg());
+  noteReply("tech", "Jealousy short-circuits the whole system. Skip it.", null);
+  noteReply("tech", "Sounds like a bad algorithm. Ask him straight.", null);
+  const d = chooseAttitude("tech", ctx(), cfg())!;
+  assert.deepEqual(d.avoidTech, ["circuit", "system", "algorithm"]);
+  assert.match(attitudeBlock(d), /Technical images you used lately \(circuit, system, algorithm\): reach for different ones/);
+  // a third reply with none pushes the oldest out, and plain replies leave nothing to avoid
+  noteReply("tech", "Plain and honest advice, no machines at all.", null);
+  assert.deepEqual(chooseAttitude("tech", ctx(), cfg())!.avoidTech, ["algorithm"]);
+  noteReply("tech", "Also plain.", null);
+  assert.deepEqual(chooseAttitude("tech", ctx(), cfg())!.avoidTech, []);
+  assert.doesNotMatch(attitudeBlock(chooseAttitude("tech", ctx(), cfg())!), /Technical images you used lately/);
+  // other languages are remembered too
+  chooseAttitude("tech-zh", ctx(), cfg());
+  noteReply("tech-zh", "他的数据流断了，电路也烧了。", null);
+  assert.deepEqual(chooseAttitude("tech-zh", ctx(), cfg())!.avoidTech, ["数据流", "电路"]);
+});
+
+test("short openings count: 'Ah', 'Ok', and a single Chinese interjection are remembered so they are not recycled", () => {
+  constant(0.5);
+  chooseAttitude("short", ctx(), cfg());
+  for (const reply of ["Ah, the classic.", "Ah, the old trick.", "唉，这还真是个谜题。", "啧，他的程序没更新。"]) noteReply("short", reply, null);
+  const d = chooseAttitude("short", ctx(), cfg())!;
+  assert.deepEqual(d.avoid, ["Ah", "Ah", "唉", "啧"]);
+  assert.match(attitudeBlock(d), /Do not begin like your recent replies \("Ah", "Ah", "唉", "啧"\)/);
+  noteReply("short", "A", null); // a single Latin letter is not an opening
+  assert.deepEqual(chooseAttitude("short", ctx(), cfg())!.avoid, ["Ah", "Ah", "唉", "啧"]);
+});
+
+test("the block asks for one well-chosen image, bans closing offers and language mixing, and gives Chinese a voice of its own", () => {
+  const base = { attitude: "mischief" as Attitude, intensity: "full" as const, newStretch: true, challenge: false, android: true, statement: true, emoji: false, avoid: [] };
+  const block = attitudeBlock(base, "chinese");
+  assert.match(block, /one well-chosen technical image \(two at most\)/);
+  assert.match(block, /Never close with an offer of help or "anything else\?" unless the situation really calls for one/);
+  assert.match(block, /Use only that language: no words or phrases from another one, except a name, the District's name or a game term/);
+  // Chinese: witty, mischievous, rebellious; not a service bot; no English nickname inside Chinese
+  assert.match(block, /Chinese \(Simplified\): a witty, mischievous, rebellious android who talks like a sharp friend, not a service bot/);
+  assert.match(block, /吐槽[\s\S]*调侃/);
+  assert.match(block, /Never customer-service phrasing \(您, 请问, 有什么可以帮您, 希望对你有帮助, 随时找我\), and no English words such as netrunner inside Chinese sentences/);
+  assert.match(block, /Machine humour should sound like Chinese humour/);
+  assert.match(block, /always a fresh one, not 唉 every time/);
+  // her android identity is not weakened to make room: the clear-machine line is still there and still names the machine world
+  assert.match(block, /Let your machine side show clearly this time/);
+  assert.match(block, /processors, signals, circuitry, sensors, encryption, systems/);
+  // the new lines do not appear in a serious moment's technical instructions
+  const serious = attitudeBlock({ ...base, intensity: "support" }, "chinese");
+  assert.doesNotMatch(serious, /machine side|well-chosen technical image/);
+  assert.ok(block.length < 3000, `${block.length} characters`);
 });

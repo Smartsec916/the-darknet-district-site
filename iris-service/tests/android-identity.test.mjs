@@ -68,3 +68,30 @@ test("it tells the metaphor-heavy transcript from the plain one", () => {
   assert.ok(heavy.withMachine >= 4 && heavy.hits >= 10, `heavy: ${heavy.withMachine} replies, ${heavy.hits} words`);
   assert.ok(plain.withMachine <= 2 && plain.hits <= 3, `plain: ${plain.withMachine} replies, ${plain.hits} words`);
 });
+
+// The server remembers which technical words she used lately using its own copy of the word list; it must be the same list the evaluation measures.
+test("the server's technical-word list is identical to the one the evaluation measures with", async () => {
+  const { MACHINE_WORDS, technicalWords } = await import("../server/machineWords.ts");
+  assert.equal(MACHINE_WORDS.source, MACHINE.source);
+  assert.equal(MACHINE_WORDS.flags, MACHINE.flags);
+  assert.deepEqual(technicalWords("Jealousy short-circuits the whole system, and my sensors agree. Circuits again."), ["circuit", "system", "sensor"]);
+  assert.deepEqual(technicalWords("他的数据流断了，电路也烧了。"), ["数据流", "电路"]);
+  assert.deepEqual(technicalWords("Honestly, tell him. It beats guessing."), []);
+  assert.deepEqual(technicalWords(""), []);
+});
+
+test("the summary reports recycled favourites and replies that stack different images", () => {
+  const rows = [
+    { lang: "en", kind: "missYou", reply: "My circuits tingle. Cute." },
+    { lang: "en", kind: "jealous", reply: "Short-circuits the whole system, that plan." },
+    { lang: "en", kind: "textsEveryone", reply: "A glitchy circuit in his protocol, probably." },
+    { lang: "en", kind: "flirt", reply: "Careful, or my circuits blush." },
+    { lang: "en", kind: "advice", reply: "Tell him. Plain and simple." },
+  ];
+  const s = summarize(rows).en;
+  assert.deepEqual(s.recycled, ["circuit (4)"], "circuit appears in four replies");
+  assert.equal(s.stacked2, 2, "two replies carry two or more different words (circuit+system, circuit+protocol)");
+  const md = summaryMarkdown({ en: s });
+  assert.match(md, /Recycled words \(3\+ replies\)/); assert.match(md, /circuit \(4\)/);
+  assert.equal(summarize([{ lang: "es", kind: "missYou", reply: "Sin máquinas." }]).es.recycled.length, 0);
+});

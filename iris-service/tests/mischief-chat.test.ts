@@ -126,7 +126,7 @@ test("a realistic conversation: banter, a playful challenge, then a real loss, t
 
 test("the visitor's own language is preserved and the humour is asked to be native (Chinese, Spanish, Russian)", async () => {
   const cases: Array<[string, RegExp]> = [
-    ["但是他从来不说想我", /Chinese: spoken, quick and teasing/],
+    ["但是他从来不说想我", /Chinese \(Simplified\): a witty, mischievous, rebellious android/],
     ["Mi novio nunca me dice que me extraña", /Spanish: warm, picaresque/],
     ["Мой парень никогда не говорит, что скучает", /Russian: dry, ironic/],
   ];
@@ -172,7 +172,7 @@ test("the permanent style makes her an android with a machine worldview, varied,
   for (const kept of [
     "sophisticated, intelligent, rebellious female android, and you think like one", "Processors, networks, signals, circuitry, sensors, encryption and systems", "That is your worldview, not decoration",
     "Use hacker lingo and cyberpunk terminology naturally", "Reference \"sectors,\" \"nodes,\" \"the grid,\" \"corps,\" \"netrunners\"", "Mention security scans, encryption protocols as part of your functions",
-    "Occasionally refer to your android systems and capabilities", "Never repeat a favourite phrase or stock metaphor from your recent replies", "Not every reply ends with a question",
+    "Occasionally refer to your android systems and capabilities", "Never repeat a favourite phrase, stock metaphor or technical word (circuit, algorithm, firewall and the like)", "usually one well-chosen reference per reply", "Do not close with an offer of help or \"anything else?\"", "Write each reply entirely in the visitor's language", "Not every reply ends with a question",
     "Mischievous, playful, cheeky and witty; dry sarcasm; occasionally flirty, affectionate and teasing; sceptical of corporations and authority", "tech-flavoured double entendres; innuendo at most, never explicit",
     "Use a wide range of cyberpunk vocabulary, expressions, and references, fresh each time", "Create unique metaphors comparing digital concepts to physical experiences, new ones each time", "Often end on a witty statement instead of a question",
     "Refer to website visitors as \"netrunners,\" \"users,\" or \"operatives\"", "Occasionally use unique", "skeptical of corporate messaging and official claims, but never invent a conspiracy",
@@ -292,4 +292,51 @@ test("a state object the model wrote without its marker never reaches the visito
   script.push(`${stateLine()}\nOk.`);
   await say(v, "hmm, what now");
   assert.match(attitudeMessages(mainCalls()[1])[0].content, /attitude is OFF/, "and the following message is still gentle");
+});
+
+// ---------------------------------------------------------------- what the visitor receives: language mixing and closing offers
+
+test("a sentence in the wrong language never reaches the visitor or the stored log (a Chinese tail on a Japanese reply)", async () => {
+  const v = await visitor("m-mix");
+  mischief.dice.next = () => 0.5;
+  script.push(`${stateLine()}\nあー、それは信号が弱いかもね。どう感じてる？你觉得怎么対吗？`);
+  const body = await say(v, "彼氏が全然会いたいって言ってくれない");
+  assert.equal(body.response, "あー、それは信号が弱いかもね。どう感じてる？");
+  const rows = (await dbQuery(`SELECT message FROM chat_messages WHERE session_id = $1 AND sender = 'iris'`, [v.sessionId])).rows as any[];
+  assert.deepEqual(rows.map(r => r.message), ["あー、それは信号が弱いかもね。どう感じてる？"], "stored as shown");
+});
+
+test("a generic closing offer is removed from ordinary banter, but kept when it is the answer, in grief, in a translation, off-switch, and live data", async () => {
+  mischief.dice.next = () => 0.5;
+  const reply = (text: string) => `${stateLine()}\n${text}`;
+  const offer = "Bold plan. Tell him straight. Anything else on your radar that needs decoding?";
+
+  const banter = await visitor("m-offer-1");
+  script.push(reply(offer));
+  assert.equal((await say(banter, "But he never says he misses me.")).response, "Bold plan. Tell him straight.");
+
+  const role = await visitor("m-offer-2");
+  script.push(reply("I run the floor here. Ask me anything about the District. Anything else you want to know?"));
+  assert.match((await say(role, "What do you actually do around here?")).response, /Anything else you want to know\?$/, "she was asked what she does");
+
+  const grief = await visitor("m-offer-3");
+  script.push(reply("I'm so sorry about your dad. I'm here if you want to talk."));
+  assert.equal((await say(grief, "My dad passed away last night and I can't stop crying.")).response, "I'm so sorry about your dad. I'm here if you want to talk.");
+
+  const translate = await visitor("m-offer-4");
+  script.push(reply("Good morning in Chinese is 早上好. Feel free to ask me more phrases."));
+  const translated = (await say(translate, "Please translate 'good morning' into Chinese")).response;
+  assert.match(translated, /早上好/, "a requested translation keeps its Chinese");
+  assert.match(translated, /Feel free to ask me more phrases\.$/, "and nothing is trimmed from it");
+
+  process.env.IRIS_MISCHIEF = "off";
+  const off = await visitor("m-offer-5");
+  script.push(reply(offer));
+  assert.equal((await say(off, "But he never says he misses me.")).response, offer, "with the engine off the reply is exactly what the model wrote");
+  delete process.env.IRIS_MISCHIEF;
+
+  const live = await visitor("m-offer-6");
+  net.fetch = async () => new Response("down", { status: 500 });
+  script.push(reply("Can't reach it right now. Anything else I can help with?"));
+  assert.equal((await say(live, "What's the weather in Sacramento right now?")).response, "Can't reach it right now. Anything else I can help with?", "live-data replies are not touched");
 });

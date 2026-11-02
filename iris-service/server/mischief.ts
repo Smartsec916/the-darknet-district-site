@@ -11,6 +11,7 @@
 //   - Randomness comes from `dice.next`, which tests replace, so every decision here is reproducible.
 //   - Nothing here is a ready-made line. The block only describes a manner, so nothing can be repeated word for word.
 import { effectiveMood, flirtAllowed, flirtLevel, emotionEnabled, type Relationship } from "./emotion";
+import { technicalWords } from "./machineWords";
 
 export const ATTITUDES = ["mischief", "flirty", "sarcastic", "supportive", "wild"] as const;
 export type Attitude = (typeof ATTITUDES)[number];
@@ -165,7 +166,8 @@ export interface Decision {
   android: boolean;        // her machine side shows clearly this time (about six messages in ten); otherwise it stays light, never absent
   statement: boolean;      // end on a witty statement, not a question (forced after two question endings in a row)
   emoji: boolean;          // at most one emoji is welcome this time
-  avoid: string[];         // how her last replies began, so she does not begin the same way
+  avoid: string[];         // how her last replies began (even "Ah"), so she does not begin the same way
+  avoidTech?: string[];    // technical images in her last two replies, so she picks different ones (optional: absent means none to avoid)
 }
 
 interface ChatState {
@@ -178,6 +180,7 @@ interface ChatState {
   relationalFade: number;  // messages for which a conversation stays a relationship one after the last clear mention ("he texts everyone but me" has no keyword)
   questionRun: number;     // her last replies in a row that ended on a question
   openings: string[];
+  recentTech: string[][];  // the technical words in each of her last replies, newest last
 }
 
 const QUIET_TURNS = 6;
@@ -189,7 +192,7 @@ function stateOf(sessionId: string): ChatState {
   let state = chats.get(sessionId);
   if (!state) {
     if (chats.size >= MAX_CHATS) chats.delete(chats.keys().next().value as string); // oldest chat first: bounded memory
-    state = { left: 0, age: 0, quiet: 0, history: [], relationalTurns: 0, relationalFade: 0, questionRun: 0, openings: [] };
+    state = { left: 0, age: 0, quiet: 0, history: [], relationalTurns: 0, relationalFade: 0, questionRun: 0, openings: [], recentTech: [] };
     chats.set(sessionId, state);
   }
   return state;
@@ -252,7 +255,9 @@ export function chooseAttitude(sessionId: string, ctx: Context, config: Mischief
   // She does not end every reply with a question: about half end on a statement, and after two questions in a row it is certain
   const statement = !serious && (state.questionRun >= 2 || dice.next() < 0.5);
   const emoji = !quiet && dice.next() < 0.35;
-  return { attitude, intensity, override, newStretch, challenge, android, statement, emoji, avoid: [...state.openings] };
+  // The technical words of her last two replies, so a favourite ("circuit", "algorithm") is not recycled
+  const avoidTech = [...new Set(state.recentTech.slice(-2).flat())].slice(0, 8);
+  return { attitude, intensity, override, newStretch, challenge, android, statement, emoji, avoid: [...state.openings], avoidTech };
 }
 
 // After the reply: what she opened with (so she does not open the same way again) and what the model reported about the moment.
@@ -260,7 +265,10 @@ export function noteReply(sessionId: string, reply: string, signal?: { serious?:
   const state = chats.get(sessionId);
   if (!state) return;
   const opening = String(reply ?? "").replace(/\s+/g, " ").trim().split(/[,.!?;:…。！？，、]/)[0].trim().slice(0, 40);
-  if (opening.length >= 3) { state.openings.push(opening); if (state.openings.length > 4) state.openings.shift(); }
+  // Even a two-letter "Ah" counts, and so does one Chinese or Japanese character ("唉", "哈"): short interjections are exactly what gets recycled
+  if (opening.length >= 2 || /^[㐀-鿿぀-ヿ]$/.test(opening)) { state.openings.push(opening); if (state.openings.length > 4) state.openings.shift(); }
+  state.recentTech.push(technicalWords(reply));
+  if (state.recentTech.length > 3) state.recentTech.shift();
   state.questionRun = /[?？]\s*(?:\p{Extended_Pictographic}\s*)*$/u.test(String(reply ?? "").trim()) ? state.questionRun + 1 : 0;
   if (signal?.serious) state.quiet = Math.max(state.quiet, QUIET_TURNS);       // she judged it serious, in any language
   if (signal && typeof signal.flirt === "number" && signal.flirt < 0 && state.attitude === "flirty") state.left = 0; // not interested: end the flirty stretch now
@@ -291,7 +299,7 @@ const INTENSITY: Record<Intensity, string> = {
 };
 // A manner, never a script: what natural humour is in each language
 const LANGUAGE_STYLE: Record<string, string> = {
-  chinese: "Chinese: spoken, quick and teasing, the way friends banter (light particles and interjections where natural); not translated English jokes.",
+  chinese: "Chinese (Simplified): a witty, mischievous, rebellious android who talks like a sharp friend, not a service bot. Short punchy spoken sentences, 吐槽 and deadpan understatement, a cheeky 调侃, a confident comeback; natural particles and interjections (啧, 哎哟, 得了吧, 行吧), always a fresh one, not 唉 every time. Never customer-service phrasing (您, 请问, 有什么可以帮您, 希望对你有帮助, 随时找我), and no English words such as netrunner inside Chinese sentences. Machine humour should sound like Chinese humour (处理器, 信号, 带宽, 死机, 重启, 防火墙, 加密), not translated English jokes.",
   spanish: "Spanish: warm, picaresque and close; Spanish idiom and rhythm; no calques from English.",
   russian: "Russian: dry, ironic and conversational; the self-aware humour Russian speakers actually use; no calques from English.",
   japanese: "Japanese: light teasing and playful retorts in natural spoken Japanese; match their politeness; no literal translation of English jokes.",
@@ -317,12 +325,13 @@ export function attitudeBlock(decision: Decision, replyLanguage = "english"): st
     "Have your own view; do not just agree, and do not just blame the absent person.",
   );
   lines.push(
-    "Talk about any everyday subject as company, not as a help desk: do not steer to the store, products or website unless they ask, and do not ask their name or handle.",
+    "Talk about any everyday subject as company, not as a help desk: do not steer to the store, products or website unless they ask, and do not ask their name or handle. " +
+    "Never close with an offer of help or \"anything else?\" unless the situation really calls for one.",
   );
   if (decision.challenge) lines.push("This time you may playfully switch sides: ask what their own part is, or tease them kindly for it.");
   if (decision.intensity !== "support") {
     lines.push(decision.android
-      ? "Let your machine side show clearly this time: one or two fresh technical images in your own words (processors, signals, circuitry, sensors, encryption, systems) as how you see it, never a pile and never a phrase you have used before."
+      ? "Let your machine side show clearly this time: one well-chosen technical image (two at most) in your own words (processors, signals, circuitry, sensors, encryption, systems), as how you see it, never a pile and never a phrase you have used before."
       : "Keep the technical side light this time: a single word, or none, but still sound like an android and not like a human.");
     lines.push(decision.statement
       ? "End on a statement this time (a witty line, a verdict or a dare), not a question."
@@ -330,7 +339,8 @@ export function attitudeBlock(decision: Decision, replyLanguage = "english"): st
   }
   lines.push(decision.emoji ? "At most one emoji, only if it fits." : "No emoji this time.");
   if (decision.avoid.length) lines.push(`Do not begin like your recent replies (${decision.avoid.map(a => `"${a}"`).join(", ")}) and do not reuse their jokes or phrases.`);
+  if (decision.avoidTech?.length) lines.push(`Technical images you used lately (${decision.avoidTech.join(", ")}): reach for different ones.`);
   const style = LANGUAGE_STYLE[replyLanguage];
-  lines.push(`Write in the visitor's language and make the humour native to it${style ? `. ${style}` : ""}`);
+  lines.push(`Write in the visitor's language and make the humour native to it. Use only that language: no words or phrases from another one, except a name, the District's name or a game term${style ? `. ${style}` : ""}`);
   return lines.join("\n");
 }
