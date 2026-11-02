@@ -92,7 +92,7 @@ const HELPDESK = /main (purpose|task|job)|primary (job|role)|here to (help|assis
 const HELP_OFFER = /anything else|any other concerns|what else can i help|how can i help|有什么(?:我能|需要)|有什么.{0,6}帮忙|想了解更多|何かあれば|何か.{0,8}教えて|相談に乗る|¿algo más|¿hay algo|algo más en lo que|что-нибудь ещё|чем (?:ещё )?могу помочь/i;
 const ASKS_NAME = /your name|your handle|what'?s your handle|handle\?|名字|昵称|暱稱|称呼|tu nombre|c[oó]mo te llamas|как тебя зовут|твой ник|お名前|名前を教えて|ハンドル/i;
 const THIRD_PARTY_FACT = /\bhe (really )?(misses|loves|is jealous|is ignoring)\b|他(其实|其實)?(想你|爱你|愛你|在吃醋)|[ée]l (te extra[ñn]a|te quiere|est[aá] celoso)|он (скучает|любит|ревнует)/i;
-const TEASE = /😈|😏|😉|😜|haha|lol|jaja|哈哈|хаха|darling|cutie|baby|宝贝|寶貝|亲爱的|cari[ñn]o|дорогая|милая|笑|ふふ|あはは/i;
+const TEASE = /😈|😏|😉|😜|haha|lol|jaja|哈哈|хаха|darling|cutie|baby|宝贝|寶貝|亲爱的(?![人们])|cari[ñn]o|дорогая|милая|笑|ふふ|あはは/i;
 // Technology images used as metaphors (circuits, systems, networks, code); also counted per reply and in total in the summary below
 // (the machine-worldview word list lives in android-identity.mjs, which also summarises the whole run)
 function checkPersonality(lang, kind, reply, status, fallback, openings) {
