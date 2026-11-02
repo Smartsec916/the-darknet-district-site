@@ -508,7 +508,7 @@ export function attitudeBlock(decision: Decision, replyLanguage = "english"): st
   lines.push(decision.clean
     ? "This visitor may be under 18: no swearing, no innuendo, no flirting, no sex or death jokes. Still sharp, funny and on their side."
     : decision.salty
-      ? "This reply should carry real strong language (fuck, shit, bullshit, asshole level, or the natural equivalent in their language; damn and hell do not count) at the one place it lands hardest. Not a stream, and never aimed at someone's pain."
+      ? "This reply must carry real strong language (fuck, shit, bullshit, asshole level, or the natural equivalent in their language; damn and hell do not count) at the one place it lands hardest. Not a stream, and never aimed at someone's pain."
       : "No swearing this time; let the wit do the work.");
   if (decision.firmware) lines.push(FIRMWARE);
   lines.push(LIMITS);

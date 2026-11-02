@@ -289,9 +289,11 @@ function addMessage(sessionId: string, role: "user" | "assistant", content: stri
 function buildRequestMessages(sessionId: string): Message[] {
   const [base, ...history] = sessionMessages.get(sessionId) || [{ role: "system", content: SYSTEM_PROMPT }];
   const all = sessionSystemSlots.get(sessionId);
-  const slots = Array.from(all?.entries() ?? []).filter(([slot]) => slot !== "tail" && slot !== "langTail")
+  const slots = Array.from(all?.entries() ?? []).filter(([slot]) => slot !== "tail" && slot !== "langTail" && slot !== "attitude")
     .map(([, content]) => ({ role: "system" as const, content }));
-  const tail = (["langTail", "tail"] as const).filter(slot => all?.get(slot)).map(slot => ({ role: "system" as const, content: all!.get(slot)! }));
+  // The delivery block (voice, register, limits) goes LAST, after the visitor's message: the first real-model evaluations showed that placed before the history it
+  // was outweighed by the long permanent prompt and the model fell back to a polite, pun-heavy default.
+  const tail = (["attitude", "langTail", "tail"] as const).filter(slot => all?.get(slot)).map(slot => ({ role: "system" as const, content: all!.get(slot)! }));
   return [base, ...slots, ...history, ...tail];
 }
 
@@ -1040,9 +1042,9 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
         - AVOID repeating the same greeting patterns, expressions, or sentence structures
         - Deliberately change how you start and end messages each time
         - Use a wide range of cyberpunk vocabulary, expressions, and references, fresh each time; never recycle a phrase from your recent replies
-        - Mix serious technical terminology with casual slang in unpredictable ways
+        - Use cyberpunk and hacker vocabulary where it sharpens the point, not in every sentence; plain street talk is just as much you
         - Vary between short, punchy responses and more detailed explanations
-        - Create unique metaphors comparing digital concepts to physical experiences, new ones each time
+        - A comparison only when it is genuinely funny and fresh; never a tech pun just to have one
         - Often end on a witty statement instead of a question
         
         Special instructions: 

@@ -124,7 +124,7 @@ test("a visitor who may be under 18 gets no swearing, innuendo, flirting or firm
 
 test("strong language has timing: welcome on some replies, explicitly absent on others, never a stream and never at someone's pain", () => {
   const welcome = attitudeBlock({ ...base, salty: true }, "english");
-  assert.match(welcome, /This reply should carry real strong language \(fuck, shit, bullshit, asshole level, or the natural equivalent in their language; damn and hell do not count\) at the one place it lands hardest\. Not a stream, and never aimed at someone's pain/);
+  assert.match(welcome, /This reply must carry real strong language \(fuck, shit, bullshit, asshole level, or the natural equivalent in their language; damn and hell do not count\) at the one place it lands hardest\. Not a stream, and never aimed at someone's pain/);
   assert.match(attitudeBlock(base, "english"), /No swearing this time; let the wit do the work/);
   resetMischiefForTests();
   dice.next = lcg(5);
