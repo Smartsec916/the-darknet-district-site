@@ -15,10 +15,28 @@ export interface Explicit {
   language?: string; // the language asked for, when one was named
 }
 
+export type ChineseScript = "simplified" | "traditional";
+
 export interface Decision {
   reply: string;       // the language of this reply's default
   preferred: string;   // the conversation's default from now on
   explicit?: Explicit; // what the visitor asked for, if anything
+  script?: ChineseScript; // for a Chinese reply: which characters to write (the language name alone says only "Chinese")
+}
+
+// Characters written differently in the two scripts, so a message can be told apart. Characters shared by both scripts (雨, 台, 里 and
+// the like) are left out. A message with none of these, or the same number of each, decides nothing.
+const TRADITIONAL_ONLY = /[點幾現時間號裡這們麼嗎東國灣臺區與還說請個鐘會後來對當際體關開學樣經電話買賣讀書萬億應為從長問發氣測進動無條驗華義產價錢飛陽陰雲風導報網戰爭]/g;
+const SIMPLIFIED_ONLY = /[点几现时间号这们么吗东国湾区与还说请个钟会后来对当际体关开学样经电话买卖读书万亿应为从长问发气测进动无条验华义产价钱飞阳阴云风导报网战争]/g;
+const ASKS_TRADITIONAL = /traditional chinese|繁體|繁体|正體|正体/i;
+const ASKS_SIMPLIFIED = /simplified chinese|简体|簡體|簡化字/i;
+
+export function chineseScript(text: string): ChineseScript | null {
+  if (ASKS_TRADITIONAL.test(text)) return "traditional";
+  if (ASKS_SIMPLIFIED.test(text)) return "simplified";
+  const traditional = (text.match(TRADITIONAL_ONLY) ?? []).length;
+  const simplified = (text.match(SIMPLIFIED_ONLY) ?? []).length;
+  return traditional > simplified ? "traditional" : simplified > traditional ? "simplified" : null;
 }
 
 const LANGUAGE_NAMES: Record<string, string> = {
@@ -84,17 +102,23 @@ export function languageFromScript(text: string, preferred: string): string | nu
   return null;
 }
 
-export function decideLanguage(args: { detected: string; text: string; preferred: string }): Decision {
+export function decideLanguage(args: { detected: string; text: string; preferred: string; preferredScript?: ChineseScript | null }): Decision {
   const preferred = normalizeLanguage(args.preferred);
   const detected = languageFromScript(args.text, preferred) ?? normalizeLanguage(args.detected);
   const explicit = explicitLanguageRequest(args.text) ?? undefined;
+  // The script follows the visitor's own characters, and holds through a short message ("ok", "好") that has none to go by
+  const withScript = (d: Decision): Decision => {
+    if (d.reply !== "chinese") return d;
+    const script = chineseScript(args.text) ?? args.preferredScript ?? undefined;
+    return script ? { ...d, script } : d;
+  };
 
-  if (explicit?.kind === "switch" && explicit.language) return { reply: explicit.language, preferred: explicit.language, explicit };
-  if (explicit) return { reply: preferred, preferred, explicit }; // translate / bilingual: the default does not change
+  if (explicit?.kind === "switch" && explicit.language) return withScript({ reply: explicit.language, preferred: explicit.language, explicit });
+  if (explicit) return withScript({ reply: preferred, preferred, explicit }); // translate / bilingual: the default does not change
 
-  if (detected !== "english") return { reply: detected, preferred: detected };
+  if (detected !== "english") return withScript({ reply: detected, preferred: detected });
   // English detected: only a clear sentence moves a non-English conversation back
-  if (preferred !== "english" && !isClearEnglish(args.text)) return { reply: preferred, preferred };
+  if (preferred !== "english" && !isClearEnglish(args.text)) return withScript({ reply: preferred, preferred });
   return { reply: "english", preferred: "english" };
 }
 
@@ -104,6 +128,13 @@ export function preferredFromStored(rows: Array<{ text: string; language: string
   for (const row of rows) preferred = decideLanguage({ detected: row.language ?? "english", text: row.text, preferred }).preferred;
   return preferred;
 }
+
+// "Chinese" alone does not say which characters: a Traditional-script visitor was answered in Simplified in 9 of 10 replies
+const SCRIPT_NOTE: Record<ChineseScript | "none", string> = {
+  traditional: " (Traditional Chinese, 繁體中文, as written in Taiwan and Hong Kong: use Traditional characters only, never Simplified ones,)",
+  simplified: " (Simplified Chinese, 简体中文: use Simplified characters only, never Traditional ones)",
+  none: "",
+};
 
 const label = (language: string) => language.charAt(0).toUpperCase() + language.slice(1);
 
@@ -117,6 +148,7 @@ export function languageReminder(decision: Decision, seenOther: boolean): string
     return `LANGUAGE: The visitor asked for a translation${explicit.language ? ` into ${label(explicit.language)}` : ""}. Give the translation as asked, then continue in ${label(preferred)}. This is a one-time request; ${label(preferred)} stays the default.`;
   }
   if (reply === "english" && !seenOther) return "";
-  return `LANGUAGE: Reply in ${label(reply)}${explicit ? ` (the visitor asked for it; keep using it until they ask otherwise)` : ", the language of this conversation"}. `
+  const script = reply === "chinese" ? SCRIPT_NOTE[decision.script ?? "none"] : "";
+  return `LANGUAGE: Reply in ${label(reply)}${script}${explicit ?` (the visitor asked for it; keep using it until they ask otherwise)` : ", the language of this conversation"}. `
     + `Do not mix in words of another language, except names, District and game terms. If they ask for a translation, a bilingual answer or another language, do that instead.`;
 }
