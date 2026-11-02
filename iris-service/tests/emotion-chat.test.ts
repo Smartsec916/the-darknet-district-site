@@ -130,7 +130,8 @@ test("the state line is never shown, stored, or sent back to the model as Iris's
   assert.ok(rows.every((m: string) => !m.includes(STATE_MARKER)), "stored transcripts hold what the visitor saw");
   assert.ok(rows.includes("Visible answer."));
   const history = mainCalls()[1].body.messages.filter((m: any) => m.role === "assistant").map((m: any) => m.content);
-  assert.deepEqual(history, ["Visible answer."], "the model's earlier turns carry no state line");
+  assert.ok(history.includes("Visible answer."), "her real earlier turn is sent back as the visitor saw it");
+  assert.ok(history.every((m: string) => !m.includes(STATE_MARKER)), "the model's earlier turns carry no state line");
 });
 
 // ------------------------------------------------------------------ memory

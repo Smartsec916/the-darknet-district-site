@@ -12,7 +12,7 @@
 //   - Nothing here is a ready-made line. The block only describes a manner, so nothing can be repeated word for word.
 import { effectiveMood, flirtAllowed, flirtLevel, emotionEnabled, type Relationship } from "./emotion";
 import { technicalWords } from "./machineWords";
-import { registerSample, type SampleKind } from "./registerSamples";
+import type { SampleKind } from "./registerSamples";
 
 // The five flavours the dice choose between. "supportive" is NOT one of them: it is the attitude of a genuinely serious moment only (danger, abuse,
 // self-harm, a death, a severe crisis), chosen by the safeguards below and never by the dice. Everyday sadness, rejection, boredom and misery are
@@ -504,12 +504,11 @@ export function attitudeBlock(decision: Decision, replyLanguage = "english"): st
   lines.push(`Attitude: ${NEW_DESCRIPTIONS[decision.attitude] ?? DESCRIPTIONS[decision.attitude]}. ${NEW_INTENSITY[decision.intensity]}`);
   lines.push(`Use ONE of these moves, your choice: ${NEW_MOVES[decision.attitude] ?? MOVES[decision.attitude]}.`);
   if (decision.form && !decision.role) lines.push(`Shape of this reply: ${decision.form}.`);
-  if (decision.sampleKind && !decision.clean) lines.push(`Register sample (this is the temperature and rudeness to match, about something unrelated; never reuse its words, jokes or structure; say your own thing natively in their language): "${registerSample(decision.sampleKind, decision.sampleIndex ?? 0, replyLanguage)}"`);
   lines.push(VOICE);
   lines.push(decision.clean
     ? "This visitor may be under 18: no swearing, no innuendo, no flirting, no sex or death jokes. Still sharp, funny and on their side."
     : decision.salty
-      ? "This reply should carry real strong language (fuck, shit, bullshit, asshole level, or the natural equivalent in their language) at the one place it lands hardest. Not a stream, and never aimed at someone's pain."
+      ? "This reply should carry real strong language (fuck, shit, bullshit, asshole level, or the natural equivalent in their language; damn and hell do not count) at the one place it lands hardest. Not a stream, and never aimed at someone's pain."
       : "No swearing this time; let the wit do the work.");
   if (decision.firmware) lines.push(FIRMWARE);
   lines.push(LIMITS);

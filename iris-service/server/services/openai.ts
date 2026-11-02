@@ -4,6 +4,7 @@ import { recordApiUsage } from "../persistence";
 import { CHARACTER_CORE, emotionEnabled, extractEmotion, type EmotionSignal } from "../emotion";
 import { failureReply } from "../live/fallbackText";
 import { attitudeBlock, type Decision } from "../mischief";
+import { registerExample, EXAMPLE_NOTE } from "../registerSamples";
 import { polishReply } from "../replyPolish";
 import { decideLanguage, languageReminder, normalizeLanguage, type ChineseScript } from "../language";
 
@@ -1254,6 +1255,15 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
       updatedMessages = buildRequestMessages(sessionId);
     }
     
+    // The register example: one invented exchange from "another conversation", placed just before the visitor's message, so the model sees the temperature
+    // it is meant to match (see registerSamples.ts for why a description alone did not work). Request-only: never stored, never shown, never in a serious reply.
+    if (options.attitude?.sampleKind && options.attitude.intensity !== "support" && !options.attitude.clean && !options.attitude.role) {
+      const example = registerExample(options.attitude.sampleKind, options.attitude.sampleIndex ?? 0, replyLanguage);
+      let at = -1;
+      for (let i = updatedMessages.length - 1; i >= 0; i--) if (updatedMessages[i].role === "user") { at = i; break; }
+      if (at >= 0) updatedMessages = [...updatedMessages.slice(0, at), { role: "system", content: EXAMPLE_NOTE }, { role: "user", content: example.user }, { role: "assistant", content: example.assistant }, ...updatedMessages.slice(at)];
+    }
+
     // Request summary only; message text and prompts stay out of the logs
     debugLog(`OpenAI request: ${updatedMessages.length} messages, message language ${detectedLanguage}, reply language ${replyLanguage}, language note ${languageNote ? "YES" : "NO"}`);
     

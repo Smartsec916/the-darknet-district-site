@@ -457,3 +457,32 @@ test("route: everyday misery gets the wingwoman/dark-comedy delivery, genuine da
     assert.doesNotMatch(block, forbid, message);
   }
 });
+
+
+test("route: an ordinary reply is sent one invented register example just before the visitor's message; nothing of it is stored or shown; serious, role and underage replies get none", async () => {
+  mischief.dice.next = () => 0.3;
+  const cases: Array<[string, Record<string, unknown>, boolean]> = [
+    ["my boss is a clown", {}, true],
+    ["I have a crush on a girl at work", {}, true],
+    ["He hits me and I'm scared to go home", {}, false],
+    ["What do you do here?", {}, false],
+    ["my boss is a clown", { minor: true }, false],
+  ];
+  for (const [i, [message, over, expected]] of cases.entries()) {
+    const v = await visitor("m-example-" + i, over);
+    script.push(stateLine() + "\nReply.");
+    captured = [];
+    const body = await say(v, message);
+    assert.deepEqual(Object.keys(body), ["response"]);
+    const messages = mainCalls()[0].body.messages as Array<{ role: string; content: string }>;
+    const noteAt = messages.findIndex(m => m.role === "system" && m.content.startsWith("STYLE REFERENCE"));
+    assert.equal(noteAt >= 0, expected, message);
+    if (expected) {
+      assert.equal(messages[noteAt + 1].role, "user"); assert.equal(messages[noteAt + 2].role, "assistant");
+      assert.equal(messages[noteAt + 3].content, message, "right before the visitor's real message");
+      assert.equal(messages.filter(m => m.role === "system" && m.content.startsWith("STYLE REFERENCE")).length, 1, "one example, never stacked");
+    }
+    const rows = (await dbQuery("SELECT message FROM chat_messages WHERE session_id = $1", [v.sessionId])).rows as any[];
+    assert.ok(rows.every(r => !/STYLE REFERENCE/.test(r.message) && !messages[noteAt + 2]?.content || !r.message.includes(messages[noteAt + 2]?.content)), "nothing of the example is stored");
+  }
+});
