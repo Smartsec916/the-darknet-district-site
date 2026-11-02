@@ -161,12 +161,12 @@ test('the chat interface is exactly what it was: no login, registration or accou
 test('the account script, styles and sign-in identity are loaded by the homepage only, and only the chat request changed', () => {
   const home = read('index.html');
   assert.match(home, /<link href="\.\/iris-account\.css"/);
-  assert.match(home, /<script src="iris-identity\.js"><\/script>\s*<script src="script\.js"><\/script>/, 'the identity script loads before the chat script');
+  assert.match(home, /<script src="iris-identity\.js"><\/script>\s*<script src="iris-chat\.js"><\/script>\s*<script src="script\.js"><\/script>/, 'the identity script loads before the chat script');
   assert.match(home, /<script type="module" src="iris-account\.js"><\/script>/);
   for (const file of ['games-list.html', 'store-first-page.html', 'about.html', 'void-runner.html', 'blackout-protocol/index.html']) {
     if (fs.existsSync(path.join(root, file))) assert.ok(!/iris-account|iris-identity/.test(read(file)), `${file} is untouched`);
   }
-  const chatScript = read('script.js');
+  const chatScript = read('iris-chat.js');
   assert.match(chatScript, /window\.IrisIdentity/);
   assert.match(chatScript, /...extraHeaders/);
   assert.match(chatScript, /signin_required/, 'a refused sign-in is refreshed and retried');

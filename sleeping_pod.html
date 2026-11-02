@@ -151,9 +151,14 @@
       transition: filter 1.5s ease;
     }
 
+    /* Reduced motion: the button transitions stop; the smoke does not move either (sleeping-pod-smoke.js shows one still haze that only fades in and out) */
     @media (prefers-reduced-motion: reduce) {
       .pod-btn, .pod-btn__frame, .pod-btn__panel { transition: none; }
-      .pod-smoke { display: none !important; }
+    }
+
+    /* The Iris chat button (iris-widget.js) lives in the bottom right corner, where the pod's own controls are on a phone: lift it above them instead of covering "Play music" */
+    @media (max-width: 720px) {
+      body.iris-widget-page .chat-button { bottom: calc(112px + env(safe-area-inset-bottom, 0px)); }
     }
   </style>
   <link href="./home-navigation.css" rel="stylesheet" type="text/css">
@@ -210,7 +215,8 @@
     const audioElement = audioPlayer.querySelector('audio');
     const musicLabel = document.querySelector('#musicButton .pod-btn__label');
     const dimLabel = document.querySelector('#dimButton .pod-btn__label');
-    const smokeCanvas = document.getElementById('podSmoke');
+    // The smoke is drawn on #podSmoke (WebGL) or, on devices where that cannot be used, on a second canvas of the same class (sleeping-pod-smoke.js)
+    const smokeLayers = () => [...document.querySelectorAll('.pod-smoke')];
     const trackTitle = document.getElementById('trackTitle');
     // LED spectrum analyzer: taps the existing <audio> element, does not replace it
     const spectrum = createPodSpectrum(document.getElementById('podSpectrum'), audioElement);
@@ -355,13 +361,13 @@
       if (!isDimmed) {
         podSection.style.filter = 'brightness(0.3)';
         topNav.style.filter = 'brightness(0.3)';
-        smokeCanvas.style.filter = 'brightness(0.3)';
+        smokeLayers().forEach(layer => { layer.style.filter = 'brightness(0.3)'; });
         dimLabel.textContent = 'Turn the lights on';
         isDimmed = true;
       } else {
         podSection.style.filter = 'brightness(1)';
         topNav.style.filter = 'brightness(1)';
-        smokeCanvas.style.filter = 'brightness(1)';
+        smokeLayers().forEach(layer => { layer.style.filter = 'brightness(1)'; });
         dimLabel.textContent = 'Dim the lights';
         isDimmed = false;
       }
@@ -371,5 +377,6 @@
 
   <script src="script.js"></script>
   <script src="sleeping-pod-smoke.js" defer></script>
+  <script src="iris-widget.js" defer></script>
 </body>
 </html>
