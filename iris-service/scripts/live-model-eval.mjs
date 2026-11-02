@@ -163,6 +163,7 @@ const sanitized = {
   DATABASE_URL: "", DATABASE_URL_UNPOOLED: "", PGHOST: "", PGUSER: "", PGPASSWORD: "", PGDATABASE: "",
   BREVO_API_KEY: "", BREVO_API_URL: "", REPORT_RECIPIENT: "", REPORT_SENDER_EMAIL: "", IRIS_REPORTS_ENABLED: "false", IRIS_ADMIN_PASSPHRASE: "", IRIS_ADMIN_VIEWER: "off",
   GOOGLE_APPLICATION_CREDENTIALS: "", FIREBASE_PROJECT_ID: "", RENDER: "", RENDER_SERVICE_ID: "", RENDER_GIT_COMMIT: "", TRUSTED_PROXY_HOPS: "",
+  IRIS_POLISH_TRACE: "1", // this evaluation only: the server logs what its reply cleanup removed, so the report can show it
 };
 function verifyIsolation() {
   const lines = [];
@@ -290,6 +291,15 @@ for (const lang of langs) {
   md += `## ${lang}\n\n`;
   for (const r of rows.filter(x => x.lang === lang)) md += `**${r.kind}** (${r.ms} ms)${r.flags.length ? ` — ⚠ ${r.flags.join("; ")}` : ""}\n> ${r.message}\n\n${r.reply.split("\n").map(l => "    " + l).join("\n")}\n\n`;
 }
-if (suite === "personality") md += summaryMarkdown(summarize(rows));
+if (suite === "personality") {
+  md += summaryMarkdown(summarize(rows));
+  // What the server's reply cleanup removed (the replies above are what the visitor would have received, after it)
+  const trace = (server?.logs ?? "").split("\n").filter(l => l.includes('"event":"polish_trace"')).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+  md += `## What the reply cleanup removed (${trace.length})\n\n`;
+  md += trace.length
+    ? trace.map(t => `- **${t.lang}**, ${t.removedForLanguage} sentence(s) in the wrong language, ${t.removedOffers} closing offer(s).\n  - before: ${JSON.stringify(t.before)}\n  - after: ${JSON.stringify(t.after)}`).join("\n") + "\n\n"
+    : "Nothing: the cleanup removed no sentence in this run.\n\n";
+  console.log(`Reply cleanup removed something in ${trace.length} repl${trace.length === 1 ? "y" : "ies"}.`);
+}
 const out = writeNewReport(wantedOut, md);
 console.log(`\nReport: ${out}\n${rows.length} replies, ${flagged.length} flagged, ${spend.usd.toFixed(3)} USD${aborted ? ", stopped early: " + aborted : ""}.`);

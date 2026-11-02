@@ -340,3 +340,32 @@ test("a generic closing offer is removed from ordinary banter, but kept when it 
   script.push(reply("Can't reach it right now. Anything else I can help with?"));
   assert.equal((await say(live, "What's the weather in Sacramento right now?")).response, "Can't reach it right now. Anything else I can help with?", "live-data replies are not touched");
 });
+
+test("the cleanup trace is off unless the evaluation turns it on, and then shows exactly what was removed", async () => {
+  const seen: string[] = [];
+  const realLog = console.log;
+  console.log = (...args: unknown[]) => { seen.push(args.map(String).join(" ")); };
+  try {
+    mischief.dice.next = () => 0.5;
+    const quiet = await visitor("m-trace-off");
+    script.push(`${stateLine()}\nあー、信号が弱いね。你觉得怎么対吗？`);
+    await say(quiet, "彼氏が全然会いたいって言ってくれない");
+    assert.ok(!seen.some(l => l.includes("polish_trace")), "nothing is logged by default");
+
+    process.env.IRIS_POLISH_TRACE = "1";
+    const traced = await visitor("m-trace-on");
+    script.push(`${stateLine()}\nあー、信号が弱いね。你觉得怎么対吗？`);
+    const body = await say(traced, "彼氏が全然会いたいって言ってくれない");
+    assert.equal(body.response, "あー、信号が弱いね。");
+    const line = seen.find(l => l.includes("polish_trace"));
+    assert.ok(line, "the removal is logged");
+    const entry = JSON.parse(line!);
+    assert.equal(entry.before, "あー、信号が弱いね。你觉得怎么対吗？"); assert.equal(entry.after, "あー、信号が弱いね。");
+    assert.equal(entry.removedForLanguage, 1); assert.equal(entry.removedOffers, 0);
+    // an untouched reply leaves no trace line
+    seen.length = 0;
+    script.push(`${stateLine()}\nSo bold. Do it.`);
+    await say(await visitor("m-trace-clean"), "But he never says he misses me.");
+    assert.ok(!seen.some(l => l.includes("polish_trace")));
+  } finally { console.log = realLog; delete process.env.IRIS_POLISH_TRACE; }
+});

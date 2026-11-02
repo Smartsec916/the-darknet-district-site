@@ -1273,7 +1273,12 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     // a generic closing offer of help. Never in a serious moment, never when a translation was asked for (see replyPolish.ts).
     if (options.attitude && !decision.explicit && parsed.text) {
       const serious = options.attitude.intensity === "support" || options.attitude.attitude === "supportive";
-      assistantResponse = polishReply({ text: assistantResponse, replyLanguage, userMessage, serious }).text;
+      const polished = polishReply({ text: assistantResponse, replyLanguage, userMessage, serious });
+      // Evaluation only (IRIS_POLISH_TRACE=1, never set in production): record exactly what the cleanup removed, so it can be judged by reading
+      if (process.env.IRIS_POLISH_TRACE === "1" && polished.text !== assistantResponse) {
+        log("info", "polish_trace", { lang: replyLanguage, before: assistantResponse, after: polished.text, removedForLanguage: polished.removedForLanguage, removedOffers: polished.removedOffers });
+      }
+      assistantResponse = polished.text;
     }
     
     // Use the appropriate Eva flirt response based on whether Eva is flirting back
