@@ -560,6 +560,13 @@ body.site-home .tdd-function-desc {
     overflow-wrap: anywhere;
   }
 
+  #chatContainer .chat-credits {
+    flex: none;
+    padding-right: max(10px, env(safe-area-inset-right, 0px));
+    padding-left: max(10px, env(safe-area-inset-left, 0px));
+    padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
+  }
+
   #chatContainer .chat-input {
     flex: none;
     padding-right: max(10px, env(safe-area-inset-right, 0px));
