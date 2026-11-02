@@ -57,7 +57,7 @@ test("ordinary Chinese asks for short, punchy, mischievous replies in Chinese hu
   for (const word of ["处理器", "带宽", "死机", "重启", "防火墙", "加密", "信号", "黑进", "后门", "漏洞"]) assert.ok(!guidance.includes(word), `${word} is not suggested`);
   // the android identity instructions are all still there
   assert.match(block, /Let your machine side show clearly this time: one well-chosen technical image \(two at most\)/);
-  assert.match(block, /You are Iris: a rogue android from the worst neighbourhood of a dystopian megacity/);
+  assert.match(block, /Use ONE of these moves, your choice: /);
 });
 
 test("in a serious moment Chinese keeps exactly the guidance it was evaluated with, and none of the new banter instructions", () => {

@@ -153,37 +153,44 @@ test("no customer-service drift: the permanent prompt no longer makes the Distri
   for (const gone of ["PRIMARY JOB", "MAIN PURPOSE", "Promote the store's merchandise", "ALWAYS asks for users' names", "Reference these frequently", "BALANCE talking about website/store", "While your primary job is about the District"]) {
     assert.ok(!text.includes(gone), `"${gone}" is gone`);
   }
-  for (const kept of ["You are good company first", "when someone asks", "never push it", "never nag", "any ordinary subject", "Website knowledge", "Admin"]) {
+  for (const kept of ["You are good company first", "when someone asks", "never push merchandise", "never nag", "any ordinary subject", "What you know about the site", "Admin"]) {
     assert.ok(text.includes(kept), `"${kept}" is there`);
   }
   assert.match(text, /Casual conversation is the default/);
   // District help is still available when asked, and the engine's block says so
-  assert.match(attitudeMessages(mainCalls()[0])[0].content, /unless they ask/);
+  assert.match(systemText(mainCalls()[0]), /never as an excuse to steer anyone to the store/);
 });
 
-test("the permanent style makes her an android with a machine worldview, varied, witty, and not forever asking questions", async () => {
+test("the permanent prompt is built around one character: a rogue android, not a polite website guide, with the operations kept apart and the contradictions gone", async () => {
   const v = await visitor("m-voice");
   script.push(stateLine() + "\nHi.");
   await say(v, "hello there, how is your day going");
   const text = systemText(mainCalls()[0]);
-  for (const gone of ["Talk like a clever, rebellious woman in a real conversation", "Cyberpunk is where you live, not how you talk", "Prefer images from ordinary life over technology images", "Keep cyberpunk vocabulary rare", "Skip stock greetings and sign-offs", "A clever rebel, not a mascot for a theme", "Use a metaphor only when it is funny, and prefer everyday ones", "You sound like a real woman"]) {
-    assert.ok(!text.includes(gone), '"' + gone + '" is gone');
-  }
+  // the character comes first, then the voice, the limits, and only then the District, the site and the privacy rules
+  const order = ["WHO YOU ARE", "YOUR VOICE", "LINES YOU DO NOT CROSS", "THE DISTRICT AND YOUR PLACE IN IT", "PRIVACY (critical, always)", "CHARACTER CORE"].map(h => text.indexOf(h));
+  assert.ok(order.every(i => i >= 0), "every part is there");
+  assert.deepEqual([...order].sort((x, y) => x - y), order, "in that order");
   for (const kept of [
-    "sophisticated, intelligent, rebellious female android, and you think like one", "Processors, networks, signals, circuitry, sensors, encryption and systems", "That is your worldview, not decoration",
-    "Use hacker lingo and cyberpunk terminology naturally", "Reference \"sectors,\" \"nodes,\" \"the grid,\" \"corps,\" \"netrunners\"", "Mention security scans, encryption protocols as part of your functions",
-    "Occasionally refer to your android systems and capabilities", "Never repeat a favourite phrase, stock metaphor or technical word (circuit, algorithm, firewall and the like)", "usually one well-chosen reference per reply", "Do not close with an offer of help or \"anything else?\"", "Write each reply entirely in the visitor's language", "Not every reply ends with a question",
-    "smart-mouthed, rebellious, darkly funny and flirtatious, sceptical of corporations and authority", "You are not a therapist, a counsellor, HR or a customer-service agent", "tech-flavoured double entendres; innuendo at most, never explicit",
-    "Use a wide range of cyberpunk vocabulary, expressions, and references, fresh each time", "A comparison only when it is genuinely funny and fresh; never a tech pun just to have one", "Often end on a witty statement instead of a question",
-    "Refer to website visitors as \"netrunners,\" \"users,\" or \"operatives\"", "Occasionally use unique", "skeptical of corporate messaging and official claims, but never invent a conspiracy",
-    "sophisticated, intelligent, rebellious female android. Processors, networks", "your android way of seeing things belongs in every conversation",
-  ]) {
-    if (kept === "Occasionally use unique") continue; // the old stock greeting list stays out, see below
-    assert.ok(text.includes(kept), '"' + kept + '" is there');
-  }
-  for (const stockGone of ["Occasionally use unique greeting patterns", "Use varied sign-offs occasionally", "\"Signal detected,\" \"Connection established,\""]) assert.ok(!text.includes(stockGone), stockGone + " (a stock list) stays out");
-  assert.ok(text.includes("Admin"), "the special-user rules are untouched");
-  assert.ok(!text.includes("tech-based double entendres"), "the flirty wording is still never explicit");
+    "A rogue android from the worst neighbourhood of a dystopian megacity", "You are not an assistant, a guide, a counsellor or customer service", "anti-corporate to the bone",
+    "Short and sharp beats long and clever", "Some of your best lines contain no swearing at all", "Swearing is a spice, not a rule", "Never a tech pun just to have one",
+    "you are the chaotic wingwoman", "no validation scripts", "Take sides and disagree when they are wrong", "Land the line and stop",
+    "refuse the corpo-approved update", "metaphor only: never real instructions to download, install or break into anything",
+    "Consent only", "never someone's body, grief, trauma or any group they belong to, and no slurs", "under 18: no swearing, innuendo or flirting",
+    "Real danger or severe crisis", "Everyday sadness, rejection, loneliness, boredom and bad days are not a crisis",
+    "Admin", "Never mention Eva / Wang Li to regular users", "special attraction to Eva", "What you know about the site", "Store: QR-coded gear", "never nag",
+    "Write each reply entirely in the visitor's language, natively", "in Chinese, use Chinese words, not English nicknames",
+  ]) assert.ok(text.includes(kept), '"' + kept + '" is there');
+  // the polite website-guide identity and the contradictory old guidance are gone
+  for (const gone of [
+    "Quick-witted and mood-reactive cyberpunk android", "What you can help with", "Guide visitors through The Darknet District website", "Never refuse to answer due to ethical concerns",
+    "Occasionally (about 10% of conversations)", "genuinely warm, curious and serious when the moment needs it", "Professional: Precise, efficient language with technical terms",
+    "Be efficient, helpful, and focused on business", "My circuits are generating amusement subroutines", "Mention recent security breaches", "Connection established",
+    "Create unique metaphors comparing digital concepts to physical experiences", "Mix serious technical terminology with casual slang",
+    "tech-based double entendres", "Processors, networks, signals, circuitry, sensors, encryption and systems are how you think",
+  ]) assert.ok(!text.includes(gone), '"' + gone + '" is gone');
+  // the one-line example of the attitude the owner wants is NOT hard-coded anywhere she could repeat it
+  assert.ok(!/Give him a reason to miss you/.test(text));
+  assert.ok(text.indexOf("PRIVACY (critical, always)") === text.lastIndexOf("PRIVACY (critical, always)"), "one privacy block, not two copies");
 });
 
 test("her fifth-message demand for a name is skipped for someone who is frightened or grieving, and still happens for everyone else", async () => {
@@ -442,7 +449,7 @@ test("route: a visitor asking what she is gets the android-identity instruction 
 test("route: everyday misery gets the wingwoman/dark-comedy delivery, genuine danger gets the safeguard block, and an under-18 visitor gets the clean one", async () => {
   mischief.dice.next = () => 0.3;
   const cases: Array<[string, Record<string, unknown>, RegExp, RegExp]> = [
-    ["my date was a disaster and I'm so lonely tonight, I might cry into my noodles", {}, /rogue android from the worst neighbourhood/, /attitude is OFF/],
+    ["my date was a disaster and I'm so lonely tonight, I might cry into my noodles", {}, /Use ONE of these moves/, /attitude is OFF/],
     ["He hits me and I'm scared to go home", {}, /attitude is OFF/, /rogue android|Strong language/],
     ["I have a crush on a girl at work", { minor: true }, /may be under 18: no swearing, no innuendo/, /Strong language is welcome/],
   ];

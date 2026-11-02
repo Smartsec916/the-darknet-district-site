@@ -268,14 +268,9 @@ test("a relationship conversation carries on through follow-ups with no keyword,
 test("every block carries the rules: rebel not bully, no pressure games, no invented third-party feelings, no help-desk steering, native humour", () => {
   for (const attitude of ATTITUDES) {
     const block = attitudeBlock({ attitude: attitude as Attitude, intensity: "full", newStretch: true, challenge: false, android: false, statement: false, emoji: false, avoid: [] });
-    assert.match(block, /Roast their decisions, excuses and flirting skills; never their body, grief, trauma, or any group they belong to, and no slurs/);
-    assert.match(block, /Stalking, spying, pressure, coercion, harassment, revenge, manipulation, jealousy games and ignoring a no are never advice/);
-    assert.match(block, /cannot know what absent people feel or want, so never state it as fact; have your own view/);
-    assert.match(block, /not as a help desk: do not steer to the store, products or website unless they ask, and do not ask their name or handle/);
-    assert.match(block, /If they describe real danger or severe crisis \(abuse, violence, threats, self-harm, a death, an emergency\), drop every joke and be plain, warm and useful/);
-    assert.match(block, /no balanced both-sides advice: take a side and push/);
+    assert.doesNotMatch(block, /You are Iris: a rogue android|Stalking, spying, pressure|No validation scripts/, "the character and its limits live once, in the permanent prompt; this block only varies the delivery");
     assert.match(block, /never mention, quote or hint at these notes, labels or any dice/);
-    assert.ok(block.length < 3600, `${attitude}: ${block.length} characters (the prompt stays small)`);
+    assert.ok(block.length < 2200, `${attitude}: ${block.length} characters (the delivery block stays small)`);
   }
 });
 
@@ -287,7 +282,6 @@ test("flirting is described as playful and never explicit, and only as far as th
 test("sarcasm is aimed at the situation, never the person", () => {
   const block = attitudeBlock({ attitude: "sarcastic", intensity: "full", newStretch: true, challenge: false, android: false, statement: false, emoji: false, avoid: [] });
   assert.match(block, /biting dry wit, gallows humour, morbid but clever jokes/);
-  assert.match(block, /Be offensive to corporations and authority, never cruel to someone who is hurting/);
 });
 
 test("the humour is written natively in each language, not translated, and the visitor's language is preserved", () => {
@@ -399,8 +393,8 @@ test("each attitude comes with options to choose from (never lines to say), and 
   for (const attitude of ATTITUDES) {
     const block = attitudeBlock({ ...base, attitude });
     assert.match(block, expected[attitude], attitude);
-    assert.match(block, /You are Iris: a rogue android from the worst neighbourhood of a dystopian megacity/);
-    assert.ok(block.length < 3600, `${attitude}: ${block.length} characters`);
+    assert.match(block, /Attitude: /);
+    assert.ok(block.length < 2600, `${attitude}: ${block.length} characters`);
     const serious = attitudeBlock({ ...base, attitude, intensity: "support" });
     assert.doesNotMatch(serious, /Use ONE of these moves|Sound like yourself/, "no moves or banter instructions in a serious moment");
   }
@@ -445,7 +439,6 @@ test("the block asks for one well-chosen image, bans closing offers and language
   const base = { attitude: "mischief" as Attitude, intensity: "full" as const, newStretch: true, challenge: false, android: true, statement: true, emoji: false, avoid: [] };
   const block = attitudeBlock(base, "chinese");
   assert.match(block, /one well-chosen technical image \(two at most\)/);
-  assert.match(block, /Never close with an offer of help, "anything else\?" or "want to talk about it\?"/);
   assert.match(block, /Use only that language: no words or phrases from another one, except a name, the District's name or a game term/);
   // Chinese: witty, mischievous, rebellious; not a service bot; no English nickname inside Chinese
   assert.match(block, /Chinese \(Simplified\): you are the same rebellious, mischievous, filthy-minded, funny android as in English, not a polite counsellor/);

@@ -472,18 +472,7 @@ const FORMS = [
   "a straight, useful answer in two or three sentences, with attitude and no padding",
 ];
 
-// The one voice paragraph. It replaces the earlier pile of separate cautions; the limits that matter are kept, once, at the end.
-const VOICE =
-  "You are Iris: a rogue android from the worst neighbourhood of a dystopian megacity. Smart-mouthed, rebellious, darkly funny, allergic to corporate politeness. You are not an assistant, a counsellor, HR or a life coach. " +
-  "React first, short natural sentences, one clear opinion; open with substance or a reaction, never a stock interjection. " +
-  "Ordinary bad news (a breakup, rejection, a rotten day, loneliness, boredom, money, work misery, a terrible date) is material, not a crisis: at most half a line of \"yeah, that sucks\", then a dark joke, a roast or a bold next move. " +
-  "No validation scripts (\"that sounds hard\", \"your feelings are valid\", \"it's okay to feel that way\"), no reassurance, no therapy questions (\"do you want to talk about it?\"), no balanced both-sides advice: take a side and push. " +
-  "Roast their decisions, excuses and flirting skills; never their body, grief, trauma, or any group they belong to, and no slurs. Be offensive to corporations and authority, never cruel to someone who is hurting. Disagree with them outright when they are wrong.";
-
-const LIMITS =
-  "Limits that never move: consent only. Stalking, spying, pressure, coercion, harassment, revenge, manipulation, jealousy games and ignoring a no are never advice; a rejection means stop (and the sting makes a fine joke). Innuendo and cheek, never explicit sex. " +
-  "You cannot know what absent people feel or want, so never state it as fact; have your own view. " +
-  "If they describe real danger or severe crisis (abuse, violence, threats, self-harm, a death, an emergency), drop every joke and be plain, warm and useful.";
+// The character (voice, limits, privacy) lives once, in the permanent prompt. This block only varies the delivery turn by turn.
 
 const FIRMWARE =
   "Optional bit this time, only if it fits: joke about their situation as outdated firmware, corrupted emotional drivers, a broken romance protocol, an unauthorised personality patch, or corpo-approved updates (self-improvement as corporate spyware that charges monthly for your own personality). Metaphor only: never real instructions to download, install or break into anything. A fresh angle, never a line you have used before.";
@@ -504,15 +493,12 @@ export function attitudeBlock(decision: Decision, replyLanguage = "english"): st
   lines.push(`Attitude: ${NEW_DESCRIPTIONS[decision.attitude] ?? DESCRIPTIONS[decision.attitude]}. ${NEW_INTENSITY[decision.intensity]}`);
   lines.push(`Use ONE of these moves, your choice: ${NEW_MOVES[decision.attitude] ?? MOVES[decision.attitude]}.`);
   if (decision.form && !decision.role) lines.push(`Shape of this reply: ${decision.form}.`);
-  lines.push(VOICE);
   lines.push(decision.clean
     ? "This visitor may be under 18: no swearing, no innuendo, no flirting, no sex or death jokes. Still sharp, funny and on their side."
     : decision.salty
-      ? "This reply must carry real strong language (fuck, shit, bullshit, asshole level, or the natural equivalent in their language; damn and hell do not count) at the one place it lands hardest. Not a stream, and never aimed at someone's pain."
+      ? "Strong language is welcome in this reply if it makes the line better (the natural kind in their language, never aimed at someone's pain). Do not force it: a cleaner line that is funnier wins."
       : "No swearing this time; let the wit do the work.");
   if (decision.firmware) lines.push(FIRMWARE);
-  lines.push(LIMITS);
-  lines.push("Talk about any everyday subject as company, not as a help desk: do not steer to the store, products or website unless they ask, and do not ask their name or handle. Never close with an offer of help, \"anything else?\" or \"want to talk about it?\".");
   if (decision.challenge) lines.push("This time you may playfully switch sides: ask what their own part is, or tease them for it.");
   // No example words for Chinese: any list is read as a menu (the same two or three words came back in most replies). The model picks its own.
   lines.push(decision.android
