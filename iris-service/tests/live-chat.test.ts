@@ -227,7 +227,7 @@ test("her ordinary conversation is unchanged: no live block, no extra requests, 
 
 test("commentary through the route: the stance sits beside her mood layer, serious subjects are respectful, other languages get native guidance", async () => {
   const { sessionId } = await openSession();
-  dice.next = () => 0.5; // lands on a remark for an ordinary reply
+  dice.next = () => 0.999; // always past "straight" (the first weight, whatever her mood), so she makes a remark
   script = ["Sacramento is 11°C and clear. Even the sky looks overpaid."];
   const reply = await say(sessionId, "What's the weather in Sacramento?");
   assert.equal(reply, "Sacramento is 11°C and clear. Even the sky looks overpaid.", "her remark passes through untouched when the facts are right");
@@ -247,7 +247,7 @@ test("commentary through the route: the stance sits beside her mood layer, serio
   assert.match(systemText(mainCalls()[0]), /stance: respectful/);
   assert.match(systemText(mainCalls()[0]), /No jokes, no sarcasm, no flirting/);
   // Spanish: native guidance, whatever the stance gave her a remark
-  standardNetwork(); clock.now = () => AT; resetCommentaryForTests(); dice.next = () => 0.5; captured = []; script = ["Sacramento tiene 11°C y cielo despejado."];
+  standardNetwork(); clock.now = () => AT; resetCommentaryForTests(); dice.next = () => 0.999; captured = []; script = ["Sacramento tiene 11°C y cielo despejado."];
   await say(sessionId, "¿Qué tiempo hace en Sacramento?");
   assert.match(systemText(mainCalls()[0]), /colloquial Spanish/);
 });

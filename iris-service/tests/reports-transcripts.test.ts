@@ -61,7 +61,7 @@ beforeEach(() => {
     BREVO_API_URL: `http://127.0.0.1:${(mail.address() as AddressInfo).port}/v3/smtp/email`,
     REPORT_SENDER_EMAIL: "reports@example.test",
     REPORT_RECIPIENT: "admin@example.test",
-    REPORT_EMAIL_TIMEOUT_MS: "3000",
+    REPORT_EMAIL_TIMEOUT_MS: "30000", // generous: a busy machine once pushed a local mail round trip past 3 s; the one test that needs a timeout sets its own
     REPORT_SEND_SPACING_MS: "0",
     IRIS_REPORT_TOKEN: REPORT_TOKEN,
   });

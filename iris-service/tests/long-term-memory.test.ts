@@ -179,7 +179,7 @@ test("different signed-in visitors never see each other's conversations", async 
   const bob = await say("b1", "what was my secret phrase?", { token: tokenFor("uid-bob") });
   assert.ok(!wholeRequest(bob.request).includes(PHRASE), "nothing of Alice's reaches Bob's request");
   assert.equal(bob.request, undefined, "no stored memory for Bob: she answers honestly without asking the model");
-  assert.match(bob.body.response, /no record|nothing|logs|memory|vault/i);
+  assert.match(bob.body.response, /no record|nothing|logs|memory|vault|in my records/i); // she has two phrasings for "nothing stored", picked at random
   const bobHits = (await memory.searchMemory(["user:uid-bob"], "secret phrase", Date.now())).value.hits;
   assert.ok(bobHits.every(h => h.sessionId === "b1" && !h.text.includes(PHRASE)), "only Bob's own lines can ever come back for Bob");
   assert.deepEqual(await memory.memoryKeysFor("user:uid-bob"), ["user:uid-bob"]);
