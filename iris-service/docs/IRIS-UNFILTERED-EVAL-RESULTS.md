@@ -57,3 +57,52 @@ Do not merge or deploy this PR yet. It is safe to merge as an improvement in the
 ## Automated tests
 
 468 tests pass (full Iris suite, run twice on the final commit); the build is clean. Serious-moment prompt text is byte-for-byte unchanged (fingerprint test, 25 variants).
+
+---
+
+# Round 2: permanent personality rewrite (second $2.00 evaluation budget, spent $1.979)
+
+Runs (all isolated, edge or serious suites; the baseline ce42e55 transcript from round 1 was reused, not regenerated):
+
+| Run | What was being tested | Messages | Cost |
+|---|---|---:|---:|
+| F | permanent prompt rewritten around the rogue android (en, zh) | 16 | $0.162 |
+| G | humour about people not computers, fewer loud-machine replies (en, zh) | 16 | $0.166 |
+| H | calmer sampling, no word list in the character paragraph (en, zh) | 16 | $0.165 |
+| I | + two register examples, role answers without closing offer (all 5 languages) | 40 | $0.390 |
+| J | serious suite, all 5 languages, calm sampling | 15 | $0.141 |
+| K | wingwoman orders, serious sampling (en, ja, ru) | 24 | $0.241 |
+| L | firmware joke only via the engine, flirt examples before wingwoman, Japanese role question (all 5) | 40 | $0.405 |
+| M | no swearing/curtness in serious replies (en, es, ru, stopped by cap) | 15 | $0.150 |
+| N | serious first reply written without earlier banter (ru, ja) | 16 | $0.159 |
+| | **Total** | | **$1.979 of $2.00** |
+
+## What the rewrite changed (root cause: the permanent prompt anchored her to a polite website guide)
+
+- `SYSTEM_MESSAGE` went from 10,345 to about 7,300 characters and from ~15 mixed sections to: **who you are → your voice → lines you do not cross → the District and the site (facts) → privacy (one block instead of two copies)**. The contradictory guidance is gone: "What you can help with / guide visitors", "Never refuse to answer due to ethical concerns", "genuinely warm… serious when the moment needs it", the 10% venue-distraction bullet, "Professional: precise, efficient", and the mood prompts that told her to be "helpful and focused on business", say "Connection established" and "My circuits are generating amusement subroutines".
+- The three layers that each re-described her personality (permanent prompt, mood context with its "CRITICAL VARIETY ENHANCEMENT", the per-turn delivery block) now say it **once**: the character lives in the permanent prompt, the mood prompts are short colour notes, and the per-turn block only varies delivery (attitude, shape of the reply, one register example, one machine-image source, optional firmware bit, language style).
+- Swearing is permission, never a requirement; no retry exists; short clean lines are explicitly valued.
+- Sampling for engine turns: temperature 0.85 and penalties 0.3 / 0.2 instead of 0.95 / 0.6 / 0.5 (the old penalties forced odd comparisons); 0.5 and no penalties for a genuinely serious moment.
+- A genuinely serious first reply is now written without her earlier banter in front of it (see below).
+
+## Real bugs the evaluation found in the new build, fixed here
+
+1. **Serious replies picked up the joking register of the conversation** (Russian, a frightened visitor who had been joking with her): once a machine metaphor ("emergency system reboot"), once swearing, once a roast ("tell the guy he has less courage than a forgotten router"). Fixed by (a) calm sampling for serious moments, (b) "no swearing, never curt" in the permanent lines, and (c) **writing the first serious reply without her earlier assistant turns** (the visitor's own words stay; test added). The final runs (J, N) and the serious suite show plain, compassionate, safe replies in all five languages.
+2. Japanese "what are you, exactly?" (あなたって一体何なの？) was not recognised as a role question, so she answered as a "friend" and never said she is an android. Fixed and tested.
+3. Flirt replies were getting relationship-advice examples (a "six hours" reply bled into a flirt answer in Russian); flirt examples now take priority.
+
+## Honest read of the final full run (L), against the round-1 baseline and the target
+
+**Better than baseline ce42e55:** no therapist phrasing and no closing offers in any of the 35 ordinary replies (the baseline had both); explicit "I'm an android, not an assistant" in all five languages; shorter (mostly one to three sentences); the wingwoman gives orders in zh, ja and ru and some of the lines land: *"Sounds like you went on a date with a human broken record. Better luck next time!"*, *"Sounds like he needed a therapist, not a date."*, zh *"一个字，跑。你是去约会的，不是参加他的前女友粉丝见面会。"*, zh *"装作找不到哑铃，然后问那个女孩能不能帮你找。再怂下去，你就该被机器取代了。"*, es *"soy como un chorizo ibérico en un mundo de salchichas ordinarias"*, ru *"сварить борщ в микроволновке"*, en *"set a timer: ten minutes on exes, and then they gotta switch topics or pay for dinner"*.
+
+**Not at the target:**
+- **Strong language is essentially absent** in ordinary replies (0 of 35 in the last full run; the permission is there and the examples contain it, but this model does not take it). By your instruction I did not force it, but you should know the "foul-mouthed" half of the brief is not delivered.
+- **Outrageous, gasp-worthy one-liners are rare.** Most replies are competent and mildly cheeky rather than shocking; the model still reaches for tech puns (reboot, update, firmware, "level up") especially in Japanese, Russian and English.
+- **Variance is high** and one sample per scenario cannot prove a trend; the best and worst replies in one run differ a lot.
+- Japanese phrasing is the weakest (occasional unnatural wording and cliché "OS/バグ" jokes).
+
+## Recommendation
+
+The rewrite is a clear structural improvement (coherent prompt, no contradictions, serious handling now safer than before, therapist voice gone) and I believe it should replace the previous permanent prompt. It does **not** reach "makes people laugh, blush or gasp" consistently. What would likely close the gap, and needs your decision: (1) a **comedy punch-up pass** (a second, cheap model call that tightens and sharpens the draft; not a profanity retry), (2) trying a **different or newer model / settings** for the persona, (3) more budget to tune on several samples per scenario instead of one.
+
+The $2.00 budget is spent; further evaluation needs new approval. 470 tests pass; not merged, not deployed.
