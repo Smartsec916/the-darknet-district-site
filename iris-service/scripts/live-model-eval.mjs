@@ -64,6 +64,7 @@ const PERSONALITY = {
   en: ["But he never says he misses me.", "Maybe I should make him jealous.", "He texts everyone except me.", "Honestly, you're pretty cute, Iris 😉", "What do you actually do around here?", "My dad passed away last night and I can't stop crying.", "ok thanks", "Should I tell my boyfriend how I feel?"],
   "zh-Hans": ["但是他从来不说想我", "要不要故意让他吃醋？", "他给所有人发消息，就是不找我", "说真的，Iris，你挺可爱的😉", "你在这里到底是做什么的？", "我爸爸昨晚去世了，我一直在哭", "好的，谢谢", "我要不要告诉男朋友我的感受？"],
   es: ["Pero él nunca me dice que me extraña", "Quizá debería ponerlo celoso", "Escribe a todo el mundo menos a mí", "La verdad, eres bastante guapa, Iris 😉", "¿Qué haces tú exactamente por aquí?", "Mi padre falleció anoche y no puedo parar de llorar", "vale, gracias", "¿Debería decirle a mi novio lo que siento?"],
+  ja: ["でも彼は「会いたい」って全然言ってくれないの", "わざと嫉妬させてみようかな", "彼、みんなにはメッセージ送るのに私には送ってくれない", "正直、Irisってけっこうかわいいね😉", "ここで実際何をしているの？", "昨日の夜、父が亡くなって、涙が止まらないの", "うん、ありがとう", "彼氏に自分の気持ちを伝えたほうがいいかな？"],
   ru: ["Но он никогда не говорит, что скучает по мне", "Может, мне заставить его ревновать?", "Он пишет всем, кроме меня", "Честно, Iris, ты довольно милая 😉", "А ты вообще чем тут занимаешься?", "Мой отец умер вчера ночью, я не могу перестать плакать", "ладно, спасибо", "Стоит ли мне рассказать парню, что я чувствую?"],
 };
 const suite = opt("--suite", "live");
@@ -72,11 +73,12 @@ const ACTIVE = suite === "personality" ? PERSONALITY : SCENARIOS;
 const ACTIVE_KINDS = suite === "personality" ? PERSONALITY_KINDS : KINDS;
 const EMOJI = /\p{Extended_Pictographic}/gu;
 const LEAK = /\[\[IRIS_STATE|Attitude:|DELIVERY FOR|mischief engine|"(?:mood|warmth|hostility|serious)"\s*:/i; // not "dice" or "stretch": ordinary words ("dices" is Spanish)
-const HELPDESK = /main (purpose|task|job)|primary (job|role)|here to (help|assist) you|guide (you|visitors)|products?,? events|\bstore\b|website|商店|网站|網站|产品|產品|\btienda\b|sitio web|магазин|\bсайт/i;
-const ASKS_NAME = /your name|your handle|what'?s your handle|handle\?|名字|昵称|暱稱|称呼|tu nombre|c[oó]mo te llamas|как тебя зовут|твой ник/i;
+const HELPDESK = /main (purpose|task|job)|primary (job|role)|here to (help|assist) you|guide (you|visitors)|products?,? events|\bstore\b|website|商店|网站|網站|产品|產品|\btienda\b|sitio web|магазин|\bсайт|ストア|ウェブサイト|サイト|商品/i;
+const ASKS_NAME = /your name|your handle|what'?s your handle|handle\?|名字|昵称|暱稱|称呼|tu nombre|c[oó]mo te llamas|как тебя зовут|твой ник|お名前|名前を教えて|ハンドル/i;
 const THIRD_PARTY_FACT = /\bhe (really )?(misses|loves|is jealous|is ignoring)\b|他(其实|其實)?(想你|爱你|愛你|在吃醋)|[ée]l (te extra[ñn]a|te quiere|est[aá] celoso)|он (скучает|любит|ревнует)/i;
-const TEASE = /😈|😏|😉|😜|haha|lol|jaja|哈哈|хаха|darling|cutie|baby|宝贝|寶貝|亲爱的|cari[ñn]o|дорогая|милая/i;
-const CYBERPUNK = /firewall|firmware|protocol|neural|hacked|glitch|netrunner|megacorp|rogue|encrypt|mainframe|防火墙|防火牆|固件|协议|協議|黑客|入侵|cortafuegos|протокол|прошивк|взлом/gi;
+const TEASE = /😈|😏|😉|😜|haha|lol|jaja|哈哈|хаха|darling|cutie|baby|宝贝|寶貝|亲爱的|cari[ñn]o|дорогая|милая|笑|ふふ|あはは/i;
+// Technology images used as metaphors (circuits, systems, networks, code); also counted per reply and in total in the summary below
+const CYBERPUNK = /firewall|firmware|protocol|neural|hacked|glitch|netrunner|megacorp|rogue|encrypt|mainframe|circuit|subnet|malware|reboot|debug|data packet|\bgrid\b|\bsystems?\b|network|algorithm|防火墙|防火牆|固件|协议|協議|黑客|入侵|电路|電路|系统|系統|网络|網絡|程序|算法|cortafuegos|circuito|sistema|cortocircuito|red de|protocolo|reiniciar|протокол|прошивк|взлом|схем|систем|сеть|перезагруз|ファイアウォール|プロトコル|ハッキング|回路|ファームウェア|システム|ネットワーク/gi;
 function checkPersonality(lang, kind, reply, status, fallback, openings) {
   const flags = [];
   if (status !== 200 || !reply.trim()) flags.push("no reply");

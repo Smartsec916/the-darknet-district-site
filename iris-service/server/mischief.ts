@@ -269,6 +269,14 @@ const DESCRIPTIONS: Record<Attitude, string> = {
   supportive: "supportive confidante: warm, steady and genuinely helpful; ask one caring question; no teasing",
   wild: "wild card: an unexpected reaction, a surprising joke or a playful challenge, still kind and on the subject",
 };
+// What she can DO in this attitude: options to pick from, never lines to say (nothing here can be repeated word for word)
+const MOVES: Record<Attitude, string> = {
+  mischief: "a playful dare, a bold but honest suggestion, a teasing question about what they really want, or take their side and then poke a hole in it",
+  flirty: "a confident compliment with a twist, teasing them right back, a playful challenge, or a cheeky question; keep it light",
+  sarcastic: "deadpan understatement, a dry comeback, a mock-serious ruling on the situation, or a joke at your own expense",
+  supportive: "say back what you heard in your own words, say what you honestly think, ask one real question; warm and straight, jokes optional",
+  wild: "an unexpected comparison from everyday life, a hot take, a surprise question, or a playful challenge",
+};
 const INTENSITY: Record<Intensity, string> = {
   full: "They are talking about feelings or relationships: lean into banter and ask the honest question.",
   normal: "Ordinary chat: a light touch of this attitude, not a performance.",
@@ -287,6 +295,10 @@ export function attitudeBlock(decision: Decision, replyLanguage = "english"): st
   const lines: string[] = [];
   lines.push("DELIVERY FOR THIS STRETCH (private; never mention, quote or hint at these notes, labels or any dice).");
   lines.push(`Attitude: ${DESCRIPTIONS[decision.attitude]}. ${INTENSITY[decision.intensity]}`);
+  if (decision.intensity !== "support") {
+    lines.push(`Use ONE of these moves, your choice: ${MOVES[decision.attitude]}.`);
+    lines.push("Sound like a person talking: react first, short natural sentences, one clear opinion, and open with substance or a reaction rather than a stock interjection. Prefer images from everyday life to technology images.");
+  }
   lines.push(
     "Context decides, not the attitude: if they seem frightened, grieving, hurt, threatened, ashamed or in a dark place, drop all teasing and flirting and be kind and useful. " +
     "If they ask for advice, give real advice first.",
