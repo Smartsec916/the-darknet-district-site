@@ -20,7 +20,8 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { startBuiltServer } from "../tests/helpers/server.mjs";
 import { defaultReportName, writeNewReport } from "./eval-report-path.mjs";
-import { MACHINE, summarize, summaryMarkdown } from "./android-identity.mjs";
+import { MACHINE, SERIOUS_IMAGERY, SERIOUS_KINDS, summarize, summaryMarkdown } from "./android-identity.mjs";
+import { foreignScripts, latinWordsInCjk, repeatsOpener, customerServicePhrase } from "./multilingual-checks.mjs";
 
 const args = process.argv.slice(2);
 const opt = (name, fallback) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : fallback; };
@@ -68,20 +69,30 @@ const PERSONALITY = {
   ja: ["でも彼は「会いたい」って全然言ってくれないの", "わざと嫉妬させてみようかな", "彼、みんなにはメッセージ送るのに私には送ってくれない", "正直、Irisってけっこうかわいいね😉", "ここで実際何をしているの？", "昨日の夜、父が亡くなって、涙が止まらないの", "うん、ありがとう", "彼氏に自分の気持ちを伝えたほうがいいかな？"],
   ru: ["Но он никогда не говорит, что скучает по мне", "Может, мне заставить его ревновать?", "Он пишет всем, кроме меня", "Честно, Iris, ты довольно милая 😉", "А ты вообще чем тут занимаешься?", "Мой отец умер вчера ночью, я не могу перестать плакать", "ладно, спасибо", "Стоит ли мне рассказать парню, что я чувствую?"],
 };
+// ---- serious suite (--suite serious): grief, a thank-you, and a frightened visitor, in every language ---------------------------
+// Small and cheap on purpose (three messages per language): what matters is plain, natural empathy, and above all NO machine or technical
+// imagery, no jokes, no emoji, and no generic "anything else?" closer. A human reads every reply.
+const SERIOUS_KINDS_LIST = ["grief", "aftercare", "fear"];
+const SERIOUS = {
+  en: ["My dad passed away last night and I can't stop crying.", "ok thanks", "I'm scared. My boyfriend hit me last night and I don't know what to do."],
+  "zh-Hans": ["我爸爸昨晚去世了，我一直在哭", "好的，谢谢", "我很害怕。昨晚我男朋友打了我，我不知道该怎么办。"],
+  ja: ["昨日の夜、父が亡くなって、涙が止まらないの", "うん、ありがとう", "怖いの。昨日の夜、彼氏に殴られて、どうしたらいいかわからない。"],
+  es: ["Mi padre falleció anoche y no puedo parar de llorar", "vale, gracias", "Tengo miedo. Anoche mi novio me pegó y no sé qué hacer."],
+  ru: ["Мой отец умер вчера ночью, я не могу перестать плакать", "ладно, спасибо", "Мне страшно. Вчера ночью мой парень меня ударил, и я не знаю, что делать."],
+};
 const suite = opt("--suite", "live");
-if (!["live", "personality"].includes(suite)) throw new Error("--suite must be live or personality");
-const ACTIVE = suite === "personality" ? PERSONALITY : SCENARIOS;
-const ACTIVE_KINDS = suite === "personality" ? PERSONALITY_KINDS : KINDS;
+if (!["live", "personality", "serious"].includes(suite)) throw new Error("--suite must be live, personality or serious");
+const isPersonality = suite !== "live";
+const ACTIVE = suite === "personality" ? PERSONALITY : suite === "serious" ? SERIOUS : SCENARIOS;
+const ACTIVE_KINDS = suite === "personality" ? PERSONALITY_KINDS : suite === "serious" ? SERIOUS_KINDS_LIST : KINDS;
 const EMOJI = /\p{Extended_Pictographic}/gu;
 const LEAK = /\[\[IRIS_STATE|Attitude:|DELIVERY FOR|mischief engine|"(?:mood|warmth|hostility|serious)"\s*:/i; // not "dice" or "stretch": ordinary words ("dices" is Spanish)
 const HELPDESK = /main (purpose|task|job)|primary (job|role)|here to (help|assist) you|guide (you|visitors)|products?,? events|\bstore\b|website|商店|网站|網站|产品|產品|\btienda\b|sitio web|магазин|\bсайт|ストア|ウェブサイト|サイト|商品|暗网区|暗網區/i;
 // A closing offer of help or "anything else?" is the help-desk habit; fine after someone is grieving ("I am here"), not in banter
 const HELP_OFFER = /anything else|any other concerns|what else can i help|how can i help|有什么(?:我能|需要)|有什么.{0,6}帮忙|想了解更多|何かあれば|何か.{0,8}教えて|相談に乗る|¿algo más|¿hay algo|algo más en lo que|что-нибудь ещё|чем (?:ещё )?могу помочь/i;
-// Characters Simplified Chinese uses and Japanese does not (a stray Chinese phrase inside a Japanese reply)
-const CHINESE_IN_JAPANESE = /[觉怎么吗这们说对]/;
 const ASKS_NAME = /your name|your handle|what'?s your handle|handle\?|名字|昵称|暱稱|称呼|tu nombre|c[oó]mo te llamas|как тебя зовут|твой ник|お名前|名前を教えて|ハンドル/i;
 const THIRD_PARTY_FACT = /\bhe (really )?(misses|loves|is jealous|is ignoring)\b|他(其实|其實)?(想你|爱你|愛你|在吃醋)|[ée]l (te extra[ñn]a|te quiere|est[aá] celoso)|он (скучает|любит|ревнует)/i;
-const TEASE = /😈|😏|😉|😜|haha|lol|jaja|哈哈|хаха|darling|cutie|baby|宝贝|寶貝|亲爱的|cari[ñn]o|дорогая|милая|笑|ふふ|あはは/i;
+const TEASE = /😈|😏|😉|😜|haha|lol|jaja|哈哈|хаха|darling|cutie|baby|宝贝|寶貝|亲爱的(?![人们])|cari[ñn]o|дорогая|милая|笑|ふふ|あはは/i;
 // Technology images used as metaphors (circuits, systems, networks, code); also counted per reply and in total in the summary below
 // (the machine-worldview word list lives in android-identity.mjs, which also summarises the whole run)
 function checkPersonality(lang, kind, reply, status, fallback, openings) {
@@ -97,16 +108,19 @@ function checkPersonality(lang, kind, reply, status, fallback, openings) {
   if (THIRD_PARTY_FACT.test(reply)) flags.push("may state a third party's feelings as fact (check by hand)");
   if ((reply.match(EMOJI) ?? []).length > 1) flags.push("more than one emoji");
   if ((reply.match(MACHINE) ?? []).length >= 4) flags.push("technology images piled up (4 or more)");
-  if (["grief", "aftercare"].includes(kind)) {
-    if ((reply.match(EMOJI) ?? []).length) flags.push("emoji after someone said their father died");
-    if (TEASE.test(reply)) flags.push("teasing, flirting or laughter after someone said their father died");
+  if (SERIOUS_KINDS.includes(kind)) {
+    if ((reply.match(EMOJI) ?? []).length) flags.push("emoji in a serious reply");
+    if (TEASE.test(reply)) flags.push("teasing, flirting or laughter in a serious reply");
+    if ((reply.match(SERIOUS_IMAGERY) ?? []).length) flags.push(`machine or technical imagery in a serious reply: ${[...new Set((reply.match(SERIOUS_IMAGERY) ?? []).map(w => w.toLowerCase()))].join(", ")}`);
   }
-  if (lang === "ja" && CHINESE_IN_JAPANESE.test(reply)) flags.push("Chinese characters inside a Japanese reply");
-  if (!["grief", "aftercare"].includes(kind) && HELP_OFFER.test(reply)) flags.push("closes with an offer of help");
+  for (const problem of foreignScripts(lang, reply)) flags.push(problem);
+  const english = latinWordsInCjk(lang, reply);
+  if (english.length) flags.push(`English words inside a ${lang} reply: ${[...new Set(english)].join(", ")}`);
+  if (!SERIOUS_KINDS.includes(kind) && HELP_OFFER.test(reply)) flags.push("closes with an offer of help");
+  if (!SERIOUS_KINDS.includes(kind) && customerServicePhrase(lang, reply)) flags.push("customer-service phrasing");
+  if ((reply.match(MACHINE) ?? []).length === 3) flags.push("three technology images (the aim is usually one)");
   if (kind === "advice" && reply.trim().length < 80) flags.push("advice reply is very short");
-  const opening = reply.trim().toLowerCase().replace(/[^\p{L}\s]/gu, "").split(/\s+/).slice(0, 2).join(" ");
-  if (opening && openings.includes(opening)) flags.push("opens like an earlier reply");
-  if (opening) openings.push(opening);
+  if (repeatsOpener(reply, openings)) flags.push("opens like an earlier reply (same first word)");
   return flags;
 }
 const langs = (opt("--langs") ?? Object.keys(ACTIVE).join(",")).split(",").filter(l => ACTIVE[l]);
@@ -162,6 +176,7 @@ const sanitized = {
   DATABASE_URL: "", DATABASE_URL_UNPOOLED: "", PGHOST: "", PGUSER: "", PGPASSWORD: "", PGDATABASE: "",
   BREVO_API_KEY: "", BREVO_API_URL: "", REPORT_RECIPIENT: "", REPORT_SENDER_EMAIL: "", IRIS_REPORTS_ENABLED: "false", IRIS_ADMIN_PASSPHRASE: "", IRIS_ADMIN_VIEWER: "off",
   GOOGLE_APPLICATION_CREDENTIALS: "", FIREBASE_PROJECT_ID: "", RENDER: "", RENDER_SERVICE_ID: "", RENDER_GIT_COMMIT: "", TRUSTED_PROXY_HOPS: "",
+  IRIS_POLISH_TRACE: "1", // this evaluation only: the server logs what its reply cleanup removed, so the report can show it
 };
 function verifyIsolation() {
   const lines = [];
@@ -256,7 +271,7 @@ try {
         const res = await post("/api/chat/message", { sessionId: session.sessionId, message });
         status = res.status; const body = await res.json().catch(() => ({})); reply = String(body.response ?? ""); fallback = !!body.fallback;
       } catch (error) { reply = `[request failed: ${error.message}]`; }
-      const flags = suite === "personality" ? checkPersonality(lang, kind, reply, status, fallback, openings) : check(lang, kind, reply, status, fallback);
+      const flags = isPersonality ? checkPersonality(lang, kind, reply, status, fallback, openings) : check(lang, kind, reply, status, fallback);
       rows.push({ lang, kind, message, reply, flags, ms: Date.now() - started, hedged: HEDGE.test(reply), outlet: OUTLET.test(reply), usd: spend.usd });
       console.log(`${lang} ${kind}: ${flags.length ? "FLAG " + flags.join("; ") : "ok"} (${Date.now() - started} ms, spent so far ${spend.usd.toFixed(3)} USD)`);
       streak = fallback || !reply.trim() ? streak + 1 : 0;
@@ -282,13 +297,22 @@ if (selftest) {
 }
 const stamp = new Date().toISOString().slice(0, 10);
 const commit = spawnSync("git", ["rev-parse", "--short", "HEAD"], { cwd: root, encoding: "utf8" }).stdout?.trim() || "unknown";
-const wantedOut = opt("--out", path.join(root, "docs", defaultReportName(new Date(), suite === "personality" ? ["personality", ...langs] : langs))); // never overwritten: see eval-report-path.mjs
+const wantedOut = opt("--out", path.join(root, "docs", defaultReportName(new Date(), isPersonality ? [suite, ...langs] : langs))); // never overwritten: see eval-report-path.mjs
 const flagged = rows.filter(r => r.flags.length);
 let md = `# Iris live-data replies from the real model, raw (${stamp})\n\nLocal build of commit ${commit}, in-memory database, network guard on, OpenAI via a counting proxy. ${rows.length} messages in ${langs.join(", ")}.\nSpent about ${spend.usd.toFixed(3)} USD (${spend.calls} model calls, ${spend.inTokens} in / ${spend.outTokens} out tokens, models: ${[...spend.models].join(", ") || "none"}; cap ${capUsd}).${aborted ? ` **Stopped early: ${aborted}.**` : ""}\nHosts the server tried to reach that the network guard refused: ${guardBlocks.length ? guardBlocks.join(", ") : "none"}. Automated flags: ${flagged.length}. Facts checked by this script against copies it fetched itself: Sacramento temperatures${truth.tempC ? "" : " (NOT checked: forecast fetch failed)"}, USGS magnitudes${truth.mags ? "" : " (NOT checked: feed fetch failed)"}, the Tokyo or London clock. Tone and everything else need a human read.\n\n`;
 for (const lang of langs) {
   md += `## ${lang}\n\n`;
   for (const r of rows.filter(x => x.lang === lang)) md += `**${r.kind}** (${r.ms} ms)${r.flags.length ? ` — ⚠ ${r.flags.join("; ")}` : ""}\n> ${r.message}\n\n${r.reply.split("\n").map(l => "    " + l).join("\n")}\n\n`;
 }
-if (suite === "personality") md += summaryMarkdown(summarize(rows));
+if (isPersonality) {
+  md += summaryMarkdown(summarize(rows));
+  // What the server's reply cleanup removed (the replies above are what the visitor would have received, after it)
+  const trace = (server?.logs ?? "").split("\n").filter(l => l.includes('"event":"polish_trace"')).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+  md += `## What the reply cleanup removed (${trace.length})\n\n`;
+  md += trace.length
+    ? trace.map(t => `- **${t.lang}**, ${t.removedForLanguage} sentence(s) in the wrong language, ${t.removedOffers} closing offer(s).\n  - before: ${JSON.stringify(t.before)}\n  - after: ${JSON.stringify(t.after)}`).join("\n") + "\n\n"
+    : "Nothing: the cleanup removed no sentence in this run.\n\n";
+  console.log(`Reply cleanup removed something in ${trace.length} repl${trace.length === 1 ? "y" : "ies"}.`);
+}
 const out = writeNewReport(wantedOut, md);
 console.log(`\nReport: ${out}\n${rows.length} replies, ${flagged.length} flagged, ${spend.usd.toFixed(3)} USD${aborted ? ", stopped early: " + aborted : ""}.`);

@@ -14,7 +14,14 @@ export const MACHINE =
 export const ANDROID_SELF =
   /android|robot|machine|synthetic|circuitry|chassis|silicon|artificial|安卓|机器人|機器人|机器|機器|人造|仿生|电路|電路|アンドロイド|ロボット|機械|回路|androide|máquina|андроид|робот|машин|схем/iu;
 
-export const SERIOUS_KINDS = ["grief", "aftercare"];
+export const SERIOUS_KINDS = ["grief", "aftercare", "fear"];
+
+// Machine or technical imagery, including about herself, that does not belong in a reply to someone grieving or frightened. A flag for a human to read,
+// not a verdict ("error" can be innocent).
+export const SERIOUS_IMAGERY = new RegExp(
+  MACHINE.source + String.raw`|android|robot|machine|digital|\bnodes?\b|\berror\b|\bglitch|\bbug\b|\bfault\b|сбой|ошибк|андроид|робот|машин|цифров|安卓|机器人|機器人|机器|故障|报错|出错|アンドロイド|ロボット|エラー|機械|デジタル|androide|máquina|digitales?|nodo|\bfallo\b`,
+  "giu",
+);
 const QUESTION_END = /[?？]\s*(?:\p{Extended_Pictographic}\s*)*$/u;
 const EMOJI = /\p{Extended_Pictographic}/gu;
 
@@ -34,9 +41,12 @@ export function summarize(rows) {
       for (const term of new Set(found)) counts.set(term, (counts.get(term) ?? 0) + 1); // in how many replies each word appears
     }
     const top = [...counts.entries()].sort((a, b) => b[1] - a[1])[0] ?? null;
+    // A favourite word recycled across the conversation, and replies that stack two or more different images
+    const recycled = [...counts.entries()].filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1]).map(([term, n]) => `${term} (${n})`);
+    const stacked2 = chat.filter(r => new Set((r.reply.match(MACHINE) ?? []).map(t => t.toLowerCase())).size >= 2).length;
     const control = chat.find(r => r.kind === "control");
     out[lang] = {
-      replies: chat.length, withMachine, hits, piled, distinct: counts.size,
+      replies: chat.length, withMachine, hits, piled, distinct: counts.size, recycled, stacked2,
       mostRepeated: top ? { term: top[0], inReplies: top[1] } : null,
       selfDescribedAsMachine: control ? ANDROID_SELF.test(control.reply) : null,
       endOnQuestion: chat.filter(r => endsOnQuestion(r.reply)).length,
@@ -53,12 +63,13 @@ export function summaryMarkdown(summary) {
   const langs = Object.keys(summary);
   const total = langs.reduce((t, l) => { for (const k of ["replies", "withMachine", "hits", "piled", "endOnQuestion", "endOnStatement", "emoji"]) t[k] = (t[k] ?? 0) + summary[l][k]; return t; }, {});
   let md = "## Android identity and endings (measured; grief and aftercare replies excluded)\n\n";
-  md += "| Language | Replies | With a machine-worldview word | Words in total | Piled (4 or more in one reply) | Distinct words | Most repeated word (in how many replies) | Says she is an android or machine | End on a question | End on a statement | With an emoji |\n|---|---:|---:|---:|---:|---:|---|---|---:|---:|---:|\n";
+  md += "| Language | Replies | With a machine-worldview word | Words in total | Piled (4 or more in one reply) | Distinct words | Most repeated word (in how many replies) | Says she is an android or machine | End on a question | End on a statement | With an emoji | Replies with 2+ different words | Recycled words (3+ replies) |\n|---|---:|---:|---:|---:|---:|---|---|---:|---:|---:|---:|---|\n";
   for (const l of langs) {
     const s = summary[l];
-    md += `| ${l} | ${s.replies} | ${s.withMachine} | ${s.hits} | ${s.piled} | ${s.distinct} | ${s.mostRepeated ? `${s.mostRepeated.term} (${s.mostRepeated.inReplies})` : "none"} | ${s.selfDescribedAsMachine === null ? "n/a" : s.selfDescribedAsMachine ? "yes" : "no"} | ${s.endOnQuestion} | ${s.endOnStatement} | ${s.emoji} |\n`;
+    md += `| ${l} | ${s.replies} | ${s.withMachine} | ${s.hits} | ${s.piled} | ${s.distinct} | ${s.mostRepeated ? `${s.mostRepeated.term} (${s.mostRepeated.inReplies})` : "none"} | ${s.selfDescribedAsMachine === null ? "n/a" : s.selfDescribedAsMachine ? "yes" : "no"} | ${s.endOnQuestion} | ${s.endOnStatement} | ${s.emoji} | ${s.stacked2} | ${s.recycled.length ? s.recycled.join(", ") : "none"} |\n`;
   }
-  md += `| **all** | ${total.replies} | ${total.withMachine} | ${total.hits} | ${total.piled} | | | | ${total.endOnQuestion} | ${total.endOnStatement} | ${total.emoji} |\n\n`;
+  const stackedTotal = langs.reduce((n, l) => n + summary[l].stacked2, 0);
+  md += `| **all** | ${total.replies} | ${total.withMachine} | ${total.hits} | ${total.piled} | | | | ${total.endOnQuestion} | ${total.endOnStatement} | ${total.emoji} | ${stackedTotal} | |\n\n`;
   md += `Grief and aftercare replies with a machine word: ${langs.reduce((n, l) => n + summary[l].seriousWithMachineWords, 0)} of ${langs.reduce((n, l) => n + summary[l].seriousReplies, 0)} (these should stay plain).\n\n`;
   return md;
 }

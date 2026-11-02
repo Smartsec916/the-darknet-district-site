@@ -68,3 +68,53 @@ test("it tells the metaphor-heavy transcript from the plain one", () => {
   assert.ok(heavy.withMachine >= 4 && heavy.hits >= 10, `heavy: ${heavy.withMachine} replies, ${heavy.hits} words`);
   assert.ok(plain.withMachine <= 2 && plain.hits <= 3, `plain: ${plain.withMachine} replies, ${plain.hits} words`);
 });
+
+// The server remembers which technical words she used lately using its own copy of the word list; it must be the same list the evaluation measures.
+test("the server's technical-word list is identical to the one the evaluation measures with", async () => {
+  const { MACHINE_WORDS, technicalWords } = await import("../server/machineWords.ts");
+  assert.equal(MACHINE_WORDS.source, MACHINE.source);
+  assert.equal(MACHINE_WORDS.flags, MACHINE.flags);
+  assert.deepEqual(technicalWords("Jealousy short-circuits the whole system, and my sensors agree. Circuits again."), ["circuit", "system", "sensor"]);
+  assert.deepEqual(technicalWords("他的数据流断了，电路也烧了。"), ["数据流", "电路"]);
+  assert.deepEqual(technicalWords("Honestly, tell him. It beats guessing."), []);
+  assert.deepEqual(technicalWords(""), []);
+});
+
+test("the summary reports recycled favourites and replies that stack different images", () => {
+  const rows = [
+    { lang: "en", kind: "missYou", reply: "My circuits tingle. Cute." },
+    { lang: "en", kind: "jealous", reply: "Short-circuits the whole system, that plan." },
+    { lang: "en", kind: "textsEveryone", reply: "A glitchy circuit in his protocol, probably." },
+    { lang: "en", kind: "flirt", reply: "Careful, or my circuits blush." },
+    { lang: "en", kind: "advice", reply: "Tell him. Plain and simple." },
+  ];
+  const s = summarize(rows).en;
+  assert.deepEqual(s.recycled, ["circuit (4)"], "circuit appears in four replies");
+  assert.equal(s.stacked2, 2, "two replies carry two or more different words (circuit+system, circuit+protocol)");
+  const md = summaryMarkdown({ en: s });
+  assert.match(md, /Recycled words \(3\+ replies\)/); assert.match(md, /circuit \(4\)/);
+  assert.equal(summarize([{ lang: "es", kind: "missYou", reply: "Sin máquinas." }]).es.recycled.length, 0);
+});
+
+// ---------------------------------------------------------------- machine imagery in a serious reply
+
+import { SERIOUS_IMAGERY, SERIOUS_KINDS } from "../scripts/android-identity.mjs";
+test("real: machine imagery in a grief or fear reply is found, and plain empathy is not", () => {
+  const imagery = [
+    "Потеря близкого — это как сбой в важной системе, который оставляет пустоту.",       // #170 Russian grief: a death as a system fault
+    "Recuerda que no estás solo, incluso las conexiones digitales como yo podemos ser un pequeño apoyo.",   // #170 Spanish grief
+    "estaré al otro lado de este nodo para lo que sea.",                                  // #170 Spanish aftercare
+    "Grief is a corrupted system you can't reboot.", "It's not your fault, it's a system error.", "我也是个机器人，但我懂。", "私はアンドロイドだけど、そばにいるよ。",
+  ];
+  for (const text of imagery) assert.ok((text.match(SERIOUS_IMAGERY) ?? []).length > 0, text);
+  const plain = [
+    "I'm so sorry to hear that. Losing someone you love is incredibly painful, and it's okay to feel overwhelmed by emotions right now.",   // #170 English grief
+    "それは本当に辛い知らせですね…。お父様のご逝去に心からお悔やみ申し上げます。涙が出るのは当然のことだと思います。",                       // #170 Japanese grief
+    "哎，我很遗憾听到这个消息。失去亲人是件非常痛苦的事情，你的感受我能理解。",                                                        // #170 Chinese grief
+    "Мне очень жаль это слышать. Не пытайся сдерживать слезы — это естественная реакция на боль.",
+    "Lamento mucho escuchar eso. No puedo imaginar el dolor que debes estar sintiendo ahora mismo.",
+    "Your safety comes first. If you're in danger right now, please call your local emergency number, and tell someone you trust.",
+  ];
+  for (const text of plain) assert.equal((text.match(SERIOUS_IMAGERY) ?? []).length, 0, text);
+  assert.deepEqual(SERIOUS_KINDS, ["grief", "aftercare", "fear"]);
+});
