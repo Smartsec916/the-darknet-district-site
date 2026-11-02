@@ -1089,6 +1089,15 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
       updatedMessages = buildRequestMessages(sessionId);
     }
     
+    // The first reply of a genuinely serious moment (danger, abuse, a death) is written WITHOUT her earlier replies in front of it. In the evaluation a
+    // frightened visitor who had just been joking with her got a roast and a router joke back, because a model continues the register of the conversation it
+    // sees. The visitor's own words stay (that is the context); her earlier banter does not. Request-only: nothing stored or shown changes.
+    if (options.attitude?.intensity === "support" && options.attitude.newStretch) {
+      let lastUser = -1;
+      for (let i = updatedMessages.length - 1; i >= 0; i--) if (updatedMessages[i].role === "user") { lastUser = i; break; }
+      updatedMessages = updatedMessages.filter((m, i) => m.role !== "assistant" || i > lastUser);
+    }
+
     // The register example: one invented exchange from "another conversation", placed just before the visitor's message, so the model sees the temperature
     // it is meant to match (see registerSamples.ts for why a description alone did not work). Request-only: never stored, never shown, never in a serious reply.
     if (options.attitude?.sampleKind && options.attitude.intensity !== "support" && !options.attitude.clean && !options.attitude.role) {

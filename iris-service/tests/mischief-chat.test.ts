@@ -466,6 +466,26 @@ test("route: everyday misery gets the wingwoman/dark-comedy delivery, genuine da
 });
 
 
+test("route: a genuinely serious first message is written without her earlier banter in front of it, and the next serious message keeps the conversation", async () => {
+  mischief.dice.next = () => 0.3;
+  const v = await visitor("m-serious-history");
+  for (const message of ["my boss is a clown", "tell me a joke about my landlord"]) {
+    script.push(stateLine() + "\nHa, a joke about " + message.slice(0, 3) + ".");
+    await say(v, message);
+  }
+  captured = [];
+  script.push(stateLine({ serious: 1 }) + "\nI'm so sorry. Are you safe right now?");
+  await say(v, "He hits me and I'm scared to go home");
+  const first = mainCalls()[0].body.messages as Array<{ role: string; content: string }>;
+  assert.equal(first.filter(m => m.role === "assistant").length, 0, "no earlier banter in front of the serious reply");
+  assert.ok(first.filter(m => m.role === "user").length >= 3, "but everything the visitor said is still there");
+  captured = [];
+  script.push(stateLine({ serious: 1 }) + "\nTake your time.");
+  await say(v, "I don't know where to go");
+  const second = mainCalls()[0].body.messages as Array<{ role: string; content: string }>;
+  assert.ok(second.some(m => m.role === "assistant" && /Are you safe right now/.test(m.content)), "the follow-up keeps her serious reply");
+});
+
 test("route: an ordinary reply is sent one invented register example just before the visitor's message; nothing of it is stored or shown; serious, role and underage replies get none", async () => {
   mischief.dice.next = () => 0.3;
   const cases: Array<[string, Record<string, unknown>, boolean]> = [
