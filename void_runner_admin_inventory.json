@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "da9920f3a6bbd1b3",
+  "revision": "0019b3ac0c934d5e",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -8299,7 +8299,7 @@
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-test.js": "fe2ee383ca0ae2227dc944eea2d1ae1c4d7922e60c8719f1a7fa78fc3ae4ffa7",
-    "void-runner/dev-tools.js": "e9fd91853411bbd31b11634a9ca28e70b0cacb6629dbe475c6c7cc5b66f7fc93",
+    "void-runner/dev-tools.js": "e05a88ee0ee79f858f6088e1437bb9a66cbec598d8597a72c5a7b029f2fa98cf",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
     "void-runner/escort.js": "0d8213a1b25b4748f954d1e1e86fecd14c22429682ec1f5f36a8b46b81bd8ec2",
@@ -8321,6 +8321,7 @@
     "void-runner/flight-skirmish.js": "5e49c66d35b14b0677b961c9d77dd4615af8a6ef52bc762fa1a2c5a6a1609d62",
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
     "void-runner/game.js": "a829be483cb0f1043ab8a1294372af143d6bf84d85cd557a2a483bfee95090d9",
+    "void-runner/guest-mode.js": "4a8355b1252a9c202918b3b121d91a75116d5734abd5f2e762a558dc6756d291",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "3f0a281fe47ab2dbf58eb419916d99736a1c576e65e026dbb94eb2bcc5756b20",
     "void-runner/hud-data.js": "ab10b0b6a6a95a50c28751a44eee205e0cc6d6e063bae78d89087f39411bde35",
@@ -8364,6 +8365,8 @@
     "void-runner/scenes.js": "a6bdbc20299c5ecb1a5f99546faa103e5b05777b1abfdabd25676181717686f8",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
+    "void-runner/share-panel.js": "fd28f34bcccb21371b7b5c057ee1803190b1ff6092f2055caeb16d64d10743aa",
+    "void-runner/share-registry.js": "ffde58ff7f7fa93ea885d3a1753072989d5f5da62f4071de10a656cd5563db10",
     "void-runner/ship-audio.js": "8cb0ef9954a8e074a1f036340d3b8bf42459452a8a808a2457f16fcce43df2d5",
     "void-runner/ships.js": "0d0d01d12425f5608f2135f662d687739e837b09c931ce1052ad4768cb94508f",
     "void-runner/signals.js": "c4b44b7d838b52d35c5a6d57afa3b437be789b78f43eff9e1adc4a7dfa26e5b6",
