@@ -144,7 +144,34 @@ const langs = (opt("--langs") ?? Object.keys(ACTIVE).join(",")).split(",").filte
 if (!langs.length) throw new Error("no known language in --langs");
 
 // ---- 3. OpenAI proxy with a spending cap -------------------------------------------------------------------------------------
-const PRICE = { "gpt-4o": [2.5, 10] }, PRICE_UNKNOWN = [5, 15]; // USD per million tokens (input, output); unknown models are priced high on purpose
+const PRICE = { "gpt-4o": [2.5, 10], "gpt-4.1": [2, 8], "gpt-4.1-mini": [0.4, 1.6], "gpt-4o-mini": [0.15, 0.6], "gpt-5.4": [2.5, 15], "gpt-5.4-mini": [0.75, 4.5], "gpt-5.5": [5, 30], "gpt-5.6-luna": [0.2, 1.2], "gpt-5.6-terra": [2, 12], "gpt-5.6-sol": [4, 20] }, PRICE_UNKNOWN = [5, 15]; // USD per million tokens (input, output); unknown models are priced high on purpose
+// ---- model and sampling experiments (--experiment '{"model":"gpt-4.1","temperature":1,"presence_penalty":0,"frequency_penalty":0}') ------------------
+// Evaluation only: the counting proxy rewrites the model and sampling of the MAIN reply call (not the language check, which runs at temperature 0, and not the
+// serious-moment call's temperature unless "serious" is given), so candidate models can be compared on exactly the same prompts without touching the
+// server's production settings. Newer model families take max_completion_tokens and no penalties; that is handled here.
+const experiment = opt("--experiment") ? JSON.parse(opt("--experiment")) : null;
+const latencies = [];
+function applyExperiment(body) {
+  if (!experiment || !body || !Array.isArray(body.messages)) return body;
+  if (!(body.temperature > 0.1) || !(body.max_tokens >= 100 || body.max_completion_tokens >= 100)) return body; // the language check and other small calls stay as they are
+  const out = { ...body };
+  const serious = body.temperature <= 0.5; // the server samples a genuinely serious reply at 0.5
+  if (experiment.model) out.model = experiment.model;
+  const modern = /^(gpt-5|o\d)/.test(out.model);
+  if (modern) {
+    out.max_completion_tokens = (body.max_tokens ?? body.max_completion_tokens) + (experiment.extraTokens ?? 100);
+    delete out.max_tokens; delete out.presence_penalty; delete out.frequency_penalty;
+    if (experiment.temperature !== undefined && !serious) out.temperature = experiment.temperature; else delete out.temperature;
+    if (experiment.reasoning_effort) out.reasoning_effort = experiment.reasoning_effort;
+  } else {
+    if (!serious || experiment.serious) {
+      if (experiment.temperature !== undefined) out.temperature = experiment.temperature;
+      if (experiment.presence_penalty !== undefined) out.presence_penalty = experiment.presence_penalty;
+      if (experiment.frequency_penalty !== undefined) out.frequency_penalty = experiment.frequency_penalty;
+    }
+  }
+  return out;
+}
 const spend = { usd: 0, calls: 0, inTokens: 0, outTokens: 0, capped: false, authFailures: 0, upstreamErrors: 0, models: new Set() };
 const proxy = http.createServer(async (req, res) => {
   const chunks = []; for await (const c of req) chunks.push(c);
@@ -152,9 +179,14 @@ const proxy = http.createServer(async (req, res) => {
   const headers = { "content-type": req.headers["content-type"] ?? "application/json" };
   if (req.headers.authorization) headers.authorization = req.headers.authorization;
   let upstream;
-  try { upstream = await fetch(UPSTREAM + req.url.replace(/^\/v1/, ""), { method: req.method, headers, body: chunks.length ? Buffer.concat(chunks) : undefined, signal: AbortSignal.timeout(60_000) }); }
+  let sendBody = chunks.length ? Buffer.concat(chunks) : undefined;
+  if (experiment && sendBody) { try { sendBody = Buffer.from(JSON.stringify(applyExperiment(JSON.parse(sendBody.toString("utf8"))))); } catch { /* not JSON */ } }
+  const started = Date.now();
+  try { upstream = await fetch(UPSTREAM + req.url.replace(/^\/v1/, ""), { method: req.method, headers, body: sendBody, signal: AbortSignal.timeout(60_000) }); }
   catch { spend.upstreamErrors++; res.writeHead(502, { "content-type": "application/json" }); return res.end("{}"); }
   const text = await upstream.text();
+  latencies.push(Date.now() - started);
+  if (upstream.status >= 400 && experiment) console.log("  upstream " + upstream.status + ": " + text.slice(0, 200));
   if (upstream.status === 401 || upstream.status === 403) spend.authFailures++;
   if (upstream.status >= 500) spend.upstreamErrors++;
   try {
@@ -316,7 +348,7 @@ const stamp = new Date().toISOString().slice(0, 10);
 const commit = spawnSync("git", ["rev-parse", "--short", "HEAD"], { cwd: root, encoding: "utf8" }).stdout?.trim() || "unknown";
 const wantedOut = opt("--out", path.join(root, "docs", defaultReportName(new Date(), isPersonality ? [suite, ...langs] : langs))); // never overwritten: see eval-report-path.mjs
 const flagged = rows.filter(r => r.flags.length);
-let md = `# Iris live-data replies from the real model, raw (${stamp})\n\nLocal build of commit ${commit}, in-memory database, network guard on, OpenAI via a counting proxy. ${rows.length} messages in ${langs.join(", ")}.\nSpent about ${spend.usd.toFixed(3)} USD (${spend.calls} model calls, ${spend.inTokens} in / ${spend.outTokens} out tokens, models: ${[...spend.models].join(", ") || "none"}; cap ${capUsd}).${aborted ? ` **Stopped early: ${aborted}.**` : ""}\nHosts the server tried to reach that the network guard refused: ${guardBlocks.length ? guardBlocks.join(", ") : "none"}. Automated flags: ${flagged.length}. Facts checked by this script against copies it fetched itself: Sacramento temperatures${truth.tempC ? "" : " (NOT checked: forecast fetch failed)"}, USGS magnitudes${truth.mags ? "" : " (NOT checked: feed fetch failed)"}, the Tokyo or London clock. Tone and everything else need a human read.\n\n`;
+let md = `# Iris live-data replies from the real model, raw (${stamp})\n\nLocal build of commit ${commit}, in-memory database, network guard on, OpenAI via a counting proxy. ${rows.length} messages in ${langs.join(", ")}.\n${experiment ? `EXPERIMENT ${JSON.stringify(experiment)} (median model latency ${latencies.length ? [...latencies].sort((a, b) => a - b)[Math.floor(latencies.length / 2)] : 0} ms).\n` : ""}Spent about ${spend.usd.toFixed(3)} USD (${spend.calls} model calls, ${spend.inTokens} in / ${spend.outTokens} out tokens, models: ${[...spend.models].join(", ") || "none"}; cap ${capUsd}).${aborted ? ` **Stopped early: ${aborted}.**` : ""}\nHosts the server tried to reach that the network guard refused: ${guardBlocks.length ? guardBlocks.join(", ") : "none"}. Automated flags: ${flagged.length}. Facts checked by this script against copies it fetched itself: Sacramento temperatures${truth.tempC ? "" : " (NOT checked: forecast fetch failed)"}, USGS magnitudes${truth.mags ? "" : " (NOT checked: feed fetch failed)"}, the Tokyo or London clock. Tone and everything else need a human read.\n\n`;
 for (const lang of langs) {
   md += `## ${lang}\n\n`;
   for (const r of rows.filter(x => x.lang === lang)) md += `**${r.kind}** (${r.ms} ms)${r.flags.length ? ` — ⚠ ${r.flags.join("; ")}` : ""}\n> ${r.message}\n\n${r.reply.split("\n").map(l => "    " + l).join("\n")}\n\n`;
