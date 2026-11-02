@@ -35,8 +35,12 @@ test('the pod page: dimming reaches every smoke canvas, the Iris button is lifte
   assert.match(page, /smokeLayers = \(\) => \[\.\.\.document\.querySelectorAll\('\.pod-smoke'\)\]/);
   assert.match(page, /body\.iris-widget-page \.chat-button \{ bottom: calc\(112px/);
   const smoke = read('sleeping-pod-smoke.js');
-  // the shader text is byte-for-byte what it was (desktop unchanged)
-  const original = require('node:child_process').execSync('git show bb8d819:sleeping-pod-smoke.js', { cwd: path.join(__dirname, '..'), encoding: 'utf8' });
+  // the shader text is byte-for-byte what it was when the effect was approved (commit bb8d819, kept as a fixture): desktop unchanged
+  const original = read('tests/fixtures/pod-smoke-shader-bb8d819.txt').replace(//g, '');
+  const start = smoke.indexOf('var FRAG = [');
+  const current = smoke.slice(start, start + original.length).replace(//g, '');
+  assert.equal(current, original.trimEnd().length < original.length ? original : original);
+});
   const frag = text => text.slice(text.indexOf("var FRAG = ["), text.indexOf("].join('\\n');", text.indexOf("var FRAG = [")));
   assert.equal(frag(smoke).replace(/\r/g, ''), frag(original).replace(/\r/g, ''));
 });
