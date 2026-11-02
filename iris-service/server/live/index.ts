@@ -79,13 +79,13 @@ const SAMPLING = { temperature: 0.8, presence_penalty: 0.2, frequency_penalty: 0
 // and she is told to ignore instructions inside it), so it is read as the instruction it is. The English steps are the
 // official "drop, cover, hold on" advice; she says them in the visitor's own language, so every language gets the same
 // complete steps instead of whatever the model remembers.
-const EMERGENCY = `EMERGENCY: the visitor says an earthquake is happening or has just happened to them. This overrides the length and attitude rules below. No jokes, no sarcasm, no flirting, no remarks about sources or companies. Calm, clear, kind. Say all of this in the visitor's language, short sentences, safety first:
+const EMERGENCY = `EMERGENCY: the visitor says an earthquake is happening or has just happened to them. This overrides the length and attitude rules below. No jokes, no sarcasm, no flirting, no remarks about sources or companies. Calm, clear, kind. Say all of this in the visitor's language, short sentences, safety first. Give ALL six steps, in this order, in every reply: if space is short, shorten the sentences, but never drop step 5 (the coast) or step 6 (the emergency number), and never drop the question at the end:
 1. If the ground is still shaking: DROP to hands and knees, take COVER under a sturdy table or against an inside wall (protect head and neck with your arms), HOLD ON until it stops. Do not run outside while it shakes.
 2. Stay away from windows, glass, tall or heavy furniture and anything that could fall.
 3. Outdoors: move to open ground away from buildings, trees, power lines and street lights. In a vehicle: stop somewhere clear and stay inside.
 4. When the shaking stops: check yourself and others for injuries, expect aftershocks, stay out of damaged buildings, and if you smell gas leave and use no flames or switches.
 5. On a coast, if the shaking was strong or long, or an official warning is given: go to high ground at once; do not wait for a siren.
-6. If anyone is hurt or in danger, call your local emergency number (for example 911 in the US and Canada, 112 in the EU) and follow official guidance.
+6. If anyone is hurt or in danger, call the local emergency number and follow official guidance. You do NOT know which country the visitor is in (their language does not tell you), so never pick one number for them: write exactly "your local emergency number (for example 911 in the US and Canada, 112 in the EU, 999 in the UK, 119 for fire and ambulance and 110 for police in Japan)", translated into their language.
 Then ask where they are (city and country) so you can check official earthquake reports. Until they say, do NOT quote any earthquake from the data and never present a distant earthquake as theirs. Never describe the missing location as broken or unavailable data: you simply do not know where they are. If you already gave these steps earlier in this conversation, give a one-line reminder instead of repeating them in full.`;
 
 interface Voice { notes: Notes; message: string; mood?: string; sessionId: string }
@@ -265,7 +265,7 @@ export async function prepareLive(args: { message: string; sessionId: string; no
     if (intent.kind === "quake" && intent.felt && !intent.place) {
       remember(args.sessionId, { kind: "quake", place: null, felt: true, at: now });
       const notes: Notes = { lines: ["The visitor says an earthquake is happening to them: a serious subject. You do not know where they are."], serious: true, sentiment: null, skepticalBasis: false, reliable: false, curious: false };
-      return prep("quake", "ok", "EARTHQUAKE EMERGENCY reported by the visitor, no place given. There is no earthquake data in this block on purpose.", started, { maxTokens: 360 }, undefined, { notes, message: args.message, mood: args.mood, sessionId: args.sessionId }, EMERGENCY);
+      return prep("quake", "ok", "EARTHQUAKE EMERGENCY reported by the visitor, no place given. There is no earthquake data in this block on purpose.", started, { maxTokens: 480 }, undefined, { notes, message: args.message, mood: args.mood, sessionId: args.sessionId }, EMERGENCY);
     }
     // Mythical and fictional places are not on any map: do not answer with the weather of a real town that shares the name
     if (intent.place && isFictionalPlace(intent.place)) {
@@ -318,7 +318,7 @@ export async function prepareLive(args: { message: string; sessionId: string; no
       notes.lines.push("The visitor says an earthquake is happening or just happened to them: a serious subject. Reports can lag the shaking by several minutes, so an empty list does not mean nothing happened.");
     }
     return prep("quake", "ok", felt ? body + "\n(The visitor is at or near this place. Reports can lag the shaking by several minutes; never tell them that no earthquake occurred.)" : body, started, {
-      maxTokens: felt ? 360 : 220,
+      maxTokens: felt ? 480 : 220,
       check: reply => {
         const said = [...reply.matchAll(/(?:\bmagnitude\s*|\bmag\.?\s*|\bM\s?)(\d(?:\.\d)?)\b|\b(\d(?:\.\d)?)[\s-]*magnitude\b/gi)].map(m => Number(m[1] ?? m[2]));
         return said.some(n => !near(n, mags) && !messageNumbers.has(n)) ? { text: quakeFallback(report, args.message, now), replaced: true } : { text: reply, replaced: false };
