@@ -353,3 +353,27 @@ test("the engine keeps its memory bounded", () => {
   for (let i = 0; i < 5300; i++) chooseAttitude("many-" + i, ctx(), cfg());
   assert.ok(chooseAttitude("many-5299", ctx(), cfg()), "still works after thousands of chats");
 });
+
+// ---------------------------------------------------------------- concrete moves and a natural voice
+
+test("each attitude comes with options to choose from (never lines to say), and a serious moment has none of it", () => {
+  const base = { intensity: "full" as const, newStretch: true, challenge: false, cyberpunk: false, emoji: false, avoid: [] };
+  const expected: Record<Attitude, RegExp> = {
+    mischief: /Use ONE of these moves, your choice: a playful dare, a bold but honest suggestion/,
+    flirty: /Use ONE of these moves, your choice: a confident compliment with a twist, teasing them right back/,
+    sarcastic: /Use ONE of these moves, your choice: deadpan understatement, a dry comeback/,
+    supportive: /Use ONE of these moves, your choice: say back what you heard in your own words/,
+    wild: /Use ONE of these moves, your choice: an unexpected comparison from everyday life, a hot take/,
+  };
+  for (const attitude of ATTITUDES) {
+    const block = attitudeBlock({ ...base, attitude });
+    assert.match(block, expected[attitude], attitude);
+    assert.match(block, /Sound like a person talking: react first, short natural sentences, one clear opinion/);
+    assert.match(block, /Prefer images from everyday life to technology images/);
+    assert.ok(block.length < 2300, `${attitude}: ${block.length} characters`);
+    const serious = attitudeBlock({ ...base, attitude, intensity: "support" });
+    assert.doesNotMatch(serious, /Use ONE of these moves|Sound like a person talking/, "no moves or banter instructions in a serious moment");
+  }
+  // none of the wording is a ready-made line
+  for (const text of Object.values(expected).map(r => r.source)) assert.doesNotMatch(text, /["“”]/);
+});

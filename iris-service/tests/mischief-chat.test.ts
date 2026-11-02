@@ -161,6 +161,21 @@ test("no customer-service drift: the permanent prompt no longer makes the Distri
   assert.match(attitudeMessages(mainCalls()[0])[0].content, /unless they ask/);
 });
 
+test("the permanent style no longer pushes hacker talk: cyberpunk is the exception and the voice is a real person's", async () => {
+  const v = await visitor("m-voice");
+  script.push(`${stateLine()}
+Hi.`);
+  await say(v, "hello there, how is your day going");
+  const text = systemText(mainCalls()[0]);
+  for (const gone of ["Use hacker lingo and cyberpunk terminology", "Reference \"sectors,\" \"nodes,\"", "Occasionally use unique greeting patterns", "Use varied sign-offs occasionally", "tech-based double entendres", "Use a wide range of cyberpunk vocabulary", "Create unique metaphors comparing digital", "elegant, advanced language", "Refer to website visitors as \"netrunners,\""]) {
+    assert.ok(!text.includes(gone), `"${gone}" is gone`);
+  }
+  for (const kept of ["Skip stock greetings and sign-offs", "Talk like a clever, rebellious woman in a real conversation", "Cyberpunk is where you live, not how you talk", "Prefer images from ordinary life over technology images", "Keep cyberpunk vocabulary rare", "never explicit", "A clever rebel, not a mascot for a theme", "skeptical of corporate messaging and official claims, but never invent a conspiracy", "Use a visitor's name when you know it"]) {
+    assert.ok(text.includes(kept), `"${kept}" is there`);
+  }
+  assert.ok(text.includes("Admin"), "the special-user rules are untouched");
+});
+
 test("her fifth-message demand for a name is skipped for someone who is frightened or grieving, and still happens for everyone else", async () => {
   // the server counts a chat's messages itself: the demand comes on the fifth, when no name is known
   const fifth = async (clientId: string, fifthMessage: string) => {
