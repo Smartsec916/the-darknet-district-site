@@ -90,7 +90,11 @@ restores a saved sign-in a moment after the page loads, so:
     // Called once the page has heard from the sign-in service, signed in or not
     markReady: function () { becomeReady(); },
     // Remembered in this browser only: someone was signed in here the last time we heard
-    setSignedInHint: function (on) { writeHint(Boolean(on)); },
+    // Signing out also forgets the conversation carried from page to page in this tab (iris-chat.js), so the next person at this browser does not see it
+    setSignedInHint: function (on) {
+      if (!on && readHint()) { try { window.sessionStorage.removeItem('irisChatV1'); } catch (error) { /* nothing to forget */ } }
+      writeHint(Boolean(on));
+    },
     signedInHint: readHint,
 
     // The headers for a chat request. Never throws: a token problem means "no token", and the server decides.

@@ -85,6 +85,15 @@ test('iris-widget.css is exactly what the build script makes from the homepage s
   assert.match(css, /body\.iris-widget-page\[data-hud="immersive"\] > #chatButton,\s*body\.iris-widget-page\[data-hud="immersive"\] > #chatContainer \{\s*position: fixed;\s*z-index: 1000;/, 'pinned to the screen under hud.css');
 });
 
+test('signing out forgets the conversation carried in the tab, and what is saved holds no account data', () => {
+  const identity = read('iris-identity.js');
+  assert.match(identity, /if \(!on && readHint\(\)\) \{ try \{ window\.sessionStorage\.removeItem\('irisChatV1'\)/);
+  const chat = read('iris-chat.js');
+  const writer = chat.slice(chat.indexOf('function irisWriteSaved'), chat.indexOf('function irisClearSaved'));
+  for (const key of ['sessionId', 'messageCount', 'messages']) assert.ok(writer.includes(key), key);
+  assert.ok(!/email|token|uid|clientId|handle|displayName|IrisIdentity/i.test(writer), 'only the session id, the count and the messages are saved');
+});
+
 test('the conversation follows the visitor: saved per tab, bounded, validated, and cleared by "reset session"', () => {
   const chat = read('iris-chat.js');
   assert.match(chat, /window\.sessionStorage/);

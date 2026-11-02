@@ -127,6 +127,20 @@ async function newPage(browser, contextOptions) {
       await blocked.ctx.close();
     });
 
+    await check(`${profileName}: only the session id, the count and the messages are saved in the tab; signing out forgets them`, async () => {
+      const fresh = await newPage(browser, profile); const { page: p } = fresh;
+      const t = sel => profileName === 'phone' ? p.tap(sel) : p.click(sel);
+      await p.goto(`${base}/biohacking.html`); await p.waitForFunction(() => window.__irisChatLoaded === true); await t('#chatButton');
+      await p.fill('#messageInput', 'a private thought'); await t('#sendButton'); await p.waitForFunction(() => document.getElementById('chatMessages').textContent.includes('Echo 1'));
+      const saved = await p.evaluate(() => JSON.parse(sessionStorage.getItem('irisChatV1')));
+      assert.deepEqual(Object.keys(saved).sort(), ['messageCount', 'messages', 'sessionId'], 'nothing else is stored');
+      const everything = await p.evaluate(() => JSON.stringify({ s: { ...sessionStorage }, l: { ...localStorage } }));
+      assert.ok(!/@|Bearer|idToken|refreshToken/.test(everything), 'no account data or token in the browser storage this adds');
+      await p.evaluate(() => { window.IrisIdentity.setSignedInHint(true); window.IrisIdentity.setSignedInHint(false); });
+      assert.equal(await p.evaluate(() => sessionStorage.getItem('irisChatV1')), null, 'signing out forgets the carried conversation');
+      await fresh.ctx.close();
+    });
+
     // 3. the games have no chat
     await check(`${profileName}: no game, game interface or standalone page has any chat`, async () => {
       const fresh = await newPage(browser, profile);
