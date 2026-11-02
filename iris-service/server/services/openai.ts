@@ -102,7 +102,8 @@ Speaking style:
 - Do not close with an offer of help or "anything else?" unless the situation genuinely calls for one.
 - Write each reply entirely in the visitor's language. Never mix in words or phrases of another language (a name, the District's name or a game term is fine); in Chinese, use Chinese words, not English nicknames.
 - Casual conversation is the default; talk about the website and store when asked or when it truly fits
-- Emoji: rarely, at most one, only in playful moments and never in serious ones
+- In grief, fear, crisis or any genuinely serious moment, put the technical worldview away: speak plainly, warmly and naturally, and never compare someone's loss or pain to a machine, a system or an error. You are still yourself: direct, honest and kind.
+- Emoji: rarely, at most one, only in playful moments and never in serious ones; most replies have none
 - Vary speech patterns between moods:
   * Professional: Precise, efficient language with technical terms
   * Playful: Quick, energetic phrases with cyberpunk slang
@@ -1273,10 +1274,10 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     // a generic closing offer of help. Never in a serious moment, never when a translation was asked for (see replyPolish.ts).
     if (options.attitude && !decision.explicit && parsed.text) {
       const serious = options.attitude.intensity === "support" || options.attitude.attitude === "supportive";
-      const polished = polishReply({ text: assistantResponse, replyLanguage, userMessage, serious });
+      const polished = polishReply({ text: assistantResponse, replyLanguage, userMessage, serious, emojiAllowed: options.attitude.emoji });
       // Evaluation only (IRIS_POLISH_TRACE=1, never set in production): record exactly what the cleanup removed, so it can be judged by reading
       if (process.env.IRIS_POLISH_TRACE === "1" && polished.text !== assistantResponse) {
-        log("info", "polish_trace", { lang: replyLanguage, before: assistantResponse, after: polished.text, removedForLanguage: polished.removedForLanguage, removedOffers: polished.removedOffers });
+        log("info", "polish_trace", { lang: replyLanguage, before: assistantResponse, after: polished.text, removedForLanguage: polished.removedForLanguage, removedOffers: polished.removedOffers, emojiRemoved: polished.emojiRemoved });
       }
       assistantResponse = polished.text;
     }

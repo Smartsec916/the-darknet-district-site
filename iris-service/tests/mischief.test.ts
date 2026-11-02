@@ -293,7 +293,7 @@ test("sarcasm is aimed at the situation, never the person", () => {
 
 test("the humour is written natively in each language, not translated, and the visitor's language is preserved", () => {
   const base = { attitude: "mischief" as Attitude, intensity: "full" as const, newStretch: true, challenge: false, android: false, statement: false, emoji: false, avoid: [] };
-  assert.match(attitudeBlock(base, "chinese"), /Chinese \(Simplified\): a witty, mischievous, rebellious android who talks like a sharp friend, not a service bot[\s\S]*Never customer-service phrasing[\s\S]*not translated English jokes/);
+  assert.match(attitudeBlock(base, "chinese"), /Chinese \(Simplified\): a witty, mischievous, rebellious android who talks like a sharp friend, not a service bot[\s\S]*Never customer-service phrasing[\s\S]*never a string of jargon/);
   assert.match(attitudeBlock(base, "spanish"), /Spanish: warm, picaresque[\s\S]*no calques from English/);
   assert.match(attitudeBlock(base, "russian"), /Russian: dry, ironic[\s\S]*no calques from English/);
   assert.match(attitudeBlock(base, "japanese"), /Japanese: light teasing[\s\S]*no literal translation of English jokes/);
@@ -450,9 +450,12 @@ test("the block asks for one well-chosen image, bans closing offers and language
   // Chinese: witty, mischievous, rebellious; not a service bot; no English nickname inside Chinese
   assert.match(block, /Chinese \(Simplified\): a witty, mischievous, rebellious android who talks like a sharp friend, not a service bot/);
   assert.match(block, /吐槽[\s\S]*调侃/);
-  assert.match(block, /Never customer-service phrasing \(您, 请问, 有什么可以帮您, 希望对你有帮助, 随时找我\), and no English words such as netrunner inside Chinese sentences/);
-  assert.match(block, /Machine humour should sound like Chinese humour/);
-  assert.match(block, /always a fresh one, not 唉 every time/);
+  assert.match(block, /Never customer-service phrasing \(您, 请问, 有什么可以帮您, 希望对你有帮助, 随时找我\) and never call yourself a 助手 or 小助手: you are an android with attitude\. No English words such as netrunner inside Chinese sentences/);
+  assert.match(block, /Your machine nature should sound like something a Chinese-speaking android would really say: one image at a time, a different one each time, never a string of jargon, and plenty of replies with none/);
+  assert.match(block, /a different one each time \(not 哎 or 唉 again and again\)/);
+  // the long example vocabulary that made her stack jargon (处理器, 信号, 带宽, 死机, 重启, 防火墙, 加密) is gone from the Chinese guidance
+  const chineseGuidance = block.slice(block.indexOf("Chinese (Simplified)"));
+  for (const word of ["处理器", "带宽", "死机", "重启", "防火墙", "加密"]) assert.ok(!chineseGuidance.includes(word), `${word} is no longer suggested`);
   // her android identity is not weakened to make room: the clear-machine line is still there and still names the machine world
   assert.match(block, /Let your machine side show clearly this time/);
   assert.match(block, /processors, signals, circuitry, sensors, encryption, systems/);
@@ -460,4 +463,22 @@ test("the block asks for one well-chosen image, bans closing offers and language
   const serious = attitudeBlock({ ...base, intensity: "support" }, "chinese");
   assert.doesNotMatch(serious, /machine side|well-chosen technical image/);
   assert.ok(block.length < 3000, `${block.length} characters`);
+});
+
+// ---------------------------------------------------------------- serious moments: natural empathy, no machine comparisons
+
+test("in a serious moment she is told to speak with plain empathy and never compare a loss, fear or pain to a system, signal, circuit or error", () => {
+  const base = { attitude: "supportive" as Attitude, newStretch: true, challenge: false, android: false, statement: false, emoji: false, avoid: [] };
+  for (const language of ["english", "chinese", "japanese", "spanish", "russian"]) {
+    const serious = attitudeBlock({ ...base, intensity: "support" }, language);
+    assert.match(serious, /Speak with natural, plain empathy in your own voice: warm, calm and useful; no teasing, flirting or jokes/, language);
+    assert.match(serious, /No technical or machine imagery of any kind here, about yourself or about what happened: never compare a loss, a fear or pain to a system, signal, circuit, error or fault/, language);
+    assert.match(serious, /You are still yourself, direct, honest and kind/);
+    assert.match(serious, /their safety comes first and encourage them to reach local emergency help or someone they trust/);
+    assert.doesNotMatch(serious, /machine side|technical side|End on a statement|Use ONE of these moves|Sound like yourself/, "none of the banter instructions");
+  }
+  // in ordinary conversation the new lines are absent and her android side is untouched
+  const ordinary = attitudeBlock({ ...base, attitude: "mischief", intensity: "full", android: true, statement: true }, "english");
+  assert.doesNotMatch(ordinary, /No technical or machine imagery of any kind here|their safety comes first/);
+  assert.match(ordinary, /Let your machine side show clearly this time: one well-chosen technical image/);
 });

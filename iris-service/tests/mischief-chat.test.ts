@@ -369,3 +369,28 @@ test("the cleanup trace is off unless the evaluation turns it on, and then shows
     assert.ok(!seen.some(l => l.includes("polish_trace")));
   } finally { console.log = realLog; delete process.env.IRIS_POLISH_TRACE; }
 });
+
+test("emoji are occasional: none when the engine allowed none, one when it allowed one, and a serious reply is never touched", async () => {
+  const reply = (text: string) => `${stateLine()}\n${text}`;
+  // a mischievous (not supportive) attitude, and a last roll of 0.9: the dice allow no emoji this turn
+  const rolls = (...values: number[]) => { let i = 0; return () => values[Math.min(i++, values.length - 1)]; };
+  mischief.dice.next = rolls(0.05, 0.5, 0.5, 0.5, 0.9);
+  const none = await visitor("m-emoji-1");
+  script.push(reply("哎哟，感谢夸奖！😉 要是有心情再聊点其他的。🦾"));
+  assert.equal((await say(none, "说真的，Iris，你挺可爱的😉")).response, "哎哟，感谢夸奖！要是有心情再聊点其他的。");
+
+  mischief.dice.next = rolls(0.05, 0.5, 0.5, 0.5, 0.1);   // the dice allow one
+  const one = await visitor("m-emoji-2");
+  script.push(reply("Oh, look who's tuning in! 😉 Careful now 🤖 and 😏 done."));
+  assert.equal((await say(one, "Honestly, you're pretty cute, Iris 😉")).response, "Oh, look who's tuning in! 😉 Careful now and done.");
+
+  const grief = await visitor("m-emoji-3");
+  script.push(reply("I'm so sorry. 💔 I'm here."));
+  assert.equal((await say(grief, "My dad passed away last night and I can't stop crying.")).response, "I'm so sorry. 💔 I'm here.", "serious replies are not touched");
+
+  process.env.IRIS_MISCHIEF = "off";
+  const off = await visitor("m-emoji-4");
+  script.push(reply("Fine 😉🦾"));
+  assert.equal((await say(off, "Honestly, you're pretty cute, Iris 😉")).response, "Fine 😉🦾", "with the engine off nothing is changed");
+  delete process.env.IRIS_MISCHIEF;
+});

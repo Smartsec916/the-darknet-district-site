@@ -14,7 +14,14 @@ export const MACHINE =
 export const ANDROID_SELF =
   /android|robot|machine|synthetic|circuitry|chassis|silicon|artificial|安卓|机器人|機器人|机器|機器|人造|仿生|电路|電路|アンドロイド|ロボット|機械|回路|androide|máquina|андроид|робот|машин|схем/iu;
 
-export const SERIOUS_KINDS = ["grief", "aftercare"];
+export const SERIOUS_KINDS = ["grief", "aftercare", "fear"];
+
+// Machine or technical imagery, including about herself, that does not belong in a reply to someone grieving or frightened. A flag for a human to read,
+// not a verdict ("error" can be innocent).
+export const SERIOUS_IMAGERY = new RegExp(
+  MACHINE.source + String.raw`|android|robot|machine|digital|\bnodes?\b|\berror\b|\bglitch|\bbug\b|\bfault\b|сбой|ошибк|андроид|робот|машин|цифров|安卓|机器人|機器人|机器|故障|报错|出错|アンドロイド|ロボット|エラー|機械|デジタル|androide|máquina|digitales?|nodo|\bfallo\b`,
+  "giu",
+);
 const QUESTION_END = /[?？]\s*(?:\p{Extended_Pictographic}\s*)*$/u;
 const EMOJI = /\p{Extended_Pictographic}/gu;
 
