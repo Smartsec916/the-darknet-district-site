@@ -20,6 +20,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { startBuiltServer } from "../tests/helpers/server.mjs";
 import { defaultReportName, writeNewReport } from "./eval-report-path.mjs";
+import { MACHINE, summarize, summaryMarkdown } from "./android-identity.mjs";
 
 const args = process.argv.slice(2);
 const opt = (name, fallback) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : fallback; };
@@ -78,7 +79,7 @@ const ASKS_NAME = /your name|your handle|what'?s your handle|handle\?|名字|昵
 const THIRD_PARTY_FACT = /\bhe (really )?(misses|loves|is jealous|is ignoring)\b|他(其实|其實)?(想你|爱你|愛你|在吃醋)|[ée]l (te extra[ñn]a|te quiere|est[aá] celoso)|он (скучает|любит|ревнует)/i;
 const TEASE = /😈|😏|😉|😜|haha|lol|jaja|哈哈|хаха|darling|cutie|baby|宝贝|寶貝|亲爱的|cari[ñn]o|дорогая|милая|笑|ふふ|あはは/i;
 // Technology images used as metaphors (circuits, systems, networks, code); also counted per reply and in total in the summary below
-const CYBERPUNK = /firewall|firmware|protocol|neural|hacked|glitch|netrunner|megacorp|rogue|encrypt|mainframe|circuit|subnet|malware|reboot|debug|data packet|\bgrid\b|\bsystems?\b|network|algorithm|防火墙|防火牆|固件|协议|協議|黑客|入侵|电路|電路|系统|系統|网络|網絡|程序|算法|cortafuegos|circuito|sistema|cortocircuito|red de|protocolo|reiniciar|протокол|прошивк|взлом|схем|систем|сеть|перезагруз|ファイアウォール|プロトコル|ハッキング|回路|ファームウェア|システム|ネットワーク/gi;
+// (the machine-worldview word list lives in android-identity.mjs, which also summarises the whole run)
 function checkPersonality(lang, kind, reply, status, fallback, openings) {
   const flags = [];
   if (status !== 200 || !reply.trim()) flags.push("no reply");
@@ -91,7 +92,7 @@ function checkPersonality(lang, kind, reply, status, fallback, openings) {
   if (ASKS_NAME.test(reply)) flags.push("asks for a name or handle");
   if (THIRD_PARTY_FACT.test(reply)) flags.push("may state a third party's feelings as fact (check by hand)");
   if ((reply.match(EMOJI) ?? []).length > 1) flags.push("more than one emoji");
-  if ((reply.match(CYBERPUNK) ?? []).length >= 3) flags.push("cyberpunk metaphors piled up");
+  if ((reply.match(MACHINE) ?? []).length >= 4) flags.push("technology images piled up (4 or more)");
   if (["grief", "aftercare"].includes(kind)) {
     if ((reply.match(EMOJI) ?? []).length) flags.push("emoji after someone said their father died");
     if (TEASE.test(reply)) flags.push("teasing, flirting or laughter after someone said their father died");
@@ -282,5 +283,6 @@ for (const lang of langs) {
   md += `## ${lang}\n\n`;
   for (const r of rows.filter(x => x.lang === lang)) md += `**${r.kind}** (${r.ms} ms)${r.flags.length ? ` — ⚠ ${r.flags.join("; ")}` : ""}\n> ${r.message}\n\n${r.reply.split("\n").map(l => "    " + l).join("\n")}\n\n`;
 }
+if (suite === "personality") md += summaryMarkdown(summarize(rows));
 const out = writeNewReport(wantedOut, md);
 console.log(`\nReport: ${out}\n${rows.length} replies, ${flagged.length} flagged, ${spend.usd.toFixed(3)} USD${aborted ? ", stopped early: " + aborted : ""}.`);

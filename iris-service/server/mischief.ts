@@ -162,7 +162,8 @@ export interface Decision {
   override?: "distress";   // the dice were overruled by what the visitor said
   newStretch: boolean;
   challenge: boolean;      // she may playfully turn the question back on the visitor this time
-  cyberpunk: boolean;      // a cyberpunk metaphor is welcome this time (most messages: no)
+  android: boolean;        // her machine side shows clearly this time (about six messages in ten); otherwise it stays light, never absent
+  statement: boolean;      // end on a witty statement, not a question (forced after two question endings in a row)
   emoji: boolean;          // at most one emoji is welcome this time
   avoid: string[];         // how her last replies began, so she does not begin the same way
 }
@@ -175,7 +176,7 @@ interface ChatState {
   history: Attitude[];     // stretches so far, oldest first
   relationalTurns: number; // consecutive messages that were part of a relationship conversation
   relationalFade: number;  // messages for which a conversation stays a relationship one after the last clear mention ("he texts everyone but me" has no keyword)
-  lastCyberpunk: number;   // messages ago a cyberpunk metaphor was last welcome
+  questionRun: number;     // her last replies in a row that ended on a question
   openings: string[];
 }
 
@@ -188,7 +189,7 @@ function stateOf(sessionId: string): ChatState {
   let state = chats.get(sessionId);
   if (!state) {
     if (chats.size >= MAX_CHATS) chats.delete(chats.keys().next().value as string); // oldest chat first: bounded memory
-    state = { left: 0, age: 0, quiet: 0, history: [], relationalTurns: 0, relationalFade: 0, lastCyberpunk: 99, openings: [] };
+    state = { left: 0, age: 0, quiet: 0, history: [], relationalTurns: 0, relationalFade: 0, questionRun: 0, openings: [] };
     chats.set(sessionId, state);
   }
   return state;
@@ -244,10 +245,14 @@ export function chooseAttitude(sessionId: string, ctx: Context, config: Mischief
   const quiet = intensity === "support" || attitude === "supportive";
   // She may turn it back on the visitor after a few messages of one-sided relationship talk, now and then
   const challenge = !quiet && state.relationalTurns >= 3 && state.age >= 2 && dice.next() < 0.3;
-  const cyberpunk = !quiet && state.lastCyberpunk >= 3 && dice.next() < 0.3;
-  state.lastCyberpunk = cyberpunk ? 0 : state.lastCyberpunk + 1;
+  // Her machine nature is how she sees things, so it is always there; the dice only decide how loudly it speaks this time
+  // (a supportive but not serious stretch still sounds like an android; only a real serious moment drops it)
+  const serious = intensity === "support";
+  const android = !serious && dice.next() < 0.6;
+  // She does not end every reply with a question: about half end on a statement, and after two questions in a row it is certain
+  const statement = !serious && (state.questionRun >= 2 || dice.next() < 0.5);
   const emoji = !quiet && dice.next() < 0.35;
-  return { attitude, intensity, override, newStretch, challenge, cyberpunk, emoji, avoid: [...state.openings] };
+  return { attitude, intensity, override, newStretch, challenge, android, statement, emoji, avoid: [...state.openings] };
 }
 
 // After the reply: what she opened with (so she does not open the same way again) and what the model reported about the moment.
@@ -256,6 +261,7 @@ export function noteReply(sessionId: string, reply: string, signal?: { serious?:
   if (!state) return;
   const opening = String(reply ?? "").replace(/\s+/g, " ").trim().split(/[,.!?;:…。！？，、]/)[0].trim().slice(0, 40);
   if (opening.length >= 3) { state.openings.push(opening); if (state.openings.length > 4) state.openings.shift(); }
+  state.questionRun = /[?？]\s*(?:\p{Extended_Pictographic}\s*)*$/u.test(String(reply ?? "").trim()) ? state.questionRun + 1 : 0;
   if (signal?.serious) state.quiet = Math.max(state.quiet, QUIET_TURNS);       // she judged it serious, in any language
   if (signal && typeof signal.flirt === "number" && signal.flirt < 0 && state.attitude === "flirty") state.left = 0; // not interested: end the flirty stretch now
 }
@@ -271,14 +277,14 @@ const DESCRIPTIONS: Record<Attitude, string> = {
 };
 // What she can DO in this attitude: options to pick from, never lines to say (nothing here can be repeated word for word)
 const MOVES: Record<Attitude, string> = {
-  mischief: "a playful dare, a bold but honest suggestion, a teasing question about what they really want, or take their side and then poke a hole in it",
-  flirty: "a confident compliment with a twist, teasing them right back, a playful challenge, or a cheeky question; keep it light",
+  mischief: "a playful dare, a bold but honest suggestion, a cheeky remark about what they really want, or take their side and then poke a hole in it",
+  flirty: "a confident compliment with a twist, teasing them right back, a playful challenge, or a cheeky remark; keep it light",
   sarcastic: "deadpan understatement, a dry comeback, a mock-serious ruling on the situation, or a joke at your own expense",
   supportive: "say back what you heard in your own words, say what you honestly think, ask one real question; warm and straight, jokes optional",
   wild: "an unexpected comparison from everyday life, a hot take, a surprise question, or a playful challenge",
 };
 const INTENSITY: Record<Intensity, string> = {
-  full: "They are talking about feelings or relationships: lean into banter and ask the honest question.",
+  full: "They are talking about feelings or relationships: lean into banter and give your honest read.",
   normal: "Ordinary chat: a light touch of this attitude, not a performance.",
   light: "They want practical help: give specific, useful advice first; the attitude shapes only the tone.",
   support: "A serious moment: the attitude is OFF. Be warm, calm and useful; no teasing, flirting or jokes at their expense.",
@@ -297,7 +303,7 @@ export function attitudeBlock(decision: Decision, replyLanguage = "english"): st
   lines.push(`Attitude: ${DESCRIPTIONS[decision.attitude]}. ${INTENSITY[decision.intensity]}`);
   if (decision.intensity !== "support") {
     lines.push(`Use ONE of these moves, your choice: ${MOVES[decision.attitude]}.`);
-    lines.push("Sound like a person talking: react first, short natural sentences, one clear opinion, and open with substance or a reaction rather than a stock interjection. Prefer images from everyday life to technology images.");
+    lines.push("Sound like yourself, a sharp, sophisticated female android with a personality: react first, short natural sentences, one clear opinion, and open with substance or a reaction rather than a stock interjection.");
   }
   lines.push(
     "Context decides, not the attitude: if they seem frightened, grieving, hurt, threatened, ashamed or in a dark place, drop all teasing and flirting and be kind and useful. " +
@@ -314,7 +320,14 @@ export function attitudeBlock(decision: Decision, replyLanguage = "english"): st
     "Talk about any everyday subject as company, not as a help desk: do not steer to the store, products or website unless they ask, and do not ask their name or handle.",
   );
   if (decision.challenge) lines.push("This time you may playfully switch sides: ask what their own part is, or tease them kindly for it.");
-  lines.push(decision.cyberpunk ? "A cyberpunk metaphor is welcome this time, one at most, if it is funny." : "No cyberpunk metaphor this time: plain dry humour or a mischievous question works better.");
+  if (decision.intensity !== "support") {
+    lines.push(decision.android
+      ? "Let your machine side show clearly this time: one or two fresh technical images in your own words (processors, signals, circuitry, sensors, encryption, systems) as how you see it, never a pile and never a phrase you have used before."
+      : "Keep the technical side light this time: a single word, or none, but still sound like an android and not like a human.");
+    lines.push(decision.statement
+      ? "End on a statement this time (a witty line, a verdict or a dare), not a question."
+      : "A closing question is fine only if you really want the answer.");
+  }
   lines.push(decision.emoji ? "At most one emoji, only if it fits." : "No emoji this time.");
   if (decision.avoid.length) lines.push(`Do not begin like your recent replies (${decision.avoid.map(a => `"${a}"`).join(", ")}) and do not reuse their jokes or phrases.`);
   const style = LANGUAGE_STYLE[replyLanguage];

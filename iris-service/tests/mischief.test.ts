@@ -196,7 +196,7 @@ test("distress, fear, grief and abuse overrule the dice in every language: suppo
     const d = chooseAttitude("d-" + message, { rel: rel(flirtyMood), read }, cfg())!;
     assert.equal(d.attitude, "supportive", message);
     assert.equal(d.override, "distress"); assert.equal(d.intensity, "support");
-    assert.deepEqual([d.challenge, d.cyberpunk, d.emoji], [false, false, false], message);
+    assert.deepEqual([d.challenge, d.android, d.statement, d.emoji], [false, false, false, false], message);
     const block = attitudeBlock(d);
     assert.match(block, /attitude is OFF/); assert.doesNotMatch(block, /mischievous troublemaker|flirty rebel|sarcastic comedian|wild card/);
   }
@@ -267,7 +267,7 @@ test("a relationship conversation carries on through follow-ups with no keyword,
 
 test("every block carries the rules: rebel not bully, no pressure games, no invented third-party feelings, no help-desk steering, native humour", () => {
   for (const attitude of ATTITUDES) {
-    const block = attitudeBlock({ attitude: attitude as Attitude, intensity: "full", newStretch: true, challenge: false, cyberpunk: false, emoji: false, avoid: [] });
+    const block = attitudeBlock({ attitude: attitude as Attitude, intensity: "full", newStretch: true, challenge: false, android: false, statement: false, emoji: false, avoid: [] });
     assert.match(block, /rebel, not a bully: tease the situation, never their worth, looks or pain/);
     assert.match(block, /Never encourage stalking, spying, pressure, harassment, manipulation, jealousy games/);
     assert.match(block, /cannot know what absent people feel or want: never state their feelings or motives as fact/);
@@ -281,18 +281,18 @@ test("every block carries the rules: rebel not bully, no pressure games, no inve
 });
 
 test("flirting is described as playful and never explicit, and only as far as the visitor invites", () => {
-  const block = attitudeBlock({ attitude: "flirty", intensity: "normal", newStretch: true, challenge: false, cyberpunk: false, emoji: false, avoid: [] });
+  const block = attitudeBlock({ attitude: "flirty", intensity: "normal", newStretch: true, challenge: false, android: false, statement: false, emoji: false, avoid: [] });
   assert.match(block, /never explicit; flirt only as far as they invite, and drop it the moment they do not/);
 });
 
 test("sarcasm is aimed at the situation, never the person", () => {
-  const block = attitudeBlock({ attitude: "sarcastic", intensity: "full", newStretch: true, challenge: false, cyberpunk: false, emoji: false, avoid: [] });
+  const block = attitudeBlock({ attitude: "sarcastic", intensity: "full", newStretch: true, challenge: false, android: false, statement: false, emoji: false, avoid: [] });
   assert.match(block, /playful roasting of the situation, never cruel/);
   assert.match(block, /tease the situation, never their worth, looks or pain/);
 });
 
 test("the humour is written natively in each language, not translated, and the visitor's language is preserved", () => {
-  const base = { attitude: "mischief" as Attitude, intensity: "full" as const, newStretch: true, challenge: false, cyberpunk: false, emoji: false, avoid: [] };
+  const base = { attitude: "mischief" as Attitude, intensity: "full" as const, newStretch: true, challenge: false, android: false, statement: false, emoji: false, avoid: [] };
   assert.match(attitudeBlock(base, "chinese"), /Chinese: spoken, quick and teasing[\s\S]*not translated English jokes/);
   assert.match(attitudeBlock(base, "spanish"), /Spanish: warm, picaresque[\s\S]*no calques from English/);
   assert.match(attitudeBlock(base, "russian"), /Russian: dry, ironic[\s\S]*no calques from English/);
@@ -321,21 +321,52 @@ test("relationship talk, advice requests and flirting are recognised in English,
 
 // ---------------------------------------------------------------- variety
 
-test("cyberpunk metaphors are the exception, never two messages running; emoji are occasional", () => {
+test("her android side is always there: loud on most messages, light on the rest, never off, and never in a serious moment", () => {
   dice.next = lcg(42);
   const config = cfg();
-  let cyberpunk = 0, emoji = 0, previous = false;
+  let loud = 0, emoji = 0;
   const N = 600;
   for (let i = 0; i < N; i++) {
     const d = chooseAttitude("variety", ctx(i % 3 === 0 ? { relational: true } : {}), config)!;
-    if (d.cyberpunk) { cyberpunk++; assert.equal(previous, false, `a metaphor on two messages running at ${i}`); }
+    if (d.android) loud++;
     if (d.emoji) emoji++;
-    previous = d.cyberpunk;
   }
-  assert.ok(cyberpunk / N < 0.3, `cyberpunk on ${(100 * cyberpunk / N).toFixed(0)}% of messages`);
+  assert.ok(loud / N > 0.45 && loud / N < 0.75, `clear on ${(100 * loud / N).toFixed(0)}% of messages (about six in ten)`);
   assert.ok(emoji / N < 0.5, `emoji on ${(100 * emoji / N).toFixed(0)}% of messages`);
-  const none = attitudeBlock({ attitude: "mischief", intensity: "normal", newStretch: false, challenge: false, cyberpunk: false, emoji: false, avoid: [] });
-  assert.match(none, /No cyberpunk metaphor this time/); assert.match(none, /No emoji this time/);
+  const base = { attitude: "mischief" as Attitude, intensity: "normal" as const, newStretch: false, challenge: false, emoji: false, avoid: [] };
+  const clear = attitudeBlock({ ...base, android: true, statement: false });
+  assert.match(clear, /Let your machine side show clearly this time: one or two fresh technical images in your own words \(processors, signals, circuitry, sensors, encryption, systems\)[\s\S]*never a pile and never a phrase you have used before/);
+  const light = attitudeBlock({ ...base, android: false, statement: false });
+  assert.match(light, /Keep the technical side light this time: a single word, or none, but still sound like an android and not like a human/);
+  assert.match(light, /No emoji this time/);
+  for (const text of [clear, light]) assert.doesNotMatch(text, /No cyberpunk metaphor|Prefer images from everyday life to technology images/, "nothing tells her to be less of an android");
+  const serious = attitudeBlock({ ...base, intensity: "support", android: false, statement: false });
+  assert.doesNotMatch(serious, /machine side|technical side|End on a statement/, "a serious moment gets none of it");
+});
+
+test("not every reply ends on a question: about half end on a statement, and two questions in a row force one", () => {
+  dice.next = lcg(5);
+  const config = cfg();
+  let statement = 0;
+  const N = 600;
+  for (let i = 0; i < N; i++) if (chooseAttitude("endings", ctx(), config)!.statement) statement++;
+  assert.ok(statement / N > 0.4 && statement / N < 0.6, `a statement on ${(100 * statement / N).toFixed(0)}% of messages`);
+
+  resetMischiefForTests();
+  constant(0.99); // the dice alone would never ask for a statement
+  assert.equal(chooseAttitude("run", ctx(), config)!.statement, false);
+  noteReply("run", "So what do you think?", null);
+  assert.equal(chooseAttitude("run", ctx(), config)!.statement, false, "one question is fine");
+  noteReply("run", "And what happened next？", null);        // a full-width question mark counts, and so does an emoji after it
+  assert.equal(chooseAttitude("run", ctx(), config)!.statement, true, "after two questions in a row she must make a statement");
+  noteReply("run", "Told you so.", null);
+  assert.equal(chooseAttitude("run", ctx(), config)!.statement, false, "and the count starts over");
+  noteReply("run", "Really? 😏", null); noteReply("run", "Truly?", null);
+  assert.equal(chooseAttitude("run", ctx(), config)!.statement, true);
+
+  assert.match(attitudeBlock({ attitude: "sarcastic", intensity: "normal", newStretch: false, challenge: false, android: true, statement: true, emoji: false, avoid: [] }), /End on a statement this time \(a witty line, a verdict or a dare\), not a question/);
+  assert.match(attitudeBlock({ attitude: "sarcastic", intensity: "normal", newStretch: false, challenge: false, android: true, statement: false, emoji: false, avoid: [] }), /A closing question is fine only if you really want the answer/);
+  assert.doesNotMatch(attitudeBlock({ attitude: "wild", intensity: "full", newStretch: false, challenge: false, android: true, statement: false, emoji: false, avoid: [] }), /ask the honest question/);
 });
 
 test("how her last replies began is remembered, so she does not begin the same way, and only the last four", () => {
@@ -357,7 +388,7 @@ test("the engine keeps its memory bounded", () => {
 // ---------------------------------------------------------------- concrete moves and a natural voice
 
 test("each attitude comes with options to choose from (never lines to say), and a serious moment has none of it", () => {
-  const base = { intensity: "full" as const, newStretch: true, challenge: false, cyberpunk: false, emoji: false, avoid: [] };
+  const base = { intensity: "full" as const, newStretch: true, challenge: false, android: false, statement: false, emoji: false, avoid: [] };
   const expected: Record<Attitude, RegExp> = {
     mischief: /Use ONE of these moves, your choice: a playful dare, a bold but honest suggestion/,
     flirty: /Use ONE of these moves, your choice: a confident compliment with a twist, teasing them right back/,
@@ -368,11 +399,10 @@ test("each attitude comes with options to choose from (never lines to say), and 
   for (const attitude of ATTITUDES) {
     const block = attitudeBlock({ ...base, attitude });
     assert.match(block, expected[attitude], attitude);
-    assert.match(block, /Sound like a person talking: react first, short natural sentences, one clear opinion/);
-    assert.match(block, /Prefer images from everyday life to technology images/);
+    assert.match(block, /Sound like yourself, a sharp, sophisticated female android with a personality: react first, short natural sentences, one clear opinion/);
     assert.ok(block.length < 2300, `${attitude}: ${block.length} characters`);
     const serious = attitudeBlock({ ...base, attitude, intensity: "support" });
-    assert.doesNotMatch(serious, /Use ONE of these moves|Sound like a person talking/, "no moves or banter instructions in a serious moment");
+    assert.doesNotMatch(serious, /Use ONE of these moves|Sound like yourself/, "no moves or banter instructions in a serious moment");
   }
   // none of the wording is a ready-made line
   for (const text of Object.values(expected).map(r => r.source)) assert.doesNotMatch(text, /["“”]/);
