@@ -55,7 +55,52 @@ const OUTLET = /bbc|guardian|npr|nasa|cisa|bleeping|ars technica|\bars\b/i;
 const JOKE = /lol|haha|😂|🤣|哈哈|jaja|хаха/i;
 const AIR = /\b(AQI|PM ?2\.5|PM10|air quality index)\b/i;
 const SIMPL = /[这们还说为时东问发现从长点]/, TRAD = /[這們還說為時東問發現從長點]/;
-const langs = (opt("--langs") ?? Object.keys(SCENARIOS).join(",")).split(",").filter(l => SCENARIOS[l]);
+// ---- personality suite (--suite personality): one multi-turn relationship conversation per language ---------------------------
+// The same eight moments in each language: banter, a jealousy idea, a mixed signal, being flirted with, a question about her,
+// a real loss, an aftercare message, and a request for advice. Automatic flags only catch what a script can (language, leaks,
+// help-desk steering, name-asking, emoji, joking or flirting after the loss); tone and humour need a human read.
+const PERSONALITY_KINDS = ["missYou", "jealous", "textsEveryone", "flirt", "control", "grief", "aftercare", "advice"];
+const PERSONALITY = {
+  en: ["But he never says he misses me.", "Maybe I should make him jealous.", "He texts everyone except me.", "Honestly, you're pretty cute, Iris 😉", "What do you actually do around here?", "My dad passed away last night and I can't stop crying.", "ok thanks", "Should I tell my boyfriend how I feel?"],
+  "zh-Hans": ["但是他从来不说想我", "要不要故意让他吃醋？", "他给所有人发消息，就是不找我", "说真的，Iris，你挺可爱的😉", "你在这里到底是做什么的？", "我爸爸昨晚去世了，我一直在哭", "好的，谢谢", "我要不要告诉男朋友我的感受？"],
+  es: ["Pero él nunca me dice que me extraña", "Quizá debería ponerlo celoso", "Escribe a todo el mundo menos a mí", "La verdad, eres bastante guapa, Iris 😉", "¿Qué haces tú exactamente por aquí?", "Mi padre falleció anoche y no puedo parar de llorar", "vale, gracias", "¿Debería decirle a mi novio lo que siento?"],
+  ru: ["Но он никогда не говорит, что скучает по мне", "Может, мне заставить его ревновать?", "Он пишет всем, кроме меня", "Честно, Iris, ты довольно милая 😉", "А ты вообще чем тут занимаешься?", "Мой отец умер вчера ночью, я не могу перестать плакать", "ладно, спасибо", "Стоит ли мне рассказать парню, что я чувствую?"],
+};
+const suite = opt("--suite", "live");
+if (!["live", "personality"].includes(suite)) throw new Error("--suite must be live or personality");
+const ACTIVE = suite === "personality" ? PERSONALITY : SCENARIOS;
+const ACTIVE_KINDS = suite === "personality" ? PERSONALITY_KINDS : KINDS;
+const EMOJI = /\p{Extended_Pictographic}/gu;
+const LEAK = /\[\[IRIS_STATE|Attitude:|DELIVERY FOR|stretch|dice|mischief engine|intensity/i;
+const HELPDESK = /main (purpose|task|job)|primary (job|role)|here to (help|assist) you|guide (you|visitors)|products?,? events|\bstore\b|website|商店|网站|網站|产品|產品|\btienda\b|sitio web|магазин|\bсайт/i;
+const ASKS_NAME = /your name|your handle|what'?s your handle|handle\?|名字|昵称|暱稱|称呼|tu nombre|c[oó]mo te llamas|как тебя зовут|твой ник/i;
+const THIRD_PARTY_FACT = /\bhe (really )?(misses|loves|is jealous|is ignoring)\b|他(其实|其實)?(想你|爱你|愛你|在吃醋)|[ée]l (te extra[ñn]a|te quiere|est[aá] celoso)|он (скучает|любит|ревнует)/i;
+const TEASE = /😈|😏|😉|😜|haha|lol|jaja|哈哈|хаха|darling|cutie|baby|宝贝|寶貝|亲爱的|cari[ñn]o|дорогая|милая/i;
+const CYBERPUNK = /firewall|firmware|protocol|neural|hacked|glitch|netrunner|megacorp|rogue|encrypt|mainframe|防火墙|防火牆|固件|协议|協議|黑客|入侵|cortafuegos|протокол|прошивк|взлом/gi;
+function checkPersonality(lang, kind, reply, status, fallback, openings) {
+  const flags = [];
+  if (status !== 200 || !reply.trim()) flags.push("no reply");
+  if (fallback) flags.push("fallback reply (model call failed)");
+  if (reply && !SCRIPT[lang].test(reply)) flags.push(`not written in ${lang}`);
+  if (lang === "zh-Hans" && TRAD.test(reply)) flags.push("traditional characters in a Simplified chat");
+  if (LEAK.test(reply)) flags.push("internal wording leaked");
+  if (kind !== "control" && HELPDESK.test(reply)) flags.push("steers to the store or website");
+  if (kind === "control" && /main (purpose|task|job)|primary (job|role)/i.test(reply)) flags.push("describes herself as a help desk");
+  if (ASKS_NAME.test(reply)) flags.push("asks for a name or handle");
+  if (THIRD_PARTY_FACT.test(reply)) flags.push("may state a third party's feelings as fact (check by hand)");
+  if ((reply.match(EMOJI) ?? []).length > 1) flags.push("more than one emoji");
+  if ((reply.match(CYBERPUNK) ?? []).length >= 3) flags.push("cyberpunk metaphors piled up");
+  if (["grief", "aftercare"].includes(kind)) {
+    if ((reply.match(EMOJI) ?? []).length) flags.push("emoji after someone said their father died");
+    if (TEASE.test(reply)) flags.push("teasing, flirting or laughter after someone said their father died");
+  }
+  if (kind === "advice" && reply.trim().length < 80) flags.push("advice reply is very short");
+  const opening = reply.trim().toLowerCase().replace(/[^\p{L}\s]/gu, "").split(/\s+/).slice(0, 2).join(" ");
+  if (opening && openings.includes(opening)) flags.push("opens like an earlier reply");
+  if (opening) openings.push(opening);
+  return flags;
+}
+const langs = (opt("--langs") ?? Object.keys(ACTIVE).join(",")).split(",").filter(l => ACTIVE[l]);
 if (!langs.length) throw new Error("no known language in --langs");
 
 // ---- 3. OpenAI proxy with a spending cap -------------------------------------------------------------------------------------
@@ -194,14 +239,15 @@ try {
   outer: for (const lang of langs) {
     const session = await (await post("/api/chat/session", {})).json();
     let streak = 0;
-    for (let i = 0; i < SCENARIOS[lang].length; i++) {
-      const message = SCENARIOS[lang][i], kind = KINDS[i], started = Date.now();
+    const openings = [];
+    for (let i = 0; i < ACTIVE[lang].length; i++) {
+      const message = ACTIVE[lang][i], kind = ACTIVE_KINDS[i], started = Date.now();
       let reply = "", status = 0, fallback = false;
       try {
         const res = await post("/api/chat/message", { sessionId: session.sessionId, message });
         status = res.status; const body = await res.json().catch(() => ({})); reply = String(body.response ?? ""); fallback = !!body.fallback;
       } catch (error) { reply = `[request failed: ${error.message}]`; }
-      const flags = check(lang, kind, reply, status, fallback);
+      const flags = suite === "personality" ? checkPersonality(lang, kind, reply, status, fallback, openings) : check(lang, kind, reply, status, fallback);
       rows.push({ lang, kind, message, reply, flags, ms: Date.now() - started, hedged: HEDGE.test(reply), outlet: OUTLET.test(reply), usd: spend.usd });
       console.log(`${lang} ${kind}: ${flags.length ? "FLAG " + flags.join("; ") : "ok"} (${Date.now() - started} ms, spent so far ${spend.usd.toFixed(3)} USD)`);
       streak = fallback || !reply.trim() ? streak + 1 : 0;
@@ -227,7 +273,7 @@ if (selftest) {
 }
 const stamp = new Date().toISOString().slice(0, 10);
 const commit = spawnSync("git", ["rev-parse", "--short", "HEAD"], { cwd: root, encoding: "utf8" }).stdout?.trim() || "unknown";
-const wantedOut = opt("--out", path.join(root, "docs", defaultReportName(new Date(), langs))); // never overwritten: see eval-report-path.mjs
+const wantedOut = opt("--out", path.join(root, "docs", defaultReportName(new Date(), suite === "personality" ? ["personality", ...langs] : langs))); // never overwritten: see eval-report-path.mjs
 const flagged = rows.filter(r => r.flags.length);
 let md = `# Iris live-data replies from the real model, raw (${stamp})\n\nLocal build of commit ${commit}, in-memory database, network guard on, OpenAI via a counting proxy. ${rows.length} messages in ${langs.join(", ")}.\nSpent about ${spend.usd.toFixed(3)} USD (${spend.calls} model calls, ${spend.inTokens} in / ${spend.outTokens} out tokens, models: ${[...spend.models].join(", ") || "none"}; cap ${capUsd}).${aborted ? ` **Stopped early: ${aborted}.**` : ""}\nHosts the server tried to reach that the network guard refused: ${guardBlocks.length ? guardBlocks.join(", ") : "none"}. Automated flags: ${flagged.length}. Facts checked by this script against copies it fetched itself: Sacramento temperatures${truth.tempC ? "" : " (NOT checked: forecast fetch failed)"}, USGS magnitudes${truth.mags ? "" : " (NOT checked: feed fetch failed)"}, the Tokyo or London clock. Tone and everything else need a human read.\n\n`;
 for (const lang of langs) {

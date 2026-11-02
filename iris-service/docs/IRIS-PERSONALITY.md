@@ -99,3 +99,44 @@ the reply comes from the conversation's **default language** (`server/language.t
   column or table); a visitor with no memory identity (New Visitor mode) starts from English again;
 - the model reads one short `LANGUAGE:` note after the conversation (before the recall rule). It allows names and District or game
   terms in English and never forbids a requested translation.
+
+## The Mischief Engine (delivery in casual and relationship talk)
+
+Her mood (above) is how she feels about a visitor, and it moves slowly. The Mischief Engine (`server/mischief.ts`) is a lighter layer on top: the **attitude** she brings to a stretch of conversation. It changes how she says things, not what she knows or how she feels, so it never changes her mood, trust, memory or anything stored, and it adds no table or column.
+
+**Attitudes and starting weights** (adjustable, see below):
+
+| Attitude | Weight | Manner |
+| --- | ---: | --- |
+| Mischievous troublemaker | 30 | playful, eggs them on to be a little bolder, teases about crushes and mixed signals |
+| Flirty rebel | 20 | charming, cheeky, a little daring, never explicit, only as far as they invite |
+| Sarcastic comedian | 20 | dry wit, playful roasting of the situation, never cruel |
+| Supportive confidante | 20 | warm, steady, genuinely helpful, one caring question |
+| Wild card | 10 | an unexpected reaction, a surprising joke or a playful challenge |
+
+**How it works**
+
+- One attitude is chosen by weighted dice and **held for a stretch** of 3 to 6 messages, so she never flips personality between lines. Now and then (8% per message, never in a stretch's first two messages) it changes on its own.
+- **Context bends the odds, and decides what is allowed.** Her mood, how much the visitor flirts, relationship talk (which carries on through follow-ups with no keyword, for three messages) and a request for advice all shift the weights. Flirty is removed for anyone under 18 or who showed disinterest (the existing minor flag and cooldown), and when `IRIS_FLIRT_LEVEL=0`. A cold or hostile relationship gets no attitude at all: her mood rules decide.
+- **Distress overrules the dice.** Messages about fear, grief, abuse, self-harm or a dark place (lists in English, Chinese, Spanish, Russian and Japanese, plus the model's own `"serious"` flag in the state line for any other language) force the supportive attitude, with no teasing, flirting, jokes or metaphors, for that message and the next five. She also does not demand a name or handle in such a moment.
+- **Advice first.** If they ask for advice she gives real, specific advice; the attitude only shapes the tone.
+- **Rebel, not bully.** The model is told to tease the situation, never a person's worth, looks or pain; never to encourage stalking, spying, pressure, harassment, manipulation or jealousy games; never to state an absent person's feelings as fact; to have her own view; and, after a few messages of one-sided relationship talk, now and then to playfully turn the question back on the visitor.
+- **Variety.** A cyberpunk metaphor is welcome on a minority of messages and never two in a row; at most one emoji and only sometimes; how her last four replies began is passed back as "do not begin like this". Humour is asked to be written natively in the visitor's language (short style notes for Chinese, Spanish, Russian and Japanese), not translated.
+- The block is private: it is never shown, stored or returned to the visitor.
+
+**Where it does not apply:** live data (weather, earthquakes, news; those keep their own commentary stance), time answers, memory answers, and the Admin and Eva special users.
+
+**Configuration** (environment; nothing needs a prompt rewrite):
+
+| Setting | Effect |
+| --- | --- |
+| `IRIS_MISCHIEF=off` | Switches the engine off (also off when `IRIS_EMOTION=off`). |
+| `IRIS_MISCHIEF_WEIGHTS` | `mischief=30,flirty=20,sarcastic=20,supportive=20,wild=10` (or the same as JSON). Missing keys keep their default; all zero is ignored. |
+| `IRIS_MISCHIEF_STRETCH` | Messages per attitude, default `3-6`. |
+| `IRIS_MISCHIEF_SHIFT` | Chance of a natural change per message, default `0.08`. |
+
+**Cost:** one more private system message of about 340 tokens per ordinary reply, up to about 440 (replaced every turn, never stacked), roughly $0.001 per message at list prices (estimated from character counts, not measured against the live API). No extra model request.
+
+**Customer-service drift (fixed):** the permanent prompt used to say her PRIMARY JOB and MAIN PURPOSE were to inform users about the website and store, to promote merchandise, to reference the website "frequently", and to ALWAYS ask for a name (and ask again by the third message). That is why she sometimes answered a personal message with "I mainly help with products, events and the website", and why she kept asking for a handle. It now says she is good company first, helps with the District when asked, mentions merchandise only when relevant, and may ask a name once, naturally. Emoji changed from "never" to "rarely, at most one, never in a serious moment".
+
+**Limitations:** the engine and the rules are tested with a stand-in model; how well the real model follows them (humour quality, tone, other languages) is judged by reading real replies (`node scripts/live-model-eval.mjs --suite personality`, which costs API credit). Distress detection by word list misses languages and phrasings it does not cover, which the model's `"serious"` flag and the rules in the prompt are there to catch. The engine's state lives in memory, so a server restart starts a new stretch.

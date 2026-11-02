@@ -18,6 +18,7 @@ import {
   applyEmotion, buildRelationshipPrompt, effectiveMood, emotionEnabled, neutralizeMarker,
   type EmotionSignal, type Mood,
 } from "./emotion";
+import { chooseAttitude, noteReply as noteMischiefReply, readTurn } from "./mischief";
 import {
   dropLiveState, forgetVisitor, loadRelationship, recordEmotionEvent, saveRelationship, sessionEmotionMap, startEmotionSession,
 } from "./relationships";
@@ -1338,8 +1339,11 @@ export async function registerRoutes(app: Express): Promise<Express> {
       // Get the special name instruction variable stored previously
       const specialNameInstructionFromMap = messageCount === 5 ? sessionSpecialNameInstructionMap.get(sessionId) : null;
       
+      // A visitor who is frightened, grieving or hurt is not asked for their handle (see mischief.ts)
+      if (shouldAskForName && readTurn(message).distress) shouldAskForName = false;
+
       // Add name asking instruction if needed
-      const askForNameInstruction = shouldAskForName ? 
+      const askForNameInstruction = shouldAskForName ?
         // Use special instruction for message 5, or default instruction otherwise
         specialNameInstructionFromMap || `IMPORTANT INSTRUCTION: You don't know the user's name yet. In this response, you MUST ask for their "handle" (cyberpunk slang for name or alias) in a casual, conversational way appropriate to your current mood. Use phrases like "What's your handle?" or "Got a handle I can call you by?" Make this question feel natural within the flow of the conversation.` : 
         '';
@@ -1451,6 +1455,12 @@ export async function registerRoutes(app: Express): Promise<Express> {
       if (!memory.canned && !memory.recallAsked && !timeDirect) {
         try { live = await prepareLive({ message, sessionId, nowMs, mood: newMood }); } catch (err) { logError("live_prepare_failed", err); }
       }
+      // The attitude she brings to this stretch of ordinary chat (mischief.ts). Not for live data (that has its own commentary
+      // stance), a time answer, a memory answer, or the special users; it never changes her mood, trust or memory.
+      let attitude: ReturnType<typeof chooseAttitude> = null;
+      if (emo && !isAdmin && !isEva && !live && !timeDirect && !memory.canned && !memory.recallAsked) {
+        try { attitude = chooseAttitude(sessionId, { rel: emo.rel, read: readTurn(message) }); } catch (err) { logError("attitude_failed", err); }
+      }
       // With nothing stored and nothing in this chat, the honest answer needs no model and cannot be invented
       const reply = memory.canned
         ? openaiService.recordTurn(sessionId, neutralizeMarker(message), memory.canned)
@@ -1460,7 +1470,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
             relationshipPrompt, isEva, memoryPrompt: memory.prompt, sampling: memory.sampling ?? live?.sampling,
             tailReminder: [memory.tailReminder, timePlan ? timeRule(timePlan) : null, live?.tail].filter(Boolean).join("\n\n") || null,
             clockPrompt: clockPrompt(nowMs, timePlan),
-            livePrompt: live?.prompt, maxTokens: live?.maxTokens,
+            livePrompt: live?.prompt, maxTokens: live?.maxTokens, attitude,
           });
       
       // Process translation for special users if needed
@@ -1536,7 +1546,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         language: reply.language ?? null,
         iris: { text: translatedResponse, status: reply.fallback ? "fallback" : "ok", at: new Date() },
       });
-      res.locals.logFields = { fallback: reply.fallback, failure: reply.failure, saved, language: reply.language, memoryRecent: memory.recentIncluded, memoryRecall: memory.recallIncluded, memoryFailed: memory.failed, memoryMode: memory.mode, canned: Boolean(memory.canned), ...(timeOutcome ? { time: timeOutcome } : {}), ...(live ? { ...live.log, ...(liveCorrected ? { liveCorrected: true } : {}) } : {}), ...(emo ? { emotion: reply.emotion ? "read" : "missing" } : {}) };
+      res.locals.logFields = { fallback: reply.fallback, failure: reply.failure, saved, language: reply.language, memoryRecent: memory.recentIncluded, memoryRecall: memory.recallIncluded, memoryFailed: memory.failed, memoryMode: memory.mode, canned: Boolean(memory.canned), ...(timeOutcome ? { time: timeOutcome } : {}), ...(live ? { ...live.log, ...(liveCorrected ? { liveCorrected: true } : {}) } : {}), ...(emo ? { emotion: reply.emotion ? "read" : "missing" } : {}), ...(attitude ? { attitude: attitude.attitude, ...(attitude.override ? { attitudeOverride: attitude.override } : {}) } : {}) };
       
       // fallback: true marks a canned reply that replaced a failed OpenAI call
       res.json(reply.fallback ? { response: translatedResponse, fallback: true } : { response: translatedResponse });
@@ -1549,6 +1559,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         try {
           const beforeMood = emo.rel.mood, beforeTrust = emo.rel.trust;
           const signalUsed = reply.emotion ?? NEUTRAL_SIGNAL;
+          if (attitude) noteMischiefReply(sessionId, reply.text, reply.emotion);
           applyEmotion(emo, signalUsed, Date.now());
           recordEmotionEvent(emo.label ?? emo.clientId ?? "unlabelled", {
             at: Date.now(), mood: emo.rel.mood, moodChanged: emo.rel.mood !== beforeMood, trust: Math.round(emo.rel.trust * 100) / 100,
