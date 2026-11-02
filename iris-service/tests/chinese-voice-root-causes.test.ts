@@ -41,11 +41,11 @@ test("the advice turn in Chinese gets the practical-advice voice line, and the r
   assert.match(attitudeBlock(d, "chinese"), /This is practical advice: it may run longer than banter, but it is still you/);
   const r = decide("role-zh", "你在这里到底是做什么的？")!;
   assert.equal(r.role, true);
-  assert.match(attitudeBlock(r, "chinese"), /say plainly that you are an android/);
+  assert.match(attitudeBlock(r, "chinese"), /Say outright, in your first sentence, that you are an android/);
   assert.doesNotMatch(attitudeBlock(r, "chinese"), /Keep this reply short/, "a role answer may take a line or two more");
   const grief = decide("grief-zh", "我爸爸昨晚去世了，你是谁？")!;
   assert.equal(grief.role, undefined, "never in a serious moment");
-  assert.doesNotMatch(attitudeBlock(grief, "chinese"), /say plainly that you are an android/);
+  assert.doesNotMatch(attitudeBlock(grief, "chinese"), /Say outright, in your first sentence, that you are an android/);
 });
 
 test("the part of her nature to draw from rotates: never the same twice in a row, deterministic, Chinese only, never in a serious moment", () => {

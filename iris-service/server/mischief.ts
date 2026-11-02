@@ -362,7 +362,6 @@ export function attitudeBlock(decision: Decision, replyLanguage = "english"): st
     "Talk about any everyday subject as company, not as a help desk: do not steer to the store, products or website unless they ask, and do not ask their name or handle. " +
     "Never close with an offer of help or \"anything else?\" unless the situation really calls for one.",
   );
-  if (decision.role) lines.push("They are asking what you are or what you do here: say plainly that you are an android (in your own words, with attitude), then what you do in the District, in a line or two. Not a help-desk description and not a list of services.");
   if (decision.challenge) lines.push("This time you may playfully switch sides: ask what their own part is, or tease them kindly for it.");
   if (decision.intensity !== "support") {
     const chinese = replyLanguage === "chinese";
@@ -386,5 +385,9 @@ export function attitudeBlock(decision: Decision, replyLanguage = "english"): st
   if (decision.avoidTech?.length) lines.push(`Technical images you used lately (${decision.avoidTech.join(", ")}): ${replyLanguage === "chinese" && decision.intensity !== "support" ? "do not use them again, find a different part of your machine nature" : "reach for different ones"}.`);
   const style = decision.intensity === "support" && replyLanguage === "chinese" ? CHINESE_SERIOUS : LANGUAGE_STYLE[replyLanguage];
   lines.push(`Write in the visitor's language and make the humour native to it. Use only that language: no words or phrases from another one, except a name, the District's name or a game term${style ? `. ${style}` : ""}`);
+  // Last, so it is the freshest instruction: only on a turn where they ask what she is or does here (never in a serious moment, never otherwise)
+  if (decision.role && decision.intensity !== "support") {
+    lines.push("IMPORTANT for this reply: they are asking what you are or what you do here. Say outright, in your first sentence, that you are an android: a machine, not a human, and not a guide, a helper or an assistant. Then say in a line or two what you get up to in the District. Keep your attitude; no list of services.");
+  }
   return lines.join("\n");
 }

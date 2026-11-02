@@ -418,3 +418,23 @@ test("a Chinese visitor never receives a closing tag question when a statement e
   script.push(reply("听到这个消息我很难过，真的。你有可以陪你的人吗，是吧？"));
   assert.equal((await say(d, "我爸爸昨晚去世了，我一直在哭")).response, "听到这个消息我很难过，真的。你有可以陪你的人吗，是吧？", "serious replies are never touched");
 });
+
+test("route: a visitor asking what she is gets the android-identity instruction as the last thing she is told; an unrelated message, a grief message and a non-role Chinese message do not", async () => {
+  mischief.dice.next = () => 0.5;
+  const marker = /Say outright, in your first sentence, that you are an android/;
+  const cases: Array<[string, boolean]> = [
+    ["What do you do here?", true], ["你在这里到底是做什么的？", true], ["¿Qué haces aquí?", true], ["Кто ты?", true], ["ここで何をしているの？", true],
+    ["Nice weather today.", false], ["他给所有人发消息，就是不找我", false], ["我爸爸昨晚去世了，我一直在哭", false], ["我爸爸昨晚去世了，你是谁？", false],
+  ];
+  for (const [message, expected] of cases) {
+    const v = await visitor("role-" + Buffer.from(message).toString("hex").slice(0, 16));
+    script.push(`${stateLine()}\nAn android, obviously.`);
+    const before = mainCalls().length;
+    await say(v, message);
+    const call = mainCalls()[before];
+    assert.ok(call, message);
+    const system = systemText(call);
+    assert.equal(marker.test(system), expected, message);
+    if (expected) assert.match(attitudeMessages(call)[0].content.split("\n").at(-1), marker, "last line of the delivery block: " + message);
+  }
+});
