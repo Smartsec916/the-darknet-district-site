@@ -44,3 +44,30 @@ const WEATHER: Table<(p: WeatherParts) => string> = {
   ru: p => `${p.place} сейчас: ${p.now}, ощущается как ${p.feels}, ${p.condition}.${p.high ? ` Сегодня максимум ${p.high}, минимум ${p.low ?? "нет данных"}.` : ""} Данные MET Norway, обновлено ${p.updated}. Лучше просто и точно, чем красиво и неверно.`,
 };
 export const weatherFallbackText = (message: string, p: WeatherParts): string => WEATHER[fallbackLanguage(message)](p);
+
+// What the visitor is told when the model call itself failed. It used to be English only, so a Chinese visitor got
+// "Sorry, I got distracted for a second" (found in the 2026-11-02 re-check). English stays exactly as it was.
+export type FailureKind = "distracted" | "quota" | "busy";
+const FAILURE: Record<FailureKind, Table<string>> = {
+  distracted: {
+    en: "Sorry, I got distracted for a second. Mind repeating that?",
+    "zh-Hans": "抱歉，我刚才走神了一下。可以再说一遍吗？", "zh-Hant": "抱歉，我剛才分神了一下。可以再說一次嗎？",
+    ja: "ごめんなさい、少しぼーっとしていました。もう一度言ってもらえますか？",
+    es: "Perdona, me distraje un segundo. ¿Puedes repetirlo?", ru: "Прости, я на секунду отвлеклась. Повтори, пожалуйста?",
+  },
+  quota: {
+    en: "System resources are currently limited. Let me help with what I know about the District.",
+    "zh-Hans": "系统资源目前有限。我可以先说说我对地区的了解。", "zh-Hant": "系統資源目前有限。我可以先說說我對地區的了解。",
+    ja: "今はシステムの余裕が少ない状態です。ディストリクトについて知っていることなら案内できます。",
+    es: "Los recursos del sistema están limitados ahora mismo. Puedo ayudarte con lo que sé del Distrito.",
+    ru: "Ресурсы системы сейчас ограничены. Я могу рассказать то, что знаю о Районе.",
+  },
+  busy: {
+    en: "So many requests flowing through the District right now. Can we try again in a moment?",
+    "zh-Hans": "现在地区里的请求太多了。我们稍后再试一次好吗？", "zh-Hant": "現在地區裡的請求太多了。我們稍後再試一次好嗎？",
+    ja: "今ディストリクトにはリクエストが殺到しています。少し待ってからもう一度試してもらえますか？",
+    es: "Hay muchísimas peticiones en el Distrito ahora mismo. ¿Probamos de nuevo en un momento?",
+    ru: "В Районе сейчас очень много запросов. Попробуем ещё раз чуть позже?",
+  },
+};
+export const failureReply = (kind: FailureKind, message: string): string => FAILURE[kind][fallbackLanguage(message)];

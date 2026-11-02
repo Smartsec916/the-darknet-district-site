@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { debugLog, log, logError } from "../logger";
 import { recordApiUsage } from "../persistence";
 import { CHARACTER_CORE, emotionEnabled, extractEmotion, type EmotionSignal } from "../emotion";
+import { failureReply } from "../live/fallbackText";
 import { decideLanguage, languageReminder, normalizeLanguage, type ChineseScript } from "../language";
 
 // The newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
@@ -1324,14 +1325,14 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     // More detailed error handling
     if (error instanceof Error) {
       if (error.message.includes("exceeded your current quota")) {
-        return { text: "System resources are currently limited. Let me help with what I know about the District.", fallback: true, language, failure };
+        return { text: failureReply("quota", userMessage), fallback: true, language, failure };
       }
       if (error.message.includes("rate limit")) {
-        return { text: "So many requests flowing through the District right now. Can we try again in a moment?", fallback: true, language, failure };
+        return { text: failureReply("busy", userMessage), fallback: true, language, failure };
       }
     }
     
-    return { text: "Sorry, I got distracted for a second. Mind repeating that?", fallback: true, language, failure };
+    return { text: failureReply("distracted", userMessage), fallback: true, language, failure };
   } finally {
     // The venue distraction applies to one reply only
     sessionSystemSlots.get(sessionId)?.delete("distraction");
