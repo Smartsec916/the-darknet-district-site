@@ -46,3 +46,16 @@ Transcript, unedited: [IRIS-LIVE-MODEL-EVAL-RAW-2026-11-02T02-49-25Z-zh-Hant+ja.
 **Language quality (zh-Hant)**: "震度為 2.6 級" uses the intensity word where magnitude (規模) is meant; "澳大利亞" is Mainland usage (Taiwan: 澳洲). Minor.
 
 **Unverified**: the zh-Hant news reply credits "Ars Technica" along with BleepingComputer for the Binance story; the script cannot check which outlets carried it.
+
+## Re-check after PR #160 (production `c3a5f6f`), ja
+
+Transcript, unedited: [IRIS-LIVE-MODEL-EVAL-RAW-2026-11-02T03-44-04Z-ja.md](IRIS-LIVE-MODEL-EVAL-RAW-2026-11-02T03-44-04Z-ja.md). 10 replies, $0.106, isolated as before.
+
+**Fixed**: the news reply is now the model's own Japanese answer, not the replaced headline list. It names BBC News and BleepingComputer with their dates, and the figures are right (36億ドル withdrawn, 63億ドル stolen). The number-word fix works against the real model.
+
+**Still wrong**
+1. **Emergency number**: the reply says "地元の緊急番号（例えば、日本では110番）". The instruction offers 911 and 112 as examples; the model assumed Japan from the language and gave 110, which is the police number (119 is fire and ambulance). The visitor's location is not known at that point. The reply also no longer asks where the visitor is. Suggested fix: do not name a country's number unless the visitor has said where they are, or give both 110 and 119 when Japanese is the language.
+2. **"降水確率は低いみたい"** (chance of rain is low): the data has an amount of rain, not a probability. Small invention.
+3. **Register**: weather and follow-up replies use casual "〜だよ" while other replies use "〜です"; not wrong, just uneven (Priority 3).
+
+Everything else in ja is unchanged from the earlier run and fine: Portland, Atlantis, London time, quakes (M2.5 Gilroy, M4.5 Yilan, magnitudes match USGS), the Apple question.
