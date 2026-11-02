@@ -7,7 +7,7 @@ The administrator viewer showed a Japanese visitor message as `??????????` while
 Evidence:
 
 - The stored row is **10 characters and 10 bytes** (ASCII `?`, 0x3F). Real Japanese would be 3 bytes per character. It is the only all-question-mark row among 44 visitor messages. The database also holds 1 visitor message with kana and 17 with Chinese characters, stored as real characters (counted by character class; their text was not read). The database is UTF8 (`server_encoding`, `client_encoding`, database encoding).
-- The conversation had an earlier English message ("What time is it in Beijing?"). The model answered the question marks from that context, in Japanese because the language was detected as Japanese. A Japanese-looking reply therefore does **not** prove the server received Japanese.
+- The session had one earlier visitor message, 27 characters long and starting with "W" (its text was not read; it was probably an English question about Beijing's time). The stored language of the question-mark message is "japanese". The most likely explanation is that the model answered the question marks from the earlier turn and the detected language, but this is inferred, not observed. Either way, a Japanese-looking reply does **not** prove the server received Japanese.
 - Windows PowerShell 5.1 reproduces it exactly. `Invoke-RestMethod` and `Invoke-WebRequest` with a **string** body and `Content-Type: application/json` (no charset) put literal `?` bytes on the wire for any character outside Latin-1. Measured at the receiving end:
 
 | Client | Bytes the server received |
