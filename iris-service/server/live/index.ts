@@ -156,6 +156,31 @@ export function amountsIn(text: string): number[] {
   }
   return out;
 }
+// What the data (or the visitor) already said: digits and words. Used for the allowed side only; a reply is checked on its digits, so
+// an ordinary "a million thanks" is never mistaken for a claimed amount.
+export const sourceAmountsIn = (text: string): number[] => [...amountsIn(text), ...wordAmountsIn(text)];
+
+// An amount written in words ("one million faces", "two hundred million", "un millón de caras"). A headline often says it that way
+// while a reply in another language writes it in digits ("100万人"), and the check must not call the digits wrong.
+const UNIT_WORDS: Record<string, number> = {
+  a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13,
+  fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20, thirty: 30, forty: 40, fifty: 50,
+  sixty: 60, seventy: 70, eighty: 80, ninety: 90,
+  un: 1, una: 1, uno: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10,
+};
+const WORD_SCALE: Record<string, number> = { trillion: 1e12, billion: 1e9, million: 1e6, thousand: 1e3, "millón": 1e6, millon: 1e6, millones: 1e6, "billón": 1e12, billones: 1e12 };
+const NUMBER_WORD = Object.keys(UNIT_WORDS).sort((a, b) => b.length - a.length).join("|");
+function wordAmountsIn(text: string): number[] {
+  const out: number[] = [];
+  // [number word(s)] [hundred] scale: "one million", "twenty-five thousand", "three hundred million", "dos millones"
+  const pattern = new RegExp(`(?<![\\p{L}\\d])((?:${NUMBER_WORD})(?:[- ](?:${NUMBER_WORD}))?)(?:\\s+(hundred|cien|ciento))?\\s+(trillion|billion|million|thousand|mill[oó]n|millones|bill[oó]n|billones)(?![\\p{L}])`, "giu");
+  for (const m of text.matchAll(pattern)) {
+    const base = m[1].toLowerCase().split(/[- ]/).reduce((sum, word) => sum + (UNIT_WORDS[word] ?? 0), 0);
+    const scale = WORD_SCALE[m[3].toLowerCase()];
+    if (base > 0 && scale) out.push(base * (m[2] ? 100 : 1) * scale);
+  }
+  return out;
+}
 const sameAmount = (a: number, b: number) => Math.abs(a - b) <= Math.max(a, b) * 0.015;
 
 function newsFallback(r: NewsReport, message: string, now: number): string {
@@ -225,7 +250,7 @@ export async function prepareLive(args: { message: string; sessionId: string; no
       remember(args.sessionId, { kind: "news", place: null, topic: intent.topic, at: now });
       const { body, links } = newsBody(report, now);
       // Every amount with a scale word in the reply must be one that the headlines or the visitor's own message gave
-      const allowed = [...report.items.flatMap(i => amountsIn(`${i.title} ${i.summary}`)), ...amountsIn(args.message)];
+      const allowed = [...report.items.flatMap(i => sourceAmountsIn(`${i.title} ${i.summary}`)), ...sourceAmountsIn(args.message)];
       return prep("news", "ok", body, started, {
         maxTokens: 260,
         check: reply => {
