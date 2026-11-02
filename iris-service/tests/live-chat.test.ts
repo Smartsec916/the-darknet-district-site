@@ -161,6 +161,15 @@ test("a missing place is asked for, an ambiguous one is clarified, and neither f
   assert.equal(calls.filter(u => u.includes("api.met.no")).length, 0);
 });
 
+test("an ambiguous place never reaches the visitor with an outage excuse, even if the model writes one", async () => {
+  const { sessionId } = await openSession();
+  script = ["Seems like the data streams are a bit clogged up, and I can't retrieve Portland's weather. Which Portland, Oregon or Maine?"];
+  const reply = await say(sessionId, "What's the weather in Portland?");
+  assert.doesNotMatch(reply, /clogged|retrieve|streams/i);
+  assert.match(reply, /^Which Portland do you mean: Portland, Oregon/);
+  assert.equal(calls.filter(u => u.includes("api.met.no")).length, 0, "and still no forecast is fetched");
+});
+
 test("visitors do not share follow-ups, and automatic browser messages never fetch anything", async () => {
   const a = await openSession(), b = await openSession();
   script = ["Clear and mild."];
