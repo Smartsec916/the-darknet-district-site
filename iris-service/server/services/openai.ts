@@ -1111,10 +1111,11 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
       // Sampling for the character. The old defaults (temperature 0.95 with presence 0.6 and frequency 0.5) push a model away from its own most natural words
       // on purpose, which in the evaluation showed up as odd, forced comparisons ("friend-chip upgrade") instead of wit. Sharp comedy needs the natural word at
       // the right moment, so ordinary engine turns use calmer sampling; repetition is handled by the recent-openings and recent-words memory instead.
-      temperature: options.sampling?.temperature ?? (options.attitude ? 0.85 : 0.95),
+      // A genuinely serious moment (danger, abuse, a death) is sampled calmly and plainly: no randomness to wander into machine imagery or a joke
+      temperature: options.sampling?.temperature ?? (options.attitude?.intensity === "support" ? 0.5 : options.attitude ? 0.85 : 0.95),
       max_tokens: maxTokens + 20 + (options.relationshipPrompt ? 60 : 0), // room for the state line when it is requested
-      presence_penalty: options.sampling?.presence_penalty ?? (options.attitude ? 0.3 : 0.6),
-      frequency_penalty: options.sampling?.frequency_penalty ?? (options.attitude ? 0.2 : 0.5),
+      presence_penalty: options.sampling?.presence_penalty ?? (options.attitude?.intensity === "support" ? 0 : options.attitude ? 0.3 : 0.6),
+      frequency_penalty: options.sampling?.frequency_penalty ?? (options.attitude?.intensity === "support" ? 0 : options.attitude ? 0.2 : 0.5),
     });
     
     // The state line (if any) is removed before anything else sees the reply; a missing or damaged one is simply ignored
