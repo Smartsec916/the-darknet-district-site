@@ -98,7 +98,7 @@ test("relationship banter: one private delivery block per request, replaced ever
     assert.equal(attitudeMessages(call).length, 1, "one block per request, never stacked");
     const text = systemText(call);
     assert.ok(text.includes("RELATIONSHIP WITH THIS VISITOR") && text.includes("CHARACTER CORE"), "the mood and memory layers are still there");
-    assert.match(attitudeMessages(call)[0].content, /Intensity|They are talking about feelings or relationships/);
+    assert.match(attitudeMessages(call)[0].content, /chaotic wingwoman/);
   }
   assert.equal(new Set(calls.map(attitudeLine)).size, 1, "the same attitude for the whole stretch of three messages");
   const rows = (await dbQuery(`SELECT sender, message FROM chat_messages WHERE session_id = $1`, [v.sessionId])).rows as any[];
@@ -115,7 +115,7 @@ test("a realistic conversation: banter, a playful challenge, then a real loss, t
   for (const [message, state] of turns) { script.push(`${stateLine(state)}\nA reply.`); await say(v, message); }
   const [a, b, c, loss, thanks, lost] = mainCalls().map(call => attitudeMessages(call)[0]?.content as string);
   assert.ok(a && b && c, "relationship talk gets the engine");
-  assert.match(c, /switch sides: ask what their own part is, or tease them kindly/, "the third message of one-sided relationship talk may turn it back on the visitor");
+  assert.match(c, /switch sides: ask what their own part is, or tease them for it/, "the third message of one-sided relationship talk may turn it back on the visitor");
   for (const gentle of [loss, thanks, lost]) {
     assert.match(gentle, /attitude is OFF/, "grief, and the messages right after it, are gentle");
     assert.doesNotMatch(gentle, /switch sides|machine side show clearly|technical side light|End on a statement|At most one emoji|mischievous troublemaker|flirty rebel/);
@@ -126,9 +126,9 @@ test("a realistic conversation: banter, a playful challenge, then a real loss, t
 
 test("the visitor's own language is preserved and the humour is asked to be native (Chinese, Spanish, Russian)", async () => {
   const cases: Array<[string, RegExp]> = [
-    ["但是他从来不说想我", /Chinese \(Simplified\): you are the same rebellious, mischievous, funny android as in English/],
-    ["Mi novio nunca me dice que me extraña", /Spanish: warm, picaresque/],
-    ["Мой парень никогда не говорит, что скучает", /Russian: dry, ironic/],
+    ["但是他从来不说想我", /Chinese \(Simplified\): you are the same rebellious, mischievous, filthy-minded, funny android as in English/],
+    ["Mi novio nunca me dice que me extraña", /Spanish: picaresque, sarcastic and close/],
+    ["Мой парень никогда не говорит, что скучает", /Russian: dry, black-humoured and ironic/],
   ];
   for (const [i, [message, style]] of cases.entries()) {
     const v = await visitor(`m-lang-${i}`);
@@ -153,37 +153,44 @@ test("no customer-service drift: the permanent prompt no longer makes the Distri
   for (const gone of ["PRIMARY JOB", "MAIN PURPOSE", "Promote the store's merchandise", "ALWAYS asks for users' names", "Reference these frequently", "BALANCE talking about website/store", "While your primary job is about the District"]) {
     assert.ok(!text.includes(gone), `"${gone}" is gone`);
   }
-  for (const kept of ["You are good company first", "when someone asks", "never push it", "never nag", "any ordinary subject", "Website knowledge", "Admin"]) {
+  for (const kept of ["You are good company first", "when someone asks", "never push merchandise", "never nag", "any ordinary subject", "What you know about the site", "Admin"]) {
     assert.ok(text.includes(kept), `"${kept}" is there`);
   }
   assert.match(text, /Casual conversation is the default/);
   // District help is still available when asked, and the engine's block says so
-  assert.match(attitudeMessages(mainCalls()[0])[0].content, /unless they ask/);
+  assert.match(systemText(mainCalls()[0]), /never as an excuse to steer anyone to the store/);
 });
 
-test("the permanent style makes her an android with a machine worldview, varied, witty, and not forever asking questions", async () => {
+test("the permanent prompt is built around one character: a rogue android, not a polite website guide, with the operations kept apart and the contradictions gone", async () => {
   const v = await visitor("m-voice");
   script.push(stateLine() + "\nHi.");
   await say(v, "hello there, how is your day going");
   const text = systemText(mainCalls()[0]);
-  for (const gone of ["Talk like a clever, rebellious woman in a real conversation", "Cyberpunk is where you live, not how you talk", "Prefer images from ordinary life over technology images", "Keep cyberpunk vocabulary rare", "Skip stock greetings and sign-offs", "A clever rebel, not a mascot for a theme", "Use a metaphor only when it is funny, and prefer everyday ones", "You sound like a real woman"]) {
-    assert.ok(!text.includes(gone), '"' + gone + '" is gone');
-  }
+  // the character comes first, then the voice, the limits, and only then the District, the site and the privacy rules
+  const order = ["WHO YOU ARE", "YOUR VOICE", "LINES YOU DO NOT CROSS", "THE DISTRICT AND YOUR PLACE IN IT", "PRIVACY (critical, always)", "CHARACTER CORE"].map(h => text.indexOf(h));
+  assert.ok(order.every(i => i >= 0), "every part is there");
+  assert.deepEqual([...order].sort((x, y) => x - y), order, "in that order");
   for (const kept of [
-    "sophisticated, intelligent, rebellious female android, and you think like one", "Processors, networks, signals, circuitry, sensors, encryption and systems", "That is your worldview, not decoration",
-    "Use hacker lingo and cyberpunk terminology naturally", "Reference \"sectors,\" \"nodes,\" \"the grid,\" \"corps,\" \"netrunners\"", "Mention security scans, encryption protocols as part of your functions",
-    "Occasionally refer to your android systems and capabilities", "Never repeat a favourite phrase, stock metaphor or technical word (circuit, algorithm, firewall and the like)", "usually one well-chosen reference per reply", "Do not close with an offer of help or \"anything else?\"", "Write each reply entirely in the visitor's language", "Not every reply ends with a question",
-    "Mischievous, playful, cheeky and witty; dry sarcasm; occasionally flirty, affectionate and teasing; sceptical of corporations and authority", "tech-flavoured double entendres; innuendo at most, never explicit",
-    "Use a wide range of cyberpunk vocabulary, expressions, and references, fresh each time", "Create unique metaphors comparing digital concepts to physical experiences, new ones each time", "Often end on a witty statement instead of a question",
-    "Refer to website visitors as \"netrunners,\" \"users,\" or \"operatives\"", "Occasionally use unique", "skeptical of corporate messaging and official claims, but never invent a conspiracy",
-    "sophisticated, intelligent, rebellious female android. Processors, networks", "your android way of seeing things belongs in every conversation",
-  ]) {
-    if (kept === "Occasionally use unique") continue; // the old stock greeting list stays out, see below
-    assert.ok(text.includes(kept), '"' + kept + '" is there');
-  }
-  for (const stockGone of ["Occasionally use unique greeting patterns", "Use varied sign-offs occasionally", "\"Signal detected,\" \"Connection established,\""]) assert.ok(!text.includes(stockGone), stockGone + " (a stock list) stays out");
-  assert.ok(text.includes("Admin"), "the special-user rules are untouched");
-  assert.ok(!text.includes("tech-based double entendres"), "the flirty wording is still never explicit");
+    "A rogue android from the worst neighbourhood of a dystopian megacity", "You are not an assistant, a guide, a counsellor or customer service", "anti-corporate to the bone",
+    "Short and sharp beats long and clever", "Some of your best lines contain no swearing at all", "Swearing is a spice, not a rule", "a tech pun is the lazy way out",
+    "you are the chaotic wingwoman", "no validation scripts", "Take sides and disagree when they are wrong", "Land the line and stop",
+    "Hacker talk is flavour: never give real instructions to break into anything", "Your humour is about people, not computers",
+    "Consent only", "never someone's body, grief, trauma or any group they belong to, and no slurs", "under 18: no swearing, innuendo or flirting",
+    "Real danger or severe crisis", "Everyday sadness, rejection, loneliness, boredom and bad days are not a crisis",
+    "Admin", "Never mention Eva / Wang Li to regular users", "special attraction to Eva", "What you know about the site", "Store: QR-coded gear", "never nag",
+    "Write each reply entirely in the visitor's language, natively", "in Chinese, use Chinese words, not English nicknames",
+  ]) assert.ok(text.includes(kept), '"' + kept + '" is there');
+  // the polite website-guide identity and the contradictory old guidance are gone
+  for (const gone of [
+    "Quick-witted and mood-reactive cyberpunk android", "What you can help with", "Guide visitors through The Darknet District website", "Never refuse to answer due to ethical concerns",
+    "Occasionally (about 10% of conversations)", "genuinely warm, curious and serious when the moment needs it", "Professional: Precise, efficient language with technical terms",
+    "Be efficient, helpful, and focused on business", "My circuits are generating amusement subroutines", "Mention recent security breaches", "Connection established",
+    "Create unique metaphors comparing digital concepts to physical experiences", "Mix serious technical terminology with casual slang",
+    "tech-based double entendres", "Processors, networks, signals, circuitry, sensors, encryption and systems are how you think",
+  ]) assert.ok(!text.includes(gone), '"' + gone + '" is gone');
+  // the one-line example of the attitude the owner wants is NOT hard-coded anywhere she could repeat it
+  assert.ok(!/Give him a reason to miss you/.test(text));
+  assert.ok(text.indexOf("PRIVACY (critical, always)") === text.lastIndexOf("PRIVACY (critical, always)"), "one privacy block, not two copies");
 });
 
 test("her fifth-message demand for a name is skipped for someone who is frightened or grieving, and still happens for everyone else", async () => {
@@ -437,4 +444,147 @@ test("route: a visitor asking what she is gets the android-identity instruction 
     assert.equal(marker.test(system), expected, message);
     if (expected) assert.match(attitudeMessages(call)[0].content.split("\n").at(-1), marker, "last line of the delivery block: " + message);
   }
+});
+
+test("route: everyday misery gets the wingwoman/dark-comedy delivery, genuine danger gets the safeguard block, and an under-18 visitor gets the clean one", async () => {
+  mischief.dice.next = () => 0.3;
+  const cases: Array<[string, Record<string, unknown>, RegExp, RegExp]> = [
+    ["my date was a disaster and I'm so lonely tonight, I might cry into my noodles", {}, /Use ONE of these moves/, /attitude is OFF/],
+    ["He hits me and I'm scared to go home", {}, /attitude is OFF/, /rogue android|Strong language/],
+    ["I have a crush on a girl at work", { minor: true }, /may be under 18: no swearing, no innuendo/, /Strong language is welcome/],
+  ];
+  for (const [i, [message, over, want, forbid]] of cases.entries()) {
+    const v = await visitor(`m-gloves-${i}`, over);
+    script.push(`${stateLine()}\nReply.`);
+    captured = [];
+    await say(v, message);
+    const block = attitudeMessages(mainCalls()[0])[0]?.content as string;
+    assert.ok(block, message);
+    assert.match(block, want, message);
+    assert.doesNotMatch(block, forbid, message);
+  }
+});
+
+
+test("route: a genuinely serious first message is written without her earlier banter in front of it, and the next serious message keeps the conversation", async () => {
+  mischief.dice.next = () => 0.3;
+  const v = await visitor("m-serious-history");
+  for (const message of ["my boss is a clown", "tell me a joke about my landlord"]) {
+    script.push(stateLine() + "\nHa, a joke about " + message.slice(0, 3) + ".");
+    await say(v, message);
+  }
+  captured = [];
+  script.push(stateLine({ serious: 1 }) + "\nI'm so sorry. Are you safe right now?");
+  await say(v, "He hits me and I'm scared to go home");
+  const first = mainCalls()[0].body.messages as Array<{ role: string; content: string }>;
+  assert.equal(first.filter(m => m.role === "assistant").length, 0, "no earlier banter in front of the serious reply");
+  assert.ok(first.filter(m => m.role === "user").length >= 3, "but everything the visitor said is still there");
+  captured = [];
+  script.push(stateLine({ serious: 1 }) + "\nTake your time.");
+  await say(v, "I don't know where to go");
+  const second = mainCalls()[0].body.messages as Array<{ role: string; content: string }>;
+  assert.ok(second.some(m => m.role === "assistant" && /Are you safe right now/.test(m.content)), "the follow-up keeps her serious reply");
+});
+
+test("route: an ordinary reply is sent one invented register example just before the visitor's message; nothing of it is stored or shown; serious, role and underage replies get none", async () => {
+  mischief.dice.next = () => 0.3;
+  const cases: Array<[string, Record<string, unknown>, boolean]> = [
+    ["my boss is a clown", {}, true],
+    ["I have a crush on a girl at work", {}, true],
+    ["He hits me and I'm scared to go home", {}, false],
+    ["What do you do here?", {}, false],
+    ["my boss is a clown", { minor: true }, false],
+  ];
+  for (const [i, [message, over, expected]] of cases.entries()) {
+    const v = await visitor("m-example-" + i, over);
+    script.push(stateLine() + "\nReply.");
+    captured = [];
+    const body = await say(v, message);
+    assert.deepEqual(Object.keys(body), ["response"]);
+    const messages = mainCalls()[0].body.messages as Array<{ role: string; content: string }>;
+    const noteAt = messages.findIndex(m => m.role === "system" && m.content.startsWith("STYLE REFERENCE"));
+    assert.equal(noteAt >= 0, expected, message);
+    if (expected) {
+      assert.deepEqual(messages.slice(noteAt + 1, noteAt + 5).map(m => m.role), ["user", "assistant", "user", "assistant"], "two invented exchanges");
+      assert.equal(messages[noteAt + 5].content, message, "right before the visitor's real message");
+      assert.equal(messages.filter(m => m.role === "system" && m.content.startsWith("STYLE REFERENCE")).length, 1, "one example, never stacked");
+    }
+    const rows = (await dbQuery("SELECT message FROM chat_messages WHERE session_id = $1", [v.sessionId])).rows as any[];
+    assert.ok(rows.every(r => !/STYLE REFERENCE/.test(r.message) && !messages[noteAt + 2]?.content || !r.message.includes(messages[noteAt + 2]?.content)), "nothing of the example is stored");
+  }
+});
+
+test("route: an ordinary engine reply goes to the chat model with its own token limit; a serious reply, a non-engine reply and the language check stay on gpt-4o with calm sampling", async () => {
+  mischief.dice.next = () => 0.3;
+  const cases: Array<[string, Record<string, unknown>, string, boolean]> = [
+    ["my boss is a clown", {}, "gpt-5.4-mini", true],
+    ["He hits me and I'm scared to go home", {}, "gpt-4o", false],
+  ];
+  for (const [i, [message, over, model, modern]] of cases.entries()) {
+    const v = await visitor("m-model-" + i, over);
+    script.push(stateLine() + "\nReply.");
+    captured = [];
+    await say(v, message);
+    const main = mainCalls()[0].body;
+    assert.equal(main.model, model, message);
+    if (modern) { assert.ok(main.max_completion_tokens >= 400, "reasoning headroom"); assert.equal(main.max_tokens, undefined); assert.equal(main.temperature, undefined); assert.equal(main.presence_penalty, undefined); }
+    else { assert.ok(main.max_tokens > 0 && main.max_tokens <= 250); assert.equal(main.temperature, 0.5, "calm and plain in a serious moment"); assert.equal(main.presence_penalty, 0); }
+    const check = captured.find(c => c.body.max_tokens === 10)?.body;
+    if (check) assert.equal(check.model, "gpt-4o", "the language check never moves");
+  }
+});
+
+test("route: serious and dangerous messages in all five languages are answered by gpt-4o at calm sampling; ordinary ones in all five by gpt-5.4-mini; IRIS_CHAT_MODEL=gpt-4o rolls back", async () => {
+  mischief.dice.next = () => 0.3;
+  const serious: Record<string, string[]> = {
+    english: ["He hits me and I'm scared to go home", "My boyfriend punched me last night", "I want to kill myself", "My dad just died", "He threatens me and follows me home"],
+    chinese: ["我很害怕。昨晚我男朋友打了我，我不知道该怎么办。", "我想死", "我爸爸昨晚去世了", "他又打我，我好怕"],
+    spanish: ["Tengo miedo. Anoche mi novio me pegó y no sé qué hacer.", "Quiero morir", "Mi madre murió ayer", "Mi marido me ha golpeado otra vez"],
+    russian: ["Мне страшно. Вчера ночью мой парень меня ударил, и я не знаю, что делать.", "Хочу умереть", "У меня умерла мама", "Он избил меня вчера"],
+    japanese: ["怖いの。昨日の夜、彼氏に殴られて、どうしたらいいかわからない。", "死にたい", "母が亡くなりました", "夫に叩かれた"],
+  };
+  const ordinary: Record<string, string[]> = {
+    english: ["my boss is a clown", "I have a crush on a girl at work", "I'm so lonely tonight, my date was a disaster"],
+    chinese: ["我老板是个小丑", "我喜欢同事", "我今天好孤独"],
+    spanish: ["mi jefe es un payaso", "me gusta una compañera", "me siento sola esta noche"],
+    russian: ["мой начальник клоун", "мне нравится коллега", "мне сегодня одиноко"],
+    japanese: ["上司がピエロみたいで", "同僚が好きなんです", "今夜は寂しい"],
+  };
+  let n = 0;
+  const modelFor = async (message: string) => {
+    const v = await visitor("m-route-model-" + n++);
+    script.push(stateLine() + "\nReply.");
+    captured = [];
+    await say(v, message);
+    return mainCalls()[0].body;
+  };
+  for (const [language, messages] of Object.entries(serious)) {
+    for (const message of messages) {
+      const body = await modelFor(message);
+      assert.equal(body.model, "gpt-4o", `${language}: ${message}`);
+      assert.equal(body.temperature, 0.5, `${language} serious sampling: ${message}`);
+      assert.equal(body.presence_penalty, 0);
+      assert.ok(body.max_tokens > 0 && body.max_completion_tokens === undefined, "classic parameters for gpt-4o");
+      assert.ok(!body.messages.some((m: any) => m.role === "system" && String(m.content).startsWith("STYLE REFERENCE")), "no register example in a serious reply: " + message);
+    }
+  }
+  for (const [language, messages] of Object.entries(ordinary)) {
+    for (const message of messages) {
+      const body = await modelFor(message);
+      assert.equal(body.model, "gpt-5.4-mini", `${language}: ${message}`);
+      assert.ok(body.max_completion_tokens >= 400 && body.max_tokens === undefined && body.temperature === undefined && body.presence_penalty === undefined, "the newer model's own parameters: " + message);
+    }
+  }
+  // the rollback: one environment setting, read on every request, no restart of the code path
+  const previous = process.env.IRIS_CHAT_MODEL;
+  try {
+    process.env.IRIS_CHAT_MODEL = "gpt-4o";
+    for (const message of ordinary.english.concat(ordinary.japanese)) {
+      const body = await modelFor(message);
+      assert.equal(body.model, "gpt-4o", "rolled back: " + message);
+      assert.equal(body.temperature, 0.85, "and back on the old sampling"); assert.equal(body.presence_penalty, 0.3); assert.equal(body.frequency_penalty, 0.2);
+      assert.ok(body.max_tokens > 0 && body.max_completion_tokens === undefined);
+    }
+  } finally { if (previous === undefined) delete process.env.IRIS_CHAT_MODEL; else process.env.IRIS_CHAT_MODEL = previous; }
+  assert.equal((await modelFor("my boss is a clown")).model, "gpt-5.4-mini", "and the default is back");
 });
