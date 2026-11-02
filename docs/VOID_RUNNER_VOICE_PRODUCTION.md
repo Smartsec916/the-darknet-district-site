@@ -68,3 +68,9 @@ The Relay's scripts are in `void-runner/relay-content.json`. Each segment has an
 
 - **Broadcast voices:** the Relay's scripts are in (David's lines from his Relay brief; see `docs/VOID_RUNNER_RELAY.md`), but no broadcaster is cast yet, so they show as captions. Each report line is recorded as its own clip; lines with leaderboard names filled in at play time stay captions.
 - The special-character slot stays reserved until David introduces that character.
+
+## Companion voices and blends (2026-11-01)
+
+- **Rule:** every VR companion has their own Kokoro voice, a woman's voice for the women and a man's voice for the men (David). `tests/vr-companion-voices.test.cjs` checks this, along with a description and recorded lines for every companion.
+- **Cast:** Seren af_nicole, Nadia af_aoede, Ava af_alloy, Eva af_sky, Una bf_lily, Yuki bf_alice; Kai am_fenrir, Dex `am_adam:0.5+am_michael:0.5`. All are provisional, and every line is a DRAFT.
+- **Blends:** Kokoro has only 13 English men's voices, and all of them were already cast. A registry voice can therefore be a weighted blend of 2–3 voices of the same sex, written `am_adam:0.5+am_michael:0.5` (weights add up to 1). A blend counts as its own voice; `voice-registry.cjs` checks it, and `generate.py` mixes the voice styles. The audition page still auditions single voices only.

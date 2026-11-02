@@ -9,9 +9,18 @@ function configHash(entry,engine){
   return crypto.createHash('sha256').update(key).digest('hex').slice(0,12);
 }
 const profiles=['none','android','hologram','radio'];
+// A voice is one Kokoro English voice id, or a weighted blend of 2-3 of the same sex: "am_adam:0.6+am_michael:0.4"
+// (weights add up to 1). A blend counts as its own voice; no single voice may be cast twice.
+const VOICE=/^[ab][fm]_[a-z]+$/;
+function parseVoice(v){
+  if(typeof v!=='string')return null;if(VOICE.test(v))return [[v,1]];
+  const parts=v.split('+').map(p=>p.split(':'));if(parts.length<2||parts.length>3)return null;
+  const out=parts.map(([id,w])=>[id,Number(w)]);if(out.some(([id,w])=>!VOICE.test(id)||!(w>0&&w<1)))return null;
+  if(new Set(out.map(([id])=>id[1])).size>1)return null; // all women's or all men's voices
+  if(Math.abs(out.reduce((s,[,w])=>s+w,0)-1)>.001)return null;return out;}
 // A cast voice: an NPC, or a Relay broadcaster once David assigns one.
 function checkVoice(id,e,engine,problems){
-  if(!e.voice||!/^[ab][fm]_[a-z]+$/.test(e.voice))problems.push(id+': voice must be an English Kokoro voice id');
+  if(!parseVoice(e.voice))problems.push(id+': voice must be an English Kokoro voice id, or a same-sex blend like am_adam:0.6+am_michael:0.4');
   if(!(e.speed>=.7&&e.speed<=1.3))problems.push(id+': speed out of range');
   if(!['en-us','en-gb'].includes(e.lang))problems.push(id+': lang must be en-us or en-gb');
   if(!profiles.includes(e.profile))problems.push(id+': unknown processing profile');
@@ -35,4 +44,4 @@ function validate(reg=load()){
   for(const [id,r] of Object.entries(reg.reserved||{}))if(r.voice)problems.push(id+': reserved slot must not have a voice yet');
   return problems;
 }
-module.exports={file,load,configHash,validate,voiced};
+module.exports={file,load,configHash,validate,voiced,parseVoice};

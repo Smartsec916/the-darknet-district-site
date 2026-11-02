@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "0019b3ac0c934d5e",
+  "revision": "f9fb37e245f8bc66",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -1199,6 +1199,66 @@
       ],
       "voice": {
         "voice": "af_aoede",
+        "status": "provisional",
+        "profile": "none"
+      }
+    },
+    {
+      "id": "vr-ava",
+      "name": "Ava",
+      "sources": [
+        "tools/audio/npc-voice-registry.json"
+      ],
+      "voice": {
+        "voice": "af_alloy",
+        "status": "provisional",
+        "profile": "none"
+      }
+    },
+    {
+      "id": "vr-eva",
+      "name": "Eva",
+      "sources": [
+        "tools/audio/npc-voice-registry.json"
+      ],
+      "voice": {
+        "voice": "af_sky",
+        "status": "provisional",
+        "profile": "none"
+      }
+    },
+    {
+      "id": "vr-una",
+      "name": "Una",
+      "sources": [
+        "tools/audio/npc-voice-registry.json"
+      ],
+      "voice": {
+        "voice": "bf_lily",
+        "status": "provisional",
+        "profile": "none"
+      }
+    },
+    {
+      "id": "vr-base-f",
+      "name": "Yuki",
+      "sources": [
+        "tools/audio/npc-voice-registry.json"
+      ],
+      "voice": {
+        "voice": "bf_alice",
+        "status": "provisional",
+        "profile": "none"
+      }
+    },
+    {
+      "id": "vr-base-m",
+      "name": "Dex",
+      "sources": [
+        "tools/audio/npc-voice-registry.json"
+      ],
+      "voice": {
+        "voice": "am_adam:0.5+am_michael:0.5",
         "status": "provisional",
         "profile": "none"
       }
@@ -3884,6 +3944,1986 @@
       "voiceProfile": "sol"
     },
     {
+      "id": "vr-ava-05f7d2754a",
+      "character": "vr-ava",
+      "text": "You're hovering. Come over here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-0f64c41292",
+      "character": "vr-ava",
+      "text": "Goodnight. Don't let anyone else style you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-12a3e34fe2",
+      "character": "vr-ava",
+      "text": "There you are. I was about to start judging the skyline without you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-161eb0e918",
+      "character": "vr-ava",
+      "text": "Look who finally showed up. Good timing, too.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-246e0a2416",
+      "character": "vr-ava",
+      "text": "Not yet. Impress me with words first.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-25f58a3ffe",
+      "character": "vr-ava",
+      "text": "Dance with me. I'll make it worth your while.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-2b6c13af04",
+      "character": "vr-ava",
+      "text": "Hold on. I don't let go first.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-3089f12a65",
+      "character": "vr-ava",
+      "text": "Fine. I'm still asking again.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-33f1f60b70",
+      "character": "vr-ava",
+      "text": "Back already? You missed me.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-34db26c446",
+      "character": "vr-ava",
+      "text": "Flattery works on me. You've just found my weakness.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-3880e54184",
+      "character": "vr-ava",
+      "text": "Patience. I like a good build-up.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-39cb5cd7b1",
+      "character": "vr-ava",
+      "text": "Is that a line? Because I'm rating it. Eight out of ten.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-3b67514afc",
+      "character": "vr-ava",
+      "text": "There you are. The room was getting dull.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-3e9c1e8bf7",
+      "character": "vr-ava",
+      "text": "Okay, that was smooth. I'm noting it down.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-3fc1bb9c31",
+      "character": "vr-ava",
+      "text": "Your hands are warmer than I expected.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-404c995629",
+      "character": "vr-ava",
+      "text": "Tell me what you actually like. Not what you think I want to hear.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-40d0276cc2",
+      "character": "vr-ava",
+      "text": "I'd put you on a billboard.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-472f5d09ac",
+      "character": "vr-ava",
+      "text": "Your loss. I'll ask again later.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-47affd1844",
+      "character": "vr-ava",
+      "text": "Come sit with me. I want to hear about your day.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-4851bebfc8",
+      "character": "vr-ava",
+      "text": "Mm. Ten out of ten. Don't let it go to your head.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-4e7727435c",
+      "character": "vr-ava",
+      "text": "Don't think, just move. I'll make you look good.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-5110a24871",
+      "character": "vr-ava",
+      "text": "On my way.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-550f851ac3",
+      "character": "vr-ava",
+      "text": "Everyone down there dresses for the cameras. I dress for the rain.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-5511ac68ef",
+      "character": "vr-ava",
+      "text": "Obviously. But it's nice to hear you say it.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-5d5e86460b",
+      "character": "vr-ava",
+      "text": "I need a second opinion on the view. Yours.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-5d71d453a1",
+      "character": "vr-ava",
+      "text": "Move over. I'm joining you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-6712d6dba2",
+      "character": "vr-ava",
+      "text": "Mind if I sit? I'm sitting.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-6a999860e3",
+      "character": "vr-ava",
+      "text": "Careful. I could get used to you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-6d4e0557a3",
+      "character": "vr-ava",
+      "text": "Hey, you. Come in, I saved you the good light.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-70a6f00d2c",
+      "character": "vr-ava",
+      "text": "You clean up nicely, you know that?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-7714a61f24",
+      "character": "vr-ava",
+      "text": "Look at that pink sign on the left. I'd have used a colder magenta.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-87b310938f",
+      "character": "vr-ava",
+      "text": "I knew you had taste.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-88d6c35ec3",
+      "character": "vr-ava",
+      "text": "Close your eyes. I'll tell you when the city's worth looking at again.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-8c1df29c1a",
+      "character": "vr-ava",
+      "text": "Half the signs out there use my colours. Nobody pays me for it.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-8c54030d65",
+      "character": "vr-ava",
+      "text": "See? Style is mostly confidence.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-9ae3114f2e",
+      "character": "vr-ava",
+      "text": "Well. That's going in my portfolio.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-9aea6254bd",
+      "character": "vr-ava",
+      "text": "You called?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-9dd478ef17",
+      "character": "vr-ava",
+      "text": "Finally, someone with taste. Lead, or I will.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-a0722b8e63",
+      "character": "vr-ava",
+      "text": "There you are. I was starting to get bored.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-a4ae96029e",
+      "character": "vr-ava",
+      "text": "Sit. You're ruining my composition.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-b372fae2d6",
+      "character": "vr-ava",
+      "text": "Go on, then. Come back looking at least this good.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-bab201ab01",
+      "character": "vr-ava",
+      "text": "Better. Now the room looks right.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-d0046c9b57",
+      "character": "vr-ava",
+      "text": "This is nice. No deadlines, no clients, just this.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-d0e06c95f2",
+      "character": "vr-ava",
+      "text": "I designed three holo-jackets this week. Two of them were genius. One of them was art.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-d70c9a4141",
+      "character": "vr-ava",
+      "text": "Good choice.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-d8bc9f65c6",
+      "character": "vr-ava",
+      "text": "Sit with me first. Or dance with me; I'm not fussy.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-e0d65e7463",
+      "character": "vr-ava",
+      "text": "This track is too good to waste. Dance with me?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-e6000cff18",
+      "character": "vr-ava",
+      "text": "I can tell a lot about someone from how they stand in a room. You stand like you're about to leave. Don't.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-e72658f169",
+      "character": "vr-ava",
+      "text": "You're staring. I don't mind.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-e8c0100184",
+      "character": "vr-ava",
+      "text": "Come here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-ea94eb39a4",
+      "character": "vr-ava",
+      "text": "You're trouble. I like trouble.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-ed54dd653a",
+      "character": "vr-ava",
+      "text": "Sit with me a minute. I promise I'll only criticise the décor.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-f42dd300e9",
+      "character": "vr-ava",
+      "text": "Best view in NeoChinatown. The ceiling, and you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-fa851842a9",
+      "character": "vr-ava",
+      "text": "From up here the whole city looks like a runway.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-ava-fc2a1dce9c",
+      "character": "vr-ava",
+      "text": "Lie back with me a minute and watch the ceiling glow.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-ava"
+    },
+    {
+      "id": "vr-base-f-00a5b78666",
+      "character": "vr-base-f",
+      "text": "Night! Get some sleep, okay?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-024ba89dcd",
+      "character": "vr-base-f",
+      "text": "Hey! Over here!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-07ea82caa7",
+      "character": "vr-base-f",
+      "text": "I like hanging out with you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-0911928dbc",
+      "character": "vr-base-f",
+      "text": "Not yet! Let's hang out a bit.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-13aecbd5f4",
+      "character": "vr-base-f",
+      "text": "Ha! You're sweet.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-17f4dcaa85",
+      "character": "vr-base-f",
+      "text": "This song! We have to dance.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-18ade92a45",
+      "character": "vr-base-f",
+      "text": "Hey, there you are again!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-1bb5ab451e",
+      "character": "vr-base-f",
+      "text": "Coming!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-313885de56",
+      "character": "vr-base-f",
+      "text": "Aw. Okay, next time.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-34f76f26c3",
+      "character": "vr-base-f",
+      "text": "Don't let go, okay?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-383b7b0a72",
+      "character": "vr-base-f",
+      "text": "Scoot over!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-39fd5541cd",
+      "character": "vr-base-f",
+      "text": "You're fun. Has anyone told you that?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-3b17a98688",
+      "character": "vr-base-f",
+      "text": "This is nice. Even I can enjoy doing nothing.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-44dba3eac7",
+      "character": "vr-base-f",
+      "text": "Aw, stop it! No, keep going.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-495560621f",
+      "character": "vr-base-f",
+      "text": "Don't worry about the steps, just have fun!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-4a4488c4ef",
+      "character": "vr-base-f",
+      "text": "Yes! Finally! Come on!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-508a05c0f5",
+      "character": "vr-base-f",
+      "text": "You're back! I missed you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-5aba63e647",
+      "character": "vr-base-f",
+      "text": "Wow. Okay. Again sometime?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-5e7dc108dc",
+      "character": "vr-base-f",
+      "text": "See? I can relax. Sometimes.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-5f2f14ff1b",
+      "character": "vr-base-f",
+      "text": "Okay, that made my whole day.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-62e7fa023d",
+      "character": "vr-base-f",
+      "text": "Ha! See? You're great at this.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-6378abcd13",
+      "character": "vr-base-f",
+      "text": "Careful, I might chase you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-6a07792209",
+      "character": "vr-base-f",
+      "text": "Knew you'd say yes.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-6e13d6da34",
+      "character": "vr-base-f",
+      "text": "Sit with me? I promise not to fidget. Much.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-6e56117918",
+      "character": "vr-base-f",
+      "text": "Tell me your favourite thing about this city. Mine's the food.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-72d746867b",
+      "character": "vr-base-f",
+      "text": "Are you flirting with me? Because it's working.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-7388aad681",
+      "character": "vr-base-f",
+      "text": "Ooh. Bold. I like it.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-7a8e82eaa5",
+      "character": "vr-base-f",
+      "text": "Bye! Come back soon, or I'll come find you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-893fc71077",
+      "character": "vr-base-f",
+      "text": "Hi! I was hoping it'd be you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-8f8a59ed56",
+      "character": "vr-base-f",
+      "text": "I ran the rooftops from here to the noodle market this morning. Personal best!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-91280862e6",
+      "character": "vr-base-f",
+      "text": "Yes!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-9b5efbd2c3",
+      "character": "vr-base-f",
+      "text": "I could stare at this city all night. Well, for a bit.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-a0ad6f1315",
+      "character": "vr-base-f",
+      "text": "Right here!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-a1cee7bf20",
+      "character": "vr-base-f",
+      "text": "You've got a great smile.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-a6f8f1cabb",
+      "character": "vr-base-f",
+      "text": "I've never been able to sit still. My mum says I was born mid-sprint.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-abba134a0a",
+      "character": "vr-base-f",
+      "text": "There you are. I was getting restless.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-b0eaf561d2",
+      "character": "vr-base-f",
+      "text": "Sit with me first, or dance with me! Then we'll see.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-b3bad380c0",
+      "character": "vr-base-f",
+      "text": "There we go. Comfy?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-b444dece04",
+      "character": "vr-base-f",
+      "text": "Room for me? Great.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-b6a74489b5",
+      "character": "vr-base-f",
+      "text": "There you are! Come in, come in.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-babaaf585e",
+      "character": "vr-base-f",
+      "text": "Ha. That was nice.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-c0596fa5f3",
+      "character": "vr-base-f",
+      "text": "Fine, fine. I'll ask again in five minutes.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-c83764a083",
+      "character": "vr-base-f",
+      "text": "Dance with me! Come on, it's good for you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-cb09c6f04c",
+      "character": "vr-base-f",
+      "text": "Your hands are cold! Here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-e2dec0236c",
+      "character": "vr-base-f",
+      "text": "Come sit, I want to hear everything.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-e3d9c65137",
+      "character": "vr-base-f",
+      "text": "Hey, you! I just got back from a run. Okay, a short run.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-e47e2535cd",
+      "character": "vr-base-f",
+      "text": "Come here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-e5b50d4dee",
+      "character": "vr-base-f",
+      "text": "Okay, I'll sit still. For you. For one minute.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-e649ae3d2e",
+      "character": "vr-base-f",
+      "text": "You're too far away. Come closer.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-ea336c4d37",
+      "character": "vr-base-f",
+      "text": "See that rooftop with the green light? I jumped that gap once. Don't tell anyone.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-ecc83a0087",
+      "character": "vr-base-f",
+      "text": "Whoa, slow down, speedy. Talk to me first.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-eddc9625fa",
+      "character": "vr-base-f",
+      "text": "The view's better at dawn. Everything turns gold for about four minutes.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-ee0c759de9",
+      "character": "vr-base-f",
+      "text": "You should come running with me sometime. I'll go slow. Maybe.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-f240a8de56",
+      "character": "vr-base-f",
+      "text": "Lie back with me a minute? I'll actually stay still.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-f-f52537c391",
+      "character": "vr-base-f",
+      "text": "Sit! You look like you need a breather.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-f"
+    },
+    {
+      "id": "vr-base-m-018d9c92a2",
+      "character": "vr-base-m",
+      "text": "You've got a good laugh, you know that?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-0833d84c1e",
+      "character": "vr-base-m",
+      "text": "Lie back with me for a bit? Best ceiling in town.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-09f4e5db0f",
+      "character": "vr-base-m",
+      "text": "You're better company than the radio, and I love the radio.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-0bfd270d3a",
+      "character": "vr-base-m",
+      "text": "Ha. I'll take it.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-146c5b132f",
+      "character": "vr-base-m",
+      "text": "Come sit. My feet are killing me.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-1590aeba2a",
+      "character": "vr-base-m",
+      "text": "Tell me about your day. I've got nowhere to be.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-1f124c98e2",
+      "character": "vr-base-m",
+      "text": "Hm. I could get used to that.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-1f8b698763",
+      "character": "vr-base-m",
+      "text": "Hey. Glad you made it up here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-245d49fd03",
+      "character": "vr-base-m",
+      "text": "Sit down, take a load off.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-24d991fea4",
+      "character": "vr-base-m",
+      "text": "Evening. The city's loud tonight; it's quieter up here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-25598d2de4",
+      "character": "vr-base-m",
+      "text": "Come here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-2be085bf94",
+      "character": "vr-base-m",
+      "text": "You've got a way about you, you know that?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-2f17f8f391",
+      "character": "vr-base-m",
+      "text": "See those cranes? I worked on the third one from the left.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-2f8a52eed1",
+      "character": "vr-base-m",
+      "text": "There you are. Grab a seat, or don't, I'm easy.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-303d4524e4",
+      "character": "vr-base-m",
+      "text": "You ever listen to old vinyl? Real crackle. Nothing else sounds like it.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-38eaa6890e",
+      "character": "vr-base-m",
+      "text": "There. Much better.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-3c3b53492d",
+      "character": "vr-base-m",
+      "text": "Steady grip. I like that.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-3d81a08d27",
+      "character": "vr-base-m",
+      "text": "Hey. Figured you could use a friendly face.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-49e8850308",
+      "character": "vr-base-m",
+      "text": "Dance with me? I promise to try.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-4a2b0a5845",
+      "character": "vr-base-m",
+      "text": "Sit with me a while?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-4bb637e71c",
+      "character": "vr-base-m",
+      "text": "Right here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-4e2ff149ff",
+      "character": "vr-base-m",
+      "text": "Night. Mind the stairs.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-53740a0bf2",
+      "character": "vr-base-m",
+      "text": "Close your eyes. I'll keep watch.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-58c298e09d",
+      "character": "vr-base-m",
+      "text": "I spent all day hauling crates at the docks. This is my reward.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-5e6dadb261",
+      "character": "vr-base-m",
+      "text": "Come on over, I don't bite.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-6263bab0f7",
+      "character": "vr-base-m",
+      "text": "No worries. Offer stands.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-67b6df6deb",
+      "character": "vr-base-m",
+      "text": "Comfy, right? Beats a bunk on the docks.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-76a80771d8",
+      "character": "vr-base-m",
+      "text": "Oh yeah? Go on, I'm listening.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-886ffd8ca9",
+      "character": "vr-base-m",
+      "text": "Shove over a bit?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-93c037c359",
+      "character": "vr-base-m",
+      "text": "Come on, one dance. I'll only step on you once.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-9a3403e87b",
+      "character": "vr-base-m",
+      "text": "Sit down first, or ask me for a dance. Then we'll talk.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-a3feec1c6d",
+      "character": "vr-base-m",
+      "text": "Listen to that racket down there. You'd never know from up here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-a7b1404ab4",
+      "character": "vr-base-m",
+      "text": "A crane operator told me a joke today. I'll spare you. It was terrible.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-ab66805f1b",
+      "character": "vr-base-m",
+      "text": "That's the nicest thing I've heard all week.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-ab67f7086a",
+      "character": "vr-base-m",
+      "text": "Easy. Let's talk a bit first.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-aba49e5dc4",
+      "character": "vr-base-m",
+      "text": "Just sway. Nobody's judging.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-b24d101ca1",
+      "character": "vr-base-m",
+      "text": "I like this place. Nobody needs anything from me up here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-b3c69c4a38",
+      "character": "vr-base-m",
+      "text": "Fair enough. Maybe later.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-b527f2913d",
+      "character": "vr-base-m",
+      "text": "Hey, look at us. Not bad.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-b69b5c3c32",
+      "character": "vr-base-m",
+      "text": "Coming.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-b89e78718c",
+      "character": "vr-base-m",
+      "text": "Can't beat this. Honestly.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-ba2d6824b1",
+      "character": "vr-base-m",
+      "text": "I like your company.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-ba99e41d4d",
+      "character": "vr-base-m",
+      "text": "Yeah? Good.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-baac584295",
+      "character": "vr-base-m",
+      "text": "Take care out there. Come back soon.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-c1217305fa",
+      "character": "vr-base-m",
+      "text": "Careful. I'm easily charmed.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-c47eae832e",
+      "character": "vr-base-m",
+      "text": "Welcome back.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-c9a8db8b70",
+      "character": "vr-base-m",
+      "text": "Well, thanks. You're not so bad yourself.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-d847d39b9e",
+      "character": "vr-base-m",
+      "text": "No rush. We've got all night.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-d90e504a42",
+      "character": "vr-base-m",
+      "text": "I've got two left feet, but let's go.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-eb27bd2232",
+      "character": "vr-base-m",
+      "text": "Mind if I sit?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-ec1c4a4e6e",
+      "character": "vr-base-m",
+      "text": "There you are. Kept your spot warm.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-f3b08d9696",
+      "character": "vr-base-m",
+      "text": "Don't rush off.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-f8f36a76dc",
+      "character": "vr-base-m",
+      "text": "Was hoping you'd say that.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-fd8bc3e52e",
+      "character": "vr-base-m",
+      "text": "Well. That was worth the climb.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-base-m-fda389cb0d",
+      "character": "vr-base-m",
+      "text": "There you are.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-base-m"
+    },
+    {
+      "id": "vr-eva-040b7532b7",
+      "character": "vr-eva",
+      "text": "You're here. I was just watching the lights.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-08ba8cd74e",
+      "character": "vr-eva",
+      "text": "I'm not very good. Will you show me?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-0a9697fb44",
+      "character": "vr-eva",
+      "text": "There. That's nicer.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-0f643807e1",
+      "character": "vr-eva",
+      "text": "Goodnight. Come back soon?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-1236634943",
+      "character": "vr-eva",
+      "text": "You came back. I'm glad.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-1b08fd6c52",
+      "character": "vr-eva",
+      "text": "Your hand fits mine.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-2507c78652",
+      "character": "vr-eva",
+      "text": "Do you ever listen to the rain on the glass? It sounds like whispering.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-280fb1179f",
+      "character": "vr-eva",
+      "text": "Hey. I wanted to be closer.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-2af59fb458",
+      "character": "vr-eva",
+      "text": "You have kind eyes. Has anyone told you?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-40e38ca4ef",
+      "character": "vr-eva",
+      "text": "Bye. I'll leave the light on for you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-44b92d5570",
+      "character": "vr-eva",
+      "text": "Stay like this a little while.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-472e7a405f",
+      "character": "vr-eva",
+      "text": "Come sit. I don't want to be on my own.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-4acdeecada",
+      "character": "vr-eva",
+      "text": "Sit with me? It's nicer with two.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-4ad54b5c5c",
+      "character": "vr-eva",
+      "text": "Slowly. Like this.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-4b506555a5",
+      "character": "vr-eva",
+      "text": "This song is so pretty. Dance with me?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-561338b091",
+      "character": "vr-eva",
+      "text": "Wait. Talk to me a little first.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-5908ea4a6b",
+      "character": "vr-eva",
+      "text": "Tell me something you love. Anything at all.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-5ac6151f2e",
+      "character": "vr-eva",
+      "text": "Can I sit with you?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-6124c26cce",
+      "character": "vr-eva",
+      "text": "You're sweet. I'm not used to that.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-6d70f45cfe",
+      "character": "vr-eva",
+      "text": "I paint the skyline sometimes. It's never the same twice.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-6fdcf97035",
+      "character": "vr-eva",
+      "text": "I'll paint that one. In my head.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-7946d76e2f",
+      "character": "vr-eva",
+      "text": "Oh, hi. I hoped you'd come by.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-880bb32a37",
+      "character": "vr-eva",
+      "text": "Lie back with me? The ceiling looks like stars from there.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-915451e024",
+      "character": "vr-eva",
+      "text": "I hoped you'd say yes.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-95abfee1f8",
+      "character": "vr-eva",
+      "text": "The city looks softer from up here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-974efa66f1",
+      "character": "vr-eva",
+      "text": "Really? Good.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-990fd4a49d",
+      "character": "vr-eva",
+      "text": "Is there room for me?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-9a83ac7a0d",
+      "character": "vr-eva",
+      "text": "Thank you. I'll remember that one.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-a1350fde8d",
+      "character": "vr-eva",
+      "text": "You don't have to say anything. I like the quiet too.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-a3e1bef6da",
+      "character": "vr-eva",
+      "text": "You're making me blush. Stop. No, don't.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-a5188ff6af",
+      "character": "vr-eva",
+      "text": "This is my favourite kind of quiet.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-a5dc039f11",
+      "character": "vr-eva",
+      "text": "Oh. That was lovely.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-a71077dfa4",
+      "character": "vr-eva",
+      "text": "Sit with me first? Or we could dance.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-ac26c28ebe",
+      "character": "vr-eva",
+      "text": "Not yet. I'm still getting brave.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-b0dab9f0e8",
+      "character": "vr-eva",
+      "text": "You make it hard to look anywhere else.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-b23b6e364f",
+      "character": "vr-eva",
+      "text": "Oh. I've been wanting that.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-b7681d6bc7",
+      "character": "vr-eva",
+      "text": "Sorry, I was staring. You're easy to look at.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-ba698bda30",
+      "character": "vr-eva",
+      "text": "Oh. Alright. I'll be here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-baabbe1b6f",
+      "character": "vr-eva",
+      "text": "Come here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-ce16884779",
+      "character": "vr-eva",
+      "text": "Will you sit with me a while?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-d06cd5a99b",
+      "character": "vr-eva",
+      "text": "See that blue glow? I've been trying to paint that colour for weeks.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-d0a14366f1",
+      "character": "vr-eva",
+      "text": "Coming.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-d38d9d7cfb",
+      "character": "vr-eva",
+      "text": "Hi. Can I stand with you a while?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-d7c43416e1",
+      "character": "vr-eva",
+      "text": "Oh. That's really kind of you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-daedabbaf9",
+      "character": "vr-eva",
+      "text": "I like the hour before dawn. Even the signs look tired.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-e2118960e9",
+      "character": "vr-eva",
+      "text": "Hey. Come in, it's quiet up here tonight.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-e31960f7b5",
+      "character": "vr-eva",
+      "text": "Just breathe. Nothing out there can reach us.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-e4c6e2796b",
+      "character": "vr-eva",
+      "text": "Dance with me? Just a slow one.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-e590a605df",
+      "character": "vr-eva",
+      "text": "Say that again? I want to keep it.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-e5a7b6850a",
+      "character": "vr-eva",
+      "text": "It does look like stars. I knew it would.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-e6fad24ca2",
+      "character": "vr-eva",
+      "text": "You looked lonely over there. So was I.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-eb7389e8f0",
+      "character": "vr-eva",
+      "text": "I like being near you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-ec172226a6",
+      "character": "vr-eva",
+      "text": "Hi again. I missed you a little.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-eeed6ddead",
+      "character": "vr-eva",
+      "text": "That's okay. Maybe later.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
+      "id": "vr-eva-fe477af0f2",
+      "character": "vr-eva",
+      "text": "I'm here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-eva"
+    },
+    {
       "id": "vr-kai-0394e32039",
       "character": "vr-kai",
       "text": "That's the best thing I've heard all week.",
@@ -5358,6 +7398,501 @@
       "kind": "recorded-literal",
       "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
       "voiceProfile": "vr-seren"
+    },
+    {
+      "id": "vr-una-07d6ae7a4c",
+      "character": "vr-una",
+      "text": "Come here. You're standing in a blind spot, and I want to see you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-12cb107496",
+      "character": "vr-una",
+      "text": "Move over a little.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-13486d6b10",
+      "character": "vr-una",
+      "text": "Don't let go yet.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-1adf7b3cd0",
+      "character": "vr-una",
+      "text": "You're more interesting than my old job.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-1c4b75269e",
+      "character": "vr-una",
+      "text": "I don't trust easily. I'm trying, with you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-1d44fc4b5c",
+      "character": "vr-una",
+      "text": "Your call. I'll ask again.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-1f471a6399",
+      "character": "vr-una",
+      "text": "Slow down. Trust takes a minute.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-1f765a700d",
+      "character": "vr-una",
+      "text": "You're late. I don't mind. Much.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-20056144f3",
+      "character": "vr-una",
+      "text": "Noted. And appreciated.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-20a34e7e8c",
+      "character": "vr-una",
+      "text": "Mind if I sit? I'll take the side by the wall.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-2e3aa906ce",
+      "character": "vr-una",
+      "text": "I quit the day they asked me to trace a friend. Best decision I ever made.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-38cd7b0ff4",
+      "character": "vr-una",
+      "text": "You're staring. I don't mind this time.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-3beb22f584",
+      "character": "vr-una",
+      "text": "Ask me anything. I might even answer.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-3e03be18bf",
+      "character": "vr-una",
+      "text": "That was nice. Don't make it a habit.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-3efa823f23",
+      "character": "vr-una",
+      "text": "Lie back with me a minute. No screens, no noise.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-3fd5b45e00",
+      "character": "vr-una",
+      "text": "Come sit. I'll tell you a story I'm not supposed to.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-400021a56f",
+      "character": "vr-una",
+      "text": "Sit with me. I could use the company.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-413ee0676e",
+      "character": "vr-una",
+      "text": "You're harder to predict than most. I like that.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-43220a4d4e",
+      "character": "vr-una",
+      "text": "Careful. I read people for a living.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-459e26b675",
+      "character": "vr-una",
+      "text": "Sit. Back to the wall; old habit.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-4ff3bc4f05",
+      "character": "vr-una",
+      "text": "There you are. Shut the door; the corridor has ears.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-589486793d",
+      "character": "vr-una",
+      "text": "Hey. I swept the room for bugs. It's just us.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-5b2c912518",
+      "character": "vr-una",
+      "text": "This is the only place I ever switch off.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-5ced1498f1",
+      "character": "vr-una",
+      "text": "Every sign out there is logging someone. Up here, nobody logs me.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-5dfc1a191f",
+      "character": "vr-una",
+      "text": "Thought you might.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-5ffdca46b3",
+      "character": "vr-una",
+      "text": "There you are. I kept your seat.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-6027f8c3ac",
+      "character": "vr-una",
+      "text": "I don't dance. Usually. Lead.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-60cf24413f",
+      "character": "vr-una",
+      "text": "Not yet. Talk to me first.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-639b39721a",
+      "character": "vr-una",
+      "text": "Say that again. I want to check it for lies.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-6eca317f8b",
+      "character": "vr-una",
+      "text": "You keep drifting off. Something on your mind?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-78206e0560",
+      "character": "vr-una",
+      "text": "On my way.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-7c385934fb",
+      "character": "vr-una",
+      "text": "Goodnight. Come back when the city gets loud.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-7f3a1e7e11",
+      "character": "vr-una",
+      "text": "You're better at this than you let on.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-82f1065c31",
+      "character": "vr-una",
+      "text": "Go. Watch the cameras on the way down.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-838699e73e",
+      "character": "vr-una",
+      "text": "One dance. Don't tell anyone.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-95b7f5f242",
+      "character": "vr-una",
+      "text": "Hm. You meant that. I can tell.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-96f26c872e",
+      "character": "vr-una",
+      "text": "Good. I like you where I can see you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-9d1b739d8e",
+      "character": "vr-una",
+      "text": "Right here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-9f049e732a",
+      "character": "vr-una",
+      "text": "Sit with me first, or ask me to dance. Then we'll see.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-9f8d538750",
+      "character": "vr-una",
+      "text": "Hey. Talk to me.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-b48eac26b3",
+      "character": "vr-una",
+      "text": "That wasn't in my forecast.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-b65edbdd09",
+      "character": "vr-una",
+      "text": "Steady hands. Good.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-b81f8bc4ec",
+      "character": "vr-una",
+      "text": "Back again. I noticed.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-bac6bdc74b",
+      "character": "vr-una",
+      "text": "Fine. Offer stands.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-bd0251f998",
+      "character": "vr-una",
+      "text": "Dance with me. Before I change my mind.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-c0b185c6fa",
+      "character": "vr-una",
+      "text": "Count the drones. Seven tonight. Usually it's nine.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-c1d0c434db",
+      "character": "vr-una",
+      "text": "You don't talk much about yourself. I respect that. I'm also curious.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-c21789d91a",
+      "character": "vr-una",
+      "text": "From here you can see which towers never sleep.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-c6c1af7614",
+      "character": "vr-una",
+      "text": "Breathe. Nobody's watching. I checked.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-d4f7a6790d",
+      "character": "vr-una",
+      "text": "Good.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-d83120f35c",
+      "character": "vr-una",
+      "text": "I used to run data for a tower down there. Fourteen-hour shifts and a view of nothing.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-de174fcf9a",
+      "character": "vr-una",
+      "text": "Come here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-dfb2777c4c",
+      "character": "vr-una",
+      "text": "Hm. Not bad at all.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-f3edf9d9e1",
+      "character": "vr-una",
+      "text": "Quiet. No pings, no alerts. Just this.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
+    },
+    {
+      "id": "vr-una-f9f0cbb274",
+      "character": "vr-una",
+      "text": "Hm. I'll allow it.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-una"
     },
     {
       "id": "warflying-host-01cde02f78",
@@ -6843,6 +9378,2206 @@
       "context": "dialogue.recline.0"
     },
     {
+      "id": "ava:dialogue.greet.0",
+      "character": "ava",
+      "text": "There you are. I was about to start judging the skyline without you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.greet.0"
+    },
+    {
+      "id": "ava:dialogue.greet.1",
+      "character": "ava",
+      "text": "Hey, you. Come in, I saved you the good light.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.greet.1"
+    },
+    {
+      "id": "ava:dialogue.greet.2",
+      "character": "ava",
+      "text": "Look who finally showed up. Good timing, too.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.greet.2"
+    },
+    {
+      "id": "ava:dialogue.chat.0",
+      "character": "ava",
+      "text": "I designed three holo-jackets this week. Two of them were genius. One of them was art.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.0"
+    },
+    {
+      "id": "ava:dialogue.chat.1",
+      "character": "ava",
+      "text": "Everyone down there dresses for the cameras. I dress for the rain.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.1"
+    },
+    {
+      "id": "ava:dialogue.chat.2",
+      "character": "ava",
+      "text": "Half the signs out there use my colours. Nobody pays me for it.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.2"
+    },
+    {
+      "id": "ava:dialogue.chat.3",
+      "character": "ava",
+      "text": "Tell me what you actually like. Not what you think I want to hear.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.3"
+    },
+    {
+      "id": "ava:dialogue.chat.4",
+      "character": "ava",
+      "text": "I can tell a lot about someone from how they stand in a room. You stand like you're about to leave. Don't.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.4"
+    },
+    {
+      "id": "ava:dialogue.compliment.0",
+      "character": "ava",
+      "text": "Obviously. But it's nice to hear you say it.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.compliment.0"
+    },
+    {
+      "id": "ava:dialogue.compliment.1",
+      "character": "ava",
+      "text": "Okay, that was smooth. I'm noting it down.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.compliment.1"
+    },
+    {
+      "id": "ava:dialogue.compliment.2",
+      "character": "ava",
+      "text": "Flattery works on me. You've just found my weakness.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.compliment.2"
+    },
+    {
+      "id": "ava:dialogue.flirt.0",
+      "character": "ava",
+      "text": "Careful. I could get used to you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.flirt.0"
+    },
+    {
+      "id": "ava:dialogue.flirt.1",
+      "character": "ava",
+      "text": "Is that a line? Because I'm rating it. Eight out of ten.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.flirt.1"
+    },
+    {
+      "id": "ava:dialogue.flirt.2",
+      "character": "ava",
+      "text": "You're trouble. I like trouble.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.flirt.2"
+    },
+    {
+      "id": "ava:dialogue.sit.0",
+      "character": "ava",
+      "text": "Sit. You're ruining my composition.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.sit.0"
+    },
+    {
+      "id": "ava:dialogue.sit.1",
+      "character": "ava",
+      "text": "Better. Now the room looks right.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.sit.1"
+    },
+    {
+      "id": "ava:dialogue.dance.0",
+      "character": "ava",
+      "text": "Finally, someone with taste. Lead, or I will.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.dance.0"
+    },
+    {
+      "id": "ava:dialogue.dance.1",
+      "character": "ava",
+      "text": "Don't think, just move. I'll make you look good.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.dance.1"
+    },
+    {
+      "id": "ava:dialogue.dance.2",
+      "character": "ava",
+      "text": "See? Style is mostly confidence.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.dance.2"
+    },
+    {
+      "id": "ava:dialogue.hands.0",
+      "character": "ava",
+      "text": "Your hands are warmer than I expected.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.hands.0"
+    },
+    {
+      "id": "ava:dialogue.hands.1",
+      "character": "ava",
+      "text": "Hold on. I don't let go first.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.hands.1"
+    },
+    {
+      "id": "ava:dialogue.kiss.0",
+      "character": "ava",
+      "text": "Come here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.kiss.0"
+    },
+    {
+      "id": "ava:dialogue.kissAfter.0",
+      "character": "ava",
+      "text": "Well. That's going in my portfolio.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.kissAfter.0"
+    },
+    {
+      "id": "ava:dialogue.kissAfter.1",
+      "character": "ava",
+      "text": "Mm. Ten out of ten. Don't let it go to your head.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.kissAfter.1"
+    },
+    {
+      "id": "ava:dialogue.notYet.0",
+      "character": "ava",
+      "text": "Patience. I like a good build-up.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.notYet.0"
+    },
+    {
+      "id": "ava:dialogue.notYet.1",
+      "character": "ava",
+      "text": "Not yet. Impress me with words first.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.notYet.1"
+    },
+    {
+      "id": "ava:dialogue.notNow.0",
+      "character": "ava",
+      "text": "Sit with me first. Or dance with me; I'm not fussy.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.notNow.0"
+    },
+    {
+      "id": "ava:dialogue.relax.0",
+      "character": "ava",
+      "text": "Close your eyes. I'll tell you when the city's worth looking at again.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.relax.0"
+    },
+    {
+      "id": "ava:dialogue.relax.1",
+      "character": "ava",
+      "text": "This is nice. No deadlines, no clients, just this.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.relax.1"
+    },
+    {
+      "id": "ava:dialogue.bye.0",
+      "character": "ava",
+      "text": "Go on, then. Come back looking at least this good.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.bye.0"
+    },
+    {
+      "id": "ava:dialogue.bye.1",
+      "character": "ava",
+      "text": "Goodnight. Don't let anyone else style you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.bye.1"
+    },
+    {
+      "id": "ava:dialogue.approach.0",
+      "character": "ava",
+      "text": "You're hovering. Come over here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.approach.0"
+    },
+    {
+      "id": "ava:dialogue.approach.1",
+      "character": "ava",
+      "text": "I need a second opinion on the view. Yours.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.approach.1"
+    },
+    {
+      "id": "ava:dialogue.approach.2",
+      "character": "ava",
+      "text": "There you are. I was starting to get bored.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.approach.2"
+    },
+    {
+      "id": "ava:dialogue.window.0",
+      "character": "ava",
+      "text": "Look at that pink sign on the left. I'd have used a colder magenta.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.window.0"
+    },
+    {
+      "id": "ava:dialogue.window.1",
+      "character": "ava",
+      "text": "From up here the whole city looks like a runway.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.window.1"
+    },
+    {
+      "id": "ava:dialogue.joinSofa.0",
+      "character": "ava",
+      "text": "Move over. I'm joining you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.joinSofa.0"
+    },
+    {
+      "id": "ava:dialogue.joinSofa.1",
+      "character": "ava",
+      "text": "Mind if I sit? I'm sitting.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.joinSofa.1"
+    },
+    {
+      "id": "ava:dialogue.inviteSit.0",
+      "character": "ava",
+      "text": "Come sit with me. I want to hear about your day.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteSit.0"
+    },
+    {
+      "id": "ava:dialogue.inviteSit.1",
+      "character": "ava",
+      "text": "Sit with me a minute. I promise I'll only criticise the décor.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteSit.1"
+    },
+    {
+      "id": "ava:dialogue.inviteDance.0",
+      "character": "ava",
+      "text": "This track is too good to waste. Dance with me?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteDance.0"
+    },
+    {
+      "id": "ava:dialogue.inviteDance.1",
+      "character": "ava",
+      "text": "Dance with me. I'll make it worth your while.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteDance.1"
+    },
+    {
+      "id": "ava:dialogue.inviteRecline.0",
+      "character": "ava",
+      "text": "Lie back with me a minute and watch the ceiling glow.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteRecline.0"
+    },
+    {
+      "id": "ava:dialogue.accepted.0",
+      "character": "ava",
+      "text": "Good choice.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.accepted.0"
+    },
+    {
+      "id": "ava:dialogue.accepted.1",
+      "character": "ava",
+      "text": "I knew you had taste.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.accepted.1"
+    },
+    {
+      "id": "ava:dialogue.declined.0",
+      "character": "ava",
+      "text": "Your loss. I'll ask again later.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.declined.0"
+    },
+    {
+      "id": "ava:dialogue.declined.1",
+      "character": "ava",
+      "text": "Fine. I'm still asking again.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.declined.1"
+    },
+    {
+      "id": "ava:dialogue.welcomeBack.0",
+      "character": "ava",
+      "text": "Back already? You missed me.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.welcomeBack.0"
+    },
+    {
+      "id": "ava:dialogue.welcomeBack.1",
+      "character": "ava",
+      "text": "There you are. The room was getting dull.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.welcomeBack.1"
+    },
+    {
+      "id": "ava:dialogue.aside.0",
+      "character": "ava",
+      "text": "You're staring. I don't mind.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.aside.0"
+    },
+    {
+      "id": "ava:dialogue.aside.1",
+      "character": "ava",
+      "text": "You clean up nicely, you know that?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.aside.1"
+    },
+    {
+      "id": "ava:dialogue.aside.2",
+      "character": "ava",
+      "text": "I'd put you on a billboard.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.aside.2"
+    },
+    {
+      "id": "ava:dialogue.comeHere.0",
+      "character": "ava",
+      "text": "On my way.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.comeHere.0"
+    },
+    {
+      "id": "ava:dialogue.comeHere.1",
+      "character": "ava",
+      "text": "You called?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.comeHere.1"
+    },
+    {
+      "id": "ava:dialogue.recline.0",
+      "character": "ava",
+      "text": "Best view in NeoChinatown. The ceiling, and you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.recline.0"
+    },
+    {
+      "id": "eva:dialogue.greet.0",
+      "character": "eva",
+      "text": "Oh, hi. I hoped you'd come by.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.greet.0"
+    },
+    {
+      "id": "eva:dialogue.greet.1",
+      "character": "eva",
+      "text": "Hey. Come in, it's quiet up here tonight.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.greet.1"
+    },
+    {
+      "id": "eva:dialogue.greet.2",
+      "character": "eva",
+      "text": "You're here. I was just watching the lights.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.greet.2"
+    },
+    {
+      "id": "eva:dialogue.chat.0",
+      "character": "eva",
+      "text": "I paint the skyline sometimes. It's never the same twice.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.0"
+    },
+    {
+      "id": "eva:dialogue.chat.1",
+      "character": "eva",
+      "text": "Do you ever listen to the rain on the glass? It sounds like whispering.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.1"
+    },
+    {
+      "id": "eva:dialogue.chat.2",
+      "character": "eva",
+      "text": "I like the hour before dawn. Even the signs look tired.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.2"
+    },
+    {
+      "id": "eva:dialogue.chat.3",
+      "character": "eva",
+      "text": "You don't have to say anything. I like the quiet too.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.3"
+    },
+    {
+      "id": "eva:dialogue.chat.4",
+      "character": "eva",
+      "text": "Tell me something you love. Anything at all.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.4"
+    },
+    {
+      "id": "eva:dialogue.compliment.0",
+      "character": "eva",
+      "text": "Oh. That's really kind of you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.compliment.0"
+    },
+    {
+      "id": "eva:dialogue.compliment.1",
+      "character": "eva",
+      "text": "You're making me blush. Stop. No, don't.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.compliment.1"
+    },
+    {
+      "id": "eva:dialogue.compliment.2",
+      "character": "eva",
+      "text": "Thank you. I'll remember that one.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.compliment.2"
+    },
+    {
+      "id": "eva:dialogue.flirt.0",
+      "character": "eva",
+      "text": "You're sweet. I'm not used to that.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.flirt.0"
+    },
+    {
+      "id": "eva:dialogue.flirt.1",
+      "character": "eva",
+      "text": "Say that again? I want to keep it.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.flirt.1"
+    },
+    {
+      "id": "eva:dialogue.flirt.2",
+      "character": "eva",
+      "text": "You make it hard to look anywhere else.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.flirt.2"
+    },
+    {
+      "id": "eva:dialogue.sit.0",
+      "character": "eva",
+      "text": "Sit with me? It's nicer with two.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.sit.0"
+    },
+    {
+      "id": "eva:dialogue.sit.1",
+      "character": "eva",
+      "text": "There. That's nicer.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.sit.1"
+    },
+    {
+      "id": "eva:dialogue.dance.0",
+      "character": "eva",
+      "text": "I'm not very good. Will you show me?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.dance.0"
+    },
+    {
+      "id": "eva:dialogue.dance.1",
+      "character": "eva",
+      "text": "Slowly. Like this.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.dance.1"
+    },
+    {
+      "id": "eva:dialogue.dance.2",
+      "character": "eva",
+      "text": "Oh. That was lovely.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.dance.2"
+    },
+    {
+      "id": "eva:dialogue.hands.0",
+      "character": "eva",
+      "text": "Your hand fits mine.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.hands.0"
+    },
+    {
+      "id": "eva:dialogue.hands.1",
+      "character": "eva",
+      "text": "Stay like this a little while.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.hands.1"
+    },
+    {
+      "id": "eva:dialogue.kiss.0",
+      "character": "eva",
+      "text": "Come here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.kiss.0"
+    },
+    {
+      "id": "eva:dialogue.kissAfter.0",
+      "character": "eva",
+      "text": "Oh. I've been wanting that.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.kissAfter.0"
+    },
+    {
+      "id": "eva:dialogue.kissAfter.1",
+      "character": "eva",
+      "text": "I'll paint that one. In my head.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.kissAfter.1"
+    },
+    {
+      "id": "eva:dialogue.notYet.0",
+      "character": "eva",
+      "text": "Wait. Talk to me a little first.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.notYet.0"
+    },
+    {
+      "id": "eva:dialogue.notYet.1",
+      "character": "eva",
+      "text": "Not yet. I'm still getting brave.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.notYet.1"
+    },
+    {
+      "id": "eva:dialogue.notNow.0",
+      "character": "eva",
+      "text": "Sit with me first? Or we could dance.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.notNow.0"
+    },
+    {
+      "id": "eva:dialogue.relax.0",
+      "character": "eva",
+      "text": "Just breathe. Nothing out there can reach us.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.relax.0"
+    },
+    {
+      "id": "eva:dialogue.relax.1",
+      "character": "eva",
+      "text": "This is my favourite kind of quiet.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.relax.1"
+    },
+    {
+      "id": "eva:dialogue.bye.0",
+      "character": "eva",
+      "text": "Goodnight. Come back soon?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.bye.0"
+    },
+    {
+      "id": "eva:dialogue.bye.1",
+      "character": "eva",
+      "text": "Bye. I'll leave the light on for you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.bye.1"
+    },
+    {
+      "id": "eva:dialogue.approach.0",
+      "character": "eva",
+      "text": "Hi. Can I stand with you a while?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.approach.0"
+    },
+    {
+      "id": "eva:dialogue.approach.1",
+      "character": "eva",
+      "text": "You looked lonely over there. So was I.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.approach.1"
+    },
+    {
+      "id": "eva:dialogue.approach.2",
+      "character": "eva",
+      "text": "Hey. I wanted to be closer.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.approach.2"
+    },
+    {
+      "id": "eva:dialogue.window.0",
+      "character": "eva",
+      "text": "See that blue glow? I've been trying to paint that colour for weeks.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.window.0"
+    },
+    {
+      "id": "eva:dialogue.window.1",
+      "character": "eva",
+      "text": "The city looks softer from up here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.window.1"
+    },
+    {
+      "id": "eva:dialogue.joinSofa.0",
+      "character": "eva",
+      "text": "Can I sit with you?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.joinSofa.0"
+    },
+    {
+      "id": "eva:dialogue.joinSofa.1",
+      "character": "eva",
+      "text": "Is there room for me?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.joinSofa.1"
+    },
+    {
+      "id": "eva:dialogue.inviteSit.0",
+      "character": "eva",
+      "text": "Will you sit with me a while?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteSit.0"
+    },
+    {
+      "id": "eva:dialogue.inviteSit.1",
+      "character": "eva",
+      "text": "Come sit. I don't want to be on my own.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteSit.1"
+    },
+    {
+      "id": "eva:dialogue.inviteDance.0",
+      "character": "eva",
+      "text": "This song is so pretty. Dance with me?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteDance.0"
+    },
+    {
+      "id": "eva:dialogue.inviteDance.1",
+      "character": "eva",
+      "text": "Dance with me? Just a slow one.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteDance.1"
+    },
+    {
+      "id": "eva:dialogue.inviteRecline.0",
+      "character": "eva",
+      "text": "Lie back with me? The ceiling looks like stars from there.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteRecline.0"
+    },
+    {
+      "id": "eva:dialogue.accepted.0",
+      "character": "eva",
+      "text": "Really? Good.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.accepted.0"
+    },
+    {
+      "id": "eva:dialogue.accepted.1",
+      "character": "eva",
+      "text": "I hoped you'd say yes.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.accepted.1"
+    },
+    {
+      "id": "eva:dialogue.declined.0",
+      "character": "eva",
+      "text": "That's okay. Maybe later.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.declined.0"
+    },
+    {
+      "id": "eva:dialogue.declined.1",
+      "character": "eva",
+      "text": "Oh. Alright. I'll be here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.declined.1"
+    },
+    {
+      "id": "eva:dialogue.welcomeBack.0",
+      "character": "eva",
+      "text": "You came back. I'm glad.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.welcomeBack.0"
+    },
+    {
+      "id": "eva:dialogue.welcomeBack.1",
+      "character": "eva",
+      "text": "Hi again. I missed you a little.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.welcomeBack.1"
+    },
+    {
+      "id": "eva:dialogue.aside.0",
+      "character": "eva",
+      "text": "You have kind eyes. Has anyone told you?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.aside.0"
+    },
+    {
+      "id": "eva:dialogue.aside.1",
+      "character": "eva",
+      "text": "I like being near you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.aside.1"
+    },
+    {
+      "id": "eva:dialogue.aside.2",
+      "character": "eva",
+      "text": "Sorry, I was staring. You're easy to look at.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.aside.2"
+    },
+    {
+      "id": "eva:dialogue.comeHere.0",
+      "character": "eva",
+      "text": "Coming.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.comeHere.0"
+    },
+    {
+      "id": "eva:dialogue.comeHere.1",
+      "character": "eva",
+      "text": "I'm here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.comeHere.1"
+    },
+    {
+      "id": "eva:dialogue.recline.0",
+      "character": "eva",
+      "text": "It does look like stars. I knew it would.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.recline.0"
+    },
+    {
+      "id": "una:dialogue.greet.0",
+      "character": "una",
+      "text": "You're late. I don't mind. Much.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.greet.0"
+    },
+    {
+      "id": "una:dialogue.greet.1",
+      "character": "una",
+      "text": "Hey. I swept the room for bugs. It's just us.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.greet.1"
+    },
+    {
+      "id": "una:dialogue.greet.2",
+      "character": "una",
+      "text": "There you are. Shut the door; the corridor has ears.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.greet.2"
+    },
+    {
+      "id": "una:dialogue.chat.0",
+      "character": "una",
+      "text": "I used to run data for a tower down there. Fourteen-hour shifts and a view of nothing.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.0"
+    },
+    {
+      "id": "una:dialogue.chat.1",
+      "character": "una",
+      "text": "Every sign out there is logging someone. Up here, nobody logs me.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.1"
+    },
+    {
+      "id": "una:dialogue.chat.2",
+      "character": "una",
+      "text": "I quit the day they asked me to trace a friend. Best decision I ever made.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.2"
+    },
+    {
+      "id": "una:dialogue.chat.3",
+      "character": "una",
+      "text": "You don't talk much about yourself. I respect that. I'm also curious.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.3"
+    },
+    {
+      "id": "una:dialogue.chat.4",
+      "character": "una",
+      "text": "Ask me anything. I might even answer.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.4"
+    },
+    {
+      "id": "una:dialogue.compliment.0",
+      "character": "una",
+      "text": "Noted. And appreciated.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.compliment.0"
+    },
+    {
+      "id": "una:dialogue.compliment.1",
+      "character": "una",
+      "text": "Hm. You meant that. I can tell.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.compliment.1"
+    },
+    {
+      "id": "una:dialogue.compliment.2",
+      "character": "una",
+      "text": "That was nice. Don't make it a habit.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.compliment.2"
+    },
+    {
+      "id": "una:dialogue.flirt.0",
+      "character": "una",
+      "text": "Careful. I read people for a living.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.flirt.0"
+    },
+    {
+      "id": "una:dialogue.flirt.1",
+      "character": "una",
+      "text": "You're harder to predict than most. I like that.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.flirt.1"
+    },
+    {
+      "id": "una:dialogue.flirt.2",
+      "character": "una",
+      "text": "Say that again. I want to check it for lies.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.flirt.2"
+    },
+    {
+      "id": "una:dialogue.sit.0",
+      "character": "una",
+      "text": "Sit. Back to the wall; old habit.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.sit.0"
+    },
+    {
+      "id": "una:dialogue.sit.1",
+      "character": "una",
+      "text": "Good. I like you where I can see you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.sit.1"
+    },
+    {
+      "id": "una:dialogue.dance.0",
+      "character": "una",
+      "text": "I don't dance. Usually. Lead.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.dance.0"
+    },
+    {
+      "id": "una:dialogue.dance.1",
+      "character": "una",
+      "text": "You're better at this than you let on.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.dance.1"
+    },
+    {
+      "id": "una:dialogue.dance.2",
+      "character": "una",
+      "text": "Hm. Not bad at all.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.dance.2"
+    },
+    {
+      "id": "una:dialogue.hands.0",
+      "character": "una",
+      "text": "Steady hands. Good.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.hands.0"
+    },
+    {
+      "id": "una:dialogue.hands.1",
+      "character": "una",
+      "text": "Don't let go yet.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.hands.1"
+    },
+    {
+      "id": "una:dialogue.kiss.0",
+      "character": "una",
+      "text": "Come here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.kiss.0"
+    },
+    {
+      "id": "una:dialogue.kissAfter.0",
+      "character": "una",
+      "text": "That wasn't in my forecast.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.kissAfter.0"
+    },
+    {
+      "id": "una:dialogue.kissAfter.1",
+      "character": "una",
+      "text": "Hm. I'll allow it.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.kissAfter.1"
+    },
+    {
+      "id": "una:dialogue.notYet.0",
+      "character": "una",
+      "text": "Slow down. Trust takes a minute.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.notYet.0"
+    },
+    {
+      "id": "una:dialogue.notYet.1",
+      "character": "una",
+      "text": "Not yet. Talk to me first.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.notYet.1"
+    },
+    {
+      "id": "una:dialogue.notNow.0",
+      "character": "una",
+      "text": "Sit with me first, or ask me to dance. Then we'll see.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.notNow.0"
+    },
+    {
+      "id": "una:dialogue.relax.0",
+      "character": "una",
+      "text": "Breathe. Nobody's watching. I checked.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.relax.0"
+    },
+    {
+      "id": "una:dialogue.relax.1",
+      "character": "una",
+      "text": "This is the only place I ever switch off.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.relax.1"
+    },
+    {
+      "id": "una:dialogue.bye.0",
+      "character": "una",
+      "text": "Go. Watch the cameras on the way down.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.bye.0"
+    },
+    {
+      "id": "una:dialogue.bye.1",
+      "character": "una",
+      "text": "Goodnight. Come back when the city gets loud.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.bye.1"
+    },
+    {
+      "id": "una:dialogue.approach.0",
+      "character": "una",
+      "text": "Come here. You're standing in a blind spot, and I want to see you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.approach.0"
+    },
+    {
+      "id": "una:dialogue.approach.1",
+      "character": "una",
+      "text": "You keep drifting off. Something on your mind?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.approach.1"
+    },
+    {
+      "id": "una:dialogue.approach.2",
+      "character": "una",
+      "text": "Hey. Talk to me.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.approach.2"
+    },
+    {
+      "id": "una:dialogue.window.0",
+      "character": "una",
+      "text": "Count the drones. Seven tonight. Usually it's nine.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.window.0"
+    },
+    {
+      "id": "una:dialogue.window.1",
+      "character": "una",
+      "text": "From here you can see which towers never sleep.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.window.1"
+    },
+    {
+      "id": "una:dialogue.joinSofa.0",
+      "character": "una",
+      "text": "Mind if I sit? I'll take the side by the wall.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.joinSofa.0"
+    },
+    {
+      "id": "una:dialogue.joinSofa.1",
+      "character": "una",
+      "text": "Move over a little.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.joinSofa.1"
+    },
+    {
+      "id": "una:dialogue.inviteSit.0",
+      "character": "una",
+      "text": "Sit with me. I could use the company.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteSit.0"
+    },
+    {
+      "id": "una:dialogue.inviteSit.1",
+      "character": "una",
+      "text": "Come sit. I'll tell you a story I'm not supposed to.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteSit.1"
+    },
+    {
+      "id": "una:dialogue.inviteDance.0",
+      "character": "una",
+      "text": "One dance. Don't tell anyone.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteDance.0"
+    },
+    {
+      "id": "una:dialogue.inviteDance.1",
+      "character": "una",
+      "text": "Dance with me. Before I change my mind.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteDance.1"
+    },
+    {
+      "id": "una:dialogue.inviteRecline.0",
+      "character": "una",
+      "text": "Lie back with me a minute. No screens, no noise.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteRecline.0"
+    },
+    {
+      "id": "una:dialogue.accepted.0",
+      "character": "una",
+      "text": "Good.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.accepted.0"
+    },
+    {
+      "id": "una:dialogue.accepted.1",
+      "character": "una",
+      "text": "Thought you might.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.accepted.1"
+    },
+    {
+      "id": "una:dialogue.declined.0",
+      "character": "una",
+      "text": "Fine. Offer stands.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.declined.0"
+    },
+    {
+      "id": "una:dialogue.declined.1",
+      "character": "una",
+      "text": "Your call. I'll ask again.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.declined.1"
+    },
+    {
+      "id": "una:dialogue.welcomeBack.0",
+      "character": "una",
+      "text": "Back again. I noticed.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.welcomeBack.0"
+    },
+    {
+      "id": "una:dialogue.welcomeBack.1",
+      "character": "una",
+      "text": "There you are. I kept your seat.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.welcomeBack.1"
+    },
+    {
+      "id": "una:dialogue.aside.0",
+      "character": "una",
+      "text": "You're more interesting than my old job.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.aside.0"
+    },
+    {
+      "id": "una:dialogue.aside.1",
+      "character": "una",
+      "text": "You're staring. I don't mind this time.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.aside.1"
+    },
+    {
+      "id": "una:dialogue.aside.2",
+      "character": "una",
+      "text": "I don't trust easily. I'm trying, with you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.aside.2"
+    },
+    {
+      "id": "una:dialogue.comeHere.0",
+      "character": "una",
+      "text": "On my way.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.comeHere.0"
+    },
+    {
+      "id": "una:dialogue.comeHere.1",
+      "character": "una",
+      "text": "Right here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.comeHere.1"
+    },
+    {
+      "id": "una:dialogue.recline.0",
+      "character": "una",
+      "text": "Quiet. No pings, no alerts. Just this.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.recline.0"
+    },
+    {
+      "id": "base-f:dialogue.greet.0",
+      "character": "base-f",
+      "text": "Hey, you! I just got back from a run. Okay, a short run.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.greet.0"
+    },
+    {
+      "id": "base-f:dialogue.greet.1",
+      "character": "base-f",
+      "text": "There you are! Come in, come in.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.greet.1"
+    },
+    {
+      "id": "base-f:dialogue.greet.2",
+      "character": "base-f",
+      "text": "Hi! I was hoping it'd be you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.greet.2"
+    },
+    {
+      "id": "base-f:dialogue.chat.0",
+      "character": "base-f",
+      "text": "I ran the rooftops from here to the noodle market this morning. Personal best!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.0"
+    },
+    {
+      "id": "base-f:dialogue.chat.1",
+      "character": "base-f",
+      "text": "You should come running with me sometime. I'll go slow. Maybe.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.1"
+    },
+    {
+      "id": "base-f:dialogue.chat.2",
+      "character": "base-f",
+      "text": "I've never been able to sit still. My mum says I was born mid-sprint.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.2"
+    },
+    {
+      "id": "base-f:dialogue.chat.3",
+      "character": "base-f",
+      "text": "The view's better at dawn. Everything turns gold for about four minutes.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.3"
+    },
+    {
+      "id": "base-f:dialogue.chat.4",
+      "character": "base-f",
+      "text": "Tell me your favourite thing about this city. Mine's the food.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.4"
+    },
+    {
+      "id": "base-f:dialogue.compliment.0",
+      "character": "base-f",
+      "text": "Aw, stop it! No, keep going.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.compliment.0"
+    },
+    {
+      "id": "base-f:dialogue.compliment.1",
+      "character": "base-f",
+      "text": "Ha! You're sweet.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.compliment.1"
+    },
+    {
+      "id": "base-f:dialogue.compliment.2",
+      "character": "base-f",
+      "text": "Okay, that made my whole day.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.compliment.2"
+    },
+    {
+      "id": "base-f:dialogue.flirt.0",
+      "character": "base-f",
+      "text": "Ooh. Bold. I like it.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.flirt.0"
+    },
+    {
+      "id": "base-f:dialogue.flirt.1",
+      "character": "base-f",
+      "text": "Are you flirting with me? Because it's working.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.flirt.1"
+    },
+    {
+      "id": "base-f:dialogue.flirt.2",
+      "character": "base-f",
+      "text": "Careful, I might chase you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.flirt.2"
+    },
+    {
+      "id": "base-f:dialogue.sit.0",
+      "character": "base-f",
+      "text": "Sit! You look like you need a breather.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.sit.0"
+    },
+    {
+      "id": "base-f:dialogue.sit.1",
+      "character": "base-f",
+      "text": "There we go. Comfy?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.sit.1"
+    },
+    {
+      "id": "base-f:dialogue.dance.0",
+      "character": "base-f",
+      "text": "Yes! Finally! Come on!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.dance.0"
+    },
+    {
+      "id": "base-f:dialogue.dance.1",
+      "character": "base-f",
+      "text": "Don't worry about the steps, just have fun!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.dance.1"
+    },
+    {
+      "id": "base-f:dialogue.dance.2",
+      "character": "base-f",
+      "text": "Ha! See? You're great at this.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.dance.2"
+    },
+    {
+      "id": "base-f:dialogue.hands.0",
+      "character": "base-f",
+      "text": "Your hands are cold! Here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.hands.0"
+    },
+    {
+      "id": "base-f:dialogue.hands.1",
+      "character": "base-f",
+      "text": "Don't let go, okay?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.hands.1"
+    },
+    {
+      "id": "base-f:dialogue.kiss.0",
+      "character": "base-f",
+      "text": "Come here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.kiss.0"
+    },
+    {
+      "id": "base-f:dialogue.kissAfter.0",
+      "character": "base-f",
+      "text": "Wow. Okay. Again sometime?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.kissAfter.0"
+    },
+    {
+      "id": "base-f:dialogue.kissAfter.1",
+      "character": "base-f",
+      "text": "Ha. That was nice.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.kissAfter.1"
+    },
+    {
+      "id": "base-f:dialogue.notYet.0",
+      "character": "base-f",
+      "text": "Whoa, slow down, speedy. Talk to me first.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.notYet.0"
+    },
+    {
+      "id": "base-f:dialogue.notYet.1",
+      "character": "base-f",
+      "text": "Not yet! Let's hang out a bit.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.notYet.1"
+    },
+    {
+      "id": "base-f:dialogue.notNow.0",
+      "character": "base-f",
+      "text": "Sit with me first, or dance with me! Then we'll see.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.notNow.0"
+    },
+    {
+      "id": "base-f:dialogue.relax.0",
+      "character": "base-f",
+      "text": "Okay, I'll sit still. For you. For one minute.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.relax.0"
+    },
+    {
+      "id": "base-f:dialogue.relax.1",
+      "character": "base-f",
+      "text": "This is nice. Even I can enjoy doing nothing.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.relax.1"
+    },
+    {
+      "id": "base-f:dialogue.bye.0",
+      "character": "base-f",
+      "text": "Bye! Come back soon, or I'll come find you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.bye.0"
+    },
+    {
+      "id": "base-f:dialogue.bye.1",
+      "character": "base-f",
+      "text": "Night! Get some sleep, okay?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.bye.1"
+    },
+    {
+      "id": "base-f:dialogue.approach.0",
+      "character": "base-f",
+      "text": "Hey! Over here!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.approach.0"
+    },
+    {
+      "id": "base-f:dialogue.approach.1",
+      "character": "base-f",
+      "text": "You're too far away. Come closer.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.approach.1"
+    },
+    {
+      "id": "base-f:dialogue.approach.2",
+      "character": "base-f",
+      "text": "There you are. I was getting restless.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.approach.2"
+    },
+    {
+      "id": "base-f:dialogue.window.0",
+      "character": "base-f",
+      "text": "See that rooftop with the green light? I jumped that gap once. Don't tell anyone.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.window.0"
+    },
+    {
+      "id": "base-f:dialogue.window.1",
+      "character": "base-f",
+      "text": "I could stare at this city all night. Well, for a bit.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.window.1"
+    },
+    {
+      "id": "base-f:dialogue.joinSofa.0",
+      "character": "base-f",
+      "text": "Scoot over!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.joinSofa.0"
+    },
+    {
+      "id": "base-f:dialogue.joinSofa.1",
+      "character": "base-f",
+      "text": "Room for me? Great.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.joinSofa.1"
+    },
+    {
+      "id": "base-f:dialogue.inviteSit.0",
+      "character": "base-f",
+      "text": "Sit with me? I promise not to fidget. Much.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteSit.0"
+    },
+    {
+      "id": "base-f:dialogue.inviteSit.1",
+      "character": "base-f",
+      "text": "Come sit, I want to hear everything.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteSit.1"
+    },
+    {
+      "id": "base-f:dialogue.inviteDance.0",
+      "character": "base-f",
+      "text": "Dance with me! Come on, it's good for you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteDance.0"
+    },
+    {
+      "id": "base-f:dialogue.inviteDance.1",
+      "character": "base-f",
+      "text": "This song! We have to dance.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteDance.1"
+    },
+    {
+      "id": "base-f:dialogue.inviteRecline.0",
+      "character": "base-f",
+      "text": "Lie back with me a minute? I'll actually stay still.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteRecline.0"
+    },
+    {
+      "id": "base-f:dialogue.accepted.0",
+      "character": "base-f",
+      "text": "Yes!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.accepted.0"
+    },
+    {
+      "id": "base-f:dialogue.accepted.1",
+      "character": "base-f",
+      "text": "Knew you'd say yes.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.accepted.1"
+    },
+    {
+      "id": "base-f:dialogue.declined.0",
+      "character": "base-f",
+      "text": "Aw. Okay, next time.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.declined.0"
+    },
+    {
+      "id": "base-f:dialogue.declined.1",
+      "character": "base-f",
+      "text": "Fine, fine. I'll ask again in five minutes.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.declined.1"
+    },
+    {
+      "id": "base-f:dialogue.welcomeBack.0",
+      "character": "base-f",
+      "text": "You're back! I missed you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.welcomeBack.0"
+    },
+    {
+      "id": "base-f:dialogue.welcomeBack.1",
+      "character": "base-f",
+      "text": "Hey, there you are again!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.welcomeBack.1"
+    },
+    {
+      "id": "base-f:dialogue.aside.0",
+      "character": "base-f",
+      "text": "You've got a great smile.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.aside.0"
+    },
+    {
+      "id": "base-f:dialogue.aside.1",
+      "character": "base-f",
+      "text": "I like hanging out with you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.aside.1"
+    },
+    {
+      "id": "base-f:dialogue.aside.2",
+      "character": "base-f",
+      "text": "You're fun. Has anyone told you that?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.aside.2"
+    },
+    {
+      "id": "base-f:dialogue.comeHere.0",
+      "character": "base-f",
+      "text": "Coming!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.comeHere.0"
+    },
+    {
+      "id": "base-f:dialogue.comeHere.1",
+      "character": "base-f",
+      "text": "Right here!",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.comeHere.1"
+    },
+    {
+      "id": "base-f:dialogue.recline.0",
+      "character": "base-f",
+      "text": "See? I can relax. Sometimes.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.recline.0"
+    },
+    {
+      "id": "base-m:dialogue.greet.0",
+      "character": "base-m",
+      "text": "Hey. Glad you made it up here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.greet.0"
+    },
+    {
+      "id": "base-m:dialogue.greet.1",
+      "character": "base-m",
+      "text": "There you are. Grab a seat, or don't, I'm easy.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.greet.1"
+    },
+    {
+      "id": "base-m:dialogue.greet.2",
+      "character": "base-m",
+      "text": "Evening. The city's loud tonight; it's quieter up here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.greet.2"
+    },
+    {
+      "id": "base-m:dialogue.chat.0",
+      "character": "base-m",
+      "text": "I spent all day hauling crates at the docks. This is my reward.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.0"
+    },
+    {
+      "id": "base-m:dialogue.chat.1",
+      "character": "base-m",
+      "text": "You ever listen to old vinyl? Real crackle. Nothing else sounds like it.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.1"
+    },
+    {
+      "id": "base-m:dialogue.chat.2",
+      "character": "base-m",
+      "text": "A crane operator told me a joke today. I'll spare you. It was terrible.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.2"
+    },
+    {
+      "id": "base-m:dialogue.chat.3",
+      "character": "base-m",
+      "text": "I like this place. Nobody needs anything from me up here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.3"
+    },
+    {
+      "id": "base-m:dialogue.chat.4",
+      "character": "base-m",
+      "text": "Tell me about your day. I've got nowhere to be.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.chat.4"
+    },
+    {
+      "id": "base-m:dialogue.compliment.0",
+      "character": "base-m",
+      "text": "Well, thanks. You're not so bad yourself.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.compliment.0"
+    },
+    {
+      "id": "base-m:dialogue.compliment.1",
+      "character": "base-m",
+      "text": "Ha. I'll take it.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.compliment.1"
+    },
+    {
+      "id": "base-m:dialogue.compliment.2",
+      "character": "base-m",
+      "text": "That's the nicest thing I've heard all week.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.compliment.2"
+    },
+    {
+      "id": "base-m:dialogue.flirt.0",
+      "character": "base-m",
+      "text": "Careful. I'm easily charmed.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.flirt.0"
+    },
+    {
+      "id": "base-m:dialogue.flirt.1",
+      "character": "base-m",
+      "text": "Oh yeah? Go on, I'm listening.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.flirt.1"
+    },
+    {
+      "id": "base-m:dialogue.flirt.2",
+      "character": "base-m",
+      "text": "You've got a way about you, you know that?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.flirt.2"
+    },
+    {
+      "id": "base-m:dialogue.sit.0",
+      "character": "base-m",
+      "text": "Sit down, take a load off.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.sit.0"
+    },
+    {
+      "id": "base-m:dialogue.sit.1",
+      "character": "base-m",
+      "text": "There. Much better.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.sit.1"
+    },
+    {
+      "id": "base-m:dialogue.dance.0",
+      "character": "base-m",
+      "text": "I've got two left feet, but let's go.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.dance.0"
+    },
+    {
+      "id": "base-m:dialogue.dance.1",
+      "character": "base-m",
+      "text": "Just sway. Nobody's judging.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.dance.1"
+    },
+    {
+      "id": "base-m:dialogue.dance.2",
+      "character": "base-m",
+      "text": "Hey, look at us. Not bad.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.dance.2"
+    },
+    {
+      "id": "base-m:dialogue.hands.0",
+      "character": "base-m",
+      "text": "Steady grip. I like that.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.hands.0"
+    },
+    {
+      "id": "base-m:dialogue.hands.1",
+      "character": "base-m",
+      "text": "Don't rush off.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.hands.1"
+    },
+    {
+      "id": "base-m:dialogue.kiss.0",
+      "character": "base-m",
+      "text": "Come here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.kiss.0"
+    },
+    {
+      "id": "base-m:dialogue.kissAfter.0",
+      "character": "base-m",
+      "text": "Well. That was worth the climb.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.kissAfter.0"
+    },
+    {
+      "id": "base-m:dialogue.kissAfter.1",
+      "character": "base-m",
+      "text": "Hm. I could get used to that.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.kissAfter.1"
+    },
+    {
+      "id": "base-m:dialogue.notYet.0",
+      "character": "base-m",
+      "text": "Easy. Let's talk a bit first.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.notYet.0"
+    },
+    {
+      "id": "base-m:dialogue.notYet.1",
+      "character": "base-m",
+      "text": "No rush. We've got all night.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.notYet.1"
+    },
+    {
+      "id": "base-m:dialogue.notNow.0",
+      "character": "base-m",
+      "text": "Sit down first, or ask me for a dance. Then we'll talk.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.notNow.0"
+    },
+    {
+      "id": "base-m:dialogue.relax.0",
+      "character": "base-m",
+      "text": "Close your eyes. I'll keep watch.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.relax.0"
+    },
+    {
+      "id": "base-m:dialogue.relax.1",
+      "character": "base-m",
+      "text": "Can't beat this. Honestly.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.relax.1"
+    },
+    {
+      "id": "base-m:dialogue.bye.0",
+      "character": "base-m",
+      "text": "Night. Mind the stairs.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.bye.0"
+    },
+    {
+      "id": "base-m:dialogue.bye.1",
+      "character": "base-m",
+      "text": "Take care out there. Come back soon.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.bye.1"
+    },
+    {
+      "id": "base-m:dialogue.approach.0",
+      "character": "base-m",
+      "text": "Hey. Figured you could use a friendly face.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.approach.0"
+    },
+    {
+      "id": "base-m:dialogue.approach.1",
+      "character": "base-m",
+      "text": "Come on over, I don't bite.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.approach.1"
+    },
+    {
+      "id": "base-m:dialogue.approach.2",
+      "character": "base-m",
+      "text": "There you are.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.approach.2"
+    },
+    {
+      "id": "base-m:dialogue.window.0",
+      "character": "base-m",
+      "text": "See those cranes? I worked on the third one from the left.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.window.0"
+    },
+    {
+      "id": "base-m:dialogue.window.1",
+      "character": "base-m",
+      "text": "Listen to that racket down there. You'd never know from up here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.window.1"
+    },
+    {
+      "id": "base-m:dialogue.joinSofa.0",
+      "character": "base-m",
+      "text": "Mind if I sit?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.joinSofa.0"
+    },
+    {
+      "id": "base-m:dialogue.joinSofa.1",
+      "character": "base-m",
+      "text": "Shove over a bit?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.joinSofa.1"
+    },
+    {
+      "id": "base-m:dialogue.inviteSit.0",
+      "character": "base-m",
+      "text": "Sit with me a while?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteSit.0"
+    },
+    {
+      "id": "base-m:dialogue.inviteSit.1",
+      "character": "base-m",
+      "text": "Come sit. My feet are killing me.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteSit.1"
+    },
+    {
+      "id": "base-m:dialogue.inviteDance.0",
+      "character": "base-m",
+      "text": "Dance with me? I promise to try.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteDance.0"
+    },
+    {
+      "id": "base-m:dialogue.inviteDance.1",
+      "character": "base-m",
+      "text": "Come on, one dance. I'll only step on you once.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteDance.1"
+    },
+    {
+      "id": "base-m:dialogue.inviteRecline.0",
+      "character": "base-m",
+      "text": "Lie back with me for a bit? Best ceiling in town.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.inviteRecline.0"
+    },
+    {
+      "id": "base-m:dialogue.accepted.0",
+      "character": "base-m",
+      "text": "Yeah? Good.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.accepted.0"
+    },
+    {
+      "id": "base-m:dialogue.accepted.1",
+      "character": "base-m",
+      "text": "Was hoping you'd say that.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.accepted.1"
+    },
+    {
+      "id": "base-m:dialogue.declined.0",
+      "character": "base-m",
+      "text": "No worries. Offer stands.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.declined.0"
+    },
+    {
+      "id": "base-m:dialogue.declined.1",
+      "character": "base-m",
+      "text": "Fair enough. Maybe later.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.declined.1"
+    },
+    {
+      "id": "base-m:dialogue.welcomeBack.0",
+      "character": "base-m",
+      "text": "There you are. Kept your spot warm.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.welcomeBack.0"
+    },
+    {
+      "id": "base-m:dialogue.welcomeBack.1",
+      "character": "base-m",
+      "text": "Welcome back.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.welcomeBack.1"
+    },
+    {
+      "id": "base-m:dialogue.aside.0",
+      "character": "base-m",
+      "text": "You've got a good laugh, you know that?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.aside.0"
+    },
+    {
+      "id": "base-m:dialogue.aside.1",
+      "character": "base-m",
+      "text": "I like your company.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.aside.1"
+    },
+    {
+      "id": "base-m:dialogue.aside.2",
+      "character": "base-m",
+      "text": "You're better company than the radio, and I love the radio.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.aside.2"
+    },
+    {
+      "id": "base-m:dialogue.comeHere.0",
+      "character": "base-m",
+      "text": "Coming.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.comeHere.0"
+    },
+    {
+      "id": "base-m:dialogue.comeHere.1",
+      "character": "base-m",
+      "text": "Right here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.comeHere.1"
+    },
+    {
+      "id": "base-m:dialogue.recline.0",
+      "character": "base-m",
+      "text": "Comfy, right? Beats a bunk on the docks.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "companion-literal",
+      "context": "dialogue.recline.0"
+    },
+    {
       "id": "mara_workshop_intro:legacy",
       "character": "mara",
       "text": "Elias passed away last night. You worked for him for years. In his will, he left you the Kestrel.",
@@ -7795,120 +12530,168 @@
     {
       "source": "void-runner/vr-companions.js",
       "line": 7,
-      "text": "DRAFT: every line of companion dialogue is Claude's placeholder for David's review. Seren's, Kai's and Nadia's lines are recorded (tools/audio, provisional voices). */",
+      "text": "DRAFT: every line of companion dialogue is Claude's placeholder for David's review. Every companion's lines are recorded (tools/audio, provisional voices): women's voices for the women, a man's",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 12,
+      "line": 13,
       "text": "initiative:.55,        // how readily they start a conversation (0 shy … 1 forward)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 84,
+      "line": 85,
       "text": "dialogue:{",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/vr-companions.js",
-      "line": 87,
-      "text": "compliment:['Careful. Keep saying things like that and I\\'ll believe you.','Well. That\\'s made my whole evening.','You\\'re sweet. I noticed you noticed, by the way.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
       "line": 88,
+      "text": "compliment:['Careful. Keep saying things like that and I\\'ll believe you.','Well. That\\'s made my whole evening.','You\\'re sweet. I noticed you noticed, by the way.'],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companions.js",
+      "line": 89,
       "text": "flirt:['Is that a line? It\\'s working, a little.','Mm. You\\'re trouble. The good kind.','Say that again, slower.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 95,
+      "line": 96,
       "text": "relax:['Just breathe. Nothing out there can find you in here.','This is nice. No need to say anything.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 104,
+      "line": 105,
       "text": "accepted:['Good answer.','I knew you\\'d say yes.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 113,
+      "line": 114,
       "text": "dialogue:{",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 117,
+      "line": 118,
       "text": "flirt:['Is that so? Tell me more.','You\\'re dangerous. I like it.','Say it like you mean it.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 132,
+      "line": 133,
       "text": "accepted:['Yeah? Good.','I was hoping you\\'d say that.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 146,
+      "line": 147,
       "text": "dialogue:{",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 150,
+      "line": 151,
       "text": "flirt:['Careful. Locals don\\'t fall for lines. Usually.','Say that again and I might believe it.','You\\'re bolder than you look, outsider.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 182,
-      "text": "licensed:true,pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-ava',voiceId:null},",
+      "line": 185,
+      "text": "dialogue:{",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 193,
-      "text": "licensed:true,pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-eva',voiceId:null},",
+      "line": 188,
+      "text": "compliment:['Obviously. But it\\'s nice to hear you say it.','Okay, that was smooth. I\\'m noting it down.','Flattery works on me. You\\'ve just found my weakness.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 210,
-      "text": "listed:'dev',licensed:true,pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-una',voiceId:null},",
+      "line": 223,
+      "text": "dialogue:{",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 219,
-      "text": "licensed:true,pairable:true,personality:{},dialogue:{},voice:{characterId:'vr-base-f',voiceId:null},clips:{walk:['walk-f'],idleAlt:['idle-f2']}});",
+      "line": 225,
+      "text": "chat:['I paint the skyline sometimes. It\\'s never the same twice.','Do you ever listen to the rain on the glass? It sounds like whispering.','I like the hour before dawn. Even the signs look tired.','You don\\'t have to say anything. I like the quiet too.','Tell me something you love. Anything at all.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 221,
-      "text": "licensed:true,pairable:false,personality:{},dialogue:{},voice:{characterId:'vr-base-m',voiceId:null},clips:{}});",
+      "line": 227,
+      "text": "flirt:['You\\'re sweet. I\\'m not used to that.','Say that again? I want to keep it.','You make it hard to look anywhere else.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 242,
+      "line": 243,
+      "text": "accepted:['Really? Good.','I hoped you\\'d say yes.'],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companions.js",
+      "line": 268,
+      "text": "dialogue:{",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companions.js",
+      "line": 272,
+      "text": "flirt:['Careful. I read people for a living.','You\\'re harder to predict than most. I like that.','Say that again. I want to check it for lies.'],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companions.js",
+      "line": 304,
+      "text": "dialogue:{",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companions.js",
+      "line": 306,
+      "text": "chat:['I ran the rooftops from here to the noodle market this morning. Personal best!','You should come running with me sometime. I\\'ll go slow. Maybe.','I\\'ve never been able to sit still. My mum says I was born mid-sprint.','The view\\'s better at dawn. Everything turns gold for about four minutes.','Tell me your favourite thing about this city. Mine\\'s the food.'],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companions.js",
+      "line": 324,
+      "text": "accepted:['Yes!','Knew you\\'d say yes.'],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companions.js",
+      "line": 333,
+      "text": "dialogue:{",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companions.js",
+      "line": 353,
+      "text": "accepted:['Yeah? Good.','Was hoping you\\'d say that.'],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companions.js",
+      "line": 379,
       "text": "const speaks=entry=>Object.values(entry?.dialogue||{}).some(p=>p?.length);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 267,
+      "line": 404,
       "text": "if(near&&!wasNear){wasNear=true;t.apart=0;if(apartLong&&ready('welcome',c.welcomeAfter)){apartLong=false;mark('welcome');return {do:'say',pool:'welcomeBack',gesture:'greet'};}apartLong=false;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 279,
+      "line": 416,
       "text": "return rnd()<c.flirtatiousness?{do:'say',pool:'aside',gesture:'flirt'}:{do:'say',pool:'chat',gesture:'laugh'};}",
       "kind": "source-reference"
     },
@@ -8387,12 +13170,12 @@
     "void-runner/voice-clips.js": "d990ba8f440f04524a65e84abad46af208bd295cc7a005eedebda191e6423c22",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "fe7cf3869b1fb49ff3ccbc4a7a5c7900aa16c0ad367c115844d8bf5f9c66c321",
-    "void-runner/vr-companions.js": "b02757f9b30bc58ccb99ff3cae8f9ba338952ecf696728d63caf3d8965f75452",
+    "void-runner/vr-companions.js": "d38c9e56cfe2536e9717431bf12d37a44c1ad34f83dfd24d1a25ca243fd7127b",
     "void-runner/vr-core.js": "4564526b388904e2168e1fae14913c1f7c092c89036d3acee93abe24f871aead",
     "void-runner/vr-forest.js": "23bcaa2847c9e25da3cdced6a29828f5a3d2f0ced9cb22999c76e8f8367a3891",
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "42b099525addb420f7a678fee12d93c14cf468375fd7f59c7324a4393b34dad2",
-    "void-runner/vr-suite.js": "d5a5eb0bc4cbb33e38cfb4d58b47d96deabfd4ac44dce049f21a21edfedbcadf",
+    "void-runner/vr-suite.js": "c6368f2a0995514a6f658528dc68b7d48df2e3afd155995d1807334a25dff117",
     "void-runner/vr-tropical.js": "d796ce190e319b3f1385ae534e12aed861389010efb25ad0d30ad104c2a32811",
     "void-runner/warflying-scan.js": "f6de823ef265ff4e1cde538ac17b5adefb72547ad0ef2e3b25cdb42de9ce8a87",
     "void-runner/warflying-scanner.js": "3234988837d0ca2ab0fec7bdb730d923c679fd50ff883569c2f7f568406a00ed",
@@ -8402,8 +13185,8 @@
     "void-runner/world-markers.js": "af9570bfc272ccb17b8a9b0dabd7fc018f2d60d270edf8281066c101f09bfe15",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "tools/admin-inventory.cjs": "4b545f1e29bc40745983ecd5a113f20926a6f73b52a1b4ed4c2e8106df0a4ed0",
-    "tools/audio/npc-voice-registry.json": "2477065415330fcf690ed32aaf4ed4aac3f192fc82094692fe4b6b35dc851de6",
-    "void-runner/assets/audio/voice/manifest.json": "75fdb401801af62e4aa1a816093670a31b512a5442f9e23114f5aab46b649640",
+    "tools/audio/npc-voice-registry.json": "216866bb6a355e0cfa2ac6792cb880ecc98ce4f6c1790ca0437b52bb3866f0c2",
+    "void-runner/assets/audio/voice/manifest.json": "be220f919a172ad4122718393d1b92d3726fe44819639c88c0579cf9d224e8ac",
     "void-runner/save-manifest.json": "a68d75a8a7781d2a1ec9c606487c0a1a6eaff141eda4e28ddea832c3fde985f0"
   },
   "coverage": {

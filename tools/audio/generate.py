@@ -129,11 +129,17 @@ def main():
     from kokoro_onnx import Kokoro
     kokoro = Kokoro(model, voices)
     failures = []
+
+    def style(voice):
+        """One Kokoro voice id, or a weighted blend "am_adam:0.6+am_michael:0.4" (voice-registry.cjs parseVoice)."""
+        if '+' not in voice:
+            return voice
+        return sum(float(w) * kokoro.get_voice_style(v) for v, w in (p.split(':') for p in voice.split('+')))
     for line_id in todo:
         line = manifest['lines'][line_id]
         entry = cast[line['speaker']]
         try:
-            samples, rate = kokoro.create(line['text'], voice=entry['voice'], speed=float(entry['speed']), lang=entry['lang'])
+            samples, rate = kokoro.create(line['text'], voice=style(entry['voice']), speed=float(entry['speed']), lang=entry['lang'])
             sf.write(os.path.join(OUT, line['file']), level(samples, rate), rate, format='OGG', subtype='OPUS')
             renders[line_id] = {'configHash': line['configHash'], 'textHash': hashlib.sha256(line['text'].encode('utf-8')).hexdigest()[:12],
                                 'generatedAt': datetime.date.today().isoformat(), 'runtime': engine.get('runtime', '')}

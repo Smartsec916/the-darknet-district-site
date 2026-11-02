@@ -5,7 +5,7 @@ const C=require('../void-runner/vr-companions.js');
 
 test('Una and the female base figure are female companions; the male base figure is male',()=>{
  assert.equal(C.get('una').sex,'female');assert.equal(C.get('base-f').sex,'female');assert.equal(C.get('base-m').sex,'male');
- for(const id of ['una','base-f','base-m']){const e=C.get(id);assert.equal(e.licensed,true);assert.equal(e.pairable,id!=='base-m');assert.deepEqual(e.dialogue,{});assert.ok(e.voice.characterId);
+ for(const id of ['una','base-f','base-m']){const e=C.get(id);assert.equal(e.licensed,true);assert.equal(e.pairable,id!=='base-m');assert.equal(C.speaks(e),true);assert.ok(e.voice.characterId);
   assert.equal(C.offered(e,'localhost'),true);assert.equal(C.offered(e,'thedarknetdistrict.com'),id!=='una');}
  assert.equal(C.get('una').listed,'dev');
  assert.ok(C.list({sex:'male'}).some(e=>e.id==='base-m'));assert.ok(!C.list({sex:'female'}).some(e=>e.id==='base-m'));

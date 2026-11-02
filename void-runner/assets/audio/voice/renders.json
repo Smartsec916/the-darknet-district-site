@@ -2894,5 +2894,1757 @@
   "textHash": "8afeb3b12936",
   "generatedAt": "2026-10-31",
   "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-05f7d2754a": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "2aee08850a8c",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-0f64c41292": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "0bec1f654d76",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-12a3e34fe2": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "75aba2fec8af",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-161eb0e918": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "821339c6f24f",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-25f58a3ffe": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "c6b162c4a9ec",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-2b6c13af04": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "3c1cfedf4694",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-3089f12a65": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "a10ac34cf55a",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-33f1f60b70": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "a89d9140f454",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-34db26c446": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "a518876ef801",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-3880e54184": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "d2eaeb16bbe0",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-39cb5cd7b1": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "e507d2b61651",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-3b67514afc": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "9921d0971bbe",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-3e9c1e8bf7": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "fe277c7945d8",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-3fc1bb9c31": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "ece2d79d8d6f",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-404c995629": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "7b32a9b859e3",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-40d0276cc2": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "90d6290286c2",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-472f5d09ac": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "66110a501087",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-47affd1844": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "c81932fae05e",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-4851bebfc8": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "2c4da7e88e63",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-4e7727435c": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "6cad7a37b072",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-5110a24871": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "646b126926b9",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-550f851ac3": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "4f8b2b3f32f5",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-5511ac68ef": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "1764af684bd6",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-5d5e86460b": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "ed0dcb539c2b",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-5d71d453a1": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "c9a27f7073f3",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-6712d6dba2": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "69639cc14615",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-6a999860e3": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "086ed949dc12",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-6d4e0557a3": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "ed59c7755d77",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-70a6f00d2c": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "0e7dcd01a19b",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-7714a61f24": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "b60dba2cf9ee",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-87b310938f": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "2f6c41d6578f",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-88d6c35ec3": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "91070c4a4a88",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-8b4bb6f488": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "cf0f23124f23",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-8c1df29c1a": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "870dda9490bf",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-8c54030d65": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "d17825d273e4",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-9ae3114f2e": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "b1f5990c6eac",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-9aea6254bd": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "bce14c12940f",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-9dd478ef17": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "da0cd15deb30",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-a0722b8e63": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "96f21791371f",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-a4ae96029e": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "b9e47a6414a8",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-aeac514483": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "22cd7455357c",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-b372fae2d6": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "05da9e2a895c",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-bab201ab01": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "7c5074520423",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-d0046c9b57": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "6077cb865715",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-d0e06c95f2": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "b91ed03234ed",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-d70c9a4141": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "e8d92295a73d",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-e0d65e7463": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "d7205d339a4d",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-e6000cff18": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "fc521c25e5cd",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-e72658f169": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "935045ee31e4",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-e8c0100184": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "0c15f557d3b6",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-ea94eb39a4": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "aaee4519b2a3",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-ed54dd653a": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "0938d761725a",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-f42dd300e9": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "e2908b79ba09",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-fa851842a9": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "c8c86999e8b2",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-fc2a1dce9c": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "5209bb7e856f",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-00a5b78666": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "fcbae9ea38fd",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-024ba89dcd": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "d64e840768a5",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-07ea82caa7": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "75adc9660970",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-0911928dbc": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "a8f533bf2eba",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-13aecbd5f4": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "760e4113e74f",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-17f4dcaa85": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "472bd5ae0f83",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-18ade92a45": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "7fa284e549a4",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-1bb5ab451e": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "91e42559aa44",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-313885de56": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "9801b79cb046",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-34f76f26c3": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "d7888c3862b1",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-383b7b0a72": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "fceba4b2b99f",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-39fd5541cd": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "218dc4e1372a",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-3b17a98688": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "5707124cf905",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-44dba3eac7": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "598d57bd3ab5",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-495560621f": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "7cafefa8dd64",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-4a4488c4ef": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "b61e636c7d0b",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-508a05c0f5": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "2b118891cc75",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-5aba63e647": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "d3ef3f0d05c7",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-5e7dc108dc": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "2fad16da9df3",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-5f2f14ff1b": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "8052ab081e09",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-62e7fa023d": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "9700f7e983ce",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-6378abcd13": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "2fef4ed7fd44",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-6a07792209": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "224ca8c126e8",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-6e13d6da34": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "ecc7f2feddb5",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-6e56117918": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "818184272d8c",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-72d746867b": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "29383e821e1c",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-7388aad681": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "bfdbb347fa28",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-7a8e82eaa5": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "6344d0e456dd",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-893fc71077": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "023ac281c939",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-8f8a59ed56": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "47cc7b12699e",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-91280862e6": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "8aff5108a050",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-9b5efbd2c3": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "c1d2a64f8794",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-a0ad6f1315": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "d579147794df",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-a1cee7bf20": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "ad5c76556745",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-a6f8f1cabb": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "e0c17a0c5319",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-abba134a0a": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "48e4f7cdb795",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-b3bad380c0": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "8b1e3049f229",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-b444dece04": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "2d78fbd86ca3",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-b6a74489b5": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "287d9d25e099",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-babaaf585e": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "73e3c89bc070",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-c0596fa5f3": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "5a5f6ef915c0",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-c83764a083": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "6a784e136a53",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-cb09c6f04c": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "5be796909187",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-e2dec0236c": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "5feaf8386ea3",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-e3d9c65137": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "5e3f1adfa317",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-e47e2535cd": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "0c15f557d3b6",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-e5b50d4dee": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "bf7b83e52c31",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-e649ae3d2e": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "50b0e30c25d4",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-ea336c4d37": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "fd9c55d42cdf",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-ecbffaace9": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "22cd7455357c",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-ecc83a0087": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "5d25669b53b0",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-eddc9625fa": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "633cfa20ad0b",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-ee0c759de9": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "53534bb12182",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-f240a8de56": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "8ab4b65280e1",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-f52537c391": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "be0f66879b1d",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-018d9c92a2": {
+  "configHash": "424858397d94",
+  "textHash": "a52708711e3a",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-04a4b2e702": {
+  "configHash": "424858397d94",
+  "textHash": "c1d422dcf780",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-0833d84c1e": {
+  "configHash": "424858397d94",
+  "textHash": "296f35a21ed6",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-0bfd270d3a": {
+  "configHash": "424858397d94",
+  "textHash": "f80ef2bb1d03",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-146c5b132f": {
+  "configHash": "424858397d94",
+  "textHash": "c6d972580e3f",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-1590aeba2a": {
+  "configHash": "424858397d94",
+  "textHash": "ca637187f801",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-1f124c98e2": {
+  "configHash": "424858397d94",
+  "textHash": "ee1859688f1e",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-1f8b698763": {
+  "configHash": "424858397d94",
+  "textHash": "c31588d6e0fe",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-245d49fd03": {
+  "configHash": "424858397d94",
+  "textHash": "85e6ca8911f1",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-24d991fea4": {
+  "configHash": "424858397d94",
+  "textHash": "6357d098416b",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-25598d2de4": {
+  "configHash": "424858397d94",
+  "textHash": "0c15f557d3b6",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-2be085bf94": {
+  "configHash": "424858397d94",
+  "textHash": "0598a3ac5fbd",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-2e04ae26a9": {
+  "configHash": "424858397d94",
+  "textHash": "f3b9d25ea584",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-2f17f8f391": {
+  "configHash": "424858397d94",
+  "textHash": "04fdea1906ed",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-2f8a52eed1": {
+  "configHash": "424858397d94",
+  "textHash": "1b0c8230c6c2",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-303d4524e4": {
+  "configHash": "424858397d94",
+  "textHash": "d5abd91c4aff",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-38eaa6890e": {
+  "configHash": "424858397d94",
+  "textHash": "494771981f6c",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-3c3b53492d": {
+  "configHash": "424858397d94",
+  "textHash": "12809267ff77",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-49e8850308": {
+  "configHash": "424858397d94",
+  "textHash": "2799508fac6c",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-4a2b0a5845": {
+  "configHash": "424858397d94",
+  "textHash": "c66e8f4c0171",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-4bb637e71c": {
+  "configHash": "424858397d94",
+  "textHash": "60a364878171",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-4e2ff149ff": {
+  "configHash": "424858397d94",
+  "textHash": "c147800ef4e8",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-50fcfddba3": {
+  "configHash": "424858397d94",
+  "textHash": "7655b59ff1af",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-516f323622": {
+  "configHash": "424858397d94",
+  "textHash": "7c6ad1399135",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-53740a0bf2": {
+  "configHash": "424858397d94",
+  "textHash": "2d997692eeed",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-58c298e09d": {
+  "configHash": "424858397d94",
+  "textHash": "264c28c7f48f",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-5cec0ac508": {
+  "configHash": "424858397d94",
+  "textHash": "3cc2a1910d77",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-5e6dadb261": {
+  "configHash": "424858397d94",
+  "textHash": "f7e4772accdb",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-6263bab0f7": {
+  "configHash": "424858397d94",
+  "textHash": "19d462338f78",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-74ab2e2290": {
+  "configHash": "424858397d94",
+  "textHash": "b2bc1f7c41cb",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-99e96708c5": {
+  "configHash": "424858397d94",
+  "textHash": "33a1de6a03da",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-a7b1404ab4": {
+  "configHash": "424858397d94",
+  "textHash": "d42f13ade8d3",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-ab66805f1b": {
+  "configHash": "424858397d94",
+  "textHash": "5a4344053126",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-ab67f7086a": {
+  "configHash": "424858397d94",
+  "textHash": "3b811dce64f3",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-aba49e5dc4": {
+  "configHash": "424858397d94",
+  "textHash": "7f9856694d1f",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-b24d101ca1": {
+  "configHash": "424858397d94",
+  "textHash": "5d11d2e4a99a",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-b3c69c4a38": {
+  "configHash": "424858397d94",
+  "textHash": "38fedb006e43",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-b527f2913d": {
+  "configHash": "424858397d94",
+  "textHash": "12e39b68f0b5",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-b69b5c3c32": {
+  "configHash": "424858397d94",
+  "textHash": "bbd436e1d67b",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-b95d8aa4e1": {
+  "configHash": "424858397d94",
+  "textHash": "22cd7455357c",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-ba2d6824b1": {
+  "configHash": "424858397d94",
+  "textHash": "a174947416e2",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-ba99e41d4d": {
+  "configHash": "424858397d94",
+  "textHash": "5b51fdb86962",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-baac584295": {
+  "configHash": "424858397d94",
+  "textHash": "4ededb14cffd",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-c1217305fa": {
+  "configHash": "424858397d94",
+  "textHash": "cc795e3a8dd7",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-c47eae832e": {
+  "configHash": "424858397d94",
+  "textHash": "dfdbca16342f",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-c9a8db8b70": {
+  "configHash": "424858397d94",
+  "textHash": "c0b6d252c288",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-ccf65b918f": {
+  "configHash": "424858397d94",
+  "textHash": "6443a9243984",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-d847d39b9e": {
+  "configHash": "424858397d94",
+  "textHash": "c6b7ba560db9",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-d90e504a42": {
+  "configHash": "424858397d94",
+  "textHash": "93833a9d5595",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-dbff582b52": {
+  "configHash": "424858397d94",
+  "textHash": "653a088c0f93",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-eb27bd2232": {
+  "configHash": "424858397d94",
+  "textHash": "41d058db6d0b",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-ec1c4a4e6e": {
+  "configHash": "424858397d94",
+  "textHash": "39c6ccabd650",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-f8f36a76dc": {
+  "configHash": "424858397d94",
+  "textHash": "6bd8d275f75d",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-fd8bc3e52e": {
+  "configHash": "424858397d94",
+  "textHash": "04f9206f12d5",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-fda389cb0d": {
+  "configHash": "424858397d94",
+  "textHash": "68b96b23f71c",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-040b7532b7": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "3629eb0a04da",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-08ba8cd74e": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "77a9441d278d",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-0d84a9f6bd": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "494771981f6c",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-0f643807e1": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "f886b0906346",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-1236634943": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "0ee6bb8ee6fe",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-1b08fd6c52": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "42bee3896b6c",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-2507c78652": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "efb85d74edd6",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-280fb1179f": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "dfe638d37d34",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-2af59fb458": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "49a88d797507",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-40e38ca4ef": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "b27548527fc4",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-44b92d5570": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "b5cfa06219e2",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-472e7a405f": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "b115a93114ee",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-4acdeecada": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "65b4b48766f3",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-4ad54b5c5c": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "63cb935d4d5b",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-4b506555a5": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "f3d2854a4cac",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-561338b091": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "848f926409c1",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-5908ea4a6b": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "ad5fbca43e6b",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-5ac6151f2e": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "86e14ff7a852",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-6124c26cce": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "85e17374f3e9",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-6d70f45cfe": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "9a195e45e6b8",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-6fdcf97035": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "e91d92caf4c6",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-7946d76e2f": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "42e59ad7a9f5",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-880bb32a37": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "9db106c61ad9",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-915451e024": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "1bc7567bf07a",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-95abfee1f8": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "a8c752c7f067",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-974efa66f1": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "332fd1869063",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-9a83ac7a0d": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "751f862dee3a",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-a1350fde8d": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "389236056cd6",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-a3e1bef6da": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "ce225211b15f",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-a5188ff6af": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "788b52e43b70",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-a5dc039f11": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "b5bd37b611ee",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-ac26c28ebe": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "a21877b18a00",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-b0dab9f0e8": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "3c7a4cf0aaf6",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-b23b6e364f": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "e8c49c5c900e",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-b7681d6bc7": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "5e946097bdd7",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-ba698bda30": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "6940ba57bf57",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-baabbe1b6f": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "0c15f557d3b6",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-ce16884779": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "11972beb91cd",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-d06cd5a99b": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "1d0fd4a457c5",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-d0a14366f1": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "bbd436e1d67b",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-d38d9d7cfb": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "d8c7c6dc8847",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-d7c43416e1": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "75f166b0a295",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-daedabbaf9": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "d2dec682a805",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-e144b0dec2": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "22cd7455357c",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-e2118960e9": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "9f8481d14056",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-e31960f7b5": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "64ef91a57433",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-e4c6e2796b": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "714069c595fe",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-e590a605df": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "b31afab2f4e3",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-e5a7b6850a": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "f21997d4d454",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-e6fad24ca2": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "37b559af1c15",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-eb7389e8f0": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "361717910c81",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-ec172226a6": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "49117be6aafc",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-eeed6ddead": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "ce478b79bd8f",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-f67c018afd": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "c1d422dcf780",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-fe477af0f2": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "25904985fb51",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-07d6ae7a4c": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "cf4a81e67f94",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-12cb107496": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "39e339482018",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-13486d6b10": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "a8be60e07553",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-1adf7b3cd0": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "3228f6937c65",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-1c4b75269e": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "31d5f4c91ae5",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-1d44fc4b5c": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "581e6d623805",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-1f471a6399": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "adc55bde32fc",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-1f765a700d": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "382409769cab",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-20056144f3": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "38b83f269142",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-20a34e7e8c": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "008a2df869fe",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-2e3aa906ce": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "6129f324cc78",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-38cd7b0ff4": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "cd771dde7dd1",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-3beb22f584": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "edacd0142cf9",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-3e03be18bf": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "73f3f1da499a",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-3efa823f23": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "fedf0fad56a4",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-3fd5b45e00": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "7873381d5378",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-400021a56f": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "5465a089c727",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-413ee0676e": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "a8154fd2df9b",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-43220a4d4e": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "83dac71ec2cb",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-459e26b675": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "fb45e00b6fd6",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-4ff3bc4f05": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "2b8dc1f1366a",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-589486793d": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "67ca4aa60a39",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-5b2c912518": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "21f471e0a074",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-5ced1498f1": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "5bd0600acdc2",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-5dfc1a191f": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "69890f9c776f",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-5ffdca46b3": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "9327b9abfd44",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-6027f8c3ac": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "e77c4b78f114",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-60cf24413f": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "cf0f23124f23",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-639b39721a": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "b450e0375ceb",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-6eca317f8b": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "dde38aafc302",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-78206e0560": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "646b126926b9",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-7c385934fb": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "f993b5d4fae7",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-7f3a1e7e11": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "2f14c61a9c12",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-82f1065c31": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "c8cec9290f83",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-838699e73e": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "57e190ed5a47",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-95b7f5f242": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "20287901e5c1",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-96f26c872e": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "f9e67f4b568f",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-9d1b739d8e": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "60a364878171",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-9f8d538750": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "045a30575a56",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-b48eac26b3": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "292e92bd70a7",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-b65edbdd09": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "99c6d4f01e5e",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-b81f8bc4ec": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "c53fe4732fa4",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-bac6bdc74b": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "bb397103dd90",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-bd0251f998": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "1bbef88d91f5",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-c0b185c6fa": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "f0b10b67dcd3",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-c1d0c434db": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "69c6ed2d2c06",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-c21789d91a": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "916f9d3e4fa8",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-c6c1af7614": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "a749e6d65627",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-d4f7a6790d": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "2c33dcef91e0",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-d83120f35c": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "f9ffed848213",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-de174fcf9a": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "0c15f557d3b6",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-dfb2777c4c": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "6ebf72944d8e",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-f3edf9d9e1": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "2fb793e973da",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-f9f0cbb274": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "92876bcc437e",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-facb8af702": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "22cd7455357c",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-246e0a2416": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "30a7292763dd",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-ava-d8bc9f65c6": {
+  "configHash": "5b5bebd718ed",
+  "textHash": "076a75c15097",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-f-b0eaf561d2": {
+  "configHash": "6f97e1aa8102",
+  "textHash": "90a175b86bab",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-09f4e5db0f": {
+  "configHash": "424858397d94",
+  "textHash": "1295cacfd2f9",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-3d81a08d27": {
+  "configHash": "424858397d94",
+  "textHash": "7b08d77217b7",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-67b6df6deb": {
+  "configHash": "424858397d94",
+  "textHash": "270775e3fb83",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-76a80771d8": {
+  "configHash": "424858397d94",
+  "textHash": "67e9ef495e83",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-886ffd8ca9": {
+  "configHash": "424858397d94",
+  "textHash": "36619bf34fb1",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-93c037c359": {
+  "configHash": "424858397d94",
+  "textHash": "d0a761944e0d",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-9a3403e87b": {
+  "configHash": "424858397d94",
+  "textHash": "490630483a52",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-a3feec1c6d": {
+  "configHash": "424858397d94",
+  "textHash": "e75401de5d2b",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-b89e78718c": {
+  "configHash": "424858397d94",
+  "textHash": "7fa77eac643c",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-base-m-f3b08d9696": {
+  "configHash": "424858397d94",
+  "textHash": "cdd77d323791",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-0a9697fb44": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "e479b8e3aca7",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-990fd4a49d": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "642f74d05d0a",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-eva-a71077dfa4": {
+  "configHash": "a073bc0cfb98",
+  "textHash": "27bbdc03b8d7",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
+ },
+ "vr-una-9f049e732a": {
+  "configHash": "3ff67e32a9b3",
+  "textHash": "fd1e62db8864",
+  "generatedAt": "2026-11-01",
+  "runtime": "kokoro-onnx 0.6.1 / onnxruntime 1.31.0"
  }
 }

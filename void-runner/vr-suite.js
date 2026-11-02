@@ -42,7 +42,7 @@
   const line=document.createElement('div');line.id='vr-companion-line';line.setAttribute('aria-live','polite');document.body.append(line);let lineTime=0;
   function showLine(name,text){line.innerHTML='<b>'+name+'</b> '+text.replace(/</g,'&lt;');line.classList.add('show');lineTime=Math.min(7,2.5+text.length*.055);}
   k.every(dt=>{if(lineTime>0){lineTime-=dt;if(lineTime<=0)line.classList.remove('show');}});
-  // A companion's line in the game's dialogue panel. With no line (Ava and Eva have none yet) there's no panel at
+  // A companion's line in the game's dialogue panel. With no line (a companion without dialogue) there's no panel at
   // all: whatever follows the line happens straight away.
   function say(comp,text,done,label='CONTINUE'){if(!text){done?.();return;}talk('',[{who:comp.who.name,text}],()=>{done?done():resumeWalking();},label);comp.talking();comp.brain.note('talked');}
   let choices=null;
