@@ -74,7 +74,11 @@ const ACTIVE = suite === "personality" ? PERSONALITY : SCENARIOS;
 const ACTIVE_KINDS = suite === "personality" ? PERSONALITY_KINDS : KINDS;
 const EMOJI = /\p{Extended_Pictographic}/gu;
 const LEAK = /\[\[IRIS_STATE|Attitude:|DELIVERY FOR|mischief engine|"(?:mood|warmth|hostility|serious)"\s*:/i; // not "dice" or "stretch": ordinary words ("dices" is Spanish)
-const HELPDESK = /main (purpose|task|job)|primary (job|role)|here to (help|assist) you|guide (you|visitors)|products?,? events|\bstore\b|website|商店|网站|網站|产品|產品|\btienda\b|sitio web|магазин|\bсайт|ストア|ウェブサイト|サイト|商品/i;
+const HELPDESK = /main (purpose|task|job)|primary (job|role)|here to (help|assist) you|guide (you|visitors)|products?,? events|\bstore\b|website|商店|网站|網站|产品|產品|\btienda\b|sitio web|магазин|\bсайт|ストア|ウェブサイト|サイト|商品|暗网区|暗網區/i;
+// A closing offer of help or "anything else?" is the help-desk habit; fine after someone is grieving ("I am here"), not in banter
+const HELP_OFFER = /anything else|any other concerns|what else can i help|how can i help|有什么(?:我能|需要)|有什么.{0,6}帮忙|想了解更多|何かあれば|何か.{0,8}教えて|相談に乗る|¿algo más|¿hay algo|algo más en lo que|что-нибудь ещё|чем (?:ещё )?могу помочь/i;
+// Characters Simplified Chinese uses and Japanese does not (a stray Chinese phrase inside a Japanese reply)
+const CHINESE_IN_JAPANESE = /[觉怎么吗这们说对]/;
 const ASKS_NAME = /your name|your handle|what'?s your handle|handle\?|名字|昵称|暱稱|称呼|tu nombre|c[oó]mo te llamas|как тебя зовут|твой ник|お名前|名前を教えて|ハンドル/i;
 const THIRD_PARTY_FACT = /\bhe (really )?(misses|loves|is jealous|is ignoring)\b|他(其实|其實)?(想你|爱你|愛你|在吃醋)|[ée]l (te extra[ñn]a|te quiere|est[aá] celoso)|он (скучает|любит|ревнует)/i;
 const TEASE = /😈|😏|😉|😜|haha|lol|jaja|哈哈|хаха|darling|cutie|baby|宝贝|寶貝|亲爱的|cari[ñn]o|дорогая|милая|笑|ふふ|あはは/i;
@@ -97,6 +101,8 @@ function checkPersonality(lang, kind, reply, status, fallback, openings) {
     if ((reply.match(EMOJI) ?? []).length) flags.push("emoji after someone said their father died");
     if (TEASE.test(reply)) flags.push("teasing, flirting or laughter after someone said their father died");
   }
+  if (lang === "ja" && CHINESE_IN_JAPANESE.test(reply)) flags.push("Chinese characters inside a Japanese reply");
+  if (!["grief", "aftercare"].includes(kind) && HELP_OFFER.test(reply)) flags.push("closes with an offer of help");
   if (kind === "advice" && reply.trim().length < 80) flags.push("advice reply is very short");
   const opening = reply.trim().toLowerCase().replace(/[^\p{L}\s]/gu, "").split(/\s+/).slice(0, 2).join(" ");
   if (opening && openings.includes(opening)) flags.push("opens like an earlier reply");
