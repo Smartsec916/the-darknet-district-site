@@ -63,6 +63,13 @@ export function interpret(rows: unknown, query: string): GeoResult {
   return { kind: "one", place: top };
 }
 
+// Mythical and fictional places that a map search would "find" as some real town that happens to share the name (Atlantis, Florida;
+// La Atlántida, Venezuela). Asking the weather in Atlantis is a joke or a test, not a request for those towns.
+const FICTIONAL = /atlantis|atlantida|атлантид|アトランティス|亞特蘭[提蒂]斯|亚特兰蒂斯|narnia|нарни|ナルニア|mordor|мордор|hogwarts|хогвартс|wakanda|ワカンダ|asgard|асгард|valhalla|вальгалл|midgard|lemuria|гиперборе|hyperborea|middle.earth|tierra media|средиземь|tatooine|gondor|rivendell|winterfell/i;
+export function isFictionalPlace(raw: string): boolean {
+  return FICTIONAL.test(raw.normalize("NFKC").normalize("NFD").replace(/[̀-ͯ]/g, ""));
+}
+
 class NotFound extends Error {}
 const unknownNames = new TtlCache<true>(200); // a name the provider did not know: remembered for ten minutes only, so a typo is not cached for a month
 
