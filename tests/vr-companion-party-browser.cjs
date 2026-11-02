@@ -37,20 +37,22 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',errors=[],report={};fs.mkdir
  await boot();await page.evaluate(()=>{localStorage.removeItem('void-runner-companion-looks-v1');});
  for(const id of ['ava','eva']){await enter({companion:id});const [p]=await probe();report[id+'-alone']=p;console.log(id,'alone',JSON.stringify(p));
   assert.equal(p.name,id==='ava'?'Ava':'Eva');assert(Math.abs(p.floor)<.09,id+' floor '+p.floor);assert(p.height>1.5&&p.height<1.95,id+' height '+p.height);assert.equal(p.clips,24);assert(p.playing.length>=1,id+' animates');
-  assert.equal(await dialogueOpen(),false,id+': no speech box on entering (no lines yet)');
-  await page.evaluate(()=>{VoidVR.session.world.onEnter();});await page.waitForTimeout(3000);assert.equal(await dialogueOpen(),false,id+': greeting without a line opens no panel');
+  await page.evaluate(()=>{VoidVR.session.world.onEnter();});await page.waitForTimeout(3000);assert.equal(await dialogueOpen(),true,id+': greets you on entering');
+  await page.evaluate(()=>{for(let k=0;k<4&&mode==='dialogue';k++)advanceSpeech();});
   await view(3);await shot(id+'-alone');await page.evaluate(()=>VoidVR.exit());await page.waitForTimeout(500);}
 
  // 2. Together.
  // Confirming the pair at the terminal (the picker's own options step, which also remembers the choice).
- const pairOpts=await page.evaluate(()=>VoidVR.registry.get('suite').picker.options(['female',['ava','eva']]));assert.deepEqual(pairOpts,{companions:['ava','eva']});
+ const pairOpts=await page.evaluate(()=>VoidVR.registry.get('suite').picker.options(['female','ava+eva']));assert.deepEqual(pairOpts,{companions:['ava','eva']});
  await enter(pairOpts);let ps=await probe();report.together=ps;console.log('together',JSON.stringify(ps));
  assert.deepEqual(ps.map(p=>p.name),['Ava','Eva']);assert(gap(ps)>.9,'start apart '+gap(ps));for(const p of ps){assert(Math.abs(p.floor)<.09,p.id+' floor '+p.floor);assert(p.playing.length>=1);}
  await view(4.2);await shot('together');
  // The menu without lines: a plain prompt, things to do together, no talk options.
  const menuText=await page.evaluate(()=>{VoidVR.session.world.interact({id:'vr-companion'});return document.querySelector('.dialogue-window')?.textContent||'';});
  await page.waitForSelector('.vr-companion-menu button.vr-choice');const offered=await page.$$eval('.vr-companion-menu button.vr-choice',b=>b.map(x=>x.textContent));report.menu={text:menuText.slice(0,120),offered};
- assert.match(menuText,/With Ava\. What would you like to do\?/);for(const o of ['CHAT','FLIRT','KISS'])assert(!offered.includes(o),o+' hidden without lines');for(const o of ['FOLLOW ME','STAY HERE','SIT TOGETHER'])assert(offered.includes(o),o);
+ // Ava has her own lines now (DRAFT, 2026-11-01): the menu opens with one of them; from across the room the talk
+ // options wait until you're close.
+ assert.match(menuText,/Ava: /);assert(!/What would you like to do/.test(menuText),'a real line, not the wordless prompt');for(const o of ['CHAT','FLIRT','KISS'])assert(!offered.includes(o),o+' only up close');for(const o of ['FOLLOW ME','STAY HERE','SIT TOGETHER'])assert(offered.includes(o),o);
  await page.click('.vr-companion-menu button.vr-choice.quiet');await page.waitForTimeout(300);
  // Follow: both follow you round the room and keep apart.
  await command(0,'Follow me');await command(1,'Follow me');
@@ -98,7 +100,7 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',errors=[],report={};fs.mkdir
  // 3. Reopening the game: the picker offers the pair again and looks come back.
  await page.evaluate(()=>{localStorage.setItem('void-runner-companion-looks-v1',JSON.stringify({ava:{hair:'pixie'},eva:{outfit:'pink'}}));});
  await boot();const initial=await page.evaluate(()=>VoidVR.registry.get('suite').picker.steps[1].initial(['female']));report.rememberedParty=initial;
- assert.deepEqual(initial,['ava','eva'],'the picker remembers Ava and Eva');
+ assert.deepEqual(initial,'ava+eva','the picker remembers Ava and Eva (as their pair card)');
  await enter({companions:['ava','eva']});const vis=await page.evaluate(()=>VoidVR.session.world.companions.map(x=>x.node.getChildMeshes().filter(m=>m.isEnabled()).map(m=>m.name)));
  assert(vis[0].some(n=>/hair_pixie/.test(n))&&!vis[0].some(n=>/hair_bob/.test(n)),'Ava\'s saved hairstyle is restored');assert.equal(await page.evaluate(()=>VoidVR.session.settings['look-eva-outfit']),'pink','Eva\'s saved outfit is restored');
  await page.evaluate(()=>localStorage.removeItem('void-runner-companion-looks-v1'));await page.evaluate(()=>VoidVR.exit());

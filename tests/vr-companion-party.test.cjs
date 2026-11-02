@@ -16,10 +16,11 @@ test('Ava and Eva are their permanent names; nothing player-facing says PrettyGi
  assert.equal(eva.preview,'void-runner/assets/vr/companions/eva.jpg');
 });
 
-test('each has their own empty personality, dialogue and voice identity (nothing of Seren\'s)',()=>{
- const seren=C.get('seren');
- for(const e of [C.get('ava'),C.get('eva')]){assert.deepEqual(e.dialogue,{});assert.deepEqual(e.personality,{});assert.equal(C.speaks(e),false);
-  assert.ok(e.voice?.characterId&&e.voice.voiceId===null);assert.notEqual(e.dialogue,seren.dialogue);}
+test('each has their own personality, dialogue and voice identity (nothing of Seren\'s)',()=>{
+ const seren=C.get('seren'),serenLines=new Set(Object.values(seren.dialogue).flat().filter(t=>t.length>20));
+ for(const e of [C.get('ava'),C.get('eva')]){assert.ok(Object.keys(e.personality).length);assert.equal(C.speaks(e),true);
+  assert.ok(e.voice?.characterId&&e.voice.voiceId===null);assert.notEqual(e.dialogue,seren.dialogue);
+  for(const t of Object.values(e.dialogue).flat())assert.ok(!serenLines.has(t),e.id+' borrows Seren\'s line: '+t);}
  assert.notEqual(C.get('ava').voice.characterId,C.get('eva').voice.characterId);
  assert.equal(C.speaks(seren),true);
 });

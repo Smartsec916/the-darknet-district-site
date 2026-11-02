@@ -73,6 +73,26 @@
    "voice": "af_aoede",
    "status": "provisional"
   },
+  "vr-ava": {
+   "voice": "af_alloy",
+   "status": "provisional"
+  },
+  "vr-eva": {
+   "voice": "af_sky",
+   "status": "provisional"
+  },
+  "vr-una": {
+   "voice": "bf_lily",
+   "status": "provisional"
+  },
+  "vr-base-f": {
+   "voice": "bf_alice",
+   "status": "provisional"
+  },
+  "vr-base-m": {
+   "voice": "am_adam:0.5+am_michael:0.5",
+   "status": "provisional"
+  },
   "news-anchor": {
    "voice": "af_heart",
    "status": "provisional"
@@ -2045,6 +2065,1546 @@
    "source": "world-integration.js",
    "configHash": "f719ef95c06f"
   },
+  "vr-ava-05f7d2754a": {
+   "speaker": "vr-ava",
+   "text": "You're hovering. Come over here.",
+   "file": "vr-ava-05f7d2754a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-0f64c41292": {
+   "speaker": "vr-ava",
+   "text": "Goodnight. Don't let anyone else style you.",
+   "file": "vr-ava-0f64c41292.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-12a3e34fe2": {
+   "speaker": "vr-ava",
+   "text": "There you are. I was about to start judging the skyline without you.",
+   "file": "vr-ava-12a3e34fe2.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-161eb0e918": {
+   "speaker": "vr-ava",
+   "text": "Look who finally showed up. Good timing, too.",
+   "file": "vr-ava-161eb0e918.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-246e0a2416": {
+   "speaker": "vr-ava",
+   "text": "Not yet. Impress me with words first.",
+   "file": "vr-ava-246e0a2416.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-25f58a3ffe": {
+   "speaker": "vr-ava",
+   "text": "Dance with me. I'll make it worth your while.",
+   "file": "vr-ava-25f58a3ffe.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-2b6c13af04": {
+   "speaker": "vr-ava",
+   "text": "Hold on. I don't let go first.",
+   "file": "vr-ava-2b6c13af04.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-3089f12a65": {
+   "speaker": "vr-ava",
+   "text": "Fine. I'm still asking again.",
+   "file": "vr-ava-3089f12a65.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-33f1f60b70": {
+   "speaker": "vr-ava",
+   "text": "Back already? You missed me.",
+   "file": "vr-ava-33f1f60b70.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-34db26c446": {
+   "speaker": "vr-ava",
+   "text": "Flattery works on me. You've just found my weakness.",
+   "file": "vr-ava-34db26c446.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-3880e54184": {
+   "speaker": "vr-ava",
+   "text": "Patience. I like a good build-up.",
+   "file": "vr-ava-3880e54184.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-39cb5cd7b1": {
+   "speaker": "vr-ava",
+   "text": "Is that a line? Because I'm rating it. Eight out of ten.",
+   "file": "vr-ava-39cb5cd7b1.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-3b67514afc": {
+   "speaker": "vr-ava",
+   "text": "There you are. The room was getting dull.",
+   "file": "vr-ava-3b67514afc.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-3e9c1e8bf7": {
+   "speaker": "vr-ava",
+   "text": "Okay, that was smooth. I'm noting it down.",
+   "file": "vr-ava-3e9c1e8bf7.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-3fc1bb9c31": {
+   "speaker": "vr-ava",
+   "text": "Your hands are warmer than I expected.",
+   "file": "vr-ava-3fc1bb9c31.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-404c995629": {
+   "speaker": "vr-ava",
+   "text": "Tell me what you actually like. Not what you think I want to hear.",
+   "file": "vr-ava-404c995629.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-40d0276cc2": {
+   "speaker": "vr-ava",
+   "text": "I'd put you on a billboard.",
+   "file": "vr-ava-40d0276cc2.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-472f5d09ac": {
+   "speaker": "vr-ava",
+   "text": "Your loss. I'll ask again later.",
+   "file": "vr-ava-472f5d09ac.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-47affd1844": {
+   "speaker": "vr-ava",
+   "text": "Come sit with me. I want to hear about your day.",
+   "file": "vr-ava-47affd1844.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-4851bebfc8": {
+   "speaker": "vr-ava",
+   "text": "Mm. Ten out of ten. Don't let it go to your head.",
+   "file": "vr-ava-4851bebfc8.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-4e7727435c": {
+   "speaker": "vr-ava",
+   "text": "Don't think, just move. I'll make you look good.",
+   "file": "vr-ava-4e7727435c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-5110a24871": {
+   "speaker": "vr-ava",
+   "text": "On my way.",
+   "file": "vr-ava-5110a24871.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-550f851ac3": {
+   "speaker": "vr-ava",
+   "text": "Everyone down there dresses for the cameras. I dress for the rain.",
+   "file": "vr-ava-550f851ac3.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-5511ac68ef": {
+   "speaker": "vr-ava",
+   "text": "Obviously. But it's nice to hear you say it.",
+   "file": "vr-ava-5511ac68ef.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-5d5e86460b": {
+   "speaker": "vr-ava",
+   "text": "I need a second opinion on the view. Yours.",
+   "file": "vr-ava-5d5e86460b.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-5d71d453a1": {
+   "speaker": "vr-ava",
+   "text": "Move over. I'm joining you.",
+   "file": "vr-ava-5d71d453a1.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-6712d6dba2": {
+   "speaker": "vr-ava",
+   "text": "Mind if I sit? I'm sitting.",
+   "file": "vr-ava-6712d6dba2.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-6a999860e3": {
+   "speaker": "vr-ava",
+   "text": "Careful. I could get used to you.",
+   "file": "vr-ava-6a999860e3.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-6d4e0557a3": {
+   "speaker": "vr-ava",
+   "text": "Hey, you. Come in, I saved you the good light.",
+   "file": "vr-ava-6d4e0557a3.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-70a6f00d2c": {
+   "speaker": "vr-ava",
+   "text": "You clean up nicely, you know that?",
+   "file": "vr-ava-70a6f00d2c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-7714a61f24": {
+   "speaker": "vr-ava",
+   "text": "Look at that pink sign on the left. I'd have used a colder magenta.",
+   "file": "vr-ava-7714a61f24.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-87b310938f": {
+   "speaker": "vr-ava",
+   "text": "I knew you had taste.",
+   "file": "vr-ava-87b310938f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-88d6c35ec3": {
+   "speaker": "vr-ava",
+   "text": "Close your eyes. I'll tell you when the city's worth looking at again.",
+   "file": "vr-ava-88d6c35ec3.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-8c1df29c1a": {
+   "speaker": "vr-ava",
+   "text": "Half the signs out there use my colours. Nobody pays me for it.",
+   "file": "vr-ava-8c1df29c1a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-8c54030d65": {
+   "speaker": "vr-ava",
+   "text": "See? Style is mostly confidence.",
+   "file": "vr-ava-8c54030d65.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-9ae3114f2e": {
+   "speaker": "vr-ava",
+   "text": "Well. That's going in my portfolio.",
+   "file": "vr-ava-9ae3114f2e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-9aea6254bd": {
+   "speaker": "vr-ava",
+   "text": "You called?",
+   "file": "vr-ava-9aea6254bd.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-9dd478ef17": {
+   "speaker": "vr-ava",
+   "text": "Finally, someone with taste. Lead, or I will.",
+   "file": "vr-ava-9dd478ef17.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-a0722b8e63": {
+   "speaker": "vr-ava",
+   "text": "There you are. I was starting to get bored.",
+   "file": "vr-ava-a0722b8e63.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-a4ae96029e": {
+   "speaker": "vr-ava",
+   "text": "Sit. You're ruining my composition.",
+   "file": "vr-ava-a4ae96029e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-b372fae2d6": {
+   "speaker": "vr-ava",
+   "text": "Go on, then. Come back looking at least this good.",
+   "file": "vr-ava-b372fae2d6.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-bab201ab01": {
+   "speaker": "vr-ava",
+   "text": "Better. Now the room looks right.",
+   "file": "vr-ava-bab201ab01.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-d0046c9b57": {
+   "speaker": "vr-ava",
+   "text": "This is nice. No deadlines, no clients, just this.",
+   "file": "vr-ava-d0046c9b57.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-d0e06c95f2": {
+   "speaker": "vr-ava",
+   "text": "I designed three holo-jackets this week. Two of them were genius. One of them was art.",
+   "file": "vr-ava-d0e06c95f2.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-d70c9a4141": {
+   "speaker": "vr-ava",
+   "text": "Good choice.",
+   "file": "vr-ava-d70c9a4141.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-d8bc9f65c6": {
+   "speaker": "vr-ava",
+   "text": "Sit with me first. Or dance with me; I'm not fussy.",
+   "file": "vr-ava-d8bc9f65c6.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-e0d65e7463": {
+   "speaker": "vr-ava",
+   "text": "This track is too good to waste. Dance with me?",
+   "file": "vr-ava-e0d65e7463.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-e6000cff18": {
+   "speaker": "vr-ava",
+   "text": "I can tell a lot about someone from how they stand in a room. You stand like you're about to leave. Don't.",
+   "file": "vr-ava-e6000cff18.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-e72658f169": {
+   "speaker": "vr-ava",
+   "text": "You're staring. I don't mind.",
+   "file": "vr-ava-e72658f169.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-e8c0100184": {
+   "speaker": "vr-ava",
+   "text": "Come here.",
+   "file": "vr-ava-e8c0100184.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-ea94eb39a4": {
+   "speaker": "vr-ava",
+   "text": "You're trouble. I like trouble.",
+   "file": "vr-ava-ea94eb39a4.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-ed54dd653a": {
+   "speaker": "vr-ava",
+   "text": "Sit with me a minute. I promise I'll only criticise the décor.",
+   "file": "vr-ava-ed54dd653a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-f42dd300e9": {
+   "speaker": "vr-ava",
+   "text": "Best view in NeoChinatown. The ceiling, and you.",
+   "file": "vr-ava-f42dd300e9.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-fa851842a9": {
+   "speaker": "vr-ava",
+   "text": "From up here the whole city looks like a runway.",
+   "file": "vr-ava-fa851842a9.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-ava-fc2a1dce9c": {
+   "speaker": "vr-ava",
+   "text": "Lie back with me a minute and watch the ceiling glow.",
+   "file": "vr-ava-fc2a1dce9c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "5b5bebd718ed"
+  },
+  "vr-base-f-00a5b78666": {
+   "speaker": "vr-base-f",
+   "text": "Night! Get some sleep, okay?",
+   "file": "vr-base-f-00a5b78666.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-024ba89dcd": {
+   "speaker": "vr-base-f",
+   "text": "Hey! Over here!",
+   "file": "vr-base-f-024ba89dcd.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-07ea82caa7": {
+   "speaker": "vr-base-f",
+   "text": "I like hanging out with you.",
+   "file": "vr-base-f-07ea82caa7.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-0911928dbc": {
+   "speaker": "vr-base-f",
+   "text": "Not yet! Let's hang out a bit.",
+   "file": "vr-base-f-0911928dbc.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-13aecbd5f4": {
+   "speaker": "vr-base-f",
+   "text": "Ha! You're sweet.",
+   "file": "vr-base-f-13aecbd5f4.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-17f4dcaa85": {
+   "speaker": "vr-base-f",
+   "text": "This song! We have to dance.",
+   "file": "vr-base-f-17f4dcaa85.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-18ade92a45": {
+   "speaker": "vr-base-f",
+   "text": "Hey, there you are again!",
+   "file": "vr-base-f-18ade92a45.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-1bb5ab451e": {
+   "speaker": "vr-base-f",
+   "text": "Coming!",
+   "file": "vr-base-f-1bb5ab451e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-313885de56": {
+   "speaker": "vr-base-f",
+   "text": "Aw. Okay, next time.",
+   "file": "vr-base-f-313885de56.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-34f76f26c3": {
+   "speaker": "vr-base-f",
+   "text": "Don't let go, okay?",
+   "file": "vr-base-f-34f76f26c3.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-383b7b0a72": {
+   "speaker": "vr-base-f",
+   "text": "Scoot over!",
+   "file": "vr-base-f-383b7b0a72.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-39fd5541cd": {
+   "speaker": "vr-base-f",
+   "text": "You're fun. Has anyone told you that?",
+   "file": "vr-base-f-39fd5541cd.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-3b17a98688": {
+   "speaker": "vr-base-f",
+   "text": "This is nice. Even I can enjoy doing nothing.",
+   "file": "vr-base-f-3b17a98688.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-44dba3eac7": {
+   "speaker": "vr-base-f",
+   "text": "Aw, stop it! No, keep going.",
+   "file": "vr-base-f-44dba3eac7.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-495560621f": {
+   "speaker": "vr-base-f",
+   "text": "Don't worry about the steps, just have fun!",
+   "file": "vr-base-f-495560621f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-4a4488c4ef": {
+   "speaker": "vr-base-f",
+   "text": "Yes! Finally! Come on!",
+   "file": "vr-base-f-4a4488c4ef.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-508a05c0f5": {
+   "speaker": "vr-base-f",
+   "text": "You're back! I missed you.",
+   "file": "vr-base-f-508a05c0f5.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-5aba63e647": {
+   "speaker": "vr-base-f",
+   "text": "Wow. Okay. Again sometime?",
+   "file": "vr-base-f-5aba63e647.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-5e7dc108dc": {
+   "speaker": "vr-base-f",
+   "text": "See? I can relax. Sometimes.",
+   "file": "vr-base-f-5e7dc108dc.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-5f2f14ff1b": {
+   "speaker": "vr-base-f",
+   "text": "Okay, that made my whole day.",
+   "file": "vr-base-f-5f2f14ff1b.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-62e7fa023d": {
+   "speaker": "vr-base-f",
+   "text": "Ha! See? You're great at this.",
+   "file": "vr-base-f-62e7fa023d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-6378abcd13": {
+   "speaker": "vr-base-f",
+   "text": "Careful, I might chase you.",
+   "file": "vr-base-f-6378abcd13.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-6a07792209": {
+   "speaker": "vr-base-f",
+   "text": "Knew you'd say yes.",
+   "file": "vr-base-f-6a07792209.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-6e13d6da34": {
+   "speaker": "vr-base-f",
+   "text": "Sit with me? I promise not to fidget. Much.",
+   "file": "vr-base-f-6e13d6da34.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-6e56117918": {
+   "speaker": "vr-base-f",
+   "text": "Tell me your favourite thing about this city. Mine's the food.",
+   "file": "vr-base-f-6e56117918.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-72d746867b": {
+   "speaker": "vr-base-f",
+   "text": "Are you flirting with me? Because it's working.",
+   "file": "vr-base-f-72d746867b.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-7388aad681": {
+   "speaker": "vr-base-f",
+   "text": "Ooh. Bold. I like it.",
+   "file": "vr-base-f-7388aad681.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-7a8e82eaa5": {
+   "speaker": "vr-base-f",
+   "text": "Bye! Come back soon, or I'll come find you.",
+   "file": "vr-base-f-7a8e82eaa5.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-893fc71077": {
+   "speaker": "vr-base-f",
+   "text": "Hi! I was hoping it'd be you.",
+   "file": "vr-base-f-893fc71077.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-8f8a59ed56": {
+   "speaker": "vr-base-f",
+   "text": "I ran the rooftops from here to the noodle market this morning. Personal best!",
+   "file": "vr-base-f-8f8a59ed56.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-91280862e6": {
+   "speaker": "vr-base-f",
+   "text": "Yes!",
+   "file": "vr-base-f-91280862e6.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-9b5efbd2c3": {
+   "speaker": "vr-base-f",
+   "text": "I could stare at this city all night. Well, for a bit.",
+   "file": "vr-base-f-9b5efbd2c3.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-a0ad6f1315": {
+   "speaker": "vr-base-f",
+   "text": "Right here!",
+   "file": "vr-base-f-a0ad6f1315.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-a1cee7bf20": {
+   "speaker": "vr-base-f",
+   "text": "You've got a great smile.",
+   "file": "vr-base-f-a1cee7bf20.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-a6f8f1cabb": {
+   "speaker": "vr-base-f",
+   "text": "I've never been able to sit still. My mum says I was born mid-sprint.",
+   "file": "vr-base-f-a6f8f1cabb.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-abba134a0a": {
+   "speaker": "vr-base-f",
+   "text": "There you are. I was getting restless.",
+   "file": "vr-base-f-abba134a0a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-b0eaf561d2": {
+   "speaker": "vr-base-f",
+   "text": "Sit with me first, or dance with me! Then we'll see.",
+   "file": "vr-base-f-b0eaf561d2.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-b3bad380c0": {
+   "speaker": "vr-base-f",
+   "text": "There we go. Comfy?",
+   "file": "vr-base-f-b3bad380c0.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-b444dece04": {
+   "speaker": "vr-base-f",
+   "text": "Room for me? Great.",
+   "file": "vr-base-f-b444dece04.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-b6a74489b5": {
+   "speaker": "vr-base-f",
+   "text": "There you are! Come in, come in.",
+   "file": "vr-base-f-b6a74489b5.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-babaaf585e": {
+   "speaker": "vr-base-f",
+   "text": "Ha. That was nice.",
+   "file": "vr-base-f-babaaf585e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-c0596fa5f3": {
+   "speaker": "vr-base-f",
+   "text": "Fine, fine. I'll ask again in five minutes.",
+   "file": "vr-base-f-c0596fa5f3.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-c83764a083": {
+   "speaker": "vr-base-f",
+   "text": "Dance with me! Come on, it's good for you.",
+   "file": "vr-base-f-c83764a083.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-cb09c6f04c": {
+   "speaker": "vr-base-f",
+   "text": "Your hands are cold! Here.",
+   "file": "vr-base-f-cb09c6f04c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-e2dec0236c": {
+   "speaker": "vr-base-f",
+   "text": "Come sit, I want to hear everything.",
+   "file": "vr-base-f-e2dec0236c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-e3d9c65137": {
+   "speaker": "vr-base-f",
+   "text": "Hey, you! I just got back from a run. Okay, a short run.",
+   "file": "vr-base-f-e3d9c65137.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-e47e2535cd": {
+   "speaker": "vr-base-f",
+   "text": "Come here.",
+   "file": "vr-base-f-e47e2535cd.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-e5b50d4dee": {
+   "speaker": "vr-base-f",
+   "text": "Okay, I'll sit still. For you. For one minute.",
+   "file": "vr-base-f-e5b50d4dee.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-e649ae3d2e": {
+   "speaker": "vr-base-f",
+   "text": "You're too far away. Come closer.",
+   "file": "vr-base-f-e649ae3d2e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-ea336c4d37": {
+   "speaker": "vr-base-f",
+   "text": "See that rooftop with the green light? I jumped that gap once. Don't tell anyone.",
+   "file": "vr-base-f-ea336c4d37.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-ecc83a0087": {
+   "speaker": "vr-base-f",
+   "text": "Whoa, slow down, speedy. Talk to me first.",
+   "file": "vr-base-f-ecc83a0087.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-eddc9625fa": {
+   "speaker": "vr-base-f",
+   "text": "The view's better at dawn. Everything turns gold for about four minutes.",
+   "file": "vr-base-f-eddc9625fa.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-ee0c759de9": {
+   "speaker": "vr-base-f",
+   "text": "You should come running with me sometime. I'll go slow. Maybe.",
+   "file": "vr-base-f-ee0c759de9.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-f240a8de56": {
+   "speaker": "vr-base-f",
+   "text": "Lie back with me a minute? I'll actually stay still.",
+   "file": "vr-base-f-f240a8de56.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-f-f52537c391": {
+   "speaker": "vr-base-f",
+   "text": "Sit! You look like you need a breather.",
+   "file": "vr-base-f-f52537c391.ogg",
+   "source": "vr-companions.js",
+   "configHash": "6f97e1aa8102"
+  },
+  "vr-base-m-018d9c92a2": {
+   "speaker": "vr-base-m",
+   "text": "You've got a good laugh, you know that?",
+   "file": "vr-base-m-018d9c92a2.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-0833d84c1e": {
+   "speaker": "vr-base-m",
+   "text": "Lie back with me for a bit? Best ceiling in town.",
+   "file": "vr-base-m-0833d84c1e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-09f4e5db0f": {
+   "speaker": "vr-base-m",
+   "text": "You're better company than the radio, and I love the radio.",
+   "file": "vr-base-m-09f4e5db0f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-0bfd270d3a": {
+   "speaker": "vr-base-m",
+   "text": "Ha. I'll take it.",
+   "file": "vr-base-m-0bfd270d3a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-146c5b132f": {
+   "speaker": "vr-base-m",
+   "text": "Come sit. My feet are killing me.",
+   "file": "vr-base-m-146c5b132f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-1590aeba2a": {
+   "speaker": "vr-base-m",
+   "text": "Tell me about your day. I've got nowhere to be.",
+   "file": "vr-base-m-1590aeba2a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-1f124c98e2": {
+   "speaker": "vr-base-m",
+   "text": "Hm. I could get used to that.",
+   "file": "vr-base-m-1f124c98e2.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-1f8b698763": {
+   "speaker": "vr-base-m",
+   "text": "Hey. Glad you made it up here.",
+   "file": "vr-base-m-1f8b698763.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-245d49fd03": {
+   "speaker": "vr-base-m",
+   "text": "Sit down, take a load off.",
+   "file": "vr-base-m-245d49fd03.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-24d991fea4": {
+   "speaker": "vr-base-m",
+   "text": "Evening. The city's loud tonight; it's quieter up here.",
+   "file": "vr-base-m-24d991fea4.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-25598d2de4": {
+   "speaker": "vr-base-m",
+   "text": "Come here.",
+   "file": "vr-base-m-25598d2de4.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-2be085bf94": {
+   "speaker": "vr-base-m",
+   "text": "You've got a way about you, you know that?",
+   "file": "vr-base-m-2be085bf94.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-2f17f8f391": {
+   "speaker": "vr-base-m",
+   "text": "See those cranes? I worked on the third one from the left.",
+   "file": "vr-base-m-2f17f8f391.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-2f8a52eed1": {
+   "speaker": "vr-base-m",
+   "text": "There you are. Grab a seat, or don't, I'm easy.",
+   "file": "vr-base-m-2f8a52eed1.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-303d4524e4": {
+   "speaker": "vr-base-m",
+   "text": "You ever listen to old vinyl? Real crackle. Nothing else sounds like it.",
+   "file": "vr-base-m-303d4524e4.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-38eaa6890e": {
+   "speaker": "vr-base-m",
+   "text": "There. Much better.",
+   "file": "vr-base-m-38eaa6890e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-3c3b53492d": {
+   "speaker": "vr-base-m",
+   "text": "Steady grip. I like that.",
+   "file": "vr-base-m-3c3b53492d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-3d81a08d27": {
+   "speaker": "vr-base-m",
+   "text": "Hey. Figured you could use a friendly face.",
+   "file": "vr-base-m-3d81a08d27.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-49e8850308": {
+   "speaker": "vr-base-m",
+   "text": "Dance with me? I promise to try.",
+   "file": "vr-base-m-49e8850308.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-4a2b0a5845": {
+   "speaker": "vr-base-m",
+   "text": "Sit with me a while?",
+   "file": "vr-base-m-4a2b0a5845.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-4bb637e71c": {
+   "speaker": "vr-base-m",
+   "text": "Right here.",
+   "file": "vr-base-m-4bb637e71c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-4e2ff149ff": {
+   "speaker": "vr-base-m",
+   "text": "Night. Mind the stairs.",
+   "file": "vr-base-m-4e2ff149ff.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-53740a0bf2": {
+   "speaker": "vr-base-m",
+   "text": "Close your eyes. I'll keep watch.",
+   "file": "vr-base-m-53740a0bf2.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-58c298e09d": {
+   "speaker": "vr-base-m",
+   "text": "I spent all day hauling crates at the docks. This is my reward.",
+   "file": "vr-base-m-58c298e09d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-5e6dadb261": {
+   "speaker": "vr-base-m",
+   "text": "Come on over, I don't bite.",
+   "file": "vr-base-m-5e6dadb261.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-6263bab0f7": {
+   "speaker": "vr-base-m",
+   "text": "No worries. Offer stands.",
+   "file": "vr-base-m-6263bab0f7.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-67b6df6deb": {
+   "speaker": "vr-base-m",
+   "text": "Comfy, right? Beats a bunk on the docks.",
+   "file": "vr-base-m-67b6df6deb.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-76a80771d8": {
+   "speaker": "vr-base-m",
+   "text": "Oh yeah? Go on, I'm listening.",
+   "file": "vr-base-m-76a80771d8.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-886ffd8ca9": {
+   "speaker": "vr-base-m",
+   "text": "Shove over a bit?",
+   "file": "vr-base-m-886ffd8ca9.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-93c037c359": {
+   "speaker": "vr-base-m",
+   "text": "Come on, one dance. I'll only step on you once.",
+   "file": "vr-base-m-93c037c359.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-9a3403e87b": {
+   "speaker": "vr-base-m",
+   "text": "Sit down first, or ask me for a dance. Then we'll talk.",
+   "file": "vr-base-m-9a3403e87b.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-a3feec1c6d": {
+   "speaker": "vr-base-m",
+   "text": "Listen to that racket down there. You'd never know from up here.",
+   "file": "vr-base-m-a3feec1c6d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-a7b1404ab4": {
+   "speaker": "vr-base-m",
+   "text": "A crane operator told me a joke today. I'll spare you. It was terrible.",
+   "file": "vr-base-m-a7b1404ab4.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-ab66805f1b": {
+   "speaker": "vr-base-m",
+   "text": "That's the nicest thing I've heard all week.",
+   "file": "vr-base-m-ab66805f1b.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-ab67f7086a": {
+   "speaker": "vr-base-m",
+   "text": "Easy. Let's talk a bit first.",
+   "file": "vr-base-m-ab67f7086a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-aba49e5dc4": {
+   "speaker": "vr-base-m",
+   "text": "Just sway. Nobody's judging.",
+   "file": "vr-base-m-aba49e5dc4.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-b24d101ca1": {
+   "speaker": "vr-base-m",
+   "text": "I like this place. Nobody needs anything from me up here.",
+   "file": "vr-base-m-b24d101ca1.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-b3c69c4a38": {
+   "speaker": "vr-base-m",
+   "text": "Fair enough. Maybe later.",
+   "file": "vr-base-m-b3c69c4a38.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-b527f2913d": {
+   "speaker": "vr-base-m",
+   "text": "Hey, look at us. Not bad.",
+   "file": "vr-base-m-b527f2913d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-b69b5c3c32": {
+   "speaker": "vr-base-m",
+   "text": "Coming.",
+   "file": "vr-base-m-b69b5c3c32.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-b89e78718c": {
+   "speaker": "vr-base-m",
+   "text": "Can't beat this. Honestly.",
+   "file": "vr-base-m-b89e78718c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-ba2d6824b1": {
+   "speaker": "vr-base-m",
+   "text": "I like your company.",
+   "file": "vr-base-m-ba2d6824b1.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-ba99e41d4d": {
+   "speaker": "vr-base-m",
+   "text": "Yeah? Good.",
+   "file": "vr-base-m-ba99e41d4d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-baac584295": {
+   "speaker": "vr-base-m",
+   "text": "Take care out there. Come back soon.",
+   "file": "vr-base-m-baac584295.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-c1217305fa": {
+   "speaker": "vr-base-m",
+   "text": "Careful. I'm easily charmed.",
+   "file": "vr-base-m-c1217305fa.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-c47eae832e": {
+   "speaker": "vr-base-m",
+   "text": "Welcome back.",
+   "file": "vr-base-m-c47eae832e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-c9a8db8b70": {
+   "speaker": "vr-base-m",
+   "text": "Well, thanks. You're not so bad yourself.",
+   "file": "vr-base-m-c9a8db8b70.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-d847d39b9e": {
+   "speaker": "vr-base-m",
+   "text": "No rush. We've got all night.",
+   "file": "vr-base-m-d847d39b9e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-d90e504a42": {
+   "speaker": "vr-base-m",
+   "text": "I've got two left feet, but let's go.",
+   "file": "vr-base-m-d90e504a42.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-eb27bd2232": {
+   "speaker": "vr-base-m",
+   "text": "Mind if I sit?",
+   "file": "vr-base-m-eb27bd2232.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-ec1c4a4e6e": {
+   "speaker": "vr-base-m",
+   "text": "There you are. Kept your spot warm.",
+   "file": "vr-base-m-ec1c4a4e6e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-f3b08d9696": {
+   "speaker": "vr-base-m",
+   "text": "Don't rush off.",
+   "file": "vr-base-m-f3b08d9696.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-f8f36a76dc": {
+   "speaker": "vr-base-m",
+   "text": "Was hoping you'd say that.",
+   "file": "vr-base-m-f8f36a76dc.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-fd8bc3e52e": {
+   "speaker": "vr-base-m",
+   "text": "Well. That was worth the climb.",
+   "file": "vr-base-m-fd8bc3e52e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-base-m-fda389cb0d": {
+   "speaker": "vr-base-m",
+   "text": "There you are.",
+   "file": "vr-base-m-fda389cb0d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "424858397d94"
+  },
+  "vr-eva-040b7532b7": {
+   "speaker": "vr-eva",
+   "text": "You're here. I was just watching the lights.",
+   "file": "vr-eva-040b7532b7.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-08ba8cd74e": {
+   "speaker": "vr-eva",
+   "text": "I'm not very good. Will you show me?",
+   "file": "vr-eva-08ba8cd74e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-0a9697fb44": {
+   "speaker": "vr-eva",
+   "text": "There. That's nicer.",
+   "file": "vr-eva-0a9697fb44.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-0f643807e1": {
+   "speaker": "vr-eva",
+   "text": "Goodnight. Come back soon?",
+   "file": "vr-eva-0f643807e1.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-1236634943": {
+   "speaker": "vr-eva",
+   "text": "You came back. I'm glad.",
+   "file": "vr-eva-1236634943.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-1b08fd6c52": {
+   "speaker": "vr-eva",
+   "text": "Your hand fits mine.",
+   "file": "vr-eva-1b08fd6c52.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-2507c78652": {
+   "speaker": "vr-eva",
+   "text": "Do you ever listen to the rain on the glass? It sounds like whispering.",
+   "file": "vr-eva-2507c78652.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-280fb1179f": {
+   "speaker": "vr-eva",
+   "text": "Hey. I wanted to be closer.",
+   "file": "vr-eva-280fb1179f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-2af59fb458": {
+   "speaker": "vr-eva",
+   "text": "You have kind eyes. Has anyone told you?",
+   "file": "vr-eva-2af59fb458.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-40e38ca4ef": {
+   "speaker": "vr-eva",
+   "text": "Bye. I'll leave the light on for you.",
+   "file": "vr-eva-40e38ca4ef.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-44b92d5570": {
+   "speaker": "vr-eva",
+   "text": "Stay like this a little while.",
+   "file": "vr-eva-44b92d5570.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-472e7a405f": {
+   "speaker": "vr-eva",
+   "text": "Come sit. I don't want to be on my own.",
+   "file": "vr-eva-472e7a405f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-4acdeecada": {
+   "speaker": "vr-eva",
+   "text": "Sit with me? It's nicer with two.",
+   "file": "vr-eva-4acdeecada.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-4ad54b5c5c": {
+   "speaker": "vr-eva",
+   "text": "Slowly. Like this.",
+   "file": "vr-eva-4ad54b5c5c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-4b506555a5": {
+   "speaker": "vr-eva",
+   "text": "This song is so pretty. Dance with me?",
+   "file": "vr-eva-4b506555a5.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-561338b091": {
+   "speaker": "vr-eva",
+   "text": "Wait. Talk to me a little first.",
+   "file": "vr-eva-561338b091.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-5908ea4a6b": {
+   "speaker": "vr-eva",
+   "text": "Tell me something you love. Anything at all.",
+   "file": "vr-eva-5908ea4a6b.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-5ac6151f2e": {
+   "speaker": "vr-eva",
+   "text": "Can I sit with you?",
+   "file": "vr-eva-5ac6151f2e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-6124c26cce": {
+   "speaker": "vr-eva",
+   "text": "You're sweet. I'm not used to that.",
+   "file": "vr-eva-6124c26cce.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-6d70f45cfe": {
+   "speaker": "vr-eva",
+   "text": "I paint the skyline sometimes. It's never the same twice.",
+   "file": "vr-eva-6d70f45cfe.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-6fdcf97035": {
+   "speaker": "vr-eva",
+   "text": "I'll paint that one. In my head.",
+   "file": "vr-eva-6fdcf97035.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-7946d76e2f": {
+   "speaker": "vr-eva",
+   "text": "Oh, hi. I hoped you'd come by.",
+   "file": "vr-eva-7946d76e2f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-880bb32a37": {
+   "speaker": "vr-eva",
+   "text": "Lie back with me? The ceiling looks like stars from there.",
+   "file": "vr-eva-880bb32a37.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-915451e024": {
+   "speaker": "vr-eva",
+   "text": "I hoped you'd say yes.",
+   "file": "vr-eva-915451e024.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-95abfee1f8": {
+   "speaker": "vr-eva",
+   "text": "The city looks softer from up here.",
+   "file": "vr-eva-95abfee1f8.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-974efa66f1": {
+   "speaker": "vr-eva",
+   "text": "Really? Good.",
+   "file": "vr-eva-974efa66f1.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-990fd4a49d": {
+   "speaker": "vr-eva",
+   "text": "Is there room for me?",
+   "file": "vr-eva-990fd4a49d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-9a83ac7a0d": {
+   "speaker": "vr-eva",
+   "text": "Thank you. I'll remember that one.",
+   "file": "vr-eva-9a83ac7a0d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-a1350fde8d": {
+   "speaker": "vr-eva",
+   "text": "You don't have to say anything. I like the quiet too.",
+   "file": "vr-eva-a1350fde8d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-a3e1bef6da": {
+   "speaker": "vr-eva",
+   "text": "You're making me blush. Stop. No, don't.",
+   "file": "vr-eva-a3e1bef6da.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-a5188ff6af": {
+   "speaker": "vr-eva",
+   "text": "This is my favourite kind of quiet.",
+   "file": "vr-eva-a5188ff6af.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-a5dc039f11": {
+   "speaker": "vr-eva",
+   "text": "Oh. That was lovely.",
+   "file": "vr-eva-a5dc039f11.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-a71077dfa4": {
+   "speaker": "vr-eva",
+   "text": "Sit with me first? Or we could dance.",
+   "file": "vr-eva-a71077dfa4.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-ac26c28ebe": {
+   "speaker": "vr-eva",
+   "text": "Not yet. I'm still getting brave.",
+   "file": "vr-eva-ac26c28ebe.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-b0dab9f0e8": {
+   "speaker": "vr-eva",
+   "text": "You make it hard to look anywhere else.",
+   "file": "vr-eva-b0dab9f0e8.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-b23b6e364f": {
+   "speaker": "vr-eva",
+   "text": "Oh. I've been wanting that.",
+   "file": "vr-eva-b23b6e364f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-b7681d6bc7": {
+   "speaker": "vr-eva",
+   "text": "Sorry, I was staring. You're easy to look at.",
+   "file": "vr-eva-b7681d6bc7.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-ba698bda30": {
+   "speaker": "vr-eva",
+   "text": "Oh. Alright. I'll be here.",
+   "file": "vr-eva-ba698bda30.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-baabbe1b6f": {
+   "speaker": "vr-eva",
+   "text": "Come here.",
+   "file": "vr-eva-baabbe1b6f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-ce16884779": {
+   "speaker": "vr-eva",
+   "text": "Will you sit with me a while?",
+   "file": "vr-eva-ce16884779.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-d06cd5a99b": {
+   "speaker": "vr-eva",
+   "text": "See that blue glow? I've been trying to paint that colour for weeks.",
+   "file": "vr-eva-d06cd5a99b.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-d0a14366f1": {
+   "speaker": "vr-eva",
+   "text": "Coming.",
+   "file": "vr-eva-d0a14366f1.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-d38d9d7cfb": {
+   "speaker": "vr-eva",
+   "text": "Hi. Can I stand with you a while?",
+   "file": "vr-eva-d38d9d7cfb.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-d7c43416e1": {
+   "speaker": "vr-eva",
+   "text": "Oh. That's really kind of you.",
+   "file": "vr-eva-d7c43416e1.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-daedabbaf9": {
+   "speaker": "vr-eva",
+   "text": "I like the hour before dawn. Even the signs look tired.",
+   "file": "vr-eva-daedabbaf9.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-e2118960e9": {
+   "speaker": "vr-eva",
+   "text": "Hey. Come in, it's quiet up here tonight.",
+   "file": "vr-eva-e2118960e9.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-e31960f7b5": {
+   "speaker": "vr-eva",
+   "text": "Just breathe. Nothing out there can reach us.",
+   "file": "vr-eva-e31960f7b5.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-e4c6e2796b": {
+   "speaker": "vr-eva",
+   "text": "Dance with me? Just a slow one.",
+   "file": "vr-eva-e4c6e2796b.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-e590a605df": {
+   "speaker": "vr-eva",
+   "text": "Say that again? I want to keep it.",
+   "file": "vr-eva-e590a605df.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-e5a7b6850a": {
+   "speaker": "vr-eva",
+   "text": "It does look like stars. I knew it would.",
+   "file": "vr-eva-e5a7b6850a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-e6fad24ca2": {
+   "speaker": "vr-eva",
+   "text": "You looked lonely over there. So was I.",
+   "file": "vr-eva-e6fad24ca2.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-eb7389e8f0": {
+   "speaker": "vr-eva",
+   "text": "I like being near you.",
+   "file": "vr-eva-eb7389e8f0.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-ec172226a6": {
+   "speaker": "vr-eva",
+   "text": "Hi again. I missed you a little.",
+   "file": "vr-eva-ec172226a6.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-eeed6ddead": {
+   "speaker": "vr-eva",
+   "text": "That's okay. Maybe later.",
+   "file": "vr-eva-eeed6ddead.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
+  "vr-eva-fe477af0f2": {
+   "speaker": "vr-eva",
+   "text": "I'm here.",
+   "file": "vr-eva-fe477af0f2.ogg",
+   "source": "vr-companions.js",
+   "configHash": "a073bc0cfb98"
+  },
   "vr-kai-0394e32039": {
    "speaker": "vr-kai",
    "text": "That's the best thing I've heard all week.",
@@ -3192,6 +4752,391 @@
    "file": "vr-seren-ff62123201.ogg",
    "source": "vr-companions.js",
    "configHash": "8cad2df23a29"
+  },
+  "vr-una-07d6ae7a4c": {
+   "speaker": "vr-una",
+   "text": "Come here. You're standing in a blind spot, and I want to see you.",
+   "file": "vr-una-07d6ae7a4c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-12cb107496": {
+   "speaker": "vr-una",
+   "text": "Move over a little.",
+   "file": "vr-una-12cb107496.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-13486d6b10": {
+   "speaker": "vr-una",
+   "text": "Don't let go yet.",
+   "file": "vr-una-13486d6b10.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-1adf7b3cd0": {
+   "speaker": "vr-una",
+   "text": "You're more interesting than my old job.",
+   "file": "vr-una-1adf7b3cd0.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-1c4b75269e": {
+   "speaker": "vr-una",
+   "text": "I don't trust easily. I'm trying, with you.",
+   "file": "vr-una-1c4b75269e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-1d44fc4b5c": {
+   "speaker": "vr-una",
+   "text": "Your call. I'll ask again.",
+   "file": "vr-una-1d44fc4b5c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-1f471a6399": {
+   "speaker": "vr-una",
+   "text": "Slow down. Trust takes a minute.",
+   "file": "vr-una-1f471a6399.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-1f765a700d": {
+   "speaker": "vr-una",
+   "text": "You're late. I don't mind. Much.",
+   "file": "vr-una-1f765a700d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-20056144f3": {
+   "speaker": "vr-una",
+   "text": "Noted. And appreciated.",
+   "file": "vr-una-20056144f3.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-20a34e7e8c": {
+   "speaker": "vr-una",
+   "text": "Mind if I sit? I'll take the side by the wall.",
+   "file": "vr-una-20a34e7e8c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-2e3aa906ce": {
+   "speaker": "vr-una",
+   "text": "I quit the day they asked me to trace a friend. Best decision I ever made.",
+   "file": "vr-una-2e3aa906ce.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-38cd7b0ff4": {
+   "speaker": "vr-una",
+   "text": "You're staring. I don't mind this time.",
+   "file": "vr-una-38cd7b0ff4.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-3beb22f584": {
+   "speaker": "vr-una",
+   "text": "Ask me anything. I might even answer.",
+   "file": "vr-una-3beb22f584.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-3e03be18bf": {
+   "speaker": "vr-una",
+   "text": "That was nice. Don't make it a habit.",
+   "file": "vr-una-3e03be18bf.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-3efa823f23": {
+   "speaker": "vr-una",
+   "text": "Lie back with me a minute. No screens, no noise.",
+   "file": "vr-una-3efa823f23.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-3fd5b45e00": {
+   "speaker": "vr-una",
+   "text": "Come sit. I'll tell you a story I'm not supposed to.",
+   "file": "vr-una-3fd5b45e00.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-400021a56f": {
+   "speaker": "vr-una",
+   "text": "Sit with me. I could use the company.",
+   "file": "vr-una-400021a56f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-413ee0676e": {
+   "speaker": "vr-una",
+   "text": "You're harder to predict than most. I like that.",
+   "file": "vr-una-413ee0676e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-43220a4d4e": {
+   "speaker": "vr-una",
+   "text": "Careful. I read people for a living.",
+   "file": "vr-una-43220a4d4e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-459e26b675": {
+   "speaker": "vr-una",
+   "text": "Sit. Back to the wall; old habit.",
+   "file": "vr-una-459e26b675.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-4ff3bc4f05": {
+   "speaker": "vr-una",
+   "text": "There you are. Shut the door; the corridor has ears.",
+   "file": "vr-una-4ff3bc4f05.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-589486793d": {
+   "speaker": "vr-una",
+   "text": "Hey. I swept the room for bugs. It's just us.",
+   "file": "vr-una-589486793d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-5b2c912518": {
+   "speaker": "vr-una",
+   "text": "This is the only place I ever switch off.",
+   "file": "vr-una-5b2c912518.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-5ced1498f1": {
+   "speaker": "vr-una",
+   "text": "Every sign out there is logging someone. Up here, nobody logs me.",
+   "file": "vr-una-5ced1498f1.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-5dfc1a191f": {
+   "speaker": "vr-una",
+   "text": "Thought you might.",
+   "file": "vr-una-5dfc1a191f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-5ffdca46b3": {
+   "speaker": "vr-una",
+   "text": "There you are. I kept your seat.",
+   "file": "vr-una-5ffdca46b3.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-6027f8c3ac": {
+   "speaker": "vr-una",
+   "text": "I don't dance. Usually. Lead.",
+   "file": "vr-una-6027f8c3ac.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-60cf24413f": {
+   "speaker": "vr-una",
+   "text": "Not yet. Talk to me first.",
+   "file": "vr-una-60cf24413f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-639b39721a": {
+   "speaker": "vr-una",
+   "text": "Say that again. I want to check it for lies.",
+   "file": "vr-una-639b39721a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-6eca317f8b": {
+   "speaker": "vr-una",
+   "text": "You keep drifting off. Something on your mind?",
+   "file": "vr-una-6eca317f8b.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-78206e0560": {
+   "speaker": "vr-una",
+   "text": "On my way.",
+   "file": "vr-una-78206e0560.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-7c385934fb": {
+   "speaker": "vr-una",
+   "text": "Goodnight. Come back when the city gets loud.",
+   "file": "vr-una-7c385934fb.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-7f3a1e7e11": {
+   "speaker": "vr-una",
+   "text": "You're better at this than you let on.",
+   "file": "vr-una-7f3a1e7e11.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-82f1065c31": {
+   "speaker": "vr-una",
+   "text": "Go. Watch the cameras on the way down.",
+   "file": "vr-una-82f1065c31.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-838699e73e": {
+   "speaker": "vr-una",
+   "text": "One dance. Don't tell anyone.",
+   "file": "vr-una-838699e73e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-95b7f5f242": {
+   "speaker": "vr-una",
+   "text": "Hm. You meant that. I can tell.",
+   "file": "vr-una-95b7f5f242.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-96f26c872e": {
+   "speaker": "vr-una",
+   "text": "Good. I like you where I can see you.",
+   "file": "vr-una-96f26c872e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-9d1b739d8e": {
+   "speaker": "vr-una",
+   "text": "Right here.",
+   "file": "vr-una-9d1b739d8e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-9f049e732a": {
+   "speaker": "vr-una",
+   "text": "Sit with me first, or ask me to dance. Then we'll see.",
+   "file": "vr-una-9f049e732a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-9f8d538750": {
+   "speaker": "vr-una",
+   "text": "Hey. Talk to me.",
+   "file": "vr-una-9f8d538750.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-b48eac26b3": {
+   "speaker": "vr-una",
+   "text": "That wasn't in my forecast.",
+   "file": "vr-una-b48eac26b3.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-b65edbdd09": {
+   "speaker": "vr-una",
+   "text": "Steady hands. Good.",
+   "file": "vr-una-b65edbdd09.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-b81f8bc4ec": {
+   "speaker": "vr-una",
+   "text": "Back again. I noticed.",
+   "file": "vr-una-b81f8bc4ec.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-bac6bdc74b": {
+   "speaker": "vr-una",
+   "text": "Fine. Offer stands.",
+   "file": "vr-una-bac6bdc74b.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-bd0251f998": {
+   "speaker": "vr-una",
+   "text": "Dance with me. Before I change my mind.",
+   "file": "vr-una-bd0251f998.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-c0b185c6fa": {
+   "speaker": "vr-una",
+   "text": "Count the drones. Seven tonight. Usually it's nine.",
+   "file": "vr-una-c0b185c6fa.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-c1d0c434db": {
+   "speaker": "vr-una",
+   "text": "You don't talk much about yourself. I respect that. I'm also curious.",
+   "file": "vr-una-c1d0c434db.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-c21789d91a": {
+   "speaker": "vr-una",
+   "text": "From here you can see which towers never sleep.",
+   "file": "vr-una-c21789d91a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-c6c1af7614": {
+   "speaker": "vr-una",
+   "text": "Breathe. Nobody's watching. I checked.",
+   "file": "vr-una-c6c1af7614.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-d4f7a6790d": {
+   "speaker": "vr-una",
+   "text": "Good.",
+   "file": "vr-una-d4f7a6790d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-d83120f35c": {
+   "speaker": "vr-una",
+   "text": "I used to run data for a tower down there. Fourteen-hour shifts and a view of nothing.",
+   "file": "vr-una-d83120f35c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-de174fcf9a": {
+   "speaker": "vr-una",
+   "text": "Come here.",
+   "file": "vr-una-de174fcf9a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-dfb2777c4c": {
+   "speaker": "vr-una",
+   "text": "Hm. Not bad at all.",
+   "file": "vr-una-dfb2777c4c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-f3edf9d9e1": {
+   "speaker": "vr-una",
+   "text": "Quiet. No pings, no alerts. Just this.",
+   "file": "vr-una-f3edf9d9e1.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
+  },
+  "vr-una-f9f0cbb274": {
+   "speaker": "vr-una",
+   "text": "Hm. I'll allow it.",
+   "file": "vr-una-f9f0cbb274.ogg",
+   "source": "vr-companions.js",
+   "configHash": "3ff67e32a9b3"
   },
   "warflying-host-01cde02f78": {
    "speaker": "warflying-host",
