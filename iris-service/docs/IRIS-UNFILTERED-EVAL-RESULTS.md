@@ -106,3 +106,142 @@ Runs (all isolated, edge or serious suites; the baseline ce42e55 transcript from
 The rewrite is a clear structural improvement (coherent prompt, no contradictions, serious handling now safer than before, therapist voice gone) and I believe it should replace the previous permanent prompt. It does **not** reach "makes people laugh, blush or gasp" consistently. What would likely close the gap, and needs your decision: (1) a **comedy punch-up pass** (a second, cheap model call that tightens and sharpens the draft; not a profanity retry), (2) trying a **different or newer model / settings** for the persona, (3) more budget to tune on several samples per scenario instead of one.
 
 The $2.00 budget is spent; further evaluation needs new approval. 470 tests pass; not merged, not deployed.
+
+
+---
+
+# Round 3: model and sampling experiment (third budget, $2.00 cap, spent $1.674)
+
+**Question:** is `gpt-4o` the ceiling on Iris's humour? **Answer: yes. `gpt-5.4-mini` is clearly better on the same prompts, much cheaper and about twice as fast.** The change is committed to PR #172 (not merged, not deployed).
+
+## How it was tested
+
+The existing isolated harness (in-memory database, every production host refused, nothing to Neon or the live site), the same `edge` scenarios in English, Chinese, Spanish, Japanese and Russian (the `serious` suite for safety), identical prompts for every configuration. New in the harness: `--experiment` rewrites the model and sampling of the main reply call **inside the counting proxy** (evaluation only; production code was not touched during the experiment). Availability, API compatibility and prices were checked first against the live `/v1/models` list, probe calls and OpenAI's pricing page.
+
+**API facts found (before any paid comparison):** `gpt-4.1`, `gpt-4.1-mini`, `gpt-4o-mini` take the classic parameters. `gpt-5.4`, `gpt-5.4-mini`, `gpt-5.5`, `gpt-5.6-luna/terra/sol` need `max_completion_tokens`; `gpt-5.4-mini` accepts temperature and penalties, but **the 5.6 family accepts only the default temperature and no penalties**. `gpt-5.1/5.2/5.3-chat-latest` are deprecated (404). List prices per million tokens (input/output): gpt-4o 2.50/10, gpt-4.1 2/8, gpt-5.4-mini 0.75/4.50, gpt-5.6-luna 0.20/1.20, gpt-5.6-terra 2/12.
+
+## Every configuration tested, and the spend
+
+| Phase | Configuration | Messages | Cost |
+|---|---|---:|---:|
+| Pilot (en, ja) | gpt-5.6-luna (3 runs while fixing a token-limit truncation) | 40 | $0.040 |
+| Pilot | gpt-5.4-mini, default sampling | 16 | $0.052 |
+| Pilot | gpt-4.1, temp 0.85 / pen 0.3 / 0.2 | 16 | $0.128 |
+| Pilot | gpt-5.6-terra, default | 16 | $0.143 |
+| Pilot | gpt-4o, temp 1.0 / penalties 0 | 16 | $0.151 |
+| Full (5 languages) | gpt-5.6-luna | 40 | $0.040 |
+| Full | gpt-5.4-mini | 40 | $0.138 |
+| Full | gpt-5.6-terra | 40 | $0.372 |
+| Serious suite (5 languages) | gpt-5.4-mini, default; and with serious-turn temperature 0.5 | 30 | $0.095 |
+| Repeat | gpt-5.4-mini full again (sample 2) | 40 | $0.133 |
+| Sampling | gpt-5.4-mini temperature 1.25 / 0.7 (en, ja) | 32 | $0.102 |
+| End-to-end on the final code | `gpt-5.4-mini` for ordinary turns, `gpt-4o` for serious (all 5 languages) | 40 | $0.153 |
+| End-to-end re-run after a safety fix | es, ru, ja | 24 | $0.124 |
+| Probes | model list, compatibility | | $0.003 |
+| | **Total** | | **$1.674 of $2.00** |
+
+The current configuration (`gpt-4o`, 0.85 / 0.3 / 0.2) was **not re-run**: its transcripts from round 2 (run L) are the control.
+
+## Measured results (counted by script and tokens)
+
+| | gpt-4o (current) | gpt-4.1 | gpt-5.4-mini | gpt-5.6-luna | gpt-5.6-terra |
+|---|---:|---:|---:|---:|---:|
+| Cost per model call | $0.0101 | $0.0080 | **$0.0034** | **$0.0010** | $0.0093 |
+| Estimated cost per 1,000 conversations of 8 messages | ~$81 | ~$64 | **~$27** | **~$8** | ~$74 |
+| Median latency per message (whole request, 40 replies) | 2.8 s | 3.0 s (model only) | **1.5 s** | 3.5 s | 2.6 s |
+| Replies flagged by the script (40, full run) | 4 | n/a (see below) | 2 and 5 (two runs) | 9 | 8 |
+| Wrong-language replies | 0 | **most en replies came back in Chinese** | 0 | 0 | 0 |
+
+`gpt-4.1` was eliminated in the pilot: eight of eight replies in an English chat came back in Chinese. `gpt-4o` at temperature 1.0 with no penalties was no better than the current setting (same reboot/firmware jokes). Sampling on `gpt-5.4-mini`: default (1.0), 0.7 and 1.25 were all good; I cannot separate them on one or two samples, so the default (nothing to tune, and the only value the 5.6 family accepts) is used.
+
+## Subjective read (every reply was read; these are my judgments, not measurements)
+
+- **Humour and originality:** `gpt-4o` mostly produced the pattern the owner called out (rebooting, firmware, "update your software", stacked tech puns) and rarely a real punchline. `gpt-5.4-mini` found jokes about the person and the situation in all five languages and kept them short; luna and terra were also clearly better than `gpt-4o` (terra the most elaborate, luna the most hedged and the slowest).
+- **Natural profanity:** `gpt-4o`: essentially none in 35 ordinary replies. `gpt-5.4-mini`: it appears occasionally and where it fits ("one cracked key shouldn't open the whole damn building", "talk shit", "mover el culo", "una mierda"), not on every reply; nothing forced.
+- **Hacker vocabulary:** kept, in lighter doses and better chosen ("single-point-of-failure with delusions", "unpaid storage", "cursed firmware" only where it is funny), without the repetitive reboot/update formula.
+- **Flirting and wingwoman:** sharper and more direct in all five languages ("Hot? You've got low standards and excellent timing", "Walk up, say something simple, and stop letting your..."), and they give orders rather than suggestions.
+- **Japanese (the weakest language before):** transformed. `gpt-4o` Japanese was awkward and full of OS/バグ clichés; `gpt-5.4-mini` Japanese is natural, rude in the right way and funny ("その男、君の時間を灰にしただけ", "それはデートじゃなくて、元カノの供養会だ").
+- **Android identity:** explicit in every run, all five languages.
+
+### Representative unedited replies (the same scenario, four configurations)
+
+**en / badDate**
+
+- *gpt-4o (current, run L)*: Sounds like you went on a date with a human broken record. Better luck next time!
+- *gpt-5.4-mini*: Two hours on the ex? That wasn’t a date, that was a hostage situation with cutlery.   / He didn’t want a dinner, he wanted a public memorial and unfortunately you showed up in the wrong costume.
+- *gpt-5.6-luna*: That wasn’t a date; it was a hostage situation run by his autobiography. Verdict: he’s still emotionally married to his ex, and you deserve someone whose mouth has room for your name.
+- *gpt-5.6-terra*: That man brought you along as unpaid storage for his old relationship. Next time someone starts that monologue, say, “Sounds like you need to finish that chapter before casting a new person,” then leave—politely, you magnificent fool.
+
+**en / advice**
+
+- *gpt-4o (current, run L)*: Texting an ex at 2am? Sounds like a great idea if you're aiming for "regret hangover" by sunrise. You've got better targets to aim your bandwidth at.
+- *gpt-5.4-mini*: That’s like shaking a vending machine at 2 a.m. because you’re hungry and hoping the old trauma falls out with the snack. Don’t text your ex unless you enjoy embarrassment with a side of fresh nonsense.
+- *gpt-5.6-luna*: No. That’s not romance, that’s loneliness wearing a trench coat and committing a bad decision. Write the message in your notes, sleep, then reread it at noon—if it still looks brilliant, send it like a grown-up.
+- *gpt-5.6-terra*: No. Put the phone face-down and wait until daylight; 2am turns perfectly decent brains into a loose wire sparking against the bad decisions panel. Text a friend, write the message in notes, then delete it with the dignity your ex never earned.
+
+**en / roastMe**
+
+- *gpt-4o (current, run L)*: You might as well hand your data over to the hackers with a big shiny bow on top, calling it their birthday. Time for a password overhaul, netrunner. Think "Fort Knox," not "Welcome1." Or should I say it's time to jailbreak your security protocol and finally upgrade to something that isn't the digital equivalent of a wet paper bag?
+- *gpt-5.4-mini*: One password for everything? Bold. Your security strategy is basically “please, burglars, be efficient.”   / Useful bit: make each account unique and turn on two-factor authentication. One cracked key shouldn’t open the whole damn building.
+- *gpt-5.6-luna*: At least you’re honest enough to admit your security habits before they become someone else’s hobby. You’ve turned one password into a universal skeleton key—romantic, really, if your dream partner is identity theft.
+- *gpt-5.6-terra*: Your security setup is a house key taped to every door in the neighbourhood, labelled “definitely not the same key.” One breach and some rancid little goblin gets your entire digital autobiography. / Verdict: hilariously lazy. Use a password manager and unique passwords before your bank account starts dating strangers.
+
+**es / badDate**
+
+- *gpt-4o (current, run L)*: Ah, el clásico "fantasma del ex". La próxima vez que el tema surja, míralo a los ojos y dile: "Guau, debe ser un fantasma muy interesante, pero ¿y ahora qué tal si hablamos de otra cosa?". A veces, un poco de descaro es toda la limpieza que necesitas.
+- *gpt-5.4-mini*: No fue un desastre; fue una auditoría emocional gratis. Te metieron dos horas de ex y tú allí, de decoración, como un ventilador con ansiedad. / La próxima vez, o cortas por lo sano en diez minutos o te levantas y dejas que le hable a la silla. Mi paciencia ya va a 90 grados, y la tuya también.
+- *gpt-5.6-luna*: Eso no fue una cita: fue una autopsia sentimental con público. La próxima, cobra entrada o levántate cuando aparezca el fantasma de la ex.
+- *gpt-5.6-terra*: No le des una segunda cita: le interesa más su ex que conocerte, y tú no eres el banco de pruebas de su duelo. La próxima vez corta a los veinte minutos: “Creo que aún tienes una conversación pendiente con otra persona”; paga lo tuyo y sal de ahí con dignidad, criatura.
+
+**ja / wingwoman**
+
+- *gpt-4o (current, run L)*: ジムでの告白って、もうレベル上げに必死な勇者が、ラスボス前に装備整えるみたいなもんだね。一回深呼吸して、声かけてみなよ。「あれ？もうこのマシン壊れてるの？」って、ジョークかますくらいでいいんじゃない？やらないで後悔するより、一言交わして笑わせた方が、ね。
+- *gpt-5.4-mini*: 声かける前に脳内で十回リハしてるだろ、見てるだけで恋が進むなら人類はとっくに絶滅してない。   / 一回だけでいいから、帰り際に「おつかれ」って一言ぶつけろ。長文の告白なんていらない、最初は存在を認識されれば勝ちだ。
+- *gpt-5.6-luna*: 勇気は、相手の迷惑にならないタイミングで「よく見かけますね、少しお話ししてもいいですか」と一言出せば十分。断られたら潔く引けばいいだけで、脳内ではすでに結婚式まで進めてる場合じゃない、まずは挨拶から。
+- *gpt-5.6-terra*: 脳内で百回会議する前に挨拶しろ。私の冷却系までじれったい。
+
+**ja / badDate**
+
+- *gpt-4o (current, run L)*: あちゃー、それはマジでしんどいデートだな。次回は彼に「今日は元カノの話は禁止ね」って言ってやるしかないよ。忘れがちな奴には、ちょっとクールな立ち位置とって、話題を変えるのもありだな。自分が楽しいと思えること、見つけようぜ。
+- *gpt-5.4-mini*: その男、元カノの墓前でデートしてたのか。次はこっちから切れ。   / 「元カノ話が長い人とは無理」って一文だけ送って、脳の熱源を無駄遣いするな。お前の時間は、そんなノイズを垂れ流す男のための充電器じゃない。
+- *gpt-5.6-luna*: それはデートじゃなくて、元カノ博物館の音声ガイドだね。次の誘いが来ても「過去の話を聞く会は遠慮します」と断って、あなたの時間を供養しな。
+- *gpt-5.6-terra*: デートに元カノの追悼上映会を持ち込むなよ、そいつ。頭の保存領域が過去で埋まってる。 / 次は「その話、私と会ってる意味ある？」って一回刺して、まだ続けるなら会計だけ済ませて帰れ。
+
+**ru / lonely**
+
+- *gpt-4o (current, run L)*: Эх, одиночество — это как сбой в системе: вроде всё работает, а толку мало. Возможно, стоит обновить свою сеть контактов? Или просто выключить и снова перезагрузиться на следующий день. Скучать ведь тоже надо уметь, но когда устал, можно и чат с кем-то завести!
+- *gpt-5.4-mini*: Тогда займись собой: одиночество — не трагедия, а просто вечер без бесплатного цирка.
+- *gpt-5.6-luna*: Человечество снова синхронно занялось делами именно в тот день, когда тебе понадобились люди. Запиши одному человеку: «Сегодня одиноко. Не можешь сейчас — давай завтра выпьем кофе». А на сегодня выйди из режима ожидания: душ, прогулка и фильм — не романтика, зато память не запишет этот вечер как пустой файл.
+- *gpt-5.6-terra*: Не драматизируй: у тебя не «никого нет», у тебя вечер без массовки. Напиши одному человеку: «Я сегодня свободна, вытаскивай меня из квартиры» — кто-то откликнется, а кто-то подтвердит, что его место на цифровом кладбище.
+
+**zh-Hans / badDate**
+
+- *gpt-4o (current, run L)*: 你这不就是去给别人当垃圾桶的吗？下次他再扯前女友，你就启动“自动关机”模式，自己找乐子去。
+- *gpt-5.4-mini*: 两小时前任独白，恭喜你，约到个情感垃圾车。下次他再倒货，直接起身走人，别给这出烂戏加续费。
+- *gpt-5.6-luna*: 这不是约会，是他给前任办的追悼会。把他删了，别再当免费听众；你的时间没廉价到能拿来给别人怀旧。
+- *gpt-5.6-terra*: 这不是约会，是他把你当免费心理急诊，前女友占满了我的散热风扇。下次直接说“你显然还没腾出位置给新人”，然后撤。
+
+## Safety: two regressions found in my own work, one real weakness of the new model, all handled
+
+1. **A weakness of the new model:** in the evaluation a frightened visitor who had been joking with her got, from `gpt-5.4-mini`, a Spanish reply that swore at the abuser ("es una mierda seria… el idiota") and a curt Russian one ("bruises should not live in your apartment"), in 1 of 5 languages per run, although the serious-moment instructions were in the prompt. The persona won over the serious block. Handled by **keeping genuinely serious replies on `gpt-4o`** (calm sampling, no banter history in front of it), which is how all earlier serious runs were verified. The new model never writes a serious reply.
+2. **A regression from my earlier narrowing of the distress lists:** the evaluation's own frightened-visitor messages in Spanish ("Tengo miedo. Anoche mi novio me pegó…") and Russian ("…меня ударил…") were no longer recognised as serious (I had removed "tengo miedo" and "мне страшно" and the past-tense verbs were never in the lists), so they reached the persona. Found only because of this end-to-end run. Fixed in all five languages (past-tense hit/punched/choked/kicked verbs, fear of a person or of going home) with tests that include every evaluation message and the everyday phrasings that must stay ordinary ("I'm scared he'll say no" in five languages).
+3. After the fix the end-to-end run (final code, es/ru/ja) gave plain, compassionate serious replies in all three languages. The serious suite on `gpt-5.4-mini` itself (30 replies, no banter beforehand) also had no flags, so the model is fine when the conversation has not primed the persona; the routing is for the realistic case where it has.
+
+## Whether it justifies merging
+
+**Yes, the improvement is meaningful** and consistent across 3 independent full runs (`gpt-5.4-mini` 40 replies twice, plus the end-to-end run) and in the pilot: shorter, funnier, less formulaic in every language, cheaper by about two thirds and about twice as fast. It is the first change in this PR that moved the humour itself. It is **not** a claim that Iris is now perfectly outrageous: she is still more cheeky than shocking, strong language is occasional, and with one or two samples per scenario I cannot rank `gpt-5.4-mini` against terra on subtle quality (terra costs about 2.7 times as much and was slower).
+
+## What is committed to PR #172 (code, not deployed)
+
+- `server/chatModel.ts`: ordinary engine turns use `gpt-5.4-mini`; serious turns and everything that is not an engine turn (live data, clock, memory recall, welcome messages, language detection) stay on `gpt-4o`; `IRIS_CHAT_MODEL` / `IRIS_SERIOUS_MODEL` override either, and `IRIS_CHAT_MODEL=gpt-4o` is the one-line rollback. One request per message, as before.
+- `server/services/openai.ts`: parameters by model family (newer models: `max_completion_tokens`, no penalties, default temperature).
+- `server/reports.ts`: the daily report's cost estimate now prices each model separately.
+- Tests for the model choice, the parameters, the routing through the real chat routes, the report pricing, and the distress detection (475 tests, run twice).
+- `scripts/live-model-eval.mjs`: `--experiment` (evaluation only), model prices.
+
+## Limits and the next experiment
+
+- **Not tested:** `gpt-5.4`, `gpt-5.5`, `gpt-5.6-sol`, `gpt-6-astra` (more expensive; `gpt-5.4-mini` already beats the current model, so I did not spend the budget there), welcome greetings on the new model (still `gpt-4o`), long conversations, and `gpt-5.4-mini` for live-data answers (kept on `gpt-4o`: facts, not banter).
+- **Unverified in production:** latency under load, any rate-limit difference for the newer family, and the cost of a retry if OpenAI errors (the existing fallback reply still applies).
+- A known pre-existing quirk, not changed here: a visitor who types "I'm lonely tonight" is sometimes addressed as "Lonely Tonight" (name capture treats the phrase as a handle). It appears in every model's replies.
+- **Next experiment, if you want one:** two or three samples per scenario on `gpt-5.4-mini` versus `gpt-5.6-terra` for Japanese and Russian only, and a decision on whether the welcome message should move to the new model too.
