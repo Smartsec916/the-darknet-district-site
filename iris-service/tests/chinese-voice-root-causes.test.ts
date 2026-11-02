@@ -108,3 +108,9 @@ test("a closing hook question is trimmed when a statement ending was asked for; 
   // never leave too little
   assert.equal(zh("好玩吗？").text, "好玩吗？");
 });
+
+test("real: 'anything you need my network node to help with?' (last evaluation's flirt reply) is a closing offer, and the compliment stays", () => {
+  const r = zh("哈哈，谢谢你的夸奖！虽然我是个机器，但心里还是会有小波动的，像是电流过载的感觉。有什么需要我这个网络节点帮忙的吗？", { statementWanted: false, userMessage: "说真的，Iris，你挺可爱的" });
+  assert.equal(r.removedOffers, 1);
+  assert.equal(r.text, "哈哈，谢谢你的夸奖！虽然我是个机器，但心里还是会有小波动的，像是电流过载的感觉。");
+});
