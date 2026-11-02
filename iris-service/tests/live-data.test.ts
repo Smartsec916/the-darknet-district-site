@@ -408,7 +408,7 @@ test("a weather answer: no place, an unknown place, an ambiguous place, and a pr
   const none = (await prepareLive({ message: "What's the weather like outside?", sessionId: "a", nowMs: NOW }))!;
   assert.equal(none.outcome, "needs_place"); assert.match(none.prompt, /did not say where they are and you cannot see their location/); assert.equal(calls.length, 0, "no lookup without a place");
   const unknown = (await prepareLive({ message: "weather in Qwertyland", sessionId: "b", nowMs: NOW }))!;
-  assert.equal(unknown.outcome, "unknown_place"); assert.match(unknown.prompt, /could not find a place called "Qwertyland"/); assert.match(unknown.tail, /could NOT retrieve/);
+  assert.equal(unknown.outcome, "unknown_place"); assert.match(unknown.prompt, /could not find a place called "Qwertyland"/); assert.doesNotMatch(unknown.tail, /could NOT retrieve/, "an unknown place is not an outage"); assert.match(unknown.tail, /Nothing is broken/);
   const portland = (await prepareLive({ message: "weather in Portland", sessionId: "c", nowMs: NOW }))!;
   assert.equal(portland.outcome, "ambiguous_place"); assert.match(portland.prompt, /Portland, Oregon[^;]*; Portland, Maine/); assert.match(portland.prompt, /Give no conditions yet/);
   network(url => url.hostname === "nominatim.openstreetmap.org" ? ok(fixture("nominatim-Sacramento.json")) : new Response("down", { status: 500 }));

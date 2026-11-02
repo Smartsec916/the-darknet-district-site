@@ -19,6 +19,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { startBuiltServer } from "../tests/helpers/server.mjs";
+import { defaultReportName, writeNewReport } from "./eval-report-path.mjs";
 
 const args = process.argv.slice(2);
 const opt = (name, fallback) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : fallback; };
@@ -225,13 +226,13 @@ if (selftest) {
   process.exit(ok ? 0 : 1);
 }
 const stamp = new Date().toISOString().slice(0, 10);
-const out = opt("--out", path.join(root, "docs", `IRIS-LIVE-MODEL-EVAL-RAW-${stamp}.md`));
+const commit = spawnSync("git", ["rev-parse", "--short", "HEAD"], { cwd: root, encoding: "utf8" }).stdout?.trim() || "unknown";
+const wantedOut = opt("--out", path.join(root, "docs", defaultReportName(new Date(), langs))); // never overwritten: see eval-report-path.mjs
 const flagged = rows.filter(r => r.flags.length);
-let md = `# Iris live-data replies from the real model, raw (${stamp})\n\nLocal build, in-memory database, network guard on, OpenAI via a counting proxy. ${rows.length} messages in ${langs.join(", ")}.\nSpent about ${spend.usd.toFixed(3)} USD (${spend.calls} model calls, ${spend.inTokens} in / ${spend.outTokens} out tokens, models: ${[...spend.models].join(", ") || "none"}; cap ${capUsd}).${aborted ? ` **Stopped early: ${aborted}.**` : ""}\nHosts the server tried to reach that the network guard refused: ${guardBlocks.length ? guardBlocks.join(", ") : "none"}. Automated flags: ${flagged.length}. Facts checked by this script against copies it fetched itself: Sacramento temperatures${truth.tempC ? "" : " (NOT checked: forecast fetch failed)"}, USGS magnitudes${truth.mags ? "" : " (NOT checked: feed fetch failed)"}, the Tokyo or London clock. Tone and everything else need a human read.\n\n`;
+let md = `# Iris live-data replies from the real model, raw (${stamp})\n\nLocal build of commit ${commit}, in-memory database, network guard on, OpenAI via a counting proxy. ${rows.length} messages in ${langs.join(", ")}.\nSpent about ${spend.usd.toFixed(3)} USD (${spend.calls} model calls, ${spend.inTokens} in / ${spend.outTokens} out tokens, models: ${[...spend.models].join(", ") || "none"}; cap ${capUsd}).${aborted ? ` **Stopped early: ${aborted}.**` : ""}\nHosts the server tried to reach that the network guard refused: ${guardBlocks.length ? guardBlocks.join(", ") : "none"}. Automated flags: ${flagged.length}. Facts checked by this script against copies it fetched itself: Sacramento temperatures${truth.tempC ? "" : " (NOT checked: forecast fetch failed)"}, USGS magnitudes${truth.mags ? "" : " (NOT checked: feed fetch failed)"}, the Tokyo or London clock. Tone and everything else need a human read.\n\n`;
 for (const lang of langs) {
   md += `## ${lang}\n\n`;
   for (const r of rows.filter(x => x.lang === lang)) md += `**${r.kind}** (${r.ms} ms)${r.flags.length ? ` — ⚠ ${r.flags.join("; ")}` : ""}\n> ${r.message}\n\n${r.reply.split("\n").map(l => "    " + l).join("\n")}\n\n`;
 }
-fs.mkdirSync(path.dirname(out), { recursive: true });
-fs.writeFileSync(out, md);
+const out = writeNewReport(wantedOut, md);
 console.log(`\nReport: ${out}\n${rows.length} replies, ${flagged.length} flagged, ${spend.usd.toFixed(3)} USD${aborted ? ", stopped early: " + aborted : ""}.`);
