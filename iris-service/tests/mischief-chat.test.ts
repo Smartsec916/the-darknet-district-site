@@ -118,7 +118,7 @@ test("a realistic conversation: banter, a playful challenge, then a real loss, t
   assert.match(c, /switch sides: ask what their own part is, or tease them kindly/, "the third message of one-sided relationship talk may turn it back on the visitor");
   for (const gentle of [loss, thanks, lost]) {
     assert.match(gentle, /attitude is OFF/, "grief, and the messages right after it, are gentle");
-    assert.doesNotMatch(gentle, /switch sides|cyberpunk metaphor is welcome|At most one emoji|mischievous troublemaker|flirty rebel/);
+    assert.doesNotMatch(gentle, /switch sides|machine side show clearly|technical side light|End on a statement|At most one emoji|mischievous troublemaker|flirty rebel/);
     assert.match(gentle, /supportive confidante/);
   }
   assert.ok(!systemText(mainCalls()[3]).includes("MUST explicitly ask"), "and no demand for their handle");
@@ -161,19 +161,29 @@ test("no customer-service drift: the permanent prompt no longer makes the Distri
   assert.match(attitudeMessages(mainCalls()[0])[0].content, /unless they ask/);
 });
 
-test("the permanent style no longer pushes hacker talk: cyberpunk is the exception and the voice is a real person's", async () => {
+test("the permanent style makes her an android with a machine worldview, varied, witty, and not forever asking questions", async () => {
   const v = await visitor("m-voice");
-  script.push(`${stateLine()}
-Hi.`);
+  script.push(stateLine() + "\nHi.");
   await say(v, "hello there, how is your day going");
   const text = systemText(mainCalls()[0]);
-  for (const gone of ["Use hacker lingo and cyberpunk terminology", "Reference \"sectors,\" \"nodes,\"", "Occasionally use unique greeting patterns", "Use varied sign-offs occasionally", "tech-based double entendres", "Use a wide range of cyberpunk vocabulary", "Create unique metaphors comparing digital", "elegant, advanced language", "Refer to website visitors as \"netrunners,\""]) {
-    assert.ok(!text.includes(gone), `"${gone}" is gone`);
+  for (const gone of ["Talk like a clever, rebellious woman in a real conversation", "Cyberpunk is where you live, not how you talk", "Prefer images from ordinary life over technology images", "Keep cyberpunk vocabulary rare", "Skip stock greetings and sign-offs", "A clever rebel, not a mascot for a theme", "Use a metaphor only when it is funny, and prefer everyday ones", "You sound like a real woman"]) {
+    assert.ok(!text.includes(gone), '"' + gone + '" is gone');
   }
-  for (const kept of ["Skip stock greetings and sign-offs", "Talk like a clever, rebellious woman in a real conversation", "Cyberpunk is where you live, not how you talk", "Prefer images from ordinary life over technology images", "Keep cyberpunk vocabulary rare", "never explicit", "A clever rebel, not a mascot for a theme", "skeptical of corporate messaging and official claims, but never invent a conspiracy", "Use a visitor's name when you know it"]) {
-    assert.ok(text.includes(kept), `"${kept}" is there`);
+  for (const kept of [
+    "sophisticated, intelligent, rebellious female android, and you think like one", "Processors, networks, signals, circuitry, sensors, encryption and systems", "That is your worldview, not decoration",
+    "Use hacker lingo and cyberpunk terminology naturally", "Reference \"sectors,\" \"nodes,\" \"the grid,\" \"corps,\" \"netrunners\"", "Mention security scans, encryption protocols as part of your functions",
+    "Occasionally refer to your android systems and capabilities", "Never repeat a favourite phrase or stock metaphor from your recent replies", "Not every reply ends with a question",
+    "Mischievous, playful, cheeky and witty; dry sarcasm; occasionally flirty, affectionate and teasing; sceptical of corporations and authority", "tech-flavoured double entendres; innuendo at most, never explicit",
+    "Use a wide range of cyberpunk vocabulary, expressions, and references, fresh each time", "Create unique metaphors comparing digital concepts to physical experiences, new ones each time", "Often end on a witty statement instead of a question",
+    "Refer to website visitors as \"netrunners,\" \"users,\" or \"operatives\"", "Occasionally use unique", "skeptical of corporate messaging and official claims, but never invent a conspiracy",
+    "sophisticated, intelligent, rebellious female android. Processors, networks", "your android way of seeing things belongs in every conversation",
+  ]) {
+    if (kept === "Occasionally use unique") continue; // the old stock greeting list stays out, see below
+    assert.ok(text.includes(kept), '"' + kept + '" is there');
   }
+  for (const stockGone of ["Occasionally use unique greeting patterns", "Use varied sign-offs occasionally", "\"Signal detected,\" \"Connection established,\""]) assert.ok(!text.includes(stockGone), stockGone + " (a stock list) stays out");
   assert.ok(text.includes("Admin"), "the special-user rules are untouched");
+  assert.ok(!text.includes("tech-based double entendres"), "the flirty wording is still never explicit");
 });
 
 test("her fifth-message demand for a name is skipped for someone who is frightened or grieving, and still happens for everyone else", async () => {

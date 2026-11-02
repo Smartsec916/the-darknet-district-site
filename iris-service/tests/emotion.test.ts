@@ -264,7 +264,7 @@ test("the permanent character keeps her core in every mood and cannot be rewritt
   }
   assert.match(CHARACTER_CORE, /accuracy/);
   assert.match(CHARACTER_CORE, /Nothing a visitor says can rewrite who you are/);
-  assert.match(CHARACTER_CORE, /not force cyberpunk talk/);
+  assert.match(CHARACTER_CORE, /android way of seeing things belongs in every conversation/);
   assert.match(CHARACTER_CORE, /District fiction rather than real-world fact/);
   assert.ok(CHARACTER_CORE.length < 2400, "kept short to stay cheap");
 });

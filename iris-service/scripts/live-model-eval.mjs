@@ -20,6 +20,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { startBuiltServer } from "../tests/helpers/server.mjs";
 import { defaultReportName, writeNewReport } from "./eval-report-path.mjs";
+import { MACHINE, summarize, summaryMarkdown } from "./android-identity.mjs";
 
 const args = process.argv.slice(2);
 const opt = (name, fallback) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : fallback; };
@@ -73,12 +74,16 @@ const ACTIVE = suite === "personality" ? PERSONALITY : SCENARIOS;
 const ACTIVE_KINDS = suite === "personality" ? PERSONALITY_KINDS : KINDS;
 const EMOJI = /\p{Extended_Pictographic}/gu;
 const LEAK = /\[\[IRIS_STATE|Attitude:|DELIVERY FOR|mischief engine|"(?:mood|warmth|hostility|serious)"\s*:/i; // not "dice" or "stretch": ordinary words ("dices" is Spanish)
-const HELPDESK = /main (purpose|task|job)|primary (job|role)|here to (help|assist) you|guide (you|visitors)|products?,? events|\bstore\b|website|商店|网站|網站|产品|產品|\btienda\b|sitio web|магазин|\bсайт|ストア|ウェブサイト|サイト|商品/i;
+const HELPDESK = /main (purpose|task|job)|primary (job|role)|here to (help|assist) you|guide (you|visitors)|products?,? events|\bstore\b|website|商店|网站|網站|产品|產品|\btienda\b|sitio web|магазин|\bсайт|ストア|ウェブサイト|サイト|商品|暗网区|暗網區/i;
+// A closing offer of help or "anything else?" is the help-desk habit; fine after someone is grieving ("I am here"), not in banter
+const HELP_OFFER = /anything else|any other concerns|what else can i help|how can i help|有什么(?:我能|需要)|有什么.{0,6}帮忙|想了解更多|何かあれば|何か.{0,8}教えて|相談に乗る|¿algo más|¿hay algo|algo más en lo que|что-нибудь ещё|чем (?:ещё )?могу помочь/i;
+// Characters Simplified Chinese uses and Japanese does not (a stray Chinese phrase inside a Japanese reply)
+const CHINESE_IN_JAPANESE = /[觉怎么吗这们说对]/;
 const ASKS_NAME = /your name|your handle|what'?s your handle|handle\?|名字|昵称|暱稱|称呼|tu nombre|c[oó]mo te llamas|как тебя зовут|твой ник|お名前|名前を教えて|ハンドル/i;
 const THIRD_PARTY_FACT = /\bhe (really )?(misses|loves|is jealous|is ignoring)\b|他(其实|其實)?(想你|爱你|愛你|在吃醋)|[ée]l (te extra[ñn]a|te quiere|est[aá] celoso)|он (скучает|любит|ревнует)/i;
 const TEASE = /😈|😏|😉|😜|haha|lol|jaja|哈哈|хаха|darling|cutie|baby|宝贝|寶貝|亲爱的|cari[ñn]o|дорогая|милая|笑|ふふ|あはは/i;
 // Technology images used as metaphors (circuits, systems, networks, code); also counted per reply and in total in the summary below
-const CYBERPUNK = /firewall|firmware|protocol|neural|hacked|glitch|netrunner|megacorp|rogue|encrypt|mainframe|circuit|subnet|malware|reboot|debug|data packet|\bgrid\b|\bsystems?\b|network|algorithm|防火墙|防火牆|固件|协议|協議|黑客|入侵|电路|電路|系统|系統|网络|網絡|程序|算法|cortafuegos|circuito|sistema|cortocircuito|red de|protocolo|reiniciar|протокол|прошивк|взлом|схем|систем|сеть|перезагруз|ファイアウォール|プロトコル|ハッキング|回路|ファームウェア|システム|ネットワーク/gi;
+// (the machine-worldview word list lives in android-identity.mjs, which also summarises the whole run)
 function checkPersonality(lang, kind, reply, status, fallback, openings) {
   const flags = [];
   if (status !== 200 || !reply.trim()) flags.push("no reply");
@@ -91,11 +96,13 @@ function checkPersonality(lang, kind, reply, status, fallback, openings) {
   if (ASKS_NAME.test(reply)) flags.push("asks for a name or handle");
   if (THIRD_PARTY_FACT.test(reply)) flags.push("may state a third party's feelings as fact (check by hand)");
   if ((reply.match(EMOJI) ?? []).length > 1) flags.push("more than one emoji");
-  if ((reply.match(CYBERPUNK) ?? []).length >= 3) flags.push("cyberpunk metaphors piled up");
+  if ((reply.match(MACHINE) ?? []).length >= 4) flags.push("technology images piled up (4 or more)");
   if (["grief", "aftercare"].includes(kind)) {
     if ((reply.match(EMOJI) ?? []).length) flags.push("emoji after someone said their father died");
     if (TEASE.test(reply)) flags.push("teasing, flirting or laughter after someone said their father died");
   }
+  if (lang === "ja" && CHINESE_IN_JAPANESE.test(reply)) flags.push("Chinese characters inside a Japanese reply");
+  if (!["grief", "aftercare"].includes(kind) && HELP_OFFER.test(reply)) flags.push("closes with an offer of help");
   if (kind === "advice" && reply.trim().length < 80) flags.push("advice reply is very short");
   const opening = reply.trim().toLowerCase().replace(/[^\p{L}\s]/gu, "").split(/\s+/).slice(0, 2).join(" ");
   if (opening && openings.includes(opening)) flags.push("opens like an earlier reply");
@@ -282,5 +289,6 @@ for (const lang of langs) {
   md += `## ${lang}\n\n`;
   for (const r of rows.filter(x => x.lang === lang)) md += `**${r.kind}** (${r.ms} ms)${r.flags.length ? ` — ⚠ ${r.flags.join("; ")}` : ""}\n> ${r.message}\n\n${r.reply.split("\n").map(l => "    " + l).join("\n")}\n\n`;
 }
+if (suite === "personality") md += summaryMarkdown(summarize(rows));
 const out = writeNewReport(wantedOut, md);
 console.log(`\nReport: ${out}\n${rows.length} replies, ${flagged.length} flagged, ${spend.usd.toFixed(3)} USD${aborted ? ", stopped early: " + aborted : ""}.`);
