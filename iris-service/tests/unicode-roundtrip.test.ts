@@ -37,6 +37,10 @@ process.env.CHAT_GLOBAL_DAILY_LIMIT = "100000";
 const ADMIN_TOKEN = "u".repeat(20) + "v".repeat(20) + "-unicode-admin-token";
 process.env.IRIS_ADMIN_TOKEN = ADMIN_TOKEN;
 process.env.IRIS_ADMIN_VIEWER = "on";
+// This test is about characters surviving, using scripted replies full of emoji. The Mischief Engine removes emoji whenever its random dice allow
+// none on a turn (by design), which made this test fail about half the time; it is switched off here so the scripted reply is exactly what is stored.
+// The engine and its cleanup are tested on their own (mischief-chat.test.ts, reply-polish.test.ts).
+process.env.IRIS_MISCHIEF = "off";
 
 const { dbQuery, closeDatabase } = await import("../server/db");
 const { ensureSchema } = await import("../server/migrate");

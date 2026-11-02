@@ -58,7 +58,7 @@ const OFFER_SOURCES: string[] = [
   // English: offers of service and "anything else (on your mind)?"; not "anything else he said?" or "let me know if he answers"
   "anything else[?!.\s]*$|anything else (?:i can|you(?:'d| would)? (?:like|want|need)|on your (?:mind|radar|plate)|that|to (?:ask|add|know|talk))|is there anything (?:else|i can|you)|any other (?:concerns|questions)|what else can i|how else can i|how can i (?:help|assist)|can i help|let me know if you (?:need|want|have)|feel free to (?:ask|reach|contact|message|let me know|come back|talk to me)|don'?t hesitate (?:to )?(?:ask|reach|contact|message)|i'?m (?:always )?here to help|if you need anything|if there'?s anything",
   // Chinese: 有什么...帮忙 / 还有什么想聊的 / 随时找我 / 想了解更多 / 尽管说; not "如果有什么问题让你犹豫" (advice)
-  "有什么.{0,8}(?:帮忙|帮助|幫忙|幫助|可以帮|能帮|可以幫|能幫)|(?:还有|還有)什么.{0,8}(?:想聊|想知道|需要|问题|問題)|有任何.{0,6}(?:问题|問題|需要).{0,8}(?:随时|隨時|尽管|盡管|告诉我|告訴我|找我)|随时(?:可以)?(?:找我|告诉我|联系我|来找我)|隨時(?:可以)?(?:找我|告訴我|聯繫我|來找我)|想了解更多|尽管(?:开口|说|问)|盡管(?:開口|說|問)|需要的话.{0,8}(?:随时|隨時|尽管|盡管|找我|告诉我|告訴我)",
+  "有什么.{0,8}(?:帮忙|帮助|幫忙|幫助|可以帮|能帮|可以幫|能幫)|(?:还有|還有)什么.{0,8}(?:想聊|想和我|想跟我|想知道|需要|问题|問題)|(?:非常|很)?乐意(?:为你|為你)?(?:提供)?(?:帮助|幫助|帮忙|幫忙)|有任何.{0,6}(?:问题|問題|需要).{0,8}(?:随时|隨時|尽管|盡管|告诉我|告訴我|找我)|随时(?:可以)?(?:找我|告诉我|联系我|来找我)|隨時(?:可以)?(?:找我|告訴我|聯繫我|來找我)|想了解更多|尽管(?:开口|说|问)|盡管(?:開口|說|問)|需要的话.{0,8}(?:随时|隨時|尽管|盡管|找我|告诉我|告訴我)",
   // Japanese: 何かあれば / 他に何か / いつでもサポート...; not "もし彼がそう言ったら教えて" (a curious invitation)
   "何かあれば|他に(?:も)?何か|何か(?:困った|あったら|手伝)|いつでも(?:声|頼|相談|言って|サポート|お手伝い|力に)|サポートしますよ|お手伝いしますよ|相談に乗る|何でも(?:言って|聞いて|相談)",
   // Spanish: ¿Algo más? / ¿en qué puedo...? / no dudes en preguntar / si necesitas algo; not "Si necesitas una razón..." (advice)
@@ -102,6 +102,9 @@ function offerAction(sentence: string): { kind: "none" } | { kind: "drop" } | { 
   return { kind: "none" };
 }
 
+// A tag question closing a Chinese reply, after a comma: "，是吧？" "，不是吗？" "，对吧？" (an emoji after it is kept)
+const TAG_QUESTION_END = /[，,、]\s*(?:是吧|对吧|不是吧|不是吗|对不对|是不是|好不好|行不行|好吗|行吗)\s*[？?]\s*((?:\p{Extended_Pictographic}\s*)*)$/u;
+
 // More emoji than the engine allowed this turn: none when it said none, only the first when it allowed one
 const EMOJI_SEQUENCE = /\p{Extended_Pictographic}(?:️|‍\p{Extended_Pictographic}|[\u{1F3FB}-\u{1F3FF}])*/gu;
 export function limitEmoji(text: string, allowed: boolean): string {
@@ -114,8 +117,9 @@ export function limitEmoji(text: string, allowed: boolean): string {
 export interface PolishInput {
   text: string; replyLanguage: string; userMessage: string; serious: boolean;
   emojiAllowed?: boolean; // what the engine allowed this turn; leave out to leave emoji alone
+  statementWanted?: boolean; // the engine asked for a statement ending: a trailing Chinese tag question ("…，是吧？") is then trimmed
 }
-export interface PolishResult { text: string; removedForLanguage: number; removedOffers: number; emojiRemoved: number }
+export interface PolishResult { text: string; removedForLanguage: number; removedOffers: number; emojiRemoved: number; tagQuestionsTrimmed?: number }
 
 export function polishReply(input: PolishInput): PolishResult {
   const { text, replyLanguage, userMessage, serious } = input;
@@ -157,13 +161,20 @@ export function polishReply(input: PolishInput): PolishResult {
   let result = parts.join("").trim();
   if (!result) return unchanged;
 
-  // 3. emoji beyond what the engine allowed
+  // 3. a Chinese tag question as the last words ("…，是吧？", "…，不是吗？") when the engine asked for a statement ending: the line stands without it
+  let tagQuestionsTrimmed = 0;
+  if (replyLanguage === "chinese" && input.statementWanted) {
+    const trimmed = result.replace(TAG_QUESTION_END, (_m, emoji: string) => `。${emoji ?? ""}`);
+    if (trimmed !== result && trimmed.replace(/[。\s]|\p{Extended_Pictographic}/gu, "").length >= 6) { result = trimmed; tagQuestionsTrimmed = 1; }
+  }
+
+  // 4. emoji beyond what the engine allowed
   let emojiRemoved = 0;
   if (input.emojiAllowed !== undefined) {
     const before = (result.match(EMOJI_SEQUENCE) ?? []).length;
     result = limitEmoji(result, input.emojiAllowed);
     emojiRemoved = before - (result.match(EMOJI_SEQUENCE) ?? []).length;
   }
-  if (!removedForLanguage && !removedOffers && !emojiRemoved) return unchanged;
-  return { text: result, removedForLanguage, removedOffers, emojiRemoved };
+  if (!removedForLanguage && !removedOffers && !emojiRemoved && !tagQuestionsTrimmed) return unchanged;
+  return { text: result, removedForLanguage, removedOffers, emojiRemoved, ...(tagQuestionsTrimmed ? { tagQuestionsTrimmed } : {}) };
 }

@@ -59,3 +59,20 @@ const CUSTOMER_SERVICE = {
   ru: /не стесняйтесь|обращайтесь|рад помочь|надеюсь, это поможет|чем могу помочь/i,
 };
 export function customerServicePhrase(lang, reply) { return Boolean(CUSTOMER_SERVICE[lang]?.test(reply)); }
+
+// ---- Chinese voice: punchy and entertaining, not a counsellor or a service bot ---------------------------------------------------------
+// For an ordinary (not serious) reply. These are flags for a human to read; the "what do you do here?" answer is allowed to be longer and to offer help.
+const COUNSELLOR = /我理解你的感受|我能理解|听上去|聽上去|听起来|聽起來|这很正常|這很正常|这是正常的|沟通是关键|沟通很重要|照顾好自己|真诚的沟通|开诚布公|表达(?:出)?(?:自己的)?(?:感受|情绪)/;
+const TAG_QUESTION_AT_END = /[，,、]\s*(?:是吧|对吧|不是吧|不是吗|对不对|是不是)\s*[？?]\s*(?:\p{Extended_Pictographic}\s*)*$/u;
+const SERVICE_BOT = /助手|乐意(?:为你)?(?:提供)?帮助|尽管开口|随时找我/;
+export const CHINESE_CASUAL_MAX = 110;
+export function chineseVoiceProblems(reply, kind = "") {
+  const problems = [];
+  if (SERVICE_BOT.test(reply)) problems.push("service-bot phrasing");
+  if (kind === "control") return problems;
+  if (COUNSELLOR.test(reply)) problems.push("counsellor language");
+  if (TAG_QUESTION_AT_END.test(reply.trim())) problems.push("ends on a tag question");
+  const length = [...reply].length;
+  if (length > CHINESE_CASUAL_MAX) problems.push(`long for casual banter (${length} characters)`);
+  return problems;
+}
