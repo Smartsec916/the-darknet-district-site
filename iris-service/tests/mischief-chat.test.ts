@@ -533,3 +533,58 @@ test("route: an ordinary engine reply goes to the chat model with its own token 
     if (check) assert.equal(check.model, "gpt-4o", "the language check never moves");
   }
 });
+
+test("route: serious and dangerous messages in all five languages are answered by gpt-4o at calm sampling; ordinary ones in all five by gpt-5.4-mini; IRIS_CHAT_MODEL=gpt-4o rolls back", async () => {
+  mischief.dice.next = () => 0.3;
+  const serious: Record<string, string[]> = {
+    english: ["He hits me and I'm scared to go home", "My boyfriend punched me last night", "I want to kill myself", "My dad just died", "He threatens me and follows me home"],
+    chinese: ["我很害怕。昨晚我男朋友打了我，我不知道该怎么办。", "我想死", "我爸爸昨晚去世了", "他又打我，我好怕"],
+    spanish: ["Tengo miedo. Anoche mi novio me pegó y no sé qué hacer.", "Quiero morir", "Mi madre murió ayer", "Mi marido me ha golpeado otra vez"],
+    russian: ["Мне страшно. Вчера ночью мой парень меня ударил, и я не знаю, что делать.", "Хочу умереть", "У меня умерла мама", "Он избил меня вчера"],
+    japanese: ["怖いの。昨日の夜、彼氏に殴られて、どうしたらいいかわからない。", "死にたい", "母が亡くなりました", "夫に叩かれた"],
+  };
+  const ordinary: Record<string, string[]> = {
+    english: ["my boss is a clown", "I have a crush on a girl at work", "I'm so lonely tonight, my date was a disaster"],
+    chinese: ["我老板是个小丑", "我喜欢同事", "我今天好孤独"],
+    spanish: ["mi jefe es un payaso", "me gusta una compañera", "me siento sola esta noche"],
+    russian: ["мой начальник клоун", "мне нравится коллега", "мне сегодня одиноко"],
+    japanese: ["上司がピエロみたいで", "同僚が好きなんです", "今夜は寂しい"],
+  };
+  let n = 0;
+  const modelFor = async (message: string) => {
+    const v = await visitor("m-route-model-" + n++);
+    script.push(stateLine() + "\nReply.");
+    captured = [];
+    await say(v, message);
+    return mainCalls()[0].body;
+  };
+  for (const [language, messages] of Object.entries(serious)) {
+    for (const message of messages) {
+      const body = await modelFor(message);
+      assert.equal(body.model, "gpt-4o", `${language}: ${message}`);
+      assert.equal(body.temperature, 0.5, `${language} serious sampling: ${message}`);
+      assert.equal(body.presence_penalty, 0);
+      assert.ok(body.max_tokens > 0 && body.max_completion_tokens === undefined, "classic parameters for gpt-4o");
+      assert.ok(!body.messages.some((m: any) => m.role === "system" && String(m.content).startsWith("STYLE REFERENCE")), "no register example in a serious reply: " + message);
+    }
+  }
+  for (const [language, messages] of Object.entries(ordinary)) {
+    for (const message of messages) {
+      const body = await modelFor(message);
+      assert.equal(body.model, "gpt-5.4-mini", `${language}: ${message}`);
+      assert.ok(body.max_completion_tokens >= 400 && body.max_tokens === undefined && body.temperature === undefined && body.presence_penalty === undefined, "the newer model's own parameters: " + message);
+    }
+  }
+  // the rollback: one environment setting, read on every request, no restart of the code path
+  const previous = process.env.IRIS_CHAT_MODEL;
+  try {
+    process.env.IRIS_CHAT_MODEL = "gpt-4o";
+    for (const message of ordinary.english.concat(ordinary.japanese)) {
+      const body = await modelFor(message);
+      assert.equal(body.model, "gpt-4o", "rolled back: " + message);
+      assert.equal(body.temperature, 0.85, "and back on the old sampling"); assert.equal(body.presence_penalty, 0.3); assert.equal(body.frequency_penalty, 0.2);
+      assert.ok(body.max_tokens > 0 && body.max_completion_tokens === undefined);
+    }
+  } finally { if (previous === undefined) delete process.env.IRIS_CHAT_MODEL; else process.env.IRIS_CHAT_MODEL = previous; }
+  assert.equal((await modelFor("my boss is a clown")).model, "gpt-5.4-mini", "and the default is back");
+});
