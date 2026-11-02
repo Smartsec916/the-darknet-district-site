@@ -74,9 +74,19 @@ export function isClearEnglish(text: string): boolean {
   return words.length >= 4 && nonLatin === 0;
 }
 
+// The script itself settles some cases before any detector is asked: kana can only be Japanese, hangul only Korean, and a short
+// all-Han message ("明日は？" has kana, but "明日?" does not) in a conversation that is already Japanese stays Japanese (a
+// model detector once called "明日は？" Chinese, and the visitor's Japanese chat switched to Chinese mid-conversation).
+export function languageFromScript(text: string, preferred: string): string | null {
+  if (/[぀-ゟ゠-ヿ]/.test(text)) return "japanese";
+  if (/[가-힯ᄀ-ᇿ]/.test(text)) return "korean";
+  if (preferred === "japanese" && /[㐀-鿿]/.test(text) && !/[A-Za-z぀-ヿ]{3,}/.test(text) && text.length <= 12) return "japanese";
+  return null;
+}
+
 export function decideLanguage(args: { detected: string; text: string; preferred: string }): Decision {
-  const detected = normalizeLanguage(args.detected);
   const preferred = normalizeLanguage(args.preferred);
+  const detected = languageFromScript(args.text, preferred) ?? normalizeLanguage(args.detected);
   const explicit = explicitLanguageRequest(args.text) ?? undefined;
 
   if (explicit?.kind === "switch" && explicit.language) return { reply: explicit.language, preferred: explicit.language, explicit };

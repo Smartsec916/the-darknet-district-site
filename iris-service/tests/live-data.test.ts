@@ -457,7 +457,7 @@ test("a news answer: dated, attributed items, only the links she was given, and 
   network(() => ok("<rss><channel></channel></rss>", "application/rss+xml"));
   resetNewsForTests();
   const empty = (await prepareLive({ message: "what's the latest news on quantum chips?", sessionId: "n3", nowMs: NOW }))!;
-  assert.match(empty.prompt, /Nothing recent found on that\. Say so; do not fill the gap from memory/);
+  assert.match(empty.prompt, /Nothing recent found on that\. You DO have live access[\s\S]*never mention training data or a knowledge cut-off[\s\S]*Do not fill the gap from memory/);
   network(() => new Response("down", { status: 500 }));
   resetNewsForTests();
   const out = (await prepareLive({ message: "any news today?", sessionId: "n4", nowMs: NOW }))!;

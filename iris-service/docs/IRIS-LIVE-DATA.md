@@ -81,3 +81,15 @@ Visitor messages are never sent to a provider. Only a place name (and, for earth
 1. A credit line for MET Norway / OpenStreetMap on the site.
 2. Air quality: needs a keyed provider (for example OpenAQ's free key): a new secret on Render.
 3. Deploying: manual Render redeploy of the Iris service after merge.
+
+## Fixes from the real-model evaluation (2026-11-02)
+Found by reading 60 real replies in six languages (`docs/IRIS-LIVE-MODEL-EVAL-2026-11-02.md`):
+- **A time word is not a place.** In Chinese and Japanese the place pattern now strips time words and verbs ("今天有地震吗" is a worldwide question, not a town called Jintian; "サクラメントの今の天気" is Sacramento).
+- **An earthquake happening to the visitor is an emergency.** "I think a big earthquake just hit near me", 刚发生了…地震, 地震があった気がします, acaba de haber un terremoto, только что было землетрясение: she gets complete drop-cover-hold-on steps (outside the data fence, so they are instructions), an instruction to ask where the visitor is, a ban on quoting any earthquake until she knows, serious tone, and room to answer in full. When the visitor says where they are ("I'm in Tokyo", 我在东京, 東京にいます, я в Токио), she reads the reports for that area and keeps the steps to a reminder. Reports can lag the shaking; an empty list never means nothing happened.
+- **Mythical places** (Atlantis, la Atlántida, Атлантида, アトランティス, 亞特蘭提斯, Narnia, Mordor...) are answered as myths; nothing is looked up, so no real town of the same name is mistaken for them.
+- **Amounts keep their size in every language.** Figures with scale words (billion, 亿/億/万, mil millones, млрд...) are compared as numbers with the headlines; a reply that changes one (6.3億 for $6.3 billion) is replaced by the headlines themselves.
+- **News in every language.** "What did Apple announce?" is recognised in Chinese, Japanese, Spanish and Russian; tech/AI/cyber/business/politics/world words in those languages pick the right feeds; question words ("Cuáles", "Какие") are never search terms; 苹果/蘋果/アップル map to Apple.
+- **Nothing found** tells her she does have live access and searched: she may not claim a knowledge cut-off, say she cannot read news, or turn to the shop.
+- **Follow-ups:** "明日は？", "じゃあ明日は？", "明後日も？" and "¿Y mañana?" continue the last weather answer (the Spanish one was answered from memory and said "mostly clear" for a cloudy day). Day lines now say "sky: cloudy".
+- **Language:** kana settles Japanese before any detector is asked, and a short all-Han message in a Japanese chat stays Japanese.
+- **Russian places** in the case the sentence needs ("в Портленде") are retried in their base form.
