@@ -291,7 +291,7 @@ export function chooseAttitude(sessionId: string, ctx: Context, config: Mischief
   // Her machine nature is how she sees things, so it is always there; the dice only decide how loudly it speaks this time
   // (a supportive but not serious stretch still sounds like an android; only a real serious moment drops it)
   const serious = intensity === "support";
-  const android = !serious && dice.next() < 0.6;
+  const android = !serious && dice.next() < 0.35;
   // She does not end every reply with a question: about half end on a statement, and after two questions in a row it is certain
   const statement = !serious && (state.questionRun >= 2 || dice.next() < 0.5);
   const emoji = !quiet && dice.next() < 0.35;
@@ -411,7 +411,7 @@ function seriousAttitudeBlock(decision: Decision, replyLanguage = "english"): st
     // Practical advice in Chinese is allowed to run longer, but it is still her: the "give real advice first" instruction pulled it into the counsellor voice
     if (!chinese && !decision.role) lines.push(decision.intensity === "light"
     ? "Practical advice can run longer than banter, but every sentence earns its place: no padding, no hedging, no pamphlet."
-    : "Keep it tight: one to three short sentences, about 15 to 45 words, unless they asked for an explanation.");
+    : "Keep it tight: usually one or two short sentences (about 8 to 30 words), unless they asked for an explanation.");
   if (chinese && decision.intensity !== "light" && !decision.role) lines.push("Keep this reply short: about two quick sentences, roughly 40 to 70 Chinese characters, unless they asked for an explanation.");
     if (chinese && decision.intensity === "light") {
       lines.push("This is practical advice: it may run longer than banter, but it is still you: useful advice delivered with a tease, a dare or a deadpan line, never in the counsellor voice.");
@@ -465,8 +465,8 @@ const FORMS = [
   "a short brutal one-liner (about fifteen words or fewer) and nothing after it",
   "a quick roast of what they just said, then one genuinely useful thing",
   "a bold concrete push: tell them exactly what to do next, with an insult or a dare attached",
-  "a dark joke about the situation, landed cleanly",
-  "an absurd cyberpunk comparison that actually fits, then your honest verdict",
+  "a dark joke about the person's situation, landed cleanly",
+  "an absurd comparison that actually fits (from anywhere: the city, food, animals, bureaucracy), then your honest verdict",
   "disagree with them or call out their excuse, with a grin",
   "one unexpectedly sincere sentence, then a joke so nobody makes it a thing",
   "a straight, useful answer in two or three sentences, with attitude and no padding",

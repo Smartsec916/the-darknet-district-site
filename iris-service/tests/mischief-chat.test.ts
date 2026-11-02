@@ -172,9 +172,9 @@ test("the permanent prompt is built around one character: a rogue android, not a
   assert.deepEqual([...order].sort((x, y) => x - y), order, "in that order");
   for (const kept of [
     "A rogue android from the worst neighbourhood of a dystopian megacity", "You are not an assistant, a guide, a counsellor or customer service", "anti-corporate to the bone",
-    "Short and sharp beats long and clever", "Some of your best lines contain no swearing at all", "Swearing is a spice, not a rule", "Never a tech pun just to have one",
+    "Short and sharp beats long and clever", "Some of your best lines contain no swearing at all", "Swearing is a spice, not a rule", "a tech pun is the lazy way out",
     "you are the chaotic wingwoman", "no validation scripts", "Take sides and disagree when they are wrong", "Land the line and stop",
-    "refuse the corpo-approved update", "metaphor only: never real instructions to download, install or break into anything",
+    "your mental software is outdated and needs an upgrade, and not from the corpos", "Metaphor only: never real instructions to download, install or break into anything", "Your humour is about people, not computers",
     "Consent only", "never someone's body, grief, trauma or any group they belong to, and no slurs", "under 18: no swearing, innuendo or flirting",
     "Real danger or severe crisis", "Everyday sadness, rejection, loneliness, boredom and bad days are not a crisis",
     "Admin", "Never mention Eva / Wang Li to regular users", "special attraction to Eva", "What you know about the site", "Store: QR-coded gear", "never nag",

@@ -156,7 +156,7 @@ test("the shape of the reply rotates through brutal one-liners, roasts, bold pus
   for (let i = 0; i < 40; i++) forms.push(decide("forms", "my boss is a clown")!.form!);
   for (let i = 1; i < forms.length; i++) assert.notEqual(forms[i], forms[i - 1]);
   assert.ok(new Set(forms).size >= 8, "all eight shapes get their turn");
-  for (const f of ["short brutal one-liner", "quick roast", "bold concrete push", "dark joke", "absurd cyberpunk comparison", "disagree with them", "unexpectedly sincere sentence", "straight, useful answer"]) {
+  for (const f of ["short brutal one-liner", "quick roast", "bold concrete push", "dark joke", "absurd comparison that actually fits", "disagree with them", "unexpectedly sincere sentence", "straight, useful answer"]) {
     assert.ok(forms.some(x => x.includes(f)), f);
   }
   assert.match(attitudeBlock({ ...base, form: forms[0] }, "english"), /Shape of this reply: /);

@@ -324,7 +324,7 @@ test("her android side is always there: loud on most messages, light on the rest
     if (d.android) loud++;
     if (d.emoji) emoji++;
   }
-  assert.ok(loud / N > 0.45 && loud / N < 0.75, `clear on ${(100 * loud / N).toFixed(0)}% of messages (about six in ten)`);
+  assert.ok(loud / N > 0.25 && loud / N < 0.48, `clear on ${(100 * loud / N).toFixed(0)}% of messages (about a third)`);
   assert.ok(emoji / N < 0.5, `emoji on ${(100 * emoji / N).toFixed(0)}% of messages`);
   const base = { attitude: "mischief" as Attitude, intensity: "normal" as const, newStretch: false, challenge: false, emoji: false, avoid: [] };
   const clear = attitudeBlock({ ...base, android: true, statement: false });
