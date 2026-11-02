@@ -3,7 +3,7 @@
 process.env.IRIS_TEST_DB = "pglite";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { ATTITUDES, attitudeBlock, chooseAttitude, noteReply, readTurn, resetMischiefForTests, type Decision } from "../server/mischief";
+import { ATTITUDES, attitudeBlock, chooseAttitude, dice, noteReply, readTurn, resetMischiefForTests, type Decision } from "../server/mischief";
 import { polishReply } from "../server/replyPolish";
 
 const zh = (text: string, over: Partial<Parameters<typeof polishReply>[0]> = {}) =>
@@ -51,6 +51,7 @@ test("the advice turn in Chinese gets the practical-advice voice line, and the r
 test("the part of her nature to draw from rotates: never the same twice in a row, deterministic, Chinese only, never in a serious moment", () => {
   resetMischiefForTests();
   const seen: string[] = [];
+  dice.next = () => 0.1;
   for (let i = 0; i < 40; i++) {
     const d = decide("rot", "但是他从来不说想我")!;
     if (d.image) seen.push(d.image);
@@ -58,6 +59,7 @@ test("the part of her nature to draw from rotates: never the same twice in a row
   assert.ok(seen.length >= 10);
   for (let i = 1; i < seen.length; i++) assert.notEqual(seen[i], seen[i - 1]);
   assert.ok(new Set(seen).size >= 5, "all parts get their turn");
+  dice.next = () => 0.5;
   const block = attitudeBlock({ attitude: "mischief", intensity: "full", newStretch: true, challenge: false, android: true, statement: true, emoji: false, avoid: [], avoidTech: ["信号"], image: "your memory: what you store, lose or overwrite" }, "chinese");
   assert.match(block, /Draw it from this part of you: your memory: what you store, lose or overwrite\./);
   const english = attitudeBlock({ attitude: "mischief", intensity: "full", newStretch: true, challenge: false, android: true, statement: true, emoji: false, avoid: [], avoidTech: [], image: "your memory" }, "english");
