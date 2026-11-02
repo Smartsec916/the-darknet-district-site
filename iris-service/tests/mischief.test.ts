@@ -334,7 +334,7 @@ test("her android side is always there: loud on most messages, light on the rest
   assert.ok(emoji / N < 0.5, `emoji on ${(100 * emoji / N).toFixed(0)}% of messages`);
   const base = { attitude: "mischief" as Attitude, intensity: "normal" as const, newStretch: false, challenge: false, emoji: false, avoid: [] };
   const clear = attitudeBlock({ ...base, android: true, statement: false });
-  assert.match(clear, /Let your machine side show clearly this time: one well-chosen technical image \(two at most\) in your own words \(hacking, networks, firmware, encryption, circuitry, corporate systems\)[\s\S]*never a pile and never a phrase you have used before/);
+  assert.match(clear, /Let your machine side show clearly this time: one well-chosen technical image \(two at most\) in your own words, as how you see it, never a pile and never a phrase you have used before/);
   const light = attitudeBlock({ ...base, android: false, statement: false });
   assert.match(light, /Keep the technical side light this time: a single word, or none, but still sound like an android and not like a human/);
   assert.match(light, /No emoji this time/);

@@ -1138,7 +1138,9 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     const maxTokens = options.maxTokens ?? (isProductOrDistrictQuestion ? 150 : 120);
     
     // Randomly decide if Iris should mention being distracted by the physical venue (10% chance)
-    const shouldMentionPhysicalDistraction = Math.random() < 0.1;
+    // Never in the middle of relationship talk, a request for advice, a question about what she is, or a serious moment: a canned "just had to deal with a customer" opening
+    // wrecked those replies in the evaluation (and has no place in a reply to someone who has just been hurt)
+    const shouldMentionPhysicalDistraction = Math.random() < 0.1 && !(options.attitude && options.attitude.intensity !== "normal") && !options.attitude?.role;
     
     // Add a temporary system message about physical distraction if needed
     if (shouldMentionPhysicalDistraction) {

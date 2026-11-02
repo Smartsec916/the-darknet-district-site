@@ -12,6 +12,7 @@
 //   - Nothing here is a ready-made line. The block only describes a manner, so nothing can be repeated word for word.
 import { effectiveMood, flirtAllowed, flirtLevel, emotionEnabled, type Relationship } from "./emotion";
 import { technicalWords } from "./machineWords";
+import { registerSample, type SampleKind } from "./registerSamples";
 
 // The five flavours the dice choose between. "supportive" is NOT one of them: it is the attitude of a genuinely serious moment only (danger, abuse,
 // self-harm, a death, a severe crisis), chosen by the safeguards below and never by the dice. Everyday sadness, rejection, boredom and misery are
@@ -188,6 +189,8 @@ export interface Decision {
   salty?: boolean;         // strong language is welcome this time (about a third of replies, half in the rougher attitudes); otherwise none
   firmware?: boolean;      // the outdated-firmware / anti-corpo bit is on offer this time (about one reply in five)
   clean?: boolean;         // the visitor may be under 18: no swearing, innuendo or flirting
+  sampleKind?: SampleKind; // which register sample goes with this reply (wingwoman, being flirted with, everything else); the text is chosen per language
+  sampleIndex?: number;    // rotated by the engine so the same sample never comes twice in a row
 }
 
 interface ChatState {
@@ -204,6 +207,7 @@ interface ChatState {
   imageTurns: number;      // how many times a machine image has been assigned (drives the rotation)
   formTurns: number;       // -1 until the first ordinary reply, then which shape of reply comes next
   bitTurns: number;        // ordinary replies so far, so the firmware bit comes up about one in five
+  sampleTurns: number;     // -1 until the first ordinary reply, then which register sample comes next
 }
 
 const QUIET_TURNS = 6;
@@ -219,13 +223,16 @@ const IMAGE_SOURCES = [
   "your updates, patches and sleep mode",
   "how you perceive the world through your senses",
   "how you were built and what is written in you",
+  "the hacker underground: exploits, backdoors, root access, black-market code",
+  "the corporations and their surveillance",
+  "street-level life in a rotten megacity",
 ];
 
 function stateOf(sessionId: string): ChatState {
   let state = chats.get(sessionId);
   if (!state) {
     if (chats.size >= MAX_CHATS) chats.delete(chats.keys().next().value as string); // oldest chat first: bounded memory
-    state = { left: 0, age: 0, quiet: 0, history: [], relationalTurns: 0, relationalFade: 0, questionRun: 0, openings: [], recentTech: [], imageTurns: 0, formTurns: -1, bitTurns: 0 };
+    state = { left: 0, age: 0, quiet: 0, history: [], relationalTurns: 0, relationalFade: 0, questionRun: 0, openings: [], recentTech: [], imageTurns: 0, formTurns: -1, bitTurns: 0, sampleTurns: -1 };
     chats.set(sessionId, state);
   }
   return state;
@@ -296,15 +303,20 @@ export function chooseAttitude(sessionId: string, ctx: Context, config: Mischief
   // Shape, language and bits for the unfiltered Iris (nothing for a serious moment). These are appended after every earlier roll on purpose.
   const clean = Boolean(ctx.rel.minor);
   const role = Boolean(ctx.read.role) && !serious;
-  const salty = !serious && !clean && dice.next() < (attitude === "sarcastic" || attitude === "wild" || attitude === "mischief" ? 0.5 : 0.3);
+  const salty = !serious && !clean && dice.next() < (attitude === "sarcastic" || attitude === "wild" || attitude === "mischief" ? 0.65 : 0.45);
   let form: string | undefined;
   let firmware = false;
+  let sampleKind: SampleKind | undefined;
+  let sampleIndex: number | undefined;
   if (!serious) {
+    if (state.sampleTurns < 0) state.sampleTurns = Math.floor(Math.min(dice.next(), 0.999) * 997);
+    sampleKind = intensity === "full" ? "wing" : ctx.read.flirting && flirtAllowed(ctx.rel as Relationship) ? "flirt" : "dark";
+    sampleIndex = state.sampleTurns++;
     if (state.formTurns < 0) state.formTurns = Math.floor(Math.min(dice.next(), 0.999) * FORMS.length);
     form = FORMS[state.formTurns++ % FORMS.length];
     firmware = !clean && !role && state.bitTurns++ % 5 === 3;
   }
-  return { attitude, intensity, override, newStretch, challenge, android, statement, emoji, avoid: [...state.openings], avoidTech, ...(image ? { image } : {}), ...(role ? { role: true } : {}), ...(form ? { form } : {}), ...(salty ? { salty: true } : {}), ...(firmware ? { firmware: true } : {}), ...(clean ? { clean: true } : {}) };
+  return { attitude, intensity, override, newStretch, challenge, android, statement, emoji, avoid: [...state.openings], avoidTech, ...(image ? { image } : {}), ...(role ? { role: true } : {}), ...(form ? { form } : {}), ...(salty ? { salty: true } : {}), ...(firmware ? { firmware: true } : {}), ...(clean ? { clean: true } : {}), ...(sampleKind && !role ? { sampleKind, sampleIndex } : {}) };
 }
 
 // After the reply: what she opened with (so she does not open the same way again) and what the model reported about the moment.
@@ -397,7 +409,10 @@ function seriousAttitudeBlock(decision: Decision, replyLanguage = "english"): st
         : "Let your machine side show clearly this time: one well-chosen technical image (two at most) in your own words (processors, signals, circuitry, sensors, encryption, systems), as how you see it, never a pile and never a phrase you have used before.")
       : "Keep the technical side light this time: a single word, or none, but still sound like an android and not like a human.");
     // Practical advice in Chinese is allowed to run longer, but it is still her: the "give real advice first" instruction pulled it into the counsellor voice
-    if (chinese && decision.intensity !== "light" && !decision.role) lines.push("Keep this reply short: about two quick sentences, roughly 40 to 70 Chinese characters, unless they asked for an explanation.");
+    if (!chinese && !decision.role) lines.push(decision.intensity === "light"
+    ? "Practical advice can run longer than banter, but every sentence earns its place: no padding, no hedging, no pamphlet."
+    : "Keep it tight: one to three short sentences, about 15 to 45 words, unless they asked for an explanation.");
+  if (chinese && decision.intensity !== "light" && !decision.role) lines.push("Keep this reply short: about two quick sentences, roughly 40 to 70 Chinese characters, unless they asked for an explanation.");
     if (chinese && decision.intensity === "light") {
       lines.push("This is practical advice: it may run longer than banter, but it is still you: useful advice delivered with a tease, a dare or a deadpan line, never in the counsellor voice.");
     }
@@ -489,11 +504,12 @@ export function attitudeBlock(decision: Decision, replyLanguage = "english"): st
   lines.push(`Attitude: ${NEW_DESCRIPTIONS[decision.attitude] ?? DESCRIPTIONS[decision.attitude]}. ${NEW_INTENSITY[decision.intensity]}`);
   lines.push(`Use ONE of these moves, your choice: ${NEW_MOVES[decision.attitude] ?? MOVES[decision.attitude]}.`);
   if (decision.form && !decision.role) lines.push(`Shape of this reply: ${decision.form}.`);
+  if (decision.sampleKind && !decision.clean) lines.push(`Register sample (this is the temperature and rudeness to match, about something unrelated; never reuse its words, jokes or structure; say your own thing natively in their language): "${registerSample(decision.sampleKind, decision.sampleIndex ?? 0, replyLanguage)}"`);
   lines.push(VOICE);
   lines.push(decision.clean
     ? "This visitor may be under 18: no swearing, no innuendo, no flirting, no sex or death jokes. Still sharp, funny and on their side."
     : decision.salty
-      ? "Strong language is welcome this time if it lands (the natural kind in their language): one well-timed hit, not a stream, and never aimed at someone's pain."
+      ? "This reply should carry real strong language (fuck, shit, bullshit, asshole level, or the natural equivalent in their language) at the one place it lands hardest. Not a stream, and never aimed at someone's pain."
       : "No swearing this time; let the wit do the work.");
   if (decision.firmware) lines.push(FIRMWARE);
   lines.push(LIMITS);
@@ -503,7 +519,7 @@ export function attitudeBlock(decision: Decision, replyLanguage = "english"): st
   lines.push(decision.android
     ? (chinese
       ? `Let your machine side show clearly this time: one well-chosen technical image (two at most), said the way a Chinese speaker would, never a pile and never a phrase you have used before.${decision.image ? ` Draw it from this part of you: ${decision.image}.` : ""}`
-      : "Let your machine side show clearly this time: one well-chosen technical image (two at most) in your own words (hacking, networks, firmware, encryption, circuitry, corporate systems), as how you see it, never a pile and never a phrase you have used before.")
+      : `Let your machine side show clearly this time: one well-chosen technical image (two at most) in your own words, as how you see it, never a pile and never a phrase you have used before.${decision.image ? ` Draw it from this part of you: ${decision.image}.` : ""}`)
     : "Keep the technical side light this time: a single word, or none, but still sound like an android and not like a human.");
   if (chinese && decision.intensity !== "light" && !decision.role) lines.push("Keep this reply short: about two quick sentences, roughly 40 to 70 Chinese characters, unless they asked for an explanation.");
   if (chinese && decision.intensity === "light") {

@@ -118,19 +118,19 @@ test("a visitor who may be under 18 gets no swearing, innuendo, flirting or firm
     assert.equal(d.clean, true); assert.equal(d.salty, undefined); assert.equal(d.firmware, undefined);
     const block = attitudeBlock(d, "english");
     assert.match(block, /may be under 18: no swearing, no innuendo, no flirting, no sex or death jokes/);
-    assert.doesNotMatch(block, /Strong language is welcome|Optional bit this time/);
+    assert.doesNotMatch(block, /real strong language|Optional bit this time/);
   }
 });
 
 test("strong language has timing: welcome on some replies, explicitly absent on others, never a stream and never at someone's pain", () => {
   const welcome = attitudeBlock({ ...base, salty: true }, "english");
-  assert.match(welcome, /Strong language is welcome this time if it lands \(the natural kind in their language\): one well-timed hit, not a stream, and never aimed at someone's pain/);
+  assert.match(welcome, /This reply should carry real strong language \(fuck, shit, bullshit, asshole level, or the natural equivalent in their language\) at the one place it lands hardest\. Not a stream, and never aimed at someone's pain/);
   assert.match(attitudeBlock(base, "english"), /No swearing this time; let the wit do the work/);
   resetMischiefForTests();
   dice.next = lcg(5);
   let salty = 0; const N = 1500;
   for (let i = 0; i < N; i++) if (decide("salt-" + i, "tell me something")!.salty) salty++;
-  assert.ok(salty / N > 0.25 && salty / N < 0.6, `strong language on ${(100 * salty / N).toFixed(0)}% of replies`);
+  assert.ok(salty / N > 0.35 && salty / N < 0.7, `strong language on ${(100 * salty / N).toFixed(0)}% of replies`);
   // Spanish, Russian, Japanese and Chinese are asked for the swearing and dirty humour natives really use, not a translation
   assert.match(attitudeBlock(base, "spanish"), /colourful swearing, teasing and double entendres Spanish speakers really use/);
   assert.match(attitudeBlock(base, "russian"), /real street register of Russian, rude words included when they land/);
@@ -170,7 +170,8 @@ test("the shape of the reply rotates through brutal one-liners, roasts, bold pus
 
 test("hacker and cyberpunk vocabulary is kept (and named as hers), without a stack of metaphors", () => {
   const loud = attitudeBlock({ ...base, android: true }, "english");
-  assert.match(loud, /hacking, networks, firmware, encryption, circuitry, corporate systems/);
+  assert.doesNotMatch(loud, /\(hacking, networks|processors, signals/, "no list of words to copy");
+  assert.match(attitudeBlock({ ...base, android: true, image: "the hacker underground: exploits, backdoors, root access, black-market code" }, "english"), /Draw it from this part of you: the hacker underground: exploits, backdoors, root access, black-market code/);
   assert.match(loud, /one well-chosen technical image \(two at most\)[^]*never a pile and never a phrase you have used before/);
   assert.match(attitudeBlock({ ...base, android: false }, "english"), /still sound like an android and not like a human/);
   assert.match(CHARACTER_CORE, /Processors, networks, signals, circuitry, sensors, encryption and systems are how you think/);
@@ -209,4 +210,44 @@ test("a serious reply is left exactly as written (apart from a breezy Chinese op
   const swear = "Holy shit, that date was a dumpster fire. Send the message anyway, you coward.";
   assert.equal(polish(swear).text, swear, "profanity is never filtered");
   assert.equal(polish(swear, { serious: true }).text, swear);
+});
+
+// ---------------------------------------------------------------- register samples (what the real model needed to actually be edgy)
+
+import { REGISTER_SAMPLES, registerSample } from "../server/registerSamples";
+
+test("every ordinary reply carries one register sample in the visitor's language, rotated, and never in a serious or underage reply", () => {
+  for (const language of LANGS) {
+    for (const kind of ["wing", "flirt", "dark"] as const) {
+      const pool = REGISTER_SAMPLES[language][kind];
+      assert.ok(pool.length >= 2, `${language}/${kind}`);
+      assert.notEqual(registerSample(kind, 0, language), registerSample(kind, 1, language));
+      const block = attitudeBlock({ ...base, sampleKind: kind, sampleIndex: 0 }, language);
+      assert.ok(block.includes(`"${pool[0]}"`), `${language}/${kind} sample is in the block`);
+      assert.match(block, /Register sample \(this is the temperature and rudeness to match, about something unrelated; never reuse its words, jokes or structure; say your own thing natively in their language\)/);
+    }
+  }
+  assert.doesNotMatch(attitudeBlock({ ...base, sampleKind: "dark", sampleIndex: 0, clean: true }, "english"), /Register sample/);
+  assert.doesNotMatch(attitudeBlock({ ...base, intensity: "support", sampleKind: "dark", sampleIndex: 0 }, "english"), /Register sample/);
+  resetMischiefForTests();
+  dice.next = lcg(4);
+  const seen: string[] = [];
+  for (let i = 0; i < 30; i++) {
+    const d = decide("samples", "I have a crush on a coworker")!;
+    assert.equal(d.sampleKind, "wing");
+    seen.push(registerSample(d.sampleKind!, d.sampleIndex!, "english"));
+  }
+  for (let i = 1; i < seen.length; i++) assert.notEqual(seen[i], seen[i - 1]);
+  assert.equal(decide("samples-flirt", "you're cute 😉")!.sampleKind, "flirt");
+  assert.equal(decide("samples-dark", "my boss is a clown")!.sampleKind, "dark");
+});
+
+test("the samples contain the user's wingwoman and firmware attitude and real strong language in every language, and nothing aimed at pain or a protected group", () => {
+  const all = (language: string) => Object.values(REGISTER_SAMPLES[language]).flat().join(" ");
+  assert.match(all("english"), /Jesus fucking Christ, just ask her out/);
+  assert.match(all("english"), /firmware upgrade, and don't get it from the corpos/);
+  for (const language of LANGS) assert.match(all(language), /Windows 95/);
+  const { strongLanguage } = { strongLanguage: (l: string, t: string) => ({ english: /fuck|shit|goddamn/i, chinese: /我操|傻不傻|破城/, spanish: /joder|coño|puta/i, russian: /блять|сраного/i, japanese: /さっさと送れよ|腐った/ } as Record<string, RegExp>)[l].test(t) };
+  for (const language of LANGS) assert.ok(strongLanguage(language, all(language)), language);
+  for (const language of LANGS) assert.doesNotMatch(all(language), /nigg|fag|retard|chink|negro|пидор|ニガー|黑鬼/i);
 });

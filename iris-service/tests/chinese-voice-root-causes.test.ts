@@ -61,7 +61,7 @@ test("the part of her nature to draw from rotates: never the same twice in a row
   const block = attitudeBlock({ attitude: "mischief", intensity: "full", newStretch: true, challenge: false, android: true, statement: true, emoji: false, avoid: [], avoidTech: ["信号"], image: "your memory: what you store, lose or overwrite" }, "chinese");
   assert.match(block, /Draw it from this part of you: your memory: what you store, lose or overwrite\./);
   const english = attitudeBlock({ attitude: "mischief", intensity: "full", newStretch: true, challenge: false, android: true, statement: true, emoji: false, avoid: [], avoidTech: [], image: "your memory" }, "english");
-  assert.doesNotMatch(english, /Draw it from/);
+  assert.match(english, /Draw it from this part of you: your memory\./);
   const support = attitudeBlock({ attitude: "supportive", intensity: "support", newStretch: true, challenge: false, android: false, statement: false, emoji: false, avoid: [], image: "your memory" }, "chinese");
   assert.doesNotMatch(support, /Draw it from|Keep this reply short/);
   const none = decide("serious-rot", "我爸爸昨晚去世了")!;
@@ -81,8 +81,8 @@ test("recent technical words are remembered over her last two replies, and the o
 test("the prompt text for every other language and for Chinese in a serious moment is unchanged by the new fields", () => {
   const base = { newStretch: true, challenge: false, avoid: [] as string[], avoidTech: ["circuit"] };
   for (const attitude of ATTITUDES) {
-    const d: Decision = { ...base, attitude, intensity: "full", android: true, statement: true, emoji: false };
-    for (const language of ["english", "spanish", "russian", "japanese"]) assert.equal(attitudeBlock({ ...d, image: "x" }, language), attitudeBlock(d, language), language);
+    const d: Decision = { ...base, attitude, intensity: "support", android: false, statement: true, emoji: false };
+    for (const language of ["english", "spanish", "russian", "japanese", "chinese"]) assert.equal(attitudeBlock({ ...d, image: "x", sampleKind: "dark", sampleIndex: 1, salty: true, form: "f" }, language), attitudeBlock(d, language), language);
   }
 });
 
