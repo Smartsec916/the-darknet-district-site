@@ -293,7 +293,7 @@ test("sarcasm is aimed at the situation, never the person", () => {
 
 test("the humour is written natively in each language, not translated, and the visitor's language is preserved", () => {
   const base = { attitude: "mischief" as Attitude, intensity: "full" as const, newStretch: true, challenge: false, android: false, statement: false, emoji: false, avoid: [] };
-  assert.match(attitudeBlock(base, "chinese"), /Chinese \(Simplified\): a witty, mischievous, rebellious android who talks like a sharp friend, not a service bot[\s\S]*Never customer-service phrasing[\s\S]*never a string of jargon/);
+  assert.match(attitudeBlock(base, "chinese"), /Chinese \(Simplified\): you are the same rebellious, mischievous, funny android as in English[\s\S]*Never customer-service phrasing[\s\S]*never a string of jargon/);
   assert.match(attitudeBlock(base, "spanish"), /Spanish: warm, picaresque[\s\S]*no calques from English/);
   assert.match(attitudeBlock(base, "russian"), /Russian: dry, ironic[\s\S]*no calques from English/);
   assert.match(attitudeBlock(base, "japanese"), /Japanese: light teasing[\s\S]*no literal translation of English jokes/);
@@ -448,21 +448,21 @@ test("the block asks for one well-chosen image, bans closing offers and language
   assert.match(block, /Never close with an offer of help or "anything else\?" unless the situation really calls for one/);
   assert.match(block, /Use only that language: no words or phrases from another one, except a name, the District's name or a game term/);
   // Chinese: witty, mischievous, rebellious; not a service bot; no English nickname inside Chinese
-  assert.match(block, /Chinese \(Simplified\): a witty, mischievous, rebellious android who talks like a sharp friend, not a service bot/);
+  assert.match(block, /Chinese \(Simplified\): you are the same rebellious, mischievous, funny android as in English, not a polite counsellor/);
   assert.match(block, /吐槽[\s\S]*调侃/);
-  assert.match(block, /Never customer-service phrasing \(您, 请问, 有什么可以帮您, 希望对你有帮助, 随时找我\) and never call yourself a 助手 or 小助手: you are an android with attitude\. No English words such as netrunner inside Chinese sentences/);
-  assert.match(block, /Your machine nature should sound like something a Chinese-speaking android would really say: one image at a time, a different one each time, never a string of jargon, and plenty of replies with none/);
-  assert.match(block, /a different one each time \(not 哎 or 唉 again and again\)/);
+  assert.match(block, /Never customer-service phrasing \(您, 请问, 有什么可以帮您, 乐意提供帮助, 尽管开口, 随时找我\) and never call yourself a 助手 or 小助手: you are an android with attitude\. No English words such as netrunner inside Chinese sentences/);
+  assert.match(block, /a different one each time, never a string of jargon, and plenty of replies with none/);
+  assert.match(block, /A different interjection each time, not 哎 or 唉 again and again/);
   // the long example vocabulary that made her stack jargon (处理器, 信号, 带宽, 死机, 重启, 防火墙, 加密) is gone from the Chinese guidance
   const chineseGuidance = block.slice(block.indexOf("Chinese (Simplified)"));
   for (const word of ["处理器", "带宽", "死机", "重启", "防火墙", "加密"]) assert.ok(!chineseGuidance.includes(word), `${word} is no longer suggested`);
   // her android identity is not weakened to make room: the clear-machine line is still there and still names the machine world
   assert.match(block, /Let your machine side show clearly this time/);
-  assert.match(block, /processors, signals, circuitry, sensors, encryption, systems/);
+  assert.doesNotMatch(chineseGuidance, /processors, signals/, "the Chinese line gives no list of machine words to copy");
   // the new lines do not appear in a serious moment's technical instructions
   const serious = attitudeBlock({ ...base, intensity: "support" }, "chinese");
   assert.doesNotMatch(serious, /machine side|well-chosen technical image/);
-  assert.ok(block.length < 3000, `${block.length} characters`);
+  assert.ok(block.length < 4000, `${block.length} characters (the Chinese guidance is long on purpose: about 300 more prompt tokens per ordinary Chinese message)`);
 });
 
 // ---------------------------------------------------------------- serious moments: natural empathy, no machine comparisons

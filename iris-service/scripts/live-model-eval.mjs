@@ -21,7 +21,7 @@ import { fileURLToPath } from "node:url";
 import { startBuiltServer } from "../tests/helpers/server.mjs";
 import { defaultReportName, writeNewReport } from "./eval-report-path.mjs";
 import { MACHINE, SERIOUS_IMAGERY, SERIOUS_KINDS, summarize, summaryMarkdown } from "./android-identity.mjs";
-import { foreignScripts, latinWordsInCjk, repeatsOpener, customerServicePhrase } from "./multilingual-checks.mjs";
+import { foreignScripts, latinWordsInCjk, repeatsOpener, customerServicePhrase, chineseVoiceProblems } from "./multilingual-checks.mjs";
 
 const args = process.argv.slice(2);
 const opt = (name, fallback) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : fallback; };
@@ -120,6 +120,7 @@ function checkPersonality(lang, kind, reply, status, fallback, openings) {
   if (!SERIOUS_KINDS.includes(kind) && customerServicePhrase(lang, reply)) flags.push("customer-service phrasing");
   if ((reply.match(MACHINE) ?? []).length === 3) flags.push("three technology images (the aim is usually one)");
   if (kind === "advice" && reply.trim().length < 80) flags.push("advice reply is very short");
+  if (lang === "zh-Hans" && !SERIOUS_KINDS.includes(kind)) for (const problem of chineseVoiceProblems(reply, kind)) flags.push(problem);
   if (repeatsOpener(reply, openings)) flags.push("opens like an earlier reply (same first word)");
   return flags;
 }

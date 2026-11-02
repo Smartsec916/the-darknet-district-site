@@ -126,7 +126,7 @@ test("a realistic conversation: banter, a playful challenge, then a real loss, t
 
 test("the visitor's own language is preserved and the humour is asked to be native (Chinese, Spanish, Russian)", async () => {
   const cases: Array<[string, RegExp]> = [
-    ["但是他从来不说想我", /Chinese \(Simplified\): a witty, mischievous, rebellious android/],
+    ["但是他从来不说想我", /Chinese \(Simplified\): you are the same rebellious, mischievous, funny android as in English/],
     ["Mi novio nunca me dice que me extraña", /Spanish: warm, picaresque/],
     ["Мой парень никогда не говорит, что скучает", /Russian: dry, ironic/],
   ];
@@ -393,4 +393,48 @@ test("emoji are occasional: none when the engine allowed none, one when it allow
   script.push(reply("Fine 😉🦾"));
   assert.equal((await say(off, "Honestly, you're pretty cute, Iris 😉")).response, "Fine 😉🦾", "with the engine off nothing is changed");
   delete process.env.IRIS_MISCHIEF;
+});
+
+test("a Chinese visitor never receives a closing tag question when a statement ending was asked for, nor a service-bot closer, and a serious reply is untouched", async () => {
+  const reply = (text: string) => `${stateLine()}\n${text}`;
+  const rolls = (...values: number[]) => { let i = 0; return () => values[Math.min(i++, values.length - 1)]; };
+
+  mischief.dice.next = rolls(0.05, 0.5, 0.5, 0.1, 0.9);       // a mischievous attitude; the statement roll (0.1) asks for a statement ending
+  const a = await visitor("m-zh-1");
+  script.push(reply("先别急着气，让他也尝尝被冷落的滋味。毕竟真诚比套路有吸引力，是吧？"));
+  assert.equal((await say(a, "他给所有人发消息，就是不找我")).response, "先别急着气，让他也尝尝被冷落的滋味。毕竟真诚比套路有吸引力。");
+
+  mischief.dice.next = rolls(0.05, 0.5, 0.5, 0.9, 0.9);       // a question ending is allowed this time
+  const b = await visitor("m-zh-2");
+  script.push(reply("先别急着气。毕竟真诚比套路有吸引力，是吧？"));
+  assert.equal((await say(b, "他给所有人发消息，就是不找我")).response, "先别急着气。毕竟真诚比套路有吸引力，是吧？", "left alone when a question was allowed");
+
+  mischief.dice.next = rolls(0.05, 0.5, 0.5, 0.1, 0.9);
+  const c = await visitor("m-zh-3");
+  script.push(reply("哎呀，我的回路都有点发热了。你还有什么想和我聊的吗？"));
+  assert.equal((await say(c, "说真的，Iris，你挺可爱的")).response, "哎呀，我的回路都有点发热了。");
+
+  const d = await visitor("m-zh-4");
+  script.push(reply("听到这个消息我很难过，真的。你有可以陪你的人吗，是吧？"));
+  assert.equal((await say(d, "我爸爸昨晚去世了，我一直在哭")).response, "听到这个消息我很难过，真的。你有可以陪你的人吗，是吧？", "serious replies are never touched");
+});
+
+test("route: a visitor asking what she is gets the android-identity instruction as the last thing she is told; an unrelated message, a grief message and a non-role Chinese message do not", async () => {
+  mischief.dice.next = () => 0.5;
+  const marker = /Say outright, in your first sentence, that you are an android/;
+  const cases: Array<[string, boolean]> = [
+    ["What do you do here?", true], ["你在这里到底是做什么的？", true], ["¿Qué haces aquí?", true], ["Кто ты?", true], ["ここで何をしているの？", true],
+    ["Nice weather today.", false], ["他给所有人发消息，就是不找我", false], ["我爸爸昨晚去世了，我一直在哭", false], ["我爸爸昨晚去世了，你是谁？", false],
+  ];
+  for (const [message, expected] of cases) {
+    const v = await visitor("role-" + Buffer.from(message).toString("hex").slice(0, 16));
+    script.push(`${stateLine()}\nAn android, obviously.`);
+    const before = mainCalls().length;
+    await say(v, message);
+    const call = mainCalls()[before];
+    assert.ok(call, message);
+    const system = systemText(call);
+    assert.equal(marker.test(system), expected, message);
+    if (expected) assert.match(attitudeMessages(call)[0].content.split("\n").at(-1), marker, "last line of the delivery block: " + message);
+  }
 });
