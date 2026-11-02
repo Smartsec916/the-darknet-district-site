@@ -147,6 +147,8 @@ function toggleChat() {
   const container = document.getElementById('chatContainer');
   container.style.display = container.style.display === 'none' ? 'block' : 'none';
   const open = container.style.display === 'block';
+  // Pages with their own animations (the Sleeping Pod's smoke) listen for this so the two do not compete for the screen
+  document.dispatchEvent(new CustomEvent('iris-chat-toggle', { detail: { open } }));
 
   // Tell assistive technology whether the window is open, and put the keyboard where the visitor needs it.
   // Only the window is hidden: the conversation in it stays as it was.

@@ -27,7 +27,7 @@ test('every page that should have Iris loads the shared widget once, and the hom
     const loaders = html.match(/<script src="iris-widget\.js" defer><\/script>/g) ?? [];
     assert.equal(loaders.length, 1, `${file}: one loader`);
     assert.ok(!/id="chatButton"|id="chatContainer"/.test(html), `${file}: no copy of the chat markup (the loader adds it)`);
-    assert.ok(html.indexOf('iris-widget.js') > html.indexOf('<body'), `${file}: the loader is in the body`);
+    assert.ok(html.indexOf('<script src="iris-widget.js"') > html.indexOf('<body'), `${file}: the loader is in the body`);
   }
   const home = read('index.html');
   assert.equal((home.match(/id="chatButton"/g) ?? []).length, 1, 'the homepage has its one chat');
