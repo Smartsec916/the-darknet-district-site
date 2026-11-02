@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { debugLog, log, logError } from "../logger";
 import { recordApiUsage } from "../persistence";
 import { CHARACTER_CORE, emotionEnabled, extractEmotion, type EmotionSignal } from "../emotion";
-import { decideLanguage, languageReminder, normalizeLanguage } from "../language";
+import { decideLanguage, languageReminder, normalizeLanguage, type ChineseScript } from "../language";
 
 // The newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const MODEL = "gpt-4o";
@@ -178,6 +178,8 @@ const sessionLanguages = new Map<string, Set<string>>();
 // The conversation's default language (see language.ts). It survives a restart: it is rebuilt from the language
 // stored with the visitor's messages when the chat's history is rebuilt.
 const sessionPreferred = new Map<string, string>();
+// Which Chinese characters the visitor writes (Simplified or Traditional), so a reply keeps them through a short message
+const sessionScript = new Map<string, ChineseScript>();
 
 export function seedPreferredLanguage(sessionId: string, language: string): void {
   const normalized = normalizeLanguage(language);
@@ -190,6 +192,7 @@ export function initializeSession(sessionId: string): void {
   sessionMessages.set(sessionId, [{ role: "system", content: SYSTEM_PROMPT }]);
   sessionLanguages.set(sessionId, new Set<string>(["english"])); // Default to English
   sessionPreferred.delete(sessionId);
+  sessionScript.delete(sessionId);
   sessionSystemSlots.delete(sessionId); // a restarted chat carries none of the old instructions
 }
 
@@ -234,6 +237,7 @@ export function forgetAllSessionsForTests(): void {
   sessionMessages.clear();
   sessionLanguages.clear();
   sessionPreferred.clear();
+  sessionScript.clear();
   sessionSystemSlots.clear();
 }
 
@@ -1006,8 +1010,9 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
 
     // The conversation has a default language that one short or ambiguous message ("ok", "thanks") does not change.
     // A clear switch, or an explicit request to translate, answer in two languages or change language, is honored.
-    const decision = decideLanguage({ detected: detectedLanguage, text: userMessage, preferred: sessionPreferred.get(sessionId) ?? "english" });
+    const decision = decideLanguage({ detected: detectedLanguage, text: userMessage, preferred: sessionPreferred.get(sessionId) ?? "english", preferredScript: sessionScript.get(sessionId) });
     sessionPreferred.set(sessionId, decision.preferred);
+    if (decision.script) sessionScript.set(sessionId, decision.script);
     const replyLanguage = decision.reply;
     if (replyLanguage !== "english") sessionLangs.add(replyLanguage);
     const languageNote = languageReminder(decision, sessionLangs.size > 1);

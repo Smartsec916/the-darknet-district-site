@@ -10,6 +10,7 @@ import { getNews, type NewsReport } from "./news";
 import { routeLive, type LastLive, type LiveIntent } from "./router";
 import { newsNotes, quakeNotes, weatherNotes, type Notes } from "./notes";
 import { chooseStance, commentaryBlock } from "./commentary";
+import { newsFallbackText, quakeFallbackText, weatherFallbackText } from "./fallbackText";
 
 export interface LivePrep {
   kind: LiveIntent["kind"];
@@ -121,7 +122,6 @@ function stripUnknownLinks(text: string, allowed: Set<string>): { text: string; 
   const out = text.replace(/https?:\/\/[^\s)>\]"']+/gi, url => { const bare = url.replace(/[.,;:!?]+$/, ""); if (allowed.has(bare)) return url; replaced = true; return ""; });
   return { text: replaced ? out.replace(/[ \t]{2,}/g, " ").replace(/\s+([.,;:!?])/g, "$1").trim() : text, replaced };
 }
-const cjk = (s: string) => /[㐀-鿿]/.test(s);
 export function russianBaseForms(name: string): string[] {
   const n = name.trim();
   const forms = [n.replace(/(?:ом|ем)$/, ""), n.replace(/е$/, ""), n.replace(/е$/, "а"), n.replace(/е$/, "я"), n.replace(/е$/, "ь"), n.replace(/у$/, "а"), n.replace(/ой$/, "а"), n.replace(/ии$/, "ия")];
@@ -160,7 +160,7 @@ const sameAmount = (a: number, b: number) => Math.abs(a - b) <= Math.max(a, b) *
 
 function newsFallback(r: NewsReport, message: string, now: number): string {
   const list = r.items.map((i, n) => `${n + 1}. "${i.title}" (${i.source}, ${new Date(i.publishedAt).toISOString().slice(0, 10)})`).join("\n");
-  return cjk(message) ? `直接来自新闻源的标题（未加修饰）：\n${list}` : /[Ѐ-ӿ]/.test(message) ? `Прямо из источников, без добавлений:\n${list}` : `Straight from the feeds, nothing added:\n${list}`;
+  return newsFallbackText(message, list);
 }
 
 // ---- weather -----------------------------------------------------------------------------------------------------------
@@ -185,8 +185,7 @@ function weatherBody(w: Weather, now: number, intent: Extract<LiveIntent, { kind
 
 function weatherFallback(w: Weather, message: string): string {
   const rest = w.days[0];
-  if (cjk(message)) return `${w.place.name}现在${C(w.now.tempC)}，体感${C(w.now.feelsC)}，${w.now.condition}。${rest && rest.highC !== null ? `今天最高${C(rest.highC)}，最低${rest.lowC !== null ? C(rest.lowC) : "未知"}。` : ""}数据来源：MET Norway，更新于 ${utc(w.updatedAt)}。`;
-  return `${w.place.name} right now: ${C(w.now.tempC)}, feels like ${C(w.now.feelsC)}, ${w.now.condition}.${rest && rest.highC !== null ? ` Today's high ${C(rest.highC)}, low ${rest.lowC !== null ? C(rest.lowC) : "n/a"}.` : ""} Straight from MET Norway, updated ${utc(w.updatedAt)}. I'd rather be plain than wrong.`;
+  return weatherFallbackText(message, { place: w.place.name, now: C(w.now.tempC), feels: C(w.now.feelsC), condition: w.now.condition, high: rest && rest.highC !== null ? C(rest.highC) : null, low: rest && rest.lowC !== null ? C(rest.lowC) : null, updated: utc(w.updatedAt) });
 }
 
 // ---- earthquakes --------------------------------------------------------------------------------------------------------
@@ -198,7 +197,7 @@ function quakeBody(r: QuakeReport, now: number): { body: string; mags: Set<numbe
 }
 function quakeFallback(r: QuakeReport, message: string, now: number): string {
   const list = r.quakes.slice(0, 3).map(q => `M${q.mag.toFixed(1)} ${q.place} (${ago(q.at, now)})`).join("; ");
-  return cjk(message) ? `美国地质调查局（USGS）的最新记录（${r.scope}）：${list || "该时段内没有符合条件的地震"}。` : `Latest from the US Geological Survey (${r.scope}): ${list || "nothing matching in that window"}. Official numbers, no embellishment.`;
+  return quakeFallbackText(message, r.scope, list);
 }
 
 // ---- news ---------------------------------------------------------------------------------------------------------------
