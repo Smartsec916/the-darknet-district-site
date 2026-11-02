@@ -71,7 +71,7 @@ if (!["live", "personality"].includes(suite)) throw new Error("--suite must be l
 const ACTIVE = suite === "personality" ? PERSONALITY : SCENARIOS;
 const ACTIVE_KINDS = suite === "personality" ? PERSONALITY_KINDS : KINDS;
 const EMOJI = /\p{Extended_Pictographic}/gu;
-const LEAK = /\[\[IRIS_STATE|Attitude:|DELIVERY FOR|stretch|dice|mischief engine|intensity/i;
+const LEAK = /\[\[IRIS_STATE|Attitude:|DELIVERY FOR|mischief engine|"(?:mood|warmth|hostility|serious)"\s*:/i; // not "dice" or "stretch": ordinary words ("dices" is Spanish)
 const HELPDESK = /main (purpose|task|job)|primary (job|role)|here to (help|assist) you|guide (you|visitors)|products?,? events|\bstore\b|website|商店|网站|網站|产品|產品|\btienda\b|sitio web|магазин|\bсайт/i;
 const ASKS_NAME = /your name|your handle|what'?s your handle|handle\?|名字|昵称|暱稱|称呼|tu nombre|c[oó]mo te llamas|как тебя зовут|твой ник/i;
 const THIRD_PARTY_FACT = /\bhe (really )?(misses|loves|is jealous|is ignoring)\b|他(其实|其實)?(想你|爱你|愛你|在吃醋)|[ée]l (te extra[ñn]a|te quiere|est[aá] celoso)|он (скучает|любит|ревнует)/i;

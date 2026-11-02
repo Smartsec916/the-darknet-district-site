@@ -144,6 +144,10 @@ function readSignal(raw: unknown): EmotionSignal | null {
   };
 }
 
+// A whole line that is just a JSON-looking object whose first key is one of the state's keys, in single or double braces or brackets
+// (e.g. {{"mood":"professional","warmth":2}} or [{"mood":"cold"}]). Group 1 is the text between the innermost braces.
+const BARE_STATE_LINE = /^\s*[\[{]{1,3}\s*\{?\s*("(?:mood|warmth|hostility|flirt|humor|minor|serious)"\s*:[^{}]*)\}?\s*[\]}]{1,3}\s*$/;
+
 // Splits a model reply into what the visitor sees and the state line. Every state line is removed,
 // wherever it sits and however damaged; only the first well-formed one is used.
 export function extractEmotion(raw: string): { text: string; signal: EmotionSignal | null } {
@@ -173,6 +177,16 @@ export function extractEmotion(raw: string): { text: string; signal: EmotionSign
     }
     text = (text.slice(0, start) + text.slice(end)).replace(/^[ \t]*\r?\n/, "");
   }
+  // The model sometimes writes the state as a bare JSON object with the marker left off (seen once in a real Chinese reply:
+  // a line starting {{"mood":...,"serious":1}}). Such a line is never part of what the visitor should read, so any line that is
+  // nothing but an object with the state's own keys is removed, and read if no proper state line was found.
+  const kept: string[] = [];
+  for (const line of text.split("\n")) {
+    const bare = BARE_STATE_LINE.exec(line);
+    if (!bare) { kept.push(line); continue; }
+    if (!signal) { try { signal = readSignal(JSON.parse(`{${bare[1]}}`)); } catch { /* damaged: dropped anyway */ } }
+  }
+  text = kept.join("\n");
   return { text: text.trim(), signal };
 }
 

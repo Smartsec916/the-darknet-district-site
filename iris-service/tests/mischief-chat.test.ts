@@ -255,3 +255,16 @@ test("it adds no table or column: the database layout is untouched", async () =>
   assert.ok(columns.length > 20);
   assert.ok(columns.every(c => !/attitude|mischief|dice|stretch/i.test(c.table_name + c.column_name)), "no attitude, mischief, dice or stretch column anywhere");
 });
+
+test("a state object the model wrote without its marker never reaches the visitor, is not stored, and still counts", async () => {
+  const v = await visitor("m-bare");
+  mischief.dice.next = () => 0.5;
+  script.push(`{{"mood":"professional","warmth":2,"hostility":0,"flirt":-2,"humor":0,"minor":0,"serious":1}} \n\nI am so sorry. I am here.`);
+  const body = await say(v, "我爸爸昨晚去世了，我一直在哭");
+  assert.equal(body.response, "I am so sorry. I am here.");
+  const rows = (await dbQuery(`SELECT message FROM chat_messages WHERE session_id = $1 AND sender = 'iris'`, [v.sessionId])).rows as any[];
+  assert.deepEqual(rows.map(r => r.message), ["I am so sorry. I am here."], "nothing of it is stored");
+  script.push(`${stateLine()}\nOk.`);
+  await say(v, "hmm, what now");
+  assert.match(attitudeMessages(mainCalls()[1])[0].content, /attitude is OFF/, "and the following message is still gentle");
+});
