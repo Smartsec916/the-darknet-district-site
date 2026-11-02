@@ -108,5 +108,5 @@ export function registerExample(kind: SampleKind, index: number, language: strin
 
 // The system note that goes right before the example, so the model knows what it is
 export const EXAMPLE_NOTE =
-  "STYLE REFERENCE (private; an invented exchange from a different conversation, shown only for its temperature and rudeness): the next two messages are not part of this chat. " +
+  "STYLE REFERENCE (private; an invented exchange from a different conversation, shown only for its temperature and rudeness): the next messages up to the visitor's real one are not part of this chat. " +
   "Match that level of attitude in your reply to the visitor's real message below, in their language; never reuse its words, jokes or structure, never mention it.";

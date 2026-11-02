@@ -485,8 +485,8 @@ test("route: an ordinary reply is sent one invented register example just before
     const noteAt = messages.findIndex(m => m.role === "system" && m.content.startsWith("STYLE REFERENCE"));
     assert.equal(noteAt >= 0, expected, message);
     if (expected) {
-      assert.equal(messages[noteAt + 1].role, "user"); assert.equal(messages[noteAt + 2].role, "assistant");
-      assert.equal(messages[noteAt + 3].content, message, "right before the visitor's real message");
+      assert.deepEqual(messages.slice(noteAt + 1, noteAt + 5).map(m => m.role), ["user", "assistant", "user", "assistant"], "two invented exchanges");
+      assert.equal(messages[noteAt + 5].content, message, "right before the visitor's real message");
       assert.equal(messages.filter(m => m.role === "system" && m.content.startsWith("STYLE REFERENCE")).length, 1, "one example, never stacked");
     }
     const rows = (await dbQuery("SELECT message FROM chat_messages WHERE session_id = $1", [v.sessionId])).rows as any[];

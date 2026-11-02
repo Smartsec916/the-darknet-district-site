@@ -1092,10 +1092,13 @@ export async function getResponse(sessionId: string, userMessage: string, prompt
     // The register example: one invented exchange from "another conversation", placed just before the visitor's message, so the model sees the temperature
     // it is meant to match (see registerSamples.ts for why a description alone did not work). Request-only: never stored, never shown, never in a serious reply.
     if (options.attitude?.sampleKind && options.attitude.intensity !== "support" && !options.attitude.clean && !options.attitude.role) {
-      const example = registerExample(options.attitude.sampleKind, options.attitude.sampleIndex ?? 0, replyLanguage);
+      const index = options.attitude.sampleIndex ?? 0;
+      const first = registerExample(options.attitude.sampleKind, index, replyLanguage);
+      const second = registerExample(options.attitude.sampleKind, index + 1, replyLanguage);
+      const exchange = [{ role: "user" as const, content: first.user }, { role: "assistant" as const, content: first.assistant }, ...(second.assistant !== first.assistant ? [{ role: "user" as const, content: second.user }, { role: "assistant" as const, content: second.assistant }] : [])];
       let at = -1;
       for (let i = updatedMessages.length - 1; i >= 0; i--) if (updatedMessages[i].role === "user") { at = i; break; }
-      if (at >= 0) updatedMessages = [...updatedMessages.slice(0, at), { role: "system", content: EXAMPLE_NOTE }, { role: "user", content: example.user }, { role: "assistant", content: example.assistant }, ...updatedMessages.slice(at)];
+      if (at >= 0) updatedMessages = [...updatedMessages.slice(0, at), { role: "system", content: EXAMPLE_NOTE }, ...exchange, ...updatedMessages.slice(at)];
     }
 
     // Request summary only; message text and prompts stay out of the logs

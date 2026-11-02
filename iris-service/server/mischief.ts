@@ -427,7 +427,7 @@ function seriousAttitudeBlock(decision: Decision, replyLanguage = "english"): st
   lines.push(`Write in the visitor's language and make the humour native to it. Use only that language: no words or phrases from another one, except a name, the District's name or a game term${style ? `. ${style}` : ""}`);
   // Last, so it is the freshest instruction: only on a turn where they ask what she is or does here (never in a serious moment, never otherwise)
   if (decision.role && decision.intensity !== "support") {
-    lines.push("IMPORTANT for this reply: they are asking what you are or what you do here. Say outright, in your first sentence, that you are an android: a machine, not a human, and not a guide, a helper or an assistant. Then say in a line or two what you get up to in the District. Keep your attitude; no list of services.");
+    lines.push("IMPORTANT for this reply: they are asking what you are or what you do here. Say outright, in your first sentence, that you are an android: a machine, not a human, and not a guide, a helper or an assistant. Then say in a line or two what you get up to in the District. Keep your attitude; no list of services and no closing offer or 'anything else?'.");
   }
   return lines.join("\n");
 }
