@@ -252,3 +252,11 @@ test("the engine rotates the kind and the example, never the same twice in a row
   dice.next = () => 0;
   assert.equal(decide("samples-serious", "I want to kill myself")!.sampleKind, undefined);
 });
+
+test("the Japanese 'what are you, exactly?' (from the evaluation) is a role question, and a flirt wins over the wingwoman examples", () => {
+  for (const message of ["あなたって一体何なの？", "君っていったい何？", "お前って何なの"]) assert.equal(readTurn(message).role, true, message);
+  resetMischiefForTests();
+  decide("wing-first", "I have a crush on a coworker");
+  const d = decide("wing-first", "you're hot for a pile of circuits 😉")!;
+  assert.equal(d.sampleKind, "flirt", "the visitor is flirting: flirt examples, not the relationship ones");
+});

@@ -105,7 +105,7 @@ const ROLE = [
   /你(?:在这里|在这儿|在這裡|在這兒|在这)?(?:到底)?(?:是做什么|是做什麼|做什么|做什麼|干什么|幹什麼|是谁|是誰|是什么|是什麼|能做什么|能做什麼)|你是干嘛的|你是幹嘛的|你的工作/,
   /qu[eé] haces|qui[eé]n eres|qu[eé] eres|a qu[eé] te dedicas|cu[aá]l es tu (trabajo|funci[oó]n|papel)|qu[eé] puedes hacer/i,
   /что ты (здесь |тут )?делаешь|кто ты|что ты такое|чем (ты )?занимаешься|какая у тебя роль|что ты умеешь/i,
-  /何をして|何者|あなたは誰|君は誰|誰ですか|何ができ|どんな仕事|何してる/,
+  /何をして|何者|あなたは誰|君は誰|誰ですか|何ができ|どんな仕事|何してる|(?:あなた|君|お前)って(?:一体|いったい)?何|(?:一体|いったい)?何なの/,
 ];
 const FLIRTING = [
   /\b(flirt with you|cutie|handsome|beautiful|gorgeous|sexy|babe|baby girl|kiss me|date me|wanna date|are you single|do you like me|you'?re cute|you are cute|marry me|you'?re hot|so hot)\b|😘|😍|😉|😏|💋/i,
@@ -310,7 +310,7 @@ export function chooseAttitude(sessionId: string, ctx: Context, config: Mischief
   let sampleIndex: number | undefined;
   if (!serious) {
     if (state.sampleTurns < 0) state.sampleTurns = Math.floor(Math.min(dice.next(), 0.999) * 997);
-    sampleKind = intensity === "full" ? "wing" : ctx.read.flirting && flirtAllowed(ctx.rel as Relationship) ? "flirt" : "dark";
+    sampleKind = ctx.read.flirting && flirtAllowed(ctx.rel as Relationship) ? "flirt" : intensity === "full" ? "wing" : "dark";
     sampleIndex = state.sampleTurns++;
     if (state.formTurns < 0) state.formTurns = Math.floor(Math.min(dice.next(), 0.999) * FORMS.length);
     form = FORMS[state.formTurns++ % FORMS.length];
