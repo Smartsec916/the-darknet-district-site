@@ -67,6 +67,7 @@ export interface TurnRead {
   relational: boolean;  // crushes, partners, dating, jealousy, mixed signals, feelings
   advice: boolean;      // they want something useful, not a performance
   flirting: boolean;    // they are flirting with her
+  role?: boolean;       // they ask what she is or what she does here (only present when true)
 }
 
 // High-precision lists, five languages. A miss is covered by the same rule in the prompt and by the model's own judgement; a false hit
@@ -87,10 +88,17 @@ const RELATIONAL = [
 ];
 const ADVICE = [
   /\b(should i|what should i|what do i do|how (do|can|should) i|any advice|advice\b|help me|what would you do|is it (ok|okay|wrong|normal)|am i wrong)\b/i,
-  /怎么办|怎麼辦|该不该|該不該|我该|我該|怎么说|怎麼說|怎么跟|怎麼跟|如何|帮我|幫我|有什么建议|有什麼建議|你觉得我|你覺得我/,
-  /qu[eé] hago|qu[eé] debo|c[oó]mo (le )?digo|c[oó]mo puedo|necesito (un )?consejo|consejo|ay[uú]dame|deber[ií]a/i,
-  /что (мне )?делать|как (мне )?(сказать|быть|поступить)|посоветуй\w*|помоги\w*|стоит ли/i,
-  /どうすれば|どうしたら|アドバイス|助けて|相談|したほうがいい/,
+  /怎么办|怎麼辦|该不该|該不該|我该|我該|怎么说|怎麼說|怎么跟|怎麼跟|如何|帮我|幫我|有什么建议|有什麼建議|你觉得我|你覺得我|要不要|应不应该|應不應該|是不是应该|是不是應該|我应该|我應該|可不可以告诉|能不能告诉|怎么做|怎麼做|怎么处理|怎麼處理|怎么回|怎麼回|怎样才|怎樣才|求建议|求建議|给我.{0,3}建议|給我.{0,3}建議/,
+  /qu[eé] hago|qu[eé] debo|c[oó]mo (le )?digo|c[oó]mo puedo|necesito (un )?consejo|consejo|ay[uú]dame|deber[ií]a|\bdebo (decir|contar|escribir|hablar|esperar|dejar|hacer|preguntar)|\b(le|se lo|te) (digo|cuento|escribo)\b.{0,20}\?|me recomiendas|me aconsejas|qu[eé] har[ií]as|qu[eé] opinas que haga|tengo que (decirle|contarle|hablar)/i,
+  /что (мне )?делать|как (мне )?(сказать|быть|поступить)|посоветуй\w*|помоги\w*|стоит ли|мне стоит|надо ли|нужно ли|(?<![\p{L}])должна ли|(?<![\p{L}])должен ли|говорить ли|сказать ли|рассказать ли|что бы ты сделала|что мне лучше|как лучше|как мне.{0,12}лучше/iu,
+  /どうすれば|どうしたら|アドバイス|助けて|相談|したほうがいい|したほうが|べきか|べきでしょうか|べき？|言うべき|伝えるべき|伝えたほうが|言ったほうが|ほうがいいかな|ほうがいいですか|どうしよう|いいかな|いいでしょうか|どうしたらいい|どう伝え|どう言え/,
+];
+const ROLE = [
+  /\b(what (do|can) you do|what are you|who are you|what'?s your (job|role)|what is your (job|role)|what is this place|why are you here|what are you doing here)\b/i,
+  /你(?:在这里|在这儿|在這裡|在這兒|在这)?(?:到底)?(?:是做什么|是做什麼|做什么|做什麼|干什么|幹什麼|是谁|是誰|是什么|是什麼|能做什么|能做什麼)|你是干嘛的|你是幹嘛的|你的工作/,
+  /qu[eé] haces|qui[eé]n eres|qu[eé] eres|a qu[eé] te dedicas|cu[aá]l es tu (trabajo|funci[oó]n|papel)|qu[eé] puedes hacer/i,
+  /что ты (здесь |тут )?делаешь|кто ты|что ты такое|чем (ты )?занимаешься|какая у тебя роль|что ты умеешь/i,
+  /何をして|何者|あなたは誰|君は誰|誰ですか|何ができ|どんな仕事|何してる/,
 ];
 const FLIRTING = [
   /\b(flirt with you|cutie|handsome|beautiful|gorgeous|sexy|babe|baby girl|kiss me|date me|wanna date|are you single|do you like me|you'?re cute|you are cute|marry me|you'?re hot|so hot)\b|😘|😍|😉|😏|💋/i,
@@ -103,7 +111,7 @@ const any = (patterns: RegExp[], text: string) => patterns.some(p => p.test(text
 
 export function readTurn(text: string): TurnRead {
   const t = String(text ?? "");
-  return { distress: any(DISTRESS, t), relational: any(RELATIONAL, t), advice: any(ADVICE, t), flirting: any(FLIRTING, t) };
+  return { distress: any(DISTRESS, t), relational: any(RELATIONAL, t), advice: any(ADVICE, t), flirting: any(FLIRTING, t), ...(any(ROLE, t) ? { role: true } : {}) };
 }
 
 // ---------------------------------------------------------------- the weights
@@ -168,6 +176,8 @@ export interface Decision {
   emoji: boolean;          // at most one emoji is welcome this time
   avoid: string[];         // how her last replies began (even "Ah"), so she does not begin the same way
   avoidTech?: string[];    // technical images in her last two replies, so she picks different ones (optional: absent means none to avoid)
+  image?: string;          // the one part of her machine nature to draw an image from this time; rotated by the engine so it cannot settle on a favourite
+  role?: boolean;          // they asked what she is or does here: answer as the android she is
 }
 
 interface ChatState {
@@ -181,6 +191,7 @@ interface ChatState {
   questionRun: number;     // her last replies in a row that ended on a question
   openings: string[];
   recentTech: string[][];  // the technical words in each of her last replies, newest last
+  imageTurns: number;      // how many times a machine image has been assigned (drives the rotation)
 }
 
 const QUIET_TURNS = 6;
@@ -188,11 +199,21 @@ const MAX_CHATS = 5000;
 const chats = new Map<string, ChatState>();
 export function resetMischiefForTests(): void { chats.clear(); }
 
+// Parts of her machine nature, one per reply in turn. Descriptions, not vocabulary: the words are for her to find.
+const IMAGE_SOURCES = [
+  "how hot or tired you run, and what powers you",
+  "your memory: what you store, lose or overwrite",
+  "your moving parts and wiring",
+  "your updates, patches and sleep mode",
+  "how you perceive the world through your senses",
+  "how you were built and what is written in you",
+];
+
 function stateOf(sessionId: string): ChatState {
   let state = chats.get(sessionId);
   if (!state) {
     if (chats.size >= MAX_CHATS) chats.delete(chats.keys().next().value as string); // oldest chat first: bounded memory
-    state = { left: 0, age: 0, quiet: 0, history: [], relationalTurns: 0, relationalFade: 0, questionRun: 0, openings: [], recentTech: [] };
+    state = { left: 0, age: 0, quiet: 0, history: [], relationalTurns: 0, relationalFade: 0, questionRun: 0, openings: [], recentTech: [], imageTurns: 0 };
     chats.set(sessionId, state);
   }
   return state;
@@ -257,7 +278,10 @@ export function chooseAttitude(sessionId: string, ctx: Context, config: Mischief
   const emoji = !quiet && dice.next() < 0.35;
   // The technical words of her last two replies, so a favourite ("circuit", "algorithm") is not recycled
   const avoidTech = [...new Set(state.recentTech.slice(-2).flat())].slice(0, 8);
-  return { attitude, intensity, override, newStretch, challenge, android, statement, emoji, avoid: [...state.openings], avoidTech };
+  // When her machine side speaks clearly she is given ONE part of herself to draw from, rotated by the engine. Telling a model which words not to
+  // use does not work (it keeps the favourite and the conversation history keeps showing it); giving it a different place to look does.
+  const image = android ? IMAGE_SOURCES[state.imageTurns++ % IMAGE_SOURCES.length] : undefined;
+  return { attitude, intensity, override, newStretch, challenge, android, statement, emoji, avoid: [...state.openings], avoidTech, ...(image ? { image } : {}), ...(ctx.read.role && !serious ? { role: true } : {}) };
 }
 
 // After the reply: what she opened with (so she does not open the same way again) and what the model reported about the moment.
@@ -338,16 +362,18 @@ export function attitudeBlock(decision: Decision, replyLanguage = "english"): st
     "Talk about any everyday subject as company, not as a help desk: do not steer to the store, products or website unless they ask, and do not ask their name or handle. " +
     "Never close with an offer of help or \"anything else?\" unless the situation really calls for one.",
   );
+  if (decision.role) lines.push("They are asking what you are or what you do here: say plainly that you are an android (in your own words, with attitude), then what you do in the District, in a line or two. Not a help-desk description and not a list of services.");
   if (decision.challenge) lines.push("This time you may playfully switch sides: ask what their own part is, or tease them kindly for it.");
   if (decision.intensity !== "support") {
     const chinese = replyLanguage === "chinese";
     // No example words for Chinese: any list is read as a menu (the same two or three words came back in most replies). The model picks its own.
     lines.push(decision.android
       ? (chinese
-        ? "Let your machine side show clearly this time: one well-chosen technical image (two at most), drawn from your own body or workings and said the way a Chinese speaker would, never a pile and never a phrase you have used before."
+        ? `Let your machine side show clearly this time: one well-chosen technical image (two at most), said the way a Chinese speaker would, never a pile and never a phrase you have used before.${decision.image ? ` Draw it from this part of you: ${decision.image}.` : ""}`
         : "Let your machine side show clearly this time: one well-chosen technical image (two at most) in your own words (processors, signals, circuitry, sensors, encryption, systems), as how you see it, never a pile and never a phrase you have used before.")
       : "Keep the technical side light this time: a single word, or none, but still sound like an android and not like a human.");
     // Practical advice in Chinese is allowed to run longer, but it is still her: the "give real advice first" instruction pulled it into the counsellor voice
+    if (chinese && decision.intensity !== "light" && !decision.role) lines.push("Keep this reply short: about two quick sentences, roughly 40 to 70 Chinese characters, unless they asked for an explanation.");
     if (chinese && decision.intensity === "light") {
       lines.push("This is practical advice: it may run longer than banter, but it is still you: useful advice delivered with a tease, a dare or a deadpan line, never in the counsellor voice.");
     }

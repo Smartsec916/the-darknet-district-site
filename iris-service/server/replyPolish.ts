@@ -105,6 +105,23 @@ function offerAction(sentence: string): { kind: "none" } | { kind: "drop" } | { 
 // A tag question closing a Chinese reply, after a comma: "，是吧？" "，不是吗？" "，对吧？" (an emoji after it is kept)
 const TAG_QUESTION_END = /[，,、]\s*(?:是吧|对吧|不是吧|不是吗|对不对|是不是|好不好|行不行|好吗|行吗)\s*[？?]\s*((?:\p{Extended_Pictographic}\s*)*)$/u;
 
+// A closing question that is only a hook: short, and one of the stock forms. Anything with a question word, or longer than a few words, is a real question.
+const HOOK_QUESTION = /^(?:你)?(?:觉得)?(?:怎么想|怎么看|怎么样|如何|呢|好玩吗|有趣吗|有意思吗|有没有.{0,8}|敢不敢.{0,6}|敢吗|是不是|对不对|对吧|是吧|不是吗|不是吧|好不好|行不行|好吗|行吗|要不要试试|想不想试试|心动吗|怎么想呢|这样做有没有.{0,8}|是不是很.{0,6})[？?]*$/u;
+const WH_WORD = /什么|谁|哪|为什么|为啥|多少|几|怎么做|怎样|何时|什么时候/;
+function trimHookQuestion(text: string): string | null {
+  const trailing = /(\s*(?:\p{Extended_Pictographic}\s*)*)$/u.exec(text)?.[1] ?? "";
+  const bare = text.replace(/(?:\p{Extended_Pictographic}|\s)+$/u, "");
+  if (!/[？?]$/u.test(bare)) return null;
+  const withoutMark = bare.replace(/[？?]+$/u, "");
+  const cut = Math.max(withoutMark.lastIndexOf("。"), withoutMark.lastIndexOf("！"), withoutMark.lastIndexOf("？"), withoutMark.lastIndexOf("!"), withoutMark.lastIndexOf("，"), withoutMark.lastIndexOf(","));
+  const clause = withoutMark.slice(cut + 1).trim();
+  const head = withoutMark.slice(0, cut + 1).trim();
+  if (!clause || WH_WORD.test(clause) || !HOOK_QUESTION.test(clause + "？")) return null;
+  const kept = head.replace(/[，,、\s]+$/u, "");
+  if (kept.replace(/[。！？!?\s]|\p{Extended_Pictographic}/gu, "").length < 6) return null;   // too little would remain
+  return (/[。！？!?]$/u.test(kept) ? kept : kept + "。") + trailing.trimEnd();
+}
+
 // More emoji than the engine allowed this turn: none when it said none, only the first when it allowed one
 const EMOJI_SEQUENCE = /\p{Extended_Pictographic}(?:️|‍\p{Extended_Pictographic}|[\u{1F3FB}-\u{1F3FF}])*/gu;
 export function limitEmoji(text: string, allowed: boolean): string {
@@ -176,6 +193,17 @@ export function polishReply(input: PolishInput): PolishResult {
   if (replyLanguage === "chinese" && input.statementWanted) {
     const trimmed = result.replace(TAG_QUESTION_END, (_m, emoji: string) => `。${emoji ?? ""}`);
     if (trimmed !== result && trimmed.replace(/[。\s]|\p{Extended_Pictographic}/gu, "").length >= 6) { result = trimmed; tagQuestionsTrimmed = 1; }
+  }
+
+  // 3b. when a statement ending was asked for, a closing Chinese question that is only a conversational hook ("有没有点心动？", "怎么想？", "好玩吗？") goes;
+  // a question that asks for something specific (who, what, why, how many) or says something of its own stays
+  if (replyLanguage === "chinese" && input.statementWanted) {
+    for (let pass = 0; pass < 2; pass++) {
+      const trimmed = trimHookQuestion(result);
+      if (!trimmed) break;
+      result = trimmed;
+      tagQuestionsTrimmed++;
+    }
   }
 
   // 4. emoji beyond what the engine allowed
