@@ -99,16 +99,27 @@
   // The layout split by where each piece belongs (street, District or terrace), using zone(). The data-level seam for loading the interior on its own.
   function layoutByArea(){const l=layout(),out={street:{solids:[],interactions:[]},district:{solids:[],interactions:[]},terrace:{solids:[],interactions:[]}};
     for(const k of ['solids','interactions'])for(const item of l[k])out[zone({x:item.position[0],z:item.position[2]}).area][k].push(item);return out;}
-  function layout(){
+  function fullLayout(){
     const placed=solids.map(s=>{const [x,z]=toWorld(s.position[0],s.position[2]);return {...s,position:[x,s.position[1],z],size:s.size.slice()};});
     const items=interactions.map(i=>{const [x,z]=toWorld(i.position[0],i.position[2]);return {...i,position:[x,i.position[1],z]};});
     return {id:'neochinatown',name:'NEOCHINATOWN / TESSALY',kind:'city',district:true,bounds:[260,270],spawn:[31,1.7,-96],yaw:2.44,color:'#3a2f4a',music:'earth',ship:'starter',
     solids:[...placed,...(club?club.solids():[]),...cityBlocks.map(s=>({...s,position:s.position.slice(),size:s.size.slice()})),{id:'ship',position:[22,2,-96],size:[3.6,4,10.5]}],
     interactions:[{id:'board',label:'BOARD YOUR SHIP',position:[27,1.7,-98],action:'board',range:3.5,when:{notFlags:{shipAccess:'none'}}},{id:'terminal',label:'LANDING TERMINAL',position:[34.5,1.7,-103],action:'terminal',range:3},...items],signs:[]};}
+  // The layout of one environment. 'all' is the original combined layout. The entrance (outer door, front wall, vestibule, inner door and
+  // scanner) belongs to both 'street' and 'interior', so the player stands in the same vestibule when one replaces the other.
+  const ENTRANCE=new Set(['district-door','district-inner-door','district-front-west','district-front-east','vestibule-west','vestibule-east','district-scan']);
+  const insideSide=item=>{const a=zone({x:item.position[0],z:item.position[2]}).area;return a==='district'||a==='terrace';};
+  function layout(area='all'){
+    const l=fullLayout();if(area==='all')return l;
+    const keep=area==='interior'?insideSide:i=>!insideSide(i)||ENTRANCE.has(i.id),base={...l,area,solids:l.solids.filter(keep),interactions:l.interactions.filter(keep)};
+    if(area==='street')return base;
+    const [x,z]=toWorld(0,22.5);delete base.ship;
+    return {...base,name:'THE DARKNET DISTRICT',spawn:[x,1.7,z],yaw:Math.PI};
+  }
 
   // ---- Presentation -------------------------------------------------------
   const ads=()=>(root.VoidAds?.brands||[]).map(b=>b.id);
-  function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance}){
+  function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance,area='all'}){
     const B=root.BABYLON,low=quality==='low',owned=[],districtRoot=new root.BABYLON.TransformNode('district-root',scene);let target=parent,disposed=false;districtRoot.parent=parent;districtRoot.position.set(DOOR.x,0,DOOR.z+20);districtRoot.rotation.y=Math.PI;const textures=[],staticMeshes=new Map(),dynamic=[],v=(x,y,z)=>new B.Vector3(x,y,z);
     let seed=4127;const rand=()=>((seed=seed*16807%2147483647)-1)/2147483646;
     // Night in a megacity (David's references, 2026-10-27): a teal-black sky, blue-green haze that swallows the distant
@@ -155,6 +166,13 @@
     const frame=mat('frame','#15151a',{rough:.5,metal:.7}),pipe=mat('pipe','#3a3d42',{rough:.45,metal:.8}),rust=mat('rust','#5a3a2a',{rough:.85,metal:.3}),concrete=mat('concrete','#3b3a40',{rough:.9,metal:0});
     const cyan=glowMat('cyan','#38e8ff',1.1),magenta=glowMat('magenta','#ff3fb4',1.1),amber=glowMat('amber','#ffb347',1),red=glowMat('red','#ff3b3b',1),violet=glowMat('violet','#9b5cff',1),white=glowMat('white','#e8f0ff',.9);
 
+    // Which part of the world this build makes (see docs/void-runner/environment-separation.md): 'all' is the whole city and the District (the original single build),
+    // 'street' is NeoChinatown outdoors with the security vestibule, 'interior' is the District behind it with the same vestibule. The vestibule and its two doors are built in both, so a player standing in it sees no change when one environment replaces the other.
+    const wantStreet=area!=='interior',wantInterior=area!=='street';
+    // Random-number state at the seams, so every sequence is exactly what the single build produced: [before the interior, after it], per quality tier.
+    const SEAMS=low?[1343496957,2113650095]:[1240778262,1969206323];
+    // ---- The street (everything outdoors); its names the later sections need are returned in sc ----
+    const sc=!wantStreet?{}:(function buildStreet(){
     // ---- Streets, landing pad and skyline (world metres, David's map 2026-10-26) ----
     const S=streets,overlaps=(x0,x1,z0,z1,m=.4)=>[...Object.values(S),...Object.values(footprints)].some(([a,b,c,d])=>x0<b+m&&x1>a-m&&z0<d+m&&z1>c-m);
     // Ground surfaces keep a 10 m texture repeat whatever their size.
@@ -421,9 +439,11 @@
     // Torn posters, half covered.
     for(const [x,side] of [[87,'n'],[101,'s'],[124,'n']]){const t=texture('poster-'+x,256,360,(g,W,H)=>{g.fillStyle='#d8d0bc';g.fillRect(0,0,W,H);g.fillStyle='#1b1b1b';g.font='bold 34px Impact,sans-serif';g.textAlign='center';g.fillText('PRIVACY IS',W/2,90);g.fillText('RESISTANCE',W/2,130);g.font='22px monospace';g.fillText('— THE NETWORK —',W/2,320);g.globalCompositeOperation='destination-out';g.beginPath();g.moveTo(W,H*.55);for(let k=0;k<12;k++)g.lineTo(W-k*20,H*.55+(rand()-.5)*30+k*12);g.lineTo(W,H);g.fill();g.globalCompositeOperation='source-over';});
      decal(t,1,1.4,[x,1.7,side==='n'?A[3]-.05:A[2]+.05],side==='n'?0:Math.PI);}
+    return {clubShutter,onFace,faceRot,signSpots,bbox,A,decal,graffiti,S,puddle,batches,screens,skyShells,nightlife,drones};})();
     // ---- The District interior (first step of the interior/NeoChinatown separation, docs/void-runner/environment-separation.md). ----
     // Everything from here to the returned values builds the inside of the District under district-root; the street, the facade and the taxi zones are built outside it. It runs in place, so nothing changes yet; a later step moves it behind its own loader.
-    const {doors,lights,terminal,vrTick}=(function buildInterior(){
+    // ---- The entrance and security vestibule: built in every area ----
+    const {doors}=(function buildEntrance(){
     target=districtRoot;
     // Understated entrance: reinforced sliding door, small mark, camera. The frame is two jambs and a header (it
     // used to be one solid slab across the doorway, which is why the opened door never looked open).
@@ -444,18 +464,24 @@
     const innerDoor=doorPanels('district-inner-door',26,mat('door-inner','#1d2026',{rough:.35,metal:.9}),25.84);
     const doors=(()=>{const list=[{id:'district-door',flag:'districtDoor',z:20,...outerDoor,open:0,kick:0},{id:'district-inner-door',flag:'districtBadge',z:26,...innerDoor,open:0,kick:0}];
      const green=mat('door-ok','#1d6b4a',{glow:'#3dffa8'}),solidOf=d=>d.solid||(d.solid=(typeof walkingLocation!=='undefined'?walkingLocation?.solids:null)?.find?.(s=>s.id===d.id)||null);
-     for(const d of list)if(state.story?.flags?.[d.flag])d.light.material=green;
+     // In the street area the inner door stays shut and locked whatever the flags say: nothing is built behind it there.
+     const isOpenable=d=>!(area==='street'&&d.id==='district-inner-door');
+     for(const d of list)if(isOpenable(d)&&state.story?.flags?.[d.flag])d.light.material=green;
      // Each frame: open toward 1 when unlocked and you're near (or just pressed E), else close; the collision box is
      // there whenever the door is less than 80% open, and a door never closes on you while you're in the doorway.
      function tick(dt){const cam=scene.activeCamera?.globalPosition,flags=(typeof state!=='undefined'?state:null)?.story?.flags||{};
       const [lx,lz]=cam?toWorld(cam.x,cam.z):[99,99];
-      for(const d of list){const unlocked=!!flags[d.flag];if(unlocked&&d.light.material!==green)d.light.material=green;d.kick=Math.max(0,d.kick-dt);
+      for(const d of list){const unlocked=isOpenable(d)&&!!flags[d.flag];if(unlocked&&d.light.material!==green)d.light.material=green;d.kick=Math.max(0,d.kick-dt);
        const near=Math.abs(lx)<3.4&&Math.abs(lz-d.z)<3,inDoorway=Math.abs(lx)<3.2&&Math.abs(lz-d.z)<1.1,want=unlocked&&(near||d.kick>0)||(d.open>.05&&inDoorway)?1:0;
        const before=d.open;d.open=Math.max(0,Math.min(1,d.open+(want?1:-1)*dt*1.25));const e=d.open*d.open*(3-2*d.open);
        if(d.open!==before){d.panels[0].position.x=-1.41-e*2.75;d.panels[1].position.x=1.41+e*2.75;d.seam.setEnabled(e<.02);}
        const solid=solidOf(d);if(solid)solid.open=d.open>=.8;}}
-     return {tick,list,kick(id,seconds=4){const d=list.find(x=>x.id===id);if(d){d.kick=seconds;}},state:()=>list.map(d=>({id:d.id,open:+d.open.toFixed(2),locked:!(typeof state!=='undefined'&&state?.story?.flags?.[d.flag]),blocking:!!solidOf(d)&&!solidOf(d).open}))};})();
+     return {tick,list,kick(id,seconds=4){const d=list.find(x=>x.id===id);if(d){d.kick=seconds;}},state:()=>list.map(d=>({id:d.id,open:+d.open.toFixed(2),locked:!(isOpenable(d)&&typeof state!=='undefined'&&state?.story?.flags?.[d.flag]),blocking:!!solidOf(d)&&!solidOf(d).open}))};})();
 
+    return {doors};})();
+    if(area==='all'){if(seed!==SEAMS[0])console.warn('[NeoChinatown] random state before the interior changed; update SEAMS (interior detail will differ in the separate builds)');}else if(!wantStreet)seed=SEAMS[0];
+    // ---- The District interior: hallway, rooms and terrace ----
+    const {lights,terminal,vrTick}=!wantInterior?{lights:[],terminal:{tick(){}},vrTick(){}}:(function buildInterior(){
     // ---- Hallway and room shells -----------------------------------------
     // Dark wet-look tiles (David's reference pictures, 2026-10-17): low roughness so the neon reads in them.
     const tileTex=texture('district-tiles',512,512,(g,W,H)=>{g.fillStyle='#0d0e14';g.fillRect(0,0,W,H);for(let y=0;y<H;y+=64)for(let x=0;x<W;x+=64){const s=15+rand()*9|0;g.fillStyle='rgb('+s+','+s+','+(s+7)+')';g.fillRect(x+2,y+2,60,60);}g.strokeStyle='#050608';g.lineWidth=3;for(let i=0;i<=W;i+=64){g.beginPath();g.moveTo(i,0);g.lineTo(i,H);g.stroke();g.beginPath();g.moveTo(0,i);g.lineTo(W,i);g.stroke();}for(let i=0;i<10;i++){const x=rand()*W,y=rand()*H,r=30+rand()*60,gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(0,0,0,.4)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);}});tileTex.uScale=6;tileTex.vScale=9;
@@ -637,8 +663,12 @@
     // Coloured light pools for the interior and street.
     const lights=[];const point=(p,c,i,r)=>{const l=new B.PointLight('ncz-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=target;lights.push(l);};
     if(!low){point([0,3,23],'#9be8ff',.6,8);point([-10,3,36],'#38e8ff',.9,14);point([10,3,36],'#ffb347',1.4,14);point([13,3,33],'#ff8a5c',.9,10);point([10,3,48],'#c9b4ff',1.5,12);point([14,3,51],'#38e8ff',.8,8);point([-10,3,62],'#ff5bd0',.6,12);point([38,4,68],'#ffb347',.6,14);point([0,3.5,40],'#e8f0ff',.6,16);point([0,3.5,64],'#e8f0ff',.6,16);}
-    return {doors,lights,terminal,vrTick};})();
+    return {lights,terminal,vrTick};})();
+    if(!wantInterior){seed=SEAMS[1];target=districtRoot;}else if(area==='all'&&seed!==SEAMS[1])console.warn('[NeoChinatown] random state after the interior changed; update SEAMS');
 
+    // ---- Street detail: taxi zones, streaming districts, club, weather ----
+    const {clubCtl,streamDistricts,weather,city}=!wantStreet?{clubCtl:null,streamDistricts(){},weather:null,city:{live:new Map(),loads:0,unloads:0}}:(function buildStreetDetail(){
+    const {clubShutter,onFace,faceRot,signSpots,bbox,A,decal,graffiti,S,puddle}=sc;
     // Taxi zones: a painted box and TAXI on the road, so players know where cabs set down.
     {const t=texture('taxi-zone',256,256,(g,W,H)=>{g.clearRect(0,0,W,H);g.strokeStyle='rgba(242,179,61,.85)';g.lineWidth=8;g.setLineDash([22,14]);g.strokeRect(10,10,W-20,H-20);g.setLineDash([]);g.fillStyle='rgba(242,179,61,.8)';g.font='bold 64px Consolas,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText('TAXI',W/2,H/2);});t.hasAlpha=true;
      const m=texMat('taxi-zone',t);m.useAlphaFromDiffuseTexture=true;m.emissiveColor=new B.Color3(.35,.25,.08);
@@ -719,6 +749,7 @@
       const hi=quality==='high';rain=new B.ParticleSystem('ncz-rain',hi?3200:1700,scene);rain.particleTexture=drop;rain.emitter=v(31,0,-96);rain.minEmitBox=v(-24,12,-24);rain.maxEmitBox=v(24,17,24);rain.direction1=v(-.8,-24,-.4);rain.direction2=v(-.3,-28,.4);rain.minLifeTime=rain.maxLifeTime=.72;rain.minSize=.03;rain.maxSize=.045;rain.minScaleX=rain.maxScaleX=1;rain.minScaleY=11;rain.maxScaleY=15;rain.billboardMode=B.ParticleSystem.BILLBOARDMODE_STRETCHED;rain.color1=new B.Color4(.55,.72,.85,.3);rain.color2=new B.Color4(.45,.62,.78,.2);rain.colorDead=new B.Color4(.4,.5,.6,0);rain.emitRate=hi?3400:1800;rain.blendMode=B.ParticleSystem.BLENDMODE_ADD;rain.start();}
      weather={flickers,rain,rainRate:rain?.emitRate||0};
      target=saved;}
+    return {clubCtl,streamDistricts,weather,city};})();
     // The District's front: a small backlit plaque, violet trim round the reinforced door and a second camera.
     {const saved=target;target=districtRoot;
      neon('district-plaque',['THE DARKNET DISTRICT'],['#c9b4ff'],2.3,.32,[0,4.05,19.6],0,'rgba(8,6,14,.94)');
@@ -726,6 +757,7 @@
      box('camera-arm-2',[.06,.06,.6],[3.4,3.95,19.6],frame);box('camera-body-2',[.25,.2,.45],[3.4,3.85,19.28],frame);box('camera-led-2',[.05,.05,.02],[3.4,3.85,19.04],red);
      target=saved;}
 
+    const {batches=new Map(),screens=[],skyShells=[],nightlife=null,drones=[]}=sc;
     for(const [m,b] of batches){const mesh=new B.Mesh('ncz-batch',scene),vd=new B.VertexData();vd.positions=b.p;vd.normals=b.n;vd.uvs=b.u;vd.indices=b.i;vd.applyToMesh(mesh);mesh.material=m;mesh.parent=parent;mesh.isPickable=false;}
     // Merge static meshes by material to keep draw calls low.
     for(const [m,list] of staticMeshes)if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(merged){merged.parent=parent;merged.material=m;merged.isPickable=false;}}
@@ -751,5 +783,7 @@
    // public repository; the live site gets it, encrypted, from the private asset repository. Without it the block
    // keeps its built buildings.
    'ncz:building5':{src:'assets/models/ncz/building5.vrpak'},'ncz:storefronts':{src:'assets/models/ncz/storefronts.vrpak'}};
-  const api={layout,layoutByArea,build,models,toWorld,zone,streets,footprints,door:DOOR,districts,taxiZones,cityBox};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
+  // The models one environment needs: the street's city pack, or the District's furniture and VR players.
+  function modelsFor(area='all'){if(area==='all')return models;const street=k=>k.startsWith('ncz:');return Object.fromEntries(Object.entries(models).filter(([k])=>area==='street'?street(k):!street(k)));}
+  const api={layout,layoutByArea,build,models,modelsFor,toWorld,zone,streets,footprints,door:DOOR,districts,taxiZones,cityBox};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
 })(globalThis);
