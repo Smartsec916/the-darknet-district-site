@@ -27,7 +27,7 @@
  function layout(id){const w=worlds[id];if(!w)return null;
   return {id:'planet-'+id,location:w.location,name:w.name,kind:'planet',planet:id,bounds:[38,40],spawn:[0,1.7,-20],yaw:0,color:w.color,ship:'starter',
    solids:w.solids.map(s=>({...s,position:s.position.slice(),size:s.size.slice()})),
-   interactions:[{id:'board',label:'BOARD YOUR SHIP',position:[-2,1.7,-25],action:'board',range:3.5},...w.interactions.map(i=>({...i,position:i.position.slice()}))],signs:[]};}
+   interactions:[{id:'board',label:'BOARD YOUR SHIP',position:[-2,1.7,-25],action:'board',range:3.5,when:{notFlags:{shipAccess:'none'}}},...w.interactions.map(i=>({...i,position:i.position.slice()}))],signs:[]};}
 
  function build(id,{scene,parent,quality,characterModel,shipModel,state}){
   const B=root.BABYLON,low=quality==='low',owned=[],textures=[],lights=[],staticMeshes=new Map(),moving=[];

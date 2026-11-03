@@ -116,7 +116,7 @@
    for(const z of [B.z-4.5,B.z+4])staffPoints.push({id:'shelf-'+z,position:[back,0,z],facing:-Math.PI/2,activities:['shelf']});}
   solids.push({id:'ship',size:[7,4,11],position:[-7,2,-9]});
   for(const [x,z,s] of furniture.plants)solids.push({id:'planter',size:[.75*s,1,.75*s],position:[x,.5,z]});
-  interactions.push({id:'board',action:'board',label:'BOARD YOUR SHIP',position:[-2,1.7,-14],range:3.5},
+  interactions.push({id:'board',action:'board',label:'BOARD YOUR SHIP',position:[-2,1.7,-14],range:3.5,when:{notFlags:{shipAccess:'none'}}},
    {id:'services',action:'services',label:'SHIP OUTFITTER · BUY EQUIPMENT',position:[-4.6,1.7,28],range:3},
    {id:'jobs',action:'jobs',label:'MISSION TERMINAL',position:[1.3,1.7,20],range:2.5},
    {id:'meridian-pod',action:'meridian-pod',label:'REST IN A SLEEP POD',position:[-10.7,1.7,7.8],range:3},

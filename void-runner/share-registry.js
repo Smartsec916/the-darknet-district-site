@@ -12,33 +12,44 @@
  // 'vr' (the District's VR arcade, through VoidVR.launch or its own picker). Only what the game really builds.
  const entries=[
   {id:'neochinatown',type:'location',name:'NeoChinatown',system:'Tessaly System',description:'The city landing: tall towers, neon signs, street traffic and the alley that leads to The Darknet District.',
-   destination:{kind:'dock',location:'earth'},spawn:null,environment:'NeoChinatown street (night)',equipment:{weapon:'ward-pistol'},npc:'Street crowd, taxis and police patrols',objective:'Walk the streets and find the District door in the alley.',flags:{districtDoor:true,districtBadge:true},preview:null,tint:tint.city},
+   destination:{kind:'dock',location:'earth'},spawn:null,environment:'NeoChinatown street (night)',equipment:{},npc:'Street crowd, taxis and police patrols',objective:'Walk the streets and find the District door in the alley.',flags:{districtDoor:true,districtBadge:true},preview:null,tint:tint.city},
   {id:'darknet-district',type:'location',name:'The Darknet District',system:'NeoChinatown',description:'Inside the District: the hallway, VR arcade, bar, Admin and Iris’s shop, vending machines, sleep pods and the stairs to the smoking area.',
-   destination:{kind:'dock',location:'earth'},spawn:{frame:'district',x:0,z:30,face:[0,46]},environment:'The Darknet District interior',equipment:{weapon:'ward-pistol'},npc:'Iris, the bartender and the arcade',objective:'Look around the District. Talk to Iris and the bartender, or try the VR arcade.',flags:{districtDoor:true,districtBadge:true},preview:null,tint:tint.district},
+   destination:{kind:'dock',location:'earth'},spawn:{frame:'district',x:0,z:30,face:[0,46]},environment:'The Darknet District interior',equipment:{},npc:'Iris, the bartender and the arcade',objective:'Look around the District. Talk to Iris and the bartender, or try the VR arcade.',flags:{districtDoor:true,districtBadge:true},preview:null,tint:tint.district},
   {id:'meridian',type:'location',name:'Meridian Station',system:'Erebus System',description:'The first trade hub: hangar, pressure door, concourse, living area, store and bar.',
-   destination:{kind:'dock',location:'meridian'},spawn:null,environment:'Meridian hangar and concourse',equipment:{weapon:'ward-pistol'},npc:'Station crew and traders',objective:'Walk from the hangar through the pressure door to the concourse.',flags:{},preview:'void-runner/art/hangar-meridian.png',tint:tint.station},
+   destination:{kind:'dock',location:'meridian'},spawn:null,environment:'Meridian hangar and concourse',equipment:{},npc:'Station crew and traders',objective:'Walk from the hangar through the pressure door to the concourse.',flags:{},preview:'void-runner/art/hangar-meridian.png',tint:tint.station},
   {id:'kepler',type:'location',name:'Kepler Exchange',system:'Erebus System',description:'A clean research and logistics station on Meridian’s plan.',
-   destination:{kind:'dock',location:'kepler'},spawn:null,environment:'Kepler hangar and concourse',equipment:{weapon:'ward-pistol'},npc:'Station crew',objective:'Explore the station.',flags:{},preview:'void-runner/art/hangar-kepler.png',tint:tint.station},
+   destination:{kind:'dock',location:'kepler'},spawn:null,environment:'Kepler hangar and concourse',equipment:{},npc:'Station crew',objective:'Explore the station.',flags:{},preview:'void-runner/art/hangar-kepler.png',tint:tint.station},
   {id:'rusthaven',type:'location',name:'Rusthaven Port',system:'Erebus System',description:'A rough port on the edge of the law.',
-   destination:{kind:'dock',location:'rusthaven'},spawn:null,environment:'Rusthaven hangar and concourse',equipment:{weapon:'ward-pistol'},npc:'Dock workers',objective:'Explore the port.',flags:{},preview:'void-runner/art/hangar-rusthaven.png',tint:tint.station},
+   destination:{kind:'dock',location:'rusthaven'},spawn:null,environment:'Rusthaven hangar and concourse',equipment:{},npc:'Dock workers',objective:'Explore the port.',flags:{},preview:'void-runner/art/hangar-rusthaven.png',tint:tint.station},
   {id:'foundry',type:'location',name:'The Foundry',system:'Erebus System',description:'An industrial station of furnaces and heavy cargo.',
-   destination:{kind:'dock',location:'foundry'},spawn:null,environment:'Foundry hangar and concourse',equipment:{weapon:'ward-pistol'},npc:'Station crew',objective:'Explore the station.',flags:{},preview:'void-runner/art/hangar-foundry.png',tint:tint.station},
+   destination:{kind:'dock',location:'foundry'},spawn:null,environment:'Foundry hangar and concourse',equipment:{},npc:'Station crew',objective:'Explore the station.',flags:{},preview:'void-runner/art/hangar-foundry.png',tint:tint.station},
   {id:'tessaly-belt',type:'location',name:'Tessaly Belt Anchorage',system:'Tessaly System',description:'The anchorage in the Tessaly asteroid belt.',
-   destination:{kind:'dock',location:'sol-belt'},spawn:null,environment:'Anchorage hangar and concourse',equipment:{weapon:'ward-pistol'},npc:'Station crew',objective:'Explore the anchorage.',flags:{},preview:null,tint:tint.station},
-  {id:'station-arrival',type:'scenario',name:'Arrival at Meridian',system:'Erebus System',description:'You have just docked your Kestrel at Meridian. Step off the ship and take in the station.',
-   destination:{kind:'dock',location:'meridian'},spawn:null,environment:'Meridian hangar, ship docked',equipment:{weapon:'ward-pistol'},npc:'Station crew and traders',objective:'Leave the hangar through the pressure door and find the bar.',flags:{},preview:'void-runner/art/hangar-meridian.png',tint:tint.station},
+   destination:{kind:'dock',location:'sol-belt'},spawn:null,environment:'Anchorage hangar and concourse',equipment:{},npc:'Station crew',objective:'Explore the anchorage.',flags:{},preview:null,tint:tint.station},
+  {id:'station-arrival',type:'scenario',name:'Arrival at Meridian',system:'Erebus System',description:'You have just arrived at Meridian. Step off the docking pad and take in the station.',
+   destination:{kind:'dock',location:'meridian'},spawn:null,environment:'Meridian hangar, ship docked',equipment:{},npc:'Station crew and traders',objective:'Leave the hangar through the pressure door and find the bar.',flags:{},preview:'void-runner/art/hangar-meridian.png',tint:tint.station},
   {id:'district-night',type:'scenario',name:'A Night in the District',system:'NeoChinatown',description:'Start inside The Darknet District with the doors open and the arcade running.',
-   destination:{kind:'dock',location:'earth'},spawn:{frame:'district',x:0,z:30,face:[12.5,46.2]},environment:'The Darknet District interior',equipment:{weapon:'ward-pistol'},npc:'Iris and the bartender',objective:'Talk to Iris, then the bartender. The VR arcade is on your left.',flags:{districtDoor:true,districtBadge:true},preview:null,tint:tint.district},
-  {id:'meridian-departure',type:'scenario',name:'Departure from Meridian',system:'Erebus System',description:'Undock from Meridian and fly the Kestrel along the transit lane.',
-   destination:{kind:'flight',location:'meridian'},spawn:null,environment:'Kestrel cockpit, leaving Meridian',equipment:{weapon:'ward-pistol'},npc:'Traffic control',objective:'Follow the transit lane. Docking is automatic on arrival.',flags:{},preview:'void-runner/art/sky-meridian.png',tint:tint.flight},
+   destination:{kind:'dock',location:'earth'},spawn:{frame:'district',x:0,z:30,face:[12.5,46.2]},environment:'The Darknet District interior',equipment:{},npc:'Iris and the bartender',objective:'Talk to Iris, then the bartender. The VR arcade is on your left.',flags:{districtDoor:true,districtBadge:true},preview:null,tint:tint.district},
+  {id:'meridian-departure',type:'scenario',access:'preview',name:'Departure from Meridian',system:'Erebus System',description:'Undock from Meridian and fly the Kestrel along the transit lane.',
+   destination:{kind:'flight',location:'meridian'},spawn:null,environment:'Kestrel cockpit, leaving Meridian',equipment:{ship:'Kestrel (temporary, this session only)',loadout:'standard pulse and shield'},npc:'Traffic control',objective:'Follow the transit lane. Docking is automatic on arrival.',flags:{},preview:'void-runner/art/sky-meridian.png',tint:tint.flight},
   {id:'vr-forest',type:'scenario',name:'VR · Relax in a Forest',system:'Darknet District VR arcade',description:'A quiet forest with paths, a stream and a waterfall, a sunlit clearing, birds and butterflies.',
    destination:{kind:'vr',location:'earth',experience:'forest'},spawn:null,environment:'VR forest simulation',equipment:{},npc:null,objective:'Sit, rest, listen. Backspace leaves the simulation.',flags:{districtDoor:true,districtBadge:true},preview:'void-runner/assets/vr/sky/forest.jpg',tint:tint.district},
   {id:'vr-tropical',type:'scenario',name:'VR · Tropical Escape',system:'Darknet District VR arcade',description:'A sandy beach on a calm sea: palms, loungers, a thatched shelter and a pier.',
    destination:{kind:'vr',location:'earth',experience:'tropical'},spawn:null,environment:'VR beach simulation',equipment:{},npc:null,objective:'Walk the beach and the pier. Backspace leaves the simulation.',flags:{districtDoor:true,districtBadge:true},preview:'void-runner/assets/vr/sky/beach-day.jpg',tint:tint.district},
   {id:'vr-bedroom',type:'scenario',name:'VR · Play in a Bedroom',system:'Darknet District VR arcade',description:'The arcade’s private apartment simulation. The visitor chooses from the companions this site offers to everyone.',
    destination:{kind:'vr',location:'earth',experience:'suite',picker:true},spawn:null,environment:'VR apartment simulation',equipment:{},npc:'A companion the visitor chooses',objective:'Choose a companion at the VR terminal.',flags:{districtDoor:true,districtBadge:true},preview:'void-runner/assets/vr/preview-suite.jpg',tint:tint.district}
- ].map(e=>Object.freeze({version:1,availability:'public',guest:true,...e}));
+ ].map(e=>Object.freeze({version:1,availability:'public',guest:true,access:'tour',...e}));
  const byId=new Map(entries.map(e=>[e.id,e]));
+ // What a guest session may hold. Guest sessions run on a throwaway campaign that is never saved (guest-mode.js).
+ // 'tour' (the default): no ship, no pistol and no missions, so a shared link can never show or unlock campaign progress.
+ // 'preview': an isolated demonstration that needs a ship; it gets a temporary one for this session only, and still no pistol or missions.
+ function applyPolicy(s,e){
+  const f=s.story.flags,preview=e?.access==='preview';
+  f.missionPool='closed';f.shipAccess=preview?'granted':'none';
+  s.universe.missions={};s.universe.trackedMission=null;
+  if(s.progression?.personal)s.progression.personal.weapon=null;
+  if(s.progression?.opening)s.progression.opening.pistol=false;
+  return s;
+ }
  // Keys a link may carry for us. Other harmless keys (a messenger's tracking tag) are ignored; these are refused outright.
  const FORBIDDEN=/^(save|state|campaign|credits|items?|gear|dev|developer|admin|debug|cheat|x|y|z|pos|position|spawn|coords?|yaw|eval|script|js|code|data|json|token|uid|stage|quest|mission|reputation|kit)$/i;
  const ID=/^[a-z0-9]+(-[a-z0-9]+)*$/,MAX_QUERY=300,MAX_ID=40;
@@ -76,6 +87,6 @@
  function link(id,base){const e=get(id);if(!e)return null;const url=String(base||'https://thedarknetdistrict.com/void-runner.html').split(/[?#]/)[0];
   return url+'?'+(e.type==='location'?'visit':'scenario')+'='+encodeURIComponent(e.id)+'&v='+VERSION;}
  function search(text,type){const t=String(text||'').toLowerCase().trim().slice(0,60);return list(type).filter(e=>!t||[e.name,e.description,e.system,e.id].join(' ').toLowerCase().includes(t));}
- const api={VERSION,MIN_VERSION,frames,entries,list,get,parse,link,search,usable,inBounds};
+ const api={VERSION,MIN_VERSION,frames,entries,list,get,parse,link,search,usable,inBounds,applyPolicy};
  if(typeof module==='object'&&module.exports)module.exports=api;else root.VoidShare=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

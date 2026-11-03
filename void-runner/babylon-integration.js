@@ -217,6 +217,8 @@ async function enterWalking(id) {
       pitch: 0
     };
     walkingLocation = def;
+    // A parked-ship collision box only blocks when the player really has that ship; with no ship it would be an invisible wall.
+    for (const solid of def.solids) if (solid.shipHull) solid.open = !VoidShips.hasShip(state);
     resumeWalking();
     VoidAudio.event('door');
   } catch (error) {
