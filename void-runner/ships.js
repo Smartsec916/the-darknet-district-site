@@ -14,7 +14,9 @@
  const defaults={starter:{weapon:'pulse1',shield:'shield1',utility:null,missile:null},ship2:{weapon:'pulse2',shield:'shield2',utility:null,missile:null},ship3:{weapon:'pulse3',shield:'shield3',utility:null,missile:null}};
  let verified=new Set();
  function verify(ids){verified=new Set(ids.filter(id=>id==='spectre'));}
- function owns(s,id){return id==='ship3'?verified.has('spectre'):s.ownedShips?.includes(id);}
+ // A new campaign has no ship until a mission calls Campaign.grantShip (story.flags.shipAccess is 'none' until then). Saves without the flag are unaffected. The hull records stay in the save; they are just not usable.
+ function hasShip(s){return s?.story?.flags?.shipAccess!=='none';}
+ function owns(s,id){if(!hasShip(s))return false;return id==='ship3'?verified.has('spectre'):s.ownedShips?.includes(id);}
  function get(s){return owns(s,s.activeShip)?ships[s.activeShip]||ships.starter:ships.starter;}
- const api={ships,equipment,defaults,get,owns,verify};if(typeof module!=='undefined')module.exports=api;else root.VoidShips=api;
+ const api={ships,equipment,defaults,get,owns,hasShip,verify};if(typeof module!=='undefined')module.exports=api;else root.VoidShips=api;
 })(globalThis);
