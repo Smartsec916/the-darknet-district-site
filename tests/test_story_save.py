@@ -68,3 +68,9 @@ class StorySaveTests(unittest.TestCase):
         for value in ('none','granted'):
             state=self.state();state.update(quest='inheritance',location='earth',completed=0);state['story']['flags'].update(missionPool='closed',shipAccess=value)
             self.assertEqual(vr.clean_save(state)['story']['flags']['shipAccess'],value)
+
+    def test_district_area_flag_survives_cloud_validation(self):
+        # A player saved inside The Darknet District is marked with story.flags.area; the location id stays 'earth'.
+        state=self.state();state.update(quest='inheritance',location='earth',completed=0);state['story']['flags'].update(missionPool='closed',area='district',districtBadge=True,districtDoor=True)
+        clean=vr.clean_save(state)
+        self.assertEqual(clean['location'],'earth');self.assertEqual(clean['story']['flags']['area'],'district');self.assertIs(clean['story']['flags']['districtBadge'],True)

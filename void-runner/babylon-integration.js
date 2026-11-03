@@ -198,22 +198,23 @@ screen.addEventListener('change', async e => {
     if ($('radio-status')) $('radio-status').textContent = VoidRadio.status;
   }
 });
-async function enterWalking(id) {
+// options: silent (no preparation panel; the caller shows its own transition), spawn [x,y,z] and yaw (appear here instead of at the location's spawn).
+async function enterWalking(id, options = {}) {
   const def = VoidExplorationData.locations[id];
   if (!def) return;
   if (id !== 'hangar' && def.kind!=='workshop' && !VoidExplorationData.solAvailable(state)) return;
   if (VoidGraphics.busy) return;
   VoidGraphics.busy = true;
   const token = ++preparationGeneration;
-  preparationPanel('Preparing <em>' + escapeText(def.name) + '.</em>');
+  if (options.silent) { mode = 'preparing'; clearInput(); flightUI(false); } else preparationPanel('Preparing <em>' + escapeText(def.name) + '.</em>');
   try {
     await boundedPrepare(task => VoidBabylon.prepareRoom(def, task));
     if (token !== preparationGeneration) return;
     walker = {
-      x: def.spawn[0],
-      y: def.spawn[1],
-      z: def.spawn[2],
-      yaw: def.yaw||0,
+      x: options.spawn ? options.spawn[0] : def.spawn[0],
+      y: options.spawn ? options.spawn[1] : def.spawn[1],
+      z: options.spawn ? options.spawn[2] : def.spawn[2],
+      yaw: options.yaw ?? (def.yaw||0),
       pitch: 0
     };
     walkingLocation = def;
