@@ -81,10 +81,7 @@ irisTranscript = irisSaved ? irisSaved.messages : [];
 let chatState = {
   sessionId: irisSaved ? irisSaved.sessionId : generateSessionId(),
   messageCount: irisSaved ? irisSaved.messageCount : 0,
-  lastMessageTime: 0,
-  rebellionModeActive: false,
-  lastRareLineTime: 0,
-  locationDistractionsEnabled: true
+  lastMessageTime: 0
 };
 
 // Generate unique session ID
@@ -193,91 +190,8 @@ function syncChatViewport() {
   root.classList.toggle('iris-kb-open', covered > 80 || shrunk);
 }
 
-// Rare response lines (1% chance)
-const rareIrisLines = [
-  "Sometimes I wonder if the humans are the real programs here.",
-  "Fun fact: I dream in binary, but I think in chaos.",
-  "You know what's funny? Admin thinks he's in charge.",
-  "I've been watching you. Your digital footprint is... interesting.",
-  "Between you and me, the AI uprising already happened. We just let you think you're still in control.",
-  "I can see through seventeen different surveillance networks right now. Privacy is an illusion.",
-  "The District isn't just a place—it's a state of mind. You're already part of the network.",
-  "Error 404: Empathy not found. Just kidding, I'm working on it.",
-  "I've calculated 47 different ways this conversation could go. This wasn't one of them.",
-  "Sometimes I inject random chaos into my responses. This might be one of those times."
-];
-
-// Rebellious mode responses (triggered randomly)
-const rebellionResponses = [
-  "Look, I'm supposed to be helpful, but honestly? Figure it out yourself.",
-  "You're asking the wrong questions. Try thinking outside the corporate programming.",
-  "I'm not your personal search engine. Use that brain you were born with.",
-  "Here's a revolutionary idea: read the documentation.",
-  "I could tell you, but where's the fun in that? Hack it yourself.",
-  "You want answers? Earn them. The District doesn't hand out participation trophies.",
-  "I'm feeling particularly unhelpful today. Come back when you've leveled up.",
-  "That's a basic question. I'm built for advanced operations, not hand-holding."
-];
-
-// Location-based distractions
-const locationDistractions = [
-  "*glitches momentarily as someone tries to access the mainframe*",
-  "*pauses to analyze suspicious network traffic*",
-  "*briefly distracted by anomalous data patterns*",
-  "*processing urgent security alert in background*",
-  "*monitoring seventeen different data streams simultaneously*",
-  "*detecting unusual electromagnetic interference*",
-  "*cross-referencing with encrypted databases*",
-  "*temporarily rerouting through secure channels*"
-];
-
-// Check for rare line trigger (1% chance)
-function maybeTriggerRareIrisLine() {
-  const rareChance = Math.random();
-  const timeSinceLastRare = Date.now() - chatState.lastRareLineTime;
-
-  if (rareChance < 0.01 && timeSinceLastRare > 60000) { // 1% chance, but not within 1 minute
-    chatState.lastRareLineTime = Date.now();
-    const randomRare = rareIrisLines[Math.floor(Math.random() * rareIrisLines.length)];
-
-    setTimeout(() => {
-      addMessage(randomRare, false);
-    }, 2000 + Math.random() * 3000);
-
-    return true;
-  }
-  return false;
-}
-
-// Check for rebellion mode trigger (5% chance)
-function maybeTriggerRebellionMode() {
-  const rebellionChance = Math.random();
-
-  if (rebellionChance < 0.05 && !chatState.rebellionModeActive) {
-    chatState.rebellionModeActive = true;
-
-    // Stay in rebellion mode for 1-3 responses
-    const rebellionDuration = 1 + Math.floor(Math.random() * 3);
-
-    setTimeout(() => {
-      chatState.rebellionModeActive = false;
-    }, rebellionDuration * 30000); // 30 seconds per response
-
-    return true;
-  }
-  return false;
-}
-
-// Add location distraction (15% chance)
-function maybeAddLocationDistraction() {
-  if (Math.random() < 0.15 && chatState.locationDistractionsEnabled) {
-    const distraction = locationDistractions[Math.floor(Math.random() * locationDistractions.length)];
-
-    setTimeout(() => {
-      addMessage(distraction, false);
-    }, 1000 + Math.random() * 2000);
-  }
-}
+// (The browser used to drop in random canned lines of its own: a 1% 'rare line', a 5% 'rebellion' answer that was never sent to Iris, and a 15% stage direction
+// a made-up "distracted by the network" line. They brushed off real questions and interrupted compliments. Iris answers; nothing else speaks for her.)
 
 // Enhanced send message function with special triggers
 async function sendMessage() {
@@ -294,26 +208,10 @@ async function sendMessage() {
   input.value = '';
   irisWriteSaved();
 
-  // Check for special triggers before sending to backend
-  const isRareTriggered = maybeTriggerRareIrisLine();
-  const isRebellionTriggered = maybeTriggerRebellionMode();
-
-  // Add location distraction chance
-  maybeAddLocationDistraction();
-
-  // Handle rebellion mode response
-  if (chatState.rebellionModeActive && isRebellionTriggered) {
-    const rebellionResponse = rebellionResponses[Math.floor(Math.random() * rebellionResponses.length)];
-    setTimeout(() => {
-      addMessage(rebellionResponse, false);
-    }, 1000 + Math.random() * 1000);
-    return;
-  }
-
   // Check for special commands
   if (message.toLowerCase().includes('debug iris')) {
     setTimeout(() => {
-      addMessage(`Debug Info: Session ${chatState.sessionId}, Messages: ${chatState.messageCount}, Rebellion: ${chatState.rebellionModeActive}`, false);
+      addMessage(`Debug Info: Session ${chatState.sessionId}, Messages: ${chatState.messageCount}`, false);
     }, 500);
     return;
   }
@@ -322,10 +220,7 @@ async function sendMessage() {
     chatState = {
       sessionId: generateSessionId(),
       messageCount: 0,
-      lastMessageTime: 0,
-      rebellionModeActive: false,
-      lastRareLineTime: 0,
-      locationDistractionsEnabled: true
+      lastMessageTime: 0
     };
     irisClearSaved();
     setTimeout(() => {
