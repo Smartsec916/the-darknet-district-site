@@ -123,7 +123,7 @@ test("strong language has timing: welcome on some replies, explicitly absent on 
   resetMischiefForTests();
   dice.next = lcg(5);
   let salty = 0; const N = 1500;
-  for (let i = 0; i < N; i++) if (decide("salt-" + i, "tell me something")!.salty) salty++;
+  for (let i = 0; i < N; i++) { decide("salt-" + i, "hey, quick one"); if (decide("salt-" + i, "tell me something")!.salty) salty++; } // the second message: a first one is met gently
   assert.ok(salty / N > 0.2 && salty / N < 0.48, `strong language on ${(100 * salty / N).toFixed(0)}% of replies`);
   // Spanish, Russian, Japanese and Chinese are asked for the swearing and dirty humour natives really use, not a translation
   assert.match(attitudeBlock(base, "spanish"), /colourful swearing, teasing and double entendres Spanish speakers really use/);
@@ -246,6 +246,7 @@ test("the engine rotates the kind and the example, never the same twice in a row
   }
   for (let i = 1; i < seen.length; i++) assert.notEqual(seen[i], seen[i - 1]);
   assert.equal(decide("samples-flirt", "you're cute 😉")!.sampleKind, "flirt");
+  decide("samples-dark", "just a minute"); // (a first message is met gently and has no edgy example)
   assert.equal(decide("samples-dark", "my boss is a clown")!.sampleKind, "dark");
   assert.equal(decide("samples-role", "What do you do here?")!.sampleKind, undefined);
   resetMischiefForTests();
