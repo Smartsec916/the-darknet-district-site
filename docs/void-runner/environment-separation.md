@@ -1,6 +1,6 @@
 # Separating The Darknet District interior from NeoChinatown
 
-Status: PLAN ONLY. No behaviour changes. The interior layout is unchanged until David supplies the revised map.
+Status: step 1 (split in place) and step 2a (separate builds and layouts, `area` parameter) are implemented. Nothing switches between them yet; the game still loads the combined 'all' environment. The interior layout is unchanged until David supplies the revised map.
 Internal ids (`earth`, `sol`, `neochinatown`) are kept for save compatibility; players only ever see NeoChinatown and the Tessaly System.
 
 ## Where things are today
@@ -37,3 +37,11 @@ Add a second location to the existing loader. Do not build a second engine, a se
 - The street shows the District only as a door and facade. If the revised map wants windows onto the street, they should be baked textures, not live geometry.
 - First-load time for the interior is unmeasured. Measure it before and after step 2 on the target handheld.
 - The scan animation wording and visuals are for David to approve.
+
+## Step 2a: how the area builds work (implemented)
+- `VoidNeoChinatown.layout(area)` and `build({area})` take `'all'` (default, the original combined environment), `'street'` or `'interior'`. A location definition carries `area`, and `prepareRoom` passes it to the build and to the asset lists (`modelsFor(area)`, `VoidCrowd.models(location, quality, area)`).
+- **Street:** the city, landing pad, club, taxi zones, streaming districts and weather, plus the entrance and vestibule. 35 solids, 4 interactions. The inner door never opens here.
+- **Interior:** the vestibule, hallway, rooms and terrace. 44 solids and 11 interactions, exactly the District part of the original layout. The spawn is inside the vestibule facing the inner door.
+- **The entrance** (outer door, front wall, vestibule, inner door, scanner) is built in both, so the player sees no change when one environment replaces the other.
+- **Same random sequence.** The street and the interior used one shared random stream. Each separate build resumes it at the right point (`SEAMS`, one pair per quality tier), so every texture and placement matches the combined build. In the combined build a console warning appears if the street ever changes how many random numbers it uses; update `SEAMS` if so.
+- **Measured** (software-rendered Chromium): high tier combined 693 meshes / 14 lights / 277 materials; street 523 / 4 / 224; interior 240 / 12 / 107. Low tier: combined about 757 meshes, street 451, interior 216.
