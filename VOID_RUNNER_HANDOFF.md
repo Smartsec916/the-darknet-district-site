@@ -597,6 +597,11 @@ Done; see §4.3. Possible follow-ups:
 
 - **Nadia** (David, 2026-10-28): the VR bedroom companion built from the FC1 model is named Nadia. She is grounded, warm and direct, grew up in NeoChinatown, and teases the player for being an outsider. Her lines are DRAFT until David approves them.
 
+- **Name (David, 2026-11-03):** players see The Darknet District, not VOID//RUNNER, on the loading screen, game menu and other player-facing text. Internal ids, file names and `void-runner.html` stay.
+- **Mission reset (David, 2026-11-03):** every existing mission is removed from new campaigns. Mission NPCs, models, personalities, voices, dialogue, the mission engine and the editor all stay. Existing saves keep their progress and missions. Definitions are archived in `docs/void-runner/mission-archive/2026-11-03/`.
+- **New campaign start (David, 2026-11-03):** the start is outside The Darknet District's double security doors, not Vesper. New campaigns have no pistol, no ship and no replacement missions until David approves them. Do not grant the ship automatically. `story.flags.missionPool='closed'` marks these campaigns.
+- **CLAUDE-WRITTEN, UNREVIEWED on-screen notices for those campaigns (no voice):** "Admin has nothing for you right now."; "Scan accepted. Visitor badge issued."; "You do not have a ship yet."; "No missions are available yet."
+
 ### Rejected or removed (do not reintroduce)
 
 - F1 as the Mission Log key.

@@ -14,6 +14,7 @@
  function placeName(){return C.stations[state.location]?.name||state.location;}
  // ---- Sections ----
  function missionsHtml(){
+  if(VoidMissions.closed(state))return '<p class="hud-note">No missions are available yet.</p>';
   if(!state.universe.missionLogUnlocked)return '<p class="hud-note">The Mission Log opens when Mara gives you the pistol.</p>';
   const all=VoidMissions.sync(state,C),card=m=>'<article class="hud-card"><h3>'+esc(m.title)+' <small class="hud-tag '+(m.completed?'done':m.tracked?'tracked':'')+'">'+(m.completed?'COMPLETE':m.tracked?'TRACKED':'ACTIVE')+'</small></h3><p>'+esc(m.description)+'</p><p class="hud-meta">'+esc(m.type.toUpperCase())+(m.destination?' · '+esc(C.stations[m.destination]?.name||m.destination):'')+(m.rewards?' · '+esc(m.rewards)+' CR':'')+'</p><ul>'+m.objectives.map(o=>'<li class="'+(o.complete?'complete':'pending')+'">'+(o.complete?'✓ ':'○ ')+esc(o.label)+'</li>').join('')+'</ul>'+(m.completed?'':m.tracked?'<button type="button" data-hud-untrack="'+esc(m.id)+'" data-hud-key="m-'+esc(m.id)+'">UNTRACK</button>':'<button type="button" data-hud-track="'+esc(m.id)+'" data-hud-key="m-'+esc(m.id)+'">TRACK</button>')+'</article>';
   const active=all.filter(m=>!m.completed),done=all.filter(m=>m.completed);
