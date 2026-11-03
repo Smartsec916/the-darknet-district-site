@@ -124,7 +124,7 @@ test("strong language has timing: welcome on some replies, explicitly absent on 
   dice.next = lcg(5);
   let salty = 0; const N = 1500;
   for (let i = 0; i < N; i++) if (decide("salt-" + i, "tell me something")!.salty) salty++;
-  assert.ok(salty / N > 0.35 && salty / N < 0.7, `strong language on ${(100 * salty / N).toFixed(0)}% of replies`);
+  assert.ok(salty / N > 0.2 && salty / N < 0.48, `strong language on ${(100 * salty / N).toFixed(0)}% of replies`);
   // Spanish, Russian, Japanese and Chinese are asked for the swearing and dirty humour natives really use, not a translation
   assert.match(attitudeBlock(base, "spanish"), /colourful swearing, teasing and double entendres Spanish speakers really use/);
   assert.match(attitudeBlock(base, "russian"), /real street register of Russian, rude words included when they land/);

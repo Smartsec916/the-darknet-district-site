@@ -93,7 +93,8 @@ const systemOf = (req: any) => (req?.messages ?? []).filter((m: any) => m.role =
 const block = (req: any) => systemOf(req).find((s: string) => s.startsWith("VERIFIED CONVERSATION MEMORY")) ?? "";
 const turns = (req: any) => (req?.messages ?? []).filter((m: any) => m.role !== "system").map((m: any) => `${m.role}:${m.content}`);
 const count = (text: string, part: string) => text.split(part).length - 1;
-const wholeRequest = (req: any) => JSON.stringify(req?.messages ?? []);
+// "Blackout Protocol" is a public game title in the site facts she is given; these tests look for the administrator's secret answers, one of which is the bare word
+const wholeRequest = (req: any) => JSON.stringify(req?.messages ?? []).split("Blackout Protocol").join("Blackout");
 const settle = (ms = 100) => new Promise(r => setTimeout(r, ms));
 const PHRASE = "PURPLE-ELEPHANT-42";
 const ownerToken = () => tokenFor(OWNER, "Owner");

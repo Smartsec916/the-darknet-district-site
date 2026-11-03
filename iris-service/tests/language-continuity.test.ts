@@ -134,11 +134,11 @@ test("single Chinese characters, with or without full-width punctuation, are Chi
   }
 });
 
-test("the old absolute instruction is gone and English-only conversations carry no language note", async () => {
+test("the old absolute instruction is gone and English conversations carry a plain \"reply in English\" line (a newer model otherwise follows the language of its memories)", async () => {
   const zh = await say("zh-abs", "你好，我想了解一下商店", { token: ownerToken() });
   assert.doesNotMatch(wholeRequest(zh.request), /DO NOT USE ENGLISH AT ALL/);
   const en = await say("en-only", "hello there, how are you today", { token: ownerToken() });
-  assert.equal(languageNote(en.request), "");
+  assert.match(languageNote(en.request), /^LANGUAGE: Reply in English, the language of this message/);
 });
 
 test("explicit requests are honored: translate, answer in both languages, and switch (which becomes the new default)", async () => {
@@ -170,7 +170,7 @@ test("the conversation's language survives a server restart, rebuilt from the st
   await say("persist-en", "hello there, how are you today", { token: ownerToken() });
   routes.resetChatStateForTests();
   const english = await say("persist-en", "ok", { token: ownerToken() });
-  assert.equal(languageNote(english.request), "", "an English conversation stays plain English");
+  assert.match(languageNote(english.request), /^LANGUAGE: Reply in English/, "an English conversation stays English, and says so");
 });
 
 test("the language note sits before the recall rule, which stays the very last thing read", async () => {

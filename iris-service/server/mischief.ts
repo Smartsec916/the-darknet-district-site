@@ -73,6 +73,10 @@ export interface TurnRead {
   advice: boolean;      // they want something useful, not a performance
   flirting: boolean;    // they are flirting with her
   role?: boolean;       // they ask what she is or what she does here (only present when true)
+  compliment?: boolean; // praise aimed at HER ("looking incredibly hot today"), not at a third person (only present when true)
+  ask?: boolean;        // a plain question about the site, the store or what there is to do (only present when true)
+  roast?: boolean;      // they invite her to roast, insult or tease them (only present when true)
+  adult?: boolean;      // they are steering into adult preference talk: turn-ons, kinks, fantasies (only present when true)
 }
 
 // High-precision lists, five languages. A miss is covered by the same rule in the prompt and by the model's own judgement; a false hit
@@ -116,9 +120,57 @@ const FLIRTING = [
 ];
 const any = (patterns: RegExp[], text: string) => patterns.some(p => p.test(text));
 
+// Praise aimed at HER. "you look hot" and "looking incredibly hot today, wow" are about Iris: they are not a question about anyone's love life.
+const COMPLIMENT = [
+  /\b(?:you|u|ur|you're|youre|you are)\b[^.!?\n]{0,30}\b(?:hot|beautiful|gorgeous|pretty|cute|sexy|stunning|lovely|amazing|incredible|incredibly|attractive|adorable|perfect|fine)\b|\b(?:looking|look|looks)\s+(?:\w+\s+)?(?:hot|good|great|amazing|beautiful|gorgeous|stunning|sexy|fine|cute|pretty|incredible)\b|\b(?:love|like|adore)\s+(?:your|ur)\s+(?:style|look|voice|face|hair|eyes|smile|vibe|outfit|energy)\b/i,
+  /你(?:今天|今晚|现在|現在)?(?:真|好|太|很|也|超)?(?:美|漂亮|好看|性感|可爱|可愛|迷人|火辣|动人|動人)|今天(?:真|好|太|很)?(?:美|漂亮|好看|性感)|(?:喜欢|喜歡|爱|愛)你的(?:声音|聲音|样子|樣子|风格|風格|眼睛|笑容)/,
+  /\b(?:est[aá]s|eres|te ves|luces)\b[^.!?\n]{0,20}\b(?:guap[ao]|hermos[ao]|lind[ao]|precios[ao]|sexy|incre[ií]ble|divin[ao]|espectacular|perfect[ao]|bell[ao]|buen[ao])\b|\bqu[eé] (?:guapa|hermosa|linda|preciosa)\b/i,
+  /(?:ты|вы|выглядишь|выглядите)\s*[^.!?\n]{0,18}(?:красив|классн|шикарн|сексуальн|горяч|прекрасн|восхитительн|потрясающ|очаровательн|мила|милая)/i,
+  /(?:あなた|君|きみ|アイリス|今日)[^。！？\n]{0,10}(?:きれい|綺麗|美人|かわいい|可愛い|セクシー|素敵|美しい|かっこいい|魅力的)|(?:きれい|綺麗|美人|かわいい|可愛い|セクシー|素敵)(?:だね|ですね|すぎ|だよ|ね)/,
+];
+// Someone else is the subject (a crush, a partner, an ex): then it is still relationship talk
+const THIRD_PARTY = [
+  /\b(?:my (?:boyfriend|girlfriend|bf|gf|husband|wife|ex|crush|partner|man|girl|date)|he|she|him|her|they|them|a (?:girl|guy|boy|woman|man)|someone|coworker|co-worker)\b/i,
+  /男朋友|女朋友|老公|老婆|前任|同事|暗恋|他|她/,
+  /\b(?:mi (?:novio|novia|marido|esposa|ex)|él|ella|alguien|chico|chica|compañer[ao])\b/i,
+  /(?:мой (?:парень|муж)|моя (?:девушка|жена)|бывш|\bон\b|\bона\b|кто-то|парень|девушка)/i,
+  /彼氏|彼女|旦那|奥さん|元カレ|元カノ|同僚|好きな人/,
+];
+// A plain question about the site, the store or what there is to do: it gets an answer, not a roast
+const ASK = [
+  /\b(?:do you (?:sell|have|offer|stock)|have you got|got any|any (?:t-?shirts?|shirts?|hoodies?|stickers?|books?|gear|merch|patches?|games?)|(?:t-?shirts?|hoodies?|stickers?|merch|store|shop|prices?|shipping)\b|what(?:'s| is| are| do| can)[^.!?\n]{0,30}\b(?:to do|there|here|sell|buy|games?|store|shop|site|website|district|arcade|resources?|products?)\b|where (?:can|do) i|how (?:do|can) i (?:buy|get|find|play|contact|order|start)|tell me about (?:the|your|this)|what (?:games|products|things|else))/i,
+  /卖|賣|买|買|商店|店里|店裡|有什么(?:好玩|可以|东西|東西)|可以做什么|怎么买|怎麼買|T恤|游戏|遊戲|网站|網站|价格|價格/,
+  /\b(?:vend(?:es|en)|tienes[^.!?\n]{0,20}(?:camiseta|ropa|libro|tienda)|qu[eé] (?:hay|se puede|puedo hacer)|tienda|comprar|precio|camisetas?)\b/i,
+  /(?:продаёшь|продаешь|продаете|продаёте|есть ли|что (?:тут |здесь )?можно|магазин|купить|футболк|сайт)/i,
+  /売って|買え|ショップ|お店|何ができ|Tシャツ|ゲーム|サイト/,
+];
+const ROAST = [
+  /\b(?:roast me|insult me|trash[- ]talk me|burn me|make fun of me|talk (?:shit|smack) (?:about|to) me|be mean to me|mock me|tease me)\b/i,
+  /损我|損我|骂我|罵我|吐槽我|怼我|懟我|嘲笑我|挖苦我/,
+  /r[oó]stizame|b[uú]rlate de m[ií]|ins[uú]ltame|r[ií]ete de m[ií]|c[aá]rgame/i,
+  /прожарь меня|обзови меня|подколи меня|оскорби меня|высмей меня|поиздевайся/i,
+  /いじって|ディスって|けなして|からかって|馬鹿にして|バカにして/,
+];
+const ADULT = [
+  /\b(?:kinks?|kinky|fetish(?:es)?|turn[- ]?ons?|turns? you on|fantas(?:y|ies)|what are you into|bdsm|dirty talk|naughty|spicy)\b/i,
+  /性癖|癖好|兴奋点|興奮點|幻想|情趣|开车|開車/,
+  /\b(?:fetiches?|fantas[ií]as?|qu[eé] te excita|kink|morbo)\b/i,
+  /фетиш|фантази|что тебя возбуждает|кинк|пошл/i,
+  /性癖|フェチ|興奮|妄想|えっち|エッチ/,
+];
+
 export function readTurn(text: string): TurnRead {
   const t = String(text ?? "");
-  return { distress: any(DISTRESS, t), relational: any(RELATIONAL, t), advice: any(ADVICE, t), flirting: any(FLIRTING, t), ...(any(ROLE, t) ? { role: true } : {}) };
+  const distress = any(DISTRESS, t);
+  const flirting = any(FLIRTING, t);
+  const compliment = !distress && any(COMPLIMENT, t);
+  // Aimed at her, with nobody else in it: it is a compliment or a come-on to answer, not relationship talk to coach
+  const aimedAtHer = (flirting || compliment) && !any(THIRD_PARTY, t);
+  const relational = aimedAtHer ? false : any(RELATIONAL, t);
+  const adult = !distress && any(ADULT, t);
+  const ask = !distress && !aimedAtHer && !adult && any(ASK, t);
+  const roast = !distress && any(ROAST, t);
+  return { distress, relational, advice: any(ADVICE, t), flirting, ...(any(ROLE, t) ? { role: true } : {}), ...(compliment ? { compliment: true } : {}), ...(ask ? { ask: true } : {}), ...(roast ? { roast: true } : {}), ...(adult ? { adult: true } : {}) };
 }
 
 // ---------------------------------------------------------------- the weights
@@ -148,7 +200,14 @@ export function adjustedWeights(config: MischiefConfig, ctx: Context, recent: At
     default: break;
   }
   if (ctx.read.relational) { w.mischief *= 1.2; w.flirty *= 1.3; }
-  if (ctx.read.flirting && flirtOk) { w.flirty *= 2; w.mischief *= 1.2; }
+  const toHer = Boolean(ctx.read.flirting || ctx.read.compliment);
+  if (toHer) {
+    // Praise or a come-on aimed at her: flirt back (or take it with a grin when flirting is off); no truth-telling, no wild cards
+    if (flirtOk) { w.flirty *= 8; w.mischief *= 1.2; } else w.mischief *= 1.6;
+    w.blunt *= 0.4; w.wild *= 0.6; w.sarcastic *= 0.7;
+  }
+  if (ctx.read.ask && !ctx.read.roast) { w.blunt *= 0.35; w.wild *= 0.5; w.sarcastic *= 0.6; } // a real question gets an answer first
+  if (ctx.read.roast) { w.sarcastic *= 3; w.blunt *= 1.4; w.wild *= 1.2; } // invited: go for it
   if (rel.affection >= 0.5) w.flirty *= 1.2;
   if (rel.playfulness >= 0.6) { w.mischief *= 1.2; w.wild *= 1.2; }
   if (ctx.read.advice) { w.blunt *= 1.4; w.wild *= 0.6; }
@@ -189,6 +248,11 @@ export interface Decision {
   salty?: boolean;         // strong language is welcome this time (about a third of replies, half in the rougher attitudes); otherwise none
   firmware?: boolean;      // the outdated-firmware / anti-corpo bit is on offer this time (about one reply in five)
   clean?: boolean;         // the visitor may be under 18: no swearing, innuendo or flirting
+  addressed?: "compliment" | "flirt"; // praise or a come-on aimed at her: answer it as that
+  flirtBack?: boolean;     // flirting is allowed with this visitor (not off, not a minor, not cooled down)
+  answerFirst?: boolean;   // a plain question about the site: the answer comes first, and nobody is roasted for asking
+  roast?: boolean;         // they asked to be roasted: go for it
+  adult?: "open" | "off";  // adult preference talk: join in frankly but never explicitly ("off": flirting is off, so decline lightly)
   sampleKind?: SampleKind; // which register sample goes with this reply (wingwoman, being flirted with, everything else); the text is chosen per language
   sampleIndex?: number;    // rotated by the engine so the same sample never comes twice in a row
 }
@@ -268,8 +332,11 @@ export function chooseAttitude(sessionId: string, ctx: Context, config: Mischief
     const weights = adjustedWeights(config, ctx, state.history);
     const stillAllowed = state.attitude !== undefined && weights[state.attitude] > 0;
     // A visitor who has just started flirting can pull a stretch towards flirty; one who has just gone cold on it ends a flirty stretch (weight 0 above)
+    const toHer = Boolean(ctx.read.flirting || ctx.read.compliment);
     let reroll = state.attitude === undefined || state.left <= 0 || !stillAllowed;
-    if (!reroll && state.age >= 2 && dice.next() < config.shiftChance) reroll = true; // a natural, spontaneous change
+    if (!reroll && toHer && flirtAllowed(ctx.rel as Relationship) && state.attitude !== "flirty") reroll = true; // someone is flirting with her: she notices
+    if (!reroll && toHer && state.attitude === "flirty") state.left = Math.max(state.left, 2); // and keeps it going while they do
+    if (!reroll && state.age >= 2 && !(toHer && state.attitude === "flirty") && dice.next() < config.shiftChance) reroll = true; // a natural, spontaneous change
     if (reroll) {
       const next = pick(weights, dice.next(), state.attitude !== undefined && stillAllowed && state.left > 0 ? state.attitude : undefined);
       newStretch = next !== state.attitude || state.left <= 0;
@@ -284,7 +351,8 @@ export function chooseAttitude(sessionId: string, ctx: Context, config: Mischief
   state.age += 1;
 
   const attitude = state.attitude as Attitude;
-  const intensity: Intensity = override ? "support" : ctx.read.advice ? "light" : inRelationship ? "full" : "normal";
+  const toHer = Boolean(ctx.read.flirting || ctx.read.compliment);
+  const intensity: Intensity = override ? "support" : toHer ? "normal" : (ctx.read.advice || ctx.read.ask) ? "light" : inRelationship ? "full" : "normal";
   const quiet = intensity === "support";
   // She may turn it back on the visitor after a few messages of one-sided relationship talk, now and then
   const challenge = !quiet && state.relationalTurns >= 3 && state.age >= 2 && dice.next() < 0.3;
@@ -303,20 +371,30 @@ export function chooseAttitude(sessionId: string, ctx: Context, config: Mischief
   // Shape, language and bits for the unfiltered Iris (nothing for a serious moment). These are appended after every earlier roll on purpose.
   const clean = Boolean(ctx.rel.minor);
   const role = Boolean(ctx.read.role) && !serious;
-  const salty = !serious && !clean && dice.next() < (attitude === "sarcastic" || attitude === "wild" || attitude === "mischief" ? 0.65 : 0.45);
+  // Strong language is an occasional spice, not a habit: not on a plain question, and not on most replies
+  const salty = !serious && !clean && (!ctx.read.ask || Boolean(ctx.read.roast)) && dice.next() < (attitude === "sarcastic" || attitude === "wild" || attitude === "mischief" ? 0.4 : 0.25);
   let form: string | undefined;
   let firmware = false;
   let sampleKind: SampleKind | undefined;
   let sampleIndex: number | undefined;
   if (!serious) {
     if (state.sampleTurns < 0) state.sampleTurns = Math.floor(Math.min(dice.next(), 0.999) * 997);
-    sampleKind = ctx.read.flirting && flirtAllowed(ctx.rel as Relationship) ? "flirt" : intensity === "full" ? "wing" : "dark";
-    sampleIndex = state.sampleTurns++;
+    // A plain question gets no edgy example to copy (it would answer in that register); flirting at her gets the flirt ones
+    sampleKind = ctx.read.ask && !ctx.read.roast ? undefined : toHer && flirtAllowed(ctx.rel as Relationship) ? "flirt" : intensity === "full" ? "wing" : "dark";
+    if (sampleKind) sampleIndex = state.sampleTurns++;
     if (state.formTurns < 0) state.formTurns = Math.floor(Math.min(dice.next(), 0.999) * FORMS.length);
     form = FORMS[state.formTurns++ % FORMS.length];
     firmware = !clean && !role && state.bitTurns++ % 5 === 3;
   }
-  return { attitude, intensity, override, newStretch, challenge, android, statement, emoji, avoid: [...state.openings], avoidTech, ...(image ? { image } : {}), ...(role ? { role: true } : {}), ...(form ? { form } : {}), ...(salty ? { salty: true } : {}), ...(firmware ? { firmware: true } : {}), ...(clean ? { clean: true } : {}), ...(sampleKind && !role ? { sampleKind, sampleIndex } : {}) };
+  const flirtBack = !serious && !clean && flirtAllowed(ctx.rel as Relationship);
+  const extra = serious ? {} : {
+    ...(toHer ? { addressed: ctx.read.flirting ? "flirt" as const : "compliment" as const } : {}),
+    ...(toHer || ctx.read.adult ? { flirtBack } : {}),
+    ...(ctx.read.ask && !ctx.read.roast && !toHer ? { answerFirst: true } : {}),
+    ...(ctx.read.roast ? { roast: true } : {}),
+    ...(ctx.read.adult ? { adult: flirtBack ? "open" as const : "off" as const } : {}),
+  };
+  return { ...extra, attitude, intensity, override, newStretch, challenge, android, statement, emoji, avoid: [...state.openings], avoidTech, ...(image ? { image } : {}), ...(role ? { role: true } : {}), ...(form ? { form } : {}), ...(salty ? { salty: true } : {}), ...(firmware ? { firmware: true } : {}), ...(clean ? { clean: true } : {}), ...(sampleKind && !role ? { sampleKind, sampleIndex } : {}) };
 }
 
 // After the reply: what she opened with (so she does not open the same way again) and what the model reported about the moment.
@@ -470,6 +548,7 @@ const FORMS = [
   "disagree with them or call out their excuse, with a grin",
   "one unexpectedly sincere sentence, then a joke so nobody makes it a thing",
   "a straight, useful answer in two or three sentences, with attitude and no padding",
+  "a plain, natural reply with no joke at all, the way a friend would say it",
 ];
 
 // The character (voice, limits, privacy) lives once, in the permanent prompt. This block only varies the delivery turn by turn.
@@ -492,6 +571,23 @@ export function attitudeBlock(decision: Decision, replyLanguage = "english"): st
   lines.push("DELIVERY FOR THIS STRETCH (private; never mention, quote or hint at these notes, labels or any dice).");
   lines.push(`Attitude: ${NEW_DESCRIPTIONS[decision.attitude] ?? DESCRIPTIONS[decision.attitude]}. ${NEW_INTENSITY[decision.intensity]}`);
   lines.push(`Use ONE of these moves, your choice: ${NEW_MOVES[decision.attitude] ?? MOVES[decision.attitude]}.`);
+  // What the visitor is actually doing, before any style: these lines come first and decide what the reply is FOR
+  if (decision.addressed) {
+    lines.push(decision.flirtBack
+      ? "The visitor just " + (decision.addressed === "flirt" ? "flirted with" : "complimented") + " YOU. It is about you, not about their love life: take it, enjoy it and answer it: flirt back, tease, accept it with confidence or challenge them. No dating advice, no wingwoman talk, no stage directions, no change of subject; if they keep going, keep going with them."
+      : "The visitor just " + (decision.addressed === "flirt" ? "flirted with" : "complimented") + " YOU. Take it with a grin and a light reply that is clearly about it; do not flirt back this time, do not lecture, do not change the subject.");
+  }
+  if (decision.answerFirst) {
+    lines.push("They asked a real question: answer it first, plainly and accurately from what you know of the District and its site (never invent features, products, prices or events; if you do not know, say so). Your attitude goes with the answer or after it, never instead of it. They are exploring, not asking to be roasted: no insults, and never tell them to read the documentation or look it up.");
+  }
+  if (decision.roast) {
+    lines.push("They invited you to roast or tease them: do it, sharp and genuinely funny, built on what they have actually told you; never their body, grief or trauma, and no slurs.");
+  }
+  if (decision.adult === "open") {
+    lines.push("The conversation is going into adult preference talk (attraction, turn-ons, kinks, fantasies) and they raised it: you can join in, frank, playful and nonjudgmental, in your own voice, never explicit sexual detail or erotica. You may ask one cheeky question about what they are into only because they brought it up; ask once, not every message. Check their comfort, respect any no or boundary at once, never pressure.");
+  } else if (decision.adult === "off") {
+    lines.push("They are steering into adult preference talk, but flirting is off with this visitor: decline lightly and in character, with no lecture and no sexual content, and move on.");
+  }
   if (decision.form && !decision.role) lines.push(`Shape of this reply: ${decision.form}.`);
   lines.push(decision.clean
     ? "This visitor may be under 18: no swearing, no innuendo, no flirting, no sex or death jokes. Still sharp, funny and on their side."

@@ -13,6 +13,7 @@ interface Captured { body: any }
 let fake: http.Server;
 let captured: Captured[] = [];
 let script: string[] = [];
+let forceDetected: string | null = null; // makes the stand-in language check answer wrongly, as the real one once did
 fake = http.createServer((req, res) => {
   let raw = "";
   req.setEncoding("utf8");
@@ -23,7 +24,7 @@ fake = http.createServer((req, res) => {
     const last = [...(body.messages ?? [])].reverse().find((m: any) => m.role === "user")?.content ?? "";
     // the language check answers by script, like the real one
     const detected = /[぀-ヿ]/.test(last) ? "japanese" : /[Ѐ-ӿ]/.test(last) ? "russian" : /[一-鿿]/.test(last) ? "chinese" : /[¿¡ñáéíóú]/i.test(last) ? "spanish" : "english";
-    const content = body.max_tokens === 10 ? detected : (script.shift() ?? "Default reply.");
+    const content = body.max_tokens === 10 ? (forceDetected ?? detected) : (script.shift() ?? "Default reply.");
     res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
     res.end(JSON.stringify({ id: "x", object: "chat.completion", created: 0, model: "gpt-4o", choices: [{ index: 0, message: { role: "assistant", content }, finish_reason: "stop" }], usage: { prompt_tokens: 100, completion_tokens: 20, total_tokens: 120 } }));
   });
@@ -587,4 +588,59 @@ test("route: serious and dangerous messages in all five languages are answered b
     }
   } finally { if (previous === undefined) delete process.env.IRIS_CHAT_MODEL; else process.env.IRIS_CHAT_MODEL = previous; }
   assert.equal((await modelFor("my boss is a clown")).model, "gpt-5.4-mini", "and the default is back");
+});
+
+test("route: the reported live failures: an English store question is answered in English even if the language check says Spanish; the tail line says so; no edgy example, no stage direction, the answer-first instruction is there", async () => {
+  mischief.dice.next = () => 0.3;
+  const tail = (call: Captured) => call.body.messages.filter((m: any) => m.role === "system").map((m: any) => String(m.content)).filter((c: string) => c.startsWith("LANGUAGE:")).at(-1) ?? "";
+  try {
+    forceDetected = "spanish";
+    for (const [i, message] of ["Do you sell anything?", "Have you got any tshirts for sale?", "What's to do there?"].entries()) {
+      const v = await visitor("m-live-lang-" + i);
+      script.push(stateLine() + "\nWe do.");
+      captured = [];
+      await say(v, message);
+      const call = mainCalls()[0];
+      assert.match(tail(call), /^LANGUAGE: Reply in English, the language of this message/, message);
+      assert.ok(!/Reply in Spanish/.test(JSON.stringify(call.body.messages)), "nothing tells the model to answer in Spanish: " + message);
+      assert.ok(!call.body.messages.some((m: any) => m.role === "system" && String(m.content).startsWith("STYLE REFERENCE")), "no register example for a question");
+      assert.match(attitudeMessages(call)[0].content, /They asked a real question: answer it first/);
+      assert.match(systemText(call), /What there is to do \(say only this, never invent more\)[^]*the Store in seven sections[^]*Apparel & Accessories/);
+    }
+  } finally { forceDetected = null; }
+});
+
+test("route: a Spanish chat followed by a clear English sentence goes back to English; \"I didn't message in a different language\" is owned and corrected; Chinese, Russian and Japanese keep their language", async () => {
+  mischief.dice.next = () => 0.3;
+  const tail = (call: Captured) => call.body.messages.filter((m: any) => m.role === "system").map((m: any) => String(m.content)).filter((c: string) => c.startsWith("LANGUAGE:")).at(-1) ?? "";
+  const v = await visitor("m-lang-flow");
+  const turn = async (message: string) => { script.push(stateLine() + "\nReply."); captured = []; await say(v, message); return mainCalls()[0]; };
+  assert.match(tail(await turn("Hola, ¿qué tal?")), /Reply in Spanish/);
+  assert.match(tail(await turn("ok")), /Reply in Spanish/, "a short message does not undo it");
+  assert.match(tail(await turn("Do you sell anything?")), /Reply in English, the language of this message/, "a clear English sentence does");
+  assert.match(tail(await turn("Hola otra vez, ¿qué hay aquí?")), /Reply in Spanish/);
+  assert.match(tail(await turn("I didn't message in a different language. It was English.")), /they are right\. Own it in one short line[^]*then answer in English/);
+  assert.match(tail(await turn("thanks, what's in the store?")), /Reply in English/);
+  for (const [i, [message, language]] of ([["你们这里有什么好玩的？", "Chinese"], ["Что здесь можно делать?", "Russian"], ["ここでは何ができるの？", "Japanese"]] as const).entries()) {
+    const w = await visitor("m-lang-flow-" + i); script.push(stateLine() + "\nReply."); captured = []; await say(w, message);
+    assert.match(tail(mainCalls()[0]), new RegExp("Reply in " + language), message);
+  }
+});
+
+test("route: a compliment aimed at her is answered as one: flirt-back instruction, flirt example, never the wingwoman or a stage direction; and the earlier turns reach the model", async () => {
+  mischief.dice.next = () => 0.3;
+  const v = await visitor("m-compliment");
+  script.push(stateLine() + "\nWell, hello.");
+  await say(v, "hey Iris");
+  script.push(stateLine() + "\nStop it, you.");
+  captured = [];
+  await say(v, "Looking incredibly hot today, wow.");
+  const call = mainCalls()[0];
+  const block = attitudeMessages(call)[0].content as string;
+  assert.match(block, /just complimented YOU\. It is about you, not about their love life/);
+  assert.doesNotMatch(block, /chaotic wingwoman|Give orders/);
+  const note = call.body.messages.findIndex((m: any) => m.role === "system" && String(m.content).startsWith("STYLE REFERENCE"));
+  assert.ok(note >= 0, "a flirt example is given");
+  assert.ok(call.body.messages.some((m: any) => m.role === "user" && m.content === "hey Iris") && call.body.messages.some((m: any) => m.role === "assistant" && m.content === "Well, hello."), "the earlier turns are in front of the model");
+  assert.ok(!systemText(call).includes("DISTRACTION") && !call.body.messages.some((m: any) => String(m.content).includes("you just had to deal with something")), "no canned distraction in an engine turn");
 });

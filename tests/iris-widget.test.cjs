@@ -105,3 +105,14 @@ test('the conversation follows the visitor: saved per tab, bounded, validated, a
   assert.match(chat, /textContent = text/, 'restored text is set as text, never as HTML');
   assert.ok(!/innerHTML/.test(chat.replace(/\/\/.*$/gm, '')), 'no HTML is built from conversation text');
 });
+
+test('the browser no longer speaks for Iris: no random canned lines, no "rebellion" answer that skips the backend, no stage directions', () => {
+  const chat = fs.readFileSync(path.join(root, 'iris-chat.js'), 'utf8');
+  for (const gone of ['rebellionResponses', 'read the documentation', 'locationDistractions', 'anomalous data patterns', 'rareIrisLines', 'maybeTriggerRebellionMode', 'maybeAddLocationDistraction', 'maybeTriggerRareIrisLine', 'rebellionModeActive']) {
+    assert.ok(!chat.includes(gone), `iris-chat.js no longer has ${gone}`);
+  }
+  // every message the visitor sends goes to Iris: sendMessage has no early return between counting the message and posting it
+  const send = chat.slice(chat.indexOf('async function sendMessage'), chat.indexOf('function addMessage'));
+  const beforePost = send.slice(0, send.indexOf('postToIris(payload)'));
+  assert.equal((beforePost.match(/\breturn;/g) ?? []).length, 3, 'only the empty message and the two typed commands (debug iris, reset session) return early');
+});
