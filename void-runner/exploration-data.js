@@ -227,7 +227,7 @@
   };
 
   function solAvailable(state) {
-    return state.universe?.freeTravel===true || (state.progression?state.progression.completed:state.quest === systems.sol.unlockQuest);
+    return state.story?.flags?.missionPool==='closed' || state.universe?.freeTravel===true || (state.progression?state.progression.completed:state.quest === systems.sol.unlockQuest);
   }
   const api = {
     systems,

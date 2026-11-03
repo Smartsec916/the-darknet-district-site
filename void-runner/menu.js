@@ -38,12 +38,13 @@ function renderMainMenu() {
   const a = window.VoidAccount,
     u = a?.user;
   menuShell('main',
-    `<section class="main-menu"><p class="menu-kicker">SYSTEMS ONLINE</p><h1 class="game-logo" tabindex="-1">THE DARKNET<br>DISTRICT</h1><nav class="menu-options" aria-label="Main menu">${VoidMenu.returnTo?button('RESUME GAME','menu-resume'):''}${button('CONTINUE CAMPAIGN','menu-continue',false,!hasSave)}${button('CAMPAIGN','menu-campaign')}${button('SKIRMISH','menu-skirmish')}${(typeof VoidDevTools!=='undefined'&&VoidDevTools.authorized)?button('DEVELOPER TOOLS','menu-devtools'):''}${VoidMenu.returnTo?button('GUIDANCE','menu-guidance'):''}${button('SETTINGS / KEYBINDINGS','menu-settings')}${VoidMenu.returnTo?button('MAIN MENU','menu-main',true):''}${button('LOGOUT','menu-logout',false,!u||a?.busy)}</nav><div class="menu-account">${u?'SIGNED IN'+(a.handle?' · '+escapeText(a.handle):''):'LOCAL PILOT · NOT SIGNED IN'}${button(u?'ACCOUNT / CLOUD SAVES':'SIGN IN','menu-account',true)}</div><p class="menu-save">${hasSave?saveDescription(state):'Your journey begins on Vesper.'}</p></section>`
+    `<section class="main-menu"><p class="menu-kicker">SYSTEMS ONLINE</p><h1 class="game-logo" tabindex="-1">THE DARKNET<br>DISTRICT</h1><nav class="menu-options" aria-label="Main menu">${VoidMenu.returnTo?button('RESUME GAME','menu-resume'):''}${button('CONTINUE CAMPAIGN','menu-continue',false,!hasSave)}${button('CAMPAIGN','menu-campaign')}${button('SKIRMISH','menu-skirmish')}${(typeof VoidDevTools!=='undefined'&&VoidDevTools.authorized)?button('DEVELOPER TOOLS','menu-devtools'):''}${VoidMenu.returnTo?button('GUIDANCE','menu-guidance'):''}${button('SETTINGS / KEYBINDINGS','menu-settings')}${VoidMenu.returnTo?button('MAIN MENU','menu-main',true):''}${button('LOGOUT','menu-logout',false,!u||a?.busy)}</nav><div class="menu-account">${u?'SIGNED IN'+(a.handle?' · '+escapeText(a.handle):''):'LOCAL PILOT · NOT SIGNED IN'}${button(u?'ACCOUNT / CLOUD SAVES':'SIGN IN','menu-account',true)}</div><p class="menu-save">${hasSave?saveDescription(state):'Your journey begins outside The Darknet District.'}</p></section>`
     );
 }
 
 function saveDescription(s) {
   const mission = C.allContracts.find(m => m.id === s.contract);
+  if(s.story?.flags?.missionPool === 'closed') return 'NeoChinatown · Outside The Darknet District' + (s.savedAt ? '<br>Saved ' + escapeText(new Date(s.savedAt).toLocaleString()) : '');
   return escapeText((s.quest === 'inheritance' ? 'Vesper workshop' : C.stations[s.location]?.name || s
       .location) + ' · ' + VoidShips.get(s).name + ' · ' + (mission?.name || s.quest.replaceAll('-', ' '))) +
     (s.savedAt ? '<br>Saved ' + escapeText(new Date(s.savedAt).toLocaleString()) : '');
