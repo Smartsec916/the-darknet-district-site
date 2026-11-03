@@ -49,7 +49,10 @@
         label: 'BOARD KESTREL',
         position: [-3, 1.7, -10],
         action: 'board',
-        range: 3.2
+        range: 3.2,
+        when: {
+          notFlags: { shipAccess: 'none' }
+        }
       }, {
         id: 'rook',
         label: 'TALK — ROOK',
@@ -107,7 +110,10 @@
         label: 'BOARD KESTREL',
         position: [0, 1.7, -30],
         action: 'board',
-        range: 3.5
+        range: 3.5,
+        when: {
+          notFlags: { shipAccess: 'none' }
+        }
       }, {
         id: 'tdd',
         label: 'INSPECT — THE DARKNET DISTRICT',
@@ -170,7 +176,10 @@
         label: 'BOARD KESTREL',
         position: [0, 1.7, -26],
         action: 'board',
-        range: 3.5
+        range: 3.5,
+        when: {
+          notFlags: { shipAccess: 'none' }
+        }
       }, {
         id: 'airlock',
         label: 'USE AIRLOCK',

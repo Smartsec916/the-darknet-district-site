@@ -41,6 +41,8 @@
   if(s.progression?.flags){for(const id of [...VoidMissions.stationIds,...VoidMissions.combatIds])s.progression.flags[id]=true;VoidMissions.sync(s,C);}
   // The shared objective is the guide here, not the campaign's tracked mission.
   VoidMissions.untrack(s);
+  // Nothing a guest holds is campaign progress: no pistol, no missions, and a ship only for the flight preview (VoidShare.applyPolicy).
+  VoidShare.applyPolicy(s,e);
   const sys=VoidUniverse.locations[e.destination.location]?.system;if(sys&&s.universe)s.universe.currentSystem=sys;
   return s;}
  const wait=ms=>new Promise(r=>setTimeout(r,ms));

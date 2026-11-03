@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "d014f1ff2a75d95d",
+  "revision": "91965120013184c4",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11635,13 +11635,13 @@
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 235,
+      "line": 237,
       "text": "speech = null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 277,
+      "line": 279,
       "text": "screen.querySelector('.speech-controls,.cinematic-space')?.insertAdjacentHTML('beforeend', button('RETURN TO EXPLORATION', 'walk-resume', true));",
       "kind": "source-reference"
     },
@@ -11653,43 +11653,43 @@
     },
     {
       "source": "void-runner/exploration-data.js",
-      "line": 70,
+      "line": 73,
       "text": "text: 'MERIDIAN / FREIGHT 07',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/exploration-data.js",
-      "line": 76,
+      "line": 79,
       "text": "text: 'YOUR BERTH / YOUR RESPONSIBILITY',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/exploration-data.js",
-      "line": 127,
+      "line": 133,
       "text": "text: 'NEOCHINATOWN / CITY LANDING',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/exploration-data.js",
-      "line": 132,
+      "line": 138,
       "text": "text: 'THE FUNCTION / SECURITY IS A SERVICE',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/exploration-data.js",
-      "line": 138,
+      "line": 144,
       "text": "text: 'THE DARKNET DISTRICT',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/exploration-data.js",
-      "line": 190,
+      "line": 199,
       "text": "text: 'PRESSURE CONTROL / SUBSURFACE ACCESS',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/exploration-data.js",
-      "line": 195,
+      "line": 204,
       "text": "text: 'UNDERGROUND CITY / TRANSIT CONCOURSE',",
       "kind": "source-reference"
     },
@@ -13068,7 +13068,7 @@
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/asset-pipeline.js": "5f0d8bbd5d8f36e4f8b80c4e0dbe5f620fcff12b49f20dd21f17a7fff331c808",
-    "void-runner/babylon-integration.js": "c8f3fde2f078fc64375ae9cb634d57e73f02ab4985b7f97a00ba98d863c22746",
+    "void-runner/babylon-integration.js": "c2fc9537a25098ac3a769e6684254f541cde6bec51cc5e451c38e3cb8d924fc0",
     "void-runner/babylon-renderer.js": "280608e1adbac2dc0bb6de9903667b3e815ad30cefeebe6d5ff24077a0b329de",
     "void-runner/balance-data.js": "ebc76bb374885f015ae60a86864e8701bba194e5d3ce09fb321dd52cedabe16c",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
@@ -13094,7 +13094,7 @@
     "void-runner/escort.js": "0d8213a1b25b4748f954d1e1e86fecd14c22429682ec1f5f36a8b46b81bd8ec2",
     "void-runner/expansion.js": "98ea57022ac62f7ed5e83151093329644a7c510d3dba3b8c83677673bbbfc518",
     "void-runner/exploration-controller.js": "a97f58cdcd6149e0149f7976c779b5957bef43db8c3b46df502f993d23e319c7",
-    "void-runner/exploration-data.js": "1a7f311dd37ddf545a0d83423848a7959f66976456f8dfbdcb7c1e6c56e6c638",
+    "void-runner/exploration-data.js": "3ea30641cfffbcea0372c34f3f4d68d29fe94be652b7243e2b729e6eef95d077",
     "void-runner/faction-battle.js": "3566336f27e8a33636ec164fd2a31c2d3c2d1473bbdac3ca02df176432d3887a",
     "void-runner/faction-battles.js": "a5eb4863fb899e5cffa3c20a451cb342588026b45c400ade1bcacdf955aa4add",
     "void-runner/faction-scenes.js": "c998cf27211ec0dc36714ede894aac73b1e783e5d610eb126283f5ac50e4ef08",
@@ -13110,7 +13110,7 @@
     "void-runner/flight-skirmish.js": "d34dcc71253521e0b64617552cce2db27b7e1e37420611fa7471de848c8a5573",
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
     "void-runner/game.js": "e4bed770be280a1c6e61d5f75d7f687ae7964178cbc6614e2d6733c790434ae5",
-    "void-runner/guest-mode.js": "9688052e6bd9f98c621f11ecaa0cd050901ecdb89ae689e2371edc8538729a91",
+    "void-runner/guest-mode.js": "20d057b9489c19fc2ee80532e9609c40c83194044583baa016ea5feedcae406f",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "3f0a281fe47ab2dbf58eb419916d99736a1c576e65e026dbb94eb2bcc5756b20",
     "void-runner/hud-data.js": "ab10b0b6a6a95a50c28751a44eee205e0cc6d6e063bae78d89087f39411bde35",
@@ -13120,7 +13120,7 @@
     "void-runner/menu.js": "f7772222e62916b854e2eb39e1ffe6d843fad15ece03ee1e2912a168bfc1e892",
     "void-runner/meridian-art.js": "ef57144a85d288a8b5c3ea0a616d36b5fcc78de0f4a5220473486f1f2b9f2a19",
     "void-runner/meridian-interior-kit.js": "2ca741d025cbd6b3e205e823c637fcf46c0488303ecb24cdcf2e678d0e43eeb4",
-    "void-runner/meridian-interior.js": "d9f411d4f42b3cf8bacbe377812cda9b3c3563aef0d52127e989898e4b9a2b96",
+    "void-runner/meridian-interior.js": "cc70936aa31d06ed8f5730b83de134a7bdd0762b0f4c18402c0813f0859ac071",
     "void-runner/meridian-kitbash.js": "5e1efc2246631b5e37507d12fc23206b5ac8838fa8d0b1b34302a8fa2d5b7ebb",
     "void-runner/meridian-station.js": "2ecbbeec490597999c1a11e4c918a694f8e82673944100fe04e6657180556526",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
@@ -13135,13 +13135,13 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-nightclub.js": "b4dbe1c5e0e47b7f18dc94ae4fa7da5c1463be4b1ed01d75f628800cc6661b56",
     "void-runner/ncz-nightlife.js": "4c6e4d7ca34309a6e1a190bfc70d78123ef746ccab8f29c74b7c77041e038fba",
-    "void-runner/neochinatown.js": "12c9467d0948e3cd517d62223612adc1bb64d896400e7d7ca57daa4bcc2e9c05",
+    "void-runner/neochinatown.js": "5aa9413616ce32cc1526551a245f4911afa0e8f0f0d98afff8fd525508a2a9f7",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "da1674b96960e03052332b46f33745a5db4f738ad2a38d06cef1eaa912b1ecbb",
     "void-runner/personal-hud.js": "871826e5852395b5fc23355c95aa79a0be9d1c9b53811e56b02e85a1e1457f2a",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
-    "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
+    "void-runner/planets.js": "13fb1cc47dd36aa2eb0bbfdeda8ea07db08fa97733728aa15ad0f34e061f56cf",
     "void-runner/police-patrol.js": "97e6f52dfaab4797addd3ed3184ce321b9f314b894d6cf69a8dbf51571b8839b",
     "void-runner/police-patrols.js": "2d9e4804ce9fed613295f24f81571185c83bf22341f5fddd89cc8f72c41077a5",
     "void-runner/preparation.js": "d4cd81b11203b5727a1192a8a5138b02fe6e1570d7310215526e3ddc4ce0502f",
@@ -13155,14 +13155,14 @@
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
     "void-runner/share-panel.js": "a318c70e86d5686d8f89e418245b1beb289802f7b71e48425cd85a0d79ed42f6",
-    "void-runner/share-registry.js": "adfa733224863272cf739a997128ef8fabecdc3bc53b84e2ebe8825d7846015a",
+    "void-runner/share-registry.js": "417071f2e4ced108c6327be84e5b4bb8862befc71f6d5c953273499131446889",
     "void-runner/ship-audio.js": "8cb0ef9954a8e074a1f036340d3b8bf42459452a8a808a2457f16fcce43df2d5",
     "void-runner/ships.js": "cdbd691a643b21a1acd6fa3c00542cf1916e6a0a5dff030d5bd3c2fcd1e3cf37",
     "void-runner/signals.js": "c4b44b7d838b52d35c5a6d57afa3b437be789b78f43eff9e1adc4a7dfa26e5b6",
     "void-runner/simulation-effects.js": "f6aac1ce655f6f79e900da09e79938ecf7c162aa6d5c765187b294510793342a",
     "void-runner/skirmish.js": "28cc0b6d0a5296c56574c51efdb4de14367666dbba30634394d2f7e8f87bcb41",
     "void-runner/station-activities.js": "06fbc8ae9530c5c612be8539f1af9bc29a314e39d7918eb6b670044da512141a",
-    "void-runner/station-layouts.js": "04310755d7074c6b47fcf8b67c4218959debc861c7a286ccd53d586a61a60879",
+    "void-runner/station-layouts.js": "feabb07f7e44ecf3395aa2809cadc18b23a4901e280c0f43414e284e90361047",
     "void-runner/story-content.js": "3f2846e89242894aa0123df0e39e7637cfd2868b73c6d89f885dbe4317b54b30",
     "void-runner/story-scenes.js": "322106e619d1a2456c5dac94dd252bd2373cb0c03273c75954d068b378cad5dd",
     "void-runner/story.js": "2257083dc07c296e8a271d097f103508f7ec582f14bcdb2b869ec031bb7d0abe",
