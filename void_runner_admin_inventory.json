@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "d014f1ff2a75d95d",
+  "revision": "b65ddb1ca0233c74",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13068,7 +13068,7 @@
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/asset-pipeline.js": "5f0d8bbd5d8f36e4f8b80c4e0dbe5f620fcff12b49f20dd21f17a7fff331c808",
-    "void-runner/babylon-integration.js": "c8f3fde2f078fc64375ae9cb634d57e73f02ab4985b7f97a00ba98d863c22746",
+    "void-runner/babylon-integration.js": "7dec07f3b2ca949c98e488fd76ab27e1d137510c7278c5dcd7466e3b148d2a06",
     "void-runner/babylon-renderer.js": "280608e1adbac2dc0bb6de9903667b3e815ad30cefeebe6d5ff24077a0b329de",
     "void-runner/balance-data.js": "ebc76bb374885f015ae60a86864e8701bba194e5d3ce09fb321dd52cedabe16c",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
