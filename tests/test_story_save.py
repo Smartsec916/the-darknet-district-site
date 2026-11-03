@@ -63,3 +63,8 @@ class StorySaveTests(unittest.TestCase):
         self.assertEqual(vr.clean_save(state)['universe'],{**state['universe'],'trackingInitialized':True,'autoTrack':True,'missions':{}})
         state['universe']['discoveredLocations']=['unknown']
         with self.assertRaises(vr.ApiError):vr.clean_save(state)
+
+    def test_ship_access_flag_survives_cloud_validation(self):
+        for value in ('none','granted'):
+            state=self.state();state.update(quest='inheritance',location='earth',completed=0);state['story']['flags'].update(missionPool='closed',shipAccess=value)
+            self.assertEqual(vr.clean_save(state)['story']['flags']['shipAccess'],value)
