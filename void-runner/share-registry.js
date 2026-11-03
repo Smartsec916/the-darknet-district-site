@@ -54,7 +54,7 @@
   const raw=typeof search==='string'?search:'';
   const q=raw.replace(/^\?/,'');
   if(!/(^|&)(visit|scenario)=/i.test(q))return {present:false};
-  if(raw.length>MAX_QUERY)return {present:true,...fail('too-long','This link is too long to be a VOID//RUNNER share link.')};
+  if(raw.length>MAX_QUERY)return {present:true,...fail('too-long','This link is too long to be a Darknet District share link.')};
   let params;try{params=new URLSearchParams(q);}catch{return {present:true,...fail('malformed','This link could not be read.')};}
   const keys=[...params.keys()];
   if(keys.some(k=>FORBIDDEN.test(k)))return {present:true,...fail('forbidden','This link asks for something share links cannot do.')};
