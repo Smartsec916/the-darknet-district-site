@@ -8,3 +8,12 @@ test('a save from before the reset keeps its missions and progress',()=>{const o
 test('the mission engine still works for anything without the flag',()=>{const s=C.fresh();assert(Object.keys(M.definitions).length>=18);assert(M.acquire(s,'meet-rook'));assert(C.allContracts.length>0);});
 test('mission NPCs, voices and dialogue are preserved',()=>{const voices=JSON.parse(fs.readFileSync('tools/audio/npc-voice-registry.json','utf8')).npcs;const names=Object.keys(voices).join(' ').toLowerCase();for(const who of ['mara','rook','admin','iris','elara','marcus'])assert(names.includes(who),who);const scenes=fs.readFileSync('void-runner/faction-scenes.js','utf8');for(const needle of ['adminIntro','factionOffers','district-iris'])assert(scenes.includes(needle),needle);assert(fs.readFileSync('void-runner/prologue-integration.js','utf8').includes('Rook vouched for you'));});
 test('the door spawn stands outside the closed door, clear of walls',()=>{const place=N.layout(),E=require('../void-runner/exploration-controller.js');const [x,z]=N.toWorld(0,17);assert(!E.blocked(x,z,place));const door=place.solids.find(s=>s.id==='district-door');assert.equal(Math.abs(door.position[2]-z),3);});
+test('the Kestrel and its boarding prompt are hidden for new campaigns but kept for existing saves',()=>{
+ const src=fs.readFileSync('void-runner/neochinatown.js','utf8'),V=require('../void-runner/story.js'),board=N.layout().interactions.find(i=>i.id==='board');
+ assert(src.includes("missionPool!=='closed'){const ship=shipModel('starter'"),'the pad ship is only built when the pool is not closed');
+ assert(board&&board.when,'the boarding prompt is conditional');
+ assert.equal(V.matches(started(),board.when),false,'new campaign: no prompt');
+ const old=C.restore(JSON.stringify(Object.assign(C.fresh(),{location:'earth',quest:'open'})));
+ assert.equal(V.matches(old,board.when),true,'old save: prompt kept');
+ assert.equal(V.matches(C.fresh(),board.when),true);
+});
