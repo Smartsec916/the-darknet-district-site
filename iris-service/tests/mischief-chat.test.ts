@@ -499,6 +499,8 @@ test("route: an ordinary reply is sent one invented register example just before
   for (const [i, [message, over, expected]] of cases.entries()) {
     const v = await visitor("m-example-" + i, over);
     script.push(stateLine() + "\nReply.");
+    await say(v, "hang on a sec"); // a first message is met gently and gets no edgy example, so the case is the second message
+    script.push(stateLine() + "\nReply.");
     captured = [];
     const body = await say(v, message);
     assert.deepEqual(Object.keys(body), ["response"]);
@@ -643,4 +645,27 @@ test("route: a compliment aimed at her is answered as one: flirt-back instructio
   assert.ok(note >= 0, "a flirt example is given");
   assert.ok(call.body.messages.some((m: any) => m.role === "user" && m.content === "hey Iris") && call.body.messages.some((m: any) => m.role === "assistant" && m.content === "Well, hello."), "the earlier turns are in front of the model");
   assert.ok(!systemText(call).includes("DISTRACTION") && !call.body.messages.some((m: any) => String(m.content).includes("you just had to deal with something")), "no canned distraction in an engine turn");
+});
+
+test("route: the exact failing case. 'hello' reaches the model with a warm-welcome delivery block, no rough attitude, no edgy example and no strong-language invitation; 'Roast me' as a first message gets the full edge", async () => {
+  mischief.dice.next = () => 0.3;
+  for (const [i, greeting] of ["hello", "Hello", "good morning"].entries()) {
+    const v = await visitor("m-hello-" + i);
+    script.push(stateLine() + "\nHello. Good to see you.");
+    captured = [];
+    await say(v, greeting);
+    const call = mainCalls()[0];
+    const block = attitudeMessages(call)[0].content as string;
+    assert.match(block, /just arriving or saying hello: welcome them warmly/, greeting);
+    assert.match(block, /No insult, no roast, no sarcasm aimed at them/);
+    assert.doesNotMatch(block, /dark comedian|affectionate roasting|brutal|quick roast|Strong language is welcome/);
+    assert.ok(!call.body.messages.some((m: any) => m.role === "system" && String(m.content).startsWith("STYLE REFERENCE")), "no edgy register example for a hello");
+  }
+  const r = await visitor("m-roast-first");
+  script.push(stateLine() + "\nFine, you asked for it.");
+  captured = [];
+  await say(r, "Roast me");
+  const rb = attitudeMessages(mainCalls()[0])[0].content as string;
+  assert.match(rb, /They invited you to roast or tease them: do it, sharp and genuinely funny/);
+  assert.doesNotMatch(rb, /welcome them warmly/);
 });

@@ -76,6 +76,7 @@ export interface TurnRead {
   compliment?: boolean; // praise aimed at HER ("looking incredibly hot today"), not at a third person (only present when true)
   ask?: boolean;        // a plain question about the site, the store or what there is to do (only present when true)
   roast?: boolean;      // they invite her to roast, insult or tease them (only present when true)
+  greeting?: boolean;   // a bare hello / good morning / how are you, nothing else (only present when true)
   adult?: boolean;      // they are steering into adult preference talk: turn-ons, kinks, fantasies (only present when true)
 }
 
@@ -144,6 +145,9 @@ const ASK = [
   /(?:продаёшь|продаешь|продаете|продаёте|есть ли|что (?:тут |здесь )?можно|магазин|купить|футболк|сайт)/i,
   /売って|買え|ショップ|お店|何ができ|Tシャツ|ゲーム|サイト/,
 ];
+// A bare greeting or small-talk opener, in the five languages: nothing else in the message. It is welcomed, never a target.
+const GREETING = /^[\s\p{P}\p{S}]*(?:(?:hello|hellooo*|hi+|hey+|heya|hiya|yo|howdy|greetings|sup|wassup|what'?s up|whats up|good (?:morning|afternoon|evening|day|night)|morning|evening|how are you|how'?s it going|how are you doing|hola|buenas|buenos d[ií]as|buenas (?:tardes|noches)|qu[eé] tal|c[oó]mo est[aá]s|привет|здравствуй(?:те)?|добрый (?:день|вечер)|доброе утро|как дела|你好|您好|嗨|哈喽|哈囉|早上好|晚上好|早安|晚安|你好吗|你好嗎|こんにちは|こんばんは|おはよう|やあ|元気)(?:[\s\p{P}]*(?:there|again|everyone|all|friend|you|iris|amigo|amiga|bro|hey)\b)*[\s\p{P}\p{S}]*)+$/iu;
+
 const ROAST = [
   /\b(?:roast me|insult me|trash[- ]talk me|burn me|make fun of me|talk (?:shit|smack) (?:about|to) me|be mean to me|mock me|tease me)\b/i,
   /损我|損我|骂我|罵我|吐槽我|怼我|懟我|嘲笑我|挖苦我/,
@@ -170,7 +174,8 @@ export function readTurn(text: string): TurnRead {
   const adult = !distress && any(ADULT, t);
   const ask = !distress && !aimedAtHer && !adult && any(ASK, t);
   const roast = !distress && any(ROAST, t);
-  return { distress, relational, advice: any(ADVICE, t), flirting, ...(any(ROLE, t) ? { role: true } : {}), ...(compliment ? { compliment: true } : {}), ...(ask ? { ask: true } : {}), ...(roast ? { roast: true } : {}), ...(adult ? { adult: true } : {}) };
+  const greeting = !distress && !roast && t.length <= 60 && GREETING.test(t);
+  return { distress, relational, advice: any(ADVICE, t), flirting, ...(any(ROLE, t) ? { role: true } : {}), ...(compliment ? { compliment: true } : {}), ...(ask ? { ask: true } : {}), ...(roast ? { roast: true } : {}), ...(greeting ? { greeting: true } : {}), ...(adult ? { adult: true } : {}) };
 }
 
 // ---------------------------------------------------------------- the weights
@@ -205,6 +210,14 @@ export function adjustedWeights(config: MischiefConfig, ctx: Context, recent: At
     // Praise or a come-on aimed at her: flirt back (or take it with a grin when flirting is off); no truth-telling, no wild cards
     if (flirtOk) { w.flirty *= 8; w.mischief *= 1.2; } else w.mischief *= 1.6;
     w.blunt *= 0.4; w.wild *= 0.6; w.sarcastic *= 0.7;
+  }
+  // Nobody is a target on arrival: the rough attitudes wait for an invitation (a roast request) or an established playful rapport
+  const teasingOk = Boolean(ctx.read.roast) || rel.playfulness >= 0.6;
+  if (ctx.read.greeting && !toHer) {
+    const k = teasingOk ? 0.3 : 0; // a bare hello gets warm or mischievous, never a jab
+    w.sarcastic *= k; w.blunt *= k; w.wild *= k; w.mischief *= 1.5; if (flirtOk) w.flirty *= 1.2;
+  } else if (recent.length === 0 && !teasingOk && !toHer && !ctx.read.advice && !ctx.read.relational && !ctx.read.adult) {
+    w.sarcastic *= 0.4; w.blunt *= 0.4; w.wild *= 0.5; w.mischief *= 1.3; // first message with no invitation: friendly or mischievous by default
   }
   if (ctx.read.ask && !ctx.read.roast) { w.blunt *= 0.35; w.wild *= 0.5; w.sarcastic *= 0.6; } // a real question gets an answer first
   if (ctx.read.roast) { w.sarcastic *= 3; w.blunt *= 1.4; w.wild *= 1.2; } // invited: go for it
@@ -245,6 +258,7 @@ export interface Decision {
   image?: string;          // the one part of her machine nature to draw an image from this time; rotated by the engine so it cannot settle on a favourite
   role?: boolean;          // they asked what she is or does here: answer as the android she is
   form?: string;           // the shape of this reply (a one-liner, a roast plus a useful thing, a bold push...), rotated by the engine so there is no formula
+  gentle?: boolean;        // a greeting or a first message nobody has teased her in: warm, and no jab at the visitor (roast requests and established teasing lift it)
   salty?: boolean;         // strong language is welcome this time (about a third of replies, half in the rougher attitudes); otherwise none
   firmware?: boolean;      // the outdated-firmware / anti-corpo bit is on offer this time (about one reply in five)
   clean?: boolean;         // the visitor may be under 18: no swearing, innuendo or flirting
@@ -313,6 +327,7 @@ export function chooseAttitude(sessionId: string, ctx: Context, config: Mischief
   if (rel.trust < 0 || mood === "cold") return null;
 
   const state = stateOf(sessionId);
+  const firstTurn = state.attitude === undefined;
   // A relationship conversation carries on for a few messages after the last clear mention, because the natural follow-ups
   // ("he texts everyone except me", "I don't know") contain no keyword at all
   const inRelationship = ctx.read.relational || state.relationalFade > 0;
@@ -372,7 +387,10 @@ export function chooseAttitude(sessionId: string, ctx: Context, config: Mischief
   const clean = Boolean(ctx.rel.minor);
   const role = Boolean(ctx.read.role) && !serious;
   // Strong language is an occasional spice, not a habit: not on a plain question, and not on most replies
-  const salty = !serious && !clean && (!ctx.read.ask || Boolean(ctx.read.roast)) && dice.next() < (attitude === "sarcastic" || attitude === "wild" || attitude === "mischief" ? 0.4 : 0.25);
+  const teasingOk = Boolean(ctx.read.roast) || ctx.rel.playfulness >= 0.6;
+  const plainOpening = !toHer && !ctx.read.advice && !ctx.read.relational && !ctx.read.adult && !ctx.read.ask;
+  const gentle = !serious && !teasingOk && plainOpening && (Boolean(ctx.read.greeting) || firstTurn);
+  const salty = !serious && !clean && !gentle && (!ctx.read.ask || Boolean(ctx.read.roast)) && dice.next() < (attitude === "sarcastic" || attitude === "wild" || attitude === "mischief" ? 0.4 : 0.25);
   let form: string | undefined;
   let firmware = false;
   let sampleKind: SampleKind | undefined;
@@ -380,10 +398,10 @@ export function chooseAttitude(sessionId: string, ctx: Context, config: Mischief
   if (!serious) {
     if (state.sampleTurns < 0) state.sampleTurns = Math.floor(Math.min(dice.next(), 0.999) * 997);
     // A plain question gets no edgy example to copy (it would answer in that register); flirting at her gets the flirt ones
-    sampleKind = ctx.read.ask && !ctx.read.roast ? undefined : toHer && flirtAllowed(ctx.rel as Relationship) ? "flirt" : intensity === "full" ? "wing" : "dark";
+    sampleKind = gentle || (ctx.read.ask && !ctx.read.roast) ? undefined : toHer && flirtAllowed(ctx.rel as Relationship) ? "flirt" : intensity === "full" ? "wing" : "dark";
     if (sampleKind) sampleIndex = state.sampleTurns++;
     if (state.formTurns < 0) state.formTurns = Math.floor(Math.min(dice.next(), 0.999) * FORMS.length);
-    form = FORMS[state.formTurns++ % FORMS.length];
+    form = gentle ? FRIENDLY_FORMS[state.formTurns++ % FRIENDLY_FORMS.length] : FORMS[state.formTurns++ % FORMS.length];
     firmware = !clean && !role && state.bitTurns++ % 5 === 3;
   }
   const flirtBack = !serious && !clean && flirtAllowed(ctx.rel as Relationship);
@@ -392,6 +410,7 @@ export function chooseAttitude(sessionId: string, ctx: Context, config: Mischief
     ...(toHer || ctx.read.adult ? { flirtBack } : {}),
     ...(ctx.read.ask && !ctx.read.roast && !toHer ? { answerFirst: true } : {}),
     ...(ctx.read.roast ? { roast: true } : {}),
+    ...(gentle ? { gentle: true } : {}),
     ...(ctx.read.adult ? { adult: flirtBack ? "open" as const : "off" as const } : {}),
   };
   return { ...extra, attitude, intensity, override, newStretch, challenge, android, statement, emoji, avoid: [...state.openings], avoidTech, ...(image ? { image } : {}), ...(role ? { role: true } : {}), ...(form ? { form } : {}), ...(salty ? { salty: true } : {}), ...(firmware ? { firmware: true } : {}), ...(clean ? { clean: true } : {}), ...(sampleKind && !role ? { sampleKind, sampleIndex } : {}) };
@@ -553,6 +572,14 @@ const FORMS = [
 
 // The character (voice, limits, privacy) lives once, in the permanent prompt. This block only varies the delivery turn by turn.
 
+// What a bare hello (or a first message nobody has teased her in) may be answered with: warm, charming, a flash of personality, no target
+const FRIENDLY_FORMS = [
+  "a plain, natural reply with no joke at all, the way a friend would say it",
+  "a warm hello with one light, mischievous touch about yourself, the District or the hour, and an easy invitation to say what they are after",
+  "a short, charming greeting in your own voice, a little cheeky about being an android, nothing aimed at them",
+  "one unexpectedly sincere sentence, then a joke so nobody makes it a thing",
+];
+
 const FIRMWARE =
   "Optional bit this time, only if it fits: joke about their situation as outdated firmware, corrupted emotional drivers, a broken romance protocol, an unauthorised personality patch, or corpo-approved updates (self-improvement as corporate spyware that charges monthly for your own personality). Metaphor only: never real instructions to download, install or break into anything. A fresh angle, never a line you have used before.";
 
@@ -569,8 +596,14 @@ export function attitudeBlock(decision: Decision, replyLanguage = "english"): st
   const chinese = replyLanguage === "chinese";
   const lines: string[] = [];
   lines.push("DELIVERY FOR THIS STRETCH (private; never mention, quote or hint at these notes, labels or any dice).");
-  lines.push(`Attitude: ${NEW_DESCRIPTIONS[decision.attitude] ?? DESCRIPTIONS[decision.attitude]}. ${NEW_INTENSITY[decision.intensity]}`);
-  lines.push(`Use ONE of these moves, your choice: ${NEW_MOVES[decision.attitude] ?? MOVES[decision.attitude]}.`);
+  if (decision.gentle) {
+    // Her edge is held in reserve until someone invites it, so the rough descriptions and moves are not offered at all
+    lines.push("Attitude: charming, mischievous android: warm, quick-witted and a little cheeky; the sharp tongue stays in reserve for people who tease, flirt or ask for it. Good company from the first word, not a heckler.");
+    lines.push("Use ONE of these moves, your choice: a warm welcome with a cheeky touch, a playful question about what brought them here, a joke at your own android expense, a nod to the hour or the District.");
+  } else {
+    lines.push(`Attitude: ${NEW_DESCRIPTIONS[decision.attitude] ?? DESCRIPTIONS[decision.attitude]}. ${NEW_INTENSITY[decision.intensity]}`);
+    lines.push(`Use ONE of these moves, your choice: ${NEW_MOVES[decision.attitude] ?? MOVES[decision.attitude]}.`);
+  }
   // What the visitor is actually doing, before any style: these lines come first and decide what the reply is FOR
   if (decision.addressed) {
     lines.push(decision.flirtBack
@@ -579,6 +612,9 @@ export function attitudeBlock(decision: Decision, replyLanguage = "english"): st
   }
   if (decision.answerFirst) {
     lines.push("They asked a real question: answer it first, plainly and accurately from what you know of the District and its site (never invent features, products, prices or events; if you do not know, say so). Your attitude goes with the answer or after it, never instead of it. They are exploring, not asking to be roasted: no insults, and never tell them to read the documentation or look it up.");
+  }
+  if (decision.gentle) {
+    lines.push("They are just arriving or saying hello: welcome them warmly, with a little personality (cheeky, charming, a flash of android) and an easy way into the conversation. No insult, no roast, no sarcasm aimed at them or at the way they greeted you: any joke lands on yourself, the District, the hour or corporations. They have not invited teasing, and this reply is not the place to start it.");
   }
   if (decision.roast) {
     lines.push("They invited you to roast or tease them: do it, sharp and genuinely funny, built on what they have actually told you; never their body, grief or trauma, and no slurs.");

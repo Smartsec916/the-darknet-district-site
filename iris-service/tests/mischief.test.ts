@@ -86,15 +86,17 @@ test("weights are adjustable without touching any prompt: one attitude can be ma
 
 test("context bends the odds: mood, a flirting visitor, relationship talk, wanting advice", () => {
   const config = cfg();
-  const base = adjustedWeights(config, ctx({}, { mood: "professional" }));
-  const playful = adjustedWeights(config, ctx({}, { mood: "playful" }));
+  // mid-conversation (a first message is met gentler, see greeting-calibration.test.ts)
+  const mid = ["supportive" as const];
+  const base = adjustedWeights(config, ctx({}, { mood: "professional" }), mid);
+  const playful = adjustedWeights(config, ctx({}, { mood: "playful" }), mid);
   assert.ok(playful.mischief > base.mischief && playful.wild > base.wild, "a playful mood leans mischievous");
-  assert.ok(adjustedWeights(config, ctx({}, { mood: "sarcastic" })).sarcastic > base.sarcastic * 1.8, "a sarcastic mood leans sarcastic");
-  assert.ok(adjustedWeights(config, ctx({}, { mood: "flirty" })).flirty > base.flirty * 2, "a flirty mood leans flirty");
-  assert.ok(adjustedWeights(config, ctx({ flirting: true })).flirty >= base.flirty * 2, "a flirting visitor pulls towards flirty");
-  const relational = adjustedWeights(config, ctx({ relational: true }));
+  assert.ok(adjustedWeights(config, ctx({}, { mood: "sarcastic" }), mid).sarcastic > base.sarcastic * 1.8, "a sarcastic mood leans sarcastic");
+  assert.ok(adjustedWeights(config, ctx({}, { mood: "flirty" }), mid).flirty > base.flirty * 2, "a flirty mood leans flirty");
+  assert.ok(adjustedWeights(config, ctx({ flirting: true }), mid).flirty >= base.flirty * 2, "a flirting visitor pulls towards flirty");
+  const relational = adjustedWeights(config, ctx({ relational: true }), mid);
   assert.ok(relational.mischief > base.mischief && relational.flirty > base.flirty);
-  const advice = adjustedWeights(config, ctx({ advice: true }));
+  const advice = adjustedWeights(config, ctx({ advice: true }), mid);
   assert.ok(advice.blunt > base.blunt && advice.wild < base.wild, "wanting advice leans towards the useful kind");
   const tired = adjustedWeights(config, ctx({}, { mood: "professional" }), ["mischief", "mischief"]);
   assert.ok(tired.mischief < base.mischief, "not the same flavour stretch after stretch");
