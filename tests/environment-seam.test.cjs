@@ -27,3 +27,8 @@ test('the street spawn and the landing pad are outside the interior',()=>{
 test('the interior is its own footprint, and toWorld is its own inverse',()=>{
  const [a,b,c,d]=N.footprints.district;assert(b>a&&d>c);const [x,z]=N.toWorld(3,40),[x2,z2]=N.toWorld(x,z);assert(Math.abs(x2-3)<1e-9);assert(Math.abs(z2-40)<1e-9);
 });
+test('layoutByArea partitions the layout exactly, with nothing lost or duplicated',()=>{
+ const by=N.layoutByArea();
+ for(const k of ['solids','interactions']){const all=[...by.street[k],...by.district[k],...by.terrace[k]];assert.equal(all.length,L[k].length);assert.deepEqual(all.map(i=>i.id).sort(),L[k].map(i=>i.id).sort());}
+ assert.equal(by.district.solids.length,41);assert.equal(by.district.interactions.length,10);assert.equal(by.terrace.interactions[0].id,'district-stairs-down');
+});
