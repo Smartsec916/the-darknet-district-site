@@ -53,12 +53,12 @@ openGameMenu = function() {
   migrationOpenMenu();
 };
 
-function preparationPanel(label) {
+function preparationPanel(label, flight = true) {
   leaveMenu();
   mode = 'preparing';
   clearInput();
   flightUI(false);
-  panel('PREPARING ENVIRONMENT', label, '<p id="preparation-status" role="status">Loading the 3D engine and exterior. Your flight will start when ready.</p><div class="loading-activity" aria-label="Loading in progress"></div><p id="preparation-time" class="fine"></p>', button('CANCEL PREPARATION', 'migration-cancel', true, true));
+  panel('PREPARING ENVIRONMENT', label, '<p id="preparation-status" role="status">'+(flight?'Loading the 3D engine and exterior. Your flight will start when ready.':'Loading the 3D engine and the environment. You will step inside when it is ready.')+'</p><div class="loading-activity" aria-label="Loading in progress"></div><p id="preparation-time" class="fine"></p>', button('CANCEL PREPARATION', 'migration-cancel', true, true));
   // A double-click on Board/Launch must not hit a newly inserted Cancel button.
   const cancelButton = screen.querySelector('[data-action="migration-cancel"]');
   setTimeout(() => { if(cancelButton?.isConnected) cancelButton.disabled=false; }, 800);
@@ -205,7 +205,7 @@ async function enterWalking(id) {
   if (VoidGraphics.busy) return;
   VoidGraphics.busy = true;
   const token = ++preparationGeneration;
-  preparationPanel('Preparing <em>' + escapeText(def.name) + '.</em>');
+  preparationPanel('Preparing <em>' + escapeText(def.name) + '.</em>', false);
   try {
     await boundedPrepare(task => VoidBabylon.prepareRoom(def, task));
     if (token !== preparationGeneration) return;
