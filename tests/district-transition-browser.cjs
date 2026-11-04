@@ -17,7 +17,7 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   const settle=async(area,ms=5000)=>{const deadline=Date.now()+(+process.env.SETTLE_MS||900000);let why='timed out';
    for(;;){const ok=await pg.evaluate(a=>walkingLocation?.area===a&&mode==='walking'&&!!walker,area).catch(()=>false);if(ok)break;
     if(warns.some(w=>/did not load|did not cycle/.test(w))){why='the transition reported an error';}else if(Date.now()<deadline){await pg.waitForTimeout(2000);continue;}
-    const where=await pg.evaluate(()=>({mode,area:walkingLocation&&walkingLocation.area,busy:VoidGraphics.busy,flags:state.story.flags,overlay:!document.getElementById('district-transition').hidden,screen:document.getElementById('screen').textContent.slice(0,160)})).catch(x=>String(x));
+    const where=await pg.evaluate(()=>({mode,area:walkingLocation&&walkingLocation.area,busy:VoidGraphics.busy,flags:state.story.flags,overlay:!document.getElementById('district-transition').hidden,screen:document.getElementById('screen').textContent.slice(0,160),limits:VoidPreparation.limits,navigations:performance.getEntriesByType('navigation').length,sinceLoadMs:Math.round(performance.now())})).catch(x=>String(x));
     console.log('STUCK waiting for',area,'('+why+')',JSON.stringify(where),'warnings',JSON.stringify(warns.slice(-6)),'errors',JSON.stringify(errs.slice(-4)));throw new Error('stuck waiting for '+area+': '+why);}
    await pg.waitForTimeout(ms);};
   const snap=()=>pg.evaluate(()=>{const S=VoidBabylon.scene||scene,[lx,lz]=VoidNeoChinatown.toWorld(walker.x,walker.z),n=r=>S.meshes.filter(m=>r.test(m.name)).length;
