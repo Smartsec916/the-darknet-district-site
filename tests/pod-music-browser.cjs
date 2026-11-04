@@ -20,7 +20,7 @@ function wav(file, seconds, make) {
 const tone = fs => t => fs.reduce((v, f) => v + Math.sin(2 * Math.PI * f * t) / fs.length, 0);
 wav(F('Alpha Drive.wav'), SONG, tone([110, 440, 1800])); wav(F('Beta Rain.wav'), SONG, tone([220, 880, 3000])); wav(F('Gamma Pulse.wav'), SONG, tone([150, 660, 2400]));
 // a beat: a kick (80 Hz) twice a second over a steady hum, so the levels (and the light) rise and fall
-wav(F('Beat Box.wav'), 90, t => { const k = Math.exp(-((t * 2) % 1) * 7), kick = Math.sin(2 * Math.PI * 80 * t) * k, hat = ((t * 4) % 1) < .08 ? (Math.random() - .5) * .5 : 0; return kick * .8 + Math.sin(2 * Math.PI * 1000 * t) * .12 + hat; });
+wav(F('Beat Box.wav'), QUALITY === 'high' ? 600 : 90, t => { const k = Math.exp(-((t * 2) % 1) * 7), kick = Math.sin(2 * Math.PI * 80 * t) * k, hat = ((t * 4) % 1) < .08 ? (Math.random() - .5) * .5 : 0; return kick * .8 + Math.sin(2 * Math.PI * 1000 * t) * .12 + hat; });
 fs.writeFileSync(F('notes.txt'), 'not a song'); fs.writeFileSync(F('broken.mp3'), 'text pretending to be an mp3');
 const extra = []; try { cp.execSync('ffmpeg -version', { stdio: 'ignore' }); for (const [n, a] of [['Delta Glass.ogg', '-c:a libvorbis'], ['Echo Static.mp3', '-c:a libmp3lame']]) { cp.execSync(`ffmpeg -y -loglevel error -f lavfi -i "sine=frequency=${300 + extra.length * 200}:duration=1.6" -af volume=6dB ${a} "${F(n)}"`); extra.push(n); } } catch { /* WAV only */ }
 
@@ -187,10 +187,11 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
   });
 
   await check('leaving the District pauses the music (it belongs to the pod room); coming back does not restart it by itself', async () => {
-    assert.ok((await P(page)).playing);
-    await page.evaluate(() => { window.__w = walkingLocation; walkingLocation = null; VoidPodMusic.update(); });
-    assert.equal((await P(page)).playing, false); await page.evaluate(() => { walkingLocation = window.__w; VoidPodMusic.update(); }); assert.equal((await P(page)).playing, false);
-    await page.evaluate(() => VoidPodMusic.clearMine());
+    try {
+      if (!(await P(page)).playing) { await page.evaluate(() => VoidPodMusic.toggle()); await until(async () => (await P(page)).playing, 10000, 'music playing before leaving'); }
+      await page.evaluate(() => { window.__w = walkingLocation; walkingLocation = null; VoidPodMusic.update(); });
+      assert.equal((await P(page)).playing, false); await page.evaluate(() => { walkingLocation = window.__w; VoidPodMusic.update(); }); assert.equal((await P(page)).playing, false);
+    } finally { await page.evaluate(() => { if (window.__w) walkingLocation = window.__w; VoidPodMusic.clearMine(); }); }
   });
 
   await check('Keep my songs in this browser: they survive a reload; unticking removes the saved copies', async () => {
