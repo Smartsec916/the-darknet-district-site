@@ -76,6 +76,7 @@
     {id:'district-vr',label:'ACCESS VR EXPERIENCES',position:[-6.2,1.7,36],action:'district-vr',range:3},
     {id:'district-vending',label:'VENDING MACHINES',position:[-5,1.7,49.5],action:'district-vending',range:2.6},
     {id:'district-pod',label:'REST IN A SLEEP POD',position:[-12.5,1.7,62.5],action:'district-pod',range:3},
+    {id:'district-pod-music',label:'POD MUSIC SCREEN',position:[-9,1.7,68.2],action:'district-pod-music',range:3},
     {id:'district-meeting',label:'MEETING ROOM / PRIVATE',position:[2.4,1.7,62.5],action:'district-meeting',range:2.6},
     {id:'district-stairs',label:'CLIMB TO THE SMOKING AREA',position:[0,1.7,75.5],action:'district-stairs',range:2.6},
     {id:'district-stairs-down',label:'GO BACK DOWNSTAIRS',position:[30,1.7,68],action:'district-stairs-down',range:2.6}
@@ -487,7 +488,7 @@
     return {doors};})();
     if(area==='all'){if(seed!==SEAMS[0])console.warn('[NeoChinatown] random state before the interior changed; update SEAMS (interior detail will differ in the separate builds)');}else if(!wantStreet)seed=SEAMS[0];
     // ---- The District interior: hallway, rooms and terrace ----
-    const {lights,terminal,vrTick}=!wantInterior?{lights:[],terminal:{tick(){}},vrTick(){}}:(function buildInterior(){
+    const {lights,terminal,vrTick,podScreen}=!wantInterior?{lights:[],terminal:{tick(){}},vrTick(){},podScreen:{tick(){}}}:(function buildInterior(){
     // ---- Hallway and room shells -----------------------------------------
     // Dark wet-look tiles (David's reference pictures, 2026-10-17): low roughness so the neon reads in them.
     const tileTex=texture('district-tiles',512,512,(g,W,H)=>{g.fillStyle='#0d0e14';g.fillRect(0,0,W,H);for(let y=0;y<H;y+=64)for(let x=0;x<W;x+=64){const s=15+rand()*9|0;g.fillStyle='rgb('+s+','+s+','+(s+7)+')';g.fillRect(x+2,y+2,60,60);}g.strokeStyle='#050608';g.lineWidth=3;for(let i=0;i<=W;i+=64){g.beginPath();g.moveTo(i,0);g.lineTo(i,H);g.stroke();g.beginPath();g.moveTo(0,i);g.lineTo(W,i);g.stroke();}for(let i=0;i<10;i++){const x=rand()*W,y=rand()*H,r=30+rand()*60,gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(0,0,0,.4)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);}});tileTex.uScale=6;tileTex.vScale=9;
@@ -558,6 +559,21 @@
       const sy=(clock*60)%H;g.fillStyle='rgba(56,232,255,.08)';g.fillRect(8,sy,W-16,6);t.update();}
      draw();
      return {tick(dt){clock+=dt;redraw-=dt;if(redraw<=0){redraw=.2;draw();}},screen};})();
+    // The pod music screen: a wall-mounted player on the south wall of the sleeping-pod room (pod-music.js owns the player and what the screen shows). Its music also
+    // moves the room's own light: the pink lamp over the pods, the ceiling panels, the pods' inner glow and a strip along the ceiling. No light is added.
+    const podScreen=(()=>{const X=-9,Y=2.45,Z=69.68,W=512,H=288,t=texture('pod-music',W,H,(g)=>{g.fillStyle='#04070a';g.fillRect(0,0,W,H);g.fillStyle='#2fe0c4';g.font='bold 20px monospace';g.fillText('POD MUSIC',20,36);}),
+      frame=mat('kiosk-shell','#121419',{rough:.32,metal:.85});
+     box('pod-screen-frame',[3.72,2.18,.1],[X,Y,Z+.07],frame,false);plane('pod-music-screen',3.4,1.91,[X,Y,Z],texMat('pod-music-screen',t,{glow:true}),0);
+     const strip=glowMat('pod-music-strip','#ff3fb4',.25);for(const x of[-3.3,-16.7])box('pod-music-strip',[.06,.06,13.6],[x,3.92,62.5],strip,false);
+     let lamp=null,lampBase=0,lampFound=false; // the pink lamp over the pods: found on the first frame, when the whole District has been built
+     const pink=B.Color3.FromHexString('#ff3fb4'),cyan=B.Color3.FromHexString('#38e8ff'),panelBase=B.Color3.FromHexString('#7fe6ff').scale(.9),innerBase=B.Color3.FromHexString('#ffc98a').scale(.45);
+     let clock=0,redraw=0,lit=false;
+     return {tick(dt){clock+=dt;redraw-=dt;const music=root.VoidPodMusic,lv=music?.levels?.();
+      if(!lampFound){lampFound=true;lamp=lights.find(l=>Math.abs(l.position.x+10)<.01&&Math.abs(l.position.y-3)<.01&&Math.abs(l.position.z-62)<.01)||null;lampBase=lamp?lamp.intensity:0;}
+      if(redraw<=0){redraw=lv?.on||music?.playing?.08:.6;if(music?.drawScreen){music.drawScreen(t.getContext(),W,H,clock);t.update();}}
+      if(lv?.on){lit=true;strip.emissiveColor=B.Color3.Lerp(pink,cyan,Math.min(1,lv.high*2.2)).scale(.25+1.5*Math.max(lv.bass,lv.mid));
+       if(mats['pod-panel'])mats['pod-panel'].emissiveColor=panelBase.scale(1+1.1*lv.mid);if(mats['pod-inner'])mats['pod-inner'].emissiveColor=innerBase.scale(1+.9*lv.bass);if(lamp)lamp.intensity=lampBase*(1+1.3*lv.bass);}
+      else if(lit){lit=false;strip.emissiveColor=pink.scale(.25);if(mats['pod-panel'])mats['pod-panel'].emissiveColor=panelBase.clone();if(mats['pod-inner'])mats['pod-inner'].emissiveColor=innerBase.clone();if(lamp)lamp.intensity=lampBase;}}};})();
 
     // The two players. Each keeps to the middle of its booth and runs its own routine of whole moves (a start, a
     // middle and an end), with uneven pauses, so they never look like synchronised machines.
@@ -669,7 +685,7 @@
     // Coloured light pools for the interior and street.
     const lights=[];const point=(p,c,i,r)=>{const l=new B.PointLight('ncz-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=target;lights.push(l);};
     if(!low){point([0,3,23],'#9be8ff',.6,8);point([-10,3,36],'#38e8ff',.9,14);point([10,3,36],'#ffb347',1.4,14);point([13,3,33],'#ff8a5c',.9,10);point([10,3,48],'#c9b4ff',1.5,12);point([14,3,51],'#38e8ff',.8,8);point([-10,3,62],'#ff5bd0',.6,12);point([38,4,68],'#ffb347',.6,14);point([0,3.5,40],'#e8f0ff',.6,16);point([0,3.5,64],'#e8f0ff',.6,16);}
-    return {lights,terminal,vrTick};})();
+    return {lights,terminal,vrTick,podScreen};})();
     if(!wantInterior){seed=SEAMS[1];target=districtRoot;}else if(area==='all'&&seed!==SEAMS[1])console.warn('[NeoChinatown] random state after the interior changed; update SEAMS');
 
     // ---- Street detail: taxi zones, streaming districts, club, weather ----
@@ -777,7 +793,7 @@
      for(const fl of weather?.flickers||[]){if(fl.off>0){fl.off-=dt;if(fl.off<=0)for(const m of fl.meshes)m.isVisible=true;}else if(time>fl.next){fl.off=.05+Math.random()*.12;fl.next=time+2+Math.random()*7;for(const m of fl.meshes)m.isVisible=false;}}
      for(const s of screens)if(time>s.next){s.mesh.material=adMat(nextAd());s.next=time+9+Math.random()*4;}}
     let wasInside=null;
-    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);doors.tick(dt);terminal.tick(dt);nightlife?.tick(dt);atmosphere(time,dt);for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
+    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);doors.tick(dt);terminal.tick(dt);podScreen.tick(dt);nightlife?.tick(dt);atmosphere(time,dt);for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
     return {tick,city,nightlife,doors,dispose(){disposed=true;clubCtl?.dispose();nightlife?.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
   }
   // Licensed models (docs/VOID_RUNNER_ASSET_LICENSES.md) dressing the District; loaded before build().
