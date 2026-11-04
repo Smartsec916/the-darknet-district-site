@@ -10,10 +10,23 @@ test('mission NPCs, voices and dialogue are preserved',()=>{const voices=JSON.pa
 test('the door spawn stands outside the closed door, clear of walls',()=>{const place=N.layout(),E=require('../void-runner/exploration-controller.js');const [x,z]=N.toWorld(0,17);assert(!E.blocked(x,z,place));const door=place.solids.find(s=>s.id==='district-door');assert.equal(Math.abs(door.position[2]-z),3);});
 test('the Kestrel and its boarding prompt are hidden for new campaigns but kept for existing saves',()=>{
  const src=fs.readFileSync('void-runner/neochinatown.js','utf8'),V=require('../void-runner/story.js'),board=N.layout().interactions.find(i=>i.id==='board');
- assert(src.includes("missionPool!=='closed'){const ship=shipModel('starter'"),'the pad ship is only built when the pool is not closed');
+ assert(src.includes("shipAccess!=='none'){const ship=shipModel('starter'"),'the pad ship is only built when the pool is not closed');
  assert(board&&board.when,'the boarding prompt is conditional');
  assert.equal(V.matches(started(),board.when),false,'new campaign: no prompt');
  const old=C.restore(JSON.stringify(Object.assign(C.fresh(),{location:'earth',quest:'open'})));
  assert.equal(V.matches(old,board.when),true,'old save: prompt kept');
  assert.equal(V.matches(C.fresh(),board.when),true);
+});
+test('ship access is its own switch, independent of the mission pool',()=>{
+ const Sh=require('../void-runner/ships.js'),s=started();
+ assert.equal(s.story.flags.shipAccess,'none');assert.equal(Sh.hasShip(s),false);assert.equal(Sh.owns(s,'starter'),false);assert.equal(Sh.owns(s,'ship2'),false);
+ assert.equal(C.switchShip(s,'starter'),false);s.credits=1e6;assert.equal(C.buyShip(s,'ship2'),false);
+ const r=C.restore(JSON.stringify(s));assert.equal(Sh.hasShip(r),false,'locked state survives save and reload');
+ assert.equal(C.grantShip(r),true);assert.equal(Sh.owns(r,'starter'),true);assert.equal(r.story.flags.missionPool,'closed','granting a ship does not reopen missions');assert.equal(M.sync(r,C).length,0);
+ assert.equal(Sh.hasShip(C.restore(JSON.stringify(r))),true,'granted state survives save and reload');
+});
+test('saves from before ship locking keep their ship, and local pre-lock closed saves are locked',()=>{
+ const Sh=require('../void-runner/ships.js'),old=C.restore(JSON.stringify(C.fresh()));assert.equal(old.story.flags.shipAccess,undefined);assert.equal(Sh.hasShip(old),true);assert.equal(Sh.owns(old,'starter'),true);
+ const mid=C.fresh();mid.story.flags.missionPool='closed';const r=C.restore(JSON.stringify(mid));assert.equal(Sh.hasShip(r),false);
+ assert.equal(C.grantShip(C.fresh()),true,'granting an unlocked save changes nothing');
 });
