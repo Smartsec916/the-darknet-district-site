@@ -32,19 +32,21 @@ async function resumeSavedWorld(){
 }
 const physicalResumeWalking=resumeWalking;
 resumeWalking=function(){if(walkingLocation?.kind==='station'&&walkingLocation.ship!==VoidShips.get(state).id)return enterWalking('hangar');return physicalResumeWalking();};
-enterWalking=async function(id){
- if(id==='vesper'||id==='hangar'&&state.location==='vesper'){VoidExplorationData.locations.vesper=VoidOpening.layout();await worldEnterWalking('vesper');if(mode==='walking'){state.universe.station={location:'vesper'};save();}return;}
+enterWalking=async function(id,options){
+ if(id==='vesper'||id==='hangar'&&state.location==='vesper'){VoidExplorationData.locations.vesper=VoidOpening.layout();await worldEnterWalking('vesper',options);if(mode==='walking'){state.universe.station={location:'vesper'};save();}return;}
  if(id==='hangar'||VoidUniverse.locations[id]){
   const loc=id==='hangar'?state.location:id;
   const def=VoidStationLayouts.layout(loc,VoidShips.get(state).id);def.name=C.stations[loc]?.name||loc;VoidExplorationData.locations.hangar=def;
-  await worldEnterWalking('hangar');
+  await worldEnterWalking('hangar',options);
   if(mode==='walking'){state.universe.station={location:state.location};if(state.location==='meridian')VoidMissions.complete(state,'meet-rook','enter',C);save();}
- }else {const d=VoidExplorationData.locations[id];if(d){d.ship=VoidShips.get(state).id;const board=d.interactions.find(i=>i.action==='board');if(board){board.position=[-2,1.7,-25];board.label='BOARD '+VoidShips.get(state).name.toUpperCase();}}await worldEnterWalking(id);}
+ }else {const d=VoidExplorationData.locations[id];if(d){d.ship=VoidShips.get(state).id;const board=d.interactions.find(i=>i.action==='board');if(board){board.position=[-2,1.7,-25];board.label='BOARD '+VoidShips.get(state).name.toUpperCase();}}await worldEnterWalking(id,options);}
 };
 dock=async function(tab='dock'){
  if(VoidGraphics.busy){VoidPreparation.cancel?.();preparationGeneration++;await Promise.allSettled([preparingLaunch,destinationPreparation].filter(Boolean));VoidGraphics.busy=false;walkingLocation=walker=null;}
  if(tab==='shop'){shop();return;}
  if(walkingLocation&&walker){resumeWalking();return;}
+ // NeoChinatown is two environments (street and District interior); a save inside the District resumes inside it (district-area.js).
+ if(state.location==='earth'&&globalThis.VoidDistrictArea)return enterWalking(VoidDistrictArea.keyFor(state),VoidDistrictArea.resume(state,VoidNeoChinatown));
  return enterWalking(state.location==='earth'?'sacramento':state.location==='mars'?'mars-terminal':'hangar');
 };
 leaveWalking=async function(){
@@ -114,7 +116,8 @@ const physicalCampaignBoard=campaignBoard;
 campaignBoard=function(){if(state.quest!=='open'){announce('Rook has your next job.');resumeWalking();return;}physicalCampaignBoard();screen.querySelector('.shop-layout')?.insertAdjacentHTML('beforeend','<h2>CARGO CONTACTS</h2><div class="hangar-grid">'+C.contracts.map(c=>'<article class="card"><h3>'+escapeText(c.name)+'</h3><p>'+escapeText(c.briefing)+'</p>'+button((walkingLocation?.interactions?.some(i=>i.character===({'Dr. Sol':'sol','Iona Vale':'iona','Rook':'rook'})[c.contact])?'TALK / ':'CALL / ')+escapeText(c.contact),'brief:'+c.id,false,!!state.contract)+'</article>').join('')+'</div>');screen.querySelector('.actions,.shop-heading')?.insertAdjacentHTML('beforeend',button('RETURN TO STATION','walk-resume',true));}
 const worldWorkshop=workshopOpening;
 // New campaigns start in the alley, just outside the District's double doors. The ship stays unavailable until a mission grants it.
-async function districtStart(){await dock();if(mode!=='walking'||!walker||walkingLocation?.id!=='neochinatown')return;const N=VoidNeoChinatown,[x,z]=N.toWorld(0,17),[fx,fz]=N.toWorld(0,20);if(VoidExplorer.blocked(x,z,walkingLocation)){console.warn('[VOID start] door spawn blocked; using the default spawn');return;}walker.x=x;walker.z=z;walker.y=walkingLocation.spawn?.[1]??1.7;walker.pitch=0;walker.yaw=Math.atan2(fx-x,fz-z);}
+async function districtStart(){await dock();if(mode!=='walking'||!walker||walkingLocation?.id!=='neochinatown'||walkingLocation.area==='interior')return; // a save made inside the District resumes inside it (district-area.js), not outside the door
+ const N=VoidNeoChinatown,[x,z]=N.toWorld(0,17),[fx,fz]=N.toWorld(0,20);if(VoidExplorer.blocked(x,z,walkingLocation)){console.warn('[VOID start] door spawn blocked; using the default spawn');return;}walker.x=x;walker.z=z;walker.y=walkingLocation.spawn?.[1]??1.7;walker.pitch=0;walker.yaw=Math.atan2(fx-x,fz-z);}
 workshopOpening=async function(){if(VoidMissions.closed(state))return districtStart();await enterWalking('vesper');};
 // Remove disconnected SOL prototype entry points. All travel uses Campaign.flight + VoidWarp.
 navigation=function(){announce('Choose a route marker after boarding your ship.');};
