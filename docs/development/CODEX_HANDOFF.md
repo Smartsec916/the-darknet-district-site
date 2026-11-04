@@ -47,7 +47,7 @@ Notes: the stack uses "base = previous PR's branch", so the PR page for #177 to 
 | Branch | Commit | What it is |
 |---|---|---|
 | `integration/darknet-district-preview` | `dc986ef` | Everything in #176 to #190 except #184 (obsolete). **Was never pushed before this handoff.** Pushed now so nothing is lost. |
-| **`integration/codex-start`** | **`{{START_COMMIT}}`** | `integration/darknet-district-preview` + PR #192 (pod music), with the wall screen moved into the interior-only build, + this handoff and the Tesana audit. **Recommended start.** |
+| **`integration/codex-start`** | **tip of the branch (code identical to `2d41fae`; later commits are documentation only)** | `integration/darknet-district-preview` + PR #192 (pod music), with the wall screen moved into the interior-only build, + this handoff and the Tesana audit. **Recommended start.** |
 
 What `integration/codex-start` does **not** contain: #184 (share-link guest policy; obsolete, see 2.4), #191 (docs only; read it from its branch), and anything newer than the heads above.
 
@@ -56,7 +56,7 @@ Share-link guest policy. Share links are retired (`#189`), so the feature is obs
 
 ## 3. Recommended starting branch and commit
 
-**Start from `integration/codex-start` at `{{START_COMMIT}}`.** Reasons: it already contains the 14-PR stack and #192, merge conflicts are resolved, the Node suite passes there, and the in-game browser checks listed in section 6 were run on it.
+**Start from the tip of `integration/codex-start`.** Its code is identical to commit `2d41fae` (the merge of #192 into the integration build); every later commit on it is documentation only. Reasons: it already contains the 14-PR stack and #192, merge conflicts are resolved, the Node suite passes there, and the in-game browser checks listed in section 6 were run on it.
 
 ```bash
 git clone https://github.com/Smartsec916/the-darknet-district-site
@@ -126,7 +126,7 @@ Most `tests/*-browser.cjs` launch `channel:'msedge'`, which is not installed in 
 ### 6.2 Results (all on 2026-11-04)
 | Suite | Branch | Result |
 |---|---|---|
-| `npm test` | `integration/codex-start` | **{{NODE_RESULT}}** |
+| `npm test` | `integration/codex-start` | **590 pass, 0 fail, 1 skipped (591 tests)** |
 | `npm test` | PR #192 branch | 531 pass, 0 fail, 1 skipped |
 | Python save and reset tests | `integration/codex-start` | 25 tests OK |
 | `tests.test_void_runner_api::test_actual_stripe_signature_verification` | plain `main` | Fails in the Claude sandbox on plain `main` too (environment); CI passes it. Not run elsewhere. |
@@ -136,8 +136,8 @@ Most `tests/*-browser.cjs` launch `channel:'msedge'`, which is not installed in 
 | District transition, low | same | Pass |
 | District transition, high | same | Passed a 6-trip run. A 3-trip run failed the test's own 25 percent allowance on the street's node count (1495, 1495, 1991); the count swings about plus or minus 20 percent with random pedestrians and returned to earlier values: **test noise, not a leak**. Suggested: loosen to about 40 percent (it is #187's test). |
 | In-game pod music, low | PR #192 branch | **20/20** |
-| In-game pod music, high | PR #192 branch, final commit `462ae157` | **{{HIGH_RESULT}}** |
-| In-game pod music, low | `integration/codex-start` | **{{POD_INTEG_LOW}}** |
+| In-game pod music, high | PR #192 branch, final commit `462ae157` | ****20/20** (software rendering, about 45 minutes; an earlier run's failures were slow-rendering timeouts and one small real bug, the late audio-ended message overwrite, now fixed)** |
+| In-game pod music, low | `integration/codex-start` | ****20/20**, including the check that the wall screen is visible in the rendered picture** |
 | Website Sleeping Pod smoke test | PR #192 branch vs `main` | 12/12 on both (page unchanged) |
 
 **Not run:** the full set of other browser scripts on the integration branch; anything with a real GPU; Firefox or Safari; any phone; the Render API with a real database; real Firebase login; the live site.
