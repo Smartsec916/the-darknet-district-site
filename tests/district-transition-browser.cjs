@@ -11,7 +11,8 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
    await pg.route('**/api/**',r=>r.fulfill({status:503,body:'{}'}));await pg.route(/firebase|gstatic|googleapis/,r=>r.abort());return pg;};
   await ctx.addInitScript(t=>{try{if(!localStorage.getItem('void-runner-graphics-v1'))localStorage.setItem('void-runner-graphics-v1',JSON.stringify({quality:t}));}catch(e){}},q);
   let pg=await open();
-  const ready=async()=>{await pg.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:120000});};
+  // Software rendering compiles shaders on the CPU, and this sandbox has no licensed models (every load waits out their 404 retries), so the loader's limits (tuned for real GPUs) are raised here only.
+  const ready=async()=>{await pg.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:120000});await pg.evaluate(()=>{Object.assign(VoidPreparation.limits,{scene:150000,assets:60000,optional:60000,total:600000});});};
   const settle=async(area,ms=5000)=>{await pg.waitForFunction(a=>walkingLocation?.area===a&&mode==='walking'&&walker,area,{timeout:240000});await pg.waitForTimeout(ms);};
   const snap=()=>pg.evaluate(()=>{const S=VoidBabylon.scene||scene,[lx,lz]=VoidNeoChinatown.toWorld(walker.x,walker.z),n=r=>S.meshes.filter(m=>r.test(m.name)).length;
    return {area:walkingLocation.area,local:[lx,lz],meshes:S.meshes.length,lights:S.lights.length,mats:S.materials.length,tex:S.textures.length,nodes:S.transformNodes.length,
