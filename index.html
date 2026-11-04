@@ -368,11 +368,9 @@
   <section class="first-section">
     <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
       <h1 class="cyberpunk-title" data-text="The Darknet District">The Darknet District</h1>
-      <div class="tdd-vr" data-void-backdrop role="group" aria-label="Void Runner: under construction, coming soon">
-        <p class="tdd-vr-kicker">THE DARKNET DISTRICT / FLIGHT SYSTEMS ONLINE</p>
-        <p class="tdd-vr-logo">VOID<span>//</span>RUNNER</p>
-        <p class="tdd-vr-sub">CARGO &amp; CONSEQUENCES</p>
-        <p class="tdd-vr-status"><i aria-hidden="true"></i>Under construction &middot; Coming soon</p>
+      <div class="tdd-enter">
+        <a class="tdd-enter-button" href="void-runner.html"><span>ENTER THE DARKNET DISTRICT</span></a>
+        <p class="tdd-enter-access"><span data-enter-status>No account needed. Guest progress stays in this browser.</span> <a href="void-runner.html" data-enter-login>Log in</a></p>
       </div>
       <a class="tdd-function" href="function/">
         <span class="tdd-function-kicker">Beyond the District</span>
@@ -393,7 +391,6 @@
   <script src="devtoolsDetector.js"></script>
   <script src="hud.js"></script>
   <script src="accents.js"></script>
-  <script src="void-runner-backdrop.js"></script>
   <script type="module" src="iris-account.js"></script>
 
   <!-- Firebase Authentication -->
@@ -514,6 +511,19 @@
       } else {
         console.log('User is signed out');
       }
+      // The entrance states who is walking in. The session is shared with the game.
+      const status = document.querySelector('[data-enter-status]');
+      if (status) status.textContent = user ? 'You are logged in. Your account comes with you.' : 'No account needed. Guest progress stays in this browser.';
+      if (enterLogin) enterLogin.hidden = !!user;
+    });
+
+    // Log in opens the District's own login window. If that is unavailable, the link still reaches the game's sign-in.
+    const enterLogin = document.querySelector('[data-enter-login]');
+    enterLogin?.addEventListener('click', (event) => {
+      const account = document.querySelector('.district-account__button');
+      if (!account) return;
+      event.preventDefault();
+      account.click();
     });
   </script>
 
