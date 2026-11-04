@@ -109,3 +109,8 @@ test('the existing interactions, the taxi, the VR arcade and the doors are all s
  const t=read('void-runner/district-transition.js');assert(t.includes("VoidInteractions.handlers.get('district-scan')")&&t.includes('original?.(...a)'),'the scanner keeps its original behaviour outside the street');
  assert(read('void-runner/neochinatown.js').includes("for(const k of ['city','nightclub','booths'])root.VoidNeoChinatown[k]=undefined"),'stale handles from a released environment are cleared');
 });
+test('continuing a new campaign saved inside the District does not move the player to the street start',()=>{
+ const w=read('void-runner/world-integration.js');const fn=w.slice(w.indexOf('async function districtStart()'),w.indexOf('workshopOpening=async function'));
+ assert(fn.includes("walkingLocation.area==='interior'")&&fn.indexOf("walkingLocation.area==='interior'")<fn.indexOf('N.toWorld(0,17)'),'the street start position is only applied outside');
+ assert(w.includes("if(state.quest==='inheritance'){await workshopOpening();return;}")||w.includes('workshopOpening'),'a new campaign still starts through the same routine');
+});
