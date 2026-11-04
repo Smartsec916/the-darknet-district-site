@@ -74,6 +74,8 @@ Sources consulted (secondary, unofficial; **not** the terms themselves):
 | Ownership versus licence | Sources say licence. A licence to use may be all David holds, which is enough to *play* the songs but not to *sell or sublicense* them. |
 | Is a free site and free game test "commercial"? | Not a legal conclusion we can give. The site also runs shops, so assume the commercial question matters. Not legal advice. |
 
+A general caveat (secondary guidance, not legal advice): several legal guides say fully AI-generated audio may receive **no copyright protection of its own** under current US law, even where a platform lets the user use it commercially. A platform licence lets David *use* the songs; it may not stop others copying them. Songs David wrote, performed or substantially shaped himself (for example his own lyrics, or remixes of his own recordings through the Cover feature) have a stronger position, which is another reason to keep his source recordings and prompts. See [Promise Legal](https://blog.promise.legal/ai-generated-assets-game-ip-disclosure).
+
 ## 5. What to gather (David)
 1. **Producer.ai / Riffusion account history:** every receipt or invoice, with dates, from 2025 to now, and the plan name on each.
 2. **The song library page** for each of the 27 songs, showing its creation date (and, if shown, the plan or model) and, for the "(Cover)" ones, the source recording it was made from.
