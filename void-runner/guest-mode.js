@@ -42,6 +42,8 @@
   // The shared objective is the guide here, not the campaign's tracked mission.
   VoidMissions.untrack(s);
   const sys=VoidUniverse.locations[e.destination.location]?.system;if(sys&&s.universe)s.universe.currentSystem=sys;
+  // Links into the District, and the arcade, open the interior environment directly; the rest open outside (district-area.js).
+  if(VoidDistrictArea.guestArea(e)==='interior')Object.assign(s.story.flags,{area:'district',districtDoor:true,districtBadge:true});
   return s;}
  const wait=ms=>new Promise(r=>setTimeout(r,ms));
  async function until(test,ms,what){const t=performance.now();while(!test()){if(performance.now()-t>ms)throw Object.assign(new Error(what),{kind:'timeout'});await wait(100);}}

@@ -11,8 +11,9 @@ const BASE=process.env.BASE||'http://127.0.0.1:5187/void-runner.html',tiers=proc
   await pg.goto(BASE+'?visit=darknet-district&v=1');
   await pg.waitForFunction(()=>window.VoidGuest&&VoidGuest.phase==='ready'&&mode==='walking',null,{timeout:240000});await pg.waitForTimeout(4000);
   const snap=()=>pg.evaluate(()=>{const S=VoidBabylon.scene||scene;return {meshes:S.meshes.length,lights:S.lights.length,mats:S.materials.length,solids:walkingLocation.solids.length,ints:walkingLocation.interactions.length,area:walkingLocation.area||'all'};});
-  const r={all:await snap()};
-  for(const area of ['street','interior']){
+  // A guest link now opens just the interior, so the combined environment is built explicitly like the other two.
+  const r={};
+  for(const area of ['all','street','interior']){
    await pg.evaluate(async a=>{VoidExplorationData.locations['t-'+a]=VoidNeoChinatown.layout(a);walkingLocation=walker=null;mode='menu';await enterWalking('t-'+a);},area);
    await pg.waitForFunction(()=>mode==='walking'&&walker,null,{timeout:240000});await pg.waitForTimeout(3000);r[area]=await snap();}
   console.log(q,JSON.stringify(r));

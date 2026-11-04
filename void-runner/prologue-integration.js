@@ -137,12 +137,14 @@ canvas.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse'&&e.button===2
 canvas.addEventListener('mouseup',e=>{if(e.button===2)groundState.aim=false;});canvas.addEventListener('contextmenu',e=>{if(mode==='walking')e.preventDefault();});
 
 // NeoChinatown, Tessaly: landing street, alley, vestibule and The Darknet District.
-const city=VoidNeoChinatown.layout();VoidExplorationData.locations.sacramento=city;
+const city=VoidNeoChinatown.layout('street');VoidExplorationData.locations.sacramento=city;VoidExplorationData.locations['darknet-district']=VoidNeoChinatown.layout('interior');
 const districtLine=(who,text,label='CONTINUE')=>talk('',[{who,text}],resumeWalking,label);
 // The door itself slides open (neochinatown.js doors): unlocking sets the story flag and gives it a push; from then on
 // it opens as you approach and closes behind you, and its collision follows it.
 function openDistrictDoor(id,flag){state.story.flags[flag]=true;const doors=VoidBabylon.district?.doors;if(doors)doors.kick(id,4);else{city.solids=city.solids.filter(s=>s.id!==id);if(walkingLocation?.solids)walkingLocation.solids=walkingLocation.solids.filter(s=>s.id!==id);}save();}
-VoidInteractions.register('district-scan',()=>{if(state.story.flags.districtBadge){announce('Inner door already open.');resumeWalking();return;}openDistrictDoor('district-inner-door','districtBadge');if(VoidMissions.closed(state)){resumeWalking();announce('Scan accepted. Visitor badge issued.');return;}talk('',[{who:'Iris',text:'Scan accepted. Rook vouched for you, so you get a visitor badge. Behave, and it stays valid.'}],resumeWalking,'ENTER');});
+// What the player hears or sees when the scanner first issues a badge (also used after the street-to-interior checkpoint, district-transition.js).
+function districtBadgeIssued(){if(VoidMissions.closed(state)){resumeWalking();announce('Scan accepted. Visitor badge issued.');return;}talk('',[{who:'Iris',text:'Scan accepted. Rook vouched for you, so you get a visitor badge. Behave, and it stays valid.'}],resumeWalking,'ENTER');}
+VoidInteractions.register('district-scan',()=>{if(state.story.flags.districtBadge){announce('Inner door already open.');resumeWalking();return;}openDistrictDoor('district-inner-door','districtBadge');districtBadgeIssued();});
 VoidInteractions.register('district-iris',()=>districtLine('Iris',state.story.flags.metIris?'Cameras are clean, the mainframe is happy, and nobody has tried anything stupid today. Yet.':'I run security here. Talk to Admin first; he likes to meet new pilots himself.'));
 VoidInteractions.register('district-shop',()=>{shop();screen.querySelector('.shop-heading,.actions')?.insertAdjacentHTML('beforeend',button('RETURN TO THE DISTRICT','walk-resume',true));});
 VoidInteractions.register('district-bar',()=>districtLine('Bartender','Filtered air is free, the drinks are not. Pilots talk too much in here, so listen.'));

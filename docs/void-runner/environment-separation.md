@@ -1,6 +1,6 @@
 # Separating The Darknet District interior from NeoChinatown
 
-Status: step 1 (split in place) and step 2a (separate builds and layouts, `area` parameter) are implemented. Nothing switches between them yet; the game still loads the combined 'all' environment. The interior layout is unchanged until David supplies the revised map.
+Status: steps 1, 2a and 2b are implemented. The game now loads the street and the District interior as separate environments and switches between them at the security vestibule (step 2b). The combined 'all' environment remains for tests and tools. The interior layout is unchanged until David supplies the revised map.
 Internal ids (`earth`, `sol`, `neochinatown`) are kept for save compatibility; players only ever see NeoChinatown and the Tessaly System.
 
 ## Where things are today
@@ -45,3 +45,15 @@ Add a second location to the existing loader. Do not build a second engine, a se
 - **The entrance** (outer door, front wall, vestibule, inner door, scanner) is built in both, so the player sees no change when one environment replaces the other.
 - **Same random sequence.** The street and the interior used one shared random stream. Each separate build resumes it at the right point (`SEAMS`, one pair per quality tier), so every texture and placement matches the combined build. In the combined build a console warning appears if the street ever changes how many random numbers it uses; update `SEAMS` if so.
 - **Measured** (software-rendered Chromium): high tier combined 693 meshes / 14 lights / 277 materials; street 523 / 4 / 224; interior 240 / 12 / 107. Low tier: combined about 757 meshes, street 451, interior 216.
+
+## Step 2b: the transition (implemented)
+- **Two locations, one loader.** `VoidExplorationData.locations.sacramento` is the street and `.['darknet-district']` the interior (both `id:'neochinatown'`, with `area:'street'|'interior'`, so every consumer keyed on that id keeps working). `enterWalking(key, {silent, spawn, yaw})` loads one; `prepareRoom` releases the previous environment first, so only one is ever loaded.
+- **Rules in `district-area.js`** (pure, tested in Node): which environment a save is in (`areaOf`, `keyFor`), where a player appears (`resume`, `exitSpawn`), and the vestibule trigger zones (`enterTrigger`, `exitTrigger`).
+- **Orchestration in `district-transition.js`**: the checkpoint (in) and airlock (out) sequence. It freezes input, shows the overlay, loads the other environment silently at the player's own position, sets the flags, saves, opens the inner door, and on failure puts the player back and says so. Walking into the vestibule with a badge, or using the scanner, goes in; walking out through the open outer door goes out.
+- **Saves.** `location` stays `earth`. `story.flags.area='district'` marks a player inside, and counts only with `districtBadge` (so a save without one resumes outside, as old saves always did). Resuming inside puts the player just past the inner door. New campaigns still start outside the doors.
+- **Guest links.** Entries that name a spot inside the District, and the VR arcade experiences, open the interior directly (`VoidDistrictArea.guestArea`); the rest open outside.
+- **Left alone:** the District layout, NPC placement, interactions, VR experiences, taxi and music (all keyed on world coordinates, which are unchanged).
+- **Multiplayer later.** The interior is now its own location with its own spawn, solids, interactions and build, so a shared room can host other players and NPC interactions without touching the street. Nothing multiplayer is implemented.
+
+## Platform targets (David, 2026-11-04)
+The 3D game is for desktop and capable devices such as the ROG Ally; high and low graphics settings both matter. Phones keep using the regular website. Do not redirect phones into the game, and do not spend time optimising 3D gameplay on phones. Basic mobile checks cover the regular site only: homepage, navigation, login and the link to the game.

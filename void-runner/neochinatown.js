@@ -121,6 +121,8 @@
   const ads=()=>(root.VoidAds?.brands||[]).map(b=>b.id);
   function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance,area='all'}){
     const B=root.BABYLON,low=quality==='low',owned=[],districtRoot=new root.BABYLON.TransformNode('district-root',scene);let target=parent,disposed=false;districtRoot.parent=parent;districtRoot.position.set(DOOR.x,0,DOOR.z+20);districtRoot.rotation.y=Math.PI;const textures=[],staticMeshes=new Map(),dynamic=[],v=(x,y,z)=>new B.Vector3(x,y,z);
+    // A previous build's handles (club, streaming city, booths) belong to a released environment; clear them so nothing reads them.
+    if(root.VoidNeoChinatown)for(const k of ['city','nightclub','booths'])root.VoidNeoChinatown[k]=undefined;
     let seed=4127;const rand=()=>((seed=seed*16807%2147483647)-1)/2147483646;
     // Night in a megacity (David's references, 2026-10-27): a teal-black sky, blue-green haze that swallows the distant
     // towers, and little ambient light outdoors, so neon, windows and lamps do the lighting. NeoChinatown only: everything
