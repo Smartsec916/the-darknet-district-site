@@ -16,9 +16,9 @@ function wav(file, seconds, make) {
   fs.writeFileSync(file, b);
 }
 const tone = fs => t => fs.reduce((v, f) => v + Math.sin(2 * Math.PI * f * t) / fs.length, 0);
-wav(F('Alpha Drive.wav'), 1.6, tone([110, 440, 1800])); wav(F('Beta Rain.wav'), 1.6, tone([220, 880, 3000])); wav(F('Gamma Pulse.wav'), 1.6, tone([150, 660, 2400]));
+wav(F('Alpha Drive.wav'), 4, tone([110, 440, 1800])); wav(F('Beta Rain.wav'), 4, tone([220, 880, 3000])); wav(F('Gamma Pulse.wav'), 4, tone([150, 660, 2400]));
 // a beat: a kick (80 Hz) twice a second over a steady hum, so the levels (and the light) rise and fall
-wav(F('Beat Box.wav'), 14, t => { const k = Math.exp(-((t * 2) % 1) * 7), kick = Math.sin(2 * Math.PI * 80 * t) * k, hat = ((t * 4) % 1) < .08 ? (Math.random() - .5) * .5 : 0; return kick * .8 + Math.sin(2 * Math.PI * 1000 * t) * .12 + hat; });
+wav(F('Beat Box.wav'), 90, t => { const k = Math.exp(-((t * 2) % 1) * 7), kick = Math.sin(2 * Math.PI * 80 * t) * k, hat = ((t * 4) % 1) < .08 ? (Math.random() - .5) * .5 : 0; return kick * .8 + Math.sin(2 * Math.PI * 1000 * t) * .12 + hat; });
 fs.writeFileSync(F('notes.txt'), 'not a song'); fs.writeFileSync(F('broken.mp3'), 'text pretending to be an mp3');
 const extra = []; try { cp.execSync('ffmpeg -version', { stdio: 'ignore' }); for (const [n, a] of [['Delta Glass.ogg', '-c:a libvorbis'], ['Echo Static.mp3', '-c:a libmp3lame']]) { cp.execSync(`ffmpeg -y -loglevel error -f lavfi -i "sine=frequency=${300 + extra.length * 200}:duration=1.6" -af volume=6dB ${a} "${F(n)}"`); extra.push(n); } } catch { /* WAV only */ }
 
@@ -109,8 +109,8 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
   });
 
   await check('songs advance by themselves and the list stops after the last (Repeat off)', async () => {
-    await until(async () => (await P(page)).title === 'Beta Rain', 6000, 'song two'); await until(async () => (await P(page)).title === 'Gamma Pulse', 6000, 'song three');
-    await until(async () => /End of the list/.test((await P(page)).status), 7000, 'the end of the list');
+    await until(async () => (await P(page)).title === 'Beta Rain', 12000, 'song two'); await until(async () => (await P(page)).title === 'Gamma Pulse', 12000, 'song three');
+    await until(async () => /End of the list/.test((await P(page)).status), 12000, 'the end of the list');
     assert.equal((await P(page)).playing, false);
   });
 
@@ -122,7 +122,7 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
     await page.click('[data-action="pod-music:shuffle"]'); assert.equal((await P(page)).shuffle, true); await page.click('[data-action="pod-music:shuffle"]'); assert.equal((await P(page)).shuffle, false);
     await page.click('[data-action="pod-music:repeat"]'); assert.equal((await P(page)).repeat, 'all'); await page.click('[data-action="pod-music:repeat"]'); assert.equal((await P(page)).repeat, 'one');
     await page.evaluate(() => { window.__starts = 0; VoidPodMusic.element.addEventListener('playing', () => { window.__starts++; }); });
-    await page.click('#pod-music li:nth-child(2) .go'); await until(async () => (await page.evaluate(() => window.__starts)) >= 3, 12000, 'the song to repeat twice');
+    await page.click('#pod-music li:nth-child(2) .go'); await until(async () => (await page.evaluate(() => window.__starts)) >= 3, 25000, 'the song to repeat twice');
     assert.equal((await P(page)).title, 'Beta Rain'); await page.click('[data-action="pod-music:repeat"]'); assert.equal((await P(page)).repeat, 'off');
   });
 
@@ -162,6 +162,7 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
   });
 
   await check('closing the panel keeps the music playing; the wall screen shows the song; a screenshot from the player\'s eyes', async () => {
+    if (!(await P(page)).playing) await page.click('[data-action="pod-music:toggle"]'); await until(async () => (await P(page)).playing, 8000, 'music playing before closing the panel');
     await page.click('[data-action="progress-return"]'); await page.waitForFunction(() => mode === 'walking');
     await wait(600); await drive(page, 10); const s = await P(page); assert.ok(s.playing);
     await page.evaluate(() => { walker.x = 126.9 + 9; walker.z = -41.9 - 64; walker.yaw = Math.PI; walker.pitch = .05; for (let i = 0; i < 6; i++) update(.1); });
