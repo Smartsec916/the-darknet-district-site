@@ -4,8 +4,8 @@ const C = VoidCampaign, $ = id => document.getElementById(id);
 const canvas = $('space'), ctx = canvas.getContext('2d'), screen = $('screen');
 const SAVE_KEY = 'void-runner-campaign-v1';
 let state = C.fresh(), hasSave = false, saveAvailable = true, legacyRetired = false;
-// A campaign from before The Darknet District reset is retired: it is not loaded, a copy is kept under SAVE_KEY + '.retired', and the slot is freed for the new campaign.
-try { const raw = localStorage.getItem(SAVE_KEY), restored = C.restore(raw); if (restored) { state = restored; hasSave = true; } else if (raw && C.isLegacy(raw)) { if (!localStorage.getItem(SAVE_KEY + '.retired')) localStorage.setItem(SAVE_KEY + '.retired', raw); localStorage.removeItem(SAVE_KEY); legacyRetired = true; } } catch { saveAvailable = false; }
+// A campaign from before The Darknet District reset is retired: it is not loaded, a verified copy is kept under SAVE_KEY + '.retired' (or '.retired.2', ... if one is already kept: C.retireLegacy), and only then is the slot freed for the new campaign.
+try { const raw = localStorage.getItem(SAVE_KEY), restored = C.restore(raw); if (restored) { state = restored; hasSave = true; } else if (raw && C.isLegacy(raw)) { C.retireLegacy(localStorage, SAVE_KEY, raw); localStorage.removeItem(SAVE_KEY); legacyRetired = true; } } catch { saveAvailable = false; }
 let mode = 'title', view = 'dock', W, H, D, time = 0;
 let approachTime = 0;
 let current = null, elapsed = 0, spawnClock = 0, spawned = 0, resolved = 0, noticeTime = 0;

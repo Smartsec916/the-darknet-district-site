@@ -10,10 +10,15 @@
  'use strict';
  const PL=root.PodPlaylist;
  const SITE=['Android Love','Cyber Silence (Extended) (2)','CyberLoom (Extended)','Eclipse','Eternal Paradox','Fuck the System  (2.0)','Ghost 1.0','Psychedelic Upgrade','Pulse (Extended)','RetroVibe (Extended)','Upgrades (Extended Mix)','Vaporia','Yearning Pulse 02 (Cover) (1)','Это всё дерьмо 3.0','谢谢你送来的猫咪','Nexus DataCore (Cover)','Meta Mist (2.0)','Sheep','Nights in Chongqing 3.0','MetaMist','SexBot (Cover)','Sanctum of the Circuit','The City (Cover)_1749857657755','The City (Extended)_1749857657712','Synthetic Touch','Synthetic Touch (Her) (02) (Cover)','BlackRock Leash (Cover)_1754669325561'];
+ /* The website playlist is the 27 songs the website's Sleeping Pod page plays. They are David's own Riffusion / Producer.ai songs, and their commercial rights are NOT yet verified (docs/development/MUSIC_LICENSING.md),
+    so the game leaves them OFF until David decides: the player then offers My music only. To turn them on, set WEBSITE_PLAYLIST to true (one line), or, only in your own browser for testing, localStorage 'darknet-pod-music-site' = '1'
+    or add ?sitemusic=1 to the page address. The audio files are the website's own files in attached_assets/ (none are copied); this switch does not change what the website serves. */
+ const WEBSITE_PLAYLIST=false;
+ const siteOn=()=>{try{return WEBSITE_PLAYLIST||root.localStorage.getItem('darknet-pod-music-site')==='1'||/[?&]sitemusic=1(&|$)/.test(root.location.search);}catch(e){return WEBSITE_PLAYLIST;}};
  const DB='darknet-pod-music',STORE='songs',KEEP_FLAG='darknet-pod-music-keep',KEEP_LIMIT=500*1024*1024,BANDS=24,ROWS=12;
  const lists={website:PL.createPlaylist(),mine:PL.createPlaylist()};
  lists.website.add(SITE.map(n=>({name:n.replace(/_\d{10,}$/,'')+'.mp3',size:0,lastModified:0,url:'attached_assets/'+encodeURIComponent(n).replace(/%20/g,' ')+'.mp3'})));
- let source='website',audio=null,link=null,analyser=null,freq=null,volume=.8,objectUrl=null,loadedKey=null,failures=0,status='',keeping=false,keptBytes=0,order=0,restored=false,ticker=0;
+ let source=siteOn()?'website':'mine',audio=null,link=null,analyser=null,freq=null,volume=.8,objectUrl=null,loadedKey=null,failures=0,status='',keeping=false,keptBytes=0,order=0,restored=false,ticker=0;
  const positions={website:0,mine:0},levels=new Float32Array(BANDS),peaks=new Float32Array(BANDS);
  const byId=id=>document.getElementById(id);
  const esc=t=>typeof escapeText==='function'?escapeText(t):String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -153,7 +158,7 @@
   const b=(label,action,on,disabled)=>'<button data-action="pod-music:'+action+'" class="quiet'+(on?' on':'')+'"'+(on===true||on===false?' aria-pressed="'+on+'"':'')+(disabled?' disabled':'')+'>'+label+'</button>';
   const items=tracks.map((x,i)=>'<li class="'+(x.id===l.currentId?'cur ':'')+(x.failed?'bad':'')+'"><button class="go" data-action="pod-music:play:'+x.id+'" aria-label="Play '+esc(x.label)+'"><b>'+String(i+1).padStart(2,'0')+'</b> <span>'+esc(x.label)+'</span></button>'+(mine?'<button data-action="pod-music:remove:'+x.id+'" aria-label="Remove '+esc(x.label)+'">×</button>':'')+'</li>').join('');
   return '<div id="pod-music"><canvas id="pod-music-spectrum" width="480" height="70" aria-label="Audio spectrum"></canvas>'
-   +'<div class="row" role="group" aria-label="Music source">'+b('Website playlist','source:website',!mine)+b('My music','source:mine',mine)+'</div>'
+   +'<div class="row" role="group" aria-label="Music source">'+(siteOn()?b('Website playlist','source:website',!mine)+b('My music','source:mine',mine):'')+'</div>'
    +'<div class="now" id="pod-music-now">'+(t?esc(t.label):mine?'No songs yet':'Choose a song')+'</div>'
    +'<div class="bar" id="pod-music-seek" role="progressbar" aria-label="Playback position"><i id="pod-music-bar"></i></div><div id="pod-music-time">0:00 / 0:00</div>'
    +'<div class="row">'+b('⏮ Previous','prev')+b(isPlaying()?'⏸ Pause':'▶ Play','toggle')+b('Next ⏭','next')+b('Shuffle','shuffle',l.shuffle)+b('Repeat: '+l.repeat,'repeat',l.repeat!=='off')+'</div>'
