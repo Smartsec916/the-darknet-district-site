@@ -73,8 +73,10 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
     const z = await page.evaluate(() => -41.9 - gameScene().getMeshByName('pod-music-screen').getAbsolutePosition().z);
     assert.ok(z < 69.79, 'the screen is in the room, not inside the 0.4 m wall slab (local z ' + z.toFixed(2) + ', wall face 69.8)');
     await wait(2500);
-    const teal = await page.evaluate(async () => { const sc = gameScene(), url = await BABYLON.Tools.CreateScreenshotAsync(sc.getEngine(), sc.activeCamera, { width: 640, height: 360 }), img = new Image(); img.src = url; await img.decode(); const c = document.createElement('canvas'); c.width = 640; c.height = 360; const g = c.getContext('2d'); g.drawImage(img, 0, 0); const d = g.getImageData(120, 40, 400, 280).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 1] > 120 && d[i + 2] > 105 && d[i] < 110) n++; return n; });
-    assert.ok(teal > 150, 'teal pixels from the screen in the rendered view: ' + teal);
+    // read the pixels of a real screenshot (Babylon's own screenshot call does not return under software rendering)
+    const b64 = (await page.screenshot()).toString('base64');
+    const teal = await page.evaluate(async b => { const img = new Image(); img.src = 'data:image/png;base64,' + b; await img.decode(); const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d'); g.drawImage(img, 0, 0); const d = g.getImageData(img.width * .25, img.height * .1, img.width * .5, img.height * .7).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 1] > 120 && d[i + 2] > 105 && d[i] < 110) n++; return n; }, b64);
+    assert.ok(teal > 300, 'teal pixels from the screen in the rendered view: ' + teal);
     return teal + ' teal pixels';
   });
 
