@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "7e4eed92e903bd1c",
+  "revision": "edb8bb0fe1a2a4c1",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11635,13 +11635,13 @@
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 236,
+      "line": 238,
       "text": "speech = null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 278,
+      "line": 280,
       "text": "screen.querySelector('.speech-controls,.cinematic-space')?.insertAdjacentHTML('beforeend', button('RETURN TO EXPLORATION', 'walk-resume', true));",
       "kind": "source-reference"
     },
@@ -13068,7 +13068,7 @@
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/asset-pipeline.js": "5f0d8bbd5d8f36e4f8b80c4e0dbe5f620fcff12b49f20dd21f17a7fff331c808",
-    "void-runner/babylon-integration.js": "5a644d23e7c92d47daf622ba65a6a7a85f7e077197162a7a284f36393260ba2b",
+    "void-runner/babylon-integration.js": "831310183c0405238877142a8169088a761061b151304580cac547168fec3579",
     "void-runner/babylon-renderer.js": "65aef7c4c7f19d4140ae66f9d317d7f0c791770dbaa9141edd307c2a56bd2e61",
     "void-runner/balance-data.js": "ebc76bb374885f015ae60a86864e8701bba194e5d3ce09fb321dd52cedabe16c",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
@@ -13136,7 +13136,7 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-nightclub.js": "b4dbe1c5e0e47b7f18dc94ae4fa7da5c1463be4b1ed01d75f628800cc6661b56",
     "void-runner/ncz-nightlife.js": "4c6e4d7ca34309a6e1a190bfc70d78123ef746ccab8f29c74b7c77041e038fba",
-    "void-runner/neochinatown.js": "333665b8f1106ad2327647c640f94d67da06383a6ea93b0d3917dbf1c4220f50",
+    "void-runner/neochinatown.js": "b69140eaa5e6699c7e321192424fff21af9ff9ec07f1ea3ddfbcd20174dbba69",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "da1674b96960e03052332b46f33745a5db4f738ad2a38d06cef1eaa912b1ecbb",
