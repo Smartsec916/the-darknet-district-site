@@ -19,6 +19,7 @@ test('the District area rules no longer know about guest links',()=>{
 });
 test('the rest is untouched: the new campaign start, the transition and local play still wire up',()=>{
  const html=read('void-runner.html');for(const f of ['district-area.js','district-transition.js','district-transition.css','prologue-integration.js','menu.js','game.js'])assert(html.includes('void-runner/'+f),f);
- assert(read('index.html').includes('No account needed.'),'the homepage still says no account is needed to play');
- assert(read('index.html').includes('href="void-runner.html"'),'the ENTER button is still a plain link');
+  const {execFileSync}=require('node:child_process'),os=require('node:os'),path=require('node:path'),dir=fs.mkdtempSync(path.join(os.tmpdir(),'tdd-home-'));for(const f of['index.html','accents.css'])fs.copyFileSync(f,path.join(dir,f));execFileSync('git',['init','-q','.'],{cwd:dir});execFileSync('git',['apply',path.resolve('docs/development/homepage-entry/activate-homepage-entry.patch')],{cwd:dir});const home=fs.readFileSync(path.join(dir,'index.html'),'utf8');
+ assert(home.includes('No account needed.'),'with the homepage patch the entrance says no account is needed to play');
+ assert(home.includes('href="void-runner.html"'),'the ENTER button is a plain link');
 });
