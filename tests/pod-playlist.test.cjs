@@ -1,7 +1,7 @@
-// The rules of the player's own playlist ("My Music") on the Sleeping Pod page: which song is next, previous or current. The page behaviour is tests/sleeping-pod-music-browser.cjs.
+// The rules of the player's own playlist ("My Music") on the pod wall screen: which song is next, previous or current. The page behaviour is tests/pod-music-browser.cjs.
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const P = require('../sleeping-pod-playlist.js');
+const P = require('../void-runner/pod-playlist.js');
 
 const songs = names => names.map((name, i) => ({ name, size: 1000 + i, lastModified: 1 }));
 const make = (names, random) => { const p = P.createPlaylist({ random }); p.add(songs(names)); return p; };
@@ -134,6 +134,6 @@ test('clear empties the list and everything that depends on it', () => {
 });
 
 test('the model holds no audio and sends nothing: it never touches the network, storage or the DOM', () => {
-  const src = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'sleeping-pod-playlist.js'), 'utf8').replace(/\/\*[^]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+  const src = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'void-runner/pod-playlist.js'), 'utf8').replace(/\/\*[^]*?\*\//g, '').replace(/\/\/.*$/gm, '');
   assert.ok(!/fetch\(|XMLHttpRequest|WebSocket|sendBeacon|localStorage|indexedDB|document\.|new Audio|FormData/.test(src));
 });

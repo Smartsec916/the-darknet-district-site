@@ -1,6 +1,6 @@
 /* Sleeping Pod: the rules of the player's own playlist ("My Music"). Pure logic, no DOM, no audio: it only decides which song is next, previous or
-   current, so it runs in the browser and in Node (tests/sleeping-pod-playlist.test.cjs). The page (sleeping-pod-music.js) plays what it chooses.
-   Nothing here reads, copies or sends audio: a track is a name plus whatever the page attaches to it (a File the player picked). */
+   current, so it runs in the browser and in Node (tests/pod-playlist.test.cjs). The pod music player (pod-music.js) plays what it chooses.
+   Nothing here reads, copies or sends audio: a track is a name plus whatever the player attaches to it (a File the player picked). */
 (function (root) {
   'use strict';
 
@@ -80,7 +80,7 @@
       get tracks() { return tracks.slice(); },
       find: find,
 
-      /** items: [{name, size, lastModified, ...anything the page attaches}]. The same name + size + date is never added twice. */
+      /** items: [{name, size, lastModified, ...anything the player attaches}]. The same name + size + date is never added twice. */
       add: function (items) {
         var added = [], skipped = 0;
         (items || []).forEach(function (item) {
