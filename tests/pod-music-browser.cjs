@@ -115,8 +115,10 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
   });
 
   await check('Previous / Next, picking a song, Shuffle and Repeat (one, all) behave', async () => {
-    await page.click('[data-action="pod-music:next"]'); await until(async () => (await P(page)).title === 'Alpha Drive', 5000, 'Next wraps');
-    await page.click('[data-action="pod-music:next"]'); await until(async () => (await P(page)).title === 'Beta Rain', 5000, 'Next');
+    // The audio is paused after each step so a slow machine cannot run a song past the three seconds after which Previous restarts it (that rule is checked in the unit tests of the player)
+    const hold = () => page.evaluate(() => VoidPodMusic.element.pause());
+    await page.click('[data-action="pod-music:next"]'); await until(async () => (await P(page)).title === 'Alpha Drive', 5000, 'Next wraps'); await hold();
+    await page.click('[data-action="pod-music:next"]'); await until(async () => (await P(page)).title === 'Beta Rain', 5000, 'Next'); await hold();
     await page.click('[data-action="pod-music:prev"]'); await until(async () => (await P(page)).title === 'Alpha Drive', 5000, 'Previous');
     await page.click('#pod-music li:nth-child(3) .go'); await until(async () => (await P(page)).title === 'Gamma Pulse', 5000, 'picked song');
     await page.click('[data-action="pod-music:shuffle"]'); assert.equal((await P(page)).shuffle, true); await page.click('[data-action="pod-music:shuffle"]'); assert.equal((await P(page)).shuffle, false);
