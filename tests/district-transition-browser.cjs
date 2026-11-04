@@ -8,7 +8,7 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
 (async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--no-sandbox']});
  for(const q of tiers){
   const ctx=await b.newContext({viewport:{width:1100,height:640}}),errs=[],warns=[];
-  const open=async()=>{const pg=await ctx.newPage();pg.on('pageerror',e=>errs.push(e.message));pg.on('console',m=>{if(/NeoChinatown\]|District transition/.test(m.text()))warns.push(m.text());});
+  const logs=[];const open=async()=>{const pg=await ctx.newPage();pg.on('console',m=>{if(m.type()==='error'||m.type()==='warning'||/BJS|shader|effect|compile/i.test(m.text()))logs.push(m.type()+': '+m.text().slice(0,220));});pg.on('pageerror',e=>errs.push(e.message));pg.on('console',m=>{if(/NeoChinatown\]|District transition/.test(m.text()))warns.push(m.text());});
    await pg.route('**/api/**',r=>r.fulfill({status:503,body:'{}'}));await pg.route(/firebase|gstatic|googleapis/,r=>r.abort());return pg;};
   await ctx.addInitScript(t=>{try{if(!localStorage.getItem('void-runner-graphics-v1'))localStorage.setItem('void-runner-graphics-v1',JSON.stringify({quality:t}));}catch(e){}},q);
   let pg=await open();
@@ -18,7 +18,7 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
    for(;;){const ok=await pg.evaluate(a=>walkingLocation?.area===a&&mode==='walking'&&!!walker,area).catch(()=>false);if(ok)break;
     if(warns.some(w=>/did not load|did not cycle/.test(w))){why='the transition reported an error';}else if(Date.now()<deadline){await pg.waitForTimeout(2000);continue;}
     const where=await pg.evaluate(()=>({mode,area:walkingLocation&&walkingLocation.area,busy:VoidGraphics.busy,flags:state.story.flags,overlay:!document.getElementById('district-transition').hidden,screen:document.getElementById('screen').textContent.slice(0,160),limits:VoidPreparation.limits,navigations:performance.getEntriesByType('navigation').length,sinceLoadMs:Math.round(performance.now())})).catch(x=>String(x));
-    console.log('STUCK waiting for',area,'('+why+')',JSON.stringify(where),'warnings',JSON.stringify(warns.slice(-6)),'errors',JSON.stringify(errs.slice(-4)));throw new Error('stuck waiting for '+area+': '+why);}
+    console.log('STUCK waiting for',area,'('+why+')',JSON.stringify(where),'warnings',JSON.stringify(warns.slice(-6)),'errors',JSON.stringify(errs.slice(-4)),'console',JSON.stringify(logs.filter(l=>!/404|503|ReadPixels|Failed to load resource/.test(l)).slice(-14)));throw new Error('stuck waiting for '+area+': '+why);}
    await pg.waitForTimeout(ms);};
   const snap=()=>pg.evaluate(()=>{const S=VoidBabylon.scene||scene,[lx,lz]=VoidNeoChinatown.toWorld(walker.x,walker.z),n=r=>S.meshes.filter(m=>r.test(m.name)).length;
    return {area:walkingLocation.area,local:[lx,lz],meshes:S.meshes.length,lights:S.lights.length,mats:S.materials.length,tex:S.textures.length,nodes:S.transformNodes.length,
@@ -75,7 +75,7 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   // 6. A campaign from before the District reset (no campaign epoch) is retired: not loadable, copy kept, slot freed, the main menu says so.
   // The old-format save is planted before a fresh page loads (the open page could write its own campaign back as it unloads).
   const legacy=await pg.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('void-runner-campaign-v1'));delete raw.story.flags.campaignEpoch;return JSON.stringify(raw);});
-  await pg.close();await ctx.addInitScript(text=>{try{localStorage.setItem('void-runner-campaign-v1',text);}catch(e){}},legacy);
+  await pg.close();await ctx.addInitScript(text=>{try{if(!localStorage.getItem('__legacyPlanted')){localStorage.setItem('__legacyPlanted','1');localStorage.setItem('void-runner-campaign-v1',text);}}catch(e){}},legacy);
   pg=await open();await pg.goto(BASE);await ready();
   const retired=await pg.evaluate(()=>({slot:localStorage.getItem('void-runner-campaign-v1'),copy:localStorage.getItem('void-runner-campaign-v1.retired'),cont:document.querySelector('[data-action=menu-continue]')?.disabled,text:document.body.innerText}));
   assert.equal(retired.slot,null,'the slot is freed');assert.equal(retired.copy,legacy,'a copy of the old campaign is kept');assert.equal(retired.cont,true,'Continue is unavailable');assert(/retired in the District reset/.test(retired.text),'the menu says so');
