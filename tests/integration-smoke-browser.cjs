@@ -47,12 +47,12 @@ const OLD_SAVE=JSON.stringify(old);
   const r=await pg.evaluate(()=>({guest:typeof VoidGuest,share:typeof VoidShare,mode,menu:!!document.querySelector('[data-action=menu-campaign]'),chip:!!document.getElementById('guest-chip')}));
   console.log(tier,'old share link',JSON.stringify(r));assert.equal(r.guest,'undefined');assert.equal(r.share,'undefined');assert.equal(r.menu,true,'the normal main menu is shown');assert.equal(r.chip,false);assert.notEqual(r.mode,'walking','no jump into a place');
   assert.deepEqual(errs,[]);await ctx.close();}
- // 3. The regular mobile site: no redirect, no 3D scripts or models fetched, ENTER is a plain link, login and navigation present.
+ // 3. The regular mobile site (the live homepage, unchanged): no redirect, no 3D scripts or models fetched, navigation present, and no entrance button yet.
  {const ctx=await b.newContext({...devices['iPhone 13']}),pg=await ctx.newPage(),reqs=[],errs=[];pg.on('request',r=>reqs.push(r.url()));pg.on('pageerror',e=>errs.push(e.message));
   await ctx.route('**/api/**',r=>r.fulfill({status:503,body:'{}'}));await ctx.route(/firebase|gstatic|googleapis|fonts\./,r=>r.abort());
   await pg.goto(BASE+'/index.html',{waitUntil:'domcontentloaded'});await pg.waitForTimeout(3000);
   const h=await pg.evaluate(()=>({href:document.querySelector('.tdd-enter-button')?.getAttribute('href'),text:document.querySelector('.tdd-enter-button')?.textContent.trim(),login:!!document.querySelector('[data-enter-login]'),nav:[...document.querySelectorAll('nav a')].map(a=>a.textContent.trim()).length,hscroll:document.documentElement.scrollWidth>innerWidth+2}));
-  console.log(tier,'mobile home',JSON.stringify(h));assert(pg.url().endsWith('/index.html'),'no automatic redirect');assert.equal(h.href,'void-runner.html');assert.equal(h.text,'ENTER THE DARKNET DISTRICT');assert(h.login&&h.nav>=5&&!h.hscroll);
+  console.log(tier,'mobile home',JSON.stringify(h));assert(pg.url().endsWith('/index.html'),'no automatic redirect');assert.equal(h.href,undefined,'the ENTER button is not published: the homepage is unchanged (it is an isolated patch)');assert(h.nav>=5&&!h.hscroll,'navigation present, no sideways scrolling');
   assert.deepEqual(reqs.filter(u=>/void-runner\/|babylon|\.glb|\.vrpak/.test(u)),[],'no game scripts, engine or models are fetched by the regular mobile site');
   const g=await pg.evaluate(async()=>(await fetch('games-list.html')).text());assert(!/void.?runner/i.test(g),'the Arcade does not list the 3D game');
   assert.deepEqual(errs,[]);await ctx.close();}
