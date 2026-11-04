@@ -14,8 +14,8 @@ test('area and location key come from the save: outside unless inside with a bad
  assert.equal(A.areaOf(stateWith({districtBadge:true})),'street','a badge alone does not move a player inside');
  assert.equal(A.areaOf(null),'street');assert.equal(A.areaOf({}),'street');
 });
-test('saved locations: old saves, new campaigns and saves made inside all resume in the right environment',()=>{
- const old=C.restore(JSON.stringify(C.fresh()));assert.equal(A.keyFor(old),'sacramento');assert.deepEqual(A.resume(old,N),{});
+test('saved locations: a saved current campaign, a new campaign and a save made inside all resume in the right environment',()=>{
+ const saved=C.restore(JSON.stringify(C.fresh()));assert.equal(A.keyFor(saved),'sacramento');assert.deepEqual(A.resume(saved,N),{});
  const fresh=C.startDistrictCampaign(C.fresh());assert.equal(A.keyFor(fresh),'sacramento','a new campaign starts outside the doors');
  const inside=C.restore(JSON.stringify(Object.assign(C.startDistrictCampaign(C.fresh()),{})));Object.assign(inside.story.flags,{area:'district',districtBadge:true,districtDoor:true});
  const again=C.restore(JSON.stringify(inside));assert.equal(again.location,'earth');assert.equal(again.story.flags.area,'district','the flag survives save and reload');assert.equal(A.keyFor(again),'darknet-district');

@@ -3,8 +3,9 @@
 const C = VoidCampaign, $ = id => document.getElementById(id);
 const canvas = $('space'), ctx = canvas.getContext('2d'), screen = $('screen');
 const SAVE_KEY = 'void-runner-campaign-v1';
-let state = C.fresh(), hasSave = false, saveAvailable = true;
-try { const restored = C.restore(localStorage.getItem(SAVE_KEY)); if (restored) { state = restored; hasSave = true; } } catch { saveAvailable = false; }
+let state = C.fresh(), hasSave = false, saveAvailable = true, legacyRetired = false;
+// A campaign from before The Darknet District reset is retired: it is not loaded, a copy is kept under SAVE_KEY + '.retired', and the slot is freed for the new campaign.
+try { const raw = localStorage.getItem(SAVE_KEY), restored = C.restore(raw); if (restored) { state = restored; hasSave = true; } else if (raw && C.isLegacy(raw)) { if (!localStorage.getItem(SAVE_KEY + '.retired')) localStorage.setItem(SAVE_KEY + '.retired', raw); localStorage.removeItem(SAVE_KEY); legacyRetired = true; } } catch { saveAvailable = false; }
 let mode = 'title', view = 'dock', W, H, D, time = 0;
 let approachTime = 0;
 let current = null, elapsed = 0, spawnClock = 0, spawned = 0, resolved = 0, noticeTime = 0;
@@ -74,7 +75,7 @@ screen.addEventListener('click', event => {
 });
 function newJourney(){
   VoidFlightCraft.resetIdle();
-  state=C.fresh();state.location='vesper';C.startDistrictCampaign(state);current=null;trialGear=null;devMissileTrial=false;clearInput();
+  legacyRetired=false;state=C.fresh();state.location='vesper';C.startDistrictCampaign(state);current=null;trialGear=null;devMissileTrial=false;clearInput();
   elapsed=approachTime=shot=spawnClock=spawned=resolved=damageTime=0;
   enemies=[];bullets=[];hostile=[];sparks=[];missionObjects=[];
   shieldHP=shieldDelay=driveTime=driveCooldown=droneClock=0;

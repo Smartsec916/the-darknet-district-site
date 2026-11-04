@@ -1,9 +1,9 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const C=require('../void-runner/campaign.js'),M=require('../void-runner/mission-log.js');
 function open(){const s=C.fresh();s.quest='open';s.location='meridian';s.progression.completed=true;s.progression.flags.missileFired=true;s.universe=require('../void-runner/universe.js').restore({...s.universe,freeTravel:true},s);s.universe.freeTravel=true;return s;}
-test('older saves that used the undertow id load at Rusthaven',()=>{
+test('saves that still used the old undertow id are retired with the rest; Rusthaven keeps its name',()=>{
   const old={version:1,quest:'open',location:'undertow',credits:10,completed:4,contract:null,upgrades:{guns:1,armor:0,engines:0}};
-  const s=C.restore(JSON.stringify(old));assert.equal(s.location,'rusthaven');assert.equal(C.stations.rusthaven.name,'Rusthaven Port');
+  assert.equal(C.restore(JSON.stringify(old)),null);assert.equal(C.stations.rusthaven.name,'Rusthaven Port');assert.equal(C.stations.undertow,undefined);
 });
 test('Rook keeps offering numbered freight runs and sends the first one into a newly opened system',()=>{
   const s=open();s.story.flags.rookSystems='erebus';
