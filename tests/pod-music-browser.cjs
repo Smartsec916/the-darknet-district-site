@@ -24,7 +24,7 @@ const extra = []; try { cp.execSync('ffmpeg -version', { stdio: 'ignore' }); for
 
 const results = [], requests = [], errors = [];
 const ok = (n, d = '') => { results.push({ name: n, ok: true, detail: d }); console.log('ok  ', n, d); };
-async function check(n, fn) { try { ok(n, (await fn()) || ''); } catch (e) { results.push({ name: n, ok: false, detail: e.message }); console.log('FAIL', n, '-', e.message.split('\n')[0].slice(0, 500)); } }
+async function check(n, fn) { try { ok(n, (await fn()) || ''); } catch (e) { results.push({ name: n, ok: false, detail: e.message }); console.log('FAIL', n, '-', e.message.split('\n').slice(0, 4).join(' | ').slice(0, 700)); } }
 const until = async (fn, ms = 8000, label = 'condition') => { const t0 = Date.now(); for (;;) { const v = await fn(); if (v) return v; if (Date.now() - t0 > ms) throw new Error('timed out waiting for ' + label); await wait(100); } };
 
 async function boot(b, ctx) {
