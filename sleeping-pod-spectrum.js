@@ -144,7 +144,14 @@
     if (root.ResizeObserver) new ResizeObserver(resize).observe(canvas); else root.addEventListener('resize', resize);
     draw();
 
-    return { connect: connect, start: start, stop: stop };
+    // Smoothed bass / mid / high energy, 0 to 1, from the same bands the columns show (for lighting that follows the music). All zero when nothing plays.
+    function getLevels() {
+      var third = Math.floor(BANDS / 3), out = { bass: 0, mid: 0, high: 0 };
+      for (var b = 0; b < BANDS; b++) out[b < third ? 'bass' : b < third * 2 ? 'mid' : 'high'] += levels[b] / third;
+      return out;
+    }
+
+    return { connect: connect, start: start, stop: stop, getLevels: getLevels };
   }
 
   root.createPodSpectrum = createPodSpectrum;

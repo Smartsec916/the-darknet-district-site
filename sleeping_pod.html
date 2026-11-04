@@ -109,6 +109,53 @@
     .pod-player__title { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #e6fff7; }
     .pod-player__row { display: flex; align-items: center; gap: 8px; }
     .audio-player audio { flex: 1 1 auto; min-width: 0; width: 100%; height: 36px; color-scheme: dark; }
+    /* The player can grow with My Music open: it scrolls instead of running off a short screen. */
+    .audio-player.active { max-height: calc(100vh - 150px); overflow-y: auto; }
+
+    /* Source switch (website playlist / My Music) and the My Music panel: small neon-edged controls matching the player. */
+    .pod-chip {
+      flex: 1 1 auto;
+      min-height: 34px;
+      padding: 6px 10px;
+      border: 1px solid rgba(53, 255, 143, 0.55);
+      border-radius: 1px;
+      background: var(--pod-ink);
+      color: #d6ffe8;
+      font: 700 11px/1.2 'Courier New', Courier, monospace;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: color 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+    @media (hover: hover) { .pod-chip:hover:not(:disabled) { color: #fff; border-color: var(--pod-green-soft); box-shadow: 0 0 8px rgba(53, 255, 143, 0.4); } }
+    .pod-chip[aria-pressed="true"] { color: #03130c; background: var(--pod-green); border-color: var(--pod-green-soft); }
+    .pod-chip:disabled { opacity: .4; cursor: default; }
+    .pod-chip:focus-visible, .pod-list button:focus-visible, .pod-keep input:focus-visible { outline: 2px solid #fff0c9; outline-offset: 2px; }
+    .pod-source { display: flex; gap: 6px; }
+    .pod-mine[hidden] { display: none; }
+    .pod-mine { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid rgba(47, 224, 196, 0.25); padding-top: 8px; }
+    .pod-mine__head { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+    .pod-mine__head span:first-child { color: var(--pod-teal); }
+    .pod-mine__row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pod-list { list-style: none; margin: 0; padding: 0; max-height: 150px; overflow-y: auto; border: 1px solid rgba(47, 224, 196, 0.25); background: #03090a; }
+    .pod-list:empty { display: none; }
+    .pod-list__item { display: flex; align-items: stretch; border-bottom: 1px solid rgba(47, 224, 196, 0.12); }
+    .pod-list__item:last-child { border-bottom: 0; }
+    .pod-list__item.is-current { background: rgba(53, 255, 143, 0.14); }
+    .pod-list__item.is-current .pod-list__name { color: #fff; }
+    .pod-list__item.is-failed .pod-list__name { color: #ff8a9a; text-decoration: line-through; }
+    .pod-list button { border: 0; background: none; color: #b9f5e8; font: 12px/1.3 'Courier New', Courier, monospace; cursor: pointer; touch-action: manipulation; }
+    .pod-list__play { flex: 1 1 auto; min-width: 0; display: flex; gap: 8px; align-items: center; padding: 7px 8px; text-align: left; }
+    .pod-list__num { flex: none; color: var(--pod-teal); }
+    .pod-list__name { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .pod-list__remove { flex: none; width: 36px; font-size: 18px; color: #ff8a9a; }
+    @media (hover: hover) { .pod-list__play:hover, .pod-list__remove:hover { background: rgba(53, 255, 143, 0.12); color: #fff; } }
+    .pod-mine__empty { margin: 0; font-size: 12px; line-height: 1.4; color: #8fcfc2; }
+    .pod-mine__note, .pod-keep { margin: 0; font-size: 11px; line-height: 1.4; color: #8fcfc2; }
+    .pod-keep { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+    .pod-keep input { margin-top: 2px; accent-color: var(--pod-green); }
+    .pod-mine__status { min-height: 1.4em; margin: 0; font-size: 11px; line-height: 1.4; color: #e6fff7; }
 
     .top-nav {
       transition: filter 1.5s ease;
@@ -153,12 +200,14 @@
 
     /* Reduced motion: the button transitions stop; the smoke does not move either (sleeping-pod-smoke.js shows one still haze that only fades in and out) */
     @media (prefers-reduced-motion: reduce) {
-      .pod-btn, .pod-btn__frame, .pod-btn__panel { transition: none; }
+      .pod-btn, .pod-btn__frame, .pod-btn__panel, .pod-chip { transition: none; }
     }
 
     /* The Iris chat button (iris-widget.js) lives in the bottom right corner, where the pod's own controls are on a phone: lift it above them instead of covering "Play music" */
     @media (max-width: 720px) {
       body.iris-widget-page .chat-button { bottom: calc(112px + env(safe-area-inset-bottom, 0px)); }
+      /* ...and the player sits above that button too, so My Music never runs under it */
+      body.iris-widget-page .audio-player { bottom: calc(168px + env(safe-area-inset-bottom, 0px)); max-height: calc(100vh - 224px - env(safe-area-inset-bottom, 0px)); }
     }
   </style>
   <link href="./home-navigation.css" rel="stylesheet" type="text/css">
@@ -188,6 +237,11 @@
     <div class="audio-player" id="audioPlayer" role="region" aria-label="Music player">
       <!-- Real-time LED spectrum analyzer (sleeping-pod-spectrum.js) -->
       <canvas class="pod-spectrum" id="podSpectrum" role="img" aria-label="Audio spectrum analyzer"></canvas>
+      <!-- Two music sources share this one player: the website playlist, and songs the player picks from their own computer (sleeping-pod-music.js) -->
+      <div class="pod-source" role="group" aria-label="Music source">
+        <button type="button" class="pod-chip" id="podSourceWebsite" aria-pressed="true">Website playlist</button>
+        <button type="button" class="pod-chip" id="podSourceMine" aria-pressed="false" aria-controls="myMusicPanel">My music</button>
+      </div>
       <div class="pod-player__meta"><span class="pod-player__tag">Now playing</span><span class="pod-player__title" id="trackTitle" aria-live="polite"></span></div>
       <div class="pod-player__row">
         <button type="button" class="pod-btn pod-btn--icon" aria-label="Previous track" onclick="previousTrack()"><svg class="pod-btn__frame" viewBox="0 0 180 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="pod-btn__panel" d="M10 .5H179.5V37.5L169.5 47.5H.5V10Z"/><path class="pod-btn__rail" d="M16 4H47M1 19V33M133 44H161"/><path class="pod-btn__accent" d="M171 5H175V14"/></svg><svg class="pod-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 5h2.5v14H6zM20 5v14L9.5 12z"/></svg></button>
@@ -198,6 +252,22 @@
         </audio>
         <button type="button" class="pod-btn pod-btn--icon" aria-label="Next track" onclick="nextTrack()"><svg class="pod-btn__frame" viewBox="0 0 180 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="pod-btn__panel" d="M10 .5H179.5V37.5L169.5 47.5H.5V10Z"/><path class="pod-btn__rail" d="M16 4H47M1 19V33M133 44H161"/><path class="pod-btn__accent" d="M171 5H175V14"/></svg><svg class="pod-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 5H18v14h-2.5zM4 5l10.5 7L4 19z"/></svg></button>
       </div>
+      <!-- My Music: the player's own songs. They play in this browser only and are never uploaded. -->
+      <div class="pod-mine" id="myMusicPanel" hidden>
+        <div class="pod-mine__head"><span>My music</span><span id="myMusicCount" aria-live="polite">0 songs</span></div>
+        <div class="pod-mine__row">
+          <button type="button" class="pod-chip" id="myMusicAdd">Add songs</button>
+          <button type="button" class="pod-chip" id="myMusicShuffle" aria-pressed="false">Shuffle</button>
+          <button type="button" class="pod-chip" id="myMusicRepeat" aria-pressed="false">Repeat: off</button>
+          <button type="button" class="pod-chip" id="myMusicClear" disabled>Clear playlist</button>
+        </div>
+        <input type="file" id="myMusicInput" accept="audio/*,.mp3,.wav,.ogg,.oga,.m4a,.aac,.flac,.opus" multiple hidden aria-label="Choose songs from your computer">
+        <ol class="pod-list" id="myMusicList" aria-label="My music playlist"></ol>
+        <p class="pod-mine__empty" id="myMusicEmpty">No songs yet. Choose Add songs to pick MP3, WAV, OGG or M4A files from your computer.</p>
+        <p class="pod-mine__status" id="myMusicStatus" role="status" aria-live="polite"></p>
+        <p class="pod-mine__note">Your songs play in this browser only and are never uploaded. When you reload the page the list is empty, because the browser does not let a page reopen files you picked before.</p>
+        <label class="pod-keep" id="myMusicKeepRow"><input type="checkbox" id="myMusicKeep"><span>Keep my songs in this browser. Copies are saved on this device only, never sent anywhere, and removed when you untick this, remove them or clear your site data.</span></label>
+      </div>
     </div>
   </section>
 
@@ -205,6 +275,8 @@
   <canvas class="pod-smoke" id="podSmoke" aria-hidden="true"></canvas>
 
   <script src="sleeping-pod-spectrum.js"></script>
+  <script src="sleeping-pod-playlist.js"></script>
+  <script src="sleeping-pod-music.js"></script>
   <!-- Sleeping pod interactive JavaScript -->
   <script>
     // Environment state variables
@@ -223,6 +295,7 @@
     // Audio settings
     let currentVolume = 1;
     let currentTrackIndex = 0;
+    let podMusic = null; // My Music (set up below, after the website playlist code it shares the player with)
 
     // Shuffled cyberpunk music playlist
     const playlist = [
@@ -257,22 +330,41 @@
     ].sort(() => Math.random() - 0.5);
 
     // Smooth audio volume fade function
+    let fadeInterval = null;
+    let fadeRunning = false;
+    let scriptVolume = null; // the last volume this script set itself (fades): the volumechange it causes is not the player moving the slider
+    function setVolume(v) { scriptVolume = v; audioElement.volume = v; }
+    // Browsers store the volume at limited precision, so "did the player move the control" compares with a small tolerance
+    const volumeMoved = () => scriptVolume === null || Math.abs(audioElement.volume - scriptVolume) > 0.002;
     function fadeAudio(from, to, duration) {
       const steps = 20;
       const stepTime = duration / steps;
       const volumeStep = (to - from) / steps;
       let currentStep = 0;
 
+      // Only one fade runs at a time, so quick track changes cannot fight over the volume
+      clearInterval(fadeInterval);
+      fadeRunning = true;
       // Gradual volume change over time
-      const fadeInterval = setInterval(() => {
+      fadeInterval = setInterval(() => {
+        // The player moved the volume control during the fade: their level wins and the fade ends
+        if (scriptVolume !== null && volumeMoved()) {
+          clearInterval(fadeInterval);
+          fadeRunning = false;
+          currentVolume = scriptVolume = audioElement.volume;
+          return;
+        }
         currentStep++;
-        audioElement.volume = from + (volumeStep * currentStep);
+        setVolume(from + (volumeStep * currentStep));
         if (currentStep >= steps) {
           clearInterval(fadeInterval);
-          audioElement.volume = to;
+          setVolume(to);
+          fadeRunning = false;
         }
       }, stepTime);
     }
+    // The volume the player sets with the audio controls is kept for every track, from either source
+    audioElement.addEventListener('volumechange', () => { if (!fadeRunning && volumeMoved()) currentVolume = scriptVolume = audioElement.volume; });
 
     // Toggle music player visibility and playback
     function playMusic() {
@@ -284,8 +376,9 @@
         button.setAttribute('aria-expanded', 'true');
         // Created inside the click so the browser's autoplay policy lets the AudioContext start.
         spectrum.connect();
-        audioElement.volume = 0;
-        const started = audioElement.play();
+        setVolume(0);
+        // With My Music open and no song chosen yet there is nothing to play (the website song must not start by itself)
+        const started = podMusic.active && !podMusic.hasCurrent ? null : audioElement.play();
         if (started && started.catch) started.catch(e => console.log('Playback failed:', e));
         spectrum.start();
         fadeAudio(0, currentVolume, 1000);
@@ -297,7 +390,7 @@
           musicLabel.textContent = 'Play Music';
           button.setAttribute('aria-expanded', 'false');
           audioElement.pause();
-          audioElement.volume = currentVolume;
+          setVolume(currentVolume);
         }, 1000);
         isPlaying = false;
       }
@@ -305,6 +398,7 @@
 
     // Show the current file name (read from the real source, so it is always accurate)
     function updateTrackTitle() {
+      if (podMusic && podMusic.active) return; // My Music names its own songs (its files play from private blob: addresses)
       const src = audioElement.currentSrc || audioElement.getAttribute('src') || '';
       let name = src.split('/').pop().split('?')[0];
       try { name = decodeURIComponent(name); } catch (e) { /* keep raw name */ }
@@ -313,32 +407,70 @@
     audioElement.addEventListener('loadstart', updateTrackTitle);
     updateTrackTitle();
 
-    // Change to a specific track with fade effects
-    function changeTrack(index) {
+    // Play a source address with fade effects. Both sources use this, on the one audio element the spectrum analyzer listens to.
+    let loadTimer = null;
+    let loadPending = false; // a track change is fading out: the song still sounding must not trigger a second change when it ends
+    function cancelLoad() { clearTimeout(loadTimer); loadPending = false; }
+    function loadTrack(url, resumeAt) {
       fadeAudio(currentVolume, 0, 500);
-      setTimeout(() => {
-        currentTrackIndex = index;
-        audioElement.src = playlist[currentTrackIndex];
+      clearTimeout(loadTimer);
+      loadPending = true;
+      loadTimer = setTimeout(() => {
+        loadPending = false;
+        audioElement.src = url;
         audioElement.load();
+        if (resumeAt > 0) audioElement.addEventListener('loadedmetadata', () => { audioElement.currentTime = resumeAt; }, { once: true });
         audioElement.play().catch(e => console.log('Playback failed:', e));
         spectrum.start();
         fadeAudio(0, currentVolume, 500);
       }, 500);
     }
 
+    // Change to a specific track of the website playlist
+    function changeTrack(index) {
+      currentTrackIndex = index;
+      loadTrack(playlist[currentTrackIndex]);
+    }
+
+    // My Music (sleeping-pod-music.js): the player's own songs, played in this browser only. The website playlist is untouched by it.
+    let websiteTime = 0;
+    podMusic = createPodMusic({
+      audio: audioElement,
+      playUrl: url => loadTrack(url),
+      pause: () => { cancelLoad(); audioElement.pause(); },
+      setTitle: text => { trackTitle.textContent = text; },
+      onSwitch: source => {
+        if (source === 'mine') {
+          // Leave the website song where it is, and come back to it later
+          websiteTime = audioElement.currentTime || 0;
+          cancelLoad();
+          audioElement.pause();
+        } else if (isPlaying) {
+          loadTrack(playlist[currentTrackIndex], websiteTime);
+        } else {
+          audioElement.src = playlist[currentTrackIndex];
+          audioElement.load();
+          updateTrackTitle();
+        }
+      }
+    });
+
     // Auto-advance to next track when current ends
     audioElement.addEventListener('ended', () => {
-      nextTrack();
+      if (loadPending) return; // a change is already on its way
+      if (podMusic.active) podMusic.ended(); else nextTrack();
     });
 
     // Handle audio errors by skipping to next track
     audioElement.addEventListener('error', () => {
       console.log('Audio error, trying next track');
-      nextTrack();
+      if (loadPending) return;
+      if (podMusic.active) podMusic.error(); else nextTrack();
     });
 
     // Navigate to next track in playlist
     function nextTrack() {
+      if (podMusic.active) { podMusic.next(false); return; }
       const nextIndex = (currentTrackIndex + 1) % playlist.length;
       if (nextIndex === 0) {
         // Shuffle playlist when we've gone through all songs
@@ -349,6 +481,7 @@
 
     // Navigate to previous track in playlist
     function previousTrack() {
+      if (podMusic.active) { podMusic.previous(); return; }
       const prevIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
       changeTrack(prevIndex);
     }
