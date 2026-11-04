@@ -50,11 +50,13 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
    await toVestibule();await pg.waitForTimeout(400);await pg.evaluate(()=>VoidInteractions.handlers.get('district-scan')());await settle('interior',6000);insides.push(await snap());
    await walkOut();await settle('street',6000);streets.push(await snap());}
   console.log(q,'streets',JSON.stringify(streets.map(x=>[x.meshes,x.mats,x.tex,x.lights,x.nodes])),'interiors',JSON.stringify(insides.map(x=>[x.meshes,x.mats,x.tex,x.lights,x.nodes])));
-  // The first visit to each environment is lighter (character models still download in the background); from the second trip on the counts must hold steady.
-  // Pedestrian counts in the street vary a little with the crowd, so the node count there gets more room.
+  // The first visit to each environment is lighter (character models still download in the background). The interior has no randomness: from the second trip on its
+  // counts must be identical. The street's pedestrians and nightlife are random, so its mesh, node and texture counts may drift either way, but must never grow.
   assert(TRIPS>=3,'TRIPS must be at least 3: one warm-up trip and two to compare');
   const last=TRIPS-1;
-  for(const [name,list] of [['street',streets],['interior',insides]])for(const k of ['meshes','mats','tex','lights','nodes'])assert(within(list[last-1][k],list[last][k],k==='nodes'&&name==='street'?.2:.08),name+' '+k+' stays level between the last two trips: '+list.map(x=>x[k]));
+  for(const k of ['meshes','mats','tex','lights','nodes'])assert(within(insides[last-1][k],insides[last][k],.03),'interior '+k+' is level between the last two trips: '+insides.map(x=>x[k]));
+  for(const k of ['mats','lights'])assert(within(streets[last-1][k],streets[last][k],.03),'street '+k+' is level: '+streets.map(x=>x[k]));
+  for(const k of ['meshes','tex','nodes'])assert(streets[last][k]<=streets[1][k]*1.1&&streets[last][k]<=streets[0][k]*1.1,'street '+k+' does not grow across trips: '+streets.map(x=>x[k]));
   assert(streets[last].mats<=streets[0].mats*1.05&&insides[last].mats<=insides[0].mats*1.3,'materials do not pile up across trips');
   // 5. Saved locations: inside resumes inside (in the hall, past the inner door); outside resumes outside.
   await toVestibule();await pg.waitForTimeout(400);await pg.evaluate(()=>VoidInteractions.handlers.get('district-scan')());await settle('interior',3000);
