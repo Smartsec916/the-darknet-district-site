@@ -73,8 +73,10 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   await pg.goto(BASE);await ready();await pg.click('[data-action=menu-continue]');await settle('street',3000);s=await snap();console.log(q,'resumed outside',JSON.stringify(s));
   assert.equal(s.area,'street');assert.equal(s.interior,0);
   // 6. A campaign from before the District reset (no campaign epoch) is retired: not loadable, copy kept, slot freed, the main menu says so.
-  const legacy=await pg.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('void-runner-campaign-v1'));delete raw.story.flags.campaignEpoch;const text=JSON.stringify(raw);localStorage.setItem('void-runner-campaign-v1',text);return text;});
-  await pg.goto(BASE);await ready();
+  // The old-format save is planted before a fresh page loads (the open page could write its own campaign back as it unloads).
+  const legacy=await pg.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('void-runner-campaign-v1'));delete raw.story.flags.campaignEpoch;return JSON.stringify(raw);});
+  await pg.close();await ctx.addInitScript(text=>{try{localStorage.setItem('void-runner-campaign-v1',text);}catch(e){}},legacy);
+  pg=await open();await pg.goto(BASE);await ready();
   const retired=await pg.evaluate(()=>({slot:localStorage.getItem('void-runner-campaign-v1'),copy:localStorage.getItem('void-runner-campaign-v1.retired'),cont:document.querySelector('[data-action=menu-continue]')?.disabled,text:document.body.innerText}));
   assert.equal(retired.slot,null,'the slot is freed');assert.equal(retired.copy,legacy,'a copy of the old campaign is kept');assert.equal(retired.cont,true,'Continue is unavailable');assert(/retired in the District reset/.test(retired.text),'the menu says so');
   assert.deepEqual(errs,[],'no page errors');assert.deepEqual(warns.filter(w=>!/did not cycle/.test(w)),[],'no seam or transition warnings');
