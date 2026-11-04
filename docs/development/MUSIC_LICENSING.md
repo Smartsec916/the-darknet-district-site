@@ -1,6 +1,6 @@
 # The 27-song playlist: where the songs came from and what is and is not verified
 
-Written 2026-11-04. **Status: NOT VERIFIED.** The songs are not declared cleared for commercial use. They stay **off by default in the 3D game** until David decides (section 7). The website's own Sleeping Pod page is unchanged.
+Written 2026-11-04. **Status: NOT VERIFIED.** The songs are not declared cleared for commercial use. David's current direction is to keep the existing playlist available in both Sleeping Pod players during the first test; the rights questions below remain open.
 
 ## 1. What David told us
 - All 27 songs on the website's Sleeping Pod playlist were created by David with **Riffusion.org / Producer.ai**.
@@ -89,7 +89,7 @@ Explicit language is **not** a reason to remove a song. It matters for the age p
 
 ## 7. How the game handles them
 - **The audio files are the website's own files** in `attached_assets/`; nothing is copied or renamed, filenames and titles are unchanged, and the website's player keeps playing them exactly as before.
-- **In the 3D game the website playlist is OFF by default** (`WEBSITE_PLAYLIST=false` at the top of `void-runner/pod-music.js`): the pod player then offers **My music** only and works fully without the 27 songs. This keeps the first live test clear of the unresolved rights question, and does not change what the website serves.
+- **In the 3D game the website playlist is available by default** (`WEBSITE_PLAYLIST=true` at the top of `void-runner/pod-music.js`), as David requested. The pod player also offers **My music**. This does not resolve the rights question or change which audio files the website serves.
 - **To enable them once David is satisfied:** change that one line to `true`. For testing in your own browser only, set `localStorage['darknet-pod-music-site']='1'` or open the game with `?sitemusic=1`.
 - The 27 names and paths are listed in `void-runner/pod-music.js` (`SITE`) and in the table above, so they are ready to switch on.
 - Unchanged and out of scope here: the files are **already publicly downloadable** from the live site at `/attached_assets/<name>.mp3` because they are tracked in the public repository. If David decides they must not be public until cleared, that is a separate change to the repository (not made).

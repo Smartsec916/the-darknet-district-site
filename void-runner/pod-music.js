@@ -9,15 +9,13 @@
 (function(root){
  'use strict';
  const PL=root.PodPlaylist;
- const SITE=['Android Love','Cyber Silence (Extended) (2)','CyberLoom (Extended)','Eclipse','Eternal Paradox','Fuck the System  (2.0)','Ghost 1.0','Psychedelic Upgrade','Pulse (Extended)','RetroVibe (Extended)','Upgrades (Extended Mix)','Vaporia','Yearning Pulse 02 (Cover) (1)','Это всё дерьмо 3.0','谢谢你送来的猫咪','Nexus DataCore (Cover)','Meta Mist (2.0)','Sheep','Nights in Chongqing 3.0','MetaMist','SexBot (Cover)','Sanctum of the Circuit','The City (Cover)_1749857657755','The City (Extended)_1749857657712','Synthetic Touch','Synthetic Touch (Her) (02) (Cover)','BlackRock Leash (Cover)_1754669325561'];
- /* The website playlist is the 27 songs the website's Sleeping Pod page plays. They are David's own Riffusion / Producer.ai songs, and their commercial rights are NOT yet verified (docs/development/MUSIC_LICENSING.md),
-    so the game leaves them OFF until David decides: the player then offers My music only. To turn them on, set WEBSITE_PLAYLIST to true (one line), or, only in your own browser for testing, localStorage 'darknet-pod-music-site' = '1'
-    or add ?sitemusic=1 to the page address. The audio files are the website's own files in attached_assets/ (none are copied); this switch does not change what the website serves. */
- const WEBSITE_PLAYLIST=false;
+ /* The website playlist is available here as requested. Licensing questions remain recorded in docs/development/MUSIC_LICENSING.md.
+    The audio files are the website's own files in attached_assets/ (none are copied). */
+ const WEBSITE_PLAYLIST=true;
  const siteOn=()=>{try{return WEBSITE_PLAYLIST||root.localStorage.getItem('darknet-pod-music-site')==='1'||/[?&]sitemusic=1(&|$)/.test(root.location.search);}catch(e){return WEBSITE_PLAYLIST;}};
  const DB='darknet-pod-music',STORE='songs',KEEP_FLAG='darknet-pod-music-keep',KEEP_LIMIT=500*1024*1024,BANDS=24,ROWS=12;
  const lists={website:PL.createPlaylist(),mine:PL.createPlaylist()};
- lists.website.add(SITE.map(n=>({name:n.replace(/_\d{10,}$/,'')+'.mp3',size:0,lastModified:0,url:'attached_assets/'+encodeURIComponent(n).replace(/%20/g,' ')+'.mp3'})));
+ lists.website.add(root.DistrictMusicCatalog.filter(song=>song.published).map(song=>({name:song.title+'.mp3',size:0,lastModified:0,url:song.url})));
  let source=siteOn()?'website':'mine',audio=null,link=null,analyser=null,freq=null,volume=.8,objectUrl=null,loadedKey=null,failures=0,status='',keeping=false,keptBytes=0,order=0,restored=false,ticker=0;
  const positions={website:0,mine:0},levels=new Float32Array(BANDS),peaks=new Float32Array(BANDS);
  const byId=id=>document.getElementById(id);

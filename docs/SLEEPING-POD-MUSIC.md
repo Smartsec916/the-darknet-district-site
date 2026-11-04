@@ -2,7 +2,7 @@
 
 A music player is mounted on the **south wall of the sleeping-pod room** in the 3D Darknet District (the room with the stacked sleep pods, west of the main hall). It plays the **Darknet District website playlist** or **your own songs from your computer**, and the room's lights move with the music.
 
-**The website's Sleeping Pod page (`sleeping_pod.html`) is not touched.** Its player, playlist, appearance and behaviour are exactly as they were, on desktop and on phones. No personal-music feature was added to the website or the mobile pages, and the Iris chatbot is not part of the game.
+**The website's Sleeping Pod player keeps its appearance, controls, and existing 27 songs.** Both players now read `void-runner/music-catalog.js` and stream the existing hosted files. The website Sleeping Pod no longer loads the Iris chatbot. No personal-music feature was added to the website or the mobile pages, and the Iris chatbot is not part of the game.
 
 ## How a player uses it
 1. Walk up to the wall screen in the pod room. It shows the song, the position, and a live LED spectrum. Press **E** at "POD MUSIC SCREEN" to open the player.
@@ -45,7 +45,7 @@ A music player is mounted on the **south wall of the sleeping-pod room** in the 
 - **Shuffle and Repeat** apply to whichever source is open (each source keeps its own list state).
 - There are no saved or named playlists, no drag-to-reorder and no per-pod preferences yet. Per-pod settings and pod audio isolation from hallway sound belong to the pod allocator work in PR #191.
 - Format support belongs to the browser. A file the browser cannot play is refused at the picker, or marked and skipped with a message if it fails later.
-- Desktop Chromium was tested (software rendering). Firefox, Safari, phones and a real GPU were not. The phone site is unchanged and not part of this.
+- Desktop Chromium was tested with software rendering. Firefox, Safari and a real GPU were not. The website Sleeping Pod was also checked in a phone browser profile after Iris removal; that is emulation, not a physical phone test.
 - The wall screen is read, not clicked: the controls are in the panel opened with **E**.
 - Some website song titles contain strong language and "(Cover)" labels. They are the site's existing playlist, unchanged, and are flagged for the unresolved age-policy and music-licensing review (PR #191).
 

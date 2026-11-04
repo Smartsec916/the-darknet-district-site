@@ -41,7 +41,7 @@ class SpectreTests(unittest.TestCase):
         self.assertEqual(vr.fulfill(self.db,self.stripe,'cs_test_example','pilot'),'revoked')
 
     def test_save_cannot_create_spectre_inventory(self):
-        state={'version':2,'quest':'open','location':'meridian','credits':2500,'completed':2,'upgrades':{'guns':0,'armor':0,'engines':0},'contract':None,'cleared':[],'loadout':{'weapon':'pulse3','shield':'shield3'},'ownedShips':['starter','ship3'],'activeShip':'ship3','standardGear':['pulse3','shield3'],'spectrePurchased':True}
+        state={'story':{'flags':{'campaignEpoch':1}},'version':2,'quest':'open','location':'meridian','credits':2500,'completed':2,'upgrades':{'guns':0,'armor':0,'engines':0},'contract':None,'cleared':[],'loadout':{'weapon':'pulse3','shield':'shield3'},'ownedShips':['starter','ship3'],'activeShip':'ship3','standardGear':['pulse3','shield3'],'spectrePurchased':True}
         response=self.client.post('/api/void-runner/save',json={'save':state,'revision':0},headers=self.header)
         self.assertEqual(response.status_code,200)
         data=self.client.get('/api/void-runner/account',headers=self.header).json

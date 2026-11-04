@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "57cdb6601bd3d42d",
+  "revision": "f42fbb593fcedfb5",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12019,103 +12019,103 @@
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 35,
+      "line": 33,
       "text": "if(keptBytes+t.file.size>KEEP_LIMIT){say('Not kept: \"'+t.label+'\" is over the '+Math.round(KEEP_LIMIT/1048576)+' MB limit for saved songs. It still plays this visit.');return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 36,
+      "line": 34,
       "text": "store.put({key:t.key,name:t.name,size:t.size,lastModified:t.lastModified,order:order++,file:t.file}).then(()=>{t.kept=true;keptBytes+=t.file.size;}).catch(()=>say('Could not keep \"'+t.label+'\" in this browser (storage full or blocked). It still plays this visit.'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 40,
+      "line": 38,
       "text": "if(on){root.navigator?.storage?.persist?.().catch(()=>{});lists.mine.tracks.forEach(keepTrack);say('Your songs are kept in this browser on this device. They are never uploaded.');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 41,
+      "line": 39,
       "text": "else{store.clear().catch(()=>{});lists.mine.tracks.forEach(t=>{t.kept=false;});keptBytes=0;say('Saved copies removed from this browser. Your list stays until you leave the game.');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 45,
+      "line": 43,
       "text": "store.all().then(rows=>{const r=lists.mine.add(rows.map(x=>({name:x.name,size:x.size,lastModified:x.lastModified,file:x.file,kept:true})));rows.forEach(x=>{keptBytes+=x.size;order=Math.max(order,x.order+1);});if(r.added.length)say('Restored '+r.added.length+(r.added.length===1?' song':' songs')+' kept in this browser.');render();}).catch(()=>{keeping=false;});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 49,
+      "line": 47,
       "text": "function say(text){status=text||'';const el=byId('pod-music-status');if(el)el.textContent=status;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 59,
+      "line": 57,
       "text": "if(!link)say('Audio is not available (check Settings, Audio).');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 68,
+      "line": 66,
       "text": "audio.play().catch(e=>{if(e&&e.name==='NotAllowedError')say('Press play to start the music.');}); // a file that cannot be decoded is reported by the error handler, not here",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 71,
+      "line": 69,
       "text": "function start(){const l=lists[source];if(!l.size){say(source==='mine'?'Add songs first.':'No songs.');return;}if(l.currentId===null)l.next(false);load(0);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 77,
+      "line": 75,
       "text": "function advance(auto){const l=lists[source],id=l.next(!!auto);if(id===null){if(auto){audio.pause();say('End of the list.');render();}return;}load(0);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 81,
+      "line": 79,
       "text": "if(failures>=l.size){audio.pause();say(source==='mine'?'None of these files could be played in this browser.':'The website songs could not be loaded.');render();return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 82,
+      "line": 80,
       "text": "say('Could not play \"'+t.label+'\". Skipping it.');advance(true);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 99,
+      "line": 97,
       "text": "say(parts.join(' '));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 107,
+      "line": 105,
       "text": "say('Removed \"'+(t?t.label:'song')+'\".');render();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 112,
+      "line": 110,
       "text": "say('Playlist cleared ('+n+(n===1?' song':' songs')+').');render();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 204,
+      "line": 202,
       "text": "else if(cmd==='shuffle'){l.setShuffle(!l.shuffle);say('Shuffle '+(l.shuffle?'on.':'off.'));render();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 205,
+      "line": 203,
       "text": "else if(cmd==='repeat'){const m=l.cycleRepeat();say(m==='off'?'Repeat off: the list stops after the last song.':m==='all'?'Repeat all: the list starts again after the last song.':'Repeat one: the current song plays again when it ends.');render();}",
       "kind": "source-reference"
     },
@@ -13237,6 +13237,7 @@
     "void-runner/mission-log.js": "f9637251347e1250b78d3bef32ef6082e462393a0231b72e4e68970c7650b8c6",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
     "void-runner/mouse-control.js": "e22165f19bef53595dba679424375e039e776e19359e075fbea720cc4d10ca95",
+    "void-runner/music-catalog.js": "efda8b7626faab8bcb22db512e9c58f83c4968745c938eaff20cbc24ce75a4e7",
     "void-runner/music-director.js": "a751c57ffcc8fd9928ecd8baa1f962d21f86ae842b87a3724e31c045887795a8",
     "void-runner/music-engine.js": "5078e1a0fedff9d09a7f23823126d3ef8a834a1806edb7675c54e3b668014a8b",
     "void-runner/music-integration.js": "3842625f4d4bb89425989871a6d08f09790309c12207dfec3b718750a2eb0718",
@@ -13252,7 +13253,7 @@
     "void-runner/personal-hud.js": "871826e5852395b5fc23355c95aa79a0be9d1c9b53811e56b02e85a1e1457f2a",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
-    "void-runner/pod-music.js": "1cfb8f688627601bb1c05eb4dd12dff37644e779a69c1f1268028c455ff2822f",
+    "void-runner/pod-music.js": "7d13de0ed3af83511478501e22b6ab7cd04ca0744379b5d22278f4cd1971db00",
     "void-runner/pod-playlist.js": "5b1c5a1b75a08bb8297dec8baeae184e9abe334d7cda9d1c4b38a636da44ae79",
     "void-runner/police-patrol.js": "97e6f52dfaab4797addd3ed3184ce321b9f314b894d6cf69a8dbf51571b8839b",
     "void-runner/police-patrols.js": "2d9e4804ce9fed613295f24f81571185c83bf22341f5fddd89cc8f72c41077a5",

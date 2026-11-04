@@ -73,11 +73,11 @@ localStorage.setItem('void-runner-campaign-v1', localStorage.getItem('void-runne
 1. [ ] David reads and approves `CODEX_HANDOFF.md` section "Approvals".
 2. [ ] David backs up his local save (section 3).
 3. [ ] David checks the Render dashboard for the game API Auto-Deploy setting and tells Codex (section 1).
-4. [ ] David decides the 27-song playlist: stays **off** in the game (default) or is switched on (`MUSIC_LICENSING.md`).
+4. [ ] Review the 2025 Riffusion rights questions in `MUSIC_LICENSING.md`. The existing 27-song playlist is available in both Sleeping Pod players by default, as requested; this checklist does not establish commercial rights.
 5. [ ] Open one pull request from the branch to `main` (not the stacked PRs). Read the PR build and the three CI checks: all green.
 6. [ ] Run the checks that need David's own PC (section 7) against a local copy (`START-PREVIEW.bat`).
 7. [ ] David merges. Pages publishes.
-8. [ ] Post-deploy smoke, in order: the normal pages (home, about, shop, arcade list) look unchanged and have no console errors; the homepage still shows the Void Runner teaser; `/void-runner.html` loads in Edge/Chrome with no console errors; a **phone** shows the landing page and the back link works; guest **New** campaign starts in the alley; the door and the interior; a pod rests and saves; reload and **Continue**; the music screen plays a song from the PC; the **Back to website** button works; the Iris widget is **absent** on the game page.
+8. [ ] Post-deploy smoke, in order: the normal pages (home, about, shop, arcade list) look unchanged and have no console errors; the homepage still shows the Void Runner teaser; the website Sleeping Pod keeps its music player and has no Iris widget; `/void-runner.html` loads in Edge/Chrome with no console errors; a **phone** shows the landing page and the back link works; guest **New** campaign starts in the alley; the door and the interior; a pod rests and saves; reload and **Continue**; the music screen plays a hosted song and a song from the PC; the **Back to website** button works; the Iris widget is **absent** on the game page.
 9. [ ] If anything is wrong: roll back (section 4.2).
 
 ## 6. Things that will NOT be touched by this build

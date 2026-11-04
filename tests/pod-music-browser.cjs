@@ -200,7 +200,16 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
   await check('Keep my songs in this browser: they survive a reload; unticking removes the saved copies', async () => {
     await page.evaluate(() => VoidInteractions.handlers.get('district-pod-music')()); await tap('[data-action="pod-music:source:mine"]');
     await page.check('[data-pod-keep]'); const [c] = await Promise.all([page.waitForEvent('filechooser'), tap('[data-action="pod-music:add"]')]); await c.setFiles([F('Alpha Drive.wav'), F('Beta Rain.wav')]);
-    await until(async () => (await P(page)).mine.length === 2, 5000, 'two songs'); await wait(800);
+    await until(async () => (await P(page)).mine.length === 2, 5000, 'two songs');
+    await until(() => page.evaluate(() => new Promise(resolve => {
+      const req = indexedDB.open('darknet-pod-music');
+      req.onerror = () => resolve(0);
+      req.onsuccess = () => {
+        const db = req.result, count = db.transaction('songs').objectStore('songs').count();
+        count.onsuccess = () => { db.close(); resolve(count.result); };
+        count.onerror = () => { db.close(); resolve(0); };
+      };
+    })).then(count => count === 2), 6000, 'two songs committed to browser storage');
     await page.evaluate(() => VoidPodMusic.element?.pause());
     await page.close(); const again = await boot(b, ctx);
     await again.evaluate(() => VoidInteractions.handlers.get('district-pod-music')()); await again.click('[data-action="pod-music:source:mine"]');
@@ -212,15 +221,18 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
     assert.equal(left, 0); await again.evaluate(() => VoidPodMusic.clearMine()); await again.close();
   });
 
-  await check('by default the website playlist is off: the player offers My music only and starts there (the player works without the 27 songs)', async () => {
+  await check('by default both the shared website playlist and local My music are available', async () => {
     const plain = await b.newContext({ viewport: { width: 1280, height: 720 } });
     await plain.addInitScript(q => { try { localStorage.setItem('void-runner-graphics-v1', JSON.stringify({ quality: q })); localStorage.removeItem('darknet-pod-music-site'); } catch (e) { /* none */ } }, QUALITY);
     const pg = await boot(b, plain); pg.setDefaultTimeout(30000 * SLOW);
     await pg.evaluate(() => VoidInteractions.handlers.get('district-pod-music')()); await pg.waitForSelector('#pod-music');
-    assert.equal(await pg.locator('[data-action="pod-music:source:website"]').count(), 0, 'no Website playlist button');
-    assert.equal(await pg.locator('[data-action="pod-music:add"]').count(), 1, 'My music controls are there'); assert.equal((await pg.evaluate(() => VoidPodMusic.state())).source, 'mine');
+    assert.equal(await pg.locator('[data-action="pod-music:source:website"]').count(), 1);
+    assert.equal(await pg.locator('#pod-music ol li').count(), 27);
+    assert.equal((await pg.evaluate(() => VoidPodMusic.state())).source, 'website');
+    await pg.click('[data-action="pod-music:source:mine"]');
+    assert.equal(await pg.locator('[data-action="pod-music:add"]').count(), 1, 'My music controls are there');
     const [chooser] = await Promise.all([pg.waitForEvent('filechooser'), pg.click('[data-action="pod-music:add"]')]); await chooser.setFiles([F('Alpha Drive.wav')]);
-    await until(async () => { const x = await pg.evaluate(() => VoidPodMusic.state()); return x.playing && x.position > .2 ? x : null; }, 10000, 'a picked song to play without the website playlist');
+    await until(async () => { const x = await pg.evaluate(() => VoidPodMusic.state()); return x.playing && x.position > .2 ? x : null; }, 10000, 'a picked local song to play');
     await pg.evaluate(() => VoidPodMusic.clearMine()); await plain.close();
   });
 
