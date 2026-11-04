@@ -22,14 +22,14 @@ Add a second location to the existing loader. Do not build a second engine, a se
 1. **Pure refactor (no visible change).** Split `build()` into `buildStreet()` and `buildInterior()` inside `neochinatown.js` along the `district-root` seam, still called together. Split `layout()` into `streetLayout()` and `interiorLayout()` and keep `layout()` returning the union. The seam test must still pass unchanged.
 2. **Second location.** Register `darknet-district` as its own exploration location (`kind:'city'`, `district:true`), with its own bounds, spawn, music and crowd cast. `prepareRoom` builds `buildInterior()` for it and `buildStreet()` for NeoChinatown. Nothing else is loaded.
 3. **The vestibule is the loading boundary.** Entering the outer door while the street is loaded plays a short scan animation, calls `release()`, and prepares the interior. Leaving reverses it. Preloading the other side's textures and models while the player stands in the vestibule is allowed; building its scene is not.
-4. **Saves.** Keep `location: 'earth'`. Add the sub-area as a tolerant story flag (for example `area: 'street' | 'district'`), never a new location id, so the cloud validator and old saves keep working. A save with no flag resumes on the street, as today.
+4. **Saves.** Keep `location: 'earth'`. Add the sub-area as a tolerant story flag (for example `area: 'street' | 'district'`), never a new location id, so the cloud validator keeps working. A save with no flag resumes on the street.
 5. **Fix dependents one at a time**, each with its own test: taxi (street only), crowd casts, music zones, VR arcade (interior only, drop the `neochinatown` id check in favour of an area check), share links (`darknet-district` opens the interior directly), guest mode.
 6. **Only then** replace the interior with David's revised map. Interior, store, sleeping pods, meeting area and the VR play area live in the interior build, which can now be changed without touching the street.
 
 ## Why this is the safest option
 - Reuses the loader that already isolates every other room, so memory is released between environments.
 - Step 1 is verifiable by the existing tests plus the seam test, with no player-visible change.
-- Old saves and the cloud validator are untouched (internal ids unchanged).
+- The cloud validator is untouched (internal ids unchanged).
 - It leaves a clean place to host a shared multiplayer interior later, since the interior is its own room with its own spawn.
 
 ## Risks and open points
@@ -50,7 +50,7 @@ Add a second location to the existing loader. Do not build a second engine, a se
 - **Two locations, one loader.** `VoidExplorationData.locations.sacramento` is the street and `.['darknet-district']` the interior (both `id:'neochinatown'`, with `area:'street'|'interior'`, so every consumer keyed on that id keeps working). `enterWalking(key, {silent, spawn, yaw})` loads one; `prepareRoom` releases the previous environment first, so only one is ever loaded.
 - **Rules in `district-area.js`** (pure, tested in Node): which environment a save is in (`areaOf`, `keyFor`), where a player appears (`resume`, `exitSpawn`), and the vestibule trigger zones (`enterTrigger`, `exitTrigger`).
 - **Orchestration in `district-transition.js`**: the checkpoint (in) and airlock (out) sequence. It freezes input, shows the overlay, loads the other environment silently at the player's own position, sets the flags, saves, opens the inner door, and on failure puts the player back and says so. Walking into the vestibule with a badge, or using the scanner, goes in; walking out through the open outer door goes out.
-- **Saves.** `location` stays `earth`. `story.flags.area='district'` marks a player inside, and counts only with `districtBadge` (so a save without one resumes outside, as old saves always did). Resuming inside puts the player just past the inner door. New campaigns still start outside the doors.
+- **Saves.** `location` stays `earth`. `story.flags.area='district'` marks a player inside, and counts only with `districtBadge` (so a save without one resumes outside). Campaigns from before the 2026-11-04 reset are retired (`docs/void-runner/SAVE-RESET.md`), so there is no old-save path to support. Resuming inside puts the player just past the inner door. New campaigns still start outside the doors.
 - **Guest links.** Entries that name a spot inside the District, and the VR arcade experiences, open the interior directly (`VoidDistrictArea.guestArea`); the rest open outside.
 - **Left alone:** the District layout, NPC placement, interactions, VR experiences, taxi and music (all keyed on world coordinates, which are unchanged).
 - **Multiplayer later.** The interior is now its own location with its own spawn, solids, interactions and build, so a shared room can host other players and NPC interactions without touching the street. Nothing multiplayer is implemented.

@@ -44,9 +44,9 @@ async function refresh(){
   verifiedUntil=Date.now()+300000;clearTimeout(ownershipTimer);ownershipTimer=setTimeout(()=>{setOwnedGear([]);verifiedUntil=0;},300000);
   clearTimeout(refreshTimer);refreshTimer=setTimeout(()=>{if(epoch===generation&&account.user)run(refresh,true);},240000);
   if(data.developer){const identityEpoch=generation;VoidDevTools.identity((path,body)=>{if(identityEpoch!==generation||!account.user)throw new Error('Sign in again.');return api(path,body);});}
-  account.revision=data.revision;account.cloud=data.save;account.savedAt=data.savedAt;saveReady=true;setOwnedGear(data.owned);render();
+  account.revision=data.revision;account.cloud=data.save;account.cloudRetired=data.retired===true;account.savedAt=data.savedAt;saveReady=true;setOwnedGear(data.owned);render();
 }
-function cloudDescription(){return account.cloud?`${account.cloud.completed} deliveries · ${account.cloud.credits.toLocaleString()} CR · ${account.cloud.cleared?.length||0}/12 new missions`:'No cloud save yet.';}
+function cloudDescription(){if(account.cloudRetired&&!account.cloud)return 'Your earlier cloud campaign was retired in the District reset. Save this journey to start a new one.';return account.cloud?`${account.cloud.completed} deliveries · ${account.cloud.credits.toLocaleString()} CR · ${account.cloud.cleared?.length||0}/12 new missions`:'No cloud save yet.';}
 function handleField(id,label,action,cta,value=''){
   return `<div class="account-field"><label for="${id}">${label}</label><div class="field-row"><input id="${id}" maxlength="20" autocomplete="off" spellcheck="false" placeholder="Ghost_01" value="${escapeText(value)}" data-enter="${action}">${button(cta,action,false,account.busy)}</div><small>3–20 letters, numbers or underscores. Shared across District games.</small></div>`;
 }
@@ -158,7 +158,7 @@ function requestAction(action){
   else if(action==='cloud-save-prompt'&&saveReady){view='save-confirm';menuPage('CLOUD SAVE','Save this <em>journey?</em>',`<p>Copy this browser’s ${state.completed} deliveries and ${state.credits} credits to your account. ${account.cloud?'This replaces your current cloud journey.':'This creates your first cloud save.'}</p>${button('SAVE TO CLOUD','cloud-save')}${button('CANCEL','account',true)}`);}
   else if(action==='cloud-load-prompt'&&account.cloud){view='load-confirm';menuPage('RESTORE JOURNEY','Load your <em>cloud save?</em>',`<p>${escapeText(cloudDescription())}. This replaces the campaign in this browser. Your purchased equipment is unaffected.</p>${button('LOAD CLOUD SAVE','cloud-load')}${button('CANCEL','account',true)}`);}
   else if(action==='cloud-save')run(async()=>{const epoch=generation;const snapshot=JSON.parse(JSON.stringify(state));const data=await api('save',{save:snapshot,revision:account.revision});if(epoch!==generation)return;account.revision=data.revision;account.cloud=snapshot;account.savedAt=data.savedAt;accountPage();announce('Journey saved to your account.');});
-  else if(action==='cloud-load'&&account.cloud){const restored=C.restore(JSON.stringify(account.cloud));if(!restored){announce('This cloud save is incompatible. Your local progress is unchanged.');return;}globalThis.VoidFlightSession?.end();state=restored;save();current=null;VoidMenu.returnTo=null;hud();accountPage();announce('Cloud journey restored.');}
+  else if(action==='cloud-load'&&account.cloud){const restored=C.restore(JSON.stringify(account.cloud));if(!restored){announce(C.isLegacy(account.cloud)?'This cloud save is from before the District reset and has been retired. Your local progress is unchanged.':'This cloud save is incompatible. Your local progress is unchanged.');return;}globalThis.VoidFlightSession?.end();state=restored;save();current=null;VoidMenu.returnTo=null;hud();accountPage();announce('Cloud journey restored.');}
 }
 account.request=requestAction;
 screen.addEventListener('click',e=>requestAction(e.target.closest('button')?.dataset.action));
