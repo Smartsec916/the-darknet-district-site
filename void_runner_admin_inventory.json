@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "de1095afb8f915e1",
+  "revision": "5a6c7614db284a27",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11803,7 +11803,7 @@
     },
     {
       "source": "void-runner/game.js",
-      "line": 61,
+      "line": 62,
       "text": "else if (state.quest === 'return') story += ' “Tell Rook you kept your word,” the receiver says. Time to head back to Meridian.';",
       "kind": "source-reference"
     },
@@ -13064,7 +13064,7 @@
   ],
   "warnings": [],
   "sources": {
-    "void-runner/account.js": "76e54cbe81f603e530c41b2e3b97b27e8580bc8483fd80e704620551f0d4de73",
+    "void-runner/account.js": "ec61402f2a4ec61462d60d74440331bdd16fc8874d80ed3ca25b839d2f3ad1e6",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/asset-pipeline.js": "5f0d8bbd5d8f36e4f8b80c4e0dbe5f620fcff12b49f20dd21f17a7fff331c808",
@@ -13074,7 +13074,7 @@
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "a796e718fbe982cbdbec26e66705c8dfce47f9b3882a671244400cd48437bb4e",
-    "void-runner/campaign.js": "1479deb696d4c62756599d2163302e1f8afd83b5e91944ad052a6b8020a34078",
+    "void-runner/campaign.js": "d38f22017a1394e992e82a16d4bcbe8437ef8b4452984b1f694477464b66edec",
     "void-runner/city-taxi.js": "0e5034fa45257dbcc8a26a52ad33b1dc12b52ecd2c95d22a1929ddcd96155eb0",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
     "void-runner/cockpit-math.js": "a63faf598eaf23722d22658ca22b5da5b16f0044437ac5277d34d42d1cbf0461",
@@ -13111,7 +13111,7 @@
     "void-runner/flight-session.js": "1027dd1a11d5c087d2d754f96cfd8ecce8948ace49398ac78aab5efef0e52bfa",
     "void-runner/flight-skirmish.js": "d34dcc71253521e0b64617552cce2db27b7e1e37420611fa7471de848c8a5573",
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
-    "void-runner/game.js": "e4bed770be280a1c6e61d5f75d7f687ae7964178cbc6614e2d6733c790434ae5",
+    "void-runner/game.js": "76ad82399baeea612678e446cf34420092ddd3a66a28f9941fa8afab7f278b5a",
     "void-runner/guest-mode.js": "8c46c239530919d222a541e3c4a4fcfbfd3d5178139ab1c26dc5de845645afc7",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "3f0a281fe47ab2dbf58eb419916d99736a1c576e65e026dbb94eb2bcc5756b20",
@@ -13119,7 +13119,7 @@
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input.js": "ee7b8bba97bf1233e9d6d5e7d115efee2ecb1caddd6b758a144b78f33046924e",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
-    "void-runner/menu.js": "f7772222e62916b854e2eb39e1ffe6d843fad15ece03ee1e2912a168bfc1e892",
+    "void-runner/menu.js": "a1e31ade81c298d91e83c339c3c9b12747b9fae233ad65cf0037d484426d7a65",
     "void-runner/meridian-art.js": "ef57144a85d288a8b5c3ea0a616d36b5fcc78de0f4a5220473486f1f2b9f2a19",
     "void-runner/meridian-interior-kit.js": "2ca741d025cbd6b3e205e823c637fcf46c0488303ecb24cdcf2e678d0e43eeb4",
     "void-runner/meridian-interior.js": "d9f411d4f42b3cf8bacbe377812cda9b3c3563aef0d52127e989898e4b9a2b96",

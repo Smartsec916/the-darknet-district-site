@@ -247,14 +247,18 @@
     return null;
   }
   const allContracts = [...contracts, rookRunBase, ...factionList, ...supplyList, ...homeContracts, sealedCargo, ...content.missions];
-  function fresh() { return { version: 2, progression:P.fresh(), universe:U.fresh(), story:Story.fresh(), warflying:WarFlying.fresh(), relay:Relay.fresh(), savedAt:null, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], ownedShips:['starter'], activeShip:'starter', standardGear:['pulse1','shield1'], shipLoadouts:{}, combatRuns:0, missileOfferSeen:false, missileUnlocked:false, travel:null, destination:null, loadout: {weapon:null,shield:null,utility:null,missile:null} }; }
+  function fresh() { return { version: 2, progression:P.fresh(), universe:U.fresh(), story:currentStory(), warflying:WarFlying.fresh(), relay:Relay.fresh(), savedAt:null, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], ownedShips:['starter'], activeShip:'starter', standardGear:['pulse1','shield1'], shipLoadouts:{}, combatRuns:0, missileOfferSeen:false, missileUnlocked:false, travel:null, destination:null, loadout: {weapon:null,shield:null,utility:null,missile:null} }; }
+  // The Darknet District reset (David, 2026-11-04): every campaign carries story.flags.campaignEpoch. Saves from before the reset have none and are retired: restore() refuses them.
+  const CAMPAIGN_EPOCH = 1;
+  const isCurrent = s => !!s && typeof s === 'object' && Number.isSafeInteger(s.story?.flags?.campaignEpoch) && s.story.flags.campaignEpoch >= CAMPAIGN_EPOCH;
+  // True for a well-formed campaign from before the reset (so the game can say it was retired, and keep a copy), false for anything else.
+  function isLegacy(raw) { try { const s = typeof raw === 'string' ? JSON.parse(raw) : raw; return !!s && typeof s === 'object' && !Array.isArray(s) && s.version !== undefined && !isCurrent(s); } catch { return false; } }
+  function currentStory() { const t = Story.fresh(); t.flags.campaignEpoch = CAMPAIGN_EPOCH; return t; }
   function restore(raw) {
     try {
-      // Rusthaven used the internal id 'undertow' in older saves.
-      const s = JSON.parse(String(raw).replace(/"undertow"/g,'"rusthaven"'));
-      if (!s || ![1,2].includes(s.version) || !quests.includes(s.quest) || !Object.hasOwn(stations, s.location)) return null;
+      const s = JSON.parse(String(raw));if (!isCurrent(s)) return null;
+      if (!s || s.version !== 2 || !quests.includes(s.quest) || !Object.hasOwn(stations, s.location)) return null;
       for (const k of ['credits', 'completed']) if (!Number.isSafeInteger(s[k]) || s[k] < 0 || s[k] > 100000000) return null;
-      if(s.upgrades && s.upgrades.shields===undefined)s.upgrades.shields=0;
       for (const k of Object.keys(upgrades)) if (!Number.isInteger(s.upgrades?.[k]) || s.upgrades[k] < 0 || s.upgrades[k] > 3) return null;
       if (s.contract !== null && !allContracts.some(c => c.id === s.contract)) return null;
       const cleared = Array.isArray(s.cleared) ? [...new Set(s.cleared.filter(id=>content.missions.some(m=>m.id===id)))] : [];
@@ -387,8 +391,7 @@
     const f=flight(out);out.travel=f&&raw.travel?Warp.restore(raw.travel,out.location,f.destination,f.id||out.quest,f.enemies>0||['salvage','hazard','escort'].includes(f.kind)):null;
     out.story=Story.restore(raw.story);out.warflying=WarFlying.restore(raw.warflying);out.relay=Relay.restore(raw.relay);
     // Admin stays in the store except while the first faction payment waits (replaces the old adminAway flag).
-    {const f=out.story.flags,first=factionDeliveries[f.factionFirst];if(f.missionPool==='closed'&&f.shipAccess===undefined)f.shipAccess='none';delete f.adminAway;if(first&&stageOf(out,first)==='delivered')f.adminOccupied=true;else delete f.adminOccupied;}out.savedAt=Number.isSafeInteger(raw.savedAt)&&raw.savedAt>0?raw.savedAt:null;
-    if(!raw.story&&out.quest!=='inheritance'){out.story.flags.metMara=true;out.story.met=['mara','elias'];out.story.events=['mara_workshop_intro'];out.story.chapter=out.quest;if(out.completed>0){out.story.flags.rookIntroduced=true;out.story.met.push('rook');}}
+    {const f=out.story.flags,first=factionDeliveries[f.factionFirst];delete f.adminAway;if(first&&stageOf(out,first)==='delivered')f.adminOccupied=true;else delete f.adminOccupied;}out.savedAt=Number.isSafeInteger(raw.savedAt)&&raw.savedAt>0?raw.savedAt:null;
     if(!Object.hasOwn(stations,out.progression.checkpoint.location))out.progression.checkpoint={location:out.location};
     if(stations[out.progression.checkpoint.location]){out.location=out.progression.checkpoint.location;out.universe.station={location:out.location};}
     out.travel=null;out.destination=null;out.story.cursor=null;out.universe.currentSystem=U.system(out.location);Missions.sync(out,{missionFlight,contracts});return out;
@@ -453,7 +456,7 @@
       }
     };
   }
-  const api = { startDistrictCampaign, grantShip, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
+  const api = { campaignEpoch: CAMPAIGN_EPOCH, isCurrent, isLegacy, startDistrictCampaign, grantShip, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

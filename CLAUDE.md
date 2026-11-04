@@ -66,7 +66,7 @@ This repository is David's website, The Darknet District (https://thedarknetdist
   | ship slot `utility` (`loadout.utility`) | **DRIVE** slot (boosters and drones) |
 
   If an id must change, migrate old saves in **both** `campaign.js restore()` and `void_runner_api.py clean_save()`, as was done for `undertow`→`rusthaven`.
-- Save compatibility matters. Players have local and cloud saves. New state should go in tolerant places (`story.flags` accepts booleans, strings up to 200 characters, and safe integers), or the server validator must be extended.
+- Save compatibility matters from now on. Players have local and cloud saves. New state should go in tolerant places (`story.flags` accepts booleans, strings up to 200 characters, and safe integers), or the server validator must be extended. One deliberate exception: on 2026-11-04 David retired every pre-reset campaign. Campaigns now carry `story.flags.campaignEpoch`, and `restore()` and the cloud API refuse any save without it (`docs/void-runner/SAVE-RESET.md`). Raise `CAMPAIGN_EPOCH` in both `campaign.js` and `void_runner_api.py` only for another deliberate reset.
 
 - **Git on Windows:** set `git config core.autocrlf false` in this repo before editing. Many files are stored with mixed line endings, and automatic conversion rewrites them.
 

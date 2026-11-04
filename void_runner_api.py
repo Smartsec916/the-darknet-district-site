@@ -148,7 +148,9 @@ def catalog():
 @signed_in
 def account(db, uid):
     saved = player_ref(db, uid).get().to_dict() or {}
-    return jsonify(owned=inventory(db, uid), developer=balance_admin(uid), save=saved.get('save'), revision=saved.get('revision', 0), savedAt=saved.get('savedAt'))
+    # A cloud save from before the District reset is retired: it is not returned (and not deleted here; see docs/void-runner/SAVE-RESET.md).
+    retired = saved.get('save') is not None and not is_current_save(saved.get('save'))
+    return jsonify(owned=inventory(db, uid), developer=balance_admin(uid), save=None if retired else saved.get('save'), retired=retired, revision=saved.get('revision', 0), savedAt=None if retired else saved.get('savedAt'))
 
 
 @api.get('/balance')
@@ -204,14 +206,24 @@ def developer_balance(db, uid):
     return jsonify(values=values, preset=preset, revision=revision)
 
 
+CAMPAIGN_EPOCH = 1  # keep in step with campaignEpoch in void-runner/campaign.js
+
+
+def is_current_save(value):
+    """A campaign made since the District reset (it carries story.flags.campaignEpoch)."""
+    epoch = ((value.get('story') or {}).get('flags') or {}).get('campaignEpoch') if isinstance(value, dict) else None
+    return type(epoch) is int and epoch >= CAMPAIGN_EPOCH
+
+
 def clean_save(value):
     """Cloud saves cannot grant ownership, change prices or write another player's record."""
     if not isinstance(value, dict) or value.get('version') != 2:
         raise ApiError('Unsupported save format.')
     from pathlib import Path
     import json
-    # Rusthaven used the internal id 'undertow' in older saves.
-    value=json.loads(json.dumps(value).replace('"undertow"','"rusthaven"'))
+    # The Darknet District reset (David, 2026-11-04): saves from before it carry no campaign epoch and are retired, not converted.
+    if not is_current_save(value):
+        raise ApiError('This save is from before The Darknet District reset and can no longer be stored. Start a new campaign.', 409)
     manifest=json.loads((Path(__file__).parent/'void-runner'/'save-manifest.json').read_text())
     if value.get('quest') not in ['inheritance','arrival','legal-offer','legal-run','return','illegal-offer','illegal-run','open'] or value.get('location') not in manifest['locations']:
         raise ApiError('Invalid campaign state.')
