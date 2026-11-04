@@ -7,6 +7,8 @@
    Needs the local server:  node tests/serve-modern.cjs   then:  node tests/pod-music-browser.cjs [low|high]   -> screenshots in work/pod-music/ */
 const { chromium } = require('playwright'), fs = require('node:fs'), path = require('node:path'), cp = require('node:child_process'), assert = require('node:assert/strict');
 const BASE = process.env.BASE || 'http://127.0.0.1:5187', QUALITY = process.argv[2] || 'low';
+// Software rendering at the high tier draws a frame every few seconds, so every click and wait takes several times longer: scale the waits, and make the test songs longer so they outlast them
+const SLOW = QUALITY === 'high' ? 5 : 1, SONG = QUALITY === 'high' ? 14 : 4;
 const out = path.resolve(__dirname, '..', 'work', 'pod-music'), fx = path.join(out, 'fixtures'); fs.mkdirSync(fx, { recursive: true });
 const F = n => path.join(fx, n), wait = ms => new Promise(r => setTimeout(r, ms));
 function wav(file, seconds, make) {
@@ -16,7 +18,7 @@ function wav(file, seconds, make) {
   fs.writeFileSync(file, b);
 }
 const tone = fs => t => fs.reduce((v, f) => v + Math.sin(2 * Math.PI * f * t) / fs.length, 0);
-wav(F('Alpha Drive.wav'), 4, tone([110, 440, 1800])); wav(F('Beta Rain.wav'), 4, tone([220, 880, 3000])); wav(F('Gamma Pulse.wav'), 4, tone([150, 660, 2400]));
+wav(F('Alpha Drive.wav'), SONG, tone([110, 440, 1800])); wav(F('Beta Rain.wav'), SONG, tone([220, 880, 3000])); wav(F('Gamma Pulse.wav'), SONG, tone([150, 660, 2400]));
 // a beat: a kick (80 Hz) twice a second over a steady hum, so the levels (and the light) rise and fall
 wav(F('Beat Box.wav'), 90, t => { const k = Math.exp(-((t * 2) % 1) * 7), kick = Math.sin(2 * Math.PI * 80 * t) * k, hat = ((t * 4) % 1) < .08 ? (Math.random() - .5) * .5 : 0; return kick * .8 + Math.sin(2 * Math.PI * 1000 * t) * .12 + hat; });
 fs.writeFileSync(F('notes.txt'), 'not a song'); fs.writeFileSync(F('broken.mp3'), 'text pretending to be an mp3');
@@ -25,10 +27,10 @@ const extra = []; try { cp.execSync('ffmpeg -version', { stdio: 'ignore' }); for
 const results = [], requests = [], errors = [];
 const ok = (n, d = '') => { results.push({ name: n, ok: true, detail: d }); console.log('ok  ', n, d); };
 async function check(n, fn) { try { ok(n, (await fn()) || ''); } catch (e) { results.push({ name: n, ok: false, detail: e.message }); console.log('FAIL', n, '-', e.message.split('\n').slice(0, 4).join(' | ').slice(0, 700)); } }
-const until = async (fn, ms = 8000, label = 'condition') => { const t0 = Date.now(); for (;;) { const v = await fn(); if (v) return v; if (Date.now() - t0 > ms) throw new Error('timed out waiting for ' + label); await wait(100); } };
+const until = async (fn, ms = 8000, label = 'condition') => { ms *= SLOW; const t0 = Date.now(); for (;;) { const v = await fn(); if (v) return v; if (Date.now() - t0 > ms) throw new Error('timed out waiting for ' + label); await wait(100); } };
 
 async function boot(b, ctx) {
-  const page = await ctx.newPage();
+  const page = await ctx.newPage(); page.setDefaultTimeout(30000 * SLOW);
   page.on('pageerror', e => errors.push(e.message));
   page.on('request', r => requests.push({ method: r.method(), url: r.url(), body: r.postData() }));
   await page.route(/\/api\/|firebase|googleapis|gstatic|googletagmanager/, r => r.abort());
@@ -52,7 +54,7 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
   const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist', '--no-sandbox', '--autoplay-policy=no-user-gesture-required'] });
   const ctx = await b.newContext({ viewport: { width: 1280, height: 720 } });
   await ctx.addInitScript(q => { try { if (!localStorage.getItem('void-runner-graphics-v1')) localStorage.setItem('void-runner-graphics-v1', JSON.stringify({ quality: q })); } catch (e) { /* none */ } }, QUALITY);
-  const page = await boot(b, ctx);
+  const page = await boot(b, ctx); page.setDefaultTimeout(30000 * SLOW);
   // The game's footer is fixed to the bottom edge of the window, so a control scrolled only just into view can sit under it: scroll to the middle first, as a player would
   const tap = async sel => { await page.evaluate(q => { const e = document.querySelector(q); if (e) e.scrollIntoView({ block: 'center' }); }, sel); await page.click(sel); };
 
