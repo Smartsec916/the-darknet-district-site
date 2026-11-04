@@ -252,6 +252,23 @@
   const CAMPAIGN_EPOCH = 1;
   const isCurrent = s => !!s && typeof s === 'object' && Number.isSafeInteger(s.story?.flags?.campaignEpoch) && s.story.flags.campaignEpoch >= CAMPAIGN_EPOCH;
   // True for a well-formed campaign from before the reset (so the game can say it was retired, and keep a copy), false for anything else.
+  // Keeps a verified copy of a retired campaign before its slot is freed: key + '.retired', then '.retired.2', '.retired.3', ... Nothing already kept is ever overwritten, an identical copy is not stored twice, and the
+  // copy must read back identical. It throws if it cannot (storage full or 20 copies already kept), so the caller must then leave the original untouched. `storage` is localStorage (or a stand-in in tests).
+  function retireLegacy(storage, key, raw) {
+    const base = key + '.retired';
+    for (let i = 1; i <= 20; i++) {
+      const copy = i === 1 ? base : base + '.' + i, have = storage.getItem(copy);
+      if (have === raw) return copy;
+      if (have === null || have === undefined) { storage.setItem(copy, raw); if (storage.getItem(copy) !== raw) throw new Error('the retired copy did not verify'); return copy; }
+    }
+    throw new Error('too many retired copies');
+  }
+  // The keys of every retired campaign copy kept in `storage` (for the menu's backup download).
+  function retiredKeys(storage, key) {
+    const base = key + '.retired', found = [];
+    for (let i = 1; i <= 20; i++) { const copy = i === 1 ? base : base + '.' + i; if (storage.getItem(copy) !== null && storage.getItem(copy) !== undefined) found.push(copy); }
+    return found;
+  }
   function isLegacy(raw) { try { const s = typeof raw === 'string' ? JSON.parse(raw) : raw; return !!s && typeof s === 'object' && !Array.isArray(s) && s.version !== undefined && !isCurrent(s); } catch { return false; } }
   function currentStory() { const t = Story.fresh(); t.flags.campaignEpoch = CAMPAIGN_EPOCH; return t; }
   function restore(raw) {
@@ -456,7 +473,7 @@
       }
     };
   }
-  const api = { campaignEpoch: CAMPAIGN_EPOCH, isCurrent, isLegacy, startDistrictCampaign, grantShip, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
+  const api = { campaignEpoch: CAMPAIGN_EPOCH, isCurrent, isLegacy, retireLegacy, retiredKeys, startDistrictCampaign, grantShip, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

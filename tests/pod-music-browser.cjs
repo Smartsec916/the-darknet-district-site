@@ -55,7 +55,8 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
 (async () => {
   const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist', '--no-sandbox', '--autoplay-policy=no-user-gesture-required'] });
   const ctx = await b.newContext({ viewport: { width: 1280, height: 720 } });
-  await ctx.addInitScript(q => { try { if (!localStorage.getItem('void-runner-graphics-v1')) localStorage.setItem('void-runner-graphics-v1', JSON.stringify({ quality: q })); } catch (e) { /* none */ } }, QUALITY);
+  // the website playlist is OFF by default in the game (its commercial rights are not yet verified): the checks that use it switch it on, as a tester would, in their own browser
+  await ctx.addInitScript(q => { try { if (!localStorage.getItem('void-runner-graphics-v1')) localStorage.setItem('void-runner-graphics-v1', JSON.stringify({ quality: q })); localStorage.setItem('darknet-pod-music-site', '1'); } catch (e) { /* none */ } }, QUALITY);
   const page = await boot(b, ctx); page.setDefaultTimeout(30000 * SLOW);
   // The game's footer is fixed to the bottom edge of the window, so a control scrolled only just into view can sit under it: scroll to the middle first, as a player would
   const tap = async sel => { await page.evaluate(q => { const e = document.querySelector(q); if (e) e.scrollIntoView({ block: 'center' }); }, sel); await page.click(sel); };
@@ -209,6 +210,18 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
     await again.uncheck('[data-pod-keep]'); await wait(500);
     const left = await again.evaluate(() => new Promise(res => { const r = indexedDB.open('darknet-pod-music'); r.onsuccess = () => { const db = r.result; if (!db.objectStoreNames.contains('songs')) return res(0); const q = db.transaction('songs').objectStore('songs').count(); q.onsuccess = () => res(q.result); }; r.onerror = () => res(-1); }));
     assert.equal(left, 0); await again.evaluate(() => VoidPodMusic.clearMine()); await again.close();
+  });
+
+  await check('by default the website playlist is off: the player offers My music only and starts there (the player works without the 27 songs)', async () => {
+    const plain = await b.newContext({ viewport: { width: 1280, height: 720 } });
+    await plain.addInitScript(q => { try { localStorage.setItem('void-runner-graphics-v1', JSON.stringify({ quality: q })); localStorage.removeItem('darknet-pod-music-site'); } catch (e) { /* none */ } }, QUALITY);
+    const pg = await boot(b, plain); pg.setDefaultTimeout(30000 * SLOW);
+    await pg.evaluate(() => VoidInteractions.handlers.get('district-pod-music')()); await pg.waitForSelector('#pod-music');
+    assert.equal(await pg.locator('[data-action="pod-music:source:website"]').count(), 0, 'no Website playlist button');
+    assert.equal(await pg.locator('[data-action="pod-music:add"]').count(), 1, 'My music controls are there'); assert.equal((await pg.evaluate(() => VoidPodMusic.state())).source, 'mine');
+    const [chooser] = await Promise.all([pg.waitForEvent('filechooser'), pg.click('[data-action="pod-music:add"]')]); await chooser.setFiles([F('Alpha Drive.wav')]);
+    await until(async () => { const x = await pg.evaluate(() => VoidPodMusic.state()); return x.playing && x.position > .2 ? x : null; }, 10000, 'a picked song to play without the website playlist');
+    await pg.evaluate(() => VoidPodMusic.clearMine()); await plain.close();
   });
 
   await check('privacy: no request carried a body or a song name; every request went to the local test server', async () => {

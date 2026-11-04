@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "79f247259bdaf8a8",
+  "revision": "57cdb6601bd3d42d",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11646,6 +11646,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/device-gate.js",
+      "line": 20,
+      "text": "const ipadOS=/Macintosh/i.test(e.ua)&&e.maxTouchPoints>1&&/Mac/i.test(e.platform||'MacIntel'); /* iPadOS 13+ says it is a Mac */",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/expansion.js",
       "line": 10,
       "text": "speech=null;scene('');mode='dock';clearInput();flightUI(false);screen.classList.remove('hidden');",
@@ -11905,37 +11911,37 @@
     },
     {
       "source": "void-runner/menu.js",
-      "line": 66,
+      "line": 68,
       "text": "speech,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 77,
+      "line": 79,
       "text": "speech = snapshot.speech;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 82,
+      "line": 84,
       "text": "if (speech) renderLine();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 99,
+      "line": 101,
       "text": "return '<details><summary>Character voices</summary><p class=\"fine\">Automatic selection matches known voices to each character. If this device has no matching voice, dialogue stays subtitled. Choose a voice below to override it. Naturalness depends on voices installed on your device.</p>' + Object.entries(VoidStoryContent.characters).map(([id,c]) => '<label>'+escapeText(c.name)+'<select data-character-voice=\"'+id+'\"><option value=\"\">Automatic matching</option>'+voices.map(v=>'<option value=\"'+escapeText(v.voiceURI)+'\" '+(VoidAudio.voiceChoice(id)===v.voiceURI?'selected':'')+'>'+escapeText(v.name)+'</option>').join('')+'</select></label>').join('')+'</details>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 108,
+      "line": 110,
       "text": "`<section class=\"settings-panel\">${button('BACK','menu-back',true)}<h1 tabindex=\"-1\">Settings</h1>${[['music','Music volume'],['effects','Sound effects volume'],['ambient','Ambient volume'],['voice','Voice volume']].map(([id,label])=>`<label>${label}<input type=\"range\" min=\"0\" max=\"100\" step=\"1\" data-setting=\"${id}\" value=\"${Math.round(s[id]*100)}\"><output>${Math.round(s[id]*100)}</output></label>`).join('')}${button('KEYBINDINGS','menu-bindings')}${button(s.enabled?'MUTE ALL':'UNMUTE ALL','menu-mute',true)}<p class=\"fine\">Audio starts after interaction. Voices use this device’s speech engine. Set a category to zero to mute it.</p>${voiceSettingsHTML()}</section>`",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 129,
+      "line": 131,
       "text": "mode='menu';VoidMenu.returnTo=null;speech=null;VoidAudio.cancel();clearInput();walkingKeys.clear();document.exitPointerLock?.();",
       "kind": "source-reference"
     },
@@ -12013,103 +12019,103 @@
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 30,
+      "line": 35,
       "text": "if(keptBytes+t.file.size>KEEP_LIMIT){say('Not kept: \"'+t.label+'\" is over the '+Math.round(KEEP_LIMIT/1048576)+' MB limit for saved songs. It still plays this visit.');return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 31,
+      "line": 36,
       "text": "store.put({key:t.key,name:t.name,size:t.size,lastModified:t.lastModified,order:order++,file:t.file}).then(()=>{t.kept=true;keptBytes+=t.file.size;}).catch(()=>say('Could not keep \"'+t.label+'\" in this browser (storage full or blocked). It still plays this visit.'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 35,
+      "line": 40,
       "text": "if(on){root.navigator?.storage?.persist?.().catch(()=>{});lists.mine.tracks.forEach(keepTrack);say('Your songs are kept in this browser on this device. They are never uploaded.');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 36,
+      "line": 41,
       "text": "else{store.clear().catch(()=>{});lists.mine.tracks.forEach(t=>{t.kept=false;});keptBytes=0;say('Saved copies removed from this browser. Your list stays until you leave the game.');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 40,
+      "line": 45,
       "text": "store.all().then(rows=>{const r=lists.mine.add(rows.map(x=>({name:x.name,size:x.size,lastModified:x.lastModified,file:x.file,kept:true})));rows.forEach(x=>{keptBytes+=x.size;order=Math.max(order,x.order+1);});if(r.added.length)say('Restored '+r.added.length+(r.added.length===1?' song':' songs')+' kept in this browser.');render();}).catch(()=>{keeping=false;});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 44,
+      "line": 49,
       "text": "function say(text){status=text||'';const el=byId('pod-music-status');if(el)el.textContent=status;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 54,
+      "line": 59,
       "text": "if(!link)say('Audio is not available (check Settings, Audio).');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 63,
+      "line": 68,
       "text": "audio.play().catch(e=>{if(e&&e.name==='NotAllowedError')say('Press play to start the music.');}); // a file that cannot be decoded is reported by the error handler, not here",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 66,
+      "line": 71,
       "text": "function start(){const l=lists[source];if(!l.size){say(source==='mine'?'Add songs first.':'No songs.');return;}if(l.currentId===null)l.next(false);load(0);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 72,
+      "line": 77,
       "text": "function advance(auto){const l=lists[source],id=l.next(!!auto);if(id===null){if(auto){audio.pause();say('End of the list.');render();}return;}load(0);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 76,
+      "line": 81,
       "text": "if(failures>=l.size){audio.pause();say(source==='mine'?'None of these files could be played in this browser.':'The website songs could not be loaded.');render();return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 77,
+      "line": 82,
       "text": "say('Could not play \"'+t.label+'\". Skipping it.');advance(true);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 94,
+      "line": 99,
       "text": "say(parts.join(' '));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 102,
+      "line": 107,
       "text": "say('Removed \"'+(t?t.label:'song')+'\".');render();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 107,
+      "line": 112,
       "text": "say('Playlist cleared ('+n+(n===1?' song':' songs')+').');render();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 199,
+      "line": 204,
       "text": "else if(cmd==='shuffle'){l.setShuffle(!l.shuffle);say('Shuffle '+(l.shuffle?'on.':'off.'));render();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 200,
+      "line": 205,
       "text": "else if(cmd==='repeat'){const m=l.cycleRepeat();say(m==='off'?'Repeat off: the list stops after the last song.':m==='all'?'Repeat all: the list starts again after the last song.':'Repeat one: the current song plays again when it ends.');render();}",
       "kind": "source-reference"
     },
@@ -13176,7 +13182,7 @@
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "a796e718fbe982cbdbec26e66705c8dfce47f9b3882a671244400cd48437bb4e",
-    "void-runner/campaign.js": "d38f22017a1394e992e82a16d4bcbe8437ef8b4452984b1f694477464b66edec",
+    "void-runner/campaign.js": "3485d16e84f6c1e1009eacf313711d61e76dc6b0ca075588d6168bab515f24ac",
     "void-runner/city-taxi.js": "0e5034fa45257dbcc8a26a52ad33b1dc12b52ecd2c95d22a1929ddcd96155eb0",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
     "void-runner/cockpit-math.js": "a63faf598eaf23722d22658ca22b5da5b16f0044437ac5277d34d42d1cbf0461",
@@ -13191,6 +13197,7 @@
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-test.js": "fe2ee383ca0ae2227dc944eea2d1ae1c4d7922e60c8719f1a7fa78fc3ae4ffa7",
     "void-runner/dev-tools.js": "e9fd91853411bbd31b11634a9ca28e70b0cacb6629dbe475c6c7cc5b66f7fc93",
+    "void-runner/device-gate.js": "18ede0f57043b170043090b207fae30ae2a818aeca6d60a4c9f5a904946c91d7",
     "void-runner/district-area.js": "0dbfe913c24c95eed83d160510bf60a0751cb3f4904dac702951a151df7db986",
     "void-runner/district-transition.js": "6f914f0c159a1335bee53e12216aa13fd70d0a5e44a1e1daa317908d28bf74ff",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
@@ -13213,14 +13220,14 @@
     "void-runner/flight-session.js": "1027dd1a11d5c087d2d754f96cfd8ecce8948ace49398ac78aab5efef0e52bfa",
     "void-runner/flight-skirmish.js": "d34dcc71253521e0b64617552cce2db27b7e1e37420611fa7471de848c8a5573",
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
-    "void-runner/game.js": "76ad82399baeea612678e446cf34420092ddd3a66a28f9941fa8afab7f278b5a",
+    "void-runner/game.js": "6f813f2696b32614b2a539e01917f119228bc9715a126ea35ecd3fea69226e2c",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "3f0a281fe47ab2dbf58eb419916d99736a1c576e65e026dbb94eb2bcc5756b20",
     "void-runner/hud-data.js": "ab10b0b6a6a95a50c28751a44eee205e0cc6d6e063bae78d89087f39411bde35",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input.js": "ee7b8bba97bf1233e9d6d5e7d115efee2ecb1caddd6b758a144b78f33046924e",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
-    "void-runner/menu.js": "a1e31ade81c298d91e83c339c3c9b12747b9fae233ad65cf0037d484426d7a65",
+    "void-runner/menu.js": "92e560a503866798245a476bb87025874a5bc630383f0eac0faee76a20296fe1",
     "void-runner/meridian-art.js": "ef57144a85d288a8b5c3ea0a616d36b5fcc78de0f4a5220473486f1f2b9f2a19",
     "void-runner/meridian-interior-kit.js": "2ca741d025cbd6b3e205e823c637fcf46c0488303ecb24cdcf2e678d0e43eeb4",
     "void-runner/meridian-interior.js": "d9f411d4f42b3cf8bacbe377812cda9b3c3563aef0d52127e989898e4b9a2b96",
@@ -13238,14 +13245,14 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-nightclub.js": "b4dbe1c5e0e47b7f18dc94ae4fa7da5c1463be4b1ed01d75f628800cc6661b56",
     "void-runner/ncz-nightlife.js": "4c6e4d7ca34309a6e1a190bfc70d78123ef746ccab8f29c74b7c77041e038fba",
-    "void-runner/neochinatown.js": "e6a9c9d2bf2cf2a7de2f9a3c1fbc9424afd51bfc667879f64a68baaa5462b9c3",
+    "void-runner/neochinatown.js": "d732e1420e487fbf21ee41befa3d35d73961b46345766ca52e754316be459d7e",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "da1674b96960e03052332b46f33745a5db4f738ad2a38d06cef1eaa912b1ecbb",
     "void-runner/personal-hud.js": "871826e5852395b5fc23355c95aa79a0be9d1c9b53811e56b02e85a1e1457f2a",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
-    "void-runner/pod-music.js": "65533e4cf905a98b91d22cfe5a8d2219ba142fc92c7145af683e813d0d7bb6e8",
+    "void-runner/pod-music.js": "1cfb8f688627601bb1c05eb4dd12dff37644e779a69c1f1268028c455ff2822f",
     "void-runner/pod-playlist.js": "5b1c5a1b75a08bb8297dec8baeae184e9abe334d7cda9d1c4b38a636da44ae79",
     "void-runner/police-patrol.js": "97e6f52dfaab4797addd3ed3184ce321b9f314b894d6cf69a8dbf51571b8839b",
     "void-runner/police-patrols.js": "2d9e4804ce9fed613295f24f81571185c83bf22341f5fddd89cc8f72c41077a5",
@@ -13291,7 +13298,7 @@
     "void-runner/warflying.js": "e3a319a7538e4df7e014be7ccb50b32bb2b0cf6cbcfe10ccfca2e46edb013a4f",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
     "void-runner/world-integration.js": "d9bd871321a7f30669575cc1049391497a164f836e9f32327453e4782d63e8e6",
-    "void-runner/world-markers.js": "af9570bfc272ccb17b8a9b0dabd7fc018f2d60d270edf8281066c101f09bfe15",
+    "void-runner/world-markers.js": "c65b04dfb9792d36aa47eb5928bf64311a8be27e92fedc9df22e72bb8fce25bc",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "tools/admin-inventory.cjs": "4b545f1e29bc40745983ecd5a113f20926a6f73b52a1b4ed4c2e8106df0a4ed0",
     "tools/audio/npc-voice-registry.json": "216866bb6a355e0cfa2ac6792cb880ecc98ce4f6c1790ca0437b52bb3866f0c2",

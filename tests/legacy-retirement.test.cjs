@@ -47,3 +47,25 @@ test('retiring changes nothing about the archived missions, NPCs, voices or ship
  for(const who of ['mara','rook','admin','iris','elara','marcus'])assert(Object.keys(voices).join(' ').toLowerCase().includes(who),who);
  const S=require('../void-runner/ships.js');assert(S.ships.starter&&S.ships.ship2&&S.ships.ship3);assert(typeof C.grantShip==='function');
 });
+
+test('retiring a second legacy campaign keeps BOTH copies: an existing backup is never overwritten and the new one is not lost (it was deleted before)',()=>{
+ const store={},st={getItem:k=>k in store?store[k]:null,setItem:(k,v)=>{store[k]=v;},removeItem:k=>{delete store[k];}};
+ assert.equal(C.retireLegacy(st,'k','ONE'),'k.retired');assert.equal(C.retireLegacy(st,'k','TWO'),'k.retired.2');assert.equal(C.retireLegacy(st,'k','THREE'),'k.retired.3');
+ assert.equal(C.retireLegacy(st,'k','TWO'),'k.retired.2','an identical copy is recognised, not stored again');
+ assert.deepEqual(Object.keys(store).sort(),['k.retired','k.retired.2','k.retired.3']);assert.equal(store['k.retired'],'ONE');
+ assert.deepEqual(C.retiredKeys(st,'k'),['k.retired','k.retired.2','k.retired.3']);assert.deepEqual(C.retiredKeys({getItem:()=>null},'k'),[]);
+});
+test('if the copy cannot be made or does not read back, retirement fails loudly so the original is left in place',()=>{
+ const full={getItem:()=>null,setItem:()=>{throw new Error('QuotaExceededError');}};assert.throws(()=>C.retireLegacy(full,'k','X'),/Quota/);
+ const lying={getItem:()=>null,setItem:()=>{}};assert.throws(()=>C.retireLegacy(lying,'k','X'),/did not verify/);
+ const crowded={getItem:k=>'other '+k,setItem:()=>{}};assert.throws(()=>C.retireLegacy(crowded,'k','X'),/too many/);
+});
+test('startup frees the campaign slot only after the retired copy is made; if the copy fails the slot is untouched and saving is switched off',()=>{
+ const src=read('void-runner/game.js'),line=src.split('\n').find(l=>l.startsWith('try { const raw = localStorage.getItem(SAVE_KEY)'));
+ const old=JSON.stringify(legacy()),store={'void-runner-campaign-v1':old},ctx={C,SAVE_KEY:'void-runner-campaign-v1',state:C.fresh(),hasSave:false,saveAvailable:true,legacyRetired:false,
+  localStorage:{getItem:k=>k in store?store[k]:null,setItem:()=>{throw new Error('QuotaExceededError');},removeItem:k=>{delete store[k];}}};
+ vm.runInNewContext(line,ctx);assert.equal(store['void-runner-campaign-v1'],old,'the original is still there');assert.equal(ctx.saveAvailable,false,'nothing may overwrite it');assert.equal(ctx.legacyRetired,false);
+ const store2={'void-runner-campaign-v1':old,'void-runner-campaign-v1.retired':'EARLIER COPY'},ctx2={C,SAVE_KEY:'void-runner-campaign-v1',state:C.fresh(),hasSave:false,saveAvailable:true,legacyRetired:false,
+  localStorage:{getItem:k=>k in store2?store2[k]:null,setItem:(k,v)=>{store2[k]=v;},removeItem:k=>{delete store2[k];}}};
+ vm.runInNewContext(line,ctx2);assert.equal(store2['void-runner-campaign-v1.retired'],'EARLIER COPY');assert.equal(store2['void-runner-campaign-v1.retired.2'],old,'the second campaign is kept too');assert.equal(store2['void-runner-campaign-v1'],undefined);assert.equal(ctx2.legacyRetired,true);
+});
