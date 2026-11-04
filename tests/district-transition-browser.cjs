@@ -13,10 +13,13 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   await ctx.addInitScript(t=>{try{if(!localStorage.getItem('void-runner-graphics-v1'))localStorage.setItem('void-runner-graphics-v1',JSON.stringify({quality:t}));}catch(e){}},q);
   let pg=await open();
   // Software rendering compiles shaders on the CPU, and this sandbox has no licensed models (every load waits out their 404 retries), so the loader's limits (tuned for real GPUs) are raised here only.
-  const ready=async()=>{await pg.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:120000});await pg.evaluate(()=>{Object.assign(VoidPreparation.limits,{scene:150000,assets:60000,optional:60000,total:600000});});};
-  const settle=async(area,ms=5000)=>{try{await pg.waitForFunction(a=>walkingLocation?.area===a&&mode==='walking'&&walker,area,{timeout:+(process.env.SETTLE_MS||900000)});}catch(e){
-   const where=await pg.evaluate(()=>({mode,area:walkingLocation&&walkingLocation.area,busy:VoidGraphics.busy,flags:state.story.flags,overlay:!document.getElementById('district-transition').hidden,screen:document.getElementById('screen').textContent.slice(0,160)})).catch(x=>String(x));
-   console.log('STUCK waiting for',area,JSON.stringify(where),'warnings',JSON.stringify(warns.slice(-6)),'errors',JSON.stringify(errs.slice(-4)));throw e;}await pg.waitForTimeout(ms);};
+  const ready=async()=>{await pg.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:120000});await pg.evaluate(()=>{Object.assign(VoidPreparation.limits,{scene:900000,assets:300000,optional:300000,total:1500000});});};
+  const settle=async(area,ms=5000)=>{const deadline=Date.now()+(+process.env.SETTLE_MS||900000);let why='timed out';
+   for(;;){const ok=await pg.evaluate(a=>walkingLocation?.area===a&&mode==='walking'&&!!walker,area).catch(()=>false);if(ok)break;
+    if(warns.some(w=>/did not load|did not cycle/.test(w))){why='the transition reported an error';}else if(Date.now()<deadline){await pg.waitForTimeout(2000);continue;}
+    const where=await pg.evaluate(()=>({mode,area:walkingLocation&&walkingLocation.area,busy:VoidGraphics.busy,flags:state.story.flags,overlay:!document.getElementById('district-transition').hidden,screen:document.getElementById('screen').textContent.slice(0,160)})).catch(x=>String(x));
+    console.log('STUCK waiting for',area,'('+why+')',JSON.stringify(where),'warnings',JSON.stringify(warns.slice(-6)),'errors',JSON.stringify(errs.slice(-4)));throw new Error('stuck waiting for '+area+': '+why);}
+   await pg.waitForTimeout(ms);};
   const snap=()=>pg.evaluate(()=>{const S=VoidBabylon.scene||scene,[lx,lz]=VoidNeoChinatown.toWorld(walker.x,walker.z),n=r=>S.meshes.filter(m=>r.test(m.name)).length;
    return {area:walkingLocation.area,local:[lx,lz],meshes:S.meshes.length,lights:S.lights.length,mats:S.materials.length,tex:S.textures.length,nodes:S.transformNodes.length,
     street:n(/city-block|ncz-batch|taxi-zone|landing-pad/),interior:n(/district-floor|hall-|vr-booth|pods-|bar-counter/),flags:{area:state.story.flags.area,badge:state.story.flags.districtBadge,door:state.story.flags.districtDoor},location:state.location,overlay:!document.getElementById('district-transition').hidden};});
