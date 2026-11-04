@@ -60,7 +60,7 @@
   if(source==='mine'){if(objectUrl)root.URL.revokeObjectURL(objectUrl);objectUrl=root.URL.createObjectURL(t.file);audio.src=objectUrl;}else audio.src=t.url;
   loadedKey=source+':'+t.id;audio.volume=volume;
   if(seek>0)audio.addEventListener('loadedmetadata',()=>{audio.currentTime=seek;},{once:true});
-  audio.play().catch(e=>{if(e&&e.name!=='AbortError')say('Press play to start the music.');});
+  audio.play().catch(e=>{if(e&&e.name==='NotAllowedError')say('Press play to start the music.');}); // a file that cannot be decoded is reported by the error handler, not here
   render();return true;
  }
  function start(){const l=lists[source];if(!l.size){say(source==='mine'?'Add songs first.':'No songs.');return;}if(l.currentId===null)l.next(false);load(0);}
@@ -164,9 +164,12 @@
    +'</div>';
  }
  const open_=()=>!!document.getElementById('pod-music')&&typeof mode!=='undefined'&&mode==='equipment';
+ let lastHtml=null;
+ // The panel is rebuilt only when what it shows has changed: a rebuild between a button press and its release would lose the click.
  function render(){
-  if(!open_())return;const scroll=byId('pod-music-list')||document.querySelector('#pod-music ol'),top=scroll?scroll.scrollTop:0;
-  panel('SLEEPING POD / MUSIC','Pod <em>music.</em>',body(),button('RETURN TO GAMEPLAY','progress-return',true));
+  if(!open_())return;const html=body();if(html===lastHtml){live();return;}lastHtml=html;
+  const scroll=document.querySelector('#pod-music ol'),top=scroll?scroll.scrollTop:0;
+  panel('SLEEPING POD / MUSIC','Pod <em>music.</em>',html,button('RETURN TO GAMEPLAY','progress-return',true));
   const ol=document.querySelector('#pod-music ol');if(ol)ol.scrollTop=top;live();
  }
  function live(){
@@ -177,7 +180,7 @@
  function open(){
   css();restore();
   hud();clearInput();walkingKeys.clear();document.exitPointerLock?.();mode='equipment';view='equipment';
-  panel('SLEEPING POD / MUSIC','Pod <em>music.</em>',body(),button('RETURN TO GAMEPLAY','progress-return',true));live();
+  lastHtml=body();panel('SLEEPING POD / MUSIC','Pod <em>music.</em>',lastHtml,button('RETURN TO GAMEPLAY','progress-return',true));live();
   clearInterval(ticker);ticker=setInterval(()=>{if(!open_()){clearInterval(ticker);ticker=0;return;}live();},70);
  }
  function fileInput(){
