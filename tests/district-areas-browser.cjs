@@ -8,10 +8,10 @@ const BASE=process.env.BASE||'http://127.0.0.1:5187/void-runner.html',tiers=proc
   pg.on('console',m=>{if(/NeoChinatown\]/.test(m.text()))warns.push(m.text());});pg.on('pageerror',e=>errs.push(e.message));
   await pg.route('**/api/**',r=>r.fulfill({status:503,body:'{}'}));await pg.route(/firebase|gstatic|googleapis/,r=>r.abort());
   await pg.addInitScript(t=>{try{localStorage.setItem('void-runner-graphics-v1',JSON.stringify({quality:t}))}catch(e){}},q);
-  await pg.goto(BASE+'?visit=darknet-district&v=1');
-  await pg.waitForFunction(()=>window.VoidGuest&&VoidGuest.phase==='ready'&&mode==='walking',null,{timeout:240000});await pg.waitForTimeout(4000);
+  await pg.goto(BASE);await pg.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:240000});
+  await pg.evaluate(()=>{Object.assign(VoidPreparation.limits,{scene:900000,assets:300000,optional:300000,total:1500000});leaveMenu();state=C.startDistrictCampaign(C.fresh());walkingLocation=walker=null;mode='menu';});
   const snap=()=>pg.evaluate(()=>{const S=VoidBabylon.scene||scene;return {meshes:S.meshes.length,lights:S.lights.length,mats:S.materials.length,solids:walkingLocation.solids.length,ints:walkingLocation.interactions.length,area:walkingLocation.area||'all'};});
-  // A guest link now opens just the interior, so the combined environment is built explicitly like the other two.
+  // The combined environment is built explicitly, like the other two.
   const r={};
   for(const area of ['all','street','interior']){
    await pg.evaluate(async a=>{VoidExplorationData.locations['t-'+a]=VoidNeoChinatown.layout(a);walkingLocation=walker=null;mode='menu';await enterWalking('t-'+a);},area);
