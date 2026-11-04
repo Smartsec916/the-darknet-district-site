@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "6249cc042ec25b50",
+  "revision": "e8971eb025da4978",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13298,7 +13298,7 @@
     "void-runner/warflying.js": "e3a319a7538e4df7e014be7ccb50b32bb2b0cf6cbcfe10ccfca2e46edb013a4f",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
     "void-runner/world-integration.js": "d9bd871321a7f30669575cc1049391497a164f836e9f32327453e4782d63e8e6",
-    "void-runner/world-markers.js": "af9570bfc272ccb17b8a9b0dabd7fc018f2d60d270edf8281066c101f09bfe15",
+    "void-runner/world-markers.js": "c65b04dfb9792d36aa47eb5928bf64311a8be27e92fedc9df22e72bb8fce25bc",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "tools/admin-inventory.cjs": "4b545f1e29bc40745983ecd5a113f20926a6f73b52a1b4ed4c2e8106df0a4ed0",
     "tools/audio/npc-voice-registry.json": "216866bb6a355e0cfa2ac6792cb880ecc98ce4f6c1790ca0437b52bb3866f0c2",
