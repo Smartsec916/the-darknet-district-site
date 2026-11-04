@@ -522,9 +522,9 @@
      return {tick(dt){clock+=dt;redraw-=dt;if(redraw<=0){redraw=.2;draw();}},screen};})();
     // The pod music screen: a wall-mounted player on the south wall of the sleeping-pod room (pod-music.js owns the player and what the screen shows). Its music also
     // moves the room's own light: the pink lamp over the pods, the ceiling panels, the pods' inner glow and a strip along the ceiling. No light is added.
-    const podScreen=(()=>{const X=-9,Y=2.15,Z=69.88,W=512,H=288,t=texture('pod-music',W,H,(g)=>{g.fillStyle='#04070a';g.fillRect(0,0,W,H);g.fillStyle='#2fe0c4';g.font='bold 20px monospace';g.fillText('POD MUSIC',20,36);}),
+    const podScreen=(()=>{const X=-9,Y=2.45,Z=69.68,W=512,H=288,t=texture('pod-music',W,H,(g)=>{g.fillStyle='#04070a';g.fillRect(0,0,W,H);g.fillStyle='#2fe0c4';g.font='bold 20px monospace';g.fillText('POD MUSIC',20,36);}),
       frame=mat('kiosk-shell','#121419',{rough:.32,metal:.85});
-     box('pod-screen-frame',[2.86,1.7,.1],[X,Y,Z+.07],frame,false);plane('pod-music-screen',2.6,1.46,[X,Y,Z],texMat('pod-music-screen',t,{glow:true}),0);
+     box('pod-screen-frame',[3.72,2.18,.1],[X,Y,Z+.07],frame,false);plane('pod-music-screen',3.4,1.91,[X,Y,Z],texMat('pod-music-screen',t,{glow:true}),0);
      const strip=glowMat('pod-music-strip','#ff3fb4',.25);for(const x of[-3.3,-16.7])box('pod-music-strip',[.06,.06,13.6],[x,3.92,62.5],strip,false);
      let lamp=null,lampBase=0,lampFound=false; // the pink lamp over the pods: found on the first frame, when the whole District has been built
      const pink=B.Color3.FromHexString('#ff3fb4'),cyan=B.Color3.FromHexString('#38e8ff'),panelBase=B.Color3.FromHexString('#7fe6ff').scale(.9),innerBase=B.Color3.FromHexString('#ffc98a').scale(.45);

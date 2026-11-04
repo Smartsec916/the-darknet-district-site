@@ -69,6 +69,15 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
     assert.ok(px > 400, 'text and frame pixels: ' + px); await shot(page, '1-wall-screen-idle.png');
   });
 
+  await check('the screen is really visible from where the player stands: it is in front of the wall and its teal frame and text are in the rendered picture', async () => {
+    const z = await page.evaluate(() => -41.9 - gameScene().getMeshByName('pod-music-screen').getAbsolutePosition().z);
+    assert.ok(z < 69.79, 'the screen is in the room, not inside the 0.4 m wall slab (local z ' + z.toFixed(2) + ', wall face 69.8)');
+    await wait(2500);
+    const teal = await page.evaluate(async () => { const sc = gameScene(), url = await BABYLON.Tools.CreateScreenshotAsync(sc.getEngine(), sc.activeCamera, { width: 640, height: 360 }), img = new Image(); img.src = url; await img.decode(); const c = document.createElement('canvas'); c.width = 640; c.height = 360; const g = c.getContext('2d'); g.drawImage(img, 0, 0); const d = g.getImageData(120, 40, 400, 280).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 1] > 120 && d[i + 2] > 105 && d[i] < 110) n++; return n; });
+    assert.ok(teal > 150, 'teal pixels from the screen in the rendered view: ' + teal);
+    return teal + ' teal pixels';
+  });
+
   await check('E at the screen opens the player; the website playlist is the first source and is listed', async () => {
     await page.evaluate(() => VoidInteractions.handlers.get('district-pod-music')());
     await page.waitForSelector('#pod-music'); assert.equal(await page.evaluate(() => mode), 'equipment');

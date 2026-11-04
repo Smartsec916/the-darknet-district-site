@@ -130,15 +130,15 @@
  /* The wall screen (neochinatown.js owns the mesh and calls this a few times a second while the player is near). */
  function drawScreen(g,W,H,t){
   g.fillStyle='#04070a';g.fillRect(0,0,W,H);g.strokeStyle='rgba(47,224,196,.6)';g.lineWidth=3;g.strokeRect(5,5,W-10,H-10);
-  g.fillStyle='#2fe0c4';g.font='bold 20px monospace';g.fillText('POD MUSIC',20,36);g.fillStyle='#ff3fb4';g.fillRect(20,44,70,3);
-  g.textAlign='right';g.fillStyle='#8fcfc2';g.font='14px monospace';g.fillText(source==='mine'?'MY MUSIC':'WEBSITE PLAYLIST',W-20,34);g.textAlign='left';
+  g.fillStyle='#2fe0c4';g.font='bold 26px monospace';g.fillText('POD MUSIC',20,38);g.fillStyle='#ff3fb4';g.fillRect(20,44,70,3);
+  g.textAlign='right';g.fillStyle='#8fcfc2';g.font='17px monospace';g.fillText(source==='mine'?'MY MUSIC':'WEBSITE PLAYLIST',W-20,34);g.textAlign='left';
   const tr=current(),shown=tr?tr.label:(source==='mine'?'NO SONGS YET':'PRESS E TO CHOOSE');
   g.fillStyle='#e6fff7';g.font='bold 22px monospace';let name=shown.toUpperCase();while(name.length>3&&g.measureText(name).width>W-40)name=name.slice(0,-2);if(name.length<shown.length)name=name.trimEnd()+'…';g.fillText(name,20,84);
   const dur=audio&&isFinite(audio.duration)?audio.duration:0,pos=audio&&loadedKey?audio.currentTime||0:0;
   g.fillStyle='rgba(47,224,196,.2)';g.fillRect(20,100,W-40,6);g.fillStyle='#35ff8f';g.fillRect(20,100,dur?(W-40)*Math.min(1,pos/dur):0,6);
-  g.fillStyle='#8fcfc2';g.font='14px monospace';g.fillText(clock(pos)+' / '+clock(dur),20,128);g.textAlign='right';g.fillText((isPlaying()?'PLAYING':audio&&loadedKey?'PAUSED':'STOPPED')+(lists[source].shuffle?'  SHUFFLE':'')+(lists[source].repeat!=='off'?'  REPEAT '+lists[source].repeat.toUpperCase():''),W-20,128);g.textAlign='left';
+  g.fillStyle='#8fcfc2';g.font='17px monospace';g.fillText(clock(pos)+' / '+clock(dur),20,128);g.textAlign='right';g.fillText((isPlaying()?'PLAYING':audio&&loadedKey?'PAUSED':'STOPPED')+(lists[source].shuffle?'  SHUFFLE':'')+(lists[source].repeat!=='off'?'  REPEAT '+lists[source].repeat.toUpperCase():''),W-20,128);g.textAlign='left';
   g.fillStyle='#03090a';g.fillRect(20,140,W-40,90);led(g,24,144,W-48,82);
-  const pulse=.55+.45*Math.sin(t*4);g.fillStyle='rgba(232,251,255,'+pulse.toFixed(2)+')';g.font='bold 16px monospace';g.fillText('[E] OPEN THE PLAYER',20,H-24);
+  const pulse=.55+.45*Math.sin(t*4);g.fillStyle='rgba(232,251,255,'+pulse.toFixed(2)+')';g.font='bold 20px monospace';g.fillText('[E] OPEN THE PLAYER',20,H-24);
  }
 
  // ── The panel (opened with E at the wall screen) ──

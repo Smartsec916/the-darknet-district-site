@@ -1,55 +1,58 @@
-# Sleeping Pod: your own music ("My Music")
+# Pod music: the wall player in the District's sleeping-pod room
 
-On `sleeping_pod.html`, the music player now has two sources on the **one** player: the **Website playlist** (the existing 27 songs, unchanged) and **My music**, songs you pick from your own computer.
+A music player is mounted on the **south wall of the sleeping-pod room** in the 3D Darknet District (the room with the stacked sleep pods, west of the main hall). It plays the **Darknet District website playlist** or **your own songs from your computer**, and the room's lights move with the music.
+
+**The website's Sleeping Pod page (`sleeping_pod.html`) is not touched.** Its player, playlist, appearance and behaviour are exactly as they were, on desktop and on phones. No personal-music feature was added to the website or the mobile pages, and the Iris chatbot is not part of the game.
 
 ## How a player uses it
-1. Press **Play Music** to open the player.
-2. Press **My music**. The website song pauses where it is.
-3. Press **Add songs** and choose one or many files (MP3, WAV, OGG, M4A and a few others; which ones play depends on the browser). The first song starts if nothing was playing. You can add more at any time during the same visit.
-4. In the list: click a song to play it, **×** removes it. **Shuffle**, **Repeat** (off, all, one) and **Clear playlist** are above the list. **Previous / Next** are the player's existing buttons; the player's own control shows the track time, progress bar and volume. The song's name is under "Now playing".
-5. Press **Website playlist** to go back. The website song resumes where it stopped. Your list stays as it was.
+1. Walk up to the wall screen in the pod room. It shows the song, the position, and a live LED spectrum. Press **E** at "POD MUSIC SCREEN" to open the player.
+2. Choose **Website playlist** (the 27 songs of the website's Sleeping Pod page, streamed from the site) or **My music**.
+3. In **My music**: **Add songs** opens the browser's file picker (several files at once; MP3, WAV, OGG, M4A and a few others, depending on the browser). The first song starts if nothing was playing. Add more at any time.
+4. **Play/Pause, Previous, Next, Shuffle, Repeat** (off, all, one), a **volume** slider, a clickable **progress bar** with the time, and the song's name. In the list, click a song to play it; **×** removes it; **Clear playlist** empties the list.
+5. **Return to gameplay** closes the panel. The music keeps playing and the wall screen keeps showing it.
+6. The music belongs to the District: it pauses when you leave it (it is not saved, and it does not restart by itself).
 
-## Privacy: what happens to your files
-- **They never leave your browser.** The page reads no audio data, makes no request, and uploads nothing (not to Render, Neon, Firebase, Tesana or anywhere else). A song is a file handle that the browser plays through a private address (`blob:`) that exists only in your tab. `tests/sleeping-pod-music.test.cjs` fails if the music code ever contains a network call, and the browser test checks that every request in a whole session was a plain GET with no body.
-- **Nothing is copied into the game repository.** Test songs are generated on the spot by the test and written to `work/` (not committed).
-- **Multiplayer:** this is entirely local. It adds no network traffic and sends nothing to other players, so other players can never hear or receive your music. When the pod becomes a multiplayer space (PR #191), the pod's private-audio rule is already met by this design: audio is played only by your own browser, and nothing about it needs to be synchronised.
+## Privacy and multiplayer
+- **Your files never leave your browser.** Songs are played through private `blob:` addresses that exist only in your tab. The player makes no request with your files, uploads nothing (not to Render, Neon, Firebase, Tesana or anywhere), and copies nothing into the repository. `tests/pod-music-browser.cjs` checks that every request in a whole session was a plain GET with no body and no song name.
+- **Nobody else can hear it.** The sound is played by your own browser through the game's music channel. It is not part of the campaign save, the cloud save, or any multiplayer state, and it adds no network traffic. When pods become shared multiplayer rooms (PR #191), pod audio isolation is already satisfied for this feature: there is nothing to synchronise and nothing to leak.
+- The website playlist is the site's own songs, streamed from the site (the same files the website's pod page already serves).
 
-## After you reload the page
-**The browser will not let a page reopen files you chose earlier** (that would let any website read your disk). So by default your list is **empty after a reload** and you add the songs again. The page says this under the list.
+## After you reload the game
+**A browser will not let a page reopen files you chose earlier.** (That would let any website read your disk.) So by default your **list is empty after a reload** and you add the songs again. The panel says so.
 
-**Optional: "Keep my songs in this browser"** (a tick box, off by default). When ticked, a copy of each song you add is saved in this browser's own storage (IndexedDB) on this device, so the list comes back after a reload and you can press play right away. Things to know:
-- It is still **local only**; nothing is sent anywhere.
-- It uses disk space (a limit of 500 MB of songs applies; a song over the limit still plays that visit but is not kept, and the page says so).
-- Unticking the box, removing a song, or **Clear playlist** deletes the saved copies. Clearing your site data, or a browser under storage pressure, can also remove them. Private/incognito windows do not keep them.
-- It does not work across browsers or devices (each browser has its own copy), and it is not tied to your account.
-- A browser feature that remembers file *locations* without copying (the File System Access API) exists only in Chromium browsers and asks for permission again after each restart, so it was not used.
+**Optional: "Keep my songs in this browser"** (a tick box, off by default). When ticked, a copy of each song you add is saved in this browser's own storage (IndexedDB) on this device, so the list comes back after a reload and you can press play at once.
+- Still local only; nothing is sent anywhere.
+- It uses disk space (a 500 MB limit applies; a song over the limit still plays that visit but is not kept, and the panel says so).
+- Unticking, removing a song, or Clear playlist deletes the saved copies. Clearing your site data, or a browser short of space, can remove them too. Private windows do not keep them. Each browser and device has its own copy; it is not tied to your account.
+- A browser feature that remembers file *locations* without copying (File System Access API) exists only in Chromium browsers and asks permission again after every restart, so it was not used.
 
-## What was reused
-- The page's existing `<audio>` element, volume control, fades, **spectrum analyzer** (`sleeping-pod-spectrum.js`) and Previous/Next buttons. Both sources play through the same element, so the analyzer works for both without changes to how it draws.
-- Ideas from the Tesana Sleeping Pod export's `MusicEngine`: local files through object URLs. Its Three.js code and its generated synth tracks were not needed here.
-
-## What is new
+## How it is built
 | File | What it is |
 |---|---|
-| `sleeping-pod-playlist.js` | The rules for the personal list (what is next, previous, shuffle rounds, repeat, remove, de-duplication, which files count as audio). No DOM, no audio. Unit tested in Node, and reusable by the 3D game's pod later. |
-| `sleeping-pod-music.js` | The part that touches the page: file picker, the list, plays files through object URLs, the optional browser-local keep. |
-| `sleeping_pod.html` | The source switch, the My Music panel, and small changes so both sources share one loader. |
-| `sleeping-pod-spectrum.js` | Adds `getLevels()` (smoothed bass/mid/high, 0 to 1) so lighting can follow the music later. |
+| `void-runner/pod-playlist.js` | The rules of the list: what is next, previous, shuffle rounds, repeat, remove, no duplicates, which files count as audio. Pure logic, no audio, no page. Unit tested in Node (`tests/pod-playlist.test.cjs`). |
+| `void-runner/pod-music.js` | The player: file picker, playback through `VoidAudio.connectMedia` (the game's own music channel, so music volume, mute and suspend apply), the LED spectrum analyser, the panel, the optional browser-local keep. |
+| `void-runner/neochinatown.js` | The wall screen (3.4 m wide, on the room-side face of the 0.4 m pod-room wall), its E interaction point, and the music-reactive lighting (below). |
+| `void-runner/music-integration.js` | While pod music plays, the city score steps aside; pod music pauses when the player leaves the District. |
 
-## Two existing faults fixed along the way (they would have broken My Music)
-- **Volume reset on every track.** The player's volume control was undone at each track change (the fade always went back to 100%). The level you set is now kept for both sources.
-- **A song ending during a track change** could cancel or double the change. The player now ignores that moment.
+**Music-reactive lighting.** No light was added (extra lights are costly on the GPU: on the integration build, two extra lamps from PR #181 pushed the high-quality tier past the GPU's limit on lights and broke shader compilation). Instead the music drives what is already there: the pink lamp over the pods (high quality), the ceiling panels, the pods' inner glow, and a new LED strip along both long walls of the room that shifts from magenta to cyan with the treble and brightens with the beat. Everything returns to its exact resting level when the music stops.
 
-## Music-reactive lighting
-The website page has no music-reactive lighting today (only a dim-the-lights button and the spectrum), so there was nothing to keep working there. `spectrum.getLevels()` is the hook for it. The Tesana pod's "Music Sync" lighting preset is a candidate for the 3D pod and would read the same levels.
+## What was reused
+- The **LED spectrum** look and maths (24 columns, green/yellow/red, peak caps) from the website's `sleeping-pod-spectrum.js`, redrawn for the wall screen and the panel.
+- The **website playlist** (the 27 songs and names from `sleeping_pod.html`).
+- The idea of local files through object URLs and a wall-mounted player from the Tesana Sleeping Pod export; none of its Three.js code was used (it is a different engine, see the asset audit).
 
 ## Not done / limits
-- Playlists are not named, saved as files, or shared; there is no drag-to-reorder and no seek or volume widget of our own (the browser's audio control provides time, progress and volume).
-- **Shuffle and Repeat apply to My Music.** The website playlist keeps its own behaviour (it shuffles itself each round).
-- Format support belongs to the browser. A file the browser cannot play (for example M4A in a browser build without AAC, or FLAC in an old browser) is refused at the picker with a message, or skipped with a message if it fails later.
-- Desktop browsers were tested (Chromium, Edge channel when present). Firefox, Safari and phones were not.
-- This is the website's Sleeping Pod page. Bringing the same player into the 3D game's pod belongs to the pod integration work in PR #191; the playlist rules and this controller are written so that work can reuse them (it needs only an audio element and the markup ids).
+- **Shuffle and Repeat** apply to whichever source is open (each source keeps its own list state).
+- There are no saved or named playlists, no drag-to-reorder and no per-pod preferences yet. Per-pod settings and pod audio isolation from hallway sound belong to the pod allocator work in PR #191.
+- Format support belongs to the browser. A file the browser cannot play is refused at the picker, or marked and skipped with a message if it fails later.
+- Desktop Chromium was tested (software rendering). Firefox, Safari, phones and a real GPU were not. The phone site is unchanged and not part of this.
+- The wall screen is read, not clicked: the controls are in the panel opened with **E**.
+- Some website song titles contain strong language and "(Cover)" labels. They are the site's existing playlist, unchanged, and are flagged for the unresolved age-policy and music-licensing review (PR #191).
+
+## Merge notes
+- This branch is based on `main`. `neochinatown.js` is also edited by the open District PRs (#181 entrance lamps, #187 area separation). The change here is two additions (one interaction line and one self-contained block that is created inside the existing build function plus one `podScreen.tick(dt)` call). Merging in any order should need only a hand-merge of those lines. In the area-separated build the screen and pod strips belong to the **interior** area and must be built only there.
+- `void-runner-sw.js` `BUILD` is bumped; the admin inventory is regenerated; `static/void-runner.html` is synced.
 
 ## Tests
-- `node --test tests/sleeping-pod-playlist.test.cjs tests/sleeping-pod-music.test.cjs` (part of `npm test`).
-- `node tests/sleeping-pod-music-browser.cjs` (needs Playwright; uses `ffmpeg` for OGG/MP3/M4A test files if installed). 24 checks: playback of picked files, switching sources, next/previous, shuffle, repeat one and all, remove, clear, volume, spectrum pixels and levels for both sources, bad files, optional keep across a reload, no uploads, desktop and phone layout. Screenshots go to `work/pod-music/`.
+- `npm test` includes `tests/pod-playlist.test.cjs` (15 tests of the list rules).
+- `node tests/pod-music-browser.cjs [low|high]` (needs the local server `node tests/serve-modern.cjs`, Playwright, and ideally `ffmpeg` for OGG/MP3 test files). It boots the real game into the District and checks: the screen is on the wall and visible in the rendered picture; E opens the player; the website playlist plays and moves the spectrum and the room light; a picked file plays (several at once, a non-audio file is skipped with a message); songs advance and stop at the end; Next/Previous, shuffle, repeat one/all, volume, remove, clear; a broken file is skipped and an all-broken list says so; OGG and MP3; the strip pulses with a beat; the panel closes and the music continues; leaving the District pauses it; keep-in-browser survives a reload and unticking removes it; no upload, and no script errors. Screenshots go to `work/pod-music/`.
