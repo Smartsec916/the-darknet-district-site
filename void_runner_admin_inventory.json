@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "5f82a475cfe94593",
+  "revision": "08aaab7fed1b91cc",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11749,49 +11749,55 @@
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 148,
+      "line": 150,
       "text": "talk('',[you('Package from Admin.'),{who:'rook',text:'Seal’s intact. Good.'},{who:'rook',text:'Here’s your cut. And you never carried it.'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 208,
+      "line": 185,
+      "text": "if(VoidMissions.closed(state))return talk('',[{who:'Iris',text:'Cameras are clean, the mainframe is happy, and nobody has tried anything stupid today. Yet.'}],resumeWalking,'CONTINUE');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/faction-scenes.js",
+      "line": 211,
       "text": "communion:{who:elara,intro:[",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 213,
+      "line": 216,
       "text": "you('Think they’ll cause trouble?'),elara('Hard to say. They’ve been moving ships around near the border. Probably just trying to make a point.'),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 217,
+      "line": 220,
       "text": "farewell:'Appreciate the delivery. Tell Admin everything arrived intact.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 218,
+      "line": 221,
       "text": "'natural-order':{who:marcus,intro:[",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 228,
+      "line": 231,
       "text": "farewell:'Appreciate it. Tell Admin the shipment arrived. And watch yourself on the way back.'}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 260,
+      "line": 263,
       "text": "{label:'I’LL LEAVE YOU TO IT',run:()=>leave([you('I’ll leave you to it.'),r.who(r.farewell)],'RETURN TO STATION',update)}];}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 270,
+      "line": 273,
       "text": "return leave([r.who(r.farewell)],'RETURN TO STATION');",
       "kind": "source-reference"
     },
@@ -11899,37 +11905,37 @@
     },
     {
       "source": "void-runner/menu.js",
-      "line": 65,
+      "line": 66,
       "text": "speech,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 76,
+      "line": 77,
       "text": "speech = snapshot.speech;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 81,
+      "line": 82,
       "text": "if (speech) renderLine();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 98,
+      "line": 99,
       "text": "return '<details><summary>Character voices</summary><p class=\"fine\">Automatic selection matches known voices to each character. If this device has no matching voice, dialogue stays subtitled. Choose a voice below to override it. Naturalness depends on voices installed on your device.</p>' + Object.entries(VoidStoryContent.characters).map(([id,c]) => '<label>'+escapeText(c.name)+'<select data-character-voice=\"'+id+'\"><option value=\"\">Automatic matching</option>'+voices.map(v=>'<option value=\"'+escapeText(v.voiceURI)+'\" '+(VoidAudio.voiceChoice(id)===v.voiceURI?'selected':'')+'>'+escapeText(v.name)+'</option>').join('')+'</select></label>').join('')+'</details>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 107,
+      "line": 108,
       "text": "`<section class=\"settings-panel\">${button('BACK','menu-back',true)}<h1 tabindex=\"-1\">Settings</h1>${[['music','Music volume'],['effects','Sound effects volume'],['ambient','Ambient volume'],['voice','Voice volume']].map(([id,label])=>`<label>${label}<input type=\"range\" min=\"0\" max=\"100\" step=\"1\" data-setting=\"${id}\" value=\"${Math.round(s[id]*100)}\"><output>${Math.round(s[id]*100)}</output></label>`).join('')}${button('KEYBINDINGS','menu-bindings')}${button(s.enabled?'MUTE ALL':'UNMUTE ALL','menu-mute',true)}<p class=\"fine\">Audio starts after interaction. Voices use this device’s speech engine. Set a category to zero to mute it.</p>${voiceSettingsHTML()}</section>`",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 128,
+      "line": 129,
       "text": "mode='menu';VoidMenu.returnTo=null;speech=null;VoidAudio.cancel();clearInput();walkingKeys.clear();document.exitPointerLock?.();",
       "kind": "source-reference"
     },
@@ -11995,13 +12001,13 @@
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 23,
+      "line": 24,
       "text": "const l=H.link(state,{onFoot:onFoot(),route:returnMode==='play'?flight.route:null}),msgs=H.messages(state,{rook:typeof rookMissileLine!=='undefined'?rookMissileLine.text:null}),people=H.contacts(state);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 26,
+      "line": 27,
       "text": "'<h2>CONTACTS</h2><p class=\"hud-note\">People are met where they are. A contact listed here can’t be called unless the channel says so.</p>'+",
       "kind": "source-reference"
     },
@@ -12068,7 +12074,7 @@
     {
       "source": "void-runner/prologue-integration.js",
       "line": 145,
-      "text": "VoidInteractions.register('district-scan',()=>{if(state.story.flags.districtBadge){announce('Inner door already open.');resumeWalking();return;}openDistrictDoor('district-inner-door','districtBadge');talk('',[{who:'Iris',text:'Scan accepted. Rook vouched for you, so you get a visitor badge. Behave, and it stays valid.'}],resumeWalking,'ENTER');});",
+      "text": "VoidInteractions.register('district-scan',()=>{if(state.story.flags.districtBadge){announce('Inner door already open.');resumeWalking();return;}openDistrictDoor('district-inner-door','districtBadge');if(VoidMissions.closed(state)){resumeWalking();announce('Scan accepted. Visitor badge issued.');return;}talk('',[{who:'Iris',text:'Scan accepted. Rook vouched for you, so you get a visitor badge. Behave, and it stays valid.'}],resumeWalking,'ENTER');});",
       "kind": "source-reference"
     },
     {
@@ -12973,13 +12979,13 @@
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 153,
+      "line": 155,
       "text": "if(!['play','walking','dock','dialogue'].includes(mode))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 164,
+      "line": 166,
       "text": "addEventListener('keydown',e=>{if(e.code===(VoidInput.bindings.missionLog||'KeyL')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){if(!['play','walking','dock','dialogue','mission-log'].includes(mode))return;e.preventDefault();if(!e.repeat)openMissionLog();}if(e.code==='Escape'&&missionPanel){e.preventDefault();closeMissionLog();}});",
       "kind": "source-reference"
     },
@@ -13068,7 +13074,7 @@
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "a796e718fbe982cbdbec26e66705c8dfce47f9b3882a671244400cd48437bb4e",
-    "void-runner/campaign.js": "80c1d7d0636387d88d2cbd33b55f693a02594b8dade25cc06eaf7bc89e37a232",
+    "void-runner/campaign.js": "026a0b11734e0d7b9009118a5a3e5f14d2d7615a3cada9d8fd0b12f67017e362",
     "void-runner/city-taxi.js": "0e5034fa45257dbcc8a26a52ad33b1dc12b52ecd2c95d22a1929ddcd96155eb0",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
     "void-runner/cockpit-math.js": "a63faf598eaf23722d22658ca22b5da5b16f0044437ac5277d34d42d1cbf0461",
@@ -13088,10 +13094,10 @@
     "void-runner/escort.js": "0d8213a1b25b4748f954d1e1e86fecd14c22429682ec1f5f36a8b46b81bd8ec2",
     "void-runner/expansion.js": "98ea57022ac62f7ed5e83151093329644a7c510d3dba3b8c83677673bbbfc518",
     "void-runner/exploration-controller.js": "a97f58cdcd6149e0149f7976c779b5957bef43db8c3b46df502f993d23e319c7",
-    "void-runner/exploration-data.js": "4729436183609b4fe4e15865ba547d3d6b04d52319fef4f02f19432168c46a59",
+    "void-runner/exploration-data.js": "1a7f311dd37ddf545a0d83423848a7959f66976456f8dfbdcb7c1e6c56e6c638",
     "void-runner/faction-battle.js": "3566336f27e8a33636ec164fd2a31c2d3c2d1473bbdac3ca02df176432d3887a",
     "void-runner/faction-battles.js": "a5eb4863fb899e5cffa3c20a451cb342588026b45c400ade1bcacdf955aa4add",
-    "void-runner/faction-scenes.js": "db9734fd1fd1fe094fec67feeebe09b03f0a2cb4a1f15b67002581cc680faf2b",
+    "void-runner/faction-scenes.js": "c998cf27211ec0dc36714ede894aac73b1e783e5d610eb126283f5ac50e4ef08",
     "void-runner/factions.js": "f7328ffb89f28c2579613d502da7c7572491f3b26d3f1511e1cd0781680c568e",
     "void-runner/fleet.js": "3ad8d092775422ff63a7e7096df2e5211f9b3ffa01e7303fc78a3b31f083fe0b",
     "void-runner/flight-hud.js": "8db3c456786143c5b8a56caf33157554878db29d4cd0879bab45516c3cf8b5e9",
@@ -13103,7 +13109,7 @@
     "void-runner/flight-session.js": "1027dd1a11d5c087d2d754f96cfd8ecce8948ace49398ac78aab5efef0e52bfa",
     "void-runner/flight-skirmish.js": "d34dcc71253521e0b64617552cce2db27b7e1e37420611fa7471de848c8a5573",
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
-    "void-runner/game.js": "a829be483cb0f1043ab8a1294372af143d6bf84d85cd557a2a483bfee95090d9",
+    "void-runner/game.js": "c9f95b172dd51afcc26084276cd3169e6f2e7b03204f77eb8c07a6a510b5db81",
     "void-runner/guest-mode.js": "9688052e6bd9f98c621f11ecaa0cd050901ecdb89ae689e2371edc8538729a91",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "3f0a281fe47ab2dbf58eb419916d99736a1c576e65e026dbb94eb2bcc5756b20",
@@ -13111,14 +13117,14 @@
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input.js": "ee7b8bba97bf1233e9d6d5e7d115efee2ecb1caddd6b758a144b78f33046924e",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
-    "void-runner/menu.js": "37a32e16dca717b187d99a8869cf234fa1569732c3aa1658f9d2ebee6ec66fa8",
+    "void-runner/menu.js": "f7772222e62916b854e2eb39e1ffe6d843fad15ece03ee1e2912a168bfc1e892",
     "void-runner/meridian-art.js": "ef57144a85d288a8b5c3ea0a616d36b5fcc78de0f4a5220473486f1f2b9f2a19",
     "void-runner/meridian-interior-kit.js": "2ca741d025cbd6b3e205e823c637fcf46c0488303ecb24cdcf2e678d0e43eeb4",
     "void-runner/meridian-interior.js": "d9f411d4f42b3cf8bacbe377812cda9b3c3563aef0d52127e989898e4b9a2b96",
     "void-runner/meridian-kitbash.js": "5e1efc2246631b5e37507d12fc23206b5ac8838fa8d0b1b34302a8fa2d5b7ebb",
     "void-runner/meridian-station.js": "2ecbbeec490597999c1a11e4c918a694f8e82673944100fe04e6657180556526",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
-    "void-runner/mission-log.js": "ab2bacb5cd37873eab7285f9bc07df6de0f8f3efccd20a32b29afac385be19ba",
+    "void-runner/mission-log.js": "f9637251347e1250b78d3bef32ef6082e462393a0231b72e4e68970c7650b8c6",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
     "void-runner/mouse-control.js": "e22165f19bef53595dba679424375e039e776e19359e075fbea720cc4d10ca95",
     "void-runner/music-director.js": "a751c57ffcc8fd9928ecd8baa1f962d21f86ae842b87a3724e31c045887795a8",
@@ -13131,16 +13137,16 @@
     "void-runner/ncz-nightlife.js": "4c6e4d7ca34309a6e1a190bfc70d78123ef746ccab8f29c74b7c77041e038fba",
     "void-runner/neochinatown.js": "b711f17fa29b0d3156fe062f8ba3997447686f9c1355e52a56263befd15673ec",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
-    "void-runner/opening-data.js": "ff9fa180e9a3992b9ce1a5cee323060343983028e46405da8a0c7bfecae29031",
+    "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "da1674b96960e03052332b46f33745a5db4f738ad2a38d06cef1eaa912b1ecbb",
-    "void-runner/personal-hud.js": "c771f7181cefd97581cfdc7202d6fdd027a0c3bc07f54839abbcab0142ec7fff",
+    "void-runner/personal-hud.js": "871826e5852395b5fc23355c95aa79a0be9d1c9b53811e56b02e85a1e1457f2a",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
     "void-runner/police-patrol.js": "97e6f52dfaab4797addd3ed3184ce321b9f314b894d6cf69a8dbf51571b8839b",
     "void-runner/police-patrols.js": "2d9e4804ce9fed613295f24f81571185c83bf22341f5fddd89cc8f72c41077a5",
     "void-runner/preparation.js": "d4cd81b11203b5727a1192a8a5138b02fe6e1570d7310215526e3ddc4ce0502f",
     "void-runner/progression.js": "2350090515fb4942fa72b198380f3dcd960251f2d54955abaf689a57ab630b24",
-    "void-runner/prologue-integration.js": "7168b2408f8cb7de1f09fe5b356da420d7c3f91117c190da808502765893cc3b",
+    "void-runner/prologue-integration.js": "270190d6bae3f3822a8af7ac7d59d20fda9380c1f6078e054c7b411640a47831",
     "void-runner/radio.js": "a9d04c53cfb34748f9c30054ffdb28f02a5fb87114883c71149b691e0ff5c313",
     "void-runner/relay-radio.js": "5ce31904c15f630a01d00f51d566d66ae97c736d5734d7531835588714269806",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
@@ -13181,7 +13187,7 @@
     "void-runner/warflying-scanner.js": "3234988837d0ca2ab0fec7bdb730d923c679fd50ff883569c2f7f568406a00ed",
     "void-runner/warflying.js": "e3a319a7538e4df7e014be7ccb50b32bb2b0cf6cbcfe10ccfca2e46edb013a4f",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "0541f895b37f7dd6d03a82e9fd6b87f6f98763bd162fecc95443ff409d665c59",
+    "void-runner/world-integration.js": "d59d2fd7eefdc97cda4a8fb3810abc9d0785751a88f289b1f688fb070aae3e0a",
     "void-runner/world-markers.js": "af9570bfc272ccb17b8a9b0dabd7fc018f2d60d270edf8281066c101f09bfe15",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "tools/admin-inventory.cjs": "4b545f1e29bc40745983ecd5a113f20926a6f73b52a1b4ed4c2e8106df0a4ed0",

@@ -268,7 +268,9 @@
   // The Vesper practice circuit is flown before the Meridian run. Its route uses the
   // inheritance quest as its mission id, so cloud saves need no new quest state.
   function trainingPending(s){ return s.quest==='inheritance'&&P.groundDone(s)&&s.progression?.flags?.board===true&&s.story?.flags?.flightTrainingComplete!==true; }
-  function beginJourney(s) { if (s.quest !== 'inheritance'||!P.groundDone(s)) return false; s.quest = 'arrival'; s.story.chapter='arrival';P.sync(s);Missions.acquire(s,'flight-training');Missions.acquire(s,'meet-rook');Missions.complete(s,'meet-rook','instructions',{missionFlight});Missions.sync(s,{missionFlight}); Story.emit(s,'leaveLocation','vesper'); return true; }
+  // A new campaign begins outside the District with no missions, no pistol and no ship. Saves from before this keep their campaign.
+  function startDistrictCampaign(s){s.story.flags.missionPool='closed';s.location='earth';s.progression.checkpoint={location:'earth'};U.discover(s,'earth');s.universe.visitedLocations=[...new Set([...s.universe.visitedLocations,'earth'])];s.universe.currentSystem=U.system('earth');s.universe.discoveredSystems=[...new Set([...s.universe.discoveredSystems,s.universe.currentSystem])];return s;}
+  function beginJourney(s) { if (Missions.closed(s)||s.quest !== 'inheritance'||!P.groundDone(s)) return false; s.quest = 'arrival'; s.story.chapter='arrival';P.sync(s);Missions.acquire(s,'flight-training');Missions.acquire(s,'meet-rook');Missions.complete(s,'meet-rook','instructions',{missionFlight});Missions.sync(s,{missionFlight}); Story.emit(s,'leaveLocation','vesper'); return true; }
   function stats(s, owned = []) {
     const ship=S.get(s), weapon=S.equipment[s.loadout?.weapon], shield=S.equipment[s.loadout?.shield];
     const standard=id=>S.equipment[id]?.ship==='ship3'?S.owns(s,'ship3'):s.standardGear?.includes(id);
@@ -449,7 +451,7 @@
       }
     };
   }
-  const api = { stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
+  const api = { startDistrictCampaign, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

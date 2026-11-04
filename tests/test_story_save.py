@@ -23,6 +23,10 @@ class StorySaveTests(unittest.TestCase):
         clean=vr.clean_save(state)
         self.assertEqual(clean['progression']['opening']['cans'],[0,2,3,5])
         self.assertEqual(clean['progression']['personal']['weapon'],'ward-pistol')
+    def test_new_campaign_outside_the_district_passes_cloud_validation(self):
+        state=self.state();state.update(quest='inheritance',location='earth',completed=0);state['story']['flags']['missionPool']='closed'
+        clean=vr.clean_save(state)
+        self.assertEqual(clean['location'],'earth');self.assertEqual(clean['story']['flags']['missionPool'],'closed')
     def state(self):
         return {'version':2,'quest':'open','location':'meridian','credits':100,'completed':2,'upgrades':{'guns':0,'armor':0,'engines':0,'shields':0},'cleared':[],'contract':None,'loadout':{},'story':{'flags':{'metMara':True,'promise':False},'met':['mara'],'events':['mara_workshop_intro'],'pending':['mara_workshop_intro'],'relationships':{'mara':2},'characters':{'pirate':'dead'},'chapter':'open','unlocked':['rusthaven'],'encounters':['mara_rendezvous']},'savedAt':1750000000000}
     def test_round_trip_preserves_story_without_ownership_claims(self):

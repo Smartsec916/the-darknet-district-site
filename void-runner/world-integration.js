@@ -113,7 +113,9 @@ VoidInteractions.register('jobs',()=>{campaignBoard();});
 const physicalCampaignBoard=campaignBoard;
 campaignBoard=function(){if(state.quest!=='open'){announce('Rook has your next job.');resumeWalking();return;}physicalCampaignBoard();screen.querySelector('.shop-layout')?.insertAdjacentHTML('beforeend','<h2>CARGO CONTACTS</h2><div class="hangar-grid">'+C.contracts.map(c=>'<article class="card"><h3>'+escapeText(c.name)+'</h3><p>'+escapeText(c.briefing)+'</p>'+button((walkingLocation?.interactions?.some(i=>i.character===({'Dr. Sol':'sol','Iona Vale':'iona','Rook':'rook'})[c.contact])?'TALK / ':'CALL / ')+escapeText(c.contact),'brief:'+c.id,false,!!state.contract)+'</article>').join('')+'</div>');screen.querySelector('.actions,.shop-heading')?.insertAdjacentHTML('beforeend',button('RETURN TO STATION','walk-resume',true));}
 const worldWorkshop=workshopOpening;
-workshopOpening=async function(){await enterWalking('vesper');};
+// New campaigns start in the alley, just outside the District's double doors. The ship stays unavailable until a mission grants it.
+async function districtStart(){await dock();if(mode!=='walking'||!walker||walkingLocation?.id!=='neochinatown')return;const N=VoidNeoChinatown,[x,z]=N.toWorld(0,17),[fx,fz]=N.toWorld(0,20);if(VoidExplorer.blocked(x,z,walkingLocation)){console.warn('[VOID start] door spawn blocked; using the default spawn');return;}walker.x=x;walker.z=z;walker.y=walkingLocation.spawn?.[1]??1.7;walker.pitch=0;walker.yaw=Math.atan2(fx-x,fz-z);}
+workshopOpening=async function(){if(VoidMissions.closed(state))return districtStart();await enterWalking('vesper');};
 // Remove disconnected SOL prototype entry points. All travel uses Campaign.flight + VoidWarp.
 navigation=function(){announce('Choose a route marker after boarding your ship.');};
 const worldChoose=C.chooseDestination;

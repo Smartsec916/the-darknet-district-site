@@ -65,8 +65,10 @@
  const pastFirstOffer=s=>!['inheritance','arrival','legal-offer'].includes(s.quest);
  function define(id,definition){if(!safeId(id)||!definition||!['tutorial','main','side','cargo','campaign','bounty','station'].includes(definition.type)||!Array.isArray(definition.objectives)||!definition.objectives.length||!definition.objectives.every(o=>safeId(o.id)&&typeof o.label==='string'))return false;definitions[id]={...definition,objectives:definition.objectives.map(o=>({...o}))};return true;}
  function records(s){return s.universe.missions??={};}
+ // New campaigns since the mission reset (David, 2026-11-03) carry this flag. Older saves never do, so their missions are untouched.
+ const closed=s=>s?.story?.flags?.missionPool==='closed';
  function available(s,id){const d=definitions[id];if(!d)return true;const requirements=d.prerequisites||[];return requirements.every(key=>s.universe?.missions?.[key]?.completed===true)&&Object.entries(d.storyFlags||{}).every(([key,value])=>s.story?.flags?.[key]===value)&&Object.entries(d.factionFlags||{}).every(([key,value])=>(s.progression?.reputation?.[key]||0)>=value)&&(!d.availability?.locations||d.availability.locations.includes(s.location));}
- function acquire(s,id){if(!safeId(id)||(!records(s)[id]&&!available(s,id)))return null;const entries=records(s);return entries[id]??={acquired:true,completed:false,objectives:{}};}
+ function acquire(s,id){if(closed(s)||!safeId(id)||(!records(s)[id]&&!available(s,id)))return null;const entries=records(s);return entries[id]??={acquired:true,completed:false,objectives:{}};}
  function finish(s,id,entry){
   if(entry.completed&&s.universe.trackedMission===id){s.universe.trackedMission=null;s.universe.autoTrack=true;}
  }
@@ -90,6 +92,7 @@
  }
  function sync(s,C){
   if(!s?.universe)return [];
+  if(closed(s))return all(s,C);
   const entries=records(s),p=s.progression,f=p?.flags||{};
   // A pilot who declined Mara's lessons gets no tutorial entries unless they already had them.
   const declined=s.story?.flags?.tutorialSkipped===true&&!entries['ground-training'];
@@ -192,6 +195,6 @@
   return {kind:U.route(s.location,hop).kind,label:(U.system(s.location)!==U.system(hop)?'INTERSTELLAR / ':'LOCAL / ')+(U.locations[hop]?.name||hop).toUpperCase(),destination:hop};
  }
  function metadata(s,C,id){return {availability:{},giver:null,source:null,start:null,end:null,prerequisites:[],storyFlags:{},factionFlags:{},completion:null,...description(s,C,id)};}
- const api={definitions,trainingIds,groundIds,stationIds,combatIds,tutorials,define,available,metadata,acquire,complete,sync,all,active,tracked,track,untrack,guidance,nextMission};
+ const api={closed,definitions,trainingIds,groundIds,stationIds,combatIds,tutorials,define,available,metadata,acquire,complete,sync,all,active,tracked,track,untrack,guidance,nextMission};
  if(typeof module!=='undefined')module.exports=api;else root.VoidMissions=api;
 })(globalThis);
