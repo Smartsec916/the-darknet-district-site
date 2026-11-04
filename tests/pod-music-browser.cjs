@@ -35,15 +35,16 @@ async function boot(b, ctx) {
   await page.goto(BASE + '/void-runner.html'); await page.waitForFunction(() => window.VoidStartup?.started, null, { timeout: 120000 });
   await page.evaluate(async () => { state = C.fresh(); Object.assign(state, { quest: 'open', location: 'earth' }); state.universe.currentSystem = 'sol'; state.universe.freeTravel = true; for (const id of VoidProgression.flags) state.progression.flags[id] = true; state.progression.completed = true; await enterWalking('sacramento'); });
   await page.waitForFunction(() => typeof mode !== 'undefined' && mode === 'walking' && walkingLocation && walker, null, { timeout: 300000 });
+  await page.evaluate(() => { window.gameScene = () => BABYLON.EngineStore.Instances.flatMap(e => e.scenes).sort((a, b) => b.meshes.length - a.meshes.length)[0]; });
   // stand in the sleeping-pod room, in front of the wall screen (local x -9, z 66.5)
   await page.evaluate(() => { walker.x = 126.9 + 9; walker.z = -41.9 - 66.5; walker.yaw = Math.PI; walker.pitch = 0; for (let i = 0; i < 4; i++) update(.1); });
   return page;
 }
 const P = page => page.evaluate(() => ({ ...VoidPodMusic.state(), lv: VoidPodMusic.levels(), vol: VoidPodMusic.element?.volume, src: VoidPodMusic.element?.currentSrc || '', paused: VoidPodMusic.element ? VoidPodMusic.element.paused : true }));
-const wallGreen = page => page.evaluate(() => { const t = BABYLON.EngineStore.LastCreatedScene.getTextureByName('ncz-pod-music'), c = t.getContext().canvas, d = t.getContext().getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 1] > 180 && d[i] < 130 && d[i + 2] < 160) n++; return n; });
+const wallGreen = page => page.evaluate(() => { const t = gameScene().getTextureByName('ncz-pod-music'), c = t.getContext().canvas, d = t.getContext().getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 1] > 180 && d[i] < 130 && d[i + 2] < 160) n++; return n; });
 const panelLit = page => page.evaluate(() => { const c = document.getElementById('pod-music-spectrum'); if (!c) return -1; const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 200) n++; return n; });
-const strip = page => page.evaluate(() => { const m = BABYLON.EngineStore.LastCreatedScene.getMaterialByName('ncz-pod-music-strip'); return m ? [m.emissiveColor.r, m.emissiveColor.g, m.emissiveColor.b] : null; });
-const lamp = page => page.evaluate(() => { const l = BABYLON.EngineStore.LastCreatedScene.lights.find(x => x.name === 'ncz-light' && x.intensity > 0 && Math.abs(x.position.y - 3) < .01 && Math.abs(x.intersectsMesh === undefined ? 0 : 0) < 1 && Math.abs(x.diffuse.r - 1) < .01 && Math.abs(x.diffuse.g - .357) < .02); return l ? l.intensity : null; });
+const strip = page => page.evaluate(() => { const m = gameScene().getMaterialByName('ncz-pod-music-strip'); return m ? [m.emissiveColor.r, m.emissiveColor.g, m.emissiveColor.b] : null; });
+const lamp = page => page.evaluate(() => { const l = gameScene().lights.find(x => x.name === 'ncz-light' && x.intensity > 0 && Math.abs(x.position.y - 3) < .01 && Math.abs(x.intersectsMesh === undefined ? 0 : 0) < 1 && Math.abs(x.diffuse.r - 1) < .01 && Math.abs(x.diffuse.g - .357) < .02); return l ? l.intensity : null; });
 const names = s => s.mine, shot = (page, n) => page.screenshot({ path: path.join(out, n) });
 const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) update(.05); }, n);
 
@@ -54,7 +55,7 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
   const page = await boot(b, ctx);
 
   await check('the wall screen is mounted on the pod room wall, with an E interaction point beside it', async () => {
-    const r = await page.evaluate(() => { const sc = BABYLON.EngineStore.LastCreatedScene, m = sc.getMeshByName('pod-music-screen'), f = sc.getMeshByName('pod-screen-frame'), i = walkingLocation.interactions.find(x => x.action === 'district-pod-music'); if (!m || !i) return null; const p = m.getAbsolutePosition(); return { screen: [p.x, p.y, p.z], frame: !!f, it: i.position, range: i.range, handler: VoidInteractions.handlers.has('district-pod-music'), label: i.label }; });
+    const r = await page.evaluate(() => { const sc = gameScene(), m = sc.getMeshByName('pod-music-screen'), f = sc.getMeshByName('pod-screen-frame'), i = walkingLocation.interactions.find(x => x.action === 'district-pod-music'); if (!m || !i) return null; const p = m.getAbsolutePosition(); return { screen: [p.x, p.y, p.z], frame: !!f, it: i.position, range: i.range, handler: VoidInteractions.handlers.has('district-pod-music'), label: i.label }; });
     assert.ok(r, 'screen and interaction exist'); assert.ok(r.frame && r.handler);
     const d = Math.hypot(r.screen[0] - r.it[0], r.screen[2] - r.it[2]); assert.ok(d < 4, 'the interaction point is within reach of the screen (' + d.toFixed(1) + ' m)');
     return `${r.label}, ${d.toFixed(1)} m from the screen`;
@@ -62,7 +63,7 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
 
   await check('the screen draws its idle face (title, source, "[E] open the player")', async () => {
     await drive(page, 30); await wait(800); await drive(page, 30);
-    const px = await page.evaluate(() => { const t = BABYLON.EngineStore.LastCreatedScene.getTextureByName('ncz-pod-music'), c = t.getContext().canvas, d = t.getContext().getImageData(0, 0, c.width, c.height).data; let bright = 0; for (let i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] > 300) bright++; return bright; });
+    const px = await page.evaluate(() => { const t = gameScene().getTextureByName('ncz-pod-music'), c = t.getContext().canvas, d = t.getContext().getImageData(0, 0, c.width, c.height).data; let bright = 0; for (let i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] > 300) bright++; return bright; });
     assert.ok(px > 400, 'text and frame pixels: ' + px); await shot(page, '1-wall-screen-idle.png');
   });
 
