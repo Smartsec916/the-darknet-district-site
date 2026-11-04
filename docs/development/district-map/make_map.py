@@ -67,7 +67,7 @@ for k,c,lab in (('bar-counter','#ffb347',None),('shop-counter','#9b7bff',None),(
     if z1-z0<.3:z0-=.08;z1+=.08
     el.append(rect(x0,z0,x1,z1,fill=c,stroke='none',opacity=.85))
 # pod hatches (two stacked rows along the west wall)
-for z in [56.8+i*2.4 for i in range(6)]:
+for z in [56.8+i*2.4 for i in range(5)]:   # the game builds 5 pods along the wall, in 2 stacked rows (10 capsules)
     el.append(rect(-14.1,z,-13.5,z+1.9,fill='none',stroke='#ff9be6',stroke_width=1.5,rx=2))
 # vending machines
 for z in (47.5,49.5,51.5):
@@ -85,13 +85,15 @@ el.append(text(-12.8,31.9,'glass booths',11,'#a58fcf'))
 el.append(text(-12.8,33.3,'and arcade terminal',11,'#a58fcf'))
 el.append(text(-5,45.4,'VENDING',11,'#9dffc0',weight=700))
 el.append(text(-9,57.3,'SLEEPING PODS',14,'#ffb0ec',weight=700))
+el.append(text(-8.2,58.8,'10 pods: 2 rows of 5',10.5,'#c98bb8'))
 el.append(text(10,30.2,'BAR',14,'#ffd48a',weight=700))
 el.append(text(10,45,'ADMIN & IRIS DESK  /  SHOP',13,'#c9b8ff',weight=700))
 el.append(text(9,58,'MEETING ROOM',14,'#e8f0ff',weight=700))
 el.append(text(9,59.8,'private',11,'#9fb0c8'))
 el.append(text(38,60.6,'SMOKING TERRACE',13,'#a9c8e6',weight=700))
 el.append(text(38,62,'upper level',11,'#8aa8c4'))
-el.append(text(38,63.5,'up the stairs at the end of the hall',11,'#8aa8c4'))
+el.append(text(38,63.5,'not walkable from the hall: the stairs (11)',11,'#8aa8c4'))
+el.append(text(38,65,'carry you here, and back (12)',11,'#8aa8c4'))
 el.append(text(0,60,'HALL',13,'#58f0d8',weight=700,transform=f'rotate(-90 {px(0,60)[0]:.1f} {px(0,60)[1]:.1f})',letter_spacing=6))
 el.append(text(0,23.2,'VESTIBULE',9.5,'#9be8ff',weight=700))
 # door labels
@@ -113,8 +115,8 @@ ax,ay=px(30,11.5);el.append(f'<g><line x1="{ax:.1f}" y1="{ay+34:.1f}" x2="{ax:.1
 legend_items=[
  (1,'Security scanner','present your badge (vestibule)'),(2,'Admin','speak with Admin'),(3,'Iris','the in-game Iris (not the website chat)'),
  (4,'Shop','browse the shop'),(5,'Bartender','talk to the bartender'),(6,'VR Play','access the VR experiences'),
- (7,'Vending machines','three machines'),(8,'Sleeping pod','rest and save'),(9,'Pod music screen','wall-mounted player, plays your own songs'),
- (10,'Meeting room','private meeting room'),(11,'Stairs up','to the smoking terrace'),(12,'Stairs down','back from the terrace')]
+ (7,'Vending machines','three machines'),(8,'Sleeping pods','10 capsules, two stacked rows of five; rest and save'),(9,'Pod music screen','wall-mounted player, plays your own songs'),
+ (10,'Meeting room','private meeting room'),(11,'Stairs up','carries you up to the smoking terrace'),(12,'Stairs down','carries you back to the end of the hall')]
 lx,ly=1110,PY
 leg=[f'<text x="{lx}" y="{ly-8}" font-size="15" fill="#ffcf5a" font-weight="700" letter-spacing="2">WHAT YOU CAN DO</text>']
 for i,(n,a,b) in enumerate(legend_items):
