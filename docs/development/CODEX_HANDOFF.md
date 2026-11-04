@@ -168,7 +168,28 @@ Most `tests/*-browser.cjs` launch `channel:'msedge'`, which is not installed in 
 - **Do not touch** `blackout-protocol/`, `origins/` and other pages while working on the game.
 
 ## 9. Tesana audit
-`docs/development/TESANA_ASSET_AUDIT.md`. Summary: **inspected, nothing imported.** Textures are CC0 and clear; the 17 AI-generated GLB models carry no licence file and fail our policy until David's Tesana Max Plan terms are read and recorded; the characters have no animations and cannot use our Mixamo clips; the pod's wear, geometry, bedding, light presets, vending machine and synth music are the valuable parts and must be re-written for Babylon with a re-lit scene (its ~13 lights exceed our budget). PR #192's music player is our own code, not Tesana's.
+`docs/development/TESANA_ASSET_AUDIT.md`. Summary: **inspected, nothing imported.** Textures are CC0 and clear; the 17 AI-generated GLB models carry no licence file; David has verified that his Tesana Max Plan gives full ownership and commercial rights (section 9.1), which covers the 7 models generated in his own projects, while the **10 shared-library models stay pending per-asset verification**; the characters have no animations and cannot use our Mixamo clips; the pod's wear, geometry, bedding, light presets, vending machine and synth music are the valuable parts and must be re-written for Babylon with a re-lit scene (its ~13 lights exceed our budget). PR #192's music player is our own code, not Tesana's.
+
+## 9.1 Tesana licensing status (updated 2026-11-04 after David's verification)
+
+**How this was verified.** David reported that he read Tesana's official pages and that they state the **Max Plan includes all Pro benefits, including full ownership and commercial rights**. The sources he named are:
+- https://tesana.com/pricing
+- https://docs.tesana.ai/support/faq
+- https://docs.tesana.ai/building/exports
+
+**Claude Code could not open any of these three pages**: `tesana.com` and `docs.tesana.ai` are outside the Claude session's allowed network domains (the lookup failed), so their wording was **not** independently re-read and is **not quoted here**. "Verified" below therefore means *verified by David against the official pages*. Whoever picks this up with network access should open the three URLs, copy the exact clauses into this file with the date, and check them against the table. If David wants Claude Code to read them, the two hosts must be allowed in the session's network settings.
+
+Two different questions are kept apart:
+
+| What | Status | Basis |
+|---|---|---|
+| **The games and what David built on Tesana** (the Sleeping Pod project and the spaceflight project: their source code, the scenes and the assets he generated in his own projects) | **Verified by David: rights covered.** Max Plan includes the Pro benefits, with full ownership and commercial rights. | The three official URLs above. Exact clause text not yet recorded in the repository. |
+| **The 7 models generated inside David's own project** (`captain`, `elara`, `flying_taxi`, `freighter`, `pirate_fighter`, `player_ship`, `meridian_station`; their own generation ids in `.tesana/asset-gen-ledger.json`) | **Covered at plan level, per David's verification.** Not yet recorded clause by clause. They remain **unimported**. | Same sources. |
+| **The 10 models from Tesana's shared library** (`library:` task ids in `.tesana/asset-gen-ledger.json`): characters `iris`, `kai`, `mara`, `marcus`, `nadia`, `pedestrian_a`, `pedestrian_b`, `rook`, `seren`, and the prop `satellite` | **PENDING VERIFICATION, per asset.** A plan statement that David owns what he builds and may use it commercially does not by itself say what licence a *shared-library* item carries, or whether the library's original creator or Tesana grants the same rights for items taken from it. No per-asset licence has been shown. | Needs one of: the library's own licence terms, a per-asset licence line, or written confirmation from Tesana support, recorded with the URL and date. |
+| **Textures** (11 CC0 material sets, ambientCG) | **Verified from the files**: every `material.json` says `"license": "CC0 (AmbientCG)"`. | The ZIP contents themselves. |
+| **AI mood images** (`title_bg.jpg`, `holo_ad.jpg`) and store art | Not covered by anything above. Not wanted. | n/a |
+
+**What changes in practice.** The licence is no longer the reason to reject the seven non-library vehicles, captain, elara and the station: they are rejected or held for *other* reasons in `TESANA_ASSET_AUDIT.md` (Kestrel and Meridian are canon, our CC0 ships already fill those roles, NPC identities must not change without approval, no animations). The ten shared-library models, including the two background pedestrians the audit flags as the most useful (`pedestrian_a`, `pedestrian_b`), **stay blocked until each is verified**. Nothing was imported, removed, replaced or modified as part of this verification, and nothing was merged or deployed.
 
 ## 10. Homepage ENTER: implementation requirements (next Codex task, not done)
 
@@ -259,7 +280,7 @@ Hub skeleton, auth and rooms; global, location and direct chat with block, repor
 1. Merging anything to `main` (this deploys the live site).
 2. Whether the website playlist ships in the first test.
 3. Production save reset and any deletion of records (exact list and backup first).
-4. The age policy; hosting spend (none approved); the licence of the Tesana AI models (David has the Tesana Max Plan, so this may be quick: someone needs to read its terms and record the five points listed in the audit); vending machine content.
+4. The age policy; hosting spend (none approved); the per-asset licences of the **10 Tesana shared-library models** (section 9.1; the plan-level ownership and commercial rights are already verified by David); vending machine content.
 5. Closing #184, #186, or any PR.
 6. Exposing the game on the homepage (the ENTER change); tablets policy.
 7. Raising the campaign epoch.
