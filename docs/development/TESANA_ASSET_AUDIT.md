@@ -218,6 +218,7 @@ Already delivered in PR #192 (see `docs/SLEEPING-POD-MUSIC.md`). Remaining: (a) 
 ## Performance concerns
 
 - The pod's lighting alone (about 13 lights, 5 of them area lights) exceeds our GPU light budget; it must be re-lit.
+- **Measured in the game (2026-11-04, `tools/lighting-probe.cjs`):** at high graphics every one of the District interior's 157 surfaces compiles only 4 lights (Babylon's default), so the game's own 12 lights (2 scene lights and 10 point lights) are not all in use: only the first four shape any surface, and the pod room's pink lamp shapes none. A re-built pod therefore cannot rely on extra lights at all. It must get its look from emissive strips, textures (including baked light) and, at most, 2 to 3 lights assigned to the pod area. Details: `CODEX_HANDOFF.md` section 12.3.
 - Characters carry three 1024 px textures each (about 17 MB of GPU memory uncompressed per character); 20 pedestrians would be about 340 MB unless textures are shared or reduced to 512.
 - All GLBs use WebP textures; confirm the pinned Babylon loader reads them before relying on them.
 - Procedural canvas textures are cheap once generated; do generation once at load, not per frame.
