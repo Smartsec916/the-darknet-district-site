@@ -430,7 +430,8 @@
     neon('district-mark',['DD'],['#9b7bff'],.7,.4,[2.6,2.9,19.7],0);
     // Security lighting for the entrance, so a new player arriving at night can see the door: a cold lamp over the lintel, a dim magenta wash from the alley side (not on the low tier, which keeps only the lamp), and a faint lit strip along the header. Kept low so the alley stays dark.
     box('door-lintel-strip',[5.2,.05,.08],[0,3.66,19.55],mat('door-lintel','#2a6c78',{glow:'#5fe3f5'}),false);
-    for(const [p,c,i,r] of [[[0,3.3,18.4],'#8fe9ff',2.2,9],[[-4.2,2.4,17.6],'#ff4fc8',.8,7]].slice(0,low?1:2)){const l=new B.PointLight('district-entrance-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=target;owned.push(l);}
+    // Street side only: these lamps light the alley face of the door. Inside the District they would only add to its light count (14 instead of 12 at high quality made materials exceed the GPU's uniform-buffer limit and the scene never became ready). `area` exists once the street and interior are built separately; before that the lamps are built as before.
+    if(typeof area==='undefined'||area!=='interior')for(const [p,c,i,r] of [[[0,3.3,18.4],'#8fe9ff',2.2,9],[[-4.2,2.4,17.6],'#ff4fc8',.8,7]].slice(0,low?1:2)){const l=new B.PointLight('district-entrance-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=target;owned.push(l);}
 
     // ---- Vestibule --------------------------------------------------------
     add(B.MeshBuilder.CreateGround('vestibule-floor',{width:6,height:6},scene),floor,[0,.02,23]);
