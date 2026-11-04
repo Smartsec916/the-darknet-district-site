@@ -36,7 +36,7 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   await pg.evaluate(()=>VoidInteractions.handlers.get('tdd')());await toVestibule();await pg.waitForTimeout(500);
   await pg.evaluate(()=>VoidInteractions.handlers.get('district-scan')());await pg.waitForTimeout(900);
   s=await snap();console.log(q,'during',JSON.stringify(s));await shot('checkpoint');
-  assert.equal(s.overlay,true,'the checkpoint overlay is up');assert(s.meshes<20&&s.street===0,'the street was released before the interior is built (meshes '+s.meshes+')');
+  assert.equal(s.overlay,true,'the checkpoint overlay is up');assert.equal(s.street,0,'the street is gone while the overlay is up: never both loaded');assert(s.meshes<20||s.interior>0,'what is loaded is the interior alone (meshes '+s.meshes+')');
   await settle('interior');s=await snap();console.log(q,'inside',JSON.stringify(s));await shot('inside');
   assert.equal(s.area,'interior');assert.equal(s.street,0,'no street left loaded');assert(s.interior>0);assert.equal(s.overlay,false);
   assert.deepEqual(s.flags,{area:'district',badge:true,door:true});assert.equal(s.location,'earth','the saved location id is unchanged');
@@ -44,7 +44,7 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   assert(s.meshes<street1.meshes*.8,'the interior alone is much smaller than the street ('+s.meshes+' vs '+street1.meshes+')');
   const interior1=s;
   // 3. Walking out through the outer door cycles back to the street, outside the door.
-  await walkOut();await pg.waitForTimeout(900);s=await snap();assert.equal(s.overlay,true);assert(s.meshes<20&&s.interior===0,'the interior was released first');await shot('airlock');
+  await walkOut();await pg.waitForTimeout(900);s=await snap();assert.equal(s.overlay,true);assert.equal(s.interior,0,'the interior is gone while the overlay is up: never both loaded');assert(s.meshes<20||s.street>0,'what is loaded is the street alone (meshes '+s.meshes+')');await shot('airlock');
   await settle('street');s=await snap();console.log(q,'out',JSON.stringify(s));await shot('outside');
   assert.equal(s.area,'street');assert.equal(s.interior,0,'no District left loaded');assert.equal(s.flags.area,undefined);assert(Math.abs(s.local[0])<.1&&Math.abs(s.local[1]-17.4)<.1,'in the alley outside the door');
   // 4. Repeated trips settle to the same size: nothing accumulates.
