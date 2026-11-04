@@ -53,6 +53,8 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
   const ctx = await b.newContext({ viewport: { width: 1280, height: 720 } });
   await ctx.addInitScript(q => { try { if (!localStorage.getItem('void-runner-graphics-v1')) localStorage.setItem('void-runner-graphics-v1', JSON.stringify({ quality: q })); } catch (e) { /* none */ } }, QUALITY);
   const page = await boot(b, ctx);
+  // The game's footer is fixed to the bottom edge of the window, so a control scrolled only just into view can sit under it: scroll to the middle first, as a player would
+  const tap = async sel => { await page.evaluate(q => { const e = document.querySelector(q); if (e) e.scrollIntoView({ block: 'center' }); }, sel); await page.click(sel); };
 
   await check('the wall screen is mounted on the pod room wall, with an E interaction point beside it', async () => {
     const r = await page.evaluate(() => { const sc = gameScene(), m = sc.getMeshByName('pod-music-screen'), f = sc.getMeshByName('pod-screen-frame'), i = walkingLocation.interactions.find(x => x.action === 'district-pod-music'); if (!m || !i) return null; const p = m.getAbsolutePosition(); return { screen: [p.x, p.y, p.z], frame: !!f, it: i.position, range: i.range, handler: VoidInteractions.handlers.has('district-pod-music'), label: i.label }; });
@@ -77,7 +79,7 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
 
   await check('the website playlist plays through the game\'s music channel; the wall and panel spectrum move; the pod light follows', async () => {
     const base = await strip(page);
-    await page.click('[data-action="pod-music:toggle"]');
+    await tap('[data-action="pod-music:toggle"]');
     const s = await until(async () => { const x = await P(page); return x.playing && x.position > .3 ? x : null; }, 15000, 'the website song to start');
     assert.match(s.src, /attached_assets\/.+\.mp3$/); assert.equal(s.source, 'website');
     await until(async () => (await panelLit(page)) > 120, 8000, 'lit panel spectrum');
@@ -91,9 +93,9 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
   });
 
   await check('My music: switching pauses the website song; the empty list says what to do; Add songs opens the file chooser (several files, audio only)', async () => {
-    await page.click('[data-action="pod-music:source:mine"]');
+    await tap('[data-action="pod-music:source:mine"]');
     assert.equal((await P(page)).playing, false); assert.match(await page.textContent('#pod-music'), /No songs yet/);
-    const [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.click('[data-action="pod-music:add"]')]);
+    const [chooser] = await Promise.all([page.waitForEvent('filechooser'), tap('[data-action="pod-music:add"]')]);
     assert.equal(chooser.isMultiple(), true); assert.match(await page.getAttribute('#pod-music-input', 'accept'), /audio\/\*.*\.mp3.*\.wav.*\.ogg.*\.m4a/);
     await chooser.setFiles([F('Alpha Drive.wav'), F('Beta Rain.wav'), F('Gamma Pulse.wav'), F('notes.txt')]);
     const s = await until(async () => { const x = await P(page); return x.playing && x.position > .2 ? x : null; }, 10000, 'the first picked song');
@@ -117,45 +119,45 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
   await check('Previous / Next, picking a song, Shuffle and Repeat (one, all) behave', async () => {
     // The audio is paused after each step so a slow machine cannot run a song past the three seconds after which Previous restarts it (that rule is checked in the unit tests of the player)
     const hold = () => page.evaluate(() => VoidPodMusic.element.pause());
-    await page.click('[data-action="pod-music:next"]'); await until(async () => (await P(page)).title === 'Alpha Drive', 5000, 'Next wraps'); await hold();
-    await page.click('[data-action="pod-music:next"]'); await until(async () => (await P(page)).title === 'Beta Rain', 5000, 'Next'); await hold();
-    await page.click('[data-action="pod-music:prev"]'); await until(async () => (await P(page)).title === 'Alpha Drive', 5000, 'Previous');
-    await page.click('#pod-music li:nth-child(3) .go'); await until(async () => (await P(page)).title === 'Gamma Pulse', 5000, 'picked song');
-    await page.click('[data-action="pod-music:shuffle"]'); assert.equal((await P(page)).shuffle, true); await page.click('[data-action="pod-music:shuffle"]'); assert.equal((await P(page)).shuffle, false);
-    await page.click('[data-action="pod-music:repeat"]'); assert.equal((await P(page)).repeat, 'all'); await page.click('[data-action="pod-music:repeat"]'); assert.equal((await P(page)).repeat, 'one');
+    await tap('[data-action="pod-music:next"]'); await until(async () => (await P(page)).title === 'Alpha Drive', 5000, 'Next wraps'); await hold();
+    await tap('[data-action="pod-music:next"]'); await until(async () => (await P(page)).title === 'Beta Rain', 5000, 'Next'); await hold();
+    await tap('[data-action="pod-music:prev"]'); await until(async () => (await P(page)).title === 'Alpha Drive', 5000, 'Previous');
+    await tap('#pod-music li:nth-child(3) .go'); await until(async () => (await P(page)).title === 'Gamma Pulse', 5000, 'picked song');
+    await tap('[data-action="pod-music:shuffle"]'); assert.equal((await P(page)).shuffle, true); await tap('[data-action="pod-music:shuffle"]'); assert.equal((await P(page)).shuffle, false);
+    await tap('[data-action="pod-music:repeat"]'); assert.equal((await P(page)).repeat, 'all'); await tap('[data-action="pod-music:repeat"]'); assert.equal((await P(page)).repeat, 'one');
     await page.evaluate(() => { window.__starts = 0; VoidPodMusic.element.addEventListener('playing', () => { window.__starts++; }); });
-    await page.click('#pod-music li:nth-child(2) .go'); await until(async () => (await page.evaluate(() => window.__starts)) >= 3, 25000, 'the song to repeat twice');
-    assert.equal((await P(page)).title, 'Beta Rain'); await page.click('[data-action="pod-music:repeat"]'); assert.equal((await P(page)).repeat, 'off');
+    await tap('#pod-music li:nth-child(2) .go'); await until(async () => (await page.evaluate(() => window.__starts)) >= 3, 25000, 'the song to repeat twice');
+    assert.equal((await P(page)).title, 'Beta Rain'); await tap('[data-action="pod-music:repeat"]'); assert.equal((await P(page)).repeat, 'off');
   });
 
   await check('volume: the slider sets the music volume and it stays across songs', async () => {
     await page.fill('#pod-music-volume', '30'); const v = await P(page); assert.ok(Math.abs(v.vol - .3) < .01 && Math.abs(v.volume - .3) < .01, JSON.stringify([v.vol, v.volume]));
-    await page.click('[data-action="pod-music:next"]'); await wait(800); assert.ok(Math.abs((await P(page)).vol - .3) < .01);
+    await tap('[data-action="pod-music:next"]'); await wait(800); assert.ok(Math.abs((await P(page)).vol - .3) < .01);
   });
 
   await check('Remove and Clear playlist', async () => {
-    await page.click('#pod-music li:nth-child(1) [data-action^="pod-music:remove"]'); assert.equal((await P(page)).mine.length, 2);
-    await page.click('[data-action="pod-music:clear"]'); const s = await P(page); assert.deepEqual(s.mine, []); assert.equal(s.playing, false); assert.match(s.status, /Playlist cleared \(2 songs\)/);
+    await tap('#pod-music li:nth-child(1) [data-action^="pod-music:remove"]'); assert.equal((await P(page)).mine.length, 2);
+    await tap('[data-action="pod-music:clear"]'); const s = await P(page); assert.deepEqual(s.mine, []); assert.equal(s.playing, false); assert.match(s.status, /Playlist cleared \(2 songs\)/);
   });
 
   await check('a file the browser cannot play is marked and skipped; all-bad lists stop with a message', async () => {
-    const [c1] = await Promise.all([page.waitForEvent('filechooser'), page.click('[data-action="pod-music:add"]')]); await c1.setFiles([F('broken.mp3'), F('Alpha Drive.wav')]);
+    const [c1] = await Promise.all([page.waitForEvent('filechooser'), tap('[data-action="pod-music:add"]')]); await c1.setFiles([F('broken.mp3'), F('Alpha Drive.wav')]);
     await until(async () => { const x = await P(page); return x.title === 'Alpha Drive' && x.playing ? x : null; }, 10000, 'to skip the broken file');
     assert.equal(await page.locator('#pod-music li.bad').count(), 1);
-    await page.click('[data-action="pod-music:clear"]');
-    const [c2] = await Promise.all([page.waitForEvent('filechooser'), page.click('[data-action="pod-music:add"]')]); await c2.setFiles([F('broken.mp3')]);
-    await until(async () => /None of these files could be played/.test((await P(page)).status), 8000, 'the message'); await page.click('[data-action="pod-music:clear"]');
+    await tap('[data-action="pod-music:clear"]');
+    const [c2] = await Promise.all([page.waitForEvent('filechooser'), tap('[data-action="pod-music:add"]')]); await c2.setFiles([F('broken.mp3')]);
+    await until(async () => /None of these files could be played/.test((await P(page)).status), 8000, 'the message'); await tap('[data-action="pod-music:clear"]');
   });
 
   await check('OGG and MP3 files play too', async () => {
     if (!extra.length) return 'ffmpeg not available: WAV only';
-    const [c] = await Promise.all([page.waitForEvent('filechooser'), page.click('[data-action="pod-music:add"]')]); await c.setFiles(extra.map(F));
-    for (let i = 0; i < extra.length; i++) { await until(async () => { const x = await P(page); return x.playing && x.position > .1 ? x : null; }, 8000, 'song ' + extra[i]); if (i < extra.length - 1) await page.click('[data-action="pod-music:next"]'); }
-    await page.click('[data-action="pod-music:clear"]'); return extra.join(', ');
+    const [c] = await Promise.all([page.waitForEvent('filechooser'), tap('[data-action="pod-music:add"]')]); await c.setFiles(extra.map(F));
+    for (let i = 0; i < extra.length; i++) { await until(async () => { const x = await P(page); return x.playing && x.position > .1 ? x : null; }, 8000, 'song ' + extra[i]); if (i < extra.length - 1) await tap('[data-action="pod-music:next"]'); }
+    await tap('[data-action="pod-music:clear"]'); return extra.join(', ');
   });
 
   await check('the music beat moves the room light (strip and ceiling panels) around its resting level', async () => {
-    const [c] = await Promise.all([page.waitForEvent('filechooser'), page.click('[data-action="pod-music:add"]')]); await c.setFiles([F('Beat Box.wav')]);
+    const [c] = await Promise.all([page.waitForEvent('filechooser'), tap('[data-action="pod-music:add"]')]); await c.setFiles([F('Beat Box.wav')]);
     await until(async () => (await P(page)).playing, 8000, 'the beat'); const seen = [];
     for (let i = 0; i < 40; i++) { await drive(page, 3); const a = await strip(page); seen.push(a[0] + a[1] + a[2]); await wait(60); }
     const spread = Math.max(...seen) - Math.min(...seen); assert.ok(spread > .2, 'the strip pulses (spread ' + spread.toFixed(2) + ')');
@@ -164,8 +166,8 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
   });
 
   await check('closing the panel keeps the music playing; the wall screen shows the song; a screenshot from the player\'s eyes', async () => {
-    if (!(await P(page)).playing) await page.click('[data-action="pod-music:toggle"]'); await until(async () => (await P(page)).playing, 8000, 'music playing before closing the panel');
-    await page.click('[data-action="progress-return"]'); await page.waitForFunction(() => mode === 'walking');
+    if (!(await P(page)).playing) await tap('[data-action="pod-music:toggle"]'); await until(async () => (await P(page)).playing, 8000, 'music playing before closing the panel');
+    await tap('[data-action="progress-return"]'); await page.waitForFunction(() => mode === 'walking');
     await wait(600); await drive(page, 10); const s = await P(page); assert.ok(s.playing);
     await page.evaluate(() => { walker.x = 126.9 + 9; walker.z = -41.9 - 64; walker.yaw = Math.PI; walker.pitch = .05; for (let i = 0; i < 6; i++) update(.1); });
     await wait(1500); await drive(page, 10); await shot(page, '5-wall-screen-playing.png');
@@ -179,15 +181,15 @@ const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) 
   });
 
   await check('Keep my songs in this browser: they survive a reload; unticking removes the saved copies', async () => {
-    await page.evaluate(() => VoidInteractions.handlers.get('district-pod-music')()); await page.click('[data-action="pod-music:source:mine"]');
-    await page.check('[data-pod-keep]'); const [c] = await Promise.all([page.waitForEvent('filechooser'), page.click('[data-action="pod-music:add"]')]); await c.setFiles([F('Alpha Drive.wav'), F('Beta Rain.wav')]);
+    await page.evaluate(() => VoidInteractions.handlers.get('district-pod-music')()); await tap('[data-action="pod-music:source:mine"]');
+    await page.check('[data-pod-keep]'); const [c] = await Promise.all([page.waitForEvent('filechooser'), tap('[data-action="pod-music:add"]')]); await c.setFiles([F('Alpha Drive.wav'), F('Beta Rain.wav')]);
     await until(async () => (await P(page)).mine.length === 2, 5000, 'two songs'); await wait(800);
     await page.evaluate(() => VoidPodMusic.element?.pause());
     await page.close(); const again = await boot(b, ctx);
     await again.evaluate(() => VoidInteractions.handlers.get('district-pod-music')()); await again.click('[data-action="pod-music:source:mine"]');
     await until(async () => (await P(again)).mine.length === 2, 6000, 'the kept songs to come back');
     assert.deepEqual((await P(again)).mine, ['Alpha Drive', 'Beta Rain']); assert.equal(await again.isChecked('[data-pod-keep]'), true);
-    await again.click('#pod-music li:nth-child(1) .go'); await until(async () => (await P(again)).playing, 8000, 'a kept song to play');
+    await again.evaluate(q => document.querySelector(q)?.scrollIntoView({ block: 'center' }), '#pod-music li:nth-child(1) .go'); await again.click('#pod-music li:nth-child(1) .go'); await until(async () => (await P(again)).playing, 8000, 'a kept song to play');
     await again.uncheck('[data-pod-keep]'); await wait(500);
     const left = await again.evaluate(() => new Promise(res => { const r = indexedDB.open('darknet-pod-music'); r.onsuccess = () => { const db = r.result; if (!db.objectStoreNames.contains('songs')) return res(0); const q = db.transaction('songs').objectStore('songs').count(); q.onsuccess = () => res(q.result); }; r.onerror = () => res(-1); }));
     assert.equal(left, 0); await again.evaluate(() => VoidPodMusic.clearMine()); await again.close();
