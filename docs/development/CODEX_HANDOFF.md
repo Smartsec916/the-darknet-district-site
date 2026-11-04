@@ -8,11 +8,40 @@ Written 2026-11-04 by Claude Code Cloud at David's request. Repository: `Smartse
 
 ---
 
+## 0. Update: second session (2026-11-04, evening). Read this before the rest
+
+**The starting point has moved.** Start from the tip of branch **`claude/first-test-readiness`** (draft PR #194 against `integration/codex-start`). It is `integration/codex-start` (`71e45fc`) plus the commits below. Nothing was merged to `main`, nothing was deployed, no production data, configuration or secret was touched, no existing PR was closed, and no unverified asset was imported.
+
+| Change | Where | Why |
+|---|---|---|
+| **Device gate.** Phones, touch-only tablets and browsers without WebGL get a landing page and download **no** game script, stylesheet, model or engine file and register **no** service worker; desktops (including Windows touch machines such as the ROG Ally, Macs, Chromebooks and Linux) start the game exactly as before. A touch-only tablet gets a "try anyway" choice; a phone never does. | `void-runner/device-gate.js`, `void-runner.html` (every game script and stylesheet is inert until the gate releases it), `static/void-runner.html`; tests `tests/device-gate.test.cjs` (9), `tests/device-gate-browser.cjs` (9) | David: the 3D game is desktop-first; phones keep the regular website. |
+| **Back to website** button in the main menu; **download an earlier campaign as a backup** button | `void-runner/menu.js` | A way home; a way to keep a file of an old save. |
+| **Safer save retirement.** A retired campaign is copied to `...campaign-v1.retired`, then `.retired.2`, `.retired.3` ... , each copy is checked to read back identical, and only then is the active slot freed. If the copy fails the original is left alone and saving is switched off. **This fixes a real data-loss path**: before, a second retired campaign was deleted with no copy kept. | `void-runner/campaign.js` (`retireLegacy`, `retiredKeys`), `game.js`; tests in `tests/legacy-retirement.test.cjs` | David: reversible, non-destructive migration. |
+| **Website playlist is OFF by default in the game** (`WEBSITE_PLAYLIST=false`); the pod player then offers **My music** only and works fully. One line turns the 27 songs on. | `void-runner/pod-music.js`; `docs/development/MUSIC_LICENSING.md` | Rights not yet verified (section 9.2). |
+| **Homepage unchanged.** The `ENTER THE DARKNET DISTRICT` button (PR #176's homepage change) is now an isolated patch that is **not applied**. `index.html` and `accents.css` are byte-identical to `main`. | `docs/development/homepage-entry/activate-homepage-entry.patch` | David: prepare it, do not publish it. |
+| **Unlisting commit** (revert it to list the game): the shop's game equipment card is removed, the game is removed from `sitemap.xml`, and the game page carries `noindex`. The Games page card was already removed by #176. | `store-first-page.html`, `static/store-first-page.html`, `sitemap.xml`, `void-runner.html` | The live site links the old game from three public places today; an unlisted test needs them gone. |
+| Small District fixes: the scanner prompt "[E] PRESENT BADGE TO SCANNER" now goes away once the badge is held (it stayed on screen after "Scan accepted"); a quiet "MUSIC" world marker for the pod music screen. | `void-runner/neochinatown.js`, `void-runner/world-markers.js` | Found by looking at the screenshots. |
+| Tests retargeted to the new reality: the entrance is checked through the patch, the live homepage is checked unchanged, the smoke test allows only the known decorative teaser downloads, the transition test compares street counts with the largest warm trip. | `tests/*` | See known issue 13 and 14 in section 7. |
+| New documents | `docs/development/FIRST_LIVE_TEST_RUNBOOK.md` (what merging triggers, backup, rollback, checklist), `MUSIC_LICENSING.md`, updated `TESANA_ASSET_AUDIT.md` | |
+
+**Commits on the branch (oldest first):**
+- `251edd4` First-test readiness: device gate, safer save retirement, back-to-website link, music licensing record
+- `6a09407` Keep the homepage exactly as on main; the ENTER THE DARKNET DISTRICT button becomes an isolated, not-applied patch
+- `e5f29d9` Unlist the game from public navigation for the first test (one reviewable commit; revert it to list the game again)
+- `5be0d4a` Smoke test: the live homepage has no entrance button (it is an isolated patch)
+- `c2db80f` Smoke test: allow only the known decorative teaser downloads on the live homepage
+- `2ed9789` Docs: first live test runbook; second attempt to verify Tesana terms; AI-output copyright caveat
+- `965832a` World marker label for the pod music screen; BUILD for the first-test readiness work
+- `6be2799` Hide the scanner prompt once the visitor badge is held; transition test compares with the largest warm trip
+- `11144e6` Lighting probe tool; areas browser test counts the pod music screen
+
+**Final GO / NO-GO for the first unlisted live test: CONDITIONAL GO for a desktop-only, unlisted test; NO-GO for publishing the homepage button, and for switching the 27 songs on, until the items below are done.** (details in section 12).
+
 ## 1. Executive summary
 
 - **What exists.** A Babylon.js 3D game (VOID//RUNNER) whose first location is now The Darknet District in NeoChinatown: a new campaign starts in the alley outside the District's double doors with no ship and no missions; the player passes a security door into the District interior (hall, bar, VR arcade, vending, sleeping pods, meeting room, stairs), talks to Admin and the in-game Iris, rests in a pod to save, and can walk back out to the street. The street and the interior are separate loaded environments joined by a short transition. Old (pre-reset) campaigns are retired, share links are removed, and the empty landing pad has no invisible collision box. A wall-mounted music player in the sleeping-pod room plays the website playlist or the player's own songs, privately, with a spectrum and music-reactive lights.
-- **Where it is.** All of this is spread over **16 open pull requests** (a stack of 14, plus 3 docs-only plans, plus the music player). I merged the whole stack, plus the music player, into **one tested integration branch: `integration/codex-start`**. That is your starting point. **Nothing is merged to `main`, nothing is deployed, no production data was touched.**
-- **Is it ready for a live test?** For a **desktop-only unlisted test: nearly.** Three small things must happen first (a phone gate in the game page, a link back to the normal website, and a decision on the website playlist's music). See section 12. The homepage graphic ENTER change is the next task (section 10) and is **not** part of the first test.
+- **Where it is.** The work is spread over **17 open pull requests** (a stack of 14, three documentation-only plans, the music player, the handoff, and now PR #194). The whole stack plus the music player is merged into the tested branch `integration/codex-start`, and PR #194 (`claude/first-test-readiness`) adds the second session's work on top. **Start from `claude/first-test-readiness` (section 3).** **Nothing is merged to `main`, nothing is deployed, no production data, configuration or secret was touched, and no PR was closed.**
+- **Is it ready for a live test?** For a **desktop-only, unlisted test: conditionally yes** (section 12.5). The phone gate, the way back to the website, the unlisting, safer save retirement and a rollback runbook are done and tested. What remains needs David: back up his save, check the Render setting, run it once on his own PC with a real GPU, and decide the playlist. The homepage button is prepared as an isolated patch and is **not** part of the first test.
 - **Not built (documentation only):** multiplayer, the shared-room hub, mobile chat, friends, automatic cloud saves, the session lease, wake-in-a-pod, pod allocation, character customization, shared VR, the Tesana pod re-build. These are in the PR #191 plan.
 
 ## 2. Current repository state
@@ -47,26 +76,26 @@ Notes: the stack uses "base = previous PR's branch", so the PR page for #177 to 
 | Branch | Commit | What it is |
 |---|---|---|
 | `integration/darknet-district-preview` | `dc986ef` | Everything in #176 to #190 except #184 (obsolete). **Was never pushed before this handoff.** Pushed now so nothing is lost. |
-| **`integration/codex-start`** | **tip of the branch (code identical to `2d41fae`; later commits are documentation only)** | `integration/darknet-district-preview` + PR #192 (pod music), with the wall screen moved into the interior-only build, + this handoff and the Tesana audit. **Recommended start.** |
+| **`claude/first-test-readiness`** | the tip of the branch (draft PR #194, base `integration/codex-start`) | **Current recommended start.** `integration/codex-start` plus the changes in section 0. |
+| `integration/codex-start` | the tip of the branch (code identical to `2d41fae`; later commits are documentation only) | `integration/darknet-district-preview` + PR #192 (pod music), with the wall screen moved into the interior-only build, + the first handoff and the Tesana audit. The base of PR #194. | |
 
-What `integration/codex-start` does **not** contain: #184 (share-link guest policy; obsolete, see 2.4), #191 (docs only; read it from its branch), and anything newer than the heads above.
+What `integration/codex-start` and `claude/first-test-readiness` do **not** contain: #184 (share-link guest policy; obsolete, see 2.4), #191 (docs only; read it from its branch), and anything newer than the heads above.
 
 ### 2.4 PR #184
 Share-link guest policy. Share links are retired (`#189`), so the feature is obsolete. The two fixes inside it were kept elsewhere: the invisible Kestrel box (now `#190`) and the boarding-prompt gating on `shipAccess:'none'`, which **the pod-start work (PR 2 in section 12 of #191) must port**. Do not close #184 until David says so.
 
 ## 3. Recommended starting branch and commit
 
-**Start from the tip of `integration/codex-start`.** Its code is identical to commit `2d41fae` (the merge of #192 into the integration build); every later commit on it is documentation only. Reasons: it already contains the 14-PR stack and #192, merge conflicts are resolved, the Node suite passes there, and the in-game browser checks listed in section 6 were run on it.
+**Start from the tip of `claude/first-test-readiness`** (draft PR #194 into `integration/codex-start`; it contains `integration/codex-start` at `71e45fc` and the second session's work). Tested on that tip: see section 6.2. Do **not** start from `main`, and do not re-merge the individual PRs.
 
 ```bash
 git clone https://github.com/Smartsec916/the-darknet-district-site
 cd the-darknet-district-site
 git config core.autocrlf false          # many files have mixed or CRLF line endings: never let git rewrite them
-git checkout integration/codex-start
+git checkout claude/first-test-readiness
 git switch -c codex/<topic>             # new work on a new branch from here
 ```
-
-Do **not** start from `main` (it lacks all of this), and do not re-merge the individual PRs: the integration branch already did, and re-merging reintroduces the conflicts that were resolved.
+If David has reviewed and merged PR #194 into `integration/codex-start` first, start from that branch instead (same code).
 
 ## 4. PR dependency map and recommended integration order
 
@@ -102,9 +131,15 @@ main
 | In-game pod music (wall screen, own songs, website playlist, spectrum, reactive lights) | Built; tests in section 6 | #192 |
 | Wake in a pod, Exit Pod, ship return, automatic cloud save, session lease | **Documentation only** | #191 sections 5 and 12 |
 | Multiplayer hub, rooms, presence, chat, direct messages, friends, directory | **Documentation only** | #191, #186 |
-| Mobile social interface | **Documentation only**; see 13 | #191 |
+| Mobile social interface | **Documentation only**; see 12.2 | #191 |
 | `Guest####` handles and rename | **Documentation only** (a handle system for the site exists: `docs/PUBLIC-HANDLES.md`) | #191 section 3 |
 | Character customization, shared avatars, shared VR, shared companions | **Documentation only** | #191 |
+| **Device gate:** phones, touch-only tablets and browsers without WebGL get a landing page and download no game file; desktops start as before | Built, tested (unit and emulated browsers); **not tried on a physical phone** | PR #194 |
+| **Safe save retirement:** numbered verified copies, a menu download, the slot freed only after the copy checks out | Built, tested | PR #194 |
+| **Back to website** button in the main menu | Built, tested | PR #194 |
+| **Unlisting** of the game (shop card, sitemap, noindex); homepage **unchanged**; the ENTER THE DARKNET DISTRICT button as an isolated patch | Built, tested; the patch is **not applied** | PR #194 |
+| Website playlist **off by default** in the in-game player | Built, tested | PR #194 |
+| First live test runbook (what merging triggers, backup, rollback, checklist), music licensing record | Written | PR #194 |
 | Pod interior re-build from the Tesana pod | **Audit only** | `TESANA_ASSET_AUDIT.md` |
 | Missions, spaceflight, factions, VR arcade, companions, voices | Exist in code from earlier work; missions are intentionally closed for new campaigns (`missionPool:'closed'`); not retested in this handoff | earlier PRs, `VOID_RUNNER_HANDOFF.md` |
 
@@ -124,32 +159,34 @@ node tests/integration-smoke-browser.cjs   # whole-build smoke (integration bran
 Most `tests/*-browser.cjs` launch `channel:'msedge'`, which is not installed in Linux cloud containers: use Chromium with `--use-gl=swiftshader --enable-webgl --ignore-gpu-blocklist --no-sandbox` (Python or Node Playwright; Playwright is at `$(npm root -g)`, set `NODE_PATH`). **All browser results below used software rendering, not a real GPU.**
 
 ### 6.2 Results (all on 2026-11-04)
-| Suite | Branch | Result |
-|---|---|---|
-| `npm test` | `integration/codex-start` | **590 pass, 0 fail, 1 skipped (591 tests)** |
-| `npm test` | PR #192 branch | 531 pass, 0 fail, 1 skipped |
-| Python save and reset tests | `integration/codex-start` | 25 tests OK |
-| `tests.test_void_runner_api::test_actual_stripe_signature_verification` | plain `main` | Fails in the Claude sandbox on plain `main` too (environment); CI passes it. Not run elsewhere. |
-| Integration smoke, low and high | `integration/darknet-district-preview` | Pass |
-| CI stabilization smoke | same | Pass (one run flaked on timing; rerun passed) |
-| District areas browser | same | Pass |
-| District transition, low | same | Pass |
-| District transition, high | same | Passed a 6-trip run. A 3-trip run failed the test's own 25 percent allowance on the street's node count (1495, 1495, 1991); the count swings about plus or minus 20 percent with random pedestrians and returned to earlier values: **test noise, not a leak**. Suggested: loosen to about 40 percent (it is #187's test). |
-| In-game pod music, low | PR #192 branch | **20/20** |
-| In-game pod music, high | PR #192 branch, final commit `462ae157` | ****20/20** (software rendering, about 45 minutes; an earlier run's failures were slow-rendering timeouts and one small real bug, the late audio-ended message overwrite, now fixed)** |
-| In-game pod music, low | `integration/codex-start` | ****20/20**, including the check that the wall screen is visible in the rendered picture** |
-| Website Sleeping Pod smoke test | PR #192 branch vs `main` | 12/12 on both (page unchanged) |
+Everything below ran on **`claude/first-test-readiness`** at the commit shown in section 0 (the browser chain ran on `6be2799`; later commits are documentation or test-only and are listed). **All browser results used software rendering (SwiftShader), not a real GPU, and Playwright emulation profiles, not physical devices.**
 
-**Not run:** the full set of other browser scripts on the integration branch; anything with a real GPU; Firefox or Safari; any phone; the Render API with a real database; real Firebase login; the live site.
+| Suite | Result |
+|---|---|
+| `npm test` | **605 tests: 604 pass, 0 fail, 1 skipped** |
+| Python save and reset tests (`test_story_save`, `test_progression_save`, `test_reset_tool`) | 25 tests OK |
+| `tests.test_void_runner_api` | **15 of 16 pass.** The one failure, `test_actual_stripe_signature_verification`, fails the same way on plain `main` in this sandbox: it has `stripe` 16.1.0 installed while `requirements-void-runner.txt` pins `stripe>=12,<15`. An environment mismatch; CI installs the pinned version. Not run with the pinned version here. |
+| Device gate, unit (`tests/device-gate.test.cjs`) | 9 pass |
+| **Device gate, browser** (`tests/device-gate-browser.cjs`) | **9/9.** Pixel 7 and iPhone 13 emulation: the landing page, **3 requests in total and none from the game**, no service worker, no sideways scrolling, a working link to the website; a phone asking for the desktop site is still a phone; a phone cannot force its way in; an iPad profile gets the landing page and the "try anyway" choice really starts the game; a desktop (also a 420 px wide window) starts the game and shows the menu; weak hardware starts on Low once and never overrides a player's choice. |
+| Pod music, **low** | **21/21** |
+| Pod music, **high** | **21/21** on the integrated branch (about 12 minutes of software rendering). On the earlier PR #192 branch: 20/20 at high, the final bug fixes included. |
+| Integration smoke, low and high (guest new campaign: no ship, no missions, empty pad; a pre-reset save is retired with a copy kept; old share links open the menu; the mobile homepage) | **Both pass** |
+| District transition, **low**, 3 trips | **Pass** (security checkpoint and airlock, no leaks, saved location inside and outside, legacy retirement) |
+| District transition, **high**, 6 trips | **Pass** |
+| District areas browser | **Pass** at low and high (the interior has 12 interaction points including the pod music screen; the street has 4). |
+| **Website navigation** (`tests/site-navigation-browser.cjs`, bundled Chromium): all 12 pages on desktop and phone, keyboard stops and focus, the Sleeping Pod page keeps its music and lighting controls with one Home link, and the real game starts and flies with no website navigation overlay | **Pass: 8 checks, 0 errors** (the only console noise is the shop's existing "ShopifyBuy is not defined") |
+| Website Sleeping Pod page (`sleeping_pod.html`, its spectrum script) | Byte-identical to `main`; its own smoke test passed 12/12 earlier on the same page |
+
+**Not run, or not possible here:** the CI "Babylon stabilization smoke" (its script has the port 5187 fixed in it; CI runs it on every PR); `tests/directory-panels-browser.cjs` and the other scripts that launch Microsoft Edge (not installed); anything on a real GPU; a physical phone or tablet; Firefox and Safari; the Render API with a real database; real Firebase login; the live site; a gamepad.
 
 ## 7. Known bugs and risks
 
 | # | Issue | Real bug or test artefact | Notes |
 |---|---|---|---|
 | 1 | High-graphics tier is at the GPU limit on lights (`GL_MAX_VERTEX_UNIFORM_BUFFERS` 14). PR #181's two extra lamps pushed the District interior from 12 to 14 lights and broke shader compilation; fixed in #181 by building them only for the street. **Any new light in the interior can break high.** | Real, fixed; remains a standing constraint | Pod re-build must not add lights (see audit). |
-| 2 | The game page does not stop phones: `unified-controls.js` gives touch devices on-screen controls and the game starts | Real; **blocker for the live test** | Section 12. |
-| 3 | The game has no link back to the normal website | Real; **blocker** | Section 12. |
-| 4 | Homepage: PR #176 replaces the Void Runner teaser with a separate ENTER button; David now wants the title graphic itself to be the entrance | Design conflict | Section 10. |
+| 2 | ~~The game page did not stop phones~~ | **Fixed** by the device gate (section 0) | Needs a check on a real phone. |
+| 3 | ~~The game had no link back to the normal website~~ | **Fixed**: a Back to website button in the main menu | |
+| 4 | Homepage: PR #176's entrance button | **Isolated as a not-applied patch** (section 10) | |
 | 5 | Licensed city-pack buildings and the neon vending model are not in the repository (private repo `void-runner-licensed-assets`, injected by the Pages build); local preview shows stand-ins | Expected | Real look only on the deployed site or with the private assets. |
 | 6 | 404 retries for missing licensed models add about 11 s to local loads | Expected locally | |
 | 7 | District transition test counts: see 6.2 | Test artefact | |
@@ -158,6 +195,12 @@ Most `tests/*-browser.cjs` launch `channel:'msedge'`, which is not installed in 
 | 10 | In the Claude container `git push` appeared not to set a local remote-tracking ref (a hook complained); fixed by adding a fetch refspec | Environment | Ignore. |
 | 11 | GitHub GraphQL is blocked in Claude sessions (`gh pr create` fails); use `gh api repos/.../pulls` | Environment | |
 | 12 | Pod music: very slow software rendering at high needs scaled waits in `tests/pod-music-browser.cjs`; the test scrolls controls to the middle because the game's fixed footer covers the bottom 72 px of any panel | Test and layout notes | Panels need bottom padding (done in #192). |
+| 13 | **The live homepage's Void Runner teaser downloads the 3D engine and five game modules for every visitor, phones included** (`void-runner-backdrop.js`), for a decorative backdrop. Not changed (the homepage is untouched by design). Applying the homepage entry patch removes the teaser and this download. A tiny alternative if the homepage must change first: make `void-runner-backdrop.js` return early on touch-only devices. | Real, pre-existing, live | `tests/integration-smoke-browser.cjs` now allows exactly these six downloads and nothing else. |
+| 14 | The District transition test's street-count rule (25 percent over the smallest of the first two trips) failed on noise: counts 501, 749, 811 with the interior exactly stable (449) | **Test artefact, fixed**: compared with the largest warm trip; a real leak (40 percent or more a trip) still fails | |
+| 15 | Before this session a second retired campaign was **deleted without a copy** | **Real, fixed** (numbered verified copies) | `tests/legacy-retirement.test.cjs` |
+| 16 | The "[E] PRESENT BADGE TO SCANNER" prompt stayed on screen after the badge was issued | **Fixed** | `tests/district-areas.test.cjs` |
+| 17 | The live site links the old game from three public places (Games page, shop equipment card, `sitemap.xml`) | Handled by the unlisting commit; **reverting that commit lists the game again** | |
+| 18 | Interior lighting: see section 12.3 | Investigated, **not changed** | |
 
 ## 8. Development setup
 - **Static site, no build step.** Game scripts are classic (non-module) scripts loaded in order by `void-runner.html`; order matters. Babylon 8.26 is in `void-runner/vendor/`.
@@ -191,80 +234,80 @@ Two different questions are kept apart:
 
 **What changes in practice.** The licence is no longer the reason to reject the seven non-library vehicles, captain, elara and the station: they are rejected or held for *other* reasons in `TESANA_ASSET_AUDIT.md` (Kestrel and Meridian are canon, our CC0 ships already fill those roles, NPC identities must not change without approval, no animations). The ten shared-library models, including the two background pedestrians the audit flags as the most useful (`pedestrian_a`, `pedestrian_b`), **stay blocked until each is verified**. Nothing was imported, removed, replaced or modified as part of this verification, and nothing was merged or deployed.
 
-## 10. Homepage ENTER: implementation requirements (next Codex task, not done)
+## 9.2 Music: the 27-song playlist (details in `docs/development/MUSIC_LICENSING.md`)
+- All 27 songs are David's own, made with Riffusion / Producer.ai; "(Cover)" is Riffusion's label for his own remixes and is treated as such. Nothing suggests third-party compositions, and none was assumed.
+- David has a receipt for a paid **Starter** plan for **17 March to 17 April 2026**. **GitHub's history shows every one of the 27 songs was already in the repository between 19 May and 10 August 2025**, seven to ten months before that period. So the receipt **does not cover the period when the songs were made**. What plan David held in 2025 is unknown and needs his account history.
+- Riffusion's own terms could not be opened from the Claude session; secondary sources say free-tier output is non-commercial, paid plans give a licence (not ownership), and a later subscription is not retroactive. **Treat commercial rights as unverified.**
+- Explicit lyrics are not a reason to remove a song; they belong to the age policy, recorded separately.
+- **In the game the website playlist is OFF by default** (`WEBSITE_PLAYLIST=false`, `void-runner/pod-music.js`); "My music" is fully usable without it. One line, or `?sitemusic=1` / a local flag for testing in your own browser, turns the 27 songs on. The website's own player is unchanged, and the files stay public on the site as before.
 
-**David's request.** The large "THE DARKNET DISTRICT" graphic on the homepage becomes the entrance to the 3D game. Keep its look, size, placement, typography and effects exactly. The whole graphic area is clickable. A small label reading **ENTER** sits at the graphic's upper-left edge, slightly overlapping or just above it, in a restrained cyberpunk/terminal style (no cursive, handwritten or orange script), clearly visible but not overpowering the title. Clicking either launches the game's entry flow. Keyboard accessible with visible focus. The mobile layout and the existing mobile website are preserved, site navigation is preserved, and **phones must not launch the 3D game.**
+## 10. Homepage entrance: prepared, NOT published
+**David's latest wording:** the future homepage entry button must read **ENTER THE DARKNET DISTRICT**; it replaces the old Void Runner promotional entry **when approved**; it keeps the existing navigation; it works on desktop and mobile; there is **no second game entry or conflicting route**. (This supersedes the earlier idea of making the title graphic itself clickable with a small ENTER tag. One entrance only. Ask David if he also wants the title graphic to link to the same address.)
 
-**What the page is today (read from source on `main`, no screenshot used).**
-- `index.html`: the graphic is `<h1 class="cyberpunk-title" data-text="The Darknet District">The Darknet District</h1>` (about line 370, inside `<section class="first-section">`). Below it a "Void Runner under construction" teaser (`.tdd-vr`, `void-runner-backdrop.js`) and a "Beyond the District" link to `function/`.
-- Look comes from `style.css` (`.cyberpunk-title` at about line 394, with a `::before` glow, and a rule at about line 1028), and `accents.css` (`body.site-home .cyberpunk-title`: frosted panel, chromatic text shadow, `.tdd-edge` lines, `.tdd-ghost` slice glitch). `accents.js` (about lines 68 to 80) **inserts child spans into the h1** for the edge lines and ghosts. The page also has `window.enterTheDistrict` (a Firebase Google sign-in popup) in an inline module script, `iris-account.js` and `.district-account__button`, and the navigation (`home-navigation.css`, `district-nav`).
-- **PR #176** already changes this page: it removes the teaser and `void-runner-backdrop.js` and adds a **separate** button `ENTER THE DARKNET DISTRICT` plus "No account needed" text and a Log in link, and edits `accents.css`, `games-list.html`, `store-first-page.html` and their `static/` copies. **That conflicts with David's new wording** (the graphic itself is the entrance). Decide with David whether to keep #176's access text and Log in link; build the new entrance on top of the integration branch's `index.html`.
+**State.** PR #176's homepage change is exactly that button (it replaces the "Void Runner / under construction" teaser, adds the line "No account needed. Guest progress stays in this browser." and a Log in link). It is **not on this branch's homepage**: it is saved as `docs/development/homepage-entry/activate-homepage-entry.patch`. `index.html` and `accents.css` are byte-identical to `main`, so merging this branch does not publish the button.
 
-**Recommended approach (smallest change that keeps every effect).**
-1. Wrap the existing heading, do not change it: `<div class="tdd-title-wrap"><a class="tdd-title-link" href="void-runner.html" data-enter-game aria-label="Enter The Darknet District, the 3D game"><h1 class="cyberpunk-title" ...>…</h1></a><span class="tdd-enter-tag">ENTER</span></div>`. An `<a>` may contain an `h1` in HTML5. Leaving the h1, its classes and its generated children alone preserves `accents.css` and `accents.js`.
-2. The wrapper is `position:relative; display:block` with the h1's own `max-width`/margins untouched. The label is `position:absolute; top:-0.6em; left:6%` (just above or slightly overlapping the upper-left edge), small monospaced uppercase, thin cyan/green border, dark translucent background, letter-spacing about 0.25em, in the site's green (`#00ff9d`) so it matches the existing glow; no animation beyond a subtle focus/hover brighten, and none under `prefers-reduced-motion`. It is `aria-hidden` (the link already has a name) and `pointer-events:none` (the anchor is the click target).
-3. **Keyboard and focus:** one tab stop (the anchor). Add `.tdd-title-link:focus-visible{outline:2px solid #00ff9d;outline-offset:4px}` and a matching hover state.
-4. **Entry flow:** the link goes to `void-runner.html`, the game's own menu (guest or account entry already works there: "Campaign, New or Continue"; account via Firebase). Keep the existing `window.enterTheDistrict` sign-in popup for the account button only.
-5. **Phones:** do not link on phones. Add a small script that runs the same device test the game uses (`unified-controls.js`: touch-first unless Windows) before enabling the link: treat `(pointer:coarse)` without a fine pointer, or a phone user agent, or a short screen side under about 820 px as "phone". On a phone, remove the `href`, hide the ENTER label, and leave the heading exactly as it is today. Tablets: David has not decided (ask). The ROG Ally (Windows, touch plus gamepad) must count as desktop.
-6. **Game-side guard (required with this change):** `void-runner.html` must also stop phones that open the URL directly (see section 12 blockers).
-7. **Do not** remove or alter the navigation, the Iris widget, the account button, or the mobile CSS (`@media` rules in `style.css` and `accents.css`). Add the new CSS to `accents.css` (where the title effects live), not inline.
-8. **Tests to add:** a browser test at 1440x900 and 390x844 (Playwright): the anchor contains the h1; the ENTER label is within a few pixels of the h1's upper-left edge; Tab reaches the link and shows an outline; on the 390 px phone profile there is no link and no label; the h1's computed styles are unchanged from `main`; the page makes no new network requests. Update `tests/site-navigation*.cjs` and `home-navigation-browser.cjs` if they pin the old markup, and keep the `static/` copy of any changed page in sync only if that page is mirrored.
-9. Ship it **after** the unlisted desktop test works and only with David's approval (it exposes the game to every visitor).
+**What the patch touches:** only `index.html` and `accents.css`. It applies cleanly to `main`'s files (checked by `git apply`, and by tests). It also removes the teaser's `void-runner-backdrop.js` (and with it the 3D download on phones, known issue 13).
+
+**Checked visually** (desktop 1440x900 and a Pixel 7 phone, side by side with the live page, patched copy served from a scratch folder): the button uses the site's cut corners and green glow, sits where the teaser was, does not overflow on a phone, and the navigation is unchanged.
+
+**To activate (Codex, after David's approval):** `git apply docs/development/homepage-entry/activate-homepage-entry.patch`. The three tests that read the entrance through the patch (`tests/darknet-entrance.test.cjs`, `tests/share-links-removed.test.cjs`, and the smoke test's mobile-home step) must then read `index.html` directly; each says so. Then run `npm test` and the site-navigation browser test.
+
+**Phones:** the button leads to `void-runner.html`, where the device gate shows the landing page (no 3D, no game download, a link back). If David prefers, the button can also be hidden on phones with a small script that uses the same device test (`void-runner/device-gate.js` exports `classify`).
 
 ## 11. First playable website milestone
 
 "**Desktop Darknet District, unlisted.**" On a desktop browser, opened by typing the game's URL (not linked from the homepage): choose New (guest, no account), start in the alley, walk, enter the security door, see the District interior, talk to Admin and Iris, rest in a pod (saves locally), play music at the pod-room wall screen, walk back out, reload and Continue, and return to the normal website from the menu. No missions, spaceflight, multiplayer or mobile.
 
-## 12. Deployment readiness assessment
+## 12. Deployment readiness assessment (updated)
 
 ### 12.1 Desktop 3D test
 | Item | Status | Evidence / gap |
 |---|---|---|
-| Desktop game launch | Ready | All browser suites; main menu loads. Not yet checked in David's real Edge/Chrome with a real GPU. |
-| Guest entry | Ready | New campaign without an account; saves local. |
-| Account entry and cloud save | **Unverified live** | Needs Firebase auth and the Render API, which were never reachable from the sandbox. The Render side must accept the new campaign epoch (`void_runner_api.py` in #188) **before** the new client is used with an account, or cloud saves will be refused with a clear message. How Render deploys (auto from `main` or manual) is not in this repository: ask David. |
-| Sleeping Pod starting experience | **Not built.** A new campaign starts in the alley, not in a pod (wake-in-a-pod is PR 2 of #191). "Rest in a pod" only saves. | Acceptable for the first test. |
-| Movement and camera | Ready | |
-| District interior exploration | Ready | Interior builds in about 230 meshes. |
-| NPC interactions | Ready but minimal | Admin and the in-game Iris answer with short notices; no missions offered (by design). |
-| Security-door transitions | Ready | #187; tested low and high, 3 trips, leak checks, saved location. |
-| NeoChinatown street | Ready | Without licensed building models the stand-ins show locally; real models only on the deployed site. |
-| Persistence without damaging saves | Ready with a precaution | #188 copies a legacy local campaign to `void-runner-campaign-v1.retired`, removes the active slot, and shows a notice. It never deletes cloud records. **Because the test is on the same origin as the live game, David's existing local save would be retired on first load: have him back it up first (copy of `localStorage` key `void-runner-campaign-v1`).** |
-| Pod music | Ready | #192. |
-| Return to the normal website | **Missing** | The game page has no link home. Add a "Back to website" link (to `/`) in the main menu and pause menu. |
-| Phones | **Missing guard** | See 12.2. |
+| Desktop launch | **Ready** | Smoke, transition, areas and navigation suites at low and high; real-GPU run still needed (12.5). |
+| Guest entry | **Ready** | Smoke: a new local campaign with no ship, no missions, an empty landing pad. |
+| Account entry and cloud saves | **Unverified live** | Needs Firebase and the Render API, unreachable from the sandbox. The API change is in `FIRST_LIVE_TEST_RUNBOOK.md`; whether Render redeploys on merge is **not in the repository** and David must check. |
+| Server and session selection | **Not built** (documentation only, PR #191). The test is single-player. | |
+| Arrival at the District security entrance | **Correct as is: kept.** A new campaign starts in the alley at local (0, 17), three metres before the outer security door (door at local z 20), facing it. | Smoke test "new campaign". |
+| Double doors, vestibule, transition | **Ready.** Screenshots reviewed: SECURITY CHECKPOINT, the interior hall with its neon and VR / ARCADE sign, the AIRLOCK panel, the alley. | #187; 3 trips at low, 6 at high. |
+| Admin, Iris (in-game), NPCs, VR Play, shop, vending, sleeping pods, meeting room | **All present as interaction points** (12 inside); NPC answers are short notices, no missions by design | `tests/district-areas.test.cjs`. |
+| Wake in a pod | **Not built** (PR 2 of #191). Resting in a pod saves. | Acceptable for the first test. |
+| NeoChinatown street | **Ready**, with stand-ins for licensed buildings locally | |
+| Persistence without damaging saves | **Ready**: verified numbered backups; menu download; runbook backup procedure | Section 12.4. |
+| Pod music | **Ready**; website playlist off by default | |
+| Return to the website | **Ready**: "Back to website" in the main menu | |
+| Phones and tablets | **Ready in emulation**; not tried on a physical phone | Device gate. |
+| Unlisted | **Done in one commit** (shop card, sitemap, noindex; Games page already unlisted). The homepage still shows the Void Runner teaser, which links nowhere. | Revert the unlisting commit to list the game. |
 
-**Minimum blockers (smallest changes):** (1) phone gate in `void-runner.html`; (2) "Back to website" link; (3) David's decision on whether the website playlist (27 songs, some titled "(Cover)" or with strong language, publicly served from `attached_assets/`) ships in the test, or only "My music" does (a one-line change: leave the website list empty); (4) David backs up his local save; (5) a run in his real browser on his GPU. **Can wait:** multiplayer, missions, spaceflight, mobile social, customization, finished art, wake-in-a-pod, the pod re-build, the ENTER homepage graphic.
+### 12.2 Desktop versus phones and tablets (David's rule)
+The game is **desktop-first**. The device gate (section 0) decides with several signals together (pointer type, screen size, platform, user agent, input hardware, cores and memory, WebGL), never width or user agent alone, and a small desktop window is still a desktop.
+- **Desktop and Windows touch machines (the ROG Ally, Surface), Macs, Chromebooks, Linux:** the game, keyboard and mouse, the existing gamepad support, and Low graphics chosen once for weak hardware (never over a player's own choice).
+- **Phones:** never the game; a landing page that says so, links back to the website, and **does not claim social features exist**.
+- **Tablets:** touch-only tablets get the landing page with a "try anyway" choice; a tablet with a mouse or trackpad, at least 4 cores and 4 GB is let in. (David asked to allow suitable devices where practical: confirm this policy.)
+- **Browsers without WebGL:** an explanation and the way back.
+- **Mobile social features** (global chat, direct messages, friends, player directory, notifications): **documentation only** (PR #191 section 12, items 3, 4, 6, 7, 8). They depend on the hub skeleton and authentication, `Guest####` identities, chat with baseline safety and the age policy. **No code exists. The desktop test does not wait for them.**
 
-### 12.2 Desktop versus phones (David's rule)
-The game is **desktop-first**. Phones keep the existing mobile website and navigation, **never load or run the 3D game**, and later get a lightweight mobile social interface (global text chat, direct messages, friends, player directory, notifications) that talks to desktop players inside the game, without entering a pod or starting a 3D session.
-- **Today:** phones that open `void-runner.html` do start the game with on-screen touch controls. The gate must go **before any Babylon, asset or save code loads**: show a short message ("The Darknet District 3D game is for desktop computers. Use the website on your phone.") with a link home; do not touch saves. Test with Playwright's Pixel 7 profile and with a desktop profile (the ROG Ally must pass).
-- **Mobile social status:** **documentation only** (PR #191 section 12, items 3, 4, 6, 7, 8; PR #186 earlier). Depends on: the hub skeleton and authentication (PR 4), `Guest####` identities (PR 3), chat with baseline safety (PR 5), and the age-policy decision. No code exists. **Do not delay the desktop test for it.** The homepage ENTER must not launch the game on phones (section 10, item 5).
-
-### 12.3 Performance (software rendering only; no GPU numbers exist)
-| Measure (from the transition test) | Low | High |
+### 12.3 Performance and lighting (software rendering only; no GPU numbers exist)
+| Measure (transition test) | Low | High |
 |---|---|---|
-| Street, meshes / lights / textures / nodes | about 430 / 3 / 190 / 690 | about 570 / 6 / 208 / 1495 |
-| Interior, meshes / lights / materials / nodes | 230 / 2 / 161 / 449 | 230 / 12 / 167 / 449 |
-- The interior is the same size at both tiers; high adds lights and the high tier is already at the GPU light limit (known bug 1).
-- Lower-resolution desktops: the pod music panel and layouts were checked at 1280x720 (the game's footer covers the bottom 72 px; panels need bottom padding). Not checked at 1366x768, 1024x600 or high-DPI scaling. **Measure real frame rates on David's PC and the ROG Ally before and during the test** and report low versus high.
+| Street: meshes / materials / textures / lights / scene nodes (varies with the random pedestrians, so a range over the trips) | 439 to 467 / 213 / 191 to 194 / 3 / 749 to 935 | 540 to 622 / 214 / 205 to 214 / 6 / 1309 to 1867 |
+| Interior: meshes / materials / textures / lights / scene nodes (identical on every trip) | 234 / 164 / 56 / 2 / 449 | 234 / 164 / 59 / 12 / 449 |
+- **Lighting investigation (the "about 13 lights" question).** The 13-light figure is the **Tesana pod's** lighting, not the game's. The game's District interior has, at high graphics, **10 point lights plus the sun and one ambient light (12 in total)** and **none at low** (just the two scene lights). The pod room has a single pink lamp. Measured with `tools/lighting-probe.cjs` on the real interior at high graphics: the scene has 12 lights; **all 157 rendered surfaces use Babylon's default of 4 lights per material**, and each lists all 12 lights as sources but **compiles only the first four**: the ambient light, the sun, and the two point lights nearest the entrance, at (0, 23) and (-10, 36). **The other eight point lights, including the pod room's pink lamp (the 9th light), the bar, shop and VR lights and the two hall lights, light none of those surfaces.** At low there are no point lights at all. This matches the screenshots: the pod wall is dark apart from its glowing hatch rings, so the mood comes from emissive neon, signs and rings, not from the lamps. Consequences: (1) removing the eight inactive lights would change nothing on the static scenery, and adding lights would light nothing and would raise the GPU risk (known bug 1); (2) the music-reactive pod lighting works through emissive materials (the new wall strip, the ceiling panels, the pod glow), which is why it is visible; the pod lamp's reaction is not; (3) the real improvement is to choose lights **by area**: split the merged static meshes per room and give each room its own lights with `light.includedOnlyMeshes`, or put the mood into emissive and lightmap textures; both are larger changes that need measurement on a real GPU, so **none was made**. The Tesana pod's roughly 13 lights must be reworked the same way. (Why two extra entrance lamps once broke the high tier with a uniform-buffer overflow is not explained by these numbers and was not investigated further.)
+- **Lower-resolution desktops:** the music panel and layouts were checked at 1280x720 and the transition tests at 1100x640; the game's fixed footer covers the bottom 72 px of any panel (panels have bottom padding). 1366x768, 1024x600 and display scaling were not checked.
 
-### 12.4 Safe deployment plan (nothing deployed)
-**How the site is published.** `.github/workflows/pages.yml` builds `_site` with `tools/assets/build-pages.cjs` (every tracked file except paths starting with `.` or `_` and `exports/`; adds the encrypted licensed models from the private repo using secrets `LICENSED_ASSETS_TOKEN` and `VOID_ASSET_KEY`; stamps the service-worker `BUILD` with the commit). It runs on every pull request (build and checks only) and **deploys on a push to `main`** (also by manual run). There is no separate staging site.
+### 12.4 Deployment, safety and rollback
+The full account is in **`docs/development/FIRST_LIVE_TEST_RUNBOOK.md`**: what a merge to `main` triggers (GitHub Pages publishes automatically; Iris and Neon are not affected; the game API's Render deploy setting is **unknown and needs David**), the service-worker and storage effects, the backup and restore procedure, rollback of code **and** browser state, and the checklist. Key points: use the existing `/void-runner.html` (no `/district-test/` copy; it would need its own service-worker scope and would still share saves); revert the merge commit to roll back the site; **reverting code does not restore browser storage or caches**, so back up first and use the restore snippet.
 
-**Unlisted route.** The game already lives at `https://thedarknetdistrict.com/void-runner.html`, and the homepage does not link to it ("Under construction"), so it is *already unlisted*. A second copy under `/district-test/` is **not recommended**: the game uses relative paths, a root service worker (`/void-runner-sw.js`) and shares browser storage with the same origin; a copy would need a `<base>` tag and its own scope, and would still share saves. Use the existing URL, keep the homepage as is (do **not** take #176's `index.html`, `accents.css`, `games-list.html`, `store-first-page.html`), and do not link it anywhere.
+### 12.5 GO / NO-GO
+**CONDITIONAL GO** for the first unlisted **desktop** test at `/void-runner.html`, on these conditions (all need David, none has been done):
+1. **Back up the local save** first (runbook section 3).
+2. **Check the Render setting** for the game API (Auto-Deploy on or off, which branch). Merging to `main` publishes the website either way.
+3. **Run the game once on his own PC and on the ROG Ally** from a local copy (`START-PREVIEW.bat`) and read the frame rates at Low and High and the look of the licensed buildings. Every number so far is software rendering.
+4. **Decide the playlist.** The default (27 songs off in the game, My music on) is safe. Switching them on waits for the Riffusion evidence (section 9.2): every song predates the paid receipt.
+5. Confirm the **unlisting commit** and the **tablet policy**.
 
-**Steps (each needs David's approval; none has been done).**
-1. On a branch from `integration/codex-start`, restore the homepage and the two site pages from `main` (`git checkout main -- index.html accents.css games-list.html store-first-page.html static/games-list.html static/store-first-page.html`), add the phone gate and the "Back to website" link, decide the playlist, bump `BUILD`, regenerate the inventory, run all tests.
-2. Confirm with David how the Render API deploys and that the API in #188 is deployed **before** (or with) the client. Do not run the production save reset (`tools/reset-void-runner-saves.py`); it needs his typed approval and a backup file.
-3. David backs up his local save. Open the PR to `main`; the PR build proves the Pages build works (including the encrypted models).
-4. Merge (David's decision) → Pages deploys. Then test, in order: homepage and normal pages unchanged (spot check); `/void-runner.html` loads with no console errors; guest New works; District, door, pod, music; WebGL compatibility in Edge and Chrome; a phone opens the normal site and shows the gate on the game URL; Iris widget absent on the game page (a test asserts it); reload and Continue.
-5. **Authentication and guest entry:** guest works offline; account login needs the live API.
-6. **Iris isolation:** `void-runner.html` and its scripts load no Iris chat; keep it that way (`chatbot.html`, `iris-*.html`, `identity_api.py` are the website's).
-7. **Production data safety:** the client moves only the browser's own legacy campaign to a `.retired` key; the API refuses legacy saves with a 409 and never deletes; nothing is written to Neon or Firestore by this build except normal saves.
-8. **Music licensing:** the website playlist is already public on the site, but streaming it in the game extends its reach. Safest first test: ship **My music only** (leave the website list empty) and add the copyright-free generative synth tracks later (audit H6). David decides.
-9. **Rollback:** a revert of the merge commit on `main` (`git revert -m 1 <merge>`) and a push redeploys the previous site within minutes (the workflow stamps a new `BUILD`, so browsers drop the new cache). Players' campaigns survive a rollback: the `.retired` copy stays and the old client still reads the active slot only if it was never removed; to restore a retired save, copy `void-runner-campaign-v1.retired` back to `void-runner-campaign-v1`. If the API was changed, revert it the same way and note that Render may need a manual redeploy.
-10. No paid service is needed to test the single-player game.
+**Why GO:** every automated suite passes on the final branch (section 6.2); the game starts and plays through the new device gate in a desktop browser at low and high; phones get a landing page with no game download; a second retired campaign can no longer be lost; the game links home; the homepage is unchanged; Iris, Neon and production data are untouched; rollback is documented, including browser state.
+
+**Why not more than conditional:** no real GPU, phone, Firefox or Safari was available; the device gate rewrites how the page loads its scripts (it writes them back in order with `document.write`, which Chromium handles; other browsers are untested); the game API's deploy behaviour is unknown; and music rights are unverified. **This turns to NO-GO if** item 3 shows unplayable frame rates at Low on the target PC, if the browser console shows errors on the live page after deploy, or if the Render API rejects a guest or account save in a way the runbook does not cover.
 
 ## 13. Architecture decisions from PR #191 (`docs/void-runner/social-universe-architecture.md`, revision 2)
 Confirmed by David on 2026-11-04 (D1 to D10): every player has a display handle, picked or an automatic `Guest####`, never the database identity (an immutable internal id); development is local and free first, no paid hosting, the single Node hub is the accepted direction and the roughly $7 a month figure is **not** approved; automatic account-bound saving is a priority and every full 3D login starts in an available Sleeping Pod with the ship at the landing zone and no restored location; persistent social features need an authenticated identity and a local guest mode stays separate; one active 3D session per account (a newer login replaces the older one) while a mobile chat connection never ends a desktop game; multiplayer is strictly social, no shared combat or mission progress, shared companion state belongs to the session; chat safety from the beginning and public chat stays off until safeguards exist; build the pod allocator before the hallway geometry (the final hallway waits for David's floor plan); reuse existing character assets and no purchases; keep #184 until its fixes are moved.
@@ -277,18 +320,21 @@ Effort: the old 65 working days is a planning range (50 to 85), not a commitment
 Hub skeleton, auth and rooms; global, location and direct chat with block, report and rate limits; presence and Players Online directory; friends and invitations; shared avatars and customization; public and private VR sessions; shared companions; more station interiors; modular pod hallway; the **mobile chat page**. First two PRs when David approves: **(1) automatic account-bound saving with a session lease; (2) pod start and ship return** (replaces the location-resume code in #187 and #188 and ports the boarding-prompt gating from #184). Plan: #191 sections 5, 7 and 12.
 
 ## 15. Required approvals (none given for these)
-1. Merging anything to `main` (this deploys the live site).
-2. Whether the website playlist ships in the first test.
-3. Production save reset and any deletion of records (exact list and backup first).
-4. The age policy; hosting spend (none approved); the per-asset licences of the **10 Tesana shared-library models** (section 9.1; the plan-level ownership and commercial rights are already verified by David); vending machine content.
-5. Closing #184, #186, or any PR.
-6. Exposing the game on the homepage (the ENTER change); tablets policy.
-7. Raising the campaign epoch.
-8. Any new voice, Relay broadcast, story or mission content.
+1. **Merging anything into `main`** (this deploys the live site; and the game API too if its Render service auto-deploys from `main`; David checks that setting first).
+2. Review and merge of draft PR #194 into `integration/codex-start` (not `main`).
+3. **The website playlist:** keep it off in the game (default), or switch it on. Rights are unverified (section 9.2): David's 2025 Riffusion / Producer.ai receipts and song library dates are needed.
+4. **Applying the homepage patch** (section 10): wording, and whether the title graphic should link too.
+5. **The unlisting commit** (removes the shop's equipment card and the sitemap entry; adds noindex): keep for the test or revert.
+6. **Tablet policy:** the landing page with a "try anyway" choice, with capable tablets let in.
+7. **Production save reset** and any deletion of records (exact list and backup first). Not run.
+8. The **age policy**, hosting for a public launch, vending machine content, and per-asset licences for the **10 Tesana shared-library models**.
+9. Closing PRs (#184, #186, anything else). None closed.
+10. Raising the campaign epoch; any new voice, Relay broadcast, story or mission content.
 
 ## 16. First suggested Codex tasks (small, in order)
-1. Verify this branch builds the Pages artifact (`node tools/assets/build-pages.cjs` needs the private repo; otherwise open a PR and read the PR build) and run the tests in 6.1.
-2. Phone gate and "Back to website" link in the game page; tests.
-3. Playlist decision applied (empty list or kept).
-4. Homepage ENTER (section 10) on a separate branch, not merged until David approves.
-5. Then PR 1 and PR 2 of #191, on David's go-ahead.
+1. Read this file, `FIRST_LIVE_TEST_RUNBOOK.md` and `MUSIC_LICENSING.md`. Check out `claude/first-test-readiness`, run `npm test` and the browser commands in 6.1 (use a different port for the second checkout).
+2. With David: back up his save (runbook section 3); ask him to read the Render setting; decide the playlist; confirm the tablet policy and the unlisting commit.
+3. David's own-PC checks (runbook section 7): real frame rates at Low and High, the licensed buildings, Windows scaling, a gamepad.
+4. When David says go: open **one** PR from the branch to `main`; read the PR build and the three CI checks; **do not merge**.
+5. Afterwards, on separate branches: apply the homepage patch; then PR 1 and PR 2 of #191 (automatic saves with a session lease; wake in a pod); then the lighting work in 12.3.
+
