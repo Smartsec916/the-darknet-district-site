@@ -73,12 +73,15 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   await pg.goto(BASE);await ready();await pg.click('[data-action=menu-continue]');await settle('street',3000);s=await snap();console.log(q,'resumed outside',JSON.stringify(s));
   assert.equal(s.area,'street');assert.equal(s.interior,0);
   // 6. A campaign from before the District reset (no campaign epoch) is retired: not loadable, copy kept, slot freed, the main menu says so.
-  // The old-format save is planted before a fresh page loads (the open page could write its own campaign back as it unloads).
+  // The old-format save is planted in a brand-new browser context, so no earlier page is alive to write its own campaign back into the slot as it closes.
   const legacy=await pg.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('void-runner-campaign-v1'));delete raw.story.flags.campaignEpoch;return JSON.stringify(raw);});
-  await pg.close();await ctx.addInitScript(text=>{try{if(!localStorage.getItem('__legacyPlanted')){localStorage.setItem('__legacyPlanted','1');localStorage.setItem('void-runner-campaign-v1',text);}}catch(e){}},legacy);
-  pg=await open();await pg.goto(BASE);await ready();
-  const retired=await pg.evaluate(()=>({slot:localStorage.getItem('void-runner-campaign-v1'),copy:localStorage.getItem('void-runner-campaign-v1.retired'),cont:document.querySelector('[data-action=menu-continue]')?.disabled,text:document.body.innerText}));
+  await ctx.close();
+  const ctx2=await b.newContext({viewport:{width:1100,height:640},storageState:{cookies:[],origins:[{origin:new URL(BASE).origin,localStorage:[{name:'void-runner-graphics-v1',value:JSON.stringify({quality:q})},{name:'void-runner-campaign-v1',value:legacy}]}]}});
+  const pg2=await ctx2.newPage();pg2.on('pageerror',e=>errs.push(e.message));await pg2.route('**/api/**',r=>r.fulfill({status:503,body:'{}'}));await pg2.route(/firebase|gstatic|googleapis/,r=>r.abort());
+  await pg2.goto(BASE);await pg2.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:120000});await pg2.waitForTimeout(1500);
+  const retired=await pg2.evaluate(()=>({slot:localStorage.getItem('void-runner-campaign-v1'),copy:localStorage.getItem('void-runner-campaign-v1.retired'),cont:document.querySelector('[data-action=menu-continue]')?.disabled,text:document.body.innerText}));
   assert.equal(retired.slot,null,'the slot is freed');assert.equal(retired.copy,legacy,'a copy of the old campaign is kept');assert.equal(retired.cont,true,'Continue is unavailable');assert(/retired in the District reset/.test(retired.text),'the menu says so');
+  await ctx2.close();
   assert.deepEqual(errs,[],'no page errors');assert.deepEqual(warns.filter(w=>!/did not cycle/.test(w)),[],'no seam or transition warnings');
-  console.log(q,'ok');await ctx.close();}
+  console.log(q,'ok');}
  await b.close();})().catch(e=>{console.log('FAIL',e.message.split('\n')[0]);process.exit(1)});
