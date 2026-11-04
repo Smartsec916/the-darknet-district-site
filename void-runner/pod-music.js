@@ -47,7 +47,7 @@
   audio=new Audio();audio.preload='auto';audio.volume=volume;
   link=root.VoidAudio?.connectMedia?.(audio,'music')||null;
   if(link){try{analyser=link.context.createAnalyser();analyser.fftSize=1024;analyser.smoothingTimeConstant=.55;link.gain.connect(analyser);freq=new Uint8Array(analyser.frequencyBinCount);}catch(e){analyser=null;}}
-  audio.addEventListener('ended',()=>{if(!pending)advance(true);});
+  audio.addEventListener('ended',()=>{if(!pending&&loadedKey)advance(true);}); // after Clear or Remove no song is loaded: a late ended event must not change the message
   audio.addEventListener('error',onError);
   audio.addEventListener('playing',()=>{failures=0;render();});
   audio.addEventListener('pause',()=>render());
