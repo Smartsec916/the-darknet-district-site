@@ -1,8 +1,8 @@
-/* The security-door transition between NeoChinatown's street and the District interior: area rules, saved locations, guest entry,
+/* The security-door transition between NeoChinatown's street and the District interior: area rules, saved locations,
    and the orchestration (what loads, in what order, what is saved, how failure recovers), using fakes for the renderer. */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const A=require('../void-runner/district-area.js'),T=require('../void-runner/district-transition.js'),N=require('../void-runner/neochinatown.js'),E=require('../void-runner/exploration-controller.js');
-const C=require('../void-runner/campaign.js'),S=require('../void-runner/share-registry.js');
+const C=require('../void-runner/campaign.js');
 const street=N.layout('street'),interior=N.layout('interior'),read=f=>fs.readFileSync(f,'utf8');
 const stateWith=flags=>({story:{flags:{...flags}}});
 
@@ -36,15 +36,6 @@ test('triggers: a badge holder walking into the vestibule enters; without a badg
  assert.equal(A.exitTrigger(N,{x:out[0],z:out[1]}),true);assert.equal(A.exitTrigger(N,{x:hall[0],z:hall[1]}),false);assert.equal(A.exitTrigger(N,{x:inside[0],z:inside[1]}),false);
  const wide=N.toWorld(8,24);assert.equal(A.enterTrigger(N,{x:wide[0],z:wide[1]},stateWith({districtBadge:true})),false,'only the vestibule, not the walls beside it');
 });
-test('guest entry: share links into the District and the arcade open the interior; everything else opens outside',()=>{
- const inside=S.entries.filter(e=>A.guestArea(e)==='interior').map(e=>e.id).sort();
- assert.deepEqual(inside,['darknet-district','district-night','vr-bedroom','vr-forest','vr-tropical']);
- for(const e of S.entries)if(!inside.includes(e.id))assert.equal(A.guestArea(e),'street',e.id);
- const g=read('void-runner/guest-mode.js');assert(g.includes("VoidDistrictArea.guestArea(e)==='interior'")&&g.includes("area:'district',districtDoor:true,districtBadge:true"));
- for(const e of S.entries.filter(e=>A.guestArea(e)==='interior')){const s=stateWith({});Object.assign(s.story.flags,e.flags||{},{area:'district',districtBadge:true,districtDoor:true});assert.equal(A.keyFor(s),'darknet-district',e.id);}
- for(const id of ['darknet-district','district-night']){const e=S.get(id),[x,z]=N.toWorld(e.spawn.x,e.spawn.z);assert(!E.blocked(x,z,interior),id+' spawns on open floor in the interior');}
-});
-
 // ---- orchestration, with fakes ----
 function rig(over={}){
  const log=[],st={story:{flags:{districtDoor:true,...(over.flags||{})}}};let location={area:over.from||'street'},mode='walking',walker={x:126.9,z:-66,yaw:3.14},busy=false,t=0;
@@ -91,7 +82,7 @@ test('tick starts the transition from the vestibule edges and not from anywhere 
 test('reduced motion shortens the scan',async()=>{const r=rig();r.d.reducedMotion=()=>true;const ctl=T.create(r.d);await ctl.go('in');assert(r.log.includes('wait:'+(2400*.35)));});
 
 // ---- wiring in the game files ----
-test('the loader, taxi, VR and guest paths use the area rules',()=>{
+test('the loader, taxi and VR paths use the area rules',()=>{
  const w=read('void-runner/world-integration.js');assert(w.includes('VoidDistrictArea.keyFor(state),VoidDistrictArea.resume(state,VoidNeoChinatown)'));assert(w.includes('enterWalking=async function(id,options)'));assert(/worldEnterWalking\(id,options\)/.test(w));
  const v=read('void-runner/vr-core.js');assert.equal((v.match(/VoidDistrictArea\.keyFor\(state\)/g)||[]).length,2);assert(v.includes('vrEnter(id,options)'));
  const b=read('void-runner/babylon-integration.js');assert(b.includes('async function enterWalking(id, options = {})')&&b.includes('options.silent')&&b.includes('options.spawn'));

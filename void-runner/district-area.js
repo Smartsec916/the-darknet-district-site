@@ -20,8 +20,6 @@
  function enterTrigger(N,p,s){const f=flagsOf(s);if(f.districtBadge!==true)return false;const [lx,lz]=local(N,p);return Math.abs(lx)<ENTER.halfWidth&&lz>=ENTER.from&&lz<=ENTER.to;}
  // Walking out through the open outer door, from the interior, leaves.
  function exitTrigger(N,p){const [lx,lz]=local(N,p);return Math.abs(lx)<EXIT.halfWidth&&lz>=EXIT.from&&lz<=EXIT.to;}
- // A share link opens in the interior when it names a spot inside the District or an arcade experience.
- const guestArea=e=>e&&(e.spawn?.frame==='district'||e.destination?.kind==='vr')?'interior':'street';
- const api={KEY,POINT,ENTER,EXIT,areaOf,keyFor,resume,exitSpawn,enterTrigger,exitTrigger,guestArea};
+ const api={KEY,POINT,ENTER,EXIT,areaOf,keyFor,resume,exitSpawn,enterTrigger,exitTrigger};
  if(typeof module==='object'&&module.exports)module.exports=api;else root.VoidDistrictArea=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
