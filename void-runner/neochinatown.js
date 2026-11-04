@@ -526,10 +526,11 @@
       frame=mat('kiosk-shell','#121419',{rough:.32,metal:.85});
      box('pod-screen-frame',[2.86,1.7,.1],[X,Y,Z+.07],frame,false);plane('pod-music-screen',2.6,1.46,[X,Y,Z],texMat('pod-music-screen',t,{glow:true}),0);
      const strip=glowMat('pod-music-strip','#ff3fb4',.25);for(const x of[-3.3,-16.7])box('pod-music-strip',[.06,.06,13.6],[x,3.92,62.5],strip,false);
-     const lamp=lights.find(l=>Math.abs(l.position.x+10)<.01&&Math.abs(l.position.y-3)<.01&&Math.abs(l.position.z-62)<.01),lampBase=lamp?.intensity;
+     let lamp=null,lampBase=0,lampFound=false; // the pink lamp over the pods: found on the first frame, when the whole District has been built
      const pink=B.Color3.FromHexString('#ff3fb4'),cyan=B.Color3.FromHexString('#38e8ff'),panelBase=B.Color3.FromHexString('#7fe6ff').scale(.9),innerBase=B.Color3.FromHexString('#ffc98a').scale(.45);
      let clock=0,redraw=0,lit=false;
      return {tick(dt){clock+=dt;redraw-=dt;const music=root.VoidPodMusic,lv=music?.levels?.();
+      if(!lampFound){lampFound=true;lamp=lights.find(l=>Math.abs(l.position.x+10)<.01&&Math.abs(l.position.y-3)<.01&&Math.abs(l.position.z-62)<.01)||null;lampBase=lamp?lamp.intensity:0;}
       if(redraw<=0){redraw=lv?.on||music?.playing?.08:.6;if(music?.drawScreen){music.drawScreen(t.getContext(),W,H,clock);t.update();}}
       if(lv?.on){lit=true;strip.emissiveColor=B.Color3.Lerp(pink,cyan,Math.min(1,lv.high*2.2)).scale(.25+1.5*Math.max(lv.bass,lv.mid));
        if(mats['pod-panel'])mats['pod-panel'].emissiveColor=panelBase.scale(1+1.1*lv.mid);if(mats['pod-inner'])mats['pod-inner'].emissiveColor=innerBase.scale(1+.9*lv.bass);if(lamp)lamp.intensity=lampBase*(1+1.3*lv.bass);}
