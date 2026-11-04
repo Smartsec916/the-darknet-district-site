@@ -40,6 +40,13 @@ const OLD_SAVE=JSON.stringify(old);
   await pg.evaluate(()=>resumeWalking());
   const left=await pg.evaluate(async()=>{await leaveWalking();return document.getElementById('notice').textContent+'|'+mode;});assert(/do not have a ship/i.test(left)&&/walking$/.test(left),'boarding is refused: '+left);
   assert.deepEqual(errs,[]);await ctx.close();}
+ // 2b. A link that still carries the retired share parameters opens the normal game at the main menu, with no jump and no guest session.
+ {const ctx=await b.newContext({viewport:{width:1000,height:600}}),pg=await ctx.newPage(),errs=[];pg.on('pageerror',e=>errs.push(e.message));
+  await pg.route('**/api/**',r=>r.fulfill({status:503,body:'{}'}));await pg.route(/firebase|gstatic|googleapis/,r=>r.abort());
+  await pg.goto(BASE+'/void-runner.html?visit=darknet-district&v=1');await pg.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:120000});await pg.waitForTimeout(1500);
+  const r=await pg.evaluate(()=>({guest:typeof VoidGuest,share:typeof VoidShare,mode,menu:!!document.querySelector('[data-action=menu-campaign]'),chip:!!document.getElementById('guest-chip')}));
+  console.log(tier,'old share link',JSON.stringify(r));assert.equal(r.guest,'undefined');assert.equal(r.share,'undefined');assert.equal(r.menu,true,'the normal main menu is shown');assert.equal(r.chip,false);assert.notEqual(r.mode,'walking','no jump into a place');
+  assert.deepEqual(errs,[]);await ctx.close();}
  // 3. The regular mobile site: no redirect, no 3D scripts or models fetched, ENTER is a plain link, login and navigation present.
  {const ctx=await b.newContext({...devices['iPhone 13']}),pg=await ctx.newPage(),reqs=[],errs=[];pg.on('request',r=>reqs.push(r.url()));pg.on('pageerror',e=>errs.push(e.message));
   await ctx.route('**/api/**',r=>r.fulfill({status:503,body:'{}'}));await ctx.route(/firebase|gstatic|googleapis|fonts\./,r=>r.abort());
