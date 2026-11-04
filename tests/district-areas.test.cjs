@@ -64,3 +64,8 @@ test('the build is split into gated sections, the entrance is built in every are
 test('the room loader passes the area to the build and to the asset lists',()=>{
  const r=fs.readFileSync('void-runner/babylon-renderer.js','utf8');assert(r.includes("area:def.area||'all'"));assert(r.includes("VoidNeoChinatown.modelsFor(def.area||'all')"));assert(r.includes("models('neochinatown',quality,def.area||'all')"));
 });
+test('the scanner prompt is offered at the door and goes away once the visitor badge is held (pressing it then only said "Inner door already open")',()=>{
+ const scan=all.interactions.find(i=>i.id==='district-scan');
+ assert.deepEqual(scan.when,{flags:{districtDoor:true},notFlags:{districtBadge:true}});
+ assert.ok(scan.label.includes('BADGE'));
+});
