@@ -35,6 +35,13 @@ const tier=process.argv[2]==='high'?'high':'low';
   await page.locator('[data-hud-achievement=merchandise]').click();assert(await page.locator('#personal-hud').getByText('District Supporter').isVisible());
   await page.locator('[data-hud-close]').click();
   assert.equal(await page.evaluate(()=>VoidConversationHistory.filter(VoidConversationHistory.read(localStorage,'guest'),'unread').length),0);
+  /* archived Vesper tutorial choices now use the floating window, not a full-screen panel */
+  await page.evaluate(()=>{resumeWalking();floatChoices('mara','Before you go.',button('YES','tutorial-yes')+button('NO','tutorial-no',true));});
+  const choices=await page.evaluate(()=>({mode,panel:!!document.querySelector('#screen .panel.lead'),buttons:[...document.querySelectorAll('#screen .speech-controls button')].map(b=>b.dataset.action),live:!!document.querySelector('#screen.conversation-live .choice-menu')}));
+  assert.equal(choices.mode,'walking');assert.equal(choices.panel,false);assert.deepEqual(choices.buttons,['tutorial-yes','tutorial-no']);assert(choices.live);
+  const c0=await page.evaluate(()=>({x:walker.x,z:walker.z}));await page.keyboard.down('KeyW');await page.waitForTimeout(450);await page.keyboard.up('KeyW');
+  assert(await page.evaluate(c=>Math.hypot(walker.x-c.x,walker.z-c.z)>.02,c0),'walking works with choices open');
+  await page.evaluate(()=>resumeWalking());
   await page.screenshot({path:'/tmp/dd-conversation.png'});
   assert.deepEqual(errors,[]);console.log(JSON.stringify({tier,before,after,yaw,errors}));
  }finally{await browser.close();}

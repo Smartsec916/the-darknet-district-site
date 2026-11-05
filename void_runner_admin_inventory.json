@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "2e0786786f1b03df",
+  "revision": "8f2da42490cc02d3",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12272,7 +12272,7 @@
     {
       "source": "void-runner/prologue-integration.js",
       "line": 76,
-      "text": "if(!o.pistol){talk('',[{who:'mara',text:'Elias passed away last night. He left you the Kestrel — and this pistol. He wanted you to have a chance out there.'},{who:'mara',text:'Come around the side with me. A few cans, a safe dirt bank. Let’s see if it still works.'}],()=>{mode='dialogue';panel('MARA','A last <em>gift.</em>','<p>'+escapeText(VoidStoryContent.dialogue.mara_workshop_intro.nodes.work.text)+'</p>',VoidStoryContent.dialogue.mara_workshop_intro.nodes.work.choices.map((c,i)=>button(c.text,'opening-choice:'+i)).join(''));},'TAKE ELIAS’S PISTOL');return;}",
+      "text": "if(!o.pistol){talk('',[{who:'mara',text:'Elias passed away last night. He left you the Kestrel — and this pistol. He wanted you to have a chance out there.'},{who:'mara',text:'Come around the side with me. A few cans, a safe dirt bank. Let’s see if it still works.'}],()=>floatChoices('mara',VoidStoryContent.dialogue.mara_workshop_intro.nodes.work.text,VoidStoryContent.dialogue.mara_workshop_intro.nodes.work.choices.map((c,i)=>button(c.text,'opening-choice:'+i)).join('')),'TAKE ELIAS’S PISTOL');return;}",
       "kind": "source-reference"
     },
     {
@@ -12295,61 +12295,67 @@
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 92,
-      "text": "function offerTutorial(){if(tutorialOfferOpen)return;tutorialOfferOpen=true;document.exitPointerLock?.();clearInput();walkingKeys.clear();mode='dialogue';panel('MARA','Before you <em>go.</em>','<p>“Elias left you the Kestrel. I can walk you through the basics first: his pistol, the ship, and one practice circuit over Vesper. Or, if you already know your way around, I’ll hand you the keys and send you to Rook at Meridian. He has cargo work waiting.”</p>',button('YES, SHOW ME THE BASICS','tutorial-yes')+button('NO, I’M READY TO GO','tutorial-no',true));}",
+      "line": 91,
+      "text": "/* A spoken line followed by choice buttons in the floating, non-blocking conversation window (no full-screen panel). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 94,
-      "text": "talk('',[{who:'mara',text:'Then take these. Elias’s pistol, and the Kestrel is yours.'},{who:'mara',text:'Fly her to Meridian Station and find Rook. If you ever want a refresher, I’m here.'}],()=>{tutorialOfferOpen=false;refreshOpeningObjective();resumeWalking();},'BOARD THE KESTREL');}",
+      "line": 92,
+      "text": "function floatChoices(who,text,buttons){talk('',[{who,text}],()=>{},'');if(speech){speech.shown=text.length;updateSpeech(0);speech=null;}const win=screen.querySelector('.dialogue-window'),c=screen.querySelector('.speech-controls');if(c)c.innerHTML=buttons;win?.classList.add('choice-menu');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
       "line": 96,
+      "text": "talk('',[{who:'mara',text:'Then take these. Elias’s pistol, and the Kestrel is yours.'},{who:'mara',text:'Fly her to Meridian Station and find Rook. If you ever want a refresher, I’m here.'}],()=>{tutorialOfferOpen=false;refreshOpeningObjective();resumeWalking();},'BOARD THE KESTREL');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/prologue-integration.js",
+      "line": 98,
       "text": "screen.addEventListener('click',async e=>{const a=e.target.closest('button')?.dataset.action;if(a?.startsWith('opening-choice:')){const choice=VoidStoryContent.dialogue.mara_workshop_intro.nodes.work.choices[Number(a.split(':')[1])];if(!choice||state.progression.opening.pistol)return;VoidStory.apply(state,choice.effects);state.progression.opening.pistol=true;state.progression.personal.weapon='ward-pistol';stamp('interact');P.sync(state);VoidMissions.sync(state,C);save();VoidBabylon.opening?.lead();resumeWalking();}if(a==='opening-start'&&openingBoarded){openingBoarded=false;state.story.pending=state.story.pending.filter(id=>id!=='mara_workshop_intro');state.story.cursor=null;if(!C.trainingPending(state))C.beginJourney(state);VoidMissions.sync(state,C);save();await prologueLeave();}if(a==='opening-exit'){openingBoarded=false;resumeWalking();}});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 99,
+      "line": 101,
       "text": "async function safeRespawn(){VoidPreparation.cancel();walkingLocation=walker=null;speech=null;P.respawn(state);groundState.health=100;groundState.drawn=false;groundState.aim=false;save();await dock();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 141,
+      "line": 143,
       "text": "const districtLine=(who,text,label='CONTINUE')=>talk('',[{who,text}],resumeWalking,label);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 146,
+      "line": 148,
       "text": "function districtBadgeIssued(){if(VoidMissions.closed(state)){resumeWalking();announce('Scan accepted. Visitor badge issued.');return;}talk('',[{who:'Iris',text:'Scan accepted. Rook vouched for you, so you get a visitor badge. Behave, and it stays valid.'}],resumeWalking,'ENTER');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 148,
+      "line": 150,
       "text": "VoidInteractions.register('district-iris',()=>districtLine('Iris',state.story.flags.metIris?'Cameras are clean, the mainframe is happy, and nobody has tried anything stupid today. Yet.':'I run security here. Talk to Admin first; he likes to meet new pilots himself.'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 150,
+      "line": 152,
       "text": "VoidInteractions.register('district-bar',()=>districtLine('Bartender','Filtered air is free, the drinks are not. Pilots talk too much in here, so listen.'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 151,
+      "line": 153,
       "text": "VoidInteractions.register('district-vr',()=>districtLine('Arcade attendant','Every rig is booked tonight. Come back later.'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 160,
+      "line": 162,
       "text": "VoidInteractions.register('admin',()=>{state.universe.completedObjectives.push(...(state.universe.completedObjectives.includes('meet-admin')?[]:['meet-admin']));state.story.flags.metAdmin=true;state.story.flags.metIris=true;save();talk('',[{who:'Admin',text:'Rook said you might make the trip. Welcome to The Darknet District. Your ship is fine on the landing pad; The Function charges for parking, not for staying.'},{who:'Iris',text:'We keep our own records here. Get settled, meet the locals, and keep your eyes open.'}],resumeWalking,'RETURN TO DISTRICT');});",
       "kind": "source-reference"
     },
@@ -13406,7 +13412,7 @@
     "void-runner/police-patrols.js": "2d9e4804ce9fed613295f24f81571185c83bf22341f5fddd89cc8f72c41077a5",
     "void-runner/preparation.js": "d4cd81b11203b5727a1192a8a5138b02fe6e1570d7310215526e3ddc4ce0502f",
     "void-runner/progression.js": "2350090515fb4942fa72b198380f3dcd960251f2d54955abaf689a57ab630b24",
-    "void-runner/prologue-integration.js": "a169b3ef6964ad272721edc2500203d4801cccc2ca735409277cb5aec181a8f3",
+    "void-runner/prologue-integration.js": "ed2d57b92368520f4e69b4de22fcbdf7cdacbd26621237715c11a680c3293ff3",
     "void-runner/radio.js": "a9d04c53cfb34748f9c30054ffdb28f02a5fb87114883c71149b691e0ff5c313",
     "void-runner/relay-radio.js": "5ce31904c15f630a01d00f51d566d66ae97c736d5734d7531835588714269806",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
