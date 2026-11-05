@@ -188,7 +188,14 @@ def character(db, uid):
         record = {**appearance, 'createdAt': int(time.time())}
         transaction.set(ref, {'character': record}, merge=True)
         return record
-    return jsonify(character=create(db.transaction())), 201
+    try:
+        record = create(db.transaction())
+    except ValueError:
+        # Firestore gave up after repeated contention (several simultaneous creates). Never a 500: report what is now stored.
+        if (ref.get().to_dict() or {}).get('character'):
+            raise ApiError('This account already has a character.', 409)
+        raise ApiError('Character creation is busy. Try again in a moment.', 503)
+    return jsonify(character=record), 201
 
 
 @api.get('/balance')

@@ -69,6 +69,13 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(self.client.get('/api/void-runner/account',headers=self.header).json['character']['model'],'district-resident')
         self.assertEqual(vr.player_ref(self.db,'pilot').get().to_dict()['save'],{'sentinel':'existing campaign'})
         self.assertEqual(vr.player_ref(self.db,'pilot').get().to_dict()['revision'],7)
+    def test_character_contention_never_returns_a_server_error(self):
+        route='/api/void-runner/character'
+        def gave_up(ref,data,**kw): raise ValueError('Failed to commit transaction in 5 attempts.')
+        self.db.transaction=lambda: SimpleNamespace(set=gave_up)
+        self.assertEqual(self.client.post(route,headers=self.header,json={'gender':'male','model':'district-smuggler'}).status_code,503)   # nothing stored yet: retry later
+        vr.player_ref(self.db,'pilot').set({'character':{'gender':'female','model':'district-resident'}},merge=True)
+        self.assertEqual(self.client.post(route,headers=self.header,json={'gender':'male','model':'district-smuggler'}).status_code,409)   # another request won
     def test_admin_character_uses_same_single_slot(self):
         with patch.dict(os.environ, {'VOID_ADMIN_UIDS':'pilot'}):
             route='/api/void-runner/character'
