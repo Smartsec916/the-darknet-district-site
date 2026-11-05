@@ -4,6 +4,7 @@ let pendingStartup=null;
 function beginStartup(){
  if(pendingStartup)return pendingStartup;
  pendingStartup=(async()=>{
+ globalThis.VoidPublishedContentStatus=await VoidPublishedContent.initialize({enabled:document.querySelector('meta[name=void-published-content]')?.content==='enabled',sourceRevision:globalThis.VoidPublishedBaseline?.revision});
  VoidLoading.stage('data','GAME DATA READY');
  VoidLoading.stage('campaign','CAMPAIGN RESTORED · LOADING ESSENTIAL ART');
  await VoidBabylon.prepareMenu();

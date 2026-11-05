@@ -753,7 +753,7 @@ import void_runner_publication as content_releases
 @signed_in
 def content_release_schema(db, uid):
     content_drafts.editor(uid, balance_admin, enabled=False)
-    return jsonify(roles=content_releases.roles(uid, balance_admin),
+    return jsonify(capabilities=runtime_content.capabilities(),roles={**content_releases.roles(uid, balance_admin), 'liveActivationImplemented': True, 'publishingEnabled': os.getenv('VOID_CONTENT_PUBLISHING_ENABLED') == 'true', 'servingEnabled': os.getenv('VOID_CONTENT_SERVING_ENABLED') == 'true'},
                    limits={'revisions': content_releases.MAX_RELEASES, 'packageBytes': content_releases.MAX_PACKAGE_BYTES},
                    status='private-candidate-only')
 
@@ -806,3 +806,60 @@ def content_release_compare(db, uid):
     return jsonify(fromRevision=numbers[0], toRevision=numbers[1],
                    diff=content_releases.comparison(before['documents'], after['documents']),
                    writes=0, liveActivationImplemented=False)
+
+# Public runtime data is a deliberate publication projection, never the draft repository.
+import void_runner_content_runtime as runtime_content
+
+
+@api.get('/content')
+def published_runtime_content():
+    if os.getenv('VOID_CONTENT_SERVING_ENABLED') != 'true':
+        return jsonify(enabled=False, schemaVersion=1)
+    db, _, _ = services()
+    return jsonify(runtime_content.public_snapshot(db, content_drafts.inventory()))
+
+
+@api.get('/developer/releases/<int:revision>/runtime')
+@signed_in
+def content_runtime_preview(db, uid, revision):
+    content_releases.authorize(uid, balance_admin)
+    candidate = content_releases.load(db, uid, revision)
+    compiled = runtime_content.compile_package(candidate['documents'], content_drafts.inventory())
+    return jsonify(content=compiled, digest=hashlib.sha256(runtime_content.public_canonical(compiled).encode()).hexdigest(), writes=0)
+
+
+@api.get('/developer/releases/publication')
+@signed_in
+def content_publication_state(db, uid):
+    content_releases.authorize(uid, balance_admin)
+    result = runtime_content.state(db)
+    baseline = runtime_content.compile_package({}, content_drafts.inventory())
+    result['baselineDigest'] = hashlib.sha256(runtime_content.public_canonical(baseline).encode()).hexdigest()
+    return jsonify(result)
+
+
+@api.post('/developer/releases/publish')
+@signed_in
+def content_publish(db, uid):
+    runtime_content.authorize(uid, balance_admin)
+    return jsonify(runtime_content.publication(db, uid, request.get_json(silent=True), content_drafts.inventory()))
+
+
+@api.post('/developer/releases/rollback-live')
+@signed_in
+def content_rollback_live(db, uid):
+    runtime_content.authorize(uid, balance_admin)
+    return jsonify(runtime_content.publication(db, uid, request.get_json(silent=True), content_drafts.inventory(), rollback=True))
+
+@api.get('/developer/releases/published/<int:generation>')
+@signed_in
+def content_published_version(db, uid, generation):
+    content_releases.authorize(uid, balance_admin)
+    if generation == 0:
+        compiled = runtime_content.compile_package({}, content_drafts.inventory())
+        return jsonify(content=compiled, digest=hashlib.sha256(runtime_content.public_canonical(compiled).encode()).hexdigest(), generation=0)
+    content_drafts.number(generation, 1, runtime_content.MAX_PUBLICATIONS)
+    value = db.collection('vr_runtime_versions').document(str(generation)).get().to_dict()
+    if not value:
+        raise DraftError('Published version not found.', 404)
+    return jsonify(value)

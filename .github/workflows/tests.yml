@@ -67,3 +67,36 @@ jobs:
         with:
           name: stabilization-browser
           path: work/stabilization
+
+  publication:
+    name: Content publication integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements-void-runner.txt
+      - run: pip install -r requirements-void-runner.txt
+      - run: npm install --ignore-scripts --no-package-lock
+      - run: npx playwright install --with-deps chromium
+      - name: Private draft to published native snapshot and rollback
+        run: |
+          python tests/serve-admin-publishing.py > /tmp/publication-fixture.log 2>&1 &
+          node tests/runtime-publication-browser.cjs
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          BROWSER_CHANNEL: chromium
+          PUBLICATION_OUTPUT: work/content-publication
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: content-publication-browser
+          path: work/content-publication
