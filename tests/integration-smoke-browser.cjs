@@ -24,21 +24,28 @@ const OLD_SAVE=JSON.stringify(old);
   console.log(tier,'pre-reset save',JSON.stringify({slot:r.slot,copyKept:r.copy===OLD_SAVE,continueDisabled:r.cont,noticeShown:/retired in the District reset/.test(r.text),hasSave:r.hasSave}));
   assert.equal(r.slot,null);assert.equal(r.copy,OLD_SAVE);assert.equal(r.cont,true);assert(/retired in the District reset/.test(r.text));assert.equal(r.hasSave,false);
   assert.deepEqual(errs,[]);await ctx.close();}
- // 2. A new campaign: outside the doors, no ship, nothing on the pad, no missions, no pistol; Admin and Iris answer with notices only.
+ // 2. A new campaign wakes in a pod, then exits to the room without a ship, missions or pistol.
  {const ctx=await b.newContext({viewport:{width:1000,height:600}}),{pg,errs}=await open(ctx);
   await pg.click('[data-action=menu-campaign]');await pg.click('[data-action=menu-new]');await pg.waitForTimeout(1500);const c=await pg.$('[data-action=menu-new-confirm]');if(c)await c.click();
-  await walking(pg);await pg.waitForTimeout(6000);
-  const r=await pg.evaluate(()=>({area:walkingLocation.area,flags:{area:state.story.flags.area,pool:state.story.flags.missionPool,ship:state.story.flags.shipAccess},hasShip:VoidShips.hasShip(state),missions:VoidMissions.all(state,C).length,weapon:state.progression.personal.weapon,local:VoidNeoChinatown.toWorld(walker.x,walker.z)}));
+  await pg.waitForFunction(()=>mode==='pod-waking'&&walker&&walkingLocation,null,{timeout:900000});
+  const r=await pg.evaluate(()=>({area:walkingLocation.area,flags:{area:state.story.flags.area,pool:state.story.flags.missionPool,ship:state.story.flags.shipAccess,pod:state.story.flags.podWakePending},hasShip:VoidShips.hasShip(state),missions:VoidMissions.all(state,C).length,weapon:state.progression.personal.weapon,local:VoidNeoChinatown.toWorld(walker.x,walker.z)}));
   console.log(tier,'new campaign',JSON.stringify(r));
-  assert.equal(r.area,'street');assert.deepEqual(r.flags,{area:undefined,pool:'closed',ship:'none'});assert.equal(r.hasShip,false);assert.equal(r.missions,0);assert.equal(r.weapon,null);assert(Math.abs(r.local[0])<.1&&Math.abs(r.local[1]-17)<.1,'outside the doors');
-  await pg.evaluate(()=>{VoidInteractions.handlers.get('tdd')();const [x,z]=VoidNeoChinatown.toWorld(2,23.6);walker.x=x;walker.z=z;});
-  await pg.evaluate(()=>{const [x,z]=VoidNeoChinatown.toWorld(0,45);walker.x=x;walker.z=z;});
-  const pa=await pad(pg);console.log(tier,'new campaign pad',JSON.stringify(pa));assert.equal(pa.landed,false,'no Kestrel on the pad');assert.equal(pa.hull,true,'no invisible box');assert.deepEqual(pa.boardShown,[false]);assert.equal(pa.header,'NONE');
+  assert.equal(r.area,'interior');assert.deepEqual(r.flags,{area:'district',pool:'closed',ship:'none',pod:true});assert.equal(r.hasShip,false);assert.equal(r.missions,0);assert.equal(r.weapon,null);assert(Math.abs(r.local[0]+15.4)<.1&&Math.abs(r.local[1]-57)<.1,'inside pod 01');
+  await pg.click('#pod-wake button');await walking(pg);
+  const exited=await pg.evaluate(()=>({local:VoidNeoChinatown.toWorld(walker.x,walker.z),pending:state.story.flags.podWakePending,saved:JSON.parse(localStorage.getItem('void-runner-campaign-v1')).story.flags}));
+  assert(Math.abs(exited.local[0]+12.5)<.1&&Math.abs(exited.local[1]-57)<.1,'Exit Pod leads to the room floor');assert.equal(exited.pending,undefined);assert.equal(exited.saved.area,'district');
   const adminNotice=await pg.evaluate(async()=>{VoidInteractions.handlers.get('admin')();await new Promise(r=>setTimeout(r,500));return {speech:!!speech,notice:document.getElementById('notice').textContent};});
   assert.equal(adminNotice.speech,false,'Admin offers nothing to a new campaign');assert(/nothing for you/i.test(adminNotice.notice),'Admin: '+adminNotice.notice);
   const irisLine=await pg.evaluate(async()=>{VoidInteractions.handlers.get('district-iris')();await new Promise(r=>setTimeout(r,500));return speech&&speech.lines&&speech.lines[0]&&speech.lines[0].text;});assert(irisLine&&/Cameras are clean/.test(irisLine),'Iris still speaks: '+irisLine);
   await pg.evaluate(()=>resumeWalking());
   const left=await pg.evaluate(async()=>{await leaveWalking();return document.getElementById('notice').textContent+'|'+mode;});assert(/do not have a ship/i.test(left)&&/walking$/.test(left),'boarding is refused: '+left);
+  await pg.evaluate(()=>{const [x,z]=VoidNeoChinatown.toWorld(0,20.6);walker.x=x;walker.z=z;walker.yaw=0;});
+  await pg.waitForFunction(()=>mode==='walking'&&walkingLocation?.area==='street',null,{timeout:900000});
+  const pa=await pad(pg);console.log(tier,'new campaign pad',JSON.stringify(pa));assert.equal(pa.landed,false,'no Kestrel on the pad');assert.equal(pa.hull,true,'no invisible box');assert.deepEqual(pa.boardShown,[false]);assert.equal(pa.header,'NONE');
+  await pg.evaluate(()=>{const [x,z]=VoidNeoChinatown.toWorld(2,23.6);walker.x=x;walker.z=z;VoidInteractions.handlers.get('district-scan')();});
+  await pg.waitForFunction(()=>mode==='walking'&&walkingLocation?.area==='interior',null,{timeout:900000});
+  const returned=await pg.evaluate(()=>({area:state.story.flags.area,pending:state.story.flags.podWakePending,local:VoidNeoChinatown.toWorld(walker.x,walker.z)}));
+  assert.equal(returned.area,'district');assert.equal(returned.pending,undefined,'the wake view plays only once');
   assert.deepEqual(errs,[]);await ctx.close();}
  // 2b. A link that still carries the retired share parameters opens the normal game at the main menu, with no jump and no guest session.
  {const ctx=await b.newContext({viewport:{width:1000,height:600}}),pg=await ctx.newPage(),errs=[];pg.on('pageerror',e=>errs.push(e.message));

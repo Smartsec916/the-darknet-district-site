@@ -2,6 +2,8 @@
 
 **Codex continuation:** The first-test preparation branch now removes Iris from the website Sleeping Pod, shares the hosted 27-song catalog between both players, offers that catalog in the game by default at David's request, and prepares the existing homepage title as the later ENTER link. The older status statements below describe `claude/first-test-readiness` before these changes. See `FIRST_LIVE_TEST_RUNBOOK.md` and `MUSIC_MANAGER_DECISION.md` for the current deployment and music decisions.
 
+**Pod start update:** David subsequently directed that New Campaign begin in a Sleeping Pod. The current development branch wakes a new guest in pod 01 with an explicit Exit Pod control; exiting places the player on open floor in the District pod room. A reload before exiting returns to the pod, while a later save resumes normally inside the District. Older references below to starting in the alley describe the previous build. Character creation, automatic cloud saving, and shared pod allocation remain future work.
+
 Written 2026-11-04 by Claude Code Cloud at David's request. Repository: `Smartsec916/the-darknet-district-site` (live site `https://thedarknetdistrict.com`, GitHub Pages; game API on Render).
 
 **Read first, in this order:** `CLAUDE.md` (the project rules, still correct), `AGENTS.md` (points to `CLAUDE.md`), `VOID_RUNNER_HANDOFF.md` (canon and decision log), then this file, `docs/development/TESANA_ASSET_AUDIT.md`, `docs/void-runner/social-universe-architecture.md` (PR #191) and `docs/SLEEPING-POD-MUSIC.md` (PR #192).

@@ -26,11 +26,13 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   const shot=async n=>{if(SHOTS)await pg.screenshot({path:SHOTS+'/'+n+'-'+q+'.png'});};
   const toVestibule=()=>pg.evaluate(()=>{const [x,z]=VoidNeoChinatown.toWorld(2.0,23.6);walker.x=x;walker.z=z;walker.yaw=Math.PI;});
   const walkOut=()=>pg.evaluate(()=>{const [x,z]=VoidNeoChinatown.toWorld(0,20.6);walker.x=x;walker.z=z;walker.yaw=0;});
-  // 1. A new campaign starts in the street, outside the doors.
+  // 1. A new campaign wakes in a pod, exits to the interior, then walks out to the street.
   await pg.goto(BASE);await ready();await pg.click('[data-action=menu-campaign]');await pg.click('[data-action=menu-new]');await pg.waitForTimeout(1500);
   const c=await pg.$('[data-action=menu-new-confirm]');if(c)await c.click();
+  await pg.waitForFunction(()=>mode==='pod-waking'&&walkingLocation?.area==='interior',null,{timeout:300000});
+  await pg.click('#pod-wake button');await settle('interior',1000);await walkOut();
   await settle('street');let s=await snap();console.log(q,'start',JSON.stringify(s));
-  assert.equal(s.area,'street');assert.equal(s.flags.area,undefined);assert(Math.abs(s.local[0])<.1&&Math.abs(s.local[1]-17)<.1,'outside the doors');assert.equal(s.interior,0,'no District inside the street');
+  assert.equal(s.area,'street');assert.equal(s.flags.area,undefined);assert(Math.abs(s.local[0])<.1&&Math.abs(s.local[1]-17.4)<.1,'outside the doors');assert.equal(s.interior,0,'no District inside the street');
   const street1=s;
   // 2. Scan: the street is released while the interior loads, then only the interior exists.
   await pg.evaluate(()=>VoidInteractions.handlers.get('tdd')());await toVestibule();await pg.waitForTimeout(500);

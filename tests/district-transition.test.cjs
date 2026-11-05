@@ -16,8 +16,10 @@ test('area and location key come from the save: outside unless inside with a bad
 });
 test('saved locations: a saved current campaign, a new campaign and a save made inside all resume in the right environment',()=>{
  const saved=C.restore(JSON.stringify(C.fresh()));assert.equal(A.keyFor(saved),'sacramento');assert.deepEqual(A.resume(saved,N),{});
- const fresh=C.startDistrictCampaign(C.fresh());assert.equal(A.keyFor(fresh),'sacramento','a new campaign starts outside the doors');
- const inside=C.restore(JSON.stringify(Object.assign(C.startDistrictCampaign(C.fresh()),{})));Object.assign(inside.story.flags,{area:'district',districtBadge:true,districtDoor:true});
+ const fresh=C.startDistrictCampaign(C.fresh());assert.equal(A.keyFor(fresh),'darknet-district','a new campaign wakes inside the District');
+ const pod=A.resume(fresh,N),[px,pz]=N.toWorld(pod.spawn[0],pod.spawn[2]);assert(Math.abs(px+15.4)<.01&&Math.abs(pz-57)<.01,'the wake view is inside pod 01');
+ const exit=A.podExit(N);assert(!E.blocked(exit.spawn[0],exit.spawn[2],interior),'Exit Pod puts the player on open floor');
+ const inside=C.restore(JSON.stringify(Object.assign(C.startDistrictCampaign(C.fresh()),{})));Object.assign(inside.story.flags,{area:'district',districtBadge:true,districtDoor:true});delete inside.story.flags.podWakePending;
  const again=C.restore(JSON.stringify(inside));assert.equal(again.location,'earth');assert.equal(again.story.flags.area,'district','the flag survives save and reload');assert.equal(A.keyFor(again),'darknet-district');
  const r=A.resume(again,N);assert(!E.blocked(r.spawn[0],r.spawn[2],interior),'the resume spot is open floor in the interior');const [lx,lz]=N.toWorld(r.spawn[0],r.spawn[2]);assert(Math.abs(lx)<.01&&lz>26&&lz<30,'just inside the inner door');assert.equal(r.yaw,Math.PI);
 });
@@ -91,17 +93,23 @@ test('the loader, taxi and VR paths use the area rules',()=>{
  assert.equal(html,read('static/void-runner.html'),'static copy is in sync');
  assert(html.indexOf('district-area.js')<html.indexOf('world-integration.js')&&html.indexOf('prologue-integration.js')<html.indexOf('district-transition.js'));
 });
-test('the new-player start is still outside the doors',()=>{
- const w=read('void-runner/world-integration.js');assert(w.includes("N.toWorld(0,17)"));const s=C.startDistrictCampaign(C.fresh());assert.equal(s.story.flags.area,undefined);assert.equal(A.keyFor(s),'sacramento');
- const [x,z]=N.toWorld(0,17);assert(!E.blocked(x,z,street));assert.equal(A.enterTrigger(N,{x,z},s),false);assert.equal(A.exitTrigger(N,{x,z}),false);
+test('the new-player start wakes in a pod and Exit Pod leads to open floor',()=>{
+ const w=read('void-runner/world-integration.js'),s=C.startDistrictCampaign(C.fresh());
+ assert.deepEqual([s.story.flags.area,s.story.flags.districtBadge,s.story.flags.districtDoor,s.story.flags.podWakePending],['district',true,true,true]);
+ assert.equal(A.keyFor(s),'darknet-district');const pod=A.resume(s,N),[x,z]=N.toWorld(pod.spawn[0],pod.spawn[2]);
+ assert(Math.abs(x+15.4)<.01&&Math.abs(z-57)<.01);assert.equal(pod.spawn[1],1.1);
+ const exit=A.podExit(N);assert(!E.blocked(exit.spawn[0],exit.spawn[2],interior));
+ assert(w.includes('showPodWake()')&&w.includes('EXIT POD'),'the wake view has an explicit exit');
 });
 test('the existing interactions, the taxi, the VR arcade and the doors are all still wired',()=>{
  const ids=new Set(street.interactions.map(i=>i.id).concat(interior.interactions.map(i=>i.id)));for(const id of ['board','terminal','tdd','district-scan','admin','district-iris','district-shop','district-bar','district-vr','district-vending','district-pod','district-meeting','district-stairs','district-stairs-down'])assert(ids.has(id),id);
  const t=read('void-runner/district-transition.js');assert(t.includes("VoidInteractions.handlers.get('district-scan')")&&t.includes('original?.(...a)'),'the scanner keeps its original behaviour outside the street');
  assert(read('void-runner/neochinatown.js').includes("for(const k of ['city','nightclub','booths'])root.VoidNeoChinatown[k]=undefined"),'stale handles from a released environment are cleared');
 });
-test('continuing a new campaign saved inside the District does not move the player to the street start',()=>{
- const w=read('void-runner/world-integration.js');const fn=w.slice(w.indexOf('async function districtStart()'),w.indexOf('workshopOpening=async function'));
- assert(fn.includes("walkingLocation.area==='interior'")&&fn.indexOf("walkingLocation.area==='interior'")<fn.indexOf('N.toWorld(0,17)'),'the street start position is only applied outside');
+test('continuing a campaign after Exit Pod resumes in the interior without replaying the wake view',()=>{
+ const w=read('void-runner/world-integration.js'),s=C.startDistrictCampaign(C.fresh());delete s.story.flags.podWakePending;
+ const restored=C.restore(JSON.stringify(s)),spot=A.resume(restored,N),[x,z]=N.toWorld(spot.spawn[0],spot.spawn[2]);
+ assert.equal(A.keyFor(restored),'darknet-district');assert(Math.abs(x)<.01&&z>26&&z<30,'resume is in the hall');
+ assert(w.includes('VoidDistrictArea.resume(state,VoidNeoChinatown)'),'the saved location determines the loaded environment');
  assert(w.includes("if(state.quest==='inheritance'){await workshopOpening();return;}")||w.includes('workshopOpening'),'a new campaign still starts through the same routine');
 });

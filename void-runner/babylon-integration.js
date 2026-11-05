@@ -399,6 +399,7 @@ update = function(dt) {
   VoidRadio.setContext(region, state);
   VoidRadio.category(mode === 'play' ? (enemies.some(VoidStory.hostile) ? 'combat' : 'flight') : walkingLocation?.music || 'station');
   const before = flight.route?.phase;
+  if (mode === 'pod-waking') { VoidAudio.tick(dt); return; }
   if (mode === 'walking') {
     const moving = {
       x: FM.clamp(Number(walkingKeys.has('KeyD')) - Number(walkingKeys.has('KeyA')) + VoidInput.axes.moveX,-1,1),
@@ -514,11 +515,10 @@ function drawContactMarkers() {
 draw = function() {
   walkingUI.hidden = !['walking', 'transit3d'].includes(mode);
   if (mode === 'preparing-flight') return;
-  if (mode === 'walking') {
+  if (mode === 'walking' || mode === 'pod-waking') {
     const image = VoidBabylon.renderRoom(walker, W, H, time, when => VoidStory.matches(state, when));
     if (image) ctx.drawImage(image, 0, 0, W, H);
-    ctx.fillStyle = '#b8d4cf';
-    ctx.fillRect(W / 2 - 2, H / 2 - 2, 4, 4);
+    if (mode === 'walking') { ctx.fillStyle = '#b8d4cf'; ctx.fillRect(W / 2 - 2, H / 2 - 2, 4, 4); }
     return;
   }
   if (activeRenderer === 'babylon' && ['play', 'pause'].includes(mode) && VoidBabylon.diagnostics.exteriorReady) {
