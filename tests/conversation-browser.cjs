@@ -34,6 +34,7 @@ const tier=process.argv[2]==='high'?'high':'low';
   await page.locator('[data-hud-filter=unread]').click();assert(await page.locator('#personal-hud .social-thread').getByText('Test conversation.').isVisible());
   await page.locator('[data-hud-achievement=merchandise]').click();assert(await page.locator('#personal-hud').getByText('District Supporter').isVisible());
   await page.locator('[data-hud-close]').click();
+  assert.equal(await page.evaluate(()=>VoidConversationHistory.filter(VoidConversationHistory.read(localStorage,'guest'),'unread').length),0);
   await page.screenshot({path:'/tmp/dd-conversation.png'});
   assert.deepEqual(errors,[]);console.log(JSON.stringify({tier,before,after,yaw,errors}));
  }finally{await browser.close();}

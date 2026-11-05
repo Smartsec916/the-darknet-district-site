@@ -68,7 +68,7 @@
   panel=document.createElement('section');panel.id='personal-hud';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Personal HUD');panel.setAttribute('aria-modal','true');
   document.body.append(panel);render();
  }
- function close(){if(!panel)return;panel.remove();panel=null;mode=returnMode;returnMode=null;clearInput();walkingKeys?.clear?.();canvas.focus();}
+ function close(){if(!panel)return;if(tab==='comms')VoidConversationHistory.markRead(localStorage,window.VoidAccount?.user?.uid||'guest');panel.remove();panel=null;mode=returnMode;returnMode=null;clearInput();walkingKeys?.clear?.();canvas.focus();}
  function toggle(){panel?close():open();}
  function focusables(){return [...panel.querySelectorAll('button:not([disabled])')];}
  function move(step){const list=focusables(),i=list.indexOf(document.activeElement);(list[(i+step+list.length)%list.length]||list[0])?.focus();}
