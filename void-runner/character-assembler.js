@@ -24,9 +24,9 @@
  function greyOf(tex,scene){
   return once(greys,tex.uniqueId,async()=>{
    const size=tex.getSize(),w=size.width,h=size.height,px=new Uint8Array((await tex.readPixels()).buffer.slice(0)),out=new Uint8Array(px.length);
-   let sum=0,n=0;for(let i=0;i<px.length;i+=4)if(px[i+3]>128){sum+=.2126*px[i]+.7152*px[i+1]+.0722*px[i+2];n++;}
-   const avg=(n?sum/n:128)||128;
-   for(let i=0;i<px.length;i+=4){const l=(.2126*px[i]+.7152*px[i+1]+.0722*px[i+2])/avg*255/TINT_GAIN,g=Math.max(0,Math.min(255,l));out[i]=out[i+1]=out[i+2]=g;out[i+3]=px[i+3];}
+   const lums=[];for(let i=0;i<px.length;i+=4)if(px[i+3]>128)lums.push(.2126*px[i]+.7152*px[i+1]+.0722*px[i+2]);
+   lums.sort((x,y)=>x-y);const avg=(lums.length?lums[lums.length>>1]:128)||128;   // the MEDIAN, so a few bright trims do not darken the whole garment
+   for(let i=0;i<px.length;i+=4){const l=(.2126*px[i]+.7152*px[i+1]+.0722*px[i+2])/avg*255/TINT_GAIN*.85,g=Math.max(0,Math.min(255,l));out[i]=out[i+1]=out[i+2]=g;out[i+3]=px[i+3];}
    const t=root.BABYLON.RawTexture.CreateRGBATexture(out,w,h,scene,true,false,root.BABYLON.Texture.TRILINEAR_SAMPLINGMODE);
    t.hasAlpha=tex.hasAlpha;t.wrapU=tex.wrapU;t.wrapV=tex.wrapV;t.name='grey:'+tex.name;
    scene.onDisposeObservable.addOnce(()=>{t.dispose();greys.delete(tex.uniqueId);});
