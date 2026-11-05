@@ -123,6 +123,45 @@ def clean_character(value, administrator=False):
     return {'gender': value['gender'], 'model': value['model']}
 
 
+APPEARANCE_CATALOG = json.loads((Path(__file__).parent / 'void-runner' / 'character-catalog.json').read_text(encoding='utf-8'))
+APPEARANCE_KEYS = {'v', 'base', 'look', 'hair', 'hairColor', 'clothingColor', 'accessories'}
+
+
+def clean_appearance(value):
+    """The character creator's look: ids from void-runner/character-catalog.json only (never paths), valid together. Mirrors void-runner/character-appearance.js."""
+    import re
+    cat = APPEARANCE_CATALOG
+
+    def bad():
+        raise ApiError('That appearance is not available.')
+
+    def ident(v):
+        return type(v) is str and re.fullmatch(r'[a-z0-9][a-z0-9-]{0,39}', v) is not None
+    if not isinstance(value, dict) or set(value) != APPEARANCE_KEYS or type(value['v']) is not int or value['v'] != 1:
+        bad()
+    if not ident(value['base']) or value['base'] not in cat['bases'] or not ident(value['look']) or value['look'] not in cat['looks']:
+        bad()
+    look = cat['looks'][value['look']]
+    if look['base'] != value['base']:
+        bad()
+    hair = value['hair']
+    if hair not in ('native', 'none') and not (ident(hair) and hair in cat['hair'] and hair in look['hairOk']):
+        bad()
+    for key, table in (('hairColor', cat['hairColors']), ('clothingColor', cat['clothingColors'])):
+        if value[key] is not None and not (ident(value[key]) and any(c['id'] == value[key] for c in table)):
+            bad()
+    acc = value['accessories']
+    if not isinstance(acc, list) or len(acc) > 8 or len(set(map(str, acc))) != len(acc):
+        bad()
+    for a in acc:
+        if not ident(a) or a not in look['accessories']:
+            bad()
+    if 'hat' in acc and hair not in ('native', 'none') and not cat['hair'][hair]['hatOk']:
+        bad()
+    return {'v': 1, 'base': value['base'], 'look': value['look'], 'hair': hair, 'hairColor': value['hairColor'],
+            'clothingColor': value['clothingColor'], 'accessories': list(acc)}
+
+
 def inventory(db, uid):
     from google.cloud.firestore_v1.base_query import FieldFilter
     owned = set()
@@ -174,7 +213,9 @@ def character(db, uid):
     """A single, account-bound character. Creation never changes a campaign save."""
     from firebase_admin import firestore
     if request.method == 'GET':
-        return jsonify(character=(player_ref(db, uid).get().to_dict() or {}).get('character'))
+        saved = player_ref(db, uid).get().to_dict() or {}
+        extra = {'appearance': saved['appearance']} if saved.get('appearance') else {}
+        return jsonify(character=saved.get('character'), **extra)
     if getattr(g, 'auth_claims', {}).get('firebase', {}).get('sign_in_provider') == 'anonymous':
         raise ApiError('Secure your account before creating a permanent character.', 403)
     appearance = clean_character(request.get_json(silent=True), balance_admin(uid))
@@ -196,6 +237,23 @@ def character(db, uid):
             raise ApiError('This account already has a character.', 409)
         raise ApiError('Character creation is busy. Try again in a moment.', 503)
     return jsonify(character=record), 201
+
+
+@api.route('/character/appearance', methods=['POST'])
+@signed_in
+def character_appearance(db, uid):
+    """The character creator / wardrobe look. Cosmetic only: never touches the save, inventory, credits or the account's one character record.
+    OFF unless VOID_APPEARANCE_ENABLED=true (the owner turns it on when approving a test; production stays off until then)."""
+    if os.getenv('VOID_APPEARANCE_ENABLED') != 'true':
+        raise ApiError('Appearance changes are not available yet.', 404)
+    if getattr(g, 'auth_claims', {}).get('firebase', {}).get('sign_in_provider') == 'anonymous':
+        raise ApiError('Secure your account before saving a permanent look.', 403)
+    appearance = clean_appearance(request.get_json(silent=True))
+    ref = player_ref(db, uid)
+    if not (ref.get().to_dict() or {}).get('character'):
+        raise ApiError('Create your character first.', 409)
+    ref.set({'appearance': appearance}, merge=True)
+    return jsonify(appearance=appearance)
 
 
 @api.get('/balance')
