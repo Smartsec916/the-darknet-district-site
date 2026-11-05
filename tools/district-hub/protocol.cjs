@@ -11,8 +11,10 @@ const ROOMS={'district-interior':{x:[-400,400],z:[-400,400],cap:12}};
 // Existing animated District crowd models that a character slot may name (see CHARACTER_MODELS in void_runner_api.py).
 const RENDERABLE=['district-smuggler','district-resident'];
 const DEFAULT_MODEL='district-smuggler';
-const LIMITS={maxBytes:512,maxHelloBytes:4400,helloMs:20000,maxSpeed:9,speedSlack:1.5,snapEveryMs:5000,staleMs:12000,maxPerSecond:40,violationsBeforeKick:8,stateIntervalMs:80,walkHoldMs:450};
+const LIMITS={maxBytes:512,maxHelloBytes:4400,helloMs:45000,maxSpeed:9,speedSlack:1.5,snapEveryMs:5000,staleMs:12000,maxPerSecond:40,violationsBeforeKick:8,stateIntervalMs:80,walkHoldMs:450};
 
+// A public handle (3 to 20 letters, digits, underscore: the same rule as the handle registry) is the display name; the server re-checks it.
+const HANDLE=/^[A-Za-z0-9_]{3,20}$/;
 const publicId=uid=>crypto.createHash('sha256').update('district-hub:'+uid).digest('hex').slice(0,12);
 const num=v=>typeof v==='number'&&Number.isFinite(v);
 
@@ -46,7 +48,7 @@ class Hub{
     const old=this.peers.get(who.uid);if(old)this.drop(old.conn,4001,'replaced by a newer connection');
     if(this.roomPeers(message.room).length>=room.cap){this.send(conn,{t:'error',reason:'room full'});this.closeConn(conn,4003,'room full');return false;}
     const model=who.anonymous||!RENDERABLE.includes(who.model)?DEFAULT_MODEL:who.model;
-    const peer={uid:who.uid,id,conn,room:message.room,name:(who.anonymous?'Guest-':'Pilot-')+id.slice(0,4),model,x:0,z:0,yaw:0,clip:'idle',placed:false,lastAt:t,lastMove:t,lastSnap:-Infinity,bucketAt:t,bucket:0,violations:0};
+    const peer={uid:who.uid,id,conn,room:message.room,name:typeof who.handle==='string'&&HANDLE.test(who.handle)?who.handle:(who.anonymous?'Guest-':'Pilot-')+id.slice(0,4),model,x:0,z:0,yaw:0,clip:'idle',placed:false,lastAt:t,lastMove:t,lastSnap:-Infinity,bucketAt:t,bucket:0,violations:0};
     this.peers.set(who.uid,peer);this.byConn.set(conn,peer);
     this.send(conn,{t:'welcome',you:id,peers:this.roomPeers(message.room).filter(p=>p.id!==id&&p.placed).map(p=>this.view(p))});
     return true;

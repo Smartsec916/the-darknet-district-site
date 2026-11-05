@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "f55efe36cb5576fd",
+  "revision": "c27efb4d217ebc90",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12397,8 +12397,8 @@
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 51,
-      "text": "sock.onclose=e=>{if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one",
+      "line": 89,
+      "text": "sock.onclose=e=>{trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one",
       "kind": "source-reference"
     },
     {
@@ -13424,7 +13424,7 @@
     "void-runner/relay-radio.js": "5ce31904c15f630a01d00f51d566d66ae97c736d5734d7531835588714269806",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
-    "void-runner/remote-players.js": "0de6e6605b091d1df9078ddfd84db37e393b26d6c4b1d6b4bd5d7c04bdd29b5d",
+    "void-runner/remote-players.js": "f1d2fa76ce33a30d6820268c02ab360d7580efb5ea9d5e50ab64c0254bc601c7",
     "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",

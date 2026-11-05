@@ -2,13 +2,15 @@
 
 Written 2026-11-05. **Local development only.** Nothing here is deployed, published, connected to a paid service, or connected to production Firebase, Firestore, Neon, Render or any live user record. For players the game contains none of this behaviour (see "Gates").
 
+> **Update 2026-11-05:** the hub now has a **production mode** (Google public-key token verification, character and handle from the existing game API with the player's own token, account allow-list, name tags, connection limits, Render Blueprint draft). It is prepared, tested locally, **not deployed**. See `HUB_DEPLOYMENT.md`. The emulator mode described below remains the way to develop and test locally.
+
 ## What it does
 
 Two browser sessions, each signed in as a different **local emulator account**, join the same District interior. Each sees the other as that account's chosen character (the existing animated `district-smuggler` or `district-resident` crowd model), at the other's real position and facing, walking or standing.
 
 ```
  browser A ──ws──┐                       ┌── Auth emulator (who is this token?)
-                 ├─ tools/district-hub-dev ┤
+                 ├─ tools/district-hub ┤
  browser B ──ws──┘   (127.0.0.1:8787)     └── Firestore emulator (which character is stored for that account?)
 ```
 
@@ -16,10 +18,10 @@ Two browser sessions, each signed in as a different **local emulator account**, 
 
 | File | Role | Replaceable by production? |
 |---|---|---|
-| `tools/district-hub-dev/protocol.cjs` | **Pure rules**: message whitelist, rooms, speed/bounds/snap/flood limits, the join / replace / leave / sweep logic. No network, no clock, no storage (a clock is injected). | **Kept as is.** |
-| `tools/district-hub-dev/hub-server.cjs` | WebSocket transport (`ws`), heartbeat, hello timeout, local-origin check. Takes the two providers below as arguments. | Kept; add TLS, real limits and logging. |
-| `tools/district-hub-dev/emulator-providers.cjs` | The only code that talks to anything: `verifyToken` (Auth emulator) and `characterModel` (Firestore emulator). Refuses non-local addresses and real credentials. | **Replace** with Google public-key token verification (as `iris-service/src/firebaseAuth.ts` does) and a server-side Firestore read. |
-| `tools/district-hub-dev/server.cjs` | `npm run hub:dev`, default port 8787. | Replace with the production entry point. |
+| `tools/district-hub/protocol.cjs` | **Pure rules**: message whitelist, rooms, speed/bounds/snap/flood limits, the join / replace / leave / sweep logic. No network, no clock, no storage (a clock is injected). | **Kept as is.** |
+| `tools/district-hub/hub-server.cjs` | WebSocket transport (`ws`), heartbeat, hello timeout, local-origin check. Takes the two providers below as arguments. | Kept; add TLS, real limits and logging. |
+| `tools/district-hub/emulator-providers.cjs` | The only code that talks to anything: `verifyToken` (Auth emulator) and `characterModel` (Firestore emulator). Refuses non-local addresses and real credentials. | **Replace** with Google public-key token verification (as `iris-service/src/firebaseAuth.ts` does) and a server-side Firestore read. |
+| `tools/district-hub/server.cjs` | `npm run hub:dev`, default port 8787. | Replace with the production entry point. |
 | `void-runner/remote-players.js` | Game-side client: sends this player's x, z, facing at 10 Hz; draws the others. Gated, never saves. | Kept; swap the gate and the token source. |
 | `void-runner/avatar-preview.js` | Earlier single-avatar preview (unchanged). | Dev only. |
 | Tests | `tests/district-hub-protocol.test.cjs` (9, in `npm test`), `tests/remote-players.test.cjs` (3, in `npm test`), `tests/district-hub-ws.cjs` (4, real sockets and emulators), `tests/multiplayer-browser.cjs` (two real browsers, Low or High). | |
@@ -61,7 +63,12 @@ The VR rooms and companions, NPC crowds, Sleeping Pod 01, the pod music player, 
 
 ## Gates
 
-`remote-players.js` is inert unless **all** hold: the page is on `localhost` or `127.0.0.1`, the address has `?multiplayer=1` (or the local flag `tdd-multiplayer=1`), and the hub address is a local `ws://` address. On the live site none of that can be true. Merging to `main` still publishes the file, so it ships as inert code; **do not remove the gate**.
+`remote-players.js` is inert unless a tester has switched it on, and then it works only in the District interior (walking mode):
+
+- **Local page** (`localhost` or `127.0.0.1`): `?multiplayer=1` (or the local flag `tdd-multiplayer=1`), hub on a local `ws://` address (address bar `?hub=` or flag `tdd-hub`).
+- **Live site** (`thedarknetdistrict.com`, https only): **both** local flags `tdd-multiplayer=1` and `tdd-hub=wss://<name>.onrender.com` set by the tester in their own browser. The address bar is ignored there, so a crafted link cannot switch it on or point a sign-in at another server.
+
+It is one of the game scripts the device gate keeps inert, so phones never download it. Merging to `main` still publishes the file, so it ships as inert code; **do not remove the gates**. The tester's token is the player's own Firebase sign-in (`VoidAccount.user.getIdToken()`); a locally stored test token is honoured only on a local page.
 
 ## Infrastructure needed for a future public multiplayer test (all need David's approval)
 

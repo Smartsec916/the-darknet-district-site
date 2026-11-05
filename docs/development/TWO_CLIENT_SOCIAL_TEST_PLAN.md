@@ -22,7 +22,7 @@ Written 2026-11-05. **Plan only. Nothing here is built, deployed or connected to
 
 ## 3. Proposed minimum design
 
-- **A tiny dev hub** (Node + `ws`, about 200 lines, under `tools/district-hub-dev/`, **not** `iris-service/`): `hello` carries a Firebase ID token; the hub verifies it (against the **Auth emulator** locally, against Google's public keys only after approval), looks up the character (from the Firestore emulator through the existing `/character` API), then assigns the room.
+- **A tiny dev hub** (Node + `ws`, about 200 lines, under `tools/district-hub/`, **not** `iris-service/`): `hello` carries a Firebase ID token; the hub verifies it (against the **Auth emulator** locally, against Google's public keys only after approval), looks up the character (from the Firestore emulator through the existing `/character` API), then assigns the room.
 - **Messages** (whitelist, JSON, bounded size): `hello`, `state {x,z,yaw,clip,t}` at 10 Hz, `bye`. Server broadcasts `peers` (handle, model, last state). The client smooths with interpolation (`avatar-preview.js` supplies the model/animation code to reuse).
 - **Server checks:** token valid and not anonymous-impersonating (guests get a guest handle and the default look); one session per account; max speed (about 6 m/s) and bounds per location; 12 messages/s per socket then disconnect; no client-chosen identity fields.
 - **Client:** a `remote-players.js` behind the same localhost-only gate as the preview; one avatar per peer via `VoidAssets.instance('crowd:'+model)` and `VoidCrowd.animate`; walk/idle chosen from measured speed; dispose on `bye`.

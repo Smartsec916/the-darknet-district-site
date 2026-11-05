@@ -1,6 +1,5 @@
-/* The two things the hub must ask the outside world, implemented against the LOCAL Firebase emulators only.
-   A production hub replaces this file: verifyToken with Google's public keys (as iris-service/src/firebaseAuth.ts does) and
-   characterModel with a server-side Firestore read. The hub itself (hub-server.cjs, protocol.cjs) does not change. */
+/* The development providers: they ask the LOCAL Firebase emulators only. Token check: Auth emulator. Character: Firestore emulator.
+   The production hub uses google-auth.cjs and api-providers.cjs instead (see server.cjs). */
 'use strict';
 const crypto=require('node:crypto');
 const PROJECT='demo-darknet-local';
@@ -13,6 +12,11 @@ function create(env=process.env){
   if(env.GOOGLE_APPLICATION_CREDENTIALS)throw new Error('Refusing to run with real Google credentials in the environment.');
   return {
     project:PROJECT,
+    /* The one call the hub makes: -> {uid, anonymous, model, handle} or null. */
+    async identify(token){
+      const who=await this.verifyToken(token);if(!who)return null;
+      return {...who,model:who.anonymous?null:await this.characterModel(who.uid),handle:null};
+    },
     /* -> {uid, anonymous} or null. The emulator checks that the token is one it issued and that the account exists. */
     async verifyToken(token){
       try{

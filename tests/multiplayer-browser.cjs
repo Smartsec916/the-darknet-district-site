@@ -6,7 +6,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),cryp
 const AUTH=process.env.FIREBASE_AUTH_EMULATOR_HOST,STORE=process.env.FIRESTORE_EMULATOR_HOST,base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187';
 if(!AUTH||!STORE){console.log('skipped: emulators are not running');process.exit(0);}
 const tier=process.argv[2]==='high'?'high':'low';
-const {create}=require('../tools/district-hub-dev/emulator-providers.cjs'),{start}=require('../tools/district-hub-dev/hub-server.cjs');
+const {create}=require('../tools/district-hub/emulator-providers.cjs'),{start}=require('../tools/district-hub/hub-server.cjs');
 const post=async(path,body)=>(await fetch(`http://${AUTH}/identitytoolkit.googleapis.com/v1/accounts:${path}?key=fake`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)})).json();
 const account=async model=>{const d=await post('signUp',{email:`mp${crypto.randomUUID().slice(0,8)}@example.test`,password:'correct-horse-9',returnSecureToken:true});
  await fetch(`http://${STORE}/v1/projects/demo-darknet-local/databases/(default)/documents/vr_players/${crypto.createHash('sha256').update(d.localId).digest('hex')}`,{method:'PATCH',headers:{authorization:'Bearer owner','content-type':'application/json'},body:JSON.stringify({fields:{character:{mapValue:{fields:{gender:{stringValue:model==='district-resident'?'female':'male'},model:{stringValue:model}}}}}})});
@@ -15,7 +15,7 @@ let pa,pb;
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 
 (async()=>{
- const providers=create();let hub=start({providers}),port;await new Promise(r=>hub.wss.on("listening",r));port=hub.port;
+ const providers=create();let hub=await start({identify:t=>providers.identify(t)}),port=hub.port;
  const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--no-sandbox']}),errors=[];
  const A=await account('district-resident'),B=await account('district-smuggler');
  async function player(acct){
@@ -33,7 +33,7 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
  const peersOf=p=>p.page.evaluate(()=>VoidRemotePlayers.peers);
  const diag=async()=>{for(const [n,q] of [['A',pa],['B',pb]])if(q)console.error('DIAG',n,JSON.stringify(await q.page.evaluate(()=>({status:VoidRemotePlayers.status,lastClose:VoidRemotePlayers.lastClose,peers:VoidRemotePlayers.peers.map(x=>({id:x.id,drawn:x.drawn,clip:x.clip})),mode,area:walkingLocation?.area,pending:VoidAssets.pending}))));console.error('DIAG hub',JSON.stringify([...hub.hub.peers.values()].map(q=>({id:q.id,placed:q.placed}))));};
  const untilPeers=async(p,fn,ms=90000)=>{try{await p.page.waitForFunction(f=>{const v=VoidRemotePlayers.peers;return eval('('+f+')')(v);},fn.toString(),{timeout:ms,polling:200});}catch(e){await diag();throw e;}};
- const snapshot=p=>p.page.evaluate(()=>({loc:state.location,credits:state.credits,quest:state.quest,story:JSON.stringify(state.story),npcs:VoidBabylon.scene.transformNodes.filter(n=>/^crowd:/.test(n.name)&&!/^remote-player/.test(n.parent?.name||'')).length}));
+ const snapshot=p=>p.page.evaluate(()=>({loc:state.location,credits:state.credits,quest:state.quest,story:JSON.stringify(state.story),npcs:(()=>{const remote=n=>{for(let q=n.parent;q;q=q.parent)if(/^remote-player:/.test(q.name))return true;return false;};return VoidBabylon.scene.transformNodes.filter(n=>/^crowd:/.test(n.name)&&!remote(n)).length;})()}));
  try{
   pa=await player(A);pb=await player(B);
   const before=[await snapshot(pa),await snapshot(pb)];
@@ -60,7 +60,7 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
   assert(err<.35,'A sees B within 0.35 m of where B really is: '+err.toFixed(3));assert(dyaw<.2,'A sees B facing the right way: '+dyaw.toFixed(3));
   // Look at the other player for a screenshot, and check the avatar is a District model of human height.
   await pa.page.evaluate(()=>{const p=VoidRemotePlayers.peers[0];walker.yaw=Math.atan2(p.x-walker.x,p.z-walker.z);walker.pitch=0;});await wait(1200);await pa.page.screenshot({path:`/tmp/dd-multiplayer-${tier}.png`});
-  const h=await pa.page.evaluate(()=>{const n=VoidBabylon.scene.transformNodes.find(x=>/^remote-player:/.test(x.name)),ms=n.getChildMeshes().filter(m=>m.isEnabled()&&m.isVisible);let lo=1e9,hi=-1e9;for(const m of ms){m.computeWorldMatrix(true);m.refreshBoundingInfo?.({applySkeleton:true,applyMorph:false});const b=m.getBoundingInfo().boundingBox;lo=Math.min(lo,b.minimumWorld.y);hi=Math.max(hi,b.maximumWorld.y);}return +(hi-lo).toFixed(2);});
+  const h=await pa.page.evaluate(()=>{const n=VoidBabylon.scene.transformNodes.find(x=>/^remote-player:/.test(x.name)),ms=n.getChildMeshes().filter(m=>m.isEnabled()&&m.isVisible&&m.name!=='remote-tag');let lo=1e9,hi=-1e9;for(const m of ms){m.computeWorldMatrix(true);m.refreshBoundingInfo?.({applySkeleton:true,applyMorph:false});const b=m.getBoundingInfo().boundingBox;lo=Math.min(lo,b.minimumWorld.y);hi=Math.max(hi,b.maximumWorld.y);}return +(hi-lo).toFixed(2);});
   assert(h>1.8&&h<2.1,'the remote smuggler is the same size as the NPC smuggler (1.96): '+h);
   // 3. A closes the tab: B's view loses the avatar (no ghost).
   // A third player (a plain test socket, so a third renderer is not needed) joins and leaves: B draws two avatars, then one. No ghost remains.
@@ -69,7 +69,7 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
   await untilPeers(pb,v=>v.length===2&&v.every(x=>x.drawn));sock.terminate();await untilPeers(pb,v=>v.length===1,30000);
   // 4. The hub goes away and comes back: both clients reconnect by themselves and the roster is rebuilt without duplicates.
   await hub.close();await pb.page.waitForFunction(()=>VoidRemotePlayers.peers.length===0&&!VoidRemotePlayers.connected,null,{timeout:30000});
-  hub=start({providers,port});await new Promise(r=>hub.wss.on('listening',r));
+  hub=await start({identify:t=>providers.identify(t),port});
   await untilPeers(pa,v=>v.length===1&&v[0].drawn,90000);await untilPeers(pb,v=>v.length===1&&v[0].drawn,90000);
   // 5. Nothing else moved: NPC count and the local campaign are unchanged; the other player added no NPC.
   const after=[await snapshot(pb)];assert.equal(after[0].npcs,before[1].npcs,'NPC count unchanged');assert.equal(after[0].story,before[1].story);assert.equal(after[0].credits,before[1].credits);assert.equal(after[0].loc,before[1].loc);

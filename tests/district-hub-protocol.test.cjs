@@ -1,5 +1,5 @@
 const test=require('node:test'),assert=require('node:assert/strict');
-const {Hub,parse,publicId,LIMITS,ROOMS}=require('../tools/district-hub-dev/protocol.cjs');
+const {Hub,parse,publicId,LIMITS,ROOMS}=require('../tools/district-hub/protocol.cjs');
 function rig(){let now=1e6;const sent=new Map(),closed=[];
  const hub=new Hub({send:(c,m)=>{(sent.get(c)||sent.set(c,[]).get(c)).push(m);},close:(c,code,why)=>closed.push([c,code,why]),now:()=>now});
  return {hub,sent,closed,adv:ms=>{now+=ms;},msgs:c=>sent.get(c)||[],last:c=>(sent.get(c)||[]).at(-1)};}

@@ -5,7 +5,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const AUTH=process.env.FIREBASE_AUTH_EMULATOR_HOST,STORE=process.env.FIRESTORE_EMULATOR_HOST;
 const skip=!AUTH||!STORE?'Firebase emulators are not running locally':false;
-const WebSocket=skip?null:require('ws'),{create}=skip?{}:require('../tools/district-hub-dev/emulator-providers.cjs'),{start}=skip?{}:require('../tools/district-hub-dev/hub-server.cjs');
+const WebSocket=skip?null:require('ws'),{create}=skip?{}:require('../tools/district-hub/emulator-providers.cjs'),{start}=skip?{}:require('../tools/district-hub/hub-server.cjs');
 
 const post=async(path,body)=>(await fetch(`http://${AUTH}/identitytoolkit.googleapis.com/v1/accounts:${path}?key=fake`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)})).json();
 const register=async()=>{const email=`h${crypto.randomUUID().slice(0,8)}@example.test`,d=await post('signUp',{email,password:'correct-horse-9',returnSecureToken:true});return {uid:d.localId,token:d.idToken};};
@@ -19,11 +19,11 @@ class Client{
   async until(fn,ms=4000){const end=Date.now()+ms;for(;;){const v=fn(this);if(v)return v;if(Date.now()>end)throw new Error('timeout; saw '+JSON.stringify(this.msgs).slice(0,500)+' closed='+this.closed);await new Promise(r=>{this.wake=r;setTimeout(r,50);});}}
   of(t){return this.msgs.filter(m=>m.t===t);}
 }
-async function rig(){const hub=start({providers:create()});await new Promise(r=>hub.wss.on('listening',r));return {hub,url:`ws://127.0.0.1:${hub.port}`};}
+async function rig(){const providers=create(),hub=await start({identify:t=>providers.identify(t)});return {hub,url:`ws://127.0.0.1:${hub.port}`};}
 const join=async(url,acct,x=10,z=10)=>{const c=new Client(url,'http://127.0.0.1:5188');await c.open;c.send({t:'hello',token:acct.token,room:'district-interior'});await c.until(c=>c.of('welcome').length||c.closed);if(c.of('welcome').length)c.send({t:'state',x,z,yaw:0});return c;};
 
 test('providers refuse anything that is not the local emulators',{skip},()=>{
-  const {create}=require('../tools/district-hub-dev/emulator-providers.cjs');
+  const {create}=require('../tools/district-hub/emulator-providers.cjs');
   assert.throws(()=>create({FIREBASE_AUTH_EMULATOR_HOST:'auth.example.com:9099',FIRESTORE_EMULATOR_HOST:'127.0.0.1:8080'}));
   assert.throws(()=>create({FIREBASE_AUTH_EMULATOR_HOST:'127.0.0.1:9099'}));
   assert.throws(()=>create({FIREBASE_AUTH_EMULATOR_HOST:'127.0.0.1:9099',FIRESTORE_EMULATOR_HOST:'127.0.0.1:8080',GOOGLE_APPLICATION_CREDENTIALS:'/x.json'}));

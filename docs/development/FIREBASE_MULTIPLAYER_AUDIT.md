@@ -4,7 +4,7 @@ Written 2026-11-05. **Read-only.** Everything here comes from the repository and
 
 ## 1. Verdict
 
-**Yes: the existing Firebase project `the-darknet-district-71873` is suitable for the *identity and durable data* half of multiplayer, and not suitable for the *real-time* half.** Keep Firebase Auth for who people are, and Firestore (through the existing Render API) for things that must last (characters, handles, ledgers). Put movement, presence and chat on a small WebSocket server. A prototype of that server already exists on this branch (`tools/district-hub-dev/`); it runs only against local emulators today.
+**Yes: the existing Firebase project `the-darknet-district-71873` is suitable for the *identity and durable data* half of multiplayer, and not suitable for the *real-time* half.** Keep Firebase Auth for who people are, and Firestore (through the existing Render API) for things that must last (characters, handles, ledgers). Put movement, presence and chat on a small WebSocket server. A prototype of that server already exists on this branch (`tools/district-hub/`); it runs only against local emulators today.
 
 The smallest safe path to two real players in the District needs **one new free Render web service, no new database, no new credentials for the hub, and no change to the Firebase project's rules or settings** (section 8).
 
@@ -84,7 +84,7 @@ Billing plan of the Firebase project (Spark or Blaze) is **unverified**; if it i
 
 **Goal:** David and one invited player, on their own computers, see each other in the District interior.
 
-1. **Hub service**: deploy `tools/district-hub-dev/` (renamed `district-hub`) as **one new free Render web service**, modelled on `iris-service/render.yaml` (`plan: free`, **`autoDeploy: false`**, secrets not in the repository). Needs no database and no Firebase credential.
+1. **Hub service**: deploy `tools/district-hub/` (renamed `district-hub`) as **one new free Render web service**, modelled on `iris-service/render.yaml` (`plan: free`, **`autoDeploy: false`**, secrets not in the repository). Needs no database and no Firebase credential.
 2. **Replace `emulator-providers.cjs`** with: (a) token verification using Google's public keys (copy the logic of `iris-service/server/firebaseAuth.ts`; project id `the-darknet-district-71873`), and (b) the **character lookup by forwarding the player's own token to the existing `GET /api/void-runner/character`** on the Flask API. The hub then holds no Firestore access at all and every read goes through the API's existing checks. A handle can be read the same way (`GET /api/identity/me`).
 3. **Access control for the test**: an environment variable `HUB_ALLOWED_UIDS` (like `IRIS_ADMIN_UIDS`): only listed accounts may join; everyone else is refused at `hello`. Origin allow-list: the site's two origins. Room cap and limits stay as built.
 4. **Client**: `void-runner/remote-players.js` already reads the player's own token from `VoidAccount.user.getIdToken()`; change the gate so an allowed tester on the real site can switch it on (for example a local flag on the unlisted game page) and point the hub address at the Render service (`wss://`). It ships inert for everyone else.
@@ -93,6 +93,29 @@ Billing plan of the Firebase project (Spark or Blaze) is **unverified**; if it i
 
 ### What this needs from David (not requested now)
 Creating the Render service (free plan, but a new running service), setting its environment variables, and merging the client change (merging to `main` publishes the site). Test with the allow-list first. Everything in steps 1 to 4 is already prototyped except the two production providers.
+
+## 8b. Status 2026-11-05: the hub is now built to this plan (not deployed)
+
+Steps 1 to 4 and the client switch of section 8 are implemented and tested; steps 1 (creating the Render service) and the merge remain with the owner. Details, the exact configuration and the rollback are in `HUB_DEPLOYMENT.md`. Two refinements to the plan above: the production hub **requires** an account allow-list (it refuses to start without one), and on the live site the client reads the hub address only from the tester's own stored flag (never from the address bar), so a crafted link cannot send a player's sign-in to another server.
+
+### Hub security review
+
+| Threat | Control | Tested by |
+|---|---|---|
+| Forged, edited, expired or wrong-project token; `alg: none`; key-confusion | RS256 only, Google's public keys, audience, issuer, expiry and issue-time checks, key rotation handled | `district-hub-production.test.cjs` (every case) |
+| A client claiming another identity, model or name in a message | Only `hello {token, room}`, `state {x, z, yaw}`, `bye` parse; any extra field is invalid; the client code is pinned not to send identity fields | protocol, client and ws tests |
+| An unlisted or banned account joining | Allow-list and deny-list on the **verified** account id; empty allow-list means no start | `district-hub-prod-ws.cjs`, config tests |
+| Sign-in token sent to a hostile server via a crafted link | Live-site hub address only from the tester's own storage, `wss://*.onrender.com` only; the address bar is ignored; local pages accept local hubs only | `remote-players.test.cjs` |
+| Cross-site use of the hub from another web page | Exact origin allow-list (production); missing origin refused | prod ws test |
+| Flooding, huge messages, teleporting | 512-byte limit (4.4 KB for the login message), 40 messages per second, speed, bounds and one jump per 5 s, repeat offenders disconnected | protocol and prod ws tests |
+| Connection exhaustion | 4 per address, 20 new per minute per address, 60 overall, hello deadline 45 s, 12 per room | limits tests, prod ws test |
+| Forged `X-Forwarded-For` to dodge limits | Only the right-most entry that our own proxy added is trusted | `limits` tests |
+| Duplicate avatars, ghosts, reconnect storms | One session per account (replace), heartbeat and stale sweep, `leave` exactly once, client clears and rebuilds on reconnect, backoff, restart code 1012 | protocol, ws and both browser tests |
+| Script injection through names | Handle re-validated on the hub (3 to 20 letters, digits, underscore) and on the client; names drawn as canvas text, never markup | production and client tests |
+| Information leakage | `/health` returns only a count; logs hold public ids, never tokens or account ids | prod ws test |
+| API or Firebase outage | A failed lookup yields the default look and a guest name, never a refusal; a failed key fetch means "not signed in" | production tests |
+
+Accepted limits: a revoked account keeps working for up to an hour unless on the deny-list; a stolen valid token can be replayed until it expires (an hour) by someone who also passes the allow-list and origin checks (the allow-list makes this a short list of people); position cheating within the speed and bounds rules; free-tier sleep and restarts.
 
 ## 9. Later phases
 Chat and moderation (hub plus Neon tables); mobile chat page and the "ENTER on a phone" notice; shared landing locations (more rooms, loading district looks in the street, per-tier avatar caps); vault and trading (section 6); optional App Check; sharding only if a room cap is reached.
