@@ -58,7 +58,7 @@ arrive=function(){
  talk('dock',[{who,text:line+(f.repairCharged?` Dock servicing costs ${f.repairCharged} credits.`:'')}],()=>dock(),'GO BACK TO YOUR SHIP →','Delivery confirmed');
 };
 screen.addEventListener('click',e=>{const a=e.target.closest('button')?.dataset.action;if(a==='speech-next')advanceSpeech();else if(a==='talk-rook')rookConversation();else if(a==='talk-nyx')talk('bar',[{who:'nyx',text:state.quest==='legal-offer'?'Rook has work. He’s in the booth.':state.quest==='illegal-offer'?'Rook is waiting. This job pays better.':'Need work? Visit the cargo contacts. Need upgrades? Try the shop.'}],barRoom,'BACK TO THE BAR','At the counter');else if(a==='contacts')contacts();else if(a?.startsWith('brief:'))brief(a.slice(6));});
-addEventListener('keydown',e=>{if(speech&&['Space','Enter'].includes(e.code)&&e.target.tagName!=='BUTTON'){e.preventDefault();if(!e.repeat)advanceSpeech();}});
+addEventListener('keydown',e=>{if(speech&&mode!=='walking'&&['Space','Enter'].includes(e.code)&&e.target.tagName!=='BUTTON'){e.preventDefault();if(!e.repeat)advanceSpeech();}});
 const planetTypes={
  meridian:{name:'AUREL / RINGED GAS GIANT',base:'#d6b58a',shade:'#443248',ring:true,kind:'gas',side:1},
  kepler:{name:'PELAGOS / OCEAN WORLD',base:'#41a6c7',shade:'#081e48',kind:'ocean',side:-1},

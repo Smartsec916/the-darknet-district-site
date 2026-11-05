@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "0c649500f726df47",
+  "revision": "2b2b13b694fc1b03",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11646,6 +11646,108 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/conversation-history.js",
+      "line": 3,
+      "text": "const prefix='tdd:npc-conversations:v1:';",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-history.js",
+      "line": 7,
+      "text": "function append(store,uid,entry){const rows=read(store,uid),row={character:safe(entry.character),name:safe(entry.name),text:safe(entry.text),place:safe(entry.place),at:Number.isSafeInteger(entry.at)?entry.at:Date.now(),read:false};if(!row.character||!row.text)return rows;rows.push(row);try{store.setItem(key(uid),JSON.stringify(rows.slice(-150)));}catch{}return rows.slice(-150);}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 1,
+      "text": "/* One floating transcript for walking NPC and VR companion dialogue. Movement stays in walking mode. */",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 4,
+      "text": "const restore=document.createElement('button');restore.id='conversation-restore';restore.type='button';restore.hidden=true;restore.textContent='CONVERSATION · RESTORE';document.body.append(restore);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 7,
+      "text": "function hasContent(){return !!speech||!!screen.querySelector('.choice-menu');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 9,
+      "text": "function show(){if(!floating())return;mode=activeMode;screen.classList.add('conversation-live');screen.classList.toggle('hidden',minimized);restore.hidden=!minimized;if(!minimized&&document.pointerLockElement)document.exitPointerLock?.();canvas.focus({preventScroll:true});}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 14,
+      "text": "const line=speech.lines[speech.index],signature=speech.index+':'+line.who+':'+line.text;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 15,
+      "text": "if(lastLine!==signature){history.append(localStorage,uid(),{character:line.who||'companion',name:characters[line.who]?.name||line.who||'Companion',text:line.text,place:state.location,at:Date.now()});lastLine=signature;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 16,
+      "text": "const win=screen.querySelector('.dialogue-window');if(win&&!win.querySelector('.conversation-minimize')){",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 17,
+      "text": "const thread=document.createElement('div');thread.className='conversation-thread';thread.setAttribute('aria-label','Conversation history');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 19,
+      "text": "win.insertBefore(thread,win.querySelector('.speech-body'));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 20,
+      "text": "const b=document.createElement('button');b.type='button';b.className='conversation-minimize quiet';b.textContent='MINIMIZE';b.addEventListener('click',e=>{e.stopPropagation();minimized=true;screen.classList.add('hidden');restore.hidden=false;canvas.focus({preventScroll:true});});win.prepend(b);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 26,
+      "text": "resumeWalking=function(...args){activeMode=null;minimized=false;restore.hidden=true;screen.classList.remove('conversation-live');return priorResume(...args);};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 28,
+      "text": "advanceSpeech=function(...args){const result=priorAdvance(...args);if(!hasContent()&&screen.classList.contains('conversation-live')){activeMode=null;screen.classList.remove('conversation-live');screen.classList.add('hidden');restore.hidden=true;}return result;};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 29,
+      "text": "if(typeof renderStoryChoices==='function'){const priorChoices=renderStoryChoices;renderStoryChoices=function(...args){priorChoices(...args);if(activeMode&&walkingLocation&&walker){screen.querySelector('.dialogue-window')?.classList.add('choice-menu');mode=activeMode;screen.classList.add('conversation-live');screen.classList.remove('hidden');}};}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 30,
+      "text": "document.addEventListener('keydown',e=>{if(e.code==='Escape'&&speech&&screen.classList.contains('conversation-live')){minimized=true;screen.classList.add('hidden');restore.hidden=false;}},true);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 31,
+      "text": "globalThis.VoidConversationUI={get isOpen(){return hasContent()&&screen.classList.contains('conversation-live');},continueWalking(){if(!this.isOpen)return false;activeMode='walking';mode='walking';walkingKeys.clear();canvas.focus({preventScroll:true});return true;}};",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/device-gate.js",
       "line": 20,
       "text": "const ipadOS=/Macintosh/i.test(e.ua)&&e.maxTouchPoints>1&&/Mac/i.test(e.platform||'MacIntel'); /* iPadOS 13+ says it is a Mac */",
@@ -11952,6 +12054,42 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/mouse-control.js",
+      "line": 8,
+      "text": "const conversationOpen=()=>!!document.querySelector('#screen.conversation-live');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mouse-control.js",
+      "line": 35,
+      "text": "if(gameReleased){gameReleased=false;if(!conversationOpen())reacquire();return;} // keep the cursor free over a conversation",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mouse-control.js",
+      "line": 36,
+      "text": "if(fps()&&!conversationOpen()&&typeof openGameMenu==='function'){walkingKeys?.clear?.();openGameMenu();}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mouse-control.js",
+      "line": 40,
+      "text": "const reacquire=()=>setTimeout(()=>{if(fps()&&!locked()&&!conversationOpen())lock();},0);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mouse-control.js",
+      "line": 41,
+      "text": "document.addEventListener('click',e=>{if(e.target!==canvas&&e.target.closest?.('button')&&!conversationOpen())reacquire();});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mouse-control.js",
+      "line": 42,
+      "text": "addEventListener('keyup',e=>{if(['Enter','Space','Escape'].includes(e.code)&&!conversationOpen())reacquire();});",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/music-director.js",
       "line": 5,
       "text": "const config={zoneHold:1.4,combatCooldown:7,dialogueDuck:.3};",
@@ -12007,26 +12145,20 @@
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 24,
-      "text": "const l=H.link(state,{onFoot:onFoot(),route:returnMode==='play'?flight.route:null}),msgs=H.messages(state,{rook:typeof rookMissileLine!=='undefined'?rookMissileLine.text:null}),people=H.contacts(state);",
+      "line": 27,
+      "text": "const profile=p=>'<article class=\"hud-card social-profile\" data-profile=\"'+esc(p.key)+'\"><div class=\"social-avatar\" aria-hidden=\"true\">'+esc(p.name.slice(0,1).toUpperCase())+'</div><div><h3>'+esc(p.name)+'</h3><p>'+esc(p.bio)+'</p>'+badges(p)+'<button type=\"button\" data-hud-character=\"'+esc(p.key.startsWith('npc:')?p.key.slice(4):'')+'\">CONVERSATIONS</button></div></article>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 26,
-      "text": "const profile=p=>'<article class=\"hud-card social-profile\" data-profile=\"'+esc(p.key)+'\"><div class=\"social-avatar\" aria-hidden=\"true\">'+esc(p.name.slice(0,1).toUpperCase())+'</div><div><h3>'+esc(p.name)+' <small class=\"hud-tag\">'+esc(p.kind.toUpperCase())+'</small></h3><p>'+esc(p.bio)+'</p>'+badges(p)+'<p class=\"hud-meta\">'+(p.kind==='player'?'Messages, friends, blocking and reporting will use the social service.':'Speak to this character in person to start a conversation.')+'</p></div></article>';",
+      "line": 32,
+      "text": "'<h2>YOUR PROFILE</h2>'+profile(me)+'<h2>CONVERSATIONS</h2><div class=\"social-filters\">'+filterButtons+(socialCharacter?'<button type=\"button\" data-hud-character=\"\">CLEAR CHARACTER</button>':'')+'</div><div class=\"social-thread\" aria-label=\"Conversation history\">'+(thread||'<p>No conversations in this view.</p>')+'</div>'+",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 29,
-      "text": "'<h2>YOUR PROFILE</h2>'+profile(me)+'<h2>CONVERSATIONS</h2><div class=\"social-thread\" aria-label=\"Conversation history\">'+(msgs.map(m=>'<article class=\"social-message\"><b>'+esc(m.from)+'</b><span> · '+esc(m.via)+' · earlier</span><p>'+esc(m.text)+'</p></article>').join('')||'<p>No conversations yet.</p>')+'</div>'+",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/personal-hud.js",
-      "line": 30,
-      "text": "'<h2>PEOPLE</h2><p class=\"hud-note\">NPC conversations stay local. Player messages require the future authenticated social service.</p>'+",
+      "line": 33,
+      "text": "'<h2>PEOPLE</h2><p class=\"hud-note\">NPC conversation history stays in this browser. Player messaging needs the future authenticated social service.</p>'+",
       "kind": "source-reference"
     },
     {
@@ -12410,7 +12542,7 @@
     {
       "source": "void-runner/scenes.js",
       "line": 61,
-      "text": "addEventListener('keydown',e=>{if(speech&&['Space','Enter'].includes(e.code)&&e.target.tagName!=='BUTTON'){e.preventDefault();if(!e.repeat)advanceSpeech();}});",
+      "text": "addEventListener('keydown',e=>{if(speech&&mode!=='walking'&&['Space','Enter'].includes(e.code)&&e.target.tagName!=='BUTTON'){e.preventDefault();if(!e.repeat)advanceSpeech();}});",
       "kind": "source-reference"
     },
     {
@@ -13184,8 +13316,8 @@
   ],
   "warnings": [],
   "sources": {
-    "void-runner/account.js": "ec61402f2a4ec61462d60d74440331bdd16fc8874d80ed3ca25b839d2f3ad1e6",
-    "void-runner/achievements.js": "f979026059b5ed86cf23eb9a5459806563d86e2119d74e3074ab78d9463d22ea",
+    "void-runner/account.js": "00dcdbf3e1498dca2faa14c0e83a40383255c07df770a33cde7ad9bf296a9c4e",
+    "void-runner/achievements.js": "e73d2197b523a0c4539d550a78781d791337ccd457b6e37f84bab14f8773ffa5",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/asset-pipeline.js": "5f0d8bbd5d8f36e4f8b80c4e0dbe5f620fcff12b49f20dd21f17a7fff331c808",
@@ -13205,6 +13337,8 @@
     "void-runner/combat.js": "049b6d25f9f8d2000157b58e71a9c6c7a77602e265d10acaf159ee588b831e87",
     "void-runner/comms.js": "26ac041ddc179f7797166aa2220767331607d6ba8dc312c4652f36c49a7c79e5",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
+    "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
+    "void-runner/conversation-ui.js": "69404805485cb34daab699d4ac8ad4890b50de188e7f07423d1462b116302ec7",
     "void-runner/crowd.js": "7f99de7204d51d1c70aa1dc9db1f462b62ac368baca7efd3c50452b2e4a3ce62",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
@@ -13249,7 +13383,7 @@
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-log.js": "f9637251347e1250b78d3bef32ef6082e462393a0231b72e4e68970c7650b8c6",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
-    "void-runner/mouse-control.js": "e22165f19bef53595dba679424375e039e776e19359e075fbea720cc4d10ca95",
+    "void-runner/mouse-control.js": "aba49847633e62bd83ed037198bbf746abdade595332b06cb30954fe7a1b3ca1",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "a751c57ffcc8fd9928ecd8baa1f962d21f86ae842b87a3724e31c045887795a8",
     "void-runner/music-engine.js": "5078e1a0fedff9d09a7f23823126d3ef8a834a1806edb7675c54e3b668014a8b",
@@ -13263,7 +13397,7 @@
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "da1674b96960e03052332b46f33745a5db4f738ad2a38d06cef1eaa912b1ecbb",
-    "void-runner/personal-hud.js": "3cf9bda6f9dbcf773816247d3388da512bec0a8f8fa4997d0a0fd95f83a1c898",
+    "void-runner/personal-hud.js": "9cd04c87358acf7a9111aca4ceb10e3c56312b95a17937ef98cfbc7985153801",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
     "void-runner/pod-music.js": "7d13de0ed3af83511478501e22b6ab7cd04ca0744379b5d22278f4cd1971db00",
@@ -13277,7 +13411,7 @@
     "void-runner/relay-radio.js": "5ce31904c15f630a01d00f51d566d66ae97c736d5734d7531835588714269806",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
-    "void-runner/scenes.js": "e1fa7e89168db4232a116d642d471445ad625851477fc17ca2c847064e7fc09e",
+    "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
     "void-runner/ship-audio.js": "8cb0ef9954a8e074a1f036340d3b8bf42459452a8a808a2457f16fcce43df2d5",
@@ -13302,11 +13436,11 @@
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "fe7cf3869b1fb49ff3ccbc4a7a5c7900aa16c0ad367c115844d8bf5f9c66c321",
     "void-runner/vr-companions.js": "d38c9e56cfe2536e9717431bf12d37a44c1ad34f83dfd24d1a25ca243fd7127b",
-    "void-runner/vr-core.js": "83b4854c844f5d63690dc37115e9890d93515f88f97eea701b95f6b8aa71c36f",
+    "void-runner/vr-core.js": "bcff608915ae63d9957ffb42c22269f348040fa40af6460fd7fa15c357ee603a",
     "void-runner/vr-forest.js": "23bcaa2847c9e25da3cdced6a29828f5a3d2f0ced9cb22999c76e8f8367a3891",
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "42b099525addb420f7a678fee12d93c14cf468375fd7f59c7324a4393b34dad2",
-    "void-runner/vr-suite.js": "c6368f2a0995514a6f658528dc68b7d48df2e3afd155995d1807334a25dff117",
+    "void-runner/vr-suite.js": "ce162f46cfa71e9f0678520cf111a6a5cdec564b27e7044cbf12611882d6c957",
     "void-runner/vr-tropical.js": "d796ce190e319b3f1385ae534e12aed861389010efb25ad0d30ad104c2a32811",
     "void-runner/warflying-scan.js": "f6de823ef265ff4e1cde538ac17b5adefb72547ad0ef2e3b25cdb42de9ce8a87",
     "void-runner/warflying-scanner.js": "3234988837d0ca2ab0fec7bdb730d923c679fd50ff883569c2f7f568406a00ed",

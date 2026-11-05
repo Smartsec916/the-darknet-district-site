@@ -1,6 +1,6 @@
 /* Firebase identity + authenticated API. Cloud save replacement is always explicit.
    Sign-in: a District handle (no Google needed), an email link, or Google. */
-const account = window.VoidAccount = {user:null,products:[],status:'Verified purchases require a connection.',busy:false,revision:0,cloud:null,savedAt:null,handle:undefined,handleNextChange:null};
+const account = window.VoidAccount = {user:null,products:[],status:'Verified purchases require a connection.',busy:false,revision:0,cloud:null,savedAt:null,character:null,handle:undefined,handleNextChange:null};
 let authInitialization=null,unsubscribe=null;
 let firebase, generation=0, pendingCheckout=new URLSearchParams(location.search).get('checkout');
 let saveReady=false,verifiedUntil=0,ownershipTimer,refreshTimer,serviceRetryTimer,lastRefreshAttempt=0;
@@ -44,7 +44,7 @@ async function refresh(){
   verifiedUntil=Date.now()+300000;clearTimeout(ownershipTimer);ownershipTimer=setTimeout(()=>{setOwnedGear([]);verifiedUntil=0;},300000);
   clearTimeout(refreshTimer);refreshTimer=setTimeout(()=>{if(epoch===generation&&account.user)run(refresh,true);},240000);
   if(data.developer){const identityEpoch=generation;VoidDevTools.identity((path,body)=>{if(identityEpoch!==generation||!account.user)throw new Error('Sign in again.');return api(path,body);});}
-  account.revision=data.revision;account.cloud=data.save;account.cloudRetired=data.retired===true;account.savedAt=data.savedAt;saveReady=true;setOwnedGear(data.owned);render();
+  account.revision=data.revision;account.cloud=data.save;account.cloudRetired=data.retired===true;account.savedAt=data.savedAt;account.character=data.character||null;saveReady=true;setOwnedGear(data.owned);render();
 }
 function cloudDescription(){if(account.cloudRetired&&!account.cloud)return 'Your earlier cloud campaign was retired in the District reset. Save this journey to start a new one.';return account.cloud?`${account.cloud.completed} deliveries · ${account.cloud.credits.toLocaleString()} CR · ${account.cloud.cleared?.length||0}/12 new missions`:'No cloud save yet.';}
 function handleField(id,label,action,cta,value=''){
@@ -66,6 +66,8 @@ function accountPage(){
     if(account.handle===undefined)body+=`<p class="account-detail">Your handle could not be loaded right now. Try again shortly.</p>`;
     if(account.handle===null)body+=handleField('vr-handle','Choose your public handle','register-handle','CLAIM HANDLE');
     if(anonymous)body+=`<div class="account-warning"><strong>Handle not secured.</strong> It lives only in this browser. Add an email or Google so you can sign in anywhere. Required before buying equipment.</div>${emailField('SECURE WITH EMAIL')}<div class="account-actions">${button('SECURE WITH GOOGLE','secure-google',true,account.busy||!firebase)}</div>`;
+    if(account.character)body+=`<div class="manifest"><h2>YOUR CHARACTER</h2><p>${escapeText(name)} · ${escapeText(account.character.gender)} · ${escapeText(account.character.model)}. This account has one character.</p></div>`;
+    else if(!anonymous&&saveReady)body+=`<div class="manifest"><h2>CREATE YOUR CHARACTER</h2><p>Choose one existing District look. Hair and clothing are built into these models; more appearance options need compatible assets.</p><label for="vr-character-model">Look</label> <select id="vr-character-model"><option value="female:district-resident">Female · District resident</option><option value="male:district-smuggler">Male · District smuggler</option>${VoidDevTools.authorized?'<option value="male:admin">Admin · multiplayer control planned</option>':''}</select> ${button('CREATE CHARACTER','create-character',false,account.busy)}</div>`;
     body+=`<div class="manifest">${row('This browser',state.completed+' deliveries / '+state.credits+' CR')}${row('Cloud save',escapeText(cloudDescription()))}${row('Owned equipment',ownedGear.length+' verified items')}</div><p>Choose when to copy progress between this browser and your account. Start New Campaign replaces the local campaign; it never deletes purchases.</p><div class="account-actions">${button('SAVE THIS JOURNEY TO CLOUD','cloud-save-prompt',false,account.busy||!saveReady)}${button('LOAD CLOUD JOURNEY','cloud-load-prompt',true,account.busy||!account.cloud||!saveReady)}${button('REFRESH / RESTORE PURCHASES','account-refresh',true,account.busy)}${button('SIGN OUT','sign-out',true,account.busy)}</div>`;
     if(account.handle)body+=`<details class="account-other"><summary>Change public handle</summary>${handleField('vr-handle-change','New handle','change-handle','CHANGE HANDLE',account.handle)}<small>Handles can be changed once every 30 days. Your progress and purchases are not affected.</small></details>`;
   }
@@ -101,7 +103,7 @@ function initializeAuth(){
     try{
       firebase=await import('../firebase-auth.js');
       if(!unsubscribe)unsubscribe=firebase.onAuthStateChanged(firebase.auth,user=>{
-        generation++;clearTimeout(ownershipTimer);clearTimeout(refreshTimer);verifiedUntil=0;account.user=user;account.handle=undefined;account.handleNextChange=null;VoidDevTools.identity(null);account.cloud=null;account.revision=0;saveReady=false;setOwnedGear([]);render();
+        generation++;clearTimeout(ownershipTimer);clearTimeout(refreshTimer);verifiedUntil=0;account.user=user;account.handle=undefined;account.handleNextChange=null;VoidDevTools.identity(null);account.cloud=null;account.character=null;account.revision=0;saveReady=false;setOwnedGear([]);render();
         VoidNetwork.report('identity','ready');
         if(user){loadHandle();run(async()=>{await confirmCheckout();await refresh();},true);}
       });
@@ -120,6 +122,7 @@ function requestAction(action){
   if(['play','pause'].includes(mode))return;
   if(action==='account'){accountPage();return;}
   if(action==='auth-retry'){run(initializeAuth);return;}
+  if(action==='create-character'){const [gender,model]=fieldValue('vr-character-model').split(':');run(async()=>{if(!account.user||account.user.isAnonymous)throw new Error('Secure your account first.');const data=await api('character',{gender,model});account.character=data.character;accountPage();announce('Your character was created for this account.');});return;}
   // Read typed values first: run() redraws the page (busy state) before the action starts.
   if(action==='register-handle'||action==='change-handle'){const handle=fieldValue(action==='register-handle'?'vr-handle':'vr-handle-change');run(async()=>{
     if(!firebase)throw new Error('Account service is still connecting. Try again shortly.');
@@ -147,7 +150,7 @@ function requestAction(action){
     // The auth listener can fire while run() is busy; refresh explicitly afterward.
     account.user=firebase.auth.currentUser;await confirmCheckout();await refresh();
   });
-  else if(action==='sign-out')run(async()=>{generation++;setOwnedGear([]);await firebase.signOut(firebase.auth);account.user=null;saveReady=false;account.cloud=null;});
+  else if(action==='sign-out')run(async()=>{generation++;setOwnedGear([]);await firebase.signOut(firebase.auth);account.user=null;saveReady=false;account.cloud=null;account.character=null;});
   else if(action==='account-refresh')run(async()=>{setOwnedGear([]);await confirmCheckout();await refresh();announce('Account and equipment refreshed.');});
   else if(action?.startsWith('purchase:')){
     if(!account.user){accountPage();return;}

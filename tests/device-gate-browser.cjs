@@ -20,7 +20,7 @@ async function open(browser, opts, init) {
 const gated = async page => ({ landing: await page.locator('#tdd-gate').count(), visible: await page.locator('#tdd-gate').isVisible().catch(() => false), canvas: await page.locator('#space').isVisible().catch(() => false), title: await page.locator('#tdd-gate-title').textContent().catch(() => ''), text: await page.locator('#tdd-gate').innerText().catch(() => '') });
 
 (async () => {
-  const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist', '--no-sandbox'] });
+  const b = await chromium.launch({ executablePath:process.env.CHROMIUM_PATH||undefined, args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist', '--no-sandbox'] });
   for (const [name, profile] of [['Pixel 7', devices['Pixel 7']], ['iPhone 13', devices['iPhone 13']]]) {
     await check(`${name}: landing page, no game files, no service worker, a working way back to the website`, async () => {
       const { ctx, page, requests, errors } = await open(b, { ...profile });

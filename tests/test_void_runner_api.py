@@ -54,6 +54,26 @@ class ApiTests(unittest.TestCase):
     def test_missing_and_invalid_login_rejected(self):
         self.assertEqual(self.client.get('/api/void-runner/account').status_code,401)
         self.assertEqual(self.client.get('/api/void-runner/account',headers={'Authorization':'Bearer forged'}).status_code,401)
+    def test_character_is_account_bound_and_create_once(self):
+        route='/api/void-runner/character'
+        self.assertEqual(self.client.get(route).status_code,401)
+        self.assertIsNone(self.client.get(route,headers=self.header).json['character'])
+        vr.player_ref(self.db,'pilot').set({'save':{'sentinel':'existing campaign'},'revision':7},merge=True)
+        for appearance in [{'gender':'female','model':'district-smuggler'}, {'gender':'male','model':'district-smuggler','admin':True}]:
+            self.assertEqual(self.client.post(route,headers=self.header,json=appearance).status_code,400)
+        self.assertEqual(self.client.post(route,headers=self.header,json={'gender':'male','model':'admin'}).status_code,400)
+        response=self.client.post(route,headers=self.header,json={'gender':'female','model':'district-resident'})
+        self.assertEqual(response.status_code,201)
+        self.assertEqual(self.client.post(route,headers=self.header,json={'gender':'male','model':'district-smuggler'}).status_code,409)
+        self.assertEqual(self.client.get(route,headers=self.header).json['character']['model'],'district-resident')
+        self.assertEqual(self.client.get('/api/void-runner/account',headers=self.header).json['character']['model'],'district-resident')
+        self.assertEqual(vr.player_ref(self.db,'pilot').get().to_dict()['save'],{'sentinel':'existing campaign'})
+        self.assertEqual(vr.player_ref(self.db,'pilot').get().to_dict()['revision'],7)
+    def test_admin_character_uses_same_single_slot(self):
+        with patch.dict(os.environ, {'VOID_ADMIN_UIDS':'pilot'}):
+            route='/api/void-runner/character'
+            self.assertEqual(self.client.post(route,headers=self.header,json={'gender':'male','model':'admin'}).status_code,201)
+            self.assertEqual(self.client.post(route,headers=self.header,json={'gender':'female','model':'district-resident'}).status_code,409)
     def test_developer_endpoints_fail_closed(self):
         for method in [self.client.get, self.client.post]:
             self.assertEqual(method('/api/void-runner/developer/balance').status_code,401)

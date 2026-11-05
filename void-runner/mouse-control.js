@@ -5,6 +5,7 @@
  const fps=()=>mode==='walking'||mode==='skirmish-fps';
  const mouse=()=>globalThis.VoidControls?.deviceClass!=='touch-first'&&!!canvas.requestPointerLock;
  const locked=()=>document.pointerLockElement===canvas;
+ const conversationOpen=()=>!!document.querySelector('#screen.conversation-live');
  // If the browser refuses pointer lock (embedded frame, policy), clicks behave normally again.
  let unavailable=false,swallowing=false,failures=0;
  function lock(){
@@ -31,14 +32,14 @@
  if(release)document.exitPointerLock=function(){if(locked())gameReleased=true;return release();};
  document.addEventListener('pointerlockchange',()=>{
   if(locked()){failures=0;gameReleased=false;return;}
-  if(gameReleased){gameReleased=false;reacquire();return;} // e.g. a door opened and play carries on: take the mouse back
-  if(fps()&&typeof openGameMenu==='function'){walkingKeys?.clear?.();openGameMenu();}
+  if(gameReleased){gameReleased=false;if(!conversationOpen())reacquire();return;} // keep the cursor free over a conversation
+  if(fps()&&!conversationOpen()&&typeof openGameMenu==='function'){walkingKeys?.clear?.();openGameMenu();}
  });
 
  // Closing a dialogue, menu or panel with a click or key returns to play: take the mouse straight back.
- const reacquire=()=>setTimeout(()=>{if(fps()&&!locked())lock();},0);
- document.addEventListener('click',e=>{if(e.target!==canvas&&e.target.closest?.('button'))reacquire();});
- addEventListener('keyup',e=>{if(['Enter','Space','Escape'].includes(e.code))reacquire();});
+ const reacquire=()=>setTimeout(()=>{if(fps()&&!locked()&&!conversationOpen())lock();},0);
+ document.addEventListener('click',e=>{if(e.target!==canvas&&e.target.closest?.('button')&&!conversationOpen())reacquire();});
+ addEventListener('keyup',e=>{if(['Enter','Space','Escape'].includes(e.code)&&!conversationOpen())reacquire();});
 
 
  // ---- Weapon selection: Unarmed, Ward pistol, Rifle (the rifle slot waits for a rifle to exist and be owned) ----

@@ -44,6 +44,26 @@
 .social-thread{max-height:18rem;overflow:auto;display:grid;gap:.6rem}
 .social-message{max-width:85%;padding:.7rem 1rem;border:1px solid #326c79;border-radius:.7rem;background:#102633}
 .social-message span{color:#9cbac1;font-size:.8rem}
+.social-message time{color:#9cbac1;font-size:.8rem}
+.social-filters{display:flex;gap:.4rem;flex-wrap:wrap;margin:.5rem 0}
+.social-filters button{min-height:2rem;padding:.35rem .65rem;font-size:.75rem}
+.social-filters button[aria-pressed=true]{background:#58ffe1;color:#061410}
 .social-message p{margin:.45rem 0 0}
 .social-dialogue{display:block;max-width:42rem;margin:auto;border:0;background:transparent;box-shadow:none}
 .social-dialogue .social-message{max-width:100%;border-color:#4d9da4;background:#102633}
+.conversation-live{position:fixed;z-index:7;inset:auto 1rem 5.5rem auto;width:min(30rem,calc(100vw - 2rem));min-height:0;padding:0;background:transparent;pointer-events:none}
+.conversation-live .cinematic-space{min-height:0;padding:0;pointer-events:none}
+.conversation-live .scene-heading{display:none}
+.conversation-live .dialogue-window{position:relative;inset:auto;display:flex;flex-direction:column;max-height:min(65vh,38rem);margin:0;background:#071821e8;border:1px solid #57aab1;backdrop-filter:blur(8px);pointer-events:auto;overflow:hidden}
+.conversation-live .portrait{display:none}
+.conversation-live .conversation-thread{overflow:auto;max-height:10rem;padding:.7rem 1rem 0;display:grid;gap:.5rem}
+.conversation-live .conversation-thread .social-message{font-size:.8rem;max-width:100%;padding:.4rem .7rem;opacity:.78}
+.conversation-live .conversation-thread .social-message p{font-size:.8rem;line-height:1.4;margin:.2rem 0}
+.conversation-live .conversation-thread time{font-size:.7rem;color:#9cbac1}
+.conversation-live .speech-body{padding:.6rem 1rem 1rem;overflow:auto}
+.conversation-live .speaker h2{font-size:1rem}
+.conversation-live #spoken-text{font-size:.9rem;line-height:1.5;min-height:0;max-height:9rem;overflow:auto;margin:.5rem 0}
+.conversation-live .speech-controls{gap:.35rem}
+.conversation-live .speech-controls button,.conversation-live .conversation-minimize{font-size:.75rem;min-height:2rem;padding:.35rem .6rem}
+.conversation-live .conversation-minimize{align-self:flex-end;margin:.35rem .35rem 0 0}
+#conversation-restore:not([hidden]){position:fixed;z-index:7;right:1rem;bottom:5.5rem;background:#08232ce8;color:#d9ffff;font-size:.75rem;padding:.5rem .8rem;min-height:2rem}
