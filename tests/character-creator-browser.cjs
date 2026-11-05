@@ -32,6 +32,12 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   assert.equal(await page.locator('#pod-wake').isVisible(),true);
   // 4. second EXIT POD proceeds normally (the creator is offered once)
   await page.locator('#pod-wake button').click();await page.waitForFunction(()=>mode==='walking',null,{timeout:60000});
+  // 4b. the wardrobe station exists in the pod room and opens the same screen
+  const st=await page.evaluate(()=>{const i=walkingLocation.interactions.find(x=>x.action==='district-wardrobe'),m=VoidBabylon.scene.getMeshByName('pod-wardrobe-panel');return {i:!!i,mesh:!!m,handler:VoidInteractions.handlers.has('district-wardrobe'),pos:i?.position};});
+  assert(st.i&&st.mesh&&st.handler,'wardrobe station: '+JSON.stringify(st));
+  await page.evaluate(([x,z])=>{{const P=VoidDistrictArea.POINT.podExit,e=VoidDistrictArea.podExit(VoidNeoChinatown),cx=e.spawn[0]+P[0],cz=e.spawn[2]+P[1];Object.assign(walker,{x:cx+5.4,z:cz-65.6,yaw:Math.PI,pitch:0,vx:0,vz:0});}},[0,0]);await page.waitForTimeout(1500);await page.screenshot({path:shot+'/dd-wardrobe-station-'+tier+'.png'});
+  await page.evaluate(()=>VoidInteractions.handlers.get('district-wardrobe')());await page.waitForSelector('#character-creator.on');assert.match(await page.textContent('#character-creator h1'),/WARDROBE/);
+  await page.keyboard.press('Escape');await page.waitForFunction(()=>mode==='walking',null,{timeout:30000});
   // 5. wardrobe via the API (the station uses the same call): cancel keeps the saved look, confirm changes it, escape cancels
   await page.evaluate(()=>VoidCharacterCreator.open({context:'wardrobe'}));await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]')?.disabled,null,{timeout:120000});
   assert.equal(await page.evaluate(()=>mode),'character-creator');await click('hair','none');await page.keyboard.press('Escape');

@@ -5,7 +5,7 @@
 (function(root){
  'use strict';
  const A=root.VoidCharacterAppearance,CAT=A.CATALOG,KEEP=['hairColor','clothingColor'];
- const STAGE={x:-8.1,z:60,dist:2.35,eye:1.4};   // camera stands here looking +z; the character stands `dist` metres ahead, to the right of the panel
+ const STAGE={x:-9,z:60,dist:2.7,eye:1.4};   // in the pod room's own coordinates: the camera stands here looking +z (towards the music screen); the character stands `dist` metres ahead
  let lamps=[],open=false,ctx=null,char=null,draft=null,original=null,snapshot=null,holder=null,spin=0,auto=true,seq=0,pad=null,raf=0,drag=null,ui=null;
  const uid=()=>root.VoidAccount?.user?.uid||'guest';
  const storage=()=>{try{return root.localStorage;}catch{return null;}};
@@ -81,12 +81,15 @@
   open=true;ctx=c||{context:'wardrobe'};ensureUi();
   original=stored()||A.defaults(A.DEFAULT_LOOK.male);draft=A.normalize(original);
   snapshot={mode,walker:{...walker}};
-  const exit=root.VoidDistrictArea?.podExit?.(root.VoidNeoChinatown),floor=(exit?exit.spawn[1]:walker.y)-1.68;
+  // The District interior sits in the world rotated half a turn: world = anchor - local. The anchor comes from the known pod exit point.
+  const DA=root.VoidDistrictArea,exit=DA?.podExit?.(root.VoidNeoChinatown);if(!exit){open=false;return false;}
+  const P=DA.POINT.podExit,cx=exit.spawn[0]+P[0],cz=exit.spawn[2]+P[1],W=(x,z)=>[cx-x,cz-z],floor=exit.spawn[1]-1.68,cam=W(STAGE.x,STAGE.z),at=W(STAGE.x,STAGE.z+STAGE.dist);
   mode='character-creator';clearInput?.();walkingKeys?.clear?.();document.exitPointerLock?.();
-  Object.assign(walker,{x:STAGE.x,z:STAGE.z,y:floor+STAGE.eye,yaw:0,pitch:0,vx:0,vz:0,eye:STAGE.eye});
-  holder=new S.TransformNode('character-creator-stage',scene);holder.position.set(STAGE.x+.0,floor,STAGE.z+STAGE.dist);
+  Object.assign(walker,{x:cam[0],z:cam[1],y:floor+STAGE.eye,yaw:Math.PI,pitch:0,vx:0,vz:0,eye:STAGE.eye});
+  holder=new S.TransformNode('character-creator-stage',scene);holder.position.set(at[0],floor,at[1]);
   // two lamps for the preview only (first in the light list so the room's light limit cannot drop them), removed on close
-  const key=new S.PointLight('character-creator-key',new S.Vector3(STAGE.x+.6,floor+2.4,STAGE.z+STAGE.dist-1.6),scene),rim=new S.PointLight('character-creator-rim',new S.Vector3(STAGE.x-1.2,floor+2.2,STAGE.z+STAGE.dist+1.4),scene);
+  const k=W(STAGE.x+.6,STAGE.z+STAGE.dist-1.6),r=W(STAGE.x-1.2,STAGE.z+STAGE.dist+1.4);
+  const key=new S.PointLight('character-creator-key',new S.Vector3(k[0],floor+2.4,k[1]),scene),rim=new S.PointLight('character-creator-rim',new S.Vector3(r[0],floor+2.2,r[1]),scene);
   key.diffuse=new S.Color3(.85,.95,1);key.intensity=1.5;key.range=7;rim.diffuse=new S.Color3(1,.25,.7);rim.intensity=1.1;rim.range=6;
   lamps=[key,rim];for(const l of lamps){scene.lights.splice(scene.lights.indexOf(l),1);scene.lights.unshift(l);}scene.markAllMaterialsAsDirty?.(S.Constants.MATERIAL_LightDirtyFlag);
   spin=0;auto=true;ui.classList.add('on');render();ui.querySelector('[data-cc=confirm]')?.focus();
@@ -127,6 +130,7 @@
  const asPod=fn=>function(){if(mode!=='character-creator')return fn.apply(this,arguments);mode='pod-waking';try{return fn.apply(this,arguments);}finally{if(mode==='pod-waking')mode='character-creator';}};
  if(typeof draw==='function')draw=asPod(draw);if(typeof update==='function')update=asPod(update);
 
+ if(root.VoidInteractions)root.VoidInteractions.register('district-wardrobe',()=>{show({context:'wardrobe'});});
  root.VoidCharacterCreator={open:c=>show(c),close,get isOpen(){return open;},stored,current,onChange:null,STAGE};
 
  // First campaign without any character: offer the creator once when the player is about to leave the pod. Existing players and saves are never asked.
