@@ -92,3 +92,22 @@ test('local persistence: save, load, per-account, bad data, legacy fallback, no 
 test('the hub carries identical copies of the appearance rules and catalog',()=>{
  const r=cp.spawnSync(process.execPath,[path.join(ROOT,'tools/assets/sync-hub-appearance.cjs'),'--check'],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);
 });
+
+test('the creator is never downloaded by phones: every creator script is gate-inert, and the static page is identical',()=>{
+ const html=fs.readFileSync(path.join(ROOT,'void-runner.html'),'utf8');
+ for(const f of ['character-catalog','character-appearance','character-fit','character-assembler','character-creator']){
+  assert.match(html,new RegExp('<script type="text/tdd-game" src="void-runner/'+f+'\\.js"></script>'),f);
+  assert.doesNotMatch(html,new RegExp('<script(?![^>]*tdd-game)[^>]*'+f),f+' must not load outside the device gate');
+ }
+ assert.equal(Buffer.compare(fs.readFileSync(path.join(ROOT,'void-runner.html')),fs.readFileSync(path.join(ROOT,'static/void-runner.html'))),0);
+ const order=['character-catalog','character-appearance','character-fit','character-assembler','character-creator'].map(f=>html.indexOf('void-runner/'+f+'.js'));
+ assert.deepEqual([...order].sort((a,b)=>a-b),order,'load order');
+ assert.ok(order[4]>html.indexOf('void-runner/world-integration.js')&&order[4]>html.indexOf('void-runner/babylon-integration.js'),'after the wrappers it pauses');
+});
+test('cosmetics are separate from inventory and equipment: the creator code never touches them',()=>{
+ for(const f of ['character-creator.js','character-assembler.js','character-appearance.js']){
+  const src=fs.readFileSync(path.join(ROOT,'void-runner',f),'utf8');
+  assert.doesNotMatch(src,/state\.(credits|inventory|equipment|loadout|missions)\s*=/,f);
+  assert.doesNotMatch(src,/\b(trade|sendTrade|loadout)\b/i,f+' has no trade or equipment code');
+ }
+});

@@ -208,3 +208,5 @@ The two colour maps under `void-runner/assets/textures/tesana-pod/` are AmbientC
 Their accompanying ZIP manifests identify each as `CC0 (AmbientCG)`. The owner supplied
 https://docs.tesana.ai/account/ownership-and-ip for project ownership; this environment received HTTP 403 from that page,
 so its exact wording remains unverified here. No models from the separate spaceflight ZIP were imported.
+
+**Character creator hair parts (2026-11-05).** `void-runner/assets/models/parts/hair-*.glb` (9 files) are the MakeHuman/MPFB CC0 hairstyles short01-04, bob01-02, braid01, long01 and ponytail01, copied unchanged out of the existing crowd GLBs by `tools/assets/extract-hair-parts.cjs` (mesh, texture and skeleton only; no new third-party material). Re-fitting onto other bodies happens at runtime.
