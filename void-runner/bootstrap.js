@@ -1,10 +1,11 @@
 /* One startup owner. Never render the legacy exterior behind a cinematic interior. */
 const VoidStartup=window.VoidStartup={started:false,starts:0,ready:null};
-let pendingStartup=null;
+let pendingStartup=null,publishedStartup=null;
 function beginStartup(){
  if(pendingStartup)return pendingStartup;
  pendingStartup=(async()=>{
- globalThis.VoidPublishedContentStatus=await VoidPublishedContent.initialize({enabled:document.querySelector('meta[name=void-published-content]')?.content==='enabled',sourceRevision:globalThis.VoidPublishedBaseline?.revision});
+ publishedStartup??=VoidPublishedContent.initialize({enabled:document.querySelector('meta[name=void-published-content]')?.content==='enabled',sourceRevision:globalThis.VoidPublishedBaseline?.revision});
+ globalThis.VoidPublishedContentStatus=await publishedStartup;
  VoidLoading.stage('data','GAME DATA READY');
  VoidLoading.stage('campaign','CAMPAIGN RESTORED · LOADING ESSENTIAL ART');
  await VoidBabylon.prepareMenu();

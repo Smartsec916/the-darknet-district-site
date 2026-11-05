@@ -46,7 +46,7 @@ Publication uses approximately two reads (history/candidate) and four writes (ve
 
 ## Verification
 - Baseline integration branch: 590 Node tests passed, one skipped.
-- Current Node suite: 602 passed, one skipped (603 total), including twelve new runtime-adapter/cache/save-isolation tests.
+- Current Node suite: 603 passed, one skipped (604 total), including thirteen new runtime-adapter/cache/save-isolation tests.
 - Publication Python suites: 28 passed, covering authentication/authorization, disabled zero-read behaviour, private/public separation, review digest, stale/concurrent publication, immutable rollback, baseline rollback, corrupt/missing versions, native callbacks, source compatibility, protected flags, bounded caching and unsupported effects/adapters.
 - Full local Python suite: 179 tests; 178 pass and one untouched reset-backup permission assertion fails on Windows (POSIX 0600 versus Windows 0666). The security assertion is retained for Linux CI. Six Blackout API tests pass.
 - Corrected one pre-existing Spectre security-test save fixture to carry the integration build's current campaign epoch. Its original premium-inventory forgery assertions remain. No production save validator/reset policy was weakened.
@@ -57,3 +57,4 @@ Screenshots: publication-desktop.png and publication-mobile.png. Test data is sy
 
 ## Remaining before production enablement
 Review this PR and its supported-field limits separately. Verify real Firebase rules/IAM, existing quota/billing and the actual editor/publisher UID; confirm matching backend/client builds; run real owner login/save and handheld checks. Do not enable flags or merge/deploy this work under the earlier website authorization. Future new mission/scene/node IDs, objective logic, reward changes, legacy dialogue adapters and audio production remain explicit follow-up work, not silently supported by this v1 path.
+Startup scene-preparation retries retain the same published-content selection; a regression test verifies that retrying does not refetch or switch generations.
