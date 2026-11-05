@@ -25,10 +25,8 @@ const worldLaunch=launch;
 launch=async function(){const owner=VoidFlightSession.active;if(modernMenuPending){VoidPreparation.cancel?.();await new Promise(resolve=>{const check=()=>modernMenuPending&&VoidFlightSession.owns(owner)?setTimeout(check,20):resolve();check();});}if(!VoidFlightSession.owns(owner))return;if(state.universe.freeTravel&&!originalFlight(state)){state.destination=VoidUniverse.destinations(state)[0]||null;}return worldLaunch();};
 const worldEnterWalking=enterWalking;
 async function resumeSavedWorld(){
- if(state.story.cursor){await enterWalking(state.quest==='inheritance'?'vesper':'hangar');resumeStoryScene();return;}
- if(state.quest==='inheritance'){await workshopOpening();return;}
- if(state.universe.station){await dock();return;}
- if(C.flight(state))await launch();else await dock();
+ C.socialEntry(state);
+ await dock();
 }
 const physicalResumeWalking=resumeWalking;
 resumeWalking=function(){if(walkingLocation?.kind==='station'&&walkingLocation.ship!==VoidShips.get(state).id)return enterWalking('hangar');return physicalResumeWalking();};

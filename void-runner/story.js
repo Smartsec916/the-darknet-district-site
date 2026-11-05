@@ -72,6 +72,7 @@
 
   function emit(s, type, subject) {
     s.story ??= fresh();
+    if(s.story.flags?.missionPool==='closed')return [];
     const fired = [];
     for (const event of content.events) {
       if (event.trigger.type !== type || event.trigger.subject && event.trigger.subject !== subject || s

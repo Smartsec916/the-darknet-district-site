@@ -6,7 +6,7 @@
    Keys: P (rebindable, "Personal HUD") opens and closes; Esc closes; 1-4 or ←/→ switch sections; ↑/↓ and Enter
    move and choose. Controller: View/Back opens and closes, D-pad moves, A chooses, B closes. */
 (function(){
- const H=VoidHudData,tabs=[['missions','MISSION LOG'],['comms','COMMS'],['inventory','INVENTORY'],['taxi','TAXI / TRANSPORT']];
+ const H=VoidHudData,Profiles=VoidSocialProfiles,Achievements=VoidAchievements,tabs=[['missions','MISSION LOG'],['comms','SOCIAL'],['inventory','INVENTORY'],['taxi','TAXI / TRANSPORT']];
  let panel=null,returnMode=null,tab='missions';
  const openModes=['walking','play','dock'];
  const esc=s=>escapeText(String(s??''));
@@ -22,10 +22,14 @@
  }
  function commsHtml(){
   const l=H.link(state,{onFoot:onFoot(),route:returnMode==='play'?flight.route:null}),msgs=H.messages(state,{rook:typeof rookMissileLine!=='undefined'?rookMissileLine.text:null}),people=H.contacts(state);
+  const badges=p=>'<div class="social-achievements" aria-label="Achievements">'+(p.achievements.length?p.achievements.map(a=>'<span class="social-badge">'+esc(a.icon)+' '+esc(a.name)+'</span>').join(''):'<span class="hud-note">No verified achievements yet.</span>')+'</div>';
+  const profile=p=>'<article class="hud-card social-profile" data-profile="'+esc(p.key)+'"><div class="social-avatar" aria-hidden="true">'+esc(p.name.slice(0,1).toUpperCase())+'</div><div><h3>'+esc(p.name)+' <small class="hud-tag">'+esc(p.kind.toUpperCase())+'</small></h3><p>'+esc(p.bio)+'</p>'+badges(p)+'<p class="hud-meta">'+(p.kind==='player'?'Messages, friends, blocking and reporting will use the social service.':'Speak to this character in person to start a conversation.')+'</p></div></article>';
+  const me=Profiles.player(window.VoidAccount?.user?.uid||'local',window.VoidAccount?.handle||'Local Pilot');
   return '<section class="hud-link hud-link-'+esc(l.state)+'"><b>RELAY LINK · '+esc(l.label)+'</b><span>'+esc(l.note)+'</span></section>'+
-   '<h2>MESSAGES</h2>'+(msgs.map(m=>'<article class="hud-card"><h3>'+esc(m.from)+' <small class="hud-tag">'+esc(m.via.toUpperCase())+'</small></h3><p>“'+esc(m.text)+'”</p></article>').join('')||'<p>No messages.</p>')+
-   '<h2>CONTACTS</h2><p class="hud-note">People are met where they are. A contact listed here can’t be called unless the channel says so.</p>'+
-   (people.map(c=>'<article class="hud-card hud-contact"><h3>'+esc(c.name)+'</h3><p>'+esc(c.place)+'</p><p class="hud-meta">'+esc(c.channel)+'</p></article>').join('')||'<p>No contacts yet.</p>');
+   '<h2>YOUR PROFILE</h2>'+profile(me)+'<h2>CONVERSATIONS</h2><div class="social-thread" aria-label="Conversation history">'+(msgs.map(m=>'<article class="social-message"><b>'+esc(m.from)+'</b><span> · '+esc(m.via)+' · earlier</span><p>'+esc(m.text)+'</p></article>').join('')||'<p>No conversations yet.</p>')+'</div>'+
+   '<h2>PEOPLE</h2><p class="hud-note">NPC conversations stay local. Player messages require the future authenticated social service.</p>'+
+   (people.map(c=>profile(Profiles.npc(c.id,c.name,{bio:c.place,achievements:[]}))).join('')||'<p>No contacts yet.</p>')+
+   '<h2>ACHIEVEMENT PREVIEW</h2><p class="hud-note">Unlocks require verified server events. This preview cannot grant achievements.</p>'+Achievements.definitions.map(d=>'<article class="hud-card"><b>'+esc(d.icon)+' '+esc(d.name)+'</b><p>'+esc(d.description)+'</p></article>').join('');
  }
  function inventoryHtml(){
   const mission=C.missionFlight(state),inv=H.inventory(state,{ship:VoidShips.get(state).name,mission,cargoUsed:VoidFactions.cargoUsed(state,mission),launcher:state.creditGear.includes('launcher')}),p=inv.personal,s=inv.ship,row=(k,v)=>'<tr><th>'+esc(k)+'</th><td>'+v+'</td></tr>';

@@ -37,3 +37,13 @@
 #personal-hud .hud-table td{padding:7px 0;border-bottom:1px solid #121e22}
 #personal-hud .hud-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
 @media (max-width:640px){#personal-hud .hud-header{flex-direction:column;align-items:flex-start}#personal-hud .hud-body{padding:14px 16px 32px}}
+.social-profile{display:grid;grid-template-columns:3rem 1fr;gap:1rem;align-items:start}
+.social-avatar{width:3rem;height:3rem;border:1px solid #68dfe3;display:grid;place-items:center;color:#adfaff;background:#12313e;font-size:1.4rem}
+.social-achievements{display:flex;flex-wrap:wrap;gap:.4rem;margin:.5rem 0}
+.social-badge{border:1px solid #64d6d7;padding:.2rem .45rem;color:#c9f4f5}
+.social-thread{max-height:18rem;overflow:auto;display:grid;gap:.6rem}
+.social-message{max-width:85%;padding:.7rem 1rem;border:1px solid #326c79;border-radius:.7rem;background:#102633}
+.social-message span{color:#9cbac1;font-size:.8rem}
+.social-message p{margin:.45rem 0 0}
+.social-dialogue{display:block;max-width:42rem;margin:auto;border:0;background:transparent;box-shadow:none}
+.social-dialogue .social-message{max-width:100%;border-color:#4d9da4;background:#102633}

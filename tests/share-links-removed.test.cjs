@@ -12,7 +12,7 @@ test('no game script reads share parameters or refers to the removed modules',()
   assert(!/get\(['"](visit|scenario)['"]\)|[?&](visit|scenario)=/.test(src),f+' reads a share parameter');}
 });
 test('Developer Tools no longer has a Share Links tab',()=>{
- const src=read('void-runner/dev-tools.js');assert(!/share/i.test(src.split('\n').filter(l=>/sections:|tab===/.test(l)).join('\n')));assert(src.includes("sections:[['balance','Combat Balance'],['test','Test & Jump To']]"));
+ const src=read('void-runner/dev-tools.js');assert(!/share/i.test(src.split('\n').filter(l=>/sections:|tab===/.test(l)).join('\n')));assert(src.includes("['balance','Combat Balance']")&&src.includes("['test','Test & Jump To']")&&src.includes("['achievements','Achievement Manager']"));
 });
 test('the District area rules no longer know about guest links',()=>{
  const A=require('../void-runner/district-area.js');assert.equal(A.guestArea,undefined);for(const k of ['KEY','areaOf','keyFor','resume','exitSpawn','enterTrigger','exitTrigger'])assert(k in A,k);

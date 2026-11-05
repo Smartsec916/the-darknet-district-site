@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "74f0206cde042a1e",
+  "revision": "07a234ff935cc884",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12013,8 +12013,20 @@
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 27,
-      "text": "'<h2>CONTACTS</h2><p class=\"hud-note\">People are met where they are. A contact listed here can’t be called unless the channel says so.</p>'+",
+      "line": 26,
+      "text": "const profile=p=>'<article class=\"hud-card social-profile\" data-profile=\"'+esc(p.key)+'\"><div class=\"social-avatar\" aria-hidden=\"true\">'+esc(p.name.slice(0,1).toUpperCase())+'</div><div><h3>'+esc(p.name)+' <small class=\"hud-tag\">'+esc(p.kind.toUpperCase())+'</small></h3><p>'+esc(p.bio)+'</p>'+badges(p)+'<p class=\"hud-meta\">'+(p.kind==='player'?'Messages, friends, blocking and reporting will use the social service.':'Speak to this character in person to start a conversation.')+'</p></div></article>';",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/personal-hud.js",
+      "line": 29,
+      "text": "'<h2>YOUR PROFILE</h2>'+profile(me)+'<h2>CONVERSATIONS</h2><div class=\"social-thread\" aria-label=\"Conversation history\">'+(msgs.map(m=>'<article class=\"social-message\"><b>'+esc(m.from)+'</b><span> · '+esc(m.via)+' · earlier</span><p>'+esc(m.text)+'</p></article>').join('')||'<p>No conversations yet.</p>')+'</div>'+",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/personal-hud.js",
+      "line": 30,
+      "text": "'<h2>PEOPLE</h2><p class=\"hud-note\">NPC conversations stay local. Player messages require the future authenticated social service.</p>'+",
       "kind": "source-reference"
     },
     {
@@ -12290,7 +12302,7 @@
     {
       "source": "void-runner/scenes.js",
       "line": 16,
-      "text": "screen.innerHTML=`<section class=\"cinematic-space\"><div class=\"scene-heading\"><div class=\"eyebrow\">${speech.scene==='vesper'?'VESPER / WARD FREIGHT WORKSHOP':speech.scene==='bar'?C.stations[state.location].name.toUpperCase()+' / '+C.stations[state.location].bar.toUpperCase():'INCOMING TRANSMISSION'}</div><h1>${speech.heading}</h1></div><div class=\"dialogue-window\">${characters[line.who]&&!(typeof walkingLocation!=='undefined'&&walkingLocation)?portrait(line.who):''}<div class=\"speech-body\"><div class=\"speaker\"><h2>${c.name}</h2><span>${c.role}</span></div><p id=\"spoken-text\" aria-hidden=\"true\"></p><p class=\"sr-only\" aria-live=\"polite\">${c.name}: ${line.text}</p><div class=\"speech-controls\"><span id=\"speech-status\">TRANSMITTING <span class=\"talk-light\">●</span></span><button data-action=\"speech-next\" id=\"speech-next\">${reducedMotion?nextLabel():'SHOW FULL LINE'}</button></div></div></div></section>`;",
+      "text": "screen.innerHTML=`<section class=\"cinematic-space\"><div class=\"scene-heading\"><div class=\"eyebrow\">${speech.scene==='vesper'?'VESPER / WARD FREIGHT WORKSHOP':speech.scene==='bar'?C.stations[state.location].name.toUpperCase()+' / '+C.stations[state.location].bar.toUpperCase():'INCOMING TRANSMISSION'}</div><h1>${speech.heading}</h1></div><div class=\"dialogue-window social-dialogue\">${characters[line.who]&&!(typeof walkingLocation!=='undefined'&&walkingLocation)?portrait(line.who):''}<div class=\"speech-body social-message\"><div class=\"speaker\"><h2>${c.name}</h2><span>${c.role}</span></div><p id=\"spoken-text\" aria-hidden=\"true\"></p><p class=\"sr-only\" aria-live=\"polite\">${c.name}: ${line.text}</p><div class=\"speech-controls\"><span id=\"speech-status\">TRANSMITTING <span class=\"talk-light\">●</span></span><button data-action=\"speech-next\" id=\"speech-next\">${reducedMotion?nextLabel():'SHOW FULL LINE'}</button></div></div></div></section>`;",
       "kind": "source-reference"
     },
     {
@@ -12997,103 +13009,103 @@
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 71,
+      "line": 69,
       "text": "arrive=function(){const previous=state.location,quest=state.quest;solHandover=null;worldArrive();if(!['arrival','dialogue'].includes(mode)||state.location===previous&&state.quest===quest)return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 72,
+      "line": 70,
       "text": "const lines=speech?.lines.slice(),label=speech?.label;speech=null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 82,
+      "line": 80,
       "text": "renderLine=function(){worldRenderLine();if(walkingLocation){screen.dataset.scene='';screen.classList.remove('cinematic');screen.querySelectorAll('.portrait').forEach(el=>el.remove());/* A conversation in a station is in person: name the place. Only comms calls and messages are transmissions. */const eyebrow=screen.querySelector('.scene-heading .eyebrow');if(eyebrow&&!/comms|message|transmission/i.test(speech?.heading||''))eyebrow.textContent=globalThis.VoidVR?.active?'VR · '+VoidVR.session.exp.title.toUpperCase():(C.stations[state.location]?.name||'').toUpperCase();}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 92,
+      "line": 90,
       "text": "talk('',[{who:'rook',text:'Client confirmed the drop. Here’s your pay.'}],()=>{announce('PAYMENT RECEIVED · '+paid.toLocaleString()+' credits · ROOK FREIGHT RUN #'+owed.number+' COMPLETE');rookFreightOffer();},'NEXT →','Rook’s booth');return;}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 94,
+      "line": 92,
       "text": "talk('',[{who:'rook',text:'The '+r.cargo.toLowerCase()+' are still in your hold. '+place(r.destination)+' is waiting on them.'}],resumeWalking,'RETURN TO STATION');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 96,
+      "line": 94,
       "text": "if(r.kind!=='legacy')screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',button('HAND THE CARGO BACK','rook-cancel',true));return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 97,
+      "line": 95,
       "text": "if(state.contract){talk('',[{who:'rook',text:'Finish the job you are carrying. Then come see me.'}],resumeWalking,'RETURN TO STATION');return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 102,
+      "line": 100,
       "text": "talk('',[{who:'rook',text:lead+(r.number===1?' Admin is over in Tessaly if you want other work. '+key+' opens your Mission Log.':'')}],resumeWalking,'NOT NOW','Rook’s booth');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 103,
+      "line": 101,
       "text": "speech.shown=speech.lines[0].text.length;$('speech-next').style.display='none';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 104,
+      "line": 102,
       "text": "screen.querySelector('.dialogue-window')?.classList.add('choice-menu');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 105,
+      "line": 103,
       "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class=\"rook-board\">'+jobs+'</ul>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 106,
+      "line": 104,
       "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',board.map(j=>button(j.units>free?'NO HOLD SPACE · '+j.label.toUpperCase():'TAKE '+j.label.toUpperCase()+' →','rook-job:'+j.kind,false,j.units>free)).join('')+button('NOT NOW','walk-resume',true));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 109,
+      "line": 107,
       "text": "if(a.startsWith('rook-job:')){speech=null;globalThis.VoidAudio?.cancel?.();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 112,
+      "line": 110,
       "text": "else if(a==='rook-cancel'){speech=null;globalThis.VoidAudio?.cancel?.();if(C.cancelRook(state)){VoidMissions.sync(state,C);save();announce('Rook’s crew takes the cargo back. No pay, no hard feelings.');}resumeWalking();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 121,
+      "line": 119,
       "text": "talk('',[{who:item.character,text:texts[item.character]}],resumeWalking,'RETURN TO STATION');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 168,
+      "line": 166,
       "text": "if(!['play','walking','dock','dialogue'].includes(mode))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 179,
+      "line": 177,
       "text": "addEventListener('keydown',e=>{if(e.code===(VoidInput.bindings.missionLog||'KeyL')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){if(!['play','walking','dock','dialogue','mission-log'].includes(mode))return;e.preventDefault();if(!e.repeat)openMissionLog();}if(e.code==='Escape'&&missionPanel){e.preventDefault();closeMissionLog();}});",
       "kind": "source-reference"
     },
@@ -13173,6 +13185,7 @@
   "warnings": [],
   "sources": {
     "void-runner/account.js": "ec61402f2a4ec61462d60d74440331bdd16fc8874d80ed3ca25b839d2f3ad1e6",
+    "void-runner/achievements.js": "f979026059b5ed86cf23eb9a5459806563d86e2119d74e3074ab78d9463d22ea",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/asset-pipeline.js": "5f0d8bbd5d8f36e4f8b80c4e0dbe5f620fcff12b49f20dd21f17a7fff331c808",
@@ -13182,7 +13195,7 @@
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "a796e718fbe982cbdbec26e66705c8dfce47f9b3882a671244400cd48437bb4e",
-    "void-runner/campaign.js": "3f76985fe84e2f7cbe2de4c084f2b930d9b5967ce79420ea3b7b9ce7e6cad237",
+    "void-runner/campaign.js": "923ae611a3b0f633a9cb3df7c279fa02b6dee525e11dc6e6f9bd430c0fe6578b",
     "void-runner/city-taxi.js": "0e5034fa45257dbcc8a26a52ad33b1dc12b52ecd2c95d22a1929ddcd96155eb0",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
     "void-runner/cockpit-math.js": "a63faf598eaf23722d22658ca22b5da5b16f0044437ac5277d34d42d1cbf0461",
@@ -13196,7 +13209,7 @@
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-test.js": "fe2ee383ca0ae2227dc944eea2d1ae1c4d7922e60c8719f1a7fa78fc3ae4ffa7",
-    "void-runner/dev-tools.js": "e9fd91853411bbd31b11634a9ca28e70b0cacb6629dbe475c6c7cc5b66f7fc93",
+    "void-runner/dev-tools.js": "8fc329454a6ed8a22bf93e8721eeffca11b1276ccf0eb3676b90c67c58781974",
     "void-runner/device-gate.js": "18ede0f57043b170043090b207fae30ae2a818aeca6d60a4c9f5a904946c91d7",
     "void-runner/district-area.js": "f7fb70108b754de68a409032e5232a29d0b30ed793dbb21206d1ad0092e0233a",
     "void-runner/district-transition.js": "6f914f0c159a1335bee53e12216aa13fd70d0a5e44a1e1daa317908d28bf74ff",
@@ -13250,7 +13263,7 @@
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "da1674b96960e03052332b46f33745a5db4f738ad2a38d06cef1eaa912b1ecbb",
-    "void-runner/personal-hud.js": "871826e5852395b5fc23355c95aa79a0be9d1c9b53811e56b02e85a1e1457f2a",
+    "void-runner/personal-hud.js": "3cf9bda6f9dbcf773816247d3388da512bec0a8f8fa4997d0a0fd95f83a1c898",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
     "void-runner/pod-music.js": "7d13de0ed3af83511478501e22b6ab7cd04ca0744379b5d22278f4cd1971db00",
@@ -13264,7 +13277,7 @@
     "void-runner/relay-radio.js": "5ce31904c15f630a01d00f51d566d66ae97c736d5734d7531835588714269806",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
-    "void-runner/scenes.js": "a6bdbc20299c5ecb1a5f99546faa103e5b05777b1abfdabd25676181717686f8",
+    "void-runner/scenes.js": "e1fa7e89168db4232a116d642d471445ad625851477fc17ca2c847064e7fc09e",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
     "void-runner/ship-audio.js": "8cb0ef9954a8e074a1f036340d3b8bf42459452a8a808a2457f16fcce43df2d5",
@@ -13272,11 +13285,12 @@
     "void-runner/signals.js": "c4b44b7d838b52d35c5a6d57afa3b437be789b78f43eff9e1adc4a7dfa26e5b6",
     "void-runner/simulation-effects.js": "f6aac1ce655f6f79e900da09e79938ecf7c162aa6d5c765187b294510793342a",
     "void-runner/skirmish.js": "28cc0b6d0a5296c56574c51efdb4de14367666dbba30634394d2f7e8f87bcb41",
+    "void-runner/social-profiles.js": "fd88c0388f4dfccdb0bfc24edaabb5ce48e415b1d3cceb1bb82a235ef8bed418",
     "void-runner/station-activities.js": "06fbc8ae9530c5c612be8539f1af9bc29a314e39d7918eb6b670044da512141a",
     "void-runner/station-layouts.js": "04310755d7074c6b47fcf8b67c4218959debc861c7a286ccd53d586a61a60879",
     "void-runner/story-content.js": "3f2846e89242894aa0123df0e39e7637cfd2868b73c6d89f885dbe4317b54b30",
     "void-runner/story-scenes.js": "322106e619d1a2456c5dac94dd252bd2373cb0c03273c75954d068b378cad5dd",
-    "void-runner/story.js": "2257083dc07c296e8a271d097f103508f7ec582f14bcdb2b869ec031bb7d0abe",
+    "void-runner/story.js": "74501dca85057c374b5181b440f93059fd6658641624b10e3a159d11493fe272",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
     "void-runner/taxi-rules.js": "62262cf05aa12c3d22f9c3928faabaa32442756d29dbbc9425f37a8db4566ab4",
     "void-runner/traffic.js": "1c47797df0eb41dbbc0fc84c733cc0f8b49401a50901834125f2b5b457752e83",
@@ -13298,7 +13312,7 @@
     "void-runner/warflying-scanner.js": "3234988837d0ca2ab0fec7bdb730d923c679fd50ff883569c2f7f568406a00ed",
     "void-runner/warflying.js": "e3a319a7538e4df7e014be7ccb50b32bb2b0cf6cbcfe10ccfca2e46edb013a4f",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "1208409f58bafcd4a080d6b5a5421a581863e35fd67422c1a2c30223b14a5a31",
+    "void-runner/world-integration.js": "497947895cb9eb10ff31851269755a27c7d755ae0f5be3e60a8f880ea0084a0a",
     "void-runner/world-markers.js": "c65b04dfb9792d36aa47eb5928bf64311a8be27e92fedc9df22e72bb8fce25bc",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "tools/admin-inventory.cjs": "4b545f1e29bc40745983ecd5a113f20926a6f73b52a1b4ed4c2e8106df0a4ed0",
