@@ -22,9 +22,18 @@ const tier=process.argv[2]==='high'?'high':'low';
   await page.keyboard.down('KeyW');await page.waitForTimeout(550);await page.keyboard.up('KeyW');
   const after=await page.evaluate(()=>({mode,x:walker.x,z:walker.z,rows:VoidConversationHistory.read(localStorage,'guest').length}));
   assert.equal(after.mode,'walking');assert(Math.hypot(after.x-before.x,after.z-before.z)>.02,'W moves during conversation');assert(after.rows>0);
+  await page.evaluate(()=>{window.__moves=[];canvas.addEventListener('pointermove',e=>{if(document.pointerLockElement===canvas)__moves.push(e.movementX);},true);});
   await page.mouse.click(640,400);await page.waitForFunction(()=>document.pointerLockElement?.id==='space',null,{timeout:5000});
-  await page.mouse.move(675,400);await page.waitForTimeout(100);
-  const yaw=await page.evaluate(()=>walker.yaw);assert.notEqual(yaw,before.yaw,'mouse look works while conversation remains open');
+  /* Findings (2026-11-05): headless Chromium reports pointer-lock movement from the absolute cursor position and re-centres it with a
+     matching negative event (probe: +640, -640, then +675, -675). A yaw compared with its value before the click therefore changes or
+     cancels depending on frame timing, which is what made this check intermittent at High, where a frame takes about a second under
+     software GL. The game code is fine. So: (1) real input must still reach the canvas under lock, and (2) the game's mouse-look maths
+     is checked exactly with a locked pointermove of known size, with the conversation open. */
+  await page.mouse.move(675,400);await page.waitForFunction(()=>__moves.length>0,null,{timeout:20000,polling:50});
+  await page.waitForTimeout(1500);
+  const yaw=await page.evaluate(()=>{const y0=walker.yaw;canvas.dispatchEvent(new PointerEvent('pointermove',{movementX:100,movementY:0,bubbles:true}));return {y0,y1:walker.yaw,sens:VoidExplorer.config.sensitivity,conv:VoidConversationUI.isOpen,locked:document.pointerLockElement===canvas};});
+  assert(yaw.locked&&yaw.conv,'pointer is locked while the conversation is open');
+  assert(Math.abs(yaw.y1-yaw.y0-100*yaw.sens)<1e-9,'mouse look turns the view by movementX x sensitivity while the conversation remains open: '+JSON.stringify(yaw));
   await page.evaluate(()=>document.exitPointerLock());await page.waitForFunction(()=>!document.pointerLockElement);
   await page.locator('.conversation-minimize').click({timeout:15000,noWaitAfter:true});assert(await page.locator('#conversation-restore').isVisible());
   await page.locator('#conversation-restore').click({noWaitAfter:true});assert(await page.locator('.conversation-live').isVisible());
