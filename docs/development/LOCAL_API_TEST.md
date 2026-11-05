@@ -36,7 +36,7 @@ The first start downloads the two emulator programs from Google (about 100 MB).
 
 ## Limits (what this does not prove)
 
-- **Firestore security rules are not in the repository** (no `firestore.rules`, no `firebase.json`). They live in the Firebase console, so whether a browser holding a login could write `vr_players/<id>` **directly** to Firestore, bypassing this API, cannot be verified here. **Owner action:** in the Firebase console, check that `vr_players` (and every `vr_*` collection) denies all client reads and writes. If it does, nothing the browser sends can bypass the API; if not, tighten it, ideally by adding `firestore.rules` and `firebase.json` to the repository (a change David should approve, since deploying rules is a production change).
+- **The deployed Firestore security rules were not inspected.** The repository holds only deny-all merge fragments (`void-runner/firestore.rules`, `blackout-protocol/firestore.rules`, `docs/function/firestore.rules`, `docs/admin-stage3b1/firestore.rules`), no complete ruleset and no `firebase.json`; a broad allow elsewhere in the live rules could override them. Recorded as a pending administrator action (`FIREBASE_MULTIPLAYER_AUDIT.md`); this milestone does not depend on it.
 - Emulator tokens are unsigned; the production signature check against Google's keys is the same library call but was not exercised.
 - The in-browser account panel (`account.js`) was not driven against the emulator: that needs a Firebase web SDK pointed at the emulator and is part of the next milestone.
 - No Stripe, no Render, no Neon.
