@@ -201,3 +201,10 @@ Inspected and unused: the UE and Unity packages, the loose vending-machine FBX/G
 1024 px (JPEG), static meshes merged per material, mirror ball kept, FBX moving heads and beam cones left out (they could not be
 placed without their clips), one 4 m wall tile removed at the street entrance. Ambient sound is made in code (noise murmur and a
 muffled 124 BPM thump), nothing recorded or licensed.
+
+**Tesana Sleeping Pod adaptation (2026-11-05).** Pod 01's extra Babylon geometry adapts the owner's uploaded
+`game-20261103-855074a5-code(2).zip` Sleeping Pod project; that project contains procedural Three.js geometry, no GLB model.
+The two colour maps under `void-runner/assets/textures/tesana-pod/` are AmbientCG `PaintedMetal003` and `Fabric062`.
+Their accompanying ZIP manifests identify each as `CC0 (AmbientCG)`. The owner supplied
+https://docs.tesana.ai/account/ownership-and-ip for project ownership; this environment received HTTP 403 from that page,
+so its exact wording remains unverified here. No models from the separate spaceflight ZIP were imported.

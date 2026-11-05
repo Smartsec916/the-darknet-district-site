@@ -1,5 +1,7 @@
 # Tesana ZIP asset audit (inspection only)
 
+**2026-11-05 development update:** The owner re-uploaded both ZIPs. Pod 01 now adapts the Sleeping Pod project's molded panels, ribs, recessed emissive strips, vent and uneven bedding in Babylon.js, and uses its `paintedmetal003` and `fabric062` colour maps. Those two uploaded material manifests identify the maps as ambientCG CC0. The source contains no GLB pod model, so this is a visual adaptation, not a direct model import or the complete Tesana scene. The other nine District pods retain their current geometry pending an instancing and performance pass. No spaceflight ZIP model was imported: its characters have no compatible animation clips, the ships and station do not show a clear improvement over the existing game, and shared-library model rights remain unresolved. The owner supplied `https://docs.tesana.ai/account/ownership-and-ip`; it returned HTTP 403 from this environment, so its exact terms have not been independently verified here. No production deployment occurred.
+
 Written 2026-11-04 for the Codex handoff (`docs/development/CODEX_HANDOFF.md`). Repository: `Smartsec916/the-darknet-district-site`.
 
 ## Read this first

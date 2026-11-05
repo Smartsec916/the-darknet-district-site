@@ -635,18 +635,32 @@
     // Sleep pods: two stacked rows with ring-lit hatches and numbers.
     // Capsules (reference: rounded pods with glowing oval hatches, glass, a warm-lit bed inside).
     const podShell=mat('pod-shell','#56637e',{rough:.3,metal:.55}),podGlass=glass('pod-glass','#a8dcff',.1),podInner=glowMat('pod-inner','#ffc98a',.45),mattress=mat('pod-mattress','#e6dfd2',{rough:.9,metal:0}),podBlanket=mat('pod-blanket','#5a3a5e',{rough:.95,metal:0});
+    // The first capsule adapts the owner's Tesana Sleeping Pod geometry and its CC0 ambientCG materials.
+    // Reuse emissive surfaces rather than the source scene's 13 real lights (which exceed this room's light budget).
+    const podPaint=mat('tesana-pod-paint','#736087',{rough:.56,metal:.28}),podFabric=mat('tesana-pod-fabric','#d6c4d9',{rough:.96,metal:0}),podRib=mat('tesana-pod-rib','#9c8aa9',{rough:.4,metal:.3}),podVent=mat('tesana-pod-vent','#20263b',{rough:.7,metal:.35}),podLed=glowMat('tesana-pod-led','#e96bbf',1.15);
+    for(const [material,file] of [[podPaint,'paintedmetal003-color.jpg'],[podFabric,'fabric062-color.jpg']]){const t=new B.Texture(new URL('assets/textures/tesana-pod/'+file,base).href,scene);t.uScale=2;t.vScale=2;material.albedoTexture=t;textures.push(t);}
     // The pod's front: one solid panel with an oval window cut out (in the y–z plane, facing the room).
-    function ovalPanel(p,width,height,rz,ry){const pos=[],idx=[],n=40;for(let k=0;k<=n;k++){const a=k/n*Math.PI*2,c=Math.cos(a),s=Math.sin(a),reach=Math.min(width/2/Math.max(Math.abs(c),1e-6),height/2/Math.max(Math.abs(s),1e-6));pos.push(0,s*ry,c*rz,0,s*reach,c*reach);if(k<n){const q=k*2;idx.push(q,q+1,q+2,q+1,q+3,q+2,q,q+2,q+1,q+1,q+2,q+3);}}
+    function ovalPanel(p,width,height,rz,ry,material=podShell){const pos=[],idx=[],n=40;for(let k=0;k<=n;k++){const a=k/n*Math.PI*2,c=Math.cos(a),s=Math.sin(a),reach=Math.min(width/2/Math.max(Math.abs(c),1e-6),height/2/Math.max(Math.abs(s),1e-6));pos.push(0,s*ry,c*rz,0,s*reach,c*reach);if(k<n){const q=k*2;idx.push(q,q+1,q+2,q+1,q+3,q+2,q,q+2,q+1,q+1,q+2,q+3);}}
      const mesh=new B.Mesh('pod-front',scene),vd=new B.VertexData();vd.positions=pos;vd.indices=idx;// Faces the room (+x) on both windings, so it lights like the rest of the shell.
-     vd.normals=pos.map((_,k)=>k%3===0?1:0);const uvs=[];for(let k=0;k<pos.length;k+=3)uvs.push(pos[k+2]/width+.5,pos[k+1]/height+.5);vd.uvs=uvs;vd.applyToMesh(mesh);return add(mesh,podShell,p);}
-    for(let row=0;row<2;row++)for(let i=0;i<5;i++){const z=57+i*2.6,y=.9+row*1.7,hatch=[amber,magenta][(i+row)%2];
+     vd.normals=pos.map((_,k)=>k%3===0?1:0);const uvs=[];for(let k=0;k<pos.length;k+=3)uvs.push(pos[k+2]/width+.5,pos[k+1]/height+.5);vd.uvs=uvs;vd.applyToMesh(mesh);return add(mesh,material,p);}
+    for(let row=0;row<2;row++)for(let i=0;i<5;i++){const z=57+i*2.6,y=.9+row*1.7,detailed=row===0&&i===0,hatch=detailed?magenta:[amber,magenta][(i+row)%2],shell=detailed?podPaint:podShell;
      // A hollow capsule: back, top, floor, sides and a fascia framing the hatch, so the bed shows through the glass.
-     box('pod-back',[.12,1.5,2.3],[-16.64,y,z],podShell);for(const s of [-1,1]){box('pod-roof',[2.6,.1,2.3],[-15.4,y+s*.7,z],podShell);box('pod-side',[2.6,1.5,.1],[-15.4,y,z+s*1.1],podShell);}
-     ovalPanel([-14.15,y,z],2.3,1.5,.95,.575);for(const s of [-1,1])box('pod-trim',[2.6,.08,.08],[-15.4,y+s*.72,z+1.11],frame);
+     box('pod-back',[.12,1.5,2.3],[-16.64,y,z],shell);for(const s of [-1,1]){box('pod-roof',[2.6,.1,2.3],[-15.4,y+s*.7,z],shell);box('pod-side',[2.6,1.5,.1],[-15.4,y,z+s*1.1],shell);}
+     ovalPanel([-14.15,y,z],2.3,1.5,.95,.575,shell);for(const s of [-1,1])box('pod-trim',[2.6,.08,.08],[-15.4,y+s*.72,z+1.11],detailed?podRib:frame);
      box('pod-inner-light',[.03,.9,1.7],[-16.56,y+.05,z],podInner);box('pod-ceiling-light',[2,.03,1.2],[-15.4,y+.63,z],podInner);
      const ring=add(B.MeshBuilder.CreateTorus('pod-ring',{diameter:1,thickness:.07,tessellation:32},scene),hatch,[-14.04,y,z]);ring.rotation.z=Math.PI/2;ring.scaling.set(1.15,1,1.9);
      const glass=add(B.MeshBuilder.CreateDisc('pod-glass',{radius:.5,tessellation:32,sideOrientation:B.Mesh.DOUBLESIDE},scene),podGlass,[-14.06,y,z],false);glass.rotation.y=Math.PI/2;glass.scaling.set(1.85,1.1,1);
-     box('pod-mattress',[2.38,.24,2.08],[-15.39,y-.53,z],mattress);box('pod-pillow',[.45,.14,1.5],[-16.25,y-.34,z],mattress);box('pod-blanket',[1.1,.05,2.06],[-14.95,y-.39,z],podBlanket);
+     box('pod-mattress',[2.38,.24,2.08],[-15.39,y-.53,z],mattress);
+     if(detailed){
+      // Molded wall and ceiling panels, repeating ribs, recessed neon and a vent follow the ZIP's pod layout.
+      for(const side of [-1,1]){box('tesana-pod-wall',[1.9,.42,.025],[-15.4,y+.13,z+side*1.025],podPaint);box('tesana-pod-led',[1.98,.025,.025],[-15.4,y+.52,z+side*.94],podLed);}
+      for(const x of [-16.05,-15.3,-14.55]){box('tesana-pod-rib',[.055,.055,2.16],[x,y+.65,z],podRib);for(const side of [-1,1])box('tesana-pod-rib',[.055,1.34,.055],[x,y,z+side*1.07],podRib);}
+      for(const x of [-16.05,-15.3,-14.55])box('tesana-pod-ceiling',[.58,.018,1.65],[x,y+.635,z],podRib);
+      box('tesana-pod-vent',[.04,.18,.55],[-16.53,y+.24,z-.42],podVent);for(let k=0;k<4;k++)box('tesana-pod-vent-slot',[.015,.012,.5],[-16.505,y+.17+k*.045,z-.42],podRib);
+      const positions=[],uvs=[],indices=[],cols=12,rows=9;for(let j=0;j<=rows;j++)for(let k=0;k<=cols;k++){const u=k/cols,v=j/rows;positions.push(-15.85+u*1.42,y-.4+.02*Math.sin(u*22+v*7)+.025*Math.sin(v*19),z-.85+v*1.7);uvs.push(u*2,v*2);if(j<rows&&k<cols){const a=j*(cols+1)+k;indices.push(a,a+1,a+cols+1,a+1,a+cols+2,a+cols+1);}}
+      const duvet=new B.Mesh('tesana-pod-duvet',scene),data=new B.VertexData();data.positions=positions;data.uvs=uvs;data.indices=indices;data.normals=[];B.VertexData.ComputeNormals(positions,indices,data.normals);data.applyToMesh(duvet);add(duvet,podFabric,[0,0,0]);
+      for(const side of [-1,1]){const pillow=B.MeshBuilder.CreateSphere('tesana-pod-pillow',{segments:12,diameter:1},scene);pillow.scaling.set(.45,.12,.38);add(pillow,podFabric,[-16.13,y-.28,z+side*.43]);}
+     }else{box('pod-pillow',[.45,.14,1.5],[-16.25,y-.34,z],mattress);box('pod-blanket',[1.1,.05,2.06],[-14.95,y-.39,z],podBlanket);}
      neon('pod-no-'+row+i,[String(row*5+i+1).padStart(2,'0')],['#e8f0ff'],.4,.25,[-14.06,y+.62,z+.8],-Math.PI/2);}
     box('pod-ladder',[.1,3.2,.6],[-14,1.6,69],pipe);box('pod-terminal',[.4,1.2,.4],[-6,.6,57],frame);box('pod-terminal-screen',[.05,.4,.3],[-5.78,1.1,57],cyan);
     for(let z=56.8;z<69;z+=2.4)box('pods-ceiling-panel',[1,.04,1],[-9,4.03,z],glowMat('pod-panel','#7fe6ff',.9));
