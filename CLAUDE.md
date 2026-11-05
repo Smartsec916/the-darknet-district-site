@@ -2,7 +2,7 @@
 
 This repository is David's website, The Darknet District (https://thedarknetdistrict.com). Most active work is on the browser game **VOID//RUNNER** (`void-runner.html` plus `void-runner/`).
 
-**Read `VOID_RUNNER_HANDOFF.md` before changing the game.** It holds the current canon, the decision log, mission state, and what is approved and what is not.
+**At the start of every session, fetch GitHub and read `docs/development/AI_HANDOFF.md` and `docs/development/AI_ROADMAP.md`. Verify the remote development HEAD before editing.** Read `VOID_RUNNER_HANDOFF.md` for canon and the decision log; its older branch and gameplay snapshots are historical where the newer AI handoff says otherwise.
 
 ## The owner and how to work with him
 
@@ -99,5 +99,5 @@ This repository is David's website, The Darknet District (https://thedarknetdist
 
 ## Git workflow
 
-- Branch from `main`; branch names look like `claude/<topic>`. Commit with clear messages. Open a PR. Merge only when David asks.
-- Before finishing: tests pass, `BUILD` is bumped if game files changed, `static/void-runner.html` is synced, and `save-manifest.json` is updated if ids were added.
+- Use the single active integration branch named in `docs/development/AI_HANDOFF.md`. Fetch and verify its pushed HEAD before starting; isolate a feature on a branch from that tip when needed. Never overwrite another AI's unmerged work or silently branch from `main`. Commit and push with clear messages; open a draft PR when possible. Merge only when David asks.
+- Before finishing: run relevant tests; update `AI_HANDOFF.md` with completed/pending work and the next task; commit, push, and verify the remote head. Bump `BUILD` if game files changed, sync `static/void-runner.html`, and update `save-manifest.json` if ids were added. Do not deploy or change production systems without David's approval.
