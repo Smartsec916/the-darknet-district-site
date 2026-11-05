@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "c27efb4d217ebc90",
+  "revision": "1d6fc79f327e4fdb",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12056,7 +12056,7 @@
     {
       "source": "void-runner/mouse-control.js",
       "line": 8,
-      "text": "const conversationOpen=()=>!!document.querySelector('#screen.conversation-live');",
+      "text": "const conversationOpen=()=>!!document.querySelector('#screen.conversation-live,#trade-window');   // a conversation or the trade window needs the cursor",
       "kind": "source-reference"
     },
     {
@@ -12397,8 +12397,8 @@
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 89,
-      "text": "sock.onclose=e=>{trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one",
+      "line": 116,
+      "text": "sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false};for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one",
       "kind": "source-reference"
     },
     {
@@ -12765,6 +12765,168 @@
       "source": "void-runner/story.js",
       "line": 38,
       "text": "if (valid(raw.cursor?.scene) && valid(raw.cursor?.node) && content.dialogue[raw.cursor.scene]?.nodes[raw.cursor.node]) {",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 1,
+      "text": "/* Player-to-player trading: the prompt, the request and the trade window. OFF UNLESS THE HUB SAYS TRADING IS ON: nothing is shown until the hub's",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 38,
+      "text": "document.head.append(el('style',{text:css,id:'trade-style'}));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 42,
+      "text": "const say=(t,ms=6000)=>{note=t;noteAt=Date.now()+ms;draw();};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 64,
+      "text": "else if(m.ev==='done'&&session){result={ok:true,text:'TRADE COMPLETE. You gave '+fmt(m.gave)+'. You received '+fmt(m.got)+'.'};session.over=true;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 65,
+      "text": "else if(m.ev==='cancelled'||m.ev==='failed'){const mine=session&&m.id===session.id;if(incoming?.id===m.id||outgoing?.id===m.id){incoming=outgoing=null;say(m.reason||'The request ended.');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 66,
+      "text": "if(mine){result={ok:false,text:(m.ev==='failed'?'TRADE FAILED. ':'TRADE CANCELLED. ')+(m.reason||'')};session.over=true;}}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 67,
+      "text": "else if(m.ev==='refused'){awaiting=false;if(session&&m.reason==='Your view was out of date.'){/* the server sends the current view next; the edit is sent again */}else{if(session){dirty=false;sync();}say(m.reason||'Not possible right now.');}}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 72,
+      "text": "if(incoming){toast=el('div',{id:'trade-toast',role:'alertdialog','aria-label':'Trade request'},[el('div',{text:incoming.name+' wants to trade.'}),",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 73,
+      "text": "el('button',{type:'button',text:'ACCEPT [Y]',onclick:()=>send({op:'accept'})}),el('button',{type:'button',class:'tw-no',text:'DECLINE [N]',onclick:()=>{send({op:'decline'});incoming=null;toastDraw();}})]);}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 74,
+      "text": "else if(outgoing){toast=el('div',{id:'trade-toast'},[el('div',{text:'Waiting for '+outgoing.name+' to answer...'}),el('button',{type:'button',text:'CANCEL',onclick:()=>send({op:'cancel'})})]);}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 82,
+      "text": "rows.push(el('div',{class:'tw-row'},[el('span',{text:name}),el('span',{class:'tw-have',text:'have '+s.qty}),",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 83,
+      "text": "el('button',{type:'button',class:'tw-step','aria-label':'Offer fewer '+name,text:'-',onclick:()=>{draft.stacks[s.id]=Math.max(0,cur-1);queueOffer();draw();}}),el('b',{text:String(cur)}),",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 84,
+      "text": "el('button',{type:'button',class:'tw-step','aria-label':'Offer more '+name,text:'+',onclick:()=>{draft.stacks[s.id]=Math.min(s.qty,cur+1);queueOffer();draw();}})]));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 90,
+      "text": "rows.push(el('label',{class:'tw-row'},[el('span',{text:label}),el('span',{class:'tw-have',text:'#'+serial.split('-')[1]}),box]));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 92,
+      "text": "return rows.length?rows:[el('div',{class:'tw-have',text:'Nothing you can trade.'})];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 95,
+      "text": "const rows=[...o.stacks.map(s=>el('div',{class:'tw-row'},[el('span',{text:s.name}),el('b',{text:'x '+s.qty})])),...o.equipment.map(e=>el('div',{class:'tw-row'},[el('span',{text:e.name}),el('span',{class:'tw-have',text:'#'+e.serial.split('-')[1]})]))];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 96,
+      "text": "if(o.credits)rows.unshift(el('div',{class:'tw-row'},[el('span',{text:'Credits'}),el('b',{text:o.credits+' cr'})]));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 97,
+      "text": "return rows.length?rows:[el('div',{class:'tw-have',text:'Nothing offered yet.'})];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 109,
+      "text": "const mine=el('div',{class:'tw-col'},[el('h2',{text:'YOUR OFFER'}),el('div',{class:'tw-row'},[el('span',{text:'Credits'}),el('span',{class:'tw-have',text:'have '+session.inventory.credits}),credits]),...inventoryRows(),",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 110,
+      "text": "el('div',{class:'tw-chip'+(session.confirmed.you?' on':''),text:session.confirmed.you?'YOU: CONFIRMED':'YOU: NOT CONFIRMED'})]);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 111,
+      "text": "const theirs=el('div',{class:'tw-col'},[el('h2',{text:(session.with.name||'THEIR').toUpperCase()+' OFFERS'}),...theirRows(session.theirs),el('div',{class:'tw-chip'+(session.confirmed.them?' on':''),text:session.confirmed.them?'THEM: CONFIRMED':'THEM: NOT CONFIRMED'})]);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 112,
+      "text": "const actions=done?[el('button',{type:'button',text:'CLOSE',onclick:close})]:[",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 113,
+      "text": "el('button',{type:'button',class:'tw-go',text:'CONFIRM EXCHANGE',...(empty||session.confirmed.you?{disabled:''}:{}),onclick:()=>send({op:'confirm',v:session.v})}),el('button',{type:'button',class:'tw-no',text:'CANCEL TRADE',onclick:()=>send({op:'cancel'})})];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 114,
+      "text": "const next=el('div',{id:'trade-window',role:'dialog','aria-label':'Trade'},[el('h1',{text:'TRADE'}),session.simulated?el('div',{class:'tw-sim',text:'SIMULATED INVENTORY: no real items or credits are used or changed.'}):null,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 115,
+      "text": "el('div',{class:'tw-cols'},[mine,theirs]),el('div',{class:'tw-note',role:'status','aria-live':'polite',text:result?result.text:(Date.now()<noteAt?note:(session.confirmed.you&&!session.confirmed.them?'Waiting for '+session.with.name+' to confirm.':'Any change to either offer clears both confirmations.'))}),el('div',{class:'tw-actions'},actions)]);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 121,
+      "text": "const near=!session&&!incoming&&!outgoing&&rp?.features?.trade&&mode==='walking'&&!document.querySelector('#screen.conversation-live')?rp.nearest(RANGE):null;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 122,
+      "text": "if(near){if(!prompt){prompt=el('div',{id:'trade-prompt'});document.body.append(prompt);}const t='[T] TRADE WITH '+near.name;if(prompt.dataset.t!==t){prompt.dataset.t=t;prompt.textContent='';prompt.append(el('b',{text:'[T] '}),document.createTextNode('TRADE WITH '+near.name));}prompt.dataset.id=near.id;}",
       "kind": "source-reference"
     },
     {
@@ -13396,7 +13558,7 @@
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-log.js": "f9637251347e1250b78d3bef32ef6082e462393a0231b72e4e68970c7650b8c6",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
-    "void-runner/mouse-control.js": "aba49847633e62bd83ed037198bbf746abdade595332b06cb30954fe7a1b3ca1",
+    "void-runner/mouse-control.js": "5d99f95c581da3cc79c6d54ffab9b0268d155c5a775e686aa1ee3a4fd8ce4081",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "a751c57ffcc8fd9928ecd8baa1f962d21f86ae842b87a3724e31c045887795a8",
     "void-runner/music-engine.js": "5078e1a0fedff9d09a7f23823126d3ef8a834a1806edb7675c54e3b668014a8b",
@@ -13424,7 +13586,7 @@
     "void-runner/relay-radio.js": "5ce31904c15f630a01d00f51d566d66ae97c736d5734d7531835588714269806",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
-    "void-runner/remote-players.js": "f1d2fa76ce33a30d6820268c02ab360d7580efb5ea9d5e50ab64c0254bc601c7",
+    "void-runner/remote-players.js": "925f16303ef7189c3764cffc7838a8d391882d28e129edf5e28ea1bfe0545cab",
     "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
@@ -13441,6 +13603,7 @@
     "void-runner/story.js": "74501dca85057c374b5181b440f93059fd6658641624b10e3a159d11493fe272",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
     "void-runner/taxi-rules.js": "62262cf05aa12c3d22f9c3928faabaa32442756d29dbbc9425f37a8db4566ab4",
+    "void-runner/trade-window.js": "fae1643ad8aeb97be1b29b74eb1fe2f8b630a0c475daf96829abc376a05908b5",
     "void-runner/traffic.js": "1c47797df0eb41dbbc0fc84c733cc0f8b49401a50901834125f2b5b457752e83",
     "void-runner/travel-visuals.js": "440e1da234f7e831c98561d3d949e3b2d911463014879f04f61199349ff5854e",
     "void-runner/unified-controls.js": "4b4aec06ae8268e43d621f4aa772036353e2fcf62d78d176a6f4508c9f444a8f",

@@ -7,25 +7,51 @@
    clips. Identity, character, name and animation all come from the hub, which verifies the player's own Firebase sign-in; nothing here
    names an account. It never writes a save, never touches an NPC, and never runs for the VR rooms, the street, flight or combat.
    See docs/development/MULTIPLAYER_PROTOTYPE.md and HUB_DEPLOYMENT.md. */
+/* OPTIONAL, OFF BY DEFAULT: other players in the District interior (two-player test).
+   Nothing happens unless multiplayer has been switched on, and then only in the District interior in walking mode. Players switch it on from
+   Settings > Multiplayer test (shown only when a test hub is configured); the server's account allow-list still decides who may join.
+     - live site (https): LIVE_HUB below must name the test hub. It is EMPTY, so the live site shows no option and never connects. Setting it is a
+       reviewed code change made when the owner approves a test, never an address, a link or a stored value, so a crafted link cannot point a
+       player's sign-in at someone else's server.
+     - local pages (localhost or 127.0.0.1): the option is always shown; ?multiplayer=1 switches it on and ?hub=ws://127.0.0.1:PORT picks a local hub.
+   It reports only where THIS player is (x, z, facing) and draws the others the hub reports with the existing District crowd models and
+   clips. Identity, character, name and animation all come from the hub, which verifies the player's own Firebase sign-in; nothing here
+   names an account. It never writes a save, never touches an NPC, and never runs for the VR rooms, the street, flight or combat.
+   See docs/development/MULTIPLAYER_PROTOTYPE.md and HUB_DEPLOYMENT.md. */
 (function(root){
- const LOCAL=/^(localhost|127\.0\.0\.1)$/,LIVE=/^(www\.)?thedarknetdistrict\.com$/;
+ // The test hub, set only when the owner approves a real test, for example 'wss://district-hub.onrender.com'. Empty = no option, no connection.
+ const LIVE_HUB='';
+ const LOCAL=/^(localhost|127\.0\.0\.1)$/,LIVE=/^(www\.)?thedarknetdistrict\.com$/,HUB_OK=/^wss:\/\/[a-z0-9-]{1,63}\.onrender\.com$/;
  const get=(storage,k)=>{try{return storage?.getItem?.(k)||null;}catch{return null;}};
- const allowed=(loc,storage)=>{try{
+ // Is the Settings option shown (and may the page connect at all)? Live: only with a configured, valid hub. Local: always.
+ const available=(loc,liveHub=LIVE_HUB)=>{try{return LOCAL.test(loc.hostname)||(loc.protocol==='https:'&&LIVE.test(loc.hostname)&&HUB_OK.test(liveHub));}catch{return false;}};
+ // Has the tester switched it on? (The Settings button stores this flag; on a local page ?multiplayer=1 does too.)
+ const allowed=(loc,storage,liveHub=LIVE_HUB)=>{try{
+  if(!available(loc,liveHub))return false;
   if(LOCAL.test(loc.hostname))return /[?&]multiplayer=1(&|$)/.test(loc.search||'')||get(storage,'tdd-multiplayer')==='1';
-  return loc.protocol==='https:'&&LIVE.test(loc.hostname)&&get(storage,'tdd-multiplayer')==='1';}catch{return false;}};
- // Local pages may use a local hub (address bar or local flag). The live site uses only the tester's own stored hub, and only an onrender.com one.
- const hubUrl=(loc,storage)=>{
+  return get(storage,'tdd-multiplayer')==='1';}catch{return false;}};
+ const hubUrl=(loc,storage,liveHub=LIVE_HUB)=>{
   if(LOCAL.test(loc.hostname)){const q=/[?&]hub=([^&]+)/.exec(loc.search||'');const u=q?decodeURIComponent(q[1]):get(storage,'tdd-hub')||'ws://127.0.0.1:8787';return /^ws:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(u)?u:'ws://127.0.0.1:8787';}
-  const u=get(storage,'tdd-hub');return u&&/^wss:\/\/[a-z0-9-]{1,63}\.onrender\.com$/.test(u)?u:'';
+  return available(loc,liveHub)?liveHub:'';
  };
  const clean=n=>typeof n==='string'&&/^[A-Za-z0-9_-]{3,24}$/.test(n)?n:'Guest';
- if(typeof module!=='undefined')module.exports={allowed,hubUrl,clean};
- if(typeof document==='undefined'||!allowed(root.location,root.localStorage))return;
- const ROOM='district-interior',SEND_MS=100,SMOOTH=12,ATTEMPT_MS=75000,isLocalPage=LOCAL.test(root.location.hostname);
+ // What the Settings line says for each status the client can be in.
+ const words=(st,signedIn)=>({'off':signedIn?'Off.':'Off. Sign in to your account first (Account, in the main menu).','in':'Connected. Other testers in the District interior appear with name tags.',
+  'connecting':'Connecting...','waking the server':'Waking the test server (it sleeps when idle and can take about a minute)...','sign in to join':'Sign in to your account first (Account, in the main menu).',
+  'not on the test list':'Your account is not on the test list.','sign-in not accepted':'Your sign-in was not accepted. Sign in again.','replaced by another session':'This account joined from another window.',
+  'server restarting':'The test server is restarting; reconnecting...','offline':'Cannot reach the test server; trying again.','no hub configured':'No test server is set up.'}[st]||(st&&st.startsWith('refused')?'The test server refused the connection.':'Off.'));
+ if(typeof module!=='undefined')module.exports={allowed,available,hubUrl,clean,words,LIVE_HUB};
+ if(typeof document==='undefined')return;
+ const isLocalPage=LOCAL.test(root.location.hostname);
+ let booted=false;
+ function boot(){if(booted)return;booted=true;
+ const ROOM='district-interior',SEND_MS=100,SMOOTH=12,ATTEMPT_MS=75000,TAG_RANGE=30;
+ let features={trade:false,tradeSimulated:false};const listeners=new Set();
  let blockedUid=null,lastClose='',opening=false,ws=null,wantOn=true,retry=0,retryTimer=0,status='off',lastSend=0,connectedUid=null,wakeTimer=0;
  const traceLog=[],trace=m=>{traceLog.push(Math.round(performance.now())+' '+m);if(traceLog.length>60)traceLog.shift();};
  const peers=new Map();       // public id -> {node,ctrl,model,name,x,z,yaw,tx,tz,tyaw,clip,seen,off}
- const inRoom=()=>typeof walker!=='undefined'&&walker&&mode==='walking'&&walkingLocation?.id==='neochinatown'&&walkingLocation.area==='interior';
+ // Paused in the District (the pause menu, Settings) still counts as being in the room: the avatar simply stands still for the others.
+ const inRoom=()=>typeof walker!=='undefined'&&walker&&(mode==='walking'||mode==='menu')&&walkingLocation?.id==='neochinatown'&&walkingLocation.area==='interior';
  // The player's own Firebase sign-in. A local emulator token (tests) is honoured only on a local page.
  async function token(){try{if(isLocalPage){const t=get(root.localStorage,'tdd-dev-mp-token');if(t)return t;}return await root.VoidAccount?.user?.getIdToken?.()||null;}catch{return null;}}
  const accountUid=()=>root.VoidAccount?.user?.uid||null;
@@ -47,7 +73,7 @@
   const scene=root.VoidBabylon?.scene;if(!scene)return false;if(p.node&&!p.node.isDisposed())return true;
   const parent=new root.BABYLON.TransformNode('remote-player:'+p.id,scene),made=root.VoidAssets.instance('crowd:'+p.model,parent);
   if(!made){parent.dispose();return false;}
-  p.node=parent;p.ctrl=root.VoidCrowd.animate(made,p.model,p.clip||'idle');p.shownClip=p.clip||'idle';makeTag(scene,parent,p.name);
+  p.node=parent;p.ctrl=root.VoidCrowd.animate(made,p.model,p.clip||'idle');p.shownClip=p.clip||'idle';p.tag=makeTag(scene,parent,p.name);
   parent.position.set(p.x,walker.y-1.68,p.z);parent.rotation.y=p.yaw;return true;
  }
  function upsert(v){
@@ -58,7 +84,8 @@
   if(!place(p)&&!p.off&&root.VoidAssets.onLoaded)p.off=root.VoidAssets.onLoaded(id=>{if(id==='crowd:'+p.model&&peers.get(p.id)===p){place(p);p.off?.();p.off=null;}});
  }
  function onMessage(m){
-  if(m.t==='welcome'){clearPeers();retry=0;status='in';clearTimeout(wakeTimer);for(const v of m.peers)upsert(v);}
+  if(m.t==='welcome'){clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated};for(const v of m.peers)upsert(v);}
+  else if(m.t==='trade'){for(const fn of listeners)try{fn(m);}catch{}return;}
   else if(m.t==='join')upsert(m.peer);
   else if(m.t==='state'){if(peers.has(m.id))upsert({...peers.get(m.id),...m});}
   else if(m.t==='leave')removePeer(m.id);
@@ -86,7 +113,7 @@
   const giveUp=setTimeout(()=>{if(ws===sock&&sock.readyState===0){try{sock.close();}catch{}}},ATTEMPT_MS);
   sock.onopen=()=>{trace('open');clearTimeout(giveUp);sock.send(JSON.stringify({t:'hello',token:tok,room:ROOM}));};
   sock.onmessage=e=>{trace('message');try{onMessage(JSON.parse(e.data));}catch{}};
-  sock.onclose=e=>{trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one
+  sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false};for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one
    ws=null;clearPeers();lastClose=e.code+(e.reason?' '+e.reason:'');
    status=e.code===4001?'replaced by another session':e.code===4401?'sign-in not accepted':e.code===4403?'not on the test list':e.code===1012||e.code===1001?'server restarting':'offline';
    if(NO_RETRY.has(e.code)){wantOn=false;blockedUid=connectedUid;}   // stay quiet until the player signs in as someone else or calls reconnect()
@@ -108,6 +135,7 @@
    if(!p.node||p.node.isDisposed()){p.node=null;place(p);if(!p.node)continue;}
    p.x+=(p.tx-p.x)*k;p.z+=(p.tz-p.z)*k;let d=p.tyaw-p.yaw;d=Math.atan2(Math.sin(d),Math.cos(d));p.yaw+=d*k;
    p.node.position.set(p.x,walker.y-1.68,p.z);p.node.rotation.y=p.yaw;
+   if(p.tag)p.tag.isVisible=Math.hypot(p.x-walker.x,p.z-walker.z)<TAG_RANGE;   // no name tags across the whole hall
    if(p.shownClip!==p.clip){p.shownClip=p.clip;p.ctrl?.play(p.clip);}
   }
  }
@@ -115,6 +143,36 @@
  root.addEventListener('pagehide',()=>{if(ws?.readyState===1)try{ws.send('{"t":"bye"}');}catch{}});
  requestAnimationFrame(frame);
  root.VoidRemotePlayers={get status(){return status;},get lastClose(){return lastClose;},get socketState(){return ws?ws.readyState:-1;},get trace(){return traceLog.slice(-16);},get connected(){return status==='in';},
+  get features(){return features;},
+  // Trading hooks (void-runner/trade-window.js): subscribe to trade messages, send one, and ask who is close enough to trade with.
+  onTrade(fn){listeners.add(fn);return ()=>listeners.delete(fn);},
+  sendTrade(msg){if(ws?.readyState===1&&status==='in'&&features.trade&&msg&&msg.t==='trade'){ws.send(JSON.stringify(msg));return true;}return false;},
+  nearest(maxMetres=3){let best=null;for(const p of peers.values()){if(!p.node||p.node.isDisposed())continue;const d=Math.hypot(p.x-walker.x,p.z-walker.z);if(d<=maxMetres&&(!best||d<best.dist))best={id:p.id,name:p.name,dist:d};}return best;},
   get peers(){return [...peers.values()].map(p=>({id:p.id,name:p.name,model:p.model,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip,seen:[...(p.seen||[])],drawn:!!p.node&&!p.node.isDisposed(),tagged:!!p.node&&p.node.getChildMeshes().some(m=>m.name==='remote-tag')}));},
   disconnect(){wantOn=false;blockedUid=accountUid();disconnect();},reconnect(){wantOn=true;retry=0;clearTimeout(retryTimer);retryTimer=0;},hubUrl:()=>hubUrl(root.location,root.localStorage)};
+ }
+ // ---- Settings > Multiplayer test: a button instead of the browser console. The server's allow-list is the real gate; this only starts or stops asking. ----
+ const on=()=>get(root.localStorage,'tdd-multiplayer')==='1';
+ const setFlag=v=>{try{if(v)root.localStorage.setItem('tdd-multiplayer','1');else root.localStorage.removeItem('tdd-multiplayer');}catch{}};
+ const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ function menuHtml(){
+  const st=root.VoidRemotePlayers?.status||'off',signedIn=!!root.VoidAccount?.user;
+  return '<h2>Multiplayer test</h2><p>Meet other testers inside The Darknet District. Only accounts on the test list can join, and it works only in the District interior; everywhere else you play alone. Your saves are not touched.</p>'
+   +'<p id="multiplayer-status" role="status">'+esc(words(on()?st:'off',signedIn))+'</p>'
+   +'<button type="button" data-action="multiplayer-toggle" id="multiplayer-toggle">'+(on()?'LEAVE MULTIPLAYER TEST':'JOIN MULTIPLAYER TEST')+'</button>';
+ }
+ function installMenu(){
+  if(!available(root.location)||typeof settingsPage!=='function')return;
+  const prior=settingsPage;
+  settingsPage=function(...a){const r=prior.apply(this,a);screen.querySelector('.settings-panel')?.insertAdjacentHTML('beforeend',menuHtml());return r;};
+  screen.addEventListener('click',e=>{
+   if(e.target.closest('button')?.dataset.action!=='multiplayer-toggle')return;
+   if(on()){setFlag(false);root.VoidRemotePlayers?.disconnect();}
+   else{setFlag(true);boot();root.VoidRemotePlayers?.reconnect();}
+   settingsPage();   // redraw with the new state; the status line then follows as the connection comes up
+   const t=setInterval(()=>{const el=document.getElementById('multiplayer-status');if(!el){clearInterval(t);return;}el.textContent=words(on()?root.VoidRemotePlayers?.status:'off',!!root.VoidAccount?.user);},1000);
+  });
+ }
+ if(allowed(root.location,root.localStorage))boot();
+ installMenu();
 })(globalThis);

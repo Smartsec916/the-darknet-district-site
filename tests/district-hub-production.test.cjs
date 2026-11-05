@@ -74,11 +74,18 @@ test('configuration fails closed',()=>{
  assert.throws(()=>fromEnv({...base,HUB_API_BASE:'http://api.example.com'}),/HUB_API_BASE/);assert.throws(()=>fromEnv({...base,HUB_API_BASE:''}));
  assert.throws(()=>fromEnv({...base,HUB_ALLOWED_ORIGINS:'*'}),/exact https origins/);assert.throws(()=>fromEnv({...base,HUB_ALLOWED_ORIGINS:'https://*.example.com'}));
  assert.throws(()=>fromEnv({...base,PORT:'abc'}));assert.equal(fromEnv({...base,RENDER:'true'}).trustHops,1,'on Render one proxy is trusted');
+ for(const v of ['simulated','on','true','1','real'])assert.throws(()=>fromEnv({...base,HUB_TRADING:v}),/HUB_TRADING is not available in production/,'production never enables trading: '+v);
+ assert.equal(fromEnv({...base,HUB_TRADING:'off'}).tradingSimulated,false);
  assert.throws(()=>fromEnv({}),/Emulator mode/,'the default mode is local emulators only');
  assert.throws(()=>fromEnv({FIREBASE_AUTH_EMULATOR_HOST:'auth.example.com:9099',FIRESTORE_EMULATOR_HOST:'127.0.0.1:8080'}));
  assert.equal(fromEnv({FIREBASE_AUTH_EMULATOR_HOST:'127.0.0.1:9099',FIRESTORE_EMULATOR_HOST:'127.0.0.1:8080'}).host,'127.0.0.1');
 });
 
+test('trading can only be simulated, and only on a local emulator hub',()=>{
+ const local={FIREBASE_AUTH_EMULATOR_HOST:'127.0.0.1:9099',FIRESTORE_EMULATOR_HOST:'127.0.0.1:8080'};
+ assert.equal(fromEnv(local).tradingSimulated,false,'off unless asked for');assert.equal(fromEnv({...local,HUB_TRADING:'simulated'}).tradingSimulated,true);assert.equal(fromEnv({...local,HUB_TRADING:'off'}).tradingSimulated,false);
+ assert.throws(()=>fromEnv({...local,HUB_TRADING:'real'}),/off or simulated/);assert.throws(()=>fromEnv({...local,HUB_TRADING:'true'}),/off or simulated/);
+});
 test('handles become name tags, and anything unsafe falls back to a guest or pilot name',()=>{
  const joined=(uid,who)=>{const hub=new Hub({send(){},close(){},now:()=>1e6}),c={};hub.join(c,{t:'hello',token:'x',room:'district-interior'},{uid,...who});return hub.byConn.get(c).name;};
  assert.equal(joined('a',{anonymous:false,handle:'Neon_Fox'}),'Neon_Fox');

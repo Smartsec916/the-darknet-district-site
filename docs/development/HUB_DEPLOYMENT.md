@@ -13,13 +13,13 @@ Written 2026-11-05. **Nothing here has been done.** No Render service exists for
 | Limits: message size, movement, flood, per-address and total connections, room cap, origin check | `protocol.cjs`, `limits.cjs`, `hub-server.cjs` | Built and tested. |
 | Reconnect, duplicate-session, drop and restart handling | hub and client | Built and tested at Low and High (restart: clients told 1012, back in about 5 s locally). |
 | Render Blueprint draft | `tools/district-hub/render.yaml` | `plan: free`, `autoDeploy: false`, no secrets. Not applied anywhere. |
-| Client switch | `void-runner/remote-players.js` | Off for everyone. On the live site it needs two flags the **tester** sets in their own browser (section 4). |
+| Client switch | `void-runner/remote-players.js` | Off for everyone, and **no option is even shown** on the live site while `LIVE_HUB` in that file is empty (it is). Once the owner approves a test, one reviewed line sets `LIVE_HUB`; testers then press **Settings > Multiplayer test > JOIN** (no browser tools). |
 
 ## 2. What still requires configuration (all need the owner)
 
 1. **Create the Render service** from `tools/district-hub/render.yaml` (a new free web service named `district-hub`; a Blueprint or a manual service with the same settings).
 2. **Set `HUB_ALLOWED_UIDS`** in the Render dashboard: the Firebase account ids of the people in the test (see section 3). Optional `HUB_DENY_UIDS`.
-3. **Merge the client to `main`** (this publishes the site; `remote-players.js` ships inert) or test from a local copy of the branch against the live hub.
+3. **Set `LIVE_HUB`** in `void-runner/remote-players.js` to the new service's address (for example `'wss://district-hub.onrender.com'`; only `wss://<name>.onrender.com` is accepted) in a small reviewed change, then **merge the client to `main`** (this publishes the site) or test from a local copy of the branch against the live hub.
 4. Confirm the **game API's CORS and sign-in checks** need no change: the hub calls the API server-to-server with the player's token, and `/api/void-runner/character` and `/api/identity/me` already accept it. (No change is expected; the API's own settings are unverified, see `FIREBASE_MULTIPLAYER_AUDIT.md`.)
 
 Not needed: any Firebase Console change, any Firestore rule or index, a new database, a service account, billing.
@@ -29,18 +29,14 @@ Not needed: any Firebase Console change, any Firestore rule or index, a new data
 1. Each tester signs in on `https://thedarknetdistrict.com/void-runner.html` (the unlisted route) and finds their **account id** in the account menu (COPY ACCOUNT ID, as for `IRIS_ADMIN_UIDS`). A tester who wants a name tag should have claimed a handle; a handle-only (anonymous) account works too, and a guest without a handle shows as `Guest-xxxx`.
 2. Owner creates the Render service (section 2.1) and sets `HUB_ALLOWED_UIDS=<id1>,<id2>`. Deploy it by hand (Manual Deploy). Wait for the health check (`https://<service>.onrender.com/health` returns `{"ok":true,"players":0}`); the first request after sleep takes up to about a minute.
 3. The client change reaches the site (section 2.3).
-4. Each tester opens the browser console on the game page once and runs (with the real service name):
-   ```js
-   localStorage.setItem('tdd-multiplayer','1'); localStorage.setItem('tdd-hub','wss://district-hub.onrender.com');
-   ```
-   then reloads. (Two local flags; the address bar cannot do this. They live only in that browser; remove them with `localStorage.removeItem(...)`.)
+4. Each tester signs in (Account, in the main menu), then opens **Settings > Multiplayer test** and presses **JOIN MULTIPLAYER TEST**. The line under it says what is happening ("Waking the test server...", "Connected", "Your account is not on the test list"). LEAVE turns it off again; the choice is remembered in that browser. No console and no flags; the server's allow-list is still what decides who may join.
 5. Both start or continue a campaign: they wake in Sleeping Pod 01 and walk into the District interior. When both are inside, each sees the other with a name tag. The status line `VoidRemotePlayers.status` in the console says `in`, `waking the server`, `not on the test list`, and so on.
 6. Check the list in section 7, then stop the test (section 6).
 
 ## 4. Safety properties (what the design guarantees)
 
 - **Identity is never taken from a message.** The client sends only `hello {token, room}`, `state {x, z, yaw}` and `bye`; any other field is invalid, and unit tests pin that the client code cannot send an identity, model or name. The hub verifies the token itself, takes the account id from it, and learns the character and handle from the API with that same token.
-- **A crafted link cannot send a player's sign-in elsewhere.** On the live site the client reads the hub address only from the tester's own stored flag, accepts only `wss://<name>.onrender.com`, and ignores the address bar. The hub, in turn, accepts connections only from the site's exact origins.
+- **A crafted link cannot send a player's sign-in elsewhere.** On the live site the hub address is the `LIVE_HUB` constant in the shipped code (never an address, a link or a stored value), accepted only if it is `wss://<name>.onrender.com`; the address bar is ignored. The on/off choice is the tester's own button, and the hub accepts connections only from the site's exact origins.
 - **Fail closed.** No allow-list means no start; a bad token, an unlisted or denied account, a wrong origin, an invalid message or too many connections is refused with a distinct close code. The health page reveals only a player count.
 - **One session per account**; a second connection replaces the first. Silent clients are removed by a heartbeat and a stale sweep, so no ghost avatar stays.
 - **Limits**: 512-byte messages (4.4 KB for the one login message), 40 messages per second per player, a speed and bounds check, one position jump per 5 s, 12 players per room, 4 connections and 20 new connections a minute per address, 60 connections overall.
@@ -65,6 +61,10 @@ Not needed: any Firebase Console change, any Firestore rule or index, a new data
 | Hub misbehaves after a deploy | Render keeps previous deploys: use **Rollback** to the last good one. Because `autoDeploy` is off, nothing changes until the owner deploys. |
 | The client change is the problem | Revert the merge commit on `main` (a new revert pull request; no force-push). Testers can also clear their two flags to turn it off for themselves at once. |
 | Nothing else to undo | No Firebase setting, rule, collection, document, database or secret was created, so there is nothing to clean up. |
+
+## 6b. Trading stays off
+
+The hub's trading code (`TRADING_ARCHITECTURE.md`) is present but **cannot be enabled in production**: the hub refuses to start if `HUB_TRADING` is set, refuses an injected ledger, uses the disabled ledger, and reports `features.trade: false`, so players see no trade prompt. Real items and credits cannot move until a persistent server-owned ledger is approved and built.
 
 ## 7. Test checklist for the real session
 

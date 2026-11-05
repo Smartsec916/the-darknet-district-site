@@ -12,7 +12,7 @@ const {clientIp,ConnectionGate}=require('./limits.cjs');
 
 const LOCAL_ORIGIN=/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/;
 
-function start({identify,access={allowed:null,denied:new Set()},origins=null,gate=new ConnectionGate(),trustHops=0,port=0,host='127.0.0.1',log=()=>{}}){
+function start({ledger=null,identify,access={allowed:null,denied:new Set()},origins=null,gate=new ConnectionGate(),trustHops=0,port=0,host='127.0.0.1',log=()=>{}}){
   const originOk=o=>origins?typeof o==='string'&&origins.includes(o):(!o||LOCAL_ORIGIN.test(o));
   const server=http.createServer((req,res)=>{
     if(req.url==='/health'){res.writeHead(200,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify({ok:true,players:hub.peers.size}));return;}
@@ -20,6 +20,8 @@ function start({identify,access={allowed:null,denied:new Set()},origins=null,gat
   });
   const wss=new WebSocketServer({server,maxPayload:LIMITS.maxHelloBytes,verifyClient:({origin},cb)=>originOk(origin)?cb(true):cb(false,403,'origin not allowed')});
   const hub=new Hub({send:(ws,m)=>{if(ws.readyState===1)ws.send(JSON.stringify(m));},close:(ws,code,why)=>{try{ws.close(code,why);}catch{}}});
+  // Trading: only with a ledger. The default (none, or the disabled one) refuses every trade message and tells clients trading is off.
+  hub.attachTrades(ledger||new (require('./ledger.cjs').DisabledLedger)(),{simulated:!!ledger?.simulated});
   let stopping=false;
   wss.on('connection',(ws,req)=>{
     const ip=clientIp(req.socket.remoteAddress,req.headers['x-forwarded-for'],trustHops),admitted=gate.admit(ip);
@@ -45,6 +47,7 @@ function start({identify,access={allowed:null,denied:new Set()},origins=null,gat
       }
       if(!ws.joined){ws.close(4002,'hello first');return;}
       if(m.t==='bye'){hub.drop(ws,1000,'bye');return;}
+      if(m.t==='trade'){hub.trade(ws,m);return;}
       hub.state(ws,m);
     });
     ws.on('close',(code)=>{clearTimeout(hello);release();const p=hub.byConn.get(ws);if(p)log('leave',p.id,code);hub.closed(ws);});

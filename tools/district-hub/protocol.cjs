@@ -3,6 +3,7 @@
    login token and passes the verified account in. A client may only say where it is. */
 'use strict';
 const crypto=require('node:crypto');
+const {TradeBook,parseTrade,RULES:TRADE_RULES}=require('./trade.cjs');
 
 // Whitelisted rooms. The bounds are a coarse sanity box around the district interior (this is NOT the floor plan; the real
 // footprint is owned by void-runner/neochinatown.js). The prototype supports the interior only, because that is where the
@@ -24,6 +25,7 @@ function parse(raw){
   let m;try{m=JSON.parse(raw);}catch{return null;}
   if(!m||typeof m!=='object'||Array.isArray(m))return null;
   const keys=Object.keys(m).sort().join();
+  if(m.t==='trade')return raw.length<=TRADE_RULES.maxBytes?parseTrade(m):null;   // trades carry an item list, so a little more room
   if(m.t!=='hello'&&raw.length>LIMITS.maxBytes)return null;
   if(m.t==='hello')return keys==='room,t,token'&&typeof m.token==='string'&&m.token.length<4096&&typeof m.room==='string'?m:null;
   if(m.t==='state')return keys==='t,x,yaw,z'&&num(m.x)&&num(m.z)&&num(m.yaw)&&Math.abs(m.x)<1e5&&Math.abs(m.z)<1e5&&Math.abs(m.yaw)<1e4?m:null;
@@ -34,7 +36,16 @@ const wrap=a=>{a=a%(Math.PI*2);return a>Math.PI?a-Math.PI*2:a<-Math.PI?a+Math.PI
 
 class Hub{
   /* send(connection, object) and close(connection, code, reason) are supplied by the transport. */
-  constructor({send,close,now=()=>Date.now()}){this.send=send;this.closeConn=close;this.now=now;this.peers=new Map();this.byConn=new Map();}
+  constructor({send,close,now=()=>Date.now()}){this.send=send;this.closeConn=close;this.now=now;this.peers=new Map();this.byConn=new Map();this.trades=null;}
+  /* Turns player-to-player trading on for this hub, against a ledger (ledger.cjs). The production ledger is the disabled one. */
+  attachTrades(ledger,{simulated=false,rules}={}){
+   this.trades=new TradeBook({ledger,simulated,rules,now:()=>this.now(),peers:{byUid:u=>this.peers.get(u)||null,byPublicId:id=>[...this.peers.values()].find(p=>p.id===id)||null},
+    send:(uid,m)=>{const p=this.peers.get(uid);if(p)this.send(p.conn,m);}});
+   return this.trades;
+  }
+  /* A trade message from a joined player. Identity is the verified account of this connection, never anything in the message. */
+  trade(conn,m){const p=this.byConn.get(conn);if(!p)return Promise.resolve();if(!this.trades)return Promise.resolve(this.send(conn,{t:'trade',ev:'refused',reason:'Trading is not enabled.'}));
+   return this.trades.handle(p.uid,m).catch(()=>this.send(conn,{t:'trade',ev:'refused',reason:'The trade could not be processed.'}));}
   roomPeers(room){return [...this.peers.values()].filter(p=>p.room===room);}
   view(p){return {id:p.id,name:p.name,model:p.model,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip};}
   broadcast(room,message,exceptId){for(const p of this.roomPeers(room))if(p.id!==exceptId)this.send(p.conn,message);}
@@ -50,7 +61,7 @@ class Hub{
     const model=who.anonymous||!RENDERABLE.includes(who.model)?DEFAULT_MODEL:who.model;
     const peer={uid:who.uid,id,conn,room:message.room,name:typeof who.handle==='string'&&HANDLE.test(who.handle)?who.handle:(who.anonymous?'Guest-':'Pilot-')+id.slice(0,4),model,x:0,z:0,yaw:0,clip:'idle',placed:false,lastAt:t,lastMove:t,lastSnap:-Infinity,bucketAt:t,bucket:0,violations:0};
     this.peers.set(who.uid,peer);this.byConn.set(conn,peer);
-    this.send(conn,{t:'welcome',you:id,peers:this.roomPeers(message.room).filter(p=>p.id!==id&&p.placed).map(p=>this.view(p))});
+    this.send(conn,{t:'welcome',you:id,features:{trade:!!this.trades?.enabled,tradeSimulated:!!this.trades?.simulated},peers:this.roomPeers(message.room).filter(p=>p.id!==id&&p.placed).map(p=>this.view(p))});
     return true;
   }
 
@@ -77,6 +88,7 @@ class Hub{
     // small steps) and holds for a moment, so an uneven frame rate never makes the animation flicker. Legality uses real time above.
     if(moved>.02)p.walkUntil=t+LIMITS.walkHoldMs;
     p.clip=t<(p.walkUntil??0)?'walk':'idle';
+    queueMicrotask(()=>this.trades?.onMove(p.uid));   // a step away from a trade partner ends the trade
     const first=!p.placed;p.placed=true;
     if(first)this.broadcast(p.room,{t:'join',peer:this.view(p)},p.id);
     else this.broadcast(p.room,{t:'state',id:p.id,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip},p.id);
@@ -90,11 +102,11 @@ class Hub{
   /* Leave, close or kick: the avatar goes from every other screen exactly once. */
   drop(conn,code,reason){
     const p=this.byConn.get(conn);this.byConn.delete(conn);
-    if(p&&this.peers.get(p.uid)===p){this.peers.delete(p.uid);if(p.placed)this.broadcast(p.room,{t:'leave',id:p.id});}
+    if(p&&this.peers.get(p.uid)===p){this.trades?.onLeave(p.uid);this.peers.delete(p.uid);if(p.placed)this.broadcast(p.room,{t:'leave',id:p.id});}
     if(code)this.closeConn(conn,code,reason||'');
   }
   closed(conn){this.drop(conn,0);}
   /* Players that went silent (a dead network, a sleeping laptop) leave too, so no ghost avatar stays. */
-  sweep(){const t=this.now();for(const p of [...this.peers.values()])if(t-p.lastAt>LIMITS.staleMs)this.drop(p.conn,4004,'timed out');}
+  sweep(){this.trades?.sweep();const t=this.now();for(const p of [...this.peers.values()])if(t-p.lastAt>LIMITS.staleMs)this.drop(p.conn,4004,'timed out');}
 }
 module.exports={ROOMS,RENDERABLE,DEFAULT_MODEL,LIMITS,publicId,parse,Hub};
