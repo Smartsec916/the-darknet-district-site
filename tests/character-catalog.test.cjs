@@ -88,3 +88,7 @@ test('local persistence: save, load, per-account, bad data, legacy fallback, no 
  assert.equal(A.save({getItem(){throw new Error('x');},setItem(){throw new Error('x');}},'u',a),false);
  assert.equal(A.load({getItem(){throw new Error('x');}},'u'),null);
 });
+
+test('the hub carries identical copies of the appearance rules and catalog',()=>{
+ const r=cp.spawnSync(process.execPath,[path.join(ROOT,'tools/assets/sync-hub-appearance.cjs'),'--check'],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);
+});

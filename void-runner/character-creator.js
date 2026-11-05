@@ -100,7 +100,7 @@
  }
  function close(confirm){
   if(!open)return;
-  if(confirm){const s=storage();if(s&&A.save(s,uid(),draft)){try{if(typeof state!=='undefined'&&state?.story?.flags){state.story.flags.appearanceChosen=true;state.story.flags.appearanceOffered=true;}}catch{}root.VoidCharacterCreator.onChange?.(A.normalize(draft));}}
+  if(confirm){const s=storage();if(s&&A.save(s,uid(),draft)){try{if(typeof state!=='undefined'&&state?.story?.flags){state.story.flags.appearanceChosen=true;state.story.flags.appearanceOffered=true;}}catch{}root.VoidCharacterCreator.onChange?.(A.normalize(draft));root.VoidRemotePlayers?.refreshLook?.();}}
   else if(ctx.context==='first'){try{state.story.flags.appearanceOffered=true;}catch{}}
   open=false;cancelAnimationFrame(raf);seq++;char?.dispose();char=null;holder?.dispose();holder=null;{const sc=root.VoidBabylon?.scene;for(const l of lamps)l.dispose();lamps=[];sc?.markAllMaterialsAsDirty?.(root.BABYLON.Constants.MATERIAL_LightDirtyFlag);}ui.classList.remove('on');ui.innerHTML='';
   Object.assign(walker,snapshot.walker);mode=snapshot.mode;

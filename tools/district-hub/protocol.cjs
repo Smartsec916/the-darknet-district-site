@@ -10,7 +10,9 @@ const {TradeBook,parseTrade,RULES:TRADE_RULES}=require('./trade.cjs');
 // district character models are loaded (the street loads a different set of crowd models).
 const ROOMS={'district-interior':{x:[-400,400],z:[-400,400],cap:12}};
 // Existing animated District crowd models that a character slot may name (see CHARACTER_MODELS in void_runner_api.py).
-const RENDERABLE=['district-smuggler','district-resident'];
+// The creator's appearance rules are shared with the game (one catalog, one validator). If the file is not deployed with the hub, appearances are simply ignored.
+const Appearance=(()=>{try{return require('./appearance/character-appearance.js');}catch{return null;}})();
+const RENDERABLE=Appearance?[...new Set(['district-smuggler','district-resident',...Object.values(Appearance.CATALOG.looks).map(l=>l.model)])]:['district-smuggler','district-resident'];
 const DEFAULT_MODEL='district-smuggler';
 const LIMITS={maxBytes:512,maxHelloBytes:4400,helloMs:45000,maxSpeed:9,speedSlack:1.5,snapEveryMs:5000,staleMs:12000,maxPerSecond:40,violationsBeforeKick:8,stateIntervalMs:80,walkHoldMs:450};
 
@@ -26,10 +28,11 @@ function parse(raw){
   if(!m||typeof m!=='object'||Array.isArray(m))return null;
   const keys=Object.keys(m).sort().join();
   if(m.t==='trade')return raw.length<=TRADE_RULES.maxBytes?parseTrade(m):null;   // trades carry an item list, so a little more room
-  if(m.t!=='hello'&&raw.length>LIMITS.maxBytes)return null;
+  if(m.t!=='hello'&&m.t!=='refresh'&&raw.length>LIMITS.maxBytes)return null;
   if(m.t==='hello')return keys==='room,t,token'&&typeof m.token==='string'&&m.token.length<4096&&typeof m.room==='string'?m:null;
   if(m.t==='state')return keys==='t,x,yaw,z'&&num(m.x)&&num(m.z)&&num(m.yaw)&&Math.abs(m.x)<1e5&&Math.abs(m.z)<1e5&&Math.abs(m.yaw)<1e4?m:null;
   if(m.t==='bye')return keys==='t'?m:null;
+  if(m.t==='refresh')return keys==='t,token'&&typeof m.token==='string'&&m.token.length<4096?m:null;   // re-read my saved look (a fresh sign-in token, like hello)
   return null; // anything else, including any attempt to send an identity, model or name, is invalid
 }
 const wrap=a=>{a=a%(Math.PI*2);return a>Math.PI?a-Math.PI*2:a<-Math.PI?a+Math.PI*2:a;};
@@ -47,7 +50,24 @@ class Hub{
   trade(conn,m){const p=this.byConn.get(conn);if(!p)return Promise.resolve();if(!this.trades)return Promise.resolve(this.send(conn,{t:'trade',ev:'refused',reason:'Trading is not enabled.'}));
    return this.trades.handle(p.uid,m).catch(()=>this.send(conn,{t:'trade',ev:'refused',reason:'The trade could not be processed.'}));}
   roomPeers(room){return [...this.peers.values()].filter(p=>p.room===room);}
-  view(p){return {id:p.id,name:p.name,model:p.model,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip};}
+  view(p){return {id:p.id,name:p.name,model:p.model,appearance:p.appearance,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip};}
+  /* The look a verified account is shown with: its saved appearance when valid (ids checked again here), else the look matching its old {gender, model} character, else the default. */
+  look(who){
+   if(who.anonymous)return {model:DEFAULT_MODEL,appearance:null};
+   if(Appearance&&who.appearance&&Appearance.validate(who.appearance)){const a=Appearance.normalize(who.appearance);return {model:Appearance.CATALOG.looks[a.look].model,appearance:a};}
+   const model=RENDERABLE.includes(who.model)?who.model:DEFAULT_MODEL;
+   return {model,appearance:Appearance?Appearance.fromLegacy({gender:model==='district-resident'?'female':'male',model}):null};
+  }
+  /* A player changed their look (wardrobe): `who` is freshly verified. Only the same account, at most once every 2 seconds. */
+  refresh(conn,who){
+   const p=this.byConn.get(conn);if(!p||p.uid!==who.uid)return false;const t=this.now();
+   if(t-(p.lastRefresh??-Infinity)<2000){this.send(conn,{t:'refused',reason:'too many look changes'});return false;}
+   p.lastRefresh=t;const l=this.look(who);
+   if(JSON.stringify(l.appearance)===JSON.stringify(p.appearance)&&l.model===p.model)return true;
+   p.model=l.model;p.appearance=l.appearance;
+   if(p.placed)this.broadcast(p.room,{t:'look',id:p.id,model:p.model,appearance:p.appearance},p.id);
+   return true;
+  }
   broadcast(room,message,exceptId){for(const p of this.roomPeers(room))if(p.id!==exceptId)this.send(p.conn,message);}
 
   /* `who` is the verified identity from the transport: {uid, anonymous, model}. Returns true when the player is in. */
@@ -58,8 +78,8 @@ class Hub{
     // A second connection for the same account replaces the first: never two avatars for one account.
     const old=this.peers.get(who.uid);if(old)this.drop(old.conn,4001,'replaced by a newer connection');
     if(this.roomPeers(message.room).length>=room.cap){this.send(conn,{t:'error',reason:'room full'});this.closeConn(conn,4003,'room full');return false;}
-    const model=who.anonymous||!RENDERABLE.includes(who.model)?DEFAULT_MODEL:who.model;
-    const peer={uid:who.uid,id,conn,room:message.room,name:typeof who.handle==='string'&&HANDLE.test(who.handle)?who.handle:(who.anonymous?'Guest-':'Pilot-')+id.slice(0,4),model,x:0,z:0,yaw:0,clip:'idle',placed:false,lastAt:t,lastMove:t,lastSnap:-Infinity,bucketAt:t,bucket:0,violations:0};
+    const {model,appearance}=this.look(who);
+    const peer={uid:who.uid,id,conn,room:message.room,name:typeof who.handle==='string'&&HANDLE.test(who.handle)?who.handle:(who.anonymous?'Guest-':'Pilot-')+id.slice(0,4),model,appearance,x:0,z:0,yaw:0,clip:'idle',placed:false,lastAt:t,lastMove:t,lastSnap:-Infinity,bucketAt:t,bucket:0,violations:0};
     this.peers.set(who.uid,peer);this.byConn.set(conn,peer);
     this.send(conn,{t:'welcome',you:id,features:{trade:!!this.trades?.enabled,tradeSimulated:!!this.trades?.simulated},peers:this.roomPeers(message.room).filter(p=>p.id!==id&&p.placed).map(p=>this.view(p))});
     return true;

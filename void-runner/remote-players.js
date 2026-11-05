@@ -71,6 +71,13 @@
  function clearPeers(){for(const id of [...peers.keys()])removePeer(id);}
  function place(p){
   const scene=root.VoidBabylon?.scene;if(!scene)return false;if(p.node&&!p.node.isDisposed())return true;
+  // A player with a saved creator look (ids already checked by the hub, checked again here) is built by the assembler; anyone else uses the plain crowd model.
+  if(p.appearance&&root.VoidCharacterAssembler&&root.VoidCharacterAppearance?.validate(p.appearance)){
+   const parent=new root.BABYLON.TransformNode('remote-player:'+p.id,scene);p.node=parent;p.tag=makeTag(scene,parent,p.name);parent.position.set(p.x,walker.y-1.68,p.z);parent.rotation.y=p.yaw;p.shownClip=p.clip||'idle';
+   root.VoidCharacterAssembler.build(p.appearance,parent,{scene,clip:p.shownClip}).then(ch=>{if(peers.get(p.id)!==p||parent.isDisposed()){ch.dispose();return;}p.ctrl=ch;p.char=ch;})
+    .catch(()=>{if(peers.get(p.id)===p){p.appearance=null;parent.dispose();p.node=null;}});   // could not build it: fall back to the plain crowd model
+   return true;
+  }
   const parent=new root.BABYLON.TransformNode('remote-player:'+p.id,scene),made=root.VoidAssets.instance('crowd:'+p.model,parent);
   if(!made){parent.dispose();return false;}
   p.node=parent;p.ctrl=root.VoidCrowd.animate(made,p.model,p.clip||'idle');p.shownClip=p.clip||'idle';p.tag=makeTag(scene,parent,p.name);
@@ -78,7 +85,7 @@
  }
  function upsert(v){
   let p=peers.get(v.id);
-  if(!p){p={id:v.id,name:clean(v.name),model:v.model,x:v.x,z:v.z,yaw:v.yaw,tx:v.x,tz:v.z,tyaw:v.yaw,clip:v.clip};peers.set(v.id,p);}
+  if(!p){p={id:v.id,name:clean(v.name),model:v.model,appearance:v.appearance||null,x:v.x,z:v.z,yaw:v.yaw,tx:v.x,tz:v.z,tyaw:v.yaw,clip:v.clip};peers.set(v.id,p);}
   else{p.tx=v.x;p.tz=v.z;p.tyaw=v.yaw;p.clip=v.clip;}
   (p.seen||(p.seen=new Set())).add(v.clip);   // every animation the hub has sent for this player (lets a test see short clips on a slow machine)
   if(!place(p)&&!p.off&&root.VoidAssets.onLoaded)p.off=root.VoidAssets.onLoaded(id=>{if(id==='crowd:'+p.model&&peers.get(p.id)===p){place(p);p.off?.();p.off=null;}});
@@ -88,6 +95,9 @@
   else if(m.t==='trade'){for(const fn of listeners)try{fn(m);}catch{}return;}
   else if(m.t==='join')upsert(m.peer);
   else if(m.t==='state'){if(peers.has(m.id))upsert({...peers.get(m.id),...m});}
+  else if(m.t==='look'){const p=peers.get(m.id),VA=root.VoidCharacterAppearance;if(p){const ok=!!VA&&VA.validate(m.appearance);p.appearance=ok?VA.normalize(m.appearance):null;p.model=ok?VA.CATALOG.looks[p.appearance.look].model:(['district-smuggler','district-resident'].includes(m.model)?m.model:p.model);
+   if(p.char&&p.appearance&&root.VoidCharacterAppearance?.validate(p.appearance))p.char.set(p.appearance).catch(()=>{});
+   else{p.ctrl?.dispose?.();p.ctrl=p.char=null;p.node?.dispose?.();p.node=null;place(p);}}}
   else if(m.t==='leave')removePeer(m.id);
   else if(m.t==='error'||m.t==='refused')status='refused: '+m.reason;
  }
@@ -148,7 +158,10 @@
   onTrade(fn){listeners.add(fn);return ()=>listeners.delete(fn);},
   sendTrade(msg){if(ws?.readyState===1&&status==='in'&&features.trade&&msg&&msg.t==='trade'){ws.send(JSON.stringify(msg));return true;}return false;},
   nearest(maxMetres=3){let best=null;for(const p of peers.values()){if(!p.node||p.node.isDisposed())continue;const d=Math.hypot(p.x-walker.x,p.z-walker.z);if(d<=maxMetres&&(!best||d<best.dist))best={id:p.id,name:p.name,dist:d};}return best;},
-  get peers(){return [...peers.values()].map(p=>({id:p.id,name:p.name,model:p.model,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip,seen:[...(p.seen||[])],drawn:!!p.node&&!p.node.isDisposed(),tagged:!!p.node&&p.node.getChildMeshes().some(m=>m.name==='remote-tag')}));},
+  get peers(){return [...peers.values()].map(p=>({id:p.id,name:p.name,model:p.model,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip,seen:[...(p.seen||[])],appearance:p.appearance||null,drawn:!!p.node&&!p.node.isDisposed(),tagged:!!p.node&&p.node.getChildMeshes().some(m=>m.name==='remote-tag')}));},
+  // Tell the hub my saved look changed (after the wardrobe): it re-reads it from my account and tells nearby players.
+  async refreshLook(){if(ws?.readyState===1&&status==='in'){const t=await token();if(t)ws.send(JSON.stringify({t:'refresh',token:t}));}},
+  ...(isLocalPage?{_message:onMessage}:{}),
   disconnect(){wantOn=false;blockedUid=accountUid();disconnect();},reconnect(){wantOn=true;retry=0;clearTimeout(retryTimer);retryTimer=0;},hubUrl:()=>hubUrl(root.location,root.localStorage)};
  }
  // ---- Settings > Multiplayer test: a button instead of the browser console. The server's allow-list is the real gate; this only starts or stops asking. ----
