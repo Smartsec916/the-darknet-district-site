@@ -20,12 +20,12 @@
    "model": "district-smuggler",
    "label": "SMUGGLER",
    "preset": true,
-   "outfit": "male_casualsuit01",
-   "shoes": "shoes03",
-   "nativeHair": "short04",
+   "outfit": "district_smuggler.male_casualsuit01",
+   "shoes": "district_smuggler.shoes03",
+   "nativeHair": "district_smuggler.short04",
    "accessories": {
     "hat": [
-     "fedora_cocked"
+     "district_smuggler.fedora_cocked"
     ],
     "eyewear": [
      "district_smuggler.shades0"
@@ -49,15 +49,16 @@
    "legacy": {
     "gender": "male",
     "model": "district-smuggler"
-   }
+   },
+   "body": "district_smuggler.body"
   },
   "hacker-01": {
    "base": "male",
    "model": "hacker-01",
    "label": "NETRUNNER",
-   "outfit": "male_casualsuit05",
-   "shoes": "shoes03",
-   "nativeHair": "short02",
+   "outfit": "hacker_01.male_casualsuit05",
+   "shoes": "hacker_01.shoes03",
+   "nativeHair": "hacker_01.short02",
    "accessories": {
     "eyewear": [
      "hacker_01.visor0"
@@ -76,15 +77,16 @@
     "braid01",
     "long01",
     "ponytail01"
-   ]
+   ],
+   "body": "hacker_01.body"
   },
   "regular-01": {
    "base": "male",
    "model": "regular-01",
    "label": "WORKER",
-   "outfit": "male_worksuit01",
-   "shoes": "shoes03",
-   "nativeHair": "short03",
+   "outfit": "regular_01.male_worksuit01",
+   "shoes": "regular_01.shoes03",
+   "nativeHair": "regular_01.short03",
    "accessories": {
     "mask": [
      "regular_01.mask0",
@@ -105,18 +107,19 @@
     "braid01",
     "long01",
     "ponytail01"
-   ]
+   ],
+   "body": "regular_01.body"
   },
   "vesper-trader": {
    "base": "male",
    "model": "vesper-trader",
    "label": "TRADER",
-   "outfit": "male_casualsuit03",
-   "shoes": "shoes01",
-   "nativeHair": "short02",
+   "outfit": "vesper_trader.male_casualsuit03",
+   "shoes": "vesper_trader.shoes01",
+   "nativeHair": "vesper_trader.short02",
    "accessories": {
     "hat": [
-     "fedora"
+     "vesper_trader.fedora01"
     ],
     "mask": [
      "vesper_trader.mask0"
@@ -135,16 +138,17 @@
     "braid01",
     "long01",
     "ponytail01"
-   ]
+   ],
+   "body": "vesper_trader.body"
   },
   "district-resident": {
    "base": "female",
    "model": "district-resident",
    "label": "RESIDENT",
    "preset": true,
-   "outfit": "female_sportsuit01",
-   "shoes": "shoes04",
-   "nativeHair": "braid01",
+   "outfit": "district_resident.female_sportsuit01",
+   "shoes": "district_resident.shoes04",
+   "nativeHair": "district_resident.braid01",
    "accessories": {
     "mask": [
      "district_resident.mask0",
@@ -169,15 +173,16 @@
    "legacy": {
     "gender": "female",
     "model": "district-resident"
-   }
+   },
+   "body": "district_resident.body"
   },
   "ncz-neon": {
    "base": "female",
    "model": "ncz-neon",
    "label": "NEON",
-   "outfit": "female_sportsuit01",
-   "shoes": "shoes05",
-   "nativeHair": "long01",
+   "outfit": "ncz_neon.female_sportsuit01",
+   "shoes": "ncz_neon.shoes05",
+   "nativeHair": "ncz_neon.long01",
    "accessories": {
     "collar": [
      "ncz_neon.collar0"
@@ -196,15 +201,16 @@
     "braid01",
     "long01",
     "ponytail01"
-   ]
+   ],
+   "body": "ncz_neon.body"
   },
   "fixer-01": {
    "base": "female",
    "model": "fixer-01",
    "label": "FIXER",
-   "outfit": "female_elegantsuit01",
-   "shoes": "shoes03",
-   "nativeHair": "bob02",
+   "outfit": "fixer_01.female_elegantsuit01",
+   "shoes": "fixer_01.shoes03",
+   "nativeHair": "fixer_01.bob02",
    "accessories": {
     "eyewear": [
      "fixer_01.shades0"
@@ -223,7 +229,8 @@
     "braid01",
     "long01",
     "ponytail01"
-   ]
+   ],
+   "body": "fixer_01.body"
   }
  },
  "accessories": {
