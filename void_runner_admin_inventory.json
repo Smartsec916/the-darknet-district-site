@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "07a234ff935cc884",
+  "revision": "0c649500f726df47",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13195,7 +13195,7 @@
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "a796e718fbe982cbdbec26e66705c8dfce47f9b3882a671244400cd48437bb4e",
-    "void-runner/campaign.js": "923ae611a3b0f633a9cb3df7c279fa02b6dee525e11dc6e6f9bd430c0fe6578b",
+    "void-runner/campaign.js": "f541695f3894cc467505c215245a8f0fffd8548f93a696d61714e339a7a3d7d3",
     "void-runner/city-taxi.js": "0e5034fa45257dbcc8a26a52ad33b1dc12b52ecd2c95d22a1929ddcd96155eb0",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
     "void-runner/cockpit-math.js": "a63faf598eaf23722d22658ca22b5da5b16f0044437ac5277d34d42d1cbf0461",

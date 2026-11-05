@@ -54,45 +54,45 @@
   const stageOf=(s,d)=>{const v=s.story?.flags?.[d.flag];return ['accepted','delivered','paid'].includes(v)?v:null;};
   function factionStage(s,faction){return factionDeliveries[faction]?stageOf(s,factionDeliveries[faction]):null;}
   function supplyStage(s,faction){return supplyDeliveries[faction]?stageOf(s,supplyDeliveries[faction]):null;}
-  function supplyOffers(s){if(s.quest!=='open'||s.story?.flags?.factionsVisited!==true)return [];return Object.keys(supplyDeliveries).filter(id=>!supplyStage(s,id));}
+  function supplyOffers(s){if(Missions.closed(s)||s.quest!=='open'||s.story?.flags?.factionsVisited!==true)return [];return Object.keys(supplyDeliveries).filter(id=>!supplyStage(s,id));}
   function acceptSupply(s,faction){
     const d=supplyDeliveries[faction];
-    if(!d||s.contract||!supplyOffers(s).includes(faction))return false;
+    if(Missions.closed(s)||!d||s.contract||!supplyOffers(s).includes(faction))return false;
     if((s.progression?.cargo||[]).reduce((n,x)=>n+x.units,0)>=P.systems(s).cargo)return false;
     s.story.flags[d.flag]='accepted';s.destination=null;s.contract=d.id;U.discover(s,d.destination);Missions.acquire(s,d.id);Story.emit(s,'missionAccepted',d.id);return true;
   }
   function originState(s,faction){const v=s.story?.flags?.[originMissions[faction]?.flag];return ['offered','accepted','loaded','delivered'].includes(v)?v:null;}
   // Agreeing opens the homeworld and loads the shipment if the hold is free (otherwise it waits with the giver).
-  function acceptOrigin(s,faction){const o=originMissions[faction];if(!o||originState(s,faction)!=='offered')return false;s.story.flags[o.flag]='accepted';Missions.acquire(s,o.id);U.discover(s,homeworlds[faction].planet);loadOrigin(s,faction);return true;}
+  function acceptOrigin(s,faction){const o=originMissions[faction];if(Missions.closed(s)||!o||originState(s,faction)!=='offered')return false;s.story.flags[o.flag]='accepted';Missions.acquire(s,o.id);U.discover(s,homeworlds[faction].planet);loadOrigin(s,faction);return true;}
   function loadOrigin(s,faction){
     const o=originMissions[faction],c=homeworlds[faction].contract;
-    if(originState(s,faction)!=='accepted'||s.contract)return false;
+    if(Missions.closed(s)||originState(s,faction)!=='accepted'||s.contract)return false;
     if((s.progression?.cargo||[]).reduce((n,x)=>n+x.units,0)>=P.systems(s).cargo)return false;
     s.story.flags[o.flag]='loaded';s.contract=c.id;s.destination=null;U.discover(s,c.destination);Missions.acquire(s,o.id);Missions.complete(s,o.id,'cargo');return true;
   }
   function deliverOrigin(s,faction){
     const o=originMissions[faction],h=homeworlds[faction];
-    if(originState(s,faction)!=='loaded'||s.location!==h.planet)return false;
+    if(Missions.closed(s)||originState(s,faction)!=='loaded'||s.location!==h.planet)return false;
     if(s.contract===h.contract.id)s.contract=null;
     s.story.flags[o.flag]='delivered';if(!workState(s,faction))s.story.flags[h.work.flag]='offered';
     Missions.complete(s,o.id,'arrive');Missions.complete(s,o.id,'deliver');return true;
   }
   function workState(s,faction){const v=s.story?.flags?.[homeworlds[faction]?.work.flag];return ['offered','accepted','complete'].includes(v)?v:null;}
   function acceptWork(s,faction){
-    const w=homeworlds[faction]?.work;if(!w||workState(s,faction)!=='offered')return false;
+    const w=homeworlds[faction]?.work;if(Missions.closed(s)||!w||workState(s,faction)!=='offered')return false;
     s.story.flags[w.flag]='accepted';for(const [flag,from] of Object.values(w.steps))if(from==='todo')s.story.flags[flag]='todo';
     Missions.acquire(s,w.id);return true;
   }
   // One on-foot task step at its own interaction point; steps only move forward.
   function workStep(s,faction,action){
     const h=homeworlds[faction],step=h?.work.steps[action];
-    if(!step||workState(s,faction)!=='accepted'||s.location!==h.planet||s.story.flags[step[0]]!==step[1])return false;
+    if(Missions.closed(s)||!step||workState(s,faction)!=='accepted'||s.location!==h.planet||s.story.flags[step[0]]!==step[1])return false;
     s.story.flags[step[0]]=step[2];Missions.complete(s,h.work.id,step[3]);return true;
   }
   function workReady(s,faction){const w=homeworlds[faction]?.work;return workState(s,faction)==='accepted'&&Object.values(w.steps).every(([flag])=>s.story.flags[flag]==='done');}
   // Finishing the work pays the faction module once; it is installed at any hangar like other modules.
   function completeWork(s,faction){
-    const h=homeworlds[faction];if(!workReady(s,faction)||s.location!==h.planet)return false;
+    const h=homeworlds[faction];if(Missions.closed(s)||!workReady(s,faction)||s.location!==h.planet)return false;
     s.story.flags[h.work.flag]='complete';s.story.flags[h.earned]=true;
     const owned=s.progression.equipment.owned;if(!owned.includes(h.reward))owned.push(h.reward);
     Missions.complete(s,h.work.id,'return');return true;
@@ -102,7 +102,7 @@
     return {scannerEarned:s.story?.flags?.communionScanner===true,scannerInstalled:installed.includes('communion-scanner'),thrustersEarned:s.story?.flags?.orderThrusters===true,thrustersInstalled:installed.includes('order-thrusters')};}
   // Admin offers both until one is taken; Iris offers the other once the first is paid.
   function factionOffers(s){
-    if(s.quest!=='open'||!s.universe?.freeTravel||s.story?.flags?.metAdmin!==true)return [];
+    if(Missions.closed(s)||s.quest!=='open'||!s.universe?.freeTravel||s.story?.flags?.metAdmin!==true)return [];
     const first=s.story.flags.factionFirst;
     if(!factionDeliveries[first])return Object.keys(factionDeliveries);
     if(factionStage(s,first)!=='paid')return [];
@@ -110,7 +110,7 @@
   }
   function acceptFaction(s,faction){
     const d=factionDeliveries[faction];
-    if(!d||s.contract||!factionOffers(s).includes(faction))return false;
+    if(Missions.closed(s)||!d||s.contract||!factionOffers(s).includes(faction))return false;
     if((s.progression?.cargo||[]).reduce((n,x)=>n+x.units,0)>=P.systems(s).cargo)return false;
     const f=s.story.flags;f[d.flag]='accepted';if(!factionDeliveries[f.factionFirst])f.factionFirst=faction;
     s.destination=null;s.contract=d.id;U.discover(s,d.destination);Missions.acquire(s,d.id);Story.emit(s,'missionAccepted',d.id);return true;
@@ -118,6 +118,7 @@
   // The recipient takes the cargo in person; payment waits for the District.
   // The recipient takes whichever of their faction's contracts is aboard; returns that contract.
   function deliverFaction(s,faction){
+    if(Missions.closed(s))return false;
     const d=[factionDeliveries[faction],supplyDeliveries[faction]].find(x=>x&&stageOf(s,x)==='accepted'&&s.location===x.destination);
     if(!d)return false;
     if(s.contract===d.id)s.contract=null;
@@ -130,6 +131,7 @@
   }
   // Each delivered contract is paid exactly once.
   function collectFactionPayment(s){
+    if(Missions.closed(s))return [];
     const paid=[];
     for(const d of payable)if(stageOf(s,d)==='delivered'){s.story.flags[d.flag]='paid';s.credits+=d.payment;s.completed++;Missions.complete(s,d.id,'payment');paid.push(d);}
     if(paid.length)delete s.story.flags.adminOccupied;
@@ -144,16 +146,16 @@
   // story.flags.sealedCargo: accepted -> delivered. ('seized' exists only in saves from PR #59; Admin offers again.)
   const sealedCargo={id:'admin-sealed-cargo-01',kind:'sealed',flag:'sealedCargo',name:'Don’t Ask Questions',cargo:'Sealed container (contents undisclosed)',legal:false,destination:'meridian',payment:1800,reward:1800,enemies:0,tier:0,duration:36,contact:'Admin',recipient:'rook',briefing:'A sealed container from Admin for Rook at Meridian. It stays sealed.'};
   function sealedStage(s){const v=s.story?.flags?.sealedCargo;return ['accepted','delivered','seized'].includes(v)?v:null;}
-  function sealedOffered(s){const f=s.story?.flags||{};return s.quest==='open'&&s.universe?.freeTravel===true&&f.metAdmin===true&&f.adminOccupied!==true&&!!factionDeliveries[f.factionFirst]&&factionStage(s,f.factionFirst)==='paid'&&[null,'seized'].includes(sealedStage(s));}
+  function sealedOffered(s){const f=s.story?.flags||{};return !Missions.closed(s)&&s.quest==='open'&&s.universe?.freeTravel===true&&f.metAdmin===true&&f.adminOccupied!==true&&!!factionDeliveries[f.factionFirst]&&factionStage(s,f.factionFirst)==='paid'&&[null,'seized'].includes(sealedStage(s));}
   function acceptSealed(s){
     if(!sealedOffered(s)||s.contract)return false;
     if((s.progression?.cargo||[]).reduce((n,x)=>n+x.units,0)>=P.systems(s).cargo)return false;
     s.story.flags.sealedCargo='accepted';delete s.story.flags.sealedPatrol;
     s.destination=null;s.contract=sealedCargo.id;Missions.acquire(s,sealedCargo.id);Story.emit(s,'missionAccepted',sealedCargo.id);return true;
   }
-  function sealedDeliverable(s){return sealedStage(s)==='accepted'&&s.location===sealedCargo.destination&&s.contract!==sealedCargo.id;}
+  function sealedDeliverable(s){return !Missions.closed(s)&&sealedStage(s)==='accepted'&&s.location===sealedCargo.destination&&s.contract!==sealedCargo.id;}
   function deliverSealed(s){
-    if(!sealedDeliverable(s))return false;
+    if(Missions.closed(s)||!sealedDeliverable(s))return false;
     s.story.flags.sealedCargo='delivered';s.credits+=sealedCargo.payment;s.completed++;
     if(!s.universe.completedObjectives.includes(sealedCargo.id))s.universe.completedObjectives.push(sealedCargo.id);
     Missions.complete(s,sealedCargo.id,'arrive');Missions.complete(s,sealedCargo.id,'deliver');Story.emit(s,'missionComplete',sealedCargo.id);return true;
@@ -188,6 +190,7 @@
   // The board for the next run: one routine job at first, two from the second run, three from the fourth.
   // It depends only on the save (run count and known places), so reloading never rerolls it.
   function rookBoard(s){
+    if(Missions.closed(s))return [];
     const n=rookRunNumber(s),pool=rookPool(s),far=pool.filter(id=>U.system(id)!=='erebus'),extra=['long-haul','valuable','hazard','restricted'];
     const kinds=['routine',...(n>=2?[extra[(n-2)%4]]:[]),...(n>=4?[extra[(n-1)%4]]:[])].filter(k=>k!=='long-haul'||far.length);
     return kinds.map((kind,i)=>{
@@ -210,7 +213,7 @@
     return {...rookRunBase,id:'rook-run-'+n,number:n,kind:'legacy',payAt:'delivery',units:1,name:'Rook freight run #'+n,cargo:rookCargo[(n-1)%rookCargo.length],legal:n%2===1,destination,reward:Math.min(2000,500+150*step),payment:Math.min(2000,500+150*step),enemies:4+step,tier:1+step*.3,duration:36+step*2};
   }
   function acceptRook(s,kind='routine'){
-    if(s.quest!=='open'||s.contract||rookOwed(s))return false;
+    if(Missions.closed(s)||s.quest!=='open'||s.contract||rookOwed(s))return false;
     const job=rookBoard(s).find(j=>j.kind===kind);if(!job||holdFree(s)<job.units)return false;
     s.destination=null;s.contract='rook-run';s.story.flags.rookJob=kind;s.story.flags.rookRunTo=job.destination;
     U.discover(s,job.destination);Missions.acquire(s,job.id);Missions.complete(s,job.id,'pickup',api);Story.emit(s,'missionAccepted','rook-run');return true;
@@ -219,12 +222,13 @@
   function rookOwed(s){const m=/^(\d{1,6}):(\d{1,6})$/.exec(String(s.story?.flags?.rookOwed||''));return m?{number:Number(m[1]),amount:Number(m[2])}:null;}
   // Rook pays in person at Meridian. The debt is cleared in the same step, so it is paid exactly once.
   function collectRook(s){
-    const o=rookOwed(s);if(!o||s.location!=='meridian')return 0;
+    const o=rookOwed(s);if(Missions.closed(s)||!o||s.location!=='meridian')return 0;
     delete s.story.flags.rookOwed;s.credits+=o.amount;s.completed++;
     Missions.complete(s,'rook-run-'+o.number,'payment',api);rookHistory(s,o.number,'paid');return o.amount;
   }
   // Handing the freight back to Rook's crew ends the job: no pay, no penalty, the same run number stays open.
   function cancelRook(s){
+    if(Missions.closed(s))return false;
     if(s.contract!=='rook-run'||s.location!=='meridian')return false;
     const id=rookRun(s).id;s.contract=null;delete s.story.flags.rookJob;delete s.story.flags.rookRunTo;
     if(s.universe?.missions)delete s.universe.missions[id];if(s.universe?.trackedMission===id)s.universe.trackedMission=null;return true;
@@ -333,6 +337,7 @@
     return {name:'Free transit',destination:s.destination,duration:policy.seconds,enemies:policy.interdiction?3:0,tier:1,reward:0,legal:true,cargo:'Empty hold',kind:'transit'};
   }
   function accept(s, id) {
+    if(Missions.closed(s))return false;
     if (s.quest === 'legal-offer') { s.quest = 'legal-run';Missions.acquire(s,'legal-run'); return true; }
     if (s.quest === 'illegal-offer') { s.quest = 'illegal-run';Missions.acquire(s,'illegal-run'); return true; }
     const c = allContracts.find(c => c.id === id);
@@ -345,6 +350,7 @@
     Missions.acquire(s,id);Story.emit(s,'missionAccepted',id);return true;
   }
   function complete(s) {
+    if(Missions.closed(s))return null;
     const f = flight(s); if (!f) return null;
     const previous = s.quest;
     if(f.enemies>0){s.combatRuns=(s.combatRuns||0)+1;if(s.combatRuns>=2)s.missileUnlocked=true;}
