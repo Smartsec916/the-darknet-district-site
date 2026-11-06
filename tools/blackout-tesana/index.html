@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>BLACKOUT PROTOCOL</title>
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #05070C; }
+  #game { position: fixed; inset: 0; overflow: hidden; background: #05070C; }
+  #game { background: radial-gradient(ellipse at 50% 30%, #101a2e 0%, #070a12 60%, #030408 100%); }
+  #cab { position: absolute; border-radius: 10px; background: linear-gradient(180deg, #1a2030 0%, #0d111b 40%, #0a0d15 100%); box-shadow: 0 0 0 2px #262e40, 0 0 0 3px rgba(72,230,224,0.35), 0 0 24px rgba(255,76,168,0.18), inset 0 0 18px rgba(0,0,0,0.8); }
+  #cab .bolt { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #3a4458; box-shadow: inset -1px -1px 0 #11151f; }
+  #cab .stripe { position: absolute; height: 2px; left: 12%; right: 12%; background: linear-gradient(90deg, transparent, #48E6E0, #FF4CA8, transparent); opacity: 0.6; }
+  #marquee { position: absolute; image-rendering: pixelated; pointer-events: none; }
+  #screen { position: absolute; overflow: hidden; background: #000; box-shadow: 0 0 0 2px #05070c, 0 0 0 3px #2a3346; }
+  #screen.glow { box-shadow: 0 0 0 2px #05070c, 0 0 0 3px #2a3346, 0 0 18px rgba(72,230,224,0.28), 0 0 40px rgba(104,40,184,0.22); }
+  #screen canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; touch-action: none; }
+  #scan { position: absolute; inset: 0; pointer-events: none; display: none; background: repeating-linear-gradient(180deg, rgba(0,0,0,0) 0, rgba(0,0,0,0) calc(var(--px) * 0.5), rgba(0,0,0,0.16) calc(var(--px) * 0.5), rgba(0,0,0,0.16) var(--px)); }
+  #grid { position: absolute; inset: 0; pointer-events: none; display: none; background-image: linear-gradient(90deg, rgba(0,0,0,0.12) 1px, transparent 1px), linear-gradient(180deg, rgba(0,0,0,0.12) 1px, transparent 1px); background-size: var(--px) var(--px); }
+  #vign { position: absolute; inset: 0; pointer-events: none; display: none; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 65%, rgba(0,0,0,0.28) 100%); }
+  #touch { position: absolute; inset: 0; pointer-events: none; display: none; }
+  #touch.on { display: block; }
+  .tbtn { position: absolute; pointer-events: auto; touch-action: none; border-radius: 14px; background: rgba(8,16,29,0.42); border: 2px solid rgba(72,230,224,0.55); box-shadow: 0 0 10px rgba(72,230,224,0.25) inset; display: flex; align-items: center; justify-content: center; user-select: none; -webkit-user-select: none; }
+  .tbtn.mag { border-color: rgba(255,76,168,0.6); box-shadow: 0 0 10px rgba(255,76,168,0.25) inset; }
+  .tbtn.amb { border-color: rgba(255,180,74,0.6); box-shadow: 0 0 10px rgba(255,180,74,0.22) inset; }
+  .tbtn.down { background: rgba(72,230,224,0.28); }
+  .tbtn canvas { position: static; transform: none; width: 60%; height: 60%; image-rendering: pixelated; pointer-events: none; }
+  .tbtn.off { opacity: 0.25; }
+  #sa { position: absolute; visibility: hidden; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+  #district-account-toggle { position:fixed; top:env(safe-area-inset-top, 0px); right:8px; z-index:50; margin-top:8px; background:#091827; color:#8eece6; border:1px solid #48e6e0; border-radius:5px; padding:7px; font:12px monospace; cursor:pointer; }
+  #district-account-panel { position:fixed; z-index:60; top:40px; right:8px; width:min(360px, calc(100vw - 16px)); max-height:min(70vh, 520px); overflow:auto; box-sizing:border-box; background:rgba(5,12,25,.96); color:#e8f4ff; border:1px solid #48e6e0; border-radius:8px; padding:12px; font:13px/1.4 monospace; box-shadow:0 0 25px #000; }
+  #district-account-panel[hidden] { display:none; }
+  #district-account-panel header { color:#48e6e0; display:flex; justify-content:space-between; gap:8px; }
+  #district-account-panel button, #district-account-panel input { background:#101c30; color:#e8f4ff; border:1px solid #526d7c; border-radius:4px; padding:6px; font:12px monospace; }
+  #district-account-panel button { cursor:pointer; }
+  #district-account-panel .district-actions { display:flex; flex-wrap:wrap; gap:5px; }
+  #district-account-panel input { width:120px; }
+  #district-account-panel li { margin:4px 0; }
+</style>
+</head>
+<body>
+<div id="game"><div id="cab"></div><canvas id="marquee"></canvas><div id="screen"><div id="scan"></div><div id="grid"></div><div id="vign"></div></div><div id="touch"></div><div id="sa"></div></div>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

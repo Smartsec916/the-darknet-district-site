@@ -1,5 +1,6 @@
 """Blackout Protocol accounts and server-controlled Firestore leaderboard."""
 import hashlib
+import math
 import os
 import re
 import time
@@ -83,8 +84,8 @@ def no_cache(response):
     return response
 
 
-def services():
-    if os.getenv('BLACKOUT_ACCOUNTS_ENABLED') != 'true':
+def services(require_legacy_flag=True):
+    if require_legacy_flag and os.getenv('BLACKOUT_ACCOUNTS_ENABLED') != 'true':
         raise ApiError('Global leaderboard is not enabled yet. Local play is available.', 503)
     import firebase_admin
     from firebase_admin import auth, firestore
@@ -114,6 +115,14 @@ def signed_in(handler):
     @wraps(handler)
     def wrapped(*args, **kwargs):
         db, auth, app = services()
+        return handler(db, identity(auth, app), *args, **kwargs)
+    return wrapped
+
+
+def tesana_signed_in(handler):
+    @wraps(handler)
+    def wrapped(*args, **kwargs):
+        db, auth, app = services(require_legacy_flag=False)
         return handler(db, identity(auth, app), *args, **kwargs)
     return wrapped
 
@@ -256,6 +265,7 @@ def claim_public_handle(db, uid, handle):
     display, key = clean_handle(handle)
     now, pid = int(time.time()), player_id(uid)
     profile_ref, _, board_ref = refs(db, pid)
+    tesana_board_ref = db.collection('bp_tesana_leaderboard').document(pid)
     reservation = db.collection('bp_handles').document(key)
 
     @firestore.transactional
@@ -263,6 +273,7 @@ def claim_public_handle(db, uid, handle):
         prior = profile_ref.get(transaction=tx).to_dict() or {}
         claimed = reservation.get(transaction=tx).to_dict()
         board = board_ref.get(transaction=tx).to_dict()
+        tesana_board = tesana_board_ref.get(transaction=tx).to_dict()
         old_key = prior.get('handleKey')
         if claimed and claimed.get('playerId') != pid:
             raise ApiError('That handle is taken.', 409)
@@ -278,9 +289,12 @@ def claim_public_handle(db, uid, handle):
                              'createdAt': prior.get('createdAt', now), 'changedAt': now})
         if board:
             tx.set(board_ref, {'handle': display}, merge=True)
+        if tesana_board:
+            tx.set(tesana_board_ref, {'handle': display}, merge=True)
         return now
     changed_at = commit(db.transaction())
     invalidate_top()
+    _tesana_top_cache['rows'] = None
     return display, changed_at
 
 
@@ -409,4 +423,170 @@ def finish_run(db, uid, run_id):
                 'completedLevel': completed, 'duplicate': False}
     result = commit(db.transaction())
     invalidate_top()
+    return jsonify(**result)
+
+
+# Tesana export (2026-11-06) scoring is separate from the legacy six-sector game.
+# Keep bp_profiles/bp_handles shared; leave all legacy score documents untouched.
+TESANA_VERSION = 'tesana-2026-11-06'
+TESANA_LEVELS = ('undergrid', 'watcher', 'bazaar', 'perimeter', 'armory', 'core',
+                 'transit', 'darkgrid', 'cooling', 'nexus', 'deadnet', 'final')
+TESANA_POINTS = {'coin': 10, 'shard': 50, 'relayBonus': 250, 'hack': 150,
+                 'boss': 5000, 'kill100': 100, 'kill150': 150, 'kill200': 200,
+                 'kill250': 250, 'kill300': 300, 'kill400': 400}
+TESANA_SCORE_LIMIT = 2_000_000
+_tesana_top_cache = {'at': 0.0, 'rows': None}
+
+
+def tesana_refs(db, pid):
+    return (db.collection('bp_tesana_stats').document(pid),
+            db.collection('bp_tesana_leaderboard').document(pid))
+
+
+def tesana_score_events(events, level, seconds, delta):
+    """Recalculate points using the export's actual event values and time bonus.
+
+    This constrains browser claims; it is not cryptographic proof of gameplay.
+    """
+    if not isinstance(events, dict) or set(events) != set(TESANA_POINTS):
+        raise ApiError('Invalid score events.', 422)
+    if type(seconds) not in (int, float) or not math.isfinite(seconds) or not 12 <= seconds <= 7200:
+        raise ApiError('Invalid level time.', 422)
+    for kind, count in events.items():
+        cap = 3 if kind == 'shard' else 1 if kind in ('relayBonus', 'boss') else 100 if kind == 'coin' else 20 if kind == 'hack' else 80
+        if kind == 'boss' and level not in (6, 10, 12): cap = 0
+        if type(count) is not int or not 0 <= count <= cap:
+            raise ApiError('Score events exceed this sector’s limits.', 422)
+    if events['relayBonus'] and events['shard'] != 3:
+        raise ApiError('Relay bonus requires three shards.', 422)
+    if level in (6, 10, 12) and events['boss'] != 1:
+        raise ApiError('The sector boss must be defeated.', 422)
+    bonus = 1000 + max(0, math.floor(600 - seconds * 2 + 0.5))
+    expected = bonus + sum(TESANA_POINTS[k] * n for k, n in events.items())
+    if expected != delta or expected > 40_000:
+        raise ApiError('Score does not match Tesana gameplay events.', 422)
+    return bonus
+
+
+def tesana_top(db):
+    now = time.monotonic()
+    if _tesana_top_cache['rows'] is not None and now - _tesana_top_cache['at'] < TOP_CACHE_SECONDS:
+        return _tesana_top_cache['rows']
+    from google.cloud.firestore_v1 import Query
+    rows = db.collection('bp_tesana_leaderboard').order_by('bestScore', direction=Query.DESCENDING).limit(100).stream()
+    top = [public_entry(doc, rank) for rank, doc in enumerate(rows, 1)]
+    _tesana_top_cache.update(at=now, rows=top)
+    return top
+
+
+@api.get('/v2/leaderboard')
+def tesana_leaderboard():
+    db, auth, app = services(require_legacy_flag=False)
+    top = tesana_top(db)
+    uid = identity(auth, app, required=False)
+    mine = None
+    if uid:
+        from google.cloud.firestore_v1.base_query import FieldFilter
+        pid = player_id(uid)
+        stats_ref, board_ref = tesana_refs(db, pid)
+        stats = stats_ref.get().to_dict() or {}
+        board = board_ref.get().to_dict()
+        profile = db.collection('bp_profiles').document(pid).get().to_dict() or {}
+        higher = count_query(db.collection('bp_tesana_leaderboard').where(
+            filter=FieldFilter('bestScore', '>', board['bestScore']))) if board else None
+        mine = {'handle': profile.get('handle'), 'bestScore': stats.get('bestScore', 0),
+                'highestCompletedLevel': stats.get('highestCompletedLevel', 0),
+                'rank': higher + 1 if higher is not None else None}
+    return jsonify(version=TESANA_VERSION, entries=top, me=mine)
+
+
+@api.post('/v2/runs')
+@tesana_signed_in
+def tesana_start_run(db, uid):
+    from firebase_admin import firestore
+    body([])
+    now, pid, run_id = int(time.time()), player_id(uid), uuid.uuid4().hex
+    stats_ref, _ = tesana_refs(db, pid)
+    profile_ref = db.collection('bp_profiles').document(pid)
+    run = db.collection('bp_tesana_runs').document(run_id)
+
+    @firestore.transactional
+    def commit(tx):
+        stats = stats_ref.get(transaction=tx).to_dict() or {}
+        profile = profile_ref.get(transaction=tx).to_dict() or {}
+        if not profile.get('handle'):
+            raise ApiError('Choose a public handle before starting a ranked run.', 409)
+        if now - stats.get('lastRunStartedAt', 0) < RUN_START_COOLDOWN:
+            raise ApiError('Wait a moment before starting another ranked run.', 429)
+        tx.set(run, {'playerId': pid, 'startedAt': now, 'levelStartedAt': now,
+                     'completedLevel': 0, 'score': 0, 'status': 'active', 'version': TESANA_VERSION})
+        tx.set(stats_ref, {'lastRunStartedAt': now, 'activeRunId': run_id}, merge=True)
+    commit(db.transaction())
+    return jsonify(runId=run_id, version=TESANA_VERSION)
+
+
+@api.post('/v2/runs/<run_id>/level')
+@tesana_signed_in
+def tesana_complete_level(db, uid, run_id):
+    from firebase_admin import firestore
+    data = body(['level', 'score', 'seconds', 'events'])
+    level, score = data['level'], data['score']
+    if type(level) is not int or not 1 <= level <= 12 or type(score) is not int or not 0 <= score <= TESANA_SCORE_LIMIT:
+        raise ApiError('Invalid sector or score.', 422)
+    if not RUN_ID.fullmatch(run_id):
+        raise ApiError('Invalid run ID.')
+    now, pid = int(time.time()), player_id(uid)
+    run = db.collection('bp_tesana_runs').document(run_id)
+    stats_ref, board_ref = tesana_refs(db, pid)
+    profile_ref = db.collection('bp_profiles').document(pid)
+    event_ref = db.collection('bp_tesana_events').document(f'{run_id}_{level}')
+
+    @firestore.transactional
+    def commit(tx):
+        state = run.get(transaction=tx).to_dict()
+        stats = stats_ref.get(transaction=tx).to_dict() or {}
+        prior = event_ref.get(transaction=tx).to_dict()
+        if prior:
+            if prior.get('playerId') == pid and prior.get('score') == score:
+                return {'completedLevel': level, 'duplicate': True, 'personalBest': False}
+            raise ApiError('Duplicate submission does not match.', 409)
+        if not state or state.get('playerId') != pid or state.get('version') != TESANA_VERSION or state.get('status') != 'active' or stats.get('activeRunId') != run_id:
+            raise ApiError('This ranked run is unavailable.', 409)
+        if level != state.get('completedLevel', 0) + 1 or now - state['startedAt'] > 8 * 3600 or now - state['levelStartedAt'] < MIN_LEVEL_SECONDS:
+            raise ApiError('Sector progression was too fast or out of order.', 422)
+        tesana_score_events(data['events'], level, data['seconds'], score - state['score'])
+        if data['seconds'] > now - state['levelStartedAt'] + 5:
+            raise ApiError('Level time exceeds the ranked run duration.', 422)
+        profile = profile_ref.get(transaction=tx).to_dict() or {}
+        if not profile.get('handle'):
+            raise ApiError('Choose a public handle before submitting a ranked score.', 409)
+        best = max(stats.get('bestScore', 0), score)
+        improved = score > stats.get('bestScore', 0)
+        highest = max(level, stats.get('highestCompletedLevel', 0))
+        milestones = [{'kind': 'level_completed', 'level': level}]
+        if level == 12:
+            milestones.append({'kind': 'game_completed'})
+        if improved:
+            milestones.append({'kind': 'personal_best', 'score': score})
+        for threshold in (10_000, 50_000, 100_000):
+            if state['score'] < threshold <= score:
+                milestones.append({'kind': 'score_milestone', 'threshold': threshold})
+        if data['events']['shard'] == 3:
+            milestones.append({'kind': 'collectible_milestone', 'shards': 3})
+        if level == 12 and data['events']['boss'] == 1:
+            milestones.append({'kind': 'special_challenge_completed', 'challenge': 'overseer_defeated'})
+        tx.set(event_ref, {'playerId': pid, 'level': level, 'levelId': TESANA_LEVELS[level - 1],
+                           'score': score, 'events': data['events'], 'milestones': milestones,
+                           'gameId': 'blackout-protocol', 'at': now, 'version': TESANA_VERSION})
+        tx.set(run, {'completedLevel': level, 'levelStartedAt': now, 'score': score,
+                     'status': 'finished' if level == 12 else 'active'}, merge=True)
+        tx.set(stats_ref, {'bestScore': best, 'highestCompletedLevel': highest,
+                           'bestAt': now if improved else stats.get('bestAt'),
+                           'lastPlayed': now, 'activeRunId': None if level == 12 else run_id}, merge=True)
+        tx.set(board_ref, {'handle': profile['handle'], 'bestScore': best,
+                           'highestCompletedLevel': highest, 'bestAt': now if improved else stats.get('bestAt'),
+                           'sortKey': pid}, merge=True)
+        return {'completedLevel': level, 'duplicate': False, 'personalBest': improved}
+    result = commit(db.transaction())
+    _tesana_top_cache['rows'] = None
     return jsonify(**result)

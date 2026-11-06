@@ -68,3 +68,6 @@ void-runner/assets/models/district/vending-neon.vrpak
 
 # Purchased Cyber Club assets: licence forbids public redistribution of the raw files. Local only.
 void-runner/art/nightclub-local/
+
+# Generated Tesana build; deployed copies live in blackout-protocol and static.
+tools/blackout-tesana/dist/
