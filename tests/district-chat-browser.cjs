@@ -19,7 +19,7 @@ const hubLog=[];const boot=port=>main({HUB_MODE:'production',HUB_API_BASE:'https
   await page.goto(`${base}/void-runner.html?multiplayer=1&hub=ws://127.0.0.1:${port}`);await page.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:120000});
   await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');const c=page.locator('[data-action=menu-new-confirm]');if(await c.count())await c.click();
   await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});await page.evaluate(()=>{state.story.flags.appearanceOffered=true;});await page.locator('#pod-wake button').click();
-  await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0,null,{timeout:120000});
+  await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0,null,{timeout:tier==='high'?600000:120000});   // a third software-rendered High page is slow to load
   return {ctx,page};}
  const lines=p=>p.page.evaluate(()=>[...document.querySelectorAll('#district-chat .dc-line')].map(e=>e.textContent));
  const say=async(p,text)=>{await p.page.keyboard.press('Enter');await p.page.waitForSelector('#district-chat.open input',{state:'visible'});await p.page.fill('#district-chat input',text);await p.page.keyboard.press('Enter');await p.page.keyboard.press('Escape');};
