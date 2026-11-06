@@ -21,7 +21,7 @@ const boot=(port,withLedger)=>main(env(port),{fetchJwks:w.fetchJwks,fetchImpl:w.
   await page.addInitScript(([q,t])=>{localStorage.setItem('void-runner-graphics-v1',JSON.stringify({quality:q}));localStorage.setItem('tdd-dev-mp-token',t);},[tier,acct.token]);
   await page.goto(`${base}/void-runner.html?multiplayer=1&hub=ws://127.0.0.1:${port}`);await page.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:120000});
   await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');const c=page.locator('[data-action=menu-new-confirm]');if(await c.count())await c.click();
-  await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});await page.locator('#pod-wake button').click();
+  await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});await page.evaluate(()=>{state.story.flags.appearanceOffered=true;});await page.locator('#pod-wake button').click();
   await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0,null,{timeout:120000});
   return page;}
  let pages=[];

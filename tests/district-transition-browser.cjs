@@ -30,7 +30,7 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   await pg.goto(BASE);await ready();await pg.click('[data-action=menu-campaign]');await pg.click('[data-action=menu-new]');await pg.waitForTimeout(1500);
   const c=await pg.$('[data-action=menu-new-confirm]');if(c)await c.click();
   await pg.waitForFunction(()=>mode==='pod-waking'&&walkingLocation?.area==='interior',null,{timeout:300000});
-  await pg.click('#pod-wake button');await settle('interior',1000);await walkOut();
+  await pg.evaluate(()=>{state.story.flags.appearanceOffered=true;});await pg.click('#pod-wake button');await settle('interior',1000);await walkOut();
   await settle('street');let s=await snap();console.log(q,'start',JSON.stringify(s));
   assert.equal(s.area,'street');assert.equal(s.flags.area,undefined);assert(Math.abs(s.local[0])<.1&&Math.abs(s.local[1]-17.4)<.1,'outside the doors');assert.equal(s.interior,0,'no District inside the street');
   const street1=s;
