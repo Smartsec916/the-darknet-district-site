@@ -145,7 +145,8 @@
    if(!p.node||p.node.isDisposed()){p.node=null;place(p);if(!p.node)continue;}
    p.x+=(p.tx-p.x)*k;p.z+=(p.tz-p.z)*k;let d=p.tyaw-p.yaw;d=Math.atan2(Math.sin(d),Math.cos(d));p.yaw+=d*k;
    p.node.position.set(p.x,walker.y-1.68,p.z);p.node.rotation.y=p.yaw;
-   if(p.tag)p.tag.isVisible=Math.hypot(p.x-walker.x,p.z-walker.z)<TAG_RANGE;   // no name tags across the whole hall
+   if(p.tag)p.tag.isVisible=Math.hypot(p.x-walker.x,p.z-walker.z)<TAG_RANGE;
+   if(p.char){const d=Math.hypot(p.x-walker.x,p.z-walker.z),far=root.VoidGraphics?.quality==='low'?8:14;p.char.setDetail(p.char.detailNear?d<far:d<far*.8);}   // face details only when close (distance-based rendering; hysteresis avoids flicker)   // no name tags across the whole hall
    if(p.shownClip!==p.clip){p.shownClip=p.clip;p.ctrl?.play(p.clip);}
   }
  }

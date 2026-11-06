@@ -109,3 +109,35 @@ test('appearance: two authenticated players see each other\'s saved look; invali
   for(const c of [fox,bolt,evil])c.ws.close();
  }finally{await hub.close();}
 });
+
+test('appearance: reconnect restores the saved look, one avatar per account, delayed/repeated changes settle on the latest, no ghosts',async()=>{
+ const A=require('../void-runner/character-appearance.js'),look=(l,x={})=>({...A.defaults(l),...x});
+ const w=makeWorld({fox:{uid:'uid-fox',model:'district-resident',handle:'Neon_Fox',appearance:look('ncz-neon',{hair:'long01'})},bolt:{uid:'uid-bolt',model:'district-smuggler',handle:'Bolt_9'}});
+ let clock=1e6;const hub=await main({HUB_MODE:'production',HUB_API_BASE:'https://api.test',HUB_ALLOWED_UIDS:'uid-fox,uid-bolt',PORT:'0',HUB_MAX_PER_IP:'6'},{fetchJwks:w.fetchJwks,fetchImpl:w.fetchImpl,quiet:true});
+ const wait=ms=>new Promise(r=>setTimeout(r,ms));
+ try{
+  const bolt=await join(hub,w.accounts.bolt,6,5);let fox=await join(hub,w.accounts.fox,5,5);
+  await bolt.until(c=>c.of('join').length>=1);
+  assert.equal(bolt.of('join')[0].peer.appearance.hair,'long01');
+  // Fox disconnects: Bolt sees exactly one leave. Meanwhile Fox's saved look changes (made on another device).
+  fox.ws.close();await bolt.until(c=>c.of('leave').length===1);
+  w.accounts.fox.appearance=look('fixer-01',{hair:'bob02',hairColor:'brown'});
+  fox=await join(hub,w.accounts.fox,5,5);await bolt.until(c=>c.of('join').length===2);
+  const back=bolt.of('join')[1].peer;assert.equal(back.appearance.look,'fixer-01','reconnecting restores the latest saved look');assert.equal(back.id,bolt.of('join')[0].peer.id,'same public id, no duplicate identity');
+  assert.equal(hub.hub.roomPeers('district-interior').length,2,'exactly two avatars in the room');
+  // a second window for the same account replaces the first: still one avatar
+  const fox2=await join(hub,w.accounts.fox,5,5);await fox.until(c=>c.closed===4001||c.ws.readyState>1);
+  assert.equal(hub.hub.roomPeers('district-interior').length,2);
+  // repeated changes: only the first is applied immediately, the rest are refused (rate limit); a later refresh picks up the newest saved look
+  w.accounts.fox.appearance=look('hacker-01',{base:'male',hair:'short01'});w.accounts.fox.appearance.base='male';
+  fox2.send({t:'refresh',token:w.accounts.fox.token});await bolt.until(c=>c.of('look').length>=1);
+  for(const i of [1,2,3]){fox2.send({t:'refresh',token:w.accounts.fox.token});await fox2.until(c=>c.of('refused').filter(m=>/too many/.test(m.reason)).length>=i);}   // one at a time: the hub also ignores a refresh while one is still being checked
+  assert.equal(bolt.of('look').length,1,'refused refreshes broadcast nothing');
+  w.accounts.fox.appearance=look('regular-01',{base:'male',hair:'short03'});
+  hub.hub.byConn.forEach(p=>{p.lastRefresh=-Infinity;});   // time passes
+  fox2.send({t:'refresh',token:w.accounts.fox.token});await bolt.until(c=>c.of('look').length===2);assert.equal(bolt.of('look')[1].appearance.look,'regular-01');
+  // leaving leaves no ghost, and a refresh from a connection that is gone does nothing
+  fox2.ws.close();await bolt.until(c=>c.of('leave').length===2);await wait(100);assert.equal(hub.hub.roomPeers('district-interior').length,1);
+  bolt.ws.close();
+ }finally{await hub.close();}
+});

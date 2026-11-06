@@ -47,7 +47,7 @@
  /* build(appearance, parent, {scene, clip}) -> Promise<character>. character: {node, appearance, set(a), play(clip), meshes(), dispose(), ready}. */
  async function build(appearance,parent,opts={}){
   const B=root.BABYLON,scene=opts.scene||parent.getScene();let a=A.normalize(appearance),clip=opts.clip||'idle',disposed=false,seq=0;
-  let st=null;   // {look, model, node, made, ctrl, hairMesh, tinted:[{mesh,orig,mat}], key}
+  let near=true,st=null;   // {look, model, node, made, ctrl, hairMesh, tinted:[{mesh,orig,mat}], key}
   const meshByName=(s,name)=>s.node.getChildMeshes().find(m=>m.name==='crowd:'+s.model+'-'+name);   // runtime mesh names are 'crowd:<model>-<material name>'
   async function makeLook(){
    const look=CAT.looks[a.look];await ensureLook(look.model,scene);if(disposed)return null;
@@ -72,6 +72,7 @@
     const s=await makeLook();if(!s)return;if(my!==seq||disposed){destroy(s);return;}st=s;
    }
    const s=st,look=s.lookDef,CATH=CAT.hair;
+   faceDetail(s);
    // accessories (meshes that belong to the look): shown only when chosen
    for(const [kind,names] of Object.entries(look.accessories))for(const n of names){const m=meshByName(s,n);if(m)m.setEnabled(a.accessories.includes(kind));}
    // hair
@@ -91,10 +92,14 @@
    if(my!==seq||disposed)return;
    await tint(s,meshByName(s,look.outfit),a.clothingColor?CAT.clothingColors.find(c=>c.id===a.clothingColor).hex:null);
   }
+  // Eyebrows and eyelashes (2 of about 9 draw calls, a few hundred triangles) cannot be seen from across a room: hidden beyond a distance, shown again when close.
+  const faceDetail=s=>{for(const m of s.holder.getChildMeshes())if(/\.(eyebrow001|eyelashes01)$/.test(m.name))m.setEnabled(near);};
   function destroy(s){for(const m of [...s.tinted.keys()])untint(s,m);s.hairMesh?.dispose();s.ctrl?.dispose?.();s.holder.dispose();}
   const api={
    get appearance(){return a;},get node(){return st?.holder||null;},get ready(){return !!st;},
    async set(next){if(!A.validate(next))return false;a=A.normalize(next);await apply();return true;},
+   setDetail(isNear){if(isNear!==near){near=isNear;if(st)faceDetail(st);}},
+   get detailNear(){return near;},
    play(c){clip=c;st?.ctrl?.play?.(c);},
    meshes(){return st?st.holder.getChildMeshes():[];},
    dispose(){disposed=true;seq++;if(st){destroy(st);st=null;}}
