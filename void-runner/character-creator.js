@@ -9,7 +9,11 @@
  let lamps=[],open=false,ctx=null,char=null,draft=null,original=null,snapshot=null,holder=null,spin=0,auto=true,seq=0,pad=null,raf=0,drag=null,ui=null;
  const uid=()=>root.VoidAccount?.user?.uid||'guest';
  const storage=()=>{try{return root.localStorage;}catch{return null;}};
- const stored=()=>{const s=storage();return s?A.load(s,uid(),root.VoidAccount?.character):A.fromLegacy(root.VoidAccount?.character);};
+ // The look saved with the account (once the server feature is on) wins on a new browser or device; otherwise this browser's own copy; otherwise the old character's look.
+ const stored=()=>{const server=root.VoidAccount?.appearance;if(server&&A.validate(server))return A.normalize(server);const s=storage();return s?A.load(s,uid(),root.VoidAccount?.character):A.fromLegacy(root.VoidAccount?.character);};
+ // Best effort and silent: while the server feature is off the API answers 404 and nothing happens beyond the local save.
+ async function upload(a){try{const u=root.VoidAccount?.user;if(!u||u.isAnonymous||!root.VoidAccount.character||!root.VoidNetwork?.request)return false;
+  await root.VoidNetwork.request('character/appearance',{body:a,token:await u.getIdToken(),scope:u.uid+':appearance'});root.VoidAccount.appearance=a;return true;}catch{return false;}}
  const current=()=>stored()||A.defaults(A.DEFAULT_LOOK.male);
 
  const CSS=`#character-creator{position:fixed;inset:0;z-index:60;display:none;pointer-events:none;font-family:ui-monospace,Consolas,monospace;color:#d9fbff}
@@ -100,7 +104,7 @@
  }
  function close(confirm){
   if(!open)return;
-  if(confirm){const s=storage();if(s&&A.save(s,uid(),draft)){try{if(typeof state!=='undefined'&&state?.story?.flags){state.story.flags.appearanceChosen=true;state.story.flags.appearanceOffered=true;}}catch{}root.VoidCharacterCreator.onChange?.(A.normalize(draft));root.VoidRemotePlayers?.refreshLook?.();}}
+  if(confirm){const s=storage();if(s&&A.save(s,uid(),draft)){try{if(typeof state!=='undefined'&&state?.story?.flags){state.story.flags.appearanceChosen=true;state.story.flags.appearanceOffered=true;}}catch{}root.VoidCharacterCreator.onChange?.(A.normalize(draft));upload(A.normalize(draft)).then(()=>root.VoidRemotePlayers?.refreshLook?.());}}
   else if(ctx.context==='first'){try{state.story.flags.appearanceOffered=true;}catch{}}
   open=false;cancelAnimationFrame(raf);seq++;char?.dispose();char=null;holder?.dispose();holder=null;{const sc=root.VoidBabylon?.scene;for(const l of lamps)l.dispose();lamps=[];sc?.markAllMaterialsAsDirty?.(root.BABYLON.Constants.MATERIAL_LightDirtyFlag);}ui.classList.remove('on');ui.innerHTML='';
   Object.assign(walker,snapshot.walker);mode=snapshot.mode;

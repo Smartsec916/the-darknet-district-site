@@ -204,7 +204,7 @@ def account(db, uid):
     saved = player_ref(db, uid).get().to_dict() or {}
     # A cloud save from before the District reset is retired: it is not returned (and not deleted here; see docs/void-runner/SAVE-RESET.md).
     retired = saved.get('save') is not None and not is_current_save(saved.get('save'))
-    return jsonify(owned=inventory(db, uid), developer=balance_admin(uid), character=saved.get('character'), save=None if retired else saved.get('save'), retired=retired, revision=saved.get('revision', 0), savedAt=None if retired else saved.get('savedAt'))
+    return jsonify(owned=inventory(db, uid), developer=balance_admin(uid), character=saved.get('character'), appearance=saved.get('appearance'), save=None if retired else saved.get('save'), retired=retired, revision=saved.get('revision', 0), savedAt=None if retired else saved.get('savedAt'))
 
 
 @api.route('/character', methods=['GET', 'POST'])
