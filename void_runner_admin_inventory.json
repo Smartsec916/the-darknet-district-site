@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "1d6fc79f327e4fdb",
+  "revision": "4e43989c4b502bbb",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11646,6 +11646,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/character-catalog.js",
+      "line": 2,
+      "text": "(function(r){r.VoidCharacterCatalog={\"version\":1,\"note\":\"Source of truth for the character creator. Ids only: no file paths are ever accepted from a player or the server. character-catalog.js is generated from this file by tools/assets/build-character-catalog.cjs (a test checks they match). The same file is read by void_runner_api.py to validate appearances.\",\"bases\":{\"male\":{\"label\":\"MALE\",\"height\":1.78,\"eyeHeight\":1.68,\"note\":\"Standard heights in metres. The body is scaled uniformly (never stretched) so its top of head equals this value; eye height places the camera. Change here to retune; nothing else needs editing.\"},\"female\":{\"label\":\"FEMALE\",\"height\":1.66,\"eyeHeight\":1.55}},\"looks\":{\"district-smuggler\":{\"base\":\"male\",\"model\":\"district-smuggler\",\"label\":\"SMUGGLER\",\"preset\":true,\"outfit\":\"district_smuggler.male_casualsuit01\",\"shoes\":\"district_smuggler.shoes03\",\"nativeHair\":\"district_smuggler.short04\",\"accessories\":{\"hat\":[\"district_smuggler.fedora_cocked\"],\"eyewear\":[\"district_smuggler.shades0\"]},\"defaultAccessories\":[\"hat\",\"eyewear\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"legacy\":{\"gender\":\"male\",\"model\":\"district-smuggler\"},\"body\":\"district_smuggler.body\"},\"hacker-01\":{\"base\":\"male\",\"model\":\"hacker-01\",\"label\":\"NETRUNNER\",\"outfit\":\"hacker_01.male_casualsuit05\",\"shoes\":\"hacker_01.shoes03\",\"nativeHair\":\"hacker_01.short02\",\"accessories\":{\"eyewear\":[\"hacker_01.visor0\"]},\"defaultAccessories\":[\"eyewear\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"hacker_01.body\"},\"regular-01\":{\"base\":\"male\",\"model\":\"regular-01\",\"label\":\"WORKER\",\"outfit\":\"regular_01.male_worksuit01\",\"shoes\":\"regular_01.shoes03\",\"nativeHair\":\"regular_01.short03\",\"accessories\":{\"mask\":[\"regular_01.mask0\",\"regular_01.mask0.slit0\",\"regular_01.mask0.slit1\"]},\"defaultAccessories\":[\"mask\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"regular_01.body\"},\"vesper-trader\":{\"base\":\"male\",\"model\":\"vesper-trader\",\"label\":\"TRADER\",\"outfit\":\"vesper_trader.male_casualsuit03\",\"shoes\":\"vesper_trader.shoes01\",\"nativeHair\":\"vesper_trader.short02\",\"accessories\":{\"hat\":[\"vesper_trader.fedora01\"],\"mask\":[\"vesper_trader.mask0\"]},\"defaultAccessories\":[\"hat\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"vesper_trader.body\"},\"district-resident\":{\"base\":\"female\",\"model\":\"district-resident\",\"label\":\"RESIDENT\",\"preset\":true,\"outfit\":\"district_resident.female_sportsuit01\",\"shoes\":\"district_resident.shoes04\",\"nativeHair\":\"district_resident.braid01\",\"accessories\":{\"mask\":[\"district_resident.mask0\",\"district_resident.mask0.slit0\",\"district_resident.mask0.slit1\"]},\"defaultAccessories\":[\"mask\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"legacy\":{\"gender\":\"female\",\"model\":\"district-resident\"},\"body\":\"district_resident.body\"},\"ncz-neon\":{\"base\":\"female\",\"model\":\"ncz-neon\",\"label\":\"NEON\",\"outfit\":\"ncz_neon.female_sportsuit01\",\"shoes\":\"ncz_neon.shoes05\",\"nativeHair\":\"ncz_neon.long01\",\"accessories\":{\"collar\":[\"ncz_neon.collar0\"]},\"defaultAccessories\":[\"collar\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"ncz_neon.body\"},\"fixer-01\":{\"base\":\"female\",\"model\":\"fixer-01\",\"label\":\"FIXER\",\"outfit\":\"fixer_01.female_elegantsuit01\",\"shoes\":\"fixer_01.shoes03\",\"nativeHair\":\"fixer_01.bob02\",\"accessories\":{\"eyewear\":[\"fixer_01.shades0\"]},\"defaultAccessories\":[\"eyewear\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"fixer_01.body\"}},\"accessories\":{\"hat\":{\"label\":\"HAT\"},\"eyewear\":{\"label\":\"EYEWEAR\"},\"mask\":{\"label\":\"FACE MASK\"},\"collar\":{\"label\":\"COLLAR\"}},\"hair\":{\"short01\":{\"label\":\"SHORT CROP\",\"part\":\"hair-short01.glb\",\"hatOk\":true},\"short02\":{\"label\":\"SHORT SWEPT\",\"part\":\"hair-short02.glb\",\"hat",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/conversation-history.js",
       "line": 3,
       "text": "const prefix='tdd:npc-conversations:v1:';",
@@ -12397,7 +12403,7 @@
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 116,
+      "line": 126,
       "text": "sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false};for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one",
       "kind": "source-reference"
     },
@@ -13490,7 +13496,7 @@
   ],
   "warnings": [],
   "sources": {
-    "void-runner/account.js": "00dcdbf3e1498dca2faa14c0e83a40383255c07df770a33cde7ad9bf296a9c4e",
+    "void-runner/account.js": "7500c34956f12bdcf5fcd04cdb5a60509ad731171333cb6a4adb2cf2d214734e",
     "void-runner/achievements.js": "e73d2197b523a0c4539d550a78781d791337ccd457b6e37f84bab14f8773ffa5",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
@@ -13503,6 +13509,11 @@
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "a796e718fbe982cbdbec26e66705c8dfce47f9b3882a671244400cd48437bb4e",
     "void-runner/campaign.js": "f541695f3894cc467505c215245a8f0fffd8548f93a696d61714e339a7a3d7d3",
+    "void-runner/character-appearance.js": "53d71abba7c97a691d44fce3a4b88454b616bd11fa4f04a7e789df3c4a33e850",
+    "void-runner/character-assembler.js": "7472861af99266df714e8f9e158a5d5740fbd63357b4acdf475f79212d91617f",
+    "void-runner/character-catalog.js": "eee30cc7e7be13d44d43d2b5427bc616c08d64ee4a643cbbd5f3a61e9580e72b",
+    "void-runner/character-creator.js": "b6525c35c8488267418f453674e711723da74eb82420bb789995b99609390e29",
+    "void-runner/character-fit.js": "ee63772c43aa17513e8325b03ee8fee759e3fbf2407fa9adc3912921a6efcbc9",
     "void-runner/city-taxi.js": "0e5034fa45257dbcc8a26a52ad33b1dc12b52ecd2c95d22a1929ddcd96155eb0",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
     "void-runner/cockpit-math.js": "a63faf598eaf23722d22658ca22b5da5b16f0044437ac5277d34d42d1cbf0461",
@@ -13568,7 +13579,7 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-nightclub.js": "b4dbe1c5e0e47b7f18dc94ae4fa7da5c1463be4b1ed01d75f628800cc6661b56",
     "void-runner/ncz-nightlife.js": "4c6e4d7ca34309a6e1a190bfc70d78123ef746ccab8f29c74b7c77041e038fba",
-    "void-runner/neochinatown.js": "f5dd5b4982de1a39a2d663c347cfd4e5734f1d573701f9e8fc5f083e73e9f1b2",
+    "void-runner/neochinatown.js": "57755be90d87e50fcc41d19a3b6655e8667c3300519bea737031ce3f5b50eb04",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "da1674b96960e03052332b46f33745a5db4f738ad2a38d06cef1eaa912b1ecbb",
@@ -13586,7 +13597,7 @@
     "void-runner/relay-radio.js": "5ce31904c15f630a01d00f51d566d66ae97c736d5734d7531835588714269806",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
-    "void-runner/remote-players.js": "925f16303ef7189c3764cffc7838a8d391882d28e129edf5e28ea1bfe0545cab",
+    "void-runner/remote-players.js": "d64e3868cbfe1bca18090f984e87ff8601d6735d5b9d07da8cd3ff7a022ab1e3",
     "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
@@ -13624,7 +13635,7 @@
     "void-runner/warflying.js": "e3a319a7538e4df7e014be7ccb50b32bb2b0cf6cbcfe10ccfca2e46edb013a4f",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
     "void-runner/world-integration.js": "497947895cb9eb10ff31851269755a27c7d755ae0f5be3e60a8f880ea0084a0a",
-    "void-runner/world-markers.js": "c65b04dfb9792d36aa47eb5928bf64311a8be27e92fedc9df22e72bb8fce25bc",
+    "void-runner/world-markers.js": "44347bce6208e455b16ba76da2b328903c2f77e0cba457d0de14b0af882b047c",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "tools/admin-inventory.cjs": "4b545f1e29bc40745983ecd5a113f20926a6f73b52a1b4ed4c2e8106df0a4ed0",
     "tools/audio/npc-voice-registry.json": "216866bb6a355e0cfa2ac6792cb880ecc98ce4f6c1790ca0437b52bb3866f0c2",

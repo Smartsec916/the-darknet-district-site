@@ -42,13 +42,13 @@ test('the API provider forwards the player\'s own token, validates what comes ba
  const seen=[];const answers={'/api/void-runner/character':{character:{gender:'female',model:'district-resident'}},'/api/identity/me':{handle:'Neon_Fox'}};
  const f=async(url,opt)=>{const path=new URL(url).pathname;seen.push([path,opt.headers.authorization]);return {ok:true,headers:{get:()=>'application/json'},json:async()=>answers[path]};};
  const api=createApiProvider({apiBase:'https://api.example.com',fetchImpl:f});
- assert.deepEqual(await api.profile('TOKEN',{anonymous:false}),{model:'district-resident',handle:'Neon_Fox'});
+ assert.deepEqual(await api.profile('TOKEN',{anonymous:false}),{model:'district-resident',handle:'Neon_Fox',appearance:null});
  assert(seen.every(([,h])=>h==='Bearer TOKEN'),'only the player\'s own token is sent');
- seen.length=0;assert.deepEqual(await api.profile('TOKEN',{anonymous:true}),{model:null,handle:'Neon_Fox'});assert.deepEqual(seen.map(s=>s[0]),['/api/identity/me'],'a guest is never looked up for a character');
+ seen.length=0;assert.deepEqual(await api.profile('TOKEN',{anonymous:true}),{model:null,handle:'Neon_Fox',appearance:null});assert.deepEqual(seen.map(s=>s[0]),['/api/identity/me'],'a guest is never looked up for a character');
  answers['/api/identity/me']={handle:'<script>alert(1)</script>'};answers['/api/void-runner/character']={character:{model:{$ne:1}}};
- assert.deepEqual(await api.profile('T',{anonymous:false}),{model:null,handle:null},'unsafe values are dropped');
+ assert.deepEqual(await api.profile('T',{anonymous:false}),{model:null,handle:null,appearance:null},'unsafe values are dropped');
  for(const bad of [async()=>{throw new Error('timeout');},async()=>({ok:false,status:401,headers:{get:()=>''},json:async()=>({})}),async()=>({ok:true,headers:{get:()=>'text/html'},json:async()=>({})}),async()=>({ok:true,headers:{get:()=>'application/json'},json:async()=>[1]})])
-  assert.deepEqual(await createApiProvider({apiBase:'https://api.example.com',fetchImpl:bad}).profile('T',{anonymous:false}),{model:null,handle:null});
+  assert.deepEqual(await createApiProvider({apiBase:'https://api.example.com',fetchImpl:bad}).profile('T',{anonymous:false}),{model:null,handle:null,appearance:null});
  assert.throws(()=>createApiProvider({apiBase:'api.example.com/path'}));
 });
 

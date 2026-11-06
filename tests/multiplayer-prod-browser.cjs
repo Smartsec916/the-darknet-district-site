@@ -22,7 +22,7 @@ const hubLog=[];const boot=port=>main(env(port),{fetchJwks:w.fetchJwks,fetchImpl
   await page.goto(`${base}/void-runner.html?multiplayer=1&hub=ws://127.0.0.1:${port}`);await page.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:120000});
   await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');
   const confirm=page.locator('[data-action=menu-new-confirm]');if(await confirm.count())await confirm.click();
-  await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});await page.locator('#pod-wake button').click();
+  await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});await page.evaluate(()=>{state.story.flags.appearanceOffered=true;});await page.locator('#pod-wake button').click();
   await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0,null,{timeout:120000});
   return {ctx,page};}
  const peersOf=p=>p.page.evaluate(()=>VoidRemotePlayers.peers);

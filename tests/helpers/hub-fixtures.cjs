@@ -20,7 +20,7 @@ function makeWorld(accounts){
     const u=new URL(url),bearer=(opt?.headers?.authorization||'').replace(/^Bearer /,''),who=tokens[bearer];calls.push([u.pathname,bearer]);
     const reply=(status,body)=>({ok:status<400,status,headers:{get:()=>'application/json'},json:async()=>body});
     if(!who)return reply(401,{error:'Sign in to continue.'});
-    if(u.pathname==='/api/void-runner/character')return reply(200,{character:who.model?{gender:who.model==='district-resident'?'female':'male',model:who.model}:null});
+    if(u.pathname==='/api/void-runner/character')return reply(200,{character:who.model?{gender:who.model==='district-resident'?'female':'male',model:who.model}:null,...(who.appearance?{appearance:who.appearance}:{})});
     if(u.pathname==='/api/identity/me')return reply(200,{handle:who.handle||null});
     return reply(404,{});
   };

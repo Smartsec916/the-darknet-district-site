@@ -15,7 +15,7 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   // A new campaign wakes in Sleeping Pod 01 inside The Darknet District, which loads the district looks (the street loads other crowd models).
   await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');
   const confirm=page.locator('[data-action=menu-new-confirm]');if(await confirm.count())await confirm.click();
-  await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});await page.locator('#pod-wake button').click();
+  await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});await page.evaluate(()=>{state.story.flags.appearanceOffered=true;});await page.locator('#pod-wake button').click();
   await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0,null,{timeout:120000});await page.waitForTimeout(3000);
   const npcBefore=await page.evaluate(()=>VoidBabylon.scene.transformNodes.filter(n=>/^crowd:/.test(n.name)).length);
   const out={};

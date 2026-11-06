@@ -47,6 +47,7 @@ function start({ledger=null,identify,access={allowed:null,denied:new Set()},orig
       }
       if(!ws.joined){ws.close(4002,'hello first');return;}
       if(m.t==='bye'){hub.drop(ws,1000,'bye');return;}
+      if(m.t==='refresh'){if(ws.busy)return;ws.busy=true;const who=await identify(m.token).catch(()=>null);ws.busy=false;const p=hub.byConn.get(ws);if(!who||!p||who.uid!==p.uid)hub.send(ws,{t:'refused',reason:'sign-in not accepted'});else hub.refresh(ws,who);return;}
       if(m.t==='trade'){hub.trade(ws,m);return;}
       hub.state(ws,m);
     });

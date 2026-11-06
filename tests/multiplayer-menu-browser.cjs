@@ -20,7 +20,7 @@ const w=makeWorld({fox:{uid:'uid-fox',model:'district-resident',handle:'Neon_Fox
    await page.goto(`${base}/void-runner.html?hub=ws://127.0.0.1:${hub.port}`);await page.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:120000});
    return {ctx,page};}
   const toDistrict=async page=>{await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');const c=page.locator('[data-action=menu-new-confirm]');if(await c.count())await c.click();
-   await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});await page.locator('#pod-wake button').click();
+   await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});await page.evaluate(()=>{state.story.flags.appearanceOffered=true;});await page.locator('#pod-wake button').click();
    await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0,null,{timeout:120000});};
   const status=page=>page.evaluate(()=>document.getElementById('multiplayer-status')?.textContent);
   const raw=acct=>new Promise((res,rej)=>{const s=new WebSocket(`ws://127.0.0.1:${hub.port}`,{origin:new URL(base).origin}),o={s,closed:null};s.on('close',c=>{o.closed=c;});s.on('error',rej);

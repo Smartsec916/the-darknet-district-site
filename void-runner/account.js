@@ -44,7 +44,7 @@ async function refresh(){
   verifiedUntil=Date.now()+300000;clearTimeout(ownershipTimer);ownershipTimer=setTimeout(()=>{setOwnedGear([]);verifiedUntil=0;},300000);
   clearTimeout(refreshTimer);refreshTimer=setTimeout(()=>{if(epoch===generation&&account.user)run(refresh,true);},240000);
   if(data.developer){const identityEpoch=generation;VoidDevTools.identity((path,body)=>{if(identityEpoch!==generation||!account.user)throw new Error('Sign in again.');return api(path,body);});}
-  account.revision=data.revision;account.cloud=data.save;account.cloudRetired=data.retired===true;account.savedAt=data.savedAt;account.character=data.character||null;saveReady=true;setOwnedGear(data.owned);render();
+  account.revision=data.revision;account.cloud=data.save;account.cloudRetired=data.retired===true;account.savedAt=data.savedAt;account.character=data.character||null;account.appearance=data.appearance||null;saveReady=true;setOwnedGear(data.owned);render();
 }
 function cloudDescription(){if(account.cloudRetired&&!account.cloud)return 'Your earlier cloud campaign was retired in the District reset. Save this journey to start a new one.';return account.cloud?`${account.cloud.completed} deliveries · ${account.cloud.credits.toLocaleString()} CR · ${account.cloud.cleared?.length||0}/12 new missions`:'No cloud save yet.';}
 function handleField(id,label,action,cta,value=''){
@@ -103,7 +103,7 @@ function initializeAuth(){
     try{
       firebase=await import('../firebase-auth.js');
       if(!unsubscribe)unsubscribe=firebase.onAuthStateChanged(firebase.auth,user=>{
-        generation++;clearTimeout(ownershipTimer);clearTimeout(refreshTimer);verifiedUntil=0;account.user=user;account.handle=undefined;account.handleNextChange=null;VoidDevTools.identity(null);account.cloud=null;account.character=null;account.revision=0;saveReady=false;setOwnedGear([]);render();
+        generation++;clearTimeout(ownershipTimer);clearTimeout(refreshTimer);verifiedUntil=0;account.user=user;account.handle=undefined;account.handleNextChange=null;VoidDevTools.identity(null);account.cloud=null;account.character=null;account.appearance=null;account.revision=0;saveReady=false;setOwnedGear([]);render();
         VoidNetwork.report('identity','ready');
         if(user){loadHandle();run(async()=>{await confirmCheckout();await refresh();},true);}
       });
