@@ -281,6 +281,18 @@ class BlackoutApiTests(unittest.TestCase):
                 api.tesana_start_run.__wrapped__(self.db, 'no-handle')
         self.assertEqual(error.exception.status, 409)
 
+    def test_tesana_ranked_start_requires_a_verified_token(self):
+        original_headers = fake_flask.request.headers
+        self.addCleanup(setattr, fake_flask.request, 'headers', original_headers)
+        auth = types.SimpleNamespace(verify_id_token=lambda *_args, **_kwargs: (_ for _ in ()).throw(ValueError('invalid token')))
+        with patch.object(api, 'services', return_value=(self.db, auth, None)):
+            for headers in ({}, {'Authorization': 'Bearer invalid'}):
+                fake_flask.request.headers = headers
+                with self.assertRaises(api.ApiError) as error:
+                    api.tesana_start_run()
+                self.assertEqual(error.exception.status, 401)
+        self.assertEqual(self.db.data, {})
+
     def test_tesana_fresh_top_and_personal_rank(self):
         for name, score in [('a', 2000), ('b', 3000)]:
             self.db.data[('bp_tesana_leaderboard', name)] = {'handle': name, 'bestScore': score,
