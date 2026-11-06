@@ -10,7 +10,7 @@ const b64=o=>Buffer.from(JSON.stringify(o)).toString('base64url');
 function makeWorld(accounts){
   const now=Math.floor(Date.now()/1000),tokens={};
   for(const a of Object.values(accounts)){
-    const h=b64({alg:'RS256',kid:'test-key',typ:'JWT'}),p=b64({aud:PROJECT,iss:`https://securetoken.google.com/${PROJECT}`,sub:a.uid,iat:now-5,auth_time:now-5,exp:now+3000,firebase:{sign_in_provider:a.provider||'password'}});
+    const h=b64({alg:'RS256',kid:'test-key',typ:'JWT'}),p=b64({aud:PROJECT,iss:`https://securetoken.google.com/${PROJECT}`,sub:a.uid,iat:now-5,auth_time:now-5,exp:now+3000,...(a.emailVerified?{email_verified:true}:{}),firebase:{sign_in_provider:a.provider||'password'}});
     a.token=h+'.'+p+'.'+crypto.sign('RSA-SHA256',Buffer.from(h+'.'+p),keys.privateKey).toString('base64url');tokens[a.token]=a;
   }
   const calls=[];

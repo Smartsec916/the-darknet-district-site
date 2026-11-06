@@ -68,3 +68,18 @@ All of these are separate approvals: (1) deploy the hub from `claude/character-c
 ## Pre-flight checks (local, already automated)
 
 `tests/district-hub-render.test.cjs` pins: free plan, manual deploy, `rootDir`, no secrets, no open test by default, one dependency, and that the hub's files only use files inside its own folder (the appearance rules are byte-identical copies in `tools/district-hub/appearance/`, kept in sync by `node tools/assets/sync-hub-appearance.cjs`).
+
+
+## Early-access mode for any registered account (second step, needs approval) — added 2026-11-06
+
+Current live state (read-only inspection through the Render connector, 2026-11-06): service `district-hub` (`srv-dbn1q3sipgvc73bbb1s0`), URL `https://district-hub-mbo7.onrender.com`, Free plan, branch `claude/character-creator`, root `tools/district-hub`, `npm ci --omit=dev` / `node server.cjs`, health path `/health`, auto-deploy off, one live deploy from commit `4c60781` (manual), log line `production (API https://the-darknet-district-site.onrender.com, 1 allowed account(s))`. So **only one account can join today**. The game API `the-darknet-district-site` deploys from **`main`** (Python, Starter plan), so it does not yet have `/character/appearance`; the hub shows legacy characters until that API is updated.
+
+To let any registered visitor in without collecting ids (all dashboard changes, none made):
+
+1. Deploy the hub from the reviewed branch containing this work (the commit that adds `HUB_ACCESS`).
+2. In the hub's Environment: **delete `HUB_ALLOWED_UIDS`** and **add `HUB_ACCESS=registered`**. (The hub refuses to start if both are present, or if `HUB_ALLOW_ANY_SIGNED_IN=true` is also set: it fails closed, never open.) Keep `HUB_DENY_UIDS` (moderation, see `MODERATION.md`). Optional: `HUB_REQUIRE_VERIFIED_EMAIL=true`.
+3. Anonymous Firebase accounts are always refused in this mode (close code 4407); the game does not even try for them.
+4. Publish the game client (merge to `main`): `LIVE_HUB` in `void-runner/remote-players.js` is now `wss://district-hub-mbo7.onrender.com` and multiplayer is on by default for registered accounts, switchable off in Settings. Until this is merged the live site does not connect.
+5. Rollback or pause: put `HUB_ALLOWED_UIDS` back and remove `HUB_ACCESS` (back to the restricted test), or Suspend the service.
+
+Limits that stay on: exact origins (`HUB_ALLOWED_ORIGINS`), Google token verification, deny-list, 4 connections per address, 20 new per minute per address, 60 total, 12 players per room, message size and rate limits, chat rules. Trading remains impossible in production (`HUB_TRADING` is refused). Free-tier facts: the service sleeps after about 15 minutes idle and takes up to a minute to wake (the game shows "Waking the server"); only one instance; it cannot serve more than a small crowd, and the 12-player room cap is the practical limit.

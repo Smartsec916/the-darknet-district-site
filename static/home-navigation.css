@@ -174,3 +174,21 @@ body.site-navigation .district-nav a:active .district-nav__panel { fill: #21454d
 body.site-navigation > .district-nav--quiet { position: relative; padding: 10px 16px; background: #071116; box-shadow: none; }
 .district-nav--quiet .district-nav__links { display: block; max-width: none; }
 .district-nav--quiet li { width: 140px; margin-inline: auto; }
+
+/* Development notice: a quiet line directly under the main navigation, same palette; wraps on phones and never sticks or covers content. */
+body.site-navigation > .district-notice {
+  margin: 0;
+  padding: 7px clamp(16px, 4vw, 64px);
+  border-bottom: 1px solid #1a2f36;
+  background: #060c10;
+  color: #8caaaf;
+  font: 12px/1.5 'Courier New', Courier, monospace;
+  letter-spacing: .02em;
+  position: relative;
+  z-index: 1;
+}
+.district-notice__tag { color: #ff3fb4; margin-right: .6em; letter-spacing: .12em; }
+@media (max-width: 600px) {
+  body.site-navigation > .district-notice { font-size: 11.5px; padding: 6px 16px; }
+  .district-notice__tag { display: block; margin: 0 0 1px; }
+}

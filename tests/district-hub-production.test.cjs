@@ -15,7 +15,7 @@ const verifier=(extra={})=>createVerifier({projectId:PROJECT,now:()=>NOW,fetchJw
 
 test('a genuine Google-style token is accepted and reports guest or registered',async()=>{
  const v=verifier();
- assert.deepEqual(await v.verify(token()),{uid:'uid-1',provider:'password',anonymous:false,expiresAt:sec+3000});
+ assert.deepEqual(await v.verify(token()),{uid:'uid-1',provider:'password',anonymous:false,emailVerified:false,expiresAt:sec+3000});
  assert.equal((await v.verify(token({firebase:{sign_in_provider:'anonymous'}}))).anonymous,true);
  assert.equal((await v.verify(token({firebase:{}}))).provider,'unknown');
 });
