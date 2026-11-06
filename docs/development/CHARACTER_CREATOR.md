@@ -90,10 +90,10 @@ Looked at and not done (needs the Blender/MPFB export or a visible change): merg
 
 `tests/district-transition-browser.cjs` failed two ways. Neither came from the creator, the wardrobe or character spawning.
 
-1. **"street nodes does not grow across trips"** (one failure, 811 against a limit of 781). The street's node count is dominated by the nightlife crowd's skeleton bones (`crowd:*-mixamorig:*`), which spawn at random. Counts seen on the clean baseline `d950212`: 625, 687, 687; on this branch across 8 runs: 377 to 997. The interior count is identical on every trip on both (449), so nothing accumulates. The check is a noisy comparison (last trip against the maximum of the middle trips, with only 3 trips), and was left unchanged. No NPC was removed or reduced.
+1. **"street nodes does not grow across trips"** (one failure, 811 against a limit of 781). The street's node count is dominated by the nightlife crowd's skeleton bones (`crowd:*-mixamorig:*`), which spawn at random. Counts seen on the clean baseline `d950212`: 625, 687, 687; on this branch across 6 runs: 377 to 997. The interior count is identical on every trip on both (449), so nothing accumulates. The check is a noisy comparison (last trip against the maximum of the middle trips, with only 3 trips), and was left unchanged. No NPC was removed or reduced.
 2. **"stuck waiting for interior"** after reloading and pressing Continue. Reproduced on the clean baseline too. Cause: `resumeSavedWorld()` calls `C.socialEntry()` (added with the District social profiles, commit `0f42dff`), so Continue **always** wakes the player in their Sleeping Pod (`podWakePending`), wherever the save was made. The test still expected to resume in the hall or on the street and waited for walking mode that only starts after EXIT POD. The test's resume step now follows the current design (Continue shows the pod card; EXIT POD puts the player at the pod exit; a save made outside also continues in the pod). The game was not changed.
 
-Results with the updated test (Low): 2 of 2 full passes; earlier runs of the old test: street check passed 4 of 5, the resume step failed 6 of 6 including the clean baseline. High: see the final report.
+Results with the updated test (Low): 2 of 2 full passes; earlier runs of the old test on this branch: the street check passed 5 of 6, and the resume step failed in every run that reached it (4 of 4, plus the clean baseline). High: see the final report.
 
 ## Creator verification (second pass, `tests/character-verify-browser.cjs`, Low and High)
 
