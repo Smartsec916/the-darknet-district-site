@@ -1,5 +1,7 @@
 # The Darknet District: handoff to Codex Cloud
 
+> **2026-11-06 update:** For the current owner-reported Render hub deployment and Codex-to-Claude transfer, read `CODEX_TO_CLAUDE_HANDOFF_2026-11-06.md`. The deployment status in this older file predates that report.
+
 > **LATEST (2026-11-06): read the section "CURRENT STATE AND NEXT CODEX TASK" below first.** It supersedes the older material further down.
 
 **Independent review follow-up (2026-11-06):** Codex started from the verified Claude HEAD `4c607817be5669d6a5b98b427b209409df84fd74` on `codex/independent-integration-review`. The review findings, tests, restricted two-player checklist, and remaining console approvals are in `INTEGRATION_REVIEW_2026-11-06.md`. Continue from the latest pushed development tip after checking both branches; the task list below is the original brief, not a claim that online multiplayer was tested.
