@@ -1,7 +1,7 @@
 /* WebSocket transport for the pure Hub in protocol.cjs, plus a /health page for the host's health check.
    Everything environment-specific is passed in:
      identify(token) -> {uid, anonymous, model, handle} | null   (who this is; the only source of identity)
-     access          -> {allowed:Set|null, denied:Set}            (null allowed = any signed-in account)
+     access          -> {allowed:Set|null, denied:Set, registeredOnly?, verifiedEmail?}   (null allowed = any signed-in account; registeredOnly refuses anonymous accounts)
      origins         -> exact Origin strings, or null for local development origins only
      gate            -> ConnectionGate                             (connection limits)                                       */
 'use strict';
@@ -12,14 +12,14 @@ const {clientIp,ConnectionGate}=require('./limits.cjs');
 
 const LOCAL_ORIGIN=/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/;
 
-function start({ledger=null,identify,access={allowed:null,denied:new Set()},origins=null,gate=new ConnectionGate(),trustHops=0,port=0,host='127.0.0.1',log=()=>{}}){
+function start({ledger=null,identify,access={allowed:null,denied:new Set(),registeredOnly:false,verifiedEmail:false},origins=null,gate=new ConnectionGate(),trustHops=0,port=0,host='127.0.0.1',log=()=>{}}){
   const originOk=o=>origins?typeof o==='string'&&origins.includes(o):(!o||LOCAL_ORIGIN.test(o));
   const server=http.createServer((req,res)=>{
     if(req.url==='/health'){res.writeHead(200,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify({ok:true,players:hub.peers.size}));return;}
     res.writeHead(404,{'content-type':'text/plain'});res.end('not found');
   });
   const wss=new WebSocketServer({server,maxPayload:LIMITS.maxHelloBytes,verifyClient:({origin},cb)=>originOk(origin)?cb(true):cb(false,403,'origin not allowed')});
-  const hub=new Hub({send:(ws,m)=>{if(ws.readyState===1)ws.send(JSON.stringify(m));},close:(ws,code,why)=>{try{ws.close(code,why);}catch{}}});
+  const hub=new Hub({send:(ws,m)=>{if(ws.readyState===1)ws.send(JSON.stringify(m));},close:(ws,code,why)=>{try{ws.close(code,why);}catch{}},report:r=>log('REPORT',JSON.stringify(r))});
   // Trading: only with a ledger. The default (none, or the disabled one) refuses every trade message and tells clients trading is off.
   hub.attachTrades(ledger||new (require('./ledger.cjs').DisabledLedger)(),{simulated:!!ledger?.simulated});
   let stopping=false;
@@ -40,6 +40,9 @@ function start({ledger=null,identify,access={allowed:null,denied:new Set()},orig
         if(!who){log('sign-in not accepted');hub.send(ws,{t:'error',reason:'sign-in not accepted'});ws.close(4401,'sign-in not accepted');return;}
         // The allow-list is checked on the verified account id, never on anything the client wrote.
         if(access.denied.has(who.uid)||(access.allowed&&!access.allowed.has(who.uid))){log('not on the test list');hub.send(ws,{t:'error',reason:'not on the test list'});ws.close(4403,'not allowed');return;}
+        // Open registration mode: a real (not anonymous) account is required, and optionally a verified email. Checked on the verified token, never on the client.
+        if(access.registeredOnly&&who.anonymous){log('registered account required');hub.send(ws,{t:'error',reason:'registered account required'});ws.close(4407,'registered account required');return;}
+        if(access.verifiedEmail&&!who.emailVerified){log('verified email required');hub.send(ws,{t:'error',reason:'verified email required'});ws.close(4408,'verified email required');return;}
         if(ws.readyState!==1){ws.busy=false;return;}
         ws.joined=hub.join(ws,m,who);ws.busy=false;clearTimeout(hello);
         if(ws.joined)log('join',hub.byConn.get(ws)?.id);
@@ -48,6 +51,9 @@ function start({ledger=null,identify,access={allowed:null,denied:new Set()},orig
       if(!ws.joined){ws.close(4002,'hello first');return;}
       if(m.t==='bye'){hub.drop(ws,1000,'bye');return;}
       if(m.t==='refresh'){if(ws.busy)return;ws.busy=true;const who=await identify(m.token).catch(()=>null);ws.busy=false;const p=hub.byConn.get(ws);if(!who||!p||who.uid!==p.uid)hub.send(ws,{t:'refused',reason:'sign-in not accepted'});else hub.refresh(ws,who);return;}
+      if(m.t==='chat'){hub.chat(ws,m);return;}
+      if(m.t==='ignore'){hub.ignore(ws,m);return;}
+      if(m.t==='report'){hub.reportPlayer(ws,m);return;}
       if(m.t==='trade'){hub.trade(ws,m);return;}
       hub.state(ws,m);
     });

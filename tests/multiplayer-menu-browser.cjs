@@ -44,7 +44,7 @@ const w=makeWorld({fox:{uid:'uid-fox',model:'district-resident',handle:'Neon_Fox
   // 2. LEAVE from the Settings page (reached from the in-game menu) disconnects and removes the avatar.
   await page.evaluate(()=>settingsPage());assert.match(await status(page),/Connected/);
   await page.click('#multiplayer-toggle');
-  await page.waitForFunction(()=>VoidRemotePlayers.peers.length===0&&VoidRemotePlayers.status==='off',null,{timeout:60000});assert.equal(await page.evaluate(()=>localStorage.getItem('tdd-multiplayer')),null);
+  await page.waitForFunction(()=>VoidRemotePlayers.peers.length===0&&VoidRemotePlayers.status==='off',null,{timeout:60000});assert.equal(await page.evaluate(()=>localStorage.getItem('tdd-multiplayer')),'0','leaving stores an explicit off choice');
   await wait(1500);assert.equal(await page.evaluate(()=>VoidRemotePlayers.peers.length),0,'stays alone after leaving');
   await page.click('#multiplayer-toggle');await page.waitForFunction(()=>VoidRemotePlayers.connected&&VoidRemotePlayers.peers.length===1,null,{timeout:240000,polling:200});
   g.s.terminate();await page.close();

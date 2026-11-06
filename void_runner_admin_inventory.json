@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "4e43989c4b502bbb",
+  "revision": "cdfb63e16a84f0e2",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11760,6 +11760,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/district-chat.js",
+      "line": 35,
+      "text": "formEl=el_('form');formEl.hidden=true;inputEl=el_('input');inputEl.type='text';inputEl.maxLength=200;inputEl.autocomplete='off';inputEl.setAttribute('aria-label','Chat message (200 characters, no links)');inputEl.placeholder='Say something to the District (Enter to send, Esc to close)';",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/expansion.js",
       "line": 10,
       "text": "speech=null;scene('');mode='dock';clearInput();flightUI(false);screen.classList.remove('hidden');",
@@ -12062,7 +12068,7 @@
     {
       "source": "void-runner/mouse-control.js",
       "line": 8,
-      "text": "const conversationOpen=()=>!!document.querySelector('#screen.conversation-live,#trade-window');   // a conversation or the trade window needs the cursor",
+      "text": "const conversationOpen=()=>!!document.querySelector('#screen.conversation-live,#trade-window,#district-chat.open,#district-chat.people');   // a conversation or the trade window needs the cursor",
       "kind": "source-reference"
     },
     {
@@ -12403,8 +12409,14 @@
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 126,
-      "text": "sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false};for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one",
+      "line": 120,
+      "text": "sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false,chat:false};emitChat({t:'chat-status',on:false});for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/remote-players.js",
+      "line": 162,
+      "text": "sendChat(text){if(ws?.readyState===1&&status==='in'&&features.chat&&typeof text==='string'){ws.send(JSON.stringify({t:'chat',text:text.slice(0,800)}));return true;}return false;},",
       "kind": "source-reference"
     },
     {
@@ -13532,6 +13544,7 @@
     "void-runner/dev-tools.js": "8fc329454a6ed8a22bf93e8721eeffca11b1276ccf0eb3676b90c67c58781974",
     "void-runner/device-gate.js": "18ede0f57043b170043090b207fae30ae2a818aeca6d60a4c9f5a904946c91d7",
     "void-runner/district-area.js": "f7fb70108b754de68a409032e5232a29d0b30ed793dbb21206d1ad0092e0233a",
+    "void-runner/district-chat.js": "f6dcf7d042846fb47df27dfa2703699314770365fcc5adab94c80f3341029dd5",
     "void-runner/district-transition.js": "6f914f0c159a1335bee53e12216aa13fd70d0a5e44a1e1daa317908d28bf74ff",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
@@ -13569,7 +13582,7 @@
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-log.js": "f9637251347e1250b78d3bef32ef6082e462393a0231b72e4e68970c7650b8c6",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
-    "void-runner/mouse-control.js": "5d99f95c581da3cc79c6d54ffab9b0268d155c5a775e686aa1ee3a4fd8ce4081",
+    "void-runner/mouse-control.js": "17d4e6e90d0f101d517f461bb0c7ae7cc448279fee8a5d048052ab29caf103c0",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "a751c57ffcc8fd9928ecd8baa1f962d21f86ae842b87a3724e31c045887795a8",
     "void-runner/music-engine.js": "5078e1a0fedff9d09a7f23823126d3ef8a834a1806edb7675c54e3b668014a8b",
@@ -13597,7 +13610,7 @@
     "void-runner/relay-radio.js": "5ce31904c15f630a01d00f51d566d66ae97c736d5734d7531835588714269806",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
-    "void-runner/remote-players.js": "d64e3868cbfe1bca18090f984e87ff8601d6735d5b9d07da8cd3ff7a022ab1e3",
+    "void-runner/remote-players.js": "1ff2b856996fbe76a781e1c5f170f88a22399bba90c2b84a60a55876cd143014",
     "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",

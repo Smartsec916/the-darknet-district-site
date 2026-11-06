@@ -1,26 +1,13 @@
-/* OPTIONAL, OFF BY DEFAULT: other players in the District interior (two-player test).
-   It does nothing unless a tester has switched it on, and then only in the District interior:
-     - on a local address (localhost or 127.0.0.1): add ?multiplayer=1 (or the local flag tdd-multiplayer=1), hub on a local ws:// address;
-     - on the live site: ONLY a browser where the tester has set BOTH local flags tdd-multiplayer=1 and tdd-hub=wss://<name>.onrender.com.
-       A link or address can never switch it on there, so a crafted link cannot point a player's sign-in at someone else's server.
-   It reports only where THIS player is (x, z, facing) and draws the others the hub reports with the existing District crowd models and
-   clips. Identity, character, name and animation all come from the hub, which verifies the player's own Firebase sign-in; nothing here
-   names an account. It never writes a save, never touches an NPC, and never runs for the VR rooms, the street, flight or combat.
-   See docs/development/MULTIPLAYER_PROTOTYPE.md and HUB_DEPLOYMENT.md. */
-/* OPTIONAL, OFF BY DEFAULT: other players in the District interior (two-player test).
-   Nothing happens unless multiplayer has been switched on, and then only in the District interior in walking mode. Players switch it on from
-   Settings > Multiplayer test (shown only when a test hub is configured); the server's account allow-list still decides who may join.
-     - live site (https): LIVE_HUB below must name the test hub. It is EMPTY, so the live site shows no option and never connects. Setting it is a
-       reviewed code change made when the owner approves a test, never an address, a link or a stored value, so a crafted link cannot point a
-       player's sign-in at someone else's server.
-     - local pages (localhost or 127.0.0.1): the option is always shown; ?multiplayer=1 switches it on and ?hub=ws://127.0.0.1:PORT picks a local hub.
-   It reports only where THIS player is (x, z, facing) and draws the others the hub reports with the existing District crowd models and
-   clips. Identity, character, name and animation all come from the hub, which verifies the player's own Firebase sign-in; nothing here
-   names an account. It never writes a save, never touches an NPC, and never runs for the VR rooms, the street, flight or combat.
-   See docs/development/MULTIPLAYER_PROTOTYPE.md and HUB_DEPLOYMENT.md. */
+/* EARLY ACCESS: other registered players in the District interior, with text chat (void-runner/district-chat.js).
+   On the live site it connects to the ONE reviewed hub named by LIVE_HUB below (never an address, link or stored value) and only for a signed-in, registered
+   (not anonymous) account, only in the District interior in walking mode; the player can switch it off in Settings > Multiplayer. Anywhere else, and whenever
+   the hub is unreachable, nothing happens and the game plays exactly as single-player. The hub verifies the sign-in itself and may refuse the account.
+   Local pages (localhost or 127.0.0.1): ?multiplayer=1 switches it on and ?hub=ws://127.0.0.1:PORT picks a local hub (tests).
+   It reports only where THIS player is (x, z, facing); identity, character, name and animation all come from the hub. It never writes a save, never touches an
+   NPC, and never runs for the VR rooms, the street, flight or combat. See docs/development/MULTIPLAYER_PROTOTYPE.md, HUB_RENDER_SETTINGS.md and MODERATION.md. */
 (function(root){
- // The test hub, set only when the owner approves a real test, for example 'wss://district-hub.onrender.com'. Empty = no option, no connection.
- const LIVE_HUB='';
+ // The reviewed hub (Render service `district-hub`). Changing this is a deliberate, reviewed code change; empty would mean no option and no connection.
+ const LIVE_HUB='wss://district-hub-mbo7.onrender.com';
  const LOCAL=/^(localhost|127\.0\.0\.1)$/,LIVE=/^(www\.)?thedarknetdistrict\.com$/,HUB_OK=/^wss:\/\/[a-z0-9-]{1,63}\.onrender\.com$/;
  const get=(storage,k)=>{try{return storage?.getItem?.(k)||null;}catch{return null;}};
  // Is the Settings option shown (and may the page connect at all)? Live: only with a configured, valid hub. Local: always.
@@ -29,7 +16,7 @@
  const allowed=(loc,storage,liveHub=LIVE_HUB)=>{try{
   if(!available(loc,liveHub))return false;
   if(LOCAL.test(loc.hostname))return /[?&]multiplayer=1(&|$)/.test(loc.search||'')||get(storage,'tdd-multiplayer')==='1';
-  return get(storage,'tdd-multiplayer')==='1';}catch{return false;}};
+  return get(storage,'tdd-multiplayer')!=='0';}catch{return false;}};   // live site: ON for registered accounts unless the player switched it off in Settings
  const hubUrl=(loc,storage,liveHub=LIVE_HUB)=>{
   if(LOCAL.test(loc.hostname)){const q=/[?&]hub=([^&]+)/.exec(loc.search||'');const u=q?decodeURIComponent(q[1]):get(storage,'tdd-hub')||'ws://127.0.0.1:8787';return /^ws:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(u)?u:'ws://127.0.0.1:8787';}
   return available(loc,liveHub)?liveHub:'';
@@ -38,7 +25,7 @@
  // What the Settings line says for each status the client can be in.
  const words=(st,signedIn)=>({'off':signedIn?'Off.':'Off. Sign in to your account first (Account, in the main menu).','in':'Connected. Other testers in the District interior appear with name tags.',
   'connecting':'Connecting...','waking the server':'Waking the test server (it sleeps when idle and can take about a minute)...','sign in to join':'Sign in to your account first (Account, in the main menu).',
-  'not on the test list':'Your account is not on the test list.','sign-in not accepted':'Your sign-in was not accepted. Sign in again.','replaced by another session':'This account joined from another window.',
+  'not on the test list':'Your account is not on the test list.','registered account required':'Multiplayer and chat need a registered account. Create one from the account menu.','create an account':'Multiplayer and chat need a registered account. Create one from the account menu.','verified email required':'Please verify your email address to use multiplayer.','sign-in not accepted':'Your sign-in was not accepted. Sign in again.','replaced by another session':'This account joined from another window.',
   'server restarting':'The test server is restarting; reconnecting...','offline':'Cannot reach the test server; trying again.','no hub configured':'No test server is set up.'}[st]||(st&&st.startsWith('refused')?'The test server refused the connection.':'Off.'));
  if(typeof module!=='undefined')module.exports={allowed,available,hubUrl,clean,words,LIVE_HUB};
  if(typeof document==='undefined')return;
@@ -46,7 +33,11 @@
  let booted=false;
  function boot(){if(booted)return;booted=true;
  const ROOM='district-interior',SEND_MS=100,SMOOTH=12,ATTEMPT_MS=75000,TAG_RANGE=30;
- let features={trade:false,tradeSimulated:false};const listeners=new Set();
+ let features={trade:false,tradeSimulated:false,chat:false};const listeners=new Set(),chatListeners=new Set();
+ const IGN='void-runner-chat-ignored:';let ignored=new Map(),ignoredNames=new Map();   // public id -> 'mute' | 'block' (kept for this account in this browser)
+ const loadIgnored=()=>{try{const rows=JSON.parse(root.localStorage.getItem(IGN+(accountUid()||'guest'))||'[]').filter(x=>Array.isArray(x)&&/^[0-9a-f]{12}$/.test(x[0])&&['mute','block'].includes(x[1])).slice(0,100);ignored=new Map(rows.map(x=>[x[0],x[1]]));ignoredNames=new Map(rows.map(x=>[x[0],clean(x[2])]));}catch{ignored=new Map();ignoredNames=new Map();}};
+ const saveIgnored=()=>{try{root.localStorage.setItem(IGN+(accountUid()||'guest'),JSON.stringify([...ignored].map(([id,m])=>[id,m,ignoredNames.get(id)||'Player'])));}catch{}};
+ let selfId='';const emitChat=m=>{for(const fn of chatListeners)try{fn(m);}catch{}};
  let blockedUid=null,lastClose='',opening=false,ws=null,wantOn=true,retry=0,retryTimer=0,status='off',lastSend=0,connectedUid=null,wakeTimer=0;
  const traceLog=[],trace=m=>{traceLog.push(Math.round(performance.now())+' '+m);if(traceLog.length>60)traceLog.shift();};
  const peers=new Map();       // public id -> {node,ctrl,model,name,x,z,yaw,tx,tz,tyaw,clip,seen,off}
@@ -88,10 +79,12 @@
   if(!p){p={id:v.id,name:clean(v.name),model:v.model,appearance:v.appearance||null,x:v.x,z:v.z,yaw:v.yaw,tx:v.x,tz:v.z,tyaw:v.yaw,clip:v.clip};peers.set(v.id,p);}
   else{p.tx=v.x;p.tz=v.z;p.tyaw=v.yaw;p.clip=v.clip;}
   (p.seen||(p.seen=new Set())).add(v.clip);   // every animation the hub has sent for this player (lets a test see short clips on a slow machine)
+  if(ignored.get(v.id)==='block'){removePeer(v.id);return;}
   if(!place(p)&&!p.off&&root.VoidAssets.onLoaded)p.off=root.VoidAssets.onLoaded(id=>{if(id==='crowd:'+p.model&&peers.get(p.id)===p){place(p);p.off?.();p.off=null;}});
  }
  function onMessage(m){
-  if(m.t==='welcome'){clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated};for(const v of m.peers)upsert(v);}
+  if(m.t==='welcome'){selfId=String(m.you||'');clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated,chat:!!m.features?.chat};loadIgnored();for(const [id,mode] of ignored)if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:true}));for(const v of m.peers)upsert(v);emitChat({t:'chat-status',on:features.chat});}
+  else if(m.t==='chat'||m.t==='chat-refused'||m.t==='reported'||m.t==='report-refused'){if(m.t==='chat'&&ignored.has(m.id))return;emitChat(m);return;}
   else if(m.t==='trade'){for(const fn of listeners)try{fn(m);}catch{}return;}
   else if(m.t==='join')upsert(m.peer);
   else if(m.t==='state'){if(peers.has(m.id))upsert({...peers.get(m.id),...m});}
@@ -103,7 +96,7 @@
  }
  // Closing codes from the hub: 1012/1001 restarting (reconnect soon), 4001 replaced by another session of this account, 4401 sign-in not
  // accepted, 4403 not on the test list (no retry for those three), 4006 too many connections (retry slowly), anything else: back off and retry.
- const NO_RETRY=new Set([4001,4401,4403]);
+ const NO_RETRY=new Set([4001,4401,4403,4407,4408]);
  function scheduleRetry(code){
   if(!wantOn||NO_RETRY.has(code))return;
   const wait=code===1012||code===1001?600:code===4006?30000:Math.min(15000,1000*2**Math.min(retry++,4));
@@ -116,6 +109,7 @@
   opening=true;let tok;try{tok=await token();}finally{opening=false;}
   if(ws||!wantOn||!inRoom())return;
   if(!tok){status='sign in to join';retryTimer=setTimeout(connect,3000);return;}
+  if(!isLocalPage&&root.VoidAccount?.user?.isAnonymous){status='create an account';retryTimer=setTimeout(connect,5000);return;}   // a registered account is required (the hub checks this too)
   status='connecting';connectedUid=accountUid();
   const sock=new WebSocket(url);ws=sock;trace('new socket');
   // A sleeping free host takes up to about a minute to wake: say so, and give each attempt that long.
@@ -123,9 +117,9 @@
   const giveUp=setTimeout(()=>{if(ws===sock&&sock.readyState===0){try{sock.close();}catch{}}},ATTEMPT_MS);
   sock.onopen=()=>{trace('open');clearTimeout(giveUp);sock.send(JSON.stringify({t:'hello',token:tok,room:ROOM}));};
   sock.onmessage=e=>{trace('message');try{onMessage(JSON.parse(e.data));}catch{}};
-  sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false};for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one
+  sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false,chat:false};emitChat({t:'chat-status',on:false});for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one
    ws=null;clearPeers();lastClose=e.code+(e.reason?' '+e.reason:'');
-   status=e.code===4001?'replaced by another session':e.code===4401?'sign-in not accepted':e.code===4403?'not on the test list':e.code===1012||e.code===1001?'server restarting':'offline';
+   status=e.code===4001?'replaced by another session':e.code===4401?'sign-in not accepted':e.code===4403?'not on the test list':e.code===4407?'registered account required':e.code===4408?'verified email required':e.code===1012||e.code===1001?'server restarting':'offline';
    if(NO_RETRY.has(e.code)){wantOn=false;blockedUid=connectedUid;}   // stay quiet until the player signs in as someone else or calls reconnect()
    scheduleRetry(e.code);};
   sock.onerror=()=>{};
@@ -154,7 +148,7 @@
  root.addEventListener('pagehide',()=>{if(ws?.readyState===1)try{ws.send('{"t":"bye"}');}catch{}});
  requestAnimationFrame(frame);
  root.VoidRemotePlayers={get status(){return status;},get lastClose(){return lastClose;},get socketState(){return ws?ws.readyState:-1;},get trace(){return traceLog.slice(-16);},get connected(){return status==='in';},
-  get features(){return features;},
+  get features(){return features;},get me(){return selfId;},
   // Trading hooks (void-runner/trade-window.js): subscribe to trade messages, send one, and ask who is close enough to trade with.
   onTrade(fn){listeners.add(fn);return ()=>listeners.delete(fn);},
   sendTrade(msg){if(ws?.readyState===1&&status==='in'&&features.trade&&msg&&msg.t==='trade'){ws.send(JSON.stringify(msg));return true;}return false;},
@@ -163,15 +157,22 @@
   // Tell the hub my saved look changed (after the wardrobe): it re-reads it from my account and tells nearby players.
   async refreshLook(){if(ws?.readyState===1&&status==='in'){const t=await token();if(t)ws.send(JSON.stringify({t:'refresh',token:t}));}},
   ...(isLocalPage?{_message:onMessage}:{}),
+  // Text chat and moderation (void-runner/district-chat.js is the screen for these). Everything is checked again by the hub.
+  onChat(fn){chatListeners.add(fn);return ()=>chatListeners.delete(fn);},
+  sendChat(text){if(ws?.readyState===1&&status==='in'&&features.chat&&typeof text==='string'){ws.send(JSON.stringify({t:'chat',text:text.slice(0,800)}));return true;}return false;},
+  get ignored(){if(!ignored.size)loadIgnored();return [...ignored].map(([id,m])=>[id,m,ignoredNames.get(id)||'Player']);},
+  setIgnore(id,mode,name){if(!/^[0-9a-f]{12}$/.test(String(id)))return false;if(mode==='mute'||mode==='block'){ignored.set(id,mode);ignoredNames.set(id,clean(name||peers.get(id)?.name));}else{ignored.delete(id);ignoredNames.delete(id);mode=null;}saveIgnored();
+   if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:!!mode}));if(mode==='block')removePeer(id);return true;},
+  report(id,reason,note){if(!(ws?.readyState===1&&status==='in'&&features.chat))return false;const m={t:'report',id,reason};if(typeof note==='string'&&note.trim())m.note=note.trim().slice(0,120);ws.send(JSON.stringify(m));return true;},
   disconnect(){wantOn=false;blockedUid=accountUid();disconnect();},reconnect(){wantOn=true;retry=0;clearTimeout(retryTimer);retryTimer=0;},hubUrl:()=>hubUrl(root.location,root.localStorage)};
  }
  // ---- Settings > Multiplayer test: a button instead of the browser console. The server's allow-list is the real gate; this only starts or stops asking. ----
- const on=()=>get(root.localStorage,'tdd-multiplayer')==='1';
- const setFlag=v=>{try{if(v)root.localStorage.setItem('tdd-multiplayer','1');else root.localStorage.removeItem('tdd-multiplayer');}catch{}};
+ const on=()=>isLocalPage?get(root.localStorage,'tdd-multiplayer')==='1':get(root.localStorage,'tdd-multiplayer')!=='0';
+ const setFlag=v=>{try{root.localStorage.setItem('tdd-multiplayer',v?'1':'0');}catch{}};
  const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function menuHtml(){
   const st=root.VoidRemotePlayers?.status||'off',signedIn=!!root.VoidAccount?.user;
-  return '<h2>Multiplayer test</h2><p>Meet other testers inside The Darknet District. Only accounts on the test list can join, and it works only in the District interior; everywhere else you play alone. Your saves are not touched.</p>'
+  return '<h2>Multiplayer test</h2><p>Early access: meet other registered players inside The Darknet District and chat with them (press Enter). It needs a registered account and works only in the District interior; everywhere else, and whenever the server is unavailable, you play alone. You can switch it off here. Your saves are not touched. Real-money and item trading stay disabled.</p>'
    +'<p id="multiplayer-status" role="status">'+esc(words(on()?st:'off',signedIn))+'</p>'
    +'<button type="button" data-action="multiplayer-toggle" id="multiplayer-toggle">'+(on()?'LEAVE MULTIPLAYER TEST':'JOIN MULTIPLAYER TEST')+'</button>';
  }

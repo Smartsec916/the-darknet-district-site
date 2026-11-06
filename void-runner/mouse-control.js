@@ -5,7 +5,7 @@
  const fps=()=>mode==='walking'||mode==='skirmish-fps';
  const mouse=()=>globalThis.VoidControls?.deviceClass!=='touch-first'&&!!canvas.requestPointerLock;
  const locked=()=>document.pointerLockElement===canvas;
- const conversationOpen=()=>!!document.querySelector('#screen.conversation-live,#trade-window');   // a conversation or the trade window needs the cursor
+ const conversationOpen=()=>!!document.querySelector('#screen.conversation-live,#trade-window,#district-chat.open,#district-chat.people');   // a conversation or the trade window needs the cursor
  // If the browser refuses pointer lock (embedded frame, policy), clicks behave normally again.
  let unavailable=false,swallowing=false,failures=0;
  function lock(){

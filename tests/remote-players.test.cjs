@@ -4,16 +4,27 @@ const store=(o={})=>({getItem:k=>k in o?o[k]:null});
 const live=(search='',h='thedarknetdistrict.com',protocol='https:')=>({hostname:h,search,protocol});
 
 const HUB='wss://district-hub.onrender.com';
-test('nothing is shown or enabled on the live site while no hub is configured (the shipped state)',()=>{
- assert.equal(R.LIVE_HUB,'','LIVE_HUB ships empty: setting it is a deliberate, reviewed change');
- for(const h of ['thedarknetdistrict.com','www.thedarknetdistrict.com'])for(const st of [store(),store({'tdd-multiplayer':'1','tdd-hub':HUB})]){
-  assert.equal(R.available(live('',h)),false,h);assert.equal(R.allowed(live('?multiplayer=1&hub='+HUB,h),st),false,h);assert.equal(R.hubUrl(live('?hub='+HUB,h),st),'',h);}
+test('the live site connects only to the one reviewed hub address in the code; no link, address or stored value can change it',()=>{
+ assert.equal(R.LIVE_HUB,'wss://district-hub-mbo7.onrender.com','the live hub is a deliberate, reviewed constant');
+ assert.match(R.LIVE_HUB,/^wss:\/\/[a-z0-9-]{1,63}\.onrender\.com$/);
+ for(const h of ['thedarknetdistrict.com','www.thedarknetdistrict.com']){
+  assert.equal(R.available(live('',h)),true,h);
+  assert.equal(R.hubUrl(live('?hub=wss://evil.onrender.com',h),store({'tdd-hub':'wss://evil.onrender.com'})),R.LIVE_HUB,h);}
+ for(const h of ['thedarknetdistrict.com.evil.example','evil-thedarknetdistrict.com','localhost.evil.com','127.0.0.1.evil.com'])assert.equal(R.available(live('',h)),false,h);
+ assert.equal(R.available(live('','thedarknetdistrict.com','http:')),false,'only over https');
 });
-test('with a hub configured, the option appears live and only the tester\'s own button enables it; no link can',()=>{
+test('on the live site multiplayer is ON by default for the page (the hub still requires a registered account) and the player can switch it off',()=>{
+ for(const h of ['thedarknetdistrict.com','www.thedarknetdistrict.com']){
+  assert.equal(R.allowed(live('',h),store()),true,'on by default');
+  assert.equal(R.allowed(live('',h),store({'tdd-multiplayer':'0'})),false,'the player turned it off in Settings');
+  assert.equal(R.allowed(live('',h),store({'tdd-multiplayer':'1'})),true);}
+ assert.equal(R.allowed(live('','evil.example'),store()),false);
+});
+test('with a hub configured, the option appears live; the stored choice (never a link) can switch it off; no address changes the hub',()=>{
  for(const h of ['thedarknetdistrict.com','www.thedarknetdistrict.com']){
   assert.equal(R.available(live('',h),HUB),true);
-  assert.equal(R.allowed(live('',h),store(),HUB),false,'off until the tester presses the button');
-  assert.equal(R.allowed(live('?multiplayer=1&hub=wss://evil.onrender.com',h),store(),HUB),false,'an address never enables it');
+  assert.equal(R.allowed(live('',h),store(),HUB),true,'on by default for the page; the hub still demands a registered account');
+  assert.equal(R.allowed(live('?multiplayer=1&hub=wss://evil.onrender.com',h),store({'tdd-multiplayer':'0'}),HUB),false,'an address can never switch it back on once the player turned it off');
   assert.equal(R.allowed(live('',h),store({'tdd-multiplayer':'1'}),HUB),true,'the button\'s stored choice does');
   assert.equal(R.hubUrl(live('?hub=wss://evil.onrender.com',h),store({'tdd-hub':'wss://evil.onrender.com'}),HUB),HUB,'the hub is the configured one, never an address or a stored value');}
  assert.equal(R.available(live('','thedarknetdistrict.com','http:'),HUB),false,'only over https');
@@ -38,10 +49,10 @@ test('the client never sends an identity, model or name, and does not touch save
  const code=fs.readFileSync('void-runner/remote-players.js','utf8');
  const sent=[...code.matchAll(/send\(JSON\.stringify\((\{.*?\})\)\)/g)].map(m=>m[1]).join(' ');
  assert.match(sent,/t:'hello'/);assert.match(sent,/t:'state'/);assert.doesNotMatch(sent,/uid|model|name|character|account|handle/i);
- assert.doesNotMatch(code.replace(/setFlag=v=>\{[^\n]*\n/,''),/\bsave\(|localStorage\.setItem|VoidCrowd\.(casts|staff|clips)\s*=|districtCrew|ncz-nightlife|VoidVR|VoidFlight|innerHTML/);
+ assert.doesNotMatch(code.replace(/setFlag=v=>\{[^\n]*\n/,'').replace(/const saveIgnored=[^\n]*\n/,'')   /* the two storage helpers: the Settings switch and the player's own mute/block list */,/\bsave\(|localStorage\.setItem|VoidCrowd\.(casts|staff|clips)\s*=|districtCrew|ncz-nightlife|VoidVR|VoidFlight|innerHTML/);
  assert.match(code,/walkingLocation\.area==='interior'/,'only the District interior');
  assert.match(code,/if\(!inRoom\(\)\)\{if\(ws\|\|peers\.size\|\|retryTimer\)disconnect\(\)/,'anywhere else: no connection at all');
- assert.match(code,/const LIVE_HUB='';/,'the live hub ships empty');
+ assert.match(code,/const LIVE_HUB='wss:\/\/district-hub-mbo7\.onrender\.com';/,'the reviewed live hub');
 });
 test('the script is a game script: a phone never downloads it, and it ships once, in both copies of the page',()=>{
  const html=fs.readFileSync('void-runner.html','utf8');
