@@ -1,6 +1,8 @@
-# District multiplayer hub: exact Render settings (nothing here has been applied)
+# District multiplayer hub: intended Render settings
 
-This page only describes settings. Nothing has been created, changed or deployed on Render. Every item below needs the owner's approval first.
+> **2026-11-06 status update:** The owner reports a `district-hub` service at `https://district-hub-mbo7.onrender.com`, deployed from `claude/character-creator` commit `4c60781`, and a prior 200 JSON response from `/health`. Current settings have not been independently inspected; see `CODEX_TO_CLAUDE_HANDOFF_2026-11-06.md`.
+
+This page records the intended settings. It does not prove which values are applied to the current service. Any further deployment or configuration change needs the owner's approval.
 
 ## Which service is which (so the wrong app is never deployed)
 
