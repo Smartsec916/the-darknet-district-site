@@ -69,6 +69,24 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(self.client.get('/api/void-runner/account',headers=self.header).json['character']['model'],'district-resident')
         self.assertEqual(vr.player_ref(self.db,'pilot').get().to_dict()['save'],{'sentinel':'existing campaign'})
         self.assertEqual(vr.player_ref(self.db,'pilot').get().to_dict()['revision'],7)
+    def test_appearance_endpoint_is_off_by_default_and_isolated(self):
+        route='/api/void-runner/character/appearance';look={'v':1,'base':'female','look':'ncz-neon','hair':'ponytail01','hairColor':'cyan','clothingColor':None,'accessories':['collar']}
+        with patch.dict(os.environ,{},clear=False):
+            os.environ.pop('VOID_APPEARANCE_ENABLED',None)
+            self.assertEqual(self.client.post(route,headers=self.header,json=look).status_code,404,'off unless the owner turns it on')
+        with patch.dict(os.environ,{'VOID_APPEARANCE_ENABLED':'true'}):
+            self.assertEqual(self.client.post(route,json=look).status_code,401)
+            self.assertEqual(self.client.post(route,headers=self.header,json=look).status_code,409,'a character must exist first')
+            vr.player_ref(self.db,'pilot').set({'character':{'gender':'female','model':'district-resident'},'save':{'sentinel':'campaign'},'revision':3,'credits':99},merge=True)
+            self.assertEqual(self.client.post(route,headers=self.header,json={**look,'look':'../../x'}).status_code,400)
+            self.assertEqual(self.client.post(route,headers=self.header,json={**look,'path':'x.glb'}).status_code,400)
+            r=self.client.post(route,headers=self.header,json=look);self.assertEqual(r.status_code,200);self.assertEqual(r.json['appearance']['hair'],'ponytail01')
+            saved=vr.player_ref(self.db,'pilot').get().to_dict()
+            self.assertEqual(saved['appearance'],look);self.assertEqual(saved['save'],{'sentinel':'campaign'});self.assertEqual(saved['revision'],3);self.assertEqual(saved['credits'],99);self.assertEqual(saved['character']['model'],'district-resident')
+            self.assertEqual(self.client.get('/api/void-runner/character',headers=self.header).json['appearance']['look'],'ncz-neon')
+            self.assertEqual(self.client.get('/api/void-runner/account',headers=self.header).json['appearance']['look'],'ncz-neon')
+            # another account's record is never touched (the uid comes from the verified token, never from the body)
+            self.assertIsNone(vr.player_ref(self.db,'other').get().to_dict())
     def test_character_contention_never_returns_a_server_error(self):
         route='/api/void-runner/character'
         def gave_up(ref,data,**kw): raise ValueError('Failed to commit transaction in 5 attempts.')

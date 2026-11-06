@@ -23,7 +23,8 @@ function createApiProvider({apiBase,fetchImpl=fetch,timeoutMs=4000,log=()=>{}}){
     const [character,me]=await Promise.all([anonymous?null:getJson('/api/void-runner/character',token),getJson('/api/identity/me',token)]);
     const model=typeof character?.character?.model==='string'?character.character.model:null;
     const handle=typeof me?.handle==='string'&&HANDLE.test(me.handle)?me.handle:null;
-    return {model,handle};
+    const appearance=character?.appearance&&typeof character.appearance==='object'&&!Array.isArray(character.appearance)?character.appearance:null;   // validated by the hub before use
+    return {model,handle,appearance};
   }
   return {profile};
 }

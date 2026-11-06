@@ -30,7 +30,7 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   await pg.goto(BASE);await ready();await pg.click('[data-action=menu-campaign]');await pg.click('[data-action=menu-new]');await pg.waitForTimeout(1500);
   const c=await pg.$('[data-action=menu-new-confirm]');if(c)await c.click();
   await pg.waitForFunction(()=>mode==='pod-waking'&&walkingLocation?.area==='interior',null,{timeout:300000});
-  await pg.click('#pod-wake button');await settle('interior',1000);await walkOut();
+  await pg.evaluate(()=>{state.story.flags.appearanceOffered=true;});await pg.click('#pod-wake button');await settle('interior',1000);await walkOut();
   await settle('street');let s=await snap();console.log(q,'start',JSON.stringify(s));
   assert.equal(s.area,'street');assert.equal(s.flags.area,undefined);assert(Math.abs(s.local[0])<.1&&Math.abs(s.local[1]-17.4)<.1,'outside the doors');assert.equal(s.interior,0,'no District inside the street');
   const street1=s;
@@ -69,12 +69,15 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   await toVestibule();await pg.waitForTimeout(400);await pg.evaluate(()=>VoidInteractions.handlers.get('district-scan')());await settle('interior',3000);
   let saved=await pg.evaluate(()=>{save();return JSON.parse(localStorage.getItem('void-runner-campaign-v1'));});
   assert.equal(saved.location,'earth');assert.equal(saved.story.flags.area,'district');
-  await pg.goto(BASE);await ready();await pg.click('[data-action=menu-continue]');await settle('interior',3000);s=await snap();console.log(q,'resumed inside',JSON.stringify(s));
-  assert.equal(s.area,'interior');assert.equal(s.street,0);assert(s.local[1]>27&&s.local[1]<30,'in the hall past the inner door');assert(Math.abs(s.local[0])<.5);
+  // Continue always wakes the player in their Sleeping Pod (C.socialEntry, since the District social profiles commit 0f42dff), wherever the save was made.
+  const continueToPod=async()=>{await pg.goto(BASE);await ready();await pg.click('[data-action=menu-continue]');await pg.waitForFunction(()=>mode==='pod-waking'&&walkingLocation?.area==='interior'&&!!walker,null,{timeout:300000});
+   assert.equal(await pg.evaluate(()=>state.story.flags.podWakePending),true,'Continue wakes in the pod');await pg.evaluate(()=>{state.story.flags.appearanceOffered=true;});await pg.click('#pod-wake button');await settle('interior',3000);return snap();};
+  s=await continueToPod();console.log(q,'resumed inside',JSON.stringify(s));
+  assert.equal(s.area,'interior');assert.equal(s.street,0);assert(Math.abs(s.local[0]+12.5)<1.5&&Math.abs(s.local[1]-57)<1.5,'at the pod exit: '+s.local);
   await pg.evaluate(()=>{const [x,z]=VoidNeoChinatown.toWorld(0,20.6);walker.x=x;walker.z=z;walker.yaw=0;});
   await settle('street',3000);saved=await pg.evaluate(()=>{save();return JSON.parse(localStorage.getItem('void-runner-campaign-v1'));});assert.equal(saved.story.flags.area,undefined);
-  await pg.goto(BASE);await ready();await pg.click('[data-action=menu-continue]');await settle('street',3000);s=await snap();console.log(q,'resumed outside',JSON.stringify(s));
-  assert.equal(s.area,'street');assert.equal(s.interior,0);
+  s=await continueToPod();console.log(q,'resumed after leaving to the street',JSON.stringify(s));
+  assert.equal(s.area,'interior','a save made outside also continues in the pod');assert.equal(s.street,0);
   // 6. A campaign from before the District reset (no campaign epoch) is retired: not loadable, copy kept, slot freed, the main menu says so.
   // The old-format save is planted in a brand-new browser context, so no earlier page is alive to write its own campaign back into the slot as it closes.
   const legacy=await pg.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('void-runner-campaign-v1'));delete raw.story.flags.campaignEpoch;return JSON.stringify(raw);});

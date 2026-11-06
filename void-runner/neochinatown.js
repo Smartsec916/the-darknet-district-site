@@ -77,6 +77,7 @@
     {id:'district-vending',label:'VENDING MACHINES',position:[-5,1.7,49.5],action:'district-vending',range:2.6},
     {id:'district-pod',label:'REST IN A SLEEP POD',position:[-12.5,1.7,62.5],action:'district-pod',range:3},
     {id:'district-pod-music',label:'POD MUSIC SCREEN',position:[-9,1.7,68.2],action:'district-pod-music',range:3},
+    {id:'district-wardrobe',label:'WARDROBE',position:[-5.4,1.7,68.2],action:'district-wardrobe',range:2.6},
     {id:'district-meeting',label:'MEETING ROOM / PRIVATE',position:[2.4,1.7,62.5],action:'district-meeting',range:2.6},
     {id:'district-stairs',label:'CLIMB TO THE SMOKING AREA',position:[0,1.7,75.5],action:'district-stairs',range:2.6},
     {id:'district-stairs-down',label:'GO BACK DOWNSTAIRS',position:[30,1.7,68],action:'district-stairs-down',range:2.6}
@@ -559,6 +560,12 @@
       const sy=(clock*60)%H;g.fillStyle='rgba(56,232,255,.08)';g.fillRect(8,sy,W-16,6);t.update();}
      draw();
      return {tick(dt){clock+=dt;redraw-=dt;if(redraw<=0){redraw=.2;draw();}},screen};})();
+    // The wardrobe mirror: a wall panel on the south wall of the sleeping-pod room, east of the music screen (character-creator.js owns the screen it opens). Free and unlimited.
+    {const X=-5.4,Y=1.5,Z=69.68,W=256,H=384,t=texture('pod-wardrobe',W,H,(g)=>{g.fillStyle='#04070a';g.fillRect(0,0,W,H);g.strokeStyle='#38e8ff';g.lineWidth=3;g.strokeRect(10,10,W-20,H-20);g.fillStyle='#38e8ff';g.font='bold 26px monospace';g.fillText('WARDROBE',40,64);
+      g.fillStyle='#ff3fb4';g.font='bold 15px monospace';g.fillText('CHANGE YOUR LOOK',42,92);g.fillStyle='#8fb3bd';g.font='14px monospace';g.fillText('FREE · UNLIMITED',46,118);g.fillText('[E] OPEN',92,H-40);
+      g.strokeStyle='rgba(56,232,255,.5)';g.beginPath();g.ellipse(W/2,230,34,70,0,0,Math.PI*2);g.stroke();g.beginPath();g.arc(W/2,150,20,0,Math.PI*2);g.stroke();}),
+      frame=mat('wardrobe-shell','#121419',{rough:.32,metal:.85});
+     box('pod-wardrobe-frame',[1.62,2.32,.1],[X,Y,Z+.07],frame,false);plane('pod-wardrobe-panel',1.4,2.1,[X,Y,Z],texMat('pod-wardrobe-panel',t,{glow:true}),0);}
     // The pod music screen: a wall-mounted player on the south wall of the sleeping-pod room (pod-music.js owns the player and what the screen shows). Its music also
     // moves the room's own light: the pink lamp over the pods, the ceiling panels, the pods' inner glow and a strip along the ceiling. No light is added.
     const podScreen=(()=>{const X=-9,Y=2.45,Z=69.68,W=512,H=288,t=texture('pod-music',W,H,(g)=>{g.fillStyle='#04070a';g.fillRect(0,0,W,H);g.fillStyle='#2fe0c4';g.font='bold 20px monospace';g.fillText('POD MUSIC',20,36);}),
