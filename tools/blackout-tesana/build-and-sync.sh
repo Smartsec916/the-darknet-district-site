@@ -9,5 +9,6 @@ npm ci --ignore-scripts --no-audit --no-fund
 npx tsc --noEmit
 npm run build
 for target in "$repo/blackout-protocol" "$repo/static/blackout-protocol"; do
+  find "$target/assets" -maxdepth 1 -type f -name 'index-*.js' -delete
   cp -a dist/. "$target/"
 done

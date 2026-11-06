@@ -7,17 +7,28 @@ export interface SaveData {
   stats: Record<string, LevelStat>; resume: Resume | null; muted: boolean;
   fx: { scanlines: boolean; glow: boolean; grid: boolean; cabinet: boolean }; finished: boolean;
 }
-const KEY = "blackout_protocol_save_v1";
+const GUEST_KEY = "blackout_protocol_save_v1";
+let saveKey = GUEST_KEY;
+let saveOwner: string | null = null;
 export function freshSave(): SaveData {
   return { v: 1, unlocked: 1, btc: 0, score: 0, up: {}, shield: 0, sidearm: false, stats: {}, resume: null, muted: false, fx: { scanlines: true, glow: true, grid: false, cabinet: true }, finished: false };
 }
 export let save: SaveData = load();
 function load(): SaveData {
-  try { const s = localStorage.getItem(KEY); if (s) { const d = JSON.parse(s); if (d && d.v === 1) return { ...freshSave(), ...d, fx: { ...freshSave().fx, ...(d.fx || {}) } }; } } catch { /* */ }
+  try { const s = localStorage.getItem(saveKey); if (s) { const d = JSON.parse(s); if (d && d.v === 1) return { ...freshSave(), ...d, fx: { ...freshSave().fx, ...(d.fx || {}) } }; } } catch { /* */ }
   return freshSave();
 }
 export const persistGate = { off: false };
-export function persist(): void { if (persistGate.off) return; try { localStorage.setItem(KEY, JSON.stringify(save)); } catch { /* */ } }
+export function persist(): void { if (persistGate.off) return; try { localStorage.setItem(saveKey, JSON.stringify(save)); } catch { /* */ } }
+/** Keep guest progress in the export's original key and isolate each District account on this device. */
+export function setSaveOwner(uid: string | null): boolean {
+  if (uid === saveOwner) return false;
+  persist();
+  saveOwner = uid;
+  saveKey = uid ? `${GUEST_KEY}_uid_${encodeURIComponent(uid)}` : GUEST_KEY;
+  save = load();
+  return true;
+}
 export function resetSave(): void { const fx = save.fx, muted = save.muted; save = freshSave(); save.fx = fx; save.muted = muted; persist(); }
 export function statOf(id: string): LevelStat { if (!save.stats[id]) save.stats[id] = { shards: [false, false, false], best: 0, done: false, setBonus: false }; return save.stats[id]; }
 export const tier = (k: string) => save.up[k] || 0;
