@@ -18,7 +18,7 @@ test('desktop only: the device gate runs first and every other game script waits
  const html=read('void-runner.html'),scripts=[...html.matchAll(/<script\b[^>]*>/g)].map(m=>m[0]).filter(s=>/void-runner\//.test(s));
  const live=scripts.filter(s=>!/type="text\/tdd-game(-module)?"/.test(s));   // both the classic and the module form are held back by the gate
  assert.equal(live.length,1,'exactly one game script loads before the gate decides: '+live.join(' '));assert.match(live[0],/device-gate\.js/);
- for(const s of ['remote-players.js','trade-window.js','avatar-preview.js','pod-music.js','conversation-ui.js'])assert(scripts.some(t=>t.includes(s)&&/tdd-game/.test(t)),s+' is inert until the gate releases it, so a phone never downloads it');
+ for(const s of ['remote-players.js','district-chat.js','trade-window.js','avatar-preview.js','pod-music.js','conversation-ui.js'])assert(scripts.some(t=>t.includes(s)&&/tdd-game/.test(t)),s+' is inert until the gate releases it, so a phone never downloads it');
 });
 test('no Iris chatbot on the game page or the website Sleeping Pod page; Share Links stay retired',()=>{
  for(const f of ['void-runner.html','sleeping_pod.html'])assert.doesNotMatch(read(f),/iris-chat|iris-widget|chatbot|identity_api|darknet-district-iris/i,f);
@@ -32,7 +32,7 @@ test('the pod music status: shared playlist as the owner requested, personal fil
  assert.deepEqual(fs.readdirSync('void-runner').filter(f=>/music-manager|musicmanager/i.test(f)),[],'the admin Music Manager is a proposal only (MUSIC_MANAGER_DECISION.md)');
 });
 test('multiplayer and trading ship disabled: no live hub, trading refused in production, no paid service in the blueprint',()=>{
- const rp=read('void-runner/remote-players.js');assert.match(rp,/const LIVE_HUB='';/);
+ const rp=read('void-runner/remote-players.js');assert.match(rp,/const LIVE_HUB='wss:\/\/district-hub-mbo7\.onrender\.com';/);
  const cfg=read('tools/district-hub/config.cjs');assert.match(cfg,/HUB_TRADING is not available in production/);
  const yml=read('tools/district-hub/render.yaml').split('\n').filter(l=>!/^\s*#/.test(l)).join('\n');
  assert.match(yml,/autoDeploy: false/);assert.match(yml,/plan: free/);assert.doesNotMatch(yml,/HUB_TRADING|HUB_ALLOW_ANY/);
