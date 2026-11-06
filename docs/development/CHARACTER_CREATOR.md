@@ -54,3 +54,34 @@ The targets in the brief (about 20,000 triangles and 8 draw calls on High; 6,000
 ## Tests
 
 `npm test` (catalog, fit, hub, trading, assets); `python3 -m unittest tests.test_character_appearance`; browser (software GL, local server on 5187): `tests/character-assembler-browser.cjs`, `character-creator-browser.cjs`, `character-remote-browser.cjs`, `character-performance-browser.cjs`. The Render-hub appearance test is in `tests/district-hub-prod-ws.cjs`.
+
+## Persistence audit (second pass)
+
+| Data | Where it lives today | Across browsers/devices? |
+|---|---|---|
+| The old character `{gender, model}` | Firestore `vr_players/<sha256(uid)>.character` via the game API (`/character`, one per account, already live) | Yes |
+| The creator look | **This browser only** (`localStorage` `void-runner-appearance:<account id or guest>`) while the server feature is off | No |
+| The creator look on the server | Firestore `vr_players/<sha256(uid)>.appearance` through `POST /character/appearance`, written by the same Admin-SDK API as everything else. **Off** (404) until `VOID_APPEARANCE_ENABLED=true` on the game API | Yes, once enabled |
+
+How it works now (built and tested locally with the fake-Firestore API tests and hub tests; no emulator binary and no production service was touched): confirming in the creator saves locally and, if signed in with a permanent account that has a character, also posts to the API. The API returns the saved look in `GET /character` and `GET /account`; the game uses the server copy first (so a second browser shows the same look), then this browser's copy, then the look matching the old character. While the flag is off the post gets a 404 and is ignored. Guests and anonymous accounts stay local only. The hub reads the look from the API with the player's own token, so a player can only ever change their own look.
+
+### Firebase Console / Render actions you would eventually need (none done)
+
+1. **No Firestore rules change, no new collection, no new index, no new credentials.** `appearance` is one more field on the existing `vr_players` document, written by the existing Admin-SDK API (which bypasses rules; browsers stay denied). Please confirm in the Console that `vr_players` is deny-all for browsers (this has never been verified from the Console; see `FIREBASE_MULTIPLAYER_AUDIT.md`).
+2. **Authentication > Settings > Authorized domains**: `thedarknetdistrict.com` and `www.thedarknetdistrict.com` must be listed (already needed for sign-in).
+3. Render, game API service: add environment variable `VOID_APPEARANCE_ENABLED=true` (only when you approve a test). No secret.
+4. Render: the hub service (`HUB_RENDER_SETTINGS.md`). No Firebase secret.
+5. Optionally, for a safe rollout, set the variable only for the test and unset it afterwards: the hub then falls back to each player's original character.
+
+## Performance work (second pass)
+
+Safe, appearance-preserving changes made: remote characters hide eyebrows and eyelashes beyond 8 m (Low) / 14 m (High), with hysteresis. That removes 2 of about 9 draw calls and about 560 triangles per distant character. Nothing was decimated or replaced. Counts only; no frame-rate claim is made from software rendering.
+
+Looked at and not done (needs the Blender/MPFB export or a visible change): merging body, outfit and shoes into one mesh (they are separate materials and textures: 7 to 10 draw calls cannot drop without an atlas), a lower-triangle Low model (the body alone is about 15,800 triangles, half the budget), and reducing 512 px textures (about 4 MB per character on the GPU).
+
+### Extra asset checklist for a lighter Low tier (owner's Blender)
+
+1. For each of the 7 looks (or each standard base once the modular export exists): a Low model at 6,000 to 8,000 triangles: body decimated with clothes and hair baked into the same mesh, one 512 or 256 px atlas, one material, eyes painted into the texture.
+2. Same skeleton, same skin weights, same 52 joints and clip names (`idle`, `walk`, ...) so `VoidCrowd.animate` works unchanged.
+3. Files named `<look>-low.glb` in `void-runner/assets/models/crowd/`; the assembler can then load them on the Low tier. Run `tools/assets/analyze-character-models.cjs` on them first.
+4. Compare screenshots at the normal viewing distance before accepting any decimation.
