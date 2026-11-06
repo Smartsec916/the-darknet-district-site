@@ -141,3 +141,29 @@ test('appearance: reconnect restores the saved look, one avatar per account, del
   bolt.ws.close();
  }finally{await hub.close();}
 });
+
+test('a slow look refresh keeps the verified session and ignores a concurrent refresh',async()=>{
+ const A=require('../void-runner/character-appearance.js');
+ const w=makeWorld({fox:{uid:'uid-fox',model:'district-resident',appearance:A.defaults('district-resident')},bolt:{uid:'uid-bolt',model:'district-smuggler'}});
+ let hold=false,release=null;
+ const fetchImpl=async(url,options)=>{
+  if(hold&&url.endsWith('/api/void-runner/character'))await new Promise(resolve=>{release=resolve;});
+  return w.fetchImpl(url,options);
+ };
+ const hub=await main({HUB_MODE:'production',HUB_API_BASE:'https://api.test',HUB_ALLOWED_UIDS:'uid-fox,uid-bolt',PORT:'0'},
+  {fetchJwks:w.fetchJwks,fetchImpl,quiet:true});
+ try{
+  const fox=await join(hub,w.accounts.fox),bolt=await join(hub,w.accounts.bolt,6,5);
+  await bolt.until(c=>c.of('welcome').length&&hub.hub.peers.size===2);
+  w.accounts.fox.appearance={...A.defaults('district-resident'),hair:'bob01'};
+  hold=true;fox.send({t:'refresh',token:w.accounts.fox.token});
+  await fox.until(()=>release);
+  fox.send({t:'refresh',token:w.accounts.bolt.token}); // ignored while the first identity check is pending
+  release();hold=false;
+  await bolt.until(c=>c.of('look').length===1);
+  assert.equal(bolt.of('look')[0].appearance.hair,'bob01');
+  assert.equal(hub.hub.peers.size,2,'neither a slow API nor a concurrent message duplicates a player');
+  assert.equal(fox.of('refused').length,0,'current busy behaviour is silent; document this limitation');
+  fox.ws.close();bolt.ws.close();
+ }finally{release?.();await hub.close();}
+});

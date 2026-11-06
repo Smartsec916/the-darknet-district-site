@@ -2,6 +2,8 @@
 
 > **LATEST (2026-11-06): read the section "CURRENT STATE AND NEXT CODEX TASK" below first.** It supersedes the older material further down.
 
+**Independent review follow-up (2026-11-06):** Codex started from the verified Claude HEAD `4c607817be5669d6a5b98b427b209409df84fd74` on `codex/independent-integration-review`. The review findings, tests, restricted two-player checklist, and remaining console approvals are in `INTEGRATION_REVIEW_2026-11-06.md`. Continue from the latest pushed development tip after checking both branches; the task list below is the original brief, not a claim that online multiplayer was tested.
+
 
 **Conversation and character milestone (2026-11-05):** `codex/conversations-character-foundation` adds a floating walking-mode NPC/VR companion dialogue panel with local history and Social filters, an authenticated create-once character endpoint with two existing District models, and achievement category previews. Admin/Iris multiplayer handoff, custom hair/clothing, live messages, server achievement grants, and two-client sessions remain unfinished. See `CONVERSATION_CHARACTER_MILESTONE.md` for exact boundaries and tests.
 
