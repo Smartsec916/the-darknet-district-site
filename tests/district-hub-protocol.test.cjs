@@ -8,7 +8,7 @@ const st=(x,z,yaw=0)=>({t:'state',x,z,yaw});
 
 test('only well-formed hello, state and bye messages parse; identity fields are invalid',()=>{
  assert(parse(JSON.stringify(hello)));assert(parse(JSON.stringify(st(1,2,3))));assert(parse('{"t":"bye"}'));
- for(const bad of ['{"t":"state","x":1,"z":2,"yaw":0,"uid":"other"}','{"t":"state","x":1,"z":2,"yaw":0,"model":"admin"}','{"t":"hello","token":"x","room":"r","name":"Admin"}','{"t":"state","x":"1","z":2,"yaw":0}','{"t":"state","x":null,"z":2,"yaw":0}','{"t":"state","x":1e9,"z":2,"yaw":0}','{"t":"chat","text":"hi"}','[]','7','{','x'.repeat(600)])assert.equal(parse(bad),null,bad);
+ for(const bad of ['{"t":"state","x":1,"z":2,"yaw":0,"uid":"other"}','{"t":"state","x":1,"z":2,"yaw":0,"model":"admin"}','{"t":"hello","token":"x","room":"r","name":"Admin"}','{"t":"state","x":"1","z":2,"yaw":0}','{"t":"state","x":null,"z":2,"yaw":0}','{"t":"state","x":1e9,"z":2,"yaw":0}','[]','7','{','x'.repeat(600)])assert.equal(parse(bad),null,bad);
 });
 test('public ids are stable, short and do not reveal the account id',()=>{assert.equal(publicId('uid-1'),publicId('uid-1'));assert.notEqual(publicId('uid-1'),publicId('uid-2'));assert.equal(publicId('uid-1').length,12);assert(!publicId('uid-1').includes('uid'));});
 test('two players see each other once placed, with the server-chosen model; guests get the default look',()=>{
@@ -58,4 +58,10 @@ test('a login token fits in hello, but nothing else may be large',()=>{
  assert(parse(JSON.stringify({t:'hello',token:'a'.repeat(1500),room:'district-interior'})));
  assert.equal(parse(JSON.stringify({t:'hello',token:'a'.repeat(5000),room:'district-interior'})),null);
  assert.equal(parse(JSON.stringify({t:'state',x:1,z:2,yaw:0,pad:'a'.repeat(600)})),null);
+});
+
+test('chat, ignore and report messages: only exact shapes parse; identity or extra fields are invalid',()=>{
+ const {parse}=require('../tools/district-hub/protocol.cjs');
+ for(const ok of ['{"t":"chat","text":"hi"}','{"t":"ignore","id":"0123456789ab","on":true}','{"t":"report","id":"0123456789ab","reason":"spam"}','{"t":"report","id":"0123456789ab","reason":"other","note":"text"}'])assert.ok(parse(ok),ok);
+ for(const bad of ['{"t":"chat","text":"hi","name":"Admin"}','{"t":"chat","text":5}','{"t":"chat"}','{"t":"chat","text":"'+'a'.repeat(900)+'"}','{"t":"ignore","id":"nope","on":true}','{"t":"ignore","id":"0123456789ab","on":"yes"}','{"t":"report","id":"0123456789ab","reason":"made-up"}','{"t":"report","id":"0123456789ab","reason":"spam","uid":"x"}','{"t":"report","id":"0123456789ab","reason":"spam","note":5}'])assert.equal(parse(bad),null,bad);
 });

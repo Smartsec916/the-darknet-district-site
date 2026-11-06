@@ -4,6 +4,7 @@
 'use strict';
 const crypto=require('node:crypto');
 const {TradeBook,parseTrade,RULES:TRADE_RULES}=require('./trade.cjs');
+const Chat=require('./chat.cjs');
 
 // Whitelisted rooms. The bounds are a coarse sanity box around the district interior (this is NOT the floor plan; the real
 // footprint is owned by void-runner/neochinatown.js). The prototype supports the interior only, because that is where the
@@ -32,6 +33,9 @@ function parse(raw){
   if(m.t==='hello')return keys==='room,t,token'&&typeof m.token==='string'&&m.token.length<4096&&typeof m.room==='string'?m:null;
   if(m.t==='state')return keys==='t,x,yaw,z'&&num(m.x)&&num(m.z)&&num(m.yaw)&&Math.abs(m.x)<1e5&&Math.abs(m.z)<1e5&&Math.abs(m.yaw)<1e4?m:null;
   if(m.t==='bye')return keys==='t'?m:null;
+  if(m.t==='chat')return keys==='t,text'&&typeof m.text==='string'&&m.text.length<=Chat.RULES.maxChars*4?m:null;   // the cleaned length is checked again by chat.cjs
+  if(m.t==='ignore')return keys==='id,on,t'&&/^[0-9a-f]{12}$/.test(String(m.id))&&typeof m.on==='boolean'?m:null;
+  if(m.t==='report')return (keys==='id,reason,t'||keys==='id,note,reason,t')&&/^[0-9a-f]{12}$/.test(String(m.id))&&Chat.RULES.reasons.includes(m.reason)&&(m.note===undefined||typeof m.note==='string')?m:null;
   if(m.t==='refresh')return keys==='t,token'&&typeof m.token==='string'&&m.token.length<4096?m:null;   // re-read my saved look (a fresh sign-in token, like hello)
   return null; // anything else, including any attempt to send an identity, model or name, is invalid
 }
@@ -39,7 +43,7 @@ const wrap=a=>{a=a%(Math.PI*2);return a>Math.PI?a-Math.PI*2:a<-Math.PI?a+Math.PI
 
 class Hub{
   /* send(connection, object) and close(connection, code, reason) are supplied by the transport. */
-  constructor({send,close,now=()=>Date.now()}){this.send=send;this.closeConn=close;this.now=now;this.peers=new Map();this.byConn=new Map();this.trades=null;}
+  constructor({send,close,now=()=>Date.now(),report=()=>{}}){this.send=send;this.closeConn=close;this.now=now;this.report=report;this.peers=new Map();this.byConn=new Map();this.trades=null;this.history=[];}
   /* Turns player-to-player trading on for this hub, against a ledger (ledger.cjs). The production ledger is the disabled one. */
   attachTrades(ledger,{simulated=false,rules}={}){
    this.trades=new TradeBook({ledger,simulated,rules,now:()=>this.now(),peers:{byUid:u=>this.peers.get(u)||null,byPublicId:id=>[...this.peers.values()].find(p=>p.id===id)||null},
@@ -79,10 +83,42 @@ class Hub{
     const old=this.peers.get(who.uid);if(old)this.drop(old.conn,4001,'replaced by a newer connection');
     if(this.roomPeers(message.room).length>=room.cap){this.send(conn,{t:'error',reason:'room full'});this.closeConn(conn,4003,'room full');return false;}
     const {model,appearance}=this.look(who);
-    const peer={uid:who.uid,id,conn,room:message.room,name:typeof who.handle==='string'&&HANDLE.test(who.handle)?who.handle:(who.anonymous?'Guest-':'Pilot-')+id.slice(0,4),model,appearance,x:0,z:0,yaw:0,clip:'idle',placed:false,lastAt:t,lastMove:t,lastSnap:-Infinity,bucketAt:t,bucket:0,violations:0};
+    const peer={uid:who.uid,id,conn,room:message.room,name:typeof who.handle==='string'&&HANDLE.test(who.handle)?who.handle:(who.anonymous?'Guest-':'Pilot-')+id.slice(0,4),model,appearance,x:0,z:0,yaw:0,clip:'idle',placed:false,anonymous:!!who.anonymous,ignoring:new Set(),chatTimes:[],chatRefusals:0,chatLockUntil:0,reports:0,lastReportAt:-Infinity,lastAt:t,lastMove:t,lastSnap:-Infinity,bucketAt:t,bucket:0,violations:0};
     this.peers.set(who.uid,peer);this.byConn.set(conn,peer);
-    this.send(conn,{t:'welcome',you:id,features:{trade:!!this.trades?.enabled,tradeSimulated:!!this.trades?.simulated},peers:this.roomPeers(message.room).filter(p=>p.id!==id&&p.placed).map(p=>this.view(p))});
+    this.send(conn,{t:'welcome',you:id,features:{trade:!!this.trades?.enabled,tradeSimulated:!!this.trades?.simulated,chat:!who.anonymous},peers:this.roomPeers(message.room).filter(p=>p.id!==id&&p.placed).map(p=>this.view(p))});
     return true;
+  }
+
+  /* ---- Text chat. Only the verified, registered account of this connection can speak; the name is the hub's, never the message's. ---- */
+  chat(conn,m){
+    const p=this.byConn.get(conn);if(!p)return {ok:false};const t=this.now(),R=Chat.RULES;
+    const refuse=(reason,soft=true)=>{if(soft&&++p.chatRefusals>=R.lockAfterRefusals){p.chatRefusals=0;p.chatLockUntil=t+R.lockMs;reason='You are sending messages too fast. Chat is paused for a minute.';}this.send(conn,{t:'chat-refused',reason});return {ok:false,reason};};
+    if(p.anonymous)return refuse('Chat needs a registered account.',false);
+    if(!p.placed)return refuse('Walk into the District first.',false);
+    if(t<p.chatLockUntil)return refuse('Chat is paused for a moment.',false);
+    const c=Chat.clean(m.text);if(!c.ok)return refuse(c.reason);
+    p.chatTimes=p.chatTimes.filter(x=>t-x<R.windowMs);
+    if(p.chatTimes.length&&t-p.chatTimes[p.chatTimes.length-1]<R.minIntervalMs)return refuse('Slow down a little.');
+    if(p.chatTimes.length>=R.perWindow)return refuse('You are sending messages too fast.');
+    if(p.lastText===c.text&&t-p.lastTextAt<R.duplicateMs)return refuse('You just said that.');
+    p.chatTimes.push(t);p.lastText=c.text;p.lastTextAt=t;p.chatRefusals=0;
+    const msg={t:'chat',id:p.id,name:p.name,text:c.text,at:t};
+    this.history.push({room:p.room,id:p.id,uid:p.uid,name:p.name,text:c.text,at:t});if(this.history.length>R.historyKeep)this.history.shift();
+    for(const q of this.roomPeers(p.room))if(q.id===p.id||!q.ignoring.has(p.id))this.send(q.conn,msg);
+    return {ok:true};
+  }
+  /* Mute or block: the hub stops delivering that player's chat to this connection. (The game also hides a blocked player's avatar.) */
+  ignore(conn,m){const p=this.byConn.get(conn);if(!p||m.id===p.id)return false;if(m.on){if(p.ignoring.size>=Chat.RULES.maxIgnored&&!p.ignoring.has(m.id))return false;p.ignoring.add(m.id);}else p.ignoring.delete(m.id);return true;}
+  /* A report goes to the hub's log (the owner's handling path: docs/development/MODERATION.md) together with the reported player's recent lines. */
+  reportPlayer(conn,m){
+    const p=this.byConn.get(conn);if(!p)return false;const t=this.now(),R=Chat.RULES;
+    if(p.anonymous){this.send(conn,{t:'report-refused',reason:'Reporting needs a registered account.'});return false;}
+    if(t-p.lastReportAt<R.reportEveryMs||p.reports>=R.reportsPerSession){this.send(conn,{t:'report-refused',reason:'Please wait before sending another report.'});return false;}
+    const target=this.roomPeers(p.room).find(q=>q.id===m.id)||null,seen=this.history.filter(h=>h.id===m.id&&h.room===p.room);
+    if(m.id===p.id||(!target&&!seen.length)){this.send(conn,{t:'report-refused',reason:'That player is not here.'});return false;}
+    const who=target||seen[seen.length-1];p.lastReportAt=t;p.reports++;
+    this.report({at:new Date(t).toISOString(),room:p.room,reason:m.reason,note:Chat.cleanNote(m.note),reporter:{id:p.id,uid:p.uid,name:p.name},target:{id:m.id,uid:who.uid,name:who.name},recentLines:seen.slice(-10).map(h=>({at:new Date(h.at).toISOString(),text:h.text}))});
+    this.send(conn,{t:'reported'});return true;
   }
 
   /* A state message. The server decides what it accepts and derives the animation itself. */
