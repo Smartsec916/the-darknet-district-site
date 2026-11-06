@@ -47,6 +47,42 @@ async function ready(page) {
     assert.ok(moving.x > startX + 10, 'desktop right movement');
     assert.equal(moving.anim, 'run');
 
+    // A real checkpoint object should survive a death and remain in the local save.
+    const checkpoint = await page.evaluate(() => {
+      const w = window.__BP.world;
+      const marker = w.L.ents.find(entity => entity.t === 'checkpoint');
+      const cp = marker && w.things.find(thing => thing.id === marker.id);
+      if (!cp) return null;
+      w.player.x = cp.x; w.player.y = cp.y;
+      return { id: cp.id, x: cp.x, y: cp.y };
+    });
+    assert.ok(checkpoint, 'sector 1 has a checkpoint');
+    await page.waitForFunction(id => window.__BP.save().resume?.cp === id, checkpoint.id);
+    await page.evaluate(() => window.__BP.world.player.die(window.__BP.world, 'test hazard'));
+    await page.waitForFunction(() => window.__BP.world.player.state === 'play', null, { timeout: 8000 });
+    const afterDeath = await page.evaluate(() => ({
+      x: window.__BP.world.player.x, y: window.__BP.world.player.y,
+      hp: window.__BP.world.player.hp, savedCheckpoint: window.__BP.save().resume?.cp
+    }));
+    assert.ok(Math.abs(afterDeath.x - checkpoint.x) < 20 && Math.abs(afterDeath.y - checkpoint.y) < 30,
+      'death respawns at the checkpoint');
+    assert.ok(afterDeath.hp > 0, 'respawn restores health');
+    assert.equal(afterDeath.savedCheckpoint, checkpoint.id, 'death keeps checkpoint save');
+    await page.reload();
+    await page.waitForFunction(() => Boolean(window.__BP));
+    assert.equal(await page.evaluate(() => window.__BP.save().resume?.cp), checkpoint.id,
+      'checkpoint survives a browser reload');
+    const canvas = await page.locator('#screen canvas').first().boundingBox();
+    assert.ok(canvas, 'game canvas is visible after reload');
+    const clickGame = async (x, y) => page.mouse.click(canvas.x + canvas.width * x / 320,
+      canvas.y + canvas.height * y / 240);
+    await clickGame(160, 128); // start prompt
+    await page.waitForTimeout(250);
+    await clickGame(160, 93); // Continue Sector 01
+    await page.waitForFunction(() => window.__BP.screen === 'play' && Boolean(window.__BP.world));
+    assert.ok(Math.abs(await page.evaluate(() => window.__BP.world.player.x) - checkpoint.x) < 20,
+      'Continue resumes at the saved checkpoint');
+
     // Drive the completion hook without fabricating a leaderboard response.
     await page.evaluate(() => { window.__BP.world.time = 20; window.__BP.world.finish(); });
     await page.waitForFunction(() => window.__BP.screen === 'results');
