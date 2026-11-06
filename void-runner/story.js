@@ -46,8 +46,8 @@
     return (!c.flags || Object.entries(c.flags).every(([k, v]) => t.flags[k] === v)) && (!c.notFlags || Object.entries(c.notFlags).every(([k, v]) => t.flags[k] !== v)) && (!c.completed || c
       .completed.every(id => s.cleared.includes(id))) && (!c.events || c.events.every(id => t.events
       .includes(id))) && (!c.met || c.met.every(id => t.met.includes(id))) && (!c.alive || c.alive.every(
-      id => !['dead', 'removed'].includes(t.characters[id]))) && (!c.ship || s.ownedShips.includes(c
-      .ship)) && (!c.item || s.creditGear.includes(c.item) || s.standardGear.includes(c.item)) && (!c
+      id => !['dead', 'removed'].includes(t.characters[id]))) && (!c.ship || (s.story.flags.shipAccess !== 'none' && s.ownedShips.includes(c
+      .ship))) && (!c.item || s.creditGear.includes(c.item) || s.standardGear.includes(c.item)) && (!c
       .quest || c.quest === s.quest);
   }
 
@@ -72,6 +72,7 @@
 
   function emit(s, type, subject) {
     s.story ??= fresh();
+    if(s.story.flags?.missionPool==='closed')return [];
     const fired = [];
     for (const event of content.events) {
       if (event.trigger.type !== type || event.trigger.subject && event.trigger.subject !== subject || s

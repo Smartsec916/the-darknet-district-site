@@ -6,25 +6,33 @@
    Keys: P (rebindable, "Personal HUD") opens and closes; Esc closes; 1-4 or ←/→ switch sections; ↑/↓ and Enter
    move and choose. Controller: View/Back opens and closes, D-pad moves, A chooses, B closes. */
 (function(){
- const H=VoidHudData,tabs=[['missions','MISSION LOG'],['comms','COMMS'],['inventory','INVENTORY'],['taxi','TAXI / TRANSPORT']];
- let panel=null,returnMode=null,tab='missions';
+ const H=VoidHudData,Profiles=VoidSocialProfiles,Achievements=VoidAchievements,tabs=[['missions','MISSION LOG'],['comms','SOCIAL'],['inventory','INVENTORY'],['taxi','TAXI / TRANSPORT']];
+ let panel=null,returnMode=null,tab='missions',socialFilter='all',socialCharacter='',achievementFilter='all';
  const openModes=['walking','play','dock'];
  const esc=s=>escapeText(String(s??''));
  const onFoot=()=>mode==='walking'||returnMode==='walking';
  function placeName(){return C.stations[state.location]?.name||state.location;}
  // ---- Sections ----
  function missionsHtml(){
+  if(VoidMissions.closed(state))return '<p class="hud-note">No missions are available yet.</p>';
   if(!state.universe.missionLogUnlocked)return '<p class="hud-note">The Mission Log opens when Mara gives you the pistol.</p>';
   const all=VoidMissions.sync(state,C),card=m=>'<article class="hud-card"><h3>'+esc(m.title)+' <small class="hud-tag '+(m.completed?'done':m.tracked?'tracked':'')+'">'+(m.completed?'COMPLETE':m.tracked?'TRACKED':'ACTIVE')+'</small></h3><p>'+esc(m.description)+'</p><p class="hud-meta">'+esc(m.type.toUpperCase())+(m.destination?' · '+esc(C.stations[m.destination]?.name||m.destination):'')+(m.rewards?' · '+esc(m.rewards)+' CR':'')+'</p><ul>'+m.objectives.map(o=>'<li class="'+(o.complete?'complete':'pending')+'">'+(o.complete?'✓ ':'○ ')+esc(o.label)+'</li>').join('')+'</ul>'+(m.completed?'':m.tracked?'<button type="button" data-hud-untrack="'+esc(m.id)+'" data-hud-key="m-'+esc(m.id)+'">UNTRACK</button>':'<button type="button" data-hud-track="'+esc(m.id)+'" data-hud-key="m-'+esc(m.id)+'">TRACK</button>')+'</article>';
   const active=all.filter(m=>!m.completed),done=all.filter(m=>m.completed);
   return '<p class="hud-note">Tracking here is the same as in the Mission Log ('+esc(VoidInput.label(VoidInput.bindings.missionLog||'KeyL'))+'). Guidance is separate, in the game menu.</p><h2>ACTIVE</h2>'+(active.map(card).join('')||'<p>No active missions.</p>')+'<h2>COMPLETED</h2>'+(done.map(card).join('')||'<p>None yet.</p>');
  }
  function commsHtml(){
-  const l=H.link(state,{onFoot:onFoot(),route:returnMode==='play'?flight.route:null}),msgs=H.messages(state,{rook:typeof rookMissileLine!=='undefined'?rookMissileLine.text:null}),people=H.contacts(state);
+  const l=H.link(state,{onFoot:onFoot(),route:returnMode==='play'?flight.route:null}),people=H.contacts(state),uid=window.VoidAccount?.user?.uid||'guest';
+  const rows=VoidConversationHistory.read(localStorage,uid),visible=VoidConversationHistory.filter(rows,socialFilter,socialCharacter);
+  const badges=p=>'<div class="social-achievements" aria-label="Achievements">'+(Achievements.publicDisplay(Achievements.definitions,p.achievements,achievementFilter).length?Achievements.publicDisplay(Achievements.definitions,p.achievements,achievementFilter).map(a=>'<span class="social-badge">'+esc(a.icon)+' '+esc(a.name)+'</span>').join(''):'<span class="hud-note">No verified achievements yet.</span>')+'</div>';
+  const profile=p=>'<article class="hud-card social-profile" data-profile="'+esc(p.key)+'"><div class="social-avatar" aria-hidden="true">'+esc(p.name.slice(0,1).toUpperCase())+'</div><div><h3>'+esc(p.name)+'</h3><p>'+esc(p.bio)+'</p>'+badges(p)+'<button type="button" data-hud-character="'+esc(p.key.startsWith('npc:')?p.key.slice(4):'')+'">CONVERSATIONS</button></div></article>';
+  const me=Profiles.player(uid,window.VoidAccount?.handle||'Local Pilot');
+  const filters=['all','recent','unread'],filterButtons=filters.map(f=>'<button type="button" data-hud-filter="'+f+'" aria-pressed="'+(socialFilter===f)+'">'+f.toUpperCase()+'</button>').join('');
+  const thread=visible.map(m=>'<article class="social-message"><b>'+esc(m.name)+'</b><time datetime="'+esc(new Date(m.at).toISOString())+'"> · '+esc(new Date(m.at).toLocaleString())+'</time><p>'+esc(m.text)+'</p></article>').join('');
   return '<section class="hud-link hud-link-'+esc(l.state)+'"><b>RELAY LINK · '+esc(l.label)+'</b><span>'+esc(l.note)+'</span></section>'+
-   '<h2>MESSAGES</h2>'+(msgs.map(m=>'<article class="hud-card"><h3>'+esc(m.from)+' <small class="hud-tag">'+esc(m.via.toUpperCase())+'</small></h3><p>“'+esc(m.text)+'”</p></article>').join('')||'<p>No messages.</p>')+
-   '<h2>CONTACTS</h2><p class="hud-note">People are met where they are. A contact listed here can’t be called unless the channel says so.</p>'+
-   (people.map(c=>'<article class="hud-card hud-contact"><h3>'+esc(c.name)+'</h3><p>'+esc(c.place)+'</p><p class="hud-meta">'+esc(c.channel)+'</p></article>').join('')||'<p>No contacts yet.</p>');
+   '<h2>YOUR PROFILE</h2>'+profile(me)+'<h2>CONVERSATIONS</h2><div class="social-filters">'+filterButtons+(socialCharacter?'<button type="button" data-hud-character="">CLEAR CHARACTER</button>':'')+'</div><div class="social-thread" aria-label="Conversation history">'+(thread||'<p>No conversations in this view.</p>')+'</div>'+
+   '<h2>PEOPLE</h2><p class="hud-note">NPC conversation history stays in this browser. Player messaging needs the future authenticated social service.</p>'+
+   (people.map(c=>profile(Profiles.npc(c.id,c.name,{bio:c.place,achievements:[]}))).join('')||'<p>No contacts yet.</p>')+
+   '<h2>ACHIEVEMENT PREVIEW</h2><p class="hud-note">Unlocks require verified server events. This preview cannot grant achievements.</p><div class="social-filters">'+Achievements.categories.map(c=>'<button type="button" data-hud-achievement="'+c+'" aria-pressed="'+(achievementFilter===c)+'">'+c.toUpperCase()+'</button>').join('')+'</div>'+Achievements.definitions.filter(d=>achievementFilter==='all'||d.category===achievementFilter).map(d=>'<article class="hud-card"><b>'+esc(d.icon)+' '+esc(d.name)+'</b><p>'+esc(d.description)+'</p></article>').join('');
  }
  function inventoryHtml(){
   const mission=C.missionFlight(state),inv=H.inventory(state,{ship:VoidShips.get(state).name,mission,cargoUsed:VoidFactions.cargoUsed(state,mission),launcher:state.creditGear.includes('launcher')}),p=inv.personal,s=inv.ship,row=(k,v)=>'<tr><th>'+esc(k)+'</th><td>'+v+'</td></tr>';
@@ -60,7 +68,7 @@
   panel=document.createElement('section');panel.id='personal-hud';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Personal HUD');panel.setAttribute('aria-modal','true');
   document.body.append(panel);render();
  }
- function close(){if(!panel)return;panel.remove();panel=null;mode=returnMode;returnMode=null;clearInput();walkingKeys?.clear?.();canvas.focus();}
+ function close(){if(!panel)return;if(tab==='comms')VoidConversationHistory.markRead(localStorage,window.VoidAccount?.user?.uid||'guest');panel.remove();panel=null;mode=returnMode;returnMode=null;clearInput();walkingKeys?.clear?.();canvas.focus();}
  function toggle(){panel?close():open();}
  function focusables(){return [...panel.querySelectorAll('button:not([disabled])')];}
  function move(step){const list=focusables(),i=list.indexOf(document.activeElement);(list[(i+step+list.length)%list.length]||list[0])?.focus();}
@@ -68,6 +76,9 @@
  document.addEventListener('click',e=>{if(!panel||!panel.contains(e.target))return;const b=e.target.closest('button');if(!b)return;e.stopPropagation();
   if(b.dataset.hudClose!=null)return close();
   if(b.dataset.hudTab){tab=b.dataset.hudTab;return render();}
+  if(b.dataset.hudFilter){socialFilter=b.dataset.hudFilter;return render();}
+  if(b.dataset.hudAchievement){achievementFilter=b.dataset.hudAchievement;return render();}
+  if(b.hasAttribute('data-hud-character')){socialCharacter=b.dataset.hudCharacter;return render();}
   if(b.dataset.hudTrack){if(VoidMissions.track(state,b.dataset.hudTrack,C))save();return render();}
   if(b.dataset.hudUntrack){if(state.universe.trackedMission===b.dataset.hudUntrack){VoidMissions.untrack(state);save();}return render();}
   if(b.dataset.hudAction)globalThis.VoidTaxi?.action?.(b.dataset.hudAction,{close,render});

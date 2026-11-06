@@ -1,0 +1,16 @@
+{
+  "name": "district-hub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Darknet District multiplayer hub: presence, position and animation for players in the District interior. Not deployed by this repository.",
+  "main": "server.cjs",
+  "scripts": {
+    "start": "node server.cjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

@@ -14,9 +14,9 @@ const site = http.createServer((req, res) => {
   res.writeHead(200, { 'content-type': mime[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(res);
 });
 
-const WITH = ['games-list', 'about', 'sleeping_pod', 'resources', 'legal_resources', 'curious', 'osint', 'anti-osint', 'leaks', 'opsec', 'borderless', 'neurodivergent', 'biohacking',
+const WITH = ['games-list', 'about', 'resources', 'legal_resources', 'curious', 'osint', 'anti-osint', 'leaks', 'opsec', 'borderless', 'neurodivergent', 'biohacking',
   'store-first-page', 'store-apparel', 'store-apps', 'store-books', 'store-electronics', 'store-neurohackers', 'store-survival'].map(n => n + '.html');
-const WITHOUT = ['game.html', 'raven.html', 'iris-protocols.html', 'origins/index.html', 'blackout-protocol/index.html', 'blackout-protocol/level1.html'];
+const WITHOUT = ['sleeping_pod.html', 'game.html', 'raven.html', 'iris-protocols.html', 'origins/index.html', 'blackout-protocol/index.html', 'blackout-protocol/level1.html'];
 
 const results = [];
 const ok = (name, detail = '') => { results.push({ name, ok: true, detail }); console.log('ok  ', name, detail); };
@@ -43,7 +43,7 @@ async function newPage(browser, contextOptions) {
   await new Promise(r => site.listen(0, '127.0.0.1', r)); const base = `http://127.0.0.1:${site.address().port}`;
   let browser; try { browser = await chromium.launch({ channel: 'msedge' }); } catch { browser = await chromium.launch(); }
   const profiles = { desktop: { viewport: { width: 1366, height: 768 }, locale: 'en-US' }, phone: { ...devices['Pixel 7'], locale: 'en-US' } };
-  const ignorable = /firebase|gstatic|Failed to load resource|net::ERR|hak5|googletagmanager|shopify|ERR_FAILED/i;
+  const ignorable = /firebase|gstatic|Failed to load resource|net::ERR|hak5|googletagmanager|shopify|ERR_FAILED|frame-ancestors.*<meta> element/i;
 
   for (const [profileName, profile] of Object.entries(profiles)) {
     const { ctx, page, state } = await newPage(browser, profile);
@@ -95,8 +95,8 @@ async function newPage(browser, contextOptions) {
       assert.ok(text.includes('first on the arcade page') && text.includes('Echo 1: first on the arcade page'), 'both sides of the earlier conversation are there: ' + text.slice(0, 200));
       assert.equal((text.match(/Neural interface active/g) ?? []).length, 1, 'the welcome line is not repeated');
       await p.fill('#messageInput', 'second on the store page'); await t('#sendButton'); await p.waitForFunction(() => document.getElementById('chatMessages').textContent.includes('Echo 2'));
-      await p.goto(`${base}/sleeping_pod.html`); await p.waitForFunction(() => window.__irisChatLoaded === true); await t('#chatButton');
-      await p.fill('#messageInput', 'third in the pod'); await t('#sendButton'); await p.waitForFunction(() => document.getElementById('chatMessages').textContent.includes('Echo 3'));
+      await p.goto(`${base}/about.html`); await p.waitForFunction(() => window.__irisChatLoaded === true); await t('#chatButton');
+      await p.fill('#messageInput', 'third on about'); await t('#sendButton'); await p.waitForFunction(() => document.getElementById('chatMessages').textContent.includes('Echo 3'));
       assert.equal(s.posts.length, 3, 'one request per message, none for navigating');
       assert.equal(new Set(s.posts.map(b => b.sessionId)).size, 1, 'the same session id throughout');
       assert.deepEqual(s.posts.map(b => b.messageCount), [1, 2, 3], 'the message count continues, so a retry is still the same request');

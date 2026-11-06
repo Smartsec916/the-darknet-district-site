@@ -2,3 +2,5 @@ body.frontend header,body.frontend footer{display:none}body.frontend #screen{pad
 body.frontend #service-status{top:auto;bottom:16px}.game-logo:focus,.settings-panel h1:focus{outline:none}.settings-panel{margin-top:7vh}.main-menu h1::before,.main-menu h1::after{display:none}
 
 body.cockpit-flight #game-menu{display:none}
+/* Three words need more room than the old logo: two even lines, sized to the window. */
+.main-menu .game-logo{font-size:clamp(40px,6.4vw,84px);line-height:1;white-space:nowrap}

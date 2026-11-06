@@ -1103,8 +1103,8 @@
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
     if(def.district&&root.VoidNeoChinatown){
-      crowdLocation='neochinatown';root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,{...(root.VoidCrowd?.models('neochinatown',quality)||{}),...(VoidNeoChinatown.models||{})},task),'district models');
-      districtHandle=VoidNeoChinatown.build({scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{},instance:(id,parent,only)=>VoidAssets.instance(id,parent,only)});landBoarding(def);
+      crowdLocation='neochinatown';root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,{...(root.VoidCrowd?.models('neochinatown',quality,def.area||'all')||{}),...((VoidNeoChinatown.modelsFor?VoidNeoChinatown.modelsFor(def.area||'all'):VoidNeoChinatown.models)||{})},task),'district models');
+      districtHandle=VoidNeoChinatown.build({scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{},area:def.area||'all',instance:(id,parent,only)=>VoidAssets.instance(id,parent,only)});landBoarding(def);
       await task.wait('scene',()=>scene.whenReadyAsync(),'neochinatown');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
