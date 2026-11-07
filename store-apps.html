@@ -193,6 +193,8 @@
 </style>
 
 
+<!-- Product grid layout (same structure as store-apparel.html) -->
+<div class="product-grid">
 <!-- Kai Kryptos Android app product card -->
 <div class="product-card">
   <!-- App icon with cyberpunk glow effect -->
@@ -217,11 +219,124 @@
   </a>
 </div>
 
+  <!-- Shopify Buy Button product -->
+  <div class="product-cell" data-category="apps">
+    <div id='product-component-1794029654624'></div>
+  </div>
+</div>
+
 
 
 
 
 </div>
+
+
+  <!-- Shopify Buy Button -->
+  <script src="https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var client = ShopifyBuy.buildClient({
+        domain: 'qbhrmg-jn.myshopify.com',
+        storefrontAccessToken: 'b2db190312196bda4d67fee236d5994a'
+      });
+
+      var products = [
+        { id: '10395729002713', node: 'product-component-1794029654624' }
+      ];
+
+      var cyberpunkCartStyles = {
+        "cart": {
+          "styles": {
+            "button": {
+              "background-color": "#00ff9d",
+              "color": "#000",
+              "font-family": "Courier New, monospace",
+              "font-size": "18px",
+              "font-weight": "bold",
+              "border-radius": "12px",
+              "box-shadow": "0 0 12px #00ff9d99",
+              "border": "2px solid #00ff9d"
+            },
+            "cart": {
+              "background-color": "#111",
+              "border-radius": "18px",
+              "box-shadow": "0 0 24px #00ff9d33",
+              "color": "#00ff9d",
+              "font-family": "Courier New, monospace"
+            },
+            "footer": {
+              "background-color": "#181a1b"
+            }
+          },
+          "text": {
+            "total": "Subtotal",
+            "button": "Checkout"
+          },
+          "googleFonts": [
+            "Courier New"
+          ]
+        },
+        "product": {
+          "styles": {
+            "product": {
+              "@media (min-width: 601px)": {
+                "max-width": "100%",
+                "margin-left": "0",
+                "margin-bottom": "50px"
+              },
+              "text-align": "left"
+            },
+            "title": {
+              "font-size": "26px"
+            },
+            "button": {
+              "font-family": "Courier New, monospace",
+              "font-weight": "bold",
+              "font-size": "16px",
+              "padding-top": "16px",
+              "padding-bottom": "16px",
+              "border-radius": "14px",
+              "padding-left": "23px",
+              "padding-right": "23px"
+            },
+            "quantityInput": {
+              "font-size": "16px",
+              "padding-top": "16px",
+              "padding-bottom": "16px"
+            },
+            "price": {
+              "font-size": "18px"
+            }
+          },
+          "layout": "horizontal",
+          "contents": {
+            "img": false,
+            "imgWithCarousel": true,
+            "description": true
+          },
+          "width": "100%",
+          "text": {
+            "button": "Add to cart"
+          },
+          "googleFonts": [
+            "Courier New"
+          ]
+        }
+      };
+
+      ShopifyBuy.UI.onReady(client).then(function (ui) {
+        products.forEach(function (product) {
+          ui.createComponent('product', {
+            id: product.id,
+            node: document.getElementById(product.node),
+            moneyFormat: '%24%7B%7Bamount%7D%7D',
+            options: DistrictStorefront.styleOptions(cyberpunkCartStyles)
+          });
+        });
+      });
+    });
+  </script>
 
   <script src="iris-widget.js" defer></script>
 </body>
