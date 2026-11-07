@@ -72,3 +72,8 @@ body.directory-panels[data-hud] .tdnd-hud-layer{height:100%}
 @media(max-width:720px){body.directory-panels .nav-container.additional-resources-grid{grid-auto-rows:1fr!important}body.directory-panels .nav-container.additional-resources-grid>.district-panel{height:100%!important;min-height:280px!important}}
 
 body.directory-panels .resources-bg{overflow:clip;width:100%}
+
+/* Keep the dark card panel fixed. style.css gives every .product-card::before a 10s 'scanline' slide and a 50% opacity on hover;
+   on these frames that slid the dark panel away and exposed the lavender frame colour behind it. */
+body.storefront .category-card::before,body.storefront .product-card::before,body.storefront .product-cell::before,body.directory-panels .district-panel::before{animation:none;opacity:1}
+body.storefront .category-card:hover::before,body.storefront .product-card:hover::before,body.storefront .product-cell:hover::before,body.directory-panels .district-panel:hover::before{opacity:1}
