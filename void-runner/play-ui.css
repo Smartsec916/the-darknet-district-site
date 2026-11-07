@@ -27,6 +27,11 @@
 #weapon-select-hud.fresh span.on{box-shadow:0 0 0 2px #f2b33d55}
 /* While a conversation is open, the screen behind it is exactly one window tall, so nothing below needs scrolling. */
 #screen:has(.dialogue-window){height:100vh;height:100dvh;min-height:0!important;overflow:hidden}
+#screen.conversation-live:has(.dialogue-window){position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:0!important;overflow:visible;pointer-events:none}
+#screen.conversation-live .cinematic-space{pointer-events:none}
+#screen.conversation-live .dialogue-window{position:fixed!important;left:auto!important;right:1rem!important;top:auto!important;bottom:5.5rem!important;width:min(30rem,calc(100vw - 2rem))!important;max-height:min(65dvh,38rem)!important;display:flex!important;flex-direction:column!important;pointer-events:auto}
+#screen.conversation-live .conversation-minimize{position:relative;z-index:8;flex:none}
+#screen.conversation-live .speech-body{flex:none;max-height:35dvh}
 
 /* Guidance card: the next step for the chosen topic (world-markers.js). */
 #guidance-card{position:fixed;left:max(16px,env(safe-area-inset-left,0px));top:120px;z-index:4;max-width:min(360px,calc(100vw - 32px));padding:10px 12px;border:1px solid #7ff0ff66;border-left:3px solid #7ff0ff;background:#06101de0;color:#dfeef0;font:13px/1.45 system-ui,sans-serif}

@@ -1,0 +1,36 @@
+diff --git a/accents.css b/accents.css
+index ce6c60a..6175200 100644
+--- a/accents.css
++++ b/accents.css
+@@ -685,3 +685,10 @@ body.site-home .tdd-function-desc {
+     animation: none;
+   }
+ }
++
++/* Prepared homepage title link: activated only after the first unlisted test. */
++body.site-home .tdd-title-link { position: relative; display: block; width: fit-content; max-width: 100%; color: inherit; text-decoration: none; }
++body.site-home .tdd-title-link .cyberpunk-title { max-width: 100%; }
++body.site-home .tdd-title-link:focus-visible { outline: 2px solid #fff0c9; outline-offset: 5px; }
++body.site-home .tdd-title-enter { position: absolute; z-index: 1; top: 7px; left: 18px; padding: 2px 5px; background: #04130f; color: #35ff8f; font: 700 11px/1.2 monospace; letter-spacing: .18em; }
++body.site-home .tdd-title-link:hover .tdd-title-enter, body.site-home .tdd-title-link:focus-visible .tdd-title-enter { color: white; }
+diff --git a/index.html b/index.html
+index 21b6ad8..b91b786 100644
+--- a/index.html
++++ b/index.html
+@@ -367,7 +367,7 @@
+   <!-- Hero section with main title -->
+   <section class="first-section">
+     <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+-      <h1 class="cyberpunk-title" data-text="The Darknet District">The Darknet District</h1>
++      <a class="tdd-title-link" href="void-runner.html" aria-label="Enter The Darknet District 3D game"><span class="tdd-title-enter" aria-hidden="true">ENTER</span><h1 class="cyberpunk-title" data-text="The Darknet District">The Darknet District</h1></a>
+       <div class="tdd-vr" data-void-backdrop role="group" aria-label="Void Runner: under construction, coming soon">
+         <p class="tdd-vr-kicker">THE DARKNET DISTRICT / FLIGHT SYSTEMS ONLINE</p>
+         <p class="tdd-vr-logo">VOID<span>//</span>RUNNER</p>
+@@ -393,6 +393,7 @@
+   <script src="devtoolsDetector.js"></script>
+   <script src="hud.js"></script>
+   <script src="accents.js"></script>
++  <script>if (navigator.userAgentData?.mobile || /iPhone|iPod|Android.+Mobile/i.test(navigator.userAgent)) document.querySelector(".tdd-title-link").href = "games-list.html";</script>
+   <script src="void-runner-backdrop.js"></script>
+   <script type="module" src="iris-account.js"></script>
+ 

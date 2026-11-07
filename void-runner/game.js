@@ -3,8 +3,9 @@
 const C = VoidCampaign, $ = id => document.getElementById(id);
 const canvas = $('space'), ctx = canvas.getContext('2d'), screen = $('screen');
 const SAVE_KEY = 'void-runner-campaign-v1';
-let state = C.fresh(), hasSave = false, saveAvailable = true;
-try { const restored = C.restore(localStorage.getItem(SAVE_KEY)); if (restored) { state = restored; hasSave = true; } } catch { saveAvailable = false; }
+let state = C.fresh(), hasSave = false, saveAvailable = true, legacyRetired = false;
+// A campaign from before The Darknet District reset is retired: it is not loaded, a verified copy is kept under SAVE_KEY + '.retired' (or '.retired.2', ... if one is already kept: C.retireLegacy), and only then is the slot freed for the new campaign.
+try { const raw = localStorage.getItem(SAVE_KEY), restored = C.restore(raw); if (restored) { state = restored; hasSave = true; } else if (raw && C.isLegacy(raw)) { C.retireLegacy(localStorage, SAVE_KEY, raw); localStorage.removeItem(SAVE_KEY); legacyRetired = true; } } catch { saveAvailable = false; }
 let mode = 'title', view = 'dock', W, H, D, time = 0;
 let approachTime = 0;
 let current = null, elapsed = 0, spawnClock = 0, spawned = 0, resolved = 0, noticeTime = 0;
@@ -35,7 +36,7 @@ function button(label, action, quiet = false, disabled = false) { return `<butto
 function row(label, value) { return `<div class="data-row"><span>${label}</span><strong>${value}</strong></div>`; }
 function panel(eyebrow, title, body, actions, aside = '') { screen.innerHTML = `<div class="layout"><section class="panel lead"><div class="eyebrow">${eyebrow}</div><h1 tabindex="-1">${title}</h1>${body}<div class="actions">${actions}</div></section>${aside ? `<aside class="side-panel">${aside}</aside>` : ''}</div>`; screen.classList.remove('hidden'); screen.querySelector('h1')?.focus({ preventScroll: true }); }
 function shipCard() { const s = VoidFlightCraft.stats(); return `<div class="eyebrow">YOUR SHIP</div><h2>${VoidFlightCraft.ship().name}</h2><p>Elias’s old courier. Every repair bears your work. Now yours.</p>${row('Pulse cannons', 'MK ' + (VoidFlightCraft.upgrades().guns + 1))}${row('Hull integrity', s.hull)}${row('Vector thrusters', 'MK ' + (VoidFlightCraft.upgrades().engines + 1))}<p class="fine">${saveAvailable ? 'Progress saves on this browser at departures, deliveries, and purchases. Hull is serviced at every dock.' : 'Browser saving is unavailable. Progress lasts while this tab stays open.'}</p>`; }
-function hud() { const name=document.querySelector('header .wide strong');if(name)name.textContent=VoidFlightCraft.ship().name; $('credits').textContent = state.credits.toLocaleString(); const max = VoidFlightCraft.stats().hull; $('hull').style.width = Math.max(0, hp / max * 100) + '%'; $('hull-number').textContent = `${Math.ceil(hp)} / ${max}`; $('weapon').textContent = `PULSE MK ${VoidFlightCraft.upgrades().guns + 1} / THRUST MK ${VoidFlightCraft.upgrades().engines + 1}`; }
+function hud() { const name=document.querySelector('header .wide strong');if(name)name.textContent=!VoidShips.hasShip(state)?'NONE':VoidFlightCraft.ship().name; $('credits').textContent = state.credits.toLocaleString(); const max = VoidFlightCraft.stats().hull; $('hull').style.width = Math.max(0, hp / max * 100) + '%'; $('hull-number').textContent = `${Math.ceil(hp)} / ${max}`; $('weapon').textContent = `PULSE MK ${VoidFlightCraft.upgrades().guns + 1} / THRUST MK ${VoidFlightCraft.upgrades().engines + 1}`; }
 let title, dock, bar, shop;
 function flightUI(on) { $('flight-hud').classList.toggle('hidden', !on); $('touch-controls').classList.toggle('hidden', !on); $('pause').classList.toggle('hidden', !on); if (!on) $('pause').textContent = 'PAUSE'; }
 function clearInput() { VoidInput.held.clear(); pointer = false; firing = false; touchFiring = false; target = null; }
@@ -74,12 +75,12 @@ screen.addEventListener('click', event => {
 });
 function newJourney(){
   VoidFlightCraft.resetIdle();
-  state=C.fresh();state.location='vesper';current=null;trialGear=null;devMissileTrial=false;clearInput();
+  legacyRetired=false;state=C.fresh();state.location='vesper';C.startDistrictCampaign(state);current=null;trialGear=null;devMissileTrial=false;clearInput();
   elapsed=approachTime=shot=spawnClock=spawned=resolved=damageTime=0;
   enemies=[];bullets=[];hostile=[];sparks=[];missionObjects=[];
   shieldHP=shieldDelay=driveTime=driveCooldown=droneClock=0;
   hp=C.stats(state).hull;VoidCombatEffects.reset();resetMissileFlight();
-  VoidStory.emit(state,'campaignStart');save();hud();updateEquipmentHud();workshopOpening();
+  if(!VoidMissions.closed(state))VoidStory.emit(state,'campaignStart');save();hud();updateEquipmentHud();workshopOpening();
 }
 $('pause').onclick = pause;
 addEventListener('blur', () => { clearInput(); if (mode === 'play') pause(); });

@@ -53,12 +53,12 @@ openGameMenu = function() {
   migrationOpenMenu();
 };
 
-function preparationPanel(label) {
+function preparationPanel(label, flight = true) {
   leaveMenu();
   mode = 'preparing';
   clearInput();
   flightUI(false);
-  panel('PREPARING ENVIRONMENT', label, '<p id="preparation-status" role="status">Loading the 3D engine and exterior. Your flight will start when ready.</p><div class="loading-activity" aria-label="Loading in progress"></div><p id="preparation-time" class="fine"></p>', button('CANCEL PREPARATION', 'migration-cancel', true, true));
+  panel('PREPARING ENVIRONMENT', label, '<p id="preparation-status" role="status">'+(flight?'Loading the 3D engine and exterior. Your flight will start when ready.':'Loading the 3D engine and the environment. You will step inside when it is ready.')+'</p><div class="loading-activity" aria-label="Loading in progress"></div><p id="preparation-time" class="fine"></p>', button('CANCEL PREPARATION', 'migration-cancel', true, true));
   // A double-click on Board/Launch must not hit a newly inserted Cancel button.
   const cancelButton = screen.querySelector('[data-action="migration-cancel"]');
   setTimeout(() => { if(cancelButton?.isConnected) cancelButton.disabled=false; }, 800);
@@ -198,25 +198,28 @@ screen.addEventListener('change', async e => {
     if ($('radio-status')) $('radio-status').textContent = VoidRadio.status;
   }
 });
-async function enterWalking(id) {
+// options: silent (no preparation panel; the caller shows its own transition), spawn [x,y,z] and yaw (appear here instead of at the location's spawn).
+async function enterWalking(id, options = {}) {
   const def = VoidExplorationData.locations[id];
   if (!def) return;
   if (id !== 'hangar' && def.kind!=='workshop' && !VoidExplorationData.solAvailable(state)) return;
   if (VoidGraphics.busy) return;
   VoidGraphics.busy = true;
   const token = ++preparationGeneration;
-  preparationPanel('Preparing <em>' + escapeText(def.name) + '.</em>');
+  if (options.silent) { mode = 'preparing'; clearInput(); flightUI(false); } else preparationPanel('Preparing <em>' + escapeText(def.name) + '.</em>', false);
   try {
     await boundedPrepare(task => VoidBabylon.prepareRoom(def, task));
     if (token !== preparationGeneration) return;
     walker = {
-      x: def.spawn[0],
-      y: def.spawn[1],
-      z: def.spawn[2],
-      yaw: def.yaw||0,
+      x: options.spawn ? options.spawn[0] : def.spawn[0],
+      y: options.spawn ? options.spawn[1] : def.spawn[1],
+      z: options.spawn ? options.spawn[2] : def.spawn[2],
+      yaw: options.yaw ?? (def.yaw||0),
       pitch: 0
     };
     walkingLocation = def;
+    // A parked-ship collision box only blocks when the player really has that ship; with no ship it would be an invisible wall.
+    for (const solid of def.solids) if (solid.shipHull) solid.open = !VoidShips.hasShip(state);
     resumeWalking();
     VoidAudio.event('door');
   } catch (error) {
@@ -396,6 +399,7 @@ update = function(dt) {
   VoidRadio.setContext(region, state);
   VoidRadio.category(mode === 'play' ? (enemies.some(VoidStory.hostile) ? 'combat' : 'flight') : walkingLocation?.music || 'station');
   const before = flight.route?.phase;
+  if (mode === 'pod-waking') { VoidAudio.tick(dt); return; }
   if (mode === 'walking') {
     const moving = {
       x: FM.clamp(Number(walkingKeys.has('KeyD')) - Number(walkingKeys.has('KeyA')) + VoidInput.axes.moveX,-1,1),
@@ -511,11 +515,10 @@ function drawContactMarkers() {
 draw = function() {
   walkingUI.hidden = !['walking', 'transit3d'].includes(mode);
   if (mode === 'preparing-flight') return;
-  if (mode === 'walking') {
+  if (mode === 'walking' || mode === 'pod-waking') {
     const image = VoidBabylon.renderRoom(walker, W, H, time, when => VoidStory.matches(state, when));
     if (image) ctx.drawImage(image, 0, 0, W, H);
-    ctx.fillStyle = '#b8d4cf';
-    ctx.fillRect(W / 2 - 2, H / 2 - 2, 4, 4);
+    if (mode === 'walking') { ctx.fillStyle = '#b8d4cf'; ctx.fillRect(W / 2 - 2, H / 2 - 2, 4, 4); }
     return;
   }
   if (activeRenderer === 'babylon' && ['play', 'pause'].includes(mode) && VoidBabylon.diagnostics.exteriorReady) {

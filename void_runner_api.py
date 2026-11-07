@@ -7,7 +7,7 @@ import json
 import math
 from pathlib import Path
 from functools import wraps
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request, current_app, g
 
 api = Blueprint('void_runner', __name__, url_prefix='/api/void-runner')
 ITEMS = {'wraith': 'Wraith Cannon', 'aegis': 'Aegis Shield', 'ghost': 'Ghost Drive', 'sentinel': 'Sentinel Drone', 'spectre': 'Spectre / 03'}
@@ -100,12 +100,27 @@ def signed_in(handler):
             claims = auth.verify_id_token(header[7:], app=app, check_revoked=True)
         except Exception:
             raise ApiError('Your sign-in expired. Sign in again.', 401)
+        g.auth_claims = claims
         return handler(db, claims['uid'], *args, **kwargs)
     return wrapped
 
 
 def player_ref(db, uid):
     return db.collection('vr_players').document(hashlib.sha256(uid.encode()).hexdigest())
+
+
+CHARACTER_MODELS = {'male': 'district-smuggler', 'female': 'district-resident'}
+
+
+def clean_character(value, administrator=False):
+    """One existing animated District crowd look; outfits and hair are baked into each GLB."""
+    if not isinstance(value, dict) or set(value) != {'gender', 'model'}:
+        raise ApiError('Choose a character model.')
+    if type(value['gender']) is not str or type(value['model']) is not str or value['gender'] not in CHARACTER_MODELS:
+        raise ApiError('That character model is not available.')
+    if value['model'] != CHARACTER_MODELS[value['gender']] and not (administrator and value['gender'] == 'male' and value['model'] == 'admin'):
+        raise ApiError('That character model is not available.')
+    return {'gender': value['gender'], 'model': value['model']}
 
 
 def inventory(db, uid):
@@ -148,7 +163,39 @@ def catalog():
 @signed_in
 def account(db, uid):
     saved = player_ref(db, uid).get().to_dict() or {}
-    return jsonify(owned=inventory(db, uid), developer=balance_admin(uid), save=saved.get('save'), revision=saved.get('revision', 0), savedAt=saved.get('savedAt'))
+    # A cloud save from before the District reset is retired: it is not returned (and not deleted here; see docs/void-runner/SAVE-RESET.md).
+    retired = saved.get('save') is not None and not is_current_save(saved.get('save'))
+    return jsonify(owned=inventory(db, uid), developer=balance_admin(uid), character=saved.get('character'), save=None if retired else saved.get('save'), retired=retired, revision=saved.get('revision', 0), savedAt=None if retired else saved.get('savedAt'))
+
+
+@api.route('/character', methods=['GET', 'POST'])
+@signed_in
+def character(db, uid):
+    """A single, account-bound character. Creation never changes a campaign save."""
+    from firebase_admin import firestore
+    if request.method == 'GET':
+        return jsonify(character=(player_ref(db, uid).get().to_dict() or {}).get('character'))
+    if getattr(g, 'auth_claims', {}).get('firebase', {}).get('sign_in_provider') == 'anonymous':
+        raise ApiError('Secure your account before creating a permanent character.', 403)
+    appearance = clean_character(request.get_json(silent=True), balance_admin(uid))
+    ref = player_ref(db, uid)
+
+    @firestore.transactional
+    def create(transaction):
+        saved = ref.get(transaction=transaction).to_dict() or {}
+        if saved.get('character'):
+            raise ApiError('This account already has a character.', 409)
+        record = {**appearance, 'createdAt': int(time.time())}
+        transaction.set(ref, {'character': record}, merge=True)
+        return record
+    try:
+        record = create(db.transaction())
+    except ValueError:
+        # Firestore gave up after repeated contention (several simultaneous creates). Never a 500: report what is now stored.
+        if (ref.get().to_dict() or {}).get('character'):
+            raise ApiError('This account already has a character.', 409)
+        raise ApiError('Character creation is busy. Try again in a moment.', 503)
+    return jsonify(character=record), 201
 
 
 @api.get('/balance')
@@ -204,14 +251,24 @@ def developer_balance(db, uid):
     return jsonify(values=values, preset=preset, revision=revision)
 
 
+CAMPAIGN_EPOCH = 1  # keep in step with campaignEpoch in void-runner/campaign.js
+
+
+def is_current_save(value):
+    """A campaign made since the District reset (it carries story.flags.campaignEpoch)."""
+    epoch = ((value.get('story') or {}).get('flags') or {}).get('campaignEpoch') if isinstance(value, dict) else None
+    return type(epoch) is int and epoch >= CAMPAIGN_EPOCH
+
+
 def clean_save(value):
     """Cloud saves cannot grant ownership, change prices or write another player's record."""
     if not isinstance(value, dict) or value.get('version') != 2:
         raise ApiError('Unsupported save format.')
     from pathlib import Path
     import json
-    # Rusthaven used the internal id 'undertow' in older saves.
-    value=json.loads(json.dumps(value).replace('"undertow"','"rusthaven"'))
+    # The Darknet District reset (David, 2026-11-04): saves from before it carry no campaign epoch and are retired, not converted.
+    if not is_current_save(value):
+        raise ApiError('This save is from before The Darknet District reset and can no longer be stored. Start a new campaign.', 409)
     manifest=json.loads((Path(__file__).parent/'void-runner'/'save-manifest.json').read_text())
     if value.get('quest') not in ['inheritance','arrival','legal-offer','legal-run','return','illegal-offer','illegal-run','open'] or value.get('location') not in manifest['locations']:
         raise ApiError('Invalid campaign state.')

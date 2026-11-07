@@ -1,0 +1,44 @@
+# Render Blueprint for the District multiplayer hub. DRAFT: nothing here is active until the owner creates a Blueprint in the Render
+# dashboard and points it at this file. It is a separate web service from the game API (server.py) and from Iris, and changes neither.
+# Secrets are never stored here: every `sync: false` value is entered in the dashboard. The hub needs NO Firebase credential and NO
+# database: it checks sign-ins with Google's public keys and asks the existing game API about the player using the player's own token.
+services:
+  - type: web
+    name: district-hub
+    runtime: node
+    plan: free                  # a free web service sleeps when idle; it wakes (about a minute) on the next connection
+    rootDir: tools/district-hub
+    autoDeploy: false           # deploy only when the owner chooses, never on a push
+    buildCommand: npm ci --omit=dev
+    startCommand: node server.cjs
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: HUB_MODE
+        value: production
+      # The existing game API (Render). The hub forwards each player's OWN token to it to read the saved character and public handle.
+      - key: HUB_API_BASE
+        value: https://the-darknet-district-site.onrender.com
+      # Pages allowed to open a connection from a browser (exact origins, no wildcards).
+      - key: HUB_ALLOWED_ORIGINS
+        value: https://thedarknetdistrict.com,https://www.thedarknetdistrict.com
+      # The first test is restricted to these Firebase account ids (not emails), comma separated. EMPTY = the hub refuses to start.
+      # Copy an id from the account menu on the homepage (COPY ACCOUNT ID), as for IRIS_ADMIN_UIDS.
+      - key: HUB_ALLOWED_UIDS
+        sync: false
+      # Accounts that are always refused, even if listed above (a revoked or abusive account; Google's key check cannot see revocation).
+      - key: HUB_DENY_UIDS
+        sync: false
+      # The Firebase project that issues sign-ins (the site's own project).
+      - key: FIREBASE_PROJECT_ID
+        value: the-darknet-district-71873
+      # Limits (these are also the defaults).
+      - key: HUB_MAX_PER_IP
+        value: "4"
+      - key: HUB_MAX_NEW_PER_MINUTE
+        value: "20"
+      - key: HUB_MAX_CONNECTIONS
+        value: "60"
+      # Render sets PORT and RENDER itself; one proxy (Render's) sits in front, so the visitor's address is the last X-Forwarded-For entry.
+      # Do NOT set HUB_ALLOW_ANY_SIGNED_IN=true unless the owner has approved an open test.

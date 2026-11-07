@@ -7,7 +7,6 @@
  *   - On phones the plume is drawn at 30 frames a second, not at the screen's 90 or 120, which saves battery and heat; it is a slow plume.
  *   - With the reduced-motion setting on, nothing moves: one still, soft haze fades in and out (opacity only, no frame loop).
  *   - A page restored from the back/forward cache starts again (it used to stay dead until reloaded).
- *   - While the Iris chat window is open on a phone, where it covers the screen, a new plume waits; it starts again when the window closes.
  * Decorative. ?smokedebug (add &force to ignore reduced motion, &renderer=2d to force the Canvas 2D version) shows what it is doing. */
 (function () {
   'use strict';
@@ -62,7 +61,7 @@
   var gl = null, prog = null, buf = null, uni = {}, webglBroken = false;
   var canvas2d = null, ctx2d = null, sprites = null;
   var raf = 0, timer = 0, stillTimers = [], state = null, first = true, last = 0, lastDraw = 0, slow = 0, quality = 1;
-  var verified = false, checks = 0, chatOpen = false, intentionalLoss = false;
+  var verified = false, checks = 0, intentionalLoss = false;
   var renderer = 'none'; // which drawing path the current or last plume used: webgl | 2d | still
 
   function rand(a, b) { return a + Math.random() * (b - a); }
@@ -86,7 +85,7 @@
       'renderer: ' + renderer + (webglBroken ? ' (WebGL failed, using Canvas 2D)' : ''),
       'webgl: ' + (gl ? 'ok ' + glInfo : webglBroken ? 'FAILED' : 'not started'),
       'reduced-motion: ' + mq.matches + (force ? ' (forced off)' : ''),
-      'phone layout: ' + phone() + '  chat open: ' + chatOpen,
+      'phone layout: ' + phone(),
       'hidden: ' + document.hidden + '  quality: ' + quality.toFixed(2),
       'canvas: ' + shown.width + 'x' + shown.height + ' display=' + shown.style.display + ' opacity=' + (shown.style.opacity || '1'),
       'in viewport: ' + (rect.width > 0 && rect.bottom > 0 && rect.top < innerHeight),
@@ -257,7 +256,6 @@
     timer = 0; first = false;
     if (document.hidden) { schedule(); return; }
     // A phone's chat window covers the screen: a new plume waits until it is closed (a plume already running just finishes)
-    if (chatOpen && phone()) { note('chat open: waiting'); schedule(6); return; }
     stopFrames(); stopStill();
 
     if (reduced()) { startStill(); return; }
@@ -357,20 +355,10 @@
   // Coming back through the browser's back/forward cache: nothing reloaded, so nothing restarted by itself
   window.addEventListener('pageshow', function (e) { if (e.persisted) { gl = prog = buf = null; state = null; hideAll(); first = true; note('restored from the back/forward cache'); schedule(); } });
 
-  // The Iris chat (iris-chat.js) says when its window opens and closes
-  var chatBox = document.getElementById('chatContainer');
-  chatOpen = Boolean(chatBox && chatBox.style.display === 'block');
-  document.addEventListener('iris-chat-toggle', function (e) {
-    var open = Boolean(e.detail && e.detail.open);
-    chatOpen = open;
-    note(open ? 'chat opened' : 'chat closed');
-    if (!open && !state && !timer) schedule(4);
-  });
-
   if (debug) {
     window.podSmoke = {
       exhale: function () { if (!state) { stopTimer(); startExhale(); } },
-      state: function () { return { renderer: renderer, running: Boolean(state), age: state ? state.age : 0, webglBroken: webglBroken, hasGl: Boolean(gl), alpha: lastAlpha, timer: Boolean(timer), chatOpen: chatOpen, frames: frames, fps: fps, display: visibleCanvas().style.display, opacity: visibleCanvas().style.opacity, reason: lastReason }; }
+      state: function () { return { renderer: renderer, running: Boolean(state), age: state ? state.age : 0, webglBroken: webglBroken, hasGl: Boolean(gl), alpha: lastAlpha, timer: Boolean(timer), frames: frames, fps: fps, display: visibleCanvas().style.display, opacity: visibleCanvas().style.opacity, reason: lastReason }; }
     };
     document.addEventListener('keydown', function (e) { if ((e.key === 'x' || e.key === 'X') && !e.ctrlKey && !e.metaKey && !e.altKey) window.podSmoke.exhale(); });
   }

@@ -156,10 +156,6 @@
       .pod-btn, .pod-btn__frame, .pod-btn__panel { transition: none; }
     }
 
-    /* The Iris chat button (iris-widget.js) lives in the bottom right corner, where the pod's own controls are on a phone: lift it above them instead of covering "Play music" */
-    @media (max-width: 720px) {
-      body.iris-widget-page .chat-button { bottom: calc(112px + env(safe-area-inset-bottom, 0px)); }
-    }
   </style>
   <link href="./home-navigation.css" rel="stylesheet" type="text/css">
 </head>
@@ -193,7 +189,6 @@
         <button type="button" class="pod-btn pod-btn--icon" aria-label="Previous track" onclick="previousTrack()"><svg class="pod-btn__frame" viewBox="0 0 180 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="pod-btn__panel" d="M10 .5H179.5V37.5L169.5 47.5H.5V10Z"/><path class="pod-btn__rail" d="M16 4H47M1 19V33M133 44H161"/><path class="pod-btn__accent" d="M171 5H175V14"/></svg><svg class="pod-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 5h2.5v14H6zM20 5v14L9.5 12z"/></svg></button>
         <!-- HTML5 audio element: play/pause, seek and volume -->
         <audio controls>
-          <source src="attached_assets/Android Love.mp3" type="audio/mp3">
           Your browser does not support the audio element.
         </audio>
         <button type="button" class="pod-btn pod-btn--icon" aria-label="Next track" onclick="nextTrack()"><svg class="pod-btn__frame" viewBox="0 0 180 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="pod-btn__panel" d="M10 .5H179.5V37.5L169.5 47.5H.5V10Z"/><path class="pod-btn__rail" d="M16 4H47M1 19V33M133 44H161"/><path class="pod-btn__accent" d="M171 5H175V14"/></svg><svg class="pod-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 5H18v14h-2.5zM4 5l10.5 7L4 19z"/></svg></button>
@@ -205,6 +200,7 @@
   <canvas class="pod-smoke" id="podSmoke" aria-hidden="true"></canvas>
 
   <script src="sleeping-pod-spectrum.js"></script>
+  <script src="void-runner/music-catalog.js"></script>
   <!-- Sleeping pod interactive JavaScript -->
   <script>
     // Environment state variables
@@ -224,37 +220,13 @@
     let currentVolume = 1;
     let currentTrackIndex = 0;
 
-    // Shuffled cyberpunk music playlist
-    const playlist = [
-      'attached_assets/Android Love.mp3',
-      'attached_assets/Cyber Silence (Extended) (2).mp3',
-      'attached_assets/CyberLoom (Extended).mp3',
-      'attached_assets/Eclipse.mp3',
-      'attached_assets/Eternal Paradox.mp3',
-      'attached_assets/Fuck the System  (2.0).mp3',
-      'attached_assets/Ghost 1.0.mp3',
-      'attached_assets/Psychedelic Upgrade.mp3',
-      'attached_assets/Pulse (Extended).mp3',
-      'attached_assets/RetroVibe (Extended).mp3',
-      'attached_assets/Upgrades (Extended Mix).mp3',
-      'attached_assets/Vaporia.mp3',
-      'attached_assets/Yearning Pulse 02 (Cover) (1).mp3',
-      'attached_assets/Это всё дерьмо 3.0.mp3',
-      'attached_assets/谢谢你送来的猫咪.mp3',
-      'attached_assets/Nexus DataCore (Cover).mp3',
-      'attached_assets/Meta Mist (2.0).mp3',
-      'attached_assets/Sheep.mp3',
-      'attached_assets/Nights in Chongqing 3.0.mp3',
-      'attached_assets/MetaMist.mp3',
-      'attached_assets/SexBot (Cover).mp3',
-      'attached_assets/Sanctum of the Circuit.mp3',
-      'attached_assets/The City (Cover)_1749857657755.mp3',
-      'attached_assets/The City (Extended)_1749857657712.mp3',
-      'attached_assets/Synthetic Touch.mp3',
-      'attached_assets/Synthetic Touch (Her) (02) (Cover).mp3',
-      'attached_assets/BlackRock Leash (Cover)_1754669325561.mp3'
-    // Shuffle the playlist randomly
-    ].sort(() => Math.random() - 0.5);
+    // Both players stream published songs from the same hosted catalog.
+    const publishedSongs = DistrictMusicCatalog.filter(song => song.published);
+    const playlist = publishedSongs.map(song => song.url).sort(() => Math.random() - 0.5);
+    if (publishedSongs.length) {
+      audioElement.src = publishedSongs[0].url;
+      currentTrackIndex = playlist.indexOf(publishedSongs[0].url);
+    }
 
     // Smooth audio volume fade function
     function fadeAudio(from, to, duration) {
@@ -277,6 +249,7 @@
     // Toggle music player visibility and playback
     function playMusic() {
       const button = document.getElementById('musicButton');
+      if (!playlist.length) return;
 
       if (!isPlaying) {
         audioPlayer.classList.add('active');
@@ -377,6 +350,5 @@
 
   <script src="script.js"></script>
   <script src="sleeping-pod-smoke.js" defer></script>
-  <script src="iris-widget.js" defer></script>
 </body>
 </html>
