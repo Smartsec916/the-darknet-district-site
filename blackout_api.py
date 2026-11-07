@@ -23,12 +23,16 @@ POINTS = {'hack': 20, 'shot': 10, 'coin': 5, 'relay': 50, 'relayBonus': 100, 'ju
 BLOCKED_HANDLES = {'admin', 'administrator', 'moderator', 'mod', 'support', 'staff',
                    'official', 'firebase', 'google', 'developer', 'system', 'null'}
 BLOCKED_FRAGMENTS = {'nigger', 'faggot', 'kike', 'rape'}
-# Names that would let someone pass for staff, the site or its characters. Matched after folding look-alikes
-# (1/l -> i, 0 -> o, 3 -> e, 4 -> a, 5/$ -> s, 7 -> t), dropping underscores and trailing digits, and collapsing repeats.
+# Names that would let someone pass for staff, the site or its characters. Fold look-alikes
+# (1/l -> i, 0 -> o, 3 -> e, 4 -> a, 5/$ -> s, 7 -> t), underscores and repeats.
 IMPERSONATION_WORDS = {'admin', 'administrator', 'moderator', 'mod', 'support', 'staff', 'official', 'system',
                        'root', 'owner', 'superuser', 'sysadmin', 'security', 'helpdesk', 'server', 'firebase',
                        'google', 'iris', 'darknet', 'darknetdistrict', 'thedarknetdistrict', 'district',
-                       'voidrunner', 'blackout', 'blackoutprotocol', 'david', 'smartsec', 'anonymous', 'null'}
+                       'voidrunner', 'blackout', 'blackoutprotocol', 'david', 'smartsec', 'anonymous', 'null',
+                       'mara', 'rook', 'nyx', 'elara', 'marcus', 'iona', 'kai', 'sol'}
+# A numbered NPC-inspired handle is distinct from that character (Iris_02), but
+# numbering a staff role or official site identity can still impersonate it.
+NPC_NAMES = {'iris', 'mara', 'rook', 'nyx', 'elara', 'marcus', 'iona', 'kai', 'sol'}
 IMPERSONATION_AFFIXES = {'', 'the', 'real', 'official', 'bot', 'ai', 'team', 'staff', 'support', 'admin', 'mod',
                          'dev', 'hq', 'help', 'x', 'xx', 'ceo'}
 _squeeze = lambda text: ''.join(char for char, _ in groupby(text))
@@ -36,8 +40,8 @@ _LOOKALIKES = str.maketrans({'0': 'o', '1': 'i', 'l': 'i', '3': 'e', '4': 'a', '
 
 
 def fold_handle(key):
-    """The shape of a handle with look-alike characters, underscores and trailing numbers removed."""
-    folded = re.sub(r'\d+$', '', key.replace('_', '')).translate(_LOOKALIKES)
+    """The shape of a handle with look-alike characters and underscores removed."""
+    folded = key.replace('_', '').translate(_LOOKALIKES)
     return _squeeze(folded)
 
 
@@ -46,10 +50,18 @@ AFFIXES = {_squeeze(a.translate(_LOOKALIKES)) for a in IMPERSONATION_AFFIXES}
 
 def impersonates(key):
     folded = fold_handle(key)
-    for word in IMPERSONATION_WORDS:
-        word = _squeeze(word.translate(_LOOKALIKES))
-        if folded == word or (folded.startswith(word) and folded[len(word):] in AFFIXES) \
-                or (folded.endswith(word) and folded[:-len(word)] in AFFIXES):
+    without_number = fold_handle(re.sub(r'\d+$', '', key))
+    # Digits between a name and an explicit authority suffix/prefix should not
+    # turn Iris_02_Official into an unprotected alias.
+    between_words = fold_handle(re.sub(r'(?<=[a-z])\d+(?=[a-z])', '',
+                                       re.sub(r'\d+$', '', key.replace('_', ''))))
+    for raw_word in IMPERSONATION_WORDS:
+        word = _squeeze(raw_word.translate(_LOOKALIKES))
+        candidate = folded if raw_word in NPC_NAMES else without_number
+        # Numbered characters are allowed; an official/bot/real character alias is not.
+        if candidate == word or (between_words != word and any(
+                between_words in (_squeeze(word + affix), _squeeze(affix + word))
+                for affix in AFFIXES if affix)):
             return True
     return False
 
