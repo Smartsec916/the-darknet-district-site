@@ -10,7 +10,7 @@
   const items=VoidShare.search(query,tab),e=VoidShare.get(picked[tab])||items[0]||null;if(e)picked[tab]=e.id;
   const url=made&&e&&made.id===e.id?made.url:'';
   return '<div class="share-panel"><p class="share-kicker">SHARE // GUEST LINKS</p>'+
-   '<p class="dev-note">Send someone a link that opens VOID//RUNNER straight at a place or scenario in <b>Guest Mode</b>: no sign-in, no intro, nothing saved. The link never carries your account, save or developer access.</p>'+
+   '<p class="dev-note">Send someone a link that opens The Darknet District straight at a place or scenario in <b>Guest Mode</b>: no sign-in, no intro, nothing saved. The link never carries your account, save or developer access.</p>'+
    '<nav class="share-tabs" aria-label="Share type">'+[['location','SHARE LOCATION'],['scenario','SHARE SCENARIO']].map(([id,l])=>'<button type="button" data-share-tab="'+id+'" class="'+(tab===id?'on':'')+'" aria-pressed="'+(tab===id)+'">'+l+'</button>').join('')+'</nav>'+
    '<label class="share-search"><span>Search</span><input id="share-search" type="search" maxlength="60" autocomplete="off" value="'+esc(query)+'" placeholder="'+(tab==='location'?'NeoChinatown, Meridian…':'VR, arrival, departure…')+'"></label>'+
    '<div class="share-body"><ul class="share-list" role="listbox" aria-label="'+(tab==='location'?'Locations':'Scenarios')+'">'+(items.length?items.map(x=>'<li><button type="button" role="option" data-share-pick="'+esc(x.id)+'" aria-selected="'+(e&&x.id===e.id)+'" class="'+(e&&x.id===e.id?'on':'')+'"><b>'+esc(x.name)+'</b><small>'+esc(x.system)+'</small></button></li>').join(''):'<li class="share-empty">Nothing matches.</li>')+'</ul>'+

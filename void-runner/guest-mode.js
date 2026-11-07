@@ -23,7 +23,7 @@
  let ticker=null,startedAt=0;
  function showLoading(e,status='Preparing environment…'){
   startedAt=performance.now();screenEl.hidden=false;
-  screenEl.innerHTML='<div class="guest-frame"><p class="guest-kicker">VOID<span>//</span>RUNNER · GUEST EXPERIENCE</p><h1>Destination: <b>'+esc(e.name)+'</b></h1><p class="guest-desc">'+esc(e.description)+'</p>'+
+  screenEl.innerHTML='<div class="guest-frame"><p class="guest-kicker">THE DARKNET DISTRICT · GUEST EXPERIENCE</p><h1>Destination: <b>'+esc(e.name)+'</b></h1><p class="guest-desc">'+esc(e.description)+'</p>'+
    '<div class="guest-bar" aria-hidden="true"><i></i></div><p id="guest-status" role="status">'+esc(status)+'</p><p id="guest-slow" class="guest-fine" hidden>Still loading. Large scenes can take a minute on a slow connection.</p>'+
    '<p class="guest-fine">Guest Mode · no sign-in · nothing you do here is saved, and your own saves are untouched.</p></div>';
   clearInterval(ticker);ticker=setInterval(()=>{const s=document.getElementById('guest-status'),p=document.getElementById('preparation-status')?.textContent,n=globalThis.VoidAssets?.pending;
@@ -88,14 +88,14 @@
  function card(e){return '<article class="guest-card"><p class="guest-kicker">'+(e.type==='scenario'?'SHARED SCENARIO':'SHARED LOCATION')+' · '+esc(e.system)+'</p><h2>'+esc(e.name)+'</h2><p>'+esc(e.description)+'</p><p class="guest-objective"><b>OBJECTIVE</b> '+esc(e.objective)+'</p></article>';}
  function guestMenu(){
   const e=guest.entry,err=guest.error;
-  menuShell('guest','<section class="main-menu guest-menu"><p class="menu-kicker">VOID//RUNNER · GUEST EXPERIENCE</p><h1 class="game-logo" tabindex="-1">VOID<span>//</span>RUNNER</h1><p class="menu-subtitle">GUEST MODE · NOTHING IS SAVED</p>'+
+  menuShell('guest','<section class="main-menu guest-menu"><p class="menu-kicker">THE DARKNET DISTRICT · GUEST EXPERIENCE</p><h1 class="game-logo" tabindex="-1">THE DARKNET<br>DISTRICT</h1><p class="menu-subtitle">GUEST MODE · NOTHING IS SAVED</p>'+
    (err?'<p class="guest-error" role="alert"><b>'+(guest.link.ok?'COULDN’T LOAD':'LINK NOT AVAILABLE')+'</b> '+esc(err.message)+'</p>':'')+(e?card(e):'')+
    '<p class="guest-fine">Your own campaign, cloud save and sign-in are untouched. Exit to the main menu to play your own game.</p>'+
    '<nav class="menu-options" aria-label="Guest menu">'+(VoidMenu.returnTo&&!err?button('RESUME','menu-resume'):'')+(e?button(err?'TRY AGAIN':'RESTART SHARED EXPERIENCE','guest-restart'):'')+
    button('OTHER SHARED DESTINATIONS','guest-browse',!!e)+button('SETTINGS','menu-settings',true)+button('EXIT TO MAIN MENU','guest-exit',true)+'</nav></section>');}
  function browse(){
   const group=(type,title)=>'<h2 class="guest-group">'+title+'</h2><div class="guest-grid">'+VoidShare.list(type).map(x=>'<article class="guest-card"><h3>'+esc(x.name)+'</h3><p>'+esc(x.description)+'</p>'+button('GO →','guest-go:'+x.id)+'</article>').join('')+'</div>';
-  menuShell('guest-browse','<section class="main-menu guest-menu guest-browse"><p class="menu-kicker">VOID//RUNNER · GUEST EXPERIENCE</p><h1 tabindex="-1">Shared destinations</h1>'+group('location','Locations')+group('scenario','Scenarios')+'<nav class="menu-options">'+button('← BACK','guest-menu',true)+'</nav></section>');}
+  menuShell('guest-browse','<section class="main-menu guest-menu guest-browse"><p class="menu-kicker">THE DARKNET DISTRICT · GUEST EXPERIENCE</p><h1 tabindex="-1">Shared destinations</h1>'+group('location','Locations')+group('scenario','Scenarios')+'<nav class="menu-options">'+button('← BACK','guest-menu',true)+'</nav></section>');}
  function go(id){const e=VoidShare.get(id);if(!e)return;guest.link={present:true,ok:true,entry:e,version:VoidShare.VERSION};
   try{history.replaceState(null,'',VoidShare.link(id,location.origin+location.pathname));}catch{}arrive(e);}
  function exit(){guest.active=false;hideLoading();location.replace(location.pathname);}
