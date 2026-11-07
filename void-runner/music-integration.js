@@ -9,6 +9,8 @@
    if(!VoidAudio.settings.enabled){globalThis.VoidClubAudio?.update({active:false,dt});return;}
    // Inside a VR simulation the city's score gives way to the simulation's own ambience (vr-core.js).
    if(globalThis.VoidVR?.active||globalThis.VoidVR?.busy){E.stop?.();globalThis.VoidClubAudio?.update({active:false,dt});return;}
+   // The player's own pod music (pod-music.js) replaces the city score while it plays, and pauses when the player leaves the District.
+   if(globalThis.VoidPodMusic){globalThis.VoidPodMusic.update();if(globalThis.VoidPodMusic.playing){E.stop?.();globalThis.VoidClubAudio?.update({active:false,dt});return;}}
    VoidAudio.composerActive(true);
    const walking=!!walkingLocation&&!!walker&&['walking','dialogue','mission-log'].includes(mode);
    const flying=['play','pause','preparing-flight'].includes(mode)&&!!flight.route||mode==='play';
