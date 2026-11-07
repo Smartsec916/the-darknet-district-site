@@ -1,17 +1,17 @@
 /* Firebase identity + authenticated API. Cloud save replacement is always explicit.
    Sign-in: a District handle (no Google needed), an email link, or Google. */
-const account = window.VoidAccount = {user:null,products:[],status:'Verified purchases require a connection.',busy:false,revision:0,cloud:null,savedAt:null,character:null,handle:undefined,handleNextChange:null};
+const account = window.VoidAccount = {user:null,products:[],status:'Verified purchases require a connection.',busy:false,revision:0,cloud:null,savedAt:null,character:null,handle:undefined,handleNextChange:null,profileReady:false};
 let authInitialization=null,unsubscribe=null;
-let firebase, generation=0, pendingCheckout=new URLSearchParams(location.search).get('checkout');
+let firebase, generation=0, handleVersion=0, pendingCheckout=new URLSearchParams(location.search).get('checkout');
 let saveReady=false,verifiedUntil=0,ownershipTimer,refreshTimer,serviceRetryTimer,lastRefreshAttempt=0;
 // Handles, email links and Google linking are shared with every District game.
 let identityModule=null;const identity=()=>identityModule??=import('../district-identity.js');
 // The public handle comes from the handle registry, never from the Firebase display name (a Google account's is a real name).
 // undefined = unknown (service unreachable), null = none chosen yet, otherwise the handle.
 async function loadHandle(){
-  const user=account.user,epoch=generation;if(!user)return;
-  try{const mine=await (await identity()).fetchHandle(user);if(epoch!==generation)return;account.handle=mine.handle||null;account.handleNextChange=mine.nextChangeAt||null;}
-  catch{if(epoch!==generation)return;account.handle=(await identity()).handleOf(user)||undefined;}
+  const user=account.user,epoch=generation,version=handleVersion;if(!user)return;
+  try{const mine=await (await identity()).fetchHandle(user);if(epoch!==generation||version!==handleVersion)return;account.handle=mine.handle||null;account.handleNextChange=mine.nextChangeAt||null;}
+  catch{if(epoch!==generation||version!==handleVersion)return;account.handle=(await identity()).handleOf(user)||undefined;}
   render();
 }
 function render(){
@@ -35,7 +35,7 @@ async function catalog(){
 async function refresh(){
   lastRefreshAttempt=Date.now();
   const epoch=generation;
-  let data;try{data=await api('account');}catch(error){if(epoch===generation){setOwnedGear([]);saveReady=false;
+  let data;try{data=await api('account');}catch(error){if(epoch===generation){setOwnedGear([]);saveReady=false;account.profileReady=false;
     if(['unavailable','timeout','network','invalid-response'].includes(error.kind)){
       clearTimeout(serviceRetryTimer);serviceRetryTimer=setTimeout(()=>{if(epoch===generation&&account.user)run(refresh,true);},60000);
     }
@@ -44,7 +44,7 @@ async function refresh(){
   verifiedUntil=Date.now()+300000;clearTimeout(ownershipTimer);ownershipTimer=setTimeout(()=>{setOwnedGear([]);verifiedUntil=0;},300000);
   clearTimeout(refreshTimer);refreshTimer=setTimeout(()=>{if(epoch===generation&&account.user)run(refresh,true);},240000);
   if(data.developer){const identityEpoch=generation;VoidDevTools.identity((path,body)=>{if(identityEpoch!==generation||!account.user)throw new Error('Sign in again.');return api(path,body);});}
-  account.revision=data.revision;account.cloud=data.save;account.cloudRetired=data.retired===true;account.savedAt=data.savedAt;account.character=data.character||null;account.appearance=data.appearance||null;saveReady=true;setOwnedGear(data.owned);render();
+  account.revision=data.revision;account.cloud=data.save;account.cloudRetired=data.retired===true;account.savedAt=data.savedAt;account.character=data.character||null;account.appearance=data.appearance||null;saveReady=true;account.profileReady=true;setOwnedGear(data.owned);render();
 }
 function cloudDescription(){if(account.cloudRetired&&!account.cloud)return 'Your earlier cloud campaign was retired in the District reset. Save this journey to start a new one.';return account.cloud?`${account.cloud.completed} deliveries · ${account.cloud.credits.toLocaleString()} CR · ${account.cloud.cleared?.length||0}/12 new missions`:'No cloud save yet.';}
 function handleField(id,label,action,cta,value=''){
@@ -103,7 +103,7 @@ function initializeAuth(){
     try{
       firebase=await import('../firebase-auth.js');
       if(!unsubscribe)unsubscribe=firebase.onAuthStateChanged(firebase.auth,user=>{
-        generation++;clearTimeout(ownershipTimer);clearTimeout(refreshTimer);verifiedUntil=0;account.user=user;account.handle=undefined;account.handleNextChange=null;VoidDevTools.identity(null);account.cloud=null;account.character=null;account.appearance=null;account.revision=0;saveReady=false;setOwnedGear([]);render();
+        generation++;clearTimeout(ownershipTimer);clearTimeout(refreshTimer);verifiedUntil=0;account.user=user;account.handle=undefined;account.handleNextChange=null;account.profileReady=false;VoidDevTools.identity(null);account.cloud=null;account.character=null;account.appearance=null;account.revision=0;saveReady=false;setOwnedGear([]);render();
         VoidNetwork.report('identity','ready');
         if(user){loadHandle();run(async()=>{await confirmCheckout();await refresh();},true);}
       });
@@ -122,14 +122,14 @@ function requestAction(action){
   if(['play','pause'].includes(mode))return;
   if(action==='account'){accountPage();return;}
   if(action==='auth-retry'){run(initializeAuth);return;}
-  if(action==='create-character'){const [gender,model]=fieldValue('vr-character-model').split(':');run(async()=>{if(!account.user||account.user.isAnonymous)throw new Error('Secure your account first.');const data=await api('character',{gender,model});account.character=data.character;accountPage();announce('Your character was created for this account.');});return;}
+  if(action==='create-character'){const [gender,model]=fieldValue('vr-character-model').split(':');run(async()=>{if(!account.user||account.user.isAnonymous)throw new Error('Secure your account first.');const data=await api('character',{gender,model});account.character=data.character;accountPage();announce('Your character was created for this account.');globalThis.VoidRemotePlayers?.reconnect?.();});return;}
   // Read typed values first: run() redraws the page (busy state) before the action starts.
   if(action==='register-handle'||action==='change-handle'){const handle=fieldValue(action==='register-handle'?'vr-handle':'vr-handle-change');run(async()=>{
     if(!firebase)throw new Error('Account service is still connecting. Try again shortly.');
     const saved=await (await identity()).claimHandle(handle),user=saved.user;
-    account.handle=saved.handle;account.handleNextChange=saved.nextChangeAt||null;
+    handleVersion++;account.handle=saved.handle;account.handleNextChange=saved.nextChangeAt||null;
     await afterIdentityChange();account.handle=saved.handle;
-    announce(`Handle ${saved.handle} is yours.${user.isAnonymous?' Secure it with an email or Google to keep it on other devices.':''}`);
+    announce(`Handle ${saved.handle} is yours.${user.isAnonymous?' Secure it with an email or Google to keep it on other devices.':''}`);globalThis.VoidRemotePlayers?.reconnect?.();
   });}
   if(action==='email-link'){const typed=fieldValue('vr-email');run(async()=>{
     const email=await (await identity()).sendEmailLink(typed);
@@ -164,6 +164,30 @@ function requestAction(action){
   else if(action==='cloud-load'&&account.cloud){const restored=C.restore(JSON.stringify(account.cloud));if(!restored){announce(C.isLegacy(account.cloud)?'This cloud save is from before the District reset and has been retired. Your local progress is unchanged.':'This cloud save is incompatible. Your local progress is unchanged.');return;}globalThis.VoidFlightSession?.end();state=restored;save();current=null;VoidMenu.returnTo=null;hud();accountPage();announce('Cloud journey restored.');}
 }
 account.request=requestAction;
+// Multiplayer setup uses the same authenticated registry and one-character API as the account page.
+// Neither method writes a campaign save, inventory, credits, or an existing character.
+account.claimMultiplayerHandle=async handle=>{
+  if(!account.user||account.user.isAnonymous)throw new Error('Sign in with a registered account first.');
+  if(account.handle)return account.handle;
+  const uid=account.user.uid,user=account.user,mine=await (await identity()).fetchHandle(user);
+  if(account.user?.uid!==uid)throw new Error('Account changed. Sign in again.');
+  if(mine.handle){handleVersion++;account.handle=mine.handle;account.handleNextChange=mine.nextChangeAt||null;render();return mine.handle;}
+  const saved=await (await identity()).claimHandle(handle);
+  if(account.user?.uid!==uid)throw new Error('Account changed. Sign in again.');
+  handleVersion++;account.handle=saved.handle;account.handleNextChange=saved.nextChangeAt||null;render();return saved.handle;
+};
+account.completeMultiplayerCharacter=async look=>{
+  if(!account.user||account.user.isAnonymous)throw new Error('Sign in with a registered account first.');
+  const uid=account.user.uid;await refresh();
+  if(account.user?.uid!==uid)throw new Error('Account changed. Sign in again.');
+  if(account.character)return {character:account.character,created:false};
+  const gender=look?.base,model=gender==='female'?'district-resident':gender==='male'?'district-smuggler':null;
+  if(!model)throw new Error('Choose a valid character.');
+  let data;try{data=await api('character',{gender,model});}
+  catch(error){if(error.status===409){await refresh();if(account.character)return {character:account.character,created:false};}throw error;}
+  if(account.user?.uid!==uid)throw new Error('Account changed. Sign in again.');
+  account.character=data.character;render();return {character:account.character,created:true};
+};
 screen.addEventListener('click',e=>requestAction(e.target.closest('button')?.dataset.action));
 // Enter in a handle or email field triggers its button.
 screen.addEventListener('keydown',e=>{const action=e.target.dataset?.enter;if(e.key==='Enter'&&action){e.preventDefault();requestAction(action);}});

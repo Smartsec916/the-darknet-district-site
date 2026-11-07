@@ -74,11 +74,11 @@ All of these are separate approvals: (1) deploy the hub from `claude/character-c
 
 Current live state (owner dashboard check, 2026-11-07): service `district-hub` (`srv-dbn1q3sipgvc73bbbls0`), URL `https://district-hub-mbo7.onrender.com`, Free plan, branch `claude/character-creator`, deployed commit `4c60781`; `HUB_ALLOWED_UIDS` is present and `HUB_ACCESS` absent. The owner did not reveal values or change settings. The earlier 2026-11-06 inspection reported root `tools/district-hub`, `npm ci --omit=dev` / `node server.cjs`, health path `/health`, auto-deploy off, and log line `production (API https://the-darknet-district-site.onrender.com, 1 allowed account(s))`; reconfirm those details before rollout. The game API `the-darknet-district-site` is still at `a14db4e`, so it does not yet have `/character/appearance`; the hub shows legacy characters until that API is updated.
 
-To let any registered visitor in without collecting ids (all dashboard changes, none made):
+To let complete registered accounts in without collecting ids (all dashboard changes, none made):
 
-1. Deploy the hub from the reviewed branch containing this work (the commit that adds `HUB_ACCESS`).
+1. First verify the Python API serves authenticated `/api/identity/me` and `/api/void-runner/character` for a complete test account. Then deploy the reviewed integration hub code **with the existing `HUB_ALLOWED_UIDS` still present and `HUB_ACCESS` absent**; verify the restricted mode before changing access.
 2. In the hub's Environment: **delete `HUB_ALLOWED_UIDS`** and **add `HUB_ACCESS=registered`**. (The hub refuses to start if both are present, or if `HUB_ALLOW_ANY_SIGNED_IN=true` is also set: it fails closed, never open.) Keep `HUB_DENY_UIDS` (moderation, see `MODERATION.md`). Optional: `HUB_REQUIRE_VERIFIED_EMAIL=true`.
-3. Anonymous Firebase accounts are always refused in this mode (close code 4407); the game does not even try for them.
+3. Anonymous Firebase accounts are refused (close code 4407). Incomplete accounts are also refused: missing handle (4410), missing character (4411), both (4414), duplicate active handle (4412), or unavailable account verification (4413). The production hub now applies those checks in both restricted and registered modes. Single-player remains available.
 4. Publish the game client (merge to `main`): `LIVE_HUB` in `void-runner/remote-players.js` is now `wss://district-hub-mbo7.onrender.com` and multiplayer is on by default for registered accounts, switchable off in Settings. Until this is merged the live site does not connect.
 5. Rollback or pause: put `HUB_ALLOWED_UIDS` back and remove `HUB_ACCESS` (back to the restricted test), or Suspend the service.
 

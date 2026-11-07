@@ -68,11 +68,12 @@ test('two registered players chat both ways with hub-chosen names; clients canno
   ann.ws.close();ben.ws.close();
  }finally{await hub.close();}
 });
-test('chat is refused for anonymous accounts (allow-list mode) and before walking into the District',async()=>{
+test('allow-list mode also rejects anonymous accounts, and chat requires entering the District',async()=>{
  const w=world(),hub=await main({...base,HUB_ALLOWED_UIDS:'uid-ann,uid-anon',HUB_MAX_PER_IP:'12'},{fetchJwks:w.fetchJwks,fetchImpl:w.fetchImpl,quiet:true});
  try{
-  const ann=await join(hub,w.accounts.ann),anon=await join(hub,w.accounts.anon);await ann.until(c=>c.of('join').length>=1);
-  assert.equal(anon.of('welcome')[0].features.chat,false);anon.send({t:'chat',text:'let me in'});await anon.until(c=>c.of('chat-refused').length);assert.match(anon.of('chat-refused')[0].reason,/registered account/);assert.equal(ann.of('chat').length,0);
+  const ann=new C(hub);await ann.open;ann.send({t:'hello',token:w.accounts.ann.token,room:'district-interior'});await ann.until(c=>c.of('welcome').length);
+  const anon=await join(hub,w.accounts.anon);await anon.until(c=>c.closed);assert.equal(anon.closed,4407);assert.equal(anon.of('welcome').length,0);
+  ann.send({t:'chat',text:'not inside yet'});await ann.until(c=>c.of('chat-refused').length);assert.match(ann.of('chat-refused')[0].reason,/Walk into/);assert.equal(hub.hub.peers.size,1);
   ann.ws.close();anon.ws.close();
  }finally{await hub.close();}
 });

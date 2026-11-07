@@ -24,7 +24,7 @@ function fromEnv(env=process.env){
   const apiBase=env.HUB_API_BASE||'';
   if(!/^https:\/\/[^/\s]+$/.test(apiBase))throw new Error('HUB_API_BASE must be the game API origin, for example https://the-darknet-district-site.onrender.com');
   const allowed=new Set(list(env.HUB_ALLOWED_UIDS));
-  // HUB_ACCESS=registered: early access for any REGISTERED Firebase account (anonymous accounts refused), with no manually kept id list. Everything else
+  // HUB_ACCESS=registered: early access for registered Firebase accounts with API-verified District handles and characters, with no manually kept id list. Everything else
   // (verified tokens, exact origins, deny-list, per-address and total connection limits, room cap, message limits, chat rules) stays on. It is explicit: the
   // default is still the restricted allow-list, and the two ways of choosing cannot be mixed, so a leftover id list can never be mistaken for the access rule.
   const access=String(env.HUB_ACCESS||'allowlist').toLowerCase();

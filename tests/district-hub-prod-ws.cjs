@@ -20,15 +20,15 @@ class C{
 }
 const join=async(hub,acct,x=5,z=5)=>{const c=new C(hub);await c.open;c.send({t:'hello',token:acct.token,room:'district-interior'});await c.until(c=>c.of('welcome').length||c.closed);if(c.of('welcome').length)c.send({t:'state',x,z,yaw:0});return c;};
 
-test('allowed accounts join; each sees the other with the API-stored character and handle; a guest gets a guest name',async()=>{
+test('allowed complete accounts join with API-stored characters and handles; an anonymous account is rejected',async()=>{
  const w=world(),hub=await boot(w);
  try{
   const fox=await join(hub,w.accounts.fox),bolt=await join(hub,w.accounts.bolt,6,5),guest=await join(hub,w.accounts.guest,7,5);
-  await fox.until(c=>c.of('join').length>=2);
+  await fox.until(c=>c.of('join').length>=1);await guest.until(c=>c.closed);assert.equal(guest.closed,4407);
   const seen=Object.fromEntries(fox.of('join').map(m=>[m.peer.name.replace(/-[0-9a-f]{4}$/,'-'),m.peer.model]));
-  assert.equal(seen['Bolt_9'],'district-smuggler');assert.equal(seen['Guest-'],'district-smuggler','a guest cannot claim a character');
+  assert.equal(seen['Bolt_9'],'district-smuggler');assert.equal(guest.of('welcome').length,0);
   assert.equal(bolt.of('welcome')[0].peers.find(p=>p.name==='Neon_Fox').model,'district-resident');
-  assert.deepEqual(w.calls.filter(([,t])=>t===w.accounts.guest.token).map(c=>c[0]),['/api/identity/me'],'a guest is never looked up for a character');
+  assert.deepEqual(w.calls.filter(([,t])=>t===w.accounts.guest.token).map(c=>c[0]),[],'anonymous accounts are rejected without a profile lookup');
   assert(w.calls.every(([,t])=>Object.values(w.accounts).some(a=>a.token===t)),'the hub only ever forwards a player\'s own token');
   for(const c of [fox,bolt,guest])c.ws.close();
  }finally{await hub.close();}
@@ -144,7 +144,7 @@ test('appearance: reconnect restores the saved look, one avatar per account, del
 
 test('a slow look refresh keeps the verified session and ignores a concurrent refresh',async()=>{
  const A=require('../void-runner/character-appearance.js');
- const w=makeWorld({fox:{uid:'uid-fox',model:'district-resident',appearance:A.defaults('district-resident')},bolt:{uid:'uid-bolt',model:'district-smuggler'}});
+ const w=makeWorld({fox:{uid:'uid-fox',model:'district-resident',handle:'Neon_Fox',appearance:A.defaults('district-resident')},bolt:{uid:'uid-bolt',model:'district-smuggler',handle:'Bolt_9'}});
  let hold=false,release=null;
  const fetchImpl=async(url,options)=>{
   if(hold&&url.endsWith('/api/void-runner/character'))await new Promise(resolve=>{release=resolve;});

@@ -48,7 +48,7 @@
  function render(){
   if(!ui)return;const o=A.options(draft),look=CAT.looks[draft.look],keep=ui.querySelector('.cc-panel')?.scrollTop||0,focus=document.activeElement?.dataset?.cc?document.activeElement.dataset.cc+'|'+(document.activeElement.dataset.v||''):null;
   const btn=(k,v,label,sel,en=true,why='')=>`<button data-cc="${k}" data-v="${v}" aria-pressed="${sel}"${en?'':' disabled'}${why?` title="${why}"`:''}>${label}</button>`;
-  ui.innerHTML=`<div class="cc-panel"><h1>${ctx.context==='first'?'CREATE YOUR CHARACTER':'WARDROBE'}</h1><p class="cc-sub">${ctx.context==='first'?'You can change all of this later, free, in the Sleeping Pod wardrobe.':'Free and unlimited. Your location, inventory, credits and missions are not affected.'}</p>
+  ui.innerHTML=`<div class="cc-panel"><h1>${ctx.context==='first'||ctx.context==='multiplayer-setup'?'CREATE YOUR CHARACTER':'WARDROBE'}</h1><p class="cc-sub">${ctx.context==='first'||ctx.context==='multiplayer-setup'?'You can change all of this later, free, in the Sleeping Pod wardrobe.':'Free and unlimited. Your location, inventory, credits and missions are not affected.'}</p>
   <h2>BODY</h2><div class="cc-row">${Object.entries(CAT.bases).map(([id,b])=>btn('base',id,b.label,draft.base===id)).join('')}</div>
   <h2>OUTFIT</h2><div class="cc-row">${o.looks.map(l=>btn('look',l.id,l.label,draft.look===l.id)).join('')}</div>
   <p class="cc-note">Each outfit comes with its own shoes. Swapping outfits and shoes separately needs extra character files that are not made yet.</p>
@@ -104,7 +104,17 @@
  }
  function close(confirm){
   if(!open)return;
-  if(confirm){const s=storage();if(s&&A.save(s,uid(),draft)){try{if(typeof state!=='undefined'&&state?.story?.flags){state.story.flags.appearanceChosen=true;state.story.flags.appearanceOffered=true;}}catch{}root.VoidCharacterCreator.onChange?.(A.normalize(draft));upload(A.normalize(draft)).then(()=>root.VoidRemotePlayers?.refreshLook?.());}}
+  if(confirm&&ctx.context==='multiplayer-setup'){
+   const selected=A.normalize(draft),owner=uid();
+   Promise.resolve().then(()=>{
+    if(!root.VoidAccount?.completeMultiplayerCharacter)throw new Error('Account setup is unavailable. Try again shortly.');
+    return root.VoidAccount.completeMultiplayerCharacter(selected);
+   }).then(async result=>{
+    if(uid()!==owner)return;
+    if(result.created){const s=storage();if(s)A.save(s,owner,selected);root.VoidCharacterCreator.onChange?.(selected);await upload(selected);}
+    root.VoidRemotePlayers?.reconnect?.();
+   }).catch(error=>root.VoidRemotePlayers?.setupError?.(error.message||'Character creation is unavailable. Try again.'));
+  }else if(confirm){const s=storage();if(s&&A.save(s,uid(),draft)){try{if(typeof state!=='undefined'&&state?.story?.flags){state.story.flags.appearanceChosen=true;state.story.flags.appearanceOffered=true;}}catch{}root.VoidCharacterCreator.onChange?.(A.normalize(draft));upload(A.normalize(draft)).then(()=>root.VoidRemotePlayers?.refreshLook?.());}}
   else if(ctx.context==='first'){try{state.story.flags.appearanceOffered=true;}catch{}}
   open=false;cancelAnimationFrame(raf);seq++;char?.dispose();char=null;holder?.dispose();holder=null;{const sc=root.VoidBabylon?.scene;for(const l of lamps)l.dispose();lamps=[];sc?.markAllMaterialsAsDirty?.(root.BABYLON.Constants.MATERIAL_LightDirtyFlag);}ui.classList.remove('on');ui.innerHTML='';
   Object.assign(walker,snapshot.walker);mode=snapshot.mode;

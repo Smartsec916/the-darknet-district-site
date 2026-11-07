@@ -30,7 +30,7 @@ const hubLog=[];const boot=port=>main(env(port),{fetchJwks:w.fetchJwks,fetchImpl
   catch(e){for(const [n,q] of [['A',pa],['B',pb]])if(q)console.error('DIAG',n,JSON.stringify(await q.page.evaluate(()=>({status:VoidRemotePlayers.status,lastClose:VoidRemotePlayers.lastClose,sock:VoidRemotePlayers.socketState,trace:VoidRemotePlayers.trace,now:Math.round(performance.now()),peers:VoidRemotePlayers.peers}))));console.error('DIAG hub log',hubLog.slice(-25).join(' | '),'gate',hub.gate.count);throw e;}};
  const snapshot=p=>p.page.evaluate(()=>({loc:state.location,credits:state.credits,story:JSON.stringify(state.story),npcs:(()=>{const remote=n=>{for(let q=n.parent;q;q=q.parent)if(/^remote-player:/.test(q.name))return true;return false;};return VoidBabylon.scene.transformNodes.filter(n=>/^crowd:/.test(n.name)&&!remote(n)).length;})()}));
  const raw=acct=>new Promise((res,rej)=>{const s=new WebSocket(`ws://127.0.0.1:${port}`,{origin:new URL(base).origin});const o={s,msgs:[]};s.on('message',d=>o.msgs.push(JSON.parse(d)));s.on('close',c=>{o.closed=c;});s.on('error',rej);
-  s.on('open',()=>{s.send(JSON.stringify({t:'hello',token:acct.token,room:'district-interior'}));setTimeout(()=>{s.send(JSON.stringify({t:'state',x:139.4+1.4,z:-98.9,yaw:0}));res(o);},700);});});
+  s.on('open',()=>{s.send(JSON.stringify({t:'hello',token:acct.token,room:'district-interior'}));setTimeout(()=>{if(s.readyState===1)s.send(JSON.stringify({t:'state',x:139.4+1.4,z:-98.9,yaw:0}));res(o);},700);});});
  try{
   pa=await player(w.accounts.fox);pb=await player(w.accounts.bolt);
   const before=[await snapshot(pa),await snapshot(pb)];
@@ -47,12 +47,12 @@ const hubLog=[];const boot=port=>main(env(port),{fetchJwks:w.fetchJwks,fetchImpl
   const t0=Date.now();let err,dyaw;
   for(;;){const b=await pb.page.evaluate(()=>({x:walker.x,z:walker.z,yaw:walker.yaw})),a=(await peersOf(pa))[0];err=Math.hypot(a.x-b.x,a.z-b.z);dyaw=Math.abs(Math.atan2(Math.sin(a.yaw-b.yaw),Math.cos(a.yaw-b.yaw)));if(err<.35&&dyaw<.2||Date.now()-t0>60000)break;await wait(200);}
   assert(err<.35&&dyaw<.2,`A sees B in the right place and facing (err ${err.toFixed(2)}, yaw ${dyaw.toFixed(2)})`);
-  // 3. A guest (a plain test socket here) appears with a guest name tag and the default look; a stranger who is not on the list is refused.
-  const g=await raw(w.accounts.guest);await until(pb,v=>v.length===2&&v.every(x=>x.drawn&&x.tagged));
-  const names=(await peersOf(pb)).map(x=>x.name).sort();assert(names.some(n=>/^Guest-[0-9a-f]{4}$/.test(n))&&names.includes('Neon_Fox'),'a guest is shown as Guest-xxxx: '+names);
+  // 3. Even an allow-listed anonymous account cannot enter; a stranger not on the list is refused too.
+  const g=await raw(w.accounts.guest);assert.equal(g.closed,4407);assert.equal(g.msgs.some(m=>m.t==='welcome'),false);
+  const names=(await peersOf(pb)).map(x=>x.name).sort();assert.deepEqual(names,['Neon_Fox']);
   const st=await raw(w.accounts.stranger).catch(()=>null);await wait(300);assert(!st||st.closed===4403,'a stranger is refused: '+st?.closed);
   await pa.page.evaluate(()=>{const p=VoidRemotePlayers.peers.find(x=>x.name==='Bolt_9');walker.yaw=Math.atan2(p.x-walker.x,p.z-walker.z);walker.pitch=0;});await wait(1500);await pa.page.screenshot({path:`/tmp/dd-multiplayer-prod-${tier}.png`});
-  g.s.terminate();await until(pb,v=>v.length===1,40000);
+  g.s.terminate();
   // 4. The hub restarts (as a host does on a deploy): every client is told 1012 and reconnects within seconds, with no duplicates.
   const r0=Date.now();await hub.close();await pb.page.waitForFunction(()=>VoidRemotePlayers.peers.length===0&&!VoidRemotePlayers.connected,null,{timeout:60000});
   hub=await boot(port);

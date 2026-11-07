@@ -23,10 +23,10 @@
  };
  const clean=n=>typeof n==='string'&&/^[A-Za-z0-9_-]{3,24}$/.test(n)?n:'Guest';
  // What the Settings line says for each status the client can be in.
- const words=(st,signedIn)=>({'off':signedIn?'Off.':'Off. Sign in to your account first (Account, in the main menu).','in':'Connected. Other testers in the District interior appear with name tags.',
+ const words=(st,signedIn)=>({'off':signedIn?'Off.':'Off. Sign in to your account first (Account, in the main menu).','in':'Connected. Other players in the District interior appear with name tags.',
   'connecting':'Connecting...','waking the server':'Waking the test server (it sleeps when idle and can take about a minute)...','sign in to join':'Sign in to your account first (Account, in the main menu).',
-  'not on the test list':'Your account is not on the test list.','registered account required':'Multiplayer and chat need a registered account. Create one from the account menu.','create an account':'Multiplayer and chat need a registered account. Create one from the account menu.','verified email required':'Please verify your email address to use multiplayer.','sign-in not accepted':'Your sign-in was not accepted. Sign in again.','replaced by another session':'This account joined from another window.',
-  'server restarting':'The test server is restarting; reconnecting...','offline':'Cannot reach the test server; trying again.','no hub configured':'No test server is set up.'}[st]||(st&&st.startsWith('refused')?'The test server refused the connection.':'Off.'));
+  'not on the test list':'Your account is not on the test list.','registered account required':'Multiplayer and chat need a registered account. Create one from the account menu.','create an account':'Multiplayer and chat need a registered account. Create one from the account menu.','checking account':'Checking your District account…','District handle required':'Choose a unique District handle below.','saved character required':'Create your character below.','District handle and character required':'Choose a handle and create your character below.','account verification unavailable':'Account verification is unavailable. Solo play continues; multiplayer will retry.','duplicate District handle':'That handle is already in use. Contact support if this is your account.','verified email required':'Please verify your email address to use multiplayer.','sign-in not accepted':'Your sign-in was not accepted. Sign in again.','replaced by another session':'This account joined from another window.',
+  'server restarting':'The server is restarting; reconnecting...','offline':'Cannot reach the server; solo play continues while retrying.','no hub configured':'No multiplayer server is set up.'}[st]||(st?.startsWith('setup error:')?st.slice(13):st&&st.startsWith('refused')?'The server refused the connection.':'Off.'));
  if(typeof module!=='undefined')module.exports={allowed,available,hubUrl,clean,words,LIVE_HUB};
  if(typeof document==='undefined')return;
  const isLocalPage=LOCAL.test(root.location.hostname);
@@ -38,7 +38,7 @@
  const loadIgnored=()=>{try{const rows=JSON.parse(root.localStorage.getItem(IGN+(accountUid()||'guest'))||'[]').filter(x=>Array.isArray(x)&&/^[0-9a-f]{12}$/.test(x[0])&&['mute','block'].includes(x[1])).slice(0,100);ignored=new Map(rows.map(x=>[x[0],x[1]]));ignoredNames=new Map(rows.map(x=>[x[0],clean(x[2])]));}catch{ignored=new Map();ignoredNames=new Map();}};
  const saveIgnored=()=>{try{root.localStorage.setItem(IGN+(accountUid()||'guest'),JSON.stringify([...ignored].map(([id,m])=>[id,m,ignoredNames.get(id)||'Player'])));}catch{}};
  let selfId='';const emitChat=m=>{for(const fn of chatListeners)try{fn(m);}catch{}};
- let blockedUid=null,lastClose='',opening=false,ws=null,wantOn=true,retry=0,retryTimer=0,status='off',lastSend=0,connectedUid=null,wakeTimer=0;
+ let blockedUid=null,creatorOfferedUid=null,lastClose='',opening=false,ws=null,wantOn=true,retry=0,retryTimer=0,status='off',lastSend=0,connectedUid=null,wakeTimer=0;
  const traceLog=[],trace=m=>{traceLog.push(Math.round(performance.now())+' '+m);if(traceLog.length>60)traceLog.shift();};
  const peers=new Map();       // public id -> {node,ctrl,model,name,x,z,yaw,tx,tz,tyaw,clip,seen,off}
  // Paused in the District (the pause menu, Settings) still counts as being in the room: the avatar simply stands still for the others.
@@ -96,7 +96,7 @@
  }
  // Closing codes from the hub: 1012/1001 restarting (reconnect soon), 4001 replaced by another session of this account, 4401 sign-in not
  // accepted, 4403 not on the test list (no retry for those three), 4006 too many connections (retry slowly), anything else: back off and retry.
- const NO_RETRY=new Set([4001,4401,4403,4407,4408]);
+ const NO_RETRY=new Set([4001,4401,4403,4407,4408,4410,4411,4412,4414]);
  function scheduleRetry(code){
   if(!wantOn||NO_RETRY.has(code))return;
   const wait=code===1012||code===1001?600:code===4006?30000:Math.min(15000,1000*2**Math.min(retry++,4));
@@ -110,6 +110,12 @@
   if(ws||!wantOn||!inRoom())return;
   if(!tok){status='sign in to join';retryTimer=setTimeout(connect,3000);return;}
   if(!isLocalPage&&root.VoidAccount?.user?.isAnonymous){status='create an account';retryTimer=setTimeout(connect,5000);return;}   // a registered account is required (the hub checks this too)
+  if(!isLocalPage){const a=root.VoidAccount;
+   if(!a?.profileReady||a.handle===undefined){status='checking account';retryTimer=setTimeout(connect,3000);return;}
+   if(!a.handle||!a.character){status=!a.handle&&!a.character?'District handle and character required':!a.handle?'District handle required':'saved character required';
+    if(!a.character&&mode==='walking'&&creatorOfferedUid!==a.user.uid){creatorOfferedUid=a.user.uid;
+     Promise.resolve().then(()=>root.VoidCharacterCreator?.open?.({context:'multiplayer-setup'})).catch(()=>{});}
+    retryTimer=setTimeout(connect,5000);return;}}
   status='connecting';connectedUid=accountUid();
   const sock=new WebSocket(url);ws=sock;trace('new socket');
   // A sleeping free host takes up to about a minute to wake: say so, and give each attempt that long.
@@ -119,7 +125,7 @@
   sock.onmessage=e=>{trace('message');try{onMessage(JSON.parse(e.data));}catch{}};
   sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false,chat:false};emitChat({t:'chat-status',on:false});for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one
    ws=null;clearPeers();lastClose=e.code+(e.reason?' '+e.reason:'');
-   status=e.code===4001?'replaced by another session':e.code===4401?'sign-in not accepted':e.code===4403?'not on the test list':e.code===4407?'registered account required':e.code===4408?'verified email required':e.code===1012||e.code===1001?'server restarting':'offline';
+   status=e.code===4001?'replaced by another session':e.code===4401?'sign-in not accepted':e.code===4403?'not on the test list':e.code===4407?'registered account required':e.code===4408?'verified email required':e.code===4410?'District handle required':e.code===4411?'saved character required':e.code===4412?'duplicate District handle':e.code===4414?'District handle and character required':e.code===4413?'account verification unavailable':e.code===1012||e.code===1001?'server restarting':'offline';
    if(NO_RETRY.has(e.code)){wantOn=false;blockedUid=connectedUid;}   // stay quiet until the player signs in as someone else or calls reconnect()
    scheduleRetry(e.code);};
   sock.onerror=()=>{};
@@ -164,7 +170,8 @@
   setIgnore(id,mode,name){if(!/^[0-9a-f]{12}$/.test(String(id)))return false;if(mode==='mute'||mode==='block'){ignored.set(id,mode);ignoredNames.set(id,clean(name||peers.get(id)?.name));}else{ignored.delete(id);ignoredNames.delete(id);mode=null;}saveIgnored();
    if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:!!mode}));if(mode==='block')removePeer(id);return true;},
   report(id,reason,note){if(!(ws?.readyState===1&&status==='in'&&features.chat))return false;const m={t:'report',id,reason};if(typeof note==='string'&&note.trim())m.note=note.trim().slice(0,120);ws.send(JSON.stringify(m));return true;},
-  disconnect(){wantOn=false;blockedUid=accountUid();disconnect();},reconnect(){wantOn=true;retry=0;clearTimeout(retryTimer);retryTimer=0;},hubUrl:()=>hubUrl(root.location,root.localStorage)};
+  disconnect(){wantOn=false;blockedUid=accountUid();disconnect();},reconnect(){wantOn=true;blockedUid=null;retry=0;clearTimeout(retryTimer);retryTimer=0;},
+  setupError(message){status='setup error: '+String(message).slice(0,160);},hubUrl:()=>hubUrl(root.location,root.localStorage)};
  }
  // ---- Settings > Multiplayer test: a button instead of the browser console. The server's allow-list is the real gate; this only starts or stops asking. ----
  const on=()=>isLocalPage?get(root.localStorage,'tdd-multiplayer')==='1':get(root.localStorage,'tdd-multiplayer')!=='0';
@@ -172,8 +179,11 @@
  const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function menuHtml(){
   const st=root.VoidRemotePlayers?.status||'off',signedIn=!!root.VoidAccount?.user;
-  return '<h2>Multiplayer test</h2><p>Early access: meet other registered players inside The Darknet District and chat with them (press Enter). It needs a registered account and works only in the District interior; everywhere else, and whenever the server is unavailable, you play alone. You can switch it off here. Your saves are not touched. Real-money and item trading stay disabled.</p>'
+  const a=root.VoidAccount,setup=on()&&a?.user&&!a.user.isAnonymous&&a.profileReady;
+  return '<h2>Multiplayer test</h2><p>Early access: meet other registered players inside The Darknet District and chat with them (press Enter). You need a unique District handle and a saved character. It works only in the District interior; everywhere else, and whenever the server is unavailable, you play alone. Your saves are not touched. Real-money and item trading stay disabled.</p>'
    +'<p id="multiplayer-status" role="status">'+esc(words(on()?st:'off',signedIn))+'</p>'
+   +(setup&&a.handle===null?'<label for="multiplayer-handle">District handle</label><input id="multiplayer-handle" maxlength="20" autocomplete="off" placeholder="Ghost_01"><button type="button" data-action="multiplayer-handle">CLAIM HANDLE</button>':'')
+   +(setup&&!a.character?'<button type="button" data-action="multiplayer-character">CREATE CHARACTER</button>':'')
    +'<button type="button" data-action="multiplayer-toggle" id="multiplayer-toggle">'+(on()?'LEAVE MULTIPLAYER TEST':'JOIN MULTIPLAYER TEST')+'</button>';
  }
  function installMenu(){
@@ -181,7 +191,14 @@
   const prior=settingsPage;
   settingsPage=function(...a){const r=prior.apply(this,a);screen.querySelector('.settings-panel')?.insertAdjacentHTML('beforeend',menuHtml());return r;};
   screen.addEventListener('click',e=>{
-   if(e.target.closest('button')?.dataset.action!=='multiplayer-toggle')return;
+   const action=e.target.closest('button')?.dataset.action;
+   if(action==='multiplayer-handle'){
+    const value=screen.querySelector('#multiplayer-handle')?.value.trim();root.VoidAccount?.claimMultiplayerHandle?.(value)
+     .then(()=>{root.VoidRemotePlayers?.reconnect();settingsPage();})
+     .catch(error=>root.VoidRemotePlayers?.setupError?.(error.message||'Handle registration is unavailable.'));return;
+   }
+   if(action==='multiplayer-character'){root.VoidCharacterCreator?.open?.({context:'multiplayer-setup'});return;}
+   if(action!=='multiplayer-toggle')return;
    if(on()){setFlag(false);root.VoidRemotePlayers?.disconnect();}
    else{setFlag(true);boot();root.VoidRemotePlayers?.reconnect();}
    settingsPage();   // redraw with the new state; the status line then follows as the connection comes up
