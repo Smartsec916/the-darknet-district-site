@@ -89,19 +89,22 @@ export async function signOut(){
   sessionStorage.removeItem('blackoutRunUid');
 }
 
-async function request(path, {method='GET', body, requireUser=false, timeout=5000}={}){
+async function request(path, {method='GET', body, requireUser=false, expectedUid=null, timeout=5000}={}){
   await authReady();
   if(requireUser && !user) throw new Error('Sign in or register a handle to continue.');
+  if(expectedUid && user?.uid !== expectedUid) throw new Error('Account changed. This save was not sent.');
+  const requestUser = user;
   const controller = new AbortController();
   const timer = setTimeout(()=>controller.abort(), timeout);
   try {
     const headers = {Accept:'application/json'};
     if(body !== undefined) headers['Content-Type'] = 'application/json';
-    if(user) headers.Authorization = `Bearer ${await user.getIdToken()}`;
+    if(requestUser) headers.Authorization = `Bearer ${await requestUser.getIdToken()}`;
+    if(expectedUid && user?.uid !== expectedUid) throw new Error('Account changed. This save was not sent.');
     const response = await fetch(ROOT + path, {method, headers, body:body===undefined?undefined:JSON.stringify(body),
       cache:'no-store', credentials:'omit', signal:controller.signal});
     const data = await response.json().catch(()=>({}));
-    if(!response.ok) throw new Error(data.error || 'The leaderboard service is unavailable.');
+    if(!response.ok){ const error=new Error(data.error || 'The leaderboard service is unavailable.'); error.status=response.status; throw error; }
     return data;
   } catch(error){
     if(error.name === 'AbortError') throw new Error('The leaderboard service timed out. Local play continues.');
@@ -114,6 +117,10 @@ export function tesanaLeaderboard(){ return request('/v2/leaderboard', {timeout:
 export function tesanaStartRun(){ return request('/v2/runs', {method:'POST', body:{}, requireUser:true}); }
 export function tesanaCompleteLevel(runId, level, score, seconds, events){
   return request(`/v2/runs/${runId}/level`, {method:'POST', body:{level, score, seconds, events}, requireUser:true, timeout:8000});
+}
+export function tesanaGetProgress(expectedUid){ return request('/v2/progress', {requireUser:true, expectedUid, timeout:8000}); }
+export function tesanaPutProgress(progress, revision, expectedUid){
+  return request('/v2/progress', {method:'POST', body:{progress, revision}, requireUser:true, expectedUid, timeout:8000});
 }
 export function checkHandle(handle){ return request(`/handles/${encodeURIComponent(handle)}/available`); }
 export function claimHandle(handle){ return request('/handle', {method:'POST', body:{handle}, requireUser:true}); }

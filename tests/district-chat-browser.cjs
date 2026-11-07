@@ -25,6 +25,7 @@ const hubLog=[];const boot=port=>main({HUB_MODE:'production',HUB_API_BASE:'https
  const say=async(p,text)=>{await p.page.keyboard.press('Enter');await p.page.waitForSelector('#district-chat.open input',{state:'visible'});await p.page.fill('#district-chat input',text);await p.page.keyboard.press('Enter');await p.page.keyboard.press('Escape');};
  try{
   const A1=await player(w.accounts.ann),B1=await player(w.accounts.ben);
+  console.log('District chat browser: two registered game pages loaded');
   const snap=p=>p.page.evaluate(()=>({loc:state.location,credits:state.credits,inv:JSON.stringify(state.inventory||null),flags:JSON.stringify(state.story)}));
   const before=[await snap(A1),await snap(B1)];
   // 1. Both registered players see each other: name tag, character, and Ann's saved creator look
@@ -34,6 +35,7 @@ const hubLog=[];const boot=port=>main({HUB_MODE:'production',HUB_API_BASE:'https
   // 2. Chat both ways, typed with the keyboard, with the sender's name
   await say(A1,'Hello from Ann');await B1.page.waitForFunction(()=>[...document.querySelectorAll('#district-chat .dc-line')].some(e=>/Ann_R.*Hello from Ann/.test(e.textContent)),null,{timeout:30000});
   await wait(900);await say(B1,'Hi Ann, Ben here');await A1.page.waitForFunction(()=>[...document.querySelectorAll('#district-chat .dc-line')].some(e=>/Ben_K.*Hi Ann, Ben here/.test(e.textContent)),null,{timeout:30000});
+  console.log('District chat browser: two-way messages verified');
   // typing never walks the character
   const p0=await A1.page.evaluate(()=>({x:walker.x,z:walker.z}));await say(A1,'wasd wasd wasd');await wait(700);const p1=await A1.page.evaluate(()=>({x:walker.x,z:walker.z}));assert(Math.hypot(p1.x-p0.x,p1.z-p0.z)<.05,'typing does not move the player');
   // 3. A message with markup is shown as text, never as markup
@@ -53,6 +55,7 @@ const hubLog=[];const boot=port=>main({HUB_MODE:'production',HUB_API_BASE:'https
   await B1.page.getByRole('button',{name:'REPORT'}).click();await B1.page.selectOption('#district-chat .dc-report select','harassment');await B1.page.getByRole('button',{name:'SEND REPORT'}).click();
   for(let i=0;i<40&&!hubLog.some(l=>/REPORT /.test(l));i++)await wait(250);
   const rl=hubLog.find(l=>/REPORT /.test(l));assert(rl,'report logged');const rep=JSON.parse(rl.slice(rl.indexOf('REPORT ')+7));assert.equal(rep.reason,'harassment');assert.equal(rep.target.name,'Ann_R');assert(rep.recentLines.length>=1);
+  console.log('District chat browser: moderation verified');
   // 7. Block hides the avatar and the chat, and survives a page reload (kept for this account in this browser)
   await B1.page.getByRole('button',{name:'BLOCK',exact:true}).click();await wait(1000);assert.equal((await B1.page.evaluate(()=>VoidRemotePlayers.peers)).length,0,'a blocked player is not drawn');
   assert(await B1.page.evaluate(()=>VoidRemotePlayers.ignored.some(([,m])=>m==='block')));
@@ -60,6 +63,7 @@ const hubLog=[];const boot=port=>main({HUB_MODE:'production',HUB_API_BASE:'https
   // 8. Anonymous access is refused by the hub (token is checked on the server)
   const AN=await player(w.accounts.anon).catch(e=>{throw e;});await AN.page.waitForFunction(()=>/registered account required/.test(VoidRemotePlayers.status),null,{timeout:120000});assert.equal(await AN.page.evaluate(()=>VoidRemotePlayers.features.chat),false);assert.equal(await AN.page.evaluate(()=>document.querySelectorAll('#district-chat.on').length),0,'no chat panel for anonymous visitors');
   assert.equal(hub.hub.peers.size,2,'the anonymous visitor never joined');await AN.ctx.close();
+  console.log('District chat browser: anonymous account refused');
   // 9. Hub outage: both pages keep playing alone; the hub comes back on the same address and both rejoin, chat works again
   await hub.close();for(const p of [A1,B1])await p.page.waitForFunction(()=>!VoidRemotePlayers.connected,null,{timeout:60000});
   for(const p of [A1,B1]){assert.equal(await p.page.evaluate(()=>mode),'walking','single player continues');const a=await p.page.evaluate(()=>walker.x);await p.page.keyboard.down('KeyW');await wait(600);await p.page.keyboard.up('KeyW');assert.notEqual(await p.page.evaluate(()=>walker.x),a,'still walking during the outage');assert.equal(await p.page.evaluate(()=>document.querySelectorAll('#district-chat.on').length),0,'chat hidden when offline');}

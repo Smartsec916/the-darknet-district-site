@@ -10,6 +10,7 @@ export interface SaveData {
 const GUEST_KEY = "blackout_protocol_save_v1";
 let saveKey = GUEST_KEY;
 let saveOwner: string | null = null;
+let syncHook: ((snapshot: string) => void) | null = null;
 export function freshSave(): SaveData {
   return { v: 1, unlocked: 1, btc: 0, score: 0, up: {}, shield: 0, sidearm: false, stats: {}, resume: null, muted: false, fx: { scanlines: true, glow: true, grid: false, cabinet: true }, finished: false };
 }
@@ -19,7 +20,11 @@ function load(): SaveData {
   return freshSave();
 }
 export const persistGate = { off: false };
-export function persist(): void { if (persistGate.off) return; try { localStorage.setItem(saveKey, JSON.stringify(save)); } catch { /* */ } }
+export function persist(): void { if (persistGate.off) return; const snapshot = JSON.stringify(save); try { localStorage.setItem(saveKey, snapshot); } catch { /* */ } syncHook?.(snapshot); }
+export function setSyncHook(hook: ((snapshot: string) => void) | null): void { syncHook = hook; }
+export function hasLocalSave(): boolean { try { return localStorage.getItem(saveKey) !== null; } catch { return false; } }
+export function saveSnapshot(): string { return JSON.stringify(save); }
+export function replaceSave(progress: SaveData): void { save = progress; persist(); }
 /** Keep guest progress in the export's original key and isolate each District account on this device. */
 export function setSaveOwner(uid: string | null): boolean {
   if (uid === saveOwner) return false;

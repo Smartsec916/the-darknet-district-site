@@ -1,5 +1,13 @@
 # Blackout Protocol — Tesana integration and release
 
+## Combined development branch update (2026-11-07; not deployed)
+
+`codex/blackout-district-production-integration` adds account-bound campaign backup to the existing `bp_tesana_stats` document, alongside—but explicitly separate from—verified ranking fields. `GET` and `POST /api/blackout/v2/progress` require the verified Firebase UID; the POST validates the browser save and uses a compare-and-swap revision. It writes only `unverifiedProgress`, `progressRevision`, and `progressUpdatedAt`. Neither the leaderboard query nor ranked-run scoring reads these unverified fields. No new collection, index, Firestore rule, production migration, or legacy-score change is needed. The active production rules for `bp_tesana_stats` still need inspection before deployment.
+
+Guests continue using the original browser-local save. Signed-in players keep their existing UID-specific local save as a backup. When an account copy exists and a browser has no local copy, the game loads it; when both copies differ, it keeps the local copy and offers **LOAD ACCOUNT SAVE** or an explicitly confirmed **KEEP THIS BROWSER SAVE**. Ordinary saves sync after a short debounce. A 409 revision conflict stops uploads and keeps both copies for the player to resolve. If the API is offline, the game remains local and says the account save is unavailable. Because campaign progress comes from the browser, it is **not a verified score** and cannot grant leaderboard entries or achievements. The added tests cover UID isolation, malformed saves, stale revisions, cross-device loading, and conflict recovery. These are local tests with mock accounts, not live Firebase proof.
+
+This update is in an unmerged branch. The 2026-11-06 release description below still describes what is currently on `main` and the public Pages build.
+
 PR #200: `codex/blackout-tesana-integration` → `main`. The authoritative source is the owner's GitHub Release asset `blackout-tesana-import-2026/game-20261102-8d25f7e2-code.2.zip` (SHA-256 `fc021ef87001845f89f4e30112798048ad8f35a43be4d42e1d5fe2087833b2d6`). The ZIP passed `unzip -tq`. It contains 12 sectors; the owner states it was created under a Tesana Max subscription. No mandatory attribution notice was found in the export. This cloud environment cannot access the Tesana rights page, so the owner's rights assertion is the basis for publication.
 
 ## Game and website integration

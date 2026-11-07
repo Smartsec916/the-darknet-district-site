@@ -1,6 +1,6 @@
 # District multiplayer hub: intended Render settings
 
-> **2026-11-06 status update:** The owner reports a `district-hub` service at `https://district-hub-mbo7.onrender.com`, deployed from `claude/character-creator` commit `4c60781`, and a prior 200 JSON response from `/health`. Current settings have not been independently inspected; see `CODEX_TO_CLAUDE_HANDOFF_2026-11-06.md`.
+> **2026-11-07 status update:** The owner verified in Render that `district-hub` is Live on the Free plan at `claude/character-creator` commit `4c60781`, with `HUB_ALLOWED_UIDS` present and `HUB_ACCESS` absent. A prior 200 JSON `/health` response was observed. Use `LIVE_SYSTEMS_INTEGRATION_READINESS_2026-11-07.md` for the controlled code-first deployment, registered-access transition, and rollback steps; the older procedure below describes the restricted test stage.
 
 This page records the intended settings. It does not prove which values are applied to the current service. Any further deployment or configuration change needs the owner's approval.
 
@@ -72,7 +72,7 @@ All of these are separate approvals: (1) deploy the hub from `claude/character-c
 
 ## Early-access mode for any registered account (second step, needs approval) — added 2026-11-06
 
-Current live state (read-only inspection through the Render connector, 2026-11-06): service `district-hub` (`srv-dbn1q3sipgvc73bbb1s0`), URL `https://district-hub-mbo7.onrender.com`, Free plan, branch `claude/character-creator`, root `tools/district-hub`, `npm ci --omit=dev` / `node server.cjs`, health path `/health`, auto-deploy off, one live deploy from commit `4c60781` (manual), log line `production (API https://the-darknet-district-site.onrender.com, 1 allowed account(s))`. So **only one account can join today**. The game API `the-darknet-district-site` deploys from **`main`** (Python, Starter plan), so it does not yet have `/character/appearance`; the hub shows legacy characters until that API is updated.
+Current live state (owner dashboard check, 2026-11-07): service `district-hub` (`srv-dbn1q3sipgvc73bbbls0`), URL `https://district-hub-mbo7.onrender.com`, Free plan, branch `claude/character-creator`, deployed commit `4c60781`; `HUB_ALLOWED_UIDS` is present and `HUB_ACCESS` absent. The owner did not reveal values or change settings. The earlier 2026-11-06 inspection reported root `tools/district-hub`, `npm ci --omit=dev` / `node server.cjs`, health path `/health`, auto-deploy off, and log line `production (API https://the-darknet-district-site.onrender.com, 1 allowed account(s))`; reconfirm those details before rollout. The game API `the-darknet-district-site` is still at `a14db4e`, so it does not yet have `/character/appearance`; the hub shows legacy characters until that API is updated.
 
 To let any registered visitor in without collecting ids (all dashboard changes, none made):
 

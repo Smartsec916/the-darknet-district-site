@@ -590,3 +590,84 @@ def tesana_complete_level(db, uid, run_id):
     result = commit(db.transaction())
     _tesana_top_cache['rows'] = None
     return jsonify(**result)
+
+
+# A browser save is useful across devices, but is never evidence for the ranked
+# board. Keep it under an explicitly unverified field in the existing private
+# stats document. Compare-and-swap revisions prevent a stale device from
+# silently replacing a newer save; the browser retains its local copy on 409.
+def clean_tesana_progress(value):
+    keys = {'v', 'unlocked', 'btc', 'score', 'up', 'shield', 'sidearm',
+            'stats', 'resume', 'muted', 'fx', 'finished'}
+    if type(value) is not dict or set(value) != keys or type(value['v']) is not int or value['v'] != 1:
+        raise ApiError('Invalid campaign save.', 422)
+
+    def number(item, maximum):
+        return type(item) is int and 0 <= item <= maximum
+
+    def shards(item):
+        return type(item) is list and len(item) == 3 and all(type(x) is bool for x in item)
+
+    if not (number(value['unlocked'], 13) and value['unlocked'] >= 1
+            and number(value['btc'], 1_000_000_000) and number(value['score'], 1_000_000_000)
+            and number(value['shield'], 100) and all(type(value[k]) is bool for k in ('sidearm', 'muted', 'finished'))):
+        raise ApiError('Invalid campaign save.', 422)
+    upgrades = value['up']
+    if type(upgrades) is not dict or len(upgrades) > 32 or any(
+            type(k) is not str or not re.fullmatch(r'[a-z][a-z0-9-]{0,24}', k) or not number(v, 10)
+            for k, v in upgrades.items()):
+        raise ApiError('Invalid campaign upgrades.', 422)
+    stages = value['stats']
+    if type(stages) is not dict or len(stages) > 12 or any(
+            k not in TESANA_LEVELS or type(v) is not dict or set(v) != {'shards', 'best', 'done', 'setBonus'}
+            or not shards(v['shards']) or not number(v['best'], 1_000_000_000)
+            or type(v['done']) is not bool or type(v['setBonus']) is not bool
+            for k, v in stages.items()):
+        raise ApiError('Invalid campaign sectors.', 422)
+    resume = value['resume']
+    if resume is not None and (type(resume) is not dict
+            or set(resume) != {'level', 'cp', 'shards', 'coins', 'btc', 'score'}
+            or not number(resume['level'], 11)
+            or (resume['cp'] is not None and (type(resume['cp']) is not str
+                 or not re.fullmatch(r'cp[0-9_]{1,40}', resume['cp'])))
+            or not shards(resume['shards'])
+            or type(resume['coins']) is not list or len(resume['coins']) > 300
+            or any(not number(n, 10_000) for n in resume['coins'])
+            or not number(resume['btc'], 1_000_000_000)
+            or not number(resume['score'], 1_000_000_000)):
+        raise ApiError('Invalid campaign checkpoint.', 422)
+    fx = value['fx']
+    if type(fx) is not dict or set(fx) != {'scanlines', 'glow', 'grid', 'cabinet'} or any(
+            type(x) is not bool for x in fx.values()):
+        raise ApiError('Invalid campaign display settings.', 422)
+    return value
+
+
+@api.get('/v2/progress')
+@tesana_signed_in
+def tesana_get_progress(db, uid):
+    saved = db.collection('bp_tesana_stats').document(player_id(uid)).get().to_dict() or {}
+    return jsonify(progress=saved.get('unverifiedProgress'), revision=saved.get('progressRevision', 0))
+
+
+@api.post('/v2/progress')
+@tesana_signed_in
+def tesana_put_progress(db, uid):
+    from firebase_admin import firestore
+    data = body(['progress', 'revision'])
+    progress, revision = clean_tesana_progress(data['progress']), data['revision']
+    if type(revision) is not int or not 0 <= revision < 1_000_000_000:
+        raise ApiError('Invalid save revision.', 422)
+    ref = db.collection('bp_tesana_stats').document(player_id(uid))
+
+    @firestore.transactional
+    def commit(tx):
+        saved = ref.get(transaction=tx).to_dict() or {}
+        if saved.get('progressRevision', 0) != revision:
+            raise ApiError('Account progress changed on another device. Your local save is still safe.', 409)
+        next_revision = revision + 1
+        tx.set(ref, {'unverifiedProgress': progress, 'progressRevision': next_revision,
+                     'progressUpdatedAt': int(time.time())}, merge=True)
+        return next_revision
+
+    return jsonify(revision=commit(db.transaction()))
