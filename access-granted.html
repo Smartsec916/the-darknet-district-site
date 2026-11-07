@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Access granted. Your secure download link was sent to your email.">
+  <title>Access Granted – The Darknet District</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="hud.css" />
+  <script src="hud.js" defer></script>
+  <link href="./home-navigation.css" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="storefront.css">
+  <style>
+    /* Access Granted page. Reuses the site's dark, neon-green/cyan palette.
+       Shared pieces (nav, HUD, storefront frame) come from the existing stylesheets. */
+    :root {
+      --ag-bg: #000;
+      --ag-panel: #0b1219;
+      --ag-green: #00ff9d;
+      --ag-cyan: #00e5ff;
+      --ag-text: #d7f5ea;
+      --ag-muted: #8fb3a6;
+      --ag-warn: #ffd166;
+    }
+    body.access-granted { background: var(--ag-bg); color: var(--ag-text); font-family: 'Courier New', monospace; margin: 0; padding: 20px; min-height: 100vh; }
+    .ag-wrap { max-width: 760px; margin: 0 auto; padding: 28px 16px 56px; }
+    /* style.css makes every <section> a centred flex row; this page's terminal is a block. */
+    section.ag-terminal { display: block; min-height: 0; width: auto; align-items: stretch; justify-content: normal; background-color: var(--ag-panel); opacity: 1; }
+    section.ag-terminal { display: block; min-height: 0; width: auto; align-items: stretch; justify-content: normal; background-color: var(--ag-panel); opacity: 1; }
+    .ag-terminal { border: 2px solid var(--ag-green); border-radius: 12px; background: var(--ag-panel); box-shadow: 0 0 14px #00ff9d44, inset 0 0 24px #00e5ff14; padding: 22px; }
+    .ag-bar { display: flex; justify-content: space-between; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--ag-cyan); border-bottom: 1px solid #00e5ff55; padding-bottom: 10px; margin-bottom: 18px; }
+    .ag-title { color: var(--ag-green); font-size: clamp(28px, 6vw, 40px); letter-spacing: 3px; margin: 8px 0 6px; text-shadow: 0 0 12px #00ff9d88; }
+    .ag-sub { color: var(--ag-cyan); margin: 0 0 22px; letter-spacing: 1px; }
+    .ag-log { font-size: 15px; line-height: 1.7; min-height: 150px; margin: 0 0 22px; white-space: pre-wrap; }
+    .ag-log .ok { color: var(--ag-green); }
+    .ag-log .dim { color: var(--ag-muted); }
+    .ag-cursor { display: inline-block; width: 9px; height: 1em; background: var(--ag-green); vertical-align: -2px; animation: ag-blink 1s steps(1) infinite; }
+    @keyframes ag-blink { 50% { opacity: 0; } }
+    .ag-card { border: 1px solid #00e5ff66; border-radius: 8px; padding: 16px 18px; margin: 0 0 18px; background: #06202a55; }
+    .ag-card h2 { font-size: 15px; letter-spacing: 2px; text-transform: uppercase; color: var(--ag-cyan); margin: 0 0 10px; }
+    .ag-card p, .ag-card li { font-size: 15px; line-height: 1.6; margin: 0 0 8px; }
+    .ag-card ol { padding-left: 22px; margin: 0; }
+    .ag-kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; font-size: 14px; }
+    .ag-kv dt { color: var(--ag-muted); letter-spacing: 1px; text-transform: uppercase; }
+    .ag-kv dd { margin: 0; color: var(--ag-green); overflow-wrap: anywhere; min-width: 0; }
+    @media (max-width: 480px) { .ag-kv { grid-template-columns: 1fr; gap: 2px; } .ag-kv dt { margin-top: 8px; } }
+    .ag-warn { border-color: #ffd16688; }
+    .ag-warn h2 { color: var(--ag-warn); }
+    .ag-link { color: var(--ag-green); text-decoration: underline; }
+    .ag-link:focus-visible { outline: 2px solid #ffe8ad; outline-offset: 3px; }
+    .ag-foot { margin-top: 26px; text-align: center; font-size: 13px; color: var(--ag-muted); }
+    .ag-foot a { color: var(--ag-cyan); }
+    @media (prefers-reduced-motion: reduce) { .ag-cursor { animation: none; } }
+  </style>
+</head>
+<body class="access-granted site-navigation" data-hud="immersive">
+<!-- District navigation (same markup as the store pages) -->
+<nav class="district-nav" aria-label="Main navigation">
+  <div class="district-nav__meta" aria-hidden="true"><span><b>DD //</b> DISTRICT DIRECTORY</span><span>06 DESTINATIONS</span></div>
+  <ul class="district-nav__links">
+    <li><a href="/"><span class="district-nav__index" aria-hidden="true">01</span><span class="district-nav__label">Home</span></a></li>
+    <li><a href="games-list.html"><span class="district-nav__index" aria-hidden="true">02</span><span class="district-nav__label">Arcade</span></a></li>
+    <li><a href="store-first-page.html"><span class="district-nav__index" aria-hidden="true">03</span><span class="district-nav__label">Store</span></a></li>
+    <li><a href="resources.html"><span class="district-nav__index" aria-hidden="true">04</span><span class="district-nav__label">Resources</span></a></li>
+    <li><a href="sleeping_pod.html"><span class="district-nav__index" aria-hidden="true">05</span><span class="district-nav__label">Sleeping Pod</span></a></li>
+    <li><a href="about.html"><span class="district-nav__index" aria-hidden="true">06</span><span class="district-nav__label">About</span></a></li>
+  </ul>
+</nav>
+
+<main class="ag-wrap">
+  <section class="ag-terminal" aria-labelledby="ag-title">
+    <div class="ag-bar"><span>DD // SECURE CHANNEL</span><span id="ag-session">SESSION OPEN</span></div>
+
+    <h1 class="ag-title" id="ag-title">ACCESS GRANTED</h1>
+    <p class="ag-sub" id="ag-product">Thanks for your order.</p>
+
+    <!-- Typed-out status lines. Full text is in the markup, so it reads without JavaScript. -->
+    <pre class="ag-log" id="ag-log" aria-live="polite"><span class="ok">&gt; order page loaded</span>
+<span class="ok">&gt; download link: sent by Shopify email, once payment completes</span>
+<span class="dim">&gt; this page cannot see your order. it holds no download links.</span>
+<span class="ag-cursor" aria-hidden="true"></span></pre>
+
+    <div class="ag-card">
+      <h2>Your download link</h2>
+      <p>If your payment went through, Shopify sends a <strong>Digital product ready</strong> email with a download link. Check your inbox. The link is unique to you, so keep it private and don't post it anywhere.</p>
+      <p>No email yet? Wait a few minutes, then check your spam or promotions folder. If it still hasn't arrived, email us below with the email you used at checkout.</p>
+    </div>
+
+    <div class="ag-card">
+      <h2>Install on Android</h2>
+      <ol>
+        <li>Open your download link on the Android phone you want to install on.</li>
+        <li>If Android asks, allow installs from the app you opened the link with (your browser or file manager).</li>
+        <li>Open the downloaded APK and tap Install.</li>
+        <li>Requires Android 7.0 or newer.</li>
+      </ol>
+    </div>
+
+    <div class="ag-card">
+      <h2>Support</h2>
+      <dl class="ag-kv">
+        <dt>Email</dt><dd><a class="ag-link" href="mailto:thedarknetdistrict@proton.me">thedarknetdistrict@proton.me</a></dd>
+        <dt>Include</dt><dd>Your checkout email and the product name</dd>
+      </dl>
+    </div>
+
+    <div class="ag-card ag-warn">
+      <h2>Before you install</h2>
+      <p>Only install files from the link in your own Shopify email. If anyone sends you a different file or asks you to pay again or log in to get it, it is not from us.</p>
+    </div>
+  </section>
+
+  <p class="ag-foot"><a href="store-apps.html">&larr; Back to Apps &amp; Software</a></p>
+</main>
+
+<script>
+/* Access Granted page: product names come from a fixed list, so there is no
+   public download URL here. Unknown or missing ?product= values fall back to a
+   generic message. Everything is set with textContent, never innerHTML. */
+(function () {
+  var PRODUCTS = {
+    'admin-blackbook': { name: 'ADMIN // BLACKBOOK', platform: 'Android 7.0+' }
+    /* Add future digital apps here: { name: 'Product name', platform: 'Android 7.0+' } */
+  };
+
+  var params = new URLSearchParams(window.location.search);
+  var key = (params.get('product') || '').toLowerCase();
+  var product = Object.prototype.hasOwnProperty.call(PRODUCTS, key) ? PRODUCTS[key] : null;
+
+  var sub = document.getElementById('ag-product');
+  if (product) {
+    sub.textContent = 'Product: ' + product.name + ' // ' + product.platform;
+    document.title = 'Access Granted – ' + product.name + ' – The Darknet District';
+  }
+
+  var log = document.getElementById('ag-log');
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !log) return;
+
+  // Fade the typed effect in: hide lines, then reveal them one by one.
+  var lines = Array.prototype.slice.call(log.childNodes);
+  var keep = lines.filter(function (n) { return !(n.nodeType === 1 && n.classList.contains('ag-cursor')); });
+  log.textContent = '';
+  var i = 0;
+  (function next() {
+    if (i >= keep.length) { log.appendChild(document.createElement('span')).className = 'ag-cursor'; return; }
+    var node = keep[i++].cloneNode(true);
+    log.appendChild(node);
+    log.appendChild(document.createTextNode('\n'));
+    setTimeout(next, 380);
+  })();
+})();
+</script>
+<script src="iris-widget.js" defer></script>
+</body>
+</html>
