@@ -6,6 +6,5 @@ Disallow: /scripts/
 Disallow: /exports/
 Disallow: /static/
 Disallow: /attached_assets/*.txt
-Disallow: /obs.html
 
 Sitemap: https://thedarknetdistrict.com/sitemap.xml
