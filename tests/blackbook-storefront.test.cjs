@@ -14,7 +14,7 @@ const pageText = key => read(PAGES[key]);
 const SHOP_DOMAIN = 'qbhrmg-jn.myshopify.com';
 const PRODUCT_ID = '10395729002713';
 const PRODUCT_URL = 'https://qbhrmg-jn.myshopify.com/products/admin-blackbook';
-const CANONICAL = 'https://thedarknetdistrict.com/store-apps.html';
+const CANONICAL = 'https://thedarknetdistrict.com/store-apps'; // the clean URL: GitHub Pages serves store-apps.html at this path with no redirect
 const NOTICE = 'The Darknet District is under continuous development.';
 
 for (const key of Object.keys(PAGES)) {
@@ -145,4 +145,13 @@ test('the notice styles are scoped to the store page, not added to the shared st
   const html = pageText('root');
   assert.ok(html.includes('body.site-navigation > .district-notice {'), 'notice style on this page');
   assert.ok(!read('home-navigation.css').includes('.district-notice'), 'shared home-navigation.css untouched');
+});
+
+test('the clean URL and the original .html address both point at the same page', () => {
+  // GitHub Pages serves store-apps.html at /store-apps (200, no redirect); the .html file must stay for old links and bookmarks
+  assert.ok(fs.existsSync(path.join(root, 'store-apps.html')), 'store-apps.html still exists');
+  for (const key of Object.keys(PAGES)) {
+    assert.ok(!/<meta http-equiv="refresh"/i.test(pageText(key)), `${PAGES[key]} has no redirect`);
+    assert.ok(pageText(key).includes(`<link rel="canonical" href="${CANONICAL}">`), `${PAGES[key]} canonical is the clean URL`);
+  }
 });
