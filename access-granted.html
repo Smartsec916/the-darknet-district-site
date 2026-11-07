@@ -73,19 +73,18 @@
     <div class="ag-bar"><span>DD // SECURE CHANNEL</span><span id="ag-session">SESSION OPEN</span></div>
 
     <h1 class="ag-title" id="ag-title">ACCESS GRANTED</h1>
-    <p class="ag-sub" id="ag-product">Your purchase is confirmed.</p>
+    <p class="ag-sub" id="ag-product">Thanks for your order.</p>
 
     <!-- Typed-out status lines. Full text is in the markup, so it reads without JavaScript. -->
-    <pre class="ag-log" id="ag-log" aria-live="polite"><span class="ok">&gt; handshake ........ verified</span>
-<span class="ok">&gt; payment ......... received</span>
-<span class="ok">&gt; transmission .... sent to your email</span>
-<span class="dim">&gt; this page holds no download links. your link lives only in that email.</span>
+    <pre class="ag-log" id="ag-log" aria-live="polite"><span class="ok">&gt; order page loaded</span>
+<span class="ok">&gt; download link: sent by Shopify email, once payment completes</span>
+<span class="dim">&gt; this page cannot see your order. it holds no download links.</span>
 <span class="ag-cursor" aria-hidden="true"></span></pre>
 
     <div class="ag-card">
       <h2>Your download link</h2>
-      <p>Check your inbox for the <strong>Digital product ready</strong> email from Shopify. The download link inside it is unique to you. Keep it private, and don't post it anywhere.</p>
-      <p>Can't see it? Check your spam or promotions folder, then email us below and include the email you used at checkout.</p>
+      <p>If your payment went through, Shopify sends a <strong>Digital product ready</strong> email with a download link. Check your inbox. The link is unique to you, so keep it private and don't post it anywhere.</p>
+      <p>No email yet? Wait a few minutes, then check your spam or promotions folder. If it still hasn't arrived, email us below with the email you used at checkout.</p>
     </div>
 
     <div class="ag-card">
@@ -131,7 +130,7 @@
 
   var sub = document.getElementById('ag-product');
   if (product) {
-    sub.textContent = product.name + ' // ' + product.platform + ' // confirmed';
+    sub.textContent = 'Product: ' + product.name + ' // ' + product.platform;
     document.title = 'Access Granted – ' + product.name + ' – The Darknet District';
   }
 
