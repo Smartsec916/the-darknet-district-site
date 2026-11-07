@@ -15,7 +15,7 @@ The Iris chat is on the homepage and on the other public pages: the arcade direc
 
 ## Never
 
-`void-runner.html` and `void-runner/`, `blackout-protocol/`, `raven.html`, `game.html`, `origins/`, `function/`, `admin/`, `iris-*.html`, `chatbot.html`, `obs.html`, the Origins and Book pages. `tests/iris-widget.test.cjs` checks this list.
+`void-runner.html` and `void-runner/`, `blackout-protocol/`, `raven.html`, `game.html`, `origins/`, `function/`, `admin/`, `iris-*.html`, `chatbot.html`, the Origins and Book pages. `tests/iris-widget.test.cjs` checks this list.
 
 ## The conversation follows the visitor
 

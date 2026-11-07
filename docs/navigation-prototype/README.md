@@ -50,7 +50,7 @@ Navigation details:
 
 Store category pages (`store-apparel`, `store-apps`, `store-books`, `store-electronics`, `store-neurohackers`, `store-survival`) also omit Resources and Sleeping Pod. Resource pages `biohacking`, `borderless`, `curious`, `leaks`, `legal_resources`, `neurodivergent` and `opsec` omit Sleeping Pod. The book page has four links. `404.html` already has all six.
 
-Other specialty pages (`anti-osint`, `osint`, `obs`, `raven`, Iris pages, chatbot and game pages) do not use the common top-navigation markup; their existing return controls and embedding context need review during rollout. This is an inventory of common navigation markup, not a claim that those pages lack all links.
+Other specialty pages (`anti-osint`, `osint`, `raven`, Iris pages, chatbot and game pages) do not use the common top-navigation markup; their existing return controls and embedding context need review during rollout. This is an inventory of common navigation markup, not a claim that those pages lack all links.
 
 VOID//RUNNER has its own game interface and does not load this stylesheet. No game file was changed. Sleeping Pod also does not load the prototype. All destination pages retain their existing design at this approval checkpoint.
 

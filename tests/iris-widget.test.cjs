@@ -15,7 +15,7 @@ const WITH_IRIS = [
 ];
 // Games, their interfaces, standalone sites and the in-world Iris pages: never
 const WITHOUT_IRIS = [
-  'void-runner.html', 'game.html', 'raven.html', 'obs.html', 'chatbot.html', '404.html',
+  'void-runner.html', 'game.html', 'raven.html', 'chatbot.html', '404.html',
   'iris-controls.html', 'iris-loadout.html', 'iris-protocols.html', 'iris-redacted.html', 'iris-surveillance.html', 'iris-terminal.html', 'iris-thoughts.html',
   'The Darknet District – Origins.html', 'The-Darknet-District-Book.html',
   'origins/index.html', 'function/index.html', 'admin/void-runner.html', ...fs.readdirSync(path.join(root, 'blackout-protocol')).filter(f => f.endsWith('.html')).map(f => 'blackout-protocol/' + f),
