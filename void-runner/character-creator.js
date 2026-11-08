@@ -6,7 +6,7 @@
  'use strict';
  const A=root.VoidCharacterAppearance,CAT=A.CATALOG,KEEP=['hairColor','clothingColor'];
  const STAGE={x:-9,z:60,dist:2.7,eye:1.4};   // in the pod room's own coordinates: the camera stands here looking +z (towards the music screen); the character stands `dist` metres ahead
- let lamps=[],open=false,ctx=null,char=null,draft=null,original=null,snapshot=null,holder=null,spin=0,auto=true,seq=0,pad=null,raf=0,drag=null,ui=null;
+ let lamps=[],open=false,closing=false,ctx=null,char=null,draft=null,original=null,snapshot=null,holder=null,spin=0,auto=true,seq=0,pad=null,raf=0,drag=null,ui=null;
  const uid=()=>root.VoidAccount?.user?.uid||'guest';
  const storage=()=>{try{return root.localStorage;}catch{return null;}};
  // The look saved with the account (once the server feature is on) wins on a new browser or device; otherwise this browser's own copy; otherwise the old character's look.
@@ -57,7 +57,7 @@
   <h2>HAIR COLOUR</h2><div class="cc-row">${btn('hairColor','','ORIGINAL',draft.hairColor===null)}${CAT.hairColors.map(c=>swatch('hairColor',c,draft.hairColor===c.id)).join('')}</div>
   ${o.accessories.length?`<h2>EXTRAS</h2><div class="cc-row">${o.accessories.map(a=>btn('acc',a.id,a.label+(draft.accessories.includes(a.id)?' · ON':' · OFF'),draft.accessories.includes(a.id))).join('')}</div>`:''}
   <p class="cc-note">Height is standard for each body (${CAT.bases.male.height} m / ${CAT.bases.female.height} m).</p></div>
-  <div class="cc-bar"><button class="cc-ok" data-cc="confirm"${char?.ready?'':' disabled'}>CONFIRM</button><button data-cc="cancel">${ctx.context==='first'?'SKIP FOR NOW':'CANCEL'}</button></div>
+  <div class="cc-bar"><button class="cc-ok" data-cc="confirm"${char?.ready&&!closing?'':' disabled'}>SAVE CHARACTER</button><button data-cc="cancel"${closing?' disabled':''}>${ctx.context==='first'?'BACK TO MENU':'CANCEL'}</button></div>
   <div class="cc-spin"><button data-cc="rotl" aria-label="Rotate left">&#9664;</button><button data-cc="auto" aria-pressed="${auto}">SPIN</button><button data-cc="rotr" aria-label="Rotate right">&#9654;</button></div>
   <div class="cc-hint">DRAG TO ROTATE · ARROWS ◀ ▶ · ESC CANCELS</div>`;
   const p=ui.querySelector('.cc-panel');p.scrollTop=keep;if(focus){const [k,v]=focus.split('|');[...ui.querySelectorAll('[data-cc]')].find(b=>b.dataset.cc===k&&(b.dataset.v||'')===v)?.focus({preventScroll:true});}
@@ -82,7 +82,7 @@
  async function show(c){
   if(open||typeof walker==='undefined'||!walker)return false;
   const S=root.BABYLON,scene=root.VoidBabylon?.scene;if(!S||!scene||!root.VoidCharacterAssembler)return false;
-  open=true;ctx=c||{context:'wardrobe'};ensureUi();
+  open=true;closing=false;ctx=c||{context:'wardrobe'};ensureUi();
   original=stored()||A.defaults(A.DEFAULT_LOOK.male);draft=A.normalize(original);
   snapshot={mode,walker:{...walker}};
   // The District interior sits in the world rotated half a turn: world = anchor - local. The anchor comes from the known pod exit point.
@@ -102,8 +102,17 @@
   catch(e){console.warn('[character creator]',e.message);if(open){ui.querySelector('.cc-sub').textContent='The character models could not be loaded. Nothing was changed.';}}
   tick();return true;
  }
- function close(confirm){
-  if(!open)return;
+ async function close(confirm){
+  if(!open||closing)return;
+  let selected=A.normalize(draft),keepSelection=true;
+  // A registered account's existing character is authoritative. Check again
+  // before writing the first local look so a late account response cannot be overwritten.
+  if(confirm&&ctx.context==='first'&&root.VoidAccount?.user&&!root.VoidAccount.user.isAnonymous&&root.VoidAccount.profileReady){
+   closing=true;render();const sub=ui.querySelector('.cc-sub');if(sub)sub.textContent='Saving your character…';
+   try{const result=await root.VoidAccount.completeMultiplayerCharacter(selected);if(!result.created){keepSelection=false;selected=stored()||A.fromLegacy(result.character);}}
+   catch(error){root.VoidRemotePlayers?.setupError?.(error.message||'Account sync is unavailable. Your character will stay in this browser for solo play.');}
+   closing=false;
+  }
   if(confirm&&ctx.context==='multiplayer-setup'){
    const selected=A.normalize(draft),owner=uid();
    Promise.resolve().then(()=>{
@@ -114,13 +123,14 @@
     if(result.created){const s=storage();if(s)A.save(s,owner,selected);root.VoidCharacterCreator.onChange?.(selected);await upload(selected);}
     root.VoidRemotePlayers?.reconnect?.();
    }).catch(error=>root.VoidRemotePlayers?.setupError?.(error.message||'Character creation is unavailable. Try again.'));
-  }else if(confirm){const s=storage();if(s&&A.save(s,uid(),draft)){try{if(typeof state!=='undefined'&&state?.story?.flags){state.story.flags.appearanceChosen=true;state.story.flags.appearanceOffered=true;}}catch{}root.VoidCharacterCreator.onChange?.(A.normalize(draft));upload(A.normalize(draft)).then(()=>root.VoidRemotePlayers?.refreshLook?.());}}
-  else if(ctx.context==='first'){try{state.story.flags.appearanceOffered=true;}catch{}}
+  }else if(confirm){const s=storage();if(keepSelection&&(!s||!A.save(s,uid(),selected))){render();ui.querySelector('.cc-sub').textContent='Browser storage is unavailable. Your character was not saved; try again after enabling site storage.';return;}
+   try{if(typeof state!=='undefined'&&state?.story?.flags){state.story.flags.appearanceChosen=true;state.story.flags.appearanceOffered=true;}}catch{}
+   if(keepSelection){root.VoidCharacterCreator.onChange?.(selected);upload(selected).then(()=>root.VoidRemotePlayers?.refreshLook?.());}}
   open=false;cancelAnimationFrame(raf);seq++;char?.dispose();char=null;holder?.dispose();holder=null;{const sc=root.VoidBabylon?.scene;for(const l of lamps)l.dispose();lamps=[];sc?.markAllMaterialsAsDirty?.(root.BABYLON.Constants.MATERIAL_LightDirtyFlag);}ui.classList.remove('on');ui.innerHTML='';
   Object.assign(walker,snapshot.walker);mode=snapshot.mode;
   const done=ctx.onClose;ctx=null;if(confirm&&typeof save==='function')try{save();}catch{}
   if(snapshot.mode==='walking'&&typeof resumeWalking==='function')resumeWalking();
-  done?.(confirm,confirm?A.normalize(draft):null);
+  done?.(confirm,confirm?selected:null);
  }
  function tick(){
   if(!open)return;raf=requestAnimationFrame(tick);
@@ -146,17 +156,4 @@
 
  if(root.VoidInteractions)root.VoidInteractions.register('district-wardrobe',()=>{show({context:'wardrobe'});});
  root.VoidCharacterCreator={open:c=>show(c),close,get isOpen(){return open;},stored,current,onChange:null,STAGE};
-
- // First campaign without any character: offer the creator once when the player is about to leave the pod. Existing players and saves are never asked.
- function wire(){
-  const wake=document.getElementById('pod-wake');if(!wake)return;
-  wake.addEventListener('click',e=>{
-   if(!e.target.closest('button')||open||mode!=='pod-waking')return;
-   let offered=true;try{offered=!!state.story.flags.appearanceOffered;}catch{}
-   if(offered||stored())return;
-   e.stopImmediatePropagation();e.preventDefault();
-   const card=wake;card.hidden=true;show({context:'first',onClose:()=>{mode='pod-waking';card.hidden=false;card.querySelector('button')?.focus({preventScroll:true});}});
-  },true);
- }
- if(typeof document!=='undefined')(document.readyState==='loading'?document.addEventListener.bind(document,'DOMContentLoaded'):f=>f())(wire);
 })(globalThis);

@@ -95,6 +95,8 @@
 
       /** Make a track current (the player clicked it, or pressed play on an empty selection). */
       select: function (id) { return find(id) ? moveTo(id) : null; },
+      /** Leave this pod without a selected track while retaining the shared catalog. */
+      deselect: function () { currentId = null; queue = []; history = []; },
 
       /** Removes a track. If it was the one playing, `replacement` is the track that now sits in its place (or null when the list is empty). */
       remove: function (id) {

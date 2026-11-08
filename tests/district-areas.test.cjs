@@ -7,17 +7,18 @@ const ids=l=>l.map(i=>i.id),at=item=>N.zone({x:item.position[0],z:item.position[
 const ENTRANCE_SOLIDS=['district-door','district-front-east','district-front-west','district-inner-door','vestibule-east','vestibule-west'];
 
 test('the default layout is still the whole combined layout, unchanged',()=>{
- assert.equal(all.solids.length,73);assert.equal(all.interactions.length,16);assert.equal(all.area,undefined);assert.equal(all.name,'NEOCHINATOWN / TESSALY');assert.equal(N.layout('all').solids.length,73);
+ assert.equal(all.solids.length,73);assert.equal(all.interactions.length,22);assert.equal(all.area,undefined);assert.equal(all.name,'NEOCHINATOWN / TESSALY');assert.equal(N.layout('all').solids.length,73);
 });
 test('the street environment is the outdoors plus the entrance, and nothing of the District behind the inner door',()=>{
  assert.equal(street.area,'street');assert.equal(street.solids.length,35);
- assert.deepEqual(ids(street.interactions).sort(),['board','district-scan','tdd','terminal']);
+ assert.deepEqual(ids(street.interactions).sort(),['board','terminal']);
  for(const s of street.solids)if(at(s)!=='street')assert(ENTRANCE_SOLIDS.includes(s.id),s.id+' is part of the entrance');
  for(const id of ENTRANCE_SOLIDS)assert(ids(street.solids).includes(id),id+' is in the street');
  assert.deepEqual(street.spawn,all.spawn);assert.equal(street.yaw,all.yaw);assert.equal(street.name,all.name);
 });
 test('the interior environment is exactly the District and terrace part of the original layout',()=>{
- assert.equal(interior.area,'interior');assert.equal(interior.solids.length,44);assert.equal(interior.interactions.length,13);
+ assert.equal(interior.area,'interior');assert.equal(interior.solids.length,44);assert.equal(interior.interactions.length,20);
+ assert.equal(interior.interactions.filter(i=>i.action==='district-pod').length,10,'every pod has a hatch interaction');
  const original=all.solids.filter(s=>['district','terrace'].includes(at(s)));
  assert.deepEqual(interior.solids,original,'solids are identical, in the same order');
  assert.deepEqual(interior.interactions,all.interactions.filter(i=>['district','terrace'].includes(at(i))),'interactions are identical');
@@ -28,7 +29,7 @@ test('the interior environment is exactly the District and terrace part of the o
 test('every original solid and interaction lives in the street, the interior or both (the entrance)',()=>{
  for(const key of ['solids','interactions']){const s=new Set(ids(street[key])),i=new Set(ids(interior[key]));
   for(const item of all[key])assert(s.has(item.id)||i.has(item.id),item.id);
-  const both=[...s].filter(x=>i.has(x));assert.deepEqual(both.sort(),(key==='solids'?ENTRANCE_SOLIDS:['district-scan']).sort(),key+' shared only at the entrance');}
+  const both=[...s].filter(x=>i.has(x));assert.deepEqual(both.sort(),(key==='solids'?ENTRANCE_SOLIDS:[]).sort(),key+' shared only at the entrance');}
 });
 test('the entrance is the same in both: the same doors and walls at the same places',()=>{
  for(const id of ENTRANCE_SOLIDS){const a=street.solids.find(s=>s.id===id),b=interior.solids.find(s=>s.id===id);assert.deepEqual(a,b,id);}
@@ -44,6 +45,15 @@ test('the outer door is the only way from the street into the vestibule, and the
  const door=street.solids.find(s=>s.id==='district-door');assert.equal(E.blocked(...N.toWorld(0,20),street),true,'closed outer door blocks');door.open=true;assert.equal(E.blocked(vx,vz,street),false,'the vestibule is reachable once it opens');door.open=false;
  const inner=interior.solids.find(s=>s.id==='district-inner-door');assert.equal(E.blocked(...N.toWorld(0,26),interior),true,'closed inner door blocks from the vestibule');inner.open=true;assert.equal(E.blocked(hx,hz,interior),false,'the hall is reachable once it opens');inner.open=false;
 });
+test('every pod hatch is reachable from the shared room and exits onto open floor',()=>{
+ const A=require('../void-runner/district-area.js');
+ for(let index=1;index<=10;index++){
+  const z=57+((index-1)%5)*2.6,[x,wz]=N.toWorld(index<=5?-12.5:-11.5,z);
+  assert(!E.blocked(x,wz,interior),'approach to pod '+index);
+  assert.equal(E.select({x,z:wz,yaw:0},interior)?.podIndex,index,'hatch '+index+' can be selected');
+  const exit=A.podExit(N,index);assert(!E.blocked(exit.spawn[0],exit.spawn[2],interior),'exit from pod '+index);
+ }
+});
 test('each environment loads only its own assets',()=>{
  const s=Object.keys(N.modelsFor('street')),i=Object.keys(N.modelsFor('interior')),a=Object.keys(N.modelsFor('all'));
  assert(s.every(k=>k.startsWith('ncz:'))&&s.length>0);assert(i.every(k=>!k.startsWith('ncz:'))&&i.length>0);assert.deepEqual([...s,...i].sort(),a.sort());
@@ -52,7 +62,7 @@ test('each environment loads only its own assets',()=>{
 });
 test('in the street area the inner door can never open, whatever the flags',()=>{
  const src=fs.readFileSync('void-runner/neochinatown.js','utf8');assert(src.includes("const isOpenable=d=>!(area==='street'&&d.id==='district-inner-door');"));
- assert(src.includes('const unlocked=isOpenable(d)&&!!flags[d.flag]'));
+ assert(src.includes("const unlocked=isOpenable(d)&&(d.id==='district-door'||!!flags[d.flag])"));
 });
 test('the build is split into gated sections, the entrance is built in every area, and the original random sequence is kept',()=>{
  const src=fs.readFileSync('void-runner/neochinatown.js','utf8');
@@ -64,8 +74,8 @@ test('the build is split into gated sections, the entrance is built in every are
 test('the room loader passes the area to the build and to the asset lists',()=>{
  const r=fs.readFileSync('void-runner/babylon-renderer.js','utf8');assert(r.includes("area:def.area||'all'"));assert(r.includes("VoidNeoChinatown.modelsFor(def.area||'all')"));assert(r.includes("models('neochinatown',quality,def.area||'all')"));
 });
-test('the scanner prompt is offered at the door and goes away once the visitor badge is held (pressing it then only said "Inner door already open")',()=>{
- const scan=all.interactions.find(i=>i.id==='district-scan');
- assert.deepEqual(scan.when,{flags:{districtDoor:true},notFlags:{districtBadge:true}});
- assert.ok(scan.label.includes('BADGE'));
+test('the security entrance has no interaction prompt and scans automatically',()=>{
+ assert(!all.interactions.some(i=>i.id==='district-scan'||i.id==='tdd'));
+ const A=require('../void-runner/district-area.js');const [x,z]=N.toWorld(0,24);
+ assert.equal(A.enterTrigger(N,{x,z}),true);
 });

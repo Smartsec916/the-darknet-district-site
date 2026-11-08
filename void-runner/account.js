@@ -164,6 +164,9 @@ function requestAction(action){
   else if(action==='cloud-load'&&account.cloud){const restored=C.restore(JSON.stringify(account.cloud));if(!restored){announce(C.isLegacy(account.cloud)?'This cloud save is from before the District reset and has been retired. Your local progress is unchanged.':'This cloud save is incompatible. Your local progress is unchanged.');return;}globalThis.VoidFlightSession?.end();state=restored;save();current=null;VoidMenu.returnTo=null;hud();accountPage();announce('Cloud journey restored.');}
 }
 account.request=requestAction;
+// First-campaign creation checks the existing account record before offering a
+// new look. A failed lookup must never be treated as proof that the slot is empty.
+account.ensureProfile=async()=>{if(account.user&&!account.profileReady)await refresh();return account.profileReady;};
 // Multiplayer setup uses the same authenticated registry and one-character API as the account page.
 // Neither method writes a campaign save, inventory, credits, or an existing character.
 account.claimMultiplayerHandle=async handle=>{

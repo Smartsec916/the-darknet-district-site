@@ -278,7 +278,7 @@
  update=function(dt){factionUpdate(dt);
   if(mode!=='walking'||!walker||state.location!=='earth'||!walkingLocation?.interactions)return;
   const m=VoidMissions.tracked(state,C);if(m?.interaction!=='district-iris')return;
-  const f=state.story.flags,goal=walkingLocation.interactions.find(i=>i.id===(!f.districtDoor?'tdd':!f.districtBadge?'district-scan':'district-iris'));
+  const [x,z]=VoidNeoChinatown.toWorld(0,19.2),goal=walkingLocation.area==='street'?{position:[x,1.7,z],label:'DISTRICT SECURITY ENTRANCE'}:walkingLocation.interactions.find(i=>i.id==='district-iris');
   if(goal){trackedWalkWaypoint=goal;$('walking-caption').textContent='YELLOW OBJECTIVE / '+goal.label;}
  };
 })();

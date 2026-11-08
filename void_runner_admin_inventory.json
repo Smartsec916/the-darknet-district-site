@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "b0f312499dc95e8d",
+  "revision": "1e1dfb300baba575",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -300,7 +300,7 @@
         "interaction": "admin"
       },
       "destination": "earth",
-      "interaction": "tdd",
+      "interaction": "admin",
       "objectives": [
         {
           "id": "meet-admin",
@@ -12175,103 +12175,103 @@
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 33,
+      "line": 46,
       "text": "if(keptBytes+t.file.size>KEEP_LIMIT){say('Not kept: \"'+t.label+'\" is over the '+Math.round(KEEP_LIMIT/1048576)+' MB limit for saved songs. It still plays this visit.');return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 34,
+      "line": 47,
       "text": "store.put({key:t.key,name:t.name,size:t.size,lastModified:t.lastModified,order:order++,file:t.file}).then(()=>{t.kept=true;keptBytes+=t.file.size;}).catch(()=>say('Could not keep \"'+t.label+'\" in this browser (storage full or blocked). It still plays this visit.'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 38,
+      "line": 51,
       "text": "if(on){root.navigator?.storage?.persist?.().catch(()=>{});lists.mine.tracks.forEach(keepTrack);say('Your songs are kept in this browser on this device. They are never uploaded.');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 39,
+      "line": 52,
       "text": "else{store.clear().catch(()=>{});lists.mine.tracks.forEach(t=>{t.kept=false;});keptBytes=0;say('Saved copies removed from this browser. Your list stays until you leave the game.');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 43,
+      "line": 56,
       "text": "store.all().then(rows=>{const r=lists.mine.add(rows.map(x=>({name:x.name,size:x.size,lastModified:x.lastModified,file:x.file,kept:true})));rows.forEach(x=>{keptBytes+=x.size;order=Math.max(order,x.order+1);});if(r.added.length)say('Restored '+r.added.length+(r.added.length===1?' song':' songs')+' kept in this browser.');render();}).catch(()=>{keeping=false;});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 47,
+      "line": 60,
       "text": "function say(text){status=text||'';const el=byId('pod-music-status');if(el)el.textContent=status;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 57,
+      "line": 70,
       "text": "if(!link)say('Audio is not available (check Settings, Audio).');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 66,
+      "line": 79,
       "text": "audio.play().catch(e=>{if(e&&e.name==='NotAllowedError')say('Press play to start the music.');}); // a file that cannot be decoded is reported by the error handler, not here",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 69,
+      "line": 82,
       "text": "function start(){const l=lists[source];if(!l.size){say(source==='mine'?'Add songs first.':'No songs.');return;}if(l.currentId===null)l.next(false);load(0);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 75,
+      "line": 88,
       "text": "function advance(auto){const l=lists[source],id=l.next(!!auto);if(id===null){if(auto){audio.pause();say('End of the list.');render();}return;}load(0);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 79,
+      "line": 92,
       "text": "if(failures>=l.size){audio.pause();say(source==='mine'?'None of these files could be played in this browser.':'The website songs could not be loaded.');render();return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 80,
+      "line": 93,
       "text": "say('Could not play \"'+t.label+'\". Skipping it.');advance(true);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 97,
+      "line": 110,
       "text": "say(parts.join(' '));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 105,
+      "line": 118,
       "text": "say('Removed \"'+(t?t.label:'song')+'\".');render();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 110,
+      "line": 123,
       "text": "say('Playlist cleared ('+n+(n===1?' song':' songs')+').');render();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 202,
+      "line": 218,
       "text": "else if(cmd==='shuffle'){l.setShuffle(!l.shuffle);say('Shuffle '+(l.shuffle?'on.':'off.'));render();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 203,
+      "line": 219,
       "text": "else if(cmd==='repeat'){const m=l.cycleRepeat();say(m==='off'?'Repeat off: the list stops after the last song.':m==='all'?'Repeat all: the list starts again after the last song.':'Repeat one: the current song plays again when it ends.');render();}",
       "kind": "source-reference"
     },
@@ -13333,103 +13333,103 @@
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 69,
+      "line": 90,
       "text": "arrive=function(){const previous=state.location,quest=state.quest;solHandover=null;worldArrive();if(!['arrival','dialogue'].includes(mode)||state.location===previous&&state.quest===quest)return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 70,
+      "line": 91,
       "text": "const lines=speech?.lines.slice(),label=speech?.label;speech=null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 80,
+      "line": 101,
       "text": "renderLine=function(){worldRenderLine();if(walkingLocation){screen.dataset.scene='';screen.classList.remove('cinematic');screen.querySelectorAll('.portrait').forEach(el=>el.remove());/* A conversation in a station is in person: name the place. Only comms calls and messages are transmissions. */const eyebrow=screen.querySelector('.scene-heading .eyebrow');if(eyebrow&&!/comms|message|transmission/i.test(speech?.heading||''))eyebrow.textContent=globalThis.VoidVR?.active?'VR · '+VoidVR.session.exp.title.toUpperCase():(C.stations[state.location]?.name||'').toUpperCase();}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 90,
+      "line": 111,
       "text": "talk('',[{who:'rook',text:'Client confirmed the drop. Here’s your pay.'}],()=>{announce('PAYMENT RECEIVED · '+paid.toLocaleString()+' credits · ROOK FREIGHT RUN #'+owed.number+' COMPLETE');rookFreightOffer();},'NEXT →','Rook’s booth');return;}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 92,
+      "line": 113,
       "text": "talk('',[{who:'rook',text:'The '+r.cargo.toLowerCase()+' are still in your hold. '+place(r.destination)+' is waiting on them.'}],resumeWalking,'RETURN TO STATION');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 94,
+      "line": 115,
       "text": "if(r.kind!=='legacy')screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',button('HAND THE CARGO BACK','rook-cancel',true));return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 95,
+      "line": 116,
       "text": "if(state.contract){talk('',[{who:'rook',text:'Finish the job you are carrying. Then come see me.'}],resumeWalking,'RETURN TO STATION');return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 100,
+      "line": 121,
       "text": "talk('',[{who:'rook',text:lead+(r.number===1?' Admin is over in Tessaly if you want other work. '+key+' opens your Mission Log.':'')}],resumeWalking,'NOT NOW','Rook’s booth');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 101,
+      "line": 122,
       "text": "speech.shown=speech.lines[0].text.length;$('speech-next').style.display='none';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 102,
+      "line": 123,
       "text": "screen.querySelector('.dialogue-window')?.classList.add('choice-menu');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 103,
+      "line": 124,
       "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class=\"rook-board\">'+jobs+'</ul>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 104,
+      "line": 125,
       "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',board.map(j=>button(j.units>free?'NO HOLD SPACE · '+j.label.toUpperCase():'TAKE '+j.label.toUpperCase()+' →','rook-job:'+j.kind,false,j.units>free)).join('')+button('NOT NOW','walk-resume',true));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 107,
+      "line": 128,
       "text": "if(a.startsWith('rook-job:')){speech=null;globalThis.VoidAudio?.cancel?.();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 110,
+      "line": 131,
       "text": "else if(a==='rook-cancel'){speech=null;globalThis.VoidAudio?.cancel?.();if(C.cancelRook(state)){VoidMissions.sync(state,C);save();announce('Rook’s crew takes the cargo back. No pay, no hard feelings.');}resumeWalking();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 119,
+      "line": 140,
       "text": "talk('',[{who:item.character,text:texts[item.character]}],resumeWalking,'RETURN TO STATION');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 166,
+      "line": 187,
       "text": "if(!['play','walking','dock','dialogue'].includes(mode))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 177,
+      "line": 198,
       "text": "addEventListener('keydown',e=>{if(e.code===(VoidInput.bindings.missionLog||'KeyL')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){if(!['play','walking','dock','dialogue','mission-log'].includes(mode))return;e.preventDefault();if(!e.repeat)openMissionLog();}if(e.code==='Escape'&&missionPanel){e.preventDefault();closeMissionLog();}});",
       "kind": "source-reference"
     },
@@ -13508,7 +13508,7 @@
   ],
   "warnings": [],
   "sources": {
-    "void-runner/account.js": "56dfd6619dbcafa34f8431bd47ee82d7a006dd4ba7ed69010e5a2b5cf3db752e",
+    "void-runner/account.js": "c0cfc4266163ec8c6b1bc8075ab0582e996df5e2d329b77a716e41dbac8dce2f",
     "void-runner/achievements.js": "e73d2197b523a0c4539d550a78781d791337ccd457b6e37f84bab14f8773ffa5",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
@@ -13522,9 +13522,9 @@
     "void-runner/cache.js": "a796e718fbe982cbdbec26e66705c8dfce47f9b3882a671244400cd48437bb4e",
     "void-runner/campaign.js": "f541695f3894cc467505c215245a8f0fffd8548f93a696d61714e339a7a3d7d3",
     "void-runner/character-appearance.js": "53d71abba7c97a691d44fce3a4b88454b616bd11fa4f04a7e789df3c4a33e850",
-    "void-runner/character-assembler.js": "7472861af99266df714e8f9e158a5d5740fbd63357b4acdf475f79212d91617f",
+    "void-runner/character-assembler.js": "5ad994f5df1683dbfb25f60fb0dbedc9a99ad5bcb9ee81283e97d056fc2ae034",
     "void-runner/character-catalog.js": "eee30cc7e7be13d44d43d2b5427bc616c08d64ee4a643cbbd5f3a61e9580e72b",
-    "void-runner/character-creator.js": "69a157e5bff166b044e039736e7468a69067869e7f7ede0558f0d2f21994bceb",
+    "void-runner/character-creator.js": "09523f6fea72f441ba734388715f330fae76f3c9a3bea8b3a6e2ea3ff54fce66",
     "void-runner/character-fit.js": "ee63772c43aa17513e8325b03ee8fee759e3fbf2407fa9adc3912921a6efcbc9",
     "void-runner/city-taxi.js": "0e5034fa45257dbcc8a26a52ad33b1dc12b52ecd2c95d22a1929ddcd96155eb0",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
@@ -13543,9 +13543,9 @@
     "void-runner/dev-test.js": "fe2ee383ca0ae2227dc944eea2d1ae1c4d7922e60c8719f1a7fa78fc3ae4ffa7",
     "void-runner/dev-tools.js": "8fc329454a6ed8a22bf93e8721eeffca11b1276ccf0eb3676b90c67c58781974",
     "void-runner/device-gate.js": "18ede0f57043b170043090b207fae30ae2a818aeca6d60a4c9f5a904946c91d7",
-    "void-runner/district-area.js": "f7fb70108b754de68a409032e5232a29d0b30ed793dbb21206d1ad0092e0233a",
+    "void-runner/district-area.js": "d805f191bae9eae587bba224b03d4ac366697bd0c4ae6bb99c8e21cbe26ebade",
     "void-runner/district-chat.js": "f6dcf7d042846fb47df27dfa2703699314770365fcc5adab94c80f3341029dd5",
-    "void-runner/district-transition.js": "6f914f0c159a1335bee53e12216aa13fd70d0a5e44a1e1daa317908d28bf74ff",
+    "void-runner/district-transition.js": "b263057b1d8c1f56d16904df08221676ac617604f1b04d1d1b7f6e5cda06c249",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
     "void-runner/escort.js": "0d8213a1b25b4748f954d1e1e86fecd14c22429682ec1f5f36a8b46b81bd8ec2",
@@ -13554,7 +13554,7 @@
     "void-runner/exploration-data.js": "1a7f311dd37ddf545a0d83423848a7959f66976456f8dfbdcb7c1e6c56e6c638",
     "void-runner/faction-battle.js": "3566336f27e8a33636ec164fd2a31c2d3c2d1473bbdac3ca02df176432d3887a",
     "void-runner/faction-battles.js": "a5eb4863fb899e5cffa3c20a451cb342588026b45c400ade1bcacdf955aa4add",
-    "void-runner/faction-scenes.js": "c998cf27211ec0dc36714ede894aac73b1e783e5d610eb126283f5ac50e4ef08",
+    "void-runner/faction-scenes.js": "fba760297dd18dd7a64b43fa256264f07af16920558fd959435934ecdd3d6f68",
     "void-runner/factions.js": "f7328ffb89f28c2579613d502da7c7572491f3b26d3f1511e1cd0781680c568e",
     "void-runner/fleet.js": "3ad8d092775422ff63a7e7096df2e5211f9b3ffa01e7303fc78a3b31f083fe0b",
     "void-runner/flight-hud.js": "8db3c456786143c5b8a56caf33157554878db29d4cd0879bab45516c3cf8b5e9",
@@ -13580,7 +13580,7 @@
     "void-runner/meridian-kitbash.js": "5e1efc2246631b5e37507d12fc23206b5ac8838fa8d0b1b34302a8fa2d5b7ebb",
     "void-runner/meridian-station.js": "2ecbbeec490597999c1a11e4c918a694f8e82673944100fe04e6657180556526",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
-    "void-runner/mission-log.js": "f9637251347e1250b78d3bef32ef6082e462393a0231b72e4e68970c7650b8c6",
+    "void-runner/mission-log.js": "da6545bba6a9536dedbd50fc675b61d943b78f7044d785330db2e78e1befcd44",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
     "void-runner/mouse-control.js": "17d4e6e90d0f101d517f461bb0c7ae7cc448279fee8a5d048052ab29caf103c0",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
@@ -13592,20 +13592,20 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-nightclub.js": "b4dbe1c5e0e47b7f18dc94ae4fa7da5c1463be4b1ed01d75f628800cc6661b56",
     "void-runner/ncz-nightlife.js": "4c6e4d7ca34309a6e1a190bfc70d78123ef746ccab8f29c74b7c77041e038fba",
-    "void-runner/neochinatown.js": "57755be90d87e50fcc41d19a3b6655e8667c3300519bea737031ce3f5b50eb04",
+    "void-runner/neochinatown.js": "ebfc888688702dd5dcc2a97c6b2f526611d2b3dbc352dcc929e647aed9145660",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "da1674b96960e03052332b46f33745a5db4f738ad2a38d06cef1eaa912b1ecbb",
     "void-runner/personal-hud.js": "ac4f3cafea8443be8e93d6b283f87cc80f662ab3cc8e033785ef571f998be687",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
-    "void-runner/pod-music.js": "7d13de0ed3af83511478501e22b6ab7cd04ca0744379b5d22278f4cd1971db00",
-    "void-runner/pod-playlist.js": "5b1c5a1b75a08bb8297dec8baeae184e9abe334d7cda9d1c4b38a636da44ae79",
+    "void-runner/pod-music.js": "2e923fe18b2153cc4cbda90973c4ab1fec1200fe90d004570ba73d2070249a44",
+    "void-runner/pod-playlist.js": "551f33d389b5090865394f22b1607761e72e711cdc5625e822a60b96f0fb77c1",
     "void-runner/police-patrol.js": "97e6f52dfaab4797addd3ed3184ce321b9f314b894d6cf69a8dbf51571b8839b",
     "void-runner/police-patrols.js": "2d9e4804ce9fed613295f24f81571185c83bf22341f5fddd89cc8f72c41077a5",
     "void-runner/preparation.js": "d4cd81b11203b5727a1192a8a5138b02fe6e1570d7310215526e3ddc4ce0502f",
     "void-runner/progression.js": "2350090515fb4942fa72b198380f3dcd960251f2d54955abaf689a57ab630b24",
-    "void-runner/prologue-integration.js": "ed2d57b92368520f4e69b4de22fcbdf7cdacbd26621237715c11a680c3293ff3",
+    "void-runner/prologue-integration.js": "d4ed9e983cf4f8fbc11753885736d10d41d90f852cdf3d3f90e255487f3e6b0e",
     "void-runner/radio.js": "a9d04c53cfb34748f9c30054ffdb28f02a5fb87114883c71149b691e0ff5c313",
     "void-runner/relay-radio.js": "5ce31904c15f630a01d00f51d566d66ae97c736d5734d7531835588714269806",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
@@ -13647,7 +13647,7 @@
     "void-runner/warflying-scanner.js": "3234988837d0ca2ab0fec7bdb730d923c679fd50ff883569c2f7f568406a00ed",
     "void-runner/warflying.js": "e3a319a7538e4df7e014be7ccb50b32bb2b0cf6cbcfe10ccfca2e46edb013a4f",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "497947895cb9eb10ff31851269755a27c7d755ae0f5be3e60a8f880ea0084a0a",
+    "void-runner/world-integration.js": "1cf04ccf967c76ce82868e5b79c245e08088a2cde07f3f4b76605b620b0982b4",
     "void-runner/world-markers.js": "44347bce6208e455b16ba76da2b328903c2f77e0cba457d0de14b0af882b047c",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "tools/admin-inventory.cjs": "4b545f1e29bc40745983ecd5a113f20926a6f73b52a1b4ed4c2e8106df0a4ed0",

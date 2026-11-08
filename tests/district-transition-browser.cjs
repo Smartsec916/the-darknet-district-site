@@ -30,14 +30,14 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   // 1. A new campaign wakes in a pod, exits to the interior, then walks out to the street.
   await pg.goto(BASE);await ready();await pg.click('[data-action=menu-campaign]');await pg.click('[data-action=menu-new]');await pg.waitForTimeout(1500);
   const c=await pg.$('[data-action=menu-new-confirm]');if(c)await c.click();
+  await pg.waitForSelector('#character-creator.on',{timeout:300000});await pg.waitForFunction(()=>!document.querySelector('[data-cc=confirm]')?.disabled,null,{timeout:300000});await pg.click('[data-cc=confirm]');
   await pg.waitForFunction(()=>mode==='pod-waking'&&walkingLocation?.area==='interior',null,{timeout:300000});
-  await pg.evaluate(()=>{state.story.flags.appearanceOffered=true;});await pg.click('#pod-wake button');await settle('interior',1000);await walkOut();
+  await pg.click('#pod-wake button');await settle('interior',1000);await walkOut();
   await settle('street');let s=await snap();console.log(q,'start',JSON.stringify(s));
   assert.equal(s.area,'street');assert.equal(s.flags.area,undefined);assert(Math.abs(s.local[0])<.1&&Math.abs(s.local[1]-17.4)<.1,'outside the doors');assert.equal(s.interior,0,'no District inside the street');
   const street1=s;
   // 2. Scan: the street is released while the interior loads, then only the interior exists.
-  await pg.evaluate(()=>VoidInteractions.handlers.get('tdd')());await toVestibule();await pg.waitForTimeout(500);
-  await pg.evaluate(()=>VoidInteractions.handlers.get('district-scan')());await pg.waitForTimeout(900);
+  await toVestibule();await pg.waitForTimeout(900);
   s=await snap();console.log(q,'during',JSON.stringify(s));await shot('checkpoint');
   assert.equal(s.overlay,true,'the checkpoint overlay is up');assert.equal(s.street,0,'the street is gone while the overlay is up: never both loaded');assert(s.meshes<20||s.interior>0,'what is loaded is the interior alone (meshes '+s.meshes+')');
   await settle('interior');s=await snap();console.log(q,'inside',JSON.stringify(s));await shot('inside');
@@ -47,13 +47,13 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   assert(s.meshes<street1.meshes*.8,'the interior alone is much smaller than the street ('+s.meshes+' vs '+street1.meshes+')');
   const interior1=s;
   // 3. Walking out through the outer door cycles back to the street, outside the door.
-  await walkOut();await pg.waitForTimeout(900);s=await snap();assert.equal(s.overlay,true);assert.equal(s.interior,0,'the interior is gone while the overlay is up: never both loaded');assert(s.meshes<20||s.street>0,'what is loaded is the street alone (meshes '+s.meshes+')');await shot('airlock');
+  await walkOut();await pg.waitForTimeout(900);s=await snap();assert.equal(s.overlay,true);assert.equal(s.interior,0,'the interior is gone while the overlay is up: never both loaded');assert(s.meshes<20||s.street>0,'what is loaded is the street alone (meshes '+s.meshes+')');await shot('vestibule');
   await settle('street');s=await snap();console.log(q,'out',JSON.stringify(s));await shot('outside');
   assert.equal(s.area,'street');assert.equal(s.interior,0,'no District left loaded');assert.equal(s.flags.area,undefined);assert(Math.abs(s.local[0])<.1&&Math.abs(s.local[1]-17.4)<.1,'in the alley outside the door');
   // 4. Repeated trips settle to the same size: nothing accumulates.
   const streets=[],insides=[];
   for(let i=0;i<TRIPS;i++){
-   await toVestibule();await pg.waitForTimeout(400);await pg.evaluate(()=>VoidInteractions.handlers.get('district-scan')());await settle('interior',6000);insides.push(await snap());
+   await toVestibule();await settle('interior',6000);insides.push(await snap());
    await walkOut();await settle('street',6000);streets.push(await snap());}
   console.log(q,'streets',JSON.stringify(streets.map(x=>[x.meshes,x.mats,x.tex,x.lights,x.nodes])),'interiors',JSON.stringify(insides.map(x=>[x.meshes,x.mats,x.tex,x.lights,x.nodes])));
   // The first visit to each environment is lighter (character models still download in the background). The interior has no randomness: from the second trip on its
@@ -70,12 +70,12 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   assert(streets[last].staticNodes<=Math.max(...streets.slice(1,last).map(x=>x.staticNodes))*1.03,'street non-crowd nodes do not grow across trips: '+streets.map(x=>x.staticNodes));
   assert(streets[last].mats<=streets[0].mats*1.05&&insides[last].mats<=insides[0].mats*1.3,'materials do not pile up across trips');
   // 5. Saved locations: inside resumes inside (in the hall, past the inner door); outside resumes outside.
-  await toVestibule();await pg.waitForTimeout(400);await pg.evaluate(()=>VoidInteractions.handlers.get('district-scan')());await settle('interior',3000);
+  await toVestibule();await settle('interior',3000);
   let saved=await pg.evaluate(()=>{save();return JSON.parse(localStorage.getItem('void-runner-campaign-v1'));});
   assert.equal(saved.location,'earth');assert.equal(saved.story.flags.area,'district');
   // Continue always wakes the player in their Sleeping Pod (C.socialEntry, since the District social profiles commit 0f42dff), wherever the save was made.
   const continueToPod=async()=>{await pg.goto(BASE);await ready();await pg.click('[data-action=menu-continue]');await pg.waitForFunction(()=>mode==='pod-waking'&&walkingLocation?.area==='interior'&&!!walker,null,{timeout:300000});
-   assert.equal(await pg.evaluate(()=>state.story.flags.podWakePending),true,'Continue wakes in the pod');await pg.evaluate(()=>{state.story.flags.appearanceOffered=true;});await pg.click('#pod-wake button');await settle('interior',3000);return snap();};
+   assert.equal(await pg.evaluate(()=>state.story.flags.podWakePending),true,'Continue wakes in the pod');await pg.click('#pod-wake button');await settle('interior',3000);return snap();};
   s=await continueToPod();console.log(q,'resumed inside',JSON.stringify(s));
   assert.equal(s.area,'interior');assert.equal(s.street,0);assert(Math.abs(s.local[0]+12.5)<1.5&&Math.abs(s.local[1]-57)<1.5,'at the pod exit: '+s.local);
   await pg.evaluate(()=>{const [x,z]=VoidNeoChinatown.toWorld(0,20.6);walker.x=x;walker.z=z;walker.yaw=0;});

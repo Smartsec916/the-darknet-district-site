@@ -1,250 +1,47 @@
-/* The wall-mounted pod music player inside the 3D Darknet District, in a real browser engine (Playwright, software GL). It boots the real game into the
-   District, finds the real wall screen, opens the real panel and picks real audio files (WAV in code; OGG and MP3 through ffmpeg when installed) with the
-   browser's file chooser. It checks, by what the game actually does: the screen is on the pod room's wall and draws; the E interaction opens the player;
-   songs play through the game's own music channel; the LED spectrum moves on the wall and in the panel for both the website playlist and My music; the
-   pod room's light follows the music; shuffle, repeat, volume, next/previous, remove and clear work; a bad file is skipped; "keep my songs" survives a
-   reload; nothing is uploaded; the music pauses when the player leaves the District. It cannot prove how a phone or another browser behaves.
-   Needs the local server:  node tests/serve-modern.cjs   then:  node tests/pod-music-browser.cjs [low|high]   -> screenshots in work/pod-music/ */
-const { chromium } = require('playwright'), fs = require('node:fs'), path = require('node:path'), cp = require('node:child_process'), assert = require('node:assert/strict');
-const BASE = process.env.BASE || 'http://127.0.0.1:5187', QUALITY = process.argv[2] || 'low';
-// Software rendering at the high tier draws a frame every few seconds, so every click and wait takes several times longer: scale the waits, and make the test songs longer so they outlast them
-const SLOW = QUALITY === 'high' ? 5 : 1, SONG = QUALITY === 'high' ? 14 : 4;
-const out = path.resolve(__dirname, '..', 'work', 'pod-music'), fx = path.join(out, 'fixtures'); fs.mkdirSync(fx, { recursive: true });
-const F = n => path.join(fx, n), wait = ms => new Promise(r => setTimeout(r, ms));
-function wav(file, seconds, make) {
-  const rate = 22050, n = Math.floor(rate * seconds), b = Buffer.alloc(44 + n * 2);
-  b.write('RIFF', 0); b.writeUInt32LE(36 + n * 2, 4); b.write('WAVEfmt ', 8); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22); b.writeUInt32LE(rate, 24); b.writeUInt32LE(rate * 2, 28); b.writeUInt16LE(2, 32); b.writeUInt16LE(16, 34); b.write('data', 36); b.writeUInt32LE(n * 2, 40);
-  for (let i = 0; i < n; i++) b.writeInt16LE(Math.round(Math.max(-1, Math.min(1, make(i / rate))) * 0.7 * 32767), 44 + i * 2);
-  fs.writeFileSync(file, b);
-}
-const tone = fs => t => fs.reduce((v, f) => v + Math.sin(2 * Math.PI * f * t) / fs.length, 0);
-wav(F('Alpha Drive.wav'), SONG, tone([110, 440, 1800])); wav(F('Beta Rain.wav'), SONG, tone([220, 880, 3000])); wav(F('Gamma Pulse.wav'), SONG, tone([150, 660, 2400]));
-// a beat: a kick (80 Hz) twice a second over a steady hum, so the levels (and the light) rise and fall
-wav(F('Beat Box.wav'), QUALITY === 'high' ? 600 : 90, t => { const k = Math.exp(-((t * 2) % 1) * 7), kick = Math.sin(2 * Math.PI * 80 * t) * k, hat = ((t * 4) % 1) < .08 ? (Math.random() - .5) * .5 : 0; return kick * .8 + Math.sin(2 * Math.PI * 1000 * t) * .12 + hat; });
-fs.writeFileSync(F('notes.txt'), 'not a song'); fs.writeFileSync(F('broken.mp3'), 'text pretending to be an mp3');
-const extra = []; try { cp.execSync('ffmpeg -version', { stdio: 'ignore' }); for (const [n, a] of [['Delta Glass.ogg', '-c:a libvorbis'], ['Echo Static.mp3', '-c:a libmp3lame']]) { cp.execSync(`ffmpeg -y -loglevel error -f lavfi -i "sine=frequency=${300 + extra.length * 200}:duration=1.6" -af volume=6dB ${a} "${F(n)}"`); extra.push(n); } } catch { /* WAV only */ }
-
-const results = [], requests = [], errors = [];
-const ok = (n, d = '') => { results.push({ name: n, ok: true, detail: d }); console.log('ok  ', n, d); };
-async function check(n, fn) { try { ok(n, (await fn()) || ''); } catch (e) { results.push({ name: n, ok: false, detail: e.message }); console.log('FAIL', n, '-', e.message.split('\n').slice(0, 4).join(' | ').slice(0, 700)); } }
-const until = async (fn, ms = 8000, label = 'condition') => { ms *= SLOW; const t0 = Date.now(); for (;;) { const v = await fn(); if (v) return v; if (Date.now() - t0 > ms) throw new Error('timed out waiting for ' + label); await wait(100); } };
-
-async function boot(b, ctx) {
-  const page = await ctx.newPage(); page.setDefaultTimeout(30000 * SLOW);
-  page.on('pageerror', e => errors.push(e.message));
-  page.on('request', r => requests.push({ method: r.method(), url: r.url(), body: r.postData() }));
-  await page.route(/\/api\/|firebase|googleapis|gstatic|googletagmanager/, r => r.abort());
-  await page.goto(BASE + '/void-runner.html'); await page.waitForFunction(() => window.VoidStartup?.started, null, { timeout: 120000 });
-  // where the street and the District interior are separate builds (the integration branch), the interior has its own walking key
-  await page.evaluate(() => { window.__districtKey = (typeof VoidDistrictArea !== 'undefined' && VoidDistrictArea.KEY && VoidDistrictArea.KEY.interior) || 'sacramento'; });
-  await page.evaluate(async () => { state = C.fresh(); Object.assign(state, { quest: 'open', location: 'earth' }); state.universe.currentSystem = 'sol'; state.universe.freeTravel = true; for (const id of VoidProgression.flags) state.progression.flags[id] = true; state.progression.completed = true; await enterWalking(window.__districtKey || 'sacramento'); });
-  await page.waitForFunction(() => typeof mode !== 'undefined' && mode === 'walking' && walkingLocation && walker, null, { timeout: 300000 });
-  await page.evaluate(() => { window.gameScene = () => BABYLON.EngineStore.Instances.flatMap(e => e.scenes).sort((a, b) => b.meshes.length - a.meshes.length)[0]; });
-  // stand in the sleeping-pod room, in front of the wall screen (local x -9, z 66.5)
-  await page.evaluate(() => { walker.x = 126.9 + 9; walker.z = -41.9 - 66.5; walker.yaw = Math.PI; walker.pitch = 0; for (let i = 0; i < 4; i++) update(.1); });
-  return page;
-}
-const P = page => page.evaluate(() => ({ ...VoidPodMusic.state(), lv: VoidPodMusic.levels(), vol: VoidPodMusic.element?.volume, src: VoidPodMusic.element?.currentSrc || '', paused: VoidPodMusic.element ? VoidPodMusic.element.paused : true }));
-const wallGreen = page => page.evaluate(() => { const t = gameScene().getTextureByName('ncz-pod-music'), c = t.getContext().canvas, d = t.getContext().getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 1] > 180 && d[i] < 130 && d[i + 2] < 160) n++; return n; });
-const panelLit = page => page.evaluate(() => { const c = document.getElementById('pod-music-spectrum'); if (!c) return -1; const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 200) n++; return n; });
-const strip = page => page.evaluate(() => { const m = gameScene().getMaterialByName('ncz-pod-music-strip'); return m ? [m.emissiveColor.r, m.emissiveColor.g, m.emissiveColor.b] : null; });
-const lamp = page => page.evaluate(() => { const l = gameScene().lights.find(x => x.name === 'ncz-light' && x.intensity > 0 && Math.abs(x.position.y - 3) < .01 && Math.abs(x.intersectsMesh === undefined ? 0 : 0) < 1 && Math.abs(x.diffuse.r - 1) < .01 && Math.abs(x.diffuse.g - .357) < .02); return l ? l.intensity : null; });
-const names = s => s.mine, shot = (page, n) => page.screenshot({ path: path.join(out, n) });
-const drive = (page, n = 1) => page.evaluate(n => { for (let i = 0; i < n; i++) update(.05); }, n);
-
-(async () => {
-  const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist', '--no-sandbox', '--autoplay-policy=no-user-gesture-required'] });
-  const ctx = await b.newContext({ viewport: { width: 1280, height: 720 } });
-  // the website playlist is OFF by default in the game (its commercial rights are not yet verified): the checks that use it switch it on, as a tester would, in their own browser
-  await ctx.addInitScript(q => { try { if (!localStorage.getItem('void-runner-graphics-v1')) localStorage.setItem('void-runner-graphics-v1', JSON.stringify({ quality: q })); localStorage.setItem('darknet-pod-music-site', '1'); } catch (e) { /* none */ } }, QUALITY);
-  const page = await boot(b, ctx); page.setDefaultTimeout(30000 * SLOW);
-  // The game's footer is fixed to the bottom edge of the window, so a control scrolled only just into view can sit under it: scroll to the middle first, as a player would
-  const tap = async sel => { await page.evaluate(q => { const e = document.querySelector(q); if (e) e.scrollIntoView({ block: 'center' }); }, sel); await page.click(sel); };
-
-  await check('the wall screen is mounted on the pod room wall, with an E interaction point beside it', async () => {
-    const r = await page.evaluate(() => { const sc = gameScene(), m = sc.getMeshByName('pod-music-screen'), f = sc.getMeshByName('pod-screen-frame'), i = walkingLocation.interactions.find(x => x.action === 'district-pod-music'); if (!m || !i) return null; const p = m.getAbsolutePosition(); return { screen: [p.x, p.y, p.z], frame: !!f, it: i.position, range: i.range, handler: VoidInteractions.handlers.has('district-pod-music'), label: i.label }; });
-    assert.ok(r, 'screen and interaction exist'); assert.ok(r.frame && r.handler);
-    const d = Math.hypot(r.screen[0] - r.it[0], r.screen[2] - r.it[2]); assert.ok(d < 4, 'the interaction point is within reach of the screen (' + d.toFixed(1) + ' m)');
-    return `${r.label}, ${d.toFixed(1)} m from the screen`;
-  });
-
-  await check('the screen draws its idle face (title, source, "[E] open the player")', async () => {
-    await drive(page, 30); await wait(800); await drive(page, 30);
-    const px = await page.evaluate(() => { const t = gameScene().getTextureByName('ncz-pod-music'), c = t.getContext().canvas, d = t.getContext().getImageData(0, 0, c.width, c.height).data; let bright = 0; for (let i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] > 300) bright++; return bright; });
-    assert.ok(px > 400, 'text and frame pixels: ' + px); await shot(page, '1-wall-screen-idle.png');
-  });
-
-  await check('the screen is really visible from where the player stands: it is in front of the wall and its teal frame and text are in the rendered picture', async () => {
-    const z = await page.evaluate(() => -41.9 - gameScene().getMeshByName('pod-music-screen').getAbsolutePosition().z);
-    assert.ok(z < 69.79, 'the screen is in the room, not inside the 0.4 m wall slab (local z ' + z.toFixed(2) + ', wall face 69.8)');
-    await wait(2500);
-    // read the pixels of a real screenshot (Babylon's own screenshot call does not return under software rendering)
-    const b64 = (await page.screenshot()).toString('base64');
-    const teal = await page.evaluate(async b => { const img = new Image(); img.src = 'data:image/png;base64,' + b; await img.decode(); const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d'); g.drawImage(img, 0, 0); const d = g.getImageData(img.width * .25, img.height * .1, img.width * .5, img.height * .7).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 1] > 120 && d[i + 2] > 105 && d[i] < 110) n++; return n; }, b64);
-    assert.ok(teal > 300, 'teal pixels from the screen in the rendered view: ' + teal);
-    return teal + ' teal pixels';
-  });
-
-  await check('E at the screen opens the player; the website playlist is the first source and is listed', async () => {
-    await page.evaluate(() => VoidInteractions.handlers.get('district-pod-music')());
-    await page.waitForSelector('#pod-music'); assert.equal(await page.evaluate(() => mode), 'equipment');
-    assert.equal(await page.locator('#pod-music ol li').count(), 27, 'the website playlist');
-    assert.equal(await page.getAttribute('[data-action="pod-music:source:website"]', 'aria-pressed'), 'true');
-    await shot(page, '2-panel-website.png');
-  });
-
-  await check('the website playlist plays through the game\'s music channel; the wall and panel spectrum move; the pod light follows', async () => {
-    const base = await strip(page);
-    await tap('[data-action="pod-music:toggle"]');
-    const s = await until(async () => { const x = await P(page); return x.playing && x.position > .3 ? x : null; }, 15000, 'the website song to start');
-    assert.match(s.src, /attached_assets\/.+\.mp3$/); assert.equal(s.source, 'website');
-    await until(async () => (await panelLit(page)) > 120, 8000, 'lit panel spectrum');
-    const moved = await until(async () => { await drive(page, 8); const a = await strip(page); return a && Math.abs(a[0] - base[0]) + Math.abs(a[1] - base[1]) + Math.abs(a[2] - base[2]) > .15 ? a : null; }, 8000, 'the ceiling strip to light up');
-    return `strip ${base.map(x => x.toFixed(2))} -> ${moved.map(x => x.toFixed(2))}`;
-  });
-
-  await check('the wall screen shows the song and a lit spectrum while it plays', async () => {
-    await page.evaluate(() => { leaveMenu?.(); }).catch(() => {});
-    await until(async () => { await drive(page, 10); return (await wallGreen(page)) > 150; }, 8000, 'green spectrum columns on the wall screen');
-  });
-
-  await check('My music: switching pauses the website song; the empty list says what to do; Add songs opens the file chooser (several files, audio only)', async () => {
-    await tap('[data-action="pod-music:source:mine"]');
-    assert.equal((await P(page)).playing, false); assert.match(await page.textContent('#pod-music'), /No songs yet/);
-    const [chooser] = await Promise.all([page.waitForEvent('filechooser'), tap('[data-action="pod-music:add"]')]);
-    assert.equal(chooser.isMultiple(), true); assert.match(await page.getAttribute('#pod-music-input', 'accept'), /audio\/\*.*\.mp3.*\.wav.*\.ogg.*\.m4a/);
-    await chooser.setFiles([F('Alpha Drive.wav'), F('Beta Rain.wav'), F('Gamma Pulse.wav'), F('notes.txt')]);
-    const s = await until(async () => { const x = await P(page); return x.playing && x.position > .2 ? x : null; }, 10000, 'the first picked song');
-    assert.deepEqual(names(s), ['Alpha Drive', 'Beta Rain', 'Gamma Pulse']); assert.equal(s.title, 'Alpha Drive'); assert.match(s.src, /^blob:/);
-    assert.match(s.status, /Added 3 songs/); assert.match(s.status, /not audio: notes\.txt/);
-    await shot(page, '3-panel-my-music.png');
-  });
-
-  await check('the spectrum and the room light move for personal songs too', async () => {
-    await until(async () => (await panelLit(page)) > 120, 8000, 'lit panel spectrum for a personal song');
-    await until(async () => { await drive(page, 10); return (await wallGreen(page)) > 150; }, 8000, 'wall spectrum');
-    const lv = await page.evaluate(() => VoidPodMusic.levels()); assert.ok(lv.on && lv.bass + lv.mid + lv.high > .02, JSON.stringify(lv));
-  });
-
-  await check('songs advance by themselves and the list stops after the last (Repeat off)', async () => {
-    await until(async () => (await P(page)).title === 'Beta Rain', 12000, 'song two'); await until(async () => (await P(page)).title === 'Gamma Pulse', 12000, 'song three');
-    await until(async () => /End of the list/.test((await P(page)).status), 12000, 'the end of the list');
-    assert.equal((await P(page)).playing, false);
-  });
-
-  await check('Previous / Next, picking a song, Shuffle and Repeat (one, all) behave', async () => {
-    // The audio is paused after each step so a slow machine cannot run a song past the three seconds after which Previous restarts it (that rule is checked in the unit tests of the player)
-    const hold = () => page.evaluate(() => VoidPodMusic.element.pause());
-    await tap('[data-action="pod-music:next"]'); await until(async () => (await P(page)).title === 'Alpha Drive', 5000, 'Next wraps'); await hold();
-    await tap('[data-action="pod-music:next"]'); await until(async () => (await P(page)).title === 'Beta Rain', 5000, 'Next'); await hold();
-    await tap('[data-action="pod-music:prev"]'); await until(async () => (await P(page)).title === 'Alpha Drive', 5000, 'Previous');
-    await tap('#pod-music li:nth-child(3) .go'); await until(async () => (await P(page)).title === 'Gamma Pulse', 5000, 'picked song');
-    await tap('[data-action="pod-music:shuffle"]'); assert.equal((await P(page)).shuffle, true); await tap('[data-action="pod-music:shuffle"]'); assert.equal((await P(page)).shuffle, false);
-    await tap('[data-action="pod-music:repeat"]'); assert.equal((await P(page)).repeat, 'all'); await tap('[data-action="pod-music:repeat"]'); assert.equal((await P(page)).repeat, 'one');
-    await page.evaluate(() => { window.__starts = 0; VoidPodMusic.element.addEventListener('playing', () => { window.__starts++; }); });
-    await tap('#pod-music li:nth-child(2) .go'); await until(async () => (await page.evaluate(() => window.__starts)) >= 3, 25000, 'the song to repeat twice');
-    assert.equal((await P(page)).title, 'Beta Rain'); await tap('[data-action="pod-music:repeat"]'); assert.equal((await P(page)).repeat, 'off');
-  });
-
-  await check('volume: the slider sets the music volume and it stays across songs', async () => {
-    await page.fill('#pod-music-volume', '30'); const v = await P(page); assert.ok(Math.abs(v.vol - .3) < .01 && Math.abs(v.volume - .3) < .01, JSON.stringify([v.vol, v.volume]));
-    await tap('[data-action="pod-music:next"]'); await wait(800); assert.ok(Math.abs((await P(page)).vol - .3) < .01);
-  });
-
-  await check('Remove and Clear playlist', async () => {
-    await tap('#pod-music li:nth-child(1) [data-action^="pod-music:remove"]'); assert.equal((await P(page)).mine.length, 2);
-    await tap('[data-action="pod-music:clear"]'); const s = await P(page); assert.deepEqual(s.mine, []); assert.equal(s.playing, false); assert.match(s.status, /Playlist cleared \(2 songs\)/);
-  });
-
-  await check('a file the browser cannot play is marked and skipped; all-bad lists stop with a message', async () => {
-    const [c1] = await Promise.all([page.waitForEvent('filechooser'), tap('[data-action="pod-music:add"]')]); await c1.setFiles([F('broken.mp3'), F('Alpha Drive.wav')]);
-    await until(async () => { const x = await P(page); return x.title === 'Alpha Drive' && x.playing ? x : null; }, 10000, 'to skip the broken file');
-    assert.equal(await page.locator('#pod-music li.bad').count(), 1);
-    await tap('[data-action="pod-music:clear"]');
-    const [c2] = await Promise.all([page.waitForEvent('filechooser'), tap('[data-action="pod-music:add"]')]); await c2.setFiles([F('broken.mp3')]);
-    await until(async () => /None of these files could be played/.test((await P(page)).status), 8000, 'the message'); await tap('[data-action="pod-music:clear"]');
-  });
-
-  await check('OGG and MP3 files play too', async () => {
-    if (!extra.length) return 'ffmpeg not available: WAV only';
-    const [c] = await Promise.all([page.waitForEvent('filechooser'), tap('[data-action="pod-music:add"]')]); await c.setFiles(extra.map(F));
-    for (let i = 0; i < extra.length; i++) { await until(async () => { const x = await P(page); return x.playing && x.position > .1 ? x : null; }, 8000, 'song ' + extra[i]); if (i < extra.length - 1) await tap('[data-action="pod-music:next"]'); }
-    await tap('[data-action="pod-music:clear"]'); return extra.join(', ');
-  });
-
-  await check('the music beat moves the room light (strip and ceiling panels) around its resting level', async () => {
-    const [c] = await Promise.all([page.waitForEvent('filechooser'), tap('[data-action="pod-music:add"]')]); await c.setFiles([F('Beat Box.wav')]);
-    await until(async () => (await P(page)).playing, 8000, 'the beat'); const seen = [];
-    for (let i = 0; i < 40; i++) { await drive(page, 3); const a = await strip(page); seen.push(a[0] + a[1] + a[2]); await wait(60); }
-    const spread = Math.max(...seen) - Math.min(...seen); assert.ok(spread > .2, 'the strip pulses (spread ' + spread.toFixed(2) + ')');
-    const lampNow = await lamp(page); await shot(page, '4-panel-beat.png');
-    return `strip brightness ${Math.min(...seen).toFixed(2)}..${Math.max(...seen).toFixed(2)}${lampNow ? '; pod lamp ' + lampNow.toFixed(2) : '; (low quality has no pod lamp)'}`;
-  });
-
-  await check('closing the panel keeps the music playing; the wall screen shows the song; a screenshot from the player\'s eyes', async () => {
-    if (!(await P(page)).playing) await tap('[data-action="pod-music:toggle"]'); await until(async () => (await P(page)).playing, 8000, 'music playing before closing the panel');
-    await tap('[data-action="progress-return"]'); await page.waitForFunction(() => mode === 'walking');
-    await wait(600); await drive(page, 10); const s = await P(page); assert.ok(s.playing);
-    await page.evaluate(() => { walker.x = 126.9 + 9; walker.z = -41.9 - 64; walker.yaw = Math.PI; walker.pitch = .05; for (let i = 0; i < 6; i++) update(.1); });
-    await wait(1500); await drive(page, 10); await shot(page, '5-wall-screen-playing.png');
-  });
-
-  await check('leaving the District pauses the music (it belongs to the pod room); coming back does not restart it by itself', async () => {
-    try {
-      if (!(await P(page)).playing) { await page.evaluate(() => VoidPodMusic.toggle()); await until(async () => (await P(page)).playing, 10000, 'music playing before leaving'); }
-      await page.evaluate(() => { window.__w = walkingLocation; walkingLocation = null; VoidPodMusic.update(); });
-      assert.equal((await P(page)).playing, false); await page.evaluate(() => { walkingLocation = window.__w; VoidPodMusic.update(); }); assert.equal((await P(page)).playing, false);
-    } finally { await page.evaluate(() => { if (window.__w) walkingLocation = window.__w; VoidPodMusic.clearMine(); }); }
-  });
-
-  await check('Keep my songs in this browser: they survive a reload; unticking removes the saved copies', async () => {
-    await page.evaluate(() => VoidInteractions.handlers.get('district-pod-music')()); await tap('[data-action="pod-music:source:mine"]');
-    await page.check('[data-pod-keep]'); const [c] = await Promise.all([page.waitForEvent('filechooser'), tap('[data-action="pod-music:add"]')]); await c.setFiles([F('Alpha Drive.wav'), F('Beta Rain.wav')]);
-    await until(async () => (await P(page)).mine.length === 2, 5000, 'two songs');
-    await until(() => page.evaluate(() => new Promise(resolve => {
-      const req = indexedDB.open('darknet-pod-music');
-      req.onerror = () => resolve(0);
-      req.onsuccess = () => {
-        const db = req.result, count = db.transaction('songs').objectStore('songs').count();
-        count.onsuccess = () => { db.close(); resolve(count.result); };
-        count.onerror = () => { db.close(); resolve(0); };
-      };
-    })).then(count => count === 2), 6000, 'two songs committed to browser storage');
-    await page.evaluate(() => VoidPodMusic.element?.pause());
-    await page.close(); const again = await boot(b, ctx);
-    await again.evaluate(() => VoidInteractions.handlers.get('district-pod-music')()); await again.click('[data-action="pod-music:source:mine"]');
-    await until(async () => (await P(again)).mine.length === 2, 6000, 'the kept songs to come back');
-    assert.deepEqual((await P(again)).mine, ['Alpha Drive', 'Beta Rain']); assert.equal(await again.isChecked('[data-pod-keep]'), true);
-    await again.evaluate(q => document.querySelector(q)?.scrollIntoView({ block: 'center' }), '#pod-music li:nth-child(1) .go'); await again.click('#pod-music li:nth-child(1) .go'); await until(async () => (await P(again)).playing, 8000, 'a kept song to play');
-    await again.uncheck('[data-pod-keep]'); await wait(500);
-    const left = await again.evaluate(() => new Promise(res => { const r = indexedDB.open('darknet-pod-music'); r.onsuccess = () => { const db = r.result; if (!db.objectStoreNames.contains('songs')) return res(0); const q = db.transaction('songs').objectStore('songs').count(); q.onsuccess = () => res(q.result); }; r.onerror = () => res(-1); }));
-    assert.equal(left, 0); await again.evaluate(() => VoidPodMusic.clearMine()); await again.close();
-  });
-
-  await check('by default both the shared website playlist and local My music are available', async () => {
-    const plain = await b.newContext({ viewport: { width: 1280, height: 720 } });
-    await plain.addInitScript(q => { try { localStorage.setItem('void-runner-graphics-v1', JSON.stringify({ quality: q })); localStorage.removeItem('darknet-pod-music-site'); } catch (e) { /* none */ } }, QUALITY);
-    const pg = await boot(b, plain); pg.setDefaultTimeout(30000 * SLOW);
-    await pg.evaluate(() => VoidInteractions.handlers.get('district-pod-music')()); await pg.waitForSelector('#pod-music');
-    assert.equal(await pg.locator('[data-action="pod-music:source:website"]').count(), 1);
-    assert.equal(await pg.locator('#pod-music ol li').count(), 27);
-    assert.equal((await pg.evaluate(() => VoidPodMusic.state())).source, 'website');
-    await pg.click('[data-action="pod-music:source:mine"]');
-    assert.equal(await pg.locator('[data-action="pod-music:add"]').count(), 1, 'My music controls are there');
-    const [chooser] = await Promise.all([pg.waitForEvent('filechooser'), pg.click('[data-action="pod-music:add"]')]); await chooser.setFiles([F('Alpha Drive.wav')]);
-    await until(async () => { const x = await pg.evaluate(() => VoidPodMusic.state()); return x.playing && x.position > .2 ? x : null; }, 10000, 'a picked local song to play');
-    await pg.evaluate(() => VoidPodMusic.clearMine()); await plain.close();
-  });
-
-  await check('privacy: no request carried a body or a song name; every request went to the local test server', async () => {
-    assert.deepEqual(requests.filter(r => r.method !== 'GET' || r.body).map(r => r.method + ' ' + r.url), []);
-    assert.deepEqual(requests.filter(r => !r.url.startsWith(BASE) && !/^(blob|data):/.test(r.url)).map(r => r.url), []);
-    assert.deepEqual(requests.filter(r => /Alpha|Beta|Gamma|Beat|Delta|Echo|broken/.test(decodeURIComponent(r.url))).map(r => r.url), []);
-    return requests.length + ' requests, all GET with no body';
-  });
-  await check('no script errors in the game through all of the above', async () => { assert.deepEqual(errors.filter(e => !/Failed to load resource|net::ERR/.test(e)), []); });
-
-  await b.close();
-  fs.writeFileSync(path.join(out, 'results-' + QUALITY + '.json'), JSON.stringify(results, null, 1));
-  const failed = results.filter(r => !r.ok); console.log(`\n${results.length - failed.length}/${results.length} checks passed at ${QUALITY} quality`); process.exit(failed.length ? 1 : 0);
-})().catch(e => { console.error(e); process.exit(1); });
+/* Real audio, spectrum, local-file privacy, and independent Sleeping Pod controls. Run against tests/serve-modern.cjs. */
+const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187';
+const fixture=path.join(os.tmpdir(),'district-pod-browser-tone.wav');
+function tone(){const rate=22050,n=rate*20,b=Buffer.alloc(44+n*2);b.write('RIFF',0);b.writeUInt32LE(36+n*2,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(rate,24);b.writeUInt32LE(rate*2,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(n*2,40);for(let i=0;i<n;i++){const t=i/rate,v=Math.sin(t*110*Math.PI*2)*.4+Math.sin(t*880*Math.PI*2)*.3;b.writeInt16LE(Math.round(v*32767),44+i*2);}fs.writeFileSync(fixture,b);}
+(async()=>{
+ tone();const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--no-sandbox','--autoplay-policy=no-user-gesture-required']});
+ try{
+  const page=await browser.newPage({viewport:{width:1100,height:700},reducedMotion:'reduce',serviceWorkers:'block'}),errors=[],requests=[];
+  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push({method:r.method(),url:r.url()}));
+  await page.route('https://**/*',r=>r.abort());await page.route('**/api/**',r=>r.fulfill({status:503,body:'{}'}));
+  await page.addInitScript(q=>localStorage.setItem('void-runner-graphics-v1',JSON.stringify({quality:q})),tier);
+  await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:120000});
+  await page.evaluate(()=>Object.assign(VoidPreparation.limits,{scene:900000,assets:300000,optional:300000,total:1500000}));
+  await page.evaluate(async()=>{state=C.startDistrictCampaign(C.fresh());state.story.flags.appearanceOffered=true;await enterWalking('darknet-district',VoidDistrictArea.resume(state,VoidNeoChinatown));await showPodWake();});
+  await page.waitForFunction(()=>mode==='pod-waking'&&walkingLocation?.area==='interior',null,{timeout:180000});
+  const parts=await page.evaluate(()=>({screens:VoidBabylon.scene.meshes.filter(m=>m.name==='tesana-pod-screen').length,hatches:walkingLocation.interactions.filter(i=>i.action==='district-pod').length,roomPlayer:walkingLocation.interactions.some(i=>i.action==='district-pod-music')}));
+  assert.deepEqual(parts,{screens:10,hatches:10,roomPlayer:false});
+  await page.locator('[data-pod=music]').click();await page.waitForSelector('#pod-music');
+  assert.equal(await page.locator('#pod-music ol li').count(),27,'hosted catalog remains available');
+  await page.locator('[data-action="pod-music:source:mine"]').click();
+  await page.locator('[data-action="pod-music:add"]').click();await page.locator('#pod-music-input').setInputFiles(fixture);
+  await page.waitForFunction(()=>VoidPodMusic.playing&&VoidPodMusic.element?.currentTime>.2,null,{timeout:30000});
+  await page.locator('[data-action="pod-music:light:music"]').click();
+  await page.waitForFunction(()=>VoidPodMusic.levels().bass>.02,null,{timeout:15000});
+  const light=await page.evaluate(()=>{const a=VoidBabylon.scene.getMaterialByName('ncz-tesana-pod-led-1'),b=VoidBabylon.scene.getMaterialByName('ncz-tesana-pod-led-2');return {a:a?.emissiveColor?.asArray(),b:b?.emissiveColor?.asArray()};});
+  assert(light.a&&light.b&&light.a[0]>light.b[0],'music reacts only in occupied pod');
+  await page.locator('#pod-music-volume').evaluate(el=>{el.value='35';el.dispatchEvent(new Event('input',{bubbles:true}));});
+  assert.equal(await page.evaluate(()=>VoidPodMusic.element.volume),.35);
+  await page.locator('[data-action="pod-music:return"]').click();await page.waitForFunction(()=>mode==='pod-waking');
+  await page.locator('[data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking'&&!VoidPodMusic.playing,null,{timeout:15000});
+  const second=await page.evaluate(()=>walkingLocation.interactions.find(i=>i.podIndex===2));
+  await page.evaluate(item=>VoidInteractions.handlers.get('district-pod')({item}),second);await page.waitForFunction(()=>mode==='pod-waking'&&state.story.flags.activePod===2);
+  await page.locator('[data-pod=music]').click();await page.waitForSelector('#pod-music');
+  assert.equal(await page.locator('#pod-music-volume').inputValue(),'80','pod 02 keeps independent volume');
+  assert.equal(await page.evaluate(()=>VoidPodMusic.lists.mine.currentId),null,'pod 02 has not selected pod 01’s song');
+  assert.equal(await page.locator('[data-action="pod-music:light:rest"]').getAttribute('aria-pressed'),'true');
+  await page.locator('[data-action="pod-music:return"]').click();await page.waitForFunction(()=>mode==='pod-waking');await page.locator('[data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking');
+  const first=await page.evaluate(()=>walkingLocation.interactions.find(i=>i.podIndex===1));
+  await page.evaluate(item=>VoidInteractions.handlers.get('district-pod')({item}),first);await page.waitForFunction(()=>mode==='pod-waking'&&state.story.flags.activePod===1);
+  await page.locator('[data-pod=music]').click();await page.waitForSelector('#pod-music');
+  assert.equal(await page.locator('#pod-music-volume').inputValue(),'35');assert.equal(await page.locator('[data-action="pod-music:light:music"]').getAttribute('aria-pressed'),'true');
+  assert(await page.evaluate(()=>!!VoidPodMusic.lists.mine.currentId),'pod 01 retains its selected song');
+  assert(!requests.some(r=>r.method!=='GET'&&r.url.includes(path.basename(fixture))),'private audio was never uploaded');
+  assert.deepEqual(errors,[]);console.log(JSON.stringify({tier,parts,privateAudio:'local only',errors}));
+ }finally{await browser.close();fs.rmSync(fixture,{force:true});}
+})().catch(e=>{console.error(e);process.exitCode=1;});
