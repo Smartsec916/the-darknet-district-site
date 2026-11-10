@@ -364,11 +364,20 @@
   </div>
 
 
+  <style>
+    .tdd-enter-logo { position:relative; display:block; width:fit-content; max-width:calc(100% - 2rem); margin:2.8rem auto 1rem; padding:1.25rem 1.5rem .65rem; border:2px solid #00ff9d; border-radius:8px; background:rgba(0,0,0,.55); text-decoration:none; box-shadow:0 0 24px rgba(0,255,157,.12); transition:box-shadow .2s ease, border-color .2s ease; }
+    .tdd-enter-logo:hover,.tdd-enter-logo:focus-visible { border-color:#b9ffe7; box-shadow:0 0 30px rgba(0,255,157,.35); }
+    .tdd-enter-logo .cyberpunk-title { margin:0; }
+    .tdd-enter-corner { position:absolute; top:-.85em; left:-.5em; z-index:2; padding:.15em .65em; transform:rotate(-8deg); background:#00ff9d; color:#06130e; font:900 clamp(.9rem,2vw,1.25rem)/1.2 'Courier New',monospace; letter-spacing:.22em; box-shadow:3px 3px 0 #101010; }
+    @media(max-width:600px) { .tdd-enter-logo { margin-top:2.5rem; padding:1rem .55rem .4rem; } .tdd-enter-corner { left:-.2em; } }
+  </style>
   <!-- Hero section with main title -->
   <section class="first-section">
     <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-      <h1 class="cyberpunk-title" data-text="The Darknet District">The Darknet District</h1>
-      <a class="tdd-enter" href="void-runner.html" style="display:inline-block;margin:2rem auto 0;padding:1.1rem 2rem;border:2px solid #00ff9d;border-radius:8px;color:#00ff9d;font-weight:700;letter-spacing:.1em;text-decoration:none;text-align:center;background:rgba(0,0,0,.55)">ENTER THE DARKNET DISTRICT</a>
+      <a class="tdd-enter-logo" href="void-runner.html" aria-label="Enter The Darknet District">
+        <span class="tdd-enter-corner" aria-hidden="true">ENTER</span>
+        <h1 class="cyberpunk-title" data-text="The Darknet District">The Darknet District</h1>
+      </a>
     </div>
   </section>
 
