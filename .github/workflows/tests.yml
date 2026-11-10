@@ -21,20 +21,6 @@ jobs:
           node-version: 22
       # The unit tests use only node:test, so no npm install is needed.
       - run: node --test tests/*.test.cjs
-      # PR-only snapshot review; the checked-in drift check above still runs unmodified.
-      - name: Prepare District admin inventory review snapshot
-        if: ${{ always() && github.head_ref == 'integration/district-entry-safe-rollout-20261110' }}
-        run: |
-          mkdir -p work/district-inventory-review
-          node tools/admin-inventory.cjs
-          cp void_runner_admin_inventory.json work/district-inventory-review/void_runner_admin_inventory.json
-      - name: Upload District admin inventory review snapshot
-        if: ${{ always() && github.head_ref == 'integration/district-entry-safe-rollout-20261110' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: district-admin-inventory-review
-          path: work/district-inventory-review/void_runner_admin_inventory.json
-          retention-days: 3
   python:
     name: Python API tests
     runs-on: ubuntu-latest
