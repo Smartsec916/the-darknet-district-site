@@ -48,7 +48,18 @@ podWake.querySelector('button').addEventListener('click',()=>{
 });
 function showPodWake(){
  if(mode!=='walking'||walkingLocation?.area!=='interior'||state.story.flags.podWakePending!==true)return;
- mode='pod-waking';clearInput();walkingKeys.clear();document.exitPointerLock?.();podWake.hidden=false;podWake.querySelector('button').focus({preventScroll:true});
+ mode='pod-waking';clearInput();walkingKeys.clear();document.exitPointerLock?.();
+ const wakeButton=podWake.querySelector('button');
+ const showExit=()=>{if(mode!=='pod-waking'||!state?.story?.flags?.podWakePending)return;podWake.hidden=false;wakeButton.focus({preventScroll:true});};
+ // Offer a first character BEFORE the player leaves the Sleeping Pod, not when EXIT POD is clicked.
+ // Existing characters and returning players retain their selected appearance.
+ const creator=globalThis.VoidCharacterCreator;
+ if(creator&&!creator.isOpen&&!state.story.flags.appearanceOffered&&!creator.stored()){
+   podWake.hidden=true;
+   Promise.resolve(creator.open({context:'first',onClose:showExit})).then(opened=>{if(!opened)showExit();}).catch(error=>{console.warn('[District character creator]',error);showExit();});
+   return;
+ }
+ showExit();
 }
 dock=async function(tab='dock'){
  if(VoidGraphics.busy){VoidPreparation.cancel?.();preparationGeneration++;await Promise.allSettled([preparingLaunch,destinationPreparation].filter(Boolean));VoidGraphics.busy=false;walkingLocation=walker=null;}
