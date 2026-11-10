@@ -5,7 +5,7 @@
    to go is highlighted. It only shows things: it never grants items, credits or mission progress. */
 (function(){
  const typeColor={main:'#f2b33d',cargo:'#38e8ff',side:'#c39bff',tutorial:'#7fb2e5',campaign:'#f2b33d',bounty:'#ff6b5b',station:'#9fe3c9'};
- const services={services:'OUTFITTER',maintenance:'HANGAR',jobs:'JOBS','meridian-pod':'PODS','district-pod':'PODS','district-shop':'SHOP','district-vending':'VENDING',terminal:'TERMINAL','personal-shop':'SHOP'};
+ const services={services:'OUTFITTER',maintenance:'HANGAR',jobs:'JOBS','meridian-pod':'PODS','district-pod':'PODS','district-pod-music':'MUSIC','district-wardrobe':'WARDROBE','district-shop':'SHOP','district-vending':'VENDING',terminal:'TERMINAL','personal-shop':'SHOP'};
  const flags=()=>state?.story?.flags||{};
  const safe=f=>{try{return f();}catch{return false;}};
 
