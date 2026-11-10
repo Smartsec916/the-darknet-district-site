@@ -391,14 +391,6 @@ const featuredProducts = [
     description: "1000-lumen weapon light with laser"
   },
 
-  // Apps & Software section
-  {
-    name: "Kai Kryptos App",
-    price: "Free",
-    image: "attached_assets/kai-kryptos-icon.webp",
-    description: "Cyberpunk terminal for decrypted log access"
-  },
-
   // Apparel & Accessories section
   {
     name: "Holographic QR Code 'Corpo-Scum!' Sticker",
