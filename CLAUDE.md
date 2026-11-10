@@ -1,5 +1,17 @@
 # CLAUDE.md: The Darknet District site / VOID//RUNNER
 
+## Current development authority — November 2026 (supersedes conflicting older handoff guidance)
+
+The active desktop game is the **Darknet District-first multiplayer experience** in NeoChinatown, Tessaly System. Players begin at the District entrance, create a character before entering their pod, and initially undertake local District/NeoChinatown activities; a ship is earned later. The older VOID//RUNNER opening, Vesper/Mara tutorial and immediate ship ownership are historical plans, **not** instructions to restore them. Preserve compatible code and save IDs where possible. Treat older design briefs saying "DO NOT IMPLEMENT ANYTHING YET" as instructions for those historical planning exercises, not a blanket prohibition on current development.
+
+**Autonomy:** Claude and Codex may proactively diagnose, implement and test reversible gameplay, visuals, animations, NPC ambient behaviors, UI, local multiplayer functionality, performance and bug fixes, including reasonable new features consistent with the established District direction. Do not require 3–5 proposals for ordinary implementation, incidental dialogue or technical decisions. Offer options for major story/canon, faction, mission-arc, monetization or irreversible architectural changes; David retains final creative authority. Explicitly locked voices and David-authored scripts remain protected.
+
+**Assets and music:** David reports that music created through his paid Riffusion membership and purchased/supplied companion models are licensed for his intended commercial use. Do not categorically reject, replace, hide or disable these assets merely because they are AI-generated, purchased, or not stored in the public repository. Record the source and available license evidence; do not assume that commercial rights also permit public redistribution, sublicensing or AI training. For assets with genuinely unresolved terms, flag the exact question rather than broadly blocking all companions or music.
+
+**Local companion debugging:** The companion picker can register a character while its model file is unavailable. Live-site success does not prove the file is present in a local build. Inspect `void-runner/vr-companions.js`, `void-runner/crowd.js`, the required animation clips, model paths, private asset packaging (`tools/assets/build-pages.cjs`), dev-only listing rules, and browser network/console errors. Restore authorized local access to purchased assets without committing proprietary models or secrets into the public repository. Never silently substitute a different companion or remove an entry to conceal a missing-file error.
+
+**Live multiplayer:** Prefer a small, low-cost Render-hosted multiplayer service using the existing Firebase identity flow, including guest access where supported. Do not ask for friends' Firebase UIDs as a normal join procedure; validate player identity server-side and provide automatic instance joining. Implement and test changes on a branch. Do not create paid resources, change secrets, deploy, merge to `main`, or alter live infrastructure without David's explicit authorization.
+
 This repository is David's website, The Darknet District (https://thedarknetdistrict.com). Most active work is on the browser game **VOID//RUNNER** (`void-runner.html` plus `void-runner/`).
 
 **Read `VOID_RUNNER_HANDOFF.md` before changing the game.** It holds the current canon, the decision log, mission state, and what is approved and what is not.
