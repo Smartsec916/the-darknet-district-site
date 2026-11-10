@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "f9fb37e245f8bc66",
+  "revision": "0d2cddadcdcf911e",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11635,14 +11635,128 @@
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 235,
+      "line": 238,
       "text": "speech = null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 277,
+      "line": 280,
       "text": "screen.querySelector('.speech-controls,.cinematic-space')?.insertAdjacentHTML('beforeend', button('RETURN TO EXPLORATION', 'walk-resume', true));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/character-catalog.js",
+      "line": 2,
+      "text": "(function(r){r.VoidCharacterCatalog={\"version\":1,\"note\":\"Source of truth for the character creator. Ids only: no file paths are ever accepted from a player or the server. character-catalog.js is generated from this file by tools/assets/build-character-catalog.cjs (a test checks they match). The same file is read by void_runner_api.py to validate appearances.\",\"bases\":{\"male\":{\"label\":\"MALE\",\"height\":1.78,\"eyeHeight\":1.68,\"note\":\"Standard heights in metres. The body is scaled uniformly (never stretched) so its top of head equals this value; eye height places the camera. Change here to retune; nothing else needs editing.\"},\"female\":{\"label\":\"FEMALE\",\"height\":1.66,\"eyeHeight\":1.55}},\"looks\":{\"district-smuggler\":{\"base\":\"male\",\"model\":\"district-smuggler\",\"label\":\"SMUGGLER\",\"preset\":true,\"outfit\":\"district_smuggler.male_casualsuit01\",\"shoes\":\"district_smuggler.shoes03\",\"nativeHair\":\"district_smuggler.short04\",\"accessories\":{\"hat\":[\"district_smuggler.fedora_cocked\"],\"eyewear\":[\"district_smuggler.shades0\"]},\"defaultAccessories\":[\"hat\",\"eyewear\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"legacy\":{\"gender\":\"male\",\"model\":\"district-smuggler\"},\"body\":\"district_smuggler.body\"},\"hacker-01\":{\"base\":\"male\",\"model\":\"hacker-01\",\"label\":\"NETRUNNER\",\"outfit\":\"hacker_01.male_casualsuit05\",\"shoes\":\"hacker_01.shoes03\",\"nativeHair\":\"hacker_01.short02\",\"accessories\":{\"eyewear\":[\"hacker_01.visor0\"]},\"defaultAccessories\":[\"eyewear\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"hacker_01.body\"},\"regular-01\":{\"base\":\"male\",\"model\":\"regular-01\",\"label\":\"WORKER\",\"outfit\":\"regular_01.male_worksuit01\",\"shoes\":\"regular_01.shoes03\",\"nativeHair\":\"regular_01.short03\",\"accessories\":{\"mask\":[\"regular_01.mask0\",\"regular_01.mask0.slit0\",\"regular_01.mask0.slit1\"]},\"defaultAccessories\":[\"mask\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"regular_01.body\"},\"vesper-trader\":{\"base\":\"male\",\"model\":\"vesper-trader\",\"label\":\"TRADER\",\"outfit\":\"vesper_trader.male_casualsuit03\",\"shoes\":\"vesper_trader.shoes01\",\"nativeHair\":\"vesper_trader.short02\",\"accessories\":{\"hat\":[\"vesper_trader.fedora01\"],\"mask\":[\"vesper_trader.mask0\"]},\"defaultAccessories\":[\"hat\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"vesper_trader.body\"},\"district-resident\":{\"base\":\"female\",\"model\":\"district-resident\",\"label\":\"RESIDENT\",\"preset\":true,\"outfit\":\"district_resident.female_sportsuit01\",\"shoes\":\"district_resident.shoes04\",\"nativeHair\":\"district_resident.braid01\",\"accessories\":{\"mask\":[\"district_resident.mask0\",\"district_resident.mask0.slit0\",\"district_resident.mask0.slit1\"]},\"defaultAccessories\":[\"mask\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"legacy\":{\"gender\":\"female\",\"model\":\"district-resident\"},\"body\":\"district_resident.body\"},\"ncz-neon\":{\"base\":\"female\",\"model\":\"ncz-neon\",\"label\":\"NEON\",\"outfit\":\"ncz_neon.female_sportsuit01\",\"shoes\":\"ncz_neon.shoes05\",\"nativeHair\":\"ncz_neon.long01\",\"accessories\":{\"collar\":[\"ncz_neon.collar0\"]},\"defaultAccessories\":[\"collar\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"ncz_neon.body\"},\"fixer-01\":{\"base\":\"female\",\"model\":\"fixer-01\",\"label\":\"FIXER\",\"outfit\":\"fixer_01.female_elegantsuit01\",\"shoes\":\"fixer_01.shoes03\",\"nativeHair\":\"fixer_01.bob02\",\"accessories\":{\"eyewear\":[\"fixer_01.shades0\"]},\"defaultAccessories\":[\"eyewear\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"fixer_01.body\"}},\"accessories\":{\"hat\":{\"label\":\"HAT\"},\"eyewear\":{\"label\":\"EYEWEAR\"},\"mask\":{\"label\":\"FACE MASK\"},\"collar\":{\"label\":\"COLLAR\"}},\"hair\":{\"short01\":{\"label\":\"SHORT CROP\",\"part\":\"hair-short01.glb\",\"hatOk\":true},\"short02\":{\"label\":\"SHORT SWEPT\",\"part\":\"hair-short02.glb\",\"hat",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-history.js",
+      "line": 3,
+      "text": "const prefix='tdd:npc-conversations:v1:';",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-history.js",
+      "line": 7,
+      "text": "function append(store,uid,entry){const rows=read(store,uid),row={character:safe(entry.character),name:safe(entry.name),text:safe(entry.text),place:safe(entry.place),at:Number.isSafeInteger(entry.at)?entry.at:Date.now(),read:false};if(!row.character||!row.text)return rows;rows.push(row);try{store.setItem(key(uid),JSON.stringify(rows.slice(-150)));}catch{}return rows.slice(-150);}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 1,
+      "text": "/* One floating transcript for walking NPC and VR companion dialogue. Movement stays in walking mode. */",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 4,
+      "text": "const restore=document.createElement('button');restore.id='conversation-restore';restore.type='button';restore.hidden=true;restore.textContent='CONVERSATION · RESTORE';document.body.append(restore);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 7,
+      "text": "function hasContent(){return !!speech||!!screen.querySelector('.choice-menu');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 9,
+      "text": "function show(){if(!floating())return;mode=activeMode;screen.classList.add('conversation-live');screen.classList.toggle('hidden',minimized);restore.hidden=!minimized;if(!minimized&&document.pointerLockElement)document.exitPointerLock?.();canvas.focus({preventScroll:true});}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 14,
+      "text": "const line=speech.lines[speech.index],signature=speech.index+':'+line.who+':'+line.text;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 15,
+      "text": "if(lastLine!==signature){history.append(localStorage,uid(),{character:line.who||'companion',name:characters[line.who]?.name||line.who||'Companion',text:line.text,place:state.location,at:Date.now()});lastLine=signature;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 16,
+      "text": "const win=screen.querySelector('.dialogue-window');if(win&&!win.querySelector('.conversation-minimize')){",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 17,
+      "text": "const thread=document.createElement('div');thread.className='conversation-thread';thread.setAttribute('aria-label','Conversation history');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 19,
+      "text": "win.insertBefore(thread,win.querySelector('.speech-body'));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 20,
+      "text": "const b=document.createElement('button');b.type='button';b.className='conversation-minimize quiet';b.textContent='MINIMIZE';b.addEventListener('click',e=>{e.stopPropagation();minimized=true;screen.classList.add('hidden');restore.hidden=false;canvas.focus({preventScroll:true});});win.prepend(b);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 26,
+      "text": "resumeWalking=function(...args){activeMode=null;minimized=false;restore.hidden=true;screen.classList.remove('conversation-live');return priorResume(...args);};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 28,
+      "text": "advanceSpeech=function(...args){const result=priorAdvance(...args);if(!hasContent()&&screen.classList.contains('conversation-live')){activeMode=null;screen.classList.remove('conversation-live');screen.classList.add('hidden');restore.hidden=true;}return result;};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 29,
+      "text": "if(typeof renderStoryChoices==='function'){const priorChoices=renderStoryChoices;renderStoryChoices=function(...args){priorChoices(...args);if(activeMode&&walkingLocation&&walker){screen.querySelector('.dialogue-window')?.classList.add('choice-menu');mode=activeMode;screen.classList.add('conversation-live');screen.classList.remove('hidden');}};}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 30,
+      "text": "document.addEventListener('keydown',e=>{if(e.code==='Escape'&&speech&&screen.classList.contains('conversation-live')){minimized=true;screen.classList.add('hidden');restore.hidden=false;}},true);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/conversation-ui.js",
+      "line": 31,
+      "text": "globalThis.VoidConversationUI={get isOpen(){return hasContent()&&screen.classList.contains('conversation-live');},continueWalking(){if(!this.isOpen)return false;activeMode='walking';mode='walking';walkingKeys.clear();canvas.focus({preventScroll:true});return true;}};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/device-gate.js",
+      "line": 20,
+      "text": "const ipadOS=/Macintosh/i.test(e.ua)&&e.maxTouchPoints>1&&/Mac/i.test(e.platform||'MacIntel'); /* iPadOS 13+ says it is a Mac */",
       "kind": "source-reference"
     },
     {
@@ -11749,55 +11863,61 @@
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 148,
+      "line": 150,
       "text": "talk('',[you('Package from Admin.'),{who:'rook',text:'Seal’s intact. Good.'},{who:'rook',text:'Here’s your cut. And you never carried it.'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 208,
+      "line": 185,
+      "text": "if(VoidMissions.closed(state))return talk('',[{who:'Iris',text:'Cameras are clean, the mainframe is happy, and nobody has tried anything stupid today. Yet.'}],resumeWalking,'CONTINUE');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/faction-scenes.js",
+      "line": 211,
       "text": "communion:{who:elara,intro:[",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 213,
+      "line": 216,
       "text": "you('Think they’ll cause trouble?'),elara('Hard to say. They’ve been moving ships around near the border. Probably just trying to make a point.'),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 217,
+      "line": 220,
       "text": "farewell:'Appreciate the delivery. Tell Admin everything arrived intact.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 218,
+      "line": 221,
       "text": "'natural-order':{who:marcus,intro:[",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 228,
+      "line": 231,
       "text": "farewell:'Appreciate it. Tell Admin the shipment arrived. And watch yourself on the way back.'}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 260,
+      "line": 263,
       "text": "{label:'I’LL LEAVE YOU TO IT',run:()=>leave([you('I’ll leave you to it.'),r.who(r.farewell)],'RETURN TO STATION',update)}];}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 270,
+      "line": 273,
       "text": "return leave([r.who(r.farewell)],'RETURN TO STATION');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/game.js",
-      "line": 61,
+      "line": 62,
       "text": "else if (state.quest === 'return') story += ' “Tell Rook you kept your word,” the receiver says. Time to head back to Meridian.';",
       "kind": "source-reference"
     },
@@ -11899,37 +12019,37 @@
     },
     {
       "source": "void-runner/menu.js",
-      "line": 65,
+      "line": 68,
       "text": "speech,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 76,
+      "line": 79,
       "text": "speech = snapshot.speech;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 81,
+      "line": 84,
       "text": "if (speech) renderLine();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 98,
+      "line": 101,
       "text": "return '<details><summary>Character voices</summary><p class=\"fine\">Automatic selection matches known voices to each character. If this device has no matching voice, dialogue stays subtitled. Choose a voice below to override it. Naturalness depends on voices installed on your device.</p>' + Object.entries(VoidStoryContent.characters).map(([id,c]) => '<label>'+escapeText(c.name)+'<select data-character-voice=\"'+id+'\"><option value=\"\">Automatic matching</option>'+voices.map(v=>'<option value=\"'+escapeText(v.voiceURI)+'\" '+(VoidAudio.voiceChoice(id)===v.voiceURI?'selected':'')+'>'+escapeText(v.name)+'</option>').join('')+'</select></label>').join('')+'</details>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 107,
+      "line": 110,
       "text": "`<section class=\"settings-panel\">${button('BACK','menu-back',true)}<h1 tabindex=\"-1\">Settings</h1>${[['music','Music volume'],['effects','Sound effects volume'],['ambient','Ambient volume'],['voice','Voice volume']].map(([id,label])=>`<label>${label}<input type=\"range\" min=\"0\" max=\"100\" step=\"1\" data-setting=\"${id}\" value=\"${Math.round(s[id]*100)}\"><output>${Math.round(s[id]*100)}</output></label>`).join('')}${button('KEYBINDINGS','menu-bindings')}${button(s.enabled?'MUTE ALL':'UNMUTE ALL','menu-mute',true)}<p class=\"fine\">Audio starts after interaction. Voices use this device’s speech engine. Set a category to zero to mute it.</p>${voiceSettingsHTML()}</section>`",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 128,
+      "line": 131,
       "text": "mode='menu';VoidMenu.returnTo=null;speech=null;VoidAudio.cancel();clearInput();walkingKeys.clear();document.exitPointerLock?.();",
       "kind": "source-reference"
     },
@@ -11937,6 +12057,42 @@
       "source": "void-runner/mouse-control.js",
       "line": 3,
       "text": "dialogue or menu takes the mouse back, and the wheel cycles the weapons you own. Flight is untouched. */",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mouse-control.js",
+      "line": 8,
+      "text": "const conversationOpen=()=>!!document.querySelector('#screen.conversation-live,#trade-window');   // a conversation or the trade window needs the cursor",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mouse-control.js",
+      "line": 35,
+      "text": "if(gameReleased){gameReleased=false;if(!conversationOpen())reacquire();return;} // keep the cursor free over a conversation",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mouse-control.js",
+      "line": 36,
+      "text": "if(fps()&&!conversationOpen()&&typeof openGameMenu==='function'){walkingKeys?.clear?.();openGameMenu();}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mouse-control.js",
+      "line": 40,
+      "text": "const reacquire=()=>setTimeout(()=>{if(fps()&&!locked()&&!conversationOpen())lock();},0);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mouse-control.js",
+      "line": 41,
+      "text": "document.addEventListener('click',e=>{if(e.target!==canvas&&e.target.closest?.('button')&&!conversationOpen())reacquire();});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mouse-control.js",
+      "line": 42,
+      "text": "addEventListener('keyup',e=>{if(['Enter','Space','Escape'].includes(e.code)&&!conversationOpen())reacquire();});",
       "kind": "source-reference"
     },
     {
@@ -11959,13 +12115,13 @@
     },
     {
       "source": "void-runner/music-integration.js",
-      "line": 13,
+      "line": 15,
       "text": "const walking=!!walkingLocation&&!!walker&&['walking','dialogue','mission-log'].includes(mode);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/music-integration.js",
-      "line": 25,
+      "line": 27,
       "text": "dialogue:mode==='dialogue'||globalThis.VoidRelayRadio?.speaking===true,",
       "kind": "source-reference"
     },
@@ -11995,14 +12151,122 @@
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 23,
-      "text": "const l=H.link(state,{onFoot:onFoot(),route:returnMode==='play'?flight.route:null}),msgs=H.messages(state,{rook:typeof rookMissileLine!=='undefined'?rookMissileLine.text:null}),people=H.contacts(state);",
+      "line": 27,
+      "text": "const profile=p=>'<article class=\"hud-card social-profile\" data-profile=\"'+esc(p.key)+'\"><div class=\"social-avatar\" aria-hidden=\"true\">'+esc(p.name.slice(0,1).toUpperCase())+'</div><div><h3>'+esc(p.name)+'</h3><p>'+esc(p.bio)+'</p>'+badges(p)+'<button type=\"button\" data-hud-character=\"'+esc(p.key.startsWith('npc:')?p.key.slice(4):'')+'\">CONVERSATIONS</button></div></article>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 26,
-      "text": "'<h2>CONTACTS</h2><p class=\"hud-note\">People are met where they are. A contact listed here can’t be called unless the channel says so.</p>'+",
+      "line": 32,
+      "text": "'<h2>YOUR PROFILE</h2>'+profile(me)+'<h2>CONVERSATIONS</h2><div class=\"social-filters\">'+filterButtons+(socialCharacter?'<button type=\"button\" data-hud-character=\"\">CLEAR CHARACTER</button>':'')+'</div><div class=\"social-thread\" aria-label=\"Conversation history\">'+(thread||'<p>No conversations in this view.</p>')+'</div>'+",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/personal-hud.js",
+      "line": 33,
+      "text": "'<h2>PEOPLE</h2><p class=\"hud-note\">NPC conversation history stays in this browser. Player messaging needs the future authenticated social service.</p>'+",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pod-music.js",
+      "line": 33,
+      "text": "if(keptBytes+t.file.size>KEEP_LIMIT){say('Not kept: \"'+t.label+'\" is over the '+Math.round(KEEP_LIMIT/1048576)+' MB limit for saved songs. It still plays this visit.');return;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pod-music.js",
+      "line": 34,
+      "text": "store.put({key:t.key,name:t.name,size:t.size,lastModified:t.lastModified,order:order++,file:t.file}).then(()=>{t.kept=true;keptBytes+=t.file.size;}).catch(()=>say('Could not keep \"'+t.label+'\" in this browser (storage full or blocked). It still plays this visit.'));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pod-music.js",
+      "line": 38,
+      "text": "if(on){root.navigator?.storage?.persist?.().catch(()=>{});lists.mine.tracks.forEach(keepTrack);say('Your songs are kept in this browser on this device. They are never uploaded.');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pod-music.js",
+      "line": 39,
+      "text": "else{store.clear().catch(()=>{});lists.mine.tracks.forEach(t=>{t.kept=false;});keptBytes=0;say('Saved copies removed from this browser. Your list stays until you leave the game.');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pod-music.js",
+      "line": 43,
+      "text": "store.all().then(rows=>{const r=lists.mine.add(rows.map(x=>({name:x.name,size:x.size,lastModified:x.lastModified,file:x.file,kept:true})));rows.forEach(x=>{keptBytes+=x.size;order=Math.max(order,x.order+1);});if(r.added.length)say('Restored '+r.added.length+(r.added.length===1?' song':' songs')+' kept in this browser.');render();}).catch(()=>{keeping=false;});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pod-music.js",
+      "line": 47,
+      "text": "function say(text){status=text||'';const el=byId('pod-music-status');if(el)el.textContent=status;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pod-music.js",
+      "line": 57,
+      "text": "if(!link)say('Audio is not available (check Settings, Audio).');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pod-music.js",
+      "line": 66,
+      "text": "audio.play().catch(e=>{if(e&&e.name==='NotAllowedError')say('Press play to start the music.');}); // a file that cannot be decoded is reported by the error handler, not here",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pod-music.js",
+      "line": 69,
+      "text": "function start(){const l=lists[source];if(!l.size){say(source==='mine'?'Add songs first.':'No songs.');return;}if(l.currentId===null)l.next(false);load(0);}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pod-music.js",
+      "line": 75,
+      "text": "function advance(auto){const l=lists[source],id=l.next(!!auto);if(id===null){if(auto){audio.pause();say('End of the list.');render();}return;}load(0);}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pod-music.js",
+      "line": 79,
+      "text": "if(failures>=l.size){audio.pause();say(source==='mine'?'None of these files could be played in this browser.':'The website songs could not be loaded.');render();return;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pod-music.js",
+      "line": 80,
+      "text": "say('Could not play \"'+t.label+'\". Skipping it.');advance(true);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pod-music.js",
+      "line": 97,
+      "text": "say(parts.join(' '));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pod-music.js",
+      "line": 105,
+      "text": "say('Removed \"'+(t?t.label:'song')+'\".');render();",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pod-music.js",
+      "line": 110,
+      "text": "say('Playlist cleared ('+n+(n===1?' song':' songs')+').');render();",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pod-music.js",
+      "line": 202,
+      "text": "else if(cmd==='shuffle'){l.setShuffle(!l.shuffle);say('Shuffle '+(l.shuffle?'on.':'off.'));render();}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pod-music.js",
+      "line": 203,
+      "text": "else if(cmd==='repeat'){const m=l.cycleRepeat();say(m==='off'?'Repeat off: the list stops after the last song.':m==='all'?'Repeat all: the list starts again after the last song.':'Repeat one: the current song plays again when it ends.');render();}",
       "kind": "source-reference"
     },
     {
@@ -12014,7 +12278,7 @@
     {
       "source": "void-runner/prologue-integration.js",
       "line": 76,
-      "text": "if(!o.pistol){talk('',[{who:'mara',text:'Elias passed away last night. He left you the Kestrel — and this pistol. He wanted you to have a chance out there.'},{who:'mara',text:'Come around the side with me. A few cans, a safe dirt bank. Let’s see if it still works.'}],()=>{mode='dialogue';panel('MARA','A last <em>gift.</em>','<p>'+escapeText(VoidStoryContent.dialogue.mara_workshop_intro.nodes.work.text)+'</p>',VoidStoryContent.dialogue.mara_workshop_intro.nodes.work.choices.map((c,i)=>button(c.text,'opening-choice:'+i)).join(''));},'TAKE ELIAS’S PISTOL');return;}",
+      "text": "if(!o.pistol){talk('',[{who:'mara',text:'Elias passed away last night. He left you the Kestrel — and this pistol. He wanted you to have a chance out there.'},{who:'mara',text:'Come around the side with me. A few cans, a safe dirt bank. Let’s see if it still works.'}],()=>floatChoices('mara',VoidStoryContent.dialogue.mara_workshop_intro.nodes.work.text,VoidStoryContent.dialogue.mara_workshop_intro.nodes.work.choices.map((c,i)=>button(c.text,'opening-choice:'+i)).join('')),'TAKE ELIAS’S PISTOL');return;}",
       "kind": "source-reference"
     },
     {
@@ -12037,61 +12301,67 @@
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 92,
-      "text": "function offerTutorial(){if(tutorialOfferOpen)return;tutorialOfferOpen=true;document.exitPointerLock?.();clearInput();walkingKeys.clear();mode='dialogue';panel('MARA','Before you <em>go.</em>','<p>“Elias left you the Kestrel. I can walk you through the basics first: his pistol, the ship, and one practice circuit over Vesper. Or, if you already know your way around, I’ll hand you the keys and send you to Rook at Meridian. He has cargo work waiting.”</p>',button('YES, SHOW ME THE BASICS','tutorial-yes')+button('NO, I’M READY TO GO','tutorial-no',true));}",
+      "line": 91,
+      "text": "/* A spoken line followed by choice buttons in the floating, non-blocking conversation window (no full-screen panel). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 94,
-      "text": "talk('',[{who:'mara',text:'Then take these. Elias’s pistol, and the Kestrel is yours.'},{who:'mara',text:'Fly her to Meridian Station and find Rook. If you ever want a refresher, I’m here.'}],()=>{tutorialOfferOpen=false;refreshOpeningObjective();resumeWalking();},'BOARD THE KESTREL');}",
+      "line": 92,
+      "text": "function floatChoices(who,text,buttons){talk('',[{who,text}],()=>{},'');if(speech){speech.shown=text.length;updateSpeech(0);speech=null;}const win=screen.querySelector('.dialogue-window'),c=screen.querySelector('.speech-controls');if(c)c.innerHTML=buttons;win?.classList.add('choice-menu');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
       "line": 96,
+      "text": "talk('',[{who:'mara',text:'Then take these. Elias’s pistol, and the Kestrel is yours.'},{who:'mara',text:'Fly her to Meridian Station and find Rook. If you ever want a refresher, I’m here.'}],()=>{tutorialOfferOpen=false;refreshOpeningObjective();resumeWalking();},'BOARD THE KESTREL');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/prologue-integration.js",
+      "line": 98,
       "text": "screen.addEventListener('click',async e=>{const a=e.target.closest('button')?.dataset.action;if(a?.startsWith('opening-choice:')){const choice=VoidStoryContent.dialogue.mara_workshop_intro.nodes.work.choices[Number(a.split(':')[1])];if(!choice||state.progression.opening.pistol)return;VoidStory.apply(state,choice.effects);state.progression.opening.pistol=true;state.progression.personal.weapon='ward-pistol';stamp('interact');P.sync(state);VoidMissions.sync(state,C);save();VoidBabylon.opening?.lead();resumeWalking();}if(a==='opening-start'&&openingBoarded){openingBoarded=false;state.story.pending=state.story.pending.filter(id=>id!=='mara_workshop_intro');state.story.cursor=null;if(!C.trainingPending(state))C.beginJourney(state);VoidMissions.sync(state,C);save();await prologueLeave();}if(a==='opening-exit'){openingBoarded=false;resumeWalking();}});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 99,
+      "line": 101,
       "text": "async function safeRespawn(){VoidPreparation.cancel();walkingLocation=walker=null;speech=null;P.respawn(state);groundState.health=100;groundState.drawn=false;groundState.aim=false;save();await dock();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 141,
+      "line": 143,
       "text": "const districtLine=(who,text,label='CONTINUE')=>talk('',[{who,text}],resumeWalking,label);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 145,
-      "text": "VoidInteractions.register('district-scan',()=>{if(state.story.flags.districtBadge){announce('Inner door already open.');resumeWalking();return;}openDistrictDoor('district-inner-door','districtBadge');talk('',[{who:'Iris',text:'Scan accepted. Rook vouched for you, so you get a visitor badge. Behave, and it stays valid.'}],resumeWalking,'ENTER');});",
+      "line": 148,
+      "text": "function districtBadgeIssued(){if(VoidMissions.closed(state)){resumeWalking();announce('Scan accepted. Visitor badge issued.');return;}talk('',[{who:'Iris',text:'Scan accepted. Rook vouched for you, so you get a visitor badge. Behave, and it stays valid.'}],resumeWalking,'ENTER');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 146,
+      "line": 150,
       "text": "VoidInteractions.register('district-iris',()=>districtLine('Iris',state.story.flags.metIris?'Cameras are clean, the mainframe is happy, and nobody has tried anything stupid today. Yet.':'I run security here. Talk to Admin first; he likes to meet new pilots himself.'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 148,
+      "line": 152,
       "text": "VoidInteractions.register('district-bar',()=>districtLine('Bartender','Filtered air is free, the drinks are not. Pilots talk too much in here, so listen.'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 149,
+      "line": 153,
       "text": "VoidInteractions.register('district-vr',()=>districtLine('Arcade attendant','Every rig is booked tonight. Come back later.'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 158,
+      "line": 162,
       "text": "VoidInteractions.register('admin',()=>{state.universe.completedObjectives.push(...(state.universe.completedObjectives.includes('meet-admin')?[]:['meet-admin']));state.story.flags.metAdmin=true;state.story.flags.metIris=true;save();talk('',[{who:'Admin',text:'Rook said you might make the trip. Welcome to The Darknet District. Your ship is fine on the landing pad; The Function charges for parking, not for staying.'},{who:'Iris',text:'We keep our own records here. Get settled, meet the locals, and keep your eyes open.'}],resumeWalking,'RETURN TO DISTRICT');});",
       "kind": "source-reference"
     },
@@ -12129,6 +12399,12 @@
       "source": "void-runner/relay.js",
       "line": 163,
       "text": "mission dialogue or a conversation is running), ended (the current report finished), clock,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/remote-players.js",
+      "line": 126,
+      "text": "sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false};for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one",
       "kind": "source-reference"
     },
     {
@@ -12176,7 +12452,7 @@
     {
       "source": "void-runner/scenes.js",
       "line": 16,
-      "text": "screen.innerHTML=`<section class=\"cinematic-space\"><div class=\"scene-heading\"><div class=\"eyebrow\">${speech.scene==='vesper'?'VESPER / WARD FREIGHT WORKSHOP':speech.scene==='bar'?C.stations[state.location].name.toUpperCase()+' / '+C.stations[state.location].bar.toUpperCase():'INCOMING TRANSMISSION'}</div><h1>${speech.heading}</h1></div><div class=\"dialogue-window\">${characters[line.who]&&!(typeof walkingLocation!=='undefined'&&walkingLocation)?portrait(line.who):''}<div class=\"speech-body\"><div class=\"speaker\"><h2>${c.name}</h2><span>${c.role}</span></div><p id=\"spoken-text\" aria-hidden=\"true\"></p><p class=\"sr-only\" aria-live=\"polite\">${c.name}: ${line.text}</p><div class=\"speech-controls\"><span id=\"speech-status\">TRANSMITTING <span class=\"talk-light\">●</span></span><button data-action=\"speech-next\" id=\"speech-next\">${reducedMotion?nextLabel():'SHOW FULL LINE'}</button></div></div></div></section>`;",
+      "text": "screen.innerHTML=`<section class=\"cinematic-space\"><div class=\"scene-heading\"><div class=\"eyebrow\">${speech.scene==='vesper'?'VESPER / WARD FREIGHT WORKSHOP':speech.scene==='bar'?C.stations[state.location].name.toUpperCase()+' / '+C.stations[state.location].bar.toUpperCase():'INCOMING TRANSMISSION'}</div><h1>${speech.heading}</h1></div><div class=\"dialogue-window social-dialogue\">${characters[line.who]&&!(typeof walkingLocation!=='undefined'&&walkingLocation)?portrait(line.who):''}<div class=\"speech-body social-message\"><div class=\"speaker\"><h2>${c.name}</h2><span>${c.role}</span></div><p id=\"spoken-text\" aria-hidden=\"true\"></p><p class=\"sr-only\" aria-live=\"polite\">${c.name}: ${line.text}</p><div class=\"speech-controls\"><span id=\"speech-status\">TRANSMITTING <span class=\"talk-light\">●</span></span><button data-action=\"speech-next\" id=\"speech-next\">${reducedMotion?nextLabel():'SHOW FULL LINE'}</button></div></div></div></section>`;",
       "kind": "source-reference"
     },
     {
@@ -12284,7 +12560,7 @@
     {
       "source": "void-runner/scenes.js",
       "line": 61,
-      "text": "addEventListener('keydown',e=>{if(speech&&['Space','Enter'].includes(e.code)&&e.target.tagName!=='BUTTON'){e.preventDefault();if(!e.repeat)advanceSpeech();}});",
+      "text": "addEventListener('keydown',e=>{if(speech&&mode!=='walking'&&['Space','Enter'].includes(e.code)&&e.target.tagName!=='BUTTON'){e.preventDefault();if(!e.repeat)advanceSpeech();}});",
       "kind": "source-reference"
     },
     {
@@ -12495,6 +12771,168 @@
       "source": "void-runner/story.js",
       "line": 38,
       "text": "if (valid(raw.cursor?.scene) && valid(raw.cursor?.node) && content.dialogue[raw.cursor.scene]?.nodes[raw.cursor.node]) {",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 1,
+      "text": "/* Player-to-player trading: the prompt, the request and the trade window. OFF UNLESS THE HUB SAYS TRADING IS ON: nothing is shown until the hub's",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 38,
+      "text": "document.head.append(el('style',{text:css,id:'trade-style'}));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 42,
+      "text": "const say=(t,ms=6000)=>{note=t;noteAt=Date.now()+ms;draw();};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 64,
+      "text": "else if(m.ev==='done'&&session){result={ok:true,text:'TRADE COMPLETE. You gave '+fmt(m.gave)+'. You received '+fmt(m.got)+'.'};session.over=true;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 65,
+      "text": "else if(m.ev==='cancelled'||m.ev==='failed'){const mine=session&&m.id===session.id;if(incoming?.id===m.id||outgoing?.id===m.id){incoming=outgoing=null;say(m.reason||'The request ended.');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 66,
+      "text": "if(mine){result={ok:false,text:(m.ev==='failed'?'TRADE FAILED. ':'TRADE CANCELLED. ')+(m.reason||'')};session.over=true;}}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 67,
+      "text": "else if(m.ev==='refused'){awaiting=false;if(session&&m.reason==='Your view was out of date.'){/* the server sends the current view next; the edit is sent again */}else{if(session){dirty=false;sync();}say(m.reason||'Not possible right now.');}}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 72,
+      "text": "if(incoming){toast=el('div',{id:'trade-toast',role:'alertdialog','aria-label':'Trade request'},[el('div',{text:incoming.name+' wants to trade.'}),",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 73,
+      "text": "el('button',{type:'button',text:'ACCEPT [Y]',onclick:()=>send({op:'accept'})}),el('button',{type:'button',class:'tw-no',text:'DECLINE [N]',onclick:()=>{send({op:'decline'});incoming=null;toastDraw();}})]);}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 74,
+      "text": "else if(outgoing){toast=el('div',{id:'trade-toast'},[el('div',{text:'Waiting for '+outgoing.name+' to answer...'}),el('button',{type:'button',text:'CANCEL',onclick:()=>send({op:'cancel'})})]);}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 82,
+      "text": "rows.push(el('div',{class:'tw-row'},[el('span',{text:name}),el('span',{class:'tw-have',text:'have '+s.qty}),",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 83,
+      "text": "el('button',{type:'button',class:'tw-step','aria-label':'Offer fewer '+name,text:'-',onclick:()=>{draft.stacks[s.id]=Math.max(0,cur-1);queueOffer();draw();}}),el('b',{text:String(cur)}),",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 84,
+      "text": "el('button',{type:'button',class:'tw-step','aria-label':'Offer more '+name,text:'+',onclick:()=>{draft.stacks[s.id]=Math.min(s.qty,cur+1);queueOffer();draw();}})]));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 90,
+      "text": "rows.push(el('label',{class:'tw-row'},[el('span',{text:label}),el('span',{class:'tw-have',text:'#'+serial.split('-')[1]}),box]));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 92,
+      "text": "return rows.length?rows:[el('div',{class:'tw-have',text:'Nothing you can trade.'})];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 95,
+      "text": "const rows=[...o.stacks.map(s=>el('div',{class:'tw-row'},[el('span',{text:s.name}),el('b',{text:'x '+s.qty})])),...o.equipment.map(e=>el('div',{class:'tw-row'},[el('span',{text:e.name}),el('span',{class:'tw-have',text:'#'+e.serial.split('-')[1]})]))];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 96,
+      "text": "if(o.credits)rows.unshift(el('div',{class:'tw-row'},[el('span',{text:'Credits'}),el('b',{text:o.credits+' cr'})]));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 97,
+      "text": "return rows.length?rows:[el('div',{class:'tw-have',text:'Nothing offered yet.'})];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 109,
+      "text": "const mine=el('div',{class:'tw-col'},[el('h2',{text:'YOUR OFFER'}),el('div',{class:'tw-row'},[el('span',{text:'Credits'}),el('span',{class:'tw-have',text:'have '+session.inventory.credits}),credits]),...inventoryRows(),",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 110,
+      "text": "el('div',{class:'tw-chip'+(session.confirmed.you?' on':''),text:session.confirmed.you?'YOU: CONFIRMED':'YOU: NOT CONFIRMED'})]);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 111,
+      "text": "const theirs=el('div',{class:'tw-col'},[el('h2',{text:(session.with.name||'THEIR').toUpperCase()+' OFFERS'}),...theirRows(session.theirs),el('div',{class:'tw-chip'+(session.confirmed.them?' on':''),text:session.confirmed.them?'THEM: CONFIRMED':'THEM: NOT CONFIRMED'})]);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 112,
+      "text": "const actions=done?[el('button',{type:'button',text:'CLOSE',onclick:close})]:[",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 113,
+      "text": "el('button',{type:'button',class:'tw-go',text:'CONFIRM EXCHANGE',...(empty||session.confirmed.you?{disabled:''}:{}),onclick:()=>send({op:'confirm',v:session.v})}),el('button',{type:'button',class:'tw-no',text:'CANCEL TRADE',onclick:()=>send({op:'cancel'})})];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 114,
+      "text": "const next=el('div',{id:'trade-window',role:'dialog','aria-label':'Trade'},[el('h1',{text:'TRADE'}),session.simulated?el('div',{class:'tw-sim',text:'SIMULATED INVENTORY: no real items or credits are used or changed.'}):null,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 115,
+      "text": "el('div',{class:'tw-cols'},[mine,theirs]),el('div',{class:'tw-note',role:'status','aria-live':'polite',text:result?result.text:(Date.now()<noteAt?note:(session.confirmed.you&&!session.confirmed.them?'Waiting for '+session.with.name+' to confirm.':'Any change to either offer clears both confirmations.'))}),el('div',{class:'tw-actions'},actions)]);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 121,
+      "text": "const near=!session&&!incoming&&!outgoing&&rp?.features?.trade&&mode==='walking'&&!document.querySelector('#screen.conversation-live')?rp.nearest(RANGE):null;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/trade-window.js",
+      "line": 122,
+      "text": "if(near){if(!prompt){prompt=el('div',{id:'trade-prompt'});document.body.append(prompt);}const t='[T] TRADE WITH '+near.name;if(prompt.dataset.t!==t){prompt.dataset.t=t;prompt.textContent='';prompt.append(el('b',{text:'[T] '}),document.createTextNode('TRADE WITH '+near.name));}prompt.dataset.id=near.id;}",
       "kind": "source-reference"
     },
     {
@@ -12883,103 +13321,103 @@
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 58,
+      "line": 69,
       "text": "arrive=function(){const previous=state.location,quest=state.quest;solHandover=null;worldArrive();if(!['arrival','dialogue'].includes(mode)||state.location===previous&&state.quest===quest)return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 59,
+      "line": 70,
       "text": "const lines=speech?.lines.slice(),label=speech?.label;speech=null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 69,
+      "line": 80,
       "text": "renderLine=function(){worldRenderLine();if(walkingLocation){screen.dataset.scene='';screen.classList.remove('cinematic');screen.querySelectorAll('.portrait').forEach(el=>el.remove());/* A conversation in a station is in person: name the place. Only comms calls and messages are transmissions. */const eyebrow=screen.querySelector('.scene-heading .eyebrow');if(eyebrow&&!/comms|message|transmission/i.test(speech?.heading||''))eyebrow.textContent=globalThis.VoidVR?.active?'VR · '+VoidVR.session.exp.title.toUpperCase():(C.stations[state.location]?.name||'').toUpperCase();}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 79,
+      "line": 90,
       "text": "talk('',[{who:'rook',text:'Client confirmed the drop. Here’s your pay.'}],()=>{announce('PAYMENT RECEIVED · '+paid.toLocaleString()+' credits · ROOK FREIGHT RUN #'+owed.number+' COMPLETE');rookFreightOffer();},'NEXT →','Rook’s booth');return;}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 81,
+      "line": 92,
       "text": "talk('',[{who:'rook',text:'The '+r.cargo.toLowerCase()+' are still in your hold. '+place(r.destination)+' is waiting on them.'}],resumeWalking,'RETURN TO STATION');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 83,
+      "line": 94,
       "text": "if(r.kind!=='legacy')screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',button('HAND THE CARGO BACK','rook-cancel',true));return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 84,
+      "line": 95,
       "text": "if(state.contract){talk('',[{who:'rook',text:'Finish the job you are carrying. Then come see me.'}],resumeWalking,'RETURN TO STATION');return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 89,
+      "line": 100,
       "text": "talk('',[{who:'rook',text:lead+(r.number===1?' Admin is over in Tessaly if you want other work. '+key+' opens your Mission Log.':'')}],resumeWalking,'NOT NOW','Rook’s booth');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 90,
+      "line": 101,
       "text": "speech.shown=speech.lines[0].text.length;$('speech-next').style.display='none';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 91,
+      "line": 102,
       "text": "screen.querySelector('.dialogue-window')?.classList.add('choice-menu');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 92,
+      "line": 103,
       "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class=\"rook-board\">'+jobs+'</ul>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 93,
+      "line": 104,
       "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',board.map(j=>button(j.units>free?'NO HOLD SPACE · '+j.label.toUpperCase():'TAKE '+j.label.toUpperCase()+' →','rook-job:'+j.kind,false,j.units>free)).join('')+button('NOT NOW','walk-resume',true));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 96,
+      "line": 107,
       "text": "if(a.startsWith('rook-job:')){speech=null;globalThis.VoidAudio?.cancel?.();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 99,
+      "line": 110,
       "text": "else if(a==='rook-cancel'){speech=null;globalThis.VoidAudio?.cancel?.();if(C.cancelRook(state)){VoidMissions.sync(state,C);save();announce('Rook’s crew takes the cargo back. No pay, no hard feelings.');}resumeWalking();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 108,
+      "line": 119,
       "text": "talk('',[{who:item.character,text:texts[item.character]}],resumeWalking,'RETURN TO STATION');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 153,
+      "line": 166,
       "text": "if(!['play','walking','dock','dialogue'].includes(mode))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 164,
+      "line": 177,
       "text": "addEventListener('keydown',e=>{if(e.code===(VoidInput.bindings.missionLog||'KeyL')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){if(!['play','walking','dock','dialogue','mission-log'].includes(mode))return;e.preventDefault();if(!e.repeat)openMissionLog();}if(e.code==='Escape'&&missionPanel){e.preventDefault();closeMissionLog();}});",
       "kind": "source-reference"
     },
@@ -13058,17 +13496,24 @@
   ],
   "warnings": [],
   "sources": {
-    "void-runner/account.js": "76e54cbe81f603e530c41b2e3b97b27e8580bc8483fd80e704620551f0d4de73",
+    "void-runner/account.js": "7500c34956f12bdcf5fcd04cdb5a60509ad731171333cb6a4adb2cf2d214734e",
+    "void-runner/achievements.js": "e73d2197b523a0c4539d550a78781d791337ccd457b6e37f84bab14f8773ffa5",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/asset-pipeline.js": "5f0d8bbd5d8f36e4f8b80c4e0dbe5f620fcff12b49f20dd21f17a7fff331c808",
-    "void-runner/babylon-integration.js": "c8f3fde2f078fc64375ae9cb634d57e73f02ab4985b7f97a00ba98d863c22746",
-    "void-runner/babylon-renderer.js": "280608e1adbac2dc0bb6de9903667b3e815ad30cefeebe6d5ff24077a0b329de",
+    "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
+    "void-runner/babylon-integration.js": "3683a66f7c6735489706e958add2555c3e0255c39973f849bc85d50bdc56c825",
+    "void-runner/babylon-renderer.js": "65aef7c4c7f19d4140ae66f9d317d7f0c791770dbaa9141edd307c2a56bd2e61",
     "void-runner/balance-data.js": "ebc76bb374885f015ae60a86864e8701bba194e5d3ce09fb321dd52cedabe16c",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "a796e718fbe982cbdbec26e66705c8dfce47f9b3882a671244400cd48437bb4e",
-    "void-runner/campaign.js": "80c1d7d0636387d88d2cbd33b55f693a02594b8dade25cc06eaf7bc89e37a232",
+    "void-runner/campaign.js": "f541695f3894cc467505c215245a8f0fffd8548f93a696d61714e339a7a3d7d3",
+    "void-runner/character-appearance.js": "53d71abba7c97a691d44fce3a4b88454b616bd11fa4f04a7e789df3c4a33e850",
+    "void-runner/character-assembler.js": "7472861af99266df714e8f9e158a5d5740fbd63357b4acdf475f79212d91617f",
+    "void-runner/character-catalog.js": "eee30cc7e7be13d44d43d2b5427bc616c08d64ee4a643cbbd5f3a61e9580e72b",
+    "void-runner/character-creator.js": "b6525c35c8488267418f453674e711723da74eb82420bb789995b99609390e29",
+    "void-runner/character-fit.js": "ee63772c43aa17513e8325b03ee8fee759e3fbf2407fa9adc3912921a6efcbc9",
     "void-runner/city-taxi.js": "0e5034fa45257dbcc8a26a52ad33b1dc12b52ecd2c95d22a1929ddcd96155eb0",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
     "void-runner/cockpit-math.js": "a63faf598eaf23722d22658ca22b5da5b16f0044437ac5277d34d42d1cbf0461",
@@ -13078,20 +13523,25 @@
     "void-runner/combat.js": "049b6d25f9f8d2000157b58e71a9c6c7a77602e265d10acaf159ee588b831e87",
     "void-runner/comms.js": "26ac041ddc179f7797166aa2220767331607d6ba8dc312c4652f36c49a7c79e5",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
-    "void-runner/crowd.js": "3cd48ca431fdc8ddb6216f72bd3d80b9e42522363a3da0169fb104dfad4dab34",
+    "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
+    "void-runner/conversation-ui.js": "69404805485cb34daab699d4ac8ad4890b50de188e7f07423d1462b116302ec7",
+    "void-runner/crowd.js": "7f99de7204d51d1c70aa1dc9db1f462b62ac368baca7efd3c50452b2e4a3ce62",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-test.js": "fe2ee383ca0ae2227dc944eea2d1ae1c4d7922e60c8719f1a7fa78fc3ae4ffa7",
-    "void-runner/dev-tools.js": "e05a88ee0ee79f858f6088e1437bb9a66cbec598d8597a72c5a7b029f2fa98cf",
+    "void-runner/dev-tools.js": "318d0ab94b7b16f01333244fd001a4986e6ca570f3a3d71005fa16934c5cf8db",
+    "void-runner/device-gate.js": "18ede0f57043b170043090b207fae30ae2a818aeca6d60a4c9f5a904946c91d7",
+    "void-runner/district-area.js": "f7fb70108b754de68a409032e5232a29d0b30ed793dbb21206d1ad0092e0233a",
+    "void-runner/district-transition.js": "6f914f0c159a1335bee53e12216aa13fd70d0a5e44a1e1daa317908d28bf74ff",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
     "void-runner/escort.js": "0d8213a1b25b4748f954d1e1e86fecd14c22429682ec1f5f36a8b46b81bd8ec2",
     "void-runner/expansion.js": "98ea57022ac62f7ed5e83151093329644a7c510d3dba3b8c83677673bbbfc518",
     "void-runner/exploration-controller.js": "a97f58cdcd6149e0149f7976c779b5957bef43db8c3b46df502f993d23e319c7",
-    "void-runner/exploration-data.js": "4729436183609b4fe4e15865ba547d3d6b04d52319fef4f02f19432168c46a59",
+    "void-runner/exploration-data.js": "1a7f311dd37ddf545a0d83423848a7959f66976456f8dfbdcb7c1e6c56e6c638",
     "void-runner/faction-battle.js": "3566336f27e8a33636ec164fd2a31c2d3c2d1473bbdac3ca02df176432d3887a",
     "void-runner/faction-battles.js": "a5eb4863fb899e5cffa3c20a451cb342588026b45c400ade1bcacdf955aa4add",
-    "void-runner/faction-scenes.js": "db9734fd1fd1fe094fec67feeebe09b03f0a2cb4a1f15b67002581cc680faf2b",
+    "void-runner/faction-scenes.js": "c998cf27211ec0dc36714ede894aac73b1e783e5d610eb126283f5ac50e4ef08",
     "void-runner/factions.js": "f7328ffb89f28c2579613d502da7c7572491f3b26d3f1511e1cd0781680c568e",
     "void-runner/fleet.js": "3ad8d092775422ff63a7e7096df2e5211f9b3ffa01e7303fc78a3b31f083fe0b",
     "void-runner/flight-hud.js": "8db3c456786143c5b8a56caf33157554878db29d4cd0879bab45516c3cf8b5e9",
@@ -13101,9 +13551,9 @@
     "void-runner/flight-runtime.js": "8fa697c7a0be1e670c21009fd995974f4c790802f1328372a44a08589cf39784",
     "void-runner/flight-session-integration.js": "0dc63b7cdab18fa333bed6e699c55b58b5ab6c391153fc414b8093bfb452a154",
     "void-runner/flight-session.js": "1027dd1a11d5c087d2d754f96cfd8ecce8948ace49398ac78aab5efef0e52bfa",
-    "void-runner/flight-skirmish.js": "5e49c66d35b14b0677b961c9d77dd4615af8a6ef52bc762fa1a2c5a6a1609d62",
+    "void-runner/flight-skirmish.js": "d34dcc71253521e0b64617552cce2db27b7e1e37420611fa7471de848c8a5573",
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
-    "void-runner/game.js": "a829be483cb0f1043ab8a1294372af143d6bf84d85cd557a2a483bfee95090d9",
+    "void-runner/game.js": "6f813f2696b32614b2a539e01917f119228bc9715a126ea35ecd3fea69226e2c",
     "void-runner/guest-mode.js": "4a8355b1252a9c202918b3b121d91a75116d5734abd5f2e762a558dc6756d291",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "3f0a281fe47ab2dbf58eb419916d99736a1c576e65e026dbb94eb2bcc5756b20",
@@ -13111,78 +13561,84 @@
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input.js": "ee7b8bba97bf1233e9d6d5e7d115efee2ecb1caddd6b758a144b78f33046924e",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
-    "void-runner/menu.js": "25e0ca6ee084a8630b843be474763257c868fe2307a3a66a86533ffca206c13b",
+    "void-runner/menu.js": "d63408ef7178a4a9e74c84c9df1cd12a298b48d025822bc3c9914698c89524a0",
     "void-runner/meridian-art.js": "ef57144a85d288a8b5c3ea0a616d36b5fcc78de0f4a5220473486f1f2b9f2a19",
     "void-runner/meridian-interior-kit.js": "2ca741d025cbd6b3e205e823c637fcf46c0488303ecb24cdcf2e678d0e43eeb4",
     "void-runner/meridian-interior.js": "d9f411d4f42b3cf8bacbe377812cda9b3c3563aef0d52127e989898e4b9a2b96",
     "void-runner/meridian-kitbash.js": "5e1efc2246631b5e37507d12fc23206b5ac8838fa8d0b1b34302a8fa2d5b7ebb",
     "void-runner/meridian-station.js": "2ecbbeec490597999c1a11e4c918a694f8e82673944100fe04e6657180556526",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
-    "void-runner/mission-log.js": "ab2bacb5cd37873eab7285f9bc07df6de0f8f3efccd20a32b29afac385be19ba",
+    "void-runner/mission-log.js": "f9637251347e1250b78d3bef32ef6082e462393a0231b72e4e68970c7650b8c6",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
-    "void-runner/mouse-control.js": "e22165f19bef53595dba679424375e039e776e19359e075fbea720cc4d10ca95",
+    "void-runner/mouse-control.js": "5d99f95c581da3cc79c6d54ffab9b0268d155c5a775e686aa1ee3a4fd8ce4081",
+    "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "a751c57ffcc8fd9928ecd8baa1f962d21f86ae842b87a3724e31c045887795a8",
     "void-runner/music-engine.js": "5078e1a0fedff9d09a7f23823126d3ef8a834a1806edb7675c54e3b668014a8b",
-    "void-runner/music-integration.js": "46e2a4b1d65a7b9cdabcf808352540191011dc50879a8efbf8855e2b024ed46e",
+    "void-runner/music-integration.js": "3842625f4d4bb89425989871a6d08f09790309c12207dfec3b718750a2eb0718",
     "void-runner/music-score.js": "87751174ef61afbb0be20d98b5b01127d833ee63c06e727bf1a2d6e985b8b7e7",
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-nightclub.js": "b4dbe1c5e0e47b7f18dc94ae4fa7da5c1463be4b1ed01d75f628800cc6661b56",
     "void-runner/ncz-nightlife.js": "4c6e4d7ca34309a6e1a190bfc70d78123ef746ccab8f29c74b7c77041e038fba",
-    "void-runner/neochinatown.js": "b711f17fa29b0d3156fe062f8ba3997447686f9c1355e52a56263befd15673ec",
+    "void-runner/neochinatown.js": "57755be90d87e50fcc41d19a3b6655e8667c3300519bea737031ce3f5b50eb04",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
-    "void-runner/opening-data.js": "ff9fa180e9a3992b9ce1a5cee323060343983028e46405da8a0c7bfecae29031",
+    "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "da1674b96960e03052332b46f33745a5db4f738ad2a38d06cef1eaa912b1ecbb",
-    "void-runner/personal-hud.js": "c771f7181cefd97581cfdc7202d6fdd027a0c3bc07f54839abbcab0142ec7fff",
+    "void-runner/personal-hud.js": "ac4f3cafea8443be8e93d6b283f87cc80f662ab3cc8e033785ef571f998be687",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
+    "void-runner/pod-music.js": "7d13de0ed3af83511478501e22b6ab7cd04ca0744379b5d22278f4cd1971db00",
+    "void-runner/pod-playlist.js": "5b1c5a1b75a08bb8297dec8baeae184e9abe334d7cda9d1c4b38a636da44ae79",
     "void-runner/police-patrol.js": "97e6f52dfaab4797addd3ed3184ce321b9f314b894d6cf69a8dbf51571b8839b",
     "void-runner/police-patrols.js": "2d9e4804ce9fed613295f24f81571185c83bf22341f5fddd89cc8f72c41077a5",
     "void-runner/preparation.js": "d4cd81b11203b5727a1192a8a5138b02fe6e1570d7310215526e3ddc4ce0502f",
     "void-runner/progression.js": "2350090515fb4942fa72b198380f3dcd960251f2d54955abaf689a57ab630b24",
-    "void-runner/prologue-integration.js": "7168b2408f8cb7de1f09fe5b356da420d7c3f91117c190da808502765893cc3b",
+    "void-runner/prologue-integration.js": "ed2d57b92368520f4e69b4de22fcbdf7cdacbd26621237715c11a680c3293ff3",
     "void-runner/radio.js": "a9d04c53cfb34748f9c30054ffdb28f02a5fb87114883c71149b691e0ff5c313",
     "void-runner/relay-radio.js": "5ce31904c15f630a01d00f51d566d66ae97c736d5734d7531835588714269806",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
-    "void-runner/scenes.js": "a6bdbc20299c5ecb1a5f99546faa103e5b05777b1abfdabd25676181717686f8",
+    "void-runner/remote-players.js": "f982c8f2716d116531f967b8638482963fbcb382e337a226511c6cebdec1d78a",
+    "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
     "void-runner/share-panel.js": "fd28f34bcccb21371b7b5c057ee1803190b1ff6092f2055caeb16d64d10743aa",
     "void-runner/share-registry.js": "ffde58ff7f7fa93ea885d3a1753072989d5f5da62f4071de10a656cd5563db10",
     "void-runner/ship-audio.js": "8cb0ef9954a8e074a1f036340d3b8bf42459452a8a808a2457f16fcce43df2d5",
-    "void-runner/ships.js": "0d0d01d12425f5608f2135f662d687739e837b09c931ce1052ad4768cb94508f",
+    "void-runner/ships.js": "cdbd691a643b21a1acd6fa3c00542cf1916e6a0a5dff030d5bd3c2fcd1e3cf37",
     "void-runner/signals.js": "c4b44b7d838b52d35c5a6d57afa3b437be789b78f43eff9e1adc4a7dfa26e5b6",
     "void-runner/simulation-effects.js": "f6aac1ce655f6f79e900da09e79938ecf7c162aa6d5c765187b294510793342a",
-    "void-runner/skirmish.js": "394c69855be46ac045b1c301f12738b452c28730696aa8317cef6b0b55deebea",
+    "void-runner/skirmish.js": "28cc0b6d0a5296c56574c51efdb4de14367666dbba30634394d2f7e8f87bcb41",
+    "void-runner/social-profiles.js": "fd88c0388f4dfccdb0bfc24edaabb5ce48e415b1d3cceb1bb82a235ef8bed418",
     "void-runner/station-activities.js": "06fbc8ae9530c5c612be8539f1af9bc29a314e39d7918eb6b670044da512141a",
     "void-runner/station-layouts.js": "04310755d7074c6b47fcf8b67c4218959debc861c7a286ccd53d586a61a60879",
     "void-runner/story-content.js": "3f2846e89242894aa0123df0e39e7637cfd2868b73c6d89f885dbe4317b54b30",
     "void-runner/story-scenes.js": "322106e619d1a2456c5dac94dd252bd2373cb0c03273c75954d068b378cad5dd",
-    "void-runner/story.js": "2f542ca85631df865f3db918f4e75f148d32ada16cd1ec01c2bb213322f7bdc0",
+    "void-runner/story.js": "74501dca85057c374b5181b440f93059fd6658641624b10e3a159d11493fe272",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
     "void-runner/taxi-rules.js": "62262cf05aa12c3d22f9c3928faabaa32442756d29dbbc9425f37a8db4566ab4",
+    "void-runner/trade-window.js": "fae1643ad8aeb97be1b29b74eb1fe2f8b630a0c475daf96829abc376a05908b5",
     "void-runner/traffic.js": "1c47797df0eb41dbbc0fc84c733cc0f8b49401a50901834125f2b5b457752e83",
     "void-runner/travel-visuals.js": "440e1da234f7e831c98561d3d949e3b2d911463014879f04f61199349ff5854e",
-    "void-runner/unified-controls.js": "8aa0346a4b93ea23019f852788524faa731b1dcbc17cd6d2674605557c0b216b",
+    "void-runner/unified-controls.js": "4b4aec06ae8268e43d621f4aa772036353e2fcf62d78d176a6f4508c9f444a8f",
     "void-runner/universe.js": "b4230d16307e4209ba781e04841d1be043b0360f2aa0ca35380af88718a67887",
     "void-runner/vesper-visuals.js": "3f51b20e6cfd2f749bb07f31d31adb6c5071f0373c381e9234138e1f0ff63d69",
     "void-runner/voice-clips.js": "d990ba8f440f04524a65e84abad46af208bd295cc7a005eedebda191e6423c22",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "fe7cf3869b1fb49ff3ccbc4a7a5c7900aa16c0ad367c115844d8bf5f9c66c321",
     "void-runner/vr-companions.js": "d38c9e56cfe2536e9717431bf12d37a44c1ad34f83dfd24d1a25ca243fd7127b",
-    "void-runner/vr-core.js": "4564526b388904e2168e1fae14913c1f7c092c89036d3acee93abe24f871aead",
+    "void-runner/vr-core.js": "bcff608915ae63d9957ffb42c22269f348040fa40af6460fd7fa15c357ee603a",
     "void-runner/vr-forest.js": "23bcaa2847c9e25da3cdced6a29828f5a3d2f0ced9cb22999c76e8f8367a3891",
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "42b099525addb420f7a678fee12d93c14cf468375fd7f59c7324a4393b34dad2",
-    "void-runner/vr-suite.js": "c6368f2a0995514a6f658528dc68b7d48df2e3afd155995d1807334a25dff117",
+    "void-runner/vr-suite.js": "ce162f46cfa71e9f0678520cf111a6a5cdec564b27e7044cbf12611882d6c957",
     "void-runner/vr-tropical.js": "d796ce190e319b3f1385ae534e12aed861389010efb25ad0d30ad104c2a32811",
     "void-runner/warflying-scan.js": "f6de823ef265ff4e1cde538ac17b5adefb72547ad0ef2e3b25cdb42de9ce8a87",
     "void-runner/warflying-scanner.js": "3234988837d0ca2ab0fec7bdb730d923c679fd50ff883569c2f7f568406a00ed",
     "void-runner/warflying.js": "e3a319a7538e4df7e014be7ccb50b32bb2b0cf6cbcfe10ccfca2e46edb013a4f",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "0541f895b37f7dd6d03a82e9fd6b87f6f98763bd162fecc95443ff409d665c59",
-    "void-runner/world-markers.js": "af9570bfc272ccb17b8a9b0dabd7fc018f2d60d270edf8281066c101f09bfe15",
+    "void-runner/world-integration.js": "497947895cb9eb10ff31851269755a27c7d755ae0f5be3e60a8f880ea0084a0a",
+    "void-runner/world-markers.js": "44347bce6208e455b16ba76da2b328903c2f77e0cba457d0de14b0af882b047c",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "tools/admin-inventory.cjs": "4b545f1e29bc40745983ecd5a113f20926a6f73b52a1b4ed4c2e8106df0a4ed0",
     "tools/audio/npc-voice-registry.json": "216866bb6a355e0cfa2ac6792cb880ecc98ce4f6c1790ca0437b52bb3866f0c2",
