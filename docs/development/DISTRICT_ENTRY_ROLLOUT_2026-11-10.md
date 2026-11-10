@@ -1,6 +1,6 @@
 # District entry rollout — integration gate (2026-11-10)
 
-Status: **planning only; no game files copied and no deployment authorized**.
+Status: **implementation staged on draft PR #212, not merged/deployed**. Latest previously verified CI for head `e3e0ba1` passed Node, Python and Babylon smoke (run `42893600023`); GitHub Pages deploy was skipped for this PR. Manual and production compatibility checks remain required. **Current authoritative checklist:** `docs/development/AI_HANDOFF.md` and `docs/development/AI_ROADMAP.md`.
 
 ## Source and target
 - Target: current `main` (GitHub Pages live site).
@@ -9,7 +9,7 @@ Status: **planning only; no game files copied and no deployment authorized**.
 - Do not merge the source branch wholesale or merge old stacked PR #176.
 
 ## Dependency finding
-The newer `void-runner.html` is not a standalone drop-in replacement. It adds `void-runner/device-gate.js`, `district-area.js`, `district-transition.js`, `pod-*.js`, `character-*.js`, `remote-players.js`, new CSS, and a gated `text/tdd-game` script bootstrap. Copying only the HTML would break entry. Port the minimal coherent dependency set and inspect runtime integration and assets before changing production.
+The newer `void-runner.html` is not a standalone drop-in replacement. It adds `void-runner/device-gate.js`, `district-area.js`, `district-transition.js`, `pod-*.js`, `character-*.js`, `remote-players.js`, new CSS, and a gated `text/tdd-game` script bootstrap. Copying only the HTML would break entry. A coherent runtime dependency set and nine binary hairstyle GLBs have since been staged in PR #212; recheck them against current `main`, validate licensed assets and perform real-world acceptance before changing production.
 
 ## Required acceptance checks before marking this PR ready
 - Homepage logo remains pixel-equivalent in appearance and its link still opens `void-runner.html`.
@@ -27,4 +27,4 @@ The newer `void-runner.html` is not a standalone drop-in replacement. It adds `v
 3. Confirm Render game API auto-deploy settings and legacy save behavior.
 4. Request approval to merge only after checks pass. A merge to `main` publishes GitHub Pages.
 
-This PR is intentionally a draft until implementation and verification are complete.
+This PR remains draft until remaining acceptance and production compatibility checks are complete. The owner permits only verified, independently release-ready work to go live; unfinished in-game store items may be removed if necessary, but real Shopify merchandise and purchased entitlements must not be touched.
