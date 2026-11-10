@@ -125,6 +125,8 @@
  });
  const storeOptions=()=>[{label:'SHOW ME THE SCRAMBLER',run:adminStore},{label:'NOT RIGHT NOW',quiet:true,run:resumeWalking}];
  VoidInteractions.register('admin',()=>{
+  // No missions in a new campaign yet, so nothing here may start the faction story. (An on-screen notice, so no new voice clip is needed.)
+  if(VoidMissions.closed(state)){resumeWalking();announce('Admin has nothing for you right now.');return;}
   const f=state.story.flags;
   if(!state.universe.completedObjectives.includes('meet-admin'))state.universe.completedObjectives.push('meet-admin');
   f.metAdmin=true;f.metIris=true;const offers=C.factionOffers(state);
@@ -180,6 +182,7 @@
  }
  const irisDefault=VoidInteractions.handlers.get('district-iris');
  VoidInteractions.register('district-iris',arg=>{
+  if(VoidMissions.closed(state))return talk('',[{who:'Iris',text:'Cameras are clean, the mainframe is happy, and nobody has tried anything stupid today. Yet.'}],resumeWalking,'CONTINUE');
   const delivered=Object.values(D).find(d=>C.factionStage(state,d.faction)==='delivered');
   if(delivered){
    const other=Object.values(D).find(d=>d!==delivered),second=C.factionStage(state,other.faction)==='paid';
