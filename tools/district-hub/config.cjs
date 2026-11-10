@@ -27,6 +27,6 @@ function fromEnv(env=process.env){
   if(!allowed.size&&env.HUB_ALLOW_ANY_SIGNED_IN!=='true')throw new Error('HUB_ALLOWED_UIDS is empty. The first test is restricted to listed accounts; set HUB_ALLOW_ANY_SIGNED_IN=true only when the owner approves an open test.');
   const origins=list(env.HUB_ALLOWED_ORIGINS||SITE_ORIGINS.join(','));
   if(origins.some(o=>!/^https:\/\/[^/\s*]+$/.test(o)))throw new Error('HUB_ALLOWED_ORIGINS must be exact https origins (no wildcards).');
-  return {...cfg,host:'0.0.0.0',apiBase,projectId:env.FIREBASE_PROJECT_ID||undefined,origins,allowed:allowed.size?allowed:null,denied:new Set(list(env.HUB_DENY_UIDS)),tradingSimulated:false};
+  return {...cfg,host:'0.0.0.0',apiBase,projectId:env.FIREBASE_PROJECT_ID||undefined,origins,allowed:env.HUB_ALLOW_ANY_SIGNED_IN==='true'?null:(allowed.size?allowed:null),denied:new Set(list(env.HUB_DENY_UIDS)),tradingSimulated:false};
 }
 module.exports={fromEnv,SITE_ORIGINS};
