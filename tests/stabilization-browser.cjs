@@ -38,7 +38,18 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
  }
  // Interrupted VR resumes the real checkpoint, not the modified sandbox.
  await page.evaluate(()=>VoidVR.launch('forest',{}));const saved=await page.evaluate(()=>({credits:VoidSimulationEffects.session.campaign.credits,ammo:VoidSimulationEffects.session.campaign.progression.personal.ammo}));
- await page.evaluate(()=>{state.credits=1;state.progression.personal.ammo=0;save();});await page.reload();await page.waitForFunction(()=>VoidStartup.started);await page.locator('[data-action=menu-continue]').click();await page.waitForFunction(()=>mode==='walking'&&!VoidGraphics.busy,null,{timeout:90000});assert.deepEqual(await page.evaluate(()=>({credits:state.credits,ammo:state.progression.personal.ammo})),saved);assert(!await page.evaluate(()=>state.story.flags.vrReturn));result.interruption=true;
+ await page.evaluate(()=>{state.credits=1;state.progression.personal.ammo=0;save();});await page.reload();await page.waitForFunction(()=>VoidStartup.started);await page.locator('[data-action=menu-continue]').click();
+  // A first-time campaign enters character creation before pod exit; a returning character resumes at the pod.
+  await page.waitForFunction(()=>!VoidGraphics.busy&&['character-creator','pod-waking','walking'].includes(mode),null,{timeout:90000});
+  if(await page.evaluate(()=>VoidCharacterCreator?.isOpen===true)){
+    assert.equal(await page.locator('#pod-wake').isVisible(),false,'character creation precedes EXIT POD');
+    await page.locator('#character-creator [data-cc=cancel]').click();
+    await page.waitForFunction(()=>mode==='pod-waking');
+  }
+  if(await page.locator('#pod-wake').isVisible()){
+    await page.locator('#pod-wake button').click();
+  }
+  await page.waitForFunction(()=>mode==='walking'&&!VoidGraphics.busy,null,{timeout:90000});assert.deepEqual(await page.evaluate(()=>({credits:state.credits,ammo:state.progression.personal.ammo})),saved);assert(!await page.evaluate(()=>state.story.flags.vrReturn));result.interruption=true;
  // Isolated UI mode fixtures: hold the simulation while the existing weapon UI RAF updates.
  const visibility=await page.evaluate(()=>{const e=document.getElementById('weapon-select-hud');return {hidden:e.hidden,display:getComputedStyle(e).display};});assert.equal(visibility.hidden,false);assert.notEqual(visibility.display,'none');
  await page.evaluate(()=>{globalThis.testUIOwner={update,draw};update=()=>{};draw=()=>{};});
