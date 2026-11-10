@@ -137,16 +137,4 @@
  if(root.VoidInteractions)root.VoidInteractions.register('district-wardrobe',()=>{show({context:'wardrobe'});});
  root.VoidCharacterCreator={open:c=>show(c),close,get isOpen(){return open;},stored,current,onChange:null,STAGE};
 
- // First campaign without any character: offer the creator once when the player is about to leave the pod. Existing players and saves are never asked.
- function wire(){
-  const wake=document.getElementById('pod-wake');if(!wake)return;
-  wake.addEventListener('click',e=>{
-   if(!e.target.closest('button')||open||mode!=='pod-waking')return;
-   let offered=true;try{offered=!!state.story.flags.appearanceOffered;}catch{}
-   if(offered||stored())return;
-   e.stopImmediatePropagation();e.preventDefault();
-   const card=wake;card.hidden=true;show({context:'first',onClose:()=>{mode='pod-waking';card.hidden=false;card.querySelector('button')?.focus({preventScroll:true});}});
-  },true);
- }
- if(typeof document!=='undefined')(document.readyState==='loading'?document.addEventListener.bind(document,'DOMContentLoaded'):f=>f())(wire);
 })(globalThis);
