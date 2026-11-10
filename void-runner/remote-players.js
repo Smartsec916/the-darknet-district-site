@@ -20,7 +20,7 @@
    See docs/development/MULTIPLAYER_PROTOTYPE.md and HUB_DEPLOYMENT.md. */
 (function(root){
  // The test hub, set only when the owner approves a real test, for example 'wss://district-hub.onrender.com'. Empty = no option, no connection.
- const LIVE_HUB='';
+ const LIVE_HUB='wss://district-hub-mbo7.onrender.com';
  const LOCAL=/^(localhost|127\.0\.0\.1)$/,LIVE=/^(www\.)?thedarknetdistrict\.com$/,HUB_OK=/^wss:\/\/[a-z0-9-]{1,63}\.onrender\.com$/;
  const get=(storage,k)=>{try{return storage?.getItem?.(k)||null;}catch{return null;}};
  // Is the Settings option shown (and may the page connect at all)? Live: only with a configured, valid hub. Local: always.
