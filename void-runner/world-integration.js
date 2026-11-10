@@ -25,26 +25,37 @@ const worldLaunch=launch;
 launch=async function(){const owner=VoidFlightSession.active;if(modernMenuPending){VoidPreparation.cancel?.();await new Promise(resolve=>{const check=()=>modernMenuPending&&VoidFlightSession.owns(owner)?setTimeout(check,20):resolve();check();});}if(!VoidFlightSession.owns(owner))return;if(state.universe.freeTravel&&!originalFlight(state)){state.destination=VoidUniverse.destinations(state)[0]||null;}return worldLaunch();};
 const worldEnterWalking=enterWalking;
 async function resumeSavedWorld(){
- if(state.story.cursor){await enterWalking(state.quest==='inheritance'?'vesper':'hangar');resumeStoryScene();return;}
- if(state.quest==='inheritance'){await workshopOpening();return;}
- if(state.universe.station){await dock();return;}
- if(C.flight(state))await launch();else await dock();
+ C.socialEntry(state);
+ await dock();
 }
 const physicalResumeWalking=resumeWalking;
 resumeWalking=function(){if(walkingLocation?.kind==='station'&&walkingLocation.ship!==VoidShips.get(state).id)return enterWalking('hangar');return physicalResumeWalking();};
-enterWalking=async function(id){
- if(id==='vesper'||id==='hangar'&&state.location==='vesper'){VoidExplorationData.locations.vesper=VoidOpening.layout();await worldEnterWalking('vesper');if(mode==='walking'){state.universe.station={location:'vesper'};save();}return;}
+enterWalking=async function(id,options){
+ if(id==='vesper'||id==='hangar'&&state.location==='vesper'){VoidExplorationData.locations.vesper=VoidOpening.layout();await worldEnterWalking('vesper',options);if(mode==='walking'){state.universe.station={location:'vesper'};save();}return;}
  if(id==='hangar'||VoidUniverse.locations[id]){
   const loc=id==='hangar'?state.location:id;
   const def=VoidStationLayouts.layout(loc,VoidShips.get(state).id);def.name=C.stations[loc]?.name||loc;VoidExplorationData.locations.hangar=def;
-  await worldEnterWalking('hangar');
+  await worldEnterWalking('hangar',options);
   if(mode==='walking'){state.universe.station={location:state.location};if(state.location==='meridian')VoidMissions.complete(state,'meet-rook','enter',C);save();}
- }else {const d=VoidExplorationData.locations[id];if(d){d.ship=VoidShips.get(state).id;const board=d.interactions.find(i=>i.action==='board');if(board){board.position=[-2,1.7,-25];board.label='BOARD '+VoidShips.get(state).name.toUpperCase();}}await worldEnterWalking(id);}
+ }else {const d=VoidExplorationData.locations[id];if(d){d.ship=VoidShips.get(state).id;const board=d.interactions.find(i=>i.action==='board');if(board){board.position=[-2,1.7,-25];board.label='BOARD '+VoidShips.get(state).name.toUpperCase();}}await worldEnterWalking(id,options);}
 };
+const podWake=document.createElement('section');podWake.id='pod-wake';podWake.hidden=true;podWake.setAttribute('aria-labelledby','pod-wake-title');podWake.innerHTML='<div class="pod-wake-card"><p>THE DARKNET DISTRICT · POD 01</p><h2 id="pod-wake-title">You wake in a Sleeping Pod.</h2><button type="button">EXIT POD</button></div>';document.body.append(podWake);
+podWake.querySelector('button').addEventListener('click',()=>{
+ if(mode!=='pod-waking'||!walker||!state?.story?.flags?.podWakePending)return;
+ const exit=VoidDistrictArea.podExit(VoidNeoChinatown);if(VoidExplorer.blocked(exit.spawn[0],exit.spawn[2],walkingLocation))return;
+ Object.assign(walker,{x:exit.spawn[0],y:exit.spawn[1],z:exit.spawn[2],yaw:exit.yaw,pitch:0,vx:0,vz:0,eye:1.68});
+ delete state.story.flags.podWakePending;podWake.hidden=true;resumeWalking();save();
+});
+function showPodWake(){
+ if(mode!=='walking'||walkingLocation?.area!=='interior'||state.story.flags.podWakePending!==true)return;
+ mode='pod-waking';clearInput();walkingKeys.clear();document.exitPointerLock?.();podWake.hidden=false;podWake.querySelector('button').focus({preventScroll:true});
+}
 dock=async function(tab='dock'){
  if(VoidGraphics.busy){VoidPreparation.cancel?.();preparationGeneration++;await Promise.allSettled([preparingLaunch,destinationPreparation].filter(Boolean));VoidGraphics.busy=false;walkingLocation=walker=null;}
  if(tab==='shop'){shop();return;}
- if(walkingLocation&&walker){resumeWalking();return;}
+ if(walkingLocation&&walker&&!state.story.flags.podWakePending){resumeWalking();return;}
+ // NeoChinatown is two environments (street and District interior); a save inside the District resumes inside it (district-area.js).
+ if(state.location==='earth'&&globalThis.VoidDistrictArea){await enterWalking(VoidDistrictArea.keyFor(state),VoidDistrictArea.resume(state,VoidNeoChinatown));showPodWake();return;}
  return enterWalking(state.location==='earth'?'sacramento':state.location==='mars'?'mars-terminal':'hangar');
 };
 leaveWalking=async function(){
@@ -113,7 +124,9 @@ VoidInteractions.register('jobs',()=>{campaignBoard();});
 const physicalCampaignBoard=campaignBoard;
 campaignBoard=function(){if(state.quest!=='open'){announce('Rook has your next job.');resumeWalking();return;}physicalCampaignBoard();screen.querySelector('.shop-layout')?.insertAdjacentHTML('beforeend','<h2>CARGO CONTACTS</h2><div class="hangar-grid">'+C.contracts.map(c=>'<article class="card"><h3>'+escapeText(c.name)+'</h3><p>'+escapeText(c.briefing)+'</p>'+button((walkingLocation?.interactions?.some(i=>i.character===({'Dr. Sol':'sol','Iona Vale':'iona','Rook':'rook'})[c.contact])?'TALK / ':'CALL / ')+escapeText(c.contact),'brief:'+c.id,false,!!state.contract)+'</article>').join('')+'</div>');screen.querySelector('.actions,.shop-heading')?.insertAdjacentHTML('beforeend',button('RETURN TO STATION','walk-resume',true));}
 const worldWorkshop=workshopOpening;
-workshopOpening=async function(){await enterWalking('vesper');};
+// New campaigns wake in pod 01; existing saves keep their saved environment.
+async function districtStart(){await dock();}
+workshopOpening=async function(){if(VoidMissions.closed(state))return districtStart();await enterWalking('vesper');};
 // Remove disconnected SOL prototype entry points. All travel uses Campaign.flight + VoidWarp.
 navigation=function(){announce('Choose a route marker after boarding your ship.');};
 const worldChoose=C.chooseDestination;
