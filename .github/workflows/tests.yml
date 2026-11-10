@@ -30,7 +30,7 @@ jobs:
           node tools/admin-inventory.cjs
           cp void_runner_admin_inventory.json work/district-inventory-review/void_runner_admin_inventory.json
       - name: Upload District admin inventory review snapshot
-        if: ${{ github.head_ref == 'integration/district-entry-safe-rollout-20261110' }}
+        if: ${{ always() && github.head_ref == 'integration/district-entry-safe-rollout-20261110' }}
         uses: actions/upload-artifact@v4
         with:
           name: district-admin-inventory-review
