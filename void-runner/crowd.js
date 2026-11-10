@@ -59,9 +59,10 @@
  function clipIn(look,want){const have=clips[look]||[];for(let w=want;w;w=fallback[w])if(have.includes(w))return w;return 'idle';}
  // Model definitions to preload for a place, at every quality (David, 2026-10-28: no primitive stand-ins on the
  // street). Low quality simply has fewer people (ncz-nightlife.js).
- function models(location,quality){
+ function models(location,quality,area='all'){
   if(!casts[location])return {};
-  const set=new Set([...casts[location],...(staff[location]||[])]);if(location==='neochinatown')casts.district.forEach(l=>set.add(l));
+  // area: NeoChinatown's street and the District interior are separate environments; each needs only its own people.
+  const set=new Set(area==='interior'&&location==='neochinatown'?[]:[...casts[location],...(staff[location]||[])]);if(location==='neochinatown'&&area!=='street')casts.district.forEach(l=>set.add(l));
   // Background: a figure that isn't downloaded within the scene's few seconds keeps loading and is
   // swapped in when it arrives (asset-pipeline.js), instead of being dropped for the procedural crew.
   return Object.fromEntries([...set].map(l=>['crowd:'+l,{src:base+l+'.glb',background:true}]));
