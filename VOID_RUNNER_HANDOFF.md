@@ -1,5 +1,7 @@
 # VOID//RUNNER: Development Handoff
 
+> **November 2026 update:** This October 15 handoff contains historical campaign assumptions. Current District-first direction and development autonomy are defined in `CLAUDE.md` under “Current development authority.” When these conflict, the newer direction controls.
+
 **As of:** 2026-10-15 · **`main` at:** PR #47 merged (`24a7071`) plus this handoff PR · **Owner and creative authority:** David (GitHub `Smartsec916`)
 
 This document moves VOID//RUNNER development from a long Claude conversation to Claude Code. Read it together with `CLAUDE.md`, which covers how to work in the repo. David's original design documents are in `docs/void-runner/design-source/`. That folder's README says which parts later decisions have superseded.
