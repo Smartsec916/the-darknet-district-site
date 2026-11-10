@@ -156,7 +156,6 @@
       .pod-btn, .pod-btn__frame, .pod-btn__panel { transition: none; }
     }
 
-    /* The Iris chat button (iris-widget.js) lives in the bottom right corner, where the pod's own controls are on a phone: lift it above them instead of covering "Play music" */
     @media (max-width: 720px) {
       body.iris-widget-page .chat-button { bottom: calc(112px + env(safe-area-inset-bottom, 0px)); }
     }
@@ -377,6 +376,5 @@
 
   <script src="script.js"></script>
   <script src="sleeping-pod-smoke.js" defer></script>
-  <script src="iris-widget.js" defer></script>
 </body>
 </html>
