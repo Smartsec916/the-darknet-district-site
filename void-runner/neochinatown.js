@@ -569,9 +569,31 @@
       frame=mat('wardrobe-shell','#121419',{rough:.32,metal:.85});
      box('pod-wardrobe-frame',[1.62,2.32,.1],[X,Y,Z+.07],frame,false);plane('pod-wardrobe-panel',1.4,2.1,[X,Y,Z],texMat('pod-wardrobe-panel',t,{glow:true}),0);}
     // Every capsule owns its emissive surfaces. The shared room no longer carries a music player.
+    const podPlayers={};
+    // st: null (idle) or {playing,title,position,volume,source}. 384x192, green-on-black like the reference.
+    function drawPodPlayer(g,index,st){
+     const W=384,H=192,on=!!st&&!!st.title,t=on?Math.max(0,Math.floor(st.position||0)):0,mm=String(Math.floor(t/60)).padStart(2,'0'),ss=String(t%60).padStart(2,'0');
+     g.fillStyle='#05080a';g.fillRect(0,0,W,H);g.strokeStyle='#2a3a33';g.lineWidth=2;g.strokeRect(2,2,W-4,H-4);
+     g.fillStyle='#6f8f7c';g.font='bold 13px monospace';g.fillText('DARKNET·AMP  v2.9',12,20);g.fillStyle='#e96bbf';g.fillText('POD '+String(index).padStart(2,'0'),W-70,20);
+     g.fillStyle=on&&st.playing?'#63ff8f':'#2f6b45';g.fillRect(14,34,10,10);
+     g.fillStyle=on?'#63ff8f':'#2f6b45';g.font='bold 58px monospace';g.fillText(mm+':'+ss,34,84);
+     g.font='12px monospace';g.fillStyle='#4fae6c';g.fillText('128 kbps   44 kHz   '+(on?(st.playing?'PLAYING':'PAUSED'):'STOPPED'),14,104);
+     g.fillStyle='#0b1410';g.fillRect(10,112,W-20,24);g.fillStyle='#63ff8f';g.font='bold 15px monospace';
+     const title=on?String(st.title).replace(/[^\x20-\x7e]/g,'').slice(0,60):'NO TRACK  ***  PRESS MUSIC & LIGHTS';const shift=on&&title.length>36?Math.floor((st.position||0)*2)%(title.length+5):0;
+     g.save();g.beginPath();g.rect(12,112,W-24,24);g.clip();g.fillText((title+'  ***  '+title).slice(shift,shift+44),16,129);g.restore();
+     // transport row (display only) and volume
+     const bx=[18,58,98,138,178],glyph=['|<','>','||','[]','>|'];g.font='bold 14px monospace';for(let k=0;k<5;k++){g.fillStyle='#16221c';g.fillRect(bx[k],146,34,28);g.strokeStyle='#31503f';g.strokeRect(bx[k],146,34,28);g.fillStyle=(on&&st.playing&&k===1)||(on&&!st.playing&&k===2)?'#63ff8f':'#7fa08c';g.fillText(glyph[k],bx[k]+8,165);}
+     g.fillStyle='#4fae6c';g.font='11px monospace';g.fillText('VOL',226,164);g.fillStyle='#16221c';g.fillRect(254,154,112,10);g.fillStyle='#b8d94a';g.fillRect(254,154,Math.round(112*Math.max(0,Math.min(1,on||st?st.volume??.6:.6))),10);
+     g.fillStyle='#4fae6c';g.fillText(on?(st.source==='mine'?'MY MUSIC':'DISTRICT PLAYLIST'):'',226,182);
+    }
     const podScreen=(()=>{
      const rest=B.Color3.FromHexString('#ad5a94'),reading=B.Color3.FromHexString('#fff0cb'),musicColor=B.Color3.FromHexString('#e96bbf');
-     return {tick(){const music=root.VoidPodMusic,lv=music?.levels?.();
+     let playerClock=0,playerSig='';
+     return {tick(dt=.016){const music=root.VoidPodMusic,lv=music?.levels?.();
+      const nowMs=typeof performance!=='undefined'?performance.now():Date.now();   // real time: the game clock stands still while the player lies in the pod
+      if(nowMs>=playerClock&&music?.state){playerClock=nowMs+500;const st=music.state(),index=music.activePod||music.selectedPod||0,sig=index+'|'+st.playing+'|'+st.title+'|'+Math.floor(st.position||0)+'|'+Math.round((st.volume||0)*20)+'|'+st.source;
+       if(sig!==playerSig){const prev=Number(playerSig.split('|')[0])||0;playerSig=sig;if(prev&&prev!==index&&podPlayers[prev]){drawPodPlayer(podPlayers[prev].getContext(),prev,null);podPlayers[prev].update();}
+        if(podPlayers[index]){drawPodPlayer(podPlayers[index].getContext(),index,st);podPlayers[index].update();}}}
       for(let index=1;index<=10;index++){const preset=music?.lightingFor?.(index)||'rest',reactive=preset==='music'&&music?.activePod===index&&lv?.on;
        const led=mats['tesana-pod-led-'+index],inner=mats['pod-inner-'+index];if(led)led.emissiveColor=(preset==='reading'?reading:preset==='music'?musicColor:rest).scale(reactive?1+1.2*Math.max(lv.bass,lv.mid):preset==='reading'?.9:.4);
        if(inner)inner.emissiveColor=reading.scale(reactive?.35+.4*lv.bass:preset==='reading'?.55:.16);}
@@ -666,8 +688,9 @@
       const duvet=new B.Mesh('tesana-pod-duvet',scene),data=new B.VertexData();data.positions=positions;data.uvs=uvs;data.indices=indices;data.normals=[];B.VertexData.ComputeNormals(positions,indices,data.normals);data.applyToMesh(duvet);add(duvet,podFabric,[0,0,0]);
       for(const side of [-1,1]){const pillow=B.MeshBuilder.CreateSphere('tesana-pod-pillow',{segments:12,diameter:1},scene);pillow.scaling.set(.45,.12,.38);add(pillow,podFabric,[-16.13,y-.28,z+side*.43]);}
      }
-     const label='POD '+String(index).padStart(2,'0'),podTex=texture('tesana-pod-screen-'+index,192,96,g=>{g.fillStyle='#080d18';g.fillRect(0,0,192,96);g.strokeStyle='#e96bbf';g.strokeRect(3,3,186,90);g.fillStyle='#f4d9ec';g.font='bold 19px monospace';g.fillText(label,12,30);g.font='13px monospace';g.fillText('MUSIC / LIGHTS',12,65);});
-     box('tesana-pod-screen-frame',[.05,.45,.85],[-16.48,y+.15,z+.18],podVent);plane('tesana-pod-screen',.75,.35,[-16.44,y+.15,z+.18],texMat('tesana-pod-screen-'+index,podTex,{glow:true}),-Math.PI/2);
+     // The pod's own music player face (after the owner's Tesana pod: an old-style amp display). It shows what THIS pod is playing; the controls stay in MUSIC & LIGHTS.
+     const podTex=texture('tesana-pod-screen-'+index,384,192,g=>drawPodPlayer(g,index,null));podPlayers[index]=podTex;
+     box('tesana-pod-screen-frame',[.05,.56,1.06],[-16.48,y+.14,z+.4],podVent);plane('tesana-pod-screen',.98,.49,[-16.44,y+.14,z+.4],texMat('tesana-pod-screen-'+index,podTex,{glow:true}),-Math.PI/2);
      neon('pod-no-'+row+i,[String(row*5+i+1).padStart(2,'0')],['#e8f0ff'],.4,.25,[-14.06,y+.62,z+.8],-Math.PI/2,undefined,true);}
     box('pod-ladder',[.1,3.2,.6],[-14,1.6,69],pipe);box('pod-terminal',[.4,1.2,.4],[-6,.6,57],frame);box('pod-terminal-screen',[.05,.4,.3],[-5.78,1.1,57],cyan);
     for(let z=56.8;z<69;z+=2.4)box('pods-ceiling-panel',[1,.04,1],[-9,4.03,z],glowMat('pod-panel','#7fe6ff',.9));
