@@ -201,3 +201,5 @@ Inspected and unused: the UE and Unity packages, the loose vending-machine FBX/G
 1024 px (JPEG), static meshes merged per material, mirror ball kept, FBX moving heads and beam cones left out (they could not be
 placed without their clips), one 4 m wall tile removed at the street entrance. Ambient sound is made in code (noise murmur and a
 muffled 124 BPM thump), nothing recorded or licensed.
+
+**Sleeping Pod surface textures (2026-11-11).** `void-runner/assets/textures/tesana-pod/` holds colour maps from the ambientCG sets PaintedMetal003 and Fabric062 (CC0 1.0, https://docs.ambientcg.com/license/), the same sets the owner's Tesana Sleeping Pod project uses. They were referenced by the pod but missing from the published site.
