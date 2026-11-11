@@ -18,7 +18,7 @@
 #personal-device.worn::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:3;background:radial-gradient(ellipse at 15% 90%,rgba(255,200,120,.05),transparent 40%),radial-gradient(ellipse at 90% 8%,rgba(255,63,180,.05),transparent 35%)}
 @keyframes pd-scan{to{background-position:0 60px}}@keyframes pd-in{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}@keyframes pd-bar{from{transform:translateX(-100%)}to{transform:translateX(0)}}
 #personal-device.open.anim{animation:pd-in .22s ease-out}
-#personal-device header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(88,255,225,.25);background:rgba(56,232,255,.05)}
+#personal-device .pd-head{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(88,255,225,.25);background:rgba(56,232,255,.05)}
 #personal-device .pd-brand{font-size:20px;font-weight:700;letter-spacing:.14em;color:#58ffe1;text-shadow:0 0 8px rgba(88,255,225,.6)}#personal-device .pd-tag{font-size:10px;letter-spacing:.12em;color:#8fb3bd;flex:1}
 #personal-device button{font:inherit;font-size:12px;letter-spacing:.06em;color:#d9fbff;background:rgba(10,24,34,.9);border:1px solid rgba(56,232,255,.4);padding:6px 10px;cursor:pointer;min-height:30px}
 #personal-device button:hover,#personal-device button:focus-visible{outline:2px solid #38e8ff;outline-offset:1px;background:rgba(20,50,66,.95)}
@@ -26,7 +26,7 @@
 #personal-device .pd-nav{display:flex;gap:8px;padding:6px 14px;align-items:center;border-bottom:1px solid rgba(88,255,225,.12);min-height:44px}#personal-device .pd-title{flex:1;letter-spacing:.14em;color:#ff7ac9}
 #personal-device .pd-load{height:3px;background:transparent;overflow:hidden;position:relative}#personal-device .pd-load i{position:absolute;inset:0;background:linear-gradient(90deg,transparent,#58ffe1,transparent);transform:translateX(-100%)}
 #personal-device .pd-load.on i{animation:pd-bar var(--pd-ms,.3s) ease-out forwards}
-#personal-device main{flex:1;overflow:auto;padding:14px;position:relative;z-index:1}
+#personal-device .pd-main{flex:1;overflow:auto;padding:14px;position:relative;z-index:1}
 #personal-device .pd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px}
 #personal-device .pd-app{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 6px;min-height:92px}
 #personal-device .pd-glyph{font-size:26px;color:#58ffe1;line-height:1}#personal-device .pd-sub{font-size:9px;color:#8fb3bd;letter-spacing:.1em}
@@ -146,9 +146,9 @@
  function build(){
   const st=document.createElement('style');st.textContent=CSS;document.head.appendChild(st);
   el=document.createElement('section');el.id='personal-device';el.setAttribute('role','dialog');el.setAttribute('aria-label','V1 personal device');
-  el.innerHTML='<header><span class="pd-brand">V1</span><span class="pd-tag"></span><button type="button" data-do="expand" aria-label="Expand device"></button><button type="button" data-do="close" aria-label="Close device">CLOSE · L</button></header>'
-   +'<div class="pd-nav"><button type="button" data-do="back" aria-label="Back">◀ BACK</button><span class="pd-title"></span></div><div class="pd-load"><i></i></div><main tabindex="-1"></main>';
-  document.body.appendChild(el);body=el.querySelector('main');
+  el.innerHTML='<div class="pd-head"><span class="pd-brand">V1</span><span class="pd-tag"></span><button type="button" data-do="expand" aria-label="Expand device"></button><button type="button" data-do="close" aria-label="Close device">CLOSE · L</button></div>'
+   +'<div class="pd-nav"><button type="button" data-do="back" aria-label="Back">◀ BACK</button><span class="pd-title"></span></div><div class="pd-load"><i></i></div><div class="pd-main" tabindex="-1"></div>';
+  document.body.appendChild(el);body=el.querySelector('.pd-main');
   el.addEventListener('click',onClick);
   el.addEventListener('submit',e=>{const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(t&&rp()?.sendChat(t))i.value='';});
   el.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))e.stopPropagation();});   // typing stays in the box: no movement, no shortcuts
@@ -223,7 +223,7 @@
    expanded=dev.settings.size==='expanded';stack=[];open=true;
    walkingKeys?.clear?.();try{clearInput?.();}catch{}for(const c of held)if(MOVE.has(c))suppressed.add(c);   // keys already held do nothing until released and pressed again
    document.exitPointerLock?.();el.classList.add('open');el.classList.toggle('anim',!reduced());chip.classList.remove('on');render({bar:true});
-   setTimeout(()=>el.querySelector('main')?.focus({preventScroll:true}),0);
+   setTimeout(()=>el.querySelector('.pd-main')?.focus({preventScroll:true}),0);
   }else{
    open=false;el.classList.remove('open');commit();walkingKeys?.clear?.();for(const c of held)if(MOVE.has(c))suppressed.add(c);
    try{canvas?.focus?.();}catch{}

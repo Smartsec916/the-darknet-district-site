@@ -37,26 +37,26 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   await page.keyboard.up('KeyW');await page.keyboard.down('KeyW');await page.waitForTimeout(600);await page.keyboard.up('KeyW');assert(dist(d1,await pos())>.15,'pressed again: moves');
   // 4. Text entry never moves or closes anything
   await page.keyboard.press('KeyL');await page.waitForSelector('#personal-device.open');
-  await page.evaluate(()=>{const i=document.createElement('input');i.type='text';i.id='pd-test-input';document.querySelector('#personal-device main').appendChild(i);i.focus();});
+  await page.evaluate(()=>{const i=document.createElement('input');i.type='text';i.id='pd-test-input';document.querySelector('#personal-device .pd-main').appendChild(i);i.focus();});
   const t0=await pos();await page.keyboard.type('wasd lel e');await page.waitForTimeout(500);const t1=await pos();assert(dist(t0,t1)<.05,'typing does not move the character');
   assert.equal(await page.inputValue('#pd-test-input'),'wasd lel e');assert.equal(await open(),true,'typing L does not close the device');await page.evaluate(()=>document.getElementById('pd-test-input').remove());
   // 5. Expand and collapse
   await page.click('[data-do=expand]');let r=await page.evaluate(()=>document.getElementById('personal-device').getBoundingClientRect().width/innerWidth);assert(r>.9,'expanded: '+r);
   await page.click('[data-do=expand]');r=await page.evaluate(()=>document.getElementById('personal-device').getBoundingClientRect().width/innerWidth);assert(Math.abs(r-.5)<.06,'collapsed: '+r);
   // 6. Navigation, back, Esc; Mission Log with no missions; the old pistol text is gone
-  await page.click('[data-app=missions]');assert.match(await page.textContent('#personal-device main'),/No active missions/);assert.doesNotMatch(await page.textContent('#personal-device'),/pistol|Mara gives/i);
+  await page.click('[data-app=missions]');assert.match(await page.textContent('#personal-device .pd-main'),/No active missions/);assert.doesNotMatch(await page.textContent('#personal-device'),/pistol|Mara gives/i);
   await page.keyboard.press('Escape');assert.equal(await page.textContent('#personal-device .pd-title'),'HOME');assert.equal(await open(),true,'Esc in an app goes back, it does not close');
   // 7. Camera and Gallery are placeholders; App Store lists installed apps and no purchases
-  await page.click('[data-app=camera]');assert.match(await page.textContent('#personal-device main'),/Not available in the V1/);assert.equal(await page.locator('#personal-device main button').count(),0);await page.click('[data-do=back]');
-  await page.click('[data-app=gallery]');assert.match(await page.textContent('#personal-device main'),/No photos/);await page.click('[data-do=back]');
-  await page.click('[data-app=store]');const store=await page.textContent('#personal-device main');assert.match(store,/No additional apps are available yet/);assert.doesNotMatch(store,/price|\$|credits|buy/i);await page.click('[data-do=back]');
-  await page.click('[data-app=news]');assert.match(await page.textContent('#personal-device main'),/No news received yet/);await page.click('[data-do=back]');
-  await page.click('[data-app=messages]');assert.match(await page.textContent('#personal-device main'),/not connected|No chat yet/i);await page.click('[data-sub=dm]');assert.match(await page.textContent('#personal-device main'),/not available yet/);await page.click('[data-do=back]');
+  await page.click('[data-app=camera]');assert.match(await page.textContent('#personal-device .pd-main'),/Not available in the V1/);assert.equal(await page.locator('#personal-device .pd-main button').count(),0);await page.click('[data-do=back]');
+  await page.click('[data-app=gallery]');assert.match(await page.textContent('#personal-device .pd-main'),/No photos/);await page.click('[data-do=back]');
+  await page.click('[data-app=store]');const store=await page.textContent('#personal-device .pd-main');assert.match(store,/No additional apps are available yet/);assert.doesNotMatch(store,/price|\$|credits|buy/i);await page.click('[data-do=back]');
+  await page.click('[data-app=news]');assert.match(await page.textContent('#personal-device .pd-main'),/No news received yet/);await page.click('[data-do=back]');
+  await page.click('[data-app=messages]');assert.match(await page.textContent('#personal-device .pd-main'),/not connected|No chat yet/i);await page.click('[data-sub=dm]');assert.match(await page.textContent('#personal-device .pd-main'),/not available yet/);await page.click('[data-do=back]');
   // 8. Social: my own profile uses my real saved look (a portrait is drawn from the character), NPCs without a model say unavailable
   await page.evaluate(()=>{state.story.met=[...(state.story.met||[]),'rook'];});
   await page.click('[data-app=social]');
   await page.waitForFunction(()=>{const i=document.querySelector('#personal-device img.pd-portrait');return i&&/^data:image\/jpeg;base64,/.test(i.src);},null,{timeout:240000});
-  const social=await page.evaluate(()=>({imgs:[...document.querySelectorAll('#personal-device img.pd-portrait')].map(i=>({key:i.dataset.pk,len:i.src.length})),sil:document.querySelectorAll('#personal-device .pd-sil').length,text:document.querySelector('#personal-device main').textContent}));
+  const social=await page.evaluate(()=>({imgs:[...document.querySelectorAll('#personal-device img.pd-portrait')].map(i=>({key:i.dataset.pk,len:i.src.length})),sil:document.querySelectorAll('#personal-device .pd-sil').length,text:document.querySelector('#personal-device .pd-main').textContent}));
   assert(social.imgs.length>=1&&social.imgs[0].len>2000,'a real picture was drawn');assert(social.sil>=1,'the NPC without a model shows the unavailable state');assert.match(social.text,/PORTRAIT UNAVAILABLE/);assert.doesNotMatch(social.text,/@[^ ]*\.[a-z]{2,}|uid|token/i);
   await page.screenshot({path:shot+'/dd-device-social-'+tier+'.png'});
   const firstUrl=await page.evaluate(()=>document.querySelector('#personal-device img.pd-portrait').src),firstKey=social.imgs[0].key;
