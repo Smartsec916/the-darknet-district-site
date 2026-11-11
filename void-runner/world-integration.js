@@ -39,7 +39,18 @@ enterWalking=async function(id,options){
   if(mode==='walking'){state.universe.station={location:state.location};if(state.location==='meridian')VoidMissions.complete(state,'meet-rook','enter',C);save();}
  }else {const d=VoidExplorationData.locations[id];if(d){d.ship=VoidShips.get(state).id;const board=d.interactions.find(i=>i.action==='board');if(board){board.position=[-2,1.7,-25];board.label='BOARD '+VoidShips.get(state).name.toUpperCase();}}await worldEnterWalking(id,options);}
 };
-const podWake=document.createElement('section');podWake.id='pod-wake';podWake.hidden=true;podWake.setAttribute('aria-labelledby','pod-wake-title');podWake.innerHTML='<div class="pod-wake-card"><p>THE DARKNET DISTRICT · POD 01</p><h2 id="pod-wake-title">You wake in a Sleeping Pod.</h2><div class="pod-wake-actions"><button type="button" data-pod="exit">EXIT POD</button><a href="#" role="button" data-pod="music">MUSIC &amp; LIGHTS</a><a href="#" role="button" data-pod="look">LOOK INSIDE</a></div></div>';document.body.append(podWake);
+const podWake=document.createElement('section');podWake.id='pod-wake';podWake.hidden=true;podWake.setAttribute('aria-labelledby','pod-wake-title');podWake.innerHTML='<div class="pod-wake-card"><p>THE DARKNET DISTRICT · POD 01</p><h2 id="pod-wake-title">You wake in a Sleeping Pod.</h2><div class="pod-wake-actions"><button type="button" data-pod="exit">EXIT POD</button><a href="#" role="button" data-pod="music">MUSIC &amp; LIGHTS</a><a href="#" role="button" data-pod="look">LOOK INSIDE</a><a href="#" role="button" data-pod="vend">VENDING</a></div><div class="pod-vend" hidden><div class="pod-vend-grid" role="group" aria-label="Vending machine stock"></div><div class="pod-vend-info" aria-live="polite"></div><div class="pod-wake-actions"><a href="#" role="button" data-vend="buy" aria-disabled="true">DISPENSE</a><a href="#" role="button" data-vend="back">BACK</a></div></div></div>';document.body.append(podWake);
+// The pod's built-in vending unit (stock from neochinatown.js VoidPodVending). Flavour only: no credits are charged and nothing is added to the inventory.
+const podVend={box:podWake.querySelector('.pod-vend'),grid:podWake.querySelector('.pod-vend-grid'),info:podWake.querySelector('.pod-vend-info'),buy:podWake.querySelector('[data-vend="buy"]'),picked:null,yaw:null};
+function podVendShow(on){const main=podWake.querySelector('.pod-wake-card>.pod-wake-actions'),title=podWake.querySelector('#pod-wake-title');podVend.box.hidden=!on;main.hidden=on;title.hidden=on;podWake.classList.toggle('vending',on);
+ if(on){const items=globalThis.VoidPodVending?.products||[];if(!podVend.grid.children.length)for(const item of items){const b=document.createElement('a');b.href='#';b.setAttribute('role','button');b.dataset.vendItem=item.code;b.textContent=item.code+' '+item.name;podVend.grid.append(b);}
+  podVend.picked=null;podVend.buy.setAttribute('aria-disabled','true');podVend.info.textContent=items.length?'Choose an item.':'The machine is empty.';for(const b of podVend.grid.children)b.setAttribute('aria-pressed','false');if(walker){podVend.yaw=walker.yaw;walker.yaw=Math.PI;walker.pitch=0;}podVend.grid.querySelector('a')?.focus({preventScroll:true});}
+ else if(podVend.yaw!==null&&walker){walker.yaw=podVend.yaw;podVend.yaw=null;}}
+podWake.querySelector('[data-pod="vend"]').addEventListener('click',e=>{e.preventDefault();if(mode==='pod-waking')podVendShow(true);});
+podVend.box.addEventListener('click',e=>{const b=e.target.closest('a[role="button"]');if(!b)return;e.preventDefault();if(mode!=='pod-waking')return;
+ if(b.dataset.vendItem){const item=(globalThis.VoidPodVending?.products||[]).find(x=>x.code===b.dataset.vendItem);if(!item)return;podVend.picked=item;podVend.buy.setAttribute('aria-disabled','false');for(const x of podVend.grid.children)x.setAttribute('aria-pressed',String(x===b));podVend.info.textContent=item.name+' · '+item.category+' · '+item.price.toFixed(2)+' — '+item.description;}
+ else if(b.dataset.vend==='buy'&&podVend.picked){podVend.info.textContent='The coil turns. '+podVend.picked.name+' drops into the tray.';}
+ else if(b.dataset.vend==='back'){podVendShow(false);podWake.querySelector('[data-pod="vend"]').focus({preventScroll:true});}});
 function enterSleepingPod(index=1){
  if(mode!=='walking'||walkingLocation?.area!=='interior'||!walker||!Number.isInteger(index)||index<1||index>10)return false;
  const [x,z]=VoidNeoChinatown.toWorld(-15.4,57+((index-1)%5)*2.6);
@@ -52,11 +63,11 @@ podWake.querySelector('[data-pod="exit"]').addEventListener('click',()=>{
  if(mode!=='pod-waking'||!walker||!state?.story?.flags?.podWakePending)return;
  const exit=VoidDistrictArea.podExit(VoidNeoChinatown,state.story.flags.activePod||1);if(VoidExplorer.blocked(exit.spawn[0],exit.spawn[2],walkingLocation))return;
  Object.assign(walker,{x:exit.spawn[0],y:exit.spawn[1],z:exit.spawn[2],yaw:exit.yaw,pitch:0,vx:0,vz:0,eye:1.68});
- delete state.story.flags.podWakePending;podWake.hidden=true;resumeWalking();save();
+ delete state.story.flags.podWakePending;podVend.yaw=null;podVendShow(false);podWake.hidden=true;resumeWalking();save();
 });
 async function showPodWake(){
  if(mode!=='walking'||walkingLocation?.area!=='interior'||state.story.flags.podWakePending!==true)return;
- mode='pod-waking';clearInput();walkingKeys.clear();document.exitPointerLock?.();
+ mode='pod-waking';clearInput();walkingKeys.clear();document.exitPointerLock?.();podVendShow(false);
  if(globalThis.VoidPodMusic?.selectedPod!==(state.story.flags.activePod||1))globalThis.VoidPodMusic?.enterPod?.(state.story.flags.activePod||1);
  const podNumber=String(state.story.flags.activePod||1).padStart(2,'0');podWake.querySelector('.pod-wake-card p').textContent='THE DARKNET DISTRICT · POD '+podNumber;podWake.querySelector('[data-pod="look"]').textContent=walker.yaw===Math.PI/2?'LOOK THROUGH HATCH':'LOOK INSIDE';
  const creator=globalThis.VoidCharacterCreator,account=globalThis.VoidAccount;
