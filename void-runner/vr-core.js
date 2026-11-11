@@ -147,12 +147,12 @@
   if(!session||busy)return false;busy=true;closePause(true);hideChip();mode='vr-transition';clearInput();walkingKeys?.clear?.();document.exitPointerLock?.();
   const title=session.exp.title.toUpperCase();try{session.world?.onExit?.();await transition('out',title);}finally{audioStop();try{await back();}finally{busy=false;}}return true;}
  async function back(){document.body.classList.remove('vr-session');const s=session;restore(s.raw);session=null;saveBlocked=false;delete state.story.flags.vrReturn;walkingLocation=walker=null;
-  const loading=enterWalking('sacramento');await transition('hold','THE DARKNET DISTRICT',loading);atTerminal();baseSave();await transition('in','THE DARKNET DISTRICT');}
+  const loading=enterWalking(globalThis.VoidDistrictArea?VoidDistrictArea.keyFor(state):'sacramento');await transition('hold','THE DARKNET DISTRICT',loading);atTerminal();baseSave();await transition('in','THE DARKNET DISTRICT');}
  async function recover(message){document.body.classList.remove('vr-session');audioStop();hideChip();const s=session;if(s){restore(s.raw);session=null;}saveBlocked=false;delete state.story.flags.vrReturn;walkingLocation=walker=null;
-  try{await enterWalking('sacramento');atTerminal();baseSave();}catch{}overlay?.remove();overlay=null;busy=false;announce(message);}
+  try{await enterWalking(globalThis.VoidDistrictArea?VoidDistrictArea.keyFor(state):'sacramento');atTerminal();baseSave();}catch{}overlay?.remove();overlay=null;busy=false;announce(message);}
  function atTerminal(){const n=N();if(!walker||!n)return;const [x,z]=n.toWorld(TERMINAL[0]+1.2,TERMINAL[1]);walker.x=x;walker.z=z;const [bx,bz]=n.toWorld(-12.6,36);walker.yaw=Math.atan2(bx-x,bz-z);walker.pitch=0;resumeWalking();}
  // A reload during VR: the save is the one from before the session, so put the player back at the terminal.
- const vrEnter=enterWalking;enterWalking=async function(id){const r=await vrEnter(id);if(!session&&!busy&&state?.story?.flags?.vrReturn&&walkingLocation?.id==='neochinatown'){delete state.story.flags.vrReturn;atTerminal();baseSave();announce('You take off the VR headset at the arcade terminal.');}return r;};
+ const vrEnter=enterWalking;enterWalking=async function(id,options){const r=await vrEnter(id,options);if(!session&&!busy&&state?.story?.flags?.vrReturn&&walkingLocation?.id==='neochinatown'){delete state.story.flags.vrReturn;atTerminal();baseSave();announce('You take off the VR headset at the arcade terminal.');}return r;};
  // ---- In-session UI: the EXIT VR chip and the VR menu (Esc) ----
  function showChip(){hideChip();chip=document.createElement('div');chip.id='vr-chip';chip.innerHTML='<span>VR · '+esc(session.exp.title.toUpperCase())+'</span><button type="button" data-vr="exit">EXIT VR · BACKSPACE</button>';document.body.append(chip);}
  function hideChip(){chip?.remove();chip=null;}
@@ -186,7 +186,7 @@
  VoidInteractions.register('vr-act',({item})=>{session?.world?.interact?.(item);});
  // ---- Seats: sit (lower view, mouse to look), stand with E, Space or any movement key ----
  function sit(seat){if(!session)return;session.seat={...seat,before:{x:walker.x,z:walker.z,y:walker.y}};mode='vr-seated';clearInput();walkingKeys?.clear?.();walker.x=seat.x;walker.z=seat.z;walker.y=seat.eye||1.15;walker.yaw=seat.yaw;walker.pitch=seat.pitch||0;announce((seat.text||'You sit down.')+' E or Space to stand.');}
- function stand(){if(!session?.seat)return;const b=session.seat.before;walker.x=b.x;walker.z=b.z;walker.y=1.7;session.seat=null;session.world?.onStand?.();resumeWalking();}
+ function stand(){if(!session?.seat)return;const b=session.seat.before;walker.x=b.x;walker.z=b.z;walker.y=1.7;session.seat=null;session.world?.onStand?.();if(globalThis.VoidConversationUI?.continueWalking())return;resumeWalking();}
  addEventListener('mousemove',e=>{if(mode!=='vr-seated')return;walker.yaw+=e.movementX*.003;walker.pitch=Math.max(-1.2,Math.min(1.2,walker.pitch+e.movementY*.003));});
  addEventListener('keydown',e=>{if(mode!=='vr-seated')return;if(['KeyE','Space','KeyW','KeyA','KeyS','KeyD','Enter'].includes(e.code)){e.preventDefault();e.stopPropagation();stand();}},true);
  // ---- Called by the renderer (prepareRoom) to build a world, and each frame through the room's tick ----

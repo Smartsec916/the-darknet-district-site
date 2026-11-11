@@ -1,6 +1,6 @@
 # VOID//RUNNER: Development Handoff
 
-> **November 2026 update:** This October 15 handoff contains historical campaign assumptions. Current District-first direction and development autonomy are defined in `CLAUDE.md` under “Current development authority.” When these conflict, the newer direction controls.
+> **ACTIVE HANDOFF — 2026-11-10:** For the current District-first game, read [`docs/development/AI_HANDOFF.md`](docs/development/AI_HANDOFF.md) and [`docs/development/AI_ROADMAP.md`](docs/development/AI_ROADMAP.md) first. Draft PR [#212](https://github.com/Smartsec916/the-darknet-district-site/pull/212) integrates the newer entry/runtime; Node/Python/Babylon smoke passed at head `e3e0ba1` (GitHub Actions run `42893600023`). The PR **is not merged or live**, and manual browser/production-compatibility checks remain. This file's October 15 `main`, starting-on-Vesper, mission, ship and CI figures are **historical**, not current release instructions. Preserve canon/decision history but do not restore the old tutorial, old Arcade link or old homepage graphics. Only verified, independent changes may be considered for a partial live release.
 
 **As of:** 2026-10-15 · **`main` at:** PR #47 merged (`24a7071`) plus this handoff PR · **Owner and creative authority:** David (GitHub `Smartsec916`)
 

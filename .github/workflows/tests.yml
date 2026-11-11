@@ -21,7 +21,6 @@ jobs:
           node-version: 22
       # The unit tests use only node:test, so no npm install is needed.
       - run: node --test tests/*.test.cjs
-
   python:
     name: Python API tests
     runs-on: ubuntu-latest

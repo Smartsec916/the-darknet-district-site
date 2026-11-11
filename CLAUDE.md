@@ -2,7 +2,7 @@
 
 ## Current development authority — November 2026 (supersedes conflicting older handoff guidance)
 
-The active desktop game is the **Darknet District-first multiplayer experience** in NeoChinatown, Tessaly System. Players begin at the District entrance, create a character before entering their pod, and initially undertake local District/NeoChinatown activities; a ship is earned later. The older VOID//RUNNER opening, Vesper/Mara tutorial and immediate ship ownership are historical plans, **not** instructions to restore them. Preserve compatible code and save IDs where possible. Treat older design briefs saying "DO NOT IMPLEMENT ANYTHING YET" as instructions for those historical planning exercises, not a blanket prohibition on current development.
+The active desktop game is the **District-first experience (multiplayer under development)** in NeoChinatown, Tessaly System. **Every login/reconnect should spawn in that player's own Sleeping Pod; first-time character customization happens before EXIT POD.** The homepage is the entry point, but it is not the gameplay spawn location. New campaigns have no active missions or starting ship; local District/NeoChinatown missions are designed later and a ship is earned by a future approved mission. The older VOID//RUNNER opening, Vesper/Mara tutorial and immediate ship ownership are historical plans, **not** instructions to restore them. Preserve compatible code and save IDs where possible. Treat older design briefs saying "DO NOT IMPLEMENT ANYTHING YET" as instructions for those historical planning exercises, not a blanket prohibition on current development.
 
 **Autonomy:** Claude and Codex may proactively diagnose, implement and test reversible gameplay, visuals, animations, NPC ambient behaviors, UI, local multiplayer functionality, performance and bug fixes, including reasonable new features consistent with the established District direction. Do not require 3–5 proposals for ordinary implementation, incidental dialogue or technical decisions. Offer options for major story/canon, faction, mission-arc, monetization or irreversible architectural changes; David retains final creative authority. Explicitly locked voices and David-authored scripts remain protected.
 
@@ -17,6 +17,10 @@ The active desktop game is the **Darknet District-first multiplayer experience**
 This repository is David's website, The Darknet District (https://thedarknetdistrict.com). Most active work is on the browser game **VOID//RUNNER** (`void-runner.html` plus `void-runner/`).
 
 **Read `VOID_RUNNER_HANDOFF.md` before changing the game.** It holds the current canon, the decision log, mission state, and what is approved and what is not.
+
+## Current handoff and release state (2026-11-10)
+
+**Before coding, read `docs/development/AI_HANDOFF.md` and `docs/development/AI_ROADMAP.md`**, then this file and `VOID_RUNNER_HANDOFF.md` for technical conventions and historical decisions. The earlier October campaign status is historical; **the current District-first state wins**. Draft PR #212 is an incomplete production integration; its Node, Python and Babylon smoke CI was green at `e3e0ba1`, but that does not replace manual acceptance. Do not interpret a PR build as a live deployment. The owner would like independently ready fixes released, but only merge/deploy changes with verified compatibility and explicit safe scope. Keep wholesale PR #212 in draft until accepted. The latest user instruction permits deleting **unfinished in-game shop items** if required, **not** real storefront inventory, Shopify, or purchased entitlements.
 
 ## The owner and how to work with him
 
