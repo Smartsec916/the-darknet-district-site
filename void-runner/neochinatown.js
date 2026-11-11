@@ -586,14 +586,27 @@
      g.fillStyle='#4fae6c';g.font='11px monospace';g.fillText('VOL',226,164);g.fillStyle='#16221c';g.fillRect(254,154,112,10);g.fillStyle='#b8d94a';g.fillRect(254,154,Math.round(112*Math.max(0,Math.min(1,on||st?st.volume??.6:.6))),10);
      g.fillStyle='#4fae6c';g.fillText(on?(st.source==='mine'?'MY MUSIC':'DISTRICT PLAYLIST'):'',226,182);
     }
+    // The pod's ambient-light panel face (after the owner's Tesana pod). It shows THIS pod's lighting choice; the controls stay in MUSIC & LIGHTS.
+    const podLightFaces={},POD_LIGHTS=[['rest','REST','#ad5a94','#5a2a66'],['reading','READING','#fff0cb','#d9a860'],['music','MUSIC SYNC','#e96bbf','#7840a5']];
+    function drawPodLights(g,index,preset,lv){
+     const W=320,H=180,bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#1c1424');bg.addColorStop(1,'#0e0a14');g.fillStyle=bg;g.fillRect(0,0,W,H);
+     g.textAlign='left';g.textBaseline='alphabetic';g.font='700 15px Arial,Helvetica,sans-serif';g.fillStyle='#f2d8ee';g.fillText('AMBIENT LIGHT',12,22);g.font='500 11px Arial,sans-serif';g.fillStyle='#9a86ae';g.fillText('POD '+String(index).padStart(2,'0'),136,22);
+     const cur=POD_LIGHTS.find(p=>p[0]===preset)||POD_LIGHTS[0];
+     POD_LIGHTS.forEach((p,i)=>{const x=12,y=34+i*46,on=p===cur;g.beginPath();g.roundRect?g.roundRect(x,y,150,38,8):g.rect(x,y,150,38);g.fillStyle=on?'rgba(178,74,212,.3)':'#1e1828';g.fill();g.strokeStyle=on?'#e96bbf':'#3e3050';g.lineWidth=on?2:1;g.stroke();
+      g.font='700 13px Arial,sans-serif';g.fillStyle=on?'#ffe2f6':'#c8b8d8';g.fillText(p[1],x+10,y+17);for(let k=0;k<2;k++){g.beginPath();g.arc(x+15+k*12,y+28,4,0,Math.PI*2);g.fillStyle=p[2+k];g.fill();}
+      if(p[0]==='music')for(let b=0;b<4;b++){const h=on&&lv?.on?4+[lv.bass,lv.mid,lv.high,lv.mid][b]*14:3;g.fillStyle=on?'#e96bbf':'#5a4a6a';g.fillRect(x+108+b*8,y+32-h,5,h);}});
+     const ox=240,oy=86,glow=g.createRadialGradient(ox,oy,4,ox,oy,58);glow.addColorStop(0,cur[2]);glow.addColorStop(.55,cur[3]);glow.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=preset==='reading'?1:preset==='music'?.8:.55;g.fillStyle=glow;g.beginPath();g.arc(ox,oy,58,0,Math.PI*2);g.fill();g.globalAlpha=1;
+     g.textAlign='center';g.font='700 12px Arial,sans-serif';g.fillStyle='#ffe8f8';g.fillText(cur[1],ox,160);g.font='500 10px Arial,sans-serif';g.fillStyle='#b8a4cc';g.fillText(preset==='reading'?'90%  ·  ON':preset==='music'?'FOLLOWS THE MUSIC':'40%  ·  ON',ox,173);g.textAlign='left';
+    }
     const podScreen=(()=>{
      const rest=B.Color3.FromHexString('#ad5a94'),reading=B.Color3.FromHexString('#fff0cb'),musicColor=B.Color3.FromHexString('#e96bbf');
-     let playerClock=0,playerSig='';
+     let playerClock=0,playerSig='',lightSigs={};
      return {tick(dt=.016){const music=root.VoidPodMusic,lv=music?.levels?.();
       const nowMs=typeof performance!=='undefined'?performance.now():Date.now();   // real time: the game clock stands still while the player lies in the pod
       if(nowMs>=playerClock&&music?.state){playerClock=nowMs+500;const st=music.state(),index=music.activePod||music.selectedPod||0,sig=index+'|'+st.playing+'|'+st.title+'|'+Math.floor(st.position||0)+'|'+Math.round((st.volume||0)*20)+'|'+st.source;
        if(sig!==playerSig){const prev=Number(playerSig.split('|')[0])||0;playerSig=sig;if(prev&&prev!==index&&podPlayers[prev]){drawPodPlayer(podPlayers[prev].getContext(),prev,null);podPlayers[prev].update();}
-        if(podPlayers[index]){drawPodPlayer(podPlayers[index].getContext(),index,st);podPlayers[index].update();}}}
+        if(podPlayers[index]){drawPodPlayer(podPlayers[index].getContext(),index,st);podPlayers[index].update();}}
+        for(let index=1;index<=10;index++){const face=podLightFaces[index];if(!face)continue;const preset=music.lightingFor?.(index)||'rest',live=preset==='music'&&music.activePod===index&&lv?.on,sig=preset+(live?'|'+Math.round(lv.bass*6)+Math.round(lv.mid*6)+Math.round(lv.high*6):'');if(lightSigs[index]!==sig){lightSigs[index]=sig;drawPodLights(face.getContext(),index,preset,live?lv:null);face.update();}}}
       for(let index=1;index<=10;index++){const preset=music?.lightingFor?.(index)||'rest',reactive=preset==='music'&&music?.activePod===index&&lv?.on;
        const led=mats['tesana-pod-led-'+index],inner=mats['pod-inner-'+index];if(led)led.emissiveColor=(preset==='reading'?reading:preset==='music'?musicColor:rest).scale(reactive?1+1.2*Math.max(lv.bass,lv.mid):preset==='reading'?.9:.4);
        if(inner)inner.emissiveColor=reading.scale(reactive?.35+.4*lv.bass:preset==='reading'?.55:.16);}
@@ -691,6 +704,8 @@
      // The pod's own music player face (after the owner's Tesana pod: an old-style amp display). It shows what THIS pod is playing; the controls stay in MUSIC & LIGHTS.
      const podTex=texture('tesana-pod-screen-'+index,384,192,g=>drawPodPlayer(g,index,null));podPlayers[index]=podTex;
      box('tesana-pod-screen-frame',[.05,.56,1.06],[-16.48,y+.14,z+.4],podVent);plane('tesana-pod-screen',.98,.49,[-16.44,y+.14,z+.4],texMat('tesana-pod-screen-'+index,podTex,{glow:true}),-Math.PI/2);
+     const lightTex=texture('tesana-pod-lights-'+index,320,180,g=>drawPodLights(g,index,root.VoidPodMusic?.lightingFor?.(index)||'rest',null));podLightFaces[index]=lightTex;
+     box('tesana-pod-lights-frame',[.05,.32,.56],[-16.48,y-.04,z-.42],podVent);plane('tesana-pod-lights',.5,.28,[-16.44,y-.04,z-.42],texMat('tesana-pod-lights-'+index,lightTex,{glow:true}),-Math.PI/2);
      neon('pod-no-'+row+i,[String(row*5+i+1).padStart(2,'0')],['#e8f0ff'],.4,.25,[-14.06,y+.62,z+.8],-Math.PI/2,undefined,true);}
     box('pod-ladder',[.1,3.2,.6],[-14,1.6,69],pipe);box('pod-terminal',[.4,1.2,.4],[-6,.6,57],frame);box('pod-terminal-screen',[.05,.4,.3],[-5.78,1.1,57],cyan);
     for(let z=56.8;z<69;z+=2.4)box('pods-ceiling-panel',[1,.04,1],[-9,4.03,z],glowMat('pod-panel','#7fe6ff',.9));
