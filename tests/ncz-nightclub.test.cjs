@@ -20,7 +20,8 @@ test('the club stands west of Main Street, north-west of the landing pad, clear 
  assert.ok(Math.abs((x0+x1)/2-36)<3&&Math.abs((z0+z1)/2-(-58.2))<.5,'centred on the mapped box');
  for(const [id,r] of Object.entries(N.streets)){if(id==='main')continue;assert.ok(x1<=r[0]||x0>=r[1]||z1<=r[2]||z0>=r[3],'clear of '+id);}
  assert.ok(x1<=N.footprints.district[0]&&x1<=N.footprints.terrace[0],'clear of the District and its terrace');
- for(const id of ['board','terminal','tdd'])assert.ok(N.layout().interactions.some(i=>i.id===id),id+' kept');
+ for(const id of ['board','terminal'])assert.ok(N.layout().interactions.some(i=>i.id===id),id+' kept');
+ assert.ok(N.layout().solids.some(s=>s.id==='district-door'),'District door kept');
  assert.deepEqual(N.layout().spawn,off.layout().spawn,'the landing spot did not move');
 });
 

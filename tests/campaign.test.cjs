@@ -5,9 +5,11 @@ test('optional dock servicing charges once and keeps credits valid',()=>{
   try{B.apply({...B.defaults,repairCost:20.4});const receipt=C.complete(s);assert.equal(receipt.repairCharged,20);assert.equal(s.credits,430);assert(C.restore(JSON.stringify(s)));}
   finally{B.apply(B.defaults);}
 });
-test('pre-reset v1 saves are recognized as legacy and are not silently loaded into the new campaign',()=>{
-  const old={version:1,quest:'open',location:'rusthaven',credits:2450,reputation:10,completed:4,contract:'ghost',upgrades:{guns:2,armor:1,engines:3}};
-  assert.equal(C.isLegacy(old),true);assert.equal(C.restore(JSON.stringify(old)),null);
+test('saves from before the District reset are retired: version 1 and version 2 alike are refused',()=>{
+  const v1={version:1,quest:'open',location:'rusthaven',credits:2450,reputation:10,completed:4,contract:'ghost',upgrades:{guns:2,armor:1,engines:3}};
+  assert.equal(C.restore(JSON.stringify(v1)),null);assert.equal(C.isLegacy(JSON.stringify(v1)),true);
+  const v2=JSON.parse(JSON.stringify(C.fresh()));delete v2.story.flags.campaignEpoch;assert.equal(C.restore(JSON.stringify(v2)),null);assert.equal(C.isLegacy(v2),true);
+  const current=C.restore(JSON.stringify(C.fresh()));assert(current);assert.equal(current.story.flags.campaignEpoch,C.campaignEpoch);assert.equal(C.isLegacy(JSON.stringify(C.fresh())),false);
 });
 test('all 12 chapter missions unlock in order and pay once per acceptance',()=>{
   const s=C.fresh();trained(s);s.quest='open';assert.equal(C.accept(s,'gate-4'),false);

@@ -1,0 +1,31 @@
+/* New campaigns have no missions. Old saves, the mission engine and every mission NPC stay intact. */
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
+const C=require('../void-runner/campaign.js'),M=require('../void-runner/mission-log.js'),N=require('../void-runner/neochinatown.js');
+const started=()=>C.startDistrictCampaign(C.fresh());
+test('a new campaign starts in NeoChinatown with no mission, pistol, or ship access',()=>{const s=started();assert.equal(s.location,'earth');assert.equal(s.universe.currentSystem,'sol');assert.equal(s.quest,'inheritance');assert.equal(s.universe.freeTravel,false);assert.equal(M.sync(s,C).length,0);assert.equal(M.acquire(s,'meet-rook'),null);assert.equal(s.progression.personal.weapon??null,null);assert.equal(s.progression.opening.pistol,false);assert.equal(s.progression.flags.maraShipHandoff??false,false);assert.equal(C.beginJourney(s),false);assert.deepEqual(C.factionOffers(s),[]);assert.equal(C.sealedOffered(s),false);});
+test('the start survives a save and reload without gaining missions',()=>{const s=C.restore(JSON.stringify(started()));assert(s);assert.equal(s.location,'earth');assert.equal(s.story.flags.missionPool,'closed');assert.equal(M.all(s,C).length,0);assert.equal(s.universe.trackedMission,null);});
+test('a saved campaign with the old mission engine still keeps its missions and progress',()=>{const old=C.fresh();old.location='vesper';old.quest='legal-run';old.credits=450;M.acquire(old,'legal-run');const s=C.restore(JSON.stringify(old));assert.equal(s.quest,'legal-run');assert.equal(s.credits,450);assert.equal(s.story.flags.missionPool,undefined);assert(M.all(s,C).some(m=>m.id==='legal-run'));});
+test('the mission engine still works for anything without the flag',()=>{const s=C.fresh();assert(Object.keys(M.definitions).length>=18);assert(M.acquire(s,'meet-rook'));assert(C.allContracts.length>0);});
+test('mission NPCs, voices and dialogue are preserved',()=>{const voices=JSON.parse(fs.readFileSync('tools/audio/npc-voice-registry.json','utf8')).npcs;const names=Object.keys(voices).join(' ').toLowerCase();for(const who of ['mara','rook','admin','iris','elara','marcus'])assert(names.includes(who),who);const scenes=fs.readFileSync('void-runner/faction-scenes.js','utf8');for(const needle of ['adminIntro','factionOffers','district-iris'])assert(scenes.includes(needle),needle);assert(fs.readFileSync('void-runner/prologue-integration.js','utf8').includes('Rook vouched for you'));});
+test('the door spawn stands outside the closed door, clear of walls',()=>{const place=N.layout(),E=require('../void-runner/exploration-controller.js');const [x,z]=N.toWorld(0,17);assert(!E.blocked(x,z,place));const door=place.solids.find(s=>s.id==='district-door');assert.equal(Math.abs(door.position[2]-z),3);});
+test('the Kestrel and its boarding prompt are hidden for new campaigns but kept for existing saves',()=>{
+ const src=fs.readFileSync('void-runner/neochinatown.js','utf8'),V=require('../void-runner/story.js'),board=N.layout().interactions.find(i=>i.id==='board');
+ assert(src.includes("shipAccess!=='none'){const ship=shipModel('starter'"),'the pad ship is only built when the pool is not closed');
+ assert(board&&board.when,'the boarding prompt is conditional');
+ assert.equal(V.matches(started(),board.when),false,'new campaign: no prompt');
+ const old=C.restore(JSON.stringify(Object.assign(C.fresh(),{location:'earth',quest:'open'})));
+ assert.equal(V.matches(old,board.when),true,'old save: prompt kept');
+ assert.equal(V.matches(C.fresh(),board.when),true);
+});
+test('ship access is its own switch, independent of the mission pool',()=>{
+ const Sh=require('../void-runner/ships.js'),s=started();
+ assert.equal(s.story.flags.shipAccess,'none');assert.equal(Sh.hasShip(s),false);assert.equal(Sh.owns(s,'starter'),false);assert.equal(Sh.owns(s,'ship2'),false);
+ assert.equal(C.switchShip(s,'starter'),false);s.credits=1e6;assert.equal(C.buyShip(s,'ship2'),false);
+ const r=C.restore(JSON.stringify(s));assert.equal(Sh.hasShip(r),false,'locked state survives save and reload');
+ assert.equal(C.grantShip(r),true);assert.equal(Sh.owns(r,'starter'),true);assert.equal(r.story.flags.missionPool,'closed','granting a ship does not reopen missions');assert.equal(M.sync(r,C).length,0);
+ assert.equal(Sh.hasShip(C.restore(JSON.stringify(r))),true,'granted state survives save and reload');
+});
+test('a state with no ship lock keeps its ship, and granting a ship to it changes nothing',()=>{
+ const Sh=require('../void-runner/ships.js'),open=C.restore(JSON.stringify(C.fresh()));assert.equal(open.story.flags.shipAccess,undefined);assert.equal(Sh.hasShip(open),true);assert.equal(Sh.owns(open,'starter'),true);
+ assert.equal(C.grantShip(C.fresh()),true,'granting an unlocked state changes nothing');
+});

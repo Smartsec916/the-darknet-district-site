@@ -1,7 +1,7 @@
 /* The Sleeping Pod smoke, in a real browser engine (Playwright, Edge/Chromium). Phone checks use Playwright's Pixel 7 EMULATION profile (touch, mobile
    user agent, 412x839): a simulation, NOT a physical Android phone, and the GPU is this computer's. What it can prove: the plume really draws pixels
    in each renderer, the fallbacks work when WebGL is missing, broken, or silently draws nothing, reduced motion shows a still haze (no frame loop), the
-   plume pauses while the tab is hidden and restarts after a back/forward-cache restore, the Iris chat and the smoke coexist, and the desktop path is
+   plume pauses while the tab is hidden and restarts after a back/forward-cache restore, and the desktop path is
    the same WebGL as before. It cannot prove how a particular phone's GPU behaves.
    Run:  node tests/sleeping-pod-smoke-browser.cjs        -> screenshots and results.json in work/smoke/ */
 const { chromium, devices } = require('playwright'), http = require('node:http'), fs = require('node:fs'), path = require('node:path');
@@ -24,9 +24,8 @@ async function open(browser, contextOptions, query, init) {
   const page = await ctx.newPage(); const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   await page.route(/googletagmanager|gstatic|googleapis|firebase|\.mp3|\/api\/health/, r => r.abort());
-  await page.route('**/api/chat/message', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ response: 'Echo' }) }));
   await page.goto(`${base}/sleeping_pod.html?smokedebug${query || ''}`, { waitUntil: 'load' });
-  await page.waitForFunction(() => window.podSmoke && window.__irisChatLoaded === true, null, { timeout: 8000 });
+  await page.waitForFunction(() => window.podSmoke && window.DistrictMusicCatalog?.length === 27, null, { timeout: 8000 });
   return { ctx, page, errors };
 }
 const smokeState = page => page.evaluate(() => window.podSmoke.state());
@@ -127,36 +126,15 @@ let base;
     await ctx.close();
   });
 
-  await check('Iris and the smoke together on a phone: the chat button is visible and does not cover the pod controls, the smoke runs with the chat closed, a new plume waits while the chat is open, and it resumes after', async () => {
-    const { ctx, page, errors } = await open(browser, phone, '&force');
-    const geometry = await page.evaluate(() => { const b = document.getElementById('chatButton').getBoundingClientRect(); const hits = ['dimButton', 'musicButton'].map(id => { const r = document.getElementById(id).getBoundingClientRect(); return !(b.right < r.left || b.left > r.right || b.bottom < r.top || b.top > r.bottom); }); return { b: [b.left, b.top, b.right, b.bottom], hits, w: innerWidth, h: innerHeight }; });
-    assert.deepEqual(geometry.hits, [false, false], 'the capsule covers neither pod button: ' + JSON.stringify(geometry));
-    assert.ok(geometry.b[2] <= geometry.w && geometry.b[3] <= geometry.h, 'and is on screen');
-    let s = await exhaleAndWait(page, 3.5); assert.ok(s.running && s.alpha > 0, 'smoke runs with the chat closed: ' + JSON.stringify(s));
-    await page.screenshot({ path: path.join(out, 'phone-smoke-with-iris-closed.png') });
-    await page.tap('#chatButton'); await page.waitForSelector('#chatContainer', { state: 'visible' });
-    s = await smokeState(page); assert.ok(s.chatOpen, 'the smoke knows the chat is open');
-    await wait(8000); // let the running plume finish
-    s = await smokeState(page); assert.ok(!s.running, 'the plume finished');
-    await page.evaluate(() => window.podSmoke.exhale()); await wait(500); s = await smokeState(page);
-    assert.ok(!s.running, 'no new plume while the phone chat window is open: ' + JSON.stringify(s));
-    await page.fill('#messageInput', 'hello with smoke'); await page.tap('#sendButton');
-    await page.waitForFunction(() => document.getElementById('chatMessages').textContent.includes('Echo'), null, { timeout: 8000 });
-    await page.screenshot({ path: path.join(out, 'phone-iris-open.png') });
-    await page.tap('#chatMinimize'); await wait(300); s = await smokeState(page); assert.ok(!s.chatOpen, 'closed');
-    await wait(5000); s = await smokeState(page); assert.ok(s.running || s.timer, 'smoke resumes (running or scheduled): ' + JSON.stringify(s));
-    s = await exhaleAndWait(page, 3.5); assert.ok(s.running && s.alpha > 0, 'and draws after the chat has been opened and closed: ' + JSON.stringify(s));
-    assert.deepEqual(errors, []); await ctx.close();
-  });
-
-  await check('Iris and the smoke together on a desktop: the smoke keeps drawing while the chat window is open', async () => {
-    const { ctx, page, errors } = await open(browser, desktop, '&force');
-    await page.click('#chatButton'); await page.waitForSelector('#chatContainer', { state: 'visible' });
-    const s = await exhaleAndWait(page, 4); assert.ok(s.running && s.alpha > 0 && s.renderer === 'webgl', JSON.stringify(s));
-    await page.screenshot({ path: path.join(out, 'desktop-smoke-with-iris-open.png') });
-    await page.fill('#messageInput', 'still chatting'); await page.click('#sendButton');
-    await page.waitForFunction(() => document.getElementById('chatMessages').textContent.includes('Echo'), null, { timeout: 8000 });
-    assert.deepEqual(errors, []); await ctx.close();
+  await check('The Sleeping Pod keeps its smoke and controls without Iris on phone and desktop', async () => {
+    for (const profile of [phone, desktop]) {
+      const { ctx, page, errors } = await open(browser, profile, '&force');
+      assert.equal(await page.locator('#chatButton, #chatContainer').count(), 0);
+      const s = await exhaleAndWait(page, 3.5);
+      assert.ok(s.running && s.alpha > 0, JSON.stringify(s));
+      assert.deepEqual(errors, []);
+      await ctx.close();
+    }
   });
 
   await check('"dim the lights" dims whichever canvas is showing the smoke', async () => {
