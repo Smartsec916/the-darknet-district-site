@@ -11,6 +11,7 @@
   font-family: inherit;
 }
 #pod-wake[hidden] { display: none; }
+#pod-wake.preparing { background: #02060c; }
 .pod-wake-card {
   width: min(30rem, 100%);
   padding: 1.25rem;
@@ -21,5 +22,6 @@
 }
 .pod-wake-card p { margin: 0 0 .6rem; color: #67e8e9; font-size: .75rem; letter-spacing: .15em; }
 .pod-wake-card h2 { margin: 0 0 1.2rem; font-size: 1.2rem; font-weight: 600; }
-.pod-wake-card button { padding: .7rem 1.5rem; border: 1px solid #67e8e9; background: #073543; color: #fff; font: inherit; letter-spacing: .1em; cursor: pointer; }
-.pod-wake-card button:hover, .pod-wake-card button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; background: #126478; }
+.pod-wake-card button, .pod-wake-card a[role="button"] { display:inline-block; padding: .7rem 1.5rem; border: 1px solid #67e8e9; background: #073543; color: #fff; font: inherit; letter-spacing: .1em; cursor: pointer; text-decoration:none; }
+.pod-wake-card button:hover, .pod-wake-card button:focus-visible, .pod-wake-card a[role="button"]:hover, .pod-wake-card a[role="button"]:focus-visible { outline: 2px solid #fff; outline-offset: 3px; background: #126478; }
+.pod-wake-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; }

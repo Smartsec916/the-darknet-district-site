@@ -23,27 +23,43 @@ class StorySaveTests(unittest.TestCase):
         clean=vr.clean_save(state)
         self.assertEqual(clean['progression']['opening']['cans'],[0,2,3,5])
         self.assertEqual(clean['progression']['personal']['weapon'],'ward-pistol')
+    def test_new_campaign_outside_the_district_passes_cloud_validation(self):
+        state=self.state();state.update(quest='inheritance',location='earth',completed=0);state['story']['flags']['missionPool']='closed'
+        clean=vr.clean_save(state)
+        self.assertEqual(clean['location'],'earth');self.assertEqual(clean['story']['flags']['missionPool'],'closed')
     def state(self):
-        return {'version':2,'quest':'open','location':'meridian','credits':100,'completed':2,'upgrades':{'guns':0,'armor':0,'engines':0,'shields':0},'cleared':[],'contract':None,'loadout':{},'story':{'flags':{'metMara':True,'promise':False},'met':['mara'],'events':['mara_workshop_intro'],'pending':['mara_workshop_intro'],'relationships':{'mara':2},'characters':{'pirate':'dead'},'chapter':'open','unlocked':['rusthaven'],'encounters':['mara_rendezvous']},'savedAt':1750000000000}
+        return {'version':2,'quest':'open','location':'meridian','credits':100,'completed':2,'upgrades':{'guns':0,'armor':0,'engines':0,'shields':0},'cleared':[],'contract':None,'loadout':{},'story':{'flags':{'campaignEpoch':1,'metMara':True,'promise':False},'met':['mara'],'events':['mara_workshop_intro'],'pending':['mara_workshop_intro'],'relationships':{'mara':2},'characters':{'pirate':'dead'},'chapter':'open','unlocked':['rusthaven'],'encounters':['mara_rendezvous']},'savedAt':1750000000000}
     def test_round_trip_preserves_story_without_ownership_claims(self):
         state=self.state();state['owned']=['spectre'];state['story']['flags']['premium']=True
         state['story']['cursor']={'scene':'mara_workshop_intro','node':'depart','choices':False}
         clean=vr.clean_save(state)
         self.assertEqual(clean['story'],state['story']);self.assertEqual(clean['savedAt'],state['savedAt'])
         self.assertNotIn('owned',clean);self.assertEqual(clean['ownedShips'],['starter'])
-    def test_undertow_saves_map_to_rusthaven_and_rook_runs_validate(self):
-        state=self.state();state['location']='undertow';state['contract']='rook-run';state['story']['flags'].update(rookRuns=3,rookRunTo='undertow',rookSystems='erebus,sol')
+    def test_rook_runs_validate_and_the_old_undertow_id_is_no_longer_converted(self):
+        state=self.state();state['location']='rusthaven';state['contract']='rook-run';state['story']['flags'].update(rookRuns=3,rookRunTo='rusthaven',rookSystems='erebus,sol')
         clean=vr.clean_save(state)
         self.assertEqual(clean['location'],'rusthaven');self.assertEqual(clean['contract'],'rook-run');self.assertEqual(clean['story']['flags']['rookRunTo'],'rusthaven')
+        state=self.state();state['location']='undertow'
+        with self.assertRaises(vr.ApiError):vr.clean_save(state)
+
     def test_rejects_malformed_story_and_timestamp(self):
         for change in [{'flags':{'__proto__':True}},{'met':['constructor']},{'relationships':{'mara':101}},{'characters':{'mara':'unknown'}},{'pending':['x']*257},{'flags':{'bad':[]}}]:
             state=self.state();state['story'].update(change)
             with self.assertRaises(vr.ApiError):vr.clean_save(state)
         state=self.state();state['savedAt']=True
         with self.assertRaises(vr.ApiError):vr.clean_save(state)
-    def test_old_campaign_stays_eligible_for_client_migration(self):
-        state=self.state();del state['story'];del state['savedAt'];clean=vr.clean_save(state)
-        self.assertNotIn('story',clean);self.assertIsNone(clean['savedAt'])
+    def test_campaign_from_before_the_district_reset_is_retired(self):
+        # No campaign epoch means the save predates the reset: it is refused with a clear message, never converted.
+        for change in ({'story':None},{'flags':{}}):
+            state=self.state()
+            if 'story' in change and change['story'] is None:del state['story']
+            else:state['story']['flags'].pop('campaignEpoch')
+            with self.assertRaises(vr.ApiError) as raised:vr.clean_save(state)
+            self.assertEqual(raised.exception.status,409)
+        self.assertFalse(vr.is_current_save({'story':{'flags':{'campaignEpoch':'1'}}}))
+        self.assertFalse(vr.is_current_save({'story':{'flags':{'campaignEpoch':True}}}))
+        self.assertFalse(vr.is_current_save(None))
+        self.assertTrue(vr.is_current_save(self.state()))
 
     def test_sol_visit_keeps_frontier_progress_and_existing_schema(self):
         state=self.state();state['story']['flags']['solDestination']='mars'
@@ -59,3 +75,14 @@ class StorySaveTests(unittest.TestCase):
         self.assertEqual(vr.clean_save(state)['universe'],{**state['universe'],'trackingInitialized':True,'autoTrack':True,'missions':{}})
         state['universe']['discoveredLocations']=['unknown']
         with self.assertRaises(vr.ApiError):vr.clean_save(state)
+
+    def test_ship_access_flag_survives_cloud_validation(self):
+        for value in ('none','granted'):
+            state=self.state();state.update(quest='inheritance',location='earth',completed=0);state['story']['flags'].update(missionPool='closed',shipAccess=value)
+            self.assertEqual(vr.clean_save(state)['story']['flags']['shipAccess'],value)
+
+    def test_district_area_flag_survives_cloud_validation(self):
+        # A player saved inside The Darknet District is marked with story.flags.area; the location id stays 'earth'.
+        state=self.state();state.update(quest='inheritance',location='earth',completed=0);state['story']['flags'].update(missionPool='closed',area='district',districtBadge=True,districtDoor=True)
+        clean=vr.clean_save(state)
+        self.assertEqual(clean['location'],'earth');self.assertEqual(clean['story']['flags']['area'],'district');self.assertIs(clean['story']['flags']['districtBadge'],True)

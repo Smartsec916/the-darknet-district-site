@@ -39,34 +39,44 @@ enterWalking=async function(id,options){
   if(mode==='walking'){state.universe.station={location:state.location};if(state.location==='meridian')VoidMissions.complete(state,'meet-rook','enter',C);save();}
  }else {const d=VoidExplorationData.locations[id];if(d){d.ship=VoidShips.get(state).id;const board=d.interactions.find(i=>i.action==='board');if(board){board.position=[-2,1.7,-25];board.label='BOARD '+VoidShips.get(state).name.toUpperCase();}}await worldEnterWalking(id,options);}
 };
-const podWake=document.createElement('section');podWake.id='pod-wake';podWake.hidden=true;podWake.setAttribute('aria-labelledby','pod-wake-title');podWake.innerHTML='<div class="pod-wake-card"><p>THE DARKNET DISTRICT · POD 01</p><h2 id="pod-wake-title">You wake in a Sleeping Pod.</h2><button type="button">EXIT POD</button></div>';document.body.append(podWake);
-podWake.querySelector('button').addEventListener('click',()=>{
+const podWake=document.createElement('section');podWake.id='pod-wake';podWake.hidden=true;podWake.setAttribute('aria-labelledby','pod-wake-title');podWake.innerHTML='<div class="pod-wake-card"><p>THE DARKNET DISTRICT · POD 01</p><h2 id="pod-wake-title">You wake in a Sleeping Pod.</h2><div class="pod-wake-actions"><button type="button" data-pod="exit">EXIT POD</button><a href="#" role="button" data-pod="music">MUSIC &amp; LIGHTS</a><a href="#" role="button" data-pod="look">LOOK INSIDE</a></div></div>';document.body.append(podWake);
+function enterSleepingPod(index=1){
+ if(mode!=='walking'||walkingLocation?.area!=='interior'||!walker||!Number.isInteger(index)||index<1||index>10)return false;
+ const [x,z]=VoidNeoChinatown.toWorld(-15.4,57+((index-1)%5)*2.6);
+ Object.assign(walker,{x,y:1.1+(index>5?1.7:0),z,yaw:-Math.PI/2,pitch:0,vx:0,vz:0,eye:1.1+(index>5?1.7:0)});
+ globalThis.VoidPodMusic?.enterPod?.(index);state.story.flags.activePod=index;state.story.flags.podWakePending=true;save();showPodWake();return true;
+}
+podWake.querySelector('[data-pod="music"]').addEventListener('click',e=>{e.preventDefault();if(mode==='pod-waking'){podWake.hidden=true;globalThis.VoidPodMusic?.open?.({inPod:true});}});
+podWake.querySelector('[data-pod="look"]').addEventListener('click',e=>{e.preventDefault();if(mode!=='pod-waking'||!walker)return;const inside=walker.yaw!==Math.PI/2;walker.yaw=inside?Math.PI/2:-Math.PI/2;e.currentTarget.textContent=inside?'LOOK THROUGH HATCH':'LOOK INSIDE';});
+podWake.querySelector('[data-pod="exit"]').addEventListener('click',()=>{
  if(mode!=='pod-waking'||!walker||!state?.story?.flags?.podWakePending)return;
- const exit=VoidDistrictArea.podExit(VoidNeoChinatown);if(VoidExplorer.blocked(exit.spawn[0],exit.spawn[2],walkingLocation))return;
+ const exit=VoidDistrictArea.podExit(VoidNeoChinatown,state.story.flags.activePod||1);if(VoidExplorer.blocked(exit.spawn[0],exit.spawn[2],walkingLocation))return;
  Object.assign(walker,{x:exit.spawn[0],y:exit.spawn[1],z:exit.spawn[2],yaw:exit.yaw,pitch:0,vx:0,vz:0,eye:1.68});
  delete state.story.flags.podWakePending;podWake.hidden=true;resumeWalking();save();
 });
-function showPodWake(){
+async function showPodWake(){
  if(mode!=='walking'||walkingLocation?.area!=='interior'||state.story.flags.podWakePending!==true)return;
  mode='pod-waking';clearInput();walkingKeys.clear();document.exitPointerLock?.();
- const wakeButton=podWake.querySelector('button');
- const showExit=()=>{if(mode!=='pod-waking'||!state?.story?.flags?.podWakePending)return;podWake.hidden=false;wakeButton.focus({preventScroll:true});};
- // Offer a first character BEFORE the player leaves the Sleeping Pod, not when EXIT POD is clicked.
- // Existing characters and returning players retain their selected appearance.
- const creator=globalThis.VoidCharacterCreator;
- if(creator&&!creator.isOpen&&!state.story.flags.appearanceOffered&&!creator.stored()){
-   podWake.hidden=true;
-   Promise.resolve(creator.open({context:'first',onClose:showExit})).then(opened=>{if(!opened)showExit();}).catch(error=>{console.warn('[District character creator]',error);showExit();});
-   return;
+ if(globalThis.VoidPodMusic?.selectedPod!==(state.story.flags.activePod||1))globalThis.VoidPodMusic?.enterPod?.(state.story.flags.activePod||1);
+ const podNumber=String(state.story.flags.activePod||1).padStart(2,'0');podWake.querySelector('.pod-wake-card p').textContent='THE DARKNET DISTRICT · POD '+podNumber;podWake.querySelector('[data-pod="look"]').textContent=walker.yaw===Math.PI/2?'LOOK THROUGH HATCH':'LOOK INSIDE';
+ const creator=globalThis.VoidCharacterCreator,account=globalThis.VoidAccount;
+ if(account?.user&&!account.profileReady){podWake.hidden=false;podWake.classList.add('preparing');podWake.querySelectorAll('button,a').forEach(b=>b.hidden=true);
+  try{await account.ensureProfile?.();}catch{}if(mode!=='pod-waking'||state.story.flags.podWakePending!==true)return;}
+ podWake.classList.remove('preparing');podWake.querySelectorAll('button,a').forEach(b=>b.hidden=false);
+ if(!state.story.flags.appearanceOffered&&!creator?.stored()&&!account?.character){
+  podWake.hidden=true;
+  const shown=await creator?.open({context:'first',onClose:confirmed=>{if(confirmed){mode='pod-waking';podWake.hidden=false;podWake.querySelector('[data-pod="exit"]').focus({preventScroll:true});}else exitActiveGame().then(renderMainMenu);}});
+  if(!shown&&mode==='pod-waking')exitActiveGame().then(renderMainMenu);
+  return;
  }
- showExit();
+ podWake.hidden=false;podWake.querySelector('[data-pod="exit"]').focus({preventScroll:true});
 }
 dock=async function(tab='dock'){
  if(VoidGraphics.busy){VoidPreparation.cancel?.();preparationGeneration++;await Promise.allSettled([preparingLaunch,destinationPreparation].filter(Boolean));VoidGraphics.busy=false;walkingLocation=walker=null;}
  if(tab==='shop'){shop();return;}
  if(walkingLocation&&walker&&!state.story.flags.podWakePending){resumeWalking();return;}
  // NeoChinatown is two environments (street and District interior); a save inside the District resumes inside it (district-area.js).
- if(state.location==='earth'&&globalThis.VoidDistrictArea){await enterWalking(VoidDistrictArea.keyFor(state),VoidDistrictArea.resume(state,VoidNeoChinatown));showPodWake();return;}
+ if(state.location==='earth'&&globalThis.VoidDistrictArea){await enterWalking(VoidDistrictArea.keyFor(state),VoidDistrictArea.resume(state,VoidNeoChinatown));await showPodWake();return;}
  return enterWalking(state.location==='earth'?'sacramento':state.location==='mars'?'mars-terminal':'hangar');
 };
 leaveWalking=async function(){

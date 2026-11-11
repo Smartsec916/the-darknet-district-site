@@ -1,0 +1,1726 @@
+{
+ "archivedFromCommit": "e956e3de11831ff85423b785968eacde8d295e6d",
+ "missions": {
+  "ground-training": {
+   "title": "GROUND TRAINING",
+   "type": "tutorial",
+   "description": "Mara walks you through Elias’s workshop and his old pistol.",
+   "giver": "Mara",
+   "source": "story",
+   "start": "vesper",
+   "end": "vesper",
+   "destination": "vesper",
+   "objectives": [
+    {
+     "id": "recording",
+     "label": "Play Elias’s recording"
+    },
+    {
+     "id": "receive-gun",
+     "label": "Receive Elias’s pistol from Mara"
+    },
+    {
+     "id": "move",
+     "label": "Move through the workshop"
+    },
+    {
+     "id": "look",
+     "label": "Look around"
+    },
+    {
+     "id": "sprint",
+     "label": "Run (optional)",
+     "required": false
+    },
+    {
+     "id": "jump",
+     "label": "Jump (optional)",
+     "required": false
+    },
+    {
+     "id": "draw",
+     "label": "Draw the pistol"
+    },
+    {
+     "id": "aim",
+     "label": "Aim down the sights"
+    },
+    {
+     "id": "fire",
+     "label": "Fire at a can"
+    },
+    {
+     "id": "reload",
+     "label": "Reload"
+    },
+    {
+     "id": "groundCombat",
+     "label": "Knock down four practice cans"
+    }
+   ]
+  },
+  "flight-training": {
+   "title": "FLIGHT TRAINING",
+   "type": "tutorial",
+   "description": "One practice circuit over Vesper: get a feel for the Kestrel, jump to the training beacon and land back on Mara’s pad.",
+   "giver": "Mara",
+   "source": "story",
+   "start": "vesper",
+   "end": "vesper",
+   "destination": "vesper",
+   "completion": {
+    "event": "training-actions"
+   },
+   "objectives": [
+    {
+     "id": "board",
+     "label": "Board the Kestrel"
+    },
+    {
+     "id": "throttle",
+     "label": "Use throttle and braking"
+    },
+    {
+     "id": "steer",
+     "label": "Pitch and yaw the ship"
+    },
+    {
+     "id": "roll",
+     "label": "Roll the ship"
+    },
+    {
+     "id": "navigation",
+     "label": "Align with the training beacon"
+    },
+    {
+     "id": "jumpTravel",
+     "label": "Complete a short in-system jump"
+    },
+    {
+     "id": "dock",
+     "label": "Land the Kestrel"
+    }
+   ]
+  },
+  "meet-rook": {
+   "title": "CARGO DELIVERY / MEET ROOK",
+   "type": "main",
+   "description": "Take the Kestrel to Meridian Station and meet Rook to begin the cargo campaign.",
+   "giver": "Mara",
+   "source": "story",
+   "start": "vesper",
+   "end": "meridian",
+   "destination": "meridian",
+   "interaction": "rook",
+   "objectives": [
+    {
+     "id": "instructions",
+     "label": "Receive Mara’s instructions"
+    },
+    {
+     "id": "travel",
+     "label": "Travel to Meridian Station"
+    },
+    {
+     "id": "dock",
+     "label": "Dock at Meridian Station"
+    },
+    {
+     "id": "enter",
+     "label": "Enter the station"
+    },
+    {
+     "id": "locate",
+     "label": "Locate Rook"
+    },
+    {
+     "id": "speak",
+     "label": "Speak with Rook"
+    }
+   ]
+  },
+  "first-station": {
+   "title": "FIRST STATION / OUTFITTING",
+   "type": "tutorial",
+   "description": "Learn the hangar maintenance terminal and the ship outfitter. Any station with a hangar will do.",
+   "giver": "Rook",
+   "source": "story",
+   "objectives": [
+    {
+     "id": "shipInventory",
+     "label": "Inspect your ship inventory at the maintenance terminal"
+    },
+    {
+     "id": "hangar",
+     "label": "Open hangar maintenance"
+    },
+    {
+     "id": "moduleInstalled",
+     "label": "Install the Ward cooling loop"
+    },
+    {
+     "id": "vendor",
+     "label": "Visit the ship outfitter"
+    },
+    {
+     "id": "modulePurchased",
+     "label": "Buy a ship module"
+    },
+    {
+     "id": "purchasedInstalled",
+     "label": "Install the module you bought"
+    }
+   ]
+  },
+  "combat-qualification": {
+   "title": "COMBAT QUALIFICATION",
+   "type": "tutorial",
+   "description": "Optional drill. After two combat runs Rook gives you a voucher for a free missile launcher. Collect it at the Ship Outfitter, fit it at the Hangar / Maintenance terminal, then lock on and fire in your next fight.",
+   "giver": "Rook",
+   "source": "story",
+   "objectives": [
+    {
+     "id": "laserCombat",
+     "label": "In flight, fire your lasers at a hostile"
+    },
+    {
+     "id": "missileSelected",
+     "label": "Get the free missile launcher at the Ship Outfitter, then fit it to your ship at the Hangar / Maintenance terminal"
+    },
+    {
+     "id": "targetSelected",
+     "label": "In flight, target a hostile (T targets the nearest)"
+    },
+    {
+     "id": "missileLocked",
+     "label": "Keep it in the targeting ring until it shows LOCKED"
+    },
+    {
+     "id": "missileFired",
+     "label": "Fire a missile (F or right-click) while locked"
+    }
+   ]
+  },
+  "legal-run": {
+   "title": "AN HONEST LIVING",
+   "type": "cargo",
+   "description": "Deliver water filtration parts to Kepler.",
+   "giver": "Rook",
+   "destination": "kepler",
+   "rewards": 350,
+   "objectives": [
+    {
+     "id": "arrive",
+     "label": "Deliver the filters and dock at Kepler"
+    }
+   ]
+  },
+  "return": {
+   "title": "BACK TO THE DEAD CHANNEL",
+   "type": "main",
+   "description": "Return to Meridian with the completed delivery.",
+   "giver": "Rook",
+   "destination": "meridian",
+   "objectives": [
+    {
+     "id": "arrive",
+     "label": "Dock at Meridian Station"
+    }
+   ]
+  },
+  "illegal-run": {
+   "title": "NO QUESTIONS ASKED",
+   "type": "cargo",
+   "description": "Deliver unregistered memory wafers to Rusthaven.",
+   "giver": "Rook",
+   "destination": "rusthaven",
+   "rewards": 800,
+   "objectives": [
+    {
+     "id": "arrive",
+     "label": "Deliver the wafers and dock at Rusthaven"
+    }
+   ]
+  },
+  "meet-admin": {
+   "title": "MEET ADMIN",
+   "type": "main",
+   "description": "Find Rook’s contact in NeoChinatown, Tessaly.",
+   "giver": "Rook",
+   "source": "story",
+   "start": "meridian",
+   "end": "earth",
+   "completion": {
+    "event": "talk",
+    "interaction": "admin"
+   },
+   "destination": "earth",
+   "interaction": "tdd",
+   "objectives": [
+    {
+     "id": "meet-admin",
+     "label": "Find Admin at The Darknet District, NeoChinatown"
+    }
+   ]
+  },
+  "admin-sealed-cargo-01": {
+   "title": "DON’T ASK QUESTIONS",
+   "type": "cargo",
+   "description": "A sealed container from Admin for Rook at Meridian. It stays sealed.",
+   "giver": "The Darknet District",
+   "source": "story",
+   "start": "earth",
+   "end": "meridian",
+   "destination": "meridian",
+   "interaction": "rook",
+   "rewards": 1800,
+   "objectives": [
+    {
+     "id": "arrive",
+     "label": "Fly the crate to Meridian, Erebus System"
+    },
+    {
+     "id": "deliver",
+     "label": "Hand the crate to Rook"
+    }
+   ]
+  },
+  "communion-delivery": {
+   "title": "COMMUNION DELIVERY",
+   "type": "cargo",
+   "description": "Advanced electronics and research equipment for Dr. Elara Voss at The Vigil, Cantor System. Payment is collected at The Darknet District.",
+   "giver": "The Darknet District",
+   "source": "story",
+   "start": "earth",
+   "end": "earth",
+   "destination": "vigil",
+   "interaction": "elara",
+   "rewards": 1200,
+   "after": {
+    "deliver": {
+     "destination": "earth",
+     "interaction": "district-iris"
+    }
+   },
+   "objectives": [
+    {
+     "id": "arrive",
+     "label": "Fly the cargo to The Vigil, Cantor System"
+    },
+    {
+     "id": "deliver",
+     "label": "Deliver the equipment to Dr. Elara Voss"
+    },
+    {
+     "id": "payment",
+     "label": "Return to The Darknet District and collect payment"
+    }
+   ]
+  },
+  "order-delivery": {
+   "title": "NATURAL ORDER DELIVERY",
+   "type": "cargo",
+   "description": "Mechanical components and industrial supplies for Marcus Vale at Holdfast, Garrow System. Payment is collected at The Darknet District.",
+   "giver": "The Darknet District",
+   "source": "story",
+   "start": "earth",
+   "end": "earth",
+   "destination": "holdfast",
+   "interaction": "marcus",
+   "rewards": 1200,
+   "after": {
+    "deliver": {
+     "destination": "earth",
+     "interaction": "district-iris"
+    }
+   },
+   "objectives": [
+    {
+     "id": "arrive",
+     "label": "Fly the cargo to Holdfast, Garrow System"
+    },
+    {
+     "id": "deliver",
+     "label": "Deliver the components to Marcus Vale"
+    },
+    {
+     "id": "payment",
+     "label": "Return to The Darknet District and collect payment"
+    }
+   ]
+  },
+  "communion-supply": {
+   "title": "COMMUNION SUPPLY CONTRACT",
+   "type": "cargo",
+   "description": "Advanced processing modules, high-precision sensor assemblies and specialized research electronics for Dr. Elara Voss at The Vigil, Cantor System. Payment is collected from Iris at The Darknet District.",
+   "giver": "Iris",
+   "source": "story",
+   "start": "earth",
+   "end": "earth",
+   "destination": "vigil",
+   "interaction": "elara",
+   "rewards": 1500,
+   "after": {
+    "deliver": {
+     "destination": "earth",
+     "interaction": "district-iris"
+    }
+   },
+   "objectives": [
+    {
+     "id": "arrive",
+     "label": "Fly the cargo to The Vigil, Cantor System"
+    },
+    {
+     "id": "deliver",
+     "label": "Deliver the shipment to Dr. Elara Voss"
+    },
+    {
+     "id": "payment",
+     "label": "Return to The Darknet District and collect payment"
+    }
+   ]
+  },
+  "order-supply": {
+   "title": "NATURAL ORDER SUPPLY CONTRACT",
+   "type": "cargo",
+   "description": "Industrial control assemblies, heavy-duty mechanical components, and replacement machinery and repair equipment for Marcus Vale at Holdfast, Garrow System. Payment is collected from Iris at The Darknet District.",
+   "giver": "Iris",
+   "source": "story",
+   "start": "earth",
+   "end": "earth",
+   "destination": "holdfast",
+   "interaction": "marcus",
+   "rewards": 1500,
+   "after": {
+    "deliver": {
+     "destination": "earth",
+     "interaction": "district-iris"
+    }
+   },
+   "objectives": [
+    {
+     "id": "arrive",
+     "label": "Fly the cargo to Holdfast, Garrow System"
+    },
+    {
+     "id": "deliver",
+     "label": "Deliver the shipment to Marcus Vale"
+    },
+    {
+     "id": "payment",
+     "label": "Return to The Darknet District and collect payment"
+    }
+   ]
+  },
+  "communion-origin-mission-01": {
+   "title": "DELIVERY TO THE NEXUS",
+   "type": "cargo",
+   "description": "Dr. Elara Voss is sending supplies down to the Communion homeworld. Deliver them to Dr. Adrian Kess on The Nexus, Cantor System.",
+   "giver": "Dr. Elara Voss",
+   "source": "story",
+   "start": "vigil",
+   "end": "nexus",
+   "destination": "nexus",
+   "interaction": "kess",
+   "objectives": [
+    {
+     "id": "cargo",
+     "label": "Collect the shipment from Dr. Elara Voss",
+     "destination": "vigil",
+     "interaction": "elara"
+    },
+    {
+     "id": "arrive",
+     "label": "Fly the shipment to The Nexus"
+    },
+    {
+     "id": "deliver",
+     "label": "Deliver it to Dr. Adrian Kess"
+    }
+   ]
+  },
+  "natural-order-origin-mission-01": {
+   "title": "DELIVERY TO THE NATURAL ORDER HOMEWORLD",
+   "type": "cargo",
+   "description": "Marcus Vale is sending supplies down to the Natural Order homeworld. Deliver them to Daniel Mercer, Garrow System.",
+   "giver": "Marcus Vale",
+   "source": "story",
+   "start": "holdfast",
+   "end": "order-homeworld",
+   "destination": "order-homeworld",
+   "interaction": "mercer",
+   "objectives": [
+    {
+     "id": "cargo",
+     "label": "Collect the shipment from Marcus Vale",
+     "destination": "holdfast",
+     "interaction": "marcus"
+    },
+    {
+     "id": "arrive",
+     "label": "Fly the shipment to the Natural Order homeworld"
+    },
+    {
+     "id": "deliver",
+     "label": "Deliver it to Daniel Mercer"
+    }
+   ]
+  },
+  "communion-restoration-01": {
+   "title": "HELPING HANDS",
+   "type": "side",
+   "description": "Dr. Adrian Kess needs help keeping The Nexus running: medical supplies, a damaged relay junction and a power terminal. Reward: a Communion Targeting Scanner.",
+   "giver": "Dr. Adrian Kess",
+   "source": "story",
+   "start": "nexus",
+   "end": "nexus",
+   "destination": "nexus",
+   "interaction": "kess",
+   "objectives": [
+    {
+     "id": "supplies-collect",
+     "label": "Collect medical supplies from the storage depot",
+     "interaction": "nexus-depot"
+    },
+    {
+     "id": "supplies",
+     "label": "Deliver the supplies to the aid station",
+     "interaction": "nexus-aid"
+    },
+    {
+     "id": "repair",
+     "label": "Repair the damaged relay junction",
+     "interaction": "nexus-relay"
+    },
+    {
+     "id": "power",
+     "label": "Restore the power distribution terminal",
+     "interaction": "nexus-power"
+    },
+    {
+     "id": "return",
+     "label": "Return to Dr. Adrian Kess",
+     "interaction": "kess"
+    }
+   ]
+  },
+  "natural-order-agriculture-01": {
+   "title": "KEEPING THINGS RUNNING",
+   "type": "side",
+   "description": "Daniel Mercer needs farm equipment delivered, food moved to the distribution point and a solar installation repaired. Reward: Natural Order Maneuvering Thrusters.",
+   "giver": "Daniel Mercer",
+   "source": "story",
+   "start": "order-homeworld",
+   "end": "order-homeworld",
+   "destination": "order-homeworld",
+   "interaction": "mercer",
+   "objectives": [
+    {
+     "id": "equipment-collect",
+     "label": "Collect farm equipment from the supply depot",
+     "interaction": "order-depot"
+    },
+    {
+     "id": "equipment",
+     "label": "Deliver the equipment to the farm",
+     "interaction": "order-farm"
+    },
+    {
+     "id": "food-collect",
+     "label": "Collect food crates from the granary",
+     "interaction": "order-granary"
+    },
+    {
+     "id": "food",
+     "label": "Take the food to the distribution point",
+     "interaction": "order-market"
+    },
+    {
+     "id": "solar-collect",
+     "label": "Collect replacement parts from the workshop",
+     "interaction": "order-workshop"
+    },
+    {
+     "id": "solar",
+     "label": "Repair the damaged solar installation",
+     "interaction": "order-solar"
+    },
+    {
+     "id": "return",
+     "label": "Return to Daniel Mercer",
+     "interaction": "mercer"
+    }
+   ]
+  }
+ },
+ "tutorials": [
+  "ground-training",
+  "flight-training",
+  "first-station",
+  "combat-qualification"
+ ],
+ "contracts": [
+  {
+   "id": "medicine",
+   "name": "Cold chain",
+   "cargo": "Refrigerated clinic supplies",
+   "legal": true,
+   "destination": "kepler",
+   "reward": 650,
+   "enemies": 8,
+   "tier": 1,
+   "duration": 38,
+   "contact": "Dr. Sol",
+   "briefing": "Our clinics need these before the next shift. Keep the containers intact. Raider activity has increased along the route."
+  },
+  {
+   "id": "ghost",
+   "name": "Ghost hardware",
+   "cargo": "Unlicensed neural processors",
+   "legal": false,
+   "destination": "rusthaven",
+   "reward": 1000,
+   "enemies": 12,
+   "tier": 2,
+   "duration": 45,
+   "contact": "Iona Vale",
+   "briefing": "The people buying these cannot afford corporate leases on their own minds. Expect armored interceptors. Upgrade before you leave."
+  },
+  {
+   "id": "foundry",
+   "name": "A debt in steel",
+   "cargo": "Restricted fabrication cores",
+   "legal": false,
+   "destination": "foundry",
+   "reward": 1500,
+   "enemies": 16,
+   "tier": 3,
+   "duration": 52,
+   "contact": "Rook",
+   "briefing": "The Foundry is building something the corporations would rather stay broken. A gunship guards the approach. Bring armor and a better reactor."
+  }
+ ],
+ "allContracts": [
+  {
+   "id": "medicine",
+   "name": "Cold chain",
+   "cargo": "Refrigerated clinic supplies",
+   "legal": true,
+   "destination": "kepler",
+   "reward": 650,
+   "enemies": 8,
+   "tier": 1,
+   "duration": 38,
+   "contact": "Dr. Sol",
+   "briefing": "Our clinics need these before the next shift. Keep the containers intact. Raider activity has increased along the route."
+  },
+  {
+   "id": "ghost",
+   "name": "Ghost hardware",
+   "cargo": "Unlicensed neural processors",
+   "legal": false,
+   "destination": "rusthaven",
+   "reward": 1000,
+   "enemies": 12,
+   "tier": 2,
+   "duration": 45,
+   "contact": "Iona Vale",
+   "briefing": "The people buying these cannot afford corporate leases on their own minds. Expect armored interceptors. Upgrade before you leave."
+  },
+  {
+   "id": "foundry",
+   "name": "A debt in steel",
+   "cargo": "Restricted fabrication cores",
+   "legal": false,
+   "destination": "foundry",
+   "reward": 1500,
+   "enemies": 16,
+   "tier": 3,
+   "duration": 52,
+   "contact": "Rook",
+   "briefing": "The Foundry is building something the corporations would rather stay broken. A gunship guards the approach. Bring armor and a better reactor."
+  },
+  {
+   "id": "rook-run",
+   "name": "Rook freight run",
+   "cargo": "Rook freight",
+   "legal": true,
+   "destination": "meridian",
+   "reward": 500,
+   "enemies": 4,
+   "tier": 1,
+   "duration": 36,
+   "contact": "Rook",
+   "briefing": "Rook always has another crate that needs to be somewhere else."
+  },
+  {
+   "id": "communion-delivery",
+   "faction": "communion",
+   "flag": "communionDelivery",
+   "name": "Communion delivery",
+   "cargo": "Advanced electronics and research equipment",
+   "legal": true,
+   "destination": "vigil",
+   "payment": 1200,
+   "reward": 1200,
+   "enemies": 3,
+   "tier": 1,
+   "duration": 40,
+   "contact": "Admin",
+   "recipient": "elara",
+   "briefing": "Advanced electronics and research equipment for Dr. Elara Voss at The Vigil, Cantor System. Payment is collected at The Darknet District."
+  },
+  {
+   "id": "order-delivery",
+   "faction": "natural-order",
+   "flag": "orderDelivery",
+   "name": "Natural Order delivery",
+   "cargo": "Mechanical components and industrial supplies",
+   "legal": true,
+   "destination": "holdfast",
+   "payment": 1200,
+   "reward": 1200,
+   "enemies": 3,
+   "tier": 1,
+   "duration": 40,
+   "contact": "Admin",
+   "recipient": "marcus",
+   "briefing": "Mechanical components and industrial supplies for Marcus Vale at Holdfast, Garrow System. Payment is collected at The Darknet District."
+  },
+  {
+   "id": "communion-supply",
+   "faction": "communion",
+   "kind": "supply",
+   "flag": "communionSupply",
+   "name": "Communion supply contract",
+   "cargo": "Advanced processing modules, high-precision sensor assemblies and specialized research electronics",
+   "legal": true,
+   "destination": "vigil",
+   "payment": 1500,
+   "reward": 1500,
+   "enemies": 3,
+   "tier": 1,
+   "duration": 40,
+   "contact": "Iris",
+   "recipient": "elara",
+   "briefing": "Specialized processing modules, sensor components and research hardware for Dr. Elara Voss at The Vigil, Cantor System. Payment is collected at The Darknet District."
+  },
+  {
+   "id": "order-supply",
+   "faction": "natural-order",
+   "kind": "supply",
+   "flag": "orderSupply",
+   "name": "Natural Order supply contract",
+   "cargo": "Industrial control assemblies, heavy-duty mechanical components, and replacement machinery and repair equipment",
+   "legal": true,
+   "destination": "holdfast",
+   "payment": 1500,
+   "reward": 1500,
+   "enemies": 3,
+   "tier": 1,
+   "duration": 40,
+   "contact": "Iris",
+   "recipient": "marcus",
+   "briefing": "Industrial control assemblies, replacement machinery and heavy-duty mechanical components for Marcus Vale at Holdfast, Garrow System. Payment is collected at The Darknet District."
+  },
+  {
+   "id": "communion-origin-mission-01",
+   "faction": "communion",
+   "kind": "origin",
+   "name": "Delivery to The Nexus",
+   "cargo": "Recovery supplies for The Nexus",
+   "legal": true,
+   "destination": "nexus",
+   "reward": 0,
+   "enemies": 0,
+   "tier": 0,
+   "duration": 30,
+   "contact": "Dr. Elara Voss",
+   "recipient": "kess",
+   "briefing": "Dr. Elara Voss's shipment for Dr. Adrian Kess on The Nexus."
+  },
+  {
+   "id": "natural-order-origin-mission-01",
+   "faction": "natural-order",
+   "kind": "origin",
+   "name": "Delivery to the Natural Order Homeworld",
+   "cargo": "Supplies for the Natural Order homeworld",
+   "legal": true,
+   "destination": "order-homeworld",
+   "reward": 0,
+   "enemies": 0,
+   "tier": 0,
+   "duration": 30,
+   "contact": "Marcus Vale",
+   "recipient": "mercer",
+   "briefing": "Marcus Vale's shipment for Daniel Mercer on the Natural Order homeworld."
+  },
+  {
+   "id": "admin-sealed-cargo-01",
+   "kind": "sealed",
+   "flag": "sealedCargo",
+   "name": "Don’t Ask Questions",
+   "cargo": "Sealed container (contents undisclosed)",
+   "legal": false,
+   "destination": "meridian",
+   "payment": 1800,
+   "reward": 1800,
+   "enemies": 0,
+   "tier": 0,
+   "duration": 36,
+   "contact": "Admin",
+   "recipient": "rook",
+   "briefing": "A sealed container from Admin for Rook at Meridian. It stays sealed."
+  },
+  {
+   "id": "belt-1",
+   "name": "Dead reckoning",
+   "chapter": "belt",
+   "kind": "salvage",
+   "destination": "kepler",
+   "enemies": 8,
+   "tier": 1,
+   "duration": 40,
+   "reward": 800,
+   "briefing": "Recover 3 drifting flight recorders. Fly through the cyan diamonds.",
+   "cargo": "Recovered intelligence",
+   "legal": true,
+   "requires": null,
+   "contact": "Rook"
+  },
+  {
+   "id": "belt-2",
+   "name": "Shattered lane",
+   "chapter": "belt",
+   "kind": "hazard",
+   "destination": "foundry",
+   "enemies": 10,
+   "tier": 1.5,
+   "duration": 44,
+   "reward": 950,
+   "briefing": "Cross the debris field. Amber rocks damage your hull; steer around them.",
+   "cargo": "Sector clearance",
+   "legal": true,
+   "requires": "belt-1",
+   "contact": "Rook"
+  },
+  {
+   "id": "belt-3",
+   "name": "Last light",
+   "chapter": "belt",
+   "kind": "escort",
+   "destination": "meridian",
+   "enemies": 12,
+   "tier": 2,
+   "duration": 48,
+   "reward": 1100,
+   "briefing": "Keep the rescue shuttle alive. Intercept incoming fire before it reaches the shuttle.",
+   "cargo": "Rescue shuttle",
+   "legal": true,
+   "requires": "belt-2",
+   "contact": "Rook"
+  },
+  {
+   "id": "belt-4",
+   "name": "The iron mouth",
+   "chapter": "belt",
+   "kind": "boss",
+   "destination": "foundry",
+   "enemies": 9,
+   "tier": 2.5,
+   "duration": 50,
+   "reward": 1600,
+   "briefing": "Destroy the mining dreadnought. Its broadside opens gaps between volleys.",
+   "cargo": "Sector clearance",
+   "legal": true,
+   "requires": "belt-3",
+   "contact": "Rook"
+  },
+  {
+   "id": "lockdown-1",
+   "name": "Unlisted passengers",
+   "chapter": "lockdown",
+   "kind": "escort",
+   "destination": "rusthaven",
+   "enemies": 12,
+   "tier": 2.5,
+   "duration": 48,
+   "reward": 1400,
+   "briefing": "Escort the evacuation shuttle through corporate patrols.",
+   "cargo": "Rescue shuttle",
+   "legal": true,
+   "requires": "belt-4",
+   "contact": "Rook"
+  },
+  {
+   "id": "lockdown-2",
+   "name": "Cut the power",
+   "chapter": "lockdown",
+   "kind": "generator",
+   "destination": "kepler",
+   "enemies": 12,
+   "tier": 3,
+   "duration": 50,
+   "reward": 1500,
+   "briefing": "Destroy the shield relay first. It protects every other enemy.",
+   "cargo": "Sector clearance",
+   "legal": true,
+   "requires": "lockdown-1",
+   "contact": "Rook"
+  },
+  {
+   "id": "lockdown-3",
+   "name": "Evidence locker",
+   "chapter": "lockdown",
+   "kind": "salvage",
+   "destination": "meridian",
+   "enemies": 14,
+   "tier": 3,
+   "duration": 52,
+   "reward": 1700,
+   "briefing": "Recover 3 encrypted evidence cores while holding off interceptors.",
+   "cargo": "Recovered intelligence",
+   "legal": true,
+   "requires": "lockdown-2",
+   "contact": "Rook"
+  },
+  {
+   "id": "lockdown-4",
+   "name": "Hostile takeover",
+   "chapter": "lockdown",
+   "kind": "boss",
+   "destination": "rusthaven",
+   "enemies": 12,
+   "tier": 3.5,
+   "duration": 55,
+   "reward": 2200,
+   "briefing": "Disable the corporate carrier and its fan of suppressing fire.",
+   "cargo": "Sector clearance",
+   "legal": true,
+   "requires": "lockdown-3",
+   "contact": "Rook"
+  },
+  {
+   "id": "gate-1",
+   "name": "Event horizon",
+   "chapter": "gate",
+   "kind": "hazard",
+   "destination": "rusthaven",
+   "enemies": 14,
+   "tier": 3.5,
+   "duration": 54,
+   "reward": 1900,
+   "briefing": "Navigate the unstable gate. Avoid the fragments spilling into the flight lane.",
+   "cargo": "Sector clearance",
+   "legal": true,
+   "requires": "lockdown-4",
+   "contact": "Rook"
+  },
+  {
+   "id": "gate-2",
+   "name": "Voices in the static",
+   "chapter": "gate",
+   "kind": "salvage",
+   "destination": "kepler",
+   "enemies": 15,
+   "tier": 4,
+   "duration": 56,
+   "reward": 2100,
+   "briefing": "Retrieve 3 alien signal fragments. Stay moving; the guardians track you.",
+   "cargo": "Recovered intelligence",
+   "legal": true,
+   "requires": "gate-1",
+   "contact": "Rook"
+  },
+  {
+   "id": "gate-3",
+   "name": "The other side",
+   "chapter": "gate",
+   "kind": "generator",
+   "destination": "foundry",
+   "enemies": 16,
+   "tier": 4,
+   "duration": 58,
+   "reward": 2400,
+   "briefing": "Break the alien shield anchor, then clear the gate approach.",
+   "cargo": "Sector clearance",
+   "legal": true,
+   "requires": "gate-2",
+   "contact": "Rook"
+  },
+  {
+   "id": "gate-4",
+   "name": "Void sentinel",
+   "chapter": "gate",
+   "kind": "boss",
+   "destination": "meridian",
+   "enemies": 14,
+   "tier": 4.5,
+   "duration": 60,
+   "reward": 3200,
+   "briefing": "Defeat the sentinel. Its final phase fires faster as its hull collapses.",
+   "cargo": "Sector clearance",
+   "legal": true,
+   "requires": "gate-3",
+   "contact": "Rook"
+  }
+ ],
+ "rookJobs": {
+  "routine": {
+   "label": "Routine freight",
+   "legal": true,
+   "units": 1,
+   "payAt": "delivery",
+   "bonus": 0,
+   "danger": 0,
+   "cargo": [
+    "Med-gel canisters",
+    "Hydroponic seed stock",
+    "Coolant cells",
+    "Salvaged drive coils"
+   ]
+  },
+  "long-haul": {
+   "label": "Long-haul freight",
+   "legal": true,
+   "units": 1,
+   "payAt": "delivery",
+   "bonus": 300,
+   "danger": 1,
+   "far": true,
+   "cargo": [
+    "Hydroponic seed stock",
+    "Coolant cells",
+    "Med-gel canisters"
+   ]
+  },
+  "valuable": {
+   "label": "High-value freight",
+   "legal": true,
+   "units": 2,
+   "payAt": "rook",
+   "bonus": 500,
+   "danger": 2,
+   "cargo": [
+    "Sealed reactor couplings",
+    "Encrypted ledger drives",
+    "Surplus targeting optics"
+   ]
+  },
+  "hazard": {
+   "label": "Dangerous lane",
+   "legal": true,
+   "units": 1,
+   "payAt": "delivery",
+   "bonus": 600,
+   "danger": 4,
+   "cargo": [
+    "Salvaged drive coils",
+    "Coolant cells",
+    "Surplus targeting optics"
+   ]
+  },
+  "restricted": {
+   "label": "Restricted cargo",
+   "legal": false,
+   "units": 1,
+   "payAt": "rook",
+   "bonus": 500,
+   "danger": 2,
+   "cargo": [
+    "Unmarked data cores",
+    "Unregistered memory wafers"
+   ]
+  }
+ },
+ "factionDeliveries": {
+  "communion": {
+   "id": "communion-delivery",
+   "faction": "communion",
+   "flag": "communionDelivery",
+   "name": "Communion delivery",
+   "cargo": "Advanced electronics and research equipment",
+   "legal": true,
+   "destination": "vigil",
+   "payment": 1200,
+   "reward": 1200,
+   "enemies": 3,
+   "tier": 1,
+   "duration": 40,
+   "contact": "Admin",
+   "recipient": "elara",
+   "briefing": "Advanced electronics and research equipment for Dr. Elara Voss at The Vigil, Cantor System. Payment is collected at The Darknet District."
+  },
+  "natural-order": {
+   "id": "order-delivery",
+   "faction": "natural-order",
+   "flag": "orderDelivery",
+   "name": "Natural Order delivery",
+   "cargo": "Mechanical components and industrial supplies",
+   "legal": true,
+   "destination": "holdfast",
+   "payment": 1200,
+   "reward": 1200,
+   "enemies": 3,
+   "tier": 1,
+   "duration": 40,
+   "contact": "Admin",
+   "recipient": "marcus",
+   "briefing": "Mechanical components and industrial supplies for Marcus Vale at Holdfast, Garrow System. Payment is collected at The Darknet District."
+  }
+ },
+ "sealedCargo": {
+  "id": "admin-sealed-cargo-01",
+  "kind": "sealed",
+  "flag": "sealedCargo",
+  "name": "Don’t Ask Questions",
+  "cargo": "Sealed container (contents undisclosed)",
+  "legal": false,
+  "destination": "meridian",
+  "payment": 1800,
+  "reward": 1800,
+  "enemies": 0,
+  "tier": 0,
+  "duration": 36,
+  "contact": "Admin",
+  "recipient": "rook",
+  "briefing": "A sealed container from Admin for Rook at Meridian. It stays sealed."
+ },
+ "contentMissions": [
+  {
+   "id": "belt-1",
+   "name": "Dead reckoning",
+   "chapter": "belt",
+   "kind": "salvage",
+   "destination": "kepler",
+   "enemies": 8,
+   "tier": 1,
+   "duration": 40,
+   "reward": 800,
+   "briefing": "Recover 3 drifting flight recorders. Fly through the cyan diamonds.",
+   "cargo": "Recovered intelligence",
+   "legal": true,
+   "requires": null,
+   "contact": "Rook"
+  },
+  {
+   "id": "belt-2",
+   "name": "Shattered lane",
+   "chapter": "belt",
+   "kind": "hazard",
+   "destination": "foundry",
+   "enemies": 10,
+   "tier": 1.5,
+   "duration": 44,
+   "reward": 950,
+   "briefing": "Cross the debris field. Amber rocks damage your hull; steer around them.",
+   "cargo": "Sector clearance",
+   "legal": true,
+   "requires": "belt-1",
+   "contact": "Rook"
+  },
+  {
+   "id": "belt-3",
+   "name": "Last light",
+   "chapter": "belt",
+   "kind": "escort",
+   "destination": "meridian",
+   "enemies": 12,
+   "tier": 2,
+   "duration": 48,
+   "reward": 1100,
+   "briefing": "Keep the rescue shuttle alive. Intercept incoming fire before it reaches the shuttle.",
+   "cargo": "Rescue shuttle",
+   "legal": true,
+   "requires": "belt-2",
+   "contact": "Rook"
+  },
+  {
+   "id": "belt-4",
+   "name": "The iron mouth",
+   "chapter": "belt",
+   "kind": "boss",
+   "destination": "foundry",
+   "enemies": 9,
+   "tier": 2.5,
+   "duration": 50,
+   "reward": 1600,
+   "briefing": "Destroy the mining dreadnought. Its broadside opens gaps between volleys.",
+   "cargo": "Sector clearance",
+   "legal": true,
+   "requires": "belt-3",
+   "contact": "Rook"
+  },
+  {
+   "id": "lockdown-1",
+   "name": "Unlisted passengers",
+   "chapter": "lockdown",
+   "kind": "escort",
+   "destination": "rusthaven",
+   "enemies": 12,
+   "tier": 2.5,
+   "duration": 48,
+   "reward": 1400,
+   "briefing": "Escort the evacuation shuttle through corporate patrols.",
+   "cargo": "Rescue shuttle",
+   "legal": true,
+   "requires": "belt-4",
+   "contact": "Rook"
+  },
+  {
+   "id": "lockdown-2",
+   "name": "Cut the power",
+   "chapter": "lockdown",
+   "kind": "generator",
+   "destination": "kepler",
+   "enemies": 12,
+   "tier": 3,
+   "duration": 50,
+   "reward": 1500,
+   "briefing": "Destroy the shield relay first. It protects every other enemy.",
+   "cargo": "Sector clearance",
+   "legal": true,
+   "requires": "lockdown-1",
+   "contact": "Rook"
+  },
+  {
+   "id": "lockdown-3",
+   "name": "Evidence locker",
+   "chapter": "lockdown",
+   "kind": "salvage",
+   "destination": "meridian",
+   "enemies": 14,
+   "tier": 3,
+   "duration": 52,
+   "reward": 1700,
+   "briefing": "Recover 3 encrypted evidence cores while holding off interceptors.",
+   "cargo": "Recovered intelligence",
+   "legal": true,
+   "requires": "lockdown-2",
+   "contact": "Rook"
+  },
+  {
+   "id": "lockdown-4",
+   "name": "Hostile takeover",
+   "chapter": "lockdown",
+   "kind": "boss",
+   "destination": "rusthaven",
+   "enemies": 12,
+   "tier": 3.5,
+   "duration": 55,
+   "reward": 2200,
+   "briefing": "Disable the corporate carrier and its fan of suppressing fire.",
+   "cargo": "Sector clearance",
+   "legal": true,
+   "requires": "lockdown-3",
+   "contact": "Rook"
+  },
+  {
+   "id": "gate-1",
+   "name": "Event horizon",
+   "chapter": "gate",
+   "kind": "hazard",
+   "destination": "rusthaven",
+   "enemies": 14,
+   "tier": 3.5,
+   "duration": 54,
+   "reward": 1900,
+   "briefing": "Navigate the unstable gate. Avoid the fragments spilling into the flight lane.",
+   "cargo": "Sector clearance",
+   "legal": true,
+   "requires": "lockdown-4",
+   "contact": "Rook"
+  },
+  {
+   "id": "gate-2",
+   "name": "Voices in the static",
+   "chapter": "gate",
+   "kind": "salvage",
+   "destination": "kepler",
+   "enemies": 15,
+   "tier": 4,
+   "duration": 56,
+   "reward": 2100,
+   "briefing": "Retrieve 3 alien signal fragments. Stay moving; the guardians track you.",
+   "cargo": "Recovered intelligence",
+   "legal": true,
+   "requires": "gate-1",
+   "contact": "Rook"
+  },
+  {
+   "id": "gate-3",
+   "name": "The other side",
+   "chapter": "gate",
+   "kind": "generator",
+   "destination": "foundry",
+   "enemies": 16,
+   "tier": 4,
+   "duration": 58,
+   "reward": 2400,
+   "briefing": "Break the alien shield anchor, then clear the gate approach.",
+   "cargo": "Sector clearance",
+   "legal": true,
+   "requires": "gate-2",
+   "contact": "Rook"
+  },
+  {
+   "id": "gate-4",
+   "name": "Void sentinel",
+   "chapter": "gate",
+   "kind": "boss",
+   "destination": "meridian",
+   "enemies": 14,
+   "tier": 4.5,
+   "duration": 60,
+   "reward": 3200,
+   "briefing": "Defeat the sentinel. Its final phase fires faster as its hull collapses.",
+   "cargo": "Sector clearance",
+   "legal": true,
+   "requires": "gate-3",
+   "contact": "Rook"
+  }
+ ],
+ "story": {
+  "locations": {
+   "meridian": {
+    "name": "Meridian Station",
+    "district": "SECTOR 07 / THE LOWER ORBIT",
+    "color": "#58ffe1",
+    "bar": "The Dead Channel",
+    "system": "erebus",
+    "ownerFaction": null,
+    "securityFaction": "erebus-local"
+   },
+   "kepler": {
+    "name": "Kepler Exchange",
+    "district": "SECTOR 12 / FREIGHT LANE",
+    "color": "#ffbd69",
+    "bar": "The Loading Bay",
+    "system": "erebus",
+    "ownerFaction": null,
+    "securityFaction": "erebus-local"
+   },
+   "rusthaven": {
+    "name": "Rusthaven Port",
+    "district": "SECTOR 19 / OFF THE GRID",
+    "color": "#ef79ff",
+    "bar": "Low Frequency",
+    "system": "erebus",
+    "ownerFaction": null,
+    "securityFaction": "erebus-local"
+   },
+   "foundry": {
+    "name": "The Foundry",
+    "district": "SECTOR 24 / INDUSTRIAL BELT",
+    "color": "#ff795f",
+    "bar": "Afterburn",
+    "system": "erebus",
+    "ownerFaction": null,
+    "securityFaction": "erebus-local"
+   },
+   "vesper": {
+    "system": "erebus",
+    "surface": true,
+    "name": "Vesper",
+    "district": "WARD FREIGHT WORKSHOP",
+    "color": "#c2a584",
+    "bar": "Workshop",
+    "ownerFaction": null,
+    "securityFaction": "erebus-local"
+   },
+   "sol-belt": {
+    "system": "sol",
+    "name": "Tessaly Belt Anchorage",
+    "district": "TESSALY / ASTEROID BELT",
+    "color": "#8dbea9",
+    "bar": "Belt Canteen",
+    "ownerFaction": null,
+    "securityFaction": "sol-local"
+   },
+   "earth": {
+    "system": "sol",
+    "surface": true,
+    "name": "NeoChinatown",
+    "district": "TESSALY / CITY LANDING",
+    "color": "#9b7bff",
+    "bar": "The Darknet District",
+    "ownerFaction": null,
+    "securityFaction": "sol-local"
+   },
+   "mars": {
+    "system": "sol",
+    "surface": true,
+    "name": "Vantor / Underground City",
+    "district": "TESSALY / SUBSURFACE ACCESS",
+    "color": "#ba6847",
+    "bar": "Transit Canteen",
+    "ownerFaction": null,
+    "securityFaction": "sol-local"
+   },
+   "vigil": {
+    "system": "communion",
+    "name": "The Vigil",
+    "district": "CANTOR / COMMUNION STATION",
+    "color": "#9fd2ec",
+    "bar": "Refectory",
+    "ownerFaction": "communion",
+    "securityFaction": "communion"
+   },
+   "holdfast": {
+    "system": "natural-order",
+    "name": "Holdfast",
+    "district": "GARROW / NATURAL ORDER OUTPOST",
+    "color": "#d08a3c",
+    "bar": "Mess Hall",
+    "ownerFaction": "natural-order",
+    "securityFaction": "natural-order"
+   },
+   "nexus": {
+    "system": "communion",
+    "name": "The Nexus",
+    "district": "CANTOR / COMMUNION HOMEWORLD",
+    "color": "#8fd4ee",
+    "bar": "Aid Station",
+    "ownerFaction": "communion",
+    "securityFaction": "communion",
+    "planet": true
+   },
+   "order-homeworld": {
+    "system": "natural-order",
+    "name": "Natural Order Homeworld",
+    "district": "GARROW / NATURAL ORDER HOMEWORLD (NAME PENDING)",
+    "color": "#c9a24a",
+    "bar": "Cooperative Hall",
+    "ownerFaction": "natural-order",
+    "securityFaction": "natural-order",
+    "planet": true
+   }
+  },
+  "characters": {
+   "mara": {
+    "name": "Mara",
+    "role": "FREIGHT MECHANIC",
+    "cell": "0% 0%",
+    "faction": "independent",
+    "biography": "Elias’s friend and workshop mechanic.",
+    "tags": [
+     "mechanic"
+    ],
+    "voiceProfile": "mara",
+    "id": "mara",
+    "portrait": "art/characters.png",
+    "relationshipDefault": 0
+   },
+   "elias": {
+    "name": "Elias Ward",
+    "role": "ARCHIVED RECORDING",
+    "cell": "50% 0%",
+    "faction": "independent",
+    "biography": "Your former employer.",
+    "tags": [
+     "archive"
+    ],
+    "voiceProfile": "elias",
+    "id": "elias",
+    "portrait": "art/characters.png",
+    "relationshipDefault": 0
+   },
+   "rook": {
+    "name": "Rook",
+    "role": "INDEPENDENT CARGO BROKER",
+    "cell": "100% 0%",
+    "faction": "independent",
+    "biography": "Meridian freight broker.",
+    "tags": [
+     "broker"
+    ],
+    "voiceProfile": "rook",
+    "id": "rook",
+    "portrait": "art/characters.png",
+    "relationshipDefault": 0
+   },
+   "iona": {
+    "name": "Iona Vale",
+    "role": "RUSTHAVEN ENGINEER",
+    "cell": "0% 100%",
+    "faction": "independent",
+    "biography": "Keeps Rusthaven running.",
+    "tags": [
+     "engineer"
+    ],
+    "voiceProfile": "iona",
+    "id": "iona",
+    "portrait": "art/characters.png",
+    "relationshipDefault": 0
+   },
+   "sol": {
+    "name": "Dr. Sol",
+    "role": "KEPLER CLINIC NETWORK",
+    "cell": "50% 100%",
+    "faction": "clinic",
+    "biography": "Coordinates frontier medicine.",
+    "tags": [
+     "doctor"
+    ],
+    "voiceProfile": "sol",
+    "id": "sol",
+    "portrait": "art/characters.png",
+    "relationshipDefault": 0
+   },
+   "nyx": {
+    "name": "Nyx",
+    "role": "THE DEAD CHANNEL",
+    "cell": "100% 100%",
+    "faction": "independent",
+    "biography": "Meridian bartender.",
+    "tags": [
+     "bartender"
+    ],
+    "voiceProfile": "nyx",
+    "id": "nyx",
+    "portrait": "art/characters.png",
+    "relationshipDefault": 0
+   }
+  },
+  "voices": {
+   "mara": {
+    "pitch": 1,
+    "rate": 0.94,
+    "age": "mature",
+    "preferred": [
+     "hazel",
+     "susan",
+     "sonia",
+     "zira"
+    ],
+    "volume": 0.85,
+    "variant": 1,
+    "presentation": "feminine",
+    "style": "measured"
+   },
+   "elias": {
+    "pitch": 0.98,
+    "rate": 0.91,
+    "age": "older",
+    "preferred": [
+     "george",
+     "daniel",
+     "david"
+    ],
+    "volume": 0.8,
+    "variant": 2,
+    "presentation": "masculine",
+    "style": "warm"
+   },
+   "rook": {
+    "pitch": 0.9,
+    "rate": 0.97,
+    "volume": 0.85,
+    "variant": 0,
+    "presentation": "masculine",
+    "style": "dry"
+   },
+   "iona": {
+    "pitch": 1.02,
+    "rate": 1.03,
+    "volume": 0.8,
+    "variant": 3,
+    "presentation": "feminine",
+    "age": "adult",
+    "style": "confident",
+    "preferred": [
+     "jenny",
+     "samantha",
+     "zira"
+    ]
+   },
+   "sol": {
+    "pitch": 1,
+    "rate": 0.96,
+    "volume": 0.8,
+    "variant": 4,
+    "presentation": "masculine",
+    "age": "mature",
+    "style": "calm",
+    "preferred": [
+     "daniel",
+     "mark"
+    ]
+   },
+   "nyx": {
+    "pitch": 0.96,
+    "rate": 1,
+    "volume": 0.8,
+    "variant": 5,
+    "presentation": "feminine",
+    "age": "adult",
+    "style": "dry",
+    "preferred": [
+     "aria",
+     "hazel"
+    ]
+   }
+  },
+  "dialogue": {
+   "mara_workshop_intro": {
+    "background": "vesper",
+    "heading": "A last gift.",
+    "start": "legacy",
+    "nodes": {
+     "legacy": {
+      "character": "mara",
+      "text": "Elias passed away last night. You worked for him for years. In his will, he left you the Kestrel.",
+      "next": "recording"
+     },
+     "recording": {
+      "character": "elias",
+      "text": "The ship is yours. Go make a life of your own.",
+      "next": "work"
+     },
+     "work": {
+      "character": "mara",
+      "text": "You have 100 credits. This is the Erebus System. Fly to Meridian and meet Rook at the bar. He has work.",
+      "choices": [
+       {
+        "text": "I’ll make him proud.",
+        "effects": {
+         "flags": {
+          "maraPromise": true
+         },
+         "relationships": {
+          "mara": 1
+         }
+        },
+        "next": "depart"
+       },
+       {
+        "text": "I need the work.",
+        "effects": {
+         "flags": {
+          "maraPromise": false
+         }
+        },
+        "next": "depart"
+       }
+      ]
+     },
+     "depart": {
+      "character": "mara",
+      "text": "Keep her flying. Rook will be waiting.",
+      "end": "beginJourney",
+      "label": "BOARD SHIP →"
+     }
+    }
+   }
+  },
+  "ships": {
+   "mara_courier": {
+    "id": "mara_courier",
+    "displayName": "Voss Courier",
+    "owner": "mara",
+    "faction": "independent",
+    "shipClass": "raider",
+    "allegiance": "friendly",
+    "art": "art/ships.png",
+    "loadout": [
+     "pulse1"
+    ],
+    "behavior": "rendezvous"
+   },
+   "lane_raider": {
+    "id": "lane_raider",
+    "displayName": "Lane Raider",
+    "faction": "raiders",
+    "shipClass": "raider",
+    "allegiance": "hostile",
+    "art": "art/ships.png",
+    "loadout": [
+     "pulse1"
+    ],
+    "behavior": "attack"
+   }
+  },
+  "encounters": {
+   "mara_rendezvous": {
+    "ships": [
+     "mara_courier"
+    ],
+    "when": {
+     "flags": {
+      "maraPromise": true
+     }
+    },
+    "interaction": "hail"
+   }
+  },
+  "events": [
+   {
+    "id": "mara_workshop_intro",
+    "trigger": {
+     "type": "campaignStart"
+    },
+    "scene": "mara_workshop_intro",
+    "effects": {
+     "flags": {
+      "metMara": true
+     },
+     "chapter": "inheritance"
+    }
+   },
+   {
+    "id": "rook_introduced",
+    "trigger": {
+     "type": "talk",
+     "subject": "rook"
+    },
+    "effects": {
+     "flags": {
+      "rookIntroduced": true
+     }
+    }
+   },
+   {
+    "id": "rusthaven_unlocked",
+    "trigger": {
+     "type": "dock",
+     "subject": "rusthaven"
+    },
+    "effects": {
+     "flags": {
+      "rusthavenUnlocked": true
+     },
+     "unlock": [
+      "rusthaven"
+     ]
+    }
+   }
+  ],
+  "factions": {
+   "independent": {
+    "name": "Independent crews"
+   },
+   "clinic": {
+    "name": "Clinic network"
+   },
+   "raiders": {
+    "name": "Raiders"
+   }
+  }
+ },
+ "sourceFiles": {
+  "void-runner/mission-log.js": "ab2bacb5cd37873eab7285f9bc07df6de0f8f3efccd20a32b29afac385be19ba",
+  "void-runner/campaign.js": "80c1d7d0636387d88d2cbd33b55f693a02594b8dade25cc06eaf7bc89e37a232",
+  "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
+  "void-runner/story.js": "2f542ca85631df865f3db918f4e75f148d32ada16cd1ec01c2bb213322f7bdc0",
+  "void-runner/story-content.js": "3f2846e89242894aa0123df0e39e7637cfd2868b73c6d89f885dbe4317b54b30",
+  "void-runner/story-scenes.js": "322106e619d1a2456c5dac94dd252bd2373cb0c03273c75954d068b378cad5dd",
+  "void-runner/scenes.js": "a6bdbc20299c5ecb1a5f99546faa103e5b05777b1abfdabd25676181717686f8",
+  "void-runner/faction-scenes.js": "db9734fd1fd1fe094fec67feeebe09b03f0a2cb4a1f15b67002581cc680faf2b",
+  "void-runner/homeworld-scenes.js": "3f0a281fe47ab2dbf58eb419916d99736a1c576e65e026dbb94eb2bcc5756b20",
+  "void-runner/prologue-integration.js": "7168b2408f8cb7de1f09fe5b356da420d7c3f91117c190da808502765893cc3b",
+  "void-runner/world-integration.js": "0541f895b37f7dd6d03a82e9fd6b87f6f98763bd162fecc95443ff409d665c59",
+  "void-runner/opening-data.js": "ff9fa180e9a3992b9ce1a5cee323060343983028e46405da8a0c7bfecae29031",
+  "void-runner/save-manifest.json": "a68d75a8a7781d2a1ec9c606487c0a1a6eaff141eda4e28ddea832c3fde985f0"
+ }
+}

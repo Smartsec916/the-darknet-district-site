@@ -12,13 +12,13 @@
  const keyFor=s=>KEY[areaOf(s)];
  const world=(N,p,y=1.7)=>{const [x,z]=N.toWorld(p[0],p[1]);return [x,y,z];};
  // Where a saved player in the interior reappears: just inside the inner door, facing in. Outside, the location's own spawn is used.
- function resume(s,N){if(areaOf(s)!=='interior')return {};return flagsOf(s).podWakePending===true?{spawn:world(N,POINT.pod,1.1),yaw:-Math.PI/2}:{spawn:world(N,POINT.hall),yaw:Math.PI};}
- function podExit(N){return {spawn:world(N,POINT.podExit),yaw:-Math.PI/2};}
+ function resume(s,N){if(areaOf(s)!=='interior')return {};const f=flagsOf(s);if(f.podWakePending===true){const slot=Math.max(1,Math.min(10,Number(f.activePod)||1));return {spawn:world(N,[POINT.pod[0],POINT.pod[1]+((slot-1)%5)*2.6],1.1+(slot>5?1.7:0)),yaw:-Math.PI/2};}return {spawn:world(N,POINT.hall),yaw:Math.PI};}
+ function podExit(N,index=1){const slot=Math.max(1,Math.min(10,Number(index)||1));return {spawn:world(N,[POINT.podExit[0],POINT.podExit[1]+((slot-1)%5)*2.6]),yaw:-Math.PI/2};}
  // Where a player appears on leaving the District: in the alley outside the outer door, facing along the alley toward the street.
  function exitSpawn(N){return {spawn:world(N,POINT.outside),yaw:-Math.PI/2};}
  const local=(N,p)=>N.toWorld(p.x??p[0],p.z??p[2]);
- // Walking into the vestibule with a badge, from the street, goes straight in; without one the scanner asks for it.
- function enterTrigger(N,p,s){const f=flagsOf(s);if(f.districtBadge!==true)return false;const [lx,lz]=local(N,p);return Math.abs(lx)<ENTER.halfWidth&&lz>=ENTER.from&&lz<=ENTER.to;}
+ // Entering the vestibule starts the scan automatically, including for a first-time visitor.
+ function enterTrigger(N,p){const [lx,lz]=local(N,p);return Math.abs(lx)<ENTER.halfWidth&&lz>=ENTER.from&&lz<=ENTER.to;}
  // Walking out through the open outer door, from the interior, leaves.
  function exitTrigger(N,p){const [lx,lz]=local(N,p);return Math.abs(lx)<EXIT.halfWidth&&lz>=EXIT.from&&lz<=EXIT.to;}
  const api={KEY,POINT,ENTER,EXIT,areaOf,keyFor,resume,podExit,exitSpawn,enterTrigger,exitTrigger};

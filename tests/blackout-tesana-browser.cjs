@@ -47,6 +47,42 @@ async function ready(page) {
     assert.ok(moving.x > startX + 10, 'desktop right movement');
     assert.equal(moving.anim, 'run');
 
+    // A real checkpoint object should survive a death and remain in the local save.
+    const checkpoint = await page.evaluate(() => {
+      const w = window.__BP.world;
+      const marker = w.L.ents.find(entity => entity.t === 'checkpoint');
+      const cp = marker && w.things.find(thing => thing.id === marker.id);
+      if (!cp) return null;
+      w.player.x = cp.x; w.player.y = cp.y;
+      return { id: cp.id, x: cp.x, y: cp.y };
+    });
+    assert.ok(checkpoint, 'sector 1 has a checkpoint');
+    await page.waitForFunction(id => window.__BP.save().resume?.cp === id, checkpoint.id);
+    await page.evaluate(() => window.__BP.world.player.die(window.__BP.world, 'test hazard'));
+    await page.waitForFunction(() => window.__BP.world.player.state === 'play', null, { timeout: 8000 });
+    const afterDeath = await page.evaluate(() => ({
+      x: window.__BP.world.player.x, y: window.__BP.world.player.y,
+      hp: window.__BP.world.player.hp, savedCheckpoint: window.__BP.save().resume?.cp
+    }));
+    assert.ok(Math.abs(afterDeath.x - checkpoint.x) < 20 && Math.abs(afterDeath.y - checkpoint.y) < 30,
+      'death respawns at the checkpoint');
+    assert.ok(afterDeath.hp > 0, 'respawn restores health');
+    assert.equal(afterDeath.savedCheckpoint, checkpoint.id, 'death keeps checkpoint save');
+    await page.reload();
+    await page.waitForFunction(() => Boolean(window.__BP));
+    assert.equal(await page.evaluate(() => window.__BP.save().resume?.cp), checkpoint.id,
+      'checkpoint survives a browser reload');
+    const canvas = await page.locator('#screen canvas').first().boundingBox();
+    assert.ok(canvas, 'game canvas is visible after reload');
+    const clickGame = async (x, y) => page.mouse.click(canvas.x + canvas.width * x / 320,
+      canvas.y + canvas.height * y / 240);
+    await clickGame(160, 128); // start prompt
+    await page.waitForTimeout(250);
+    await clickGame(160, 93); // Continue Sector 01
+    await page.waitForFunction(() => window.__BP.screen === 'play' && Boolean(window.__BP.world));
+    assert.ok(Math.abs(await page.evaluate(() => window.__BP.world.player.x) - checkpoint.x) < 20,
+      'Continue resumes at the saved checkpoint');
+
     // Drive the completion hook without fabricating a leaderboard response.
     await page.evaluate(() => { window.__BP.world.time = 20; window.__BP.world.finish(); });
     await page.waitForFunction(() => window.__BP.screen === 'results');
@@ -132,6 +168,61 @@ async function ready(page) {
     await signed.waitForFunction(() => Boolean(window.__BP));
     assert.equal(await signed.evaluate(() => window.__BP.save().unlocked), 4, 'original guest progress returns');
     await signed.close();
+
+    // A signed-in account can load progress on another device. A stale device
+    // gets a conflict instead of silently replacing the newer account save.
+    let cloudRevision = 3;
+    let cloudProgress = {v:1, unlocked:5, btc:24, score:2400, up:{}, shield:0,
+      sidearm:false, stats:{}, resume:null, muted:false,
+      fx:{scanlines:true, glow:true, grid:false, cabinet:true}, finished:false};
+    async function cloudPage() {
+      const context = await browser.newContext();
+      const p = await context.newPage();
+      await p.addInitScript(() => localStorage.setItem('blackout-test-uid', 'cloudA'));
+      await p.route('**/blackout-protocol/firebase-auth.js', route => route.fulfill({contentType:'text/javascript', body:`
+        const uid = localStorage.getItem('blackout-test-uid');
+        export const auth = {currentUser:{uid, getIdToken:async()=> 'test-token'}};
+        export const provider = {};
+        export const onAuthStateChanged = (a, callback) => { callback(a.currentUser); return () => {}; };
+        export const getRedirectResult = async () => null;
+      `}));
+      await p.route('**/blackout-protocol/district-identity.js', route => route.fulfill({
+        contentType:'text/javascript', body:'export async function completeEmailLink() { return null; }'
+      }));
+      await p.route('**/api/blackout/**', route => route.fulfill({status:503,
+        contentType:'application/json', body:'{"error":"Rankings offline"}'}));
+      await p.route('**/api/blackout/v2/progress', async route => {
+        if (route.request().method() === 'GET') return route.fulfill({contentType:'application/json',
+          body:JSON.stringify({progress:cloudProgress, revision:cloudRevision})});
+        const submitted = route.request().postDataJSON();
+        if (submitted.revision !== cloudRevision) return route.fulfill({status:409, contentType:'application/json',
+          body:JSON.stringify({error:'Account progress changed on another device.'})});
+        cloudProgress = submitted.progress; cloudRevision++;
+        return route.fulfill({contentType:'application/json', body:JSON.stringify({revision:cloudRevision})});
+      });
+      await ready(p);
+      await p.waitForFunction(() => window.__BP.save().unlocked === 5);
+      return {context, page:p};
+    }
+    const first = await cloudPage();
+    assert.equal(cloudRevision, 3, 'loading account progress does not submit a score');
+    await first.page.evaluate(() => window.__BP.start(0));
+    await first.page.waitForFunction(() => document.querySelector('#district-account-panel')?.textContent?.includes('Account progress saved'));
+    assert.equal(cloudRevision, 4, 'game progress syncs to the account');
+    const second = await cloudPage();
+    await first.page.evaluate(() => window.__BP.start(1));
+    for (let i = 0; i < 50 && cloudRevision < 5; i++) await first.page.waitForTimeout(100);
+    assert.equal(cloudRevision, 5, 'newer device progress reached the account');
+    await second.page.evaluate(() => window.__BP.start(2));
+    await second.page.waitForFunction(() => document.querySelector('#district-account-panel')?.textContent?.includes('Both copies are safe'));
+    assert.equal(cloudProgress.resume.level, 1, 'stale device did not overwrite the server');
+    assert.equal(await second.page.evaluate(() => window.__BP.save().resume.level), 2,
+      'stale device kept its local copy');
+    await second.page.locator('#district-account-toggle').click();
+    await second.page.getByRole('button', {name:'LOAD ACCOUNT SAVE'}).click();
+    await second.page.waitForFunction(() => window.__BP?.save().resume?.level === 1);
+    assert.equal(cloudProgress.resume.level, 1, 'loading the account copy does not change verified score data');
+    await first.context.close(); await second.context.close();
     console.log(`Blackout browser smoke passed: ${sectors.length} sectors, desktop/mobile controls, offline fallback, guest and account saves.`);
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
