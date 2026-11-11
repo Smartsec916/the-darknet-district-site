@@ -639,9 +639,11 @@
     const podGlass=glass('pod-glass','#a8dcff',.1),mattress=mat('pod-mattress','#e6dfd2',{rough:.9,metal:0});
     // All ten capsules reuse the owner's Tesana Sleeping Pod geometry and its CC0 ambientCG materials.
     // Reuse emissive surfaces rather than the source scene's 13 real lights (which exceed this room's light budget).
-    const podPaint=mat('tesana-pod-paint','#736087',{rough:.56,metal:.28}),podFabric=mat('tesana-pod-fabric','#d6c4d9',{rough:.96,metal:0}),podRib=mat('tesana-pod-rib','#9c8aa9',{rough:.4,metal:.3}),podVent=mat('tesana-pod-vent','#20263b',{rough:.7,metal:.35});
-    for(const [material,file] of [[podPaint,'paintedmetal003-color.jpg'],[podFabric,'fabric062-color.jpg']]){const t=new B.Texture(new URL('assets/textures/tesana-pod/'+file,base).href,scene);t.uScale=2;t.vScale=2;material.albedoTexture=t;textures.push(t);}
-    if(!low)for(const [material,file] of [[podPaint,'paintedmetal003-normal.jpg'],[podFabric,'fabric062-normal.jpg']]){const t=new B.Texture(new URL('assets/textures/tesana-pod/'+file,base).href,scene);t.uScale=2;t.vScale=2;t.level=.3;material.bumpTexture=t;textures.push(t);}
+    // Surfaces follow the owner's Tesana Sleeping Pod (src/pod/materials.ts): the shell is off-white moulded plastic and the bedding plain white cotton; the scanned
+    // paint and fabric sets give only fine scuffs and thread (normal maps), never the colour. The pink comes from the pod's own light, not from the paint.
+    const podPaint=mat('tesana-pod-paint','#ece5f2',{rough:.5,metal:0}),podFabric=mat('tesana-pod-fabric','#f2eef4',{rough:.96,metal:0}),podRib=mat('tesana-pod-rib','#e4dcec',{rough:.45,metal:0}),podVent=mat('tesana-pod-vent','#20263b',{rough:.7,metal:.35}),podFacade=mat('tesana-pod-facade','#2a1d33',{rough:.55,metal:.1});
+    podPaint.emissiveColor=B.Color3.FromHexString('#3b2140');podFabric.emissiveColor=B.Color3.FromHexString('#33203a');podRib.emissiveColor=B.Color3.FromHexString('#2c1a33');   // the neon wash inside the capsule (no extra lights)
+    if(!low)for(const [material,file,scale,level] of [[podPaint,'paintedmetal003-normal.jpg',1,.18],[podFabric,'fabric062-normal.jpg',3,.25]]){const t=new B.Texture(new URL('assets/textures/tesana-pod/'+file,base).href,scene);t.uScale=scale;t.vScale=scale;t.level=level;material.bumpTexture=t;textures.push(t);}
     // The pod's front: one solid panel with an oval window cut out (in the y–z plane, facing the room).
     function ovalPanel(p,width,height,rz,ry,material=podShell){const pos=[],idx=[],n=40;for(let k=0;k<=n;k++){const a=k/n*Math.PI*2,c=Math.cos(a),s=Math.sin(a),reach=Math.min(width/2/Math.max(Math.abs(c),1e-6),height/2/Math.max(Math.abs(s),1e-6));pos.push(0,s*ry,c*rz,0,s*reach,c*reach);if(k<n){const q=k*2;idx.push(q,q+1,q+2,q+1,q+3,q+2,q,q+2,q+1,q+1,q+2,q+3);}}
      const mesh=new B.Mesh('pod-front',scene),vd=new B.VertexData();vd.positions=pos;vd.indices=idx;// Faces the room (+x) on both windings, so it lights like the rest of the shell.
@@ -649,7 +651,7 @@
     for(let row=0;row<2;row++)for(let i=0;i<5;i++){const z=57+i*2.6,y=.9+row*1.7,index=row*5+i+1,hatch=[amber,magenta][(i+row)%2],shell=podPaint,podInner=glowMat('pod-inner-'+index,'#ffc98a',.16),podLed=glowMat('tesana-pod-led-'+index,'#ad5a94',.4);
      // A hollow capsule: back, top, floor, sides and a fascia framing the hatch, so the bed shows through the glass.
      box('pod-back',[.12,1.5,2.3],[-16.64,y,z],shell);for(const s of [-1,1]){box('pod-roof',[2.6,.1,2.3],[-15.4,y+s*.7,z],shell);box('pod-side',[2.6,1.5,.1],[-15.4,y,z+s*1.1],shell);}
-     ovalPanel([-14.15,y,z],2.3,1.5,.95,.575,shell);for(const s of [-1,1])box('pod-trim',[2.6,.08,.08],[-15.4,y+s*.72,z+1.11],podRib);
+     ovalPanel([-14.15,y,z],2.3,1.5,.95,.575,podFacade);for(const s of [-1,1])box('pod-trim',[2.6,.08,.08],[-15.4,y+s*.72,z+1.11],podRib);
      box('pod-inner-light',[.03,.9,1.7],[-16.56,y+.05,z],podInner);box('pod-ceiling-light',[2,.03,1.2],[-15.4,y+.63,z],podInner);
      const ring=add(B.MeshBuilder.CreateTorus('pod-ring',{diameter:1,thickness:.07,tessellation:32},scene),hatch,[-14.04,y,z]);ring.rotation.z=Math.PI/2;ring.scaling.set(1.15,1,1.9);
      const glass=add(B.MeshBuilder.CreateDisc('pod-glass',{radius:.5,tessellation:32,sideOrientation:B.Mesh.DOUBLESIDE},scene),podGlass,[-14.06,y,z],false);glass.rotation.y=Math.PI/2;glass.scaling.set(1.85,1.1,1);
