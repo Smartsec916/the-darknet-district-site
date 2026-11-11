@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "1e1dfb300baba575",
+  "revision": "30d8c03160f377b9",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11760,6 +11760,18 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/device-v1.js",
+      "line": 22,
+      "text": "messages:{id:'messages',title:'MESSAGES',glyph:'@',state:'ready',note:'District chat and conversations. Private messages to other players are not available yet.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/device-v1.js",
+      "line": 123,
+      "text": "actions:[{id:'talk',label:'CONVERSATION',enabled:!!data.here,reason:data.here?'':'Talk to them in person.'}]};",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/district-chat.js",
       "line": 35,
       "text": "formEl=el_('form');formEl.hidden=true;inputEl=el_('input');inputEl.type='text';inputEl.maxLength=200;inputEl.autocomplete='off';inputEl.setAttribute('aria-label','Chat message (200 characters, no links)');inputEl.placeholder='Say something to the District (Enter to send, Esc to close)';",
@@ -12068,7 +12080,13 @@
     {
       "source": "void-runner/mouse-control.js",
       "line": 8,
-      "text": "const conversationOpen=()=>!!document.querySelector('#screen.conversation-live,#trade-window,#district-chat.open,#district-chat.people');   // a conversation or the trade window needs the cursor",
+      "text": "const conversationOpen=()=>!!document.querySelector('#screen.conversation-live,#trade-window,#district-chat.open,#district-chat.people,#personal-device.open');   // a conversation or the trade window needs the cursor",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mouse-control.js",
+      "line": 12,
+      "text": "if(!fps()||!mouse()||locked()||unavailable||conversationOpen())return;   // never capture the mouse while a conversation, the trade window, chat or the V1 device needs the cursor",
       "kind": "source-reference"
     },
     {
@@ -12156,20 +12174,56 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/personal-device.js",
+      "line": 3,
+      "text": "the device and dragging the world outside it looks around. It is a read-and-act layer over systems that already exist (Mission Log, conversation history,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/personal-device.js",
+      "line": 75,
+      "text": "const A=root.VoidCharacterCreator?.stored?.()||null,h=root.VoidAccount?.handle;   // no saved look: the portrait says unavailable, never a guess",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/personal-device.js",
+      "line": 98,
+      "text": "const tabs='<div class=\"pd-tabs\"><button type=\"button\" data-sub=\"chat\" aria-pressed=\"'+(sub==='chat')+'\">DISTRICT CHAT</button><button type=\"button\" data-sub=\"talk\" aria-pressed=\"'+(sub==='talk')+'\">CONVERSATIONS</button><button type=\"button\" data-sub=\"dm\" aria-pressed=\"'+(sub==='dm')+'\">PRIVATE</button></div>';",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/personal-device.js",
+      "line": 102,
+      "text": "return tabs+(rows.length?rows.slice(-40).reverse().map(m=>'<div class=\"pd-line\"><b>'+esc(m.name)+'</b><span class=\"pd-note\">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class=\"pd-empty\">No conversations yet. People you talk to appear here.</div>');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/personal-device.js",
+      "line": 107,
+      "text": "+'<form data-chatform style=\"margin-top:8px\"><input type=\"text\" maxlength=\"200\" autocomplete=\"off\" aria-label=\"Chat message\" placeholder=\"'+(can?'Say something (no links)':'Chat needs a registered account and a connection')+'\"'+(can?'':' disabled')+'></form>';",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/personal-device.js",
+      "line": 257,
+      "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/personal-hud.js",
-      "line": 27,
+      "line": 26,
       "text": "const profile=p=>'<article class=\"hud-card social-profile\" data-profile=\"'+esc(p.key)+'\"><div class=\"social-avatar\" aria-hidden=\"true\">'+esc(p.name.slice(0,1).toUpperCase())+'</div><div><h3>'+esc(p.name)+'</h3><p>'+esc(p.bio)+'</p>'+badges(p)+'<button type=\"button\" data-hud-character=\"'+esc(p.key.startsWith('npc:')?p.key.slice(4):'')+'\">CONVERSATIONS</button></div></article>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 32,
+      "line": 31,
       "text": "'<h2>YOUR PROFILE</h2>'+profile(me)+'<h2>CONVERSATIONS</h2><div class=\"social-filters\">'+filterButtons+(socialCharacter?'<button type=\"button\" data-hud-character=\"\">CLEAR CHARACTER</button>':'')+'</div><div class=\"social-thread\" aria-label=\"Conversation history\">'+(thread||'<p>No conversations in this view.</p>')+'</div>'+",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 33,
+      "line": 32,
       "text": "'<h2>PEOPLE</h2><p class=\"hud-note\">NPC conversation history stays in this browser. Player messaging needs the future authenticated social service.</p>'+",
       "kind": "source-reference"
     },
@@ -13423,13 +13477,13 @@
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 187,
+      "line": 186,
       "text": "if(!['play','walking','dock','dialogue'].includes(mode))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 198,
+      "line": 197,
       "text": "addEventListener('keydown',e=>{if(e.code===(VoidInput.bindings.missionLog||'KeyL')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){if(!['play','walking','dock','dialogue','mission-log'].includes(mode))return;e.preventDefault();if(!e.repeat)openMissionLog();}if(e.code==='Escape'&&missionPanel){e.preventDefault();closeMissionLog();}});",
       "kind": "source-reference"
     },
@@ -13543,6 +13597,8 @@
     "void-runner/dev-test.js": "fe2ee383ca0ae2227dc944eea2d1ae1c4d7922e60c8719f1a7fa78fc3ae4ffa7",
     "void-runner/dev-tools.js": "8fc329454a6ed8a22bf93e8721eeffca11b1276ccf0eb3676b90c67c58781974",
     "void-runner/device-gate.js": "18ede0f57043b170043090b207fae30ae2a818aeca6d60a4c9f5a904946c91d7",
+    "void-runner/device-portraits.js": "390549763346c7202b1f16c85c873828baf5b3e8b05dc326a2dcde2cc264374f",
+    "void-runner/device-v1.js": "3007b412efce9859a50342d0e9a167a9adad2e6e826e831f08a5bc8c8f623571",
     "void-runner/district-area.js": "d805f191bae9eae587bba224b03d4ac366697bd0c4ae6bb99c8e21cbe26ebade",
     "void-runner/district-chat.js": "f6dcf7d042846fb47df27dfa2703699314770365fcc5adab94c80f3341029dd5",
     "void-runner/district-transition.js": "b263057b1d8c1f56d16904df08221676ac617604f1b04d1d1b7f6e5cda06c249",
@@ -13582,7 +13638,7 @@
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-log.js": "da6545bba6a9536dedbd50fc675b61d943b78f7044d785330db2e78e1befcd44",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
-    "void-runner/mouse-control.js": "17d4e6e90d0f101d517f461bb0c7ae7cc448279fee8a5d048052ab29caf103c0",
+    "void-runner/mouse-control.js": "b56e49272cfec41479903eb03861ce86ff29d7549ac12d9a28d0df7e323b6b88",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "a751c57ffcc8fd9928ecd8baa1f962d21f86ae842b87a3724e31c045887795a8",
     "void-runner/music-engine.js": "5078e1a0fedff9d09a7f23823126d3ef8a834a1806edb7675c54e3b668014a8b",
@@ -13596,7 +13652,8 @@
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "da1674b96960e03052332b46f33745a5db4f738ad2a38d06cef1eaa912b1ecbb",
-    "void-runner/personal-hud.js": "ac4f3cafea8443be8e93d6b283f87cc80f662ab3cc8e033785ef571f998be687",
+    "void-runner/personal-device.js": "bd12164ec2a5e71ec6a0853954fbebffc93f102b0630255ee8d309db8be0fce1",
+    "void-runner/personal-hud.js": "1ca0e48b3d144a0a2ffed8e3202f98322a060541b8127de2ee48469ed2606776",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
     "void-runner/pod-music.js": "2e923fe18b2153cc4cbda90973c4ab1fec1200fe90d004570ba73d2070249a44",
@@ -13647,7 +13704,7 @@
     "void-runner/warflying-scanner.js": "3234988837d0ca2ab0fec7bdb730d923c679fd50ff883569c2f7f568406a00ed",
     "void-runner/warflying.js": "e3a319a7538e4df7e014be7ccb50b32bb2b0cf6cbcfe10ccfca2e46edb013a4f",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "1cf04ccf967c76ce82868e5b79c245e08088a2cde07f3f4b76605b620b0982b4",
+    "void-runner/world-integration.js": "d16d1a7112f832635002fe0a9a7419dbcb2f20acfa5b53565b6537a4d60bff77",
     "void-runner/world-markers.js": "44347bce6208e455b16ba76da2b328903c2f77e0cba457d0de14b0af882b047c",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "tools/admin-inventory.cjs": "4b545f1e29bc40745983ecd5a113f20926a6f73b52a1b4ed4c2e8106df0a4ed0",
