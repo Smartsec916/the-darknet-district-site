@@ -1,5 +1,17 @@
 # The Darknet District — Current AI Development Handoff
 
+## UPDATE 2026-11-12 (Claude): District runtime update is LIVE. Read this before the 2026-11-11 section below
+
+PR #217 (squash `56a9a7e`) brought the game runtime, hub and tests from `codex/first-player-experience-repair` (`086f7b2`) onto `main` as one unit; website pages, the homepage ENTER entrance and the favicon were kept from `main`. Verified on https://thedarknetdistrict.com in a real browser: phone gate (2 requests, no game files), ENTER, creator first, **ten personal pods** (pod card: EXIT POD / MUSIC & LIGHTS / LOOK INSIDE), walking, no page errors, no missing files. Live `BUILD` = `2026-11-12-district-runtime-1+56a9a7efc4`.
+
+So the 2026-11-11 list below is partly done: the ten pods and entrance fix are live. District chat code (`void-runner/district-chat.js`) is live too, but only shows when connected to the hub, and the hub on Render still runs `4c60781` with a one-account allow-list and no chat support: **chat does not work online until the hub is redeployed from `main` and `HUB_ACCESS=registered` is set** (David's Render action; see `HUB_RENDER_SETTINGS.md`). Share Links are retired on `main` (files removed).
+
+**Server:** `void_runner_api.py` on `main` now contains `/character`, `/character/appearance` (flag `VOID_APPEARANCE_ENABLED`, off) and the campaign-epoch handling of old cloud saves (`is_current_save`: pre-reset cloud saves are reported as retired, not deleted). **The Render game API has NOT been redeployed** and still runs the 2026-11-01 code. A Render deploy from `main` would now switch that behaviour on: review it with David first.
+
+**Not tested live:** sign-in, cloud saves and purchases (the sandbox cannot reach Firebase). Tests adjusted in #217: older assertions that the homepage has no game entrance were removed or updated; the website Sleeping Pod page still has its own song list (`tests/music-catalog.test.cjs` notes this).
+
+**Next:** (1) V1 device (`claude/v1-device`): fix Esc opening the game menu, port its new files onto `main`, publish. (2) Hub redeploy + registered access for chat. (3) Game API deploy decision. (4) Master specification Phase 1 (vestibule).
+
 ## LIVE STATE AND NEXT WORK (Claude, 2026-11-11). Newest; read first. Always re-fetch GitHub before trusting any of this
 
 **Policy from David (2026-11-11):** the live site is the test environment; there is no staging site. Verified, production-compatible work may be merged and deployed. Do not blindly merge large PRs, overwrite newer work with older, break sign-in/saves/purchases, change production databases or secrets, or buy services.
