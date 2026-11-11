@@ -183,7 +183,6 @@ function closeMissionLog(){if(!missionPanel)return;missionPanel.remove();mission
 function openMissionLog(){
  if(missionPanel)return closeMissionLog();
  if(globalThis.VoidFlightSkirmish?.active)return;
- if(!state.universe.missionLogUnlocked){announce('Mission Log opens when Mara gives you the pistol.');return;}
  if(!['play','walking','dock','dialogue'].includes(mode))return;
  missionReturn=mode;mode='mission-log';clearInput();walkingKeys.clear();document.exitPointerLock?.();
  missionPanel=document.createElement('section');missionPanel.id='mission-log';missionPanel.setAttribute('role','dialog');missionPanel.setAttribute('aria-label','Mission Log');
