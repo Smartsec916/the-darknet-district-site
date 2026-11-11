@@ -5,7 +5,7 @@
  const fps=()=>mode==='walking'||mode==='skirmish-fps';
  const mouse=()=>globalThis.VoidControls?.deviceClass!=='touch-first'&&!!canvas.requestPointerLock;
  const locked=()=>document.pointerLockElement===canvas;
- const conversationOpen=()=>!!document.querySelector('#screen.conversation-live,#trade-window,#district-chat.open,#district-chat.people');   // a conversation or the trade window needs the cursor
+ const conversationOpen=()=>!!document.querySelector('#screen.conversation-live,#trade-window,#district-chat.open,#district-chat.people,#personal-device.open');   // a conversation or the trade window needs the cursor
  // If the browser refuses pointer lock (embedded frame, policy), clicks behave normally again.
  let unavailable=false,swallowing=false,failures=0;
  function lock(){
@@ -60,7 +60,7 @@
  function cycle(step){const c=context();if(!c)return;const list=available(c);if(list.length<2)return;const i=Math.max(0,list.findIndex(w=>w.id===c.current()));select(list[(i+step+list.length)%list.length].id);}
  let wheel=0,lastStep=0;
  addEventListener('wheel',e=>{
-  if(!fps()||e.target.closest?.('#screen:not(.hidden),#mission-log,.settings-panel,#dev-balance'))return;
+  if(!fps()||e.target.closest?.('#screen:not(.hidden),#mission-log,.settings-panel,#dev-balance,#personal-device'))return;
   e.preventDefault();wheel+=e.deltaY;const now=performance.now();
   if(Math.abs(wheel)>=40&&now-lastStep>140){cycle(wheel>0?1:-1);wheel=0;lastStep=now;}
  },{passive:false});

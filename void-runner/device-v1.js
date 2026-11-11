@@ -30,6 +30,9 @@
  };
  // Apps a player could install later. Intentionally empty: no purchases, prices or unlocks exist yet.
  const STORE_EXTRA=[];
+ // Which in-game model draws each named NPC's portrait: {npcId: 'crowd-look-id'}. EMPTY on purpose: the game does not yet say which crowd model is which named
+ // character, and a guessed face would be wrong. An entry here makes that NPC's portrait appear (and regenerate whenever ASSET_VERSION or the model changes).
+ const NPC_MODELS={};
  const DEFAULT_SETTINGS={motion:'auto',scan:'1',size:'half'};   // motion: auto (follow the system), full, reduced
  const SETTING_VALUES={motion:['auto','full','reduced'],scan:['0','1'],size:['half','expanded']};
  const KEY={model:'deviceModel',version:'deviceVersion',apps:'deviceApps',settings:'deviceSettings',map:'deviceMap'};
@@ -119,6 +122,6 @@
    facts:learned,places:data.place?[String(data.place).slice(0,100)]:[],portrait:{key:portraitKey('npc',data.id||'',data.model?{model:data.model}:null),source:data.model?{type:'model',model:data.model}:null,state:data.model?'ready':'unavailable'},
    actions:[{id:'talk',label:'CONVERSATION',enabled:!!data.here,reason:data.here?'':'Talk to them in person.'}]};
  }
- const api={ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storeListing,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
+ const api={ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storeListing,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidDeviceV1=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
