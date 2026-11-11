@@ -136,15 +136,46 @@ class IdentityApiTests(unittest.TestCase):
         self.assertIsNone(self.client.get('/api/identity/me', headers={'Authorization': 'Bearer uid-b'}).json['handle'])
 
     def test_reserved_and_lookalike_names_cannot_be_claimed(self):
-        for bad in ['Iris', 'IRIS', '1ris', 'Ir1s', 'lris', 'I_r_i_s', 'Admin', 'Adm1n', 'admin2024', 'System', '5ystem',
+        for bad in ['Iris', 'IRIS', '1ris', 'Ir1s', 'lris', 'I_r_i_s', 'Mara', 'ROOK', 'Nyx', 'Elara',
+                    'Marcus', 'Iona', 'Kai', 'Sol', 'Admin', 'Adm1n', 'admin2024', 'admin_02', 'System', '5ystem',
                     'Moderator', 'M0derator', 'r00t', 'Owner', 'iris_official', 'Iris_Bot', 'real_admin', 'TheIris',
+                    'TheIris02', 'Iris_Official02', 'Iris_02_Official', 'Iris_02_Bot', 'real_02_Iris',
                     'DarkNet', 'Support', 'Staff', 'Official']:
             response = self.claim('uid-a', bad)
             self.assertEqual(response.status_code, 400, bad)
             self.assertIn('reserved', response.json['error'], bad)
         self.assertEqual(self.db.data, {}, 'a refused name leaves no trace')
-        for fine in ['Osiris', 'Ghost_01', 'Neo_Anderson', 'Lilly', 'Dave', 'xX_Cipher_Xx']:
+        for fine in ['Osiris', 'Iris_02', 'IriS02', 'Mara_9', 'Rook42', 'Iris_Lover',
+                     'Ghost_01', 'Neo_Anderson', 'Lilly', 'Dave', 'xX_Cipher_Xx']:
             self.assertEqual(self.claim(f'uid-{fine}', fine).status_code, 200, fine)
+
+    def test_rejected_handle_can_be_retried_without_losing_account_data(self):
+        pid = blackout_api.player_id('uid-a')
+        self.db.data[('bp_tesana_stats', pid)] = {'bestScore': 4500}
+        self.db.data[('vr_players', pid)] = {'character': {'gender': 'female', 'model': 'district-resident'},
+                                            'save': {'credits': 71}}
+        self.assertEqual(self.client.get('/api/identity/handles/Iris_02/available').json, {'available': True})
+        reserved = self.client.get('/api/identity/handles/Iris/available')
+        self.assertEqual(reserved.status_code, 400)
+        self.assertIn('reserved', reserved.json['error'])
+        for handle, status, message in [('Iris', 400, 'reserved'), ('x y', 400, 'Use 3'),
+                                        ('Iris_02', 200, None)]:
+            response = self.claim('uid-a', handle)
+            self.assertEqual(response.status_code, status)
+            if message:
+                self.assertIn(message, response.json['error'])
+        self.assertEqual(self.db.data[('vr_players', pid)]['save'], {'credits': 71})
+        self.assertEqual(self.db.data[('bp_tesana_stats', pid)], {'bestScore': 4500})
+        self.assertEqual(self.db.data[('bp_profiles', pid)]['handle'], 'Iris_02')
+        taken = self.claim('uid-b', 'IRIS_02')
+        self.assertEqual(taken.status_code, 409)
+        self.assertIn('taken', taken.json['error'])
+        self.assertEqual(self.client.get('/api/identity/handles/iris_02/available').json, {'available': False})
+        with patch.object(identity_api, 'services', side_effect=identity_api.ApiError('Handle service unavailable.', 503)):
+            outage = self.claim('uid-b', 'IriS02')
+        self.assertEqual(outage.status_code, 503)
+        self.assertIn('unavailable', outage.json['error'])
+        self.assertEqual(self.claim('uid-b', 'IriS02').status_code, 200)
 
     def test_simultaneous_claims_for_one_handle_have_exactly_one_winner(self):
         import threading

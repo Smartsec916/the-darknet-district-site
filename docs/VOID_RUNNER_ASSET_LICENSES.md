@@ -202,11 +202,4 @@ Inspected and unused: the UE and Unity packages, the loose vending-machine FBX/G
 placed without their clips), one 4 m wall tile removed at the street entrance. Ambient sound is made in code (noise murmur and a
 muffled 124 BPM thump), nothing recorded or licensed.
 
-**Tesana Sleeping Pod adaptation (2026-11-05).** Pod 01's extra Babylon geometry adapts the owner's uploaded
-`game-20261103-855074a5-code(2).zip` Sleeping Pod project; that project contains procedural Three.js geometry, no GLB model.
-The two colour maps under `void-runner/assets/textures/tesana-pod/` are AmbientCG `PaintedMetal003` and `Fabric062`.
-Their accompanying ZIP manifests identify each as `CC0 (AmbientCG)`. The owner supplied
-https://docs.tesana.ai/account/ownership-and-ip for project ownership; this environment received HTTP 403 from that page,
-so its exact wording remains unverified here. No models from the separate spaceflight ZIP were imported.
-
-**Character creator hair parts (2026-11-05).** `void-runner/assets/models/parts/hair-*.glb` (9 files) are the MakeHuman/MPFB CC0 hairstyles short01-04, bob01-02, braid01, long01 and ponytail01, copied unchanged out of the existing crowd GLBs by `tools/assets/extract-hair-parts.cjs` (mesh, texture and skeleton only; no new third-party material). Re-fitting onto other bodies happens at runtime.
+**Sleeping Pod surface textures (2026-11-11).** `void-runner/assets/textures/tesana-pod/` holds colour maps from the ambientCG sets PaintedMetal003 and Fabric062 (CC0 1.0, https://docs.ambientcg.com/license/), the same sets the owner's Tesana Sleeping Pod project uses. They were referenced by the pod but missing from the published site.

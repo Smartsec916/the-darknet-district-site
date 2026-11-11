@@ -5,8 +5,8 @@
    The on-screen wording here is Claude-written and unreviewed (VOID_RUNNER_HANDOFF.md). */
 (function(root){
  const TEXT={
-  in:{kicker:'THE DARKNET DISTRICT',title:'SECURITY CHECKPOINT',steps:['SCANNING…','BADGE VERIFIED','ACCESS GRANTED'],min:2400},
-  out:{kicker:'THE DARKNET DISTRICT',title:'AIRLOCK',steps:['CYCLING…','PRESSURE EQUALISED','EXITING TO NEOCHINATOWN'],min:2000}};
+  in:{kicker:'THE DARKNET DISTRICT',title:'SECURITY CHECKPOINT',steps:['OUTER DOORS CLOSING…','SECURITY SCAN','INNER DOORS OPENING'],min:2400},
+  out:{kicker:'THE DARKNET DISTRICT',title:'SECURITY VESTIBULE',steps:['INNER DOORS CLOSING…','SECURITY SCAN COMPLETE','OUTER DOORS OPENING'],min:2000}};
  function create(d){
   const A=d.A,N=d.N;let busy=false,coolUntil=0;
   const wait=d.wait||(ms=>new Promise(r=>setTimeout(r,ms))),now=d.now||(()=>Date.now()),speed=()=>d.reducedMotion?.()?0.35:1;
@@ -23,7 +23,7 @@
     await Promise.all([d.enterWalking(to.key,{silent:true,spawn:to.spawn,yaw:to.yaw}),wait(text.min*speed())]);
     if(d.mode()!=='walking'||d.location()?.area!==(direction==='in'?'interior':'street'))throw new Error('The next area did not load.');
     const f=s.story.flags;if(direction==='in'){f.districtDoor=true;f.districtBadge=true;f.area='district';}else delete f.area;
-    d.save();d.afterLoad?.(direction);await d.overlay.hide();if(firstBadge)d.afterBadge?.();
+    d.save();await d.afterLoad?.(direction);await d.overlay.hide();if(firstBadge)d.afterBadge?.();
     return true;
    }catch(error){
     d.warn?.(error);
@@ -47,20 +47,23 @@
  if(typeof document==='undefined'||typeof VoidInteractions==='undefined'||!root.VoidDistrictArea||!root.VoidNeoChinatown)return;
  // ---- The overlay: a scan line sweeping over a checkpoint panel, or an airlock cycling bar ----
  const el=document.createElement('div');el.id='district-transition';el.hidden=true;el.setAttribute('role','status');el.setAttribute('aria-live','polite');document.body.append(el);
+ const still=document.createElement('canvas');still.className='dt-scene';still.setAttribute('aria-hidden','true');el.append(still);
  let timers=[];const clear=()=>{timers.forEach(clearTimeout);timers=[];};
  const overlay={
   show(direction,t){clear();el.className='dt-'+direction;
-   el.innerHTML='<div class="dt-beam" aria-hidden="true"></div><div class="dt-panel"><p class="dt-kicker">'+t.kicker+'</p><h2>'+t.title+'</h2><ul>'+t.steps.map(x=>'<li>'+x+'</li>').join('')+'</ul><div class="dt-bar" aria-hidden="true"><i style="animation-duration:'+t.min+'ms"></i></div></div>';
+   const source=document.getElementById('space');still.width=source?.width||innerWidth;still.height=source?.height||innerHeight;
+   try{if(source)still.getContext('2d').drawImage(source,0,0,still.width,still.height);}catch{}
+   el.replaceChildren(still);el.insertAdjacentHTML('beforeend','<div class="dt-beam" aria-hidden="true"></div><div class="dt-panel"><p class="dt-kicker">'+t.kicker+'</p><h2>'+t.title+'</h2><ul>'+t.steps.map(x=>'<li>'+x+'</li>').join('')+'</ul><div class="dt-bar" aria-hidden="true"><i style="animation-duration:'+t.min+'ms"></i></div></div>');
    el.hidden=false;void el.offsetWidth;el.classList.add('on');
    const lis=[...el.querySelectorAll('li')];lis.forEach((li,i)=>timers.push(setTimeout(()=>{lis.forEach(x=>x.classList.remove('now'));li.classList.add('now');el.setAttribute('aria-label',li.textContent);},i*t.min/lis.length*(root.matchMedia?.('(prefers-reduced-motion: reduce)').matches?0.35:1))));},
-  hide(){clear();el.classList.remove('on');return new Promise(r=>setTimeout(()=>{el.hidden=true;el.innerHTML='';r();},450));}};
+  hide(){clear();el.classList.remove('on');return new Promise(r=>setTimeout(()=>{el.hidden=true;el.replaceChildren(still);r();},450));}};
  const ctl=create({A:root.VoidDistrictArea,N:root.VoidNeoChinatown,
   state:()=>state,walker:()=>walker,mode:()=>mode,location:()=>walkingLocation,graphicsBusy:()=>VoidGraphics.busy,
   enterWalking:(key,opts)=>enterWalking(key,opts),
   freeze:()=>{mode='preparing';clearInput();walkingKeys.clear();document.exitPointerLock?.();},
   save:()=>save(),announce:m=>announce(m),warn:e=>console.warn('[District transition]',e),
   reducedMotion:()=>root.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
-  afterLoad:direction=>{if(direction==='in')VoidBabylon.district?.doors?.kick('district-inner-door',4);},
+  afterLoad:direction=>{if(direction==='in')return VoidBabylon.district?.doors?.cycleIn?.();},
   afterBadge:()=>{if(typeof districtBadgeIssued==='function')districtBadgeIssued();else resumeWalking();},
   overlay});
  root.VoidDistrict=ctl;

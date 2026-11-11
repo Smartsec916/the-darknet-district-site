@@ -48,7 +48,9 @@
  async function build(appearance,parent,opts={}){
   const B=root.BABYLON,scene=opts.scene||parent.getScene();let a=A.normalize(appearance),clip=opts.clip||'idle',disposed=false,seq=0;
   let near=true,st=null;   // {look, model, node, made, ctrl, hairMesh, tinted:[{mesh,orig,mat}], key}
-  const meshByName=(s,name)=>s.node.getChildMeshes().find(m=>m.name==='crowd:'+s.model+'-'+name);   // runtime mesh names are 'crowd:<model>-<material name>'
+  // glTF material ids in the catalog include the model prefix, but the exported
+  // mesh names often do not (female_sportsuit01 versus district_resident.female_sportsuit01).
+  const meshByName=(s,name)=>{const prefix='crowd:'+s.model+'-',short=name.split('.').at(-1);return s.node.getChildMeshes().find(m=>m.name===prefix+name||m.name===prefix+short);};
   async function makeLook(){
    const look=CAT.looks[a.look];await ensureLook(look.model,scene);if(disposed)return null;
    const holder=new B.TransformNode('character:'+a.look,scene);holder.parent=parent;

@@ -31,9 +31,9 @@ test('the street spawn and the exit spawn are outside the door; the vestibule is
  for(const lzv of [21,22.5,24,25]){const [x,z]=N.toWorld(0,lzv);assert(!E.blocked(x,z,street),'street vestibule '+lzv);assert(!E.blocked(x,z,interior),'interior vestibule '+lzv);}
  const [dx,dz]=N.toWorld(...A.POINT.outside);assert.equal(A.enterTrigger(N,{x:dx,z:dz},stateWith({districtBadge:true})),false,'standing outside never enters');
 });
-test('triggers: a badge holder walking into the vestibule enters; without a badge the scanner is needed; walking out through the door leaves',()=>{
+test('triggers: any visitor walking into the vestibule enters automatically; walking out leaves',()=>{
  const inside=N.toWorld(0,24),near=N.toWorld(0,21.4),out=N.toWorld(0,20.4),hall=N.toWorld(0,30);
- assert.equal(A.enterTrigger(N,{x:inside[0],z:inside[1]},stateWith({districtBadge:true})),true);assert.equal(A.enterTrigger(N,{x:inside[0],z:inside[1]},stateWith({})),false);
+ assert.equal(A.enterTrigger(N,{x:inside[0],z:inside[1]},stateWith({districtBadge:true})),true);assert.equal(A.enterTrigger(N,{x:inside[0],z:inside[1]},stateWith({})),true);
  assert.equal(A.enterTrigger(N,{x:near[0],z:near[1]},stateWith({districtBadge:true})),false,'just past the outer door is not far enough');
  assert.equal(A.exitTrigger(N,{x:out[0],z:out[1]}),true);assert.equal(A.exitTrigger(N,{x:hall[0],z:hall[1]}),false);assert.equal(A.exitTrigger(N,{x:inside[0],z:inside[1]}),false);
  const wide=N.toWorld(8,24);assert.equal(A.enterTrigger(N,{x:wide[0],z:wide[1]},stateWith({districtBadge:true})),false,'only the vestibule, not the walls beside it');
@@ -57,7 +57,7 @@ test('going in: freeze, overlay, load the interior silently where the player sta
 test('a returning badge holder gets no second badge message',async()=>{const r=rig({flags:{districtBadge:true}});await r.ctl.go('in');assert(!r.log.includes('badge'));});
 test('going out: load the street outside the door, clear the area flag, save',async()=>{
  const r=rig({from:'interior',flags:{area:'district',districtBadge:true}});assert.equal(await r.ctl.go('out'),true);
- assert.deepEqual(r.log.slice(0,4),['freeze','show:out:AIRLOCK','enter:sacramento:silent','wait:2000']);assert(r.log.includes('save:null'));
+ assert.deepEqual(r.log.slice(0,4),['freeze','show:out:SECURITY VESTIBULE','enter:sacramento:silent','wait:2000']);assert(r.log.includes('save:null'));
  assert.equal(r.st.story.flags.area,undefined);assert.equal(r.st.story.flags.districtBadge,true,'the badge is kept');assert.equal(r.location.area,'street');
  const o=A.exitSpawn(N);assert.deepEqual([r.walker.x,r.walker.z,r.walker.yaw],[o.spawn[0],o.spawn[2],o.yaw]);
 });
@@ -79,7 +79,7 @@ test('tick starts the transition from the vestibule edges and not from anywhere 
  const r=rig({flags:{districtBadge:true}});r.walker.x=N.toWorld(0,17.4)[0];r.walker.z=N.toWorld(0,17.4)[1];assert.equal(r.ctl.tick(),false);
  const g=N.toWorld(0,24);r.walker.x=g[0];r.walker.z=g[1];assert.equal(await r.ctl.tick(),true);assert.equal(r.location.area,'interior');
  r.advance(2000);const o=N.toWorld(0,20.5);r.walker.x=o[0];r.walker.z=o[1];assert.equal(await r.ctl.tick(),true);assert.equal(r.location.area,'street');
- const r2=rig();const v=N.toWorld(0,24);r2.walker.x=v[0];r2.walker.z=v[1];assert.equal(r2.ctl.tick(),false,'no badge: the scanner has to be used');
+ const r2=rig();const v=N.toWorld(0,24);r2.walker.x=v[0];r2.walker.z=v[1];assert.equal(await r2.ctl.tick(),true,'a first-time visitor is scanned automatically');
 });
 test('reduced motion shortens the scan',async()=>{const r=rig();r.d.reducedMotion=()=>true;const ctl=T.create(r.d);await ctl.go('in');assert(r.log.includes('wait:'+(2400*.35)));});
 
@@ -102,7 +102,7 @@ test('the new-player start wakes in a pod and Exit Pod leads to open floor',()=>
  assert(w.includes('showPodWake()')&&w.includes('EXIT POD'),'the wake view has an explicit exit');
 });
 test('the existing interactions, the taxi, the VR arcade and the doors are all still wired',()=>{
- const ids=new Set(street.interactions.map(i=>i.id).concat(interior.interactions.map(i=>i.id)));for(const id of ['board','terminal','tdd','district-scan','admin','district-iris','district-shop','district-bar','district-vr','district-vending','district-pod','district-meeting','district-stairs','district-stairs-down'])assert(ids.has(id),id);
+ const ids=new Set(street.interactions.map(i=>i.id).concat(interior.interactions.map(i=>i.id)));for(const id of ['board','terminal','admin','district-iris','district-shop','district-bar','district-vr','district-vending','district-pod','district-meeting','district-stairs','district-stairs-down'])assert(ids.has(id),id);assert(!ids.has('tdd')&&!ids.has('district-scan')&&!ids.has('district-pod-music'),'no obsolete room/entrance prompts');
  const t=read('void-runner/district-transition.js');assert(t.includes("VoidInteractions.handlers.get('district-scan')")&&t.includes('original?.(...a)'),'the scanner keeps its original behaviour outside the street');
  assert(read('void-runner/neochinatown.js').includes("for(const k of ['city','nightclub','booths'])root.VoidNeoChinatown[k]=undefined"),'stale handles from a released environment are cleared');
 });

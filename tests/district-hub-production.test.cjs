@@ -15,7 +15,7 @@ const verifier=(extra={})=>createVerifier({projectId:PROJECT,now:()=>NOW,fetchJw
 
 test('a genuine Google-style token is accepted and reports guest or registered',async()=>{
  const v=verifier();
- assert.deepEqual(await v.verify(token()),{uid:'uid-1',provider:'password',anonymous:false,expiresAt:sec+3000});
+ assert.deepEqual(await v.verify(token()),{uid:'uid-1',provider:'password',anonymous:false,emailVerified:false,expiresAt:sec+3000});
  assert.equal((await v.verify(token({firebase:{sign_in_provider:'anonymous'}}))).anonymous,true);
  assert.equal((await v.verify(token({firebase:{}}))).provider,'unknown');
 });
@@ -42,13 +42,15 @@ test('the API provider forwards the player\'s own token, validates what comes ba
  const seen=[];const answers={'/api/void-runner/character':{character:{gender:'female',model:'district-resident'}},'/api/identity/me':{handle:'Neon_Fox'}};
  const f=async(url,opt)=>{const path=new URL(url).pathname;seen.push([path,opt.headers.authorization]);return {ok:true,headers:{get:()=>'application/json'},json:async()=>answers[path]};};
  const api=createApiProvider({apiBase:'https://api.example.com',fetchImpl:f});
- assert.deepEqual(await api.profile('TOKEN',{anonymous:false}),{model:'district-resident',handle:'Neon_Fox',appearance:null});
+ assert.deepEqual(await api.profile('TOKEN'),{profileStatus:'ready',model:'district-resident',handle:'Neon_Fox',appearance:null});
  assert(seen.every(([,h])=>h==='Bearer TOKEN'),'only the player\'s own token is sent');
- seen.length=0;assert.deepEqual(await api.profile('TOKEN',{anonymous:true}),{model:null,handle:'Neon_Fox',appearance:null});assert.deepEqual(seen.map(s=>s[0]),['/api/identity/me'],'a guest is never looked up for a character');
+ seen.length=0;answers['/api/void-runner/character']={character:null};
+ assert.deepEqual(await api.profile('TOKEN'),{profileStatus:'missing-character',model:null,handle:'Neon_Fox',appearance:null});
+ assert.deepEqual(seen.map(s=>s[0]).sort(),['/api/identity/me','/api/void-runner/character']);
  answers['/api/identity/me']={handle:'<script>alert(1)</script>'};answers['/api/void-runner/character']={character:{model:{$ne:1}}};
- assert.deepEqual(await api.profile('T',{anonymous:false}),{model:null,handle:null,appearance:null},'unsafe values are dropped');
+ assert.deepEqual(await api.profile('T'),{profileStatus:'unavailable'},'malformed records fail closed');
  for(const bad of [async()=>{throw new Error('timeout');},async()=>({ok:false,status:401,headers:{get:()=>''},json:async()=>({})}),async()=>({ok:true,headers:{get:()=>'text/html'},json:async()=>({})}),async()=>({ok:true,headers:{get:()=>'application/json'},json:async()=>[1]})])
-  assert.deepEqual(await createApiProvider({apiBase:'https://api.example.com',fetchImpl:bad}).profile('T',{anonymous:false}),{model:null,handle:null,appearance:null});
+  assert.deepEqual(await createApiProvider({apiBase:'https://api.example.com',fetchImpl:bad}).profile('T'),{profileStatus:'unavailable'});
  assert.throws(()=>createApiProvider({apiBase:'api.example.com/path'}));
 });
 

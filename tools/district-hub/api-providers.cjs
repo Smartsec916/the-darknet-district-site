@@ -1,7 +1,6 @@
 /* The hub's production providers. It holds NO Firebase credential and NO database access. Everything it learns about a player
    beyond "this token is valid" it learns by forwarding the player's OWN token to the existing game API, which applies its own
-   checks (token verification with revocation, one character per account). Failures never block joining: the player simply gets
-   the default look and a guest name.
+   checks (token verification with revocation, one character per account). Lookup failures fail closed for multiplayer.
      GET {api}/api/void-runner/character  -> {character:{gender, model}|null}
      GET {api}/api/identity/me            -> {handle|null, ...}                                                          */
 'use strict';
@@ -17,14 +16,20 @@ function createApiProvider({apiBase,fetchImpl=fetch,timeoutMs=4000,log=()=>{}}){
       const j=await r.json();return j&&typeof j==='object'&&!Array.isArray(j)?j:null;
     }catch(e){log('warn',path+' failed: '+String(e.message).slice(0,80));return null;}
   }
-  /* -> {model|null, handle|null}. Both are validated here again; nothing from the API is passed on unchecked. */
-  async function profile(token,{anonymous}){
-    // Anonymous accounts cannot own a character (the API refuses to create one), so only ask for the handle.
-    const [character,me]=await Promise.all([anonymous?null:getJson('/api/void-runner/character',token),getJson('/api/identity/me',token)]);
-    const model=typeof character?.character?.model==='string'?character.character.model:null;
-    const handle=typeof me?.handle==='string'&&HANDLE.test(me.handle)?me.handle:null;
-    const appearance=character?.appearance&&typeof character.appearance==='object'&&!Array.isArray(character.appearance)?character.appearance:null;   // validated by the hub before use
-    return {model,handle,appearance};
+  /* Only the API's authenticated, account-bound records can complete a profile. */
+  async function profile(token){
+    const [character,me]=await Promise.all([getJson('/api/void-runner/character',token),getJson('/api/identity/me',token)]);
+    if(!character||!me)return {profileStatus:'unavailable'};
+    const saved=character.character;
+    const validCharacter=!!saved&&typeof saved==='object'&&
+      ((saved.gender==='male'&&['district-smuggler','admin'].includes(saved.model))||
+       (saved.gender==='female'&&saved.model==='district-resident'));
+    const handle=typeof me.handle==='string'&&HANDLE.test(me.handle)?me.handle:null;
+    // Malformed non-null records need repair; never treat them as an empty slot and offer an overwrite.
+    if((me.handle!=null&&!handle)||(saved!=null&&!validCharacter))return {profileStatus:'unavailable'};
+    const profileStatus=handle?(validCharacter?'ready':'missing-character'):(validCharacter?'missing-handle':'missing-both');
+    const appearance=character.appearance&&typeof character.appearance==='object'&&!Array.isArray(character.appearance)?character.appearance:null;
+    return {profileStatus,model:validCharacter?saved.model:null,handle,appearance};
   }
   return {profile};
 }

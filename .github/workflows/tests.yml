@@ -19,8 +19,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      # The unit tests use only node:test, so no npm install is needed.
+      # Hub WebSocket tests import ws from the root test tooling dependencies.
+      - run: npm ci --ignore-scripts
       - run: node --test tests/*.test.cjs
+      - name: District hub WebSocket contracts
+        run: node --test tests/district-hub-ws.cjs tests/district-hub-trade-ws.cjs tests/district-hub-prod-ws.cjs
 
   python:
     name: Python API tests
@@ -53,12 +56,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install --ignore-scripts --no-package-lock
+      - run: npm ci --ignore-scripts
       - run: npx playwright install --with-deps chromium
       - name: Real-asset scene, timing, VR and HUD regression
         run: |
           node tests/serve-modern.cjs > /tmp/void-test-host.log 2>&1 &
           node tests/stabilization-browser.cjs
+          node tests/blackout-tesana-browser.cjs
         env:
           BROWSER_CHANNEL: chromium
           STABILIZATION_SMOKE: '1'

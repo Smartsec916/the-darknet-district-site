@@ -5,7 +5,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
 const BASE=process.env.BASE||'http://127.0.0.1:5187/void-runner.html',tiers=process.argv[2]?[process.argv[2]]:['low','high'],SHOTS=process.env.SHOT_DIR;
 const TRIPS=+(process.env.TRIPS||3);
 const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
-(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--no-sandbox']});
+(async()=>{const b=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||undefined,args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--no-sandbox']});
  for(const q of tiers){
   const ctx=await b.newContext({viewport:{width:1100,height:640}}),errs=[],warns=[];
   const logs=[];const open=async()=>{const pg=await ctx.newPage();pg.on('console',m=>{if(m.type()==='error'||m.type()==='warning'||/BJS|shader|effect|compile/i.test(m.text()))logs.push(m.type()+': '+m.text().slice(0,220));});pg.on('pageerror',e=>errs.push(e.message));pg.on('console',m=>{if(/NeoChinatown\]|District transition/.test(m.text()))warns.push(m.text());});
@@ -22,6 +22,7 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
    await pg.waitForTimeout(ms);};
   const snap=()=>pg.evaluate(()=>{const S=VoidBabylon.scene||scene,[lx,lz]=VoidNeoChinatown.toWorld(walker.x,walker.z),n=r=>S.meshes.filter(m=>r.test(m.name)).length;
    return {area:walkingLocation.area,local:[lx,lz],meshes:S.meshes.length,lights:S.lights.length,mats:S.materials.length,tex:S.textures.length,nodes:S.transformNodes.length,
+    staticNodes:S.transformNodes.filter(node=>!node.name.startsWith('crowd:')).length,
     street:n(/city-block|ncz-batch|taxi-zone|landing-pad/),interior:n(/district-floor|hall-|vr-booth|pods-|bar-counter/),flags:{area:state.story.flags.area,badge:state.story.flags.districtBadge,door:state.story.flags.districtDoor},location:state.location,overlay:!document.getElementById('district-transition').hidden};});
   const shot=async n=>{if(SHOTS)await pg.screenshot({path:SHOTS+'/'+n+'-'+q+'.png'});};
   const toVestibule=()=>pg.evaluate(()=>{const [x,z]=VoidNeoChinatown.toWorld(2.0,23.6);walker.x=x;walker.z=z;walker.yaw=Math.PI;});
@@ -29,14 +30,14 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   // 1. A new campaign wakes in a pod, exits to the interior, then walks out to the street.
   await pg.goto(BASE);await ready();await pg.click('[data-action=menu-campaign]');await pg.click('[data-action=menu-new]');await pg.waitForTimeout(1500);
   const c=await pg.$('[data-action=menu-new-confirm]');if(c)await c.click();
+  await pg.waitForSelector('#character-creator.on',{timeout:300000});await pg.waitForFunction(()=>!document.querySelector('[data-cc=confirm]')?.disabled,null,{timeout:300000});await pg.click('[data-cc=confirm]');
   await pg.waitForFunction(()=>mode==='pod-waking'&&walkingLocation?.area==='interior',null,{timeout:300000});
-  await pg.evaluate(()=>{state.story.flags.appearanceOffered=true;});await pg.click('#pod-wake button');await settle('interior',1000);await walkOut();
+  await pg.click('#pod-wake button');await settle('interior',1000);await walkOut();
   await settle('street');let s=await snap();console.log(q,'start',JSON.stringify(s));
   assert.equal(s.area,'street');assert.equal(s.flags.area,undefined);assert(Math.abs(s.local[0])<.1&&Math.abs(s.local[1]-17.4)<.1,'outside the doors');assert.equal(s.interior,0,'no District inside the street');
   const street1=s;
   // 2. Scan: the street is released while the interior loads, then only the interior exists.
-  await pg.evaluate(()=>VoidInteractions.handlers.get('tdd')());await toVestibule();await pg.waitForTimeout(500);
-  await pg.evaluate(()=>VoidInteractions.handlers.get('district-scan')());await pg.waitForTimeout(900);
+  await toVestibule();await pg.waitForTimeout(900);
   s=await snap();console.log(q,'during',JSON.stringify(s));await shot('checkpoint');
   assert.equal(s.overlay,true,'the checkpoint overlay is up');assert.equal(s.street,0,'the street is gone while the overlay is up: never both loaded');assert(s.meshes<20||s.interior>0,'what is loaded is the interior alone (meshes '+s.meshes+')');
   await settle('interior');s=await snap();console.log(q,'inside',JSON.stringify(s));await shot('inside');
@@ -46,13 +47,13 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   assert(s.meshes<street1.meshes*.8,'the interior alone is much smaller than the street ('+s.meshes+' vs '+street1.meshes+')');
   const interior1=s;
   // 3. Walking out through the outer door cycles back to the street, outside the door.
-  await walkOut();await pg.waitForTimeout(900);s=await snap();assert.equal(s.overlay,true);assert.equal(s.interior,0,'the interior is gone while the overlay is up: never both loaded');assert(s.meshes<20||s.street>0,'what is loaded is the street alone (meshes '+s.meshes+')');await shot('airlock');
+  await walkOut();await pg.waitForTimeout(900);s=await snap();assert.equal(s.overlay,true);assert.equal(s.interior,0,'the interior is gone while the overlay is up: never both loaded');assert(s.meshes<20||s.street>0,'what is loaded is the street alone (meshes '+s.meshes+')');await shot('vestibule');
   await settle('street');s=await snap();console.log(q,'out',JSON.stringify(s));await shot('outside');
   assert.equal(s.area,'street');assert.equal(s.interior,0,'no District left loaded');assert.equal(s.flags.area,undefined);assert(Math.abs(s.local[0])<.1&&Math.abs(s.local[1]-17.4)<.1,'in the alley outside the door');
   // 4. Repeated trips settle to the same size: nothing accumulates.
   const streets=[],insides=[];
   for(let i=0;i<TRIPS;i++){
-   await toVestibule();await pg.waitForTimeout(400);await pg.evaluate(()=>VoidInteractions.handlers.get('district-scan')());await settle('interior',6000);insides.push(await snap());
+   await toVestibule();await settle('interior',6000);insides.push(await snap());
    await walkOut();await settle('street',6000);streets.push(await snap());}
   console.log(q,'streets',JSON.stringify(streets.map(x=>[x.meshes,x.mats,x.tex,x.lights,x.nodes])),'interiors',JSON.stringify(insides.map(x=>[x.meshes,x.mats,x.tex,x.lights,x.nodes])));
   // The first visit to each environment is lighter (character models still download in the background). The interior has no randomness: from the second trip on its
@@ -61,17 +62,20 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   const last=TRIPS-1;
   for(const k of ['meshes','mats','tex','lights','nodes'])assert(within(insides[last-1][k],insides[last][k],.03),'interior '+k+' is level between the last two trips: '+insides.map(x=>x[k]));
   for(const k of ['mats','lights'])assert(within(streets[last-1][k],streets[last][k],.03),'street '+k+' is level: '+streets.map(x=>x[k]));
-  // Pedestrian numbers swing by about 10 percent from load to load; a leaked environment would add 40 percent or more every trip.
+  // Pedestrian numbers swing substantially from load to load; a leaked environment would keep adding nodes every trip.
   // The first trip is lighter (crowd models are still downloading), so the comparison is with the largest WARM trip (trip 2 onwards); a leaked environment adds 40 percent or more every trip, so it still fails this.
-  for(const k of ['meshes','tex','nodes'])assert(streets[last][k]<=Math.max(...streets.slice(1,last).map(x=>x[k]))*1.25,'street '+k+' does not grow across trips: '+streets.map(x=>x[k]));
+  for(const k of ['meshes','tex'])assert(streets[last][k]<=Math.max(...streets.slice(1,last).map(x=>x[k]))*1.25,'street '+k+' does not grow across trips: '+streets.map(x=>x[k]));
+  // Each random nightlife pedestrian imports a full skeleton. Its crowd:* transform nodes vary with the draw and are not a leak.
+  // Keep the strict growth check on the street's non-crowd nodes so leaked environment roots still fail deterministically.
+  assert(streets[last].staticNodes<=Math.max(...streets.slice(1,last).map(x=>x.staticNodes))*1.03,'street non-crowd nodes do not grow across trips: '+streets.map(x=>x.staticNodes));
   assert(streets[last].mats<=streets[0].mats*1.05&&insides[last].mats<=insides[0].mats*1.3,'materials do not pile up across trips');
   // 5. Saved locations: inside resumes inside (in the hall, past the inner door); outside resumes outside.
-  await toVestibule();await pg.waitForTimeout(400);await pg.evaluate(()=>VoidInteractions.handlers.get('district-scan')());await settle('interior',3000);
+  await toVestibule();await settle('interior',3000);
   let saved=await pg.evaluate(()=>{save();return JSON.parse(localStorage.getItem('void-runner-campaign-v1'));});
   assert.equal(saved.location,'earth');assert.equal(saved.story.flags.area,'district');
   // Continue always wakes the player in their Sleeping Pod (C.socialEntry, since the District social profiles commit 0f42dff), wherever the save was made.
   const continueToPod=async()=>{await pg.goto(BASE);await ready();await pg.click('[data-action=menu-continue]');await pg.waitForFunction(()=>mode==='pod-waking'&&walkingLocation?.area==='interior'&&!!walker,null,{timeout:300000});
-   assert.equal(await pg.evaluate(()=>state.story.flags.podWakePending),true,'Continue wakes in the pod');await pg.evaluate(()=>{state.story.flags.appearanceOffered=true;});await pg.click('#pod-wake button');await settle('interior',3000);return snap();};
+   assert.equal(await pg.evaluate(()=>state.story.flags.podWakePending),true,'Continue wakes in the pod');await pg.click('#pod-wake button');await settle('interior',3000);return snap();};
   s=await continueToPod();console.log(q,'resumed inside',JSON.stringify(s));
   assert.equal(s.area,'interior');assert.equal(s.street,0);assert(Math.abs(s.local[0]+12.5)<1.5&&Math.abs(s.local[1]-57)<1.5,'at the pod exit: '+s.local);
   await pg.evaluate(()=>{const [x,z]=VoidNeoChinatown.toWorld(0,20.6);walker.x=x;walker.z=z;walker.yaw=0;});

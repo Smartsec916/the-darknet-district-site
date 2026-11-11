@@ -1,8 +1,26 @@
 # CLAUDE.md: The Darknet District site / VOID//RUNNER
 
+## Current development authority — November 2026 (supersedes conflicting older handoff guidance)
+
+The active desktop game is the **District-first experience (multiplayer under development)** in NeoChinatown, Tessaly System. **Every login/reconnect should spawn in that player's own Sleeping Pod; first-time character customization happens before EXIT POD.** The homepage is the entry point, but it is not the gameplay spawn location. New campaigns have no active missions or starting ship; local District/NeoChinatown missions are designed later and a ship is earned by a future approved mission. The older VOID//RUNNER opening, Vesper/Mara tutorial and immediate ship ownership are historical plans, **not** instructions to restore them. Preserve compatible code and save IDs where possible. Treat older design briefs saying "DO NOT IMPLEMENT ANYTHING YET" as instructions for those historical planning exercises, not a blanket prohibition on current development.
+
+**Autonomy:** Claude and Codex may proactively diagnose, implement and test reversible gameplay, visuals, animations, NPC ambient behaviors, UI, local multiplayer functionality, performance and bug fixes, including reasonable new features consistent with the established District direction. Do not require 3–5 proposals for ordinary implementation, incidental dialogue or technical decisions. Offer options for major story/canon, faction, mission-arc, monetization or irreversible architectural changes; David retains final creative authority. Explicitly locked voices and David-authored scripts remain protected.
+
+**Assets and music:** David reports that music created through his paid Riffusion membership and purchased/supplied companion models are licensed for his intended commercial use. Do not categorically reject, replace, hide or disable these assets merely because they are AI-generated, purchased, or not stored in the public repository. Record the source and available license evidence; do not assume that commercial rights also permit public redistribution, sublicensing or AI training. For assets with genuinely unresolved terms, flag the exact question rather than broadly blocking all companions or music.
+
+**Specific licensed-asset handling:** `docs/VOID_RUNNER_ASSET_LICENSES.md` records Ava, Eva, Yuki and Dex as already released through the private `Smartsec916/void-runner-licensed-assets` repository and encrypted publishing pipeline. These models must remain available to authorized local development through a private asset sync or equivalent, not by committing source models to this public repo. Some marketplace licenses are marked **No AI**: do not use those model files for AI training or other prohibited AI processing; ordinary game rendering and authorized conversion are separate questions governed by the actual license. Riffusion music should be reused according to the rights of the particular paid plan and generation date; preserve available receipts/terms and do not assume every Riffusion output has identical rights. Assets whose provenance or commercial terms remain unknown must be reviewed individually, not treated as automatically approved.
+
+**Local companion debugging:** The companion picker can register a character while its model file is unavailable. Live-site success does not prove the file is present in a local build. Inspect `void-runner/vr-companions.js`, `void-runner/crowd.js`, the required animation clips, model paths, private asset packaging (`tools/assets/build-pages.cjs`), dev-only listing rules, and browser network/console errors. Restore authorized local access to purchased assets without committing proprietary models or secrets into the public repository. Never silently substitute a different companion or remove an entry to conceal a missing-file error.
+
+**Live multiplayer:** Prefer a small, low-cost Render-hosted multiplayer service using the existing Firebase identity flow, including guest access where supported. Do not ask for friends' Firebase UIDs as a normal join procedure; validate player identity server-side and provide automatic instance joining. Implement and test changes on a branch. Do not create paid resources, change secrets, deploy, merge to `main`, or alter live infrastructure without David's explicit authorization.
+
 This repository is David's website, The Darknet District (https://thedarknetdistrict.com). Most active work is on the browser game **VOID//RUNNER** (`void-runner.html` plus `void-runner/`).
 
-**At the start of every session, fetch GitHub and read `docs/development/AI_HANDOFF.md` and `docs/development/AI_ROADMAP.md`. Verify the remote development HEAD before editing.** Read `VOID_RUNNER_HANDOFF.md` for canon and the decision log; its older branch and gameplay snapshots are historical where the newer AI handoff says otherwise.
+**Read `VOID_RUNNER_HANDOFF.md` before changing the game.** It holds the current canon, the decision log, mission state, and what is approved and what is not.
+
+## Current handoff and release state (2026-11-10)
+
+**Before coding, read `docs/development/AI_HANDOFF.md` and `docs/development/AI_ROADMAP.md`**, then this file and `VOID_RUNNER_HANDOFF.md` for technical conventions and historical decisions. The earlier October campaign status is historical; **the current District-first state wins**. Draft PR #212 is an incomplete production integration; its Node, Python and Babylon smoke CI was green at `e3e0ba1`, but that does not replace manual acceptance. Do not interpret a PR build as a live deployment. The owner would like independently ready fixes released, but only merge/deploy changes with verified compatibility and explicit safe scope. Keep wholesale PR #212 in draft until accepted. The latest user instruction permits deleting **unfinished in-game shop items** if required, **not** real storefront inventory, Shopify, or purchased entitlements.
 
 ## The owner and how to work with him
 
@@ -66,7 +84,7 @@ This repository is David's website, The Darknet District (https://thedarknetdist
   | ship slot `utility` (`loadout.utility`) | **DRIVE** slot (boosters and drones) |
 
   If an id must change, migrate old saves in **both** `campaign.js restore()` and `void_runner_api.py clean_save()`, as was done for `undertow`→`rusthaven`.
-- Save compatibility matters from now on. Players have local and cloud saves. New state should go in tolerant places (`story.flags` accepts booleans, strings up to 200 characters, and safe integers), or the server validator must be extended. One deliberate exception: on 2026-11-04 David retired every pre-reset campaign. Campaigns now carry `story.flags.campaignEpoch`, and `restore()` and the cloud API refuse any save without it (`docs/void-runner/SAVE-RESET.md`). Raise `CAMPAIGN_EPOCH` in both `campaign.js` and `void_runner_api.py` only for another deliberate reset.
+- Save compatibility matters. Players have local and cloud saves. New state should go in tolerant places (`story.flags` accepts booleans, strings up to 200 characters, and safe integers), or the server validator must be extended.
 
 - **Git on Windows:** set `git config core.autocrlf false` in this repo before editing. Many files are stored with mixed line endings, and automatic conversion rewrites them.
 
@@ -99,5 +117,5 @@ This repository is David's website, The Darknet District (https://thedarknetdist
 
 ## Git workflow
 
-- Use the single active integration branch named in `docs/development/AI_HANDOFF.md`. Fetch and verify its pushed HEAD before starting; isolate a feature on a branch from that tip when needed. Never overwrite another AI's unmerged work or silently branch from `main`. Commit and push with clear messages; open a draft PR when possible. Merge only when David asks.
-- Before finishing: run relevant tests; update `AI_HANDOFF.md` with completed/pending work and the next task; commit, push, and verify the remote head. Bump `BUILD` if game files changed, sync `static/void-runner.html`, and update `save-manifest.json` if ids were added. Do not deploy or change production systems without David's approval.
+- Branch from `main`; branch names look like `claude/<topic>`. Commit with clear messages. Open a PR. Merge only when David asks.
+- Before finishing: tests pass, `BUILD` is bumped if game files changed, `static/void-runner.html` is synced, and `save-manifest.json` is updated if ids were added.

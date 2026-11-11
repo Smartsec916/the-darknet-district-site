@@ -24,9 +24,19 @@ function fromEnv(env=process.env){
   const apiBase=env.HUB_API_BASE||'';
   if(!/^https:\/\/[^/\s]+$/.test(apiBase))throw new Error('HUB_API_BASE must be the game API origin, for example https://the-darknet-district-site.onrender.com');
   const allowed=new Set(list(env.HUB_ALLOWED_UIDS));
-  if(!allowed.size&&env.HUB_ALLOW_ANY_SIGNED_IN!=='true')throw new Error('HUB_ALLOWED_UIDS is empty. The first test is restricted to listed accounts; set HUB_ALLOW_ANY_SIGNED_IN=true only when the owner approves an open test.');
+  // HUB_ACCESS=registered: early access for registered Firebase accounts with API-verified District handles and characters, with no manually kept id list. Everything else
+  // (verified tokens, exact origins, deny-list, per-address and total connection limits, room cap, message limits, chat rules) stays on. It is explicit: the
+  // default is still the restricted allow-list, and the two ways of choosing cannot be mixed, so a leftover id list can never be mistaken for the access rule.
+  const access=String(env.HUB_ACCESS||'allowlist').toLowerCase();
+  if(!['allowlist','registered'].includes(access))throw new Error('HUB_ACCESS must be allowlist (default) or registered.');
+  if(access==='registered'){
+    if(allowed.size)throw new Error('HUB_ACCESS=registered cannot be combined with HUB_ALLOWED_UIDS: remove the id list (use HUB_DENY_UIDS to block accounts).');
+    if(env.HUB_ALLOW_ANY_SIGNED_IN==='true')throw new Error('HUB_ACCESS=registered replaces HUB_ALLOW_ANY_SIGNED_IN: remove that variable (it would also admit anonymous accounts).');
+  }
+  const registeredOnly=access==='registered',verifiedEmail=registeredOnly&&env.HUB_REQUIRE_VERIFIED_EMAIL==='true';
+  if(!allowed.size&&!registeredOnly&&env.HUB_ALLOW_ANY_SIGNED_IN!=='true')throw new Error('HUB_ALLOWED_UIDS is empty. The first test is restricted to listed accounts; set HUB_ALLOW_ANY_SIGNED_IN=true only when the owner approves an open test.');
   const origins=list(env.HUB_ALLOWED_ORIGINS||SITE_ORIGINS.join(','));
   if(origins.some(o=>!/^https:\/\/[^/\s*]+$/.test(o)))throw new Error('HUB_ALLOWED_ORIGINS must be exact https origins (no wildcards).');
-  return {...cfg,host:'0.0.0.0',apiBase,projectId:env.FIREBASE_PROJECT_ID||undefined,origins,allowed:env.HUB_ALLOW_ANY_SIGNED_IN==='true'?null:(allowed.size?allowed:null),denied:new Set(list(env.HUB_DENY_UIDS)),tradingSimulated:false};
+  return {...cfg,host:'0.0.0.0',apiBase,projectId:env.FIREBASE_PROJECT_ID||undefined,origins,allowed:allowed.size?allowed:null,registeredOnly,verifiedEmail,denied:new Set(list(env.HUB_DENY_UIDS)),tradingSimulated:false};
 }
 module.exports={fromEnv,SITE_ORIGINS};
