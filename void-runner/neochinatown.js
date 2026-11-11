@@ -3,6 +3,9 @@
    build() is presentation only; it never changes collision or progression. */
 (function(root){
   const base=typeof document!=='undefined'&&document.currentScript?new URL('.',document.currentScript.src):null;
+  // Stock of the sleeping pods' built-in vending unit, taken from the owner's Tesana pod (src/pod/vending.ts): [name, category, price, shape, description, label colours...]. Display and flavour only: nothing is charged and nothing enters the inventory.
+  const POD_VENDING=[["AQUA//NULL","DRINKS",1.2,"bottle","Triple-filtered condensation water. Zero minerals, zero memories.","#d6f1ff","#77bde8","#0b2a44","#ffffff"],["SYNTH COLA","DRINKS",1.8,"bottle","Lab-grown cola flavour with extra fizz. Tastes like somebody else’s nostalgia.","#5a1c22","#2a0a10","#ffffff","#ff4fbf"],["VOLT RUSH","DRINKS",2.4,"can","High-voltage citrus energy drink. Keeps you wired through any night shift.","#1b1b22","#08080c","#e9ff3a","#e9ff3a"],["KAIJU FUEL","DRINKS",2.6,"can","Monster-sized yuzu-ginger energy. Not responsible for any stomping.","#7a2cc9","#3a0f6e","#ffb347","#ff7a1a"],["MOCHI MILK","DRINKS",1.6,"stubby","Sweet peach soy milk in a stubby can. A capsule-hotel favourite.","#ffd9e4","#ff9fbf","#7a2346","#ffffff"],["GREEN NEON","SMOKABLES",14.0,"jar","Hand-trimmed herbal buds sealed fresh in a clear jar. Grown under pod lights on level B3.","#ffffff","#eaf6e2","#174a1c","#2fbf4f"],["MIDNIGHT KUSH","SMOKABLES",16.5,"jar","Dense, frosty buds with orange hairs. Strictly fictional, strictly after hours.","#f4fff0","#d8f0d0","#0f3a18","#1f9a3a"],["CRUNCH//CORE","SNACKS",1.4,"bag","Sea-salt kelp crisps. Loud enough to wake the neighbouring pod.","#2b7cff","#103c9c","#ffffff","#ffe066"],["NIGHT BENTO","FOOD",4.8,"bento","Rice, pickles and printed “salmon”. Best before tomorrow, probably.","#f4f4ec","#d8e8d0","#14402a","#2fbf71"],["DREAMLEAF","SMOKABLES",7.2,"tin","Herbal smoking blend in a pocket tin. Lavender, mugwort and something else.","#4a3a6a","#24183a","#d8c8ff","#9a7aff"],["BLACK ORCHID","SMOKABLES",5.5,"pack","Dark clove cigarettes, 20 per pack. Fictional — and still bad for you.","#141016","#050406","#d9b45a","#d9b45a"],["KOI MENTHOL","SMOKABLES",5.2,"pack","Ice-cold menthol slims. Smoking permitted in designated pods only.","#22c4b8","#0a6a6a","#ffffff","#ff6a3a"],["HAZE STIK","VAPES",6.9,"vape","Disposable vapour stick, about 3000 puffs. Flavour: Neon Grape.","#ff4fd0","#4fc8ff","#ffffff","#1a0a2a"],["VAPR PODS","VAPES",4.4,"carts","Three refill cartridges, Mango Ice. Fits most street-market vape sticks.","#ffcf3a","#ff7a2a","#2a1206","#ffffff"],["PATCH-UP KIT","MEDICAL",12.0,"medkit","Wound-sealant spray, gauze, painkillers and a foil blanket.","#f6f6f8","#dcdce4","#1a2a24","#20c070"],["ICEBREAKER","ELECTRONICS",19.99,"chip","4 TB data shard, pre-loaded with… you didn’t buy this here.","#101418","#04060a","#4fe8ff","#4fe8ff"],["CELL-PAK ×4","POWER",3.3,"cells","Long-life power cells for remotes, cyberdecks and wake-up lamps.","#1a1a1e","#2a2a30","#ff9a2a","#ff9a2a"],["LINK CABLE","ELECTRONICS",3.8,"cable","Braided universal data and charge cable. One metre of pure connection.","#e8e4ee","#bcb4cc","#2a1a3a","#b24ad4"],["O₂ BOOST","MEDICAL",4.9,"spray","Emergency oxygen can for smog days and very long elevator rides.","#ffffff","#cfe8ff","#1a4a8a","#4f8cff"],["PARCEL ???","BLACK MARKET",33.0,"parcel","Taped, unmarked and slightly warm. No refunds. No questions.","#b08a5a","#8a6638","#2a1a0a","#c02020"]].map((d,i)=>({code:'ABCD'[Math.floor(i/5)]+(i%5+1),name:d[0],category:d[1],price:d[2],kind:d[3],description:d[4],art:d.slice(5)}));
+  root.VoidPodVending={products:POD_VENDING};
 
   // ---- Layout -------------------------------------------------------------
   // David's redesigned map (2026-10-26). World metres: x runs east, z runs north.
@@ -598,6 +601,20 @@
      const ox=240,oy=86,glow=g.createRadialGradient(ox,oy,4,ox,oy,58);glow.addColorStop(0,cur[2]);glow.addColorStop(.55,cur[3]);glow.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=preset==='reading'?1:preset==='music'?.8:.55;g.fillStyle=glow;g.beginPath();g.arc(ox,oy,58,0,Math.PI*2);g.fill();g.globalAlpha=1;
      g.textAlign='center';g.font='700 12px Arial,sans-serif';g.fillStyle='#ffe8f8';g.fillText(cur[1],ox,160);g.font='500 10px Arial,sans-serif';g.fillStyle='#b8a4cc';g.fillText(preset==='reading'?'90%  ·  ON':preset==='music'?'FOLLOWS THE MUSIC':'40%  ·  ON',ox,173);g.textAlign='left';
     }
+    // The vending unit's lit shelves: one picture shared by all ten pods (same stock everywhere).
+    function drawPodVending(g,W,H){
+     const bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#c9dcff');bg.addColorStop(1,'#7f9fd8');g.fillStyle=bg;g.fillRect(0,0,W,H);
+     const rows=4,cols=5,rh=H/rows,cw=W/cols;g.textAlign='center';g.textBaseline='middle';
+     POD_VENDING.forEach((d,i)=>{const r=Math.floor(i/cols),c=i%cols,cx=c*cw+cw/2,floor=(r+1)*rh-22,k=d.kind,tall=/bottle|can|spray|vape/.test(k),wide=/bento|medkit|parcel|tin/.test(k),w=tall?cw*.34:wide?cw*.7:cw*.5,h=tall?rh*.66:wide?rh*.36:k==='stubby'||k==='jar'?rh*.44:rh*.56,x=cx-w/2,y=floor-h;
+      g.fillStyle='rgba(10,14,30,.35)';g.fillRect(x+3,floor-3,w,5);const fill=g.createLinearGradient(x,y,x+w,y+h);fill.addColorStop(0,d.art[0]);fill.addColorStop(1,d.art[1]);g.fillStyle=fill;
+      if(k==='bottle'||k==='spray'){g.fillRect(x+w*.3,y-rh*.08,w*.4,rh*.1);g.fillStyle=d.art[3];g.fillRect(x+w*.28,y-rh*.11,w*.44,rh*.04);g.fillStyle=fill;}
+      g.beginPath();g.roundRect?g.roundRect(x,y,w,h,tall?6:4):g.rect(x,y,w,h);g.fill();
+      if(k==='jar'){g.fillStyle='#3f8a3a';g.fillRect(x+3,y+h*.45,w-6,h*.5);g.fillStyle='#1c1c22';g.fillRect(x-1,y-5,w+2,7);}
+      g.fillStyle=d.art[3];g.fillRect(x,y+h*.72,w,3);g.fillStyle=d.art[2];g.save();g.translate(cx,y+h*.42);if(tall)g.rotate(-Math.PI/2);const span=(tall?h:w)-8,words=tall?[d.name]:d.name.split(/[ \/]+/).filter(Boolean).slice(0,2);let size=15;g.font='900 '+size+'px Arial,Helvetica,sans-serif';while(size>7&&Math.max(...words.map(t=>g.measureText(t).width))>span){size--;g.font='900 '+size+'px Arial,Helvetica,sans-serif';}
+      words.forEach((t,n)=>g.fillText(t,0,(n-(words.length-1)/2)*(size+1)));g.restore();
+      g.fillStyle='#0b0d14';g.fillRect(c*cw+5,(r+1)*rh-17,cw-10,14);g.fillStyle='#ffb84a';g.font='700 11px Consolas,Menlo,monospace';g.fillText(d.code+'  '+d.price.toFixed(2),cx,(r+1)*rh-9.5);});
+     g.fillStyle='#8f97ab';for(let r=1;r<=rows;r++)g.fillRect(0,r*rh-22,W,3);
+    }
     const podScreen=(()=>{
      const rest=B.Color3.FromHexString('#ad5a94'),reading=B.Color3.FromHexString('#fff0cb'),musicColor=B.Color3.FromHexString('#e96bbf');
      let playerClock=0,playerSig='',lightSigs={};
@@ -683,6 +700,7 @@
     function ovalPanel(p,width,height,rz,ry,material=podShell){const pos=[],idx=[],n=40;for(let k=0;k<=n;k++){const a=k/n*Math.PI*2,c=Math.cos(a),s=Math.sin(a),reach=Math.min(width/2/Math.max(Math.abs(c),1e-6),height/2/Math.max(Math.abs(s),1e-6));pos.push(0,s*ry,c*rz,0,s*reach,c*reach);if(k<n){const q=k*2;idx.push(q,q+1,q+2,q+1,q+3,q+2,q,q+2,q+1,q+1,q+2,q+3);}}
      const mesh=new B.Mesh('pod-front',scene),vd=new B.VertexData();vd.positions=pos;vd.indices=idx;// Faces the room (+x) on both windings, so it lights like the rest of the shell.
      vd.normals=pos.map((_,k)=>k%3===0?1:0);const uvs=[];for(let k=0;k<pos.length;k+=3)uvs.push(pos[k+2]/width+.5,pos[k+1]/height+.5);vd.uvs=uvs;vd.applyToMesh(mesh);return add(mesh,material,p);}
+    const podVendMat=texMat('tesana-pod-vend',texture('tesana-pod-vend',640,420,drawPodVending),{glow:true});
     for(let row=0;row<2;row++)for(let i=0;i<5;i++){const z=57+i*2.6,y=.9+row*1.7,index=row*5+i+1,hatch=[amber,magenta][(i+row)%2],shell=podPaint,podInner=glowMat('pod-inner-'+index,'#ffc98a',.16),podLed=glowMat('tesana-pod-led-'+index,'#ad5a94',.4);
      // A hollow capsule: back, top, floor, sides and a fascia framing the hatch, so the bed shows through the glass.
      box('pod-back',[.12,1.5,2.3],[-16.64,y,z],shell);for(const s of [-1,1]){box('pod-roof',[2.6,.1,2.3],[-15.4,y+s*.7,z],shell);box('pod-side',[2.6,1.5,.1],[-15.4,y,z+s*1.1],shell);}
@@ -706,6 +724,9 @@
      box('tesana-pod-screen-frame',[.05,.56,1.06],[-16.48,y+.14,z+.4],podVent);plane('tesana-pod-screen',.98,.49,[-16.44,y+.14,z+.4],texMat('tesana-pod-screen-'+index,podTex,{glow:true}),-Math.PI/2);
      const lightTex=texture('tesana-pod-lights-'+index,320,180,g=>drawPodLights(g,index,root.VoidPodMusic?.lightingFor?.(index)||'rest',null));podLightFaces[index]=lightTex;
      box('tesana-pod-lights-frame',[.05,.32,.56],[-16.48,y-.04,z-.42],podVent);plane('tesana-pod-lights',.5,.28,[-16.44,y-.04,z-.42],texMat('tesana-pod-lights-'+index,lightTex,{glow:true}),-Math.PI/2);
+     // Built-in vending unit on the side wall between two ribs (after the owner's Tesana pod). Browsed from the pod menu (VENDING).
+     box('tesana-pod-vend-frame',[.72,.6,.06],[-15.675,y+.08,z+.985],podRib);box('tesana-pod-vend-tray',[.5,.07,.02],[-15.675,y-.19,z+.95],podVent);box('tesana-pod-vend-led',[.03,.03,.012],[-15.36,y+.3,z+.95],amber);
+     box('tesana-pod-vend-bezel',[.68,.46,.01],[-15.675,y+.13,z+.959],podVent); plane('tesana-pod-vend',.64,.42,[-15.675,y+.13,z+.952],podVendMat,0);
      neon('pod-no-'+row+i,[String(row*5+i+1).padStart(2,'0')],['#e8f0ff'],.4,.25,[-14.06,y+.62,z+.8],-Math.PI/2,undefined,true);}
     box('pod-ladder',[.1,3.2,.6],[-14,1.6,69],pipe);box('pod-terminal',[.4,1.2,.4],[-6,.6,57],frame);box('pod-terminal-screen',[.05,.4,.3],[-5.78,1.1,57],cyan);
     for(let z=56.8;z<69;z+=2.4)box('pods-ceiling-panel',[1,.04,1],[-9,4.03,z],glowMat('pod-panel','#7fe6ff',.9));

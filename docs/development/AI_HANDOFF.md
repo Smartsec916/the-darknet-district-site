@@ -1,5 +1,13 @@
 # The Darknet District — Current AI Development Handoff
 
+## 2026-11-12: pod wall displays and vending (live)
+
+- Each sleeping pod now has, built into its walls: a music player face (PR 223), an ambient-light panel (PR 224) and a vending unit (this PR). Code: `void-runner/neochinatown.js` (`drawPodPlayer`, `drawPodLights`, `drawPodVending`, `podScreen.tick`) and the pod menu in `void-runner/world-integration.js` (`podVend`).
+- The two displays are status only: they follow `VoidPodMusic`; the controls stay in MUSIC & LIGHTS. They refresh on real time because the game clock stands still in `pod-waking`.
+- Vending stock (20 items, names/prices/descriptions) is copied from David's Tesana pod source. It is flavour only: DISPENSE charges no credits and adds nothing to the inventory. Making it a real shop is an economy decision for David.
+- Tests rely on `#pod-wake` having exactly one `<button>` (EXIT) and one `<p>`; new pod-menu controls must be `a[role=button]` / `div`.
+
+
 ## UPDATE 2026-11-12 (later, Claude): V1 device, hub and game API are LIVE. Newest; read first
 
 - **V1 holographic device is live** (PR #220, squash `8bb8923`; live `BUILD` `2026-11-12-v1-device-1+8bb8923640`). Verified on the live site: L opens it without pausing the world, nine apps listed, empty Mission Log, Esc goes back without opening the game menu, a portrait is rendered from the real character, no page errors. Files: `void-runner/device-v1.js` (rules, registry, saved state, map exploration, profile view-model, portrait keys), `personal-device.js` (screen), `device-portraits.js` (offscreen portraits), tests `tests/device-v1.test.cjs`, `tests/personal-device-browser.cjs`. Camera and Gallery are placeholders. NPC portraits need `NPC_MODELS` in `device-v1.js` filled with real npc-to-model pairs (empty on purpose: none is defined by the game yet). Private messages, friends and discovery are not built.
