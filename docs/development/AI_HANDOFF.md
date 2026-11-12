@@ -1,5 +1,11 @@
 # The Darknet District — Current AI Development Handoff
 
+## 2026-11-12: the alley is inhabited
+
+- `void-runner/ncz-alley.js` + alley props and steam in `neochinatown.js`; see `docs/development/ALLEY_LIFE.md`. No sound added.
+- NOTE for the nightclub task: a nightclub module ALREADY EXISTS (`void-runner/ncz-nightclub.js`): a purchased 'Cyberpunk Cyber Club' model set into the west side of Main Street where David's map marks 'Nightclub', switched off until its licence is cleared (`?nightclub=1` on a local server with the pack). David has since named the club **NULL** and asked for it across the street and to the right of the alley. Reconcile with him before building a second one.
+
+
 ## 2026-11-12: fishing in Tropical Escape; achievements (browser-kept for now)
 
 - Fishing from the pier in `void-runner/vr-tropical.js`. 'Catch 100 Fish' was added to the EXISTING achievement catalogue (`void-runner/achievements.js`, which unlocks only on server-verified events). Progress is counted in the browser by the new `void-runner/local-progress.js` and shown on the player's own V1 profile as progress, not as an unlock. See `docs/development/ACHIEVEMENTS.md`. (Note for future sessions: `void-runner/achievements.js` and `tests/achievements.test.cjs` already exist; do not create files with those names.)

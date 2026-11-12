@@ -383,6 +383,8 @@
     for(const [x,z,i] of [[52.6,-40,1],[69.4,-78,2],[52.6,-100,3],[34,-6.6,4],[98,-18.4,5]])characterModel('crew-ncz'+i,parent,[x,0,z],true);
     // Nightlife: people walking and standing about on the sidewalks, a few of them drunk (ncz-nightlife.js).
     const nightlife=root.VoidNightlife&&modelInstance?root.VoidNightlife.start({B,scene,parent,quality,instance:modelInstance}):null;
+    // The people who stay in the alley by the District (ncz-alley.js): talking, smoking, sitting, watching the door.
+    const alleyLife=root.VoidAlley&&modelInstance?root.VoidAlley.start({scene,parent,quality,instance:modelInstance}):null;
     // Two street lights (the District's own lights are added with its rooms).
     const streetLights=[];if(!low)for(const [p,c,i,r] of [[[61,7,-40],'#ff5bd0',.9,34],[[61,7,-12],'#38e8ff',.8,30]]){const l=new B.PointLight('ncz-street-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=parent;streetLights.push(l);owned.push(l);}
 
@@ -394,7 +396,7 @@
     // A brick wall box whose texture repeats every 2 m along and 1.6 m up (one copy of the photo).
     function brickWall(name,x0,z0,x1,z1,h,y0=0,t=.4){const len=Math.hypot(x1-x0,z1-z0),u=len/2,vv=h/1.6,ut=t/2,uv=[new B.Vector4(0,0,u,vv),new B.Vector4(0,0,u,vv),new B.Vector4(0,0,ut,vv),new B.Vector4(0,0,ut,vv),new B.Vector4(0,0,u,ut),new B.Vector4(0,0,u,ut)];
      const m=B.MeshBuilder.CreateBox(name,{width:x0===x1?t:len,height:h,depth:x0===x1?len:t,faceUV:x0===x1?[uv[2],uv[3],uv[0],uv[1],uv[4],uv[5]]:uv,wrap:true},scene);return add(m,brick,[(x0+x1)/2,y0+h/2,(z0+z1)/2]);}
-    const A=S.alley;
+    const A=S.alley,alleySteam=[];
     {const alleyRoad=mat('alley-asphalt','#b4b4bc',{rough:.22,metal:.35});alleyRoad.albedoTexture=acg('road-cracked-color');alleyRoad.bumpTexture=acg('road-cracked-normal');ground('alley-floor',A,alleyRoad,.012,4);}
     // North side: a row of old brick buildings; south side: brick up to the District's front.
     for(let x=A[0];x<A[1];){const w=10+rand()*12,x1=Math.min(A[1],x+w),h=11+rand()*9;brickWall('alley-building',x,A[3]+.2,x1,A[3]+.2,h);brickWall('alley-building-side',x,A[3]+.2,x,A[3]+8,h);box('alley-roof',[x1-x,.4,8],[(x+x1)/2,h,A[3]+4.2],concrete);x=x1;}
@@ -414,6 +416,17 @@
     for(let x=A[0]+6;x<A[1];x+=11)box('drain-grate',[.9,.02,.5],[x,.03,(A[2]+A[3])/2],mat('drain','#0d0e10',{rough:.5,metal:.8}));
     box('camera-arm',[.06,.06,.6],[DOOR.x-3.3,3.9,A[2]+.1],frame);box('camera-body',[.25,.2,.45],[DOOR.x-3.3,3.8,A[2]+.42],frame);box('camera-led',[.05,.05,.02],[DOOR.x-3.3,3.8,A[2]+.66],red);
     neon('alley-sign',['小心','WATCH YOUR STEP'],['#ff5bd0','#7ff0ff'],1.4,2.2,[A[0]+3,4.2,A[3]-.25],0);
+    // ---- A lived-in alley (docs/development/ALLEY_LIFE.md): things left against the walls, two bare tubes, steam off the drains.
+    // Everything sits against a wall or is flat on the ground: nothing is in the walking lane, at the District door or in front of the vestibule, and none of it collides.
+    {const bag=mat('alley-bag','#0c0d10',{rough:.35,metal:.1}),drum=mat('alley-drum','#3b4a57',{rough:.55,metal:.6}),pallet=mat('alley-pallet','#5a4630',{rough:.9,metal:0});
+     for(const [x,z,sx] of [[84.2,-56.4,1],[84.6,-57.1,.8],[87.9,-56.2,.9],[108.6,-56.2,1.1],[116.4,-61.1,.9],[101.2,-61.1,1]]){const b=add(B.MeshBuilder.CreateSphere('alley-bag',{diameter:.7,segments:8},scene),bag,[x,.24*sx,z],true);b.scaling.set(sx,.7*sx,sx*.9);}
+     for(const [x,z] of [[107.4,-56.1],[115.2,-56.05],[115.9,-56.2]])cyl('alley-drum',.58,.9,[x,.45,z],drum,true,12);
+     for(let k=0;k<4;k++)box('alley-pallet',[1.2,.13,1],[119.2,.07+k*.14,-56.2],pallet);box('alley-seat',[1.7,.46,.7],[93.6,.23,-61.15],rust);box('alley-seat',[.8,.4,.6],[95.1,.2,-61.2],rust);
+     box('alley-tube',[1.9,.06,.06],[113,3.15,A[3]-.32],magenta);box('alley-tube',[1.5,.06,.06],[92.4,3.4,A[3]-.32],cyan);box('alley-tube-back',[2.1,.2,.05],[113,3.15,A[3]-.27],frame);box('alley-tube-back',[1.7,.2,.05],[92.4,3.4,A[3]-.27],frame);
+     if(!low&&B.ParticleSystem){const puff=texture('alley-steam',64,64,(g,W,H)=>{g.clearRect(0,0,W,H);const r=g.createRadialGradient(W/2,H/2,2,W/2,H/2,W/2);r.addColorStop(0,'rgba(210,220,230,.5)');r.addColorStop(1,'rgba(210,220,230,0)');g.fillStyle=r;g.fillRect(0,0,W,H);});
+      for(const x of [99,121]){const ps=new B.ParticleSystem('alley-steam',quality==='high'?70:40,scene);ps.particleTexture=puff;ps.emitter=v(x,.05,(A[2]+A[3])/2);ps.minEmitBox=new B.Vector3(-.4,0,-.2);ps.maxEmitBox=new B.Vector3(.4,0,.2);
+       ps.direction1=new B.Vector3(-.15,1,-.1);ps.direction2=new B.Vector3(.2,1.4,.1);ps.minEmitPower=.35;ps.maxEmitPower=.7;ps.minLifeTime=2.2;ps.maxLifeTime=4;ps.minSize=.5;ps.maxSize=1.5;ps.emitRate=quality==='high'?14:9;
+       ps.color1=new B.Color4(.75,.8,.86,.16);ps.color2=new B.Color4(.9,.8,.85,.1);ps.colorDead=new B.Color4(.8,.8,.85,0);ps.blendMode=B.ParticleSystem.BLENDMODE_STANDARD;ps.gravity=new B.Vector3(.05,.05,0);ps.start();alleySteam.push(ps);}}}
     // Graffiti: painted onto transparent decals a few centimetres off the walls, so each reads the right way round.
     const graffitiSets=[
      ['QUESTION THE SYSTEM','spray','#e8e2d0','#d6342c'],['WHO WATCHES THE WATCHERS?','stencil','#f2f0e8'],['YOUR DATA IS NOT YOURS','hand','#7ff0ff'],
@@ -443,7 +456,7 @@
     // Torn posters, half covered.
     for(const [x,side] of [[87,'n'],[101,'s'],[124,'n']]){const t=texture('poster-'+x,256,360,(g,W,H)=>{g.fillStyle='#d8d0bc';g.fillRect(0,0,W,H);g.fillStyle='#1b1b1b';g.font='bold 34px Impact,sans-serif';g.textAlign='center';g.fillText('PRIVACY IS',W/2,90);g.fillText('RESISTANCE',W/2,130);g.font='22px monospace';g.fillText('— THE NETWORK —',W/2,320);g.globalCompositeOperation='destination-out';g.beginPath();g.moveTo(W,H*.55);for(let k=0;k<12;k++)g.lineTo(W-k*20,H*.55+(rand()-.5)*30+k*12);g.lineTo(W,H);g.fill();g.globalCompositeOperation='source-over';});
      decal(t,1,1.4,[x,1.7,side==='n'?A[3]-.05:A[2]+.05],side==='n'?0:Math.PI);}
-    return {clubShutter,onFace,faceRot,signSpots,bbox,A,decal,graffiti,S,puddle,batches,screens,skyShells,nightlife,drones};})();
+    return {clubShutter,onFace,faceRot,signSpots,bbox,A,decal,graffiti,S,puddle,batches,screens,skyShells,nightlife,alleyLife,alleySteam,drones};})();
     // ---- The District interior (first step of the interior/NeoChinatown separation, docs/void-runner/environment-separation.md). ----
     // Everything from here to the returned values builds the inside of the District under district-root; the street, the facade and the taxi zones are built outside it. It runs in place, so nothing changes yet; a later step moves it behind its own loader.
     // ---- The entrance and security vestibule: built in every area ----
@@ -868,7 +881,7 @@
      box('camera-arm-2',[.06,.06,.6],[3.4,3.95,19.6],frame);box('camera-body-2',[.25,.2,.45],[3.4,3.85,19.28],frame);box('camera-led-2',[.05,.05,.02],[3.4,3.85,19.04],red);
      target=saved;}
 
-    const {batches=new Map(),screens=[],skyShells=[],nightlife=null,drones=[]}=sc;
+    const {batches=new Map(),screens=[],skyShells=[],nightlife=null,alleyLife=null,alleySteam=[],drones=[]}=sc;
     for(const [m,b] of batches){const mesh=new B.Mesh('ncz-batch',scene),vd=new B.VertexData();vd.positions=b.p;vd.normals=b.n;vd.uvs=b.u;vd.indices=b.i;vd.applyToMesh(mesh);mesh.material=m;mesh.parent=parent;mesh.isPickable=false;}
     // Merge static meshes by material to keep draw calls low.
     for(const [m,list] of staticMeshes)if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(merged){merged.parent=parent;merged.material=m;merged.isPickable=false;}}
@@ -882,8 +895,8 @@
      for(const fl of weather?.flickers||[]){if(fl.off>0){fl.off-=dt;if(fl.off<=0)for(const m of fl.meshes)m.isVisible=true;}else if(time>fl.next){fl.off=.05+Math.random()*.12;fl.next=time+2+Math.random()*7;for(const m of fl.meshes)m.isVisible=false;}}
      for(const s of screens)if(time>s.next){s.mesh.material=adMat(nextAd());s.next=time+9+Math.random()*4;}}
     let wasInside=null;
-    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);doors.tick(dt);terminal.tick(dt);podScreen.tick(dt);nightlife?.tick(dt);atmosphere(time,dt);for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
-    return {tick,city,nightlife,doors,dispose(){disposed=true;clubCtl?.dispose();nightlife?.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
+    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);doors.tick(dt);terminal.tick(dt);podScreen.tick(dt);nightlife?.tick(dt);alleyLife?.tick(dt);atmosphere(time,dt);for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
+    return {tick,city,nightlife,alleyLife,doors,dispose(){disposed=true;clubCtl?.dispose();nightlife?.dispose();alleyLife?.dispose();for(const ps of alleySteam)ps.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
   }
   // Licensed models (docs/VOID_RUNNER_ASSET_LICENSES.md) dressing the District; loaded before build().
   const models={'crowd:vr-player-a':{src:'assets/models/crowd/vr-player-a.glb',background:true},'crowd:vr-player-b':{src:'assets/models/crowd/vr-player-b.glb',background:true},'district:couch':{src:'assets/models/district/couch.glb',scale:.5},'district:bin':{src:'assets/models/district/bin.glb',scale:.6},'district:chair':{src:'assets/models/district/chair.glb',scale:1},

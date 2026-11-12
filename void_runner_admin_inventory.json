@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "61f1e42035ff9e6f",
+  "revision": "c28b304df29d0d7f",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12168,6 +12168,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/ncz-alley.js",
+      "line": 4,
+      "text": "They are ordinary street people (the crowd looks, no names, no dialogue, no missions), have no collision, and stand against the north wall or on the crates,",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/ncz-nightlife.js",
       "line": 85,
       "text": "function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=['ncz-neon','fixer-01','runner-02','communion-tech','district-resident','hacker-01','outlaw-01','district-smuggler'],drunkCast=['runner-02','ncz-neon'],rnd=Math.random,cfg=config}){",
@@ -13660,10 +13666,11 @@
     "void-runner/music-integration.js": "3842625f4d4bb89425989871a6d08f09790309c12207dfec3b718750a2eb0718",
     "void-runner/music-score.js": "87751174ef61afbb0be20d98b5b01127d833ee63c06e727bf1a2d6e985b8b7e7",
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
+    "void-runner/ncz-alley.js": "678466736289ef3f90c79c9bfbee6664ef1822ae5369366c7249644be55cca1b",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-nightclub.js": "b4dbe1c5e0e47b7f18dc94ae4fa7da5c1463be4b1ed01d75f628800cc6661b56",
     "void-runner/ncz-nightlife.js": "4c6e4d7ca34309a6e1a190bfc70d78123ef746ccab8f29c74b7c77041e038fba",
-    "void-runner/neochinatown.js": "f3b746142c9d523a560427ea7447d95b40c8eaf3884bb4d3a9c6d58a8507b24e",
+    "void-runner/neochinatown.js": "6393cbd92b7b8585a98ac69d11c1b6623bb0787950b7c2f0b7fb2e38607109d6",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "da1674b96960e03052332b46f33745a5db4f738ad2a38d06cef1eaa912b1ecbb",
