@@ -18,6 +18,10 @@ The pods are still BUILT in the old room's coordinates and then set down as one 
 
 `POINT.pod`, `POINT.podExit`, `podBed(N, index)`, `podExit(N, index)` (faces the doorway to the hallway), `resume(state, N)`, and `POD_VIEW` = the three directions used from inside a pod: `hatch`, `inside`, `vending`. Do not hard-code pod coordinates or view angles elsewhere.
 
+## Looking around from the pod (2026-11-12)
+
+Lying in a pod the player is not held to the buttons: click the view to take the mouse (as when walking; Esc gives it back), or drag, or use the arrow keys. E gets up, M opens music and lights, V opens the vending list. The LOOK INSIDE / LOOK THROUGH HATCH button still snaps the view. Code: `podLook` in `void-runner/world-integration.js`; test `tests/pod-free-look-browser.cjs`.
+
 ## Unchanged
 
 Entering and leaving a pod, the pod menu, private music and lighting per pod, the vending unit, wake-up in your own pod, multiplayer (a player in a pod is shown at their pod door), saves (a save made in a pod resumes in the same pod number at the new place).

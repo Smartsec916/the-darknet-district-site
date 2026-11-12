@@ -6,7 +6,8 @@
   align-items: end;
   justify-content: center;
   padding: 2rem;
-  background: linear-gradient(transparent 45%, rgba(4, 7, 19, .9));
+  background: linear-gradient(transparent 72%, rgba(4, 7, 19, .82));
+  cursor: grab;
   color: #e9faff;
   font-family: inherit;
 }
@@ -33,3 +34,11 @@
 .pod-wake-card a[aria-disabled="true"] { opacity: .45; cursor: default; }
 #pod-wake.vending { justify-content: flex-end; background: none; }
 #pod-wake.vending .pod-wake-card { width: min(26rem, 46%); }
+/* free look in the pod: the card stays small and out of the way; while the mouse is captured it fades back */
+.pod-wake-card { cursor: default; }
+.pod-wake-card h2 { margin-bottom: .7rem; font-size: 1rem; }
+.pod-wake-card button, .pod-wake-card a[role="button"] { padding: .5rem 1rem; font-size: .8rem; }
+.pod-wake-hint { margin-top: .7rem; color: #9fd0d6; font-size: .68rem; letter-spacing: .04em; }
+#pod-wake.looking { cursor: none; background: none; }
+#pod-wake.looking .pod-wake-card { opacity: .45; }
+#pod-wake.vending { cursor: default; }
