@@ -186,7 +186,7 @@
    builtMeshes=all;
    // ---- the people (ordinary crowd looks; roles, not named characters) ----
    const spot=(id,x,z,face,clips,opts={})=>people.push({id,x,z,yaw:Math.atan2(face[0]-x,face[1]-z),clips,node:null,anim:null,...opts});
-   const n=low?3:quality==='high'?9:6;for(let i=0;i<n;i++){const a=i*2.4,r=1.6+(i%3)*1.5;spot('dancer-'+i,35+Math.cos(a)*r*1.5,-58.5+Math.sin(a)*r,[35,-58.5],['dance','laugh','idle'],{dance:true,phase:i*1.3});}
+   const n=low?3:(quality==='high'||quality==='ultra')?9:6;for(let i=0;i<n;i++){const a=i*2.4,r=1.6+(i%3)*1.5;spot('dancer-'+i,35+Math.cos(a)*r*1.5,-58.5+Math.sin(a)*r,[35,-58.5],['dance','laugh','idle'],{dance:true,phase:i*1.3});}
    spot('dj',dj.x-1,dj.z,[dj.x+6,dj.z],['interact','idle'],{dance:true,phase:.4,small:true});spot('bartender',BUILT.bar.x,-49.45,[BUILT.bar.x,-53],['idle']);
    spot('door',52.3,DOOR.z-2.1,[58,DOOR.z-2.6],['watch','idle']);
    if(!low){spot('bar-guest-a',29.4,-51.25,[29.4,-49],['drink','idle']);spot('bar-guest-b',33,-51.3,[32,-49],['talk','idle']);spot('vip-a',36.6,-66.9,[38,-66.2],['talk','idle']);spot('vip-b',39.5,-66.9,[38,-66.2],['drink','laugh','idle']);

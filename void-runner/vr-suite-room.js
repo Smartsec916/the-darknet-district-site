@@ -46,7 +46,7 @@
  const CELL=[[0,.5],[.5,.5],[0,0],[.5,0]].map(([u,v])=>[u+.008,v+.008,u+.492,v+.492]),flipV=([u0,v0,u1,v1])=>[u0,v1,u1,v0];
 
  async function build(k,ctx){
-  const B=k.B,scene=k.scene,low=ctx.quality==='low',high=ctx.quality==='high',b=batches(k),tick=[];
+  const B=k.B,scene=k.scene,low=ctx.quality==='low',high=ctx.quality==='high'||ctx.quality==='ultra',b=batches(k),tick=[];
   // ---- Textures ----
   const T=(path,scale)=>{const t=k.own(new B.Texture(new URL(path,k.base).href,scene));t.uScale=t.vScale=scale;t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;return t;};
   const mat=(name,h,{spec=.08,power=32,color,normal,scale=1,bump=1,fresnel}={})=>{const m=k.own(new B.StandardMaterial('vr-suite-'+name,scene));m.diffuseColor=hex(B,h);m.specularColor=new B.Color3(spec,spec,spec);m.specularPower=power;

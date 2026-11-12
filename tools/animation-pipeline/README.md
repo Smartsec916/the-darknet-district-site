@@ -1,5 +1,7 @@
 # VOID//RUNNER humanoid animation proof of concept
 
+> **Update 2026-11-12:** The audit below says the game ships no rigged humanoid. That sentence is stale. Companions and the crowd use the 52-bone Mixamo contract in production. This file is still the right description of the animation-lab proof of concept and of `build_poc.py`. Current clip rules are in `clips.json` and `docs/development/AI_HANDOFF.md`.
+
 This is a controlled, local proof of concept. The production game does not load the animation lab, the prototype GLB, or `animation-library.js`. Existing NPC interactions, saves, combat, and navigation are unchanged.
 
 ## Existing game and source audit

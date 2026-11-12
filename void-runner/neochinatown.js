@@ -145,7 +145,11 @@
     // is put back on leaving, and the exposure is re-applied each frame in case a quality change resets it.
     const ip=scene.imageProcessingConfiguration,previous={clear:scene.clearColor.clone(),fogMode:scene.fogMode,fogDensity:scene.fogDensity,fogColor:scene.fogColor.clone(),exposure:ip.exposure,contrast:ip.contrast,env:scene.environmentIntensity};
     scene.clearColor=new B.Color4(.02,.05,.06,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.0028;scene.fogColor=new B.Color3(.075,.155,.17);
-    const look={exposure:1.3,contrast:1.18},applyLook=()=>{if(ip.exposure!==look.exposure)ip.exposure=look.exposure;if(ip.contrast!==look.contrast)ip.contrast=look.contrast;};applyLook();scene.environmentIntensity=Math.min(previous.env??1,.3);
+    // Street grade is darker than the old 1.3 so the tonemapper holds the blacks and the neon stays the bright part.
+    // The District interior, including the Sleeping Pod room and its music screens, keeps the previous grade.
+    const outsideLook={exposure:1.12,contrast:1.14},insideLook={exposure:1.3,contrast:1.18};
+    function applyLook(insideDistrict){const L=insideDistrict?insideLook:outsideLook;if(ip.exposure!==L.exposure)ip.exposure=L.exposure;if(ip.contrast!==L.contrast)ip.contrast=L.contrast;}
+    applyLook(true);scene.environmentIntensity=Math.min(previous.env??1,.3);
     const sun=scene.getLightByName('sun'),ambient=scene.getLightByName('ambient');const lightState={sun:sun?.intensity,ambient:ambient?.intensity,diffuse:ambient?.diffuse?.clone(),ground:ambient?.groundColor?.clone()};
     // Outdoors: a dim teal sky light. Inside the District the original warm level returns (see tick).
     const outdoor={intensity:low?.6:.5,diffuse:new B.Color3(.42,.62,.72),ground:new B.Color3(.12,.07,.16)},indoor={intensity:.8,diffuse:lightState.diffuse,ground:lightState.ground},clubSky={intensity:1.7,diffuse:new B.Color3(.72,.5,.95),ground:new B.Color3(.3,.12,.42)};
@@ -205,7 +209,7 @@
     const paving=mat('paving','#5a6680',{rough:.75,metal:.05});paving.albedoTexture=acg('sidewalk-color');paving.bumpTexture=acg('sidewalk-normal');
     // Sidewalk slabs: the paving repeats every 2 m on top and runs round the kerb.
     // Shopfront panels: dark grey with the worn-asphalt grain, so they read as weathered render rather than flat colour.
-    const shopfront=mat('shopfront','#5c6067',{rough:.85,metal:.1});shopfront.albedoTexture=acg('road-color');shopfront.bumpTexture=acg('road-normal');shopfront.emissiveTexture=acg('road-color');shopfront.emissiveColor=new B.Color3(.2,.2,.22); // a faint self-light so the grain reads on the dim street
+    const shopfront=mat('shopfront','#5c6067',{rough:.85,metal:.1});shopfront.albedoTexture=acg('road-color');shopfront.bumpTexture=acg('road-normal'); // weathered panels, lit by the lamps and neon rather than a baked self-light
     const slab=([w,h,d],p)=>{const top=new B.Vector4(0,0,w/2,d/2),kerb=new B.Vector4(0,0,Math.max(w,d)/2,.1);return add(B.MeshBuilder.CreateBox('sidewalk',{width:w,height:h,depth:d,faceUV:[kerb,kerb,kerb,kerb,top,top],wrap:true},scene),paving,p);};
     // Night facades: the face by day, darkened, with its own lit windows. tile = metres one copy covers (wide, high).
     const windowMats=[['office',[28,34]],['apartment',[40,52]],['glass',[30,36]]].map(([n,tile])=>{const m=new B.StandardMaterial('ncz-facade-'+n,scene);m.diffuseTexture=acg('facade-'+n+'-color');m.emissiveTexture=acg('facade-'+n+'-glow');m.diffuseColor=new B.Color3(.3,.3,.36);m.specularColor=new B.Color3(.08,.08,.1);m.metadata={tile};owned.push(m);return m;});
@@ -286,7 +290,7 @@
     if(state?.story?.flags?.shipAccess!=='none'){const ship=shipModel('starter','friendly',parent,{landed:true});ship.position.set(22,1.9,-96);ship.scaling.setAll(2.2);ship.rotation.y=Math.PI;}
     box('terminal-base',[.9,1.3,.6],[35.6,.65,-103],frame);plane('terminal-screen',.8,.55,[35.28,1.45,-103],texMat('landing-terminal',texture('landing-terminal',256,176,(g,W,H)=>{g.fillStyle='#04080e';g.fillRect(0,0,W,H);g.fillStyle='#7ff0ff';g.font='bold 22px monospace';g.fillText('LANDING',20,40);g.fillText('TERMINAL',20,66);g.fillStyle='#ffb347';g.font='15px monospace';g.fillText('PAD 07 · KESTREL',20,104);g.fillText('PARKING: THE FUNCTION',20,128);g.fillText('[E] CONNECT',20,156);}),{glow:true}),-Math.PI/2);
     // Puddles: glossy dark water that catches the haze and the lights, not black holes.
-    const puddle=new B.StandardMaterial('ncz-puddle',scene);puddle.diffuseColor=new B.Color3(.02,.03,.04);puddle.specularColor=new B.Color3(.7,.8,.9);puddle.specularPower=180;puddle.emissiveColor=new B.Color3(.05,.1,.115);puddle.alpha=.82;owned.push(puddle);
+    const puddle=new B.StandardMaterial('ncz-puddle',scene);puddle.diffuseColor=new B.Color3(.02,.03,.04);puddle.specularColor=new B.Color3(.7,.8,.9);puddle.specularPower=180;puddle.alpha=.82;owned.push(puddle);
     for(let i=0;i<14;i++){const r=Object.values(S)[i%5],x=r[0]+rand()*(r[1]-r[0]),z=r[2]+rand()*(r[3]-r[2]);const p=add(B.MeshBuilder.CreateDisc('puddle',{radius:.8+rand()*1.4,tessellation:18},scene),puddle,[x,.025,z]);p.rotation.x=Math.PI/2;p.scaling.y=.55;}
     // The Function's banner over the avenue where the main street meets it.
     neon('function-banner',['THE FUNCTION WATCHES OVER YOU','功能 · 秩序 · 利潤'],['#e8f0ff','#ff4a4a'],16,2.6,[61,16,-4.6],0);
@@ -441,8 +445,8 @@
      for(let k=0;k<4;k++)box('alley-pallet',[1.2,.13,1],[119.2,.07+k*.14,-56.2],pallet);box('alley-seat',[1.7,.46,.7],[93.6,.23,-61.15],rust);box('alley-seat',[.8,.4,.6],[95.1,.2,-61.2],rust);
      box('alley-tube',[1.9,.06,.06],[113,3.15,A[3]-.32],magenta);box('alley-tube',[1.5,.06,.06],[92.4,3.4,A[3]-.32],cyan);box('alley-tube-back',[2.1,.2,.05],[113,3.15,A[3]-.27],frame);box('alley-tube-back',[1.7,.2,.05],[92.4,3.4,A[3]-.27],frame);
      if(!low&&B.ParticleSystem){const puff=texture('alley-steam',64,64,(g,W,H)=>{g.clearRect(0,0,W,H);const r=g.createRadialGradient(W/2,H/2,2,W/2,H/2,W/2);r.addColorStop(0,'rgba(210,220,230,.5)');r.addColorStop(1,'rgba(210,220,230,0)');g.fillStyle=r;g.fillRect(0,0,W,H);});
-      for(const x of [99,121]){const ps=new B.ParticleSystem('alley-steam',quality==='high'?70:40,scene);ps.particleTexture=puff;ps.emitter=v(x,.05,(A[2]+A[3])/2);ps.minEmitBox=new B.Vector3(-.4,0,-.2);ps.maxEmitBox=new B.Vector3(.4,0,.2);
-       ps.direction1=new B.Vector3(-.15,1,-.1);ps.direction2=new B.Vector3(.2,1.4,.1);ps.minEmitPower=.35;ps.maxEmitPower=.7;ps.minLifeTime=2.2;ps.maxLifeTime=4;ps.minSize=.5;ps.maxSize=1.5;ps.emitRate=quality==='high'?14:9;
+      for(const x of [99,121]){const ps=new B.ParticleSystem('alley-steam',quality==='high'||quality==='ultra'?70:40,scene);ps.particleTexture=puff;ps.emitter=v(x,.05,(A[2]+A[3])/2);ps.minEmitBox=new B.Vector3(-.4,0,-.2);ps.maxEmitBox=new B.Vector3(.4,0,.2);
+       ps.direction1=new B.Vector3(-.15,1,-.1);ps.direction2=new B.Vector3(.2,1.4,.1);ps.minEmitPower=.35;ps.maxEmitPower=.7;ps.minLifeTime=2.2;ps.maxLifeTime=4;ps.minSize=.5;ps.maxSize=1.5;ps.emitRate=quality==='high'||quality==='ultra'?14:9;
        ps.color1=new B.Color4(.75,.8,.86,.16);ps.color2=new B.Color4(.9,.8,.85,.1);ps.colorDead=new B.Color4(.8,.8,.85,0);ps.blendMode=B.ParticleSystem.BLENDMODE_STANDARD;ps.gravity=new B.Vector3(.05,.05,0);ps.start();alleySteam.push(ps);}}}
     // Graffiti: painted onto transparent decals a few centimetres off the walls, so each reads the right way round.
     const graffitiSets=[
@@ -464,7 +468,7 @@
        g.fillStyle=color;for(let k=0;k<(style==='stencil'?3:9);k++){const x=W*.12+rand()*W*.76,l=10+rand()*55;g.globalAlpha=.75;g.fillRect(x,y+size*.32,3+rand()*3,l);g.beginPath();g.arc(x+2.5,y+size*.32+l,3.5,0,Math.PI*2);g.fill();g.globalAlpha=1;}});
       // Overspray speckle.
       for(let k=0;k<500;k++){g.fillStyle=color;g.globalAlpha=rand()*.35;g.fillRect(rand()*W,rand()*H,1.5,1.5);}g.globalAlpha=1;});}
-    function decal(t,w,h,p,ry){const m=new B.StandardMaterial('ncz-graffiti',scene);m.diffuseTexture=t;m.diffuseTexture.hasAlpha=true;m.useAlphaFromDiffuseTexture=true;m.emissiveColor=new B.Color3(.32,.3,.3);m.specularColor=new B.Color3(.05,.05,.05);owned.push(m);
+    function decal(t,w,h,p,ry){const m=new B.StandardMaterial('ncz-graffiti',scene);m.diffuseTexture=t;m.diffuseTexture.hasAlpha=true;m.useAlphaFromDiffuseTexture=true;m.specularColor=new B.Color3(.05,.05,.05);owned.push(m);
      const d=B.MeshBuilder.CreatePlane('graffiti',{width:w,height:h},scene);add(d,m,p,false);d.rotation.y=ry;return d;}
     // North wall faces south (into the alley): plane front -z means rotation 0. South wall faces north: rotation pi.
     const spots=[[78,2.4,'n',7],[90,4.6,'n',9],[104,1.9,'n',6],[116,3.4,'n',8],[128,5.4,'n',6],[82,2.2,'s',7.5],[95,3.8,'s',8],[106,1.8,'s',5],[113,5.6,'s',6],[134.5,2.4,'n',4],[121,6.6,'s',4.5],[73.5,6,'n',3.6]];
@@ -937,7 +941,7 @@
      // Rain: streaks that follow the camera outdoors and stop inside the District. Off on low quality.
      let rain=null;
      if(!low&&B.ParticleSystem){const drop=texture('raindrop',8,64,(g,W,H)=>{g.clearRect(0,0,W,H);const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'rgba(190,225,255,0)');gr.addColorStop(1,'rgba(190,225,255,.85)');g.fillStyle=gr;g.fillRect(W/2-1.5,0,3,H);});drop.hasAlpha=true;
-      const hi=quality==='high';rain=new B.ParticleSystem('ncz-rain',hi?3200:1700,scene);rain.particleTexture=drop;rain.emitter=v(31,0,-96);rain.minEmitBox=v(-24,12,-24);rain.maxEmitBox=v(24,17,24);rain.direction1=v(-.8,-24,-.4);rain.direction2=v(-.3,-28,.4);rain.minLifeTime=rain.maxLifeTime=.72;rain.minSize=.03;rain.maxSize=.045;rain.minScaleX=rain.maxScaleX=1;rain.minScaleY=11;rain.maxScaleY=15;rain.billboardMode=B.ParticleSystem.BILLBOARDMODE_STRETCHED;rain.color1=new B.Color4(.55,.72,.85,.3);rain.color2=new B.Color4(.45,.62,.78,.2);rain.colorDead=new B.Color4(.4,.5,.6,0);rain.emitRate=hi?3400:1800;rain.blendMode=B.ParticleSystem.BLENDMODE_ADD;rain.start();}
+      const hi=quality==='high'||quality==='ultra';rain=new B.ParticleSystem('ncz-rain',hi?3200:1700,scene);rain.particleTexture=drop;rain.emitter=v(31,0,-96);rain.minEmitBox=v(-24,12,-24);rain.maxEmitBox=v(24,17,24);rain.direction1=v(-.8,-24,-.4);rain.direction2=v(-.3,-28,.4);rain.minLifeTime=rain.maxLifeTime=.72;rain.minSize=.03;rain.maxSize=.045;rain.minScaleX=rain.maxScaleX=1;rain.minScaleY=11;rain.maxScaleY=15;rain.billboardMode=B.ParticleSystem.BILLBOARDMODE_STRETCHED;rain.color1=new B.Color4(.55,.72,.85,.3);rain.color2=new B.Color4(.45,.62,.78,.2);rain.colorDead=new B.Color4(.4,.5,.6,0);rain.emitRate=hi?3400:1800;rain.blendMode=B.ParticleSystem.BLENDMODE_ADD;rain.start();}
      weather={flickers,rain,rainRate:rain?.emitRate||0};
      target=saved;}
     return {clubCtl,streamDistricts,weather,city};})();
@@ -953,7 +957,7 @@
     // Merge static meshes by material to keep draw calls low.
     for(const [m,list] of staticMeshes)if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(merged){merged.parent=parent;merged.material=m;merged.isPickable=false;}}
     let lastTick=null;
-    function atmosphere(time,dt){applyLook();const cam=scene.activeCamera?.globalPosition,inClub=!!cam&&!!clubCtl&&clubCtl.inside(cam),inside=inClub||!!cam&&zone({x:cam.x,z:cam.z}).area==='district',sky=inClub?clubSky:inside?indoor:outdoor,key=inClub?'club':inside?'district':'street';
+    function atmosphere(time,dt){const cam=scene.activeCamera?.globalPosition,inClub=!!cam&&!!clubCtl&&clubCtl.inside(cam),inside=inClub||!!cam&&zone({x:cam.x,z:cam.z}).area==='district';applyLook(inside&&!inClub);const sky=inClub?clubSky:inside?indoor:outdoor,key=inClub?'club':inside?'district':'street';
      if(ambient){ambient.intensity+=(sky.intensity-ambient.intensity)*Math.min(1,dt*3);if(key!==wasInside){if(sky.diffuse)ambient.diffuse=sky.diffuse;if(sky.ground&&ambient.groundColor)ambient.groundColor=sky.ground;wasInside=key;}}
      // Haze: thicker and violet inside the club, the street's teal fog everywhere else.
      if(clubCtl){const f=Math.min(1,dt*2),d=inClub?.017:previous.fogDensity===undefined?.0028:.0028;scene.fogDensity+=(d-scene.fogDensity)*f;scene.fogColor=B.Color3.Lerp(scene.fogColor,inClub?new B.Color3(.1,.04,.15):new B.Color3(.075,.155,.17),f);clubCtl.tick(cam,dt,time);}
