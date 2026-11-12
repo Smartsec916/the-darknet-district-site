@@ -24,8 +24,8 @@ REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
 OUT = os.path.join(REPO, 'void-runner', 'assets', 'models', 'kit')
 TEX = os.path.join(OUT, 'textures')
 FLOOR, SHOP, DEPTH, FACE = 3.5, 4.5, .5, .1
-TILE = {'kit_concrete': 4.0, 'kit_metal': 2.0, 'kit_asphalt': 3.0}       # metres one repeat of the texture covers
-MATERIALS = ['kit_concrete', 'kit_metal', 'kit_glass', 'kit_emissive', 'kit_asphalt', 'kit_ticker']
+TILE = {'kit_concrete': 4.0, 'kit_metal': 2.0, 'kit_asphalt': 3.0, 'kit_fabric': 2.0}       # metres one repeat of the texture covers
+MATERIALS = ['kit_concrete', 'kit_metal', 'kit_glass', 'kit_emissive', 'kit_asphalt', 'kit_ticker', 'kit_fabric']
 GLOWING = ('kit_emissive', 'kit_ticker')          # the only materials that give light
 REGIONS = list(kit_textures.EMISSIVE_REGIONS)
 
@@ -574,6 +574,79 @@ def shop_service(p):
     p.cyl((1.52, plane - .12, 1.4), (1.52, plane - .128, 1.4), .09, seg=8)               # and its wheel
 
 
+# ---- awnings, canopy, balconies: things that hang off a facade. Their BACK goes against the wall plane (see snap "mount"); origin is still bottom-left-front.
+def _slope(faces, k, y_ref):
+    """Tilt what was just built: raise each point by k for every metre it is behind y_ref."""
+    for v in {v for f in faces for v in f.verts}:
+        v.co.z += k * (v.co.y - y_ref)
+
+
+def awning_fabric(W):
+    def make(p):
+        D, k = 1.5, .4                                           # reach from the wall, and the slope (rise per metre)
+        _slope(p.box((0, .02, .27), (W, D, .3), 'kit_fabric', bevel=0), k, 0)                 # the cloth
+        p.box((0, 0, 0), (W, .02, .3), 'kit_fabric', bevel=0)                                # the valance hanging at the front
+        p.cyl((0, .03, .27), (W, .03, .27), .022, seg=6)                                     # front bar
+        for i in range(int(W) + 1):                                                          # arms under the cloth, every metre
+            x = min(max(i * 1.0, .05), W - .05)
+            p.cyl((x, .03, .25), (x, D - .02, .25 + k * (D - .05)), .018, seg=5, caps=False)
+            if i % 2 == 0:                                                                   # a stay from the wall down to the front bar
+                p.cyl((x, D - .02, .1), (x, .5, .25 + k * .47), .015, seg=5, caps=False)
+                p.box((x - .04, D - .03, .04), (x + .04, D, .2), 'kit_metal', bevel=0)
+        p.box((0, D - .04, .2 + k * D), (W, D, .34 + k * D), 'kit_metal', bevel=.01)          # the wall rail it hangs from
+        _neon(p, (.05, .05, .06), (W - .05, .05, .06), 'amber', 'neon_0')                     # a tube behind the valance, lighting the pavement side
+        p.snap.update({'mount': {'position': [0, 0, -D], 'note': 'put the back on the wall plane'}, 'left': [0, 0, 0], 'right': [W, 0, 0]})
+    return make
+
+
+def awning_canopy(p):
+    """A flat steel canopy on tie rods, with a strip light under it."""
+    W, D = 4, 1.5
+    for y0, y1 in ((0, .08), (D - .08, D)):
+        p.box((0, y0, 0), (W, y1, .16), 'kit_metal', bevel=.012)                              # front and back beams
+    for k in range(3):
+        x0 = min(k * 2, W - .08)
+        p.box((x0, .08, .02), (x0 + .08, D - .08, .14), 'kit_metal', bevel=0)                 # cross beams
+    for i in range(16):                                                                      # corrugated sheet
+        p.box((i * .25, .02, .16 + .02 * (i % 2)), (i * .25 + .25, D - .02, .19 + .02 * (i % 2)), 'kit_metal', bevel=0)
+    p.box((0, 0, .04), (W, .05, .1), 'kit_metal', bevel=0)                                 # gutter lip
+    for x in (.3, W - .3):                                                                   # tie rods up to the wall
+        p.cyl((x, .25, .18), (x, D - .02, .75), .016, seg=5, caps=False)
+        p.box((x - .05, D - .03, .66), (x + .05, D, .8), 'kit_metal', bevel=0)
+    _neon(p, (.3, D * .5, 0), (W - .3, D * .5, 0), 'white', 'neon_0')                  # strip light under the canopy
+    p.box((.25, D * .5 - .05, .02), (W - .25, D * .5 + .05, .05), 'kit_metal', bevel=0)
+    p.snap.update({'mount': {'position': [0, 0, -D], 'note': 'put the back on the wall plane'}, 'left': [0, 0, 0], 'right': [W, 0, 0]})
+
+
+def balcony(W):
+    def make(p):
+        D, deck = 1.0, .4                                         # reach from the wall; height of the deck's underside above the piece's bottom
+        p.box((0, 0, deck), (W, D, deck + .1), 'kit_metal', bevel=.012)                       # the deck: a steel tray
+        for i in range(int(W * 4)):                                                          # grating bars on it
+            p.box((i * .25 + .1, .04, deck + .1), (i * .25 + .15, D - .04, deck + .115), 'kit_metal', bevel=0)
+        for k in range(int(W / 2) + 1):                                                      # brackets back to the wall
+            x = min(max(k * 2.0, .05), W - .05)
+            p.box((x - .04, D - .06, 0), (x + .04, D, deck), 'kit_metal', bevel=0)
+            p.cyl((x, .15, deck), (x, D - .04, .04), .025, seg=5, caps=False)
+        top = deck + .1 + 1.05
+        posts = [(min(max(i * 1.0, .03), W - .03), .03) for i in range(int(W) + 1)] + [(.03, D - .03), (W - .03, D - .03)]
+        for x, y in posts:
+            p.cyl((x, y, deck + .1), (x, y, top), .022, seg=6)
+        for z in (deck + .22, top - .02):                                                    # bottom and top rails, front and both sides
+            p.cyl((0, .03, z), (W, .03, z), .02, seg=6)
+            for x in (.03, W - .03):
+                p.cyl((x, .03, z), (x, D, z), .02, seg=6)
+        n = int(W * 8)
+        for i in range(1, n):                                                                # balusters
+            if i % 8:
+                p.cyl((i * .125, .03, deck + .22), (i * .125, .03, top - .02), .008, seg=4, caps=False)
+        for x in (.03, W - .03):
+            for j in range(1, 7):
+                p.cyl((x, .03 + j * .135, deck + .22), (x, .03 + j * .135, top - .02), .008, seg=4, caps=False)
+        p.snap.update({'mount': {'position': [0, 0, -D], 'note': 'put the back on the wall plane'}, 'deck_top': round(deck + .115, 3), 'left': [0, 0, 0], 'right': [W, 0, 0]})
+    return make
+
+
 PIECES = {
     # name: (batch, category, builder)
     'kit_wall_plain_2m': (1, 'wall', wall_plain(2)), 'kit_wall_plain_4m': (1, 'wall', wall_plain(4)), 'kit_wall_plain_6m': (1, 'wall', wall_plain(6)),
@@ -587,6 +660,8 @@ PIECES = {
     'kit_window_frame_1m': (4, 'window', window_unit(1, 1.6, 'frame')), 'kit_window_wide_2m': (4, 'window', window_unit(2, 1.4, 'wide')),
     'kit_window_barred_1m': (4, 'window', window_unit(1, 1.6, 'barred')),
     'kit_roof_parapet_2m': (4, 'roof', roof_parapet(2)), 'kit_roof_parapet_corner_1m': (4, 'roof', roof_parapet_corner),
+    'kit_awning_fabric_4m': (5, 'awning', awning_fabric(4)), 'kit_awning_fabric_6m': (5, 'awning', awning_fabric(6)), 'kit_awning_canopy_4m': (5, 'awning', awning_canopy),
+    'kit_balcony_2m': (5, 'balcony', balcony(2)), 'kit_balcony_4m': (5, 'balcony', balcony(4)),
 }
 
 
@@ -770,6 +845,7 @@ def assemble(mats, path, gif=None):
             ('kit_corner_outer_tall_1m', (6, 0, 0), 0), ('kit_shopfront_window_4m', (7, 1, 0), 1),
             ('kit_wall_plain_2m', (-8, 0, z1), 0), ('kit_wall_windows_6m', (-6, 0, z1), 0), ('kit_wall_windows_6m', (0, 0, z1), 0), ('kit_corner_outer_1m', (6, 0, z1), 0), ('kit_wall_windows_4m', (7, 1, z1), 1),
             ('kit_cornice_2m', (-8, -.2, top), 0), ('kit_cornice_6m', (-6, -.2, top), 0), ('kit_cornice_6m', (0, -.2, top), 0), ('kit_cornice_corner_1m', (6, -.2, top), 0), ('kit_cornice_4m', (7.2, 1, top), 1),
+            ('kit_awning_fabric_6m', (0, .13 - 1.5, 2.35), 0), ('kit_awning_canopy_4m', (-4, .13 - 1.5, 2.58), 0), ('kit_balcony_4m', (-5, .13 - 1.0, z1 + .1), 0),
             ('kit_roof_parapet_2m', (-8, 0, top + .5), 0), ('kit_roof_parapet_corner_1m', (6, 0, top + .5), 0), ('kit_roof_parapet_4m', (-6, 0, top + .5), 0), ('kit_roof_parapet_4m', (-2, 0, top + .5), 0), ('kit_roof_parapet_4m', (2, 0, top + .5), 0), ('kit_roof_parapet_4m', (7, 1, top + .5), 1)]
     built = []
     for name, pos, turns in plan:

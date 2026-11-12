@@ -193,7 +193,21 @@ def ticker(out, cols=1024, rows=32, dot=4):
     _save(out + '/kit_ticker_color.png', np.maximum(big * mask[..., None], off).clip(0, 255))
 
 
-SETS = {'kit_concrete': concrete, 'kit_metal': metal, 'kit_glass': glass, 'kit_emissive': emissive, 'kit_asphalt': asphalt, 'kit_ticker': ticker}
+def fabric(out, n=512):
+    """Awning cloth: broad faded stripes (the texture spans 2 m, four stripes), a weave, and dirt run down by rain."""
+    ys, xs = np.mgrid[0:n, 0:n] / n
+    mid, fine = _noise(n, 5, 61, base=6), _noise(n, 3, 62, base=96)
+    stripe = ((xs * 4).astype(int) % 2)[..., None]
+    color = np.array([24, 84, 92]) * stripe + np.array([30, 28, 36]) * (1 - stripe)
+    streak = _noise(n, 3, 63, base=4)[:, :1] * 0 + _noise(n, 4, 64, base=32)[:1, :]          # varies across, constant down: run-off lines
+    value = (.75 + .35 * (mid - .5)) * (1 - .35 * np.clip((streak - .5) * 3, 0, 1)) * (.85 + .3 * ys)
+    weave = .5 + .25 * np.sin(xs * n * .8) + .25 * np.sin(ys * n * .8)
+    _save(out + '/kit_fabric_color.png', (color * value[..., None] * (.92 + .16 * weave[..., None])).clip(0, 255))
+    _save(out + '/kit_fabric_normal.png', _normal(weave * .5 + fine * .3, 1.2))
+    _save(out + '/kit_fabric_orm.png', _orm(.85 + .15 * mid, (.88 + .08 * (fine - .5)).clip(0, 1), np.zeros((n, n))))
+
+
+SETS = {'kit_concrete': concrete, 'kit_metal': metal, 'kit_glass': glass, 'kit_emissive': emissive, 'kit_asphalt': asphalt, 'kit_ticker': ticker, 'kit_fabric': fabric}
 
 
 def build_all(out):

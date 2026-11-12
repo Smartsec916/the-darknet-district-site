@@ -35,6 +35,11 @@
   },
   "kit_ticker": {
    "color": "textures/kit_ticker_color.png"
+  },
+  "kit_fabric": {
+   "color": "textures/kit_fabric_color.png",
+   "normal": "textures/kit_fabric_normal.png",
+   "orm": "textures/kit_fabric_orm.png"
   }
  },
  "emissiveRegions": {
@@ -1004,6 +1009,179 @@
      1.0,
      0.7,
      -0.1
+    ]
+   }
+  },
+  "kit_awning_canopy_4m": {
+   "file": "kit_awning_canopy_4m.glb",
+   "batch": 5,
+   "category": "awning",
+   "size": {
+    "w": 4.0,
+    "h": 0.82,
+    "d": 1.5
+   },
+   "triangles": 396,
+   "bytes": 32056,
+   "nodes": [
+    "kit_awning_canopy_4m__neon_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -1.5
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     4,
+     0,
+     0
+    ]
+   }
+  },
+  "kit_awning_fabric_4m": {
+   "file": "kit_awning_fabric_4m.glb",
+   "batch": 5,
+   "category": "awning",
+   "size": {
+    "w": 4.0,
+    "h": 0.94,
+    "d": 1.5
+   },
+   "triangles": 216,
+   "bytes": 20196,
+   "nodes": [
+    "kit_awning_fabric_4m__neon_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -1.5
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     4,
+     0,
+     0
+    ]
+   }
+  },
+  "kit_awning_fabric_6m": {
+   "file": "kit_awning_fabric_6m.glb",
+   "batch": 5,
+   "category": "awning",
+   "size": {
+    "w": 6.0,
+    "h": 0.94,
+    "d": 1.5
+   },
+   "triangles": 258,
+   "bytes": 23136,
+   "nodes": [
+    "kit_awning_fabric_6m__neon_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -1.5
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     6,
+     0,
+     0
+    ]
+   }
+  },
+  "kit_balcony_2m": {
+   "file": "kit_balcony_2m.glb",
+   "batch": 5,
+   "category": "balcony",
+   "size": {
+    "w": 2.0,
+    "h": 1.55,
+    "d": 1.0
+   },
+   "triangles": 612,
+   "bytes": 44252,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -1.0
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "deck_top": 0.515,
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     2,
+     0,
+     0
+    ]
+   }
+  },
+  "kit_balcony_4m": {
+   "file": "kit_balcony_4m.glb",
+   "batch": 5,
+   "category": "balcony",
+   "size": {
+    "w": 4.0,
+    "h": 1.55,
+    "d": 1.0
+   },
+   "triangles": 882,
+   "bytes": 62900,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -1.0
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "deck_top": 0.515,
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     4,
+     0,
+     0
     ]
    }
   }
