@@ -1,24 +1,67 @@
 /* Presentation only. The caller owns physics, combat, campaign and animation timing. */
 (function(root) {
   const base = new URL('.', document.currentScript.src);
+  // scale below 1 supersamples; maxDpr is how much of devicePixelRatio the buffer may use;
+  // maxWidth/maxHeight are the framebuffer cap. Ultra is the largest (above 4K).
+  // glow 0 means no post stack. The other numbers are bloom, MSAA and a light sharpen.
   const presets = {
     low: {
       scale: 1.5,
+      maxDpr: 1,
+      maxWidth: 1920,
+      maxHeight: 1080,
       rocks: 18,
       stars: 180,
-      fragments: 60
+      fragments: 60,
+      glow: 0
     },
     medium: {
-      scale: 1,
+      scale: 1.15,
+      maxDpr: 1.5,
+      maxWidth: 2560,
+      maxHeight: 1600,
       rocks: 34,
       stars: 360,
-      fragments: 120
+      fragments: 120,
+      samples: 2,
+      bloomThreshold: .58,
+      bloomWeight: .5,
+      bloomKernel: 64,
+      bloomScale: .6,
+      sharpen: .22,
+      glow: .7
     },
     high: {
-      scale: .8,
+      scale: .85,
+      maxDpr: 2,
+      maxWidth: 3840,
+      maxHeight: 2160,
       rocks: 48,
       stars: 600,
-      fragments: 220
+      fragments: 220,
+      samples: 4,
+      bloomThreshold: .5,
+      bloomWeight: .68,
+      bloomKernel: 80,
+      bloomScale: .65,
+      sharpen: .3,
+      glow: .95
+    },
+    ultra: {
+      scale: .75,
+      maxDpr: 2,
+      maxWidth: 5120,
+      maxHeight: 2880,
+      rocks: 64,
+      stars: 900,
+      fragments: 320,
+      samples: 4,
+      bloomThreshold: .42,
+      bloomWeight: .82,
+      bloomKernel: 96,
+      bloomScale: .72,
+      sharpen: .36,
+      glow: 1.1
     }
   };
   let engine, scene, camera, surface, loadPromise, spaceRoot, roomRoot, planet, station, sky, rockSource, cockpit, rocks = [],
@@ -29,7 +72,7 @@
     signs = [];
   let activeLocation = null,
     room = null,
-    quality = 'medium',
+    quality = 'high',
     materials = {},
     lastWidth = 0,
     lastHeight = 0;
@@ -207,8 +250,9 @@
     if (!context) { const error=Error('WebGL could not start in this browser. Check graphics drivers and hardware acceleration, then retry.'); error.phase='graphics'; throw error; }
     context.getExtension('WEBGL_lose_context')?.loseContext();
   }
-  // Shared camera look: ACES tone mapping, anti-aliasing, bloom and emissive glow.
-  // Low quality keeps only tone mapping so slower devices pay no extra passes.
+  // Shared camera look: ACES tone mapping, MSAA plus FXAA, a light sharpen, bloom and emissive glow.
+  // Exposure stays near 1 so the tonemapper keeps shadows black and leaves the neon above the bloom threshold.
+  // Low quality keeps only tone mapping. Every setting above Low gets the glow layer.
   // Reflection environment for PBR materials (imported models need one to show their detail).
   // Built in code, no downloads: a dim industrial room (gradient dome plus overhead strip lights),
   // captured once into a small cube map in a separate helper scene and shared with the game scene.
@@ -239,37 +283,50 @@
   const look = {
     apply(targetScene, targetCamera, level = quality) {
       const b = B(), ip = targetScene.imageProcessingConfiguration, state = targetScene.metadata ??= {};
+      const tier = presets[level] || presets.high;
       ip.toneMappingEnabled = true;
       ip.toneMappingType = b.ImageProcessingConfiguration.TONEMAPPING_ACES;
-      ip.exposure = 1.55;
-      ip.contrast = 1.06;
+      ip.exposure = 1;
+      ip.contrast = 1.1;
       ip.vignetteEnabled = level !== 'low';
-      ip.vignetteWeight = .7;
-      ip.vignetteStretch = .9;
+      ip.vignetteWeight = .5;
+      ip.vignetteStretch = .85;
       ip.vignetteColor = new b.Color4(0, 0, 0, 0);
       ip.vignetteBlendMode = b.ImageProcessingConfiguration.VIGNETTEMODE_MULTIPLY;
-      if (level === 'low') { state.lookPipeline?.dispose(); state.lookPipeline = null; }
-      else if (!state.lookPipeline) {
+      if (!tier.glow) {
+        state.lookPipeline?.dispose(); state.lookPipeline = null;
+        state.lookGlow?.dispose(); state.lookGlow = null; state.lookGlowSpec = '';
+        return;
+      }
+      if (!state.lookPipeline) {
         try {
           const pipeline = new b.DefaultRenderingPipeline('void-look', true, targetScene, [targetCamera]);
-          pipeline.fxaaEnabled = true;
-          pipeline.bloomEnabled = true;
-          pipeline.bloomThreshold = .78;
-          pipeline.bloomWeight = .32;
-          pipeline.bloomKernel = 48;
-          pipeline.bloomScale = .5;
           pipeline.imageProcessingEnabled = true;
           state.lookPipeline = pipeline;
         } catch (error) { console.warn('Post-processing unavailable; continuing without it.', error); state.lookPipeline = null; }
       }
-      if (level !== 'high') { state.lookGlow?.dispose(); state.lookGlow = null; }
-      else if (!state.lookGlow) {
+      const pipeline = state.lookPipeline;
+      if (pipeline) {
+        pipeline.fxaaEnabled = true;
+        pipeline.samples = tier.samples;
+        pipeline.bloomEnabled = true;
+        pipeline.bloomThreshold = tier.bloomThreshold;
+        pipeline.bloomWeight = tier.bloomWeight;
+        pipeline.bloomKernel = tier.bloomKernel;
+        pipeline.bloomScale = tier.bloomScale;
+        pipeline.sharpenEnabled = true;
+        if (pipeline.sharpen) { pipeline.sharpen.edgeAmount = tier.sharpen; pipeline.sharpen.colorAmount = .3; }
+      }
+      // Ultra keeps a larger glow buffer. Medium and High share one, so switching between them does not rebuild it.
+      const spec = (level === 'ultra' ? .85 : .65) + ':' + (level === 'ultra' ? 64 : 40);
+      if (state.lookGlow && state.lookGlowSpec !== spec) { state.lookGlow.dispose(); state.lookGlow = null; }
+      if (!state.lookGlow) {
         try {
-          const glow = new b.GlowLayer('void-glow', targetScene, { mainTextureRatio: .5, blurKernelSize: 32 });
-          glow.intensity = .45;
-          state.lookGlow = glow;
+          const parts = spec.split(':'), glow = new b.GlowLayer('void-glow', targetScene, { mainTextureRatio: +parts[0], blurKernelSize: +parts[1] });
+          state.lookGlow = glow; state.lookGlowSpec = spec;
         } catch (error) { state.lookGlow = null; }
       }
+      if (state.lookGlow) state.lookGlow.intensity = tier.glow;
     }
   };
   root.VoidLook = look;
@@ -894,14 +951,26 @@
     (pools[kind] || []).slice(items.length).forEach(m => m.setEnabled(false));
   }
 
+  // CSS pixels in, framebuffer pixels out. The page canvas is already backed at up to 2x devicePixelRatio
+  // and this view is blitted into it, so a buffer smaller than that is stretched and looks soft.
+  // hardwareScalingLevel stays at 1: the size returned here is the real framebuffer, not a hint Babylon scales again.
+  function deviceRatio() {
+    const d = root.devicePixelRatio;
+    return Number.isFinite(d) && d > 0 ? d : 1;
+  }
+  function renderSize(width, height, level = quality) {
+    const p = presets[level] || presets.high;
+    const dpr = Math.min(deviceRatio(), p.maxDpr);
+    let w = Math.round(width * dpr / p.scale), h = Math.round(height * dpr / p.scale);
+    const fit = Math.min(1, p.maxWidth / Math.max(1, w), p.maxHeight / Math.max(1, h));
+    return { width: Math.max(2, Math.round(w * fit)), height: Math.max(2, Math.round(h * fit)) };
+  }
   function resize(width, height) {
-    const scale = presets[quality].scale,
-      w = Math.min(2560, Math.round(width / scale)),
-      h = Math.min(1600, Math.round(height / scale));
-    if (w !== lastWidth || h !== lastHeight) {
-      engine.setSize(w, h);
-      lastWidth = w;
-      lastHeight = h;
+    const size = renderSize(width, height);
+    if (size.width !== lastWidth || size.height !== lastHeight) {
+      engine.setSize(size.width, size.height);
+      lastWidth = size.width;
+      lastHeight = size.height;
     }
   }
 
@@ -1245,7 +1314,7 @@
   }
 
   function qualitySet(value) {
-    quality = presets[value] ? value : 'medium';
+    quality = presets[value] ? value : 'high';
     lastWidth = 0;
     if (scene && camera) look.apply(scene, camera, quality);
     if (menuHandle?.scene?.activeCamera) look.apply(menuHandle.scene, menuHandle.scene.activeCamera, quality);
@@ -1272,6 +1341,7 @@
     renderFlight,
     renderRoom,
     release,
+    renderSize,
     setQuality: qualitySet,
     presets,
     diagnostics,

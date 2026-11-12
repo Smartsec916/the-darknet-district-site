@@ -1,7 +1,7 @@
 /* Babylon presentation adapter; existing campaign, combat and input remain authoritative. */
 const VoidGraphics = window.VoidGraphics = {
   renderer: 'babylon',
-  quality: matchMedia('(pointer:coarse)').matches || navigator.hardwareConcurrency <= 4 ? 'low' : 'medium',
+  quality: 'high',
   busy: false,
   error: null
 };
@@ -178,7 +178,7 @@ arrive = function() {
 const migrationSettings = settingsPage;
 settingsPage = function() {
   migrationSettings();
-  screen.querySelector('.settings-panel').insertAdjacentHTML('beforeend', `<h2>Graphics</h2><label>Renderer<select id="renderer-setting"><option value="babylon" ${VoidGraphics.renderer==='babylon'?'selected':''}>Babylon 3D</option></select></label><label>Quality<select id="quality-setting">${Object.keys(VoidBabylon.presets).map(q=>`<option ${q===VoidGraphics.quality?'selected':''}>${q}</option>`).join('')}</select></label><p class="fine">Quality controls resolution and effects. Workshop shadow changes apply on the next visit.</p><h2>Walking controls</h2><label>Mouse sensitivity<input id="walking-sensitivity" type="range" min="0.0005" max="0.006" step="0.0001" value="${VoidExplorer.config.sensitivity}"></label><p class="fine">WASD · Shift sprint · C / Ctrl crouch · Space jump · E interact · 1 draw · right mouse aim · left mouse fire · R reload · I inventory</p><h2>Radio</h2><label>Local station<select id="radio-setting"><option value="">OFF / LOCATION MUSIC</option>${VoidRadio.available().map(([id,s])=>`<option value="${id}" ${VoidRadio.selection===id?'selected':''}>${s.name}</option>`).join('')}</select></label><p id="radio-status" class="fine">${escapeText(VoidRadio.status)}</p>`);
+  screen.querySelector('.settings-panel').insertAdjacentHTML('beforeend', `<h2>Graphics</h2><label>Renderer<select id="renderer-setting"><option value="babylon" ${VoidGraphics.renderer==='babylon'?'selected':''}>Babylon 3D</option></select></label><label>Quality<select id="quality-setting">${Object.keys(VoidBabylon.presets).map(q=>`<option value="${q}" ${q===VoidGraphics.quality?'selected':''}>${{low:'Low',medium:'Medium',high:'High',ultra:'Ultra'}[q]||q}</option>`).join('')}</select></label><p class="fine">Quality controls resolution, sharpness and neon glow. High is the default. Ultra is the sharpest. Workshop shadow changes apply on the next visit.</p><h2>Walking controls</h2><label>Mouse sensitivity<input id="walking-sensitivity" type="range" min="0.0005" max="0.006" step="0.0001" value="${VoidExplorer.config.sensitivity}"></label><p class="fine">WASD · Shift sprint · C / Ctrl crouch · Space jump · E interact · 1 draw · right mouse aim · left mouse fire · R reload · I inventory</p><h2>Radio</h2><label>Local station<select id="radio-setting"><option value="">OFF / LOCATION MUSIC</option>${VoidRadio.available().map(([id,s])=>`<option value="${id}" ${VoidRadio.selection===id?'selected':''}>${s.name}</option>`).join('')}</select></label><p id="radio-status" class="fine">${escapeText(VoidRadio.status)}</p>`);
 };
 screen.addEventListener('change', e => {
   if(e.target.id==='walking-sensitivity'){VoidExplorer.config.sensitivity=Math.max(.0005,Math.min(.006,Number(e.target.value)||.0022));graphicsSave();}
