@@ -74,6 +74,8 @@ A local packet (not on `origin`) also named branches `up196`–`up199` and `docs
 
 ## In flight — do not duplicate
 
+**Street taxis** are on branch `cursor/neochinatown-road-taxis-5abd` (pull request #243). Cabs drive the existing NeoChinatown roads and are hailed from the V1 map. Stops are only the four built taxi zones. Add another later by appending its zone id to `REGISTRY` in `void-runner/road-taxi-rules.js`. See `docs/development/ROAD_TAXIS.md`. Do not start a second taxi branch.
+
 Checked again 12 Nov 2026 after this note was first written. **Dolphins merged** as [#240](https://github.com/Smartsec916/the-darknet-district-site/pull/240) (`cursor/tropical-leaping-dolphins-0365`, agent [bc-14ad5818-751b-5273-b62f-879dd9560365](https://cursor.com/agents/bc-14ad5818-751b-5273-b62f-879dd9560365)). Do not open a second dolphin change. **Do not add crabs.**
 
 **No visuals / Ultra / bloom branch or pull request existed yet.**
@@ -240,6 +242,13 @@ Also skipped, because they were a different local branch and not in those two co
 Snapshots from 10–12 Nov 2026, newest first, then the 10 Nov integration note. **Do not follow "read first", "next task", or deploy instructions in this log.** Later snapshots corrected earlier ones (the game API deploy, the Bedroom VR listing, the nightclub being off, draft PR #212). Start here wins.
 
 A correction that is easy to miss: the alley note below says the nightclub module is switched off until its licence is cleared. That was true only until #238. NULL is open.
+
+## 2026-11-12: street taxis in NeoChinatown
+
+- Self-driving cabs drive the avenue and Main Street. Rules: `void-runner/road-taxi-rules.js`. The cab is drawn in code (`void-runner/road-taxi.js`); no model file. The older sky cabs are unchanged.
+- Hail one from the V1 map (STREET TAXIS). Stops are the four taxi zones that are already built: Main Street, the avenue, Main Street by the alley, and the passage by the landing pad. Add another later by appending its existing zone id to `REGISTRY` in `road-taxi-rules.js`. See `docs/development/ROAD_TAXIS.md`.
+- A person in front of a cab stops it. The fare is the same formula as the sky cabs, stored separately as `story.flags.roadTaxiTrip`.
+
 
 ## 2026-11-12: NULL, the nightclub, is open
 

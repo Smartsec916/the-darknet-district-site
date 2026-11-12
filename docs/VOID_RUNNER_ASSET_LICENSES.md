@@ -204,3 +204,5 @@ placed without their clips), one 4 m wall tile removed at the street entrance. A
 muffled 124 BPM thump), nothing recorded or licensed.
 
 **Sleeping Pod surface textures (2026-11-11).** `void-runner/assets/textures/tesana-pod/` holds normal maps (fine scuffs and thread only; the colour maps are not used) from the ambientCG sets PaintedMetal003 and Fabric062 (CC0 1.0, https://docs.ambientcg.com/license/), the same sets the owner's Tesana Sleeping Pod project uses. They were referenced by the pod but missing from the published site.
+
+**Street taxis (2026-11-12).** The NeoChinatown road cabs are original geometry built in `void-runner/road-taxi.js` (body, glass, wheels, roof sign). No third-party model file is shipped. This is the same approach as the sky cab in `void-runner/city-taxi.js`. `docs/development/TESANA_ASSET_AUDIT.md` lists a generated `flying_taxi.glb` as held and not imported; it was not used. No external licence applies. A later licensed model can replace the mesh without changing `void-runner/road-taxi-rules.js`.

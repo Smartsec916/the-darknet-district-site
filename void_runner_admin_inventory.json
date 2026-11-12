@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "505a9a827bb4d348",
+  "revision": "6974195be600a976",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12152,7 +12152,7 @@
     {
       "source": "void-runner/music-integration.js",
       "line": 15,
-      "text": "const walking=!!walkingLocation&&!!walker&&['walking','dialogue','mission-log'].includes(mode);",
+      "text": "const walking=!!walkingLocation&&!!walker&&['walking','dialogue','mission-log','road-taxi'].includes(mode);",
       "kind": "source-reference"
     },
     {
@@ -13598,7 +13598,7 @@
     "void-runner/character-catalog.js": "eee30cc7e7be13d44d43d2b5427bc616c08d64ee4a643cbbd5f3a61e9580e72b",
     "void-runner/character-creator.js": "101b4554395e8f64a4993b58d84a780a8e8af88257a1f2f8a85a061f67ec8bdb",
     "void-runner/character-fit.js": "ee63772c43aa17513e8325b03ee8fee759e3fbf2407fa9adc3912921a6efcbc9",
-    "void-runner/city-taxi.js": "0e5034fa45257dbcc8a26a52ad33b1dc12b52ecd2c95d22a1929ddcd96155eb0",
+    "void-runner/city-taxi.js": "60758f49d3bbafb06692ad0e3a8be96be2c8285586a049f4fdb9cbad3eb9683c",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
     "void-runner/cockpit-math.js": "a63faf598eaf23722d22658ca22b5da5b16f0044437ac5277d34d42d1cbf0461",
     "void-runner/cockpit-overlay.js": "c0668e199fe366d0b7def0cdfd0008526870420d93779317980a8aaa0d8e30bc",
@@ -13620,7 +13620,7 @@
     "void-runner/district-arcade.js": "ad7917144c44ce2f88246197ec4ff4a2eefbde00d225a0fe844c3adb043c28e3",
     "void-runner/district-area.js": "48b60eab3a791020ce7a4a7213de866e697069ca4c003cf7f255a5ffcef3db4c",
     "void-runner/district-chat.js": "f6dcf7d042846fb47df27dfa2703699314770365fcc5adab94c80f3341029dd5",
-    "void-runner/district-map.js": "e84872335542d6547c0f70ade13b1a35acaca678a8eb94ff863cf6991e7fb9c3",
+    "void-runner/district-map.js": "5a57f879352d99d5e2db32dc6f948bbe13bce32bc63d52eba181b375f0550c5b",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
@@ -13642,7 +13642,7 @@
     "void-runner/flight-session.js": "1027dd1a11d5c087d2d754f96cfd8ecce8948ace49398ac78aab5efef0e52bfa",
     "void-runner/flight-skirmish.js": "d34dcc71253521e0b64617552cce2db27b7e1e37420611fa7471de848c8a5573",
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
-    "void-runner/game.js": "6f813f2696b32614b2a539e01917f119228bc9715a126ea35ecd3fea69226e2c",
+    "void-runner/game.js": "12ab691c726ae68308e305e53de737011b05e11962d7a843baf4e26d48e6283a",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "3f0a281fe47ab2dbf58eb419916d99736a1c576e65e026dbb94eb2bcc5756b20",
     "void-runner/hud-data.js": "ab10b0b6a6a95a50c28751a44eee205e0cc6d6e063bae78d89087f39411bde35",
@@ -13664,7 +13664,7 @@
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "a751c57ffcc8fd9928ecd8baa1f962d21f86ae842b87a3724e31c045887795a8",
     "void-runner/music-engine.js": "5078e1a0fedff9d09a7f23823126d3ef8a834a1806edb7675c54e3b668014a8b",
-    "void-runner/music-integration.js": "3842625f4d4bb89425989871a6d08f09790309c12207dfec3b718750a2eb0718",
+    "void-runner/music-integration.js": "8b3be844e052bd281c2a847357cecaf36c6db712b91a6896760e16ac67de3164",
     "void-runner/music-score.js": "87751174ef61afbb0be20d98b5b01127d833ee63c06e727bf1a2d6e985b8b7e7",
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-alley.js": "cbcebc1ca5706ea9544506c94a52fb1dbfd8b68c11a1bb367761ab8326b9a15d",
@@ -13691,6 +13691,8 @@
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
     "void-runner/remote-players.js": "91335f68abae3e94d7472111a8b0a144a1bdf918ab036876f93312530ab3b88c",
+    "void-runner/road-taxi-rules.js": "6287b0c4133166f9ad618193e49c34578ca2faf594f5bcd8038c7e10cf51a80c",
+    "void-runner/road-taxi.js": "29de2e70351ee336bd78c268e491e3ed41543ecabd92c3e10432971b9a654010",
     "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
