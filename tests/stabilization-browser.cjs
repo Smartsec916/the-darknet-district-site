@@ -6,6 +6,8 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
  const page=await browser.newPage({viewport:{width:1280,height:720},serviceWorkers:'block'});page.on('pageerror',e=>result.errors.push(e.stack));page.on('console',async m=>{if(/VOID frame|VOID.*preparation/.test(m.text())){const details=await Promise.all(m.args().map(a=>a.evaluate(v=>v?.error?.stack||v?.stack||v)));console.log('GAME ERROR',details);result.errors.push(m.text());}});
  await page.route('https://**/*',r=>r.abort());await page.route('**/api/**',r=>r.fulfill({status:503,body:'offline test'}));await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));
  await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>VoidStartup.started,null,{timeout:90000});
+ // A software-rendered CI machine builds a scene several times slower than any player's device: give scene building room here, so the check measures the game and not the runner.
+ await page.evaluate(()=>Object.assign(VoidPreparation.limits,{scene:60000,assets:60000,optional:30000}));
  await page.evaluate(()=>{leaveMenu();state=C.fresh();state.quest='open';state.location='meridian';state.universe.freeTravel=true;state.story.flags.tutorialSkipped=true;VoidGraphics.quality='low';VoidBabylon.setQuality('low');});
  async function settled(){await page.waitForFunction(()=>VoidAssets.pending===0,null,{timeout:120000});await page.waitForTimeout(350);}
  async function counts(){return page.evaluate(()=>{const s=VoidBabylon.scene;return {mode,error:VoidGraphics.error,meshes:s.meshes.length,textures:s.textures.length,materials:s.materials.length,skeletons:s.skeletons.length,groups:s.animationGroups.length,playing:s.animationGroups.filter(g=>g.isPlaying).length};});}
