@@ -42,7 +42,25 @@
  const traceLog=[],trace=m=>{traceLog.push(Math.round(performance.now())+' '+m);if(traceLog.length>60)traceLog.shift();};
  const peers=new Map();       // public id -> {node,ctrl,model,name,x,z,yaw,tx,tz,tyaw,clip,seen,off}
  // Paused in the District (the pause menu, Settings) still counts as being in the room: the avatar simply stands still for the others.
- const inRoom=()=>typeof walker!=='undefined'&&walker&&(mode==='walking'||mode==='menu')&&walkingLocation?.id==='neochinatown'&&walkingLocation.area==='interior';
+ // Lying in the pod, the pod's music screen, the wardrobe and the mission log are still "in the District" too: leaving the room for each of those used to drop the
+ // connection, so two players in their pods were never online together (the 2026-11-11 report). Only the VR rooms, loading and the street are outside.
+ const ROOM_MODES=new Set(['walking','menu','pod-waking','equipment','character-creator','mission-log','vr-menu','vr-transition','vr-pause','vr-seated']);
+ // Inside a VR simulation the player is in a shared VR session on the hub (vrSession below), or in a private one of their own when playing solo.
+ let hubVr=false;   // the hub said it knows shared VR sessions (an older hub treats those messages as faults, so none are sent to it and VR stays offline, as before)
+ const inVrWorld=()=>typeof walkingLocation!=='undefined'&&walkingLocation?.kind==='vr';
+ const inRoom=()=>typeof walker!=='undefined'&&walker&&ROOM_MODES.has(mode)&&((walkingLocation?.id==='neochinatown'&&walkingLocation.area==='interior')||(inVrWorld()&&hubVr));
+ // What the others are told about where I am. A pod is private: while I lie in mine they see me standing at its door, never inside it.
+ const reported=()=>{if(mode==='pod-waking'){try{const e=root.VoidDistrictArea.podExit(root.VoidNeoChinatown,state.story.flags.activePod||1);return [e.spawn[0],e.spawn[2],e.yaw];}catch{}}return [walker.x,walker.z,walker.yaw];};
+ const floorY=()=>walker.y-(walker.eye||1.68);
+ // ---- Shared VR sessions (the hub's rules are in tools/district-hub/protocol.cjs; the menu is in vr-core.js) ----
+ let vrSession=null,vrWant=null,vrWaiting=null,vrListWaiting=null,outSince=0;
+ const vrSettle=(ok,value)=>{const w=vrWaiting;vrWaiting=null;if(w){clearTimeout(w.timer);ok?w.resolve(value):w.reject(new Error(value||'The session did not answer.'));}};
+ const vrAsk=message=>new Promise((resolve,reject)=>{if(!(ws?.readyState===1&&status==='in'&&hubVr))return reject(new Error('You are not online, so this will be a solo session.'));if(vrWaiting)return reject(new Error('Another request is still being answered.'));
+  vrWaiting={resolve,reject,timer:setTimeout(()=>vrSettle(false,'The server did not answer.'),8000)};ws.send(JSON.stringify(message));});
+ // Peers are drawn only when my screen and the hub agree on where I am (the District, or the same VR world): never a District player inside a simulation.
+ const consistent=()=>inVrWorld()===!!vrSession;
+ const vrActive=()=>inVrWorld()||!!root.VoidVR?.busy||!!root.VoidVR?.active;
+ const diag={joins:0,reconnects:0,refusals:0,modelFailures:0,fallbacks:0,lastRefusal:''};
  // The player's own Firebase sign-in. A local emulator token (tests) is honoured only on a local page.
  async function token(){try{if(isLocalPage){const t=get(root.localStorage,'tdd-dev-mp-token');if(t)return t;}return await root.VoidAccount?.user?.getIdToken?.()||null;}catch{return null;}}
  const accountUid=()=>root.VoidAccount?.user?.uid||null;
@@ -61,18 +79,24 @@
  function removePeer(id){const p=peers.get(id);if(!p)return;p.off?.();p.ctrl?.dispose?.();p.node?.dispose?.();peers.delete(id);}
  function clearPeers(){for(const id of [...peers.keys()])removePeer(id);}
  function place(p){
-  const scene=root.VoidBabylon?.scene;if(!scene)return false;if(p.node&&!p.node.isDisposed())return true;
+  const scene=root.VoidBabylon?.scene;if(!scene||!walker||!consistent())return false;if(p.node&&!p.node.isDisposed())return true;
   // A player with a saved creator look (ids already checked by the hub, checked again here) is built by the assembler; anyone else uses the plain crowd model.
   if(p.appearance&&root.VoidCharacterAssembler&&root.VoidCharacterAppearance?.validate(p.appearance)){
-   const parent=new root.BABYLON.TransformNode('remote-player:'+p.id,scene);p.node=parent;p.tag=makeTag(scene,parent,p.name);parent.position.set(p.x,walker.y-1.68,p.z);parent.rotation.y=p.yaw;p.shownClip=p.clip||'idle';
+   const parent=new root.BABYLON.TransformNode('remote-player:'+p.id,scene);p.node=parent;p.tag=makeTag(scene,parent,p.name);parent.position.set(p.x,floorY(),p.z);parent.rotation.y=p.yaw;p.shownClip=p.clip||'idle';
    root.VoidCharacterAssembler.build(p.appearance,parent,{scene,clip:p.shownClip}).then(ch=>{if(peers.get(p.id)!==p||parent.isDisposed()){ch.dispose();return;}p.ctrl=ch;p.char=ch;})
     .catch(()=>{if(peers.get(p.id)===p){p.appearance=null;parent.dispose();p.node=null;}});   // could not build it: fall back to the plain crowd model
    return true;
   }
   const parent=new root.BABYLON.TransformNode('remote-player:'+p.id,scene),made=root.VoidAssets.instance('crowd:'+p.model,parent);
-  if(!made){parent.dispose();return false;}
+  if(!made){parent.dispose();
+   // The model is not in memory: ask for it once. If it cannot be loaded (or takes too long) the player is still shown, as a plain glowing figure with their name.
+   if(!p.asked){p.asked=performance.now();Promise.resolve(root.VoidCharacterAssembler?.ensureLook?.(p.model,scene)).catch(()=>{p.failed=true;diag.modelFailures++;});}
+   if(p.failed||performance.now()-p.asked>20000){const B=root.BABYLON,stand=new B.TransformNode('remote-player:'+p.id,scene),body=B.MeshBuilder.CreateCapsule('remote-fallback',{height:1.75,radius:.26},scene),mat=new B.StandardMaterial('remote-fallback-mat',scene);
+    mat.diffuseColor=new B.Color3(.05,.09,.12);mat.emissiveColor=new B.Color3(.1,.5,.56);body.material=mat;body.parent=stand;body.position.y=.875;body.isPickable=false;body.onDisposeObservable.add(()=>mat.dispose());
+    p.node=stand;p.ctrl=null;p.fallback=true;p.shownClip=p.clip||'idle';p.tag=makeTag(scene,stand,p.name);stand.position.set(p.x,floorY(),p.z);stand.rotation.y=p.yaw;diag.fallbacks++;return true;}
+   return false;}
   p.node=parent;p.ctrl=root.VoidCrowd.animate(made,p.model,p.clip||'idle');p.shownClip=p.clip||'idle';p.tag=makeTag(scene,parent,p.name);
-  parent.position.set(p.x,walker.y-1.68,p.z);parent.rotation.y=p.yaw;return true;
+  parent.position.set(p.x,floorY(),p.z);parent.rotation.y=p.yaw;return true;
  }
  function upsert(v){
   let p=peers.get(v.id);
@@ -83,7 +107,13 @@
   if(!place(p)&&!p.off&&root.VoidAssets.onLoaded)p.off=root.VoidAssets.onLoaded(id=>{if(id==='crowd:'+p.model&&peers.get(p.id)===p){place(p);p.off?.();p.off=null;}});
  }
  function onMessage(m){
-  if(m.t==='welcome'){selfId=String(m.you||'');clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated,chat:!!m.features?.chat};loadIgnored();for(const [id,mode] of ignored)if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:true}));for(const v of m.peers)upsert(v);emitChat({t:'chat-status',on:features.chat});}
+  if(m.t==='welcome'){diag.joins++;if(diag.joins>1)diag.reconnects++;selfId=String(m.you||'');clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated,chat:!!m.features?.chat};hubVr=!!m.features?.vr;loadIgnored();for(const [id,mode] of ignored)if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:true}));for(const v of m.peers)upsert(v);emitChat({t:'chat-status',on:features.chat});vrSession=null;
+   if(vrWant&&vrActive()&&ws?.readyState===1)ws.send(JSON.stringify({t:'vr-join',id:vrWant.id}));}   // reconnected during a simulation (or while it loads): go back into the same session
+  else if(m.t==='vr-room'){clearPeers();vrSession=m.session||null;vrWant=vrSession?{id:vrSession.id,exp:vrSession.exp,opts:vrSession.opts,private:vrSession.private}:null;for(const v of m.peers||[])upsert(v);vrSettle(true,vrSession);}
+  else if(m.t==='vr-update'){if(vrSession&&m.session?.id===vrSession.id)vrSession=m.session;}
+  else if(m.t==='vr-refused'){if(!vrWaiting&&vrWant&&vrActive()&&ws?.readyState===1){const w=vrWant;vrWant=null;ws.send(JSON.stringify({t:'vr-create',exp:w.exp,opts:w.opts||'{}',private:!!w.private}));}   // the session I was in ended while I was reconnecting: open it again, as it was
+   vrSettle(false,String(m.reason||'Refused.').slice(0,160));}
+  else if(m.t==='vr-sessions'){const w=vrListWaiting;vrListWaiting=null;if(w){clearTimeout(w.timer);w.resolve(Array.isArray(m.list)?m.list.slice(0,40):[]);}}
   else if(m.t==='chat'||m.t==='chat-refused'||m.t==='reported'||m.t==='report-refused'){if(m.t==='chat'&&ignored.has(m.id))return;emitChat(m);return;}
   else if(m.t==='trade'){for(const fn of listeners)try{fn(m);}catch{}return;}
   else if(m.t==='join')upsert(m.peer);
@@ -124,27 +154,31 @@
   sock.onopen=()=>{trace('open');clearTimeout(giveUp);sock.send(JSON.stringify({t:'hello',token:tok,room:ROOM}));};
   sock.onmessage=e=>{trace('message');try{onMessage(JSON.parse(e.data));}catch{}};
   sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false,chat:false};emitChat({t:'chat-status',on:false});for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one
-   ws=null;clearPeers();lastClose=e.code+(e.reason?' '+e.reason:'');
+   ws=null;clearPeers();vrSession=null;vrSettle(false,'The connection was lost.');lastClose=e.code+(e.reason?' '+e.reason:'');
    status=e.code===4001?'replaced by another session':e.code===4401?'sign-in not accepted':e.code===4403?'not on the test list':e.code===4407?'registered account required':e.code===4408?'verified email required':e.code===4410?'District handle required':e.code===4411?'saved character required':e.code===4412?'duplicate District handle':e.code===4414?'District handle and character required':e.code===4413?'account verification unavailable':e.code===1012||e.code===1001?'server restarting':'offline';
-   if(NO_RETRY.has(e.code)){wantOn=false;blockedUid=connectedUid;}   // stay quiet until the player signs in as someone else or calls reconnect()
+   if(NO_RETRY.has(e.code)){diag.refusals++;diag.lastRefusal=status;wantOn=false;blockedUid=connectedUid;}   // stay quiet until the player signs in as someone else or calls reconnect()
    scheduleRetry(e.code);};
   sock.onerror=()=>{};
  }
- function disconnect(){clearTimeout(retryTimer);retryTimer=0;clearTimeout(wakeTimer);const s=ws;ws=null;if(s){try{if(s.readyState===1)s.send('{"t":"bye"}');s.close(1000);}catch{}}clearPeers();status='off';}
+ function disconnect(){vrSession=null;clearTimeout(retryTimer);retryTimer=0;clearTimeout(wakeTimer);const s=ws;ws=null;if(s){try{if(s.readyState===1)s.send('{"t":"bye"}');s.close(1000);}catch{}}clearPeers();status='off';}
 
  function frame(now){
   requestAnimationFrame(frame);
-  if(!inRoom()){if(ws||peers.size||retryTimer)disconnect();return;}   // anywhere but the District interior: no connection at all
+  // Outside the District and its simulations there is no connection at all. Loading screens between them last a few seconds: the connection is kept across those.
+  if(!inRoom()){if(!outSince)outSince=now;if(now-outSince>12000&&(ws||peers.size||retryTimer)){vrWant=null;disconnect();}else if(ws?.readyState===1&&status==='in'&&hubVr&&now-lastSend>=4000){lastSend=now;ws.send('{"t":"vr-list"}');}return;}   // the list of players is kept while a place loads; their figures are drawn again once it is there
+  outSince=0;
   // Signing in as someone else (or out) ends the session; the next one is for the new account.
   if(!isLocalPage&&(ws||retryTimer)&&connectedUid!==accountUid()){disconnect();wantOn=true;retry=0;}
   if(!isLocalPage&&!wantOn&&!ws&&blockedUid!==accountUid()){wantOn=true;retry=0;}
   if(!ws&&wantOn&&!retryTimer)connect();
-  if(ws?.readyState===1&&status==='in'&&now-lastSend>=SEND_MS){lastSend=now;ws.send(JSON.stringify({t:'state',x:+walker.x.toFixed(3),z:+walker.z.toFixed(3),yaw:+walker.yaw.toFixed(4)}));}
+  // While a simulation loads (my screen and the hub briefly disagree about where I am) no position is sent; a small question keeps the connection alive instead.
+  if(ws?.readyState===1&&status==='in'&&!consistent()){if(hubVr&&now-lastSend>=4000){lastSend=now;ws.send('{"t":"vr-list"}');}}
+  else if(ws?.readyState===1&&status==='in'&&now-lastSend>=SEND_MS){lastSend=now;const at=reported();ws.send(JSON.stringify({t:'state',x:+at[0].toFixed(3),z:+at[1].toFixed(3),yaw:+at[2].toFixed(4)}));}
   const k=1-Math.exp(-SMOOTH*Math.min(.1,(now-(frame.last||now))/1000));frame.last=now;
   for(const p of peers.values()){
    if(!p.node||p.node.isDisposed()){p.node=null;place(p);if(!p.node)continue;}
    p.x+=(p.tx-p.x)*k;p.z+=(p.tz-p.z)*k;let d=p.tyaw-p.yaw;d=Math.atan2(Math.sin(d),Math.cos(d));p.yaw+=d*k;
-   p.node.position.set(p.x,walker.y-1.68,p.z);p.node.rotation.y=p.yaw;
+   p.node.position.set(p.x,floorY(),p.z);p.node.rotation.y=p.yaw;
    if(p.tag)p.tag.isVisible=Math.hypot(p.x-walker.x,p.z-walker.z)<TAG_RANGE;
    if(p.char){const d=Math.hypot(p.x-walker.x,p.z-walker.z),far=root.VoidGraphics?.quality==='low'?8:14;p.char.setDetail(p.char.detailNear?d<far:d<far*.8);}   // face details only when close (distance-based rendering; hysteresis avoids flicker)   // no name tags across the whole hall
    if(p.shownClip!==p.clip){p.shownClip=p.clip;p.ctrl?.play(p.clip);}
@@ -153,8 +187,18 @@
  // A tab that sleeps or loses the network is dropped by the hub; when it wakes the socket closes and reconnects by itself.
  root.addEventListener('pagehide',()=>{if(ws?.readyState===1)try{ws.send('{"t":"bye"}');}catch{}});
  requestAnimationFrame(frame);
- root.VoidRemotePlayers={get status(){return status;},get lastClose(){return lastClose;},get socketState(){return ws?ws.readyState:-1;},get trace(){return traceLog.slice(-16);},get connected(){return status==='in';},
+ // Frames stop while a place loads or the tab is in the background; this timer still tells the hub the player is there, so a slow load is not taken for a dead connection.
+ setInterval(()=>{if(ws?.readyState===1&&status==='in'&&hubVr&&performance.now()-lastSend>=3500){lastSend=performance.now();try{ws.send('{"t":"vr-list"}');}catch{}}},2000);
+ root.VoidRemotePlayers={get status(){return status;},
+  // For the on-screen indicator and for developers (no token, no account id, no address): where the connection stands and how many players are really drawn.
+  get diagnostics(){const list=[...peers.values()];return {status,room:vrSession?'vr:'+vrSession.id:ROOM,vr:vrSession?{exp:vrSession.exp,private:vrSession.private,count:vrSession.count}:null,inRoom:!!inRoom(),socket:ws?ws.readyState:-1,players:list.length,rendered:list.filter(p=>p.node&&!p.node.isDisposed()).length,fallbackAvatars:list.filter(p=>p.fallback).length,...diag,lastClose};},get lastClose(){return lastClose;},get socketState(){return ws?ws.readyState:-1;},get trace(){return traceLog.slice(-16);},get connected(){return status==='in';},
   get features(){return features;},get me(){return selfId;},
+  // Shared VR sessions. Each returns a promise; a refusal rejects with the hub's reason in plain words.
+  get vrSession(){return vrSession;},get vrAvailable(){return status==='in'&&hubVr;},
+  vrList(){return new Promise(resolve=>{if(!(ws?.readyState===1&&status==='in'&&hubVr))return resolve(null);if(vrListWaiting){clearTimeout(vrListWaiting.timer);vrListWaiting.resolve([]);}vrListWaiting={resolve,timer:setTimeout(()=>{vrListWaiting=null;resolve([]);},5000)};ws.send('{"t":"vr-list"}');});},
+  vrCreate(exp,opts,isPrivate){let text='{}';try{text=JSON.stringify(opts||{});}catch{}return vrAsk({t:'vr-create',exp:String(exp),opts:text,private:!!isPrivate});},
+  vrJoin(target){return vrAsk(target&&target.code!==undefined?{t:'vr-join',code:String(target.code).slice(0,12)}:{t:'vr-join',id:String(target?.id||'')});},
+  vrLeave(){vrWant=null;if(vrSession&&hubVr&&ws?.readyState===1)ws.send('{"t":"vr-leave"}');vrSession=null;clearPeers();},
   // Trading hooks (void-runner/trade-window.js): subscribe to trade messages, send one, and ask who is close enough to trade with.
   onTrade(fn){listeners.add(fn);return ()=>listeners.delete(fn);},
   sendTrade(msg){if(ws?.readyState===1&&status==='in'&&features.trade&&msg&&msg.t==='trade'){ws.send(JSON.stringify(msg));return true;}return false;},
@@ -205,6 +249,31 @@
    const t=setInterval(()=>{const el=document.getElementById('multiplayer-status');if(!el){clearInterval(t);return;}el.textContent=words(on()?root.VoidRemotePlayers?.status:'off',!!root.VoidAccount?.user);},1000);
   });
  }
+ // ---- The on-screen indicator: says plainly whether this is an online session or solo play, and what is missing. ----
+ function chipState(){
+  const a=root.VoidAccount,rp=root.VoidRemotePlayers,st=rp?.status||'off';
+  if(!available(root.location))return ['PLAYING SOLO','solo',''];
+  if(st==='in'){const n=rp.peers.length;return ['ONLINE · '+(n===0?'NO OTHER PLAYERS HERE YET':n===1?'1 OTHER PLAYER HERE':n+' OTHER PLAYERS HERE'),'on','people'];}
+  const devToken=isLocalPage&&!!get(root.localStorage,'tdd-dev-mp-token');   // local tests sign in with an emulator token instead of an account
+  if(!a?.user&&!devToken)return ['PLAYING SOLO · SIGN IN (MAIN MENU) TO MEET OTHER PLAYERS','solo','menu'];
+  if(!isLocalPage&&a?.user?.isAnonymous)return ['PLAYING SOLO · CREATE AN ACCOUNT (MAIN MENU) TO GO ONLINE','solo','menu'];
+  if(!allowed(root.location,root.localStorage))return ['PLAYING SOLO · MULTIPLAYER IS SWITCHED OFF IN SETTINGS','solo','menu'];
+  if(st==='connecting'||st==='checking account'||st==='off')return ['CONNECTING TO THE DISTRICT…','wait',''];
+  if(st==='waking the server')return ['WAKING THE SERVER · THIS CAN TAKE A MINUTE…','wait',''];
+  if(st==='server restarting'||st==='offline')return ['RECONNECTING · SOLO UNTIL THE SERVER ANSWERS','wait',''];
+  if(st==='District handle required'||st==='District handle and character required')return ['PLAYING SOLO · CHOOSE A DISTRICT HANDLE: MENU › SETTINGS','solo','menu'];
+  if(st==='saved character required')return ['PLAYING SOLO · SAVE YOUR CHARACTER TO GO ONLINE','solo','character'];
+  if(st==='replaced by another session')return ['PLAYING SOLO · THIS ACCOUNT IS OPEN IN ANOTHER WINDOW · CLICK TO RETURN','solo','reconnect'];
+  return ['PLAYING SOLO · '+words(st,true).toUpperCase(),'solo','menu'];
+ }
+ function installChip(){
+  const css=document.createElement('style');css.textContent='#mp-chip{position:fixed;left:32px;top:58px;z-index:130;max-width:min(34rem,70vw);padding:5px 10px;border:1px solid #2b5560;background:rgba(3,9,15,.82);color:#9fd0d6;font:11px/1.35 ui-monospace,Consolas,monospace;letter-spacing:.09em;text-align:left;cursor:default}#mp-chip[hidden]{display:none}#mp-chip::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:8px;background:#ffb347}#mp-chip.on{border-color:#2fd3a0;color:#d9fff2}#mp-chip.on::before{background:#3dffb0;box-shadow:0 0 8px #3dffb0}#mp-chip.wait::before{background:#5ff2ff}#mp-chip.act{cursor:pointer}#mp-chip.act:hover{border-color:#fff}';document.head.appendChild(css);
+  const chip=document.createElement('button');chip.type='button';chip.id='mp-chip';chip.hidden=true;chip.setAttribute('aria-live','polite');document.body.appendChild(chip);let action='',shown='';
+  chip.addEventListener('click',()=>{if(action==='people')document.querySelector('#district-chat [data-dc="people"]')?.click();else if(action==='character')root.VoidCharacterCreator?.open?.({context:'multiplayer-setup'});else if(action==='reconnect'){boot();root.VoidRemotePlayers?.reconnect();}else if(action==='menu'&&typeof openGameMenu==='function'&&mode==='walking')openGameMenu();chip.blur();});
+  setInterval(()=>{let inside=false;try{inside=typeof walker!=='undefined'&&!!walker&&walkingLocation?.id==='neochinatown'&&walkingLocation.area==='interior'&&['walking','pod-waking'].includes(mode);}catch{}
+   if(!inside){if(!chip.hidden)chip.hidden=true;return;}const [text,kind,act]=chipState();action=act;if(chip.hidden)chip.hidden=false;if(shown!==text+kind+act){shown=text+kind+act;chip.textContent=text;chip.className=kind+(act?' act':'');}},500);
+ }
+ if(typeof document!=='undefined'&&document.body)installChip();
  if(allowed(root.location,root.localStorage))boot();
  installMenu();
 })(globalThis);

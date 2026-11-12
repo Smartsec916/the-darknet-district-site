@@ -19,6 +19,16 @@ const LIMITS={maxBytes:512,maxHelloBytes:4400,helloMs:45000,maxSpeed:9,speedSlac
 
 // A public handle (3 to 20 letters, digits, underscore: the same rule as the handle registry) is the display name; the server re-checks it.
 const HANDLE=/^[A-Za-z0-9_]{3,20}$/;
+/* ---- Shared VR sessions (docs/development/VR_SESSIONS.md). A session is a room of its own, named 'vr:<id>': everything that is per room (who sees whom, chat) is
+   therefore per session without further code. PUBLIC sessions are listed and joinable by id. PRIVATE sessions are never listed, cannot be joined by id (the answer
+   is the same as for a session that does not exist) and are entered only with their join code; whoever entered once may come back while the session lives.
+   The creator leaving does not end a session: the longest-present member becomes its owner; the session ends when the last member leaves. ---- */
+const VR={cap:8,maxSessions:40,createEveryMs:5000,codeMs:30*60*1000,badCodes:5,badCodeWindowMs:60000,exp:/^[a-z0-9-]{1,40}$/,code:/^[A-HJ-NP-Z2-9]{8}$/,id:/^[0-9a-f]{12}$/,district:'district-interior',bounds:{x:[-2e4,2e4],z:[-2e4,2e4]}};
+const CODE_ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // 32 symbols, no look-alikes: 8 of them are 40 bits
+const newCode=()=>[...crypto.randomBytes(8)].map(b=>CODE_ALPHABET[b&31]).join('');
+// Options of the experience (which forest, which arena): a small flat object of plain values, passed on as data. The joining game checks it against its own menu.
+function cleanOpts(text){if(typeof text!=='string'||text.length>240)return null;let o;try{o=JSON.parse(text);}catch{return null;}if(!o||typeof o!=='object'||Array.isArray(o))return null;const keys=Object.keys(o);if(keys.length>8)return null;
+  for(const k of keys){const v=o[k];if(!/^[A-Za-z0-9_-]{1,24}$/.test(k)||!(typeof v==='boolean'||(typeof v==='number'&&Number.isFinite(v))||(typeof v==='string'&&/^[A-Za-z0-9 _:.-]{0,40}$/.test(v))))return null;}return JSON.stringify(o);}
 const publicId=uid=>crypto.createHash('sha256').update('district-hub:'+uid).digest('hex').slice(0,12);
 const num=v=>typeof v==='number'&&Number.isFinite(v);
 
@@ -36,6 +46,9 @@ function parse(raw){
   if(m.t==='chat')return keys==='t,text'&&typeof m.text==='string'&&m.text.length<=Chat.RULES.maxChars*4?m:null;   // the cleaned length is checked again by chat.cjs
   if(m.t==='ignore')return keys==='id,on,t'&&/^[0-9a-f]{12}$/.test(String(m.id))&&typeof m.on==='boolean'?m:null;
   if(m.t==='report')return (keys==='id,reason,t'||keys==='id,note,reason,t')&&/^[0-9a-f]{12}$/.test(String(m.id))&&Chat.RULES.reasons.includes(m.reason)&&(m.note===undefined||typeof m.note==='string')?m:null;
+  if(m.t==='vr-list'||m.t==='vr-leave')return keys==='t'?m:null;
+  if(m.t==='vr-create')return keys==='exp,opts,private,t'&&VR.exp.test(String(m.exp))&&typeof m.private==='boolean'&&cleanOpts(m.opts)!==null?m:null;
+  if(m.t==='vr-join')return (keys==='id,t'&&VR.id.test(String(m.id)))||(keys==='code,t'&&typeof m.code==='string'&&m.code.length<=12)?m:null;
   if(m.t==='refresh')return keys==='t,token'&&typeof m.token==='string'&&m.token.length<4096?m:null;   // re-read my saved look (a fresh sign-in token, like hello)
   return null; // anything else, including any attempt to send an identity, model or name, is invalid
 }
@@ -43,7 +56,7 @@ const wrap=a=>{a=a%(Math.PI*2);return a>Math.PI?a-Math.PI*2:a<-Math.PI?a+Math.PI
 
 class Hub{
   /* send(connection, object) and close(connection, code, reason) are supplied by the transport. */
-  constructor({send,close,now=()=>Date.now(),report=()=>{}}){this.send=send;this.closeConn=close;this.now=now;this.report=report;this.peers=new Map();this.byConn=new Map();this.trades=null;this.history=[];}
+  constructor({send,close,now=()=>Date.now(),report=()=>{}}){this.send=send;this.closeConn=close;this.now=now;this.report=report;this.peers=new Map();this.byConn=new Map();this.trades=null;this.history=[];this.sessions=new Map();}
   /* Turns player-to-player trading on for this hub, against a ledger (ledger.cjs). The production ledger is the disabled one. */
   attachTrades(ledger,{simulated=false,rules}={}){
    this.trades=new TradeBook({ledger,simulated,rules,now:()=>this.now(),peers:{byUid:u=>this.peers.get(u)||null,byPublicId:id=>[...this.peers.values()].find(p=>p.id===id)||null},
@@ -85,7 +98,7 @@ class Hub{
     const {model,appearance}=this.look(who);
     const peer={uid:who.uid,id,conn,room:message.room,name:typeof who.handle==='string'&&HANDLE.test(who.handle)?who.handle:(who.anonymous?'Guest-':'Pilot-')+id.slice(0,4),model,appearance,x:0,z:0,yaw:0,clip:'idle',placed:false,anonymous:!!who.anonymous,ignoring:new Set(),chatTimes:[],chatRefusals:0,chatLockUntil:0,reports:0,lastReportAt:-Infinity,lastAt:t,lastMove:t,lastSnap:-Infinity,bucketAt:t,bucket:0,violations:0};
     this.peers.set(who.uid,peer);this.byConn.set(conn,peer);
-    this.send(conn,{t:'welcome',you:id,features:{trade:!!this.trades?.enabled,tradeSimulated:!!this.trades?.simulated,chat:!who.anonymous},peers:this.roomPeers(message.room).filter(p=>p.id!==id&&p.placed).map(p=>this.view(p))});
+    this.send(conn,{t:'welcome',you:id,features:{trade:!!this.trades?.enabled,tradeSimulated:!!this.trades?.simulated,chat:!who.anonymous,vr:true},peers:this.roomPeers(message.room).filter(p=>p.id!==id&&p.placed).map(p=>this.view(p))});
     return true;
   }
 
@@ -124,7 +137,7 @@ class Hub{
   /* A state message. The server decides what it accepts and derives the animation itself. */
   state(conn,m){
     const p=this.byConn.get(conn);if(!p)return {ok:false,reason:'no session'};
-    const t=this.now(),room=ROOMS[p.room];
+    const t=this.now(),room=ROOMS[p.room]||VR.bounds;
     if(t-p.bucketAt>=1000){p.bucketAt=t;p.bucket=0;}
     if(++p.bucket>LIMITS.maxPerSecond)return this.violate(p,'flood',true);
     p.lastAt=t;
@@ -158,11 +171,47 @@ class Hub{
   /* Leave, close or kick: the avatar goes from every other screen exactly once. */
   drop(conn,code,reason){
     const p=this.byConn.get(conn);this.byConn.delete(conn);
-    if(p&&this.peers.get(p.uid)===p){this.trades?.onLeave(p.uid);this.peers.delete(p.uid);if(p.placed)this.broadcast(p.room,{t:'leave',id:p.id});}
+    if(p&&this.peers.get(p.uid)===p){this.trades?.onLeave(p.uid);this.peers.delete(p.uid);if(p.placed)this.broadcast(p.room,{t:'leave',id:p.id});this.vrDepart(p);}
     if(code)this.closeConn(conn,code,reason||'');
   }
+  /* ---- Shared VR sessions ---- */
+  vrOf(p){return p.room.startsWith('vr:')?this.sessions.get(p.room.slice(3))||null:null;}
+  vrInfo(s,forMember){const owner=this.peers.get(s.owner);return {id:s.id,exp:s.exp,opts:s.opts,private:s.private,count:s.members.size,cap:VR.cap,host:owner?owner.name:'',...(forMember&&s.private?{code:s.code,codeExpires:s.createdAt+VR.codeMs}:{})};}
+  /* A member is gone from its session (left, disconnected, kicked): pass ownership on or end the session. */
+  vrDepart(p){const s=this.vrOf(p);if(!s)return;s.members.delete(p.uid);
+   if(!s.members.size){this.sessions.delete(s.id);return;}
+   if(s.owner===p.uid)s.owner=[...s.members][0];
+   for(const uid of s.members){const q=this.peers.get(uid);if(q)this.send(q.conn,{t:'vr-update',session:this.vrInfo(s,true)});}}
+  /* Move a player between the District and a session: gone from the old room's screens, and shown in the new one with its next position. */
+  vrMove(p,room){this.trades?.onLeave(p.uid);if(p.placed)this.broadcast(p.room,{t:'leave',id:p.id});this.vrDepart(p);p.room=room;p.placed=false;p.lastSnap=-Infinity;p.clip='idle';
+   const s=this.vrOf(p);if(s)s.members.add(p.uid);
+   this.send(p.conn,{t:'vr-room',session:s?this.vrInfo(s,true):null,peers:this.roomPeers(room).filter(q=>q.id!==p.id&&q.placed).map(q=>this.view(q))});
+   if(s)for(const uid of s.members){const q=this.peers.get(uid);if(q&&q!==p)this.send(q.conn,{t:'vr-update',session:this.vrInfo(s,true)});}}
+  vrRefuse(conn,reason){this.send(conn,{t:'vr-refused',reason});return {ok:false,reason};}
+  vrList(conn){const p=this.byConn.get(conn);if(!p)return;this.send(conn,{t:'vr-sessions',list:[...this.sessions.values()].filter(s=>!s.private).map(s=>this.vrInfo(s,false))});}
+  vrCreate(conn,m){const p=this.byConn.get(conn);if(!p)return {ok:false};const t=this.now();
+   if(p.anonymous)return this.vrRefuse(conn,'Shared VR sessions need a registered account.');
+   if(t-(p.lastVrCreate??-Infinity)<VR.createEveryMs)return this.vrRefuse(conn,'Wait a moment before opening another session.');
+   if(this.sessions.size>=VR.maxSessions)return this.vrRefuse(conn,'Too many sessions are open right now.');
+   p.lastVrCreate=t;let id;do{id=crypto.randomBytes(6).toString('hex');}while(this.sessions.has(id));
+   const s={id,exp:m.exp,opts:cleanOpts(m.opts),private:m.private,code:m.private?newCode():null,owner:p.uid,members:new Set(),allowed:new Set([p.uid]),createdAt:t};this.sessions.set(id,s);
+   this.vrMove(p,'vr:'+id);return {ok:true,id};}
+  vrJoin(conn,m){const p=this.byConn.get(conn);if(!p)return {ok:false};const t=this.now(),NONE='That session is not available.';
+   if(p.anonymous)return this.vrRefuse(conn,'Shared VR sessions need a registered account.');
+   let s=null;
+   if(m.code!==undefined){
+    p.badCodes=(p.badCodes||[]).filter(x=>t-x<VR.badCodeWindowMs);if(p.badCodes.length>=VR.badCodes)return this.vrRefuse(conn,'Too many wrong codes. Try again in a minute.');
+    const code=String(m.code).toUpperCase().replace(/[^A-Z0-9]/g,'');
+    s=VR.code.test(code)?[...this.sessions.values()].find(x=>x.private&&x.code===code&&t-x.createdAt<=VR.codeMs)||null:null;
+    if(!s){p.badCodes.push(t);return this.vrRefuse(conn,'That code is not valid.');}
+    s.allowed.add(p.uid);
+   }else{s=this.sessions.get(m.id)||null;if(!s||(s.private&&!s.allowed.has(p.uid)))return this.vrRefuse(conn,NONE);}   // a private session answers exactly like no session
+   if(this.vrOf(p)===s)return {ok:true,id:s.id};
+   if(s.members.size>=VR.cap)return this.vrRefuse(conn,'That session is full.');
+   this.vrMove(p,'vr:'+s.id);return {ok:true,id:s.id};}
+  vrLeave(conn){const p=this.byConn.get(conn);if(!p||!p.room.startsWith('vr:'))return {ok:false};this.vrMove(p,VR.district);return {ok:true};}
   closed(conn){this.drop(conn,0);}
   /* Players that went silent (a dead network, a sleeping laptop) leave too, so no ghost avatar stays. */
   sweep(){this.trades?.sweep();const t=this.now();for(const p of [...this.peers.values()])if(t-p.lastAt>LIMITS.staleMs)this.drop(p.conn,4004,'timed out');}
 }
-module.exports={ROOMS,RENDERABLE,DEFAULT_MODEL,LIMITS,publicId,parse,Hub};
+module.exports={ROOMS,RENDERABLE,DEFAULT_MODEL,LIMITS,VR,publicId,parse,Hub};

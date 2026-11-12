@@ -49,9 +49,9 @@ test('the client never sends an identity, model or name, and does not touch save
  const code=fs.readFileSync('void-runner/remote-players.js','utf8');
  const sent=[...code.matchAll(/send\(JSON\.stringify\((\{.*?\})\)\)/g)].map(m=>m[1]).join(' ');
  assert.match(sent,/t:'hello'/);assert.match(sent,/t:'state'/);assert.doesNotMatch(sent,/uid|model|name|character|account|handle/i);
- assert.doesNotMatch(code.replace(/setFlag=v=>\{[^\n]*\n/,'').replace(/const saveIgnored=[^\n]*\n/,'')   /* the two storage helpers: the Settings switch and the player's own mute/block list */,/\bsave\(|localStorage\.setItem|VoidCrowd\.(casts|staff|clips)\s*=|districtCrew|ncz-nightlife|VoidVR|VoidFlight|innerHTML/);
+ assert.doesNotMatch(code.replace(/setFlag=v=>\{[^\n]*\n/,'').replace(/const saveIgnored=[^\n]*\n/,'')   /* the two storage helpers: the Settings switch and the player's own mute/block list */,/\bsave\(|localStorage\.setItem|VoidCrowd\.(casts|staff|clips)\s*=|districtCrew|ncz-nightlife|VoidVR\??\.(launch|exit|register|openMenu|sit|stand)|VoidFlight|innerHTML/);   // it may ask whether a simulation is running, never drive one
  assert.match(code,/walkingLocation\.area==='interior'/,'only the District interior');
- assert.match(code,/if\(!inRoom\(\)\)\{if\(ws\|\|peers\.size\|\|retryTimer\)disconnect\(\)/,'anywhere else: no connection at all');
+ assert.match(code,/if\(!inRoom\(\)\)\{if\(!outSince\)outSince=now;if\(now-outSince>12000&&\(ws\|\|peers\.size\|\|retryTimer\)\)\{vrWant=null;disconnect\(\);\}/,'anywhere else: no connection (kept only across the few seconds of a loading screen)');
  assert.match(code,/const LIVE_HUB='wss:\/\/district-hub-mbo7\.onrender\.com';/,'the reviewed live hub');
 });
 test('the script is a game script: a phone never downloads it, and it ships once, in both copies of the page',()=>{

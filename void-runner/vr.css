@@ -64,3 +64,10 @@ body.vr-session button.vr-choice.quiet{color:#8fa6ae}
 @media (max-height:560px){body.vr-session .dialogue-window.vr-companion-menu{max-height:calc(100dvh - 120px)!important}}
 /* No weapons in VR, and the chip would sit on the companion menu. */
 /* Ground weapon visibility is owned by mouse-control.js and the common [hidden] rule. */
+
+/* shared sessions bar in the VR arcade menu */
+#vr-menu .vr-share{margin:0 0 14px;padding:10px 12px;border:1px solid rgba(95,242,255,.35);background:rgba(4,14,20,.7);font-size:12px;line-height:1.5}
+#vr-menu .vr-share>b{letter-spacing:.14em;color:#5ff2ff}#vr-menu .vr-share p{margin:6px 0 0;opacity:.85}#vr-menu .vr-share strong{color:#ffb347;font-weight:600}
+#vr-menu .vr-share ul{list-style:none;margin:8px 0;padding:0;max-height:120px;overflow:auto}#vr-menu .vr-share li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:4px 0;border-top:1px solid rgba(95,242,255,.12)}
+#vr-menu .vr-share-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px}#vr-menu .vr-share input{width:9.5em;padding:6px 8px;background:#02090d;border:1px solid #2b5560;color:#e8fbff;font:inherit;letter-spacing:.12em;text-transform:uppercase}
+#vr-menu .vr-share button[aria-pressed="true"]{background:#0d6a7c;border-color:#fff}#vr-chip #vr-share-info{margin:0 10px;opacity:.85}

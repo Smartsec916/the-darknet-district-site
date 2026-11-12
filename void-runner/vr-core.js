@@ -74,15 +74,32 @@
   requestAnimationFrame(frame);});}
  // ---- Terminal menu (opaque) ----
  function openMenu(){if(busy||session||menu)return;mode='vr-menu';clearInput();walkingKeys?.clear?.();document.exitPointerLock?.();
-  menu=document.createElement('section');menu.id='vr-menu';menu.setAttribute('role','dialog');menu.setAttribute('aria-label','VR experiences');document.body.append(menu);renderMenu();}
+  menu=document.createElement('section');menu.id='vr-menu';menu.setAttribute('role','dialog');menu.setAttribute('aria-label','VR experiences');document.body.append(menu);shareNote='';renderMenu();refreshList();clearInterval(listTimer);listTimer=setInterval(()=>{if(!menu){clearInterval(listTimer);listTimer=0;return;}refreshList();},4000);}
  let menuPage={view:'list'};
+ // ---- Shared sessions (other players in the same simulation). The hub decides everything: who may enter, what is listed. See docs/development/VR_SESSIONS.md. ----
+ let shareType='solo',publicList=[],listTimer=0,shareNote='';
+ const RP=()=>globalThis.VoidRemotePlayers,online=()=>!!RP()?.vrAvailable;
+ const codeText=c=>c?String(c).replace(/^(.{4})(.{4})$/,'$1-$2'):'';
+ function sessionRows(){const rows=publicList.filter(s=>registry.get(s.exp)?.shared&&registry.get(s.exp).status==='ready');
+  return rows.length?rows.map(s=>'<li><span><b>'+esc(registry.get(s.exp).title)+'</b> · host '+esc(s.host||'a player')+' · '+(+s.count||0)+'/'+(+s.cap||0)+' players</span>'+(s.count<s.cap?'<button type="button" data-vr="join:'+esc(s.id)+'">JOIN</button>':'<em>FULL</em>')+'</li>').join(''):'<li><span>No public session is open right now. Open one below and others can join you.</span></li>';}
+ function shareBar(){
+  if(!online())return '<div class="vr-share"><b>SHARED SESSIONS</b><p>You are playing solo, so every simulation starts on your own. Sign in with a District handle and a saved character to play with others.</p></div>';
+  const pick=(id,label)=>'<button type="button" data-vr="share:'+id+'" aria-pressed="'+(shareType===id)+'">'+label+'</button>';
+  return '<div class="vr-share"><b>SHARED SESSIONS</b><ul id="vr-sessions">'+sessionRows()+'</ul><div class="vr-share-row"><button type="button" data-vr="quick">QUICK JOIN</button><label for="vr-code">Private code</label><input id="vr-code" maxlength="9" autocomplete="off" spellcheck="false" placeholder="ABCD-EFGH"><button type="button" data-vr="code">JOIN WITH CODE</button></div>'
+   +'<div class="vr-share-row"><span>When you launch:</span>'+pick('solo','ON MY OWN')+pick('public','PUBLIC SESSION')+pick('private','PRIVATE SESSION')+'</div><p>'+(shareType==='public'?'Public: listed here, anyone in the District may join.':shareType==='private'?'Private: never listed. Only players you give the code to can enter.':'On your own: nobody can join.')+(shareNote?' <strong>'+esc(shareNote)+'</strong>':'')+'</p></div>';}
+ async function refreshList(){if(!menu||menuPage.view!=='list'||!online())return;const list=await RP().vrList();if(!list||!menu||menuPage.view!=='list')return;publicList=list;const el=menu.querySelector('#vr-sessions'),html=sessionRows();if(el&&el.dataset.sig!==html){el.dataset.sig=html;el.innerHTML=html;}}   // redrawn only when something changed, so a button is never replaced under the cursor
+ async function joinShared(target){if(busy||session)return false;const rp=RP();if(!online()){shareNote='You are not online.';renderMenu();return false;}
+  let s;try{s=await rp.vrJoin(target);}catch(e){shareNote=e.message;renderMenu();return false;}
+  const exp=s&&registry.get(s.exp);let opts={};try{opts=JSON.parse(s.opts||'{}');}catch{}
+  if(!exp||!exp.shared||exp.status!=='ready'||(exp.validate&&!exp.validate(opts))){rp.vrLeave();shareNote='That session cannot be opened in this version of the game.';renderMenu();return false;}
+  shareNote='';return launch(exp.id,opts,{joined:s});}
  // Experiences marked listed:false (the Combat Simulator, for now) keep their code but are not offered.
  const listed=()=>order.map(id=>registry.get(id)).filter(e=>e.listed!==false);
  function renderMenu(){if(!menu)return;const exps=listed();
   if(menuPage.view==='pick')return renderPicker();
-  if(menuPage.view==='list')menu.innerHTML='<div class="vr-head"><b>DARKNET DISTRICT · VR ARCADE</b><span>Choose a simulation. Nothing inside counts out here: no credits, ammunition or injuries carry over.</span><button type="button" data-vr="close">CLOSE · ESC</button></div><div class="vr-grid">'+
+  if(menuPage.view==='list')menu.innerHTML='<div class="vr-head"><b>DARKNET DISTRICT · VR ARCADE</b><span>Choose a simulation. Nothing inside counts out here: no credits, ammunition or injuries carry over.</span><button type="button" data-vr="close">CLOSE · ESC</button></div>'+shareBar()+'<div class="vr-grid">'+
    exps.map(e=>'<article class="vr-card'+(e.status!=='ready'?' vr-soon':'')+'">'+(e.preview?'<img alt="" src="'+esc(e.preview)+'">':'<div class="vr-preview" style="background:'+esc(e.tint||'#0b2a31')+'"></div>')+'<h2>'+esc(e.title)+'</h2><p>'+esc(e.description)+'</p>'+
-    (e.status==='ready'?'<button type="button" data-vr="pick:'+esc(e.id)+'">'+(e.options||e.picker?'CHOOSE →':'LAUNCH →')+'</button>':'<p class="vr-tag">IN DEVELOPMENT · NOT YET PLAYABLE</p>')+'</article>').join('')+'</div>';
+    (e.status==='ready'?'<button type="button" data-vr="pick:'+esc(e.id)+'">'+(e.options||e.picker?'CHOOSE →':!e.shared||!online()||shareType==='solo'?'LAUNCH →':shareType==='public'?'OPEN PUBLIC SESSION →':'OPEN PRIVATE SESSION →')+'</button>'+(online()&&!e.shared?'<p class="vr-tag">SOLO ONLY</p>':''):'<p class="vr-tag">IN DEVELOPMENT · NOT YET PLAYABLE</p>')+'</article>').join('')+'</div>';
   else{const e=registry.get(menuPage.id),opt=e.options;
    menu.innerHTML='<div class="vr-head"><b>'+esc(e.title.toUpperCase())+'</b><span>'+esc(opt.prompt)+'</span><button type="button" data-vr="back">← BACK</button></div><div class="vr-grid">'+
     opt.choices.map(c=>'<article class="vr-card">'+(c.preview?'<img alt="" src="'+esc(c.preview)+'">':'')+'<h2>'+esc(c.label)+'</h2><p>'+esc(c.description||'')+'</p><button type="button" data-vr="launch:'+esc(e.id)+':'+esc(c.id)+'">LAUNCH →</button></article>').join('')+'</div>';}
@@ -107,6 +124,10 @@
  function closeMenu(){if(!menu)return;menu.remove();menu=null;menuPage={view:'list'};if(mode==='vr-menu')resumeWalking();}
  document.addEventListener('click',e=>{const b=e.target.closest('[data-vr]');if(!b)return;const a=b.dataset.vr;e.stopPropagation();
   if(a==='close')return closeMenu();
+  if(a.startsWith('share:')){shareType=['public','private'].includes(a.slice(6))?a.slice(6):'solo';shareNote='';return renderMenu();}
+  if(a.startsWith('join:'))return joinShared({id:a.slice(5)});
+  if(a==='code'){const v=(menu?.querySelector('#vr-code')?.value||'').trim();if(v)joinShared({code:v});return;}
+  if(a==='quick'){RP()?.vrList().then(list=>{const s=(list||[]).find(x=>x.count<x.cap&&registry.get(x.exp)?.shared&&registry.get(x.exp).status==='ready');if(s)joinShared({id:s.id});else{shareNote='No public session is open. Choose PUBLIC SESSION and launch one: others can then join you.';renderMenu();}});return;}
   if(a==='back'){if(menuPage.view==='pick'&&menuPage.step>0){menuPage.step--;menuPage.picks.pop();menuPage.selected=null;}else menuPage={view:'list'};return renderMenu();}
   if(a.startsWith('pick:')){const exp=registry.get(a.slice(5));if(!exp||exp.listed===false)return;if(exp.picker)return openPicker(exp);if(exp.options){menuPage={view:'options',id:exp.id};return renderMenu();}return launch(exp.id,{});}
   if(a.startsWith('choose:')&&menuPage.view==='pick'){const id=a.slice(7),e=registry.get(menuPage.id),step=e.picker.steps[menuPage.step],c=step.choices(menuPage.picks).find(x=>x.id===id);if(!c||c.usable===false)return;
@@ -117,18 +138,23 @@
   if(a.startsWith('opt:')){const [,key,val]=a.split(':');session?.world?.setOption?.(key,val);session.settings[key]=val;return renderPause();}},true);
  // ---- Launch ----
  const wait=ms=>new Promise(r=>setTimeout(r,ms));
- async function launch(id,opts){
+ async function launch(id,opts,share){
   const exp=registry.get(id);if(!exp||exp.status!=='ready'||busy||session||!walker||walkingLocation?.id!=='neochinatown')return false;if(exp.listed===false&&!opts?.allowHidden)return false;
   // A picked option that can't load (missing or incompatible model) is refused here, before anything changes.
   if(exp.validate&&!exp.validate(opts||{})){announce('That choice is not available right now.');return false;}
-  busy=true;menu?.remove();menu=null;menuPage={view:'list'};mode='vr-transition';clearInput();walkingKeys?.clear?.();document.exitPointerLock?.();
+  busy=true;
+  // Tell the hub before anything changes on screen. Playing alone is a private session of one, so the player is not left standing in the District for others.
+  let hubSession=share?.joined||null,type=share?.joined?(share.joined.private?'private':'public'):exp.shared?shareType:'solo';
+  if(!hubSession&&online()){try{hubSession=await RP().vrCreate(id,exp.shared&&type!=='solo'?opts:{},type!=='public');}catch(e){type='solo';if(exp.shared&&shareType!=='solo')announce(e.message+' Starting on your own.');}}
+  if(!hubSession)type='solo';
+  menu?.remove();menu=null;menuPage={view:'list'};mode='vr-transition';clearInput();walkingKeys?.clear?.();document.exitPointerLock?.();
   const booth=exp.station??1,b=BOOTHS[booth],n=N();
   // The booth's player steps aside; you take the station and face the rig.
   n?.booths?.stepAside(booth);
   const from={x:walker.x,z:walker.z,yaw:walker.yaw},[bx,bz]=n.toWorld(-12.6,b.z);
   for(let i=0;i<=36;i++){const k=i/36,e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;walker.x=from.x+(bx-from.x)*e;walker.z=from.z+(bz-from.z)*e;walker.yaw=from.yaw+((Math.atan2(bx-from.x,bz-from.z)-from.yaw+Math.PI*3)%(Math.PI*2)-Math.PI)*Math.min(1,e*1.6);await wait(30);}
   const raw=snapshot();state.story.flags.vrReturn=true;baseSave();const simulation=VoidSimulationEffects.begin(state);state=simulation.state;saveBlocked=true;
-  session={id,exp,opts,raw,booth,settings:{...(exp.defaults||{})},world:null,ammo:{ammo:12,reserve:999}};
+  session={id,exp,opts,raw,booth,share:type,settings:{...(exp.defaults||{})},world:null,ammo:{ammo:12,reserve:999}};
   // A simulation that needs a sidearm lends one (the snapshot puts the real kit back on exit).
   if(exp.weapon&&!state.progression.personal.weapon)state.progression.personal.weapon='ward-pistol';
   try{audioStart({});
@@ -146,15 +172,16 @@
  async function exit(){
   if(!session||busy)return false;busy=true;closePause(true);hideChip();mode='vr-transition';clearInput();walkingKeys?.clear?.();document.exitPointerLock?.();
   const title=session.exp.title.toUpperCase();try{session.world?.onExit?.();await transition('out',title);}finally{audioStop();try{await back();}finally{busy=false;}}return true;}
- async function back(){document.body.classList.remove('vr-session');const s=session;restore(s.raw);session=null;saveBlocked=false;delete state.story.flags.vrReturn;walkingLocation=walker=null;
+ async function back(){RP()?.vrLeave?.();document.body.classList.remove('vr-session');const s=session;restore(s.raw);session=null;saveBlocked=false;delete state.story.flags.vrReturn;walkingLocation=walker=null;
   const loading=enterWalking(globalThis.VoidDistrictArea?VoidDistrictArea.keyFor(state):'sacramento');await transition('hold','THE DARKNET DISTRICT',loading);atTerminal();baseSave();await transition('in','THE DARKNET DISTRICT');}
- async function recover(message){document.body.classList.remove('vr-session');audioStop();hideChip();const s=session;if(s){restore(s.raw);session=null;}saveBlocked=false;delete state.story.flags.vrReturn;walkingLocation=walker=null;
+ async function recover(message){RP()?.vrLeave?.();document.body.classList.remove('vr-session');audioStop();hideChip();const s=session;if(s){restore(s.raw);session=null;}saveBlocked=false;delete state.story.flags.vrReturn;walkingLocation=walker=null;
   try{await enterWalking(globalThis.VoidDistrictArea?VoidDistrictArea.keyFor(state):'sacramento');atTerminal();baseSave();}catch{}overlay?.remove();overlay=null;busy=false;announce(message);}
  function atTerminal(){const n=N();if(!walker||!n)return;const [x,z]=n.toWorld(TERMINAL[0]+1.2,TERMINAL[1]);walker.x=x;walker.z=z;const [bx,bz]=n.toWorld(-12.6,36);walker.yaw=Math.atan2(bx-x,bz-z);walker.pitch=0;resumeWalking();}
  // A reload during VR: the save is the one from before the session, so put the player back at the terminal.
  const vrEnter=enterWalking;enterWalking=async function(id,options){const r=await vrEnter(id,options);if(!session&&!busy&&state?.story?.flags?.vrReturn&&walkingLocation?.id==='neochinatown'){delete state.story.flags.vrReturn;atTerminal();baseSave();announce('You take off the VR headset at the arcade terminal.');}return r;};
  // ---- In-session UI: the EXIT VR chip and the VR menu (Esc) ----
- function showChip(){hideChip();chip=document.createElement('div');chip.id='vr-chip';chip.innerHTML='<span>VR · '+esc(session.exp.title.toUpperCase())+'</span><button type="button" data-vr="exit">EXIT VR · BACKSPACE</button>';document.body.append(chip);}
+ function showChip(){hideChip();chip=document.createElement('div');chip.id='vr-chip';chip.innerHTML='<span>VR · '+esc(session.exp.title.toUpperCase())+'</span><span id="vr-share-info"></span><button type="button" data-vr="exit">EXIT VR · BACKSPACE</button>';document.body.append(chip);
+  const info=chip.querySelector('#vr-share-info'),mine=chip,tick=()=>{if(chip!==mine||!session)return;const s=RP()?.vrSession,t=session.share;info.textContent=t==='solo'||!s?'ON YOUR OWN':t==='public'?'PUBLIC SESSION · '+s.count+'/'+s.cap+' PLAYERS':'PRIVATE SESSION · CODE '+(s.code?codeText(s.code):'(ask the host)')+' · '+s.count+'/'+s.cap+' PLAYERS';setTimeout(tick,1000);};tick();}
  function hideChip(){chip?.remove();chip=null;}
  function openPause(){if(!session||busy||pauseMenu)return;session.returnMode=mode;mode='vr-pause';clearInput();walkingKeys?.clear?.();document.exitPointerLock?.();pauseMenu=document.createElement('section');pauseMenu.id='vr-menu';pauseMenu.className='vr-pause';document.body.append(pauseMenu);renderPause();}
  function renderPause(){if(!pauseMenu)return;const s=session.exp.settings,opts=(typeof s==='function'?s(session.opts):s)||[];

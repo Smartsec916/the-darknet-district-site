@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "1e1dfb300baba575",
+  "revision": "95fbdac7147de2b6",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11760,6 +11760,18 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/device-v1.js",
+      "line": 22,
+      "text": "messages:{id:'messages',title:'MESSAGES',glyph:'@',state:'ready',note:'District chat and conversations. Private messages to other players are not available yet.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/device-v1.js",
+      "line": 123,
+      "text": "actions:[{id:'talk',label:'CONVERSATION',enabled:!!data.here,reason:data.here?'':'Talk to them in person.'}]};",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/district-chat.js",
       "line": 35,
       "text": "formEl=el_('form');formEl.hidden=true;inputEl=el_('input');inputEl.type='text';inputEl.maxLength=200;inputEl.autocomplete='off';inputEl.setAttribute('aria-label','Chat message (200 characters, no links)');inputEl.placeholder='Say something to the District (Enter to send, Esc to close)';",
@@ -12025,37 +12037,37 @@
     },
     {
       "source": "void-runner/menu.js",
-      "line": 68,
+      "line": 66,
       "text": "speech,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 79,
+      "line": 77,
       "text": "speech = snapshot.speech;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 84,
+      "line": 82,
       "text": "if (speech) renderLine();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 101,
+      "line": 99,
       "text": "return '<details><summary>Character voices</summary><p class=\"fine\">Automatic selection matches known voices to each character. If this device has no matching voice, dialogue stays subtitled. Choose a voice below to override it. Naturalness depends on voices installed on your device.</p>' + Object.entries(VoidStoryContent.characters).map(([id,c]) => '<label>'+escapeText(c.name)+'<select data-character-voice=\"'+id+'\"><option value=\"\">Automatic matching</option>'+voices.map(v=>'<option value=\"'+escapeText(v.voiceURI)+'\" '+(VoidAudio.voiceChoice(id)===v.voiceURI?'selected':'')+'>'+escapeText(v.name)+'</option>').join('')+'</select></label>').join('')+'</details>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 110,
+      "line": 108,
       "text": "`<section class=\"settings-panel\">${button('BACK','menu-back',true)}<h1 tabindex=\"-1\">Settings</h1>${[['music','Music volume'],['effects','Sound effects volume'],['ambient','Ambient volume'],['voice','Voice volume']].map(([id,label])=>`<label>${label}<input type=\"range\" min=\"0\" max=\"100\" step=\"1\" data-setting=\"${id}\" value=\"${Math.round(s[id]*100)}\"><output>${Math.round(s[id]*100)}</output></label>`).join('')}${button('KEYBINDINGS','menu-bindings')}${button(s.enabled?'MUTE ALL':'UNMUTE ALL','menu-mute',true)}<p class=\"fine\">Audio starts after interaction. Voices use this device’s speech engine. Set a category to zero to mute it.</p>${voiceSettingsHTML()}</section>`",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 131,
+      "line": 129,
       "text": "mode='menu';VoidMenu.returnTo=null;speech=null;VoidAudio.cancel();clearInput();walkingKeys.clear();document.exitPointerLock?.();",
       "kind": "source-reference"
     },
@@ -12068,7 +12080,13 @@
     {
       "source": "void-runner/mouse-control.js",
       "line": 8,
-      "text": "const conversationOpen=()=>!!document.querySelector('#screen.conversation-live,#trade-window,#district-chat.open,#district-chat.people');   // a conversation or the trade window needs the cursor",
+      "text": "const conversationOpen=()=>!!document.querySelector('#screen.conversation-live,#trade-window,#district-chat.open,#district-chat.people,#personal-device.open');   // a conversation or the trade window needs the cursor",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mouse-control.js",
+      "line": 12,
+      "text": "if(!fps()||!mouse()||locked()||unavailable||conversationOpen())return;   // never capture the mouse while a conversation, the trade window, chat or the V1 device needs the cursor",
       "kind": "source-reference"
     },
     {
@@ -12156,20 +12174,56 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/personal-device.js",
+      "line": 3,
+      "text": "the device and dragging the world outside it looks around. It is a read-and-act layer over systems that already exist (Mission Log, conversation history,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/personal-device.js",
+      "line": 75,
+      "text": "const A=root.VoidCharacterCreator?.stored?.()||null,h=root.VoidAccount?.handle;   // no saved look: the portrait says unavailable, never a guess",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/personal-device.js",
+      "line": 98,
+      "text": "const tabs='<div class=\"pd-tabs\"><button type=\"button\" data-sub=\"chat\" aria-pressed=\"'+(sub==='chat')+'\">DISTRICT CHAT</button><button type=\"button\" data-sub=\"talk\" aria-pressed=\"'+(sub==='talk')+'\">CONVERSATIONS</button><button type=\"button\" data-sub=\"dm\" aria-pressed=\"'+(sub==='dm')+'\">PRIVATE</button></div>';",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/personal-device.js",
+      "line": 102,
+      "text": "return tabs+(rows.length?rows.slice(-40).reverse().map(m=>'<div class=\"pd-line\"><b>'+esc(m.name)+'</b><span class=\"pd-note\">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class=\"pd-empty\">No conversations yet. People you talk to appear here.</div>');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/personal-device.js",
+      "line": 107,
+      "text": "+'<form data-chatform style=\"margin-top:8px\"><input type=\"text\" maxlength=\"200\" autocomplete=\"off\" aria-label=\"Chat message\" placeholder=\"'+(can?'Say something (no links)':'Chat needs a registered account and a connection')+'\"'+(can?'':' disabled')+'></form>';",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/personal-device.js",
+      "line": 257,
+      "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/personal-hud.js",
-      "line": 27,
+      "line": 26,
       "text": "const profile=p=>'<article class=\"hud-card social-profile\" data-profile=\"'+esc(p.key)+'\"><div class=\"social-avatar\" aria-hidden=\"true\">'+esc(p.name.slice(0,1).toUpperCase())+'</div><div><h3>'+esc(p.name)+'</h3><p>'+esc(p.bio)+'</p>'+badges(p)+'<button type=\"button\" data-hud-character=\"'+esc(p.key.startsWith('npc:')?p.key.slice(4):'')+'\">CONVERSATIONS</button></div></article>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 32,
+      "line": 31,
       "text": "'<h2>YOUR PROFILE</h2>'+profile(me)+'<h2>CONVERSATIONS</h2><div class=\"social-filters\">'+filterButtons+(socialCharacter?'<button type=\"button\" data-hud-character=\"\">CLEAR CHARACTER</button>':'')+'</div><div class=\"social-thread\" aria-label=\"Conversation history\">'+(thread||'<p>No conversations in this view.</p>')+'</div>'+",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 33,
+      "line": 32,
       "text": "'<h2>PEOPLE</h2><p class=\"hud-note\">NPC conversation history stays in this browser. Player messaging needs the future authenticated social service.</p>'+",
       "kind": "source-reference"
     },
@@ -12409,13 +12463,13 @@
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 126,
+      "line": 156,
       "text": "sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false,chat:false};emitChat({t:'chat-status',on:false});for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 168,
+      "line": 212,
       "text": "sendChat(text){if(ws?.readyState===1&&status==='in'&&features.chat&&typeof text==='string'){ws.send(JSON.stringify({t:'chat',text:text.slice(0,800)}));return true;}return false;},",
       "kind": "source-reference"
     },
@@ -13333,103 +13387,103 @@
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 90,
+      "line": 101,
       "text": "arrive=function(){const previous=state.location,quest=state.quest;solHandover=null;worldArrive();if(!['arrival','dialogue'].includes(mode)||state.location===previous&&state.quest===quest)return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 91,
+      "line": 102,
       "text": "const lines=speech?.lines.slice(),label=speech?.label;speech=null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 101,
+      "line": 112,
       "text": "renderLine=function(){worldRenderLine();if(walkingLocation){screen.dataset.scene='';screen.classList.remove('cinematic');screen.querySelectorAll('.portrait').forEach(el=>el.remove());/* A conversation in a station is in person: name the place. Only comms calls and messages are transmissions. */const eyebrow=screen.querySelector('.scene-heading .eyebrow');if(eyebrow&&!/comms|message|transmission/i.test(speech?.heading||''))eyebrow.textContent=globalThis.VoidVR?.active?'VR · '+VoidVR.session.exp.title.toUpperCase():(C.stations[state.location]?.name||'').toUpperCase();}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 111,
+      "line": 122,
       "text": "talk('',[{who:'rook',text:'Client confirmed the drop. Here’s your pay.'}],()=>{announce('PAYMENT RECEIVED · '+paid.toLocaleString()+' credits · ROOK FREIGHT RUN #'+owed.number+' COMPLETE');rookFreightOffer();},'NEXT →','Rook’s booth');return;}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 113,
+      "line": 124,
       "text": "talk('',[{who:'rook',text:'The '+r.cargo.toLowerCase()+' are still in your hold. '+place(r.destination)+' is waiting on them.'}],resumeWalking,'RETURN TO STATION');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 115,
+      "line": 126,
       "text": "if(r.kind!=='legacy')screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',button('HAND THE CARGO BACK','rook-cancel',true));return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 116,
+      "line": 127,
       "text": "if(state.contract){talk('',[{who:'rook',text:'Finish the job you are carrying. Then come see me.'}],resumeWalking,'RETURN TO STATION');return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 121,
+      "line": 132,
       "text": "talk('',[{who:'rook',text:lead+(r.number===1?' Admin is over in Tessaly if you want other work. '+key+' opens your Mission Log.':'')}],resumeWalking,'NOT NOW','Rook’s booth');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 122,
+      "line": 133,
       "text": "speech.shown=speech.lines[0].text.length;$('speech-next').style.display='none';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 123,
+      "line": 134,
       "text": "screen.querySelector('.dialogue-window')?.classList.add('choice-menu');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 124,
+      "line": 135,
       "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class=\"rook-board\">'+jobs+'</ul>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 125,
+      "line": 136,
       "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',board.map(j=>button(j.units>free?'NO HOLD SPACE · '+j.label.toUpperCase():'TAKE '+j.label.toUpperCase()+' →','rook-job:'+j.kind,false,j.units>free)).join('')+button('NOT NOW','walk-resume',true));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 128,
+      "line": 139,
       "text": "if(a.startsWith('rook-job:')){speech=null;globalThis.VoidAudio?.cancel?.();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 131,
+      "line": 142,
       "text": "else if(a==='rook-cancel'){speech=null;globalThis.VoidAudio?.cancel?.();if(C.cancelRook(state)){VoidMissions.sync(state,C);save();announce('Rook’s crew takes the cargo back. No pay, no hard feelings.');}resumeWalking();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 140,
+      "line": 151,
       "text": "talk('',[{who:item.character,text:texts[item.character]}],resumeWalking,'RETURN TO STATION');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 187,
+      "line": 197,
       "text": "if(!['play','walking','dock','dialogue'].includes(mode))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 198,
+      "line": 208,
       "text": "addEventListener('keydown',e=>{if(e.code===(VoidInput.bindings.missionLog||'KeyL')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){if(!['play','walking','dock','dialogue','mission-log'].includes(mode))return;e.preventDefault();if(!e.repeat)openMissionLog();}if(e.code==='Escape'&&missionPanel){e.preventDefault();closeMissionLog();}});",
       "kind": "source-reference"
     },
@@ -13543,6 +13597,8 @@
     "void-runner/dev-test.js": "fe2ee383ca0ae2227dc944eea2d1ae1c4d7922e60c8719f1a7fa78fc3ae4ffa7",
     "void-runner/dev-tools.js": "8fc329454a6ed8a22bf93e8721eeffca11b1276ccf0eb3676b90c67c58781974",
     "void-runner/device-gate.js": "18ede0f57043b170043090b207fae30ae2a818aeca6d60a4c9f5a904946c91d7",
+    "void-runner/device-portraits.js": "390549763346c7202b1f16c85c873828baf5b3e8b05dc326a2dcde2cc264374f",
+    "void-runner/device-v1.js": "3007b412efce9859a50342d0e9a167a9adad2e6e826e831f08a5bc8c8f623571",
     "void-runner/district-area.js": "d805f191bae9eae587bba224b03d4ac366697bd0c4ae6bb99c8e21cbe26ebade",
     "void-runner/district-chat.js": "f6dcf7d042846fb47df27dfa2703699314770365fcc5adab94c80f3341029dd5",
     "void-runner/district-transition.js": "b263057b1d8c1f56d16904df08221676ac617604f1b04d1d1b7f6e5cda06c249",
@@ -13573,7 +13629,7 @@
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input.js": "ee7b8bba97bf1233e9d6d5e7d115efee2ecb1caddd6b758a144b78f33046924e",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
-    "void-runner/menu.js": "d63408ef7178a4a9e74c84c9df1cd12a298b48d025822bc3c9914698c89524a0",
+    "void-runner/menu.js": "1e867ab310bf04f9ad6a5a8f02db34f9ed6d0fa4fff3557fe73416ba9ba69772",
     "void-runner/meridian-art.js": "ef57144a85d288a8b5c3ea0a616d36b5fcc78de0f4a5220473486f1f2b9f2a19",
     "void-runner/meridian-interior-kit.js": "2ca741d025cbd6b3e205e823c637fcf46c0488303ecb24cdcf2e678d0e43eeb4",
     "void-runner/meridian-interior.js": "d9f411d4f42b3cf8bacbe377812cda9b3c3563aef0d52127e989898e4b9a2b96",
@@ -13582,7 +13638,7 @@
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-log.js": "da6545bba6a9536dedbd50fc675b61d943b78f7044d785330db2e78e1befcd44",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
-    "void-runner/mouse-control.js": "17d4e6e90d0f101d517f461bb0c7ae7cc448279fee8a5d048052ab29caf103c0",
+    "void-runner/mouse-control.js": "b56e49272cfec41479903eb03861ce86ff29d7549ac12d9a28d0df7e323b6b88",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "a751c57ffcc8fd9928ecd8baa1f962d21f86ae842b87a3724e31c045887795a8",
     "void-runner/music-engine.js": "5078e1a0fedff9d09a7f23823126d3ef8a834a1806edb7675c54e3b668014a8b",
@@ -13592,11 +13648,12 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-nightclub.js": "b4dbe1c5e0e47b7f18dc94ae4fa7da5c1463be4b1ed01d75f628800cc6661b56",
     "void-runner/ncz-nightlife.js": "4c6e4d7ca34309a6e1a190bfc70d78123ef746ccab8f29c74b7c77041e038fba",
-    "void-runner/neochinatown.js": "ebfc888688702dd5dcc2a97c6b2f526611d2b3dbc352dcc929e647aed9145660",
+    "void-runner/neochinatown.js": "aab6c1d1b8ecc11bc5b130eebda80597918462e17bcb6bbd4d8a60a7e8656824",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "da1674b96960e03052332b46f33745a5db4f738ad2a38d06cef1eaa912b1ecbb",
-    "void-runner/personal-hud.js": "ac4f3cafea8443be8e93d6b283f87cc80f662ab3cc8e033785ef571f998be687",
+    "void-runner/personal-device.js": "bd12164ec2a5e71ec6a0853954fbebffc93f102b0630255ee8d309db8be0fce1",
+    "void-runner/personal-hud.js": "1ca0e48b3d144a0a2ffed8e3202f98322a060541b8127de2ee48469ed2606776",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
     "void-runner/pod-music.js": "2e923fe18b2153cc4cbda90973c4ab1fec1200fe90d004570ba73d2070249a44",
@@ -13610,7 +13667,7 @@
     "void-runner/relay-radio.js": "5ce31904c15f630a01d00f51d566d66ae97c736d5734d7531835588714269806",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
-    "void-runner/remote-players.js": "9d20081dd80bbda042e692817890ac5993231a3f2f9f448baef9faf2213b1c42",
+    "void-runner/remote-players.js": "a6e116e9d52b43c0f709716b3467d591c051882f6000350ef37dc7d3ab3fe4c6",
     "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
@@ -13637,17 +13694,17 @@
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "fe7cf3869b1fb49ff3ccbc4a7a5c7900aa16c0ad367c115844d8bf5f9c66c321",
     "void-runner/vr-companions.js": "d38c9e56cfe2536e9717431bf12d37a44c1ad34f83dfd24d1a25ca243fd7127b",
-    "void-runner/vr-core.js": "bcff608915ae63d9957ffb42c22269f348040fa40af6460fd7fa15c357ee603a",
-    "void-runner/vr-forest.js": "23bcaa2847c9e25da3cdced6a29828f5a3d2f0ced9cb22999c76e8f8367a3891",
+    "void-runner/vr-core.js": "b1f5993f1eb87d9d1cf4d52a7afc35545e0392a46af98d40d14eb2e85a125be2",
+    "void-runner/vr-forest.js": "e98ee4e197d7d266d8891d277bc99b2f6701ad8d1e625153baf2f2cc79b990af",
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "42b099525addb420f7a678fee12d93c14cf468375fd7f59c7324a4393b34dad2",
     "void-runner/vr-suite.js": "ce162f46cfa71e9f0678520cf111a6a5cdec564b27e7044cbf12611882d6c957",
-    "void-runner/vr-tropical.js": "d796ce190e319b3f1385ae534e12aed861389010efb25ad0d30ad104c2a32811",
+    "void-runner/vr-tropical.js": "fd6e29c04a7be37681cb29185e0a1a37f782bf8e241caf0c794a8c7969079bec",
     "void-runner/warflying-scan.js": "f6de823ef265ff4e1cde538ac17b5adefb72547ad0ef2e3b25cdb42de9ce8a87",
     "void-runner/warflying-scanner.js": "3234988837d0ca2ab0fec7bdb730d923c679fd50ff883569c2f7f568406a00ed",
     "void-runner/warflying.js": "e3a319a7538e4df7e014be7ccb50b32bb2b0cf6cbcfe10ccfca2e46edb013a4f",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "1cf04ccf967c76ce82868e5b79c245e08088a2cde07f3f4b76605b620b0982b4",
+    "void-runner/world-integration.js": "ce24b04f5417710b93a06988295a819bf6e6073246f0123cfffc91c92d6ae5c6",
     "void-runner/world-markers.js": "44347bce6208e455b16ba76da2b328903c2f77e0cba457d0de14b0af882b047c",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "tools/admin-inventory.cjs": "4b545f1e29bc40745983ecd5a113f20926a6f73b52a1b4ed4c2e8106df0a4ed0",
