@@ -1,19 +1,19 @@
 # The Darknet District — Active AI Roadmap
 
-## Order of work as of 2026-11-11 (see the top of AI_HANDOFF.md for the live state)
+## Order of work as of 2026-11-12
 
-1. Port ten personal Sleeping Pods and the entrance fix from `codex/first-player-experience-repair` onto `main`; publish.
-2. Finish the V1 holographic device (`claude/v1-device`): fix Esc opening the game menu, port onto `main`, publish.
-3. District chat and registered-account multiplayer (PR #199): needs the hub redeployed and `HUB_ACCESS=registered` (David's Render action).
-4. Master specification (2026-11-10) Phase 1: vestibule loading only when both doors are closed. **Done 2026-11-12** (`docs/development/VESTIBULE_CHECKPOINT.md`).
-5. Later phases of the specification, one at a time, each proposed before it is built.
+Current state is the Start here section of [`AI_HANDOFF.md`](AI_HANDOFF.md). This file is only the sequence. Do not reopen finished November 11 items (ten pods, V1 device, vestibule checkpoint): they are on `main`.
 
+1. **Let the dolphin agent finish.** [bc-14ad5818-751b-5273-b62f-879dd9560365](https://cursor.com/agents/bc-14ad5818-751b-5273-b62f-879dd9560365). David already said "push": merge that pull request when it exists and tests pass. No crabs. No second branch.
+2. **Let the four visual wins finish on their own branch.** [bc-8ae0a04a-9e48-58cf-9465-9f4d838cd39f](https://cursor.com/agents/bc-8ae0a04a-9e48-58cf-9465-9f4d838cd39f). Do not merge until David says so. Do not start reflections, shadows, new buildings, or WebXR in that branch. Leave the Sleeping Pod room and the music player alone.
+3. **Wait for David's answers** in AI_HANDOFF.md "Open questions" before companion top-10 fixes, a noodle stand, a paid voice re-record, or the player part-assembler.
+4. Later phases of the 10 Nov 2026 master specification, one at a time, each proposed before it is built. Phase 1 (vestibule) is done (`VESTIBULE_CHECKPOINT.md`).
 
-**Updated:** November 10, 2026. Source of truth for the **current development sequence**; October-era campaign milestones in `VOID_RUNNER_HANDOFF.md` are historical. Owner: David (`Smartsec916`).
+**Updated:** 12 November 2026. October-era campaign milestones in `VOID_RUNNER_HANDOFF.md` are historical. Owner: David (`Smartsec916`).
 
-## Milestone 0 — Release readiness for District-first entry (NOW; draft PR #212)
+## Milestone 0 — District-first entry (shipped)
 
-**Implementation staged and current CI green** (Node, Python and Babylon smoke; see `AI_HANDOFF.md`). **Not merged/published.**
+PR **#212 merged on 11 Nov 2026** and later pull requests carried the runtime, pods, device, vestibule, arcade, and NULL. The checklist below is the original acceptance list. Items still unchecked are manual checks, not a reason to reopen #212.
 
 - [x] Stage gated desktop/phone entry and coherent District integration in a draft branch.
 - [x] Stage hairstyle asset GLBs with matching character fit metadata and browser catalog.
@@ -26,14 +26,14 @@
 - [ ] Test mobile gate (no game asset download), desktop and ROG Ally.
 - [ ] Test guest login, account identity and saved progress against appropriate nonproduction services; verify Firebase/Render permissions.
 - [ ] Audit SW cache BUILD, licensed assets and production dependencies; review diff against latest main.
-- [ ] Decide safe partial release(s), if any, versus holding PR #212 for complete acceptance.
-- [ ] Merge/deploy **only** reviewed and authorized production-ready code; verify live website behavior afterwards.
+- [x] PR #212 merged 11 Nov 2026. Later slices (runtime, pods, V1 device, vestibule, arcade, NULL) shipped on their own pull requests. Do not hold #212.
+- [ ] Manual checks above are still open. New merges still need David's "push" / "pull it" and a look at the live site afterwards.
 
 ## Milestone 1 — District editor, interactions and world polish
 
 - User-friendly editor panels for Locations, NPCs, Dialog, Missions; location-to-character selection, previews, published state, outfit compatibility, color options, animations/emotes, editable waypoint map/doors and movement/interaction presets.
-- District interior: pods, VR Play room, store with Admin/Iris, meeting area, future nightclub/vending; retain top nav and visual theme. Street: NeoChinatown night haze, neon/rain, buildings and taxi.
-- Resolve invisible collisions at double doors/vestibule; improve prompts and UI; replace old L-key messaging with resizable holographic device/phone.
+- District interior: pods, VR Play room, store with Admin/Iris, meeting area. NULL nightclub is open (#238). Pod vending is flavour only. Street: NeoChinatown night haze, neon/rain, buildings and taxi.
+- Vestibule checkpoint is in (#230). The V1 device is on L (#220); Camera, Gallery, messages, and friends are still placeholders. Editor panels are not built.
 - Import supplied 3D assets safely and one at a time when required; maintain licensing/provenance and test performance.
 
 ## Milestone 2 — Multiplayer and social service (not automatically authorized for production)
