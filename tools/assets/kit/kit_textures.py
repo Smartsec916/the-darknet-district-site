@@ -238,7 +238,37 @@ def tile(out, n=1024):
     _save(out + '/kit_tile_orm.png', _orm(.8 + .2 * mid - .3 * grout, rough, np.zeros((n, n))))
 
 
-SETS = {'kit_concrete': concrete, 'kit_metal': metal, 'kit_glass': glass, 'kit_emissive': emissive, 'kit_asphalt': asphalt, 'kit_ticker': ticker, 'kit_fabric': fabric, 'kit_tile': tile}
+# Merchandise colours for shop shelves and counters: a 4 x 4 sheet of muted, slightly worn swatches (not light-giving). build_kit.py maps a face into one swatch.
+GOODS_COLOURS = [(196, 150, 40), (44, 86, 140), (150, 44, 40), (30, 110, 110), (214, 200, 170), (24, 24, 28), (190, 96, 36), (96, 100, 108),
+                 (120, 60, 130), (60, 120, 70), (226, 180, 60), (70, 40, 30), (150, 160, 170), (200, 70, 110), (40, 50, 70), (110, 90, 60)]
+GOODS_REGIONS = {'goods_%d' % i: ((i % 4) / 4, (i // 4) / 4, (i % 4 + 1) / 4, (i // 4 + 1) / 4) for i in range(16)}
+
+
+def goods(out, n=256):
+    q = n // 4
+    img = np.zeros((n, n, 3))
+    wear = _noise(n, 4, 91, base=8)
+    for i, col in enumerate(GOODS_COLOURS):
+        u0, v0, u1, v1 = GOODS_REGIONS['goods_%d' % i]
+        img[int(n - v1 * n):int(n - v0 * n), int(u0 * n):int(u1 * n)] = np.array(col, float)
+    img *= (.8 + .3 * (wear - .5))[..., None]
+    _save(out + '/kit_goods_color.png', img.clip(0, 255))
+    _save(out + '/kit_goods_normal.png', _normal(wear * .1, .5))
+    _save(out + '/kit_goods_orm.png', _orm(np.ones((n, n)), (.6 + .2 * (wear - .5)), np.zeros((n, n))))
+
+
+def canvas(out, n=512):
+    """Dark pack cloth: near-black olive with a weave and rubbed edges."""
+    ys, xs = np.mgrid[0:n, 0:n] / n
+    mid, fine = _noise(n, 5, 95, base=8), _noise(n, 3, 96, base=96)
+    weave = .5 + .25 * np.sin(xs * n * 1.1) + .25 * np.sin(ys * n * 1.1)
+    value = (.7 + .4 * (mid - .5)) * (.88 + .24 * weave)
+    _save(out + '/kit_canvas_color.png', (np.array([38, 40, 36])[None, None, :] * value[..., None]).clip(0, 255))
+    _save(out + '/kit_canvas_normal.png', _normal(weave * .5 + fine * .3, 1.4))
+    _save(out + '/kit_canvas_orm.png', _orm(.8 + .2 * mid, (.9 + .08 * (fine - .5)).clip(0, 1), np.zeros((n, n))))
+
+
+SETS = {'kit_concrete': concrete, 'kit_metal': metal, 'kit_glass': glass, 'kit_emissive': emissive, 'kit_asphalt': asphalt, 'kit_ticker': ticker, 'kit_fabric': fabric, 'kit_tile': tile, 'kit_goods': goods, 'kit_canvas': canvas}
 
 
 def build_all(out):

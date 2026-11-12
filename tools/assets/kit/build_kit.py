@@ -25,9 +25,10 @@ OUT = os.path.join(REPO, 'void-runner', 'assets', 'models', 'kit')
 TEX = os.path.join(OUT, 'textures')
 FLOOR, SHOP, DEPTH, FACE = 3.5, 4.5, .5, .1
 TILE = {'kit_concrete': 4.0, 'kit_metal': 2.0, 'kit_asphalt': 3.0, 'kit_fabric': 2.0, 'kit_tile': 2.0}       # metres one repeat of the texture covers
-MATERIALS = ['kit_concrete', 'kit_metal', 'kit_glass', 'kit_emissive', 'kit_asphalt', 'kit_ticker', 'kit_fabric', 'kit_tile', 'kit_shell']
+MATERIALS = ['kit_concrete', 'kit_metal', 'kit_glass', 'kit_emissive', 'kit_asphalt', 'kit_ticker', 'kit_fabric', 'kit_tile', 'kit_shell', 'kit_goods', 'kit_canvas']
 GLOWING = ('kit_emissive', 'kit_ticker')          # the only materials that give light
-REGIONS = list(kit_textures.EMISSIVE_REGIONS)
+ALL_REGIONS = {**kit_textures.EMISSIVE_REGIONS, **kit_textures.GOODS_REGIONS}        # every atlas region a face can be mapped into, by name
+REGIONS = list(ALL_REGIONS)
 
 
 # ---------------------------------------------------------------- geometry helpers ----------------------------------------------------------------
@@ -103,7 +104,7 @@ def unwrap(b):
                 for loop in f.loops:
                     loop[uv].uv = (loop.vert.co[ua] / kit_textures.TICKER_METRES, (loop.vert.co[va] - v0) / max(v1 - v0, 1e-6))
                 continue
-            r0, s0, r1, s1 = (0, 0, 1, 1) if mode == 100 else kit_textures.EMISSIVE_REGIONS[REGIONS[mode - 1]]
+            r0, s0, r1, s1 = (0, 0, 1, 1) if mode == 100 else ALL_REGIONS[REGIONS[mode - 1]]
             pad = .01
             for loop in f.loops:
                 tu = (loop.vert.co[ua] - u0) / max(u1 - u0, 1e-6)
@@ -1256,7 +1257,137 @@ def pod_facade(p):
     p.snap.update({'mount': {}, 'opening': {'centre': [W / 2, H / 2], 'radii': [1.05, .64]}})
 
 
+# ---- Phase E: the Admin & Iris shop (David's two shop reference pictures: a gear wall of hanging packs over a worktop, shelves of books and media, red and
+# cyan screens, bare fluorescent tubes on a cabled ceiling). Merchandise colours come from the kit_goods sheet; packs are kit_canvas.
+def shop_counter(p):
+    """The shop counter, 8 m: steel body, a worn mustard top with goods laid out on it, a till with a screen (screen_0) facing the customer."""
+    W, D = 8, 1.1
+    p.box((0, .14, 0), (W, D, .1), 'kit_metal', bevel=0)
+    p.box((0, .08, .1), (W, D, 1.0), 'kit_metal', bevel=.015)
+    for k in range(8):
+        p.box((k + .05, .05, .16), (k + .95, .08, .92), 'kit_metal', bevel=.01)
+        p.box((k + .12, .04, .5), (k + .88, .05, .54), 'kit_metal', bevel=0)
+    p.box((0, 0, 1.0), (W, D, 1.07), 'kit_goods', bevel=.012, region='goods_0')
+    p.box((0, 0, .97), (W, .02, 1.0), 'kit_metal', bevel=0)
+    x = .5
+    for i in range(3):                                                                         # magazines and slates laid out
+        _slope(p.box((x, .25, 1.07), (x + .42, .8, 1.085), 'kit_goods', bevel=0, region='goods_%d' % (4 + i * 3)), 0, 0)
+        x += .55
+    for i in range(7):                                                                         # a row of cased tools
+        p.box((2.6 + i * .3, .3 - .01 * (i % 2), 1.07), (2.82 + i * .3, .78, 1.13), 'kit_canvas', bevel=.01)
+        p.box((2.64 + i * .3, .36, 1.13), (2.78 + i * .3, .5, 1.14), 'kit_goods', bevel=0, region='goods_%d' % (i % 16))
+    p.box((5.0, .3, 1.07), (5.5, .7, 1.25), 'kit_goods', bevel=.01, region='goods_11')         # a crate of small parts
+    for i in range(4):
+        p.box((5.04 + i * .115, .34, 1.25), (5.13 + i * .115, .66, 1.3), 'kit_goods', bevel=0, region='goods_%d' % (i * 2 + 1))
+    p.box((6.2, .35, 1.07), (6.8, .8, 1.12), 'kit_metal', bevel=.01)                             # the till
+    _slope(p.box((6.22, .2, 1.3), (6.78, .26, 1.7), 'kit_metal', bevel=.01), 0, 0)
+    p.box((6.26, .192, 1.34), (6.74, .2, 1.66), 'kit_emissive', bevel=0, node='screen_0', region='sign_cyan')
+    p.cyl((6.5, .3, 1.12), (6.5, .26, 1.4), .025, seg=5)
+    p.box((7.0, .3, 1.07), (7.2, .5, 1.1), 'kit_metal', bevel=.006)                              # card reader
+    p.box((7.03, .33, 1.1), (7.09, .39, 1.104), 'kit_emissive', bevel=0, region='neon_amber')
+    p.snap.update({'top': 1.07})
+
+
+def shop_bookshelf(p):
+    """Three metres of shelving packed with books, media cases and boxes."""
+    W, H, D = 3, 2.6, .5
+    p.box((0, D - .03, 0), (W, D, H), 'kit_metal', bevel=0)
+    for x0, x1 in ((0, .05), (1.475, 1.525), (W - .05, W)):
+        p.box((x0, 0, 0), (x1, D, H), 'kit_metal', bevel=0)
+    p.box((0, 0, H - .06), (W, D, H), 'kit_metal', bevel=0)
+    p.box((0, .02, 0), (W, D, .08), 'kit_metal', bevel=0)
+    for j in range(5):
+        z = .08 + j * .5
+        if j:
+            p.box((0, .01, z - .03), (W, D, z), 'kit_metal', bevel=0)
+        for a, b in ((.06, 1.47), (1.53, W - .06)):
+            x = a
+            if j == 0:                                                                         # the bottom shelf: boxes and crates
+                while x < b - .3:
+                    w = p.rng.uniform(.28, .45)
+                    p.box((x, .06, z), (min(x + w, b), D - .06, z + p.rng.uniform(.25, .4)), 'kit_goods' if p.rng.random() < .6 else 'kit_canvas', bevel=0, region='goods_%d' % p.rng.choice((5, 7, 11, 14, 15)))
+                    x += w + .03
+                continue
+            while x < b - .05:
+                w = p.rng.uniform(.045, .12)
+                if p.rng.random() < .1:                                                        # a gap, or a book lying flat
+                    p.box((x, .1, z), (min(x + .26, b), D - .08, z + .06), 'kit_goods', bevel=0, region='goods_%d' % p.rng.randrange(16))
+                    x += .3
+                    continue
+                p.box((x, .07 + p.rng.uniform(0, .05), z), (min(x + w, b), D - .05, z + p.rng.uniform(.26, .42)), 'kit_goods', bevel=0, region='goods_%d' % p.rng.randrange(16))
+                x += w + .004
+    p.snap.update({'mount': {}})
+
+
+def _pack(p, x, z, w=.46, h=.62, vest=False):
+    """A pack (or, flatter and wider, a plate vest) hanging on the board at (x, z) = its top centre."""
+    y1 = .29
+    d = .1 if vest else .2
+    p.box((x - w / 2, y1 - d, z - h), (x + w / 2, y1, z), 'kit_canvas', bevel=.04)
+    p.box((x - w * .36, y1 - d - .05, z - h * .92), (x + w * .36, y1 - d + .01, z - h * .5), 'kit_canvas', bevel=.025)     # front pocket
+    if vest:
+        for dx in (-.13, 0, .13):
+            p.box((x + dx - .05, y1 - d - .04, z - h * .45), (x + dx + .05, y1 - d + .01, z - h * .12), 'kit_canvas', bevel=.012)
+    else:
+        p.box((x - w * .4, y1 - d - .02, z - h * .3), (x + w * .4, y1 - d + .01, z - h * .08), 'kit_canvas', bevel=.02)   # top flap
+        for dx in (-.12, .12):
+            p.box((x + dx - .02, y1 - d - .028, z - h * .5), (x + dx + .02, y1 - d - .018, z - h * .08), 'kit_metal', bevel=0)
+    p.box((x - .03, y1 - .05, z), (x + .03, y1, z + .07), 'kit_metal', bevel=0)                   # the hook it hangs from
+
+
+def shop_gearwall(p):
+    """A gear wall, 3 m: packs and vests hanging on a board, a shelf of tins and cases over cupboards, a lit sign (sign_0) and cable runs."""
+    W, H, D = 3, 2.6, .35
+    p.box((0, D - .05, 0), (W, D, H), 'kit_concrete', bevel=0)
+    for x0, x1 in ((0, .05), (W - .05, W)):
+        p.box((x0, D - .1, 0), (x1, D, H), 'kit_metal', bevel=0)
+    p.box((0, D - .1, H - .05), (W, D, H), 'kit_metal', bevel=0)
+    p.box((0, .02, 0), (W, D, .72), 'kit_metal', bevel=.012)                                    # cupboards
+    for k in range(3):
+        p.box((k + .05, .0, .08), (k + .95, .03, .66), 'kit_metal', bevel=.01)
+        p.box((k + .82, 0, .34), (k + .86, .012, .44), 'kit_metal', bevel=0)
+    p.box((0, 0, .72), (W, D, .77), 'kit_goods', bevel=.008, region='goods_0')                   # worktop
+    x = .15
+    while x < W - .3:                                                                          # tins, cases and a stack of slates on it
+        w = p.rng.uniform(.16, .34)
+        p.box((x, .06, .77), (x + w, .3, .77 + p.rng.uniform(.08, .26)), 'kit_goods' if p.rng.random() < .7 else 'kit_canvas', bevel=.008, region='goods_%d' % p.rng.randrange(16))
+        x += w + p.rng.uniform(.04, .16)
+    p.box((.12, D - .12, 1.98), (1.08, D - .05, 2.5), 'kit_metal', bevel=.012)                    # the lit sign
+    p.box((.17, D - .126, 2.03), (1.03, D - .12, 2.45), 'kit_emissive', bevel=0, node='sign_0', region='sign_magenta')
+    p.box((.2, D - .1, 1.8), (1.0, D - .05, 1.92), 'kit_metal', bevel=.008)
+    p.box((.24, D - .106, 1.83), (.96, D - .1, 1.89), 'kit_emissive', bevel=0, node='sign_0', region='neon_amber')
+    _pack(p, .42, 1.72)
+    _pack(p, .95, 1.72, vest=True, w=.5, h=.6)
+    _pack(p, 1.55, 2.42)
+    _pack(p, 2.1, 2.42, w=.5, h=.66)
+    _pack(p, 2.62, 2.42, vest=True, w=.5, h=.58)
+    _pack(p, 1.6, 1.62, vest=True, w=.52, h=.6)
+    _pack(p, 2.25, 1.68, w=.48, h=.66)
+    for z, sag in ((2.55, .06), (2.5, .1)):                                                    # cables looping along the top
+        pts = [(W * t / 8, D - .07, z - sag * 4 * (t / 8) * (1 - t / 8)) for t in range(9)]
+        for q0, q1 in zip(pts, pts[1:]):
+            p.cyl(q0, q1, .012, seg=4, caps=False)
+    p.snap.update({'mount': {}})
+
+
+def tube_light(p):
+    """A bare twin-tube ceiling light on drop rods, 2 m (node light_0)."""
+    p.box((0, .05, .06), (2, .25, .12), 'kit_metal', bevel=.01)
+    for y in (.1, .2):
+        _neon(p, (.04, y, .04), (1.96, y, .04), 'white', 'light_0')
+    for x in (0, 1.97):
+        p.box((x, .04, .0), (x + .03, .26, .08), 'kit_metal', bevel=0)
+    for x in (.25, 1.75):
+        p.cyl((x, .15, .12), (x, .15, .5), .012, seg=4, caps=False)
+    pts = [(.25 + 1.5 * t / 6, .15, .5 - .12 * 4 * (t / 6) * (1 - t / 6)) for t in range(7)]
+    for q0, q1 in zip(pts, pts[1:]):
+        p.cyl(q0, q1, .01, seg=4, caps=False)
+    p.snap.update({'top': .5})
+
+
 INTERIOR = {
+    'district_shop_counter_8m': ('E', 'shop', shop_counter), 'district_shop_bookshelf_3m': ('E', 'shop', shop_bookshelf), 'district_shop_gearwall_3m': ('E', 'shop', shop_gearwall),
+    'district_tube_light_2m': ('E', 'shop', tube_light),
     'district_pod_facade_3m': ('F', 'pods', pod_facade),
     'district_hall_wall_2m_a': ('B', 'hallway', hall_wall_a), 'district_hall_wall_2m_b': ('B', 'hallway', hall_wall_b), 'district_hall_wall_2m_c': ('B', 'hallway', hall_wall_c),
     'district_hall_wall_2m_d': ('B', 'hallway', hall_wall_d), 'district_hall_wall_1m': ('B', 'hallway', hall_wall_1m), 'district_hall_pilaster_05m': ('B', 'hallway', hall_pilaster),
@@ -1274,7 +1405,7 @@ def interior_textures():
     """The interior's textures as small JPEGs (the scene waits for its textures, so they must be light): 1K, from the same generated sets as the kit."""
     from PIL import Image
     os.makedirs(INTERIOR_TEX, exist_ok=True)
-    for name in ('kit_metal', 'kit_concrete', 'kit_tile', 'kit_emissive', 'kit_glass'):
+    for name in ('kit_metal', 'kit_concrete', 'kit_tile', 'kit_emissive', 'kit_glass', 'kit_goods', 'kit_canvas'):
         for kind in ('color', 'normal', 'orm'):
             src = os.path.join(TEX, '%s_%s.png' % (name, kind))
             if os.path.exists(src):

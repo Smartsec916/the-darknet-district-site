@@ -15,6 +15,8 @@ finished area. Layout, doors, routes, interactions, multiplayer and missions sta
   of the checkpoint, which the direction-aware loading depends on.
 - The hallway pieces are registered as `district:hall_*` (interior only) and placed by the `hallLined` block in `buildInterior()`: each wall run is filled automatically
   from the collision walls (`hall-west-*`, `hall-east-*`), and every piece joins the per-material mesh merge, so the whole hallway costs a few draw calls.
+- Shop fittings are `district:shop_*` and `district:tube_light_2m`, placed with `kitAt()` (a piece against a wall, by the wall's face and a start point).
+  Merchandise colours come from one small swatch sheet (`kit_goods`); packs and vests are `kit_canvas`.
 - If a model is missing the old plain vestibule is still there underneath (and the old scanner post is built instead of the kiosk).
 - The room has no lamps of its own (the scene's light limit is 12): surfaces carry a faint self-light and the glow comes from `kit_emissive`.
 
@@ -26,7 +28,7 @@ finished area. Layout, doors, routes, interactions, multiplayer and missions sta
 | B | Main hallway: wall modules (four 2 m designs, a 1 m module, columns with light slots), 4 m ceiling modules with ducts, pipes, trays and coloured strip lights, tiled floor; west side magenta, east side cyan; the two hallway lamps recoloured to match | first version live; shop-front dressing of the room openings, clutter and people still to do |
 | C | VR Play area | planned |
 | D | Arcade | planned (room exists: `ARCADE.md`) |
-| E | Store and Admin / Iris counter (references: the two shop pictures) | planned |
+| E | Store and Admin / Iris counter: counter with goods laid out and a till, two packed bookshelves, two gear walls of hanging packs and vests, wall linings, four bare tube lights. Admin, Iris, their positions, dialogue and interactions are unchanged | first version live; display cases, workstation and Admin/Iris looks (reference pictures) still to do |
 | F | Sleeping Pod room: a moulded capsule surround on each of the ten hatches (wearing the pods' Tesana paint), tiled room floor. The pods' ring, glass, lights, numbers, music and every interaction are unchanged | first version live; room walls, ceiling, vending wall and pod interiors still to do |
 
 ## Reference pictures

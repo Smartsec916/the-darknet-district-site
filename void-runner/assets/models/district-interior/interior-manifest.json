@@ -50,6 +50,16 @@
    "color": "textures/kit_shell_color.png",
    "normal": "textures/kit_shell_normal.png",
    "orm": "textures/kit_shell_orm.png"
+  },
+  "kit_goods": {
+   "color": "textures/kit_goods_color.png",
+   "normal": "textures/kit_goods_normal.png",
+   "orm": "textures/kit_goods_orm.png"
+  },
+  "kit_canvas": {
+   "color": "textures/kit_canvas_color.png",
+   "normal": "textures/kit_canvas_normal.png",
+   "orm": "textures/kit_canvas_orm.png"
   }
  },
  "ticker": {
@@ -430,6 +440,90 @@
      ],
      "note": "put the back on the wall plane"
     }
+   }
+  },
+  "district_shop_bookshelf_3m": {
+   "file": "district_shop_bookshelf_3m.glb",
+   "batch": "E",
+   "category": "shop",
+   "size": {
+    "w": 3.0,
+    "h": 2.6,
+    "d": 0.5
+   },
+   "triangles": 1572,
+   "bytes": 111968,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.5
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_shop_counter_8m": {
+   "file": "district_shop_counter_8m.glb",
+   "batch": "E",
+   "category": "shop",
+   "size": {
+    "w": 8.0,
+    "h": 1.7,
+    "d": 1.1
+   },
+   "triangles": 996,
+   "bytes": 78504,
+   "nodes": [
+    "district_shop_counter_8m__screen_0"
+   ],
+   "snap": {
+    "top": 1.07
+   }
+  },
+  "district_shop_gearwall_3m": {
+   "file": "district_shop_gearwall_3m.glb",
+   "batch": "E",
+   "category": "shop",
+   "size": {
+    "w": 3.003,
+    "h": 2.6,
+    "d": 0.35
+   },
+   "triangles": 1720,
+   "bytes": 131308,
+   "nodes": [
+    "district_shop_gearwall_3m__sign_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.35
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_tube_light_2m": {
+   "file": "district_tube_light_2m.glb",
+   "batch": "E",
+   "category": "shop",
+   "size": {
+    "w": 2.0,
+    "h": 0.51,
+    "d": 0.22
+   },
+   "triangles": 156,
+   "bytes": 14288,
+   "nodes": [
+    "district_tube_light_2m__light_0"
+   ],
+   "snap": {
+    "top": 0.5
    }
   },
   "district_pod_facade_3m": {
