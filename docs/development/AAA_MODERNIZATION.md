@@ -13,7 +13,7 @@ Scores are honest estimates within the limits of a browser game, judged from scr
 | 1 | Main menu and "preparing" screens | **Live** (2026-11-12) |
 | 2 | Character creator | **Live** (2026-11-12), first pass |
 | 3 | Sleeping Pod interior | Partly (Tesana surfaces, music/light panels, vending are live); needs depth, wear, lighting |
-| 4 | Pod room after exit | Not started. Baseline: almost black, flat pods, floating "PODS" labels |
+| 4 | Pod room | Relocated to the rear of the District 2026-11-12 (`SLEEPING_PODS.md`); the room itself is still dark and plain |
 | 5 | District entrance and vestibule | Not started |
 | 6 | Main District interior, VR Play area, store, Admin/Iris counter, social spaces | Not started |
 | 7 | NeoChinatown streets | Not started |

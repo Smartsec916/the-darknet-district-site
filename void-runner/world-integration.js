@@ -45,7 +45,7 @@ const podWake=document.createElement('section');podWake.id='pod-wake';podWake.hi
 const podVend={box:podWake.querySelector('.pod-vend'),grid:podWake.querySelector('.pod-vend-grid'),info:podWake.querySelector('.pod-vend-info'),buy:podWake.querySelector('[data-vend="buy"]'),picked:null,yaw:null};
 function podVendShow(on){const main=podWake.querySelector('.pod-wake-card>.pod-wake-actions'),title=podWake.querySelector('#pod-wake-title');podVend.box.hidden=!on;main.hidden=on;title.hidden=on;podWake.classList.toggle('vending',on);
  if(on){const items=globalThis.VoidPodVending?.products||[];if(!podVend.grid.children.length)for(const item of items){const b=document.createElement('a');b.href='#';b.setAttribute('role','button');b.dataset.vendItem=item.code;b.textContent=item.code+' '+item.name;podVend.grid.append(b);}
-  podVend.picked=null;podVend.buy.setAttribute('aria-disabled','true');podVend.info.textContent=items.length?'Choose an item.':'The machine is empty.';for(const b of podVend.grid.children)b.setAttribute('aria-pressed','false');if(walker){podVend.yaw=walker.yaw;walker.yaw=Math.PI;walker.pitch=0;}podVend.grid.querySelector('a')?.focus({preventScroll:true});}
+  podVend.picked=null;podVend.buy.setAttribute('aria-disabled','true');podVend.info.textContent=items.length?'Choose an item.':'The machine is empty.';for(const b of podVend.grid.children)b.setAttribute('aria-pressed','false');if(walker){podVend.yaw=walker.yaw;walker.yaw=VoidDistrictArea.POD_VIEW.vending;walker.pitch=0;}podVend.grid.querySelector('a')?.focus({preventScroll:true});}
  else if(podVend.yaw!==null&&walker){walker.yaw=podVend.yaw;podVend.yaw=null;}}
 podWake.querySelector('[data-pod="vend"]').addEventListener('click',e=>{e.preventDefault();if(mode==='pod-waking')podVendShow(true);});
 podVend.box.addEventListener('click',e=>{const b=e.target.closest('a[role="button"]');if(!b)return;e.preventDefault();if(mode!=='pod-waking')return;
@@ -54,12 +54,12 @@ podVend.box.addEventListener('click',e=>{const b=e.target.closest('a[role="butto
  else if(b.dataset.vend==='back'){podVendShow(false);podWake.querySelector('[data-pod="vend"]').focus({preventScroll:true});}});
 function enterSleepingPod(index=1){
  if(mode!=='walking'||walkingLocation?.area!=='interior'||!walker||!Number.isInteger(index)||index<1||index>10)return false;
- const [x,z]=VoidNeoChinatown.toWorld(-15.4,57+((index-1)%5)*2.6);
- Object.assign(walker,{x,y:1.1+(index>5?1.7:0),z,yaw:-Math.PI/2,pitch:0,vx:0,vz:0,eye:1.1+(index>5?1.7:0)});
+ const {x,z}=VoidDistrictArea.podBed(VoidNeoChinatown,index);
+ Object.assign(walker,{x,y:1.1+(index>5?1.7:0),z,yaw:VoidDistrictArea.POD_VIEW.hatch,pitch:0,vx:0,vz:0,eye:1.1+(index>5?1.7:0)});
  globalThis.VoidPodMusic?.enterPod?.(index);state.story.flags.activePod=index;state.story.flags.podWakePending=true;save();showPodWake();return true;
 }
 podWake.querySelector('[data-pod="music"]').addEventListener('click',e=>{e.preventDefault();if(mode==='pod-waking'){podWake.hidden=true;globalThis.VoidPodMusic?.open?.({inPod:true});}});
-podWake.querySelector('[data-pod="look"]').addEventListener('click',e=>{e.preventDefault();if(mode!=='pod-waking'||!walker)return;const inside=walker.yaw!==Math.PI/2;walker.yaw=inside?Math.PI/2:-Math.PI/2;e.currentTarget.textContent=inside?'LOOK THROUGH HATCH':'LOOK INSIDE';});
+podWake.querySelector('[data-pod="look"]').addEventListener('click',e=>{e.preventDefault();if(mode!=='pod-waking'||!walker)return;const V=VoidDistrictArea.POD_VIEW,inside=walker.yaw!==V.inside;walker.yaw=inside?V.inside:V.hatch;e.currentTarget.textContent=inside?'LOOK THROUGH HATCH':'LOOK INSIDE';});
 podWake.querySelector('[data-pod="exit"]').addEventListener('click',()=>{
  if(mode!=='pod-waking'||!walker||!state?.story?.flags?.podWakePending)return;
  const exit=VoidDistrictArea.podExit(VoidNeoChinatown,state.story.flags.activePod||1);if(VoidExplorer.blocked(exit.spawn[0],exit.spawn[2],walkingLocation))return;
@@ -70,7 +70,7 @@ async function showPodWake(){
  if(mode!=='walking'||walkingLocation?.area!=='interior'||state.story.flags.podWakePending!==true)return;
  mode='pod-waking';clearInput();walkingKeys.clear();document.exitPointerLock?.();podVendShow(false);
  if(globalThis.VoidPodMusic?.selectedPod!==(state.story.flags.activePod||1))globalThis.VoidPodMusic?.enterPod?.(state.story.flags.activePod||1);
- const podNumber=String(state.story.flags.activePod||1).padStart(2,'0');podWake.querySelector('.pod-wake-card p').textContent='THE DARKNET DISTRICT · POD '+podNumber;podWake.querySelector('[data-pod="look"]').textContent=walker.yaw===Math.PI/2?'LOOK THROUGH HATCH':'LOOK INSIDE';
+ const podNumber=String(state.story.flags.activePod||1).padStart(2,'0');podWake.querySelector('.pod-wake-card p').textContent='THE DARKNET DISTRICT · POD '+podNumber;podWake.querySelector('[data-pod="look"]').textContent=walker.yaw===VoidDistrictArea.POD_VIEW.inside?'LOOK THROUGH HATCH':'LOOK INSIDE';
  const creator=globalThis.VoidCharacterCreator,account=globalThis.VoidAccount;
  if(account?.user&&!account.profileReady){podWake.hidden=false;podWake.classList.add('preparing');podWake.querySelectorAll('button,a').forEach(b=>b.hidden=true);
   try{await account.ensureProfile?.();}catch{}if(mode!=='pod-waking'||state.story.flags.podWakePending!==true)return;}
