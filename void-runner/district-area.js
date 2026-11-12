@@ -6,7 +6,9 @@
  const KEY={street:'sacramento',interior:'darknet-district'};
  // District-plan metres: x across the building, z from the street door (20) inward. The vestibule runs z 20..26; the outer door is at 20, the inner at 26.
  const POINT={outside:[0,17.4],vestibule:[0,23],hall:[0,28.5],pod:[-15.4,57],podExit:[-12.5,57]};
- const ENTER={halfWidth:2.9,from:22.8,to:25.5},EXIT={halfWidth:3,from:19.5,to:20.8};
+ // The checkpoint works in the MIDDLE of the vestibule, in both directions: CENTRE is where a player must stand for the doors to seal and the scan to start;
+ // VESTIBULE is the whole floor between the two doors (leaving it re-arms the checkpoint). ENTER and EXIT are kept as names for the same centre zone.
+ const CENTRE={halfWidth:2.6,from:21.8,to:24.2},VESTIBULE={halfWidth:2.95,from:20.5,to:25.5},ENTER=CENTRE,EXIT=CENTRE;
  const flagsOf=s=>s?.story?.flags||{};
  const areaOf=s=>{const f=flagsOf(s);return f.area==='district'&&f.districtBadge===true?'interior':'street';};
  const keyFor=s=>KEY[areaOf(s)];
@@ -18,9 +20,11 @@
  function exitSpawn(N){return {spawn:world(N,POINT.outside),yaw:-Math.PI/2};}
  const local=(N,p)=>N.toWorld(p.x??p[0],p.z??p[2]);
  // Entering the vestibule starts the scan automatically, including for a first-time visitor.
- function enterTrigger(N,p){const [lx,lz]=local(N,p);return Math.abs(lx)<ENTER.halfWidth&&lz>=ENTER.from&&lz<=ENTER.to;}
- // Walking out through the open outer door, from the interior, leaves.
- function exitTrigger(N,p){const [lx,lz]=local(N,p);return Math.abs(lx)<EXIT.halfWidth&&lz>=EXIT.from&&lz<=EXIT.to;}
- const api={KEY,POINT,ENTER,EXIT,areaOf,keyFor,resume,podExit,exitSpawn,enterTrigger,exitTrigger};
+ const within=(N,p,zone)=>{const [lx,lz]=local(N,p);return Math.abs(lx)<zone.halfWidth&&lz>=zone.from&&lz<=zone.to;};
+ const centre=(N,p)=>within(N,p,CENTRE),inVestibule=(N,p)=>within(N,p,VESTIBULE);
+ function enterTrigger(N,p){return centre(N,p);}
+ // Leaving works the same way, from the same spot: the middle of the vestibule.
+ function exitTrigger(N,p){return centre(N,p);}
+ const api={KEY,POINT,ENTER,EXIT,CENTRE,VESTIBULE,centre,inVestibule,areaOf,keyFor,resume,podExit,exitSpawn,enterTrigger,exitTrigger};
  if(typeof module==='object'&&module.exports)module.exports=api;else root.VoidDistrictArea=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

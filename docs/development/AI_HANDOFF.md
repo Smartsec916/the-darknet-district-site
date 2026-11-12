@@ -1,5 +1,12 @@
 # The Darknet District — Current AI Development Handoff
 
+## 2026-11-12: security vestibule checkpoint rebuilt
+
+- The exchange between street and interior now happens in the middle of the vestibule, only after the door sensors report BOTH doors shut, in both directions; the player keeps position and facing; the far door opens afterwards. Full description: `docs/development/VESTIBULE_CHECKPOINT.md`.
+- Behaviour change: leaving the District no longer drops the player in the alley; they stay in the vestibule and walk out through the outer door. In the interior the outer door cannot open; in the street the inner door cannot open.
+- Master specification Phase 1 (vestibule loading only when both doors are closed) is therefore done.
+
+
 ## 2026-11-12: shared VR sessions (game side live after this PR; hub redeployed separately)
 
 - Full description, rules and message list: `docs/development/VR_SESSIONS.md`. Hub rules in `tools/district-hub/protocol.cjs` (a session is its own room `vr:<id>`), menu in `void-runner/vr-core.js`, connection in `void-runner/remote-players.js`.

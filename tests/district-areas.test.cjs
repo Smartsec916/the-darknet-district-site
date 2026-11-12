@@ -61,7 +61,7 @@ test('each environment loads only its own assets',()=>{
  assert.deepEqual([...cs,...ci].sort(),[...new Set(ca)].sort());assert(cs.includes('crowd:ncz-neon')&&!cs.includes('crowd:district-resident'));assert(ci.includes('crowd:district-resident')&&!ci.includes('crowd:ncz-neon'));
 });
 test('in the street area the inner door can never open, whatever the flags',()=>{
- const src=fs.readFileSync('void-runner/neochinatown.js','utf8');assert(src.includes("const isOpenable=d=>!(area==='street'&&d.id==='district-inner-door');"));
+ const src=fs.readFileSync('void-runner/neochinatown.js','utf8');assert(src.includes("const isOpenable=d=>!(area==='street'&&d.id==='district-inner-door')&&!(area==='interior'&&d.id==='district-door');"),'and in the interior the outer door: the two are never open together');
  assert(src.includes("const unlocked=isOpenable(d)&&(d.id==='district-door'||!!flags[d.flag])"));
 });
 test('the build is split into gated sections, the entrance is built in every area, and the original random sequence is kept',()=>{

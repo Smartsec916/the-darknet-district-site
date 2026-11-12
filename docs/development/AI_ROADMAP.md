@@ -5,7 +5,7 @@
 1. Port ten personal Sleeping Pods and the entrance fix from `codex/first-player-experience-repair` onto `main`; publish.
 2. Finish the V1 holographic device (`claude/v1-device`): fix Esc opening the game menu, port onto `main`, publish.
 3. District chat and registered-account multiplayer (PR #199): needs the hub redeployed and `HUB_ACCESS=registered` (David's Render action).
-4. Master specification (2026-11-10) Phase 1: vestibule loading only when both doors are closed.
+4. Master specification (2026-11-10) Phase 1: vestibule loading only when both doors are closed. **Done 2026-11-12** (`docs/development/VESTIBULE_CHECKPOINT.md`).
 5. Later phases of the specification, one at a time, each proposed before it is built.
 
 

@@ -31,35 +31,56 @@ test('the street spawn and the exit spawn are outside the door; the vestibule is
  for(const lzv of [21,22.5,24,25]){const [x,z]=N.toWorld(0,lzv);assert(!E.blocked(x,z,street),'street vestibule '+lzv);assert(!E.blocked(x,z,interior),'interior vestibule '+lzv);}
  const [dx,dz]=N.toWorld(...A.POINT.outside);assert.equal(A.enterTrigger(N,{x:dx,z:dz},stateWith({districtBadge:true})),false,'standing outside never enters');
 });
-test('triggers: any visitor walking into the vestibule enters automatically; walking out leaves',()=>{
- const inside=N.toWorld(0,24),near=N.toWorld(0,21.4),out=N.toWorld(0,20.4),hall=N.toWorld(0,30);
- assert.equal(A.enterTrigger(N,{x:inside[0],z:inside[1]},stateWith({districtBadge:true})),true);assert.equal(A.enterTrigger(N,{x:inside[0],z:inside[1]},stateWith({})),true);
- assert.equal(A.enterTrigger(N,{x:near[0],z:near[1]},stateWith({districtBadge:true})),false,'just past the outer door is not far enough');
- assert.equal(A.exitTrigger(N,{x:out[0],z:out[1]}),true);assert.equal(A.exitTrigger(N,{x:hall[0],z:hall[1]}),false);assert.equal(A.exitTrigger(N,{x:inside[0],z:inside[1]}),false);
- const wide=N.toWorld(8,24);assert.equal(A.enterTrigger(N,{x:wide[0],z:wide[1]},stateWith({districtBadge:true})),false,'only the vestibule, not the walls beside it');
+test('the checkpoint zone is the middle of the vestibule, the same for entering and leaving',()=>{
+ const mid=N.toWorld(0,23),nearOuter=N.toWorld(0,21),nearInner=N.toWorld(0,25),outside=N.toWorld(0,19),hall=N.toWorld(0,30),wide=N.toWorld(8,23);
+ const at=p=>({x:p[0],z:p[1]});
+ assert.equal(A.centre(N,at(mid)),true);assert.equal(A.enterTrigger(N,at(mid)),true);assert.equal(A.exitTrigger(N,at(mid)),true);
+ for(const p of [nearOuter,nearInner,outside,hall,wide])assert.equal(A.centre(N,at(p)),false);
+ assert.equal(A.inVestibule(N,at(nearOuter)),true);assert.equal(A.inVestibule(N,at(nearInner)),true);assert.equal(A.inVestibule(N,at(outside)),false);assert.equal(A.inVestibule(N,at(hall)),false);
+ assert(A.CENTRE.from>20+1.1&&A.CENTRE.to<26-1.1,'clear of both doorways, so a door can always close behind the player');
 });
 // ---- orchestration, with fakes ----
 function rig(over={}){
  const log=[],st={story:{flags:{districtDoor:true,...(over.flags||{})}}};let location={area:over.from||'street'},mode='walking',walker={x:126.9,z:-66,yaw:3.14},busy=false,t=0;
- const d={A,N,state:()=>st,walker:()=>walker,mode:()=>mode,location:()=>location,graphicsBusy:()=>busy,now:()=>t,wait:async ms=>{log.push('wait:'+ms);},
+ const d={A,N,state:()=>st,walker:()=>walker,mode:()=>mode,location:()=>location,graphicsBusy:()=>busy,now:()=>t,wait:async ms=>{log.push('wait:'+ms);},sleep:async ms=>{t+=ms;over.onSleep?.(api);},
   freeze:()=>{mode='preparing';log.push('freeze');},save:()=>log.push('save:'+JSON.stringify(st.story.flags.area||null)),announce:m=>log.push('announce:'+m),warn:()=>log.push('warn'),
-  afterLoad:dir=>log.push('after:'+dir),afterBadge:()=>log.push('badge'),
-  overlay:{show:(dir,text)=>log.push('show:'+dir+':'+text.title),hide:async()=>log.push('hide')},
-  enterWalking:async(key,opts)=>{log.push('enter:'+key+(opts.silent?':silent':''));if(over.fail===key){mode='dock';location=null;return;}location={area:key===A.KEY.interior?'interior':'street'};mode='walking';walker={x:opts.spawn[0],z:opts.spawn[2],yaw:opts.yaw};}};
- return {d,log,st,ctl:T.create(d),get location(){return location;},get walker(){return walker;},get mode(){return mode;},advance:ms=>{t+=ms;},setBusy:v=>{busy=v;}};
+  afterLoad:dir=>log.push('after:'+dir),afterBadge:()=>log.push('badge'),onState:p=>log.push('state:'+p),
+  overlay:{show:(dir,text)=>log.push('show:'+dir+':'+text.title),step:i=>log.push('step:'+i),hide:async()=>log.push('hide')},
+  enterWalking:async(key,opts)=>{log.push('enter:'+key+(opts.silent?':silent':''));if(over.fail===key){mode='dock';location=null;return;}location={area:key===A.KEY.interior?'interior':'street'};mode='walking';walker={x:opts.spawn[0],z:opts.spawn[2],yaw:opts.yaw};if(over.doors)door.fresh();}};
+ // fake doors with sensors: told to close, they report closed only after `closeAfter` sensor reads (never, when stuck)
+ const door={secured:false,reads:0,released:[],log,fresh(){door.secured=false;door.reads=0;},secure(on){door.secured=on;log.push('doors:'+(on?'seal':'unseal'));},closed(){door.total=(door.total||0)+1;return door.secured&&!over.stuck&&++door.reads>(over.closeAfter??2);},release(id){door.secured=false;door.released.push(id);log.push('doors:open:'+id);}};
+ if(over.doors)d.doors=()=>door;
+ const api={d,log,st,door,ctl:null,get location(){return location;},get walker(){return walker;},get mode(){return mode;},advance:ms=>{t+=ms;},setBusy:v=>{busy=v;},stand:(lx,lz)=>{const g=N.toWorld(lx,lz);walker.x=g[0];walker.z=g[1];}};
+ api.ctl=T.create(d);return api;
 }
-test('going in: freeze, overlay, load the interior silently where the player stands, then set the flags and save, open the inner door and show the badge once',async()=>{
- const r=rig();assert.equal(await r.ctl.go('in'),true);
- assert.deepEqual(r.log,['freeze','show:in:SECURITY CHECKPOINT','enter:darknet-district:silent','wait:2400','save:"district"','after:in','hide','badge']);
+const only=(log,prefixes)=>log.filter(x=>prefixes.some(p=>x.startsWith(p)));
+test('going in: nothing is shown or loaded until the door sensors report both doors shut; then scan, load in place, save, clear the scan, open the inner door',async()=>{
+ const r=rig({doors:true});r.stand(0,23);assert.equal(await r.ctl.go('in'),true);
+ assert.deepEqual(only(r.log,['doors','freeze','show','enter','save','hide','state:VESTIBULE','state:EXIT','badge']),
+  ['doors:seal','state:VESTIBULE_SECURED','freeze','show:in:SECURITY SCAN','enter:darknet-district:silent','doors:seal','save:"district"','hide','state:EXIT_DOOR_OPEN','doors:open:district-inner-door','badge']);
+ assert.deepEqual(r.ctl.history,['ENTRY_DOOR_CLOSING','VESTIBULE_SECURED','SECURITY_SCAN','DESTINATION_LOADING','DESTINATION_READY','EXIT_DOOR_OPEN','COMPLETE']);
  assert.deepEqual(r.st.story.flags,{districtDoor:true,districtBadge:true,area:'district'});assert.equal(r.location.area,'interior');
- assert.deepEqual([r.walker.x,r.walker.z],[126.9,-66],'same place, same view');
+ const g=N.toWorld(0,23);assert.deepEqual([r.walker.x,r.walker.z,r.walker.yaw],[g[0],g[1],3.14],'same place, same view');
+ assert(r.door.total>2,'the sensors were read until they reported closed');
 });
 test('a returning badge holder gets no second badge message',async()=>{const r=rig({flags:{districtBadge:true}});await r.ctl.go('in');assert(!r.log.includes('badge'));});
-test('going out: load the street outside the door, clear the area flag, save',async()=>{
- const r=rig({from:'interior',flags:{area:'district',districtBadge:true}});assert.equal(await r.ctl.go('out'),true);
- assert.deepEqual(r.log.slice(0,4),['freeze','show:out:SECURITY VESTIBULE','enter:sacramento:silent','wait:2000']);assert(r.log.includes('save:null'));
+test('going out is the same sequence from the same spot: the street loads around the player, who stays in the vestibule; the outer door opens last',async()=>{
+ const r=rig({doors:true,from:'interior',flags:{area:'district',districtBadge:true}});r.stand(.5,23.4);const before=[r.walker.x,r.walker.z,r.walker.yaw];assert.equal(await r.ctl.go('out'),true);
+ assert.deepEqual(only(r.log,['doors','freeze','show','enter','save','hide']),['doors:seal','freeze','show:out:SECURITY SCAN','enter:sacramento:silent','doors:seal','save:null','hide','doors:open:district-door']);
  assert.equal(r.st.story.flags.area,undefined);assert.equal(r.st.story.flags.districtBadge,true,'the badge is kept');assert.equal(r.location.area,'street');
- const o=A.exitSpawn(N);assert.deepEqual([r.walker.x,r.walker.z,r.walker.yaw],[o.spawn[0],o.spawn[2],o.yaw]);
+ assert.deepEqual([r.walker.x,r.walker.z,r.walker.yaw],before,'no jump and no turn');
+});
+test('the scan cannot start while a door is open: stuck doors end in recovery with the entry door released, and nothing was loaded',async()=>{
+ const r=rig({doors:true,stuck:true});r.stand(0,23);assert.equal(await r.ctl.go('in'),false);
+ assert(!r.log.some(x=>x.startsWith('show')||x.startsWith('enter')||x==='freeze'),'no scan, no load, the player was never frozen');
+ assert.deepEqual(r.door.released,['district-door']);assert.equal(r.ctl.state,'RECOVERY');assert.equal(r.mode,'walking');assert(r.log.some(x=>/could not seal/.test(x)));
+});
+test('stepping back out while the doors close calls the checkpoint off; the doors are unsealed',async()=>{
+ const r=rig({doors:true,closeAfter:50,onSleep:api=>api.stand(0,19)});r.stand(0,23);assert.equal(await r.ctl.go('in'),false);
+ assert.deepEqual(only(r.log,['doors','show','enter']),['doors:seal','doors:unseal']);assert.equal(r.ctl.state,'IDLE');
+});
+test('with real doors the checkpoint only works from the middle of the vestibule',async()=>{
+ const r=rig({doors:true});r.stand(0,17.4);assert.equal(await r.ctl.go('in'),false);assert(!r.log.some(x=>x.startsWith('doors')));assert(r.log.some(x=>/middle of the security vestibule/.test(x)));
 });
 test('only one environment is ever loaded: nothing is loaded before the previous load finished, and only one is requested per transition',async()=>{
  const r=rig();await r.ctl.go('in');assert.equal(r.log.filter(x=>x.startsWith('enter:')).length,1);
@@ -70,18 +91,31 @@ test('a transition is refused in the wrong place, while busy, mid-load or in coo
  r.setBusy(true);assert.equal(await r.ctl.go('in'),false);r.setBusy(false);
  assert.equal(await r.ctl.go('in'),true);assert.equal(await r.ctl.go('out'),false,'cooldown');r.advance(2000);assert.equal(await r.ctl.go('out'),true);assert.equal(r.location.area,'street');
 });
-test('a failed load puts the player back where they were and says so; the flags are untouched',async()=>{
- const r=rig({fail:'darknet-district'});assert.equal(await r.ctl.go('in'),false);
+test('a failed load puts the player back where they were with the door behind them open, and says so; the flags are untouched',async()=>{
+ const r=rig({doors:true,fail:'darknet-district'});r.stand(0,23);assert.equal(await r.ctl.go('in'),false);
  assert.deepEqual(r.log.filter(x=>x.startsWith('enter:')),['enter:darknet-district:silent','enter:sacramento:silent']);assert.equal(r.location.area,'street');assert.equal(r.mode,'walking');
- assert.equal(r.st.story.flags.area,undefined);assert.equal(r.st.story.flags.districtBadge,undefined);assert(!r.log.some(x=>x.startsWith('save')));assert(r.log.includes('announce:The door did not cycle. Try again.'));
+ assert.equal(r.st.story.flags.area,undefined);assert.equal(r.st.story.flags.districtBadge,undefined);assert(!r.log.some(x=>x.startsWith('save')));
+ assert.deepEqual(r.door.released,['district-door'],'the outer door, the way back, is opened');assert(r.log.includes('hide'));assert(r.log.some(x=>/door behind you is open/.test(x)));assert.equal(r.ctl.state,'RECOVERY');
 });
-test('tick starts the transition from the vestibule edges and not from anywhere else',async()=>{
- const r=rig({flags:{districtBadge:true}});r.walker.x=N.toWorld(0,17.4)[0];r.walker.z=N.toWorld(0,17.4)[1];assert.equal(r.ctl.tick(),false);
- const g=N.toWorld(0,24);r.walker.x=g[0];r.walker.z=g[1];assert.equal(await r.ctl.tick(),true);assert.equal(r.location.area,'interior');
- r.advance(2000);const o=N.toWorld(0,20.5);r.walker.x=o[0];r.walker.z=o[1];assert.equal(await r.ctl.tick(),true);assert.equal(r.location.area,'street');
- const r2=rig();const v=N.toWorld(0,24);r2.walker.x=v[0];r2.walker.z=v[1];assert.equal(await r2.ctl.tick(),true,'a first-time visitor is scanned automatically');
+test('tick: only the middle of the vestibule starts it; after a transfer the player must leave the vestibule before it starts again',async()=>{
+ const r=rig({doors:true,flags:{districtBadge:true}});r.stand(0,17.4);assert.equal(r.ctl.tick(),false);r.stand(0,21);assert.equal(r.ctl.tick(),false,'just inside the outer door: not yet');assert.equal(r.ctl.state,'ENTRY_DOOR_OPEN');
+ r.stand(0,23);assert.equal(await r.ctl.tick(),true);assert.equal(r.location.area,'interior');
+ r.advance(5000);assert.equal(r.ctl.tick(),false,'still standing in the middle: not sent straight back');assert.equal(r.ctl.armed,false);
+ r.stand(0,29);assert.equal(r.ctl.tick(),false);assert.equal(r.ctl.armed,true);assert.equal(r.ctl.state,'IDLE');
+ r.stand(0,23);assert.equal(await r.ctl.tick(),true);assert.equal(r.location.area,'street');
+ const r2=rig({doors:true});r2.stand(0,23);assert.equal(await r2.ctl.tick(),true,'a first-time visitor is scanned automatically');
 });
 test('reduced motion shortens the scan',async()=>{const r=rig();r.d.reducedMotion=()=>true;const ctl=T.create(r.d);await ctl.go('in');assert(r.log.includes('wait:'+(2400*.35)));});
+test('the wording never says airlock, and there is no timed progress bar',()=>{
+ const js=read('void-runner/district-transition.js'),css=read('void-runner/district-transition.css');
+ assert.doesNotMatch(JSON.stringify(T.TEXT),/airlock/i);assert.doesNotMatch(js.replace(/\/\*[\s\S]*?\*\//g,''),/airlock/i);assert.doesNotMatch(js,/animation-duration/);assert.doesNotMatch(css,/dt-fill/);
+});
+test('the doors: each environment keeps the door to the other side shut, and the checkpoint has seal, sensor and release controls',()=>{
+ const n=read('void-runner/neochinatown.js');
+ assert.match(n,/isOpenable=d=>!\(area==='street'&&d\.id==='district-inner-door'\)&&!\(area==='interior'&&d\.id==='district-door'\)/);
+ assert.match(n,/secure\(on\)\{secured=!!on;/);assert.match(n,/closed\(\)\{return list\.every\(d=>\{const solid=solidOf\(d\);return d\.open<=\.02&&\(!solid\|\|!solid\.open\);\}\);\}/);assert.match(n,/release\(id,seconds=8\)/);
+ assert.match(n,/const want=secured\?d\.open>\.05&&inDoorway:/,'a sealed door still never closes on someone standing in it');
+});
 
 // ---- wiring in the game files ----
 test('the loader, taxi and VR paths use the area rules',()=>{

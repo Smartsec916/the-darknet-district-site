@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "f4f6a12c9c9e452a",
+  "revision": "6c7cf8664f595c09",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11778,6 +11778,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/district-transition.js",
+      "line": 9,
+      "text": "The doors are never trusted to a timer: the scan starts only when the sensors say both are closed. In each environment the door to the other side cannot be",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/expansion.js",
       "line": 10,
       "text": "speech=null;scene('');mode='dock';clearInput();flightUI(false);screen.classList.remove('hidden');",
@@ -13599,9 +13605,9 @@
     "void-runner/device-gate.js": "18ede0f57043b170043090b207fae30ae2a818aeca6d60a4c9f5a904946c91d7",
     "void-runner/device-portraits.js": "390549763346c7202b1f16c85c873828baf5b3e8b05dc326a2dcde2cc264374f",
     "void-runner/device-v1.js": "3007b412efce9859a50342d0e9a167a9adad2e6e826e831f08a5bc8c8f623571",
-    "void-runner/district-area.js": "d805f191bae9eae587bba224b03d4ac366697bd0c4ae6bb99c8e21cbe26ebade",
+    "void-runner/district-area.js": "50fbc7a30771799d421da92ce3a9435b71c505e6ab91dfeb2157a94fb8c3a8d3",
     "void-runner/district-chat.js": "f6dcf7d042846fb47df27dfa2703699314770365fcc5adab94c80f3341029dd5",
-    "void-runner/district-transition.js": "b263057b1d8c1f56d16904df08221676ac617604f1b04d1d1b7f6e5cda06c249",
+    "void-runner/district-transition.js": "6d3d6f522dd1e2fc9da2f620666e909dd7d3dd460e9f928e27dd2609353ca5cf",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
     "void-runner/escort.js": "0d8213a1b25b4748f954d1e1e86fecd14c22429682ec1f5f36a8b46b81bd8ec2",
@@ -13649,7 +13655,7 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-nightclub.js": "b4dbe1c5e0e47b7f18dc94ae4fa7da5c1463be4b1ed01d75f628800cc6661b56",
     "void-runner/ncz-nightlife.js": "4c6e4d7ca34309a6e1a190bfc70d78123ef746ccab8f29c74b7c77041e038fba",
-    "void-runner/neochinatown.js": "aab6c1d1b8ecc11bc5b130eebda80597918462e17bcb6bbd4d8a60a7e8656824",
+    "void-runner/neochinatown.js": "f3b746142c9d523a560427ea7447d95b40c8eaf3884bb4d3a9c6d58a8507b24e",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "da1674b96960e03052332b46f33745a5db4f738ad2a38d06cef1eaa912b1ecbb",
