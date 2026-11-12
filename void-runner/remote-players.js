@@ -44,7 +44,7 @@
  // Paused in the District (the pause menu, Settings) still counts as being in the room: the avatar simply stands still for the others.
  // Lying in the pod, the pod's music screen, the wardrobe and the mission log are still "in the District" too: leaving the room for each of those used to drop the
  // connection, so two players in their pods were never online together (the 2026-11-11 report). Only the VR rooms, loading and the street are outside.
- const ROOM_MODES=new Set(['walking','menu','pod-waking','equipment','character-creator','mission-log','vr-menu','vr-transition','vr-pause','vr-seated']);
+ const ROOM_MODES=new Set(['walking','menu','pod-waking','equipment','character-creator','mission-log','arcade','vr-menu','vr-transition','vr-pause','vr-seated']);
  // Inside a VR simulation the player is in a shared VR session on the hub (vrSession below), or in a private one of their own when playing solo.
  let hubVr=false;   // the hub said it knows shared VR sessions (an older hub treats those messages as faults, so none are sent to it and VR stays offline, as before)
  const inVrWorld=()=>typeof walkingLocation!=='undefined'&&walkingLocation?.kind==='vr';

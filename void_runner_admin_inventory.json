@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "d6d99160936a255c",
+  "revision": "d0030ae2caf191dd",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13617,6 +13617,7 @@
     "void-runner/device-gate.js": "18ede0f57043b170043090b207fae30ae2a818aeca6d60a4c9f5a904946c91d7",
     "void-runner/device-portraits.js": "390549763346c7202b1f16c85c873828baf5b3e8b05dc326a2dcde2cc264374f",
     "void-runner/device-v1.js": "3007b412efce9859a50342d0e9a167a9adad2e6e826e831f08a5bc8c8f623571",
+    "void-runner/district-arcade.js": "ad7917144c44ce2f88246197ec4ff4a2eefbde00d225a0fe844c3adb043c28e3",
     "void-runner/district-area.js": "48b60eab3a791020ce7a4a7213de866e697069ca4c003cf7f255a5ffcef3db4c",
     "void-runner/district-chat.js": "f6dcf7d042846fb47df27dfa2703699314770365fcc5adab94c80f3341029dd5",
     "void-runner/district-map.js": "bd375b3316c78800377d9ef9a176b8cbe789c9d494fd0506a44e5dc25d6de8a8",
@@ -13670,7 +13671,7 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-nightclub.js": "b4dbe1c5e0e47b7f18dc94ae4fa7da5c1463be4b1ed01d75f628800cc6661b56",
     "void-runner/ncz-nightlife.js": "4c6e4d7ca34309a6e1a190bfc70d78123ef746ccab8f29c74b7c77041e038fba",
-    "void-runner/neochinatown.js": "d500a787eb5cd121cf741105dc0f6fb78a5ac3286c4a6fabba544066ebe447fb",
+    "void-runner/neochinatown.js": "5d0a2cc12ce0b810d0ab349c41a68e64df4284193a64a0e31829d01d345725ad",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "da1674b96960e03052332b46f33745a5db4f738ad2a38d06cef1eaa912b1ecbb",
@@ -13689,7 +13690,7 @@
     "void-runner/relay-radio.js": "5ce31904c15f630a01d00f51d566d66ae97c736d5734d7531835588714269806",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
-    "void-runner/remote-players.js": "a6e116e9d52b43c0f709716b3467d591c051882f6000350ef37dc7d3ab3fe4c6",
+    "void-runner/remote-players.js": "91335f68abae3e94d7472111a8b0a144a1bdf918ab036876f93312530ab3b88c",
     "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
