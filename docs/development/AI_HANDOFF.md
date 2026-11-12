@@ -1,5 +1,13 @@
 # The Darknet District — Current AI Development Handoff
 
+## 2026-11-12: the arcade (small, five cabinets) with a playable Blackout Protocol cabinet; free look in the pod
+
+- `docs/development/ARCADE.md`. Five cabinets in a small room off the hallway; the middle one opens the real Blackout Protocol page in a frame (`void-runner/district-arcade.js`). Four placeholder titles are Claude's working names for David to approve.
+- Sleeping Pod: free look (mouse capture, drag, arrows) and E/M/V shortcuts (`SLEEPING_PODS.md`).
+- David (2026-11-12): for the NULL nightclub, 'use all available assets' (so the purchased club model in `ncz-nightclub.js` and existing nightlife are to be used).
+- Gotcha seen three times now: the game page has global styles for `canvas`, `iframe`, `header` and `main`. New overlays must set position/size explicitly and avoid those tag names.
+
+
 ## 2026-11-12: Sleeping Pods moved to the rear of the District
 
 - See `docs/development/SLEEPING_PODS.md`. The hallway now ends in the pod room (z 70.5..78.3, full width); stairs to the terrace moved to its east end; the wardrobe is on its entrance wall; the character creator's stage is in the hallway with the pods behind. The old west room is empty (`arc-*` walls) for the arcade.
