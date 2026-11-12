@@ -1,0 +1,264 @@
+{
+ "kit": "NeoChinatown building kit",
+ "units": "metres",
+ "up": "+Y",
+ "front": "+Z",
+ "origin": "bottom-left-front corner of the bounding box",
+ "module": 1,
+ "floorHeight": 3.5,
+ "shopfrontHeight": 4.5,
+ "facadeDepth": 0.5,
+ "wallPlaneBehindFront": 0.1,
+ "materials": {
+  "kit_concrete": {
+   "color": "textures/kit_concrete_color.png",
+   "normal": "textures/kit_concrete_normal.png",
+   "orm": "textures/kit_concrete_orm.png"
+  },
+  "kit_metal": {
+   "color": "textures/kit_metal_color.png",
+   "normal": "textures/kit_metal_normal.png",
+   "orm": "textures/kit_metal_orm.png"
+  },
+  "kit_glass": {
+   "color": "textures/kit_glass_color.png",
+   "normal": "textures/kit_glass_normal.png",
+   "orm": "textures/kit_glass_orm.png"
+  },
+  "kit_emissive": {
+   "color": "textures/kit_emissive_color.png"
+  },
+  "kit_asphalt": {
+   "color": "textures/kit_asphalt_color.png",
+   "normal": "textures/kit_asphalt_normal.png",
+   "orm": "textures/kit_asphalt_orm.png"
+  }
+ },
+ "emissiveRegions": {
+  "window_warm": [
+   0,
+   0.5,
+   0.25,
+   1
+  ],
+  "window_blinds": [
+   0.25,
+   0.5,
+   0.5,
+   1
+  ],
+  "window_cool": [
+   0.5,
+   0.5,
+   0.75,
+   1
+  ],
+  "window_dim": [
+   0.75,
+   0.5,
+   1,
+   1
+  ],
+  "neon": [
+   0,
+   0,
+   0.5,
+   0.5
+  ],
+  "sign": [
+   0.5,
+   0,
+   1,
+   0.5
+  ]
+ },
+ "pieces": {
+  "kit_wall_plain_2m": {
+   "file": "kit_wall_plain_2m.glb",
+   "batch": 1,
+   "category": "wall",
+   "size": {
+    "w": 2.0,
+    "h": 3.5,
+    "d": 0.5
+   },
+   "triangles": 304,
+   "bytes": 25180,
+   "nodes": [],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     2,
+     0,
+     0
+    ],
+    "top": [
+     0,
+     3.5,
+     0
+    ],
+    "wall_plane_z": -0.1
+   }
+  },
+  "kit_wall_plain_4m": {
+   "file": "kit_wall_plain_4m.glb",
+   "batch": 1,
+   "category": "wall",
+   "size": {
+    "w": 4.0,
+    "h": 3.5,
+    "d": 0.5
+   },
+   "triangles": 440,
+   "bytes": 35212,
+   "nodes": [],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     4,
+     0,
+     0
+    ],
+    "top": [
+     0,
+     3.5,
+     0
+    ],
+    "wall_plane_z": -0.1
+   }
+  },
+  "kit_wall_plain_6m": {
+   "file": "kit_wall_plain_6m.glb",
+   "batch": 1,
+   "category": "wall",
+   "size": {
+    "w": 6.0,
+    "h": 3.5,
+    "d": 0.5
+   },
+   "triangles": 576,
+   "bytes": 45244,
+   "nodes": [],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     6,
+     0,
+     0
+    ],
+    "top": [
+     0,
+     3.5,
+     0
+    ],
+    "wall_plane_z": -0.1
+   }
+  },
+  "kit_wall_windows_4m": {
+   "file": "kit_wall_windows_4m.glb",
+   "batch": 1,
+   "category": "wall",
+   "size": {
+    "w": 4.0,
+    "h": 3.5,
+    "d": 0.5
+   },
+   "triangles": 664,
+   "bytes": 50256,
+   "nodes": [
+    "kit_wall_windows_4m__glass_0",
+    "kit_wall_windows_4m__glass_1"
+   ],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     4,
+     0,
+     0
+    ],
+    "top": [
+     0,
+     3.5,
+     0
+    ],
+    "wall_plane_z": -0.1,
+    "window_0": [
+     1.0,
+     1.8,
+     -0.32
+    ],
+    "window_1": [
+     3.0,
+     1.8,
+     -0.32
+    ]
+   }
+  },
+  "kit_wall_windows_6m": {
+   "file": "kit_wall_windows_6m.glb",
+   "batch": 1,
+   "category": "wall",
+   "size": {
+    "w": 6.0,
+    "h": 3.5,
+    "d": 0.5
+   },
+   "triangles": 918,
+   "bytes": 68088,
+   "nodes": [
+    "kit_wall_windows_6m__glass_0",
+    "kit_wall_windows_6m__glass_1",
+    "kit_wall_windows_6m__glass_2"
+   ],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     6,
+     0,
+     0
+    ],
+    "top": [
+     0,
+     3.5,
+     0
+    ],
+    "wall_plane_z": -0.1,
+    "window_0": [
+     1.0,
+     1.8,
+     -0.32
+    ],
+    "window_1": [
+     3.0,
+     1.8,
+     -0.32
+    ],
+    "window_2": [
+     5.0,
+     1.8,
+     -0.32
+    ]
+   }
+  }
+ }
+}
