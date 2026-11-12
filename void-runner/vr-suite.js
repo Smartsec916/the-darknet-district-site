@@ -305,9 +305,9 @@
    setOption(key,val){if(key==='mood')mood(val);if(key==='music'){api.setPad(val);room.music(val);}
     const m=/^look-(.+)-([^-]+)$/.exec(key),x=m&&comps.find(o=>o.who.id===m[1]);if(x){x.wear(m[2],val);C.saveLook(x.who,m[2],val);}}};
  }
- // Removed from the VR arcade menu on the owner's instruction (2026-11-12): listed:false keeps it out of the menu and it cannot be launched from there. The code and the
- // companion models are kept, as with the Combat Simulator, until the owner decides whether to delete them.
- const registered={id:'suite',listed:false,title:'Play in a Bedroom',status:'ready',station:1,tint:'linear-gradient(135deg,#1a0820,#ff2d96)',preview:'void-runner/assets/vr/preview-suite.jpg',
+ // Offered in the VR arcade and shareable as a public or private session (owner's decision, 2026-11-12). What is shared is which companions are in the room and
+ // where each player stands; every player's game runs the companions itself, so what a companion is doing at a given moment can differ between players.
+ const registered={id:'suite',shared:true,title:'Play in a Bedroom',status:'ready',station:1,tint:'linear-gradient(135deg,#1a0820,#ff2d96)',preview:'void-runner/assets/vr/preview-suite.jpg',
   description:'A private apartment high above NeoChinatown at night, with an adult companion of your choice. Talk, sit together, dance, or simply enjoy the room. Romance is optional and never explicit.',
   picker:{
    // Model files are checked when the picker opens; a missing one is shown but can't be chosen. Only companions
@@ -331,6 +331,9 @@
      initial([sex]){const ids=lastParty(),id=C.pairs.find(p=>p.companions.join()===ids.join())?.id||(ids.length===1?ids[0]:null);
       return id&&this.choices([sex]).some(c=>c.id===id&&c.usable!==false)?id:null;}}],
    options:([,sel])=>{const p=C.pairs.find(x=>x.id===sel),ids=p?p.companions:[sel];rememberParty(ids);return ids.length>1?{companions:ids}:{companion:ids[0]};}},
+  // The session's options as the hub carries them (plain short text): the companions' ids joined with ':'. fromShare turns that back into the picker's own options.
+  shareOpts:opts=>({party:C.party(opts).map(e=>e.id).join(':').slice(0,40)}),
+  fromShare:o=>{const ids=String(o?.party||'').split(':').filter(id=>/^[a-z0-9-]{1,24}$/.test(id)).slice(0,2);return ids.length>1?{companions:ids}:{companion:ids[0]||''};},
   validate:opts=>{const all=C.list({has:m=>(globalThis.VoidCrowd?.clips[m]||[]),installed:suitePicker().installed}),party=C.party(opts);return party.length>0&&party.every(e=>all.find(x=>x.id===e.id)?.usable);},
   defaults:{mood:'rose',music:'lounge'},
   // The VR menu's settings: mood and music, then each companion's looks (outfit, hairstyle, glasses, colours) that

@@ -103,7 +103,14 @@ test('tick: only the middle of the vestibule starts it; after a transfer the pla
  r.advance(5000);assert.equal(r.ctl.tick(),false,'still standing in the middle: not sent straight back');assert.equal(r.ctl.armed,false);
  r.stand(0,29);assert.equal(r.ctl.tick(),false);assert.equal(r.ctl.armed,true);assert.equal(r.ctl.state,'IDLE');
  r.stand(0,23);assert.equal(await r.ctl.tick(),true);assert.equal(r.location.area,'street');
- const r2=rig({doors:true});r2.stand(0,23);assert.equal(await r2.ctl.tick(),true,'a first-time visitor is scanned automatically');
+ const r2=rig({doors:true});r2.stand(0,17.4);r2.ctl.tick();r2.stand(0,23);assert.equal(await r2.ctl.tick(),true,'a first-time visitor who walks in is scanned automatically');
+});
+test('appearing in the vestibule (back from a simulation, a resumed game) does not start the checkpoint; walking out and in again does',async()=>{
+ const r=rig({doors:true,from:'interior',flags:{area:'district',districtBadge:true}});r.stand(0,23);assert.equal(r.ctl.tick(),false,'just loaded, standing in the middle: nothing happens');assert.equal(r.ctl.armed,false);assert.equal(r.location.area,'interior');
+ r.stand(0,23.5);assert.equal(r.ctl.tick(),false);r.stand(-12,36);assert.equal(r.ctl.tick(),false);assert.equal(r.ctl.armed,true);
+ r.stand(0,23);assert.equal(await r.ctl.tick(),true);assert.equal(r.location.area,'street');
+ // the same again when the place record is the very same object as before (the game reuses it): a menu or a loading screen in between is enough to notice
+ const q=rig({doors:true,from:'interior',flags:{area:'district',districtBadge:true}});q.stand(-12,36);q.ctl.tick();assert.equal(q.ctl.armed,true);q.d.mode=()=>'vr-transition';q.ctl.tick();q.d.mode=()=>'walking';q.stand(0,23);assert.equal(q.ctl.tick(),false,'appeared in the middle after a simulation: not sent out');assert.equal(q.location.area,'interior');
 });
 test('reduced motion shortens the scan',async()=>{const r=rig();r.d.reducedMotion=()=>true;const ctl=T.create(r.d);await ctl.go('in');assert(r.log.includes('wait:'+(2400*.35)));});
 test('the wording never says airlock, and there is no timed progress bar',()=>{

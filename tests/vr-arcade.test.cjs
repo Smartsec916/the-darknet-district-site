@@ -18,7 +18,12 @@ test('Play in a Bedroom asks for a companion first, with a female and a male cho
   assert.deepEqual(p.options(['female','seren']),{companion:'seren'});
 });
 test('the Combat Simulator is registered but not offered at the terminal',()=>{
-  assert.equal(registered.find(e=>e.id==='combat').listed,false);assert.equal(registered.find(e=>e.id==='suite').listed,false,'Play in a Bedroom was removed from the menu (2026-11-12)');assert.deepEqual(registered.filter(e=>e.listed!==false).map(e=>e.id).sort(),['forest','tropical']);
+  assert.equal(registered.find(e=>e.id==='combat').listed,false);assert.deepEqual(registered.filter(e=>e.listed!==false).map(e=>e.id).sort(),['forest','suite','tropical']);
+  // Play in a Bedroom can be opened as a shared session: its options travel through the hub as short plain text and come back as the picker's own options.
+  const suite=registered.find(e=>e.id==='suite'),{parse}=require('../tools/district-hub/protocol.cjs');assert.equal(suite.shared,true);
+  const wire=JSON.stringify(suite.shareOpts({companion:'ava'}));assert(parse(JSON.stringify({t:'vr-create',exp:'suite',opts:wire,private:false})),'the hub accepts '+wire);assert.deepEqual(suite.fromShare(JSON.parse(wire)),{companion:'ava'});
+  assert.deepEqual(suite.fromShare({party:'one-a:two-b'}),{companions:['one-a','two-b']},'two companions travel as one short text');assert(parse(JSON.stringify({t:'vr-create',exp:'suite',opts:JSON.stringify({party:'one-a:two-b'}),private:true})));
+  assert.deepEqual(suite.fromShare({party:'../x:<b>'}),{companion:''},'anything that is not a companion id is dropped');
 });
 test('every world spawns on open floor and every interaction is reachable on foot',()=>{
   for(const e of registered){const L=e.layout({choice:'f'});assert.equal(E.blocked(L.spawn[0],L.spawn[2],L),false,e.id+' spawn');

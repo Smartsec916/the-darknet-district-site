@@ -90,7 +90,7 @@
  async function refreshList(){if(!menu||menuPage.view!=='list'||!online())return;const list=await RP().vrList();if(!list||!menu||menuPage.view!=='list')return;publicList=list;const el=menu.querySelector('#vr-sessions'),html=sessionRows();if(el&&el.dataset.sig!==html){el.dataset.sig=html;el.innerHTML=html;}}   // redrawn only when something changed, so a button is never replaced under the cursor
  async function joinShared(target){if(busy||session)return false;const rp=RP();if(!online()){shareNote='You are not online.';renderMenu();return false;}
   let s;try{s=await rp.vrJoin(target);}catch(e){shareNote=e.message;renderMenu();return false;}
-  const exp=s&&registry.get(s.exp);let opts={};try{opts=JSON.parse(s.opts||'{}');}catch{}
+  const exp=s&&registry.get(s.exp);let opts={};try{opts=JSON.parse(s.opts||'{}');}catch{}if(exp?.fromShare)opts=exp.fromShare(opts);
   if(!exp||!exp.shared||exp.status!=='ready'||(exp.validate&&!exp.validate(opts))){rp.vrLeave();shareNote='That session cannot be opened in this version of the game.';renderMenu();return false;}
   shareNote='';return launch(exp.id,opts,{joined:s});}
  // Experiences marked listed:false (the Combat Simulator, for now) keep their code but are not offered.
@@ -145,7 +145,7 @@
   busy=true;
   // Tell the hub before anything changes on screen. Playing alone is a private session of one, so the player is not left standing in the District for others.
   let hubSession=share?.joined||null,type=share?.joined?(share.joined.private?'private':'public'):exp.shared?shareType:'solo';
-  if(!hubSession&&online()){try{hubSession=await RP().vrCreate(id,exp.shared&&type!=='solo'?opts:{},type!=='public');}catch(e){type='solo';if(exp.shared&&shareType!=='solo')announce(e.message+' Starting on your own.');}}
+  if(!hubSession&&online()){try{hubSession=await RP().vrCreate(id,exp.shared&&type!=='solo'?(exp.shareOpts?exp.shareOpts(opts):opts):{},type!=='public');}catch(e){type='solo';if(exp.shared&&shareType!=='solo')announce(e.message+' Starting on your own.');}}
   if(!hubSession)type='solo';
   menu?.remove();menu=null;menuPage={view:'list'};mode='vr-transition';clearInput();walkingKeys?.clear?.();document.exitPointerLock?.();
   const booth=exp.station??1,b=BOOTHS[booth],n=N();
