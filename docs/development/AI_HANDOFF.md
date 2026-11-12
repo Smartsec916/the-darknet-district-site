@@ -1,5 +1,13 @@
 # The Darknet District — Current AI Development Handoff
 
+## 2026-11-12: city map with waypoints; Bedroom simulation removed from the VR menu
+
+- V1 Map app is now a real city map generated from the layout (`void-runner/district-map.js`, `docs/development/DISTRICT_MAP.md`): zoom, pan, places, layers, waypoint with a HUD pointer. Direction only: there is no pathfinding data.
+- 'Play in a Bedroom' is no longer offered in the VR arcade (`listed:false` in `void-runner/vr-suite.js`). Its code and companion models are KEPT pending David's decision on deleting them.
+- Vestibule scan: the picture behind the scan is the player's own view captured when the doors sealed (so it always matches the direction they face); it is now only lightly dimmed and the status panel sits in a corner.
+- QUEUED from David (2026-11-12, large; not started): alley NPCs and atmosphere; Sleeping Pod relocation to the rear stairs + Tesana rebuild (new ZIP supplied); 1980s arcade in the old pod room with a playable Blackout Protocol cabinet; Blackout Protocol level 3 NPC changes, levels 4+ graphics, leaderboard and profile achievements; a nightclub across from the alley; Blender-assisted asset work. See the chat report for the proposed order and the open questions.
+
+
 ## 2026-11-12: security vestibule checkpoint rebuilt
 
 - The exchange between street and interior now happens in the middle of the vestibule, only after the door sensors report BOTH doors shut, in both directions; the player keeps position and facing; the far door opens afterwards. Full description: `docs/development/VESTIBULE_CHECKPOINT.md`.

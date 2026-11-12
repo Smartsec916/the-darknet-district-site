@@ -305,7 +305,9 @@
    setOption(key,val){if(key==='mood')mood(val);if(key==='music'){api.setPad(val);room.music(val);}
     const m=/^look-(.+)-([^-]+)$/.exec(key),x=m&&comps.find(o=>o.who.id===m[1]);if(x){x.wear(m[2],val);C.saveLook(x.who,m[2],val);}}};
  }
- const registered={id:'suite',title:'Play in a Bedroom',status:'ready',station:1,tint:'linear-gradient(135deg,#1a0820,#ff2d96)',preview:'void-runner/assets/vr/preview-suite.jpg',
+ // Removed from the VR arcade menu on the owner's instruction (2026-11-12): listed:false keeps it out of the menu and it cannot be launched from there. The code and the
+ // companion models are kept, as with the Combat Simulator, until the owner decides whether to delete them.
+ const registered={id:'suite',listed:false,title:'Play in a Bedroom',status:'ready',station:1,tint:'linear-gradient(135deg,#1a0820,#ff2d96)',preview:'void-runner/assets/vr/preview-suite.jpg',
   description:'A private apartment high above NeoChinatown at night, with an adult companion of your choice. Talk, sit together, dance, or simply enjoy the room. Romance is optional and never explicit.',
   picker:{
    // Model files are checked when the picker opens; a missing one is shown but can't be chosen. Only companions

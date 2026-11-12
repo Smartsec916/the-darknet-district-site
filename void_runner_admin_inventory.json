@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "6c7cf8664f595c09",
+  "revision": "56e68ca229e6e840",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11778,6 +11778,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/district-map.js",
+      "line": 5,
+      "text": "Routes: the game has no pathfinding data, so a waypoint is a DIRECTION and a distance, and says so; a destination in the other environment is guided to the",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/district-transition.js",
       "line": 9,
       "text": "The doors are never trusted to a timer: the scan starts only when the sensors say both are closed. In each environment the door to the other side cannot be",
@@ -12211,7 +12217,7 @@
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 257,
+      "line": 260,
       "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
       "kind": "source-reference"
     },
@@ -13369,7 +13375,7 @@
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 322,
+      "line": 324,
       "text": "{title:'CHOOSE A COMPANION',prompt:'Pick who you would like to meet: one companion alone, or two together where a card says so. You can change your mind by leaving the simulation and choosing again.',",
       "kind": "source-reference"
     },
@@ -13607,6 +13613,7 @@
     "void-runner/device-v1.js": "3007b412efce9859a50342d0e9a167a9adad2e6e826e831f08a5bc8c8f623571",
     "void-runner/district-area.js": "50fbc7a30771799d421da92ce3a9435b71c505e6ab91dfeb2157a94fb8c3a8d3",
     "void-runner/district-chat.js": "f6dcf7d042846fb47df27dfa2703699314770365fcc5adab94c80f3341029dd5",
+    "void-runner/district-map.js": "bd375b3316c78800377d9ef9a176b8cbe789c9d494fd0506a44e5dc25d6de8a8",
     "void-runner/district-transition.js": "6d3d6f522dd1e2fc9da2f620666e909dd7d3dd460e9f928e27dd2609353ca5cf",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
@@ -13659,7 +13666,7 @@
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "da1674b96960e03052332b46f33745a5db4f738ad2a38d06cef1eaa912b1ecbb",
-    "void-runner/personal-device.js": "bd12164ec2a5e71ec6a0853954fbebffc93f102b0630255ee8d309db8be0fce1",
+    "void-runner/personal-device.js": "4f121b01b3a66c16051205b44b90e8109efd0066edac17cbb6d7725085875cf7",
     "void-runner/personal-hud.js": "1ca0e48b3d144a0a2ffed8e3202f98322a060541b8127de2ee48469ed2606776",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
@@ -13701,11 +13708,11 @@
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "fe7cf3869b1fb49ff3ccbc4a7a5c7900aa16c0ad367c115844d8bf5f9c66c321",
     "void-runner/vr-companions.js": "d38c9e56cfe2536e9717431bf12d37a44c1ad34f83dfd24d1a25ca243fd7127b",
-    "void-runner/vr-core.js": "b1f5993f1eb87d9d1cf4d52a7afc35545e0392a46af98d40d14eb2e85a125be2",
+    "void-runner/vr-core.js": "be40a871f4937215a7ac45d919949134d40ebff4ba4f2ae058863f8182caf2fe",
     "void-runner/vr-forest.js": "e98ee4e197d7d266d8891d277bc99b2f6701ad8d1e625153baf2f2cc79b990af",
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "42b099525addb420f7a678fee12d93c14cf468375fd7f59c7324a4393b34dad2",
-    "void-runner/vr-suite.js": "ce162f46cfa71e9f0678520cf111a6a5cdec564b27e7044cbf12611882d6c957",
+    "void-runner/vr-suite.js": "4199651f4b69dfa83cd2f16ab296d6f22120cc853dfe91da1ef7a3a981c85584",
     "void-runner/vr-tropical.js": "fd6e29c04a7be37681cb29185e0a1a37f782bf8e241caf0c794a8c7969079bec",
     "void-runner/warflying-scan.js": "f6de823ef265ff4e1cde538ac17b5adefb72547ad0ef2e3b25cdb42de9ce8a87",
     "void-runner/warflying-scanner.js": "3234988837d0ca2ab0fec7bdb730d923c679fd50ff883569c2f7f568406a00ed",
