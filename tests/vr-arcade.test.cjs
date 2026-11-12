@@ -18,7 +18,7 @@ test('Play in a Bedroom asks for a companion first, with a female and a male cho
   assert.deepEqual(p.options(['female','seren']),{companion:'seren'});
 });
 test('the Combat Simulator is registered but not offered at the terminal',()=>{
-  assert.equal(registered.find(e=>e.id==='combat').listed,false);assert.deepEqual(registered.filter(e=>e.listed!==false).map(e=>e.id).sort(),['forest','suite','tropical']);
+  assert.equal(registered.find(e=>e.id==='combat').listed,false);assert.equal(registered.find(e=>e.id==='suite').listed,false,'Play in a Bedroom was removed from the menu (2026-11-12)');assert.deepEqual(registered.filter(e=>e.listed!==false).map(e=>e.id).sort(),['forest','tropical']);
 });
 test('every world spawns on open floor and every interaction is reachable on foot',()=>{
   for(const e of registered){const L=e.layout({choice:'f'});assert.equal(E.blocked(L.spawn[0],L.spawn[2],L),false,e.id+' spawn');
