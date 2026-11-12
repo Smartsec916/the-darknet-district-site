@@ -13,6 +13,8 @@ finished area. Layout, doors, routes, interactions, multiplayer and missions sta
 - In the game: `neochinatown.js` `buildEntrance()` places them with `kitPiece()` and gives every mesh one shared material per name (`kitMat()`).
   The models are registered as `entry:<name>` and load in BOTH areas (street and interior), because the vestibule is built in both: the room is identical on each side
   of the checkpoint, which the direction-aware loading depends on.
+- The hallway pieces are registered as `district:hall_*` (interior only) and placed by the `hallLined` block in `buildInterior()`: each wall run is filled automatically
+  from the collision walls (`hall-west-*`, `hall-east-*`), and every piece joins the per-material mesh merge, so the whole hallway costs a few draw calls.
 - If a model is missing the old plain vestibule is still there underneath (and the old scanner post is built instead of the kiosk).
 - The room has no lamps of its own (the scene's light limit is 12): surfaces carry a faint self-light and the glow comes from `kit_emissive`.
 
@@ -21,7 +23,7 @@ finished area. Layout, doors, routes, interactions, multiplayer and missions sta
 | Phase | Area | State |
 |---|---|---|
 | A | Security vestibule and entrance: wall lining, ceiling services, floor with scanner pad, door portals, scanner arch, badge kiosk | first version live; lighting and density to be pushed further |
-| B | Main interior corridor (reference: the neon VR corridor picture) | next |
+| B | Main hallway: wall modules (four 2 m designs, a 1 m module, columns with light slots), 4 m ceiling modules with ducts, pipes, trays and coloured strip lights, tiled floor; west side magenta, east side cyan; the two hallway lamps recoloured to match | first version live; shop-front dressing of the room openings, clutter and people still to do |
 | C | VR Play area | planned |
 | D | Arcade | planned (room exists: `ARCADE.md`) |
 | E | Store and Admin / Iris counter (references: the two shop pictures) | planned |

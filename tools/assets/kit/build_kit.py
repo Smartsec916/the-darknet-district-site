@@ -1083,7 +1083,157 @@ def int_scanner_kiosk(p):
     p.snap.update({'base': [0, 0, 0]})
 
 
+# ---- Phase B: the main hallway (x -3..3, z 26..70.5, ceiling at 4.05 m). Wall modules of 2 m, 1 m and a 0.5 m pilaster, all sharing one section so they run on
+# from each other; a 4 m ceiling module across the full 6 m width. Left of the hallway is lit magenta, right cyan (David's corridor reference): pieces that carry
+# a light or a display have BOTH colours as separate nodes (…_0 magenta, …_1 cyan) and the game shows one.
+HALL_H = 4.05
+
+
+def _hall_common(p, W, D=.2):
+    H = HALL_H
+    p.box((0, D - .03, 0), (W, D, H), 'kit_metal', bevel=0)
+    p.box((0, 0, 0), (W, D, .15), 'kit_metal', bevel=0)                                        # skirting, the frontmost part
+    p.box((0, .03, 1.3), (W, D, 1.36), 'kit_metal', bevel=0)                                   # dado rail
+    p.box((0, D - .07, 1.36), (W, D - .03, 2.6), 'kit_concrete', bevel=0)                       # service band
+    p.box((0, .02, 2.6), (W, D, 2.66), 'kit_metal', bevel=0)                                   # cable tray
+    p.box((0, .02, 2.66), (W, .04, 2.74), 'kit_metal', bevel=0)
+    for y in (.09, .14):
+        p.cyl((0, y, 2.69), (W, y, 2.69), .018, seg=4, caps=False)
+    for y, z, r in ((.1, 2.92, .06), (.1, 3.1, .045), (.1, 3.34, .08), (.11, 3.58, .035)):
+        p.cyl((0, y, z), (W, y, z), r, seg=8, caps=False)
+    p.box((W / 2 - .03, .02, 2.74), (W / 2 + .03, D, 3.72), 'kit_metal', bevel=0)               # pipe clamp
+    p.box((0, .04, 3.9), (W, D, H), 'kit_metal', bevel=0)
+    p.snap.update({'mount': {}})
+
+
+def _hall_dado(p, W, D=.2, skip=()):
+    for k in range(int(W)):
+        if k in skip:
+            continue
+        p.box((k + .05, .05, .18), (k + .95, D - .03, 1.27), 'kit_metal', bevel=.012)
+        p.box((k + .12, .038, .7), (k + .88, .05, .73), 'kit_metal', bevel=0)
+
+
+def hall_wall_a(p):
+    _hall_common(p, 2)
+    _hall_dado(p, 2)
+    for z in (1.5, 1.57, 1.64):
+        p.cyl((0, .2 - .09, z), (2, .2 - .09, z), .016, seg=4, caps=False)
+    p.box((.5, .2 - .09, 1.85), (1.1, .2 - .07, 2.3), 'kit_metal', bevel=.008)                   # a notice plate
+    p.box((1.45, .2 - .12, 1.8), (1.75, .2 - .07, 2.15), 'kit_metal', bevel=.01)                 # a small breaker box
+    p.cyl((1.6, .2 - .1, 2.15), (1.6, .2 - .1, 2.6), .016, seg=4, caps=False)
+
+
+def hall_wall_b(p):
+    """With a large lit display: screen_0 magenta, screen_1 cyan."""
+    _hall_common(p, 2)
+    _hall_dado(p, 2)
+    D = .2
+    p.box((.2, D - .14, 1.48), (1.8, D - .07, 2.52), 'kit_metal', bevel=.012)
+    p.box((.26, D - .146, 1.54), (1.74, D - .14, 2.46), 'kit_emissive', bevel=0, node='screen_0', region='sign_magenta')
+    p.box((.26, D - .147, 1.54), (1.74, D - .141, 2.46), 'kit_emissive', bevel=0, node='screen_1', region='sign_cyan')
+    p.box((.3, D - .17, 2.52), (1.7, D - .07, 2.57), 'kit_metal', bevel=0)                       # its hood
+    p.cyl((1.0, D - .1, 1.36), (1.0, D - .1, 1.48), .02, seg=5, caps=False)
+
+
+def hall_wall_c(p):
+    """Services: a vent, a junction box with pilot lights, a valve on the main."""
+    _hall_common(p, 2)
+    _hall_dado(p, 2)
+    D = .2
+    p.box((.15, D - .1, 1.5), (1.0, D - .07, 2.3), 'kit_metal', bevel=.01)
+    for j in range(8):
+        p.box((.2, D - .115, 1.56 + j * .09), (.95, D - .1, 1.61 + j * .09), 'kit_metal', bevel=0)
+    p.box((1.2, D - .15, 1.55), (1.75, D - .07, 2.2), 'kit_metal', bevel=.012)
+    p.box((1.28, D - .156, 2.05), (1.34, D - .15, 2.11), 'kit_emissive', bevel=0, region='neon_amber')
+    p.box((1.4, D - .156, 2.05), (1.46, D - .15, 2.11), 'kit_emissive', bevel=0, region='neon_cyan')
+    p.box((1.52, D - .156, 2.05), (1.58, D - .15, 2.11), 'kit_emissive', bevel=0, region='neon_magenta')
+    p.cyl((1.47, D - .1, 2.2), (1.47, D - .1, 2.6), .022, seg=5, caps=False)
+    for x in (.45, .6):
+        p.cyl((x, .1, 3.34), (x + .06, .1, 3.34), .095, seg=8)
+    p.cyl((.555, .004, 3.34), (.555, .03, 3.34), .09, seg=8)
+
+
+def hall_wall_d(p):
+    """A maintenance door with a warning lamp (warn_0) over it."""
+    _hall_common(p, 2)
+    _hall_dado(p, 2, skip=(0, 1))
+    D = .2
+    p.box((.36, .015, .15), (1.64, D, 2.28), 'kit_metal', bevel=.02)
+    p.box((.46, .004, .2), (1.54, .03, 2.2), 'kit_metal', bevel=.01)
+    p.box((.54, .0, .32), (1.46, .012, 1.1), 'kit_metal', bevel=.008)
+    p.box((.54, .0, 1.25), (1.46, .012, 2.08), 'kit_metal', bevel=.008)
+    p.box((1.36, .0, 1.1), (1.42, .03, 1.28), 'kit_metal', bevel=0)
+    p.box((.85, .01, 2.32), (1.15, .06, 2.46), 'kit_metal', bevel=.01)
+    p.box((.9, .004, 2.35), (1.1, .01, 2.43), 'kit_emissive', bevel=0, node='warn_0', region='neon_amber')
+    p.box((1.72, .03, 1.2), (1.9, .06, 1.5), 'kit_metal', bevel=.008)
+    p.box((1.74, .024, 1.36), (1.88, .03, 1.47), 'kit_emissive', bevel=0, region='sign_cyan')
+    p.box((.08, .05, .18), (.3, D - .03, 1.27), 'kit_metal', bevel=.012)
+
+
+def hall_wall_1m(p):
+    _hall_common(p, 1)
+    _hall_dado(p, 1)
+    D = .2
+    for x, r in ((.3, .028), (.42, .02), (.52, .034)):
+        p.cyl((x, D - r - .07, 1.36), (x, D - r - .07, 2.6), r, seg=6, caps=False)
+    p.box((.22, D - .16, 1.9), (.62, D - .07, 2.02), 'kit_metal', bevel=0)
+    p.box((.66, D - .13, 1.5), (.9, D - .07, 1.85), 'kit_metal', bevel=.01)
+
+
+def hall_pilaster(p):
+    """The half-metre column at the end of every wall run and beside every doorway, with a light slot (light_0 magenta, light_1 cyan)."""
+    D, H = .28, HALL_H
+    p.box((.05, .012, 0), (.45, D, H), 'kit_metal', bevel=.02)
+    p.box((0, 0, 0), (.5, D, .2), 'kit_metal', bevel=.012)
+    p.box((0, 0, 3.8), (.5, D, H), 'kit_metal', bevel=.012)
+    p.box((.2, .004, .6), (.3, .012, 3.2), 'kit_emissive', bevel=0, node='light_0', region='neon_magenta')
+    p.box((.2, .003, .6), (.3, .011, 3.2), 'kit_emissive', bevel=0, node='light_1', region='neon_cyan')
+    for z in (.4, 3.4):
+        p.box((.12, .0, z), (.38, .012, z + .12), 'kit_metal', bevel=0)
+    for x in (.08, .4):
+        for z in (.9, 1.8, 2.7):
+            p.box((x, .002, z), (x + .03, .012, z + .03), 'kit_metal', bevel=0)
+    p.snap.update({'mount': {}})
+
+
+def hall_ceiling(p):
+    """4 m of hallway ceiling across the full 6 m: beams, a round and a square duct, pipes, a cable tray, a sprinkler line and two strip lights
+    (light_0 magenta on one side, light_1 cyan on the other)."""
+    L = 4
+    p.box((0, 0, .56), (6, L, .6), 'kit_metal', bevel=0)
+    for y in (1, 3):
+        p.box((0, y - .08, .26), (6, y + .08, .56), 'kit_metal', bevel=0)
+        p.box((0, y - .14, .22), (6, y + .14, .26), 'kit_metal', bevel=0)
+    p.cyl((.7, 0, .2), (.7, L, .2), .2, seg=10, caps=False)
+    p.cyl((.7, 1.96, .2), (.7, 2.04, .2), .225, seg=10)
+    for x, z, r in ((1.2, .14, .07), (1.42, .16, .045)):
+        p.cyl((x, 0, z), (x, L, z), r, seg=6, caps=False)
+    for x, colour, node in ((2.0, 'magenta', 'light_0'), (4.0, 'cyan', 'light_1')):
+        p.box((x - .1, .5, .1), (x + .1, 3.5, .17), 'kit_metal', bevel=.01)
+        _neon(p, (x - .04, .56, .08), (x - .04, 3.44, .08), colour, node)
+        _neon(p, (x + .04, .56, .08), (x + .04, 3.44, .08), colour, node)
+        for y in (.8, 3.2):
+            p.cyl((x, y, .17), (x, y, .56), .012, seg=4, caps=False)
+    p.box((2.8, 0, .12), (3.2, L, .14), 'kit_metal', bevel=0)
+    for x in (2.8, 3.18):
+        p.box((x, 0, .12), (x + .02, L, .19), 'kit_metal', bevel=0)
+    for x in (2.9, 3.0, 3.1):
+        p.cyl((x, 0, .16), (x, L, .16), .016, seg=4, caps=False)
+    p.cyl((3.5, 0, .2), (3.5, L, .2), .02, seg=5, caps=False)                                  # sprinkler line
+    p.cyl((3.5, 2, .12), (3.5, 2, .2), .025, seg=6)
+    p.box((4.7, 0, .02), (5.5, L, .2), 'kit_metal', bevel=.01)
+    for y in (1, 3):
+        p.box((4.68, y - .03, .01), (5.52, y + .03, .21), 'kit_metal', bevel=0)
+    for j in range(5):
+        p.box((4.8, 1.65 + j * .14, 0), (5.4, 1.71 + j * .14, .02), 'kit_metal', bevel=0)
+    p.snap.update({'top': .6})
+
+
 INTERIOR = {
+    'district_hall_wall_2m_a': ('B', 'hallway', hall_wall_a), 'district_hall_wall_2m_b': ('B', 'hallway', hall_wall_b), 'district_hall_wall_2m_c': ('B', 'hallway', hall_wall_c),
+    'district_hall_wall_2m_d': ('B', 'hallway', hall_wall_d), 'district_hall_wall_1m': ('B', 'hallway', hall_wall_1m), 'district_hall_pilaster_05m': ('B', 'hallway', hall_pilaster),
+    'district_hall_ceiling_4m': ('B', 'hallway', hall_ceiling),
     'district_vestibule_wall_6m': ('A', 'vestibule', int_wall_lining), 'district_vestibule_ceiling_6m': ('A', 'vestibule', int_ceiling),
     'district_vestibule_floor_6m': ('A', 'vestibule', int_floor), 'district_door_portal_6m': ('A', 'vestibule', int_door_portal),
     'district_scanner_arch_5m': ('A', 'vestibule', int_scanner_arch), 'district_scanner_kiosk_1m': ('A', 'vestibule', int_scanner_kiosk),
@@ -1103,7 +1253,7 @@ def interior_textures():
             if os.path.exists(src):
                 im = Image.open(src).convert('RGB')
                 if name == 'kit_metal' and kind == 'color':          # indoors the steel is kept, not weathered: most of the rust colour is taken out
-                    im = Image.blend(im, im.convert('L').convert('RGB'), .6)
+                    im = Image.blend(im, im.convert('L').convert('RGB'), .88)
                 if im.width > 1024:
                     im = im.resize((1024, 1024), Image.LANCZOS)
                 im.save(os.path.join(INTERIOR_TEX, '%s_%s.jpg' % (name, kind)), quality=90 if kind == 'normal' else 84)
@@ -1377,7 +1527,7 @@ def assemble(mats, path, gif=None):
 
 def main():
     args = sys.argv[1:]
-    batches = [int(args[i + 1]) for i, a in enumerate(args) if a == '--batch']
+    batches = [int(args[i + 1]) if args[i + 1].isdigit() else args[i + 1] for i, a in enumerate(args) if a == '--batch']
     shot = next((args[i + 1] for i, a in enumerate(args) if a == '--preview'), None)
     bpy.ops.wm.read_factory_settings(use_empty=True)
     interior = '--interior' in args
