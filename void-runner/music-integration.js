@@ -12,7 +12,7 @@
    // The player's own pod music (pod-music.js) replaces the city score while it plays, and pauses when the player leaves the District.
    if(globalThis.VoidPodMusic){globalThis.VoidPodMusic.update();if(globalThis.VoidPodMusic.playing){E.stop?.();globalThis.VoidClubAudio?.update({active:false,dt});return;}}
    VoidAudio.composerActive(true);
-   const walking=!!walkingLocation&&!!walker&&['walking','dialogue','mission-log'].includes(mode);
+   const walking=!!walkingLocation&&!!walker&&['walking','dialogue','mission-log','road-taxi'].includes(mode);
    const flying=['play','pause','preparing-flight'].includes(mode)&&!!flight.route||mode==='play';
    const route=flight.route,far=route&&route.progress>=.5&&current?.destination;
    const stats=flying?VoidFlightCraft.stats():null;
