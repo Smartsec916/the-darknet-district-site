@@ -45,6 +45,11 @@
    "color": "textures/kit_tile_color.png",
    "normal": "textures/kit_tile_normal.png",
    "orm": "textures/kit_tile_orm.png"
+  },
+  "kit_shell": {
+   "color": "textures/kit_shell_color.png",
+   "normal": "textures/kit_shell_normal.png",
+   "orm": "textures/kit_shell_orm.png"
   }
  },
  "ticker": {
@@ -424,6 +429,39 @@
       -0.2
      ],
      "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_pod_facade_3m": {
+   "file": "district_pod_facade_3m.glb",
+   "batch": "F",
+   "category": "pods",
+   "size": {
+    "w": 2.56,
+    "h": 1.66,
+    "d": 0.22
+   },
+   "triangles": 592,
+   "bytes": 30964,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.22
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "opening": {
+     "centre": [
+      1.28,
+      0.83
+     ],
+     "radii": [
+      1.05,
+      0.64
+     ]
     }
    }
   }

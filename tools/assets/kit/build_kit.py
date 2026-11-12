@@ -25,7 +25,7 @@ OUT = os.path.join(REPO, 'void-runner', 'assets', 'models', 'kit')
 TEX = os.path.join(OUT, 'textures')
 FLOOR, SHOP, DEPTH, FACE = 3.5, 4.5, .5, .1
 TILE = {'kit_concrete': 4.0, 'kit_metal': 2.0, 'kit_asphalt': 3.0, 'kit_fabric': 2.0, 'kit_tile': 2.0}       # metres one repeat of the texture covers
-MATERIALS = ['kit_concrete', 'kit_metal', 'kit_glass', 'kit_emissive', 'kit_asphalt', 'kit_ticker', 'kit_fabric', 'kit_tile']
+MATERIALS = ['kit_concrete', 'kit_metal', 'kit_glass', 'kit_emissive', 'kit_asphalt', 'kit_ticker', 'kit_fabric', 'kit_tile', 'kit_shell']
 GLOWING = ('kit_emissive', 'kit_ticker')          # the only materials that give light
 REGIONS = list(kit_textures.EMISSIVE_REGIONS)
 
@@ -1230,7 +1230,34 @@ def hall_ceiling(p):
     p.snap.update({'top': .6})
 
 
+# ---- Phase F: the Sleeping Pod room. kit_shell is the pods' own moulded plastic: it has no texture here, and the game gives it the existing Tesana pod paint.
+def pod_facade(p):
+    """The moulded surround of one pod hatch (David's capsule-hotel reference): a rounded-rectangle shell with an oval opening sized to sit round the pod's
+    existing lit ring and glass, grab bars, vent slots and a status light. Goes flat against the pod front; nothing about the pod itself changes."""
+    W, H, D, N, y0 = 2.56, 1.66, .22, 48, .02
+    sg = lambda v: (v > 0) - (v < 0)
+
+    def loop(rx, rz, e, y):
+        return [(W / 2 + rx * sg(math.cos(a)) * abs(math.cos(a)) ** (2 / e), y, H / 2 + rz * sg(math.sin(a)) * abs(math.sin(a)) ** (2 / e)) for a in [2 * math.pi * k / N for k in range(N)]]
+    outer_back, outer, mid, inner, lip = loop(W / 2, H / 2, 7, D), loop(W / 2, H / 2, 7, y0 + .07), loop(W / 2 - .07, H / 2 - .07, 6, y0), loop(1.09, .68, 2.4, y0), loop(1.05, .64, 2, D)
+    for a, b in ((outer_back, outer), (outer, mid), (mid, inner), (inner, lip)):
+        for k in range(N):
+            j = (k + 1) % N
+            p.quad([a[k], a[j], b[j], b[k]], 'kit_shell')
+    for x in (.1, W - .1):                                                                     # grab bars
+        p.cyl((x, .012, .52), (x, .012, 1.14), .012, seg=6)
+        for z in (.55, 1.11):
+            p.box((x - .02, .012, z - .02), (x + .02, y0 + .01, z + .02), 'kit_metal', bevel=0)
+    for i in range(7):                                                                         # vent slots in the top rim
+        p.box((.86 + i * .12, .012, H - .1), (.94 + i * .12, y0 + .01, H - .075), 'kit_metal', bevel=0)
+    p.box((.3, .01, .045), (.62, y0 + .01, .105), 'kit_metal', bevel=0)                         # the number plate's backing
+    p.box((W - .52, .008, .055), (W - .46, y0 + .005, .095), 'kit_emissive', bevel=0, region='neon_cyan')    # status lights
+    p.box((W - .42, .008, .055), (W - .36, y0 + .005, .095), 'kit_emissive', bevel=0, region='neon_amber')
+    p.snap.update({'mount': {}, 'opening': {'centre': [W / 2, H / 2], 'radii': [1.05, .64]}})
+
+
 INTERIOR = {
+    'district_pod_facade_3m': ('F', 'pods', pod_facade),
     'district_hall_wall_2m_a': ('B', 'hallway', hall_wall_a), 'district_hall_wall_2m_b': ('B', 'hallway', hall_wall_b), 'district_hall_wall_2m_c': ('B', 'hallway', hall_wall_c),
     'district_hall_wall_2m_d': ('B', 'hallway', hall_wall_d), 'district_hall_wall_1m': ('B', 'hallway', hall_wall_1m), 'district_hall_pilaster_05m': ('B', 'hallway', hall_pilaster),
     'district_hall_ceiling_4m': ('B', 'hallway', hall_ceiling),
@@ -1325,6 +1352,9 @@ def realise(piece, mats):
         bmesh.ops.recalc_face_normals(b, faces=b.faces)
         unwrap(b)
         tris += sum(len(f.verts) - 2 for f in b.faces)
+        for f in b.faces:                                   # moulded plastic is smooth-shaded; everything else keeps its hard edges
+            if MATERIALS[f.material_index] == 'kit_shell':
+                f.smooth = True
         mesh = bpy.data.meshes.new(piece.name + ('__' + node if node else ''))
         used = sorted({f.material_index for f in b.faces})
         for f in b.faces:
