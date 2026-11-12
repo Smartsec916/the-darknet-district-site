@@ -17,8 +17,8 @@ Window panes are separate child nodes (`<piece>__glass_<n>`) so the game can swi
 |---|---|---|
 | 1 | wall_plain 2/4/6 m, wall_windows 4/6 m | built, approved |
 | 2 | corner_outer 1 m, corner_inner 1 m, cornice 2/4/6 m, cornice_corner 1 m, roof_parapet 4 m | built, approved |
-| 3 | shopfronts (4.5 m): window 4/6 m, shutter 4 m, door 2 m, service 2 m; corner_outer_tall and corner_inner_tall 1 m (4.5 m) | built, awaiting review |
-| 4 | window frames: 1 m, wide 2 m, barred 1 m | planned |
+| 3 | shopfronts (4.5 m): window 4/6 m, shutter 4 m, door 2 m, service 2 m; corner_outer_tall and corner_inner_tall 1 m (4.5 m) | built, approved |
+| 4 | window_frame 1 m, window_wide 2 m, window_barred 1 m (surface-mounted units for plain walls); roof_parapet 2 m, roof_parapet_corner 1 m | built, awaiting review |
 | 5 | awnings and balconies | planned |
 | 6 | fire escape, pipes, ducts, cables | planned |
 | 7 | roof and wall clutter | planned |

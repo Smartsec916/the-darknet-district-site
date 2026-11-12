@@ -373,24 +373,78 @@ def cornice_corner(p):
     p.snap.update({'left': [0, 0, 0], 'on_corner': [0, 0, o], 'around': {'position': [1 + o, 0, -1 - o], 'turnY': 90}, 'top': [0, .5, 0]})
 
 
-def roof_parapet(p):
+def roof_parapet(W):
     """The low wall at the roof edge, with a coping and a pipe rail. Sits on the cornice or straight on the top floor, flush with the wall."""
-    W, plane = 4, FACE + .03
-    p.box((0, plane, 0), (W, DEPTH, .78), bevel=0)
-    p.box((0, .02, .78), (W, DEPTH + .04, .9), bevel=.025)                                      # coping
-    p.box((0, 0, .9), (W, DEPTH + .06, .93), 'kit_metal', bevel=0)                              # its metal cap
-    for k in range(3):
-        x0, x1 = max(0, k * 2 - .12), min(W, k * 2 + .12)
-        p.box((x0, FACE - .02, 0), (x1, plane + .01, .78), 'kit_metal', bevel=.012)
-    for x in (1, 3):                                                                           # overflow spouts
-        p.box((x - .1, plane - .06, .12), (x + .1, plane + .01, .3), 'kit_metal', bevel=.01)
-        p.box((x - .06, plane - .16, .14), (x + .06, plane - .06, .2), 'kit_metal', bevel=0)
-    for i in range(5):                                                                         # rail posts every metre (shared at the ends)
-        x = min(max(i * 1.0, .03), W - .03)
-        p.cyl((x, .3, .93), (x, .3, 1.5), .025, seg=6)
+    def make(p):
+        plane = FACE + .03
+        p.box((0, plane, 0), (W, DEPTH, .78), bevel=0)
+        p.box((0, .02, .78), (W, DEPTH + .04, .9), bevel=.025)                                      # coping
+        p.box((0, 0, .9), (W, DEPTH + .06, .93), 'kit_metal', bevel=0)                              # its metal cap
+        for k in range(int(W / 2) + 1):
+            x0, x1 = max(0, k * 2 - .12), min(W, k * 2 + .12)
+            p.box((x0, FACE - .02, 0), (x1, plane + .01, .78), 'kit_metal', bevel=.012)
+        for k in range(int(W / 2)):                                                                # overflow spouts
+            x = k * 2 + 1
+            p.box((x - .1, plane - .06, .12), (x + .1, plane + .01, .3), 'kit_metal', bevel=.01)
+            p.box((x - .06, plane - .16, .14), (x + .06, plane - .06, .2), 'kit_metal', bevel=0)
+        for i in range(int(W) + 1):                                                                # rail posts every metre (shared at the ends)
+            x = min(max(i * 1.0, .03), W - .03)
+            p.cyl((x, .3, .93), (x, .3, 1.5), .025, seg=6)
+        for z in (1.2, 1.48):
+            p.cyl((0, .3, z), (W, .3, z), .022, seg=6)
+        p.snap.update({'left': [0, 0, 0], 'right': [W, 0, 0], 'wall_plane_z': -FACE})
+    return make
+
+
+def roof_parapet_corner(p):
+    """Carries the parapet and its rail round a convex corner: sits over kit_corner_outer_1m (on the cornice corner), front and right faces showing."""
+    plane = FACE + .03
+    p.box((0, plane, 0), (1 - plane, 1, .78), bevel=.02)
+    p.box((0, .02, .78), (1 - .02, 1, .9), bevel=.025)
+    p.box((0, 0, .9), (1, 1, .93), 'kit_metal', bevel=0)
+    p.box((0, FACE - .02, 0), (.12, plane + .01, .78), 'kit_metal', bevel=.012)
+    p.box((1 - plane - .01, .88, 0), (1 - FACE + .02, 1, .78), 'kit_metal', bevel=.012)
+    p.box((1 - plane - .3, plane - .02, 0), (1 - plane + .02, plane + .01, .78), 'kit_metal', bevel=.006)     # a steel angle on the corner
+    p.box((1 - plane - .01, plane - .02, 0), (1 - plane + .02, plane + .3, .78), 'kit_metal', bevel=.006)
+    p.cyl((.03, .3, .93), (.03, .3, 1.5), .025, seg=6)
+    p.cyl((.7, .3, .93), (.7, .3, 1.5), .03, seg=6)
+    p.cyl((.7, .97, .93), (.7, .97, 1.5), .025, seg=6)
     for z in (1.2, 1.48):
-        p.cyl((0, .3, z), (W, .3, z), .022, seg=6)
-    p.snap.update({'left': [0, 0, 0], 'right': [W, 0, 0], 'wall_plane_z': -FACE})
+        p.cyl((0, .3, z), (.7, .3, z), .022, seg=6)
+        p.cyl((.7, .3, z), (.7, 1, z), .022, seg=6)
+    p.snap.update({'left': [0, 0, 0], 'around': {'position': [1, 0, -1], 'turnY': 90}})
+
+
+# ---- window units: surface-mounted steel windows to put on a plain wall (their back goes against the wall plane; see snap "mount")
+def window_unit(W, H, kind):
+    def make(p):
+        d = .2
+        p.box((.04, d - .02, .04), (W - .04, d, H - .04), 'kit_metal', bevel=0)            # the dark room behind the glass
+        for x0, x1 in ((0, .07), (W - .07, W)):
+            p.box((x0, .03, 0), (x1, d, H), 'kit_metal', bevel=.01)
+        p.box((0, 0, 0), (W, d, .07), 'kit_metal', bevel=.012)                             # sill, the frontmost part
+        p.box((0, 0, H - .1), (W, d, H), 'kit_metal', bevel=.012)                          # hood
+        p.quad([(.07, .1, .07), (W - .07, .1, .07), (W - .07, .1, H - .1), (.07, .1, H - .1)], 'kit_glass', node='glass_0', region='whole')
+        if kind == 'frame':
+            p.box((.07, .07, H * .6), (W - .07, .11, H * .6 + .04), 'kit_metal', bevel=0)
+            for j in range(4):
+                p.box((.07, .04, .12 + j * .11), (W - .07, .07, .18 + j * .11), 'kit_metal', bevel=0)
+        elif kind == 'wide':
+            for k in (1, 2):
+                p.box((W * k / 3 - .02, .07, .07), (W * k / 3 + .02, .11, H - .1), 'kit_metal', bevel=0)
+            p.box((.07, .07, H - .42), (W - .07, .11, H - .38), 'kit_metal', bevel=0)
+            p.box((.1, .01, .07), (W - .1, .05, .13), 'kit_metal', bevel=0)           # a rail along the sill
+            _neon(p, (.1, .05, H - .13), (W - .1, .05, H - .13), 'magenta', 'neon_0')       # a tube tucked under the hood
+        else:                                                                              # barred: a welded cage over the glass
+            n = 5
+            for i in range(n):
+                x = .12 + i * (W - .24) / (n - 1)
+                p.cyl((x, .035, .07), (x, .035, H - .1), .013, seg=5, caps=False)
+            for z in (H * .3, H * .65):
+                p.box((.07, .015, z), (W - .07, .05, z + .035), 'kit_metal', bevel=0)
+            p.box((W - .2, .005, H * .45), (W - .09, .06, H * .45 + .14), 'kit_metal', bevel=.008)   # the padlocked hasp
+        p.snap.update({'mount': {'position': [0, 0, -d], 'note': 'put the back of the unit on the wall plane'}, 'window_0': [round(W / 2, 3), round(H / 2, 3), -.1]})
+    return make
 
 
 def corner_outer(p):
@@ -515,9 +569,9 @@ def shop_service(p):
     for x, r in ((1.36, .04), (1.52, .05), (1.69, .035)):                             # risers
         p.cyl((x, plane - r - .02, .45), (x, plane - r - .02, top), r, seg=8, caps=False)
     for z in (.9, 1.9, 2.75):
-        p.box((1.28, plane - .14, z), (1.76, plane, z + .05), 'kit_metal', bevel=0)
+        p.box((1.28, plane - .125, z), (1.76, plane, z + .05), 'kit_metal', bevel=0)
     p.box((1.44, plane - .125, 1.3), (1.6, plane - .03, 1.5), 'kit_metal', bevel=.012)    # a valve body on the big riser
-    p.cyl((1.52, plane - .125, 1.4), (1.52, plane - .13, 1.4), .09, seg=8)               # and its wheel
+    p.cyl((1.52, plane - .12, 1.4), (1.52, plane - .128, 1.4), .09, seg=8)               # and its wheel
 
 
 PIECES = {
@@ -526,10 +580,13 @@ PIECES = {
     'kit_wall_windows_4m': (1, 'wall', wall_windows(4)), 'kit_wall_windows_6m': (1, 'wall', wall_windows(6)),
     'kit_corner_outer_1m': (2, 'corner', corner_outer), 'kit_corner_inner_1m': (2, 'corner', corner_inner),
     'kit_cornice_2m': (2, 'cornice', cornice(2)), 'kit_cornice_4m': (2, 'cornice', cornice(4)), 'kit_cornice_6m': (2, 'cornice', cornice(6)),
-    'kit_cornice_corner_1m': (2, 'cornice', cornice_corner), 'kit_roof_parapet_4m': (2, 'roof', roof_parapet),
+    'kit_cornice_corner_1m': (2, 'cornice', cornice_corner), 'kit_roof_parapet_4m': (2, 'roof', roof_parapet(4)),
     'kit_shopfront_window_4m': (3, 'shopfront', shop_window(4)), 'kit_shopfront_window_6m': (3, 'shopfront', shop_window(6)),
     'kit_shopfront_shutter_4m': (3, 'shopfront', shop_shutter), 'kit_shopfront_door_2m': (3, 'shopfront', shop_door), 'kit_shopfront_service_2m': (3, 'shopfront', shop_service),
     'kit_corner_outer_tall_1m': (3, 'corner', corner_outer_tall), 'kit_corner_inner_tall_1m': (3, 'corner', corner_inner_tall),
+    'kit_window_frame_1m': (4, 'window', window_unit(1, 1.6, 'frame')), 'kit_window_wide_2m': (4, 'window', window_unit(2, 1.4, 'wide')),
+    'kit_window_barred_1m': (4, 'window', window_unit(1, 1.6, 'barred')),
+    'kit_roof_parapet_2m': (4, 'roof', roof_parapet(2)), 'kit_roof_parapet_corner_1m': (4, 'roof', roof_parapet_corner),
 }
 
 
@@ -713,7 +770,7 @@ def assemble(mats, path, gif=None):
             ('kit_corner_outer_tall_1m', (6, 0, 0), 0), ('kit_shopfront_window_4m', (7, 1, 0), 1),
             ('kit_wall_plain_2m', (-8, 0, z1), 0), ('kit_wall_windows_6m', (-6, 0, z1), 0), ('kit_wall_windows_6m', (0, 0, z1), 0), ('kit_corner_outer_1m', (6, 0, z1), 0), ('kit_wall_windows_4m', (7, 1, z1), 1),
             ('kit_cornice_2m', (-8, -.2, top), 0), ('kit_cornice_6m', (-6, -.2, top), 0), ('kit_cornice_6m', (0, -.2, top), 0), ('kit_cornice_corner_1m', (6, -.2, top), 0), ('kit_cornice_4m', (7.2, 1, top), 1),
-            ('kit_roof_parapet_4m', (-6, 0, top + .5), 0), ('kit_roof_parapet_4m', (-2, 0, top + .5), 0), ('kit_roof_parapet_4m', (2, 0, top + .5), 0), ('kit_roof_parapet_4m', (7, 1, top + .5), 1)]
+            ('kit_roof_parapet_2m', (-8, 0, top + .5), 0), ('kit_roof_parapet_corner_1m', (6, 0, top + .5), 0), ('kit_roof_parapet_4m', (-6, 0, top + .5), 0), ('kit_roof_parapet_4m', (-2, 0, top + .5), 0), ('kit_roof_parapet_4m', (2, 0, top + .5), 0), ('kit_roof_parapet_4m', (7, 1, top + .5), 1)]
     built = []
     for name, pos, turns in plan:
         if name not in PIECES:

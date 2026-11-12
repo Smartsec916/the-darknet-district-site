@@ -669,10 +669,10 @@
    "size": {
     "w": 2.0,
     "h": 4.5,
-    "d": 0.51
+    "d": 0.5
    },
    "triangles": 820,
-   "bytes": 63872,
+   "bytes": 63856,
    "nodes": [
     "kit_shopfront_service_2m__neon_0"
    ],
@@ -859,6 +859,151 @@
      4.907,
      1.48,
      -0.24
+    ]
+   }
+  },
+  "kit_roof_parapet_2m": {
+   "file": "kit_roof_parapet_2m.glb",
+   "batch": 4,
+   "category": "roof",
+   "size": {
+    "w": 2.0,
+    "h": 1.5,
+    "d": 0.59
+   },
+   "triangles": 312,
+   "bytes": 24840,
+   "nodes": [],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     2,
+     0,
+     0
+    ],
+    "wall_plane_z": -0.1
+   }
+  },
+  "kit_roof_parapet_corner_1m": {
+   "file": "kit_roof_parapet_corner_1m.glb",
+   "batch": 4,
+   "category": "roof",
+   "size": {
+    "w": 1.0,
+    "h": 1.502,
+    "d": 1.0
+   },
+   "triangles": 412,
+   "bytes": 31600,
+   "nodes": [],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "around": {
+     "position": [
+      1,
+      0,
+      -1
+     ],
+     "turnY": 90
+    }
+   }
+  },
+  "kit_window_barred_1m": {
+   "file": "kit_window_barred_1m.glb",
+   "batch": 4,
+   "category": "window",
+   "size": {
+    "w": 1.0,
+    "h": 1.6,
+    "d": 0.2
+   },
+   "triangles": 308,
+   "bytes": 26696,
+   "nodes": [
+    "kit_window_barred_1m__glass_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.2
+     ],
+     "note": "put the back of the unit on the wall plane"
+    },
+    "window_0": [
+     0.5,
+     0.8,
+     -0.1
+    ]
+   }
+  },
+  "kit_window_frame_1m": {
+   "file": "kit_window_frame_1m.glb",
+   "batch": 4,
+   "category": "window",
+   "size": {
+    "w": 1.0,
+    "h": 1.6,
+    "d": 0.2
+   },
+   "triangles": 250,
+   "bytes": 22372,
+   "nodes": [
+    "kit_window_frame_1m__glass_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.2
+     ],
+     "note": "put the back of the unit on the wall plane"
+    },
+    "window_0": [
+     0.5,
+     0.8,
+     -0.1
+    ]
+   }
+  },
+  "kit_window_wide_2m": {
+   "file": "kit_window_wide_2m.glb",
+   "batch": 4,
+   "category": "window",
+   "size": {
+    "w": 2.0,
+    "h": 1.4,
+    "d": 0.2
+   },
+   "triangles": 250,
+   "bytes": 23580,
+   "nodes": [
+    "kit_window_wide_2m__glass_0",
+    "kit_window_wide_2m__neon_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.2
+     ],
+     "note": "put the back of the unit on the wall plane"
+    },
+    "window_0": [
+     1.0,
+     0.7,
+     -0.1
     ]
    }
   }
