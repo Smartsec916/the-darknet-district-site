@@ -60,11 +60,16 @@ function start({ledger=null,identify,access={allowed:null,denied:new Set(),regis
         return;
       }
       if(!ws.joined){ws.close(4002,'hello first');return;}
+      {const alive=hub.byConn.get(ws);if(alive)alive.lastAt=hub.now();}   // any valid message shows the player is still there (a simulation that is loading sends no positions)
       if(m.t==='bye'){hub.drop(ws,1000,'bye');return;}
       if(m.t==='refresh'){if(ws.busy)return;ws.busy=true;const who=await identify(m.token).catch(()=>null);ws.busy=false;const p=hub.byConn.get(ws);
         if(!who||!p||who.uid!==p.uid)hub.send(ws,{t:'refused',reason:'sign-in not accepted'});
         else if(profileRefusal(who)){hub.send(ws,{t:'error',reason:profileRefusal(who)[1]});ws.close(...profileRefusal(who));}
         else hub.refresh(ws,who);return;}
+      if(m.t==='vr-list'){hub.vrList(ws);return;}
+      if(m.t==='vr-create'){const r=hub.vrCreate(ws,m);if(r.ok)log('vr-create',m.private?'private':'public',m.exp);return;}
+      if(m.t==='vr-join'){hub.vrJoin(ws,m);return;}
+      if(m.t==='vr-leave'){hub.vrLeave(ws);return;}
       if(m.t==='chat'){hub.chat(ws,m);return;}
       if(m.t==='ignore'){hub.ignore(ws,m);return;}
       if(m.t==='report'){hub.reportPlayer(ws,m);return;}

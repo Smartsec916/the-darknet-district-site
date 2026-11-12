@@ -74,7 +74,7 @@
     else if(id.startsWith('shell')){const s=shells[+id.slice(5)];if(s.isEnabled()){s.setEnabled(false);found++;api.sfx(1200,.25,'triangle',.05);announce('A shell, pink inside. ('+found+' of '+shells.length+' found. They stay in the simulation.)');}}},
    setOption(key,val){if(key==='time'&&val!==k.time)setTime(val);if(key==='gulls')api.audioSet('birdLevel',val==='off'?0:1);}};
  }
- VoidVR.register({id:'tropical',title:'Tropical Escape',status:'ready',station:1,preview:'void-runner/assets/vr/sky/beach-day.jpg',
+ VoidVR.register({id:'tropical',shared:true,title:'Tropical Escape',status:'ready',station:1,preview:'void-runner/assets/vr/sky/beach-day.jpg',
   description:'A sandy beach on a calm sea: palms, loungers, a thatched shelter and a pier at sunset or in the afternoon sun.',
   defaults:{time:'day',gulls:'on'},settings:[{key:'time',label:'Time of day',values:[['day','Afternoon'],['sunset','Sunset']]},{key:'gulls',label:'Gulls',values:[['on','On'],['off','Off']]}],
   ambience:()=>({waves:.12,wind:.03,gulls:true}),layout,build});
