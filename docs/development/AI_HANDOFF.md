@@ -1,5 +1,11 @@
 # The Darknet District — Current AI Development Handoff
 
+## 2026-11-12: fishing in Tropical Escape; achievements (browser-kept for now)
+
+- Fishing from the pier in `void-runner/vr-tropical.js`. 'Catch 100 Fish' was added to the EXISTING achievement catalogue (`void-runner/achievements.js`, which unlocks only on server-verified events). Progress is counted in the browser by the new `void-runner/local-progress.js` and shown on the player's own V1 profile as progress, not as an unlock. See `docs/development/ACHIEVEMENTS.md`. (Note for future sessions: `void-runner/achievements.js` and `tests/achievements.test.cjs` already exist; do not create files with those names.)
+- Server-side verified events (which actually unlock achievements) are approved and should be built together with the Blackout Protocol leaderboard.
+
+
 ## 2026-11-12: checkpoint fix after VR; Bedroom simulation back and shareable; David's decisions
 
 - BUG FIXED (was live for a few hours): returning from a VR simulation placed the player for a moment at the interior's default spot, the middle of the vestibule, and the new checkpoint sent them out to the street. The checkpoint now ignores a player who APPEARS in the vestibule (any frame not spent walking in that environment disarms it until they step out). `tests/vr-sessions-browser.cjs` caught it.
