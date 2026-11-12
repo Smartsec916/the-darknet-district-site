@@ -288,8 +288,8 @@
       const tier = presets[level] || presets.high;
       ip.toneMappingEnabled = true;
       ip.toneMappingType = b.ImageProcessingConfiguration.TONEMAPPING_ACES;
-      ip.exposure = 1;
-      ip.contrast = 1.1;
+      ip.exposure = 1.55;
+      ip.contrast = 1.06;
       ip.vignetteEnabled = level !== 'low';
       ip.vignetteWeight = .5;
       ip.vignetteStretch = .85;
