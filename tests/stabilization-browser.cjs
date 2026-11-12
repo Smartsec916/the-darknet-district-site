@@ -38,7 +38,13 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
  }
  // Interrupted VR resumes the real checkpoint, not the modified sandbox.
  await page.evaluate(()=>VoidVR.launch('forest',{}));const saved=await page.evaluate(()=>({credits:VoidSimulationEffects.session.campaign.credits,ammo:VoidSimulationEffects.session.campaign.progression.personal.ammo}));
- await page.evaluate(()=>{state.credits=1;state.progression.personal.ammo=0;save();});await page.reload();await page.waitForFunction(()=>VoidStartup.started);await page.locator('[data-action=menu-continue]').click();await page.waitForFunction(()=>mode==='walking'&&!VoidGraphics.busy,null,{timeout:90000});assert.deepEqual(await page.evaluate(()=>({credits:state.credits,ammo:state.progression.personal.ammo})),saved);assert(!await page.evaluate(()=>state.story.flags.vrReturn));result.interruption=true;
+ await page.evaluate(()=>{state.credits=1;state.progression.personal.ammo=0;save();});await page.reload();await page.waitForFunction(()=>VoidStartup.started);await page.locator('[data-action=menu-continue]').click();
+ // Since the District-first start (2026-11-10) Continue wakes the player in their Sleeping Pod, and a player with no saved look meets the character creator first.
+ // Walk that path as a player would: save the look, then get up.
+ await page.waitForFunction(()=>!VoidGraphics.busy&&(mode==='walking'||mode==='pod-waking'||!!document.querySelector('#character-creator.on')),null,{timeout:90000});
+ if(await page.locator('#character-creator.on').count()){await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled,null,{timeout:90000});await page.locator('[data-cc=confirm]').click();await page.waitForFunction(()=>mode==='pod-waking'||mode==='walking',null,{timeout:90000});}
+ if(await page.evaluate(()=>mode==='pod-waking')){await page.locator('#pod-wake [data-pod=exit]').click();}
+ await page.waitForFunction(()=>mode==='walking'&&!VoidGraphics.busy,null,{timeout:90000});assert.deepEqual(await page.evaluate(()=>({credits:state.credits,ammo:state.progression.personal.ammo})),saved);assert(!await page.evaluate(()=>state.story.flags.vrReturn));result.interruption=true;
  // Isolated UI mode fixtures: hold the simulation while the existing weapon UI RAF updates.
  const visibility=await page.evaluate(()=>{const e=document.getElementById('weapon-select-hud');return {hidden:e.hidden,display:getComputedStyle(e).display};});assert.equal(visibility.hidden,false);assert.notEqual(visibility.display,'none');
  await page.evaluate(()=>{globalThis.testUIOwner={update,draw};update=()=>{};draw=()=>{};});
