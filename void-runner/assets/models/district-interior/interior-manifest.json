@@ -301,6 +301,114 @@
     "top": 0.6
    }
   },
+  "district_hall_header_4m": {
+   "file": "district_hall_header_4m.glb",
+   "batch": "B",
+   "category": "hallway",
+   "size": {
+    "w": 4.0,
+    "h": 4.05,
+    "d": 0.28
+   },
+   "triangles": 526,
+   "bytes": 41324,
+   "nodes": [
+    "district_hall_header_4m__light_0",
+    "district_hall_header_4m__light_1"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.28
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "sign": {
+     "centre": [
+      2.0,
+      3.4
+     ],
+     "size": [
+      2.9,
+      0.78
+     ]
+    }
+   }
+  },
+  "district_hall_header_5m": {
+   "file": "district_hall_header_5m.glb",
+   "batch": "B",
+   "category": "hallway",
+   "size": {
+    "w": 5.0,
+    "h": 4.05,
+    "d": 0.28
+   },
+   "triangles": 598,
+   "bytes": 46364,
+   "nodes": [
+    "district_hall_header_5m__light_0",
+    "district_hall_header_5m__light_1"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.28
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "sign": {
+     "centre": [
+      2.5,
+      3.4
+     ],
+     "size": [
+      2.9,
+      0.78
+     ]
+    }
+   }
+  },
+  "district_hall_header_6m": {
+   "file": "district_hall_header_6m.glb",
+   "batch": "B",
+   "category": "hallway",
+   "size": {
+    "w": 6.0,
+    "h": 4.05,
+    "d": 0.28
+   },
+   "triangles": 670,
+   "bytes": 51404,
+   "nodes": [
+    "district_hall_header_6m__light_0",
+    "district_hall_header_6m__light_1"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.28
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "sign": {
+     "centre": [
+      3.0,
+      3.4
+     ],
+     "size": [
+      2.9,
+      0.78
+     ]
+    }
+   }
+  },
   "district_hall_pilaster_05m": {
    "file": "district_hall_pilaster_05m.glb",
    "batch": "B",
@@ -442,6 +550,53 @@
       0,
       0,
       -0.2
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_prop_bench_2m": {
+   "file": "district_prop_bench_2m.glb",
+   "batch": "B",
+   "category": "hallway",
+   "size": {
+    "w": 2.0,
+    "h": 0.85,
+    "d": 0.5
+   },
+   "triangles": 170,
+   "bytes": 14824,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.5
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "seat": 0.5
+   }
+  },
+  "district_prop_crates_1m": {
+   "file": "district_prop_crates_1m.glb",
+   "batch": "B",
+   "category": "hallway",
+   "size": {
+    "w": 1.2,
+    "h": 1.085,
+    "d": 0.82
+   },
+   "triangles": 268,
+   "bytes": 23756,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.82
      ],
      "note": "put the back on the wall plane"
     }

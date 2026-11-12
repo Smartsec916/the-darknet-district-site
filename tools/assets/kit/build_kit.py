@@ -1465,7 +1465,61 @@ def vr_rack(p):
     p.snap.update({'mount': {}})
 
 
+# ---- Phase B, second step: the hallway's doorways and clutter.
+def hall_header(W):
+    """What spans a room's doorway on the hallway side: a steel lintel with a light under it (light_0 magenta, light_1 cyan), a dark fascia for the room's
+    neon sign, and a tread plate on the floor. Sits between the two columns of the doorway."""
+    def make(p):
+        D, H = .28, HALL_H
+        p.box((0, .08, 2.95), (W, D, H), 'kit_metal', bevel=0)
+        p.box((0, 0, 2.72), (W, D, 2.95), 'kit_metal', bevel=.02)
+        for k in range(int(W * 2) + 1):
+            x = min(max(k * .5, .04), W - .04)
+            p.box((x - .02, .0, 2.8), (x + .02, .012, 2.87), 'kit_metal', bevel=0)
+        p.box((.15, .08, 2.70), (W - .15, .2, 2.72), 'kit_emissive', bevel=0, node='light_0', region='neon_magenta')
+        p.box((.15, .08, 2.699), (W - .15, .2, 2.719), 'kit_emissive', bevel=0, node='light_1', region='neon_cyan')
+        p.box((W / 2 - 1.45, .06, 3.02), (W / 2 + 1.45, .08, 3.8), 'kit_concrete', bevel=0)       # where the room's sign goes
+        p.box((W / 2 - 1.5, .05, 3.0), (W / 2 + 1.5, .08, 3.02), 'kit_metal', bevel=0)
+        p.box((W / 2 - 1.5, .05, 3.8), (W / 2 + 1.5, .08, 3.82), 'kit_metal', bevel=0)
+        for x in (.2, W - .35):
+            p.box((x, .04, 3.3), (x + .15, .08, 3.55), 'kit_metal', bevel=.008)
+        p.cyl((0, .06, 3.95), (W, .06, 3.95), .025, seg=5, caps=False)
+        p.box((0, 0, 0), (W, D, .03), 'kit_metal', bevel=0)                                     # tread plate
+        for k in range(int(W * 4)):
+            p.box((k * .25 + .05, .04, .03), (k * .25 + .2, D - .04, .036), 'kit_metal', bevel=0)
+        p.snap.update({'mount': {}, 'sign': {'centre': [W / 2, 3.4], 'size': [2.9, .78]}})
+    return make
+
+
+def prop_crates(p):
+    """A stack of shipping crates under a tarp, for standing against a wall."""
+    p.box((0, .05, 0), (.8, .8, .6), 'kit_metal', bevel=.02)
+    for x in (.12, .62):
+        p.box((x, .03, 0), (x + .06, .82, .62), 'kit_canvas', bevel=0)                          # straps
+    p.box((.84, .2, 0), (1.2, .78, .42), 'kit_goods', bevel=.015, region='goods_11')
+    p.box((.86, .22, .42), (1.18, .7, .7), 'kit_goods', bevel=.012, region='goods_3')
+    p.box((.08, .12, .6), (.7, .74, 1.05), 'kit_metal', bevel=.02)
+    _slope(p.box((.04, .08, 1.05), (.74, .78, 1.09), 'kit_canvas', bevel=.01), -.06, 0)        # the tarp
+    p.box((.04, .06, .78), (.74, .08, 1.06), 'kit_canvas', bevel=0)
+    p.box((.3, .0, .25), (.5, .05, .4), 'kit_goods', bevel=0, region='goods_0')                 # a shipping label
+    p.snap.update({'mount': {}})
+
+
+def prop_bench(p):
+    """A steel bench with a padded seat."""
+    for x in (.08, 1.86):
+        p.box((x, .04, 0), (x + .06, .1, .42), 'kit_metal', bevel=0)
+        p.box((x, .4, 0), (x + .06, .46, .85), 'kit_metal', bevel=0)
+        p.box((x, .04, .36), (x + .06, .46, .42), 'kit_metal', bevel=0)
+    p.box((0, 0, .42), (2, .46, .5), 'kit_canvas', bevel=.025)
+    p.box((0, .42, .58), (2, .5, .85), 'kit_canvas', bevel=.02)
+    p.cyl((.08, .07, .12), (1.92, .07, .12), .015, seg=5, caps=False)
+    p.snap.update({'mount': {}, 'seat': .5})
+
+
 INTERIOR = {
+    'district_hall_header_4m': ('B', 'hallway', hall_header(4)), 'district_hall_header_5m': ('B', 'hallway', hall_header(5)), 'district_hall_header_6m': ('B', 'hallway', hall_header(6)),
+    'district_prop_crates_1m': ('B', 'hallway', prop_crates), 'district_prop_bench_2m': ('B', 'hallway', prop_bench),
     'district_vr_rack_1m': ('C', 'vr', vr_rack),
     'district_arcade_cabinet_1m': ('D', 'arcade', arcade_cabinet), 'district_arcade_stool_1m': ('D', 'arcade', arcade_stool), 'district_arcade_change_1m': ('D', 'arcade', arcade_change_machine),
     'district_shop_counter_8m': ('E', 'shop', shop_counter), 'district_shop_bookshelf_3m': ('E', 'shop', shop_bookshelf), 'district_shop_gearwall_3m': ('E', 'shop', shop_gearwall),
