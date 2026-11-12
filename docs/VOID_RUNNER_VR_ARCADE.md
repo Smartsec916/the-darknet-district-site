@@ -212,7 +212,7 @@ The organic finish (`vr-companions.js` `finish`, `breath`; applied in `vr-suite.
 - **Breath and sway**: about 14 breaths a minute on the spine and shoulders plus a slow sway, on top of every
   clip, removed before the next frame's animation so it never accumulates; lighter while walking or dancing.
 - **Rim light**: a soft lavender Fresnel rim (a small material plugin) that follows the camera.
-- Texture filtering raised to 8x (Medium) / 16x (High) anisotropic on companion textures.
+- Texture filtering raised to 8x (Medium) / 16x (High and Ultra) anisotropic on companion textures.
 Tests: `tests/vr-companion-organic.test.cjs`.
 
 ## Needs David's review

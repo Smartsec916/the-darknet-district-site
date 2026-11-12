@@ -22,7 +22,7 @@
   {id:'alley-end-a',x:131.4,z:-56.5,face:[132.3,-57.2],clips:['talk','idle'],tier:3},
   {id:'alley-end-b',x:132.5,z:-57.4,face:[131.4,-56.5],clips:['drink','talk','idle'],tier:3},
   {id:'alley-loner',x:78.5,z:-56.2,face:[79,-60],clips:['drink','smoke','idle'],tier:3}];
- const TIER={low:1,medium:2,high:3},CAST=['ncz-neon','fixer-01','hacker-01','outlaw-01','district-resident','district-smuggler','runner-02','communion-tech'];
+ const TIER={low:1,medium:2,high:3,ultra:3},CAST=['ncz-neon','fixer-01','hacker-01','outlaw-01','district-resident','district-smuggler','runner-02','communion-tech'];
  const config={reactRadius:3.2,reactFor:[2.5,4.5],doorWatchRadius:7,showRadius:75,turn:4};
  /* plan(quality, clipsOf): who appears, with the look and clip each will use. clipsOf(look) -> the clips that look can play. Looks are dealt in turn so
     neighbours differ; a person gets the first look in the deal that can do their first-choice clip, else any look and their best available clip. */

@@ -65,12 +65,14 @@ test('no WebGL: the browser is told why (desktop or capable tablet); phones stil
  assert.equal(c({ua:UA.iphone,pointerCoarse:true,anyPointerFine:false,screenShort:393,webgl:false}).reason,'phone');
 });
 
-test('a weak machine starts on Low graphics, a strong one does not, and software rendering counts as weak',()=>{
- assert.equal(G.recommendQuality({cores:4,memory:8},false),'low');
- assert.equal(G.recommendQuality({cores:16,memory:4},false),'low');
- assert.equal(G.recommendQuality({cores:16,memory:8},false),null);
- assert.equal(G.recommendQuality({cores:16},false),null,'unknown memory is not treated as weak');
- assert.equal(G.recommendQuality({cores:16,memory:8},true),'low');
+test('graphics quality is not auto-downgraded for few cores, low memory or software rendering',()=>{
+ assert.equal(G.recommendQuality({cores:4,memory:8},false),null);
+ assert.equal(G.recommendQuality({cores:16,memory:4},false),null);
+ assert.equal(G.recommendQuality({cores:2,memory:2},false),null);
+ assert.equal(G.recommendQuality({cores:16},false),null);
+ assert.equal(G.recommendQuality({cores:16,memory:8},true),null);
+ const src=fs.readFileSync(path.join(__dirname,'..','void-runner','device-gate.js'),'utf8');
+ assert.ok(!/void-runner-graphics-v1/.test(src),'the gate does not write a graphics setting');
 });
 
 test('the landing copy is honest: it does not claim social features exist and it always offers the way back to the website',()=>{

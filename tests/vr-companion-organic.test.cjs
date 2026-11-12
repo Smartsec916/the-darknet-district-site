@@ -38,7 +38,7 @@ test('every released companion names its skin materials; Eva reads ambient occlu
  assert.ok(C.isSkin({},'Skin_M')&&!C.isSkin({},'EyeBall_M')&&!C.isSkin({},'Eyelash_M'));});
 
 test('quality tiers: translucency only above Low; rim and filtering everywhere',()=>{
- assert.equal(C.tier('low').translucency,false);assert.equal(C.tier('medium').translucency,true);assert.equal(C.tier('high').translucency,true);
+ assert.equal(C.tier('low').translucency,false);assert.equal(C.tier('medium').translucency,true);assert.equal(C.tier('high').translucency,true);assert.equal(C.tier('ultra').anisotropy,16);
  assert.equal(C.tier('nonsense').anisotropy,C.tier('medium').anisotropy);assert.ok(C.tier('low').rim>0);});
 
 test('the bedroom applies the finish and the breath, and removes its observers when it closes',()=>{

@@ -462,7 +462,7 @@
  const notSurface=/eye|cornea|cornia|pupil|iris|teeth|tooth|tongue|toung|lash|brow|glass|hair|nail|button|jewel|lacrimal|low-poly/i;
  const isSkin=(entry,name)=>entry?.skin?entry.skin.includes(name):/skin|body/i.test(name||'')&&!notSurface.test(name||'');
  const hasOrm=(entry,name)=>!!entry?.orm?.includes(name);
- const tiers={low:{translucency:false,anisotropy:4,rim:.7},medium:{translucency:true,anisotropy:8,rim:1},high:{translucency:true,anisotropy:16,rim:1}};
+ const tiers={low:{translucency:false,anisotropy:4,rim:.7},medium:{translucency:true,anisotropy:8,rim:1},high:{translucency:true,anisotropy:16,rim:1},ultra:{translucency:true,anisotropy:16,rim:1}};
  const tier=q=>tiers[q]||tiers.medium;
  // Crease shading from geometry: for each vertex, how far its neighbours rise above its tangent plane (concave
  // creases score high, flat and convex surfaces zero), smoothed twice and mapped to a gentle darkening. Vertices at
