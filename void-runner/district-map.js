@@ -106,7 +106,7 @@
  function mount(el){
   if(!root.VoidNeoChinatown||!el)return false;host=el;if(!view)fit();
   el.innerHTML='<div class="dm-bar"><button type="button" data-map="in" aria-label="Zoom in">+</button><button type="button" data-map="out" aria-label="Zoom out">−</button><button type="button" data-map="me">MY POSITION</button><button type="button" data-map="all">WHOLE CITY</button></div>'
-   +'<canvas class="pd-map dm-canvas" width="800" height="560" tabindex="0" aria-label="Map of NeoChinatown and The Darknet District. Use the list below to choose a place."></canvas><div class="dm-layers" data-map-layers role="group" aria-label="Map layers"></div><div data-map-info></div><div data-map-list></div>';
+   +'<canvas class="pd-map dm-canvas" width="800" height="560" tabindex="0" aria-label="Map of NeoChinatown and The Darknet District. Use the list below to choose a place."></canvas><div class="dm-layers" data-map-layers role="group" aria-label="Map layers"></div><div data-map-info></div><div data-map-hail></div><div data-map-list></div>';
   cv=el.querySelector('canvas');
   cv.addEventListener('wheel',e=>{e.preventDefault();e.stopPropagation();const [x,y]=local(e);zoom(e.deltaY<0?1.2:1/1.2,x,y);},{passive:false});
   cv.addEventListener('pointerdown',e=>{const [x,y]=local(e);drag={x,y,cx:view.cx,cz:view.cz,moved:false};cv.setPointerCapture?.(e.pointerId);});
@@ -119,17 +119,40 @@
    else if(a==='all'){const bb=data().bounds;view={cx:(bb.x0+bb.x1)/2,cz:(bb.z0+bb.z1)/2,s:Math.min(cv.width/(bb.x1-bb.x0),cv.height/(bb.z1-bb.z0))};draw();}
    else if(a.startsWith('layer:')){const id=a.slice(6);layers[id]=layers[id]===false;if(selected&&!visible(data(),layers,isDev()).includes(selected))selected=null;paintLayers();paintList();paintInfo();draw();}
    else if(a.startsWith('pick:')){selected=data().pois.find(q=>q.id===a.slice(5))||null;if(selected){view.cx=selected.x;view.cz=selected.z;view.s=Math.max(view.s,selected.area==='interior'?9:3.2);}paintInfo();draw();host.querySelector('[data-map-info]')?.scrollIntoView?.({block:'nearest'});}
-   else if(a==='set'&&selected){setWaypoint(selected.id);}else if(a==='clear'){setWaypoint(null);}else if(a==='deselect'){selected=null;paintInfo();draw();}});
-  paintLayers();paintInfo();paintList();draw();return true;
+   else if(a==='set'&&selected){setWaypoint(selected.id);}else if(a==='clear'){setWaypoint(null);}else if(a==='deselect'){selected=null;paintInfo();draw();}
+   else if(a.startsWith('hail:')){const ok=root.VoidRoadTaxi?.hail?.(a.slice(5));if(ok)paintHail();}
+   else if(a==='hail-cancel'){root.VoidRoadTaxi?.cancel?.();paintHail();}});
+  paintLayers();paintInfo();paintHail();paintList();draw();return true;
+ }
+ function taxiCtx(){
+  let player=null,area='street',onFoot=false;
+  try{
+   if(typeof walker!=='undefined'&&walker)player=[walker.x,walker.z];
+   if(typeof walkingLocation!=='undefined'&&walkingLocation&&walker)area=walkingLocation.area==='interior'?'district':(root.VoidNeoChinatown?.zone?.({x:walker.x,z:walker.z}).area||'street');
+   onFoot=typeof mode!=='undefined'&&mode==='walking';
+  }catch{}
+  return {onFoot,area,player,combat:!!root.VoidFlightSkirmish?.active,busy:!!root.VoidGraphics?.busy,trip:!!(root.VoidRoadTaxi?.active||root.VoidTaxi?.trip)};
+ }
+ let hailHtml='';
+ function paintHail(){
+  const el=host?.querySelector('[data-map-hail]');if(!el)return;
+  const Rules=root.VoidRoadTaxiRules;if(!Rules){if(hailHtml){hailHtml='';el.innerHTML='';}return;}
+  const ctx=taxiCtx(),a=Rules.availability(typeof state!=='undefined'?state:null,ctx),list=ctx.player?Rules.destinations(typeof state!=='undefined'?state:null,ctx):[],st=root.VoidRoadTaxi?.status?.();
+  let html='<h2>STREET TAXIS</h2>';
+  if(st)html+='<div class="pd-note">'+esc(st.label)+' · '+(st.phase==='waiting'?'waiting, door open':st.phase==='arrived'?'arrived':'on the way')+' · '+st.distance+' m · '+st.fare+' CR</div>'+(st.canCancel?'<button type="button" data-map="hail-cancel">CANCEL TAXI</button>':'');
+  else html+=(a.ok?'<div class="pd-note">'+esc(a.network)+'. A cab drives the roads to you, then to the stop. The fare is paid when you board.</div>':'<div class="pd-note">'+esc(a.reason)+'</div>')
+   +(list.length?list.map(d=>'<button type="button" data-map="hail:'+esc(d.id)+'"'+(d.ok&&a.ok?'':' disabled')+'>CALL TAXI · '+esc(d.label)+' · '+d.fare+' CR</button>').join(''):'<div class="pd-note">No street stops are registered.</div>');
+  if(html!==hailHtml){hailHtml=html;el.innerHTML=html;}
  }
  let lastDraw=0;
- function refresh(){const t=performance.now();if(t-lastDraw<200||!host||!host.isConnected||drag)return;lastDraw=t;pulse+=.9;draw();}   // five times a second is plenty for a position marker
+ function refresh(){const t=performance.now();if(t-lastDraw<200||!host||!host.isConnected||drag)return;lastDraw=t;pulse+=.9;draw();paintHail();}   // five times a second is plenty for a position marker
 
  // ---- The waypoint indicator on the HUD: a pointer, the name and the distance. Updated four times a second, only while walking. ----
  const css=document.createElement('style');css.textContent='#waypoint-chip{position:fixed;left:50%;top:104px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:10px;padding:5px 12px 5px 8px;border:1px solid rgba(255,224,102,.5);background:rgba(3,9,15,.78);color:#fff3c4;font:11px/1.3 ui-monospace,Consolas,monospace;letter-spacing:.08em;pointer-events:none;white-space:nowrap}#waypoint-chip[hidden]{display:none}#waypoint-chip i{display:block;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:14px solid #ffe066;transition:transform .2s linear}#waypoint-chip small{opacity:.7;font-size:10px}@media (prefers-reduced-motion:reduce){#waypoint-chip i{transition:none}}'
   +'#personal-device .dm-bar,#personal-device .dm-layers{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}#personal-device .dm-layers{margin:8px 0}#personal-device .dm-layers button{font-size:10px;padding:4px 8px;opacity:.6}#personal-device .dm-layers button[aria-pressed="true"]{opacity:1;border-color:#58ffe1}#personal-device .dm-layers button:disabled{opacity:.3}'
   +'#personal-device canvas.dm-canvas{position:static;inset:auto;display:block;width:100%;height:auto;max-width:100%;aspect-ratio:10/7;cursor:grab;touch-action:none}#personal-device canvas.dm-canvas:active{cursor:grabbing}#personal-device .dm-card{padding:10px;border:1px solid rgba(255,224,102,.45);background:rgba(255,224,102,.05)}#personal-device .dm-card b{display:block;font-size:14px;color:#fff}#personal-device .dm-card span{display:block;font-size:10px;letter-spacing:.12em;opacity:.75;margin:2px 0 6px}#personal-device .dm-card p{margin:0 0 8px;font-size:11px;opacity:.8}#personal-device .dm-card div{display:flex;gap:6px}'
-  +'#personal-device .dm-row{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:6px 8px;margin:0 0 3px;font-size:12px}#personal-device .dm-row i{width:8px;height:8px;transform:rotate(45deg);flex:none}#personal-device .dm-row span{margin-left:auto;font-size:9px;letter-spacing:.14em;opacity:.6}';
+  +'#personal-device .dm-row{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:6px 8px;margin:0 0 3px;font-size:12px}#personal-device .dm-row i{width:8px;height:8px;transform:rotate(45deg);flex:none}#personal-device .dm-row span{margin-left:auto;font-size:9px;letter-spacing:.14em;opacity:.6}'
+  +'#personal-device [data-map-hail]{display:flex;flex-direction:column;gap:6px;margin:8px 0}#personal-device [data-map-hail] h2{margin:0}#personal-device [data-map-hail] button{text-align:left}';
  document.head.appendChild(css);
  const chip=document.createElement('div');chip.id='waypoint-chip';chip.hidden=true;chip.setAttribute('role','status');chip.innerHTML='<i aria-hidden="true"></i><span></span>';document.body.appendChild(chip);let chipText='';
  function chipTick(){

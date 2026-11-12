@@ -1,5 +1,12 @@
 # The Darknet District — Current AI Development Handoff
 
+## 2026-11-12: street taxis in NeoChinatown
+
+- Self-driving cabs drive the avenue and Main Street. Rules: `void-runner/road-taxi-rules.js`. The cab is drawn in code (`void-runner/road-taxi.js`); no model file. The older sky cabs are unchanged.
+- Hail one from the V1 map (STREET TAXIS). Stops are the four taxi zones that are already built: Main Street, the avenue, Main Street by the alley, and the passage by the landing pad. Add another later by appending its existing zone id to `REGISTRY` in `road-taxi-rules.js`. See `docs/development/ROAD_TAXIS.md`.
+- A person in front of a cab stops it. The fare is the same formula as the sky cabs, stored separately as `story.flags.roadTaxiTrip`.
+
+
 ## 2026-11-12: NULL, the nightclub, is open
 
 - `docs/development/NIGHTCLUB_NULL.md`. The existing club module is now ON for everyone in the game; because the purchased interior model is not published anywhere I can reach, the interior is built in code (`buildOwn()` in `void-runner/ncz-nightclub.js`) with a dance floor, DJ, bar, VIP corner and people. If `nightclub.vrpak` is later published the purchased model is used automatically.
