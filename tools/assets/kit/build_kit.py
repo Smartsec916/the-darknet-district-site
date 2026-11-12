@@ -155,6 +155,22 @@ def materials(with_images=True):
 
 
 # ---------------------------------------------------------------- the pieces ----------------------------------------------------------------
+def _neon(p, a, b, colour, node):
+    """A neon tube (square in section, 4 cm) from a to b: the only thing besides windows and signs that gives light. Its own node, so the game can switch it off."""
+    lo = [min(u, v) - (.02 if abs(u - v) < 1e-6 else 0) for u, v in zip(a, b)]
+    hi = [max(u, v) + (.02 if abs(u - v) < 1e-6 else 0) for u, v in zip(a, b)]
+    p.box(lo, hi, 'kit_emissive', bevel=0, node=node, region='neon_' + colour)
+
+
+def _rib(p, x0, x1, y0, y1, z0, z1):
+    """A bolted steel rib standing on the wall (y0 is its face)."""
+    p.box((x0, y0, z0), (x1, y1, z1), 'kit_metal', bevel=.012)
+    z = z0 + .35
+    while z < z1 - .2:
+        p.box((x0, y0 - .02, z), (x1, y0, z + .12), 'kit_metal', bevel=0)
+        z += .95
+
+
 def _wall_shell(p, W, H=FLOOR, openings=()):
     """The part every facade panel shares: the panel itself (with holes for `openings` = [(x0, x1, z0, z1)]), half-pilasters at both ends and a full one at every
     2 m bay line, a plinth and a floor band. Pieces put side by side therefore read as one continuous wall."""
@@ -175,10 +191,16 @@ def _wall_shell(p, W, H=FLOOR, openings=()):
     bays = int(round(W / 2))
     for k in range(bays + 1):
         x0, x1 = max(0, k * 2 - .12), min(W, k * 2 + .12)
-        p.box((x0, FACE, .45), (x1, plane + .01, H - .3), bevel=.012)
+        _rib(p, x0, x1, FACE - .02, plane + .01, .45, H - .3)
     p.box((0, 0, 0), (W, plane + .01, .45), bevel=.02)                       # plinth, the frontmost part of the piece
-    p.box((0, .04, H - .3), (W, plane + .01, H), bevel=.02)                 # floor band
+    p.box((0, .01, .4), (W, plane + .01, .47), 'kit_metal', bevel=0)         # a steel kick strip along its top
+    p.box((0, .04, H - .3), (W, plane + .01, H), 'kit_metal', bevel=.02)     # the floor band: a steel service tray
     p.box((0, .02, H - .34), (W, plane + .01, H - .3), 'kit_metal', bevel=0)  # a drip flashing under it
+    _neon(p, (0, .07, H - .39), (W, .07, H - .39), 'cyan', 'neon_0')          # a tube under the tray, unbroken from piece to piece
+    for i, z in enumerate((H - .52, H - .57, H - .62)):                       # a cable run along the wall
+        p.cyl((0, plane - .03 - .012 * (i % 2), z), (W, plane - .03 - .012 * (i % 2), z), .017, seg=5, caps=False)
+    for k in range(int(W)):
+        p.box((k + .47, plane - .06, H - .66), (k + .53, plane + .01, H - .48), 'kit_metal', bevel=0)
     p.snap.update({'left': [0, 0, 0], 'right': [W, 0, 0], 'top': [0, H, 0], 'wall_plane_z': -FACE})
 
 
@@ -195,6 +217,8 @@ def _wall_detail(p, x, kind):
             p.box((x - .05, plane - .06, z), (x + .05, plane, z + .04), 'kit_metal', bevel=0)
     elif kind == 'plate':
         p.box((x - .35, plane - .02, 1.1), (x + .35, plane + .01, 2.0), 'kit_metal', bevel=.008)
+        p.box((x - .2, plane - .05, 1.5), (x + .2, plane - .02, 1.85), 'kit_metal', bevel=.008)             # a wall terminal
+        p.box((x - .16, plane - .056, 1.62), (x + .16, plane - .05, 1.81), 'kit_emissive', bevel=0, region='window_cool')   # its screen
         for dx in (-.3, .3):
             for z in (1.16, 1.94):
                 p.box((x + dx - .02, plane - .035, z - .02), (x + dx + .02, plane - .02, z + .02), 'kit_metal', bevel=0)
@@ -205,7 +229,11 @@ def wall_plain(W):
         _wall_shell(p, W)
         kinds = ['vent', 'conduit', 'plate', 'conduit']
         for k in range(int(W / 2)):
-            _wall_detail(p, k * 2 + 1 + p.rng.uniform(-.25, .25), kinds[(k + int(W)) % len(kinds)])
+            kind = kinds[(k + int(W)) % len(kinds)]
+            if kind == 'vent':                                   # steel cladding sheets on the lower wall
+                for a in (.18, 1.02):
+                    p.box((k * 2 + a, FACE + .01, .52), (k * 2 + a + .8, FACE + .04, 1.7), 'kit_metal', bevel=.008)
+            _wall_detail(p, k * 2 + 1 + p.rng.uniform(-.25, .25), kind)
         # a casting joint across each bay, as a shallow groove strip
         p.box((0, FACE + .022, 1.74), (W, FACE + .031, 1.77), 'kit_metal', bevel=0)
     return make
@@ -217,8 +245,12 @@ def wall_windows(W):
         _wall_shell(p, W, openings=wins)
         plane = FACE + .03
         for i, (x0, x1, z0, z1) in enumerate(wins):
-            p.box((x0 - .1, .02, z0 - .07), (x1 + .1, plane + .05, z0), bevel=.015)                      # sill
-            p.box((x0 - .06, .06, z1), (x1 + .06, plane + .02, z1 + .1), bevel=.015)                     # lintel
+            p.box((x0 - .1, .02, z0 - .07), (x1 + .1, plane + .05, z0), 'kit_metal', bevel=.015)         # a steel ledge
+            p.box((x0 - .1, .01, z1), (x1 + .1, plane + .02, z1 + .12), 'kit_metal', bevel=.015)         # a steel hood
+            for a in (x0 - .1, x1 + .04):                                                                # its side cheeks
+                p.box((a, .05, z0), (a + .06, plane + .02, z1), 'kit_metal', bevel=0)
+            for j in range(4):                                                                           # louvres over the lower pane
+                p.box((x0, plane + .08, z0 + .08 + j * .11), (x1, plane + .11, z0 + .14 + j * .11), 'kit_metal', bevel=0)
             f = plane + .14
             for a, b_ in ((x0, x0 + .05), (x1 - .05, x1)):
                 p.box((a, f, z0), (b_, f + .07, z1), 'kit_metal', bevel=0)
@@ -245,20 +277,22 @@ def corner_outer(p):
     H, plane = FLOOR, FACE + .03
     p.box((0, plane, .45), (1 - plane, 1, H - .3), bevel=.03)                                   # the pier
     p.box((0, 0, 0), (1, 1, .45), bevel=.025)                                                   # plinth
-    p.box((0, .04, H - .3), (1 - .04, 1, H), bevel=.02)                                         # floor band
+    p.box((0, .04, H - .3), (1 - .04, 1, H), 'kit_metal', bevel=.02)                            # floor band
     p.box((0, .02, H - .34), (1 - .02, 1, H - .3), 'kit_metal', bevel=0)                       # flashing
-    p.box((0, FACE, .45), (.12, plane + .01, H - .3), bevel=.012)                               # half pilasters where the walls join
-    p.box((1 - plane - .01, .88, .45), (1 - FACE, 1, H - .3), bevel=.012)
+    p.box((0, .01, .4), (1 - .01, 1, .47), 'kit_metal', bevel=0)
+    _rib(p, 0, .1, FACE - .02, plane + .01, .45, H - .3)                                        # half ribs where the walls join
+    p.box((1 - plane - .01, .9, .45), (1 - FACE + .02, 1, H - .3), 'kit_metal', bevel=.012)
+    _neon(p, (0, .07, H - .39), (.93, .07, H - .39), 'cyan', 'neon_0')                          # the tray's tube, carried round the corner
+    _neon(p, (.93, .07, H - .39), (.93, 1, H - .39), 'cyan', 'neon_0')
+    _neon(p, (1 - plane + .03, plane - .03, 2.2), (1 - plane + .03, plane - .03, H - .45), 'magenta', 'neon_1')   # a tall tube up the corner edge
+    for z in (2.14, H - .45):
+        p.box((1 - plane - .02, plane - .07, z), (1 - plane + .07, plane + .02, z + .06), 'kit_metal', bevel=0)
     # a steel corner guard, bolted on, as high as a lorry reaches
     p.box((1 - plane - .34, plane - .02, .45), (1 - plane + .02, plane + .01, 2.1), 'kit_metal', bevel=.006)
     p.box((1 - plane - .01, plane - .02, .45), (1 - plane + .02, plane + .34, 2.1), 'kit_metal', bevel=.006)
     for z in (.6, 1.25, 1.95):
         p.box((1 - plane - .3, plane - .035, z), (1 - plane - .24, plane - .02, z + .06), 'kit_metal', bevel=0)
         p.box((1 - plane + .02, plane + .24, z), (1 - plane + .035, plane + .3, z + .06), 'kit_metal', bevel=0)
-    # stone-coursed quoins above the guard
-    for i, z in enumerate((2.25, 2.6, 2.95)):
-        a = .36 if i % 2 else .26
-        p.box((1 - plane - a, plane - .025, z), (1 - plane + .025, plane + a, z + .25), bevel=.012)
     _pipe(p, .32, plane, .45, H - .34)
     p.snap.update({'left': [0, 0, 0], 'around': {'position': [1, 0, -1], 'turnY': 90}, 'top': [0, H, 0], 'wall_plane_z': -FACE, 'wall_plane_x': 1 - FACE})
 
@@ -270,15 +304,17 @@ def corner_inner(p):
     # back arm: x 0..0.5, its face at y = 0.5
     p.box((0, .5 + plane, .45), (.5 + plane, 1, H - .3), bevel=0)
     p.box((0, .5, 0), (.5, 1, .45), bevel=.02)
-    p.box((0, .54, H - .3), (.5, 1, H), bevel=.02)
+    p.box((0, .54, H - .3), (.5, 1, H), 'kit_metal', bevel=.02)
     p.box((0, .52, H - .34), (.5, 1, H - .3), 'kit_metal', bevel=0)
-    p.box((0, .5 + FACE, .45), (.12, .5 + plane + .01, H - .3), bevel=.012)
+    _rib(p, 0, .1, .5 + FACE - .02, .5 + plane + .01, .45, H - .3)
+    _neon(p, (0, .57, H - .39), (.57, .57, H - .39), 'cyan', 'neon_0')
+    _neon(p, (.57, 0, H - .39), (.57, .57, H - .39), 'cyan', 'neon_0')
     # right arm: its face at x = 0.5, facing -X
     p.box((.5 + plane, 0, .45), (1, 1, H - .3), bevel=0)
     p.box((.5, 0, 0), (1, 1, .45), bevel=.02)
-    p.box((.54, 0, H - .3), (1, 1, H), bevel=.02)
+    p.box((.54, 0, H - .3), (1, 1, H), 'kit_metal', bevel=.02)
     p.box((.52, 0, H - .34), (1, 1, H - .3), 'kit_metal', bevel=0)
-    p.box((.5 + FACE, 0, .45), (.5 + plane + .01, .12, H - .3), bevel=.012)
+    p.box((.5 + FACE - .02, 0, .45), (.5 + plane + .01, .1, H - .3), 'kit_metal', bevel=.012)
     # the nook: a square fillet, a fat service pipe and a junction box, the things that collect in corners
     p.box((.5 - .02, .5 - .02, .45), (.5 + plane + .02, .5 + plane + .02, H - .3), bevel=.02)
     p.cyl((.3, .5 + plane - .1, .45), (.3, .5 + plane - .1, H - .34), .07, seg=8, caps=False)
@@ -294,13 +330,15 @@ def cornice(W):
     def make(p):
         o = .2                                                # the overhang; the wall's front is at y = o
         p.box((0, o + .04, 0), (W, o + DEPTH, .14), bevel=.015)
-        p.box((0, o - .06, .14), (W, o + DEPTH, .3), bevel=.02)
+        p.box((0, o - .06, .14), (W, o + DEPTH, .3), 'kit_metal', bevel=.02)
         p.box((0, 0, .3), (W, o + DEPTH, .46), bevel=.03)
         p.box((0, 0, .46), (W, o + DEPTH, .5), 'kit_metal', bevel=0)     # capping sheet
+        _neon(p, (0, .05, .26), (W, .05, .26), 'magenta', 'neon_0')      # a tube slung under the overhang
         n = int(W * 2)
-        for i in range(n):                                    # dentils, on a half-metre rhythm that carries across pieces
+        for i in range(n):                                    # cooling fins, on a half-metre rhythm that carries across pieces
             x = i * .5 + .25
-            p.box((x - .09, o - .05, .02), (x + .09, o + .05, .14), bevel=.01)
+            for dx in (-.08, 0, .08):
+                p.box((x + dx - .02, o - .04, .01), (x + dx + .02, o + .05, .14), 'kit_metal', bevel=0)
         for k in range(int(W / 2) + 1):                       # a bracket under the overhang at each bay line
             x0, x1 = max(0, k * 2 - .08), min(W, k * 2 + .08)
             p.box((x0, .03, .14), (x1, o - .05, .3), bevel=.01)
@@ -312,12 +350,15 @@ def cornice_corner(p):
     """Carries the cornice round a convex corner: sits on kit_corner_outer_1m, overhanging its front and right faces by 0.2 m."""
     o = .2
     p.box((0, o + .04, 0), (1 - .04, 1 + o, .14), bevel=.015)
-    p.box((0, o - .06, .14), (1 + .06, 1 + o, .3), bevel=.02)
+    p.box((0, o - .06, .14), (1 + .06, 1 + o, .3), 'kit_metal', bevel=.02)
     p.box((0, 0, .3), (1 + o, 1 + o, .46), bevel=.03)
     p.box((0, 0, .46), (1 + o, 1 + o, .5), 'kit_metal', bevel=0)
+    _neon(p, (0, .05, .26), (1 + o - .05, .05, .26), 'magenta', 'neon_0')
+    _neon(p, (1 + o - .05, .05, .26), (1 + o - .05, 1 + o, .26), 'magenta', 'neon_0')
     for x in (.25, .75):
-        p.box((x - .09, o - .05, .02), (x + .09, o + .05, .14), bevel=.01)
-        p.box((1 - .05, o + x - .09, .02), (1 + .05, o + x + .09, .14), bevel=.01)
+        for dx in (-.08, 0, .08):
+            p.box((x + dx - .02, o - .04, .01), (x + dx + .02, o + .05, .14), 'kit_metal', bevel=0)
+            p.box((1 - .05, o + x + dx - .02, .01), (1 + .04, o + x + dx + .02, .14), 'kit_metal', bevel=0)
     p.box((1 - .1, .04, .14), (1 + .16, o + .06, .3), bevel=.01)          # the corner bracket
     p.snap.update({'left': [0, 0, 0], 'on_corner': [0, 0, o], 'around': {'position': [1 + o, 0, -1 - o], 'turnY': 90}, 'top': [0, .5, 0]})
 
@@ -330,7 +371,7 @@ def roof_parapet(p):
     p.box((0, 0, .9), (W, DEPTH + .06, .93), 'kit_metal', bevel=0)                              # its metal cap
     for k in range(3):
         x0, x1 = max(0, k * 2 - .12), min(W, k * 2 + .12)
-        p.box((x0, FACE, 0), (x1, plane + .01, .78), bevel=.012)
+        p.box((x0, FACE - .02, 0), (x1, plane + .01, .78), 'kit_metal', bevel=.012)
     for x in (1, 3):                                                                           # overflow spouts
         p.box((x - .1, plane - .06, .12), (x + .1, plane + .01, .3), 'kit_metal', bevel=.01)
         p.box((x - .06, plane - .16, .14), (x + .06, plane - .06, .2), 'kit_metal', bevel=0)

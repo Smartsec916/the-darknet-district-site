@@ -13,7 +13,8 @@ from PIL import Image
 BRICK = np.array([133.2, 106.0, 83.5])
 # Regions of the emissive atlas in UV (u0, v0, u1, v1), v up. build_kit.py maps faces into these.
 EMISSIVE_REGIONS = {'window_warm': (0, .5, .25, 1), 'window_blinds': (.25, .5, .5, 1), 'window_cool': (.5, .5, .75, 1), 'window_dim': (.75, .5, 1, 1),
-                    'neon': (0, 0, .5, .5), 'sign': (.5, 0, 1, .5)}
+                    'neon_magenta': (0, .375, .5, .5), 'neon_cyan': (0, .25, .5, .375), 'neon_amber': (0, .125, .5, .25), 'neon_white': (0, 0, .5, .125),
+                    'sign': (.5, 0, 1, .5)}
 
 
 def _noise(n, octaves, seed, persistence=.55, base=4):
@@ -55,7 +56,7 @@ def _orm(ao, rough, metal):
 
 def concrete(out, n=2048):
     big, mid, fine = _noise(n, 5, 11), _noise(n, 6, 12, base=16), _noise(n, 4, 13, base=128)
-    tone = BRICK * .42 + np.array([104, 104, 106]) * .58          # a warm grey that belongs next to the brick
+    tone = (BRICK * .34 + np.array([84, 90, 100]) * .66) * .8      # a dark, cool grey that still carries a little of the brick's warmth
     value = .62 + .30 * (big - .5) + .16 * (mid - .5) + .10 * (fine - .5)
     # shutter-board lines of the casting, one every metre (the texture spans 4 m)
     ys, xs = np.mgrid[0:n, 0:n]
@@ -108,7 +109,7 @@ def glass(out, n=512):
 
 
 def emissive(out, n=1024):
-    """Atlas: top half four lit-window looks, bottom-left a neon tube (white: the game tints it), bottom-right a blank sign face."""
+    """Atlas: top half four lit-window looks, bottom-left four neon tube colours (magenta, cyan, amber, white), bottom-right a blank sign face."""
     img = np.zeros((n, n, 3))
     h = n // 2
     q = n // 4
@@ -133,8 +134,11 @@ def emissive(out, n=1024):
     img[0:h, 3 * q:4 * q] = window([255, 150, 190], seed=4, dim=.45)
     # neon: bright core fading to the edge of the tube, along the texture's v
     yy, xx = np.mgrid[0:h, 0:h]
-    core = np.exp(-(((yy / h) - .5) ** 2) * 18)
-    img[h:n, 0:h] = (255 * (.35 + .65 * core))[..., None] * np.ones(3)
+    for name, col in (('neon_magenta', (255, 60, 190)), ('neon_cyan', (60, 230, 255)), ('neon_amber', (255, 170, 60)), ('neon_white', (255, 255, 255))):
+        _, v0, _, v1 = EMISSIVE_REGIONS[name]
+        r0, r1 = int(n - v1 * n), int(n - v0 * n)
+        core = np.exp(-((np.linspace(0, 1, r1 - r0) - .5) ** 2) * 10)
+        img[r0:r1, 0:h] = ((.8 + .2 * core)[:, None, None] * np.array(col, float)[None, None, :])
     # sign face: an even, slightly mottled light box with a darker rim
     rim = np.minimum.reduce([yy, xx, h - 1 - yy, h - 1 - xx]) / h
     face = (.55 + .45 * np.clip(rim * 12, 0, 1)) * (.9 + .2 * (_noise(h, 3, 42, base=8) - .5))

@@ -59,11 +59,29 @@
    1,
    1
   ],
-  "neon": [
+  "neon_magenta": [
+   0,
+   0.375,
+   0.5,
+   0.5
+  ],
+  "neon_cyan": [
+   0,
+   0.25,
+   0.5,
+   0.375
+  ],
+  "neon_amber": [
+   0,
+   0.125,
+   0.5,
+   0.25
+  ],
+  "neon_white": [
    0,
    0,
    0.5,
-   0.5
+   0.125
   ],
   "sign": [
    0.5,
@@ -82,9 +100,11 @@
     "h": 3.5,
     "d": 0.5
    },
-   "triangles": 304,
-   "bytes": 25180,
-   "nodes": [],
+   "triangles": 510,
+   "bytes": 41752,
+   "nodes": [
+    "kit_wall_plain_2m__neon_0"
+   ],
    "snap": {
     "left": [
      0,
@@ -113,9 +133,11 @@
     "h": 3.5,
     "d": 0.5
    },
-   "triangles": 440,
-   "bytes": 35212,
-   "nodes": [],
+   "triangles": 738,
+   "bytes": 57756,
+   "nodes": [
+    "kit_wall_plain_4m__neon_0"
+   ],
    "snap": {
     "left": [
      0,
@@ -144,9 +166,11 @@
     "h": 3.5,
     "d": 0.5
    },
-   "triangles": 576,
-   "bytes": 45244,
-   "nodes": [],
+   "triangles": 990,
+   "bytes": 76900,
+   "nodes": [
+    "kit_wall_plain_6m__neon_0"
+   ],
    "snap": {
     "left": [
      0,
@@ -175,11 +199,12 @@
     "h": 3.5,
     "d": 0.5
    },
-   "triangles": 664,
-   "bytes": 50256,
+   "triangles": 1018,
+   "bytes": 76220,
    "nodes": [
     "kit_wall_windows_4m__glass_0",
-    "kit_wall_windows_4m__glass_1"
+    "kit_wall_windows_4m__glass_1",
+    "kit_wall_windows_4m__neon_0"
    ],
    "snap": {
     "left": [
@@ -219,12 +244,13 @@
     "h": 3.5,
     "d": 0.5
    },
-   "triangles": 918,
-   "bytes": 68088,
+   "triangles": 1404,
+   "bytes": 103288,
    "nodes": [
     "kit_wall_windows_6m__glass_0",
     "kit_wall_windows_6m__glass_1",
-    "kit_wall_windows_6m__glass_2"
+    "kit_wall_windows_6m__glass_2",
+    "kit_wall_windows_6m__neon_0"
    ],
    "snap": {
     "left": [
@@ -269,9 +295,11 @@
     "h": 3.5,
     "d": 1.0
    },
-   "triangles": 464,
-   "bytes": 36920,
-   "nodes": [],
+   "triangles": 524,
+   "bytes": 42296,
+   "nodes": [
+    "kit_corner_inner_1m__neon_0"
+   ],
    "snap": {
     "left": {
      "position": [
@@ -304,9 +332,12 @@
     "h": 3.5,
     "d": 1.0
    },
-   "triangles": 572,
-   "bytes": 44712,
-   "nodes": [],
+   "triangles": 548,
+   "bytes": 44264,
+   "nodes": [
+    "kit_corner_outer_1m__neon_0",
+    "kit_corner_outer_1m__neon_1"
+   ],
    "snap": {
     "left": [
      0,
@@ -339,9 +370,11 @@
     "h": 0.5,
     "d": 0.7
    },
-   "triangles": 408,
-   "bytes": 33468,
-   "nodes": [],
+   "triangles": 388,
+   "bytes": 32228,
+   "nodes": [
+    "kit_cornice_2m__neon_0"
+   ],
    "snap": {
     "left": [
      0,
@@ -374,9 +407,11 @@
     "h": 0.5,
     "d": 0.7
    },
-   "triangles": 628,
-   "bytes": 50152,
-   "nodes": [],
+   "triangles": 576,
+   "bytes": 45644,
+   "nodes": [
+    "kit_cornice_4m__neon_0"
+   ],
    "snap": {
     "left": [
      0,
@@ -409,9 +444,11 @@
     "h": 0.5,
     "d": 0.7
    },
-   "triangles": 848,
-   "bytes": 66832,
-   "nodes": [],
+   "triangles": 764,
+   "bytes": 59064,
+   "nodes": [
+    "kit_cornice_6m__neon_0"
+   ],
    "snap": {
     "left": [
      0,
@@ -444,9 +481,11 @@
     "h": 0.5,
     "d": 1.2
    },
-   "triangles": 364,
-   "bytes": 30180,
-   "nodes": [],
+   "triangles": 356,
+   "bytes": 29816,
+   "nodes": [
+    "kit_cornice_corner_1m__neon_0"
+   ],
    "snap": {
     "left": [
      0,
@@ -483,7 +522,7 @@
     "d": 0.59
    },
    "triangles": 452,
-   "bytes": 34920,
+   "bytes": 34900,
    "nodes": [],
    "snap": {
     "left": [
