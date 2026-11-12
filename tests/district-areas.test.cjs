@@ -7,7 +7,7 @@ const ids=l=>l.map(i=>i.id),at=item=>N.zone({x:item.position[0],z:item.position[
 const ENTRANCE_SOLIDS=['district-door','district-front-east','district-front-west','district-inner-door','vestibule-east','vestibule-west'];
 
 test('the default layout is still the whole combined layout, unchanged',()=>{
- assert.equal(all.solids.length,73);assert.equal(all.interactions.length,22);assert.equal(all.area,undefined);assert.equal(all.name,'NEOCHINATOWN / TESSALY');assert.equal(N.layout('all').solids.length,73);
+ assert.equal(all.solids.length,77);assert.equal(all.interactions.length,22);assert.equal(all.area,undefined);assert.equal(all.name,'NEOCHINATOWN / TESSALY');assert.equal(N.layout('all').solids.length,77);
 });
 test('the street environment is the outdoors plus the entrance, and nothing of the District behind the inner door',()=>{
  assert.equal(street.area,'street');assert.equal(street.solids.length,35);
@@ -17,7 +17,7 @@ test('the street environment is the outdoors plus the entrance, and nothing of t
  assert.deepEqual(street.spawn,all.spawn);assert.equal(street.yaw,all.yaw);assert.equal(street.name,all.name);
 });
 test('the interior environment is exactly the District and terrace part of the original layout',()=>{
- assert.equal(interior.area,'interior');assert.equal(interior.solids.length,44);assert.equal(interior.interactions.length,20);
+ assert.equal(interior.area,'interior');assert.equal(interior.solids.length,48);assert.equal(interior.interactions.length,20);
  assert.equal(interior.interactions.filter(i=>i.action==='district-pod').length,10,'every pod has a hatch interaction');
  const original=all.solids.filter(s=>['district','terrace'].includes(at(s)));
  assert.deepEqual(interior.solids,original,'solids are identical, in the same order');
@@ -48,7 +48,8 @@ test('the outer door is the only way from the street into the vestibule, and the
 test('every pod hatch is reachable from the shared room and exits onto open floor',()=>{
  const A=require('../void-runner/district-area.js');
  for(let index=1;index<=10;index++){
-  const z=57+((index-1)%5)*2.6,[x,wz]=N.toWorld(index<=5?-12.5:-11.5,z);
+  // the pods stand along the back wall of the building since 2026-11-12: lower row approached from z 74.3, upper row from 72.9
+  const [x,wz]=N.toWorld(-5.2+((index-1)%5)*2.6,index<=5?74.3:72.9);
   assert(!E.blocked(x,wz,interior),'approach to pod '+index);
   assert.equal(E.select({x,z:wz,yaw:0},interior)?.podIndex,index,'hatch '+index+' can be selected');
   const exit=A.podExit(N,index);assert(!E.blocked(exit.spawn[0],exit.spawn[2],interior),'exit from pod '+index);

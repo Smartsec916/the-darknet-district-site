@@ -5,7 +5,7 @@
 (function(root){
  'use strict';
  const A=root.VoidCharacterAppearance,CAT=A.CATALOG,KEEP=['hairColor','clothingColor'];
- const STAGE={x:-9,z:60,dist:3.05,eye:1.22,side:.85};   // `side` moves the character out from behind the options panel, to the middle of the free part of the screen   // in the pod room's own coordinates: the camera stands here looking +z (towards the music screen); the character stands `dist` metres ahead
+ const STAGE={x:0,z:64.6,dist:3.05,eye:1.22,side:.85};   // in the hallway, looking toward the Sleeping Pods at the back (the pods moved there on 2026-11-12)   // `side` moves the character out from behind the options panel, to the middle of the free part of the screen   // in the pod room's own coordinates: the camera stands here looking +z (towards the music screen); the character stands `dist` metres ahead
  let lamps=[],open=false,closing=false,ctx=null,char=null,draft=null,original=null,snapshot=null,holder=null,spin=0,auto=true,seq=0,pad=null,raf=0,drag=null,ui=null;
  const uid=()=>root.VoidAccount?.user?.uid||'guest';
  const storage=()=>{try{return root.localStorage;}catch{return null;}};

@@ -45,17 +45,19 @@
   wall('district-front-west',-17.5,19.85,-3,19.85,8,.3);wall('district-front-east',3,19.85,17.5,19.85,8,.3);
   wall('vestibule-west',-3,20,-3,26);wall('vestibule-east',3,20,3,26);
   // Hallway walls with openings to each room.
-  const left=[[26,31.5],[36.5,46.5],[52.5,59.5],[64.5,78]],right=[[26,30.5],[35.5,44.5],[49.5,60.5],[64.5,78]];
+  const left=[[26,31.5],[36.5,46.5],[52.5,59.5],[64.5,70.5]],right=[[26,30.5],[35.5,44.5],[49.5,60.5],[64.5,70.5]];
   left.forEach(([a,b],i)=>wall('hall-west-'+i,-3,a,-3,b));right.forEach(([a,b],i)=>wall('hall-east-'+i,3,a,3,b));
-  wall('hall-end',-3,78,3,78);
+  // The hallway runs straight into the Sleeping Pods at the back of the building (2026-11-12: the pods moved here from the west room; the stairs to the terrace moved
+  // to this room's east end). The room spans the full width behind the old pod room and the meeting room: z 70.5..78.3.
+  wall('pods-rear-sw',-17,70.5,-3,70.5);wall('pods-rear-se',3,70.5,17,70.5);wall('pods-rear-west',-17,70.5,-17,78.3);wall('pods-rear-east',17,70.5,17,78.3);wall('pods-rear-north',-17,78.3,17,78.3);
   // VR arcade (west, z 28..44): two glass booths along the back, a viewing strip by the hallway.
   wall('vr-north',-17,28,-3,28);wall('vr-west',-17,28,-17,44);wall('vr-south',-17,44,-3,44);
   wall('vr-booth-glass',-8.5,29,-8.5,43,3,.15);wall('vr-booth-partition',-17,36,-8.5,36,3,.15);
   solids.push({id:'arcade-terminal',position:[-6.85,.8,36],size:[.7,1.6,1.1]}); // the VR terminal kiosk
   // Vending alcove (west, z 46.5..52.5).
   wall('vend-back',-7,46.5,-7,52.5);wall('vend-n',-7,46.5,-3,46.5);wall('vend-s',-7,52.5,-3,52.5);
-  // Sleeping pods (west, z 55..70).
-  wall('pods-north',-17,55,-3,55);wall('pods-west',-17,55,-17,70);wall('pods-south',-17,70,-3,70);
+  // The west room (z 55..70): the Sleeping Pods until 2026-11-12, now empty and waiting for the arcade.
+  wall('arc-north',-17,55,-3,55);wall('arc-west',-17,55,-17,70);wall('arc-south',-17,70,-3,70);
   // Bar (east, z 28..42).
   wall('bar-north',3,28,17,28);wall('bar-east',17,28,17,42);wall('bar-south',3,42,17,42);
   // Admin & Iris shop (east, z 43..53).
@@ -64,7 +66,7 @@
   wall('meet-north',3,56,15,56);wall('meet-east',15,56,15,69);wall('meet-south',3,69,15,69);
   solids.push({id:'meeting-door',position:[3,1.6,62.5],size:[.3,3.2,4]});
   // Furniture that blocks movement.
-  for(const [id,x,z,w,d] of [['bar-counter',10,38.5,9,1.1],['shop-counter',10,47.2,8,1.1],['meeting-table',9,62.5,4,2.4],['pods-row',-15.4,62.5,2.6,13]])solids.push({id,position:[x,.6,z],size:[w,1.2,d]});
+  for(const [id,x,z,w,d] of [['bar-counter',10,38.5,9,1.1],['shop-counter',10,47.2,8,1.1],['meeting-table',9,62.5,4,2.4],['pods-row',0,76.9,13,2.6]])solids.push({id,position:[x,.6,z],size:[w,1.2,d]});
   // Smoking terrace, an open roof reached by the stairs at the hallway end.
   wall('terrace-north',28,58,48,58,1.1);wall('terrace-south',28,78,48,78,1.1);wall('terrace-west',28,58,28,78,1.1);wall('terrace-east',48,58,48,78,1.1);
 
@@ -76,10 +78,10 @@
     {id:'district-bar',label:'TALK TO THE BARTENDER',position:[10,1.7,37.2],action:'district-bar',range:3},
     {id:'district-vr',label:'ACCESS VR EXPERIENCES',position:[-6.2,1.7,36],action:'district-vr',range:3},
     {id:'district-vending',label:'VENDING MACHINES',position:[-5,1.7,49.5],action:'district-vending',range:2.6},
-    ...Array.from({length:10},(_,k)=>({id:k?'district-pod-'+String(k+1).padStart(2,'0'):'district-pod',label:(k<5?'ENTER':'CLIMB INTO')+' SLEEPING POD '+String(k+1).padStart(2,'0'),position:[k<5?-13:-11.5,1.7,57+(k%5)*2.6],action:'district-pod',podIndex:k+1,range:1.35})),
-    {id:'district-wardrobe',label:'WARDROBE',position:[-5.4,1.7,68.2],action:'district-wardrobe',range:2.6},
+    ...Array.from({length:10},(_,k)=>({id:k?'district-pod-'+String(k+1).padStart(2,'0'):'district-pod',label:(k<5?'ENTER':'CLIMB INTO')+' SLEEPING POD '+String(k+1).padStart(2,'0'),position:[-5.2+(k%5)*2.6,1.7,k<5?74.3:72.9],action:'district-pod',podIndex:k+1,range:1.35})),
+    {id:'district-wardrobe',label:'WARDROBE',position:[-9,1.7,72.1],action:'district-wardrobe',range:2.6},
     {id:'district-meeting',label:'MEETING ROOM / PRIVATE',position:[2.4,1.7,62.5],action:'district-meeting',range:2.6},
-    {id:'district-stairs',label:'CLIMB TO THE SMOKING AREA',position:[0,1.7,75.5],action:'district-stairs',range:2.6},
+    {id:'district-stairs',label:'CLIMB TO THE SMOKING AREA',position:[14.6,1.7,74.4],action:'district-stairs',range:2.6},
     {id:'district-stairs-down',label:'GO BACK DOWNSTAIRS',position:[30,1.7,68],action:'district-stairs-down',range:2.6}
   ];
   // The city blocks between the streets: solid wherever there is no street, District or terrace.
@@ -142,7 +144,10 @@
     // While `discard` is set, built parts are thrown away: an upgraded block (below) still runs its procedural code so the
     // seeded random sequence, and so every sign, window and height elsewhere in the city, stays exactly as it was.
     let discard=false;
-    function add(mesh,m,p,merge=true){if(discard){mesh.dispose();return mesh;}mesh.material=m;mesh.position.set(...p);mesh.parent=target;mesh.isPickable=false;mesh.receiveShadows=false;if(merge){if(!staticMeshes.has(m))staticMeshes.set(m,[]);staticMeshes.get(m).push(mesh);}else dynamic.push(mesh);return mesh;}
+    // `framed`: while it is a list, every mesh added is noted, so a finished section can be moved as one rigid piece (the Sleeping Pods are built where they always
+    // were and then set down at the back of the building).
+    let framed=null;
+    function add(mesh,m,p,merge=true){if(discard){mesh.dispose();return mesh;}if(framed)framed.push(mesh);mesh.material=m;mesh.position.set(...p);mesh.parent=target;mesh.isPickable=false;mesh.receiveShadows=false;if(merge){if(!staticMeshes.has(m))staticMeshes.set(m,[]);staticMeshes.get(m).push(mesh);}else dynamic.push(mesh);return mesh;}
     const box=(name,size,p,m,merge=true)=>add(B.MeshBuilder.CreateBox(name,{width:size[0],height:size[1],depth:size[2]},scene),m,p,merge);
     const cyl=(name,r,h,p,m,merge=true,t=12)=>add(B.MeshBuilder.CreateCylinder(name,{diameter:r*2,height:h,tessellation:t},scene),m,p,merge);
     function texture(name,w,h,draw){const t=new B.DynamicTexture('ncz-'+name,{width:w,height:h},scene,true);draw(t.getContext(),w,h);t.update();textures.push(t);return t;}
@@ -524,15 +529,15 @@
     add(B.MeshBuilder.CreateGround('district-floor',{width:34,height:52},scene),tiles,[0,.02,52]);
     box('district-ceiling',[34,.3,52],[0,4.2,52],frame);
     // Walls only: furniture collision blocks (counters, the pod row) are drawn by their rooms, not as walls.
-    for(const s of solids){if(!/^(hall|vr|vend|pods|bar|shop|meet)-/.test(s.id)||/-(counter|row|table)$/.test(s.id)||/glass|partition/.test(s.id))continue;/* glass booths are drawn by the VR arcade */box('district-wall',[Math.max(.3,s.size[0]),4.2,Math.max(.3,s.size[2])],[s.position[0],2.1,s.position[2]],metal);}
+    for(const s of solids){if(!/^(hall|vr|vend|pods|arc|bar|shop|meet)-/.test(s.id)||/-(counter|row|table)$/.test(s.id)||/glass|partition/.test(s.id))continue;/* glass booths are drawn by the VR arcade */box('district-wall',[Math.max(.3,s.size[0]),4.2,Math.max(.3,s.size[2])],[s.position[0],2.1,s.position[2]],metal);}
     for(let z=28;z<78;z+=4){box('hall-beam',[6,.3,.3],[0,3.9,z],frame);box('hall-led',[.08,.05,3.6],[-2.6,3.85,z+2],z%8?cyan:magenta);box('hall-led',[.08,.05,3.6],[2.6,3.85,z+2],z%8?magenta:cyan);}
     for(const [z,side] of [[30.5,1],[46,-1],[58,1],[66,-1]])plane('hall-ad',1.2,1.8,[side*2.82,2.2,z],adMat(nextAd()),side>0?Math.PI/2:-Math.PI/2);
     for(const z of [40,72])box('hall-camera',[.2,.2,.4],[2.7,3.6,z],frame);
     const roomSign=(lines,colors,p,ry)=>neon('room-sign-'+lines[0],lines,colors,2.4,.7,p,ry,'rgba(10,10,16,.9)',true);
     roomSign(['VR / ARCADE'],['#38e8ff'],[-2.8,3.4,34],Math.PI/2);roomSign(['BAR · LOUNGE'],['#ffb347'],[2.8,3.4,33],-Math.PI/2);
     roomSign(['ADMIN & IRIS'],['#9b7bff'],[2.8,3.4,47],-Math.PI/2);roomSign(['VENDING'],['#6cff9e'],[-2.8,3.4,49.5],Math.PI/2);
-    roomSign(['SLEEP PODS'],['#ff5bd0'],[-2.8,3.4,62],Math.PI/2);roomSign(['MEETING ROOM'],['#e8f0ff'],[2.8,3.4,62.5],-Math.PI/2);
-    roomSign(['SMOKING AREA ↑'],['#ffb347'],[0,3.5,77.7],Math.PI);
+    roomSign(['SLEEP PODS'],['#ff5bd0'],[0,3.45,70.2],0);roomSign(['MEETING ROOM'],['#e8f0ff'],[2.8,3.4,62.5],-Math.PI/2);
+    roomSign(['SMOKING AREA ↑'],['#ffb347'],[16.7,3.3,74.4],-Math.PI/2);
     neon('welcome',['THE DARKNET DISTRICT'],['#9b7bff'],5,.8,[0,3.3,26.6],Math.PI,undefined,true);
 
     // VR arcade (David, 2026-10-26): two standing VR booths behind glass, divided by a glass partition, with a
@@ -588,11 +593,11 @@
      draw();
      return {tick(dt){clock+=dt;redraw-=dt;if(redraw<=0){redraw=.2;draw();}},screen};})();
     // The wardrobe mirror: a wall panel on the south wall of the sleeping-pod room, east of the music screen (character-creator.js owns the screen it opens). Free and unlimited.
-    {const X=-5.4,Y=1.5,Z=69.68,W=256,H=384,t=texture('pod-wardrobe',W,H,(g)=>{g.fillStyle='#04070a';g.fillRect(0,0,W,H);g.strokeStyle='#38e8ff';g.lineWidth=3;g.strokeRect(10,10,W-20,H-20);g.fillStyle='#38e8ff';g.font='bold 26px monospace';g.fillText('WARDROBE',40,64);
+    {const X=-9,Y=1.5,Z=70.82,W=256,H=384,t=texture('pod-wardrobe',W,H,(g)=>{g.fillStyle='#04070a';g.fillRect(0,0,W,H);g.strokeStyle='#38e8ff';g.lineWidth=3;g.strokeRect(10,10,W-20,H-20);g.fillStyle='#38e8ff';g.font='bold 26px monospace';g.fillText('WARDROBE',40,64);
       g.fillStyle='#ff3fb4';g.font='bold 15px monospace';g.fillText('CHANGE YOUR LOOK',42,92);g.fillStyle='#8fb3bd';g.font='14px monospace';g.fillText('FREE · UNLIMITED',46,118);g.fillText('[E] OPEN',92,H-40);
       g.strokeStyle='rgba(56,232,255,.5)';g.beginPath();g.ellipse(W/2,230,34,70,0,0,Math.PI*2);g.stroke();g.beginPath();g.arc(W/2,150,20,0,Math.PI*2);g.stroke();}),
       frame=mat('wardrobe-shell','#121419',{rough:.32,metal:.85});
-     box('pod-wardrobe-frame',[1.62,2.32,.1],[X,Y,Z+.07],frame,false);plane('pod-wardrobe-panel',1.4,2.1,[X,Y,Z],texMat('pod-wardrobe-panel',t,{glow:true}),0);}
+     box('pod-wardrobe-frame',[1.62,2.32,.1],[X,Y,Z-.07],frame,false);plane('pod-wardrobe-panel',1.4,2.1,[X,Y,Z],texMat('pod-wardrobe-panel',t,{glow:true}),Math.PI);}
     // Every capsule owns its emissive surfaces. The shared room no longer carries a music player.
     const podPlayers={};
     // st: null (idle) or {playing,title,position,volume,source}. 384x192, green-on-black like the reference.
@@ -723,6 +728,7 @@
      const mesh=new B.Mesh('pod-front',scene),vd=new B.VertexData();vd.positions=pos;vd.indices=idx;// Faces the room (+x) on both windings, so it lights like the rest of the shell.
      vd.normals=pos.map((_,k)=>k%3===0?1:0);const uvs=[];for(let k=0;k<pos.length;k+=3)uvs.push(pos[k+2]/width+.5,pos[k+1]/height+.5);vd.uvs=uvs;vd.applyToMesh(mesh);return add(mesh,material,p);}
     const podVendMat=texMat('tesana-pod-vend',texture('tesana-pod-vend',640,420,drawPodVending),{glow:true});
+    framed=[];   // the ten pods, their ladder and ceiling panels: built in the west room's coordinates, then moved to the back wall below
     for(let row=0;row<2;row++)for(let i=0;i<5;i++){const z=57+i*2.6,y=.9+row*1.7,index=row*5+i+1,hatch=[amber,magenta][(i+row)%2],shell=podPaint,podInner=glowMat('pod-inner-'+index,'#ffc98a',.16),podLed=glowMat('tesana-pod-led-'+index,'#ad5a94',.4);
      // A hollow capsule: back, top, floor, sides and a fascia framing the hatch, so the bed shows through the glass.
      box('pod-back',[.12,1.5,2.3],[-16.64,y,z],shell);for(const s of [-1,1]){box('pod-roof',[2.6,.1,2.3],[-15.4,y+s*.7,z],shell);box('pod-side',[2.6,1.5,.1],[-15.4,y,z+s*1.1],shell);}
@@ -750,8 +756,11 @@
      box('tesana-pod-vend-frame',[.72,.6,.06],[-15.675,y+.08,z+.985],podRib);box('tesana-pod-vend-tray',[.5,.07,.02],[-15.675,y-.19,z+.95],podVent);box('tesana-pod-vend-led',[.03,.03,.012],[-15.36,y+.3,z+.95],amber);
      box('tesana-pod-vend-bezel',[.68,.46,.01],[-15.675,y+.13,z+.959],podVent); plane('tesana-pod-vend',.64,.42,[-15.675,y+.13,z+.952],podVendMat,0);
      neon('pod-no-'+row+i,[String(row*5+i+1).padStart(2,'0')],['#e8f0ff'],.4,.25,[-14.06,y+.62,z+.8],-Math.PI/2,undefined,true);}
-    box('pod-ladder',[.1,3.2,.6],[-14,1.6,69],pipe);box('pod-terminal',[.4,1.2,.4],[-6,.6,57],frame);box('pod-terminal-screen',[.05,.4,.3],[-5.78,1.1,57],cyan);
-    for(let z=56.8;z<69;z+=2.4)box('pods-ceiling-panel',[1,.04,1],[-9,4.03,z],glowMat('pod-panel','#7fe6ff',.9));
+    box('pod-ladder',[.1,3.2,.6],[-14,1.6,69],pipe);
+    for(let z=56.8;z<69;z+=2.4)box('pods-ceiling-panel',[1,.04,1],[-11.2,4.03,z],glowMat('pod-panel','#7fe6ff',.9));
+    // Set the whole piece down against the back wall, turned a quarter turn so the hatches face the hallway: old (x, z) -> (z - 62.2, 61.3 - x).
+    for(const m of framed){const x=m.position.x,z=m.position.z;m.position.x=z-62.2;m.position.z=61.3-x;m.rotation.y+=Math.PI/2;}framed=null;
+    box('pod-terminal',[.4,1.2,.4],[-15.6,.6,71.4],frame);box('pod-terminal-screen',[.3,.4,.05],[-15.6,1.1,71.62],cyan);
 
     // Meeting room: glass wall to the hallway, table, chairs, screen.
     if(!state.story?.flags?.meetingOpen)box('meeting-door',[.25,3.1,4],[3,1.55,62.5],mat('door-inner','#1d2026',{rough:.35,metal:.9}),false).name='meeting-door';
@@ -773,7 +782,8 @@
     for(let z=28;z<78;z+=4)for(const [x,c] of [[-2.25,z%8?'#38e8ff':'#ff3fb4'],[2.25,z%8?'#ff3fb4':'#38e8ff']])box('neon-reflection',[.32,.004,3.2],[x,.034,z+2],streak(c));
     for(const [x,z] of [[2.55,44.2],[-2.55,53.5]])instance('bin',[x,0,z],x>0?-Math.PI/2:Math.PI/2);
     // Stairs at the hallway end rise into the ceiling.
-    for(let i=0;i<8;i++)box('stair-step',[3,.2,.5],[0,.1+i*.45,74+i*.45],pipe);box('stair-rail',[.08,.08,4.5],[1.6,2.6,75.6],amber);
+    // The stairs to the smoking terrace: at the east end of the Sleeping Pods room since 2026-11-12 (they used to stand at the end of the hallway), climbing toward the east wall.
+    for(let i=0;i<8;i++)box('stair-step',[.5,.2,2.4],[13.2+i*.45,.1+i*.45,74.4],pipe);for(const dz of [-1.25,1.25])box('stair-rail',[4.2,.08,.08],[14.9,2.6,74.4+dz],amber);
 
     // ---- Smoking terrace (open roof) --------------------------------------
     add(B.MeshBuilder.CreateGround('terrace-floor',{width:20,height:20},scene),asphalt,[38,.02,68]);

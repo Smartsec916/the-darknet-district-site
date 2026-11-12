@@ -1,5 +1,12 @@
 # The Darknet District — Current AI Development Handoff
 
+## 2026-11-12: Sleeping Pods moved to the rear of the District
+
+- See `docs/development/SLEEPING_PODS.md`. The hallway now ends in the pod room (z 70.5..78.3, full width); stairs to the terrace moved to its east end; the wardrobe is on its entrance wall; the character creator's stage is in the hallway with the pods behind. The old west room is empty (`arc-*` walls) for the arcade.
+- Use `VoidDistrictArea.podBed/podExit/POD_VIEW` for pod positions and view directions; several tests had the old numbers hard-coded and were updated.
+- Next for this brief: Tesana fidelity pass on the pod interior, then the 1980s arcade in the old room.
+
+
 ## 2026-11-12: the alley is inhabited
 
 - `void-runner/ncz-alley.js` + alley props and steam in `neochinatown.js`; see `docs/development/ALLEY_LIFE.md`. No sound added.

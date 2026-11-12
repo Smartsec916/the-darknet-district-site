@@ -80,7 +80,7 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   const continueToPod=async()=>{await pg.goto(BASE);await ready();await pg.click('[data-action=menu-continue]');await pg.waitForFunction(()=>mode==='pod-waking'&&walkingLocation?.area==='interior'&&!!walker,null,{timeout:300000});
    assert.equal(await pg.evaluate(()=>state.story.flags.podWakePending),true,'Continue wakes in the pod');await pg.click('#pod-wake button');await settle('interior',3000);return snap();};
   s=await continueToPod();console.log(q,'resumed inside',JSON.stringify(s));
-  assert.equal(s.area,'interior');assert.equal(s.street,0);assert(Math.abs(s.local[0]+12.5)<1.5&&Math.abs(s.local[1]-57)<1.5,'at the pod exit: '+s.local);
+  assert.equal(s.area,'interior');assert.equal(s.street,0);assert(Math.abs(s.local[0]+5.2)<1.5&&Math.abs(s.local[1]-73.8)<1.5,'at the pod exit, at the back of the building: '+s.local);
   await walkOut();
   await settle('street',3000);saved=await pg.evaluate(()=>{save();return JSON.parse(localStorage.getItem('void-runner-campaign-v1'));});assert.equal(saved.story.flags.area,undefined);
   s=await continueToPod();console.log(q,'resumed after leaving to the street',JSON.stringify(s));

@@ -17,7 +17,7 @@ test('area and location key come from the save: outside unless inside with a bad
 test('saved locations: a saved current campaign, a new campaign and a save made inside all resume in the right environment',()=>{
  const saved=C.restore(JSON.stringify(C.fresh()));assert.equal(A.keyFor(saved),'sacramento');assert.deepEqual(A.resume(saved,N),{});
  const fresh=C.startDistrictCampaign(C.fresh());assert.equal(A.keyFor(fresh),'darknet-district','a new campaign wakes inside the District');
- const pod=A.resume(fresh,N),[px,pz]=N.toWorld(pod.spawn[0],pod.spawn[2]);assert(Math.abs(px+15.4)<.01&&Math.abs(pz-57)<.01,'the wake view is inside pod 01');
+ const pod=A.resume(fresh,N),[px,pz]=N.toWorld(pod.spawn[0],pod.spawn[2]);assert(Math.abs(px+5.2)<.01&&Math.abs(pz-76.7)<.01,'the wake view is inside pod 01, at the back of the building');
  const exit=A.podExit(N);assert(!E.blocked(exit.spawn[0],exit.spawn[2],interior),'Exit Pod puts the player on open floor');
  const inside=C.restore(JSON.stringify(Object.assign(C.startDistrictCampaign(C.fresh()),{})));Object.assign(inside.story.flags,{area:'district',districtBadge:true,districtDoor:true});delete inside.story.flags.podWakePending;
  const again=C.restore(JSON.stringify(inside));assert.equal(again.location,'earth');assert.equal(again.story.flags.area,'district','the flag survives save and reload');assert.equal(A.keyFor(again),'darknet-district');
@@ -138,7 +138,7 @@ test('the new-player start wakes in a pod and Exit Pod leads to open floor',()=>
  const w=read('void-runner/world-integration.js'),s=C.startDistrictCampaign(C.fresh());
  assert.deepEqual([s.story.flags.area,s.story.flags.districtBadge,s.story.flags.districtDoor,s.story.flags.podWakePending],['district',true,true,true]);
  assert.equal(A.keyFor(s),'darknet-district');const pod=A.resume(s,N),[x,z]=N.toWorld(pod.spawn[0],pod.spawn[2]);
- assert(Math.abs(x+15.4)<.01&&Math.abs(z-57)<.01);assert.equal(pod.spawn[1],1.1);
+ assert(Math.abs(x+5.2)<.01&&Math.abs(z-76.7)<.01);assert.equal(pod.spawn[1],1.1);
  const exit=A.podExit(N);assert(!E.blocked(exit.spawn[0],exit.spawn[2],interior));
  assert(w.includes('showPodWake()')&&w.includes('EXIT POD'),'the wake view has an explicit exit');
 });
