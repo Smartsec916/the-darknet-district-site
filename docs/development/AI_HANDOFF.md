@@ -1,6 +1,6 @@
 # The Darknet District — current AI handoff
 
-**Start here.** This file is the one current handoff. Read the checklist and the sections through "Open questions" before any other handoff document. The dated diary under [Historical log](#historical-log) is kept so older notes are not lost. Entries in that log contradict each other. They are snapshots, not instructions.
+**Start here.** This file is the one current handoff. Read the checklist and the sections through "Open questions" before any other handoff document. The dated diary under [Historical log](#historical-log) is kept so older notes are not lost. Entries in that log contradict each other. They are snapshots, not instructions. David's reference pictures from 12 Nov 2026 are written out in [`VISUAL_REFERENCES.md`](VISUAL_REFERENCES.md) so later work can use them without the files. The images are not in the repo yet ([`references/README.md`](references/README.md)).
 
 **Checked against:** `origin/main` `4fc1a70` (12 Nov 2026). That commit is the merge of #240 (Tropical Escape dolphins) on top of `7939256` (NULL nightclub, #238). Re-fetch GitHub before trusting pull-request numbers or deploy claims below.
 
@@ -12,8 +12,9 @@ There is no generator script. The next model follows this reading order:
 2. [`AI_ROADMAP.md`](AI_ROADMAP.md) — the current work sequence. October campaign milestones in other files are history.
 3. [`CLAUDE.md`](../../CLAUDE.md) and [`AGENTS.md`](../../AGENTS.md) — how to work in the repo, saves, voices, tests, and line endings.
 4. [`VOID_RUNNER_HANDOFF.md`](../../VOID_RUNNER_HANDOFF.md) — decision log and older canon. Its October 2026 "what the game does today" (start on Vesper, tutorial, starter ship) is **not** the live game. Do not restore that opening.
+5. [`VISUAL_REFERENCES.md`](VISUAL_REFERENCES.md) — David's 12 Nov 2026 reference pictures, as written descriptions. The image files are still pending. Follow the entry when that character, place, or lighting job is in scope. The file does not authorise a Sleeping Pod room change, or a change to the VR play area's two divided areas.
 
-These are snapshots. Do not treat them as the place to start:
+The documents in this table are snapshots. Do not treat them as the place to start:
 
 | Document | Why it is not the start |
 |---|---|
@@ -36,6 +37,7 @@ These are snapshots. Do not treat them as the place to start:
 8. `void-runner.html` and `static/void-runner.html` stay byte-identical. Bump `BUILD` in `void-runner-sw.js` when any game file changes. Current stamp on this commit: `2026-11-12-null-club-1`.
 9. `npm test` before a pull request. Do not put secrets, tokens, or device codes in docs, commits, or chat.
 10. Do not start a second copy of the four visual wins. Dolphins already merged as #240. Check GitHub before starting a visuals branch; if that agent has since opened a pull request, use it.
+11. When a job named in [`VISUAL_REFERENCES.md`](VISUAL_REFERENCES.md) is in scope, follow that entry. Each image is still pending. That file does not allow a Sleeping Pod room change, or a change to the VR play area's layout.
 
 ## What is on main (code, 12 Nov 2026)
 
