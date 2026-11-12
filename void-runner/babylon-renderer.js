@@ -4,6 +4,8 @@
   // scale below 1 supersamples; maxDpr is how much of devicePixelRatio the buffer may use;
   // maxWidth/maxHeight are the framebuffer cap. Ultra is the largest (above 4K).
   // glow 0 means no post stack. The other numbers are bloom, MSAA and a light sharpen.
+  // Bloom and glow are deliberately restrained (the values the game had before 12 Nov 2026): a low threshold with a heavy weight
+  // makes every lit surface bleed and the whole picture look hazy. Only true light sources should bloom.
   const presets = {
     low: {
       scale: 1.5,
@@ -24,12 +26,12 @@
       stars: 360,
       fragments: 120,
       samples: 2,
-      bloomThreshold: .58,
-      bloomWeight: .5,
-      bloomKernel: 64,
-      bloomScale: .6,
+      bloomThreshold: .8,
+      bloomWeight: .28,
+      bloomKernel: 48,
+      bloomScale: .5,
       sharpen: .22,
-      glow: .7
+      glow: .3
     },
     high: {
       scale: .85,
@@ -40,12 +42,12 @@
       stars: 600,
       fragments: 220,
       samples: 4,
-      bloomThreshold: .5,
-      bloomWeight: .68,
-      bloomKernel: 80,
-      bloomScale: .65,
+      bloomThreshold: .78,
+      bloomWeight: .32,
+      bloomKernel: 48,
+      bloomScale: .5,
       sharpen: .3,
-      glow: .95
+      glow: .45
     },
     ultra: {
       scale: .75,
@@ -56,12 +58,12 @@
       stars: 900,
       fragments: 320,
       samples: 4,
-      bloomThreshold: .42,
-      bloomWeight: .82,
-      bloomKernel: 96,
-      bloomScale: .72,
+      bloomThreshold: .74,
+      bloomWeight: .38,
+      bloomKernel: 64,
+      bloomScale: .5,
       sharpen: .36,
-      glow: 1.1
+      glow: .55
     }
   };
   let engine, scene, camera, surface, loadPromise, spaceRoot, roomRoot, planet, station, sky, rockSource, cockpit, rocks = [],
@@ -286,8 +288,8 @@
       const tier = presets[level] || presets.high;
       ip.toneMappingEnabled = true;
       ip.toneMappingType = b.ImageProcessingConfiguration.TONEMAPPING_ACES;
-      ip.exposure = 1;
-      ip.contrast = 1.1;
+      ip.exposure = 1.55;
+      ip.contrast = 1.06;
       ip.vignetteEnabled = level !== 'low';
       ip.vignetteWeight = .5;
       ip.vignetteStretch = .85;

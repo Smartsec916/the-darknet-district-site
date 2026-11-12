@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "6974195be600a976",
+  "revision": "8be9aa718ea77e06",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13587,7 +13587,7 @@
     "void-runner/asset-pipeline.js": "5f0d8bbd5d8f36e4f8b80c4e0dbe5f620fcff12b49f20dd21f17a7fff331c808",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "94d1e0c65af5b61ae299ad85d7630295b4b3e4b95901c7e5e422063185dda414",
-    "void-runner/babylon-renderer.js": "8d5bc44eab3a7f9c41d812ed37c7994e19ae52de50c1bb97af586973b592ec82",
+    "void-runner/babylon-renderer.js": "0a85de05039b5d015a3e8dc75b68aa32c9ec867a0f19d1f0925f939191f5b94f",
     "void-runner/balance-data.js": "ebc76bb374885f015ae60a86864e8701bba194e5d3ce09fb321dd52cedabe16c",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
@@ -13671,7 +13671,7 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-nightclub.js": "ab93e3b3ce0ea6606510add08a9679fa1522747937ebd2e351a1a93e91340e27",
     "void-runner/ncz-nightlife.js": "944a24518f26ef6ae6f3fe3d1b1c7f005b2b1b01756a0fdf465e2be4d06569c2",
-    "void-runner/neochinatown.js": "437a82632d83d67006392071367beefdd54104d4115f7caf5a5e24be757022ae",
+    "void-runner/neochinatown.js": "b32defe1f0b6a091c6c2ebe36a6342f3b542a4266c48ae5715b879d5263369cb",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "4172df44fc02d43d56016c17c76bc6af4daa80edcc1c5200be582903d7075a19",
