@@ -57,7 +57,8 @@ test('every pod hatch is reachable from the shared room and exits onto open floo
 });
 test('each environment loads only its own assets',()=>{
  const s=Object.keys(N.modelsFor('street')),i=Object.keys(N.modelsFor('interior')),a=Object.keys(N.modelsFor('all'));
- assert(s.every(k=>k.startsWith('ncz:'))&&s.length>0);assert(i.every(k=>!k.startsWith('ncz:'))&&i.length>0);assert.deepEqual([...s,...i].sort(),a.sort());
+ // 'entry:' models are the security vestibule's pieces: the vestibule is built in both areas, so both load them.
+ const entry=k=>k.startsWith('entry:');assert(s.every(k=>k.startsWith('ncz:')||entry(k))&&s.length>0);assert(i.every(k=>!k.startsWith('ncz:'))&&i.length>0);assert.deepEqual(s.filter(entry),i.filter(entry));assert(s.filter(entry).length>=6);assert.deepEqual([...s,...i.filter(k=>!entry(k))].sort(),a.sort());
  const cs=Object.keys(Crowd.models('neochinatown','high','street')),ci=Object.keys(Crowd.models('neochinatown','high','interior')),ca=Object.keys(Crowd.models('neochinatown','high'));
  assert.deepEqual([...cs,...ci].sort(),[...new Set(ca)].sort());assert(cs.includes('crowd:ncz-neon')&&!cs.includes('crowd:district-resident'));assert(ci.includes('crowd:district-resident')&&!ci.includes('crowd:ncz-neon'));
 });
