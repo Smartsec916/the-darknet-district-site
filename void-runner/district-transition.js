@@ -17,7 +17,7 @@
  const STATES=['IDLE','ENTRY_DOOR_OPEN','ENTRY_DOOR_CLOSING','VESTIBULE_SECURED','SECURITY_SCAN','DESTINATION_LOADING','DESTINATION_READY','EXIT_DOOR_OPEN','COMPLETE','RECOVERY'];
  const DOOR={outer:'district-door',inner:'district-inner-door'},SEAL_MS=9000;
  function create(d){
-  const A=d.A,N=d.N;let busy=false,coolUntil=0,phase='IDLE',armed=true,sealed=null;const history=[];
+  const A=d.A,N=d.N;let busy=false,coolUntil=0,phase='IDLE',armed=true,sealed=null,walkingIn=null;const history=[];
   const wait=d.wait||(ms=>new Promise(r=>setTimeout(r,ms))),sleep=d.sleep||(ms=>new Promise(r=>setTimeout(r,ms))),now=d.now||(()=>Date.now()),speed=()=>d.reducedMotion?.()?0.35:1;
   const set=p=>{if(phase!==p){phase=p;history.push(p);if(history.length>40)history.shift();d.onState?.(p);}};
   const doors=()=>{try{return d.doors?.()||null;}catch{return null;}};
@@ -71,8 +71,12 @@
   // Called every frame. Standing in the middle of the vestibule starts the checkpoint by itself; after a transfer (or a failure) the player must
   // leave the vestibule before it will start again, so nobody is sent straight back.
   function tick(){
-   if(busy||d.mode()!=='walking'||!d.walker())return false;const area=d.location()?.area,w=d.walker();
-   if(area!=='street'&&area!=='interior')return false;
+   if(busy)return false;if(d.mode()!=='walking'||!d.walker()){walkingIn=null;return false;}const area=d.location()?.area,w=d.walker();
+   if(area!=='street'&&area!=='interior'){walkingIn=null;return false;}
+   // A player who APPEARS in the vestibule (a place that has just loaded: back from a simulation, a resumed game, a closed menu) has not walked in: the
+   // checkpoint waits until they have stepped out of it once. `walkingIn` is the environment the player was walking in on the previous frame; any frame
+   // spent loading, in a menu or elsewhere clears it. (The location record itself is reused between visits, so it cannot be used to notice this.)
+   if(walkingIn!==area){walkingIn=area;if(A.inVestibule(N,w))armed=false;}
    if(!A.inVestibule(N,w)){armed=true;if(phase!=='IDLE')set('IDLE');return false;}
    if(phase==='IDLE')set('ENTRY_DOOR_OPEN');
    if(!armed||!A.centre(N,w))return false;

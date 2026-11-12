@@ -1,5 +1,12 @@
 # The Darknet District — Current AI Development Handoff
 
+## 2026-11-12: checkpoint fix after VR; Bedroom simulation back and shareable; David's decisions
+
+- BUG FIXED (was live for a few hours): returning from a VR simulation placed the player for a moment at the interior's default spot, the middle of the vestibule, and the new checkpoint sent them out to the street. The checkpoint now ignores a player who APPEARS in the vestibule (any frame not spent walking in that environment disarms it until they step out). `tests/vr-sessions-browser.cjs` caught it.
+- 'Play in a Bedroom' is back in the VR arcade and can be a public or private shared session (`shared:true`, `shareOpts`/`fromShare` in `void-runner/vr-suite.js`). Companions are simulated per player, not synchronised.
+- David's decisions (2026-11-12): leaderboard/achievement records in the production database are APPROVED (new records only); the nightclub is named **NULL**; the rear stairs are to be RELOCATED (terrace stays reachable) when the Sleeping Pods move there; add a fishing mechanic to Tropical Escape and an achievement 'catch 100 fish in Tropical Escape'.
+
+
 ## 2026-11-12: city map with waypoints; Bedroom simulation removed from the VR menu
 
 - V1 Map app is now a real city map generated from the layout (`void-runner/district-map.js`, `docs/development/DISTRICT_MAP.md`): zoom, pan, places, layers, waypoint with a HUD pointer. Direction only: there is no pathfinding data.
