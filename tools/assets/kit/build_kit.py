@@ -218,7 +218,7 @@ def _wall_detail(p, x, kind):
     elif kind == 'plate':
         p.box((x - .35, plane - .02, 1.1), (x + .35, plane + .01, 2.0), 'kit_metal', bevel=.008)
         p.box((x - .2, plane - .05, 1.5), (x + .2, plane - .02, 1.85), 'kit_metal', bevel=.008)             # a wall terminal
-        p.box((x - .16, plane - .056, 1.62), (x + .16, plane - .05, 1.81), 'kit_emissive', bevel=0, region='window_cool')   # its screen
+        p.box((x - .16, plane - .056, 1.62), (x + .16, plane - .05, 1.81), 'kit_emissive', bevel=0, region='window_cyan')   # its screen
         for dx in (-.3, .3):
             for z in (1.16, 1.94):
                 p.box((x + dx - .02, plane - .035, z - .02), (x + dx + .02, plane - .02, z + .02), 'kit_metal', bevel=0)
@@ -479,7 +479,7 @@ def shop_door(p):
     p.quad([(.9, .178, 1.55), (1.1, .178, 1.55), (1.1, .178, 2.2), (.9, .178, 2.2)], 'kit_glass', node='glass_0', region='whole')
     p.box((1.3, .15, 1.0), (1.36, .2, 1.22), 'kit_metal', bevel=.006)                  # pull handle
     p.box((1.62, plane - .05, 1.15), (1.8, plane + .01, 1.5), 'kit_metal', bevel=.008)  # entry keypad
-    p.box((1.64, plane - .056, 1.36), (1.78, plane - .05, 1.47), 'kit_emissive', bevel=0, region='window_cool')
+    p.box((1.64, plane - .056, 1.36), (1.78, plane - .05, 1.47), 'kit_emissive', bevel=0, region='window_cyan')
     p.box((.55, .04, 2.56), (1.45, plane + .01, 2.7), 'kit_metal', bevel=.012)         # lamp hood over the door
     _neon(p, (.62, .08, 2.55), (1.38, .08, 2.55), 'white', 'neon_1')                   # and its tube
     p.cyl((.3, plane - .035, 0), (.3, plane - .035, top), .03, seg=6, caps=False)      # a conduit up the wall
@@ -640,7 +640,7 @@ def preview(built, path, batch, layout=True):
     for i, pane in enumerate(panes):
         if i % 2 == 0:
             continue
-        r0, s0, r1, s1 = kit_textures.EMISSIVE_REGIONS[['window_warm', 'window_blinds', 'window_cool', 'window_dim'][(i // 2) % 4]]
+        r0, s0, r1, s1 = kit_textures.EMISSIVE_REGIONS[['window_magenta', 'window_cyan', 'window_violet', 'window_green'][(i // 2) % 4]]
         lm = bpy.data.materials.new('preview_lit_%d' % i)
         lm.use_nodes = True
         nt = lm.node_tree

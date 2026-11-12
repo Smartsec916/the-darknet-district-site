@@ -12,7 +12,7 @@ from PIL import Image
 
 BRICK = np.array([133.2, 106.0, 83.5])
 # Regions of the emissive atlas in UV (u0, v0, u1, v1), v up. build_kit.py maps faces into these.
-EMISSIVE_REGIONS = {'window_warm': (0, .5, .25, 1), 'window_blinds': (.25, .5, .5, 1), 'window_cool': (.5, .5, .75, 1), 'window_dim': (.75, .5, 1, 1),
+EMISSIVE_REGIONS = {'window_magenta': (0, .5, .25, 1), 'window_cyan': (.25, .5, .5, 1), 'window_violet': (.5, .5, .75, 1), 'window_green': (.75, .5, 1, 1),
                     'neon_magenta': (0, .375, .5, .5), 'neon_cyan': (0, .25, .5, .375), 'neon_amber': (0, .125, .5, .25), 'neon_white': (0, 0, .5, .125),
                     'sign': (.5, 0, 1, .5)}
 
@@ -109,7 +109,7 @@ def glass(out, n=512):
 
 
 def emissive(out, n=1024):
-    """Atlas: top half four lit-window looks, bottom-left four neon tube colours (magenta, cyan, amber, white), bottom-right a blank sign face."""
+    """Atlas: top half four lit-window looks (magenta, cyan with blinds, violet, green with blinds), bottom-left four neon tube colours (magenta, cyan, amber, white), bottom-right a blank sign face."""
     img = np.zeros((n, n, 3))
     h = n // 2
     q = n // 4
@@ -128,10 +128,11 @@ def emissive(out, n=1024):
             base *= (.55 + .45 * (((v * 22) % 1) > .35))[..., None]
         return base
 
-    img[0:h, 0:q] = window([255, 196, 120], seed=1)
-    img[0:h, q:2 * q] = window([255, 210, 150], blinds=True, seed=2)
-    img[0:h, 2 * q:3 * q] = window([150, 215, 255], seed=3, dim=.9)
-    img[0:h, 3 * q:4 * q] = window([255, 150, 190], seed=4, dim=.45)
+    # coloured room light, the way a street of signs and screens lights its rooms: no warm or white windows
+    img[0:h, 0:q] = window([255, 50, 170], seed=1)
+    img[0:h, q:2 * q] = window([40, 225, 255], blinds=True, seed=2)
+    img[0:h, 2 * q:3 * q] = window([150, 80, 255], seed=3, dim=.95)
+    img[0:h, 3 * q:4 * q] = window([70, 255, 150], blinds=True, seed=4, dim=.8)
     # neon: bright core fading to the edge of the tube, along the texture's v
     yy, xx = np.mgrid[0:h, 0:h]
     for name, col in (('neon_magenta', (255, 60, 190)), ('neon_cyan', (60, 230, 255)), ('neon_amber', (255, 170, 60)), ('neon_white', (255, 255, 255))):

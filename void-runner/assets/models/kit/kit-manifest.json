@@ -35,25 +35,25 @@
   }
  },
  "emissiveRegions": {
-  "window_warm": [
+  "window_magenta": [
    0,
    0.5,
    0.25,
    1
   ],
-  "window_blinds": [
+  "window_cyan": [
    0.25,
    0.5,
    0.5,
    1
   ],
-  "window_cool": [
+  "window_violet": [
    0.5,
    0.5,
    0.75,
    1
   ],
-  "window_dim": [
+  "window_green": [
    0.75,
    0.5,
    1,
