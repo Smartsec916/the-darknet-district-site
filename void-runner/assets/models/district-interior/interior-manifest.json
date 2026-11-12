@@ -1,0 +1,266 @@
+{
+ "kit": "NeoChinatown building kit",
+ "units": "metres",
+ "up": "+Y",
+ "front": "+Z",
+ "origin": "bottom-left-front corner of the bounding box",
+ "module": 1,
+ "floorHeight": 3.5,
+ "shopfrontHeight": 4.5,
+ "facadeDepth": 0.5,
+ "wallPlaneBehindFront": 0.1,
+ "materials": {
+  "kit_concrete": {
+   "color": "textures/kit_concrete_color.png",
+   "normal": "textures/kit_concrete_normal.png",
+   "orm": "textures/kit_concrete_orm.png"
+  },
+  "kit_metal": {
+   "color": "textures/kit_metal_color.png",
+   "normal": "textures/kit_metal_normal.png",
+   "orm": "textures/kit_metal_orm.png"
+  },
+  "kit_glass": {
+   "color": "textures/kit_glass_color.png",
+   "normal": "textures/kit_glass_normal.png",
+   "orm": "textures/kit_glass_orm.png"
+  },
+  "kit_emissive": {
+   "color": "textures/kit_emissive_color.png"
+  },
+  "kit_asphalt": {
+   "color": "textures/kit_asphalt_color.png",
+   "normal": "textures/kit_asphalt_normal.png",
+   "orm": "textures/kit_asphalt_orm.png"
+  },
+  "kit_ticker": {
+   "color": "textures/kit_ticker_color.png"
+  },
+  "kit_fabric": {
+   "color": "textures/kit_fabric_color.png",
+   "normal": "textures/kit_fabric_normal.png",
+   "orm": "textures/kit_fabric_orm.png"
+  },
+  "kit_tile": {
+   "color": "textures/kit_tile_color.png",
+   "normal": "textures/kit_tile_normal.png",
+   "orm": "textures/kit_tile_orm.png"
+  }
+ },
+ "ticker": {
+  "material": "kit_ticker",
+  "metresPerRepeat": 20,
+  "scroll": "slide the texture along U (about 0.02 to 0.04 per second)"
+ },
+ "emissiveRegions": {
+  "window_magenta": [
+   0,
+   0.5,
+   0.25,
+   1
+  ],
+  "window_cyan": [
+   0.25,
+   0.5,
+   0.5,
+   1
+  ],
+  "window_violet": [
+   0.5,
+   0.5,
+   0.75,
+   1
+  ],
+  "window_green": [
+   0.75,
+   0.5,
+   1,
+   1
+  ],
+  "neon_magenta": [
+   0,
+   0.375,
+   0.5,
+   0.5
+  ],
+  "neon_cyan": [
+   0,
+   0.25,
+   0.5,
+   0.375
+  ],
+  "neon_amber": [
+   0,
+   0.125,
+   0.5,
+   0.25
+  ],
+  "neon_white": [
+   0,
+   0,
+   0.5,
+   0.125
+  ],
+  "sign_magenta": [
+   0.5,
+   0.25,
+   0.75,
+   0.5
+  ],
+  "sign_cyan": [
+   0.75,
+   0.25,
+   1,
+   0.5
+  ],
+  "sign_amber": [
+   0.5,
+   0,
+   0.75,
+   0.25
+  ],
+  "sign_violet": [
+   0.75,
+   0,
+   1,
+   0.25
+  ]
+ },
+ "pieces": {
+  "district_door_portal_6m": {
+   "file": "district_door_portal_6m.glb",
+   "batch": "A",
+   "category": "vestibule",
+   "size": {
+    "w": 6.2,
+    "h": 3.6,
+    "d": 0.305
+   },
+   "triangles": 630,
+   "bytes": 48996,
+   "nodes": [
+    "district_door_portal_6m__warn_0"
+   ],
+   "snap": {
+    "opening": {
+     "position": [
+      0.28,
+      0,
+      0
+     ],
+     "size": [
+      5.64,
+      3.2
+     ]
+    }
+   }
+  },
+  "district_scanner_arch_5m": {
+   "file": "district_scanner_arch_5m.glb",
+   "batch": "A",
+   "category": "vestibule",
+   "size": {
+    "w": 5.2,
+    "h": 2.7,
+    "d": 0.4
+   },
+   "triangles": 688,
+   "bytes": 52552,
+   "nodes": [
+    "district_scanner_arch_5m__scan_0"
+   ],
+   "snap": {
+    "centre": [
+     2.6,
+     0,
+     -0.2
+    ]
+   }
+  },
+  "district_scanner_kiosk_1m": {
+   "file": "district_scanner_kiosk_1m.glb",
+   "batch": "A",
+   "category": "vestibule",
+   "size": {
+    "w": 0.6,
+    "h": 1.5,
+    "d": 0.5
+   },
+   "triangles": 264,
+   "bytes": 23032,
+   "nodes": [
+    "district_scanner_kiosk_1m__screen_0"
+   ],
+   "snap": {
+    "base": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "district_vestibule_ceiling_6m": {
+   "file": "district_vestibule_ceiling_6m.glb",
+   "batch": "A",
+   "category": "vestibule",
+   "size": {
+    "w": 6.0,
+    "h": 0.725,
+    "d": 6.0
+   },
+   "triangles": 768,
+   "bytes": 54428,
+   "nodes": [
+    "district_vestibule_ceiling_6m__light_0"
+   ],
+   "snap": {
+    "top": 0.7
+   }
+  },
+  "district_vestibule_floor_6m": {
+   "file": "district_vestibule_floor_6m.glb",
+   "batch": "A",
+   "category": "vestibule",
+   "size": {
+    "w": 6.0,
+    "h": 0.056,
+    "d": 6.0
+   },
+   "triangles": 848,
+   "bytes": 62620,
+   "nodes": [
+    "district_vestibule_floor_6m__scan_0"
+   ],
+   "snap": {
+    "top": 0.05
+   }
+  },
+  "district_vestibule_wall_6m": {
+   "file": "district_vestibule_wall_6m.glb",
+   "batch": "A",
+   "category": "vestibule",
+   "size": {
+    "w": 6.0,
+    "h": 3.45,
+    "d": 0.24
+   },
+   "triangles": 1162,
+   "bytes": 88144,
+   "nodes": [
+    "district_vestibule_wall_6m__neon_0",
+    "district_vestibule_wall_6m__neon_1",
+    "district_vestibule_wall_6m__screen_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.24
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  }
+ }
+}

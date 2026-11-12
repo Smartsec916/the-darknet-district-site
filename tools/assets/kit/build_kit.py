@@ -24,8 +24,8 @@ REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
 OUT = os.path.join(REPO, 'void-runner', 'assets', 'models', 'kit')
 TEX = os.path.join(OUT, 'textures')
 FLOOR, SHOP, DEPTH, FACE = 3.5, 4.5, .5, .1
-TILE = {'kit_concrete': 4.0, 'kit_metal': 2.0, 'kit_asphalt': 3.0, 'kit_fabric': 2.0}       # metres one repeat of the texture covers
-MATERIALS = ['kit_concrete', 'kit_metal', 'kit_glass', 'kit_emissive', 'kit_asphalt', 'kit_ticker', 'kit_fabric']
+TILE = {'kit_concrete': 4.0, 'kit_metal': 2.0, 'kit_asphalt': 3.0, 'kit_fabric': 2.0, 'kit_tile': 2.0}       # metres one repeat of the texture covers
+MATERIALS = ['kit_concrete', 'kit_metal', 'kit_glass', 'kit_emissive', 'kit_asphalt', 'kit_ticker', 'kit_fabric', 'kit_tile']
 GLOWING = ('kit_emissive', 'kit_ticker')          # the only materials that give light
 REGIONS = list(kit_textures.EMISSIVE_REGIONS)
 
@@ -924,6 +924,243 @@ PIECES = {
 
 
 # ---------------------------------------------------------------- build, export, manifest ----------------------------------------------------------------
+# ================================================================ THE DISTRICT INTERIOR ================================================================
+# Pieces for inside The Darknet District (docs/development/DISTRICT_INTERIOR.md), built the same way and with the same materials as the street kit, plus kit_tile.
+# They are exported BARE (materials by name, no pictures): the game's model loader takes only self-contained files, and gives every piece the shared materials itself.
+def int_wall_lining(p):
+    """Lining for one side wall of the security vestibule: 6 m long, its back on the wall. Steel dado, a service band with a display, pipes and a cable tray above,
+    and a tube under the tray in two colours (neon_0 magenta, neon_1 cyan: the game lights one per side)."""
+    W, H, D = 6, 3.45, .22
+    p.box((0, D - .03, 0), (W, D, H), 'kit_metal', bevel=0)
+    p.box((0, .02, 0), (W, D, .12), 'kit_metal', bevel=0)
+    for k in range(5):
+        x0, x1 = max(0, k * 1.5 - .05), min(W, k * 1.5 + .05)
+        _rib(p, x0, x1, .02, D, .12, 2.35)
+    for k in range(4):
+        x0 = k * 1.5
+        p.box((x0 + .07, .06, .14), (x0 + 1.43, D - .03, 1.25), 'kit_metal', bevel=.015)
+        p.box((x0 + .14, .045, .66), (x0 + 1.36, .06, .7), 'kit_metal', bevel=0)
+        p.box((x0 + .14, .045, 1.1), (x0 + 1.36, .06, 1.13), 'kit_metal', bevel=0)
+    p.box((1.9, .04, .25), (2.6, .06, .55), 'kit_metal', bevel=.008)                           # a maintenance hatch
+    p.box((2.2, .03, .38), (2.3, .04, .42), 'kit_metal', bevel=0)
+    p.box((0, D - .07, 1.25), (W, D - .03, 2.35), 'kit_concrete', bevel=0)                      # the service band
+    for i, z in enumerate((1.4, 1.47, 1.54)):
+        p.cyl((0, D - .09, z), (W, D - .09, z), .018, seg=5, caps=False)
+    p.box((.3, D - .1, 1.7), (1.2, D - .07, 2.2), 'kit_metal', bevel=.01)                        # vent
+    for j in range(5):
+        p.box((.35, D - .115, 1.75 + j * .085), (1.15, D - .1, 1.8 + j * .085), 'kit_metal', bevel=0)
+    p.box((3.1, D - .13, 1.62), (4.4, D - .07, 2.28), 'kit_metal', bevel=.012)                   # an information display
+    p.box((3.16, D - .136, 1.68), (4.34, D - .13, 2.22), 'kit_emissive', bevel=0, node='screen_0', region='sign_cyan')
+    p.box((4.75, D - .15, 1.65), (5.2, D - .07, 2.15), 'kit_metal', bevel=.012)                  # junction box with pilot lights
+    p.box((4.82, D - .156, 2.02), (4.88, D - .15, 2.08), 'kit_emissive', bevel=0, region='neon_amber')
+    p.box((4.94, D - .156, 2.02), (5.0, D - .15, 2.08), 'kit_emissive', bevel=0, region='neon_cyan')
+    p.cyl((4.97, D - .1, 2.15), (4.97, D - .1, 2.38), .02, seg=5, caps=False)
+    p.cyl((1.75, D - .1, 1.25), (1.75, D - .1, 2.38), .025, seg=5, caps=False)
+    p.box((0, .03, 2.38), (W, D, 2.43), 'kit_metal', bevel=0)                                   # cable tray
+    p.box((0, .03, 2.43), (W, .05, 2.5), 'kit_metal', bevel=0)
+    for y, z, r in ((.11, 2.66, .07), (.1, 2.86, .05), (.11, 3.06, .085), (.12, 3.28, .04)):   # pipes
+        p.cyl((0, y, z), (W, y, z), r, seg=8, caps=False)
+    for k in range(4):
+        x = k * 1.5 + .75
+        p.box((x - .03, .02, 2.5), (x + .03, D, 3.4), 'kit_metal', bevel=0)
+    p.cyl((2.4, .11, 3.06), (2.52, .11, 3.06), .12, seg=8)                                      # flanges and a valve on the main
+    p.cyl((2.9, .11, 3.06), (3.02, .11, 3.06), .12, seg=8)
+    p.cyl((2.71, .0, 3.06), (2.71, .03, 3.06), .09, seg=8)
+    _neon(p, (0, .08, 2.34), (W, .08, 2.34), 'magenta', 'neon_0')
+    _neon(p, (0, .08, 2.29), (W, .08, 2.29), 'cyan', 'neon_1')
+    p.snap.update({'mount': {}})
+
+
+def int_ceiling(p):
+    """The vestibule ceiling, 6 x 6 m, hanging 0.7 m: beams, two ventilation ducts, pipes, a cable tray and two strip lights (node light_0)."""
+    p.box((0, 0, .62), (6, 6, .7), 'kit_metal', bevel=0)
+    for k in range(5):
+        y0, y1 = max(0, k * 1.5 - .08), min(6, k * 1.5 + .08)
+        p.box((0, y0, .3), (6, y1, .62), 'kit_metal', bevel=0)
+        p.box((0, max(0, k * 1.5 - .15), .26), (6, min(6, k * 1.5 + .15), .3), 'kit_metal', bevel=0)
+    for x, z, r in ((1.0, .2, .2), (1.48, .13, .13)):
+        p.cyl((x, 0, z), (x, 6, z), r, seg=10, caps=False)
+        for y in (1.0, 3.0, 5.0):
+            p.cyl((x, y - .04, z), (x, y + .04, z), r + .025, seg=10)
+    for x, r in ((4.62, .05), (4.78, .04), (4.96, .065)):
+        p.cyl((x, 0, .19), (x, 6, .19), r, seg=6, caps=False)
+    p.box((3.75, 0, .2), (4.05, 6, .22), 'kit_metal', bevel=0)
+    for x in (3.75, 4.03):
+        p.box((x, 0, .2), (x + .02, 6, .27), 'kit_metal', bevel=0)
+    for x in (3.83, 3.9, 3.97):
+        p.cyl((x, 0, .24), (x, 6, .24), .016, seg=4, caps=False)
+    for x in (2.25, 3.2):                                                                       # strip lights
+        p.box((x - .1, 1.0, .1), (x + .1, 5.0, .17), 'kit_metal', bevel=.01)
+        _neon(p, (x - .04, 1.06, .08), (x - .04, 4.94, .08), 'white', 'light_0')
+        _neon(p, (x + .04, 1.06, .08), (x + .04, 4.94, .08), 'white', 'light_0')
+        for y in (1.3, 4.7):
+            p.cyl((x, y, .17), (x, y, .62), .012, seg=4, caps=False)
+    p.box((5.2, 2.6, .2), (5.85, 3.4, .3), 'kit_metal', bevel=.01)                               # a diffuser
+    for j in range(5):
+        p.box((5.25, 2.66 + j * .14, .185), (5.8, 2.72 + j * .14, .2), 'kit_metal', bevel=0)
+    p.box((5.3, 2.8, .3), (5.75, 3.2, .62), 'kit_metal', bevel=0)
+    p.snap.update({'top': .7})
+
+
+def int_floor(p):
+    """The vestibule floor, 6 x 6 m: worn tile, steel thresholds at both doors, and the scanner pad in the middle with a lit outline (node scan_0)."""
+    p.box((0, 0, 0), (6, 6, .02), 'kit_metal', bevel=0)
+    for y0, y1 in ((0, .2), (5.8, 6)):
+        p.box((0, y0, .02), (6, y1, .05), 'kit_metal', bevel=0)
+        for i in range(12):
+            p.box((i * .5 + .1, y0 + .04, .05), (i * .5 + .4, y1 - .04, .056), 'kit_metal', bevel=0)
+    step = 5.6 / 6
+    for i in range(6):
+        for j in range(6):
+            if i in (2, 3) and j in (2, 3):
+                continue
+            p.box((i + .008, .2 + j * step + .008, .02), (i + .992, .2 + (j + 1) * step - .008, .045), 'kit_tile', bevel=0)
+    a, b = 2.0, .2 + 2 * step
+    c, d = 4.0, .2 + 4 * step
+    p.box((a + .02, b + .02, .02), (c - .02, d - .02, .05), 'kit_metal', bevel=.01)
+    for q0, q1 in (((a + .1, b + .1), (c - .1, b + .14)), ((a + .1, d - .14), (c - .1, d - .1)), ((a + .1, b + .1), (a + .14, d - .1)), ((c - .14, b + .1), (c - .1, d - .1))):
+        p.box((q0[0], q0[1], .05), (q1[0], q1[1], .056), 'kit_emissive', bevel=0, node='scan_0', region='neon_cyan')
+    for k in range(4):                                                                         # tread bars on the pad
+        p.box((a + .3, b + .35 + k * .4, .05), (c - .3, b + .4 + k * .4, .054), 'kit_metal', bevel=0)
+    p.snap.update({'top': .05})
+
+
+def int_door_portal(p):
+    """The heavy frame round a District security door, seen from the room side: 5.64 m clear opening, 3.2 m high. Its back goes 0.13 m off the door's plane."""
+    W, H, D = 6.2, 3.6, .3
+    for x0, x1 in ((0, .28), (W - .28, W)):
+        p.box((x0, 0, 0), (x1, D, 3.2), 'kit_metal', bevel=.02)
+        xm = (x0 + x1) / 2
+        p.cyl((xm, .03, .35), (xm, .03, 2.6), .035, seg=6)                                 # the door's ram
+        p.cyl((xm, .03, 2.6), (xm, .03, 3.05), .022, seg=6)
+        for z in (.2, 1.0, 1.8, 2.75):
+            p.box((x0 + .03, 0, z), (x1 - .03, .02, z + .1), 'kit_metal', bevel=0)
+    p.box((0, 0, 3.2), (W, D, H), 'kit_metal', bevel=.02)
+    for i in range(12):
+        p.box((.35 + i * .5, .0, 3.27), (.4 + i * .5, .012, 3.53), 'kit_metal', bevel=0)        # header ribs
+    p.cyl((.3, .04, 3.56), (W - .3, .04, 3.56), .025, seg=5, caps=False)
+    for x in (.06, W - .22):                                                                    # warning lamps at the header ends
+        p.box((x, .0, 3.3), (x + .16, .03, 3.5), 'kit_metal', bevel=.008)
+        p.box((x + .03, 0, 3.34), (x + .13, .006, 3.46), 'kit_emissive', bevel=0, node='warn_0', region='neon_amber')
+    p.box((W - .25, .0, 1.2), (W - .05, .035, 1.55), 'kit_metal', bevel=.008)                    # keypad
+    p.box((W - .22, .0, 1.38), (W - .08, .006, 1.52), 'kit_emissive', bevel=0, region='sign_cyan')
+    p.snap.update({'opening': {'position': [.28, 0, 0], 'size': [5.64, 3.2]}})
+
+
+def int_scanner_arch(p):
+    """The checkpoint's scanner: two posts and a sensor beam across the vestibule, with lit sensor strips (node scan_0) and a camera."""
+    W, H = 5.2, 2.7
+    for x0, x1, inner in ((0, .2, .2), (W - .2, W, W - .2)):
+        p.box((x0, .1, 0), (x1, .3, 2.5), 'kit_metal', bevel=.02)
+        p.box((x0, .04, 0), (x1, .36, .1), 'kit_metal', bevel=.01)
+        p.box((min(inner, inner + (.012 if x0 == 0 else -.012)), .16, .4), (max(inner, inner + (.012 if x0 == 0 else -.012)), .24, 2.2), 'kit_emissive', bevel=0, node='scan_0', region='neon_cyan')
+        for z in (.6, 1.3, 2.0):
+            p.box((x0 + .03, .08, z), (x1 - .03, .1, z + .16), 'kit_metal', bevel=0)
+    p.box((0, .06, 2.5), (W, .34, H), 'kit_metal', bevel=.02)
+    p.box((.4, .17, 2.488), (W - .4, .23, 2.5), 'kit_emissive', bevel=0, node='scan_0', region='neon_cyan')
+    for x in (1.3, 2.6, 3.9):
+        p.box((x - .09, .12, 2.38), (x + .09, .28, 2.5), 'kit_metal', bevel=.01)
+        p.cyl((x, .2, 2.32), (x, .2, 2.38), .05, seg=8)
+    for y, s in ((.0, 1), (.4, -1)):                                                            # a camera looking each way
+        p.box((2.5, min(y, y + s * .06), 2.55), (2.7, max(y, y + s * .06), 2.67), 'kit_metal', bevel=.008)
+    p.cyl((2.6, .0, 2.61), (2.6, .02, 2.61), .04, seg=8)
+    p.cyl((2.6, .38, 2.61), (2.6, .4, 2.61), .04, seg=8)
+    p.snap.update({'centre': [W / 2, 0, -.2]})
+
+
+def int_scanner_kiosk(p):
+    """The badge terminal by the inner door: a pedestal with a tilted screen (node screen_0) and a palm pad."""
+    p.box((0, 0, 0), (.6, .5, .05), 'kit_metal', bevel=.01)
+    p.box((.1, .08, .05), (.5, .45, 1.0), 'kit_metal', bevel=.03)
+    for j in range(3):
+        p.box((.16, .065, .2 + j * .09), (.44, .08, .25 + j * .09), 'kit_metal', bevel=0)
+    _slope(p.box((.03, .0, 1.0), (.57, .46, 1.06), 'kit_metal', bevel=.01), .45, 0)
+    _slope(p.box((.07, .04, 1.06), (.53, .42, 1.066), 'kit_emissive', bevel=0, node='screen_0', region='sign_cyan'), .45, 0)
+    p.box((.22, .058, .62), (.38, .08, .84), 'kit_metal', bevel=.008)                            # palm pad
+    p.box((.24, .052, .66), (.36, .058, .8), 'kit_emissive', bevel=0, region='neon_amber')
+    p.cyl((.5, .4, 1.0), (.5, .4, 1.42), .018, seg=5)
+    p.box((.44, .3, 1.42), (.56, .46, 1.5), 'kit_metal', bevel=.01)
+    p.snap.update({'base': [0, 0, 0]})
+
+
+INTERIOR = {
+    'district_vestibule_wall_6m': ('A', 'vestibule', int_wall_lining), 'district_vestibule_ceiling_6m': ('A', 'vestibule', int_ceiling),
+    'district_vestibule_floor_6m': ('A', 'vestibule', int_floor), 'district_door_portal_6m': ('A', 'vestibule', int_door_portal),
+    'district_scanner_arch_5m': ('A', 'vestibule', int_scanner_arch), 'district_scanner_kiosk_1m': ('A', 'vestibule', int_scanner_kiosk),
+}
+INTERIOR_OUT = os.path.join(REPO, 'void-runner', 'assets', 'models', 'district-interior')
+INTERIOR_TEX = os.path.join(REPO, 'void-runner', 'assets', 'textures', 'district-interior')
+BARE = False
+
+
+def interior_textures():
+    """The interior's textures as small JPEGs (the scene waits for its textures, so they must be light): 1K, from the same generated sets as the kit."""
+    from PIL import Image
+    os.makedirs(INTERIOR_TEX, exist_ok=True)
+    for name in ('kit_metal', 'kit_concrete', 'kit_tile', 'kit_emissive', 'kit_glass'):
+        for kind in ('color', 'normal', 'orm'):
+            src = os.path.join(TEX, '%s_%s.png' % (name, kind))
+            if os.path.exists(src):
+                im = Image.open(src).convert('RGB')
+                if name == 'kit_metal' and kind == 'color':          # indoors the steel is kept, not weathered: most of the rust colour is taken out
+                    im = Image.blend(im, im.convert('L').convert('RGB'), .6)
+                if im.width > 1024:
+                    im = im.resize((1024, 1024), Image.LANCZOS)
+                im.save(os.path.join(INTERIOR_TEX, '%s_%s.jpg' % (name, kind)), quality=90 if kind == 'normal' else 84)
+
+
+def assemble_interior(mats, path):
+    """The vestibule put together as the game does it, seen from just inside the outer door."""
+    built = []
+
+    def put(name, pos, turn=0.0, hide=()):
+        piece = Piece(name)
+        INTERIOR[name][2](piece)
+        obj, _, size, _ = realise(piece, mats)
+        obj.location, obj.rotation_euler = pos, (0, 0, turn)
+        for c in list(obj.children):
+            if any(h in c.name for h in hide):
+                bpy.data.objects.remove(c)
+        built.append((obj, size))
+    put('district_vestibule_floor_6m', (-3, 0, 0))
+    put('district_vestibule_ceiling_6m', (-3, 0, 2.9))
+    put('district_vestibule_wall_6m', (-2.95 + .22, 0, 0), math.pi / 2, hide=('neon_1',))
+    put('district_vestibule_wall_6m', (2.95 - .22, 6, 0), -math.pi / 2, hide=('neon_0',))
+    put('district_door_portal_6m', (3.1, 5.87, 0), math.pi)
+    put('district_scanner_arch_5m', (-2.6, 2.8, 0))
+    put('district_scanner_kiosk_1m', (2.0, 4.7, 0), -math.pi / 2)
+    s = bpy.context.scene
+    for name, a, b in (('door', (-2.82, 5.95, 0), (2.82, 6.0, 3.2)), ('back', (-3.2, -1.0, 0), (3.2, -.95, 3.6))):       # the door leaves, as dark slabs
+        m = bpy.data.meshes.new(name)
+        bm = bmesh.new()
+        bmesh.ops.create_cube(bm, size=1)
+        for v in bm.verts:
+            v.co = Vector((a[0] + (v.co.x + .5) * (b[0] - a[0]), a[1] + (v.co.y + .5) * (b[1] - a[1]), a[2] + (v.co.z + .5) * (b[2] - a[2])))
+        bm.to_mesh(m)
+        bm.free()
+        m.materials.append(mats['kit_metal'])
+        s.collection.objects.link(bpy.data.objects.new(name, m))
+    cam = bpy.data.objects.new('cam', bpy.data.cameras.new('cam'))
+    cam.data.lens = 17
+    cam.location = (.25, -.6, 1.65)
+    cam.rotation_euler = (Vector((0, 6, 1.5)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
+    s.collection.objects.link(cam)
+    s.camera = cam
+    fill = bpy.data.lights.new('fill', 'POINT')
+    fill.energy, fill.color = 18, (.6, .7, 1)
+    fo = bpy.data.objects.new('fill', fill)
+    fo.location = (0, 1.5, 2.2)
+    s.collection.objects.link(fo)
+    world = bpy.data.worlds.new('dark')
+    world.use_nodes = True
+    world.node_tree.nodes['Background'].inputs['Color'].default_value = (0, 0, 0, 1)
+    s.world = world
+    s.render.engine, s.cycles.device, s.cycles.samples, s.cycles.use_denoising = 'CYCLES', 'CPU', 96, True
+    s.render.resolution_x, s.render.resolution_y = 1600, 900
+    s.render.filepath = path
+    bpy.ops.render.render(write_still=True)
+
+
 def realise(piece, mats):
     """Turn a Piece into Blender objects (main + children), origin at the bottom-left-front corner. Returns (object, triangles, size, child names)."""
     lo, hi = Vector((1e9,) * 3), Vector((-1e9,) * 3)
@@ -1010,7 +1247,8 @@ def export(main, path):
     bpy.ops.export_scene.gltf(filepath=path, export_format='GLB', use_selection=True, export_yup=True, export_apply=True, export_draco_mesh_compression_enable=False,
                               export_image_format='NONE', export_materials='EXPORT', export_normals=True, export_texcoords=True, export_cameras=False, export_lights=False,
                               export_animations=False, export_extras=False)
-    patch_glb(path)
+    if not BARE:
+        patch_glb(path)
 
 
 def preview(built, path, batch, layout=True):
@@ -1142,11 +1380,16 @@ def main():
     batches = [int(args[i + 1]) for i, a in enumerate(args) if a == '--batch']
     shot = next((args[i + 1] for i, a in enumerate(args) if a == '--preview'), None)
     bpy.ops.wm.read_factory_settings(use_empty=True)
+    interior = '--interior' in args
+    if interior:                      # the District interior set: its own folder and manifest, bare files, phases instead of batch numbers
+        global OUT, PIECES, BARE
+        OUT, PIECES, BARE = INTERIOR_OUT, INTERIOR, True
+        batches = [args[i + 1] for i, a in enumerate(args) if a == '--batch'] or sorted({v[0] for v in INTERIOR.values()})
     os.makedirs(OUT, exist_ok=True)
     if '--textures' in args or not os.path.exists(os.path.join(TEX, 'kit_concrete_color.png')):
         kit_textures.build_all(TEX)
     mats = materials()
-    manifest_path = os.path.join(OUT, 'kit-manifest.json')
+    manifest_path = os.path.join(OUT, 'interior-manifest.json' if interior else 'kit-manifest.json')
     manifest = json.load(open(manifest_path)) if os.path.exists(manifest_path) else {}
     manifest.update({'kit': 'NeoChinatown building kit', 'units': 'metres', 'up': '+Y', 'front': '+Z', 'origin': 'bottom-left-front corner of the bounding box',
                      'module': 1, 'floorHeight': FLOOR, 'shopfrontHeight': SHOP, 'facadeDepth': DEPTH, 'wallPlaneBehindFront': FACE,
@@ -1172,6 +1415,14 @@ def main():
         print('KIT', name, 'batch', batch, 'tris', tris, 'size', [round(v, 2) for v in (size.x, size.z, size.y)])
     manifest['pieces'] = dict(sorted(pieces.items(), key=lambda kv: (kv[1]['batch'], kv[0])))
     json.dump(manifest, open(manifest_path, 'w'), indent=1)
+    if interior:
+        interior_textures()
+        shot = next((args[i + 1] for i, a in enumerate(args) if a == '--assemble'), None)
+        if shot:
+            for o in list(bpy.data.objects):
+                bpy.data.objects.remove(o)
+            assemble_interior(mats, shot)
+        return
     demo = next((args[i + 1] for i, a in enumerate(args) if a == '--assemble'), None)
     if demo:
         for o in list(bpy.data.objects):

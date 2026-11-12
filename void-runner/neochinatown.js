@@ -500,10 +500,25 @@
     // ---- Vestibule --------------------------------------------------------
     add(B.MeshBuilder.CreateGround('vestibule-floor',{width:6,height:6},scene),floor,[0,.02,23]);
     for(const side of [-1,1])box('vestibule-wall',[.3,3.6,6],[side*3.1,1.8,23],metal);box('vestibule-ceiling',[6.4,.3,6],[0,3.6,23],frame);
-    box('scanner-post',[.35,1.3,.35],[2.6,.65,24.5],frame);box('scanner-face',[.3,.4,.05],[2.6,1.25,24.31],cyan);
+    // The vestibule's detailed lining: Blender-made pieces laid over the plain shell above (which stays as the outer wall and as the fallback when a model is missing).
+    // The same pieces are placed the same way in the street area and in the interior area, so the room looks identical on both sides of the checkpoint.
+    const kitTex=(name,kind)=>{const rel='assets/textures/district-interior/'+name+'_'+kind+'.jpg',t=new B.Texture(base?new URL(rel,base).href:rel,scene,false,false);t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;textures.push(t);return t;};
+    const kitMat=name=>{const key='kit:'+name;if(mats[key])return mats[key];const m=new B.PBRMaterial('ncz-'+name,scene);
+     if(name==='kit_emissive'){m.albedoColor=B.Color3.Black();m.roughness=1;m.metallic=0;m.emissiveTexture=kitTex(name,'color');m.emissiveColor=B.Color3.White();m.emissiveIntensity=1.6;}
+     else{const c=kitTex(name,'color'),orm=kitTex(name,'orm');m.albedoTexture=c;m.bumpTexture=kitTex(name,'normal');m.invertNormalMapX=true;m.invertNormalMapY=false;m.metallicTexture=orm;m.metallic=1;m.roughness=1;m.useRoughnessFromMetallicTextureAlpha=false;m.useRoughnessFromMetallicTextureGreen=true;m.useMetallnessFromMetallicTextureBlue=true;m.useAmbientOcclusionFromMetallicTextureRed=true;
+      m.emissiveTexture=c;m.emissiveColor=new B.Color3(.62,.64,.7);}   // a faint self-light: the room has no lamps of its own (the scene's light limit), so its surfaces must read by themselves
+     owned.push(m);mats[key]=m;return m;};
+    const kitPiece=(name,p,ry=0,hide=[])=>{if(typeof modelInstance!=='function')return null;const n=modelInstance('entry:'+name,target);if(!n)return null;n.position.set(...p);n.rotation.y=ry;
+     for(const c of n.getChildren(null,false)){if(hide.some(h=>c.name.includes(h))){c.setEnabled(false);continue;}if(c.getTotalVertices?.()>0&&c.material){const want=String(c.material.name||'').replace(/^.*(kit_[a-z]+).*$/,'$1');c.material=kitMat(want);c.isPickable=false;c.receiveShadows=false;}}
+     owned.push(n);return n;};
+    const lined=!!kitPiece('district_vestibule_floor_6m',[3,.025,26]);
+    if(lined){kitPiece('district_vestibule_ceiling_6m',[3,2.72,26]);kitPiece('district_vestibule_wall_6m',[-2.71,0,20],Math.PI/2,['__neon_1']);kitPiece('district_vestibule_wall_6m',[2.71,0,26],-Math.PI/2,['__neon_0']);
+     kitPiece('district_door_portal_6m',[3.1,0,20.44]);kitPiece('district_door_portal_6m',[-3.1,0,25.56],Math.PI);if(typeof area==='undefined'||area!=='street')kitPiece('district_door_portal_6m',[3.1,0,26.44]);
+     kitPiece('district_scanner_arch_5m',[2.6,0,23.2]);}
+    if(!(lined&&kitPiece('district_scanner_kiosk_1m',[2.05,0,24.25],Math.PI))){box('scanner-post',[.35,1.3,.35],[2.6,.65,24.5],frame);box('scanner-face',[.3,.4,.05],[2.6,1.25,24.31],cyan);}
     for(const z of [21.5,24.5])box('status-display',[.05,.6,1],[-2.92,2.2,z],[cyan,magenta][z>23?1:0]);
     box('vestibule-light',[4,.05,.3],[0,3.42,23],white);
-    const innerDoor=doorPanels('district-inner-door',26,mat('door-inner','#1d2026',{rough:.35,metal:.9}),25.84);
+    const innerDoor=doorPanels('district-inner-door',26,mat('door-inner','#1d2026',{rough:.35,metal:.9}),25.84);if(lined)for(const p of [...outerDoor.panels,...innerDoor.panels])p.material=kitMat('kit_metal');   // the door leaves share the lining's steel, so a shut door reads as a door and not as a black opening
     const doors=(()=>{const list=[{id:'district-door',flag:'districtDoor',z:20,...outerDoor,open:0,kick:0},{id:'district-inner-door',flag:'districtBadge',z:26,...innerDoor,open:0,kick:0}];let entryCycle=false,secured=!!root.VoidDistrict?.busy;   // built in the middle of a checkpoint transfer: the doors start sealed, so none stirs before the scan clears
      // Resolve against the *current* location. A scene can start ticking while the loader still
      // holds the previous area's collision array; caching that array leaves an invisible closed door.
@@ -970,7 +985,9 @@
     return {tick,city,nightlife,alleyLife,doors,dispose(){disposed=true;clubCtl?.dispose();nightlife?.dispose();alleyLife?.dispose();for(const ps of alleySteam)ps.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
   }
   // Licensed models (docs/VOID_RUNNER_ASSET_LICENSES.md) dressing the District; loaded before build().
-  const models={'crowd:vr-player-a':{src:'assets/models/crowd/vr-player-a.glb',background:true},'crowd:vr-player-b':{src:'assets/models/crowd/vr-player-b.glb',background:true},'district:couch':{src:'assets/models/district/couch.glb',scale:.5},'district:bin':{src:'assets/models/district/bin.glb',scale:.6},'district:chair':{src:'assets/models/district/chair.glb',scale:1},
+  // The security vestibule's pieces (made in Blender by tools/assets/kit/build_kit.py --interior; docs/development/DISTRICT_INTERIOR.md). 'entry:' models belong to BOTH areas, like the vestibule itself.
+  const entryModels={'entry:district_vestibule_wall_6m':{src:'assets/models/district-interior/district_vestibule_wall_6m.glb',scale:1},'entry:district_vestibule_ceiling_6m':{src:'assets/models/district-interior/district_vestibule_ceiling_6m.glb',scale:1},'entry:district_vestibule_floor_6m':{src:'assets/models/district-interior/district_vestibule_floor_6m.glb',scale:1},'entry:district_door_portal_6m':{src:'assets/models/district-interior/district_door_portal_6m.glb',scale:1},'entry:district_scanner_arch_5m':{src:'assets/models/district-interior/district_scanner_arch_5m.glb',scale:1},'entry:district_scanner_kiosk_1m':{src:'assets/models/district-interior/district_scanner_kiosk_1m.glb',scale:1}};
+  const models={...entryModels,'crowd:vr-player-a':{src:'assets/models/crowd/vr-player-a.glb',background:true},'crowd:vr-player-b':{src:'assets/models/crowd/vr-player-b.glb',background:true},'district:couch':{src:'assets/models/district/couch.glb',scale:.5},'district:bin':{src:'assets/models/district/bin.glb',scale:.6},'district:chair':{src:'assets/models/district/chair.glb',scale:1},
    // Purchased vending machine (CGTrader, Royalty Free no AI): kept out of the public repository; the live site gets it,
    // encrypted, from the private asset repository (tools/assets/build-pages.cjs). Without it the built machines stay.
    'district:vending-neon':{src:'assets/models/district/vending-neon.vrpak',scale:1},
@@ -979,6 +996,6 @@
    // keeps its built buildings.
    'ncz:building5':{src:'assets/models/ncz/building5.vrpak'},'ncz:storefronts':{src:'assets/models/ncz/storefronts.vrpak'}};
   // The models one environment needs: the street's city pack, or the District's furniture and VR players.
-  function modelsFor(area='all'){if(area==='all')return models;const street=k=>k.startsWith('ncz:');return Object.fromEntries(Object.entries(models).filter(([k])=>area==='street'?street(k):!street(k)));}
+  function modelsFor(area='all'){if(area==='all')return models;const street=k=>k.startsWith('ncz:'),entry=k=>k.startsWith('entry:');return Object.fromEntries(Object.entries(models).filter(([k])=>entry(k)||(area==='street'?street(k):!street(k))));}
   const api={layout,layoutByArea,build,models,modelsFor,toWorld,zone,streets,footprints,door:DOOR,districts,taxiZones,cityBox,arcade:ARCADE};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
 })(globalThis);

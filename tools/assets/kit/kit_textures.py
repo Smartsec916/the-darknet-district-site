@@ -219,7 +219,26 @@ def fabric(out, n=512):
     _save(out + '/kit_fabric_orm.png', _orm(.85 + .15 * mid, (.88 + .08 * (fine - .5)).clip(0, 1), np.zeros((n, n))))
 
 
-SETS = {'kit_concrete': concrete, 'kit_metal': metal, 'kit_glass': glass, 'kit_emissive': emissive, 'kit_asphalt': asphalt, 'kit_ticker': ticker, 'kit_fabric': fabric}
+def tile(out, n=1024):
+    """Interior floor: dark worn tiles, half a metre each (the texture spans 2 m), semi-gloss with duller scuffed paths and damp patches."""
+    big, mid, fine = _noise(n, 4, 81), _noise(n, 5, 82, base=20), _noise(n, 3, 83, base=128)
+    ys, xs = np.mgrid[0:n, 0:n]
+    cell = n // 4
+    gy, gx = ys % cell, xs % cell
+    grout = (np.minimum(gy, cell - gy) < 3) | (np.minimum(gx, cell - gx) < 3)
+    shade = _noise(4, 1, 84, base=4)[(ys // cell) % 4, (xs // cell) % 4]                 # each tile its own tone
+    wear = np.clip((big - .48) * 5, 0, 1)
+    value = (.55 + .25 * (shade - .5) + .18 * (mid - .5) + .1 * (fine - .5)) * (1 - .25 * wear)
+    color = np.array([46, 52, 62])[None, None, :] * value[..., None]
+    color = color * (1 - .6 * grout[..., None])
+    _save(out + '/kit_tile_color.png', color.clip(0, 255))
+    _save(out + '/kit_tile_normal.png', _normal(mid * .25 + fine * .15 - grout * .8, 1.8))
+    rough = (.3 + .35 * wear + .1 * (fine - .5) - .18 * np.clip((_noise(n, 3, 85, base=3) - .6) * 5, 0, 1)).clip(.08, 1)
+    rough = np.where(grout, .9, rough)
+    _save(out + '/kit_tile_orm.png', _orm(.8 + .2 * mid - .3 * grout, rough, np.zeros((n, n))))
+
+
+SETS = {'kit_concrete': concrete, 'kit_metal': metal, 'kit_glass': glass, 'kit_emissive': emissive, 'kit_asphalt': asphalt, 'kit_ticker': ticker, 'kit_fabric': fabric, 'kit_tile': tile}
 
 
 def build_all(out):
