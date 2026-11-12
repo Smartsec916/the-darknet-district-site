@@ -71,3 +71,16 @@ test('the model fits the hall: 32 x 20 m, entrance end on Main Street',()=>{
  assert.ok(Math.abs(Math.min(a[1],b[1])-club.HALL[2])<1e-6&&Math.abs(Math.max(a[1],b[1])-club.HALL[3])<1e-6);
  assert.ok(Math.abs(club.toWorld(19.6,13.2)[1]-club.DOOR.z)<1e-6,'the door tile is centred on the doorway');
 });
+
+// ---- NULL (2026-11-12): the club is on in the game for everyone; where the purchased model is not published its interior is built in code ----
+test('the club is named in one place, is off outside a browser, and the code-built interior keeps the floor, bar and VIP corner walkable',()=>{
+ const fs=require('node:fs'),src=fs.readFileSync('void-runner/ncz-nightclub.js','utf8');
+ assert.equal(club.NAME,'NULL');club.force(null);assert.equal(club.enabled(),false,'tests and tools see the plain city unless they force the club on');
+ assert.match(src,/if\(typeof document==='undefined'\|\|!root\.location\)return false;/);assert.match(src,/nightclub=0/,'a switch to turn it off');
+ assert.match(src,/method:'HEAD'/,'asks whether the purchased model is published before trying to load it');assert.match(src,/buildOwn\(\);placeBeams\(\);state\.phase='ready';state\.variant='built'/);
+ const ids=club.solids().map(s=>s.id);for(const id of ['club-bar','club-vip-sofa','club-vip-table'])assert(ids.includes(id),id+' blocks movement');
+ const [dx0,dx1,dz0,dz1]=club.BUILT.dance;for(const b of club.BUILT.solid)assert(b.x1<dx0||b.x0>dx1||b.z1<dz0||b.z0>dz1,b.id+' is not on the dance floor');
+ for(const b of club.BUILT.solid)assert(b.x0>club.HALL[0]&&b.x1<club.HALL[1]&&b.z0>club.HALL[2]&&b.z1<club.HALL[3],b.id+' is inside the hall');
+ assert(Math.abs(club.BUILT.bar.z-club.DOOR.z)>3&&club.BUILT.bar.x<club.DOOR.x-10,'the bar prompt is well clear of the door');
+ assert.match(fs.readFileSync('void-runner/neochinatown.js','utf8'),/neon\('club-sign',\[club\.NAME\|\|'NIGHTCLUB'\]/,'the street sign shows the club\'s name');
+});

@@ -10,7 +10,7 @@
  const STREET_NAMES={avenue:'The Avenue',avenueWest:'The Avenue · west',avenueEast:'The Avenue · east',main:'Main Street',mainSouth:'Main Street · south',alley:'The Alley',road:'Access Road',passage:'Landing Pad Passage',pad:'Landing Pad'};
  const PLACE={board:['Landing pad · your ship','transit'],terminal:['Landing terminal','transit'],admin:['Admin counter','service'],'district-iris':['Iris','service'],'district-shop':['Shop','shop'],'district-bar':['Bar','shop'],
   'district-vr':['VR arcade','vr'],'district-vending':['Vending machines','shop'],'district-pod':['Sleeping pods','service'],'district-wardrobe':['Wardrobe','service'],'district-meeting':['Meeting room','service'],
-  'district-stairs':['Stairs to the smoking terrace','service'],'district-stairs-down':['Stairs down to the District','service'],'district-scan':['Checkpoint scanner','entrance']};
+  'district-stairs':['Stairs to the smoking terrace','service'],'district-stairs-down':['Stairs down to the District','service'],'district-scan':['Checkpoint scanner','entrance'],'club-bar':['Bar at the nightclub','shop']};
  const LAYERS=[['locations','LOCATIONS',true],['shops','SHOPS',true],['transit','TRANSIT',true],['missions','MISSIONS',true],['players','PLAYERS',false]];
  const KIND_LAYER={entrance:'locations',service:'locations',vr:'locations',street:'locations',shop:'shops',transit:'transit',mission:'missions',dev:'locations'};
  const title=t=>String(t||'').toLowerCase().replace(/(^|\s)\S/g,c=>c.toUpperCase());
@@ -19,13 +19,14 @@
   const streets=Object.entries(N.streets||{}).filter(([id])=>!placeholder.has(id)).map(([id,r])=>({id,name:STREET_NAMES[id]||title(id),rect:r}));
   const rectOf=s=>({id:s.id||'',x0:s.position[0]-s.size[0]/2,x1:s.position[0]+s.size[0]/2,z0:s.position[2]-s.size[2]/2,z1:s.position[2]+s.size[2]/2});
   const walls={street:street.solids.map(rectOf),interior:interior.solids.map(rectOf)};
-  const fp=N.footprints||{},buildings=[];if(fp.district)buildings.push({id:'district',name:'The Darknet District',rect:fp.district});if(fp.terrace)buildings.push({id:'terrace',name:'Smoking terrace',rect:fp.terrace});
+  const fp=N.footprints||{},buildings=[];if(fp.district)buildings.push({id:'district',name:'The Darknet District',rect:fp.district});if(fp.terrace)buildings.push({id:'terrace',name:'Smoking terrace',rect:fp.terrace});if(fp.club)buildings.push({id:'club',name:(root.VoidNightclub?.NAME||'Nightclub')+' · nightclub',rect:fp.club});
   const pois=[],seen=new Set(),streetIds=new Set(street.interactions.map(i=>i.id));
   const add=(i,area)=>{const key=/^district-pod(-\d+)?$/.test(i.id)?'district-pod':i.id;if(seen.has(key))return;seen.add(key);const def=PLACE[key]||PLACE[i.action];
    pois.push({id:key,name:def?def[0]:title(i.label||i.id),kind:def?def[1]:'service',area,x:i.position[0],z:i.position[2]});};
   for(const i of street.interactions)add(i,'street');for(const i of interior.interactions)if(!streetIds.has(i.id))add(i,'interior');
   const v=N.toWorld(0,23),out=N.toWorld(0,18.6);   // the vestibule's middle and the alley just outside the outer door, from the District's own plan
   pois.push({id:'entrance',name:'Darknet District entrance',kind:'entrance',area:'street',x:out[0],z:out[1]},{id:'vestibule',name:'Security vestibule',kind:'entrance',area:'both',x:v[0],z:v[1]});
+  if(fp.club){const c=root.VoidNightclub||{},d=c.DOOR;if(d)pois.push({id:'club',name:(c.NAME||'Nightclub')+' · nightclub',kind:'shop',area:'street',x:d.x+2,z:d.z});}   // the club's street door
   for(const t of N.taxiZones||[])if(!placeholder.has(t.id))pois.push({id:'taxi-'+t.id,name:'Taxi stop · '+t.name,kind:'transit',area:'street',x:t.position[0],z:t.position[1]});   // stops at places that are not built are left out
   // Places that exist in the layout only as placeholders: shown to developers, never to players.
   for(const d of (N.districts||[]).filter(d=>d.placeholder))pois.push({id:'dev-'+d.id,name:d.name+' (not built)',kind:'dev',area:'street',x:d.center[0],z:d.center[1],dev:true,rect:d.rect});

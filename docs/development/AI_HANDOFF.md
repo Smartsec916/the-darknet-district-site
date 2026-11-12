@@ -1,5 +1,11 @@
 # The Darknet District — Current AI Development Handoff
 
+## 2026-11-12: NULL, the nightclub, is open
+
+- `docs/development/NIGHTCLUB_NULL.md`. The existing club module is now ON for everyone in the game; because the purchased interior model is not published anywhere I can reach, the interior is built in code (`buildOwn()` in `void-runner/ncz-nightclub.js`) with a dance floor, DJ, bar, VIP corner and people. If `nightclub.vrpak` is later published the purchased model is used automatically.
+- Street players are still not shared in multiplayer, so the club is solo for now.
+
+
 ## 2026-11-12: the arcade (small, five cabinets) with a playable Blackout Protocol cabinet; free look in the pod
 
 - `docs/development/ARCADE.md`. Five cabinets in a small room off the hallway; the middle one opens the real Blackout Protocol page in a frame (`void-runner/district-arcade.js`). Four placeholder titles are Claude's working names for David to approve.

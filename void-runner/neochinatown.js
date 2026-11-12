@@ -118,7 +118,9 @@
     const items=interactions.map(i=>{const [x,z]=toWorld(i.position[0],i.position[2]);return {...i,position:[x,i.position[1],z]};});
     return {id:'neochinatown',name:'NEOCHINATOWN / TESSALY',kind:'city',district:true,bounds:[260,270],spawn:[31,1.7,-96],yaw:2.44,color:'#3a2f4a',music:'earth',ship:'starter',
     solids:[...placed,...(club?club.solids():[]),...cityBlocks.map(s=>({...s,position:s.position.slice(),size:s.size.slice()})),{id:'ship',shipHull:true,position:[22,2,-96],size:[3.6,4,10.5]}],
-    interactions:[{id:'board',label:'BOARD YOUR SHIP',position:[27,1.7,-98],action:'board',range:3.5,when:{notFlags:{shipAccess:'none'}}},{id:'terminal',label:'LANDING TERMINAL',position:[34.5,1.7,-103],action:'terminal',range:3},...items],signs:[]};}
+    interactions:[{id:'board',label:'BOARD YOUR SHIP',position:[27,1.7,-98],action:'board',range:3.5,when:{notFlags:{shipAccess:'none'}}},{id:'terminal',label:'LANDING TERMINAL',position:[34.5,1.7,-103],action:'terminal',range:3},
+     // The club's bar (ncz-nightclub.js), when the club is there.
+     ...(club?[{id:'club-bar',label:'ORDER A DRINK',position:[club.BUILT.bar.x,1.7,club.BUILT.bar.z],action:'club-bar',range:2.4}]:[]),...items],signs:[]};}
   // The layout of one environment. 'all' is the original combined layout. The entrance (outer door, front wall, vestibule, inner door and
   // scanner) belongs to both 'street' and 'interior', so the player stands in the same vestibule when one replaces the other.
   const ENTRANCE=new Set(['district-door','district-inner-door','district-front-west','district-front-east','vestibule-west','vestibule-east']);
@@ -255,7 +257,7 @@
      for(const z of [-66.8,-64.2,-51.8,-49.6])box('club-strip',[.06,h-.8,.14],[R[1]+.03,h/2,z],hot);
      for(const y of [.3,h-.2])box('club-rail',[.06,.12,z1-z0-.4],[R[1]+.03,y,(z0+z1)/2],y<1?ice:hot);
      box('club-canopy',[1.7,.14,D.half*2+2.4],[R[1]+.85,D.height+.35,D.z],frame);box('club-canopy-light',[1.4,.05,D.half*2+2],[R[1]+.85,D.height+.26,D.z],hot);
-     neon('club-sign',['NIGHTCLUB','夜總會'],['#ff3fb4','#38e8ff'],8.4,2.4,[R[1]+.08,6.1,D.z],-Math.PI/2,'rgba(10,6,20,.92)');
+     neon('club-sign',[club.NAME||'NIGHTCLUB'],['#eafcff'],8.4,2.6,[R[1]+.08,6.1,D.z],-Math.PI/2,'rgba(10,6,20,.92)');   // the club's name comes from ncz-nightclub.js (NAME), so it is changed in one place
      box('club-door-glow',[3,.02,D.half*2+3],[R[1]+1.6,.05,D.z],glowMat('club-spill','#ff3fb4',.22));
      clubShutter=box('club-shutter',[.1,D.height,D.half*2],[R[1]-.5,D.height/2,D.z],mat('club-shutter','#0d0b14',{rough:.5,metal:.9}),false);}
     for(const e of edges){

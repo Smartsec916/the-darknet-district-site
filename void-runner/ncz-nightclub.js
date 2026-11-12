@@ -17,7 +17,11 @@
  let forced=null;
  // Off by default. `?nightclub=1` on the page address (or localStorage 'void-nightclub' = '1') turns it on for a local build;
  // flip the default here once David has cleared the licence for the live site. Tests turn it on with force(true).
- const asked=()=>{try{return /[?&]nightclub=1/.test(root.location?.search||'')||root.localStorage?.getItem('void-nightclub')==='1';}catch(e){return false;}};
+ // Since 2026-11-12 the club (named NULL by David) is ON in the game for everyone: where the purchased model is not published, the interior built in code below
+ // (buildOwn) is used instead. `?nightclub=0` or localStorage 'void-nightclub' = '0' switches the club off. Outside a browser (Node tests, tools) it stays off
+ // unless a test forces it, so the plain city layout and its tests are exactly as they were.
+ const NAME='NULL';
+ const asked=()=>{try{if(typeof document==='undefined'||!root.location)return false;if(/[?&]nightclub=0/.test(root.location.search||'')||root.localStorage?.getItem('void-nightclub')==='0')return false;return true;}catch(e){return false;}};
  const enabled=()=>forced!==null?forced:asked();
  const inRect=([x0,x1,z0,z1],x,z,m=0)=>x>=x0-m&&x<=x1+m&&z>=z0-m&&z<=z1+m;
  const inside=p=>!!p&&inRect(HALL,p.x,p.z);
@@ -31,6 +35,8 @@
   speaker:[[28.01,29.1,43.41,44.49],[10.37,11.47,43.41,44.49],[21.46,22.54,42.88,43.73],[16.42,17.51,42.86,43.75],[10.28,11.4,14.25,15.28],[27.89,29,14.07,15.11]],
   'dj-desk':[[18.37,20.66,38.37,40.98]]};
 
+ // The parts added for NULL that the purchased model does not have: a bar on the north wall and a VIP corner on the south wall, in the gaps between its tables.
+ const BUILT={solid:[{id:'bar',x0:27.6,x1:34.4,z0:-50.5,z1:-49.8,h:1.1},{id:'vip-sofa',x0:35.2,x1:40.8,z0:-68.2,z1:-67.5,h:.8},{id:'vip-table',x0:37.4,x1:38.6,z0:-66.6,z1:-65.8,h:.5}],bar:{x:31,z:-51.4},dance:[28,42,-63.2,-53.8]};
  function solids(){
   const out=[],wall=(id,x0,x1,z0,z1,h=8)=>out.push({id,position:[(x0+x1)/2,h/2,(z0+z1)/2],size:[x1-x0,h,z1-z0]});
   // Shell: north, south and west walls, and the street wall with its doorway (the front is 1 m thick).
@@ -40,6 +46,7 @@
   out.push({id:'club-shutter',position:[DOOR.x,DOOR.height/2,DOOR.z],size:[1,DOOR.height,DOOR.half*2],open:false});
   for(const [kind,list] of Object.entries(FURNITURE))list.forEach(([gx0,gx1,gz0,gz1],i)=>{const [xa,za]=toWorld(gx0,gz0),[xb,zb]=toWorld(gx1,gz1);
    out.push({id:'club-'+kind+'-'+i,position:[(xa+xb)/2,.5,(za+zb)/2],size:[Math.abs(xb-xa),1,Math.abs(zb-za)]});});
+  for(const b of BUILT.solid)out.push({id:'club-'+b.id,position:[(b.x0+b.x1)/2,b.h/2,(b.z0+b.z1)/2],size:[b.x1-b.x0,b.h,b.z1-b.z0]});
   return out;}
 
  // Where the club's sound comes from (world metres): the six speaker stacks and the DJ desk (for ncz-club-audio.js).
@@ -112,6 +119,8 @@
   async function load(){
    if(state.phase==='loading'||state.phase==='ready'||state.phase==='failed')return;state.phase='loading';
    try{
+    // Ask first whether the purchased model is published at all (one small request): the loader's own retries for a missing file take a long time.
+    const there=await fetch(new URL('void-runner/'+SRC,document.baseURI||location.href),{method:'HEAD'}).then(r=>r.ok,()=>false);if(!there)throw Error('the purchased model is not published here');
     await assets.load(ID,{src:SRC,scale:1,yaw:0},scene,null);
     if(disposed){assets.unload(ID);return;}
     model=assets.instance(ID,parent);
@@ -122,9 +131,87 @@
     model.computeWorldMatrix(true);
     for(const mesh of model.getChildMeshes(false)){mesh.computeWorldMatrix(true);{const n=mesh.name.slice(ID.length+1);if(!/^(Box538|head_|_light|lightcone|ball)/.test(n)&&!mesh.parent?.name?.match(/Box538|head_|_light/))mesh.freezeWorldMatrix();}}
     placeBeams();state.phase='ready';state.loads++;setOpen(true);
-   }catch(error){state.phase='failed';state.error=error.message;console.warn('[VOID//RUNNER nightclub] unavailable, the door stays shut:',error.message);}
+   }catch(error){
+    // The purchased model is not published here: the club is built in code instead, in the same hall, round the same furniture.
+    try{if(disposed)return;buildOwn();placeBeams();state.phase='ready';state.variant='built';state.loads++;state.error=null;setOpen(true);}
+    catch(e){state.phase='failed';state.error=e.message;console.warn('[VOID//RUNNER nightclub] unavailable, the door stays shut:',e.message);}}
+  }
+  /* The code-built NULL: shell, lit dance floor, DJ desk and speaker stacks, tables and chairs where the collision already has them, a bar, a VIP corner, and
+     the people: dancers, the DJ, a bartender, the door staff, guests. Everything is added to `built` and removed with the club. */
+  let built=null,floorTex=null,people=[],looksAsked=false,screenTex=null;
+  function buildOwn(){
+   const root0=new B.TransformNode('ncz-null',scene);root0.parent=parent;built=root0;const all=[];
+   const M=(name,hex,em)=>{const m=new B.StandardMaterial('ncz-null-'+name,scene);m.diffuseColor=B.Color3.FromHexString(hex);m.specularColor=new B.Color3(.18,.18,.22);if(em)m.emissiveColor=B.Color3.FromHexString(em);own.push(m);return m;};
+   const G=(name,hex,k=1)=>{const m=new B.StandardMaterial('ncz-null-'+name,scene);m.diffuseColor=B.Color3.Black();m.specularColor=B.Color3.Black();m.emissiveColor=B.Color3.FromHexString(hex).scale(k);m.disableLighting=true;own.push(m);return m;};
+   const put=(mesh,mat,x,y,z,detail)=>{mesh.material=mat;mesh.parent=root0;mesh.position.set(x,y,z);mesh.isPickable=false;all.push(mesh);if(detail)interior.push(mesh);return mesh;};
+   const box=(name,w,h,d,x,y,z,mat,detail)=>put(B.MeshBuilder.CreateBox('ncz-null-'+name,{width:w,height:h,depth:d},scene),mat,x,y,z,detail);
+   const [x0,x1,z0,z1]=HALL,cx=(x0+x1)/2,cz=(z0+z1)/2,W=x1-x0,D=z1-z0,H=7.4;
+   const wallM=M('wall','#14121c','#07060c'),darkM=M('dark','#0b0a10'),trimM=M('trim','#262432','#0c0b12'),hot=G('hot','#ff3fb4'),ice=G('ice','#38e8ff'),vio=G('violet','#9b5cff'),blu=G('blue','#3d6bff'),amb=G('amber','#ffb347',.9);
+   // shell: floor, ceiling, three walls (the street wall is the club front built with the street)
+   box('floor',W,.1,D,cx,-.03,cz,M('floor','#0e0d14','#050409'));box('ceiling',W,.2,D,cx,H,cz,darkM);
+   box('wall-n',W,H,.3,cx,H/2,z1+.15,wallM);box('wall-s',W,H,.3,cx,H/2,z0-.15,wallM);box('wall-w',.3,H,D,x0-.15,H/2,cz,wallM);
+   for(const z of [z0+.06,z1-.06])for(const [y,m] of [[.25,ice],[3.4,hot],[H-.5,vio]])box('wall-strip',W-.6,.07,.05,cx,y,z,m);
+   for(let x=x0+4;x<x1;x+=6)for(const z of [z0+.05,z1-.05])box('pilaster',.5,H,.12,x,H/2,z,trimM);
+   for(let x=x0+3;x<x1-1;x+=4)box('truss',.16,.16,D-.4,x,6.85,cz,trimM);for(const z of [cz-5,cz,cz+5])box('truss',W-1,.16,.16,cx,6.85,z,trimM);
+   // dance floor: a grid of lit tiles that changes with the music's time
+   const [dx0,dx1,dz0,dz1]=BUILT.dance;floorTex=new B.DynamicTexture('ncz-null-dance',{width:112,height:80},scene,false,B.Texture.NEAREST_SAMPLINGMODE);own.push(floorTex);
+   const fm=new B.StandardMaterial('ncz-null-dance',scene);fm.diffuseColor=B.Color3.Black();fm.specularColor=new B.Color3(.5,.5,.6);fm.emissiveTexture=floorTex;own.push(fm);
+   put(B.MeshBuilder.CreateGround('ncz-null-dance',{width:dx1-dx0,height:dz1-dz0},scene),fm,(dx0+dx1)/2,.04,(dz0+dz1)/2);box('dance-edge',dx1-dx0+.3,.06,.12,(dx0+dx1)/2,.04,dz0-.1,ice);box('dance-edge',dx1-dx0+.3,.06,.12,(dx0+dx1)/2,.04,dz1+.1,hot);
+   // the furniture the collision already has: tables, chairs, speaker stacks, the DJ desk
+   const span=([gx0,gx1,gz0,gz1])=>{const [xa,za]=toWorld(gx0,gz0),[xb,zb]=toWorld(gx1,gz1);return {x:(xa+xb)/2,z:(za+zb)/2,w:Math.abs(xb-xa),d:Math.abs(zb-za)};};
+   for(const r of FURNITURE.table){const t=span(r);put(B.MeshBuilder.CreateCylinder('ncz-null-table',{diameter:Math.min(t.w,t.d),height:.06,tessellation:20},scene),trimM,t.x,.78,t.z,true);put(B.MeshBuilder.CreateCylinder('ncz-null-table-leg',{diameter:.12,height:.76,tessellation:8},scene),darkM,t.x,.38,t.z,true);
+    put(B.MeshBuilder.CreateCylinder('ncz-null-table-glow',{diameter:Math.min(t.w,t.d)*.55,height:.02,tessellation:20},scene),ice,t.x,.82,t.z,true);}
+   for(const r of FURNITURE.chair){const c=span(r);box('seat',c.w*.7,.42,c.d*.7,c.x,.21,c.z,M('seat','#2a1430','#12071a'),true);}
+   for(const r of FURNITURE.speaker){const p=span(r);box('speaker',p.w,2.2,p.d,p.x,1.1,p.z,darkM);for(const y of [.55,1.3,1.85])put(B.MeshBuilder.CreateTorus('ncz-null-cone',{diameter:Math.min(p.w,p.d)*.62,thickness:.05,tessellation:20},scene),y>1.5?hot:ice,p.x+p.w/2+.02,y,p.z).rotation.z=Math.PI/2;}
+   const dj=span(FURNITURE['dj-desk'][0]);box('dj-desk',dj.w,1.05,dj.d,dj.x,.52,dj.z,trimM);box('dj-top',dj.w+.1,.05,dj.d+.1,dj.x,1.08,dj.z,vio);for(const dz of [-.6,.6])put(B.MeshBuilder.CreateCylinder('ncz-null-deck',{diameter:.55,height:.04,tessellation:24},scene),darkM,dj.x+.2,1.13,dj.z+dz,true);
+   box('dj-riser',dj.w+2.4,.18,dj.d+3,dj.x-.6,.09,dj.z,darkM);
+   // the wall of light behind the DJ: a low-resolution screen that pulses
+   screenTex=new B.DynamicTexture('ncz-null-screen',{width:64,height:24},scene,false,B.Texture.NEAREST_SAMPLINGMODE);own.push(screenTex);const sm=new B.StandardMaterial('ncz-null-screen',scene);sm.diffuseColor=B.Color3.Black();sm.specularColor=B.Color3.Black();sm.emissiveTexture=screenTex;sm.disableLighting=true;own.push(sm);
+   const scr=put(B.MeshBuilder.CreatePlane('ncz-null-screen',{width:12,height:4.2,sideOrientation:B.Mesh.DOUBLESIDE},scene),sm,x0+.2,3.6,cz);scr.rotation.y=-Math.PI/2;
+   // the name, inside too
+   const nt=new B.DynamicTexture('ncz-null-name',{width:256,height:96},scene,false);own.push(nt);{const g=nt.getContext();g.clearRect(0,0,256,96);g.font='900 78px Arial,Helvetica,sans-serif';g.textAlign='center';g.textBaseline='middle';g.shadowColor='#38e8ff';g.shadowBlur=14;g.fillStyle='#eafcff';g.fillText(NAME,128,52);nt.hasAlpha=true;nt.update();}
+   const nm=new B.StandardMaterial('ncz-null-name',scene);nm.diffuseColor=B.Color3.Black();nm.specularColor=B.Color3.Black();nm.emissiveTexture=nt;nm.opacityTexture=nt;nm.disableLighting=true;nm.backFaceCulling=false;own.push(nm);
+   const name=put(B.MeshBuilder.CreatePlane('ncz-null-name',{width:5,height:1.9},scene),nm,x1-.25,5,cz);name.rotation.y=Math.PI/2;
+   // the bar on the north wall: counter, lit front, back shelf of bottles
+   const bar=BUILT.solid[0],bw=bar.x1-bar.x0,bx=(bar.x0+bar.x1)/2;box('bar',bw,1.1,.7,bx,.55,-50.15,trimM);box('bar-top',bw+.1,.05,.8,bx,1.12,-50.15,darkM);box('bar-front',bw,.5,.03,bx,.5,-50.52,blu);
+   box('bar-shelf',bw,2.2,.25,bx,1.9,z1-.2,darkM);for(let k=0;k<3;k++)box('bar-shelf-light',bw-.3,.04,.05,bx,1.3+k*.6,z1-.34,k%2?hot:ice);
+   for(let i=0;i<16;i++)box('bottle',.09,.3,.09,bar.x0+.4+i*.41,1.5+(i%3)*.6,z1-.38,[amb,ice,hot,vio][i%4],true);for(let i=0;i<5;i++)box('stool',.36,.74,.36,bar.x0+.9+i*1.25,.37,-51.15,darkM,true);
+   // the VIP corner on the south wall: a low riser, a long sofa, a lit table, rope posts
+   const sofa=BUILT.solid[1],tb=BUILT.solid[2];box('vip-riser',7,.12,3.4,38,.06,-66.6,M('vip','#1b1020','#0c0612'));box('vip-sofa',sofa.x1-sofa.x0,.45,.7,38,.34,-67.85,M('sofa','#3a1030','#1a0616'));box('vip-sofa-back',sofa.x1-sofa.x0,.9,.16,38,.7,-68.2,M('sofa','#3a1030','#1a0616'));
+   box('vip-table',tb.x1-tb.x0,.45,tb.z1-tb.z0,38,.23,-66.2,trimM);box('vip-table-glow',1,.02,.6,38,.47,-66.2,vio);for(const x of [34.6,41.4]){put(B.MeshBuilder.CreateCylinder('ncz-null-rope-post',{diameter:.08,height:1,tessellation:8},scene),amb,x,.5,-64.95,true);}box('vip-rope',6.8,.04,.04,38,.92,-64.95,amb,true);
+   // light the club by its own lights only (the street has far more lights than one shader takes)
+   const colours=[[1,.18,.7],[.15,.9,1],[.25,.4,1],[.7,.3,1]],spots=[[44,5.5],[36,5.5],[28,5.5],[22,5.5]];
+   spots.slice(0,low?2:4).forEach(([x,y],i)=>{const l=new B.PointLight('ncz-club-light-'+i,new B.Vector3(x,y,-58.5+(i%2?3:-3)),scene);l.diffuse=new B.Color3(...colours[i]);l.specular=l.diffuse;l.range=30;l.intensity=0;l.includedOnlyMeshes=all.slice();lights.push(l);});
+   const mine=new Set(lights);for(const l of scene.lights){if(mine.has(l)||l.name==='ambient')continue;l.excludedMeshes.push(...all);excluded.push(l);}
+   builtMeshes=all;
+   // ---- the people (ordinary crowd looks; roles, not named characters) ----
+   const spot=(id,x,z,face,clips,opts={})=>people.push({id,x,z,yaw:Math.atan2(face[0]-x,face[1]-z),clips,node:null,anim:null,...opts});
+   const n=low?3:quality==='high'?9:6;for(let i=0;i<n;i++){const a=i*2.4,r=1.6+(i%3)*1.5;spot('dancer-'+i,35+Math.cos(a)*r*1.5,-58.5+Math.sin(a)*r,[35,-58.5],['dance','laugh','idle'],{dance:true,phase:i*1.3});}
+   spot('dj',dj.x-1,dj.z,[dj.x+6,dj.z],['interact','idle'],{dance:true,phase:.4,small:true});spot('bartender',BUILT.bar.x,-49.45,[BUILT.bar.x,-53],['idle']);
+   spot('door',52.3,DOOR.z-2.1,[58,DOOR.z-2.6],['watch','idle']);
+   if(!low){spot('bar-guest-a',29.4,-51.25,[29.4,-49],['drink','idle']);spot('bar-guest-b',33,-51.3,[32,-49],['talk','idle']);spot('vip-a',36.6,-66.9,[38,-66.2],['talk','idle']);spot('vip-b',39.5,-66.9,[38,-66.2],['drink','laugh','idle']);
+    spot('queue-a',52.4,DOOR.z+2.4,[52.4,DOOR.z+1],['talk','idle']);spot('queue-b',53.1,DOOR.z+3.3,[52.4,DOOR.z+2.4],['laugh','talk','idle']);}
+  }
+  let builtMeshes=[];
+  const CAST=['district-resident','ncz-neon','outlaw-01','fixer-01','hacker-01','runner-02','district-smuggler','communion-tech'],clipsOf=look=>root.VoidCrowd?.clips?.[look]||['idle'];
+  function staff(dt,near){
+   if(!people.length)return;
+   if(!looksAsked&&clock>3&&typeof mode!=='undefined'&&mode==='walking'){looksAsked=true;for(const look of CAST.slice(0,5))try{Promise.resolve(root.VoidCharacterAssembler?.ensureLook?.(look,scene)).catch(()=>{});}catch{}}
+   people.forEach((p,i)=>{
+    if(!p.node){const want=p.clips[0],order=[...CAST.slice(i%CAST.length),...CAST.slice(0,i%CAST.length)];let node=null,look=null,clip=null;
+     for(const c of order){if(clipsOf(c).includes(want)&&(node=assets.instance('crowd:'+c,built))){look=c;clip=want;break;}}
+     if(!node&&clock>14)for(const c of order){if((node=assets.instance('crowd:'+c,built))){look=c;clip=p.clips.find(k=>clipsOf(c).includes(k))||'idle';break;}}
+     if(!node)return;p.node=node;p.look=look;p.clip=clip;p.anim=root.VoidCrowd?.animate?.(node,look,clip);node.position.set(p.x,0,p.z);node.rotation.y=p.yaw;node.metadata={...node.metadata,crowd:look,club:p.id};return;}
+    if(p.node.isEnabled()!==near)p.node.setEnabled(near);if(!near)return;
+    // Dancers without a dance of their own still move with the beat: a small bounce and sway.
+    if(p.dance&&p.clip!=='dance'){const t=clock*3.9+p.phase;p.node.position.y=Math.abs(Math.sin(t))*(p.small?.02:.05);p.node.rotation.y=p.yaw+Math.sin(t*.5)*(p.small?.12:.45);}});
+  }
+  function pulse(time){
+   if(floorTex){const g=floorTex.getContext(),cols=['#ff3fb4','#38e8ff','#9b5cff','#3d6bff','#101018','#101018'],step=Math.floor(time*2.2);for(let y=0;y<10;y++)for(let x=0;x<14;x++){g.fillStyle=cols[((x*7+y*13+step*(1+(x+y)%3))%cols.length+cols.length)%cols.length];g.fillRect(x*8,y*8,7,7);}floorTex.update();}
+   if(screenTex){const g=screenTex.getContext();g.fillStyle='#05030a';g.fillRect(0,0,64,24);for(let x=0;x<32;x++){const h=3+Math.abs(Math.sin(time*3.1+x*.55))*14+Math.abs(Math.sin(time*5.3+x*1.3))*5;g.fillStyle=x%2?'#ff3fb4':'#38e8ff';g.fillRect(x*2,24-h,1,h);}screenTex.update();}
   }
   function unload(){
+   if(built)return;   // the code-built club stays for the visit: it is small, and there is nothing to download again
    if(!model)return;setOpen(false);const gone=new Set(model.getChildMeshes(false));for(const l of excluded)l.excludedMeshes=l.excludedMeshes.filter(m=>!gone.has(m));excluded=[];for(const l of lights)l.dispose();lights=[];for(const b of beams)b.pivot.dispose(false,true);beams=[];for(const o of own)o.dispose();own=[];fade=null;cones=[];interior=[];ball=null;
    model.dispose(false,true);model=null;assets.unload(ID);state.phase='idle';state.unloads++;}
 
@@ -134,6 +221,7 @@
    if(state.phase==='idle'&&d<70)load();
    else if(state.phase==='ready'&&d>130)unload();
    if(state.phase!=='ready')return;
+   if(built){const nearby=d<45;if(nearby&&Math.floor(clock*6)!==Math.floor((clock-dt)*6))pulse(time??clock);staff(dt,nearby);for(const m of builtMeshes)if(m.isEnabled()!==(d<130))m.setEnabled(d<130);}
    // Interior detail and lights only while the club could be seen into; the shell stays for the skyline.
    const near=d<45;for(const m of interior)if(m.isEnabled()!==near)m.setEnabled(near);
    const live=d<28;
@@ -143,8 +231,10 @@
    if(near&&ball)ball.rotate(B.Axis.Y,dt*.5,B.Space.LOCAL);
   }
 
-  return {tick,inside,isOpen:()=>state.phase==='ready',state:()=>({...state}),get model(){return model;},dispose(){disposed=true;unload();setOpen(false);}};
+  return {tick,inside,isOpen:()=>state.phase==='ready',state:()=>({...state}),get model(){return model;},dispose(){disposed=true;if(built){for(const p of people){p.anim?.dispose?.();p.node?.dispose?.();}people=[];for(const l of excluded)l.excludedMeshes=l.excludedMeshes.filter(m=>!builtMeshes.includes(m));excluded=[];for(const l of lights)l.dispose();lights=[];for(const b of beams)b.pivot.dispose(false,true);beams=[];built.dispose(false,false);built=null;builtMeshes=[];for(const o of own)o.dispose();own=[];}else unload();setOpen(false);},get people(){return people.map(p=>({id:p.id,look:p.look||null,clip:p.clip||null,spawned:!!p.node}));}};
  }
- const api={enabled,force:v=>{forced=v;},RECT,HALL,DOOR,FIT,ID,SRC,toWorld,inside,distance,solids,emitters,create};
+ const api={NAME,BUILT,enabled,force:v=>{forced=v;},RECT,HALL,DOOR,FIT,ID,SRC,toWorld,inside,distance,solids,emitters,create};
  if(typeof module!=='undefined')module.exports=api;else root.VoidNightclub=api;
+ // The bar: a drink, nothing more for now (no credits, no effect). Registered once the game's interaction table exists.
+ if(typeof document!=='undefined'){const t=setInterval(()=>{if(!root.VoidInteractions?.register)return;clearInterval(t);root.VoidInteractions.register('club-bar',()=>{try{resumeWalking();}catch{}try{announce('The bartender slides a glass across the bar. It glows faintly. You drink it anyway.');}catch{}});},500);}
 })(globalThis);
