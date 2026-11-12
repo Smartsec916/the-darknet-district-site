@@ -489,8 +489,7 @@ def preview(built, path, batch, layout=True):
     cam = bpy.data.objects.new('cam', bpy.data.cameras.new('cam'))
     cam.data.lens = 32
     dist = max(total * .8, tall * 1.6) + 5
-    cam.data.lens = 36 if tall < 4 else 32
-    cam.location = (total / 2 - total * .12, -dist, tall * .62)
+    cam.location = (total / 2 - total * .06, -dist, tall * .62)
     target = Vector((total / 2, 0, tall * .42))
     if not layout:                           # the assembled view: a three-quarter look at the corner
         total, tall = 8.0, 9.0
