@@ -481,7 +481,7 @@
     // ---- The District interior (first step of the interior/NeoChinatown separation, docs/void-runner/environment-separation.md). ----
     // Everything from here to the returned values builds the inside of the District under district-root; the street, the facade and the taxi zones are built outside it. It runs in place, so nothing changes yet; a later step moves it behind its own loader.
     // ---- The entrance and security vestibule: built in every area ----
-    let kitMat=null,kitPiece=()=>null;   // set by buildEntrance; the interior uses them too
+    const kitAlias={};let kitMat=null,kitPiece=()=>null;   // set by buildEntrance; the interior uses them too
     const {doors}=(function buildEntrance(){
     target=districtRoot;
     // Understated entrance: reinforced sliding door, small mark, camera. The frame is two jambs and a header (it
@@ -504,7 +504,7 @@
     // The vestibule's detailed lining: Blender-made pieces laid over the plain shell above (which stays as the outer wall and as the fallback when a model is missing).
     // The same pieces are placed the same way in the street area and in the interior area, so the room looks identical on both sides of the checkpoint.
     const kitTex=(name,kind)=>{const rel='assets/textures/district-interior/'+name+'_'+kind+'.jpg',t=new B.Texture(base?new URL(rel,base).href:rel,scene,false,false);t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;textures.push(t);return t;};
-    kitMat=name=>{const key='kit:'+name;if(mats[key])return mats[key];const m=new B.PBRMaterial('ncz-'+name,scene);
+    kitMat=name=>{if(kitAlias[name])return kitAlias[name];const key='kit:'+name;if(mats[key])return mats[key];const m=new B.PBRMaterial('ncz-'+name,scene);
      if(name==='kit_emissive'){m.albedoColor=B.Color3.Black();m.roughness=1;m.metallic=0;m.emissiveTexture=kitTex(name,'color');m.emissiveColor=B.Color3.White();m.emissiveIntensity=1.6;}
      else{const c=kitTex(name,'color'),orm=kitTex(name,'orm');m.albedoTexture=c;m.bumpTexture=kitTex(name,'normal');m.invertNormalMapX=true;m.invertNormalMapY=false;m.metallicTexture=orm;m.metallic=1;m.roughness=1;m.useRoughnessFromMetallicTextureAlpha=false;m.useRoughnessFromMetallicTextureGreen=true;m.useMetallnessFromMetallicTextureBlue=true;m.useAmbientOcclusionFromMetallicTextureRed=true;
       m.emissiveTexture=c;m.emissiveColor=new B.Color3(.62,.64,.7);}   // a faint self-light: the room has no lamps of its own (the scene's light limit), so its surfaces must read by themselves
@@ -803,6 +803,11 @@
     for(let z=56.8;z<69;z+=2.4)box('pods-ceiling-panel',[1,.04,1],[-11.2,4.03,z],glowMat('pod-panel','#7fe6ff',.9));
     // Set the whole piece down against the back wall, turned a quarter turn so the hatches face the hallway: old (x, z) -> (z - 62.2, 61.3 - x).
     for(const m of framed){const x=m.position.x,z=m.position.z;m.position.x=z-62.2;m.position.z=61.3-x;m.rotation.y+=Math.PI/2;}framed=null;
+    // The moulded surround of each hatch and the room's tiled floor (interior rebuild, phase F): Blender-made, laid over the pods as they are. The pods' own ring,
+    // glass, lights, numbers and every interaction are untouched; the surround wears the pods' Tesana paint.
+    kitAlias.kit_shell=podPaint;
+    if(kitPiece('district:pod_facade_3m',[-5.2-1.28,.9-.83,75.45-.22],Math.PI,[],{merge:true})){for(let row=0;row<2;row++)for(let i=0;i<5;i++)if(row||i)kitPiece('district:pod_facade_3m',[-5.2+i*2.6-1.28,.9+row*1.7-.83,75.45-.22],Math.PI,[],{merge:true});
+     const g=B.MeshBuilder.CreateGround('pods-floor',{width:33.6,height:7.4},scene),uv=g.getVerticesData('uv');for(let i=0;i<uv.length;i++)uv[i]*=i%2?3.7:16.8;g.setVerticesData('uv',uv);add(g,kitMat('kit_tile'),[0,.027,74.4]);}
     box('pod-terminal',[.4,1.2,.4],[-15.6,.6,71.4],frame);box('pod-terminal-screen',[.3,.4,.05],[-15.6,1.1,71.62],cyan);
 
     // Meeting room: glass wall to the hallway, table, chairs, screen.
@@ -1001,7 +1006,8 @@
   const entryModels={'entry:district_vestibule_wall_6m':{src:'assets/models/district-interior/district_vestibule_wall_6m.glb',scale:1},'entry:district_vestibule_ceiling_6m':{src:'assets/models/district-interior/district_vestibule_ceiling_6m.glb',scale:1},'entry:district_vestibule_floor_6m':{src:'assets/models/district-interior/district_vestibule_floor_6m.glb',scale:1},'entry:district_door_portal_6m':{src:'assets/models/district-interior/district_door_portal_6m.glb',scale:1},'entry:district_scanner_arch_5m':{src:'assets/models/district-interior/district_scanner_arch_5m.glb',scale:1},'entry:district_scanner_kiosk_1m':{src:'assets/models/district-interior/district_scanner_kiosk_1m.glb',scale:1}};
   // The hallway's pieces (phase B of the interior rebuild): interior only.
   const hallModels={'district:hall_wall_2m_a':{src:'assets/models/district-interior/district_hall_wall_2m_a.glb',scale:1},'district:hall_wall_2m_b':{src:'assets/models/district-interior/district_hall_wall_2m_b.glb',scale:1},'district:hall_wall_2m_c':{src:'assets/models/district-interior/district_hall_wall_2m_c.glb',scale:1},'district:hall_wall_2m_d':{src:'assets/models/district-interior/district_hall_wall_2m_d.glb',scale:1},'district:hall_wall_1m':{src:'assets/models/district-interior/district_hall_wall_1m.glb',scale:1},'district:hall_pilaster_05m':{src:'assets/models/district-interior/district_hall_pilaster_05m.glb',scale:1},'district:hall_ceiling_4m':{src:'assets/models/district-interior/district_hall_ceiling_4m.glb',scale:1}};
-  const models={...entryModels,...hallModels,'crowd:vr-player-a':{src:'assets/models/crowd/vr-player-a.glb',background:true},'crowd:vr-player-b':{src:'assets/models/crowd/vr-player-b.glb',background:true},'district:couch':{src:'assets/models/district/couch.glb',scale:.5},'district:bin':{src:'assets/models/district/bin.glb',scale:.6},'district:chair':{src:'assets/models/district/chair.glb',scale:1},
+  const podModels={'district:pod_facade_3m':{src:'assets/models/district-interior/district_pod_facade_3m.glb',scale:1}};
+  const models={...entryModels,...hallModels,...podModels,'crowd:vr-player-a':{src:'assets/models/crowd/vr-player-a.glb',background:true},'crowd:vr-player-b':{src:'assets/models/crowd/vr-player-b.glb',background:true},'district:couch':{src:'assets/models/district/couch.glb',scale:.5},'district:bin':{src:'assets/models/district/bin.glb',scale:.6},'district:chair':{src:'assets/models/district/chair.glb',scale:1},
    // Purchased vending machine (CGTrader, Royalty Free no AI): kept out of the public repository; the live site gets it,
    // encrypted, from the private asset repository (tools/assets/build-pages.cjs). Without it the built machines stay.
    'district:vending-neon':{src:'assets/models/district/vending-neon.vrpak',scale:1},

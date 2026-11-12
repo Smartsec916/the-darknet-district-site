@@ -27,7 +27,7 @@ finished area. Layout, doors, routes, interactions, multiplayer and missions sta
 | C | VR Play area | planned |
 | D | Arcade | planned (room exists: `ARCADE.md`) |
 | E | Store and Admin / Iris counter (references: the two shop pictures) | planned |
-| F | Sleeping Pod room (references: the capsule corridor and the two lit-ring pod pictures; environment only) | planned |
+| F | Sleeping Pod room: a moulded capsule surround on each of the ten hatches (wearing the pods' Tesana paint), tiled room floor. The pods' ring, glass, lights, numbers, music and every interaction are unchanged | first version live; room walls, ceiling, vending wall and pod interiors still to do |
 
 ## Reference pictures
 
