@@ -11,7 +11,7 @@ Scores are honest estimates within the limits of a browser game, judged from scr
 | # | Area | Status |
 |---|---|---|
 | 1 | Main menu and "preparing" screens | **Live** (2026-11-12) |
-| 2 | Character creator | Next |
+| 2 | Character creator | **Live** (2026-11-12), first pass |
 | 3 | Sleeping Pod interior | Partly (Tesana surfaces, music/light panels, vending are live); needs depth, wear, lighting |
 | 4 | Pod room after exit | Not started. Baseline: almost black, flat pods, floating "PODS" labels |
 | 5 | District entrance and vestibule | Not started |
@@ -26,6 +26,13 @@ Scores are honest estimates within the limits of a browser game, judged from scr
 - **Files:** `void-runner/menu-backdrop.js` (new), `void-runner/world-integration.js` (`drawModernBackground`), `void-runner.html` + `static/void-runner.html`.
 - **Scorecard:** atmosphere and identity 8, lighting/composition 7, interface 6 (the menu text and buttons are unchanged), performance 9 (2D only), stability 10 (unit tests and creator browser test pass).
 - **Known limits:** it is a painted 2D picture, not the real 3D city. The menu still lists CAMPAIGN / SKIRMISH from the older game; changing those is a design decision for David. The old station scene is still loaded in the background to warm up the 3D engine (not shown): removing that load is a possible start-up saving.
+
+## Area 2: character creator (first pass)
+
+- **Before:** the character stood at the left edge, half behind the options panel, feet cut off, a black outfit against a black room with two weak lamps.
+- **Now:** a fitting-room stage built only while the creator is open (`void-runner/character-creator.js`): the character is centred in the free part of the screen, whole figure in frame; warm key light, magenta rim, low teal fill; a glowing scan pad under the feet and a faint light wall behind for a clean silhouette. Everything is removed on close.
+- **Scorecard:** lighting 7, composition 8, character appearance 5 (the models and their materials are unchanged; dark outfits still read as dark), animation 5 (idle only; for the first moment the arms blend in from the rest pose), interface 6 (panel unchanged), stability 10.
+- **Remaining:** the options panel styling; a short hide while the idle pose blends in; better skin and cloth materials belong to the character work (area 8).
 
 ## Baseline notes for the next areas (captured 2026-11-12, High setting)
 

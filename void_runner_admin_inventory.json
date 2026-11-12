@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "e981723ff5f17abd",
+  "revision": "f4f6a12c9c9e452a",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13578,7 +13578,7 @@
     "void-runner/character-appearance.js": "53d71abba7c97a691d44fce3a4b88454b616bd11fa4f04a7e789df3c4a33e850",
     "void-runner/character-assembler.js": "5ad994f5df1683dbfb25f60fb0dbedc9a99ad5bcb9ee81283e97d056fc2ae034",
     "void-runner/character-catalog.js": "eee30cc7e7be13d44d43d2b5427bc616c08d64ee4a643cbbd5f3a61e9580e72b",
-    "void-runner/character-creator.js": "09523f6fea72f441ba734388715f330fae76f3c9a3bea8b3a6e2ea3ff54fce66",
+    "void-runner/character-creator.js": "b0598e0a1a369a3e60574fcd371db3550ede9856a041e7f2fa7f544c87177937",
     "void-runner/character-fit.js": "ee63772c43aa17513e8325b03ee8fee759e3fbf2407fa9adc3912921a6efcbc9",
     "void-runner/city-taxi.js": "0e5034fa45257dbcc8a26a52ad33b1dc12b52ecd2c95d22a1929ddcd96155eb0",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
