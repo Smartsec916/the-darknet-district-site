@@ -29,3 +29,7 @@ Entering and leaving a pod, the pod menu, private music and lighting per pod, th
 ## Not done yet (David's Tesana brief, 2026-11-12)
 
 This step is the relocation only. Still to do for the Tesana match: the pod's window view, worn/scratched surfaces, amber accent lights, ceiling fan vent, lighting colour and brightness controls beyond the three presets, and lying-down animation. The reference picture shows a single large capsule with a window; the game has ten compact capsules, so the match will be in materials, lighting and controls rather than room shape.
+
+## 13 Nov 2026: dark pods
+
+David: the pods read almost white; the District should be dark with coloured light as the accent. The pod shell, ribs, bedding and mattress materials in `neochinatown.js` are now near-black violet (the earlier off-white Tesana plastic is superseded); the lit rings, LED strips, screens and the moulded surrounds' status lights carry the colour. Nothing about the pods' behaviour changed.

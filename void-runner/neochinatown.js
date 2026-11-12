@@ -69,6 +69,8 @@
   solids.push({id:'meeting-door',position:[3,1.6,62.5],size:[.3,3.2,4]});
   // Furniture that blocks movement.
   for(const [id,x,z,w,d] of [['bar-counter',10,38.5,9,1.1],['shop-counter',10,47.2,8,1.1],['meeting-table',9,62.5,4,2.4],['pods-row',0,76.9,13,2.6]])solids.push({id,position:[x,.6,z],size:[w,1.2,d]});
+  // Hallway clutter that blocks movement (2026-11-13): two crate stacks and two benches against the walls, clear of every doorway.
+  for(const [id,x,z,w,h,d] of [['prop-hall-crates-w',-2.2,38.2,.8,1.3,1.2],['prop-hall-bench-e',2.35,54,.5,.9,2],['prop-hall-crates-e',2.2,67.2,.8,1.3,1.2],['prop-hall-bench-w',-2.35,55.5,.5,.9,2]])solids.push({id,position:[x,h/2,z],size:[w,h,d]});
   // Smoking terrace, an open roof reached by the stairs at the hallway end.
   wall('terrace-north',28,58,48,58,1.1);wall('terrace-south',28,78,48,78,1.1);wall('terrace-west',28,58,28,78,1.1);wall('terrace-east',48,58,48,78,1.1);
 
@@ -575,13 +577,22 @@
      const g=B.MeshBuilder.CreateGround('hall-floor',{width:5.6,height:44.5},scene),uv=g.getVerticesData('uv');for(let i=0;i<uv.length;i++)uv[i]*=i%2?22.25:2.8;g.setVerticesData('uv',uv);add(g,kitMat('kit_tile'),[0,.028,48.25]);return true;})();
     // kitAt puts a piece against a wall: `facing` is the way the piece looks, `face` the wall surface behind it, `s` where it starts along the wall (its low end).
     const kitAt=(id,facing,face,s,len,depth,y=0,hide=['__screen_0','__light_0'])=>kitPiece('district:'+id,facing==='+x'?[face+depth,y,s]:facing==='-x'?[face-depth,y,s+len]:facing==='+z'?[s+len,y,face+depth]:[s,y,face-depth],{'+x':Math.PI/2,'-x':-Math.PI/2,'+z':0,'-z':Math.PI}[facing],hide,{merge:true});
+    // Doorways, clutter and people (interior rebuild, phase B second step). Each room's doorway gets a lintel with a light under it, a fascia for its sign and a tread plate.
+    if(hallLined){const M=['__screen_1','__light_1'],C=['__screen_0','__light_0'];
+     for(const [a,len] of [[31.5,5],[46.5,6],[59.5,5]])kitAt('hall_header_'+len+'m','+x',-2.8,a,len,.28,0,M);for(const [a,len] of [[30.5,5],[44.5,5],[60.5,4]])kitAt('hall_header_'+len+'m','-x',2.8,a,len,.28,0,C);
+     kitAt('hall_header_6m','-z',70.58,-3,6,.28,0,M);
+     kitAt('prop_crates_1m','+x',-2.6,37.6,1.2,.8)||box('hall-crates',[.8,1.3,1.2],[-2.2,.65,38.2],frame);kitAt('prop_crates_1m','-x',2.6,66.6,1.2,.8)||box('hall-crates',[.8,1.3,1.2],[2.2,.65,67.2],frame);
+     kitAt('prop_bench_2m','-x',2.6,53,2,.5)||box('hall-bench',[.5,.9,2],[2.35,.45,54],frame);kitAt('prop_bench_2m','+x',-2.6,54.5,2,.5)||box('hall-bench',[.5,.9,2],[-2.35,.45,55.5],frame);
+     // A few ordinary residents standing about, against the walls and out of the walking lane (ambient crowd figures: no names, no dialogue).
+     for(const [id,x,z,fx,fz] of [['crew-hall-talk1',-2.0,40.3,-1.9,41.5],['crew-hall-talk2',-1.9,41.5,-2.0,40.3],['crew-hall-watch1',2.05,57.2,0,56],['crew-hall-talk3',2.0,38.4,0,39.5]]){const n=characterModel(id,target,[x,0,z],true);if(n?.rotation)n.rotation.y=Math.atan2(fx-x,fz-z);}}
     if(!hallLined)for(let z=28;z<78;z+=4){box('hall-beam',[6,.3,.3],[0,3.9,z],frame);box('hall-led',[.08,.05,3.6],[-2.6,3.85,z+2],z%8?cyan:magenta);box('hall-led',[.08,.05,3.6],[2.6,3.85,z+2],z%8?magenta:cyan);}
     for(const [z,side] of [[30.5,1],[46,-1],[58,1],[66,-1]])plane('hall-ad',1.2,1.8,[side*(hallLined?2.52:2.82),hallLined?2.0:2.2,z],adMat(nextAd()),side>0?Math.PI/2:-Math.PI/2);
     for(const z of [40,72])box('hall-camera',[.2,.2,.4],[2.7,3.6,z],frame);
+    const signX=hallLined?2.5:2.8;   // room signs stand on the doorway fascias when the hallway is lined
     const roomSign=(lines,colors,p,ry)=>neon('room-sign-'+lines[0],lines,colors,2.4,.7,p,ry,'rgba(10,10,16,.9)',true);
-    roomSign(['VR / ARCADE'],['#38e8ff'],[-2.8,3.4,34],Math.PI/2);roomSign(['BAR · LOUNGE'],['#ffb347'],[2.8,3.4,33],-Math.PI/2);
-    roomSign(['ADMIN & IRIS'],['#9b7bff'],[2.8,3.4,47],-Math.PI/2);roomSign(['VENDING'],['#6cff9e'],[-2.8,3.4,49.5],Math.PI/2);
-    roomSign(['SLEEP PODS'],['#ff5bd0'],[0,3.45,70.2],0);roomSign(['ARCADE'],['#ffe066'],[-2.8,3.4,62],Math.PI/2);roomSign(['MEETING ROOM'],['#e8f0ff'],[2.8,3.4,62.5],-Math.PI/2);
+    roomSign(['VR / ARCADE'],['#38e8ff'],[-signX,3.4,34],Math.PI/2);roomSign(['BAR · LOUNGE'],['#ffb347'],[signX,3.4,33],-Math.PI/2);
+    roomSign(['ADMIN & IRIS'],['#9b7bff'],[signX,3.4,47],-Math.PI/2);roomSign(['VENDING'],['#6cff9e'],[-signX,3.4,49.5],Math.PI/2);
+    roomSign(['SLEEP PODS'],['#ff5bd0'],[0,3.45,70.2],0);roomSign(['ARCADE'],['#ffe066'],[-signX,3.4,62],Math.PI/2);roomSign(['MEETING ROOM'],['#e8f0ff'],[signX,3.4,62.5],-Math.PI/2);
     roomSign(['SMOKING AREA ↑'],['#ffb347'],[16.7,3.3,74.4],-Math.PI/2);
     neon('welcome',['THE DARKNET DISTRICT'],['#9b7bff'],5,.8,[0,3.3,26.6],Math.PI,undefined,true);
 
@@ -772,13 +783,13 @@
 
     // Sleep pods: two stacked rows with ring-lit hatches and numbers.
     // Capsules (reference: rounded pods with glowing oval hatches, glass, a warm-lit bed inside).
-    const podGlass=glass('pod-glass','#a8dcff',.1),mattress=mat('pod-mattress','#e6dfd2',{rough:.9,metal:0});
+    const podGlass=glass('pod-glass','#a8dcff',.1),mattress=mat('pod-mattress','#1c1922',{rough:.9,metal:0});
     // All ten capsules reuse the owner's Tesana Sleeping Pod geometry and its CC0 ambientCG materials.
     // Reuse emissive surfaces rather than the source scene's 13 real lights (which exceed this room's light budget).
     // Surfaces follow the owner's Tesana Sleeping Pod (src/pod/materials.ts): the shell is off-white moulded plastic and the bedding plain white cotton; the scanned
     // paint and fabric sets give only fine scuffs and thread (normal maps), never the colour. The pink comes from the pod's own light, not from the paint.
-    const podPaint=mat('tesana-pod-paint','#ece5f2',{rough:.5,metal:0}),podFabric=mat('tesana-pod-fabric','#f2eef4',{rough:.96,metal:0}),podRib=mat('tesana-pod-rib','#e4dcec',{rough:.45,metal:0}),podVent=mat('tesana-pod-vent','#20263b',{rough:.7,metal:.35}),podFacade=mat('tesana-pod-facade','#2a1d33',{rough:.55,metal:.1});
-    podPaint.emissiveColor=B.Color3.FromHexString('#3b2140');podFabric.emissiveColor=B.Color3.FromHexString('#33203a');podRib.emissiveColor=B.Color3.FromHexString('#2c1a33');   // the neon wash inside the capsule (no extra lights)
+    const podPaint=mat('tesana-pod-paint','#1f1c28',{rough:.42,metal:.15}),podFabric=mat('tesana-pod-fabric','#2a2233',{rough:.96,metal:0}),podRib=mat('tesana-pod-rib','#17151e',{rough:.4,metal:.2})   /* dark shells and bedding (David, 2026-11-13: the pods were almost white; things should be dark, with coloured light as the accent) */,podVent=mat('tesana-pod-vent','#20263b',{rough:.7,metal:.35}),podFacade=mat('tesana-pod-facade','#2a1d33',{rough:.55,metal:.1});
+    podPaint.emissiveColor=B.Color3.FromHexString('#160d1c');podFabric.emissiveColor=B.Color3.FromHexString('#1c1024');podRib.emissiveColor=B.Color3.FromHexString('#120a18');   // the neon wash inside the capsule (no extra lights)
     if(!low)for(const [material,file,scale,level] of [[podPaint,'paintedmetal003-normal.jpg',1,.18],[podFabric,'fabric062-normal.jpg',3,.25]]){const t=new B.Texture(new URL('assets/textures/tesana-pod/'+file,base).href,scene);t.uScale=scale;t.vScale=scale;t.level=level;material.bumpTexture=t;textures.push(t);}
     // The pod's front: one solid panel with an oval window cut out (in the y–z plane, facing the room).
     function ovalPanel(p,width,height,rz,ry,material=podShell){const pos=[],idx=[],n=40;for(let k=0;k<=n;k++){const a=k/n*Math.PI*2,c=Math.cos(a),s=Math.sin(a),reach=Math.min(width/2/Math.max(Math.abs(c),1e-6),height/2/Math.max(Math.abs(s),1e-6));pos.push(0,s*ry,c*rz,0,s*reach,c*reach);if(k<n){const q=k*2;idx.push(q,q+1,q+2,q+1,q+3,q+2,q,q+2,q+1,q+1,q+2,q+3);}}
@@ -1029,7 +1040,8 @@
   const shopModels={'district:shop_counter_8m':{src:'assets/models/district-interior/district_shop_counter_8m.glb',scale:1},'district:shop_bookshelf_3m':{src:'assets/models/district-interior/district_shop_bookshelf_3m.glb',scale:1},'district:shop_gearwall_3m':{src:'assets/models/district-interior/district_shop_gearwall_3m.glb',scale:1},'district:tube_light_2m':{src:'assets/models/district-interior/district_tube_light_2m.glb',scale:1}};
   const arcadeModels={'district:arcade_cabinet_1m':{src:'assets/models/district-interior/district_arcade_cabinet_1m.glb',scale:1},'district:arcade_stool_1m':{src:'assets/models/district-interior/district_arcade_stool_1m.glb',scale:1},'district:arcade_change_1m':{src:'assets/models/district-interior/district_arcade_change_1m.glb',scale:1}};
   const vrModels={'district:vr_rack_1m':{src:'assets/models/district-interior/district_vr_rack_1m.glb',scale:1}};
-  const models={...entryModels,...hallModels,...podModels,...shopModels,...arcadeModels,...vrModels,'crowd:vr-player-a':{src:'assets/models/crowd/vr-player-a.glb',background:true},'crowd:vr-player-b':{src:'assets/models/crowd/vr-player-b.glb',background:true},'district:couch':{src:'assets/models/district/couch.glb',scale:.5},'district:bin':{src:'assets/models/district/bin.glb',scale:.6},'district:chair':{src:'assets/models/district/chair.glb',scale:1},
+  const hallModels2={'district:hall_header_4m':{src:'assets/models/district-interior/district_hall_header_4m.glb',scale:1},'district:hall_header_5m':{src:'assets/models/district-interior/district_hall_header_5m.glb',scale:1},'district:hall_header_6m':{src:'assets/models/district-interior/district_hall_header_6m.glb',scale:1},'district:prop_crates_1m':{src:'assets/models/district-interior/district_prop_crates_1m.glb',scale:1},'district:prop_bench_2m':{src:'assets/models/district-interior/district_prop_bench_2m.glb',scale:1}};
+  const models={...entryModels,...hallModels,...hallModels2,...podModels,...shopModels,...arcadeModels,...vrModels,'crowd:vr-player-a':{src:'assets/models/crowd/vr-player-a.glb',background:true},'crowd:vr-player-b':{src:'assets/models/crowd/vr-player-b.glb',background:true},'district:couch':{src:'assets/models/district/couch.glb',scale:.5},'district:bin':{src:'assets/models/district/bin.glb',scale:.6},'district:chair':{src:'assets/models/district/chair.glb',scale:1},
    // Purchased vending machine (CGTrader, Royalty Free no AI): kept out of the public repository; the live site gets it,
    // encrypted, from the private asset repository (tools/assets/build-pages.cjs). Without it the built machines stay.
    'district:vending-neon':{src:'assets/models/district/vending-neon.vrpak',scale:1},
