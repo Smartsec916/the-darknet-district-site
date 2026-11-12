@@ -27,7 +27,7 @@ finished area. Layout, doors, routes, interactions, multiplayer and missions sta
 | A | Security vestibule and entrance: wall lining, ceiling services, floor with scanner pad, door portals, scanner arch, badge kiosk | first version live; lighting and density to be pushed further |
 | B | Main hallway: wall modules (four 2 m designs, a 1 m module, columns with light slots), 4 m ceiling modules with ducts, pipes, trays and coloured strip lights, tiled floor; west side magenta, east side cyan; the two hallway lamps recoloured to match | first version live; shop-front dressing of the room openings, clutter and people still to do |
 | C | VR Play area | planned |
-| D | Arcade | planned (room exists: `ARCADE.md`) |
+| D | Arcade: a profiled cabinet body round each of the five cabinets (live screens, marquees, controls and the Blackout Protocol launch unchanged), stools at the four cabinets not yet switched on, a change machine | first version live; ambient sound and people still to do (`ARCADE.md`) |
 | E | Store and Admin / Iris counter: counter with goods laid out and a till, two packed bookshelves, two gear walls of hanging packs and vests, wall linings, four bare tube lights. Admin, Iris, their positions, dialogue and interactions are unchanged | first version live; display cases, workstation and Admin/Iris looks (reference pictures) still to do |
 | F | Sleeping Pod room: a moulded capsule surround on each of the ten hatches (wearing the pods' Tesana paint), tiled room floor. The pods' ring, glass, lights, numbers, music and every interaction are unchanged | first version live; room walls, ceiling, vending wall and pod interiors still to do |
 

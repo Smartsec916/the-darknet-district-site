@@ -60,6 +60,11 @@
    "color": "textures/kit_canvas_color.png",
    "normal": "textures/kit_canvas_normal.png",
    "orm": "textures/kit_canvas_orm.png"
+  },
+  "kit_cab": {
+   "color": "textures/kit_cab_color.png",
+   "normal": "textures/kit_cab_normal.png",
+   "orm": "textures/kit_cab_orm.png"
   }
  },
  "ticker": {
@@ -440,6 +445,76 @@
      ],
      "note": "put the back on the wall plane"
     }
+   }
+  },
+  "district_arcade_cabinet_1m": {
+   "file": "district_arcade_cabinet_1m.glb",
+   "batch": "D",
+   "category": "arcade",
+   "size": {
+    "w": 0.8,
+    "h": 2.06,
+    "d": 1.05
+   },
+   "triangles": 228,
+   "bytes": 16544,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -1.05
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "deck_front": 0
+   }
+  },
+  "district_arcade_change_1m": {
+   "file": "district_arcade_change_1m.glb",
+   "batch": "D",
+   "category": "arcade",
+   "size": {
+    "w": 0.7,
+    "h": 1.75,
+    "d": 0.45
+   },
+   "triangles": 296,
+   "bytes": 25552,
+   "nodes": [
+    "district_arcade_change_1m__sign_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.45
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_arcade_stool_1m": {
+   "file": "district_arcade_stool_1m.glb",
+   "batch": "D",
+   "category": "arcade",
+   "size": {
+    "w": 0.4,
+    "h": 0.73,
+    "d": 0.4
+   },
+   "triangles": 184,
+   "bytes": 13116,
+   "nodes": [],
+   "snap": {
+    "base": [
+     0,
+     0,
+     0
+    ],
+    "seat": 0.73
    }
   },
   "district_shop_bookshelf_3m": {

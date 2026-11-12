@@ -25,7 +25,7 @@ OUT = os.path.join(REPO, 'void-runner', 'assets', 'models', 'kit')
 TEX = os.path.join(OUT, 'textures')
 FLOOR, SHOP, DEPTH, FACE = 3.5, 4.5, .5, .1
 TILE = {'kit_concrete': 4.0, 'kit_metal': 2.0, 'kit_asphalt': 3.0, 'kit_fabric': 2.0, 'kit_tile': 2.0}       # metres one repeat of the texture covers
-MATERIALS = ['kit_concrete', 'kit_metal', 'kit_glass', 'kit_emissive', 'kit_asphalt', 'kit_ticker', 'kit_fabric', 'kit_tile', 'kit_shell', 'kit_goods', 'kit_canvas']
+MATERIALS = ['kit_concrete', 'kit_metal', 'kit_glass', 'kit_emissive', 'kit_asphalt', 'kit_ticker', 'kit_fabric', 'kit_tile', 'kit_shell', 'kit_goods', 'kit_canvas', 'kit_cab']
 GLOWING = ('kit_emissive', 'kit_ticker')          # the only materials that give light
 ALL_REGIONS = {**kit_textures.EMISSIVE_REGIONS, **kit_textures.GOODS_REGIONS}        # every atlas region a face can be mapped into, by name
 REGIONS = list(ALL_REGIONS)
@@ -1385,7 +1385,62 @@ def tube_light(p):
     p.snap.update({'top': .5})
 
 
+# ---- Phase D: the arcade. kit_cab is the cabinets' own black laminate (no texture here; the game gives it the existing cabinet material).
+def arcade_cabinet(p):
+    """The body of an upright arcade cabinet: two side panels cut to the classic profile, back, roof, speaker grille, kick plate and coin door. It goes
+    round the game's own cabinet (which keeps its live screen, marquee, control panel and lights): depth 0 here is the front edge of the control deck."""
+    prof = [(1.05, 0), (1.05, 2.06), (.4, 2.06), (.38, 1.8), (.52, 1.72), (.5, 1.12), (0, 1.02), (.02, .93), (.25, .84), (.25, 0)]     # (depth, height), clockwise from the back foot
+    for x0, x1 in ((0, .03), (.77, .8)):
+        for x in (x0, x1):
+            p.quad([(x, y, z) for y, z in prof], 'kit_cab')
+        for (ya, za), (yb, zb) in zip(prof, prof[1:] + prof[:1]):
+            p.quad([(x0, ya, za), (x1, ya, za), (x1, yb, zb), (x0, yb, zb)], 'kit_cab')
+    p.box((.03, 1.02, 0), (.77, 1.05, 2.06), 'kit_cab', bevel=0)                                # back
+    p.box((.03, .4, 2.03), (.77, 1.05, 2.06), 'kit_cab', bevel=0)                               # roof
+    p.box((.03, .25, 0), (.77, .28, .84), 'kit_cab', bevel=0)                                   # front below the deck
+    p.box((.03, .25, 0), (.77, .3, .12), 'kit_metal', bevel=0)                                  # kick plate
+    p.box((.2, .235, .3), (.6, .25, .7), 'kit_metal', bevel=.008)                               # coin door
+    for x in (.3, .44):
+        p.box((x, .228, .5), (x + .06, .235, .6), 'kit_metal', bevel=0)
+    for j in range(4):                                                                         # speaker grille under the marquee
+        p.box((.12, .4, 1.73 + j * .018), (.68, .46, 1.74 + j * .018), 'kit_metal', bevel=0)
+    for x in (.05, .7):                                                                        # levelling feet
+        p.box((x, .32, 0), (x + .05, .98, .02), 'kit_metal', bevel=0)
+    p.snap.update({'mount': {}, 'deck_front': 0})
+
+
+def arcade_stool(p):
+    """A bolted-down arcade stool with a padded seat."""
+    p.cyl((.2, .2, 0), (.2, .2, .03), .2, seg=12)
+    p.cyl((.2, .2, .03), (.2, .2, .62), .03, seg=8)
+    p.cyl((.2, .2, .2), (.2, .2, .22), .15, seg=12, caps=False)
+    p.cyl((.2, .2, .62), (.2, .2, .66), .17, seg=12)
+    b = p.bm()
+    made = bmesh.ops.create_cone(b, cap_ends=True, cap_tris=False, segments=12, radius1=.185, radius2=.16, depth=.07)
+    for v in made['verts']:
+        v.co += Vector((.2, .2, .695))
+    p._tag(b, list({f for v in made['verts'] for f in v.link_faces}), 'kit_canvas')
+    p.snap.update({'base': [0, 0, 0], 'seat': .73})
+
+
+def arcade_change_machine(p):
+    """A token and change machine: steel cabinet, a lit instruction panel (sign_0), coin slot, note slot and a payout tray."""
+    W, H, D = .7, 1.75, .45
+    p.box((0, .03, 0), (W, D, H), 'kit_metal', bevel=.02)
+    p.box((.06, .0, 1.1), (W - .06, .035, 1.62), 'kit_metal', bevel=.01)
+    p.box((.1, 0, 1.15), (W - .1, .006, 1.57), 'kit_emissive', bevel=0, node='sign_0', region='sign_amber')
+    p.box((.12, .01, .78), (.34, .035, .98), 'kit_metal', bevel=.008)                            # note slot
+    p.box((.15, .004, .86), (.31, .012, .88), 'kit_emissive', bevel=0, region='neon_cyan')
+    p.box((.42, .01, .78), (.58, .035, .98), 'kit_metal', bevel=.008)                            # coin slot
+    p.box((.49, .004, .82), (.51, .012, .94), 'kit_emissive', bevel=0, region='neon_amber')
+    p.box((.15, .0, .42), (.55, .08, .56), 'kit_metal', bevel=.012)                              # payout tray
+    p.box((.2, .012, .14), (.5, .035, .3), 'kit_metal', bevel=.008)                              # service lock plate
+    p.cyl((.35, .012, .22), (.35, .03, .22), .025, seg=8)
+    p.snap.update({'mount': {}})
+
+
 INTERIOR = {
+    'district_arcade_cabinet_1m': ('D', 'arcade', arcade_cabinet), 'district_arcade_stool_1m': ('D', 'arcade', arcade_stool), 'district_arcade_change_1m': ('D', 'arcade', arcade_change_machine),
     'district_shop_counter_8m': ('E', 'shop', shop_counter), 'district_shop_bookshelf_3m': ('E', 'shop', shop_bookshelf), 'district_shop_gearwall_3m': ('E', 'shop', shop_gearwall),
     'district_tube_light_2m': ('E', 'shop', tube_light),
     'district_pod_facade_3m': ('F', 'pods', pod_facade),
