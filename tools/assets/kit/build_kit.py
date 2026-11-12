@@ -232,10 +232,123 @@ def wall_windows(W):
     return make
 
 
+def _pipe(p, x, y, z0, z1, r=.045):
+    """A downpipe with wall brackets, standing just in front of the plane y."""
+    p.cyl((x, y - r - .02, z0), (x, y - r - .02, z1), r, seg=8, caps=False)
+    for z in (z0 + .5, (z0 + z1) / 2, z1 - .4):
+        p.box((x - r - .03, y - 2 * r - .03, z), (x + r + .03, y, z + .05), 'kit_metal', bevel=0)
+
+
+def corner_outer(p):
+    """Turns a facade round a convex corner. 1 x 1 m on plan; the FRONT (-Y) and RIGHT (+X) faces show. The wall on its left carries straight on;
+    the wall round the corner starts at the back-right, turned a quarter turn (see snap)."""
+    H, plane = FLOOR, FACE + .03
+    p.box((0, plane, .45), (1 - plane, 1, H - .3), bevel=.03)                                   # the pier
+    p.box((0, 0, 0), (1, 1, .45), bevel=.025)                                                   # plinth
+    p.box((0, .04, H - .3), (1 - .04, 1, H), bevel=.02)                                         # floor band
+    p.box((0, .02, H - .34), (1 - .02, 1, H - .3), 'kit_metal', bevel=0)                       # flashing
+    p.box((0, FACE, .45), (.12, plane + .01, H - .3), bevel=.012)                               # half pilasters where the walls join
+    p.box((1 - plane - .01, .88, .45), (1 - FACE, 1, H - .3), bevel=.012)
+    # a steel corner guard, bolted on, as high as a lorry reaches
+    p.box((1 - plane - .34, plane - .02, .45), (1 - plane + .02, plane + .01, 2.1), 'kit_metal', bevel=.006)
+    p.box((1 - plane - .01, plane - .02, .45), (1 - plane + .02, plane + .34, 2.1), 'kit_metal', bevel=.006)
+    for z in (.6, 1.25, 1.95):
+        p.box((1 - plane - .3, plane - .035, z), (1 - plane - .24, plane - .02, z + .06), 'kit_metal', bevel=0)
+        p.box((1 - plane + .02, plane + .24, z), (1 - plane + .035, plane + .3, z + .06), 'kit_metal', bevel=0)
+    # stone-coursed quoins above the guard
+    for i, z in enumerate((2.25, 2.6, 2.95)):
+        a = .36 if i % 2 else .26
+        p.box((1 - plane - a, plane - .025, z), (1 - plane + .025, plane + a, z + .25), bevel=.012)
+    _pipe(p, .32, plane, .45, H - .34)
+    p.snap.update({'left': [0, 0, 0], 'around': {'position': [1, 0, -1], 'turnY': 90}, 'top': [0, H, 0], 'wall_plane_z': -FACE, 'wall_plane_x': 1 - FACE})
+
+
+def corner_inner(p):
+    """Fills a concave corner. 1 x 1 m on plan, an L: the back arm faces the street (-Y) half a metre behind the piece's front, the right arm faces left (-X)
+    and runs toward the street. The wall on the left meets the back arm; the wall coming forward carries on from the right arm (see snap)."""
+    H, plane = FLOOR, FACE + .03
+    # back arm: x 0..0.5, its face at y = 0.5
+    p.box((0, .5 + plane, .45), (.5 + plane, 1, H - .3), bevel=0)
+    p.box((0, .5, 0), (.5, 1, .45), bevel=.02)
+    p.box((0, .54, H - .3), (.5, 1, H), bevel=.02)
+    p.box((0, .52, H - .34), (.5, 1, H - .3), 'kit_metal', bevel=0)
+    p.box((0, .5 + FACE, .45), (.12, .5 + plane + .01, H - .3), bevel=.012)
+    # right arm: its face at x = 0.5, facing -X
+    p.box((.5 + plane, 0, .45), (1, 1, H - .3), bevel=0)
+    p.box((.5, 0, 0), (1, 1, .45), bevel=.02)
+    p.box((.54, 0, H - .3), (1, 1, H), bevel=.02)
+    p.box((.52, 0, H - .34), (1, 1, H - .3), 'kit_metal', bevel=0)
+    p.box((.5 + FACE, 0, .45), (.5 + plane + .01, .12, H - .3), bevel=.012)
+    # the nook: a square fillet, a fat service pipe and a junction box, the things that collect in corners
+    p.box((.5 - .02, .5 - .02, .45), (.5 + plane + .02, .5 + plane + .02, H - .3), bevel=.02)
+    p.cyl((.3, .5 + plane - .1, .45), (.3, .5 + plane - .1, H - .34), .07, seg=8, caps=False)
+    for z in (.9, 1.9, 2.8):
+        p.box((.2, .5 + plane - .2, z), (.4, .5 + plane, z + .06), 'kit_metal', bevel=0)
+    p.box((.5 + plane - .1, .15, 1.2), (.5 + plane + .01, .42, 1.75), 'kit_metal', bevel=.012)
+    p.cyl((.5 + plane - .04, .28, 1.75), (.5 + plane - .04, .28, H - .34), .022, seg=6, caps=False)
+    p.snap.update({'left': {'position': [0, 0, -.5]}, 'forward': {'position': [.5, 0, 0], 'turnY': -90}, 'top': [0, H, 0]})
+
+
+def cornice(W):
+    """The crown of a facade: sits on top of the top floor. It overhangs the wall's front by 0.2 m, so place it 0.2 m forward of the wall (see snap)."""
+    def make(p):
+        o = .2                                                # the overhang; the wall's front is at y = o
+        p.box((0, o + .04, 0), (W, o + DEPTH, .14), bevel=.015)
+        p.box((0, o - .06, .14), (W, o + DEPTH, .3), bevel=.02)
+        p.box((0, 0, .3), (W, o + DEPTH, .46), bevel=.03)
+        p.box((0, 0, .46), (W, o + DEPTH, .5), 'kit_metal', bevel=0)     # capping sheet
+        n = int(W * 2)
+        for i in range(n):                                    # dentils, on a half-metre rhythm that carries across pieces
+            x = i * .5 + .25
+            p.box((x - .09, o - .05, .02), (x + .09, o + .05, .14), bevel=.01)
+        for k in range(int(W / 2) + 1):                       # a bracket under the overhang at each bay line
+            x0, x1 = max(0, k * 2 - .08), min(W, k * 2 + .08)
+            p.box((x0, .03, .14), (x1, o - .05, .3), bevel=.01)
+        p.snap.update({'left': [0, 0, 0], 'right': [W, 0, 0], 'on_wall': [0, 0, o], 'top': [0, .5, 0]})
+    return make
+
+
+def cornice_corner(p):
+    """Carries the cornice round a convex corner: sits on kit_corner_outer_1m, overhanging its front and right faces by 0.2 m."""
+    o = .2
+    p.box((0, o + .04, 0), (1 - .04, 1 + o, .14), bevel=.015)
+    p.box((0, o - .06, .14), (1 + .06, 1 + o, .3), bevel=.02)
+    p.box((0, 0, .3), (1 + o, 1 + o, .46), bevel=.03)
+    p.box((0, 0, .46), (1 + o, 1 + o, .5), 'kit_metal', bevel=0)
+    for x in (.25, .75):
+        p.box((x - .09, o - .05, .02), (x + .09, o + .05, .14), bevel=.01)
+        p.box((1 - .05, o + x - .09, .02), (1 + .05, o + x + .09, .14), bevel=.01)
+    p.box((1 - .1, .04, .14), (1 + .16, o + .06, .3), bevel=.01)          # the corner bracket
+    p.snap.update({'left': [0, 0, 0], 'on_corner': [0, 0, o], 'around': {'position': [1 + o, 0, -1 - o], 'turnY': 90}, 'top': [0, .5, 0]})
+
+
+def roof_parapet(p):
+    """The low wall at the roof edge, with a coping and a pipe rail. Sits on the cornice or straight on the top floor, flush with the wall."""
+    W, plane = 4, FACE + .03
+    p.box((0, plane, 0), (W, DEPTH, .78), bevel=0)
+    p.box((0, .02, .78), (W, DEPTH + .04, .9), bevel=.025)                                      # coping
+    p.box((0, 0, .9), (W, DEPTH + .06, .93), 'kit_metal', bevel=0)                              # its metal cap
+    for k in range(3):
+        x0, x1 = max(0, k * 2 - .12), min(W, k * 2 + .12)
+        p.box((x0, FACE, 0), (x1, plane + .01, .78), bevel=.012)
+    for x in (1, 3):                                                                           # overflow spouts
+        p.box((x - .1, plane - .06, .12), (x + .1, plane + .01, .3), 'kit_metal', bevel=.01)
+        p.box((x - .06, plane - .16, .14), (x + .06, plane - .06, .2), 'kit_metal', bevel=0)
+    for i in range(5):                                                                         # rail posts every metre (shared at the ends)
+        x = min(max(i * 1.0, .03), W - .03)
+        p.cyl((x, .3, .93), (x, .3, 1.5), .025, seg=6)
+    for z in (1.2, 1.48):
+        p.cyl((0, .3, z), (W, .3, z), .022, seg=6)
+    p.snap.update({'left': [0, 0, 0], 'right': [W, 0, 0], 'wall_plane_z': -FACE})
+
+
 PIECES = {
     # name: (batch, category, builder)
     'kit_wall_plain_2m': (1, 'wall', wall_plain(2)), 'kit_wall_plain_4m': (1, 'wall', wall_plain(4)), 'kit_wall_plain_6m': (1, 'wall', wall_plain(6)),
     'kit_wall_windows_4m': (1, 'wall', wall_windows(4)), 'kit_wall_windows_6m': (1, 'wall', wall_windows(6)),
+    'kit_corner_outer_1m': (2, 'corner', corner_outer), 'kit_corner_inner_1m': (2, 'corner', corner_inner),
+    'kit_cornice_2m': (2, 'cornice', cornice(2)), 'kit_cornice_4m': (2, 'cornice', cornice(4)), 'kit_cornice_6m': (2, 'cornice', cornice(6)),
+    'kit_cornice_corner_1m': (2, 'cornice', cornice_corner), 'kit_roof_parapet_4m': (2, 'roof', roof_parapet),
 }
 
 
@@ -329,12 +442,13 @@ def export(main, path):
     patch_glb(path)
 
 
-def preview(built, path, batch):
+def preview(built, path, batch, layout=True):
     """The batch side by side on wet ground under a dim blue and magenta night light; the kit's own emissive parts glow. For looking at, not for the game."""
     s = bpy.context.scene
     x = 0
     for main, size in built:
-        main.location = (x, 0, 0)
+        if layout:
+            main.location = (x, 0, 0)
         x += size.x + 1.0
     total = x - 1.0
     ground = bpy.data.objects.new('ground', bpy.data.meshes.new('ground'))
@@ -375,8 +489,13 @@ def preview(built, path, batch):
     cam = bpy.data.objects.new('cam', bpy.data.cameras.new('cam'))
     cam.data.lens = 32
     dist = max(total * .8, tall * 1.6) + 5
+    cam.data.lens = 36 if tall < 4 else 32
     cam.location = (total / 2 - total * .12, -dist, tall * .62)
     target = Vector((total / 2, 0, tall * .42))
+    if not layout:                           # the assembled view: a three-quarter look at the corner
+        total, tall = 8.0, 9.0
+        cam.location, target = Vector((15, -15, 5.5)), Vector((2.5, 0, 4.2))
+        cam.data.lens = 30
     cam.rotation_euler = (target - cam.location).to_track_quat('-Z', 'Y').to_euler()
     s.collection.objects.link(cam)
     s.camera = cam
@@ -405,6 +524,30 @@ def preview(built, path, batch):
     s.view_settings.view_transform = 'Filmic' if 'Filmic' in [v.name for v in s.view_settings.bl_rna.properties['view_transform'].enum_items] else s.view_settings.view_transform
     s.render.filepath = path
     bpy.ops.render.render(write_still=True)
+
+
+def assemble(mats, path):
+    """A two-storey corner built from the pieces made so far, to show how they join. Each entry: piece, position (x, y, z), quarter turns about the vertical."""
+    plan = []
+    for f in range(2):
+        z = f * FLOOR
+        plan += [('kit_wall_windows_6m', (0, 0, z), 0), ('kit_wall_plain_2m' if f == 0 else 'kit_wall_windows_4m', (-4 if f else -2, 0, z), 0),
+                 ('kit_corner_outer_1m', (6, 0, z), 0), ('kit_wall_windows_4m', (7, 1, z), 1), ('kit_corner_inner_1m', (-5 if f else -3, -.5, z), 0)]
+    plan[1] = ('kit_wall_plain_4m', (-4, 0, 0), 0)
+    plan[4] = ('kit_corner_inner_1m', (-5, -.5, 0), 0)
+    top = 2 * FLOOR
+    plan += [('kit_cornice_6m', (0, -.2, top), 0), ('kit_cornice_4m', (-4, -.2, top), 0), ('kit_cornice_corner_1m', (6, -.2, top), 0), ('kit_cornice_4m', (7.2, 1, top), 1),
+             ('kit_roof_parapet_4m', (-4, 0, top + .5), 0), ('kit_roof_parapet_4m', (0, 0, top + .5), 0), ('kit_roof_parapet_4m', (7, 1, top + .5), 1)]
+    built = []
+    for name, pos, turns in plan:
+        if name not in PIECES:
+            continue
+        piece = Piece(name)
+        PIECES[name][2](piece)
+        obj, _, size, _ = realise(piece, mats)
+        obj.location, obj.rotation_euler = pos, (0, 0, turns * math.pi / 2)
+        built.append((obj, size))
+    preview(built, path, None, layout=False)
 
 
 def main():
@@ -439,6 +582,12 @@ def main():
         print('KIT', name, 'batch', batch, 'tris', tris, 'size', [round(v, 2) for v in (size.x, size.z, size.y)])
     manifest['pieces'] = dict(sorted(pieces.items(), key=lambda kv: (kv[1]['batch'], kv[0])))
     json.dump(manifest, open(manifest_path, 'w'), indent=1)
+    demo = next((args[i + 1] for i, a in enumerate(args) if a == '--assemble'), None)
+    if demo:
+        for o in list(bpy.data.objects):
+            bpy.data.objects.remove(o)
+        assemble(mats, demo)
+        return
     if shot and built:
         preview(built, shot, batches)
         print('KIT preview', shot)

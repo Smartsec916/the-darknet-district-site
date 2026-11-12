@@ -259,6 +259,245 @@
      -0.32
     ]
    }
+  },
+  "kit_corner_inner_1m": {
+   "file": "kit_corner_inner_1m.glb",
+   "batch": 2,
+   "category": "corner",
+   "size": {
+    "w": 1.0,
+    "h": 3.5,
+    "d": 1.0
+   },
+   "triangles": 464,
+   "bytes": 36920,
+   "nodes": [],
+   "snap": {
+    "left": {
+     "position": [
+      0,
+      0,
+      -0.5
+     ]
+    },
+    "forward": {
+     "position": [
+      0.5,
+      0,
+      0
+     ],
+     "turnY": -90
+    },
+    "top": [
+     0,
+     3.5,
+     0
+    ]
+   }
+  },
+  "kit_corner_outer_1m": {
+   "file": "kit_corner_outer_1m.glb",
+   "batch": 2,
+   "category": "corner",
+   "size": {
+    "w": 1.0,
+    "h": 3.5,
+    "d": 1.0
+   },
+   "triangles": 572,
+   "bytes": 44712,
+   "nodes": [],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "around": {
+     "position": [
+      1,
+      0,
+      -1
+     ],
+     "turnY": 90
+    },
+    "top": [
+     0,
+     3.5,
+     0
+    ],
+    "wall_plane_z": -0.1,
+    "wall_plane_x": 0.9
+   }
+  },
+  "kit_cornice_2m": {
+   "file": "kit_cornice_2m.glb",
+   "batch": 2,
+   "category": "cornice",
+   "size": {
+    "w": 2.0,
+    "h": 0.5,
+    "d": 0.7
+   },
+   "triangles": 408,
+   "bytes": 33468,
+   "nodes": [],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     2,
+     0,
+     0
+    ],
+    "on_wall": [
+     0,
+     0,
+     0.2
+    ],
+    "top": [
+     0,
+     0.5,
+     0
+    ]
+   }
+  },
+  "kit_cornice_4m": {
+   "file": "kit_cornice_4m.glb",
+   "batch": 2,
+   "category": "cornice",
+   "size": {
+    "w": 4.0,
+    "h": 0.5,
+    "d": 0.7
+   },
+   "triangles": 628,
+   "bytes": 50152,
+   "nodes": [],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     4,
+     0,
+     0
+    ],
+    "on_wall": [
+     0,
+     0,
+     0.2
+    ],
+    "top": [
+     0,
+     0.5,
+     0
+    ]
+   }
+  },
+  "kit_cornice_6m": {
+   "file": "kit_cornice_6m.glb",
+   "batch": 2,
+   "category": "cornice",
+   "size": {
+    "w": 6.0,
+    "h": 0.5,
+    "d": 0.7
+   },
+   "triangles": 848,
+   "bytes": 66832,
+   "nodes": [],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     6,
+     0,
+     0
+    ],
+    "on_wall": [
+     0,
+     0,
+     0.2
+    ],
+    "top": [
+     0,
+     0.5,
+     0
+    ]
+   }
+  },
+  "kit_cornice_corner_1m": {
+   "file": "kit_cornice_corner_1m.glb",
+   "batch": 2,
+   "category": "cornice",
+   "size": {
+    "w": 1.2,
+    "h": 0.5,
+    "d": 1.2
+   },
+   "triangles": 364,
+   "bytes": 30180,
+   "nodes": [],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "on_corner": [
+     0,
+     0,
+     0.2
+    ],
+    "around": {
+     "position": [
+      1.2,
+      0,
+      -1.2
+     ],
+     "turnY": 90
+    },
+    "top": [
+     0,
+     0.5,
+     0
+    ]
+   }
+  },
+  "kit_roof_parapet_4m": {
+   "file": "kit_roof_parapet_4m.glb",
+   "batch": 2,
+   "category": "roof",
+   "size": {
+    "w": 4.0,
+    "h": 1.5,
+    "d": 0.59
+   },
+   "triangles": 452,
+   "bytes": 34920,
+   "nodes": [],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     4,
+     0,
+     0
+    ],
+    "wall_plane_z": -0.1
+   }
   }
  }
 }
