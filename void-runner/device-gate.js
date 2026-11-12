@@ -33,11 +33,9 @@
   return {kind,allow:true,reason:'desktop',overridable:false,signals};
  }
 
- /* A weak machine starts on Low graphics, once, and only if the player has never chosen (the Settings menu always wins afterwards). */
- function recommendQuality(env,softwareRenderer){
-  const e=Object.assign({cores:8,memory:undefined},env||{});
-  return (e.cores<=4||(e.memory!==undefined&&e.memory<=4)||softwareRenderer)?'low':null;
- }
+ /* The game is desktop and VR. Core count, memory and a software renderer do not pick a lower graphics setting.
+    The player starts on High unless Settings already has a choice. This gate does not write one. */
+ function recommendQuality(){return null;}
 
  const COPY={
   phone:{title:'The Darknet District is a desktop experience',lines:['The 3D game is built for desktop computers, with a keyboard and mouse or a gamepad. It does not run on phones.','Open this page on a computer to walk into the District. Your phone keeps the full website.']},
@@ -63,9 +61,6 @@
   const s=root.document.createElement('style');
   s.textContent='html.tdd-gated body>*:not(#tdd-gate){display:none!important}html.tdd-gated,html.tdd-gated body{height:auto!important;min-height:100%;overflow:auto!important;position:static!important;background:#040713!important}';
   root.document.head.appendChild(s);root.document.documentElement.classList.add('tdd-gated');
- }else if(hasDom){
-  /* weak hardware: start on Low once, never over a choice the player made */
-  try{const q=recommendQuality(decided.env,decided.software);if(q&&!root.localStorage.getItem('void-runner-graphics-v1'))root.localStorage.setItem('void-runner-graphics-v1',JSON.stringify({quality:q,auto:true}));}catch(e){/* storage blocked */}
  }
 
  function landing(){

@@ -1,8 +1,8 @@
 /* The device gate in a real browser engine (Playwright, software GL; Edge when installed). What it proves, by what the browser actually does:
    phones (Pixel 7 and iPhone 13 emulation profiles, and a phone that asks for the desktop site) get the landing page, download no game script, model or
    Babylon file, register no service worker, and keep a working link to the website; a desktop starts the game exactly as before (also in a narrow
-   window); a touch-only tablet gets the landing page with a "try anyway" choice that really starts the game; weak hardware starts on Low once and never
-   overrides a player's own graphics choice. These are EMULATION profiles on this computer, not physical phones.
+   window); a touch-only tablet gets the landing page with a "try anyway" choice that really starts the game; a low core count does not write a Low
+   graphics setting, and a choice the player already made is left alone. These are EMULATION profiles on this computer, not physical phones.
    Needs the local server (node tests/serve-modern.cjs) or BASE=...   Run: node tests/device-gate-browser.cjs   -> screenshots in work/device-gate/ */
 const { chromium, devices } = require('playwright'), assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path');
 const BASE = process.env.BASE || 'http://127.0.0.1:5187', out = path.resolve(__dirname, '..', 'work', 'device-gate'); fs.mkdirSync(out, { recursive: true });
@@ -65,10 +65,10 @@ const gated = async page => ({ landing: await page.locator('#tdd-gate').count(),
     const { ctx, page } = await open(b, { viewport: { width: 420, height: 800 } });
     assert.equal(await page.locator('#tdd-gate').count(), 0); await page.waitForFunction(() => typeof VoidLoading !== 'undefined', null, { timeout: 60000 }); await ctx.close();
   });
-  await check('weak hardware starts on Low once, and never overrides a choice the player already made', async () => {
+  await check('a low core count does not write a Low graphics setting, and a choice the player already made is left alone', async () => {
     const weak = () => { Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => 2 }); };
     let r = await open(b, { viewport: { width: 1280, height: 720 } }, weak);
-    assert.deepEqual(JSON.parse(await r.page.evaluate(() => localStorage.getItem('void-runner-graphics-v1'))), { quality: 'low', auto: true }); await r.ctx.close();
+    assert.equal(await r.page.evaluate(() => localStorage.getItem('void-runner-graphics-v1')), null); await r.ctx.close();
     r = await open(b, { viewport: { width: 1280, height: 720 } }, () => { Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => 2 }); try { if (!localStorage.getItem('void-runner-graphics-v1')) localStorage.setItem('void-runner-graphics-v1', JSON.stringify({ quality: 'high' })); } catch (e) { /* none */ } });
     assert.equal(JSON.parse(await r.page.evaluate(() => localStorage.getItem('void-runner-graphics-v1'))).quality, 'high'); await r.ctx.close();
   });
