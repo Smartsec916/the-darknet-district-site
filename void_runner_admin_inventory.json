@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "71f5e64d71c4fb31",
+  "revision": "34eac02e1207ffc2",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12037,37 +12037,37 @@
     },
     {
       "source": "void-runner/menu.js",
-      "line": 68,
+      "line": 66,
       "text": "speech,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 79,
+      "line": 77,
       "text": "speech = snapshot.speech;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 84,
+      "line": 82,
       "text": "if (speech) renderLine();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 101,
+      "line": 99,
       "text": "return '<details><summary>Character voices</summary><p class=\"fine\">Automatic selection matches known voices to each character. If this device has no matching voice, dialogue stays subtitled. Choose a voice below to override it. Naturalness depends on voices installed on your device.</p>' + Object.entries(VoidStoryContent.characters).map(([id,c]) => '<label>'+escapeText(c.name)+'<select data-character-voice=\"'+id+'\"><option value=\"\">Automatic matching</option>'+voices.map(v=>'<option value=\"'+escapeText(v.voiceURI)+'\" '+(VoidAudio.voiceChoice(id)===v.voiceURI?'selected':'')+'>'+escapeText(v.name)+'</option>').join('')+'</select></label>').join('')+'</details>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 110,
+      "line": 108,
       "text": "`<section class=\"settings-panel\">${button('BACK','menu-back',true)}<h1 tabindex=\"-1\">Settings</h1>${[['music','Music volume'],['effects','Sound effects volume'],['ambient','Ambient volume'],['voice','Voice volume']].map(([id,label])=>`<label>${label}<input type=\"range\" min=\"0\" max=\"100\" step=\"1\" data-setting=\"${id}\" value=\"${Math.round(s[id]*100)}\"><output>${Math.round(s[id]*100)}</output></label>`).join('')}${button('KEYBINDINGS','menu-bindings')}${button(s.enabled?'MUTE ALL':'UNMUTE ALL','menu-mute',true)}<p class=\"fine\">Audio starts after interaction. Voices use this device’s speech engine. Set a category to zero to mute it.</p>${voiceSettingsHTML()}</section>`",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/menu.js",
-      "line": 131,
+      "line": 129,
       "text": "mode='menu';VoidMenu.returnTo=null;speech=null;VoidAudio.cancel();clearInput();walkingKeys.clear();document.exitPointerLock?.();",
       "kind": "source-reference"
     },
@@ -12463,13 +12463,13 @@
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 126,
+      "line": 139,
       "text": "sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false,chat:false};emitChat({t:'chat-status',on:false});for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 168,
+      "line": 183,
       "text": "sendChat(text){if(ws?.readyState===1&&status==='in'&&features.chat&&typeof text==='string'){ws.send(JSON.stringify({t:'chat',text:text.slice(0,800)}));return true;}return false;},",
       "kind": "source-reference"
     },
@@ -13629,7 +13629,7 @@
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input.js": "ee7b8bba97bf1233e9d6d5e7d115efee2ecb1caddd6b758a144b78f33046924e",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
-    "void-runner/menu.js": "d63408ef7178a4a9e74c84c9df1cd12a298b48d025822bc3c9914698c89524a0",
+    "void-runner/menu.js": "1e867ab310bf04f9ad6a5a8f02db34f9ed6d0fa4fff3557fe73416ba9ba69772",
     "void-runner/meridian-art.js": "ef57144a85d288a8b5c3ea0a616d36b5fcc78de0f4a5220473486f1f2b9f2a19",
     "void-runner/meridian-interior-kit.js": "2ca741d025cbd6b3e205e823c637fcf46c0488303ecb24cdcf2e678d0e43eeb4",
     "void-runner/meridian-interior.js": "d9f411d4f42b3cf8bacbe377812cda9b3c3563aef0d52127e989898e4b9a2b96",
@@ -13667,7 +13667,7 @@
     "void-runner/relay-radio.js": "5ce31904c15f630a01d00f51d566d66ae97c736d5734d7531835588714269806",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
-    "void-runner/remote-players.js": "9d20081dd80bbda042e692817890ac5993231a3f2f9f448baef9faf2213b1c42",
+    "void-runner/remote-players.js": "708d9aec3b02b486f28879445ec9d43ca95b46f891d315ccbe0ac19bed4280b8",
     "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",

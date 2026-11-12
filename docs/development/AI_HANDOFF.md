@@ -1,5 +1,15 @@
 # The Darknet District — Current AI Development Handoff
 
+## 2026-11-12: multiplayer presence repair (live after this PR)
+
+**Report:** two real players in the Sleeping Pod area could not see each other. **Evidence (Render hub logs, 10–12 Nov):** only ONE player id and one address ever joined; no second account reached the hub.
+**Causes found in the client (`void-runner/remote-players.js`):** (1) the client was online only in `walking`/`menu` mode, so lying in a pod (`pod-waking`), the pod music screen or the wardrobe silently disconnected the player: two players in their pods were never online together; (2) nothing on screen said whether a session was online or solo, so an unsigned-in player could not tell.
+**Fixed:** stays connected in every District-interior screen (`ROOM_MODES`); a player in a pod is reported at the pod door (pods stay private); on-screen indicator `#mp-chip` (ONLINE · N players / PLAYING SOLO · reason / CONNECTING / RECONNECTING); a plain glowing fallback figure if a player's model cannot load; `VoidRemotePlayers.diagnostics`; main menu says solo play when not signed in. The earlier-campaign backup download was removed from the menu (retired copies stay untouched in browser storage; `C.retiredKeys` kept).
+**Test:** `tests/multiplayer-presence-browser.cjs` (two to three browser sessions + in-process hub, SIMULATED identities). Not verified: real Firebase sign-in for a second real account, and two real players on the live site.
+**Not changed:** the hub (Render `district-hub`, still commit 298533b) and the game API. **Still required of each player:** a registered account, a District handle (Menu › Settings) and a saved character.
+**Next:** shared VR sessions (public/private) need hub protocol work and a hub redeploy; then resume graphics from branch `claude/aaa-first-view` (menu city backdrop, unfinished WIP commit).
+
+
 ## 2026-11-12: pod wall displays and vending (live)
 
 - Each sleeping pod now has, built into its walls: a music player face (PR 223), an ambient-light panel (PR 224) and a vending unit (this PR). Code: `void-runner/neochinatown.js` (`drawPodPlayer`, `drawPodLights`, `drawPodVending`, `podScreen.tick`) and the pod menu in `void-runner/world-integration.js` (`podVend`).

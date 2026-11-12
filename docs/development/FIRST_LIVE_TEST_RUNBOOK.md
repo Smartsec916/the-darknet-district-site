@@ -47,7 +47,7 @@ a.download='darknet-district-local-backup-'+new Date().toISOString().slice(0,10)
 5. Check the console prints the keys, including `void-runner-campaign-v1`, and that the file is more than a few hundred bytes. Keep the file somewhere safe (not only on this PC).
 6. **Cloud save:** if you play with an account, press the account button in the game and note the saved date. Nothing is deleted by the new build, but a second note does no harm.
 
-After the new build is live, the **main menu** shows "An earlier campaign is kept safely in this browser" with a **Download the earlier campaign as a backup** button (a second, in-game way to get the same file).
+After the new build is live, the **main menu** shows "An earlier campaign is kept safely in this browser" with a **Download the earlier campaign as a backup** button (a second, in-game way to get the same file). *(Removed 2026-11-12: the menu no longer offers this download. The retired copies are still kept untouched in the browser storage.)*
 
 ## 4. Restoring, and rolling back
 
