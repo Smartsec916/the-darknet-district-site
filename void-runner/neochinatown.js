@@ -470,12 +470,14 @@
     for(const z of [21.5,24.5])box('status-display',[.05,.6,1],[-2.92,2.2,z],[cyan,magenta][z>23?1:0]);
     box('vestibule-light',[4,.05,.3],[0,3.42,23],white);
     const innerDoor=doorPanels('district-inner-door',26,mat('door-inner','#1d2026',{rough:.35,metal:.9}),25.84);
-    const doors=(()=>{const list=[{id:'district-door',flag:'districtDoor',z:20,...outerDoor,open:0,kick:0},{id:'district-inner-door',flag:'districtBadge',z:26,...innerDoor,open:0,kick:0}];let entryCycle=false;
+    const doors=(()=>{const list=[{id:'district-door',flag:'districtDoor',z:20,...outerDoor,open:0,kick:0},{id:'district-inner-door',flag:'districtBadge',z:26,...innerDoor,open:0,kick:0}];let entryCycle=false,secured=!!root.VoidDistrict?.busy;   // built in the middle of a checkpoint transfer: the doors start sealed, so none stirs before the scan clears
      // Resolve against the *current* location. A scene can start ticking while the loader still
      // holds the previous area's collision array; caching that array leaves an invisible closed door.
      const green=mat('door-ok','#1d6b4a',{glow:'#3dffa8'}),solidOf=d=>(typeof walkingLocation!=='undefined'?walkingLocation?.solids:null)?.find?.(s=>s.id===d.id)||null;
      // In the street area the inner door stays shut and locked whatever the flags say: nothing is built behind it there.
-     const isOpenable=d=>!(area==='street'&&d.id==='district-inner-door');
+     // In the interior area the OUTER door is shut the same way: the street is not built there. So the two doors can never be open together, and the only
+     // way through is the checkpoint in the middle of the vestibule (district-transition.js), which seals both doors before anything is loaded.
+     const isOpenable=d=>!(area==='street'&&d.id==='district-inner-door')&&!(area==='interior'&&d.id==='district-door');
      for(const d of list)if(isOpenable(d)&&(d.id==='district-door'||state.story?.flags?.[d.flag]))d.light.material=green;
      // Each frame: open toward 1 when unlocked and you're near (or just pressed E), else close; the collision box is
      // there whenever the door is less than 80% open, and a door never closes on you while you're in the doorway.
@@ -485,11 +487,18 @@
       for(const d of list){const unlocked=isOpenable(d)&&(d.id==='district-door'||!!flags[d.flag]);if(unlocked&&d.light.material!==green)d.light.material=green;d.kick=Math.max(0,d.kick-dt);
        const near=Math.abs(lx)<3.4&&Math.abs(lz-d.z)<3,inDoorway=Math.abs(lx)<3.2&&Math.abs(lz-d.z)<1.1;
        const cyclingOuter=entryCycle&&d.id==='district-door',cyclingInner=entryCycle&&d.id==='district-inner-door';
-       const want=cyclingOuter?false:cyclingInner?unlocked&&list[0].open<=.02:unlocked&&(near||d.kick>0)||(d.open>.05&&inDoorway);
+       const want=secured?d.open>.05&&inDoorway:cyclingOuter?false:cyclingInner?unlocked&&list[0].open<=.02:unlocked&&(near||d.kick>0)||(d.open>.05&&inDoorway);
        const before=d.open;d.open=Math.max(0,Math.min(1,d.open+(want?1:-1)*dt*1.25));const e=d.open*d.open*(3-2*d.open);
        if(d.open!==before){d.panels[0].position.x=-1.41-e*2.75;d.panels[1].position.x=1.41+e*2.75;d.seam.setEnabled(e<.02);}
        const solid=solidOf(d);if(solid)solid.open=d.open>=.8;}}
-     return {tick,list,kick(id,seconds=4){const d=list.find(x=>x.id===id);if(d){d.kick=seconds;}},cycleIn(){entryCycle=true;return new Promise(resolve=>{const end=performance.now()+4000;function check(){if(list[0].open<=.02&&list[1].open>=.8||performance.now()>end)resolve();else requestAnimationFrame(check);}check();});},state:()=>list.map(d=>({id:d.id,open:+d.open.toFixed(2),locked:!(isOpenable(d)&&(d.id==='district-door'||typeof state!=='undefined'&&state?.story?.flags?.[d.flag])),blocking:!!solidOf(d)&&!solidOf(d).open}))};})();
+     return {tick,list,
+      // The checkpoint's controls. secure(true): both doors close and stay closed (a door still never closes on someone standing in it). closed(): the door
+      // sensors: every panel fully shut AND its collision in place. release(id): end the seal and hold that one door open for a while.
+      secure(on){secured=!!on;if(on)for(const d of list)d.kick=0;},get secured(){return secured;},
+      closed(){return list.every(d=>{const solid=solidOf(d);return d.open<=.02&&(!solid||!solid.open);});},
+      openness(){return list.reduce((sum,d)=>sum+d.open,0);},
+      release(id,seconds=8){secured=false;entryCycle=false;const d=list.find(x=>x.id===id);if(d&&isOpenable(d))d.kick=seconds;},
+      kick(id,seconds=4){const d=list.find(x=>x.id===id);if(d){d.kick=seconds;}},cycleIn(){entryCycle=true;return new Promise(resolve=>{const end=performance.now()+4000;function check(){if(list[0].open<=.02&&list[1].open>=.8||performance.now()>end)resolve();else requestAnimationFrame(check);}check();});},state:()=>list.map(d=>({id:d.id,open:+d.open.toFixed(2),locked:!(isOpenable(d)&&(d.id==='district-door'||typeof state!=='undefined'&&state?.story?.flags?.[d.flag])),blocking:!!solidOf(d)&&!solidOf(d).open}))};})();
 
     return {doors};})();
     if(area==='all'){if(seed!==SEAMS[0])console.warn('[NeoChinatown] random state before the interior changed; update SEAMS (interior detail will differ in the separate builds)');}else if(!wantStreet)seed=SEAMS[0];
