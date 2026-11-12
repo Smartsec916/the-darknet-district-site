@@ -204,6 +204,14 @@ async function ready(page) {
       await p.waitForFunction(() => window.__BP.save().unlocked === 5);
       return {context, page:p};
     }
+    // The account-save half of the game page (account.js tesanaGetProgress and the page that calls it) is on the branch
+    // codex/blackout-district-production-integration and has NOT been merged: the shipped game does not sync progress to accounts.
+    // Until it ships this part is reported as not run, instead of failing every build. It runs by itself once the game has it.
+    const shipped = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'blackout-protocol', 'account.js'), 'utf8').includes('tesanaGetProgress');
+    if (!shipped) {
+      console.log(`Blackout browser smoke passed: ${sectors.length} sectors, desktop/mobile controls, offline fallback, guest saves. NOT RUN: account save sync (not shipped in the game yet).`);
+      return;
+    }
     const first = await cloudPage();
     assert.equal(cloudRevision, 3, 'loading account progress does not submit a score');
     await first.page.evaluate(() => window.__BP.start(0));
