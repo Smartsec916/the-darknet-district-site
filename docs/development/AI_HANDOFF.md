@@ -4,6 +4,13 @@
 
 **Checked against:** `origin/main` `4fc1a70` (12 Nov 2026). That commit is the merge of #240 (Tropical Escape dolphins) on top of `7939256` (NULL nightclub, #238). Re-fetch GitHub before trusting pull-request numbers or deploy claims below.
 
+## 12–13 Nov 2026: District interior rebuild under way
+
+- David ordered the whole interior rebuilt with Blender-made assets. Plan, method and state per area: `docs/development/DISTRICT_INTERIOR.md`. First versions are live for the security vestibule, main hallway, Sleeping Pod hatches, the Admin & Iris shop, the arcade and the VR area (PRs #249 to #254).
+- Pieces are built by `tools/assets/kit/build_kit.py --interior` into `void-runner/assets/models/district-interior/` (bare GLBs) and placed in `neochinatown.js` with `kitPiece()` / `kitAt()`, sharing one material per name (`kitMat()`); most join the per-material mesh merge. Old plain geometry stays as the fallback.
+- Not judged on real hardware: brightness. The interior is at the 12-light limit, so the new surfaces rely on glow and a faint self-light.
+- Still to do: hallway shop-front dressing and clutter, pod room walls/ceiling/interiors, shop display cases, bar and meeting room, ambient people, Admin and Iris looks (reference pictures supplied; needs David's go).
+
 ## 12 Nov 2026 (late): building kit finished; haze and dimness fixed
 
 - **Modular building kit** for NeoChinatown: 47 pieces in `void-runner/assets/models/kit/` with `kit-manifest.json`, built by code (`tools/assets/kit/`). Not used by the game yet. Next step and all rules: `docs/development/BUILDING_KIT_HANDOVER.md`. Shop-sign wording is a placeholder awaiting David.
