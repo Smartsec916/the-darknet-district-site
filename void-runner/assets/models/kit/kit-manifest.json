@@ -537,6 +537,327 @@
     ],
     "wall_plane_z": -0.1
    }
+  },
+  "kit_corner_inner_tall_1m": {
+   "file": "kit_corner_inner_tall_1m.glb",
+   "batch": 3,
+   "category": "corner",
+   "size": {
+    "w": 1.0,
+    "h": 4.5,
+    "d": 1.0
+   },
+   "triangles": 536,
+   "bytes": 43152,
+   "nodes": [
+    "kit_corner_inner_tall_1m__neon_0"
+   ],
+   "snap": {
+    "left": {
+     "position": [
+      0,
+      0,
+      -0.5
+     ]
+    },
+    "forward": {
+     "position": [
+      0.5,
+      0,
+      0
+     ],
+     "turnY": -90
+    },
+    "top": [
+     0,
+     4.5,
+     0
+    ]
+   }
+  },
+  "kit_corner_outer_tall_1m": {
+   "file": "kit_corner_outer_tall_1m.glb",
+   "batch": 3,
+   "category": "corner",
+   "size": {
+    "w": 1.0,
+    "h": 4.5,
+    "d": 1.0
+   },
+   "triangles": 560,
+   "bytes": 45132,
+   "nodes": [
+    "kit_corner_outer_tall_1m__neon_0",
+    "kit_corner_outer_tall_1m__neon_1"
+   ],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "around": {
+     "position": [
+      1,
+      0,
+      -1
+     ],
+     "turnY": 90
+    },
+    "top": [
+     0,
+     4.5,
+     0
+    ],
+    "wall_plane_z": -0.1,
+    "wall_plane_x": 0.9
+   }
+  },
+  "kit_shopfront_door_2m": {
+   "file": "kit_shopfront_door_2m.glb",
+   "batch": 3,
+   "category": "shopfront",
+   "size": {
+    "w": 2.0,
+    "h": 4.5,
+    "d": 0.5
+   },
+   "triangles": 850,
+   "bytes": 68060,
+   "nodes": [
+    "kit_shopfront_door_2m__glass_0",
+    "kit_shopfront_door_2m__neon_0",
+    "kit_shopfront_door_2m__neon_1"
+   ],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     2,
+     0,
+     0
+    ],
+    "top": [
+     0,
+     4.5,
+     0
+    ],
+    "wall_plane_z": -0.1,
+    "door": {
+     "position": [
+      0.5,
+      0.12,
+      -0.2
+     ],
+     "size": [
+      1.0,
+      2.3
+     ]
+    }
+   }
+  },
+  "kit_shopfront_service_2m": {
+   "file": "kit_shopfront_service_2m.glb",
+   "batch": 3,
+   "category": "shopfront",
+   "size": {
+    "w": 2.0,
+    "h": 4.5,
+    "d": 0.51
+   },
+   "triangles": 820,
+   "bytes": 63872,
+   "nodes": [
+    "kit_shopfront_service_2m__neon_0"
+   ],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     2,
+     0,
+     0
+    ],
+    "top": [
+     0,
+     4.5,
+     0
+    ],
+    "wall_plane_z": -0.1
+   }
+  },
+  "kit_shopfront_shutter_4m": {
+   "file": "kit_shopfront_shutter_4m.glb",
+   "batch": 3,
+   "category": "shopfront",
+   "size": {
+    "w": 4.0,
+    "h": 4.5,
+    "d": 0.5
+   },
+   "triangles": 728,
+   "bytes": 58336,
+   "nodes": [
+    "kit_shopfront_shutter_4m__neon_0",
+    "kit_shopfront_shutter_4m__sign_0"
+   ],
+   "snap": {
+    "sign": {
+     "position": [
+      0.15,
+      3.4,
+      0
+     ],
+     "size": [
+      3.7,
+      0.62
+     ]
+    },
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     4,
+     0,
+     0
+    ],
+    "top": [
+     0,
+     4.5,
+     0
+    ],
+    "wall_plane_z": -0.1
+   }
+  },
+  "kit_shopfront_window_4m": {
+   "file": "kit_shopfront_window_4m.glb",
+   "batch": 3,
+   "category": "shopfront",
+   "size": {
+    "w": 4.0,
+    "h": 4.5,
+    "d": 0.5
+   },
+   "triangles": 564,
+   "bytes": 47784,
+   "nodes": [
+    "kit_shopfront_window_4m__glass_0",
+    "kit_shopfront_window_4m__glass_1",
+    "kit_shopfront_window_4m__neon_0",
+    "kit_shopfront_window_4m__neon_1",
+    "kit_shopfront_window_4m__sign_0"
+   ],
+   "snap": {
+    "sign": {
+     "position": [
+      0.15,
+      3.4,
+      0
+     ],
+     "size": [
+      3.7,
+      0.62
+     ]
+    },
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     4,
+     0,
+     0
+    ],
+    "top": [
+     0,
+     4.5,
+     0
+    ],
+    "wall_plane_z": -0.1,
+    "window_0": [
+     1.07,
+     1.48,
+     -0.24
+    ],
+    "window_1": [
+     2.93,
+     1.48,
+     -0.24
+    ]
+   }
+  },
+  "kit_shopfront_window_6m": {
+   "file": "kit_shopfront_window_6m.glb",
+   "batch": 3,
+   "category": "shopfront",
+   "size": {
+    "w": 6.0,
+    "h": 4.5,
+    "d": 0.5
+   },
+   "triangles": 626,
+   "bytes": 52956,
+   "nodes": [
+    "kit_shopfront_window_6m__glass_0",
+    "kit_shopfront_window_6m__glass_1",
+    "kit_shopfront_window_6m__glass_2",
+    "kit_shopfront_window_6m__neon_0",
+    "kit_shopfront_window_6m__neon_1",
+    "kit_shopfront_window_6m__sign_0"
+   ],
+   "snap": {
+    "sign": {
+     "position": [
+      0.15,
+      3.4,
+      0
+     ],
+     "size": [
+      5.7,
+      0.62
+     ]
+    },
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     6,
+     0,
+     0
+    ],
+    "top": [
+     0,
+     4.5,
+     0
+    ],
+    "wall_plane_z": -0.1,
+    "window_0": [
+     1.093,
+     1.48,
+     -0.24
+    ],
+    "window_1": [
+     3.0,
+     1.48,
+     -0.24
+    ],
+    "window_2": [
+     4.907,
+     1.48,
+     -0.24
+    ]
+   }
   }
  }
 }

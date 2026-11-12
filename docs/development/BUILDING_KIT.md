@@ -9,13 +9,14 @@ A set of modular building pieces for replacing the box buildings on the street. 
 
 Rules: metres; 1 m grid; widths 2 / 4 / 6 m; upper floors 3.5 m, shopfront floor 4.5 m; Y up, front faces +Z, origin at the bottom-left-front corner; under 3,000
 triangles a piece; five shared materials (`kit_concrete`, `kit_metal`, `kit_glass`, `kit_emissive`, `kit_asphalt`); light only from `kit_emissive`, no lamps.
+Neon tubes (`__neon_<n>`) and shop sign faces (`__sign_0`) are separate child nodes too, so the game can switch them off or give a sign its own picture.
 Window panes are separate child nodes (`<piece>__glass_<n>`) so the game can switch a window between dark glass and a lit look from the emissive atlas.
 
 | Batch | Pieces | State |
 |---|---|---|
 | 1 | wall_plain 2/4/6 m, wall_windows 4/6 m | built, approved |
-| 2 | corner_outer 1 m, corner_inner 1 m, cornice 2/4/6 m, cornice_corner 1 m, roof_parapet 4 m | built, awaiting review |
-| 3 | shopfronts (4.5 m): window 4/6 m, shutter 4 m, door 2 m, service 2 m | planned |
+| 2 | corner_outer 1 m, corner_inner 1 m, cornice 2/4/6 m, cornice_corner 1 m, roof_parapet 4 m | built, approved |
+| 3 | shopfronts (4.5 m): window 4/6 m, shutter 4 m, door 2 m, service 2 m; corner_outer_tall and corner_inner_tall 1 m (4.5 m) | built, awaiting review |
 | 4 | window frames: 1 m, wide 2 m, barred 1 m | planned |
 | 5 | awnings and balconies | planned |
 | 6 | fire escape, pipes, ducts, cables | planned |

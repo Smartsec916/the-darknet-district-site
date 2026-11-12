@@ -271,10 +271,10 @@ def _pipe(p, x, y, z0, z1, r=.045):
         p.box((x - r - .03, y - 2 * r - .03, z), (x + r + .03, y, z + .05), 'kit_metal', bevel=0)
 
 
-def corner_outer(p):
+def _corner_outer(p, H):
     """Turns a facade round a convex corner. 1 x 1 m on plan; the FRONT (-Y) and RIGHT (+X) faces show. The wall on its left carries straight on;
     the wall round the corner starts at the back-right, turned a quarter turn (see snap)."""
-    H, plane = FLOOR, FACE + .03
+    plane = FACE + .03
     p.box((0, plane, .45), (1 - plane, 1, H - .3), bevel=.03)                                   # the pier
     p.box((0, 0, 0), (1, 1, .45), bevel=.025)                                                   # plinth
     p.box((0, .04, H - .3), (1 - .04, 1, H), 'kit_metal', bevel=.02)                            # floor band
@@ -297,10 +297,10 @@ def corner_outer(p):
     p.snap.update({'left': [0, 0, 0], 'around': {'position': [1, 0, -1], 'turnY': 90}, 'top': [0, H, 0], 'wall_plane_z': -FACE, 'wall_plane_x': 1 - FACE})
 
 
-def corner_inner(p):
+def _corner_inner(p, H):
     """Fills a concave corner. 1 x 1 m on plan, an L: the back arm faces the street (-Y) half a metre behind the piece's front, the right arm faces left (-X)
     and runs toward the street. The wall on the left meets the back arm; the wall coming forward carries on from the right arm (see snap)."""
-    H, plane = FLOOR, FACE + .03
+    plane = FACE + .03
     # back arm: x 0..0.5, its face at y = 0.5
     p.box((0, .5 + plane, .45), (.5 + plane, 1, H - .3), bevel=0)
     p.box((0, .5, 0), (.5, 1, .45), bevel=.02)
@@ -383,6 +383,133 @@ def roof_parapet(p):
     p.snap.update({'left': [0, 0, 0], 'right': [W, 0, 0], 'wall_plane_z': -FACE})
 
 
+def corner_outer(p):
+    _corner_outer(p, FLOOR)
+
+
+def corner_inner(p):
+    _corner_inner(p, FLOOR)
+
+
+def corner_outer_tall(p):
+    _corner_outer(p, SHOP)
+
+
+def corner_inner_tall(p):
+    _corner_inner(p, SHOP)
+
+
+# ---- shopfronts: the 4.5 m street floor. Opening 3 m high between two half piers, a steel lintel, a sign fascia, then the same service tray as the walls.
+def _shop_shell(p, W, sign=True):
+    H, plane, top = SHOP, FACE + .03, 3.0
+    p.box((0, plane, top), (W, DEPTH, H), bevel=0)                                   # wall above the opening
+    p.box((0, DEPTH - .05, 0), (W, DEPTH, top), bevel=0)                             # the back of the opening
+    for x0, x1 in ((0, .14), (W - .14, W)):                                          # half piers; two pieces side by side make a whole one
+        p.box((x0, .02, 0), (x1, DEPTH, top), bevel=.015)
+        p.box((x0, 0, 0), (x1, .03, .55), 'kit_metal', bevel=0)                      # kick plate
+    p.box((0, .03, top), (W, plane + .01, top + .22), 'kit_metal', bevel=.015)       # lintel
+    p.box((0, .02, 3.3), (W, plane + .01, 4.12), 'kit_metal', bevel=.02)             # fascia
+    if sign:      # a blank light-box face: its own node, so the game can give each shop its own sign picture or switch it off
+        p.box((.15, .004, 3.4), (W - .15, .02, 4.02), 'kit_emissive', bevel=0, node='sign_0', region='sign')
+        p.snap['sign'] = {'position': [.15, 3.4, 0], 'size': [W - .3, .62]}
+    else:
+        for j in range(5):
+            p.box((.15, .005, 3.42 + j * .12), (W - .15, .02, 3.49 + j * .12), 'kit_metal', bevel=0)
+    p.box((0, .04, H - .3), (W, plane + .01, H), 'kit_metal', bevel=.02)             # service tray, as on the walls
+    p.box((0, .02, H - .34), (W, plane + .01, H - .3), 'kit_metal', bevel=0)
+    _neon(p, (0, .07, H - .39), (W, .07, H - .39), 'cyan', 'neon_0')
+    p.snap.update({'left': [0, 0, 0], 'right': [W, 0, 0], 'top': [0, H, 0], 'wall_plane_z': -FACE})
+    return top
+
+
+def shop_window(W):
+    def make(p):
+        top = _shop_shell(p, W)
+        f, n = .2, int(W / 2)
+        p.box((.14, .06, 0), (W - .14, f + .08, .5), 'kit_metal', bevel=.012)          # stall riser
+        p.box((.14, .04, .5), (W - .14, f + .1, .56), 'kit_metal', bevel=.01)          # its sill
+        pw = (W - .28) / n
+        for i in range(n + 1):
+            x = .14 + i * pw
+            p.box((max(.14, x - .03), f, .56), (min(W - .14, x + .03), f + .07, top), 'kit_metal', bevel=0)
+        p.box((.14, f, 2.4), (W - .14, f + .07, 2.46), 'kit_metal', bevel=0)           # transom
+        p.box((.14, f, top - .05), (W - .14, f + .07, top), 'kit_metal', bevel=0)
+        for i in range(n):
+            x0, x1 = .14 + i * pw + .03, .14 + (i + 1) * pw - .03
+            p.quad([(x0, f + .04, .56), (x1, f + .04, .56), (x1, f + .04, 2.4), (x0, f + .04, 2.4)], 'kit_glass', node='glass_%d' % i, region='whole')
+            for j in range(4):                                                        # vent louvres above the transom
+                p.box((x0, f + .01, 2.5 + j * .11), (x1, f + .05, 2.56 + j * .11), 'kit_metal', bevel=0)
+            p.snap['window_%d' % i] = [round((x0 + x1) / 2, 3), 1.48, -round(f + .04, 3)]
+        _neon(p, (.2, .09, top - .06), (W - .2, .09, top - .06), 'magenta', 'neon_1')  # a tube under the lintel, over the window
+    return make
+
+
+def shop_shutter(p):
+    W = 4
+    top = _shop_shell(p, W)
+    for x0, x1 in ((.14, .23), (W - .23, W - .14)):                                    # guide rails
+        p.box((x0, .12, 0), (x1, .24, 2.7), 'kit_metal', bevel=.008)
+    p.box((.14, .05, 2.66), (W - .14, .32, top), 'kit_metal', bevel=.015)              # the roller housing
+    p.box((.23, .13, 0), (W - .23, .23, .1), 'kit_metal', bevel=.01)                   # bottom bar
+    for i in range(13):                                                                # the curtain: slats stepping in and out
+        z = .1 + i * .197
+        p.box((.23, .16 + .018 * (i % 2), z), (W - .23, .21, z + .19), 'kit_metal', bevel=0)
+    p.box((W / 2 - .12, .1, .02), (W / 2 + .12, .14, .16), 'kit_metal', bevel=.01)     # lock box
+    for x in (1.2, W - 1.2):                                                           # lifting handles
+        p.box((x - .1, .12, .5), (x + .1, .16, .54), 'kit_metal', bevel=0)
+    p.box((W - .12, .006, 1.25), (W - .02, .03, 1.55), 'kit_metal', bevel=.008)   # the shutter's key switch on the pier
+    p.box((W - .1, 0, 1.44), (W - .04, .006, 1.5), 'kit_emissive', bevel=0, region='neon_amber')   # its pilot light
+
+
+def shop_door(p):
+    W, plane = 2, FACE + .03
+    top = _shop_shell(p, W, sign=False)
+    p.box((.14, plane, 0), (.5, DEPTH, top), bevel=0)                                  # the wall each side of the door, and over it
+    p.box((1.5, plane, 0), (W - .14, DEPTH, top), bevel=0)
+    p.box((.5, plane, 2.42), (1.5, DEPTH, top), bevel=0)
+    p.box((.38, 0, 0), (1.62, .34, .12), bevel=.015)                                   # step
+    for x0, x1 in ((.43, .5), (1.5, 1.57)):                                            # steel frame
+        p.box((x0, .1, .12), (x1, plane + .03, 2.49), 'kit_metal', bevel=.008)
+    p.box((.43, .1, 2.42), (1.57, plane + .03, 2.49), 'kit_metal', bevel=.008)
+    p.box((.5, .2, .12), (1.5, .26, 2.42), 'kit_metal', bevel=.008)                    # the door leaf
+    p.box((.58, .185, .22), (1.42, .2, 1.35), 'kit_metal', bevel=.008)                 # pressed panels
+    p.box((.58, .185, 1.45), (.82, .2, 2.3), 'kit_metal', bevel=.008)
+    p.box((1.18, .185, 1.45), (1.42, .2, 2.3), 'kit_metal', bevel=.008)
+    p.box((.86, .18, 1.5), (1.14, .2, 2.25), 'kit_metal', bevel=.006)                  # vision slit frame
+    p.quad([(.9, .178, 1.55), (1.1, .178, 1.55), (1.1, .178, 2.2), (.9, .178, 2.2)], 'kit_glass', node='glass_0', region='whole')
+    p.box((1.3, .15, 1.0), (1.36, .2, 1.22), 'kit_metal', bevel=.006)                  # pull handle
+    p.box((1.62, plane - .05, 1.15), (1.8, plane + .01, 1.5), 'kit_metal', bevel=.008)  # entry keypad
+    p.box((1.64, plane - .056, 1.36), (1.78, plane - .05, 1.47), 'kit_emissive', bevel=0, region='window_cool')
+    p.box((.55, .04, 2.56), (1.45, plane + .01, 2.7), 'kit_metal', bevel=.012)         # lamp hood over the door
+    _neon(p, (.62, .08, 2.55), (1.38, .08, 2.55), 'white', 'neon_1')                   # and its tube
+    p.cyl((.3, plane - .035, 0), (.3, plane - .035, top), .03, seg=6, caps=False)      # a conduit up the wall
+    p.snap['door'] = {'position': [.5, .12, -.2], 'size': [1.0, 2.3]}
+
+
+def shop_service(p):
+    W, plane = 2, FACE + .03
+    top = _shop_shell(p, W, sign=False)
+    p.box((.14, plane, 0), (W - .14, DEPTH, top), bevel=0)
+    p.box((.14, .02, 0), (W - .14, plane + .01, .45), bevel=.02)                       # plinth
+    p.box((.28, .04, .5), (1.12, plane + .01, 2.2), 'kit_metal', bevel=.015)           # switchgear cabinet
+    p.box((.69, .03, .56), (.71, .04, 2.14), 'kit_metal', bevel=0)                     # the seam between its doors
+    for x in (.62, .74):
+        p.box((x, .02, 1.25), (x + .04, .04, 1.45), 'kit_metal', bevel=0)              # handles
+    for j in range(4):
+        p.box((.34, .03, 1.82 + j * .08), (.64, .04, 1.86 + j * .08), 'kit_metal', bevel=0)
+    p.box((.8, .034, 1.9), (.86, .04, 1.96), 'kit_emissive', bevel=0, region='neon_amber')     # status lights
+    p.box((.9, .034, 1.9), (.96, .04, 1.96), 'kit_emissive', bevel=0, region='neon_cyan')
+    p.box((.3, plane - .05, 2.38), (1.1, plane + .01, 2.88), 'kit_metal', bevel=.012)  # vent grille
+    for j in range(5):
+        p.box((.35, plane - .065, 2.43 + j * .085), (1.05, plane - .05, 2.48 + j * .085), 'kit_metal', bevel=0)
+    for x, r in ((1.36, .04), (1.52, .05), (1.69, .035)):                             # risers
+        p.cyl((x, plane - r - .02, .45), (x, plane - r - .02, top), r, seg=8, caps=False)
+    for z in (.9, 1.9, 2.75):
+        p.box((1.28, plane - .14, z), (1.76, plane, z + .05), 'kit_metal', bevel=0)
+    p.box((1.44, plane - .125, 1.3), (1.6, plane - .03, 1.5), 'kit_metal', bevel=.012)    # a valve body on the big riser
+    p.cyl((1.52, plane - .125, 1.4), (1.52, plane - .13, 1.4), .09, seg=8)               # and its wheel
+
+
 PIECES = {
     # name: (batch, category, builder)
     'kit_wall_plain_2m': (1, 'wall', wall_plain(2)), 'kit_wall_plain_4m': (1, 'wall', wall_plain(4)), 'kit_wall_plain_6m': (1, 'wall', wall_plain(6)),
@@ -390,6 +517,9 @@ PIECES = {
     'kit_corner_outer_1m': (2, 'corner', corner_outer), 'kit_corner_inner_1m': (2, 'corner', corner_inner),
     'kit_cornice_2m': (2, 'cornice', cornice(2)), 'kit_cornice_4m': (2, 'cornice', cornice(4)), 'kit_cornice_6m': (2, 'cornice', cornice(6)),
     'kit_cornice_corner_1m': (2, 'cornice', cornice_corner), 'kit_roof_parapet_4m': (2, 'roof', roof_parapet),
+    'kit_shopfront_window_4m': (3, 'shopfront', shop_window(4)), 'kit_shopfront_window_6m': (3, 'shopfront', shop_window(6)),
+    'kit_shopfront_shutter_4m': (3, 'shopfront', shop_shutter), 'kit_shopfront_door_2m': (3, 'shopfront', shop_door), 'kit_shopfront_service_2m': (3, 'shopfront', shop_service),
+    'kit_corner_outer_tall_1m': (3, 'corner', corner_outer_tall), 'kit_corner_inner_tall_1m': (3, 'corner', corner_inner_tall),
 }
 
 
@@ -534,7 +664,7 @@ def preview(built, path, batch, layout=True):
     target = Vector((total / 2, 0, tall * .42))
     if not layout:                           # the assembled view: a three-quarter look at the corner
         total, tall = 8.0, 9.0
-        cam.location, target = Vector((15, -15, 5.5)), Vector((2.5, 0, 4.2))
+        cam.location, target = Vector((15, -19, 5.0)), Vector((0, 0, 4.4))
         cam.data.lens = 30
     cam.rotation_euler = (target - cam.location).to_track_quat('-Z', 'Y').to_euler()
     s.collection.objects.link(cam)
@@ -568,16 +698,12 @@ def preview(built, path, batch, layout=True):
 
 def assemble(mats, path):
     """A two-storey corner built from the pieces made so far, to show how they join. Each entry: piece, position (x, y, z), quarter turns about the vertical."""
-    plan = []
-    for f in range(2):
-        z = f * FLOOR
-        plan += [('kit_wall_windows_6m', (0, 0, z), 0), ('kit_wall_plain_2m' if f == 0 else 'kit_wall_windows_4m', (-4 if f else -2, 0, z), 0),
-                 ('kit_corner_outer_1m', (6, 0, z), 0), ('kit_wall_windows_4m', (7, 1, z), 1), ('kit_corner_inner_1m', (-5 if f else -3, -.5, z), 0)]
-    plan[1] = ('kit_wall_plain_4m', (-4, 0, 0), 0)
-    plan[4] = ('kit_corner_inner_1m', (-5, -.5, 0), 0)
-    top = 2 * FLOOR
-    plan += [('kit_cornice_6m', (0, -.2, top), 0), ('kit_cornice_4m', (-4, -.2, top), 0), ('kit_cornice_corner_1m', (6, -.2, top), 0), ('kit_cornice_4m', (7.2, 1, top), 1),
-             ('kit_roof_parapet_4m', (-4, 0, top + .5), 0), ('kit_roof_parapet_4m', (0, 0, top + .5), 0), ('kit_roof_parapet_4m', (7, 1, top + .5), 1)]
+    z1, top = SHOP, SHOP + FLOOR
+    plan = [('kit_shopfront_service_2m', (-8, 0, 0), 0), ('kit_shopfront_door_2m', (-6, 0, 0), 0), ('kit_shopfront_shutter_4m', (-4, 0, 0), 0), ('kit_shopfront_window_6m', (0, 0, 0), 0),
+            ('kit_corner_outer_tall_1m', (6, 0, 0), 0), ('kit_shopfront_window_4m', (7, 1, 0), 1),
+            ('kit_wall_plain_2m', (-8, 0, z1), 0), ('kit_wall_windows_6m', (-6, 0, z1), 0), ('kit_wall_windows_6m', (0, 0, z1), 0), ('kit_corner_outer_1m', (6, 0, z1), 0), ('kit_wall_windows_4m', (7, 1, z1), 1),
+            ('kit_cornice_2m', (-8, -.2, top), 0), ('kit_cornice_6m', (-6, -.2, top), 0), ('kit_cornice_6m', (0, -.2, top), 0), ('kit_cornice_corner_1m', (6, -.2, top), 0), ('kit_cornice_4m', (7.2, 1, top), 1),
+            ('kit_roof_parapet_4m', (-6, 0, top + .5), 0), ('kit_roof_parapet_4m', (-2, 0, top + .5), 0), ('kit_roof_parapet_4m', (2, 0, top + .5), 0), ('kit_roof_parapet_4m', (7, 1, top + .5), 1)]
     built = []
     for name, pos, turns in plan:
         if name not in PIECES:
