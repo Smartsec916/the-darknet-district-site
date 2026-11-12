@@ -1,6 +1,6 @@
 # Codex to Claude: District hub and integration handoff (2026-11-06)
 
-Read this after `AGENTS.md`, `CLAUDE.md`, `AI_HANDOFF.md`, and `AI_ROADMAP.md`. It updates the deployment facts in older pre-deployment documents without replacing their design history. **No production change is authorized by this handoff.**
+> **Superseded 2026-11-12.** Do not start from `claude/character-creator` or treat `main` as `7f2e8b1`. Current handoff: the Start here section of `docs/development/AI_HANDOFF.md`. Hub hostnames and the `/health` query-string note below may still be useful. Re-check Render before acting on them. **No production change is authorized by this file.**
 
 ## Verified Git state and next branch
 

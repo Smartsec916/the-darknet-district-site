@@ -16,11 +16,11 @@ The active desktop game is the **District-first experience (multiplayer under de
 
 This repository is David's website, The Darknet District (https://thedarknetdistrict.com). Most active work is on the browser game **VOID//RUNNER** (`void-runner.html` plus `void-runner/`).
 
-**Read `VOID_RUNNER_HANDOFF.md` before changing the game.** It holds the current canon, the decision log, mission state, and what is approved and what is not.
+**Before changing the game, read `docs/development/AI_HANDOFF.md` (the Start here section).** That file is the current handoff. `VOID_RUNNER_HANDOFF.md` is the decision log and older canon. Its October 2026 "what the game does today" is not the live game.
 
-## Current handoff and release state (2026-11-10)
+## Current handoff and release state (2026-11-12)
 
-**Before coding, read `docs/development/AI_HANDOFF.md` and `docs/development/AI_ROADMAP.md`**, then this file and `VOID_RUNNER_HANDOFF.md` for technical conventions and historical decisions. The earlier October campaign status is historical; **the current District-first state wins**. Draft PR #212 is an incomplete production integration; its Node, Python and Babylon smoke CI was green at `e3e0ba1`, but that does not replace manual acceptance. Do not interpret a PR build as a live deployment. The owner would like independently ready fixes released, but only merge/deploy changes with verified compatibility and explicit safe scope. Keep wholesale PR #212 in draft until accepted. The latest user instruction permits deleting **unfinished in-game shop items** if required, **not** real storefront inventory, Shopify, or purchased entitlements.
+**Before coding, read `docs/development/AI_HANDOFF.md` and `docs/development/AI_ROADMAP.md`**, then this file and `VOID_RUNNER_HANDOFF.md` for technical conventions and historical decisions. The earlier October campaign status is historical; **the current District-first state wins**. Draft PR #212 **merged on 11 Nov 2026**. Do not keep it open or treat it as the integration branch. Merge to `main` only when David says "push", "pull it", or "go ahead and pull". The game is **desktop and VR headsets only**; phones stay on the normal site (`void-runner/device-gate.js`). Do not modify the Sleeping Pod room or the music player unless he asks or the task cannot be done without them. Licensed models stay in the private repo `Smartsec916/void-runner-licensed-assets` (scrambled `.vrpak`, VRPE-sealed at the Pages build). Never commit them here. The owner permits deleting **unfinished in-game shop items** if required, **not** real storefront inventory, Shopify, or purchased entitlements.
 
 ## The owner and how to work with him
 

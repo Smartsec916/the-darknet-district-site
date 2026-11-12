@@ -1,6 +1,8 @@
 # Player character creator: implementation plan
 
-Written 2026-11-05. **Plan only. Nothing here is built, and nothing waits on code: every stage needs the owner's go-ahead.** The evidence for every statement about assets is in `CHARACTER_MODEL_AUDIT.md`. This plan does not change the multiplayer sign-in checks or the trading rules; it only adds an appearance record next to the existing character record.
+> **Status 2026-11-12:** A preset creator is already live (before EXIT POD: hair and outfit presets). This document is the unfinished part-assembler design. "Nothing here is built" below means that assembler, not the live creator. The six decisions in §11 are still open. Companion looks are a different system (`void-runner/vr-companions.js`). Current handoff: `docs/development/AI_HANDOFF.md`.
+
+Written 2026-11-05. **Plan for the part assembler. Every remaining stage needs the owner's go-ahead.** The evidence for every statement about assets is in `CHARACTER_MODEL_AUDIT.md`. This plan does not change the multiplayer sign-in checks or the trading rules; it only adds an appearance record next to the existing character record.
 
 ## 1. What the creator can and cannot be
 

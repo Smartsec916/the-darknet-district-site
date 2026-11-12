@@ -1,6 +1,8 @@
 # First unlisted live test: what merging does, how to back up, how to roll back
 
-Written 2026-11-04 for David and for Codex. **Nothing in this file has been done.** No merge, no deployment, no change to production data, configuration or secrets.
+> **Superseded 2026-11-12.** The District game is on the public site. This runbook was written on 4 Nov 2026 before that test. Keep it for the backup and rollback steps. Do not treat "nothing has been done" as the current state. Current handoff: `docs/development/AI_HANDOFF.md`.
+
+Written 2026-11-04 for David and for Codex. At the time of writing, nothing in this file had been done.
 
 The test uses the existing address `https://thedarknetdistrict.com/void-runner.html` (no `/district-test/` copy). The old Void Runner identity is retired; The Darknet District is the game.
 
