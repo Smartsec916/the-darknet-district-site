@@ -125,11 +125,12 @@ class IngestSecurityTests(ArchiveTestCase):
         self.assertEqual(self.get('/status').get_json()['totals']['observations'], 1)
 
     def test_duplicate_observations_are_skipped(self):
-        self.upload()
-        result = self.upload({'batch_id': 'batch-0002', 'observations': [
-            synthetic_observation(1),  # same id
-            synthetic_observation(2, observed_at=synthetic_observation(1)['observed_at'], frequency_hz=synthetic_observation(1)['frequency_hz'])  # same signal
-        ]}).get_json()
+        # observed_at is stored to the minute, so a fresh call on either side of a minute
+        # boundary is a different signal. Build the first record once and reuse it.
+        first = synthetic_observation(1)
+        self.upload({'batch_id': 'batch-0001', 'observations': [dict(first)]})
+        same_signal = synthetic_observation(2, observed_at=first['observed_at'], frequency_hz=first['frequency_hz'])
+        result = self.upload({'batch_id': 'batch-0002', 'observations': [dict(first), same_signal]}).get_json()
         self.assertEqual((result['accepted'], result['duplicates']), (0, 2))
 
     def test_oversized_body_is_refused(self):
