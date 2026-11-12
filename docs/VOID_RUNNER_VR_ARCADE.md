@@ -186,6 +186,35 @@ David's briefs: believable, attentive companions with their own initiative, a tw
 - **Gallery pictures:** the Female and Male cards show a strip of up to four of that gallery's companions instead of a plain pink or blue panel; the Ava & Eva card shows both.
 - **Voices:** a companion's lines used to fall back to Rook's browser voice (a man's), so Seren and Nadia spoke as men. Now Seren, Kai and Nadia have recorded lines (Kokoro-82M, `tools/audio`; 164 clips): Seren `af_nicole`, Nadia `af_aoede`, Kai `am_fenrir`, all **provisional** for David to approve or change in the audition tool (`tools/audio/audition`). Companions without recordings (Ava, Eva, Yuki, Dex, Una: no lines yet) get a browser voice of their own sex. When their lines exist, Kokoro has women's voices free; for a man the registry has none left (Dex would need a voice moved from a provisional radio broadcaster).
 
+## Companion quality audit and organic finish (2026-11-12)
+
+What the game loads is exactly what the asset files contain: no build or runtime step shrinks a companion.
+`tools/assets/build-pages.cjs` only unscrambles and encrypts (bytes unchanged), `pack-model.cjs` only scrambles, the
+loader (`asset-pipeline.js`) has no texture cap, decimation or level-of-detail, and quality tiers change render
+resolution, not models. KTX2 textures transcode to BC7/ASTC (full quality) or RGBA. One loss was found and fixed:
+Eva's metallic-roughness maps are Unreal ORM maps whose red channel is ambient occlusion, which the glTF loader
+ignored; the bedroom now reads it.
+
+| Companion | Source | Triangles | Textures | Bones / clips |
+|---|---|---|---|---|
+| Ava | private repo, `vr-companion-ava.vrpak` (BGShop, CGTrader) | 254k | 2048 KTX2 with normal and roughness maps (eyes, lashes, bikini 1024) | 157 / 24 |
+| Eva | private repo, `vr-companion-pg.vrpak` (HelenNova, CGTrader) | 81k | 2048 KTX2 with normal and ORM maps | 114 / 24 |
+| Yuki | private repo, `vr-companion-bf.vrpak` (Pradipta-D, CGTrader) | 52k | 2048 KTX2 with normal and roughness (teeth, tongue, lashes 1024) | 103 / 24 |
+| Dex | private repo, `vr-companion-bm.vrpak` (Pradipta-D, CGTrader) | 29k | 2048 KTX2 with normal and roughness (hair, teeth, lashes 1024) | 106 / 24 |
+| Nadia | public repo, `vr-companion-fc1.vrpak` (Ludovisions, CGTrader free) | 56k | 512 JPEG/PNG (chosen at conversion; the original download is not kept) | 102 / 24 |
+| Seren, Kai | public repo, `vr-companion-f.glb` / `-m.glb` (MakeHuman CC0) | 30k / 38k | 512 (MakeHuman's own asset resolution) | 52 / 24, 20 |
+
+The organic finish (`vr-companions.js` `finish`, `breath`; applied in `vr-suite.js`), companions only:
+- **Skin translucency**: PBR sub-surface translucency on each companion's `skin` materials, so backlit thin edges
+  (ears, fingers, the silhouette) glow faintly red. Medium and High only.
+- **Crease shading**: the model's own AO where it has one (Eva's ORM `orm` materials); otherwise a cavity term
+  worked out once from the mesh at load, written as vertex colours (seams welded, open borders left open).
+- **Breath and sway**: about 14 breaths a minute on the spine and shoulders plus a slow sway, on top of every
+  clip, removed before the next frame's animation so it never accumulates; lighter while walking or dancing.
+- **Rim light**: a soft lavender Fresnel rim (a small material plugin) that follows the camera.
+- Texture filtering raised to 8x (Medium) / 16x (High) anisotropic on companion textures.
+Tests: `tests/vr-companion-organic.test.cjs`.
+
 ## Needs David's review
 
 - **Lines that still mention the sea:** the companions' draft lines were written for the old seaside suite. Three mention the sea or salt air ("the sea and the sky", "the air smells like salt", "the colour of honey" at sundown). They are unchanged here because dialogue was out of scope; they can be rewritten for the city if David wants.
