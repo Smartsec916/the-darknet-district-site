@@ -73,7 +73,9 @@
  const rp=()=>root.VoidRemotePlayers;
  function myProfile(){
   const A=root.VoidCharacterCreator?.stored?.()||null,h=root.VoidAccount?.handle;   // no saved look: the portrait says unavailable, never a guess
-  return D.profile('player',{handle:typeof h==='string'?h:null,publicId:rp()?.me||'',appearance:A,bio:'This is you.'});
+  const mine=D.profile('player',{handle:typeof h==='string'?h:null,publicId:rp()?.me||'',appearance:A,bio:'This is you.'});
+  try{mine.facts=(root.VoidLocalProgress?.profileLines()||[]).slice(0,12);}catch{}   // progress counted in this browser (local-progress.js): your own profile only; achievements proper need server records
+  return mine;
  }
  function npcContacts(){
   const H=root.VoidHudData,s=state_();if(!H||!s)return [];

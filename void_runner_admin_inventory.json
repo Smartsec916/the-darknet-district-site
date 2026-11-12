@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "fd786ee691aab44b",
+  "revision": "61f1e42035ff9e6f",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12199,25 +12199,25 @@
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 98,
+      "line": 100,
       "text": "const tabs='<div class=\"pd-tabs\"><button type=\"button\" data-sub=\"chat\" aria-pressed=\"'+(sub==='chat')+'\">DISTRICT CHAT</button><button type=\"button\" data-sub=\"talk\" aria-pressed=\"'+(sub==='talk')+'\">CONVERSATIONS</button><button type=\"button\" data-sub=\"dm\" aria-pressed=\"'+(sub==='dm')+'\">PRIVATE</button></div>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 102,
+      "line": 104,
       "text": "return tabs+(rows.length?rows.slice(-40).reverse().map(m=>'<div class=\"pd-line\"><b>'+esc(m.name)+'</b><span class=\"pd-note\">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class=\"pd-empty\">No conversations yet. People you talk to appear here.</div>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 107,
+      "line": 109,
       "text": "+'<form data-chatform style=\"margin-top:8px\"><input type=\"text\" maxlength=\"200\" autocomplete=\"off\" aria-label=\"Chat message\" placeholder=\"'+(can?'Say something (no links)':'Chat needs a registered account and a connection')+'\"'+(can?'':' disabled')+'></form>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 260,
+      "line": 262,
       "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
       "kind": "source-reference"
     },
@@ -13381,13 +13381,13 @@
     },
     {
       "source": "void-runner/vr-tropical.js",
-      "line": 70,
+      "line": 93,
       "text": "if(id.startsWith('lounger')){const [x,z]=spots.lounger[+id.slice(7)];api.sit({x,z:z-.6,yaw:0,eye:.95,pitch:.05,text:'You stretch out on the lounger. The sea is warm and blue.'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-tropical.js",
-      "line": 71,
+      "line": 94,
       "text": "else if(id==='pier-bench')api.sit({x:21.5,z:33.2,yaw:0,eye:1.75,text:'You sit at the end of the pier, the sea all around you.'});",
       "kind": "source-reference"
     },
@@ -13575,7 +13575,7 @@
   "warnings": [],
   "sources": {
     "void-runner/account.js": "c0cfc4266163ec8c6b1bc8075ab0582e996df5e2d329b77a716e41dbac8dce2f",
-    "void-runner/achievements.js": "e73d2197b523a0c4539d550a78781d791337ccd457b6e37f84bab14f8773ffa5",
+    "void-runner/achievements.js": "b02228547f2a3d3d94d999d803cf6e2ccaff3dd4cf41b40887a00ab011bbfd59",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/asset-pipeline.js": "5f0d8bbd5d8f36e4f8b80c4e0dbe5f620fcff12b49f20dd21f17a7fff331c808",
@@ -13642,6 +13642,7 @@
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input.js": "ee7b8bba97bf1233e9d6d5e7d115efee2ecb1caddd6b758a144b78f33046924e",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
+    "void-runner/local-progress.js": "09c6ffa9f4bd4e961e3d566a9d797b53725fce88f49af9b20fb989cab5cbea98",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
     "void-runner/menu.js": "1e867ab310bf04f9ad6a5a8f02db34f9ed6d0fa4fff3557fe73416ba9ba69772",
     "void-runner/meridian-art.js": "ef57144a85d288a8b5c3ea0a616d36b5fcc78de0f4a5220473486f1f2b9f2a19",
@@ -13666,7 +13667,7 @@
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "da1674b96960e03052332b46f33745a5db4f738ad2a38d06cef1eaa912b1ecbb",
-    "void-runner/personal-device.js": "4f121b01b3a66c16051205b44b90e8109efd0066edac17cbb6d7725085875cf7",
+    "void-runner/personal-device.js": "d971276a71b1c96d728675ee327bdc8f52bb4953bf6b4b0e898936f61c1840d2",
     "void-runner/personal-hud.js": "1ca0e48b3d144a0a2ffed8e3202f98322a060541b8127de2ee48469ed2606776",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
@@ -13713,7 +13714,7 @@
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "42b099525addb420f7a678fee12d93c14cf468375fd7f59c7324a4393b34dad2",
     "void-runner/vr-suite.js": "2156c31b1354c58dbae5dad1c49369fb352c90edde0205854691fd1ed67ea534",
-    "void-runner/vr-tropical.js": "fd6e29c04a7be37681cb29185e0a1a37f782bf8e241caf0c794a8c7969079bec",
+    "void-runner/vr-tropical.js": "d19423f8f8685d29c4362454903c74fa93ac7b2eeb8cfcd3dc4c71266cfadb76",
     "void-runner/warflying-scan.js": "f6de823ef265ff4e1cde538ac17b5adefb72547ad0ef2e3b25cdb42de9ce8a87",
     "void-runner/warflying-scanner.js": "3234988837d0ca2ab0fec7bdb730d923c679fd50ff883569c2f7f568406a00ed",
     "void-runner/warflying.js": "e3a319a7538e4df7e014be7ccb50b32bb2b0cf6cbcfe10ccfca2e46edb013a4f",
