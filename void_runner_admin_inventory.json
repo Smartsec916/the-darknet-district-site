@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "e4174a94ab8c4436",
+  "revision": "39ffbe70626bdd4a",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13387,13 +13387,13 @@
     },
     {
       "source": "void-runner/vr-tropical.js",
-      "line": 93,
+      "line": 140,
       "text": "if(id.startsWith('lounger')){const [x,z]=spots.lounger[+id.slice(7)];api.sit({x,z:z-.6,yaw:0,eye:.95,pitch:.05,text:'You stretch out on the lounger. The sea is warm and blue.'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-tropical.js",
-      "line": 94,
+      "line": 141,
       "text": "else if(id==='pier-bench')api.sit({x:21.5,z:33.2,yaw:0,eye:1.75,text:'You sit at the end of the pier, the sea all around you.'});",
       "kind": "source-reference"
     },
@@ -13722,7 +13722,7 @@
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "42b099525addb420f7a678fee12d93c14cf468375fd7f59c7324a4393b34dad2",
     "void-runner/vr-suite.js": "2156c31b1354c58dbae5dad1c49369fb352c90edde0205854691fd1ed67ea534",
-    "void-runner/vr-tropical.js": "d19423f8f8685d29c4362454903c74fa93ac7b2eeb8cfcd3dc4c71266cfadb76",
+    "void-runner/vr-tropical.js": "d6bfb79702fa5bef438cd1b6e6a0a8ce5ba25c59d7f2631398cfaf4fa69dcaa5",
     "void-runner/warflying-scan.js": "f6de823ef265ff4e1cde538ac17b5adefb72547ad0ef2e3b25cdb42de9ce8a87",
     "void-runner/warflying-scanner.js": "3234988837d0ca2ab0fec7bdb730d923c679fd50ff883569c2f7f568406a00ed",
     "void-runner/warflying.js": "e3a319a7538e4df7e014be7ccb50b32bb2b0cf6cbcfe10ccfca2e46edb013a4f",
