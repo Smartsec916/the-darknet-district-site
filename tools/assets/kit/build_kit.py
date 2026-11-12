@@ -1439,7 +1439,34 @@ def arcade_change_machine(p):
     p.snap.update({'mount': {}})
 
 
+# ---- Phase C: the VR play area (layout and both booths stay exactly as they are; this adds equipment and wall dressing).
+def vr_rack(p):
+    """A VR equipment rack: six units with status lights, a cooling vent, a cable drop, and two headsets hanging on its side to charge."""
+    W, H, D = 1, 2.1, .5
+    p.box((.12, .04, 0), (.88, D, H), 'kit_metal', bevel=.015)
+    p.box((.1, .02, 0), (.9, D, .1), 'kit_metal', bevel=0)
+    for j in range(6):
+        z = .2 + j * .27
+        p.box((.16, .02, z), (.84, .05, z + .22), 'kit_metal', bevel=.008)
+        for i in range(5):
+            p.box((.22 + i * .07, .012, z + .15), (.26 + i * .07, .02, z + .18), 'kit_emissive', bevel=0, node='leds_0', region=('neon_cyan', 'neon_amber', 'neon_magenta', 'neon_cyan', 'neon_white')[(i + j) % 5])
+        p.box((.62, .012, z + .05), (.8, .02, z + .17), 'kit_metal', bevel=0)
+        for k in range(3):
+            p.box((.2, .014, z + .04 + k * .03), (.5, .02, z + .055 + k * .03), 'kit_metal', bevel=0)
+    for j in range(4):
+        p.box((.2, .025, 1.86 + j * .045), (.8, .04, 1.885 + j * .045), 'kit_metal', bevel=0)
+    for x in (.3, .42, .54):                                                                   # the cable drop from the ceiling
+        p.cyl((x, D - .1, H), (x, D - .1, H + .5), .018, seg=4, caps=False)
+    for z in (1.5, 1.0):                                                                       # headsets on charging hooks
+        p.box((.88, .12, z), (.93, .16, z + .04), 'kit_metal', bevel=0)
+        p.box((.9, .06, z - .13), (1.0, .26, z), 'kit_canvas', bevel=.03)
+        p.box((.985, .09, z - .1), (1.0, .23, z - .03), 'kit_emissive', bevel=0, region='neon_cyan')
+        p.box((.9, .26, z - .09), (.99, .4, z - .04), 'kit_canvas', bevel=.01)
+    p.snap.update({'mount': {}})
+
+
 INTERIOR = {
+    'district_vr_rack_1m': ('C', 'vr', vr_rack),
     'district_arcade_cabinet_1m': ('D', 'arcade', arcade_cabinet), 'district_arcade_stool_1m': ('D', 'arcade', arcade_stool), 'district_arcade_change_1m': ('D', 'arcade', arcade_change_machine),
     'district_shop_counter_8m': ('E', 'shop', shop_counter), 'district_shop_bookshelf_3m': ('E', 'shop', shop_bookshelf), 'district_shop_gearwall_3m': ('E', 'shop', shop_gearwall),
     'district_tube_light_2m': ('E', 'shop', tube_light),

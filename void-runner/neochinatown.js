@@ -573,6 +573,8 @@
      for(const s of solids){const m=/^hall-(west|east)-/.exec(s.id);if(m)run(m[1]==='west'?-1:1,s.position[2]-s.size[2]/2,s.position[2]+s.size[2]/2);}
      // The hallway floor in the lining's own worn tile (half-metre tiles), laid over the room floor.
      const g=B.MeshBuilder.CreateGround('hall-floor',{width:5.6,height:44.5},scene),uv=g.getVerticesData('uv');for(let i=0;i<uv.length;i++)uv[i]*=i%2?22.25:2.8;g.setVerticesData('uv',uv);add(g,kitMat('kit_tile'),[0,.028,48.25]);return true;})();
+    // kitAt puts a piece against a wall: `facing` is the way the piece looks, `face` the wall surface behind it, `s` where it starts along the wall (its low end).
+    const kitAt=(id,facing,face,s,len,depth,y=0,hide=['__screen_0','__light_0'])=>kitPiece('district:'+id,facing==='+x'?[face+depth,y,s]:facing==='-x'?[face-depth,y,s+len]:facing==='+z'?[s+len,y,face+depth]:[s,y,face-depth],{'+x':Math.PI/2,'-x':-Math.PI/2,'+z':0,'-z':Math.PI}[facing],hide,{merge:true});
     if(!hallLined)for(let z=28;z<78;z+=4){box('hall-beam',[6,.3,.3],[0,3.9,z],frame);box('hall-led',[.08,.05,3.6],[-2.6,3.85,z+2],z%8?cyan:magenta);box('hall-led',[.08,.05,3.6],[2.6,3.85,z+2],z%8?magenta:cyan);}
     for(const [z,side] of [[30.5,1],[46,-1],[58,1],[66,-1]])plane('hall-ad',1.2,1.8,[side*(hallLined?2.52:2.82),hallLined?2.0:2.2,z],adMat(nextAd()),side>0?Math.PI/2:-Math.PI/2);
     for(const z of [40,72])box('hall-camera',[.2,.2,.4],[2.7,3.6,z],frame);
@@ -604,6 +606,11 @@
     // Viewing strip: a rail and a bench along the hallway side, a soft floor line.
     box('vr-rail',[.06,.06,13.6],[-7.6,1,36],pipe);for(const z of [30,34,38,42])box('vr-rail-post',[.06,1,.06],[-7.6,.5,z],pipe);
     box('vr-floor-line',[.05,.02,13.6],[-7.9,.04,36],violet);
+    // Interior rebuild, phase C: the room and both booths stay as they are; the walls get the hallway's lining (cyan in the north booth, magenta in the south)
+    // and each booth an equipment rack with headsets on charge.
+    if(kitAt('vr_rack_1m','+x',-16.8,34.7,1,.5)){kitAt('vr_rack_1m','+x',-16.8,36.3,1,.5);const C=['__screen_0','__light_0'],M=['__screen_1','__light_1'];
+     for(const [z,k] of [[28.4,'a'],[30.4,'b'],[32.4,'c']])kitAt('hall_wall_2m_'+k,'+x',-16.8,z,2,.2,0,C);for(const [z,k] of [[37.6,'c'],[39.6,'b'],[41.6,'a']])kitAt('hall_wall_2m_'+k,'+x',-16.8,z,2,.2,0,M);
+     for(const [x,k] of [[-16.6,'a'],[-14.6,'c'],[-12.6,'a'],[-10.6,'d'],[-7.4,'a'],[-5.4,'c']]){kitAt('hall_wall_2m_'+k,'+z',28.2,x,2,.2,0,C);kitAt('hall_wall_2m_'+k,'-z',43.8,x,2,.2,0,M);}}
     if(!instance('couch',[-4.6,0,41.5],-Math.PI/2))box('vr-bench',[1,.45,3],[-4.6,.22,41.5],mat('chair','#2a2340',{rough:.7}));
     characterModel('crew-vr-watch',target,[-5.4,0,33],true);
 
@@ -736,7 +743,6 @@
     // Admin & Iris shop: counter, display cases, shelves, workstation.
     // Interior rebuild, phase E: Blender-made shop fittings. kitAt puts a piece against a wall: `facing` is the way the piece looks, `face` the wall surface behind it,
     // `s` where it starts along the wall (its low end) and `len`/`depth` its size.
-    const kitAt=(id,facing,face,s,len,depth,y=0,hide=['__screen_0','__light_0'])=>kitPiece('district:'+id,facing==='+x'?[face+depth,y,s]:facing==='-x'?[face-depth,y,s+len]:facing==='+z'?[s+len,y,face+depth]:[s,y,face-depth],{'+x':Math.PI/2,'-x':-Math.PI/2,'+z':0,'-z':Math.PI}[facing],hide,{merge:true});
     const shopKit=!!kitAt('shop_counter_8m','-z',47.75,6,8,1.1);
     if(shopKit){kitAt('shop_bookshelf_3m','+z',43.2,8,3,.5);kitAt('shop_bookshelf_3m','+z',43.2,11,3,.5);kitAt('shop_gearwall_3m','-z',52.8,11.2,3,.35);kitAt('shop_gearwall_3m','+x',3.2,49.7,3,.35);
      for(const [f,face,list] of [['+z',43.2,[[3.4,'a'],[5.4,'c'],[14.2,'a']]],['-x',16.8,[[43.6,'a'],[45.6,'c'],[47.6,'a'],[49.6,'a']]],['-z',52.8,[[3.2,'a'],[5.2,'d'],[7.2,'a'],[14.2,'b']]]])for(const [at,k] of list)kitAt('hall_wall_2m_'+k,f,face,at,2,.2);
@@ -1022,7 +1028,8 @@
   const podModels={'district:pod_facade_3m':{src:'assets/models/district-interior/district_pod_facade_3m.glb',scale:1}};
   const shopModels={'district:shop_counter_8m':{src:'assets/models/district-interior/district_shop_counter_8m.glb',scale:1},'district:shop_bookshelf_3m':{src:'assets/models/district-interior/district_shop_bookshelf_3m.glb',scale:1},'district:shop_gearwall_3m':{src:'assets/models/district-interior/district_shop_gearwall_3m.glb',scale:1},'district:tube_light_2m':{src:'assets/models/district-interior/district_tube_light_2m.glb',scale:1}};
   const arcadeModels={'district:arcade_cabinet_1m':{src:'assets/models/district-interior/district_arcade_cabinet_1m.glb',scale:1},'district:arcade_stool_1m':{src:'assets/models/district-interior/district_arcade_stool_1m.glb',scale:1},'district:arcade_change_1m':{src:'assets/models/district-interior/district_arcade_change_1m.glb',scale:1}};
-  const models={...entryModels,...hallModels,...podModels,...shopModels,...arcadeModels,'crowd:vr-player-a':{src:'assets/models/crowd/vr-player-a.glb',background:true},'crowd:vr-player-b':{src:'assets/models/crowd/vr-player-b.glb',background:true},'district:couch':{src:'assets/models/district/couch.glb',scale:.5},'district:bin':{src:'assets/models/district/bin.glb',scale:.6},'district:chair':{src:'assets/models/district/chair.glb',scale:1},
+  const vrModels={'district:vr_rack_1m':{src:'assets/models/district-interior/district_vr_rack_1m.glb',scale:1}};
+  const models={...entryModels,...hallModels,...podModels,...shopModels,...arcadeModels,...vrModels,'crowd:vr-player-a':{src:'assets/models/crowd/vr-player-a.glb',background:true},'crowd:vr-player-b':{src:'assets/models/crowd/vr-player-b.glb',background:true},'district:couch':{src:'assets/models/district/couch.glb',scale:.5},'district:bin':{src:'assets/models/district/bin.glb',scale:.6},'district:chair':{src:'assets/models/district/chair.glb',scale:1},
    // Purchased vending machine (CGTrader, Royalty Free no AI): kept out of the public repository; the live site gets it,
    // encrypted, from the private asset repository (tools/assets/build-pages.cjs). Without it the built machines stay.
    'district:vending-neon':{src:'assets/models/district/vending-neon.vrpak',scale:1},

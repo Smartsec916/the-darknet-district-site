@@ -447,6 +447,31 @@
     }
    }
   },
+  "district_vr_rack_1m": {
+   "file": "district_vr_rack_1m.glb",
+   "batch": "C",
+   "category": "vr",
+   "size": {
+    "w": 0.9,
+    "h": 2.6,
+    "d": 0.488
+   },
+   "triangles": 1260,
+   "bytes": 95760,
+   "nodes": [
+    "district_vr_rack_1m__leds_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.488
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
   "district_arcade_cabinet_1m": {
    "file": "district_arcade_cabinet_1m.glb",
    "batch": "D",
