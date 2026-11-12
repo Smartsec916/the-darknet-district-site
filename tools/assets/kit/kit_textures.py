@@ -157,7 +157,43 @@ def asphalt(out, n=1024):
     _save(out + '/kit_asphalt_orm.png', _orm(.85 + .15 * mid, (.85 - .7 * wet).clip(.08, 1), np.zeros((n, n))))
 
 
-SETS = {'kit_concrete': concrete, 'kit_metal': metal, 'kit_glass': glass, 'kit_emissive': emissive, 'kit_asphalt': asphalt}
+# The scrolling sign above the shops: one long LED strip of text that repeats every TICKER_METRES. The game scrolls it by sliding the texture sideways.
+# PLACEHOLDER WORDING (shop names already on the street, plus generic shop talk): David approves the final text.
+TICKER_METRES = 20
+TICKER_TEXT = [('NIGHT MARKET', (255, 60, 190)), ('OPEN 24H', (60, 230, 255)), ('DRAGON NOODLES', (255, 170, 60)), ('HOT // FAST // CHEAP', (255, 60, 190)),
+               ('ELECTRONICS', (60, 230, 255)), ('REPAIRS WHILE YOU WAIT', (90, 255, 150)), ('PHARMACY 24H', (90, 255, 150)), ('NO CREDIT', (255, 70, 70)),
+               ('DATA RECOVERY', (170, 110, 255)), ('CASH ONLY', (255, 170, 60))]
+
+
+def ticker(out, cols=1024, rows=32, dot=4):
+    from PIL import ImageDraw, ImageFont
+    font = None
+    for path in ('/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf', '/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf'):
+        try:
+            font = ImageFont.truetype(path, 24)
+            break
+        except OSError:
+            pass
+    font = font or ImageFont.load_default()
+    # lay the phrases out end to end, then stretch the gaps so the strip closes on itself exactly
+    widths = [int(font.getlength(t)) for t, _ in TICKER_TEXT]
+    gap = max(8, (cols - sum(widths)) // len(TICKER_TEXT))
+    small = Image.new('RGB', (cols, rows))
+    draw, x = ImageDraw.Draw(small), gap // 2
+    for (text, col), w in zip(TICKER_TEXT, widths):
+        draw.text((x, 2), text, font=font, fill=col)
+        draw.rectangle((x + w + gap // 2 - 2, 13, x + w + gap // 2 + 1, 18), fill=(110, 120, 140))      # a separator pip
+        x += w + gap
+    lit = np.asarray(small, float)
+    lit = np.where(lit.max(-1, keepdims=True) > 90, lit / np.maximum(lit.max(-1, keepdims=True), 1) * 255, 0)   # hard on/off LEDs, full brightness
+    big = np.repeat(np.repeat(lit, dot, 0), dot, 1)
+    yy, xx = np.mgrid[0:rows * dot, 0:cols * dot]
+    mask = (((yy % dot) - (dot - 1) / 2) ** 2 + ((xx % dot) - (dot - 1) / 2) ** 2) <= (dot * .47) ** 2
+    off = np.array([10, 9, 14]) * mask[..., None]                                                 # unlit LEDs are just visible
+    _save(out + '/kit_ticker_color.png', np.maximum(big * mask[..., None], off).clip(0, 255))
+
+
+SETS = {'kit_concrete': concrete, 'kit_metal': metal, 'kit_glass': glass, 'kit_emissive': emissive, 'kit_asphalt': asphalt, 'kit_ticker': ticker}
 
 
 def build_all(out):

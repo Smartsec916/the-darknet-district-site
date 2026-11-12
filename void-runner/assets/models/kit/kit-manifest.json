@@ -32,6 +32,9 @@
    "color": "textures/kit_asphalt_color.png",
    "normal": "textures/kit_asphalt_normal.png",
    "orm": "textures/kit_asphalt_orm.png"
+  },
+  "kit_ticker": {
+   "color": "textures/kit_ticker_color.png"
   }
  },
  "emissiveRegions": {
@@ -702,7 +705,7 @@
     "d": 0.5
    },
    "triangles": 728,
-   "bytes": 58336,
+   "bytes": 58660,
    "nodes": [
     "kit_shopfront_shutter_4m__neon_0",
     "kit_shopfront_shutter_4m__sign_0"
@@ -747,7 +750,7 @@
     "d": 0.5
    },
    "triangles": 564,
-   "bytes": 47784,
+   "bytes": 48116,
    "nodes": [
     "kit_shopfront_window_4m__glass_0",
     "kit_shopfront_window_4m__glass_1",
@@ -805,7 +808,7 @@
     "d": 0.5
    },
    "triangles": 626,
-   "bytes": 52956,
+   "bytes": 53284,
    "nodes": [
     "kit_shopfront_window_6m__glass_0",
     "kit_shopfront_window_6m__glass_1",
@@ -859,5 +862,10 @@
     ]
    }
   }
+ },
+ "ticker": {
+  "material": "kit_ticker",
+  "metresPerRepeat": 20,
+  "scroll": "slide the texture along U (about 0.02 to 0.04 per second)"
  }
 }

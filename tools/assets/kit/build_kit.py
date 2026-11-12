@@ -25,7 +25,8 @@ OUT = os.path.join(REPO, 'void-runner', 'assets', 'models', 'kit')
 TEX = os.path.join(OUT, 'textures')
 FLOOR, SHOP, DEPTH, FACE = 3.5, 4.5, .5, .1
 TILE = {'kit_concrete': 4.0, 'kit_metal': 2.0, 'kit_asphalt': 3.0}       # metres one repeat of the texture covers
-MATERIALS = ['kit_concrete', 'kit_metal', 'kit_glass', 'kit_emissive', 'kit_asphalt']
+MATERIALS = ['kit_concrete', 'kit_metal', 'kit_glass', 'kit_emissive', 'kit_asphalt', 'kit_ticker']
+GLOWING = ('kit_emissive', 'kit_ticker')          # the only materials that give light
 REGIONS = list(kit_textures.EMISSIVE_REGIONS)
 
 
@@ -48,7 +49,7 @@ class Piece:
         layer = b.faces.layers.int['mode']
         for f in faces:
             f.material_index = MATERIALS.index(mat)
-            f[layer] = 0 if region is None else 1 + REGIONS.index(region) if region in REGIONS else 100   # 100: whole 0..1 square
+            f[layer] = 0 if region is None else 200 if region == 'ticker' else 1 + REGIONS.index(region) if region in REGIONS else 100   # 100: whole 0..1 square; 200: the scrolling strip
         return faces
 
     def box(self, p0, p1, mat='kit_concrete', bevel=.02, node='', region=None):
@@ -98,6 +99,10 @@ def unwrap(b):
         else:
             us, vs = [l.vert.co[ua] for l in f.loops], [l.vert.co[va] for l in f.loops]
             u0, u1, v0, v1 = min(us), max(us), min(vs), max(vs)
+            if mode == 200:      # the scrolling strip: its length runs in metres along the sign, so the letters keep one size on every piece
+                for loop in f.loops:
+                    loop[uv].uv = (loop.vert.co[ua] / kit_textures.TICKER_METRES, (loop.vert.co[va] - v0) / max(v1 - v0, 1e-6))
+                continue
             r0, s0, r1, s1 = (0, 0, 1, 1) if mode == 100 else kit_textures.EMISSIVE_REGIONS[REGIONS[mode - 1]]
             pad = .01
             for loop in f.loops:
@@ -129,12 +134,17 @@ def materials(with_images=True):
                 node.image.colorspace_settings.name = 'Non-Color'
             return node
         col = image('color', True)
-        if name == 'kit_emissive':
+        if name in GLOWING:
             bsdf.inputs['Base Color'].default_value = (0, 0, 0, 1)
             bsdf.inputs['Roughness'].default_value = .5
             bsdf.inputs['Emission Strength'].default_value = 6
             if col:
                 nt.links.new(col.outputs['Color'], bsdf.inputs['Emission Color'])
+                if name == 'kit_ticker':             # for the preview only: a node that slides the text, as the game will
+                    mp, tc = nt.nodes.new('ShaderNodeMapping'), nt.nodes.new('ShaderNodeTexCoord')
+                    mp.name = 'scroll'
+                    nt.links.new(tc.outputs['UV'], mp.inputs['Vector'])
+                    nt.links.new(mp.outputs['Vector'], col.inputs['Vector'])
             else:
                 bsdf.inputs['Emission Color'].default_value = (1, .8, .6, 1)
         else:
@@ -409,8 +419,8 @@ def _shop_shell(p, W, sign=True):
         p.box((x0, 0, 0), (x1, .03, .55), 'kit_metal', bevel=0)                      # kick plate
     p.box((0, .03, top), (W, plane + .01, top + .22), 'kit_metal', bevel=.015)       # lintel
     p.box((0, .02, 3.3), (W, plane + .01, 4.12), 'kit_metal', bevel=.02)             # fascia
-    if sign:      # a blank light-box face: its own node, so the game can give each shop its own sign picture or switch it off
-        p.box((.15, .004, 3.4), (W - .15, .02, 4.02), 'kit_emissive', bevel=0, node='sign_0', region='sign')
+    if sign:      # an LED text strip (material kit_ticker): the game scrolls it by sliding that material's texture sideways. Its own node, so a shop can have its own sign instead
+        p.box((.15, .004, 3.4), (W - .15, .02, 4.02), 'kit_ticker', bevel=0, node='sign_0', region='ticker')
         p.snap['sign'] = {'position': [.15, 3.4, 0], 'size': [W - .3, .62]}
     else:
         for j in range(5):
@@ -577,7 +587,7 @@ def patch_glb(path):
     for m in doc.get('materials', []):
         name = m['name']
         pbr = m.setdefault('pbrMetallicRoughness', {})
-        if name == 'kit_emissive':
+        if name in GLOWING:
             pbr.update({'baseColorFactor': [0, 0, 0, 1], 'metallicFactor': 0, 'roughnessFactor': .5})
             m['emissiveFactor'] = [1, 1, 1]
             m['emissiveTexture'] = tex(name, 'color')
@@ -696,7 +706,7 @@ def preview(built, path, batch, layout=True):
     bpy.ops.render.render(write_still=True)
 
 
-def assemble(mats, path):
+def assemble(mats, path, gif=None):
     """A two-storey corner built from the pieces made so far, to show how they join. Each entry: piece, position (x, y, z), quarter turns about the vertical."""
     z1, top = SHOP, SHOP + FLOOR
     plan = [('kit_shopfront_service_2m', (-8, 0, 0), 0), ('kit_shopfront_door_2m', (-6, 0, 0), 0), ('kit_shopfront_shutter_4m', (-4, 0, 0), 0), ('kit_shopfront_window_6m', (0, 0, 0), 0),
@@ -714,6 +724,18 @@ def assemble(mats, path):
         obj.location, obj.rotation_euler = pos, (0, 0, turns * math.pi / 2)
         built.append((obj, size))
     preview(built, path, None, layout=False)
+    if gif:                                   # a short loop of the sign text sliding, small and quick to render
+        from PIL import Image
+        s = bpy.context.scene
+        s.render.resolution_x, s.render.resolution_y, s.cycles.samples = 800, 400, 20
+        frames = []
+        for f in range(14):
+            mats['kit_ticker'].node_tree.nodes['scroll'].inputs['Location'].default_value[0] = f * .009
+            s.render.filepath = gif + '.%02d.png' % f
+            bpy.ops.render.render(write_still=True)
+            frames.append(Image.open(s.render.filepath).convert('P', palette=Image.ADAPTIVE))
+            os.remove(s.render.filepath)
+        frames[0].save(gif, save_all=True, append_images=frames[1:], duration=110, loop=0)
 
 
 def main():
@@ -729,7 +751,8 @@ def main():
     manifest = json.load(open(manifest_path)) if os.path.exists(manifest_path) else {}
     manifest.update({'kit': 'NeoChinatown building kit', 'units': 'metres', 'up': '+Y', 'front': '+Z', 'origin': 'bottom-left-front corner of the bounding box',
                      'module': 1, 'floorHeight': FLOOR, 'shopfrontHeight': SHOP, 'facadeDepth': DEPTH, 'wallPlaneBehindFront': FACE,
-                     'materials': {n: {k: 'textures/%s_%s.png' % (n, k) for k in (['color'] if n == 'kit_emissive' else ['color', 'normal', 'orm'])} for n in MATERIALS},
+                     'materials': {n: {k: 'textures/%s_%s.png' % (n, k) for k in (['color'] if n in GLOWING else ['color', 'normal', 'orm'])} for n in MATERIALS},
+                     'ticker': {'material': 'kit_ticker', 'metresPerRepeat': kit_textures.TICKER_METRES, 'scroll': 'slide the texture along U (about 0.02 to 0.04 per second)'},
                      'emissiveRegions': {k: list(v) for k, v in kit_textures.EMISSIVE_REGIONS.items()}})
     pieces = manifest.setdefault('pieces', {})
     built = []
@@ -752,7 +775,7 @@ def main():
     if demo:
         for o in list(bpy.data.objects):
             bpy.data.objects.remove(o)
-        assemble(mats, demo)
+        assemble(mats, demo, next((args[i + 1] for i, a in enumerate(args) if a == '--scroll'), None))
         return
     if shot and built:
         preview(built, shot, batches)
