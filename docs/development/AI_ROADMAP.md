@@ -4,7 +4,7 @@
 
 Current state is the Start here section of [`AI_HANDOFF.md`](AI_HANDOFF.md). This file is only the sequence. Do not reopen finished November 11 items (ten pods, V1 device, vestibule checkpoint): they are on `main`.
 
-1. **Let the dolphin agent finish.** [bc-14ad5818-751b-5273-b62f-879dd9560365](https://cursor.com/agents/bc-14ad5818-751b-5273-b62f-879dd9560365). David already said "push": merge that pull request when it exists and tests pass. No crabs. No second branch.
+1. Dolphins are on `main` ([#240](https://github.com/Smartsec916/the-darknet-district-site/pull/240)). Do not add crabs or a second dolphin pass.
 2. **Let the four visual wins finish on their own branch.** [bc-8ae0a04a-9e48-58cf-9465-9f4d838cd39f](https://cursor.com/agents/bc-8ae0a04a-9e48-58cf-9465-9f4d838cd39f). Do not merge until David says so. Do not start reflections, shadows, new buildings, or WebXR in that branch. Leave the Sleeping Pod room and the music player alone.
 3. **Wait for David's answers** in AI_HANDOFF.md "Open questions" before companion top-10 fixes, a noodle stand, a paid voice re-record, or the player part-assembler.
 4. Later phases of the 10 Nov 2026 master specification, one at a time, each proposed before it is built. Phase 1 (vestibule) is done (`VESTIBULE_CHECKPOINT.md`).

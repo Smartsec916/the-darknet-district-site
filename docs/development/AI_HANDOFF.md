@@ -2,7 +2,7 @@
 
 **Start here.** This file is the one current handoff. Read the checklist and the sections through "Open questions" before any other handoff document. The dated diary under [Historical log](#historical-log) is kept so older notes are not lost. Entries in that log contradict each other. They are snapshots, not instructions.
 
-**Checked against:** `origin/main` `7939256` (12 Nov 2026, "NULL: the nightclub across from the alley is open, with an interior built in code (#238)"). Re-fetch GitHub before trusting pull-request numbers or deploy claims below.
+**Checked against:** `origin/main` `4fc1a70` (12 Nov 2026). That commit is the merge of #240 (Tropical Escape dolphins) on top of `7939256` (NULL nightclub, #238). Re-fetch GitHub before trusting pull-request numbers or deploy claims below.
 
 ## How the handoff works
 
@@ -35,7 +35,7 @@ These are snapshots. Do not treat them as the place to start:
 7. Story, canon, factions, and mission arcs: propose 3–5 options and wait. Graphics, bug fixes, and features David already asked for: implement on a branch. Plain language when writing to David. He is not reading code.
 8. `void-runner.html` and `static/void-runner.html` stay byte-identical. Bump `BUILD` in `void-runner-sw.js` when any game file changes. Current stamp on this commit: `2026-11-12-null-club-1`.
 9. `npm test` before a pull request. Do not put secrets, tokens, or device codes in docs, commits, or chat.
-10. Do not start a second copy of work that already has a cloud agent (dolphins, the four visual wins). Check GitHub first; if that agent has since opened a pull request, use it instead of the "no PR yet" note below.
+10. Do not start a second copy of the four visual wins. Dolphins already merged as #240. Check GitHub before starting a visuals branch; if that agent has since opened a pull request, use it.
 
 ## What is on main (code, 12 Nov 2026)
 
@@ -45,6 +45,7 @@ Shipped on `main` by 12 Nov 2026 (newest first):
 
 | PR | What landed |
 |---|---|
+| #240 | Tropical Escape dolphins. Quaternius Animated Fish Pack dolphin (CC0), swim clip, surface leaps and splashes offshore of the beach and pier. Model `void-runner/assets/vr/models/dolphin.glb`. No crabs. Credit in `docs/VOID_RUNNER_ASSET_LICENSES.md`. Merge `4fc1a70`. |
 | #238 | **NULL** nightclub is on for everyone. Interior is code-built in `void-runner/ncz-nightclub.js` (`buildOwn()`): dance floor, DJ, bar, VIP, people. A purchased `nightclub.vrpak` is used automatically if it is published later. See `NIGHTCLUB_NULL.md`. Street players are still not shared, so the club is solo. |
 | #237 | Small arcade, five cabinets, off the hallway. The middle cabinet opens the real Blackout Protocol page. `district-arcade.js`, `ARCADE.md`. Four other titles are working names waiting on David. |
 | #236 | Sleeping Pod free look and E/M/V shortcuts. `SLEEPING_PODS.md`. |
@@ -73,21 +74,15 @@ A local packet (not on `origin`) also named branches `up196`–`up199` and `docs
 
 ## In flight — do not duplicate
 
-Checked 12 Nov 2026 against `origin` heads and open pull requests. **No dolphin branch and no visuals / Ultra / bloom branch existed yet.**
+Checked again 12 Nov 2026 after this note was first written. **Dolphins merged** as [#240](https://github.com/Smartsec916/the-darknet-district-site/pull/240) (`cursor/tropical-leaping-dolphins-0365`, agent [bc-14ad5818-751b-5273-b62f-879dd9560365](https://cursor.com/agents/bc-14ad5818-751b-5273-b62f-879dd9560365)). Do not open a second dolphin change. **Do not add crabs.**
 
-### Tropical Escape dolphins — merge is authorized
-
-- Cloud agent: [bc-14ad5818-751b-5273-b62f-879dd9560365](https://cursor.com/agents/bc-14ad5818-751b-5273-b62f-879dd9560365).
-- David said **"push"** for this work: when its pull request exists and tests pass, merge it, then check dolphins in Tropical Escape.
-- Scope he approved: Quaternius fish-pack dolphin (CC0, public-domain source this project already uses) and its swim clip; a code-drawn leap and splash; **surface only**, near the beach and pier; follow the gulls in `void-runner/vr-tropical.js`. Pier constants there: `SHORE=10`, `PIER=[20,23]`, `PIER_END=34`. Update the VR menu, `docs/VOID_RUNNER_VR_ARCADE.md`, and `tests/vr-arcade.test.cjs` only as that change needs.
-- **Do not add crabs.** Do not change files outside Tropical Escape and its menu/test wiring.
-- The dolphin file is not on `main` yet (`git ls-tree` finds no dolphin asset).
+**No visuals / Ultra / bloom branch or pull request existed yet.**
 
 ### Four visual wins — own branch, not authorized to merge
 
 - Cloud agent: [bc-8ae0a04a-9e48-58cf-9465-9f4d838cd39f](https://cursor.com/agents/bc-8ae0a04a-9e48-58cf-9465-9f4d838cd39f).
 - David asked for these four only, game-wide, on their own branch. **Do not merge until he says so.** Do not start the medium or larger jobs (real night reflections, shadows, new buildings, NPC models, WebXR).
-- Verified on this `main` before that branch existed:
+- Verified on `7939256`. #240 only added Tropical Escape dolphins, so these renderer facts still apply:
   1. **Sharpness.** `babylon-renderer.js` builds the engine without `adaptToDeviceRatio`. `resize()` caps at 2560×1600 CSS pixels (`width / scale`), so device pixel ratio is unused.
   2. **Quality.** Presets are only `low` / `medium` / `high` (scale 1.5 / 1 / 0.8). No Ultra. Default in `babylon-integration.js` is `low` when the pointer is coarse or cores ≤ 4, otherwise `medium`. `device-gate.js` `recommendQuality` can also store `low`. **Remove those quality auto-low checks for this task. Leave the phone block in place.** Settings `<select>` is built from `Object.keys(VoidBabylon.presets)`.
   3. **Glow.** Look pipeline exposure is `1.55`. Bloom and FXAA run on medium and high (`bloomWeight .32`). `GlowLayer` runs only on `high` (intensity `.45`). No sharpening pass. Engine antialias is the boolean `true`, not MSAA/SMAA.
@@ -172,7 +167,7 @@ Players must not call a TTS API. GitHub Pages cannot hold a provider key. Keep s
 | id | Title | File | Notes |
 |---|---|---|---|
 | `forest` | Relax in a Forest | `vr-forest.js` | `shared:true`, station 1 |
-| `tropical` | Tropical Escape | `vr-tropical.js` | `shared:true`. Fishing is on `main`. Gulls toggle. Dolphins are the in-flight work above. |
+| `tropical` | Tropical Escape | `vr-tropical.js` | `shared:true`. Fishing (#233) and surface dolphins (#240) are on `main`. Gulls toggle. No crabs. |
 | `suite` | Play in a Bedroom | `vr-suite.js` | `shared:true` again after #232. The 12 Nov map note that removed it from the menu is superseded by #232. |
 | `combat` | Combat Simulator | `vr-combat.js` | `listed:false`. Code kept. |
 
@@ -214,7 +209,7 @@ Folded in from local commits `bb7c045` and `3df6adb` (they were not on `origin/c
 4. **Noodle stand:** which stall, if any (YANGGA CC-BY, Quaternius CC0, or none). Nothing was built.
 5. **Voices:** try ElevenLabs and Google Chirp on a few lines, or keep Kokoro? Iris's approved android voice stays either way.
 6. **Forest sky:** where the odd patch sits (overhead, horizon, or over the clearing), and whether it vanishes with Sunbeams off.
-7. **Dolphins:** merge when the pull request is up and tests pass (already authorized). Crabs stay out unless he asks again.
+7. **Crabs** stay out unless he asks again. Dolphins are already on `main` (#240).
 8. **Four visual wins:** review that pull request when it exists. Merge is not authorized yet. Pod room and music player stay visually as they are.
 9. **Age policy** for strong-language songs and any vending flavour. Still open. Playlist files are already public on the site.
 10. **Tesana:** per-asset confirmation for the 10 shared-library models before any import.
