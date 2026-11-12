@@ -6,12 +6,13 @@ prepareDestination=function(){if(destinationPreparation)return destinationPrepar
 function renderUnavailable(){ctx.fillStyle='#07121e';ctx.fillRect(0,0,W,H);ctx.fillStyle='#bed6d4';ctx.font='18px monospace';ctx.fillText('3D display unavailable — open Menu to retry.',30,H*.5);}
 function drawModernBackground(){
  if(mode==='menu'){
-  const image=VoidBabylon.renderMenu(W,H,time,reducedMotion);
-  if(image)ctx.drawImage(image,0,0,W,H);else{ctx.fillStyle='#030813';ctx.fillRect(0,0,W,H);if(!modernMenuPending&&!VoidBabylon.diagnostics.menuReady&&!modernMenuFailure){modernMenuPending=true;VoidBabylon.prepareMenu().then(()=>modernMenuReady=true).catch(e=>{if(mode==='menu'&&!/cancel/i.test(e.message)){modernMenuFailure=true;console.warn('[VOID menu background]',e.message);}}).finally(()=>modernMenuPending=false);}}
+  // The menu picture is the city around the District (menu-backdrop.js), not the old space station. The 3D engine is still warmed up here, as before.
+  const painted=globalThis.VoidMenuBackdrop?.draw(ctx,W,H,time,reducedMotion,0),image=painted?null:VoidBabylon.renderMenu(W,H,time,reducedMotion);
+  if(image)ctx.drawImage(image,0,0,W,H);else{if(!painted){ctx.fillStyle='#030813';ctx.fillRect(0,0,W,H);}if(!modernMenuPending&&!VoidBabylon.diagnostics.menuReady&&!modernMenuFailure){modernMenuPending=true;VoidBabylon.prepareMenu().then(()=>modernMenuReady=true).catch(e=>{if(mode==='menu'&&!/cancel/i.test(e.message)){modernMenuFailure=true;console.warn('[VOID menu background]',e.message);}}).finally(()=>modernMenuPending=false);}}
   return;
  }
  if(walkingLocation&&walker&&VoidBabylon.scene){const img=VoidBabylon.renderRoom(walker,W,H,time);if(img)ctx.drawImage(img,0,0,W,H);return;}
- if(VoidGraphics.busy){renderUnavailable();return;}
+ if(VoidGraphics.busy){if(!globalThis.VoidMenuBackdrop?.draw(ctx,W,H,time,reducedMotion,.45))renderUnavailable();return;}   // while a place is being prepared: the city, dimmed, behind the card (never the "unavailable" text)
  if(!VoidBabylon.diagnostics.exteriorReady){
   ctx.fillStyle='#07121e';ctx.fillRect(0,0,W,H);
   if(!modernMenuPending&&!modernMenuReady){modernMenuPending=true;boundedPrepare(task=>VoidBabylon.prepareSpace(state.location,undefined,task)).then(()=>modernMenuReady=true).catch(e=>{console.error('[VOID world menu]',e);modernMenuReady=true;}).finally(()=>modernMenuPending=false);}
