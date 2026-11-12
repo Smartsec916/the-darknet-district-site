@@ -4,6 +4,13 @@
 
 **Checked against:** `origin/main` `4fc1a70` (12 Nov 2026). That commit is the merge of #240 (Tropical Escape dolphins) on top of `7939256` (NULL nightclub, #238). Re-fetch GitHub before trusting pull-request numbers or deploy claims below.
 
+## 12 Nov 2026 (late): building kit finished; haze and dimness fixed
+
+- **Modular building kit** for NeoChinatown: 47 pieces in `void-runner/assets/models/kit/` with `kit-manifest.json`, built by code (`tools/assets/kit/`). Not used by the game yet. Next step and all rules: `docs/development/BUILDING_KIT_HANDOVER.md`. Shop-sign wording is a placeholder awaiting David.
+- **Graphics:** #241 (sharpness / Ultra) had also doubled bloom and glow and lowered exposure; #246 and #247 put bloom, glow, exposure and the street's faint self-light back. Sharpness and Ultra are kept. High is still the default quality on every device.
+- **CI:** the browser smoke job is green again (#244). Its Blackout account-save section reports 'not run': the client half of that feature is only on `codex/blackout-district-production-integration` and needs David's decision before merging.
+- **Next (David's order):** rebuild the District interior area by area with Blender-made assets, starting at the security vestibule; references are described in `VISUAL_REFERENCES.md`.
+
 ## How the handoff works
 
 There is no generator script. The next model follows this reading order:

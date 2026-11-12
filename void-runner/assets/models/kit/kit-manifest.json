@@ -91,11 +91,29 @@
    0.5,
    0.125
   ],
-  "sign": [
+  "sign_magenta": [
    0.5,
-   0,
+   0.25,
+   0.75,
+   0.5
+  ],
+  "sign_cyan": [
+   0.75,
+   0.25,
    1,
    0.5
+  ],
+  "sign_amber": [
+   0.5,
+   0,
+   0.75,
+   0.25
+  ],
+  "sign_violet": [
+   0.75,
+   0,
+   1,
+   0.25
   ]
  },
  "pieces": {
@@ -1183,6 +1201,534 @@
      0,
      0
     ]
+   }
+  },
+  "kit_cable_bundle_4m": {
+   "file": "kit_cable_bundle_4m.glb",
+   "batch": 6,
+   "category": "services",
+   "size": {
+    "w": 4.0,
+    "h": 0.48,
+    "d": 0.13
+   },
+   "triangles": 480,
+   "bytes": 36496,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.13
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     4,
+     0,
+     0
+    ]
+   }
+  },
+  "kit_duct_horizontal_4m": {
+   "file": "kit_duct_horizontal_4m.glb",
+   "batch": 6,
+   "category": "services",
+   "size": {
+    "w": 4.0,
+    "h": 0.75,
+    "d": 0.5
+   },
+   "triangles": 240,
+   "bytes": 19400,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.5
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     4,
+     0,
+     0
+    ]
+   }
+  },
+  "kit_fireescape_ladder_1m": {
+   "file": "kit_fireescape_ladder_1m.glb",
+   "batch": 6,
+   "category": "fireescape",
+   "size": {
+    "w": 1.0,
+    "h": 3.5,
+    "d": 0.292
+   },
+   "triangles": 246,
+   "bytes": 18480,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.292
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "top": [
+     0,
+     3.5,
+     0
+    ]
+   }
+  },
+  "kit_fireescape_landing_3m": {
+   "file": "kit_fireescape_landing_3m.glb",
+   "batch": 6,
+   "category": "fireescape",
+   "size": {
+    "w": 3.0,
+    "h": 1.5,
+    "d": 1.2
+   },
+   "triangles": 550,
+   "bytes": 38040,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -1.2
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "deck_top": 0.4,
+    "hatch": {
+     "position": [
+      2.31,
+      0.4,
+      0
+     ],
+     "size": [
+      0.63,
+      1.2
+     ]
+    }
+   }
+  },
+  "kit_pipe_vertical_1m": {
+   "file": "kit_pipe_vertical_1m.glb",
+   "batch": 6,
+   "category": "services",
+   "size": {
+    "w": 1.0,
+    "h": 3.5,
+    "d": 0.255
+   },
+   "triangles": 404,
+   "bytes": 30284,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.255
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "top": [
+     0,
+     3.5,
+     0
+    ]
+   }
+  },
+  "kit_clutter_ac_bracket_1m": {
+   "file": "kit_clutter_ac_bracket_1m.glb",
+   "batch": 7,
+   "category": "clutter",
+   "size": {
+    "w": 1.0,
+    "h": 0.34,
+    "d": 0.5
+   },
+   "triangles": 92,
+   "bytes": 7568,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.5
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "shelf_top": 0.34
+   }
+  },
+  "kit_clutter_ac_unit_1m": {
+   "file": "kit_clutter_ac_unit_1m.glb",
+   "batch": 7,
+   "category": "clutter",
+   "size": {
+    "w": 1.0,
+    "h": 0.62,
+    "d": 0.35
+   },
+   "triangles": 244,
+   "bytes": 19292,
+   "nodes": [],
+   "snap": {
+    "base": [
+     0,
+     0,
+     0
+    ],
+    "note": "stands on kit_clutter_ac_bracket_1m (its shelf_top) or on a roof"
+   }
+  },
+  "kit_roof_antenna_1m": {
+   "file": "kit_roof_antenna_1m.glb",
+   "batch": 7,
+   "category": "roof",
+   "size": {
+    "w": 1.0,
+    "h": 4.28,
+    "d": 1.0
+   },
+   "triangles": 306,
+   "bytes": 24724,
+   "nodes": [
+    "kit_roof_antenna_1m__neon_0"
+   ],
+   "snap": {
+    "base": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "kit_roof_hut_3m": {
+   "file": "kit_roof_hut_3m.glb",
+   "batch": 7,
+   "category": "roof",
+   "size": {
+    "w": 3.0,
+    "h": 2.66,
+    "d": 2.6
+   },
+   "triangles": 362,
+   "bytes": 31188,
+   "nodes": [
+    "kit_roof_hut_3m__neon_0"
+   ],
+   "snap": {
+    "base": [
+     0,
+     0,
+     0
+    ],
+    "door": {
+     "position": [
+      1.05,
+      0.02,
+      -0.04
+     ],
+     "size": [
+      0.9,
+      2.03
+     ]
+    }
+   }
+  },
+  "kit_roof_vent_1m": {
+   "file": "kit_roof_vent_1m.glb",
+   "batch": 7,
+   "category": "roof",
+   "size": {
+    "w": 1.0,
+    "h": 1.26,
+    "d": 1.0
+   },
+   "triangles": 324,
+   "bytes": 25456,
+   "nodes": [],
+   "snap": {
+    "base": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "kit_roof_watertank_2m": {
+   "file": "kit_roof_watertank_2m.glb",
+   "batch": 7,
+   "category": "roof",
+   "size": {
+    "w": 2.0,
+    "h": 2.9,
+    "d": 2.0
+   },
+   "triangles": 508,
+   "bytes": 36104,
+   "nodes": [],
+   "snap": {
+    "base": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "kit_kerb_corner_1m": {
+   "file": "kit_kerb_corner_1m.glb",
+   "batch": 8,
+   "category": "street",
+   "size": {
+    "w": 1.0,
+    "h": 0.15,
+    "d": 1.0
+   },
+   "triangles": 156,
+   "bytes": 14176,
+   "nodes": [],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "around": {
+     "position": [
+      1,
+      0,
+      -1
+     ],
+     "turnY": 90
+    },
+    "top": 0.15
+   }
+  },
+  "kit_kerb_straight_4m": {
+   "file": "kit_kerb_straight_4m.glb",
+   "batch": 8,
+   "category": "street",
+   "size": {
+    "w": 4.0,
+    "h": 0.15,
+    "d": 0.6
+   },
+   "triangles": 184,
+   "bytes": 17060,
+   "nodes": [],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     4,
+     0,
+     0
+    ],
+    "sidewalk": [
+     0,
+     0,
+     -0.6
+    ],
+    "top": 0.15
+   }
+  },
+  "kit_neon_trim_2m": {
+   "file": "kit_neon_trim_2m.glb",
+   "batch": 8,
+   "category": "sign",
+   "size": {
+    "w": 2.0,
+    "h": 0.14,
+    "d": 0.06
+   },
+   "triangles": 72,
+   "bytes": 8352,
+   "nodes": [
+    "kit_neon_trim_2m__neon_0",
+    "kit_neon_trim_2m__neon_1"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.06
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     2,
+     0,
+     0
+    ]
+   }
+  },
+  "kit_neon_trim_4m": {
+   "file": "kit_neon_trim_4m.glb",
+   "batch": 8,
+   "category": "sign",
+   "size": {
+    "w": 4.0,
+    "h": 0.14,
+    "d": 0.06
+   },
+   "triangles": 96,
+   "bytes": 10036,
+   "nodes": [
+    "kit_neon_trim_4m__neon_0",
+    "kit_neon_trim_4m__neon_1"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.06
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     4,
+     0,
+     0
+    ]
+   }
+  },
+  "kit_sidewalk_slab_4m": {
+   "file": "kit_sidewalk_slab_4m.glb",
+   "batch": 8,
+   "category": "street",
+   "size": {
+    "w": 4.0,
+    "h": 0.153,
+    "d": 3.0
+   },
+   "triangles": 564,
+   "bytes": 45232,
+   "nodes": [],
+   "snap": {
+    "left": [
+     0,
+     0,
+     0
+    ],
+    "right": [
+     4,
+     0,
+     0
+    ],
+    "building": [
+     0,
+     0,
+     -3
+    ],
+    "top": 0.15
+   }
+  },
+  "kit_sign_horizontal_4m": {
+   "file": "kit_sign_horizontal_4m.glb",
+   "batch": 8,
+   "category": "sign",
+   "size": {
+    "w": 4.0,
+    "h": 0.9,
+    "d": 0.18
+   },
+   "triangles": 80,
+   "bytes": 9712,
+   "nodes": [
+    "kit_sign_horizontal_4m__sign_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.18
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "face": {
+     "position": [
+      0.06,
+      0.06,
+      0
+     ],
+     "size": [
+      3.88,
+      0.78
+     ]
+    }
+   }
+  },
+  "kit_sign_vertical_1m": {
+   "file": "kit_sign_vertical_1m.glb",
+   "batch": 8,
+   "category": "sign",
+   "size": {
+    "w": 0.18,
+    "h": 3.0,
+    "d": 1.0
+   },
+   "triangles": 144,
+   "bytes": 14696,
+   "nodes": [
+    "kit_sign_vertical_1m__neon_0",
+    "kit_sign_vertical_1m__sign_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -1.0
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "face": {
+     "size": [
+      0.7,
+      2.88
+     ]
+    }
    }
   }
  },

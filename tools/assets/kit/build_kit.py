@@ -647,6 +647,258 @@ def balcony(W):
     return make
 
 
+# ---- batch 6: fire escape and building services. Like the awnings, their BACK goes against the wall plane.
+def fire_landing(p):
+    W, D, deck = 3, 1.2, .3
+    for a, b in (((0, 0), (W, .06)), ((0, D - .06), (W, D)), ((0, 0), (.06, D)), ((W - .06, 0), (W, D)), ((2.25, 0), (2.31, D))):
+        p.box((a[0], a[1], deck), (b[0], b[1], deck + .1), 'kit_metal', bevel=0)              # frame; the bay right of x = 2.25 is the open ladder hatch
+    for i in range(15):                                                                      # grating
+        p.box((i * .15 + .04, .06, deck + .05), (i * .15 + .1, D - .06, deck + .08), 'kit_metal', bevel=0)
+    for x in (.05, 1.5, W - .05):
+        p.box((x - .04, D - .06, 0), (x + .04, D, deck), 'kit_metal', bevel=0)
+        p.cyl((x, .2, deck), (x, D - .04, .04), .025, seg=5, caps=False)
+    top = deck + 1.2
+    for x, y in ((.03, .03), (1.5, .03), (W - .03, .03), (.03, D - .03), (W - .03, D - .03)):
+        p.cyl((x, y, deck + .1), (x, y, top), .022, seg=6)
+    for z in (deck + .5, deck + .85, top - .02):
+        p.cyl((0, .03, z), (W, .03, z), .018, seg=5)
+        for x in (.03, W - .03):
+            p.cyl((x, .03, z), (x, D, z), .018, seg=5)
+    p.snap.update({'mount': {}, 'deck_top': round(deck + .1, 3), 'hatch': {'position': [2.31, deck + .1, 0], 'size': [.63, D]}})
+
+
+def fire_ladder(p):
+    H, D = FLOOR, .3
+    for x in (.28, .72):
+        p.cyl((x, .03, 0), (x, .03, H), .022, seg=6)
+    z = .25
+    while z < H:
+        p.cyl((.28, .03, z), (.72, .03, z), .014, seg=5, caps=False)
+        z += .3
+    for z in (.5, 1.75, 3.0):
+        p.box((0, D - .03, z), (1, D, z + .06), 'kit_metal', bevel=0)
+        for x in (.28, .72):
+            p.cyl((x, .03, z + .03), (x, D - .02, z + .03), .014, seg=5, caps=False)
+    p.snap.update({'mount': {}, 'top': [0, H, 0]})
+
+
+def pipe_vertical(p):
+    H, D = FLOOR, .25
+    pipes = ((.2, .06), (.42, .09), (.66, .045), (.83, .03))
+    for x, r in pipes:
+        p.cyl((x, D - r - .03, 0), (x, D - r - .03, H), r, seg=8, caps=False)
+    for z in (.4, 1.75, 3.1):
+        p.box((.05, D - .04, z), (.95, D, z + .06), 'kit_metal', bevel=0)
+        for x, r in pipes:
+            p.box((x - r - .012, D - 2 * r - .042, z), (x + r + .012, D - .03, z + .06), 'kit_metal', bevel=0)
+    for z in (1.15, 1.45):                                                                   # flanges and a valve on the main
+        p.cyl((.42, D - .12, z), (.42, D - .12, z + .05), .125, seg=8)
+    p.cyl((.42, .0, 1.325), (.42, D - .2, 1.325), .03, seg=6)
+    p.cyl((.42, 0, 1.325), (.42, .012, 1.325), .1, seg=8)
+    p.box((.58, D - .17, 2.2), (.76, D - .02, 2.5), 'kit_metal', bevel=.01)                   # a junction box on the conduit
+    p.box((0, D - .02, 0), (1, D, .05), 'kit_metal', bevel=0)
+    p.snap.update({'mount': {}, 'top': [0, H, 0]})
+
+
+def duct_horizontal(p):
+    W, D = 4, .5
+    p.box((0, .02, .1), (W, .45, .5), 'kit_metal', bevel=.01)
+    for x0, x1 in ((0, .03), (.97, 1.03), (1.97, 2.03), (2.97, 3.03), (W - .03, W)):         # flanged joints every metre
+        p.box((x0, 0, .08), (x1, .47, .52), 'kit_metal', bevel=0)
+    for j in range(5):                                                                       # an outlet grille
+        p.box((2.3, .005, .16 + j * .065), (2.9, .02, .2 + j * .065), 'kit_metal', bevel=0)
+    for x in (.5, 3.5):                                                                      # hangers
+        p.box((x - .03, .45, 0), (x + .03, D, .62), 'kit_metal', bevel=0)
+        p.box((x - .03, 0, .05), (x + .03, D, .08), 'kit_metal', bevel=0)
+    p.cyl((1.5, .24, .5), (1.5, .24, .75), .1, seg=8)                                        # a capped branch stub
+    p.snap.update({'mount': {}, 'left': [0, 0, 0], 'right': [W, 0, 0]})
+
+
+def cable_bundle(p):
+    W, D = 4, .15
+    for x0, x1 in ((0, .06), (1.97, 2.03), (W - .06, W)):
+        p.box((x0, D - .1, .28), (x1, D, .5), 'kit_metal', bevel=0)
+    for i in range(5):                                                                       # five cables, each sagging its own amount between the brackets
+        y, z0, sag = D - .04 - .014 * (i % 3), .47 - .035 * i, .07 + .035 * i
+        for a, b in ((.03, 2.0), (2.0, W - .03)):
+            pts = [(a + (b - a) * t / 5, y, z0 - sag * 4 * (t / 5) * (1 - t / 5)) for t in range(6)]
+            for q0, q1 in zip(pts, pts[1:]):
+                p.cyl(q0, q1, .012, seg=4, caps=False)
+    p.box((1.86, D - .13, .02), (2.14, D, .26), 'kit_metal', bevel=.01)                       # a junction box hanging under the middle bracket
+    p.snap.update({'mount': {}, 'left': [0, 0, 0], 'right': [W, 0, 0]})
+
+
+# ---- batch 7: wall and roof clutter
+def ac_unit(p):
+    p.box((0, .03, .04), (.95, .35, .62), 'kit_metal', bevel=.02)
+    for x in (.1, .75):
+        p.box((x, .06, 0), (x + .1, .32, .04), 'kit_metal', bevel=0)
+    p.cyl((.34, .012, .33), (.34, .03, .33), .24, seg=12)                                    # the fan opening
+    p.box((.1, 0, .32), (.58, .012, .34), 'kit_metal', bevel=0)                              # its guard
+    p.box((.33, 0, .09), (.35, .012, .57), 'kit_metal', bevel=0)
+    for j in range(6):
+        p.box((.66, .01, .1 + j * .08), (.9, .03, .14 + j * .08), 'kit_metal', bevel=0)
+    p.cyl((.95, .2, .5), (1.0, .2, .5), .03, seg=6)
+    p.cyl((.95, .26, .42), (1.0, .26, .42), .018, seg=5)
+    p.snap.update({'base': [0, 0, 0], 'note': 'stands on kit_clutter_ac_bracket_1m (its shelf_top) or on a roof'})
+
+
+def ac_bracket(p):
+    D = .5
+    for x in (.08, .92):
+        p.box((x - .02, 0, .3), (x + .02, D, .34), 'kit_metal', bevel=0)
+        p.box((x - .02, D - .04, 0), (x + .02, D, .34), 'kit_metal', bevel=0)
+        p.cyl((x, .05, .3), (x, D - .03, .03), .013, seg=5, caps=False)
+    for y in (.05, D - .14):
+        p.box((0, y, .3), (1, y + .04, .34), 'kit_metal', bevel=0)
+    p.snap.update({'mount': {}, 'shelf_top': .34})
+
+
+def roof_watertank(p):
+    legs = ((.15, .15), (1.85, .15), (.15, 1.85), (1.85, 1.85))
+    for x, y in legs:
+        p.cyl((x, y, 0), (x, y, .9), .045, seg=6)
+    for a, b in ((0, 1), (1, 3), (3, 2), (2, 0)):                                            # cross bracing
+        p.cyl((legs[a][0], legs[a][1], .08), (legs[b][0], legs[b][1], .85), .018, seg=4, caps=False)
+    p.box((0, 0, .9), (2, 2, .98), 'kit_metal', bevel=.012)
+    p.cyl((1, 1, .98), (1, 1, 2.7), .85, seg=16)
+    for z in (1.25, 1.85, 2.5):
+        p.cyl((1, 1, z), (1, 1, z + .06), .87, seg=16, caps=False)
+    p.cyl((1, 1, 2.7), (1, 1, 2.78), .5, seg=12)
+    p.cyl((1, 1, 2.78), (1, 1, 2.9), .16, seg=8)
+    for x in (.9, 1.1):
+        p.cyl((x, .1, 0), (x, .1, 2.75), .018, seg=5)
+    for k in range(9):
+        p.cyl((.9, .1, .25 + k * .3), (1.1, .1, .25 + k * .3), .012, seg=4, caps=False)
+    p.cyl((1.72, 1, 0), (1.72, 1, 1.05), .05, seg=6)                                         # the outlet down to the roof
+    p.snap.update({'base': [0, 0, 0]})
+
+
+def roof_antenna(p):
+    p.box((0, 0, 0), (1, 1, .12), bevel=.015)
+    p.cyl((.5, .5, .12), (.5, .5, 4.2), .035, seg=6)
+    for x, y in ((.08, .08), (.92, .08), (.5, .94)):                                         # guy wires
+        p.cyl((x, y, .12), (.5, .5, 3.0), .006, seg=3, caps=False)
+    p.cyl((.1, .5, 3.4), (.9, .5, 3.4), .015, seg=5)
+    for i in range(5):
+        p.cyl((.1 + .2 * i, .3 + .03 * i, 3.4), (.1 + .2 * i, .7 - .03 * i, 3.4), .008, seg=4)
+    p.cyl((.5, .34, 2.6), (.5, .4, 2.6), .3, seg=12)                                         # a dish
+    p.box((.46, .4, 2.54), (.54, .5, 2.66), 'kit_metal', bevel=0)
+    p.cyl((.58, .5, 2.0), (.64, .5, 2.0), .18, seg=10)
+    p.box((.4, .54, .7), (.6, .68, 1.1), 'kit_metal', bevel=.01)                              # the equipment box
+    p.box((.47, .47, 4.2), (.53, .53, 4.28), 'kit_emissive', bevel=0, node='neon_0', region='neon_amber')   # the beacon (its own node: the game can blink it)
+    p.snap.update({'base': [0, 0, 0]})
+
+
+def roof_vent(p):
+    p.box((0, 0, 0), (1, 1, .25), bevel=.02)
+    p.box((.15, .15, .25), (.85, .85, .7), 'kit_metal', bevel=.012)
+    for j in range(4):
+        p.box((.2, .13, .32 + j * .09), (.8, .15, .37 + j * .09), 'kit_metal', bevel=0)
+        p.box((.85, .2, .32 + j * .09), (.87, .8, .37 + j * .09), 'kit_metal', bevel=0)
+    p.box((.08, .08, .74), (.92, .92, .8), 'kit_metal', bevel=.012)
+    for x, y in ((.18, .18), (.82, .18), (.18, .82), (.82, .82)):
+        p.cyl((x, y, .7), (x, y, .74), .02, seg=4, caps=False)
+    p.cyl((.5, .5, .8), (.5, .5, 1.2), .12, seg=8)
+    p.cyl((.5, .5, 1.2), (.5, .5, 1.26), .21, seg=10)
+    p.snap.update({'base': [0, 0, 0]})
+
+
+def roof_hut(p):
+    """The stair-head hut on a roof."""
+    W, D = 3, 2.6
+    p.box((0, .1, 0), (W, D, 2.3), bevel=.02)
+    _slope(p.box((0, 0, 2.3), (W, D, 2.4), 'kit_metal', bevel=0), .1, 0)                      # a sheet roof, falling to the front
+    p.box((.98, .06, 0), (2.02, .1, 2.12), 'kit_metal', bevel=0)                              # door frame
+    p.box((1.05, .04, .02), (1.95, .08, 2.05), 'kit_metal', bevel=.008)
+    p.box((1.13, .025, .15), (1.87, .04, 1.0), 'kit_metal', bevel=.006)
+    p.box((1.13, .025, 1.12), (1.87, .04, 1.95), 'kit_metal', bevel=.006)
+    p.box((1.78, .0, .95), (1.84, .04, 1.15), 'kit_metal', bevel=0)
+    p.box((1.1, .01, 2.14), (1.9, .1, 2.24), 'kit_metal', bevel=.01)                          # lamp hood
+    _neon(p, (1.15, .04, 2.12), (1.85, .04, 2.12), 'white', 'neon_0')
+    p.box((2.3, .06, 1.45), (2.85, .1, 1.95), 'kit_metal', bevel=.01)                         # vent
+    for j in range(4):
+        p.box((2.34, .045, 1.5 + j * .1), (2.81, .06, 1.55 + j * .1), 'kit_metal', bevel=0)
+    p.box((.3, .03, .9), (.72, .1, 1.5), 'kit_metal', bevel=.012)                             # a switch box and its conduit
+    p.box((.36, .024, 1.34), (.44, .03, 1.42), 'kit_emissive', bevel=0, region='neon_cyan')
+    p.cyl((.5, .07, 1.5), (.5, .07, 2.3), .022, seg=5, caps=False)
+    p.snap.update({'base': [0, 0, 0], 'door': {'position': [1.05, .02, -.04], 'size': [.9, 2.03]}})
+
+
+# ---- batch 8: signs and the street edge
+def sign_vertical(p):
+    """A blade sign standing out from the wall: 1 m reach, 3 m tall, lit on both faces (node sign_0, a coloured light box; give it a shop's own picture)."""
+    T, H = .18, 3.0
+    p.box((.02, 0, 0), (T - .02, .8, H), 'kit_metal', bevel=.012)
+    for x0, x1 in ((0, .02), (T - .02, T)):
+        p.box((x0, .05, .06), (x1, .75, H - .06), 'kit_emissive', bevel=0, node='sign_0', region='sign_magenta')
+    for z in (.4, H - .4):
+        p.cyl((T / 2, .8, z), (T / 2, 1.0, z), .025, seg=6)
+        p.box((0, .97, z - .1), (T, 1.0, z + .1), 'kit_metal', bevel=0)
+    _neon(p, (T / 2, .02, .05), (T / 2, .02, H - .05), 'cyan', 'neon_0')                 # a tube down the outer edge
+    p.snap.update({'mount': {}, 'face': {'size': [.7, H - .12]}})
+
+
+def sign_horizontal(p):
+    W, H, D = 4, .9, .18
+    p.box((0, .02, 0), (W, D - .04, H), 'kit_metal', bevel=.012)
+    p.box((.06, 0, .06), (W - .06, .02, H - .06), 'kit_emissive', bevel=0, node='sign_0', region='sign_cyan')
+    for x in (.5, W - .5):
+        p.box((x - .05, D - .04, .15), (x + .05, D, H - .15), 'kit_metal', bevel=0)
+    p.snap.update({'mount': {}, 'face': {'position': [.06, .06, 0], 'size': [W - .12, H - .12]}})
+
+
+def neon_trim(W):
+    """Two tubes on a wall channel: magenta over cyan, each its own node so the game can show one, the other or both."""
+    def make(p):
+        p.box((0, .035, 0), (W, .06, .14), 'kit_metal', bevel=0)
+        for k in range(int(W) + 1):
+            x = min(max(k * 1.0, .03), W - .03)
+            p.box((x - .02, .0, .005), (x + .02, .04, .135), 'kit_metal', bevel=0)
+        _neon(p, (.03, .02, .1), (W - .03, .02, .1), 'magenta', 'neon_0')
+        _neon(p, (.03, .02, .04), (W - .03, .02, .04), 'cyan', 'neon_1')
+        p.snap.update({'mount': {}, 'left': [0, 0, 0], 'right': [W, 0, 0]})
+    return make
+
+
+def kerb_straight(p):
+    """Street edge: a 0.3 m gutter (front, street side) and a 0.3 m kerb, its top level with the sidewalk slab. A drain inlet in the middle."""
+    W = 4
+    p.box((0, 0, 0), (W, .3, .03), 'kit_asphalt', bevel=0)
+    for x0, x1 in ((0, 1.7), (2.3, W)):
+        p.box((x0, .3, 0), (x1, .6, .15), bevel=.02)
+    p.box((1.7, .3, .11), (2.3, .6, .15), bevel=0)
+    p.box((1.7, .42, 0), (2.3, .6, .11), bevel=0)
+    for i in range(5):
+        p.box((1.76 + i * .12, .31, .03), (1.8 + i * .12, .34, .11), 'kit_metal', bevel=0)
+    p.snap.update({'left': [0, 0, 0], 'right': [W, 0, 0], 'sidewalk': [0, 0, -.6], 'top': .15})
+
+
+def kerb_corner(p):
+    """Takes gutter and kerb round a sidewalk corner (street on the front and the right)."""
+    p.box((0, 0, 0), (1, .3, .03), 'kit_asphalt', bevel=0)
+    p.box((.7, .3, 0), (1, 1, .03), 'kit_asphalt', bevel=0)
+    p.box((0, .3, 0), (.7, .6, .15), bevel=.02)
+    p.box((.4, .6, 0), (.7, 1, .15), bevel=.02)
+    p.box((0, .6, 0), (.4, 1, .15), bevel=.012)
+    p.snap.update({'left': [0, 0, 0], 'around': {'position': [1, 0, -1], 'turnY': 90}, 'top': .15})
+
+
+def sidewalk_slab(p):
+    """4 m of pavement, 3 m deep (the shopfront strip), in metre pavers; one is a steel service cover."""
+    W, D = 4, 3
+    p.box((0, 0, 0), (W, D, .1), bevel=0)
+    for i in range(W):
+        for j in range(D):
+            if (i, j) == (2, 1):
+                p.box((i + .04, j + .04, .1), (i + .96, j + .96, .148), 'kit_metal', bevel=.01)
+                for y in (.3, .7):
+                    p.box((i + .42, j + y - .02, .148), (i + .58, j + y + .02, .153), 'kit_metal', bevel=0)
+            else:
+                p.box((i + .008, j + .008, .1), (i + .992, j + .992, .15 - p.rng.uniform(0, .01)), bevel=.01)
+    p.snap.update({'left': [0, 0, 0], 'right': [W, 0, 0], 'building': [0, 0, -D], 'top': .15})
+
+
 PIECES = {
     # name: (batch, category, builder)
     'kit_wall_plain_2m': (1, 'wall', wall_plain(2)), 'kit_wall_plain_4m': (1, 'wall', wall_plain(4)), 'kit_wall_plain_6m': (1, 'wall', wall_plain(6)),
@@ -662,6 +914,12 @@ PIECES = {
     'kit_roof_parapet_2m': (4, 'roof', roof_parapet(2)), 'kit_roof_parapet_corner_1m': (4, 'roof', roof_parapet_corner),
     'kit_awning_fabric_4m': (5, 'awning', awning_fabric(4)), 'kit_awning_fabric_6m': (5, 'awning', awning_fabric(6)), 'kit_awning_canopy_4m': (5, 'awning', awning_canopy),
     'kit_balcony_2m': (5, 'balcony', balcony(2)), 'kit_balcony_4m': (5, 'balcony', balcony(4)),
+    'kit_fireescape_landing_3m': (6, 'fireescape', fire_landing), 'kit_fireescape_ladder_1m': (6, 'fireescape', fire_ladder),
+    'kit_pipe_vertical_1m': (6, 'services', pipe_vertical), 'kit_duct_horizontal_4m': (6, 'services', duct_horizontal), 'kit_cable_bundle_4m': (6, 'services', cable_bundle),
+    'kit_clutter_ac_unit_1m': (7, 'clutter', ac_unit), 'kit_clutter_ac_bracket_1m': (7, 'clutter', ac_bracket), 'kit_roof_watertank_2m': (7, 'roof', roof_watertank),
+    'kit_roof_antenna_1m': (7, 'roof', roof_antenna), 'kit_roof_vent_1m': (7, 'roof', roof_vent), 'kit_roof_hut_3m': (7, 'roof', roof_hut),
+    'kit_sign_vertical_1m': (8, 'sign', sign_vertical), 'kit_sign_horizontal_4m': (8, 'sign', sign_horizontal), 'kit_neon_trim_2m': (8, 'sign', neon_trim(2)), 'kit_neon_trim_4m': (8, 'sign', neon_trim(4)),
+    'kit_kerb_straight_4m': (8, 'street', kerb_straight), 'kit_kerb_corner_1m': (8, 'street', kerb_corner), 'kit_sidewalk_slab_4m': (8, 'street', sidewalk_slab),
 }
 
 
@@ -776,6 +1034,8 @@ def preview(built, path, batch, layout=True):
     bs.inputs['Roughness'].default_value = .12
     ground.data.materials.append(gm)
     s.collection.objects.link(ground)
+    if not layout:
+        ground.location.z = -.15          # the road, a kerb's height below the pavement
     tall = max(size.z for _, size in built)
     # show what a lit window looks like: every second pane gets a look from the emissive atlas (in the game this is a material swap on the pane node)
     panes = [c for main, _ in built for c in main.children if '__glass_' in c.name]
@@ -846,6 +1106,12 @@ def assemble(mats, path, gif=None):
             ('kit_wall_plain_2m', (-8, 0, z1), 0), ('kit_wall_windows_6m', (-6, 0, z1), 0), ('kit_wall_windows_6m', (0, 0, z1), 0), ('kit_corner_outer_1m', (6, 0, z1), 0), ('kit_wall_windows_4m', (7, 1, z1), 1),
             ('kit_cornice_2m', (-8, -.2, top), 0), ('kit_cornice_6m', (-6, -.2, top), 0), ('kit_cornice_6m', (0, -.2, top), 0), ('kit_cornice_corner_1m', (6, -.2, top), 0), ('kit_cornice_4m', (7.2, 1, top), 1),
             ('kit_awning_fabric_6m', (0, .13 - 1.5, 2.35), 0), ('kit_awning_canopy_4m', (-4, .13 - 1.5, 2.58), 0), ('kit_balcony_4m', (-5, .13 - 1.0, z1 + .1), 0),
+            ('kit_clutter_ac_bracket_1m', (2.5, .13 - .5, z1 + .3), 0), ('kit_clutter_ac_unit_1m', (2.5, .13 - .42, z1 + .64), 0), ('kit_sign_vertical_1m', (6.35, .13 - 1.0, z1 + .2), 0),
+            ('kit_cable_bundle_4m', (-8, .13 - .13, z1 - 1.0), 0), ('kit_pipe_vertical_1m', (-7.5, .13 - .25, z1), 0),
+            ('kit_fireescape_landing_3m', (6.87 + 1.2, 1.5, z1 + .2), 1), ('kit_fireescape_ladder_1m', (6.87 + .3, 3.7, z1 - 3.3), 1),
+            ('kit_roof_hut_3m', (-6, 1.5, top + .5), 0), ('kit_roof_watertank_2m', (1, 1.5, top + .5), 0), ('kit_roof_antenna_1m', (4.6, 1.6, top + .5), 0), ('kit_roof_vent_1m', (-1.5, 1.5, top + .5), 0),
+            ('kit_sidewalk_slab_4m', (-8, -3, -.15), 0), ('kit_sidewalk_slab_4m', (-4, -3, -.15), 0), ('kit_sidewalk_slab_4m', (0, -3, -.15), 0), ('kit_sidewalk_slab_4m', (4, -3, -.15), 0),
+            ('kit_kerb_straight_4m', (-8, -3.6, -.15), 0), ('kit_kerb_straight_4m', (-4, -3.6, -.15), 0), ('kit_kerb_straight_4m', (0, -3.6, -.15), 0), ('kit_kerb_straight_4m', (4, -3.6, -.15), 0),
             ('kit_roof_parapet_2m', (-8, 0, top + .5), 0), ('kit_roof_parapet_corner_1m', (6, 0, top + .5), 0), ('kit_roof_parapet_4m', (-6, 0, top + .5), 0), ('kit_roof_parapet_4m', (-2, 0, top + .5), 0), ('kit_roof_parapet_4m', (2, 0, top + .5), 0), ('kit_roof_parapet_4m', (7, 1, top + .5), 1)]
     built = []
     for name, pos, turns in plan:
@@ -900,6 +1166,8 @@ def main():
         pieces[name] = {'file': name + '.glb', 'batch': batch, 'category': category, 'size': {'w': round(size.x, 3), 'h': round(size.z, 3), 'd': round(size.y, 3)},
                         'triangles': tris, 'bytes': os.path.getsize(os.path.join(OUT, name + '.glb')), 'nodes': [name + '__' + c for c in children],
                         'snap': piece.snap}
+        if 'mount' in piece.snap:          # hanging pieces: the back of the bounding box goes on the wall plane
+            piece.snap['mount'] = {'position': [0, 0, -round(size.y, 3)], 'note': 'put the back on the wall plane'}
         built.append((main_obj, size))
         print('KIT', name, 'batch', batch, 'tris', tris, 'size', [round(v, 2) for v in (size.x, size.z, size.y)])
     manifest['pieces'] = dict(sorted(pieces.items(), key=lambda kv: (kv[1]['batch'], kv[0])))

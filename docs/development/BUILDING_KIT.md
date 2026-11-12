@@ -1,6 +1,6 @@
 # NeoChinatown building kit
 
-A set of modular building pieces for replacing the box buildings on the street. Status: **in progress, not yet used by the game** (David reviews each batch).
+A set of modular building pieces for replacing the box buildings on the street. Status: **finished (47 pieces), not yet used by the game.** How to use it in the game: `BUILDING_KIT_HANDOVER.md`.
 
 - Pieces: `void-runner/assets/models/kit/*.glb`, listed with sizes, triangle counts and snap points in `kit-manifest.json`.
 - Shared textures: `void-runner/assets/models/kit/textures/` (generated, nothing licensed). The `.glb` files refer to these; they carry no pictures of their own.
@@ -15,11 +15,11 @@ Window panes are separate child nodes (`<piece>__glass_<n>`) so the game can swi
 
 | Batch | Pieces | State |
 |---|---|---|
-| 1 | wall_plain 2/4/6 m, wall_windows 4/6 m | built, approved |
-| 2 | corner_outer 1 m, corner_inner 1 m, cornice 2/4/6 m, cornice_corner 1 m, roof_parapet 4 m | built, approved |
-| 3 | shopfronts (4.5 m): window 4/6 m, shutter 4 m, door 2 m, service 2 m; corner_outer_tall and corner_inner_tall 1 m (4.5 m) | built, approved |
-| 4 | window_frame 1 m, window_wide 2 m, window_barred 1 m (surface-mounted units for plain walls); roof_parapet 2 m, roof_parapet_corner 1 m | built, awaiting review |
-| 5 | awning_fabric 4/6 m, awning_canopy 4 m, balcony 2/4 m (their backs mount on the wall plane) | built, awaiting review |
-| 6 | fire escape, pipes, ducts, cables | planned |
-| 7 | roof and wall clutter | planned |
-| 8 | signs, kerbs, sidewalk slab (3 m deep) | planned |
+| 1 | wall_plain 2/4/6 m, wall_windows 4/6 m | built |
+| 2 | corner_outer 1 m, corner_inner 1 m, cornice 2/4/6 m, cornice_corner 1 m, roof_parapet 4 m | built |
+| 3 | shopfronts (4.5 m): window 4/6 m, shutter 4 m, door 2 m, service 2 m; corner_outer_tall and corner_inner_tall 1 m (4.5 m) | built |
+| 4 | window_frame 1 m, window_wide 2 m, window_barred 1 m (surface-mounted units for plain walls); roof_parapet 2 m, roof_parapet_corner 1 m | built |
+| 5 | awning_fabric 4/6 m, awning_canopy 4 m, balcony 2/4 m (their backs mount on the wall plane) | built |
+| 6 | fireescape_landing 3 m, fireescape_ladder 1 m, pipe_vertical 1 m, duct_horizontal 4 m, cable_bundle 4 m | built |
+| 7 | clutter_ac_unit 1 m, clutter_ac_bracket 1 m, roof_watertank 2 m, roof_antenna 1 m, roof_vent 1 m, roof_hut 3 m | built |
+| 8 | sign_vertical 1 m, sign_horizontal 4 m, neon_trim 2/4 m, kerb_straight 4 m, kerb_corner 1 m, sidewalk_slab 4 m (3 m deep) | built |

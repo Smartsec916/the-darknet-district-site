@@ -14,7 +14,7 @@ BRICK = np.array([133.2, 106.0, 83.5])
 # Regions of the emissive atlas in UV (u0, v0, u1, v1), v up. build_kit.py maps faces into these.
 EMISSIVE_REGIONS = {'window_magenta': (0, .5, .25, 1), 'window_cyan': (.25, .5, .5, 1), 'window_violet': (.5, .5, .75, 1), 'window_green': (.75, .5, 1, 1),
                     'neon_magenta': (0, .375, .5, .5), 'neon_cyan': (0, .25, .5, .375), 'neon_amber': (0, .125, .5, .25), 'neon_white': (0, 0, .5, .125),
-                    'sign': (.5, 0, 1, .5)}
+                    'sign_magenta': (.5, .25, .75, .5), 'sign_cyan': (.75, .25, 1, .5), 'sign_amber': (.5, 0, .75, .25), 'sign_violet': (.75, 0, 1, .25)}
 
 
 def _noise(n, octaves, seed, persistence=.55, base=4):
@@ -141,9 +141,21 @@ def emissive(out, n=1024):
         core = np.exp(-((np.linspace(0, 1, r1 - r0) - .5) ** 2) * 10)
         img[r0:r1, 0:h] = ((.8 + .2 * core)[:, None, None] * np.array(col, float)[None, None, :])
     # sign face: an even, slightly mottled light box with a darker rim
-    rim = np.minimum.reduce([yy, xx, h - 1 - yy, h - 1 - xx]) / h
-    face = (.55 + .45 * np.clip(rim * 12, 0, 1)) * (.9 + .2 * (_noise(h, 3, 42, base=8) - .5))
-    img[h:n, h:n] = (235 * face)[..., None] * np.ones(3)
+    # four coloured light-box faces, each with rows of dark blocks standing in for lettering (no real words: a shop's own sign picture can replace them)
+    sy, sx = np.mgrid[0:q, 0:q]
+    rim = np.minimum.reduce([sy, sx, q - 1 - sy, q - 1 - sx]) / q
+    for k, (name, col) in enumerate((('sign_magenta', (255, 50, 170)), ('sign_cyan', (40, 225, 255)), ('sign_amber', (255, 165, 50)), ('sign_violet', (160, 90, 255)))):
+        u0, v0, u1, v1 = EMISSIVE_REGIONS[name]
+        face = (.5 + .5 * np.clip(rim * 14, 0, 1)) * (.9 + .2 * (_noise(q, 3, 42 + k, base=8) - .5))
+        r = np.random.default_rng(70 + k)
+        for row in range(6):
+            y0 = int(q * (.1 + row * .14))
+            x = int(q * .12)
+            while x < q * .86:
+                w = int(q * r.uniform(.05, .16))
+                face[y0:y0 + int(q * .08), x:min(x + w, int(q * .88))] *= .08
+                x += w + int(q * r.uniform(.03, .07))
+        img[int(n - v1 * n):int(n - v0 * n), int(u0 * n):int(u1 * n)] = face[..., None] * np.array(col, float)
     _save(out + '/kit_emissive_color.png', img.clip(0, 255))
 
 
