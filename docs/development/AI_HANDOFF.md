@@ -4,6 +4,14 @@
 
 **Checked against:** `origin/main` `4fc1a70` (12 Nov 2026). That commit is the merge of #240 (Tropical Escape dolphins) on top of `7939256` (NULL nightclub, #238). Re-fetch GitHub before trusting pull-request numbers or deploy claims below.
 
+## 13 Nov 2026: Render updated for the four new outfits (David approved; live)
+
+- **Game API** (`srv-d15h6nm3jp1c73ftalcg`, branch `main`, manual deploy): now `5b0449b` (was `eeb6989`). Deploy `dep-dbrl8q1srm7s73edskd0`, live 18:20 UTC. Only runtime change: `void-runner/character-catalog.json` (+4 looks, nothing removed).
+- **Hub** `district-hub` (`srv-dbn1q3sipgvc73bbb1s0`, branch `claude/character-creator`, manual deploy): now `b4989eb` (was `85fe1f7`; fast-forward, same files as main `5b0449b`). Deploy `dep-dbrlatkipgvc739eho10`, live 18:24 UTC. Only change in `tools/district-hub`: `appearance/character-catalog.json` (+111 lines).
+- No environment variables, Firebase settings, databases or secrets were touched. Neither service logged an error or warning after the deploys.
+- Checked offline against the exact deployed code: all 11 looks are accepted by both services and the hub resolves each to itself; 14,256 combinations of the 7 older looks (every hairstyle, hair colour, clothing colour, accessory) give identical results before and after; old `{gender, model}` characters resolve identically; a wardrobe change to each new look is broadcast to a second player. The only refusals are the existing rule that SMUGGLER and TRADER hats do not fit some hairstyles.
+- **Not yet verified:** two real signed-in accounts seeing each other's new outfits in the District. That needs David's test. The sandbox cannot call `onrender.com` (network policy), so health was checked from Render's own deploy status and logs.
+
 ## 12–13 Nov 2026: District interior rebuild under way
 
 - David ordered the whole interior rebuilt with Blender-made assets. Plan, method and state per area: `docs/development/DISTRICT_INTERIOR.md`. First versions are live for the security vestibule, main hallway, Sleeping Pod hatches, the Admin & Iris shop, the arcade and the VR area (PRs #249 to #254).
