@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "8752e689b276c86c",
+  "revision": "2723c39aa187a8b5",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13584,7 +13584,7 @@
     "void-runner/achievements.js": "b02228547f2a3d3d94d999d803cf6e2ccaff3dd4cf41b40887a00ab011bbfd59",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
-    "void-runner/asset-pipeline.js": "5f0d8bbd5d8f36e4f8b80c4e0dbe5f620fcff12b49f20dd21f17a7fff331c808",
+    "void-runner/asset-pipeline.js": "496edd3d907d4f23524366ef1263dd57b33a149d444c14ba2b20c9e09a4bb746",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "94d1e0c65af5b61ae299ad85d7630295b4b3e4b95901c7e5e422063185dda414",
     "void-runner/babylon-renderer.js": "0a85de05039b5d015a3e8dc75b68aa32c9ec867a0f19d1f0925f939191f5b94f",
@@ -13597,6 +13597,7 @@
     "void-runner/character-assembler.js": "5ad994f5df1683dbfb25f60fb0dbedc9a99ad5bcb9ee81283e97d056fc2ae034",
     "void-runner/character-catalog.js": "eee30cc7e7be13d44d43d2b5427bc616c08d64ee4a643cbbd5f3a61e9580e72b",
     "void-runner/character-creator.js": "101b4554395e8f64a4993b58d84a780a8e8af88257a1f2f8a85a061f67ec8bdb",
+    "void-runner/character-finish.js": "458095761533ec279026ec1859446af93ab3a267e272b96783d8c2dfd7b3c312",
     "void-runner/character-fit.js": "ee63772c43aa17513e8325b03ee8fee759e3fbf2407fa9adc3912921a6efcbc9",
     "void-runner/city-taxi.js": "60758f49d3bbafb06692ad0e3a8be96be2c8285586a049f4fdb9cbad3eb9683c",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
