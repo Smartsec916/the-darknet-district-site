@@ -27,13 +27,13 @@ BODIES = {
              'head': {'hw': .090, 'front': .137, 'back': .074, 'eye': .109, 'top': .215},
              'neck': {'rx': .056, 'rz': .054, 'cy': -.040, 'collar_y': .016},
              'chest': {'front': .176, 'y': .085, 'half': .105},
-             'shoulder': {'r': .066, 'rise': .045}},
+             'shoulder': {'r': .066, 'rise': .051}},
     'female': {'file': 'district-resident', 'suffix': 'f',
                'joints': {'Head': (0.004, 1.155, 0.036), 'Neck': (0.004, 1.108, 0.021), 'Spine2': (0.004, 0.993, 0.021), 'LeftArm': (0.146, 1.091, 0.034), 'RightArm': (-0.137, 1.090, 0.031)},
                'head': {'hw': .075, 'front': .104, 'back': .060, 'eye': .081, 'top': .169},
                'neck': {'rx': .042, 'rz': .040, 'cy': -.026, 'collar_y': .012},
                'chest': {'front': .121, 'y': .066, 'half': .078},
-               'shoulder': {'r': .050, 'rise': .034}},
+               'shoulder': {'r': .050, 'rise': .040}},
 }
 SHELL, GLOW = 'gear_shell', 'gear_glow'
 
@@ -198,6 +198,13 @@ PARTS = {
 }
 
 
+# The shoulder plates are authored around the arm joint but hang from the COLLARBONE joint: the arm bone swings down in walking, talking and sitting and would
+# carry the plate into the shoulder; the collarbone stays put. SCALE_BY: which size of the outfit's body the piece is scaled by when it is fitted at load time
+# (gear-fit.json, tools/assets/gear/fit_data.py): the head width for the visor and collar, the shoulder span for the rest.
+WEIGHT = {'pauldron_L': 'LeftShoulder', 'pauldron_R': 'RightShoulder'}
+SCALE_BY = {'visor': 'headW', 'collar': 'headW', 'pauldron_L': 'span', 'pauldron_R': 'span', 'chest_line': 'span'}
+
+
 def export(arm, obj, path):
     bpy.ops.object.select_all(action='DESELECT')
     arm.select_set(True)
@@ -252,10 +259,10 @@ def build_all(only=None, preview_hook=None):
             full = '%s_%s' % (name, B['suffix'])
             obj, tris, size, used = finish(part, full)
             assert tris < 300, '%s has %d triangles' % (full, tris)
-            skin_to(arm, obj, bone, B['joints'][bone])
+            skin_to(arm, obj, WEIGHT.get(name, bone), B['joints'][bone])
             path = os.path.join(OUT, 'gear_%s.glb' % full)
             export(arm, obj, path)
-            manifest['parts'][full] = {'file': 'gear_%s.glb' % full, 'part': name, 'body': bname, 'bone': 'mixamorig:' + bone, 'triangles': tris,
+            manifest['parts'][full] = {'file': 'gear_%s.glb' % full, 'part': name, 'body': bname, 'bone': 'mixamorig:' + WEIGHT.get(name, bone), 'anchor': 'mixamorig:' + bone, 'scaleBy': SCALE_BY[name], 'triangles': tris,
                                        'size': [round(size.x, 3), round(size.z, 3), round(size.y, 3)], 'bytes': os.path.getsize(path), 'glow': 1 in used}
             made[name] = obj
             print('GEAR', full, 'tris', tris, 'bytes', os.path.getsize(path))

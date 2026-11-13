@@ -74,6 +74,8 @@
    "part": "visor",
    "body": "male",
    "bone": "mixamorig:Head",
+   "anchor": "mixamorig:Head",
+   "scaleBy": "headW",
    "triangles": 216,
    "size": [
     0.207,
@@ -88,6 +90,8 @@
    "part": "collar",
    "body": "male",
    "bone": "mixamorig:Neck",
+   "anchor": "mixamorig:Neck",
+   "scaleBy": "headW",
    "triangles": 216,
    "size": [
     0.141,
@@ -101,21 +105,25 @@
    "file": "gear_pauldron_L_m.glb",
    "part": "pauldron_L",
    "body": "male",
-   "bone": "mixamorig:LeftArm",
+   "bone": "mixamorig:LeftShoulder",
+   "anchor": "mixamorig:LeftArm",
+   "scaleBy": "span",
    "triangles": 56,
    "size": [
     0.111,
     0.028,
     0.099
    ],
-   "bytes": 24716,
+   "bytes": 24720,
    "glow": true
   },
   "pauldron_R_m": {
    "file": "gear_pauldron_R_m.glb",
    "part": "pauldron_R",
    "body": "male",
-   "bone": "mixamorig:RightArm",
+   "bone": "mixamorig:RightShoulder",
+   "anchor": "mixamorig:RightArm",
+   "scaleBy": "span",
    "triangles": 56,
    "size": [
     0.111,
@@ -130,6 +138,8 @@
    "part": "chest_line",
    "body": "male",
    "bone": "mixamorig:Spine2",
+   "anchor": "mixamorig:Spine2",
+   "scaleBy": "span",
    "triangles": 24,
    "size": [
     0.116,
@@ -144,6 +154,8 @@
    "part": "visor",
    "body": "female",
    "bone": "mixamorig:Head",
+   "anchor": "mixamorig:Head",
+   "scaleBy": "headW",
    "triangles": 216,
    "size": [
     0.177,
@@ -158,6 +170,8 @@
    "part": "collar",
    "body": "female",
    "bone": "mixamorig:Neck",
+   "anchor": "mixamorig:Neck",
+   "scaleBy": "headW",
    "triangles": 216,
    "size": [
     0.113,
@@ -171,7 +185,9 @@
    "file": "gear_pauldron_L_f.glb",
    "part": "pauldron_L",
    "body": "female",
-   "bone": "mixamorig:LeftArm",
+   "bone": "mixamorig:LeftShoulder",
+   "anchor": "mixamorig:LeftArm",
+   "scaleBy": "span",
    "triangles": 56,
    "size": [
     0.085,
@@ -185,14 +201,16 @@
    "file": "gear_pauldron_R_f.glb",
    "part": "pauldron_R",
    "body": "female",
-   "bone": "mixamorig:RightArm",
+   "bone": "mixamorig:RightShoulder",
+   "anchor": "mixamorig:RightArm",
+   "scaleBy": "span",
    "triangles": 56,
    "size": [
     0.085,
     0.023,
     0.075
    ],
-   "bytes": 24540,
+   "bytes": 24536,
    "glow": true
   },
   "chest_line_f": {
@@ -200,6 +218,8 @@
    "part": "chest_line",
    "body": "female",
    "bone": "mixamorig:Spine2",
+   "anchor": "mixamorig:Spine2",
+   "scaleBy": "span",
    "triangles": 24,
    "size": [
     0.086,
