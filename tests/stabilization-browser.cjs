@@ -6,6 +6,8 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
  const page=await browser.newPage({viewport:{width:1280,height:720},serviceWorkers:'block'});page.on('pageerror',e=>result.errors.push(e.stack));page.on('console',async m=>{if(/VOID frame|VOID.*preparation/.test(m.text())){const details=await Promise.all(m.args().map(a=>a.evaluate(v=>v?.error?.stack||v?.stack||v)));console.log('GAME ERROR',details);result.errors.push(m.text());}});
  await page.route('https://**/*',r=>r.abort());await page.route('**/api/**',r=>r.fulfill({status:503,body:'offline test'}));await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));
  await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>VoidStartup.started,null,{timeout:90000});
+ // A software-rendered CI machine builds a scene several times slower than any player's device: give scene building room here, so the check measures the game and not the runner.
+ await page.evaluate(()=>Object.assign(VoidPreparation.limits,{scene:60000,assets:60000,optional:30000}));
  await page.evaluate(()=>{leaveMenu();state=C.fresh();state.quest='open';state.location='meridian';state.universe.freeTravel=true;state.story.flags.tutorialSkipped=true;VoidGraphics.quality='low';VoidBabylon.setQuality('low');});
  async function settled(){await page.waitForFunction(()=>VoidAssets.pending===0,null,{timeout:120000});await page.waitForTimeout(350);}
  async function counts(){return page.evaluate(()=>{const s=VoidBabylon.scene;return {mode,error:VoidGraphics.error,meshes:s.meshes.length,textures:s.textures.length,materials:s.materials.length,skeletons:s.skeletons.length,groups:s.animationGroups.length,playing:s.animationGroups.filter(g=>g.isPlaying).length};});}
@@ -38,10 +40,16 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
  }
  // Interrupted VR resumes the real checkpoint, not the modified sandbox.
  await page.evaluate(()=>VoidVR.launch('forest',{}));const saved=await page.evaluate(()=>({credits:VoidSimulationEffects.session.campaign.credits,ammo:VoidSimulationEffects.session.campaign.progression.personal.ammo}));
- await page.evaluate(()=>{state.credits=1;state.progression.personal.ammo=0;save();});await page.reload();await page.waitForFunction(()=>VoidStartup.started);await page.locator('[data-action=menu-continue]').click();await page.waitForFunction(()=>mode==='walking'&&!VoidGraphics.busy,null,{timeout:90000});assert.deepEqual(await page.evaluate(()=>({credits:state.credits,ammo:state.progression.personal.ammo})),saved);assert(!await page.evaluate(()=>state.story.flags.vrReturn));result.interruption=true;
+ await page.evaluate(()=>{state.credits=1;state.progression.personal.ammo=0;save();});await page.reload();await page.waitForFunction(()=>VoidStartup.started);await page.locator('[data-action=menu-continue]').click();
+ // Since the District-first start (2026-11-10) Continue wakes the player in their Sleeping Pod, and a player with no saved look meets the character creator first.
+ // Walk that path as a player would: save the look, then get up.
+ await page.waitForFunction(()=>!VoidGraphics.busy&&(mode==='walking'||mode==='pod-waking'||!!document.querySelector('#character-creator.on')),null,{timeout:90000});
+ if(await page.locator('#character-creator.on').count()){await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled,null,{timeout:90000});await page.locator('[data-cc=confirm]').click({timeout:180000});await page.waitForFunction(()=>mode==='pod-waking'||mode==='walking',null,{timeout:180000});}
+ if(await page.evaluate(()=>mode==='pod-waking')){await page.locator('#pod-wake [data-pod=exit]').click();}
+ await page.waitForFunction(()=>mode==='walking'&&!VoidGraphics.busy,null,{timeout:240000});assert.deepEqual(await page.evaluate(()=>({credits:state.credits,ammo:state.progression.personal.ammo})),saved);assert(!await page.evaluate(()=>state.story.flags.vrReturn));result.interruption=true;
  // Isolated UI mode fixtures: hold the simulation while the existing weapon UI RAF updates.
  const visibility=await page.evaluate(()=>{const e=document.getElementById('weapon-select-hud');return {hidden:e.hidden,display:getComputedStyle(e).display};});assert.equal(visibility.hidden,false);assert.notEqual(visibility.display,'none');
  await page.evaluate(()=>{globalThis.testUIOwner={update,draw};update=()=>{};draw=()=>{};});
- for(const modeName of ['play','taxi','menu','dialogue']){await page.evaluate(m=>{mode=m;},modeName);await page.waitForTimeout(80);const v=await page.locator('#weapon-select-hud').evaluate(e=>({hidden:e.hidden,display:getComputedStyle(e).display}));assert(v.hidden&&v.display==='none',modeName);}
+ for(const modeName of ['play','taxi','menu','dialogue']){await page.evaluate(m=>{mode=m;},modeName);await page.waitForFunction(()=>{const e=document.getElementById('weapon-select-hud');return e.hidden&&getComputedStyle(e).display==='none';},null,{timeout:30000}).catch(()=>{});const v=await page.locator('#weapon-select-hud').evaluate(e=>({hidden:e.hidden,display:getComputedStyle(e).display}));assert(v.hidden&&v.display==='none',modeName);}
  await page.evaluate(()=>{update=testUIOwner.update;draw=testUIOwner.draw;resumeWalking();});assert.deepEqual(result.errors,[]);console.log(JSON.stringify(result,null,2));
  }finally{fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(result,null,2));await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

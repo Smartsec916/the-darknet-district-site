@@ -90,7 +90,7 @@
  async function refreshList(){if(!menu||menuPage.view!=='list'||!online())return;const list=await RP().vrList();if(!list||!menu||menuPage.view!=='list')return;publicList=list;const el=menu.querySelector('#vr-sessions'),html=sessionRows();if(el&&el.dataset.sig!==html){el.dataset.sig=html;el.innerHTML=html;}}   // redrawn only when something changed, so a button is never replaced under the cursor
  async function joinShared(target){if(busy||session)return false;const rp=RP();if(!online()){shareNote='You are not online.';renderMenu();return false;}
   let s;try{s=await rp.vrJoin(target);}catch(e){shareNote=e.message;renderMenu();return false;}
-  const exp=s&&registry.get(s.exp);let opts={};try{opts=JSON.parse(s.opts||'{}');}catch{}
+  const exp=s&&registry.get(s.exp);let opts={};try{opts=JSON.parse(s.opts||'{}');}catch{}if(exp?.fromShare)opts=exp.fromShare(opts);
   if(!exp||!exp.shared||exp.status!=='ready'||(exp.validate&&!exp.validate(opts))){rp.vrLeave();shareNote='That session cannot be opened in this version of the game.';renderMenu();return false;}
   shareNote='';return launch(exp.id,opts,{joined:s});}
  // Experiences marked listed:false (the Combat Simulator, for now) keep their code but are not offered.
@@ -99,7 +99,7 @@
   if(menuPage.view==='pick')return renderPicker();
   if(menuPage.view==='list')menu.innerHTML='<div class="vr-head"><b>DARKNET DISTRICT · VR ARCADE</b><span>Choose a simulation. Nothing inside counts out here: no credits, ammunition or injuries carry over.</span><button type="button" data-vr="close">CLOSE · ESC</button></div>'+shareBar()+'<div class="vr-grid">'+
    exps.map(e=>'<article class="vr-card'+(e.status!=='ready'?' vr-soon':'')+'">'+(e.preview?'<img alt="" src="'+esc(e.preview)+'">':'<div class="vr-preview" style="background:'+esc(e.tint||'#0b2a31')+'"></div>')+'<h2>'+esc(e.title)+'</h2><p>'+esc(e.description)+'</p>'+
-    (e.status==='ready'?'<button type="button" data-vr="pick:'+esc(e.id)+'">'+(e.options||e.picker?'CHOOSE →':!e.shared||!online()||shareType==='solo'?'LAUNCH →':shareType==='public'?'OPEN PUBLIC SESSION →':'OPEN PRIVATE SESSION →')+'</button>'+(online()&&!e.shared?'<p class="vr-tag">SOLO ONLY</p>':''):'<p class="vr-tag">IN DEVELOPMENT · NOT YET PLAYABLE</p>')+'</article>').join('')+'</div>';
+    (e.status==='ready'?'<button type="button" data-vr="pick:'+esc(e.id)+'">'+(e.options||e.picker?'CHOOSE →':!e.shared||!online()||shareType==='solo'?'LAUNCH →':shareType==='public'?'OPEN PUBLIC SESSION →':'OPEN PRIVATE SESSION →')+'</button>':'<p class="vr-tag">IN DEVELOPMENT · NOT YET PLAYABLE</p>')+'</article>').join('')+'</div>';
   else{const e=registry.get(menuPage.id),opt=e.options;
    menu.innerHTML='<div class="vr-head"><b>'+esc(e.title.toUpperCase())+'</b><span>'+esc(opt.prompt)+'</span><button type="button" data-vr="back">← BACK</button></div><div class="vr-grid">'+
     opt.choices.map(c=>'<article class="vr-card">'+(c.preview?'<img alt="" src="'+esc(c.preview)+'">':'')+'<h2>'+esc(c.label)+'</h2><p>'+esc(c.description||'')+'</p><button type="button" data-vr="launch:'+esc(e.id)+':'+esc(c.id)+'">LAUNCH →</button></article>').join('')+'</div>';}
@@ -145,7 +145,7 @@
   busy=true;
   // Tell the hub before anything changes on screen. Playing alone is a private session of one, so the player is not left standing in the District for others.
   let hubSession=share?.joined||null,type=share?.joined?(share.joined.private?'private':'public'):exp.shared?shareType:'solo';
-  if(!hubSession&&online()){try{hubSession=await RP().vrCreate(id,exp.shared&&type!=='solo'?opts:{},type!=='public');}catch(e){type='solo';if(exp.shared&&shareType!=='solo')announce(e.message+' Starting on your own.');}}
+  if(!hubSession&&online()){try{hubSession=await RP().vrCreate(id,exp.shared&&type!=='solo'?(exp.shareOpts?exp.shareOpts(opts):opts):{},type!=='public');}catch(e){type='solo';if(exp.shared&&shareType!=='solo')announce(e.message+' Starting on your own.');}}
   if(!hubSession)type='solo';
   menu?.remove();menu=null;menuPage={view:'list'};mode='vr-transition';clearInput();walkingKeys?.clear?.();document.exitPointerLock?.();
   const booth=exp.station??1,b=BOOTHS[booth],n=N();

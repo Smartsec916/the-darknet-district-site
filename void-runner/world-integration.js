@@ -6,12 +6,13 @@ prepareDestination=function(){if(destinationPreparation)return destinationPrepar
 function renderUnavailable(){ctx.fillStyle='#07121e';ctx.fillRect(0,0,W,H);ctx.fillStyle='#bed6d4';ctx.font='18px monospace';ctx.fillText('3D display unavailable — open Menu to retry.',30,H*.5);}
 function drawModernBackground(){
  if(mode==='menu'){
-  const image=VoidBabylon.renderMenu(W,H,time,reducedMotion);
-  if(image)ctx.drawImage(image,0,0,W,H);else{ctx.fillStyle='#030813';ctx.fillRect(0,0,W,H);if(!modernMenuPending&&!VoidBabylon.diagnostics.menuReady&&!modernMenuFailure){modernMenuPending=true;VoidBabylon.prepareMenu().then(()=>modernMenuReady=true).catch(e=>{if(mode==='menu'&&!/cancel/i.test(e.message)){modernMenuFailure=true;console.warn('[VOID menu background]',e.message);}}).finally(()=>modernMenuPending=false);}}
+  // The menu picture is the city around the District (menu-backdrop.js), not the old space station. The 3D engine is still warmed up here, as before.
+  const painted=globalThis.VoidMenuBackdrop?.draw(ctx,W,H,time,reducedMotion,0),image=painted?null:VoidBabylon.renderMenu(W,H,time,reducedMotion);
+  if(image)ctx.drawImage(image,0,0,W,H);else{if(!painted){ctx.fillStyle='#030813';ctx.fillRect(0,0,W,H);}if(!modernMenuPending&&!VoidBabylon.diagnostics.menuReady&&!modernMenuFailure){modernMenuPending=true;VoidBabylon.prepareMenu().then(()=>modernMenuReady=true).catch(e=>{if(mode==='menu'&&!/cancel/i.test(e.message)){modernMenuFailure=true;console.warn('[VOID menu background]',e.message);}}).finally(()=>modernMenuPending=false);}}
   return;
  }
  if(walkingLocation&&walker&&VoidBabylon.scene){const img=VoidBabylon.renderRoom(walker,W,H,time);if(img)ctx.drawImage(img,0,0,W,H);return;}
- if(VoidGraphics.busy){renderUnavailable();return;}
+ if(VoidGraphics.busy){if(!globalThis.VoidMenuBackdrop?.draw(ctx,W,H,time,reducedMotion,.45))renderUnavailable();return;}   // while a place is being prepared: the city, dimmed, behind the card (never the "unavailable" text)
  if(!VoidBabylon.diagnostics.exteriorReady){
   ctx.fillStyle='#07121e';ctx.fillRect(0,0,W,H);
   if(!modernMenuPending&&!modernMenuReady){modernMenuPending=true;boundedPrepare(task=>VoidBabylon.prepareSpace(state.location,undefined,task)).then(()=>modernMenuReady=true).catch(e=>{console.error('[VOID world menu]',e);modernMenuReady=true;}).finally(()=>modernMenuPending=false);}
@@ -39,12 +40,12 @@ enterWalking=async function(id,options){
   if(mode==='walking'){state.universe.station={location:state.location};if(state.location==='meridian')VoidMissions.complete(state,'meet-rook','enter',C);save();}
  }else {const d=VoidExplorationData.locations[id];if(d){d.ship=VoidShips.get(state).id;const board=d.interactions.find(i=>i.action==='board');if(board){board.position=[-2,1.7,-25];board.label='BOARD '+VoidShips.get(state).name.toUpperCase();}}await worldEnterWalking(id,options);}
 };
-const podWake=document.createElement('section');podWake.id='pod-wake';podWake.hidden=true;podWake.setAttribute('aria-labelledby','pod-wake-title');podWake.innerHTML='<div class="pod-wake-card"><p>THE DARKNET DISTRICT · POD 01</p><h2 id="pod-wake-title">You wake in a Sleeping Pod.</h2><div class="pod-wake-actions"><button type="button" data-pod="exit">EXIT POD</button><a href="#" role="button" data-pod="music">MUSIC &amp; LIGHTS</a><a href="#" role="button" data-pod="look">LOOK INSIDE</a><a href="#" role="button" data-pod="vend">VENDING</a></div><div class="pod-vend" hidden><div class="pod-vend-grid" role="group" aria-label="Vending machine stock"></div><div class="pod-vend-info" aria-live="polite"></div><div class="pod-wake-actions"><a href="#" role="button" data-vend="buy" aria-disabled="true">DISPENSE</a><a href="#" role="button" data-vend="back">BACK</a></div></div></div>';document.body.append(podWake);
+const podWake=document.createElement('section');podWake.id='pod-wake';podWake.hidden=true;podWake.setAttribute('aria-labelledby','pod-wake-title');podWake.innerHTML='<div class="pod-wake-card"><p>THE DARKNET DISTRICT · POD 01</p><h2 id="pod-wake-title">You wake in a Sleeping Pod.</h2><div class="pod-wake-actions"><button type="button" data-pod="exit">EXIT POD · E</button><a href="#" role="button" data-pod="music">MUSIC &amp; LIGHTS · M</a><a href="#" role="button" data-pod="look">LOOK INSIDE</a><a href="#" role="button" data-pod="vend">VENDING · V</a></div><div class="pod-wake-hint">Look around: click the view and move the mouse (Esc frees the pointer), or drag, or use the arrow keys.</div><div class="pod-vend" hidden><div class="pod-vend-grid" role="group" aria-label="Vending machine stock"></div><div class="pod-vend-info" aria-live="polite"></div><div class="pod-wake-actions"><a href="#" role="button" data-vend="buy" aria-disabled="true">DISPENSE</a><a href="#" role="button" data-vend="back">BACK</a></div></div></div>';document.body.append(podWake);
 // The pod's built-in vending unit (stock from neochinatown.js VoidPodVending). Flavour only: no credits are charged and nothing is added to the inventory.
 const podVend={box:podWake.querySelector('.pod-vend'),grid:podWake.querySelector('.pod-vend-grid'),info:podWake.querySelector('.pod-vend-info'),buy:podWake.querySelector('[data-vend="buy"]'),picked:null,yaw:null};
 function podVendShow(on){const main=podWake.querySelector('.pod-wake-card>.pod-wake-actions'),title=podWake.querySelector('#pod-wake-title');podVend.box.hidden=!on;main.hidden=on;title.hidden=on;podWake.classList.toggle('vending',on);
  if(on){const items=globalThis.VoidPodVending?.products||[];if(!podVend.grid.children.length)for(const item of items){const b=document.createElement('a');b.href='#';b.setAttribute('role','button');b.dataset.vendItem=item.code;b.textContent=item.code+' '+item.name;podVend.grid.append(b);}
-  podVend.picked=null;podVend.buy.setAttribute('aria-disabled','true');podVend.info.textContent=items.length?'Choose an item.':'The machine is empty.';for(const b of podVend.grid.children)b.setAttribute('aria-pressed','false');if(walker){podVend.yaw=walker.yaw;walker.yaw=Math.PI;walker.pitch=0;}podVend.grid.querySelector('a')?.focus({preventScroll:true});}
+  podVend.picked=null;podVend.buy.setAttribute('aria-disabled','true');podVend.info.textContent=items.length?'Choose an item.':'The machine is empty.';for(const b of podVend.grid.children)b.setAttribute('aria-pressed','false');if(walker){podVend.yaw=walker.yaw;walker.yaw=VoidDistrictArea.POD_VIEW.vending;walker.pitch=0;}podVend.grid.querySelector('a')?.focus({preventScroll:true});}
  else if(podVend.yaw!==null&&walker){walker.yaw=podVend.yaw;podVend.yaw=null;}}
 podWake.querySelector('[data-pod="vend"]').addEventListener('click',e=>{e.preventDefault();if(mode==='pod-waking')podVendShow(true);});
 podVend.box.addEventListener('click',e=>{const b=e.target.closest('a[role="button"]');if(!b)return;e.preventDefault();if(mode!=='pod-waking')return;
@@ -53,12 +54,26 @@ podVend.box.addEventListener('click',e=>{const b=e.target.closest('a[role="butto
  else if(b.dataset.vend==='back'){podVendShow(false);podWake.querySelector('[data-pod="vend"]').focus({preventScroll:true});}});
 function enterSleepingPod(index=1){
  if(mode!=='walking'||walkingLocation?.area!=='interior'||!walker||!Number.isInteger(index)||index<1||index>10)return false;
- const [x,z]=VoidNeoChinatown.toWorld(-15.4,57+((index-1)%5)*2.6);
- Object.assign(walker,{x,y:1.1+(index>5?1.7:0),z,yaw:-Math.PI/2,pitch:0,vx:0,vz:0,eye:1.1+(index>5?1.7:0)});
+ const {x,z}=VoidDistrictArea.podBed(VoidNeoChinatown,index);
+ Object.assign(walker,{x,y:1.1+(index>5?1.7:0),z,yaw:VoidDistrictArea.POD_VIEW.hatch,pitch:0,vx:0,vz:0,eye:1.1+(index>5?1.7:0)});
  globalThis.VoidPodMusic?.enterPod?.(index);state.story.flags.activePod=index;state.story.flags.podWakePending=true;save();showPodWake();return true;
 }
-podWake.querySelector('[data-pod="music"]').addEventListener('click',e=>{e.preventDefault();if(mode==='pod-waking'){podWake.hidden=true;globalThis.VoidPodMusic?.open?.({inPod:true});}});
-podWake.querySelector('[data-pod="look"]').addEventListener('click',e=>{e.preventDefault();if(mode!=='pod-waking'||!walker)return;const inside=walker.yaw!==Math.PI/2;walker.yaw=inside?Math.PI/2:-Math.PI/2;e.currentTarget.textContent=inside?'LOOK THROUGH HATCH':'LOOK INSIDE';});
+// Lying in the pod the player can look around freely: click the view to take the mouse (as when walking; Esc gives it back), or drag, or use the arrow keys.
+// E, M and V do what the buttons do, so nothing has to be clicked. The buttons that snap the view (hatch / inside) still work and simply set the direction.
+const podLook={drag:null,keys:new Set()},podFree=()=>mode==='pod-waking'&&!podWake.hidden&&podVend.box.hidden&&!!walker;
+const podTurn=(dx,dy)=>{if(Math.abs(dx)>160||Math.abs(dy)>160)return;   // the browser reports one enormous jump at the moment it captures or releases the mouse: not a real movement
+ walker.yaw+=dx*.003;walker.pitch=Math.max(-1.2,Math.min(1.2,(walker.pitch||0)+dy*.003));};
+podWake.addEventListener('pointerdown',e=>{if(e.target!==podWake||!podFree())return;podLook.drag={x:e.clientX,y:e.clientY};if(e.pointerType==='mouse'&&VoidControls?.deviceClass!=='touch-first')podWake.requestPointerLock?.()?.catch?.(()=>{});});
+addEventListener('pointerup',()=>{podLook.drag=null;});addEventListener('pointercancel',()=>{podLook.drag=null;});
+addEventListener('mousemove',e=>{if(!podFree())return;if(document.pointerLockElement===podWake)podTurn(e.movementX,e.movementY);else if(podLook.drag){podTurn(e.clientX-podLook.drag.x,e.clientY-podLook.drag.y);podLook.drag={x:e.clientX,y:e.clientY};}});
+document.addEventListener('pointerlockchange',()=>podWake.classList.toggle('looking',document.pointerLockElement===podWake));
+addEventListener('keydown',e=>{if(!podFree()||e.repeat&&!/^Arrow/.test(e.code)||e.ctrlKey||e.metaKey||e.altKey)return;
+ if(/^Arrow/.test(e.code)){podLook.keys.add(e.code);e.preventDefault();e.stopPropagation();return;}
+ const pick={KeyE:'exit',KeyM:'music',KeyV:'vend'}[e.code];if(!pick)return;e.preventDefault();e.stopPropagation();if(document.pointerLockElement===podWake)document.exitPointerLock?.();podWake.querySelector('[data-pod="'+pick+'"]').click();},true);
+addEventListener('keyup',e=>podLook.keys.delete(e.code));
+(function podLookFrame(){requestAnimationFrame(podLookFrame);if(!podLook.keys.size)return;if(!podFree()){podLook.keys.clear();return;}const k=podLook.keys;podTurn(((k.has('ArrowRight')?1:0)-(k.has('ArrowLeft')?1:0))*9,((k.has('ArrowDown')?1:0)-(k.has('ArrowUp')?1:0))*7);})();
+podWake.querySelector('[data-pod="music"]').addEventListener('click',e=>{e.preventDefault();if(mode==='pod-waking'){if(document.pointerLockElement===podWake)document.exitPointerLock?.();podWake.hidden=true;globalThis.VoidPodMusic?.open?.({inPod:true});}});
+podWake.querySelector('[data-pod="look"]').addEventListener('click',e=>{e.preventDefault();if(mode!=='pod-waking'||!walker)return;const V=VoidDistrictArea.POD_VIEW,inside=walker.yaw!==V.inside;walker.yaw=inside?V.inside:V.hatch;e.currentTarget.textContent=inside?'LOOK THROUGH HATCH':'LOOK INSIDE';});
 podWake.querySelector('[data-pod="exit"]').addEventListener('click',()=>{
  if(mode!=='pod-waking'||!walker||!state?.story?.flags?.podWakePending)return;
  const exit=VoidDistrictArea.podExit(VoidNeoChinatown,state.story.flags.activePod||1);if(VoidExplorer.blocked(exit.spawn[0],exit.spawn[2],walkingLocation))return;
@@ -69,7 +84,7 @@ async function showPodWake(){
  if(mode!=='walking'||walkingLocation?.area!=='interior'||state.story.flags.podWakePending!==true)return;
  mode='pod-waking';clearInput();walkingKeys.clear();document.exitPointerLock?.();podVendShow(false);
  if(globalThis.VoidPodMusic?.selectedPod!==(state.story.flags.activePod||1))globalThis.VoidPodMusic?.enterPod?.(state.story.flags.activePod||1);
- const podNumber=String(state.story.flags.activePod||1).padStart(2,'0');podWake.querySelector('.pod-wake-card p').textContent='THE DARKNET DISTRICT · POD '+podNumber;podWake.querySelector('[data-pod="look"]').textContent=walker.yaw===Math.PI/2?'LOOK THROUGH HATCH':'LOOK INSIDE';
+ const podNumber=String(state.story.flags.activePod||1).padStart(2,'0');podWake.querySelector('.pod-wake-card p').textContent='THE DARKNET DISTRICT · POD '+podNumber;podWake.querySelector('[data-pod="look"]').textContent=walker.yaw===VoidDistrictArea.POD_VIEW.inside?'LOOK THROUGH HATCH':'LOOK INSIDE';
  const creator=globalThis.VoidCharacterCreator,account=globalThis.VoidAccount;
  if(account?.user&&!account.profileReady){podWake.hidden=false;podWake.classList.add('preparing');podWake.querySelectorAll('button,a').forEach(b=>b.hidden=true);
   try{await account.ensureProfile?.();}catch{}if(mode!=='pod-waking'||state.story.flags.podWakePending!==true)return;}

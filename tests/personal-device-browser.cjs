@@ -69,14 +69,12 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   const second=await page.evaluate(()=>({key:document.querySelector('#personal-device img.pd-portrait').dataset.pk,url:document.querySelector('#personal-device img.pd-portrait').src}));
   assert.notEqual(second.key,firstKey);assert.notEqual(second.url,firstUrl,'the portrait follows the new look');
   const stored=await page.evaluate(()=>Object.keys(JSON.parse(localStorage.getItem('void-runner-portraits-v1')||'{}')));assert(!stored.includes(firstKey),'the outdated picture of this character was dropped from the cache');
-  // 10. Map: only explored places; walking to the bar reveals it; the save records exploration
-  await page.click('[data-do=back]');await page.click('[data-app=map]');await page.waitForSelector('canvas[data-map]');
-  const nearby=await page.evaluate(()=>document.querySelectorAll('#personal-device [data-places] .pd-line').length);
-  const total=await page.evaluate(()=>walkingLocation.interactions.length);assert(nearby<total,'not every place is shown at the start: '+nearby+' of '+total);
+  // 10. Map: the city map (district-map.js) with the real places; exploration is still recorded in the save
+  await page.click('[data-do=back]');await page.click('[data-app=map]');await page.waitForSelector('#personal-device canvas.dm-canvas');
+  const listed=await page.evaluate(()=>document.querySelector('#personal-device [data-map-list]').textContent);assert.match(listed,/Bar/);assert.match(listed,/Sleeping pods/);assert.doesNotMatch(listed,/not built/,'unbuilt places are not shown to players');
   await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);
   await page.evaluate(()=>{const i=walkingLocation.interactions.find(x=>x.id==='district-bar');walker.x=i.position[0];walker.z=i.position[2]+(i.position[2]<-100?3:-3);});await page.waitForTimeout(2500);
-  await page.keyboard.press('KeyL');await page.waitForSelector('#personal-device.open');await page.click('[data-app=map]');
-  const found=await page.evaluate(()=>document.querySelector('#personal-device [data-places]').textContent);assert.match(found,/bartender/i,'the bar is now on the map');
+  await page.keyboard.press('KeyL');await page.waitForSelector('#personal-device.open');await page.click('[data-app=map]');await page.waitForSelector('#personal-device canvas.dm-canvas');
   const flags=await page.evaluate(()=>({m:state.story.flags.deviceMapInterior,model:state.story.flags.deviceModel}));assert.ok(flags.m&&/^[0-9a-f]+$/.test(flags.m));assert.equal(flags.model,'v1');
   await page.screenshot({path:shot+'/dd-device-map-'+tier+'.png'});
   // 11. Settings persist in the save

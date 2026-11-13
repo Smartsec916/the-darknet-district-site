@@ -11,7 +11,7 @@ const ROOT=path.join(__dirname,'..','..'),CROWD=path.join(ROOT,'void-runner/asse
 
 // style -> the file it is lifted from (its own body is recorded as the source body)
 const HAIR={short01:'vesper-mechanic',short02:'hacker-01',short03:'regular-01',short04:'district-smuggler',bob01:'meridian-bartender',bob02:'fixer-01',braid01:'district-resident',long01:'ncz-neon',ponytail01:'vesper-pilot'};
-const BODIES=['district-smuggler','hacker-01','vesper-trader','regular-01','vr-companion-m','district-resident','ncz-neon','vesper-pilot','order-grower','fixer-01','vr-companion-f','meridian-bartender','vesper-mechanic'];
+const BODIES=['district-smuggler','hacker-01','vesper-trader','regular-01','vr-companion-m','district-resident','ncz-neon','vesper-pilot','order-grower','fixer-01','vr-companion-f','meridian-bartender','vesper-mechanic','outlaw-01','cyborg-01'];
 const base=n=>n.replace(/^[a-z_0-9]+\./,'');
 
 function bodyInfo(file){

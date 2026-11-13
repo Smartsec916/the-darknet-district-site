@@ -35,9 +35,9 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   const podParts=await page.evaluate(()=>({screens:VoidBabylon.scene.meshes.filter(m=>m.name==='tesana-pod-screen').length,lights:VoidBabylon.scene.materials.filter(m=>/^ncz-tesana-pod-led-\d+$/.test(m.name)).length}));
   assert.deepEqual(podParts,{screens:10,lights:10},'each pod has a local screen and lighting material');
   await page.screenshot({path:shot+'/dd-pod01-'+tier+'.png'});
-  await page.locator('[data-pod=look]').click();assert.equal(await page.evaluate(()=>walker.yaw),Math.PI/2);
+  await page.locator('[data-pod=look]').click();assert.equal(await page.evaluate(()=>walker.yaw),await page.evaluate(()=>VoidDistrictArea.POD_VIEW.inside));
   await page.screenshot({path:shot+'/dd-pod01-inside-'+tier+'.png'});
-  await page.locator('[data-pod=look]').click();assert.equal(await page.evaluate(()=>walker.yaw),-Math.PI/2);
+  await page.locator('[data-pod=look]').click();assert.equal(await page.evaluate(()=>walker.yaw),await page.evaluate(()=>VoidDistrictArea.POD_VIEW.hatch));
   await page.locator('[data-pod=music]').click();await page.waitForSelector('#pod-music');
   await page.locator('[data-action="pod-music:light:reading"]').click();
   await page.locator('#pod-music-volume').evaluate(el=>{el.value='35';el.dispatchEvent(new Event('input',{bubbles:true}));});
@@ -66,7 +66,7 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   // 4b. the wardrobe station exists in the pod room and opens the same screen
   const st=await page.evaluate(()=>{const i=walkingLocation.interactions.find(x=>x.action==='district-wardrobe'),m=VoidBabylon.scene.getMeshByName('pod-wardrobe-panel');return {i:!!i,mesh:!!m,handler:VoidInteractions.handlers.has('district-wardrobe'),pos:i?.position};});
   assert(st.i&&st.mesh&&st.handler,'wardrobe station: '+JSON.stringify(st));
-  await page.evaluate(([x,z])=>{{const P=VoidDistrictArea.POINT.podExit,e=VoidDistrictArea.podExit(VoidNeoChinatown),cx=e.spawn[0]+P[0],cz=e.spawn[2]+P[1];Object.assign(walker,{x:cx+5.4,z:cz-65.6,yaw:Math.PI,pitch:0,vx:0,vz:0});}},[0,0]);await page.waitForTimeout(1500);await page.screenshot({path:shot+'/dd-wardrobe-station-'+tier+'.png'});
+  await page.evaluate(([x,z])=>{{const P=VoidDistrictArea.POINT.podExit,e=VoidDistrictArea.podExit(VoidNeoChinatown),cx=e.spawn[0]+P[0],cz=e.spawn[2]+P[1];Object.assign(walker,{x:cx+9,z:cz-73.4,yaw:0,pitch:0,vx:0,vz:0});}},[0,0]);await page.waitForTimeout(1500);await page.screenshot({path:shot+'/dd-wardrobe-station-'+tier+'.png'});
   await page.evaluate(()=>VoidInteractions.handlers.get('district-wardrobe')());await page.waitForSelector('#character-creator.on');assert.match(await page.textContent('#character-creator h1'),/WARDROBE/);
   await page.keyboard.press('Escape');await page.waitForFunction(()=>mode==='walking',null,{timeout:30000});
   // 5. wardrobe via the API (the station uses the same call): cancel keeps the saved look, confirm changes it, escape cancels

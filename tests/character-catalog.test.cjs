@@ -19,7 +19,7 @@ test('catalog integrity: counts, ids, files, colours',()=>{
   assert.ok(CAT.bases[l.base]);assert.ok(fs.existsSync(path.join(ROOT,'void-runner/assets/models/crowd',l.model+'.glb')),id);
   assert.ok(BIND.bodies[l.model],'no bind data for '+id);
   const names=parseGlb(path.join(ROOT,'void-runner/assets/models/crowd',l.model+'.glb')).json.materials.map(m=>m.name);   // runtime mesh names are the material names
-  assert.ok(names.includes(l.outfit)&&names.includes(l.shoes)&&names.includes(l.nativeHair)&&names.includes(l.body),id+' mesh names');
+  assert.ok(names.includes(l.outfit)&&names.includes(l.body)&&(!l.shoes||names.includes(l.shoes))&&(!l.nativeHair||names.includes(l.nativeHair)),id+' mesh names');   // armoured looks (OUTLAW, CYBORG) have no separate shoes, and CYBORG has no native hair
   for(const [k,meshes] of Object.entries(l.accessories)){assert.ok(CAT.accessories[k],k);for(const m of meshes)assert.ok(names.includes(m),id+' '+m);}
   for(const d of l.defaultAccessories)assert.ok(l.accessories[d],id+' default accessory');
   // every hairstyle the catalog offers on a body must pass the head-fit gate

@@ -38,7 +38,7 @@ When not online the panel says the player is solo and every simulation starts al
 |---|---|---|
 | Relax in a Forest | Yes | Players see each other's characters and movement. |
 | Tropical Escape | Yes | Same. |
-| Play in a Bedroom | No (solo only) | Built around a private companion scene; not synchronised. |
+| Play in a Bedroom | Yes | Players see each other. The companions are run by each player's own game, so their moment-to-moment behaviour is not identical between players. |
 | Combat Simulator | No | Not offered in the menu; its targets and shots are not synchronised. |
 
 Only position, facing and walk/idle are synchronised. Sitting, objects in the world and each simulation's own settings (time of day and similar) are per player.

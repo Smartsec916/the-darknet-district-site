@@ -3,7 +3,7 @@
   function random(seed){return()=>((seed=seed*16807%2147483647)-1)/2147483646;}
 
   function surfaceTexture(B,scene,name,kind,color,quality){
-    const size=quality==='high'?1024:512,texture=new B.DynamicTexture('vesper-'+name,{width:size,height:size},scene,true);
+    const size=quality==='high'||quality==='ultra'?1024:512,texture=new B.DynamicTexture('vesper-'+name,{width:size,height:size},scene,true);
     const g=texture.getContext(),rand=random(8103+name.length*173);g.fillStyle=color;g.fillRect(0,0,size,size);
     const grain=kind==='soil'?16000:kind==='floor'?11000:7000;
     for(let i=0;i<grain;i++){

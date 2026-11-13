@@ -1,6 +1,6 @@
 /* Repeatable screenshots of the game's main scenes, for comparing graphics before and after a change.
    Usage: node tests/serve-modern.cjs (in another terminal), then
-          node tests/graphics-snapshots-browser.cjs <output folder> [quality: low|medium|high]
+          node tests/graphics-snapshots-browser.cjs <output folder> [quality: low|medium|high|ultra]
    Uses the installed Microsoft Edge (Playwright channel 'msedge'). */
 const {chromium}=require('playwright'),fs=require('fs'),path=require('path');
 const out=path.resolve(process.argv[2]||'work/graphics'),quality=process.argv[3]||'high';

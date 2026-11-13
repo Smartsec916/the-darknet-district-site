@@ -5,7 +5,7 @@
 (function(root){
  'use strict';
  const A=root.VoidCharacterAppearance,CAT=A.CATALOG,KEEP=['hairColor','clothingColor'];
- const STAGE={x:-9,z:60,dist:2.7,eye:1.4};   // in the pod room's own coordinates: the camera stands here looking +z (towards the music screen); the character stands `dist` metres ahead
+ const STAGE={x:0,z:64.6,dist:3.05,eye:1.22,side:.85};   // in the hallway, looking toward the Sleeping Pods at the back (the pods moved there on 2026-11-12)   // `side` moves the character out from behind the options panel, to the middle of the free part of the screen   // in the pod room's own coordinates: the camera stands here looking +z (towards the music screen); the character stands `dist` metres ahead
  let lamps=[],open=false,closing=false,ctx=null,char=null,draft=null,original=null,snapshot=null,holder=null,spin=0,auto=true,seq=0,pad=null,raf=0,drag=null,ui=null;
  const uid=()=>root.VoidAccount?.user?.uid||'guest';
  const storage=()=>{try{return root.localStorage;}catch{return null;}};
@@ -87,15 +87,29 @@
   snapshot={mode,walker:{...walker}};
   // The District interior sits in the world rotated half a turn: world = anchor - local. The anchor comes from the known pod exit point.
   const DA=root.VoidDistrictArea,exit=DA?.podExit?.(root.VoidNeoChinatown);if(!exit){open=false;return false;}
-  const P=DA.POINT.podExit,cx=exit.spawn[0]+P[0],cz=exit.spawn[2]+P[1],W=(x,z)=>[cx-x,cz-z],floor=exit.spawn[1]-1.68,cam=W(STAGE.x,STAGE.z),at=W(STAGE.x,STAGE.z+STAGE.dist);
+  const P=DA.POINT.podExit,cx=exit.spawn[0]+P[0],cz=exit.spawn[2]+P[1],W=(x,z)=>[cx-x,cz-z],floor=exit.spawn[1]-1.68,cam=W(STAGE.x,STAGE.z),ax=STAGE.x+STAGE.side,az=STAGE.z+STAGE.dist,at=W(ax,az);
   mode='character-creator';clearInput?.();walkingKeys?.clear?.();document.exitPointerLock?.();
   Object.assign(walker,{x:cam[0],z:cam[1],y:floor+STAGE.eye,yaw:Math.PI,pitch:0,vx:0,vz:0,eye:STAGE.eye});
   holder=new S.TransformNode('character-creator-stage',scene);holder.position.set(at[0],floor,at[1]);
   // two lamps for the preview only (first in the light list so the room's light limit cannot drop them), removed on close
-  const k=W(STAGE.x+.6,STAGE.z+STAGE.dist-1.6),r=W(STAGE.x-1.2,STAGE.z+STAGE.dist+1.4);
+  const k=W(ax+1,az-1.9),r=W(ax-1.4,az+1.2),f=W(ax-1.5,az-1.4);
   const key=new S.PointLight('character-creator-key',new S.Vector3(k[0],floor+2.4,k[1]),scene),rim=new S.PointLight('character-creator-rim',new S.Vector3(r[0],floor+2.2,r[1]),scene);
-  key.diffuse=new S.Color3(.85,.95,1);key.intensity=1.5;key.range=7;rim.diffuse=new S.Color3(1,.25,.7);rim.intensity=1.1;rim.range=6;
-  lamps=[key,rim];for(const l of lamps){scene.lights.splice(scene.lights.indexOf(l),1);scene.lights.unshift(l);}scene.markAllMaterialsAsDirty?.(S.Constants.MATERIAL_LightDirtyFlag);
+  // A fitting-room stage, for the preview only: a warm key from the front, a magenta rim from behind and a low teal fill, so a dark outfit still reads against the dark room;
+  // under the feet a scanning pad, and behind the character a faint light wall that gives the silhouette an edge. All of it is removed on close.
+  const fill=new S.PointLight('character-creator-fill',new S.Vector3(f[0],floor+.9,f[1]),scene);
+  key.diffuse=new S.Color3(1,.95,.88);key.intensity=4.2;key.range=9;rim.diffuse=new S.Color3(1,.25,.7);rim.intensity=3;rim.range=7;fill.diffuse=new S.Color3(.3,.8,.9);fill.intensity=1.6;fill.range=6;
+  const set=new S.TransformNode('character-creator-set',scene),made=[],tex=(n,w,h,draw)=>{const t=new S.DynamicTexture(n,{width:w,height:h},scene,true);draw(t.getContext(),w,h);t.hasAlpha=true;t.update();made.push(t);return t;},
+   glow=(n,t)=>{const m=new S.StandardMaterial(n,scene);m.diffuseColor=S.Color3.Black();m.specularColor=S.Color3.Black();m.emissiveTexture=t;m.opacityTexture=t;m.disableLighting=true;m.backFaceCulling=false;made.push(m);return m;};
+  const pad=S.MeshBuilder.CreateDisc('character-creator-pad',{radius:.78,tessellation:48},scene);pad.rotation.x=Math.PI/2;pad.position.set(at[0],floor+.012,at[1]);pad.parent=set;pad.isPickable=false;
+  pad.material=glow('character-creator-pad',tex('character-creator-pad',256,256,(g,w)=>{const c=w/2;g.clearRect(0,0,w,w);const rg=g.createRadialGradient(c,c,10,c,c,c);rg.addColorStop(0,'rgba(60,220,235,.05)');rg.addColorStop(.72,'rgba(60,220,235,.16)');rg.addColorStop(.9,'rgba(60,220,235,.02)');rg.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=rg;g.fillRect(0,0,w,w);
+   g.strokeStyle='rgba(110,240,250,.9)';g.lineWidth=3;g.beginPath();g.arc(c,c,c*.9,0,7);g.stroke();g.strokeStyle='rgba(110,240,250,.35)';g.lineWidth=1.5;for(const r of [.72,.5])  {g.beginPath();g.arc(c,c,c*r,0,7);g.stroke();}
+   g.strokeStyle='rgba(255,90,190,.8)';g.lineWidth=2;for(let k=0;k<24;k++){const a=k/24*Math.PI*2,r0=c*(k%6?.84:.78);g.beginPath();g.moveTo(c+Math.cos(a)*r0,c+Math.sin(a)*r0);g.lineTo(c+Math.cos(a)*c*.88,c+Math.sin(a)*c*.88);g.stroke();}}));
+  const wallAt=W(ax,az+1.35),wall=S.MeshBuilder.CreatePlane('character-creator-wall',{width:3.4,height:2.9},scene);wall.position.set(wallAt[0],floor+1.45,wallAt[1]);wall.parent=set;wall.isPickable=false;
+  wall.material=glow('character-creator-wall',tex('character-creator-wall',256,256,(g,w,h)=>{g.clearRect(0,0,w,h);const lg=g.createLinearGradient(0,0,0,h);lg.addColorStop(0,'rgba(20,60,80,0)');lg.addColorStop(.35,'rgba(28,90,110,.34)');lg.addColorStop(.8,'rgba(120,40,110,.3)');lg.addColorStop(1,'rgba(20,10,30,0)');g.fillStyle=lg;g.fillRect(0,0,w,h);
+   const side=g.createLinearGradient(0,0,w,0);side.addColorStop(0,'rgba(0,0,0,1)');side.addColorStop(.18,'rgba(0,0,0,0)');side.addColorStop(.82,'rgba(0,0,0,0)');side.addColorStop(1,'rgba(0,0,0,1)');g.globalCompositeOperation='destination-out';g.fillStyle=side;g.fillRect(0,0,w,h);g.globalCompositeOperation='source-over';
+   for(const x of [.3,.4,.6,.7]){g.fillStyle='rgba(120,235,250,.5)';g.fillRect(w*x-1,h*.16,2,h*.68);}g.fillStyle='rgba(120,235,250,.22)';for(let y=h*.2;y<h*.82;y+=9)g.fillRect(w*.3,y,w*.4,1);}));
+  set.dispose=(orig=>function(){for(const x of made)x.dispose();return orig.call(this,false,false);})(set.dispose);
+  lamps=[key,rim,fill];for(const l of lamps){scene.lights.splice(scene.lights.indexOf(l),1);scene.lights.unshift(l);}scene.markAllMaterialsAsDirty?.(S.Constants.MATERIAL_LightDirtyFlag);lamps.push(set);
   spin=0;auto=true;ui.classList.add('on');render();ui.querySelector('[data-cc=confirm]')?.focus();
   const mine=++seq;
   try{char=await root.VoidCharacterAssembler.build(draft,holder,{scene});if(mine===seq&&open){char.play('idle');render();}else char.dispose();}

@@ -1,1 +1,2 @@
 - [Workflow control disconnects](workflow-control-disconnects.md) — distinguish control-plane restart failures from app failures before changing working server code.
+- Current game handoff: `docs/development/AI_HANDOFF.md` (Start here), then `docs/development/AI_ROADMAP.md`. Desktop and VR headsets only. Merge only when David says push or pull it. Licensed models stay in the private repo.
