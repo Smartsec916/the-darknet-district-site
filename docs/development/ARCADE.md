@@ -36,3 +36,7 @@ Walk up to the Blackout Protocol cabinet and press E. `void-runner/district-arca
 ## Tests
 
 `tests/arcade.test.cjs` (data), `tests/arcade-browser.cjs` (a real browser: the cabinet opens the real game, movement is held, leaving restores it).
+
+## 13 Nov 2026: Corporate Zombies
+
+David's second game, **Corporate Zombies** (an arcade light-gun shooter made with Tesana), is built into `corporate-zombies/` (the export in `game-20261113-b23d2e92-code.zip`, built with `npm install && npx vite build`; only the build output, `index.html` plus one script and three small images, is kept here, not the source). It takes the fourth cabinet, replacing the placeholder HEXADUEL, and is playable the same way as Blackout Protocol (`district-arcade.js` GAMES, interaction `district-arcade-zombies`). It is also on the games page (`games-list.html`). The cabinet marquee, poster and attract screen use the working title style; the game loads Tesana's play SDK from unpkg for its own saves and leaderboard, the same way the export is wired.

@@ -10,7 +10,7 @@ test('every interaction and solid belongs to exactly one of street, district or 
 test('the interior owns the District interactions, plus the terrace stairs',()=>{
  const g=group(L.interactions);
  assert.deepEqual(g.street.sort(),['board','terminal']);
- assert.deepEqual(g.district.sort(),['admin','district-arcade-blackout','district-arcade-soon-north','district-arcade-soon-south','district-bar','district-iris','district-meeting','district-pod','district-pod-02','district-pod-03','district-pod-04','district-pod-05','district-pod-06','district-pod-07','district-pod-08','district-pod-09','district-pod-10','district-shop','district-stairs','district-vending','district-vr','district-wardrobe']);
+ assert.deepEqual(g.district.sort(),['admin','district-arcade-blackout','district-arcade-soon-north','district-arcade-soon-south','district-arcade-zombies','district-bar','district-iris','district-meeting','district-pod','district-pod-02','district-pod-03','district-pod-04','district-pod-05','district-pod-06','district-pod-07','district-pod-08','district-pod-09','district-pod-10','district-shop','district-stairs','district-vending','district-vr','district-wardrobe']);
  assert.deepEqual(g.terrace,['district-stairs-down']);
 });
 test('solids split 50 district, 3 terrace, 29 street',()=>{
@@ -30,5 +30,5 @@ test('the interior is its own footprint, and toWorld is its own inverse',()=>{
 test('layoutByArea partitions the layout exactly, with nothing lost or duplicated',()=>{
  const by=N.layoutByArea();
  for(const k of ['solids','interactions']){const all=[...by.street[k],...by.district[k],...by.terrace[k]];assert.equal(all.length,L[k].length);assert.deepEqual(all.map(i=>i.id).sort(),L[k].map(i=>i.id).sort());}
- assert.equal(by.district.solids.length,50);assert.equal(by.district.interactions.length,22);assert.equal(by.terrace.interactions[0].id,'district-stairs-down');
+ assert.equal(by.district.solids.length,50);assert.equal(by.district.interactions.length,23);assert.equal(by.terrace.interactions[0].id,'district-stairs-down');
 });

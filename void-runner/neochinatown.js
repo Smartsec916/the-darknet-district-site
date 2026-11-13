@@ -76,7 +76,7 @@
 
   // Five cabinets in a row along the back wall, facing the doorway; the middle one is playable. To add a game: give a cabinet its id here, add it to GAMES in
   // the arcade build below (name, colours, attract loop), and, if it is playable, to district-arcade.js.
-  const ARCADE=['laser-moth','turbo-kelp','blackout-protocol','hexaduel','cobalt-stairs'].map((game,i)=>({id:'arcade-cab-'+String(i+1).padStart(2,'0'),x:-9.9,z:58.6+i*1.7,ry:-Math.PI/2,game,playable:game==='blackout-protocol'}));
+  const ARCADE=['laser-moth','turbo-kelp','blackout-protocol','corporate-zombies','cobalt-stairs'].map((game,i)=>({id:'arcade-cab-'+String(i+1).padStart(2,'0'),x:-9.9,z:58.6+i*1.7,ry:-Math.PI/2,game,playable:game==='blackout-protocol'||game==='corporate-zombies'}));   // two playable games (2026-11-13: Corporate Zombies took the fourth cabinet)
   solids.push({id:'arc-west-row',position:[-9.9,.9,62],size:[.9,1.8,7.7]});
   const interactions=[
     // Admin and Iris are both at the counter, except while the first faction payment waits and Admin is 'occupied' (doc 06).
@@ -88,9 +88,10 @@
     {id:'district-vending',label:'VENDING MACHINES',position:[-5,1.7,49.5],action:'district-vending',range:2.6},
     ...Array.from({length:10},(_,k)=>({id:k?'district-pod-'+String(k+1).padStart(2,'0'):'district-pod',label:(k<5?'ENTER':'CLIMB INTO')+' SLEEPING POD '+String(k+1).padStart(2,'0'),position:[-5.2+(k%5)*2.6,1.7,k<5?74.3:72.9],action:'district-pod',podIndex:k+1,range:1.35})),
     // The arcade: one prompt for the playable cabinet, one for each wall of cabinets that are not switched on yet.
-    {id:'district-arcade-blackout',label:'PLAY BLACKOUT PROTOCOL',position:[-8.9,1.7,62],action:'district-arcade',game:'blackout-protocol',range:1.3},
+    {id:'district-arcade-blackout',label:'PLAY BLACKOUT PROTOCOL',position:[-8.9,1.7,62],action:'district-arcade',game:'blackout-protocol',range:.95},
+    {id:'district-arcade-zombies',label:'PLAY CORPORATE ZOMBIES',position:[-8.9,1.7,63.7],action:'district-arcade',game:'corporate-zombies',range:.95},
     {id:'district-arcade-soon-north',label:'ARCADE CABINETS · COMING SOON',position:[-8.9,1.7,59.4],action:'district-arcade-soon',range:1.5},
-    {id:'district-arcade-soon-south',label:'ARCADE CABINETS · COMING SOON',position:[-8.9,1.7,64.6],action:'district-arcade-soon',range:1.5},
+    {id:'district-arcade-soon-south',label:'ARCADE CABINETS · COMING SOON',position:[-8.9,1.7,65.5],action:'district-arcade-soon',range:1.1},
     {id:'district-wardrobe',label:'WARDROBE',position:[-9,1.7,72.1],action:'district-wardrobe',range:2.6},
     {id:'district-meeting',label:'MEETING ROOM / PRIVATE',position:[2.4,1.7,62.5],action:'district-meeting',range:2.6},
     {id:'district-stairs',label:'CLIMB TO THE SMOKING AREA',position:[14.6,1.7,74.4],action:'district-stairs',range:2.6},
@@ -509,7 +510,7 @@
     kitMat=name=>{if(kitAlias[name])return kitAlias[name];const key='kit:'+name;if(mats[key])return mats[key];const m=new B.PBRMaterial('ncz-'+name,scene);
      if(name==='kit_emissive'){m.albedoColor=B.Color3.Black();m.roughness=1;m.metallic=0;m.emissiveTexture=kitTex(name,'color');m.emissiveColor=B.Color3.White();m.emissiveIntensity=1.6;}
      else{const c=kitTex(name,'color'),orm=kitTex(name,'orm');m.albedoTexture=c;m.bumpTexture=kitTex(name,'normal');m.invertNormalMapX=true;m.invertNormalMapY=false;m.metallicTexture=orm;m.metallic=1;m.roughness=1;m.useRoughnessFromMetallicTextureAlpha=false;m.useRoughnessFromMetallicTextureGreen=true;m.useMetallnessFromMetallicTextureBlue=true;m.useAmbientOcclusionFromMetallicTextureRed=true;
-      m.emissiveTexture=c;m.emissiveColor=name==='kit_goods'?new B.Color3(.36,.36,.38):new B.Color3(.62,.64,.7);}   // a faint self-light: the room has no lamps of its own (the scene's light limit), so its surfaces must read by themselves
+      m.emissiveTexture=c;m.emissiveColor=name==='kit_goods'?new B.Color3(.26,.26,.28):new B.Color3(.2,.21,.25);}   /* kept low: the District is dark, and the colour comes from the lights and the glowing parts (David, 2026-11-13: the hallway read too grey) */   // a faint self-light: the room has no lamps of its own (the scene's light limit), so its surfaces must read by themselves
      owned.push(m);mats[key]=m;return m;};
     // opt.merge: a fixed piece of the building; its meshes join the per-material merge at the end of the build, so a long run of pieces costs a handful of draw calls.
     kitPiece=(name,p,ry=0,hide=[],opt={})=>{if(typeof modelInstance!=='function')return null;const n=modelInstance(name.includes(':')?name:'entry:'+name,target);if(!n)return null;n.position.set(...p);n.rotation.y=ry;
@@ -862,7 +863,7 @@
     // A 1980s arcade kept alive inside the District: patterned carpet, tube lights, posters, and rows of cabinets with CRT screens running their attract loops.
     // One cabinet plays the real Blackout Protocol (district-arcade.js); the rest are placeholders for games to come (names are working titles for David to change).
     const arcade=(()=>{
-     const GAMES={'blackout-protocol':['BLACKOUT PROTOCOL','#ff3b3b','#f4f4f4','play'],'laser-moth':['LASER MOTH','#ff5bd0','#38e8ff','shooter'],'turbo-kelp':['TURBO KELP','#6cff9e','#ffe066','racer'],'hexaduel':['HEXADUEL','#ff4a4a','#5a8cff','fighter'],'cobalt-stairs':['COBALT STAIRS','#5a8cff','#f4f4f4','platform']};   // the attract loops below also include puzzle, brawler and maze, ready for more cabinets
+     const GAMES={'blackout-protocol':['BLACKOUT PROTOCOL','#ff3b3b','#f4f4f4','play'],'laser-moth':['LASER MOTH','#ff5bd0','#38e8ff','shooter'],'turbo-kelp':['TURBO KELP','#6cff9e','#ffe066','racer'],'corporate-zombies':['CORPORATE ZOMBIES','#ff3b3b','#ff8a2a','shooter'],'cobalt-stairs':['COBALT STAIRS','#5a8cff','#f4f4f4','platform']};   // the attract loops below also include puzzle, brawler and maze, ready for more cabinets
      const carpet=texture('arcade-carpet',256,256,(g,W,H)=>{g.fillStyle='#150a24';g.fillRect(0,0,W,H);const cols=['#ff3fb4','#38e8ff','#ffe066','#6cff9e','#9b7bff'];for(let i=0;i<70;i++){const x=rand()*W,y=rand()*H,c=cols[i%cols.length],k=i%3;g.strokeStyle=c;g.fillStyle=c;g.lineWidth=2;g.globalAlpha=.75;
        if(k===0){g.beginPath();g.moveTo(x,y);g.lineTo(x+9,y+14);g.lineTo(x-9,y+14);g.closePath();g.stroke();}else if(k===1){g.beginPath();for(let q=0;q<4;q++)g.lineTo(x+q*6,y+(q%2?6:0));g.stroke();}else g.fillRect(x,y,4,4);}g.globalAlpha=1;});
      const carpetMat=new B.StandardMaterial('ncz-arcade-carpet',scene);owned.push(carpetMat);carpet.uScale=3;carpet.vScale=3.6;carpet.wrapU=carpet.wrapV=B.Texture.WRAP_ADDRESSMODE;carpetMat.diffuseTexture=carpet;carpetMat.specularColor=new B.Color3(.02,.02,.03);carpetMat.emissiveColor=new B.Color3(.16,.12,.2);
@@ -874,7 +875,7 @@
      const poster=(key,p,ry)=>{const [name,a,b2]=GAMES[key],t=texture('arcade-poster-'+key,128,192,(g,W,H)=>{const gr=g.createLinearGradient(0,0,W,H);gr.addColorStop(0,a);gr.addColorStop(1,'#07060c');g.fillStyle=gr;g.fillRect(0,0,W,H);g.strokeStyle=b2;g.lineWidth=4;g.strokeRect(5,5,W-10,H-10);
        g.fillStyle=b2;for(let i=0;i<7;i++)g.fillRect(14+i*15,40+((i*37)%60),9,9);g.fillStyle='#fff';g.font='900 17px Arial,Helvetica,sans-serif';g.textAlign='center';name.split(' ').forEach((w,i)=>g.fillText(w,W/2,128+i*20));g.font='700 9px Arial,sans-serif';g.fillStyle=b2;g.fillText(key==='blackout-protocol'?'NOW PLAYING':'COMING SOON',W/2,178);});
       plane('arcade-poster',1,1.5,p,texMat('arcade-poster-'+key,t,{glow:true}),ry);};
-     poster('blackout-protocol',[-6,2,57.74],Math.PI);poster('laser-moth',[-4.4,2,57.74],Math.PI);poster('turbo-kelp',[-6,2,66.26],0);poster('hexaduel',[-4.4,2,66.26],0);poster('cobalt-stairs',[-3.24,2,65.5],Math.PI/2);
+     poster('blackout-protocol',[-6,2,57.74],Math.PI);poster('laser-moth',[-4.4,2,57.74],Math.PI);poster('turbo-kelp',[-6,2,66.26],0);poster('corporate-zombies',[-4.4,2,66.26],0);poster('cobalt-stairs',[-3.24,2,65.5],Math.PI/2);
      // Screens: one small picture per game, redrawn a few times a second while someone is near, with chunky pixels like a CRT.
      const screens={},marquees={};
      const attract={

@@ -7,7 +7,7 @@ const ids=l=>l.map(i=>i.id),at=item=>N.zone({x:item.position[0],z:item.position[
 const ENTRANCE_SOLIDS=['district-door','district-front-east','district-front-west','district-inner-door','vestibule-east','vestibule-west'];
 
 test('the default layout is still the whole combined layout, unchanged',()=>{
- assert.equal(all.solids.length,82);assert.equal(all.interactions.length,25);assert.equal(all.area,undefined);assert.equal(all.name,'NEOCHINATOWN / TESSALY');assert.equal(N.layout('all').solids.length,82);
+ assert.equal(all.solids.length,82);assert.equal(all.interactions.length,26);assert.equal(all.area,undefined);assert.equal(all.name,'NEOCHINATOWN / TESSALY');assert.equal(N.layout('all').solids.length,82);
 });
 test('the street environment is the outdoors plus the entrance, and nothing of the District behind the inner door',()=>{
  assert.equal(street.area,'street');assert.equal(street.solids.length,35);
@@ -17,7 +17,7 @@ test('the street environment is the outdoors plus the entrance, and nothing of t
  assert.deepEqual(street.spawn,all.spawn);assert.equal(street.yaw,all.yaw);assert.equal(street.name,all.name);
 });
 test('the interior environment is exactly the District and terrace part of the original layout',()=>{
- assert.equal(interior.area,'interior');assert.equal(interior.solids.length,53);assert.equal(interior.interactions.length,23);
+ assert.equal(interior.area,'interior');assert.equal(interior.solids.length,53);assert.equal(interior.interactions.length,24);
  assert.equal(interior.interactions.filter(i=>i.action==='district-pod').length,10,'every pod has a hatch interaction');
  const original=all.solids.filter(s=>['district','terrace'].includes(at(s)));
  assert.deepEqual(interior.solids,original,'solids are identical, in the same order');

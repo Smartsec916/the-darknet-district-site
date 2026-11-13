@@ -5,7 +5,7 @@
    GAMES is the register: to make another cabinet playable, add its game id and page here and give a cabinet that game in neochinatown.js (ARCADE). */
 (function(root){
  'use strict';
- const GAMES={'blackout-protocol':{title:'BLACKOUT PROTOCOL',page:'blackout-protocol/index.html'}};
+ const GAMES={'blackout-protocol':{title:'BLACKOUT PROTOCOL',page:'blackout-protocol/index.html'},'corporate-zombies':{title:'CORPORATE ZOMBIES',page:'corporate-zombies/index.html'}};
  if(typeof module==='object'&&module.exports){module.exports={GAMES};return;}
  if(typeof document==='undefined'||typeof VoidInteractions==='undefined')return;
  let el=null,frame=null,playing=null;
