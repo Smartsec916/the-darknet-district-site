@@ -11,7 +11,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');cons
  await page.waitForSelector('#character-creator.on');await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled);await page.locator('[data-cc=confirm]').click();
  await page.waitForFunction(()=>mode==='pod-waking'&&walker&&VoidAssets.pending===0);await page.locator('#pod-wake [data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking');
  const info=await page.evaluate(()=>({cabs:VoidNeoChinatown.arcade.length,playable:VoidNeoChinatown.arcade.filter(c=>c.playable).map(c=>c.game),screens:VoidBabylon.scene.textures.filter(t=>/ncz-arcade-screen-/.test(t.name)).length,carpet:!!VoidBabylon.scene.getMeshByName('arcade-carpet')}));
- assert.equal(info.cabs,5,'a small room: about five games');assert.deepEqual(info.playable,['blackout-protocol']);assert.equal(info.screens,5,'one screen picture per game');assert(info.carpet);
+ assert.equal(info.cabs,5,'a small room: about five games');assert.deepEqual(info.playable,['blackout-protocol','corporate-zombies']);assert.equal(info.screens,5,'one screen picture per game');assert(info.carpet);
  // walk up to the playable cabinet: the prompt is for that game
  const stand=(lx,lz,yaw)=>page.evaluate(([lx,lz,yaw])=>{const [x,z]=VoidNeoChinatown.toWorld(lx,lz);Object.assign(walker,{x,z,yaw,pitch:0});},[lx,lz,yaw]);
  await stand(-8.6,62,Math.PI/2);await page.waitForTimeout(1200);const cab=await page.evaluate(()=>walkingLocation.interactions.find(i=>i.id==='district-arcade-blackout'));

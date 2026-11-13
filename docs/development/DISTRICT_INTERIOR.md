@@ -35,3 +35,8 @@ finished area. Layout, doors, routes, interactions, multiplayer and missions sta
 
 Supplied by David in the session of 12 Nov 2026 (not stored in the repository): neon VR corridor; glass-front vending machine; gear shop; book and media shop;
 capsule-hotel corridor; two round, lit pod entrances; Admin (three pictures); Iris (two pictures). The character pictures are look references only.
+
+## 13 Nov 2026
+
+- Hallway and every lined room: the surfaces' faint self-light was lowered (David: the hallway read too grey; it should be dark, industrial, with coloured lighting as the highlight). Colour now comes from the lights and the glowing parts.
+- Arcade: the fourth cabinet is Corporate Zombies (playable).

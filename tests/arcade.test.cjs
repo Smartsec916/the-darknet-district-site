@@ -2,8 +2,8 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const N=require('../void-runner/neochinatown.js'),E=require('../void-runner/exploration-controller.js'),A=require('../void-runner/district-arcade.js');
 const interior=N.layout('interior'),local=p=>N.toWorld(p[0],p[2]);
-test('a small room: five cabinets, exactly one playable, and every playable game has a page',()=>{
- assert.equal(N.arcade.length,5);const playable=N.arcade.filter(c=>c.playable);assert.equal(playable.length,1);assert.equal(playable[0].game,'blackout-protocol');
+test('a small room: five cabinets, two playable, and every playable game has a page',()=>{
+ assert.equal(N.arcade.length,5);const playable=N.arcade.filter(c=>c.playable);assert.deepEqual(playable.map(c=>c.game),['blackout-protocol','corporate-zombies']);
  for(const c of playable){assert(A.GAMES[c.game],c.game+' is registered as playable');assert(fs.existsSync(A.GAMES[c.game].page),'its page exists: '+A.GAMES[c.game].page);}
  assert.equal(new Set(N.arcade.map(c=>c.game)).size,5,'five different games');assert.equal(new Set(N.arcade.map(c=>c.id)).size,5);
 });
