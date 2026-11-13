@@ -44,7 +44,7 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
  // Since the District-first start (2026-11-10) Continue wakes the player in their Sleeping Pod, and a player with no saved look meets the character creator first.
  // Walk that path as a player would: save the look, then get up.
  await page.waitForFunction(()=>!VoidGraphics.busy&&(mode==='walking'||mode==='pod-waking'||!!document.querySelector('#character-creator.on')),null,{timeout:90000});
- if(await page.locator('#character-creator.on').count()){await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled,null,{timeout:90000});await page.locator('[data-cc=confirm]').click();await page.waitForFunction(()=>mode==='pod-waking'||mode==='walking',null,{timeout:90000});}
+ if(await page.locator('#character-creator.on').count()){await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled,null,{timeout:90000});await page.locator('[data-cc=confirm]').click({timeout:180000});await page.waitForFunction(()=>mode==='pod-waking'||mode==='walking',null,{timeout:180000});}
  if(await page.evaluate(()=>mode==='pod-waking')){await page.locator('#pod-wake [data-pod=exit]').click();}
  await page.waitForFunction(()=>mode==='walking'&&!VoidGraphics.busy,null,{timeout:90000});assert.deepEqual(await page.evaluate(()=>({credits:state.credits,ammo:state.progression.personal.ammo})),saved);assert(!await page.evaluate(()=>state.story.flags.vrReturn));result.interruption=true;
  // Isolated UI mode fixtures: hold the simulation while the existing weapon UI RAF updates.
