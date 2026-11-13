@@ -151,6 +151,8 @@ async function ready(page) {
     });
     await signed.reload();
     await signed.waitForFunction(() => Boolean(window.__BP));
+    // Wait for the page to finish switching to account A (slow runners read the guest save for a moment), then check it did not inherit the guest's progress.
+    await signed.waitForFunction(() => window.__BP.save().unlocked === 1, null, { timeout: 30000 }).catch(() => {});
     assert.equal(await signed.evaluate(() => window.__BP.save().unlocked), 1, 'account A does not inherit guest progress');
     await signed.evaluate(() => {
       localStorage.setItem('blackout_protocol_save_v1_uid_uidA', JSON.stringify({...window.__BP.save(), unlocked: 3}));
