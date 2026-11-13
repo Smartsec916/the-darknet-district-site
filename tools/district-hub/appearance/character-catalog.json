@@ -231,6 +231,117 @@
     "ponytail01"
    ],
    "body": "fixer_01.body"
+  },
+  "outlaw-01": {
+   "base": "male",
+   "model": "outlaw-01",
+   "label": "OUTLAW",
+   "outfit": "outlaw_01.male_casualsuit05",
+   "nativeHair": "outlaw_01.short02",
+   "accessories": {
+    "mask": [
+     "outlaw_01.mask0"
+    ]
+   },
+   "defaultAccessories": [],
+   "hairOk": [
+    "short01",
+    "short02",
+    "short03",
+    "short04",
+    "bob01",
+    "bob02",
+    "braid01",
+    "long01",
+    "ponytail01"
+   ],
+   "body": "outlaw_01.body"
+  },
+  "cyborg-01": {
+   "base": "male",
+   "model": "cyborg-01",
+   "label": "CYBORG",
+   "outfit": "cyborg_01.matcreator_mc-skinsuit_2022",
+   "accessories": {
+    "eyewear": [
+     "cyborg_01.visor0"
+    ],
+    "collar": [
+     "cyborg_01.collar1"
+    ]
+   },
+   "defaultAccessories": [
+    "eyewear",
+    "collar"
+   ],
+   "hairOk": [
+    "short01",
+    "short02",
+    "short03",
+    "short04",
+    "bob01",
+    "bob02",
+    "braid01",
+    "long01",
+    "ponytail01"
+   ],
+   "body": "cyborg_01.body"
+  },
+  "vesper-pilot": {
+   "base": "female",
+   "model": "vesper-pilot",
+   "label": "PILOT",
+   "outfit": "vesper_pilot.female_sportsuit01",
+   "shoes": "vesper_pilot.shoes03",
+   "nativeHair": "vesper_pilot.ponytail01",
+   "accessories": {
+    "eyewear": [
+     "vesper_pilot.shades0"
+    ]
+   },
+   "defaultAccessories": [
+    "eyewear"
+   ],
+   "hairOk": [
+    "short01",
+    "short02",
+    "short03",
+    "short04",
+    "bob01",
+    "bob02",
+    "braid01",
+    "long01",
+    "ponytail01"
+   ],
+   "body": "vesper_pilot.body"
+  },
+  "meridian-bartender": {
+   "base": "female",
+   "model": "meridian-bartender",
+   "label": "HOST",
+   "outfit": "meridian_bartender.female_elegantsuit01",
+   "shoes": "meridian_bartender.shoes03",
+   "nativeHair": "meridian_bartender.bob01",
+   "accessories": {
+    "eyewear": [
+     "meridian_bartender.shades0"
+    ]
+   },
+   "defaultAccessories": [
+    "eyewear"
+   ],
+   "hairOk": [
+    "short01",
+    "short02",
+    "short03",
+    "short04",
+    "bob01",
+    "bob02",
+    "braid01",
+    "long01",
+    "ponytail01"
+   ],
+   "body": "meridian_bartender.body"
   }
  },
  "accessories": {
