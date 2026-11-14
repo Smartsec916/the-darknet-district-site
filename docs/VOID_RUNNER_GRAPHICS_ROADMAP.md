@@ -1,5 +1,7 @@
 # VOID//RUNNER: Graphics Roadmap
 
+> **2026-11-15 PERMANENT DIRECTION:** the 3D game is PC-only and the target look is AAA dark cyberpunk. See `docs/VOID_RUNNER_ART_DIRECTION.md` ("PERMANENT DIRECTION"). It supersedes anything below that conflicts (for example, treating bright neon as the identity). Phases below remain a record of what was built and what is planned; the modernisation proceeds progressively, player-visible areas first.
+
 > **2026-11-12:** Phase H below (Ultra, shadows outside the opening scene, ambient occlusion, a better HDRI) is still not started. A separate four-win branch (sharpness, High default plus Ultra, stronger glow, remove fake shopfront/graffiti/puddle glow) is in flight. See `docs/development/AI_HANDOFF.md`. Do not download a Poly Haven HDRI without David's OK. Leave the Sleeping Pod room and the music player alone.
 
 **As of 2026-10-16.** "Done" means it's in the game and was checked on screen; everything else is planned.

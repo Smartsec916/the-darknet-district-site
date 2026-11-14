@@ -1,5 +1,7 @@
 # The Darknet District interior rebuild
 
+> **Permanent art direction (Nov 2026):** the interior rebuild follows `docs/VOID_RUNNER_ART_DIRECTION.md` ("PERMANENT DIRECTION"): dark, layered, PBR, lived-in, accent lighting, real coordinates, Babylon-compatible GLB. Remaining Tron-like rooms are upgrade candidates, not finished work.
+
 David's order (12 Nov 2026): rebuild the whole interior area by area with Blender-made assets, starting at the security vestibule and working outward, publishing each
 finished area. Layout, doors, routes, interactions, multiplayer and missions stay as they are; this is a rebuild of how it looks. Mission characters and companions are not changed.
 
