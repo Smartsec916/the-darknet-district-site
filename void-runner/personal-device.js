@@ -1,50 +1,24 @@
 /* V1 personal holographic device: the screen (browser only; phones never download it). Rules and saved state are in device-v1.js.
    L opens and closes it. It does NOT change the game's mode: the world, other players and NPCs keep running; only YOUR movement is held. The mouse is free over
    the device and dragging the world outside it looks around. It is a read-and-act layer over systems that already exist (Mission Log, conversation history,
-   the Relay news archive, District chat, the explored map); it keeps no messages, accounts or profiles of its own. Camera and Gallery are placeholders. */
+   the Relay news archive, District chat, the explored map); it keeps no messages, accounts or profiles of its own. Camera and Gallery are placeholders.
+   Its look is void-runner/device-v1.css (scoped to #personal-device). Transition timing comes from DEVICES.v1.ui in device-v1.js. */
 (function(root){
  'use strict';
  const D=root.VoidDeviceV1;if(!D)return;
  const MOVE=new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight','ControlLeft','ControlRight','KeyC','Space','KeyQ','KeyR','KeyX','KeyE','KeyF','KeyG']);
   const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));   // own escaper: attributes need quotes escaped too
  const reduced=()=>dev.settings.motion==='reduced'||dev.settings.motion==='auto'&&root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
- let el=null,body=null,open=false,expanded=false,dev=D.restore({}),stack=[],held=new Set(),suppressed=new Set(),mapTimer=0,loadTimer=0,chip=null;
+ // One icon per app, drawn the same way (24x24, thin line). Kept here, as inline SVG: no image files to load.
+ const ICON={missions:'<path d="M6 4h12v16H6z"/><path d="M9 9h6M9 13h6M9 17h3"/>',messages:'<path d="M4 5h16v11h-9l-4 4v-4H4z"/><path d="M8 9.5h8M8 12.5h5"/>',social:'<circle cx="9" cy="9" r="3"/><circle cx="17" cy="10" r="2.2"/><path d="M3.5 19c.6-3.6 3-5 5.5-5s4.900 1.400 5.500 5"/><path d="M15 14.300c2.600-.4 4.600.9 5.200 4.200"/>',
+  news:'<path d="M4 5h12v14H6a2 2 0 0 1-2-2z"/><path d="M16 9h4v8a2 2 0 0 1-2 2"/><path d="M7 8.500h6M7 12h6M7 15.500h3"/>',map:'<path d="M12 21s6.500-5.700 6.500-10.500a6.500 6.500 0 0 0-13 0C5.500 15.300 12 21 12 21z"/><circle cx="12" cy="10.500" r="2.300"/>',
+  camera:'<path d="M4 8h3.500l1.500-2h6l1.500 2H20v11H4z"/><circle cx="12" cy="13.500" r="3.500"/>',gallery:'<path d="M4 5h16v14H4z"/><circle cx="9" cy="10" r="1.600"/><path d="M4 17l5-4.500 3.500 3 3-2.500L20 16"/>',
+  store:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',settings:'<path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/>'};
+ const icon=id=>'<svg class="pd-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+(ICON[id]||'')+'</svg>';
+ // The homepage navigation button frame (home-navigation.css): panel, rail and one small accent tick, stretched to the tile.
+ const FRAME='<svg class="pd-frame" viewBox="0 0 180 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="pd-panel" d="M10 .5H179.5V37.5L169.5 47.5H.5V10Z"/><path class="pd-rail" d="M16 4H47M1 19V33M133 44H161"/><path class="pd-accent" d="M171 5H175V14"/></svg>';
+ let el=null,body=null,open=false,expanded=false,dev=D.restore({}),stack=[],held=new Set(),suppressed=new Set(),mapTimer=0,loadTimer=0,chip=null,navTimer=0,navSeq=0,busy=false,booted=false,launchTimer=0;
  const sources=new Map();   // portrait key -> source, filled while rendering a profile
-
- const CSS=`#personal-device{position:fixed;top:54px;right:12px;bottom:12px;width:max(430px,calc(50vw - 12px));z-index:44;display:none;flex-direction:column;box-sizing:border-box;color:#d9fbff;font:13px/1.5 ui-monospace,Consolas,monospace;
- background:linear-gradient(160deg,rgba(3,12,20,.95),rgba(4,8,16,.96));border:1px solid rgba(88,255,225,.45);box-shadow:0 0 28px rgba(56,232,255,.18),inset 0 0 40px rgba(56,232,255,.05);clip-path:polygon(0 0,calc(100% - 22px) 0,100% 22px,100% 100%,22px 100%,0 calc(100% - 22px))}
-#personal-device.open{display:flex}#personal-device.expanded{width:calc(100vw - 24px);top:12px}
-#personal-device.fx::before{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px);animation:pd-scan 7s linear infinite;z-index:3}
-#personal-device.worn::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:3;background:radial-gradient(ellipse at 15% 90%,rgba(255,200,120,.05),transparent 40%),radial-gradient(ellipse at 90% 8%,rgba(255,63,180,.05),transparent 35%)}
-@keyframes pd-scan{to{background-position:0 60px}}@keyframes pd-in{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}@keyframes pd-bar{from{transform:translateX(-100%)}to{transform:translateX(0)}}
-#personal-device.open.anim{animation:pd-in .22s ease-out}
-#personal-device .pd-head{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(88,255,225,.25);background:rgba(56,232,255,.05)}
-#personal-device .pd-brand{font-size:20px;font-weight:700;letter-spacing:.14em;color:#58ffe1;text-shadow:0 0 8px rgba(88,255,225,.6)}#personal-device .pd-tag{font-size:10px;letter-spacing:.12em;color:#8fb3bd;flex:1}
-#personal-device button{font:inherit;font-size:12px;letter-spacing:.06em;color:#d9fbff;background:rgba(10,24,34,.9);border:1px solid rgba(56,232,255,.4);padding:6px 10px;cursor:pointer;min-height:30px}
-#personal-device button:hover,#personal-device button:focus-visible{outline:2px solid #38e8ff;outline-offset:1px;background:rgba(20,50,66,.95)}
-#personal-device button[aria-pressed=true]{background:#0f4a52;border-color:#58ffe1}#personal-device button[disabled]{opacity:.45;cursor:not-allowed}
-#personal-device .pd-nav{display:flex;gap:8px;padding:6px 14px;align-items:center;border-bottom:1px solid rgba(88,255,225,.12);min-height:44px}#personal-device .pd-title{flex:1;letter-spacing:.14em;color:#ff7ac9}
-#personal-device .pd-load{height:3px;background:transparent;overflow:hidden;position:relative}#personal-device .pd-load i{position:absolute;inset:0;background:linear-gradient(90deg,transparent,#58ffe1,transparent);transform:translateX(-100%)}
-#personal-device .pd-load.on i{animation:pd-bar var(--pd-ms,.3s) ease-out forwards}
-#personal-device .pd-main:focus{outline:none}#personal-device .pd-main{flex:1 1 0;min-height:0;overflow:auto;padding:14px;position:relative;z-index:1}#personal-device .pd-head,#personal-device .pd-nav,#personal-device .pd-load{position:relative;z-index:2;flex:none}
-#personal-device .pd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px}
-#personal-device .pd-app{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 6px;min-height:92px}
-#personal-device .pd-glyph{font-size:26px;color:#58ffe1;line-height:1}#personal-device .pd-sub{font-size:9px;color:#8fb3bd;letter-spacing:.1em}
-#personal-device h2{margin:14px 0 6px;font-size:11px;letter-spacing:.18em;color:#ff3fb4;border-bottom:1px solid rgba(255,63,180,.25);padding-bottom:3px}
-#personal-device .pd-card{border-left:2px solid #38e8ff;background:rgba(255,255,255,.04);padding:8px 10px;margin:6px 0}#personal-device .pd-card h3{margin:0 0 3px;font-size:13px;color:#58ffe1}
-#personal-device .pd-card.done{border-left-color:#8fb3bd;opacity:.8}#personal-device .pd-note{color:#8fb3bd;font-size:11px}
-#personal-device .pd-empty{padding:26px 14px;text-align:center;color:#8fb3bd;border:1px dashed rgba(88,255,225,.3)}
-#personal-device .pd-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}#personal-device input[type=text]{font:inherit;color:#fff;background:#04070a;border:1px solid #38e8ff;padding:6px 8px;width:100%;box-sizing:border-box}
-#personal-device .pd-line{padding:2px 7px;border-left:2px solid #38e8ff;margin:2px 0;word-break:break-word;background:rgba(255,255,255,.03)}#personal-device .pd-line b{color:#58ffe1;margin-right:6px}
-#personal-device .pd-prof{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}#personal-device .pd-portrait{width:112px;height:112px;object-fit:cover;border:1px solid rgba(88,255,225,.5);background:#050b12;flex:none}
-#personal-device .pd-sil{width:112px;height:112px;border:1px dashed rgba(88,255,225,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#6c8a93;font-size:9px;text-align:center;flex:none}
-#personal-device canvas.pd-map{display:block;width:100%;height:auto;aspect-ratio:10/7;background:#03080d;border:1px solid rgba(88,255,225,.3)}
-#personal-device .relay-archive details{margin:6px 0;padding:6px 10px;border-left:2px solid #d9a441;background:#ffffff08}#personal-device .relay-archive summary{cursor:pointer}#personal-device .relay-archive h2{margin-top:0}
-#personal-device .relay-archive .tag{display:inline-block;margin-right:6px;padding:0 6px;font:11px monospace;letter-spacing:.06em;border:1px solid #58ffe155;color:#9ff}
-#personal-device .mission-entry{border-left:2px solid #38e8ff;background:#ffffff08;padding:6px 10px;margin:6px 0}
-#pd-chip{position:fixed;right:24px;top:154px;z-index:43;display:none;font:11px ui-monospace,Consolas,monospace;letter-spacing:.1em;color:#58ffe1;background:rgba(3,12,20,.8);border:1px solid rgba(88,255,225,.45);padding:5px 9px;cursor:pointer}
-#pd-chip.on{display:block}#pd-chip:hover,#pd-chip:focus-visible{outline:2px solid #38e8ff}
-@media(max-width:700px){#personal-device{width:calc(100vw - 24px)}}`;
 
  const state_=()=>typeof state!=='undefined'?state:null;
  const onFootOrDock=()=>typeof mode!=='undefined'&&(mode==='walking'||mode==='dock');
@@ -132,23 +106,28 @@
   camera(){return '<div class="pd-empty"><b>CAMERA</b><br>Not available in the V1 model yet.<br>Nothing is captured, stored or sent.</div>';},
   gallery(){return '<div class="pd-empty"><b>GALLERY</b><br>No photos. Photos will be kept here once the camera exists.</div>';},
   store(){
-   const l=D.storeListing(dev);
-   return '<div class="pd-note">Apps for the V1.</div>'+l.rows.map(r=>'<article class="pd-card"><h3>'+esc(r.title)+' <small>'+esc(r.status.toUpperCase())+(r.placeholder?' · PLACEHOLDER':'')+'</small></h3><div class="pd-note">'+esc(r.note)+'</div></article>').join('')
-    +'<div class="pd-empty" style="margin-top:10px">No additional apps are available yet. New apps will appear here when they are released.</div>';
+   const l=D.storeListing(dev),st=l.storage,row=(r,tag)=>'<div class="pd-sys">'+icon(r.id)+'<span>'+esc(r.title)+'</span><em>'+esc(tag)+'</em></div>';
+   return '<h2>STORAGE</h2><section class="pd-storage" aria-label="Device storage"><div class="pd-stat"><span>STORAGE USED: '+st.usedPct+'%</span><span>STORAGE AVAILABLE: '+st.availablePct+'%</span></div>'
+    +'<div class="pd-bar" role="img" aria-label="'+st.usedPct+' percent of storage used"><i style="width:'+st.usedPct+'%"></i></div>'
+    +'<dl class="pd-kv"><dt>DEVICE MODEL</dt><dd>'+esc(st.model)+'</dd><dt>SYSTEM APPS</dt><dd>'+st.systemApps+'</dd><dt>ADDITIONAL APPS INSTALLED</dt><dd>'+st.optionalApps+'</dd></dl>'
+    +'<div class="pd-note" style="margin-top:8px">The stock V1 ships with its system apps taking '+st.baselinePct+'% of storage. This is the model\'s defined baseline, not a measurement of your computer. Each optional app you install will add its own share.</div></section>'
+    +'<h2>SYSTEM APPS</h2>'+l.system.map(r=>row(r,r.placeholder?'PREINSTALLED · COMING LATER':'PREINSTALLED')).join('')
+    +'<h2>INSTALLED APPS</h2>'+(l.installed.length?l.installed.map(r=>row(r,'INSTALLED')).join(''):'<div class="pd-empty">No additional apps installed.</div>')
+    +'<h2>AVAILABLE APPS</h2>'+(l.available.length?l.available.map(r=>row(r,r.status.toUpperCase())).join(''):'<div class="pd-empty">No downloadable apps are available yet.<br>New apps will appear here when they are released.</div>');
   },
   settings(){
-   const S=dev.settings,def=D.DEVICES[dev.model],opt=(k,v,label)=>'<button type="button" data-set="'+k+'" data-value="'+v+'" aria-pressed="'+(S[k]===v)+'">'+label+'</button>';
+   const S=dev.settings,def=D.DEVICES[dev.model],st=D.storage(dev),opt=(k,v,label)=>'<button type="button" data-set="'+k+'" data-value="'+v+'" aria-pressed="'+(S[k]===v)+'">'+label+'</button>';
    return '<h2>INTERFACE</h2><div class="pd-note">Animation</div><div class="pd-tabs">'+opt('motion','auto','FOLLOW SYSTEM')+opt('motion','full','FULL')+opt('motion','reduced','REDUCED')+'</div>'
     +'<div class="pd-note">Scanlines</div><div class="pd-tabs">'+opt('scan','1','ON')+opt('scan','0','OFF')+'</div><div class="pd-note">Opens at</div><div class="pd-tabs">'+opt('size','half','HALF SCREEN')+opt('size','expanded','EXPANDED')+'</div>'
-    +'<h2>DEVICE</h2><div class="pd-card"><h3>'+esc(def.name)+'</h3><div class="pd-note">'+esc(def.tagline)+' · generation '+def.generation+'</div></div>'
-    +'<h2>INSTALLED APPS</h2>'+dev.apps.map(a=>'<div class="pd-line">'+esc(D.APPS[a].title)+'</div>').join('')
+    +'<h2>DEVICE INFORMATION</h2><div class="pd-card"><h3>'+esc(def.name)+'</h3><div class="pd-note">'+esc(def.tagline)+' · generation '+def.generation+'</div>'
+    +'<dl class="pd-kv"><dt>MODEL</dt><dd>'+esc(st.model)+'</dd><dt>SYSTEM APPS</dt><dd>'+st.systemApps+'</dd><dt>STOCK STORAGE USAGE</dt><dd>'+st.baselinePct+'%</dd><dt>AVAILABLE STORAGE</dt><dd>'+(100-st.baselinePct)+'% before optional installations</dd>'
+    +'<dt>ADDITIONAL APPS INSTALLED</dt><dd>'+st.optionalApps+'</dd></dl></div>'
     +'<div class="pd-note" style="margin-top:8px">These settings change only this device. Game settings (graphics, controls, audio) stay in the main menu.</div>';
   }
  };
 
  // ---- Shell ----
  function build(){
-  const st=document.createElement('style');st.textContent=CSS;document.head.appendChild(st);
   el=document.createElement('section');el.id='personal-device';el.setAttribute('role','dialog');el.setAttribute('aria-label','V1 personal device');
   el.innerHTML='<div class="pd-head"><span class="pd-brand">V1</span><span class="pd-tag"></span><button type="button" data-do="expand" aria-label="Expand device"></button><button type="button" data-do="close" aria-label="Close device">CLOSE · L</button></div>'
    +'<div class="pd-nav"><button type="button" data-do="back" aria-label="Back">◀ BACK</button><span class="pd-title"></span></div><div class="pd-load"><i></i></div><div class="pd-main" tabindex="-1"></div>';
@@ -158,39 +137,52 @@
   el.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))e.stopPropagation();});   // typing stays in the box: no movement, no shortcuts
   chip=document.createElement('button');chip.id='pd-chip';chip.type='button';chip.textContent='V1 · L';chip.setAttribute('aria-label','Open the V1 device');chip.addEventListener('click',()=>toggle());document.body.appendChild(chip);
  }
- function loadingBar(ms){const bar=el.querySelector('.pd-load');if(reduced()){return;}bar.style.setProperty('--pd-ms',ms+'ms');bar.classList.remove('on');void bar.offsetWidth;bar.classList.add('on');clearTimeout(loadTimer);loadTimer=setTimeout(()=>bar.classList.remove('on'),ms+40);}
- function render(opts={}){
-  if(!el||!open)return;
-  const app=stack[0],def=D.DEVICES[dev.model];
-  el.querySelector('.pd-tag').textContent=def.tagline;el.classList.toggle('expanded',expanded);el.classList.toggle('fx',dev.settings.scan==='1'&&!reduced());el.classList.add('worn');
+ function loadingBar(ms){const bar=el.querySelector('.pd-load');if(!ms)return;bar.style.setProperty('--pd-ms',ms+'ms');bar.classList.remove('on');void bar.offsetWidth;bar.classList.add('on');clearTimeout(loadTimer);loadTimer=setTimeout(()=>bar.classList.remove('on'),ms+40);}
+ const label=()=>stack[0]?D.APPS[stack[0]].title:'HOME';
+ function chrome(){   // header, title and back button: these change at once, only the content waits
+  const def=D.DEVICES[dev.model],app=stack[0];
+  el.querySelector('.pd-tag').textContent=def.tagline;el.classList.toggle('expanded',expanded);el.classList.toggle('fx',dev.settings.scan==='1'&&!reduced());el.classList.toggle('pd-still',reduced());
   el.querySelector('[data-do=expand]').textContent=expanded?'COLLAPSE':'EXPAND';el.querySelector('[data-do=expand]').setAttribute('aria-label',expanded?'Collapse device':'Expand device');
-  el.querySelector('[data-do=back]').hidden=!app;el.querySelector('.pd-title').textContent=app?D.APPS[app].title:'HOME';
-  if(opts.bar)loadingBar(app?def.ui.appOpenMs:def.ui.tabMs);
+  el.querySelector('[data-do=back]').hidden=!app;el.querySelector('.pd-title').textContent=label();
+ }
+ function render(opts={}){
+  if(!el||!open||busy)return;   // while a transition card is showing nothing else redraws the screen
+  const app=stack[0],def=D.DEVICES[dev.model];chrome();
   const top=body.scrollTop;
-  if(!app)body.innerHTML='<div class="pd-grid">'+def.apps.map(id=>{const a=D.APPS[id];return '<button type="button" class="pd-app" data-app="'+id+'" aria-label="'+esc(a.title)+(a.state==='placeholder'?' (placeholder)':'')+'"><span class="pd-glyph" aria-hidden="true">'+esc(a.glyph)+'</span><span>'+esc(a.title)+'</span><span class="pd-sub">'+(a.state==='placeholder'?'COMING LATER':'')+'</span></button>';}).join('')+'</div><div class="pd-note" style="margin-top:12px">'+esc(def.tagline)+'</div>';
+  if(!app){const st=D.storage(dev);body.innerHTML='<div class="pd-home"><div class="pd-grid">'+def.apps.map((id,i)=>{const a=D.APPS[id],off=a.state==='placeholder';return '<button type="button" class="pd-app'+(off?' off':'')+'" data-app="'+id+'" style="--i:'+i+'" aria-label="'+esc(a.title)+(off?' (not available yet)':'')+'">'+FRAME+'<span class="pd-index" aria-hidden="true">'+String(i+1).padStart(2,'0')+'</span>'+icon(id)+'<span class="pd-name">'+esc(a.title)+'</span><span class="pd-sub">'+(off?'COMING LATER':'')+'</span></button>';}).join('')+'</div><div class="pd-home-foot"><div class="pd-storage pd-mini" aria-label="Device storage"><div class="pd-stat"><span>STORAGE USED: '+st.usedPct+'%</span><span>AVAILABLE: '+st.availablePct+'%</span></div><div class="pd-bar"><i style="width:'+st.usedPct+'%"></i></div></div><div class="pd-foot">'+esc(def.tagline)+'</div></div></div>';}
   else{try{body.innerHTML=APP_VIEW[app]();}catch(e){body.innerHTML='<div class="pd-empty">This app could not be shown.</div>';}}
   body.scrollTop=opts.keepScroll?top:0;
   hydratePortraits();if(app==='map')drawMap();
  }
+ /* Moves to another screen. The new screen's title shows at once; its content appears after the model's transition delay (a loading card, driven by a timer: nothing blocks).
+    Only the LATEST request counts: clicking again, going back or closing cancels the one in flight, so transitions never pile up. */
+ function go(next,kind,text){
+  stack=next;const seq=++navSeq,ms=D.delayMs(dev,kind,reduced());clearTimeout(navTimer);busy=false;
+  if(!el||!open)return;
+  if(!ms){render();return;}
+  chrome();busy=true;loadingBar(ms);
+  body.innerHTML='<div class="pd-boot" role="status"><b>'+esc(text||'OPENING '+label())+'</b><small>'+esc(D.DEVICES[dev.model].tagline)+'</small><div class="pd-boot-bar" style="--pd-ms:'+ms+'ms"><i></i></div></div>';
+  navTimer=setTimeout(()=>{if(seq!==navSeq)return;busy=false;if(open)render();},ms);
+ }
  function onClick(e){
   const t=e.target.closest('button');if(!t)return;
-  if(t.dataset.app){stack=[t.dataset.app];render({bar:true});return;}
+  if(t.dataset.app){if(busy)return;if(!reduced()){t.classList.add('launching');t.style.setProperty('--pd-ms',D.delayMs(dev,'open',false)+'ms');}go([t.dataset.app],'open');return;}
   if(t.dataset.do==='close')return setOpen(false);
   if(t.dataset.do==='back')return back();
-  if(t.dataset.do==='expand'){expanded=!expanded;render();return;}
-  if(t.dataset.sub){stack=[stack[0],t.dataset.sub];render({bar:true});return;}
-  if(t.dataset.openProfile){stack=['social',t.dataset.openProfile];render({bar:true});return;}
+  if(t.dataset.do==='expand'){expanded=!expanded;render({keepScroll:true});if(busy)chrome();return;}
+  if(t.dataset.sub){if(t.getAttribute('aria-pressed')==='true')return;go([stack[0],t.dataset.sub],'tab','LOADING');return;}
+  if(t.dataset.openProfile){go(['social',t.dataset.openProfile],'tab','LOADING PROFILE');return;}
   if(t.dataset.track||t.dataset.untrack){const s=state_(),V=root.VoidMissions;try{if(t.dataset.track)V.track(s,t.dataset.track,C);else V.untrack(s);if(typeof save==='function')save();}catch{}render({keepScroll:true});return;}
   if(t.dataset.set){dev.settings[t.dataset.set]=t.dataset.value;if(t.dataset.set==='size')expanded=t.dataset.value==='expanded';commit();render({keepScroll:true});return;}
   if(t.dataset.act==='block'||t.dataset.act==='report'){
    const pk=String(t.dataset.profile||'').replace(/^player:/,''),r=rp();if(!r)return;const peer=r.peers.find(p=>p.id===pk);
-   if(t.dataset.act==='block'&&peer){r.setIgnore(pk,'block',peer.name);stack=['social'];render();return;}
-   if(t.dataset.act==='report'){const box=body.querySelector('[data-report]');if(box&&!box.firstChild){box.innerHTML='<select aria-label="Reason" style="font:inherit;background:#04070a;color:#d9fbff;border:1px solid #38e8ff"><option value="harassment">HARASSMENT</option><option value="spam">SPAM</option><option value="inappropriate">INAPPROPRIATE</option><option value="cheating">CHEATING</option><option value="other">OTHER</option></select> <button type="button" data-send-report="'+esc(pk)+'">SEND REPORT</button>';}return;}
+   if(t.dataset.act==='block'&&peer){r.setIgnore(pk,'block',peer.name);go(['social'],'tab','LOADING');return;}
+   if(t.dataset.act==='report'){const box=body.querySelector('[data-report]');if(box&&!box.firstChild){box.innerHTML='<select aria-label="Reason"><option value="harassment">HARASSMENT</option><option value="spam">SPAM</option><option value="inappropriate">INAPPROPRIATE</option><option value="cheating">CHEATING</option><option value="other">OTHER</option></select> <button type="button" data-send-report="'+esc(pk)+'">SEND REPORT</button>';}return;}
   }
   if(t.dataset.sendReport){const sel=body.querySelector('[data-report] select');rp()?.report(t.dataset.sendReport,sel?.value||'other','');const box=body.querySelector('[data-report]');if(box)box.textContent='Report sent. Thank you.';}
  }
- function back(){if(stack.length>1&&stack[0]!=='messages'){stack.pop();render();return true;}   // tabs inside Messages are not history: Back goes home
-  if(stack.length){stack=[];render({bar:true});return true;}setOpen(false);return false;}
+ function back(){if(stack.length>1&&stack[0]!=='messages'){go(stack.slice(0,-1),'tab','LOADING');return true;}   // tabs inside Messages are not history: Back goes home
+  if(stack.length){go([],'home','RETURNING HOME');return true;}setOpen(false);return false;}
 
  // ---- Map drawing: only explored walls and places, in the District's own orientation (door at the top, deeper = lower) ----
  function drawMap(){
@@ -226,12 +218,13 @@
   if(v){
    if(!onFootOrDock())return false;
    if(!el)build();const s=state_();dev=D.restore(s?.story?.flags||{});dev.loaded=true;
-   expanded=dev.settings.size==='expanded';stack=[];open=true;
+   expanded=dev.settings.size==='expanded';stack=[];open=true;busy=false;clearTimeout(navTimer);navSeq++;
    walkingKeys?.clear?.();try{clearInput?.();}catch{}for(const c of held)if(MOVE.has(c))suppressed.add(c);   // keys already held do nothing until released and pressed again
-   document.exitPointerLock?.();el.classList.add('open');el.classList.toggle('anim',!reduced());chip.classList.remove('on');render({bar:true});
+   document.exitPointerLock?.();el.classList.add('open');el.classList.toggle('anim',!reduced());chip.classList.remove('on');
+   if(!booted){booted=true;go([],'startup','V1 STARTING');}else render();   // the first opening after the page loads shows a short start-up card
    setTimeout(()=>el.querySelector('.pd-main')?.focus({preventScroll:true}),0);
   }else{
-   open=false;el.classList.remove('open');commit();walkingKeys?.clear?.();for(const c of held)if(MOVE.has(c))suppressed.add(c);
+   open=false;busy=false;clearTimeout(navTimer);navSeq++;el.classList.remove('open');commit();walkingKeys?.clear?.();for(const c of held)if(MOVE.has(c))suppressed.add(c);
    try{canvas?.focus?.();}catch{}
   }
   return true;
@@ -271,5 +264,5 @@
  if(typeof openGameMenu==='function'){const gameMenu=openGameMenu;openGameMenu=function(){if(open)return;return gameMenu.apply(this,arguments);};}
  // The L key now opens the V1 on foot and in stations; in flight the older Mission Log keeps working unchanged.
  if(typeof openMissionLog==='function'){const legacy=openMissionLog;openMissionLog=function(){if(open||onFootOrDock()){toggle();return;}return legacy.apply(this,arguments);};}
- root.VoidPersonalDevice={get isOpen(){return open;},get expanded(){return expanded;},open:()=>setOpen(true),close:()=>setOpen(false),toggle,get app(){return stack[0]||null;},get suppressed(){return [...suppressed];},get device(){return dev;},APP_VIEW};
+ root.VoidPersonalDevice={get isOpen(){return open;},get expanded(){return expanded;},open:()=>setOpen(true),close:()=>setOpen(false),toggle,get app(){return stack[0]||null;},get busy(){return busy;},get suppressed(){return [...suppressed];},get device(){return dev;},APP_VIEW};
 })(globalThis);

@@ -13,7 +13,13 @@
   v1:{id:'v1',generation:1,name:'V1',tagline:'PERSONAL DEVICE · MODEL V1',
    apps:['missions','messages','social','news','map','camera','gallery','store','settings'],
    camera:{enabled:false},                       // the camera is a placeholder in V1
-   ui:{halfWidth:.5,expandedWidth:.96,appOpenMs:320,tabMs:160}   // deliberately slow-looking: the loading is cosmetic and never delays real work
+   // Interface timing, in milliseconds (a later model changes these numbers and nothing else). The starter V1 is deliberately a little slow: a short loading card is shown
+   // before a screen appears. It is cosmetic and asynchronous: it never blocks the game loop, networking or message delivery. appOpenMs: opening an app from home;
+   // homeMs: going back to home; tabMs: switching inside an app; startupMs: the first opening after the page loads. 0 turns a delay off (reduced motion does this too).
+   ui:{halfWidth:.5,expandedWidth:.96,appOpenMs:320,homeMs:180,tabMs:160,startupMs:600,maxMs:600},
+   // Storage is a defined baseline of the stock model, NOT a measurement of this computer or browser. The nine system apps are part of it. A future optional app costs
+   // its own `storagePct` (in STORE_EXTRA) on top, and the total is capped at 100.
+   storage:{baseUsedPct:75}
   }
  };
  // state: 'ready' (works), 'placeholder' (shows what is coming, does nothing yet), kind of limits are written in `note`
@@ -29,7 +35,7 @@
   settings:{id:'settings',title:'SETTINGS',glyph:'*',state:'ready',note:'Device preferences.'}
  };
  // Apps a player could install later. Intentionally empty: no purchases, prices or unlocks exist yet.
- const STORE_EXTRA=[];
+ const STORE_EXTRA=[];   // each future entry: {id,title,generation,note,storagePct}
  // Which in-game model draws each named NPC's portrait: {npcId: 'crowd-look-id'}. EMPTY on purpose: the game does not yet say which crowd model is which named
  // character, and a guessed face would be wrong. An entry here makes that NPC's portrait appear (and regenerate whenever ASSET_VERSION or the model changes).
  const NPC_MODELS={};
@@ -48,7 +54,8 @@
  function restore(flags){
   flags=flags&&typeof flags==='object'?flags:{};
   const model=DEVICES[flags[KEY.model]]?flags[KEY.model]:'v1',def=DEVICES[model];
-  const asked=typeof flags[KEY.apps]==='string'?flags[KEY.apps].split(',').filter(a=>def.apps.includes(a)&&APPS[a]):[];
+  const optional=a=>STORE_EXTRA.some(x=>x.id===a&&x.generation<=def.generation);   // an optional app that really exists is kept; anything else is dropped
+  const asked=typeof flags[KEY.apps]==='string'?flags[KEY.apps].split(',').filter(a=>(def.apps.includes(a)||optional(a))&&APPS[a]):[];
   const apps=[...new Set([...def.apps,...asked])];   // the built-in apps are always installed; an unknown name is ignored, never trusted
   return {model,version:1,apps,settings:parseSettings(flags[KEY.settings]),map:{interior:String(flags[KEY.map+'Interior']||'').replace(/[^0-9a-f]/g,'').slice(0,60),street:String(flags[KEY.map+'Street']||'').replace(/[^0-9a-f]/g,'').slice(0,60)}};
  }
@@ -57,11 +64,24 @@
   flags[KEY.map+'Interior']=device.map.interior;flags[KEY.map+'Street']=device.map.street;return flags;
  }
 
- // ---- App Store view (installed, available, locked; nothing is for sale) ----
+ // ---- Storage, App Store view and timing ----
+ const clampPct=n=>Math.max(0,Math.min(100,Math.round(n)));
+ /* Stock V1: 9 system apps, 0 optional apps, 75% used / 25% available. Only optional apps that are actually installed add to the baseline. */
+ function storage(device){
+  const def=DEVICES[device.model]||DEVICES.v1,optional=device.apps.filter(a=>!def.apps.includes(a)),
+   extra=optional.reduce((t,a)=>t+(Number((STORE_EXTRA.find(x=>x.id===a)||{}).storagePct)||0),0),used=clampPct(def.storage.baseUsedPct+extra);
+  return {model:def.name,systemApps:def.apps.length,optionalApps:optional.length,usedPct:used,availablePct:100-used,baselinePct:def.storage.baseUsedPct};
+ }
  function storeListing(device){
-  const def=DEVICES[device.model]||DEVICES.v1,rows=def.apps.map(id=>({id,title:APPS[id].title,status:device.apps.includes(id)?'installed':'available',compatible:true,note:APPS[id].note,placeholder:APPS[id].state==='placeholder'}));
-  for(const x of STORE_EXTRA)rows.push({id:x.id,title:x.title,status:x.generation>def.generation?'locked':'available',compatible:x.generation<=def.generation,note:x.note||'',placeholder:false});
-  return {rows,more:STORE_EXTRA.length>0};
+  const def=DEVICES[device.model]||DEVICES.v1,rows=def.apps.map(id=>({id,title:APPS[id].title,status:device.apps.includes(id)?'installed':'available',compatible:true,note:APPS[id].note,placeholder:APPS[id].state==='placeholder',system:true}));
+  const extra=STORE_EXTRA.map(x=>({id:x.id,title:x.title,status:device.apps.includes(x.id)?'installed':x.generation>def.generation?'locked':'available',compatible:x.generation<=def.generation,note:x.note||'',placeholder:false,system:false}));
+  for(const x of extra)rows.push(x);
+  return {rows,system:rows.filter(r=>r.system),installed:extra.filter(r=>r.status==='installed'),available:extra.filter(r=>r.status!=='installed'),more:STORE_EXTRA.length>0,storage:storage(device)};
+ }
+ /* How long a transition shows its loading card. kind: 'open' (home -> app), 'home', 'tab', 'startup'. Configurable per model; 0 when `still` (reduced motion). */
+ function delayMs(device,kind,still){
+  const u=(DEVICES[device.model]||DEVICES.v1).ui,ms=({open:u.appOpenMs,home:u.homeMs,tab:u.tabMs,startup:u.startupMs})[kind];
+  return still||!Number.isFinite(ms)?0:Math.max(0,Math.min(u.maxMs||600,Math.round(ms)));
  }
 
  // ---- Map exploration: a grid over the area's real geometry; a cell is "explored" once the player has been near it ----
@@ -122,6 +142,6 @@
    facts:learned,places:data.place?[String(data.place).slice(0,100)]:[],portrait:{key:portraitKey('npc',data.id||'',data.model?{model:data.model}:null),source:data.model?{type:'model',model:data.model}:null,state:data.model?'ready':'unavailable'},
    actions:[{id:'talk',label:'CONVERSATION',enabled:!!data.here,reason:data.here?'':'Talk to them in person.'}]};
  }
- const api={ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storeListing,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
+ const api={ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidDeviceV1=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

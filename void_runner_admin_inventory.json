@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "9aceccdefeca175f",
+  "revision": "b2071b890e3468ea",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11761,13 +11761,13 @@
     },
     {
       "source": "void-runner/device-v1.js",
-      "line": 22,
+      "line": 28,
       "text": "messages:{id:'messages',title:'MESSAGES',glyph:'@',state:'ready',note:'District chat and conversations. Private messages to other players are not available yet.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/device-v1.js",
-      "line": 123,
+      "line": 143,
       "text": "actions:[{id:'talk',label:'CONVERSATION',enabled:!!data.here,reason:data.here?'':'Talk to them in person.'}]};",
       "kind": "source-reference"
     },
@@ -12199,31 +12199,31 @@
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 75,
+      "line": 49,
       "text": "const A=root.VoidCharacterCreator?.stored?.()||null,h=root.VoidAccount?.handle;   // no saved look: the portrait says unavailable, never a guess",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 100,
+      "line": 74,
       "text": "const tabs='<div class=\"pd-tabs\"><button type=\"button\" data-sub=\"chat\" aria-pressed=\"'+(sub==='chat')+'\">DISTRICT CHAT</button><button type=\"button\" data-sub=\"talk\" aria-pressed=\"'+(sub==='talk')+'\">CONVERSATIONS</button><button type=\"button\" data-sub=\"dm\" aria-pressed=\"'+(sub==='dm')+'\">PRIVATE</button></div>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 104,
+      "line": 78,
       "text": "return tabs+(rows.length?rows.slice(-40).reverse().map(m=>'<div class=\"pd-line\"><b>'+esc(m.name)+'</b><span class=\"pd-note\">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class=\"pd-empty\">No conversations yet. People you talk to appear here.</div>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 109,
+      "line": 83,
       "text": "+'<form data-chatform style=\"margin-top:8px\"><input type=\"text\" maxlength=\"200\" autocomplete=\"off\" aria-label=\"Chat message\" placeholder=\"'+(can?'Say something (no links)':'Chat needs a registered account and a connection')+'\"'+(can?'':' disabled')+'></form>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 262,
+      "line": 255,
       "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
       "kind": "source-reference"
     },
@@ -13617,11 +13617,11 @@
     "void-runner/dev-tools.js": "8fc329454a6ed8a22bf93e8721eeffca11b1276ccf0eb3676b90c67c58781974",
     "void-runner/device-gate.js": "089a601ec87511bcd6a0e6a48e11422a2e3a91b13fd15c6033e9cfba2bfe1d98",
     "void-runner/device-portraits.js": "390549763346c7202b1f16c85c873828baf5b3e8b05dc326a2dcde2cc264374f",
-    "void-runner/device-v1.js": "3007b412efce9859a50342d0e9a167a9adad2e6e826e831f08a5bc8c8f623571",
+    "void-runner/device-v1.js": "50c7e6f065eb8f261f8306d90b005ac51aa2300ced09bc8ba0f3a6f16b389233",
     "void-runner/district-arcade.js": "de51866295a9a6cef51b94a3097ea6ca38bc3da02133d85ba4f26835653336f9",
     "void-runner/district-area.js": "48b60eab3a791020ce7a4a7213de866e697069ca4c003cf7f255a5ffcef3db4c",
     "void-runner/district-chat.js": "f6dcf7d042846fb47df27dfa2703699314770365fcc5adab94c80f3341029dd5",
-    "void-runner/district-map.js": "5a57f879352d99d5e2db32dc6f948bbe13bce32bc63d52eba181b375f0550c5b",
+    "void-runner/district-map.js": "6275a1edc1a887c71fe8b04a18488e73bf8b4cfec72100e39cad2c3d12a94a13",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
@@ -13676,7 +13676,7 @@
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "4172df44fc02d43d56016c17c76bc6af4daa80edcc1c5200be582903d7075a19",
-    "void-runner/personal-device.js": "d971276a71b1c96d728675ee327bdc8f52bb4953bf6b4b0e898936f61c1840d2",
+    "void-runner/personal-device.js": "99f42c928b9f23776a7c55501d7bcfab010b0a8f6808ed248eb7dc7de0fc7577",
     "void-runner/personal-hud.js": "1ca0e48b3d144a0a2ffed8e3202f98322a060541b8127de2ee48469ed2606776",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",

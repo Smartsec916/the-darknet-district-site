@@ -67,9 +67,9 @@
   const rect=(r,fill,stroke)=>{const a=S(r[0],r[3]),b=S(r[1],r[2]);if(fill){g.fillStyle=fill;g.fillRect(a[0],a[1],b[0]-a[0],b[1]-a[1]);}if(stroke){g.strokeStyle=stroke;g.strokeRect(a[0]+.5,a[1]+.5,b[0]-a[0]-1,b[1]-a[1]-1);}};
   if(isDev())for(const d of m.pois.filter(x=>x.dev&&x.rect)){g.setLineDash([6,6]);rect(d.rect,null,'rgba(122,135,148,.6)');g.setLineDash([]);}
   for(const s of m.streets)rect(s.rect,'rgba(40,74,92,.55)','rgba(88,255,225,.22)');
-  for(const b of m.buildings)rect(b.rect,'rgba(255,63,180,.07)','rgba(255,63,180,.55)');
+  for(const b of m.buildings)rect(b.rect,'rgba(97,238,233,.06)','rgba(97,238,233,.5)');
   // walls: of the environment the player is in (the other one is drawn faintly: it is real, but not where they are)
-  for(const [area,list] of Object.entries(m.walls)){const here=(area==='interior')===!!inside;g.fillStyle=area==='interior'?(here?'rgba(255,130,210,.6)':'rgba(255,130,210,.16)'):(here?'rgba(120,200,220,.5)':'rgba(120,200,220,.2)');
+  for(const [area,list] of Object.entries(m.walls)){const here=(area==='interior')===!!inside;g.fillStyle=area==='interior'?(here?'rgba(97,238,233,.5)':'rgba(97,238,233,.14)'):(here?'rgba(120,200,220,.5)':'rgba(120,200,220,.2)');
    if(area==='interior'&&view.s<2.2)continue;for(const r of list){const a=S(r.x0,r.z1),b=S(r.x1,r.z0);g.fillRect(a[0],a[1],Math.max(1.5,b[0]-a[0]),Math.max(1.5,b[1]-a[1]));}}
   g.textAlign='center';g.textBaseline='middle';
   if(view.s>=1.1){g.font='600 '+Math.max(10,Math.min(15,view.s*4))+'px ui-monospace,Consolas,monospace';g.fillStyle='rgba(190,235,240,.55)';
