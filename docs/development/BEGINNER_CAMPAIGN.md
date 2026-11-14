@@ -25,7 +25,7 @@ Records and dialogue are data in `beginner.js` (the Developer Studio edits the s
 3. **A JOB WORTH TAKING** (Iris): collect a sealed parcel, deliver it to the Landing Terminal on the street, bring the receipt back. 250 credits.
 4. **THE SHIP OPPORTUNITY** (Admin): ask Admin about transport, get pad clearance from Iris. Free.
 5. **YOUR FIRST SHIP** (Admin): register the courier hull at the Landing Terminal (the ship is awarded here and appears on Pad 01), board it at Pad 01.
-6. **FIRST DEPARTURE** (Admin): clear the pad, line up on the MERIDIAN marker and jump, dock at Meridian Station. 200 credits. The first trip to Meridian is interstellar and has no raiders (`Universe.route`); the local Tessaly routes (Sol Belt, Mars) are interdicted.
+6. **FIRST DEPARTURE** (Admin): clear the pad, line up on the MERIDIAN marker and jump, dock at Meridian Station. 200 credits. The first trip to Meridian is interstellar and has no raiders (`Universe.route`); the local Tessaly routes (Tessaly Belt Anchorage `sol-belt`, Vantor / Underground City `mars`) are interdicted.
 
 All of it works through the V1 Mission Log (objective, steps, progress, reward, location, waypoint, completion; the next mission starts and is tracked automatically). The V1 card now shows the current objective, a step checklist and the reward.
 
