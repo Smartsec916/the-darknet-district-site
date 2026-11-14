@@ -570,14 +570,20 @@
     for(const s of solids){if(!/^(hall|vr|vend|pods|arc|bar|shop|meet)-/.test(s.id)||/-(counter|row|table)$/.test(s.id)||/glass|partition/.test(s.id))continue;/* glass booths are drawn by the VR arcade */box('district-wall',[Math.max(.3,s.size[0]),4.2,Math.max(.3,s.size[2])],[s.position[0],2.1,s.position[2]],metal);}
     // The hallway's lining and ceiling (interior rebuild, phase B): Blender-made modules along both walls and overhead. West side magenta, east side cyan.
     // Each wall run is: a column, as many 2 m modules as fit (four designs in turn), a 1 m module and a spare column for what is left, a column.
+    // A cold white ceiling panel set up among the services and half hidden from below (David: less direct, the light coming from behind): a slatted grille under one end, a duct under the other, cables slung across.
+    // `across`: the fixture lies along x (the pod room) instead of along the hallway.
+    const serviceLamp=(x,z,f,y,across)=>{const white=mat('hall-lamp-white','#8fa0b4',{glow:'#d6e8ff',rough:.4}),cage=mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8});white.emissiveIntensity=2.4;
+     const B3=(n,sz,dx,dy,dz)=>box(n,across?[sz[2],sz[1],sz[0]]:sz,across?[x+dz,y+dy,z+dx]:[x+dx,y+dy,z+dz],cage);
+     B3('hall-lamp-body',[1.7,.06,.7],0,0,0);box('hall-lamp-panel',across?[.56,.03,1.5]:[1.5,.03,.56],[x,y-.035,z],white);
+     for(let k=0;k<6;k++)B3('hall-lamp-grille',[.78,.05,.022],f*.42,-.11,-.24+k*.096);for(const dz of [-.3,.3])B3('hall-lamp-grille',[.82,.03,.03],f*.42,-.08,dz);
+     B3('hall-lamp-duct',[.5,.16,1.3],-f*.5,-.15,.1);B3('hall-lamp-duct',[.56,.03,.08],-f*.5,-.21,-.3);B3('hall-lamp-duct',[.56,.03,.08],-f*.5,-.21,.5);
+     for(const [dz,r,dy] of [[-.12,.022,-.14],[.02,.03,-.16],[.19,.018,-.13]]){const c=cyl('hall-lamp-cable',r,2.6,across?[x+dz,y+dy,z+f*.15]:[x+f*.15,y+dy,z+dz],cage,true,6);if(across){c.rotation.x=Math.PI/2;c.rotation.y=dz*.5;}else{c.rotation.z=Math.PI/2;c.rotation.y=dz*.5;}}};
+    // A soft pool of coloured light lying on the wet floor (a lamp's reflection): a glow that fades to nothing at its edge, never a hard-edged patch.
+    const lightPool=(c,w,d,p,strength=.5)=>{const key='pool-'+c+strength;if(!mats[key]){const t=texture(key,128,128,(g,W,H)=>{g.clearRect(0,0,W,H);const r=g.createRadialGradient(W/2,H/2,2,W/2,H/2,W/2),n=parseInt(c.slice(1),16),rgb=[n>>16,n>>8&255,n&255].join(',');r.addColorStop(0,'rgba('+rgb+','+strength+')');r.addColorStop(.45,'rgba('+rgb+','+strength*.42+')');r.addColorStop(1,'rgba('+rgb+',0)');g.fillStyle=r;g.fillRect(0,0,W,H);});t.hasAlpha=true;const m=texMat(key,t,{glow:true,alpha:true});m.backFaceCulling=false;mats[key]=m;}
+     return add(B.MeshBuilder.CreateGround('light-pool',{width:w,height:d},scene),mats[key],p);};
     const NO_NEON=['__screen_0','__light_0','__screen_1','__light_1'];   // David, Nov 2026: no neon strips in the hallway; light it like his container-alley reference (cold white overhead, small red lamps at the doors)
     const hallLined=(()=>{if(!kitPiece('district:hall_ceiling_4m',[3,4.05-.62,30],0,NO_NEON,{merge:true}))return false;for(let z=34;z<=70;z+=4)kitPiece('district:hall_ceiling_4m',[3,4.05-.62,z],0,NO_NEON,{merge:true});
-     {const white=mat('hall-lamp-white','#8fa0b4',{glow:'#d6e8ff',rough:.4}),cage=mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8});white.emissiveIntensity=2.4;
-      // The panels sit up among the services and are half hidden from below (David: less direct, the light coming from behind): a slatted grille under one end, a duct under the other, cables slung across.
-      for(let z=32,i=0;z<=68;z+=6,i++){const f=i%2?-1:1;box('hall-lamp-body',[1.7,.06,.7],[0,3.41,z],cage);box('hall-lamp-panel',[1.5,.03,.56],[0,3.375,z],white);
-       for(let k=0;k<6;k++)box('hall-lamp-grille',[.78,.05,.022],[f*.42,3.3,z-.24+k*.096],cage);for(const dz of [-.3,.3])box('hall-lamp-grille',[.82,.03,.03],[f*.42,3.33,z+dz],cage);
-       box('hall-lamp-duct',[.5,.16,1.3],[-f*.5,3.26,z+.1],cage);box('hall-lamp-duct',[.56,.03,.08],[-f*.5,3.2,z-.3],cage);box('hall-lamp-duct',[.56,.03,.08],[-f*.5,3.2,z+.5],cage);
-       for(const [dz,r,y] of [[-.12,.022,3.27],[.02,.03,3.25],[.19,.018,3.28]]){const c=cyl('hall-lamp-cable',r,2.6,[f*.15,y,z+dz],cage,true,6);c.rotation.z=Math.PI/2;c.rotation.y=dz*.5;}}}
+     for(let z=32,i=0;z<=68;z+=6,i++)serviceLamp(0,z,i%2?-1:1,3.41,false);
      const kinds=['a','b','c','a','d','b','a','c'];let n=0;
      const run=(side,a,b)=>{const hide=NO_NEON,ry=side<0?Math.PI/2:-Math.PI/2;let at=side<0?a:b;
       const put=(id,len,depth)=>{kitPiece('district:'+id,[side*(2.8-depth),0,at],ry,hide,{merge:true});at+=side<0?len:-len;};
@@ -706,17 +712,22 @@
     }
     // The vending unit's lit shelves: one picture shared by all ten pods (same stock everywhere).
     function drawPodVending(g,W,H){
-     const bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#c9dcff');bg.addColorStop(1,'#7f9fd8');g.fillStyle=bg;g.fillRect(0,0,W,H);
-     const rows=4,cols=5,rh=H/rows,cw=W/cols;g.textAlign='center';g.textBaseline='middle';
+     // A dark cabinet lit shelf by shelf (David's references, Nov 2026): a cold white tube under each shelf, one shelf washed pink, the goods standing in their own light.
+     const rows=4,cols=5,rh=H/rows,cw=W/cols;g.fillStyle='#070910';g.fillRect(0,0,W,H);
+     for(let r=0;r<rows;r++){const wash=g.createLinearGradient(0,r*rh,0,(r+1)*rh),tint=r===2?'255,86,190':r===3?'150,120,255':'214,236,255';wash.addColorStop(0,'rgba('+tint+',.5)');wash.addColorStop(.35,'rgba('+tint+',.16)');wash.addColorStop(1,'rgba('+tint+',.05)');g.fillStyle=wash;g.fillRect(0,r*rh,W,rh);g.fillStyle='rgba('+tint+',.95)';g.fillRect(W*.04,r*rh+3,W*.92,4);}
+     g.textAlign='center';g.textBaseline='middle';
      POD_VENDING.forEach((d,i)=>{const r=Math.floor(i/cols),c=i%cols,cx=c*cw+cw/2,floor=(r+1)*rh-22,k=d.kind,tall=/bottle|can|spray|vape/.test(k),wide=/bento|medkit|parcel|tin/.test(k),w=tall?cw*.34:wide?cw*.7:cw*.5,h=tall?rh*.66:wide?rh*.36:k==='stubby'||k==='jar'?rh*.44:rh*.56,x=cx-w/2,y=floor-h;
       g.fillStyle='rgba(10,14,30,.35)';g.fillRect(x+3,floor-3,w,5);const fill=g.createLinearGradient(x,y,x+w,y+h);fill.addColorStop(0,d.art[0]);fill.addColorStop(1,d.art[1]);g.fillStyle=fill;
       if(k==='bottle'||k==='spray'){g.fillRect(x+w*.3,y-rh*.08,w*.4,rh*.1);g.fillStyle=d.art[3];g.fillRect(x+w*.28,y-rh*.11,w*.44,rh*.04);g.fillStyle=fill;}
       g.beginPath();g.roundRect?g.roundRect(x,y,w,h,tall?6:4):g.rect(x,y,w,h);g.fill();
-      if(k==='jar'){g.fillStyle='#3f8a3a';g.fillRect(x+3,y+h*.45,w-6,h*.5);g.fillStyle='#1c1c22';g.fillRect(x-1,y-5,w+2,7);}
+      if(k==='jar'){   // a clear jar: glass, a heap of buds, a lid, a dark label
+       g.fillStyle='rgba(8,12,18,.92)';g.fillRect(x+2,y+2,w-4,h-4);let q=i*7919+17;const rnd=()=>(q=(q*1103515245+12345)&0x7fffffff)/0x7fffffff;
+       for(let n=0;n<46;n++){const bx=x+5+rnd()*(w-10),by=y+h*.2+rnd()*(h*.74),br=2.5+rnd()*4.5,shade=rnd();g.fillStyle=shade>.86?'#c8862e':shade>.5?'#5f8f3a':shade>.2?'#3f6d2c':'#27481f';g.beginPath();g.arc(bx,by,br,0,7);g.fill();}
+       g.strokeStyle='rgba(220,240,255,.75)';g.lineWidth=2;g.strokeRect(x+1,y+1,w-2,h-2);g.fillStyle='rgba(255,255,255,.22)';g.fillRect(x+4,y+4,3,h-8);g.fillStyle=i%2?'#e85ab0':'#e8ecf2';g.fillRect(x-2,y-7,w+4,9);g.fillStyle='#0c0c10';g.beginPath();g.ellipse(cx,y+h*.55,w*.3,h*.2,0,0,7);g.fill();}
       g.fillStyle=d.art[3];g.fillRect(x,y+h*.72,w,3);g.fillStyle=d.art[2];g.save();g.translate(cx,y+h*.42);if(tall)g.rotate(-Math.PI/2);const span=(tall?h:w)-8,words=tall?[d.name]:d.name.split(/[ \/]+/).filter(Boolean).slice(0,2);let size=15;g.font='900 '+size+'px Arial,Helvetica,sans-serif';while(size>7&&Math.max(...words.map(t=>g.measureText(t).width))>span){size--;g.font='900 '+size+'px Arial,Helvetica,sans-serif';}
       words.forEach((t,n)=>g.fillText(t,0,(n-(words.length-1)/2)*(size+1)));g.restore();
       g.fillStyle='#0b0d14';g.fillRect(c*cw+5,(r+1)*rh-17,cw-10,14);g.fillStyle='#ffb84a';g.font='700 11px Consolas,Menlo,monospace';g.fillText(d.code+'  '+d.price.toFixed(2),cx,(r+1)*rh-9.5);});
-     g.fillStyle='#8f97ab';for(let r=1;r<=rows;r++)g.fillRect(0,r*rh-22,W,3);
+     g.fillStyle='#3a4150';for(let r=1;r<=rows;r++)g.fillRect(0,r*rh-22,W,3);
     }
     const podScreen=(()=>{
      const rest=B.Color3.FromHexString('#ad5a94'),reading=B.Color3.FromHexString('#fff0cb'),musicColor=B.Color3.FromHexString('#e96bbf');
@@ -798,19 +809,29 @@
 
     // Sleep pods: two stacked rows with ring-lit hatches and numbers.
     // Capsules (reference: rounded pods with glowing oval hatches, glass, a warm-lit bed inside).
-    const podGlass=glass('pod-glass','#a8dcff',.1),mattress=mat('pod-mattress','#1c1922',{rough:.9,metal:0});
+    const podGlass=glass('pod-glass','#a8dcff',.1),mattress=mat('pod-mattress','#2a2530',{rough:.9,metal:0});
     // All ten capsules reuse the owner's Tesana Sleeping Pod geometry and its CC0 ambientCG materials.
     // Reuse emissive surfaces rather than the source scene's 13 real lights (which exceed this room's light budget).
     // Surfaces follow the owner's Tesana Sleeping Pod (src/pod/materials.ts): the shell is off-white moulded plastic and the bedding plain white cotton; the scanned
     // paint and fabric sets give only fine scuffs and thread (normal maps), never the colour. The pink comes from the pod's own light, not from the paint.
-    const podPaint=mat('tesana-pod-paint','#1f1c28',{rough:.42,metal:.15}),podFabric=mat('tesana-pod-fabric','#2a2233',{rough:.96,metal:0}),podRib=mat('tesana-pod-rib','#17151e',{rough:.4,metal:.2})   /* dark shells and bedding (David, 2026-11-13: the pods were almost white; things should be dark, with coloured light as the accent) */,podVent=mat('tesana-pod-vent','#20263b',{rough:.7,metal:.35}),podFacade=mat('tesana-pod-facade','#2a1d33',{rough:.55,metal:.1});
-    podPaint.emissiveColor=B.Color3.FromHexString('#160d1c');podFabric.emissiveColor=B.Color3.FromHexString('#1c1024');podRib.emissiveColor=B.Color3.FromHexString('#120a18');   // the neon wash inside the capsule (no extra lights)
+    const podPaint=mat('tesana-pod-paint','#0f0e13',{rough:.42,metal:.45}),podFabric=mat('tesana-pod-fabric','#2c2534',{rough:.96,metal:0}),podRib=mat('tesana-pod-rib','#17151e',{rough:.4,metal:.2})   /* dark shells and bedding (David, 2026-11-13: the pods were almost white; things should be dark, with coloured light as the accent) */,podVent=mat('tesana-pod-vent','#20263b',{rough:.7,metal:.35}),podFacade=mat('tesana-pod-facade','#0c0b10',{rough:.5,metal:.45});   // David, Nov 2026 (later): the pods were still too light. Dark panels; the light comes from the rings, strips and lamps.
+    podPaint.emissiveColor=B.Color3.FromHexString('#07050a');podFabric.emissiveColor=B.Color3.FromHexString('#2b1232');podRib.emissiveColor=B.Color3.FromHexString('#120a18');   // the neon wash inside the capsule (no extra lights)
     if(!low)for(const [material,file,scale,level] of [[podPaint,'paintedmetal003-normal.jpg',1,.18],[podFabric,'fabric062-normal.jpg',3,.25]]){const t=new B.Texture(new URL('assets/textures/tesana-pod/'+file,base).href,scene);t.uScale=scale;t.vScale=scale;t.level=level;material.bumpTexture=t;textures.push(t);}
     // The pod's front: one solid panel with an oval window cut out (in the y–z plane, facing the room).
     function ovalPanel(p,width,height,rz,ry,material=podShell){const pos=[],idx=[],n=40;for(let k=0;k<=n;k++){const a=k/n*Math.PI*2,c=Math.cos(a),s=Math.sin(a),reach=Math.min(width/2/Math.max(Math.abs(c),1e-6),height/2/Math.max(Math.abs(s),1e-6));pos.push(0,s*ry,c*rz,0,s*reach,c*reach);if(k<n){const q=k*2;idx.push(q,q+1,q+2,q+1,q+3,q+2,q,q+2,q+1,q+1,q+2,q+3);}}
      const mesh=new B.Mesh('pod-front',scene),vd=new B.VertexData();vd.positions=pos;vd.indices=idx;// Faces the room (+x) on both windings, so it lights like the rest of the shell.
      vd.normals=pos.map((_,k)=>k%3===0?1:0);const uvs=[];for(let k=0;k<pos.length;k+=3)uvs.push(pos[k+2]/width+.5,pos[k+1]/height+.5);vd.uvs=uvs;vd.applyToMesh(mesh);return add(mesh,material,p);}
     const podVendMat=texMat('tesana-pod-vend',texture('tesana-pod-vend',640,420,drawPodVending),{glow:true});
+    // The capsule's lining (David's pod references, Nov 2026): dark worn metal panels, scratched and grimy, washed faintly pink by the pod's own light; amber accent strips; a fan vent in the ceiling.
+    const podLining=mat('tesana-pod-lining','#ffffff',{rough:.5,metal:.3});{const t=texture('tesana-pod-lining',512,512,(g,W,H)=>{let q=4242;const rnd=()=>(q=(q*1103515245+12345)&0x7fffffff)/0x7fffffff;
+      const base=g.createLinearGradient(0,0,0,H);base.addColorStop(0,'#3b3542');base.addColorStop(1,'#26222c');g.fillStyle=base;g.fillRect(0,0,W,H);
+      for(let n=0;n<70;n++){g.fillStyle='rgba('+(rnd()>.5?'30,22,36':'150,132,160')+','+(.04+rnd()*.07)+')';g.beginPath();g.ellipse(rnd()*W,rnd()*H,20+rnd()*90,10+rnd()*50,rnd()*3,0,7);g.fill();}
+      for(let n=0;n<9;n++){const x=rnd()*W,len=60+rnd()*220,w=6+rnd()*18,d=g.createLinearGradient(0,0,0,len);d.addColorStop(0,'rgba(20,14,24,.4)');d.addColorStop(1,'rgba(20,14,24,0)');g.save();g.translate(x,rnd()*H*.5);g.fillStyle=d;g.fillRect(0,0,w,len);g.restore();}
+      g.lineCap='round';for(let n=0;n<120;n++){const x=rnd()*W,y=rnd()*H,a=rnd()*6.3,l=6+rnd()*rnd()*120;g.strokeStyle=rnd()>.35?'rgba(214,204,224,'+(.1+rnd()*.3)+')':'rgba(24,16,30,'+(.15+rnd()*.3)+')';g.lineWidth=.6+rnd();g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(a)*l,y+Math.sin(a)*l);g.stroke();}
+      g.strokeStyle='rgba(18,12,22,.8)';g.lineWidth=5;g.strokeRect(9,9,W-18,H-18);g.strokeStyle='rgba(190,176,204,.35)';g.lineWidth=1.5;g.strokeRect(13,13,W-26,H-26);
+      for(const [x,y] of [[26,26],[W-26,26],[26,H-26],[W-26,H-26],[W/2,26],[W/2,H-26]]){g.fillStyle='#2a2230';g.beginPath();g.arc(x,y,6,0,7);g.fill();g.fillStyle='rgba(200,190,214,.5)';g.beginPath();g.arc(x-1.5,y-1.5,2.2,0,7);g.fill();}});
+     podLining.albedoTexture=t;podLining.emissiveTexture=t;podLining.emissiveColor=new B.Color3(.5,.22,.46);}
+    const podAmber=glowMat('tesana-pod-amber','#ffb45a',.95);
     framed=[];   // the ten pods, their ladder and ceiling panels: built in the west room's coordinates, then moved to the back wall below
     for(let row=0;row<2;row++)for(let i=0;i<5;i++){const z=57+i*2.6,y=.9+row*1.7,index=row*5+i+1,hatch=[amber,magenta][(i+row)%2],shell=podPaint,podInner=glowMat('pod-inner-'+index,'#ffc98a',.16),podLed=glowMat('tesana-pod-led-'+index,'#ad5a94',.4);
      // A hollow capsule: back, top, floor, sides and a fascia framing the hatch, so the bed shows through the glass.
@@ -822,11 +843,17 @@
      box('pod-mattress',[2.38,.24,2.08],[-15.39,y-.53,z],mattress);
      {
       // Molded wall and ceiling panels, repeating ribs, recessed neon and a vent follow the ZIP's pod layout.
-      for(const side of [-1,1]){box('tesana-pod-wall',[1.9,.42,.025],[-15.4,y+.13,z+side*1.025],podPaint);box('tesana-pod-led',[1.98,.025,.025],[-15.4,y+.52,z+side*.94],podLed);}
+      for(const side of [-1,1]){box('tesana-pod-wall',[1.9,.42,.025],[-15.4,y+.13,z+side*1.025],podLining);box('tesana-pod-led',[1.98,.025,.025],[-15.4,y+.52,z+side*.94],podLed);
+       for(const x of [-16.42,-15.675,-14.925,-14.34]){const w=x<-16.2?.6:x>-14.5?.3:.62;box('tesana-pod-lining',[w,1.3,.012],[x,y,z+side*1.043],podLining);}   // a lining panel in every bay between the ribs
+       box('tesana-pod-amber',[.34,.022,.014],[-16.2,y+.4,z+side*1.03],podAmber);box('tesana-pod-amber',[.022,.3,.014],[-14.32,y+.2,z+side*1.03],podAmber);}
+      box('tesana-pod-lining',[.012,1.3,2.06],[-16.572,y,z],podLining);for(const x of [-16.42,-15.675,-14.925])box('tesana-pod-lining',[.6,.012,.2],[x,y+.642,z+.93],podLining);
+      box('tesana-pod-led',[.03,.022,1.5],[-14.62,y+.615,z],podLed);   // the pink bar across the ceiling by the hatch
+      {const fx=-15.675,fy=y+.622;box('tesana-pod-fan-frame',[.5,.016,.5],[fx,fy,z-.5],podVent);for(const d of [-.2,.2]){box('tesana-pod-fan-frame',[.5,.03,.03],[fx,fy-.012,z-.5+d],podRib);box('tesana-pod-fan-frame',[.03,.03,.5],[fx+d,fy-.012,z-.5],podRib);}
+       for(let k=0;k<4;k++){const b=box('tesana-pod-fan-blade',[.19,.006,.07],[fx+Math.cos(k*Math.PI/2+.5)*.1,fy-.014,z-.5+Math.sin(k*Math.PI/2+.5)*.1],podRib);b.rotation.y=-(k*Math.PI/2+.5);}cyl('tesana-pod-fan-hub',.035,.02,[fx,fy-.016,z-.5],podVent,true,10);}
       for(const x of [-16.05,-15.3,-14.55]){box('tesana-pod-rib',[.055,.055,2.16],[x,y+.65,z],podRib);for(const side of [-1,1])box('tesana-pod-rib',[.055,1.34,.055],[x,y,z+side*1.07],podRib);}
       for(const x of [-16.05,-15.3,-14.55])box('tesana-pod-ceiling',[.58,.018,1.65],[x,y+.635,z],podRib);
       box('tesana-pod-vent',[.04,.18,.55],[-16.53,y+.24,z-.42],podVent);for(let k=0;k<4;k++)box('tesana-pod-vent-slot',[.015,.012,.5],[-16.505,y+.17+k*.045,z-.42],podRib);
-      const positions=[],uvs=[],indices=[],cols=12,rows=9;for(let j=0;j<=rows;j++)for(let k=0;k<=cols;k++){const u=k/cols,v=j/rows;positions.push(-15.85+u*1.42,y-.4+.02*Math.sin(u*22+v*7)+.025*Math.sin(v*19),z-.85+v*1.7);uvs.push(u*2,v*2);if(j<rows&&k<cols){const a=j*(cols+1)+k;indices.push(a,a+1,a+cols+1,a+1,a+cols+2,a+cols+1);}}
+      const positions=[],uvs=[],indices=[],cols=12,rows=9;for(let j=0;j<=rows;j++)for(let k=0;k<=cols;k++){const u=k/cols,v=j/rows;positions.push(-15.85+u*1.42,y-.4+.03*Math.sin(u*7+v*3)+.022*Math.sin(v*6+u*2),z-.85+v*1.7);uvs.push(u*2,v*2);if(j<rows&&k<cols){const a=j*(cols+1)+k;indices.push(a,a+1,a+cols+1,a+1,a+cols+2,a+cols+1);}}
       const duvet=new B.Mesh('tesana-pod-duvet',scene),data=new B.VertexData();data.positions=positions;data.uvs=uvs;data.indices=indices;data.normals=[];B.VertexData.ComputeNormals(positions,indices,data.normals);data.applyToMesh(duvet);add(duvet,podFabric,[0,0,0]);
       for(const side of [-1,1]){const pillow=B.MeshBuilder.CreateSphere('tesana-pod-pillow',{segments:12,diameter:1},scene);pillow.scaling.set(.45,.12,.38);add(pillow,podFabric,[-16.13,y-.28,z+side*.43]);}
      }
@@ -848,6 +875,12 @@
     kitAlias.kit_shell=podPaint;
     if(kitPiece('district:pod_facade_3m',[-5.2-1.28,.9-.83,75.45-.22],Math.PI,[],{merge:true})){for(let row=0;row<2;row++)for(let i=0;i<5;i++)if(row||i)kitPiece('district:pod_facade_3m',[-5.2+i*2.6-1.28,.9+row*1.7-.83,75.45-.22],Math.PI,[],{merge:true});
      const g=B.MeshBuilder.CreateGround('pods-floor',{width:33.6,height:7.4},scene),uv=g.getVerticesData('uv');for(let i=0;i<uv.length;i++)uv[i]*=i%2?3.7:16.8;g.setVerticesData('uv',uv);add(g,kitMat('kit_tile'),[0,.027,74.4]);}
+    // The pod room itself (David, Nov 2026: upgrade the room): container walls either side of the doorway (not where the wardrobe mirror hangs), the hallway's half-hidden white ceiling lights,
+    // a red lamp over the way out, and the hatch rings' colours lying on the wet floor.
+    if(hallLined){for(const s of [-16.8,-7.4,3.4,7.4]){if(!kitAt('hall_wall_4m_a','+z',70.65,s,4,.2,0,[]))break;kitAt('hall_services_4m','+z',70.65,s,4,.18,3,[]);}
+     for(const [x,f] of [[-10.4,1],[-5.2,-1],[0,1],[5.2,-1],[10.4,1]])serviceLamp(x,73.3,f,3.99,true);
+     box('hall-door-lamp-body',[.5,.2,.1],[0,2.9,70.72],mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8}));box('hall-door-lamp',[.38,.12,.06],[0,2.9,70.77],mat('hall-lamp-red','#4a0c08',{glow:'#ff3a22',rough:.4}));
+     for(let i=0;i<5;i++){const c=['#ffb347','#ff5bd0'][i%2];lightPool(c,2.4,2.2,[-5.2+i*2.6,.034,74.7],.42);}}
     box('pod-terminal',[.4,1.2,.4],[-15.6,.6,71.4],frame);box('pod-terminal-screen',[.3,.4,.05],[-15.6,1.1,71.62],cyan);
 
     // Meeting room: glass wall to the hallway, table, chairs, screen.
@@ -868,6 +901,9 @@
     if(!hallLined)box('hall-duct',[.9,.34,50],[0,3.86,53],metal);for(const x of hallLined?[]:[-2.82,2.82]){const c=cyl('hall-cable',.03,50,[x,.05,53],frame,true,6);c.rotation.x=Math.PI/2;}
     const streak=c=>{const m=glowMat('reflection-'+c,c,.4);m.alpha=.3;return m;};
     if(!hallLined)for(let z=28;z<78;z+=4)for(const [x,c] of [[-2.25,z%8?'#38e8ff':'#ff3fb4'],[2.25,z%8?'#ff3fb4':'#38e8ff']])box('neon-reflection',[.32,.004,3.2],[x,.034,z+2],streak(c));
+    // Coloured accents like the reference: each red door lamp lies on the wet floor in front of its doorway, and the wall modules' amber strips leave a faint warm streak.
+    if(hallLined){for(const [x,z] of [[-1.5,34],[-1.5,49.5],[-1.5,62],[1.5,33],[1.5,47],[1.5,62.5]])lightPool('#ff3a22',2.6,4.2,[x,.034,z]);lightPool('#ff3a22',4,2.4,[0,.034,69.2]);
+     for(const [x,z] of [[-1.9,40.5],[1.9,39.5],[-1.9,55.5],[1.9,54],[1.9,67]])lightPool('#ffab52',1.6,2.6,[x,.035,z],.38);}
     for(const [x,z] of [[2.55,44.2],[-2.55,53.5]])instance('bin',[x,0,z],x>0?-Math.PI/2:Math.PI/2);
     // Stairs at the hallway end rise into the ceiling.
     // The stairs to the smoking terrace: at the east end of the Sleeping Pods room since 2026-11-12 (they used to stand at the end of the hallway), climbing toward the east wall.
@@ -934,7 +970,7 @@
 
     // Coloured light pools for the interior and street.
     const lights=[];const point=(p,c,i,r)=>{const l=new B.PointLight('ncz-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=target;lights.push(l);};
-    if(!low){point([0,3,23],'#9be8ff',.6,8);point([0,3.2,40],'#cfe2ff',34,12);point([0,3.2,58],'#cfe2ff',32,12);point([-10,3,36],'#38e8ff',.9,14);point([10,3,36],'#ffb347',1.4,14);point([10,3,48],'#c9b4ff',1.5,12);point([13,3,33],'#ff8a5c',.9,10);point([14,3,51],'#38e8ff',.8,8);point([-10,3,62],'#ff5bd0',.6,12);point([38,4,68],'#ffb347',.6,14);}   // the hallway's two lamps: cold white, on the centre line, like the ceiling panels that seem to cast them. They come straight after the vestibule lamp because a material takes only the scene's first 8 lights (ambient, sun and six of these): at the end of the list they lit nothing. The two that now fall off the end, the bar's and the shop's second accent lamps, were the weakest. A PBR lamp falls off with the square of the distance, hence the large numbers; the short range keeps them out of the rooms.
+    if(!low){point([0,3.2,40],'#cfe2ff',34,12);point([0,3.2,58],'#cfe2ff',32,12);point([0,3.3,73.6],'#ffd2ea',20,12);point([-10,3,36],'#38e8ff',.9,14);point([10,3,36],'#ffb347',1.4,14);point([10,3,48],'#c9b4ff',1.5,12);point([0,3,23],'#9be8ff',.6,8);point([13,3,33],'#ff8a5c',.9,10);point([14,3,51],'#38e8ff',.8,8);point([38,4,68],'#ffb347',.6,14);}   /* the first six reach the materials (ambient and sun take two of the eight): hallway, hallway, pod room (new; the old west-room lamp it replaces lit nothing), VR, bar, shop */   // the hallway's two lamps: cold white, on the centre line, like the ceiling panels that seem to cast them. They come straight after the vestibule lamp because a material takes only the scene's first 8 lights (ambient, sun and six of these): at the end of the list they lit nothing. The two that now fall off the end, the bar's and the shop's second accent lamps, were the weakest. A PBR lamp falls off with the square of the distance, hence the large numbers; the short range keeps them out of the rooms.
     return {lights,terminal,vrTick,podScreen,arcade};})();
     if(!wantInterior){seed=SEAMS[1];target=districtRoot;}else if(area==='all'&&seed!==SEAMS[1])console.warn('[NeoChinatown] random state after the interior changed; update SEAMS');
 
