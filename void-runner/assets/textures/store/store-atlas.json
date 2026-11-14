@@ -1,0 +1,440 @@
+{
+ "survival": {
+  "file": "store-survival.jpg",
+  "cols": 8,
+  "rows": 6,
+  "cells": [
+   {
+    "sheet": "store-survival",
+    "col": 0,
+    "row": 0,
+    "name": "Survival Paracord",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 1,
+    "row": 0,
+    "name": "Survival Fishing Kit",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 2,
+    "row": 0,
+    "name": "Standard Survival Fishing Kit",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 3,
+    "row": 0,
+    "name": "Fresnel Lens",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 4,
+    "row": 0,
+    "name": "Multi Tool Card",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 5,
+    "row": 0,
+    "name": "Leatherman Multi-Tool",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 6,
+    "row": 0,
+    "name": "Leatherman Signal Multi-Tool",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 7,
+    "row": 0,
+    "name": "Military Wool Blanket",
+    "w": 0.631,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 0,
+    "row": 1,
+    "name": "Survival Blanket",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 1,
+    "row": 1,
+    "name": "SUUNTO Compass",
+    "w": 0.631,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 2,
+    "row": 1,
+    "name": "Two-Way Radios",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 3,
+    "row": 1,
+    "name": "Water Purifier",
+    "w": 0.631,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 4,
+    "row": 1,
+    "name": "Pathfinder Water Bottle",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 5,
+    "row": 1,
+    "name": "Source Tactical Hydration System",
+    "w": 0.631,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 6,
+    "row": 1,
+    "name": "Sawyer Mini Water Filter",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 7,
+    "row": 1,
+    "name": "Portable Charger",
+    "w": 0.631,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 0,
+    "row": 2,
+    "name": "LED Headlamp",
+    "w": 0.95,
+    "h": 0.631
+   },
+   {
+    "sheet": "store-survival",
+    "col": 1,
+    "row": 2,
+    "name": "Fenix E18R V2.0 EDC Flashlight",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 2,
+    "row": 2,
+    "name": "Fenix E35R EDC Flashlight",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 3,
+    "row": 2,
+    "name": "VANQUEST Backpack",
+    "w": 0.631,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 4,
+    "row": 2,
+    "name": "Faraday Phone Sleeve",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 5,
+    "row": 2,
+    "name": "Morakniv Companion Fixed Blade",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 6,
+    "row": 2,
+    "name": "Morakniv Garberg Full Tang Fixed Blade Knife",
+    "w": 0.95,
+    "h": 0.631
+   },
+   {
+    "sheet": "store-survival",
+    "col": 7,
+    "row": 2,
+    "name": "ENO OneLink Hammock",
+    "w": 0.95,
+    "h": 0.631
+   },
+   {
+    "sheet": "store-survival",
+    "col": 0,
+    "row": 3,
+    "name": "Waterproof Lighter Case",
+    "w": 0.631,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 1,
+    "row": 3,
+    "name": "Ferro Rod Fire Starter",
+    "w": 0.631,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 2,
+    "row": 3,
+    "name": "LcFun Electric Lighter",
+    "w": 0.631,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 3,
+    "row": 3,
+    "name": "Military Poncho",
+    "w": 0.631,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 4,
+    "row": 3,
+    "name": "US Model Surplus Line Poncho",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 5,
+    "row": 3,
+    "name": "Jetboil Flash Stove",
+    "w": 0.631,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 6,
+    "row": 3,
+    "name": "Mountain House Food Supply",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 7,
+    "row": 3,
+    "name": "MRE Surplus Pack",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 0,
+    "row": 4,
+    "name": "S5 Ranger Meshtastic LoRa Radio",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 1,
+    "row": 4,
+    "name": "Kaito Voyager Radio",
+    "w": 0.95,
+    "h": 0.631
+   },
+   {
+    "sheet": "store-survival",
+    "col": 2,
+    "row": 4,
+    "name": "Spectre-Android Off-Grid Meshtastic Phone",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 3,
+    "row": 4,
+    "name": "Relay Solar-Powered Meshtastic LoRa System",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 4,
+    "row": 4,
+    "name": "ECWS Sleeping Bag System",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 5,
+    "row": 4,
+    "name": "Ultralight Titanium Tent Stakes",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 6,
+    "row": 4,
+    "name": "HOLOSUN HE407C-GR X2",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 7,
+    "row": 4,
+    "name": "HOLOSUN HS403C",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 0,
+    "row": 5,
+    "name": "Holosun Ronin-AEMS-MAX-RD",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 1,
+    "row": 5,
+    "name": "HOLOSUN Digital Reflex Thermal Sight",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 2,
+    "row": 5,
+    "name": "Magpul MBUS Flip-Up Backup Sights",
+    "w": 0.631,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 3,
+    "row": 5,
+    "name": "Streamlight TLR-8 HL-X Weapon Light",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 4,
+    "row": 5,
+    "name": "MIRA Safety Gas Mask",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 5,
+    "row": 5,
+    "name": "MIRA Safety NBC-77 SOF Filter",
+    "w": 0.95,
+    "h": 0.95
+   },
+   {
+    "sheet": "store-survival",
+    "col": 6,
+    "row": 5,
+    "name": "MIRA Safety MOPP-1 CBRN Suit",
+    "w": 0.95,
+    "h": 0.95
+   }
+  ]
+ },
+ "apparel": {
+  "file": "store-apparel.png",
+  "cols": 3,
+  "rows": 2,
+  "cells": [
+   {
+    "sheet": "store-apparel",
+    "col": 0,
+    "row": 0,
+    "name": "Admin: Surveillance Countermeasure T-Shirt",
+    "w": 0.865,
+    "h": 0.979
+   },
+   {
+    "sheet": "store-apparel",
+    "col": 1,
+    "row": 0,
+    "name": "Holographic \"Fuck the System\" Sticker",
+    "w": 0.979,
+    "h": 0.979
+   },
+   {
+    "sheet": "store-apparel",
+    "col": 2,
+    "row": 0,
+    "name": "Holographic QR Code \"Corpo-Scum!\" Sticker",
+    "w": 0.979,
+    "h": 0.979
+   },
+   {
+    "sheet": "store-apparel",
+    "col": 0,
+    "row": 1,
+    "name": "The Darknet District: Rebellion Edition \u2013 T-Shirt",
+    "w": 0.865,
+    "h": 0.979
+   },
+   {
+    "sheet": "store-apparel",
+    "col": 1,
+    "row": 1,
+    "name": "Zen Zephyr: T-shirt",
+    "w": 0.865,
+    "h": 0.979
+   },
+   {
+    "sheet": "store-apparel",
+    "col": 2,
+    "row": 1,
+    "name": "Milked: Authorized Collection Rag",
+    "w": 0.557,
+    "h": 0.979
+   }
+  ]
+ }
+}
