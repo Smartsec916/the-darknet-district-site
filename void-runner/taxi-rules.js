@@ -15,7 +15,9 @@
    {id:'district',label:'The Darknet District',zone:'alley-mouth'},
    {id:'main',label:'Main Street',zone:'main'},
    {id:'avenue',label:'The avenue',zone:'avenue'},
-   ...N.districts.map(d=>({id:d.id,label:d.name,zone:d.id,placeholder:!!d.placeholder,streams:true}))]}
+   ...N.districts.filter(d=>d.id!=='corporate').map(d=>({id:d.id,label:d.name,zone:d.id,placeholder:!!d.placeholder,streams:true})),
+   // A separate area reached by the sky-cab transition (sky-cab.js): its own scene about 1.8 km away, a flat fare, no landing zone in this street.
+   {id:'corporate',label:'Corporate District',zone:null,scene:'corporate',fixedFare:60}]}
  };
  const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
  // ctx: {mode, onFoot, area ('street'|'district'|'terrace'), busy, combat, location}. Returns {ok, reason}.
@@ -38,7 +40,7 @@
  function cost(from,to){return Math.min(fare.max,Math.round(fare.base+fare.perMetre*dist(from,to)));}
  // Destinations with their landing zone, fare and whether they can be chosen. ctx: {player:[x,z], layout}.
  function destinations(s,ctx){const net=networks[s?.location];if(!net)return [];const pickup=nearestZone(s,ctx.player),ship=shipPosition(ctx.layout);
-  return net.destinations().map(d=>{const z=d.ship?(ship&&nearestZone(s,ship)):zone(s,d.zone);if(!z)return {...d,ok:false,reason:'No landing zone.'};
+  return net.destinations().map(d=>{if(d.scene){const price=d.fixedFare,pickupZone=pickup;if(!pickupZone)return {...d,ok:false,reason:'No landing zone.'};return {...d,fare:price,ok:s.credits>=price,reason:s.credits>=price?null:'Not enough credits ('+price+' CR).'};}const z=d.ship?(ship&&nearestZone(s,ship)):zone(s,d.zone);if(!z)return {...d,ok:false,reason:'No landing zone.'};
    if(d.ship&&dist(ctx.player,ship)<25)return {...d,zone:z.id,ok:false,reason:'Your ship is right here.'};
    if(pickup&&z.id===pickup.id||dist(ctx.player,z.position)<20)return {...d,zone:z.id,ok:false,reason:'You’re already there.'};
    const price=cost(pickup.position,z.position);return {...d,zone:z.id,fare:price,ok:s.credits>=price,reason:s.credits>=price?null:'Not enough credits ('+price+' CR).'};});}

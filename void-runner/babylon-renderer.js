@@ -1158,7 +1158,7 @@
     });
     return mesh;
   }
-  let openingHandle=null,derelictHandle=null,districtHandle=null,planetHandle=null,vrHandle=null;
+  let openingHandle=null,derelictHandle=null,districtHandle=null,planetHandle=null,vrHandle=null,zoneHandle=null;
   async function prepareRoom(def, task) {
     if(!task)return VoidPreparation.run(t=>prepareRoom(def,t));
     if(def.kind==='station')return prepareStation(def,task);
@@ -1174,6 +1174,13 @@
       await task.wait('assets',()=>VoidAssets.prepare(scene,definitions,task),'workshop models');
       openingHandle=VoidOpeningScene.build({scene,parent:roomRoot,quality,shadowLight:scene.getLightByName('sun'),characterModel,shipModel,state,camera});
       await task.wait('scene',()=>scene.whenReadyAsync(),'workshop');
+      diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
+    }
+    // Separate areas built by their own modules: the Corporate District (corporate.js, corporate-build.js) and the sky-cab interior (sky-cab.js). The handle is {tick(time,player), dispose()}.
+    if((def.corporate&&root.VoidCorporate?.build)||(def.skycab&&root.VoidSkyCab?.build)){
+      crowdLocation=def.id;root.VoidCrowd?.begin();
+      zoneHandle=(def.corporate?root.VoidCorporate:root.VoidSkyCab).build({scene,parent:roomRoot,quality,def,camera,characterModel,state:typeof state!=='undefined'?state:{}});
+      await task.wait(def.corporate?'area':'scene',()=>scene.whenReadyAsync(),def.id);
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
     if(def.district&&root.VoidNeoChinatown){
@@ -1278,7 +1285,7 @@
     roomRoot?.metadata?.art?.dispose?.();
     roomRoot?.metadata?.exterior?.metadata?.dispose?.();
     openingHandle?.dispose();openingHandle=null;root.VoidCrowd?.release();
-    derelictHandle?.dispose();derelictHandle=null;districtHandle?.dispose();districtHandle=null;planetHandle?.dispose();planetHandle=null;vrHandle?.dispose?.();vrHandle=null;
+    derelictHandle?.dispose();derelictHandle=null;zoneHandle?.dispose?.();zoneHandle=null;districtHandle?.dispose();districtHandle=null;planetHandle?.dispose();planetHandle=null;vrHandle?.dispose?.();vrHandle=null;
     for (const s of signs) {
       s.texture.dispose();
       s.material.dispose();
@@ -1327,7 +1334,7 @@
     if(roomFrame++%4===0)crowdThrottle();
     for(const actor of actors){if(actor.crowd){const a=actor.activity;if(a){actor.node.position.set(a.x,0,a.z);actor.node.rotation.y=turnToward(actor.node.rotation.y,a.yaw,roomDt*6);actor.cup?.setEnabled(false);crewClip(actor,a,time);}else if(actor.ambient&&!actor.crowd.busy)vary(actor,actor.crowd,actor.base?.clip||VoidCrowd.clipFor(actor.node.metadata?.character||''),roomDt);continue;}if(actor.activity){const a=actor.activity,seated=a.state==='sit'||a.state==='drink';actor.node.position.set(a.x,seated?-.35:0,a.z);actor.node.rotation.y=a.yaw;actor.cup?.setEnabled(a.state==='drink'||a.state==='get-drink');for(const mesh of actor.node.getChildMeshes()){if(mesh.name==='arm')mesh.rotation.x=a.state==='walk'?Math.sin(time*5+a.id)*.25:a.state==='talk'?Math.sin(time*2+a.id)*.15:a.state==='drink'?-.9+Math.sin(time)*.15:a.gesture==='device'?-.65:0;if(mesh.name==='leg')mesh.rotation.x=seated?-1.15:a.state==='walk'?Math.sin(time*5+(mesh.position.x<0?Math.PI:0))*.3:0;if(mesh.name==='head')mesh.rotation.y=a.gesture==='look'?Math.sin(time)*.18:0;}continue;}if(openingHandle&&actor.node===openingHandle.mara)continue;if(actor.traffic){actor.node.position.set((actor.lane%2?-1:1)*(25+actor.lane*8),5+actor.lane*2,((time*(5+actor.lane)+actor.lane*37)%140)-55);actor.node.rotation.y=0;}else{actor.node.rotation.y=Math.sin(time*.3+actor.base[0])*.13;if(actor.ambient)actor.node.position.z=actor.base[2]+Math.sin(time*.2+actor.base[0])*1.2;}}
     roomRoot.metadata?.arrays?.forEach((n,i)=>n.rotation.z=.14+Math.sin(time*.015+i*.2)*.08);
-    openingHandle?.tick(time);districtHandle?.tick(time);planetHandle?.tick(time);vrHandle?.tick?.(time);
+    openingHandle?.tick(time);zoneHandle?.tick?.(time,player);districtHandle?.tick(time);planetHandle?.tick(time);vrHandle?.tick?.(time);
     scene.render();
     diagnostics.frames++;
     return surface;
@@ -1369,7 +1376,7 @@
     get quality() {
       return quality;
     },
-    get opening(){return openingHandle;},get district(){return districtHandle;},
+    get opening(){return openingHandle;},get district(){return districtHandle;},get zone(){return zoneHandle;},
     get scene() {
       return scene;
     }

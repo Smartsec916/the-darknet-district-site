@@ -24,7 +24,7 @@
     avenueWest:[-60,2,-20,-5],corporate:[-120,-60,-40,15],avenueEast:[152,200,-20,-5],milked:[200,212,-30,5],mainSouth:[56,66,-190,-124],containers:[30,100,-250,-190]};
   // Future districts: placeholders until David supplies their designs. Each streams its own detail as you approach.
   const districts=[
-    {id:'corporate',name:'Corporate District',lines:['CORPORATE DISTRICT','PLACEHOLDER'],rect:streets.corporate,center:[-90,-12.5],taxi:[-90,-12.5],heading:Math.PI/2,placeholder:true},
+    {id:'corporate',name:'Corporate District',lines:['CORPORATE DISTRICT','SKY CAB DEPARTURES'],rect:streets.corporate,center:[-90,-12.5],taxi:[-90,-12.5],heading:Math.PI/2,placeholder:false,built:true,scene:'corporate'},
     {id:'milked',name:'Milked',lines:['MILKED','LIVESTREAM STUDIOS AND BIOBANK'],rect:MK.BOUNDS.rect.map((v,i)=>i===0?200:v),center:[206,-12.5],taxi:MK.TAXI.position,heading:MK.TAXI.heading,placeholder:false,built:true},
     {id:'containers',name:'Container Settlement',lines:['CONTAINER SETTLEMENT','PLACEHOLDER'],rect:streets.containers,center:[65,-220],taxi:[65,-215],heading:0,placeholder:true}];
   // Taxi landing zones: open street wide enough for the cab, clear of doors, the ship and the sidewalk crowd.

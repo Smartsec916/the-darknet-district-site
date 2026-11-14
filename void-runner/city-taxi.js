@@ -81,7 +81,8 @@
    case 'descend':{const near=Math.hypot(walker.x-trip.pickup.position[0],walker.z-trip.pickup.position[1])<3.2&&mode==='walking';
     if(near&&trip.y<8){trip.hold=true;break;}trip.hold=false;vertical(dt,0,()=>{trip.phase='landed';trip.wait=0;});break;}
    case 'landed':if(doorTo(true,dt)&&!walkingLocation.interactions.some(i=>i.id==='taxi-board'))addBoarding();trip.wait+=dt;if(trip.wait>HOLD){removeBoarding();announce('The taxi couldn’t wait any longer. No charge.');trip.phase='leave';trip.t=0;}break;
-   case 'boarding':{const k=Math.min(1,trip.t/1.1),e=ease(k),s=seat(),f=trip.fromCam;walker.x=f.x+(s.x-f.x)*e;walker.y=f.y+(s.y-f.y)*e;walker.z=f.z+(s.z-f.z)*e;walker.yaw=f.yaw+((cab.root.rotation.y-f.yaw+Math.PI*3)%(Math.PI*2)-Math.PI)*e;walker.pitch=f.pitch*(1-e);doorTo(false,dt);if(k>=1&&cab.doorOpen<=0){trip.phase='climb';trip.t=0;}break;}
+   case 'boarding':{const k=Math.min(1,trip.t/1.1),e=ease(k),s=seat(),f=trip.fromCam;walker.x=f.x+(s.x-f.x)*e;walker.y=f.y+(s.y-f.y)*e;walker.z=f.z+(s.z-f.z)*e;walker.yaw=f.yaw+((cab.root.rotation.y-f.yaw+Math.PI*3)%(Math.PI*2)-Math.PI)*e;walker.pitch=f.pitch*(1-e);doorTo(false,dt);if(k>=1&&cab.doorOpen<=0){if(trip.dest.scene&&globalThis.VoidSkyCab?.ride){trip.phase='handoff';trip.t=0;const f=trip.fromCam,dest=trip.dest.scene,paid=trip.dest.fare;globalThis.VoidSkyCab.ride(dest,{from:{spawn:[f.x,1.7,f.z],yaw:f.yaw},paid});}else{trip.phase='climb';trip.t=0;}}break;}
+   case 'handoff':break;   // the sky-cab transition (sky-cab.js) owns the trip now; leaving the street clears this one
    case 'climb':vertical(dt,CRUISE,()=>{trip.phase='cruise';trip.to=zoneOf(trip.dest.zone).position;});break;
    case 'cruise':fly(dt,trip.to,()=>{if(districtReady())trip.phase='land';else trip.phase='circle';});break;
    // The destination isn't ready yet: hold over it rather than land into an empty street.
@@ -97,7 +98,7 @@
  // ---- Status for the HUD ----
  function status(){if(!inCity())return R.availability(state,{inSpace:mode==='play'||VoidHUD?.isOpen&&!walkingLocation});const area=VoidNeoChinatown.zone({x:walker.x,z:walker.z}).area;
   return R.availability(state,{onFoot:true,area,busy:typeof VoidGraphics!=='undefined'&&VoidGraphics.busy,combat:!!globalThis.VoidFlightSkirmish?.active});}
- const phaseText={approach:'On its way',descend:'Landing',landed:'Waiting for you, door open',boarding:'Boarding',climb:'Climbing',cruise:'In flight',circle:'Holding over the destination',land:'Landing',opening:'Opening the door',arrived:'Arrived',close:'Leaving',leave:'Leaving'};
+ const phaseText={handoff:'In flight',approach:'On its way',descend:'Landing',landed:'Waiting for you, door open',boarding:'Boarding',climb:'Climbing',cruise:'In flight',circle:'Holding over the destination',land:'Landing',opening:'Opening the door',arrived:'Arrived',close:'Leaving',leave:'Leaving'};
  function hudHtml(){const esc=s=>escapeText(String(s??''));const a=status();
   if(!a.ok)return '<p class="hud-note">'+esc(a.reason)+'</p>';
   let html='<p class="hud-note">'+esc(a.network)+'. Cabs land in the painted TAXI zones. The fare is paid when you board; cancelling before that costs nothing.</p>';
@@ -105,7 +106,7 @@
    return html+'<article class="hud-card"><h3>'+esc(trip.dest.label)+' <small class="hud-tag tracked">'+esc((phaseText[trip.phase]||'').toUpperCase())+'</small></h3><p>Pickup: '+esc(trip.pickup.name)+' · '+d+' m away · fare '+esc(trip.dest.fare)+' CR</p>'+(trip.hold?'<p>Step clear of the landing zone so it can set down.</p>':'')+
     (['approach','descend','landed'].includes(trip.phase)?'<div class="hud-actions"><button type="button" data-hud-action="taxi-cancel" data-hud-key="taxi-cancel">CANCEL TAXI</button></div>':'')+'</article>';}
   const list=R.destinations(state,{player:playerPos(),layout:walkingLocation});
-  return html+'<h2>DESTINATIONS</h2>'+list.map(d=>'<article class="hud-card"><h3>'+esc(d.label)+(d.placeholder?' <small class="hud-tag">PLACEHOLDER</small>':'')+'</h3><p class="hud-meta">'+esc(d.ok?'Lands at '+(zoneOf(d.zone)?.name||'')+' · '+d.fare+' CR':d.reason)+'</p>'+
+  return html+'<h2>DESTINATIONS</h2>'+list.map(d=>'<article class="hud-card"><h3>'+esc(d.label)+(d.placeholder?' <small class="hud-tag">PLACEHOLDER</small>':'')+'</h3><p class="hud-meta">'+esc(d.ok?(d.scene?'A separate district about 1.8 km away, by sky cab · '+d.fare+' CR, return ride included':'Lands at '+(zoneOf(d.zone)?.name||'')+' · '+d.fare+' CR'):d.reason)+'</p>'+
    '<button type="button" data-hud-action="taxi-call:'+esc(d.id)+'" data-hud-key="taxi-'+esc(d.id)+'"'+(d.ok?'':' disabled')+'>'+(d.ok?'CALL TAXI · '+esc(d.fare)+' CR':'UNAVAILABLE')+'</button></article>').join('');}
  function action(a,{close,render}){if(a.startsWith('taxi-call:')){if(request(a.slice(10)))close();else render();}else if(a==='taxi-cancel'){cancel();render();}}
  VoidInteractions.register('taxi-board',()=>board());

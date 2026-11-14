@@ -12,7 +12,7 @@
   'district-vr':['VR arcade','vr'],'district-vending':['Vending machines','shop'],'district-pod':['Sleeping pods','service'],'district-wardrobe':['Wardrobe','service'],'district-meeting':['Meeting room','service'],
   'district-stairs':['Stairs to the smoking terrace','service'],'district-stairs-down':['Stairs down to the District','service'],'district-scan':['Checkpoint scanner','entrance'],'club-bar':['Bar at the nightclub','shop']};
  const LAYERS=[['locations','LOCATIONS',true],['shops','SHOPS',true],['transit','TRANSIT',true],['missions','MISSIONS',true],['players','PLAYERS',false]];
- const KIND_LAYER={entrance:'locations',service:'locations',vr:'locations',street:'locations',shop:'shops',transit:'transit',mission:'missions',dev:'locations'};
+ const KIND_LAYER={entrance:'locations',service:'locations',vr:'locations',street:'locations',shop:'shops',transit:'transit',mission:'missions',dev:'locations',guard:'locations'};
  const title=t=>String(t||'').toLowerCase().replace(/(^|\s)\S/g,c=>c.toUpperCase());
  function model(N){
   const street=N.layout('street'),interior=N.layout('interior'),placeholder=new Set((N.districts||[]).filter(d=>d.placeholder).map(d=>d.id));
@@ -49,12 +49,19 @@
  if(typeof document==='undefined')return;
 
  // ---------------------------------------------------------------- browser ----------------------------------------------------------------
- const FLAG='deviceWaypoint',COLOR={entrance:'#58ffe1',service:'#9fd0ff',vr:'#c79bff',shop:'#ff3fb4',transit:'#ffb347',dev:'#7a8794',mission:'#ffe066'};
+ const FLAG='deviceWaypoint',COLOR={entrance:'#58ffe1',service:'#9fd0ff',vr:'#c79bff',shop:'#ff3fb4',transit:'#ffb347',dev:'#7a8794',mission:'#ffe066',guard:'#ff5a6a'};
  const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  let M=null,view=null,selected=null,layers=Object.fromEntries(LAYERS.map(l=>[l[0],l[2]])),host=null,cv=null,drag=null,pulse=0;
- const data=()=>M||(M=model(root.VoidNeoChinatown));
+ // Separate areas (Corporate District, later the Temple) register a map space in area-map.js; the map shows the one the player is in.
+ const spaceId=()=>{try{return typeof walkingLocation!=='undefined'&&walkingLocation&&walkingLocation.corporate?'corporate':'neochinatown';}catch{return 'neochinatown';}};
+ const MAPS={};let lastSpace=null;
+ const data=()=>{const id=spaceId();if(id==='neochinatown')return M||(M=model(root.VoidNeoChinatown));const sp=root.VoidAreaMap?.get(id);return MAPS[id]||(MAPS[id]=sp?sp.model():M||(M=model(root.VoidNeoChinatown)));};
+ const spaceName=()=>spaceId()==='neochinatown'?'NEOCHINATOWN':(root.VoidAreaMap?.get(spaceId())?.name||'AREA').toUpperCase();
+ // The fog of the current separate area: the live one while the player is in it (kept by its 3D build), else the saved one.
+ const fogNow=()=>{const id=spaceId();if(id==='neochinatown')return null;const sp=root.VoidAreaMap?.get(id);if(!sp)return null;try{return root.VoidBabylon?.zone?.fog||root.VoidAreaMap.load(sp,flags());}catch{return null;}};
+ const fogOk=(q,fog)=>!fog||q.kind==='transit'||fog.isExplored(q.x,q.z);
  const flags=()=>{try{return state?.story?.flags||null;}catch{return null;}};
- const me=()=>{try{if(typeof walker==='undefined'||!walker||walkingLocation?.id!=='neochinatown')return null;return {x:walker.x,z:walker.z,yaw:walker.yaw,area:walkingLocation.area==='interior'?'interior':'street'};}catch{return null;}};
+ const me=()=>{try{if(typeof walker==='undefined'||!walker||(walkingLocation?.id!=='neochinatown'&&!walkingLocation?.corporate))return null;return {x:walker.x,z:walker.z,yaw:walker.yaw,area:walkingLocation.area==='interior'?'interior':'street'};}catch{return null;}};
  const isDev=()=>{try{return !!root.VoidDevTools?.authorized;}catch{return false;}};
  const waypoint=()=>{const id=flags()?.[FLAG];return typeof id==='string'?data().pois.find(p=>p.id===id&&(isDev()||!p.dev))||null:null;};
  function setWaypoint(id){const f=flags();if(!f)return false;const p=id&&data().pois.find(x=>x.id===id);if(p)f[FLAG]=p.id;else delete f[FLAG];chipTick();if(host)paintInfo();draw();return true;}
@@ -74,10 +81,13 @@
   for(const [area,list] of Object.entries(m.walls)){const here=(area==='interior')===!!inside;g.fillStyle=area==='interior'?(here?'rgba(97,238,233,.5)':'rgba(97,238,233,.14)'):(here?'rgba(120,200,220,.5)':'rgba(120,200,220,.2)');
    if(area==='interior'&&view.s<2.2)continue;for(const r of list){const a=S(r.x0,r.z1),b=S(r.x1,r.z0);g.fillRect(a[0],a[1],Math.max(1.5,b[0]-a[0]),Math.max(1.5,b[1]-a[1]));}}
   g.textAlign='center';g.textBaseline='middle';
+  const fog=fogNow();
   if(view.s>=1.1){g.font='600 '+Math.max(10,Math.min(15,view.s*4))+'px ui-monospace,Consolas,monospace';g.fillStyle='rgba(190,235,240,.55)';
    for(const s of m.streets){const w=(s.rect[1]-s.rect[0])*view.s,h=(s.rect[3]-s.rect[2])*view.s,c=S((s.rect[0]+s.rect[1])/2,(s.rect[2]+s.rect[3])/2);if(Math.max(w,h)<g.measureText(s.name).width+10)continue;
     g.save();g.translate(c[0],c[1]);if(h>w)g.rotate(-Math.PI/2);g.fillText(s.name.toUpperCase(),0,0);g.restore();}}
-  const wp=waypoint(),shown=visible(m,layers,isDev());
+  if(fog){const c=fog.cell;g.fillStyle='rgba(3,8,13,.93)';for(let j=0;j<fog.h;j++)for(let i=0;i<fog.w;i++){if(fog.bits[j*fog.w+i])continue;const a=S(fog.bounds[0]+i*c,fog.bounds[2]+(j+1)*c),b=S(fog.bounds[0]+(i+1)*c,fog.bounds[2]+j*c);g.fillRect(Math.floor(a[0]),Math.floor(a[1]),Math.ceil(b[0]-a[0])+1,Math.ceil(b[1]-a[1])+1);}
+   g.fillStyle='rgba(88,255,225,.5)';g.font='600 11px ui-monospace,Consolas,monospace';g.textAlign='left';g.fillText('EXPLORED '+Math.round(fog.fraction()*100)+'%',12,H-40);}
+  const wp=waypoint(),shown=visible(m,layers,isDev()).filter(q=>fogOk(q,fog));
   g.font='600 11px ui-monospace,Consolas,monospace';g.textAlign='left';
   for(const q of shown){const [x,y]=S(q.x,q.z);if(x<-20||y<-20||x>W+20||y>H+20)continue;const c=COLOR[q.kind]||'#9fd0ff',sel=q===selected,target=q===wp;
    g.strokeStyle=c;g.fillStyle=sel||target?c:'rgba(3,8,13,.9)';g.lineWidth=sel?2.5:1.5;g.beginPath();g.moveTo(x,y-6);g.lineTo(x+6,y);g.lineTo(x,y+6);g.lineTo(x-6,y);g.closePath();g.fill();g.stroke();
@@ -95,20 +105,20 @@
   const el=host?.querySelector('[data-map-info]');if(!el)return;const p=me(),wp=waypoint(),q=selected;
   if(!q){el.innerHTML='<div class="pd-note">'+(wp?'Waypoint: <b>'+esc(wp.name)+'</b>. ':'')+'Select a marker or a place below. Drag to move the map; scroll or use + and − to zoom.</div>'+(wp?'<button type="button" data-map="clear">CLEAR WAYPOINT</button>':'');return;}
   const gd=p?guidance(data(),q,p):null,isWp=wp===q;
-  el.innerHTML='<div class="dm-card"><b>'+esc(q.name)+'</b><span>'+esc(q.kind==='dev'?'DEVELOPMENT ONLY':q.area==='interior'?'INSIDE THE DARKNET DISTRICT':q.area==='both'?'BETWEEN THE STREET AND THE DISTRICT':'NEOCHINATOWN')+(gd?' · '+Math.round(gd.distance)+' m'+(gd.via?' to the security vestibule':''):'')+'</span>'
+  el.innerHTML='<div class="dm-card"><b>'+esc(q.name)+'</b><span>'+esc(q.kind==='dev'?'DEVELOPMENT ONLY':q.area==='interior'?'INSIDE THE DARKNET DISTRICT':q.area==='both'?'BETWEEN THE STREET AND THE DISTRICT':spaceName())+(gd?' · '+Math.round(gd.distance)+' m'+(gd.via?' to the security vestibule':''):'')+'</span>'
    +'<p>Direction only. This model has no route data: follow the pointer and find your own way around walls.'+(gd?.via?' The destination is on the other side of the security checkpoint.':'')+'</p>'
    +'<div><button type="button" data-map="'+(isWp?'clear':'set')+'">'+(isWp?'CLEAR WAYPOINT':'SET WAYPOINT')+'</button><button type="button" data-map="deselect">CLOSE</button></div></div>';
  }
- function paintList(){const el=host?.querySelector('[data-map-list]');if(!el)return;const shown=visible(data(),layers,isDev());
+ function paintList(){const el=host?.querySelector('[data-map-list]');if(!el)return;const fg=fogNow(),shown=visible(data(),layers,isDev()).filter(q=>fogOk(q,fg));
   el.innerHTML='<h2>PLACES</h2>'+(shown.length?shown.map(q=>'<button type="button" class="dm-row" data-map="pick:'+esc(q.id)+'"><i style="background:'+(COLOR[q.kind]||'#9fd0ff')+'"></i>'+esc(q.name)+'<span>'+(q.area==='interior'?'DISTRICT':q.area==='both'?'CHECKPOINT':'STREET')+'</span></button>').join(''):'<div class="pd-note">Nothing on the layers that are switched on.</div>');}
  function paintLayers(){const el=host?.querySelector('[data-map-layers]');if(!el)return;el.innerHTML=LAYERS.map(([id,label])=>'<button type="button" data-map="layer:'+id+'" aria-pressed="'+(layers[id]!==false)+'"'+(id==='players'?' disabled title="Other players are not shown on the map."':'')+'>'+label+'</button>').join('');}
  const zoom=(k,px,py)=>{const s=Math.max(.7,Math.min(22,view.s*k));if(px!==undefined){const wx=view.cx+(px-cv.width/2)/view.s,wz=view.cz-(py-cv.height/2)/view.s;view.cx=wx-(px-cv.width/2)/s;view.cz=wz+(py-cv.height/2)/s;}view.s=s;draw();};
  const local=e=>{const r=cv.getBoundingClientRect();return [(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height];};
  /* mount(element): build the map inside the device's Map app. Safe to call again after the device redraws its page; the view, layers and selection are kept. */
  function mount(el){
-  if(!root.VoidNeoChinatown||!el)return false;host=el;if(!view)fit();
+  if(!root.VoidNeoChinatown||!el)return false;host=el;const sp=spaceId();if(sp!==lastSpace){lastSpace=sp;view=null;selected=null;}if(!view)fit();
   el.innerHTML='<div class="dm-bar"><button type="button" data-map="in" aria-label="Zoom in">+</button><button type="button" data-map="out" aria-label="Zoom out">−</button><button type="button" data-map="me">MY POSITION</button><button type="button" data-map="all">WHOLE CITY</button></div>'
-   +'<canvas class="pd-map dm-canvas" width="800" height="560" tabindex="0" aria-label="Map of NeoChinatown and The Darknet District. Use the list below to choose a place."></canvas><div class="dm-layers" data-map-layers role="group" aria-label="Map layers"></div><div data-map-info></div><div data-map-hail></div><div data-map-list></div>';
+   +'<canvas class="pd-map dm-canvas" width="800" height="560" tabindex="0" aria-label="Map of the area you are in. Use the list below to choose a place."></canvas><div class="dm-layers" data-map-layers role="group" aria-label="Map layers"></div><div data-map-info></div><div data-map-hail></div><div data-map-list></div>';
   cv=el.querySelector('canvas');
   cv.addEventListener('wheel',e=>{e.preventDefault();e.stopPropagation();const [x,y]=local(e);zoom(e.deltaY<0?1.2:1/1.2,x,y);},{passive:false});
   cv.addEventListener('pointerdown',e=>{const [x,y]=local(e);drag={x,y,cx:view.cx,cz:view.cz,moved:false};cv.setPointerCapture?.(e.pointerId);});
@@ -138,6 +148,7 @@
  let hailHtml='';
  function paintHail(){
   const el=host?.querySelector('[data-map-hail]');if(!el)return;
+  if(spaceId()!=='neochinatown'){el.innerHTML='<h2>SKY CAB</h2><div class="pd-note">No street taxis here. The sky cab stop on the map takes you back (the return ride is included in your fare).</div>';return;}
   const Rules=root.VoidRoadTaxiRules;if(!Rules){if(hailHtml){hailHtml='';el.innerHTML='';}return;}
   const ctx=taxiCtx(),a=Rules.availability(typeof state!=='undefined'?state:null,ctx),list=ctx.player?Rules.destinations(typeof state!=='undefined'?state:null,ctx):[],st=root.VoidRoadTaxi?.status?.();
   let html='<h2>STREET TAXIS</h2>';

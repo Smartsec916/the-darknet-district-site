@@ -154,7 +154,7 @@
    for(let x=x0+4;x<x1;x+=6)for(const z of [z0+.05,z1-.05])box('pilaster',.5,H,.12,x,H/2,z,trimM);
    for(let x=x0+3;x<x1-1;x+=4)box('truss',.16,.16,D-.4,x,6.85,cz,trimM);for(const z of [cz-5,cz,cz+5])box('truss',W-1,.16,.16,cx,6.85,z,trimM);
    // dance floor: a grid of lit tiles that changes with the music's time
-   const [dx0,dx1,dz0,dz1]=BUILT.dance;floorTex=new B.DynamicTexture('ncz-null-dance',{width:112,height:80},scene,false,B.Texture.NEAREST_SAMPLINGMODE);own.push(floorTex);
+   const [dx0,dx1,dz0,dz1]=BUILT.dance;floorTex=new B.DynamicTexture('ncz-null-dance',{width:112,height:80},scene,false,B.Texture.NEAREST_SAMPLINGMODE);own.push(floorTex);floorTex.update();   // a dynamic texture is not 'ready' until it has been drawn once: pulse() only runs while the player is near, and a scene waiting for readiness would wait forever
    const fm=new B.StandardMaterial('ncz-null-dance',scene);fm.diffuseColor=B.Color3.Black();fm.specularColor=new B.Color3(.5,.5,.6);fm.emissiveTexture=floorTex;own.push(fm);
    put(B.MeshBuilder.CreateGround('ncz-null-dance',{width:dx1-dx0,height:dz1-dz0},scene),fm,(dx0+dx1)/2,.04,(dz0+dz1)/2);box('dance-edge',dx1-dx0+.3,.06,.12,(dx0+dx1)/2,.04,dz0-.1,ice);box('dance-edge',dx1-dx0+.3,.06,.12,(dx0+dx1)/2,.04,dz1+.1,hot);
    // the furniture the collision already has: tables, chairs, speaker stacks, the DJ desk
@@ -166,7 +166,7 @@
    const dj=span(FURNITURE['dj-desk'][0]);box('dj-desk',dj.w,1.05,dj.d,dj.x,.52,dj.z,trimM);box('dj-top',dj.w+.1,.05,dj.d+.1,dj.x,1.08,dj.z,vio);for(const dz of [-.6,.6])put(B.MeshBuilder.CreateCylinder('ncz-null-deck',{diameter:.55,height:.04,tessellation:24},scene),darkM,dj.x+.2,1.13,dj.z+dz,true);
    box('dj-riser',dj.w+2.4,.18,dj.d+3,dj.x-.6,.09,dj.z,darkM);
    // the wall of light behind the DJ: a low-resolution screen that pulses
-   screenTex=new B.DynamicTexture('ncz-null-screen',{width:64,height:24},scene,false,B.Texture.NEAREST_SAMPLINGMODE);own.push(screenTex);const sm=new B.StandardMaterial('ncz-null-screen',scene);sm.diffuseColor=B.Color3.Black();sm.specularColor=B.Color3.Black();sm.emissiveTexture=screenTex;sm.disableLighting=true;own.push(sm);
+   screenTex=new B.DynamicTexture('ncz-null-screen',{width:64,height:24},scene,false,B.Texture.NEAREST_SAMPLINGMODE);own.push(screenTex);screenTex.update();const sm=new B.StandardMaterial('ncz-null-screen',scene);sm.diffuseColor=B.Color3.Black();sm.specularColor=B.Color3.Black();sm.emissiveTexture=screenTex;sm.disableLighting=true;own.push(sm);
    const scr=put(B.MeshBuilder.CreatePlane('ncz-null-screen',{width:12,height:4.2,sideOrientation:B.Mesh.DOUBLESIDE},scene),sm,x0+.2,3.6,cz);scr.rotation.y=-Math.PI/2;
    // the name, inside too
    const nt=new B.DynamicTexture('ncz-null-name',{width:256,height:96},scene,false);own.push(nt);{const g=nt.getContext();g.clearRect(0,0,256,96);g.font='900 78px Arial,Helvetica,sans-serif';g.textAlign='center';g.textBaseline='middle';g.shadowColor='#38e8ff';g.shadowBlur=14;g.fillStyle='#eafcff';g.fillText(NAME,128,52);nt.hasAlpha=true;nt.update();}
