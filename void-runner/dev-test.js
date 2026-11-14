@@ -7,7 +7,8 @@
  const stages=[
   ['inheritance','Vesper · before Mara’s handoff'],['arrival','Heading to Meridian to meet Rook'],['legal-offer','Rook offers the first job'],
   ['legal-run','Carrying filters to Kepler'],['return','Back to Meridian after Kepler'],['illegal-offer','Rook offers the Rusthaven job'],
-  ['illegal-run','Carrying wafers to Rusthaven'],['open','Open work: free travel, Admin and the factions']];
+  ['illegal-run','Carrying wafers to Rusthaven'],['open','Open work: free travel, Admin and the factions'],
+  ['district-ship','NeoChinatown · new District campaign with a TEST SHIP and travel unlocked (beginner campaign, no missions)']];
  const places=()=>Object.entries(VoidUniverse.locations).map(([id,l])=>[id,C.stations[id]?.name||l.name||id,VoidUniverse.systems[l.system]?.name||l.system]);
  let choice={location:'meridian',stage:'open',kit:true};
 
@@ -24,6 +25,9 @@
 
  // A campaign as the game would have it at that stage (old-save migration fills in the training already done).
  function build({location,stage,kit}){
+  if(stage==='district-ship'){   // the District start (no Vesper opening, closed mission pool) plus the same award the beginner campaign ends with; the ship is only in this throwaway session
+   const d=C.startDistrictCampaign(C.fresh());d.story.flags.podWakePending=false;C.awardStarterShip(d);d.story.flags.testShip=true;if(kit){d.credits=10000;d.universe.discoveredLocations=[...new Set([...(d.universe.discoveredLocations||[]),...Object.keys(VoidUniverse.locations)])];}VoidMissions.sync(d,C);return d;
+  }
   const raw=C.fresh();raw.quest=['legal-run','illegal-run'].includes(stage)?stage.replace('-run','-offer'):stage;raw.location=location;delete raw.progression;
   const s=C.restore(JSON.stringify(raw))||C.fresh();
   if(stage!=='inheritance'){s.progression.personal.weapon='ward-pistol';s.progression.opening.pistol=true;s.universe.missionLogUnlocked=true;}
@@ -40,7 +44,8 @@
   active=true;banner.hidden=false;panel.hidden=true;
   state=build(choice);walkingLocation=walker=null;mode='menu';
   document.getElementById('screen')?.classList.add('hidden');
-  if(choice.location==='vesper')await worldEnterWalking('vesper');else await dock();
+  if(choice.stage==='district-ship'){state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true});}   // stand on the street beside the pad
+  else if(choice.location==='vesper')await worldEnterWalking('vesper');else await dock();
   if(typeof hud==='function')hud();
   announce('TEST MODE · '+(C.stations[choice.location]?.name||choice.location)+' · nothing is saved');
  }
