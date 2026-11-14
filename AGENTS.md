@@ -7,3 +7,5 @@ Instructions for coding agents live in `CLAUDE.md`. **For the current work, read
 Voice work: follow `docs/VOID_RUNNER_VOICE_PRODUCTION.md`. Approved voices in `tools/audio/npc-voice-registry.json` are locked; never change them, the model files, or the reserved special-character slot without David's approval.
 
 **Art direction (permanent, Nov 2026):** the 3D game is PC-only and targets AAA dark cyberpunk. Before any graphics, environment, Blender or asset work, read the "PERMANENT DIRECTION" section of `docs/VOID_RUNNER_ART_DIRECTION.md`. It supersedes older graphics guidance.
+
+**Resume point (15 Nov 2026):** read "CURRENT DEVELOPMENT STATE — RESUME HERE" at the top of `docs/development/AI_HANDOFF.md`. Next work: `docs/development/THREE_LOCATION_EXPANSION.md` (Corporate District, then Zen Zephyr Temple). Blender/Higgsfield is blocked: `docs/development/BLENDER_HIGGSFIELD.md`.

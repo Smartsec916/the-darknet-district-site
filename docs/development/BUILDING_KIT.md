@@ -25,3 +25,5 @@ Window panes are separate child nodes (`<piece>__glass_<n>`) so the game can swi
 | 6 | fireescape_landing 3 m, fireescape_ladder 1 m, pipe_vertical 1 m, duct_horizontal 4 m, cable_bundle 4 m | built |
 | 7 | clutter_ac_unit 1 m, clutter_ac_bracket 1 m, roof_watertank 2 m, roof_antenna 1 m, roof_vent 1 m, roof_hut 3 m | built |
 | 8 | sign_vertical 1 m, sign_horizontal 4 m, neon_trim 2/4 m, kerb_straight 4 m, kerb_corner 1 m, sidewalk_slab 4 m (3 m deep) | built |
+
+Blender-through-Higgsfield status and the planned hallway-wall test asset: `BLENDER_HIGGSFIELD.md` (not functional yet).
