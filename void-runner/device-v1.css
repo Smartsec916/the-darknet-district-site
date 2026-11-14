@@ -103,3 +103,18 @@
 #personal-device .pd-home{display:flex;flex-direction:column;min-height:100%;gap:14px}
 #personal-device .pd-home-foot{margin-top:auto}#personal-device .pd-mini{padding:8px 12px;font-size:11px}#personal-device .pd-mini .pd-bar{height:8px;margin:5px 0 0}
 #personal-device.expanded .pd-grid{grid-template-columns:repeat(auto-fill,minmax(170px,200px));justify-content:start}#personal-device.expanded .pd-app{min-height:112px}#personal-device.expanded .pd-home-foot{max-width:640px}
+
+/* Messages */
+#personal-device .pd-badge{position:absolute;right:12px;top:6px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border:1px solid var(--pd-edge-hi);background:#103139;color:var(--pd-text-hi);font:700 10px/16px var(--pd-font);text-align:center;letter-spacing:0}
+#personal-device .pd-badge[hidden]{display:none}
+#personal-device .pd-badge.pd-inline{position:static;display:inline-block;margin-left:8px;vertical-align:middle}
+#personal-device .pd-chat-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:2px 0 4px;letter-spacing:.14em}
+#personal-device .pd-chatlog{height:min(46vh,420px);min-height:140px;overflow:auto;margin:8px 0;padding:6px;background:#050d12;border:1px solid var(--pd-edge);scrollbar-width:thin;scrollbar-color:var(--pd-edge) transparent}
+#personal-device.expanded .pd-chatlog{height:min(58vh,560px)}
+#personal-device .pd-msg{padding:3px 8px;margin:3px 0;border-left:2px solid var(--pd-edge);background:rgba(12,27,35,.8);word-break:break-word}
+#personal-device .pd-msg.me{border-left-color:var(--pd-edge-hi);background:rgba(16,49,57,.7)}#personal-device .pd-msg.sys{border-left-color:var(--pd-muted);color:var(--pd-muted);font-size:11px}
+#personal-device .pd-msg-h{display:flex;justify-content:space-between;gap:10px;font-size:11px}#personal-device .pd-msg-h b{color:var(--pd-edge-hi)}#personal-device .pd-msg-h time{color:var(--pd-muted)}
+#personal-device .pd-newline{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:10px;letter-spacing:.2em;color:var(--pd-edge-hi)}#personal-device .pd-newline::before,#personal-device .pd-newline::after{content:'';flex:1;border-top:1px solid var(--pd-edge-hi);opacity:.6}
+#personal-device .pd-compose{display:flex;gap:8px}#personal-device .pd-compose input{flex:1;min-width:0}
+#personal-device .pd-report{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}#personal-device .pd-report input{flex:1 1 160px;width:auto}
+#pd-chip.unread{border-color:var(--pd-edge-hi);color:var(--pd-text-hi);background:#103139}

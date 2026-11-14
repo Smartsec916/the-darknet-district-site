@@ -17,7 +17,8 @@
  const icon=id=>'<svg class="pd-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+(ICON[id]||'')+'</svg>';
  // The homepage navigation button frame (home-navigation.css): panel, rail and one small accent tick, stretched to the tile.
  const FRAME='<svg class="pd-frame" viewBox="0 0 180 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="pd-panel" d="M10 .5H179.5V37.5L169.5 47.5H.5V10Z"/><path class="pd-rail" d="M16 4H47M1 19V33M133 44H161"/><path class="pd-accent" d="M171 5H175V14"/></svg>';
- let el=null,body=null,open=false,expanded=false,dev=D.restore({}),stack=[],held=new Set(),suppressed=new Set(),mapTimer=0,loadTimer=0,chip=null,navTimer=0,navSeq=0,busy=false,booted=false,launchTimer=0;
+ let el=null,body=null,open=false,expanded=false,dev=D.restore({}),stack=[],held=new Set(),suppressed=new Set(),mapTimer=0,loadTimer=0,chip=null,navTimer=0,navSeq=0,busy=false,booted=false,launchTimer=0,pending=null,wantFocus=false,readSeq=0,dividerSeq=null,wasViewing=false,playersSig='',reporting='';
+ const chat=()=>root.VoidDistrictChat||null;
  const sources=new Map();   // portrait key -> source, filled while rendering a profile
 
  const state_=()=>typeof state!=='undefined'?state:null;
@@ -60,6 +61,64 @@
   return r.peers.map(p=>D.profile('player',{handle:p.name,publicId:p.id,appearance:p.appearance||null,bio:'In the District right now.'},{canBlock:true,canReport:true}));
  }
 
+
+ // ---- Messages: the District chat on screen (the session's messages live in district-chat.js) ----
+ const clock=t=>{try{return new Date(t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}catch{return '';}};
+ function chatLogHtml(){
+  const ls=(chat()?.lines||[]).slice(-60);if(!ls.length)return '<div class="pd-empty">No messages yet this session.</div>';
+  let out='',marked=false;
+  for(const l of ls){
+   if(!marked&&dividerSeq!=null&&l.seq>dividerSeq&&l.kind==='chat'){out+='<div class="pd-newline" role="separator">NEW</div>';marked=true;}
+   out+=l.kind==='sys'?'<div class="pd-msg sys">'+esc(l.text)+'</div>':'<div class="pd-msg '+(l.kind==='me'?'me':'')+'"><div class="pd-msg-h"><b>'+esc(l.name)+(l.kind==='me'?' (you)':'')+'</b><time>'+esc(clock(l.at))+'</time></div><div>'+esc(l.text)+'</div></div>';
+  }
+  return out;
+ }
+ const REASONS=[['harassment','HARASSMENT'],['spam','SPAM'],['inappropriate','INAPPROPRIATE'],['cheating','CHEATING'],['other','OTHER']];
+ function playerRows(){
+  const r=rp(),rows=(r?.connected?r.peers:[]).map(p=>({id:p.id,name:p.name,here:true}));
+  for(const [id,,name] of (r?.ignored||[]))if(!rows.some(x=>x.id===id))rows.push({id,name,here:false});   // a blocked player's character is hidden, so they stay listed to be unblocked
+  return rows;
+ }
+ const playersSigNow=()=>playerRows().map(x=>x.id+x.name).join('|')+JSON.stringify(rp()?.ignored||[]);
+ function playersHtml(){
+  const r=rp(),ign=new Map((r?.ignored||[]).map(([id,m,name])=>[id,{m,name}])),rows=playerRows();playersSig=playersSigNow();
+  const note=chat()?.note;
+  const list=rows.length?rows.map(p=>{const m=ign.get(p.id)?.m;return '<article class="pd-card"><h3>'+esc(p.name)+(m?' <small>['+m.toUpperCase()+']</small>':'')+(p.here?'':' <small>(not in view)</small>')+'</h3><div class="pd-tabs">'
+    +'<button type="button" data-ig="'+(m==='mute'?'unmute':'mute')+'" data-id="'+esc(p.id)+'" data-name="'+esc(p.name)+'">'+(m==='mute'?'UNMUTE':'MUTE')+'</button>'
+    +'<button type="button" data-ig="'+(m==='block'?'unblock':'block')+'" data-id="'+esc(p.id)+'" data-name="'+esc(p.name)+'">'+(m==='block'?'UNBLOCK':'BLOCK')+'</button>'
+    +(p.here?'<button type="button" data-rep-open="'+esc(p.id)+'">REPORT</button>':'')+'</div>'
+    +(reporting===p.id?'<div class="pd-report"><select aria-label="Reason">'+REASONS.map(([v,l])=>'<option value="'+v+'">'+l+'</option>').join('')+'</select><input type="text" maxlength="120" aria-label="Report note" placeholder="What happened? (optional)"><button type="button" data-rep-send="'+esc(p.id)+'">SEND REPORT</button></div>':'')+'</article>';}).join(''):'<div class="pd-empty">'+(r?.connected?'Nobody else is here right now.':'Not connected to the District server.')+'</div>';
+  return '<div class="pd-note">Mute hides a player\'s chat. Block also hides their character. Both are kept on this device. You can also type /mute NAME or /block NAME in the chat.</div>'
+   +(note?'<div class="pd-card" role="status">'+esc(note)+'</div>':'')+list
+   +'<div class="pd-note" style="margin-top:8px">Reports go to the District server\'s log for review. They are not kept as a permanent case file.</div>';
+ }
+ const unreadText=n=>n>99?'99+':String(n);
+ /* The chat counts as "being looked at" only while the V1 is open, not mid-transition, on Messages > District chat. Looking at it reads everything that was waiting. */
+ const viewingNow=()=>open&&!busy&&stack[0]==='messages'&&(stack[1]||'chat')==='chat';
+ const topSeq=()=>{const ls=chat()?.lines||[];return ls.length?ls[ls.length-1].seq:0;};
+ function syncViewing(){
+  const v=viewingNow(),C_=chat();
+  if(v&&!wasViewing)dividerSeq=readSeq;   // the NEW marker goes before what arrived since the player last looked
+  if(v||wasViewing)readSeq=topSeq();
+  if(!v)dividerSeq=null;
+  wasViewing=v;C_?.setViewing(v);
+ }
+ function updateBadges(){
+  const n=chat()?.unread||0;
+  if(chip){chip.textContent=n?'V1 · L · '+unreadText(n)+' NEW':'V1 · L';chip.classList.toggle('unread',n>0);chip.setAttribute('aria-label',n?'Open the V1 device. '+n+' unread message'+(n===1?'':'s'):'Open the V1 device');}
+  if(!body)return;
+  const tile=body.querySelector('[data-app=messages] .pd-badge');if(tile){tile.hidden=!n;tile.textContent=n?unreadText(n):'';}
+  const tb=body.querySelector('[data-tabbadge=chat]');if(tb){tb.hidden=!n;tb.textContent=n?unreadText(n):'';}
+ }
+ function onChatChange(){
+  if(open&&!busy&&viewingNow()){   // redraw only the message list so what the player is typing is never disturbed
+   const log=body.querySelector('[data-chatlog]');
+   if(log){const near=log.scrollHeight-log.scrollTop-log.clientHeight<40;log.innerHTML=chatLogHtml();if(near)log.scrollTop=log.scrollHeight;}
+   readSeq=topSeq();
+  }else if(open&&!busy&&stack[0]==='messages'&&stack[1]==='players'&&!body.querySelector('input:focus'))render({keepScroll:true});   // a refused report or a command's answer
+  updateBadges();
+ }
+
  // ---- Apps ----
  const APP_VIEW={
   missions(){
@@ -70,17 +129,20 @@
    return (active.length?active.map(card).join(''):'<div class="pd-empty">No active missions.<br>Missions appear here when someone in the District offers you work.</div>')+(done.length?'<h2>COMPLETED</h2>'+done.map(card).join(''):'');
   },
   messages(){
-   const r=rp(),sub=stack[1]||'chat';
-   const tabs='<div class="pd-tabs"><button type="button" data-sub="chat" aria-pressed="'+(sub==='chat')+'">DISTRICT CHAT</button><button type="button" data-sub="talk" aria-pressed="'+(sub==='talk')+'">CONVERSATIONS</button><button type="button" data-sub="dm" aria-pressed="'+(sub==='dm')+'">PRIVATE</button></div>';
-   if(sub==='dm')return tabs+'<div class="pd-empty">Private messages between players are not available yet.<br>They need a server feature that has not been approved or built. Nothing is stored on this device.</div>';
+   const r=rp(),C_=chat(),sub=stack[1]||'chat',un=C_?.unread||0;
+   const tab=(id,label,badge)=>'<button type="button" data-sub="'+id+'" aria-pressed="'+(sub===id)+'">'+label+(badge?'<span class="pd-badge pd-inline" data-tabbadge="'+id+'">'+badge+'</span>':'')+'</button>';
+   const tabs='<div class="pd-tabs">'+tab('chat','DISTRICT CHAT',un?(un>99?'99+':un):'')+tab('players','PLAYERS','')+tab('talk','CONVERSATIONS','')+tab('dm','PRIVATE','')+'</div>';
+   if(sub==='dm')return tabs+'<div class="pd-empty"><b>PRIVATE MESSAGES</b><br>Not available yet.<br>They need a server feature (delivery, blocking checks, storage) that has not been built or approved. Planned for a later phase. Nothing is stored on this device.</div>';
+   if(sub==='players')return tabs+playersHtml();
    if(sub==='talk'){
     let rows=[];try{rows=root.VoidConversationHistory?.read(localStorage,uid())||[];}catch{}
-    return tabs+(rows.length?rows.slice(-40).reverse().map(m=>'<div class="pd-line"><b>'+esc(m.name)+'</b><span class="pd-note">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class="pd-empty">No conversations yet. People you talk to appear here.</div>');
+    return tabs+'<div class="pd-note">People you have talked to in this browser. Not synced.</div>'+(rows.length?rows.slice(-40).reverse().map(m=>'<div class="pd-line"><b>'+esc(m.name)+'</b><span class="pd-note">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class="pd-empty">No conversations yet. People you talk to appear here.</div>');
    }
-   const lines=root.VoidDistrictChat?.lines||[],online=!!r?.connected,can=online&&r.features.chat;
-   return tabs+'<div class="pd-note">Everyone in the District interior can read this.'+(online?'':' You are not connected to the District server right now.')+'</div>'
-    +'<div data-chatlog data-n="'+lines.length+'">'+(lines.length?lines.slice(-40).map(l=>'<div class="pd-line">'+(l.name?'<b>'+esc(l.name)+'</b>':'')+esc(l.text)+'</div>').join(''):'<div class="pd-empty">No chat yet.</div>')+'</div>'
-    +'<form data-chatform style="margin-top:8px"><input type="text" maxlength="200" autocomplete="off" aria-label="Chat message" placeholder="'+(can?'Say something (no links)':'Chat needs a registered account and a connection')+'"'+(can?'':' disabled')+'></form>';
+   const online=!!r?.connected,can=online&&r.features.chat,here=online?(r.peers.length+1):0;
+   return tabs+'<div class="pd-chat-head"><b>DISTRICT CHAT</b><span class="pd-note">'+(online?here+' in the District interior':'OFFLINE')+'</span></div>'
+    +'<div class="pd-note">Everyone in the District interior can read this. Messages are kept for this session only.'+(online?'':' You are not connected to the District server right now.')+'</div>'
+    +'<div class="pd-chatlog" data-chatlog role="log" aria-live="polite">'+chatLogHtml()+'</div><div class="pd-note" data-chathint></div>'
+    +'<form data-chatform class="pd-compose"><input type="text" maxlength="200" autocomplete="off" aria-label="Chat message" placeholder="'+(can?'Say something to the District (no links)':'Chat needs a registered account and a connection')+'"'+(can?'':' disabled')+'><button type="submit"'+(can?'':' disabled')+'>SEND</button></form>';
   },
   social(){
    const sel=stack[1];
@@ -133,9 +195,10 @@
    +'<div class="pd-nav"><button type="button" data-do="back" aria-label="Back">◀ BACK</button><span class="pd-title"></span></div><div class="pd-load"><i></i></div><div class="pd-main" tabindex="-1"></div>';
   document.body.appendChild(el);body=el.querySelector('.pd-main');
   el.addEventListener('click',onClick);
-  el.addEventListener('submit',e=>{const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(t&&rp()?.sendChat(t))i.value='';});
+  el.addEventListener('submit',e=>{const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};
+   if(res.ok){i.value='';if(res.players)go(['messages','players'],'tab','LOADING');}else{const h=body.querySelector('[data-chathint]');if(h)h.textContent=res.text||'';}});
   el.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))e.stopPropagation();});   // typing stays in the box: no movement, no shortcuts
-  chip=document.createElement('button');chip.id='pd-chip';chip.type='button';chip.textContent='V1 · L';chip.setAttribute('aria-label','Open the V1 device');chip.addEventListener('click',()=>toggle());document.body.appendChild(chip);
+  chip=document.createElement('button');chip.id='pd-chip';chip.type='button';chip.textContent='V1 · L';updateBadges();chip.setAttribute('aria-label','Open the V1 device');chip.addEventListener('click',()=>toggle());document.body.appendChild(chip);
  }
  function loadingBar(ms){const bar=el.querySelector('.pd-load');if(!ms)return;bar.style.setProperty('--pd-ms',ms+'ms');bar.classList.remove('on');void bar.offsetWidth;bar.classList.add('on');clearTimeout(loadTimer);loadTimer=setTimeout(()=>bar.classList.remove('on'),ms+40);}
  const label=()=>stack[0]?D.APPS[stack[0]].title:'HOME';
@@ -147,20 +210,22 @@
  }
  function render(opts={}){
   if(!el||!open||busy)return;   // while a transition card is showing nothing else redraws the screen
-  const app=stack[0],def=D.DEVICES[dev.model];chrome();
+  const app=stack[0],def=D.DEVICES[dev.model];chrome();syncViewing();
   const top=body.scrollTop;
-  if(!app){const st=D.storage(dev);body.innerHTML='<div class="pd-home"><div class="pd-grid">'+def.apps.map((id,i)=>{const a=D.APPS[id],off=a.state==='placeholder';return '<button type="button" class="pd-app'+(off?' off':'')+'" data-app="'+id+'" style="--i:'+i+'" aria-label="'+esc(a.title)+(off?' (not available yet)':'')+'">'+FRAME+'<span class="pd-index" aria-hidden="true">'+String(i+1).padStart(2,'0')+'</span>'+icon(id)+'<span class="pd-name">'+esc(a.title)+'</span><span class="pd-sub">'+(off?'COMING LATER':'')+'</span></button>';}).join('')+'</div><div class="pd-home-foot"><div class="pd-storage pd-mini" aria-label="Device storage"><div class="pd-stat"><span>STORAGE USED: '+st.usedPct+'%</span><span>AVAILABLE: '+st.availablePct+'%</span></div><div class="pd-bar"><i style="width:'+st.usedPct+'%"></i></div></div><div class="pd-foot">'+esc(def.tagline)+'</div></div></div>';}
+  if(!app){const st=D.storage(dev);body.innerHTML='<div class="pd-home"><div class="pd-grid">'+def.apps.map((id,i)=>{const a=D.APPS[id],off=a.state==='placeholder';return '<button type="button" class="pd-app'+(off?' off':'')+'" data-app="'+id+'" style="--i:'+i+'" aria-label="'+esc(a.title)+(off?' (not available yet)':'')+'">'+FRAME+'<span class="pd-index" aria-hidden="true">'+String(i+1).padStart(2,'0')+'</span>'+(id==='messages'?'<span class="pd-badge" hidden></span>':'')+icon(id)+'<span class="pd-name">'+esc(a.title)+'</span><span class="pd-sub">'+(off?'COMING LATER':'')+'</span></button>';}).join('')+'</div><div class="pd-home-foot"><div class="pd-storage pd-mini" aria-label="Device storage"><div class="pd-stat"><span>STORAGE USED: '+st.usedPct+'%</span><span>AVAILABLE: '+st.availablePct+'%</span></div><div class="pd-bar"><i style="width:'+st.usedPct+'%"></i></div></div><div class="pd-foot">'+esc(def.tagline)+'</div></div></div>';}
   else{try{body.innerHTML=APP_VIEW[app]();}catch(e){body.innerHTML='<div class="pd-empty">This app could not be shown.</div>';}}
   body.scrollTop=opts.keepScroll?top:0;
   hydratePortraits();if(app==='map')drawMap();
+  if(app==='messages'&&(stack[1]||'chat')==='chat'){const log=body.querySelector('[data-chatlog]');if(log)log.scrollTop=log.scrollHeight;if(wantFocus){wantFocus=false;const i=body.querySelector('[data-chatform] input:not([disabled])');if(i)setTimeout(()=>i.focus(),0);}}
+  updateBadges();
  }
  /* Moves to another screen. The new screen's title shows at once; its content appears after the model's transition delay (a loading card, driven by a timer: nothing blocks).
     Only the LATEST request counts: clicking again, going back or closing cancels the one in flight, so transitions never pile up. */
  function go(next,kind,text){
   stack=next;const seq=++navSeq,ms=D.delayMs(dev,kind,reduced());clearTimeout(navTimer);busy=false;
-  if(!el||!open)return;
+  if(!el||!open){syncViewing();return;}
   if(!ms){render();return;}
-  chrome();busy=true;loadingBar(ms);
+  chrome();busy=true;syncViewing();loadingBar(ms);
   body.innerHTML='<div class="pd-boot" role="status"><b>'+esc(text||'OPENING '+label())+'</b><small>'+esc(D.DEVICES[dev.model].tagline)+'</small><div class="pd-boot-bar" style="--pd-ms:'+ms+'ms"><i></i></div></div>';
   navTimer=setTimeout(()=>{if(seq!==navSeq)return;busy=false;if(open)render();},ms);
  }
@@ -171,6 +236,9 @@
   if(t.dataset.do==='back')return back();
   if(t.dataset.do==='expand'){expanded=!expanded;render({keepScroll:true});if(busy)chrome();return;}
   if(t.dataset.sub){if(t.getAttribute('aria-pressed')==='true')return;go([stack[0],t.dataset.sub],'tab','LOADING');return;}
+  if(t.dataset.ig){const r=rp();if(r){r.setIgnore(t.dataset.id,t.dataset.ig==='mute'?'mute':t.dataset.ig==='block'?'block':null,t.dataset.name);}render({keepScroll:true});return;}
+  if(t.dataset.repOpen){reporting=reporting===t.dataset.repOpen?'':t.dataset.repOpen;chat()?.clearNote();render({keepScroll:true});return;}
+  if(t.dataset.repSend){const box=t.closest('.pd-report'),ok=rp()?.report(t.dataset.repSend,box.querySelector('select').value,box.querySelector('input').value);reporting='';render({keepScroll:true});if(!ok){const n=document.createElement('div');n.className='pd-card';n.setAttribute('role','status');n.textContent='Could not send the report right now.';body.prepend(n);}return;}
   if(t.dataset.openProfile){go(['social',t.dataset.openProfile],'tab','LOADING PROFILE');return;}
   if(t.dataset.track||t.dataset.untrack){const s=state_(),V=root.VoidMissions;try{if(t.dataset.track)V.track(s,t.dataset.track,C);else V.untrack(s);if(typeof save==='function')save();}catch{}render({keepScroll:true});return;}
   if(t.dataset.set){dev.settings[t.dataset.set]=t.dataset.value;if(t.dataset.set==='size')expanded=t.dataset.value==='expanded';commit();render({keepScroll:true});return;}
@@ -221,15 +289,23 @@
    expanded=dev.settings.size==='expanded';stack=[];open=true;busy=false;clearTimeout(navTimer);navSeq++;
    walkingKeys?.clear?.();try{clearInput?.();}catch{}for(const c of held)if(MOVE.has(c))suppressed.add(c);   // keys already held do nothing until released and pressed again
    document.exitPointerLock?.();el.classList.add('open');el.classList.toggle('anim',!reduced());chip.classList.remove('on');
-   if(!booted){booted=true;go([],'startup','V1 STARTING');}else render();   // the first opening after the page loads shows a short start-up card
-   setTimeout(()=>el.querySelector('.pd-main')?.focus({preventScroll:true}),0);
+   if(pending){const q=pending;pending=null;booted=true;go(q.sub?[q.app,q.sub]:[q.app],'open');}
+   else if(!booted){booted=true;go([],'startup','V1 STARTING');}else render();   // the first opening after the page loads shows a short start-up card
+   setTimeout(()=>{if(!el.querySelector('input:focus'))el.querySelector('.pd-main')?.focus({preventScroll:true});},0);
   }else{
-   open=false;busy=false;clearTimeout(navTimer);navSeq++;el.classList.remove('open');commit();walkingKeys?.clear?.();for(const c of held)if(MOVE.has(c))suppressed.add(c);
+   open=false;busy=false;clearTimeout(navTimer);navSeq++;syncViewing();el.classList.remove('open');commit();walkingKeys?.clear?.();for(const c of held)if(MOVE.has(c))suppressed.add(c);
    try{canvas?.focus?.();}catch{}
   }
   return true;
  }
  const toggle=()=>setOpen(!open);
+ /* Opens the V1 straight onto an app (and a tab inside it): Enter in the District uses this for the chat, the multiplayer status chip uses it for the Players list. */
+ function openApp(app,sub,opts={}){
+  if(!D.APPS[app]||D.APPS[app].state!=='ready'||!onFootOrDock())return false;
+  wantFocus=!!opts.focus;
+  if(!open){pending={app,sub:sub||null};return setOpen(true)!==false;}
+  go(sub?[app,sub]:[app],'open');return true;
+ }
  addEventListener('keydown',e=>{
   held.add(e.code);
   const code=e.code,typing=/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName||'');
@@ -257,12 +333,13 @@
   if(open&&stack[0]==='map')drawMap();
  }
  setInterval(frame,500);mapTimer=setInterval(exploreTick,1000);
- // A live look at chat and profiles while the device is open (cheap: only when a screen that shows them is up)
- setInterval(()=>{if(!open)return;const a=stack[0];if(a==='messages'&&(stack[1]||'chat')==='chat'){const log=body.querySelector('[data-chatlog]');if(log&&!body.querySelector('input:focus')){const n=(root.VoidDistrictChat?.lines||[]).length;if(String(n)!==log.dataset.n){log.dataset.n=String(n);render({keepScroll:true});}}}},1500);
+ // The Players list follows who comes and goes while it is on screen (only when it really changed and nothing is being typed)
+ setInterval(()=>{if(!open||busy||stack[0]!=='messages'||stack[1]!=='players'||body.querySelector('input:focus,select:focus'))return;if(playersSigNow()!==playersSig)render({keepScroll:true});},1500);
 
  // Esc is also the game's Pause key and the controls layer hears it first: while the device is open, Pause (and losing focus) must not open the game menu.
  if(typeof openGameMenu==='function'){const gameMenu=openGameMenu;openGameMenu=function(){if(open)return;return gameMenu.apply(this,arguments);};}
  // The L key now opens the V1 on foot and in stations; in flight the older Mission Log keeps working unchanged.
  if(typeof openMissionLog==='function'){const legacy=openMissionLog;openMissionLog=function(){if(open||onFootOrDock()){toggle();return;}return legacy.apply(this,arguments);};}
- root.VoidPersonalDevice={get isOpen(){return open;},get expanded(){return expanded;},open:()=>setOpen(true),close:()=>setOpen(false),toggle,get app(){return stack[0]||null;},get busy(){return busy;},get suppressed(){return [...suppressed];},get device(){return dev;},APP_VIEW};
+ try{chat()?.onChange(onChatChange);}catch{}
+ root.VoidPersonalDevice={get isOpen(){return open;},get expanded(){return expanded;},open:()=>setOpen(true),close:()=>setOpen(false),toggle,get app(){return stack[0]||null;},get sub(){return stack[1]||null;},openApp,get busy(){return busy;},get suppressed(){return [...suppressed];},get device(){return dev;},APP_VIEW};
 })(globalThis);
