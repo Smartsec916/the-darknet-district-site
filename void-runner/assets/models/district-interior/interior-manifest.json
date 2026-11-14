@@ -829,6 +829,98 @@
     }
    }
   },
+  "district_shop_gun_pistol": {
+   "file": "district_shop_gun_pistol.glb",
+   "batch": "G",
+   "category": "shop",
+   "size": {
+    "w": 0.212,
+    "h": 0.168,
+    "d": 0.032
+   },
+   "triangles": 308,
+   "bytes": 29232,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.032
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_shop_gun_rifle": {
+   "file": "district_shop_gun_rifle.glb",
+   "batch": "G",
+   "category": "shop",
+   "size": {
+    "w": 0.99,
+    "h": 0.36,
+    "d": 0.048
+   },
+   "triangles": 912,
+   "bytes": 81364,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.048
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_shop_gun_shotgun": {
+   "file": "district_shop_gun_shotgun.glb",
+   "batch": "G",
+   "category": "shop",
+   "size": {
+    "w": 1.02,
+    "h": 0.135,
+    "d": 0.052
+   },
+   "triangles": 564,
+   "bytes": 47112,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.052
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_shop_gun_smg": {
+   "file": "district_shop_gun_smg.glb",
+   "batch": "G",
+   "category": "shop",
+   "size": {
+    "w": 0.62,
+    "h": 0.339,
+    "d": 0.048
+   },
+   "triangles": 468,
+   "bytes": 43168,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.048
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
   "district_hall_pilaster_05m_k": {
    "file": "district_hall_pilaster_05m_k.glb",
    "batch": "W",
