@@ -1757,6 +1757,146 @@ def hall_services_4m(p):
     p.snap.update({'mount': {}})
 
 
+# ---------------------------------------------------------------- shop guns ----------------------------------------------------------------
+# The Admin & Iris shop's gun wall (David, Nov 2026: "make the guns look more real, texture, shade"). Four fictional firearms, each lying in the X-Z plane as it hangs
+# on the pegboard (X = muzzle direction, Z = up, Y = thickness, front at Y = 0). Shaped parts with chamfers, round barrels, rails and sights; the wall metals with wear
+# in the vertex colours: bright worn edges, a dark tone for polymer furniture, a warm tint for wood.
+G_STEEL, G_POLY, G_WOOD, G_DARK = (.5, .53, .6), (.3, .31, .33), (1.0, .58, .3), (.17, .17, .2)
+
+
+def _g_part(p, faces, tint):
+    b = p.bm()
+    layer = b.faces.layers.int.get('tint') or b.faces.layers.int.new('tint')
+    code = p.tints.index(tint) if tint in p.tints else (p.tints.append(tint) or len(p.tints) - 1)
+    for f in faces:
+        if f.is_valid:
+            f[layer] = code
+    return faces
+
+
+def _g_start(p):
+    b = _w_start(p)
+    if 'tint' not in b.faces.layers.int:
+        b.faces.layers.int.new('tint')
+    p.tints = [G_STEEL]
+    return b
+
+
+def _g_slab(p, pts, y0, y1, mat, tint, tone=W_FLAT, bevel=.003):
+    """A flat part cut to an outline in X-Z (the gun's side view) and given thickness in Y."""
+    return _g_part(p, _w_prism(p, pts, 'y', y0, y1, mat, tone * p.rng.uniform(.92, 1.08), bevel), tint)
+
+
+def _g_box(p, a, c, mat, tint, tone=W_FLAT, bevel=.002):
+    return _g_part(p, _w_box(p, a, c, mat, tone * p.rng.uniform(.92, 1.08), bevel), tint)
+
+
+def _g_tube(p, a, c, r, mat, tint, tone=W_FLAT * 1.2, seg=10):
+    return _g_part(p, _w_tone(p, p.cyl(a, c, r, mat, seg=seg), tone), tint)
+
+
+def _g_paint(p):
+    b = p.bm()
+    tl, tint = b.faces.layers.float['tone'], b.faces.layers.int['tint']
+    col = b.loops.layers.float_color.new('Col')
+    for f in b.faces:
+        t = f[tl] or W_FLAT
+        k = p.tints[f[tint]]
+        worn = t >= W_EDGE - 1e-6                        # chamfers: bare metal shows through whatever the part is made of
+        for loop in f.loops:
+            loop[col] = (t, t, t, 1.0) if worn else (t * k[0] * 1.5, t * k[1] * 1.5, t * k[2] * 1.5, 1.0)
+        f.smooth = False
+
+
+def gun_rifle(p):
+    _g_start(p)
+    M, S = 'kit_gunmetal', 'kit_steel'
+    _g_slab(p, [(0, .02), (0, .135), (.05, .152), (.25, .152), (.25, .105), (.11, .075), (.06, .02)], .008, .040, M, G_POLY)            # stock
+    _g_box(p, (0, .004, .02), (.012, .044, .135), M, G_DARK, bevel=.002)                                                                # butt pad
+    _g_tube(p, (.24, .024, .128), (.30, .024, .128), .015, S, G_DARK)                                                                   # buffer tube
+    _g_slab(p, [(.29, .072), (.29, .15), (.58, .15), (.58, .095), (.50, .095), (.47, .072)], .004, .044, S, G_STEEL)                     # lower receiver
+    _g_box(p, (.29, .003, .15), (.60, .045, .188), S, G_STEEL, bevel=.004)                                                              # upper receiver
+    _g_box(p, (.43, .001, .152), (.52, .004, .176), M, G_DARK, bevel=0)                                                                 # ejection port
+    _g_slab(p, [(.305, .072), (.352, .072), (.326, -.045), (.276, -.04)], .008, .040, M, G_POLY, bevel=.004)                              # pistol grip
+    _g_box(p, (.352, .016, .044), (.43, .032, .050), S, G_STEEL, bevel=0)                                                               # trigger guard
+    _g_box(p, (.385, .02, .050), (.392, .028, .072), S, G_STEEL, bevel=0)                                                               # trigger
+    _g_slab(p, [(.405, .072), (.458, .072), (.482, -.10), (.43, -.108)], .010, .038, S, G_DARK, W_FLAT * 1.1)                             # magazine
+    _g_box(p, (.60, .002, .112), (.86, .046, .188), M, G_POLY, bevel=.004)                                                              # handguard
+    for i in range(6):
+        _g_box(p, (.625 + i * .038, .0, .128), (.645 + i * .038, .048, .172), M, G_DARK, bevel=0)                                        # cooling slots
+    _g_tube(p, (.86, .024, .152), (.965, .024, .152), .011, S, G_STEEL)                                                                 # barrel
+    _g_tube(p, (.93, .024, .152), (.99, .024, .152), .016, S, G_DARK)                                                                   # muzzle device
+    _g_box(p, (.29, .012, .188), (.86, .036, .197), S, G_DARK, bevel=0)                                                                 # top rail
+    for i in range(18):
+        _g_box(p, (.30 + i * .031, .010, .197), (.318 + i * .031, .038, .203), S, G_STEEL, bevel=0)
+    _g_box(p, (.37, .006, .203), (.49, .042, .252), M, G_DARK, bevel=.005)                                                              # optic
+    _g_tube(p, (.36, .024, .228), (.50, .024, .228), .017, S, G_STEEL, seg=12)
+    _g_box(p, (.80, .016, .203), (.815, .032, .235), S, G_DARK, bevel=0)                                                                # front sight
+    _g_paint(p)
+    p.snap.update({'mount': {}})
+
+
+def gun_smg(p):
+    _g_start(p)
+    M, S = 'kit_gunmetal', 'kit_steel'
+    _g_box(p, (.16, .002, .09), (.46, .048, .165), S, G_STEEL, bevel=.005)                                                              # receiver
+    _g_box(p, (.30, .0, .112), (.38, .003, .14), M, G_DARK, bevel=0)                                                                    # ejection port
+    _g_tube(p, (.46, .025, .128), (.60, .025, .128), .013, S, G_STEEL)                                                                  # barrel
+    _g_tube(p, (.50, .025, .128), (.62, .025, .128), .021, M, G_DARK, seg=12)                                                           # suppressor shroud
+    _g_slab(p, [(.20, .09), (.25, .09), (.225, -.02), (.172, -.014)], .008, .042, M, G_POLY, bevel=.004)                                  # grip
+    _g_box(p, (.25, .017, .058), (.325, .033, .064), S, G_STEEL, bevel=0)
+    _g_slab(p, [(.33, .09), (.372, .09), (.384, -.12), (.342, -.124)], .012, .038, S, G_DARK, W_FLAT * 1.1)                               # long magazine
+    _g_slab(p, [(.40, .09), (.44, .09), (.435, .02), (.405, .02)], .010, .040, M, G_POLY, bevel=.003)                                     # fore grip
+    _g_box(p, (.0, .018, .135), (.16, .032, .15), S, G_DARK, bevel=0)                                                                   # wire stock
+    _g_box(p, (.0, .018, .06), (.014, .032, .15), S, G_DARK, bevel=0)
+    _g_box(p, (.0, .018, .06), (.10, .032, .072), S, G_DARK, bevel=0)
+    _g_box(p, (.18, .012, .165), (.44, .038, .173), S, G_DARK, bevel=0)                                                                 # rail
+    for i in range(8):
+        _g_box(p, (.19 + i * .031, .010, .173), (.208 + i * .031, .040, .179), S, G_STEEL, bevel=0)
+    _g_box(p, (.24, .008, .179), (.31, .042, .215), M, G_DARK, bevel=.004)                                                              # reflex sight
+    _g_paint(p)
+    p.snap.update({'mount': {}})
+
+
+def gun_shotgun(p):
+    _g_start(p)
+    M, S = 'kit_gunmetal', 'kit_steel'
+    _g_slab(p, [(0, .03), (0, .13), (.04, .145), (.30, .15), (.30, .095), (.12, .065), (.05, .03)], .008, .040, M, G_WOOD, W_FLAT * 1.1)   # wooden stock
+    _g_box(p, (0, .004, .03), (.012, .044, .13), M, G_DARK, bevel=.002)
+    _g_box(p, (.30, .003, .085), (.56, .045, .158), S, G_STEEL, bevel=.005)                                                             # receiver
+    _g_box(p, (.40, .0, .105), (.50, .003, .135), M, G_DARK, bevel=0)                                                                   # loading port
+    _g_box(p, (.34, .016, .058), (.43, .032, .064), S, G_STEEL, bevel=0)
+    _g_box(p, (.385, .02, .064), (.392, .028, .086), S, G_STEEL, bevel=0)
+    _g_tube(p, (.56, .024, .138), (1.02, .024, .138), .013, S, G_STEEL)                                                                 # barrel
+    _g_tube(p, (.56, .024, .104), (.94, .024, .104), .012, S, G_DARK)                                                                   # magazine tube
+    _g_tube(p, (.66, .024, .106), (.83, .024, .106), .024, M, G_WOOD, W_FLAT * 1.1, seg=12)                                             # pump
+    for i in range(5):
+        _g_tube(p, (.675 + i * .032, .024, .106), (.685 + i * .032, .024, .106), .026, M, G_DARK, seg=12)
+    _g_box(p, (.92, .014, .096), (.94, .034, .15), S, G_DARK, bevel=0)                                                                  # barrel clamp
+    _g_box(p, (1.0, .019, .151), (1.01, .029, .165), S, G_STEEL, bevel=0)                                                               # bead
+    _g_paint(p)
+    p.snap.update({'mount': {}})
+
+
+def gun_pistol(p):
+    _g_start(p)
+    M, S = 'kit_gunmetal', 'kit_steel'
+    _g_box(p, (.0, .002, .10), (.205, .030, .138), S, G_STEEL, bevel=.004)                                                              # slide
+    for i in range(6):
+        _g_box(p, (.012 + i * .008, .0, .104), (.016 + i * .008, .032, .134), S, G_DARK, bevel=0)                                        # serrations
+    _g_box(p, (.105, .0, .112), (.15, .003, .132), M, G_DARK, bevel=0)                                                                  # ejection port
+    _g_slab(p, [(.02, .10), (.20, .10), (.20, .078), (.105, .078), (.075, -.02), (.02, -.012), (.045, .07)], .004, .028, M, G_POLY, bevel=.003)   # frame and grip
+    _g_box(p, (.105, .011, .052), (.16, .021, .057), M, G_POLY, bevel=0)                                                                # trigger guard
+    _g_box(p, (.155, .011, .057), (.16, .021, .078), M, G_POLY, bevel=0)
+    _g_box(p, (.118, .013, .058), (.124, .019, .078), S, G_STEEL, bevel=0)                                                              # trigger
+    _g_tube(p, (.20, .016, .122), (.212, .016, .122), .007, S, G_DARK, seg=8)                                                           # muzzle
+    _g_box(p, (.008, .012, .138), (.02, .020, .146), S, G_DARK, bevel=0)                                                                # sights
+    _g_box(p, (.19, .014, .138), (.197, .018, .145), S, G_DARK, bevel=0)
+    _g_box(p, (.03, .006, -.022), (.07, .026, -.012), S, G_DARK, bevel=0)                                                               # magazine base
+    _g_paint(p)
+    p.snap.update({'mount': {}})
+
+
 def _w_services(p, W, z0, y0=.02):
     """The pipe band of hall_services_4m, any width, stood on top of a wall at height z0 (its front sits y0 behind the wall's front)."""
     t = lambda k=1.0: W_FLAT * k * p.rng.uniform(.9, 1.1)
@@ -1825,6 +1965,8 @@ def hall_pilaster_k(p):
 
 
 INTERIOR = {
+    'district_shop_gun_rifle': ('G', 'shop', gun_rifle), 'district_shop_gun_smg': ('G', 'shop', gun_smg), 'district_shop_gun_shotgun': ('G', 'shop', gun_shotgun),
+    'district_shop_gun_pistol': ('G', 'shop', gun_pistol),
     'district_hall_wall_2m_ka': ('W', 'hallway', hall_wall_k(2, 'a')), 'district_hall_wall_2m_kb': ('W', 'hallway', hall_wall_k(2, 'b')), 'district_hall_wall_2m_kc': ('W', 'hallway', hall_wall_k(2, 'c')),
     'district_hall_wall_2m_kd': ('W', 'hallway', hall_wall_k(2, 'd')), 'district_hall_wall_1m_k': ('W', 'hallway', hall_wall_k(1, 'a')), 'district_hall_pilaster_05m_k': ('W', 'hallway', hall_pilaster_k),
     'district_hall_wall_4m_a': ('W', 'hallway', hall_wall_4m), 'district_hall_services_4m': ('W', 'hallway', hall_services_4m),
