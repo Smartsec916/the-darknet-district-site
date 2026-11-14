@@ -17,7 +17,8 @@
    {id:'avenue',label:'The avenue',zone:'avenue'},
    ...N.districts.filter(d=>d.id!=='corporate').map(d=>({id:d.id,label:d.name,zone:d.id,placeholder:!!d.placeholder,streams:true})),
    // A separate area reached by the sky-cab transition (sky-cab.js): its own scene about 1.8 km away, a flat fare, no landing zone in this street.
-   {id:'corporate',label:'Corporate District',zone:null,scene:'corporate',fixedFare:60}]}
+   {id:'corporate',label:'Corporate District',zone:null,scene:'corporate',fixedFare:60,blurb:'A separate district about 1.8 km away, by sky cab'},
+   {id:'temple',label:'Zen Zephyr Temple',zone:null,scene:'temple',fixedFare:60,blurb:'A hilltop sanctuary far from the city, by sky cab only'}]}
  };
  const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
  // ctx: {mode, onFoot, area ('street'|'district'|'terrace'), busy, combat, location}. Returns {ok, reason}.

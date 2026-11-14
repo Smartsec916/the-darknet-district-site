@@ -60,6 +60,12 @@ test('the return spot survives a reload (kept as text in the save)',()=>{
   assert.deepEqual(K.parseReturn('-90.00,-12.50,1.200'),{spawn:[-90,1.7,-12.5],yaw:1.2});assert.equal(K.parseReturn('x'),null);
   const h=harness();h.flags.cabReturn='-90.00,-12.50,1.200';return h.ctl.travel('neochinatown',{from:{spawn:[0,1.7,-17.4],yaw:0},paid:0}).then(ok=>{assert.equal(ok,true);assert.deepEqual(h.last.spawn,[-90,1.7,-12.5]);});
 });
+test('the same transition serves the Temple: out and back, with the same fare rules and recovery',async()=>{
+  const h=harness(),from={spawn:[45,1.7,-12.5],yaw:1.57};h.credits=40;assert.equal(await h.ctl.travel('temple',{from,paid:60}),true);assert.equal(h.loc,'temple');assert.deepEqual(h.log.filter(x=>/^(enter|prefetch)/.test(x)),['enter:skycab','prefetch:temple','enter:temple']);assert.deepEqual(h.last.spawn,K.DESTINATIONS.temple.spawn);
+  assert.equal(await h.ctl.travel('neochinatown',{from:{spawn:[0,1.7,-39],yaw:0},paid:0}),true);assert.equal(h.loc,'neochinatown');assert.deepEqual(h.last.spawn,from.spawn);assert.equal(h.credits,40,'no second fare');
+  const f=harness();f.credits=40;f.fail.temple=true;assert.equal(await f.ctl.travel('temple',{from,paid:60}),false);assert.equal(f.credits,100,'refunded');assert.equal(f.loc,'neochinatown');
+  const longer=K.rideMs(K.DESTINATIONS.temple)>=K.rideMs(K.DESTINATIONS.corporate);assert.ok(longer,'farther away, not a shorter ride');assert.ok(K.rideMs(K.DESTINATIONS.temple)<=K.RIDE_MAX_MS);
+});
 test('the 3D cab is a real room: seats, dashboard, fare readout, rain on the windows, neon outside; it is built from geometry, not an image',()=>{
   const src=fs.readFileSync(path.join(__dirname,'../void-runner/sky-cab.js'),'utf8');assert.equal(K.CAB_LOCATION.skycab,true);assert.equal(K.CAB_LOCATION.id,'skycab');assert.equal(typeof K.build,'function');
   for(const part of ['seatM','dash','rainTex','streaks','towers','fare','FARE','progress'])assert.ok(src.includes(part),part);assert.match(src,/CreateBox/);assert.match(src,/CreatePlane/);assert.ok(!/<img|\.png|\.jpg|backgroundImage/.test(src),'no flat loading image');
