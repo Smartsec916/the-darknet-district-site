@@ -4,6 +4,9 @@
 
 **Checked against:** `origin/main` `4fc1a70` (12 Nov 2026). That commit is the merge of #240 (Tropical Escape dolphins) on top of `7939256` (NULL nightclub, #238). Re-fetch GitHub before trusting pull-request numbers or deploy claims below.
 
+## 14 Nov 2026: V1 Phase 1 built locally (branch `claude/v1-phase1`, NOT pushed, NOT live)
+Homepage-style teal V1 (own stylesheet `void-runner/device-v1.css`), launcher home with icons, configurable starter-device transition delays (`DEVICES.v1.ui`), App Store storage panel (stock 75% used / 25% available, 9 system apps, 0 optional) and Settings device information. No backend, save-schema, Render, Firebase or Neon change. Details and how to publish: `docs/development/V1_DEVICE.md`. Phases 2-6 are not started and need David's approval.
+
 ## 13 Nov 2026 (late): cyberpunk character gear built locally (NOT pushed, NOT live)
 Branch `claude/character-gear`: four optional creator accessories (`gear-visor`, `gear-collar`, `gear-shoulders`, `gear-chest`), male and female, all 11 outfits and 9 hairstyles. No schema change: they are ordinary `accessories` ids, so the API and hub only need the new catalog. Design, measurements and the live-release steps are in `docs/development/CHARACTER_GEAR.md`. Live release needs David's approval for: merge to main, API redeploy, hub catalog sync plus manual hub redeploy. Old clients show the plain model.
 
