@@ -1,5 +1,9 @@
 # CLAUDE.md: The Darknet District site / VOID//RUNNER
 
+## Resume point and in-flight work
+
+**Open `docs/development/AI_HANDOFF.md` and read "CURRENT DEVELOPMENT STATE — RESUME HERE" first.** It lists the verified repo and deployment state, what is done, blocked and next (Corporate District, then Zen Zephyr Temple: `docs/development/THREE_LOCATION_EXPANSION.md`), and the Blender/Higgsfield status (`docs/development/BLENDER_HIGGSFIELD.md`, **not functional yet**). Anything below that conflicts with it is older.
+
 ## Permanent art direction (November 2026): read before ANY graphics work
 
 The 3D game is **PC-only and AAA dark cyberpunk** (Blade Runner 2049, Altered Carbon, The Expanse as qualitative references). The current Tron-like neon look is being phased out progressively, not blindly deleted. **Read `docs/VOID_RUNNER_ART_DIRECTION.md` (section "PERMANENT DIRECTION") first.** It covers what to avoid, the required architecture/material/lighting/storytelling standards, the PC-only performance policy, Blender asset standards and the graphics workflow. It supersedes older graphics instructions. It does not authorise rewriting gameplay, and it does not change the website's mobile support (only the 3D game is PC-only).

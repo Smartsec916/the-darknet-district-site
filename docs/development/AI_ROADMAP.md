@@ -1,5 +1,9 @@
 # The Darknet District — Active AI Roadmap
 
+## Status as of 2026-11-15 (supersedes the order below where it differs)
+
+Done and live: ten pods, V1 (Phases 1-2), vestibule, NULL, arcade, character creator and gear, beginner campaign, Developer Studio foundation, Milked. **Next, in order:** Corporate District, then Zen Zephyr Temple (`THREE_LOCATION_EXPANSION.md`). **Blocked:** Blender via Higgsfield (`BLENDER_HIGGSFIELD.md`). The graphics direction is now the permanent AAA dark-cyberpunk, PC-only standard in `../VOID_RUNNER_ART_DIRECTION.md`. Details: "CURRENT DEVELOPMENT STATE — RESUME HERE" in `AI_HANDOFF.md`.
+
 ## Order of work as of 2026-11-12
 
 Current state is the Start here section of [`AI_HANDOFF.md`](AI_HANDOFF.md). This file is only the sequence. Do not reopen finished November 11 items (ten pods, V1 device, vestibule checkpoint): they are on `main`.

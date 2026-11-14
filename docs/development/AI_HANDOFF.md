@@ -4,6 +4,58 @@
 
 **Checked against:** `origin/main` `4fc1a70` (12 Nov 2026). That commit is the merge of #240 (Tropical Escape dolphins) on top of `7939256` (NULL nightclub, #238). Re-fetch GitHub before trusting pull-request numbers or deploy claims below.
 
+## CURRENT DEVELOPMENT STATE — RESUME HERE
+
+**Verified 15 Nov 2026** against GitHub, the repository and the live site (not copied from older notes). Where this section disagrees with the older dated sections below, this section wins. Those older sections stay as history.
+
+### Verified repository and deployment state
+- `main` = `8f9c2cb` ("Docs: permanent AAA dark-cyberpunk PC-only art direction, Milked handoff", PR [#266](https://github.com/Smartsec916/the-darknet-district-site/pull/266)). Before it: `3129a09` Milked ([#265](https://github.com/Smartsec916/the-darknet-district-site/pull/265)), `e0c59e6` handoff ([#264](https://github.com/Smartsec916/the-darknet-district-site/pull/264)), `cce7fef` beginner campaign + Developer Studio + crowd performance ([#263](https://github.com/Smartsec916/the-darknet-district-site/pull/263)), `8860ef6`, `d422f3d` V1 Phase 1-2 / KeyMap / Medium graphics ([#261](https://github.com/Smartsec916/the-darknet-district-site/pull/261)), `835982f` character gear ([#260](https://github.com/Smartsec916/the-darknet-district-site/pull/260)).
+- **Live website:** the service worker reports BUILD `2026-11-15-milked-1+8f9c2cb9db` and the "Deploy site" and "Tests" workflows succeeded on `8f9c2cb`. The live game therefore contains everything above. This was a **website-only** series: the Game API, multiplayer hub, Firebase, Neon and Render were not changed by #263 to #266.
+- Working tree clean, nothing unpushed that matters. Old local feature branches and worktrees in the cloud scratch folder are merged or throwaway and will not survive a new session; the truth is on GitHub.
+- **Open pull requests** are all old (#176 to #208): [#208], [#207], [#199], [#198], [#197], [#196], [#195], [#191], [#190], [#189], [#188], [#187], [#185], [#182], [#181], [#179], [#176]. Do not merge, close or build on them; David has not decided (open question 11 below). Do not branch from them.
+- **CI behaviour to know:** the suite passes on `main`. Intermittent failures seen on unchanged code, not yet fixed: (1) `tests/blackout-tesana-browser.cjs:171` ("original guest progress returns", once, passed on re-run); (2) the Python test `test_export_excludes_secrets_account_ids_and_player_data` fails at random: it asserts the substring `'999'` is absent from the export, but the export contains epoch timestamps and random hashes that can contain "999" (seen on two consecutive docs-only PRs, #266 in a timestamp and #267 in a hash; each passed or should pass on re-run). A fix task was suggested but is not done; the fix is to assert on a distinctive id, not a short digit string; (3) the sleeping-pod-exit smoke timeouts on 13-14 Nov were reported earlier as a runner issue. Investigate recurring failures; do not just re-run until green.
+
+### What was being worked on when this handoff was written
+The **three-location expansion** (Milked, then Corporate District, then Zen Zephyr Temple), plus a permanent art-direction update, plus an attempt to connect Blender through Higgsfield. Full scope: [`THREE_LOCATION_EXPANSION.md`](THREE_LOCATION_EXPANSION.md).
+
+| Item | Status | Evidence / notes |
+|---|---|---|
+| **Milked** | **Completed and deployed.** Live-verified in a real browser. | PR #265, `3129a09`. `MILKED.md`, `milked.js`, `milked-integration.js`, `tests/milked.test.cjs` (12), `tests/milked-browser.cjs` (run locally and against the live site, no console errors), 18 screenshots in `docs/development/milked/`. Unit suite: 820 pass at the time. |
+| Milked follow-ups | Planned, not started | Real-GPU, Firefox, multiplayer untested. Road taxis do not stop at Milked (street-taxi registry skips district zones). Eva and Fish voices are **provisional blends, unapproved, nothing generated**; dialogue is **provisional**; mission 3 (MEET EVA AT MILKED) is **inactive data** and needs David's approval to activate. Visuals predate the art direction (flat boxes, emissive signs): upgrade candidate. Lighting is dim. |
+| **Corporate District** | **Planned, NOT started** | No branch or code. Only the placeholder plaza/sign/taxi zone exist. Needs: reusable 3D sky-cab scene transition, a second scene lifecycle, robots/drones/cameras, stealth, a second map space. Many design decisions are missing (listed in `THREE_LOCATION_EXPANSION.md`). **Next: Corporate.** |
+| **Zen Zephyr Temple** | **Planned, NOT started** | No code. Depends on Corporate's transition and map work. Missing decisions listed in the same file. |
+| **Permanent art direction** | **Documented and merged; no graphics rebuild started** | PR #266; `../VOID_RUNNER_ART_DIRECTION.md`. AAA is a goal, not a current claim. |
+| **Blender / Higgsfield MCP** | **BLOCKED, not functional** | `BLENDER_HIGGSFIELD.md`. Cloud session reports `get_host_status` all false; Blender never inspected; the hallway-wall asset is **not started and not exported**. |
+| Beginner campaign (six missions, starter ship, Meridian flight) | Completed and deployed; **dialogue is PROVISIONAL, not canon** | `BEGINNER_CAMPAIGN.md`. Only the first trip to Meridian was played end to end; return travel and other destinations untested. |
+| Developer Studio foundation | Deployed, partial | `DEVELOPER_STUDIO.md`: Missions and Dialogue tabs work with local drafts; NPCs and Locations read-only; other tabs planned; **publishing disabled**; Asset Library not built. |
+| V1 Phases 1-2 (teal V1, Messages, KeyMap), Medium graphics default | Deployed | Two-player chat through the real hub, Firefox and ROG Ally/real-GPU numbers **not verified**. |
+| Character gear (visor, collar, shoulders, chest) | Merged (#260) | Whether the API and hub were redeployed for the gear catalog was **not re-checked** in this session; check Render's deploy list (read-only) before claiming it works for other players. The four outfits (#258) were deployed on 13 Nov. |
+| Performance work | Partial | One small measured optimisation (crowd animation throttle). Cloud numbers are software-rendered. `PERFORMANCE_2026-11.md`, `GRAPHICS_TEST_ROG_ALLY.md`. |
+
+### Other unfinished work with evidence in this repository
+(Do not reopen finished items. Statuses are from the dated sections below and have **not** all been re-verified.) Open questions 1-12 under "Open questions for David" below are still the list of David decisions (companion top-10, part-assembler plan, Yuki and Dex looks, noodle stand, voices, forest sky patch, age policy, Tesana per-asset confirmations, old PRs, bigger visuals). Queued by David on 12 Nov and listed there as large: Blackout Protocol level 3 NPC changes, levels 4+ graphics, leaderboard and profile achievements. Multiplayer: the hub, shared VR sessions and presence are live per the 12 Nov entries; **two-account verification is still David's test.** Phase H graphics (shadows, Ultra, ambient occlusion, a better HDRI) needs David's OK for an HDRI download. The District interior rebuild is in progress ([`DISTRICT_INTERIOR.md`](DISTRICT_INTERIOR.md)); under the art direction, the remaining Tron-like rooms are upgrade candidates, not finished.
+
+### What is blocked
+Blender work (connection above). Anything needing David: story and canon approvals (mission dialogue, Milked dialogue and mission 3, Corporate and Temple story decisions), voice casting, the open questions, closing old PRs.
+
+### What should happen next (in order)
+1. **Corporate District**, as its own branch and PR, per `THREE_LOCATION_EXPANSION.md`. Start with the reusable sky-cab transition and the second-scene lifecycle plus unit tests; then the area. Then merge and verify live.
+2. **Zen Zephyr Temple**, same way, reusing Corporate's transition and map work.
+3. In parallel, only when a **fresh** Claude session reports `blr: true`: the Blender read-only inspection, then the modular hallway wall test.
+4. Small follow-ups when convenient: the epoch-timestamp Python test fix; Milked road-taxi stop.
+
+### Open these files first
+`docs/development/AI_HANDOFF.md` (this section), `THREE_LOCATION_EXPANSION.md`, `../VOID_RUNNER_ART_DIRECTION.md`, `BLENDER_HIGGSFIELD.md`, `MILKED.md`, then `CLAUDE.md`. For Corporate: `void-runner/neochinatown.js` (`districts`, `taxiZones`, `streamDistricts`), `city-taxi.js`, `taxi-rules.js`, `road-taxi-rules.js`, `district-transition.js`, `district-area.js`, `district-map.js`, `milked.js` (a worked example of a streamed building with data, collision, interactions, map places and tests).
+
+### Tests to run before any PR
+- `npm ci` then `npm test` (820 pass on `main`). `python3 -m unittest tests.test_story_save tests.test_progression_save`. The full Python API suite needs `pip install -r requirements-void-runner.txt` (CI runs it).
+- Browser tests: `node tests/serve-modern.cjs`, then e.g. `node tests/milked-browser.cjs low`, `district-map-browser.cjs`, `road-taxi-browser.cjs`, `beginner-browser.cjs`. **In the cloud container**, `npm ci` installs a Playwright whose browser build is missing: set `CHROMIUM_PATH=/opt/pw-browsers/chromium` (`tests/milked-browser.cjs` honours it) or preload a small script that passes `executablePath:'/opt/pw-browsers/chromium'` to `chromium.launch`. Software rendering is slow: shorten long flights in tests (see how `milked-browser.cjs` moves the cab). Always look at screenshots of visual work.
+- CI also runs the Babylon stabilization smoke (`tests/stabilization-browser.cjs`, `tests/blackout-tesana-browser.cjs`).
+- After changing game files: bump `BUILD` in `void-runner-sw.js`, keep `static/void-runner.html` identical, run `node tools/admin-inventory.cjs` (the inventory test fails otherwise), and update `save-manifest.json` if you add a location or mission id.
+
+### What must not be changed (without David)
+Sleeping Pod room, bedroom music player, VR play-area layout, licensed companion assets and the private asset pipeline, approved NPC voices and the reserved voice slot, the landing-pad area (x 13 to 37.5, z -106 to -86), internal location ids, the device gate (phones stay off the 3D game; the website stays mobile-friendly), the website chatbot (Iris) separation, the live Game API, hub, Firebase, Neon and Render. Do not activate mission 3 or any story content, and do not mark story content canon. Merge only when David says "push"/"pull it", except where he has pre-authorised a release (he did for the three-location PRs once checks pass).
+
 ## PERMANENT ART DIRECTION (set 15 Nov 2026): AAA dark cyberpunk, PC only
 
 Applies to every future graphics task. Full text: [`../VOID_RUNNER_ART_DIRECTION.md`](../VOID_RUNNER_ART_DIRECTION.md) ("PERMANENT DIRECTION"). In short: the 3D game is PC-only; the target is a dark, detailed, cinematic cyberpunk world (Blade Runner 2049, Altered Carbon, The Expanse as references, no copying); phase out Tron-style grids, neon outlines on everything, clean flat materials, empty rooms and bright uniform lighting; new work needs layered believable architecture, PBR materials with wear, controlled dark lighting with practical light sources and accent neon, and visible human habitation. Keep budgets, instancing, LOD and streaming sensible; do not break gameplay. Blender assets use metric scale, modular parts, PBR, clean names, correct transforms and Babylon-compatible GLB, and must be fitted to the game's real coordinates. Existing assets are upgraded progressively, player-visible areas first; nothing is deleted indiscriminately. Only the 3D game is PC-only: the website, store and accounts keep mobile support. This is a documentation decision: **no game-wide graphics rebuild has started**, and AAA quality is a goal, not a current claim. Older graphics notes in this file and in `VOID_RUNNER_GRAPHICS_ROADMAP.md` are superseded where they conflict.
@@ -92,6 +144,8 @@ The documents in this table are snapshots. Do not treat them as the place to sta
 
 ## Start-here checklist
 
+> Updated 15 Nov 2026: item 8's build stamp is stale (current stamp is in "CURRENT DEVELOPMENT STATE — RESUME HERE"). Items about the "four visual wins", street taxis (#243, merged) and dolphins (#240, merged) below are 12 Nov history. The Medium default shipped in #261.
+
 1. `git fetch origin main` and branch from current `main`. Do not branch from the old Codex or #196–#199 stack.
 2. Read this Start here section, then `AI_ROADMAP.md`, then `CLAUDE.md`.
 3. **Merge only when David says "push", "pull it", or "go ahead and pull."** That means merge the finished pull request into `main`. Opening a pull request is not merging. Silence is not approval.
@@ -140,6 +194,8 @@ Render (hub and game API) was last described in the 11–12 Nov diary as deploye
 A local packet (not on `origin`) also named branches `up196`–`up199` and `docs/cyberpunk-kit-reference` (`0f0dd7d`). They were not on `origin` at this check. Do not recreate them from memory.
 
 ## In flight — do not duplicate
+
+> **Stale (12 Nov 2026).** Street taxis (#243) and dolphins (#240) have merged, and the Medium graphics default shipped in #261. For what is in flight now, see "CURRENT DEVELOPMENT STATE — RESUME HERE" at the top.
 
 **Street taxis** are on branch `cursor/neochinatown-road-taxis-5abd` (pull request #243). Cabs drive the existing NeoChinatown roads and are hailed from the V1 map. Stops are only the four built taxi zones. Add another later by appending its zone id to `REGISTRY` in `void-runner/road-taxi-rules.js`. See `docs/development/ROAD_TAXIS.md`. Do not start a second taxi branch.
 
