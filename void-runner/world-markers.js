@@ -1,6 +1,6 @@
 /* On-foot markers and optional Guidance (David's editor brief, parts 4 and 6).
    Markers: the tracked objective (coloured by mission type, with its distance), a "!" over people who have work
-   or payment for you, and quiet labels on shops and terminals close by. They show with Guidance on or off.
+   or payment for you. (The quiet name labels on shops and terminals were removed in Nov 2026.) They show with Guidance on or off.
    Guidance: pick a topic in the menu; a small card shows the next step for where you actually are, and the place
    to go is highlighted. It only shows things: it never grants items, credits or mission progress. */
 (function(){
@@ -66,7 +66,7 @@
    if(isGuide){const pulse=.5+.5*Math.sin(t*5);ctx.save();ctx.strokeStyle='rgba(127,240,255,'+(.55+.4*pulse)+')';ctx.lineWidth=3;ctx.beginPath();ctx.arc(sp.x,sp.y,r+8+pulse*4,0,Math.PI*2);ctx.stroke();ctx.restore();label(sp.x,sp.y-r-14,'GUIDE · '+Math.round(d)+' m','#7ff0ff');}
    if(isGoal){diamond(sp.x,sp.y,r+2,color,'');label(sp.x,sp.y+r+16,Math.round(d)+' m',color);}
    else if(person&&hasWork(item))diamond(sp.x,sp.y,r,'#ffd23f','!');
-   else if(!person&&services[item.action]&&d<=14)label(sp.x,sp.y,services[item.action],'rgba(200,220,230,.75)');
+   // The quiet name tags that used to float over shops, pods and terminals (PODS, SHOP, VENDING...) are gone (David, Nov 2026: floating text near objects read as asset tags). The interaction prompt still names a thing when you are close enough to use it.
   }
   // Guidance card.
   card.hidden=!step;if(step){const html='<b>GUIDE · '+guide.title.toUpperCase()+'</b><p>'+escapeText(step.text)+'</p><button type="button" data-guide-close>CLOSE GUIDE</button>';if(card.dataset.html!==html){card.innerHTML=html;card.dataset.html=html;}card.classList.toggle('done',!!step.done);}
