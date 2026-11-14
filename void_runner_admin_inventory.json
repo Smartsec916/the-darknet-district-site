@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "f0f3129d15316c96",
+  "revision": "24b385a67632d62f",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11623,25 +11623,25 @@
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 175,
+      "line": 178,
       "text": "if (escortShip && current?.kind === 'escort' && ['arrival','dialogue'].includes(mode) && state.location === current.destination && !state.contract) escortShip.status = 'complete';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 176,
+      "line": 179,
       "text": "if(wasFlying && ['arrival','dialogue'].includes(mode)) {ambientTraffic.contacts=[];VoidFlightSession.end();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 238,
+      "line": 247,
       "text": "speech = null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 280,
+      "line": 289,
       "text": "screen.querySelector('.speech-controls,.cinematic-space')?.insertAdjacentHTML('beforeend', button('RETURN TO EXPLORATION', 'walk-resume', true));",
       "kind": "source-reference"
     },
@@ -13598,8 +13598,8 @@
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/asset-pipeline.js": "496edd3d907d4f23524366ef1263dd57b33a149d444c14ba2b20c9e09a4bb746",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
-    "void-runner/babylon-integration.js": "94d1e0c65af5b61ae299ad85d7630295b4b3e4b95901c7e5e422063185dda414",
-    "void-runner/babylon-renderer.js": "0a85de05039b5d015a3e8dc75b68aa32c9ec867a0f19d1f0925f939191f5b94f",
+    "void-runner/babylon-integration.js": "6573fccdc394059cdafb478770657e41906cec324ba410696bfadd60b9ff3e37",
+    "void-runner/babylon-renderer.js": "7c5b257fb4c420d6b725f2c7c0148b31987f19d83d8c91a82eed82f7e3863413",
     "void-runner/balance-data.js": "ebc76bb374885f015ae60a86864e8701bba194e5d3ce09fb321dd52cedabe16c",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
@@ -13627,7 +13627,7 @@
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-test.js": "fe2ee383ca0ae2227dc944eea2d1ae1c4d7922e60c8719f1a7fa78fc3ae4ffa7",
     "void-runner/dev-tools.js": "8fc329454a6ed8a22bf93e8721eeffca11b1276ccf0eb3676b90c67c58781974",
-    "void-runner/device-gate.js": "089a601ec87511bcd6a0e6a48e11422a2e3a91b13fd15c6033e9cfba2bfe1d98",
+    "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
     "void-runner/device-portraits.js": "390549763346c7202b1f16c85c873828baf5b3e8b05dc326a2dcde2cc264374f",
     "void-runner/device-v1.js": "50c7e6f065eb8f261f8306d90b005ac51aa2300ced09bc8ba0f3a6f16b389233",
     "void-runner/district-arcade.js": "de51866295a9a6cef51b94a3097ea6ca38bc3da02133d85ba4f26835653336f9",
@@ -13656,6 +13656,7 @@
     "void-runner/flight-skirmish.js": "d34dcc71253521e0b64617552cce2db27b7e1e37420611fa7471de848c8a5573",
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
     "void-runner/game.js": "12ab691c726ae68308e305e53de737011b05e11962d7a843baf4e26d48e6283a",
+    "void-runner/graphics-prefs.js": "5b0092cbc6e4ed50c21d51bc2856a2caeb0c5957e46cb4415c3f28514d2dd6fe",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "3f0a281fe47ab2dbf58eb419916d99736a1c576e65e026dbb94eb2bcc5756b20",
     "void-runner/hud-data.js": "ab10b0b6a6a95a50c28751a44eee205e0cc6d6e063bae78d89087f39411bde35",

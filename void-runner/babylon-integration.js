@@ -1,7 +1,8 @@
 /* Babylon presentation adapter; existing campaign, combat and input remain authoritative. */
 const VoidGraphics = window.VoidGraphics = {
   renderer: 'babylon',
-  quality: 'high',
+  quality: VoidGraphicsPrefs.DEFAULT,   // Medium for new players (graphics-prefs.js decides what a saved value means)
+  chosen: false,
   busy: false,
   error: null
 };
@@ -10,7 +11,9 @@ try {
   if (stored) {
     // Old renderer preferences migrate to authoritative Babylon.
     if(Number.isFinite(stored.lookSensitivity))VoidExplorer.config.sensitivity=Math.max(.0005,Math.min(.006,stored.lookSensitivity));
-    if (VoidBabylon.presets[stored.quality]) VoidGraphics.quality = stored.quality;
+    const r = VoidGraphicsPrefs.resolve(stored, Object.keys(VoidBabylon.presets));
+    VoidGraphics.quality = r.quality;VoidGraphics.chosen = r.chosen;VoidGraphics.prefsNote = r.reason;
+    if (r.migrated) setTimeout(graphicsSave, 0);   // write the corrected value once so an old automatic or unchosen High is not read again
   }
 } catch {}
 const rendererParam = new URLSearchParams(location.search).get('renderer');
@@ -39,10 +42,10 @@ const VoidInteractions = window.VoidInteractions = {
 
 function graphicsSave() {
   try {
-    localStorage.setItem('void-runner-graphics-v1', JSON.stringify({
+    localStorage.setItem('void-runner-graphics-v1', JSON.stringify(VoidGraphicsPrefs.serialize({
       renderer: VoidGraphics.renderer,
-      quality: VoidGraphics.quality,lookSensitivity:VoidExplorer.config.sensitivity
-    }));
+      quality: VoidGraphics.quality,chosen: VoidGraphics.chosen,lookSensitivity:VoidExplorer.config.sensitivity
+    })));
   } catch {}
 }
 const migrationOpenMenu = openGameMenu;
@@ -178,7 +181,7 @@ arrive = function() {
 const migrationSettings = settingsPage;
 settingsPage = function() {
   migrationSettings();
-  screen.querySelector('.settings-panel').insertAdjacentHTML('beforeend', `<h2>Graphics</h2><label>Renderer<select id="renderer-setting"><option value="babylon" ${VoidGraphics.renderer==='babylon'?'selected':''}>Babylon 3D</option></select></label><label>Quality<select id="quality-setting">${Object.keys(VoidBabylon.presets).map(q=>`<option value="${q}" ${q===VoidGraphics.quality?'selected':''}>${{low:'Low',medium:'Medium',high:'High',ultra:'Ultra'}[q]||q}</option>`).join('')}</select></label><p class="fine">Quality controls resolution, sharpness and neon glow. High is the default. Ultra is the sharpest. Workshop shadow changes apply on the next visit.</p><h2>Walking controls</h2><label>Mouse sensitivity<input id="walking-sensitivity" type="range" min="0.0005" max="0.006" step="0.0001" value="${VoidExplorer.config.sensitivity}"></label><p class="fine">WASD · Shift sprint · C / Ctrl crouch · Space jump · E interact · 1 draw · right mouse aim · left mouse fire · R reload · I inventory</p><h2>Radio</h2><label>Local station<select id="radio-setting"><option value="">OFF / LOCATION MUSIC</option>${VoidRadio.available().map(([id,s])=>`<option value="${id}" ${VoidRadio.selection===id?'selected':''}>${s.name}</option>`).join('')}</select></label><p id="radio-status" class="fine">${escapeText(VoidRadio.status)}</p>`);
+  screen.querySelector('.settings-panel').insertAdjacentHTML('beforeend', `<h2>Graphics</h2><label>Renderer<select id="renderer-setting"><option value="babylon" ${VoidGraphics.renderer==='babylon'?'selected':''}>Babylon 3D</option></select></label><label>Quality<select id="quality-setting">${Object.keys(VoidBabylon.presets).map(q=>`<option value="${q}" ${q===VoidGraphics.quality?'selected':''}>${{low:'Low',medium:'Medium',high:'High',ultra:'Ultra'}[q]||q}</option>`).join('')}</select></label><p class="fine">Quality controls resolution, sharpness and neon glow. Medium is the default and suits most computers. High and Ultra render sharper and need a strong graphics card. The game never changes this by itself. Workshop shadow changes apply on the next visit.</p><button type="button" id="graphics-reset">Reset graphics to Medium</button><h2>Walking controls</h2><label>Mouse sensitivity<input id="walking-sensitivity" type="range" min="0.0005" max="0.006" step="0.0001" value="${VoidExplorer.config.sensitivity}"></label><p class="fine">WASD · Shift sprint · C / Ctrl crouch · Space jump · E interact · 1 draw · right mouse aim · left mouse fire · R reload · I inventory</p><h2>Radio</h2><label>Local station<select id="radio-setting"><option value="">OFF / LOCATION MUSIC</option>${VoidRadio.available().map(([id,s])=>`<option value="${id}" ${VoidRadio.selection===id?'selected':''}>${s.name}</option>`).join('')}</select></label><p id="radio-status" class="fine">${escapeText(VoidRadio.status)}</p>`);
 };
 screen.addEventListener('change', e => {
   if(e.target.id==='walking-sensitivity'){VoidExplorer.config.sensitivity=Math.max(.0005,Math.min(.006,Number(e.target.value)||.0022));graphicsSave();}
@@ -187,10 +190,16 @@ screen.addEventListener('change', e => {
     graphicsSave();
   }
   if (e.target.id === 'quality-setting') {
-    VoidGraphics.quality = e.target.value;
+    VoidGraphics.quality = e.target.value;VoidGraphics.chosen = true;
     VoidBabylon.setQuality(e.target.value);
     graphicsSave();
   }
+});
+screen.addEventListener('click', e => {
+  if (e.target.id !== 'graphics-reset') return;
+  VoidGraphics.quality = VoidGraphicsPrefs.DEFAULT;VoidGraphics.chosen = false;
+  VoidBabylon.setQuality(VoidGraphics.quality);graphicsSave();
+  const sel = $('quality-setting');if (sel) sel.value = VoidGraphics.quality;
 });
 screen.addEventListener('change', async e => {
   if (e.target.id === 'radio-setting') {
