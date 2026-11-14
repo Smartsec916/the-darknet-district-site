@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "1ae6b3b1dcc4d7a5",
+  "revision": "f0f3129d15316c96",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13660,7 +13660,8 @@
     "void-runner/homeworld-scenes.js": "3f0a281fe47ab2dbf58eb419916d99736a1c576e65e026dbb94eb2bcc5756b20",
     "void-runner/hud-data.js": "ab10b0b6a6a95a50c28751a44eee205e0cc6d6e063bae78d89087f39411bde35",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
-    "void-runner/input.js": "ee7b8bba97bf1233e9d6d5e7d115efee2ecb1caddd6b758a144b78f33046924e",
+    "void-runner/input.js": "9ad5819c0941824bb6d28ad566377557de06538650bb442ebd20356a2e223a72",
+    "void-runner/keymap.js": "1b92de4ee96d9439431685b4aca581db1816a369a22c907b18986ec8a15de54e",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "09c6ffa9f4bd4e961e3d566a9d797b53725fce88f49af9b20fb989cab5cbea98",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
