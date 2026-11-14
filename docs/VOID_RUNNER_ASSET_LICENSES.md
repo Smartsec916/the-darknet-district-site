@@ -110,6 +110,7 @@ Every asset here is **CC0** (public domain), from its source’s own licence pag
 | Files (`void-runner/assets/vr/…`) | Source | Licence |
 |---|---|---|
 | `models/fern, grass, boulder, log, moss, bench, shell, patio-set, coast-rocks, plant.glb` | Poly Haven: fern_02, grass_medium_01, boulder_01, dead_tree_trunk, moss_01, painted_wooden_bench, lambis_shell, outdoor_table_chair_set_01, coast_rocks_01, calathea_orbifolia_01 | CC0 (polyhaven.com/license) |
+| `models/dolphin.glb` | Quaternius Animated Fish Pack, April 2018, model Dolphin (FBX converted here to a self-contained GLB; the Swim clip is kept). Pack page https://quaternius.com/packs/animatedfish.html links the CC0 1.0 deed; https://quaternius.itch.io/lowpoly-animated-fish states "CC0 License"; the pack's own License.txt says "CC0 1.0 Universal (CC0 1.0) Public Domain Dedication". File taken from the author's zip mirrored at https://opengameart.org/content/animated-fish (also marked CC0), checked 2026-11-12. The pack's flat gray materials were recoloured to a blue-gray back and a pale belly so the dolphin reads on the sea; mesh, rig and Swim clip are the author's. About 62 KB. | CC0 1.0 |
 | `textures/grass, forest-floor, bark, sand, fabric, carpet, wood-floor` | ambientCG: Grass004, Ground078, Bark012, Ground054, Fabric086, Carpet016, WoodFloor043 | CC0 |
 | `sky/forest, beach-day, beach-sunset.jpg` | Poly Haven HDRIs (tonemapped JPG, reduced to 2048×1024): forest_slope, qwantani_afternoon_puresky, qwantani_dusk_2_puresky | CC0 |
 | `preview-suite.jpg` | A screenshot of the game's own suite, for the VR menu card | the project's own |
@@ -202,9 +203,6 @@ Inspected and unused: the UE and Unity packages, the loose vending-machine FBX/G
 placed without their clips), one 4 m wall tile removed at the street entrance. Ambient sound is made in code (noise murmur and a
 muffled 124 BPM thump), nothing recorded or licensed.
 
-**Tesana Sleeping Pod adaptation (2026-11-05).** Pod 01's extra Babylon geometry adapts the owner's uploaded
-`game-20261103-855074a5-code(2).zip` Sleeping Pod project; that project contains procedural Three.js geometry, no GLB model.
-The two colour maps under `void-runner/assets/textures/tesana-pod/` are AmbientCG `PaintedMetal003` and `Fabric062`.
-Their accompanying ZIP manifests identify each as `CC0 (AmbientCG)`. The owner supplied
-https://docs.tesana.ai/account/ownership-and-ip for project ownership; this environment received HTTP 403 from that page,
-so its exact wording remains unverified here. No models from the separate spaceflight ZIP were imported.
+**Sleeping Pod surface textures (2026-11-11).** `void-runner/assets/textures/tesana-pod/` holds normal maps (fine scuffs and thread only; the colour maps are not used) from the ambientCG sets PaintedMetal003 and Fabric062 (CC0 1.0, https://docs.ambientcg.com/license/), the same sets the owner's Tesana Sleeping Pod project uses. They were referenced by the pod but missing from the published site.
+
+**Street taxis (2026-11-12).** The NeoChinatown road cabs are original geometry built in `void-runner/road-taxi.js` (body, glass, wheels, roof sign). No third-party model file is shipped. This is the same approach as the sky cab in `void-runner/city-taxi.js`. `docs/development/TESANA_ASSET_AUDIT.md` lists a generated `flying_taxi.glb` as held and not imported; it was not used. No external licence applies. A later licensed model can replace the mesh without changing `void-runner/road-taxi-rules.js`.

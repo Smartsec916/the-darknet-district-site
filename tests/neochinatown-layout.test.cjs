@@ -10,7 +10,8 @@ const near=(cells,[x,,z],r)=>cells.some(([cx,cz])=>Math.hypot(cx-x,cz-z)<=r);
 
 test('from the landing pad the street, alley and District door can be reached on foot',()=>{
  const L=N.layout(),cells=reachable(L);
- for(const id of ['board','terminal','tdd'])assert(near(cells,L.interactions.find(i=>i.id===id).position,L.interactions.find(i=>i.id===id).range),id+' within reach');
+ for(const id of ['board','terminal'])assert(near(cells,L.interactions.find(i=>i.id===id).position,L.interactions.find(i=>i.id===id).range),id+' within reach');
+ const [dx,dz]=N.toWorld(0,17.4);assert(near(cells,[dx,1.7,dz],2),'automatic District entrance within reach');
  // The District stays shut until its door opens.
  assert(!near(cells,L.interactions.find(i=>i.id==='admin').position,3),'Admin is behind the District door');
 });

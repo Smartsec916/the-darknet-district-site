@@ -16,8 +16,21 @@
  const DB='darknet-pod-music',STORE='songs',KEEP_FLAG='darknet-pod-music-keep',KEEP_LIMIT=500*1024*1024,BANDS=24,ROWS=12;
  const lists={website:PL.createPlaylist(),mine:PL.createPlaylist()};
  lists.website.add(root.DistrictMusicCatalog.filter(song=>song.published).map(song=>({name:song.title+'.mp3',size:0,lastModified:0,url:song.url})));
- let source=siteOn()?'website':'mine',audio=null,link=null,analyser=null,freq=null,volume=.8,objectUrl=null,loadedKey=null,failures=0,status='',keeping=false,keptBytes=0,order=0,restored=false,ticker=0;
+ let source=siteOn()?'website':'mine',audio=null,link=null,analyser=null,freq=null,volume=.8,objectUrl=null,loadedKey=null,failures=0,status='',keeping=false,keptBytes=0,order=0,restored=false,ticker=0,panelReturn='game';
+ const LIGHTS=['rest','reading','music'];
+ const podSettings=Array.from({length:10},(_,i)=>{try{const data=JSON.parse(root.localStorage.getItem('darknet-pod-controls-'+(i+1))||'null');return {volume:Number.isFinite(data?.volume)?Math.max(0,Math.min(1,data.volume)):.8,lighting:LIGHTS.includes(data?.lighting)?data.lighting:'rest'};}catch{return {volume:.8,lighting:'rest'};}});
+ const activePod=()=>Math.max(1,Math.min(10,Number(typeof state!=='undefined'&&state?.story?.flags?.activePod)||1));
+ const setting=()=>podSettings[activePod()-1];
+ const keepSetting=()=>{try{root.localStorage.setItem('darknet-pod-controls-'+activePod(),JSON.stringify(setting()));}catch{}};
  const positions={website:0,mine:0},levels=new Float32Array(BANDS),peaks=new Float32Array(BANDS);
+ const podPlayback=Array.from({length:10},()=>({source,website:{id:null,position:0},mine:{id:null,position:0}}));let selectedPod=1;
+ function enterPod(index){
+  if(!Number.isInteger(index)||index<1||index>10)return false;
+  const old=podPlayback[selectedPod-1];old.source=source;old[source].id=lists[source].currentId;old[source].position=audio&&loadedKey?audio.currentTime||0:positions[source];
+  if(audio)audio.pause();selectedPod=index;const next=podPlayback[index-1];source=next.source;
+  for(const key of ['website','mine']){if(next[key].id&&lists[key].find(next[key].id))lists[key].select(next[key].id);else lists[key].deselect();positions[key]=next[key].position;}
+  loadedKey=null;volume=podSettings[index-1].volume;if(audio)audio.volume=volume;return true;
+ }
  const byId=id=>document.getElementById(id);
  const esc=t=>typeof escapeText==='function'?escapeText(t):String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
  const current=()=>lists[source].find(lists[source].currentId);
@@ -160,7 +173,8 @@
    +'<div class="now" id="pod-music-now">'+(t?esc(t.label):mine?'No songs yet':'Choose a song')+'</div>'
    +'<div class="bar" id="pod-music-seek" role="progressbar" aria-label="Playback position"><i id="pod-music-bar"></i></div><div id="pod-music-time">0:00 / 0:00</div>'
    +'<div class="row">'+b('⏮ Previous','prev')+b(isPlaying()?'⏸ Pause':'▶ Play','toggle')+b('Next ⏭','next')+b('Shuffle','shuffle',l.shuffle)+b('Repeat: '+l.repeat,'repeat',l.repeat!=='off')+'</div>'
-   +'<div class="row"><label for="pod-music-volume">Volume</label><input type="range" id="pod-music-volume" min="0" max="100" value="'+Math.round(volume*100)+'"></div>'
+   +'<div class="row"><label for="pod-music-volume">Pod '+String(activePod()).padStart(2,'0')+' volume</label><input type="range" id="pod-music-volume" min="0" max="100" value="'+Math.round(volume*100)+'"></div>'
+   +'<div class="row" role="group" aria-label="Pod lighting">'+LIGHTS.map(x=>b(x==='rest'?'Rest':x==='reading'?'Reading':'Music reactive','light:'+x,setting().lighting===x)).join('')+'</div>'
    +(mine?'<div class="row">'+b('Add songs','add')+b('Clear playlist','clear',undefined,!tracks.length)+'</div>':'')
    +(tracks.length?'<ol aria-label="'+(mine?'My music':'Website playlist')+'">'+items+'</ol>':(mine?'<p class="note">No songs yet. Choose Add songs to pick MP3, WAV, OGG or M4A files from your computer.</p>':''))
    +'<p class="status" id="pod-music-status" role="status" aria-live="polite">'+esc(status)+'</p>'
@@ -173,7 +187,7 @@
  function render(){
   if(!open_())return;const html=body();if(html===lastHtml){live();return;}lastHtml=html;
   const scroll=document.querySelector('#pod-music ol'),top=scroll?scroll.scrollTop:0;
-  panel('SLEEPING POD / MUSIC','Pod <em>music.</em>',html,button('RETURN TO GAMEPLAY','progress-return',true));
+  panel('SLEEPING POD / MUSIC','Pod <em>music.</em>',html,button(panelReturn==='pod'?'RETURN TO POD':'RETURN TO GAMEPLAY',panelReturn==='pod'?'pod-music:return':'progress-return',true));
   const ol=document.querySelector('#pod-music ol');if(ol)ol.scrollTop=top;live();
  }
  function live(){
@@ -181,10 +195,10 @@
   const dur=audio&&isFinite(audio.duration)?audio.duration:0,pos=audio&&loadedKey?audio.currentTime||0:0;
   const bar=byId('pod-music-bar'),time=byId('pod-music-time');if(bar)bar.style.width=(dur?Math.min(100,pos/dur*100):0)+'%';if(time)time.textContent=clock(pos)+' / '+clock(dur);
  }
- function open(){
-  css();restore();
+ function open(options={}){
+  css();restore();panelReturn=options.inPod?'pod':'game';volume=setting().volume;if(audio)audio.volume=volume;
   hud();clearInput();walkingKeys.clear();document.exitPointerLock?.();mode='equipment';view='equipment';
-  lastHtml=body();panel('SLEEPING POD / MUSIC','Pod <em>music.</em>',lastHtml,button('RETURN TO GAMEPLAY','progress-return',true));live();
+  lastHtml=body();panel('SLEEPING POD / MUSIC','Pod <em>music.</em>',lastHtml,button(panelReturn==='pod'?'RETURN TO POD':'RETURN TO GAMEPLAY',panelReturn==='pod'?'pod-music:return':'progress-return',true));live();
   clearInterval(ticker);ticker=setInterval(()=>{if(!open_()){clearInterval(ticker);ticker=0;return;}live();},70);
  }
  function fileInput(){
@@ -198,25 +212,27 @@
    if(seek&&audio&&isFinite(audio.duration)&&loadedKey){const r=seek.getBoundingClientRect();audio.currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*audio.duration;live();return;}
    const a=e.target.closest&&e.target.closest('button')?.dataset.action;if(!a||!a.startsWith('pod-music:'))return;
    const [,cmd,arg]=a.split(':'),l=lists[source];
+   if(cmd==='return'){resumeWalking();showPodWake();return;}
    if(cmd==='source')switchSource(arg);else if(cmd==='toggle'){toggle();render();}else if(cmd==='next'){if(l.size)advance(false);}else if(cmd==='prev'){if(l.size)previous();}
+   else if(cmd==='light'&&LIGHTS.includes(arg)){setting().lighting=arg;keepSetting();render();}
    else if(cmd==='shuffle'){l.setShuffle(!l.shuffle);say('Shuffle '+(l.shuffle?'on.':'off.'));render();}
    else if(cmd==='repeat'){const m=l.cycleRepeat();say(m==='off'?'Repeat off: the list stops after the last song.':m==='all'?'Repeat all: the list starts again after the last song.':'Repeat one: the current song plays again when it ends.');render();}
    else if(cmd==='play'){if(l.select(arg))load(0);}
    else if(cmd==='add')fileInput().click();else if(cmd==='remove')removeTrack(arg);else if(cmd==='clear')clearMine();
   });
-  screen.addEventListener('input',e=>{if(e.target.id==='pod-music-volume'){volume=Math.max(0,Math.min(1,Number(e.target.value)/100));if(audio)audio.volume=volume;}});
+  screen.addEventListener('input',e=>{if(e.target.id==='pod-music-volume'){volume=Math.max(0,Math.min(1,Number(e.target.value)/100));setting().volume=volume;keepSetting();if(audio)audio.volume=volume;}});
   screen.addEventListener('change',e=>{if(e.target.matches&&e.target.matches('[data-pod-keep]')){setKeeping(e.target.checked);render();}});
  }
  if(root.VoidInteractions)root.VoidInteractions.register('district-pod-music',open);
 
  const api={
-  get playing(){return isPlaying();},get element(){return audio;},get source(){return source;},get volume(){return volume;},get status(){return status;},lists,
+  get playing(){return isPlaying();},get element(){return audio;},get source(){return source;},get volume(){return volume;},get lighting(){return setting().lighting;},get activePod(){return activePod();},get selectedPod(){return selectedPod;},lightingFor(index){return podSettings[index-1]?.lighting||'rest';},get status(){return status;},lists,
   /* Smoothed bass / mid / high energy (0 to 1) for lighting that follows the music; all zero when nothing plays and the columns have settled. */
   levels(){const lv=bands(),third=BANDS/3,out={bass:0,mid:0,high:0};for(let b=0;b<BANDS;b++)out[b<third?'bass':b<third*2?'mid':'high']+=lv[b]/third;out.on=out.bass+out.mid+out.high>.002;return out;},
-  open,drawScreen,bands,addFiles,toggle,next:()=>advance(false),previous,switchSource,clearMine,removeTrack,setKeeping,restore,
+  open,drawScreen,bands,addFiles,toggle,next:()=>advance(false),previous,switchSource,clearMine,removeTrack,setKeeping,restore,enterPod,
   state(){const t=current();return {source,playing:isPlaying(),title:t?t.label:'',shuffle:lists[source].shuffle,repeat:lists[source].repeat,mine:lists.mine.tracks.map(x=>x.label),website:lists.website.size,position:audio?audio.currentTime:0,volume,status};},
   /* Called every frame by the game's music integration: the music belongs to the District, so it pauses when the player leaves it. */
-  update(){if(audio&&!audio.paused){const where=typeof walkingLocation!=='undefined'&&walkingLocation&&walkingLocation.id==='neochinatown'&&walkingLocation.area!=='street'&&typeof walker!=='undefined'&&walker;/* area is set only where the street and the District interior are separate builds */if(!where){positions[source]=audio.currentTime||0;audio.pause();}}}
+  update(){if(audio&&!audio.paused){const inside=typeof state!=='undefined'&&state?.story?.flags?.podWakePending===true&&typeof walkingLocation!=='undefined'&&walkingLocation?.area==='interior';if(!inside){positions[source]=audio.currentTime||0;audio.pause();}}}
  };
  root.VoidPodMusic=api;
  root.addEventListener('pagehide',()=>{if(objectUrl)root.URL.revokeObjectURL(objectUrl);});

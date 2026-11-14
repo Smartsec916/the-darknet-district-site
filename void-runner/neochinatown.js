@@ -3,6 +3,9 @@
    build() is presentation only; it never changes collision or progression. */
 (function(root){
   const base=typeof document!=='undefined'&&document.currentScript?new URL('.',document.currentScript.src):null;
+  // Stock of the sleeping pods' built-in vending unit, taken from the owner's Tesana pod (src/pod/vending.ts): [name, category, price, shape, description, label colours...]. Display and flavour only: nothing is charged and nothing enters the inventory.
+  const POD_VENDING=[["AQUA//NULL","DRINKS",1.2,"bottle","Triple-filtered condensation water. Zero minerals, zero memories.","#d6f1ff","#77bde8","#0b2a44","#ffffff"],["SYNTH COLA","DRINKS",1.8,"bottle","Lab-grown cola flavour with extra fizz. Tastes like somebody else’s nostalgia.","#5a1c22","#2a0a10","#ffffff","#ff4fbf"],["VOLT RUSH","DRINKS",2.4,"can","High-voltage citrus energy drink. Keeps you wired through any night shift.","#1b1b22","#08080c","#e9ff3a","#e9ff3a"],["KAIJU FUEL","DRINKS",2.6,"can","Monster-sized yuzu-ginger energy. Not responsible for any stomping.","#7a2cc9","#3a0f6e","#ffb347","#ff7a1a"],["MOCHI MILK","DRINKS",1.6,"stubby","Sweet peach soy milk in a stubby can. A capsule-hotel favourite.","#ffd9e4","#ff9fbf","#7a2346","#ffffff"],["GREEN NEON","SMOKABLES",14.0,"jar","Hand-trimmed herbal buds sealed fresh in a clear jar. Grown under pod lights on level B3.","#ffffff","#eaf6e2","#174a1c","#2fbf4f"],["MIDNIGHT KUSH","SMOKABLES",16.5,"jar","Dense, frosty buds with orange hairs. Strictly fictional, strictly after hours.","#f4fff0","#d8f0d0","#0f3a18","#1f9a3a"],["CRUNCH//CORE","SNACKS",1.4,"bag","Sea-salt kelp crisps. Loud enough to wake the neighbouring pod.","#2b7cff","#103c9c","#ffffff","#ffe066"],["NIGHT BENTO","FOOD",4.8,"bento","Rice, pickles and printed “salmon”. Best before tomorrow, probably.","#f4f4ec","#d8e8d0","#14402a","#2fbf71"],["DREAMLEAF","SMOKABLES",7.2,"tin","Herbal smoking blend in a pocket tin. Lavender, mugwort and something else.","#4a3a6a","#24183a","#d8c8ff","#9a7aff"],["BLACK ORCHID","SMOKABLES",5.5,"pack","Dark clove cigarettes, 20 per pack. Fictional — and still bad for you.","#141016","#050406","#d9b45a","#d9b45a"],["KOI MENTHOL","SMOKABLES",5.2,"pack","Ice-cold menthol slims. Smoking permitted in designated pods only.","#22c4b8","#0a6a6a","#ffffff","#ff6a3a"],["HAZE STIK","VAPES",6.9,"vape","Disposable vapour stick, about 3000 puffs. Flavour: Neon Grape.","#ff4fd0","#4fc8ff","#ffffff","#1a0a2a"],["VAPR PODS","VAPES",4.4,"carts","Three refill cartridges, Mango Ice. Fits most street-market vape sticks.","#ffcf3a","#ff7a2a","#2a1206","#ffffff"],["PATCH-UP KIT","MEDICAL",12.0,"medkit","Wound-sealant spray, gauze, painkillers and a foil blanket.","#f6f6f8","#dcdce4","#1a2a24","#20c070"],["ICEBREAKER","ELECTRONICS",19.99,"chip","4 TB data shard, pre-loaded with… you didn’t buy this here.","#101418","#04060a","#4fe8ff","#4fe8ff"],["CELL-PAK ×4","POWER",3.3,"cells","Long-life power cells for remotes, cyberdecks and wake-up lamps.","#1a1a1e","#2a2a30","#ff9a2a","#ff9a2a"],["LINK CABLE","ELECTRONICS",3.8,"cable","Braided universal data and charge cable. One metre of pure connection.","#e8e4ee","#bcb4cc","#2a1a3a","#b24ad4"],["O₂ BOOST","MEDICAL",4.9,"spray","Emergency oxygen can for smog days and very long elevator rides.","#ffffff","#cfe8ff","#1a4a8a","#4f8cff"],["PARCEL ???","BLACK MARKET",33.0,"parcel","Taped, unmarked and slightly warm. No refunds. No questions.","#b08a5a","#8a6638","#2a1a0a","#c02020"]].map((d,i)=>({code:'ABCD'[Math.floor(i/5)]+(i%5+1),name:d[0],category:d[1],price:d[2],kind:d[3],description:d[4],art:d.slice(5)}));
+  root.VoidPodVending={products:POD_VENDING};
 
   // ---- Layout -------------------------------------------------------------
   // David's redesigned map (2026-10-26). World metres: x runs east, z runs north.
@@ -42,17 +45,21 @@
   wall('district-front-west',-17.5,19.85,-3,19.85,8,.3);wall('district-front-east',3,19.85,17.5,19.85,8,.3);
   wall('vestibule-west',-3,20,-3,26);wall('vestibule-east',3,20,3,26);
   // Hallway walls with openings to each room.
-  const left=[[26,31.5],[36.5,46.5],[52.5,59.5],[64.5,78]],right=[[26,30.5],[35.5,44.5],[49.5,60.5],[64.5,78]];
+  const left=[[26,31.5],[36.5,46.5],[52.5,59.5],[64.5,70.5]],right=[[26,30.5],[35.5,44.5],[49.5,60.5],[64.5,70.5]];
   left.forEach(([a,b],i)=>wall('hall-west-'+i,-3,a,-3,b));right.forEach(([a,b],i)=>wall('hall-east-'+i,3,a,3,b));
-  wall('hall-end',-3,78,3,78);
+  // The hallway runs straight into the Sleeping Pods at the back of the building (2026-11-12: the pods moved here from the west room; the stairs to the terrace moved
+  // to this room's east end). The room spans the full width behind the old pod room and the meeting room: z 70.5..78.3.
+  wall('pods-rear-sw',-17,70.5,-3,70.5);wall('pods-rear-se',3,70.5,17,70.5);wall('pods-rear-west',-17,70.5,-17,78.3);wall('pods-rear-east',17,70.5,17,78.3);wall('pods-rear-north',-17,78.3,17,78.3);
   // VR arcade (west, z 28..44): two glass booths along the back, a viewing strip by the hallway.
   wall('vr-north',-17,28,-3,28);wall('vr-west',-17,28,-17,44);wall('vr-south',-17,44,-3,44);
   wall('vr-booth-glass',-8.5,29,-8.5,43,3,.15);wall('vr-booth-partition',-17,36,-8.5,36,3,.15);
   solids.push({id:'arcade-terminal',position:[-6.85,.8,36],size:[.7,1.6,1.1]}); // the VR terminal kiosk
   // Vending alcove (west, z 46.5..52.5).
   wall('vend-back',-7,46.5,-7,52.5);wall('vend-n',-7,46.5,-3,46.5);wall('vend-s',-7,52.5,-3,52.5);
-  // Sleeping pods (west, z 55..70).
-  wall('pods-north',-17,55,-3,55);wall('pods-west',-17,55,-17,70);wall('pods-south',-17,70,-3,70);
+  // The west room (z 55..70): the retro arcade (the Sleeping Pods stood here until 2026-11-12). ARCADE lists every cabinet: where it stands, which way it
+  // faces (ry, the same turn the build gives it) and which game it carries. One is playable (Blackout Protocol); the others are placeholders for games to come.
+  // A small room (David, 2026-11-12: about five games): x -10.5..-3, z 57.5..66.5, opening onto the hallway. The rest of the old pod room is closed off behind it.
+  wall('arc-north',-10.5,57.5,-3,57.5);wall('arc-west',-10.5,57.5,-10.5,66.5);wall('arc-south',-10.5,66.5,-3,66.5);
   // Bar (east, z 28..42).
   wall('bar-north',3,28,17,28);wall('bar-east',17,28,17,42);wall('bar-south',3,42,17,42);
   // Admin & Iris shop (east, z 43..53).
@@ -61,13 +68,17 @@
   wall('meet-north',3,56,15,56);wall('meet-east',15,56,15,69);wall('meet-south',3,69,15,69);
   solids.push({id:'meeting-door',position:[3,1.6,62.5],size:[.3,3.2,4]});
   // Furniture that blocks movement.
-  for(const [id,x,z,w,d] of [['bar-counter',10,38.5,9,1.1],['shop-counter',10,47.2,8,1.1],['meeting-table',9,62.5,4,2.4],['pods-row',-15.4,62.5,2.6,13]])solids.push({id,position:[x,.6,z],size:[w,1.2,d]});
+  for(const [id,x,z,w,d] of [['bar-counter',10,38.5,9,1.1],['shop-counter',10,47.2,8,1.1],['meeting-table',9,62.5,4,2.4],['pods-row',0,76.9,13,2.6]])solids.push({id,position:[x,.6,z],size:[w,1.2,d]});
+  // Hallway clutter that blocks movement (2026-11-13): two crate stacks and two benches against the walls, clear of every doorway.
+  for(const [id,x,z,w,h,d] of [['prop-hall-crates-w',-2.2,38.2,.8,1.3,1.2],['prop-hall-bench-e',2.35,54,.5,.9,2],['prop-hall-crates-e',2.2,67.2,.8,1.3,1.2],['prop-hall-bench-w',-2.35,55.5,.5,.9,2]])solids.push({id,position:[x,h/2,z],size:[w,h,d]});
   // Smoking terrace, an open roof reached by the stairs at the hallway end.
   wall('terrace-north',28,58,48,58,1.1);wall('terrace-south',28,78,48,78,1.1);wall('terrace-west',28,58,28,78,1.1);wall('terrace-east',48,58,48,78,1.1);
 
+  // Five cabinets in a row along the back wall, facing the doorway; the middle one is playable. To add a game: give a cabinet its id here, add it to GAMES in
+  // the arcade build below (name, colours, attract loop), and, if it is playable, to district-arcade.js.
+  const ARCADE=['laser-moth','turbo-kelp','blackout-protocol','corporate-zombies','cobalt-stairs'].map((game,i)=>({id:'arcade-cab-'+String(i+1).padStart(2,'0'),x:-9.9,z:58.6+i*1.7,ry:-Math.PI/2,game,playable:game==='blackout-protocol'||game==='corporate-zombies'}));   // two playable games (2026-11-13: Corporate Zombies took the fourth cabinet)
+  solids.push({id:'arc-west-row',position:[-9.9,.9,62],size:[.9,1.8,7.7]});
   const interactions=[
-    {id:'tdd',label:'ENTER THE DARKNET DISTRICT',position:[0,1.7,19.2],action:'tdd',range:3},
-    {id:'district-scan',label:'PRESENT BADGE TO SCANNER',position:[2.2,1.7,24.5],action:'district-scan',range:2.6,when:{flags:{districtDoor:true},notFlags:{districtBadge:true}}},
     // Admin and Iris are both at the counter, except while the first faction payment waits and Admin is 'occupied' (doc 06).
     {id:'admin',label:'SPEAK WITH ADMIN',position:[8,1.7,46.2],action:'admin',range:3,when:{notFlags:{adminOccupied:true}}},
     {id:'district-iris',label:'SPEAK WITH IRIS',position:[12.5,1.7,46.2],action:'district-iris',range:3},
@@ -75,10 +86,15 @@
     {id:'district-bar',label:'TALK TO THE BARTENDER',position:[10,1.7,37.2],action:'district-bar',range:3},
     {id:'district-vr',label:'ACCESS VR EXPERIENCES',position:[-6.2,1.7,36],action:'district-vr',range:3},
     {id:'district-vending',label:'VENDING MACHINES',position:[-5,1.7,49.5],action:'district-vending',range:2.6},
-    {id:'district-pod',label:'REST IN A SLEEP POD',position:[-12.5,1.7,62.5],action:'district-pod',range:3},
-    {id:'district-pod-music',label:'POD MUSIC SCREEN',position:[-9,1.7,68.2],action:'district-pod-music',range:3},
+    ...Array.from({length:10},(_,k)=>({id:k?'district-pod-'+String(k+1).padStart(2,'0'):'district-pod',label:(k<5?'ENTER':'CLIMB INTO')+' SLEEPING POD '+String(k+1).padStart(2,'0'),position:[-5.2+(k%5)*2.6,1.7,k<5?74.3:72.9],action:'district-pod',podIndex:k+1,range:1.35})),
+    // The arcade: one prompt for the playable cabinet, one for each wall of cabinets that are not switched on yet.
+    {id:'district-arcade-blackout',label:'PLAY BLACKOUT PROTOCOL',position:[-8.9,1.7,62],action:'district-arcade',game:'blackout-protocol',range:.95},
+    {id:'district-arcade-zombies',label:'PLAY CORPORATE ZOMBIES',position:[-8.9,1.7,63.7],action:'district-arcade',game:'corporate-zombies',range:.95},
+    {id:'district-arcade-soon-north',label:'ARCADE CABINETS · COMING SOON',position:[-8.9,1.7,59.4],action:'district-arcade-soon',range:1.5},
+    {id:'district-arcade-soon-south',label:'ARCADE CABINETS · COMING SOON',position:[-8.9,1.7,65.5],action:'district-arcade-soon',range:1.1},
+    {id:'district-wardrobe',label:'WARDROBE',position:[-9,1.7,72.1],action:'district-wardrobe',range:2.6},
     {id:'district-meeting',label:'MEETING ROOM / PRIVATE',position:[2.4,1.7,62.5],action:'district-meeting',range:2.6},
-    {id:'district-stairs',label:'CLIMB TO THE SMOKING AREA',position:[0,1.7,75.5],action:'district-stairs',range:2.6},
+    {id:'district-stairs',label:'CLIMB TO THE SMOKING AREA',position:[14.6,1.7,74.4],action:'district-stairs',range:2.6},
     {id:'district-stairs-down',label:'GO BACK DOWNSTAIRS',position:[30,1.7,68],action:'district-stairs-down',range:2.6}
   ];
   // The city blocks between the streets: solid wherever there is no street, District or terrace.
@@ -105,10 +121,12 @@
     const items=interactions.map(i=>{const [x,z]=toWorld(i.position[0],i.position[2]);return {...i,position:[x,i.position[1],z]};});
     return {id:'neochinatown',name:'NEOCHINATOWN / TESSALY',kind:'city',district:true,bounds:[260,270],spawn:[31,1.7,-96],yaw:2.44,color:'#3a2f4a',music:'earth',ship:'starter',
     solids:[...placed,...(club?club.solids():[]),...cityBlocks.map(s=>({...s,position:s.position.slice(),size:s.size.slice()})),{id:'ship',shipHull:true,position:[22,2,-96],size:[3.6,4,10.5]}],
-    interactions:[{id:'board',label:'BOARD YOUR SHIP',position:[27,1.7,-98],action:'board',range:3.5,when:{notFlags:{shipAccess:'none'}}},{id:'terminal',label:'LANDING TERMINAL',position:[34.5,1.7,-103],action:'terminal',range:3},...items],signs:[]};}
+    interactions:[{id:'board',label:'BOARD YOUR SHIP',position:[27,1.7,-98],action:'board',range:3.5,when:{notFlags:{shipAccess:'none'}}},{id:'terminal',label:'LANDING TERMINAL',position:[34.5,1.7,-103],action:'terminal',range:3},
+     // The club's bar (ncz-nightclub.js), when the club is there.
+     ...(club?[{id:'club-bar',label:'ORDER A DRINK',position:[club.BUILT.bar.x,1.7,club.BUILT.bar.z],action:'club-bar',range:2.4}]:[]),...items],signs:[]};}
   // The layout of one environment. 'all' is the original combined layout. The entrance (outer door, front wall, vestibule, inner door and
   // scanner) belongs to both 'street' and 'interior', so the player stands in the same vestibule when one replaces the other.
-  const ENTRANCE=new Set(['district-door','district-inner-door','district-front-west','district-front-east','vestibule-west','vestibule-east','district-scan']);
+  const ENTRANCE=new Set(['district-door','district-inner-door','district-front-west','district-front-east','vestibule-west','vestibule-east']);
   const insideSide=item=>{const a=zone({x:item.position[0],z:item.position[2]}).area;return a==='district'||a==='terrace';};
   function layout(area='all'){
     const l=fullLayout();if(area==='all')return l;
@@ -130,7 +148,11 @@
     // is put back on leaving, and the exposure is re-applied each frame in case a quality change resets it.
     const ip=scene.imageProcessingConfiguration,previous={clear:scene.clearColor.clone(),fogMode:scene.fogMode,fogDensity:scene.fogDensity,fogColor:scene.fogColor.clone(),exposure:ip.exposure,contrast:ip.contrast,env:scene.environmentIntensity};
     scene.clearColor=new B.Color4(.02,.05,.06,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.0028;scene.fogColor=new B.Color3(.075,.155,.17);
-    const look={exposure:1.3,contrast:1.18},applyLook=()=>{if(ip.exposure!==look.exposure)ip.exposure=look.exposure;if(ip.contrast!==look.contrast)ip.contrast=look.contrast;};applyLook();scene.environmentIntensity=Math.min(previous.env??1,.3);
+    // Street grade is darker than the old 1.3 so the tonemapper holds the blacks and the neon stays the bright part.
+    // The District interior, including the Sleeping Pod room and its music screens, keeps the previous grade.
+    const outsideLook={exposure:1.3,contrast:1.18},insideLook={exposure:1.3,contrast:1.18};
+    function applyLook(insideDistrict){const L=insideDistrict?insideLook:outsideLook;if(ip.exposure!==L.exposure)ip.exposure=L.exposure;if(ip.contrast!==L.contrast)ip.contrast=L.contrast;}
+    applyLook(true);scene.environmentIntensity=Math.min(previous.env??1,.3);
     const sun=scene.getLightByName('sun'),ambient=scene.getLightByName('ambient');const lightState={sun:sun?.intensity,ambient:ambient?.intensity,diffuse:ambient?.diffuse?.clone(),ground:ambient?.groundColor?.clone()};
     // Outdoors: a dim teal sky light. Inside the District the original warm level returns (see tick).
     const outdoor={intensity:low?.6:.5,diffuse:new B.Color3(.42,.62,.72),ground:new B.Color3(.12,.07,.16)},indoor={intensity:.8,diffuse:lightState.diffuse,ground:lightState.ground},clubSky={intensity:1.7,diffuse:new B.Color3(.72,.5,.95),ground:new B.Color3(.3,.12,.42)};
@@ -141,13 +163,16 @@
     // While `discard` is set, built parts are thrown away: an upgraded block (below) still runs its procedural code so the
     // seeded random sequence, and so every sign, window and height elsewhere in the city, stays exactly as it was.
     let discard=false;
-    function add(mesh,m,p,merge=true){if(discard){mesh.dispose();return mesh;}mesh.material=m;mesh.position.set(...p);mesh.parent=target;mesh.isPickable=false;mesh.receiveShadows=false;if(merge){if(!staticMeshes.has(m))staticMeshes.set(m,[]);staticMeshes.get(m).push(mesh);}else dynamic.push(mesh);return mesh;}
+    // `framed`: while it is a list, every mesh added is noted, so a finished section can be moved as one rigid piece (the Sleeping Pods are built where they always
+    // were and then set down at the back of the building).
+    let framed=null;
+    function add(mesh,m,p,merge=true){if(discard){mesh.dispose();return mesh;}if(framed)framed.push(mesh);mesh.material=m;mesh.position.set(...p);mesh.parent=target;mesh.isPickable=false;mesh.receiveShadows=false;if(merge){if(!staticMeshes.has(m))staticMeshes.set(m,[]);staticMeshes.get(m).push(mesh);}else dynamic.push(mesh);return mesh;}
     const box=(name,size,p,m,merge=true)=>add(B.MeshBuilder.CreateBox(name,{width:size[0],height:size[1],depth:size[2]},scene),m,p,merge);
     const cyl=(name,r,h,p,m,merge=true,t=12)=>add(B.MeshBuilder.CreateCylinder(name,{diameter:r*2,height:h,tessellation:t},scene),m,p,merge);
     function texture(name,w,h,draw){const t=new B.DynamicTexture('ncz-'+name,{width:w,height:h},scene,true);draw(t.getContext(),w,h);t.update();textures.push(t);return t;}
     function texMat(name,t,{glow=false,alpha=false}={}){const m=new B.StandardMaterial('ncz-'+name,scene);owned.push(m);if(glow){m.diffuseColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;}else{m.diffuseTexture=t;m.specularColor=new B.Color3(.08,.08,.1);}if(alpha){m.opacityTexture=t;}return m;}
     function plane(name,w,h,p,m,ry=0,merge=false){const mesh=B.MeshBuilder.CreatePlane(name,{width:w,height:h,sideOrientation:B.Mesh.DOUBLESIDE},scene);add(mesh,m,p,merge);mesh.rotation.y=ry;return mesh;}
-    function neon(name,lines,colors,w,h,p,ry=0,bg='rgba(0,0,0,0)'){const t=texture(name,512,Math.round(512*h/w),(g,W,H)=>{g.fillStyle=bg;g.fillRect(0,0,W,H);const n=lines.length;lines.forEach((text,i)=>{const size=Math.min(H/n*.62,W/(Math.max(4,text.length)*.62));g.font='bold '+size+'px "Noto Sans SC","Microsoft YaHei",sans-serif';g.textAlign='center';g.textBaseline='middle';const c=colors[i%colors.length];g.shadowColor=c;g.shadowBlur=18;g.fillStyle=c;g.fillText(text,W/2,H*(i+.5)/n);g.shadowBlur=0;g.fillStyle='rgba(255,255,255,.85)';g.fillText(text,W/2,H*(i+.5)/n);});});return plane(name,w,h,p,texMat(name,t,{glow:true,alpha:true}),ry);}
+    function neon(name,lines,colors,w,h,p,ry=0,bg='rgba(0,0,0,0)',frontOnly=false){const t=texture(name,512,Math.round(512*h/w),(g,W,H)=>{g.fillStyle=bg;g.fillRect(0,0,W,H);const n=lines.length;lines.forEach((text,i)=>{const size=Math.min(H/n*.62,W/(Math.max(4,text.length)*.62));g.font='bold '+size+'px "Noto Sans SC","Microsoft YaHei",sans-serif';g.textAlign='center';g.textBaseline='middle';const c=colors[i%colors.length];g.shadowColor=c;g.shadowBlur=18;g.fillStyle=c;g.fillText(text,W/2,H*(i+.5)/n);g.shadowBlur=0;g.fillStyle='rgba(255,255,255,.85)';g.fillText(text,W/2,H*(i+.5)/n);});});const material=texMat(name,t,{glow:true,alpha:true});if(!frontOnly)return plane(name,w,h,p,material,ry);const mesh=B.MeshBuilder.CreatePlane(name,{width:w,height:h,sideOrientation:B.Mesh.FRONTSIDE},scene);add(mesh,material,p,false);mesh.rotation.y=ry;return mesh;}
     // Tessaly ads are painted locally (ad-art.js): ship parts, weapons, security, labour.
     const adMats={},adIds=ads();function adMat(id){if(adMats[id])return adMats[id];const brand=root.VoidAds.brands.find(b=>b.id===id)||root.VoidAds.brands[0];const t=texture('ad-'+brand.id,low?256:512,low?384:768,(g,W,H)=>root.VoidAds.paint(g,W,H,brand));const m=new B.StandardMaterial('ncz-ad-'+brand.id,scene);m.diffuseColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;owned.push(m);adMats[id]=m;return m;}
     let adIndex=0;const nextAd=()=>adIds[(adIndex++)%adIds.length];
@@ -239,7 +264,7 @@
      for(const z of [-66.8,-64.2,-51.8,-49.6])box('club-strip',[.06,h-.8,.14],[R[1]+.03,h/2,z],hot);
      for(const y of [.3,h-.2])box('club-rail',[.06,.12,z1-z0-.4],[R[1]+.03,y,(z0+z1)/2],y<1?ice:hot);
      box('club-canopy',[1.7,.14,D.half*2+2.4],[R[1]+.85,D.height+.35,D.z],frame);box('club-canopy-light',[1.4,.05,D.half*2+2],[R[1]+.85,D.height+.26,D.z],hot);
-     neon('club-sign',['NIGHTCLUB','夜總會'],['#ff3fb4','#38e8ff'],8.4,2.4,[R[1]+.08,6.1,D.z],-Math.PI/2,'rgba(10,6,20,.92)');
+     neon('club-sign',[club.NAME||'NIGHTCLUB'],['#eafcff'],8.4,2.6,[R[1]+.08,6.1,D.z],-Math.PI/2,'rgba(10,6,20,.92)');   // the club's name comes from ncz-nightclub.js (NAME), so it is changed in one place
      box('club-door-glow',[3,.02,D.half*2+3],[R[1]+1.6,.05,D.z],glowMat('club-spill','#ff3fb4',.22));
      clubShutter=box('club-shutter',[.1,D.height,D.half*2],[R[1]-.5,D.height/2,D.z],mat('club-shutter','#0d0b14',{rough:.5,metal:.9}),false);}
     for(const e of edges){
@@ -382,6 +407,8 @@
     for(const [x,z,i] of [[52.6,-40,1],[69.4,-78,2],[52.6,-100,3],[34,-6.6,4],[98,-18.4,5]])characterModel('crew-ncz'+i,parent,[x,0,z],true);
     // Nightlife: people walking and standing about on the sidewalks, a few of them drunk (ncz-nightlife.js).
     const nightlife=root.VoidNightlife&&modelInstance?root.VoidNightlife.start({B,scene,parent,quality,instance:modelInstance}):null;
+    // The people who stay in the alley by the District (ncz-alley.js): talking, smoking, sitting, watching the door.
+    const alleyLife=root.VoidAlley&&modelInstance?root.VoidAlley.start({scene,parent,quality,instance:modelInstance}):null;
     // Two street lights (the District's own lights are added with its rooms).
     const streetLights=[];if(!low)for(const [p,c,i,r] of [[[61,7,-40],'#ff5bd0',.9,34],[[61,7,-12],'#38e8ff',.8,30]]){const l=new B.PointLight('ncz-street-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=parent;streetLights.push(l);owned.push(l);}
 
@@ -393,7 +420,7 @@
     // A brick wall box whose texture repeats every 2 m along and 1.6 m up (one copy of the photo).
     function brickWall(name,x0,z0,x1,z1,h,y0=0,t=.4){const len=Math.hypot(x1-x0,z1-z0),u=len/2,vv=h/1.6,ut=t/2,uv=[new B.Vector4(0,0,u,vv),new B.Vector4(0,0,u,vv),new B.Vector4(0,0,ut,vv),new B.Vector4(0,0,ut,vv),new B.Vector4(0,0,u,ut),new B.Vector4(0,0,u,ut)];
      const m=B.MeshBuilder.CreateBox(name,{width:x0===x1?t:len,height:h,depth:x0===x1?len:t,faceUV:x0===x1?[uv[2],uv[3],uv[0],uv[1],uv[4],uv[5]]:uv,wrap:true},scene);return add(m,brick,[(x0+x1)/2,y0+h/2,(z0+z1)/2]);}
-    const A=S.alley;
+    const A=S.alley,alleySteam=[];
     {const alleyRoad=mat('alley-asphalt','#b4b4bc',{rough:.22,metal:.35});alleyRoad.albedoTexture=acg('road-cracked-color');alleyRoad.bumpTexture=acg('road-cracked-normal');ground('alley-floor',A,alleyRoad,.012,4);}
     // North side: a row of old brick buildings; south side: brick up to the District's front.
     for(let x=A[0];x<A[1];){const w=10+rand()*12,x1=Math.min(A[1],x+w),h=11+rand()*9;brickWall('alley-building',x,A[3]+.2,x1,A[3]+.2,h);brickWall('alley-building-side',x,A[3]+.2,x,A[3]+8,h);box('alley-roof',[x1-x,.4,8],[(x+x1)/2,h,A[3]+4.2],concrete);x=x1;}
@@ -413,6 +440,17 @@
     for(let x=A[0]+6;x<A[1];x+=11)box('drain-grate',[.9,.02,.5],[x,.03,(A[2]+A[3])/2],mat('drain','#0d0e10',{rough:.5,metal:.8}));
     box('camera-arm',[.06,.06,.6],[DOOR.x-3.3,3.9,A[2]+.1],frame);box('camera-body',[.25,.2,.45],[DOOR.x-3.3,3.8,A[2]+.42],frame);box('camera-led',[.05,.05,.02],[DOOR.x-3.3,3.8,A[2]+.66],red);
     neon('alley-sign',['小心','WATCH YOUR STEP'],['#ff5bd0','#7ff0ff'],1.4,2.2,[A[0]+3,4.2,A[3]-.25],0);
+    // ---- A lived-in alley (docs/development/ALLEY_LIFE.md): things left against the walls, two bare tubes, steam off the drains.
+    // Everything sits against a wall or is flat on the ground: nothing is in the walking lane, at the District door or in front of the vestibule, and none of it collides.
+    {const bag=mat('alley-bag','#0c0d10',{rough:.35,metal:.1}),drum=mat('alley-drum','#3b4a57',{rough:.55,metal:.6}),pallet=mat('alley-pallet','#5a4630',{rough:.9,metal:0});
+     for(const [x,z,sx] of [[84.2,-56.4,1],[84.6,-57.1,.8],[87.9,-56.2,.9],[108.6,-56.2,1.1],[116.4,-61.1,.9],[101.2,-61.1,1]]){const b=add(B.MeshBuilder.CreateSphere('alley-bag',{diameter:.7,segments:8},scene),bag,[x,.24*sx,z],true);b.scaling.set(sx,.7*sx,sx*.9);}
+     for(const [x,z] of [[107.4,-56.1],[115.2,-56.05],[115.9,-56.2]])cyl('alley-drum',.58,.9,[x,.45,z],drum,true,12);
+     for(let k=0;k<4;k++)box('alley-pallet',[1.2,.13,1],[119.2,.07+k*.14,-56.2],pallet);box('alley-seat',[1.7,.46,.7],[93.6,.23,-61.15],rust);box('alley-seat',[.8,.4,.6],[95.1,.2,-61.2],rust);
+     box('alley-tube',[1.9,.06,.06],[113,3.15,A[3]-.32],magenta);box('alley-tube',[1.5,.06,.06],[92.4,3.4,A[3]-.32],cyan);box('alley-tube-back',[2.1,.2,.05],[113,3.15,A[3]-.27],frame);box('alley-tube-back',[1.7,.2,.05],[92.4,3.4,A[3]-.27],frame);
+     if(!low&&B.ParticleSystem){const puff=texture('alley-steam',64,64,(g,W,H)=>{g.clearRect(0,0,W,H);const r=g.createRadialGradient(W/2,H/2,2,W/2,H/2,W/2);r.addColorStop(0,'rgba(210,220,230,.5)');r.addColorStop(1,'rgba(210,220,230,0)');g.fillStyle=r;g.fillRect(0,0,W,H);});
+      for(const x of [99,121]){const ps=new B.ParticleSystem('alley-steam',quality==='high'||quality==='ultra'?70:40,scene);ps.particleTexture=puff;ps.emitter=v(x,.05,(A[2]+A[3])/2);ps.minEmitBox=new B.Vector3(-.4,0,-.2);ps.maxEmitBox=new B.Vector3(.4,0,.2);
+       ps.direction1=new B.Vector3(-.15,1,-.1);ps.direction2=new B.Vector3(.2,1.4,.1);ps.minEmitPower=.35;ps.maxEmitPower=.7;ps.minLifeTime=2.2;ps.maxLifeTime=4;ps.minSize=.5;ps.maxSize=1.5;ps.emitRate=quality==='high'||quality==='ultra'?14:9;
+       ps.color1=new B.Color4(.75,.8,.86,.16);ps.color2=new B.Color4(.9,.8,.85,.1);ps.colorDead=new B.Color4(.8,.8,.85,0);ps.blendMode=B.ParticleSystem.BLENDMODE_STANDARD;ps.gravity=new B.Vector3(.05,.05,0);ps.start();alleySteam.push(ps);}}}
     // Graffiti: painted onto transparent decals a few centimetres off the walls, so each reads the right way round.
     const graffitiSets=[
      ['QUESTION THE SYSTEM','spray','#e8e2d0','#d6342c'],['WHO WATCHES THE WATCHERS?','stencil','#f2f0e8'],['YOUR DATA IS NOT YOURS','hand','#7ff0ff'],
@@ -442,10 +480,11 @@
     // Torn posters, half covered.
     for(const [x,side] of [[87,'n'],[101,'s'],[124,'n']]){const t=texture('poster-'+x,256,360,(g,W,H)=>{g.fillStyle='#d8d0bc';g.fillRect(0,0,W,H);g.fillStyle='#1b1b1b';g.font='bold 34px Impact,sans-serif';g.textAlign='center';g.fillText('PRIVACY IS',W/2,90);g.fillText('RESISTANCE',W/2,130);g.font='22px monospace';g.fillText('— THE NETWORK —',W/2,320);g.globalCompositeOperation='destination-out';g.beginPath();g.moveTo(W,H*.55);for(let k=0;k<12;k++)g.lineTo(W-k*20,H*.55+(rand()-.5)*30+k*12);g.lineTo(W,H);g.fill();g.globalCompositeOperation='source-over';});
      decal(t,1,1.4,[x,1.7,side==='n'?A[3]-.05:A[2]+.05],side==='n'?0:Math.PI);}
-    return {clubShutter,onFace,faceRot,signSpots,bbox,A,decal,graffiti,S,puddle,batches,screens,skyShells,nightlife,drones};})();
+    return {clubShutter,onFace,faceRot,signSpots,bbox,A,decal,graffiti,S,puddle,batches,screens,skyShells,nightlife,alleyLife,alleySteam,drones};})();
     // ---- The District interior (first step of the interior/NeoChinatown separation, docs/void-runner/environment-separation.md). ----
     // Everything from here to the returned values builds the inside of the District under district-root; the street, the facade and the taxi zones are built outside it. It runs in place, so nothing changes yet; a later step moves it behind its own loader.
     // ---- The entrance and security vestibule: built in every area ----
+    const kitAlias={};let kitMat=null,kitPiece=()=>null;   // set by buildEntrance; the interior uses them too
     const {doors}=(function buildEntrance(){
     target=districtRoot;
     // Understated entrance: reinforced sliding door, small mark, camera. The frame is two jambs and a header (it
@@ -456,7 +495,7 @@
     const doorPanels=(id,z,m,lightZ)=>{const panels=[-1,1].map(s=>{const p=box(id+'-panel',[2.82,3.1,.24],[s*1.41,1.55,z],m,false);p.name=id+(s<0?'-left':'-right');return p;});
      const seam=box(id+'-seam',[.04,3.1,.26],[0,1.55,z],frame,false);const light=box(id+'-status',[5.6,.06,.06],[0,3.15,lightZ],red,false);return {panels,seam,light};};
     const outerDoor=doorPanels('district-door',20,mat('door-steel','#343a42',{rough:.45,metal:.55}),19.84);
-    neon('district-mark',['DD'],['#9b7bff'],.7,.4,[2.6,2.9,19.7],0);
+    neon('district-mark',['DD'],['#9b7bff'],.7,.4,[2.6,2.9,19.7],0,undefined,true);
     // Security lighting for the entrance, so a new player arriving at night can see the door: a cold lamp over the lintel, a dim magenta wash from the alley side (not on the low tier, which keeps only the lamp), and a faint lit strip along the header. Kept low so the alley stays dark.
     box('door-lintel-strip',[5.2,.05,.08],[0,3.66,19.55],mat('door-lintel','#2a6c78',{glow:'#5fe3f5'}),false);
     // Street side only: these lamps light the alley face of the door. Inside the District they would only add to its light count (14 instead of 12 at high quality made materials exceed the GPU's uniform-buffer limit and the scene never became ready). `area` exists once the street and interior are built separately; before that the lamps are built as before.
@@ -465,30 +504,60 @@
     // ---- Vestibule --------------------------------------------------------
     add(B.MeshBuilder.CreateGround('vestibule-floor',{width:6,height:6},scene),floor,[0,.02,23]);
     for(const side of [-1,1])box('vestibule-wall',[.3,3.6,6],[side*3.1,1.8,23],metal);box('vestibule-ceiling',[6.4,.3,6],[0,3.6,23],frame);
-    box('scanner-post',[.35,1.3,.35],[2.6,.65,24.5],frame);box('scanner-face',[.3,.4,.05],[2.6,1.25,24.31],cyan);
+    // The vestibule's detailed lining: Blender-made pieces laid over the plain shell above (which stays as the outer wall and as the fallback when a model is missing).
+    // The same pieces are placed the same way in the street area and in the interior area, so the room looks identical on both sides of the checkpoint.
+    const kitTex=(name,kind)=>{const rel='assets/textures/district-interior/'+name+'_'+kind+'.jpg',t=new B.Texture(base?new URL(rel,base).href:rel,scene,false,false);t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;textures.push(t);return t;};
+    kitMat=name=>{if(kitAlias[name])return kitAlias[name];const key='kit:'+name;if(mats[key])return mats[key];const m=new B.PBRMaterial('ncz-'+name,scene);
+     if(name==='kit_emissive'){m.albedoColor=B.Color3.Black();m.roughness=1;m.metallic=0;m.emissiveTexture=kitTex(name,'color');m.emissiveColor=B.Color3.White();m.emissiveIntensity=1.6;}
+     else{const c=kitTex(name,'color'),orm=kitTex(name,'orm');m.albedoTexture=c;m.bumpTexture=kitTex(name,'normal');m.invertNormalMapX=true;m.invertNormalMapY=false;m.metallicTexture=orm;m.metallic=1;m.roughness=1;m.useRoughnessFromMetallicTextureAlpha=false;m.useRoughnessFromMetallicTextureGreen=true;m.useMetallnessFromMetallicTextureBlue=true;m.useAmbientOcclusionFromMetallicTextureRed=true;
+      m.emissiveTexture=c;m.emissiveColor=name==='kit_goods'?new B.Color3(.26,.26,.28):new B.Color3(.2,.21,.25);}   /* kept low: the District is dark, and the colour comes from the lights and the glowing parts (David, 2026-11-13: the hallway read too grey) */   // a faint self-light: the room has no lamps of its own (the scene's light limit), so its surfaces must read by themselves
+     owned.push(m);mats[key]=m;return m;};
+    // opt.merge: a fixed piece of the building; its meshes join the per-material merge at the end of the build, so a long run of pieces costs a handful of draw calls.
+    kitPiece=(name,p,ry=0,hide=[],opt={})=>{if(typeof modelInstance!=='function')return null;const n=modelInstance(name.includes(':')?name:'entry:'+name,target);if(!n)return null;n.position.set(...p);n.rotation.y=ry;
+     for(const c of n.getChildren(null,false)){if(hide.some(h=>c.name.includes(h))){c.setEnabled(false);continue;}if(c.getTotalVertices?.()>0&&c.material){const want=String(c.material.name||'').replace(/^.*(kit_[a-z]+).*$/,'$1');c.material=kitMat(want);c.isPickable=false;c.receiveShadows=false;if(opt.merge){const m=c.material;if(!staticMeshes.has(m))staticMeshes.set(m,[]);staticMeshes.get(m).push(c);}}}
+     owned.push(n);return n;};
+    const lined=!!kitPiece('district_vestibule_floor_6m',[3,.025,26]);
+    if(lined){kitPiece('district_vestibule_ceiling_6m',[3,2.72,26]);kitPiece('district_vestibule_wall_6m',[-2.71,0,20],Math.PI/2,['__neon_1']);kitPiece('district_vestibule_wall_6m',[2.71,0,26],-Math.PI/2,['__neon_0']);
+     kitPiece('district_door_portal_6m',[3.1,0,20.44]);kitPiece('district_door_portal_6m',[-3.1,0,25.56],Math.PI);if(typeof area==='undefined'||area!=='street')kitPiece('district_door_portal_6m',[3.1,0,26.44]);
+     kitPiece('district_scanner_arch_5m',[2.6,0,23.2]);}
+    if(!(lined&&kitPiece('district_scanner_kiosk_1m',[2.05,0,24.25],Math.PI))){box('scanner-post',[.35,1.3,.35],[2.6,.65,24.5],frame);box('scanner-face',[.3,.4,.05],[2.6,1.25,24.31],cyan);}
     for(const z of [21.5,24.5])box('status-display',[.05,.6,1],[-2.92,2.2,z],[cyan,magenta][z>23?1:0]);
     box('vestibule-light',[4,.05,.3],[0,3.42,23],white);
-    const innerDoor=doorPanels('district-inner-door',26,mat('door-inner','#1d2026',{rough:.35,metal:.9}),25.84);
-    const doors=(()=>{const list=[{id:'district-door',flag:'districtDoor',z:20,...outerDoor,open:0,kick:0},{id:'district-inner-door',flag:'districtBadge',z:26,...innerDoor,open:0,kick:0}];
-     const green=mat('door-ok','#1d6b4a',{glow:'#3dffa8'}),solidOf=d=>d.solid||(d.solid=(typeof walkingLocation!=='undefined'?walkingLocation?.solids:null)?.find?.(s=>s.id===d.id)||null);
+    const innerDoor=doorPanels('district-inner-door',26,mat('door-inner','#1d2026',{rough:.35,metal:.9}),25.84);if(lined)for(const p of [...outerDoor.panels,...innerDoor.panels])p.material=kitMat('kit_metal');   // the door leaves share the lining's steel, so a shut door reads as a door and not as a black opening
+    const doors=(()=>{const list=[{id:'district-door',flag:'districtDoor',z:20,...outerDoor,open:0,kick:0},{id:'district-inner-door',flag:'districtBadge',z:26,...innerDoor,open:0,kick:0}];let entryCycle=false,secured=!!root.VoidDistrict?.busy;   // built in the middle of a checkpoint transfer: the doors start sealed, so none stirs before the scan clears
+     // Resolve against the *current* location. A scene can start ticking while the loader still
+     // holds the previous area's collision array; caching that array leaves an invisible closed door.
+     const green=mat('door-ok','#1d6b4a',{glow:'#3dffa8'}),solidOf=d=>(typeof walkingLocation!=='undefined'?walkingLocation?.solids:null)?.find?.(s=>s.id===d.id)||null;
      // In the street area the inner door stays shut and locked whatever the flags say: nothing is built behind it there.
-     const isOpenable=d=>!(area==='street'&&d.id==='district-inner-door');
-     for(const d of list)if(isOpenable(d)&&state.story?.flags?.[d.flag])d.light.material=green;
+     // In the interior area the OUTER door is shut the same way: the street is not built there. So the two doors can never be open together, and the only
+     // way through is the checkpoint in the middle of the vestibule (district-transition.js), which seals both doors before anything is loaded.
+     const isOpenable=d=>!(area==='street'&&d.id==='district-inner-door')&&!(area==='interior'&&d.id==='district-door');
+     for(const d of list)if(isOpenable(d)&&(d.id==='district-door'||state.story?.flags?.[d.flag]))d.light.material=green;
      // Each frame: open toward 1 when unlocked and you're near (or just pressed E), else close; the collision box is
      // there whenever the door is less than 80% open, and a door never closes on you while you're in the doorway.
      function tick(dt){const cam=scene.activeCamera?.globalPosition,flags=(typeof state!=='undefined'?state:null)?.story?.flags||{};
       const [lx,lz]=cam?toWorld(cam.x,cam.z):[99,99];
-      for(const d of list){const unlocked=isOpenable(d)&&!!flags[d.flag];if(unlocked&&d.light.material!==green)d.light.material=green;d.kick=Math.max(0,d.kick-dt);
-       const near=Math.abs(lx)<3.4&&Math.abs(lz-d.z)<3,inDoorway=Math.abs(lx)<3.2&&Math.abs(lz-d.z)<1.1,want=unlocked&&(near||d.kick>0)||(d.open>.05&&inDoorway)?1:0;
+      if(entryCycle&&lz>28)entryCycle=false;
+      for(const d of list){const unlocked=isOpenable(d)&&(d.id==='district-door'||!!flags[d.flag]);if(unlocked&&d.light.material!==green)d.light.material=green;d.kick=Math.max(0,d.kick-dt);
+       const near=Math.abs(lx)<3.4&&Math.abs(lz-d.z)<3,inDoorway=Math.abs(lx)<3.2&&Math.abs(lz-d.z)<1.1;
+       const cyclingOuter=entryCycle&&d.id==='district-door',cyclingInner=entryCycle&&d.id==='district-inner-door';
+       const want=secured?d.open>.05&&inDoorway:cyclingOuter?false:cyclingInner?unlocked&&list[0].open<=.02:unlocked&&(near||d.kick>0)||(d.open>.05&&inDoorway);
        const before=d.open;d.open=Math.max(0,Math.min(1,d.open+(want?1:-1)*dt*1.25));const e=d.open*d.open*(3-2*d.open);
        if(d.open!==before){d.panels[0].position.x=-1.41-e*2.75;d.panels[1].position.x=1.41+e*2.75;d.seam.setEnabled(e<.02);}
        const solid=solidOf(d);if(solid)solid.open=d.open>=.8;}}
-     return {tick,list,kick(id,seconds=4){const d=list.find(x=>x.id===id);if(d){d.kick=seconds;}},state:()=>list.map(d=>({id:d.id,open:+d.open.toFixed(2),locked:!(isOpenable(d)&&typeof state!=='undefined'&&state?.story?.flags?.[d.flag]),blocking:!!solidOf(d)&&!solidOf(d).open}))};})();
+     return {tick,list,
+      // The checkpoint's controls. secure(true): both doors close and stay closed (a door still never closes on someone standing in it). closed(): the door
+      // sensors: every panel fully shut AND its collision in place. release(id): end the seal and hold that one door open for a while.
+      secure(on){secured=!!on;if(on)for(const d of list)d.kick=0;},get secured(){return secured;},
+      closed(){return list.every(d=>{const solid=solidOf(d);return d.open<=.02&&(!solid||!solid.open);});},
+      openness(){return list.reduce((sum,d)=>sum+d.open,0);},
+      release(id,seconds=8){secured=false;entryCycle=false;const d=list.find(x=>x.id===id);if(d&&isOpenable(d))d.kick=seconds;},
+      kick(id,seconds=4){const d=list.find(x=>x.id===id);if(d){d.kick=seconds;}},cycleIn(){entryCycle=true;return new Promise(resolve=>{const end=performance.now()+4000;function check(){if(list[0].open<=.02&&list[1].open>=.8||performance.now()>end)resolve();else requestAnimationFrame(check);}check();});},state:()=>list.map(d=>({id:d.id,open:+d.open.toFixed(2),locked:!(isOpenable(d)&&(d.id==='district-door'||typeof state!=='undefined'&&state?.story?.flags?.[d.flag])),blocking:!!solidOf(d)&&!solidOf(d).open}))};})();
 
     return {doors};})();
     if(area==='all'){if(seed!==SEAMS[0])console.warn('[NeoChinatown] random state before the interior changed; update SEAMS (interior detail will differ in the separate builds)');}else if(!wantStreet)seed=SEAMS[0];
     // ---- The District interior: hallway, rooms and terrace ----
-    const {lights,terminal,vrTick,podScreen}=!wantInterior?{lights:[],terminal:{tick(){}},vrTick(){},podScreen:{tick(){}}}:(function buildInterior(){
+    const {lights,terminal,vrTick,podScreen,arcade}=!wantInterior?{lights:[],terminal:{tick(){}},vrTick(){},podScreen:{tick(){}},arcade:{tick(){}}}:(function buildInterior(){
     // ---- Hallway and room shells -----------------------------------------
     // Dark wet-look tiles (David's reference pictures, 2026-10-17): low roughness so the neon reads in them.
     const tileTex=texture('district-tiles',512,512,(g,W,H)=>{g.fillStyle='#0d0e14';g.fillRect(0,0,W,H);for(let y=0;y<H;y+=64)for(let x=0;x<W;x+=64){const s=15+rand()*9|0;g.fillStyle='rgb('+s+','+s+','+(s+7)+')';g.fillRect(x+2,y+2,60,60);}g.strokeStyle='#050608';g.lineWidth=3;for(let i=0;i<=W;i+=64){g.beginPath();g.moveTo(i,0);g.lineTo(i,H);g.stroke();g.beginPath();g.moveTo(0,i);g.lineTo(W,i);g.stroke();}for(let i=0;i<10;i++){const x=rand()*W,y=rand()*H,r=30+rand()*60,gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(0,0,0,.4)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);}});tileTex.uScale=6;tileTex.vScale=9;
@@ -496,16 +565,37 @@
     add(B.MeshBuilder.CreateGround('district-floor',{width:34,height:52},scene),tiles,[0,.02,52]);
     box('district-ceiling',[34,.3,52],[0,4.2,52],frame);
     // Walls only: furniture collision blocks (counters, the pod row) are drawn by their rooms, not as walls.
-    for(const s of solids){if(!/^(hall|vr|vend|pods|bar|shop|meet)-/.test(s.id)||/-(counter|row|table)$/.test(s.id)||/glass|partition/.test(s.id))continue;/* glass booths are drawn by the VR arcade */box('district-wall',[Math.max(.3,s.size[0]),4.2,Math.max(.3,s.size[2])],[s.position[0],2.1,s.position[2]],metal);}
-    for(let z=28;z<78;z+=4){box('hall-beam',[6,.3,.3],[0,3.9,z],frame);box('hall-led',[.08,.05,3.6],[-2.6,3.85,z+2],z%8?cyan:magenta);box('hall-led',[.08,.05,3.6],[2.6,3.85,z+2],z%8?magenta:cyan);}
-    for(const [z,side] of [[30.5,1],[46,-1],[58,1],[66,-1]])plane('hall-ad',1.2,1.8,[side*2.82,2.2,z],adMat(nextAd()),side>0?Math.PI/2:-Math.PI/2);
+    for(const s of solids){if(!/^(hall|vr|vend|pods|arc|bar|shop|meet)-/.test(s.id)||/-(counter|row|table)$/.test(s.id)||/glass|partition/.test(s.id))continue;/* glass booths are drawn by the VR arcade */box('district-wall',[Math.max(.3,s.size[0]),4.2,Math.max(.3,s.size[2])],[s.position[0],2.1,s.position[2]],metal);}
+    // The hallway's lining and ceiling (interior rebuild, phase B): Blender-made modules along both walls and overhead. West side magenta, east side cyan.
+    // Each wall run is: a column, as many 2 m modules as fit (four designs in turn), a 1 m module and a spare column for what is left, a column.
+    const hallLined=(()=>{if(!kitPiece('district:hall_ceiling_4m',[3,4.05-.62,30],0,[],{merge:true}))return false;for(let z=34;z<=70;z+=4)kitPiece('district:hall_ceiling_4m',[3,4.05-.62,z],0,[],{merge:true});
+     const kinds=['a','b','c','a','d','b','a','c'];let n=0;
+     const run=(side,a,b)=>{const hide=side<0?['__screen_1','__light_1']:['__screen_0','__light_0'],ry=side<0?Math.PI/2:-Math.PI/2;let at=side<0?a:b;
+      const put=(id,len,depth)=>{kitPiece('district:'+id,[side*(2.8-depth),0,at],ry,hide,{merge:true});at+=side<0?len:-len;};
+      let left=b-a-1;put('hall_pilaster_05m',.5,.28);while(left>=2){put('hall_wall_2m_'+kinds[n++%kinds.length],2,.2);left-=2;}if(left>=1){put('hall_wall_1m',1,.2);left-=1;}if(left>=.5)put('hall_pilaster_05m',.5,.28);put('hall_pilaster_05m',.5,.28);};
+     for(const s of solids){const m=/^hall-(west|east)-/.exec(s.id);if(m)run(m[1]==='west'?-1:1,s.position[2]-s.size[2]/2,s.position[2]+s.size[2]/2);}
+     // The hallway floor in the lining's own worn tile (half-metre tiles), laid over the room floor.
+     const g=B.MeshBuilder.CreateGround('hall-floor',{width:5.6,height:44.5},scene),uv=g.getVerticesData('uv');for(let i=0;i<uv.length;i++)uv[i]*=i%2?22.25:2.8;g.setVerticesData('uv',uv);add(g,kitMat('kit_tile'),[0,.028,48.25]);return true;})();
+    // kitAt puts a piece against a wall: `facing` is the way the piece looks, `face` the wall surface behind it, `s` where it starts along the wall (its low end).
+    const kitAt=(id,facing,face,s,len,depth,y=0,hide=['__screen_0','__light_0'])=>kitPiece('district:'+id,facing==='+x'?[face+depth,y,s]:facing==='-x'?[face-depth,y,s+len]:facing==='+z'?[s+len,y,face+depth]:[s,y,face-depth],{'+x':Math.PI/2,'-x':-Math.PI/2,'+z':0,'-z':Math.PI}[facing],hide,{merge:true});
+    // Doorways, clutter and people (interior rebuild, phase B second step). Each room's doorway gets a lintel with a light under it, a fascia for its sign and a tread plate.
+    if(hallLined){const M=['__screen_1','__light_1'],C=['__screen_0','__light_0'];
+     for(const [a,len] of [[31.5,5],[46.5,6],[59.5,5]])kitAt('hall_header_'+len+'m','+x',-2.8,a,len,.28,0,M);for(const [a,len] of [[30.5,5],[44.5,5],[60.5,4]])kitAt('hall_header_'+len+'m','-x',2.8,a,len,.28,0,C);
+     kitAt('hall_header_6m','-z',70.58,-3,6,.28,0,M);
+     kitAt('prop_crates_1m','+x',-2.6,37.6,1.2,.8)||box('hall-crates',[.8,1.3,1.2],[-2.2,.65,38.2],frame);kitAt('prop_crates_1m','-x',2.6,66.6,1.2,.8)||box('hall-crates',[.8,1.3,1.2],[2.2,.65,67.2],frame);
+     kitAt('prop_bench_2m','-x',2.6,53,2,.5)||box('hall-bench',[.5,.9,2],[2.35,.45,54],frame);kitAt('prop_bench_2m','+x',-2.6,54.5,2,.5)||box('hall-bench',[.5,.9,2],[-2.35,.45,55.5],frame);
+     // A few ordinary residents standing about, against the walls and out of the walking lane (ambient crowd figures: no names, no dialogue).
+     for(const [id,x,z,fx,fz] of [['crew-hall-talk1',-2.0,40.3,-1.9,41.5],['crew-hall-talk2',-1.9,41.5,-2.0,40.3],['crew-hall-watch1',2.05,57.2,0,56],['crew-hall-talk3',2.0,38.4,0,39.5]]){const n=characterModel(id,target,[x,0,z],true);if(n?.rotation)n.rotation.y=Math.atan2(fx-x,fz-z);}}
+    if(!hallLined)for(let z=28;z<78;z+=4){box('hall-beam',[6,.3,.3],[0,3.9,z],frame);box('hall-led',[.08,.05,3.6],[-2.6,3.85,z+2],z%8?cyan:magenta);box('hall-led',[.08,.05,3.6],[2.6,3.85,z+2],z%8?magenta:cyan);}
+    for(const [z,side] of [[30.5,1],[46,-1],[58,1],[66,-1]])plane('hall-ad',1.2,1.8,[side*(hallLined?2.52:2.82),hallLined?2.0:2.2,z],adMat(nextAd()),side>0?Math.PI/2:-Math.PI/2);
     for(const z of [40,72])box('hall-camera',[.2,.2,.4],[2.7,3.6,z],frame);
-    const roomSign=(lines,colors,p,ry)=>neon('room-sign-'+lines[0],lines,colors,2.4,.7,p,ry,'rgba(10,10,16,.9)');
-    roomSign(['VR / ARCADE'],['#38e8ff'],[-2.8,3.4,34],-Math.PI/2);roomSign(['BAR · LOUNGE'],['#ffb347'],[2.8,3.4,33],Math.PI/2);
-    roomSign(['ADMIN & IRIS'],['#9b7bff'],[2.8,3.4,47],Math.PI/2);roomSign(['VENDING'],['#6cff9e'],[-2.8,3.4,49.5],-Math.PI/2);
-    roomSign(['SLEEP PODS'],['#ff5bd0'],[-2.8,3.4,62],-Math.PI/2);roomSign(['MEETING ROOM'],['#e8f0ff'],[2.8,3.4,62.5],Math.PI/2);
-    roomSign(['SMOKING AREA ↑'],['#ffb347'],[0,3.5,77.7],0);
-    neon('welcome',['THE DARKNET DISTRICT'],['#9b7bff'],5,.8,[0,3.3,26.6],0);
+    const signX=hallLined?2.5:2.8;   // room signs stand on the doorway fascias when the hallway is lined
+    const roomSign=(lines,colors,p,ry)=>neon('room-sign-'+lines[0],lines,colors,2.4,.7,p,ry,'rgba(10,10,16,.9)',true);
+    roomSign(['VR / ARCADE'],['#38e8ff'],[-signX,3.4,34],Math.PI/2);roomSign(['BAR · LOUNGE'],['#ffb347'],[signX,3.4,33],-Math.PI/2);
+    roomSign(['ADMIN & IRIS'],['#9b7bff'],[signX,3.4,47],-Math.PI/2);roomSign(['VENDING'],['#6cff9e'],[-signX,3.4,49.5],Math.PI/2);
+    roomSign(['SLEEP PODS'],['#ff5bd0'],[0,3.45,70.2],0);roomSign(['ARCADE'],['#ffe066'],[-signX,3.4,62],Math.PI/2);roomSign(['MEETING ROOM'],['#e8f0ff'],[signX,3.4,62.5],-Math.PI/2);
+    roomSign(['SMOKING AREA ↑'],['#ffb347'],[16.7,3.3,74.4],-Math.PI/2);
+    neon('welcome',['THE DARKNET DISTRICT'],['#9b7bff'],5,.8,[0,3.3,26.6],Math.PI,undefined,true);
 
     // VR arcade (David, 2026-10-26): two standing VR booths behind glass, divided by a glass partition, with a
     // viewing strip by the hallway. One player is in a VR shooter, the other dances, dines and works menus.
@@ -528,6 +618,11 @@
     // Viewing strip: a rail and a bench along the hallway side, a soft floor line.
     box('vr-rail',[.06,.06,13.6],[-7.6,1,36],pipe);for(const z of [30,34,38,42])box('vr-rail-post',[.06,1,.06],[-7.6,.5,z],pipe);
     box('vr-floor-line',[.05,.02,13.6],[-7.9,.04,36],violet);
+    // Interior rebuild, phase C: the room and both booths stay as they are; the walls get the hallway's lining (cyan in the north booth, magenta in the south)
+    // and each booth an equipment rack with headsets on charge.
+    if(kitAt('vr_rack_1m','+x',-16.8,34.7,1,.5)){kitAt('vr_rack_1m','+x',-16.8,36.3,1,.5);const C=['__screen_0','__light_0'],M=['__screen_1','__light_1'];
+     for(const [z,k] of [[28.4,'a'],[30.4,'b'],[32.4,'c']])kitAt('hall_wall_2m_'+k,'+x',-16.8,z,2,.2,0,C);for(const [z,k] of [[37.6,'c'],[39.6,'b'],[41.6,'a']])kitAt('hall_wall_2m_'+k,'+x',-16.8,z,2,.2,0,M);
+     for(const [x,k] of [[-16.6,'a'],[-14.6,'c'],[-12.6,'a'],[-10.6,'d'],[-7.4,'a'],[-5.4,'c']]){kitAt('hall_wall_2m_'+k,'+z',28.2,x,2,.2,0,C);kitAt('hall_wall_2m_'+k,'-z',43.8,x,2,.2,0,M);}}
     if(!instance('couch',[-4.6,0,41.5],-Math.PI/2))box('vr-bench',[1,.45,3],[-4.6,.22,41.5],mat('chair','#2a2340',{rough:.7}));
     characterModel('crew-vr-watch',target,[-5.4,0,33],true);
 
@@ -559,21 +654,69 @@
       const sy=(clock*60)%H;g.fillStyle='rgba(56,232,255,.08)';g.fillRect(8,sy,W-16,6);t.update();}
      draw();
      return {tick(dt){clock+=dt;redraw-=dt;if(redraw<=0){redraw=.2;draw();}},screen};})();
-    // The pod music screen: a wall-mounted player on the south wall of the sleeping-pod room (pod-music.js owns the player and what the screen shows). Its music also
-    // moves the room's own light: the pink lamp over the pods, the ceiling panels, the pods' inner glow and a strip along the ceiling. No light is added.
-    const podScreen=(()=>{const X=-9,Y=2.45,Z=69.68,W=512,H=288,t=texture('pod-music',W,H,(g)=>{g.fillStyle='#04070a';g.fillRect(0,0,W,H);g.fillStyle='#2fe0c4';g.font='bold 20px monospace';g.fillText('POD MUSIC',20,36);}),
-      frame=mat('kiosk-shell','#121419',{rough:.32,metal:.85});
-     box('pod-screen-frame',[3.72,2.18,.1],[X,Y,Z+.07],frame,false);plane('pod-music-screen',3.4,1.91,[X,Y,Z],texMat('pod-music-screen',t,{glow:true}),0);
-     const strip=glowMat('pod-music-strip','#ff3fb4',.25);for(const x of[-3.3,-16.7])box('pod-music-strip',[.06,.06,13.6],[x,3.92,62.5],strip,false);
-     let lamp=null,lampBase=0,lampFound=false; // the pink lamp over the pods: found on the first frame, when the whole District has been built
-     const pink=B.Color3.FromHexString('#ff3fb4'),cyan=B.Color3.FromHexString('#38e8ff'),panelBase=B.Color3.FromHexString('#7fe6ff').scale(.9),innerBase=B.Color3.FromHexString('#ffc98a').scale(.45);
-     let clock=0,redraw=0,lit=false;
-     return {tick(dt){clock+=dt;redraw-=dt;const music=root.VoidPodMusic,lv=music?.levels?.();
-      if(!lampFound){lampFound=true;lamp=lights.find(l=>Math.abs(l.position.x+10)<.01&&Math.abs(l.position.y-3)<.01&&Math.abs(l.position.z-62)<.01)||null;lampBase=lamp?lamp.intensity:0;}
-      if(redraw<=0){redraw=lv?.on||music?.playing?.08:.6;if(music?.drawScreen){music.drawScreen(t.getContext(),W,H,clock);t.update();}}
-      if(lv?.on){lit=true;strip.emissiveColor=B.Color3.Lerp(pink,cyan,Math.min(1,lv.high*2.2)).scale(.25+1.5*Math.max(lv.bass,lv.mid));
-       if(mats['pod-panel'])mats['pod-panel'].emissiveColor=panelBase.scale(1+1.1*lv.mid);if(mats['pod-inner'])mats['pod-inner'].emissiveColor=innerBase.scale(1+.9*lv.bass);if(lamp)lamp.intensity=lampBase*(1+1.3*lv.bass);}
-      else if(lit){lit=false;strip.emissiveColor=pink.scale(.25);if(mats['pod-panel'])mats['pod-panel'].emissiveColor=panelBase.clone();if(mats['pod-inner'])mats['pod-inner'].emissiveColor=innerBase.clone();if(lamp)lamp.intensity=lampBase;}}};})();
+    // The wardrobe mirror: a wall panel on the south wall of the sleeping-pod room, east of the music screen (character-creator.js owns the screen it opens). Free and unlimited.
+    {const X=-9,Y=1.5,Z=70.82,W=256,H=384,t=texture('pod-wardrobe',W,H,(g)=>{g.fillStyle='#04070a';g.fillRect(0,0,W,H);g.strokeStyle='#38e8ff';g.lineWidth=3;g.strokeRect(10,10,W-20,H-20);g.fillStyle='#38e8ff';g.font='bold 26px monospace';g.fillText('WARDROBE',40,64);
+      g.fillStyle='#ff3fb4';g.font='bold 15px monospace';g.fillText('CHANGE YOUR LOOK',42,92);g.fillStyle='#8fb3bd';g.font='14px monospace';g.fillText('FREE · UNLIMITED',46,118);g.fillText('[E] OPEN',92,H-40);
+      g.strokeStyle='rgba(56,232,255,.5)';g.beginPath();g.ellipse(W/2,230,34,70,0,0,Math.PI*2);g.stroke();g.beginPath();g.arc(W/2,150,20,0,Math.PI*2);g.stroke();}),
+      frame=mat('wardrobe-shell','#121419',{rough:.32,metal:.85});
+     box('pod-wardrobe-frame',[1.62,2.32,.1],[X,Y,Z-.07],frame,false);plane('pod-wardrobe-panel',1.4,2.1,[X,Y,Z],texMat('pod-wardrobe-panel',t,{glow:true}),Math.PI);}
+    // Every capsule owns its emissive surfaces. The shared room no longer carries a music player.
+    const podPlayers={};
+    // st: null (idle) or {playing,title,position,volume,source}. 384x192, green-on-black like the reference.
+    function drawPodPlayer(g,index,st){
+     const W=384,H=192,on=!!st&&!!st.title,t=on?Math.max(0,Math.floor(st.position||0)):0,mm=String(Math.floor(t/60)).padStart(2,'0'),ss=String(t%60).padStart(2,'0');
+     g.fillStyle='#05080a';g.fillRect(0,0,W,H);g.strokeStyle='#2a3a33';g.lineWidth=2;g.strokeRect(2,2,W-4,H-4);
+     g.fillStyle='#6f8f7c';g.font='bold 13px monospace';g.fillText('DARKNET·AMP  v2.9',12,20);g.fillStyle='#e96bbf';g.fillText('POD '+String(index).padStart(2,'0'),W-70,20);
+     g.fillStyle=on&&st.playing?'#63ff8f':'#2f6b45';g.fillRect(14,34,10,10);
+     g.fillStyle=on?'#63ff8f':'#2f6b45';g.font='bold 58px monospace';g.fillText(mm+':'+ss,34,84);
+     g.font='12px monospace';g.fillStyle='#4fae6c';g.fillText('128 kbps   44 kHz   '+(on?(st.playing?'PLAYING':'PAUSED'):'STOPPED'),14,104);
+     g.fillStyle='#0b1410';g.fillRect(10,112,W-20,24);g.fillStyle='#63ff8f';g.font='bold 15px monospace';
+     const title=on?String(st.title).replace(/[^\x20-\x7e]/g,'').slice(0,60):'NO TRACK  ***  PRESS MUSIC & LIGHTS';const shift=on&&title.length>36?Math.floor((st.position||0)*2)%(title.length+5):0;
+     g.save();g.beginPath();g.rect(12,112,W-24,24);g.clip();g.fillText((title+'  ***  '+title).slice(shift,shift+44),16,129);g.restore();
+     // transport row (display only) and volume
+     const bx=[18,58,98,138,178],glyph=['|<','>','||','[]','>|'];g.font='bold 14px monospace';for(let k=0;k<5;k++){g.fillStyle='#16221c';g.fillRect(bx[k],146,34,28);g.strokeStyle='#31503f';g.strokeRect(bx[k],146,34,28);g.fillStyle=(on&&st.playing&&k===1)||(on&&!st.playing&&k===2)?'#63ff8f':'#7fa08c';g.fillText(glyph[k],bx[k]+8,165);}
+     g.fillStyle='#4fae6c';g.font='11px monospace';g.fillText('VOL',226,164);g.fillStyle='#16221c';g.fillRect(254,154,112,10);g.fillStyle='#b8d94a';g.fillRect(254,154,Math.round(112*Math.max(0,Math.min(1,on||st?st.volume??.6:.6))),10);
+     g.fillStyle='#4fae6c';g.fillText(on?(st.source==='mine'?'MY MUSIC':'DISTRICT PLAYLIST'):'',226,182);
+    }
+    // The pod's ambient-light panel face (after the owner's Tesana pod). It shows THIS pod's lighting choice; the controls stay in MUSIC & LIGHTS.
+    const podLightFaces={},POD_LIGHTS=[['rest','REST','#ad5a94','#5a2a66'],['reading','READING','#fff0cb','#d9a860'],['music','MUSIC SYNC','#e96bbf','#7840a5']];
+    function drawPodLights(g,index,preset,lv){
+     const W=320,H=180,bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#1c1424');bg.addColorStop(1,'#0e0a14');g.fillStyle=bg;g.fillRect(0,0,W,H);
+     g.textAlign='left';g.textBaseline='alphabetic';g.font='700 15px Arial,Helvetica,sans-serif';g.fillStyle='#f2d8ee';g.fillText('AMBIENT LIGHT',12,22);g.font='500 11px Arial,sans-serif';g.fillStyle='#9a86ae';g.fillText('POD '+String(index).padStart(2,'0'),136,22);
+     const cur=POD_LIGHTS.find(p=>p[0]===preset)||POD_LIGHTS[0];
+     POD_LIGHTS.forEach((p,i)=>{const x=12,y=34+i*46,on=p===cur;g.beginPath();g.roundRect?g.roundRect(x,y,150,38,8):g.rect(x,y,150,38);g.fillStyle=on?'rgba(178,74,212,.3)':'#1e1828';g.fill();g.strokeStyle=on?'#e96bbf':'#3e3050';g.lineWidth=on?2:1;g.stroke();
+      g.font='700 13px Arial,sans-serif';g.fillStyle=on?'#ffe2f6':'#c8b8d8';g.fillText(p[1],x+10,y+17);for(let k=0;k<2;k++){g.beginPath();g.arc(x+15+k*12,y+28,4,0,Math.PI*2);g.fillStyle=p[2+k];g.fill();}
+      if(p[0]==='music')for(let b=0;b<4;b++){const h=on&&lv?.on?4+[lv.bass,lv.mid,lv.high,lv.mid][b]*14:3;g.fillStyle=on?'#e96bbf':'#5a4a6a';g.fillRect(x+108+b*8,y+32-h,5,h);}});
+     const ox=240,oy=86,glow=g.createRadialGradient(ox,oy,4,ox,oy,58);glow.addColorStop(0,cur[2]);glow.addColorStop(.55,cur[3]);glow.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=preset==='reading'?1:preset==='music'?.8:.55;g.fillStyle=glow;g.beginPath();g.arc(ox,oy,58,0,Math.PI*2);g.fill();g.globalAlpha=1;
+     g.textAlign='center';g.font='700 12px Arial,sans-serif';g.fillStyle='#ffe8f8';g.fillText(cur[1],ox,160);g.font='500 10px Arial,sans-serif';g.fillStyle='#b8a4cc';g.fillText(preset==='reading'?'90%  ·  ON':preset==='music'?'FOLLOWS THE MUSIC':'40%  ·  ON',ox,173);g.textAlign='left';
+    }
+    // The vending unit's lit shelves: one picture shared by all ten pods (same stock everywhere).
+    function drawPodVending(g,W,H){
+     const bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#c9dcff');bg.addColorStop(1,'#7f9fd8');g.fillStyle=bg;g.fillRect(0,0,W,H);
+     const rows=4,cols=5,rh=H/rows,cw=W/cols;g.textAlign='center';g.textBaseline='middle';
+     POD_VENDING.forEach((d,i)=>{const r=Math.floor(i/cols),c=i%cols,cx=c*cw+cw/2,floor=(r+1)*rh-22,k=d.kind,tall=/bottle|can|spray|vape/.test(k),wide=/bento|medkit|parcel|tin/.test(k),w=tall?cw*.34:wide?cw*.7:cw*.5,h=tall?rh*.66:wide?rh*.36:k==='stubby'||k==='jar'?rh*.44:rh*.56,x=cx-w/2,y=floor-h;
+      g.fillStyle='rgba(10,14,30,.35)';g.fillRect(x+3,floor-3,w,5);const fill=g.createLinearGradient(x,y,x+w,y+h);fill.addColorStop(0,d.art[0]);fill.addColorStop(1,d.art[1]);g.fillStyle=fill;
+      if(k==='bottle'||k==='spray'){g.fillRect(x+w*.3,y-rh*.08,w*.4,rh*.1);g.fillStyle=d.art[3];g.fillRect(x+w*.28,y-rh*.11,w*.44,rh*.04);g.fillStyle=fill;}
+      g.beginPath();g.roundRect?g.roundRect(x,y,w,h,tall?6:4):g.rect(x,y,w,h);g.fill();
+      if(k==='jar'){g.fillStyle='#3f8a3a';g.fillRect(x+3,y+h*.45,w-6,h*.5);g.fillStyle='#1c1c22';g.fillRect(x-1,y-5,w+2,7);}
+      g.fillStyle=d.art[3];g.fillRect(x,y+h*.72,w,3);g.fillStyle=d.art[2];g.save();g.translate(cx,y+h*.42);if(tall)g.rotate(-Math.PI/2);const span=(tall?h:w)-8,words=tall?[d.name]:d.name.split(/[ \/]+/).filter(Boolean).slice(0,2);let size=15;g.font='900 '+size+'px Arial,Helvetica,sans-serif';while(size>7&&Math.max(...words.map(t=>g.measureText(t).width))>span){size--;g.font='900 '+size+'px Arial,Helvetica,sans-serif';}
+      words.forEach((t,n)=>g.fillText(t,0,(n-(words.length-1)/2)*(size+1)));g.restore();
+      g.fillStyle='#0b0d14';g.fillRect(c*cw+5,(r+1)*rh-17,cw-10,14);g.fillStyle='#ffb84a';g.font='700 11px Consolas,Menlo,monospace';g.fillText(d.code+'  '+d.price.toFixed(2),cx,(r+1)*rh-9.5);});
+     g.fillStyle='#8f97ab';for(let r=1;r<=rows;r++)g.fillRect(0,r*rh-22,W,3);
+    }
+    const podScreen=(()=>{
+     const rest=B.Color3.FromHexString('#ad5a94'),reading=B.Color3.FromHexString('#fff0cb'),musicColor=B.Color3.FromHexString('#e96bbf');
+     let playerClock=0,playerSig='',lightSigs={};
+     return {tick(dt=.016){const music=root.VoidPodMusic,lv=music?.levels?.();
+      const nowMs=typeof performance!=='undefined'?performance.now():Date.now();   // real time: the game clock stands still while the player lies in the pod
+      if(nowMs>=playerClock&&music?.state){playerClock=nowMs+500;const st=music.state(),index=music.activePod||music.selectedPod||0,sig=index+'|'+st.playing+'|'+st.title+'|'+Math.floor(st.position||0)+'|'+Math.round((st.volume||0)*20)+'|'+st.source;
+       if(sig!==playerSig){const prev=Number(playerSig.split('|')[0])||0;playerSig=sig;if(prev&&prev!==index&&podPlayers[prev]){drawPodPlayer(podPlayers[prev].getContext(),prev,null);podPlayers[prev].update();}
+        if(podPlayers[index]){drawPodPlayer(podPlayers[index].getContext(),index,st);podPlayers[index].update();}}
+        for(let index=1;index<=10;index++){const face=podLightFaces[index];if(!face)continue;const preset=music.lightingFor?.(index)||'rest',live=preset==='music'&&music.activePod===index&&lv?.on,sig=preset+(live?'|'+Math.round(lv.bass*6)+Math.round(lv.mid*6)+Math.round(lv.high*6):'');if(lightSigs[index]!==sig){lightSigs[index]=sig;drawPodLights(face.getContext(),index,preset,live?lv:null);face.update();}}}
+      for(let index=1;index<=10;index++){const preset=music?.lightingFor?.(index)||'rest',reactive=preset==='music'&&music?.activePod===index&&lv?.on;
+       const led=mats['tesana-pod-led-'+index],inner=mats['pod-inner-'+index];if(led)led.emissiveColor=(preset==='reading'?reading:preset==='music'?musicColor:rest).scale(reactive?1+1.2*Math.max(lv.bass,lv.mid):preset==='reading'?.9:.4);
+       if(inner)inner.emissiveColor=reading.scale(reactive?.35+.4*lv.bass:preset==='reading'?.55:.16);}
+     }};})();
 
     // The two players. Each keeps to the middle of its booth and runs its own routine of whole moves (a start, a
     // middle and an end), with uneven pauses, so they never look like synchronised machines.
@@ -610,9 +753,16 @@
     plane('bar-menu',2.2,1.2,[16.8,2.4,35],texMat('bar-menu',texture('bar-menu',384,210,(g,W,H)=>{g.fillStyle='#0d0a08';g.fillRect(0,0,W,H);g.fillStyle='#ffb347';g.font='bold 22px monospace';g.fillText('BAR · LOUNGE',16,32);g.font='15px monospace';[['FILTERED AIR, 10 MIN','12'],['VANTOR STOUT','9'],['RECLAIMED-WATER GIN','14'],['SYNTH WHISKEY','18'],['NO CREDIT · NO TABS','']].forEach(([a,b],i)=>{g.fillStyle=i===4?'#9b7bff':'#e8e0d0';g.fillText(a,16,66+i*30);g.fillText(b,W-48,66+i*30);});}),{glow:true}),Math.PI/2);box('bar-light',[8,.05,.3],[10,4,36],amber);
 
     // Admin & Iris shop: counter, display cases, shelves, workstation.
-    box('shop-counter',[8,1.1,1.1],[10,.55,47.2],mat('shop-counter','#1f2228',{rough:.35,metal:.7}));box('shop-counter-glow',[8,.05,.05],[10,1.1,46.62],violet);
+    // Interior rebuild, phase E: Blender-made shop fittings. kitAt puts a piece against a wall: `facing` is the way the piece looks, `face` the wall surface behind it,
+    // `s` where it starts along the wall (its low end) and `len`/`depth` its size.
+    const shopKit=!!kitAt('shop_counter_8m','-z',47.75,6,8,1.1);
+    if(shopKit){kitAt('shop_bookshelf_3m','+z',43.2,8,3,.5);kitAt('shop_bookshelf_3m','+z',43.2,11,3,.5);kitAt('shop_gearwall_3m','-z',52.8,11.2,3,.35);kitAt('shop_gearwall_3m','+x',3.2,49.7,3,.35);
+     for(const [f,face,list] of [['+z',43.2,[[3.4,'a'],[5.4,'c'],[14.2,'a']]],['-x',16.8,[[43.6,'a'],[45.6,'c'],[47.6,'a'],[49.6,'a']]],['-z',52.8,[[3.2,'a'],[5.2,'d'],[7.2,'a'],[14.2,'b']]]])for(const [at,k] of list)kitAt('hall_wall_2m_'+k,f,face,at,2,.2);
+     kitAt('hall_wall_1m','-x',16.8,51.6,1,.2);kitAt('hall_wall_1m','+x',3.2,43.4,1,.2);
+     for(const [x,z] of [[8,45.4],[12,45.4],[8,50.2],[12,50.2]])kitPiece('district:tube_light_2m',[x+1,4.05-.51,z],0,[],{merge:true});}
+    if(!shopKit)box('shop-counter',[8,1.1,1.1],[10,.55,47.2],mat('shop-counter','#1f2228',{rough:.35,metal:.7}));box('shop-counter-glow',[8,.05,.05],[10,1.1,46.62],violet);
     for(let i=0;i<3;i++){const z=44.5+i*2.8;box('display-case',[1,2.4,2.2],[16.3,1.2,z],mat('case-glass','#8fd8ff',{rough:.05,metal:.1,alpha:.25}));box('case-light',[.05,2.2,.05],[15.78,1.2,z-1],[cyan,red,cyan][i]);for(let k=0;k<4;k++)box('display-item',[.6,.12,1.2],[16.3,.5+k*.5,z],[pipe,frame][k%2]);}
-    box('shop-shelf',[6.4,2.6,.6],[11,1.3,43.55],frame);for(let k=0;k<4;k++)box('shelf-goods',[5.8,.25,.4],[11,.5+k*.6,43.75],[cyan,amber,violet,magenta][k]);
+    if(!shopKit){box('shop-shelf',[6.4,2.6,.6],[11,1.3,43.55],frame);for(let k=0;k<4;k++)box('shelf-goods',[5.8,.25,.4],[11,.5+k*.6,43.75],[cyan,amber,violet,magenta][k]);}
     box('admin-workstation',[2,.9,1],[8,.45,50.8],frame);plane('admin-screen',1.6,.9,[8,1.5,51.3],texMat('admin-screen',texture('admin-screen',256,144,(g,W,H)=>{g.fillStyle='#04060a';g.fillRect(0,0,W,H);g.fillStyle='#38e8ff';g.font='12px monospace';for(let i=0;i<9;i++)g.fillText(['> trace sovereign','> relay: tessaly-07','> badge db sync','> iris.status OK','> mainframe 98%','> firewall ACTIVE','> cams 12/12','> vend restock','> _'][i],8,16+i*14);}),{glow:true}),0);
     plane('shop-holo',1.6,2.4,[10,2.6,52.8],adMat('helix'),0);
     if(state?.story?.flags?.adminOccupied!==true)characterModel('admin',target,[8,0,48.6],false);characterModel('iris',target,[12.5,0,48.6],false);
@@ -634,24 +784,29 @@
 
     // Sleep pods: two stacked rows with ring-lit hatches and numbers.
     // Capsules (reference: rounded pods with glowing oval hatches, glass, a warm-lit bed inside).
-    const podShell=mat('pod-shell','#56637e',{rough:.3,metal:.55}),podGlass=glass('pod-glass','#a8dcff',.1),podInner=glowMat('pod-inner','#ffc98a',.45),mattress=mat('pod-mattress','#e6dfd2',{rough:.9,metal:0}),podBlanket=mat('pod-blanket','#5a3a5e',{rough:.95,metal:0});
-    // The first capsule adapts the owner's Tesana Sleeping Pod geometry and its CC0 ambientCG materials.
+    const podGlass=glass('pod-glass','#a8dcff',.1),mattress=mat('pod-mattress','#1c1922',{rough:.9,metal:0});
+    // All ten capsules reuse the owner's Tesana Sleeping Pod geometry and its CC0 ambientCG materials.
     // Reuse emissive surfaces rather than the source scene's 13 real lights (which exceed this room's light budget).
-    const podPaint=mat('tesana-pod-paint','#736087',{rough:.56,metal:.28}),podFabric=mat('tesana-pod-fabric','#d6c4d9',{rough:.96,metal:0}),podRib=mat('tesana-pod-rib','#9c8aa9',{rough:.4,metal:.3}),podVent=mat('tesana-pod-vent','#20263b',{rough:.7,metal:.35}),podLed=glowMat('tesana-pod-led','#e96bbf',1.15);
-    for(const [material,file] of [[podPaint,'paintedmetal003-color.jpg'],[podFabric,'fabric062-color.jpg']]){const t=new B.Texture(new URL('assets/textures/tesana-pod/'+file,base).href,scene);t.uScale=2;t.vScale=2;material.albedoTexture=t;textures.push(t);}
+    // Surfaces follow the owner's Tesana Sleeping Pod (src/pod/materials.ts): the shell is off-white moulded plastic and the bedding plain white cotton; the scanned
+    // paint and fabric sets give only fine scuffs and thread (normal maps), never the colour. The pink comes from the pod's own light, not from the paint.
+    const podPaint=mat('tesana-pod-paint','#1f1c28',{rough:.42,metal:.15}),podFabric=mat('tesana-pod-fabric','#2a2233',{rough:.96,metal:0}),podRib=mat('tesana-pod-rib','#17151e',{rough:.4,metal:.2})   /* dark shells and bedding (David, 2026-11-13: the pods were almost white; things should be dark, with coloured light as the accent) */,podVent=mat('tesana-pod-vent','#20263b',{rough:.7,metal:.35}),podFacade=mat('tesana-pod-facade','#2a1d33',{rough:.55,metal:.1});
+    podPaint.emissiveColor=B.Color3.FromHexString('#160d1c');podFabric.emissiveColor=B.Color3.FromHexString('#1c1024');podRib.emissiveColor=B.Color3.FromHexString('#120a18');   // the neon wash inside the capsule (no extra lights)
+    if(!low)for(const [material,file,scale,level] of [[podPaint,'paintedmetal003-normal.jpg',1,.18],[podFabric,'fabric062-normal.jpg',3,.25]]){const t=new B.Texture(new URL('assets/textures/tesana-pod/'+file,base).href,scene);t.uScale=scale;t.vScale=scale;t.level=level;material.bumpTexture=t;textures.push(t);}
     // The pod's front: one solid panel with an oval window cut out (in the y–z plane, facing the room).
     function ovalPanel(p,width,height,rz,ry,material=podShell){const pos=[],idx=[],n=40;for(let k=0;k<=n;k++){const a=k/n*Math.PI*2,c=Math.cos(a),s=Math.sin(a),reach=Math.min(width/2/Math.max(Math.abs(c),1e-6),height/2/Math.max(Math.abs(s),1e-6));pos.push(0,s*ry,c*rz,0,s*reach,c*reach);if(k<n){const q=k*2;idx.push(q,q+1,q+2,q+1,q+3,q+2,q,q+2,q+1,q+1,q+2,q+3);}}
      const mesh=new B.Mesh('pod-front',scene),vd=new B.VertexData();vd.positions=pos;vd.indices=idx;// Faces the room (+x) on both windings, so it lights like the rest of the shell.
      vd.normals=pos.map((_,k)=>k%3===0?1:0);const uvs=[];for(let k=0;k<pos.length;k+=3)uvs.push(pos[k+2]/width+.5,pos[k+1]/height+.5);vd.uvs=uvs;vd.applyToMesh(mesh);return add(mesh,material,p);}
-    for(let row=0;row<2;row++)for(let i=0;i<5;i++){const z=57+i*2.6,y=.9+row*1.7,detailed=row===0&&i===0,hatch=detailed?magenta:[amber,magenta][(i+row)%2],shell=detailed?podPaint:podShell;
+    const podVendMat=texMat('tesana-pod-vend',texture('tesana-pod-vend',640,420,drawPodVending),{glow:true});
+    framed=[];   // the ten pods, their ladder and ceiling panels: built in the west room's coordinates, then moved to the back wall below
+    for(let row=0;row<2;row++)for(let i=0;i<5;i++){const z=57+i*2.6,y=.9+row*1.7,index=row*5+i+1,hatch=[amber,magenta][(i+row)%2],shell=podPaint,podInner=glowMat('pod-inner-'+index,'#ffc98a',.16),podLed=glowMat('tesana-pod-led-'+index,'#ad5a94',.4);
      // A hollow capsule: back, top, floor, sides and a fascia framing the hatch, so the bed shows through the glass.
      box('pod-back',[.12,1.5,2.3],[-16.64,y,z],shell);for(const s of [-1,1]){box('pod-roof',[2.6,.1,2.3],[-15.4,y+s*.7,z],shell);box('pod-side',[2.6,1.5,.1],[-15.4,y,z+s*1.1],shell);}
-     ovalPanel([-14.15,y,z],2.3,1.5,.95,.575,shell);for(const s of [-1,1])box('pod-trim',[2.6,.08,.08],[-15.4,y+s*.72,z+1.11],detailed?podRib:frame);
+     ovalPanel([-14.15,y,z],2.3,1.5,.95,.575,podFacade);for(const s of [-1,1])box('pod-trim',[2.6,.08,.08],[-15.4,y+s*.72,z+1.11],podRib);
      box('pod-inner-light',[.03,.9,1.7],[-16.56,y+.05,z],podInner);box('pod-ceiling-light',[2,.03,1.2],[-15.4,y+.63,z],podInner);
      const ring=add(B.MeshBuilder.CreateTorus('pod-ring',{diameter:1,thickness:.07,tessellation:32},scene),hatch,[-14.04,y,z]);ring.rotation.z=Math.PI/2;ring.scaling.set(1.15,1,1.9);
      const glass=add(B.MeshBuilder.CreateDisc('pod-glass',{radius:.5,tessellation:32,sideOrientation:B.Mesh.DOUBLESIDE},scene),podGlass,[-14.06,y,z],false);glass.rotation.y=Math.PI/2;glass.scaling.set(1.85,1.1,1);
      box('pod-mattress',[2.38,.24,2.08],[-15.39,y-.53,z],mattress);
-     if(detailed){
+     {
       // Molded wall and ceiling panels, repeating ribs, recessed neon and a vent follow the ZIP's pod layout.
       for(const side of [-1,1]){box('tesana-pod-wall',[1.9,.42,.025],[-15.4,y+.13,z+side*1.025],podPaint);box('tesana-pod-led',[1.98,.025,.025],[-15.4,y+.52,z+side*.94],podLed);}
       for(const x of [-16.05,-15.3,-14.55]){box('tesana-pod-rib',[.055,.055,2.16],[x,y+.65,z],podRib);for(const side of [-1,1])box('tesana-pod-rib',[.055,1.34,.055],[x,y,z+side*1.07],podRib);}
@@ -660,10 +815,26 @@
       const positions=[],uvs=[],indices=[],cols=12,rows=9;for(let j=0;j<=rows;j++)for(let k=0;k<=cols;k++){const u=k/cols,v=j/rows;positions.push(-15.85+u*1.42,y-.4+.02*Math.sin(u*22+v*7)+.025*Math.sin(v*19),z-.85+v*1.7);uvs.push(u*2,v*2);if(j<rows&&k<cols){const a=j*(cols+1)+k;indices.push(a,a+1,a+cols+1,a+1,a+cols+2,a+cols+1);}}
       const duvet=new B.Mesh('tesana-pod-duvet',scene),data=new B.VertexData();data.positions=positions;data.uvs=uvs;data.indices=indices;data.normals=[];B.VertexData.ComputeNormals(positions,indices,data.normals);data.applyToMesh(duvet);add(duvet,podFabric,[0,0,0]);
       for(const side of [-1,1]){const pillow=B.MeshBuilder.CreateSphere('tesana-pod-pillow',{segments:12,diameter:1},scene);pillow.scaling.set(.45,.12,.38);add(pillow,podFabric,[-16.13,y-.28,z+side*.43]);}
-     }else{box('pod-pillow',[.45,.14,1.5],[-16.25,y-.34,z],mattress);box('pod-blanket',[1.1,.05,2.06],[-14.95,y-.39,z],podBlanket);}
-     neon('pod-no-'+row+i,[String(row*5+i+1).padStart(2,'0')],['#e8f0ff'],.4,.25,[-14.06,y+.62,z+.8],-Math.PI/2);}
-    box('pod-ladder',[.1,3.2,.6],[-14,1.6,69],pipe);box('pod-terminal',[.4,1.2,.4],[-6,.6,57],frame);box('pod-terminal-screen',[.05,.4,.3],[-5.78,1.1,57],cyan);
-    for(let z=56.8;z<69;z+=2.4)box('pods-ceiling-panel',[1,.04,1],[-9,4.03,z],glowMat('pod-panel','#7fe6ff',.9));
+     }
+     // The pod's own music player face (after the owner's Tesana pod: an old-style amp display). It shows what THIS pod is playing; the controls stay in MUSIC & LIGHTS.
+     const podTex=texture('tesana-pod-screen-'+index,384,192,g=>drawPodPlayer(g,index,null));podPlayers[index]=podTex;
+     box('tesana-pod-screen-frame',[.05,.56,1.06],[-16.48,y+.14,z+.4],podVent);plane('tesana-pod-screen',.98,.49,[-16.44,y+.14,z+.4],texMat('tesana-pod-screen-'+index,podTex,{glow:true}),-Math.PI/2);
+     const lightTex=texture('tesana-pod-lights-'+index,320,180,g=>drawPodLights(g,index,root.VoidPodMusic?.lightingFor?.(index)||'rest',null));podLightFaces[index]=lightTex;
+     box('tesana-pod-lights-frame',[.05,.32,.56],[-16.48,y-.04,z-.42],podVent);plane('tesana-pod-lights',.5,.28,[-16.44,y-.04,z-.42],texMat('tesana-pod-lights-'+index,lightTex,{glow:true}),-Math.PI/2);
+     // Built-in vending unit on the side wall between two ribs (after the owner's Tesana pod). Browsed from the pod menu (VENDING).
+     box('tesana-pod-vend-frame',[.72,.6,.06],[-15.675,y+.08,z+.985],podRib);box('tesana-pod-vend-tray',[.5,.07,.02],[-15.675,y-.19,z+.95],podVent);box('tesana-pod-vend-led',[.03,.03,.012],[-15.36,y+.3,z+.95],amber);
+     box('tesana-pod-vend-bezel',[.68,.46,.01],[-15.675,y+.13,z+.959],podVent); plane('tesana-pod-vend',.64,.42,[-15.675,y+.13,z+.952],podVendMat,0);
+     neon('pod-no-'+row+i,[String(row*5+i+1).padStart(2,'0')],['#e8f0ff'],.4,.25,[-14.06,y+.62,z+.8],-Math.PI/2,undefined,true);}
+    box('pod-ladder',[.1,3.2,.6],[-14,1.6,69],pipe);
+    for(let z=56.8;z<69;z+=2.4)box('pods-ceiling-panel',[1,.04,1],[-11.2,4.03,z],glowMat('pod-panel','#7fe6ff',.9));
+    // Set the whole piece down against the back wall, turned a quarter turn so the hatches face the hallway: old (x, z) -> (z - 62.2, 61.3 - x).
+    for(const m of framed){const x=m.position.x,z=m.position.z;m.position.x=z-62.2;m.position.z=61.3-x;m.rotation.y+=Math.PI/2;}framed=null;
+    // The moulded surround of each hatch and the room's tiled floor (interior rebuild, phase F): Blender-made, laid over the pods as they are. The pods' own ring,
+    // glass, lights, numbers and every interaction are untouched; the surround wears the pods' Tesana paint.
+    kitAlias.kit_shell=podPaint;
+    if(kitPiece('district:pod_facade_3m',[-5.2-1.28,.9-.83,75.45-.22],Math.PI,[],{merge:true})){for(let row=0;row<2;row++)for(let i=0;i<5;i++)if(row||i)kitPiece('district:pod_facade_3m',[-5.2+i*2.6-1.28,.9+row*1.7-.83,75.45-.22],Math.PI,[],{merge:true});
+     const g=B.MeshBuilder.CreateGround('pods-floor',{width:33.6,height:7.4},scene),uv=g.getVerticesData('uv');for(let i=0;i<uv.length;i++)uv[i]*=i%2?3.7:16.8;g.setVerticesData('uv',uv);add(g,kitMat('kit_tile'),[0,.027,74.4]);}
+    box('pod-terminal',[.4,1.2,.4],[-15.6,.6,71.4],frame);box('pod-terminal-screen',[.3,.4,.05],[-15.6,1.1,71.62],cyan);
 
     // Meeting room: glass wall to the hallway, table, chairs, screen.
     if(!state.story?.flags?.meetingOpen)box('meeting-door',[.25,3.1,4],[3,1.55,62.5],mat('door-inner','#1d2026',{rough:.35,metal:.9}),false).name='meeting-door';
@@ -679,14 +850,65 @@
     // VR / arcade: red and cyan ceiling tubes, headsets on the players, a row of glowing monitors.
     for(const x of [-14,-10,-6])box('vr-neon',[.06,.06,14],[x,4.02,36],red);for(const z of [30,36,42])box('vr-neon',[12,.06,.06],[-10,4.02,z],cyan);
     // Hallway: pipes and a duct overhead, cables at the walls, the neon reflected in the wet floor, bins.
-    for(const [x,r,y,m] of [[-1.9,.15,3.72,pipe],[-1.5,.08,3.82,rust],[1.75,.2,3.68,pipe],[2.2,.07,3.85,pipe]]){const c=cyl('hall-pipe',r,50,[x,y,53],m);c.rotation.x=Math.PI/2;}
-    box('hall-duct',[.9,.34,50],[0,3.86,53],metal);for(const x of [-2.82,2.82]){const c=cyl('hall-cable',.03,50,[x,.05,53],frame,true,6);c.rotation.x=Math.PI/2;}
+    if(!hallLined)for(const [x,r,y,m] of [[-1.9,.15,3.72,pipe],[-1.5,.08,3.82,rust],[1.75,.2,3.68,pipe],[2.2,.07,3.85,pipe]]){const c=cyl('hall-pipe',r,50,[x,y,53],m);c.rotation.x=Math.PI/2;}
+    if(!hallLined)box('hall-duct',[.9,.34,50],[0,3.86,53],metal);for(const x of hallLined?[]:[-2.82,2.82]){const c=cyl('hall-cable',.03,50,[x,.05,53],frame,true,6);c.rotation.x=Math.PI/2;}
     const streak=c=>{const m=glowMat('reflection-'+c,c,.4);m.alpha=.3;return m;};
     for(let z=28;z<78;z+=4)for(const [x,c] of [[-2.25,z%8?'#38e8ff':'#ff3fb4'],[2.25,z%8?'#ff3fb4':'#38e8ff']])box('neon-reflection',[.32,.004,3.2],[x,.034,z+2],streak(c));
     for(const [x,z] of [[2.55,44.2],[-2.55,53.5]])instance('bin',[x,0,z],x>0?-Math.PI/2:Math.PI/2);
     // Stairs at the hallway end rise into the ceiling.
-    for(let i=0;i<8;i++)box('stair-step',[3,.2,.5],[0,.1+i*.45,74+i*.45],pipe);box('stair-rail',[.08,.08,4.5],[1.6,2.6,75.6],amber);
+    // The stairs to the smoking terrace: at the east end of the Sleeping Pods room since 2026-11-12 (they used to stand at the end of the hallway), climbing toward the east wall.
+    for(let i=0;i<8;i++)box('stair-step',[.5,.2,2.4],[13.2+i*.45,.1+i*.45,74.4],pipe);for(const dz of [-1.25,1.25])box('stair-rail',[4.2,.08,.08],[14.9,2.6,74.4+dz],amber);
 
+    // ---- The retro arcade (west room) ---------------------------------------------------------------------------------------------------------------
+    // A 1980s arcade kept alive inside the District: patterned carpet, tube lights, posters, and rows of cabinets with CRT screens running their attract loops.
+    // One cabinet plays the real Blackout Protocol (district-arcade.js); the rest are placeholders for games to come (names are working titles for David to change).
+    const arcade=(()=>{
+     const GAMES={'blackout-protocol':['BLACKOUT PROTOCOL','#ff3b3b','#f4f4f4','play'],'laser-moth':['LASER MOTH','#ff5bd0','#38e8ff','shooter'],'turbo-kelp':['TURBO KELP','#6cff9e','#ffe066','racer'],'corporate-zombies':['CORPORATE ZOMBIES','#ff3b3b','#ff8a2a','shooter'],'cobalt-stairs':['COBALT STAIRS','#5a8cff','#f4f4f4','platform']};   // the attract loops below also include puzzle, brawler and maze, ready for more cabinets
+     const carpet=texture('arcade-carpet',256,256,(g,W,H)=>{g.fillStyle='#150a24';g.fillRect(0,0,W,H);const cols=['#ff3fb4','#38e8ff','#ffe066','#6cff9e','#9b7bff'];for(let i=0;i<70;i++){const x=rand()*W,y=rand()*H,c=cols[i%cols.length],k=i%3;g.strokeStyle=c;g.fillStyle=c;g.lineWidth=2;g.globalAlpha=.75;
+       if(k===0){g.beginPath();g.moveTo(x,y);g.lineTo(x+9,y+14);g.lineTo(x-9,y+14);g.closePath();g.stroke();}else if(k===1){g.beginPath();for(let q=0;q<4;q++)g.lineTo(x+q*6,y+(q%2?6:0));g.stroke();}else g.fillRect(x,y,4,4);}g.globalAlpha=1;});
+     const carpetMat=new B.StandardMaterial('ncz-arcade-carpet',scene);owned.push(carpetMat);carpet.uScale=3;carpet.vScale=3.6;carpet.wrapU=carpet.wrapV=B.Texture.WRAP_ADDRESSMODE;carpetMat.diffuseTexture=carpet;carpetMat.specularColor=new B.Color3(.02,.02,.03);carpetMat.emissiveColor=new B.Color3(.16,.12,.2);
+     add(B.MeshBuilder.CreateGround('arcade-carpet',{width:7.3,height:8.8},scene),carpetMat,[-6.75,.035,62],false);
+     const yellow=glowMat('arcade-yellow','#ffe066',1),body=mat('arcade-cab','#15161c',{rough:.5,metal:.3}),trim=mat('arcade-trim','#2a2c36',{rough:.35,metal:.7});
+     for(const [x,z,w,d,m] of [[-6.75,57.74,7,.06,magenta],[-6.75,66.26,7,.06,cyan],[-10.26,62,.06,8.4,yellow]])box('arcade-tube',[w,.07,d],[x,3.3,z],m);
+     box('arcade-ceiling-light',[1.3,.05,1.3],[-6.6,4.02,59.9],magenta);box('arcade-ceiling-light',[1.3,.05,1.3],[-6.6,4.02,64.1],cyan);
+     // Posters for the games, on the wall beside the doorway.
+     const poster=(key,p,ry)=>{const [name,a,b2]=GAMES[key],t=texture('arcade-poster-'+key,128,192,(g,W,H)=>{const gr=g.createLinearGradient(0,0,W,H);gr.addColorStop(0,a);gr.addColorStop(1,'#07060c');g.fillStyle=gr;g.fillRect(0,0,W,H);g.strokeStyle=b2;g.lineWidth=4;g.strokeRect(5,5,W-10,H-10);
+       g.fillStyle=b2;for(let i=0;i<7;i++)g.fillRect(14+i*15,40+((i*37)%60),9,9);g.fillStyle='#fff';g.font='900 17px Arial,Helvetica,sans-serif';g.textAlign='center';name.split(' ').forEach((w,i)=>g.fillText(w,W/2,128+i*20));g.font='700 9px Arial,sans-serif';g.fillStyle=b2;g.fillText(key==='blackout-protocol'?'NOW PLAYING':'COMING SOON',W/2,178);});
+      plane('arcade-poster',1,1.5,p,texMat('arcade-poster-'+key,t,{glow:true}),ry);};
+     poster('blackout-protocol',[-6,2,57.74],Math.PI);poster('laser-moth',[-4.4,2,57.74],Math.PI);poster('turbo-kelp',[-6,2,66.26],0);poster('corporate-zombies',[-4.4,2,66.26],0);poster('cobalt-stairs',[-3.24,2,65.5],Math.PI/2);
+     // Screens: one small picture per game, redrawn a few times a second while someone is near, with chunky pixels like a CRT.
+     const screens={},marquees={};
+     const attract={
+      play(g,W,H,t){g.fillStyle='#050208';g.fillRect(0,0,W,H);g.fillStyle='#ff3b3b';g.font='900 15px Arial,sans-serif';g.textAlign='center';g.fillText('BLACKOUT',W/2,34);g.fillText('PROTOCOL',W/2,52);for(let i=0;i<9;i++){g.fillStyle=i%2?'#ff3b3b':'#f4f4f4';g.fillRect(((t*30+i*19)%(W+12))-12,68+(i%3)*9,8,3);}if((t*2|0)%2){g.fillStyle='#f4f4f4';g.font='700 10px monospace';g.fillText('PRESS E TO PLAY',W/2,112);}},
+      shooter(g,W,H,t,a,b){g.fillStyle='#02030a';g.fillRect(0,0,W,H);g.fillStyle='#fff';for(let i=0;i<26;i++)g.fillRect((i*47)%W,((i*31)+t*40*(1+i%3))%H,1,2);g.fillStyle=a;for(let i=0;i<8;i++)g.fillRect(14+i*17+Math.sin(t*2)*8,18+(i%2)*12,10,6);g.fillStyle=b;const x=W/2+Math.sin(t*1.3)*40;g.beginPath();g.moveTo(x,96);g.lineTo(x+8,110);g.lineTo(x-8,110);g.fill();g.fillRect(x-1,96-((t*90)%70),2,7);},
+      racer(g,W,H,t,a,b){g.fillStyle='#1a0b2e';g.fillRect(0,0,W,H/2);g.fillStyle=b;g.beginPath();g.arc(W/2,H/2,26,Math.PI,0);g.fill();g.fillStyle='#10141c';g.fillRect(0,H/2,W,H/2);g.fillStyle='#2b2f3a';g.beginPath();g.moveTo(W/2-4,H/2);g.lineTo(W/2+4,H/2);g.lineTo(W*.95,H);g.lineTo(W*.05,H);g.fill();g.fillStyle=a;for(let i=0;i<6;i++){const k=((i/6+t*.9)%1),y=H/2+k*k*H/2;g.fillRect(W/2-1-k*3,y,2+k*6,3+k*8);}g.fillStyle=a;g.fillRect(W/2-11+Math.sin(t*2)*22,H-24,22,10);},
+      fighter(g,W,H,t,a,b){g.fillStyle='#120812';g.fillRect(0,0,W,H);g.fillStyle='#2a1a2a';g.fillRect(0,H-22,W,22);const j=Math.abs(Math.sin(t*3))*8;g.fillStyle=a;g.fillRect(34+Math.sin(t*2)*8,H-22-44-j,16,44);g.fillRect(50+Math.sin(t*2)*8,H-22-34-j,(t*3|0)%2?16:6,6);g.fillStyle=b;g.fillRect(W-50-Math.sin(t*2)*8,H-22-44,16,44);g.fillStyle='#fff';g.fillRect(8,8,58,6);g.fillRect(W-66,8,58,6);g.fillStyle=a;g.fillRect(8,8,40+Math.sin(t)*14,6);g.fillStyle=b;g.fillRect(W-66,8,34,6);},
+      platform(g,W,H,t,a,b){g.fillStyle='#061426';g.fillRect(0,0,W,H);g.fillStyle=a;for(let i=0;i<7;i++)g.fillRect(((i*34-t*30)%(W+40)+W+40)%(W+40)-30,H-18-(i%3)*22,30,8);g.fillStyle=b;g.fillRect(40,H-34-Math.abs(Math.sin(t*4))*30,10,12);g.fillStyle='#ffe066';for(let i=0;i<4;i++)g.fillRect(((i*52-t*30)%(W+20)+W+20)%(W+20)-8,36+(i%2)*18,5,5);},
+      puzzle(g,W,H,t,a,b){g.fillStyle='#0a0714';g.fillRect(0,0,W,H);const cols=[a,b,'#ffe066','#ff5bd0'];for(let y=0;y<6;y++)for(let x=0;x<8;x++){const s=(x*7+y*13+((t|0)*(x+y)%5))%6;if(y>2||s<2){g.fillStyle=cols[(x*3+y*5+(t*.5|0))%4];g.fillRect(24+x*14,30+y*14,12,12);}}g.fillStyle='#fff';g.fillRect(24+((t*2|0)%8)*14,10+((t*8)%18),12,12);},
+      brawler(g,W,H,t,a,b){g.fillStyle='#0d0a16';g.fillRect(0,0,W,H);g.fillStyle='#1c1830';for(let i=0;i<7;i++)g.fillRect(((i*36-t*12)%(W+40)+W+40)%(W+40)-30,30+(i%3)*10,26,70);g.fillStyle='#2a2636';g.fillRect(0,H-24,W,24);g.fillStyle=a;g.fillRect(50,H-24-36,13,36);g.fillRect(63,H-24-26,(t*4|0)%2?12:4,5);g.fillStyle=b;for(let i=0;i<2;i++)g.fillRect(((W-(t*26+i*70)%(W+20))),H-24-34,13,34);},
+      maze(g,W,H,t,a,b){g.fillStyle='#04040c';g.fillRect(0,0,W,H);g.strokeStyle=b;g.lineWidth=2;for(let y=0;y<5;y++)for(let x=0;x<7;x++)if((x*5+y*3)%4)g.strokeRect(12+x*20,12+y*20,14,14);g.fillStyle='#fff';for(let i=0;i<14;i++)g.fillRect(9+i*10,H-12,2,2);g.fillStyle=a;const k=(t*.5)%1;g.beginPath();g.arc(10+k*(W-20),H-11,5,.3*Math.abs(Math.sin(t*8)),6.28-.3*Math.abs(Math.sin(t*8)));g.lineTo(10+k*(W-20),H-11);g.fill();}};
+     const drawScreen=(key,t)=>{const [name,a,b2,kind]=GAMES[key],tex=screens[key],g=tex.getContext(),W=160,H=128;attract[kind](g,W,H,t,a,b2);if(kind!=='play'&&(t*1.5|0)%3!==0){g.fillStyle='rgba(0,0,0,.55)';g.fillRect(0,H/2-11,W,22);g.fillStyle='#fff';g.font='700 11px monospace';g.textAlign='center';g.fillText('COMING SOON',W/2,H/2+4);}
+      g.fillStyle='rgba(0,0,0,.18)';for(let y=0;y<H;y+=3)g.fillRect(0,y,W,1);tex.update();};
+     const screenMats={},marqueeMats={},sideMats={};
+     for(const key of Object.keys(GAMES)){const [name,a,b2]=GAMES[key];screens[key]=new B.DynamicTexture('ncz-arcade-screen-'+key,{width:160,height:128},scene,false,B.Texture.NEAREST_SAMPLINGMODE);textures.push(screens[key]);drawScreen(key,0);screenMats[key]=texMat('arcade-screen-'+key,screens[key],{glow:true});
+      marqueeMats[key]=texMat('arcade-marquee-'+key,texture('arcade-marquee-'+key,256,72,(g,W,H)=>{const gr=g.createLinearGradient(0,0,W,0);gr.addColorStop(0,a);gr.addColorStop(1,b2);g.fillStyle=gr;g.fillRect(0,0,W,H);g.fillStyle='rgba(0,0,0,.72)';g.fillRect(6,6,W-12,H-12);g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';let size=30;g.font='900 '+size+'px Arial,Helvetica,sans-serif';while(g.measureText(name).width>W-28){size--;g.font='900 '+size+'px Arial,Helvetica,sans-serif';}g.shadowColor=a;g.shadowBlur=10;g.fillText(name,W/2,H/2+1);}),{glow:true});
+      sideMats[key]=glowMat('arcade-side-'+key,a,.8);}
+     // Interior rebuild, phase D: each cabinet gets a Blender-made body with the classic side profile round the parts built below (which keep the live screen,
+     // marquee, controls and lights); stools at the cabinets that are not switched on yet (the playable one is kept clear); a change machine by the north wall.
+     kitAlias.kit_cab=body;
+     for(const c of root.VoidNeoChinatown?.arcade||api.arcade){if(!kitAt('arcade_cabinet_1m','+x',c.x-.45,c.z-.4,.8,1.05))break;if(!c.playable)kitPiece('district:arcade_stool_1m',[c.x+1.25,0,c.z+.2],0,[],{merge:true});}
+     kitAt('arcade_change_1m','+z',57.7,-8.6,.7,.45);
+     // One cabinet, built facing -z at the origin and then turned and set in its place.
+     for(const c of root.VoidNeoChinatown?.arcade||api.arcade){framed=[];const key=c.game;
+      box('arcade-cab-base',[.72,1.02,.8],[0,.51,.05],body);box('arcade-cab-hood',[.72,.78,.52],[0,1.41,.19],body);box('arcade-cab-top',[.74,.26,.36],[0,1.93,.02],trim);
+      plane('arcade-cab-marquee',.68,.2,[0,1.93,-.165],marqueeMats[key],0);box('arcade-cab-bezel',[.66,.56,.04],[0,1.38,-.06],trim);
+      const scr=plane('arcade-cab-screen',.56,.45,[0,1.38,-.085],screenMats[key],0);scr.rotation.x=-.12;
+      const panel=box('arcade-cab-panel',[.72,.07,.36],[0,1.03,-.42],trim,false);panel.rotation.x=.22;box('arcade-cab-stick',[.04,.09,.04],[-.16,1.1,-.42],c.playable?red:sideMats[key],false);for(const dx of [.06,.16,.26])box('arcade-cab-button',[.05,.025,.05],[dx,1.075,-.43],sideMats[key],false);
+      for(const sx of [-1,1]){box('arcade-cab-side',[.015,1.3,.06],[sx*.368,1.05,-.3],sideMats[key]);box('arcade-cab-side',[.015,.05,.5],[sx*.368,1.72,0],sideMats[key]);}box('arcade-cab-coin',[.2,.26,.02],[0,.5,-.36],trim);box('arcade-cab-coin-slot',[.03,.07,.02],[0,.55,-.375],c.playable?red:yellow);
+      const cs=Math.cos(c.ry),sn=Math.sin(c.ry);for(const m of framed){const x=m.position.x,z=m.position.z;m.position.x=c.x+x*cs+z*sn;m.position.z=c.z-x*sn+z*cs;m.rotation.y+=c.ry;}framed=null;}
+     let clock=0,last=-1;
+     return {tick(time){const cam=scene.activeCamera?.globalPosition;if(!cam)return;const [lx,lz]=toWorld(cam.x,cam.z);if(lx>4||lx<-12||lz<50||lz>74)return;   // only while someone is in or near the arcade
+       const step=Math.floor(time*(low?4:8));if(step===last)return;last=step;const keys=Object.keys(GAMES);drawScreen(keys[step%keys.length],time);if(!low)drawScreen(keys[(step+2)%keys.length],time);}};})();
     // ---- Smoking terrace (open roof) --------------------------------------
     add(B.MeshBuilder.CreateGround('terrace-floor',{width:20,height:20},scene),asphalt,[38,.02,68]);
     for(const [x,z,w,d] of [[38,58,20,.1],[38,78,20,.1],[28,68,.1,20],[48,68,.1,20]]){box('terrace-rail',[w||.1,.08,d||.1],[x,1.05,z],amber);for(let t=0;t<=1;t+=.1)box('rail-post',[.08,1.05,.08],[x+(w>1?(t-.5)*w:0),.52,z+(d>1?(t-.5)*d:0)],frame);}
@@ -698,8 +920,8 @@
 
     // Coloured light pools for the interior and street.
     const lights=[];const point=(p,c,i,r)=>{const l=new B.PointLight('ncz-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=target;lights.push(l);};
-    if(!low){point([0,3,23],'#9be8ff',.6,8);point([-10,3,36],'#38e8ff',.9,14);point([10,3,36],'#ffb347',1.4,14);point([13,3,33],'#ff8a5c',.9,10);point([10,3,48],'#c9b4ff',1.5,12);point([14,3,51],'#38e8ff',.8,8);point([-10,3,62],'#ff5bd0',.6,12);point([38,4,68],'#ffb347',.6,14);point([0,3.5,40],'#e8f0ff',.6,16);point([0,3.5,64],'#e8f0ff',.6,16);}
-    return {lights,terminal,vrTick,podScreen};})();
+    if(!low){point([0,3,23],'#9be8ff',.6,8);point([-10,3,36],'#38e8ff',.9,14);point([10,3,36],'#ffb347',1.4,14);point([13,3,33],'#ff8a5c',.9,10);point([10,3,48],'#c9b4ff',1.5,12);point([14,3,51],'#38e8ff',.8,8);point([-10,3,62],'#ff5bd0',.6,12);point([38,4,68],'#ffb347',.6,14);point([-1.3,3.2,40],'#ff62cf',1.0,18);point([1.3,3.2,60],'#5fe6ff',1.0,18);}   // the hallway's two lamps: magenta from the west side, cyan from the east (were both white, on the centre line)
+    return {lights,terminal,vrTick,podScreen,arcade};})();
     if(!wantInterior){seed=SEAMS[1];target=districtRoot;}else if(area==='all'&&seed!==SEAMS[1])console.warn('[NeoChinatown] random state after the interior changed; update SEAMS');
 
     // ---- Street detail: taxi zones, streaming districts, club, weather ----
@@ -782,23 +1004,23 @@
      // Rain: streaks that follow the camera outdoors and stop inside the District. Off on low quality.
      let rain=null;
      if(!low&&B.ParticleSystem){const drop=texture('raindrop',8,64,(g,W,H)=>{g.clearRect(0,0,W,H);const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'rgba(190,225,255,0)');gr.addColorStop(1,'rgba(190,225,255,.85)');g.fillStyle=gr;g.fillRect(W/2-1.5,0,3,H);});drop.hasAlpha=true;
-      const hi=quality==='high';rain=new B.ParticleSystem('ncz-rain',hi?3200:1700,scene);rain.particleTexture=drop;rain.emitter=v(31,0,-96);rain.minEmitBox=v(-24,12,-24);rain.maxEmitBox=v(24,17,24);rain.direction1=v(-.8,-24,-.4);rain.direction2=v(-.3,-28,.4);rain.minLifeTime=rain.maxLifeTime=.72;rain.minSize=.03;rain.maxSize=.045;rain.minScaleX=rain.maxScaleX=1;rain.minScaleY=11;rain.maxScaleY=15;rain.billboardMode=B.ParticleSystem.BILLBOARDMODE_STRETCHED;rain.color1=new B.Color4(.55,.72,.85,.3);rain.color2=new B.Color4(.45,.62,.78,.2);rain.colorDead=new B.Color4(.4,.5,.6,0);rain.emitRate=hi?3400:1800;rain.blendMode=B.ParticleSystem.BLENDMODE_ADD;rain.start();}
+      const hi=quality==='high'||quality==='ultra';rain=new B.ParticleSystem('ncz-rain',hi?3200:1700,scene);rain.particleTexture=drop;rain.emitter=v(31,0,-96);rain.minEmitBox=v(-24,12,-24);rain.maxEmitBox=v(24,17,24);rain.direction1=v(-.8,-24,-.4);rain.direction2=v(-.3,-28,.4);rain.minLifeTime=rain.maxLifeTime=.72;rain.minSize=.03;rain.maxSize=.045;rain.minScaleX=rain.maxScaleX=1;rain.minScaleY=11;rain.maxScaleY=15;rain.billboardMode=B.ParticleSystem.BILLBOARDMODE_STRETCHED;rain.color1=new B.Color4(.55,.72,.85,.3);rain.color2=new B.Color4(.45,.62,.78,.2);rain.colorDead=new B.Color4(.4,.5,.6,0);rain.emitRate=hi?3400:1800;rain.blendMode=B.ParticleSystem.BLENDMODE_ADD;rain.start();}
      weather={flickers,rain,rainRate:rain?.emitRate||0};
      target=saved;}
     return {clubCtl,streamDistricts,weather,city};})();
     // The District's front: a small backlit plaque, violet trim round the reinforced door and a second camera.
     {const saved=target;target=districtRoot;
-     neon('district-plaque',['THE DARKNET DISTRICT'],['#c9b4ff'],2.3,.32,[0,4.05,19.6],0,'rgba(8,6,14,.94)');
+     neon('district-plaque',['THE DARKNET DISTRICT'],['#c9b4ff'],2.3,.32,[0,4.05,19.6],0,'rgba(8,6,14,.94)',true);
      const trim=glowMat('violet-trim','#6c44b8',.6);box('district-trim',[6,.035,.035],[0,3.56,19.62],trim);for(const sx of [-1,1])box('district-trim',[.035,3.56,.035],[sx*2.96,1.78,19.62],trim);
      box('camera-arm-2',[.06,.06,.6],[3.4,3.95,19.6],frame);box('camera-body-2',[.25,.2,.45],[3.4,3.85,19.28],frame);box('camera-led-2',[.05,.05,.02],[3.4,3.85,19.04],red);
      target=saved;}
 
-    const {batches=new Map(),screens=[],skyShells=[],nightlife=null,drones=[]}=sc;
+    const {batches=new Map(),screens=[],skyShells=[],nightlife=null,alleyLife=null,alleySteam=[],drones=[]}=sc;
     for(const [m,b] of batches){const mesh=new B.Mesh('ncz-batch',scene),vd=new B.VertexData();vd.positions=b.p;vd.normals=b.n;vd.uvs=b.u;vd.indices=b.i;vd.applyToMesh(mesh);mesh.material=m;mesh.parent=parent;mesh.isPickable=false;}
     // Merge static meshes by material to keep draw calls low.
     for(const [m,list] of staticMeshes)if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(merged){merged.parent=parent;merged.material=m;merged.isPickable=false;}}
     let lastTick=null;
-    function atmosphere(time,dt){applyLook();const cam=scene.activeCamera?.globalPosition,inClub=!!cam&&!!clubCtl&&clubCtl.inside(cam),inside=inClub||!!cam&&zone({x:cam.x,z:cam.z}).area==='district',sky=inClub?clubSky:inside?indoor:outdoor,key=inClub?'club':inside?'district':'street';
+    function atmosphere(time,dt){const cam=scene.activeCamera?.globalPosition,inClub=!!cam&&!!clubCtl&&clubCtl.inside(cam),inside=inClub||!!cam&&zone({x:cam.x,z:cam.z}).area==='district';applyLook(inside&&!inClub);const sky=inClub?clubSky:inside?indoor:outdoor,key=inClub?'club':inside?'district':'street';
      if(ambient){ambient.intensity+=(sky.intensity-ambient.intensity)*Math.min(1,dt*3);if(key!==wasInside){if(sky.diffuse)ambient.diffuse=sky.diffuse;if(sky.ground&&ambient.groundColor)ambient.groundColor=sky.ground;wasInside=key;}}
      // Haze: thicker and violet inside the club, the street's teal fog everywhere else.
      if(clubCtl){const f=Math.min(1,dt*2),d=inClub?.017:previous.fogDensity===undefined?.0028:.0028;scene.fogDensity+=(d-scene.fogDensity)*f;scene.fogColor=B.Color3.Lerp(scene.fogColor,inClub?new B.Color3(.1,.04,.15):new B.Color3(.075,.155,.17),f);clubCtl.tick(cam,dt,time);}
@@ -807,11 +1029,20 @@
      for(const fl of weather?.flickers||[]){if(fl.off>0){fl.off-=dt;if(fl.off<=0)for(const m of fl.meshes)m.isVisible=true;}else if(time>fl.next){fl.off=.05+Math.random()*.12;fl.next=time+2+Math.random()*7;for(const m of fl.meshes)m.isVisible=false;}}
      for(const s of screens)if(time>s.next){s.mesh.material=adMat(nextAd());s.next=time+9+Math.random()*4;}}
     let wasInside=null;
-    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);doors.tick(dt);terminal.tick(dt);podScreen.tick(dt);nightlife?.tick(dt);atmosphere(time,dt);for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
-    return {tick,city,nightlife,doors,dispose(){disposed=true;clubCtl?.dispose();nightlife?.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
+    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);doors.tick(dt);terminal.tick(dt);podScreen.tick(dt);arcade?.tick(time);nightlife?.tick(dt);alleyLife?.tick(dt);atmosphere(time,dt);for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
+    return {tick,city,nightlife,alleyLife,doors,dispose(){disposed=true;clubCtl?.dispose();nightlife?.dispose();alleyLife?.dispose();for(const ps of alleySteam)ps.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
   }
   // Licensed models (docs/VOID_RUNNER_ASSET_LICENSES.md) dressing the District; loaded before build().
-  const models={'crowd:vr-player-a':{src:'assets/models/crowd/vr-player-a.glb',background:true},'crowd:vr-player-b':{src:'assets/models/crowd/vr-player-b.glb',background:true},'district:couch':{src:'assets/models/district/couch.glb',scale:.5},'district:bin':{src:'assets/models/district/bin.glb',scale:.6},'district:chair':{src:'assets/models/district/chair.glb',scale:1},
+  // The security vestibule's pieces (made in Blender by tools/assets/kit/build_kit.py --interior; docs/development/DISTRICT_INTERIOR.md). 'entry:' models belong to BOTH areas, like the vestibule itself.
+  const entryModels={'entry:district_vestibule_wall_6m':{src:'assets/models/district-interior/district_vestibule_wall_6m.glb',scale:1},'entry:district_vestibule_ceiling_6m':{src:'assets/models/district-interior/district_vestibule_ceiling_6m.glb',scale:1},'entry:district_vestibule_floor_6m':{src:'assets/models/district-interior/district_vestibule_floor_6m.glb',scale:1},'entry:district_door_portal_6m':{src:'assets/models/district-interior/district_door_portal_6m.glb',scale:1},'entry:district_scanner_arch_5m':{src:'assets/models/district-interior/district_scanner_arch_5m.glb',scale:1},'entry:district_scanner_kiosk_1m':{src:'assets/models/district-interior/district_scanner_kiosk_1m.glb',scale:1}};
+  // The hallway's pieces (phase B of the interior rebuild): interior only.
+  const hallModels={'district:hall_wall_2m_a':{src:'assets/models/district-interior/district_hall_wall_2m_a.glb',scale:1},'district:hall_wall_2m_b':{src:'assets/models/district-interior/district_hall_wall_2m_b.glb',scale:1},'district:hall_wall_2m_c':{src:'assets/models/district-interior/district_hall_wall_2m_c.glb',scale:1},'district:hall_wall_2m_d':{src:'assets/models/district-interior/district_hall_wall_2m_d.glb',scale:1},'district:hall_wall_1m':{src:'assets/models/district-interior/district_hall_wall_1m.glb',scale:1},'district:hall_pilaster_05m':{src:'assets/models/district-interior/district_hall_pilaster_05m.glb',scale:1},'district:hall_ceiling_4m':{src:'assets/models/district-interior/district_hall_ceiling_4m.glb',scale:1}};
+  const podModels={'district:pod_facade_3m':{src:'assets/models/district-interior/district_pod_facade_3m.glb',scale:1}};
+  const shopModels={'district:shop_counter_8m':{src:'assets/models/district-interior/district_shop_counter_8m.glb',scale:1},'district:shop_bookshelf_3m':{src:'assets/models/district-interior/district_shop_bookshelf_3m.glb',scale:1},'district:shop_gearwall_3m':{src:'assets/models/district-interior/district_shop_gearwall_3m.glb',scale:1},'district:tube_light_2m':{src:'assets/models/district-interior/district_tube_light_2m.glb',scale:1}};
+  const arcadeModels={'district:arcade_cabinet_1m':{src:'assets/models/district-interior/district_arcade_cabinet_1m.glb',scale:1},'district:arcade_stool_1m':{src:'assets/models/district-interior/district_arcade_stool_1m.glb',scale:1},'district:arcade_change_1m':{src:'assets/models/district-interior/district_arcade_change_1m.glb',scale:1}};
+  const vrModels={'district:vr_rack_1m':{src:'assets/models/district-interior/district_vr_rack_1m.glb',scale:1}};
+  const hallModels2={'district:hall_header_4m':{src:'assets/models/district-interior/district_hall_header_4m.glb',scale:1},'district:hall_header_5m':{src:'assets/models/district-interior/district_hall_header_5m.glb',scale:1},'district:hall_header_6m':{src:'assets/models/district-interior/district_hall_header_6m.glb',scale:1},'district:prop_crates_1m':{src:'assets/models/district-interior/district_prop_crates_1m.glb',scale:1},'district:prop_bench_2m':{src:'assets/models/district-interior/district_prop_bench_2m.glb',scale:1}};
+  const models={...entryModels,...hallModels,...hallModels2,...podModels,...shopModels,...arcadeModels,...vrModels,'crowd:vr-player-a':{src:'assets/models/crowd/vr-player-a.glb',background:true},'crowd:vr-player-b':{src:'assets/models/crowd/vr-player-b.glb',background:true},'district:couch':{src:'assets/models/district/couch.glb',scale:.5},'district:bin':{src:'assets/models/district/bin.glb',scale:.6},'district:chair':{src:'assets/models/district/chair.glb',scale:1},
    // Purchased vending machine (CGTrader, Royalty Free no AI): kept out of the public repository; the live site gets it,
    // encrypted, from the private asset repository (tools/assets/build-pages.cjs). Without it the built machines stay.
    'district:vending-neon':{src:'assets/models/district/vending-neon.vrpak',scale:1},
@@ -820,6 +1051,6 @@
    // keeps its built buildings.
    'ncz:building5':{src:'assets/models/ncz/building5.vrpak'},'ncz:storefronts':{src:'assets/models/ncz/storefronts.vrpak'}};
   // The models one environment needs: the street's city pack, or the District's furniture and VR players.
-  function modelsFor(area='all'){if(area==='all')return models;const street=k=>k.startsWith('ncz:');return Object.fromEntries(Object.entries(models).filter(([k])=>area==='street'?street(k):!street(k)));}
-  const api={layout,layoutByArea,build,models,modelsFor,toWorld,zone,streets,footprints,door:DOOR,districts,taxiZones,cityBox};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
+  function modelsFor(area='all'){if(area==='all')return models;const street=k=>k.startsWith('ncz:'),entry=k=>k.startsWith('entry:');return Object.fromEntries(Object.entries(models).filter(([k])=>entry(k)||(area==='street'?street(k):!street(k))));}
+  const api={layout,layoutByArea,build,models,modelsFor,toWorld,zone,streets,footprints,door:DOOR,districts,taxiZones,cityBox,arcade:ARCADE};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
 })(globalThis);

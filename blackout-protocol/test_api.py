@@ -215,5 +215,148 @@ class BlackoutApiTests(unittest.TestCase):
         self.assertEqual(result['me']['rank'], 3)
 
 
+    def test_tesana_score_formula_and_limits(self):
+        events = dict.fromkeys(api.TESANA_POINTS, 0)
+        events.update(coin=2, shard=3, relayBonus=1, kill100=2)
+        # 1000 + round(600 - 20*2) + event points
+        self.assertEqual(api.tesana_score_events(events, 1, 20, 2180), 1560)
+        for patch_values, level, delta in [({'boss': 1}, 1, 2180), ({'coin': 101}, 1, 2180),
+                                           ({'relayBonus': 1, 'shard': 2}, 1, 2180), ({}, 1, 1)]:
+            bad = dict(events, **patch_values)
+            with self.assertRaises(api.ApiError):
+                api.tesana_score_events(bad, level, 20, delta)
+
+    def test_tesana_ranked_run_uses_new_collections_and_rejects_duplicates(self):
+        uid = 'tesana-user'
+        pid = api.player_id(uid)
+        self.db.data[('bp_profiles', pid)] = {'handle': 'Cyberman420'}
+        self.db.data[('bp_leaderboard', pid)] = {'handle': 'Cyberman420', 'bestScore': 999999}
+        self.payload({})
+        with patch.object(api.time, 'time', return_value=1_000_000):
+            run_id = api.tesana_start_run.__wrapped__(self.db, uid)['runId']
+        events = dict.fromkeys(api.TESANA_POINTS, 0)
+        events['coin'] = 2
+        self.payload({'level': 1, 'score': 1580, 'seconds': 20, 'events': events})
+        with patch.object(api.time, 'time', return_value=1_000_020):
+            result = api.tesana_complete_level.__wrapped__(self.db, uid, run_id)
+            self.assertTrue(result['personalBest'])
+            self.assertTrue(api.tesana_complete_level.__wrapped__(self.db, uid, run_id)['duplicate'])
+        self.assertEqual(self.db.data[('bp_tesana_leaderboard', pid)]['bestScore'], 1580)
+        self.assertEqual(self.db.data[('bp_leaderboard', pid)]['bestScore'], 999999)
+        self.payload({'level': 2, 'score': 3160, 'seconds': 20, 'events': events})
+        with patch.object(api.time, 'time', return_value=1_000_040):
+            with self.assertRaises(api.ApiError):
+                api.tesana_complete_level.__wrapped__(self.db, 'another-user', run_id)
+            self.assertEqual(api.tesana_complete_level.__wrapped__(self.db, uid, run_id)['completedLevel'], 2)
+        self.payload({'level': 4, 'score': 4740, 'seconds': 20, 'events': events})
+        with patch.object(api.time, 'time', return_value=1_000_060):
+            with self.assertRaises(api.ApiError):
+                api.tesana_complete_level.__wrapped__(self.db, uid, run_id)
+
+    def test_tesana_all_twelve_sectors_and_game_milestone(self):
+        uid = 'twelve-sector-user'
+        pid = api.player_id(uid)
+        self.db.data[('bp_profiles', pid)] = {'handle': 'TwelveRunner'}
+        self.payload({})
+        with patch.object(api.time, 'time', return_value=1_000_000):
+            run_id = api.tesana_start_run.__wrapped__(self.db, uid)['runId']
+        score = 0
+        for level in range(1, 13):
+            events = dict.fromkeys(api.TESANA_POINTS, 0)
+            if level in (6, 10, 12): events['boss'] = 1
+            score += 1560 + (5000 if events['boss'] else 0)
+            self.payload({'level': level, 'score': score, 'seconds': 20, 'events': events})
+            with patch.object(api.time, 'time', return_value=1_000_000 + level * 20):
+                result = api.tesana_complete_level.__wrapped__(self.db, uid, run_id)
+            self.assertEqual(result['completedLevel'], level)
+        self.assertEqual(self.db.data[('bp_tesana_runs', run_id)]['status'], 'finished')
+        final_event = self.db.data[('bp_tesana_events', f'{run_id}_12')]
+        self.assertIn({'kind': 'game_completed'}, final_event['milestones'])
+        self.assertEqual(self.db.data[('bp_tesana_leaderboard', pid)]['highestCompletedLevel'], 12)
+
+    def test_tesana_ranked_start_requires_public_handle(self):
+        self.payload({})
+        with patch.object(api.time, 'time', return_value=1_000_000):
+            with self.assertRaises(api.ApiError) as error:
+                api.tesana_start_run.__wrapped__(self.db, 'no-handle')
+        self.assertEqual(error.exception.status, 409)
+
+    def test_tesana_ranked_start_requires_a_verified_token(self):
+        original_headers = fake_flask.request.headers
+        self.addCleanup(setattr, fake_flask.request, 'headers', original_headers)
+        auth = types.SimpleNamespace(verify_id_token=lambda *_args, **_kwargs: (_ for _ in ()).throw(ValueError('invalid token')))
+        with patch.object(api, 'services', return_value=(self.db, auth, None)):
+            for headers in ({}, {'Authorization': 'Bearer invalid'}):
+                fake_flask.request.headers = headers
+                with self.assertRaises(api.ApiError) as error:
+                    api.tesana_start_run()
+                self.assertEqual(error.exception.status, 401)
+        self.assertEqual(self.db.data, {})
+
+    def test_tesana_fresh_top_and_personal_rank(self):
+        for name, score in [('a', 2000), ('b', 3000)]:
+            self.db.data[('bp_tesana_leaderboard', name)] = {'handle': name, 'bestScore': score,
+                'highestCompletedLevel': 2, 'sortKey': name}
+        self.db.data[('bp_leaderboard', 'old')] = {'handle': 'old', 'bestScore': 9000,
+            'highestCompletedLevel': 6, 'sortKey': 'old'}
+        api._tesana_top_cache['rows'] = None
+        with patch.object(api, 'services', return_value=(self.db, None, None)), \
+             patch.object(api, 'identity', return_value=None):
+            top = api.tesana_leaderboard()
+        self.assertEqual([r['handle'] for r in top['entries']], ['b', 'a'])
+        self.assertIsNone(top['me'])
+
+    def test_tesana_account_progress_is_private_unverified_and_revision_guarded(self):
+        uid, other = 'player-a', 'player-b'
+        pid = api.player_id(uid)
+        progress = {'v': 1, 'unlocked': 3, 'btc': 24, 'score': 2400, 'up': {'speed': 1},
+                    'shield': 0, 'sidearm': False, 'stats': {}, 'resume': None,
+                    'muted': False, 'fx': {'scanlines': True, 'glow': True,
+                                         'grid': False, 'cabinet': True}, 'finished': False}
+        self.db.data[('bp_tesana_stats', pid)] = {'bestScore': 900, 'highestCompletedLevel': 1}
+        self.payload({'progress': progress, 'revision': 0})
+        with patch.object(api.time, 'time', return_value=1_000_000):
+            self.assertEqual(api.tesana_put_progress.__wrapped__(self.db, uid)['revision'], 1)
+        saved = self.db.data[('bp_tesana_stats', pid)]
+        self.assertEqual(saved['bestScore'], 900, 'local score never changes verified score')
+        self.assertEqual(saved['highestCompletedLevel'], 1)
+        self.assertEqual(saved['unverifiedProgress']['score'], 2400)
+        self.assertEqual(api.tesana_get_progress.__wrapped__(self.db, uid)['revision'], 1)
+        self.assertIsNone(api.tesana_get_progress.__wrapped__(self.db, other)['progress'])
+        with self.assertRaises(api.ApiError) as error:
+            api.tesana_put_progress.__wrapped__(self.db, uid)
+        self.assertEqual(error.exception.status, 409, 'stale device cannot overwrite progress')
+        self.assertNotIn(('bp_tesana_leaderboard', pid), self.db.data)
+
+    def test_tesana_progress_rejects_malformed_or_unbounded_saves(self):
+        valid = {'v': 1, 'unlocked': 1, 'btc': 0, 'score': 0, 'up': {},
+                 'shield': 0, 'sidearm': False, 'stats': {}, 'resume': None,
+                 'muted': False, 'fx': {'scanlines': True, 'glow': True,
+                                      'grid': False, 'cabinet': True}, 'finished': False}
+        for bad in (dict(valid, score=-1), dict(valid, unlocked=99),
+                    dict(valid, stats={'fake': {'shards': [False] * 3, 'best': 1,
+                                               'done': True, 'setBonus': False}}),
+                    dict(valid, resume={'level': 0, 'cp': '../other', 'shards': [False] * 3,
+                                        'coins': [], 'btc': 0, 'score': 0}),
+                    dict(valid, fx={'glow': True})):
+            self.payload({'progress': bad, 'revision': 0})
+            with self.assertRaises(api.ApiError) as error:
+                api.tesana_put_progress.__wrapped__(self.db, 'player-a')
+            self.assertEqual(error.exception.status, 422)
+        self.assertEqual(self.db.data, {})
+
+    def test_tesana_progress_requires_a_verified_token(self):
+        original_headers = fake_flask.request.headers
+        self.addCleanup(setattr, fake_flask.request, 'headers', original_headers)
+        fake_flask.request.headers = {'Authorization': 'Bearer invalid'}
+        auth = types.SimpleNamespace(verify_id_token=lambda *_args, **_kwargs: (_ for _ in ()).throw(ValueError('invalid token')))
+        with patch.object(api, 'services', return_value=(self.db, auth, None)):
+            for endpoint in (api.tesana_get_progress, api.tesana_put_progress):
+                with self.assertRaises(api.ApiError) as error:
+                    endpoint()
+                self.assertEqual(error.exception.status, 401)
+        self.assertEqual(self.db.data, {})
+
+
 if __name__ == '__main__':
     unittest.main()

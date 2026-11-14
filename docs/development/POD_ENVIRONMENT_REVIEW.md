@@ -1,5 +1,7 @@
 # Sleeping Pod environment review: what can be shared across pods
 
+Update 2026-11-07: The owner's first-player repair request authorized extending the Tesana-derived detail to all ten pods. The development branch `codex/first-player-experience-repair` now reuses the existing CC0 textures and geometry on each capsule, adds a screen and hatch interaction per pod, and gives each pod its own browser-local selection, playback position, volume, and lighting settings. One local audio engine follows the occupied pod and pauses outside it; simultaneous audio for multiple online occupants is future multiplayer work. The historical review below describes the previous Pod-01-only build; its "needs go-ahead" recommendation has been superseded by the new request. Real-GPU performance and full Tesana visual parity still need review.
+
 Written 2026-11-05. **Review only; no pod geometry, material or texture was changed.** The roadmap keeps the other nine pods for later, and the hallway floor plan and pod allocation are open owner decisions, so this document does not invent either. It answers: which of pod 01's improvements could reach the other nine without duplicating assets, and at what cost.
 
 ## 1. How the pods are built today (`void-runner/neochinatown.js`, lines 635 to 665)

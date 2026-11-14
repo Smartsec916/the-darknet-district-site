@@ -133,6 +133,11 @@ test('clear empties the list and everything that depends on it', () => {
   assert.equal(p.add(songs(['a.mp3'])).added.length, 1, 'the same file can be added again after a clear');
 });
 
+test('deselect keeps the catalog when another pod has not chosen a track yet', () => {
+  const p = make(['a.mp3', 'b.mp3']); p.select(p.tracks[1].id); p.deselect();
+  assert.equal(p.currentId, null); assert.equal(p.size, 2); assert.equal(p.next(false), p.tracks[0].id);
+});
+
 test('the model holds no audio and sends nothing: it never touches the network, storage or the DOM', () => {
   const src = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'void-runner/pod-playlist.js'), 'utf8').replace(/\/\*[^]*?\*\//g, '').replace(/\/\/.*$/gm, '');
   assert.ok(!/fetch\(|XMLHttpRequest|WebSocket|sendBeacon|localStorage|indexedDB|document\.|new Audio|FormData/.test(src));

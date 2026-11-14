@@ -1,0 +1,592 @@
+{
+ "version": 1,
+ "note": "Source of truth for the character creator. Ids only: no file paths are ever accepted from a player or the server. character-catalog.js is generated from this file by tools/assets/build-character-catalog.cjs (a test checks they match). The same file is read by void_runner_api.py to validate appearances. Accessories whose id starts with \"gear-\" are the cyberpunk gear parts (assets/models/gear): a look lists them with no mesh names because they are separate files skinned to the shared skeleton. None is ever a default.",
+ "bases": {
+  "male": {
+   "label": "MALE",
+   "height": 1.78,
+   "eyeHeight": 1.68,
+   "note": "Standard heights in metres. The body is scaled uniformly (never stretched) so its top of head equals this value; eye height places the camera. Change here to retune; nothing else needs editing."
+  },
+  "female": {
+   "label": "FEMALE",
+   "height": 1.66,
+   "eyeHeight": 1.55
+  }
+ },
+ "looks": {
+  "district-smuggler": {
+   "base": "male",
+   "model": "district-smuggler",
+   "label": "SMUGGLER",
+   "preset": true,
+   "outfit": "district_smuggler.male_casualsuit01",
+   "shoes": "district_smuggler.shoes03",
+   "nativeHair": "district_smuggler.short04",
+   "accessories": {
+    "hat": [
+     "district_smuggler.fedora_cocked"
+    ],
+    "eyewear": [
+     "district_smuggler.shades0"
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
+   },
+   "defaultAccessories": [
+    "hat",
+    "eyewear"
+   ],
+   "hairOk": [
+    "short01",
+    "short02",
+    "short03",
+    "short04",
+    "bob01",
+    "bob02",
+    "braid01",
+    "long01",
+    "ponytail01"
+   ],
+   "legacy": {
+    "gender": "male",
+    "model": "district-smuggler"
+   },
+   "body": "district_smuggler.body"
+  },
+  "hacker-01": {
+   "base": "male",
+   "model": "hacker-01",
+   "label": "NETRUNNER",
+   "outfit": "hacker_01.male_casualsuit05",
+   "shoes": "hacker_01.shoes03",
+   "nativeHair": "hacker_01.short02",
+   "accessories": {
+    "eyewear": [
+     "hacker_01.visor0"
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
+   },
+   "defaultAccessories": [
+    "eyewear"
+   ],
+   "hairOk": [
+    "short01",
+    "short02",
+    "short03",
+    "short04",
+    "bob01",
+    "bob02",
+    "braid01",
+    "long01",
+    "ponytail01"
+   ],
+   "body": "hacker_01.body"
+  },
+  "regular-01": {
+   "base": "male",
+   "model": "regular-01",
+   "label": "WORKER",
+   "outfit": "regular_01.male_worksuit01",
+   "shoes": "regular_01.shoes03",
+   "nativeHair": "regular_01.short03",
+   "accessories": {
+    "mask": [
+     "regular_01.mask0",
+     "regular_01.mask0.slit0",
+     "regular_01.mask0.slit1"
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
+   },
+   "defaultAccessories": [
+    "mask"
+   ],
+   "hairOk": [
+    "short01",
+    "short02",
+    "short03",
+    "short04",
+    "bob01",
+    "bob02",
+    "braid01",
+    "long01",
+    "ponytail01"
+   ],
+   "body": "regular_01.body"
+  },
+  "vesper-trader": {
+   "base": "male",
+   "model": "vesper-trader",
+   "label": "TRADER",
+   "outfit": "vesper_trader.male_casualsuit03",
+   "shoes": "vesper_trader.shoes01",
+   "nativeHair": "vesper_trader.short02",
+   "accessories": {
+    "hat": [
+     "vesper_trader.fedora01"
+    ],
+    "mask": [
+     "vesper_trader.mask0"
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
+   },
+   "defaultAccessories": [
+    "hat"
+   ],
+   "hairOk": [
+    "short01",
+    "short02",
+    "short03",
+    "short04",
+    "bob01",
+    "bob02",
+    "braid01",
+    "long01",
+    "ponytail01"
+   ],
+   "body": "vesper_trader.body"
+  },
+  "district-resident": {
+   "base": "female",
+   "model": "district-resident",
+   "label": "RESIDENT",
+   "preset": true,
+   "outfit": "district_resident.female_sportsuit01",
+   "shoes": "district_resident.shoes04",
+   "nativeHair": "district_resident.braid01",
+   "accessories": {
+    "mask": [
+     "district_resident.mask0",
+     "district_resident.mask0.slit0",
+     "district_resident.mask0.slit1"
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
+   },
+   "defaultAccessories": [
+    "mask"
+   ],
+   "hairOk": [
+    "short01",
+    "short02",
+    "short03",
+    "short04",
+    "bob01",
+    "bob02",
+    "braid01",
+    "long01",
+    "ponytail01"
+   ],
+   "legacy": {
+    "gender": "female",
+    "model": "district-resident"
+   },
+   "body": "district_resident.body"
+  },
+  "ncz-neon": {
+   "base": "female",
+   "model": "ncz-neon",
+   "label": "NEON",
+   "outfit": "ncz_neon.female_sportsuit01",
+   "shoes": "ncz_neon.shoes05",
+   "nativeHair": "ncz_neon.long01",
+   "accessories": {
+    "collar": [
+     "ncz_neon.collar0"
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
+   },
+   "defaultAccessories": [
+    "collar"
+   ],
+   "hairOk": [
+    "short01",
+    "short02",
+    "short03",
+    "short04",
+    "bob01",
+    "bob02",
+    "braid01",
+    "long01",
+    "ponytail01"
+   ],
+   "body": "ncz_neon.body"
+  },
+  "fixer-01": {
+   "base": "female",
+   "model": "fixer-01",
+   "label": "FIXER",
+   "outfit": "fixer_01.female_elegantsuit01",
+   "shoes": "fixer_01.shoes03",
+   "nativeHair": "fixer_01.bob02",
+   "accessories": {
+    "eyewear": [
+     "fixer_01.shades0"
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
+   },
+   "defaultAccessories": [
+    "eyewear"
+   ],
+   "hairOk": [
+    "short01",
+    "short02",
+    "short03",
+    "short04",
+    "bob01",
+    "bob02",
+    "braid01",
+    "long01",
+    "ponytail01"
+   ],
+   "body": "fixer_01.body"
+  },
+  "outlaw-01": {
+   "base": "male",
+   "model": "outlaw-01",
+   "label": "OUTLAW",
+   "outfit": "outlaw_01.male_casualsuit05",
+   "nativeHair": "outlaw_01.short02",
+   "accessories": {
+    "mask": [
+     "outlaw_01.mask0"
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
+   },
+   "defaultAccessories": [],
+   "hairOk": [
+    "short01",
+    "short02",
+    "short03",
+    "short04",
+    "bob01",
+    "bob02",
+    "braid01",
+    "long01",
+    "ponytail01"
+   ],
+   "body": "outlaw_01.body"
+  },
+  "cyborg-01": {
+   "base": "male",
+   "model": "cyborg-01",
+   "label": "CYBORG",
+   "outfit": "cyborg_01.matcreator_mc-skinsuit_2022",
+   "accessories": {
+    "eyewear": [
+     "cyborg_01.visor0"
+    ],
+    "collar": [
+     "cyborg_01.collar1"
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
+   },
+   "defaultAccessories": [
+    "eyewear",
+    "collar"
+   ],
+   "hairOk": [
+    "short01",
+    "short02",
+    "short03",
+    "short04",
+    "bob01",
+    "bob02",
+    "braid01",
+    "long01",
+    "ponytail01"
+   ],
+   "body": "cyborg_01.body"
+  },
+  "vesper-pilot": {
+   "base": "female",
+   "model": "vesper-pilot",
+   "label": "PILOT",
+   "outfit": "vesper_pilot.female_sportsuit01",
+   "shoes": "vesper_pilot.shoes03",
+   "nativeHair": "vesper_pilot.ponytail01",
+   "accessories": {
+    "eyewear": [
+     "vesper_pilot.shades0"
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
+   },
+   "defaultAccessories": [
+    "eyewear"
+   ],
+   "hairOk": [
+    "short01",
+    "short02",
+    "short03",
+    "short04",
+    "bob01",
+    "bob02",
+    "braid01",
+    "long01",
+    "ponytail01"
+   ],
+   "body": "vesper_pilot.body"
+  },
+  "meridian-bartender": {
+   "base": "female",
+   "model": "meridian-bartender",
+   "label": "HOST",
+   "outfit": "meridian_bartender.female_elegantsuit01",
+   "shoes": "meridian_bartender.shoes03",
+   "nativeHair": "meridian_bartender.bob01",
+   "accessories": {
+    "eyewear": [
+     "meridian_bartender.shades0"
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
+   },
+   "defaultAccessories": [
+    "eyewear"
+   ],
+   "hairOk": [
+    "short01",
+    "short02",
+    "short03",
+    "short04",
+    "bob01",
+    "bob02",
+    "braid01",
+    "long01",
+    "ponytail01"
+   ],
+   "body": "meridian_bartender.body"
+  }
+ },
+ "accessories": {
+  "hat": {
+   "label": "HAT"
+  },
+  "eyewear": {
+   "label": "EYEWEAR"
+  },
+  "mask": {
+   "label": "FACE MASK"
+  },
+  "collar": {
+   "label": "COLLAR"
+  },
+  "gear-visor": {
+   "label": "VISOR",
+   "gear": true
+  },
+  "gear-collar": {
+   "label": "TECH COLLAR",
+   "gear": true
+  },
+  "gear-shoulders": {
+   "label": "SHOULDER PLATES",
+   "gear": true
+  },
+  "gear-chest": {
+   "label": "CHEST LIGHT",
+   "gear": true
+  }
+ },
+ "hair": {
+  "short01": {
+   "label": "SHORT CROP",
+   "part": "hair-short01.glb",
+   "hatOk": true
+  },
+  "short02": {
+   "label": "SHORT SWEPT",
+   "part": "hair-short02.glb",
+   "hatOk": true
+  },
+  "short03": {
+   "label": "SHORT TOUSLED",
+   "part": "hair-short03.glb",
+   "hatOk": true
+  },
+  "short04": {
+   "label": "SHORT NEAT",
+   "part": "hair-short04.glb",
+   "hatOk": true
+  },
+  "bob01": {
+   "label": "BOB",
+   "part": "hair-bob01.glb",
+   "hatOk": false
+  },
+  "bob02": {
+   "label": "BOB LAYERED",
+   "part": "hair-bob02.glb",
+   "hatOk": false
+  },
+  "braid01": {
+   "label": "BRAID",
+   "part": "hair-braid01.glb",
+   "hatOk": false
+  },
+  "long01": {
+   "label": "LONG",
+   "part": "hair-long01.glb",
+   "hatOk": false
+  },
+  "ponytail01": {
+   "label": "PONYTAIL",
+   "part": "hair-ponytail01.glb",
+   "hatOk": false
+  }
+ },
+ "hairColors": [
+  {
+   "id": "jet",
+   "label": "JET BLACK",
+   "hex": "#15110f",
+   "group": "natural"
+  },
+  {
+   "id": "brown",
+   "label": "DARK BROWN",
+   "hex": "#3b2417",
+   "group": "natural"
+  },
+  {
+   "id": "auburn",
+   "label": "AUBURN",
+   "hex": "#7a3a1c",
+   "group": "natural"
+  },
+  {
+   "id": "blonde",
+   "label": "BLONDE",
+   "hex": "#c9a45c",
+   "group": "natural"
+  },
+  {
+   "id": "silver",
+   "label": "SILVER",
+   "hex": "#b9bec7",
+   "group": "natural"
+  },
+  {
+   "id": "magenta",
+   "label": "NEON MAGENTA",
+   "hex": "#ff2fa0",
+   "group": "cyber"
+  },
+  {
+   "id": "cyan",
+   "label": "NEON CYAN",
+   "hex": "#19e6ff",
+   "group": "cyber"
+  },
+  {
+   "id": "violet",
+   "label": "ULTRAVIOLET",
+   "hex": "#8a4dff",
+   "group": "cyber"
+  }
+ ],
+ "clothingColors": [
+  {
+   "id": "black",
+   "label": "BLACK",
+   "hex": "#14161a"
+  },
+  {
+   "id": "graphite",
+   "label": "GRAPHITE",
+   "hex": "#3a3f48"
+  },
+  {
+   "id": "navy",
+   "label": "NAVY",
+   "hex": "#1d2c5a"
+  },
+  {
+   "id": "crimson",
+   "label": "CRIMSON",
+   "hex": "#8c1f2b"
+  },
+  {
+   "id": "forest",
+   "label": "FOREST",
+   "hex": "#1f5a3d"
+  },
+  {
+   "id": "plum",
+   "label": "PLUM",
+   "hex": "#5b2f8f"
+  },
+  {
+   "id": "teal",
+   "label": "TEAL",
+   "hex": "#0f7f86"
+  },
+  {
+   "id": "sand",
+   "label": "SAND",
+   "hex": "#a08a62"
+  }
+ ],
+ "lockedOptions": {
+  "note": "Listed so the creator can say honestly what is not available yet. These are baked into each complete character file and cannot be swapped without a local Blender/MPFB export (docs/development/CHARACTER_CREATOR.md). They are never selectable.",
+  "outfits": [
+   {
+    "id": "male_elegantsuit01",
+    "base": "male"
+   },
+   {
+    "id": "female_elegantsuit01",
+    "base": "female",
+    "note": "worn by the FIXER look only"
+   }
+  ],
+  "shoes": [
+   {
+    "id": "shoes01"
+   },
+   {
+    "id": "shoes02"
+   },
+   {
+    "id": "shoes03"
+   },
+   {
+    "id": "shoes04"
+   },
+   {
+    "id": "shoes05"
+   }
+  ],
+  "status": "needs-export"
+ }
+}

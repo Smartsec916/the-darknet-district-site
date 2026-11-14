@@ -1,0 +1,818 @@
+{
+ "kit": "NeoChinatown building kit",
+ "units": "metres",
+ "up": "+Y",
+ "front": "+Z",
+ "origin": "bottom-left-front corner of the bounding box",
+ "module": 1,
+ "floorHeight": 3.5,
+ "shopfrontHeight": 4.5,
+ "facadeDepth": 0.5,
+ "wallPlaneBehindFront": 0.1,
+ "materials": {
+  "kit_concrete": {
+   "color": "textures/kit_concrete_color.png",
+   "normal": "textures/kit_concrete_normal.png",
+   "orm": "textures/kit_concrete_orm.png"
+  },
+  "kit_metal": {
+   "color": "textures/kit_metal_color.png",
+   "normal": "textures/kit_metal_normal.png",
+   "orm": "textures/kit_metal_orm.png"
+  },
+  "kit_glass": {
+   "color": "textures/kit_glass_color.png",
+   "normal": "textures/kit_glass_normal.png",
+   "orm": "textures/kit_glass_orm.png"
+  },
+  "kit_emissive": {
+   "color": "textures/kit_emissive_color.png"
+  },
+  "kit_asphalt": {
+   "color": "textures/kit_asphalt_color.png",
+   "normal": "textures/kit_asphalt_normal.png",
+   "orm": "textures/kit_asphalt_orm.png"
+  },
+  "kit_ticker": {
+   "color": "textures/kit_ticker_color.png"
+  },
+  "kit_fabric": {
+   "color": "textures/kit_fabric_color.png",
+   "normal": "textures/kit_fabric_normal.png",
+   "orm": "textures/kit_fabric_orm.png"
+  },
+  "kit_tile": {
+   "color": "textures/kit_tile_color.png",
+   "normal": "textures/kit_tile_normal.png",
+   "orm": "textures/kit_tile_orm.png"
+  },
+  "kit_shell": {
+   "color": "textures/kit_shell_color.png",
+   "normal": "textures/kit_shell_normal.png",
+   "orm": "textures/kit_shell_orm.png"
+  },
+  "kit_goods": {
+   "color": "textures/kit_goods_color.png",
+   "normal": "textures/kit_goods_normal.png",
+   "orm": "textures/kit_goods_orm.png"
+  },
+  "kit_canvas": {
+   "color": "textures/kit_canvas_color.png",
+   "normal": "textures/kit_canvas_normal.png",
+   "orm": "textures/kit_canvas_orm.png"
+  },
+  "kit_cab": {
+   "color": "textures/kit_cab_color.png",
+   "normal": "textures/kit_cab_normal.png",
+   "orm": "textures/kit_cab_orm.png"
+  }
+ },
+ "ticker": {
+  "material": "kit_ticker",
+  "metresPerRepeat": 20,
+  "scroll": "slide the texture along U (about 0.02 to 0.04 per second)"
+ },
+ "emissiveRegions": {
+  "window_magenta": [
+   0,
+   0.5,
+   0.25,
+   1
+  ],
+  "window_cyan": [
+   0.25,
+   0.5,
+   0.5,
+   1
+  ],
+  "window_violet": [
+   0.5,
+   0.5,
+   0.75,
+   1
+  ],
+  "window_green": [
+   0.75,
+   0.5,
+   1,
+   1
+  ],
+  "neon_magenta": [
+   0,
+   0.375,
+   0.5,
+   0.5
+  ],
+  "neon_cyan": [
+   0,
+   0.25,
+   0.5,
+   0.375
+  ],
+  "neon_amber": [
+   0,
+   0.125,
+   0.5,
+   0.25
+  ],
+  "neon_white": [
+   0,
+   0,
+   0.5,
+   0.125
+  ],
+  "sign_magenta": [
+   0.5,
+   0.25,
+   0.75,
+   0.5
+  ],
+  "sign_cyan": [
+   0.75,
+   0.25,
+   1,
+   0.5
+  ],
+  "sign_amber": [
+   0.5,
+   0,
+   0.75,
+   0.25
+  ],
+  "sign_violet": [
+   0.75,
+   0,
+   1,
+   0.25
+  ]
+ },
+ "pieces": {
+  "district_door_portal_6m": {
+   "file": "district_door_portal_6m.glb",
+   "batch": "A",
+   "category": "vestibule",
+   "size": {
+    "w": 6.2,
+    "h": 3.6,
+    "d": 0.305
+   },
+   "triangles": 630,
+   "bytes": 48996,
+   "nodes": [
+    "district_door_portal_6m__warn_0"
+   ],
+   "snap": {
+    "opening": {
+     "position": [
+      0.28,
+      0,
+      0
+     ],
+     "size": [
+      5.64,
+      3.2
+     ]
+    }
+   }
+  },
+  "district_scanner_arch_5m": {
+   "file": "district_scanner_arch_5m.glb",
+   "batch": "A",
+   "category": "vestibule",
+   "size": {
+    "w": 5.2,
+    "h": 2.7,
+    "d": 0.4
+   },
+   "triangles": 688,
+   "bytes": 52552,
+   "nodes": [
+    "district_scanner_arch_5m__scan_0"
+   ],
+   "snap": {
+    "centre": [
+     2.6,
+     0,
+     -0.2
+    ]
+   }
+  },
+  "district_scanner_kiosk_1m": {
+   "file": "district_scanner_kiosk_1m.glb",
+   "batch": "A",
+   "category": "vestibule",
+   "size": {
+    "w": 0.6,
+    "h": 1.5,
+    "d": 0.5
+   },
+   "triangles": 264,
+   "bytes": 23032,
+   "nodes": [
+    "district_scanner_kiosk_1m__screen_0"
+   ],
+   "snap": {
+    "base": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "district_vestibule_ceiling_6m": {
+   "file": "district_vestibule_ceiling_6m.glb",
+   "batch": "A",
+   "category": "vestibule",
+   "size": {
+    "w": 6.0,
+    "h": 0.725,
+    "d": 6.0
+   },
+   "triangles": 768,
+   "bytes": 54428,
+   "nodes": [
+    "district_vestibule_ceiling_6m__light_0"
+   ],
+   "snap": {
+    "top": 0.7
+   }
+  },
+  "district_vestibule_floor_6m": {
+   "file": "district_vestibule_floor_6m.glb",
+   "batch": "A",
+   "category": "vestibule",
+   "size": {
+    "w": 6.0,
+    "h": 0.056,
+    "d": 6.0
+   },
+   "triangles": 848,
+   "bytes": 62620,
+   "nodes": [
+    "district_vestibule_floor_6m__scan_0"
+   ],
+   "snap": {
+    "top": 0.05
+   }
+  },
+  "district_vestibule_wall_6m": {
+   "file": "district_vestibule_wall_6m.glb",
+   "batch": "A",
+   "category": "vestibule",
+   "size": {
+    "w": 6.0,
+    "h": 3.45,
+    "d": 0.24
+   },
+   "triangles": 1162,
+   "bytes": 88144,
+   "nodes": [
+    "district_vestibule_wall_6m__neon_0",
+    "district_vestibule_wall_6m__neon_1",
+    "district_vestibule_wall_6m__screen_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.24
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_hall_ceiling_4m": {
+   "file": "district_hall_ceiling_4m.glb",
+   "batch": "B",
+   "category": "hallway",
+   "size": {
+    "w": 6.0,
+    "h": 0.625,
+    "d": 4.0
+   },
+   "triangles": 526,
+   "bytes": 40328,
+   "nodes": [
+    "district_hall_ceiling_4m__light_0",
+    "district_hall_ceiling_4m__light_1"
+   ],
+   "snap": {
+    "top": 0.6
+   }
+  },
+  "district_hall_header_4m": {
+   "file": "district_hall_header_4m.glb",
+   "batch": "B",
+   "category": "hallway",
+   "size": {
+    "w": 4.0,
+    "h": 4.05,
+    "d": 0.28
+   },
+   "triangles": 526,
+   "bytes": 41324,
+   "nodes": [
+    "district_hall_header_4m__light_0",
+    "district_hall_header_4m__light_1"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.28
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "sign": {
+     "centre": [
+      2.0,
+      3.4
+     ],
+     "size": [
+      2.9,
+      0.78
+     ]
+    }
+   }
+  },
+  "district_hall_header_5m": {
+   "file": "district_hall_header_5m.glb",
+   "batch": "B",
+   "category": "hallway",
+   "size": {
+    "w": 5.0,
+    "h": 4.05,
+    "d": 0.28
+   },
+   "triangles": 598,
+   "bytes": 46364,
+   "nodes": [
+    "district_hall_header_5m__light_0",
+    "district_hall_header_5m__light_1"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.28
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "sign": {
+     "centre": [
+      2.5,
+      3.4
+     ],
+     "size": [
+      2.9,
+      0.78
+     ]
+    }
+   }
+  },
+  "district_hall_header_6m": {
+   "file": "district_hall_header_6m.glb",
+   "batch": "B",
+   "category": "hallway",
+   "size": {
+    "w": 6.0,
+    "h": 4.05,
+    "d": 0.28
+   },
+   "triangles": 670,
+   "bytes": 51404,
+   "nodes": [
+    "district_hall_header_6m__light_0",
+    "district_hall_header_6m__light_1"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.28
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "sign": {
+     "centre": [
+      3.0,
+      3.4
+     ],
+     "size": [
+      2.9,
+      0.78
+     ]
+    }
+   }
+  },
+  "district_hall_pilaster_05m": {
+   "file": "district_hall_pilaster_05m.glb",
+   "batch": "B",
+   "category": "hallway",
+   "size": {
+    "w": 0.5,
+    "h": 4.05,
+    "d": 0.28
+   },
+   "triangles": 252,
+   "bytes": 22148,
+   "nodes": [
+    "district_hall_pilaster_05m__light_0",
+    "district_hall_pilaster_05m__light_1"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.28
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_hall_wall_1m": {
+   "file": "district_hall_wall_1m.glb",
+   "batch": "B",
+   "category": "hallway",
+   "size": {
+    "w": 1.0,
+    "h": 4.05,
+    "d": 0.2
+   },
+   "triangles": 324,
+   "bytes": 24652,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.2
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_hall_wall_2m_a": {
+   "file": "district_hall_wall_2m_a.glb",
+   "batch": "B",
+   "category": "hallway",
+   "size": {
+    "w": 2.0,
+    "h": 4.05,
+    "d": 0.2
+   },
+   "triangles": 376,
+   "bytes": 28556,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.2
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_hall_wall_2m_b": {
+   "file": "district_hall_wall_2m_b.glb",
+   "batch": "B",
+   "category": "hallway",
+   "size": {
+    "w": 2.0,
+    "h": 4.05,
+    "d": 0.2
+   },
+   "triangles": 378,
+   "bytes": 30476,
+   "nodes": [
+    "district_hall_wall_2m_b__screen_0",
+    "district_hall_wall_2m_b__screen_1"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.2
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_hall_wall_2m_c": {
+   "file": "district_hall_wall_2m_c.glb",
+   "batch": "B",
+   "category": "hallway",
+   "size": {
+    "w": 2.0,
+    "h": 4.05,
+    "d": 0.2
+   },
+   "triangles": 570,
+   "bytes": 42384,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.2
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_hall_wall_2m_d": {
+   "file": "district_hall_wall_2m_d.glb",
+   "batch": "B",
+   "category": "hallway",
+   "size": {
+    "w": 2.0,
+    "h": 4.05,
+    "d": 0.2
+   },
+   "triangles": 424,
+   "bytes": 34044,
+   "nodes": [
+    "district_hall_wall_2m_d__warn_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.2
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_prop_bench_2m": {
+   "file": "district_prop_bench_2m.glb",
+   "batch": "B",
+   "category": "hallway",
+   "size": {
+    "w": 2.0,
+    "h": 0.85,
+    "d": 0.5
+   },
+   "triangles": 170,
+   "bytes": 14824,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.5
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "seat": 0.5
+   }
+  },
+  "district_prop_crates_1m": {
+   "file": "district_prop_crates_1m.glb",
+   "batch": "B",
+   "category": "hallway",
+   "size": {
+    "w": 1.2,
+    "h": 1.085,
+    "d": 0.82
+   },
+   "triangles": 268,
+   "bytes": 23756,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.82
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_vr_rack_1m": {
+   "file": "district_vr_rack_1m.glb",
+   "batch": "C",
+   "category": "vr",
+   "size": {
+    "w": 0.9,
+    "h": 2.6,
+    "d": 0.488
+   },
+   "triangles": 1260,
+   "bytes": 95760,
+   "nodes": [
+    "district_vr_rack_1m__leds_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.488
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_arcade_cabinet_1m": {
+   "file": "district_arcade_cabinet_1m.glb",
+   "batch": "D",
+   "category": "arcade",
+   "size": {
+    "w": 0.8,
+    "h": 2.06,
+    "d": 1.05
+   },
+   "triangles": 228,
+   "bytes": 16544,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -1.05
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "deck_front": 0
+   }
+  },
+  "district_arcade_change_1m": {
+   "file": "district_arcade_change_1m.glb",
+   "batch": "D",
+   "category": "arcade",
+   "size": {
+    "w": 0.7,
+    "h": 1.75,
+    "d": 0.45
+   },
+   "triangles": 296,
+   "bytes": 25552,
+   "nodes": [
+    "district_arcade_change_1m__sign_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.45
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_arcade_stool_1m": {
+   "file": "district_arcade_stool_1m.glb",
+   "batch": "D",
+   "category": "arcade",
+   "size": {
+    "w": 0.4,
+    "h": 0.73,
+    "d": 0.4
+   },
+   "triangles": 184,
+   "bytes": 13116,
+   "nodes": [],
+   "snap": {
+    "base": [
+     0,
+     0,
+     0
+    ],
+    "seat": 0.73
+   }
+  },
+  "district_shop_bookshelf_3m": {
+   "file": "district_shop_bookshelf_3m.glb",
+   "batch": "E",
+   "category": "shop",
+   "size": {
+    "w": 3.0,
+    "h": 2.6,
+    "d": 0.5
+   },
+   "triangles": 1572,
+   "bytes": 111968,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.5
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_shop_counter_8m": {
+   "file": "district_shop_counter_8m.glb",
+   "batch": "E",
+   "category": "shop",
+   "size": {
+    "w": 8.0,
+    "h": 1.7,
+    "d": 1.1
+   },
+   "triangles": 996,
+   "bytes": 78504,
+   "nodes": [
+    "district_shop_counter_8m__screen_0"
+   ],
+   "snap": {
+    "top": 1.07
+   }
+  },
+  "district_shop_gearwall_3m": {
+   "file": "district_shop_gearwall_3m.glb",
+   "batch": "E",
+   "category": "shop",
+   "size": {
+    "w": 3.003,
+    "h": 2.6,
+    "d": 0.35
+   },
+   "triangles": 1720,
+   "bytes": 131308,
+   "nodes": [
+    "district_shop_gearwall_3m__sign_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.35
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_tube_light_2m": {
+   "file": "district_tube_light_2m.glb",
+   "batch": "E",
+   "category": "shop",
+   "size": {
+    "w": 2.0,
+    "h": 0.51,
+    "d": 0.22
+   },
+   "triangles": 156,
+   "bytes": 14288,
+   "nodes": [
+    "district_tube_light_2m__light_0"
+   ],
+   "snap": {
+    "top": 0.5
+   }
+  },
+  "district_pod_facade_3m": {
+   "file": "district_pod_facade_3m.glb",
+   "batch": "F",
+   "category": "pods",
+   "size": {
+    "w": 2.56,
+    "h": 1.66,
+    "d": 0.22
+   },
+   "triangles": 592,
+   "bytes": 30964,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.22
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "opening": {
+     "centre": [
+      1.28,
+      0.83
+     ],
+     "radii": [
+      1.05,
+      0.64
+     ]
+    }
+   }
+  }
+ }
+}

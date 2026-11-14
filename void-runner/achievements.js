@@ -4,6 +4,7 @@
   {id:'district-first-visit',name:'District Arrival',description:'Visit The Darknet District.',icon:'◇',category:'district',condition:{event:'location_discovered',field:'location',equals:'darknet-district',count:1},hidden:false,rarity:null,reward:null},
   {id:'blackout-score',name:'Blackout Specialist',description:'Reach a verified Blackout Protocol score.',icon:'◆',category:'arcade',condition:{event:'arcade_score_verified',field:'game',equals:'blackout-protocol',count:1},hidden:false,rarity:null,reward:null},
   {id:'rook-three-runs',name:'Reliable Courier',description:'Complete three cargo missions for Rook.',icon:'◈',category:'district',condition:{event:'cargo_mission_completed',field:'giver',equals:'rook',count:3},hidden:false,rarity:null,reward:null},
+  {id:'tropical-100-fish',name:'Catch 100 Fish',description:'Catch 100 fish in Tropical Escape.',icon:'◍',category:'arcade',condition:{event:'vr_fish_landed',field:'world',equals:'tropical',count:100},hidden:false,rarity:null,reward:null},
   {id:'official-shirt',name:'District Supporter',description:'Purchase an official District T-shirt.',icon:'✦',category:'merchandise',condition:{event:'merchandise_purchase_verified',field:'product',equals:'official-shirt',count:1},hidden:false,rarity:null,reward:null}
  ]);
  const categories=Object.freeze(['all','merchandise','district','arcade','community']);

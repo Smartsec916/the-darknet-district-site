@@ -93,7 +93,7 @@
     else if(id==='chimes'){k.ring=4;[1568,1760,2093,2349,2637].forEach((f,i)=>setTimeout(()=>api.sfx(f,1.6,'sine',.05),i*180));}},
    setOption(key,val){if(key==='birds')api.audioSet('birdLevel',val==='off'?0:val==='low'?.4:1);if(key==='water')k.waterLevel=val==='soft'?.4:1;if(key==='beams')k.beams=val==='on';}};
  }
- VoidVR.register({id:'forest',title:'Relax in a Forest',status:'ready',station:1,tint:'linear-gradient(135deg,#1d3b22,#5c8a3a)',preview:'void-runner/assets/vr/sky/forest.jpg',
+ VoidVR.register({id:'forest',shared:true,title:'Relax in a Forest',status:'ready',station:1,tint:'linear-gradient(135deg,#1d3b22,#5c8a3a)',preview:'void-runner/assets/vr/sky/forest.jpg',
   description:'A quiet forest with woodland paths, a stream and a waterfall, a sunlit clearing, birds and butterflies. Sit, rest, listen.',
   defaults:{birds:'high',water:'normal',beams:'on'},settings:[{key:'birds',label:'Birdsong',values:[['high','Lively'],['low','Quiet'],['off','Off']]},{key:'water',label:'Stream',values:[['normal','Clear'],['soft','Soft']]},{key:'beams',label:'Sunbeams',values:[['on','On'],['off','Off']]}],
   ambience:()=>({wind:.05,leaves:.02,water:true,birds:true}),layout,build});
