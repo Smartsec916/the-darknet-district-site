@@ -224,10 +224,11 @@ class ReliabilityTests(unittest.TestCase):
                 self.assertEqual(run.returncode,code,run.stdout+run.stderr)
 
     def test_export_excludes_secrets_account_ids_and_player_data(self):
-        self.save(self.mission);self.db.data['vr_players/someone']={'credits':999,'email':'player@example.com'}
+        self.save(self.mission);self.db.data['vr_players/someone']={'credits':999,'email':'player@example.com','marker':'PLAYER_DATA_MARKER_QZ'}
         with patch.dict(os.environ,{'STRIPE_SECRET_KEY':'sk_test_DO_NOT_EXPORT','OPENAI_API_KEY':'sk-DO_NOT_EXPORT'}):
             text=json.dumps(self.call('/export').json)
-        for secret in [EDITOR,'DO_NOT_EXPORT','player@example.com','999','vr_players']:self.assertNotIn(secret,text)
+        # A unique marker stands for the player's data: a short digit string such as '999' can appear by chance in the export's timestamps and hashes (it failed CI at random).
+        for secret in [EDITOR,'DO_NOT_EXPORT','player@example.com','PLAYER_DATA_MARKER_QZ','vr_players']:self.assertNotIn(secret,text)
         self.assertIn(drafts.owner_key(EDITOR),text)
 
     # ---- Authorization ----
