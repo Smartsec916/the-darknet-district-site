@@ -1,6 +1,6 @@
 {
  "version": 1,
- "note": "Source of truth for the character creator. Ids only: no file paths are ever accepted from a player or the server. character-catalog.js is generated from this file by tools/assets/build-character-catalog.cjs (a test checks they match). The same file is read by void_runner_api.py to validate appearances.",
+ "note": "Source of truth for the character creator. Ids only: no file paths are ever accepted from a player or the server. character-catalog.js is generated from this file by tools/assets/build-character-catalog.cjs (a test checks they match). The same file is read by void_runner_api.py to validate appearances. Accessories whose id starts with \"gear-\" are the cyberpunk gear parts (assets/models/gear): a look lists them with no mesh names because they are separate files skinned to the shared skeleton. None is ever a default.",
  "bases": {
   "male": {
    "label": "MALE",
@@ -29,7 +29,11 @@
     ],
     "eyewear": [
      "district_smuggler.shades0"
-    ]
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
    },
    "defaultAccessories": [
     "hat",
@@ -62,7 +66,11 @@
    "accessories": {
     "eyewear": [
      "hacker_01.visor0"
-    ]
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
    },
    "defaultAccessories": [
     "eyewear"
@@ -92,7 +100,11 @@
      "regular_01.mask0",
      "regular_01.mask0.slit0",
      "regular_01.mask0.slit1"
-    ]
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
    },
    "defaultAccessories": [
     "mask"
@@ -123,7 +135,11 @@
     ],
     "mask": [
      "vesper_trader.mask0"
-    ]
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
    },
    "defaultAccessories": [
     "hat"
@@ -154,7 +170,11 @@
      "district_resident.mask0",
      "district_resident.mask0.slit0",
      "district_resident.mask0.slit1"
-    ]
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
    },
    "defaultAccessories": [
     "mask"
@@ -186,7 +206,11 @@
    "accessories": {
     "collar": [
      "ncz_neon.collar0"
-    ]
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
    },
    "defaultAccessories": [
     "collar"
@@ -214,7 +238,11 @@
    "accessories": {
     "eyewear": [
      "fixer_01.shades0"
-    ]
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
    },
    "defaultAccessories": [
     "eyewear"
@@ -241,7 +269,11 @@
    "accessories": {
     "mask": [
      "outlaw_01.mask0"
-    ]
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
    },
    "defaultAccessories": [],
    "hairOk": [
@@ -268,7 +300,11 @@
     ],
     "collar": [
      "cyborg_01.collar1"
-    ]
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
    },
    "defaultAccessories": [
     "eyewear",
@@ -297,7 +333,11 @@
    "accessories": {
     "eyewear": [
      "vesper_pilot.shades0"
-    ]
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
    },
    "defaultAccessories": [
     "eyewear"
@@ -325,7 +365,11 @@
    "accessories": {
     "eyewear": [
      "meridian_bartender.shades0"
-    ]
+    ],
+    "gear-visor": [],
+    "gear-collar": [],
+    "gear-shoulders": [],
+    "gear-chest": []
    },
    "defaultAccessories": [
     "eyewear"
@@ -356,6 +400,22 @@
   },
   "collar": {
    "label": "COLLAR"
+  },
+  "gear-visor": {
+   "label": "VISOR",
+   "gear": true
+  },
+  "gear-collar": {
+   "label": "TECH COLLAR",
+   "gear": true
+  },
+  "gear-shoulders": {
+   "label": "SHOULDER PLATES",
+   "gear": true
+  },
+  "gear-chest": {
+   "label": "CHEST LIGHT",
+   "gear": true
   }
  },
  "hair": {
