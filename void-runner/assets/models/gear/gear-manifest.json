@@ -108,13 +108,13 @@
    "bone": "mixamorig:LeftShoulder",
    "anchor": "mixamorig:LeftArm",
    "scaleBy": "span",
-   "triangles": 56,
+   "triangles": 60,
    "size": [
-    0.111,
-    0.028,
+    0.094,
+    0.032,
     0.099
    ],
-   "bytes": 24720,
+   "bytes": 24748,
    "glow": true
   },
   "pauldron_R_m": {
@@ -124,13 +124,13 @@
    "bone": "mixamorig:RightShoulder",
    "anchor": "mixamorig:RightArm",
    "scaleBy": "span",
-   "triangles": 56,
+   "triangles": 60,
    "size": [
-    0.111,
-    0.028,
+    0.094,
+    0.032,
     0.099
    ],
-   "bytes": 24724,
+   "bytes": 24752,
    "glow": true
   },
   "chest_line_m": {
@@ -188,13 +188,13 @@
    "bone": "mixamorig:LeftShoulder",
    "anchor": "mixamorig:LeftArm",
    "scaleBy": "span",
-   "triangles": 56,
+   "triangles": 60,
    "size": [
-    0.085,
-    0.023,
+    0.063,
+    0.022,
     0.075
    ],
-   "bytes": 24536,
+   "bytes": 24564,
    "glow": true
   },
   "pauldron_R_f": {
@@ -204,13 +204,13 @@
    "bone": "mixamorig:RightShoulder",
    "anchor": "mixamorig:RightArm",
    "scaleBy": "span",
-   "triangles": 56,
+   "triangles": 60,
    "size": [
-    0.085,
-    0.023,
+    0.063,
+    0.022,
     0.075
    ],
-   "bytes": 24536,
+   "bytes": 24564,
    "glow": true
   },
   "chest_line_f": {

@@ -31,3 +31,9 @@ Status: built and integrated locally on branch `claude/character-gear`. **Not pu
 3. **Hub:** the same catalog file in `tools/district-hub/appearance/` (plus the byte-identical `character-appearance.js`, whose only change is the creator's option list), then a manual redeploy. The hub validates and forwards the appearance as it is: its messages do not limit the list (the longest possible appearance is about 215 bytes).
 4. Order: API and hub first, then the pages (or all at once); a player who saves gear before the servers know it keeps it on their own device only. A player on an old cached page who receives a gear appearance sees the plain model for that player (safe fallback), not a crash.
 5. Two real signed-in accounts to confirm one sees the other's gear.
+
+## Final fit checks (14 Nov 2026)
+
+- Shoulder plates lie on the top of the shoulder between neck and arm, in four slices that follow the measured slope of each body, weighted 100% to the collarbone. Weighting them to the arm made them stick up like antennae when the arm swings; a flat plate over the arm joint floated. Both were caught in close-ups and animation screenshots, not by the vertex numbers alone.
+- A full set is 576 triangles in 2 meshes (visor 216, collar 216, two plates 60 each, chest line 24 counted per body). Measured with the software renderer, eight characters wearing all four pieces cost about 24 more draw calls than eight without gear (about 3 per character); removing the gear returns to the baseline.
+- Clipping (11 outfits x 4 pieces x talk/sit/walk/dance): no piece floats (plate to body mean distance at most 3.3 cm); a few shoulder cases dip a few millimetres into a sleeve in sit or walk, hidden under the plate's own thickness.

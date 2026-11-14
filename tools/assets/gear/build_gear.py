@@ -27,13 +27,13 @@ BODIES = {
              'head': {'hw': .090, 'front': .137, 'back': .074, 'eye': .109, 'top': .215},
              'neck': {'rx': .056, 'rz': .054, 'cy': -.040, 'collar_y': .016},
              'chest': {'front': .176, 'y': .085, 'half': .105},
-             'shoulder': {'r': .066, 'rise': .051}},
+             'shoulder': {'r': .066, 'rise': .051, 'u': (-.095, -.005), 'top': [(-.10, .026), (-.08, .033), (-.06, .044), (-.04, .051), (-.02, .053), (0, .053)]}},
     'female': {'file': 'district-resident', 'suffix': 'f',
                'joints': {'Head': (0.004, 1.155, 0.036), 'Neck': (0.004, 1.108, 0.021), 'Spine2': (0.004, 0.993, 0.021), 'LeftArm': (0.146, 1.091, 0.034), 'RightArm': (-0.137, 1.090, 0.031)},
                'head': {'hw': .075, 'front': .104, 'back': .060, 'eye': .081, 'top': .169},
                'neck': {'rx': .042, 'rz': .040, 'cy': -.026, 'collar_y': .012},
                'chest': {'front': .121, 'y': .066, 'half': .078},
-               'shoulder': {'r': .050, 'rise': .040}},
+               'shoulder': {'r': .050, 'rise': .040, 'u': (-.065, -.005), 'top': [(-.08, .012), (-.06, .018), (-.04, .025), (-.02, .030), (0, .033)]}},
 }
 SHELL, GLOW = 'gear_shell', 'gear_glow'
 
@@ -167,16 +167,31 @@ def collar(B):
     return p
 
 
+def _top(prof, u):
+    """Height of the body's shoulder top above the arm joint at distance u outward (measured on the shipped character files, rest pose)."""
+    for (ua, za), (ub, zb) in zip(prof, prof[1:]):
+        if u <= ub:
+            return za + (zb - za) * max(0.0, (u - ua) / (ub - ua))
+    return prof[-1][1]
+
+
 def pauldron(B, side):
-    """One low, slightly angled plate over the shoulder with a hair-fine lit edge on its outer side."""
+    """A low plate lying on the top of the shoulder between the neck and the arm (the trapezius), in four slices that follow the measured slope, with a hair-fine lit edge on its outer side.
+    It is weighted to the collarbone, which moves little, so it keeps its gap in every animation; it does not extend over the deltoid, which swings with the arm."""
     s = B['shoulder']
-    r, rise = s['r'], s['rise']
+    prof = s['top']
+    ua0, ub0 = s['u']
     p = Part()
-    w, d, t = r * 1.7, r * 1.5, .007
-    x = side * (.020 + w * .12)
-    roll = side * -.20
-    p.box((x, 0, rise + .012), (w, d, t), 0, bevel=.002, rot=(0, roll, 0))
-    p.box((x + side * w * .5 * math.cos(roll), 0, rise + .012 - side * w * .5 * math.sin(roll) * -1), (.0015, d * .94, .0035), 1, rot=(0, roll, 0))
+    d, t = s["r"] * 1.5, .006
+    n, clear = 4, .009
+    z = 0.0
+    for k in range(n):
+        ua, ub = ua0 + (ub0 - ua0) * k / n, ua0 + (ub0 - ua0) * (k + 1) / n
+        za, zb = _top(prof, ua) + clear + t / 2, _top(prof, ub) + clear + t / 2
+        th = math.atan2(za - zb, ub - ua)
+        p.box((-side * (ua + ub) / 2 * -1, 0, (za + zb) / 2), (math.hypot(ub - ua, za - zb) * 1.12, d, t), 0, rot=(0, side * th, 0))
+        z, th_last, ue = zb, th, ub
+    p.box((-side * ue * -1, 0, z), (.0015, d * .94, .0035), 1, rot=(0, side * th_last, 0))
     return p
 
 

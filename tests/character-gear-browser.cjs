@@ -80,12 +80,12 @@ const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',shots=process.env.
     for(const clipName of use){
      const grp=groupsOf(ch).find(g=>g.name.endsWith('-'+clipName));if(!grp)continue;
      for(const g of groupsOf(ch))g.stop();grp.play(false);grp.pause();
-     const from=grp.from,to=grp.to,frames=quick?4:6;let worstIn=0,worstMin=1e9,worstFar=0;
+     const from=grp.from,to=grp.to,frames=quick?4:6;let worstIn=0,worstMin=1e9,worstFar=0,worstMean=0;
      for(let f=0;f<frames;f++){grp.goToFrame(from+(to-from)*f/frames);
       for(const sk of new Set(ch.meshes().filter(m=>m.skeleton).map(m=>m.skeleton))){for(const bn of sk.bones)bn.getTransformNode?.()?.computeWorldMatrix(true);sk.prepare(true);}
       const now=measure(concat(gear.map(m=>skin(m,false))),concat(bodyMeshes().map(m=>skin(m,false))));
-      worstIn=Math.max(worstIn,now.inside);worstMin=Math.min(worstMin,now.min);worstFar=Math.max(worstFar,now.mean-rest.mean);}
-     out.push({look,gearId,clip:clipName,restMin:rest.min,restInside:rest.inside,minDist:worstMin,inside:worstIn,drift:worstFar,verts:rest.nv});
+      worstIn=Math.max(worstIn,now.inside);worstMin=Math.min(worstMin,now.min);worstFar=Math.max(worstFar,now.mean-rest.mean);worstMean=Math.max(worstMean,now.mean);}
+     out.push({look,gearId,clip:clipName,restMin:rest.min,restInside:rest.inside,minDist:worstMin,inside:worstIn,drift:worstFar,restMean:rest.mean,worstMean,verts:rest.nv});
     }
    }
    ch.dispose();holder.dispose();
@@ -96,11 +96,11 @@ const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',shots=process.env.
  fs.writeFileSync(path.join(shots||'.','gear-clip-report.json'),JSON.stringify(clip,null,1));
  const errsC=clip.filter(r=>r.error);assert.equal(errsC.length,0,'every gear piece loads: '+JSON.stringify(errsC.slice(0,3)));
  // resting fit: no piece may start more than 4 cm from the body it is worn on (before the fit existed, outfits on smaller bodies had gear floating 10 to 14 cm away)
- const floaty=clip.filter(r=>r.clip&&r.restMin>.04);
+ const floaty=clip.filter(r=>r.clip&&(r.restMin>.04||r.worstMean>.05));
  const bad=clip.filter(r=>r.clip&&(r.inside-r.restInside>Math.max(8,r.verts*.08)||(r.minDist<Math.min(r.restMin*.5,.002)-1e-6&&r.restMin>.002)||r.drift>.03)).concat(floaty.map(r=>({...r,clip:'REST '+r.clip})));
  const looks=new Set(clip.map(r=>r.look)),clips=new Set(clip.filter(r=>r.clip).map(r=>r.clip));
  console.log('4. clipping measured: '+clip.filter(r=>r.clip).length+' (outfit x piece x clip) cases over '+looks.size+' outfits, clips: '+[...clips].join(', '));
- console.log('   flagged:',bad.length);for(const r of bad.slice(0,40))console.log('   ',r.look,r.gearId,r.clip,'restMin',r.restMin.toFixed(4),'minDist',r.minDist.toFixed(4),'newlyInside',r.inside-r.restInside,'drift',r.drift.toFixed(3));
+ console.log('   flagged:',bad.length);{const sh=clip.filter(r=>r.gearId==='gear-shoulders'&&r.clip);const by={};for(const r of sh){const k=r.look;by[k]=Math.max(by[k]||0,r.worstMean);}console.log('   shoulder plates: worst mean distance to body (m) per outfit',JSON.stringify(Object.fromEntries(Object.entries(by).map(([k,v])=>[k,+v.toFixed(3)]))));}for(const r of bad.slice(0,40))console.log('   ',r.look,r.gearId,r.clip,'restMin',r.restMin.toFixed(4),'minDist',r.minDist.toFixed(4),'newlyInside',r.inside-r.restInside,'drift',r.drift.toFixed(3));
 
  // (screenshots, toggles, saving and the cost measurements are in tests/character-gear-creator-browser.cjs)
  assert.deepEqual(errs,[],'no page errors');
