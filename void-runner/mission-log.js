@@ -68,7 +68,7 @@
  // New campaigns since the mission reset (David, 2026-11-03) carry this flag. Older saves never do, so their missions are untouched.
  const closed=s=>s?.story?.flags?.missionPool==='closed';
  function available(s,id){const d=definitions[id];if(!d)return true;const requirements=d.prerequisites||[];return requirements.every(key=>s.universe?.missions?.[key]?.completed===true)&&Object.entries(d.storyFlags||{}).every(([key,value])=>s.story?.flags?.[key]===value)&&Object.entries(d.factionFlags||{}).every(([key,value])=>(s.progression?.reputation?.[key]||0)>=value)&&(!d.availability?.locations||d.availability.locations.includes(s.location));}
- function acquire(s,id){if(closed(s)||!safeId(id)||(!records(s)[id]&&!available(s,id)))return null;const entries=records(s);return entries[id]??={acquired:true,completed:false,objectives:{}};}
+ function acquire(s,id){if((closed(s)&&definitions[id]?.beginner!==true)||!safeId(id)||(!records(s)[id]&&!available(s,id)))return null;const entries=records(s);return entries[id]??={acquired:true,completed:false,objectives:{}};}
  function finish(s,id,entry){
   if(entry.completed&&s.universe.trackedMission===id){s.universe.trackedMission=null;s.universe.autoTrack=true;}
  }

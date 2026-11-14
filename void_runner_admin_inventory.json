@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "24b385a67632d62f",
+  "revision": "38923d83adf3eeb6",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11646,6 +11646,72 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/beginner.js",
+      "line": 4,
+      "text": "STATUS: PROPOSED (David has not approved this story content; CLAUDE.md). All mission and dialogue text here is UNREVIEWED placeholder wording in the established voices of Admin",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/beginner.js",
+      "line": 12,
+      "text": "const you=text=>({who:'You',text}),admin=text=>({who:'Admin',text}),iris=text=>({who:'Iris',text});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/beginner.js",
+      "line": 19,
+      "text": "{id:'speak',label:'Speak with Admin at the counter',on:'talk-admin',interaction:'admin',say:[admin('You’re the new face. Good. The District doesn’t hand out favors, but it does hand out work.'),admin('Iris keeps the contracts. Do a few honest errands for her and we’ll talk about getting you off the ground.')]}]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/beginner.js",
+      "line": 24,
+      "text": "{id:'report',label:'Report back to Iris',on:'talk-iris',requires:['bar','shop'],interaction:'district-iris',early:[iris('Bar and shop first. Then come back and tell me what you saw.')],say:[iris('Quiet bar, open shop, nobody losing their temper. Good eyes.'),iris('Here. A hundred credits. Don’t spend it all in one place.')]}]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/beginner.js",
+      "line": 27,
+      "text": "{id:'collect',label:'Collect the parcel from Iris',on:'talk-iris',interaction:'district-iris',say:[iris('Sealed, tamper-proof, and none of your business. Landing Terminal, out on the street. I want the receipt.')]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/beginner.js",
+      "line": 28,
+      "text": "{id:'deliver',label:'Deliver the parcel to the Landing Terminal on the street',on:'use-terminal',requires:['collect'],interaction:'terminal',say:[{who:'Landing terminal',text:'PARCEL ACCEPTED. RECEIPT PRINTED.'}]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/beginner.js",
+      "line": 29,
+      "text": "{id:'return',label:'Bring the receipt back to Iris',on:'talk-iris',requires:['deliver'],interaction:'district-iris',say:[iris('Receipt checks out. Two hundred and fifty, as promised. You’re reliable. That’s rarer than you’d think.')]}]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/beginner.js",
+      "line": 32,
+      "text": "{id:'ask',label:'Ask Admin about transport',on:'talk-admin',interaction:'admin',say:[admin('A runner without a ship is just a pedestrian. Pad 01 has a courier hull the District keeps for people who finish what they start.'),admin('You’ve finished things. No fee, no strings. Iris clears the paperwork. Don’t scratch it.')]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/beginner.js",
+      "line": 33,
+      "text": "{id:'clearance',label:'Get your pad clearance from Iris',on:'talk-iris',requires:['ask'],interaction:'district-iris',early:[iris('Admin first. He likes to hand these over himself.')],say:[iris('Clearance filed. Pad 01 answers to you now. The Landing Terminal on the street will register the hull.')]}]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/beginner.js",
+      "line": 36,
+      "text": "{id:'claim',label:'Register the courier hull at the Landing Terminal',on:'use-terminal',interaction:'terminal',award:'ship',say:[{who:'Landing terminal',text:'COURIER HULL REGISTERED TO YOU. PAD 01 UNLOCKED.'}]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/beginner.js",
+      "line": 71,
+      "text": "out.mission=m.id;out.objective=o.id;out.lines=o.say||null;",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/character-catalog.js",
       "line": 2,
       "text": "(function(r){r.VoidCharacterCatalog={\"version\":1,\"note\":\"Source of truth for the character creator. Ids only: no file paths are ever accepted from a player or the server. character-catalog.js is generated from this file by tools/assets/build-character-catalog.cjs (a test checks they match). The same file is read by void_runner_api.py to validate appearances. Accessories whose id starts with \\\"gear-\\\" are the cyberpunk gear parts (assets/models/gear): a look lists them with no mesh names because they are separate files skinned to the shared skeleton. None is ever a default.\",\"bases\":{\"male\":{\"label\":\"MALE\",\"height\":1.78,\"eyeHeight\":1.68,\"note\":\"Standard heights in metres. The body is scaled uniformly (never stretched) so its top of head equals this value; eye height places the camera. Change here to retune; nothing else needs editing.\"},\"female\":{\"label\":\"FEMALE\",\"height\":1.66,\"eyeHeight\":1.55}},\"looks\":{\"district-smuggler\":{\"base\":\"male\",\"model\":\"district-smuggler\",\"label\":\"SMUGGLER\",\"preset\":true,\"outfit\":\"district_smuggler.male_casualsuit01\",\"shoes\":\"district_smuggler.shoes03\",\"nativeHair\":\"district_smuggler.short04\",\"accessories\":{\"hat\":[\"district_smuggler.fedora_cocked\"],\"eyewear\":[\"district_smuggler.shades0\"],\"gear-visor\":[],\"gear-collar\":[],\"gear-shoulders\":[],\"gear-chest\":[]},\"defaultAccessories\":[\"hat\",\"eyewear\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"legacy\":{\"gender\":\"male\",\"model\":\"district-smuggler\"},\"body\":\"district_smuggler.body\"},\"hacker-01\":{\"base\":\"male\",\"model\":\"hacker-01\",\"label\":\"NETRUNNER\",\"outfit\":\"hacker_01.male_casualsuit05\",\"shoes\":\"hacker_01.shoes03\",\"nativeHair\":\"hacker_01.short02\",\"accessories\":{\"eyewear\":[\"hacker_01.visor0\"],\"gear-visor\":[],\"gear-collar\":[],\"gear-shoulders\":[],\"gear-chest\":[]},\"defaultAccessories\":[\"eyewear\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"hacker_01.body\"},\"regular-01\":{\"base\":\"male\",\"model\":\"regular-01\",\"label\":\"WORKER\",\"outfit\":\"regular_01.male_worksuit01\",\"shoes\":\"regular_01.shoes03\",\"nativeHair\":\"regular_01.short03\",\"accessories\":{\"mask\":[\"regular_01.mask0\",\"regular_01.mask0.slit0\",\"regular_01.mask0.slit1\"],\"gear-visor\":[],\"gear-collar\":[],\"gear-shoulders\":[],\"gear-chest\":[]},\"defaultAccessories\":[\"mask\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"regular_01.body\"},\"vesper-trader\":{\"base\":\"male\",\"model\":\"vesper-trader\",\"label\":\"TRADER\",\"outfit\":\"vesper_trader.male_casualsuit03\",\"shoes\":\"vesper_trader.shoes01\",\"nativeHair\":\"vesper_trader.short02\",\"accessories\":{\"hat\":[\"vesper_trader.fedora01\"],\"mask\":[\"vesper_trader.mask0\"],\"gear-visor\":[],\"gear-collar\":[],\"gear-shoulders\":[],\"gear-chest\":[]},\"defaultAccessories\":[\"hat\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"vesper_trader.body\"},\"district-resident\":{\"base\":\"female\",\"model\":\"district-resident\",\"label\":\"RESIDENT\",\"preset\":true,\"outfit\":\"district_resident.female_sportsuit01\",\"shoes\":\"district_resident.shoes04\",\"nativeHair\":\"district_resident.braid01\",\"accessories\":{\"mask\":[\"district_resident.mask0\",\"district_resident.mask0.slit0\",\"district_resident.mask0.slit1\"],\"gear-visor\":[],\"gear-collar\":[],\"gear-shoulders\":[],\"gear-chest\":[]},\"defaultAccessories\":[\"mask\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"legacy\":{\"gender\":\"female\",\"model\":\"district-resident\"},\"body\":\"district_resident.body\"},\"ncz-neon\":{\"base\":\"female\",\"model\":\"ncz-neon\",\"label\":\"NEON\",\"outfit\":\"ncz_neon.female_sportsuit01\",\"shoes\":\"ncz_neon.shoes05\",\"nativeHair\":\"ncz_neon.long01\",\"accessories\":{\"collar\":[\"ncz_neon.collar0\"],\"gear-visor\":[],\"gear-collar\":[],\"gear-shoulders\":[],\"gear-chest\":[]},\"defaultAccessories\":[\"collar\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"ncz_neon.body\"},",
@@ -12211,31 +12277,31 @@
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 134,
+      "line": 137,
       "text": "const tabs='<div class=\"pd-tabs\">'+tab('chat','DISTRICT CHAT',un?(un>99?'99+':un):'')+tab('players','PLAYERS','')+tab('talk','CONVERSATIONS','')+tab('dm','PRIVATE','')+'</div>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 139,
+      "line": 142,
       "text": "return tabs+'<div class=\"pd-note\">People you have talked to in this browser. Not synced.</div>'+(rows.length?rows.slice(-40).reverse().map(m=>'<div class=\"pd-line\"><b>'+esc(m.name)+'</b><span class=\"pd-note\">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class=\"pd-empty\">No conversations yet. People you talk to appear here.</div>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 145,
+      "line": 148,
       "text": "+'<form data-chatform class=\"pd-compose\"><input type=\"text\" maxlength=\"200\" autocomplete=\"off\" aria-label=\"Chat message\" placeholder=\"'+(can?'Say something to the District (no links)':'Chat needs a registered account and a connection')+'\"'+(can?'':' disabled')+'><button type=\"submit\"'+(can?'':' disabled')+'>SEND</button></form>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 198,
+      "line": 201,
       "text": "el.addEventListener('submit',e=>{const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 331,
+      "line": 334,
       "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
       "kind": "source-reference"
     },
@@ -13417,103 +13483,103 @@
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 116,
+      "line": 117,
       "text": "arrive=function(){const previous=state.location,quest=state.quest;solHandover=null;worldArrive();if(!['arrival','dialogue'].includes(mode)||state.location===previous&&state.quest===quest)return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 117,
+      "line": 118,
       "text": "const lines=speech?.lines.slice(),label=speech?.label;speech=null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 127,
+      "line": 128,
       "text": "renderLine=function(){worldRenderLine();if(walkingLocation){screen.dataset.scene='';screen.classList.remove('cinematic');screen.querySelectorAll('.portrait').forEach(el=>el.remove());/* A conversation in a station is in person: name the place. Only comms calls and messages are transmissions. */const eyebrow=screen.querySelector('.scene-heading .eyebrow');if(eyebrow&&!/comms|message|transmission/i.test(speech?.heading||''))eyebrow.textContent=globalThis.VoidVR?.active?'VR · '+VoidVR.session.exp.title.toUpperCase():(C.stations[state.location]?.name||'').toUpperCase();}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 137,
+      "line": 138,
       "text": "talk('',[{who:'rook',text:'Client confirmed the drop. Here’s your pay.'}],()=>{announce('PAYMENT RECEIVED · '+paid.toLocaleString()+' credits · ROOK FREIGHT RUN #'+owed.number+' COMPLETE');rookFreightOffer();},'NEXT →','Rook’s booth');return;}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 139,
+      "line": 140,
       "text": "talk('',[{who:'rook',text:'The '+r.cargo.toLowerCase()+' are still in your hold. '+place(r.destination)+' is waiting on them.'}],resumeWalking,'RETURN TO STATION');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 141,
+      "line": 142,
       "text": "if(r.kind!=='legacy')screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',button('HAND THE CARGO BACK','rook-cancel',true));return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 142,
+      "line": 143,
       "text": "if(state.contract){talk('',[{who:'rook',text:'Finish the job you are carrying. Then come see me.'}],resumeWalking,'RETURN TO STATION');return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 147,
+      "line": 148,
       "text": "talk('',[{who:'rook',text:lead+(r.number===1?' Admin is over in Tessaly if you want other work. '+key+' opens your Mission Log.':'')}],resumeWalking,'NOT NOW','Rook’s booth');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 148,
+      "line": 149,
       "text": "speech.shown=speech.lines[0].text.length;$('speech-next').style.display='none';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 149,
+      "line": 150,
       "text": "screen.querySelector('.dialogue-window')?.classList.add('choice-menu');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 150,
+      "line": 151,
       "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class=\"rook-board\">'+jobs+'</ul>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 151,
+      "line": 152,
       "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',board.map(j=>button(j.units>free?'NO HOLD SPACE · '+j.label.toUpperCase():'TAKE '+j.label.toUpperCase()+' →','rook-job:'+j.kind,false,j.units>free)).join('')+button('NOT NOW','walk-resume',true));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 154,
+      "line": 155,
       "text": "if(a.startsWith('rook-job:')){speech=null;globalThis.VoidAudio?.cancel?.();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 157,
+      "line": 158,
       "text": "else if(a==='rook-cancel'){speech=null;globalThis.VoidAudio?.cancel?.();if(C.cancelRook(state)){VoidMissions.sync(state,C);save();announce('Rook’s crew takes the cargo back. No pay, no hard feelings.');}resumeWalking();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 166,
+      "line": 167,
       "text": "talk('',[{who:item.character,text:texts[item.character]}],resumeWalking,'RETURN TO STATION');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 212,
+      "line": 213,
       "text": "if(!['play','walking','dock','dialogue'].includes(mode))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 223,
+      "line": 224,
       "text": "addEventListener('keydown',e=>{if(e.code===(VoidInput.bindings.missionLog||'KeyL')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){if(!['play','walking','dock','dialogue','mission-log'].includes(mode))return;e.preventDefault();if(!e.repeat)openMissionLog();}if(e.code==='Escape'&&missionPanel){e.preventDefault();closeMissionLog();}});",
       "kind": "source-reference"
     },
@@ -13602,9 +13668,11 @@
     "void-runner/babylon-renderer.js": "7c5b257fb4c420d6b725f2c7c0148b31987f19d83d8c91a82eed82f7e3863413",
     "void-runner/balance-data.js": "ebc76bb374885f015ae60a86864e8701bba194e5d3ce09fb321dd52cedabe16c",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
+    "void-runner/beginner-integration.js": "8019484f53161f4aed93c14a72421fdfd4b3a8dc945653fdb8f05c9790fa9439",
+    "void-runner/beginner.js": "044da011f80d1bb3d8333c37b86f7f09273491c593d2ec20a8f3eb3e6bf6690c",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "a796e718fbe982cbdbec26e66705c8dfce47f9b3882a671244400cd48437bb4e",
-    "void-runner/campaign.js": "f541695f3894cc467505c215245a8f0fffd8548f93a696d61714e339a7a3d7d3",
+    "void-runner/campaign.js": "c23f196c9af4db0f78db63d2be8a0240e7a717610863b1d668815aa01e1479b4",
     "void-runner/character-appearance.js": "d58fa411096616436c9fdc54af4ac3090568117e53ca6c8c988a248906e2ed0d",
     "void-runner/character-assembler.js": "139786b714776693401dad56c0dd53e51318740a56606e713216cd2a27b5bf0a",
     "void-runner/character-catalog.js": "fa91d8fa3aa8372373ca0d9e5a50c95e02d93f12b4d766df4be0c1e9157fa3a3",
@@ -13625,7 +13693,7 @@
     "void-runner/crowd.js": "7f99de7204d51d1c70aa1dc9db1f462b62ac368baca7efd3c50452b2e4a3ce62",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
-    "void-runner/dev-test.js": "fe2ee383ca0ae2227dc944eea2d1ae1c4d7922e60c8719f1a7fa78fc3ae4ffa7",
+    "void-runner/dev-test.js": "4583e5683e8c37ba25bf04bf9b0816ef93030c79b3c0a099532c97ca193e65cd",
     "void-runner/dev-tools.js": "8fc329454a6ed8a22bf93e8721eeffca11b1276ccf0eb3676b90c67c58781974",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
     "void-runner/device-portraits.js": "390549763346c7202b1f16c85c873828baf5b3e8b05dc326a2dcde2cc264374f",
@@ -13673,7 +13741,7 @@
     "void-runner/meridian-kitbash.js": "5e1efc2246631b5e37507d12fc23206b5ac8838fa8d0b1b34302a8fa2d5b7ebb",
     "void-runner/meridian-station.js": "2ecbbeec490597999c1a11e4c918a694f8e82673944100fe04e6657180556526",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
-    "void-runner/mission-log.js": "da6545bba6a9536dedbd50fc675b61d943b78f7044d785330db2e78e1befcd44",
+    "void-runner/mission-log.js": "a441c9382c2c393ebcefb482956a9b3aafa0e06391b884207af5912f6c041f2e",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
     "void-runner/mouse-control.js": "af8df4b620bba30d4cc4ce2dcfb3a0a8766f143f18bd388c52ba0f5412eadf5e",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
@@ -13690,7 +13758,7 @@
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "4172df44fc02d43d56016c17c76bc6af4daa80edcc1c5200be582903d7075a19",
-    "void-runner/personal-device.js": "c491d759019319393e4a10069112bd4bf9071416b81205740bf6510f5a3dc918",
+    "void-runner/personal-device.js": "5d04252f66f6b53551df11bf1381117fb541cf79f70dbda9d7ffe893ea085796",
     "void-runner/personal-hud.js": "1ca0e48b3d144a0a2ffed8e3202f98322a060541b8127de2ee48469ed2606776",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
@@ -13699,7 +13767,7 @@
     "void-runner/police-patrol.js": "97e6f52dfaab4797addd3ed3184ce321b9f314b894d6cf69a8dbf51571b8839b",
     "void-runner/police-patrols.js": "2d9e4804ce9fed613295f24f81571185c83bf22341f5fddd89cc8f72c41077a5",
     "void-runner/preparation.js": "d4cd81b11203b5727a1192a8a5138b02fe6e1570d7310215526e3ddc4ce0502f",
-    "void-runner/progression.js": "2350090515fb4942fa72b198380f3dcd960251f2d54955abaf689a57ab630b24",
+    "void-runner/progression.js": "6edd038eabf146b9e05c7787ffc3aefd3ee475d8a8f8da9a597e792b5e322ab4",
     "void-runner/prologue-integration.js": "73b6689dec3977c05f5e318d1a24024f2f2d1b70a18cc838d1a5d9640665f800",
     "void-runner/radio.js": "a9d04c53cfb34748f9c30054ffdb28f02a5fb87114883c71149b691e0ff5c313",
     "void-runner/relay-radio.js": "5ce31904c15f630a01d00f51d566d66ae97c736d5734d7531835588714269806",
@@ -13744,7 +13812,7 @@
     "void-runner/warflying-scanner.js": "3234988837d0ca2ab0fec7bdb730d923c679fd50ff883569c2f7f568406a00ed",
     "void-runner/warflying.js": "e3a319a7538e4df7e014be7ccb50b32bb2b0cf6cbcfe10ccfca2e46edb013a4f",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "570a820b7591c12c27b41848f135d02de47553dcaa11561c711e30e46d84cccd",
+    "void-runner/world-integration.js": "471f2c1150e6ec9ae7c036525b5e18ac4a45a6ba36249c0413852ff3cabef0a8",
     "void-runner/world-markers.js": "44347bce6208e455b16ba76da2b328903c2f77e0cba457d0de14b0af882b047c",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "tools/admin-inventory.cjs": "4b545f1e29bc40745983ecd5a113f20926a6f73b52a1b4ed4c2e8106df0a4ed0",
