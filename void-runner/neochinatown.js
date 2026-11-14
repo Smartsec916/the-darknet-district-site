@@ -924,7 +924,7 @@
 
     // Coloured light pools for the interior and street.
     const lights=[];const point=(p,c,i,r)=>{const l=new B.PointLight('ncz-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=target;lights.push(l);};
-    if(!low){point([0,3,23],'#9be8ff',.6,8);point([-10,3,36],'#38e8ff',.9,14);point([10,3,36],'#ffb347',1.4,14);point([13,3,33],'#ff8a5c',.9,10);point([10,3,48],'#c9b4ff',1.5,12);point([14,3,51],'#38e8ff',.8,8);point([-10,3,62],'#ff5bd0',.6,12);point([38,4,68],'#ffb347',.6,14);point([-1.3,3.2,40],'#ffb070',34,20);point([1.3,3.2,60],'#7fe6dc',30,20);}   // the hallway's two lamps: amber from the west side, teal from the east (the District's two accent colours). They light only the wall modules' own metals (see the merge below), and a PBR lamp falls off with the square of the distance, hence the large numbers.
+    if(!low){point([0,3,23],'#9be8ff',.6,8);point([-1.3,3.2,40],'#ffb070',34,11);point([1.3,3.2,60],'#7fe6dc',30,11);point([-10,3,36],'#38e8ff',.9,14);point([10,3,36],'#ffb347',1.4,14);point([10,3,48],'#c9b4ff',1.5,12);point([13,3,33],'#ff8a5c',.9,10);point([14,3,51],'#38e8ff',.8,8);point([-10,3,62],'#ff5bd0',.6,12);point([38,4,68],'#ffb347',.6,14);}   // the hallway's two lamps: amber from the west side, teal from the east (the District's two accent colours). They come straight after the vestibule lamp because a material takes only the scene's first 8 lights (ambient, sun and six of these): at the end of the list they lit nothing. The two that now fall off the end, the bar's and the shop's second accent lamps, were the weakest. A PBR lamp falls off with the square of the distance, hence the large numbers; the short range keeps them out of the rooms.
     return {lights,terminal,vrTick,podScreen,arcade};})();
     if(!wantInterior){seed=SEAMS[1];target=districtRoot;}else if(area==='all'&&seed!==SEAMS[1])console.warn('[NeoChinatown] random state after the interior changed; update SEAMS');
 
@@ -1023,9 +1023,9 @@
     for(const [m,b] of batches){const mesh=new B.Mesh('ncz-batch',scene),vd=new B.VertexData();vd.positions=b.p;vd.normals=b.n;vd.uvs=b.u;vd.indices=b.i;vd.applyToMesh(mesh);mesh.material=m;mesh.parent=parent;mesh.isPickable=false;}
     // Merge static meshes by material to keep draw calls low.
     for(const [m,list] of staticMeshes)if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(merged){merged.parent=parent;merged.material=m;merged.isPickable=false;
-     // A material takes only the scene's first 8 lights, and the hallway's two lamps are the last of 12, so they lit nothing. The wall modules' own metals are used only in the hallway:
-     // take the room lamps (which stand behind walls) off those meshes and the hallway lamps reach them.
-     if(/^ncz-kit_(gunmetal|steel|paint)$/.test(m.name))for(const l of lights.slice(1,-2))l.excludedMeshes.push(merged);}}
+     // The wall modules' own metals are used only in the hallway:
+     // take the room lamps (which stand behind walls) off those meshes.
+     if(/^ncz-kit_(gunmetal|steel|paint)$/.test(m.name))for(const l of lights.slice(3))l.excludedMeshes.push(merged);}}
     let lastTick=null;
     function atmosphere(time,dt){const cam=scene.activeCamera?.globalPosition,inClub=!!cam&&!!clubCtl&&clubCtl.inside(cam),inside=inClub||!!cam&&(zone({x:cam.x,z:cam.z}).area==='district'||MK.inside(cam));applyLook(inside&&!inClub);const sky=inClub?clubSky:inside?indoor:outdoor,key=inClub?'club':inside?'district':'street';
      if(ambient){ambient.intensity+=(sky.intensity-ambient.intensity)*Math.min(1,dt*3);if(key!==wasInside){if(sky.diffuse)ambient.diffuse=sky.diffuse;if(sky.ground&&ambient.groundColor)ambient.groundColor=sky.ground;wasInside=key;}}
