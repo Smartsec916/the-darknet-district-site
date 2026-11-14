@@ -68,6 +68,8 @@
   // Meeting room (east, z 56..69); its door stays shut unless Admin opens it.
   wall('meet-north',3,56,15,56);wall('meet-east',15,56,15,69);wall('meet-south',3,69,15,69);
   solids.push({id:'meeting-door',position:[3,1.6,62.5],size:[.3,3.2,4]});
+  // The shop's stock cage: a wire-mesh partition across the room behind Admin and Iris (David, Nov 2026). Staff only: nobody walks through it. Drawn by the shop, not as a wall.
+  solids.push({id:'shop-storage-partition',position:[10,1.7,51.75],size:[13.4,3.4,.14]});
   // Furniture that blocks movement.
   for(const [id,x,z,w,d] of [['bar-counter',10,38.5,9,1.1],['shop-counter',10,47.2,8,1.1],['meeting-table',9,62.5,4,2.4],['pods-row',0,76.9,13,2.6]])solids.push({id,position:[x,.6,z],size:[w,1.2,d]});
   // Hallway clutter that blocks movement (2026-11-13): two crate stacks and two benches against the walls, clear of every doorway.
@@ -790,6 +792,21 @@
     if(!shopKit){box('shop-shelf',[6.4,2.6,.6],[11,1.3,43.55],frame);for(let k=0;k<4;k++)box('shelf-goods',[5.8,.25,.4],[11,.5+k*.6,43.75],[cyan,amber,violet,magenta][k]);}
     box('admin-workstation',[2,.9,1],[8,.45,50.8],frame);plane('admin-screen',1.6,.9,[8,1.5,51.3],texMat('admin-screen',texture('admin-screen',256,144,(g,W,H)=>{g.fillStyle='#04060a';g.fillRect(0,0,W,H);g.fillStyle='#38e8ff';g.font='12px monospace';for(let i=0;i<9;i++)g.fillText(['> trace sovereign','> relay: tessaly-07','> badge db sync','> iris.status OK','> mainframe 98%','> firewall ACTIVE','> cams 12/12','> vend restock','> _'][i],8,16+i*14);}),{glow:true}),0);
     plane('shop-holo',1.6,2.4,[10,2.6,52.8],adMat('helix'),0);
+    // The stock cage behind Admin and Iris (David's store references: wire mesh, racks of boxes, a bare tube, a red lamp). The mesh is one picture with holes in it; posts, rails and a padlocked gate frame it.
+    {const meshTex=texture('shop-mesh',256,256,(g,W,H)=>{g.clearRect(0,0,W,H);g.strokeStyle='rgba(58,62,70,1)';g.lineWidth=2.2;for(let k=0;k<=4;k++){const q=k*W/4;g.beginPath();g.moveTo(q,0);g.lineTo(q,H);g.stroke();g.beginPath();g.moveTo(0,q);g.lineTo(W,q);g.stroke();}});meshTex.hasAlpha=true;meshTex.uScale=13.4/.4;meshTex.vScale=3.3/.4;   // a 10 cm mesh
+     const meshMat=new B.StandardMaterial('ncz-shop-mesh',scene);owned.push(meshMat);meshMat.diffuseTexture=meshTex;meshMat.opacityTexture=meshTex;meshMat.emissiveColor=new B.Color3(.05,.055,.065);meshMat.specularColor=new B.Color3(.12,.12,.13);meshMat.backFaceCulling=false;
+     const cageSteel=mat('shop-cage-steel','#15171b',{rough:.5,metal:.8}),card=mat('shop-cardboard','#6a5236',{rough:.95,metal:0}),crate=mat('shop-crate','#1c2a22',{rough:.8,metal:.2}),Z=51.75;
+     const sheet=plane('shop-storage-mesh',13.4,3.3,[10,1.7,Z],meshMat,0);
+     for(let x=3.3;x<=16.71;x+=2.233)box('shop-cage-post',[.07,3.4,.07],[x,1.7,Z],cageSteel);for(const y of [.06,1.2,3.37])box('shop-cage-rail',[13.4,.06,.06],[10,y,Z],cageSteel);
+     box('shop-cage-gate',[.06,2.1,.09],[14.62,1.05,Z-.03],cageSteel);box('shop-cage-gate',[.06,2.1,.09],[15.58,1.05,Z-.03],cageSteel);box('shop-cage-gate',[1.02,.06,.09],[15.1,2.1,Z-.03],cageSteel);box('shop-cage-lock',[.09,.12,.06],[14.7,1.05,Z-.07],mat('shop-padlock','#8a7a3a',{rough:.4,metal:.9}));
+     plane('shop-cage-sign',.7,.26,[15.1,2.36,Z-.06],texMat('shop-cage-sign',texture('shop-cage-sign',256,96,(g,W,H)=>{g.fillStyle='#0a0b0e';g.fillRect(0,0,W,H);g.strokeStyle='#ff4a36';g.lineWidth=4;g.strokeRect(4,4,W-8,H-8);g.fillStyle='#ff4a36';g.font='bold 34px Consolas,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText('STAFF ONLY',W/2,H/2+2);}),{glow:true}),0);   // a plane's front is -z: it faces the counter
+     // racks of stock against the back wall, inside the cage
+     let q=77;const rnd=()=>(q=(q*1103515245+12345)&0x7fffffff)/0x7fffffff;
+     for(const x0 of [3.6,6.2,8.8]){for(const dx of [0,2.2])box('shop-rack',[.05,2.5,.5],[x0+dx,1.25,52.42],cageSteel);for(const y of [.25,.95,1.65,2.35]){box('shop-rack',[2.2,.04,.5],[x0+1.1,y,52.42],cageSteel);
+       let x=x0+.12;while(x<x0+2.0){const w=.26+rnd()*.34,h=.22+rnd()*.3,d=.3+rnd()*.14;if(x+w>x0+2.14)break;if(y<2.3||h<.4)box('shop-stock',[w,h,d],[x+w/2,y+.02+h/2,52.42],rnd()>.3?card:crate);x+=w+.03+rnd()*.1;}}}
+     for(const [x,z,w,h] of [[4.3,52.0,.5,.4],[5.0,51.98,.42,.32],[4.6,52.02,.4,.3],[15.9,52.2,.6,.5],[16.1,52.25,.46,.36]])box('shop-stock',[w,h,.42],[x,(h===.3||h===.36?(x<10?.4:.5):0)+h/2+.03,z],card);
+     box('hall-door-lamp-body',[.5,.2,.1],[12.7,2.95,52.74],mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8}));{const r=mat('hall-lamp-red','#4a0c08',{glow:'#ff3a22',rough:.4});r.emissiveIntensity=2.2;box('hall-door-lamp',[.38,.12,.06],[12.7,2.95,52.69],r);}
+     if(shopKit)kitPiece('district:tube_light_2m',[6.2,4.05-.51,52.3],0,[],{merge:true});if(typeof lightPool==='function')lightPool('#ff3a22',3,1.6,[12.7,.034,52.2],.4);}
     if(state?.story?.flags?.adminOccupied!==true)characterModel('admin',target,[8,0,48.6],false);characterModel('iris',target,[12.5,0,48.6],false);
 
     // Vending alcove: three lit machines.
