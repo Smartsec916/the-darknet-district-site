@@ -80,12 +80,13 @@ fs.mkdirSync(shots,{recursive:true});
  assert.doesNotMatch(mp.text,/taxi stop · main street/i,'NeoChinatown\'s places are not on this map');
  await shot('15-corporate-map',700);await page.locator('[data-map=all]').click();await shot('16-corporate-map-whole',500);
  await page.keyboard.press('KeyL');await page.waitForFunction(()=>!document.querySelector('#personal-device.open'));
- const exploredBefore=await page.evaluate(()=>VoidBabylon.zone.fog.explored());
+ const exploredBefore=await page.evaluate(()=>VoidBabylon.zone.fog.explored());console.log('fog before leaving',exploredBefore,'periodic flag cells',await page.evaluate(()=>{const f=VoidAreaMap.createFog([-100,100,-100,100],8);f.decode(state.story.flags.corpFog);return f.explored();}));
  // 8. the return cab: free, back where the player left; the fog is saved
  await at(0,-17,SOUTH);assert.equal(await page.evaluate(()=>{const i=walkingLocation.interactions.find(x=>x.id==='corp-cab');return !!i;}),true);
  await page.evaluate(()=>VoidInteractions.handlers.get('corp-cab')({item:{}}));await page.waitForFunction(()=>walkingLocation?.id==='skycab',null,{timeout:200000});await shot('17-return-cab',600);
  await page.waitForFunction(()=>walkingLocation?.id==='neochinatown',null,{timeout:400000}).catch(async e=>{console.error('RETURN STUCK',JSON.stringify(await page.evaluate(()=>({loc:walkingLocation?.id,mode,busy:VoidGraphics.busy,history:VoidSkyCab.controller().history,notice:document.getElementById('notice')?.textContent,screen:document.getElementById('screen')?.innerText?.slice(0,200),flags:{t:state.story.flags.skyCabTrip,r:state.story.flags.cabReturn}}))),JSON.stringify(errs));throw e;});
  const back=await page.evaluate(()=>({pos:[walker.x,walker.z],credits:state.credits,trip:state.story.flags.skyCabTrip||null,ret:state.story.flags.cabReturn||null,fog:state.story.flags.corpFog,area:walkingLocation.area}));
+ console.log('fog after return: cells in saved text',(()=>{const f=require('../void-runner/area-map.js').createFog([-100,100,-100,100],8);f.decode(back.fog);return f.explored();})());
  assert.ok(Math.hypot(back.pos[0]-45,back.pos[1]+12.5)<1.5,'back exactly where they boarded: '+back.pos);assert.equal(back.credits,40,'the return is included: no second fare');assert.equal(back.trip,null);assert.equal(back.ret,null);assert.equal(back.area,'street');assert.ok(typeof back.fog==='string'&&back.fog.length>10&&back.fog.length<200,'the explored map was saved as text');
  // 9. reload: everything is still there (credits, explored map)
  await page.evaluate(()=>save());await page.reload();await page.waitForFunction(()=>window.VoidStartup?.started);await generous();
