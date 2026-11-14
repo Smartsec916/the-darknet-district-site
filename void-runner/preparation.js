@@ -2,7 +2,7 @@
 (function(root){
  // optional: one optional model. assets: a scene's whole model set, loaded in parallel. A first visit on an
  // ordinary home connection needs several seconds for a station's set; later visits come from the cache.
- const limits={module:240000,assets:15000,scene:10000,artwork:3000,optional:10000,total:270000};
+ const limits={module:240000,assets:15000,scene:10000,area:60000,artwork:3000,optional:10000,total:270000};   // area: a large separate area (Corporate District) compiles many shaders on first load
  let current=null;const tasks=new Set();
  async function run(action){
   const controller=new AbortController(),started=performance.now();
