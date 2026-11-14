@@ -15,7 +15,7 @@
    {id:'district',label:'The Darknet District',zone:'alley-mouth'},
    {id:'main',label:'Main Street',zone:'main'},
    {id:'avenue',label:'The avenue',zone:'avenue'},
-   ...N.districts.map(d=>({id:d.id,label:d.name,zone:d.id,placeholder:true}))]}
+   ...N.districts.map(d=>({id:d.id,label:d.name,zone:d.id,placeholder:!!d.placeholder,streams:true}))]}
  };
  const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
  // ctx: {mode, onFoot, area ('street'|'district'|'terrace'), busy, combat, location}. Returns {ok, reason}.

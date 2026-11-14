@@ -9,12 +9,12 @@ test('every street on the map is a street of the layout, at the layout\'s own re
 });
 test('every place on the map exists in the game, where the game has it',()=>{
  const all=new Map([...street.interactions,...interior.interactions].map(i=>[i.id,i]));
- for(const p of m.pois.filter(p=>!/^(entrance|vestibule|taxi-|dev-)/.test(p.id))){const i=all.get(p.id);assert(i,p.id+' is a real interaction');assert.deepEqual([p.x,p.z],[i.position[0],i.position[2]]);}
+ for(const p of m.pois.filter(p=>!/^(entrance|vestibule|taxi-|dev-|milked-)/.test(p.id))){const i=all.get(p.id);assert(i,p.id+' is a real interaction');assert.deepEqual([p.x,p.z],[i.position[0],i.position[2]]);}
  assert.equal(m.pois.filter(p=>/pod/.test(p.id)).length,1,'ten pods are one place on the map');
  for(const t of m.pois.filter(p=>p.id.startsWith('taxi-'))){const z=N.taxiZones.find(z=>'taxi-'+z.id===t.id);assert.deepEqual([t.x,t.z],z.position);}
  const v=by('vestibule'),e=by('entrance');assert(A.centre(N,{x:v.x,z:v.z}),'the vestibule marker is the checkpoint\'s own middle');assert(!A.inVestibule(N,{x:e.x,z:e.z}),'the entrance marker is outside the door');
  assert.equal(by('district-vr').area,'interior');assert.equal(by('board').area,'street');assert.equal(by('district-vr').kind,'vr');assert.equal(by('district-shop').kind,'shop');
- assert.deepEqual(m.buildings.map(b=>b.rect),[N.footprints.district,N.footprints.terrace]);
+ assert.deepEqual(m.buildings.map(b=>b.rect),[N.footprints.district,N.footprints.terrace,N.footprints.milked]);
  assert.equal(m.walls.street.length,street.solids.length);assert.equal(m.walls.interior.length,interior.solids.length);
 });
 test('places that are not built are development-only markers and never reach a player',()=>{

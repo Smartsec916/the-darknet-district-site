@@ -15,16 +15,17 @@
   //   Alley: turns east off the main street; the District door opens off its south side.
   // The District keeps its own plan (the local metres below, door at local 0,20), turned a half turn so its
   // door faces the alley and the hallway runs south. A half turn is its own inverse: toWorld also maps back.
+  const MK=typeof module!=='undefined'?require('./milked.js'):root.VoidMilked;
   const DOOR={x:126.9,z:-61.9};
   const toWorld=(x,z)=>[DOOR.x-x,DOOR.z+20-z];
   const streets={avenue:[2,152,-20,-5],main:[51,71,-124,-20],alley:[71,136,-61.6,-55.5],road:[13,51,-121,-116],passage:[37.5,44,-116,-92],pad:[13,37.5,-106,-86],
     // City expansion (David's brief, 2026-10-27): walkable streets out to three future districts. The neighbourhood above is
     // unchanged; only the avenue's closed ends and the main street's south end now open onto these.
-    avenueWest:[-60,2,-20,-5],corporate:[-120,-60,-40,15],avenueEast:[152,200,-20,-5],milked:[200,240,-30,5],mainSouth:[56,66,-190,-124],containers:[30,100,-250,-190]};
+    avenueWest:[-60,2,-20,-5],corporate:[-120,-60,-40,15],avenueEast:[152,200,-20,-5],milked:[200,212,-30,5],mainSouth:[56,66,-190,-124],containers:[30,100,-250,-190]};
   // Future districts: placeholders until David supplies their designs. Each streams its own detail as you approach.
   const districts=[
     {id:'corporate',name:'Corporate District',lines:['CORPORATE DISTRICT','PLACEHOLDER'],rect:streets.corporate,center:[-90,-12.5],taxi:[-90,-12.5],heading:Math.PI/2,placeholder:true},
-    {id:'milked',name:'Milked',lines:['MILKED','FUTURE LOCATION'],rect:streets.milked,center:[220,-12.5],taxi:[220,-12.5],heading:-Math.PI/2,placeholder:true},
+    {id:'milked',name:'Milked',lines:['MILKED','LIVESTREAM STUDIOS AND BIOBANK'],rect:MK.BOUNDS.rect.map((v,i)=>i===0?200:v),center:[206,-12.5],taxi:MK.TAXI.position,heading:MK.TAXI.heading,placeholder:false,built:true},
     {id:'containers',name:'Container Settlement',lines:['CONTAINER SETTLEMENT','PLACEHOLDER'],rect:streets.containers,center:[65,-220],taxi:[65,-215],heading:0,placeholder:true}];
   // Taxi landing zones: open street wide enough for the cab, clear of doors, the ship and the sidewalk crowd.
   const taxiZones=[{id:'main',name:'Main Street',position:[61,-100],heading:0},{id:'avenue',name:'The avenue',position:[40,-12.5],heading:Math.PI/2},{id:'alley-mouth',name:'Main Street by the alley',position:[61,-66],heading:0},{id:'passage',name:'The passage by the landing pad',position:[40.75,-101],heading:0},
@@ -32,7 +33,7 @@
   // Places with their own walls: the District (with its front wall on the alley) and the roof terrace.
   // The nightclub (ncz-nightclub.js) is on a local server only until its licence is cleared; elsewhere nothing below changes.
   const NC=typeof module!=='undefined'?require('./ncz-nightclub.js'):root.VoidNightclub,club=NC&&NC.enabled()?NC:null;
-  const footprints={district:[109.4,144.4,-120.4,-61.6],terrace:[78.4,99.4,-116.4,-95.4],...(club?{club:club.RECT}:{})};
+  const footprints={district:[109.4,144.4,-120.4,-61.6],terrace:[78.4,99.4,-116.4,-95.4],milked:MK.FOOTPRINT,...(club?{club:club.RECT}:{})};
   const inside=([x0,x1,z0,z1],x,z,m=0)=>x>=x0-m&&x<=x1+m&&z>=z0-m&&z<=z1+m;
   // Where a world point is: the streets, the District interior or the terrace (music, comms and tests use this).
   function zone(p){const [lx,lz]=toWorld(p.x,p.z);if(inside(footprints.terrace,p.x,p.z))return {area:'terrace',x:lx,z:lz};if(inside(footprints.district,p.x,p.z,.01)&&lz>=19.8)return {area:'district',x:lx,z:lz};return {area:'street',x:p.x,z:p.z};}
@@ -120,10 +121,10 @@
     const placed=solids.map(s=>{const [x,z]=toWorld(s.position[0],s.position[2]);return {...s,position:[x,s.position[1],z],size:s.size.slice()};});
     const items=interactions.map(i=>{const [x,z]=toWorld(i.position[0],i.position[2]);return {...i,position:[x,i.position[1],z]};});
     return {id:'neochinatown',name:'NEOCHINATOWN / TESSALY',kind:'city',district:true,bounds:[260,270],spawn:[31,1.7,-96],yaw:2.44,color:'#3a2f4a',music:'earth',ship:'starter',
-    solids:[...placed,...(club?club.solids():[]),...cityBlocks.map(s=>({...s,position:s.position.slice(),size:s.size.slice()})),{id:'ship',shipHull:true,position:[22,2,-96],size:[3.6,4,10.5]}],
+    solids:[...placed,...(club?club.solids():[]),...MK.solids(),...cityBlocks.map(s=>({...s,position:s.position.slice(),size:s.size.slice()})),{id:'ship',shipHull:true,position:[22,2,-96],size:[3.6,4,10.5]}],
     interactions:[{id:'board',label:'BOARD YOUR SHIP',position:[27,1.7,-98],action:'board',range:3.5,when:{notFlags:{shipAccess:'none'}}},{id:'terminal',label:'LANDING TERMINAL',position:[34.5,1.7,-103],action:'terminal',range:3},
      // The club's bar (ncz-nightclub.js), when the club is there.
-     ...(club?[{id:'club-bar',label:'ORDER A DRINK',position:[club.BUILT.bar.x,1.7,club.BUILT.bar.z],action:'club-bar',range:2.4}]:[]),...items],signs:[]};}
+     ...(club?[{id:'club-bar',label:'ORDER A DRINK',position:[club.BUILT.bar.x,1.7,club.BUILT.bar.z],action:'club-bar',range:2.4}]:[]),...MK.interactions(),...items],signs:[]};}
   // The layout of one environment. 'all' is the original combined layout. The entrance (outer door, front wall, vestibule, inner door and
   // scanner) belongs to both 'street' and 'interior', so the player stands in the same vestibule when one replaces the other.
   const ENTRANCE=new Set(['district-door','district-inner-door','district-front-west','district-front-east','vestibule-west','vestibule-east']);
@@ -935,7 +936,7 @@
     // Each district's own detail is built when the camera comes within 90 m and disposed beyond 140 m. The streets, walls
     // and surrounding buildings are always there. A placeholder holds no game state, so loading it again changes nothing.
     const city={live:new Map(),loads:0,unloads:0};
-    function placeholder(d){const node=new B.TransformNode('district-'+d.id,scene),own=[];node.parent=parent;
+    function placeholder(d){if(d.id==='milked'&&MK.create)return MK.create({B,scene,parent,quality,assets:root.VoidAssets});const node=new B.TransformNode('district-'+d.id,scene),own=[];node.parent=parent;
      const [x0,x1,z0,z1]=d.rect,cx=(x0+x1)/2,cz=(z0+z1)/2,face=d.id==='corporate'?[x0+.4,cz,-Math.PI/2]:d.id==='milked'?[x1-.4,cz,Math.PI/2]:[cx,z0+.4,Math.PI];
      const t=new B.DynamicTexture('ncz-district-sign-'+d.id,{width:1024,height:256},scene,true),g=t.getContext();g.fillStyle='#07090c';g.fillRect(0,0,1024,256);g.strokeStyle='#5ff2ff';g.lineWidth=6;g.strokeRect(8,8,1008,240);g.textAlign='center';g.textBaseline='middle';
      g.fillStyle='#e8f4f6';g.font='bold 78px Consolas,monospace';g.fillText(d.lines[0],512,100);g.fillStyle='#f2b33d';g.font='bold 44px Consolas,monospace';g.fillText(d.lines[1],512,186);t.update();
@@ -1020,11 +1021,12 @@
     // Merge static meshes by material to keep draw calls low.
     for(const [m,list] of staticMeshes)if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(merged){merged.parent=parent;merged.material=m;merged.isPickable=false;}}
     let lastTick=null;
-    function atmosphere(time,dt){const cam=scene.activeCamera?.globalPosition,inClub=!!cam&&!!clubCtl&&clubCtl.inside(cam),inside=inClub||!!cam&&zone({x:cam.x,z:cam.z}).area==='district';applyLook(inside&&!inClub);const sky=inClub?clubSky:inside?indoor:outdoor,key=inClub?'club':inside?'district':'street';
+    function atmosphere(time,dt){const cam=scene.activeCamera?.globalPosition,inClub=!!cam&&!!clubCtl&&clubCtl.inside(cam),inside=inClub||!!cam&&(zone({x:cam.x,z:cam.z}).area==='district'||MK.inside(cam));applyLook(inside&&!inClub);const sky=inClub?clubSky:inside?indoor:outdoor,key=inClub?'club':inside?'district':'street';
      if(ambient){ambient.intensity+=(sky.intensity-ambient.intensity)*Math.min(1,dt*3);if(key!==wasInside){if(sky.diffuse)ambient.diffuse=sky.diffuse;if(sky.ground&&ambient.groundColor)ambient.groundColor=sky.ground;wasInside=key;}}
      // Haze: thicker and violet inside the club, the street's teal fog everywhere else.
      if(clubCtl){const f=Math.min(1,dt*2),d=inClub?.017:previous.fogDensity===undefined?.0028:.0028;scene.fogDensity+=(d-scene.fogDensity)*f;scene.fogColor=B.Color3.Lerp(scene.fogColor,inClub?new B.Color3(.1,.04,.15):new B.Color3(.075,.155,.17),f);clubCtl.tick(cam,dt,time);}
      streamDistricts(cam);
+     city.live.get('milked')?.tick?.(cam,dt,time);
      if(weather?.rain&&cam){weather.rain.emitter.x=cam.x;weather.rain.emitter.z=cam.z;weather.rain.emitRate=inside?0:weather.rainRate;}
      for(const fl of weather?.flickers||[]){if(fl.off>0){fl.off-=dt;if(fl.off<=0)for(const m of fl.meshes)m.isVisible=true;}else if(time>fl.next){fl.off=.05+Math.random()*.12;fl.next=time+2+Math.random()*7;for(const m of fl.meshes)m.isVisible=false;}}
      for(const s of screens)if(time>s.next){s.mesh.material=adMat(nextAd());s.next=time+9+Math.random()*4;}}
@@ -1052,5 +1054,5 @@
    'ncz:building5':{src:'assets/models/ncz/building5.vrpak'},'ncz:storefronts':{src:'assets/models/ncz/storefronts.vrpak'}};
   // The models one environment needs: the street's city pack, or the District's furniture and VR players.
   function modelsFor(area='all'){if(area==='all')return models;const street=k=>k.startsWith('ncz:'),entry=k=>k.startsWith('entry:');return Object.fromEntries(Object.entries(models).filter(([k])=>entry(k)||(area==='street'?street(k):!street(k))));}
-  const api={layout,layoutByArea,build,models,modelsFor,toWorld,zone,streets,footprints,door:DOOR,districts,taxiZones,cityBox,arcade:ARCADE};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
+  const api={layout,layoutByArea,build,models,modelsFor,toWorld,zone,streets,footprints,milked:MK,door:DOOR,districts,taxiZones,cityBox,arcade:ARCADE};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
 })(globalThis);
