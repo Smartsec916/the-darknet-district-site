@@ -276,3 +276,90 @@ def build_all(out):
     os.makedirs(out, exist_ok=True)
     for make in SETS.values():
         make(out)
+
+
+# ---------------------------------------------------------------- District wall metals ----------------------------------------------------------------
+# Three shared sets for the District's Blender-made wall modules (district_hall_wall_4m_a and later pieces): dark gunmetal plate, bare worn steel and chipped
+# petrol-blue paint. They are deliberately CALM: broad tonal drift, a few rust blooms, a few drip stains and hairline scratches, not an even layer of noise.
+# The pieces add their own wear on top with vertex colours (bright worn edges, dark recesses, floor grime), so one small set serves every piece.
+def _spectral(n, seed, beta, ax=1.0, ay=1.0, lo=1.0):
+    """Tileable filtered noise, 0..1. beta: how smooth; ax/ay stretch it (ay large = long vertical streaks); lo: the largest feature, in cycles per tile."""
+    rng = np.random.default_rng(seed)
+    spec = np.fft.rfft2(rng.standard_normal((n, n)))
+    fy = np.fft.fftfreq(n, 1.0 / n)[:, None]
+    fx = np.fft.rfftfreq(n, 1.0 / n)[None, :]
+    f = np.sqrt((fx * ax) ** 2 + (fy * ay) ** 2)
+    filt = np.maximum(f, lo) ** (-beta / 2.0)
+    filt[0, 0] = 0.0
+    out = np.fft.irfft2(spec * filt, s=(n, n))
+    a, b = np.percentile(out, (1, 99))
+    return np.clip((out - a) / (b - a), 0, 1)
+
+
+def _step(e0, e1, x):
+    t = np.clip((x - e0) / (e1 - e0), 0, 1)
+    return t * t * (3 - 2 * t)
+
+
+def _hairlines(n, seed, count=46):
+    """A few thin scratches, mostly along and across the plate, drawn so they wrap at the tile's edges. 0..1."""
+    from PIL import ImageDraw, ImageFilter
+    rng = np.random.default_rng(seed)
+    im = Image.new('L', (n, n), 0)
+    draw = ImageDraw.Draw(im)
+    for _ in range(count):
+        x, y, length = rng.uniform(0, n), rng.uniform(0, n), rng.uniform(.02, .16) * n
+        a = rng.choice([0, np.pi / 2]) + rng.normal(0, .12)
+        dx, dy, shade = np.cos(a) * length, np.sin(a) * length, int(rng.uniform(90, 255))
+        for ox in (-n, 0, n):
+            for oy in (-n, 0, n):
+                draw.line((x + ox, y + oy, x + dx + ox, y + dy + oy), fill=shade, width=1)
+    return np.asarray(im.filter(ImageFilter.GaussianBlur(.6)), dtype=float) / 255
+
+
+def _wall_masks(n, seed):
+    low, mid, fine = _spectral(n, seed, 3.2, lo=1.0), _spectral(n, seed + 1, 2.4, lo=5.0), _spectral(n, seed + 2, 1.0, lo=48.0)
+    brushed = _spectral(n, seed + 3, 1.2, ax=.03, ay=6.0, lo=3.0)                                        # faint horizontal mill lines
+    rust = _step(.90, .985, _spectral(n, seed + 4, 3.0, lo=2.0)) * (.35 + .65 * _step(.35, .7, fine))      # a few blooms, speckled at the edges
+    drip = _step(.82, .97, _spectral(n, seed + 5, 3.0, ax=.5, ay=12.0, lo=3.0)) * _step(.35, .7, low)    # a few vertical stains
+    scratch = _hairlines(n, seed + 6)
+    return low, mid, fine, brushed, rust, drip, scratch
+
+
+def _wall_metal(out, name, tint, scratch_tint, seed, rough0, metal0, n=1024):
+    low, mid, fine, brushed, rust, drip, scratch = _wall_masks(n, seed)
+    value = (.86 + .28 * low) * (.96 + .08 * mid) * (.98 + .04 * brushed)
+    color = np.array(tint)[None, None, :] * value[..., None]
+    color = color * (1 - .55 * drip[..., None])
+    color = color * (1 - rust[..., None]) + np.array([92, 56, 38]) * (.75 + .5 * fine)[..., None] * rust[..., None]
+    color = color * (1 - .7 * scratch[..., None]) + np.array(scratch_tint)[None, None, :] * (.7 * scratch[..., None])
+    _save(out + '/%s_color.png' % name, color.clip(0, 255))
+    rough = rough0 + .16 * (low - .5) + .06 * (brushed - .5) + .32 * drip + .38 * rust - .16 * scratch
+    metalness = metal0 * (1 - .6 * drip - .85 * rust) + (1 - metal0) * scratch      # not a mirror: oxidised plate with bare metal only where it is scratched
+    _save(out + '/%s_orm.png' % name, _orm(.86 + .14 * mid, rough.clip(.14, .96), metalness.clip(0, 1)))
+    _save(out + '/%s_normal.png' % name, _normal(.12 * brushed + .10 * mid + .8 * rust * fine - 1.2 * scratch, 1.0))
+
+
+def gunmetal(out, n=1024):
+    _wall_metal(out, 'kit_gunmetal', (86, 92, 102), (176, 178, 182), 301, .5, .55, n)
+
+
+def steel(out, n=1024):
+    _wall_metal(out, 'kit_steel', (150, 152, 156), (206, 206, 208), 331, .4, .72, n)
+
+
+def paint(out, n=1024):
+    low, mid, fine, brushed, rust, drip, scratch = _wall_masks(n, 361)
+    chip = np.maximum(_step(.86, .9, _spectral(n, 371, 2.6, lo=4.0)) * _step(.35, .6, _spectral(n, 372, 2.0, lo=10.0)), scratch)   # paint knocked off in a few places
+    under = np.array([150, 150, 152]) * (.85 + .3 * fine)[..., None]
+    value = (.86 + .28 * low) * (.96 + .08 * mid)
+    color = np.array([40, 84, 98])[None, None, :] * value[..., None] * (1 - .5 * drip[..., None])
+    color = color * (1 - chip[..., None]) + under * chip[..., None]
+    color = color * (1 - .6 * rust[..., None] * chip[..., None]) + np.array([104, 54, 30]) * (.6 * rust * chip)[..., None]
+    _save(out + '/kit_paint_color.png', color.clip(0, 255))
+    rough = (.6 + .16 * (low - .5) + .25 * drip) * (1 - chip) + .36 * chip
+    _save(out + '/kit_paint_orm.png', _orm(.86 + .14 * mid, rough.clip(.14, .96), (.8 * chip * (1 - .6 * drip)).clip(0, 1)))
+    _save(out + '/kit_paint_normal.png', _normal(.10 * mid + .05 * fine - 1.2 * chip, 1.0))
+
+
+INTERIOR_SETS = {'kit_gunmetal': gunmetal, 'kit_steel': steel, 'kit_paint': paint}

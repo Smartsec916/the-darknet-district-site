@@ -65,6 +65,21 @@
    "color": "textures/kit_cab_color.png",
    "normal": "textures/kit_cab_normal.png",
    "orm": "textures/kit_cab_orm.png"
+  },
+  "kit_gunmetal": {
+   "color": "textures/kit_gunmetal_color.png",
+   "normal": "textures/kit_gunmetal_normal.png",
+   "orm": "textures/kit_gunmetal_orm.png"
+  },
+  "kit_steel": {
+   "color": "textures/kit_steel_color.png",
+   "normal": "textures/kit_steel_normal.png",
+   "orm": "textures/kit_steel_orm.png"
+  },
+  "kit_paint": {
+   "color": "textures/kit_paint_color.png",
+   "normal": "textures/kit_paint_normal.png",
+   "orm": "textures/kit_paint_orm.png"
   }
  },
  "ticker": {
@@ -811,6 +826,59 @@
       1.05,
       0.64
      ]
+    }
+   }
+  },
+  "district_hall_services_4m": {
+   "file": "district_hall_services_4m.glb",
+   "batch": "W",
+   "category": "hallway",
+   "size": {
+    "w": 4.0,
+    "h": 1.05,
+    "d": 0.18
+   },
+   "triangles": 172,
+   "bytes": 17784,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.18
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_hall_wall_4m_a": {
+   "file": "district_hall_wall_4m_a.glb",
+   "batch": "W",
+   "category": "hallway",
+   "size": {
+    "w": 4.0,
+    "h": 3.0,
+    "d": 0.2
+   },
+   "triangles": 3044,
+   "bytes": 225052,
+   "nodes": [
+    "district_hall_wall_4m_a__accent_0",
+    "district_hall_wall_4m_a__lamp_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.2
+     ],
+     "note": "put the back on the wall plane"
+    },
+    "tile": {
+     "axis": "x",
+     "pitch": 4.0
     }
    }
   }
