@@ -1757,7 +1757,76 @@ def hall_services_4m(p):
     p.snap.update({'mount': {}})
 
 
+def _w_services(p, W, z0, y0=.02):
+    """The pipe band of hall_services_4m, any width, stood on top of a wall at height z0 (its front sits y0 behind the wall's front)."""
+    t = lambda k=1.0: W_FLAT * k * p.rng.uniform(.9, 1.1)
+    _w_box(p, (0, .17 + y0, z0), (W, .2, z0 + 1.05), 'kit_gunmetal', W_FLAT * .6, bevel=0)
+    _w_box(p, (0, .02 + y0, z0), (W, .2, z0 + .05), 'kit_steel', t(.9), bevel=0)
+    for y, z, r in ((.1, .10, .045), (.1, .34, .08), (.11, .58, .035)):
+        _w_tone(p, p.cyl((0, y + y0, z0 + z), (W, y + y0, z0 + z), r, 'kit_steel', seg=8, caps=False), t(1.1))
+    _w_box(p, (W / 2 - .03, .02 + y0, z0 + .05), (W / 2 + .03, .2, z0 + .72), 'kit_steel', t(), bevel=.004)
+    _w_box(p, (0, .04 + y0, z0 + .85), (W, .2, z0 + 1.05), 'kit_steel', t(.85), bevel=0)
+
+
+def hall_wall_k(W, kind):
+    """The container wall in the older modules' sizes (2 m and 1 m wide, the full 4.05 m with its pipe band), so every wall still wearing the first hallway lining
+    can take the hallway standard. kind: a plain with a conduit, b a junction box, c a small louvred vent, d a caged white lamp."""
+    def make(p):
+        _w_start(p)
+        rng = p.rng
+        t = lambda k=1.0: W_FLAT * k * rng.uniform(.9, 1.1)
+        YB = .08
+        _w_box(p, (0, YB, 0), (W, .2, 3), 'kit_gunmetal', W_FLAT * .6, bevel=0)
+        _w_prism(p, [(YB, 0), (0, 0), (0, .24), (.03, .30), (YB, .30)], 'x', 0, W, 'kit_gunmetal', t(.95))
+        _w_prism(p, [(YB, 3), (0, 3), (0, 2.80), (.03, 2.72), (YB, 2.72)], 'x', 0, W, 'kit_gunmetal', t(.9))
+        _w_prism(p, [(0, YB), (0, 0), (.05, 0), (.07, .02), (.07, YB)], 'z', .30, 2.72, 'kit_gunmetal', t())
+        _w_prism(p, [(W, YB), (W, 0), (W - .05, 0), (W - .07, .02), (W - .07, YB)], 'z', .30, 2.72, 'kit_gunmetal', t())
+        _w_corrugated(p, .07, W - .07, .30, 2.72, .030, .076, 'kit_paint', W_FLAT * 1.05, pitch=.266)
+        for z in (.36, 2.66):
+            _w_box(p, (.07, .030, z - .02), (W - .07, YB, z + .02), 'kit_gunmetal', t(.9), bevel=.004)
+        _w_tone(p, p.cyl((0, .020, 2.52), (W, .020, 2.52), .018, 'kit_steel', seg=8, caps=False), t(1.15))
+        _w_box(p, (W / 2 - .02, .0, 2.475), (W / 2 + .02, .040, 2.645), 'kit_steel', t(), bevel=.003)
+        if kind == 'b':
+            _w_box(p, (W / 2 - .13, .004, 1.5), (W / 2 + .13, .072, 1.86), 'kit_gunmetal', t(1.05), bevel=.004)
+            _w_tone(p, p.cyl((W / 2 + .06, .02, 1.855), (W / 2 + .06, .02, 2.52), .014, 'kit_steel', seg=8, caps=False), t(1.15))
+            p.box((W / 2 - .08, .001, 1.56), (W / 2 + .08, .004, 1.572), 'kit_emissive', bevel=0, node='accent_0', region='neon_amber')
+        elif kind == 'c':
+            x0, x1 = W / 2 - .36, W / 2 + .36
+            _w_panel(p, x0 - .05, x1 + .05, 1.75, 2.35, .030, .075, [(x0, x1, 1.80, 2.30, .030, W_WELL)], 'kit_gunmetal', t(.9))
+            for i in range(6):
+                zt = 2.285 - i * .08
+                _w_prism(p, [(.057, zt), (.033, zt - .040), (.033, zt - .052), (.057, zt - .012)], 'x', x0, x1, 'kit_steel', W_FLAT * .7, bevel=0)
+        elif kind == 'd':
+            _w_box(p, (W / 2 - .08, .010, 1.96), (W / 2 + .08, .040, 2.20), 'kit_steel', t(.85), bevel=.004)
+            for z in (2.02, 2.08, 2.14):
+                _w_box(p, (W / 2 - .085, .0, z - .006), (W / 2 + .085, .012, z + .006), 'kit_steel', t(), bevel=0)
+            p.box((W / 2 - .065, .004, 1.975), (W / 2 + .065, .010, 2.185), 'kit_emissive', bevel=0, node='lamp_0', region='neon_white')
+        _w_services(p, W, 3.0, .0)
+        _w_paint(p)
+        p.snap.update({'mount': {}})
+    return make
+
+
+def hall_pilaster_k(p):
+    """The half-metre column of the container walls: a dark steel post, no light slot (the hallway standard has no neon strips), a small red lamp at head height."""
+    _w_start(p)
+    t = lambda k=1.0: W_FLAT * k * p.rng.uniform(.9, 1.1)
+    D, H = .28, HALL_H
+    _w_box(p, (.05, .012, 0), (.45, D, H), 'kit_gunmetal', t(.8), bevel=.012)
+    _w_box(p, (0, 0, 0), (.5, D, .2), 'kit_gunmetal', t(.95), bevel=.008)
+    _w_box(p, (0, 0, 3.8), (.5, D, H), 'kit_gunmetal', t(.9), bevel=.008)
+    for z in (.9, 1.8, 2.7):
+        _w_box(p, (.02, .0, z), (.48, .014, z + .05), 'kit_steel', t(), bevel=.003)
+    for x in (.09, .41):
+        for z in (.45, 1.35, 2.25, 3.2):
+            _w_tone(p, p.cyl((x, .014, z), (x, .004, z), .012, 'kit_steel', seg=6), W_FLAT * 1.35)
+    _w_paint(p)
+    p.snap.update({'mount': {}})
+
+
 INTERIOR = {
+    'district_hall_wall_2m_ka': ('W', 'hallway', hall_wall_k(2, 'a')), 'district_hall_wall_2m_kb': ('W', 'hallway', hall_wall_k(2, 'b')), 'district_hall_wall_2m_kc': ('W', 'hallway', hall_wall_k(2, 'c')),
+    'district_hall_wall_2m_kd': ('W', 'hallway', hall_wall_k(2, 'd')), 'district_hall_wall_1m_k': ('W', 'hallway', hall_wall_k(1, 'a')), 'district_hall_pilaster_05m_k': ('W', 'hallway', hall_pilaster_k),
     'district_hall_wall_4m_a': ('W', 'hallway', hall_wall_4m), 'district_hall_services_4m': ('W', 'hallway', hall_services_4m),
     'district_hall_header_4m': ('B', 'hallway', hall_header(4)), 'district_hall_header_5m': ('B', 'hallway', hall_header(5)), 'district_hall_header_6m': ('B', 'hallway', hall_header(6)),
     'district_prop_crates_1m': ('B', 'hallway', prop_crates), 'district_prop_bench_2m': ('B', 'hallway', prop_bench),
