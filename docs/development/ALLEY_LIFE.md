@@ -35,3 +35,11 @@ Rubbish bags, drums, a pallet stack and crate seats against the walls; two bare 
 
 - Sound: no alley ambience or murmured conversation was added (there are no voice assets for it, and voices are not invented).
 - Named "tier 3" characters: none here; that needs David's approval of who they are.
+
+## Nov 2026 (David): four people at the most, always a drunk; the alley dressed after his reference
+
+- `PEOPLE` in `ncz-alley.js` is now four: **a drunk** (every quality tier; sways and lurches on the spot; takes any ready look at once if their own is slow, so they are always there), the watcher, the smoker, and from Medium the sitter. The table above is history.
+- Nobody walks through: the nightlife lane `alley` has weight 0 (`ncz-nightlife.js`).
+- Dressing (`neochinatown.js`, "The alley after David's reference"): two pink and two cyan tube lights in bent steel hoods with their colour on the brick and the ground; stencil art (anarchy mark, gas mask, raised fist, dripping skull); a fire in an oil drum by the alley mouth; dumpster lids, ribs, wheels and stickers; cans; two louvred vents; a steel service door with a lamp. It uses its own random numbers, not the seeded `rand()`.
+- Reference: a wet brick alley, pink and cyan tubes, red and white graffiti ("NO CORPORATE CONTROL", "FREEDOM ≠ OBEDIENCE", "THE SYSTEM LIES"), a burning drum, a stickered dumpster with bin bags, steam from a grate, a NeoChinatown sign and lanterns at the far end. The slogans in the game are the earlier ones; David's wording was not copied in.
+- Pictures: `docs/development/hall-wall/alley-*.jpg` (software renderer, dark).

@@ -11,12 +11,14 @@ test('everyone stands on open ground against a wall or on the crates: out of the
   assert(Math.abs(p.z-A.LANE.z)>A.LANE.half,p.id+' leaves the lane free');}
  for(const a of A.PEOPLE)for(const b of A.PEOPLE)if(a!==b)assert(Math.hypot(a.x-b.x,a.z-b.z)>.9,a.id+' and '+b.id+' do not stand inside each other');
 });
-test('more people on higher settings; each has a look that can do what they are doing, and neighbours differ',()=>{
- const n=q=>A.plan(q,clipsOf).length;assert(n('low')<n('medium')&&n('medium')<n('high'));assert.equal(n('high'),A.PEOPLE.length);assert(n('low')>=3);
+test('four people at the most, a drunk on every setting; each has a look that can do what they are doing, and neighbours differ',()=>{
+ const n=q=>A.plan(q,clipsOf).length;assert(n('low')<=n('medium')&&n('medium')<=n('high'));assert.equal(n('high'),A.PEOPLE.length);assert(n('low')>=3);assert(A.PEOPLE.length<=4,'never more than four in the alley');
+ for(const q of ['low','medium','high','ultra']){const who=A.plan(q,clipsOf);assert(who.length<=4);const drunk=who.find(p=>p.drunk);assert(drunk,'a drunk is there on '+q);assert.equal(drunk.clip,'drink');}
  const high=A.plan('high',clipsOf);for(const p of high){assert(A.CAST.includes(p.look));assert(clipsOf(p.look).includes(p.clip),p.id+': '+p.look+' can '+p.clip);assert(p.clips.includes(p.clip));}
  for(let i=1;i<high.length;i++)assert.notEqual(high[i].look,high[i-1].look,'two people next to each other never wear the same look');
- const doing=new Set(high.map(p=>p.clip));for(const c of ['talk','smoke','sit','watch'])assert(doing.has(c),'someone is doing: '+c);assert(doing.size>=5,'varied, not a row of people standing still');
+ const doing=new Set(high.map(p=>p.clip));for(const c of ['drink','smoke','sit','watch'])assert(doing.has(c),'someone is doing: '+c);
  assert(high.some(p=>p.watchesDoor),'someone watches the District door');
+ const NL=require('../void-runner/ncz-nightlife.js');assert.equal((NL.lanes||N.lanes).find(l=>l.id==='alley').weight,0,'no walkers are sent down the alley');
 });
 test('a look that cannot do anything special still gets a person who simply stands',()=>{
  const p=A.plan('high',()=>['idle']);assert.equal(p.length,A.PEOPLE.length);assert(p.every(x=>x.clip==='idle'));
