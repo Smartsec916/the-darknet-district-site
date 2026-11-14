@@ -576,7 +576,7 @@
     // Each wall run is: a column, as many 2 m modules as fit (four designs in turn), a 1 m module and a spare column for what is left, a column.
     // A cold white ceiling panel set up among the services and half hidden from below (David: less direct, the light coming from behind): a slatted grille under one end, a duct under the other, cables slung across.
     // `across`: the fixture lies along x (the pod room) instead of along the hallway.
-    const serviceLamp=(x,z,f,y,across)=>{const white=mat('hall-lamp-white','#8fa0b4',{glow:'#d6e8ff',rough:.4}),cage=mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8});white.emissiveIntensity=2.4;
+    const serviceLamp=(x,z,f,y,across)=>{const white=mat('hall-lamp-white','#5f7088',{glow:'#b8d4ff',rough:.4}),cage=mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8});white.emissiveIntensity=1.7;
      const B3=(n,sz,dx,dy,dz)=>box(n,across?[sz[2],sz[1],sz[0]]:sz,across?[x+dz,y+dy,z+dx]:[x+dx,y+dy,z+dz],cage);
      B3('hall-lamp-body',[1.7,.06,.7],0,0,0);box('hall-lamp-panel',across?[.56,.03,1.5]:[1.5,.03,.56],[x,y-.035,z],white);
      for(let k=0;k<6;k++)B3('hall-lamp-grille',[.78,.05,.022],f*.42,-.11,-.24+k*.096);for(const dz of [-.3,.3])B3('hall-lamp-grille',[.82,.03,.03],f*.42,-.08,dz);
@@ -587,12 +587,12 @@
      return add(B.MeshBuilder.CreateGround('light-pool',{width:w,height:d},scene),mats[key],p);};
     // Bounce light without ray tracing (the engine has none): the same soft glow stood up against a wall where a lamp would spill onto it, and a faint shaft of lit haze hanging under a ceiling light.
     const wallGlow=(c,w,h,p,ry,strength=.5)=>{const g=lightPool(c,w,h,p,strength);g.rotation.x=-Math.PI/2;g.rotation.y=ry;return g;};
-    const lightShaft=(c,x,z,top,wide,across)=>{const key='shaft-'+c;if(!mats[key]){const t=texture(key,64,128,(g,W,H)=>{g.clearRect(0,0,W,H);const n=parseInt(c.slice(1),16),rgb=[n>>16,n>>8&255,n&255].join(',');for(let y=0;y<H;y++){const a=.26*Math.pow(1-y/H,1.6);const r=g.createLinearGradient(0,0,W,0),spread=.18+.32*y/H;r.addColorStop(Math.max(0,.5-spread),'rgba('+rgb+',0)');r.addColorStop(.5,'rgba('+rgb+','+a+')');r.addColorStop(Math.min(1,.5+spread),'rgba('+rgb+',0)');g.fillStyle=r;g.fillRect(0,y,W,1);}});t.hasAlpha=true;const m=texMat(key,t,{glow:true,alpha:true});m.backFaceCulling=false;m.alphaMode=B.Engine.ALPHA_ADD;m.disableDepthWrite=true;m.fogEnabled=false;mats[key]=m;}
+    const lightShaft=(c,x,z,top,wide,across)=>{const key='shaft-'+c;if(!mats[key]){const t=texture(key,64,128,(g,W,H)=>{g.clearRect(0,0,W,H);const n=parseInt(c.slice(1),16),rgb=[n>>16,n>>8&255,n&255].join(',');for(let y=0;y<H;y++){const a=.13*Math.pow(1-y/H,2.1);const r=g.createLinearGradient(0,0,W,0),spread=.18+.32*y/H;r.addColorStop(Math.max(0,.5-spread),'rgba('+rgb+',0)');r.addColorStop(.5,'rgba('+rgb+','+a+')');r.addColorStop(Math.min(1,.5+spread),'rgba('+rgb+',0)');g.fillStyle=r;g.fillRect(0,y,W,1);}});t.hasAlpha=true;const m=texMat(key,t,{glow:true,alpha:true});m.backFaceCulling=false;m.alphaMode=B.Engine.ALPHA_ADD;m.disableDepthWrite=true;m.fogEnabled=false;mats[key]=m;}
      for(const ry of across?[Math.PI/2,Math.PI/2+.5,Math.PI/2-.5]:[0,.5,-.5])plane('light-shaft',wide,top,[x,top/2,z],mats[key],ry);};
 
     const NO_NEON=['__screen_0','__light_0','__screen_1','__light_1'];   // David, Nov 2026: no neon strips in the hallway; light it like his container-alley reference (cold white overhead, small red lamps at the doors)
     const hallLined=(()=>{if(!kitPiece('district:hall_ceiling_4m',[3,4.05-.62,30],0,NO_NEON,{merge:true}))return false;for(let z=34;z<=70;z+=4)kitPiece('district:hall_ceiling_4m',[3,4.05-.62,z],0,NO_NEON,{merge:true});
-     for(let z=32,i=0;z<=68;z+=6,i++){serviceLamp(0,z,i%2?-1:1,3.41,false);if(!low){lightShaft('#bcd8ff',0,z,3.3,2.6,false);lightPool('#bcd8ff',4.2,4.6,[0,.036,z],.26);}}
+     for(let z=32,i=0;z<=68;z+=6,i++){serviceLamp(0,z,i%2?-1:1,3.41,false);if(!low){lightShaft('#a9c8ff',0,z,3.3,2.0,false);lightPool('#a9c8ff',3.4,3.8,[0,.036,z],.15);}}
      const kinds=['a','b','c','a','d','b','a','c'];let n=0;
      const run=(side,a,b)=>{const hide=NO_NEON,ry=side<0?Math.PI/2:-Math.PI/2;let at=side<0?a:b;
       const put=(id,len,depth)=>{kitPiece('district:'+id,[side*(2.8-depth),0,at],ry,hide,{merge:true});at+=side<0?len:-len;};
@@ -606,7 +606,7 @@
     const kitAt=(id,facing,face,s,len,depth,y=0,hide=['__screen_0','__light_0'])=>kitPiece('district:'+id,facing==='+x'?[face+depth,y,s]:facing==='-x'?[face-depth,y,s+len]:facing==='+z'?[s+len,y,face+depth]:[s,y,face-depth],{'+x':Math.PI/2,'-x':-Math.PI/2,'+z':0,'-z':Math.PI}[facing],hide,{merge:true});
     // Doorways, clutter and people (interior rebuild, phase B second step). Each room's doorway gets a lintel with a light under it, a fascia for its sign and a tread plate.
     if(hallLined){const M=NO_NEON,C=NO_NEON;
-     {const redLamp=mat('hall-lamp-red','#4a0c08',{glow:'#ff3a22',rough:.4}),cage=mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8});redLamp.emissiveIntensity=2.2;   // a red bulkhead lamp over every doorway, where the neon strip was
+     {const redLamp=mat('hall-lamp-red','#4a0c08',{glow:'#ff1438',rough:.4}),cage=mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8});redLamp.emissiveIntensity=2.2;   // a red bulkhead lamp over every doorway, where the neon strip was
       for(const [x,z] of [[-2.5,34],[-2.5,49.5],[-2.5,62],[2.5,33],[2.5,47],[2.5,62.5]]){box('hall-door-lamp-body',[.1,.2,.5],[x,2.58,z],cage);box('hall-door-lamp',[.06,.12,.38],[x-Math.sign(x)*.05,2.58,z],redLamp);}
       box('hall-door-lamp-body',[.5,.2,.1],[0,2.58,70.28],cage);box('hall-door-lamp',[.38,.12,.06],[0,2.58,70.23],redLamp);}
      for(const [a,len] of [[31.5,5],[46.5,6],[59.5,5]])kitAt('hall_header_'+len+'m','+x',-2.8,a,len,.28,0,M);for(const [a,len] of [[30.5,5],[44.5,5],[60.5,4]])kitAt('hall_header_'+len+'m','-x',2.8,a,len,.28,0,C);
@@ -793,7 +793,7 @@
     if(shopKit){kitAt('shop_bookshelf_3m','+z',43.2,8,3,.5);kitAt('shop_bookshelf_3m','+z',43.2,11,3,.5);kitAt('shop_gearwall_3m','-z',52.8,11.2,3,.35);kitAt('shop_gearwall_3m','+x',3.2,49.7,3,.35);
      for(const [f,face,list] of [['+z',43.2,[[3.4,'a'],[5.4,'c'],[14.2,'a']]],['-x',16.8,[[43.6,'a'],[45.6,'c'],[47.6,'a'],[49.6,'a']]],['-z',52.8,[[3.2,'a'],[5.2,'d'],[7.2,'a'],[14.2,'b']]]])for(const [at,k] of list)kitAt('hall_wall_2m_'+k,f,face,at,2,.2);
      kitAt('hall_wall_1m','-x',16.8,51.6,1,.2);kitAt('hall_wall_1m','+x',3.2,43.4,1,.2);
-     for(const [x,z] of [[8,45.4],[12,45.4],[8,50.2],[12,50.2]]){kitPiece('district:tube_light_2m',[x+1,4.05-.51,z],0,[],{merge:true});if(!low){lightShaft('#cfe0f4',x+1,z,3.5,2.8,true);lightPool('#cfe0f4',4.4,3.6,[x+1,.036,z],.24);}}}   // the hallway standard: each tube's light hangs in the haze and lies on the floor
+     for(const [x,z] of [[8,45.4],[12,45.4],[8,50.2],[12,50.2]]){kitPiece('district:tube_light_2m',[x+1,4.05-.51,z],0,[],{merge:true});if(!low){lightShaft('#a9c8ff',x+1,z,3.5,2.2,true);lightPool('#a9c8ff',3.6,3,[x+1,.036,z],.14);}}}   // the hallway standard: each tube's light hangs in the haze and lies on the floor
     if(!shopKit)box('shop-counter',[8,1.1,1.1],[10,.55,47.2],mat('shop-counter','#1f2228',{rough:.35,metal:.7}));box('shop-counter-glow',[8,.05,.05],[10,1.1,46.62],violet);
     for(let i=0;i<3;i++){const z=44.5+i*2.8;box('display-case',[1,2.4,2.2],[16.3,1.2,z],mat('case-glass','#8fd8ff',{rough:.05,metal:.1,alpha:.25}));box('case-light',[.05,2.2,.05],[15.78,1.2,z-1],[cyan,red,cyan][i]);for(let k=0;k<4;k++)box('display-item',[.6,.12,1.2],[16.3,.5+k*.5,z],[pipe,frame][k%2]);}
     if(!shopKit){box('shop-shelf',[6.4,2.6,.6],[11,1.3,43.55],frame);for(let k=0;k<4;k++)box('shelf-goods',[5.8,.25,.4],[11,.5+k*.6,43.75],[cyan,amber,violet,magenta][k]);}
@@ -835,8 +835,8 @@
       box('shop-bench-monitor',[.9,.5,.04],[8.2,2.48,52.7],cageSteel);screen('shop-bench-screen-b',.84,.44,[8.2,2.48,52.675],(g,W,H)=>{g.fillStyle='#04080a';g.fillRect(0,0,W,H);g.fillStyle='#38e8c8';g.font='10px Consolas,monospace';['> flash v1-device 0x08000000','> verify ...... OK','> probe swd: 1 target','> bench psu 12.00V 0.000A','> queue: 3 repairs'].forEach((t,i)=>g.fillText(t,8,18+i*14));g.strokeStyle='#38e8c8';g.beginPath();for(let x=0;x<W;x+=3){const y=H*.82-Math.abs(Math.sin(x*.07))*H*.2*((x*7)%13/13);x?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();});
       // a stool pushed under the bench
       cyl('shop-bench-stool',.19,.06,[6.9,.62,51.98],mat('shop-stool','#141218',{rough:.7,metal:.1}),true,14);cyl('shop-bench-stool-leg',.03,.6,[6.9,.3,51.98],cageSteel,true,8);}
-     box('hall-door-lamp-body',[.5,.2,.1],[12.7,2.95,52.74],mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8}));{const r=mat('hall-lamp-red','#4a0c08',{glow:'#ff3a22',rough:.4});r.emissiveIntensity=2.2;box('hall-door-lamp',[.38,.12,.06],[12.7,2.95,52.69],r);}
-     if(shopKit)kitPiece('district:tube_light_2m',[11.4,4.05-.51,52.3],0,[],{merge:true});if(typeof lightPool==='function')lightPool('#ff3a22',3,1.6,[12.7,.034,52.2],.4);}
+     box('hall-door-lamp-body',[.5,.2,.1],[12.7,2.95,52.74],mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8}));{const r=mat('hall-lamp-red','#4a0c08',{glow:'#ff1438',rough:.4});r.emissiveIntensity=2.2;box('hall-door-lamp',[.38,.12,.06],[12.7,2.95,52.69],r);}
+     if(shopKit)kitPiece('district:tube_light_2m',[11.4,4.05-.51,52.3],0,[],{merge:true});if(typeof lightPool==='function')lightPool('#ff1438',3,1.6,[12.7,.034,52.2],.4);}
     if(state?.story?.flags?.adminOccupied!==true)characterModel('admin',target,[8,0,48.6],false);characterModel('iris',target,[12.5,0,48.6],false);
 
     // Vending alcove: three lit machines.
@@ -926,7 +926,7 @@
     // a red lamp over the way out, and the hatch rings' colours lying on the wet floor.
     if(hallLined){for(const s of [-16.8,-7.4,3.4,7.4]){if(!kitAt('hall_wall_4m_a','+z',70.65,s,4,.2,0,[]))break;kitAt('hall_services_4m','+z',70.65,s,4,.18,3,[]);}
      for(const [x,f] of [[-10.4,1],[-5.2,-1],[0,1],[5.2,-1],[10.4,1]])serviceLamp(x,73.3,f,3.99,true);
-     box('hall-door-lamp-body',[.5,.2,.1],[0,2.9,70.72],mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8}));box('hall-door-lamp',[.38,.12,.06],[0,2.9,70.77],mat('hall-lamp-red','#4a0c08',{glow:'#ff3a22',rough:.4}));
+     box('hall-door-lamp-body',[.5,.2,.1],[0,2.9,70.72],mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8}));box('hall-door-lamp',[.38,.12,.06],[0,2.9,70.77],mat('hall-lamp-red','#4a0c08',{glow:'#ff1438',rough:.4}));
      for(let i=0;i<5;i++){const c=['#ffb347','#ff5bd0'][i%2];lightPool(c,2.4,2.2,[-5.2+i*2.6,.034,74.7],.42);}}
     box('pod-terminal',[.4,1.2,.4],[-15.6,.6,71.4],frame);box('pod-terminal-screen',[.3,.4,.05],[-15.6,1.1,71.62],cyan);
 
@@ -949,13 +949,14 @@
     const streak=c=>{const m=glowMat('reflection-'+c,c,.4);m.alpha=.3;return m;};
     if(!hallLined)for(let z=28;z<78;z+=4)for(const [x,c] of [[-2.25,z%8?'#38e8ff':'#ff3fb4'],[2.25,z%8?'#ff3fb4':'#38e8ff']])box('neon-reflection',[.32,.004,3.2],[x,.034,z+2],streak(c));
     // Coloured accents like the reference: each red door lamp lies on the wet floor in front of its doorway, and the wall modules' amber strips leave a faint warm streak.
-    if(hallLined){for(const [x,z] of [[-1.5,34],[-1.5,49.5],[-1.5,62],[1.5,33],[1.5,47],[1.5,62.5]]){lightPool('#ff3a22',3.2,5,[x,.034,z],.62);wallGlow('#ff3a22',4.6,2.6,[Math.sign(x)*2.36,2.45,z],Math.sign(x)*Math.PI/2,.5);wallGlow('#ff3a22',2.2,3,[Math.sign(x)*2.3,1.3,z-2.75],Math.sign(x)*Math.PI/2,.3);wallGlow('#ff3a22',2.2,3,[Math.sign(x)*2.3,1.3,z+2.75],Math.sign(x)*Math.PI/2,.3);}
-     lightPool('#ff3a22',4.6,3,[0,.034,69.2],.6);wallGlow('#ff3a22',4.4,2.4,[0,2.5,70.2],Math.PI,.45);
+    if(hallLined){for(const [x,z] of [[-1.5,34],[-1.5,49.5],[-1.5,62],[1.5,33],[1.5,47],[1.5,62.5]]){lightPool('#ff1438',3.4,5.2,[x,.034,z],.85);wallGlow('#ff1438',4.6,2.6,[Math.sign(x)*2.36,2.45,z],Math.sign(x)*Math.PI/2,.72);wallGlow('#ff1438',2.2,3,[Math.sign(x)*2.3,1.3,z-2.75],Math.sign(x)*Math.PI/2,.44);wallGlow('#ff1438',2.2,3,[Math.sign(x)*2.3,1.3,z+2.75],Math.sign(x)*Math.PI/2,.44);}
+     lightPool('#ff1438',4.6,3,[0,.034,69.2],.6);wallGlow('#ff1438',4.4,2.4,[0,2.5,70.2],Math.PI,.45);
+     for(const [x,z] of [[-2.36,46.2],[2.36,35.2],[-2.36,66],[2.36,57.5]]){wallGlow('#ff1ea8',2.4,2.8,[x,1.9,z],Math.sign(x)*Math.PI/2,.5);lightPool('#ff1ea8',2.2,2.8,[x-Math.sign(x)*.9,.035,z],.5);}
      // teal service lamps low on the walls between the doorways: a third colour, down at the floor where the corridor was blackest
-     {const teal=mat('hall-lamp-teal','#062a26',{glow:'#35e0c2',rough:.4}),cage=mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8});teal.emissiveIntensity=1.1;
-      for(const [x,z] of [[-2.52,43.5],[2.52,41.5],[-2.52,57.5],[2.52,52],[2.52,65.5],[-2.52,29.2],[2.52,28.4]]){const sx=Math.sign(x);box('hall-service-lamp-body',[.06,.14,.5],[x,.42,z],cage);box('hall-service-lamp',[.03,.05,.3],[x-sx*.035,.42,z],teal);lightPool('#35e0c2',2.6,3.2,[x-sx*1.0,.035,z],.5);wallGlow('#35e0c2',3,1.5,[x-sx*.07,.6,z],sx*Math.PI/2,.38);}}
+     {const teal=mat('hall-lamp-teal','#012420',{glow:'#00e0b8',rough:.4}),cage=mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8});teal.emissiveIntensity=1.5;
+      for(const [x,z] of [[-2.52,43.5],[2.52,41.5],[-2.52,57.5],[2.52,52],[2.52,65.5],[-2.52,29.2],[2.52,28.4]]){const sx=Math.sign(x);box('hall-service-lamp-body',[.06,.14,.5],[x,.42,z],cage);box('hall-service-lamp',[.03,.05,.3],[x-sx*.035,.42,z],teal);lightPool('#00f0c8',2.6,3.2,[x-sx*1.0,.035,z],.72);wallGlow('#00f0c8',3,1.5,[x-sx*.07,.6,z],sx*Math.PI/2,.55);}}
 
-     for(const [x,z] of [[-1.9,40.5],[1.9,39.5],[-1.9,55.5],[1.9,54],[1.9,67]]){lightPool('#ffab52',2.2,3.2,[x,.035,z],.46);wallGlow('#ffab52',2.6,1.6,[Math.sign(x)*2.36,2.2,z],Math.sign(x)*Math.PI/2,.3);}}
+     for(const [x,z] of [[-1.9,40.5],[1.9,39.5],[-1.9,55.5],[1.9,54],[1.9,67]]){lightPool('#ff9412',2.2,3.2,[x,.035,z],.6);wallGlow('#ff9412',2.6,1.6,[Math.sign(x)*2.36,2.2,z],Math.sign(x)*Math.PI/2,.42);}}
     for(const [x,z] of [[2.55,44.2],[-2.55,53.5]])instance('bin',[x,0,z],x>0?-Math.PI/2:Math.PI/2);
     // Stairs at the hallway end rise into the ceiling.
     // The stairs to the smoking terrace: at the east end of the Sleeping Pods room since 2026-11-12 (they used to stand at the end of the hallway), climbing toward the east wall.
@@ -1022,9 +1023,9 @@
 
     // Coloured light pools for the interior and street.
     const lights=[];const point=(p,c,i,r)=>{const l=new B.PointLight('ncz-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=target;lights.push(l);};
-    if(!low){point([0,3.2,40],'#cfe2ff',40,16);point([0,3.2,58],'#cfe2ff',38,16);point([0,3.3,73.6],'#ffd2ea',20,12);point([-10,3,36],'#38e8ff',.9,14);point([10,3,36],'#ffb347',1.4,14);point([10,3,48],'#c9b4ff',1.5,12);point([0,3,23],'#9be8ff',.6,8);point([13,3,33],'#ff8a5c',.9,10);point([14,3,51],'#38e8ff',.8,8);point([38,4,68],'#ffb347',.6,14);}   /* the first six reach the materials (ambient and sun take two of the eight): hallway, hallway, pod room (new; the old west-room lamp it replaces lit nothing), VR, bar, shop */   // the hallway's two lamps: cold white, on the centre line, like the ceiling panels that seem to cast them. They come straight after the vestibule lamp because a material takes only the scene's first 8 lights (ambient, sun and six of these): at the end of the list they lit nothing. The two that now fall off the end, the bar's and the shop's second accent lamps, were the weakest. A PBR lamp falls off with the square of the distance, hence the large numbers; the short range keeps them out of the rooms.
+    if(!low){point([0,3.2,40],'#bcd6ff',30,14);point([0,3.2,58],'#bcd6ff',28,14);point([0,3.3,73.6],'#ffd2ea',20,12);point([-10,3,36],'#38e8ff',.9,14);point([10,3,36],'#ffb347',1.4,14);point([10,3,48],'#c9b4ff',1.5,12);point([0,3,23],'#9be8ff',.6,8);point([13,3,33],'#ff8a5c',.9,10);point([14,3,51],'#38e8ff',.8,8);point([38,4,68],'#ffb347',.6,14);}   /* the first six reach the materials (ambient and sun take two of the eight): hallway, hallway, pod room (new; the old west-room lamp it replaces lit nothing), VR, bar, shop */   // the hallway's two lamps: cold white, on the centre line, like the ceiling panels that seem to cast them. They come straight after the vestibule lamp because a material takes only the scene's first 8 lights (ambient, sun and six of these): at the end of the list they lit nothing. The two that now fall off the end, the bar's and the shop's second accent lamps, were the weakest. A PBR lamp falls off with the square of the distance, hence the large numbers; the short range keeps them out of the rooms.
     // Haze indoors (David, Nov 2026: make it atmospheric): the far end of the corridor softens into cold blue air and lamps glow through it. Only when the District is its own environment, so the street keeps its own fog.
-    if(!low&&typeof area!=='undefined'&&area==='interior'){scene.fogDensity=.017;scene.fogColor=new B.Color3(.045,.07,.095);}
+    if(!low&&typeof area!=='undefined'&&area==='interior'){scene.fogDensity=.011;scene.fogColor=new B.Color3(.016,.026,.04);   /* thin and dark: it softens the distance without greying the shadows */}
     return {lights,terminal,vrTick,podScreen,arcade};})();
     if(!wantInterior){seed=SEAMS[1];target=districtRoot;}else if(area==='all'&&seed!==SEAMS[1])console.warn('[NeoChinatown] random state after the interior changed; update SEAMS');
 
