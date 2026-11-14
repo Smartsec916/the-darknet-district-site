@@ -53,7 +53,7 @@
  const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  let M=null,view=null,selected=null,layers=Object.fromEntries(LAYERS.map(l=>[l[0],l[2]])),host=null,cv=null,drag=null,pulse=0;
  // Separate areas (Corporate District, later the Temple) register a map space in area-map.js; the map shows the one the player is in.
- const spaceId=()=>{try{return typeof walkingLocation!=='undefined'&&walkingLocation&&walkingLocation.corporate?'corporate':'neochinatown';}catch{return 'neochinatown';}};
+ const spaceId=()=>{try{return typeof walkingLocation!=='undefined'&&walkingLocation&&walkingLocation.mapSpace?walkingLocation.mapSpace:'neochinatown';}catch{return 'neochinatown';}};
  const MAPS={};let lastSpace=null;
  const data=()=>{const id=spaceId();if(id==='neochinatown')return M||(M=model(root.VoidNeoChinatown));const sp=root.VoidAreaMap?.get(id);return MAPS[id]||(MAPS[id]=sp?sp.model():M||(M=model(root.VoidNeoChinatown)));};
  const spaceName=()=>spaceId()==='neochinatown'?'NEOCHINATOWN':(root.VoidAreaMap?.get(spaceId())?.name||'AREA').toUpperCase();
@@ -61,7 +61,7 @@
  const fogNow=()=>{const id=spaceId();if(id==='neochinatown')return null;const sp=root.VoidAreaMap?.get(id);if(!sp)return null;try{return root.VoidBabylon?.zone?.fog||root.VoidAreaMap.load(sp,flags());}catch{return null;}};
  const fogOk=(q,fog)=>!fog||q.kind==='transit'||fog.isExplored(q.x,q.z);
  const flags=()=>{try{return state?.story?.flags||null;}catch{return null;}};
- const me=()=>{try{if(typeof walker==='undefined'||!walker||(walkingLocation?.id!=='neochinatown'&&!walkingLocation?.corporate))return null;return {x:walker.x,z:walker.z,yaw:walker.yaw,area:walkingLocation.area==='interior'?'interior':'street'};}catch{return null;}};
+ const me=()=>{try{if(typeof walker==='undefined'||!walker||(walkingLocation?.id!=='neochinatown'&&!walkingLocation?.mapSpace))return null;return {x:walker.x,z:walker.z,yaw:walker.yaw,area:walkingLocation.area==='interior'?'interior':'street'};}catch{return null;}};
  const isDev=()=>{try{return !!root.VoidDevTools?.authorized;}catch{return false;}};
  const waypoint=()=>{const id=flags()?.[FLAG];return typeof id==='string'?data().pois.find(p=>p.id===id&&(isDev()||!p.dev))||null:null;};
  function setWaypoint(id){const f=flags();if(!f)return false;const p=id&&data().pois.find(x=>x.id===id);if(p)f[FLAG]=p.id;else delete f[FLAG];chipTick();if(host)paintInfo();draw();return true;}

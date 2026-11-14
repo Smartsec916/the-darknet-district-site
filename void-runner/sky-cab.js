@@ -16,7 +16,8 @@
  const FLAG='skyCabTrip',RETURN_FLAG='cabReturn';
  // Destinations: key = the walking location id the game loads. `home` is true for the NeoChinatown street (the return leg). fare is the whole round trip.
  const DESTINATIONS={
-  corporate:{id:'corporate',label:'Corporate District',key:'corporate',fare:60,distance:1800,spawn:[0,1.7,-14],yaw:0},
+  corporate:{id:'corporate',label:'Corporate District',key:'corporate',module:'VoidCorporate',fare:60,distance:1800,spawn:[0,1.7,-14],yaw:0},
+  temple:{id:'temple',label:'Zen Zephyr Temple',key:'temple',module:'VoidTemple',fare:60,distance:6000,spawn:[0,1.7,-38],yaw:0},
   neochinatown:{id:'neochinatown',label:'NeoChinatown',key:null,home:true,fare:0,distance:1800}};
  const RIDE_MIN_MS=4500,RIDE_MAX_MS=9000,SPEED_MPS=300;
  const rideMs=(dest,reduced=false)=>reduced?3500:Math.max(RIDE_MIN_MS,Math.min(RIDE_MAX_MS,Math.round((dest.distance||1800)/SPEED_MPS*1000)));
@@ -132,7 +133,7 @@
   const make=()=>ctl||(ctl=create({state:()=>state,enterWalking:(k,o)=>enterWalking(k,o),location:()=>walkingLocation,walker:()=>walker,save:()=>save(),announce:t=>{try{announce(t);}catch{}},
    refund:n=>{state.credits+=n;try{save();hud();}catch{}},homeKey:()=>root.VoidDistrictArea?.KEY?.street||'sacramento',locationIdOf:k=>k==='sacramento'?'neochinatown':k,
    originKey:id=>id==='neochinatown'?(root.VoidDistrictArea?.KEY?.street||'sacramento'):id,homeSpawn:()=>({spawn:[-90,1.7,-12.5],yaw:Math.PI/2}),
-   prefetch:dest=>{if(!dest.home&&!(root.VoidCorporate&&root.VoidCorporate.build&&dest.key==='corporate'))throw new Error('The destination is not available yet.');return null;},
+   prefetch:dest=>{if(!dest.home&&!(dest.module&&root[dest.module]&&root[dest.module].build))throw new Error('The destination is not available yet.');return null;},
    rideMs:dest=>rideMs(dest,matchMedia?.('(prefers-reduced-motion: reduce)')?.matches),
    onRide:dest=>{try{if(walker){walker.pitch=-.17;walker.yaw=0;}}catch{}const h=root.VoidBabylon?.zone;h?.setStatus?.({text:'EN ROUTE · '+dest.label.toUpperCase().slice(0,18),fare:dest.home?0:dest.fare,progress:.15});let k=0;const t=setInterval(()=>{k++;const z=root.VoidBabylon?.zone;if(!z||ctl.phase!=='RIDING'){clearInterval(t);return;}z.setStatus?.({progress:Math.min(.9,.15+k*.09)});},700);},
    onLoading:dest=>{root.VoidBabylon?.zone?.setStatus?.({text:'LANDING · '+dest.label.toUpperCase().slice(0,18),progress:1});}}));

@@ -79,7 +79,7 @@
   {id:'corp-bay-3',label:'LOADING BAY',position:[52,1.7,-89.4],action:'corp-door',door:'bay-3',range:3},
   {id:'corp-checkpoint',label:'SECURITY CHECKPOINT',position:[-2,1.7,41.6],action:'corp-checkpoint',range:3.4}];
  // The location definition the game's walking system loads (enterWalking('corporate')).
- function layout(){return {id:ID,name:'CORPORATE DISTRICT',kind:'city',corporate:true,bounds:BOUNDS.slice(),spawn:ARRIVAL.spawn.slice(),yaw:ARRIVAL.yaw,color:'#0b1a20',music:'earth',
+ function layout(){return {id:ID,name:'CORPORATE DISTRICT',kind:'city',corporate:true,mapSpace:ID,bounds:BOUNDS.slice(),spawn:ARRIVAL.spawn.slice(),yaw:ARRIVAL.yaw,color:'#0b1a20',music:'earth',
   solids:solids(),interactions:INTERACTIONS.map(i=>({...i,position:i.position.slice()})),signs:[]};}
  // The V1 map's model of this area (same shape as district-map.js model()): streets and alleys, buildings, guarded and service entrances, the taxi stop.
  function mapModel(){

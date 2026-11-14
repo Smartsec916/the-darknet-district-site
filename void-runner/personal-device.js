@@ -162,10 +162,10 @@
   },
   map(){
    const wl=typeof walkingLocation!=='undefined'?walkingLocation:null;
-   if(!wl||(wl.id!=='neochinatown'&&!wl.corporate)||!wl.solids)return '<div class="pd-empty">No map is available for this place yet.<br>Maps exist for The Darknet District, NeoChinatown and the Corporate District.</div>';
+   if(!wl||(wl.id!=='neochinatown'&&!wl.mapSpace)||!wl.solids)return '<div class="pd-empty">No map is available for this place yet.<br>Maps exist for The Darknet District, NeoChinatown, the Corporate District and the Zen Zephyr Temple.</div>';
    const area=wl.area==='interior'?'interior':'street';
    // The city map (district-map.js): generated from the game's own layout, with zoom, pan, places and a waypoint. The older "explored areas" picture stays as the fallback.
-   if(root.VoidDistrictMap?.mount)return '<div class="pd-note">'+(wl.corporate?'CORPORATE DISTRICT':area==='interior'?'THE DARKNET DISTRICT':'NEOCHINATOWN')+' · '+(wl.corporate?'area map · unexplored places are hidden':'city navigation')+'</div><div data-district-map></div>';
+   if(root.VoidDistrictMap?.mount)return '<div class="pd-note">'+(wl.mapSpace?(root.VoidAreaMap?.get(wl.mapSpace)?.name||'AREA').toUpperCase():area==='interior'?'THE DARKNET DISTRICT':'NEOCHINATOWN')+' · '+(wl.mapSpace?'area map · unexplored places are hidden':'city navigation')+'</div><div data-district-map></div>';
    return '<div class="pd-note">'+(area==='interior'?'THE DARKNET DISTRICT':'NEOCHINATOWN')+' · only places you have explored are shown.</div><canvas class="pd-map" width="800" height="560" data-map aria-label="Map of explored areas"></canvas><div data-places></div>';
   },
   camera(){return '<div class="pd-empty"><b>CAMERA</b><br>Not available in the V1 model yet.<br>Nothing is captured, stored or sent.</div>';},

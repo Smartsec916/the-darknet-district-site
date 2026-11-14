@@ -46,7 +46,7 @@ test('the map model shows streets, buildings, alleys, guarded and service entran
   assert.deepEqual(m.bounds,{x0:-100,x1:100,z0:-100,z1:100});const sp=A.get('corporate');assert.ok(sp&&sp.model().pois.length===m.pois.length);
 });
 test('the V1 map module knows the area (district-map.js reads the registered space)',()=>{
-  const src=fs.readFileSync(path.join(__dirname,'../void-runner/district-map.js'),'utf8');assert.match(src,/VoidAreaMap/);assert.match(src,/walkingLocation\.corporate/);
+  const src=fs.readFileSync(path.join(__dirname,'../void-runner/district-map.js'),'utf8');assert.match(src,/VoidAreaMap/);assert.match(src,/walkingLocation\.mapSpace/);
   const D=require('../void-runner/district-map.js');assert.ok(D.KIND_LAYER.guard,'guard markers have a layer');const m=D.model(N);assert.ok(!m.pois.some(p=>/^corp-/.test(p.id)),'NeoChinatown\'s own map is unchanged');
 });
 test('the street cab lists Corporate at a flat 60 CR; a player with less cannot call it; NeoChinatown keeps its other destinations',()=>{

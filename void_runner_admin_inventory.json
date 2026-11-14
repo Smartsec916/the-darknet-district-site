@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "62583e2b94fceebc",
+  "revision": "ffc5ccca2748f0b9",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12931,19 +12931,19 @@
     },
     {
       "source": "void-runner/sky-cab.js",
-      "line": 95,
+      "line": 96,
       "text": "const status={text:'BOARDED',fare:null,progress:0},dashTex=canvas(320,132,(g,w,h)=>dashDraw(g,w,h,status));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/sky-cab.js",
-      "line": 137,
+      "line": 138,
       "text": "onRide:dest=>{try{if(walker){walker.pitch=-.17;walker.yaw=0;}}catch{}const h=root.VoidBabylon?.zone;h?.setStatus?.({text:'EN ROUTE · '+dest.label.toUpperCase().slice(0,18),fare:dest.home?0:dest.fare,progress:.15});let k=0;const t=setInterval(()=>{k++;const z=root.VoidBabylon?.zone;if(!z||ctl.phase!=='RIDING'){clearInterval(t);return;}z.setStatus?.({progress:Math.min(.9,.15+k*.09)});},700);},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/sky-cab.js",
-      "line": 138,
+      "line": 139,
       "text": "onLoading:dest=>{root.VoidBabylon?.zone?.setStatus?.({text:'LANDING · '+dest.label.toUpperCase().slice(0,18),progress:1});}}));",
       "kind": "source-reference"
     },
@@ -13089,6 +13089,48 @@
       "source": "void-runner/story.js",
       "line": 38,
       "text": "if (valid(raw.cursor?.scene) && valid(raw.cursor?.node) && content.dialogue[raw.cursor.scene]?.nodes[raw.cursor.node]) {",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/temple-integration.js",
+      "line": 1,
+      "text": "/* Zen Zephyr Temple: game wiring (browser only). Registers the walking location, the interaction handlers, the return cab, and the typed conversation panel.",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/temple-integration.js",
+      "line": 2,
+      "text": "The conversation is LOCAL (zen-chat.js): not an AI, no network. Nothing here is saved except the map fog (written by temple-build.js) and the sky-cab trip record (sky-cab.js). */",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/temple-integration.js",
+      "line": 12,
+      "text": "const chat=Z.create();T.chat=chat;   // a future API dialogue registers on T.chat.registerProvider(...) and is switched on with T.chat.enableProvider(true); it is OFF by default",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/temple-integration.js",
+      "line": 19,
+      "text": "const panel=document.createElement('section');panel.id='zen-chat';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Conversation with Zen Zephyr');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/temple-integration.js",
+      "line": 30,
+      "text": "function show(){if(open)return;open=true;document.exitPointerLock?.();try{walkingKeys.clear();}catch{}try{mode='dialogue';}catch{}panel.hidden=false;if(!log.children.length)line('zen',chat.local('hello').text);setTimeout(()=>input.focus(),30);}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/temple.js",
+      "line": 3,
+      "text": "The 3D build is temple-build.js; the wiring and the chat panel are temple-integration.js; the conversation is zen-chat.js; the transition is sky-cab.js.",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/temple.js",
+      "line": 9,
+      "text": "- His lines: zen-chat.js QUOTES (provisional; two are the exact lines David specified). A future API dialogue plugs in through zen-chat.js registerProvider (off by default). */",
       "kind": "source-reference"
     },
     {
@@ -13810,6 +13852,234 @@
       "line": 92,
       "text": "speech=null;scene('');mode='dock';view=tab;clearInput();flightUI(false);hud();",
       "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 1,
+      "text": "/* ZEN ZEPHYR: the local conversation. Pure (runs in Node and the browser); tests/zen-chat.test.cjs. docs/development/TEMPLE.md.",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 5,
+      "text": "A future API-powered dialogue can plug in through the provider interface at the bottom; it is OFF by default and nothing here ever calls it unless it is registered AND enabled. */",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 10,
+      "text": "{id:'q01',text:'In the network of complex codes, serenity lies in the simplest line.',topics:['serenity','code'],source:'david'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 11,
+      "text": "{id:'q02',text:'A mindful soul is like a processor; it understands, computes, and calmly executes.',topics:['mind','serenity'],source:'david'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 12,
+      "text": "{id:'q03',text:'The circuit board and the lotus flower differ only in the observer\\'s perception.',topics:['machines','mind'],source:'origins'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 13,
+      "text": "{id:'q04',text:'Technology alone will not keep a sanctuary alive. Find the people who know why it matters.',topics:['sanctuary','network'],source:'origins'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 14,
+      "text": "{id:'q05',text:'Before you run the next process, let the last one finish.',topics:['work','mind','serenity'],source:'placeholder'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 15,
+      "text": "{id:'q06',text:'A signal carried in a hurry arrives damaged. Slow the breath and the message clears.',topics:['breath','network','fear'],source:'placeholder'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 16,
+      "text": "{id:'q07',text:'Fear is only a loop with no exit condition. Name it and it ends.',topics:['fear','code'],source:'placeholder'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 17,
+      "text": "{id:'q08',text:'The server hums because it has nothing to prove. Sit, and hum with it.',topics:['serenity','machines','breath'],source:'placeholder'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 18,
+      "text": "{id:'q09',text:'Every cable here carries a thought somewhere. None of them are in a hurry.',topics:['network','serenity'],source:'placeholder'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 19,
+      "text": "{id:'q10',text:'You cannot debug a storm. You can only keep your own code clean while it passes.',topics:['fear','code','city'],source:'placeholder'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 20,
+      "text": "{id:'q11',text:'Rain does not argue with the city. It falls, and the city is washed.',topics:['city','serenity','change'],source:'placeholder'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 21,
+      "text": "{id:'q12',text:'The oldest backup is silence. Return to it when the rest is corrupted.',topics:['silence','breath','mind'],source:'placeholder'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 22,
+      "text": "{id:'q13',text:'What you call flesh and what you call code are both patterns that agreed to stay together for a while.',topics:['machines','change'],source:'placeholder'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 23,
+      "text": "{id:'q14',text:'A road is made by the next step, not by the map. Take the step.',topics:['change','work'],source:'placeholder'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 24,
+      "text": "{id:'q15',text:'Rest is not a failure of the system. It is part of its design.',topics:['work','serenity'],source:'placeholder'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 25,
+      "text": "{id:'q16',text:'The flame burns blue when nothing is wasted. Waste less, and burn clearer.',topics:['serenity','work','change'],source:'placeholder'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 26,
+      "text": "{id:'q17',text:'Loneliness is a connection waiting for a handshake. Offer yours first.',topics:['sanctuary','network','fear'],source:'placeholder'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 27,
+      "text": "{id:'q18',text:'Delete what you carry only because you have always carried it.',topics:['change','work','fear'],source:'placeholder'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 28,
+      "text": "{id:'q19',text:'The city is loud so that you will learn where your own quiet is.',topics:['city','silence','serenity'],source:'placeholder'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 29,
+      "text": "{id:'q20',text:'Listen to the hum beneath the hum. That is where the answer keeps its place.',topics:['silence','network','mind'],source:'placeholder'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 30,
+      "text": "{id:'q21',text:'No one is made to run forever. Even the brightest tower sleeps in the small hours.',topics:['work','city','serenity'],source:'placeholder'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 31,
+      "text": "{id:'q22',text:'Ask smaller. The simplest question has the longest answer.',topics:['code','mind','serenity'],source:'placeholder'}];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 46,
+      "text": "const GREETING=['hello','hi','hey','greetings','welcome','zephyr','sanctum','who'],FAREWELL=['bye','goodbye','farewell','leave','leaving'],THANKS=['thanks','thank','grateful'];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 47,
+      "text": "const GREETING_LINES=['Be welcome. The servers have been expecting you, in their way.','You came up the hill in the rain. Sit, if you like. Ask what you will.'];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 48,
+      "text": "const FAREWELL_LINES=['Go gently. The hill will keep the quiet for you.','Return when the city is too loud.'];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 51,
+      "text": "const FALLBACKS=['The line is quiet. Say it again with fewer words.','I recite what I know, and this is not in it. Try asking about code, fear, silence, the city or rest.','Not every question has a quote waiting. Breathe, and ask it smaller.','The altar has nothing written for that. Choose a teaching from the list, or ask about serenity.'];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 66,
+      "text": "const t=String(text||'').trim();if(!t)return {text:FALLBACKS[0],quote:null,topic:null,matched:[],kind:'fallback',provider:'local'};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 68,
+      "text": "if(has(t,FAREWELL))return {text:FAREWELL_LINES[(n++)%FAREWELL_LINES.length],quote:null,topic:'farewell',matched:[],kind:'farewell',provider:'local'};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 69,
+      "text": "if(has(t,THANKS)&&!tp.length)return {text:THANKS_LINES[0],quote:null,topic:'thanks',matched:[],kind:'thanks',provider:'local'};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 70,
+      "text": "if(has(t,GREETING)&&!tp.length)return {text:GREETING_LINES[(n++)%GREETING_LINES.length],quote:null,topic:'greeting',matched:[],kind:'greeting',provider:'local'};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 71,
+      "text": "if(tp.length){const top=tp[0].topic,pool=QUOTES.filter(q=>q.topics.includes(top)),q=pick(pool);return {text:q.text,quote:q.id,topic:top,matched:tp.map(x=>x.topic),kind:'quote',provider:'local'};}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 72,
+      "text": "return {text:FALLBACKS[(n++)%FALLBACKS.length],quote:null,topic:null,matched:[],kind:'fallback',provider:'local'};}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 74,
+      "text": "function choose(id){const q=QUOTES.find(x=>x.id===id);if(!q)return null;said.add(q.id);return {text:q.text,quote:q.id,topic:q.topics[0],matched:q.topics.slice(),kind:'chosen',provider:'local'};}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 77,
+      "text": "if(provider&&providerOn){try{const out=await provider.respond(String(text||''),{history:log.slice(-8)});if(out&&typeof out.text==='string'&&out.text.trim())r={text:out.text.trim(),quote:null,topic:null,matched:[],kind:'provider',provider:provider.id};}catch{}}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 80,
+      "text": "function registerProvider(p){if(!p||typeof p.id!=='string'||typeof p.respond!=='function')throw new Error('A dialogue provider needs an id and a respond(text, context) function.');provider=p;providerOn=false;return true;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 84,
+      "text": "const api={QUOTES,TOPICS,FALLBACKS,GREETING_LINES,topicsOf,create,words,LABEL:'LOCAL RECITATION · NOT AN AI'};",
+      "kind": "source-reference"
     }
   ],
   "warnings": [],
@@ -13822,7 +14092,7 @@
     "void-runner/asset-pipeline.js": "496edd3d907d4f23524366ef1263dd57b33a149d444c14ba2b20c9e09a4bb746",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "6573fccdc394059cdafb478770657e41906cec324ba410696bfadd60b9ff3e37",
-    "void-runner/babylon-renderer.js": "fa5ca6dabaf505555d590f04e8de4fca1539ef19c738203565081095b3a8ca2c",
+    "void-runner/babylon-renderer.js": "4c601e377db987c898657c101e263dd90cd95294aa0d6c901de66866bfaf2a1c",
     "void-runner/balance-data.js": "ebc76bb374885f015ae60a86864e8701bba194e5d3ce09fb321dd52cedabe16c",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
     "void-runner/beginner-integration.js": "8019484f53161f4aed93c14a72421fdfd4b3a8dc945653fdb8f05c9790fa9439",
@@ -13836,7 +14106,7 @@
     "void-runner/character-creator.js": "ad7e7e095e3114c5a8ab19a215c88a959cdd84f41e9ae1871fa4cb7aa1cdf572",
     "void-runner/character-finish.js": "458095761533ec279026ec1859446af93ab3a267e272b96783d8c2dfd7b3c312",
     "void-runner/character-fit.js": "ee63772c43aa17513e8325b03ee8fee759e3fbf2407fa9adc3912921a6efcbc9",
-    "void-runner/city-taxi.js": "6183af388b3bb2dcf9a69d6b433998ef59a4933c2445ac3fb74f9a96dabd1c1f",
+    "void-runner/city-taxi.js": "6ba39de32bed644cff3c08c5729c320fb2bd6c871fba36b0d34fa8689cd303b7",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
     "void-runner/cockpit-math.js": "a63faf598eaf23722d22658ca22b5da5b16f0044437ac5277d34d42d1cbf0461",
     "void-runner/cockpit-overlay.js": "c0668e199fe366d0b7def0cdfd0008526870420d93779317980a8aaa0d8e30bc",
@@ -13851,7 +14121,7 @@
     "void-runner/corporate-build.js": "59362feee5cc47355ad653d1b01b27b7a4c78e3f179350b2b6532df03a39c146",
     "void-runner/corporate-integration.js": "dad32da04630d0ca31dd0494c1466ae5b242fc5268dd8e3f09a5782a7034f900",
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
-    "void-runner/corporate.js": "871e70498a15676b0fe9b86d8012a0ec797a96e900c8cb57379ddc81ceae665e",
+    "void-runner/corporate.js": "d4df127d0d7c8132bb9900b2520e8e29c2a405b01cc6e2451f0acd7ed3ed849e",
     "void-runner/crowd.js": "7f99de7204d51d1c70aa1dc9db1f462b62ac368baca7efd3c50452b2e4a3ce62",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
@@ -13863,7 +14133,7 @@
     "void-runner/district-arcade.js": "de51866295a9a6cef51b94a3097ea6ca38bc3da02133d85ba4f26835653336f9",
     "void-runner/district-area.js": "48b60eab3a791020ce7a4a7213de866e697069ca4c003cf7f255a5ffcef3db4c",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
-    "void-runner/district-map.js": "3a0a81ab83fd4c1716ac31c0f6f13191bc3225e5b0588835d70d35e2ecead2af",
+    "void-runner/district-map.js": "58b56089eef021541f870f4fc6edc10debc9998e151b71c1d1e05c16eeafa792",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
@@ -13922,7 +14192,7 @@
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "4172df44fc02d43d56016c17c76bc6af4daa80edcc1c5200be582903d7075a19",
-    "void-runner/personal-device.js": "02738d19f3f2b35b21d8ae2f48a4257c29d4dc0c6befe661fbd797227b2ec93f",
+    "void-runner/personal-device.js": "10b114a98a422ddaa2934567f78080ec5df61e0d5eacb0c2760fc835b011b665",
     "void-runner/personal-hud.js": "1ca0e48b3d144a0a2ffed8e3202f98322a060541b8127de2ee48469ed2606776",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
@@ -13948,7 +14218,7 @@
     "void-runner/signals.js": "c4b44b7d838b52d35c5a6d57afa3b437be789b78f43eff9e1adc4a7dfa26e5b6",
     "void-runner/simulation-effects.js": "f6aac1ce655f6f79e900da09e79938ecf7c162aa6d5c765187b294510793342a",
     "void-runner/skirmish.js": "28cc0b6d0a5296c56574c51efdb4de14367666dbba30634394d2f7e8f87bcb41",
-    "void-runner/sky-cab.js": "a51e493425ddcd4e4e3ce8ef9cbc8a06398ee0c959b32b3ba0037cd644183e79",
+    "void-runner/sky-cab.js": "0d75b4c30a00db85f1dfeb9b4c4b2b68e0066e71944af547f40aa8d2a9c2ec27",
     "void-runner/social-profiles.js": "fd88c0388f4dfccdb0bfc24edaabb5ce48e415b1d3cceb1bb82a235ef8bed418",
     "void-runner/station-activities.js": "06fbc8ae9530c5c612be8539f1af9bc29a314e39d7918eb6b670044da512141a",
     "void-runner/station-layouts.js": "04310755d7074c6b47fcf8b67c4218959debc861c7a286ccd53d586a61a60879",
@@ -13956,7 +14226,10 @@
     "void-runner/story-scenes.js": "322106e619d1a2456c5dac94dd252bd2373cb0c03273c75954d068b378cad5dd",
     "void-runner/story.js": "74501dca85057c374b5181b440f93059fd6658641624b10e3a159d11493fe272",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
-    "void-runner/taxi-rules.js": "5c1965c7d80ae64cbe8b3017bdbffdbf9b09889f65c61b1cd66fc1123c876fa8",
+    "void-runner/taxi-rules.js": "cf617a29c36b2e1347b14cd60ba2d30ea38e5dd43d44085704ad7d1756f2024c",
+    "void-runner/temple-build.js": "e326ba94812e744e32547f0b5bfeed9dd546df328ebc8df36b699aca76b76913",
+    "void-runner/temple-integration.js": "2c73bd6372d46b206b70155d3458f93d6e30c11c153abd42d5c5c1b4e5b66dff",
+    "void-runner/temple.js": "2b26d33ffb07c816e88d4e007a5ed4af8054bfc7cca104038fdf794cc9e172e1",
     "void-runner/trade-window.js": "fae1643ad8aeb97be1b29b74eb1fe2f8b630a0c475daf96829abc376a05908b5",
     "void-runner/traffic.js": "1c47797df0eb41dbbc0fc84c733cc0f8b49401a50901834125f2b5b457752e83",
     "void-runner/travel-visuals.js": "440e1da234f7e831c98561d3d949e3b2d911463014879f04f61199349ff5854e",
@@ -13980,6 +14253,7 @@
     "void-runner/world-integration.js": "471f2c1150e6ec9ae7c036525b5e18ac4a45a6ba36249c0413852ff3cabef0a8",
     "void-runner/world-markers.js": "31f8cc2fa59c41b144f97dcaf6793e7eaeb98ffd09fa692e4e0c8dd0c9845be0",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
+    "void-runner/zen-chat.js": "e8847f58f9caa5f7257c5c1ab1e09469c8714a4918355e7df32c2bae55e3784a",
     "tools/admin-inventory.cjs": "4b545f1e29bc40745983ecd5a113f20926a6f73b52a1b4ed4c2e8106df0a4ed0",
     "tools/audio/npc-voice-registry.json": "8b3b296c71313b5cb754f62019e7b7a06ed92191ba90793f856ab3d89b4b0fd9",
     "void-runner/assets/audio/voice/manifest.json": "be220f919a172ad4122718393d1b92d3726fe44819639c88c0579cf9d224e8ac",
