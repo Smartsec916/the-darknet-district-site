@@ -34,7 +34,7 @@
  }
 
  /* The game is desktop and VR. Core count, memory and a software renderer do not pick a lower graphics setting.
-    The player starts on High unless Settings already has a choice. This gate does not write one. */
+    The player starts on Medium unless Settings already has a choice (graphics-prefs.js). This gate does not write one. */
  function recommendQuality(){return null;}
 
  const COPY={

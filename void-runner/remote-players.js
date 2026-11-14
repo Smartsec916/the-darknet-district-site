@@ -1,4 +1,4 @@
-/* EARLY ACCESS: other registered players in the District interior, with text chat (void-runner/district-chat.js).
+/* EARLY ACCESS: other registered players in the District interior, with text chat (store: void-runner/district-chat.js; screen: the V1 Messages app).
    On the live site it connects to the ONE reviewed hub named by LIVE_HUB below (never an address, link or stored value) and only for a signed-in, registered
    (not anonymous) account, only in the District interior in walking mode; the player can switch it off in Settings > Multiplayer. Anywhere else, and whenever
    the hub is unreachable, nothing happens and the game plays exactly as single-player. The hub verifies the sign-in itself and may refuse the account.
@@ -107,7 +107,7 @@
   if(!place(p)&&!p.off&&root.VoidAssets.onLoaded)p.off=root.VoidAssets.onLoaded(id=>{if(id==='crowd:'+p.model&&peers.get(p.id)===p){place(p);p.off?.();p.off=null;}});
  }
  function onMessage(m){
-  if(m.t==='welcome'){diag.joins++;if(diag.joins>1)diag.reconnects++;selfId=String(m.you||'');clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated,chat:!!m.features?.chat};hubVr=!!m.features?.vr;loadIgnored();for(const [id,mode] of ignored)if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:true}));for(const v of m.peers)upsert(v);emitChat({t:'chat-status',on:features.chat});vrSession=null;
+  if(m.t==='welcome'){diag.joins++;emitChat({t:'chat-status',on:true});if(diag.joins>1)diag.reconnects++;selfId=String(m.you||'');clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated,chat:!!m.features?.chat};hubVr=!!m.features?.vr;loadIgnored();for(const [id,mode] of ignored)if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:true}));for(const v of m.peers)upsert(v);emitChat({t:'chat-status',on:features.chat});vrSession=null;
    if(vrWant&&vrActive()&&ws?.readyState===1)ws.send(JSON.stringify({t:'vr-join',id:vrWant.id}));}   // reconnected during a simulation (or while it loads): go back into the same session
   else if(m.t==='vr-room'){clearPeers();vrSession=m.session||null;vrWant=vrSession?{id:vrSession.id,exp:vrSession.exp,opts:vrSession.opts,private:vrSession.private}:null;for(const v of m.peers||[])upsert(v);vrSettle(true,vrSession);}
   else if(m.t==='vr-update'){if(vrSession&&m.session?.id===vrSession.id)vrSession=m.session;}
@@ -207,7 +207,7 @@
   // Tell the hub my saved look changed (after the wardrobe): it re-reads it from my account and tells nearby players.
   async refreshLook(){if(ws?.readyState===1&&status==='in'){const t=await token();if(t)ws.send(JSON.stringify({t:'refresh',token:t}));}},
   ...(isLocalPage?{_message:onMessage}:{}),
-  // Text chat and moderation (void-runner/district-chat.js is the screen for these). Everything is checked again by the hub.
+  // Text chat and moderation (void-runner/district-chat.js keeps the session's messages; the V1 Messages app is the screen). Everything is checked again by the hub.
   onChat(fn){chatListeners.add(fn);return ()=>chatListeners.delete(fn);},
   sendChat(text){if(ws?.readyState===1&&status==='in'&&features.chat&&typeof text==='string'){ws.send(JSON.stringify({t:'chat',text:text.slice(0,800)}));return true;}return false;},
   get ignored(){if(!ignored.size)loadIgnored();return [...ignored].map(([id,m])=>[id,m,ignoredNames.get(id)||'Player']);},
@@ -269,7 +269,7 @@
  function installChip(){
   const css=document.createElement('style');css.textContent='#mp-chip{position:fixed;left:32px;top:58px;z-index:130;max-width:min(34rem,70vw);padding:5px 10px;border:1px solid #2b5560;background:rgba(3,9,15,.82);color:#9fd0d6;font:11px/1.35 ui-monospace,Consolas,monospace;letter-spacing:.09em;text-align:left;cursor:default}#mp-chip[hidden]{display:none}#mp-chip::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:8px;background:#ffb347}#mp-chip.on{border-color:#2fd3a0;color:#d9fff2}#mp-chip.on::before{background:#3dffb0;box-shadow:0 0 8px #3dffb0}#mp-chip.wait::before{background:#5ff2ff}#mp-chip.act{cursor:pointer}#mp-chip.act:hover{border-color:#fff}';document.head.appendChild(css);
   const chip=document.createElement('button');chip.type='button';chip.id='mp-chip';chip.hidden=true;chip.setAttribute('aria-live','polite');document.body.appendChild(chip);let action='',shown='';
-  chip.addEventListener('click',()=>{if(action==='people')document.querySelector('#district-chat [data-dc="people"]')?.click();else if(action==='character')root.VoidCharacterCreator?.open?.({context:'multiplayer-setup'});else if(action==='reconnect'){boot();root.VoidRemotePlayers?.reconnect();}else if(action==='menu'&&typeof openGameMenu==='function'&&mode==='walking')openGameMenu();chip.blur();});
+  chip.addEventListener('click',()=>{if(action==='people')root.VoidPersonalDevice?.openApp?.('messages','players');else if(action==='character')root.VoidCharacterCreator?.open?.({context:'multiplayer-setup'});else if(action==='reconnect'){boot();root.VoidRemotePlayers?.reconnect();}else if(action==='menu'&&typeof openGameMenu==='function'&&mode==='walking')openGameMenu();chip.blur();});
   setInterval(()=>{let inside=false;try{inside=typeof walker!=='undefined'&&!!walker&&walkingLocation?.id==='neochinatown'&&walkingLocation.area==='interior'&&['walking','pod-waking'].includes(mode);}catch{}
    if(!inside){if(!chip.hidden)chip.hidden=true;return;}const [text,kind,act]=chipState();action=act;if(chip.hidden)chip.hidden=false;if(shown!==text+kind+act){shown=text+kind+act;chip.textContent=text;chip.className=kind+(act?' act':'');}},500);
  }

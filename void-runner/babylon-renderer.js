@@ -17,11 +17,13 @@
       fragments: 60,
       glow: 0
     },
+    // MEDIUM (the default): the picture is drawn at the page's own size (scale 1) with at most 1.25x the pixel ratio and never above 2560x1440, so no screen is forced to 4K.
+    // Two-sample MSAA plus FXAA, restrained bloom and a half-size glow layer keep the neon look at a moderate cost.
     medium: {
-      scale: 1.15,
-      maxDpr: 1.5,
+      scale: 1,
+      maxDpr: 1.25,
       maxWidth: 2560,
-      maxHeight: 1600,
+      maxHeight: 1440,
       rocks: 34,
       stars: 360,
       fragments: 120,
@@ -74,7 +76,7 @@
     signs = [];
   let activeLocation = null,
     room = null,
-    quality = 'high',
+    quality = 'medium',
     materials = {},
     lastWidth = 0,
     lastHeight = 0;
@@ -285,7 +287,7 @@
   const look = {
     apply(targetScene, targetCamera, level = quality) {
       const b = B(), ip = targetScene.imageProcessingConfiguration, state = targetScene.metadata ??= {};
-      const tier = presets[level] || presets.high;
+      const tier = presets[level] || presets.medium;
       ip.toneMappingEnabled = true;
       ip.toneMappingType = b.ImageProcessingConfiguration.TONEMAPPING_ACES;
       ip.exposure = 1.55;
@@ -319,8 +321,8 @@
         pipeline.sharpenEnabled = true;
         if (pipeline.sharpen) { pipeline.sharpen.edgeAmount = tier.sharpen; pipeline.sharpen.colorAmount = .3; }
       }
-      // Ultra keeps a larger glow buffer. Medium and High share one, so switching between them does not rebuild it.
-      const spec = (level === 'ultra' ? .85 : .65) + ':' + (level === 'ultra' ? 64 : 40);
+      // The glow buffer grows with the preset: half size on Medium, larger on High, largest on Ultra.
+      const spec = (level === 'ultra' ? .85 : level === 'high' ? .65 : .5) + ':' + (level === 'ultra' ? 64 : level === 'high' ? 40 : 32);
       if (state.lookGlow && state.lookGlowSpec !== spec) { state.lookGlow.dispose(); state.lookGlow = null; }
       if (!state.lookGlow) {
         try {
@@ -961,7 +963,7 @@
     return Number.isFinite(d) && d > 0 ? d : 1;
   }
   function renderSize(width, height, level = quality) {
-    const p = presets[level] || presets.high;
+    const p = presets[level] || presets.medium;
     const dpr = Math.min(deviceRatio(), p.maxDpr);
     let w = Math.round(width * dpr / p.scale), h = Math.round(height * dpr / p.scale);
     const fit = Math.min(1, p.maxWidth / Math.max(1, w), p.maxHeight / Math.max(1, h));
@@ -1316,7 +1318,7 @@
   }
 
   function qualitySet(value) {
-    quality = presets[value] ? value : 'high';
+    quality = presets[value] ? value : 'medium';
     lastWidth = 0;
     if (scene && camera) look.apply(scene, camera, quality);
     if (menuHandle?.scene?.activeCamera) look.apply(menuHandle.scene, menuHandle.scene.activeCamera, quality);

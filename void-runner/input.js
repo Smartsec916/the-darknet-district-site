@@ -19,7 +19,8 @@
     lock: ['Acquire target lock', 'KeyB'],
     missionLog: ['Mission log', 'KeyL'],
     personalHud: ['Personal HUD', 'KeyP'],
-    pause: ['Pause / menu', 'Escape']
+    pause: ['Pause / menu', 'Escape'],
+    keymap: ['KeyMap (show / hide)', 'KeyK']
   };
   const defaults = Object.fromEntries(Object.entries(actions).map(([id, a]) => [id, a[1]])),
     key = 'void-runner-controls-v1';
@@ -36,6 +37,12 @@
       const used = code => Object.values(raw).includes(code);
       if (raw.lock === 'KeyL' && !used('KeyB')) raw.lock = 'KeyB';
       raw.missionLog = ['KeyL', 'KeyJ', 'KeyK', 'KeyN'].find(code => !used(code)) || 'KeyL';
+    }
+    // Saves from before the KeyMap: it takes K when nothing of the player's uses it. A player who already put another action on K keeps that action there (never overwritten);
+    // the KeyMap then takes the first free key from the list, and the KeyMap itself always says which key hides it.
+    if (raw && typeof raw.keymap !== 'string') {
+      const used = code => Object.values(raw).includes(code);
+      raw.keymap = ['KeyK', 'KeyJ', 'KeyN', 'KeyM', 'KeyU', 'KeyY', 'KeyZ', 'KeyV', 'KeyH', 'KeyO', 'KeyI'].find(code => !used(code)) || 'KeyK';
     }
     // Saves from before the Personal HUD: give it P, or the first free key.
     if (raw && typeof raw.personalHud !== 'string') {

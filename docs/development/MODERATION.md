@@ -4,7 +4,7 @@ Written 2026-11-06. Nothing here is live until David approves the Render and pub
 
 ## What players can do
 
-- **Mute** (hides one player's chat) and **Block** (also hides their character) from the PLAYERS panel, or `/mute NAME`, `/unmute NAME`, `/block NAME`, `/unblock NAME` in the chat box. Kept on that player's device for that account. The hub also stops delivering a muted or blocked player's chat to them. A blocked player stays listed under PLAYERS (marked "not in view") so they can be unblocked.
+- **Mute** (hides one player's chat) and **Block** (also hides their character) from the PLAYERS tab of the V1 Messages app (the left-side chat box was removed in V1 Phase 2), or `/mute NAME`, `/unmute NAME`, `/block NAME`, `/unblock NAME` in the chat box. Kept on that player's device for that account. The hub also stops delivering a muted or blocked player's chat to them. A blocked player stays listed under PLAYERS (marked "not in view") so they can be unblocked.
 - **Report** (PLAYERS > REPORT): reason (harassment, spam, inappropriate, cheating, other) and an optional note of up to 120 characters. One report per 20 seconds, 5 per session.
 
 ## What the hub enforces (server side, in `tools/district-hub/chat.cjs` and `protocol.cjs`)

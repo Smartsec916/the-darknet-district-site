@@ -22,6 +22,26 @@ test('saved device state: unknown values are ignored, built-in apps stay install
 test('App Store: shows installed apps and says nothing more is available; no purchases',()=>{
  const l=D.storeListing(D.restore({}));assert.ok(l.rows.every(r=>r.status==='installed'));assert.equal(l.more,false);
  assert.ok(!JSON.stringify(l).match(/price|\$|credit|buy|purchase/i));
+ assert.equal(l.system.length,9,'the nine system apps are listed as built in');assert.equal(l.installed.length,0,'no optional app is installed on a stock device');assert.equal(l.available.length,0,'nothing downloadable exists yet');
+});
+test('stock storage: 75% used, 25% available, 9 system apps, 0 optional apps; old saves keep working; optional apps would add their own share',()=>{
+ const stock=D.storage(D.restore({}));assert.deepEqual({u:stock.usedPct,a:stock.availablePct,s:stock.systemApps,o:stock.optionalApps,m:stock.model},{u:75,a:25,s:9,o:0,m:'V1'});
+ // a save from before this change (apps listed, no storage field) is the stock device too: nothing new is saved
+ const old=D.restore({deviceModel:'v1',deviceApps:D.DEVICES.v1.apps.join(','),deviceSettings:'motion=full;scan=0;size=expanded'});assert.equal(D.storage(old).usedPct,75);assert.equal(old.settings.motion,'full');
+ const flags=D.write({},D.restore({}));assert.deepEqual(Object.keys(flags).sort(),['deviceApps','deviceMapInterior','deviceMapStreet','deviceModel','deviceSettings','deviceVersion'],'no new save field');
+ // a future optional app (added to STORE_EXTRA by its own approved change) is kept across a save and adds its storage; an unknown id is dropped
+ D.STORE_EXTRA.push({id:'testapp',title:'TEST',generation:1,storagePct:10});D.APPS.testapp={id:'testapp',title:'TEST',state:'ready',note:''};
+ try{const d=D.restore({deviceApps:D.DEVICES.v1.apps.join(',')+',testapp,evil'});assert.ok(d.apps.includes('testapp'));assert.ok(!d.apps.includes('evil'));const s=D.storage(d);assert.deepEqual([s.usedPct,s.availablePct,s.optionalApps],[85,15,1]);assert.equal(D.storeListing(d).installed.length,1);
+  D.STORE_EXTRA[0].storagePct=60;assert.equal(D.storage(d).usedPct,100,'capped at 100');
+ }finally{D.STORE_EXTRA.pop();delete D.APPS.testapp;}
+});
+test('interface timing: configurable, clamped, and off for reduced motion',()=>{
+ const d=D.restore({}),u=D.DEVICES.v1.ui;assert.equal(u.appOpenMs,320);
+ assert.equal(D.delayMs(d,'open',false),320);assert.equal(D.delayMs(d,'tab',false),u.tabMs);assert.equal(D.delayMs(d,'home',false),u.homeMs);assert.equal(D.delayMs(d,'startup',false),u.startupMs);
+ for(const k of ['open','tab','home','startup'])assert.equal(D.delayMs(d,k,true),0,k+': reduced motion has no delay');
+ assert.equal(D.delayMs(d,'nonsense',false),0);
+ for(const k of ['appOpenMs','homeMs','tabMs'])assert.ok(u[k]>=150&&u[k]<=450,k+' stays in the believable 150-450 ms range');
+ const save=u.appOpenMs;try{u.appOpenMs=99999;assert.equal(D.delayMs(d,'open',false),u.maxMs,'a later model cannot make it unusable');u.appOpenMs=100;assert.equal(D.delayMs(d,'open',false),100,'a faster model just changes the number');}finally{u.appOpenMs=save;}
 });
 test('map exploration uses the real District and street layouts and reveals only what was visited',()=>{
  for(const area of ['interior','street']){

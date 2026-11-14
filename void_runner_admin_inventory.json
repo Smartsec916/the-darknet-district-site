@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "9aceccdefeca175f",
+  "revision": "24b385a67632d62f",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11623,25 +11623,25 @@
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 175,
+      "line": 178,
       "text": "if (escortShip && current?.kind === 'escort' && ['arrival','dialogue'].includes(mode) && state.location === current.destination && !state.contract) escortShip.status = 'complete';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 176,
+      "line": 179,
       "text": "if(wasFlying && ['arrival','dialogue'].includes(mode)) {ambientTraffic.contacts=[];VoidFlightSession.end();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 238,
+      "line": 247,
       "text": "speech = null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 280,
+      "line": 289,
       "text": "screen.querySelector('.speech-controls,.cinematic-space')?.insertAdjacentHTML('beforeend', button('RETURN TO EXPLORATION', 'walk-resume', true));",
       "kind": "source-reference"
     },
@@ -11761,20 +11761,26 @@
     },
     {
       "source": "void-runner/device-v1.js",
-      "line": 22,
+      "line": 28,
       "text": "messages:{id:'messages',title:'MESSAGES',glyph:'@',state:'ready',note:'District chat and conversations. Private messages to other players are not available yet.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/device-v1.js",
-      "line": 123,
+      "line": 143,
       "text": "actions:[{id:'talk',label:'CONVERSATION',enabled:!!data.here,reason:data.here?'':'Talk to them in person.'}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/district-chat.js",
-      "line": 35,
-      "text": "formEl=el_('form');formEl.hidden=true;inputEl=el_('input');inputEl.type='text';inputEl.maxLength=200;inputEl.autocomplete='off';inputEl.setAttribute('aria-label','Chat message (200 characters, no links)');inputEl.placeholder='Say something to the District (Enter to send, Esc to close)';",
+      "line": 33,
+      "text": "if(!rp)return {ok:false,text:'Not connected right now.'};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/district-chat.js",
+      "line": 34,
+      "text": "if(t[0]!=='/')return rp.sendChat(t)?{ok:true}:{ok:false,text:'Not connected right now.'};",
       "kind": "source-reference"
     },
     {
@@ -12092,7 +12098,7 @@
     {
       "source": "void-runner/mouse-control.js",
       "line": 8,
-      "text": "const conversationOpen=()=>!!document.querySelector('#screen.conversation-live,#trade-window,#district-chat.open,#district-chat.people,#personal-device.open');   // a conversation or the trade window needs the cursor",
+      "text": "const conversationOpen=()=>!!document.querySelector('#screen.conversation-live,#trade-window,#personal-device.open');   // a conversation or the trade window needs the cursor",
       "kind": "source-reference"
     },
     {
@@ -12199,31 +12205,37 @@
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 75,
+      "line": 50,
       "text": "const A=root.VoidCharacterCreator?.stored?.()||null,h=root.VoidAccount?.handle;   // no saved look: the portrait says unavailable, never a guess",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 100,
-      "text": "const tabs='<div class=\"pd-tabs\"><button type=\"button\" data-sub=\"chat\" aria-pressed=\"'+(sub==='chat')+'\">DISTRICT CHAT</button><button type=\"button\" data-sub=\"talk\" aria-pressed=\"'+(sub==='talk')+'\">CONVERSATIONS</button><button type=\"button\" data-sub=\"dm\" aria-pressed=\"'+(sub==='dm')+'\">PRIVATE</button></div>';",
+      "line": 134,
+      "text": "const tabs='<div class=\"pd-tabs\">'+tab('chat','DISTRICT CHAT',un?(un>99?'99+':un):'')+tab('players','PLAYERS','')+tab('talk','CONVERSATIONS','')+tab('dm','PRIVATE','')+'</div>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 104,
-      "text": "return tabs+(rows.length?rows.slice(-40).reverse().map(m=>'<div class=\"pd-line\"><b>'+esc(m.name)+'</b><span class=\"pd-note\">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class=\"pd-empty\">No conversations yet. People you talk to appear here.</div>');",
+      "line": 139,
+      "text": "return tabs+'<div class=\"pd-note\">People you have talked to in this browser. Not synced.</div>'+(rows.length?rows.slice(-40).reverse().map(m=>'<div class=\"pd-line\"><b>'+esc(m.name)+'</b><span class=\"pd-note\">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class=\"pd-empty\">No conversations yet. People you talk to appear here.</div>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 109,
-      "text": "+'<form data-chatform style=\"margin-top:8px\"><input type=\"text\" maxlength=\"200\" autocomplete=\"off\" aria-label=\"Chat message\" placeholder=\"'+(can?'Say something (no links)':'Chat needs a registered account and a connection')+'\"'+(can?'':' disabled')+'></form>';",
+      "line": 145,
+      "text": "+'<form data-chatform class=\"pd-compose\"><input type=\"text\" maxlength=\"200\" autocomplete=\"off\" aria-label=\"Chat message\" placeholder=\"'+(can?'Say something to the District (no links)':'Chat needs a registered account and a connection')+'\"'+(can?'':' disabled')+'><button type=\"submit\"'+(can?'':' disabled')+'>SEND</button></form>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 262,
+      "line": 198,
+      "text": "el.addEventListener('submit',e=>{const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/personal-device.js",
+      "line": 331,
       "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
       "kind": "source-reference"
     },
@@ -13586,8 +13598,8 @@
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/asset-pipeline.js": "496edd3d907d4f23524366ef1263dd57b33a149d444c14ba2b20c9e09a4bb746",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
-    "void-runner/babylon-integration.js": "94d1e0c65af5b61ae299ad85d7630295b4b3e4b95901c7e5e422063185dda414",
-    "void-runner/babylon-renderer.js": "0a85de05039b5d015a3e8dc75b68aa32c9ec867a0f19d1f0925f939191f5b94f",
+    "void-runner/babylon-integration.js": "6573fccdc394059cdafb478770657e41906cec324ba410696bfadd60b9ff3e37",
+    "void-runner/babylon-renderer.js": "7c5b257fb4c420d6b725f2c7c0148b31987f19d83d8c91a82eed82f7e3863413",
     "void-runner/balance-data.js": "ebc76bb374885f015ae60a86864e8701bba194e5d3ce09fb321dd52cedabe16c",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
@@ -13615,13 +13627,13 @@
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-test.js": "fe2ee383ca0ae2227dc944eea2d1ae1c4d7922e60c8719f1a7fa78fc3ae4ffa7",
     "void-runner/dev-tools.js": "8fc329454a6ed8a22bf93e8721eeffca11b1276ccf0eb3676b90c67c58781974",
-    "void-runner/device-gate.js": "089a601ec87511bcd6a0e6a48e11422a2e3a91b13fd15c6033e9cfba2bfe1d98",
+    "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
     "void-runner/device-portraits.js": "390549763346c7202b1f16c85c873828baf5b3e8b05dc326a2dcde2cc264374f",
-    "void-runner/device-v1.js": "3007b412efce9859a50342d0e9a167a9adad2e6e826e831f08a5bc8c8f623571",
+    "void-runner/device-v1.js": "50c7e6f065eb8f261f8306d90b005ac51aa2300ced09bc8ba0f3a6f16b389233",
     "void-runner/district-arcade.js": "de51866295a9a6cef51b94a3097ea6ca38bc3da02133d85ba4f26835653336f9",
     "void-runner/district-area.js": "48b60eab3a791020ce7a4a7213de866e697069ca4c003cf7f255a5ffcef3db4c",
-    "void-runner/district-chat.js": "f6dcf7d042846fb47df27dfa2703699314770365fcc5adab94c80f3341029dd5",
-    "void-runner/district-map.js": "5a57f879352d99d5e2db32dc6f948bbe13bce32bc63d52eba181b375f0550c5b",
+    "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
+    "void-runner/district-map.js": "6275a1edc1a887c71fe8b04a18488e73bf8b4cfec72100e39cad2c3d12a94a13",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
@@ -13644,11 +13656,13 @@
     "void-runner/flight-skirmish.js": "d34dcc71253521e0b64617552cce2db27b7e1e37420611fa7471de848c8a5573",
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
     "void-runner/game.js": "12ab691c726ae68308e305e53de737011b05e11962d7a843baf4e26d48e6283a",
+    "void-runner/graphics-prefs.js": "5b0092cbc6e4ed50c21d51bc2856a2caeb0c5957e46cb4415c3f28514d2dd6fe",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "3f0a281fe47ab2dbf58eb419916d99736a1c576e65e026dbb94eb2bcc5756b20",
     "void-runner/hud-data.js": "ab10b0b6a6a95a50c28751a44eee205e0cc6d6e063bae78d89087f39411bde35",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
-    "void-runner/input.js": "ee7b8bba97bf1233e9d6d5e7d115efee2ecb1caddd6b758a144b78f33046924e",
+    "void-runner/input.js": "9ad5819c0941824bb6d28ad566377557de06538650bb442ebd20356a2e223a72",
+    "void-runner/keymap.js": "1b92de4ee96d9439431685b4aca581db1816a369a22c907b18986ec8a15de54e",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "09c6ffa9f4bd4e961e3d566a9d797b53725fce88f49af9b20fb989cab5cbea98",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
@@ -13661,7 +13675,7 @@
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-log.js": "da6545bba6a9536dedbd50fc675b61d943b78f7044d785330db2e78e1befcd44",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
-    "void-runner/mouse-control.js": "b56e49272cfec41479903eb03861ce86ff29d7549ac12d9a28d0df7e323b6b88",
+    "void-runner/mouse-control.js": "af8df4b620bba30d4cc4ce2dcfb3a0a8766f143f18bd388c52ba0f5412eadf5e",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "a751c57ffcc8fd9928ecd8baa1f962d21f86ae842b87a3724e31c045887795a8",
     "void-runner/music-engine.js": "5078e1a0fedff9d09a7f23823126d3ef8a834a1806edb7675c54e3b668014a8b",
@@ -13676,7 +13690,7 @@
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "4172df44fc02d43d56016c17c76bc6af4daa80edcc1c5200be582903d7075a19",
-    "void-runner/personal-device.js": "d971276a71b1c96d728675ee327bdc8f52bb4953bf6b4b0e898936f61c1840d2",
+    "void-runner/personal-device.js": "c491d759019319393e4a10069112bd4bf9071416b81205740bf6510f5a3dc918",
     "void-runner/personal-hud.js": "1ca0e48b3d144a0a2ffed8e3202f98322a060541b8127de2ee48469ed2606776",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
@@ -13691,7 +13705,7 @@
     "void-runner/relay-radio.js": "5ce31904c15f630a01d00f51d566d66ae97c736d5734d7531835588714269806",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
-    "void-runner/remote-players.js": "91335f68abae3e94d7472111a8b0a144a1bdf918ab036876f93312530ab3b88c",
+    "void-runner/remote-players.js": "4af232920eee43e1a9deb05b9edb3824599bd57f5a901f1d717ef2516dc25f27",
     "void-runner/road-taxi-rules.js": "6287b0c4133166f9ad618193e49c34578ca2faf594f5bcd8038c7e10cf51a80c",
     "void-runner/road-taxi.js": "29de2e70351ee336bd78c268e491e3ed41543ecabd92c3e10432971b9a654010",
     "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",

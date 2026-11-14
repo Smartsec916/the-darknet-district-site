@@ -17,6 +17,7 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   const pos=()=>page.evaluate(()=>({x:walker.x,z:walker.z,yaw:walker.yaw,keys:[...walkingKeys],mode,frame:VoidBabylon.scene.getFrameId()}));
   const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
   const open=()=>page.evaluate(()=>VoidPersonalDevice.isOpen);
+  const settle=()=>page.waitForFunction(()=>!VoidPersonalDevice.busy);   // the starter V1 shows a short loading card before each screen (device-v1.js ui timing)
   const before=await page.evaluate(()=>({credits:state.credits,loc:state.location,inv:JSON.stringify(state.inventory||null),missions:JSON.stringify(state.universe?.trackedMission||null)}));
   assert.equal(await page.locator('#pd-chip').isVisible(),true,'a discoverable V1 chip is shown on foot');
   // 1. L opens and closes the device; the game does not change mode and keeps running
@@ -46,17 +47,17 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   await page.click('[data-do=expand]');let r=await page.evaluate(()=>document.getElementById('personal-device').getBoundingClientRect().width/innerWidth);assert(r>.9,'expanded: '+r);
   await page.click('[data-do=expand]');r=await page.evaluate(()=>document.getElementById('personal-device').getBoundingClientRect().width/innerWidth);assert(Math.abs(r-.5)<.06,'collapsed: '+r);
   // 6. Navigation, back, Esc; Mission Log with no missions; the old pistol text is gone
-  await page.click('[data-app=missions]');assert.match(await page.textContent('#personal-device .pd-main'),/No active missions/);assert.doesNotMatch(await page.textContent('#personal-device'),/pistol|Mara gives/i);
-  await page.keyboard.press('Escape');assert.equal(await page.textContent('#personal-device .pd-title'),'HOME');assert.equal(await open(),true,'Esc in an app goes back, it does not close');
+  await page.click('[data-app=missions]');await settle();assert.match(await page.textContent('#personal-device .pd-main'),/No active missions/);assert.doesNotMatch(await page.textContent('#personal-device'),/pistol|Mara gives/i);
+  await page.keyboard.press('Escape');await settle();assert.equal(await page.textContent('#personal-device .pd-title'),'HOME');assert.equal(await open(),true,'Esc in an app goes back, it does not close');
   // 7. Camera and Gallery are placeholders; App Store lists installed apps and no purchases
-  await page.click('[data-app=camera]');assert.match(await page.textContent('#personal-device .pd-main'),/Not available in the V1/);assert.equal(await page.locator('#personal-device .pd-main button').count(),0);await page.click('[data-do=back]');
-  await page.click('[data-app=gallery]');assert.match(await page.textContent('#personal-device .pd-main'),/No photos/);await page.click('[data-do=back]');
-  await page.click('[data-app=store]');const store=await page.textContent('#personal-device .pd-main');assert.match(store,/No additional apps are available yet/);assert.doesNotMatch(store,/price|\$|credits|buy/i);await page.click('[data-do=back]');
-  await page.click('[data-app=news]');assert.match(await page.textContent('#personal-device .pd-main'),/No news received yet|Nothing received yet/);await page.click('[data-do=back]');
-  await page.click('[data-app=messages]');assert.match(await page.textContent('#personal-device .pd-main'),/not connected|No chat yet/i);await page.click('[data-sub=dm]');assert.match(await page.textContent('#personal-device .pd-main'),/not available yet/);await page.click('[data-do=back]');
+  await page.click('[data-app=camera]');await settle();assert.match(await page.textContent('#personal-device .pd-main'),/Not available in the V1/);assert.equal(await page.locator('#personal-device .pd-main button').count(),0);await page.click('[data-do=back]');await settle();
+  await page.click('[data-app=gallery]');await settle();assert.match(await page.textContent('#personal-device .pd-main'),/No photos/);await page.click('[data-do=back]');await settle();
+  await page.click('[data-app=store]');await settle();const store=await page.textContent('#personal-device .pd-main');assert.match(store,/STORAGE USED: 75%/);assert.match(store,/STORAGE AVAILABLE: 25%/);assert.match(store,/SYSTEM APPS9/);assert.match(store,/ADDITIONAL APPS INSTALLED0/);assert.match(store,/No additional apps installed/);assert.match(store,/No downloadable apps are available yet/);assert.equal(await page.locator('#personal-device .pd-sys').count(),9,'nine system apps listed');assert.doesNotMatch(store,/price|\$|credits|buy/i);await page.screenshot({path:shot+'/dd-device-store-'+tier+'.png'});await page.click('[data-do=back]');await settle();
+  await page.click('[data-app=news]');await settle();assert.match(await page.textContent('#personal-device .pd-main'),/No news received yet|Nothing received yet/);await page.click('[data-do=back]');await settle();
+  await page.click('[data-app=messages]');await settle();assert.match(await page.textContent('#personal-device .pd-main'),/not connected|No chat yet/i);await page.click('[data-sub=dm]');await settle();assert.match(await page.textContent('#personal-device .pd-main'),/Not available yet/);await page.click('[data-do=back]');await settle();
   // 8. Social: my own profile uses my real saved look (a portrait is drawn from the character), NPCs without a model say unavailable
   await page.evaluate(()=>{state.story.met=[...(state.story.met||[]),'rook'];});
-  await page.click('[data-app=social]');
+  await page.click('[data-app=social]');await settle();
   await page.waitForFunction(()=>{const i=document.querySelector('#personal-device img.pd-portrait');return i&&/^data:image\/jpeg;base64,/.test(i.src);},null,{timeout:240000});
   const social=await page.evaluate(()=>({imgs:[...document.querySelectorAll('#personal-device img.pd-portrait')].map(i=>({key:i.dataset.pk,len:i.src.length})),sil:document.querySelectorAll('#personal-device .pd-sil').length,text:document.querySelector('#personal-device .pd-main').textContent}));
   assert(social.imgs.length>=1&&social.imgs[0].len>2000,'a real picture was drawn');assert(social.sil>=1,'the NPC without a model shows the unavailable state');assert.match(social.text,/PORTRAIT UNAVAILABLE/);assert.doesNotMatch(social.text,/@[^ ]*\.[a-z]{2,}|uid|token/i);
@@ -64,24 +65,24 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   const firstUrl=await page.evaluate(()=>document.querySelector('#personal-device img.pd-portrait').src),firstKey=social.imgs[0].key;
   // 9. Changing the look changes the portrait (new key, new picture); the old picture is not reused
   await page.evaluate(()=>{const A=VoidCharacterAppearance,a=VoidCharacterCreator.stored();const b={...a,hair:a.hair==='bob01'?'short02':'bob01',hairColor:'magenta'};A.save(localStorage,VoidAccount?.user?.uid||'guest',A.validate(b)?b:{...a,hairColor:'magenta'});});
-  await page.click('[data-do=back]');await page.click('[data-app=social]');
+  await page.click('[data-do=back]');await settle();await page.click('[data-app=social]');await settle();
   await page.waitForFunction(k=>{const i=document.querySelector('#personal-device img.pd-portrait');return i&&i.dataset.pk!==k&&/^data:image\/jpeg/.test(i.src);},firstKey,{timeout:240000});
   const second=await page.evaluate(()=>({key:document.querySelector('#personal-device img.pd-portrait').dataset.pk,url:document.querySelector('#personal-device img.pd-portrait').src}));
   assert.notEqual(second.key,firstKey);assert.notEqual(second.url,firstUrl,'the portrait follows the new look');
   const stored=await page.evaluate(()=>Object.keys(JSON.parse(localStorage.getItem('void-runner-portraits-v1')||'{}')));assert(!stored.includes(firstKey),'the outdated picture of this character was dropped from the cache');
   // 10. Map: the city map (district-map.js) with the real places; exploration is still recorded in the save
-  await page.click('[data-do=back]');await page.click('[data-app=map]');await page.waitForSelector('#personal-device canvas.dm-canvas');
+  await page.click('[data-do=back]');await settle();await page.click('[data-app=map]');await settle();await page.waitForSelector('#personal-device canvas.dm-canvas');
   const listed=await page.evaluate(()=>document.querySelector('#personal-device [data-map-list]').textContent);assert.match(listed,/Bar/);assert.match(listed,/Sleeping pods/);assert.doesNotMatch(listed,/not built/,'unbuilt places are not shown to players');
   await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);
   await page.evaluate(()=>{const i=walkingLocation.interactions.find(x=>x.id==='district-bar');walker.x=i.position[0];walker.z=i.position[2]+(i.position[2]<-100?3:-3);});await page.waitForTimeout(2500);
-  await page.keyboard.press('KeyL');await page.waitForSelector('#personal-device.open');await page.click('[data-app=map]');await page.waitForSelector('#personal-device canvas.dm-canvas');
+  await page.keyboard.press('KeyL');await page.waitForSelector('#personal-device.open');await page.click('[data-app=map]');await settle();await page.waitForSelector('#personal-device canvas.dm-canvas');
   const flags=await page.evaluate(()=>({m:state.story.flags.deviceMapInterior,model:state.story.flags.deviceModel}));assert.ok(flags.m&&/^[0-9a-f]+$/.test(flags.m));assert.equal(flags.model,'v1');
   await page.screenshot({path:shot+'/dd-device-map-'+tier+'.png'});
   // 11. Settings persist in the save
-  await page.click('[data-do=back]');await page.click('[data-app=settings]');await page.click('[data-set=motion][data-value=reduced]');
+  await page.click('[data-do=back]');await settle();await page.click('[data-app=settings]');await settle();await page.click('[data-set=motion][data-value=reduced]');
   assert.match(await page.evaluate(()=>state.story.flags.deviceSettings),/motion=reduced/);
   // 12. Looking around outside the device works; dragging inside it does not turn the camera
-  await page.click('[data-do=back]');const y0=(await pos()).yaw;await page.mouse.move(300,400);await page.mouse.down();await page.mouse.move(420,400,{steps:5});await page.mouse.up();const y1=(await pos()).yaw;assert(Math.abs(y1-y0)>.02,'drag outside the device turns the view');
+  await page.click('[data-do=back]');await settle();const y0=(await pos()).yaw;await page.mouse.move(300,400);await page.mouse.down();await page.mouse.move(420,400,{steps:5});await page.mouse.up();const y1=(await pos()).yaw;assert(Math.abs(y1-y0)>.02,'drag outside the device turns the view');
   await page.mouse.move(1000,400);await page.mouse.down();await page.mouse.move(1150,420,{steps:5});await page.mouse.up();assert(Math.abs((await pos()).yaw-y1)<.001,'dragging inside the device does not turn the view');
   // 13. Esc at home closes; save/resume keeps the device state; nothing else in the game changed
   await page.keyboard.press('Escape');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);
