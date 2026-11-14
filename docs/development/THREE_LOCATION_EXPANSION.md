@@ -8,7 +8,7 @@
 |---|---|---|
 | **Milked** | **Deployed** (PR [#265](https://github.com/Smartsec916/the-darknet-district-site/pull/265), `3129a09`). Verified locally and against the live site in a real browser. | `docs/development/MILKED.md`, `tests/milked.test.cjs`, `tests/milked-browser.cjs`, `docs/development/milked/` |
 | **Corporate District** | **Deployed** (PR #275, `83e8941`), live-verified. Separate scene, reusable sky-cab transition, security, stealth, V1 map with fog. | [`CORPORATE.md`](CORPORATE.md), `tests/corporate*.test.cjs`, `tests/sky-cab.test.cjs`, `tests/corporate-browser.cjs`, `docs/development/corporate/` |
-| **Zen Zephyr Temple** | **Built; in PR (see AI_HANDOFF for merge and live status).** Same sky-cab transition, hilltop chamber, monk, local chat, V1 map with fog. | [`TEMPLE.md`](TEMPLE.md), `tests/temple.test.cjs`, `zen-chat.test.cjs`, `tests/temple-browser.cjs`, `docs/development/temple/` |
+| **Zen Zephyr Temple** | **Deployed** (PR #283, `ca6eed7`), live-verified. Same sky-cab transition, hilltop chamber, monk, local chat, V1 map with fog. | [`TEMPLE.md`](TEMPLE.md), `tests/temple.test.cjs`, `zen-chat.test.cjs`, `tests/temple-browser.cjs`, `docs/development/temple/` |
 
 Nothing from an earlier unfinished attempt by another agent exists: no branch, PR or code mentions these three places other than the placeholders above (searched 15 Nov 2026).
 
@@ -43,7 +43,7 @@ Approved requirements, as given:
 
 **Next action:** a branch from `main`; read `district-transition.js`, `district-area.js`, `city-taxi.js`, `taxi-rules.js`, `district-map.js`; design the reusable cab-transition and the second scene lifecycle first; write the unit tests; then build the area.
 
-## ZEN ZEPHYR TEMPLE: Sanctum of the Circuit (not started)
+## ZEN ZEPHYR TEMPLE: Sanctum of the Circuit (DONE: see TEMPLE.md; the text below is the original scope)
 
 Approved requirements, as given:
 - A separate, **taxi-only hilltop location** overlooking the distant NeoChinatown skyline; uses the same reusable sky-cab transition; has a return taxi. Serene, technological, mysterious.
