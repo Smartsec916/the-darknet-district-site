@@ -4,6 +4,9 @@
 
 **Checked against:** `origin/main` `4fc1a70` (12 Nov 2026). That commit is the merge of #240 (Tropical Escape dolphins) on top of `7939256` (NULL nightclub, #238). Re-fetch GitHub before trusting pull-request numbers or deploy claims below.
 
+## 13 Nov 2026 (late): cyberpunk character gear built locally (NOT pushed, NOT live)
+Branch `claude/character-gear`: four optional creator accessories (`gear-visor`, `gear-collar`, `gear-shoulders`, `gear-chest`), male and female, all 11 outfits and 9 hairstyles. No schema change: they are ordinary `accessories` ids, so the API and hub only need the new catalog. Design, measurements and the live-release steps are in `docs/development/CHARACTER_GEAR.md`. Live release needs David's approval for: merge to main, API redeploy, hub catalog sync plus manual hub redeploy. Old clients show the plain model.
+
 ## 13 Nov 2026: Render updated for the four new outfits (David approved; live)
 
 - **Game API** (`srv-d15h6nm3jp1c73ftalcg`, branch `main`, manual deploy): now `5b0449b` (was `eeb6989`). Deploy `dep-dbrl8q1srm7s73edskd0`, live 18:20 UTC. Only runtime change: `void-runner/character-catalog.json` (+4 looks, nothing removed).

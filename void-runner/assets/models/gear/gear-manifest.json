@@ -1,0 +1,233 @@
+{
+ "note": "Cyberpunk gear for the player characters. LOCAL, for review: not loaded by the game. See docs/development/CHARACTER_GEAR.md.",
+ "units": "the character file's own units (the game scales the whole character); Y up, character faces +Z, +X is its left",
+ "skinning": "each part carries the character's 52-joint skeleton and is weighted 100% to the one joint named in \"bone\"",
+ "materials": {
+  "gear_shell": "dark gunmetal PBR",
+  "gear_glow": "lit details; emissive only; the game may tint it"
+ },
+ "bodies": {
+  "male": {
+   "file": "district-smuggler",
+   "joints": {
+    "Head": [
+     0.001,
+     1.67,
+     0.032
+    ],
+    "Neck": [
+     -0.002,
+     1.63,
+     0.012
+    ],
+    "Spine2": [
+     -0.002,
+     1.404,
+     0.012
+    ],
+    "LeftArm": [
+     0.213,
+     1.595,
+     0.024
+    ],
+    "RightArm": [
+     -0.211,
+     1.585,
+     0.029
+    ]
+   }
+  },
+  "female": {
+   "file": "district-resident",
+   "joints": {
+    "Head": [
+     0.004,
+     1.155,
+     0.036
+    ],
+    "Neck": [
+     0.004,
+     1.108,
+     0.021
+    ],
+    "Spine2": [
+     0.004,
+     0.993,
+     0.021
+    ],
+    "LeftArm": [
+     0.146,
+     1.091,
+     0.034
+    ],
+    "RightArm": [
+     -0.137,
+     1.09,
+     0.031
+    ]
+   }
+  }
+ },
+ "parts": {
+  "visor_m": {
+   "file": "gear_visor_m.glb",
+   "part": "visor",
+   "body": "male",
+   "bone": "mixamorig:Head",
+   "anchor": "mixamorig:Head",
+   "scaleBy": "headW",
+   "triangles": 216,
+   "size": [
+    0.207,
+    0.026,
+    0.145
+   ],
+   "bytes": 25320,
+   "glow": true
+  },
+  "collar_m": {
+   "file": "gear_collar_m.glb",
+   "part": "collar",
+   "body": "male",
+   "bone": "mixamorig:Neck",
+   "anchor": "mixamorig:Neck",
+   "scaleBy": "headW",
+   "triangles": 216,
+   "size": [
+    0.141,
+    0.04,
+    0.134
+   ],
+   "bytes": 25324,
+   "glow": true
+  },
+  "pauldron_L_m": {
+   "file": "gear_pauldron_L_m.glb",
+   "part": "pauldron_L",
+   "body": "male",
+   "bone": "mixamorig:LeftShoulder",
+   "anchor": "mixamorig:LeftArm",
+   "scaleBy": "span",
+   "triangles": 60,
+   "size": [
+    0.094,
+    0.032,
+    0.099
+   ],
+   "bytes": 24748,
+   "glow": true
+  },
+  "pauldron_R_m": {
+   "file": "gear_pauldron_R_m.glb",
+   "part": "pauldron_R",
+   "body": "male",
+   "bone": "mixamorig:RightShoulder",
+   "anchor": "mixamorig:RightArm",
+   "scaleBy": "span",
+   "triangles": 60,
+   "size": [
+    0.094,
+    0.032,
+    0.099
+   ],
+   "bytes": 24752,
+   "glow": true
+  },
+  "chest_line_m": {
+   "file": "gear_chest_line_m.glb",
+   "part": "chest_line",
+   "body": "male",
+   "bone": "mixamorig:Spine2",
+   "anchor": "mixamorig:Spine2",
+   "scaleBy": "span",
+   "triangles": 24,
+   "size": [
+    0.116,
+    0.012,
+    0.005
+   ],
+   "bytes": 21152,
+   "glow": true
+  },
+  "visor_f": {
+   "file": "gear_visor_f.glb",
+   "part": "visor",
+   "body": "female",
+   "bone": "mixamorig:Head",
+   "anchor": "mixamorig:Head",
+   "scaleBy": "headW",
+   "triangles": 216,
+   "size": [
+    0.177,
+    0.026,
+    0.116
+   ],
+   "bytes": 25132,
+   "glow": true
+  },
+  "collar_f": {
+   "file": "gear_collar_f.glb",
+   "part": "collar",
+   "body": "female",
+   "bone": "mixamorig:Neck",
+   "anchor": "mixamorig:Neck",
+   "scaleBy": "headW",
+   "triangles": 216,
+   "size": [
+    0.113,
+    0.04,
+    0.106
+   ],
+   "bytes": 25136,
+   "glow": true
+  },
+  "pauldron_L_f": {
+   "file": "gear_pauldron_L_f.glb",
+   "part": "pauldron_L",
+   "body": "female",
+   "bone": "mixamorig:LeftShoulder",
+   "anchor": "mixamorig:LeftArm",
+   "scaleBy": "span",
+   "triangles": 60,
+   "size": [
+    0.063,
+    0.022,
+    0.075
+   ],
+   "bytes": 24564,
+   "glow": true
+  },
+  "pauldron_R_f": {
+   "file": "gear_pauldron_R_f.glb",
+   "part": "pauldron_R",
+   "body": "female",
+   "bone": "mixamorig:RightShoulder",
+   "anchor": "mixamorig:RightArm",
+   "scaleBy": "span",
+   "triangles": 60,
+   "size": [
+    0.063,
+    0.022,
+    0.075
+   ],
+   "bytes": 24564,
+   "glow": true
+  },
+  "chest_line_f": {
+   "file": "gear_chest_line_f.glb",
+   "part": "chest_line",
+   "body": "female",
+   "bone": "mixamorig:Spine2",
+   "anchor": "mixamorig:Spine2",
+   "scaleBy": "span",
+   "triangles": 24,
+   "size": [
+    0.086,
+    0.012,
+    0.005
+   ],
+   "bytes": 20968,
+   "glow": true
+  }
+ }
+}

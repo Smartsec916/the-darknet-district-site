@@ -9,7 +9,20 @@
  const A=root.VoidCharacterAppearance,F=root.VoidCharacterFit,CAT=A&&A.CATALOG;
  const CROWD='assets/models/crowd/',PARTS='assets/models/parts/',TINT_GAIN=1.5;
  const once=(map,key,make)=>{if(!map.has(key)){const p=make();map.set(key,p);p.catch(()=>map.delete(key));}return map.get(key);};
- const looks=new Map(),hairParts=new Map(),greys=new Map(),fits=new Map();let bindP=null;
+ const looks=new Map(),hairParts=new Map(),greys=new Map(),fits=new Map(),gearParts=new Map();let bindP=null;
+ /* Cyberpunk gear (docs/development/CHARACTER_GEAR.md): optional accessories whose ids start with "gear-". Each part is its own small file, skinned 100% to one joint of the
+    shared 52-joint skeleton (so it follows every animation with no extra clips), made separately for each body (m / f). All the parts a character wears are merged into
+    two meshes (dark shell, lit details) so the whole set costs two draw calls. */
+ // Each piece is authored on a reference body (male district-smuggler, female district-resident) and, when worn, moved from that body's joint to the outfit's own joint and scaled by
+ // the outfit's head width (visor, collar) or shoulder span (the rest): the outfit files are built on bodies of different sizes (gear-fit.json, tools/assets/gear/fit_data.py).
+ const GEAR_FIT={visor:['Head','headW'],collar:['Neck','headW'],pauldron_L:['LeftArm','span'],pauldron_R:['RightArm','span'],chest_line:['Spine2','span','chestFront']};
+ let fitP=null;const gearFit=()=>fitP||(fitP=fetch(new URL('void-runner/assets/models/gear/gear-fit.json',document.baseURI||location.href)).then(r=>{if(!r.ok)throw Error('gear fit HTTP '+r.status);return r.json();}).catch(e=>{fitP=null;throw e;}));
+ const GEAR={'gear-visor':['visor'],'gear-collar':['collar'],'gear-shoulders':['pauldron_L','pauldron_R'],'gear-chest':['chest_line']},GEAR_DIR='assets/models/gear/';
+ function ensureGearPart(part,base,scene){
+  const key=part+'_'+(base==='female'?'f':'m');
+  return once(gearParts,key,()=>root.VoidAssets.loadContainer({src:GEAR_DIR+'gear_'+key+'.glb'},scene,null,'gear:'+key).then(c=>{
+   const meshes=c.meshes.filter(m=>m.getTotalVertices()>0);if(!meshes.length)throw Error('gear part has no mesh');return {container:c,meshes,part};}));
+ }
 
  function bindData(){return bindP||(bindP=fetch(new URL('void-runner/'+PARTS+'bind-data.json',document.baseURI||location.href)).then(r=>{if(!r.ok)throw Error('bind data HTTP '+r.status);return r.json();}).catch(e=>{bindP=null;throw e;}));}
  function ensureLook(model,scene){
@@ -67,6 +80,26 @@
    if(!t){const orig=mesh.material;if(!orig||!orig.albedoTexture)return;const mat=orig.clone(orig.name+'-tint');mat.albedoTexture=await greyOf(orig.albedoTexture,scene);t={orig,mat};s.tinted.set(mesh,t);mesh.material=mat;}
    t.mat.albedoColor=hexColor(hex);
   }
+  // The gear a character wears is rebuilt only when the chosen set changes.
+  async function applyGear(s,my){
+   const want=a.accessories.filter(x=>GEAR[x]).sort().join(',');if(s.gearKey===want)return;
+   const [loaded,fit]=want?await Promise.all([Promise.all(want.split(',').flatMap(k=>GEAR[k]).map(n=>ensureGearPart(n,s.lookDef.base,scene))),gearFit()]):[[],null];
+   if(my!==seq||disposed||st!==s)return;
+   for(const m of s.gearMeshes||[])m.dispose();s.gearMeshes=[];s.gearKey=want;if(!loaded.length)return;
+   const bodyMesh=meshByName(s,s.lookDef.body)||s.node.getChildMeshes().find(m=>m.skeleton),groups=new Map();
+   const ref=fit?.bodies[fit.reference[s.lookDef.base]],tgt=fit?.bodies[s.model];
+   for(const part of loaded)for(const m of part.meshes){const key=m.material?.name||'',c=m.clone('gear:'+m.name,null);
+    if(ref&&tgt&&ref!==tgt){   // move and scale the piece from the reference body to this outfit's body (a piece never changes shape, only size)
+     const [jn,sk,depth]=GEAR_FIT[part.part],sc=tgt[sk]/ref[sk],Jr=ref.joints[jn],Jt=tgt.joints[jn];c.makeGeometryUnique();
+     const pos=Float32Array.from(c.getVerticesData(B.VertexBuffer.PositionKind));for(let i=0;i<pos.length;i+=3){pos[i]=Jt[0]+sc*(pos[i]-Jr[0]);pos[i+1]=Jt[1]+sc*(pos[i+1]-Jr[1]);pos[i+2]=depth?tgt[depth]+(pos[i+2]-ref[depth]):Jt[2]+sc*(pos[i+2]-Jr[2]);}   // a piece with a depth anchor (the chest line) keeps its small fixed offset from the outfit's own torso surface
+     c.setVerticesData(B.VertexBuffer.PositionKind,pos,false);}
+    (groups.get(key)||groups.set(key,[]).get(key)).push(c);}
+   for(const list of groups.values()){
+    const g=list.length>1?B.Mesh.MergeMeshes(list,true,true):list[0];if(!g)continue;
+    g.skeleton=bodyMesh.skeleton;g.parent=bodyMesh.parent;g.isPickable=false;   // normal culling, like the body it sits on: gear is not drawn when its character is off screen
+    g.receiveShadows=false;g.setEnabled(true);g.refreshBoundingInfo?.();s.gearMeshes.push(g);
+   }
+  }
   async function apply(){
    const my=++seq;
    if(!st||st.look!==a.look){
@@ -76,7 +109,10 @@
    const s=st,look=s.lookDef,CATH=CAT.hair;
    faceDetail(s);
    // accessories (meshes that belong to the look): shown only when chosen
-   for(const [kind,names] of Object.entries(look.accessories))for(const n of names){const m=meshByName(s,n);if(m)m.setEnabled(a.accessories.includes(kind));}
+   // the gear visor replaces the outfit's own eyewear, and the gear collar its own collar (they would sit in the same place)
+   const covered={eyewear:a.accessories.includes('gear-visor'),collar:a.accessories.includes('gear-collar')};
+   for(const [kind,names] of Object.entries(look.accessories))for(const n of names){const m=meshByName(s,n);if(m)m.setEnabled(a.accessories.includes(kind)&&!covered[kind]);}
+   await applyGear(s,my);if(my!==seq||disposed)return;
    // hair
    const native=meshByName(s,look.nativeHair);
    if(a.hair==='native'){if(s.hairMesh){untint(s,s.hairMesh);s.hairMesh.dispose();s.hairMesh=null;s.hair=null;}native?.setEnabled(true);}
@@ -96,7 +132,7 @@
   }
   // Eyebrows and eyelashes (2 of about 9 draw calls, a few hundred triangles) cannot be seen from across a room: hidden beyond a distance, shown again when close.
   const faceDetail=s=>{for(const m of s.holder.getChildMeshes())if(/\.(eyebrow001|eyelashes01)$/.test(m.name))m.setEnabled(near);};
-  function destroy(s){for(const m of [...s.tinted.keys()])untint(s,m);s.hairMesh?.dispose();s.ctrl?.dispose?.();s.holder.dispose();}
+  function destroy(s){for(const m of [...s.tinted.keys()])untint(s,m);s.hairMesh?.dispose();for(const m of s.gearMeshes||[])m.dispose();s.ctrl?.dispose?.();s.holder.dispose();}
   const api={
    get appearance(){return a;},get node(){return st?.holder||null;},get ready(){return !!st;},
    async set(next){if(!A.validate(next))return false;a=A.normalize(next);await apply();return true;},
@@ -108,5 +144,5 @@
   };
   await apply();return api;
  }
- root.VoidCharacterAssembler={build,ensureLook,ensureHairPart,bindData,clearCaches(){hairParts.clear();looks.clear();fits.clear();}};
+ root.VoidCharacterAssembler={build,ensureLook,ensureHairPart,ensureGearPart,GEAR,bindData,clearCaches(){hairParts.clear();looks.clear();fits.clear();gearParts.clear();}};
 })(globalThis);

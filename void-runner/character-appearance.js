@@ -67,7 +67,7 @@
    looks:Object.entries(CAT.looks).filter(([,l])=>l.base===a.base).map(([id,l])=>({id,label:l.label})),
    hair:[{id:'native',label:'ORIGINAL',enabled:true},{id:'none',label:'NONE',enabled:true},...Object.entries(CAT.hair).map(([id,h])=>({id,label:h.label,enabled:look.hairOk.includes(id)&&(!hat||h.hatOk),reason:!look.hairOk.includes(id)?'does not fit this body':(hat&&!h.hatOk?'not with a hat':'')}))],
    hairColors:CAT.hairColors,clothingColors:CAT.clothingColors,
-   accessories:Object.keys(look.accessories).map(id=>({id,label:CAT.accessories[id].label,enabled:true}))
+   accessories:Object.keys(look.accessories).map(id=>({id,label:CAT.accessories[id].label,enabled:true,gear:!!CAT.accessories[id].gear}))
   };
  }
  /* Uniform scale that brings a body whose bind-pose height is `topY` to the standard height of its base. */

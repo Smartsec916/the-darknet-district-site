@@ -53,5 +53,30 @@ class EndpointOffByDefault(unittest.TestCase):
         self.assertIn("raise ApiError('Appearance changes are not available yet.', 404)", src)
 
 
+
+class GearAppearance(unittest.TestCase):
+    GEAR = ['gear-visor', 'gear-collar', 'gear-shoulders', 'gear-chest']
+
+    def test_every_gear_combination_is_saved_unchanged_on_every_outfit(self):
+        n = 0
+        for look, l in CAT['looks'].items():
+            for mask in range(16):
+                gear = [g for i, g in enumerate(self.GEAR) if mask >> i & 1]
+                a = {'v': 1, 'base': l['base'], 'look': look, 'hair': 'native', 'hairColor': None, 'clothingColor': None, 'accessories': list(l['defaultAccessories']) + gear}
+                self.assertEqual(api.clean_appearance(copy.deepcopy(a)), a)
+                n += 1
+        self.assertEqual(n, 11 * 16)
+
+    def test_gear_is_never_a_default_and_old_appearances_are_unchanged(self):
+        for look, l in CAT['looks'].items():
+            self.assertFalse(set(l['defaultAccessories']) & set(self.GEAR), look)
+        self.assertEqual(api.clean_appearance(copy.deepcopy(GOOD)), GOOD)
+
+    def test_unknown_duplicate_and_too_many_are_still_refused(self):
+        for acc in (['gear-wings'], ['gear-visor', 'gear-visor'], self.GEAR + ['eyewear', 'a', 'b', 'c', 'd']):
+            a = copy.deepcopy(GOOD); a['accessories'] = acc
+            with self.assertRaises(api.ApiError, msg=repr(acc)):
+                api.clean_appearance(a)
+
 if __name__ == '__main__':
     unittest.main()

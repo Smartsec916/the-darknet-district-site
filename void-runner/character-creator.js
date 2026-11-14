@@ -55,7 +55,8 @@
   <h2>CLOTHING COLOUR</h2><div class="cc-row">${btn('clothingColor','','ORIGINAL',draft.clothingColor===null)}${CAT.clothingColors.map(c=>swatch('clothingColor',c,draft.clothingColor===c.id)).join('')}</div>
   <h2>HAIRSTYLE</h2><div class="cc-row">${o.hair.map(h=>btn('hair',h.id,h.label,draft.hair===h.id,h.enabled,h.reason||'')).join('')}</div>
   <h2>HAIR COLOUR</h2><div class="cc-row">${btn('hairColor','','ORIGINAL',draft.hairColor===null)}${CAT.hairColors.map(c=>swatch('hairColor',c,draft.hairColor===c.id)).join('')}</div>
-  ${o.accessories.length?`<h2>EXTRAS</h2><div class="cc-row">${o.accessories.map(a=>btn('acc',a.id,a.label+(draft.accessories.includes(a.id)?' · ON':' · OFF'),draft.accessories.includes(a.id))).join('')}</div>`:''}
+  ${o.accessories.filter(a=>!a.gear).length?`<h2>EXTRAS</h2><div class="cc-row">${o.accessories.filter(a=>!a.gear).map(a=>btn('acc',a.id,a.label+(draft.accessories.includes(a.id)?' · ON':' · OFF'),draft.accessories.includes(a.id))).join('')}</div>`:''}
+  ${o.accessories.some(a=>a.gear)?`<h2>CYBER GEAR</h2><div class="cc-row">${o.accessories.filter(a=>a.gear).map(a=>btn('acc',a.id,a.label+(draft.accessories.includes(a.id)?' · ON':' · OFF'),draft.accessories.includes(a.id))).join('')}</div><p class="cc-note">Each piece switches on or off on its own. The visor replaces eyewear and the tech collar replaces a collar.</p>`:''}
   <p class="cc-note">Height is standard for each body (${CAT.bases.male.height} m / ${CAT.bases.female.height} m).</p></div>
   <div class="cc-bar"><button class="cc-ok" data-cc="confirm"${char?.ready&&!closing?'':' disabled'}>SAVE CHARACTER</button><button data-cc="cancel"${closing?' disabled':''}>${ctx.context==='first'?'BACK TO MENU':'CANCEL'}</button></div>
   <div class="cc-spin"><button data-cc="rotl" aria-label="Rotate left">&#9664;</button><button data-cc="auto" aria-pressed="${auto}">SPIN</button><button data-cc="rotr" aria-label="Rotate right">&#9654;</button></div>
@@ -67,15 +68,23 @@
   if(char){try{await char.set(draft);}catch(e){console.warn('[character creator]',e.message);}}
   if(my===seq)render();
  }
+ // Cyber gear that replaces an outfit's own piece (visor for eyewear, tech collar for collar): while it is on the native piece is off; the native piece is remembered
+ // and put back when the gear goes off, so removing the gear restores the outfit as it was. `taken` is forgotten when the outfit changes.
+ const REPLACES={'gear-visor':'eyewear','gear-collar':'collar'};let taken={};
+ // after an outfit or body change: which of the new outfit's own default pieces the carried gear replaces (so they come back when the gear goes off)
+ const remember=(n,gearOn)=>{taken={};for(const [g,native] of Object.entries(REPLACES))if(gearOn.includes(g)&&n.accessories.includes(native))taken[g]=native;};
+ const withoutCovered=(acc)=>acc.filter(x=>!Object.entries(REPLACES).some(([g,n])=>n===x&&acc.includes(g)));
  function act(kind,v){
   if(kind==='confirm')return close(true);if(kind==='cancel')return close(false);
   if(kind==='rotl'){spin-=.5;auto=false;return render();}if(kind==='rotr'){spin+=.5;auto=false;return render();}if(kind==='auto'){auto=!auto;return render();}
   const d={...draft,accessories:[...draft.accessories]};
-  if(kind==='base'){if(v===d.base)return;const n=A.defaults(Object.keys(CAT.looks).find(id=>CAT.looks[id].base===v));return apply({...n,hairColor:d.hairColor,clothingColor:d.clothingColor});}
-  if(kind==='look'){if(v===d.look)return;const n=A.defaults(v);return apply({...n,hairColor:d.hairColor,clothingColor:d.clothingColor});}
+  // changing body or outfit keeps the gear that was chosen (every outfit offers all of it); the new outfit's own default pieces come with it, minus any the gear replaces
+  const gearOn=d.accessories.filter(x=>CAT.accessories[x]?.gear);
+  if(kind==='base'){if(v===d.base)return;const n=A.defaults(Object.keys(CAT.looks).find(id=>CAT.looks[id].base===v));remember(n,gearOn);return apply({...n,accessories:withoutCovered([...n.accessories,...gearOn]),hairColor:d.hairColor,clothingColor:d.clothingColor});}
+  if(kind==='look'){if(v===d.look)return;const n=A.defaults(v);remember(n,gearOn);return apply({...n,accessories:withoutCovered([...n.accessories,...gearOn]),hairColor:d.hairColor,clothingColor:d.clothingColor});}
   if(kind==='hair'){d.hair=v;}
   if(kind==='hairColor')d.hairColor=v||null;if(kind==='clothingColor')d.clothingColor=v||null;
-  if(kind==='acc'){const i=d.accessories.indexOf(v);if(i>=0)d.accessories.splice(i,1);else{d.accessories.push(v);if(v==='hat'&&d.hair!=='native'&&d.hair!=='none'&&!CAT.hair[d.hair].hatOk)d.hair='native';}}
+  if(kind==='acc'){const i=d.accessories.indexOf(v);if(i>=0){d.accessories.splice(i,1);if(taken[v]&&CAT.looks[d.look].accessories[taken[v]]&&!d.accessories.includes(taken[v]))d.accessories.push(taken[v]);delete taken[v];}else{d.accessories.push(v);for(const [x,y] of Object.entries(REPLACES)){if(v===x){const j=d.accessories.indexOf(y);if(j>=0){d.accessories.splice(j,1);taken[x]=y;}}else if(v===y){const j=d.accessories.indexOf(x);if(j>=0){d.accessories.splice(j,1);delete taken[x];}}}if(v==='hat'&&d.hair!=='native'&&d.hair!=='none'&&!CAT.hair[d.hair].hatOk)d.hair='native';}}
   apply(d);
  }
  const forward=y=>[Math.sin(y),Math.cos(y)];
