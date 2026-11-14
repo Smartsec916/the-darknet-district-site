@@ -570,9 +570,16 @@
     for(const s of solids){if(!/^(hall|vr|vend|pods|arc|bar|shop|meet)-/.test(s.id)||/-(counter|row|table)$/.test(s.id)||/glass|partition/.test(s.id))continue;/* glass booths are drawn by the VR arcade */box('district-wall',[Math.max(.3,s.size[0]),4.2,Math.max(.3,s.size[2])],[s.position[0],2.1,s.position[2]],metal);}
     // The hallway's lining and ceiling (interior rebuild, phase B): Blender-made modules along both walls and overhead. West side magenta, east side cyan.
     // Each wall run is: a column, as many 2 m modules as fit (four designs in turn), a 1 m module and a spare column for what is left, a column.
-    const hallLined=(()=>{if(!kitPiece('district:hall_ceiling_4m',[3,4.05-.62,30],0,[],{merge:true}))return false;for(let z=34;z<=70;z+=4)kitPiece('district:hall_ceiling_4m',[3,4.05-.62,z],0,[],{merge:true});
+    const NO_NEON=['__screen_0','__light_0','__screen_1','__light_1'];   // David, Nov 2026: no neon strips in the hallway; light it like his container-alley reference (cold white overhead, small red lamps at the doors)
+    const hallLined=(()=>{if(!kitPiece('district:hall_ceiling_4m',[3,4.05-.62,30],0,NO_NEON,{merge:true}))return false;for(let z=34;z<=70;z+=4)kitPiece('district:hall_ceiling_4m',[3,4.05-.62,z],0,NO_NEON,{merge:true});
+     {const white=mat('hall-lamp-white','#8fa0b4',{glow:'#d6e8ff',rough:.4}),cage=mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8});white.emissiveIntensity=2.4;
+      // The panels sit up among the services and are half hidden from below (David: less direct, the light coming from behind): a slatted grille under one end, a duct under the other, cables slung across.
+      for(let z=32,i=0;z<=68;z+=6,i++){const f=i%2?-1:1;box('hall-lamp-body',[1.7,.06,.7],[0,3.41,z],cage);box('hall-lamp-panel',[1.5,.03,.56],[0,3.375,z],white);
+       for(let k=0;k<6;k++)box('hall-lamp-grille',[.78,.05,.022],[f*.42,3.3,z-.24+k*.096],cage);for(const dz of [-.3,.3])box('hall-lamp-grille',[.82,.03,.03],[f*.42,3.33,z+dz],cage);
+       box('hall-lamp-duct',[.5,.16,1.3],[-f*.5,3.26,z+.1],cage);box('hall-lamp-duct',[.56,.03,.08],[-f*.5,3.2,z-.3],cage);box('hall-lamp-duct',[.56,.03,.08],[-f*.5,3.2,z+.5],cage);
+       for(const [dz,r,y] of [[-.12,.022,3.27],[.02,.03,3.25],[.19,.018,3.28]]){const c=cyl('hall-lamp-cable',r,2.6,[f*.15,y,z+dz],cage,true,6);c.rotation.z=Math.PI/2;c.rotation.y=dz*.5;}}}
      const kinds=['a','b','c','a','d','b','a','c'];let n=0;
-     const run=(side,a,b)=>{const hide=side<0?['__screen_1','__light_1']:['__screen_0','__light_0'],ry=side<0?Math.PI/2:-Math.PI/2;let at=side<0?a:b;
+     const run=(side,a,b)=>{const hide=NO_NEON,ry=side<0?Math.PI/2:-Math.PI/2;let at=side<0?a:b;
       const put=(id,len,depth)=>{kitPiece('district:'+id,[side*(2.8-depth),0,at],ry,hide,{merge:true});at+=side<0?len:-len;};
       // The 4 m wall module (made with Blender; 3 m high, so a services band sits on it up to the ceiling) takes every stretch it fits; the older 2 m and 1 m modules fill what is left.
       const put4=()=>{if(!kitPiece('district:hall_wall_4m_a',[side*2.6,0,at],ry,[],{merge:true}))return false;kitPiece('district:hall_services_4m',[side*2.62,3,at],ry,[],{merge:true});at+=side<0?4:-4;return true;};
@@ -583,7 +590,10 @@
     // kitAt puts a piece against a wall: `facing` is the way the piece looks, `face` the wall surface behind it, `s` where it starts along the wall (its low end).
     const kitAt=(id,facing,face,s,len,depth,y=0,hide=['__screen_0','__light_0'])=>kitPiece('district:'+id,facing==='+x'?[face+depth,y,s]:facing==='-x'?[face-depth,y,s+len]:facing==='+z'?[s+len,y,face+depth]:[s,y,face-depth],{'+x':Math.PI/2,'-x':-Math.PI/2,'+z':0,'-z':Math.PI}[facing],hide,{merge:true});
     // Doorways, clutter and people (interior rebuild, phase B second step). Each room's doorway gets a lintel with a light under it, a fascia for its sign and a tread plate.
-    if(hallLined){const M=['__screen_1','__light_1'],C=['__screen_0','__light_0'];
+    if(hallLined){const M=NO_NEON,C=NO_NEON;
+     {const redLamp=mat('hall-lamp-red','#4a0c08',{glow:'#ff3a22',rough:.4}),cage=mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8});redLamp.emissiveIntensity=2.2;   // a red bulkhead lamp over every doorway, where the neon strip was
+      for(const [x,z] of [[-2.5,34],[-2.5,49.5],[-2.5,62],[2.5,33],[2.5,47],[2.5,62.5]]){box('hall-door-lamp-body',[.1,.2,.5],[x,2.58,z],cage);box('hall-door-lamp',[.06,.12,.38],[x-Math.sign(x)*.05,2.58,z],redLamp);}
+      box('hall-door-lamp-body',[.5,.2,.1],[0,2.58,70.28],cage);box('hall-door-lamp',[.38,.12,.06],[0,2.58,70.23],redLamp);}
      for(const [a,len] of [[31.5,5],[46.5,6],[59.5,5]])kitAt('hall_header_'+len+'m','+x',-2.8,a,len,.28,0,M);for(const [a,len] of [[30.5,5],[44.5,5],[60.5,4]])kitAt('hall_header_'+len+'m','-x',2.8,a,len,.28,0,C);
      kitAt('hall_header_6m','-z',70.58,-3,6,.28,0,M);
      kitAt('prop_crates_1m','+x',-2.6,37.6,1.2,.8)||box('hall-crates',[.8,1.3,1.2],[-2.2,.65,38.2],frame);kitAt('prop_crates_1m','-x',2.6,66.6,1.2,.8)||box('hall-crates',[.8,1.3,1.2],[2.2,.65,67.2],frame);
@@ -857,7 +867,7 @@
     if(!hallLined)for(const [x,r,y,m] of [[-1.9,.15,3.72,pipe],[-1.5,.08,3.82,rust],[1.75,.2,3.68,pipe],[2.2,.07,3.85,pipe]]){const c=cyl('hall-pipe',r,50,[x,y,53],m);c.rotation.x=Math.PI/2;}
     if(!hallLined)box('hall-duct',[.9,.34,50],[0,3.86,53],metal);for(const x of hallLined?[]:[-2.82,2.82]){const c=cyl('hall-cable',.03,50,[x,.05,53],frame,true,6);c.rotation.x=Math.PI/2;}
     const streak=c=>{const m=glowMat('reflection-'+c,c,.4);m.alpha=.3;return m;};
-    for(let z=28;z<78;z+=4)for(const [x,c] of [[-2.25,z%8?'#38e8ff':'#ff3fb4'],[2.25,z%8?'#ff3fb4':'#38e8ff']])box('neon-reflection',[.32,.004,3.2],[x,.034,z+2],streak(c));
+    if(!hallLined)for(let z=28;z<78;z+=4)for(const [x,c] of [[-2.25,z%8?'#38e8ff':'#ff3fb4'],[2.25,z%8?'#ff3fb4':'#38e8ff']])box('neon-reflection',[.32,.004,3.2],[x,.034,z+2],streak(c));
     for(const [x,z] of [[2.55,44.2],[-2.55,53.5]])instance('bin',[x,0,z],x>0?-Math.PI/2:Math.PI/2);
     // Stairs at the hallway end rise into the ceiling.
     // The stairs to the smoking terrace: at the east end of the Sleeping Pods room since 2026-11-12 (they used to stand at the end of the hallway), climbing toward the east wall.
@@ -924,7 +934,7 @@
 
     // Coloured light pools for the interior and street.
     const lights=[];const point=(p,c,i,r)=>{const l=new B.PointLight('ncz-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=target;lights.push(l);};
-    if(!low){point([0,3,23],'#9be8ff',.6,8);point([-1.3,3.2,40],'#ffb070',34,11);point([1.3,3.2,60],'#7fe6dc',30,11);point([-10,3,36],'#38e8ff',.9,14);point([10,3,36],'#ffb347',1.4,14);point([10,3,48],'#c9b4ff',1.5,12);point([13,3,33],'#ff8a5c',.9,10);point([14,3,51],'#38e8ff',.8,8);point([-10,3,62],'#ff5bd0',.6,12);point([38,4,68],'#ffb347',.6,14);}   // the hallway's two lamps: amber from the west side, teal from the east (the District's two accent colours). They come straight after the vestibule lamp because a material takes only the scene's first 8 lights (ambient, sun and six of these): at the end of the list they lit nothing. The two that now fall off the end, the bar's and the shop's second accent lamps, were the weakest. A PBR lamp falls off with the square of the distance, hence the large numbers; the short range keeps them out of the rooms.
+    if(!low){point([0,3,23],'#9be8ff',.6,8);point([0,3.2,40],'#cfe2ff',34,12);point([0,3.2,58],'#cfe2ff',32,12);point([-10,3,36],'#38e8ff',.9,14);point([10,3,36],'#ffb347',1.4,14);point([10,3,48],'#c9b4ff',1.5,12);point([13,3,33],'#ff8a5c',.9,10);point([14,3,51],'#38e8ff',.8,8);point([-10,3,62],'#ff5bd0',.6,12);point([38,4,68],'#ffb347',.6,14);}   // the hallway's two lamps: cold white, on the centre line, like the ceiling panels that seem to cast them. They come straight after the vestibule lamp because a material takes only the scene's first 8 lights (ambient, sun and six of these): at the end of the list they lit nothing. The two that now fall off the end, the bar's and the shop's second accent lamps, were the weakest. A PBR lamp falls off with the square of the distance, hence the large numbers; the short range keeps them out of the rooms.
     return {lights,terminal,vrTick,podScreen,arcade};})();
     if(!wantInterior){seed=SEAMS[1];target=districtRoot;}else if(area==='all'&&seed!==SEAMS[1])console.warn('[NeoChinatown] random state after the interior changed; update SEAMS');
 
