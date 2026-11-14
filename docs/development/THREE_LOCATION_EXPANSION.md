@@ -7,7 +7,7 @@
 | Location | Status | Evidence |
 |---|---|---|
 | **Milked** | **Deployed** (PR [#265](https://github.com/Smartsec916/the-darknet-district-site/pull/265), `3129a09`). Verified locally and against the live site in a real browser. | `docs/development/MILKED.md`, `tests/milked.test.cjs`, `tests/milked-browser.cjs`, `docs/development/milked/` |
-| **Corporate District** | **Planned, not started.** No branch, no code. Only the old placeholder plaza and sign exist. | `neochinatown.js` `districts` entry `corporate` (`placeholder:true`, plaza `streets.corporate = [-120,-60,-40,15]`, taxi zone `corporate`) |
+| **Corporate District** | **Built; in PR (see AI_HANDOFF for merge and live status).** Separate scene, reusable sky-cab transition, security, stealth, V1 map with fog. | [`CORPORATE.md`](CORPORATE.md), `tests/corporate*.test.cjs`, `tests/sky-cab.test.cjs`, `tests/corporate-browser.cjs`, `docs/development/corporate/` |
 | **Zen Zephyr Temple** | **Planned, not started.** No branch, no code. | Design material only: `VISUAL_REFERENCES.md` "Zen Zephyr", `origins/index.html` scenes |
 
 Nothing from an earlier unfinished attempt by another agent exists: no branch, PR or code mentions these three places other than the placeholders above (searched 15 Nov 2026).

@@ -28,11 +28,11 @@ test('each character has one documented model replacement point and a clothed pl
   assert.match(src,/WHERE TO CHANGE THINGS/);assert.match(src,/MODELS\.eva/);
 });
 test('Milked is a built taxi destination with a fare under the cap, and the other future districts are still placeholders',()=>{
-  const d=N.districts.find(d=>d.id==='milked');assert.ok(d&&!d.placeholder&&d.built);for(const id of ['corporate','containers'])assert.ok(N.districts.find(x=>x.id===id).placeholder);
+  const d=N.districts.find(d=>d.id==='milked');assert.ok(d&&!d.placeholder&&d.built);assert.ok(N.districts.find(x=>x.id==='containers').placeholder);assert.ok(N.districts.find(x=>x.id==='corporate').built);
   const z=N.taxiZones.find(z=>z.id==='milked');assert.ok(z);assert.ok(!(z.position[0]>=MK.FOOTPRINT[0]&&z.position[0]<=MK.FOOTPRINT[1]),'the cab lands on the plaza, not in the building');
   const s=C.fresh();s.location='earth';s.credits=100;const dest=R.destinations(s,{player:[61,-100],layout:N.layout()}).find(x=>x.id==='milked');
   assert.ok(dest.ok&&dest.fare>0&&dest.fare<=R.fare.max&&!dest.placeholder&&dest.streams);
-  const l=R.destinations(s,{player:[61,-100],layout:N.layout()});assert.equal(l.filter(x=>x.placeholder).length,2);
+  const l=R.destinations(s,{player:[61,-100],layout:N.layout()});assert.equal(l.filter(x=>x.placeholder).length,1);
 });
 test('the map lists the building, its named places and the taxi stop',()=>{
   const m=Map_.model(N);assert.ok(m.buildings.some(b=>b.id==='milked'&&b.rect===N.footprints.milked));
