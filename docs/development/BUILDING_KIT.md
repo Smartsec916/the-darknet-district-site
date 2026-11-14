@@ -1,5 +1,7 @@
 # NeoChinatown building kit
 
+> **Permanent art direction (Nov 2026):** kit pieces and any Blender-made architecture must follow the PBR, wear, scale and export standards in `docs/VOID_RUNNER_ART_DIRECTION.md` ("PERMANENT DIRECTION", Blender section). The current kit is a first version and an upgrade candidate.
+
 A set of modular building pieces for replacing the box buildings on the street. Status: **finished (47 pieces), not yet used by the game.** How to use it in the game: `BUILDING_KIT_HANDOVER.md`.
 
 - Pieces: `void-runner/assets/models/kit/*.glb`, listed with sizes, triangle counts and snap points in `kit-manifest.json`.

@@ -1,5 +1,9 @@
 # CLAUDE.md: The Darknet District site / VOID//RUNNER
 
+## Permanent art direction (November 2026): read before ANY graphics work
+
+The 3D game is **PC-only and AAA dark cyberpunk** (Blade Runner 2049, Altered Carbon, The Expanse as qualitative references). The current Tron-like neon look is being phased out progressively, not blindly deleted. **Read `docs/VOID_RUNNER_ART_DIRECTION.md` (section "PERMANENT DIRECTION") first.** It covers what to avoid, the required architecture/material/lighting/storytelling standards, the PC-only performance policy, Blender asset standards and the graphics workflow. It supersedes older graphics instructions. It does not authorise rewriting gameplay, and it does not change the website's mobile support (only the 3D game is PC-only).
+
 ## Current development authority — November 2026 (supersedes conflicting older handoff guidance)
 
 The active desktop game is the **District-first experience (multiplayer under development)** in NeoChinatown, Tessaly System. **Every login/reconnect should spawn in that player's own Sleeping Pod; first-time character customization happens before EXIT POD.** The homepage is the entry point, but it is not the gameplay spawn location. New campaigns have no active missions or starting ship; local District/NeoChinatown missions are designed later and a ship is earned by a future approved mission. The older VOID//RUNNER opening, Vesper/Mara tutorial and immediate ship ownership are historical plans, **not** instructions to restore them. Preserve compatible code and save IDs where possible. Treat older design briefs saying "DO NOT IMPLEMENT ANYTHING YET" as instructions for those historical planning exercises, not a blanket prohibition on current development.

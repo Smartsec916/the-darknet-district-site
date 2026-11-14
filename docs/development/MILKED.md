@@ -1,5 +1,7 @@
 # MILKED
 
+> **Art-direction status:** built before the permanent AAA dark-cyberpunk direction was recorded (`docs/VOID_RUNNER_ART_DIRECTION.md`). It is functional but uses flat boxes and emissive signage, so it is an upgrade candidate (layered architecture, PBR wear, practical lighting, more clutter).
+
 An **adult livestreaming service and sperm bank**, at the east end of The Avenue in NeoChinatown. **It is not a nightclub.** It is a believable futuristic business with two connected services behind one front door.
 
 Code: `void-runner/milked.js` (data, collision, interactions and the 3D build), `void-runner/milked-integration.js` (interaction handlers), plus small hooks in `neochinatown.js`, `taxi-rules.js`, `city-taxi.js` and `district-map.js`.
