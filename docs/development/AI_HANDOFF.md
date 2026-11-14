@@ -4,7 +4,16 @@
 
 **Checked against:** `origin/main` `4fc1a70` (12 Nov 2026). That commit is the merge of #240 (Tropical Escape dolphins) on top of `7939256` (NULL nightclub, #238). Re-fetch GitHub before trusting pull-request numbers or deploy claims below.
 
-## 14 Nov 2026 (later): beginner campaign, Developer Studio foundation and a performance profile built locally (branch `claude/beginner-campaign`, NOT pushed, NOT live)
+## 14 Nov 2026 (later): beginner campaign, Developer Studio foundation and a performance profile built locally (DEPLOYED to the live website, squash commit `cce7fef`, PR #263)
+
+**Deployed 14 Nov 2026.** PR #263 squash-merged to `main` as `cce7fef` on top of `8860ef6`; "Tests" and "Deploy site" both succeeded; live `void-runner-sw.js` reports BUILD `2026-11-14-beginner-campaign-2+cce7fefb0f`. Website only: no Game API, multiplayer hub, Firebase, Neon, database or Render change.
+- **CI note:** the first PR run failed once in `tests/blackout-tesana-browser.cjs:171` ('original guest progress returns', 1 !== 4). Re-running the same commit passed, and main's own run also passed, so it is an intermittent timing flake in that Blackout test, not caused by this release. Watch for it.
+- **Live checks done:** new files served, game boots with no page errors, `Beginner` module loaded, Studio shows only the sign-in screen to an anonymous visitor (CSP and noindex present). Studio publishing is disabled; the TEST SHIP stage only appears for server-confirmed developers.
+- **Mission dialogue is PROVISIONAL placeholder text, not approved canon** (`VOID_RUNNER_HANDOFF.md` §11 'Proposed').
+- **Known travel limits:** only the first trip (NeoChinatown to Meridian Station) was played end to end. Return travel and other destinations are untested; local Tessaly routes have raiders. Internal ids `earth`/`mars`/`sol-belt`/`sol` are not player-facing; no migration needed.
+- **Not yet tested:** real-GPU / ROG Ally performance, Firefox, live two-player chat, a full live-site playthrough of the six missions.
+- **Rollback:** revert squash commit `cce7fef` on `main` and push; Pages redeploys. Players' saves stay compatible (new state lives in tolerant `story.flags`).
+
 - **Ship and travel were blocked by five things** (found by playing the real game): no ship (`shipAccess 'none'`), the old Vesper boarding gate, `freeTravel` false, `Campaign.complete` returning null for every flight in a closed-pool campaign (a launched ship could never dock), and the street's BOARD interaction being moved into a building by `world-integration.js`. All fixed; details in `docs/development/BEGINNER_CAMPAIGN.md`.
 - **Beginner campaign** (six missions, existing Admin/Iris/bar/shop/Landing Terminal/Pad 01/Meridian only) in `void-runner/beginner.js` + `beginner-integration.js`, shown in the V1 Mission Log. **Story content is PROPOSED, not canon**: all wording is UNREVIEWED placeholder text. `Campaign.awardStarterShip` is the one real award (ship, quest open, free travel, once). Admin test ship: Developer Tools > Test & Jump To > "NeoChinatown ... TEST SHIP" (throwaway, never saved).
 - **Developer Studio** foundation: `admin/studio.html` (12 tabs, WORKING/PARTIAL/PLANNED labels; Missions and Dialogue editors with validation, flowcharts, simulate, diff, export; NPCs and Locations read-only; local drafts only; publishing disabled). Docs: `docs/development/DEVELOPER_STUDIO.md`.
