@@ -1648,67 +1648,93 @@ def _w_paint(p):
             loop[col] = (c * g, c * (g * .97 + .03), c * (g * .93 + .07), 1.0)
 
 
+def _w_corrugated(p, x0, x1, z0, z1, y_out, y_in, mat, tone, pitch=.2):
+    """A shipping container's side: one folded sheet facing -Y, ribs running up. The ribs' corners are worn, the troughs hold the dirt."""
+    b = p.bm()
+    tl, el = b.faces.layers.float['tone'], b.verts.layers.float['edge']
+    n = max(1, round((x1 - x0) / pitch))
+    w = (x1 - x0) / n
+    line = [(x0, y_in)]
+    for k in range(n):                                  # trough, slope out, rib, slope back
+        a = x0 + k * w
+        line += [(a + w * .15, y_in), (a + w * .30, y_out), (a + w * .70, y_out), (a + w * .85, y_in)]
+    line.append((x1, y_in))
+    lo, hi = [b.verts.new((x, y, z0)) for x, y in line], [b.verts.new((x, y, z1)) for x, y in line]
+    faces = []
+    for i in range(len(line) - 1):
+        f = b.faces.new((lo[i], lo[i + 1], hi[i + 1], hi[i]))
+        ya, yb = line[i][1], line[i + 1][1]
+        f[tl] = tone if ya == yb == y_out else tone * .42 if ya == yb else tone * (.6 if yb < ya else .88)      # troughs dark; the two slopes shaded differently, as if lit from one side
+        faces.append(f)
+    for i, (x, y) in enumerate(line):
+        if y == y_out:
+            lo[i][el] = hi[i][el] = .55
+    # closed at the back and the ends (hidden against the slab and the rails), so the normals can never be turned inside out
+    back = [b.verts.new((x1, y_in + .004, z0)), b.verts.new((x0, y_in + .004, z0)), b.verts.new((x0, y_in + .004, z1)), b.verts.new((x1, y_in + .004, z1))]
+    extra = [b.faces.new(back), b.faces.new(lo + back[:2]), b.faces.new(hi[::-1] + [back[2], back[3]][::-1]),
+             b.faces.new((lo[0], hi[0], back[2], back[1])), b.faces.new((lo[-1], back[0], back[3], hi[-1]))]
+    for f in extra:
+        f[tl] = tone * .42
+    faces += extra
+    bmesh.ops.recalc_face_normals(b, faces=faces)
+    return p._tag(b, faces, mat)
+
+
 def hall_wall_4m(p):
-    """4 x 3 x 0.2 m corridor wall: slab, plinth, header, end half-ribs, mid rail, six layered plates, a louvred vent, two recessed hatches, conduits, small lights."""
+    """4 x 3 x 0.2 m corridor wall built like the side of a shipping container (David's reference, Nov 2026): a corrugated sheet between a bottom rail, a top rail and
+    corner posts, with a louvred vent unit, a surface-mounted cabinet, a junction box, conduits, an amber strip light and a cold white bulkhead lamp."""
     _w_start(p)
     rng = p.rng
     t = lambda k=1.0: W_FLAT * k * rng.uniform(.9, 1.1)            # every part a slightly different batch of metal
-    YF, YB = .055, .08
-    _w_box(p, (0, YB, 0), (4, .2, 3), 'kit_gunmetal', W_FLAT * .7, bevel=0)                                             # slab
-    _w_prism(p, [(YB, 0), (0, 0), (0, .24), (.03, .30), (YB, .30)], 'x', 0, 4, 'kit_steel', t(.95))                    # plinth
-    _w_prism(p, [(YB, 3), (0, 3), (0, 2.80), (.03, 2.72), (YB, 2.72)], 'x', 0, 4, 'kit_steel', t(.9))                  # header
-    _w_prism(p, [(0, YB), (0, 0), (.07, 0), (.10, .03), (.10, YB)], 'z', .30, 2.72, 'kit_steel', t())                  # end half-ribs: two make one rib
-    _w_prism(p, [(4, YB), (4, 0), (3.93, 0), (3.90, .03), (3.90, YB)], 'z', .30, 2.72, 'kit_steel', t())
-    _w_box(p, (.10, .03, 1.05), (3.90, YB, 1.17), 'kit_steel', t(), bevel=.005)                                         # mid rail
-    bays = ((.12, 1.33), (1.35, 2.65), (2.67, 3.88))
-    lo, up = (.32, 1.03), (1.19, 2.70)
-    inset = lambda: W_FLAT * .8 * rng.uniform(.92, 1.08)
-    for k in (0, 2):
-        x0, x1 = bays[k]
-        _w_panel(p, x0, x1, lo[0], lo[1], YF, YB, [(x0 + .06, x1 - .06, lo[0] + .06, lo[1] - .06, .010, inset())], 'kit_gunmetal', t())
-    _w_panel(p, *bays[1], lo[0], lo[1], YF, YB, [(1.58, 2.42, .44, .92, .020, W_WELL)], 'kit_gunmetal', t())
-    _w_panel(p, *bays[0], up[0], up[1], YF, YB, [(.32, 1.13, 1.75, 2.35, .022, W_WELL), (.18, 1.27, 1.25, 1.62, .010, inset())], 'kit_gunmetal', t())
-    _w_panel(p, *bays[1], up[0], up[1], YF, YB, [(1.43, 2.57, 1.27, 2.25, .010, inset())], 'kit_gunmetal', t())
-    _w_panel(p, *bays[2], up[0], up[1], YF, YB, [(2.87, 3.67, 1.45, 2.35, .020, W_WELL)], 'kit_gunmetal', t())
-    # louvred vent, upper left
-    for a, c in (((.29, .042, 1.72), (.32, YF, 2.38)), ((1.13, .042, 1.72), (1.16, YF, 2.38)), ((.32, .042, 2.35), (1.13, YF, 2.38)), ((.32, .042, 1.72), (1.13, YF, 1.75)),
-                 ((.715, .045, 1.75), (.735, .077, 2.35))):
+    YB = .08
+    _w_box(p, (0, YB, 0), (4, .2, 3), 'kit_gunmetal', W_FLAT * .6, bevel=0)                                             # slab behind the sheet
+    _w_prism(p, [(YB, 0), (0, 0), (0, .24), (.03, .30), (YB, .30)], 'x', 0, 4, 'kit_gunmetal', t(.95))                 # bottom rail
+    _w_prism(p, [(YB, 3), (0, 3), (0, 2.80), (.03, 2.72), (YB, 2.72)], 'x', 0, 4, 'kit_gunmetal', t(.9))               # top rail
+    _w_prism(p, [(0, YB), (0, 0), (.07, 0), (.10, .03), (.10, YB)], 'z', .30, 2.72, 'kit_gunmetal', t())               # corner posts: two halves make one
+    _w_prism(p, [(4, YB), (4, 0), (3.93, 0), (3.90, .03), (3.90, YB)], 'z', .30, 2.72, 'kit_gunmetal', t())
+    _w_corrugated(p, .10, 3.90, .30, 2.72, .030, .076, 'kit_paint', W_FLAT * 1.05, pitch=.272)
+    for z in (.36, 2.66):                                                                                                # the weld strips where the sheet meets the rails
+        _w_box(p, (.10, .030, z - .02), (3.90, YB, z + .02), 'kit_gunmetal', t(.9), bevel=.004)
+    # louvred vent unit, upper left: a plate with the well cut into it, a frame, eight blades
+    _w_panel(p, .27, 1.18, 1.70, 2.40, .030, .075, [(.32, 1.13, 1.75, 2.35, .030, W_WELL)], 'kit_gunmetal', t(.9))
+    for a, c in (((.29, .018, 1.72), (.32, .030, 2.38)), ((1.13, .018, 1.72), (1.16, .030, 2.38)), ((.32, .018, 2.35), (1.13, .030, 2.38)), ((.32, .018, 1.72), (1.13, .030, 1.75)),
+                 ((.715, .022, 1.75), (.735, .058, 2.35))):
         _w_box(p, a, c, 'kit_steel', t(), bevel=.003)
     for i in range(8):
         zt = 2.335 - i * .073
-        _w_prism(p, [(.076, zt), (.050, zt - .040), (.050, zt - .052), (.076, zt - .012)], 'x', .32, 1.13, 'kit_paint', W_FLAT * .75, bevel=0)
-    # access hatch A, upper right: door set into its well, hinges, pull, status light bezel
-    _w_panel(p, 2.885, 3.655, 1.465, 2.335, .060, .075, [(2.935, 3.605, 1.515, 2.285, .005, W_FLAT * .9)], 'kit_paint', W_FLAT * 1.05, rim=.006)
-    for a, c in (((2.872, .048, 1.60), (2.905, .070, 1.70)), ((2.872, .048, 2.10), (2.905, .070, 2.20)), ((3.555, .040, 1.82), (3.580, .065, 1.98)),
-                 ((3.490, .059, 2.205), (3.570, .065, 2.245))):
+        _w_prism(p, [(.057, zt), (.033, zt - .040), (.033, zt - .052), (.057, zt - .012)], 'x', .32, 1.13, 'kit_steel', W_FLAT * .7, bevel=0)
+    # cabinet, upper right: a door plate standing off the sheet, hinges, pull, status light bezel, two lock rods like a container door's
+    _w_panel(p, 2.885, 3.655, 1.465, 2.335, .020, .075, [(2.935, 3.605, 1.515, 2.285, .005, W_FLAT * .9)], 'kit_gunmetal', W_FLAT * 1.05, rim=.006)
+    for a, c in (((2.872, .008, 1.60), (2.905, .030, 1.70)), ((2.872, .008, 2.10), (2.905, .030, 2.20)), ((3.555, .002, 1.82), (3.580, .025, 1.98)),
+                 ((3.490, .017, 2.205), (3.570, .025, 2.245))):
         _w_box(p, a, c, 'kit_steel', t(1.1), bevel=.0015)
-    # access hatch B, lower centre, with four louvre slots
-    slots = [(1.74, 2.26, .56 + i * .045, .576 + i * .045, .011, W_WELL) for i in range(4)]
-    _w_panel(p, 1.595, 2.405, .455, .905, .060, .075, slots + [(1.645, 2.355, .505, .855, .005, W_FLAT * .9)], 'kit_paint', W_FLAT * 1.05, rim=.006)
-    _w_box(p, (1.91, .044, .790), (2.09, .065, .812), 'kit_steel', t(1.1), bevel=.0015)
+    for x in (3.10, 3.34):
+        _w_tone(p, p.cyl((x, .014, 1.50), (x, .014, 2.30), .011, 'kit_steel', seg=6, caps=False), t(1.15))
+        for z in (1.56, 2.24):
+            _w_box(p, (x - .025, .004, z - .02), (x + .025, .025, z + .02), 'kit_steel', t(), bevel=.0015)
     # junction box, conduits and their clamps
-    _w_box(p, (2.25, .015, 1.55), (2.50, .065, 1.90), 'kit_paint', t(1.05), bevel=.004)
-    _w_box(p, (2.27, .011, 1.57), (2.48, .015, 1.88), 'kit_paint', t(.92), bevel=0)
-    for a, c, r in (((.05, .035, 2.52), (3.95, .035, 2.52), .018), ((.05, .040, 2.60), (3.95, .040, 2.60), .013), ((2.42, .038, 1.895), (2.42, .038, 2.52), .014),
-                    ((2.31, .040, 1.165), (2.31, .040, 1.555), .012)):
+    _w_box(p, (2.25, .004, 1.55), (2.50, .072, 1.90), 'kit_gunmetal', t(1.05), bevel=.004)
+    for a, c, r in (((.05, .020, 2.52), (3.95, .020, 2.52), .018), ((.05, .016, 2.60), (3.95, .016, 2.60), .013), ((2.42, .020, 1.895), (2.42, .020, 2.52), .014),
+                    ((2.31, .020, .30), (2.31, .020, 1.555), .012)):
         _w_tone(p, p.cyl(a, c, r, 'kit_steel', seg=8, caps=False), t(1.15))
     for x in (.725, 2.0, 3.275):
-        _w_box(p, (x - .02, .008, 2.475), (x + .02, YF, 2.645), 'kit_steel', t(), bevel=.003)
-    # the hooded strip light and the accent tube's housing
-    _w_prism(p, [(YF, 2.41), (.005, 2.41), (.005, 2.385), (.035, 2.34), (YF, 2.34)], 'x', 1.70, 2.30, 'kit_steel', t(.9), bevel=.003)
-    _w_box(p, (1.50, .048, 1.40), (1.55, .065, 2.10), 'kit_steel', t(.9), bevel=.003)
-    # bolt heads: plate corners, hatch corners, vent frame corners
-    spots = [(x, YF, z) for x0, x1 in bays for z0, z1 in (lo, up) for x in (x0 + .03, x1 - .03) for z in (z0 + .03, z1 - .03)]
-    spots += [(x, .060, z) for x in (2.91, 3.63) for z in (1.49, 2.31)] + [(x, .060, z) for x in (1.62, 2.38) for z in (.48, .88)]
-    spots += [(x, .042, z) for x in (.305, 1.145) for z in (1.735, 2.365)]
+        _w_box(p, (x - .02, .0, 2.475), (x + .02, .040, 2.645), 'kit_steel', t(), bevel=.003)
+    # the hooded strip light and the bulkhead lamp's cage
+    _w_prism(p, [(.040, 2.41), (.0, 2.41), (.0, 2.385), (.028, 2.34), (.040, 2.34)], 'x', 1.70, 2.30, 'kit_steel', t(.9), bevel=.003)
+    _w_box(p, (1.44, .010, 1.96), (1.60, .040, 2.20), 'kit_steel', t(.85), bevel=.004)
+    for z in (2.02, 2.08, 2.14):
+        _w_box(p, (1.435, .0, z - .006), (1.605, .012, z + .006), 'kit_steel', t(), bevel=0)
+    # bolt heads: cabinet corners, vent frame corners, rail ends
+    spots = [(x, .020, z) for x in (2.91, 3.63) for z in (1.49, 2.31)] + [(x, .018, z) for x in (.305, 1.145) for z in (1.735, 2.365)]
+    spots += [(x, .030, z) for x in (.3, 1.0, 2.0, 3.0, 3.7) for z in (.36, 2.66)]
     for x, y, z in spots:
         _w_tone(p, p.cyl((x, y + .002, z), (x, y - .006, z), .011, 'kit_steel', seg=6), W_FLAT * 1.35)
     _w_paint(p)
-    # practical light: an amber strip under its hood and a status light (lamp_0), one short teal tube and an indicator (accent_0). Separate nodes: the game can switch them.
-    p.box((1.72, .032, 2.320), (2.28, .054, 2.340), 'kit_emissive', bevel=0, node='lamp_0', region='neon_amber')
-    p.box((3.50, .057, 2.215), (3.56, .0595, 2.235), 'kit_emissive', bevel=0, node='lamp_0', region='neon_amber')
-    p.box((1.519, .044, 1.43), (1.531, .048, 2.07), 'kit_emissive', bevel=0, node='accent_0', region='neon_cyan')
-    p.box((2.30, .009, 1.600), (2.45, .011, 1.612), 'kit_emissive', bevel=0, node='accent_0', region='neon_cyan')
+    # practical light: an amber strip under its hood and a status light (lamp_0); a cold white bulkhead lamp and the junction box's indicator (accent_0). Separate nodes: the game can switch them.
+    p.box((1.72, .012, 2.320), (2.28, .036, 2.340), 'kit_emissive', bevel=0, node='lamp_0', region='neon_amber')
+    p.box((3.50, .015, 2.215), (3.56, .0175, 2.235), 'kit_emissive', bevel=0, node='lamp_0', region='neon_amber')
+    p.box((1.455, .004, 1.975), (1.585, .010, 2.185), 'kit_emissive', bevel=0, node='accent_0', region='neon_white')
+    p.box((2.30, .001, 1.600), (2.45, .004, 1.612), 'kit_emissive', bevel=0, node='accent_0', region='neon_cyan')
     p.snap.update({'mount': {}, 'tile': {'axis': 'x', 'pitch': 4.0}})
 
 

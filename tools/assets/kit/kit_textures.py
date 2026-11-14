@@ -280,7 +280,7 @@ def build_all(out):
 
 # ---------------------------------------------------------------- District wall metals ----------------------------------------------------------------
 # Three shared sets for the District's Blender-made wall modules (district_hall_wall_4m_a and later pieces): dark gunmetal plate, bare worn steel and chipped
-# petrol-blue paint. They are deliberately CALM: broad tonal drift, a few rust blooms, a few drip stains and hairline scratches, not an even layer of noise.
+# navy container paint. They are deliberately CALM: broad tonal drift, a few rust blooms, a few drip stains and hairline scratches, not an even layer of noise.
 # The pieces add their own wear on top with vertex colours (bright worn edges, dark recesses, floor grime), so one small set serves every piece.
 def _spectral(n, seed, beta, ax=1.0, ay=1.0, lo=1.0):
     """Tileable filtered noise, 0..1. beta: how smooth; ax/ay stretch it (ay large = long vertical streaks); lo: the largest feature, in cycles per tile."""
@@ -341,19 +341,19 @@ def _wall_metal(out, name, tint, scratch_tint, seed, rough0, metal0, n=1024):
 
 
 def gunmetal(out, n=1024):
-    _wall_metal(out, 'kit_gunmetal', (86, 92, 102), (176, 178, 182), 301, .5, .55, n)
+    _wall_metal(out, 'kit_gunmetal', (60, 65, 74), (160, 162, 166), 301, .5, .55, n)
 
 
 def steel(out, n=1024):
-    _wall_metal(out, 'kit_steel', (150, 152, 156), (206, 206, 208), 331, .4, .72, n)
+    _wall_metal(out, 'kit_steel', (112, 114, 118), (190, 190, 192), 331, .4, .72, n)
 
 
 def paint(out, n=1024):
     low, mid, fine, brushed, rust, drip, scratch = _wall_masks(n, 361)
     chip = np.maximum(_step(.86, .9, _spectral(n, 371, 2.6, lo=4.0)) * _step(.35, .6, _spectral(n, 372, 2.0, lo=10.0)), scratch)   # paint knocked off in a few places
-    under = np.array([150, 150, 152]) * (.85 + .3 * fine)[..., None]
+    under = np.array([120, 118, 116]) * (.85 + .3 * fine)[..., None]
     value = (.86 + .28 * low) * (.96 + .08 * mid)
-    color = np.array([40, 84, 98])[None, None, :] * value[..., None] * (1 - .5 * drip[..., None])
+    color = np.array([36, 56, 84])[None, None, :] * value[..., None] * (1 - .5 * drip[..., None])
     color = color * (1 - chip[..., None]) + under * chip[..., None]
     color = color * (1 - .6 * rust[..., None] * chip[..., None]) + np.array([104, 54, 30]) * (.6 * rust * chip)[..., None]
     _save(out + '/kit_paint_color.png', color.clip(0, 255))
