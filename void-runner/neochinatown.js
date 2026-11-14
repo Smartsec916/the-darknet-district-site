@@ -790,7 +790,7 @@
     // Interior rebuild, phase E: Blender-made shop fittings. kitAt puts a piece against a wall: `facing` is the way the piece looks, `face` the wall surface behind it,
     // `s` where it starts along the wall (its low end) and `len`/`depth` its size.
     const shopKit=!!kitAt('shop_counter_8m','-z',47.75,6,8,1.1);
-    if(shopKit){kitAt('shop_bookshelf_3m','+z',43.2,8,3,.5);kitAt('shop_bookshelf_3m','+z',43.2,11,3,.5);kitAt('shop_gearwall_3m','-z',52.8,11.2,3,.35);kitAt('shop_gearwall_3m','+x',3.2,49.7,3,.35);
+    if(shopKit){for(const x of [8,10,12])kitAt('hall_wall_2m_a','+z',43.2,x,2,.2);   /* the bookshelves gave way to the gun wall (David, Nov 2026) */kitAt('shop_gearwall_3m','-z',52.8,11.2,3,.35);kitAt('shop_gearwall_3m','+x',3.2,49.7,3,.35);
      for(const [f,face,list] of [['+z',43.2,[[3.4,'a'],[5.4,'c'],[14.2,'a']]],['-x',16.8,[[43.6,'a'],[45.6,'c'],[47.6,'a'],[49.6,'a']]],['-z',52.8,[[3.2,'a'],[5.2,'d'],[7.2,'a'],[14.2,'b']]]])for(const [at,k] of list)kitAt('hall_wall_2m_'+k,f,face,at,2,.2);
      kitAt('hall_wall_1m','-x',16.8,51.6,1,.2);kitAt('hall_wall_1m','+x',3.2,43.4,1,.2);
      for(const [x,z] of [[8,45.4],[12,45.4],[8,50.2],[12,50.2]]){kitPiece('district:tube_light_2m',[x+1,4.05-.51,z],0,[],{merge:true});if(!low){lightShaft('#a9c8ff',x+1,z,3.5,2.2,true);lightPool('#a9c8ff',3.6,3,[x+1,.036,z],.14);}}}   // the hallway standard: each tube's light hangs in the haze and lies on the floor
@@ -822,6 +822,21 @@
       box('shop-apparel-board',[2.3,.62,.03],[5.45,2.62,43.44],board);cards.push([1,0,4.75,2.62,43.47,.42,.42,'+z'],[2,0,5.3,2.62,43.47,.42,.42,'+z'],[2,1,5.95,2.62,43.47,.3,.52,'+z']);
       goods('shop-apparel','store-apparel.png',3,2,true,cards);
       box('shop-apparel-light',[3.7,.03,.05],[5.45,2.26,43.62],glowMat('shop-warm-tube','#ffd6a0',.9));if(!low){wallGlow('#ffb45e',5,2.4,[5.45,1.55,43.43],Math.PI,.42);lightPool('#ffb45e',4.6,2,[5.45,.036,44.5],.3);}}
+     // The gun wall, where the bookshelves were (David's gun-shop reference; the shirts to its left and the survival cases on the far wall are untouched). Each gun is a handful of blocks:
+     // [size x,y,z, place x,y,z, material, tilt], standing in the wall's plane on pegs, with a price tag. Below them a shelf of ammunition; a pegboard behind; a pink sign and strips.
+     {const gm=mat('shop-gun','#2a2d33',{rough:.38,metal:.85,glow:'#0b0c10'}),poly=mat('shop-gun-poly','#3a3c34',{rough:.75,metal:.1,glow:'#0c0d0a'}),wood=mat('shop-gun-tan','#7a6242',{rough:.7,metal:.1,glow:'#1a140c'}),brass=mat('shop-brass','#b08a3a',{rough:.35,metal:.9}),tag=mat('shop-price-tag','#d8d4c8',{rough:.9,metal:0}),olive=mat('shop-ammo-olive','#2b3324',{rough:.8,metal:.2});
+      const GUNS={rifle:[[.26,.07,.04,0,0,0,gm],[.28,.06,.045,.27,0,0,poly],[.16,.022,.022,.49,.005,0,gm],[.24,.06,.035,-.25,-.012,0,poly],[.03,.11,.04,-.385,-.02,0,gm],[.04,.11,.035,-.07,-.085,0,poly,.3],[.045,.16,.03,.04,-.11,0,gm,-.2],[.11,.045,.04,.02,.062,0,gm],[.4,.012,.03,.12,.041,0,gm]],
+       smg:[[.22,.075,.045,0,0,0,gm],[.1,.025,.025,.16,0,0,gm],[.035,.2,.028,.02,-.13,0,gm],[.04,.1,.035,-.06,-.085,0,poly,.25],[.18,.018,.018,-.2,.02,0,gm],[.02,.09,.03,-.29,-.012,0,gm],[.03,.08,.03,.09,-.07,0,poly],[.07,.035,.035,-.02,.055,0,gm]],
+       shotgun:[[.24,.065,.04,0,0,0,gm],[.42,.026,.026,.33,.012,0,gm],[.36,.024,.024,.3,-.018,0,gm],[.14,.045,.045,.25,-.02,0,wood],[.26,.065,.035,-.25,-.02,0,wood,-.08],[.03,.1,.04,-.385,-.03,0,gm]],
+       pistol:[[.19,.035,.028,0,0,0,gm],[.15,.025,.026,-.01,-.028,0,poly],[.045,.1,.028,-.065,-.075,0,poly,.22],[.05,.012,.02,.005,-.05,0,poly]]};
+      const gun=(kind,x,y,z,flip=1,k=1)=>{for(const [sx,sy,sz,lx,ly,lz,m,rz=0] of GUNS[kind]){const b=box('shop-gun',[sx*k,sy*k,sz*k],[x+flip*lx*k,y+ly*k,z+lz*k],m);if(rz)b.rotation.z=flip*rz;}};
+      const pegTex=texture('shop-pegboard',256,256,(g,W,H)=>{g.fillStyle='#1b1c20';g.fillRect(0,0,W,H);g.fillStyle='#07080a';for(let y=8;y<H;y+=16)for(let x=8;x<W;x+=16){g.beginPath();g.arc(x,y,2.4,0,7);g.fill();}});pegTex.uScale=14;pegTex.vScale=6;const peg=mat('shop-pegboard','#ffffff',{rough:.7,metal:.3});peg.albedoTexture=pegTex;peg.emissiveTexture=pegTex;peg.emissiveColor=new B.Color3(.85,.7,.95);
+      const Z=43.47;box('shop-gunwall-board',[5.8,2.5,.03],[11,1.95,43.435],peg);for(const x of [8.1,11,13.9])box('shop-gunwall-post',[.05,2.5,.06],[x,1.95,43.45],gm);
+      [[2.85,['rifle','shotgun','rifle','smg']],[2.33,['smg','rifle','shotgun','rifle']],[1.84,['shotgun','smg','rifle','smg']]].forEach(([y,kinds],r)=>kinds.forEach((kind,i)=>{const x=8.85+i*1.42+(r%2?.12:0),flip=(i+r)%2?-1:1;gun(kind,x,y,Z+.03,flip,1.12);for(const dx of [-.16,.16])box('shop-gun-peg',[.014,.014,.06],[x+dx,y-.045,Z],gm);box('shop-price-tag',[.075,.045,.004],[x+flip*.36,y-.17,Z-.01],tag);}));
+      for(let i=0;i<7;i++){const x=8.6+i*.78;gun('pistol',x,1.38,Z+.02,i%2?-1:1,1.1);box('shop-gun-peg',[.014,.014,.05],[x,1.345,Z],gm);box('shop-price-tag',[.06,.036,.004],[x+.15,1.27,Z-.01],tag);}
+      box('shop-gunwall-shelf',[5.8,.04,.3],[11,1.02,43.58],gm);let q=13;const rnd=()=>(q=(q*1103515245+12345)&0x7fffffff)/0x7fffffff;for(let x=8.25;x<13.8;){const w=.12+rnd()*.14,h=.07+rnd()*.1;box('shop-ammo',[w,h,.16],[x+w/2,1.04+h/2,43.56+rnd()*.06],rnd()>.55?brass:olive);x+=w+.03+rnd()*.12;}
+      box('shop-gunwall-strip',[5.6,.02,.03],[11,.98,43.7],glowMat('shop-pink-strip','#ff3fb4',.95));box('shop-gunwall-strip',[5.6,.02,.03],[11,3.24,43.5],glowMat('shop-pink-strip','#ff3fb4',.95));
+      neon('shop-guns-sign',['GUNS'],['#ff5bd0'],1.5,.55,[11,3.62,43.5],Math.PI,undefined,true);if(!low){wallGlow('#ff3fb4',6.4,3.2,[11,2.1,43.5],Math.PI,.26);lightPool('#ff3fb4',6,2.2,[11,.036,44.6],.3);}}
      // survival: all 47 products as lit display cards standing on the three glass cases' shelves along the east wall
      {const cards=[];for(let n=0;n<47;n++){const cs=Math.floor(n/16),k=Math.floor(n%16/4),j=n%4;cards.push([n%8,Math.floor(n/8),16.02,.5+k*.5+.06+.2,44.5+cs*2.8-.78+j*.52,.44,.4,'-x',.03]);}goods('shop-survival','store-survival.jpg',8,6,false,cards);}}
     if(!shopKit){box('shop-shelf',[6.4,2.6,.6],[11,1.3,43.55],frame);for(let k=0;k<4;k++)box('shelf-goods',[5.8,.25,.4],[11,.5+k*.6,43.75],[cyan,amber,violet,magenta][k]);}
@@ -977,14 +992,10 @@
     const streak=c=>{const m=glowMat('reflection-'+c,c,.4);m.alpha=.3;return m;};
     if(!hallLined)for(let z=28;z<78;z+=4)for(const [x,c] of [[-2.25,z%8?'#38e8ff':'#ff3fb4'],[2.25,z%8?'#ff3fb4':'#38e8ff']])box('neon-reflection',[.32,.004,3.2],[x,.034,z+2],streak(c));
     // Coloured accents like the reference: each red door lamp lies on the wet floor in front of its doorway, and the wall modules' amber strips leave a faint warm streak.
-    if(hallLined){for(const [x,z] of [[-1.5,34],[-1.5,49.5],[-1.5,62],[1.5,33],[1.5,47],[1.5,62.5]]){lightPool('#ff1438',3.4,5.2,[x,.034,z],.85);wallGlow('#ff1438',4.6,2.6,[Math.sign(x)*2.36,2.45,z],Math.sign(x)*Math.PI/2,.72);wallGlow('#ff1438',2.2,3,[Math.sign(x)*2.3,1.3,z-2.75],Math.sign(x)*Math.PI/2,.44);wallGlow('#ff1438',2.2,3,[Math.sign(x)*2.3,1.3,z+2.75],Math.sign(x)*Math.PI/2,.44);}
-     lightPool('#ff1438',4.6,3,[0,.034,69.2],.6);wallGlow('#ff1438',4.4,2.4,[0,2.5,70.2],Math.PI,.45);
-     for(const [x,z] of [[-2.36,46.2],[2.36,35.2],[-2.36,66],[2.36,57.5]]){wallGlow('#ff1ea8',2.4,2.8,[x,1.9,z],Math.sign(x)*Math.PI/2,.5);lightPool('#ff1ea8',2.2,2.8,[x-Math.sign(x)*.9,.035,z],.5);}
-     // teal service lamps low on the walls between the doorways: a third colour, down at the floor where the corridor was blackest
-     {const teal=mat('hall-lamp-teal','#012420',{glow:'#00e0b8',rough:.4}),cage=mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8});teal.emissiveIntensity=1.5;
-      for(const [x,z] of [[-2.52,43.5],[2.52,41.5],[-2.52,57.5],[2.52,52],[2.52,65.5],[-2.52,29.2],[2.52,28.4]]){const sx=Math.sign(x);box('hall-service-lamp-body',[.06,.14,.5],[x,.42,z],cage);box('hall-service-lamp',[.03,.05,.3],[x-sx*.035,.42,z],teal);lightPool('#00f0c8',2.6,3.2,[x-sx*1.0,.035,z],.72);wallGlow('#00f0c8',3,1.5,[x-sx*.07,.6,z],sx*Math.PI/2,.55);}}
+    if(hallLined){for(const [x,z] of [[-1.5,34],[-1.5,49.5],[-1.5,62],[1.5,33],[1.5,47],[1.5,62.5]]){lightPool('#ff1438',2.4,3.6,[x,.034,z],.42);wallGlow('#ff1438',2.6,1.6,[Math.sign(x)*2.36,2.5,z],Math.sign(x)*Math.PI/2,.34);}   // one small pool and a little spill per door lamp: David found the hallway had far too many coloured lights
+     lightPool('#ff1438',3,2.2,[0,.034,69.2],.36);
 
-     for(const [x,z] of [[-1.9,40.5],[1.9,39.5],[-1.9,55.5],[1.9,54],[1.9,67]]){lightPool('#ff9412',2.2,3.2,[x,.035,z],.6);wallGlow('#ff9412',2.6,1.6,[Math.sign(x)*2.36,2.2,z],Math.sign(x)*Math.PI/2,.42);}}
+     for(const [x,z] of [[-1.9,40.5],[1.9,39.5],[-1.9,55.5],[1.9,54],[1.9,67]]){lightPool('#ff9412',1.6,2.4,[x,.035,z],.26);}}
     for(const [x,z] of [[2.55,44.2],[-2.55,53.5]])instance('bin',[x,0,z],x>0?-Math.PI/2:Math.PI/2);
     // Stairs at the hallway end rise into the ceiling.
     // The stairs to the smoking terrace: at the east end of the Sleeping Pods room since 2026-11-12 (they used to stand at the end of the hallway), climbing toward the east wall.
@@ -1052,8 +1063,7 @@
     // Coloured light pools for the interior and street.
     const lights=[];const point=(p,c,i,r)=>{const l=new B.PointLight('ncz-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=target;lights.push(l);};
     if(!low){point([0,3.2,40],'#bcd6ff',30,14);point([0,3.2,58],'#bcd6ff',28,14);point([0,3.3,73.6],'#ffd2ea',20,12);point([-10,3,36],'#38e8ff',.9,14);point([10,3,36],'#ffb347',1.4,14);point([10,3,48],'#c9b4ff',1.5,12);point([0,3,23],'#9be8ff',.6,8);point([13,3,33],'#ff8a5c',.9,10);point([14,3,51],'#38e8ff',.8,8);point([38,4,68],'#ffb347',.6,14);}   /* the first six reach the materials (ambient and sun take two of the eight): hallway, hallway, pod room (new; the old west-room lamp it replaces lit nothing), VR, bar, shop */   // the hallway's two lamps: cold white, on the centre line, like the ceiling panels that seem to cast them. They come straight after the vestibule lamp because a material takes only the scene's first 8 lights (ambient, sun and six of these): at the end of the list they lit nothing. The two that now fall off the end, the bar's and the shop's second accent lamps, were the weakest. A PBR lamp falls off with the square of the distance, hence the large numbers; the short range keeps them out of the rooms.
-    // Haze indoors (David, Nov 2026: make it atmospheric): the far end of the corridor softens into cold blue air and lamps glow through it. Only when the District is its own environment, so the street keeps its own fog.
-    if(!low&&typeof area!=='undefined'&&area==='interior'){scene.fogDensity=.011;scene.fogColor=new B.Color3(.016,.026,.04);   /* thin and dark: it softens the distance without greying the shadows */}
+    // No fog of its own indoors: a denser, darker fog was tried (Nov 2026) and David found it everywhere and the VR area too dark, so the interior keeps the scene's light haze.
     return {lights,terminal,vrTick,podScreen,arcade};})();
     if(!wantInterior){seed=SEAMS[1];target=districtRoot;}else if(area==='all'&&seed!==SEAMS[1])console.warn('[NeoChinatown] random state after the interior changed; update SEAMS');
 
