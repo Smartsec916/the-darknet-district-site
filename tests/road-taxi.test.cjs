@@ -10,7 +10,7 @@ test('the registry is the only destination list, and every stop is an existing t
   assert.deepEqual(ids,R.REGISTRY);
   assert.deepEqual(new Set(ids),new Set(['main','avenue','alley-mouth','passage']));
   for(const d of stops){const z=zone(d.id);assert.ok(z&&!z.district,d.id);assert.deepEqual(d.position,z.position);assert.equal(d.label,z.name);}
-  for(const d of N.districts)assert.ok(d.placeholder&&!ids.includes(d.id),d.id+' is not a street-taxi stop');
+  for(const d of N.districts)assert.ok((d.placeholder||d.built)&&!ids.includes(d.id),d.id+' is not a street-taxi stop');
   assert.equal(R.cost([0,0],[80,0]),F.cost([0,0],[80,0]),'the fare is the sky-cab fare');
 });
 

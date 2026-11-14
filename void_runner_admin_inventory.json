@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "5a7be06035f0a0a9",
+  "revision": "75205ab5d7268bca",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -1187,6 +1187,30 @@
       ],
       "voice": {
         "voice": "am_fenrir",
+        "status": "provisional",
+        "profile": "none"
+      }
+    },
+    {
+      "id": "milked-eva",
+      "name": "Eva",
+      "sources": [
+        "tools/audio/npc-voice-registry.json"
+      ],
+      "voice": {
+        "voice": "af_river:0.5+af_sky:0.5",
+        "status": "provisional",
+        "profile": "none"
+      }
+    },
+    {
+      "id": "milked-fish",
+      "name": "Fish",
+      "sources": [
+        "tools/audio/npc-voice-registry.json"
+      ],
+      "voice": {
+        "voice": "am_puck:0.6+am_eric:0.4",
         "status": "provisional",
         "profile": "none"
       }
@@ -12156,6 +12180,78 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/milked-integration.js",
+      "line": 2,
+      "text": "Everything here is provisional placeholder text. Nothing starts a mission and nothing is saved except the usual \"met\" entry a conversation records. */",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/milked-integration.js",
+      "line": 12,
+      "text": "const say=(who,texts)=>talk('',texts.map(text=>({who,text})),done,'CLOSE');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/milked-integration.js",
+      "line": 15,
+      "text": "R('milked-eva',()=>say(MK.MODELS.eva.id,MK.DIALOGUE.eva.greeting));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/milked-integration.js",
+      "line": 16,
+      "text": "R('milked-fish',()=>say(MK.MODELS.fish.id,MK.DIALOGUE.fish.greeting));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/milked-integration.js",
+      "line": 17,
+      "text": "R('milked-checkin',()=>say(MK.MODELS.eva.id,MK.DIALOGUE.eva.checkin));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/milked.js",
+      "line": 10,
+      "text": "- Dialogue (provisional): DIALOGUE below.  Nothing here is approved canon until David approves it.",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/milked.js",
+      "line": 23,
+      "text": "const DIALOGUE={",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/milked.js",
+      "line": 24,
+      "text": "eva:{greeting:['Welcome to Milked. Studio bookings are through the north door. The biobank is the east door. Please do not mix the two up. People do.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/milked.js",
+      "line": 28,
+      "text": "fish:{greeting:['Back office. Mind the cables.','Two services, one front door. Streaming brings in the viewers. The biobank brings in the trust. Do not ask me to explain the combination.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/milked.js",
+      "line": 32,
+      "text": "objective:'Travel to Milked at the east end of The Avenue and talk to Eva at reception.',steps:[{id:'arrive',text:'Reach Milked (walk east along The Avenue, or take a taxi).'},{id:'reception',text:'Talk to Eva at the reception desk.'}],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/milked.js",
+      "line": 33,
+      "text": "dialogue:['eva.greeting'],reward:null};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/milked.js",
+      "line": 265,
+      "text": "const api={CONFIG,MODELS,DIALOGUE,MISSION,FOOTPRINT,DOOR,PLAZA,TAXI,SEGMENTS,FURNITURE,ROOMS,INTERACTIONS,PLACES,BOUNDS,inside,roomAt,solids,interactions,create};",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/mouse-control.js",
       "line": 3,
       "text": "dialogue or menu takes the mouse back, and the wheel cycles the weapons you own. Flight is untouched. */",
@@ -13679,7 +13775,7 @@
     "void-runner/character-creator.js": "ad7e7e095e3114c5a8ab19a215c88a959cdd84f41e9ae1871fa4cb7aa1cdf572",
     "void-runner/character-finish.js": "458095761533ec279026ec1859446af93ab3a267e272b96783d8c2dfd7b3c312",
     "void-runner/character-fit.js": "ee63772c43aa17513e8325b03ee8fee759e3fbf2407fa9adc3912921a6efcbc9",
-    "void-runner/city-taxi.js": "60758f49d3bbafb06692ad0e3a8be96be2c8285586a049f4fdb9cbad3eb9683c",
+    "void-runner/city-taxi.js": "1f0740280681d89cd15734c91ce686dfbdd2d0a542c50823e856dd731df8b594",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
     "void-runner/cockpit-math.js": "a63faf598eaf23722d22658ca22b5da5b16f0044437ac5277d34d42d1cbf0461",
     "void-runner/cockpit-overlay.js": "c0668e199fe366d0b7def0cdfd0008526870420d93779317980a8aaa0d8e30bc",
@@ -13701,7 +13797,7 @@
     "void-runner/district-arcade.js": "de51866295a9a6cef51b94a3097ea6ca38bc3da02133d85ba4f26835653336f9",
     "void-runner/district-area.js": "48b60eab3a791020ce7a4a7213de866e697069ca4c003cf7f255a5ffcef3db4c",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
-    "void-runner/district-map.js": "6275a1edc1a887c71fe8b04a18488e73bf8b4cfec72100e39cad2c3d12a94a13",
+    "void-runner/district-map.js": "f7d53db28605c1d22a0c5f74be5f03016b73807dc40f531eabe5fc8fca6a844b",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
@@ -13740,6 +13836,8 @@
     "void-runner/meridian-interior.js": "d9f411d4f42b3cf8bacbe377812cda9b3c3563aef0d52127e989898e4b9a2b96",
     "void-runner/meridian-kitbash.js": "5e1efc2246631b5e37507d12fc23206b5ac8838fa8d0b1b34302a8fa2d5b7ebb",
     "void-runner/meridian-station.js": "2ecbbeec490597999c1a11e4c918a694f8e82673944100fe04e6657180556526",
+    "void-runner/milked-integration.js": "b582cbc6bff41a3658fdddcd19706ba70b2c3b7efa41a96b34b4a8c858fe7434",
+    "void-runner/milked.js": "be71b415639b57bf3ec7b48aca4f7c091c425290a7fcc71dc7a5fb9becd3f1dc",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-log.js": "a441c9382c2c393ebcefb482956a9b3aafa0e06391b884207af5912f6c041f2e",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
@@ -13754,7 +13852,7 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-nightclub.js": "ab93e3b3ce0ea6606510add08a9679fa1522747937ebd2e351a1a93e91340e27",
     "void-runner/ncz-nightlife.js": "944a24518f26ef6ae6f3fe3d1b1c7f005b2b1b01756a0fdf465e2be4d06569c2",
-    "void-runner/neochinatown.js": "74d65dbd521a7985dbd13eb55ef804a1c65ea1311d69e6357561044b12375a77",
+    "void-runner/neochinatown.js": "d9196edc779c85133876358944c330383f2dea9c3d6674ebfa97abac9e4c37fa",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "4172df44fc02d43d56016c17c76bc6af4daa80edcc1c5200be582903d7075a19",
@@ -13791,7 +13889,7 @@
     "void-runner/story-scenes.js": "322106e619d1a2456c5dac94dd252bd2373cb0c03273c75954d068b378cad5dd",
     "void-runner/story.js": "74501dca85057c374b5181b440f93059fd6658641624b10e3a159d11493fe272",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
-    "void-runner/taxi-rules.js": "62262cf05aa12c3d22f9c3928faabaa32442756d29dbbc9425f37a8db4566ab4",
+    "void-runner/taxi-rules.js": "c0723ae0fe58fe93572ed754c224cc5c3cc819dc294c8ce648817b5622332081",
     "void-runner/trade-window.js": "fae1643ad8aeb97be1b29b74eb1fe2f8b630a0c475daf96829abc376a05908b5",
     "void-runner/traffic.js": "1c47797df0eb41dbbc0fc84c733cc0f8b49401a50901834125f2b5b457752e83",
     "void-runner/travel-visuals.js": "440e1da234f7e831c98561d3d949e3b2d911463014879f04f61199349ff5854e",
@@ -13816,7 +13914,7 @@
     "void-runner/world-markers.js": "44347bce6208e455b16ba76da2b328903c2f77e0cba457d0de14b0af882b047c",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "tools/admin-inventory.cjs": "4b545f1e29bc40745983ecd5a113f20926a6f73b52a1b4ed4c2e8106df0a4ed0",
-    "tools/audio/npc-voice-registry.json": "216866bb6a355e0cfa2ac6792cb880ecc98ce4f6c1790ca0437b52bb3866f0c2",
+    "tools/audio/npc-voice-registry.json": "8b3b296c71313b5cb754f62019e7b7a06ed92191ba90793f856ab3d89b4b0fd9",
     "void-runner/assets/audio/voice/manifest.json": "be220f919a172ad4122718393d1b92d3726fe44819639c88c0579cf9d224e8ac",
     "void-runner/save-manifest.json": "a68d75a8a7781d2a1ec9c606487c0a1a6eaff141eda4e28ddea832c3fde985f0"
   },

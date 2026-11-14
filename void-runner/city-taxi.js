@@ -73,7 +73,7 @@
   place([x+dx/(d||1)*step,z+dz/(d||1)*step],trip.y,h);cab.root.rotation.z=-diff*.25;if(d<.6){cab.root.rotation.z=0;next();}}
  function vertical(dt,target,next){const dy=target-trip.y,rate=Math.max(1.6,Math.min(12,Math.abs(dy)*.7));trip.y+=Math.sign(dy)*Math.min(Math.abs(dy),rate*dt);place([cab.root.position.x,cab.root.position.z],trip.y,cab.root.rotation.y);if(Math.abs(target-trip.y)<.02)next();}
  function doorTo(open,dt){cab.doorOpen=Math.max(0,Math.min(1,cab.doorOpen+(open?1:-1)*dt*1.4));for(const p of [cab.door,cab.doorPanel])p.position.z=.2-cab.doorOpen*1.25;return open?cab.doorOpen>=1:cab.doorOpen<=0;}
- function districtReady(){const d=trip.dest.placeholder&&VoidNeoChinatown.city;return !d||d.live.has(trip.dest.id);}
+ function districtReady(){const d=(trip.dest.streams||trip.dest.placeholder)&&VoidNeoChinatown.city;return !d||d.live.has(trip.dest.id);}
  function step(dt,time){
   if(!cab||!trip)return;trip.t+=dt;for(const f of cab.fans)f.visibility=.7+Math.sin(time*40+f.position.x)*.25;
   switch(trip.phase){
