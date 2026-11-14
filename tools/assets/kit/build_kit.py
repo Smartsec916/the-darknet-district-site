@@ -24,8 +24,8 @@ REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
 OUT = os.path.join(REPO, 'void-runner', 'assets', 'models', 'kit')
 TEX = os.path.join(OUT, 'textures')
 FLOOR, SHOP, DEPTH, FACE = 3.5, 4.5, .5, .1
-TILE = {'kit_concrete': 4.0, 'kit_metal': 2.0, 'kit_asphalt': 3.0, 'kit_fabric': 2.0, 'kit_tile': 2.0}       # metres one repeat of the texture covers
-MATERIALS = ['kit_concrete', 'kit_metal', 'kit_glass', 'kit_emissive', 'kit_asphalt', 'kit_ticker', 'kit_fabric', 'kit_tile', 'kit_shell', 'kit_goods', 'kit_canvas', 'kit_cab']
+TILE = {'kit_concrete': 4.0, 'kit_metal': 2.0, 'kit_asphalt': 3.0, 'kit_fabric': 2.0, 'kit_tile': 2.0, 'kit_gunmetal': 2.0, 'kit_steel': 2.0, 'kit_paint': 2.0}       # metres one repeat of the texture covers
+MATERIALS = ['kit_concrete', 'kit_metal', 'kit_glass', 'kit_emissive', 'kit_asphalt', 'kit_ticker', 'kit_fabric', 'kit_tile', 'kit_shell', 'kit_goods', 'kit_canvas', 'kit_cab', 'kit_gunmetal', 'kit_steel', 'kit_paint']
 GLOWING = ('kit_emissive', 'kit_ticker')          # the only materials that give light
 ALL_REGIONS = {**kit_textures.EMISSIVE_REGIONS, **kit_textures.GOODS_REGIONS}        # every atlas region a face can be mapped into, by name
 REGIONS = list(ALL_REGIONS)
@@ -1517,7 +1517,222 @@ def prop_bench(p):
     p.snap.update({'mount': {}, 'seat': .5})
 
 
+# ---------------------------------------------------------------- District wall modules (painted-in wear) ----------------------------------------------------------------
+# district_hall_wall_4m_a is the first module made with David's Blender through the Higgsfield bridge (Nov 2026) and then moved into this builder, so the same code
+# makes it here, in CI and in his Blender. It is exactly 4 x 3 x 0.2 m and tiles along X: both ends are the same half rib, the plinth, rail and header run through.
+# Its wear is painted into VERTEX COLOURS (exported as COLOR_0, multiplied into the albedo by the game): bright chamfers and panel rims (worn edges), dark recesses
+# and wells, grime towards the floor and a slightly different tone per part. The three shared textures (kit_gunmetal, kit_steel, kit_paint) stay calm and small.
+TRI_BUDGET = {'district_hall_wall_4m_a': 4200}
+W_FLAT, W_EDGE, W_RECESS, W_WELL = .62, 1.0, .40, .05
+
+
+def _w_start(p):
+    b = p.bm()
+    if 'tone' not in b.faces.layers.float:
+        b.faces.layers.float.new('tone')
+        b.verts.layers.float.new('edge')
+    return b
+
+
+def _w_tone(p, faces, tone, bright=()):
+    b = p.bm()
+    layer, bright = b.faces.layers.float['tone'], set(bright)
+    for f in faces:
+        if f.is_valid:
+            f[layer] = W_EDGE if f in bright else tone
+    return faces
+
+
+def _w_box(p, p0, p1, mat, tone=W_FLAT, bevel=.004):
+    """A chamfered box whose chamfers are worn bright."""
+    b = p.bm()
+    old = set(b.faces)
+    x0, y0, z0 = [min(a, c) for a, c in zip(p0, p1)]
+    x1, y1, z1 = [max(a, c) for a, c in zip(p0, p1)]
+    made = bmesh.ops.create_cube(b, size=1)
+    for v in made['verts']:
+        v.co = Vector((x0 + (v.co.x + .5) * (x1 - x0), y0 + (v.co.y + .5) * (y1 - y0), z0 + (v.co.z + .5) * (z1 - z0)))
+    faces = list({f for v in made['verts'] for f in v.link_faces})
+    return _w_finish(p, faces, old, mat, tone, bevel if min(x1 - x0, y1 - y0, z1 - z0) > bevel * 3 else 0)
+
+
+def _w_finish(p, faces, old, mat, tone, bevel):
+    """Chamfer a new part's edges; the chamfers (every face that is not one of the part's own flat sides) are worn bright."""
+    b = p.bm()
+    for f in faces:
+        f.normal_update()
+    flats, worn = [f.normal.copy() for f in faces], []
+    if bevel:
+        bmesh.ops.bevel(b, geom=list({e for f in faces for e in f.edges}), offset=bevel, segments=1, affect='EDGES', profile=.5)
+        faces = [f for f in b.faces if f not in old]
+        for f in faces:
+            f.normal_update()
+        worn = [f for f in faces if not any(f.normal.dot(n) > .999 for n in flats)]
+    return _w_tone(p, p._tag(b, faces, mat), tone, worn)
+
+
+def _w_prism(p, pts, axis, a0, a1, mat, tone=W_FLAT, bevel=.005):
+    """An outline (in the two other axes) pushed along `axis` from a0 to a1, chamfered and worn like _w_box."""
+    b = p.bm()
+    old = set(b.faces)
+    at = {'x': lambda q, a: (a, q[0], q[1]), 'y': lambda q, a: (q[0], a, q[1]), 'z': lambda q, a: (q[0], q[1], a)}[axis]
+    lo, hi = [b.verts.new(at(q, a0)) for q in pts], [b.verts.new(at(q, a1)) for q in pts]
+    n = len(pts)
+    faces = [b.faces.new((lo[i], lo[(i + 1) % n], hi[(i + 1) % n], hi[i])) for i in range(n)] + [b.faces.new(lo), b.faces.new(hi[::-1])]
+    bmesh.ops.recalc_face_normals(b, faces=faces)
+    return _w_finish(p, faces, old, mat, tone, bevel)
+
+
+def _w_panel(p, x0, x1, z0, z1, yf, yb, cuts, mat, tone=W_FLAT, rim=.008):
+    """A plate facing -Y with rectangular recesses cut INTO it (never boxes glued on): cuts are (x0, x1, z0, z1, depth, tone). Its outer rim is worn bright."""
+    b = p.bm()
+    tl, el = b.faces.layers.float['tone'], b.verts.layers.float['edge']
+    xs = sorted({x0, x0 + rim, x1 - rim, x1} | {c[i] for c in cuts for i in (0, 1)})
+    zs = sorted({z0, z0 + rim, z1 - rim, z1} | {c[i] for c in cuts for i in (2, 3)})
+    seen, faces = {}, []
+
+    def vert(x, y, z):
+        key = (round(x, 5), round(y, 5), round(z, 5))
+        if key not in seen:
+            seen[key] = b.verts.new((x, y, z))
+            if abs(y - yf) < 1e-6 and (x in (x0, x1) or z in (z0, z1)):
+                seen[key][el] = 1.0
+        return seen[key]
+
+    def cell(i, j):
+        if not (0 <= i < len(xs) - 1 and 0 <= j < len(zs) - 1):
+            return yb, tone
+        cx, cz = (xs[i] + xs[i + 1]) / 2, (zs[j] + zs[j + 1]) / 2
+        for c in cuts:
+            if c[0] < cx < c[1] and c[2] < cz < c[3]:
+                return yf + c[4], c[5]
+        return yf, tone
+
+    def quad(corners, t):
+        f = b.faces.new([vert(*c) for c in corners])
+        f[tl] = t
+        faces.append(f)
+
+    for i in range(len(xs) - 1):
+        for j in range(len(zs) - 1):
+            y, t = cell(i, j)
+            quad([(xs[i], y, zs[j]), (xs[i + 1], y, zs[j]), (xs[i + 1], y, zs[j + 1]), (xs[i], y, zs[j + 1])], t)
+            for di, dj in ((1, 0), (0, 1), (-1, 0), (0, -1)):          # a wall wherever the neighbour sits deeper (or is the outside)
+                y2, t2 = cell(i + di, j + dj)
+                if y2 > y + 1e-6:
+                    if di:
+                        x = xs[i + 1] if di > 0 else xs[i]
+                        quad([(x, y, zs[j]), (x, y2, zs[j]), (x, y2, zs[j + 1]), (x, y, zs[j + 1])], min(t, t2))
+                    else:
+                        z = zs[j + 1] if dj > 0 else zs[j]
+                        quad([(xs[i], y, z), (xs[i + 1], y, z), (xs[i + 1], y2, z), (xs[i], y2, z)], min(t, t2))
+    bmesh.ops.recalc_face_normals(b, faces=faces)
+    for f in faces:                                                   # an open plate: make sure the front really faces -Y
+        if abs(f.normal.y) > .9 and f.normal.y > 0:
+            f.normal_flip()
+    return p._tag(b, faces, mat)
+
+
+def _w_paint(p):
+    """Write the wear into a colour layer: face tone, bright worn rims, grime towards the floor."""
+    b = p.bm()
+    tl, el = b.faces.layers.float['tone'], b.verts.layers.float['edge']
+    col = b.loops.layers.float_color.new('Col')
+    for f in b.faces:
+        t = f[tl] or W_FLAT
+        for loop in f.loops:
+            v = loop.vert
+            c = t + (W_EDGE - t) * v[el] * .85
+            k = min(1.0, max(0.0, v.co.z / .55))
+            g = .58 + .42 * k * k * (3 - 2 * k)                     # dirt kicked up from the floor
+            loop[col] = (c * g, c * (g * .97 + .03), c * (g * .93 + .07), 1.0)
+
+
+def hall_wall_4m(p):
+    """4 x 3 x 0.2 m corridor wall: slab, plinth, header, end half-ribs, mid rail, six layered plates, a louvred vent, two recessed hatches, conduits, small lights."""
+    _w_start(p)
+    rng = p.rng
+    t = lambda k=1.0: W_FLAT * k * rng.uniform(.9, 1.1)            # every part a slightly different batch of metal
+    YF, YB = .055, .08
+    _w_box(p, (0, YB, 0), (4, .2, 3), 'kit_gunmetal', W_FLAT * .7, bevel=0)                                             # slab
+    _w_prism(p, [(YB, 0), (0, 0), (0, .24), (.03, .30), (YB, .30)], 'x', 0, 4, 'kit_steel', t(.95))                    # plinth
+    _w_prism(p, [(YB, 3), (0, 3), (0, 2.80), (.03, 2.72), (YB, 2.72)], 'x', 0, 4, 'kit_steel', t(.9))                  # header
+    _w_prism(p, [(0, YB), (0, 0), (.07, 0), (.10, .03), (.10, YB)], 'z', .30, 2.72, 'kit_steel', t())                  # end half-ribs: two make one rib
+    _w_prism(p, [(4, YB), (4, 0), (3.93, 0), (3.90, .03), (3.90, YB)], 'z', .30, 2.72, 'kit_steel', t())
+    _w_box(p, (.10, .03, 1.05), (3.90, YB, 1.17), 'kit_steel', t(), bevel=.005)                                         # mid rail
+    bays = ((.12, 1.33), (1.35, 2.65), (2.67, 3.88))
+    lo, up = (.32, 1.03), (1.19, 2.70)
+    inset = lambda: W_FLAT * .8 * rng.uniform(.92, 1.08)
+    for k in (0, 2):
+        x0, x1 = bays[k]
+        _w_panel(p, x0, x1, lo[0], lo[1], YF, YB, [(x0 + .06, x1 - .06, lo[0] + .06, lo[1] - .06, .010, inset())], 'kit_gunmetal', t())
+    _w_panel(p, *bays[1], lo[0], lo[1], YF, YB, [(1.58, 2.42, .44, .92, .020, W_WELL)], 'kit_gunmetal', t())
+    _w_panel(p, *bays[0], up[0], up[1], YF, YB, [(.32, 1.13, 1.75, 2.35, .022, W_WELL), (.18, 1.27, 1.25, 1.62, .010, inset())], 'kit_gunmetal', t())
+    _w_panel(p, *bays[1], up[0], up[1], YF, YB, [(1.43, 2.57, 1.27, 2.25, .010, inset())], 'kit_gunmetal', t())
+    _w_panel(p, *bays[2], up[0], up[1], YF, YB, [(2.87, 3.67, 1.45, 2.35, .020, W_WELL)], 'kit_gunmetal', t())
+    # louvred vent, upper left
+    for a, c in (((.29, .042, 1.72), (.32, YF, 2.38)), ((1.13, .042, 1.72), (1.16, YF, 2.38)), ((.32, .042, 2.35), (1.13, YF, 2.38)), ((.32, .042, 1.72), (1.13, YF, 1.75)),
+                 ((.715, .045, 1.75), (.735, .077, 2.35))):
+        _w_box(p, a, c, 'kit_steel', t(), bevel=.003)
+    for i in range(8):
+        zt = 2.335 - i * .073
+        _w_prism(p, [(.076, zt), (.050, zt - .040), (.050, zt - .052), (.076, zt - .012)], 'x', .32, 1.13, 'kit_paint', W_FLAT * .75, bevel=0)
+    # access hatch A, upper right: door set into its well, hinges, pull, status light bezel
+    _w_panel(p, 2.885, 3.655, 1.465, 2.335, .060, .075, [(2.935, 3.605, 1.515, 2.285, .005, W_FLAT * .9)], 'kit_paint', W_FLAT * 1.05, rim=.006)
+    for a, c in (((2.872, .048, 1.60), (2.905, .070, 1.70)), ((2.872, .048, 2.10), (2.905, .070, 2.20)), ((3.555, .040, 1.82), (3.580, .065, 1.98)),
+                 ((3.490, .059, 2.205), (3.570, .065, 2.245))):
+        _w_box(p, a, c, 'kit_steel', t(1.1), bevel=.0015)
+    # access hatch B, lower centre, with four louvre slots
+    slots = [(1.74, 2.26, .56 + i * .045, .576 + i * .045, .011, W_WELL) for i in range(4)]
+    _w_panel(p, 1.595, 2.405, .455, .905, .060, .075, slots + [(1.645, 2.355, .505, .855, .005, W_FLAT * .9)], 'kit_paint', W_FLAT * 1.05, rim=.006)
+    _w_box(p, (1.91, .044, .790), (2.09, .065, .812), 'kit_steel', t(1.1), bevel=.0015)
+    # junction box, conduits and their clamps
+    _w_box(p, (2.25, .015, 1.55), (2.50, .065, 1.90), 'kit_paint', t(1.05), bevel=.004)
+    _w_box(p, (2.27, .011, 1.57), (2.48, .015, 1.88), 'kit_paint', t(.92), bevel=0)
+    for a, c, r in (((.05, .035, 2.52), (3.95, .035, 2.52), .018), ((.05, .040, 2.60), (3.95, .040, 2.60), .013), ((2.42, .038, 1.895), (2.42, .038, 2.52), .014),
+                    ((2.31, .040, 1.165), (2.31, .040, 1.555), .012)):
+        _w_tone(p, p.cyl(a, c, r, 'kit_steel', seg=8, caps=False), t(1.15))
+    for x in (.725, 2.0, 3.275):
+        _w_box(p, (x - .02, .008, 2.475), (x + .02, YF, 2.645), 'kit_steel', t(), bevel=.003)
+    # the hooded strip light and the accent tube's housing
+    _w_prism(p, [(YF, 2.41), (.005, 2.41), (.005, 2.385), (.035, 2.34), (YF, 2.34)], 'x', 1.70, 2.30, 'kit_steel', t(.9), bevel=.003)
+    _w_box(p, (1.50, .048, 1.40), (1.55, .065, 2.10), 'kit_steel', t(.9), bevel=.003)
+    # bolt heads: plate corners, hatch corners, vent frame corners
+    spots = [(x, YF, z) for x0, x1 in bays for z0, z1 in (lo, up) for x in (x0 + .03, x1 - .03) for z in (z0 + .03, z1 - .03)]
+    spots += [(x, .060, z) for x in (2.91, 3.63) for z in (1.49, 2.31)] + [(x, .060, z) for x in (1.62, 2.38) for z in (.48, .88)]
+    spots += [(x, .042, z) for x in (.305, 1.145) for z in (1.735, 2.365)]
+    for x, y, z in spots:
+        _w_tone(p, p.cyl((x, y + .002, z), (x, y - .006, z), .011, 'kit_steel', seg=6), W_FLAT * 1.35)
+    _w_paint(p)
+    # practical light: an amber strip under its hood and a status light (lamp_0), one short teal tube and an indicator (accent_0). Separate nodes: the game can switch them.
+    p.box((1.72, .032, 2.320), (2.28, .054, 2.340), 'kit_emissive', bevel=0, node='lamp_0', region='neon_amber')
+    p.box((3.50, .057, 2.215), (3.56, .0595, 2.235), 'kit_emissive', bevel=0, node='lamp_0', region='neon_amber')
+    p.box((1.519, .044, 1.43), (1.531, .048, 2.07), 'kit_emissive', bevel=0, node='accent_0', region='neon_cyan')
+    p.box((2.30, .009, 1.600), (2.45, .011, 1.612), 'kit_emissive', bevel=0, node='accent_0', region='neon_cyan')
+    p.snap.update({'mount': {}, 'tile': {'axis': 'x', 'pitch': 4.0}})
+
+
+def hall_services_4m(p):
+    """The 1.05 m services band that sits on top of the 3 m wall module in the 4.05 m hallway: its pipes line up with the older 2 m modules' pipes."""
+    _w_start(p)
+    t = lambda k=1.0: W_FLAT * k * p.rng.uniform(.9, 1.1)
+    _w_box(p, (0, .17, 0), (4, .2, 1.05), 'kit_gunmetal', W_FLAT * .6, bevel=0)
+    _w_box(p, (0, .02, 0), (4, .2, .05), 'kit_steel', t(.9), bevel=0)
+    for y, z, r in ((.1, .10, .045), (.1, .34, .08), (.11, .58, .035)):
+        _w_tone(p, p.cyl((0, y, z), (4, y, z), r, 'kit_steel', seg=8, caps=False), t(1.1))
+    for x in (1.0, 3.0):
+        _w_box(p, (x - .03, .02, .05), (x + .03, .2, .72), 'kit_steel', t(), bevel=.004)
+    _w_box(p, (0, .04, .85), (4, .2, 1.05), 'kit_steel', t(.85), bevel=0)
+    b = p.bm()                                                          # no floor grime up here: tones only
+    tl, col = b.faces.layers.float['tone'], b.loops.layers.float_color.new('Col')
+    for f in b.faces:
+        for loop in f.loops:
+            loop[col] = (f[tl] or W_FLAT,) * 3 + (1.0,)
+    p.snap.update({'mount': {}})
+
+
 INTERIOR = {
+    'district_hall_wall_4m_a': ('W', 'hallway', hall_wall_4m), 'district_hall_services_4m': ('W', 'hallway', hall_services_4m),
     'district_hall_header_4m': ('B', 'hallway', hall_header(4)), 'district_hall_header_5m': ('B', 'hallway', hall_header(5)), 'district_hall_header_6m': ('B', 'hallway', hall_header(6)),
     'district_prop_crates_1m': ('B', 'hallway', prop_crates), 'district_prop_bench_2m': ('B', 'hallway', prop_bench),
     'district_vr_rack_1m': ('C', 'vr', vr_rack),
@@ -1551,6 +1766,12 @@ def interior_textures():
                 if im.width > 1024:
                     im = im.resize((1024, 1024), Image.LANCZOS)
                 im.save(os.path.join(INTERIOR_TEX, '%s_%s.jpg' % (name, kind)), quality=90 if kind == 'normal' else 84)
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:      # the District wall metals exist only as interior JPEGs (no PNG copies are kept in the repository)
+        for name, make in kit_textures.INTERIOR_SETS.items():
+            make(tmp)
+            for kind in ('color', 'normal', 'orm'):
+                Image.open(os.path.join(tmp, '%s_%s.png' % (name, kind))).convert('RGB').save(os.path.join(INTERIOR_TEX, '%s_%s.jpg' % (name, kind)), quality=90 if kind == 'normal' else 86)
 
 
 def assemble_interior(mats, path):
@@ -1630,6 +1851,9 @@ def realise(piece, mats):
         b.free()
         for i in used:
             mesh.materials.append(mats[MATERIALS[i]])
+        if mesh.color_attributes:                           # wear painted into vertex colours (the District wall modules); exported as COLOR_0
+            mesh.color_attributes.active_color = mesh.color_attributes[0]
+            mesh.color_attributes.render_color_index = 0
         obj = bpy.data.objects.new(mesh.name, mesh)
         bpy.context.scene.collection.objects.link(obj)
         objs[node] = obj
@@ -1691,9 +1915,11 @@ def export(main, path):
     for c in main.children:
         c.select_set(True)
     bpy.context.view_layer.objects.active = main
+    props = bpy.ops.export_scene.gltf.get_rna_type().properties.keys()
+    colours = {k: v for k, v in (('export_vertex_color', 'ACTIVE'), ('export_active_vertex_color_when_no_material', True)) if k in props}
     bpy.ops.export_scene.gltf(filepath=path, export_format='GLB', use_selection=True, export_yup=True, export_apply=True, export_draco_mesh_compression_enable=False,
                               export_image_format='NONE', export_materials='EXPORT', export_normals=True, export_texcoords=True, export_cameras=False, export_lights=False,
-                              export_animations=False, export_extras=False)
+                              export_animations=False, export_extras=False, **colours)
     if not BARE:
         patch_glb(path)
 
@@ -1851,7 +2077,7 @@ def main():
         piece = Piece(name)
         make(piece)
         main_obj, tris, size, children = realise(piece, mats)
-        assert tris <= 3000, '%s has %d triangles' % (name, tris)
+        assert tris <= TRI_BUDGET.get(name, 3000), '%s has %d triangles' % (name, tris)
         export(main_obj, os.path.join(OUT, name + '.glb'))
         pieces[name] = {'file': name + '.glb', 'batch': batch, 'category': category, 'size': {'w': round(size.x, 3), 'h': round(size.z, 3), 'd': round(size.y, 3)},
                         'triangles': tris, 'bytes': os.path.getsize(os.path.join(OUT, name + '.glb')), 'nodes': [name + '__' + c for c in children],

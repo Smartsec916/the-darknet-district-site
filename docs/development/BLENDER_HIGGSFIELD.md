@@ -1,5 +1,15 @@
 # Blender and Higgsfield MCP: status and first asset
 
+**Status (hall wall session, after 15 Nov 2026): WORKING.** `get_host_status` returns `blr: true` once Blender is signed in to the **same Higgsfield account** as the Claude connector (the earlier fault was an account mismatch: Blender had to be signed in to the Higgsfield Plus account). The first asset, the modular hallway wall, was modelled through the bridge, then moved into the code-built kit and is in the game. Everything below the next heading is the older fault record, kept as history.
+
+## How Blender work reaches the game (verified)
+- **The cloud session cannot read David's Windows files and Blender cannot hand files to it.** A `.glb` saved on the PC stays on the PC. The bridge's screenshot links (`*.r2.dev`) were also not readable from the cloud session.
+- **So the source of truth is code:** a piece is a Python function in `tools/assets/kit/build_kit.py`. The cloud session runs it with the `bpy` package (`pip install bpy pillow numpy` in a virtual environment; 5.3 works) and commits the `.glb`. The same function can be run inside David's Blender through the bridge to look at or adjust the piece there. Model first in Blender if that helps, then write the result down as code.
+- **Look at it in Babylon, not only in Blender:** `tools/assets/kit/piece-viewer.html`.
+- David's local copy of the first version (kept as a Blender file, not used by the game): `C:\Users\smart\Documents\DarknetDistrict_Assets\HallwayWall_4x3_A\` (`DD_HallwayWall_4x3_A.blend`, a 13 MB `.glb` with its own 2K textures). The game uses the kit version instead: 225 KB of geometry plus three shared 1K texture sets.
+- **Reference archives** (`C:\Users\smart\Downloads\New Downloads\DDD-References-00..08-*.zip`) were **not readable** from the cloud session. Work used the written art direction instead.
+
+## Older fault record (15 Nov 2026, resolved)
 **Status (15 Nov 2026): NOT FUNCTIONAL from the Claude Code cloud session. Do not describe the integration as working.** No Blender object has been read or changed through it, and no asset has been created.
 
 ## Reported local setup (from David; not independently verifiable from the cloud session)
