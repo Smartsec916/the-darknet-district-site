@@ -78,3 +78,8 @@ David: "Use the hallway as the standard for everything within The Darknet Distri
 7. Layout, collision, doors, interactions, NPCs and saves are never changed for looks.
 
 Still on the older look (to bring up to the standard, in this order): security vestibule and entrance (door references in `VISUAL_REFERENCES.md`; keep both sides identical and the loading rule), the remaining 2 m hallway modules and columns, hallway ceiling and floor, shop (five store references), bar (oxygen bar reference; new menu wording needs David), VR area (booth reference), arcade, VENDING room, meeting room, pod room side walls and ceiling, stairs and terrace.
+
+### Standard rollout, step 1 (same session)
+- **Every wall that wore the first lining now wears the container wall.** New pieces `district_hall_wall_2m_ka/kb/kc/kd`, `district_hall_wall_1m_k` and `district_hall_pilaster_05m_k` (`hall_wall_k`, `hall_pilaster_k` in `build_kit.py`): the 4 m module's corrugated sheet and frame in the older modules' sizes, full height with the pipe band, four details (conduit, junction box, vent, caged white lamp); the column has no light slot. In the game `KSWAP` (in `kitPiece`) puts them in wherever the old ids are asked for: the rest of the hallway, the shop, the VR area, the pod room. The old models stay as the fallback.
+- **Shop:** each tube light now has a shaft of lit haze and a pool on the floor.
+- **How to read the standard with the room references:** the hallway gives the quality; where David gave a room its own reference with coloured neon (arcade, VR booths, bar), that reference gives the room its colour.

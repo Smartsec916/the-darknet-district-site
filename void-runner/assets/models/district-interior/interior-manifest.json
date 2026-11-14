@@ -829,6 +829,29 @@
     }
    }
   },
+  "district_hall_pilaster_05m_k": {
+   "file": "district_hall_pilaster_05m_k.glb",
+   "batch": "W",
+   "category": "hallway",
+   "size": {
+    "w": 0.5,
+    "h": 4.05,
+    "d": 0.28
+   },
+   "triangles": 424,
+   "bytes": 39520,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.28
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
   "district_hall_services_4m": {
    "file": "district_hall_services_4m.glb",
    "batch": "W",
@@ -847,6 +870,125 @@
       0,
       0,
       -0.18
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_hall_wall_1m_k": {
+   "file": "district_hall_wall_1m_k.glb",
+   "batch": "W",
+   "category": "hallway",
+   "size": {
+    "w": 1.0,
+    "h": 4.05,
+    "d": 0.2
+   },
+   "triangles": 572,
+   "bytes": 54080,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.2
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_hall_wall_2m_ka": {
+   "file": "district_hall_wall_2m_ka.glb",
+   "batch": "W",
+   "category": "hallway",
+   "size": {
+    "w": 2.0,
+    "h": 4.05,
+    "d": 0.2
+   },
+   "triangles": 636,
+   "bytes": 58312,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.2
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_hall_wall_2m_kb": {
+   "file": "district_hall_wall_2m_kb.glb",
+   "batch": "W",
+   "category": "hallway",
+   "size": {
+    "w": 2.0,
+    "h": 4.05,
+    "d": 0.2
+   },
+   "triangles": 708,
+   "bytes": 65776,
+   "nodes": [
+    "district_hall_wall_2m_kb__accent_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.2
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_hall_wall_2m_kc": {
+   "file": "district_hall_wall_2m_kc.glb",
+   "batch": "W",
+   "category": "hallway",
+   "size": {
+    "w": 2.0,
+    "h": 4.05,
+    "d": 0.2
+   },
+   "triangles": 806,
+   "bytes": 69252,
+   "nodes": [],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.2
+     ],
+     "note": "put the back on the wall plane"
+    }
+   }
+  },
+  "district_hall_wall_2m_kd": {
+   "file": "district_hall_wall_2m_kd.glb",
+   "batch": "W",
+   "category": "hallway",
+   "size": {
+    "w": 2.0,
+    "h": 4.05,
+    "d": 0.2
+   },
+   "triangles": 728,
+   "bytes": 67488,
+   "nodes": [
+    "district_hall_wall_2m_kd__lamp_0"
+   ],
+   "snap": {
+    "mount": {
+     "position": [
+      0,
+      0,
+      -0.2
      ],
      "note": "put the back on the wall plane"
     }
