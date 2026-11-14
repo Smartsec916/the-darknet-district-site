@@ -548,6 +548,10 @@ Done; see §4.3. Possible follow-ups:
 
 ## 11. Decision log
 
+### Proposed (deployed for testing; NOT approved canon)
+
+- **Beginner campaign (14 Nov 2026):** six short missions from the Sleeping Pod to the first departure (FIRST CONTACT, DISTRICT ERRAND, A JOB WORTH TAKING, THE SHIP OPPORTUNITY, YOUR FIRST SHIP, FIRST DEPARTURE), using only Admin, Iris, the District bar and shop, the Landing Terminal, Pad 01 and Meridian Station. David approved deploying it to the live site for testing. The **mission titles, descriptions and all Admin / Iris dialogue are provisional placeholder wording** written by Claude; they are not canon until David approves or rewrites them. The mechanics (ship award, free travel, arrival fix) are ordinary fixes. See `docs/development/BEGINNER_CAMPAIGN.md`.
+
 ### Approved
 
 - Tutorial separate from the cargo campaign; Mission Log with tracking.

@@ -80,6 +80,7 @@
     materials = {},
     lastWidth = 0,
     lastHeight = 0;
+  let roomFrame = 0;
   const diagnostics = {
     ready: false,
     location: null,
@@ -1288,6 +1289,20 @@
     room = null;actors=[];waitingCrowd=[];stationActivity=null;lastActivityTime=null;
   }
 
+  /* Crowd animation throttle (measured: 7-36 crowd animation groups cost 3-7 ms of CPU per frame in the District and the street, on figures that are mostly behind the player or
+     out of view). Every 4th frame, a crowd figure that is farther than 4 m AND outside the camera view (2.5 m margin) has its animation paused (crowd.js setActive) and resumes the
+     moment it is near or in view. Only animation evaluation stops; positions, activities and clip choices keep running, so nothing is ever out of place. Switchable for A/B tests. */
+  let crowdThrottleOn = true;
+  function crowdThrottle() {
+    const planes = B().Frustum.GetPlanes(camera.getTransformationMatrix()), cp = camera.position;let paused = 0;
+    for (const actor of actors) {
+      const c = actor.crowd;if (!c?.setActive || actor.node.isDisposed?.() || !actor.node.isEnabled()) continue;
+      const p = actor.node.getAbsolutePosition();let seen = !crowdThrottleOn || (p.x - cp.x) ** 2 + (p.z - cp.z) ** 2 < 16;
+      if (!seen) {seen = true;for (const pl of planes) if (pl.normal.x * p.x + pl.normal.y * (p.y + 1) + pl.normal.z * p.z + pl.d < -2.5) {seen = false;break;}}
+      c.setActive(seen);if (!seen) paused++;
+    }
+    diagnostics.crowdPaused = paused;
+  }
   function renderRoom(player, width, height, time, allowed = () => true) {
     if (!roomRoot) return null;
     cockpit?.setEnabled(false);
@@ -1309,6 +1324,7 @@
       if(stationActivity&&d.id!=='crew-pressure-door'){const near=(x,z,m)=>Math.abs(x-d.position[0])<d.size[0]/2+m&&Math.abs(z-d.position[2])<d.size[2]/2+m,crew=stationActivity.actors.some(a=>near(a.x,a.z,1.6));
         if(crew&&!d.open){d.open=true;d.byCrew=true;}else if(!crew&&d.byCrew&&!near(player.x,player.z,1.2)){d.open=false;d.byCrew=false;}}
       const target=d.position[1]+(d.open?3.5:0);mesh.position.y+=(target-mesh.position.y)*(roomDt?Math.min(1,roomDt*5):1);}
+    if(roomFrame++%4===0)crowdThrottle();
     for(const actor of actors){if(actor.crowd){const a=actor.activity;if(a){actor.node.position.set(a.x,0,a.z);actor.node.rotation.y=turnToward(actor.node.rotation.y,a.yaw,roomDt*6);actor.cup?.setEnabled(false);crewClip(actor,a,time);}else if(actor.ambient&&!actor.crowd.busy)vary(actor,actor.crowd,actor.base?.clip||VoidCrowd.clipFor(actor.node.metadata?.character||''),roomDt);continue;}if(actor.activity){const a=actor.activity,seated=a.state==='sit'||a.state==='drink';actor.node.position.set(a.x,seated?-.35:0,a.z);actor.node.rotation.y=a.yaw;actor.cup?.setEnabled(a.state==='drink'||a.state==='get-drink');for(const mesh of actor.node.getChildMeshes()){if(mesh.name==='arm')mesh.rotation.x=a.state==='walk'?Math.sin(time*5+a.id)*.25:a.state==='talk'?Math.sin(time*2+a.id)*.15:a.state==='drink'?-.9+Math.sin(time)*.15:a.gesture==='device'?-.65:0;if(mesh.name==='leg')mesh.rotation.x=seated?-1.15:a.state==='walk'?Math.sin(time*5+(mesh.position.x<0?Math.PI:0))*.3:0;if(mesh.name==='head')mesh.rotation.y=a.gesture==='look'?Math.sin(time)*.18:0;}continue;}if(openingHandle&&actor.node===openingHandle.mara)continue;if(actor.traffic){actor.node.position.set((actor.lane%2?-1:1)*(25+actor.lane*8),5+actor.lane*2,((time*(5+actor.lane)+actor.lane*37)%140)-55);actor.node.rotation.y=0;}else{actor.node.rotation.y=Math.sin(time*.3+actor.base[0])*.13;if(actor.ambient)actor.node.position.z=actor.base[2]+Math.sin(time*.2+actor.base[0])*1.2;}}
     roomRoot.metadata?.arrays?.forEach((n,i)=>n.rotation.z=.14+Math.sin(time*.015+i*.2)*.08);
     openingHandle?.tick(time);districtHandle?.tick(time);planetHandle?.tick(time);vrHandle?.tick?.(time);
@@ -1345,6 +1361,7 @@
     renderFlight,
     renderRoom,
     release,
+    crowdThrottle,setCrowdThrottle(on) { crowdThrottleOn = !!on; if (camera && scene) crowdThrottle(); },
     renderSize,
     setQuality: qualitySet,
     presets,

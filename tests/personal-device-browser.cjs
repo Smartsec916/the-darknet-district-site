@@ -47,7 +47,7 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   await page.click('[data-do=expand]');let r=await page.evaluate(()=>document.getElementById('personal-device').getBoundingClientRect().width/innerWidth);assert(r>.9,'expanded: '+r);
   await page.click('[data-do=expand]');r=await page.evaluate(()=>document.getElementById('personal-device').getBoundingClientRect().width/innerWidth);assert(Math.abs(r-.5)<.06,'collapsed: '+r);
   // 6. Navigation, back, Esc; Mission Log with no missions; the old pistol text is gone
-  await page.click('[data-app=missions]');await settle();assert.match(await page.textContent('#personal-device .pd-main'),/No active missions/);assert.doesNotMatch(await page.textContent('#personal-device'),/pistol|Mara gives/i);
+  await page.click('[data-app=missions]');await settle();assert.match(await page.textContent('#personal-device .pd-main'),/FIRST CONTACT/,'the beginner campaign starts after the pod exit');assert.doesNotMatch(await page.textContent('#personal-device'),/pistol|Mara gives/i);
   await page.keyboard.press('Escape');await settle();assert.equal(await page.textContent('#personal-device .pd-title'),'HOME');assert.equal(await open(),true,'Esc in an app goes back, it does not close');
   // 7. Camera and Gallery are placeholders; App Store lists installed apps and no purchases
   await page.click('[data-app=camera]');await settle();assert.match(await page.textContent('#personal-device .pd-main'),/Not available in the V1/);assert.equal(await page.locator('#personal-device .pd-main button').count(),0);await page.click('[data-do=back]');await settle();

@@ -350,7 +350,9 @@
     Missions.acquire(s,id);Story.emit(s,'missionAccepted',id);return true;
   }
   function complete(s) {
-    if(Missions.closed(s))return null;
+    // A District campaign has no old missions to complete, but a pilot who owns a ship (the beginner campaign's award, or a developer test ship) must still be able to ARRIVE
+    // from a free transit: without this the flight never ended and the ship could never reach another place.
+    if(Missions.closed(s)&&!(s.story?.flags?.shipAccess!=='none'&&flight(s)?.kind==='transit'))return null;
     const f = flight(s); if (!f) return null;
     const previous = s.quest;
     if(f.enemies>0){s.combatRuns=(s.combatRuns||0)+1;if(s.combatRuns>=2)s.missileUnlocked=true;}
@@ -422,6 +424,16 @@
   }
   // The one place a ship is awarded. A future mission calls this; nothing else does.
   function grantShip(s){if(s.story?.flags?.shipAccess==='none')s.story.flags.shipAccess='granted';return S.hasShip(s);}
+  /* The beginner campaign's reward (and the developer test ship): a REAL starter ship plus the travel the ship system needs. Idempotent: the flag makes a second call change nothing.
+     What it opens: the pad ship and BOARD (shipAccess), boarding past the old Vesper opening gate (quest 'open'; a closed-pool campaign has no Vesper lessons, see progression.groundDone),
+     and free travel between the places the universe has discovered (universe.freeTravel -> chooseDestination, Free transit flights). Missions stay closed: no old campaign returns. */
+  function awardStarterShip(s){
+   const f=s?.story?.flags;if(!f)return false;
+   if(f.starterShipAwarded===true)return S.hasShip(s);
+   grantShip(s);if(!s.ownedShips.includes('starter'))s.ownedShips.unshift('starter');s.activeShip=s.ownedShips.includes(s.activeShip)?s.activeShip:'starter';
+   if(!s.loadout||!Object.keys(s.loadout).length)s.loadout={...S.defaults[s.activeShip]};
+   s.quest='open';s.universe=U.restore({...s.universe,missionLogUnlocked:true,freeTravel:true},s);f.starterShipAwarded=true;return S.hasShip(s);
+  }
   function buyShip(s,id){const ship=S.ships[id];if(!S.hasShip(s)||!ship||ship.premium||s.ownedShips.includes(id)||s.credits<ship.price)return false;s.credits-=ship.price;s.ownedShips.push(id);s.shipLoadouts[id]={...S.defaults[id]};for(const [key,item]of Object.entries(S.equipment))if(item.ship===id&&!s.standardGear.includes(key))s.standardGear.push(key);Story.emit(s,'ownShip',id);return true;}
   function switchShip(s,id){if(!S.owns(s,id)||!S.ships[id])return false;s.shipLoadouts[s.activeShip]={...s.loadout};s.activeShip=id;s.loadout={...(s.shipLoadouts[id]||S.defaults[id])};return true;}
   function ownsEquipment(s,id,verified=[]){return Object.hasOwn(content.gear,id)?verified.includes(id):Object.hasOwn(content.creditGear,id)?s.creditGear.includes(id):Object.hasOwn(S.equipment,id)&&(S.equipment[id].ship==='ship3'?S.owns(s,'ship3'):s.standardGear.includes(id));}
@@ -480,7 +492,7 @@
       }
     };
   }
-  const api = { campaignEpoch: CAMPAIGN_EPOCH, isCurrent, isLegacy, retireLegacy, retiredKeys, startDistrictCampaign, socialEntry, grantShip, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
+  const api = { campaignEpoch: CAMPAIGN_EPOCH, isCurrent, isLegacy, retireLegacy, retiredKeys, startDistrictCampaign, socialEntry, grantShip, awardStarterShip, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
