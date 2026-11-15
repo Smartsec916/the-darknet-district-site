@@ -10,6 +10,20 @@
  const SPEAKERS=['Admin','Iris','Landing terminal','You','Bartender'];   // on-screen speakers the beginner campaign uses; named NPCs come from the voice registry
  const ID=/^[a-z][a-z0-9-]{0,79}$/,TYPES=['main','side','cargo','campaign','tutorial','bounty','station'];
  const clone=v=>JSON.parse(JSON.stringify(v));
+ /* Mission flow chart (David, 15 Nov 2026): three more things a mission can carry. They are DESIGN FIELDS in a draft: the game does not act on them yet.
+      offer    [{who,text}]                      what the giver says when handing the mission over
+      choices  [{id,label,next}]                 the choices the mission creates; `next` is the mission a choice leads to ('' = not decided)
+      unlocks  [{item,seller,where[],advert}]    store items that become available: where = ['everywhere'] or specific store ids; advert = the line for the V1 News feed */
+ const STORES=[['everywhere','Everywhere (every store)'],['district-store','The Darknet District store (Admin, Iris)'],['district-vending','District vending machines'],['district-bar','District bar and oxygen lounge'],
+  ['meridian','Meridian Station'],['kepler','Kepler'],['foundry','Foundry'],['rusthaven','Rusthaven Port'],['sol-belt','Tessaly Belt Anchorage'],['vigil','The Vigil'],['holdfast','Holdfast'],['vesper','Vesper']].map(([id,name])=>({id,name}));
+ const STORE_IDS=new Set(STORES.map(s=>s.id)),SELLERS=['','admin','iris'];
+ const whereText=w=>!Array.isArray(w)||!w.length?'nowhere yet':w.includes('everywhere')?'everywhere':w.map(id=>(STORES.find(s=>s.id===id)||{name:id}).name).join(', ');
+ /* Choosing "everywhere" clears the specific stores; choosing a specific store clears "everywhere". */
+ function toggleWhere(where,id){let w=Array.isArray(where)?where.filter(x=>STORE_IDS.has(x)):[];if(!STORE_IDS.has(id))return w;if(id==='everywhere')return w.includes('everywhere')?[]:['everywhere'];w=w.filter(x=>x!=='everywhere');return w.includes(id)?w.filter(x=>x!==id):[...w,id];}
+ /* The chart, left to right: each mission as one step {id, level, row, giver, title, said[], todo[], choices[], unlocks[], leadsTo[]}. */
+ function chart(missions){const f=flow(missions),by=new Map(missions.map(m=>[m.id,m]));
+  return f.nodes.slice().sort((a,b)=>a.level-b.level||a.row-b.row).map(n=>{const m=by.get(n.id);return {id:m.id,level:n.level,row:n.row,giver:m.giver||'',title:m.title||'',said:(m.offer||[]).map(l=>l.text),todo:(m.objectives||[]).map(o=>o.label),
+   choices:(m.choices||[]).map(c=>({id:c.id,label:c.label,next:c.next||''})),unlocks:(m.unlocks||[]).map(u=>({item:u.item,where:whereText(u.where)})),leadsTo:missions.filter(x=>(x.prerequisites||[]).includes(m.id)).map(x=>x.id)};});}
  /* ctx: {interactions:Set, npcs:Set(of ids/display names), missions: other mission ids that exist (for reference checks)} */
  function validate(missions,ctx={}){
   const issues=[],add=(level,where,text)=>issues.push({level,where,text}),ids=new Set();
@@ -39,6 +53,14 @@
    const reach=(id,seen=new Set())=>{if(seen.has(id))return false;seen.add(id);const o=(m.objectives||[]).find(x=>x.id===id);return !o||(o.requires||[]).every(r=>reach(r,new Set(seen)));};
    for(const o of m.objectives||[])if(o.id&&!reach(o.id))add('error',w+' / '+o.id,'Its requirements loop back to itself: it can never be completed.');
    for(const p of m.prerequisites||[])if(!missions.some(x=>x.id===p)&&!(ctx.otherMissions||new Set()).has(p))add('error',w,'Prerequisite "'+p+'" does not exist.');
+   for(const l of m.offer||[]){if(!l.text)add('error',w,'A line in "what is said" has no text.');if(!speakers.has(l.who))add('error',w,'Speaker "'+l.who+'" is not a known NPC or speaker.');}
+   const cids=new Set();
+   for(const c of m.choices||[]){const cw=w+' / choice '+(c.id||'?');if(!ID.test(c.id||''))add('error',cw,'Choice id must be lowercase letters, digits and hyphens.');if(cids.has(c.id))add('error',cw,'Duplicate choice id.');cids.add(c.id);
+    if(!c.label)add('error',cw,'A choice needs its text.');if(c.next&&!missions.some(x=>x.id===c.next))add('error',cw,'Leads to "'+c.next+'", which is not a mission.');if(c.next===m.id)add('error',cw,'A choice cannot lead back to its own mission.');if(!c.next)add('warn',cw,'Leads nowhere yet.');}
+   if((m.choices||[]).length===1)add('warn',w,'Only one choice: a choice needs at least two.');
+   for(const u of m.unlocks||[]){const uw=w+' / store item '+(u.item||'?');if(!u.item)add('error',uw,'A store item needs a name.');if(!Array.isArray(u.where)||!u.where.length)add('error',uw,'Say where it becomes available: everywhere, or at least one store.');
+    for(const s of u.where||[])if(!STORE_IDS.has(s))add('error',uw,'Unknown store "'+s+'".');if((u.where||[]).includes('everywhere')&&(u.where||[]).length>1)add('error',uw,'"Everywhere" cannot be combined with specific stores.');if(!SELLERS.includes(u.seller||''))add('error',uw,'Seller must be Admin, Iris or nobody.');}
+   if((m.choices||[]).length||(m.unlocks||[]).length)add('warn',w,'Choices and store items are design notes in this draft: the game does not act on them yet.');
   }
   // chains: a prerequisite cycle means the chain can never start
   const by=new Map(missions.map(m=>[m.id,m]));
@@ -76,6 +98,7 @@
   for(const [id,m] of byD){const b=byB.get(id);if(!b){changes.push({id,kind:'added',summary:'New mission "'+m.title+'"'});continue;}
    for(const k of ['title','type','giver','description','destination','rewards']){if(JSON.stringify(b[k]??null)!==JSON.stringify(m[k]??null))changes.push({id,kind:'changed',field:k,from:b[k]??null,to:m[k]??null,summary:id+' · '+k+': '+JSON.stringify(b[k]??null)+' → '+JSON.stringify(m[k]??null)});}
    if(JSON.stringify(b.prerequisites||[])!==JSON.stringify(m.prerequisites||[]))changes.push({id,kind:'changed',field:'prerequisites',summary:id+' · prerequisites: '+(b.prerequisites||[]).join(',')+' → '+(m.prerequisites||[]).join(',')});
+   for(const [k,name] of [['offer','what is said'],['choices','choices'],['unlocks','store items']])if(JSON.stringify(b[k]||[])!==JSON.stringify(m[k]||[]))changes.push({id,kind:'changed',field:k,summary:id+' · '+name+' changed ('+(b[k]||[]).length+' → '+(m[k]||[]).length+')'});
    if(JSON.stringify(b.objectives)!==JSON.stringify(m.objectives))changes.push({id,kind:'changed',field:'objectives',summary:id+' · objectives or dialogue changed ('+(b.objectives||[]).length+' → '+(m.objectives||[]).length+' objectives)'});}
   for(const id of byB.keys())if(!byD.has(id))changes.push({id,kind:'removed',summary:'Mission "'+id+'" removed'});
   return changes;
@@ -90,6 +113,6 @@
    if((m.objectives||[]).every(o=>ok.has(o.id))){done.add(m.id);progress=true;}else stuck.push(m.id);}}
   return {completed:[...done],order,stuck:missions.filter(m=>!done.has(m.id)).map(m=>m.id)};
  }
- const api={EVENTS,SPEAKERS,ID,TYPES,clone,validate,flow,dialogueGraph,reachable,diff,exportDraft,simulate};
+ const api={EVENTS,SPEAKERS,ID,TYPES,STORES,SELLERS,whereText,toggleWhere,chart,clone,validate,flow,dialogueGraph,reachable,diff,exportDraft,simulate};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.StudioModel=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

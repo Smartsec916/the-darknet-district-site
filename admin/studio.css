@@ -12,3 +12,18 @@ table{border-collapse:collapse;width:100%}td,th{border:1px solid #21454d;padding
 svg.flow{background:#071016;border:1px solid #21454d;max-width:100%}svg.flow text{font:11px 'Courier New',monospace;fill:#c3d8de}svg.flow .n{fill:#0c1b23;stroke:#38808b}svg.flow .e{stroke:#61eee9;fill:none;opacity:.7}
 .dg{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}.dn{border:1px solid var(--edge);background:var(--panel);padding:8px 10px;max-width:320px}.dn.lines{border-color:#6d5a8c}.dn small{color:var(--muted);display:block}.dn.early{border-style:dashed}
 pre{background:#0b1721;padding:10px;overflow:auto;max-height:340px;white-space:pre-wrap}
+/* mission flow chart: blue = who gives it, green = the mission and what must be done, pink = what is said, red = the links */
+.fc-board{display:flex;flex-direction:column;gap:18px;overflow-x:auto;padding:12px;background:#0b141b;border:1px solid #21454d}
+.fc-step{display:flex;align-items:center;gap:0;min-width:max-content;flex-wrap:nowrap;position:relative;padding-bottom:26px}
+.fc-col{display:flex;flex-direction:column;gap:8px;width:300px}.fc-step small{display:block;font-size:10px;letter-spacing:.14em;color:var(--muted);margin-bottom:3px}
+.fc-npc{border:3px solid #1ea7e8;padding:6px 10px}.fc-npc select{width:100%}
+.fc-mission{border:3px solid #b6e11c;padding:8px 10px}.fc-mission>input{width:100%;font-weight:700}
+.fc-said{border:3px solid #ffa3c4;padding:6px 8px;margin-top:8px}.fc-said textarea{min-height:64px;border:0;background:transparent;padding:0}
+.fc-todo{border:3px solid #b6e11c;padding:8px 10px;width:520px;align-self:stretch;display:flex;flex-direction:column;gap:6px}
+.fc-row{display:flex;gap:6px;align-items:center}.fc-row input{flex:1;min-width:0}.fc-row select{max-width:170px}.fc-row small{margin:0;flex:1}
+.fc-x{padding:2px 8px;border-color:#5a3a3a;color:var(--bad)}
+.fc-link{display:block;width:34px;height:6px;background:#e0202a;flex:none}
+.fc-choice{border:3px solid #b6e11c;padding:8px 10px;display:flex;flex-direction:column;gap:6px}.fc-choice select,.fc-unlock select,.fc-unlock>input,.fc-choice>input{width:100%}
+.fc-unlock{border:3px solid #e0a84a;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.fc-where{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;font-size:11px}.fc-where small{grid-column:1/-1;color:var(--warn)}.fc-where label{display:flex;gap:6px;align-items:center}
+.fc-tools{position:absolute;left:0;bottom:0;display:flex;gap:8px;align-items:center}.fc-tools small{margin:0 8px 0 0}.fc-tools button,.fc-col>button,.fc-todo>button{font-size:11px;padding:3px 8px;align-self:flex-start}

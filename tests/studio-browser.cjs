@@ -18,7 +18,17 @@ async function open(browser,status,extra=0){
   assert.equal(await page.locator('#tabs button').count(),12);const tabs=await page.locator('#tabs button').allTextContents();assert.ok(/Dashboard.*WORKING/.test(tabs[0])&&/Characters.*PLANNED/.test(tabs[4])&&/NPCs.*PARTIAL/.test(tabs[2]),tabs.join(' | '));
   await page.screenshot({path:shots+'/studio-dashboard.png'});assert.match(await page.textContent('#panel'),/every mission can be reached and finished/);
   // Missions: pick, edit, see validation react, flowchart, preview, draft persistence, export
-  await page.click('#tabs button:has-text("Missions")');await page.click('.list button:has-text("DISTRICT ERRAND")');
+  // Missions opens on the flow chart (David, 15 Nov 2026): a row per mission, read left to right; add what is said, a choice and a store item, and see them validated
+  await page.click('#tabs button:has-text("Missions")');assert.equal(await page.locator('.fc-step').count(),6,'six missions on the chart');assert.equal(await page.locator('.fc-step').first().locator('.fc-npc select').inputValue(),'Admin');
+  const first=page.locator('.fc-step').first();await first.locator('.fc-said textarea').fill('Welcome to the District.\nIris keeps the contracts.');
+  await first.locator('button:has-text("+ choice")').click();await page.locator('.fc-step').first().locator('button:has-text("+ choice")').click();
+  const ch=page.locator('.fc-step').first().locator('.fc-choice');assert.equal(await ch.count(),2);await ch.nth(0).locator('input').fill('Take the job');await ch.nth(0).locator('select').selectOption('district-errand');await ch.nth(1).locator('input').fill('Walk away');
+  await page.locator('.fc-step').first().locator('button:has-text("+ store item")').click();const un=page.locator('.fc-step').first().locator('.fc-unlock');await un.locator('input[placeholder="Item name"]').fill('Signal Scrambler');
+  assert.match(await un.locator('.fc-where small').textContent(),/everywhere/);await un.locator('label:has-text("The Darknet District store") input').check();assert.match(await page.locator('.fc-step').first().locator('.fc-unlock .fc-where small').textContent(),/WHERE: The Darknet District store/);
+  assert.match(await page.textContent('#mission-side'),/what is said changed/);assert.match(await page.textContent('#mission-side'),/choices changed \(0 → 2\)/);assert.match(await page.textContent('#mission-side'),/store items changed/);assert.match(await page.textContent('#mission-side'),/Leads nowhere yet/);
+  await page.screenshot({path:shots+'/studio-flow.png',fullPage:true});
+  page.once('dialog',d=>d.accept());await page.click('#mission-side button:has-text("Revert to shipped")');await page.waitForFunction(()=>document.querySelectorAll('.fc-choice').length===0);
+  await page.click('[data-mission-view=form]');await page.click('.list button:has-text("DISTRICT ERRAND")');
   assert.equal(await page.locator('svg.flow g').count(),6,'the mission-flow view shows six missions');assert.match(await page.textContent('#mission-side'),/No problems found/);assert.match(await page.textContent('#mission-side'),/All 6 missions complete/);
   await page.screenshot({path:shots+'/studio-missions.png',fullPage:true});
   const reward=page.locator('label:has-text("Reward (credits)") input');await reward.fill('150');assert.match(await page.textContent('#mission-side'),/rewards: 100 → 150/);
@@ -30,7 +40,7 @@ async function open(browser,status,extra=0){
   // new mission, chain, validation of its objective
   await page.click('button:has-text("+ New mission")');assert.equal(await page.locator('svg.flow g').count(),7);assert.equal(await page.locator('#mission-side .issue.error').count(),0,'a new mission has no errors');assert.match(await page.textContent('#mission-side'),/No description/,'but the missing description is a warning');
   // persistence: reload keeps the local draft
-  await page.reload();await page.waitForSelector('#studio:not([hidden])');await page.click('#tabs button:has-text("Missions")');assert.equal(await page.locator('.list button').count(),7+1,'the draft (7 missions + the New button) survives a reload');
+  await page.reload();await page.waitForSelector('#studio:not([hidden])');await page.click('#tabs button:has-text("Missions")');await page.click('[data-mission-view=form]');assert.equal(await page.locator('.list button').count(),7+1,'the draft (7 missions + the New button) survives a reload');
   const [dl]=await Promise.all([page.waitForEvent('download'),page.click('button:has-text("Export draft JSON")')]);const text=require('fs').readFileSync(await dl.path(),'utf8'),ex=JSON.parse(text);assert.equal(ex.status,'DRAFT · not published');assert.ok(ex.changes.some(c=>/rewards: 100 → 150/.test(c)));assert.equal(ex.missions.length,7);
   assert.equal(await page.isDisabled('button:has-text("Publish to the live game")'),true,'publishing is disabled');
   await page.click('button:has-text("Revert to shipped")').catch(()=>{});
