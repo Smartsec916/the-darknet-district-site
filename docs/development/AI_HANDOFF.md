@@ -6,6 +6,23 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 15 Nov 2026 (end of session): what is live, and David's open requests IN ORDER
+**Live (build `2026-11-16-warflying-1`):** handle accounts (API and hub redeployed on Render with David's go-ahead; the hub deploys from branch `claude/character-creator`, which is kept as "same hub files as main"), camera aim-and-follow (F), FOLLOWING in Social, one look record per character, games page card "The Darknet District - Game", `site-return.js` on every game, EXIT GAME in the arcade, WarFlying as an installable app (15%), mission flow chart, character surface pass.
+
+**Already existed, tell David where:** calling a street taxi from the V1 Map app (STREET TAXIS list, only on the NeoChinatown street): the cab drives to you, opens its door, takes you to the chosen stop (`ROAD_TAXIS.md`).
+
+**Not started (David asked 15 Nov), in the order to do them:**
+1. **Dax, Tier 3 AI NPC** (his full brief is in the session transcript; key facts below). Blocked on the model reaching the build: the purchased CGTrader model ("Realistic Cyberpunk Girl, fully rigged, game ready"; use the BLACK outfit) is in `C:\Users\smart\Downloads\New Downloads` (FBX, OBJ, Textures, Blend zips) on David's PC. The cloud session cannot read that folder (no Remote Control folder was shared, and Blender did not answer the bridge at the time). It must go through the private licensed-assets repository and the `.vrpak` pipeline (`VOID_RUNNER_ASSET_LICENSES.md`), never into this public repo; record the licence terms there (check for a No-AI clause).
+   - Only ONE Dax exists in the game. The VR-booth resident that Claude had named "Dax Moreno" is now "Cade Moreno".
+   - Jobs: Bounty Hunter and Mercenary. Device: **V3 // Shadow** bought from Admin: faster than the V1, same UI drawn like an old monochrome green monitor, camera embedded in her eye, engaged with **B**; in flight B still acquires target lock.
+   - Architecture asked for: reuse existing NPC, Studio, V1, social and Iris API systems; deterministic routine with a schedule and goals; AI calls only for complex conversation, validated against a fixed action list, with limits and a fallback; one authoritative Dax shared by all players (needs the hub); memory of players limited to game-related facts; Studio editor support. Build it so later Tier 3 NPCs reuse it.
+2. **Devices V2 and V3 // Shadow** in `DEVICES` (`device-v1.js`): the camera, My V# app and zoom limits already follow the model.
+3. **NPCs riding street taxis** sometimes (`road-taxi.js` traffic cabs, `ncz-nightlife.js` walkers).
+4. **Tagging players and NPCs in Messages and Mission Logs; bounties on NPCs and players.** Needs hub and API support (shared, validated state), and moderation rules for anything aimed at a real player. Propose the design before building.
+5. **More characters and upgrades made in Blender** (David: "just make more and upgrade current models using blender"). His Blender has MPFB but no clothing, hair or skin packs; the existing pipeline is `tools/animation-pipeline/` and `tools/assets/gear/`. Start by installing the CC0 MakeHuman asset packs in his Blender (ask first: it downloads files to his PC) or by modelling gear in code.
+6. **Open questions:** remove the old WarFlying ship module from sale; chat for handle-only accounts; draft names, jobs and advert wording awaiting David's edits.
+
+
 ### 15 Nov 2026 (latest): V1 camera, residents, My V1, News feed, mission flow chart and a character surface pass are LIVE
 - **V1 (PR #295, live):** residents listed with players, profiles and jobs (two dropdowns), MY V1 app, empty App Store, sponsored News feed (boxed posts), Camera viewfinder with name tags and wheel zoom. Details: `V1_DEVICE.md` (last three sections). Names, extra jobs and store advert sentences are drafts for David.
 - **Developer Studio (PR #297, live):** mission flow chart in the Missions tab; choices and store-item unlocks are draft design fields the game does not act on yet. `DEVELOPER_STUDIO.md`.
