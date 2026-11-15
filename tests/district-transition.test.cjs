@@ -145,7 +145,7 @@ test('the new-player start wakes in a pod and Exit Pod leads to open floor',()=>
 test('the existing interactions, the taxi, the VR arcade and the doors are all still wired',()=>{
  const ids=new Set(street.interactions.map(i=>i.id).concat(interior.interactions.map(i=>i.id)));for(const id of ['board','terminal','admin','district-iris','district-shop','district-bar','district-vr','district-vending','district-pod','district-meeting','district-stairs','district-stairs-down'])assert(ids.has(id),id);assert(!ids.has('tdd')&&!ids.has('district-scan')&&!ids.has('district-pod-music'),'no obsolete room/entrance prompts');
  const t=read('void-runner/district-transition.js');assert(t.includes("VoidInteractions.handlers.get('district-scan')")&&t.includes('original?.(...a)'),'the scanner keeps its original behaviour outside the street');
- assert(read('void-runner/neochinatown.js').includes("for(const k of ['city','nightclub','booths'])root.VoidNeoChinatown[k]=undefined"),'stale handles from a released environment are cleared');
+ assert(read('void-runner/neochinatown.js').includes("for(const k of ['city','nightclub','booths','podPick','podHover'])root.VoidNeoChinatown[k]=undefined"),'stale handles from a released environment are cleared');
 });
 test('continuing a campaign after Exit Pod resumes in the interior without replaying the wake view',()=>{
  const w=read('void-runner/world-integration.js'),s=C.startDistrictCampaign(C.fresh());delete s.story.flags.podWakePending;

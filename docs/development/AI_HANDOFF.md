@@ -6,6 +6,13 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 15 Nov 2026 (night): Sleeping Pod wall controls and EXIT THE POD sign (build `2026-11-16-pod-controls-1`)
+
+- PR #317 (seven named residents as Meshy models) is merged and live.
+- David sent four pictures of his Tesana pod and asked: look around inside, music and light controls on the walls, an Exit the Pod sign that lights under the mouse, and no District music in the pod. Done as clickable wall screens plus a sign lettered on the hatch glass; details and what was checked are at the end of `docs/development/SLEEPING_PODS.md`. Pure rule: `VoidDistrictArea.podControl`; test `tests/pod-controls.test.cjs`.
+- NOT done: making the pod interior LOOK like the Tesana pictures (pale moulded plastic walls, square window, 3D goods in the vending cabinet, a bigger light panel with eight colours and a brightness slider). That is the next sleeping-pod step of the modernization brief. David earlier (13 Nov) asked for dark pods in the hallway; the Tesana pictures are light inside under pink light, so ask or keep the outside dark and brighten only the inside.
+- Meshy: about 660 credits left this month; none spent on the pods yet.
+
 ### 15 Nov 2026 (evening): THE GRAPHICS MODERNIZATION HAS BEGUN (David's brief: characters, then District interior, NeoChinatown, NULL, starter ship; NOT Milked, Corporate District or the temple)
 **Read `docs/development/MESHY_CHARACTERS.md` first: it has the working recipe, the credit ledger and the rights note.** David's reference pictures are on his PC in `Documents/DarknetDistrict_Assets/ArtReferences/Darknet-District-Art-References/` (Admin, Iris, NPC, The Darknet District, NeoChinaTown, Kestrel, Mara, Vesper, Meridan Station, derelict station; also the temple, which is excluded).
 - **Done and in build `2026-11-16-meshy-1`:** Admin and Iris are drawn from their own Meshy models (`npc-admin.glb`, `npc-iris.glb`, 46k triangles each, 4 MB) made from David's pictures, with the game's idle, talk, walk, look and shrug. The old creator look is the fallback. Seen in the browser in the store. **Not checked:** their profile pictures in the device, and the scanning-etiquette walk with the new models.

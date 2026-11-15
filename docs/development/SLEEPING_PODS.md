@@ -37,3 +37,15 @@ David: the pods read almost white; the District should be dark with coloured lig
 ## Nov 2026 (David): look around at once on waking
 
 David: after creating a character the player should be able to look around inside the pod, not be held to the buttons. Moving the mouse over the view (not over the buttons) now turns the view immediately, with no click first (`world-integration.js`, the `mousemove` handler by `podLook`); a click still holds the mouse for full turns, and drag and arrow keys work as before. The wake-up card is a low strip along the bottom edge (`pod-start.css`, last block) so the pod is visible. Buttons, keys (E, M, V), vending and music are unchanged. Picture: `docs/development/hall-wall/pod-wake-look.jpg`. Not done: the pod's window view and a lighter panel look from his newest pod pictures (he earlier asked for darker panels; ask which he wants).
+
+## 15 Nov 2026 (David): the wall controls work, EXIT THE POD on the glass
+
+David: inside the pod the player looks around and uses the controls on the walls; an Exit the Pod sign (above the door or lettered on the glass, a little see-through) lights up under the mouse; the District's music is never heard in the pod, only the pod's own player.
+
+- **Pointing and clicking.** `neochinatown.js` marks each pod's music screen, light panel, vending face and exit sign as clickable (`podTouch`) and offers `VoidNeoChinatown.podPick(x, y)` / `podHover(kind)`. `world-integration.js` (`podAim`, `podUse`) asks what is under the mouse (or under the middle of the screen while the mouse is held) and acts on a click. Only the player's own pod answers.
+- **What each click does** is decided by the pure `VoidDistrictArea.podControl(kind, u, v)` (tested in `tests/district-area.test.cjs`): on the music player the five transport buttons (previous, play, pause, stop, next) and the volume bar work directly, and anywhere else on it opens the playlist panel; on the light panel the three presets; the vending face opens the vending list; the sign gets up.
+- **The sign** is lettered on the inside of the hatch glass, one-sided (not seen from the hallway), part see-through, and turns bright green under the pointer. One texture is shared by the ten pods.
+- **Music.** `music-integration.js` now keeps the District's score and ambience off for as long as the player is in a pod, including while the playlist panel is open (before, the panel counted as "walking" and the hallway music could return).
+- The bottom strip with the buttons and the E / M / V keys stay as they were.
+- Checked in a browser at low quality: the sign lights under the mouse, READING switches the light, play starts a song with the pod view still up, the sign click gets the player out.
+- Not done: the pod interior's look is still far from David's Tesana pictures (pale moulded plastic, 3D goods in the vending cabinet, the bigger light panel with colours and a brightness slider, a square window). That is a separate modelling job.
