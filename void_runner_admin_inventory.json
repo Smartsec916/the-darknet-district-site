@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "8cf5a03ca6a4b924",
+  "revision": "0329a7d4a9a289b4",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13195,7 +13195,7 @@
     },
     {
       "source": "void-runner/street-gear.js",
-      "line": 199,
+      "line": 202,
       "text": "const who=node.metadata?.character||node.metadata?.id||'walker-'+n;dress(node,look,KITS[who]?who:look+':'+who).catch(()=>{});},0);}",
       "kind": "source-reference"
     },
@@ -14346,7 +14346,7 @@
     "void-runner/story-content.js": "3f2846e89242894aa0123df0e39e7637cfd2868b73c6d89f885dbe4317b54b30",
     "void-runner/story-scenes.js": "322106e619d1a2456c5dac94dd252bd2373cb0c03273c75954d068b378cad5dd",
     "void-runner/story.js": "74501dca85057c374b5181b440f93059fd6658641624b10e3a159d11493fe272",
-    "void-runner/street-gear.js": "fb7fc09962b43cc34088afcc5cee786e6a882c089a2026065fd9630e45f64930",
+    "void-runner/street-gear.js": "fec0709644e02d862cd19ef4297eed2fce34ab5c2156efed0aa86a732638a020",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
     "void-runner/taxi-rules.js": "cf617a29c36b2e1347b14cd60ba2d30ea38e5dd43d44085704ad7d1756f2024c",
     "void-runner/temple-build.js": "e326ba94812e744e32547f0b5bfeed9dd546df328ebc8df36b699aca76b76913",

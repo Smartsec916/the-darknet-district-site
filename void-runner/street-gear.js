@@ -72,11 +72,14 @@
  function build(body,wear){
   const m=mesh(),J=body.joints,u=body.height/1.8,A=GLOW+wear.accent,parts=[];let print=null;
   if(wear.tee&&body.chest&&body.Left.upperarm){const w=body.waist,r=body.ribs,c=body.chest,k=.014*u,ring=(q,y,grow=1)=>({y,cx:J.Hips[0],cz:(q.front+q.back)/2,rx:(q.halfW+k)*grow,rz:((q.front-q.back)/2+k)*grow}),g=writer(m,UPRIGHT([0,0,0]),'Spine1',STRAP);parts.push('tee');
-   const top=c.y+.08*u;g.tube([ring(w,w.y-.03*u,1.03),ring(w,w.y+.03*u),ring(r,r.y),ring(c,c.y),ring(c,top,.97)]);
+   // up the body: hem, waist, ribs, chest (never wider than the ribs: the chest measure takes in the arms), across the shoulders, and in to the collar
+   const n=body.neck,cx=J.Hips[0],cd=(c.front-c.back)/2+k,chest={y:c.y,cx,cz:(c.front+c.back)/2,rx:Math.min(c.halfW,r.halfW*1.08)+k,rz:cd},sw=Math.abs(J.LeftArm[0]-J.RightArm[0])/2+.012*u,
+    shoulder={y:(J.LeftArm[1]+J.RightArm[1])/2-.012*u,cx,cz:chest.cz-.01*u,rx:sw,rz:cd*.86},collar=n?{y:n.y-.012*u,cx:J.Neck[0],cz:(n.front+n.back)/2,rx:n.halfW+.03*u,rz:(n.front-n.back)/2+.03*u}:null;
+   g.tube([ring(w,w.y-.03*u,1.03),ring(w,w.y+.03*u),ring(r,r.y),chest,shoulder,...(collar?[collar]:[])]);
    for(const [S,sx,patch] of [['Left',1,MATTE+1],['Right',-1,MATTE+3]]){const sh=J[S+'Arm'],el=J[S+'ForeArm'],L=body[S].upperarm,len=len3(sub(sh,el)),f=frame(add(sh,L.c),sub(sh,el)),a=writer(m,f,S+'Arm',STRAP),rr=L.r+.008*u;
     a.band(0,0,rr,rr,0,360,-.5*len,.02*u,.004*u,10);const deg=f.ax[1]>0?90:-90,p=a.at(0,0,rr,rr,deg,.0055*u);a.box([p.x,-.27*len,p.z],[.055*u,.045*u,.002*u],p.yaw,patch);}
    // the print: a patch that follows the chest, 20 cm square, with its own picture (u runs from the wearer's right to their left, so it reads the right way round from in front)
-   const cz=(c.front+c.back)/2,rx=c.halfW+k+.004*u,rz=(c.front-c.back)/2+k+.004*u,half=Math.min(42,(.1*u/Math.max(rx,rz))*180/Math.PI),y0=c.y-.15*u,y1=c.y+.05*u,N=6,P=[],Nn=[],U=[],I=[];
+   const cz=(c.front+c.back)/2,rx=Math.min(c.halfW,r.halfW*1.08)+k+.014*u,rz=(c.front-c.back)/2+k+.014*u,half=Math.min(42,(.1*u/Math.max(rx,rz))*180/Math.PI),y0=c.y-.15*u,y1=c.y+.05*u,N=6,P=[],Nn=[],U=[],I=[];
    for(let i=0;i<=N;i++){const t=(-half+2*half*i/N)*Math.PI/180,x=J.Hips[0]+rx*Math.sin(t),z=cz+rz*Math.cos(t),n=norm([Math.sin(t)/rx,0,Math.cos(t)/rz]);for(const [y,v] of [[y0,0],[y1,1]]){P.push(x,y,z);Nn.push(n[0],n[1],n[2]);U.push(i/N,v);}}
    for(let i=0;i<N;i++){const q=i*2;I.push(q,q+2,q+3,q,q+3,q+1);}
    print={positions:P,normals:Nn,uvs:U,indices:I,bone:'Spine2'};}
