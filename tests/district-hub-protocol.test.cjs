@@ -65,3 +65,16 @@ test('chat, ignore and report messages: only exact shapes parse; identity or ext
  for(const ok of ['{"t":"chat","text":"hi"}','{"t":"ignore","id":"0123456789ab","on":true}','{"t":"report","id":"0123456789ab","reason":"spam"}','{"t":"report","id":"0123456789ab","reason":"other","note":"text"}'])assert.ok(parse(ok),ok);
  for(const bad of ['{"t":"chat","text":"hi","name":"Admin"}','{"t":"chat","text":5}','{"t":"chat"}','{"t":"chat","text":"'+'a'.repeat(900)+'"}','{"t":"ignore","id":"nope","on":true}','{"t":"ignore","id":"0123456789ab","on":"yes"}','{"t":"report","id":"0123456789ab","reason":"made-up"}','{"t":"report","id":"0123456789ab","reason":"spam","uid":"x"}','{"t":"report","id":"0123456789ab","reason":"spam","note":5}'])assert.equal(parse(bad),null,bad);
 });
+test('players are visible everywhere they can walk: one room per place, people in the same place see each other, an unknown place is refused',()=>{
+ for(const id of ['district-interior','neochinatown-street','corporate','temple','meridian','vesper'])assert(ROOMS[id],id);
+ const r=rig(),a={},b={},c={},street={t:'hello',token:'x',room:'neochinatown-street'};
+ assert(r.hub.join(a,street,who('A',{handle:'Ann_1'})));assert(r.hub.join(b,street,who('B',{handle:'Bob_1'})));assert(r.hub.join(c,hello,who('C',{handle:'Cat_1'})));
+ r.hub.state(a,st(30,-90));r.adv(100);r.hub.state(b,st(32,-90));r.adv(100);r.hub.state(c,st(0,30));
+ assert.deepEqual(r.msgs(a).filter(m=>m.t==='join').map(m=>m.peer.name),['Bob_1'],'Ann on the street sees Bob on the street, not Cat inside the District');
+ assert.equal(r.msgs(c).filter(m=>m.t==='join').length,0,'Cat inside the District sees nobody from the street');
+ assert.equal(r.hub.roomPeers('neochinatown-street').length,2);assert.equal(r.hub.roomPeers('district-interior').length,1);
+ const d={};assert.equal(r.hub.join(d,{t:'hello',token:'x',room:'somewhere-made-up'},who('D')),false);assert.equal(r.last(d).reason,'unknown room');
+ // the game client names the same rooms
+ const src=require('node:fs').readFileSync('void-runner/remote-players.js','utf8'),m=src.match(/const PLACES=new Set\(\[([^\]]*)\]\)/);assert(m);
+ for(const id of m[1].split(',').map(x=>x.trim().replace(/'/g,'')))assert(ROOMS[id],'the hub knows '+id);assert(src.includes("'neochinatown-street'"));
+});

@@ -23,7 +23,7 @@
  };
  const clean=n=>typeof n==='string'&&/^[A-Za-z0-9_-]{3,24}$/.test(n)?n:'Guest';
  // What the Settings line says for each status the client can be in.
- const words=(st,signedIn)=>({'off':signedIn?'Off.':'Off. Sign in to your account first (Account, in the main menu).','in':'Connected. Other players in the District interior appear in the world; their names are in your V1 (Messages, Players).',
+ const words=(st,signedIn)=>({'off':signedIn?'Off.':'Off. Sign in to your account first (Account, in the main menu).','in':'Connected. Other players in the same place as you appear in the world; their names are in your V1 (Messages, Players).',
   'connecting':'Connecting...','waking the server':'Waking the test server (it sleeps when idle and can take about a minute)...','sign in to join':'Sign in to your account first (Account, in the main menu).',
   'not on the test list':'Your account is not on the test list.','registered account required':'Multiplayer and chat need a registered account. Create one from the account menu.','create an account':'Multiplayer and chat need a registered account. Create one from the account menu.','checking account':'Checking your District account…','District handle required':'Choose a unique District handle below.','saved character required':'Create your character below.','District handle and character required':'Choose a handle and create your character below.','account verification unavailable':'Account verification is unavailable. Solo play continues; multiplayer will retry.','duplicate District handle':'That handle is already in use. Contact support if this is your account.','verified email required':'Please verify your email address to use multiplayer.','sign-in not accepted':'Your sign-in was not accepted. Sign in again.','replaced by another session':'This account joined from another window.',
   'server restarting':'The server is restarting; reconnecting...','offline':'Cannot reach the server; solo play continues while retrying.','no hub configured':'No multiplayer server is set up.'}[st]||(st?.startsWith('setup error:')?st.slice(13):st&&st.startsWith('refused')?'The server refused the connection.':'Off.'));
@@ -48,7 +48,14 @@
  // Inside a VR simulation the player is in a shared VR session on the hub (vrSession below), or in a private one of their own when playing solo.
  let hubVr=false;   // the hub said it knows shared VR sessions (an older hub treats those messages as faults, so none are sent to it and VR stays offline, as before)
  const inVrWorld=()=>typeof walkingLocation!=='undefined'&&walkingLocation?.kind==='vr';
- const inRoom=()=>typeof walker!=='undefined'&&walker&&ROOM_MODES.has(mode)&&((walkingLocation?.id==='neochinatown'&&walkingLocation.area==='interior')||(inVrWorld()&&hubVr));
+ /* Which room of the hub this place is (David, 15 Nov 2026: players see each other everywhere they can walk, not only inside the District). The District interior
+    keeps its name; the NeoChinatown street (with the alley and NULL nightclub, which are part of it) is one room; every other place is a room named by its own id.
+    The hub refuses a name it does not know (tools/district-hub/protocol.cjs ROOMS), and then this place is simply played alone. */
+ const PLACES=new Set(['corporate','temple','vesper','meridian','kepler','foundry','rusthaven','sol-belt','vigil','holdfast','mars','nexus','order-homeworld']);
+ const roomOf=wl=>!wl||wl.kind==='vr'?null:wl.id==='neochinatown'?(wl.area==='interior'?ROOM:'neochinatown-street'):PLACES.has(wl.id)?wl.id:null;
+ const roomNow=()=>{try{return typeof walkingLocation!=='undefined'?roomOf(walkingLocation):null;}catch{return null;}};
+ let joinedRoom=null,refusedRoom=null;
+ const inRoom=()=>typeof walker!=='undefined'&&walker&&ROOM_MODES.has(mode)&&((!!roomNow()&&roomNow()!==refusedRoom)||(inVrWorld()&&hubVr));
  // What the others are told about where I am. A pod is private: while I lie in mine they see me standing at its door, never inside it.
  const reported=()=>{if(mode==='pod-waking'){try{const e=root.VoidDistrictArea.podExit(root.VoidNeoChinatown,state.story.flags.activePod||1);return [e.spawn[0],e.spawn[2],e.yaw];}catch{}}return [walker.x,walker.z,walker.yaw];};
  const floorY=()=>walker.y-(walker.eye||1.68);
@@ -98,6 +105,7 @@
   if(!place(p)&&!p.off&&root.VoidAssets.onLoaded)p.off=root.VoidAssets.onLoaded(id=>{if(id==='crowd:'+p.model&&peers.get(p.id)===p){place(p);p.off?.();p.off=null;}});
  }
  function onMessage(m){
+  if(m.t==='error'&&m.reason==='unknown room'){refusedRoom=joinedRoom;return;}   // this hub does not carry this place: it is played alone, and other places still connect
   if(m.t==='welcome'){diag.joins++;emitChat({t:'chat-status',on:true});if(diag.joins>1)diag.reconnects++;selfId=String(m.you||'');clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated,chat:!!m.features?.chat};hubVr=!!m.features?.vr;loadIgnored();for(const [id,mode] of ignored)if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:true}));for(const v of m.peers)upsert(v);emitChat({t:'chat-status',on:features.chat});vrSession=null;
    if(vrWant&&vrActive()&&ws?.readyState===1)ws.send(JSON.stringify({t:'vr-join',id:vrWant.id}));}   // reconnected during a simulation (or while it loads): go back into the same session
   else if(m.t==='vr-room'){clearPeers();vrSession=m.session||null;vrWant=vrSession?{id:vrSession.id,exp:vrSession.exp,opts:vrSession.opts,private:vrSession.private}:null;for(const v of m.peers||[])upsert(v);vrSettle(true,vrSession);}
@@ -141,7 +149,7 @@
   // A sleeping free host takes up to about a minute to wake: say so, and give each attempt that long.
   clearTimeout(wakeTimer);wakeTimer=setTimeout(()=>{if(ws===sock&&sock.readyState===0)status='waking the server';},3000);
   const giveUp=setTimeout(()=>{if(ws===sock&&sock.readyState===0){try{sock.close();}catch{}}},ATTEMPT_MS);
-  sock.onopen=()=>{trace('open');clearTimeout(giveUp);sock.send(JSON.stringify({t:'hello',token:tok,room:ROOM}));};
+  sock.onopen=()=>{trace('open');clearTimeout(giveUp);joinedRoom=inVrWorld()?ROOM:(roomNow()||ROOM);sock.send(JSON.stringify({t:'hello',token:tok,room:joinedRoom}));};   // a VR simulation is entered from the District, so its connection starts there
   sock.onmessage=e=>{trace('message');try{onMessage(JSON.parse(e.data));}catch{}};
   sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false,chat:false};emitChat({t:'chat-status',on:false});for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one
    ws=null;clearPeers();vrSession=null;vrSettle(false,'The connection was lost.');lastClose=e.code+(e.reason?' '+e.reason:'');
@@ -157,6 +165,8 @@
   // Outside the District and its simulations there is no connection at all. Loading screens between them last a few seconds: the connection is kept across those.
   if(!inRoom()){if(!outSince)outSince=now;if(now-outSince>12000&&(ws||peers.size||retryTimer)){vrWant=null;disconnect();}else if(ws?.readyState===1&&status==='in'&&hubVr&&now-lastSend>=4000){lastSend=now;ws.send('{"t":"vr-list"}');}return;}   // the list of players is kept while a place loads; their figures are drawn again once it is there
   outSince=0;
+  // Walked into a different place (street to District, a sky cab ride, a landing): leave the old room and join the new one.
+  if(ws&&status==='in'&&!inVrWorld()&&!vrSession&&roomNow()&&joinedRoom&&roomNow()!==joinedRoom){disconnect();wantOn=true;retry=0;}
   // Signing in as someone else (or out) ends the session; the next one is for the new account.
   if(!isLocalPage&&(ws||retryTimer)&&connectedUid!==accountUid()){disconnect();wantOn=true;retry=0;}
   if(!isLocalPage&&!wantOn&&!ws&&blockedUid!==accountUid()){wantOn=true;retry=0;}
@@ -181,7 +191,7 @@
  setInterval(()=>{if(ws?.readyState===1&&status==='in'&&hubVr&&performance.now()-lastSend>=3500){lastSend=performance.now();try{ws.send('{"t":"vr-list"}');}catch{}}},2000);
  root.VoidRemotePlayers={get status(){return status;},
   // For the on-screen indicator and for developers (no token, no account id, no address): where the connection stands and how many players are really drawn.
-  get diagnostics(){const list=[...peers.values()];return {status,room:vrSession?'vr:'+vrSession.id:ROOM,vr:vrSession?{exp:vrSession.exp,private:vrSession.private,count:vrSession.count}:null,inRoom:!!inRoom(),socket:ws?ws.readyState:-1,players:list.length,rendered:list.filter(p=>p.node&&!p.node.isDisposed()).length,fallbackAvatars:list.filter(p=>p.fallback).length,...diag,lastClose};},get lastClose(){return lastClose;},get socketState(){return ws?ws.readyState:-1;},get trace(){return traceLog.slice(-16);},get connected(){return status==='in';},
+  get diagnostics(){const list=[...peers.values()];return {status,room:vrSession?'vr:'+vrSession.id:(joinedRoom||ROOM),vr:vrSession?{exp:vrSession.exp,private:vrSession.private,count:vrSession.count}:null,inRoom:!!inRoom(),socket:ws?ws.readyState:-1,players:list.length,rendered:list.filter(p=>p.node&&!p.node.isDisposed()).length,fallbackAvatars:list.filter(p=>p.fallback).length,...diag,lastClose};},get lastClose(){return lastClose;},get socketState(){return ws?ws.readyState:-1;},get trace(){return traceLog.slice(-16);},get connected(){return status==='in';},
   get features(){return features;},get me(){return selfId;},
   // Shared VR sessions. Each returns a promise; a refusal rejects with the hub's reason in plain words.
   get vrSession(){return vrSession;},get vrAvailable(){return status==='in'&&hubVr;},
@@ -214,7 +224,7 @@
  function menuHtml(){
   const st=root.VoidRemotePlayers?.status||'off',signedIn=!!root.VoidAccount?.user;
   const a=root.VoidAccount,setup=on()&&a?.user&&a.profileReady;
-  return '<h2>Multiplayer test</h2><p>Early access: meet other players inside The Darknet District. You need a unique District handle and a saved character; a handle on its own (no email or Google) is enough to be seen. Chat (press Enter) needs an account secured with an email or Google. It works only in the District interior; everywhere else, and whenever the server is unavailable, you play alone. Your saves are not touched. Real-money and item trading stay disabled.</p>'
+  return '<h2>Multiplayer test</h2><p>Early access: meet other players inside The Darknet District, on the NeoChinatown streets, in NULL and everywhere else you can walk (you see the people who are in the same place as you). You need a unique District handle and a saved character; a handle on its own (no email or Google) is enough to be seen. Chat (press Enter) needs an account secured with an email or Google. Flying, taxi rides and loading screens are solo, and whenever the server is unavailable you play alone. Your saves are not touched. Real-money and item trading stay disabled.</p>'
    +'<p id="multiplayer-status" role="status">'+esc(words(on()?st:'off',signedIn))+'</p>'
    +(setup&&a.handle===null?'<label for="multiplayer-handle">District handle</label><input id="multiplayer-handle" maxlength="20" autocomplete="off" placeholder="Ghost_01"><button type="button" data-action="multiplayer-handle">CLAIM HANDLE</button>':'')
    +(setup&&!a.character?'<button type="button" data-action="multiplayer-character">CREATE CHARACTER</button>':'')
