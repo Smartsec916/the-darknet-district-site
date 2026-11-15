@@ -81,3 +81,11 @@ David: add the WarFlying app to the App Store; it takes 15% of storage on any pe
 - **V3 // SHADOW** (`DEVICES.v3`): faster timings, the same interface in monochrome green (`[data-device=v3]` in `device-v1.css`), camera `EYE 01` zooming to 4. The shared zoom array is now 1, 1.5, 2, 3, 4; the V1 still stops at 2. Nobody can get a V3 yet; it is Dax's device. Not built: the eye camera on B, and target lock on B in flight.
 - **On foot:** walk 3.4 to 3.9 m/s, run 5.6 to 6.4 m/s (`exploration-controller.js`); still under the multiplayer server's 9 m/s limit.
 
+## 15 Nov 2026: play as Admin (developers), first stage
+
+David: when he signs in with his developer account (smartsec916@gmail.com) he wants the option to play as Admin; Admin has no missions, a ship available, and a V3 // SHADOW; Iris takes over Admin's tasks and mission dialogue.
+
+- **Who sees it:** the main menu shows PLAY AS ADMIN beside DEVELOPER TOOLS, only for an account the game server confirms as a developer (`VOID_ADMIN_UIDS` on the game API; account ids, not emails), and the server is asked again when the session starts. If David's account does not show DEVELOPER TOOLS, its id is not in that list.
+- **What it is:** a developer test session (`dev-test.js` `playAsAdmin`), so **nothing is saved** and EXIT TEST returns to the real save. A District campaign with no missions, the starter ship awarded, 10,000 credits, every place discovered, `deviceModel` v3 (green interface, faster, zoom to 4), spawn inside the District. The V1 shows Admin's own name, job and portrait. Admin the NPC is away from the counter (`adminOccupied`), so Iris is the one there, and Iris is the one who walks over for the scanning house rule.
+- **Not built:** a kept Admin save; other players seeing David as Admin (they see his account's own saved character, because the multiplayer server sends that); Iris taking over Admin's mission steps and dialogue for OTHER players while David is online as Admin (needs the multiplayer server to say so, and David's approval of how Iris words Admin's lines); requesting a ship at the landing-pad terminal was not changed or re-checked.
+

@@ -86,3 +86,12 @@ test('WarFlying is the app, not a ship module: the scanner listens only when the
  assert.match(src,/const installed=\(\)=>appInstalled\(\)&&state\?\.story\?\.flags\?\.warflyingActive===true;/);assert.doesNotMatch(src,/const installed=\(\)=>P\.utility/);
  assert.match(src,/walkingLocation\.area==='interior'/);assert.match(src,/if\(!installed\(\)\|\|shielded\(\)/,'on foot it stays silent when shielded');
 });
+test('play as Admin: developers only, checked with the server, nothing saved; Admin has no missions, a ship, and the V3 // SHADOW',()=>{
+ const fs=require('node:fs'),dt=fs.readFileSync('void-runner/dev-test.js','utf8'),menu=fs.readFileSync('void-runner/menu.js','utf8');
+ assert.match(menu,/VoidDevTools\.authorized\)\?button\('DEVELOPER TOOLS','menu-devtools'\)\+button\('PLAY AS ADMIN','menu-admin'\):''/,'the button is drawn only for a server-confirmed developer');
+ assert.match(menu,/a === 'menu-admin'\) \{ if\(typeof VoidDevTools==='undefined'\|\|!VoidDevTools\.authorized/,'and the action refuses anyone else');
+ const fn=dt.slice(dt.indexOf('async function playAsAdmin'),dt.indexOf('function action('));assert.match(fn,/await VoidDevTools\.request\('developer\/balance'\)/,'the server is asked again');assert.match(fn,/active=true/,'a test session: the save is never written');
+ const build=dt.slice(dt.indexOf('function adminBuild'),dt.indexOf('async function playAsAdmin'));for(const want of [/awardStarterShip/,/testShip=true/,/playingAs='admin'/,/adminOccupied=true/,/deviceModel='v3'/])assert.match(build,want);
+ const B=require('../void-runner/beginner.js'),C=require('../void-runner/campaign.js'),d=C.startDistrictCampaign(C.fresh());C.awardStarterShip(d);d.story.flags.testShip=true;assert.equal(B.applies(d),false,'no beginner missions for Admin');assert.ok(d.ownedShips.length>=1);
+ assert.equal(D.restore({deviceModel:'v3'}).model,'v3');
+});
