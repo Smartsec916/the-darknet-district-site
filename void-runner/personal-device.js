@@ -13,7 +13,7 @@
  const ICON={missions:'<path d="M6 4h12v16H6z"/><path d="M9 9h6M9 13h6M9 17h3"/>',messages:'<path d="M4 5h16v11h-9l-4 4v-4H4z"/><path d="M8 9.5h8M8 12.5h5"/>',social:'<circle cx="9" cy="9" r="3"/><circle cx="17" cy="10" r="2.2"/><path d="M3.5 19c.6-3.6 3-5 5.5-5s4.900 1.400 5.500 5"/><path d="M15 14.300c2.600-.4 4.600.9 5.200 4.200"/>',
   news:'<path d="M4 5h12v14H6a2 2 0 0 1-2-2z"/><path d="M16 9h4v8a2 2 0 0 1-2 2"/><path d="M7 8.500h6M7 12h6M7 15.500h3"/>',map:'<path d="M12 21s6.500-5.700 6.500-10.500a6.500 6.500 0 0 0-13 0C5.500 15.300 12 21 12 21z"/><circle cx="12" cy="10.500" r="2.300"/>',
   camera:'<path d="M4 8h3.500l1.500-2h6l1.500 2H20v11H4z"/><circle cx="12" cy="13.500" r="3.500"/>',gallery:'<path d="M4 5h16v14H4z"/><circle cx="9" cy="10" r="1.600"/><path d="M4 17l5-4.500 3.500 3 3-2.500L20 16"/>',
-  store:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',device:'<path d="M7 3h10v18H7z"/><path d="M10 6h4M11 18h2"/>',settings:'<path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/>'};
+  store:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',device:'<path d="M7 3h10v18H7z"/><path d="M10 6h4M11 18h2"/>',warflying:'<path d="M12 20v-8"/><circle cx="12" cy="10" r="1.6"/><path d="M8.500 13.500a5 5 0 0 1 0-7M15.500 6.500a5 5 0 0 1 0 7M6 16a8.500 8.500 0 0 1 0-12M18 4a8.500 8.500 0 0 1 0 12"/>',settings:'<path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/>'};
  const icon=id=>'<svg class="pd-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+(ICON[id]||'')+'</svg>';
  // The homepage navigation button frame (home-navigation.css): panel, rail and one small accent tick, stretched to the tile.
  const FRAME='<svg class="pd-frame" viewBox="0 0 180 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="pd-panel" d="M10 .5H179.5V37.5L169.5 47.5H.5V10Z"/><path class="pd-rail" d="M16 4H47M1 19V33M133 44H161"/><path class="pd-accent" d="M171 5H175V14"/></svg>';
@@ -206,8 +206,26 @@
   gallery(){return '<div class="pd-empty"><b>GALLERY</b><br>No photos. Photos will be kept here once the camera exists.</div>';},
   /* The App Store is empty until David adds apps (15 Nov 2026): the device's own details moved to MY V1 (the `device` app). */
   store(){
-   const l=D.storeListing(dev);
-   return l.available.length?'<h2>AVAILABLE APPS</h2>'+l.available.map(r=>'<div class="pd-sys">'+icon(r.id)+'<span>'+esc(r.title)+'</span><em>'+esc(r.status.toUpperCase())+'</em></div>').join(''):'<div class="pd-empty">No apps available yet.</div>';
+   const l=D.storeListing(dev),st=l.storage;
+   const card=r=>{const on=r.status==='installed',room=st.availablePct>=r.storagePct;return '<article class="pd-card"><h3>'+icon(r.id)+' '+esc(r.title)+' <small>'+(on?'INSTALLED':r.status==='locked'?'NEEDS A NEWER DEVICE':'FREE')+'</small></h3><p>'+esc(r.note)+'</p><div class="pd-note">Uses '+r.storagePct+'% of storage · '+st.availablePct+'% available on this '+esc(st.model)+'</div><div class="pd-tabs" style="margin:6px 0 0">'
+     +(on?'<button type="button" data-open-app="'+esc(r.id)+'">OPEN</button><button type="button" data-uninstall="'+esc(r.id)+'">UNINSTALL</button>':'<button type="button" data-install="'+esc(r.id)+'"'+(r.status==='locked'||!room?' disabled':'')+'>'+(room?'INSTALL':'NOT ENOUGH STORAGE')+'</button>')+'</div></article>';};
+   const all=[...l.available,...l.installed];
+   return all.length?'<h2>APPS</h2>'+all.map(card).join(''):'<div class="pd-empty">No apps available yet.</div>';
+  },
+  /* WarFlying (the optional app): switch the scanner on and off, see what is logged, send it to the leaderboard. Rules and scanning: warflying-scanner.js. */
+  warflying(){
+   const W=root.VoidWarFlying,X=root.VoidWarFlyingScanner,s=state_();if(!W||!X||!s?.warflying)return '<div class="pd-empty">WarFlying is not available right now.</div>';
+   const sum=W.summary(s.warflying),on=X.installed,sh=X.shielded,link=X.link(),can=root.VoidComms.canUpload(link),busy_=!!X.transfer;
+   const stateLine=!on?'INACTIVE':sh?'ACTIVE · SHIELDED HERE':'ACTIVE · SCANNING NEARBY FREQUENCIES';
+   const board=X.leaderboard(),recent=X.recent();
+   return '<section class="pd-storage"><div class="pd-stat"><span>WARFLYING</span><span>'+stateLine+'</span></div>'
+    +(sh?'<div class="pd-note" style="margin-top:6px">The Darknet District interior is shielded from frequency scans. Nothing is heard in here; it will listen again outside.</div>':'')
+    +'<div class="pd-tabs" style="margin:10px 0 0"><button type="button" data-wf="'+(on?'off':'on')+'" aria-pressed="'+on+'">'+(on?'DEACTIVATE':'ACTIVATE')+'</button></div></section>'
+    +'<h2>LOGGED</h2><dl class="pd-kv"><dt>POINTS</dt><dd>'+sum.points+'</dd><dt>FREQUENCIES IDENTIFIED</dt><dd>'+sum.discoveries+'</dd><dt>WAITING TO SEND</dt><dd>'+sum.pending+'</dd></dl>'
+    +'<div class="pd-tabs" style="margin:10px 0 0"><button type="button" class="'+(sum.pending?'pd-hot':'')+'" data-wf="send"'+(!sum.pending||!can||busy_?' disabled':'')+'>SEND DATA TO WARFLYING LEADERBOARD</button></div>'
+    +'<div class="pd-note">'+(busy_?'Sending now…':!sum.pending?'Nothing waiting to send.':can?sum.pending+' logged '+(sum.pending===1?'frequency is':'frequencies are')+' ready to send.':'Cannot send from here ('+esc(root.VoidComms.labels[link.state]||'no link')+(link.reason==='premises'?': no uploads inside The Darknet District':'')+'). Your log is kept.')+'</div>'
+    +'<h2>LEADERBOARD</h2>'+board.map(r=>'<div class="pd-line"><b>'+r.rank+'</b>'+esc(r.name)+(r.player?' (you)':'')+' · '+r.points+'</div>').join('')
+    +'<h2>RECENT DISCOVERIES</h2>'+(recent.length?recent.map(r=>'<div class="pd-line">+1 · '+esc(r.text)+' · '+esc(r.place)+'</div>').join(''):'<div class="pd-empty">None yet. Activate the scanner and travel.</div>');
   },
   device(){
    const l=D.storeListing(dev),st=l.storage,row=(r,tag)=>'<div class="pd-sys">'+icon(r.id)+'<span>'+esc(r.title)+'</span><em>'+esc(tag)+'</em></div>';
@@ -255,7 +273,7 @@
   if(!el||!open||busy)return;   // while a transition card is showing nothing else redraws the screen
   const app=stack[0],def=D.DEVICES[dev.model];chrome();syncViewing();
   const top=body.scrollTop;
-  if(!app){const st=D.storage(dev);body.innerHTML='<div class="pd-home"><div class="pd-grid">'+def.apps.map((id,i)=>{const a=D.APPS[id],off=a.state==='placeholder';return '<button type="button" class="pd-app'+(off?' off':'')+'" data-app="'+id+'" style="--i:'+i+'" aria-label="'+esc(D.appTitle(id,dev))+(off?' (not available yet)':'')+'">'+FRAME+'<span class="pd-index" aria-hidden="true">'+String(i+1).padStart(2,'0')+'</span>'+(id==='messages'?'<span class="pd-badge" hidden></span>':'')+icon(id)+'<span class="pd-name">'+esc(D.appTitle(id,dev))+'</span><span class="pd-sub">'+(off?'COMING LATER':'')+'</span></button>';}).join('')+'</div><div class="pd-home-foot"><div class="pd-storage pd-mini" aria-label="Device storage"><div class="pd-stat"><span>STORAGE USED: '+st.usedPct+'%</span><span>AVAILABLE: '+st.availablePct+'%</span></div><div class="pd-bar"><i style="width:'+st.usedPct+'%"></i></div></div><div class="pd-foot">'+esc(def.tagline)+'</div></div></div>';}
+  if(!app){const st=D.storage(dev);body.innerHTML='<div class="pd-home"><div class="pd-grid">'+dev.apps.filter(id=>D.APPS[id]).map((id,i)=>{const a=D.APPS[id],off=a.state==='placeholder';return '<button type="button" class="pd-app'+(off?' off':'')+'" data-app="'+id+'" style="--i:'+i+'" aria-label="'+esc(D.appTitle(id,dev))+(off?' (not available yet)':'')+'">'+FRAME+'<span class="pd-index" aria-hidden="true">'+String(i+1).padStart(2,'0')+'</span>'+(id==='messages'?'<span class="pd-badge" hidden></span>':'')+icon(id)+'<span class="pd-name">'+esc(D.appTitle(id,dev))+'</span><span class="pd-sub">'+(off?'COMING LATER':'')+'</span></button>';}).join('')+'</div><div class="pd-home-foot"><div class="pd-storage pd-mini" aria-label="Device storage"><div class="pd-stat"><span>STORAGE USED: '+st.usedPct+'%</span><span>AVAILABLE: '+st.availablePct+'%</span></div><div class="pd-bar"><i style="width:'+st.usedPct+'%"></i></div></div><div class="pd-foot">'+esc(def.tagline)+'</div></div></div>';}
   else{try{body.innerHTML=APP_VIEW[app]();}catch(e){body.innerHTML='<div class="pd-empty">This app could not be shown.</div>';}}
   body.scrollTop=opts.keepScroll?top:0;
   hydratePortraits();if(app==='map')drawMap();
@@ -284,6 +302,9 @@
   if(t.dataset.repOpen){reporting=reporting===t.dataset.repOpen?'':t.dataset.repOpen;chat()?.clearNote();render({keepScroll:true});return;}
   if(t.dataset.repSend){const box=t.closest('.pd-report'),ok=rp()?.report(t.dataset.repSend,box.querySelector('select').value,box.querySelector('input').value);reporting='';render({keepScroll:true});if(!ok){const n=document.createElement('div');n.className='pd-card';n.setAttribute('role','status');n.textContent='Could not send the report right now.';body.prepend(n);}return;}
   if(t.dataset.openProfile){go(['social',t.dataset.openProfile],'tab','LOADING PROFILE');return;}
+  if(t.dataset.install||t.dataset.uninstall){const id=t.dataset.install||t.dataset.uninstall,apps=t.dataset.install?D.install(dev,id):D.uninstall(dev,id);if(apps){dev.apps=apps;if(t.dataset.uninstall&&id==='warflying')root.VoidWarFlyingScanner?.setActive(false);commit();}render({keepScroll:true});return;}
+  if(t.dataset.openApp){go([t.dataset.openApp],'open');return;}
+  if(t.dataset.wf){const X=root.VoidWarFlyingScanner;if(X){if(t.dataset.wf==='send')X.upload(true);else X.setActive(t.dataset.wf==='on');}render({keepScroll:true});setTimeout(()=>{if(open&&stack[0]==='warflying')render({keepScroll:true});},1500);return;}
   if(t.dataset.follow){const P=DP(),f=flags_();if(P&&f){const [kind,id]=t.dataset.follow.split(':');P.toggleFollow(f,kind==='n'?{kind:'npc',id}:{kind:'player',id,name:t.dataset.name});try{if(typeof save==='function')save();}catch{}render({keepScroll:true});}return;}
   if(t.dataset.track||t.dataset.untrack){const s=state_(),V=root.VoidMissions;try{if(t.dataset.track)V.track(s,t.dataset.track,C);else V.untrack(s);if(typeof save==='function')save();}catch{}render({keepScroll:true});return;}
   if(t.dataset.set){dev.settings[t.dataset.set]=t.dataset.value;if(t.dataset.set==='size')expanded=t.dataset.value==='expanded';commit();render({keepScroll:true});return;}

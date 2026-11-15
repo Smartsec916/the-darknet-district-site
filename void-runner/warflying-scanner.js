@@ -14,7 +14,15 @@
   +'#mission-log .warflying .relay-actions{display:flex;flex-wrap:wrap;gap:8px}#mission-log .warflying .relay-actions button{width:auto;flex:0 0 auto;min-width:180px}#mission-log .warflying .journal{color:#c9d6d2;border-left:2px solid #3d6f62;padding-left:10px}';
  document.head.append(css);
  const hudEl=document.createElement('div');hudEl.id='warflying-hud';hudEl.hidden=true;document.body.append(hudEl);
- const installed=()=>P.utility(state)==='warflying-module';
+ /* WarFlying is an app on the personal device now (David, 15 Nov 2026), not a module fitted to a ship: it listens when the app is installed AND switched on.
+    The old ship module is no longer needed for anything. Inside The Darknet District the building is shielded: nothing is heard there. */
+ const appInstalled=()=>String(state?.story?.flags?.deviceApps||'').split(',').includes('warflying');
+ const installed=()=>appInstalled()&&state?.story?.flags?.warflyingActive===true;
+ const shielded=()=>{try{return !!(typeof walkingLocation!=='undefined'&&walkingLocation&&walkingLocation.id==='neochinatown'&&walkingLocation.area==='interior');}catch{return false;}};
+ function setActive(on){if(!state?.story?.flags)return false;if(on&&!appInstalled())return false;if(on)state.story.flags.warflyingActive=true;else delete state.story.flags.warflyingActive;save();return installed();}
+ // On foot (a street, a landing zone, a station deck) the device hears the place's own transmitter. Never inside the District.
+ let footTick=0;
+ function scanOnFoot(dt){footTick-=dt;if(footTick>0)return;footTick=2;if(!installed()||shielded()||!state.location)return;const id='station:'+state.location;if(S.source(id))log(id,'confirmed',1);}
  // Name if it broadcasts one; otherwise what it is (pirates broadcast no name).
  const label=r=>r.n||(r.conf==='confirmed'?'Unnamed ':'Unidentified ')+S.categories[r.c].toLowerCase();
  const kind=r=>r.n?' · '+S.categories[r.c]:'';
@@ -101,6 +109,7 @@
   uplink(dt);
   const inFlight=mode==='play'&&!globalThis.VoidFlightSkirmish?.active;
   if(inFlight&&state?.warflying)watched();
+  if(state?.warflying&&['walking','dock'].includes(mode))scanOnFoot(dt);
   const flying=inFlight&&installed()&&M.allows(state.location,false,'collection');
   hudEl.hidden=!(flying||inFlight&&scrambled());
   if(!flying){lastRoute=null;if(inFlight&&scrambled())hudEl.textContent='SCRAMBLER · ACTIVE';return;}
@@ -120,7 +129,7 @@
   const why=st.reason==='premises'?' · no uploads inside The Darknet District':st.reason==='warp'?' · out of satellite range in warp':st.reason==='region'?' · regional outage':'';
   return '<section class="warflying"><h2>WARFLYING</h2>'
    +(state.story.flags.warflyingIntro?'<p class="journal">Admin’s briefing: WarFlying hobbyists scan ships, stations, satellites and beacons for points, and many upload what they log to The Relay, the shared news and broadcast network. Enough sightings of one ship can show where it travels. A scanner joins in; a scrambler makes your own ship hard to identify. Both use the one Utility slot.</p>':'')
-   +'<p>Scanner: '+(fitted?'<strong>installed</strong> · listening whenever you fly':owned?'owned, not installed · fit it in the Utility slot at a hangar':'not owned · sold at station outfitters')+'</p>'
+   +'<p>Scanner: '+(fitted?'<strong>active</strong> · the WarFlying app on your personal device is listening':appInstalled()?'the WarFlying app is installed but switched off · open it on your device and press ACTIVATE':'not installed · get the free WarFlying app from the App Store on your personal device')+'</p>'
    +'<h3>RELAY LINK</h3><p>'+M.labels[st.state]+why+' · '+queued+' record'+(queued===1?'':'s')+' waiting to upload'+(transfer?' · uploading now':'')+'</p>'
    +'<p class="relay-actions">'+button('AUTO-UPLOAD: '+(db.autoUpload?'ON':'OFF'),'warflying-auto',true)+button('UPLOAD NOW','warflying-upload',false,!queued||!M.canUpload(st)||!!transfer)+'</p>'
    +'<p>Your discoveries and points are kept aboard and never depend on uploading.</p>'
@@ -146,5 +155,5 @@
   }
   return result;
  };
- globalThis.VoidWarFlyingScanner={scan,section,upload,link,get transfer(){return transfer;},get installed(){return installed();}};
+ globalThis.VoidWarFlyingScanner={setActive,get appInstalled(){return appInstalled();},get shielded(){return shielded();},leaderboard:()=>X.leaderboard(state.warflying.clock,W.points(state.warflying),'YOU'),recent:()=>Object.entries(state.warflying.records).filter(([,r])=>r.p===1).sort((a,b)=>b[1].f-a[1].f).slice(0,8).map(([,r])=>({text:label(r)+kind(r),place:placeText(r.places[0]||'')})),scan,section,upload,link,get transfer(){return transfer;},get installed(){return installed();}};
 })();

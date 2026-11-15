@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "d24180553848baf1",
+  "revision": "59746addcf1a216a",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11911,7 +11911,7 @@
     },
     {
       "source": "void-runner/device-v1.js",
-      "line": 147,
+      "line": 154,
       "text": "actions:[{id:'talk',label:'CONVERSATION',enabled:!!data.here,reason:data.here?'':'Talk to them in person.'}]};",
       "kind": "source-reference"
     },
@@ -12481,13 +12481,13 @@
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 241,
+      "line": 259,
       "text": "const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 376,
+      "line": 397,
       "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
       "kind": "source-reference"
     },
@@ -13722,6 +13722,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/warflying-scanner.js",
+      "line": 158,
+      "text": "globalThis.VoidWarFlyingScanner={setActive,get appInstalled(){return appInstalled();},get shielded(){return shielded();},leaderboard:()=>X.leaderboard(state.warflying.clock,W.points(state.warflying),'YOU'),recent:()=>Object.entries(state.warflying.records).filter(([,r])=>r.p===1).sort((a,b)=>b[1].f-a[1].f).slice(0,8).map(([,r])=>({text:label(r)+kind(r),place:placeText(r.places[0]||'')})),scan,section,upload,link,get transfer(){return transfer;},get installed(){return installed();}};",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/warflying.js",
       "line": 11,
       "text": "const limits={records:2000,places:6,text:48,sightingGap:60000,trail:8};",
@@ -14178,7 +14184,7 @@
     "void-runner/device-camera.js": "59de7fb0f547cea33294e843bcaa4e12dcfd984797c5cdfb0469012e38aea998",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
     "void-runner/device-portraits.js": "804452b16dda42da7d3057a6fd940c508e43dc881e1e9614195e54d8242db594",
-    "void-runner/device-v1.js": "258ad80b80f8f5bd073b0a8be78b1da639218bff2d3a62c4bf6ff56c134f39ba",
+    "void-runner/device-v1.js": "08a36ed45321f3ff875bf77559c800be4e5d763e0b858a7983367659e31716d9",
     "void-runner/district-arcade.js": "0f8a69bfd9ed2d990c1c12d857c80fd1027601afc02775c23c8527aca8cd83d8",
     "void-runner/district-area.js": "48b60eab3a791020ce7a4a7213de866e697069ca4c003cf7f255a5ffcef3db4c",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
@@ -14243,7 +14249,7 @@
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "4172df44fc02d43d56016c17c76bc6af4daa80edcc1c5200be582903d7075a19",
-    "void-runner/personal-device.js": "4da1a12bcc5a30525816c2b514f33bbd769ebeaf921950dd83dd303ce5095f23",
+    "void-runner/personal-device.js": "c917445053f8d33dc7be31df2c8c4a41392f44bfa0ffb5305c3cc339cbc6368e",
     "void-runner/personal-hud.js": "1ca0e48b3d144a0a2ffed8e3202f98322a060541b8127de2ee48469ed2606776",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
@@ -14298,7 +14304,7 @@
     "void-runner/vr-suite.js": "060bf3099c66230d8433c049dd53291024bddf2a3685fbc3ea35de762ca2541a",
     "void-runner/vr-tropical.js": "d6bfb79702fa5bef438cd1b6e6a0a8ce5ba25c59d7f2631398cfaf4fa69dcaa5",
     "void-runner/warflying-scan.js": "f6de823ef265ff4e1cde538ac17b5adefb72547ad0ef2e3b25cdb42de9ce8a87",
-    "void-runner/warflying-scanner.js": "3234988837d0ca2ab0fec7bdb730d923c679fd50ff883569c2f7f568406a00ed",
+    "void-runner/warflying-scanner.js": "983a0c022fa0a93ddc0f84ad5927e01fbd933823a68afabcc5b7b444ff2f128b",
     "void-runner/warflying.js": "e3a319a7538e4df7e014be7ccb50b32bb2b0cf6cbcfe10ccfca2e46edb013a4f",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
     "void-runner/world-integration.js": "df194d70d5353c2272b27c00cb410ceeb6cdcba7207006fa9ee6dbbb2c795649",
