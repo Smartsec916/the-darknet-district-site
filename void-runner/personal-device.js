@@ -31,9 +31,19 @@
   sources.set(p.portrait.key,p.portrait);
   return '<img class="pd-portrait" alt="Portrait of '+esc(p.name)+'" data-pk="'+esc(p.portrait.key)+'" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" width="112" height="112">';
  }
+ /* Achievements on a profile (David, 15 Nov 2026): three shown, the hardest (and anything bought with real money) first; VIEW ALL opens the rest, and the list can be put
+    in order of most recent, difficulty or type. A resident's come from district-people.js; a player's come from the server's verified records, which do not exist yet,
+    so players show none for now (achievements.js: the browser never grants one). */
+ const achView=new Map();   // profile key -> {open, sort}
+ function achievementsHtml(p){const A=root.VoidAchievements,P=DP();if(!A?.profileList||p.kind!=='npc')return '';const held=P?.achievementsOf?.(p.key.slice(4))||[];if(!held.length)return '';
+  const v=achView.get(p.key)||{open:false,sort:'featured'},list=A.profileList(held,v.sort),shown=v.open?list:list.slice(0,A.SHOWN),day=t=>t?new Date(t).toISOString().slice(0,10):'';
+  return '<div class="pd-ach"><h4>ACHIEVEMENTS · '+list.length+'</h4>'
+   +(v.open?'<label class="pd-achsort">ORDER <select data-ach-sort="'+esc(p.key)+'">'+A.SORTS.map(([id,label])=>'<option value="'+id+'"'+(id===v.sort?' selected':'')+'>'+esc(label)+'</option>').join('')+'</select></label>':'')
+   +shown.map(a=>'<div class="pd-achrow"><b>'+esc(a.icon||'◆')+'</b><div><strong>'+esc(a.name)+'</strong><small>'+esc(A.DIFFICULTY[a.difficulty]||'')+(a.paid?' · Real purchase':'')+' · '+esc(a.category)+(a.at?' · '+day(a.at):'')+'</small></div></div>').join('')
+   +(list.length>A.SHOWN?'<button type="button" class="pd-achmore" data-ach-more="'+esc(p.key)+'" aria-expanded="'+v.open+'">'+(v.open?'SHOW FEWER ▴':'VIEW ALL '+list.length+' ▾')+'</button>':'')+'</div>';}
  function profileCard(p,opts={}){
   return '<article class="pd-card"><div class="pd-prof">'+portraitHtml(p)+'<div style="flex:1;min-width:150px"><h3>'+esc(p.name)+'</h3>'+(p.subtitle?'<div class="pd-note">'+esc(p.subtitle)+'</div>':'')+'<p>'+esc(p.bio)+'</p>'
-   +(p.facts.length?'<ul>'+p.facts.map(f=>'<li>'+esc(f)+'</li>').join('')+'</ul>':'')+(p.places.length?'<div class="pd-note">Last known: '+p.places.map(esc).join(' · ')+'</div>':'')
+   +(p.facts.length?'<ul>'+p.facts.map(f=>'<li>'+esc(f)+'</li>').join('')+'</ul>':'')+achievementsHtml(p)+(p.places.length?'<div class="pd-note">Last known: '+p.places.map(esc).join(' · ')+'</div>':'')
    +'<div class="pd-tabs" style="margin-top:6px">'+p.actions.map(a=>'<button type="button" data-act="'+esc(a.id)+'" data-profile="'+esc(p.key)+'"'+(a.enabled?'':' disabled title="'+esc(a.reason)+'"')+'>'+esc(a.label)+'</button>').join('')+'</div>'
    +(opts.extra||'')+'</div></div></article>';
  }
@@ -280,7 +290,7 @@
   document.body.appendChild(el);body=el.querySelector('.pd-main');
   el.addEventListener('click',onClick);
   el.addEventListener('input',e=>{const t=e.target,V=root.VoidVoice;if(!V)return;if(t.matches?.('input[data-voice-volume]'))V.set('volume',t.value);else if(t.matches?.('input[data-voice-player]'))V.setPlayer(t.dataset.voicePlayer,{vol:t.value});});
-  el.addEventListener('change',e=>{const t=e.target;if(t.matches?.('select[data-voice-device]')){root.VoidVoice?.set(t.dataset.voiceDevice,t.value);return;}if(!t.matches?.('select[data-jobsel]'))return;const P=DP(),f=flags_();if(!P||!f)return;const picks=[...body.querySelectorAll('select[data-jobsel]')].map(x=>x.value).filter(Boolean);P.writeJobs(f,picks);try{if(typeof save==='function')save();}catch{}render({keepScroll:true});});
+  el.addEventListener('change',e=>{const t=e.target;if(t.matches?.('select[data-ach-sort]')){const k=t.dataset.achSort,v=achView.get(k)||{open:true,sort:'featured'};achView.set(k,{...v,sort:t.value});render();return;}if(t.matches?.('select[data-voice-device]')){root.VoidVoice?.set(t.dataset.voiceDevice,t.value);return;}if(!t.matches?.('select[data-jobsel]'))return;const P=DP(),f=flags_();if(!P||!f)return;const picks=[...body.querySelectorAll('select[data-jobsel]')].map(x=>x.value).filter(Boolean);P.writeJobs(f,picks);try{if(typeof save==='function')save();}catch{}render({keepScroll:true});});
   el.addEventListener('submit',e=>{const ab=e.target.closest('[data-aboutform]');if(ab){e.preventDefault();const fl=flags_();if(fl){const v=cleanAbout(ab.querySelector('input').value);if(v)fl.profileAbout=v;else delete fl.profileAbout;try{if(typeof save==='function')save();}catch{}render({keepScroll:true});}return;}
    const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};
    if(res.ok){i.value='';if(res.players)go(['messages','players'],'tab','LOADING');}else{const h=body.querySelector('[data-chathint]');if(h)h.textContent=res.text||'';}});
@@ -318,6 +328,7 @@
   navTimer=setTimeout(()=>{if(seq!==navSeq)return;busy=false;if(open)render();},ms);
  }
  function onClick(e){
+  {const more=e.target.closest?.('[data-ach-more]');if(more){const k=more.dataset.achMore,v=achView.get(k)||{open:false,sort:'featured'};achView.set(k,{...v,open:!v.open});render();return;}}
   const t=e.target.closest('button');if(!t)return;
   if(t.dataset.app){if(busy)return;if(!reduced()){t.classList.add('launching');t.style.setProperty('--pd-ms',D.delayMs(dev,'open',false)+'ms');}go([t.dataset.app],'open');return;}
   if(t.dataset.do==='close')return setOpen(false);

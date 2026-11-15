@@ -48,3 +48,11 @@ David's third game, **UNDERGROUND//OVERDRIVE** (a 3D arcade fighting game made w
 It takes the **fifth cabinet**, replacing the placeholder COBALT STAIRS (interaction `district-arcade-overdrive`, which replaces the south COMING SOON prompt), and is on the games page. Three cabinets are now playable (Blackout Protocol, Corporate Zombies, UNDERGROUND//OVERDRIVE); LASER MOTH and TURBO KELP are still placeholders. The screens of playable cabinets now flash PRESS E TO PLAY instead of COMING SOON (Corporate Zombies' screen had been saying COMING SOON by mistake).
 
 Checked with `tests/arcade-browser.cjs` (software renderer): the cabinet opens the game's title screen in the frame and LEAVE CABINET returns to walking. **Not checked:** an actual fight, the Tesana services (saves, leaderboard, online versus), which were blocked in the test container; they load from unpkg and Tesana's service exactly as the export is wired. To rebuild after a new export: build, then copy `dist/index.html`, `dist/_app` and `dist/assets/characters` + `manifest.json` over this folder.
+
+## Attract screens, posters and light guns (15 Nov 2026)
+
+- A working cabinet's screen steps through four pictures of its own game's opening (attract) screen, with scanlines and a flashing PRESS E TO PLAY. The pictures are in `void-runner/art/arcade/<game>-attract.jpg` (four 320x256 frames side by side) and were captured from the game pages themselves. Its poster uses `<game>-poster.jpg`. Cabinets that are not switched on keep the drawn loops and COMING SOON posters. To add a game: capture its screens, add the two files, and add its id to `ART` in `neochinatown.js` (a test checks that `ART` equals the playable games).
+- This is a picture loop, not the game running: a web page cannot be drawn onto a 3D surface in the scene.
+- Corporate Zombies has two light guns (red, blue) on its panel instead of a stick and buttons. They are simple shapes built in code.
+- A player at a cabinet stays where they stand and other players still see them there (`remote-players.js` keeps the `arcade` mode in the room). Not yet confirmed with two real players.
+- Every game page shows `← RETURN TO THE DARKNET DISTRICT` (top left; `site-return.js`); inside the arcade the bar's button reads `EXIT GAME · RETURN TO THE DARKNET DISTRICT`.
