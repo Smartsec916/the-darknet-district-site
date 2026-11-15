@@ -41,3 +41,9 @@ test('every playable arcade game has a "Make Highest Score" achievement, and Dax
  const others=DP.NPCS.filter(n=>n.id!=='dax'&&DP.achievementsOf(n.id).length);assert.ok(others.length>=8,'some residents have achievements');
  assert.ok(others.every(n=>A.profileList(DP.achievementsOf(n.id)).every(a=>a.difficulty<=3)),'and theirs are the easier ones');assert.deepEqual(DP.achievementsOf('nobody'),[]);
 });
+
+test('difficulty is shown as stars, and Admin is a Merchant and a Mercenary',()=>{
+ assert.equal(A.stars(1),'★☆☆☆☆');assert.equal(A.stars(5),'★★★★★');assert.equal(A.stars(9),'★★★★★');assert.equal(A.stars(0),'★☆☆☆☆');
+ const js=require('node:fs').readFileSync('void-runner/personal-device.js','utf8');assert.match(js,/A\.stars\(a\.difficulty\)/);assert.doesNotMatch(js,/A\.DIFFICULTY\[a\.difficulty\]/,'the word is no longer shown');
+ const DP=require('../void-runner/district-people.js');assert.equal(DP.jobsText(DP.npc('admin').jobs),'Merchant · Mercenary');
+});
