@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "07b095af02be4197",
+  "revision": "a7b62fe008441a4d",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11899,13 +11899,13 @@
     },
     {
       "source": "void-runner/device-v1.js",
-      "line": 28,
+      "line": 29,
       "text": "messages:{id:'messages',title:'MESSAGES',glyph:'@',state:'ready',note:'District chat and conversations. Private messages to other players are not available yet.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/device-v1.js",
-      "line": 146,
+      "line": 147,
       "text": "actions:[{id:'talk',label:'CONVERSATION',enabled:!!data.here,reason:data.here?'':'Talk to them in person.'}]};",
       "kind": "source-reference"
     },
@@ -12475,7 +12475,7 @@
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 367,
+      "line": 368,
       "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
       "kind": "source-reference"
     },
@@ -14163,9 +14163,10 @@
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-test.js": "4583e5683e8c37ba25bf04bf9b0816ef93030c79b3c0a099532c97ca193e65cd",
     "void-runner/dev-tools.js": "8fc329454a6ed8a22bf93e8721eeffca11b1276ccf0eb3676b90c67c58781974",
+    "void-runner/device-camera.js": "ec211ad4cc872bc2014d3782607e657acb150f4a0e3a434fb520ce7999ba3e6a",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
     "void-runner/device-portraits.js": "13bd14864a52df28711c8e029649d10f5bfb3487c71d79a9cb3575ffa4c433b8",
-    "void-runner/device-v1.js": "7b0f56689bfa03b1fabb44af094993cd8e580d217b3a69e016d1645be5428fc8",
+    "void-runner/device-v1.js": "c04814c04135170a597ed92532e4cb659fab8f57848a37b67adfbb45e51814f2",
     "void-runner/district-arcade.js": "ff81f9ea3af5335c27e2f5a073965838834c91c8daf5500b078a1c10192b7e90",
     "void-runner/district-area.js": "48b60eab3a791020ce7a4a7213de866e697069ca4c003cf7f255a5ffcef3db4c",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
@@ -14225,12 +14226,12 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-nightclub.js": "58e8f26da2df090c85d2295cb403b5658cfe8241450d70b70c777e276f8425c5",
     "void-runner/ncz-nightlife.js": "15cf226233896181b848a2d99611ceb0319f8b0cee8eec6035e771f38a7725df",
-    "void-runner/neochinatown.js": "be52742ea54e3f1b6569d14216c5ca70401bdbf371668fa5f9f79224c50b2c39",
+    "void-runner/neochinatown.js": "2e2491e4148aab8f029ce9e5740151e018a3315523fa190cecd3ebc4183b3e84",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "4172df44fc02d43d56016c17c76bc6af4daa80edcc1c5200be582903d7075a19",
-    "void-runner/personal-device.js": "6823eb7fc014d17f80a23a644d0a2354641cef4c245ff69cdc6e10555ae6e0d8",
+    "void-runner/personal-device.js": "cc406a77947886d88fc364a5046071e3ea575b5a809b3218f836c39fa2b88098",
     "void-runner/personal-hud.js": "1ca0e48b3d144a0a2ffed8e3202f98322a060541b8127de2ee48469ed2606776",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",

@@ -817,7 +817,7 @@
     // middle and an end), with uneven pauses, so they never look like synchronised machines.
     const vrPlayers=[];
     function vrPlayer(look,x,z,routine){
-     const place=()=>{const node=root.VoidAssets?.instance?.('crowd:'+look,target);if(!node)return false;node.position.set(x,0,z);node.rotation.y=Math.PI/2; // faces the glass and the viewers
+     const place=()=>{const node=root.VoidAssets?.instance?.('crowd:'+look,target);if(!node)return false;node.position.set(x,0,z);node.rotation.y=Math.PI/2;node.metadata={...node.metadata,character:look}; // faces the glass and the viewers; named for the V1 camera's tags
       const c=root.VoidCrowd?.animate(node,look,'idle');if(c)vrPlayers.push({node,c,routine,step:0,timer:.5+rand()*2,base:Math.PI/2,turn:0,want:0});return true;};
      if(!place())root.VoidAssets?.onLoaded?.(id=>{if(id==='crowd:'+look&&!disposed)place();});}
     // Shooter: lift into aim, track, fire, take a hit, duck, come back up, aim low, fire, lower and breathe.

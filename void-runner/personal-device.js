@@ -195,7 +195,7 @@
    if(root.VoidDistrictMap?.mount)return '<div class="pd-note">'+(wl.mapSpace?(root.VoidAreaMap?.get(wl.mapSpace)?.name||'AREA').toUpperCase():area==='interior'?'THE DARKNET DISTRICT':'NEOCHINATOWN')+' · '+(wl.mapSpace?'area map · unexplored places are hidden':'city navigation')+'</div><div data-district-map></div>';
    return '<div class="pd-note">'+(area==='interior'?'THE DARKNET DISTRICT':'NEOCHINATOWN')+' · only places you have explored are shown.</div><canvas class="pd-map" width="800" height="560" data-map aria-label="Map of explored areas"></canvas><div data-places></div>';
   },
-  camera(){return '<div class="pd-empty"><b>CAMERA</b><br>Not available in the V1 model yet.<br>Nothing is captured, stored or sent.</div>';},
+  camera(){return '<div class="pd-empty"><b>CAMERA</b><br>The viewfinder opens over the world.<br>Nothing is captured, stored or sent.</div>';},
   gallery(){return '<div class="pd-empty"><b>GALLERY</b><br>No photos. Photos will be kept here once the camera exists.</div>';},
   /* The App Store is empty until David adds apps (15 Nov 2026): the device's own details moved to MY V1 (the `device` app). */
   store(){
@@ -257,7 +257,8 @@
  }
  /* Moves to another screen. The new screen's title shows at once; its content appears after the model's transition delay (a loading card, driven by a timer: nothing blocks).
     Only the LATEST request counts: clicking again, going back or closing cancels the one in flight, so transitions never pile up. */
- function go(next,kind,text){if(next[0]==='news'&&stack[0]!=='news')feedSeed=(Date.now()^(Math.random()*1e9))>>>0;
+ function go(next,kind,text){if(next[0]==='camera'&&root.VoidDeviceCamera){setOpen(false);if(!root.VoidDeviceCamera.start(dev))try{announce('The camera works while you are on foot.');}catch{}return;}   /* the camera is a viewfinder over the world, not a page in the panel */
+ if(next[0]==='news'&&stack[0]!=='news')feedSeed=(Date.now()^(Math.random()*1e9))>>>0;
   stack=next;const seq=++navSeq,ms=D.delayMs(dev,kind,reduced());clearTimeout(navTimer);busy=false;
   if(!el||!open){syncViewing();return;}
   if(!ms){render();return;}

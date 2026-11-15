@@ -12,7 +12,8 @@
  const DEVICES={
   v1:{id:'v1',generation:1,name:'V1',tagline:'PERSONAL DEVICE · MODEL V1',
    apps:['missions','messages','social','news','map','camera','gallery','store','device','settings'],
-   camera:{enabled:false},                       // the camera is a placeholder in V1
+   // The camera (device-camera.js): a live viewfinder. `zooms` is the zoom array every model shares; `maxZoom` is how far THIS model reaches (a V2 can raise it).
+   camera:{enabled:true,id:'CAM 01',zooms:[1,1.5,2,3],maxZoom:2,iso:320},
    // Interface timing, in milliseconds (a later model changes these numbers and nothing else). The starter V1 is deliberately a little slow: a short loading card is shown
    // before a screen appears. It is cosmetic and asynchronous: it never blocks the game loop, networking or message delivery. appOpenMs: opening an app from home;
    // homeMs: going back to home; tabMs: switching inside an app; startupMs: the first opening after the page loads. 0 turns a delay off (reduced motion does this too).
@@ -29,7 +30,7 @@
   social:{id:'social',title:'SOCIAL',glyph:'S',state:'ready',note:'People you know and other players.'},
   news:{id:'news',title:'NEWS',glyph:'N',state:'ready',note:'Reports you have received.'},
   map:{id:'map',title:'MAP',glyph:'+',state:'ready',note:'Places you have explored.'},
-  camera:{id:'camera',title:'CAMERA',glyph:'O',state:'placeholder',note:'Not available in this model yet.'},
+  camera:{id:'camera',title:'CAMERA',glyph:'O',state:'ready',note:'A live viewfinder with name tags and zoom. Nothing is captured or stored yet.'},
   gallery:{id:'gallery',title:'GALLERY',glyph:'G',state:'placeholder',note:'Photos will appear here when the camera exists.'},
   store:{id:'store',title:'APP STORE',glyph:'A',state:'ready',note:'Apps for this device.'},
   device:{id:'device',title:'MY DEVICE',glyph:'D',state:'ready',note:'This device: its model, storage and built-in apps.'},   // shown as MY V1, MY V2... (appTitle)

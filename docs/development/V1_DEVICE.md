@@ -49,3 +49,13 @@ David asked for the NPCs in The Darknet District to be listed with the players, 
 - **Jobs:** two dropdowns (JOB, SECOND JOB) instead of a wall of buttons; `MAX_JOBS` is 2.
 - **News feed** (`void-runner/news-feed.js`, tested): up to eight small SPONSORED lines mixed among the reports, in a new random order each time the app is opened. Sources: the station screen brands (`ad-art.js`, not The Function's notice), the Relay's advert and police spots word for word (`relay-content.json`), and District store adverts posted by Admin or Iris for the goods the in-game shop shelves show (`store-atlas.json`), each with a link to the real storefront page. **The store advert sentences (`STORE_LINES`) are Claude's drafts.** `GAME_ITEMS` (empty) is where an item Admin or Iris sell through mission progress gets its advert line and the flag or mission that unlocks it.
 
+## 15 Nov 2026 (later still): the Camera app is a live viewfinder; News posts are boxed
+
+- **Camera** (`void-runner/device-camera.js`, tested in `tests/device-camera.test.cjs`): choosing CAMERA closes the panel and puts a viewfinder over the real game view. The player still walks and looks. L (opening the V1) or leaving walking mode closes it. While it is up the game's own readouts are hidden (`body.pd-camera-on`); the interact prompt and notices stay.
+  - HUD: corner brackets, a plain crosshair with no circle, running timecode, battery (the device's own figure for the session, not the computer's), signal (from the game's comms state), zoom, focus, camera id, real frame rate, ISO.
+  - Name tags: light green, with a thin line to the head, for named District residents (`district-people.js`) and other players. Placed up and to the side of the head, kept on screen, measured from the figure's real position every frame, and never drawn through a wall (collision boxes; glass and low counters do not block).
+  - Zoom: mouse wheel through `DEVICES.<model>.camera.zooms` (`[1, 1.5, 2, 3]`) up to that model's `maxZoom` (V1: 2). A later model raises `maxZoom`.
+  - Theme: every colour is a device CSS variable (`--pd-*`; `--pd-tag` is the tag green) and the HUD carries `data-device`, so a new device theme restyles the camera with no code change.
+  - Not built: taking or keeping photos (Gallery is still "coming later").
+- **News:** each sponsored post and each report sits in its own bordered box.
+
