@@ -44,4 +44,9 @@ test('Admin has his own kit: amber, a jacket, and never eyewear',()=>{
  const g=G.build(fit['district-smuggler'],w);assert.ok(g.parts.includes('jacket')&&g.parts.includes('harness')&&g.parts.includes('belt')&&!g.parts.includes('goggles'));
  assert.equal(G.loadout('hacker-01:walker-3','hacker-01',fit['hacker-01']).jacket,false,'the jacket is Admin\'s alone');
 });
+test('Iris is an android, clean of belts and pouches',()=>{
+ const w=G.loadout('iris','fixer-01',fit['fixer-01']);assert.equal(w.android,true);assert.equal(w.belt,false);assert.equal(w.harness,false);assert.equal(w.goggles,false);
+ const g=G.build(fit['fixer-01'],w);assert.deepEqual(g.parts,['android']);assert.deepEqual(g.bones.sort(),['Head','Neck','Spine2']);
+ assert.equal(G.loadout('fixer-01:walker-3','fixer-01',fit['fixer-01']).android,undefined,'nobody else is one');
+});
 test('nothing to wear builds nothing',()=>{assert.equal(G.build(fit['hacker-01'],{belt:false,pouches:2,harness:false,thighs:'',knees:false,bracer:'',goggles:false,accent:0}).indices.length,0);});

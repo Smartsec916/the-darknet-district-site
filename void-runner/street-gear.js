@@ -17,15 +17,17 @@
    The pure part (what a person wears, and the geometry) runs in Node (tests/street-gear.test.cjs). */
 (function(root){
  'use strict';
- const ACCENTS=[[1,.16,.72],[.1,.9,1],[.62,1,.12],[1,.14,.16],[1,.62,.08],[.62,.3,1]],CELLS=16,STRAP=0,PLATE=1,GLOW=2,MATTE=8;   /* palette cells: webbing, metal, six lit accents (2..7), the same six as unlit cloth (8..13) */
+ const ACCENTS=[[1,.16,.72],[.1,.9,1],[.62,1,.12],[1,.14,.16],[1,.62,.08],[.62,.3,1]],CELLS=16,STRAP=0,PLATE=1,GLOW=2,MATTE=8,PALE=14;   /* palette cells: webbing, metal, six lit accents (2..7), the same six as unlit cloth (8..13), pale ceramic (14) */
  const hash=s=>{let h=2166136261;for(const c of String(s)){h^=c.charCodeAt(0);h=Math.imul(h,16777619)>>>0;}return h;};
  // a repeatable 0..1 for a person and a question
  const roll=(seed,salt)=>(hash(seed+'/'+salt)%10007)/10007;
  const HATS=new Set(['district-smuggler','order-farmhand','vesper-trader']),SKIP=/^vr-companion/;
  /* People with a kit of their own (David's reference pictures), keyed by who they are. Admin (three pictures, 15 Nov 2026): an older man in a dark utility jacket with
-    amber panels and an amber-lit collar, a chest rig and a belt; David prefers him WITHOUT eyewear, so he never gets goggles. Iris keeps her own cyan. */
+    amber panels and an amber-lit collar, a chest rig and a belt; David prefers him WITHOUT eyewear, so he never gets goggles.
+    Iris (two pictures, 15 Nov 2026): a humanoid android who looks very human: a high dark collar closed round the neck, pale ceramic plates over the upper chest and
+    shoulders, a black device over each ear, and a few tiny amber lights. No belts or pouches: she is clean, not kitted out. */
  const KITS={admin:{belt:true,pouches:2,harness:true,thighs:'',knees:false,bracer:'',goggles:false,jacket:true,accent:4},
-  iris:{belt:true,pouches:2,harness:false,thighs:'',knees:false,bracer:'R',goggles:false,jacket:false,accent:1}};
+  iris:{belt:false,pouches:0,harness:false,thighs:'',knees:false,bracer:'',goggles:false,jacket:false,android:true,accent:4}};
  /* What a person wears: {belt, pouches (2..4), harness, thighs ('', 'L', 'R', 'LR'), knees, bracer ('', 'L', 'R'), goggles, accent (0..5)}. */
  function loadout(seed,look,body){
   if(KITS[seed])return {...KITS[seed]};
@@ -93,6 +95,19 @@
    // the collar: raised behind the neck, open at the front, lit on the inside
    const n=body.neck,nz=(n.front+n.back)/2,nrx=n.halfW+.03*u,nrz=(n.front-n.back)/2+.03*u,k=writer(m,UPRIGHT([J.Neck[0],n.y,0]),'Neck',STRAP);
    k.band(0,nz,nrx,nrz,78,282,-.02*u,.062*u,.008*u,12);k.band(0,nz,nrx-.006*u,nrz-.006*u,84,276,-.012*u,.054*u,.004*u,12,A);}
+  if(wear.android&&body.chest&&body.neck){const c=body.chest,cz=(c.front+c.back)/2,rx=c.halfW+.006*u,rz=(c.front-c.back)/2+.006*u,g=writer(m,UPRIGHT([J.Spine2[0],c.y,0]),'Spine2',PALE);parts.push('android');
+   // pale plates over the upper chest, in two segments a side, with a dark gap between and one small light on each
+   for(const sgn of [1,-1]){g.band(0,cz,rx,rz,sgn*12,sgn*40,-.03*u,.05*u,.007*u,4);g.band(0,cz,rx,rz,sgn*44,sgn*74,-.015*u,.05*u,.007*u,4);
+    const d=g.at(0,cz,rx,rz,sgn*26,.007*u+.0015*u);g.box([d.x,.022*u,d.z],[.01*u,.01*u,.002*u],d.yaw,A);}
+   g.band(0,cz,rx+.001*u,rz+.001*u,-10,10,-.05*u,.05*u,.004*u,2,STRAP);
+   // plates across the upper back
+   g.band(0,cz,rx,rz,112,248,-.02*u,.05*u,.007*u,8);g.band(0,cz,rx+.007*u,rz+.007*u,170,190,-.01*u,.04*u,.004*u,2,PLATE);
+   // the android neck: a dark collar closed all the way round, on a pale ring
+   const n=body.neck,nz=(n.front+n.back)/2,nrx=n.halfW+.005*u,nrz=(n.front-n.back)/2+.005*u,k=writer(m,UPRIGHT([J.Neck[0],n.y,0]),'Neck',STRAP);
+   k.band(0,nz,nrx,nrz,0,360,-.03*u,.045*u,.005*u,14);k.band(0,nz,nrx+.005*u,nrz+.005*u,0,360,-.04*u,-.024*u,.006*u,14,PALE);
+   // a black device over each ear, with a light
+   const b=body.brow,top=(b.y-J.Head[1])/.66,ey=J.Head[1]+.36*top,ez=(b.front+b.back)/2-.012*u,h=writer(m,UPRIGHT([J.Head[0],ey,ez]),'Head',STRAP);
+   for(const sgn of [1,-1]){const x=sgn*(b.halfW+.006*u);h.box([x,0,0],[.014*u,.05*u,.06*u],0);h.box([x,-.03*u,-.018*u],[.012*u,.03*u,.03*u],0,PLATE);h.box([x+sgn*.008*u,.008*u,.012*u],[.002*u,.008*u,.008*u],0,A);}}
   if(wear.goggles){const b=body.brow,cz=(b.front+b.back)/2,rx=b.halfW+.005*u,rz=(b.front-b.back)/2+.005*u,g=writer(m,UPRIGHT([J.Head[0],b.y,0]),'Head',STRAP);parts.push('goggles');
    g.band(0,cz,rx,rz,0,360,-.012*u,.012*u,.005*u,14);
    for(const deg of [-24,24]){const p=g.at(0,cz,rx,rz,deg,.005*u+.012*u);g.box([p.x,0,p.z],[.052*u,.04*u,.026*u],p.yaw,PLATE);const l=g.at(0,cz,rx,rz,deg,.005*u+.0255*u);g.box([l.x,0,l.z],[.04*u,.028*u,.002*u],l.yaw,A);}}
@@ -109,7 +124,7 @@
  function material(scene){const B=root.BABYLON;let m=materials.get(scene);if(m&&!m._street_gone)return m;
   const base=new Uint8Array(CELLS*4),glow=new Uint8Array(CELLS*4),set=(a,i,c)=>{a[i*4]=c[0];a[i*4+1]=c[1];a[i*4+2]=c[2];a[i*4+3]=255;};
   set(base,STRAP,[16,16,19]);set(base,PLATE,[44,47,54]);set(glow,STRAP,[0,0,0]);set(glow,PLATE,[0,0,0]);
-  ACCENTS.forEach((c,i)=>{set(base,GLOW+i,[10,10,10]);set(glow,GLOW+i,c.map(v=>Math.round(v*255)));set(base,MATTE+i,c.map(v=>Math.round(v*150)));set(glow,MATTE+i,[0,0,0]);});
+  ACCENTS.forEach((c,i)=>{set(base,GLOW+i,[10,10,10]);set(glow,GLOW+i,c.map(v=>Math.round(v*255)));set(base,MATTE+i,c.map(v=>Math.round(v*150)));set(glow,MATTE+i,[0,0,0]);});set(base,PALE,[176,182,190]);set(glow,PALE,[0,0,0]);
   const tex=d=>{const t=B.RawTexture.CreateRGBATexture(d,CELLS,1,scene,false,false,B.Texture.NEAREST_SAMPLINGMODE);t.wrapU=t.wrapV=B.Texture.CLAMP_ADDRESSMODE;return t;};
   m=new B.PBRMaterial('street-gear',scene);m.albedoTexture=tex(base);m.emissiveTexture=tex(glow);m.emissiveColor=new B.Color3(1,1,1);m.emissiveIntensity=1.6;m.metallic=.35;m.roughness=.5;
   m.backFaceCulling=false;m.twoSidedLighting=true;m.onDisposeObservable.add(()=>{m._street_gone=true;});materials.set(scene,m);return m;}
