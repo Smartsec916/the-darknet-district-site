@@ -39,3 +39,8 @@ Scores are honest estimates within the limits of a browser game, judged from scr
 - Character creator: dark flat room, character in a stiff pose, no key light on the character.
 - Pod interior: clean but flat lilac surfaces; hatch ring is a flat yellow band; no wear, no depth.
 - Pod room: walls nearly black, pods are plain boxes, marker labels float in the air.
+
+## Nov 2026 (David): loading screen restyled; main menu attract mode asked for (not built)
+
+- **Loading screen (done, `void-runner/loading.css`, last block):** pure CSS, because it shows before any script runs: the city skyline in rain (an inline SVG), a framed panel, a teal-to-pink progress bar. Ids and markup unchanged. Picture: `docs/development/hall-wall/loading-screen.jpg`.
+- **Main menu (NOT built):** David wants a cinematic "attract mode" behind the menu that cycles real scenes (The Darknet District, the nightclub, dogfighting, space stations), **drawn from the live game assets** so asset upgrades appear there by themselves. Today the menu is the painted 2D city (`menu-backdrop.js`); a 3D path already exists and is unused for display (`VoidBabylon.prepareMenu` / `renderMenu`, the old station scene, called from `drawModernBackground` in `world-integration.js`). Open design points to settle before building: which scenes can be built without a campaign state; how long the menu may take to become interactive (scenes should load after the menu is usable, one at a time); memory when several scenes are prepared; what Low quality and reduced motion show (the painted city); and that it must not delay or break CONTINUE CAMPAIGN.
