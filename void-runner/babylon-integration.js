@@ -424,7 +424,7 @@ update = function(dt) {
     $('walking-interact').disabled = !walkTarget;
     lastStepSound -= dt;
     if ((moving.x || moving.z) && lastStepSound <= 0) {
-      VoidAudio.tone(95, .06, 'triangle', .009);
+      VoidAudio.tone(moving.run ? 88 : 95, .06, 'triangle', moving.run ? .017 : .009);   // your own steps are louder when you run
       lastStepSound = moving.run ? .28 : .48;
     }
     VoidAudio.scene('bar');

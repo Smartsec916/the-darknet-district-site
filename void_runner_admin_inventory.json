@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "879b7c1e2024f6f7",
+  "revision": "11f5a4e012b5d747",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12102,6 +12102,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/footsteps.js",
+      "line": 3,
+      "text": "- Who: every figure the scene is moving (crowd figures, named residents, other players). Nothing is asked of the multiplayer server: a figure's speed is",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/game.js",
       "line": 62,
       "text": "else if (state.quest === 'return') story += ' “Tell Rook you kept your word,” the receiver says. Time to head back to Meridian.';",
@@ -12463,31 +12469,37 @@
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 163,
-      "text": "const tabs='<div class=\"pd-tabs\">'+tab('chat','DISTRICT CHAT',un?(un>99?'99+':un):'')+tab('players','PLAYERS','')+tab('talk','CONVERSATIONS','')+tab('dm','PRIVATE','')+'</div>';",
+      "line": 99,
+      "text": "everywhere else the list says how far each person is (David, 15 Nov 2026). null = not shown. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
       "line": 168,
+      "text": "const tabs='<div class=\"pd-tabs\">'+tab('chat','DISTRICT CHAT',un?(un>99?'99+':un):'')+tab('players','PLAYERS','')+tab('talk','CONVERSATIONS','')+tab('dm','PRIVATE','')+'</div>';",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/personal-device.js",
+      "line": 173,
       "text": "return tabs+'<div class=\"pd-note\">People you have talked to in this browser. Not synced.</div>'+(rows.length?rows.slice(-40).reverse().map(m=>'<div class=\"pd-line\"><b>'+esc(m.name)+'</b><span class=\"pd-note\">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class=\"pd-empty\">No conversations yet. People you talk to appear here.</div>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 174,
+      "line": 179,
       "text": "+'<form data-chatform class=\"pd-compose\"><input type=\"text\" maxlength=\"200\" autocomplete=\"off\" aria-label=\"Chat message\" placeholder=\"'+(can?'Say something to the District (no links)':'Chat needs a registered account and a connection')+'\"'+(can?'':' disabled')+'><button type=\"submit\"'+(can?'':' disabled')+'>SEND</button></form>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 260,
+      "line": 265,
       "text": "const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 398,
+      "line": 403,
       "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
       "kind": "source-reference"
     },
@@ -14145,7 +14157,7 @@
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "496edd3d907d4f23524366ef1263dd57b33a149d444c14ba2b20c9e09a4bb746",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
-    "void-runner/babylon-integration.js": "6573fccdc394059cdafb478770657e41906cec324ba410696bfadd60b9ff3e37",
+    "void-runner/babylon-integration.js": "79d4c6078c725913cc70d5f84a14a72976a4c7b466dabc219fd1c2cf2363b0fb",
     "void-runner/babylon-renderer.js": "4c601e377db987c898657c101e263dd90cd95294aa0d6c901de66866bfaf2a1c",
     "void-runner/balance-data.js": "ebc76bb374885f015ae60a86864e8701bba194e5d3ce09fb321dd52cedabe16c",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
@@ -14210,6 +14222,7 @@
     "void-runner/flight-session-integration.js": "0dc63b7cdab18fa333bed6e699c55b58b5ab6c391153fc414b8093bfb452a154",
     "void-runner/flight-session.js": "1027dd1a11d5c087d2d754f96cfd8ecce8948ace49398ac78aab5efef0e52bfa",
     "void-runner/flight-skirmish.js": "d34dcc71253521e0b64617552cce2db27b7e1e37420611fa7471de848c8a5573",
+    "void-runner/footsteps.js": "284ebaea308aab973afdd7a344ba916eb45bd807f65b52239fb797f375486372",
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
     "void-runner/game.js": "12ab691c726ae68308e305e53de737011b05e11962d7a843baf4e26d48e6283a",
     "void-runner/graphics-prefs.js": "5b0092cbc6e4ed50c21d51bc2856a2caeb0c5957e46cb4415c3f28514d2dd6fe",
@@ -14249,7 +14262,7 @@
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "4172df44fc02d43d56016c17c76bc6af4daa80edcc1c5200be582903d7075a19",
-    "void-runner/personal-device.js": "13cf6e88f0e8af659ed74fa02a4b966f324f95c9bb4a46e6980bf0acb86624cb",
+    "void-runner/personal-device.js": "fa4c82d55a4b1582fa078af2329bea8eb86670dc63ca33ee8e9393adcc0a0e5d",
     "void-runner/personal-hud.js": "1ca0e48b3d144a0a2ffed8e3202f98322a060541b8127de2ee48469ed2606776",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",

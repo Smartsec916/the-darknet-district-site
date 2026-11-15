@@ -62,3 +62,8 @@ test('the two scanning lines have stored recordings: the words match exactly, th
  const main=JSON.parse(fs.readFileSync('void-runner/assets/audio/voice/manifest.json','utf8'));assert(!Object.values(main.lines).some(l=>l.text===E.spoken.admin[1]||l.text===E.spoken.iris[1]));assert.equal(Object.keys(main.lines).length,736,'the Kokoro manifest is as it was');
  assert.match(fs.readFileSync('void-runner/voice-clips.js','utf8'),/extra\/manifest\.json/);
 });
+test('player lists show distance outside The Darknet District and not inside it',()=>{
+ const src=require('node:fs').readFileSync('void-runner/personal-device.js','utf8');
+ assert.match(src,/function distanceTo\(p\)\{try\{if\(areasHere\(\)\.includes\('interior'\)/,'inside the District no distance is shown');
+ assert.match(src,/distText=d=>d==null\?'':d<1000\?d\+' m away'/);assert.match(src,/rows\.sort\(\(a,b\)=>\(a\.dist\?\?0\)-\(b\.dist\?\?0\)\)/,'nearest first');
+});

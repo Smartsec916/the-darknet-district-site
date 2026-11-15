@@ -80,7 +80,7 @@
   return P.readFollowing(f).map(x=>{if(x.kind==='npc'){const n=P.npc(x.id);return n?{...x,profile:residentProfile(n)}:null;}const pr=near.find(p=>p.key==='player:'+x.id);return {...x,profile:pr||null};}).filter(Boolean).reverse();}
  function nearbyPlayers(){
   const r=rp();if(!r?.connected)return [];
-  return r.peers.map(p=>D.profile('player',{handle:p.name,publicId:p.id,appearance:p.appearance||null,bio:'In the District right now.'},{canBlock:true,canReport:true}));
+  return r.peers.map(p=>{const d=distanceTo(p),pr=D.profile('player',{handle:p.name,publicId:p.id,appearance:p.appearance||null,bio:d==null?'In the District right now.':'In the same place as you, '+distText(d)+'.'},{canBlock:true,canReport:true});pr.dist=d;return pr;}).sort((a,b)=>(a.dist??0)-(b.dist??0));
  }
 
 
@@ -95,18 +95,23 @@
   }
   return out;
  }
+ /* How far away another player is, in metres. Inside The Darknet District everyone is simply "here", so no distance is shown; on the street, in NULL and
+    everywhere else the list says how far each person is (David, 15 Nov 2026). null = not shown. */
+ function distanceTo(p){try{if(areasHere().includes('interior')||typeof walker==='undefined'||!walker||!Number.isFinite(p.x)||!Number.isFinite(p.z))return null;return Math.round(Math.hypot(p.x-walker.x,p.z-walker.z));}catch{return null;}}
+ const distText=d=>d==null?'':d<1000?d+' m away':(d/1000).toFixed(1)+' km away';
  const REASONS=[['harassment','HARASSMENT'],['spam','SPAM'],['inappropriate','INAPPROPRIATE'],['cheating','CHEATING'],['other','OTHER']];
  function playerRows(){
-  const r=rp(),rows=(r?.connected?r.peers:[]).map(p=>({id:p.id,name:p.name,here:true}));
+  const r=rp(),rows=(r?.connected?r.peers:[]).map(p=>({id:p.id,name:p.name,here:true,dist:distanceTo(p)}));
+  rows.sort((a,b)=>(a.dist??0)-(b.dist??0));   // nearest first where distance is shown
   for(const [id,,name] of (r?.ignored||[]))if(!rows.some(x=>x.id===id))rows.push({id,name,here:false});   // a blocked player's character is hidden, so they stay listed to be unblocked
   return rows;
  }
- const playersSigNow=()=>playerRows().map(x=>x.id+x.name).join('|')+JSON.stringify(rp()?.ignored||[])+'|'+areasHere().join(',');
+ const playersSigNow=()=>playerRows().map(x=>x.id+x.name+(x.dist==null?'':':'+Math.round(x.dist/5))).join('|')+JSON.stringify(rp()?.ignored||[])+'|'+areasHere().join(',');
  function playersHtml(){
   const r=rp(),ign=new Map((r?.ignored||[]).map(([id,m,name])=>[id,{m,name}])),rows=playerRows();playersSig=playersSigNow();
-  const note=chat()?.note,keys=new Map();try{const near=nearbyPlayers();(r?.connected?r.peers:[]).forEach((p,i)=>{if(near[i])keys.set(p.id,near[i].key);});}catch{}
+  const note=chat()?.note,keys=new Map();try{const near=nearbyPlayers();for(const p of (r?.connected?r.peers:[])){const k='player:'+String(p.id).replace(/[^0-9a-f]/g,'').slice(0,12);if(near.some(n=>n.key===k))keys.set(p.id,k);}}catch{}
   const res=residents(),resRow=p=>'<article class="pd-card"><div class="pd-prof pd-mini">'+portraitHtml(p)+'<div style="flex:1;min-width:150px"><h3>'+esc(p.name)+' <small>RESIDENT</small></h3><div class="pd-note">'+esc(p.subtitle||'')+'</div><div class="pd-tabs" style="margin:6px 0 0"><button type="button" data-open-profile="'+esc(p.key)+'">PROFILE</button></div></div></div></article>';
-  const list=rows.length?rows.map(p=>{const m=ign.get(p.id)?.m;return '<article class="pd-card"><h3>'+esc(p.name)+(m?' <small>['+m.toUpperCase()+']</small>':'')+(p.here?'':' <small>(not in view)</small>')+'</h3><div class="pd-tabs">'
+  const list=rows.length?rows.map(p=>{const m=ign.get(p.id)?.m;return '<article class="pd-card"><h3>'+esc(p.name)+(m?' <small>['+m.toUpperCase()+']</small>':'')+(p.here?'':' <small>(not in view)</small>')+(p.dist!=null?' <small>'+esc(distText(p.dist).toUpperCase())+'</small>':'')+'</h3><div class="pd-tabs">'
     +'<button type="button" data-ig="'+(m==='mute'?'unmute':'mute')+'" data-id="'+esc(p.id)+'" data-name="'+esc(p.name)+'">'+(m==='mute'?'UNMUTE':'MUTE')+'</button>'
     +'<button type="button" data-ig="'+(m==='block'?'unblock':'block')+'" data-id="'+esc(p.id)+'" data-name="'+esc(p.name)+'">'+(m==='block'?'UNBLOCK':'BLOCK')+'</button>'
     +(p.here?'<button type="button" data-rep-open="'+esc(p.id)+'">REPORT</button>':'')+(p.here&&keys.get(p.id)?'<button type="button" data-open-profile="'+esc(keys.get(p.id))+'">PROFILE</button>':'')+'</div>'
@@ -178,7 +183,7 @@
    if(sel){const mine=myProfile(),all=[mine,...residents(false),...npcContacts(),...nearbyPlayers()],p=all.find(x=>x.key===sel);if(p)return profileCard(p,{extra:(p.key!==mine.key?followButton(p):'')+(p.kind==='player'&&p.key!==mine.key?'<div data-report></div>':'')})+(p.key===mine.key?profileEditor():'');}
    const me=myProfile(),here=residents(),hk=new Set(here.map(x=>x.key)),npcs=npcContacts().filter(x=>!hk.has(x.key)),pl=nearbyPlayers();
    const fol=following(),folRow=f=>f.profile?row(f.profile):'<article class="pd-card"><h3>'+esc(f.name)+' <small>PLAYER · NOT HERE NOW</small></h3><div class="pd-tabs" style="margin:6px 0 0"><button type="button" data-follow="'+esc(f.key)+'" data-name="'+esc(f.name)+'">UNFOLLOW</button></div></article>';
-   const row=p=>'<article class="pd-card"><div class="pd-prof">'+portraitHtml(p)+'<div style="flex:1"><h3>'+esc(p.name)+'</h3><div class="pd-note">'+esc(p.subtitle||p.bio)+'</div><button type="button" data-open-profile="'+esc(p.key)+'">PROFILE</button></div></div></article>';
+   const row=p=>'<article class="pd-card"><div class="pd-prof">'+portraitHtml(p)+'<div style="flex:1"><h3>'+esc(p.name)+'</h3><div class="pd-note">'+esc(p.subtitle||p.bio)+(p.dist!=null?' · '+esc(distText(p.dist)):'')+'</div><button type="button" data-open-profile="'+esc(p.key)+'">PROFILE</button></div></div></article>';
    return '<h2>YOU</h2>'+row(me)+'<h2>FOLLOWING</h2>'+(fol.length?fol.map(folRow).join(''):'<div class="pd-empty">Nobody yet. Open the Camera, put the crosshair on someone or their tag, and press F.</div>')+'<h2>PEOPLE YOU KNOW</h2>'+(npcs.length?npcs.map(row).join(''):'<div class="pd-empty">Nobody yet. People you meet appear here.</div>')
     +(here.length?'<h2>RESIDENTS HERE</h2>'+here.map(row).join(''):'')+'<h2>PLAYERS HERE NOW</h2>'+(pl.length?pl.map(row).join(''):'<div class="pd-empty">'+(rp()?.connected?'No other players nearby.':'Not connected to the District server.')+'</div>')
     +'<div class="pd-note" style="margin-top:10px">Friends and player discovery are not available yet.</div>';
