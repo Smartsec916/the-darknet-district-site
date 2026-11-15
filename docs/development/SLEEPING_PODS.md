@@ -33,3 +33,7 @@ This step is the relocation only. Still to do for the Tesana match: the pod's wi
 ## 13 Nov 2026: dark pods
 
 David: the pods read almost white; the District should be dark with coloured light as the accent. The pod shell, ribs, bedding and mattress materials in `neochinatown.js` are now near-black violet (the earlier off-white Tesana plastic is superseded); the lit rings, LED strips, screens and the moulded surrounds' status lights carry the colour. Nothing about the pods' behaviour changed.
+
+## Nov 2026 (David): look around at once on waking
+
+David: after creating a character the player should be able to look around inside the pod, not be held to the buttons. Moving the mouse over the view (not over the buttons) now turns the view immediately, with no click first (`world-integration.js`, the `mousemove` handler by `podLook`); a click still holds the mouse for full turns, and drag and arrow keys work as before. The wake-up card is a low strip along the bottom edge (`pod-start.css`, last block) so the pod is visible. Buttons, keys (E, M, V), vending and music are unchanged. Picture: `docs/development/hall-wall/pod-wake-look.jpg`. Not done: the pod's window view and a lighter panel look from his newest pod pictures (he earlier asked for darker panels; ask which he wants).
