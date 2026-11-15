@@ -49,6 +49,14 @@
    "restAction": "A_TPose",
    "loop": "exact"
   },
+  "walk-game": {
+   "file": "district-resident.glb",
+   "source": "crowd",
+   "action": "walk",
+   "as": "walk",
+   "loop": "exact",
+   "note": "The walk as the game already ships it (a crowd character's own clip), for building on a machine without the UAL library."
+  },
   "sit-enter": {
    "file": "UAL1_Standard.glb",
    "source": "ual",

@@ -1,0 +1,110 @@
+{
+ "name": "npc-dax",
+ "source": "Realistic Cyberpunk Girl (fully rigged, game ready), bought on CGTrader by David; the black outfit; prepared by prepare_dax.py",
+ "bonePrefix": "",
+ "bones": {
+  "DEF-spine": "Hips",
+  "DEF-spine.001": "Spine",
+  "DEF-spine.002": "Spine1",
+  "DEF-spine.003": "Spine2",
+  "DEF-spine.004": "Neck",
+  "DEF-spine.006": "Head",
+  "DEF-shoulder.L": "LeftShoulder",
+  "DEF-upper_arm.L": "LeftArm",
+  "DEF-forearm.L": "LeftForeArm",
+  "DEF-hand.L": "LeftHand",
+  "DEF-thigh.L": "LeftUpLeg",
+  "DEF-shin.L": "LeftLeg",
+  "DEF-foot.L": "LeftFoot",
+  "DEF-toe.L": "LeftToeBase",
+  "DEF-thumb.01.L": "LeftHandThumb1",
+  "DEF-thumb.02.L": "LeftHandThumb2",
+  "DEF-thumb.03.L": "LeftHandThumb3",
+  "DEF-f_index.01.L": "LeftHandIndex1",
+  "DEF-f_index.02.L": "LeftHandIndex2",
+  "DEF-f_index.03.L": "LeftHandIndex3",
+  "DEF-f_middle.01.L": "LeftHandMiddle1",
+  "DEF-f_middle.02.L": "LeftHandMiddle2",
+  "DEF-f_middle.03.L": "LeftHandMiddle3",
+  "DEF-f_ring.01.L": "LeftHandRing1",
+  "DEF-f_ring.02.L": "LeftHandRing2",
+  "DEF-f_ring.03.L": "LeftHandRing3",
+  "DEF-f_pinky.01.L": "LeftHandPinky1",
+  "DEF-f_pinky.02.L": "LeftHandPinky2",
+  "DEF-f_pinky.03.L": "LeftHandPinky3",
+  "DEF-shoulder.R": "RightShoulder",
+  "DEF-upper_arm.R": "RightArm",
+  "DEF-forearm.R": "RightForeArm",
+  "DEF-hand.R": "RightHand",
+  "DEF-thigh.R": "RightUpLeg",
+  "DEF-shin.R": "RightLeg",
+  "DEF-foot.R": "RightFoot",
+  "DEF-toe.R": "RightToeBase",
+  "DEF-thumb.01.R": "RightHandThumb1",
+  "DEF-thumb.02.R": "RightHandThumb2",
+  "DEF-thumb.03.R": "RightHandThumb3",
+  "DEF-f_index.01.R": "RightHandIndex1",
+  "DEF-f_index.02.R": "RightHandIndex2",
+  "DEF-f_index.03.R": "RightHandIndex3",
+  "DEF-f_middle.01.R": "RightHandMiddle1",
+  "DEF-f_middle.02.R": "RightHandMiddle2",
+  "DEF-f_middle.03.R": "RightHandMiddle3",
+  "DEF-f_ring.01.R": "RightHandRing1",
+  "DEF-f_ring.02.R": "RightHandRing2",
+  "DEF-f_ring.03.R": "RightHandRing3",
+  "DEF-f_pinky.01.R": "RightHandPinky1",
+  "DEF-f_pinky.02.R": "RightHandPinky2",
+  "DEF-f_pinky.03.R": "RightHandPinky3"
+ },
+ "meshes": {
+  "Sci-fi - Body": {
+   "name": "suit",
+   "maxTris": 24000
+  },
+  "Body": {
+   "name": "body",
+   "maxTris": 9000,
+   "hiddenUnder": [
+    "suit"
+   ]
+  },
+  "Hair": {
+   "name": "hair",
+   "cutout": true,
+   "doubleSided": true,
+   "alphaCutoff": 0.3,
+   "maxTris": 14000
+  },
+  "Eyebrows": {
+   "name": "brows",
+   "maxTris": 2000
+  },
+  "Eyelashes": {
+   "name": "lashes",
+   "cutout": true,
+   "doubleSided": true
+  },
+  "Eyes": {
+   "name": "eyes",
+   "dropMaterials": [
+    "Eyes_Moisture"
+   ]
+  },
+  "Mouth": {
+   "name": "mouth",
+   "maxTris": 1500
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "look",
+  "watch",
+  "walk-game",
+  "glance-back",
+  "shrug"
+ ],
+ "cutoutMaterials": [
+  "Eyelashes"
+ ]
+}
