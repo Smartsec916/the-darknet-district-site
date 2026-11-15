@@ -229,6 +229,10 @@
   get playing(){return isPlaying();},get element(){return audio;},get source(){return source;},get volume(){return volume;},get lighting(){return setting().lighting;},get activePod(){return activePod();},get selectedPod(){return selectedPod;},lightingFor(index){return podSettings[index-1]?.lighting||'rest';},get status(){return status;},lists,
   /* Smoothed bass / mid / high energy (0 to 1) for lighting that follows the music; all zero when nothing plays and the columns have settled. */
   levels(){const lv=bands(),third=BANDS/3,out={bass:0,mid:0,high:0};for(let b=0;b<BANDS;b++)out[b<third?'bass':b<third*2?'mid':'high']+=lv[b]/third;out.on=out.bass+out.mid+out.high>.002;return out;},
+  /* The pod's wall controls (clicked from inside the pod): volume 0..1, a lighting preset, and stop. */
+  setVolume(v){volume=Math.max(0,Math.min(1,Number(v)||0));setting().volume=volume;keepSetting();if(audio)audio.volume=volume;render();},
+  setLighting(x){if(!LIGHTS.includes(x))return false;setting().lighting=x;keepSetting();render();return true;},
+  stop(){if(audio&&loadedKey){audio.pause();audio.currentTime=0;positions[source]=0;render();}},
   open,drawScreen,bands,addFiles,toggle,next:()=>advance(false),previous,switchSource,clearMine,removeTrack,setKeeping,restore,enterPod,
   state(){const t=current();return {source,playing:isPlaying(),title:t?t.label:'',shuffle:lists[source].shuffle,repeat:lists[source].repeat,mine:lists.mine.tracks.map(x=>x.label),website:lists.website.size,position:audio?audio.currentTime:0,volume,status};},
   /* Called every frame by the game's music integration: the music belongs to the District, so it pauses when the player leaves it. */

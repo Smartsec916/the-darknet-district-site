@@ -51,3 +51,7 @@
 #pod-wake:not(.vending) .pod-wake-hint { flex-basis: 100%; margin: 0; font-size: .7rem; opacity: .75; }
 #pod-wake:not(.vending) .pod-wake-actions { align-items: stretch; }
 #pod-wake:not(.vending) .pod-wake-card button { line-height: inherit; }
+/* Pointing at one of the pod's wall controls or the exit sign (world-integration.js podAim). */
+#pod-wake.aiming { cursor: pointer; }
+#pod-wake.looking::after { content: ''; position: fixed; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: rgba(255, 255, 255, .7); box-shadow: 0 0 4px #000; pointer-events: none; }
+#pod-wake.looking.aiming::after { background: #7dffab; box-shadow: 0 0 8px #58ff9a; }

@@ -144,7 +144,7 @@
   function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance,area='all'}){
     const B=root.BABYLON,low=quality==='low',owned=[],districtRoot=new root.BABYLON.TransformNode('district-root',scene);let target=parent,disposed=false;districtRoot.parent=parent;districtRoot.position.set(DOOR.x,0,DOOR.z+20);districtRoot.rotation.y=Math.PI;const textures=[],staticMeshes=new Map(),dynamic=[],v=(x,y,z)=>new B.Vector3(x,y,z);
     // A previous build's handles (club, streaming city, booths) belong to a released environment; clear them so nothing reads them.
-    if(root.VoidNeoChinatown)for(const k of ['city','nightclub','booths'])root.VoidNeoChinatown[k]=undefined;
+    if(root.VoidNeoChinatown)for(const k of ['city','nightclub','booths','podPick','podHover'])root.VoidNeoChinatown[k]=undefined;
     let seed=4127;const rand=()=>((seed=seed*16807%2147483647)-1)/2147483646;
     // Night in a megacity (David's references, 2026-10-27): a teal-black sky, blue-green haze that swallows the distant
     // towers, and little ambient light outdoors, so neon, windows and lamps do the lighting. NeoChinatown only: everything
@@ -761,12 +761,12 @@
      g.fillStyle=on?'#63ff8f':'#2f6b45';g.font='bold 58px monospace';g.fillText(mm+':'+ss,34,84);
      g.font='12px monospace';g.fillStyle='#4fae6c';g.fillText('128 kbps   44 kHz   '+(on?(st.playing?'PLAYING':'PAUSED'):'STOPPED'),14,104);
      g.fillStyle='#0b1410';g.fillRect(10,112,W-20,24);g.fillStyle='#63ff8f';g.font='bold 15px monospace';
-     const title=on?String(st.title).replace(/[^\x20-\x7e]/g,'').slice(0,60):'NO TRACK  ***  PRESS MUSIC & LIGHTS';const shift=on&&title.length>36?Math.floor((st.position||0)*2)%(title.length+5):0;
+     const title=on?String(st.title).replace(/[^\x20-\x7e]/g,'').slice(0,60):'NO TRACK  ***  CLICK HERE TO CHOOSE A SONG';const shift=on&&title.length>36?Math.floor((st.position||0)*2)%(title.length+5):0;
      g.save();g.beginPath();g.rect(12,112,W-24,24);g.clip();g.fillText((title+'  ***  '+title).slice(shift,shift+44),16,129);g.restore();
-     // transport row (display only) and volume
+     // transport row and volume: clickable from inside the pod (POD_PLAYER_HITS below)
      const bx=[18,58,98,138,178],glyph=['|<','>','||','[]','>|'];g.font='bold 14px monospace';for(let k=0;k<5;k++){g.fillStyle='#16221c';g.fillRect(bx[k],146,34,28);g.strokeStyle='#31503f';g.strokeRect(bx[k],146,34,28);g.fillStyle=(on&&st.playing&&k===1)||(on&&!st.playing&&k===2)?'#63ff8f':'#7fa08c';g.fillText(glyph[k],bx[k]+8,165);}
      g.fillStyle='#4fae6c';g.font='11px monospace';g.fillText('VOL',226,164);g.fillStyle='#16221c';g.fillRect(254,154,112,10);g.fillStyle='#b8d94a';g.fillRect(254,154,Math.round(112*Math.max(0,Math.min(1,on||st?st.volume??.6:.6))),10);
-     g.fillStyle='#4fae6c';g.fillText(on?(st.source==='mine'?'MY MUSIC':'DISTRICT PLAYLIST'):'',226,182);
+     g.fillStyle='#4fae6c';g.fillText(on?(st.source==='mine'?'MY MUSIC':'DISTRICT PLAYLIST'):'CLICK TITLE: PLAYLIST',226,182);
     }
     // The pod's ambient-light panel face (after the owner's Tesana pod). It shows THIS pod's lighting choice; the controls stay in MUSIC & LIGHTS.
     const podLightFaces={},POD_LIGHTS=[['rest','REST','#ad5a94','#5a2a66'],['reading','READING','#fff0cb','#d9a860'],['music','MUSIC SYNC','#e96bbf','#7840a5']];
@@ -1001,6 +1001,14 @@
       for(const [x,y] of [[26,26],[W-26,26],[26,H-26],[W-26,H-26],[W/2,26],[W/2,H-26]]){g.fillStyle='#2a2230';g.beginPath();g.arc(x,y,6,0,7);g.fill();g.fillStyle='rgba(200,190,214,.5)';g.beginPath();g.arc(x-1.5,y-1.5,2.2,0,7);g.fill();}});
      podLining.albedoTexture=t;podLining.emissiveTexture=t;podLining.emissiveColor=new B.Color3(.5,.22,.46);}
     const podAmber=glowMat('tesana-pod-amber','#ffb45a',.95);
+    // What the player can click from inside a pod (world-integration.js asks podPick where the pointer is): the music player, the light panel, the vending unit, the exit sign.
+    const podTouch=(mesh,index,kind)=>{mesh.isPickable=true;mesh.metadata={podTouch:{index,kind}};return mesh;};
+    const drawPodExit=(g,hot)=>{const W=512,H=96;g.clearRect(0,0,W,H);g.fillStyle=hot?'rgba(10,52,28,.8)':'rgba(8,10,16,.5)';g.beginPath();g.roundRect?g.roundRect(4,8,W-8,H-16,14):g.rect(4,8,W-8,H-16);g.fill();g.strokeStyle=hot?'rgba(120,255,170,1)':'rgba(214,236,226,.7)';g.lineWidth=hot?4:2;g.stroke();
+     g.textAlign='center';g.textBaseline='middle';g.font='700 44px Arial,Helvetica,sans-serif';g.shadowColor=hot?'#58ff9a':'transparent';g.shadowBlur=hot?18:0;g.fillStyle=hot?'#eafff1':'rgba(240,248,244,.92)';g.fillText('EXIT THE POD',W/2,H/2+2);g.shadowBlur=0;};
+    const podExitTex=texture('tesana-pod-exit',512,96,g=>drawPodExit(g,false));podExitTex.hasAlpha=true;const podExitMat=texMat('tesana-pod-exit',podExitTex,{glow:true,alpha:true});podExitMat.backFaceCulling=true;let podExitHot=false;
+    const podPick=(x,y)=>{const hit=scene.pick(x,y,m=>!!m.metadata?.podTouch,false,scene.activeCamera);if(!hit?.hit)return null;const uv=hit.getTextureCoordinates?.();return {...hit.pickedMesh.metadata.podTouch,u:uv?uv.x:.5,v:uv?1-uv.y:.5,distance:hit.distance};};
+    const podHover=kind=>{const hot=kind==='exit';if(hot===podExitHot)return;podExitHot=hot;drawPodExit(podExitTex.getContext(),hot);podExitTex.update();};
+    if(root.VoidNeoChinatown){root.VoidNeoChinatown.podPick=podPick;root.VoidNeoChinatown.podHover=podHover;}
     framed=[];   // the ten pods, their ladder and ceiling panels: built in the west room's coordinates, then moved to the back wall below
     for(let row=0;row<2;row++)for(let i=0;i<5;i++){const z=57+i*2.6,y=.9+row*1.7,index=row*5+i+1,hatch=[amber,magenta][(i+row)%2],shell=podPaint,podInner=glowMat('pod-inner-'+index,'#ffc98a',.16),podLed=glowMat('tesana-pod-led-'+index,'#ad5a94',.4);
      // A hollow capsule: back, top, floor, sides and a fascia framing the hatch, so the bed shows through the glass.
@@ -1028,12 +1036,14 @@
      }
      // The pod's own music player face (after the owner's Tesana pod: an old-style amp display). It shows what THIS pod is playing; the controls stay in MUSIC & LIGHTS.
      const podTex=texture('tesana-pod-screen-'+index,384,192,g=>drawPodPlayer(g,index,null));podPlayers[index]=podTex;
-     box('tesana-pod-screen-frame',[.05,.56,1.06],[-16.48,y+.14,z+.4],podVent);plane('tesana-pod-screen',.98,.49,[-16.44,y+.14,z+.4],texMat('tesana-pod-screen-'+index,podTex,{glow:true}),-Math.PI/2);
+     box('tesana-pod-screen-frame',[.05,.56,1.06],[-16.48,y+.14,z+.4],podVent);podTouch(plane('tesana-pod-screen',.98,.49,[-16.44,y+.14,z+.4],texMat('tesana-pod-screen-'+index,podTex,{glow:true}),-Math.PI/2),index,'music');
      const lightTex=texture('tesana-pod-lights-'+index,320,180,g=>drawPodLights(g,index,root.VoidPodMusic?.lightingFor?.(index)||'rest',null));podLightFaces[index]=lightTex;
-     box('tesana-pod-lights-frame',[.05,.32,.56],[-16.48,y-.04,z-.42],podVent);plane('tesana-pod-lights',.5,.28,[-16.44,y-.04,z-.42],texMat('tesana-pod-lights-'+index,lightTex,{glow:true}),-Math.PI/2);
+     box('tesana-pod-lights-frame',[.05,.32,.56],[-16.48,y-.04,z-.42],podVent);podTouch(plane('tesana-pod-lights',.5,.28,[-16.44,y-.04,z-.42],texMat('tesana-pod-lights-'+index,lightTex,{glow:true}),-Math.PI/2),index,'lights');
      // Built-in vending unit on the side wall between two ribs (after the owner's Tesana pod). Browsed from the pod menu (VENDING).
      box('tesana-pod-vend-frame',[.72,.6,.06],[-15.675,y+.08,z+.985],podRib);box('tesana-pod-vend-tray',[.5,.07,.02],[-15.675,y-.19,z+.95],podVent);box('tesana-pod-vend-led',[.03,.03,.012],[-15.36,y+.3,z+.95],amber);
-     box('tesana-pod-vend-bezel',[.68,.46,.01],[-15.675,y+.13,z+.959],podVent); plane('tesana-pod-vend',.64,.42,[-15.675,y+.13,z+.952],podVendMat,0);
+     box('tesana-pod-vend-bezel',[.68,.46,.01],[-15.675,y+.13,z+.959],podVent); podTouch(plane('tesana-pod-vend',.64,.42,[-15.675,y+.13,z+.952],podVendMat,0),index,'vend');
+     // EXIT THE POD, lettered on the inside of the hatch glass (David, 15 Nov 2026): seen only from inside, a little see-through, brighter under the pointer. Clicking it gets up.
+     {const sign=B.MeshBuilder.CreatePlane('tesana-pod-exit',{width:.72,height:.135},scene);add(sign,podExitMat,[-14.1,y+.4,z],false);sign.rotation.y=Math.PI/2;podTouch(sign,index,'exit');}
      neon('pod-no-'+row+i,[String(row*5+i+1).padStart(2,'0')],['#e8f0ff'],.4,.25,[-14.06,y+.62,z+.8],-Math.PI/2,undefined,true);}
     box('pod-ladder',[.1,3.2,.6],[-14,1.6,69],pipe);
     for(let z=56.8;z<69;z+=2.4)box('pods-ceiling-panel',[1,.04,1],[-11.2,4.03,z],glowMat('pod-panel','#7fe6ff',.9));
