@@ -23,7 +23,9 @@
 
  const AREAS={interior:'The Darknet District',club:'NULL nightclub, NeoChinatown'};
  const NPCS=[
-  {id:'admin',name:'Admin',jobs:['merchant'],area:'interior',place:'The Darknet District store',bio:'Runs the District store.',
+  /* `model`: the character's own model file (assets/models/crowd/<model>.glb), drawn in the scene and in the profile picture instead of the creator look in `appearance`,
+     which stays as the fallback if the file cannot be loaded. `scale` brings the file to the game's standard height. */
+  {id:'admin',name:'Admin',jobs:['merchant'],area:'interior',place:'The Darknet District store',bio:'Runs the District store.',model:'npc-admin',scale:.99,
    appearance:{v:1,base:'male',look:'district-smuggler',hair:'short03',hairColor:'silver',clothingColor:'graphite',accessories:[]}},
   {id:'iris',name:'Iris',jobs:['merchant','info-broker'],area:'interior',place:'The Darknet District store',bio:'Works the store counter beside Admin.',
    appearance:{v:1,base:'female',look:'fixer-01',hair:'bob02',hairColor:'silver',clothingColor:'black',accessories:['gear-collar','gear-shoulders','gear-chest']}},

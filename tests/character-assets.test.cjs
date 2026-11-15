@@ -1,7 +1,7 @@
 /* Pins the facts the character audit and plan rest on, so they cannot drift unnoticed (docs/development/CHARACTER_MODEL_AUDIT.md). Read-only: it only opens GLB files. */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {analyze,imageSize}=require('../tools/assets/analyze-character-models.cjs');
-const dir='void-runner/assets/models/crowd',files=fs.readdirSync(dir).filter(f=>f.endsWith('.glb')).sort();
+const dir='void-runner/assets/models/crowd',files=fs.readdirSync(dir).filter(f=>f.endsWith('.glb')&&!f.startsWith('npc-')).sort();   // npc-*.glb are single characters made with Meshy (their own skeleton and one mesh), not the MakeHuman set
 const all=files.map(f=>({f,...analyze(fs.readFileSync(path.join(dir,f)),f)}));
 
 test('the analysis tool reads a hand-built GLB correctly',()=>{

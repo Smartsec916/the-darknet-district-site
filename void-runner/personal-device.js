@@ -63,7 +63,7 @@
  function areasHere(){const out=[];try{const wl=typeof walkingLocation!=='undefined'?walkingLocation:null;if(wl?.id==='neochinatown'&&typeof walker!=='undefined'&&walker){if(wl.area==='interior')out.push('interior');else if(root.VoidNightclub?.inside?.(walker))out.push('club');}}catch{}return out;}
  function sceneLook(crew){try{const sc=root.VoidBabylon?.scene,hit=n=>n.metadata&&n.metadata.crowd&&(n.metadata.character===crew||n.metadata.club===crew),n=sc?.transformNodes.find(hit)||sc?.meshes.find(hit);return n?n.metadata.crowd:null;}catch{return null;}}
  function residentProfile(n,here){const P=DP(),live=n.live==='dax'?root.VoidDax?.where:null;   /* Dax moves about on her own: her profile says where she is now */
-  return D.profile('npc',{id:n.id,name:n.name,affiliation:P.jobsText(n.jobs),bio:n.bio,place:live?live.place:n.place,here:false,appearance:n.appearance||null,model:n.appearance?null:(n.crew&&sceneLook(n.crew))||n.look||null});}
+  return D.profile('npc',{id:n.id,name:n.name,affiliation:P.jobsText(n.jobs),bio:n.bio,place:live?live.place:n.place,here:false,appearance:n.model?null:n.appearance||null,model:n.model||(n.appearance?null:(n.crew&&sceneLook(n.crew))||n.look||null)});}
  function residents(onlyHere=true){const P=DP();if(!P)return [];const a=areasHere();const me=flags_()?.playingAs;return P.NPCS.filter(n=>n.id!==me&&(!onlyHere||a.includes(n.area))).map(n=>residentProfile(n));}   /* a developer playing as Admin is not also listed as a resident */
  const flags_=()=>state_()?.story?.flags||null;
  const cleanAbout=v=>String(v??'').replace(/[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2066-\u2069<>]/g,'').replace(/\s+/g,' ').trim().slice(0,120);
