@@ -73,11 +73,20 @@
    "cutout": true,
    "doubleSided": true,
    "alphaCutoff": 0.3,
-   "maxTris": 14000
+   "keepCards": {
+    "Material": 0.5,
+    "Material.001": 0.5
+   },
+   "cardSegments": 6,
+   "maxTris": 30000
   },
   "Eyebrows": {
    "name": "brows",
-   "maxTris": 2000
+   "keepCards": {
+    "Eyebrows": 0.12
+   },
+   "cardSegments": 3,
+   "maxTris": 6000
   },
   "Eyelashes": {
    "name": "lashes",
