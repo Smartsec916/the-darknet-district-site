@@ -58,5 +58,5 @@ test('every gear part file exists for both bodies, is a small self-contained GLB
  assert.equal(fit.reference.male,'district-smuggler');assert.equal(fit.reference.female,'district-resident');assert(tris<=1200,'all ten parts together '+tris);
 });
 test('no source model or licensed asset was added with the gear',()=>{
- const dir=path.join(ROOT,'void-runner/assets/models/gear'),names=fs.readdirSync(dir);assert(names.every(n=>/^gear_[A-Za-z_]+_(m|f)\.glb$|^gear-(manifest|fit)\.json$/.test(n)),names.join());
+ const dir=path.join(ROOT,'void-runner/assets/models/gear'),names=fs.readdirSync(dir);assert(names.every(n=>/^gear_[A-Za-z_]+_(m|f)\.glb$|^gear-(manifest|fit)\.json$|^street-fit\.json$/.test(n)),names.join());
 });
