@@ -71,6 +71,12 @@
   return '<div class="pd-jobs"><h2>WHAT YOU DO</h2><div class="pd-note">Choose one or two jobs. Kept in your save and shown on your profile here. Other players cannot see it yet.</div><div class="pd-jobrow">'+pick(0,'JOB')+pick(1,'SECOND JOB')+'</div>'
    +'<h2>ABOUT YOU</h2><form data-aboutform class="pd-compose"><input type="text" maxlength="120" autocomplete="off" aria-label="About you" placeholder="A line about your character (120 characters)" value="'+esc(cleanAbout(f.profileAbout))+'"><button type="submit">SAVE</button></form></div>';
  }
+ /* Following: chosen with the camera (device-camera.js) or a profile's FOLLOW button; kept in the save (district-people.js). */
+ const followKey=p=>p.kind==='npc'?'n:'+p.key.slice(4):'p:'+p.key.slice(7);
+ function followButton(p){const P=DP(),f=flags_();if(!P||!f)return '';const k=followKey(p),on=P.isFollowing(f,k);if(p.kind==='player'&&!D.HANDLE.test(p.name))return '';
+  return '<div class="pd-tabs" style="margin-top:6px"><button type="button" data-follow="'+esc(k)+'" data-name="'+esc(p.name)+'" aria-pressed="'+on+'">'+(on?'FOLLOWING · UNFOLLOW':'FOLLOW')+'</button></div>';}
+ function following(){const P=DP(),f=flags_();if(!P||!f)return [];const near=nearbyPlayers();
+  return P.readFollowing(f).map(x=>{if(x.kind==='npc'){const n=P.npc(x.id);return n?{...x,profile:residentProfile(n)}:null;}const pr=near.find(p=>p.key==='player:'+x.id);return {...x,profile:pr||null};}).filter(Boolean).reverse();}
  function nearbyPlayers(){
   const r=rp();if(!r?.connected)return [];
   return r.peers.map(p=>D.profile('player',{handle:p.name,publicId:p.id,appearance:p.appearance||null,bio:'In the District right now.'},{canBlock:true,canReport:true}));
@@ -168,10 +174,11 @@
   },
   social(){
    const sel=stack[1];
-   if(sel){const mine=myProfile(),all=[mine,...residents(false),...npcContacts(),...nearbyPlayers()],p=all.find(x=>x.key===sel);if(p)return profileCard(p,{extra:p.kind==='player'&&p.key!==mine.key?'<div data-report></div>':''})+(p.key===mine.key?profileEditor():'');}
+   if(sel){const mine=myProfile(),all=[mine,...residents(false),...npcContacts(),...nearbyPlayers()],p=all.find(x=>x.key===sel);if(p)return profileCard(p,{extra:(p.key!==mine.key?followButton(p):'')+(p.kind==='player'&&p.key!==mine.key?'<div data-report></div>':'')})+(p.key===mine.key?profileEditor():'');}
    const me=myProfile(),here=residents(),hk=new Set(here.map(x=>x.key)),npcs=npcContacts().filter(x=>!hk.has(x.key)),pl=nearbyPlayers();
+   const fol=following(),folRow=f=>f.profile?row(f.profile):'<article class="pd-card"><h3>'+esc(f.name)+' <small>PLAYER · NOT HERE NOW</small></h3><div class="pd-tabs" style="margin:6px 0 0"><button type="button" data-follow="'+esc(f.key)+'" data-name="'+esc(f.name)+'">UNFOLLOW</button></div></article>';
    const row=p=>'<article class="pd-card"><div class="pd-prof">'+portraitHtml(p)+'<div style="flex:1"><h3>'+esc(p.name)+'</h3><div class="pd-note">'+esc(p.subtitle||p.bio)+'</div><button type="button" data-open-profile="'+esc(p.key)+'">PROFILE</button></div></div></article>';
-   return '<h2>YOU</h2>'+row(me)+'<h2>PEOPLE YOU KNOW</h2>'+(npcs.length?npcs.map(row).join(''):'<div class="pd-empty">Nobody yet. People you meet appear here.</div>')
+   return '<h2>YOU</h2>'+row(me)+'<h2>FOLLOWING</h2>'+(fol.length?fol.map(folRow).join(''):'<div class="pd-empty">Nobody yet. Open the Camera, put the crosshair on someone or their tag, and press F.</div>')+'<h2>PEOPLE YOU KNOW</h2>'+(npcs.length?npcs.map(row).join(''):'<div class="pd-empty">Nobody yet. People you meet appear here.</div>')
     +(here.length?'<h2>RESIDENTS HERE</h2>'+here.map(row).join(''):'')+'<h2>PLAYERS HERE NOW</h2>'+(pl.length?pl.map(row).join(''):'<div class="pd-empty">'+(rp()?.connected?'No other players nearby.':'Not connected to the District server.')+'</div>')
     +'<div class="pd-note" style="margin-top:10px">Friends and player discovery are not available yet.</div>';
   },
@@ -277,6 +284,7 @@
   if(t.dataset.repOpen){reporting=reporting===t.dataset.repOpen?'':t.dataset.repOpen;chat()?.clearNote();render({keepScroll:true});return;}
   if(t.dataset.repSend){const box=t.closest('.pd-report'),ok=rp()?.report(t.dataset.repSend,box.querySelector('select').value,box.querySelector('input').value);reporting='';render({keepScroll:true});if(!ok){const n=document.createElement('div');n.className='pd-card';n.setAttribute('role','status');n.textContent='Could not send the report right now.';body.prepend(n);}return;}
   if(t.dataset.openProfile){go(['social',t.dataset.openProfile],'tab','LOADING PROFILE');return;}
+  if(t.dataset.follow){const P=DP(),f=flags_();if(P&&f){const [kind,id]=t.dataset.follow.split(':');P.toggleFollow(f,kind==='n'?{kind:'npc',id}:{kind:'player',id,name:t.dataset.name});try{if(typeof save==='function')save();}catch{}render({keepScroll:true});}return;}
   if(t.dataset.track||t.dataset.untrack){const s=state_(),V=root.VoidMissions;try{if(t.dataset.track)V.track(s,t.dataset.track,C);else V.untrack(s);if(typeof save==='function')save();}catch{}render({keepScroll:true});return;}
   if(t.dataset.set){dev.settings[t.dataset.set]=t.dataset.value;if(t.dataset.set==='size')expanded=t.dataset.value==='expanded';commit();render({keepScroll:true});return;}
   if(t.dataset.act==='block'||t.dataset.act==='report'){

@@ -24,3 +24,8 @@ test('the cabinet runs the real game page in a frame and never reaches into it; 
  for(const f of ['void-runner.html','static/void-runner.html'])assert.match(fs.readFileSync(f,'utf8'),/<script type="text\/tdd-game" src="void-runner\/district-arcade\.js">/);
  assert.match(fs.readFileSync('void-runner/remote-players.js','utf8'),/'arcade'/,'a player at a cabinet stays connected to the District');
 });
+test('every game page offers a way back to the website, and inside the District arcade the way out is EXIT GAME',()=>{
+ const ret=fs.readFileSync('site-return.js','utf8');assert.match(ret,/games-list\.html/);assert.match(ret,/window\.top!==window\.self/,'nothing is shown inside the arcade frame');
+ for(const f of ['blackout-protocol/index.html','corporate-zombies/index.html','underground-overdrive/index.html','origins/index.html','raven.html','void-runner.html'])assert.match(fs.readFileSync(f,'utf8'),/site-return\.js/,f);
+ assert.match(fs.readFileSync('void-runner/district-arcade.js','utf8'),/>EXIT GAME</);assert.match(fs.readFileSync('games-list.html','utf8'),/href="void-runner\.html">\s*<h3>The Darknet District - Game<\/h3>/);
+});

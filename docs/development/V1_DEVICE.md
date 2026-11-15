@@ -59,3 +59,10 @@ David asked for the NPCs in The Darknet District to be listed with the players, 
   - Not built: taking or keeping photos (Gallery is still "coming later").
 - **News:** each sponsored post and each report sits in its own bordered box.
 
+## 15 Nov 2026 (night): follow people with the camera; one look per character; games page
+
+- **Aim and follow:** in the Camera, putting the crosshair on a person OR on their tag selects them (the tag fills in, the aperture turns green, "F · FOLLOW NAME" appears). F follows or unfollows. Following is kept in the save (`story.flags.socialFollowing`, `district-people.js`) and listed in Social under FOLLOWING; a profile also has a FOLLOW button. Residents and players with a registered handle can be followed. Tags of people standing close together no longer cover each other.
+- **One look per character:** Admin's and Iris's figures and their profile portraits are drawn from the same record (`district-people.js`). Iris's portrait had been drawn from a wrong copy of her look; a test now compares them.
+- **Not built yet (David asked 15 Nov):** tagging people in Messages and Mission Logs, and bounties on NPCs or players. Both need the District server to carry and check them.
+- **Games page:** "The Darknet District - Game" card; `site-return.js` puts a "← WEBSITE" button on every game page (VOID//RUNNER: main menu only); inside the arcade the cabinet bar says EXIT GAME.
+

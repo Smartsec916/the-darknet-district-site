@@ -8,7 +8,7 @@
      none of them are stored per device. */
 (function(root){
  'use strict';
- const ASSET_VERSION=4;   // bump when portrait framing or lighting changes, or when an NPC model or outfit is updated: every cached portrait is then redrawn
+ const ASSET_VERSION=5;   // bump when portrait framing or lighting changes, or when an NPC model or outfit is updated: every cached portrait is then redrawn
  const DEVICES={
   v1:{id:'v1',generation:1,name:'V1',tagline:'PERSONAL DEVICE · MODEL V1',
    apps:['missions','messages','social','news','map','camera','gallery','store','device','settings'],
