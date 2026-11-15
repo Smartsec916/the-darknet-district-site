@@ -70,10 +70,13 @@ test('every area of the soundtrack has a recording on disk, and so does every ne
   const fs=require('node:fs'),path=require('node:path'),S=require('../void-runner/music-score.js'),root=path.join(__dirname,'..');
   const areas=['theme','neochinatown','alley','district-hall','district-entry','district-store','district-vr','district-arcade','district-bar','nightclub','corporate','temple','milked','space'];
   for(const id of areas){assert.ok(S.styles[id],id+' is a style');assert.ok(S.files[id],id+' has a recording');}
-  assert.equal(new Set(areas.map(id=>S.files[id])).size,areas.length,'each area has its own track');
+  // David, 15 Nov 2026: the hallway's music plays throughout the District at one level; only the arcade keeps its own.
+  const hall=['district-hall','district-entry','district-store','district-vr','district-bar','district-rest'];for(const id of hall){assert.equal(S.files[id],S.files['district-hall'],id+' plays the hallway recording');assert.equal(S.styles[id].gain,S.styles['district-hall'].gain,id+' at the hallway level');}
+  assert.notEqual(S.files['district-arcade'],S.files['district-hall'],'the arcade keeps its own music');
+  assert.equal(new Set(areas.filter(id=>!hall.includes(id)||id==='district-hall').map(id=>S.files[id])).size,areas.length-4,'every other area has its own track');
   for(const [id,f] of Object.entries(S.files)){assert.ok(S.styles[id],id);const st=fs.statSync(path.join(root,f));assert.ok(st.size>200000&&st.size<1500000,f+' is a compressed loop of sensible size');}
   for(const [id,list] of Object.entries(D.neighbours)){assert.ok(S.styles[id],id);for(const n of list)assert.ok(S.files[n],id+' -> '+n);}
-  assert.equal(S.files['district-rest'],S.files['district-hall'],'the pods end hears the hall, quieter');assert.ok(S.styles['district-rest'].gain<S.styles['district-hall'].gain);
+  assert.equal(S.files['district-terrace'],S.files['district-hall'],'the terrace hears the hall through the wall');
 });
 test('dialogue ducks the music without stopping it',()=>{
   const r=D.step(D.create(),{...inDistrict(10,46),mode:'dialogue',dialogue:true},.1);assert.equal(r.duck,D.config.dialogueDuck);assert(r.style);

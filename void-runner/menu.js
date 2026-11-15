@@ -126,7 +126,7 @@ function campaignMenu(){menuShell('campaign','<section class="settings-panel men
 async function exitActiveGame(){
  const skirmish=globalThis.VoidSkirmish?.active||globalThis.VoidFlightSkirmish?.active;
  if(!skirmish&&(hasSave||mode!=='menu'&&mode!=='title'))save();
- mode='menu';VoidMenu.returnTo=null;speech=null;VoidAudio.cancel();clearInput();walkingKeys.clear();document.exitPointerLock?.();
+ mode='menu';VoidMenu.returnTo=null;speech=null;VoidAudio.cancel();clearInput();walkingKeys.clear();document.exitPointerLock?.();{const pw=document.getElementById('pod-wake');if(pw)pw.hidden=true;}   /* leaving from inside a pod left the pod's strip lying over the main menu */
  const pending=[preparingLaunch,destinationPreparation].filter(Boolean);
  preparationGeneration++;VoidPreparation.cancel();
  if(globalThis.VoidFlightSkirmish?.active)await VoidFlightSkirmish.end();

@@ -58,8 +58,11 @@
  styles.milked={...styles['district-bar'],gain:.8,mood:'Milked: slow, glossy, late night.'};
  styles.corporate={...styles.vantor,gain:.8,mood:'Corporate District: cold, imposing, watched.'};
  styles.temple={...styles.communion,gain:.8,mood:'Zen Zephyr Temple: bowls, flute and wind above the city.'};
- const files={theme:track('theme'),neochinatown:track('neochinatown'),alley:track('alley'),'district-hall':track('district-hall'),'district-entry':track('district-entry'),'district-store':track('district-store'),
-  'district-vr':track('district-vr'),'district-arcade':track('district-arcade'),'district-bar':track('district-bar'),nightclub:track('nightclub'),corporate:track('corporate'),temple:track('temple'),milked:track('milked'),
+ // David, 15 Nov 2026: the hallway's music is the music of the whole District, at one level; only the arcade keeps its own. The rooms are still separate areas
+ // (their ambience, footsteps and the door lock depend on that), they just all play the hallway's recording.
+ for(const k of ['district-entry','district-store','district-bar','district-vr','district-rest'])styles[k]={...styles['district-hall'],mood:styles[k].mood};
+ const files={theme:track('theme'),neochinatown:track('neochinatown'),alley:track('alley'),'district-hall':track('district-hall'),'district-entry':track('district-hall'),'district-store':track('district-hall'),
+  'district-vr':track('district-hall'),'district-arcade':track('district-arcade'),'district-bar':track('district-hall'),nightclub:track('nightclub'),corporate:track('corporate'),temple:track('temple'),milked:track('milked'),
   space:track('space'),'space-cantor':track('space'),'space-garrow':track('space'),
   // the pods end of the hall and the smoking terrace hear the hall's music, quieter (and through the wall on the terrace): same file, so walking between them is only a change of level
   'district-rest':track('district-hall'),'district-terrace':track('district-hall')};
