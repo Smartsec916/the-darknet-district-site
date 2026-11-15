@@ -28,16 +28,20 @@
     shoulders, a black device over each ear, and a few tiny amber lights. No belts or pouches: she is clean, not kitted out. */
  const KITS={admin:{belt:true,pouches:2,harness:true,thighs:'',knees:false,bracer:'',goggles:false,jacket:true,accent:4},
   iris:{belt:false,pouches:0,harness:false,thighs:'',knees:false,bracer:'',goggles:false,jacket:false,android:true,accent:4}};
+ /* The Darknet District: Rebellion Edition T-shirt (David, 15 Nov 2026: "have 5% of NPCs be wearing" it; the real one is sold on the site's apparel page). About one
+    NPC in twenty wears it: a black tee over whatever top they have (a tube round the torso and short sleeves, fitted to their body), the shirt's own city print on the
+    chest (void-runner/art/apparel/rebellion-tee-print.jpg, cut from the store's product picture) and a small coloured patch on each sleeve. */
+ const TEE_SHARE=.05,TEE_PRINT='void-runner/art/apparel/rebellion-tee-print.jpg';
  /* What a person wears: {belt, pouches (2..4), harness, thighs ('', 'L', 'R', 'LR'), knees, bracer ('', 'L', 'R'), goggles, accent (0..5)}. */
- function loadout(seed,look,body){
+ function loadout(seed,look,body,teeShare=TEE_SHARE){
   if(KITS[seed])return {...KITS[seed]};
-  const r=k=>roll(seed,k),skirt=!!body?.skirt,t=r('thigh');
-  return {belt:r('belt')<.92,pouches:2+Math.floor(r('pouches')*3),harness:r('harness')<.55,thighs:skirt?'':t<.3?'L':t<.6?'R':t<.75?'LR':'',knees:!skirt&&r('knees')<.35,
+  const r=k=>roll(seed,k),skirt=!!body?.skirt,t=r('thigh'),tee=r('tee')<teeShare;
+  return {tee,belt:r('belt')<.92,pouches:2+Math.floor(r('pouches')*3),harness:!tee&&r('harness')<.55,   /* a chest rig would cover the shirt's print */thighs:skirt?'':t<.3?'L':t<.6?'R':t<.75?'LR':'',knees:!skirt&&r('knees')<.35,
    bracer:r('bracer')<.34?'L':r('bracer')<.68?'R':'',goggles:!HATS.has(look)&&r('goggles')<.3,jacket:false,accent:hash(seed+'/accent')%ACCENTS.length};
  }
  // ---- geometry: points are in the character file's own space (x = the character's left, y up, z forward) ----
  const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],mul=(a,k)=>[a[0]*k,a[1]*k,a[2]*k],cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],
-  len=a=>Math.hypot(a[0],a[1],a[2]),norm=a=>mul(a,1/(len(a)||1)),lerp=(a,b,t)=>add(a,mul(sub(b,a),t));
+  len=a=>Math.hypot(a[0],a[1],a[2]),len3=len,norm=a=>mul(a,1/(len(a)||1)),lerp=(a,b,t)=>add(a,mul(sub(b,a),t));
  /* A frame: origin o and three unit axes. Local (x, y, z) -> o + x*ax + y*ay + z*az. `up` is the direction the part's own "up" runs (a leg: toward the hip). */
  function frame(o,up){const ay=norm(up);let az=[0,0,1];const d=az[0]*ay[0]+az[1]*ay[1]+az[2]*ay[2];az=norm(sub(az,mul(ay,d)));return {o,ax:cross(ay,az),ay,az};}
  const UPRIGHT=o=>({o,ax:[1,0,0],ay:[0,1,0],az:[0,0,1]});
@@ -57,13 +61,28 @@
    for(let i=0;i<steps;i++){const t0=(a0+(a1-a0)*i/steps)*Math.PI/180,t1=(a0+(a1-a0)*(i+1)/steps)*Math.PI/180,tm=(t0+t1)/2,o0=pt(t0,thick),o1=pt(t1,thick),i0=pt(t0,0),i1=pt(t1,0),n=[Math.sin(tm)/Math.max(rx,1e-6),0,Math.cos(tm)/Math.max(rz,1e-6)];
     quad([o0[0],y0,o0[1]],[o1[0],y0,o1[1]],[o1[0],y1,o1[1]],[o0[0],y1,o0[1]],n,cl);
     quad([o0[0],y1,o0[1]],[o1[0],y1,o1[1]],[i1[0],y1,i1[1]],[i0[0],y1,i0[1]],[0,1,0],cl);quad([i0[0],y0,i0[1]],[i1[0],y0,i1[1]],[o1[0],y0,o1[1]],[o0[0],y0,o0[1]],[0,-1,0],cl);}}
+  // a tube through rings [{y, cx, cz, rx, rz}], bottom to top: the outer wall only (a shirt's body)
+  function tube(rings,steps=16,cl=cell){for(let k=1;k<rings.length;k++){const a=rings[k-1],b=rings[k];for(let i=0;i<steps;i++){const t0=i/steps*Math.PI*2,t1=(i+1)/steps*Math.PI*2,tm=(t0+t1)/2,P=(r,t)=>[r.cx+r.rx*Math.sin(t),r.y,r.cz+r.rz*Math.cos(t)];
+    quad(P(a,t0),P(a,t1),P(b,t1),P(b,t0),[Math.sin(tm)/Math.max(a.rx,1e-6),0,Math.cos(tm)/Math.max(a.rz,1e-6)],cl);}}}
   // a point on the ellipse and the yaw that faces outward there
   const at=(cx,cz,rx,rz,deg,out=0)=>{const t=deg*Math.PI/180;return {x:cx+(rx+out)*Math.sin(t),z:cz+(rz+out)*Math.cos(t),yaw:Math.atan2(Math.sin(t)/Math.max(rx,1e-6),Math.cos(t)/Math.max(rz,1e-6))};};
-  return {quad,box,band,at};
+  return {quad,box,band,tube,at};
  }
  /* The whole kit of one person as one mesh. body: that character file's entry in street-fit.json. Returns {positions, normals, uvs, indices, bone (per vertex: index into bones), bones (joint names), parts}. */
  function build(body,wear){
-  const m=mesh(),J=body.joints,u=body.height/1.8,A=GLOW+wear.accent,parts=[];
+  const m=mesh(),J=body.joints,u=body.height/1.8,A=GLOW+wear.accent,parts=[];let print=null;
+  if(wear.tee&&body.chest&&body.Left.upperarm){const w=body.waist,r=body.ribs,c=body.chest,k=.014*u,ring=(q,y,grow=1)=>({y,cx:J.Hips[0],cz:(q.front+q.back)/2,rx:(q.halfW+k)*grow,rz:((q.front-q.back)/2+k)*grow}),g=writer(m,UPRIGHT([0,0,0]),'Spine1',STRAP);parts.push('tee');
+   // up the body: hem, waist, ribs, chest (never wider than the ribs: the chest measure takes in the arms), across the shoulders, and in to the collar
+   const n=body.neck,cx=J.Hips[0],cd=(c.front-c.back)/2+k,chest={y:c.y,cx,cz:(c.front+c.back)/2,rx:Math.min(c.halfW,r.halfW*1.08)+k,rz:cd},sw=Math.abs(J.LeftArm[0]-J.RightArm[0])/2+.012*u,
+    shoulder={y:(J.LeftArm[1]+J.RightArm[1])/2-.012*u,cx,cz:chest.cz-.01*u,rx:sw,rz:cd*.86},collar=n?{y:n.y-.012*u,cx:J.Neck[0],cz:(n.front+n.back)/2,rx:n.halfW+.03*u,rz:(n.front-n.back)/2+.03*u}:null;
+   g.tube([ring(w,w.y-.03*u,1.03),ring(w,w.y+.03*u),ring(r,r.y),chest,shoulder,...(collar?[collar]:[])]);
+   for(const [S,sx,patch] of [['Left',1,MATTE+1],['Right',-1,MATTE+3]]){const sh=J[S+'Arm'],el=J[S+'ForeArm'],L=body[S].upperarm,len=len3(sub(sh,el)),f=frame(add(sh,L.c),sub(sh,el)),a=writer(m,f,S+'Arm',STRAP),rr=L.r+.008*u;
+    a.band(0,0,rr,rr,0,360,-.5*len,.02*u,.004*u,10);const deg=f.ax[1]>0?90:-90,p=a.at(0,0,rr,rr,deg,.0055*u);a.box([p.x,-.27*len,p.z],[.055*u,.045*u,.002*u],p.yaw,patch);}
+   // the print: a patch that follows the chest, 20 cm square, with its own picture (u runs from the wearer's right to their left, so it reads the right way round from in front)
+   const cz=(c.front+c.back)/2,rx=Math.min(c.halfW,r.halfW*1.08)+k+.014*u,rz=(c.front-c.back)/2+k+.014*u,half=Math.min(42,(.1*u/Math.max(rx,rz))*180/Math.PI),y0=c.y-.15*u,y1=c.y+.05*u,N=6,P=[],Nn=[],U=[],I=[];
+   for(let i=0;i<=N;i++){const t=(-half+2*half*i/N)*Math.PI/180,x=J.Hips[0]+rx*Math.sin(t),z=cz+rz*Math.cos(t),n=norm([Math.sin(t)/rx,0,Math.cos(t)/rz]);for(const [y,v] of [[y0,0],[y1,1]]){P.push(x,y,z);Nn.push(n[0],n[1],n[2]);U.push(i/N,v);}}
+   for(let i=0;i<N;i++){const q=i*2;I.push(q,q+2,q+3,q,q+3,q+1);}
+   print={positions:P,normals:Nn,uvs:U,indices:I,bone:'Spine2'};}
   if(wear.belt){const w=body.waist,cz=(w.front+w.back)/2,rx=w.halfW+.004*u,rz=(w.front-w.back)/2+.004*u,g=writer(m,UPRIGHT([J.Hips[0],w.y,0]),'Hips',STRAP);parts.push('belt');
    g.band(0,cz,rx,rz,0,360,-.022*u,.022*u,.008*u,16);
    const b=g.at(0,cz,rx,rz,0,.012*u);g.box([b.x,0,b.z],[.058*u,.05*u,.012*u],b.yaw,PLATE);g.box([b.x,0,b.z+.007*u],[.03*u,.008*u,.003*u],b.yaw,A);
@@ -111,14 +130,14 @@
   if(wear.goggles){const b=body.brow,cz=(b.front+b.back)/2,rx=b.halfW+.005*u,rz=(b.front-b.back)/2+.005*u,g=writer(m,UPRIGHT([J.Head[0],b.y,0]),'Head',STRAP);parts.push('goggles');
    g.band(0,cz,rx,rz,0,360,-.012*u,.012*u,.005*u,14);
    for(const deg of [-24,24]){const p=g.at(0,cz,rx,rz,deg,.005*u+.012*u);g.box([p.x,0,p.z],[.052*u,.04*u,.026*u],p.yaw,PLATE);const l=g.at(0,cz,rx,rz,deg,.005*u+.0255*u);g.box([l.x,0,l.z],[.04*u,.028*u,.002*u],l.yaw,A);}}
-  return {...m,parts};
+  return {...m,parts,print};
  }
  const wants=look=>!!look&&!SKIP.test(look);
- const pure={ACCENTS,CELLS,HATS,KITS,hash,loadout,build,wants};
+ const pure={ACCENTS,CELLS,HATS,KITS,TEE_SHARE,TEE_PRINT,hash,loadout,build,wants};
  if(typeof module!=='undefined'&&module.exports){module.exports=pure;return;}
  if(typeof document==='undefined')return;
 
- const config={enabled:true};let fitP=null,count=0;const materials=new WeakMap();
+ const config={enabled:true,teeShare:TEE_SHARE};let fitP=null,count=0;const materials=new WeakMap();
  const fit=()=>fitP||(fitP=fetch(new URL('void-runner/assets/models/gear/street-fit.json',document.baseURI||location.href)).then(r=>{if(!r.ok)throw Error('street fit HTTP '+r.status);return r.json();}).catch(e=>{fitP=null;throw e;}));
  // One material for everyone's gear in a scene: a strip of colours (webbing, metal, then the six accents), and the same strip lit for the accents only.
  function material(scene){const B=root.BABYLON;let m=materials.get(scene);if(m&&!m._street_gone)return m;
@@ -128,13 +147,14 @@
   const tex=d=>{const t=B.RawTexture.CreateRGBATexture(d,CELLS,1,scene,false,false,B.Texture.NEAREST_SAMPLINGMODE);t.wrapU=t.wrapV=B.Texture.CLAMP_ADDRESSMODE;return t;};
   m=new B.PBRMaterial('street-gear',scene);m.albedoTexture=tex(base);m.emissiveTexture=tex(glow);m.emissiveColor=new B.Color3(1,1,1);m.emissiveIntensity=1.6;m.metallic=.35;m.roughness=.5;
   m.backFaceCulling=false;m.twoSidedLighting=true;m.onDisposeObservable.add(()=>{m._street_gone=true;});materials.set(scene,m);return m;}
+ function printMaterial(scene){const B=root.BABYLON;let m=scene.getMaterialByName('street-gear-tee-print');if(m)return m;m=new B.PBRMaterial('street-gear-tee-print',scene);m.albedoTexture=new B.Texture(TEE_PRINT,scene);m.metallic=0;m.roughness=.85;m.emissiveTexture=m.albedoTexture;m.emissiveColor=new B.Color3(.25,.25,.25);m.backFaceCulling=false;m.twoSidedLighting=true;return m;}
  const boneIndex=(sk,name)=>sk.bones.findIndex(b=>b.name==='mixamorig:'+name||b.name.endsWith('mixamorig:'+name));
  /* Dress one figure. node: the figure's top node; look: its character file; seed: who it is. Returns the gear mesh, or null (unknown file, nothing to wear, no skeleton). */
  async function dress(node,look,seed){
   const B=root.BABYLON;if(!config.enabled||!B||!wants(look)||!node||node.isDisposed())return null;
   const data=await fit().catch(()=>null),body=data?.bodies?.[look];if(!body||node.isDisposed())return null;
   const skinned=node.getChildMeshes().filter(x=>x.skeleton&&x.getTotalVertices()>0);if(!skinned.length)return null;
-  const bodyMesh=skinned.reduce((a,b)=>b.getTotalVertices()>a.getTotalVertices()?b:a),sk=bodyMesh.skeleton,wear=loadout(seed,look,body),g=build(body,wear);if(!g.indices.length)return null;
+  const bodyMesh=skinned.reduce((a,b)=>b.getTotalVertices()>a.getTotalVertices()?b:a),sk=bodyMesh.skeleton,wear=loadout(seed,look,body,config.teeShare),g=build(body,wear);if(!g.indices.length)return null;
   const idx=g.bones.map(n=>boneIndex(sk,n));if(idx.some(i=>i<0))return null;
   const n=g.positions.length/3,mi=new Float32Array(n*4),mw=new Float32Array(n*4);for(let i=0;i<n;i++){mi[i*4]=idx[g.bone[i]];mw[i*4]=1;}
   const scene=node.getScene(),me=new B.Mesh('street-gear:'+seed,scene),vd=new B.VertexData();
@@ -142,6 +162,10 @@
   me.skeleton=sk;me.numBoneInfluencers=1;me.parent=bodyMesh.parent;me.position.copyFrom(bodyMesh.position);me.scaling.copyFrom(bodyMesh.scaling);
   if(bodyMesh.rotationQuaternion)me.rotationQuaternion=bodyMesh.rotationQuaternion.clone();else me.rotation.copyFrom(bodyMesh.rotation);
   me.material=material(scene);me.isPickable=false;me.receiveShadows=false;me.setBoundingInfo(bodyMesh.getBoundingInfo());me.layerMask=bodyMesh.layerMask;me.renderingGroupId=bodyMesh.renderingGroupId;
+  if(g.print){const bi=boneIndex(sk,g.print.bone);if(bi>=0){const pn=g.print.positions.length/3,pi=new Float32Array(pn*4),pw=new Float32Array(pn*4);for(let i=0;i<pn;i++){pi[i*4]=bi;pw[i*4]=1;}
+    const pm=new B.Mesh('street-gear-print:'+seed,scene),pv=new B.VertexData();pv.positions=g.print.positions;pv.normals=g.print.normals;pv.uvs=g.print.uvs;pv.indices=g.print.indices;pv.matricesIndices=pi;pv.matricesWeights=pw;pv.applyToMesh(pm);
+    pm.skeleton=sk;pm.numBoneInfluencers=1;pm.parent=me.parent;pm.position.copyFrom(me.position);pm.scaling.copyFrom(me.scaling);if(me.rotationQuaternion)pm.rotationQuaternion=me.rotationQuaternion.clone();else pm.rotation.copyFrom(me.rotation);
+    pm.material=printMaterial(scene);pm.isPickable=false;pm.receiveShadows=false;pm.setBoundingInfo(bodyMesh.getBoundingInfo());pm.layerMask=bodyMesh.layerMask;pm.metadata={streetGearPrint:true};me.onDisposeObservable.add(()=>{try{pm.dispose();}catch{}});}}
   me.metadata={streetGear:{seed,look,parts:g.parts,accent:wear.accent}};count++;me.onDisposeObservable.add(()=>{count--;});
   return me;}
  /* The V3 // Shadow eye (David, 15 Nov 2026): the device's camera is in its owner's LEFT eye, and while the device is in use that eye glows a little, in the green the

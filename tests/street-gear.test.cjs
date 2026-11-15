@@ -50,3 +50,19 @@ test('Iris is an android, clean of belts and pouches',()=>{
  assert.equal(G.loadout('fixer-01:walker-3','fixer-01',fit['fixer-01']).android,undefined,'nobody else is one');
 });
 test('nothing to wear builds nothing',()=>{assert.equal(G.build(fit['hacker-01'],{belt:false,pouches:2,harness:false,thighs:'',knees:false,bracer:'',goggles:false,accent:0}).indices.length,0);});
+
+test('about one NPC in twenty wears the Rebellion Edition tee: a black body, sleeves, patches and the shirt\'s print on the chest',()=>{
+ let tees=0;const N=4000;for(let i=0;i<N;i++){const w=G.loadout('hacker-01:walker-'+i,'hacker-01',fit['hacker-01']);if(w.tee){tees++;assert.equal(w.harness,false,'no chest rig over the print');}}
+ assert.ok(tees/N>.035&&tees/N<.065,'about 5% ('+(100*tees/N).toFixed(1)+'%)');assert.equal(G.TEE_SHARE,.05);
+ assert.equal(G.loadout('admin','district-smuggler',fit['district-smuggler']).tee,undefined,'not Admin');assert.equal(G.loadout('x:1','hacker-01',fit['hacker-01'],0).tee,false);assert.equal(G.loadout('x:1','hacker-01',fit['hacker-01'],1).tee,true);
+ assert.ok(fs.statSync(path.join(root,G.TEE_PRINT)).size>3000,'the print picture is in the game');
+ for(const l of looks){const b=fit[l],g=G.build(b,{tee:true,belt:false,pouches:0,harness:false,thighs:'',knees:false,bracer:'',goggles:false,accent:0}),u=b.height/1.8;
+  assert.deepEqual(g.parts,['tee']);assert.deepEqual(g.bones.sort(),['LeftArm','RightArm','Spine1']);assert.ok(g.print&&g.print.bone==='Spine2');
+  const P=g.print.positions,xs=[],ys=[],zs=[];for(let i=0;i<P.length;i+=3){xs.push(P[i]);ys.push(P[i+1]);zs.push(P[i+2]);}
+  assert.ok(Math.min(...zs)>b.chest.front-.06*u,l+': the print is on the front of the chest');assert.ok(Math.abs((Math.max(...ys)-Math.min(...ys))-.2*u)<1e-6,'20 cm tall');
+  assert.ok(Math.max(...xs)-Math.min(...xs)>.12*u&&Math.max(...xs)-Math.min(...xs)<.24*u,l+' print width');
+  for(const v of g.print.uvs)assert.ok(v>=0&&v<=1);for(const v of g.positions)assert.ok(Number.isFinite(v));
+  // u rises toward the wearer's left (+x), so the words read left to right for someone facing them
+  assert.ok(P[0]<P[P.length-3]&&g.print.uvs[0]===0&&g.print.uvs[g.print.uvs.length-2]===1,l);}
+ assert.equal(G.build(fit['hacker-01'],{tee:false,belt:true,pouches:2,harness:false,thighs:'',knees:false,bracer:'',goggles:false,accent:0}).print,null);
+});
