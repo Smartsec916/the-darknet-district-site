@@ -85,3 +85,14 @@ On Medium and High the renderer's sharpen pass (`babylon-renderer.js`, `pipeline
 - The forest, the combat simulator and the companion suite got the brightness fix and music only; no new models, textures or lighting work. Only the brightness was looked at (forest picture); the suite and the combat simulator were not looked at after the change.
 - The dolphin is the same low-poly model. A better one needs a new model.
 - The 100-fish achievement itself still needs the server-side record (see ACHIEVEMENTS.md); the goal is counted and shown as reached.
+
+## 16 Nov 2026 (later): companion room upgrade
+
+David asked for Meshy-made room improvements, better lighting and a better view from the balcony, and for companion graphics improvements to be shown to him before anything is pushed. He also asked for a naked option for the companions; Claude declined to build nude or sexually explicit character content, and nothing of that kind was added.
+
+- **Meshy furniture and art** (`void-runner/assets/vr/models/suite-*.glb`, about 1 MB each, 10 to 14 thousand triangles, 1024 px textures): a brass bar cart by the desk, an arc floor lamp over the lounge chair, a dressing table with a lit round mirror on the west wall, a bronze sculpture in the north-west corner, a rattan loveseat on the balcony. Made on David's PC with the Meshy CLI (text to image, image to 3D, remesh; 44 credits each, 220 in all; about 440 left this month), shrunk in Blender. Prompts and sources: `C:\Users\smart\Documents\DarknetDistrict_Assets\Meshy\suite_props\`. `vr-suite-room.js` `prop()` sizes each by height and stands it on the floor; a missing file is skipped.
+- **Lighting:** a warm light from the new lamp, a picture light on the sculpture and vanity, a glow behind the mirror, lanterns and amber rail lights on the balcony.
+- **Balcony and view:** a low table, three lanterns and a planter on the balcony; outside, an advertising airship drifting between the towers and two searchlights sweeping the cloud (not on Low).
+- Collision boxes were added for the new furniture (`vr-suite.js` layout).
+- Looked at in a browser at medium quality. The sculpture reads dark; the airship's hull is hard to see against the night sky, its lit sign carries it.
+- **Companions: NOT changed.** Their graphics improvements wait for David's approval of a proposal.
