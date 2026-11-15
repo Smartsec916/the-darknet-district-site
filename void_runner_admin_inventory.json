@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "11f5a4e012b5d747",
+  "revision": "17a0649931fc85d3",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11911,7 +11911,7 @@
     },
     {
       "source": "void-runner/device-v1.js",
-      "line": 162,
+      "line": 163,
       "text": "actions:[{id:'talk',label:'CONVERSATION',enabled:!!data.here,reason:data.here?'':'Talk to them in person.'}]};",
       "kind": "source-reference"
     },
@@ -12493,13 +12493,13 @@
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 265,
+      "line": 284,
       "text": "const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 403,
+      "line": 428,
       "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
       "kind": "source-reference"
     },
@@ -12757,13 +12757,13 @@
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 154,
+      "line": 158,
       "text": "sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false,chat:false};emitChat({t:'chat-status',on:false});for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 212,
+      "line": 216,
       "text": "sendChat(text){if(ws?.readyState===1&&status==='in'&&features.chat&&typeof text==='string'){ws.send(JSON.stringify({t:'chat',text:text.slice(0,800)}));return true;}return false;},",
       "kind": "source-reference"
     },
@@ -14196,13 +14196,14 @@
     "void-runner/device-camera.js": "59de7fb0f547cea33294e843bcaa4e12dcfd984797c5cdfb0469012e38aea998",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
     "void-runner/device-portraits.js": "804452b16dda42da7d3057a6fd940c508e43dc881e1e9614195e54d8242db594",
-    "void-runner/device-v1.js": "4b587e979b5f1d2054aa069b8dd3df5707114e35245f97be6308eb25ae85ac52",
+    "void-runner/device-v1.js": "b8e737ed01eb6a42c42880665e20f5369317acbd4fef749b906edf69a281b9c6",
     "void-runner/district-arcade.js": "0f8a69bfd9ed2d990c1c12d857c80fd1027601afc02775c23c8527aca8cd83d8",
     "void-runner/district-area.js": "48b60eab3a791020ce7a4a7213de866e697069ca4c003cf7f255a5ffcef3db4c",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
     "void-runner/district-map.js": "58b56089eef021541f870f4fc6edc10debc9998e151b71c1d1e05c16eeafa792",
     "void-runner/district-people.js": "3d9b8c26a07556f5c74a56226c29090c0134919e938b1978be007de0b2a19c98",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
+    "void-runner/district-voice.js": "748c71527b459938e848cd52e70feb2d3c30efefe93858e36e5ef44339b443eb",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
     "void-runner/escort.js": "0d8213a1b25b4748f954d1e1e86fecd14c22429682ec1f5f36a8b46b81bd8ec2",
@@ -14262,7 +14263,7 @@
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "4172df44fc02d43d56016c17c76bc6af4daa80edcc1c5200be582903d7075a19",
-    "void-runner/personal-device.js": "fa4c82d55a4b1582fa078af2329bea8eb86670dc63ca33ee8e9393adcc0a0e5d",
+    "void-runner/personal-device.js": "53960db887fa431dfc7eb8d9c6e9e94916bf32c1dcea8933bc3bfa41f83318ef",
     "void-runner/personal-hud.js": "1ca0e48b3d144a0a2ffed8e3202f98322a060541b8127de2ee48469ed2606776",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
@@ -14277,7 +14278,7 @@
     "void-runner/relay-radio.js": "2a71125ab14c4dcd2c5a113aa7793ba0a9367503386fa97e0a22a270e7652a80",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
-    "void-runner/remote-players.js": "1ff4efd8c1b09233c0e13884d5e86d34ef1bfe2530830f946ec5c118eba19c74",
+    "void-runner/remote-players.js": "803f181f03cab40114267f025465517267022e9d0b125b3c4f3157dacb00e883",
     "void-runner/road-taxi-rules.js": "6287b0c4133166f9ad618193e49c34578ca2faf594f5bcd8038c7e10cf51a80c",
     "void-runner/road-taxi.js": "29de2e70351ee336bd78c268e491e3ed41543ecabd92c3e10432971b9a654010",
     "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",

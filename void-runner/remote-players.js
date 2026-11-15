@@ -61,6 +61,9 @@
  const floorY=()=>walker.y-(walker.eye||1.68);
  // ---- Shared VR sessions (the hub's rules are in tools/district-hub/protocol.cjs; the menu is in vr-core.js) ----
  let vrSession=null,vrWant=null,vrWaiting=null,vrListWaiting=null,outSince=0;
+ /* Voice (district-voice.js): ask the hub for a short-lived token for the voice room of the place I am in. The hub decides the room; nothing is named here. */
+ let voiceWaiting=null;
+ const voiceToken=()=>new Promise((resolve,reject)=>{if(!(ws?.readyState===1&&status==='in'&&features.voice))return reject(new Error(status==='in'?'Voice is not available for this account or server.':'You are not connected to other players.'));if(voiceWaiting)return reject(new Error('Already asking.'));voiceWaiting={resolve,reject,timer:setTimeout(()=>{const w=voiceWaiting;voiceWaiting=null;w?.reject(new Error('The server did not answer.'));},8000)};ws.send('{"t":"voice-token"}');});
  const vrSettle=(ok,value)=>{const w=vrWaiting;vrWaiting=null;if(w){clearTimeout(w.timer);ok?w.resolve(value):w.reject(new Error(value||'The session did not answer.'));}};
  const vrAsk=message=>new Promise((resolve,reject)=>{if(!(ws?.readyState===1&&status==='in'&&hubVr))return reject(new Error('You are not online, so this will be a solo session.'));if(vrWaiting)return reject(new Error('Another request is still being answered.'));
   vrWaiting={resolve,reject,timer:setTimeout(()=>vrSettle(false,'The server did not answer.'),8000)};ws.send(JSON.stringify(message));});
@@ -106,7 +109,8 @@
  }
  function onMessage(m){
   if(m.t==='error'&&m.reason==='unknown room'){refusedRoom=joinedRoom;return;}   // this hub does not carry this place: it is played alone, and other places still connect
-  if(m.t==='welcome'){diag.joins++;emitChat({t:'chat-status',on:true});if(diag.joins>1)diag.reconnects++;selfId=String(m.you||'');clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated,chat:!!m.features?.chat};hubVr=!!m.features?.vr;loadIgnored();for(const [id,mode] of ignored)if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:true}));for(const v of m.peers)upsert(v);emitChat({t:'chat-status',on:features.chat});vrSession=null;
+  if(m.t==='voice-token'||m.t==='voice-refused'){const w=voiceWaiting;voiceWaiting=null;if(w){clearTimeout(w.timer);m.t==='voice-token'&&/^wss:\/\//.test(String(m.url))?w.resolve({url:m.url,token:m.token,room:m.room,identity:m.identity,expires:m.expires}):w.reject(new Error(m.reason||'Voice is not available.'));}return;}
+  if(m.t==='welcome'){diag.joins++;emitChat({t:'chat-status',on:true});if(diag.joins>1)diag.reconnects++;selfId=String(m.you||'');clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated,chat:!!m.features?.chat,voice:!!m.features?.voice};hubVr=!!m.features?.vr;loadIgnored();for(const [id,mode] of ignored)if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:true}));for(const v of m.peers)upsert(v);emitChat({t:'chat-status',on:features.chat});vrSession=null;
    if(vrWant&&vrActive()&&ws?.readyState===1)ws.send(JSON.stringify({t:'vr-join',id:vrWant.id}));}   // reconnected during a simulation (or while it loads): go back into the same session
   else if(m.t==='vr-room'){clearPeers();vrSession=m.session||null;vrWant=vrSession?{id:vrSession.id,exp:vrSession.exp,opts:vrSession.opts,private:vrSession.private}:null;for(const v of m.peers||[])upsert(v);vrSettle(true,vrSession);}
   else if(m.t==='vr-update'){if(vrSession&&m.session?.id===vrSession.id)vrSession=m.session;}
@@ -192,7 +196,7 @@
  root.VoidRemotePlayers={get status(){return status;},
   // For the on-screen indicator and for developers (no token, no account id, no address): where the connection stands and how many players are really drawn.
   get diagnostics(){const list=[...peers.values()];return {status,room:vrSession?'vr:'+vrSession.id:(joinedRoom||ROOM),vr:vrSession?{exp:vrSession.exp,private:vrSession.private,count:vrSession.count}:null,inRoom:!!inRoom(),socket:ws?ws.readyState:-1,players:list.length,rendered:list.filter(p=>p.node&&!p.node.isDisposed()).length,fallbackAvatars:list.filter(p=>p.fallback).length,...diag,lastClose};},get lastClose(){return lastClose;},get socketState(){return ws?ws.readyState:-1;},get trace(){return traceLog.slice(-16);},get connected(){return status==='in';},
-  get features(){return features;},get me(){return selfId;},
+  get features(){return features;},get me(){return selfId;},voiceToken,get room(){return status==='in'?(vrSession?'vr:'+vrSession.id:(joinedRoom||ROOM)):null;},
   // Shared VR sessions. Each returns a promise; a refusal rejects with the hub's reason in plain words.
   get vrSession(){return vrSession;},get vrAvailable(){return status==='in'&&hubVr;},
   vrList(){return new Promise(resolve=>{if(!(ws?.readyState===1&&status==='in'&&hubVr))return resolve(null);if(vrListWaiting){clearTimeout(vrListWaiting.timer);vrListWaiting.resolve([]);}vrListWaiting={resolve,timer:setTimeout(()=>{vrListWaiting=null;resolve([]);},5000)};ws.send('{"t":"vr-list"}');});},

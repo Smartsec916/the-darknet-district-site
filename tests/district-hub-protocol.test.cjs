@@ -78,3 +78,22 @@ test('players are visible everywhere they can walk: one room per place, people i
  const src=require('node:fs').readFileSync('void-runner/remote-players.js','utf8'),m=src.match(/const PLACES=new Set\(\[([^\]]*)\]\)/);assert(m);
  for(const id of m[1].split(',').map(x=>x.trim().replace(/'/g,'')))assert(ROOMS[id],'the hub knows '+id);assert(src.includes("'neochinatown-street'"));
 });
+
+test('voice: a registered player gets a short-lived token for the voice room of the place they are in; the secret never leaves; guests and floods are refused',()=>{
+ const crypto=require('node:crypto'),V=require('../tools/district-hub/voice.cjs');
+ assert.equal(V.fromEnv({}),null,'no variables: voice is simply off');{const said=[];assert.equal(V.fromEnv({LIVEKIT_URL:'https://x.livekit.cloud',LIVEKIT_API_KEY:'APIabc123',LIVEKIT_API_SECRET:'s'.repeat(40)},m=>said.push(m)),null,'a wrong value turns voice off; it never stops the hub');assert.match(said[0],/LIVEKIT_URL/);assert(!said[0].includes('ssss'),'the warning never repeats a value');}
+ const voice=V.fromEnv({LIVEKIT_URL:'wss://dd-test.livekit.cloud/',LIVEKIT_API_KEY:'APIabc123XYZ',LIVEKIT_API_SECRET:'super-secret-value-0123456789abcdef'});assert.equal(voice.url,'wss://dd-test.livekit.cloud');
+ let now=1e6;const sent=new Map(),hub=new Hub({send:(c,m)=>{(sent.get(c)||sent.set(c,[]).get(c)).push(m);},close:()=>{},now:()=>now,voice});
+ const a={},g={},b={};hub.join(a,{t:'hello',token:'x',room:'neochinatown-street'},who('A',{handle:'Ann_1'}));hub.join(g,hello,who('G',{anonymous:true,handle:'Guest_9'}));hub.join(b,hello,who('B',{handle:'Bob_1'}));
+ assert.equal(sent.get(a).find(m=>m.t==='welcome').features.voice,true);assert.equal(sent.get(g).find(m=>m.t==='welcome').features.voice,false);
+ assert.equal(hub.voiceToken(a).ok,true);const m=sent.get(a).at(-1);assert.equal(m.t,'voice-token');assert.equal(m.url,'wss://dd-test.livekit.cloud');assert.equal(m.room,'dd-neochinatown-street');assert.equal(m.identity,publicId('A'));
+ const [h,p,sig]=m.token.split('.'),body=JSON.parse(Buffer.from(p,'base64url'));
+ assert.equal(crypto.createHmac('sha256','super-secret-value-0123456789abcdef').update(h+'.'+p).digest('base64url'),sig,'signed with the secret');
+ assert.equal(body.iss,'APIabc123XYZ');assert.equal(body.sub,publicId('A'));assert.equal(body.name,'Ann_1');assert.deepEqual(body.video,{room:'dd-neochinatown-street',roomJoin:true,canPublish:true,canSubscribe:true,canPublishData:false,canPublishSources:['microphone']});
+ assert(body.exp-body.nbf<=700,'about ten minutes');assert(!JSON.stringify(sent.get(a)).includes('super-secret'),'the secret is never sent');assert(!JSON.stringify(body).includes('uid'),'no account id in the token');
+ assert.equal(hub.voiceToken(a).ok,false,'not again straight away');now+=4000;assert.equal(hub.voiceToken(a).ok,true);
+ assert.equal(hub.voiceToken(g).ok,false);assert.match(sent.get(g).at(-1).reason,/secured/);
+ hub.voiceToken(b);assert.equal(sent.get(b).at(-1).room,'dd-district-interior','a different place is a different voice room');assert.equal(V.roomName('vr:0123456789ab'),'dd-vr-0123456789ab','a VR session has its own voice room');
+ const off=new Hub({send:(c,m)=>{(sent.get(c)||sent.set(c,[]).get(c)).push(m);},close:()=>{},now:()=>now}),c={};off.join(c,hello,who('C',{handle:'Cat_1'}));assert.equal(off.voiceToken(c).ok,false);
+ assert(parse('{"t":"voice-token"}'));assert.equal(parse('{"t":"voice-token","room":"x"}'),null,'the player cannot name a room');
+});

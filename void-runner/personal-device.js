@@ -13,7 +13,7 @@
  const ICON={missions:'<path d="M6 4h12v16H6z"/><path d="M9 9h6M9 13h6M9 17h3"/>',messages:'<path d="M4 5h16v11h-9l-4 4v-4H4z"/><path d="M8 9.5h8M8 12.5h5"/>',social:'<circle cx="9" cy="9" r="3"/><circle cx="17" cy="10" r="2.2"/><path d="M3.5 19c.6-3.6 3-5 5.5-5s4.900 1.400 5.500 5"/><path d="M15 14.300c2.600-.4 4.600.9 5.200 4.200"/>',
   news:'<path d="M4 5h12v14H6a2 2 0 0 1-2-2z"/><path d="M16 9h4v8a2 2 0 0 1-2 2"/><path d="M7 8.500h6M7 12h6M7 15.500h3"/>',map:'<path d="M12 21s6.500-5.700 6.500-10.500a6.500 6.500 0 0 0-13 0C5.500 15.300 12 21 12 21z"/><circle cx="12" cy="10.500" r="2.300"/>',
   camera:'<path d="M4 8h3.500l1.500-2h6l1.500 2H20v11H4z"/><circle cx="12" cy="13.500" r="3.500"/>',gallery:'<path d="M4 5h16v14H4z"/><circle cx="9" cy="10" r="1.600"/><path d="M4 17l5-4.500 3.500 3 3-2.500L20 16"/>',
-  store:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',device:'<path d="M7 3h10v18H7z"/><path d="M10 6h4M11 18h2"/>',warflying:'<path d="M12 20v-8"/><circle cx="12" cy="10" r="1.6"/><path d="M8.500 13.500a5 5 0 0 1 0-7M15.500 6.500a5 5 0 0 1 0 7M6 16a8.500 8.500 0 0 1 0-12M18 4a8.500 8.500 0 0 1 0 12"/>',settings:'<path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/>'};
+  store:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',device:'<path d="M7 3h10v18H7z"/><path d="M10 6h4M11 18h2"/>',comms:'<path d="M12 4a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V7a3 3 0 0 0-3-3z"/><path d="M6 11.500a6 6 0 0 0 12 0M12 17.500V21M9 21h6"/>',warflying:'<path d="M12 20v-8"/><circle cx="12" cy="10" r="1.6"/><path d="M8.500 13.500a5 5 0 0 1 0-7M15.500 6.500a5 5 0 0 1 0 7M6 16a8.500 8.500 0 0 1 0-12M18 4a8.500 8.500 0 0 1 0 12"/>',settings:'<path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/>'};
  const icon=id=>'<svg class="pd-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+(ICON[id]||'')+'</svg>';
  // The homepage navigation button frame (home-navigation.css): panel, rail and one small accent tick, stretched to the tile.
  const FRAME='<svg class="pd-frame" viewBox="0 0 180 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="pd-panel" d="M10 .5H179.5V37.5L169.5 47.5H.5V10Z"/><path class="pd-rail" d="M16 4H47M1 19V33M133 44H161"/><path class="pd-accent" d="M171 5H175V14"/></svg>';
@@ -148,7 +148,7 @@
  }
 
  /* The News feed's adverts: the goods the District store stocks (the list the shop shelves are drawn from), read once; and a seed that changes each time the app is opened. */
- let storeNames=null,feedSeed=1;
+ let storeNames=null,feedSeed=1,rebinding=false;
  try{fetch(new URL('void-runner/assets/textures/store/store-atlas.json',document.baseURI||location.href)).then(r=>r.ok?r.json():null).then(j=>{if(j&&typeof j==='object')storeNames=j;}).catch(()=>{});}catch{}
  // ---- Apps ----
  const APP_VIEW={
@@ -218,6 +218,24 @@
    const all=[...l.available,...l.installed];
    return all.length?'<h2>APPS</h2>'+all.map(card).join(''):'<div class="pd-empty">No apps available yet.</div>';
   },
+  /* Comms: voice with the people near you (district-voice.js). Off until ENABLE is pressed; DISABLE disconnects. */
+  comms(){
+   const V=root.VoidVoice,r=rp();if(!V)return '<div class="pd-empty">Voice is not available in this build.</div>';
+   const S=V.settings,st=V.status,on=S.enabled,ok=!!r?.connected&&!!r.features?.voice;
+   const line=!on?'OFF':st==='on'?(S.muted?'ON · MICROPHONE MUTED':V.talking?'ON · MICROPHONE LIVE':S.mode==='ptt'?'ON · HOLD '+V.keyLabel(S.pttKey)+' TO TALK':'ON · OPEN MICROPHONE'):st==='connecting'?'CONNECTING…':st==='error'?'PROBLEM':'WAITING';
+   const press=(k,v,label,cur)=>'<button type="button" data-voice-set="'+k+'" data-value="'+v+'" aria-pressed="'+(cur===v)+'">'+label+'</button>';
+   const peers=(r?.connected?r.peers:[]),speaking=new Set(V.speaking);
+   const who=peers.length?peers.map(p=>{const own=S.players[p.id]||{vol:1,muted:false},d=distanceTo(p);return '<article class="pd-card"><h3>'+esc(p.name)+(speaking.has(p.id)?' <small class="pd-speaking">SPEAKING</small>':'')+(d!=null?' <small>'+esc(distText(d).toUpperCase())+'</small>':'')+'</h3><div class="pd-voicerow"><label>VOLUME<input type="range" min="0" max="2" step="0.1" value="'+own.vol+'" data-voice-player="'+esc(p.id)+'" aria-label="Volume of '+esc(p.name)+'"></label>'
+     +'<button type="button" data-voice-mute="'+esc(p.id)+'" aria-pressed="'+!!own.muted+'">'+(own.muted?'UNMUTE VOICE':'MUTE VOICE')+'</button><button type="button" data-ig="block" data-id="'+esc(p.id)+'" data-name="'+esc(p.name)+'">BLOCK</button><button type="button" data-rep-open="'+esc(p.id)+'">REPORT</button></div></article>';}).join(''):'<div class="pd-empty">'+(r?.connected?'Nobody else is in this place right now.':'Not connected to other players.')+'</div>';
+   return '<section class="pd-storage"><div class="pd-stat"><span>VOICE</span><span>'+esc(line)+'</span></div>'
+    +'<div class="pd-note" style="margin-top:6px">'+(on?(V.note?esc(V.note):'You hear the people in the same place as you, from where they stand. Walls muffle them.'):'Voice is off. Nothing is sent or heard until you enable it. Your microphone is asked for only then. Nothing is recorded.')+(!ok&&!on?' '+(r?.connected?'Voice needs an account secured with an email or Google, and a server that carries voice.':'You are not connected to other players right now.'):'')+'</div>'
+    +'<div class="pd-tabs" style="margin:10px 0 0"><button type="button" data-voice="'+(on?'off':'on')+'" class="'+(on?'':'pd-hot')+'">'+(on?'DISABLE VOICE':'ENABLE VOICE')+'</button>'+(on?'<button type="button" data-voice-set="muted" data-value="'+(S.muted?'0':'1')+'" aria-pressed="'+S.muted+'">'+(S.muted?'UNMUTE MICROPHONE':'MUTE MICROPHONE')+'</button>':'')+'</div></section>'
+    +'<h2>HOW YOU TALK</h2><div class="pd-tabs">'+press('mode','ptt','PUSH TO TALK',S.mode)+press('mode','open','OPEN MICROPHONE',S.mode)+'<button type="button" data-voice-key>'+(rebinding?'PRESS A KEY…':'TALK KEY: '+esc(V.keyLabel(S.pttKey))+' · CHANGE')+'</button></div>'
+    +'<h2>SOUND</h2><div class="pd-voicerow"><label>VOICE VOLUME<input type="range" min="0" max="1.5" step="0.05" value="'+S.volume+'" data-voice-volume aria-label="Voice volume"></label></div>'
+    +'<div class="pd-jobrow"><label class="pd-jobsel"><span>MICROPHONE</span><select data-voice-device="mic" aria-label="Microphone"><option value="">DEFAULT</option></select></label><label class="pd-jobsel"><span>SPEAKER</span><select data-voice-device="speaker" aria-label="Speaker"><option value="">DEFAULT</option></select></label></div>'
+    +'<h2>PEOPLE IN THIS PLACE</h2>'+who
+    +'<div class="pd-note" style="margin-top:8px">Private and group calls are not available yet. Voice is never recorded. Muting or blocking someone in Messages silences their voice too.</div>';
+  },
   /* WarFlying (the optional app): switch the scanner on and off, see what is logged, send it to the leaderboard. Rules and scanning: warflying-scanner.js. */
   warflying(){
    const W=root.VoidWarFlying,X=root.VoidWarFlyingScanner,s=state_();if(!W||!X||!s?.warflying)return '<div class="pd-empty">WarFlying is not available right now.</div>';
@@ -260,7 +278,8 @@
    +'<div class="pd-nav"><button type="button" data-do="back" aria-label="Back">◀ BACK</button><span class="pd-title"></span></div><div class="pd-load"><i></i></div><div class="pd-main" tabindex="-1"></div>';
   document.body.appendChild(el);body=el.querySelector('.pd-main');
   el.addEventListener('click',onClick);
-  el.addEventListener('change',e=>{const t=e.target;if(!t.matches?.('select[data-jobsel]'))return;const P=DP(),f=flags_();if(!P||!f)return;const picks=[...body.querySelectorAll('select[data-jobsel]')].map(x=>x.value).filter(Boolean);P.writeJobs(f,picks);try{if(typeof save==='function')save();}catch{}render({keepScroll:true});});
+  el.addEventListener('input',e=>{const t=e.target,V=root.VoidVoice;if(!V)return;if(t.matches?.('input[data-voice-volume]'))V.set('volume',t.value);else if(t.matches?.('input[data-voice-player]'))V.setPlayer(t.dataset.voicePlayer,{vol:t.value});});
+  el.addEventListener('change',e=>{const t=e.target;if(t.matches?.('select[data-voice-device]')){root.VoidVoice?.set(t.dataset.voiceDevice,t.value);return;}if(!t.matches?.('select[data-jobsel]'))return;const P=DP(),f=flags_();if(!P||!f)return;const picks=[...body.querySelectorAll('select[data-jobsel]')].map(x=>x.value).filter(Boolean);P.writeJobs(f,picks);try{if(typeof save==='function')save();}catch{}render({keepScroll:true});});
   el.addEventListener('submit',e=>{const ab=e.target.closest('[data-aboutform]');if(ab){e.preventDefault();const fl=flags_();if(fl){const v=cleanAbout(ab.querySelector('input').value);if(v)fl.profileAbout=v;else delete fl.profileAbout;try{if(typeof save==='function')save();}catch{}render({keepScroll:true});}return;}
    const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};
    if(res.ok){i.value='';if(res.players)go(['messages','players'],'tab','LOADING');}else{const h=body.querySelector('[data-chathint]');if(h)h.textContent=res.text||'';}});
@@ -282,7 +301,7 @@
   if(!app){const st=D.storage(dev);body.innerHTML='<div class="pd-home"><div class="pd-grid">'+dev.apps.filter(id=>D.APPS[id]).map((id,i)=>{const a=D.APPS[id],off=a.state==='placeholder';return '<button type="button" class="pd-app'+(off?' off':'')+'" data-app="'+id+'" style="--i:'+i+'" aria-label="'+esc(D.appTitle(id,dev))+(off?' (not available yet)':'')+'">'+FRAME+'<span class="pd-index" aria-hidden="true">'+String(i+1).padStart(2,'0')+'</span>'+(id==='messages'?'<span class="pd-badge" hidden></span>':'')+icon(id)+'<span class="pd-name">'+esc(D.appTitle(id,dev))+'</span><span class="pd-sub">'+(off?'COMING LATER':'')+'</span></button>';}).join('')+'</div><div class="pd-home-foot"><div class="pd-storage pd-mini" aria-label="Device storage"><div class="pd-stat"><span>STORAGE USED: '+st.usedPct+'%</span><span>AVAILABLE: '+st.availablePct+'%</span></div><div class="pd-bar"><i style="width:'+st.usedPct+'%"></i></div></div><div class="pd-foot">'+esc(def.tagline)+'</div></div></div>';}
   else{try{body.innerHTML=APP_VIEW[app]();}catch(e){body.innerHTML='<div class="pd-empty">This app could not be shown.</div>';}}
   body.scrollTop=opts.keepScroll?top:0;
-  hydratePortraits();if(app==='map')drawMap();
+  hydratePortraits();if(app==='map')drawMap();if(app==='comms')fillVoiceDevices();
   if(app==='messages'&&(stack[1]||'chat')==='chat'){const log=body.querySelector('[data-chatlog]');if(log)log.scrollTop=log.scrollHeight;if(wantFocus){wantFocus=false;const i=body.querySelector('[data-chatform] input:not([disabled])');if(i)setTimeout(()=>i.focus(),0);}}
   updateBadges();
  }
@@ -308,6 +327,10 @@
   if(t.dataset.repOpen){reporting=reporting===t.dataset.repOpen?'':t.dataset.repOpen;chat()?.clearNote();render({keepScroll:true});return;}
   if(t.dataset.repSend){const box=t.closest('.pd-report'),ok=rp()?.report(t.dataset.repSend,box.querySelector('select').value,box.querySelector('input').value);reporting='';render({keepScroll:true});if(!ok){const n=document.createElement('div');n.className='pd-card';n.setAttribute('role','status');n.textContent='Could not send the report right now.';body.prepend(n);}return;}
   if(t.dataset.openProfile){go(['social',t.dataset.openProfile],'tab','LOADING PROFILE');return;}
+  if(t.dataset.voice){const V=root.VoidVoice;if(V){(t.dataset.voice==='on'?V.enable():V.disable()).finally?.(()=>{if(open&&stack[0]==='comms')render({keepScroll:true});});}render({keepScroll:true});return;}
+  if(t.dataset.voiceSet){root.VoidVoice?.set(t.dataset.voiceSet,t.dataset.voiceSet==='muted'?t.dataset.value==='1':t.dataset.value);render({keepScroll:true});return;}
+  if(t.dataset.voiceKey!==undefined){rebinding=true;render({keepScroll:true});const grab=ev=>{ev.preventDefault();ev.stopImmediatePropagation();removeEventListener('keydown',grab,true);rebinding=false;if(ev.code!=='Escape')root.VoidVoice?.set('pttKey',ev.code);if(open&&stack[0]==='comms')render({keepScroll:true});};addEventListener('keydown',grab,true);return;}
+  if(t.dataset.voiceMute){const V=root.VoidVoice,id=t.dataset.voiceMute;if(V)V.setPlayer(id,{muted:!(V.settings.players[id]?.muted)});render({keepScroll:true});return;}
   if(t.dataset.install||t.dataset.uninstall){const id=t.dataset.install||t.dataset.uninstall,apps=t.dataset.install?D.install(dev,id):D.uninstall(dev,id);if(apps){dev.apps=apps;if(t.dataset.uninstall&&id==='warflying')root.VoidWarFlyingScanner?.setActive(false);commit();}render({keepScroll:true});return;}
   if(t.dataset.openApp){go([t.dataset.openApp],'open');return;}
   if(t.dataset.wf){const X=root.VoidWarFlyingScanner;if(X){if(t.dataset.wf==='send')X.upload(true);else X.setActive(t.dataset.wf==='on');}render({keepScroll:true});setTimeout(()=>{if(open&&stack[0]==='warflying')render({keepScroll:true});},1500);return;}
@@ -321,6 +344,8 @@
   }
   if(t.dataset.sendReport){const sel=body.querySelector('[data-report] select');rp()?.report(t.dataset.sendReport,sel?.value||'other','');const box=body.querySelector('[data-report]');if(box)box.textContent='Report sent. Thank you.';}
  }
+ // Comms: the device lists are asked from the browser after the screen is drawn (names appear once the microphone has been allowed).
+ function fillVoiceDevices(){const V=root.VoidVoice;if(!V||!body)return;V.devices().then(d=>{for(const [kind,list] of [['mic',d.mics],['speaker',d.speakers]]){const sel=body.querySelector('select[data-voice-device='+kind+']');if(!sel||!sel.isConnected)continue;for(const x of list){if(!x.id||x.id==='default')continue;const o=document.createElement('option');o.value=x.id;o.textContent=x.label.slice(0,60);sel.appendChild(o);}sel.value=V.settings[kind]||'';}}).catch(()=>{});}
  function back(){if(stack.length>1&&stack[0]!=='messages'){go(stack.slice(0,-1),'tab','LOADING');return true;}   // tabs inside Messages are not history: Back goes home
   if(stack.length){go([],'home','RETURNING HOME');return true;}setOpen(false);return false;}
 
@@ -405,6 +430,7 @@
   if(open&&stack[0]==='map')drawMap();
  }
  setInterval(frame,500);mapTimer=setInterval(exploreTick,1000);
+ root.VoidVoice?.onChange?.(()=>{if(open&&!busy&&stack[0]==='comms'&&!rebinding&&!body.querySelector('input:active,select:focus'))render({keepScroll:true});});
  // The Players list follows who comes and goes while it is on screen (only when it really changed and nothing is being typed)
  setInterval(()=>{if(!open||busy||stack[0]!=='messages'||stack[1]!=='players'||body.querySelector('input:focus,select:focus'))return;if(playersSigNow()!==playersSig)render({keepScroll:true});},1500);
 
