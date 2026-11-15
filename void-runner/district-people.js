@@ -25,25 +25,29 @@
  const NPCS=[
   /* `model`: the character's own model file (assets/models/crowd/<model>.glb), drawn in the scene and in the profile picture instead of the creator look in `appearance`,
      which stays as the fallback if the file cannot be loaded. `scale` brings the file to the game's standard height. */
-  {id:'admin',name:'Admin',jobs:['merchant'],area:'interior',place:'The Darknet District store',bio:'Runs the District store.',model:'npc-admin',scale:.99,
+  {id:'admin',achievements:[['district-first-visit','2026-01-04']],name:'Admin',jobs:['merchant'],area:'interior',place:'The Darknet District store',bio:'Runs the District store.',model:'npc-admin',scale:.99,
    appearance:{v:1,base:'male',look:'district-smuggler',hair:'short03',hairColor:'silver',clothingColor:'graphite',accessories:[]}},
-  {id:'iris',name:'Iris',jobs:['merchant','info-broker'],area:'interior',place:'The Darknet District store',bio:'Works the store counter beside Admin.',model:'npc-iris',scale:.99,
+  {id:'iris',achievements:[['district-first-visit','2026-01-04']],name:'Iris',jobs:['merchant','info-broker'],area:'interior',place:'The Darknet District store',bio:'Works the store counter beside Admin.',model:'npc-iris',scale:.99,
    appearance:{v:1,base:'female',look:'fixer-01',hair:'bob02',hairColor:'silver',clothingColor:'black',accessories:['gear-collar','gear-shoulders','gear-chest']}},
-  {id:'nyx-district',name:'Nyx',jobs:['bartender'],area:'interior',place:'The bar and oxygen lounge',bio:'Behind the bar.'},
-  {id:'rin-takeda',crew:'crew-bar1',look:'district-resident',name:'Rin Takeda',jobs:['influencer'],area:'interior',place:'The bar and oxygen lounge',bio:'Usually at the bar.'},
-  {id:'jonah-pike',crew:'crew-bar2',look:'outlaw-01',name:'Jonah Pike',jobs:['smuggler'],area:'interior',place:'The bar and oxygen lounge',bio:'Keeps to the back of the lounge.'},
-  {id:'sable-quon',crew:'crew-vr-watch',look:'hacker-01',name:'Sable Quon',jobs:['influencer','hacker'],area:'interior',place:'VR play area',bio:'Watches the VR booths.'},
-  {id:'cade-moreno',crew:'vr-player-a',look:'vr-player-a',name:'Cade Moreno',jobs:['mercenary','vr-athlete'],area:'interior',place:'VR play area, booth one',bio:'In the shooter booth most nights.'},
-  {id:'lumi-ashby',crew:'vr-player-b',look:'vr-player-b',name:'Lumi Ashby',jobs:['dancer','influencer'],area:'interior',place:'VR play area, booth two',bio:'In the social booth: dancing, eating, talking to someone only they can see.'},
-  {id:'kei-navarro',crew:'crew-hall-talk1',look:'district-smuggler',name:'Kei Navarro',jobs:['courier'],area:'interior',place:'The hallway',bio:'Talking in the hallway.'},
-  {id:'mags-oduya',crew:'crew-hall-talk2',look:'district-resident',name:'Mags Oduya',jobs:['mechanic'],area:'interior',place:'The hallway',bio:'Talking in the hallway.'},
-  {id:'tavi-rourke',crew:'crew-hall-talk3',look:'hacker-01',name:'Tavi Rourke',jobs:['influencer'],area:'interior',place:'The hallway',bio:'Hangs about near the bar door.'},
-  {id:'bishop-hale',crew:'crew-hall-watch1',look:'outlaw-01',name:'Bishop Hale',jobs:['bodyguard'],area:'interior',place:'The hallway',bio:'Watches the hallway by the arcade.'},
+  {id:'nyx-district',achievements:[['district-first-visit','2026-02-11']],name:'Nyx',jobs:['bartender'],area:'interior',place:'The bar and oxygen lounge',bio:'Behind the bar.'},
+  {id:'rin-takeda',achievements:[['district-first-visit','2026-06-30']],crew:'crew-bar1',look:'district-resident',name:'Rin Takeda',jobs:['influencer'],area:'interior',place:'The bar and oxygen lounge',bio:'Usually at the bar.'},
+  {id:'jonah-pike',achievements:[['district-first-visit','2026-03-08'],['rook-three-runs','2026-08-15']],crew:'crew-bar2',look:'outlaw-01',name:'Jonah Pike',jobs:['smuggler'],area:'interior',place:'The bar and oxygen lounge',bio:'Keeps to the back of the lounge.'},
+  {id:'sable-quon',achievements:[['district-first-visit','2026-05-21'],['blackout-score','2026-09-03']],crew:'crew-vr-watch',look:'hacker-01',name:'Sable Quon',jobs:['influencer','hacker'],area:'interior',place:'VR play area',bio:'Watches the VR booths.'},
+  {id:'cade-moreno',achievements:[['district-first-visit','2026-04-17'],['blackout-score','2026-07-29']],crew:'vr-player-a',look:'vr-player-a',name:'Cade Moreno',jobs:['mercenary','vr-athlete'],area:'interior',place:'VR play area, booth one',bio:'In the shooter booth most nights.'},
+  {id:'lumi-ashby',achievements:[['district-first-visit','2026-07-06'],['tropical-100-fish','2026-10-28']],crew:'vr-player-b',look:'vr-player-b',name:'Lumi Ashby',jobs:['dancer','influencer'],area:'interior',place:'VR play area, booth two',bio:'In the social booth: dancing, eating, talking to someone only they can see.'},
+  {id:'kei-navarro',achievements:[['district-first-visit','2026-08-01']],crew:'crew-hall-talk1',look:'district-smuggler',name:'Kei Navarro',jobs:['courier'],area:'interior',place:'The hallway',bio:'Talking in the hallway.'},
+  {id:'mags-oduya',achievements:[['district-first-visit','2026-02-27']],crew:'crew-hall-talk2',look:'district-resident',name:'Mags Oduya',jobs:['mechanic'],area:'interior',place:'The hallway',bio:'Talking in the hallway.'},
+  {id:'tavi-rourke',achievements:[['district-first-visit','2026-09-12']],crew:'crew-hall-talk3',look:'hacker-01',name:'Tavi Rourke',jobs:['influencer'],area:'interior',place:'The hallway',bio:'Hangs about near the bar door.'},
+  {id:'bishop-hale',achievements:[['district-first-visit','2026-03-19']],crew:'crew-hall-watch1',look:'outlaw-01',name:'Bishop Hale',jobs:['bodyguard'],area:'interior',place:'The hallway',bio:'Watches the hallway by the arcade.'},
   /* Dax (David, 15 Nov 2026): there is only one. Her model is a licensed one drawn by dax.js, which also says where she is at any moment (`live`); her profile picture is a
      labelled silhouette until one is made from her own model. DRAFT: the line about her is Claude's. */
-  {id:'dax',name:'Dax',jobs:['bounty-hunter','mercenary'],area:'interior',place:'Comes and goes',bio:'Bounty hunter. Watches more than she talks.',device:'v3',live:'dax'},
+  {id:'dax',achievements:[['arcade-top-blackout-protocol','2026-10-19'],['arcade-top-corporate-zombies','2026-11-02'],['arcade-top-underground-overdrive','2026-11-13'],['rook-three-runs','2026-09-27']],name:'Dax',jobs:['bounty-hunter','mercenary'],area:'interior',place:'Comes and goes',bio:'Bounty hunter. Watches more than she talks.',device:'v3',live:'dax'},
   {id:'dj-vanta',crew:'dj',name:'DJ Vanta',jobs:['dj'],area:'club',place:'NULL nightclub, NeoChinatown',bio:'Plays the desk at NULL.'}
  ].map(n=>Object.freeze({...n,jobs:cleanJobs(n.jobs)}));
+ /* A resident's achievements (David, 15 Nov 2026: "some NPCs will have Achievements, although most will be easy ones"; Dax holds every arcade high score and three
+    cargo runs for Rook). Each is [achievement id, the day it was earned]. They are part of who the resident is, not earned in play. DRAFT: which resident has which, and the
+    dates, are Claude's except Dax's list. Returns [{id, at}] for achievements.js profileList(). */
+ const achievementsOf=id=>((NPCS.find(n=>n.id===id)||{}).achievements||[]).map(([a,day])=>({id:a,at:Date.parse(day+'T12:00:00Z')||0}));
  const BY_ID=new Map(NPCS.map(n=>[n.id,n])),BY_CREW=new Map(NPCS.filter(n=>n.crew).map(n=>[n.crew,n]));
  const npc=id=>BY_ID.get(id)||null;
  const npcs=area=>area?NPCS.filter(n=>n.area===area):NPCS.slice();
@@ -75,6 +79,6 @@
      round the nearer end of the counter, across the shop floor to the hallway, then along it. Returns [[x,z],...] not including the start. */
   path(from,to){const end=from[0]<10?4.9:15.1,p=[[end,from[1]],[end,45.4],[2.2,45.4]],tx=Math.max(-2.2,Math.min(2.2,to[0])),inHall=Math.abs(to[0])<=3.2;
    if(inHall){p.push([tx,to[1]]);}else{p.push([Math.max(-1.5,Math.min(1.5,to[0])),to[1]],[to[0],to[1]]);}return p;}};
- const api={ETIQUETTE,FOLLOW_FLAG,readFollowing,toggleFollow,isFollowing,JOBS,MAX_JOBS,FLAG,AREAS,NPCS,jobLabel,cleanJobs,jobsText,readJobs,writeJobs,toggleJob,npc,npcs,lookFor};
+ const api={achievementsOf,ETIQUETTE,FOLLOW_FLAG,readFollowing,toggleFollow,isFollowing,JOBS,MAX_JOBS,FLAG,AREAS,NPCS,jobLabel,cleanJobs,jobsText,readJobs,writeJobs,toggleJob,npc,npcs,lookFor};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidDistrictPeople=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
