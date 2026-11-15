@@ -6,6 +6,12 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 15 Nov 2026 (later): name tags removed (live, PR #294); District residents and profile jobs WAIT FOR DAVID'S APPROVAL
+- **Live:** no name floats over other players (`remote-players.js` `makeTag` draws nothing).
+- **Built, not merged (David asked to approve all V1 work):** branch `claude/district-people`: the V1 lists named District residents beside players, profiles show jobs, players choose up to three jobs and one line about themselves, portraits are face on. Details: [`V1_DEVICE.md`](V1_DEVICE.md), last section. Names and the extra jobs are drafts for David.
+- **Character models (David, 15 Nov):** he wants a big upgrade of NPC and player characters after two reference pictures (recorded in `VISUAL_REFERENCES.md`) and allows saved looks to be reset. Not started; see the note in `CHARACTER_MODEL_AUDIT.md` before choosing a route.
+
+
 ### UNDERGROUND//OVERDRIVE is the third playable arcade game (16 Nov 2026 build `2026-11-16-overdrive-1`)
 David's Tesana fighting game is built into `underground-overdrive/`, takes the fifth arcade cabinet (was the COBALT STAIRS placeholder) and is on `games-list.html`. Details and how to rebuild: [`ARCADE.md`](ARCADE.md). Playable cabinet screens now flash PRESS E TO PLAY.
 

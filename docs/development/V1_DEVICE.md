@@ -30,3 +30,15 @@ Tests: `tests/district-chat-store.test.cjs` (mocked multiplayer service), `tests
 
 ## Graphics defaults (Phase 2)
 See `docs/development/GRAPHICS_TEST_ROG_ALLY.md`. New players start on Medium; `graphics-prefs.js` defines what a saved value means; Settings > Graphics has Reset to Medium; the game never changes the preset by itself.
+
+## 15 Nov 2026: District residents, profiles, jobs, face-on portraits (PR pending David's approval)
+
+David asked for the NPCs in The Darknet District to be listed with the players, with names, profiles and jobs, and for players to pick their own jobs.
+
+- **`void-runner/district-people.js`** (pure, tested): `JOBS` (David's eight first: Smuggler, Pirate, Mercenary, Merchant, Influencer, Dancer, DJ, Mechanic; then 24 additions for him to keep or cut) and `NPCS`, the roster of named residents: Admin, Iris, Nyx (bar), the two bar patrons, the VR watcher, the two VR booth players, the four hallway figures, and DJ Vanta at NULL. **Every name, job and line except Admin, Iris and Nyx is Claude's draft for David to change.** To add a resident who enters the District, add one line there.
+- **Players tab (Messages):** real players first (each now has a PROFILE button), then the residents of the place you are standing in (the District interior, or NULL for the DJ).
+- **Social:** residents here are listed; any profile opens with name, jobs, a line and where they are.
+- **Your own profile:** WHAT YOU DO (up to three jobs) and ABOUT YOU (one line, 120 characters, cleaned). Both are stored in the save (`story.flags.profileJobs`, `profileAbout`). **Other players cannot see them yet:** the District server accepts no profile fields; sending them needs a hub and API change and David's go-ahead (free text shown to others also needs the chat's moderation rules).
+- **Faces:** a named resident keeps one fixed crowd look (`crowd.js` asks `VoidDistrictPeople.lookFor`), and the portrait uses the look the scene really shows. Nyx has no model yet, so the portrait says unavailable (no face is invented).
+- **Face-on portraits:** `device-portraits.js` now aims the camera square at the face (found from the eyelashes of the posed figure) and frames tighter. `ASSET_VERSION` is 4, so old pictures are redrawn. Known limit: the idle pose can still tilt the head a little.
+

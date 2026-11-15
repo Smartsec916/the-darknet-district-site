@@ -70,7 +70,7 @@
  // Looks are dealt round-robin per place so neighbours differ, skipping looks without the clip that spot needs.
  let dealt=new Map();
  function begin(){dealt=new Map();}
- function pick(location,id,clip=clipFor(id)){const cast=castFor(location,id);if(!cast)return null;const key=cast===casts.district?'district':location,n=dealt.get(key)||0;dealt.set(key,n+1);for(let i=0;i<cast.length;i++){const look=cast[(n+i)%cast.length];if(clips[look].includes(clip))return look;}return cast[n%cast.length];}
+ function pick(location,id,clip=clipFor(id)){const cast=castFor(location,id);if(!cast)return null;const named=root.VoidDistrictPeople?.lookFor?.(id);if(named&&clips[named]?.includes(clip))return named;   /* a named District resident keeps one face (district-people.js) */const key=cast===casts.district?'district':location,n=dealt.get(key)||0;dealt.set(key,n+1);for(let i=0;i<cast.length;i++){const look=cast[(n+i)%cast.length];if(clips[look].includes(clip))return look;}return cast[n%cast.length];}
 
  // Browser side: one controller per figure, playing a clip from its own cloned animation groups.
  const groups=new Set(),controllers=new Set();

@@ -48,13 +48,28 @@
  const rp=()=>root.VoidRemotePlayers;
  function myProfile(){
   const A=root.VoidCharacterCreator?.stored?.()||null,h=root.VoidAccount?.handle;   // no saved look: the portrait says unavailable, never a guess
-  const mine=D.profile('player',{handle:typeof h==='string'?h:null,publicId:rp()?.me||'',appearance:A,bio:'This is you.'});
+  const f=flags_(),about=f?cleanAbout(f.profileAbout):'',mine=D.profile('player',{handle:typeof h==='string'?h:null,publicId:rp()?.me||'',appearance:A,bio:about||'This is you.',jobs:DP()&&f?DP().jobsText(DP().readJobs(f)):''});
   try{mine.facts=(root.VoidLocalProgress?.profileLines()||[]).slice(0,12);}catch{}   // progress counted in this browser (local-progress.js): your own profile only; achievements proper need server records
   return mine;
  }
  function npcContacts(){
   const H=root.VoidHudData,s=state_();if(!H||!s)return [];
   return H.contacts(s).map(c=>D.profile('npc',{id:c.id,name:c.name,bio:c.place,place:c.place,here:c.here,learned:[c.channel],model:(D.NPC_MODELS||{})[c.id]||null}));
+ }
+ /* District residents (district-people.js): the named NPCs who are where you are, listed beside real players. Their portrait is the figure the scene really
+    shows (its look is read from the scene when it is loaded), so a face is never guessed. */
+ const DP=()=>root.VoidDistrictPeople||null;
+ function areasHere(){const out=[];try{const wl=typeof walkingLocation!=='undefined'?walkingLocation:null;if(wl?.id==='neochinatown'&&typeof walker!=='undefined'&&walker){if(wl.area==='interior')out.push('interior');else if(root.VoidNightclub?.inside?.(walker))out.push('club');}}catch{}return out;}
+ function sceneLook(crew){try{const sc=root.VoidBabylon?.scene,hit=n=>n.metadata&&n.metadata.crowd&&(n.metadata.character===crew||n.metadata.club===crew),n=sc?.transformNodes.find(hit)||sc?.meshes.find(hit);return n?n.metadata.crowd:null;}catch{return null;}}
+ function residentProfile(n,here){const P=DP();return D.profile('npc',{id:n.id,name:n.name,affiliation:P.jobsText(n.jobs),bio:n.bio,place:n.place,here:false,appearance:n.appearance||null,model:n.appearance?null:(n.crew&&sceneLook(n.crew))||n.look||null});}
+ function residents(onlyHere=true){const P=DP();if(!P)return [];const a=areasHere();return P.NPCS.filter(n=>!onlyHere||a.includes(n.area)).map(n=>residentProfile(n));}
+ const flags_=()=>state_()?.story?.flags||null;
+ const cleanAbout=v=>String(v??'').replace(/[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2066-\u2069<>]/g,'').replace(/\s+/g,' ').trim().slice(0,120);
+ function profileEditor(){
+  const P=DP(),f=flags_();if(!P||!f)return '';const mine=P.readJobs(f),full=mine.length>=P.MAX_JOBS;
+  return '<div class="pd-jobs"><h2>WHAT YOU DO</h2><div class="pd-note">Pick up to '+P.MAX_JOBS+'. Kept in your save and shown on your profile here. Other players cannot see it yet.</div><div class="pd-tabs">'
+   +P.JOBS.map(j=>{const on=mine.includes(j.id);return '<button type="button" data-job="'+esc(j.id)+'" aria-pressed="'+on+'"'+(!on&&full?' disabled':'')+'>'+esc(j.label.toUpperCase())+'</button>';}).join('')+'</div>'
+   +'<h2>ABOUT YOU</h2><form data-aboutform class="pd-compose"><input type="text" maxlength="120" autocomplete="off" aria-label="About you" placeholder="A line about your character (120 characters)" value="'+esc(cleanAbout(f.profileAbout))+'"><button type="submit">SAVE</button></form></div>';
  }
  function nearbyPlayers(){
   const r=rp();if(!r?.connected)return [];
@@ -79,17 +94,18 @@
   for(const [id,,name] of (r?.ignored||[]))if(!rows.some(x=>x.id===id))rows.push({id,name,here:false});   // a blocked player's character is hidden, so they stay listed to be unblocked
   return rows;
  }
- const playersSigNow=()=>playerRows().map(x=>x.id+x.name).join('|')+JSON.stringify(rp()?.ignored||[]);
+ const playersSigNow=()=>playerRows().map(x=>x.id+x.name).join('|')+JSON.stringify(rp()?.ignored||[])+'|'+areasHere().join(',');
  function playersHtml(){
   const r=rp(),ign=new Map((r?.ignored||[]).map(([id,m,name])=>[id,{m,name}])),rows=playerRows();playersSig=playersSigNow();
-  const note=chat()?.note;
+  const note=chat()?.note,keys=new Map();try{const near=nearbyPlayers();(r?.connected?r.peers:[]).forEach((p,i)=>{if(near[i])keys.set(p.id,near[i].key);});}catch{}
+  const res=residents(),resRow=p=>'<article class="pd-card"><div class="pd-prof pd-mini">'+portraitHtml(p)+'<div style="flex:1;min-width:150px"><h3>'+esc(p.name)+' <small>RESIDENT</small></h3><div class="pd-note">'+esc(p.subtitle||'')+'</div><div class="pd-tabs" style="margin:6px 0 0"><button type="button" data-open-profile="'+esc(p.key)+'">PROFILE</button></div></div></div></article>';
   const list=rows.length?rows.map(p=>{const m=ign.get(p.id)?.m;return '<article class="pd-card"><h3>'+esc(p.name)+(m?' <small>['+m.toUpperCase()+']</small>':'')+(p.here?'':' <small>(not in view)</small>')+'</h3><div class="pd-tabs">'
     +'<button type="button" data-ig="'+(m==='mute'?'unmute':'mute')+'" data-id="'+esc(p.id)+'" data-name="'+esc(p.name)+'">'+(m==='mute'?'UNMUTE':'MUTE')+'</button>'
     +'<button type="button" data-ig="'+(m==='block'?'unblock':'block')+'" data-id="'+esc(p.id)+'" data-name="'+esc(p.name)+'">'+(m==='block'?'UNBLOCK':'BLOCK')+'</button>'
-    +(p.here?'<button type="button" data-rep-open="'+esc(p.id)+'">REPORT</button>':'')+'</div>'
+    +(p.here?'<button type="button" data-rep-open="'+esc(p.id)+'">REPORT</button>':'')+(p.here&&keys.get(p.id)?'<button type="button" data-open-profile="'+esc(keys.get(p.id))+'">PROFILE</button>':'')+'</div>'
     +(reporting===p.id?'<div class="pd-report"><select aria-label="Reason">'+REASONS.map(([v,l])=>'<option value="'+v+'">'+l+'</option>').join('')+'</select><input type="text" maxlength="120" aria-label="Report note" placeholder="What happened? (optional)"><button type="button" data-rep-send="'+esc(p.id)+'">SEND REPORT</button></div>':'')+'</article>';}).join(''):'<div class="pd-empty">'+(r?.connected?'Nobody else is here right now.':'Not connected to the District server.')+'</div>';
   return '<div class="pd-note">Mute hides a player\'s chat. Block also hides their character. Both are kept on this device. You can also type /mute NAME or /block NAME in the chat.</div>'
-   +(note?'<div class="pd-card" role="status">'+esc(note)+'</div>':'')+list
+   +(note?'<div class="pd-card" role="status">'+esc(note)+'</div>':'')+'<h2>PLAYERS</h2>'+list+(res.length?'<h2>'+esc((DP().AREAS[areasHere()[0]]||'HERE').toUpperCase())+' · RESIDENTS</h2>'+res.map(resRow).join(''):'')
    +'<div class="pd-note" style="margin-top:8px">Reports go to the District server\'s log for review. They are not kept as a permanent case file.</div>';
  }
  const unreadText=n=>n>99?'99+':String(n);
@@ -149,11 +165,11 @@
   },
   social(){
    const sel=stack[1];
-   if(sel){const all=[myProfile(),...npcContacts(),...nearbyPlayers()],p=all.find(x=>x.key===sel);if(p)return profileCard(p,{extra:p.kind==='player'&&p.key!==myProfile().key?'<div data-report></div>':''});}
-   const me=myProfile(),npcs=npcContacts(),pl=nearbyPlayers();
+   if(sel){const mine=myProfile(),all=[mine,...residents(false),...npcContacts(),...nearbyPlayers()],p=all.find(x=>x.key===sel);if(p)return profileCard(p,{extra:p.kind==='player'&&p.key!==mine.key?'<div data-report></div>':''})+(p.key===mine.key?profileEditor():'');}
+   const me=myProfile(),here=residents(),hk=new Set(here.map(x=>x.key)),npcs=npcContacts().filter(x=>!hk.has(x.key)),pl=nearbyPlayers();
    const row=p=>'<article class="pd-card"><div class="pd-prof">'+portraitHtml(p)+'<div style="flex:1"><h3>'+esc(p.name)+'</h3><div class="pd-note">'+esc(p.subtitle||p.bio)+'</div><button type="button" data-open-profile="'+esc(p.key)+'">PROFILE</button></div></div></article>';
    return '<h2>YOU</h2>'+row(me)+'<h2>PEOPLE YOU KNOW</h2>'+(npcs.length?npcs.map(row).join(''):'<div class="pd-empty">Nobody yet. People you meet appear here.</div>')
-    +'<h2>IN THE DISTRICT NOW</h2>'+(pl.length?pl.map(row).join(''):'<div class="pd-empty">'+(rp()?.connected?'No other players nearby.':'Not connected to the District server.')+'</div>')
+    +(here.length?'<h2>RESIDENTS HERE</h2>'+here.map(row).join(''):'')+'<h2>PLAYERS HERE NOW</h2>'+(pl.length?pl.map(row).join(''):'<div class="pd-empty">'+(rp()?.connected?'No other players nearby.':'Not connected to the District server.')+'</div>')
     +'<div class="pd-note" style="margin-top:10px">Friends and player discovery are not available yet.</div>';
   },
   news(){
@@ -198,7 +214,8 @@
    +'<div class="pd-nav"><button type="button" data-do="back" aria-label="Back">◀ BACK</button><span class="pd-title"></span></div><div class="pd-load"><i></i></div><div class="pd-main" tabindex="-1"></div>';
   document.body.appendChild(el);body=el.querySelector('.pd-main');
   el.addEventListener('click',onClick);
-  el.addEventListener('submit',e=>{const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};
+  el.addEventListener('submit',e=>{const ab=e.target.closest('[data-aboutform]');if(ab){e.preventDefault();const fl=flags_();if(fl){const v=cleanAbout(ab.querySelector('input').value);if(v)fl.profileAbout=v;else delete fl.profileAbout;try{if(typeof save==='function')save();}catch{}render({keepScroll:true});}return;}
+   const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};
    if(res.ok){i.value='';if(res.players)go(['messages','players'],'tab','LOADING');}else{const h=body.querySelector('[data-chathint]');if(h)h.textContent=res.text||'';}});
   el.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))e.stopPropagation();});   // typing stays in the box: no movement, no shortcuts
   chip=document.createElement('button');chip.id='pd-chip';chip.type='button';chip.textContent='V1 · L';updateBadges();chip.setAttribute('aria-label','Open the V1 device');chip.addEventListener('click',()=>toggle());document.body.appendChild(chip);
@@ -243,6 +260,7 @@
   if(t.dataset.repOpen){reporting=reporting===t.dataset.repOpen?'':t.dataset.repOpen;chat()?.clearNote();render({keepScroll:true});return;}
   if(t.dataset.repSend){const box=t.closest('.pd-report'),ok=rp()?.report(t.dataset.repSend,box.querySelector('select').value,box.querySelector('input').value);reporting='';render({keepScroll:true});if(!ok){const n=document.createElement('div');n.className='pd-card';n.setAttribute('role','status');n.textContent='Could not send the report right now.';body.prepend(n);}return;}
   if(t.dataset.openProfile){go(['social',t.dataset.openProfile],'tab','LOADING PROFILE');return;}
+  if(t.dataset.job){const P=DP(),f=flags_();if(P&&f){P.writeJobs(f,P.toggleJob(P.readJobs(f),t.dataset.job));try{if(typeof save==='function')save();}catch{}render({keepScroll:true});}return;}
   if(t.dataset.track||t.dataset.untrack){const s=state_(),V=root.VoidMissions;try{if(t.dataset.track)V.track(s,t.dataset.track,C);else V.untrack(s);if(typeof save==='function')save();}catch{}render({keepScroll:true});return;}
   if(t.dataset.set){dev.settings[t.dataset.set]=t.dataset.value;if(t.dataset.set==='size')expanded=t.dataset.value==='expanded';commit();render({keepScroll:true});return;}
   if(t.dataset.act==='block'||t.dataset.act==='report'){

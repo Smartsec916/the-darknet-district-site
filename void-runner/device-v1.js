@@ -8,7 +8,7 @@
      none of them are stored per device. */
 (function(root){
  'use strict';
- const ASSET_VERSION=1;   // bump when portrait framing or lighting changes, or when an NPC model or outfit is updated: every cached portrait is then redrawn
+ const ASSET_VERSION=4;   // bump when portrait framing or lighting changes, or when an NPC model or outfit is updated: every cached portrait is then redrawn
  const DEVICES={
   v1:{id:'v1',generation:1,name:'V1',tagline:'PERSONAL DEVICE · MODEL V1',
    apps:['missions','messages','social','news','map','camera','gallery','store','settings'],
@@ -133,13 +133,13 @@
   if(kind==='player'){
    const handle=HANDLE.test(String(data.handle||''))?data.handle:null,publicId=String(data.publicId||data.id||'').replace(/[^0-9a-f]/g,'').slice(0,12);
    const look=data.appearance||null;
-   return {key:'player:'+(publicId||'local'),kind:'player',name:handle||'Unregistered visitor',subtitle:handle?'@'+handle:'Not signed in',bio:String(data.bio||'District visitor').slice(0,200),
+   return {key:'player:'+(publicId||'local'),kind:'player',name:handle||'Unregistered visitor',subtitle:(handle?'@'+handle:'Not signed in')+(data.jobs?' · '+String(data.jobs).slice(0,80):''),bio:String(data.bio||'District visitor').slice(0,200),
     facts:[],places:[],portrait:{key:portraitKey('player',publicId||'local',look),source:look?{type:'appearance',appearance:look}:null,state:look?'ready':'unavailable'},
     actions:[{id:'message',label:'MESSAGE',enabled:false,reason:'Private messages are not available yet.'},{id:'block',label:'BLOCK',enabled:!!ctx.canBlock,reason:ctx.canBlock?'':'Block in the District chat panel.'},{id:'report',label:'REPORT',enabled:!!ctx.canReport,reason:ctx.canReport?'':'Report in the District chat panel.'}]};
   }
   const learned=Array.isArray(data.learned)?data.learned.map(String).slice(0,8):[];
   return {key:'npc:'+String(data.id||'').slice(0,40),kind:'npc',name:String(data.name||'Unknown').slice(0,60),subtitle:data.affiliation?String(data.affiliation).slice(0,60):'',bio:String(data.bio||'').slice(0,200),
-   facts:learned,places:data.place?[String(data.place).slice(0,100)]:[],portrait:{key:portraitKey('npc',data.id||'',data.model?{model:data.model}:null),source:data.model?{type:'model',model:data.model}:null,state:data.model?'ready':'unavailable'},
+   facts:learned,places:data.place?[String(data.place).slice(0,100)]:[],portrait:data.appearance?{key:portraitKey('npc',data.id||'',data.appearance),source:{type:'appearance',appearance:data.appearance,resident:true},state:'ready'}:{key:portraitKey('npc',data.id||'',data.model?{model:data.model}:null),source:data.model?{type:'model',model:data.model}:null,state:data.model?'ready':'unavailable'},
    actions:[{id:'talk',label:'CONVERSATION',enabled:!!data.here,reason:data.here?'':'Talk to them in person.'}]};
  }
  const api={ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
