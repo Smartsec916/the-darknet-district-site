@@ -116,7 +116,8 @@ def main():
             sx = 1 if J[side + 'UpLeg'][0] > cx else -1
             legV = body[(body[:, 0] - cx) * sx > 0]
             o[side] = {'thigh': radial(legV, J[side + 'UpLeg'], J[side + 'Leg'], .30, .04, .16 * H), 'knee': radial(legV, J[side + 'Leg'], J[side + 'Foot'], .02, .05, .12 * H),
-                       'shin': radial(legV, J[side + 'Leg'], J[side + 'Foot'], .45, .05, .12 * H), 'forearm': radial(body, J[side + 'ForeArm'], J[side + 'Hand'], .55, .08, .10 * H)}
+                       'shin': radial(legV, J[side + 'Leg'], J[side + 'Foot'], .45, .05, .12 * H), 'forearm': radial(body, J[side + 'ForeArm'], J[side + 'Hand'], .55, .08, .10 * H),
+                       'upperarm': radial(body, J[side + 'Arm'], J[side + 'ForeArm'], .4, .1, .10 * H)}
         # a skirt or dress: the "thigh" is far wider than the knee below it
         o['skirt'] = bool(o['Left']['thigh']['r'] > 1.9 * o['Left']['knee']['r'])
         bodies[f[:-4]] = o
