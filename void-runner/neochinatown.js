@@ -513,7 +513,7 @@
     // ---- The District interior (first step of the interior/NeoChinatown separation, docs/void-runner/environment-separation.md). ----
     // Everything from here to the returned values builds the inside of the District under district-root; the street, the facade and the taxi zones are built outside it. It runs in place, so nothing changes yet; a later step moves it behind its own loader.
     // ---- The entrance and security vestibule: built in every area ----
-    const kitAlias={};let kitMat=null,kitPiece=()=>null;   // set by buildEntrance; the interior uses them too
+    const kitAlias={};let kitMat=null,kitPiece=()=>null,doorFace=null,doorKid=null,handleM=null;   // set by buildEntrance; the interior uses them too
     const {doors}=(function buildEntrance(){
     target=districtRoot;
     // Understated entrance: reinforced sliding door, small mark, camera. The frame is two jambs and a header (it
@@ -556,6 +556,41 @@
     for(const z of [21.5,24.5])box('status-display',[.05,.6,1],[-2.92,2.2,z],[cyan,magenta][z>23?1:0]);
     box('vestibule-light',[4,.05,.3],[0,3.42,23],white);
     const innerDoor=doorPanels('district-inner-door',26,mat('door-inner','#1d2026',{rough:.35,metal:.9}),25.84);if(lined)for(const p of [...outerDoor.panels,...innerDoor.panels])p.material=kitMat('kit_metal');   // the door leaves share the lining's steel, so a shut door reads as a door and not as a black opening
+    // ---- The doors after David's references (Nov 2026): heavy dark leaves with a raised octagonal panel, thin pink and blue light lines, twin handles and the District's name on the right-hand leaf,
+    // seen the same from either side; a pink bar in every lintel; a fingerprint pad and a warm lamp outside; brighter light in the middle of the vestibule. Everything on a leaf is its child, so it slides with it.
+    // Built in both areas alike (the vestibule must look the same on each side of the checkpoint); no real lamps, so the light budget is untouched.
+    doorFace=(kind)=>{const key='door-face-'+kind;if(mats[key])return mats[key];const flip=kind==='left',t=texture(key,512,560,(g,W,H)=>{let q=kind.length*77;const rnd=()=>(q=(q*1103515245+12345)&0x7fffffff)/0x7fffffff;if(flip){g.translate(W,0);g.scale(-1,1);}
+       g.fillStyle='#23272f';g.fillRect(0,0,W,H);for(let n=0;n<40;n++){g.fillStyle='rgba('+(rnd()>.6?'150,60,110':rnd()>.5?'150,100,40':'70,76,90')+','+(.03+rnd()*.05)+')';g.beginPath();g.ellipse(rnd()*W,rnd()*H,20+rnd()*80,10+rnd()*40,rnd()*3,0,7);g.fill();}
+       g.lineCap='round';for(let n=0;n<110;n++){const x=rnd()*W,y=rnd()*H,a=rnd()*6.3,l=5+rnd()*rnd()*90;g.strokeStyle='rgba(170,176,190,'+(.05+rnd()*.14)+')';g.lineWidth=.6+rnd();g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(a)*l,y+Math.sin(a)*l);g.stroke();}
+       const oct=(x0,y0,x1,y1,c)=>{g.beginPath();g.moveTo(x0+c,y0);g.lineTo(x1-c,y0);g.lineTo(x1,y0+c);g.lineTo(x1,y1-c);g.lineTo(x1-c,y1);g.lineTo(x0+c,y1);g.lineTo(x0,y1-c);g.lineTo(x0,y0+c);g.closePath();};
+       g.strokeStyle='#454b58';g.lineWidth=6;g.strokeRect(6,6,W-12,H-12);oct(58,48,W-40,H-44,58);g.fillStyle='#2c313b';g.fill();g.strokeStyle='#596070';g.lineWidth=5;g.stroke();g.strokeStyle='rgba(190,196,210,.22)';g.lineWidth=1.5;oct(62,52,W-44,H-48,56);g.stroke();
+       oct(150,330,W-70,H-74,44);g.fillStyle='#252931';g.fill();g.strokeStyle='#525968';g.lineWidth=4;g.stroke();g.fillStyle='#1a1e25';g.fillRect(14,190,34,56);g.fillRect(14,360,34,56);   /* hinges at the outer edge */
+       const line=(x0,y0,x1,y1,c)=>{g.save();g.shadowColor=c;g.shadowBlur=14;g.strokeStyle=c;g.lineWidth=4;g.beginPath();g.moveTo(x0,y0);g.lineTo(x1,y1);g.stroke();g.shadowBlur=0;g.strokeStyle='#ffffff';g.lineWidth=1.2;g.stroke();g.restore();};
+       line(W-58,120,W-58,250,'#39b8ff');line(W-66,400,W-66,480,'#ff3fb4');line(70,H-60,104,H-28,'#ff3fb4');line(70,60,104,30,'#39b8ff');
+       if(kind==='logo'){g.save();g.strokeStyle='#8f74ff';g.lineWidth=2.5;g.shadowColor='#8f74ff';g.shadowBlur=8;g.beginPath();let x=206;g.moveTo(x,150);for(const [w,h] of [[14,22],[12,44],[16,30],[10,58],[16,36],[14,48],[12,26],[18,34]]){g.lineTo(x,150-h);g.lineTo(x+w,150-h);x+=w;g.lineTo(x,150);}g.lineTo(x+10,150);g.stroke();g.restore();
+        g.fillStyle='#b7a5e6';g.textAlign='left';g.textBaseline='top';g.font='bold 26px Arial,Helvetica,sans-serif';g.fillText('THE',206,160);g.font='bold 40px Arial,Helvetica,sans-serif';g.fillText('DARKNET',204,186);g.fillText('DISTRICT',204,226);
+        g.fillStyle='rgba(214,120,170,.75)';for(let k=0;k<4;k++){g.beginPath();g.moveTo(280+k*30,300);g.lineTo(300+k*30,300);g.lineTo(330+k*30,272);g.lineTo(310+k*30,272);g.fill();}}});
+      const m=new B.StandardMaterial('ncz-'+key,scene);owned.push(m);m.diffuseTexture=t;m.diffuseColor=new B.Color3(.5,.5,.55);m.emissiveTexture=t;m.specularColor=new B.Color3(.18,.18,.2);m.specularPower=40;mats[key]=m;return m;};
+    doorKid=(parentMesh,mesh,m,pos,ry=0)=>{mesh.material=m;mesh.parent=parentMesh;mesh.position.set(...pos);mesh.rotation.y=ry;mesh.isPickable=false;return mesh;};
+    // dress(leaf, half-thickness along the door's normal, which leaf it is to someone facing +normal): a face picture on both sides, a handle each side
+    handleM=mat('door-handle','#23262d',{rough:.35,metal:.9});const handleGlow=glowMat('door-handle-light','#ff3fb4',.9);
+    for(const d of [outerDoor,innerDoor])d.panels.forEach((leaf,i)=>{const sgn=i?1:-1;for(const side of [-1,1]){const right=sgn*side<0;   /* seen from this side, is it the right-hand leaf? */
+       doorKid(leaf,B.MeshBuilder.CreatePlane('door-face',{width:2.82,height:3.1},scene),doorFace(right?'logo':'left'),[0,0,side*.124],side<0?0:Math.PI);
+       doorKid(leaf,B.MeshBuilder.CreateBox('door-handle',{width:.09,height:.42,depth:.07},scene),handleM,[-sgn*1.18,-.1,side*.16]);doorKid(leaf,B.MeshBuilder.CreateBox('door-handle-light',{width:.016,height:.2,depth:.012},scene),handleGlow,[-sgn*1.18,-.08,side*.198]);}});
+    {const pinkBar=glowMat('door-lintel-pink','#ff3fa6',1.15),steel=mat('door-frame-steel','#15171c',{rough:.45,metal:.85}),blue=glowMat('door-corner-blue','#39b8ff',1),warm=glowMat('door-warm-lamp','#ffc27a',1.15);
+     const vGlow=(c,w,d,p,wall,strength=.5)=>{const key='vest-glow-'+c+strength;if(!mats[key]){const t=texture(key,128,128,(g,W,H)=>{g.clearRect(0,0,W,H);const r=g.createRadialGradient(W/2,H/2,2,W/2,H/2,W/2),n=parseInt(c.slice(1),16),rgb=[n>>16,n>>8&255,n&255].join(',');r.addColorStop(0,'rgba('+rgb+','+strength+')');r.addColorStop(.45,'rgba('+rgb+','+strength*.4+')');r.addColorStop(1,'rgba('+rgb+',0)');g.fillStyle=r;g.fillRect(0,0,W,H);});t.hasAlpha=true;const m=texMat(key,t,{glow:true,alpha:true});m.backFaceCulling=false;m.alphaMode=B.Engine.ALPHA_ADD;m.disableDepthWrite=true;mats[key]=m;}
+      const g=add(B.MeshBuilder.CreateGround('vest-glow',{width:w,height:d},scene),mats[key],p,false);if(wall){g.rotation.x=-Math.PI/2;g.rotation.y=wall;}return g;};
+     // a lintel over a doorway, seen from the side `dir` (-1: from smaller z): housing, pink bar, chamfer plates in the top corners with a pink and a blue slash
+     const lintel=(z,dir,y,half)=>{box('door-lintel-housing',[half*2+.3,.16,.1],[0,y,z],steel);box('door-lintel-bar',[half*1.5,.07,.05],[0,y,z+dir*.06],pinkBar);
+      for(const sx of [-1,1]){const c=box('door-corner-plate',[.7,.16,.06],[sx*(half-.1),y-.3,z+dir*.02],steel);c.rotation.z=-sx*Math.PI/4;const l=box('door-corner-light',[.3,.03,.02],[sx*(half-.1),y-.3,z+dir*.06],sx<0?pinkBar:blue);l.rotation.z=-sx*Math.PI/4;const f=box('door-foot-light',[.26,.03,.02],[sx*(half-.02),.34,z+dir*.06],sx<0?blue:pinkBar);f.rotation.z=sx*Math.PI/4;}
+      if(!low)vGlow('#ff3fa6',half*2.2,3,[0,.036,z+dir*1.4],0,.34);};
+     lintel(19.86,-1,3.28,2.9);lintel(20.5,1,2.56,2.7);lintel(25.5,-1,2.56,2.7);if(typeof area==='undefined'||area!=='street')lintel(26.5,1,2.86,2.7);
+     // outside: a warm caged lamp over the lintel, a fingerprint pad on the left jamb, the District's name in light on the wall
+     box('door-warm-hood',[1.2,.08,.34],[0,3.98,19.7],steel).rotation.x=-.3;box('door-warm-lamp',[1.0,.12,.16],[0,3.9,19.72],warm);if(!low)vGlow('#ffc27a',4,3,[0,.037,18.6],0,.3);
+     box('door-pad',[.3,.56,.06],[-3.05,1.42,19.87],steel);plane('door-pad-face',.24,.48,[-3.05,1.42,19.835],texMat('door-pad-face',texture('door-pad-face',128,256,(g,W,H)=>{g.fillStyle='#06090d';g.fillRect(0,0,W,H);g.strokeStyle='#39d8ff';g.lineWidth=3;g.strokeRect(16,14,W-32,96);for(let k=0;k<5;k++){g.beginPath();g.ellipse(W/2,66,8+k*7,10+k*8,0,Math.PI*.9,Math.PI*2.1);g.stroke();}g.fillStyle='#39d8ff';g.fillRect(24,20,W-48,5);for(let r=0;r<3;r++)for(let c=0;c<3;c++){g.fillStyle=(r*3+c)%4===0?'#ff3b30':'#3a1512';g.beginPath();g.arc(34+c*30,148+r*32,8,0,7);g.fill();}}),{glow:true}),0);
+     neon('district-wall-name',['THE','DARKNET','DISTRICT'],['#ff5bd0','#ff5bd0','#ff5bd0'],2.3,1.7,[-5.5,2.7,19.7],0,undefined,true);
+     // the middle of the vestibule: two cold white panels in the ceiling and their light on the floor and the side walls
+     {const white=glowMat('vest-lamp-white','#cfe2ff',1.1);for(const z of [21.9,24.1]){box('vest-lamp-body',[1.7,.05,.6],[0,2.69,z],steel);box('vest-lamp-panel',[1.5,.03,.46],[0,2.66,z],white);if(!low){vGlow('#b8d4ff',4.4,3.4,[0,.036,z],0,.36);}}}}
     const doors=(()=>{const list=[{id:'district-door',flag:'districtDoor',z:20,...outerDoor,open:0,kick:0},{id:'district-inner-door',flag:'districtBadge',z:26,...innerDoor,open:0,kick:0}];let entryCycle=false,secured=!!root.VoidDistrict?.busy;   // built in the middle of a checkpoint transfer: the doors start sealed, so none stirs before the scan clears
      // Resolve against the *current* location. A scene can start ticking while the loader still
      // holds the previous area's collision array; caching that array leaves an invisible closed door.
@@ -821,7 +856,12 @@
      kitAt('hall_wall_1m','-x',16.8,51.6,1,.2);kitAt('hall_wall_1m','+x',3.2,43.4,1,.2);
      for(const [x,z] of [[8,45.4],[12,45.4],[8,50.2],[12,50.2]]){kitPiece('district:tube_light_2m',[x+1,4.05-.51,z],0,[],{merge:true});if(!low){lightShaft('#a9c8ff',x+1,z,3.5,2.2,true);lightPool('#a9c8ff',3.6,3,[x+1,.036,z],.14);}}}   // the hallway standard: each tube's light hangs in the haze and lies on the floor
     if(!shopKit)box('shop-counter',[8,1.1,1.1],[10,.55,47.2],mat('shop-counter','#1f2228',{rough:.35,metal:.7}));box('shop-counter-glow',[8,.05,.05],[10,1.1,46.62],violet);
-    for(let i=0;i<3;i++){const z=44.5+i*2.8;box('display-case',[1,2.4,2.2],[16.3,1.2,z],mat('case-glass','#8fd8ff',{rough:.05,metal:.1,alpha:.25}));box('case-light',[.05,2.2,.05],[15.78,1.2,z-1],[cyan,red,cyan][i]);for(let k=0;k<4;k++)box('display-item',[.6,.12,1.2],[16.3,.5+k*.5,z],[pipe,frame][k%2]);}
+    // Real glass cases (David, Nov 2026: the survival gear boxes looked too boxy): a steel plinth and cap, slim corner posts, clear panes, glass shelves, a cold light strip under the cap.
+    {const pane=new B.StandardMaterial('ncz-case-pane',scene);owned.push(pane);pane.diffuseColor=new B.Color3(.04,.07,.09);pane.specularColor=new B.Color3(.6,.66,.72);pane.specularPower=220;pane.alpha=.09;pane.backFaceCulling=false;
+     const shelf=new B.StandardMaterial('ncz-case-shelf',scene);owned.push(shelf);shelf.diffuseColor=new B.Color3(.1,.16,.18);shelf.emissiveColor=new B.Color3(.05,.09,.1);shelf.alpha=.32;const cs=mat('case-steel','#14161a',{rough:.4,metal:.85}),strip=glowMat('case-strip','#cfe6ff',1);
+     for(let i=0;i<3;i++){const z=44.5+i*2.8,X=16.3;box('display-case-plinth',[1.04,.44,2.24],[X,.22,z],cs);box('display-case-cap',[1.04,.1,2.24],[X,2.53,z],cs);for(const dx of [-.5,.5])for(const dz of [-1.1,1.1])box('display-case-post',[.035,2.06,.035],[X+dx,1.47,z+dz],cs);
+      box('display-case-pane',[.012,2.04,2.2],[X-.5,1.46,z],pane,false);for(const dz of [-1.1,1.1])box('display-case-pane',[1,2.04,.012],[X,1.46,z+dz],pane,false);for(let k=1;k<4;k++)box('display-case-shelf',[.94,.014,2.16],[X,.5+k*.5,z],shelf,false);
+      box('display-case-strip',[.03,.02,2.1],[X-.44,2.46,z],strip);box('display-case-kick',[1.06,.05,2.26],[X,.025,z],frame);}}
     // The goods of the website's store, in the shop (David, Nov 2026): store-apparel and store-survival, from the display sheets made by tools/assets/store/build_atlas.py.
     // One mesh per sheet: every picture is a card cut from the sheet. `face` is the way a card looks; cards never float: shirts hang from a rail, cards stand on the case shelves.
     {const noGlow=mesh=>{for(const l of scene.effectLayers||[])l.addExcludedMesh?.(mesh);};   // self-lit through a white emissive colour: the glow layer would see solid white and bloom the whole shape
@@ -866,7 +906,7 @@
       box('shop-gunwall-strip',[5.6,.02,.03],[11,.98,43.7],glowMat('shop-pink-strip','#ff3fb4',.95));box('shop-gunwall-strip',[5.6,.02,.03],[11,3.24,43.5],glowMat('shop-pink-strip','#ff3fb4',.95));
       neon('shop-guns-sign',['GUNS'],['#ff5bd0'],1.5,.55,[11,3.62,43.5],Math.PI,undefined,true);if(!low){wallGlow('#ff3fb4',6.4,3.2,[11,2.1,43.5],Math.PI,.26);lightPool('#ff3fb4',6,2.2,[11,.036,44.6],.3);}}
      // survival: all 47 products as lit display cards standing on the three glass cases' shelves along the east wall
-     {const cards=[];for(let n=0;n<47;n++){const cs=Math.floor(n/16),k=Math.floor(n%16/4),j=n%4;cards.push([n%8,Math.floor(n/8),16.02,.5+k*.5+.06+.2,44.5+cs*2.8-.78+j*.52,.44,.4,'-x',.03]);}goods('shop-survival','store-survival.jpg',8,6,false,cards);}}
+     {const cards=[];for(let n=0;n<47;n++){const cs=Math.floor(n/16),k=Math.floor(n%16/4),j=n%4;cards.push([n%8,Math.floor(n/8),16.16,.5+k*.5+.02+.2,44.5+cs*2.8-.78+j*.52,.44,.4,'-x',.03]);}goods('shop-survival','store-survival.jpg',8,6,false,cards);}}
     if(!shopKit){box('shop-shelf',[6.4,2.6,.6],[11,1.3,43.55],frame);for(let k=0;k<4;k++)box('shelf-goods',[5.8,.25,.4],[11,.5+k*.6,43.75],[cyan,amber,violet,magenta][k]);}
     box('admin-workstation',[2,.9,1],[8,.45,50.8],frame);plane('admin-screen',1.6,.9,[8,1.5,51.3],texMat('admin-screen',texture('admin-screen',256,144,(g,W,H)=>{g.fillStyle='#04060a';g.fillRect(0,0,W,H);g.fillStyle='#38e8ff';g.font='12px monospace';for(let i=0;i<9;i++)g.fillText(['> trace sovereign','> relay: tessaly-07','> badge db sync','> iris.status OK','> mainframe 98%','> firewall ACTIVE','> cams 12/12','> vend restock','> _'][i],8,16+i*14);}),{glow:true}),0);
     plane('shop-holo',1.6,2.4,[10,2.6,52.8],adMat('helix'),0);
@@ -1009,7 +1049,9 @@
     box('pod-terminal',[.4,1.2,.4],[-15.6,.6,71.4],frame);box('pod-terminal-screen',[.3,.4,.05],[-15.6,1.1,71.62],cyan);
 
     // Meeting room: glass wall to the hallway, table, chairs, screen.
-    if(!state.story?.flags?.meetingOpen)box('meeting-door',[.25,3.1,4],[3,1.55,62.5],mat('door-inner','#1d2026',{rough:.35,metal:.9}),false).name='meeting-door';
+    if(!state.story?.flags?.meetingOpen){const md=box('meeting-door',[.25,3.1,4],[3,1.55,62.5],mat('door-inner','#1d2026',{rough:.35,metal:.9}),false);md.name='meeting-door';   /* the vestibule doors' style (David, Nov 2026): the same leaf faces, handles and a pink lintel bar; all children of the door, so they go when it opens */
+     for(const side of [-1,1])for(const lz of [-1,1]){const right=side<0?lz<0:lz>0;doorKid(md,B.MeshBuilder.CreatePlane('door-face',{width:2,height:3.1},scene),doorFace(right?'right':'left'),[side*.13,0,lz],side<0?Math.PI/2:-Math.PI/2);doorKid(md,B.MeshBuilder.CreateBox('door-handle',{width:.07,height:.42,depth:.09},scene),handleM,[side*.165,-.1,lz*.2]);}
+     doorKid(md,B.MeshBuilder.CreateBox('door-lintel-bar',{width:.05,height:.07,depth:2.6},scene),glowMat('door-lintel-pink','#ff3fa6',1.15),[-.2,1.16,0]);}
     box('meeting-table',[4,.12,2.4],[9,.8,62.5],mat('bar-top','#2b1d18',{rough:.35,metal:.2}));for(const [dx,dz] of [[-1.4,-1.6],[0,-1.6],[1.4,-1.6],[-1.4,1.6],[0,1.6],[1.4,1.6]])box('meeting-chair',[.6,.9,.6],[9+dx,.45,62.5+dz],frame);
     // Holo map wall (reference: a pink-framed map of routes and contacts). Abstract star systems, not real places.
     const mapTex=texture('meeting-map',768,384,(g,W,H)=>{g.fillStyle='#040a12';g.fillRect(0,0,W,H);g.strokeStyle='rgba(56,232,255,.14)';g.lineWidth=1;for(let x=0;x<W;x+=32){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke();}for(let y=0;y<H;y+=32){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}const pts=[];for(let i=0;i<70;i++)pts.push([40+rand()*(W-80),44+rand()*(H-90)]);g.strokeStyle='rgba(56,232,255,.35)';for(let i=1;i<pts.length;i+=2){g.beginPath();g.moveTo(pts[i-1][0],pts[i-1][1]);g.lineTo(pts[i][0],pts[i][1]);g.stroke();}for(const [x,y] of pts){g.fillStyle='#38e8ff';g.fillRect(x-2,y-2,4,4);}g.strokeStyle='#ff3fb4';g.lineWidth=2;for(let i=0;i<6;i++){const [x,y]=pts[i*9];g.beginPath();g.arc(x,y,11,0,Math.PI*2);g.stroke();}g.fillStyle='#ff3fb4';g.font='bold 22px monospace';g.fillText('TESSALY / SECURE LINK',18,30);g.fillStyle='#38e8ff';g.font='14px monospace';g.fillText('ENCRYPTION: ACTIVE',18,H-14);});
