@@ -31,11 +31,14 @@
  /* The Darknet District: Rebellion Edition T-shirt (David, 15 Nov 2026: "have 5% of NPCs be wearing" it; the real one is sold on the site's apparel page). About one
     NPC in twenty wears it: a black tee over whatever top they have (a tube round the torso and short sleeves, fitted to their body), the shirt's own city print on the
     chest (void-runner/art/apparel/rebellion-tee-print.jpg, cut from the store's product picture) and a small coloured patch on each sleeve. */
+ /* Inside NULL (David, 15 Nov 2026): "there's always 1 NPC with The Darknet District tshirt on". One dancer who is there at every quality setting always wears it, and nobody
+    else in the club does, so it is always exactly one. Club figures are known by `metadata.club` (ncz-nightclub.js), which makes their seed end in `:club:<spot id>`. */
+ const CLUB_TEE='dancer-0';
  const TEE_SHARE=.05,TEE_PRINT='void-runner/art/apparel/rebellion-tee-print.jpg';
  /* What a person wears: {belt, pouches (2..4), harness, thighs ('', 'L', 'R', 'LR'), knees, bracer ('', 'L', 'R'), goggles, accent (0..5)}. */
  function loadout(seed,look,body,teeShare=TEE_SHARE){
   if(KITS[seed])return {...KITS[seed]};
-  const r=k=>roll(seed,k),skirt=!!body?.skirt,t=r('thigh'),tee=r('tee')<teeShare;
+  const r=k=>roll(seed,k),skirt=!!body?.skirt,t=r('thigh'),club=/:club:([a-z0-9-]+)$/.exec(String(seed)),tee=club?club[1]===CLUB_TEE:r('tee')<teeShare;   /* inside NULL: exactly one, always the same dancer */
   return {tee,belt:r('belt')<.92,pouches:2+Math.floor(r('pouches')*3),harness:!tee&&r('harness')<.55,   /* a chest rig would cover the shirt's print */thighs:skirt?'':t<.3?'L':t<.6?'R':t<.75?'LR':'',knees:!skirt&&r('knees')<.35,
    bracer:r('bracer')<.34?'L':r('bracer')<.68?'R':'',goggles:!HATS.has(look)&&r('goggles')<.3,jacket:false,accent:hash(seed+'/accent')%ACCENTS.length};
  }
@@ -133,7 +136,7 @@
   return {...m,parts,print};
  }
  const wants=look=>!!look&&!SKIP.test(look);
- const pure={ACCENTS,CELLS,HATS,KITS,TEE_SHARE,TEE_PRINT,hash,loadout,build,wants};
+ const pure={ACCENTS,CELLS,HATS,KITS,CLUB_TEE,TEE_SHARE,TEE_PRINT,hash,loadout,build,wants};
  if(typeof module!=='undefined'&&module.exports){module.exports=pure;return;}
  if(typeof document==='undefined')return;
 
@@ -199,7 +202,7 @@
      // A figure put together by the character assembler (parent "character:<look>") is a player, another player or a portrait, and keeps what its owner chose,
      // unless it stands for a named member of staff (Admin, Iris), who has a kit of their own.
      if(/^character:/.test(parent?.name||'')){const staff=parent.parent?.metadata?.character;if(KITS[staff])dress(node,look,staff).catch(()=>{});return;}
-     const who=node.metadata?.character||node.metadata?.id||'walker-'+n;dress(node,look,KITS[who]?who:look+':'+who).catch(()=>{});},0);}
+     const who=node.metadata?.character||node.metadata?.id||(node.metadata?.club?'club:'+node.metadata.club:'')||'walker-'+n;dress(node,look,KITS[who]?who:look+':'+who).catch(()=>{});},0);}
    return node;};}
  root.VoidStreetGear={...pure,config,dress,eye,V3_GREEN,get dressed(){return count;}};
 })(typeof globalThis!=='undefined'?globalThis:this);

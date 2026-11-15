@@ -66,3 +66,11 @@ test('about one NPC in twenty wears the Rebellion Edition tee: a black body, sle
   assert.ok(P[0]<P[P.length-3]&&g.print.uvs[0]===0&&g.print.uvs[g.print.uvs.length-2]===1,l);}
  assert.equal(G.build(fit['hacker-01'],{tee:false,belt:true,pouches:2,harness:false,thighs:'',knees:false,bracer:'',goggles:false,accent:0}).print,null);
 });
+
+test('inside NULL exactly one NPC wears the tee, always the same dancer, at every quality',()=>{
+ const src=fs.readFileSync(path.join(root,'void-runner/ncz-nightclub.js'),'utf8');assert.match(src,/low\?3:/,'even the lowest quality has dancers');assert.match(src,/spot\('dancer-'\+i/);assert.match(src,/club:p\.id/);
+ const ids=['dancer-0','dancer-1','dancer-2','dancer-3','dancer-8','dj','bartender','door','bar-guest-a','bar-guest-b','vip-a','vip-b','queue-a','queue-b'];let n=0;
+ for(const look of ['district-resident','ncz-neon','outlaw-01','hacker-01'])for(const share of [0,.05,1]){const w=ids.filter(id=>G.loadout(look+':club:'+id,look,fit[look],share).tee);assert.deepEqual(w,['dancer-0'],look+' share '+share);n++;}
+ assert.equal(G.CLUB_TEE,'dancer-0');assert.equal(G.loadout('hacker-01:club:dancer-0','hacker-01',fit['hacker-01']).harness,false);
+ assert.match(fs.readFileSync(path.join(root,'void-runner/street-gear.js'),'utf8'),/node\.metadata\?\.club\?'club:'\+node\.metadata\.club/,'club figures are seeded by their spot');
+});
