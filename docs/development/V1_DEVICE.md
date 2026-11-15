@@ -30,3 +30,32 @@ Tests: `tests/district-chat-store.test.cjs` (mocked multiplayer service), `tests
 
 ## Graphics defaults (Phase 2)
 See `docs/development/GRAPHICS_TEST_ROG_ALLY.md`. New players start on Medium; `graphics-prefs.js` defines what a saved value means; Settings > Graphics has Reset to Medium; the game never changes the preset by itself.
+
+## 15 Nov 2026: District residents, profiles, jobs, face-on portraits (PR pending David's approval)
+
+David asked for the NPCs in The Darknet District to be listed with the players, with names, profiles and jobs, and for players to pick their own jobs.
+
+- **`void-runner/district-people.js`** (pure, tested): `JOBS` (David's eight first: Smuggler, Pirate, Mercenary, Merchant, Influencer, Dancer, DJ, Mechanic; then 24 additions for him to keep or cut) and `NPCS`, the roster of named residents: Admin, Iris, Nyx (bar), the two bar patrons, the VR watcher, the two VR booth players, the four hallway figures, and DJ Vanta at NULL. **Every name, job and line except Admin, Iris and Nyx is Claude's draft for David to change.** To add a resident who enters the District, add one line there.
+- **Players tab (Messages):** real players first (each now has a PROFILE button), then the residents of the place you are standing in (the District interior, or NULL for the DJ).
+- **Social:** residents here are listed; any profile opens with name, jobs, a line and where they are.
+- **Your own profile:** WHAT YOU DO (up to three jobs) and ABOUT YOU (one line, 120 characters, cleaned). Both are stored in the save (`story.flags.profileJobs`, `profileAbout`). **Other players cannot see them yet:** the District server accepts no profile fields; sending them needs a hub and API change and David's go-ahead (free text shown to others also needs the chat's moderation rules).
+- **Faces:** a named resident keeps one fixed crowd look (`crowd.js` asks `VoidDistrictPeople.lookFor`), and the portrait uses the look the scene really shows. Nyx has no model yet, so the portrait says unavailable (no face is invented).
+- **Face-on portraits:** `device-portraits.js` now aims the camera square at the face (found from the eyelashes of the posed figure) and frames tighter. `ASSET_VERSION` is 4, so old pictures are redrawn. Known limit: the idle pose can still tilt the head a little.
+
+## 15 Nov 2026 (later): MY V1, empty App Store, job dropdowns, sponsored News feed (same pending PR)
+
+- **MY V1** (`device` app; `D.appTitle` names it after the model, so a V2 shows MY V2): storage, model, the ten system apps and installed apps, moved here from the App Store.
+- **App Store:** shows only "No apps available yet." until `STORE_EXTRA` has entries.
+- **Jobs:** two dropdowns (JOB, SECOND JOB) instead of a wall of buttons; `MAX_JOBS` is 2.
+- **News feed** (`void-runner/news-feed.js`, tested): up to eight small SPONSORED lines mixed among the reports, in a new random order each time the app is opened. Sources: the station screen brands (`ad-art.js`, not The Function's notice), the Relay's advert and police spots word for word (`relay-content.json`), and District store adverts posted by Admin or Iris for the goods the in-game shop shelves show (`store-atlas.json`), each with a link to the real storefront page. **The store advert sentences (`STORE_LINES`) are Claude's drafts.** `GAME_ITEMS` (empty) is where an item Admin or Iris sell through mission progress gets its advert line and the flag or mission that unlocks it.
+
+## 15 Nov 2026 (later still): the Camera app is a live viewfinder; News posts are boxed
+
+- **Camera** (`void-runner/device-camera.js`, tested in `tests/device-camera.test.cjs`): choosing CAMERA closes the panel and puts a viewfinder over the real game view. The player still walks and looks. L (opening the V1) or leaving walking mode closes it. While it is up the game's own readouts are hidden (`body.pd-camera-on`); the interact prompt and notices stay.
+  - HUD: corner brackets, a plain crosshair with no circle, running timecode, battery (the device's own figure for the session, not the computer's), signal (from the game's comms state), zoom, focus, camera id, real frame rate, ISO.
+  - Name tags: light green, with a thin line to the head, for named District residents (`district-people.js`) and other players. Placed up and to the side of the head, kept on screen, measured from the figure's real position every frame, and never drawn through a wall (collision boxes; glass and low counters do not block).
+  - Zoom: mouse wheel through `DEVICES.<model>.camera.zooms` (`[1, 1.5, 2, 3]`) up to that model's `maxZoom` (V1: 2). A later model raises `maxZoom`.
+  - Theme: every colour is a device CSS variable (`--pd-*`; `--pd-tag` is the tag green) and the HUD carries `data-device`, so a new device theme restyles the camera with no code change.
+  - Not built: taking or keeping photos (Gallery is still "coming later").
+- **News:** each sponsored post and each report sits in its own bordered box.
+

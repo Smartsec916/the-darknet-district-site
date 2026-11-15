@@ -128,5 +128,5 @@
   return result;
  };
  globalThis.VoidRelayRadio={get on(){return on;},get speaking(){return on&&relay.state==='playing';},get state(){return relay;},get news(){return rs();},get moments(){return moments;},get content(){return content;},
-  set content(c){if(!R.validate(c).length){halt();content={events:[],...c};relay=R.create();}},archiveSection,watchBoard};
+  get content(){return content;},set content(c){if(!R.validate(c).length){halt();content={events:[],...c};relay=R.create();}},archiveSection,watchBoard};
 })();

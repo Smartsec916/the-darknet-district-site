@@ -5,8 +5,8 @@ const D=require('../void-runner/device-v1.js'),N=require('../void-runner/neochin
 test('V1 is the default device and the registry is the extension point',()=>{
  assert.equal(D.restore({}).model,'v1');assert.equal(D.DEVICES.v1.name,'V1');assert.equal(D.DEVICES.v1.generation,1);
  for(const id of D.DEVICES.v1.apps)assert.ok(D.APPS[id],id);
- assert.deepEqual(Object.keys(D.APPS).filter(k=>D.APPS[k].state==='placeholder').sort(),['camera','gallery'],'only the camera and the gallery are placeholders');
- assert.equal(D.DEVICES.v1.camera.enabled,false);
+ assert.deepEqual(Object.keys(D.APPS).filter(k=>D.APPS[k].state==='placeholder').sort(),['gallery'],'only the gallery is a placeholder');
+ assert.equal(D.DEVICES.v1.camera.enabled,true);assert.deepEqual(D.DEVICES.v1.camera.zooms,[1,1.5,2,3]);assert.equal(D.DEVICES.v1.camera.maxZoom,2);
  assert.deepEqual(Object.keys(D.DEVICES),['v1'],'no V2/V3 exists yet');assert.equal(D.STORE_EXTRA.length,0,'nothing is for sale');
 });
 test('saved device state: unknown values are ignored, built-in apps stay installed, settings are whitelisted, a save without it loads',()=>{
@@ -22,10 +22,10 @@ test('saved device state: unknown values are ignored, built-in apps stay install
 test('App Store: shows installed apps and says nothing more is available; no purchases',()=>{
  const l=D.storeListing(D.restore({}));assert.ok(l.rows.every(r=>r.status==='installed'));assert.equal(l.more,false);
  assert.ok(!JSON.stringify(l).match(/price|\$|credit|buy|purchase/i));
- assert.equal(l.system.length,9,'the nine system apps are listed as built in');assert.equal(l.installed.length,0,'no optional app is installed on a stock device');assert.equal(l.available.length,0,'nothing downloadable exists yet');
+ assert.equal(l.system.length,10,'the ten system apps are listed as built in');assert.equal(D.appTitle('device',D.restore({})),'MY V1','the device app carries the model name');assert.equal(D.appTitle('store',D.restore({})),'APP STORE');assert.equal(l.installed.length,0,'no optional app is installed on a stock device');assert.equal(l.available.length,0,'nothing downloadable exists yet');
 });
-test('stock storage: 75% used, 25% available, 9 system apps, 0 optional apps; old saves keep working; optional apps would add their own share',()=>{
- const stock=D.storage(D.restore({}));assert.deepEqual({u:stock.usedPct,a:stock.availablePct,s:stock.systemApps,o:stock.optionalApps,m:stock.model},{u:75,a:25,s:9,o:0,m:'V1'});
+test('stock storage: 75% used, 25% available, 10 system apps, 0 optional apps; old saves keep working; optional apps would add their own share',()=>{
+ const stock=D.storage(D.restore({}));assert.deepEqual({u:stock.usedPct,a:stock.availablePct,s:stock.systemApps,o:stock.optionalApps,m:stock.model},{u:75,a:25,s:10,o:0,m:'V1'});
  // a save from before this change (apps listed, no storage field) is the stock device too: nothing new is saved
  const old=D.restore({deviceModel:'v1',deviceApps:D.DEVICES.v1.apps.join(','),deviceSettings:'motion=full;scan=0;size=expanded'});assert.equal(D.storage(old).usedPct,75);assert.equal(old.settings.motion,'full');
  const flags=D.write({},D.restore({}));assert.deepEqual(Object.keys(flags).sort(),['deviceApps','deviceMapInterior','deviceMapStreet','deviceModel','deviceSettings','deviceVersion'],'no new save field');

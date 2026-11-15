@@ -154,3 +154,13 @@ The pictures themselves are not in the repository (the cloud session cannot save
 4. Upgrade the alley (done, `ALLEY_LIFE.md`): four people at most, always a drunk.
 5. Upgrade the NeoChinatown streets.
 6. Upgrade the pod interior seen right after character creation, and **let the player look around freely there instead of being held to buttons** (free look exists once in the pod normally: `podLook` in `world-integration.js`; the first wake-up screen is the part to check).
+
+## Characters: NPCs and player characters (David, 15 Nov 2026)
+
+Two pictures of NeoChinatown street people, given as the target for "big graphic upgrades" of both NPCs and player characters. David allows saved looks to be reset so players remake them.
+
+- **Picture 1, eight people in a row on a wet neon street:** a woman in a sheer patterned robe with a glowing paper umbrella; a huge bald man with tattooed arms, a mechanical forearm and belt pouches; a medic in a cap and glasses with red-cross patches and pouches; an old man with a white beard, eye-piece and long worn coat reading a holographic tablet; a woman with a green mohawk, bubble gum, a lime jacket and ripped cargo trousers; a heavy cook in a stained apron with a towel on his shoulder; a businesswoman in a black suit with light-piped seams, a tablet and a case; a youth in a beanie and headphones sitting on a crate.
+- **Picture 2, five people in an alley:** a woman with blue hair and goggles in a cropped jacket with pink light piping; a man with a shaved-side haircut, face implants, a long coat with red rebel markings, smoking; a hooded figure in a red-lit mask; a woman in an off-shoulder dragon-embroidered robe over thigh boots with red glasses; a man with a headset and cyan visor in a hooded tactical jacket.
+- **What they share:** black and near-black layered clothing (leather, coated fabric, canvas), heavy boots, belts, straps, thigh rigs and pouches, tattoos, implants and eyewear, one small coloured light per person (piping, a visor, a device), wet highlights, strong individual silhouettes and clear jobs readable from the outfit (medic, cook, fixer, enforcer).
+- **Gap to the game today:** the 22 MakeHuman figures have plain modern outfits, 512-pixel textures, no normal maps and no layered gear (`CHARACTER_MODEL_AUDIT.md`). David's Blender (5.2, reachable through the bridge) has MPFB installed but **no clothing, hair or skin packs**, so new outfits need either packs installed there, purchased models, or outfits modelled by code.
+

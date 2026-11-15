@@ -1,7 +1,7 @@
 /* V1 personal device: its look. Scoped to #personal-device and #pd-chip only (nothing here touches another game screen).
    The shapes and colours come from the website's navigation buttons (home-navigation.css): panel #0c1b23, edge #38808b, rail #61eee9, one small #d56cba tick.
    Timing for transitions is NOT here: it comes from DEVICES.v1.ui in device-v1.js (the starter V1 is deliberately a little slow; later models can be faster). */
-#personal-device,#pd-chip{--pd-panel:#0c1b23;--pd-panel-hi:#122d37;--pd-panel-on:#103139;--pd-edge:#38808b;--pd-edge-hi:#61eee9;--pd-text:#c3d8de;--pd-text-hi:#f1ffff;--pd-muted:#8caaaf;--pd-tick:#d56cba;--pd-line:#21454d;
+#personal-device,#pd-chip,#pd-camera{--pd-panel:#0c1b23;--pd-panel-hi:#122d37;--pd-panel-on:#103139;--pd-edge:#38808b;--pd-edge-hi:#61eee9;--pd-text:#c3d8de;--pd-text-hi:#f1ffff;--pd-muted:#8caaaf;--pd-tick:#d56cba;--pd-line:#21454d;
  --pd-gap:10px;--pd-pad:14px;--pd-font:'Courier New',Courier,monospace;--pd-fast:160ms;--pd-ms:.3s}
 #personal-device{position:fixed;top:54px;right:12px;bottom:12px;width:max(430px,calc(50vw - 12px));z-index:44;display:none;flex-direction:column;box-sizing:border-box;color:var(--pd-text);font:13px/1.5 var(--pd-font);
  background:linear-gradient(160deg,rgba(7,17,22,.94),rgba(8,13,20,.96) 72%,rgba(10,16,22,.96));border:1px solid var(--pd-edge);box-shadow:0 0 22px rgba(97,238,233,.10),inset 0 0 36px rgba(97,238,233,.04);
@@ -75,7 +75,7 @@
 #personal-device input[type=text],#personal-device select{font:inherit;color:var(--pd-text-hi);background:#050d12;border:1px solid var(--pd-edge);padding:6px 8px;width:100%;box-sizing:border-box}#personal-device select{width:auto}
 #personal-device input[type=text]:focus-visible,#personal-device select:focus-visible{outline:2px solid #fff0c9;outline-offset:1px}
 #personal-device .pd-line{padding:2px 7px;border-left:2px solid var(--pd-edge);margin:2px 0;word-break:break-word;background:rgba(12,27,35,.7)}#personal-device .pd-line b{color:var(--pd-edge-hi);margin-right:6px}
-#personal-device .pd-prof{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}#personal-device .pd-portrait{width:112px;height:112px;object-fit:cover;border:1px solid var(--pd-edge);background:#050b12;flex:none}
+#personal-device .pd-prof{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}#personal-device .pd-mini .pd-portrait,#personal-device .pd-mini .pd-sil{width:64px;height:64px;font-size:0}#personal-device .pd-mini .pd-sil svg{width:40px;height:40px}#personal-device .pd-ad{display:flex;flex-direction:column;gap:3px;margin:10px 0;padding:9px 12px;border:1px solid var(--pd-edge);border-left:3px solid var(--pd-tick);background:rgba(12,27,35,.92);box-shadow:0 0 0 1px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.35);font-size:11px;line-height:1.35}#personal-device .relay-archive details,#personal-device .relay-archive article{border:1px solid var(--pd-line);padding:8px 12px;margin:10px 0}#personal-device .pd-ad small{font-size:9px;letter-spacing:.16em;color:var(--pd-muted)}#personal-device .pd-ad b{font-size:11px;letter-spacing:.06em;color:var(--pd-text-hi)}#personal-device .pd-ad span{color:var(--pd-text)}#personal-device .pd-ad a{align-self:flex-start;font-size:9px;letter-spacing:.14em;color:var(--pd-edge-hi)}#personal-device .pd-jobrow{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 10px}#personal-device .pd-jobsel{display:flex;flex-direction:column;gap:3px;flex:1;min-width:170px;font-size:10px;letter-spacing:.12em;color:var(--pd-muted)}#personal-device .pd-jobsel select{font:13px ui-monospace,Consolas,monospace;letter-spacing:.06em;color:#e8fbff;background:#06121a;border:1px solid var(--pd-edge);padding:7px 8px}#personal-device .pd-portrait{width:112px;height:112px;object-fit:cover;border:1px solid var(--pd-edge);background:#050b12;flex:none}
 #personal-device .pd-sil{width:112px;height:112px;border:1px dashed var(--pd-edge);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#6c8a93;font-size:9px;text-align:center;flex:none}
 #personal-device canvas.pd-map{display:block;width:100%;height:auto;aspect-ratio:10/7;background:#03080d;border:1px solid var(--pd-edge)}
 #personal-device .relay-archive details{margin:6px 0;padding:6px 10px;border-left:2px solid #d9a441;background:rgba(12,27,35,.7)}#personal-device .relay-archive summary{cursor:pointer}#personal-device .relay-archive h2{margin-top:0}
@@ -122,3 +122,34 @@
 /* Mission Log */
 #personal-device .pd-obj{margin:6px 0;color:var(--pd-text-hi)}#personal-device .pd-obj b{color:var(--pd-edge-hi);letter-spacing:.12em;font-size:10px;margin-right:6px}
 #personal-device .pd-steps{list-style:none;margin:4px 0 8px;padding:0;font-size:11px;color:var(--pd-muted)}#personal-device .pd-steps li.on{color:var(--pd-edge-hi)}
+/* ---- Camera viewfinder (device-camera.js). Every colour is a device variable, so a later model's theme restyles it; --pd-tag is the name-tag green. ---- */
+#pd-camera{--pd-tag:#9dff5a;position:fixed;inset:0;z-index:240;pointer-events:none;font:600 clamp(11px,1.25vw,17px)/1.5 ui-monospace,Consolas,monospace;letter-spacing:.06em;color:var(--pd-text-hi);text-shadow:0 0 6px rgba(97,238,233,.45),0 1px 2px #000}
+#pd-camera[hidden]{display:none}
+/* while filming, the game's own readouts step aside (the interact prompt and any dialog stay) */
+body.pd-camera-on>:not(#space):not(#pd-camera):not(#screen):not(#game-menu):not(#personal-device):not(#mission-log):not(#notice):not(#flash):not(#loading-screen):not(#walking-ui):not(#arcade-play):not(#character-creator):not(#pod-wake):not(script):not(style){visibility:hidden!important}
+#pd-camera b{font-weight:600;color:var(--pd-text-hi)}
+#pd-camera .pc-frame{position:absolute;inset:2.4vmin}
+#pd-camera .pc-corner{position:absolute;width:9vmin;height:9vmin;border:0 solid var(--pd-edge-hi);filter:drop-shadow(0 0 4px var(--pd-edge-hi));opacity:.95}
+#pd-camera .pc-corner.tl{left:0;top:0;border-left-width:2px;border-top-width:2px}#pd-camera .pc-corner.tr{right:0;top:0;border-right-width:2px;border-top-width:2px}
+#pd-camera .pc-corner.bl{left:0;bottom:0;border-left-width:2px;border-bottom-width:2px}#pd-camera .pc-corner.br{right:0;bottom:0;border-right-width:2px;border-bottom-width:2px}
+#pd-camera .pc-edge{position:absolute;left:34%;right:34%;height:1px;background:var(--pd-edge-hi);opacity:.55}#pd-camera .pc-edge.t{top:0}#pd-camera .pc-edge.b{bottom:0}
+#pd-camera .pc-aperture{position:absolute;left:50%;top:50%;width:13vmin;height:13vmin;transform:translate(-50%,-50%)}
+#pd-camera .pc-aperture .pc-corner{width:2.4vmin;height:2.4vmin;opacity:.9}
+#pd-camera .pc-cross{position:absolute;left:50%;top:50%;width:2vmin;height:2vmin;transform:translate(-50%,-50%);background:linear-gradient(var(--pd-edge-hi),var(--pd-edge-hi)) center/100% 1.5px no-repeat,linear-gradient(var(--pd-edge-hi),var(--pd-edge-hi)) center/1.5px 100% no-repeat;filter:drop-shadow(0 0 3px var(--pd-edge-hi))}
+#pd-camera .pc-time{position:absolute;top:5.4vmin;left:50%;transform:translateX(-50%);font-size:1.25em;letter-spacing:.14em}
+#pd-camera .pc-tr{position:absolute;top:5.4vmin;right:6vmin;text-align:right}#pd-camera .pc-bl{position:absolute;bottom:5.4vmin;left:6vmin}#pd-camera .pc-br{position:absolute;bottom:5.4vmin;right:6vmin;text-align:right}
+#pd-camera .pc-cam{color:var(--pd-edge-hi);font-size:1.1em}
+#pd-camera .pc-batt{display:inline-block;vertical-align:-.15em;margin-left:.6em;width:2.2em;height:.95em;border:1px solid var(--pd-tag);padding:1px;box-sizing:border-box}#pd-camera .pc-batt i{display:block;height:100%;background:var(--pd-tag)}
+#pd-camera .pc-bars{display:inline-flex;align-items:flex-end;gap:2px;margin-left:.6em;height:.95em;vertical-align:-.1em}#pd-camera .pc-bars i{width:3px;background:var(--pd-tag);opacity:.25}
+#pd-camera .pc-bars i:nth-child(1){height:30%}#pd-camera .pc-bars i:nth-child(2){height:55%}#pd-camera .pc-bars i:nth-child(3){height:78%}#pd-camera .pc-bars i:nth-child(4){height:100%}
+#pd-camera .pc-bars[data-level="1"] i:nth-child(-n+1),#pd-camera .pc-bars[data-level="2"] i:nth-child(-n+2),#pd-camera .pc-bars[data-level="3"] i:nth-child(-n+3),#pd-camera .pc-bars[data-level="4"] i{opacity:1}
+#pd-camera .pc-hint{margin-top:.3em;font-size:.62em;letter-spacing:.16em;color:var(--pd-muted);text-shadow:0 1px 2px #000}
+#pd-camera .pc-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible}#pd-camera .pc-lines line{stroke:var(--pd-tag);stroke-width:1.2;opacity:.9}#pd-camera .pc-lines circle{fill:var(--pd-tag)}
+#pd-camera .pc-tags{position:absolute;inset:0}
+#pd-camera .pc-tag{position:absolute;left:0;top:0;display:flex;flex-direction:column;padding:.15em .7em .25em;border:1.5px solid var(--pd-tag);background:rgba(6,18,8,.72);color:var(--pd-tag);text-shadow:0 0 5px rgba(157,255,90,.4);white-space:nowrap;will-change:transform}
+#pd-camera .pc-tag[hidden]{display:none}#pd-camera .pc-tag b{color:var(--pd-tag);font-size:1em;letter-spacing:.04em}#pd-camera .pc-tag span{font-size:.72em;letter-spacing:.06em;opacity:.92}
+/* a faint holographic wash and scan lines: light enough not to hide the scene */
+#pd-camera::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(97,238,233,.035) 0 1px,transparent 1px 4px);mix-blend-mode:screen}
+#pd-camera::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 18vmin rgba(0,0,0,.42)}
+@media (prefers-reduced-motion:no-preference){#pd-camera .pc-cross{animation:pc-pulse 2.6s ease-in-out infinite}@keyframes pc-pulse{50%{opacity:.6}}}
+

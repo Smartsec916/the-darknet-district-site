@@ -1,0 +1,49 @@
+/* Who is in The Darknet District: the named residents (NPCs) that the V1 lists beside real players, and the jobs a person can show on a profile.
+   Pure data and small helpers; runs in the browser and in Node (tests/district-people.test.cjs). No network, no storage: a player's chosen jobs are kept in the
+   save's story.flags.profileJobs (a short string), and are NOT yet sent to other players (the District server accepts no profile fields).
+   To add a resident: add a line to NPCS with the id the scene uses for that figure (`crew`), a fixed crowd `look` or a creator `appearance`, and the `area`
+   they are in ('interior' = inside the District, 'club' = NULL nightclub). The V1's Players list and Social app pick it up from here.
+   DRAFT: every name, job and line below except Admin, Iris and Nyx was written by Claude on David's request (15 Nov 2026) and is his to change. */
+(function(root){
+ 'use strict';
+ // Jobs: David's list first (Smuggler .. Mechanic), then additions for him to keep or cut.
+ const JOBS=[['smuggler','Smuggler'],['pirate','Pirate'],['mercenary','Mercenary'],['merchant','Merchant'],['influencer','Influencer'],['dancer','Dancer'],['dj','DJ'],['mechanic','Mechanic'],
+  ['bounty-hunter','Bounty Hunter'],['courier','Courier'],['pilot','Pilot'],['hacker','Hacker'],['fixer','Fixer'],['info-broker','Info Broker'],['bartender','Bartender'],['bodyguard','Bodyguard'],
+  ['medic','Medic'],['salvager','Salvager'],['miner','Miner'],['engineer','Engineer'],['explorer','Explorer'],['racer','Racer'],['gambler','Gambler'],['musician','Musician'],
+  ['street-vendor','Street Vendor'],['chef','Chef'],['tattoo-artist','Tattoo Artist'],['bouncer','Bouncer'],['vr-athlete','VR Athlete'],['companion','Companion'],['scavenger','Scavenger'],['drifter','Drifter']]
+  .map(([id,label])=>({id,label}));
+ const JOB=new Map(JOBS.map(j=>[j.id,j])),MAX_JOBS=2,FLAG='profileJobs';
+ const jobLabel=id=>JOB.get(id)?.label||'';
+ // Any input (a stored string, a list, junk) -> at most MAX_JOBS known job ids, no repeats, in the order given.
+ function cleanJobs(v){const list=Array.isArray(v)?v:typeof v==='string'?v.split(','):[],out=[];for(const x of list){const id=String(x).trim();if(JOB.has(id)&&!out.includes(id))out.push(id);if(out.length>=MAX_JOBS)break;}return out;}
+ const jobsText=ids=>cleanJobs(ids).map(jobLabel).join(' · ');
+ const readJobs=flags=>cleanJobs(flags&&flags[FLAG]);
+ function writeJobs(flags,ids){const c=cleanJobs(ids);if(!flags)return c;if(c.length)flags[FLAG]=c.join(',');else delete flags[FLAG];return c;}
+ function toggleJob(ids,id){const c=cleanJobs(ids);if(!JOB.has(id))return c;if(c.includes(id))return c.filter(x=>x!==id);return c.length>=MAX_JOBS?c:[...c,id];}
+
+ const AREAS={interior:'The Darknet District',club:'NULL nightclub, NeoChinatown'};
+ const NPCS=[
+  {id:'admin',name:'Admin',jobs:['merchant'],area:'interior',place:'The Darknet District store',bio:'Runs the District store.',
+   appearance:{v:1,base:'male',look:'district-smuggler',hair:'short03',hairColor:'silver',clothingColor:'graphite',accessories:[]}},
+  {id:'iris',name:'Iris',jobs:['merchant','info-broker'],area:'interior',place:'The Darknet District store',bio:'Works the store counter beside Admin.',
+   appearance:{v:1,base:'female',look:'fixer-01',hair:'bob02',hairColor:'silver',clothingColor:'black',accessories:['gear-collar','gear-armband']}},
+  {id:'nyx-district',name:'Nyx',jobs:['bartender'],area:'interior',place:'The bar and oxygen lounge',bio:'Behind the bar.'},
+  {id:'rin-takeda',crew:'crew-bar1',look:'district-resident',name:'Rin Takeda',jobs:['influencer'],area:'interior',place:'The bar and oxygen lounge',bio:'Usually at the bar.'},
+  {id:'jonah-pike',crew:'crew-bar2',look:'outlaw-01',name:'Jonah Pike',jobs:['smuggler'],area:'interior',place:'The bar and oxygen lounge',bio:'Keeps to the back of the lounge.'},
+  {id:'sable-quon',crew:'crew-vr-watch',look:'hacker-01',name:'Sable Quon',jobs:['influencer','hacker'],area:'interior',place:'VR play area',bio:'Watches the VR booths.'},
+  {id:'dax-moreno',crew:'vr-player-a',look:'vr-player-a',name:'Dax Moreno',jobs:['mercenary','vr-athlete'],area:'interior',place:'VR play area, booth one',bio:'In the shooter booth most nights.'},
+  {id:'lumi-ashby',crew:'vr-player-b',look:'vr-player-b',name:'Lumi Ashby',jobs:['dancer','influencer'],area:'interior',place:'VR play area, booth two',bio:'In the social booth: dancing, eating, talking to someone only they can see.'},
+  {id:'kei-navarro',crew:'crew-hall-talk1',look:'district-smuggler',name:'Kei Navarro',jobs:['courier'],area:'interior',place:'The hallway',bio:'Talking in the hallway.'},
+  {id:'mags-oduya',crew:'crew-hall-talk2',look:'district-resident',name:'Mags Oduya',jobs:['mechanic'],area:'interior',place:'The hallway',bio:'Talking in the hallway.'},
+  {id:'tavi-rourke',crew:'crew-hall-talk3',look:'hacker-01',name:'Tavi Rourke',jobs:['influencer'],area:'interior',place:'The hallway',bio:'Hangs about near the bar door.'},
+  {id:'bishop-hale',crew:'crew-hall-watch1',look:'outlaw-01',name:'Bishop Hale',jobs:['bodyguard'],area:'interior',place:'The hallway',bio:'Watches the hallway by the arcade.'},
+  {id:'dj-vanta',crew:'dj',name:'DJ Vanta',jobs:['dj'],area:'club',place:'NULL nightclub, NeoChinatown',bio:'Plays the desk at NULL.'}
+ ].map(n=>Object.freeze({...n,jobs:cleanJobs(n.jobs)}));
+ const BY_ID=new Map(NPCS.map(n=>[n.id,n])),BY_CREW=new Map(NPCS.filter(n=>n.crew).map(n=>[n.crew,n]));
+ const npc=id=>BY_ID.get(id)||null;
+ const npcs=area=>area?NPCS.filter(n=>n.area===area):NPCS.slice();
+ // The fixed look of a named resident's figure, so the same person has the same face on every visit (crowd.js asks here before dealing a random look).
+ const lookFor=crewId=>BY_CREW.get(crewId)?.look||null;
+ const api={JOBS,MAX_JOBS,FLAG,AREAS,NPCS,jobLabel,cleanJobs,jobsText,readJobs,writeJobs,toggleJob,npc,npcs,lookFor};
+ if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidDistrictPeople=api;
+})(typeof globalThis!=='undefined'?globalThis:this);

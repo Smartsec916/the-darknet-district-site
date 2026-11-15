@@ -13,7 +13,7 @@
  const ICON={missions:'<path d="M6 4h12v16H6z"/><path d="M9 9h6M9 13h6M9 17h3"/>',messages:'<path d="M4 5h16v11h-9l-4 4v-4H4z"/><path d="M8 9.5h8M8 12.5h5"/>',social:'<circle cx="9" cy="9" r="3"/><circle cx="17" cy="10" r="2.2"/><path d="M3.5 19c.6-3.6 3-5 5.5-5s4.900 1.400 5.500 5"/><path d="M15 14.300c2.600-.4 4.600.9 5.200 4.200"/>',
   news:'<path d="M4 5h12v14H6a2 2 0 0 1-2-2z"/><path d="M16 9h4v8a2 2 0 0 1-2 2"/><path d="M7 8.500h6M7 12h6M7 15.500h3"/>',map:'<path d="M12 21s6.500-5.700 6.500-10.500a6.500 6.500 0 0 0-13 0C5.500 15.300 12 21 12 21z"/><circle cx="12" cy="10.500" r="2.300"/>',
   camera:'<path d="M4 8h3.500l1.500-2h6l1.500 2H20v11H4z"/><circle cx="12" cy="13.500" r="3.500"/>',gallery:'<path d="M4 5h16v14H4z"/><circle cx="9" cy="10" r="1.600"/><path d="M4 17l5-4.500 3.500 3 3-2.500L20 16"/>',
-  store:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',settings:'<path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/>'};
+  store:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',device:'<path d="M7 3h10v18H7z"/><path d="M10 6h4M11 18h2"/>',settings:'<path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/>'};
  const icon=id=>'<svg class="pd-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+(ICON[id]||'')+'</svg>';
  // The homepage navigation button frame (home-navigation.css): panel, rail and one small accent tick, stretched to the tile.
  const FRAME='<svg class="pd-frame" viewBox="0 0 180 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="pd-panel" d="M10 .5H179.5V37.5L169.5 47.5H.5V10Z"/><path class="pd-rail" d="M16 4H47M1 19V33M133 44H161"/><path class="pd-accent" d="M171 5H175V14"/></svg>';
@@ -48,13 +48,28 @@
  const rp=()=>root.VoidRemotePlayers;
  function myProfile(){
   const A=root.VoidCharacterCreator?.stored?.()||null,h=root.VoidAccount?.handle;   // no saved look: the portrait says unavailable, never a guess
-  const mine=D.profile('player',{handle:typeof h==='string'?h:null,publicId:rp()?.me||'',appearance:A,bio:'This is you.'});
+  const f=flags_(),about=f?cleanAbout(f.profileAbout):'',mine=D.profile('player',{handle:typeof h==='string'?h:null,publicId:rp()?.me||'',appearance:A,bio:about||'This is you.',jobs:DP()&&f?DP().jobsText(DP().readJobs(f)):''});
   try{mine.facts=(root.VoidLocalProgress?.profileLines()||[]).slice(0,12);}catch{}   // progress counted in this browser (local-progress.js): your own profile only; achievements proper need server records
   return mine;
  }
  function npcContacts(){
   const H=root.VoidHudData,s=state_();if(!H||!s)return [];
   return H.contacts(s).map(c=>D.profile('npc',{id:c.id,name:c.name,bio:c.place,place:c.place,here:c.here,learned:[c.channel],model:(D.NPC_MODELS||{})[c.id]||null}));
+ }
+ /* District residents (district-people.js): the named NPCs who are where you are, listed beside real players. Their portrait is the figure the scene really
+    shows (its look is read from the scene when it is loaded), so a face is never guessed. */
+ const DP=()=>root.VoidDistrictPeople||null;
+ function areasHere(){const out=[];try{const wl=typeof walkingLocation!=='undefined'?walkingLocation:null;if(wl?.id==='neochinatown'&&typeof walker!=='undefined'&&walker){if(wl.area==='interior')out.push('interior');else if(root.VoidNightclub?.inside?.(walker))out.push('club');}}catch{}return out;}
+ function sceneLook(crew){try{const sc=root.VoidBabylon?.scene,hit=n=>n.metadata&&n.metadata.crowd&&(n.metadata.character===crew||n.metadata.club===crew),n=sc?.transformNodes.find(hit)||sc?.meshes.find(hit);return n?n.metadata.crowd:null;}catch{return null;}}
+ function residentProfile(n,here){const P=DP();return D.profile('npc',{id:n.id,name:n.name,affiliation:P.jobsText(n.jobs),bio:n.bio,place:n.place,here:false,appearance:n.appearance||null,model:n.appearance?null:(n.crew&&sceneLook(n.crew))||n.look||null});}
+ function residents(onlyHere=true){const P=DP();if(!P)return [];const a=areasHere();return P.NPCS.filter(n=>!onlyHere||a.includes(n.area)).map(n=>residentProfile(n));}
+ const flags_=()=>state_()?.story?.flags||null;
+ const cleanAbout=v=>String(v??'').replace(/[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2066-\u2069<>]/g,'').replace(/\s+/g,' ').trim().slice(0,120);
+ function profileEditor(){
+  const P=DP(),f=flags_();if(!P||!f)return '';const mine=P.readJobs(f);
+  const pick=(n,label)=>'<label class="pd-jobsel"><span>'+label+'</span><select data-jobsel="'+n+'" aria-label="'+label+'"><option value="">NONE</option>'+P.JOBS.map(j=>'<option value="'+esc(j.id)+'"'+(mine[n]===j.id?' selected':'')+'>'+esc(j.label.toUpperCase())+'</option>').join('')+'</select></label>';
+  return '<div class="pd-jobs"><h2>WHAT YOU DO</h2><div class="pd-note">Choose one or two jobs. Kept in your save and shown on your profile here. Other players cannot see it yet.</div><div class="pd-jobrow">'+pick(0,'JOB')+pick(1,'SECOND JOB')+'</div>'
+   +'<h2>ABOUT YOU</h2><form data-aboutform class="pd-compose"><input type="text" maxlength="120" autocomplete="off" aria-label="About you" placeholder="A line about your character (120 characters)" value="'+esc(cleanAbout(f.profileAbout))+'"><button type="submit">SAVE</button></form></div>';
  }
  function nearbyPlayers(){
   const r=rp();if(!r?.connected)return [];
@@ -79,17 +94,18 @@
   for(const [id,,name] of (r?.ignored||[]))if(!rows.some(x=>x.id===id))rows.push({id,name,here:false});   // a blocked player's character is hidden, so they stay listed to be unblocked
   return rows;
  }
- const playersSigNow=()=>playerRows().map(x=>x.id+x.name).join('|')+JSON.stringify(rp()?.ignored||[]);
+ const playersSigNow=()=>playerRows().map(x=>x.id+x.name).join('|')+JSON.stringify(rp()?.ignored||[])+'|'+areasHere().join(',');
  function playersHtml(){
   const r=rp(),ign=new Map((r?.ignored||[]).map(([id,m,name])=>[id,{m,name}])),rows=playerRows();playersSig=playersSigNow();
-  const note=chat()?.note;
+  const note=chat()?.note,keys=new Map();try{const near=nearbyPlayers();(r?.connected?r.peers:[]).forEach((p,i)=>{if(near[i])keys.set(p.id,near[i].key);});}catch{}
+  const res=residents(),resRow=p=>'<article class="pd-card"><div class="pd-prof pd-mini">'+portraitHtml(p)+'<div style="flex:1;min-width:150px"><h3>'+esc(p.name)+' <small>RESIDENT</small></h3><div class="pd-note">'+esc(p.subtitle||'')+'</div><div class="pd-tabs" style="margin:6px 0 0"><button type="button" data-open-profile="'+esc(p.key)+'">PROFILE</button></div></div></div></article>';
   const list=rows.length?rows.map(p=>{const m=ign.get(p.id)?.m;return '<article class="pd-card"><h3>'+esc(p.name)+(m?' <small>['+m.toUpperCase()+']</small>':'')+(p.here?'':' <small>(not in view)</small>')+'</h3><div class="pd-tabs">'
     +'<button type="button" data-ig="'+(m==='mute'?'unmute':'mute')+'" data-id="'+esc(p.id)+'" data-name="'+esc(p.name)+'">'+(m==='mute'?'UNMUTE':'MUTE')+'</button>'
     +'<button type="button" data-ig="'+(m==='block'?'unblock':'block')+'" data-id="'+esc(p.id)+'" data-name="'+esc(p.name)+'">'+(m==='block'?'UNBLOCK':'BLOCK')+'</button>'
-    +(p.here?'<button type="button" data-rep-open="'+esc(p.id)+'">REPORT</button>':'')+'</div>'
+    +(p.here?'<button type="button" data-rep-open="'+esc(p.id)+'">REPORT</button>':'')+(p.here&&keys.get(p.id)?'<button type="button" data-open-profile="'+esc(keys.get(p.id))+'">PROFILE</button>':'')+'</div>'
     +(reporting===p.id?'<div class="pd-report"><select aria-label="Reason">'+REASONS.map(([v,l])=>'<option value="'+v+'">'+l+'</option>').join('')+'</select><input type="text" maxlength="120" aria-label="Report note" placeholder="What happened? (optional)"><button type="button" data-rep-send="'+esc(p.id)+'">SEND REPORT</button></div>':'')+'</article>';}).join(''):'<div class="pd-empty">'+(r?.connected?'Nobody else is here right now.':'Not connected to the District server.')+'</div>';
   return '<div class="pd-note">Mute hides a player\'s chat. Block also hides their character. Both are kept on this device. You can also type /mute NAME or /block NAME in the chat.</div>'
-   +(note?'<div class="pd-card" role="status">'+esc(note)+'</div>':'')+list
+   +(note?'<div class="pd-card" role="status">'+esc(note)+'</div>':'')+'<h2>PLAYERS</h2>'+list+(res.length?'<h2>'+esc((DP().AREAS[areasHere()[0]]||'HERE').toUpperCase())+' · RESIDENTS</h2>'+res.map(resRow).join(''):'')
    +'<div class="pd-note" style="margin-top:8px">Reports go to the District server\'s log for review. They are not kept as a permanent case file.</div>';
  }
  const unreadText=n=>n>99?'99+':String(n);
@@ -119,6 +135,9 @@
   updateBadges();
  }
 
+ /* The News feed's adverts: the goods the District store stocks (the list the shop shelves are drawn from), read once; and a seed that changes each time the app is opened. */
+ let storeNames=null,feedSeed=1;
+ try{fetch(new URL('void-runner/assets/textures/store/store-atlas.json',document.baseURI||location.href)).then(r=>r.ok?r.json():null).then(j=>{if(j&&typeof j==='object')storeNames=j;}).catch(()=>{});}catch{}
  // ---- Apps ----
  const APP_VIEW={
   missions(){
@@ -149,16 +168,24 @@
   },
   social(){
    const sel=stack[1];
-   if(sel){const all=[myProfile(),...npcContacts(),...nearbyPlayers()],p=all.find(x=>x.key===sel);if(p)return profileCard(p,{extra:p.kind==='player'&&p.key!==myProfile().key?'<div data-report></div>':''});}
-   const me=myProfile(),npcs=npcContacts(),pl=nearbyPlayers();
+   if(sel){const mine=myProfile(),all=[mine,...residents(false),...npcContacts(),...nearbyPlayers()],p=all.find(x=>x.key===sel);if(p)return profileCard(p,{extra:p.kind==='player'&&p.key!==mine.key?'<div data-report></div>':''})+(p.key===mine.key?profileEditor():'');}
+   const me=myProfile(),here=residents(),hk=new Set(here.map(x=>x.key)),npcs=npcContacts().filter(x=>!hk.has(x.key)),pl=nearbyPlayers();
    const row=p=>'<article class="pd-card"><div class="pd-prof">'+portraitHtml(p)+'<div style="flex:1"><h3>'+esc(p.name)+'</h3><div class="pd-note">'+esc(p.subtitle||p.bio)+'</div><button type="button" data-open-profile="'+esc(p.key)+'">PROFILE</button></div></div></article>';
    return '<h2>YOU</h2>'+row(me)+'<h2>PEOPLE YOU KNOW</h2>'+(npcs.length?npcs.map(row).join(''):'<div class="pd-empty">Nobody yet. People you meet appear here.</div>')
-    +'<h2>IN THE DISTRICT NOW</h2>'+(pl.length?pl.map(row).join(''):'<div class="pd-empty">'+(rp()?.connected?'No other players nearby.':'Not connected to the District server.')+'</div>')
+    +(here.length?'<h2>RESIDENTS HERE</h2>'+here.map(row).join(''):'')+'<h2>PLAYERS HERE NOW</h2>'+(pl.length?pl.map(row).join(''):'<div class="pd-empty">'+(rp()?.connected?'No other players nearby.':'Not connected to the District server.')+'</div>')
     +'<div class="pd-note" style="margin-top:10px">Friends and player discovery are not available yet.</div>';
   },
   news(){
    const R=root.VoidRelayRadio;let html='';try{html=R?.archiveSection?.()||'';}catch{}
-   return html?'<div class="pd-note">From THE RELAY. Only what you have actually heard is listed.</div>'+html:'<div class="pd-empty">No news received yet.<br>Reports appear here after you hear them on the Relay.</div>';
+   const head=html?'<div class="pd-note">From THE RELAY. Only what you have actually heard is listed. Sponsored lines are the adverts on the screens around you.</div>':'';
+   // adverts mixed in among the reports, in a new order each time the app is opened
+   let ads=[];try{const F=root.VoidNewsFeed,s=state_();if(F){const store=[];for(const k of Object.keys(storeNames||{}))for(const c of storeNames[k].cells||[])if(c.name&&!store.includes(c.name))store.push(c.name);
+    const tpl=document.createElement('template');tpl.innerHTML=html;const sec=tpl.content.querySelector('.relay-archive'),blocks=sec?[...sec.children].filter(e=>e.matches('article,details')):[];
+    ads=F.feed(F.adverts({brands:root.VoidAds?.brands,relay:R?.content?.segments,store,flags:s?.story?.flags,completed:s?.universe?.completedObjectives||[]}),blocks.length,feedSeed);
+    const card=a=>'<aside class="pd-ad" aria-label="Advertisement"><small>SPONSORED · '+esc(a.sponsor)+'</small><b>'+esc(a.title)+'</b><span>'+esc(a.text)+'</span>'+(a.link?'<a href="'+esc(a.link)+'" target="_blank" rel="noopener">VIEW IN THE STORE</a>':'')+'</aside>';
+    if(sec&&blocks.length){for(let i=ads.length-1;i>=0;i--){const {ad,slot}=ads[i],el=document.createElement('div');el.innerHTML=card(ad);const at=blocks[slot]||null;if(at)at.before(el.firstChild);else sec.append(el.firstChild);}return head+tpl.innerHTML;}
+    return head+(html||'<div class="pd-empty">No news received yet.<br>Reports appear here after you hear them on the Relay.</div>')+(ads.length?'<h2>SPONSORED</h2>'+ads.map(x=>card(x.ad)).join(''):'');}}catch{}
+   return html?head+html:'<div class="pd-empty">No news received yet.<br>Reports appear here after you hear them on the Relay.</div>';
   },
   map(){
    const wl=typeof walkingLocation!=='undefined'?walkingLocation:null;
@@ -168,17 +195,21 @@
    if(root.VoidDistrictMap?.mount)return '<div class="pd-note">'+(wl.mapSpace?(root.VoidAreaMap?.get(wl.mapSpace)?.name||'AREA').toUpperCase():area==='interior'?'THE DARKNET DISTRICT':'NEOCHINATOWN')+' · '+(wl.mapSpace?'area map · unexplored places are hidden':'city navigation')+'</div><div data-district-map></div>';
    return '<div class="pd-note">'+(area==='interior'?'THE DARKNET DISTRICT':'NEOCHINATOWN')+' · only places you have explored are shown.</div><canvas class="pd-map" width="800" height="560" data-map aria-label="Map of explored areas"></canvas><div data-places></div>';
   },
-  camera(){return '<div class="pd-empty"><b>CAMERA</b><br>Not available in the V1 model yet.<br>Nothing is captured, stored or sent.</div>';},
+  camera(){return '<div class="pd-empty"><b>CAMERA</b><br>The viewfinder opens over the world.<br>Nothing is captured, stored or sent.</div>';},
   gallery(){return '<div class="pd-empty"><b>GALLERY</b><br>No photos. Photos will be kept here once the camera exists.</div>';},
+  /* The App Store is empty until David adds apps (15 Nov 2026): the device's own details moved to MY V1 (the `device` app). */
   store(){
+   const l=D.storeListing(dev);
+   return l.available.length?'<h2>AVAILABLE APPS</h2>'+l.available.map(r=>'<div class="pd-sys">'+icon(r.id)+'<span>'+esc(r.title)+'</span><em>'+esc(r.status.toUpperCase())+'</em></div>').join(''):'<div class="pd-empty">No apps available yet.</div>';
+  },
+  device(){
    const l=D.storeListing(dev),st=l.storage,row=(r,tag)=>'<div class="pd-sys">'+icon(r.id)+'<span>'+esc(r.title)+'</span><em>'+esc(tag)+'</em></div>';
    return '<h2>STORAGE</h2><section class="pd-storage" aria-label="Device storage"><div class="pd-stat"><span>STORAGE USED: '+st.usedPct+'%</span><span>STORAGE AVAILABLE: '+st.availablePct+'%</span></div>'
     +'<div class="pd-bar" role="img" aria-label="'+st.usedPct+' percent of storage used"><i style="width:'+st.usedPct+'%"></i></div>'
     +'<dl class="pd-kv"><dt>DEVICE MODEL</dt><dd>'+esc(st.model)+'</dd><dt>SYSTEM APPS</dt><dd>'+st.systemApps+'</dd><dt>ADDITIONAL APPS INSTALLED</dt><dd>'+st.optionalApps+'</dd></dl>'
-    +'<div class="pd-note" style="margin-top:8px">The stock V1 ships with its system apps taking '+st.baselinePct+'% of storage. This is the model\'s defined baseline, not a measurement of your computer. Each optional app you install will add its own share.</div></section>'
+    +'<div class="pd-note" style="margin-top:8px">The stock '+esc(st.model)+' ships with its system apps taking '+st.baselinePct+'% of storage. This is the model\'s defined baseline, not a measurement of your computer. Each optional app you install will add its own share.</div></section>'
     +'<h2>SYSTEM APPS</h2>'+l.system.map(r=>row(r,r.placeholder?'PREINSTALLED · COMING LATER':'PREINSTALLED')).join('')
-    +'<h2>INSTALLED APPS</h2>'+(l.installed.length?l.installed.map(r=>row(r,'INSTALLED')).join(''):'<div class="pd-empty">No additional apps installed.</div>')
-    +'<h2>AVAILABLE APPS</h2>'+(l.available.length?l.available.map(r=>row(r,r.status.toUpperCase())).join(''):'<div class="pd-empty">No downloadable apps are available yet.<br>New apps will appear here when they are released.</div>');
+    +'<h2>INSTALLED APPS</h2>'+(l.installed.length?l.installed.map(r=>row(r,'INSTALLED')).join(''):'<div class="pd-empty">No additional apps installed.</div>');
   },
   settings(){
    const S=dev.settings,def=D.DEVICES[dev.model],st=D.storage(dev),opt=(k,v,label)=>'<button type="button" data-set="'+k+'" data-value="'+v+'" aria-pressed="'+(S[k]===v)+'">'+label+'</button>';
@@ -198,13 +229,15 @@
    +'<div class="pd-nav"><button type="button" data-do="back" aria-label="Back">◀ BACK</button><span class="pd-title"></span></div><div class="pd-load"><i></i></div><div class="pd-main" tabindex="-1"></div>';
   document.body.appendChild(el);body=el.querySelector('.pd-main');
   el.addEventListener('click',onClick);
-  el.addEventListener('submit',e=>{const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};
+  el.addEventListener('change',e=>{const t=e.target;if(!t.matches?.('select[data-jobsel]'))return;const P=DP(),f=flags_();if(!P||!f)return;const picks=[...body.querySelectorAll('select[data-jobsel]')].map(x=>x.value).filter(Boolean);P.writeJobs(f,picks);try{if(typeof save==='function')save();}catch{}render({keepScroll:true});});
+  el.addEventListener('submit',e=>{const ab=e.target.closest('[data-aboutform]');if(ab){e.preventDefault();const fl=flags_();if(fl){const v=cleanAbout(ab.querySelector('input').value);if(v)fl.profileAbout=v;else delete fl.profileAbout;try{if(typeof save==='function')save();}catch{}render({keepScroll:true});}return;}
+   const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};
    if(res.ok){i.value='';if(res.players)go(['messages','players'],'tab','LOADING');}else{const h=body.querySelector('[data-chathint]');if(h)h.textContent=res.text||'';}});
   el.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))e.stopPropagation();});   // typing stays in the box: no movement, no shortcuts
   chip=document.createElement('button');chip.id='pd-chip';chip.type='button';chip.textContent='V1 · L';updateBadges();chip.setAttribute('aria-label','Open the V1 device');chip.addEventListener('click',()=>toggle());document.body.appendChild(chip);
  }
  function loadingBar(ms){const bar=el.querySelector('.pd-load');if(!ms)return;bar.style.setProperty('--pd-ms',ms+'ms');bar.classList.remove('on');void bar.offsetWidth;bar.classList.add('on');clearTimeout(loadTimer);loadTimer=setTimeout(()=>bar.classList.remove('on'),ms+40);}
- const label=()=>stack[0]?D.APPS[stack[0]].title:'HOME';
+ const label=()=>stack[0]?D.appTitle(stack[0],dev):'HOME';
  function chrome(){   // header, title and back button: these change at once, only the content waits
   const def=D.DEVICES[dev.model],app=stack[0];
   el.querySelector('.pd-tag').textContent=def.tagline;el.classList.toggle('expanded',expanded);el.classList.toggle('fx',dev.settings.scan==='1'&&!reduced());el.classList.toggle('pd-still',reduced());
@@ -215,7 +248,7 @@
   if(!el||!open||busy)return;   // while a transition card is showing nothing else redraws the screen
   const app=stack[0],def=D.DEVICES[dev.model];chrome();syncViewing();
   const top=body.scrollTop;
-  if(!app){const st=D.storage(dev);body.innerHTML='<div class="pd-home"><div class="pd-grid">'+def.apps.map((id,i)=>{const a=D.APPS[id],off=a.state==='placeholder';return '<button type="button" class="pd-app'+(off?' off':'')+'" data-app="'+id+'" style="--i:'+i+'" aria-label="'+esc(a.title)+(off?' (not available yet)':'')+'">'+FRAME+'<span class="pd-index" aria-hidden="true">'+String(i+1).padStart(2,'0')+'</span>'+(id==='messages'?'<span class="pd-badge" hidden></span>':'')+icon(id)+'<span class="pd-name">'+esc(a.title)+'</span><span class="pd-sub">'+(off?'COMING LATER':'')+'</span></button>';}).join('')+'</div><div class="pd-home-foot"><div class="pd-storage pd-mini" aria-label="Device storage"><div class="pd-stat"><span>STORAGE USED: '+st.usedPct+'%</span><span>AVAILABLE: '+st.availablePct+'%</span></div><div class="pd-bar"><i style="width:'+st.usedPct+'%"></i></div></div><div class="pd-foot">'+esc(def.tagline)+'</div></div></div>';}
+  if(!app){const st=D.storage(dev);body.innerHTML='<div class="pd-home"><div class="pd-grid">'+def.apps.map((id,i)=>{const a=D.APPS[id],off=a.state==='placeholder';return '<button type="button" class="pd-app'+(off?' off':'')+'" data-app="'+id+'" style="--i:'+i+'" aria-label="'+esc(D.appTitle(id,dev))+(off?' (not available yet)':'')+'">'+FRAME+'<span class="pd-index" aria-hidden="true">'+String(i+1).padStart(2,'0')+'</span>'+(id==='messages'?'<span class="pd-badge" hidden></span>':'')+icon(id)+'<span class="pd-name">'+esc(D.appTitle(id,dev))+'</span><span class="pd-sub">'+(off?'COMING LATER':'')+'</span></button>';}).join('')+'</div><div class="pd-home-foot"><div class="pd-storage pd-mini" aria-label="Device storage"><div class="pd-stat"><span>STORAGE USED: '+st.usedPct+'%</span><span>AVAILABLE: '+st.availablePct+'%</span></div><div class="pd-bar"><i style="width:'+st.usedPct+'%"></i></div></div><div class="pd-foot">'+esc(def.tagline)+'</div></div></div>';}
   else{try{body.innerHTML=APP_VIEW[app]();}catch(e){body.innerHTML='<div class="pd-empty">This app could not be shown.</div>';}}
   body.scrollTop=opts.keepScroll?top:0;
   hydratePortraits();if(app==='map')drawMap();
@@ -224,7 +257,8 @@
  }
  /* Moves to another screen. The new screen's title shows at once; its content appears after the model's transition delay (a loading card, driven by a timer: nothing blocks).
     Only the LATEST request counts: clicking again, going back or closing cancels the one in flight, so transitions never pile up. */
- function go(next,kind,text){
+ function go(next,kind,text){if(next[0]==='camera'&&root.VoidDeviceCamera){setOpen(false);if(!root.VoidDeviceCamera.start(dev))try{announce('The camera works while you are on foot.');}catch{}return;}   /* the camera is a viewfinder over the world, not a page in the panel */
+ if(next[0]==='news'&&stack[0]!=='news')feedSeed=(Date.now()^(Math.random()*1e9))>>>0;
   stack=next;const seq=++navSeq,ms=D.delayMs(dev,kind,reduced());clearTimeout(navTimer);busy=false;
   if(!el||!open){syncViewing();return;}
   if(!ms){render();return;}

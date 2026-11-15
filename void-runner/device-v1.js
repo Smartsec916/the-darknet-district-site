@@ -8,11 +8,12 @@
      none of them are stored per device. */
 (function(root){
  'use strict';
- const ASSET_VERSION=1;   // bump when portrait framing or lighting changes, or when an NPC model or outfit is updated: every cached portrait is then redrawn
+ const ASSET_VERSION=4;   // bump when portrait framing or lighting changes, or when an NPC model or outfit is updated: every cached portrait is then redrawn
  const DEVICES={
   v1:{id:'v1',generation:1,name:'V1',tagline:'PERSONAL DEVICE · MODEL V1',
-   apps:['missions','messages','social','news','map','camera','gallery','store','settings'],
-   camera:{enabled:false},                       // the camera is a placeholder in V1
+   apps:['missions','messages','social','news','map','camera','gallery','store','device','settings'],
+   // The camera (device-camera.js): a live viewfinder. `zooms` is the zoom array every model shares; `maxZoom` is how far THIS model reaches (a V2 can raise it).
+   camera:{enabled:true,id:'CAM 01',zooms:[1,1.5,2,3],maxZoom:2,iso:320},
    // Interface timing, in milliseconds (a later model changes these numbers and nothing else). The starter V1 is deliberately a little slow: a short loading card is shown
    // before a screen appears. It is cosmetic and asynchronous: it never blocks the game loop, networking or message delivery. appOpenMs: opening an app from home;
    // homeMs: going back to home; tabMs: switching inside an app; startupMs: the first opening after the page loads. 0 turns a delay off (reduced motion does this too).
@@ -29,9 +30,10 @@
   social:{id:'social',title:'SOCIAL',glyph:'S',state:'ready',note:'People you know and other players.'},
   news:{id:'news',title:'NEWS',glyph:'N',state:'ready',note:'Reports you have received.'},
   map:{id:'map',title:'MAP',glyph:'+',state:'ready',note:'Places you have explored.'},
-  camera:{id:'camera',title:'CAMERA',glyph:'O',state:'placeholder',note:'Not available in this model yet.'},
+  camera:{id:'camera',title:'CAMERA',glyph:'O',state:'ready',note:'A live viewfinder with name tags and zoom. Nothing is captured or stored yet.'},
   gallery:{id:'gallery',title:'GALLERY',glyph:'G',state:'placeholder',note:'Photos will appear here when the camera exists.'},
   store:{id:'store',title:'APP STORE',glyph:'A',state:'ready',note:'Apps for this device.'},
+  device:{id:'device',title:'MY DEVICE',glyph:'D',state:'ready',note:'This device: its model, storage and built-in apps.'},   // shown as MY V1, MY V2... (appTitle)
   settings:{id:'settings',title:'SETTINGS',glyph:'*',state:'ready',note:'Device preferences.'}
  };
  // Apps a player could install later. Intentionally empty: no purchases, prices or unlocks exist yet.
@@ -66,14 +68,16 @@
 
  // ---- Storage, App Store view and timing ----
  const clampPct=n=>Math.max(0,Math.min(100,Math.round(n)));
- /* Stock V1: 9 system apps, 0 optional apps, 75% used / 25% available. Only optional apps that are actually installed add to the baseline. */
+ /* Stock V1: 10 system apps, 0 optional apps, 75% used / 25% available. Only optional apps that are actually installed add to the baseline. */
  function storage(device){
   const def=DEVICES[device.model]||DEVICES.v1,optional=device.apps.filter(a=>!def.apps.includes(a)),
    extra=optional.reduce((t,a)=>t+(Number((STORE_EXTRA.find(x=>x.id===a)||{}).storagePct)||0),0),used=clampPct(def.storage.baseUsedPct+extra);
   return {model:def.name,systemApps:def.apps.length,optionalApps:optional.length,usedPct:used,availablePct:100-used,baselinePct:def.storage.baseUsedPct};
  }
+ /* What an app is called on THIS device: the device app carries the model's name (MY V1 on a V1, MY V2 on a V2). */
+ function appTitle(id,device){const def=DEVICES[device&&device.model]||DEVICES.v1;return id==='device'?'MY '+def.name:(APPS[id]||{}).title||'';}
  function storeListing(device){
-  const def=DEVICES[device.model]||DEVICES.v1,rows=def.apps.map(id=>({id,title:APPS[id].title,status:device.apps.includes(id)?'installed':'available',compatible:true,note:APPS[id].note,placeholder:APPS[id].state==='placeholder',system:true}));
+  const def=DEVICES[device.model]||DEVICES.v1,rows=def.apps.map(id=>({id,title:appTitle(id,device),status:device.apps.includes(id)?'installed':'available',compatible:true,note:APPS[id].note,placeholder:APPS[id].state==='placeholder',system:true}));
   const extra=STORE_EXTRA.map(x=>({id:x.id,title:x.title,status:device.apps.includes(x.id)?'installed':x.generation>def.generation?'locked':'available',compatible:x.generation<=def.generation,note:x.note||'',placeholder:false,system:false}));
   for(const x of extra)rows.push(x);
   return {rows,system:rows.filter(r=>r.system),installed:extra.filter(r=>r.status==='installed'),available:extra.filter(r=>r.status!=='installed'),more:STORE_EXTRA.length>0,storage:storage(device)};
@@ -133,15 +137,15 @@
   if(kind==='player'){
    const handle=HANDLE.test(String(data.handle||''))?data.handle:null,publicId=String(data.publicId||data.id||'').replace(/[^0-9a-f]/g,'').slice(0,12);
    const look=data.appearance||null;
-   return {key:'player:'+(publicId||'local'),kind:'player',name:handle||'Unregistered visitor',subtitle:handle?'@'+handle:'Not signed in',bio:String(data.bio||'District visitor').slice(0,200),
+   return {key:'player:'+(publicId||'local'),kind:'player',name:handle||'Unregistered visitor',subtitle:(handle?'@'+handle:'Not signed in')+(data.jobs?' · '+String(data.jobs).slice(0,80):''),bio:String(data.bio||'District visitor').slice(0,200),
     facts:[],places:[],portrait:{key:portraitKey('player',publicId||'local',look),source:look?{type:'appearance',appearance:look}:null,state:look?'ready':'unavailable'},
     actions:[{id:'message',label:'MESSAGE',enabled:false,reason:'Private messages are not available yet.'},{id:'block',label:'BLOCK',enabled:!!ctx.canBlock,reason:ctx.canBlock?'':'Block in the District chat panel.'},{id:'report',label:'REPORT',enabled:!!ctx.canReport,reason:ctx.canReport?'':'Report in the District chat panel.'}]};
   }
   const learned=Array.isArray(data.learned)?data.learned.map(String).slice(0,8):[];
   return {key:'npc:'+String(data.id||'').slice(0,40),kind:'npc',name:String(data.name||'Unknown').slice(0,60),subtitle:data.affiliation?String(data.affiliation).slice(0,60):'',bio:String(data.bio||'').slice(0,200),
-   facts:learned,places:data.place?[String(data.place).slice(0,100)]:[],portrait:{key:portraitKey('npc',data.id||'',data.model?{model:data.model}:null),source:data.model?{type:'model',model:data.model}:null,state:data.model?'ready':'unavailable'},
+   facts:learned,places:data.place?[String(data.place).slice(0,100)]:[],portrait:data.appearance?{key:portraitKey('npc',data.id||'',data.appearance),source:{type:'appearance',appearance:data.appearance,resident:true},state:'ready'}:{key:portraitKey('npc',data.id||'',data.model?{model:data.model}:null),source:data.model?{type:'model',model:data.model}:null,state:data.model?'ready':'unavailable'},
    actions:[{id:'talk',label:'CONVERSATION',enabled:!!data.here,reason:data.here?'':'Talk to them in person.'}]};
  }
- const api={ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
+ const api={ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidDeviceV1=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
