@@ -23,7 +23,7 @@
  };
  const clean=n=>typeof n==='string'&&/^[A-Za-z0-9_-]{3,24}$/.test(n)?n:'Guest';
  // What the Settings line says for each status the client can be in.
- const words=(st,signedIn)=>({'off':signedIn?'Off.':'Off. Sign in to your account first (Account, in the main menu).','in':'Connected. Other players in the District interior appear with name tags.',
+ const words=(st,signedIn)=>({'off':signedIn?'Off.':'Off. Sign in to your account first (Account, in the main menu).','in':'Connected. Other players in the District interior appear in the world; their names are in your V1 (Messages, Players).',
   'connecting':'Connecting...','waking the server':'Waking the test server (it sleeps when idle and can take about a minute)...','sign in to join':'Sign in to your account first (Account, in the main menu).',
   'not on the test list':'Your account is not on the test list.','registered account required':'Multiplayer and chat need a registered account. Create one from the account menu.','create an account':'Multiplayer and chat need a registered account. Create one from the account menu.','checking account':'Checking your District account…','District handle required':'Choose a unique District handle below.','saved character required':'Create your character below.','District handle and character required':'Choose a handle and create your character below.','account verification unavailable':'Account verification is unavailable. Solo play continues; multiplayer will retry.','duplicate District handle':'That handle is already in use. Contact support if this is your account.','verified email required':'Please verify your email address to use multiplayer.','sign-in not accepted':'Your sign-in was not accepted. Sign in again.','replaced by another session':'This account joined from another window.',
   'server restarting':'The server is restarting; reconnecting...','offline':'Cannot reach the server; solo play continues while retrying.','no hub configured':'No multiplayer server is set up.'}[st]||(st?.startsWith('setup error:')?st.slice(13):st&&st.startsWith('refused')?'The server refused the connection.':'Off.'));
@@ -65,17 +65,8 @@
  async function token(){try{if(isLocalPage){const t=get(root.localStorage,'tdd-dev-mp-token');if(t)return t;}return await root.VoidAccount?.user?.getIdToken?.()||null;}catch{return null;}}
  const accountUid=()=>root.VoidAccount?.user?.uid||null;
 
- // A name tag above the head: a billboard with the hub's name drawn on a canvas (text only, never markup). Disposed with the avatar.
- function makeTag(scene,parent,name){
-  const B=root.BABYLON,dt=new B.DynamicTexture('remote-tag-tex',{width:256,height:64},scene,false),ctx=dt.getContext();
-  ctx.clearRect(0,0,256,64);ctx.fillStyle='rgba(4,10,16,.72)';ctx.fillRect(0,8,256,48);ctx.strokeStyle='#5ff2ff';ctx.lineWidth=2;ctx.strokeRect(1,9,254,46);
-  ctx.font='bold 26px monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#e8fbff';ctx.fillText(name,128,33,236);dt.hasAlpha=true;dt.update();
-  const plane=B.MeshBuilder.CreatePlane('remote-tag',{width:.7,height:.175},scene),mat=new B.StandardMaterial('remote-tag-mat',scene);
-  mat.disableLighting=true;mat.diffuseColor=B.Color3.Black();mat.emissiveTexture=dt;mat.opacityTexture=dt;mat.backFaceCulling=false;
-  plane.material=mat;plane.parent=parent;plane.position.y=2.12;plane.billboardMode=B.Mesh.BILLBOARDMODE_ALL;plane.isPickable=false;
-  plane.onDisposeObservable.add(()=>{dt.dispose();mat.dispose();});
-  return plane;
- }
+ /* No name floats over another player's head (David, 15 Nov 2026): who is here is read from the V1's Players list. makeTag stays as a no-op so callers need no change. */
+ function makeTag(){return null;}
  function removePeer(id){const p=peers.get(id);if(!p)return;p.off?.();p.ctrl?.dispose?.();p.node?.dispose?.();peers.delete(id);}
  function clearPeers(){for(const id of [...peers.keys()])removePeer(id);}
  function place(p){
