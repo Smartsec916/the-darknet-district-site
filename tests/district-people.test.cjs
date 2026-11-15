@@ -1,12 +1,12 @@
 /* District residents and profile jobs (void-runner/district-people.js): the roster the V1 lists beside real players, and the jobs a profile can show. */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const P=require('../void-runner/district-people.js'),Crowd=require('../void-runner/crowd.js'),D=require('../void-runner/device-v1.js');
-test('jobs: David\'s list is there, ids are unique, and a profile holds at most three known jobs',()=>{
+test('jobs: David\'s list is there, ids are unique, and a profile holds one or two known jobs',()=>{
  const labels=P.JOBS.map(j=>j.label);for(const l of ['Smuggler','Pirate','Mercenary','Merchant','Influencer','Dancer','DJ','Mechanic'])assert(labels.includes(l),l);
  assert.equal(new Set(P.JOBS.map(j=>j.id)).size,P.JOBS.length);for(const j of P.JOBS)assert.match(j.id,/^[a-z-]{2,20}$/);
- assert.deepEqual(P.cleanJobs('smuggler,nonsense,dj,smuggler,pirate,mechanic'),['smuggler','dj','pirate']);assert.deepEqual(P.cleanJobs(null),[]);assert.deepEqual(P.cleanJobs({}),[]);
+ assert.deepEqual(P.cleanJobs('smuggler,nonsense,dj,smuggler,pirate,mechanic'),['smuggler','dj']);assert.deepEqual(P.cleanJobs(null),[]);assert.deepEqual(P.cleanJobs({}),[]);
  assert.equal(P.jobsText(['dj','mechanic']),'DJ · Mechanic');
- let ids=[];for(const id of ['smuggler','pirate','dj','mechanic'])ids=P.toggleJob(ids,id);assert.deepEqual(ids,['smuggler','pirate','dj'],'a fourth is refused');assert.deepEqual(P.toggleJob(ids,'pirate'),['smuggler','dj']);
+ let ids=[];for(const id of ['smuggler','pirate','dj','mechanic'])ids=P.toggleJob(ids,id);assert.deepEqual(ids,['smuggler','pirate'],'a third is refused');assert.deepEqual(P.toggleJob(ids,'pirate'),['smuggler']);
 });
 test('a player\'s jobs are kept in the save as one short string the save server accepts',()=>{
  const flags={};P.writeJobs(flags,['influencer','dancer']);assert.equal(flags.profileJobs,'influencer,dancer');assert(flags.profileJobs.length<=200);assert.deepEqual(P.readJobs(flags),['influencer','dancer']);

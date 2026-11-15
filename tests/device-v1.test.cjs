@@ -22,10 +22,10 @@ test('saved device state: unknown values are ignored, built-in apps stay install
 test('App Store: shows installed apps and says nothing more is available; no purchases',()=>{
  const l=D.storeListing(D.restore({}));assert.ok(l.rows.every(r=>r.status==='installed'));assert.equal(l.more,false);
  assert.ok(!JSON.stringify(l).match(/price|\$|credit|buy|purchase/i));
- assert.equal(l.system.length,9,'the nine system apps are listed as built in');assert.equal(l.installed.length,0,'no optional app is installed on a stock device');assert.equal(l.available.length,0,'nothing downloadable exists yet');
+ assert.equal(l.system.length,10,'the ten system apps are listed as built in');assert.equal(D.appTitle('device',D.restore({})),'MY V1','the device app carries the model name');assert.equal(D.appTitle('store',D.restore({})),'APP STORE');assert.equal(l.installed.length,0,'no optional app is installed on a stock device');assert.equal(l.available.length,0,'nothing downloadable exists yet');
 });
-test('stock storage: 75% used, 25% available, 9 system apps, 0 optional apps; old saves keep working; optional apps would add their own share',()=>{
- const stock=D.storage(D.restore({}));assert.deepEqual({u:stock.usedPct,a:stock.availablePct,s:stock.systemApps,o:stock.optionalApps,m:stock.model},{u:75,a:25,s:9,o:0,m:'V1'});
+test('stock storage: 75% used, 25% available, 10 system apps, 0 optional apps; old saves keep working; optional apps would add their own share',()=>{
+ const stock=D.storage(D.restore({}));assert.deepEqual({u:stock.usedPct,a:stock.availablePct,s:stock.systemApps,o:stock.optionalApps,m:stock.model},{u:75,a:25,s:10,o:0,m:'V1'});
  // a save from before this change (apps listed, no storage field) is the stock device too: nothing new is saved
  const old=D.restore({deviceModel:'v1',deviceApps:D.DEVICES.v1.apps.join(','),deviceSettings:'motion=full;scan=0;size=expanded'});assert.equal(D.storage(old).usedPct,75);assert.equal(old.settings.motion,'full');
  const flags=D.write({},D.restore({}));assert.deepEqual(Object.keys(flags).sort(),['deviceApps','deviceMapInterior','deviceMapStreet','deviceModel','deviceSettings','deviceVersion'],'no new save field');

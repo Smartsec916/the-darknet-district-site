@@ -12,7 +12,7 @@
   ['medic','Medic'],['salvager','Salvager'],['miner','Miner'],['engineer','Engineer'],['explorer','Explorer'],['racer','Racer'],['gambler','Gambler'],['musician','Musician'],
   ['street-vendor','Street Vendor'],['chef','Chef'],['tattoo-artist','Tattoo Artist'],['bouncer','Bouncer'],['vr-athlete','VR Athlete'],['companion','Companion'],['scavenger','Scavenger'],['drifter','Drifter']]
   .map(([id,label])=>({id,label}));
- const JOB=new Map(JOBS.map(j=>[j.id,j])),MAX_JOBS=3,FLAG='profileJobs';
+ const JOB=new Map(JOBS.map(j=>[j.id,j])),MAX_JOBS=2,FLAG='profileJobs';
  const jobLabel=id=>JOB.get(id)?.label||'';
  // Any input (a stored string, a list, junk) -> at most MAX_JOBS known job ids, no repeats, in the order given.
  function cleanJobs(v){const list=Array.isArray(v)?v:typeof v==='string'?v.split(','):[],out=[];for(const x of list){const id=String(x).trim();if(JOB.has(id)&&!out.includes(id))out.push(id);if(out.length>=MAX_JOBS)break;}return out;}
