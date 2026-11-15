@@ -21,7 +21,7 @@ test('the roster: Admin, Iris and the DJ are in it; every resident has a name, a
 test('every crew figure standing in the District interior is on the roster, and a named resident keeps one face with the clip their spot needs',()=>{
  const src=fs.readFileSync('void-runner/neochinatown.js','utf8'),interior=[...src.matchAll(/'(crew-(?:hall|bar|vr)[a-z0-9-]*)'/g)].map(m=>m[1]);
  assert(interior.length>=6);for(const id of new Set(interior))assert(P.NPCS.some(n=>n.crew===id),id+' has a name');
- globalThis.VoidDistrictPeople=P;try{for(const n of P.NPCS.filter(n=>/^crew-/.test(n.crew||''))){assert(Crowd.clips[n.look],n.id);for(let i=0;i<5;i++)assert.equal(Crowd.pick('neochinatown',n.crew),n.look,n.id);}}finally{delete globalThis.VoidDistrictPeople;}
+ globalThis.VoidDistrictPeople=P;try{for(const n of P.NPCS.filter(n=>/^crew-/.test(n.crew||''))){const face=n.own||n.look;assert(Crowd.clips[face],n.id);assert(Crowd.clips[face].includes(Crowd.clipFor(n.crew)),n.id+' has the clip their spot needs');for(let i=0;i<5;i++)assert.equal(Crowd.pick('neochinatown',n.crew),face,n.id);}}finally{delete globalThis.VoidDistrictPeople;}
  // Admin's and Iris's portraits use the same look the scene builds them with
  const A=require('../void-runner/character-appearance.js');for(const id of ['admin','iris']){const a=P.npc(id).appearance;assert(A.validate(a),id+' has a valid look');assert(src.includes("root.VoidDistrictPeople?.npc('"+id+"')?.appearance||"),id+': the scene draws the roster record');
   const lit=src.slice(src.indexOf("npc('"+id+"')?.appearance||")).match(/\|\|(\{[^}]*\})/)[1];assert.deepEqual(Function('return '+lit)(),a,id+': the fallback is the same look');}

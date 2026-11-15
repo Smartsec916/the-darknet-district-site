@@ -31,7 +31,7 @@ test('clips follow what each crew member is doing',()=>{
 test('NeoChinatown street and District crew wear different looks',()=>{
  C.begin();
  assert.ok(C.casts.neochinatown.includes(C.pick('neochinatown','crew-ncz1')));
- assert.ok(C.casts.district.includes(C.pick('neochinatown','crew-bar1')));
+ assert.equal(C.pick('neochinatown','crew-bar1'),'npc-rin','a named resident is their own model (district-people.js `own`)');
  assert.ok(C.casts.district.includes(C.pick('neochinatown','crew-vr0')));
  assert.ok(C.casts.district.includes(C.pick('neochinatown','crew-smoke2')));
  const defs=C.models('neochinatown','high');
@@ -61,4 +61,11 @@ test('Natural Order looks carry no glowing tech (no embedded AI)',()=>{
   assert.ok(!(spec.accessories||[]).some(a=>a.glow),look+' has a glowing accessory');
   assert.ok(!Object.values(spec.style||{}).some(s=>s.glow),look+' has glowing trim');
  }
+});
+
+test('the named residents\' own models are loaded with the District interior, never with the street, and each file is in the game',()=>{
+ const fs=require('node:fs'),P=require('../void-runner/district-people.js'),own=P.NPCS.filter(n=>n.own&&n.crew).map(n=>n.own);assert.ok(own.length>=7);
+ const inside=C.models('neochinatown','high','interior'),street=C.models('neochinatown','high','street');
+ for(const o of own){assert.ok(inside['crowd:'+o],o+' loads with the interior');assert.equal(street['crowd:'+o],undefined,o+' is not loaded on the street');assert.ok(C.clips[o].includes('walk')&&C.clips[o].includes('talk'));
+  const st=fs.statSync('void-runner/assets/models/crowd/'+o+'.glb');assert.ok(st.size>1e6&&st.size<7e6,o+' is a game-sized file ('+st.size+')');}
 });
