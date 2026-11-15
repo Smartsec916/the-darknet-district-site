@@ -78,6 +78,13 @@ def main():
         ry = J['Spine1'][1]
         P = slab(body, ry, .012 * H, cx, span * .40)
         o['ribs'] = {'y': round(float(ry), 4), 'halfW': round(float(np.abs(P[:, 0] - cx).max()), 4), 'front': round(float(P[:, 2].max()), 4), 'back': round(float(P[:, 2].min()), 4)}
+        # chest: just above Spine2, where a jacket's yoke lies; and the neck, for a raised collar
+        cy = J['Spine2'][1] + .04 * H
+        P = slab(body, cy, .012 * H, cx, span * .40)
+        o['chest'] = {'y': round(float(cy), 4), 'halfW': round(float(np.abs(P[:, 0] - cx).max()), 4), 'front': round(float(P[:, 2].max()), 4), 'back': round(float(P[:, 2].min()), 4)}
+        ny = J['Neck'][1] + .012 * H
+        P = slab(body, ny, .008 * H, J['Neck'][0], .07 * H)
+        o['neck'] = {'y': round(float(ny), 4), 'halfW': round(float(np.abs(P[:, 0] - J['Neck'][0]).max()), 4), 'front': round(float(P[:, 2].max()), 4), 'back': round(float(P[:, 2].min()), 4)}
         # forehead (with the hair): where goggles pushed up would sit
         top = float(everything[:, 1].max())
         fy = J['Head'][1] + .66 * (top - J['Head'][1])

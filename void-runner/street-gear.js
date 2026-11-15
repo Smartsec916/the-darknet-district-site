@@ -17,16 +17,21 @@
    The pure part (what a person wears, and the geometry) runs in Node (tests/street-gear.test.cjs). */
 (function(root){
  'use strict';
- const ACCENTS=[[1,.16,.72],[.1,.9,1],[.62,1,.12],[1,.14,.16],[1,.62,.08],[.62,.3,1]],CELLS=8,STRAP=0,PLATE=1,GLOW=2;
+ const ACCENTS=[[1,.16,.72],[.1,.9,1],[.62,1,.12],[1,.14,.16],[1,.62,.08],[.62,.3,1]],CELLS=16,STRAP=0,PLATE=1,GLOW=2,MATTE=8;   /* palette cells: webbing, metal, six lit accents (2..7), the same six as unlit cloth (8..13) */
  const hash=s=>{let h=2166136261;for(const c of String(s)){h^=c.charCodeAt(0);h=Math.imul(h,16777619)>>>0;}return h;};
  // a repeatable 0..1 for a person and a question
  const roll=(seed,salt)=>(hash(seed+'/'+salt)%10007)/10007;
  const HATS=new Set(['district-smuggler','order-farmhand','vesper-trader']),SKIP=/^vr-companion/;
+ /* People with a kit of their own (David's reference pictures), keyed by who they are. Admin (three pictures, 15 Nov 2026): an older man in a dark utility jacket with
+    amber panels and an amber-lit collar, a chest rig and a belt; David prefers him WITHOUT eyewear, so he never gets goggles. Iris keeps her own cyan. */
+ const KITS={admin:{belt:true,pouches:2,harness:true,thighs:'',knees:false,bracer:'',goggles:false,jacket:true,accent:4},
+  iris:{belt:true,pouches:2,harness:false,thighs:'',knees:false,bracer:'R',goggles:false,jacket:false,accent:1}};
  /* What a person wears: {belt, pouches (2..4), harness, thighs ('', 'L', 'R', 'LR'), knees, bracer ('', 'L', 'R'), goggles, accent (0..5)}. */
  function loadout(seed,look,body){
+  if(KITS[seed])return {...KITS[seed]};
   const r=k=>roll(seed,k),skirt=!!body?.skirt,t=r('thigh');
   return {belt:r('belt')<.92,pouches:2+Math.floor(r('pouches')*3),harness:r('harness')<.55,thighs:skirt?'':t<.3?'L':t<.6?'R':t<.75?'LR':'',knees:!skirt&&r('knees')<.35,
-   bracer:r('bracer')<.34?'L':r('bracer')<.68?'R':'',goggles:!HATS.has(look)&&r('goggles')<.3,accent:hash(seed+'/accent')%ACCENTS.length};
+   bracer:r('bracer')<.34?'L':r('bracer')<.68?'R':'',goggles:!HATS.has(look)&&r('goggles')<.3,jacket:false,accent:hash(seed+'/accent')%ACCENTS.length};
  }
  // ---- geometry: points are in the character file's own space (x = the character's left, y up, z forward) ----
  const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],mul=(a,k)=>[a[0]*k,a[1]*k,a[2]*k],cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],
@@ -81,13 +86,20 @@
     // the screen sits on the side of the forearm that faces up in the rest pose (the back of the arm when it hangs)
     const deg=f.ax[1]>0?90:-90,p=g.at(0,0,r,r,deg,.007*u+.006*u);g.box([p.x,-.005*u,p.z],[.05*u,.075*u,.012*u],p.yaw,STRAP);
     const s=g.at(0,0,r,r,deg,.007*u+.0125*u);g.box([s.x,-.005*u,s.z],[.038*u,.058*u,.002*u],s.yaw,A);}}
+  if(wear.jacket&&body.chest&&body.neck){const c=body.chest,cz=(c.front+c.back)/2,rx=c.halfW+.006*u,rz=(c.front-c.back)/2+.006*u,g=writer(m,UPRIGHT([J.Spine2[0],c.y,0]),'Spine2',MATTE+wear.accent);parts.push('jacket');
+   // the yoke: a coloured panel on each side of the upper chest, with a dark seam under it and a small radio on the left
+   for(const sgn of [1,-1]){g.band(0,cz,rx,rz,sgn*16,sgn*62,-.02*u,.05*u,.006*u,5);g.band(0,cz,rx+.002*u,rz+.002*u,sgn*14,sgn*64,-.03*u,-.02*u,.006*u,5,STRAP);}
+   const rd=g.at(0,cz,rx,rz,40,.006*u+.012*u);g.box([rd.x,-.075*u,rd.z],[.04*u,.075*u,.022*u],rd.yaw,STRAP);g.box([rd.x,-.05*u,rd.z+.012*u],[.012*u,.006*u,.002*u],rd.yaw,A);
+   // the collar: raised behind the neck, open at the front, lit on the inside
+   const n=body.neck,nz=(n.front+n.back)/2,nrx=n.halfW+.03*u,nrz=(n.front-n.back)/2+.03*u,k=writer(m,UPRIGHT([J.Neck[0],n.y,0]),'Neck',STRAP);
+   k.band(0,nz,nrx,nrz,78,282,-.02*u,.062*u,.008*u,12);k.band(0,nz,nrx-.006*u,nrz-.006*u,84,276,-.012*u,.054*u,.004*u,12,A);}
   if(wear.goggles){const b=body.brow,cz=(b.front+b.back)/2,rx=b.halfW+.005*u,rz=(b.front-b.back)/2+.005*u,g=writer(m,UPRIGHT([J.Head[0],b.y,0]),'Head',STRAP);parts.push('goggles');
    g.band(0,cz,rx,rz,0,360,-.012*u,.012*u,.005*u,14);
    for(const deg of [-24,24]){const p=g.at(0,cz,rx,rz,deg,.005*u+.012*u);g.box([p.x,0,p.z],[.052*u,.04*u,.026*u],p.yaw,PLATE);const l=g.at(0,cz,rx,rz,deg,.005*u+.0255*u);g.box([l.x,0,l.z],[.04*u,.028*u,.002*u],l.yaw,A);}}
   return {...m,parts};
  }
  const wants=look=>!!look&&!SKIP.test(look);
- const pure={ACCENTS,CELLS,HATS,hash,loadout,build,wants};
+ const pure={ACCENTS,CELLS,HATS,KITS,hash,loadout,build,wants};
  if(typeof module!=='undefined'&&module.exports){module.exports=pure;return;}
  if(typeof document==='undefined')return;
 
@@ -97,7 +109,7 @@
  function material(scene){const B=root.BABYLON;let m=materials.get(scene);if(m&&!m._street_gone)return m;
   const base=new Uint8Array(CELLS*4),glow=new Uint8Array(CELLS*4),set=(a,i,c)=>{a[i*4]=c[0];a[i*4+1]=c[1];a[i*4+2]=c[2];a[i*4+3]=255;};
   set(base,STRAP,[16,16,19]);set(base,PLATE,[44,47,54]);set(glow,STRAP,[0,0,0]);set(glow,PLATE,[0,0,0]);
-  ACCENTS.forEach((c,i)=>{set(base,GLOW+i,[10,10,10]);set(glow,GLOW+i,c.map(v=>Math.round(v*255)));});
+  ACCENTS.forEach((c,i)=>{set(base,GLOW+i,[10,10,10]);set(glow,GLOW+i,c.map(v=>Math.round(v*255)));set(base,MATTE+i,c.map(v=>Math.round(v*150)));set(glow,MATTE+i,[0,0,0]);});
   const tex=d=>{const t=B.RawTexture.CreateRGBATexture(d,CELLS,1,scene,false,false,B.Texture.NEAREST_SAMPLINGMODE);t.wrapU=t.wrapV=B.Texture.CLAMP_ADDRESSMODE;return t;};
   m=new B.PBRMaterial('street-gear',scene);m.albedoTexture=tex(base);m.emissiveTexture=tex(glow);m.emissiveColor=new B.Color3(1,1,1);m.emissiveIntensity=1.6;m.metallic=.35;m.roughness=.5;
   m.backFaceCulling=false;m.twoSidedLighting=true;m.onDisposeObservable.add(()=>{m._street_gone=true;});materials.set(scene,m);return m;}
@@ -122,7 +134,11 @@
  if(A&&typeof A.instance==='function'){const original=A.instance;let anon=0;
   A.instance=function(id,parent,only){const node=original.apply(this,arguments);
    if(node&&typeof id==='string'&&id.startsWith('crowd:')&&!only){const look=id.slice(6),n=++anon;
-    setTimeout(()=>{if(node.isDisposed())return;const who=node.metadata?.character||node.metadata?.id||(parent?.name&&!/^(root|scene)/i.test(parent.name)?parent.name:'')||'walker-'+n;dress(node,look,look+':'+who).catch(()=>{});},0);}
+    setTimeout(()=>{if(node.isDisposed())return;
+     // A figure put together by the character assembler (parent "character:<look>") is a player, another player or a portrait, and keeps what its owner chose,
+     // unless it stands for a named member of staff (Admin, Iris), who has a kit of their own.
+     if(/^character:/.test(parent?.name||'')){const staff=parent.parent?.metadata?.character;if(KITS[staff])dress(node,look,staff).catch(()=>{});return;}
+     const who=node.metadata?.character||node.metadata?.id||'walker-'+n;dress(node,look,KITS[who]?who:look+':'+who).catch(()=>{});},0);}
    return node;};}
  root.VoidStreetGear={...pure,config,dress,get dressed(){return count;}};
 })(typeof globalThis!=='undefined'?globalThis:this);

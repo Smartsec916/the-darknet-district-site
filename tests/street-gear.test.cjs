@@ -18,11 +18,11 @@ test('nothing is strapped over a skirt, and no goggles over a hat',()=>{
   assert.equal(G.loadout('district-smuggler:'+i,'district-smuggler',fit['district-smuggler']).goggles,false);}
  assert.ok(!G.wants('vr-companion-f')&&!G.wants('vr-companion-m')&&G.wants('outlaw-01'),'VR companions are left alone');
 });
-const FULL={belt:true,pouches:4,harness:true,thighs:'LR',knees:true,bracer:'L',goggles:true,accent:2};
+const FULL={belt:true,pouches:4,harness:true,thighs:'LR',knees:true,bracer:'L',goggles:true,jacket:true,accent:2};
 test('the full kit is one small mesh, built on the body it is for',()=>{
  for(const l of looks){const b=fit[l],g=G.build(b,FULL),n=g.positions.length/3,u=b.height/1.8;
-  assert.equal(g.normals.length,n*3);assert.equal(g.uvs.length,n*2);assert.equal(g.bone.length,n);assert.ok(g.indices.length/3<1600,l+' triangles '+g.indices.length/3);
-  assert.deepEqual(g.parts,['belt','harness','thigh_L','knee_L','bracer_L','thigh_R','knee_R','goggles']);
+  assert.equal(g.normals.length,n*3);assert.equal(g.uvs.length,n*2);assert.equal(g.bone.length,n);assert.ok(g.indices.length/3<1900,l+' triangles '+g.indices.length/3);
+  assert.deepEqual(g.parts,['belt','harness','thigh_L','knee_L','bracer_L','thigh_R','knee_R','jacket','goggles']);
   for(const v of g.positions)assert.ok(Number.isFinite(v),l);for(const i of g.indices)assert.ok(i>=0&&i<n);for(const bi of g.bone)assert.ok(bi>=0&&bi<g.bones.length);
   // every vertex is close to the joint it hangs from (nothing flies off), in that body's own size
   for(let i=0;i<n;i++){const j=b.joints[g.bones[g.bone[i]]],d=Math.hypot(g.positions[i*3]-j[0],g.positions[i*3+1]-j[1],g.positions[i*3+2]-j[2]);assert.ok(d<.62*u,l+' '+g.bones[g.bone[i]]+' '+d.toFixed(3));}
@@ -33,10 +33,15 @@ test('the full kit is one small mesh, built on the body it is for',()=>{
  }
 });
 test('the belt goes round the waist and the bracer round the forearm',()=>{
- const b=fit['outlaw-01'],belt=G.build(b,{...FULL,harness:false,thighs:'',knees:false,bracer:'',goggles:false});let minX=9,maxX=-9,minZ=9,maxZ=-9;
+ const b=fit['outlaw-01'],belt=G.build(b,{...FULL,harness:false,thighs:'',knees:false,bracer:'',goggles:false,jacket:false});let minX=9,maxX=-9,minZ=9,maxZ=-9;
  for(let i=0;i<belt.positions.length;i+=3){minX=Math.min(minX,belt.positions[i]);maxX=Math.max(maxX,belt.positions[i]);minZ=Math.min(minZ,belt.positions[i+2]);maxZ=Math.max(maxZ,belt.positions[i+2]);}
  assert.ok(maxX>b.joints.Hips[0]+b.waist.halfW&&minX<b.joints.Hips[0]-b.waist.halfW,'wider than the waist');assert.ok(maxZ>b.waist.front&&minZ<b.waist.back,'in front of and behind the waist');
- const br=G.build(b,{...FULL,belt:false,harness:false,thighs:'',knees:false,goggles:false,bracer:'R'});assert.deepEqual(br.bones,['RightForeArm']);
+ const br=G.build(b,{...FULL,belt:false,harness:false,thighs:'',knees:false,goggles:false,jacket:false,bracer:'R'});assert.deepEqual(br.bones,['RightForeArm']);
  const e=b.joints.RightForeArm,h=b.joints.RightHand;for(let i=0;i<br.positions.length;i+=3){const x=br.positions[i];assert.ok(x<Math.max(e[0],h[0])+.001&&x>Math.min(e[0],h[0])-.001,'between elbow and wrist');}
+});
+test('Admin has his own kit: amber, a jacket, and never eyewear',()=>{
+ const w=G.loadout('admin','district-smuggler',fit['district-smuggler']);assert.equal(w.goggles,false,'David prefers Admin without eyewear');assert.equal(w.jacket,true);assert.deepEqual(G.ACCENTS[w.accent],[1,.62,.08],'amber');
+ const g=G.build(fit['district-smuggler'],w);assert.ok(g.parts.includes('jacket')&&g.parts.includes('harness')&&g.parts.includes('belt')&&!g.parts.includes('goggles'));
+ assert.equal(G.loadout('hacker-01:walker-3','hacker-01',fit['hacker-01']).jacket,false,'the jacket is Admin\'s alone');
 });
 test('nothing to wear builds nothing',()=>{assert.equal(G.build(fit['hacker-01'],{belt:false,pouches:2,harness:false,thighs:'',knees:false,bracer:'',goggles:false,accent:0}).indices.length,0);});
