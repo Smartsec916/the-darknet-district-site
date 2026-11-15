@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "d6e8b0f9a36d57f3",
+  "revision": "b691e49a2ab88029",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12408,6 +12408,30 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/news-feed.js",
+      "line": 24,
+      "text": "for(const b of src.brands||[])if(b&&b.brand&&b.id!=='function')out.push({id:'brand:'+text(b.id,30),kind:'station',sponsor:text(b.brand,40),title:text(b.line,60),text:text(b.slogan,160)});   // The Function's notice is not an advert and is left on its screens",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/news-feed.js",
+      "line": 25,
+      "text": "for(const s of src.relay||[])if(s&&(s.kind==='ad'||s.kind==='police')&&Array.isArray(s.lines))out.push({id:'relay:'+text(s.id,40),kind:s.kind==='police'?'police':'relay',sponsor:s.kind==='police'?'TESSALY POLICE':'THE RELAY · ADVERTISEMENT',title:text(s.headline,80),text:text(s.lines.join(' '),400)});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/news-feed.js",
+      "line": 27,
+      "text": "out.push({id:'store:'+i,kind:'store',sponsor:(who==='iris'?'IRIS':'ADMIN')+' · THE DARKNET DISTRICT',title:item,text:lines[i%lines.length].replace('{item}',item),link:STORE_URL});});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/news-feed.js",
+      "line": 28,
+      "text": "for(const g of GAME_ITEMS)if(g&&g.id&&g.ad&&met(g.requires,src))out.push({id:'game:'+text(g.id,40),kind:'store',sponsor:(g.seller==='iris'?'IRIS':'ADMIN')+' · THE DARKNET DISTRICT',title:text(g.name,60),text:text(g.ad,240)});",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/opening-scene.js",
       "line": 210,
       "text": "const maraCue=B.MeshBuilder.CreateTorus('mara-conversation-locus',{diameter:1.8,thickness:.017,tessellation:24},scene);add(maraCue,blue,[0,.05,0],mara,false);maraCue.isPickable=false;",
@@ -12427,31 +12451,31 @@
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 153,
+      "line": 156,
       "text": "const tabs='<div class=\"pd-tabs\">'+tab('chat','DISTRICT CHAT',un?(un>99?'99+':un):'')+tab('players','PLAYERS','')+tab('talk','CONVERSATIONS','')+tab('dm','PRIVATE','')+'</div>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 158,
+      "line": 161,
       "text": "return tabs+'<div class=\"pd-note\">People you have talked to in this browser. Not synced.</div>'+(rows.length?rows.slice(-40).reverse().map(m=>'<div class=\"pd-line\"><b>'+esc(m.name)+'</b><span class=\"pd-note\">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class=\"pd-empty\">No conversations yet. People you talk to appear here.</div>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 164,
+      "line": 167,
       "text": "+'<form data-chatform class=\"pd-compose\"><input type=\"text\" maxlength=\"200\" autocomplete=\"off\" aria-label=\"Chat message\" placeholder=\"'+(can?'Say something to the District (no links)':'Chat needs a registered account and a connection')+'\"'+(can?'':' disabled')+'><button type=\"submit\"'+(can?'':' disabled')+'>SEND</button></form>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 223,
+      "line": 234,
       "text": "const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 356,
+      "line": 367,
       "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
       "kind": "source-reference"
     },
@@ -14203,9 +14227,10 @@
     "void-runner/ncz-nightlife.js": "15cf226233896181b848a2d99611ceb0319f8b0cee8eec6035e771f38a7725df",
     "void-runner/neochinatown.js": "be52742ea54e3f1b6569d14216c5ca70401bdbf371668fa5f9f79224c50b2c39",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
+    "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "4172df44fc02d43d56016c17c76bc6af4daa80edcc1c5200be582903d7075a19",
-    "void-runner/personal-device.js": "2c4e510df0278bd84bbaeacc42f9f238216f3cb8f95f4a081d091af3efd601da",
+    "void-runner/personal-device.js": "6823eb7fc014d17f80a23a644d0a2354641cef4c245ff69cdc6e10555ae6e0d8",
     "void-runner/personal-hud.js": "1ca0e48b3d144a0a2ffed8e3202f98322a060541b8127de2ee48469ed2606776",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
@@ -14217,7 +14242,7 @@
     "void-runner/progression.js": "6edd038eabf146b9e05c7787ffc3aefd3ee475d8a8f8da9a597e792b5e322ab4",
     "void-runner/prologue-integration.js": "73b6689dec3977c05f5e318d1a24024f2f2d1b70a18cc838d1a5d9640665f800",
     "void-runner/radio.js": "a9d04c53cfb34748f9c30054ffdb28f02a5fb87114883c71149b691e0ff5c313",
-    "void-runner/relay-radio.js": "5ce31904c15f630a01d00f51d566d66ae97c736d5734d7531835588714269806",
+    "void-runner/relay-radio.js": "2a71125ab14c4dcd2c5a113aa7793ba0a9367503386fa97e0a22a270e7652a80",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
     "void-runner/remote-players.js": "ee83d376c2fc55088e260cb97e0172a7c3d3ac1c92a3bfa5c75620b186c9def7",

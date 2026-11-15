@@ -135,6 +135,9 @@
   updateBadges();
  }
 
+ /* The News feed's adverts: the goods the District store stocks (the list the shop shelves are drawn from), read once; and a seed that changes each time the app is opened. */
+ let storeNames=null,feedSeed=1;
+ try{fetch(new URL('void-runner/assets/textures/store/store-atlas.json',document.baseURI||location.href)).then(r=>r.ok?r.json():null).then(j=>{if(j&&typeof j==='object')storeNames=j;}).catch(()=>{});}catch{}
  // ---- Apps ----
  const APP_VIEW={
   missions(){
@@ -174,7 +177,15 @@
   },
   news(){
    const R=root.VoidRelayRadio;let html='';try{html=R?.archiveSection?.()||'';}catch{}
-   return html?'<div class="pd-note">From THE RELAY. Only what you have actually heard is listed.</div>'+html:'<div class="pd-empty">No news received yet.<br>Reports appear here after you hear them on the Relay.</div>';
+   const head=html?'<div class="pd-note">From THE RELAY. Only what you have actually heard is listed. Sponsored lines are the adverts on the screens around you.</div>':'';
+   // adverts mixed in among the reports, in a new order each time the app is opened
+   let ads=[];try{const F=root.VoidNewsFeed,s=state_();if(F){const store=[];for(const k of Object.keys(storeNames||{}))for(const c of storeNames[k].cells||[])if(c.name&&!store.includes(c.name))store.push(c.name);
+    const tpl=document.createElement('template');tpl.innerHTML=html;const sec=tpl.content.querySelector('.relay-archive'),blocks=sec?[...sec.children].filter(e=>e.matches('article,details')):[];
+    ads=F.feed(F.adverts({brands:root.VoidAds?.brands,relay:R?.content?.segments,store,flags:s?.story?.flags,completed:s?.universe?.completedObjectives||[]}),blocks.length,feedSeed);
+    const card=a=>'<aside class="pd-ad" aria-label="Advertisement"><small>SPONSORED · '+esc(a.sponsor)+'</small><b>'+esc(a.title)+'</b><span>'+esc(a.text)+'</span>'+(a.link?'<a href="'+esc(a.link)+'" target="_blank" rel="noopener">VIEW IN THE STORE</a>':'')+'</aside>';
+    if(sec&&blocks.length){for(let i=ads.length-1;i>=0;i--){const {ad,slot}=ads[i],el=document.createElement('div');el.innerHTML=card(ad);const at=blocks[slot]||null;if(at)at.before(el.firstChild);else sec.append(el.firstChild);}return head+tpl.innerHTML;}
+    return head+(html||'<div class="pd-empty">No news received yet.<br>Reports appear here after you hear them on the Relay.</div>')+(ads.length?'<h2>SPONSORED</h2>'+ads.map(x=>card(x.ad)).join(''):'');}}catch{}
+   return html?head+html:'<div class="pd-empty">No news received yet.<br>Reports appear here after you hear them on the Relay.</div>';
   },
   map(){
    const wl=typeof walkingLocation!=='undefined'?walkingLocation:null;
@@ -246,7 +257,7 @@
  }
  /* Moves to another screen. The new screen's title shows at once; its content appears after the model's transition delay (a loading card, driven by a timer: nothing blocks).
     Only the LATEST request counts: clicking again, going back or closing cancels the one in flight, so transitions never pile up. */
- function go(next,kind,text){
+ function go(next,kind,text){if(next[0]==='news'&&stack[0]!=='news')feedSeed=(Date.now()^(Math.random()*1e9))>>>0;
   stack=next;const seq=++navSeq,ms=D.delayMs(dev,kind,reduced());clearTimeout(navTimer);busy=false;
   if(!el||!open){syncViewing();return;}
   if(!ms){render();return;}

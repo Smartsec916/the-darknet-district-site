@@ -42,3 +42,10 @@ David asked for the NPCs in The Darknet District to be listed with the players, 
 - **Faces:** a named resident keeps one fixed crowd look (`crowd.js` asks `VoidDistrictPeople.lookFor`), and the portrait uses the look the scene really shows. Nyx has no model yet, so the portrait says unavailable (no face is invented).
 - **Face-on portraits:** `device-portraits.js` now aims the camera square at the face (found from the eyelashes of the posed figure) and frames tighter. `ASSET_VERSION` is 4, so old pictures are redrawn. Known limit: the idle pose can still tilt the head a little.
 
+## 15 Nov 2026 (later): MY V1, empty App Store, job dropdowns, sponsored News feed (same pending PR)
+
+- **MY V1** (`device` app; `D.appTitle` names it after the model, so a V2 shows MY V2): storage, model, the ten system apps and installed apps, moved here from the App Store.
+- **App Store:** shows only "No apps available yet." until `STORE_EXTRA` has entries.
+- **Jobs:** two dropdowns (JOB, SECOND JOB) instead of a wall of buttons; `MAX_JOBS` is 2.
+- **News feed** (`void-runner/news-feed.js`, tested): up to eight small SPONSORED lines mixed among the reports, in a new random order each time the app is opened. Sources: the station screen brands (`ad-art.js`, not The Function's notice), the Relay's advert and police spots word for word (`relay-content.json`), and District store adverts posted by Admin or Iris for the goods the in-game shop shelves show (`store-atlas.json`), each with a link to the real storefront page. **The store advert sentences (`STORE_LINES`) are Claude's drafts.** `GAME_ITEMS` (empty) is where an item Admin or Iris sell through mission progress gets its advert line and the flag or mission that unlocks it.
+
