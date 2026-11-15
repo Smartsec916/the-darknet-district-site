@@ -31,7 +31,7 @@
   try{
    let meshes=[];
    if(src.type==='appearance'){
-    if(!root.VoidCharacterAssembler||!(src.resident===true||root.VoidCharacterAppearance?.validate(src.appearance)))return null;   /* a resident's look is the game's own data (district-people.js); a player's is validated */
+    if(!root.VoidCharacterAssembler||!root.VoidCharacterAppearance?.validate(src.appearance))return null;   /* a resident's look is the game's own data (district-people.js); a player's is validated */
     character=await root.VoidCharacterAssembler.build(src.appearance,holder,{scene});meshes=character.meshes();
    }else if(src.type==='model'&&/^[a-z0-9-]{1,40}$/.test(String(src.model))){
     await root.VoidCharacterAssembler.ensureLook(src.model,scene);const made=root.VoidAssets.instance('crowd:'+src.model,holder);if(!made)return null;meshes=holder.getChildMeshes();

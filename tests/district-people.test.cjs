@@ -23,7 +23,8 @@ test('every crew figure standing in the District interior is on the roster, and 
  assert(interior.length>=6);for(const id of new Set(interior))assert(P.NPCS.some(n=>n.crew===id),id+' has a name');
  globalThis.VoidDistrictPeople=P;try{for(const n of P.NPCS.filter(n=>/^crew-/.test(n.crew||''))){assert(Crowd.clips[n.look],n.id);for(let i=0;i<5;i++)assert.equal(Crowd.pick('neochinatown',n.crew),n.look,n.id);}}finally{delete globalThis.VoidDistrictPeople;}
  // Admin's and Iris's portraits use the same look the scene builds them with
- for(const id of ['admin','iris'])assert(src.includes("look:'"+P.npc(id).appearance.look+"',hair:'"+P.npc(id).appearance.hair+"'"),id);
+ const A=require('../void-runner/character-appearance.js');for(const id of ['admin','iris']){const a=P.npc(id).appearance;assert(A.validate(a),id+' has a valid look');assert(src.includes("root.VoidDistrictPeople?.npc('"+id+"')?.appearance||"),id+': the scene draws the roster record');
+  const lit=src.slice(src.indexOf("npc('"+id+"')?.appearance||")).match(/\|\|(\{[^}]*\})/)[1];assert.deepEqual(Function('return '+lit)(),a,id+': the fallback is the same look');}
 });
 test('a resident\'s profile: jobs under the name, a portrait from the real figure, and never a player action',()=>{
  const n=P.npc('rin-takeda'),p=D.profile('npc',{id:n.id,name:n.name,affiliation:P.jobsText(n.jobs),bio:n.bio,place:n.place,model:n.look});
@@ -31,4 +32,13 @@ test('a resident\'s profile: jobs under the name, a portrait from the real figur
  const a=P.npc('admin'),pa=D.profile('npc',{id:a.id,name:a.name,appearance:a.appearance});assert.equal(pa.portrait.source.type,'appearance');assert.equal(pa.portrait.source.resident,true);
  assert.equal(D.profile('npc',{id:'nyx-district',name:'Nyx'}).portrait.state,'unavailable','no model, no invented face');
  const me=D.profile('player',{handle:'Neon_Fox',publicId:'abc123',jobs:'Smuggler · Mechanic'});assert.equal(me.subtitle,'@Neon_Fox · Smuggler · Mechanic');
+});
+test('following: residents and handle players can be followed and unfollowed; it is one short string in the save; junk is ignored',()=>{
+ const f={};assert.equal(P.toggleFollow(f,{kind:'npc',id:'iris'}),true);assert.equal(P.toggleFollow(f,{kind:'player',id:'abc123def4567890',name:'Neon_Fox'}),true);
+ assert.equal(f.socialFollowing,'n:iris,p:abc123def456:Neon_Fox');assert.deepEqual(P.readFollowing(f).map(x=>x.name),['Iris','Neon_Fox']);assert(P.isFollowing(f,'n:iris')&&P.isFollowing(f,'p:abc123def456'));
+ assert.equal(P.toggleFollow(f,{kind:'npc',id:'iris'}),false,'again = unfollow');assert.equal(f.socialFollowing,'p:abc123def456:Neon_Fox');
+ assert.equal(P.toggleFollow(f,{kind:'npc',id:'nobody'}),false);assert.equal(P.toggleFollow(f,{kind:'player',id:'abc',name:'<b>'}),false);assert.equal(P.toggleFollow(f,{kind:'player',id:'abc',name:'Guest-1a2b'}),false,'a guest name is not a handle');
+ assert.deepEqual(P.readFollowing({socialFollowing:'n:iris,n:iris,x:evil,n:ghost,p:zz:Bad'}).map(x=>x.key),['n:iris']);
+ const g={};for(let i=0;i<40;i++)P.toggleFollow(g,{kind:'player',id:i.toString(16).padStart(12,'0'),name:'Player_'+i});assert(g.socialFollowing.length<=200);assert(P.isFollowing(g,'p:'+(39).toString(16).padStart(12,'0')),'the newest is kept');
+ P.toggleFollow(f,{kind:'player',id:'abc123def456',name:'Neon_Fox'});assert(!('socialFollowing' in f));
 });

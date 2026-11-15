@@ -36,7 +36,10 @@
    if(hit)return true;}
   return false;
  }
- const pure={zoomSteps,stepZoom,timecode,placeTag,sightBlocked};
+ /* Who the camera is aimed at: the person whose HEAD or whose TAG is nearest the crosshair, if either is inside the aperture (half-width `reach` pixels,
+    a little generous so a moving person can be caught). list: [{key, hx, hy, tx, ty, tw, th}] (head point; tag box). -> key or null. */
+ function aimed(list,cx,cy,reach){let best=null,bd=Infinity;for(const p of list||[]){const dh=Math.hypot(p.hx-cx,p.hy-cy),nx=Math.max(p.tx,Math.min(cx,p.tx+p.tw)),ny=Math.max(p.ty,Math.min(cy,p.ty+p.th)),dt=Math.hypot(nx-cx,ny-cy),d=Math.min(dh,dt);if(d<=reach&&d<bd){bd=d;best=p.key;}}return best;}
+ const pure={zoomSteps,stepZoom,timecode,placeTag,sightBlocked,aimed};
  if(typeof module!=='undefined'&&module.exports){module.exports=pure;return;}
  if(typeof document==='undefined')return;
 
@@ -50,9 +53,10 @@
   const corner=c=>'<i class="pc-corner '+c+'"></i>';
   el.innerHTML='<div class="pc-frame">'+corner('tl')+corner('tr')+corner('bl')+corner('br')+'<i class="pc-edge t"></i><i class="pc-edge b"></i></div>'
    +'<div class="pc-aperture">'+corner('tl')+corner('tr')+corner('bl')+corner('br')+'<i class="pc-cross"></i></div>'
+   +'<div class="pc-aim" data-pc="aim" hidden></div><div class="pc-toast" data-pc="toast" hidden></div>'
    +'<div class="pc-time" data-pc="time">00:00:00:00</div>'
    +'<div class="pc-tr"><div>Battery <b data-pc="battery">100%</b><span class="pc-batt"><i data-pc="battbar"></i></span></div><div>Signal <b data-pc="signal">Good</b><span class="pc-bars" data-pc="bars"><i></i><i></i><i></i><i></i></span></div></div>'
-   +'<div class="pc-bl"><div>Zoom <b data-pc="zoom">1x</b></div><div>Focus : <b>Auto</b></div><div class="pc-hint">WHEEL · ZOOM &nbsp; L · CLOSE</div></div>'
+   +'<div class="pc-bl"><div>Zoom <b data-pc="zoom">1x</b></div><div>Focus : <b>Auto</b></div><div class="pc-hint">WHEEL · ZOOM &nbsp; F · FOLLOW &nbsp; L · CLOSE</div></div>'
    +'<div class="pc-br"><div class="pc-cam" data-pc="cam">CAM 01</div><div>FPS : <b data-pc="fps">0.00</b></div><div>ISO <b data-pc="iso">320</b></div></div>'
    +'<svg class="pc-lines" aria-hidden="true"></svg><div class="pc-tags"></div>';
   document.body.appendChild(el);svg=el.querySelector('svg');tagBox=el.querySelector('.pc-tags');
@@ -77,6 +81,7 @@
   const B=root.BABYLON,sc=scene(),cam=sc?.activeCamera;if(!B||!cam)return;
   const W=el.clientWidth,H=el.clientHeight,vp=cam.viewport.toGlobal(W,H),tm=sc.getTransformMatrix(),I=B.Matrix.IdentityReadOnly,seen=new Set(),fwd=cam.getForwardRay(1).direction,range=28*steps[zi];
   const solids=typeof walkingLocation!=='undefined'&&walkingLocation?walkingLocation.solids:null;
+  const shown=[];
   for(const p of people()){
    const head=headOf(p.node),to=head.subtract(cam.globalPosition),dist=to.length();if(dist>range||dist<.6||B.Vector3.Dot(to,fwd)<=0)continue;
    if(pure.sightBlocked(cam.globalPosition.x,cam.globalPosition.z,head.x,head.z,solids))continue;   // not through walls
@@ -85,10 +90,17 @@
    if(!t){const tag=document.createElement('div');tag.className='pc-tag';tag.innerHTML='<b></b><span></span>';tagBox.appendChild(tag);const line=document.createElementNS('http://www.w3.org/2000/svg','line'),dot=document.createElementNS('http://www.w3.org/2000/svg','circle');dot.setAttribute('r','3');svg.append(line,dot);t={tag,line,dot,name:'',role:''};tags.set(p.key,t);}
    if(t.name!==p.name){t.name=p.name;t.tag.firstChild.textContent=p.name;}if(t.role!==p.role){t.role=p.role;t.tag.lastChild.textContent=p.role;}
    const tw=t.tag.offsetWidth||120,th=t.tag.offsetHeight||40,at=pure.placeTag(s.x,s.y,W,H,tw,th,Math.max(.55,Math.min(1,6/dist*steps[zi])));
+   for(let pass=0;pass<4;pass++){const hit=shown.find(o=>at.left<o.tx+o.tw+4&&at.left+tw+4>o.tx&&at.top<o.ty+o.th+4&&at.top+th+4>o.ty);if(!hit)break;at.top=Math.max(8,hit.ty-th-6);at.ay=at.top+th;}   // two people close together: the second tag steps above the first instead of covering it
    t.tag.style.transform='translate('+at.left.toFixed(1)+'px,'+at.top.toFixed(1)+'px)';t.tag.hidden=false;
    t.line.setAttribute('x1',at.ax.toFixed(1));t.line.setAttribute('y1',at.ay.toFixed(1));t.line.setAttribute('x2',s.x.toFixed(1));t.line.setAttribute('y2',s.y.toFixed(1));t.dot.setAttribute('cx',s.x.toFixed(1));t.dot.setAttribute('cy',s.y.toFixed(1));
-   t.line.style.display=t.dot.style.display='';seen.add(p.key);
+   t.line.style.display=t.dot.style.display='';seen.add(p.key);t.who=p;shown.push({key:p.key,hx:s.x,hy:s.y,tx:at.left,ty:at.top,tw,th});
   }
+  // aim: the crosshair on the person or on their tag selects them; F follows or unfollows (kept in the save, shown in Social)
+  const key=pure.aimed(shown,W/2,H/2,Math.min(W,H)*.085);target=key?tags.get(key).who:null;
+  for(const [k,t] of tags){const on=k===key;if(t.on!==on){t.on=on;t.tag.classList.toggle('aim',on);t.line.classList.toggle('aim',on);}}
+  const hint=el.querySelector('[data-pc=aim]'),P=root.VoidDistrictPeople,fl=flags();let text='';
+  if(target&&P&&fl){const fk=target.key.startsWith('npc:')?'n:'+target.key.slice(4):'p:'+String(target.key.slice(7)).replace(/[^0-9a-f]/g,'').slice(0,12);text=(P.isFollowing(fl,fk)?'F · UNFOLLOW ':'F · FOLLOW ')+target.name.toUpperCase();}
+  if(hint.textContent!==text){hint.textContent=text;hint.hidden=!text;el.querySelector('.pc-aperture').classList.toggle('lock',!!text);}
   for(const [k,t] of tags)if(!seen.has(k)){t.tag.hidden=true;t.line.style.display=t.dot.style.display='none';}
  }
  function hud(now){
@@ -108,6 +120,15 @@
   cam.fov=2*Math.atan(Math.tan(baseFov/2)/steps[zi]);   // the renderer sets the walking view every frame; the viewfinder narrows it afterwards
   const now=performance.now();set('time',pure.timecode((now-started)/1000));hud(now);drawTags();
  }
+ const flags=()=>{try{return (typeof state!=='undefined'&&state)?.story?.flags||null;}catch{return null;}};
+ let target=null,toastTimer=0;
+ function onKey(e){
+  if(!active||e.code!=='KeyF'||e.repeat||e.ctrlKey||e.metaKey||e.altKey)return;e.preventDefault();e.stopImmediatePropagation();
+  const P=root.VoidDistrictPeople,fl=flags();if(!target||!P||!fl)return;
+  const who=target.key.startsWith('npc:')?{kind:'npc',id:target.key.slice(4)}:{kind:'player',id:target.key.slice(7),name:target.name};
+  const was=P.readFollowing(fl).length,now=P.toggleFollow(fl,who),changed=P.readFollowing(fl).length!==was;try{if(typeof save==='function')save();}catch{}
+  const t=el.querySelector('[data-pc=toast]');t.textContent=!changed?'CANNOT FOLLOW '+target.name.toUpperCase()+' (NO REGISTERED HANDLE)':now?'FOLLOWING '+target.name.toUpperCase()+' · SEE SOCIAL':'UNFOLLOWED '+target.name.toUpperCase();t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.hidden=true;},2600);
+ }
  function onWheel(e){
   if(!active)return;e.preventDefault();e.stopImmediatePropagation();wheelAcc+=e.deltaY;const now=performance.now();
   if(Math.abs(wheelAcc)>=40&&now-lastStep>110){zi=pure.stepZoom(steps,zi,wheelAcc<0?1:-1);wheelAcc=0;lastStep=now;lastHud=0;}
@@ -116,15 +137,15 @@
   const sc=scene();if(active||!sc||typeof mode==='undefined'||mode!=='walking')return false;
   device=dev||D.restore({});const def=D.DEVICES[device.model]||D.DEVICES.v1;if(!def.camera?.enabled)return false;
   if(!el)build();el.dataset.device=def.id;steps=pure.zoomSteps(device);zi=0;started=performance.now();lastHud=0;baseFov=null;wheelAcc=0;
-  el.hidden=false;active=true;document.body.classList.add('pd-camera-on');observer=sc.onBeforeRenderObservable.add(tick);addEventListener('wheel',onWheel,{passive:false,capture:true});
+  el.hidden=false;active=true;document.body.classList.add('pd-camera-on');observer=sc.onBeforeRenderObservable.add(tick);addEventListener('wheel',onWheel,{passive:false,capture:true});addEventListener('keydown',onKey,{capture:true});
   try{const cv=sc.getEngine().getRenderingCanvas();cv?.focus?.();if(root.VoidControls?.deviceClass!=='touch-first')cv?.requestPointerLock?.()?.catch?.(()=>{});}catch{}
   return true;
  }
  function stop(){
-  if(!active)return;active=false;document.body.classList.remove('pd-camera-on');removeEventListener('wheel',onWheel,{capture:true});
+  if(!active)return;active=false;document.body.classList.remove('pd-camera-on');removeEventListener('wheel',onWheel,{capture:true});removeEventListener('keydown',onKey,{capture:true});target=null;
   const sc=scene();if(sc&&observer)sc.onBeforeRenderObservable.remove(observer);observer=null;
   try{if(baseFov!==null&&sc?.activeCamera)sc.activeCamera.fov=baseFov;}catch{}baseFov=null;
   if(el)el.hidden=true;for(const t of tags.values()){t.tag.remove();t.line.remove();t.dot.remove();}tags.clear();
  }
- root.VoidDeviceCamera={start,stop,get active(){return active;},get zoom(){return steps[zi];},get steps(){return steps.slice();},get tags(){return [...tags.entries()].filter(([,t])=>!t.tag.hidden).map(([k,t])=>({key:k,name:t.name,role:t.role}));},...pure};
+ root.VoidDeviceCamera={start,stop,get active(){return active;},get zoom(){return steps[zi];},get steps(){return steps.slice();},get target(){return target?{key:target.key,name:target.name}:null;},get tags(){return [...tags.entries()].filter(([,t])=>!t.tag.hidden).map(([k,t])=>({key:k,name:t.name,role:t.role}));},...pure};
 })(typeof globalThis!=='undefined'?globalThis:this);

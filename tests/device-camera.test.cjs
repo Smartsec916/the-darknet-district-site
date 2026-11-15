@@ -29,3 +29,8 @@ test('a tag never shows through a wall: tall solids block the line, low counters
  assert.equal(C.sightBlocked(0,0,4,0,[wall]),false,'the wall is beyond the person');assert.equal(C.sightBlocked(0,0,10,30,[wall]),false,'the line passes the end of the wall');assert.equal(C.sightBlocked(0,0,10,0,null),false);
  assert.equal(C.sightBlocked(0,0,10,0,[{id:'admin-spot',position:[10,1,0],size:[.9,2,.9]}]),false,'the box a person stands in does not hide them');
 });
+test('aim: the crosshair on a person OR on their tag selects them; the nearest wins; nothing in the aperture selects nobody',()=>{
+ const a={key:'npc:admin',hx:640,hy:450,tx:700,ty:360,tw:120,th:40},b={key:'npc:iris',hx:900,hy:450,tx:960,ty:360,tw:120,th:40};
+ assert.equal(C.aimed([a,b],640,450,70),'npc:admin','on the head');assert.equal(C.aimed([a,b],760,380,70),'npc:admin','on the tag');assert.equal(C.aimed([a,b],1000,380,70),'npc:iris');
+ assert.equal(C.aimed([a,b],300,300,70),null);assert.equal(C.aimed([],640,450,70),null);assert.equal(C.aimed([a,{...b,hx:650,hy:455}],650,455,70),'npc:iris','the closer one');
+});

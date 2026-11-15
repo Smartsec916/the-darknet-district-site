@@ -26,12 +26,12 @@
   {id:'admin',name:'Admin',jobs:['merchant'],area:'interior',place:'The Darknet District store',bio:'Runs the District store.',
    appearance:{v:1,base:'male',look:'district-smuggler',hair:'short03',hairColor:'silver',clothingColor:'graphite',accessories:[]}},
   {id:'iris',name:'Iris',jobs:['merchant','info-broker'],area:'interior',place:'The Darknet District store',bio:'Works the store counter beside Admin.',
-   appearance:{v:1,base:'female',look:'fixer-01',hair:'bob02',hairColor:'silver',clothingColor:'black',accessories:['gear-collar','gear-armband']}},
+   appearance:{v:1,base:'female',look:'fixer-01',hair:'bob02',hairColor:'silver',clothingColor:'black',accessories:['gear-collar','gear-shoulders','gear-chest']}},
   {id:'nyx-district',name:'Nyx',jobs:['bartender'],area:'interior',place:'The bar and oxygen lounge',bio:'Behind the bar.'},
   {id:'rin-takeda',crew:'crew-bar1',look:'district-resident',name:'Rin Takeda',jobs:['influencer'],area:'interior',place:'The bar and oxygen lounge',bio:'Usually at the bar.'},
   {id:'jonah-pike',crew:'crew-bar2',look:'outlaw-01',name:'Jonah Pike',jobs:['smuggler'],area:'interior',place:'The bar and oxygen lounge',bio:'Keeps to the back of the lounge.'},
   {id:'sable-quon',crew:'crew-vr-watch',look:'hacker-01',name:'Sable Quon',jobs:['influencer','hacker'],area:'interior',place:'VR play area',bio:'Watches the VR booths.'},
-  {id:'dax-moreno',crew:'vr-player-a',look:'vr-player-a',name:'Dax Moreno',jobs:['mercenary','vr-athlete'],area:'interior',place:'VR play area, booth one',bio:'In the shooter booth most nights.'},
+  {id:'cade-moreno',crew:'vr-player-a',look:'vr-player-a',name:'Cade Moreno',jobs:['mercenary','vr-athlete'],area:'interior',place:'VR play area, booth one',bio:'In the shooter booth most nights.'},
   {id:'lumi-ashby',crew:'vr-player-b',look:'vr-player-b',name:'Lumi Ashby',jobs:['dancer','influencer'],area:'interior',place:'VR play area, booth two',bio:'In the social booth: dancing, eating, talking to someone only they can see.'},
   {id:'kei-navarro',crew:'crew-hall-talk1',look:'district-smuggler',name:'Kei Navarro',jobs:['courier'],area:'interior',place:'The hallway',bio:'Talking in the hallway.'},
   {id:'mags-oduya',crew:'crew-hall-talk2',look:'district-resident',name:'Mags Oduya',jobs:['mechanic'],area:'interior',place:'The hallway',bio:'Talking in the hallway.'},
@@ -44,6 +44,18 @@
  const npcs=area=>area?NPCS.filter(n=>n.area===area):NPCS.slice();
  // The fixed look of a named resident's figure, so the same person has the same face on every visit (crowd.js asks here before dealing a random look).
  const lookFor=crewId=>BY_CREW.get(crewId)?.look||null;
- const api={JOBS,MAX_JOBS,FLAG,AREAS,NPCS,jobLabel,cleanJobs,jobsText,readJobs,writeJobs,toggleJob,npc,npcs,lookFor};
+ /* Following (David, 15 Nov 2026): people a player chose to follow, by aiming the V1 camera at them. Kept in the save as one short string
+    (story.flags.socialFollowing): 'n:<resident id>' or 'p:<public player id>:<handle>', comma separated, newest last, oldest dropped when it would pass 200 characters. */
+ const FOLLOW_FLAG='socialFollowing',FOLLOW_KEY=/^(n:[a-z][a-z0-9-]{0,39}|p:[0-9a-f]{1,12}:[A-Za-z0-9_]{3,20})$/;
+ function readFollowing(flags){const out=[];for(const part of String(flags&&flags[FOLLOW_FLAG]||'').split(',')){if(!FOLLOW_KEY.test(part)||out.some(f=>f.key===part.split(':').slice(0,2).join(':')))continue;const [kind,id,name]=part.split(':');
+   if(kind==='n'){const n=BY_ID.get(id);if(n)out.push({key:'n:'+id,kind:'npc',id,name:n.name});}else out.push({key:'p:'+id,kind:'player',id,name});}return out;}
+ const followPart=f=>f.kind==='npc'?'n:'+f.id:'p:'+f.id+':'+f.name;
+ function writeFollowing(flags,list){let l=list.slice();while(l.length&&l.map(followPart).join(',').length>200)l.shift();if(l.length)flags[FOLLOW_FLAG]=l.map(followPart).join(',');else delete flags[FOLLOW_FLAG];return l;}
+ /* who: {kind:'npc', id} or {kind:'player', id (public id), name (handle)}. Returns true when now following, false when unfollowed or refused. */
+ function toggleFollow(flags,who){if(!flags||!who)return false;const part=who.kind==='npc'?'n:'+who.id:'p:'+String(who.id).replace(/[^0-9a-f]/g,'').slice(0,12)+':'+who.name;if(!FOLLOW_KEY.test(part)||(who.kind==='npc'&&!BY_ID.has(who.id)))return false;
+  const key=part.split(':').slice(0,2).join(':'),l=readFollowing(flags);if(l.some(f=>f.key===key)){writeFollowing(flags,l.filter(f=>f.key!==key));return false;}
+  const [kind,id,name]=part.split(':');l.push(kind==='n'?{key,kind:'npc',id,name:BY_ID.get(id).name}:{key,kind:'player',id,name});writeFollowing(flags,l);return true;}
+ const isFollowing=(flags,key)=>readFollowing(flags).some(f=>f.key===key);
+ const api={FOLLOW_FLAG,readFollowing,toggleFollow,isFollowing,JOBS,MAX_JOBS,FLAG,AREAS,NPCS,jobLabel,cleanJobs,jobsText,readJobs,writeJobs,toggleJob,npc,npcs,lookFor};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidDistrictPeople=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

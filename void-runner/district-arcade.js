@@ -1,7 +1,7 @@
 /* The arcade's playable cabinets (docs/development/ARCADE.md). BROWSER ONLY.
    A cabinet runs the REAL game, not a copy: the game's own page is opened in a frame over the District, so it is the same code, saves and sign-in as the
    stand-alone page (same site, same browser storage). While it is open the player's character stands still at the cabinet and stays in the District (multiplayer
-   keeps them connected); LEAVE CABINET (or closing the frame) gives movement back. Nothing is passed into the game and nothing is read out of it.
+   keeps them connected); EXIT GAME (or closing the frame) returns the player to the arcade room and gives movement back. Nothing is passed into the game and nothing is read out of it.
    GAMES is the register: to make another cabinet playable, add its game id and page here and give a cabinet that game in neochinatown.js (ARCADE). */
 (function(root){
  'use strict';
@@ -13,7 +13,7 @@
  document.head.appendChild(css);
  // The bar is a div, not a <header>: the game page styles every <header>.
  function build(){el=document.createElement('section');el.id='arcade-play';el.hidden=true;el.setAttribute('role','dialog');el.setAttribute('aria-label','Arcade cabinet');
-  el.innerHTML='<div class="ap-bar"><b></b><span>ARCADE CABINET · the game runs here exactly as on its own page</span><button type="button" data-arcade="leave">LEAVE CABINET</button></div>';document.body.appendChild(el);
+  el.innerHTML='<div class="ap-bar"><b></b><span>ARCADE CABINET · the game runs here exactly as on its own page</span><button type="button" data-arcade="leave">EXIT GAME</button></div>';document.body.appendChild(el);
   el.querySelector('[data-arcade=leave]').addEventListener('click',close);}
  function open(id){
   const game=GAMES[id];if(!game||playing||typeof mode==='undefined'||typeof walker==='undefined'||!walker)return false;if(!el)build();

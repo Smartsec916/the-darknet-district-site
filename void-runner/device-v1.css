@@ -146,6 +146,10 @@ body.pd-camera-on>:not(#space):not(#pd-camera):not(#screen):not(#game-menu):not(
 #pd-camera .pc-hint{margin-top:.3em;font-size:.62em;letter-spacing:.16em;color:var(--pd-muted);text-shadow:0 1px 2px #000}
 #pd-camera .pc-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible}#pd-camera .pc-lines line{stroke:var(--pd-tag);stroke-width:1.2;opacity:.9}#pd-camera .pc-lines circle{fill:var(--pd-tag)}
 #pd-camera .pc-tags{position:absolute;inset:0}
+#pd-camera .pc-tag.aim{background:var(--pd-tag);color:#000;text-shadow:none;box-shadow:0 0 14px var(--pd-tag)}#pd-camera .pc-tag.aim b{color:#000}#pd-camera .pc-lines line.aim{stroke-width:2.2;opacity:1}
+#pd-camera .pc-aperture.lock .pc-corner{border-color:var(--pd-tag);filter:drop-shadow(0 0 5px var(--pd-tag))}
+#pd-camera .pc-aim{position:absolute;left:50%;top:calc(50% + 8.5vmin);transform:translateX(-50%);padding:.15em .8em;border:1px solid var(--pd-tag);background:rgba(6,18,8,.8);color:var(--pd-tag);font-size:.82em;letter-spacing:.12em;white-space:nowrap}#pd-camera .pc-aim[hidden],#pd-camera .pc-toast[hidden]{display:none}
+#pd-camera .pc-toast{position:absolute;left:50%;top:calc(50% + 12.5vmin);transform:translateX(-50%);padding:.2em .9em;background:var(--pd-tag);color:#000;text-shadow:none;font-size:.82em;letter-spacing:.12em;white-space:nowrap}
 #pd-camera .pc-tag{position:absolute;left:0;top:0;display:flex;flex-direction:column;padding:.15em .7em .25em;border:1.5px solid var(--pd-tag);background:rgba(6,18,8,.72);color:var(--pd-tag);text-shadow:0 0 5px rgba(157,255,90,.4);white-space:nowrap;will-change:transform}
 #pd-camera .pc-tag[hidden]{display:none}#pd-camera .pc-tag b{color:var(--pd-tag);font-size:1em;letter-spacing:.04em}#pd-camera .pc-tag span{font-size:.72em;letter-spacing:.06em;opacity:.92}
 /* a faint holographic wash and scan lines: light enough not to hide the scene */

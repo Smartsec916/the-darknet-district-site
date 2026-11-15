@@ -954,8 +954,8 @@
     {const staff=(id,pos,appearance)=>{const A=root.VoidCharacterAssembler,V=root.VoidCharacterAppearance;if(!A||!V?.validate?.(appearance)){characterModel(id,target,pos,false);return;}
       const holder=new B.TransformNode('npc-'+id,scene);holder.parent=target;holder.position.set(pos[0],0,pos[2]);holder.rotation.y=Math.PI;holder.metadata={character:id};let made=null,gone=false;owned.push({dispose(){gone=true;try{made?.dispose();}catch{}holder.dispose();}});
       A.build(appearance,holder,{scene,clip:'idle'}).then(c=>{made=c;if(gone)c.dispose();}).catch(()=>{if(!gone)characterModel(id,target,pos,false);});};
-     if(state?.story?.flags?.adminOccupied!==true)staff('admin',[8,0,48.6],{v:1,base:'male',look:'district-smuggler',hair:'short03',hairColor:'silver',clothingColor:'graphite',accessories:[]});
-     staff('iris',[12.5,0,48.6],{v:1,base:'female',look:'fixer-01',hair:'bob02',hairColor:'silver',clothingColor:'black',accessories:['gear-collar','gear-shoulders','gear-chest']});}
+     if(state?.story?.flags?.adminOccupied!==true)staff('admin',[8,0,48.6],root.VoidDistrictPeople?.npc('admin')?.appearance||{v:1,base:'male',look:'district-smuggler',hair:'short03',hairColor:'silver',clothingColor:'graphite',accessories:[]});
+     staff('iris',[12.5,0,48.6],root.VoidDistrictPeople?.npc('iris')?.appearance||{v:1,base:'female',look:'fixer-01',hair:'bob02',hairColor:'silver',clothingColor:'black',accessories:['gear-collar','gear-shoulders','gear-chest']})   /* one record (district-people.js) draws the figure AND the profile portrait, so they can never differ */;}
 
     // Vending alcove: three lit machines.
     // Machines (reference: glass fronts over lit shelves of goods, a payment panel at the side, a bright top light).
