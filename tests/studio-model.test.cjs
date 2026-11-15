@@ -35,3 +35,20 @@ test('the Studio page: no credentials in the browser, publishing disabled, hones
  for(const tab of ['Dashboard','Missions','NPCs','Dialogue','Characters','Animations','Locations & Maps','Asset Library','Stores & Items','Factions & Progression','Social & V1','Settings & Publishing'])assert.ok(js.includes("'"+tab+"'"),tab);
  assert.match(html,/noindex/);assert.match(html,/Content-Security-Policy/);assert.doesNotMatch(html,/unsafe-eval/);
 });
+test('flow chart: what is said, choices and store items are validated, shown in the chart, reported as changes and exported',()=>{
+ const S=require('../admin/studio-model.js'),B=require('../void-runner/beginner.js'),base=S.clone(B.MISSIONS),d=S.clone(B.MISSIONS),m=d[0];
+ assert.deepEqual(S.validate(d),[],'the shipped missions are clean');
+ m.offer=[{who:'Admin',text:'Welcome.'}];m.choices=[{id:'take',label:'Take the job',next:d[1].id},{id:'walk',label:'Walk away',next:''}];m.unlocks=[{item:'Signal Scrambler',seller:'iris',where:['district-store','meridian'],advert:'New at the counter.'}];
+ const issues=S.validate(d);assert.deepEqual(issues.filter(i=>i.level==='error'),[]);assert(issues.some(i=>/Leads nowhere yet/.test(i.text)));assert(issues.some(i=>/design notes/.test(i.text)),'it says plainly that the game does not act on them yet');
+ const c=S.chart(d)[0];assert.equal(c.giver,'Admin');assert.deepEqual(c.said,['Welcome.']);assert.equal(c.todo.length,m.objectives.length);assert.deepEqual(c.choices.map(x=>x.next),[d[1].id,'']);assert.match(c.unlocks[0].where,/The Darknet District store.*Meridian Station/);assert.deepEqual(c.leadsTo,[d[1].id]);
+ assert.deepEqual(S.diff(base,d).map(x=>x.field).sort(),['choices','offer','unlocks']);assert.equal(S.exportDraft(d,'',base).missions[0].unlocks[0].item,'Signal Scrambler');
+ // bad input is caught
+ const bad=S.clone(d);bad[0].choices=[{id:'Take It',label:'',next:'nowhere'},{id:'x',label:'Loop',next:bad[0].id}];bad[0].unlocks=[{item:'',where:[]},{item:'A',where:['everywhere','meridian']},{item:'B',where:['moon-base'],seller:'rook'}];bad[0].offer=[{who:'Nobody Known',text:''}];
+ const e=S.validate(bad).filter(i=>i.level==='error').map(i=>i.text).join(' | ');
+ for(const want of [/Choice id must be/,/needs its text/,/not a mission/,/cannot lead back/,/needs a name/,/Say where it becomes available/,/cannot be combined/,/Unknown store "moon-base"/,/Seller must be/,/has no text/,/not a known NPC or speaker/])assert.match(e,want);
+});
+test('store choice: "everywhere" and specific stores exclude each other',()=>{
+ const S=require('../admin/studio-model.js');assert.deepEqual(S.toggleWhere(['everywhere'],'meridian'),['meridian']);assert.deepEqual(S.toggleWhere(['meridian','kepler'],'everywhere'),['everywhere']);assert.deepEqual(S.toggleWhere(['meridian'],'meridian'),[]);assert.deepEqual(S.toggleWhere(['meridian'],'nope'),['meridian']);
+ assert.equal(S.whereText(['everywhere']),'everywhere');assert.equal(S.whereText([]),'nowhere yet');assert(S.STORES.some(s=>s.id==='district-store'));
+});
+test('the Studio page loads every script the District layout needs',()=>{const h=require('node:fs').readFileSync('admin/studio.html','utf8');for(const f of ['ncz-nightclub.js','milked.js','neochinatown.js'])assert(h.includes('void-runner/'+f),f);assert(h.indexOf('milked.js')<h.indexOf('neochinatown.js'));});

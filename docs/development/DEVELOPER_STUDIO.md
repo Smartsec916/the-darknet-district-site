@@ -24,3 +24,15 @@ A local indexing service bound to 127.0.0.1 only, with a configurable folder pat
 2. Audit trail and reviewer role (extends the existing allow-list).
 3. NPC metadata and interaction-point editing writing to the real registry and layouts.
 4. Persist records for the archived missions in the same shape so one editor covers them.
+
+## 15 Nov 2026: mission flow chart (Missions tab, default view)
+
+David asked for a flow chart for mission making, after his own sketch. The Missions tab now opens on **FLOW CHART** (the old screen is **FORM EDITOR**, one click away; DETAILS on a row opens that mission there).
+
+- One row per mission, read left to right: **NPC, who gives it** (blue) · **mission name** and **what is said** (green, pink) · **what needs to be done** (steps, each with the event that completes it) · the **choices** it creates (each can lead to another mission) · **store items that become available**, sold by Admin, Iris or nobody named, **everywhere or in chosen stores**, with an optional advert line for the V1 News feed.
+- Rows follow the chain (a mission's row is followed by the mission it leads to). "+ mission after this" adds the next one.
+- New record fields (`studio-model.js`): `offer [{who,text}]`, `choices [{id,label,next}]`, `unlocks [{item,seller,where[],advert}]`. They are validated, counted in the draft's changes and included in the exported JSON.
+- **The game does not act on choices or store items yet**, and the validation panel says so on any mission that has them. Making them real needs: the mission runner (`void-runner/beginner.js`) to offer choices, a store catalogue that reads unlocks, and `GAME_ITEMS` in `void-runner/news-feed.js` filled from the same records.
+- Also fixed: the Studio page did not load at all since Milked was added (its District layout script needed `milked.js`); `studio.html` now loads it.
+- Tests: `tests/studio-model.test.cjs`, `tests/studio-browser.cjs` (not in CI; passes locally in Chromium).
+
