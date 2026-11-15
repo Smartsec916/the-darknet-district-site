@@ -51,9 +51,9 @@ test('Iris is an android, clean of belts and pouches',()=>{
 });
 test('nothing to wear builds nothing',()=>{assert.equal(G.build(fit['hacker-01'],{belt:false,pouches:2,harness:false,thighs:'',knees:false,bracer:'',goggles:false,accent:0}).indices.length,0);});
 
-test('about one NPC in twenty wears the Rebellion Edition tee: a black body, sleeves, patches and the shirt\'s print on the chest',()=>{
- let tees=0;const N=4000;for(let i=0;i<N;i++){const w=G.loadout('hacker-01:walker-'+i,'hacker-01',fit['hacker-01']);if(w.tee){tees++;assert.equal(w.harness,false,'no chest rig over the print');}}
- assert.ok(tees/N>.035&&tees/N<.065,'about 5% ('+(100*tees/N).toFixed(1)+'%)');assert.equal(G.TEE_SHARE,.05);
+test('outside NULL about one NPC in a hundred wears the Rebellion Edition tee: a black body, sleeves, patches and the shirt\'s print on the chest',()=>{
+ let tees=0;const N=20000;for(let i=0;i<N;i++){const w=G.loadout('hacker-01:walker-'+i,'hacker-01',fit['hacker-01']);if(w.tee){tees++;assert.equal(w.harness,false,'no chest rig over the print');}}
+ assert.ok(tees/N>.006&&tees/N<.015,'about 1% ('+(100*tees/N).toFixed(2)+'%)');assert.equal(G.TEE_SHARE,.01);
  assert.equal(G.loadout('admin','district-smuggler',fit['district-smuggler']).tee,undefined,'not Admin');assert.equal(G.loadout('x:1','hacker-01',fit['hacker-01'],0).tee,false);assert.equal(G.loadout('x:1','hacker-01',fit['hacker-01'],1).tee,true);
  assert.ok(fs.statSync(path.join(root,G.TEE_PRINT)).size>3000,'the print picture is in the game');
  for(const l of looks){const b=fit[l],g=G.build(b,{tee:true,belt:false,pouches:0,harness:false,thighs:'',knees:false,bracer:'',goggles:false,accent:0}),u=b.height/1.8;

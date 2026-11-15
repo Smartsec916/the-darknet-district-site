@@ -28,13 +28,13 @@
     shoulders, a black device over each ear, and a few tiny amber lights. No belts or pouches: she is clean, not kitted out. */
  const KITS={admin:{belt:true,pouches:2,harness:true,thighs:'',knees:false,bracer:'',goggles:false,jacket:true,accent:4},
   iris:{belt:false,pouches:0,harness:false,thighs:'',knees:false,bracer:'',goggles:false,jacket:false,android:true,accent:4}};
- /* The Darknet District: Rebellion Edition T-shirt (David, 15 Nov 2026: "have 5% of NPCs be wearing" it; the real one is sold on the site's apparel page). About one
-    NPC in twenty wears it: a black tee over whatever top they have (a tube round the torso and short sleeves, fitted to their body), the shirt's own city print on the
+ /* The Darknet District: Rebellion Edition T-shirt (David, 15 Nov 2026: "have 5% of NPCs be wearing" it; the real one is sold on the site's apparel page). Outside NULL about one
+    NPC in a hundred wears it: a black tee over whatever top they have (a tube round the torso and short sleeves, fitted to their body), the shirt's own city print on the
     chest (void-runner/art/apparel/rebellion-tee-print.jpg, cut from the store's product picture) and a small coloured patch on each sleeve. */
  /* Inside NULL (David, 15 Nov 2026): "there's always 1 NPC with The Darknet District tshirt on". One dancer who is there at every quality setting always wears it, and nobody
     else in the club does, so it is always exactly one. Club figures are known by `metadata.club` (ncz-nightclub.js), which makes their seed end in `:club:<spot id>`. */
  const CLUB_TEE='dancer-0';
- const TEE_SHARE=.05,TEE_PRINT='void-runner/art/apparel/rebellion-tee-print.jpg';
+ const TEE_SHARE=.01,   /* outside NULL: about 1 NPC in 100 (David, 15 Nov 2026; it was 1 in 20 for a few hours) */TEE_PRINT='void-runner/art/apparel/rebellion-tee-print.jpg';
  /* What a person wears: {belt, pouches (2..4), harness, thighs ('', 'L', 'R', 'LR'), knees, bracer ('', 'L', 'R'), goggles, accent (0..5)}. */
  function loadout(seed,look,body,teeShare=TEE_SHARE){
   if(KITS[seed])return {...KITS[seed]};
