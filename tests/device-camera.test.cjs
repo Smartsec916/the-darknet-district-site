@@ -1,8 +1,8 @@
 /* The V1 camera's rules (void-runner/device-camera.js): the zoom array and each model's reach, the timecode, and where a name tag goes. */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const C=require('../void-runner/device-camera.js'),D=require('../void-runner/device-v1.js');
-test('zoom: the array is 1, 1.5, 2, 3; the V1 reaches 2; a later model reaches further by changing one number',()=>{
- assert.deepEqual(D.DEVICES.v1.camera.zooms,[1,1.5,2,3]);assert.deepEqual(C.zoomSteps(D.restore({})),[1,1.5,2]);
+test('zoom: the array is 1, 1.5, 2, 3, 4; the V1 reaches 2; the V3 // SHADOW reaches 4; a later model reaches further by changing one number',()=>{
+ assert.deepEqual(D.DEVICES.v1.camera.zooms,[1,1.5,2,3,4]);assert.deepEqual(C.zoomSteps(D.restore({})),[1,1.5,2]);assert.deepEqual(C.zoomSteps({model:'v3'}),[1,1.5,2,3,4]);
  D.DEVICES.v2={...D.DEVICES.v1,id:'v2',name:'V2',generation:2,camera:{...D.DEVICES.v1.camera,maxZoom:3}};
  try{assert.deepEqual(C.zoomSteps({model:'v2'}),[1,1.5,2,3]);assert.equal(D.appTitle('device',{model:'v2'}),'MY V2');}finally{delete D.DEVICES.v2;}
  const s=[1,1.5,2];let i=0;i=C.stepZoom(s,i,1);i=C.stepZoom(s,i,1);i=C.stepZoom(s,i,1);assert.equal(s[i],2,'stops at the last step');i=C.stepZoom(s,i,-1);assert.equal(s[i],1.5);assert.equal(C.stepZoom(s,0,-1),0);

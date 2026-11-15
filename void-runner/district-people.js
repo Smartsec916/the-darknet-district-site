@@ -56,6 +56,17 @@
   const key=part.split(':').slice(0,2).join(':'),l=readFollowing(flags);if(l.some(f=>f.key===key)){writeFollowing(flags,l.filter(f=>f.key!==key));return false;}
   const [kind,id,name]=part.split(':');l.push(kind==='n'?{key,kind:'npc',id,name:BY_ID.get(id).name}:{key,kind:'player',id,name});writeFollowing(flags,l);return true;}
  const isFollowing=(flags,key)=>readFollowing(flags).some(f=>f.key===key);
- const api={FOLLOW_FLAG,readFollowing,toggleFollow,isFollowing,JOBS,MAX_JOBS,FLAG,AREAS,NPCS,jobLabel,cleanJobs,jobsText,readJobs,writeJobs,toggleJob,npc,npcs,lookFor};
+ /* House rule (David, 15 Nov 2026): the District is shielded, and scanning inside it is rude. When someone comes in with the WarFlying app ACTIVE, Admin or Iris
+    notices, walks over and tells them to deactivate it. Admin goes half the time and Iris the other half; if Admin is not in the District, Iris always goes.
+    DRAFT: the two lines are Claude's wording of David's instruction ("tell them it's rude and to Deactivate it in the App"); they have no recorded voice. */
+ const ETIQUETTE={noticeAfter:2.5,speed:1.5,stopAt:1.7,talkFor:7,
+  lines:{admin:'Admin: Scanning in here is rude. Open WarFlying on your device and deactivate it.',iris:'Iris: You are scanning inside the District. That is rude. Deactivate WarFlying in the app.'},
+  // who goes: r is a random number 0..1
+  who(adminHere,irisHere,r){return adminHere&&irisHere?(r<.5?'admin':'iris'):irisHere?'iris':adminHere?'admin':null;},
+  /* The way out from behind the shop counter (District plan metres: counter x 6..14 at z 47.2, the shop opens onto the hallway at x 3) to a point by the player:
+     round the nearer end of the counter, across the shop floor to the hallway, then along it. Returns [[x,z],...] not including the start. */
+  path(from,to){const end=from[0]<10?4.9:15.1,p=[[end,from[1]],[end,45.4],[2.2,45.4]],tx=Math.max(-2.2,Math.min(2.2,to[0])),inHall=Math.abs(to[0])<=3.2;
+   if(inHall){p.push([tx,to[1]]);}else{p.push([Math.max(-1.5,Math.min(1.5,to[0])),to[1]],[to[0],to[1]]);}return p;}};
+ const api={ETIQUETTE,FOLLOW_FLAG,readFollowing,toggleFollow,isFollowing,JOBS,MAX_JOBS,FLAG,AREAS,NPCS,jobLabel,cleanJobs,jobsText,readJobs,writeJobs,toggleJob,npc,npcs,lookFor};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidDistrictPeople=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

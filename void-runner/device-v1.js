@@ -13,13 +13,21 @@
   v1:{id:'v1',generation:1,name:'V1',tagline:'PERSONAL DEVICE · MODEL V1',
    apps:['missions','messages','social','news','map','camera','gallery','store','device','settings'],
    // The camera (device-camera.js): a live viewfinder. `zooms` is the zoom array every model shares; `maxZoom` is how far THIS model reaches (a V2 can raise it).
-   camera:{enabled:true,id:'CAM 01',zooms:[1,1.5,2,3],maxZoom:2,iso:320},
+   camera:{enabled:true,id:'CAM 01',zooms:[1,1.5,2,3,4],maxZoom:2,iso:320},
    // Interface timing, in milliseconds (a later model changes these numbers and nothing else). The starter V1 is deliberately a little slow: a short loading card is shown
    // before a screen appears. It is cosmetic and asynchronous: it never blocks the game loop, networking or message delivery. appOpenMs: opening an app from home;
    // homeMs: going back to home; tabMs: switching inside an app; startupMs: the first opening after the page loads. 0 turns a delay off (reduced motion does this too).
    ui:{halfWidth:.5,expandedWidth:.96,appOpenMs:320,homeMs:180,tabMs:160,startupMs:600,maxMs:600},
    // Storage is a defined baseline of the stock model, NOT a measurement of this computer or browser. The nine system apps are part of it. A future optional app costs
    // its own `storagePct` (in STORE_EXTRA) on top, and the total is capped at 100.
+   storage:{baseUsedPct:75}
+  },
+  /* V3 // SHADOW (David, 15 Nov 2026): the device Dax carries, bought from Admin. Faster than the V1; the same interface drawn like an old monochrome green monitor
+     (device-v1.css, [data-device=v3]); its camera is in the wearer's eye and zooms to 4. No player can get one yet: nothing sells or grants it. */
+  v3:{id:'v3',generation:3,name:'V3 // SHADOW',tagline:'PERSONAL DEVICE · MODEL V3 // SHADOW',theme:'mono-green',
+   apps:['missions','messages','social','news','map','camera','gallery','store','device','settings'],
+   camera:{enabled:true,id:'EYE 01',zooms:[1,1.5,2,3,4],maxZoom:4,iso:800,eye:true},
+   ui:{halfWidth:.5,expandedWidth:.96,appOpenMs:90,homeMs:60,tabMs:50,startupMs:220,maxMs:600},
    storage:{baseUsedPct:75}
   }
  };

@@ -42,3 +42,16 @@ test('following: residents and handle players can be followed and unfollowed; it
  const g={};for(let i=0;i<40;i++)P.toggleFollow(g,{kind:'player',id:i.toString(16).padStart(12,'0'),name:'Player_'+i});assert(g.socialFollowing.length<=200);assert(P.isFollowing(g,'p:'+(39).toString(16).padStart(12,'0')),'the newest is kept');
  P.toggleFollow(f,{kind:'player',id:'abc123def456',name:'Neon_Fox'});assert(!('socialFollowing' in f));
 });
+test('the house rule on scanning: Admin half the time, Iris the other half, Iris always when Admin is out; the walk goes round the counter to the hallway',()=>{
+ const E=P.ETIQUETTE;let a=0,i=0;for(let k=0;k<1000;k++){const w=E.who(true,true,(k+.5)/1000);if(w==='admin')a++;else if(w==='iris')i++;}assert.equal(a,500);assert.equal(i,500);
+ for(const r of [0,.3,.7,.999])assert.equal(E.who(false,true,r),'iris','Admin is not in the District: Iris always goes');assert.equal(E.who(true,false,.9),'admin');assert.equal(E.who(false,false,.5),null);
+ const N=require('../void-runner/neochinatown.js'),Ex=require('../void-runner/exploration-controller.js'),interior=N.layout('interior');
+ for(const [id,x] of [['admin',8],['iris',12.5]]){const path=E.path([x,48.6],[0.4,29]);assert.deepEqual(path[path.length-1],[0.4,29]);let prev=[x,48.6];
+  for(const p of path){for(let t=.1;t<=1;t+=.1){const lx=prev[0]+(p[0]-prev[0])*t,lz=prev[1]+(p[1]-prev[1])*t;if(lz>48.2&&lx>5&&lx<15)continue;   // behind the counter is staff floor, not player floor
+    const [wx,wz]=N.toWorld(lx,lz);assert(!Ex.blocked(wx,wz,interior),id+' walks through open floor at '+lx.toFixed(1)+','+lz.toFixed(1));}prev=p;}}
+ assert.match(E.lines.admin,/rude/i);assert.match(E.lines.admin,/deactivate/i);assert.match(E.lines.iris,/rude/i);assert.match(E.lines.iris,/deactivate/i);
+});
+test('on foot is slightly faster (David, 15 Nov 2026) and still inside what the multiplayer server allows',()=>{
+ const src=require('node:fs').readFileSync('void-runner/exploration-controller.js','utf8'),m=src.match(/walk:([\d.]+),sprint:([\d.]+)/);assert(m);assert(+m[1]>3.4&&+m[1]<=4.2);assert(+m[2]>5.6&&+m[2]<=7);
+ const hub=require('node:fs').readFileSync('tools/district-hub/protocol.cjs','utf8').match(/maxSpeed:(\d+)/);assert(+m[2]<+hub[1]);
+});

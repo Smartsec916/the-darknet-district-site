@@ -624,7 +624,7 @@
     return {doors};})();
     if(area==='all'){if(seed!==SEAMS[0])console.warn('[NeoChinatown] random state before the interior changed; update SEAMS (interior detail will differ in the separate builds)');}else if(!wantStreet)seed=SEAMS[0];
     // ---- The District interior: hallway, rooms and terrace ----
-    const {lights,terminal,vrTick,podScreen,arcade}=!wantInterior?{lights:[],terminal:{tick(){}},vrTick(){},podScreen:{tick(){}},arcade:{tick(){}}}:(function buildInterior(){
+    const {lights,terminal,vrTick,podScreen,arcade,etiquette}=!wantInterior?{lights:[],terminal:{tick(){}},vrTick(){},podScreen:{tick(){}},arcade:{tick(){}},etiquette:{tick(){}}}:(function buildInterior(){
     // ---- Hallway and room shells -----------------------------------------
     // Dark wet-look tiles (David's reference pictures, 2026-10-17): low roughness so the neon reads in them.
     const tileTex=texture('district-tiles',512,512,(g,W,H)=>{g.fillStyle='#0d0e14';g.fillRect(0,0,W,H);for(let y=0;y<H;y+=64)for(let x=0;x<W;x+=64){const s=15+rand()*9|0;g.fillStyle='rgb('+s+','+s+','+(s+7)+')';g.fillRect(x+2,y+2,60,60);}g.strokeStyle='#050608';g.lineWidth=3;for(let i=0;i<=W;i+=64){g.beginPath();g.moveTo(i,0);g.lineTo(i,H);g.stroke();g.beginPath();g.moveTo(0,i);g.lineTo(W,i);g.stroke();}for(let i=0;i<10;i++){const x=rand()*W,y=rand()*H,r=30+rand()*60,gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(0,0,0,.4)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);}});tileTex.uScale=6;tileTex.vScale=9;
@@ -951,8 +951,9 @@
     // Admin and Iris as real figures (David, Nov 2026; they were box figures). Built from the character assembler's bodies, hair and gear, the nearest the game's own parts come to his references:
     // Admin an older man with swept silver hair in a dark jacket, NO eyewear in the store; Iris a humanoid android with a white bob, a high collar and armour plates. They stand where they stood,
     // facing the customer; if the assembler or a part is missing, the old figure is built instead. Only their looks change: names, positions, dialogue and interactions are untouched.
+    const staffActors={};   /* Admin and Iris as built here: the scanning house rule below walks one of them to the player */
     {const staff=(id,pos,appearance)=>{const A=root.VoidCharacterAssembler,V=root.VoidCharacterAppearance;if(!A||!V?.validate?.(appearance)){characterModel(id,target,pos,false);return;}
-      const holder=new B.TransformNode('npc-'+id,scene);holder.parent=target;holder.position.set(pos[0],0,pos[2]);holder.rotation.y=Math.PI;holder.metadata={character:id};let made=null,gone=false;owned.push({dispose(){gone=true;try{made?.dispose();}catch{}holder.dispose();}});
+      const holder=new B.TransformNode('npc-'+id,scene);holder.parent=target;holder.position.set(pos[0],0,pos[2]);holder.rotation.y=Math.PI;holder.metadata={character:id};let made=null,gone=false;owned.push({dispose(){gone=true;try{made?.dispose();}catch{}holder.dispose();}});staffActors[id]={holder,home:[pos[0],pos[2]],play(c){try{made?.play?.(c);}catch{}},get ready(){return !!made&&!gone;}};
       A.build(appearance,holder,{scene,clip:'idle'}).then(c=>{made=c;if(gone)c.dispose();}).catch(()=>{if(!gone)characterModel(id,target,pos,false);});};
      if(state?.story?.flags?.adminOccupied!==true)staff('admin',[8,0,48.6],root.VoidDistrictPeople?.npc('admin')?.appearance||{v:1,base:'male',look:'district-smuggler',hair:'short03',hairColor:'silver',clothingColor:'graphite',accessories:[]});
      staff('iris',[12.5,0,48.6],root.VoidDistrictPeople?.npc('iris')?.appearance||{v:1,base:'female',look:'fixer-01',hair:'bob02',hairColor:'silver',clothingColor:'black',accessories:['gear-collar','gear-shoulders','gear-chest']})   /* one record (district-people.js) draws the figure AND the profile portrait, so they can never differ */;}
@@ -1165,7 +1166,27 @@
       box('bar-counter-pink',[8.8,.03,.03],[10,.99,37.93],pinkT);for(const x of [6.5,9,11.5,14]){cyl('bar-stool-seat',.27,.07,[x,.84,37.2],mat('bar-stool-leather','#5a1420',{rough:.5,metal:.1}),true,14);cyl('bar-stool-ring',.2,.03,[x,.3,37.2],pipe,true,12);}
       for(const x of [6.6,10,13.4]){cyl('bar-pendant-cord',.01,.9,[x,3.6,37.6],frame,true,6);cyl('bar-pendant-shade',.24,.16,[x,3.1,37.6],steel,true,14);cyl('bar-pendant-light',.2,.03,[x,3.02,37.6],pinkT,true,14);if(!low){lightShaft('#ff3fb4',x,37.6,3.0,1.5,false);lightPool('#ff3fb4',2.6,2.6,[x,.046,37.4],.4);}}
       if(!low)lightPool('#ff3fb4',9,1.4,[10,.045,37.1],.3);}}
-    return {lights,terminal,vrTick,podScreen,arcade};})();
+    /* The house rule on scanning (district-people.js ETIQUETTE): someone walks in with the WarFlying app ACTIVE; Admin or Iris comes out from the counter, tells them
+       it is rude and to deactivate it, and goes back. Once per visit; it re-arms when the app is switched off. Nothing else about Admin or Iris changes. */
+    const etiquette=(()=>{
+     const E=root.VoidDistrictPeople?.ETIQUETTE;if(!E)return {tick(){}};
+     let phase='watch',seen=0,armed=true,who=null,actor=null,route=[],at=0,talk=0,spoken=false;
+     const active=()=>{try{return root.VoidWarFlyingScanner?.installed===true;}catch{return false;}};
+     const playerLocal=()=>{try{if(typeof walker==='undefined'||!walker)return null;const [lx,lz]=toWorld(walker.x,walker.z);return [lx,lz];}catch{return null;}};
+     const face=(h,dx,dz)=>{if(Math.hypot(dx,dz)>.001)h.rotation.y=Math.atan2(dx,dz);};
+     const step=(h,to,dt)=>{const dx=to[0]-h.position.x,dz=to[1]-h.position.z,d=Math.hypot(dx,dz),s=E.speed*dt;face(h,dx,dz);if(d<=s){h.position.x=to[0];h.position.z=to[1];return true;}h.position.x+=dx/d*s;h.position.z+=dz/d*s;return false;};
+     return {get phase(){return phase;},get who(){return who;},tick(dt){
+      const p=playerLocal(),on=active();if(!on&&phase==='watch'){armed=true;seen=0;}
+      if(phase==='watch'){if(!armed||!on||!p||typeof mode==='undefined'||mode!=='walking')return;seen+=dt;if(seen<E.noticeAfter)return;
+       who=E.who(!!staffActors.admin?.ready,!!staffActors.iris?.ready,rand());if(!who)return;actor=staffActors[who];route=E.path(actor.home,p);at=0;armed=false;phase='go';actor.play('walk');return;}
+      if(!actor)return;const h=actor.holder;
+      if(phase==='go'){const last=at>=route.length-1;if(last&&p){const dx=p[0]-h.position.x,dz=p[1]-h.position.z,d=Math.hypot(dx,dz);if(d<=E.stopAt){face(h,dx,dz);phase='talk';talk=0;spoken=false;actor.play('talk');return;}route[route.length-1]=[p[0]-dx/d*(E.stopAt-.2),p[1]-dz/d*(E.stopAt-.2)];}   /* the last leg follows the player if they move */
+       if(step(h,route[at],dt)&&at<route.length-1)at++;return;}
+      if(phase==='talk'){talk+=dt;if(p)face(h,p[0]-h.position.x,p[1]-h.position.z);if(!spoken){spoken=true;try{announce(E.lines[who]);}catch{}}
+       if(talk>=E.talkFor||(!on&&talk>1.5)){const end=actor.home[0]<10?4.9:15.1;route=[[2.2,45.4],[end,45.4],[end,actor.home[1]],actor.home.slice()];at=0;phase='back';actor.play('walk');}return;}
+      if(phase==='back'){if(step(h,route[at],dt)){at++;if(at>=route.length){h.rotation.y=Math.PI;actor.play('idle');phase='watch';seen=0;actor=null;}}}
+     }};})();
+    return {lights,terminal,vrTick,podScreen,arcade,etiquette};})();
     if(!wantInterior){seed=SEAMS[1];target=districtRoot;}else if(area==='all'&&seed!==SEAMS[1])console.warn('[NeoChinatown] random state after the interior changed; update SEAMS');
 
     // ---- Street detail: taxi zones, streaming districts, club, weather ----
@@ -1277,8 +1298,8 @@
      for(const fl of weather?.flickers||[]){if(fl.off>0){fl.off-=dt;if(fl.off<=0)for(const m of fl.meshes)m.isVisible=true;}else if(time>fl.next){fl.off=.05+Math.random()*.12;fl.next=time+2+Math.random()*7;for(const m of fl.meshes)m.isVisible=false;}}
      for(const s of screens)if(time>s.next){s.mesh.material=adMat(nextAd());s.next=time+9+Math.random()*4;}}
     let wasInside=null;
-    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);doors.tick(dt);terminal.tick(dt);podScreen.tick(dt);arcade?.tick(time);nightlife?.tick(dt);alleyLife?.tick(dt);atmosphere(time,dt);for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
-    return {tick,city,nightlife,alleyLife,doors,dispose(){disposed=true;clubCtl?.dispose();nightlife?.dispose();alleyLife?.dispose();for(const ps of alleySteam)ps.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
+    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);etiquette.tick(dt);doors.tick(dt);terminal.tick(dt);podScreen.tick(dt);arcade?.tick(time);nightlife?.tick(dt);alleyLife?.tick(dt);atmosphere(time,dt);for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
+    return {tick,city,nightlife,alleyLife,doors,etiquette,dispose(){disposed=true;clubCtl?.dispose();nightlife?.dispose();alleyLife?.dispose();for(const ps of alleySteam)ps.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
   }
   // Licensed models (docs/VOID_RUNNER_ASSET_LICENSES.md) dressing the District; loaded before build().
   // The security vestibule's pieces (made in Blender by tools/assets/kit/build_kit.py --interior; docs/development/DISTRICT_INTERIOR.md). 'entry:' models belong to BOTH areas, like the vestibule itself.
