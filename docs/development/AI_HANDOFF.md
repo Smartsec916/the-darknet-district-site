@@ -6,6 +6,18 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 15 Nov 2026 (after midnight): voice stage 1 is LIVE and UNTESTED WITH REAL AUDIO; open audio work in order
+**Live (build `2026-11-16-voice-1`; hub redeployed, its log says "voice on", so David's three LiveKit variables are set and well-formed):**
+- **Comms app + proximity voice** (PR #308; `HUB_DEPLOYMENT.md` last section, `void-runner/district-voice.js`). Nobody has yet confirmed sound passing between two sessions: the cloud session cannot reach LiveKit. First thing to do next: have David test with two accounts, then fix what he finds.
+- **Multiplayer everywhere** is deployed on the hub (the first deploy hung at cloning for 26 minutes and was replaced by a second, which went live in 90 seconds).
+- **Footsteps by ear, distance in player lists, Admin's line in an older ElevenLabs voice** (PR #307).
+
+**David's audio requests still open, in his order:**
+1. **Finish LiveKit voice:** private calls from profiles, incoming-call accept/decline, private group calls, voice in shared VR sessions (the separate voice room already follows the hub room; the VR menus need checking), device-styled ringing and connect/disconnect sounds (ElevenLabs sound effects, a few credits each), reports that can reference voice, participant-minute awareness and a graceful quota message, speaking indicators in the world.
+2. **Admin voice transformation** (developers only, server-authorised): ElevenLabs speech-to-speech into Admin's voice id, routed through LiveKit; never send the natural microphone while it is on; on failure mute and tell him; push-to-talk first; usage limits; a developer section in Comms (Admin Voice / Natural Microphone / Microphone Disabled, preview, status, estimated credits); lip movement; designed so Iris and Dax can follow. **Needs an ElevenLabs API key stored on the backend** (ask David for it through the secure credential form, never in chat) and uses his credits continuously while he talks. Admin's ElevenLabs voice id in use: `V2bPluzT7MuirpucVAKH` (Bill Adams; David asked for an older Admin).
+3. **A dark cyberpunk soundtrack for every area, replacing the old music, plus sound effects.** Today's area music is made by `music-engine.js` in code (styles per place in `music-director.js`); the 27 Riffusion songs are the Sleeping Pod playlist and are a separate thing. A 30-second District sample is in `tools/audio/elevenlabs-test/10-district-score-sample.mp3` (not committed) and was sent to David. **Do not generate the rest until he approves the sample and a budget:** music costs 15 credits a second (a 60-second loop is 900), the plan gives 40,000 a month, about 860 are used, and voice transformation will draw on the same pool. About 14 area styles exist.
+
+
 ### 15 Nov 2026 (late night): multiplayer everywhere, voiced lines, play as Admin are LIVE; Dax model located and inspected
 **Live (build `2026-11-16-everywhere-1`):**
 - **Multiplayer everywhere** (PR #305; hub redeployed from deploy branch `claude/character-creator`): one hub room per place (`HUB_DEPLOYMENT.md`, last section). Not checked with two real browsers. No hosting plan was changed (David said not to).
