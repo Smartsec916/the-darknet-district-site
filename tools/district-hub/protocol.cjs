@@ -51,7 +51,7 @@ function parse(raw){
   if(m.t==='chat')return keys==='t,text'&&typeof m.text==='string'&&m.text.length<=Chat.RULES.maxChars*4?m:null;   // the cleaned length is checked again by chat.cjs
   if(m.t==='ignore')return keys==='id,on,t'&&/^[0-9a-f]{12}$/.test(String(m.id))&&typeof m.on==='boolean'?m:null;
   if(m.t==='report')return (keys==='id,reason,t'||keys==='id,note,reason,t')&&/^[0-9a-f]{12}$/.test(String(m.id))&&Chat.RULES.reasons.includes(m.reason)&&(m.note===undefined||typeof m.note==='string')?m:null;
-  if(m.t==='vr-list'||m.t==='vr-leave')return keys==='t'?m:null;
+  if(m.t==='vr-list'||m.t==='vr-leave'||m.t==='voice-token')return keys==='t'?m:null;
   if(m.t==='vr-create')return keys==='exp,opts,private,t'&&VR.exp.test(String(m.exp))&&typeof m.private==='boolean'&&cleanOpts(m.opts)!==null?m:null;
   if(m.t==='vr-join')return (keys==='id,t'&&VR.id.test(String(m.id)))||(keys==='code,t'&&typeof m.code==='string'&&m.code.length<=12)?m:null;
   if(m.t==='refresh')return keys==='t,token'&&typeof m.token==='string'&&m.token.length<4096?m:null;   // re-read my saved look (a fresh sign-in token, like hello)
@@ -61,7 +61,7 @@ const wrap=a=>{a=a%(Math.PI*2);return a>Math.PI?a-Math.PI*2:a<-Math.PI?a+Math.PI
 
 class Hub{
   /* send(connection, object) and close(connection, code, reason) are supplied by the transport. */
-  constructor({send,close,now=()=>Date.now(),report=()=>{}}){this.send=send;this.closeConn=close;this.now=now;this.report=report;this.peers=new Map();this.byConn=new Map();this.trades=null;this.history=[];this.sessions=new Map();}
+  constructor({send,close,now=()=>Date.now(),report=()=>{},voice=null}){this.voice=voice;this.Voice=require('./voice.cjs');this.send=send;this.closeConn=close;this.now=now;this.report=report;this.peers=new Map();this.byConn=new Map();this.trades=null;this.history=[];this.sessions=new Map();}
   /* Turns player-to-player trading on for this hub, against a ledger (ledger.cjs). The production ledger is the disabled one. */
   attachTrades(ledger,{simulated=false,rules}={}){
    this.trades=new TradeBook({ledger,simulated,rules,now:()=>this.now(),peers:{byUid:u=>this.peers.get(u)||null,byPublicId:id=>[...this.peers.values()].find(p=>p.id===id)||null},
@@ -103,7 +103,7 @@ class Hub{
     const {model,appearance}=this.look(who);
     const peer={uid:who.uid,id,conn,room:message.room,name:typeof who.handle==='string'&&HANDLE.test(who.handle)?who.handle:(who.anonymous?'Guest-':'Pilot-')+id.slice(0,4),model,appearance,x:0,z:0,yaw:0,clip:'idle',placed:false,anonymous:!!who.anonymous,ignoring:new Set(),chatTimes:[],chatRefusals:0,chatLockUntil:0,reports:0,lastReportAt:-Infinity,lastAt:t,lastMove:t,lastSnap:-Infinity,bucketAt:t,bucket:0,violations:0};
     this.peers.set(who.uid,peer);this.byConn.set(conn,peer);
-    this.send(conn,{t:'welcome',you:id,features:{trade:!!this.trades?.enabled,tradeSimulated:!!this.trades?.simulated,chat:!who.anonymous,vr:true},peers:this.roomPeers(message.room).filter(p=>p.id!==id&&p.placed).map(p=>this.view(p))});
+    this.send(conn,{t:'welcome',you:id,features:{trade:!!this.trades?.enabled,tradeSimulated:!!this.trades?.simulated,chat:!who.anonymous,vr:true,voice:!!this.voice&&!who.anonymous},peers:this.roomPeers(message.room).filter(p=>p.id!==id&&p.placed).map(p=>this.view(p))});
     return true;
   }
 
@@ -215,6 +215,14 @@ class Hub{
    if(s.members.size>=VR.cap)return this.vrRefuse(conn,'That session is full.');
    this.vrMove(p,'vr:'+s.id);return {ok:true,id:s.id};}
   vrLeave(conn){const p=this.byConn.get(conn);if(!p||!p.room.startsWith('vr:'))return {ok:false};this.vrMove(p,VR.district);return {ok:true};}
+  /* ---- Voice (voice.cjs). A registered player asks for a token; it is for the voice room of the hub room they are in right now, good for ten minutes.
+     Asked again after a move or before it runs out. Handle-only accounts get none (as with chat). At most one every 3 seconds. ---- */
+  voiceToken(conn){const p=this.byConn.get(conn);if(!p)return {ok:false};const refuse=reason=>{this.send(conn,{t:'voice-refused',reason});return {ok:false,reason};};
+   if(!this.voice)return refuse('Voice is not available on this server.');
+   if(p.anonymous)return refuse('Voice needs an account secured with an email or Google.');
+   const t=this.now();if(t-(p.lastVoice??-Infinity)<3000)return refuse('Wait a moment.');p.lastVoice=t;
+   let made;try{made=this.Voice.token(this.voice,{identity:p.id,name:p.name,room:this.Voice.roomName(p.room),now:Date.now()});}catch{return refuse('Voice is not available right now.');}
+   this.send(conn,{t:'voice-token',url:this.voice.url,token:made.token,room:this.Voice.roomName(p.room),identity:p.id,expires:made.expires});return {ok:true};}
   closed(conn){this.drop(conn,0);}
   /* Players that went silent (a dead network, a sleeping laptop) leave too, so no ghost avatar stays. */
   sweep(){this.trades?.sweep();const t=this.now();for(const p of [...this.peers.values()])if(t-p.lastAt>LIMITS.staleMs)this.drop(p.conn,4004,'timed out');}
