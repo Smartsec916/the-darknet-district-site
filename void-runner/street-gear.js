@@ -149,11 +149,11 @@
     takes it off. node: any node above the figure (a player's holder, an NPC). */
  const V3_GREEN=[.275,1,.478],eyes=new WeakMap();
  function eyeMaterial(scene){const B=root.BABYLON;let m=scene.getMaterialByName('v3-eye');if(m)return m;m=new B.StandardMaterial('v3-eye',scene);m.disableLighting=true;m.emissiveColor=new B.Color3(1,1,1);m.backFaceCulling=false;m.alphaMode=B.Constants?.ALPHA_ADD??1;m.useAlphaFromDiffuseTexture=false;return m;}
- async function eye(node,on){
+ async function eye(node,on,at){   /* at: the eye's place in the model file [x, y, front z, radius], for a figure that is not one of the measured crowd files (Dax) */
   const B=root.BABYLON;if(!B||!node||node.isDisposed())return null;const had=eyes.get(node);
   if(!on){if(had){eyes.delete(node);had.dispose();}return null;}
   if(had&&!had.isDisposed())return had;
-  const model=node.getDescendants(false).map(n=>/^crowd:([a-z0-9-]+)-model$/.exec(n.name)?.[1]).find(Boolean),data=await fit().catch(()=>null),body=data?.bodies?.[model],e=body?.eyeL;if(!e||node.isDisposed())return null;
+  const model=node.getDescendants(false).map(n=>/^crowd:([a-z0-9-]+)-model$/.exec(n.name)?.[1]).find(Boolean),data=at?null:await fit().catch(()=>null),body=data?.bodies?.[model],e=at||body?.eyeL;if(!e||node.isDisposed())return null;
   const skinned=node.getChildMeshes().filter(x=>x.skeleton&&x.getTotalVertices()>0);if(!skinned.length)return null;
   const bodyMesh=skinned.reduce((a,b)=>b.getTotalVertices()>a.getTotalVertices()?b:a),sk=bodyMesh.skeleton,bi=boneIndex(sk,'Head');if(bi<0)return null;
   const positions=[],colors=[],indices=[],disc=(r,z,alpha)=>{const c=positions.length/3,N=10;positions.push(e[0],e[1],z);colors.push(...V3_GREEN,alpha);

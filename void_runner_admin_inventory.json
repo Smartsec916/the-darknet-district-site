@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "fdd74c8ff10d9d8b",
+  "revision": "e3fc8b20e03ba909",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11886,6 +11886,24 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/dax.js",
+      "line": 9,
+      "text": "walks in, she is simply where the clock says she is.",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/dax.js",
+      "line": 11,
+      "text": "repository at publishing time. On a machine without the file she does not appear, and the console says so once; no other figure stands in for her.",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/dax.js",
+      "line": 76,
+      "text": "const interior=()=>{try{return typeof walkingLocation!=='undefined'&&walkingLocation?.id==='neochinatown'&&walkingLocation.area==='interior'&&typeof mode!=='undefined'&&['walking','dialogue','mission-log','pod-waking'].includes(mode);}catch{return false;}};",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/device-camera.js",
       "line": 99,
       "text": "const key=pure.aimed(shown,W/2,H/2,Math.min(W,H)*.085);target=key?tags.get(key).who:null;",
@@ -11935,7 +11953,13 @@
     },
     {
       "source": "void-runner/district-people.js",
-      "line": 54,
+      "line": 40,
+      "text": "/* Dax (David, 15 Nov 2026): there is only one. Her model is a licensed one drawn by dax.js, which also says where she is at any moment (`live`); her profile picture is a",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/district-people.js",
+      "line": 57,
       "text": "/* who: {kind:'npc', id} or {kind:'player', id (public id), name (handle)}. Returns true when now following, false when unfollowed or refused. */",
       "kind": "source-reference"
     },
@@ -12475,37 +12499,43 @@
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 99,
+      "line": 65,
+      "text": "function residentProfile(n,here){const P=DP(),live=n.live==='dax'?root.VoidDax?.where:null;   /* Dax moves about on her own: her profile says where she is now */",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/personal-device.js",
+      "line": 100,
       "text": "everywhere else the list says how far each person is (David, 15 Nov 2026). null = not shown. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 168,
+      "line": 169,
       "text": "const tabs='<div class=\"pd-tabs\">'+tab('chat','DISTRICT CHAT',un?(un>99?'99+':un):'')+tab('players','PLAYERS','')+tab('talk','CONVERSATIONS','')+tab('dm','PRIVATE','')+'</div>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 173,
+      "line": 174,
       "text": "return tabs+'<div class=\"pd-note\">People you have talked to in this browser. Not synced.</div>'+(rows.length?rows.slice(-40).reverse().map(m=>'<div class=\"pd-line\"><b>'+esc(m.name)+'</b><span class=\"pd-note\">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class=\"pd-empty\">No conversations yet. People you talk to appear here.</div>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 179,
+      "line": 180,
       "text": "+'<form data-chatform class=\"pd-compose\"><input type=\"text\" maxlength=\"200\" autocomplete=\"off\" aria-label=\"Chat message\" placeholder=\"'+(can?'Say something to the District (no links)':'Chat needs a registered account and a connection')+'\"'+(can?'':' disabled')+'><button type=\"submit\"'+(can?'':' disabled')+'>SEND</button></form>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 284,
+      "line": 285,
       "text": "const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 428,
+      "line": 429,
       "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
       "kind": "source-reference"
     },
@@ -14207,7 +14237,8 @@
     "void-runner/corporate-integration.js": "dad32da04630d0ca31dd0494c1466ae5b242fc5268dd8e3f09a5782a7034f900",
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "d4df127d0d7c8132bb9900b2520e8e29c2a405b01cc6e2451f0acd7ed3ed849e",
-    "void-runner/crowd.js": "ca4a687970b32147ef44b85615f7e8ed05ffc7b1360b3e0f2f9c4dbfa83c13b2",
+    "void-runner/crowd.js": "8c4e8f04756435a33f79adfc0cb8cbf3b1d5e6a0e4f0c4cbaaafd491a2bc456c",
+    "void-runner/dax.js": "c3c782e8ffb3efe7e694eb919e03f8f5660e0e3ef128c52271cd95b291135d87",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-test.js": "4362607f733d49e3e9e6582cb3362665e29bd28ee56c90fc5580d5d23cb1fdb0",
@@ -14220,7 +14251,7 @@
     "void-runner/district-area.js": "48b60eab3a791020ce7a4a7213de866e697069ca4c003cf7f255a5ffcef3db4c",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
     "void-runner/district-map.js": "58b56089eef021541f870f4fc6edc10debc9998e151b71c1d1e05c16eeafa792",
-    "void-runner/district-people.js": "3d9b8c26a07556f5c74a56226c29090c0134919e938b1978be007de0b2a19c98",
+    "void-runner/district-people.js": "1adbf8490d201c2f9447a6698e5d39f75fde45ce9c3e13840b2bdc976751d647",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/district-voice.js": "748c71527b459938e848cd52e70feb2d3c30efefe93858e36e5ef44339b443eb",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
@@ -14282,7 +14313,7 @@
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "4172df44fc02d43d56016c17c76bc6af4daa80edcc1c5200be582903d7075a19",
-    "void-runner/personal-device.js": "53960db887fa431dfc7eb8d9c6e9e94916bf32c1dcea8933bc3bfa41f83318ef",
+    "void-runner/personal-device.js": "dd7bb0d7da08ff33d468caf502a0eeebb6768a11b1e3c14d658a56e51f3179f8",
     "void-runner/personal-hud.js": "1ca0e48b3d144a0a2ffed8e3202f98322a060541b8127de2ee48469ed2606776",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
@@ -14315,7 +14346,7 @@
     "void-runner/story-content.js": "3f2846e89242894aa0123df0e39e7637cfd2868b73c6d89f885dbe4317b54b30",
     "void-runner/story-scenes.js": "322106e619d1a2456c5dac94dd252bd2373cb0c03273c75954d068b378cad5dd",
     "void-runner/story.js": "74501dca85057c374b5181b440f93059fd6658641624b10e3a159d11493fe272",
-    "void-runner/street-gear.js": "a95c7766ef647b692bac5230f6ffc7904116ac7bd519a23cac90ef51842f9fa5",
+    "void-runner/street-gear.js": "c68764c0d4f2ed02400923eb53e5da9cd5785ea34828b055bcff7a1b35a09cfb",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
     "void-runner/taxi-rules.js": "cf617a29c36b2e1347b14cd60ba2d30ea38e5dd43d44085704ad7d1756f2024c",
     "void-runner/temple-build.js": "e326ba94812e744e32547f0b5bfeed9dd546df328ebc8df36b699aca76b76913",
