@@ -159,7 +159,7 @@
   const positions=[],colors=[],indices=[],disc=(r,z,alpha)=>{const c=positions.length/3,N=10;positions.push(e[0],e[1],z);colors.push(...V3_GREEN,alpha);
    for(let i=0;i<N;i++){const t=i/N*Math.PI*2;positions.push(e[0]+Math.cos(t)*r,e[1]+Math.sin(t)*r,z);colors.push(...V3_GREEN,alpha>.5?alpha:0);}
    for(let i=0;i<N;i++)indices.push(c,c+1+i,c+1+(i+1)%N);};
-  disc(e[3]*.42,e[2]+e[3]*.06,.85);disc(e[3]*2.1,e[2]+e[3]*.12,.3);   // the lit iris, then a halo that fades to nothing at its edge
+  disc(e[3]*.4,e[2]+e[3]*.06,.6);disc(e[3]*1.35,e[2]+e[3]*.12,.14);   /* David: the eye glows SLIGHTLY */   // the lit iris, then a halo that fades to nothing at its edge
   const n=positions.length/3,mi=new Float32Array(n*4),mw=new Float32Array(n*4);for(let i=0;i<n;i++){mi[i*4]=bi;mw[i*4]=1;}
   const scene=node.getScene(),me=new B.Mesh('v3-eye',scene),vd=new B.VertexData();vd.positions=positions;vd.colors=colors;vd.indices=indices;vd.matricesIndices=mi;vd.matricesWeights=mw;vd.applyToMesh(me);
   me.hasVertexAlpha=true;me.skeleton=sk;me.numBoneInfluencers=1;me.parent=bodyMesh.parent;me.position.copyFrom(bodyMesh.position);me.scaling.copyFrom(bodyMesh.scaling);
