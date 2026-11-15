@@ -60,3 +60,4 @@ test('the script is a game script: a phone never downloads it, and it ships once
  assert.doesNotMatch(html,/<script src="void-runner\/remote-players\.js"/);
  assert.equal((html.match(/remote-players\.js/g)||[]).length,1);assert.equal(fs.readFileSync('static/void-runner.html','utf8'),html);
 });
+test('no name floats over another player: the tag builder draws nothing',()=>{const src=require('node:fs').readFileSync('void-runner/remote-players.js','utf8');assert.match(src,/function makeTag\(\)\{return null;\}/);assert.doesNotMatch(src,/remote-tag-tex/);});
