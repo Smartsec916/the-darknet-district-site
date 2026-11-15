@@ -20,7 +20,7 @@ async function main(env=process.env,deps={}){
     const {createVerifier}=require('./google-auth.cjs'),{createApiProvider}=require('./api-providers.cjs');
     const verifier=createVerifier({projectId:cfg.projectId,fetchJwks:deps.fetchJwks,log:(l,m)=>log(l,m)}),api=createApiProvider({apiBase:cfg.apiBase,fetchImpl:deps.fetchImpl,log:(l,m)=>log(l,m)});
     identify=async token=>{const who=await verifier.verify(token);if(!who)return null;
-      if(who.anonymous||cfg.denied.has(who.uid)||(cfg.allowed&&!cfg.allowed.has(who.uid)))return {...who,profileStatus:'unavailable'};
+      if(cfg.denied.has(who.uid)||(cfg.allowed&&!cfg.allowed.has(who.uid)))return {...who,profileStatus:'unavailable'};
       return {...who,...(await api.profile(token))};};
     label='production (API '+cfg.apiBase+', '+(cfg.allowed?cfg.allowed.size+' allowlisted account(s)':cfg.registeredOnly?'registered accounts'+(cfg.verifiedEmail?' with verified email':''):'signed-in accounts')+', complete District profile required)';
   }

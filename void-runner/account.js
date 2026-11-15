@@ -67,7 +67,7 @@ function accountPage(){
     if(account.handle===null)body+=handleField('vr-handle','Choose your public handle','register-handle','CLAIM HANDLE');
     if(anonymous)body+=`<div class="account-warning"><strong>Handle not secured.</strong> It lives only in this browser. Add an email or Google so you can sign in anywhere. Required before buying equipment.</div>${emailField('SECURE WITH EMAIL')}<div class="account-actions">${button('SECURE WITH GOOGLE','secure-google',true,account.busy||!firebase)}</div>`;
     if(account.character)body+=`<div class="manifest"><h2>YOUR CHARACTER</h2><p>${escapeText(name)} · ${escapeText(account.character.gender)} · ${escapeText(account.character.model)}. This account has one character.</p></div>`;
-    else if(!anonymous&&saveReady)body+=`<div class="manifest"><h2>CREATE YOUR CHARACTER</h2><p>Choose one existing District look. Hair and clothing are built into these models; more appearance options need compatible assets.</p><label for="vr-character-model">Look</label> <select id="vr-character-model"><option value="female:district-resident">Female · District resident</option><option value="male:district-smuggler">Male · District smuggler</option>${VoidDevTools.authorized?'<option value="male:admin">Admin · multiplayer control planned</option>':''}</select> ${button('CREATE CHARACTER','create-character',false,account.busy)}</div>`;
+    else if((!anonymous||account.handle)&&saveReady)body+=`<div class="manifest"><h2>CREATE YOUR CHARACTER</h2><p>Choose one existing District look. Hair and clothing are built into these models; more appearance options need compatible assets.</p><label for="vr-character-model">Look</label> <select id="vr-character-model"><option value="female:district-resident">Female · District resident</option><option value="male:district-smuggler">Male · District smuggler</option>${VoidDevTools.authorized?'<option value="male:admin">Admin · multiplayer control planned</option>':''}</select> ${button('CREATE CHARACTER','create-character',false,account.busy)}</div>`;
     body+=`<div class="manifest">${row('This browser',state.completed+' deliveries / '+state.credits+' CR')}${row('Cloud save',escapeText(cloudDescription()))}${row('Owned equipment',ownedGear.length+' verified items')}</div><p>Choose when to copy progress between this browser and your account. Start New Campaign replaces the local campaign; it never deletes purchases.</p><div class="account-actions">${button('SAVE THIS JOURNEY TO CLOUD','cloud-save-prompt',false,account.busy||!saveReady)}${button('LOAD CLOUD JOURNEY','cloud-load-prompt',true,account.busy||!account.cloud||!saveReady)}${button('REFRESH / RESTORE PURCHASES','account-refresh',true,account.busy)}${button('SIGN OUT','sign-out',true,account.busy)}</div>`;
     if(account.handle)body+=`<details class="account-other"><summary>Change public handle</summary>${handleField('vr-handle-change','New handle','change-handle','CHANGE HANDLE',account.handle)}<small>Handles can be changed once every 30 days. Your progress and purchases are not affected.</small></details>`;
   }
@@ -122,7 +122,7 @@ function requestAction(action){
   if(['play','pause'].includes(mode))return;
   if(action==='account'){accountPage();return;}
   if(action==='auth-retry'){run(initializeAuth);return;}
-  if(action==='create-character'){const [gender,model]=fieldValue('vr-character-model').split(':');run(async()=>{if(!account.user||account.user.isAnonymous)throw new Error('Secure your account first.');const data=await api('character',{gender,model});account.character=data.character;accountPage();announce('Your character was created for this account.');globalThis.VoidRemotePlayers?.reconnect?.();});return;}
+  if(action==='create-character'){const [gender,model]=fieldValue('vr-character-model').split(':');run(async()=>{if(!account.user||(account.user.isAnonymous&&!account.handle))throw new Error('Register a District handle first.');const data=await api('character',{gender,model});account.character=data.character;accountPage();announce('Your character was created for this account.');globalThis.VoidRemotePlayers?.reconnect?.();});return;}
   // Read typed values first: run() redraws the page (busy state) before the action starts.
   if(action==='register-handle'||action==='change-handle'){const handle=fieldValue(action==='register-handle'?'vr-handle':'vr-handle-change');run(async()=>{
     if(!firebase)throw new Error('Account service is still connecting. Try again shortly.');
@@ -166,11 +166,13 @@ function requestAction(action){
 account.request=requestAction;
 // First-campaign creation checks the existing account record before offering a
 // new look. A failed lookup must never be treated as proof that the slot is empty.
+// A handle-only (anonymous) account counts as a full District account once it holds a handle: the save server keeps its character and the hub admits it.
+Object.defineProperty(account,'guestOnly',{get(){return !!account.user?.isAnonymous&&!account.handle;}});
 account.ensureProfile=async()=>{if(account.user&&!account.profileReady)await refresh();return account.profileReady;};
 // Multiplayer setup uses the same authenticated registry and one-character API as the account page.
 // Neither method writes a campaign save, inventory, credits, or an existing character.
 account.claimMultiplayerHandle=async handle=>{
-  if(!account.user||account.user.isAnonymous)throw new Error('Sign in with a registered account first.');
+  if(!account.user)throw new Error('Sign in or register a handle first.');   // a handle-only account may claim its handle here too (David, 15 Nov 2026)
   if(account.handle)return account.handle;
   const uid=account.user.uid,user=account.user,mine=await (await identity()).fetchHandle(user);
   if(account.user?.uid!==uid)throw new Error('Account changed. Sign in again.');
@@ -180,7 +182,7 @@ account.claimMultiplayerHandle=async handle=>{
   handleVersion++;account.handle=saved.handle;account.handleNextChange=saved.nextChangeAt||null;render();return saved.handle;
 };
 account.completeMultiplayerCharacter=async look=>{
-  if(!account.user||account.user.isAnonymous)throw new Error('Sign in with a registered account first.');
+  if(!account.user||(account.user.isAnonymous&&!account.handle))throw new Error('Register a District handle first.');   // the save server keeps a character for a handle account
   const uid=account.user.uid;await refresh();
   if(account.user?.uid!==uid)throw new Error('Account changed. Sign in again.');
   if(account.character)return {character:account.character,created:false};

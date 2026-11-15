@@ -70,7 +70,7 @@ class Hub{
   view(p){return {id:p.id,name:p.name,model:p.model,appearance:p.appearance,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip};}
   /* The look a verified account is shown with: its saved appearance when valid (ids checked again here), else the look matching its old {gender, model} character, else the default. */
   look(who){
-   if(who.anonymous)return {model:DEFAULT_MODEL,appearance:null};
+   if(who.anonymous&&!who.model&&!who.appearance)return {model:DEFAULT_MODEL,appearance:null};   /* a guest with no saved character; a handle account with one is shown as saved */
    if(Appearance&&who.appearance&&Appearance.validate(who.appearance)){const a=Appearance.normalize(who.appearance);return {model:Appearance.CATALOG.looks[a.look].model,appearance:a};}
    const model=RENDERABLE.includes(who.model)?who.model:DEFAULT_MODEL;
    return {model,appearance:Appearance?Appearance.fromLegacy({gender:model==='district-resident'?'female':'male',model}):null};
