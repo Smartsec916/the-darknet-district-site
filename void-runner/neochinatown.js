@@ -908,7 +908,14 @@
       cyl('shop-bench-stool',.19,.06,[6.9,.62,51.98],mat('shop-stool','#141218',{rough:.7,metal:.1}),true,14);cyl('shop-bench-stool-leg',.03,.6,[6.9,.3,51.98],cageSteel,true,8);}
      box('hall-door-lamp-body',[.5,.2,.1],[12.7,2.95,52.74],mat('hall-lamp-cage','#14171c',{rough:.5,metal:.8}));{const r=mat('hall-lamp-red','#4a0c08',{glow:'#ff1438',rough:.4});r.emissiveIntensity=2.2;box('hall-door-lamp',[.38,.12,.06],[12.7,2.95,52.69],r);}
      if(shopKit)kitPiece('district:tube_light_2m',[11.4,4.05-.51,52.3],0,[],{merge:true});if(typeof lightPool==='function')lightPool('#ff1438',3,1.6,[12.7,.034,52.2],.4);}
-    if(state?.story?.flags?.adminOccupied!==true)characterModel('admin',target,[8,0,48.6],false);characterModel('iris',target,[12.5,0,48.6],false);
+    // Admin and Iris as real figures (David, Nov 2026; they were box figures). Built from the character assembler's bodies, hair and gear, the nearest the game's own parts come to his references:
+    // Admin an older man with swept silver hair in a dark jacket, NO eyewear in the store; Iris a humanoid android with a white bob, a high collar and armour plates. They stand where they stood,
+    // facing the customer; if the assembler or a part is missing, the old figure is built instead. Only their looks change: names, positions, dialogue and interactions are untouched.
+    {const staff=(id,pos,appearance)=>{const A=root.VoidCharacterAssembler,V=root.VoidCharacterAppearance;if(!A||!V?.validate?.(appearance)){characterModel(id,target,pos,false);return;}
+      const holder=new B.TransformNode('npc-'+id,scene);holder.parent=target;holder.position.set(pos[0],0,pos[2]);holder.rotation.y=Math.PI;holder.metadata={character:id};let made=null,gone=false;owned.push({dispose(){gone=true;try{made?.dispose();}catch{}holder.dispose();}});
+      A.build(appearance,holder,{scene,clip:'idle'}).then(c=>{made=c;if(gone)c.dispose();}).catch(()=>{if(!gone)characterModel(id,target,pos,false);});};
+     if(state?.story?.flags?.adminOccupied!==true)staff('admin',[8,0,48.6],{v:1,base:'male',look:'district-smuggler',hair:'short03',hairColor:'silver',clothingColor:'graphite',accessories:[]});
+     staff('iris',[12.5,0,48.6],{v:1,base:'female',look:'fixer-01',hair:'bob02',hairColor:'silver',clothingColor:'black',accessories:['gear-collar','gear-shoulders','gear-chest']});}
 
     // Vending alcove: three lit machines.
     // Machines (reference: glass fronts over lit shelves of goods, a payment panel at the side, a bright top light).
