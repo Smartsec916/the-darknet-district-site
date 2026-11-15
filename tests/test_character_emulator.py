@@ -83,7 +83,7 @@ class CharacterEmulatorTests(unittest.TestCase):
 
     def test_guests_cannot_claim_character_identities(self):
         g, reg = self.guest(), self.register()
-        self.assertEqual(self.post(g['token'], self.FEMALE).status_code, 403)            # anonymous account: refused
+        self.assertEqual(self.post(g['token'], self.FEMALE).status_code, 403)            # a guest with no District handle: refused (a handle account is accepted)
         self.assertEqual(self.post(None, self.FEMALE).status_code, 401)                  # no token
         self.assertEqual(self.post('forged.token.value', self.FEMALE).status_code, 401)  # invalid token
         self.assertIsNone(self.get(g['token']).json()['character'])

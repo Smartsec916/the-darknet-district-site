@@ -37,11 +37,11 @@ class C{
 const join=async(hub,acct,x=5,z=5)=>{const c=new C(hub);await c.open;c.send({t:'hello',token:acct.token,room:'district-interior'});await c.until(c=>c.of('welcome').length||c.of('error').length||c.closed);if(c.of('welcome').length)c.send({t:'state',x,z,yaw:0});return c;};
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 
-test('open registered access: any registered account joins with no id list; anonymous, unauthenticated, forged, wrong-origin and denied are refused',async()=>{
+test('open registered access: any account with a handle and character joins with no id list; a bare guest, unauthenticated, forged, wrong-origin and denied are refused',async()=>{
  const w=world(),hub=await boot(w);
  try{
   const ann=await join(hub,w.accounts.ann);assert.equal(ann.of('welcome').length,1);assert.equal(ann.of('welcome')[0].features.chat,true);
-  const anon=await join(hub,w.accounts.anon);await anon.until(c=>c.closed);assert.equal(anon.closed,4407);assert.match(anon.of('error')[0].reason,/registered account required/);assert.equal(anon.of('welcome').length,0);
+  const anon=await join(hub,w.accounts.anon);await anon.until(c=>c.closed);assert.equal(anon.closed,4414,'a guest with no handle and no character is told what is missing');assert.match(anon.of('error')[0].reason,/District handle and character required/);assert.equal(anon.of('welcome').length,0);
   const banned=await join(hub,w.accounts.banned);await banned.until(c=>c.closed);assert.equal(banned.closed,4403);
   const forged=new C(hub);await forged.open;forged.send({t:'hello',token:'a.b.c',room:'district-interior'});await forged.until(c=>c.closed);assert.equal(forged.closed,4401);
   const none=new C(hub);await none.open;none.send({t:'chat',text:'hi'});await none.until(c=>c.closed);assert.equal(none.of('chat').length,0,'no chat before signing in');
@@ -68,11 +68,11 @@ test('two registered players chat both ways with hub-chosen names; clients canno
   ann.ws.close();ben.ws.close();
  }finally{await hub.close();}
 });
-test('allow-list mode also rejects anonymous accounts, and chat requires entering the District',async()=>{
+test('allow-list mode also rejects a guest with no handle or character, and chat requires entering the District',async()=>{
  const w=world(),hub=await main({...base,HUB_ALLOWED_UIDS:'uid-ann,uid-anon',HUB_MAX_PER_IP:'12'},{fetchJwks:w.fetchJwks,fetchImpl:w.fetchImpl,quiet:true});
  try{
   const ann=new C(hub);await ann.open;ann.send({t:'hello',token:w.accounts.ann.token,room:'district-interior'});await ann.until(c=>c.of('welcome').length);
-  const anon=await join(hub,w.accounts.anon);await anon.until(c=>c.closed);assert.equal(anon.closed,4407);assert.equal(anon.of('welcome').length,0);
+  const anon=await join(hub,w.accounts.anon);await anon.until(c=>c.closed);assert.equal(anon.closed,4414);assert.equal(anon.of('welcome').length,0);
   ann.send({t:'chat',text:'not inside yet'});await ann.until(c=>c.of('chat-refused').length);assert.match(ann.of('chat-refused')[0].reason,/Walk into/);assert.equal(hub.hub.peers.size,1);
   ann.ws.close();anon.ws.close();
  }finally{await hub.close();}

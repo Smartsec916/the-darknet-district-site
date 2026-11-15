@@ -12,7 +12,7 @@
  // The look saved with the account (once the server feature is on) wins on a new browser or device; otherwise this browser's own copy; otherwise the old character's look.
  const stored=()=>{const server=root.VoidAccount?.appearance;if(server&&A.validate(server))return A.normalize(server);const s=storage();return s?A.load(s,uid(),root.VoidAccount?.character):A.fromLegacy(root.VoidAccount?.character);};
  // Best effort and silent: while the server feature is off the API answers 404 and nothing happens beyond the local save.
- async function upload(a){try{const u=root.VoidAccount?.user;if(!u||u.isAnonymous||!root.VoidAccount.character||!root.VoidNetwork?.request)return false;
+ async function upload(a){try{const u=root.VoidAccount?.user;if(!u||root.VoidAccount.guestOnly||!root.VoidAccount.character||!root.VoidNetwork?.request)return false;
   await root.VoidNetwork.request('character/appearance',{body:a,token:await u.getIdToken(),scope:u.uid+':appearance'});root.VoidAccount.appearance=a;return true;}catch{return false;}}
  const current=()=>stored()||A.defaults(A.DEFAULT_LOOK.male);
 
@@ -130,7 +130,7 @@
   let selected=A.normalize(draft),keepSelection=true;
   // A registered account's existing character is authoritative. Check again
   // before writing the first local look so a late account response cannot be overwritten.
-  if(confirm&&ctx.context==='first'&&root.VoidAccount?.user&&!root.VoidAccount.user.isAnonymous&&root.VoidAccount.profileReady){
+  if(confirm&&ctx.context==='first'&&root.VoidAccount?.user&&!root.VoidAccount.guestOnly&&root.VoidAccount.profileReady){
    closing=true;render();const sub=ui.querySelector('.cc-sub');if(sub)sub.textContent='Saving your character…';
    try{const result=await root.VoidAccount.completeMultiplayerCharacter(selected);if(!result.created){keepSelection=false;selected=stored()||A.fromLegacy(result.character);}}
    catch(error){root.VoidRemotePlayers?.setupError?.(error.message||'Account sync is unavailable. Your character will stay in this browser for solo play.');}
