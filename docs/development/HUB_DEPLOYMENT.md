@@ -75,3 +75,13 @@ The hub's trading code (`TRADING_ARCHITECTURE.md`) is present but **cannot be en
 - [ ] Leaving the District interior (street, VR room, flight) disconnects; single-player still works everywhere.
 - [ ] Frame rate on the real PC (Low and High) with the other player in view.
 - [ ] The phone still shows the normal website.
+
+## 15 Nov 2026: players are visible everywhere they can walk
+
+David asked for multiplayer visibility throughout NeoChinatown, NULL nightclub and the other places, not only inside the District. No hosting plan was changed (he said not to).
+
+- **Hub** (`protocol.cjs` `ROOMS`): one room per place: `district-interior` (as before), `neochinatown-street` (the street, the alley and NULL share one scene, so one room), `corporate`, `temple`, and each station or landing place by its id. A player is in one room and sees only the people in it. An unknown name is refused, as before. Chat stays per room.
+- **Client** (`remote-players.js` `roomOf`): joins the room of the place it is walking in; walking into another place (the vestibule, a sky cab, a landing) leaves the old room and joins the new one by reconnecting. VR simulations work as before (entered from the District). Flying, taxi rides and loading screens are solo.
+- **Known limits:** another player is drawn at YOUR floor height (the hub carries no height), so someone on stairs or a terrace can look sunk or floating; inside NULL you also see players on the street outside if they are in view; the free Render instance still sleeps when idle.
+- **Deploy:** the hub must be redeployed (deploy branch `claude/character-creator` = "same hub files as main"). An older hub answers "unknown room" and the client then plays that place alone.
+

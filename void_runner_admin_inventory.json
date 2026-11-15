@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "12da44eeb4bd1462",
+  "revision": "879b7c1e2024f6f7",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12745,13 +12745,13 @@
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 146,
+      "line": 154,
       "text": "sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false,chat:false};emitChat({t:'chat-status',on:false});for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 202,
+      "line": 212,
       "text": "sendChat(text){if(ws?.readyState===1&&status==='in'&&features.chat&&typeof text==='string'){ws.send(JSON.stringify({t:'chat',text:text.slice(0,800)}));return true;}return false;},",
       "kind": "source-reference"
     },
@@ -14264,7 +14264,7 @@
     "void-runner/relay-radio.js": "2a71125ab14c4dcd2c5a113aa7793ba0a9367503386fa97e0a22a270e7652a80",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
-    "void-runner/remote-players.js": "312ecb2f8c45486aa6b8e35731b24b2f2f5cceb8a5ae24a5877c639a345ffc6f",
+    "void-runner/remote-players.js": "1ff4efd8c1b09233c0e13884d5e86d34ef1bfe2530830f946ec5c118eba19c74",
     "void-runner/road-taxi-rules.js": "6287b0c4133166f9ad618193e49c34578ca2faf594f5bcd8038c7e10cf51a80c",
     "void-runner/road-taxi.js": "29de2e70351ee336bd78c268e491e3ed41543ecabd92c3e10432971b9a654010",
     "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",

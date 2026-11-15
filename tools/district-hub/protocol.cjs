@@ -10,6 +10,11 @@ const Chat=require('./chat.cjs');
 // footprint is owned by void-runner/neochinatown.js). The prototype supports the interior only, because that is where the
 // district character models are loaded (the street loads a different set of crowd models).
 const ROOMS={'district-interior':{x:[-400,400],z:[-400,400],cap:12}};
+/* Everywhere else a player can walk (David, 15 Nov 2026: other players are visible throughout NeoChinatown, NULL and the other places, not only inside the
+   District). One room per place; a player is in exactly one room and sees only the people in it. NULL nightclub and the alley are part of the NeoChinatown
+   street scene, so they share its room. The names are the game's own place ids; an unknown name is still refused. */
+const PLACE={x:[-3000,3000],z:[-3000,3000],cap:16};
+for(const id of ['neochinatown-street','corporate','temple','vesper','meridian','kepler','foundry','rusthaven','sol-belt','vigil','holdfast','mars','nexus','order-homeworld'])ROOMS[id]=PLACE;
 // Existing animated District crowd models that a character slot may name (see CHARACTER_MODELS in void_runner_api.py).
 // The creator's appearance rules are shared with the game (one catalog, one validator). If the file is not deployed with the hub, appearances are simply ignored.
 const Appearance=(()=>{try{return require('./appearance/character-appearance.js');}catch{return null;}})();
