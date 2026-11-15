@@ -96,5 +96,5 @@
  VoidVR.register({id:'forest',shared:true,title:'Relax in a Forest',status:'ready',station:1,tint:'linear-gradient(135deg,#1d3b22,#5c8a3a)',preview:'void-runner/assets/vr/sky/forest.jpg',
   description:'A quiet forest with woodland paths, a stream and a waterfall, a sunlit clearing, birds and butterflies. Sit, rest, listen.',
   defaults:{birds:'high',water:'normal',beams:'on'},settings:[{key:'birds',label:'Birdsong',values:[['high','Lively'],['low','Quiet'],['off','Off']]},{key:'water',label:'Stream',values:[['normal','Clear'],['soft','Soft']]},{key:'beams',label:'Sunbeams',values:[['on','On'],['off','Off']]}],
-  ambience:()=>({wind:.05,leaves:.02,water:true,birds:true}),layout,build});
+  ambience:()=>({wind:.05,leaves:.02,water:true,birds:true,music:'vr-forest',musicLevel:.3}),layout,build});
 })();

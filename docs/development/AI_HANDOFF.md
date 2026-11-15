@@ -6,6 +6,12 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 16 Nov 2026 (later): VR upgrade (build `2026-11-16-vr-upgrade-1`) and AN OPEN DECISION ON BRIGHTNESS
+
+- Read the last section of `docs/development/VR_SESSIONS.md`. In short: VR music (5 recordings), WoW-style fishing with saved counters, better beach water, and full brightness inside simulations.
+- **OPEN DECISION for David (do not change without him):** on Medium and High the whole game outside VR is drawn at 0.3 of its lit brightness because of `sharpen.colorAmount = .3` in `babylon-renderer.js` (since 12 Nov); Low is unaffected and so is much brighter. Details and options are in VR_SESSIONS.md.
+- ElevenLabs: 18,569 of 40,000 credits used this period after the VR music.
+
 ### 16 Nov 2026: one music for the District, Admin/Iris model retry, the "Return to Ship" dead end (build `2026-11-16-entry-fix-1`)
 
 - **Music:** the hallway recording now plays in every District room at the hallway's level; only the arcade keeps its own (`music-score.js` `files` and style gains). The rooms are still separate areas for ambience, footsteps and the door lock. The bar, store, entry and VR recordings stay on disk, unused.

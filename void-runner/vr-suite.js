@@ -350,12 +350,12 @@
   shareOpts:opts=>({party:C.party(opts).map(e=>e.id).join(':').slice(0,40)}),
   fromShare:o=>{const ids=String(o?.party||'').split(':').filter(id=>/^[a-z0-9-]{1,24}$/.test(id)).slice(0,2);return ids.length>1?{companions:ids}:{companion:ids[0]||''};},
   validate:opts=>{const all=C.list({has:m=>(globalThis.VoidCrowd?.clips[m]||[]),installed:suitePicker().installed}),party=C.party(opts);return party.length>0&&party.every(e=>all.find(x=>x.id===e.id)?.usable);},
-  defaults:{mood:'rose',music:'lounge'},
+  defaults:{mood:'rose',music:'velvet'},   // David, 16 Nov 2026: the companion rooms' music is sensual and electronic (the Velvet recording) unless the player picks another
   // The VR menu's settings: mood and music, then each companion's looks (outfit, hairstyle, glasses, colours) that
   // have a choice, named for the companion when two are in the room.
-  settings(opts){const party=C.party(opts);return [{key:'mood',label:'Mood lighting',values:[['warm','Warm'],['rose','Rose'],['night','Night'],['candle','Candlelight']]},{key:'music',label:'Music',values:[['off','Off'],['lounge','Lounge'],['velvet','Velvet'],['midnight','Midnight']]},
+  settings(opts){const party=C.party(opts);return [{key:'mood',label:'Mood lighting',values:[['warm','Warm'],['rose','Rose'],['night','Night'],['candle','Candlelight']]},{key:'music',label:'Music',values:[['off','Off'],['velvet','Velvet (sensual)'],['lounge','Lounge'],['midnight','Midnight']]},
    ...party.flatMap(e=>C.looks(e).filter(g=>g.options.length>1).map(g=>({key:'look-'+e.id+'-'+g.key,label:(party.length>1?e.name+': ':'')+g.label,values:g.options.map(o=>[o.id,o.label])})))];},
-  ambience:()=>({waves:.018,pad:'lounge'}),layout,build};
+  ambience:()=>({waves:.018}),layout,build};   // the music comes from the Music setting (setOption -> api.setPad), applied as the simulation starts
  VoidVR.register(registered);
  function suitePicker(){return VoidVR.registry?.get?.('suite')?.picker||registered.picker;}
  // Who you last chose at the terminal, kept per browser like other preferences.

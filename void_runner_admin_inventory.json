@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "79cacd40e5d8dba6",
+  "revision": "06c8b1a7bda0ccbe",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13801,13 +13801,13 @@
     },
     {
       "source": "void-runner/vr-tropical.js",
-      "line": 140,
+      "line": 211,
       "text": "if(id.startsWith('lounger')){const [x,z]=spots.lounger[+id.slice(7)];api.sit({x,z:z-.6,yaw:0,eye:.95,pitch:.05,text:'You stretch out on the lounger. The sea is warm and blue.'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-tropical.js",
-      "line": 141,
+      "line": 212,
       "text": "else if(id==='pier-bench')api.sit({x:21.5,z:33.2,yaw:0,eye:1.75,text:'You sit at the end of the pier, the sea all around you.'});",
       "kind": "source-reference"
     },
@@ -14316,7 +14316,7 @@
     "void-runner/input.js": "9ad5819c0941824bb6d28ad566377557de06538650bb442ebd20356a2e223a72",
     "void-runner/keymap.js": "1b92de4ee96d9439431685b4aca581db1816a369a22c907b18986ec8a15de54e",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
-    "void-runner/local-progress.js": "09c6ffa9f4bd4e961e3d566a9d797b53725fce88f49af9b20fb989cab5cbea98",
+    "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
     "void-runner/menu.js": "e33945c3801486b0491f33a7253a44179550127b1efd02dab139be6b61082627",
     "void-runner/meridian-art.js": "ef57144a85d288a8b5c3ea0a616d36b5fcc78de0f4a5220473486f1f2b9f2a19",
@@ -14392,14 +14392,14 @@
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
     "void-runner/voice-clips.js": "208db187d3d3a77b876b1e4a48e97fe50b488ce18567f28c63dea41753029fca",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
-    "void-runner/vr-combat.js": "fe7cf3869b1fb49ff3ccbc4a7a5c7900aa16c0ad367c115844d8bf5f9c66c321",
+    "void-runner/vr-combat.js": "226b270665ea658d0295fc8c29c5da495c3bcde464a21debb7f02dcb11e9561d",
     "void-runner/vr-companions.js": "0e3c989aa5536472cb3cf72976846bc467f9a917360fec8f1d3d3c0140e2b392",
-    "void-runner/vr-core.js": "b916bfed23d0217a41b50f94efdda24f93436a7916b5e6c415243a88192b08fa",
-    "void-runner/vr-forest.js": "e98ee4e197d7d266d8891d277bc99b2f6701ad8d1e625153baf2f2cc79b990af",
+    "void-runner/vr-core.js": "e4c615af238030ee52498107d86deed4aef29e130b905dd14b33a2062a306a76",
+    "void-runner/vr-forest.js": "6f3d4e0566de2bf9b5a73021a5a97471e8a735e582ff38bf09fbb960a544bf2b",
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "aba9db1fbd8a577a072758aaf5a41de04269256d4cbf3b5a956a96088c118a58",
-    "void-runner/vr-suite.js": "060bf3099c66230d8433c049dd53291024bddf2a3685fbc3ea35de762ca2541a",
-    "void-runner/vr-tropical.js": "d6bfb79702fa5bef438cd1b6e6a0a8ce5ba25c59d7f2631398cfaf4fa69dcaa5",
+    "void-runner/vr-suite.js": "add6b8e05d1b4494629926f613e672a36904f096263db789c9e3dec658948e2d",
+    "void-runner/vr-tropical.js": "69461cdf66deffa476b984eda6962bf1708642557818d03514252e75d17e1b22",
     "void-runner/warflying-scan.js": "f6de823ef265ff4e1cde538ac17b5adefb72547ad0ef2e3b25cdb42de9ce8a87",
     "void-runner/warflying-scanner.js": "983a0c022fa0a93ddc0f84ad5927e01fbd933823a68afabcc5b7b444ff2f128b",
     "void-runner/warflying.js": "e3a319a7538e4df7e014be7ccb50b32bb2b0cf6cbcfe10ccfca2e46edb013a4f",
