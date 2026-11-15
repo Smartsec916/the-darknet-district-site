@@ -89,3 +89,8 @@ David: when he signs in with his developer account (smartsec916@gmail.com) he wa
 - **What it is:** a developer test session (`dev-test.js` `playAsAdmin`), so **nothing is saved** and EXIT TEST returns to the real save. A District campaign with no missions, the starter ship awarded, 10,000 credits, every place discovered, `deviceModel` v3 (green interface, faster, zoom to 4), spawn inside the District. The V1 shows Admin's own name, job and portrait. Admin the NPC is away from the counter (`adminOccupied`), so Iris is the one there, and Iris is the one who walks over for the scanning house rule.
 - **Not built:** a kept Admin save; other players seeing David as Admin (they see his account's own saved character, because the multiplayer server sends that); Iris taking over Admin's mission steps and dialogue for OTHER players while David is online as Admin (needs the multiplayer server to say so, and David's approval of how Iris words Admin's lines); requesting a ship at the landing-pad terminal was not changed or re-checked.
 
+## 15 Nov 2026 (late night): distance in the player lists; footsteps
+
+- **Players (Messages) and Social:** outside The Darknet District each other player's row shows how far away they are ("42 m away"), nearest first. Inside the District no distance is shown (everyone is simply here).
+- **Footsteps** (`void-runner/footsteps.js`, `tests/footsteps.test.cjs`): other players and NPCs who are moving near you make steps that come from their position, fade with distance, and are quicker and louder when they run; your own steps are louder when you run. A thud made in code, on the Effects channel, nearest five movers only. Not heard by Claude (the test browser has no sound): David to judge level and feel.
+

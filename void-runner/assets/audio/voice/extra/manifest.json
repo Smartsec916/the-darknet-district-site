@@ -8,9 +8,10 @@
    "speaker": "admin",
    "text": "Scanning in here is rude. Open WarFlying on your device and deactivate it.",
    "file": "extra/admin-scanning-rude.ogg",
-   "voice": "Russ - Deep American Documentary Narrator",
-   "voiceId": "t0eCaS57KWbQQc1wRkah",
-   "source": "district-people.js"
+   "voice": "Bill Adams - Wise and Motivational American Storyteller",
+   "voiceId": "V2bPluzT7MuirpucVAKH",
+   "source": "district-people.js",
+   "note": "Re-voiced 15 Nov 2026: David asked for Admin to sound older."
   },
   "iris-scanning-rude": {
    "speaker": "iris",
