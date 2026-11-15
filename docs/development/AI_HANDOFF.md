@@ -6,6 +6,21 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 15 Nov 2026 (late night): multiplayer everywhere, voiced lines, play as Admin are LIVE; Dax model located and inspected
+**Live (build `2026-11-16-everywhere-1`):**
+- **Multiplayer everywhere** (PR #305; hub redeployed from deploy branch `claude/character-creator`): one hub room per place (`HUB_DEPLOYMENT.md`, last section). Not checked with two real browsers. No hosting plan was changed (David said not to).
+- **ElevenLabs** is connected to Claude (Starter plan, 40,000 credits a month; about 300 used). The two scanning-rule lines for Admin and Iris are voiced and stored in `void-runner/assets/audio/voice/extra/` (PR #304; `LICENSES.md` there). Test samples (door, V1 chime, rain loop, two greetings) are in `tools/audio/elevenlabs-test/`, which is deliberately NOT committed. Sound effects and looping ambience work; music is priced at about 1,500 credits for 30 s and was not generated; custom voice design needs a 100-character line from David and was not run. Downloads need `elevenlabsusercontent.com` (added to the environment's allowed hosts with David's approval).
+- **Play as Admin** (PR #303): developers only, a test session, nothing saved (`V1_DEVICE.md`). David's developer account is smartsec916@gmail.com; the button appears only if that account's id is in `VOID_ADMIN_UIDS` on the game API.
+- **V3 // SHADOW**: profile pictures stay in colour (David).
+
+**Dax (Tier 3 NPC): where it stands**
+- David gave permission (15 Nov) to open the black-outfit model in Blender, prepare it and integrate it through the private licensed-assets repository.
+- The purchase is extracted on his PC at `C:\Users\smart\Documents\DarknetDistrict_Assets\Dax\source` (`Blend/cyberpunk-girl.blend`, 78 MB, and `Textures/`). Nothing else on his PC was changed; his open Blender scene was not touched (the file was only listed with `bpy.data.libraries.load`).
+- Contents: a Rigify rig (`rig`, `metarig`, widget collection `WGTS_rig`), collection `Cyberbunk-Girl`, **no animations**, materials `Sci-fi - Body` (the BLACK outfit, textures `Sci-fi-Bod_89F362_*`), `Armor Torso`, `Head`, `Eyes`, `Eyes_Moisture`, `Mouth`, `Eyelashes`, `Eyebrows`; a white outfit variant exists only as textures (`Textures/Sci-fi_white/`). 2K to 4K PNG textures.
+- **Next steps, in order:** (1) in a NEW Blender scene (do not overwrite David's open file) append the `Cyberbunk-Girl` collection and the rig, measure triangles and bones; (2) follow the purchased-companion pipeline (`tools/animation-pipeline/`, the `vr-companion-*.json` specs and prepare scripts) to bind her to the game's 52-joint `mixamorig:` skeleton and bake the standard clips; (3) reduce textures (1K to 2K, JPEG where no alpha) and export one GLB; (4) record the CGTrader licence terms in `VOID_RUNNER_ASSET_LICENSES.md` (check for a No-AI clause before any AI processing; Meshy must NOT be given this model if the licence forbids it); (5) get the file from his PC into `Smartsec916/void-runner-licensed-assets` (the cloud session cannot read his disk: either he shares the folder through Remote Control, or he uploads the exported file to the private repository himself); (6) register her in `crowd.js` clips and `district-people.js` (jobs Bounty Hunter and Mercenary; device V3 // SHADOW), then the Tier 3 behaviour.
+- **Meshy:** the Meshy skills are now installed in this session (`meshy-3d-agent:*`); Blender has no Meshy add-on. No credits were spent. David wants connectivity verified before any spend.
+
+
 ### 15 Nov 2026 (end of session): what is live, and David's open requests IN ORDER
 **Live (build `2026-11-16-warflying-1`):** handle accounts (API and hub redeployed on Render with David's go-ahead; the hub deploys from branch `claude/character-creator`, which is kept as "same hub files as main"), camera aim-and-follow (F), FOLLOWING in Social, one look record per character, games page card "The Darknet District - Game", `site-return.js` on every game, EXIT GAME in the arcade, WarFlying as an installable app (15%), mission flow chart, character surface pass.
 
