@@ -124,7 +124,7 @@
 #personal-device .pd-steps{list-style:none;margin:4px 0 8px;padding:0;font-size:11px;color:var(--pd-muted)}#personal-device .pd-steps li.on{color:var(--pd-edge-hi)}
 /* V3 // SHADOW: the same interface as an old monochrome green monitor. Only the variables change, so every screen and the camera follow. */
 #personal-device[data-device=v3],#pd-camera[data-device=v3]{--pd-panel:#031006;--pd-panel-hi:#07200d;--pd-panel-on:#0a2b12;--pd-edge:#1f7a3a;--pd-edge-hi:#46ff7a;--pd-text:#3fe070;--pd-text-hi:#8dffb0;--pd-muted:#2a9a4e;--pd-tick:#46ff7a;--pd-line:#0f3d1c}
-#personal-device[data-device=v3] img.pd-portrait{filter:grayscale(1) sepia(1) hue-rotate(70deg) saturate(2.2) brightness(.9)}
+/* profile and social pictures stay in full colour on the V3, as on the V1 (David, 15 Nov 2026) */
 /* ---- Camera viewfinder (device-camera.js). Every colour is a device variable, so a later model's theme restyles it; --pd-tag is the name-tag green. ---- */
 #pd-camera{--pd-tag:#9dff5a;position:fixed;inset:0;z-index:240;pointer-events:none;font:600 clamp(11px,1.25vw,17px)/1.5 ui-monospace,Consolas,monospace;letter-spacing:.06em;color:var(--pd-text-hi);text-shadow:0 0 6px rgba(97,238,233,.45),0 1px 2px #000}
 #pd-camera[hidden]{display:none}
