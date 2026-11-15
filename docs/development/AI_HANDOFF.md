@@ -6,6 +6,13 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 15 Nov 2026 (latest): V1 camera, residents, My V1, News feed, mission flow chart and a character surface pass are LIVE
+- **V1 (PR #295, live):** residents listed with players, profiles and jobs (two dropdowns), MY V1 app, empty App Store, sponsored News feed (boxed posts), Camera viewfinder with name tags and wheel zoom. Details: `V1_DEVICE.md` (last three sections). Names, extra jobs and store advert sentences are drafts for David.
+- **Developer Studio (PR #297, live):** mission flow chart in the Missions tab; choices and store-item unlocks are draft design fields the game does not act on yet. `DEVELOPER_STUDIO.md`.
+- **Characters:** a surface quality pass only (`CHARACTER_MODEL_AUDIT.md`, last section). The real upgrade (new outfits, bodies, faces) still needs David's choice of route: modelled by code, purchased, or generated.
+- **Waiting on David:** "deploy" for the two Render services so handle accounts work (hub is set to branch `claude/character-creator` on Render, not `main`).
+
+
 ### 15 Nov 2026: handle-only accounts may keep a character and join multiplayer (code merged; RENDER REDEPLOY NEEDED)
 David: "Let the Save Server use Handles as well." A Firebase anonymous account that has claimed a District handle is now treated as a District account:
 - **Game API** (`void_runner_api.py` `require_handle_if_guest`): character creation and saved looks are accepted when the identity registry (`bp_profiles`) holds a handle for that account; a guest with no handle is still refused (403).
