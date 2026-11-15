@@ -49,6 +49,7 @@ function parse(raw){
   if(m.t==='state')return keys==='t,x,yaw,z'&&num(m.x)&&num(m.z)&&num(m.yaw)&&Math.abs(m.x)<1e5&&Math.abs(m.z)<1e5&&Math.abs(m.yaw)<1e4?m:null;
   if(m.t==='bye')return keys==='t'?m:null;
   if(m.t==='chat')return keys==='t,text'&&typeof m.text==='string'&&m.text.length<=Chat.RULES.maxChars*4?m:null;   // the cleaned length is checked again by chat.cjs
+  if(m.t==='eye')return keys==='on,t'&&typeof m.on==='boolean'?m:null;   // "I am using my V3 // Shadow" (its camera is in the left eye, which glows): looks only
   if(m.t==='ignore')return keys==='id,on,t'&&/^[0-9a-f]{12}$/.test(String(m.id))&&typeof m.on==='boolean'?m:null;
   if(m.t==='report')return (keys==='id,reason,t'||keys==='id,note,reason,t')&&/^[0-9a-f]{12}$/.test(String(m.id))&&Chat.RULES.reasons.includes(m.reason)&&(m.note===undefined||typeof m.note==='string')?m:null;
   if(m.t==='vr-list'||m.t==='vr-leave'||m.t==='voice-token')return keys==='t'?m:null;
@@ -72,7 +73,7 @@ class Hub{
   trade(conn,m){const p=this.byConn.get(conn);if(!p)return Promise.resolve();if(!this.trades)return Promise.resolve(this.send(conn,{t:'trade',ev:'refused',reason:'Trading is not enabled.'}));
    return this.trades.handle(p.uid,m).catch(()=>this.send(conn,{t:'trade',ev:'refused',reason:'The trade could not be processed.'}));}
   roomPeers(room){return [...this.peers.values()].filter(p=>p.room===room);}
-  view(p){return {id:p.id,name:p.name,model:p.model,appearance:p.appearance,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip};}
+  view(p){return {id:p.id,name:p.name,model:p.model,appearance:p.appearance,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip,eye:!!p.eye};}
   /* The look a verified account is shown with: its saved appearance when valid (ids checked again here), else the look matching its old {gender, model} character, else the default. */
   look(who){
    if(who.anonymous&&!who.model&&!who.appearance)return {model:DEFAULT_MODEL,appearance:null};   /* a guest with no saved character; a handle account with one is shown as saved */
@@ -126,6 +127,8 @@ class Hub{
     return {ok:true};
   }
   /* Mute or block: the hub stops delivering that player's chat to this connection. (The game also hides a blocked player's avatar.) */
+  // The player's V3 eye light, on or off: kept so people who arrive later see it, and passed to everyone in the room. Nothing but a look.
+  eye(conn,m){const p=this.byConn.get(conn);if(!p||!!p.eye===m.on)return false;p.eye=m.on;if(p.placed)this.broadcast(p.room,{t:'eye',id:p.id,on:m.on},p.id);return true;}
   ignore(conn,m){const p=this.byConn.get(conn);if(!p||m.id===p.id)return false;if(m.on){if(p.ignoring.size>=Chat.RULES.maxIgnored&&!p.ignoring.has(m.id))return false;p.ignoring.add(m.id);}else p.ignoring.delete(m.id);return true;}
   /* A report goes to the hub's log (the owner's handling path: docs/development/MODERATION.md) together with the reported player's recent lines. */
   reportPlayer(conn,m){
