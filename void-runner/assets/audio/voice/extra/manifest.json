@@ -1,0 +1,24 @@
+{
+ "version": 1,
+ "engine": "ElevenLabs eleven_v4 (rendered once on David's Starter plan, 15 Nov 2026; stored here so nothing is generated at play time)",
+ "format": "ogg/vorbis 24 kHz mono",
+ "note": "Lines voiced outside the Kokoro pipeline. voice-clips.js merges these with manifest.json; a speaker's live effect (Iris: android) still applies.",
+ "lines": {
+  "admin-scanning-rude": {
+   "speaker": "admin",
+   "text": "Scanning in here is rude. Open WarFlying on your device and deactivate it.",
+   "file": "extra/admin-scanning-rude.ogg",
+   "voice": "Russ - Deep American Documentary Narrator",
+   "voiceId": "t0eCaS57KWbQQc1wRkah",
+   "source": "district-people.js"
+  },
+  "iris-scanning-rude": {
+   "speaker": "iris",
+   "text": "You are scanning inside the District. That is rude. Deactivate WarFlying in the app.",
+   "file": "extra/iris-scanning-rude.ogg",
+   "voice": "Clarice - Natural & Calm British Voice",
+   "voiceId": "MWUpoNpAY0rOQGP294mF",
+   "source": "district-people.js"
+  }
+ }
+}

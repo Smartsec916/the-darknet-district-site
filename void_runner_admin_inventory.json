@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "f80d7a91fcb39ae0",
+  "revision": "12da44eeb4bd1462",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13351,19 +13351,19 @@
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 65,
+      "line": 67,
       "text": "if(typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text)speech.rate=Math.max(20,text.length/Math.max(.5,data.duration-.15));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 73,
+      "line": 75,
       "text": "renderLine=function(){if(speech)speech.rate=null;voicedRender();const line=speech?.lines[speech.index];if(line&&line.who!=='pilot')screen.querySelector('.speech-controls')?.insertAdjacentHTML('afterbegin','<button data-action=\"speech-replay\" class=\"quiet\" title=\"Replay line\">REPLAY ↺</button>');};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 74,
+      "line": 76,
       "text": "screen.addEventListener('click',e=>{if(e.target.closest('button')?.dataset.action!=='speech-replay'||!speech)return;const line=speech.lines[speech.index];VoidAudio.speak(line.who,line.text);});",
       "kind": "source-reference"
     },
@@ -14189,7 +14189,7 @@
     "void-runner/district-area.js": "48b60eab3a791020ce7a4a7213de866e697069ca4c003cf7f255a5ffcef3db4c",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
     "void-runner/district-map.js": "58b56089eef021541f870f4fc6edc10debc9998e151b71c1d1e05c16eeafa792",
-    "void-runner/district-people.js": "e0c9c622973b783cdbd7f6ccb4e84e3a3e443872fdf75c50578a65ea7ce1dcd7",
+    "void-runner/district-people.js": "3d9b8c26a07556f5c74a56226c29090c0134919e938b1978be007de0b2a19c98",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
@@ -14244,7 +14244,7 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-nightclub.js": "58e8f26da2df090c85d2295cb403b5658cfe8241450d70b70c777e276f8425c5",
     "void-runner/ncz-nightlife.js": "15cf226233896181b848a2d99611ceb0319f8b0cee8eec6035e771f38a7725df",
-    "void-runner/neochinatown.js": "9d0e95c45cb3802878257989574d8fd6a560589598f8a1eda41cabb3e1379329",
+    "void-runner/neochinatown.js": "16e4371bcbe410850fd0e1d32255d3aeef2561b9c06be1bdd0f1481dfec6c5df",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
@@ -14293,7 +14293,7 @@
     "void-runner/unified-controls.js": "4b4aec06ae8268e43d621f4aa772036353e2fcf62d78d176a6f4508c9f444a8f",
     "void-runner/universe.js": "b4230d16307e4209ba781e04841d1be043b0360f2aa0ca35380af88718a67887",
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
-    "void-runner/voice-clips.js": "d990ba8f440f04524a65e84abad46af208bd295cc7a005eedebda191e6423c22",
+    "void-runner/voice-clips.js": "208db187d3d3a77b876b1e4a48e97fe50b488ce18567f28c63dea41753029fca",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "fe7cf3869b1fb49ff3ccbc4a7a5c7900aa16c0ad367c115844d8bf5f9c66c321",
     "void-runner/vr-companions.js": "0e3c989aa5536472cb3cf72976846bc467f9a917360fec8f1d3d3c0140e2b392",
