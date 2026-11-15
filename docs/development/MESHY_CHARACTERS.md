@@ -32,10 +32,22 @@ The CLI on David's PC is 0.8.6: `--async` on create, then `meshy <resource> get 
 | 15 Nov | Iris 3D | image-to-3d `01a1e025-5be1…` | 30 |
 | 15 Nov | Iris remesh 45k | remesh `01a1e029-51c6…` | 5 |
 | 15 Nov | Iris rig | rigging `01a1e032-0b3f…` | 5 |
-| | **Total so far** | | **98** |
+| 15 Nov | Seven residents' concepts (Rin, Jonah, Sable, Kei, Mags, Tavi, Bishop), text-to-image, 9 each | task ids in `Documents/DarknetDistrict_Assets/Meshy/residents/concepts_status.json` on David's PC | 63 |
+| 15 Nov | The same seven: 3D (30), remesh (5), rig (5) each | `.../residents/build_status.json` | 280 |
+| | **Total so far** | | **441** (about 660 left of the month's 1,100) |
 
 A full character costs about 49 credits, so the month's 1,100 is roughly 22 characters, or fewer characters plus props (a prop from a picture is about 30).
 
 ## Rights
 
 Generated on David's paid Meshy plan from his own reference pictures (which he made with Midjourney). Recorded in `docs/VOID_RUNNER_ASSET_LICENSES.md`. David to confirm his plan's terms give him private ownership of the outputs; on that basis they are stored in this public repository like the game's other own assets.
+
+## Doing several at once (15 Nov)
+
+`Documents/DarknetDistrict_Assets/Meshy/residents/` on David's PC holds two small runners started with Blender's own Python as detached processes: `concepts.py` (all concept images in parallel from `prompts.json`) and `build_all.py` (3D, remesh, rig, prepare and convert for each, four at a time, writing `build_status.json`). `%TEMP%/meshy_build/shrink_glb.py` then re-encodes the PNG maps inside each GLB as JPEG so a character is about 4 to 5 MB, small enough to bring back in two pieces.
+
+Lessons: never `time.sleep` inside a `bl_execute` call (it blocks Blender and the bridge times out): start a detached process and poll with instant calls. Never return more than about 3.5 million characters in one call: a whole 12 MB file dropped the bridge connection. Wait between polls with a shell `until` loop on the clock.
+
+## Residents (15 Nov)
+
+`district-people.js` `own` names a resident's own model; `lookFor(crew)` returns it, `crowd.js` loads it with the District interior and `pick()` gives it to their spot. If a file fails to load, a look of the place stands in. Residents done: Rin Takeda, Jonah Pike, Sable Quon, Kei Navarro, Mags Oduya, Tavi Rourke, Bishop Hale. Not done: Nyx (bartender), Cade and Lumi (the VR players need clips from the UAL library: take them from `vr-player-a/b.glb` with `--crowd`), DJ Vanta (in NULL), the street crowd, player characters, companions, mission-givers. The residents' looks (faces, clothes) are Claude's designs from their jobs and David's style references: David may want any of them changed.
