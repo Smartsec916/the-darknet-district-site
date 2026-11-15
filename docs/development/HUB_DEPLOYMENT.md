@@ -85,3 +85,12 @@ David asked for multiplayer visibility throughout NeoChinatown, NULL nightclub a
 - **Known limits:** another player is drawn at YOUR floor height (the hub carries no height), so someone on stairs or a terrace can look sunk or floating; inside NULL you also see players on the street outside if they are in view; the free Render instance still sleeps when idle.
 - **Deploy:** the hub must be redeployed (deploy branch `claude/character-creator` = "same hub files as main"). An older hub answers "unknown room" and the client then plays that place alone.
 
+## 15 Nov 2026: voice (LiveKit), first stage
+
+David created a LiveKit project (free Build plan) and prepared `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` on the Render `district-hub` service. He asked for no plan to be bought or upgraded.
+
+- **Hub** (`tools/district-hub/voice.cjs`, `protocol.cjs` `voiceToken`): a registered (not handle-only) player sends `{t:'voice-token'}` and gets a ten-minute LiveKit token for the voice room of the hub room they are in (`dd-<room>`; a VR session has its own). Microphone only; no recording grant. The secret stays in the hub process. If the three variables are missing or malformed the hub runs normally with voice off and logs which variable to check (never a value).
+- **Client** (`void-runner/district-voice.js`, vendored `vendor/livekit-client-2.24.1.umd.js`, Apache-2.0, loaded only when voice is switched on): proximity voice with direction, distance fade and wall muffling; push-to-talk (default V, changeable) or open microphone; mute; microphone, speaker and volume; per-player volume and mute; a small on-screen indicator. Off until the player presses ENABLE VOICE in the **Comms** app (between Messages and Social on the V1 and V3); DISABLE disconnects from LiveKit.
+- **Not built:** private calls, group calls, ringing and notification sounds, voice inside shared VR menus beyond the automatic separate room, reports that reference voice, participant-minute metering and a quota message, Admin's character voice transformation (ElevenLabs speech-to-speech), lip movement.
+- **NOT TESTED END TO END.** The cloud session cannot reach LiveKit or see the secret, so no audio has been sent between two sessions. Unit tests cover token shape and signature, room naming, refusal rules and the loudness rules. David must try it live with two accounts: both press ENABLE VOICE in Comms, stand near each other, hold V.
+

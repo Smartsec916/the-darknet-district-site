@@ -11,7 +11,7 @@
  const ASSET_VERSION=5;   // bump when portrait framing or lighting changes, or when an NPC model or outfit is updated: every cached portrait is then redrawn
  const DEVICES={
   v1:{id:'v1',generation:1,name:'V1',tagline:'PERSONAL DEVICE · MODEL V1',
-   apps:['missions','messages','social','news','map','camera','gallery','store','device','settings'],
+   apps:['missions','messages','comms','social','news','map','camera','gallery','store','device','settings'],
    // The camera (device-camera.js): a live viewfinder. `zooms` is the zoom array every model shares; `maxZoom` is how far THIS model reaches (a V2 can raise it).
    camera:{enabled:true,id:'CAM 01',zooms:[1,1.5,2,3,4],maxZoom:2,iso:320},
    // Interface timing, in milliseconds (a later model changes these numbers and nothing else). The starter V1 is deliberately a little slow: a short loading card is shown
@@ -25,7 +25,7 @@
   /* V3 // SHADOW (David, 15 Nov 2026): the device Dax carries, bought from Admin. Faster than the V1; the same interface drawn like an old monochrome green monitor
      (device-v1.css, [data-device=v3]); its camera is in the wearer's eye and zooms to 4. No player can get one yet: nothing sells or grants it. */
   v3:{id:'v3',generation:3,name:'V3 // SHADOW',tagline:'PERSONAL DEVICE · MODEL V3 // SHADOW',theme:'mono-green',
-   apps:['missions','messages','social','news','map','camera','gallery','store','device','settings'],
+   apps:['missions','messages','comms','social','news','map','camera','gallery','store','device','settings'],
    camera:{enabled:true,id:'EYE 01',zooms:[1,1.5,2,3,4],maxZoom:4,iso:800,eye:true},
    ui:{halfWidth:.5,expandedWidth:.96,appOpenMs:90,homeMs:60,tabMs:50,startupMs:220,maxMs:600},
    storage:{baseUsedPct:75}
@@ -35,6 +35,7 @@
  const APPS={
   missions:{id:'missions',title:'MISSION LOG',glyph:'M',state:'ready',note:'Your missions and tracking.'},
   messages:{id:'messages',title:'MESSAGES',glyph:'@',state:'ready',note:'District chat and conversations. Private messages to other players are not available yet.'},
+  comms:{id:'comms',title:'COMMS',glyph:'C',state:'ready',note:'Voice: talk to the people near you. Off until you switch it on.'},
   social:{id:'social',title:'SOCIAL',glyph:'S',state:'ready',note:'People you know and other players.'},
   news:{id:'news',title:'NEWS',glyph:'N',state:'ready',note:'Reports you have received.'},
   map:{id:'map',title:'MAP',glyph:'+',state:'ready',note:'Places you have explored.'},
@@ -80,7 +81,7 @@
 
  // ---- Storage, App Store view and timing ----
  const clampPct=n=>Math.max(0,Math.min(100,Math.round(n)));
- /* Stock V1: 10 system apps, 0 optional apps, 75% used / 25% available. Only optional apps that are actually installed add to the baseline. */
+ /* Stock V1: 11 system apps, 0 optional apps, 75% used / 25% available. Only optional apps that are actually installed add to the baseline. */
  function storage(device){
   const def=DEVICES[device.model]||DEVICES.v1,optional=device.apps.filter(a=>!def.apps.includes(a)),
    extra=optional.reduce((t,a)=>t+(Number((STORE_EXTRA.find(x=>x.id===a)||{}).storagePct)||0),0),used=clampPct(def.storage.baseUsedPct+extra);

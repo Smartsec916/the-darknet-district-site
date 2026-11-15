@@ -12,7 +12,7 @@ const {clientIp,ConnectionGate}=require('./limits.cjs');
 
 const LOCAL_ORIGIN=/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/;
 
-function start({ledger=null,identify,access={allowed:null,denied:new Set(),registeredOnly:false,verifiedEmail:false},origins=null,gate=new ConnectionGate(),trustHops=0,port=0,host='127.0.0.1',log=()=>{}}){
+function start({voice=null,ledger=null,identify,access={allowed:null,denied:new Set(),registeredOnly:false,verifiedEmail:false},origins=null,gate=new ConnectionGate(),trustHops=0,port=0,host='127.0.0.1',log=()=>{}}){
   const profileRefusal=who=>{
     if(!access.requireProfile)return null;
     /* A handle-only (anonymous) account is admitted like any other once the API holds its handle and character (David, 15 Nov 2026); with neither it is told what is missing. */
@@ -27,7 +27,7 @@ function start({ledger=null,identify,access={allowed:null,denied:new Set(),regis
     res.writeHead(404,{'content-type':'text/plain'});res.end('not found');
   });
   const wss=new WebSocketServer({server,maxPayload:LIMITS.maxHelloBytes,verifyClient:({origin},cb)=>originOk(origin)?cb(true):cb(false,403,'origin not allowed')});
-  const hub=new Hub({send:(ws,m)=>{if(ws.readyState===1)ws.send(JSON.stringify(m));},close:(ws,code,why)=>{try{ws.close(code,why);}catch{}},report:r=>log('REPORT',JSON.stringify(r))});
+  const hub=new Hub({send:(ws,m)=>{if(ws.readyState===1)ws.send(JSON.stringify(m));},close:(ws,code,why)=>{try{ws.close(code,why);}catch{}},report:r=>log('REPORT',JSON.stringify(r)),voice});
   // Trading: only with a ledger. The default (none, or the disabled one) refuses every trade message and tells clients trading is off.
   hub.attachTrades(ledger||new (require('./ledger.cjs').DisabledLedger)(),{simulated:!!ledger?.simulated});
   let stopping=false;
@@ -66,6 +66,7 @@ function start({ledger=null,identify,access={allowed:null,denied:new Set(),regis
         if(!who||!p||who.uid!==p.uid)hub.send(ws,{t:'refused',reason:'sign-in not accepted'});
         else if(profileRefusal(who)){hub.send(ws,{t:'error',reason:profileRefusal(who)[1]});ws.close(...profileRefusal(who));}
         else hub.refresh(ws,who);return;}
+      if(m.t==='voice-token'){hub.voiceToken(ws);return;}
       if(m.t==='vr-list'){hub.vrList(ws);return;}
       if(m.t==='vr-create'){const r=hub.vrCreate(ws,m);if(r.ok)log('vr-create',m.private?'private':'public',m.exp);return;}
       if(m.t==='vr-join'){hub.vrJoin(ws,m);return;}
