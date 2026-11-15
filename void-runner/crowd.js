@@ -83,13 +83,15 @@
 
  // Browser side: one controller per figure, playing a clip from its own cloned animation groups.
  const groups=new Set(),controllers=new Set();
- function animate(node,look,clip){
+ const ctrls=new WeakMap();   // the animation controller of each figure, for scripts that move a figure the scene already placed (district-life.js)
+ function animate(node,look,clip){const made=animate_(node,look,clip);if(made)ctrls.set(node,made);return made;}
+ function animate_(node,look,clip){
   const list=node.metadata?.animationGroups||[];list.forEach(g=>groups.add(g));
   const bones={};for(const t of node.getDescendants(false))for(const b of ['LeftUpLeg','RightUpLeg','LeftLeg','RightLeg','LeftArm','RightArm'])if(t.name.endsWith('mixamorig:'+b)&&t.rotationQuaternion)bones[b]={node:t,rest:t.rotationQuaternion.clone()};
   const speed=.9+(hash(node.name)%20)/100;let current=null,walking=false,active=true,disposed=false;
   // Clips cross-fade instead of snapping.
   for(const g of list){g.enableBlending=true;g.blendingSpeed=.06;}
-  const groupFor=name=>list.find(g=>g.name===name||g.name.endsWith('-'+name));
+  const groupFor=name=>list.find(g=>g.name===name||g.name.endsWith('-'+name))||list.find(g=>g.name.replace(/\.\d{3}$/,'').endsWith('-'+name));   /* Blender names a second clip of the same name walk.001 (Dax's walk): without this she slid along in her idle */
   // Moving crew call this every frame. It must leave a clip that is already playing alone: group names carry
   // the figure's prefix (crowd:look-walk), so compare the group itself, never the bare clip name. Comparing
   // names restarted the clip each frame and froze it on one pose while the figure slid along.
@@ -131,6 +133,6 @@
  }
  function release(){for(const c of [...controllers])c.dispose();groups.clear();}
 
- const api={casts,staff,clips,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,release,variety,varietyFor};
+ const api={casts,staff,clips,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,controller:node=>ctrls.get(node)||null,release,variety,varietyFor};
  if(typeof module!=='undefined')module.exports=api;else root.VoidCrowd=api;
 })(globalThis);

@@ -6,6 +6,17 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 15 Nov 2026 (late night): District life, photos and Gallery, News filters, dispensary vending (build `2026-11-16-district-life-1`)
+
+David's six requests of this evening, all done in one change:
+- **Character creator:** extras (hat, eyewear, mask) start OFF for a new character, a new body or a new outfit (`character-creator.js` `plain`).
+- **Dax glided:** her walk clip was exported as `walk.001`; `crowd.js` now finds it. Not re-checked in a browser here because her licensed model is not on this machine: CHECK ON THE LIVE SITE.
+- **Camera:** left mouse button takes a photo; Gallery (1% of storage each, delete, post to News); residents' pictures in News; News filters. See the end of `docs/development/V1_DEVICE.md`. Other players cannot see a player's posts yet (needs server storage and moderation: David's decision).
+- **Residents do things:** `docs/development/DISTRICT_LIFE.md`.
+- **VR glass glare and hallway haze:** the booth glass no longer shines or glows; the white haze under each hallway lamp is a third of what it was and the lamp panels are dimmer (`neochinatown.js`). Checked at medium quality: the view down the hallway is clear.
+- **Vending:** the middle hallway machine is DISPENSARY (a drawn front of tubs and pouches of flower on dispenser feet, laid over the machine's glass); every pod machine has a fifth row, E1 to E5, of the same goods, and its two jars are now tubs. The product names in row E are Claude's placeholders. On the live site the hallway machines are the licensed model: CHECK that the dispensary front sits right on it.
+- PR #318 (pod wall controls) is merged and live. David asked for a pause in pushing during this work, then lifted it.
+
 ### 15 Nov 2026 (night): Sleeping Pod wall controls and EXIT THE POD sign (build `2026-11-16-pod-controls-1`)
 
 - PR #317 (seven named residents as Meshy models) is merged and live.

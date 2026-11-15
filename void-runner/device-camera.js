@@ -6,7 +6,9 @@
    - Zoom: the mouse wheel steps through the device's zoom array. The array is [1, 1.5, 2, 3]; each model reaches only as far as its own `maxZoom` (V1: 2).
    - Look: every colour, line weight and font comes from the device's own CSS variables (device-v1.css, --pd-*), and the HUD is tagged with the device model
      (`data-device`), so a later device with its own theme restyles the camera without any change here.
-   Pure helpers (zoom steps, timecode, tag placement) run in Node too (tests/device-camera.test.cjs). Nothing is captured, stored or sent. */
+   Pure helpers (zoom steps, timecode, tag placement) run in Node too (tests/device-camera.test.cjs). 
+   - Photos (David, 15 Nov 2026): the LEFT MOUSE BUTTON takes a picture of what is framed, with the name tags in it, and keeps it in the Gallery
+     (device-gallery.js; this browser only, nothing is uploaded). */
 (function(root){
  'use strict';
  const D=typeof module!=='undefined'&&module.exports?require('./device-v1.js'):root.VoidDeviceV1;
@@ -56,9 +58,9 @@
    +'<div class="pc-aim" data-pc="aim" hidden></div><div class="pc-toast" data-pc="toast" hidden></div>'
    +'<div class="pc-time" data-pc="time">00:00:00:00</div>'
    +'<div class="pc-tr"><div>Battery <b data-pc="battery">100%</b><span class="pc-batt"><i data-pc="battbar"></i></span></div><div>Signal <b data-pc="signal">Good</b><span class="pc-bars" data-pc="bars"><i></i><i></i><i></i><i></i></span></div></div>'
-   +'<div class="pc-bl"><div>Zoom <b data-pc="zoom">1x</b></div><div>Focus : <b>Auto</b></div><div class="pc-hint">WHEEL · ZOOM &nbsp; F · FOLLOW &nbsp; B · PUT AWAY</div></div>'
+   +'<div class="pc-bl"><div>Zoom <b data-pc="zoom">1x</b></div><div>Focus : <b>Auto</b></div><div class="pc-hint">LEFT CLICK · PHOTO &nbsp; WHEEL · ZOOM &nbsp; F · FOLLOW &nbsp; B · PUT AWAY</div></div>'
    +'<div class="pc-br"><div class="pc-cam" data-pc="cam">CAM 01</div><div>FPS : <b data-pc="fps">0.00</b></div><div>ISO <b data-pc="iso">320</b></div></div>'
-   +'<svg class="pc-lines" aria-hidden="true"></svg><div class="pc-tags"></div>';
+   +'<svg class="pc-lines" aria-hidden="true"></svg><div class="pc-tags"></div><div class="pc-flash" data-pc="flash"></div>';
   document.body.appendChild(el);svg=el.querySelector('svg');tagBox=el.querySelector('.pc-tags');
  }
  const set=(k,v)=>{const n=el.querySelector('[data-pc='+k+']');if(n&&n.textContent!==v)n.textContent=v;};
@@ -93,7 +95,7 @@
    for(let pass=0;pass<4;pass++){const hit=shown.find(o=>at.left<o.tx+o.tw+4&&at.left+tw+4>o.tx&&at.top<o.ty+o.th+4&&at.top+th+4>o.ty);if(!hit)break;at.top=Math.max(8,hit.ty-th-6);at.ay=at.top+th;}   // two people close together: the second tag steps above the first instead of covering it
    t.tag.style.transform='translate('+at.left.toFixed(1)+'px,'+at.top.toFixed(1)+'px)';t.tag.hidden=false;
    t.line.setAttribute('x1',at.ax.toFixed(1));t.line.setAttribute('y1',at.ay.toFixed(1));t.line.setAttribute('x2',s.x.toFixed(1));t.line.setAttribute('y2',s.y.toFixed(1));t.dot.setAttribute('cx',s.x.toFixed(1));t.dot.setAttribute('cy',s.y.toFixed(1));
-   t.line.style.display=t.dot.style.display='';seen.add(p.key);t.who=p;shown.push({key:p.key,hx:s.x,hy:s.y,tx:at.left,ty:at.top,tw,th});
+   t.line.style.display=t.dot.style.display='';seen.add(p.key);t.who=p;t.box={left:at.left,top:at.top,tw,th,ax:at.ax,ay:at.ay,hx:s.x,hy:s.y};shown.push({key:p.key,hx:s.x,hy:s.y,tx:at.left,ty:at.top,tw,th});
   }
   // aim: the crosshair on the person or on their tag selects them; F follows or unfollows (kept in the save, shown in Social)
   const key=pure.aimed(shown,W/2,H/2,Math.min(W,H)*.085);target=key?tags.get(key).who:null;
@@ -129,6 +131,34 @@
   const was=P.readFollowing(fl).length,now=P.toggleFollow(fl,who),changed=P.readFollowing(fl).length!==was;try{if(typeof save==='function')save();}catch{}
   const t=el.querySelector('[data-pc=toast]');t.textContent=!changed?'CANNOT FOLLOW '+target.name.toUpperCase()+' (NO REGISTERED HANDLE)':now?'FOLLOWING '+target.name.toUpperCase()+' · SEE SOCIAL':'UNFOLLOWED '+target.name.toUpperCase();t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.hidden=true;},2600);
  }
+ const say=(msg,ms=2600)=>{const t=el.querySelector('[data-pc=toast]');t.textContent=msg;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.hidden=true;},ms);};
+ /* Take a photo: the game's own picture as it is on screen, with the name tags of everyone tagged in the frame drawn in, kept in the Gallery. */
+ let shooting=false;
+ /* Which area the player stands in right now (not the music's idea of it, which lags a doorway behind). */
+ function areaNow(sc){try{const N=root.VoidNeoChinatown,M=root.VoidMusicDirector,p={x:walker.x,z:walker.z};if(N?.nightclub?.inside?.(sc.activeCamera.globalPosition))return 'club';
+  if(walkingLocation?.id==='neochinatown'&&N&&M){const z=N.zone(p);if(z.area==='terrace')return 'district-terrace';if(z.area==='district')return (M.districtZones.find(q=>q.test({x:z.x,z:z.z}))||{}).style||'district-hall';
+   const r=M.streetZones.find(q=>p.x>=q.rect[0]&&p.x<=q.rect[1]&&p.z>=q.rect[2]&&p.z<=q.rect[3]);return r?r.style:'neochinatown';}}catch{}return root.VoidMusicArea?.area;}
+ function shoot(){
+  const G=root.VoidGallery,sc=scene();if(!active||!G||!sc||shooting)return false;
+  if(G.room(device)<=0){say('STORAGE FULL · DELETE PHOTOS IN THE GALLERY');return false;}
+  shooting=true;const cv=sc.getEngine().getRenderingCanvas(),vw=el.clientWidth||cv.clientWidth||1,vh=el.clientHeight||cv.clientHeight||1;
+  const who=[...tags.values()].filter(t=>!t.tag.hidden&&t.box).map(t=>({name:t.name,role:t.role,kind:t.who?.key?.startsWith('player:')?'player':'npc',...t.box}));
+  const area=areaNow(sc),zoom=steps[zi];
+  sc.onAfterRenderObservable.addOnce(()=>{try{
+   const W=G.WIDTH,H=Math.round(W*vh/vw),c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),k=W/vw;g.drawImage(cv,0,0,W,H);
+   const green=getComputedStyle(el).getPropertyValue('--pd-tag').trim()||'#9dff5a';g.textBaseline='top';
+   for(const t of who){g.strokeStyle=green;g.lineWidth=1.2;g.beginPath();g.moveTo(t.ax*k,t.ay*k);g.lineTo(t.hx*k,t.hy*k);g.stroke();g.fillStyle=green;g.beginPath();g.arc(t.hx*k,t.hy*k,2.5,0,7);g.fill();
+    g.fillStyle='rgba(6,18,8,.72)';g.fillRect(t.left*k,t.top*k,t.tw*k,t.th*k);g.strokeRect(t.left*k,t.top*k,t.tw*k,t.th*k);g.fillStyle=green;g.font='700 '+Math.max(9,Math.round(t.th*k*.36))+'px monospace';g.fillText(t.name,t.left*k+6,t.top*k+3,t.tw*k-10);g.font=Math.max(7,Math.round(t.th*k*.26))+'px monospace';g.fillText(t.role,t.left*k+6,t.top*k+t.th*k*.56,t.tw*k-10);}
+   c.toBlob(async blob=>{shooting=false;const p=blob?await G.add(device,{blob,tags:who,area,zoom}):null;if(active)say(p?'PHOTO SAVED · '+G.count+' IN THE GALLERY'+(who.length?' · '+who.length+' TAGGED':''):'THE PHOTO COULD NOT BE SAVED',2200);},'image/jpeg',.82);
+  }catch{shooting=false;if(active)say('THE PHOTO COULD NOT BE SAVED');}});
+  const f=el.querySelector('[data-pc=flash]');f.classList.remove('on');void f.offsetWidth;f.classList.add('on');return true;
+ }
+ function onShot(e){
+  if(!active||e.button!==0)return;const cv=scene()?.getEngine().getRenderingCanvas();
+  if(e.target!==cv&&!el.contains(e.target)&&e.target!==document.body)return;   // a click on a menu or the chat is not a photo
+  if(root.VoidControls?.deviceClass!=='touch-first'&&!document.pointerLockElement&&cv?.requestPointerLock)try{cv.requestPointerLock()?.catch?.(()=>{});}catch{}
+  e.preventDefault();e.stopImmediatePropagation();shoot();
+ }
  function onWheel(e){
   if(!active)return;e.preventDefault();e.stopImmediatePropagation();wheelAcc+=e.deltaY;const now=performance.now();
   if(Math.abs(wheelAcc)>=40&&now-lastStep>110){zi=pure.stepZoom(steps,zi,wheelAcc<0?1:-1);wheelAcc=0;lastStep=now;lastHud=0;}
@@ -137,12 +167,12 @@
   const sc=scene();if(active||!sc||typeof mode==='undefined'||mode!=='walking')return false;
   device=dev||D.restore({});const def=D.DEVICES[device.model]||D.DEVICES.v1;if(!def.camera?.enabled)return false;
   if(!el)build();el.dataset.device=def.id;steps=pure.zoomSteps(device);zi=0;started=performance.now();lastHud=0;baseFov=null;wheelAcc=0;
-  el.hidden=false;active=true;document.body.classList.add('pd-camera-on');observer=sc.onBeforeRenderObservable.add(tick);addEventListener('wheel',onWheel,{passive:false,capture:true});addEventListener('keydown',onKey,{capture:true});
+  el.hidden=false;active=true;document.body.classList.add('pd-camera-on');observer=sc.onBeforeRenderObservable.add(tick);addEventListener('wheel',onWheel,{passive:false,capture:true});addEventListener('keydown',onKey,{capture:true});addEventListener('mousedown',onShot,{capture:true});
   try{const cv=sc.getEngine().getRenderingCanvas();cv?.focus?.();if(root.VoidControls?.deviceClass!=='touch-first')cv?.requestPointerLock?.()?.catch?.(()=>{});}catch{}
   return true;
  }
  function stop(){
-  if(!active)return;active=false;document.body.classList.remove('pd-camera-on');removeEventListener('wheel',onWheel,{capture:true});removeEventListener('keydown',onKey,{capture:true});target=null;
+  if(!active)return;active=false;document.body.classList.remove('pd-camera-on');removeEventListener('wheel',onWheel,{capture:true});removeEventListener('keydown',onKey,{capture:true});removeEventListener('mousedown',onShot,{capture:true});target=null;
   const sc=scene();if(sc&&observer)sc.onBeforeRenderObservable.remove(observer);observer=null;
   try{if(baseFov!==null&&sc?.activeCamera)sc.activeCamera.fov=baseFov;}catch{}baseFov=null;
   if(el)el.hidden=true;for(const t of tags.values()){t.tag.remove();t.line.remove();t.dot.remove();}tags.clear();
@@ -155,5 +185,5 @@
   let dev=null;try{dev=D.restore(flags()||{});}catch{}
   if(root.VoidPersonalDevice?.isOpen)root.VoidPersonalDevice.close();
   if(start(dev))e.preventDefault();});
- root.VoidDeviceCamera={start,stop,get active(){return active;},get zoom(){return steps[zi];},get steps(){return steps.slice();},get target(){return target?{key:target.key,name:target.name}:null;},get tags(){return [...tags.entries()].filter(([,t])=>!t.tag.hidden).map(([k,t])=>({key:k,name:t.name,role:t.role}));},...pure};
+ root.VoidDeviceCamera={start,stop,shoot,get active(){return active;},get zoom(){return steps[zi];},get steps(){return steps.slice();},get target(){return target?{key:target.key,name:target.name}:null;},get tags(){return [...tags.entries()].filter(([,t])=>!t.tag.hidden).map(([k,t])=>({key:k,name:t.name,role:t.role}));},...pure};
 })(typeof globalThis!=='undefined'?globalThis:this);

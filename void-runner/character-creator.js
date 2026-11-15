@@ -14,7 +14,9 @@
  // Best effort and silent: while the server feature is off the API answers 404 and nothing happens beyond the local save.
  async function upload(a){try{const u=root.VoidAccount?.user;if(!u||root.VoidAccount.guestOnly||!root.VoidAccount.character||!root.VoidNetwork?.request)return false;
   await root.VoidNetwork.request('character/appearance',{body:a,token:await u.getIdToken(),scope:u.uid+':appearance'});root.VoidAccount.appearance=a;return true;}catch{return false;}}
- const current=()=>stored()||A.defaults(A.DEFAULT_LOOK.male);
+ // Extras (face mask, eyewear and the like) start OFF (David, 15 Nov 2026): a new character, a new body or a new outfit comes without them until the player switches one on.
+ const plain=id=>({...A.defaults(id),accessories:[]});
+ const current=()=>stored()||plain(A.DEFAULT_LOOK.male);
 
  const CSS=`#character-creator{position:fixed;inset:0;z-index:60;display:none;pointer-events:none;font-family:ui-monospace,Consolas,monospace;color:#d9fbff}
 #character-creator.on{display:block}
@@ -80,8 +82,8 @@
   const d={...draft,accessories:[...draft.accessories]};
   // changing body or outfit keeps the gear that was chosen (every outfit offers all of it); the new outfit's own default pieces come with it, minus any the gear replaces
   const gearOn=d.accessories.filter(x=>CAT.accessories[x]?.gear);
-  if(kind==='base'){if(v===d.base)return;const n=A.defaults(Object.keys(CAT.looks).find(id=>CAT.looks[id].base===v));remember(n,gearOn);return apply({...n,accessories:withoutCovered([...n.accessories,...gearOn]),hairColor:d.hairColor,clothingColor:d.clothingColor});}
-  if(kind==='look'){if(v===d.look)return;const n=A.defaults(v);remember(n,gearOn);return apply({...n,accessories:withoutCovered([...n.accessories,...gearOn]),hairColor:d.hairColor,clothingColor:d.clothingColor});}
+  if(kind==='base'){if(v===d.base)return;const n=plain(Object.keys(CAT.looks).find(id=>CAT.looks[id].base===v));remember(n,gearOn);return apply({...n,accessories:withoutCovered([...n.accessories,...gearOn]),hairColor:d.hairColor,clothingColor:d.clothingColor});}
+  if(kind==='look'){if(v===d.look)return;const n=plain(v);remember(n,gearOn);return apply({...n,accessories:withoutCovered([...n.accessories,...gearOn]),hairColor:d.hairColor,clothingColor:d.clothingColor});}
   if(kind==='hair'){d.hair=v;}
   if(kind==='hairColor')d.hairColor=v||null;if(kind==='clothingColor')d.clothingColor=v||null;
   if(kind==='acc'){const i=d.accessories.indexOf(v);if(i>=0){d.accessories.splice(i,1);if(taken[v]&&CAT.looks[d.look].accessories[taken[v]]&&!d.accessories.includes(taken[v]))d.accessories.push(taken[v]);delete taken[v];}else{d.accessories.push(v);for(const [x,y] of Object.entries(REPLACES)){if(v===x){const j=d.accessories.indexOf(y);if(j>=0){d.accessories.splice(j,1);taken[x]=y;}}else if(v===y){const j=d.accessories.indexOf(x);if(j>=0){d.accessories.splice(j,1);delete taken[x];}}}if(v==='hat'&&d.hair!=='native'&&d.hair!=='none'&&!CAT.hair[d.hair].hatOk)d.hair='native';}}
@@ -92,7 +94,7 @@
   if(open||typeof walker==='undefined'||!walker)return false;
   const S=root.BABYLON,scene=root.VoidBabylon?.scene;if(!S||!scene||!root.VoidCharacterAssembler)return false;
   open=true;closing=false;ctx=c||{context:'wardrobe'};ensureUi();
-  original=stored()||A.defaults(A.DEFAULT_LOOK.male);draft=A.normalize(original);
+  original=stored()||plain(A.DEFAULT_LOOK.male);draft=A.normalize(original);
   snapshot={mode,walker:{...walker}};
   // The District interior sits in the world rotated half a turn: world = anchor - local. The anchor comes from the known pod exit point.
   const DA=root.VoidDistrictArea,exit=DA?.podExit?.(root.VoidNeoChinatown);if(!exit){open=false;return false;}
