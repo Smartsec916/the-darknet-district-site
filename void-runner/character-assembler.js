@@ -27,7 +27,7 @@
  function bindData(){return bindP||(bindP=fetch(new URL('void-runner/'+PARTS+'bind-data.json',document.baseURI||location.href)).then(r=>{if(!r.ok)throw Error('bind data HTTP '+r.status);return r.json();}).catch(e=>{bindP=null;throw e;}));}
  function ensureLook(model,scene){
   const id='crowd:'+model;if(root.VoidAssets.container(id))return Promise.resolve(id);
-  return once(looks,model,()=>root.VoidAssets.load(id,{src:CROWD+model+'.glb',background:true},scene).then(()=>id));
+  return once(looks,model,()=>root.VoidAssets.load(id,{src:CROWD+model+'.glb',background:true},scene).then(()=>{if(!root.VoidAssets.container(id))throw Error('look not loaded');return id;}));   /* a download dropped by a change of scene used to be remembered as done: the figure then stayed on its fallback until the page was reloaded */
  }
  function ensureHairPart(style,scene){
   return once(hairParts,style,()=>root.VoidAssets.loadContainer({src:PARTS+CAT.hair[style].part},scene,null,'hair:'+style).then(c=>{

@@ -982,10 +982,14 @@
     const staffActors={};   /* Admin and Iris as built here: the scanning house rule below walks one of them to the player */
     {const staff=(id,pos,appearance)=>{const A=root.VoidCharacterAssembler,V=root.VoidCharacterAppearance;if(!A||!V?.validate?.(appearance)){characterModel(id,target,pos,false);return;}
       const holder=new B.TransformNode('npc-'+id,scene);holder.parent=target;holder.position.set(pos[0],0,pos[2]);holder.rotation.y=Math.PI;holder.metadata={character:id};let made=null,gone=false;owned.push({dispose(){gone=true;try{made?.dispose();}catch{}holder.dispose();}});staffActors[id]={holder,home:[pos[0],pos[2]],play(c){try{made?.play?.(c);}catch{}},get ready(){return !!made&&!gone;}};
-      const viaLook=()=>A.build(appearance,holder,{scene,clip:'idle'}).then(c=>{made=c;if(gone)c.dispose();}).catch(()=>{if(!gone)characterModel(id,target,pos,false);});
+      let ownShown=false;const viaLook=()=>A.build(appearance,holder,{scene,clip:'idle'}).then(c=>{if(gone||ownShown){c.dispose();return;}made=c;}).catch(()=>{if(!gone&&!ownShown)characterModel(id,target,pos,false);});
       /* A member of staff with a model of their own (district-people.js `model`: Admin, made with Meshy from David's pictures) is drawn from that file; the creator look is the fallback. */
       const who=root.VoidDistrictPeople?.npc(id),own=who?.model;
-      if(own&&root.VoidAssets&&root.VoidCrowd?.clips?.[own])A.ensureLook(own,scene).then(()=>{if(gone)return;const node=root.VoidAssets.instance('crowd:'+own,holder);if(!node)throw Error('model not available');node.scaling.setAll(who.scale||1);const ctrl=root.VoidCrowd.animate(node,own,'idle');made={play:c=>ctrl.play(c),dispose(){try{ctrl.dispose();}catch{}node.dispose();}};}).catch(viaLook);else viaLook();};
+      /* If the model is not there yet (a slow or interrupted download) the creator look stands in, and the model is tried again until it arrives: David, 15 Nov 2026,
+         saw the old Admin and Iris because one failed attempt used to settle it for the whole visit. */
+      const tryOwn=attempt=>A.ensureLook(own,scene).then(()=>{if(gone||ownShown)return;const node=root.VoidAssets.instance('crowd:'+own,holder);if(!node)throw Error('model not available');node.scaling.setAll(who.scale||1);const ctrl=root.VoidCrowd.animate(node,own,'idle'),old=made;ownShown=true;
+        made={play:c=>ctrl.play(c),dispose(){try{ctrl.dispose();}catch{}node.dispose();}};try{old?.dispose();}catch{}}).catch(()=>{if(gone||scene.isDisposed)return;if(!attempt)viaLook();if(attempt<8)setTimeout(()=>{if(!gone&&!scene.isDisposed&&!ownShown)tryOwn(attempt+1);},5000+attempt*3000);});
+      if(own&&root.VoidAssets&&root.VoidCrowd?.clips?.[own])tryOwn(0);else viaLook();};
      if(state?.story?.flags?.adminOccupied!==true)staff('admin',[8,0,48.6],root.VoidDistrictPeople?.npc('admin')?.appearance||{v:1,base:'male',look:'district-smuggler',hair:'short03',hairColor:'silver',clothingColor:'graphite',accessories:[]});
      staff('iris',[12.5,0,48.6],root.VoidDistrictPeople?.npc('iris')?.appearance||{v:1,base:'female',look:'fixer-01',hair:'bob02',hairColor:'silver',clothingColor:'black',accessories:['gear-collar','gear-shoulders','gear-chest']})   /* one record (district-people.js) draws the figure AND the profile portrait, so they can never differ */;}
 

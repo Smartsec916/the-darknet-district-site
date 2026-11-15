@@ -207,6 +207,7 @@ screen.addEventListener('change', async e => {
     if ($('radio-status')) $('radio-status').textContent = VoidRadio.status;
   }
 });
+let walkRetry=null;document.addEventListener('click',e=>{if(e.target.closest?.('button')?.dataset.action!=='walk-retry'||!walkRetry)return;const r=walkRetry;walkRetry=null;enterWalking(r.id,r.options);});
 // options: silent (no preparation panel; the caller shows its own transition), spawn [x,y,z] and yaw (appear here instead of at the location's spawn).
 async function enterWalking(id, options = {}) {
   const def = VoidExplorationData.locations[id];
@@ -235,7 +236,9 @@ async function enterWalking(id, options = {}) {
     if(token!==preparationGeneration)return;
     walkingLocation = null;
     mode = 'dock';
-    panel('LOCATION UNAVAILABLE', 'Access <em>held.</em>', '<p>' + escapeText(error.message) + '</p>', button('RETURN TO SHIP', 'dock'));
+    // A player with no ship has no ship page to go back to (the District-first game starts on foot): offer another try and the main menu. RETURN TO SHIP only for a player who has one.
+    walkRetry={id,options};
+    panel('LOCATION UNAVAILABLE', 'Loading <em>did not finish.</em>', '<p>' + escapeText(error.message) + '</p><p>This can happen on a slower computer or connection. Trying again usually works, because what was already downloaded is kept.</p>', button('TRY AGAIN', 'walk-retry')+(VoidShips.hasShip(state)?button('RETURN TO SHIP', 'dock', true):'')+button('MAIN MENU', 'menu-main', true));
   } finally {
     if(token===preparationGeneration)VoidGraphics.busy = false;
   }

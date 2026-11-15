@@ -6,6 +6,14 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 16 Nov 2026: one music for the District, Admin/Iris model retry, the "Return to Ship" dead end (build `2026-11-16-entry-fix-1`)
+
+- **Music:** the hallway recording now plays in every District room at the hallway's level; only the arcade keeps its own (`music-score.js` `files` and style gains). The rooms are still separate areas for ambience, footsteps and the door lock. The bar, store, entry and VR recordings stay on disk, unused.
+- **Admin and Iris showed their old looks for David.** The live site does serve and use the new models (checked with a browser against the live site). The cause found: if the first download of a model was dropped by a change of scene, it was remembered as done and the creator look stood in for the rest of the visit. `character-assembler.js` `ensureLook` now fails properly, and `neochinatown.js` `staff` keeps trying and swaps the real model in when it arrives. NOT CONFIRMED that this is what David hit; ask him to look again after a reload.
+- **Friend sent to "Return to Ship" on entering the campaign.** That page is shown only when entering a place fails. The limits for building a scene (10 s) and loading its assets (15 s) were too short for a slower computer (`preparation.js`); they are now 60 s. The failure page now offers TRY AGAIN and MAIN MENU, and RETURN TO SHIP only to a player who has a ship. Skirmish then Main Menu then Campaign was run in a browser and worked; the slow-computer cause is a deduction, not something reproduced on her machine.
+- Also: leaving to the main menu from inside a pod no longer leaves the pod's strip over the menu.
+- Seen and NOT fixed: the FPS skirmish logs "[SKIRMISH] Campaign state changed during isolated match" when it ends. Nothing is saved from it, but something touches the campaign state during a skirmish; worth a look.
+
 ### 15 Nov 2026 (late night): District life, photos and Gallery, News filters, dispensary vending (build `2026-11-16-district-life-1`)
 
 David's six requests of this evening, all done in one change:
