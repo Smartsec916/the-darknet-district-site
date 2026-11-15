@@ -66,3 +66,12 @@ David asked for the NPCs in The Darknet District to be listed with the players, 
 - **Not built yet (David asked 15 Nov):** tagging people in Messages and Mission Logs, and bounties on NPCs or players. Both need the District server to carry and check them.
 - **Games page:** "The Darknet District - Game" card; `site-return.js` puts a "← WEBSITE" button on every game page (VOID//RUNNER: main menu only); inside the arcade the cabinet bar says EXIT GAME.
 
+## 15 Nov 2026 (night): WarFlying is an app
+
+David: add the WarFlying app to the App Store; it takes 15% of storage on any personal device; it is no longer attached to ships; it has Activate / Deactivate; logged frequencies light the send button; the District interior is shielded. (He wrote "Warfling"; the game's existing name WarFlying is kept.)
+
+- **App Store:** WARFLYING, free, 15% (`STORE_EXTRA` in `device-v1.js`; `install`/`uninstall`). A stock V1 goes from 75% to 90%. Installed apps appear on the home screen after the built-in ones.
+- **The app:** ACTIVATE / DEACTIVATE (`story.flags.warflyingActive`), points, frequencies identified, waiting to send, **SEND DATA TO WARFLYING LEADERBOARD** (highlighted when anything is waiting; uses the existing Relay upload and its link rules, so it cannot send from inside the District), the leaderboard and recent discoveries.
+- **Scanning** (`warflying-scanner.js`): listens when the app is installed and active. In flight it hears what it always did. On foot it logs the transmitter of the place you are in. **Inside The Darknet District it is shielded and hears nothing.**
+- **The old ship module** (`warflying-module`, Utility slot) is no longer needed for scanning. It is still in the item list and still sold at outfitters so no save breaks. **Open question for David:** remove it from sale and refund owners? The scrambler is unchanged and still a ship module.
+

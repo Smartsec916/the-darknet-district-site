@@ -7,7 +7,7 @@ test('V1 is the default device and the registry is the extension point',()=>{
  for(const id of D.DEVICES.v1.apps)assert.ok(D.APPS[id],id);
  assert.deepEqual(Object.keys(D.APPS).filter(k=>D.APPS[k].state==='placeholder').sort(),['gallery'],'only the gallery is a placeholder');
  assert.equal(D.DEVICES.v1.camera.enabled,true);assert.deepEqual(D.DEVICES.v1.camera.zooms,[1,1.5,2,3]);assert.equal(D.DEVICES.v1.camera.maxZoom,2);
- assert.deepEqual(Object.keys(D.DEVICES),['v1'],'no V2/V3 exists yet');assert.equal(D.STORE_EXTRA.length,0,'nothing is for sale');
+ assert.deepEqual(Object.keys(D.DEVICES),['v1'],'no V2/V3 exists yet');assert.deepEqual(D.STORE_EXTRA.map(x=>x.id),['warflying'],'one optional app, free');assert.ok(!JSON.stringify(D.STORE_EXTRA).match(/price|credit|buy|purchase/i),'nothing is for sale');
 });
 test('saved device state: unknown values are ignored, built-in apps stay installed, settings are whitelisted, a save without it loads',()=>{
  const flags={campaignEpoch:1};const d=D.restore(flags);assert.deepEqual(d.apps,D.DEVICES.v1.apps);assert.deepEqual(d.settings,D.DEFAULT_SETTINGS);
@@ -19,10 +19,10 @@ test('saved device state: unknown values are ignored, built-in apps stay install
  // every value written is something the cloud save validator accepts (booleans, strings up to 200 characters, safe integers)
  for(const v of Object.values(D.write({},D.restore({}))))assert.ok(typeof v==='boolean'||typeof v==='string'&&v.length<=200||Number.isSafeInteger(v));
 });
-test('App Store: shows installed apps and says nothing more is available; no purchases',()=>{
- const l=D.storeListing(D.restore({}));assert.ok(l.rows.every(r=>r.status==='installed'));assert.equal(l.more,false);
+test('App Store: the built-in apps are installed, WarFlying is offered free; no purchases',()=>{
+ const l=D.storeListing(D.restore({}));assert.ok(l.system.every(r=>r.status==='installed'));assert.equal(l.more,true);
  assert.ok(!JSON.stringify(l).match(/price|\$|credit|buy|purchase/i));
- assert.equal(l.system.length,10,'the ten system apps are listed as built in');assert.equal(D.appTitle('device',D.restore({})),'MY V1','the device app carries the model name');assert.equal(D.appTitle('store',D.restore({})),'APP STORE');assert.equal(l.installed.length,0,'no optional app is installed on a stock device');assert.equal(l.available.length,0,'nothing downloadable exists yet');
+ assert.equal(l.system.length,10,'the ten system apps are listed as built in');assert.equal(D.appTitle('device',D.restore({})),'MY V1','the device app carries the model name');assert.equal(D.appTitle('store',D.restore({})),'APP STORE');assert.equal(l.installed.length,0,'no optional app is installed on a stock device');assert.deepEqual(l.available.map(a=>[a.id,a.storagePct,a.status]),[['warflying',15,'available']],'WarFlying is the one optional app');
 });
 test('stock storage: 75% used, 25% available, 10 system apps, 0 optional apps; old saves keep working; optional apps would add their own share',()=>{
  const stock=D.storage(D.restore({}));assert.deepEqual({u:stock.usedPct,a:stock.availablePct,s:stock.systemApps,o:stock.optionalApps,m:stock.model},{u:75,a:25,s:10,o:0,m:'V1'});
@@ -30,10 +30,10 @@ test('stock storage: 75% used, 25% available, 10 system apps, 0 optional apps; o
  const old=D.restore({deviceModel:'v1',deviceApps:D.DEVICES.v1.apps.join(','),deviceSettings:'motion=full;scan=0;size=expanded'});assert.equal(D.storage(old).usedPct,75);assert.equal(old.settings.motion,'full');
  const flags=D.write({},D.restore({}));assert.deepEqual(Object.keys(flags).sort(),['deviceApps','deviceMapInterior','deviceMapStreet','deviceModel','deviceSettings','deviceVersion'],'no new save field');
  // a future optional app (added to STORE_EXTRA by its own approved change) is kept across a save and adds its storage; an unknown id is dropped
- D.STORE_EXTRA.push({id:'testapp',title:'TEST',generation:1,storagePct:10});D.APPS.testapp={id:'testapp',title:'TEST',state:'ready',note:''};
+ const keep=D.STORE_EXTRA.splice(0);D.STORE_EXTRA.push({id:'testapp',title:'TEST',generation:1,storagePct:10});D.APPS.testapp={id:'testapp',title:'TEST',state:'ready',note:''};
  try{const d=D.restore({deviceApps:D.DEVICES.v1.apps.join(',')+',testapp,evil'});assert.ok(d.apps.includes('testapp'));assert.ok(!d.apps.includes('evil'));const s=D.storage(d);assert.deepEqual([s.usedPct,s.availablePct,s.optionalApps],[85,15,1]);assert.equal(D.storeListing(d).installed.length,1);
   D.STORE_EXTRA[0].storagePct=60;assert.equal(D.storage(d).usedPct,100,'capped at 100');
- }finally{D.STORE_EXTRA.pop();delete D.APPS.testapp;}
+ }finally{D.STORE_EXTRA.pop();D.STORE_EXTRA.push(...keep);delete D.APPS.testapp;}
 });
 test('interface timing: configurable, clamped, and off for reduced motion',()=>{
  const d=D.restore({}),u=D.DEVICES.v1.ui;assert.equal(u.appOpenMs,320);
@@ -73,4 +73,16 @@ test('portrait cache keys: a different look, character or asset version never sh
  assert.notEqual(k('p1',a),k('p1',b));assert.notEqual(k('p1',a),k('p1',c));assert.notEqual(k('p1',a),k('p2',a));assert.notEqual(k('p1',a,1),k('p1',a,2));
  assert.notEqual(D.portraitKey('npc','rook',{model:'x'}),D.portraitKey('npc','rook',{model:'y'}),'an updated NPC model invalidates its portrait');
  assert.notEqual(D.portraitKey('npc','a',{model:'x'}),D.portraitKey('npc','b',{model:'x'}));
+});
+test('WarFlying app: installing it takes 15% (a stock V1 goes to 90%), it survives a save, and uninstalling gives the storage back',()=>{
+ const d=D.restore({});assert.equal(D.storage(d).usedPct,75);const apps=D.install(d,'warflying');assert.ok(apps&&apps.includes('warflying'));d.apps=apps;
+ const s=D.storage(d);assert.deepEqual([s.usedPct,s.availablePct,s.optionalApps],[90,10,1]);assert.equal(D.install(d,'warflying'),null,'not twice');
+ const back=D.restore(D.write({},d));assert.ok(back.apps.includes('warflying'));assert.equal(D.storage(back).usedPct,90);assert.equal(D.storeListing(back).installed[0].id,'warflying');
+ assert.equal(D.install(d,'nope'),null);assert.equal(D.uninstall(d,'missions'),null,'a built-in app cannot be removed');d.apps=D.uninstall(d,'warflying');assert.equal(D.storage(d).usedPct,75);
+ assert.equal(D.STORE_EXTRA.find(x=>x.id==='warflying').generation,1,'runs on the V1 and every later device');
+});
+test('WarFlying is the app, not a ship module: the scanner listens only when the app is installed and switched on, and never inside the District',()=>{
+ const src=require('node:fs').readFileSync('void-runner/warflying-scanner.js','utf8');
+ assert.match(src,/const installed=\(\)=>appInstalled\(\)&&state\?\.story\?\.flags\?\.warflyingActive===true;/);assert.doesNotMatch(src,/const installed=\(\)=>P\.utility/);
+ assert.match(src,/walkingLocation\.area==='interior'/);assert.match(src,/if\(!installed\(\)\|\|shielded\(\)/,'on foot it stays silent when shielded');
 });

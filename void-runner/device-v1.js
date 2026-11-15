@@ -34,10 +34,14 @@
   gallery:{id:'gallery',title:'GALLERY',glyph:'G',state:'placeholder',note:'Photos will appear here when the camera exists.'},
   store:{id:'store',title:'APP STORE',glyph:'A',state:'ready',note:'Apps for this device.'},
   device:{id:'device',title:'MY DEVICE',glyph:'D',state:'ready',note:'This device: its model, storage and built-in apps.'},   // shown as MY V1, MY V2... (appTitle)
-  settings:{id:'settings',title:'SETTINGS',glyph:'*',state:'ready',note:'Device preferences.'}
+  settings:{id:'settings',title:'SETTINGS',glyph:'*',state:'ready',note:'Device preferences.'},
+  // optional apps (installed from the App Store; listed in STORE_EXTRA)
+  warflying:{id:'warflying',title:'WARFLYING',glyph:'W',state:'ready',note:'Listens for nearby frequencies and logs them for the WarFlying leaderboard.'}
  };
  // Apps a player could install later. Intentionally empty: no purchases, prices or unlocks exist yet.
- const STORE_EXTRA=[];   // each future entry: {id,title,generation,note,storagePct}
+ // Apps a player can install: {id,title,generation,note,storagePct}. An app runs on every model of its generation or later (V1, V2, V3 // Shadow...).
+ // WarFlying (David, 15 Nov 2026): the scanner is an app on the personal device now, no longer a module fitted to a ship. Free; takes 15% of storage.
+ const STORE_EXTRA=[{id:'warflying',title:'WARFLYING',generation:1,storagePct:15,note:'Scans for nearby frequencies and logs them. Send what you log to the WarFlying leaderboard. Does not work inside The Darknet District, which is shielded.'}];
  // Which in-game model draws each named NPC's portrait: {npcId: 'crowd-look-id'}. EMPTY on purpose: the game does not yet say which crowd model is which named
  // character, and a guessed face would be wrong. An entry here makes that NPC's portrait appear (and regenerate whenever ASSET_VERSION or the model changes).
  const NPC_MODELS={};
@@ -76,9 +80,12 @@
  }
  /* What an app is called on THIS device: the device app carries the model's name (MY V1 on a V1, MY V2 on a V2). */
  function appTitle(id,device){const def=DEVICES[device&&device.model]||DEVICES.v1;return id==='device'?'MY '+def.name:(APPS[id]||{}).title||'';}
+ /* Install or remove an optional app. Returns the new app list, or null when it cannot be done (unknown app, wrong generation, no room, a built-in app). */
+ function install(device,id){const def=DEVICES[device.model]||DEVICES.v1,x=STORE_EXTRA.find(e=>e.id===id);if(!x||!APPS[id]||x.generation>def.generation||device.apps.includes(id))return null;if(storage(device).usedPct+(Number(x.storagePct)||0)>100)return null;return [...device.apps,id];}
+ function uninstall(device,id){const def=DEVICES[device.model]||DEVICES.v1;if(def.apps.includes(id)||!device.apps.includes(id))return null;return device.apps.filter(a=>a!==id);}
  function storeListing(device){
   const def=DEVICES[device.model]||DEVICES.v1,rows=def.apps.map(id=>({id,title:appTitle(id,device),status:device.apps.includes(id)?'installed':'available',compatible:true,note:APPS[id].note,placeholder:APPS[id].state==='placeholder',system:true}));
-  const extra=STORE_EXTRA.map(x=>({id:x.id,title:x.title,status:device.apps.includes(x.id)?'installed':x.generation>def.generation?'locked':'available',compatible:x.generation<=def.generation,note:x.note||'',placeholder:false,system:false}));
+  const extra=STORE_EXTRA.map(x=>({id:x.id,title:x.title,storagePct:Number(x.storagePct)||0,status:device.apps.includes(x.id)?'installed':x.generation>def.generation?'locked':'available',compatible:x.generation<=def.generation,note:x.note||'',placeholder:false,system:false}));
   for(const x of extra)rows.push(x);
   return {rows,system:rows.filter(r=>r.system),installed:extra.filter(r=>r.status==='installed'),available:extra.filter(r=>r.status!=='installed'),more:STORE_EXTRA.length>0,storage:storage(device)};
  }
@@ -146,6 +153,6 @@
    facts:learned,places:data.place?[String(data.place).slice(0,100)]:[],portrait:data.appearance?{key:portraitKey('npc',data.id||'',data.appearance),source:{type:'appearance',appearance:data.appearance,resident:true},state:'ready'}:{key:portraitKey('npc',data.id||'',data.model?{model:data.model}:null),source:data.model?{type:'model',model:data.model}:null,state:data.model?'ready':'unavailable'},
    actions:[{id:'talk',label:'CONVERSATION',enabled:!!data.here,reason:data.here?'':'Talk to them in person.'}]};
  }
- const api={ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
+ const api={ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,install,uninstall,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidDeviceV1=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
