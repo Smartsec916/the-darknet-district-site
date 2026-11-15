@@ -6,6 +6,13 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### UNDERGROUND//OVERDRIVE is the third playable arcade game (16 Nov 2026 build `2026-11-16-overdrive-1`)
+David's Tesana fighting game is built into `underground-overdrive/`, takes the fifth arcade cabinet (was the COBALT STAIRS placeholder) and is on `games-list.html`. Details and how to rebuild: [`ARCADE.md`](ARCADE.md). Playable cabinet screens now flash PRESS E TO PLAY.
+
+### OPEN DECISION for David: handle-only (anonymous) accounts cannot use multiplayer
+David reported (15 Nov 2026) that a friend who joined with a handle only (a Firebase anonymous account) was invisible to him, while his own second Google account was visible. This is the designed rule, not a fault, and it is enforced in three places: the client (`remote-players.js` shows "Multiplayer and chat need a registered account" and never connects), the hub (`hub-server.cjs` closes with 4407; live setting `HUB_ACCESS=registered`), and the game API (`void_runner_api.py` refuses to store a permanent character for an anonymous account, and the hub requires a stored character and handle). Reason recorded in `MODERATION.md`: a throwaway account cannot be removed for good, so chat abuse and ban evasion have no cost. **Nothing was changed.** Letting handle-only accounts in needs changes to the client, the hub and the API, a redeploy of both Render services, and David's decision on the moderation trade-off (for example: visible but chat stays registered-only). The friend's present options: sign in with Google or an email link, which keeps the handle.
+
+
 ### Newest: THE THREE-LOCATION EXPANSION IS COMPLETE. Zen Zephyr Temple (location 3 of 3) is DEPLOYED (PR #283, `ca6eed7`, 16 Nov 2026)
 Milked (#265), Corporate District (#275) and the Zen Zephyr Temple (#283) are all merged, deployed and live-verified in a real browser. Details: the dated section "16 Nov 2026: Zen Zephyr Temple" below and [`TEMPLE.md`](TEMPLE.md). Nothing in the expansion is left to build; what remains is polish and David's approvals (below). The District-interior modernization continues in another session. **Shared hot files:** `void-runner-sw.js` BUILD and `void_runner_admin_inventory.json` conflict on every merge while two sessions work; merge `main` in, take `main`'s inventory, run `node tools/admin-inventory.cjs`, set a fresh BUILD. A force-push to an existing branch can be denied in the cloud session: push a new branch instead.
 

@@ -79,7 +79,7 @@
 
   // Five cabinets in a row along the back wall, facing the doorway; the middle one is playable. To add a game: give a cabinet its id here, add it to GAMES in
   // the arcade build below (name, colours, attract loop), and, if it is playable, to district-arcade.js.
-  const ARCADE=['laser-moth','turbo-kelp','blackout-protocol','corporate-zombies','cobalt-stairs'].map((game,i)=>({id:'arcade-cab-'+String(i+1).padStart(2,'0'),x:-9.9,z:58.6+i*1.7,ry:-Math.PI/2,game,playable:game==='blackout-protocol'||game==='corporate-zombies'}));   // two playable games (2026-11-13: Corporate Zombies took the fourth cabinet)
+  const ARCADE=['laser-moth','turbo-kelp','blackout-protocol','corporate-zombies','underground-overdrive'].map((game,i)=>({id:'arcade-cab-'+String(i+1).padStart(2,'0'),x:-9.9,z:58.6+i*1.7,ry:-Math.PI/2,game,playable:game==='blackout-protocol'||game==='corporate-zombies'||game==='underground-overdrive'}));   // three playable games (2026-11-13: Corporate Zombies took the fourth cabinet; 2026-11-15: UNDERGROUND//OVERDRIVE the fifth)
   solids.push({id:'arc-west-row',position:[-9.9,.9,62],size:[.9,1.8,7.7]});
   const interactions=[
     // Admin and Iris are both at the counter, except while the first faction payment waits and Admin is 'occupied' (doc 06).
@@ -94,7 +94,7 @@
     {id:'district-arcade-blackout',label:'PLAY BLACKOUT PROTOCOL',position:[-8.9,1.7,62],action:'district-arcade',game:'blackout-protocol',range:.95},
     {id:'district-arcade-zombies',label:'PLAY CORPORATE ZOMBIES',position:[-8.9,1.7,63.7],action:'district-arcade',game:'corporate-zombies',range:.95},
     {id:'district-arcade-soon-north',label:'ARCADE CABINETS · COMING SOON',position:[-8.9,1.7,59.4],action:'district-arcade-soon',range:1.5},
-    {id:'district-arcade-soon-south',label:'ARCADE CABINETS · COMING SOON',position:[-8.9,1.7,65.5],action:'district-arcade-soon',range:1.1},
+    {id:'district-arcade-overdrive',label:'PLAY UNDERGROUND//OVERDRIVE',position:[-8.9,1.7,65.4],action:'district-arcade',game:'underground-overdrive',range:.95},
     {id:'district-wardrobe',label:'WARDROBE',position:[-9,1.7,72.1],action:'district-wardrobe',range:2.6},
     {id:'district-meeting',label:'MEETING ROOM / PRIVATE',position:[2.4,1.7,62.5],action:'district-meeting',range:2.6},
     {id:'district-stairs',label:'CLIMB TO THE SMOKING AREA',position:[14.6,1.7,74.4],action:'district-stairs',range:2.6},
@@ -1082,7 +1082,7 @@
     // A 1980s arcade kept alive inside the District: patterned carpet, tube lights, posters, and rows of cabinets with CRT screens running their attract loops.
     // One cabinet plays the real Blackout Protocol (district-arcade.js); the rest are placeholders for games to come (names are working titles for David to change).
     const arcade=(()=>{
-     const GAMES={'blackout-protocol':['BLACKOUT PROTOCOL','#ff3b3b','#f4f4f4','play'],'laser-moth':['LASER MOTH','#ff5bd0','#38e8ff','shooter'],'turbo-kelp':['TURBO KELP','#6cff9e','#ffe066','racer'],'corporate-zombies':['CORPORATE ZOMBIES','#ff3b3b','#ff8a2a','shooter'],'cobalt-stairs':['COBALT STAIRS','#5a8cff','#f4f4f4','platform']};   // the attract loops below also include puzzle, brawler and maze, ready for more cabinets
+     const GAMES={'blackout-protocol':['BLACKOUT PROTOCOL','#ff3b3b','#f4f4f4','play'],'laser-moth':['LASER MOTH','#ff5bd0','#38e8ff','shooter'],'turbo-kelp':['TURBO KELP','#6cff9e','#ffe066','racer'],'corporate-zombies':['CORPORATE ZOMBIES','#ff3b3b','#ff8a2a','shooter'],'underground-overdrive':['UNDERGROUND//OVERDRIVE','#ff3fb4','#35d8ff','fighter']};   // the attract loops below also include puzzle, brawler and maze, ready for more cabinets
      const carpet=texture('arcade-carpet',256,256,(g,W,H)=>{g.fillStyle='#150a24';g.fillRect(0,0,W,H);const cols=['#ff3fb4','#38e8ff','#ffe066','#6cff9e','#9b7bff'];for(let i=0;i<70;i++){const x=rand()*W,y=rand()*H,c=cols[i%cols.length],k=i%3;g.strokeStyle=c;g.fillStyle=c;g.lineWidth=2;g.globalAlpha=.75;
        if(k===0){g.beginPath();g.moveTo(x,y);g.lineTo(x+9,y+14);g.lineTo(x-9,y+14);g.closePath();g.stroke();}else if(k===1){g.beginPath();for(let q=0;q<4;q++)g.lineTo(x+q*6,y+(q%2?6:0));g.stroke();}else g.fillRect(x,y,4,4);}g.globalAlpha=1;});
      const carpetMat=new B.StandardMaterial('ncz-arcade-carpet',scene);owned.push(carpetMat);carpet.uScale=3;carpet.vScale=3.6;carpet.wrapU=carpet.wrapV=B.Texture.WRAP_ADDRESSMODE;carpetMat.diffuseTexture=carpet;carpetMat.specularColor=new B.Color3(.02,.02,.03);carpetMat.emissiveColor=new B.Color3(.16,.12,.2);
@@ -1094,7 +1094,7 @@
      const poster=(key,p,ry)=>{const [name,a,b2]=GAMES[key],t=texture('arcade-poster-'+key,128,192,(g,W,H)=>{const gr=g.createLinearGradient(0,0,W,H);gr.addColorStop(0,a);gr.addColorStop(1,'#07060c');g.fillStyle=gr;g.fillRect(0,0,W,H);g.strokeStyle=b2;g.lineWidth=4;g.strokeRect(5,5,W-10,H-10);
        g.fillStyle=b2;for(let i=0;i<7;i++)g.fillRect(14+i*15,40+((i*37)%60),9,9);g.fillStyle='#fff';g.font='900 17px Arial,Helvetica,sans-serif';g.textAlign='center';name.split(' ').forEach((w,i)=>g.fillText(w,W/2,128+i*20));g.font='700 9px Arial,sans-serif';g.fillStyle=b2;g.fillText(key==='blackout-protocol'?'NOW PLAYING':'COMING SOON',W/2,178);});
       plane('arcade-poster',1,1.5,p,texMat('arcade-poster-'+key,t,{glow:true}),ry);};
-     poster('blackout-protocol',[-6,2,57.74],Math.PI);poster('laser-moth',[-4.4,2,57.74],Math.PI);poster('turbo-kelp',[-6,2,66.26],0);poster('corporate-zombies',[-4.4,2,66.26],0);poster('cobalt-stairs',[-3.24,2,65.5],Math.PI/2);
+     poster('blackout-protocol',[-6,2,57.74],Math.PI);poster('laser-moth',[-4.4,2,57.74],Math.PI);poster('turbo-kelp',[-6,2,66.26],0);poster('corporate-zombies',[-4.4,2,66.26],0);poster('underground-overdrive',[-3.24,2,65.5],Math.PI/2);
      // Screens: one small picture per game, redrawn a few times a second while someone is near, with chunky pixels like a CRT.
      const screens={},marquees={};
      const attract={
@@ -1106,7 +1106,8 @@
       puzzle(g,W,H,t,a,b){g.fillStyle='#0a0714';g.fillRect(0,0,W,H);const cols=[a,b,'#ffe066','#ff5bd0'];for(let y=0;y<6;y++)for(let x=0;x<8;x++){const s=(x*7+y*13+((t|0)*(x+y)%5))%6;if(y>2||s<2){g.fillStyle=cols[(x*3+y*5+(t*.5|0))%4];g.fillRect(24+x*14,30+y*14,12,12);}}g.fillStyle='#fff';g.fillRect(24+((t*2|0)%8)*14,10+((t*8)%18),12,12);},
       brawler(g,W,H,t,a,b){g.fillStyle='#0d0a16';g.fillRect(0,0,W,H);g.fillStyle='#1c1830';for(let i=0;i<7;i++)g.fillRect(((i*36-t*12)%(W+40)+W+40)%(W+40)-30,30+(i%3)*10,26,70);g.fillStyle='#2a2636';g.fillRect(0,H-24,W,24);g.fillStyle=a;g.fillRect(50,H-24-36,13,36);g.fillRect(63,H-24-26,(t*4|0)%2?12:4,5);g.fillStyle=b;for(let i=0;i<2;i++)g.fillRect(((W-(t*26+i*70)%(W+20))),H-24-34,13,34);},
       maze(g,W,H,t,a,b){g.fillStyle='#04040c';g.fillRect(0,0,W,H);g.strokeStyle=b;g.lineWidth=2;for(let y=0;y<5;y++)for(let x=0;x<7;x++)if((x*5+y*3)%4)g.strokeRect(12+x*20,12+y*20,14,14);g.fillStyle='#fff';for(let i=0;i<14;i++)g.fillRect(9+i*10,H-12,2,2);g.fillStyle=a;const k=(t*.5)%1;g.beginPath();g.arc(10+k*(W-20),H-11,5,.3*Math.abs(Math.sin(t*8)),6.28-.3*Math.abs(Math.sin(t*8)));g.lineTo(10+k*(W-20),H-11);g.fill();}};
-     const drawScreen=(key,t)=>{const [name,a,b2,kind]=GAMES[key],tex=screens[key],g=tex.getContext(),W=160,H=128;attract[kind](g,W,H,t,a,b2);if(kind!=='play'&&(t*1.5|0)%3!==0){g.fillStyle='rgba(0,0,0,.55)';g.fillRect(0,H/2-11,W,22);g.fillStyle='#fff';g.font='700 11px monospace';g.textAlign='center';g.fillText('COMING SOON',W/2,H/2+4);}
+     const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */
+     const drawScreen=(key,t)=>{const [name,a,b2,kind]=GAMES[key],tex=screens[key],g=tex.getContext(),W=160,H=128;attract[kind](g,W,H,t,a,b2);if(kind!=='play'&&(t*1.5|0)%3!==0){g.fillStyle='rgba(0,0,0,.55)';g.fillRect(0,H/2-11,W,22);g.fillStyle='#fff';g.font='700 11px monospace';g.textAlign='center';g.fillText(playableGames.has(key)?'PRESS E TO PLAY':'COMING SOON',W/2,H/2+4);}
       g.fillStyle='rgba(0,0,0,.18)';for(let y=0;y<H;y+=3)g.fillRect(0,y,W,1);tex.update();};
      const screenMats={},marqueeMats={},sideMats={};
      for(const key of Object.keys(GAMES)){const [name,a,b2]=GAMES[key];screens[key]=new B.DynamicTexture('ncz-arcade-screen-'+key,{width:160,height:128},scene,false,B.Texture.NEAREST_SAMPLINGMODE);textures.push(screens[key]);drawScreen(key,0);screenMats[key]=texMat('arcade-screen-'+key,screens[key],{glow:true});

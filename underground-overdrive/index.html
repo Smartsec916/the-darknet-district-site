@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>UNDERGROUND//OVERDRIVE</title>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}</style>
+  <script type="module" crossorigin src="./_app/index-Bgsle6bP.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script data-tesana-bootstrap type="application/json" id="tesana-bootstrap-data">{"gameId": "12c32247-bd89-44bb-a417-afe77b7baa80", "endpoint": "https://d3cbjx3gy93tul.cloudfront.net"}</script>
+<script data-tesana-bootstrap>
+  // Set the bootstrap BEFORE the SDK loads: its init() reads this
+  // synchronously. Reversing these two tags silently forces the SDK
+  // into its offline path.
+  (function () {
+    try {
+      var d = document.getElementById('tesana-bootstrap-data');
+      var cfg = d ? JSON.parse(d.textContent || '{}') : {};
+      window.__TESANA__ = Object.assign({}, window.__TESANA__ || {}, cfg);
+    } catch (e) { /* malformed bootstrap: the SDK's own offline path takes over */ }
+  })();
+</script>
+<script data-tesana-bootstrap src="https://unpkg.com/@tesana/sdk@1.3.3/dist/tesana.iife.js"></script>
+</body>
+</html>
