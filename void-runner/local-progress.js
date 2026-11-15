@@ -10,10 +10,13 @@
  ];
  const clean=n=>Number.isSafeInteger(n)&&n>=0?n:0;
  function restore(raw){let o=null;try{o=typeof raw==='string'?JSON.parse(raw):raw;}catch{o=null;}const out={counters:{},earned:{}};if(!o||typeof o!=='object')return out;
+  // kinds: how many of each kind of thing was caught (a fish species), by counter: {'tropical-fish':{'silver':12,...}}. Names are short ids; at most 40 per counter.
+  for(const d of DEFS){const k=o.kinds?.[d.counter];if(k&&typeof k==='object'){const keep={};for(const [id,n] of Object.entries(k).slice(0,40))if(/^[a-z0-9-]{1,24}$/.test(id)&&clean(n))keep[id]=clean(n);if(Object.keys(keep).length)(out.kinds=out.kinds||{})[d.counter]=keep;}}   // `kinds` is present only when something was counted by kind
   for(const d of DEFS){const c=clean(o.counters?.[d.counter]);if(c)out.counters[d.counter]=c;const e=o.earned?.[d.id];if(typeof e==='string'&&/^\d{4}-\d{2}-\d{2}/.test(e))out.earned[d.id]=e.slice(0,24);}
   return out;}
  /* add(record, counter, n, today) -> ids newly earned. One event adds at most 5 (a guard against a runaway caller, not a security measure). */
- function add(rec,counter,n=1,today=''){if(!DEFS.some(d=>d.counter===counter)||!Number.isSafeInteger(n)||n<1)return [];rec.counters[counter]=clean(rec.counters[counter])+Math.min(5,n);
+ function add(rec,counter,n=1,today='',kind=''){if(!DEFS.some(d=>d.counter===counter)||!Number.isSafeInteger(n)||n<1)return [];rec.counters[counter]=clean(rec.counters[counter])+Math.min(5,n);
+  if(/^[a-z0-9-]{1,24}$/.test(kind)){rec.kinds=rec.kinds||{};const k=rec.kinds[counter]=rec.kinds[counter]||{};if(k[kind]||Object.keys(k).length<40)k[kind]=clean(k[kind])+Math.min(5,n);}
   const got=[];for(const d of DEFS)if(d.counter===counter&&!rec.earned[d.id]&&rec.counters[counter]>=d.goal){rec.earned[d.id]=String(today||'').slice(0,24)||'earned';got.push(d.id);}return got;}
  const list=rec=>DEFS.map(d=>({...d,progress:Math.min(d.goal,clean(rec.counters[d.counter])),earned:rec.earned[d.id]||null}));
  // Lines for the profile screen: only what has been started.
@@ -25,6 +28,8 @@
  const save=rec=>{try{root.localStorage.setItem(key(),JSON.stringify(rec));}catch{}};
  root.VoidLocalProgress={...api,
   /* count(counter, n): the game reports an event. Returns {total, earned:[definitions newly earned]}. */
-  count(counter,n=1){const rec=load(),got=add(rec,counter,n,new Date().toISOString().slice(0,10));save(rec);return {total:rec.counters[counter]||0,earned:got.map(id=>DEFS.find(d=>d.id===id))};},
+  count(counter,n=1,kind=''){const rec=load(),got=add(rec,counter,n,new Date().toISOString().slice(0,10),kind);save(rec);return {total:rec.counters[counter]||0,kinds:{...(rec.kinds?.[counter]||{})},earned:got.map(id=>DEFS.find(d=>d.id===id))};},
+  /* total(counter) and kinds(counter): what has been counted so far, without adding anything. */
+  total(counter){return load().counters[counter]||0;},kinds(counter){return {...(load().kinds?.[counter]||{})};},
   get record(){return load();},mine(){return list(load());},profileLines(){return lines(load());}};
 })(typeof globalThis!=='undefined'?globalThis:this);

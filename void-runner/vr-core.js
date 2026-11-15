@@ -41,15 +41,26 @@
    const schedule=(fn,min,max)=>{const tick=()=>{fn();later(tick,min+Math.random()*(max-min));};later(tick,min);};
    if(spec.birds)schedule(()=>{const n=2+Math.floor(Math.random()*4),base=2400+Math.random()*2200;for(let i=0;i<n;i++)later(()=>chirp(base*(1+Math.random()*.15),.09+Math.random()*.08),i*120);},1500,5200);
    if(spec.gulls)schedule(()=>{for(let i=0;i<3;i++)later(()=>chirp(1100+Math.random()*300,.35),i*260);},6000,14000);
-   audio.named=named;
+   audio.named=named;if(spec.music)setMusic(spec.music,spec.musicLevel);
   }catch(e){console.warn('[VOID VR audio]',e.message);}}
  // A slow chord pad: the suite's music presets.
  const padChords={lounge:[220,277.2,329.6,415.3],velvet:[196,246.9,293.7,369.9],midnight:[174.6,220,261.6,329.6]};
  function pad(preset){const c=audio.ctx,g=audioNode(c,'createGain'),f=audioNode(c,'createBiquadFilter');f.type='lowpass';f.frequency.value=900;g.gain.value=.05;f.connect(g);g.connect(audio.master);const osc=(padChords[preset]||padChords.lounge).flatMap(fr=>[0,4].map(d=>{const o=audioNode(c,'createOscillator');o.type='triangle';o.frequency.value=fr;o.detune.value=d;o.connect(f);o.start();return o;}));audio.layers.push({stop:()=>{osc.forEach(o=>o.stop());for(const n of [g,f]){n.disconnect();audio.nodes.delete(n);}},pad:true});return {gain:g,osc};}
- function setPad(preset){if(!audio.ctx)return;for(const l of audio.layers.filter(l=>l.pad)){l.stop();l.dead=true;}audio.layers=audio.layers.filter(l=>!l.dead);if(preset&&preset!=='off')audio.named.pad=pad(preset);}
+ /* Recorded music for a simulation (David, 16 Nov 2026): one looped recording under the generated ambience, void-runner/assets/audio/vr/<id>.ogg (LICENSES.md there).
+    Fetched when the simulation starts, faded in, faded over when it changes, gone with the rest of the simulation's sound. */
+ const MUSIC_DIR='void-runner/assets/audio/vr/',PAD_MUSIC={lounge:'vr-lounge',velvet:'vr-sensual'},musicBuffers=new Map();let musicNow=null;
+ function setMusic(id,level=.34){
+  if(!audio.ctx||!audio.master)return;if(musicNow&&musicNow.id===id)return;const c=audio.ctx;
+  if(musicNow){const old=musicNow;musicNow=null;try{old.gain.gain.cancelScheduledValues(c.currentTime);old.gain.gain.setTargetAtTime(0,c.currentTime,.5);}catch{}later(()=>{try{old.src?.stop();}catch{}},2500);}
+  if(!id)return;const g=audioNode(c,'createGain'),cur={id,gain:g,src:null},generation=audio.generation;g.gain.value=0;g.connect(audio.master);musicNow=cur;
+  const start=b=>{if(generation!==audio.generation||musicNow!==cur||!b)return;const s=audioNode(c,'createBufferSource');s.buffer=b;s.loop=true;s.connect(g);s.start();cur.src=s;g.gain.setTargetAtTime(level,c.currentTime,1.2);audio.layers.push({stop:()=>{try{s.stop();}catch{}},music:true});};
+  const key=id,have=musicBuffers.get(key);if(have&&have.ctx===c){start(have.buffer);return;}
+  fetch(MUSIC_DIR+id+'.ogg').then(r=>r.ok?r.arrayBuffer():Promise.reject(Error(String(r.status)))).then(b=>c.decodeAudioData(b)).then(buffer=>{musicBuffers.set(key,{ctx:c,buffer});start(buffer);}).catch(e=>console.warn('[VOID VR music]',id,e.message));}
+ // The suite's music setting: Lounge and Velvet are recordings; Midnight is the generated chord pad it always was; Off is silence.
+ function setPad(preset){if(!audio.ctx)return;for(const l of audio.layers.filter(l=>l.pad)){l.stop();l.dead=true;}audio.layers=audio.layers.filter(l=>!l.dead);const rec=PAD_MUSIC[preset];setMusic(rec||null,.4);if(preset&&preset!=='off'&&!rec)audio.named.pad=pad(preset);}
  function audioLevel(name,v,ramp=.4){const g=audio.named?.[name],node=g?.gain instanceof AudioParam?g:g?.gain;if(node&&audio.ctx)node.gain.linearRampToValueAtTime(v,audio.ctx.currentTime+ramp);}
  function sfx(freq,len,type='square',vol=.06){if(!audio.ctx||!audio.master)return;const c=audio.ctx,o=audioNode(c,'createOscillator'),g=audioNode(c,'createGain'),t=c.currentTime;o.type=type;o.frequency.setValueAtTime(freq,t);o.frequency.exponentialRampToValueAtTime(Math.max(40,freq*.4),t+len);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0005,t+len);o.connect(g);g.connect(audio.master);o.start(t);o.stop(t+len+.02);endAudio(o,g);}
- function audioStop(){audio.generation++;for(const t of audio.timers)clearTimeout(t);audio.timers.clear();for(const l of audio.layers)try{l.stop();}catch{}audio.layers=[];try{audio.master?.disconnect();}catch{}audio.master=null;audio.named={};for(const n of audio.nodes)try{n.disconnect();}catch{}audio.nodes.clear();}
+ function audioStop(){audio.generation++;musicNow=null;for(const t of audio.timers)clearTimeout(t);audio.timers.clear();for(const l of audio.layers)try{l.stop();}catch{}audio.layers=[];try{audio.master?.disconnect();}catch{}audio.master=null;audio.named={};for(const n of audio.nodes)try{n.disconnect();}catch{}audio.nodes.clear();}
  // ---- Digital transition: the frame breaks into glowing cells, a data void, then the new world assembles ----
  function makeOverlay(){overlay=document.createElement('canvas');overlay.id='vr-transition';overlay.width=innerWidth;overlay.height=innerHeight;document.body.append(overlay);return overlay;}
  function transition(dir,title,wait){return new Promise(resolve=>{
@@ -218,7 +229,12 @@
  addEventListener('keydown',e=>{if(mode!=='vr-seated')return;if(['KeyE','Space','KeyW','KeyA','KeyS','KeyD','Enter'].includes(e.code)){e.preventDefault();e.stopPropagation();stand();}},true);
  // ---- Called by the renderer (prepareRoom) to build a world, and each frame through the room's tick ----
  async function buildWorld(def,ctx){const exp=registry.get(def.vr);const world=await exp.build({...ctx,opts:session?.opts||{},settings:session?.settings||{},api});if(session)session.world=world;return world;}
+ /* Brightness inside a simulation (found 16 Nov 2026). On Medium and High the renderer's sharpen pass has multiplied the finished picture by 0.3 since 12 Nov
+    (babylon-renderer.js: sharpen.colorAmount = .3; Babylon's default is 1), so everything is drawn at about a third of the brightness it is lit for. The District and
+    the city have been judged and tuned by David in that state, so it is left alone there (his decision to change). The simulations were built bright before that
+    date and looked like night: while a simulation is running the picture is given back its full brightness, and the 0.3 returns on leaving. */
+ setInterval(()=>{try{const p=globalThis.VoidBabylon?.scene?.postProcessRenderPipelineManager?.supportedPipelines?.find(x=>x.name==='void-look');if(p?.sharpen){const want=session?1:.3;if(p.sharpen.colorAmount!==want)p.sharpen.colorAmount=want;}}catch{}},150);
  const audioSet=(key,val)=>{if(audio.named)audio.named[key]=val;};
- const api={register,launch,exit,openMenu,sit,stand,sfx,audioLevel,audioSet,setPad,transition,buildWorld,get active(){return !!session;},get debug(){return {session:!!session,busy,pauseMenu:!!pauseMenu,menu:!!menu,overlay:!!overlay,page:{...menuPage},audio:{nodes:audio.nodes.size,timers:audio.timers.size}};},listed,get busy(){return busy;},get session(){return session;},registry,order};
+ const api={register,launch,exit,openMenu,sit,stand,sfx,audioLevel,audioSet,setPad,setMusic,get music(){return musicNow?musicNow.id:null;},transition,buildWorld,get active(){return !!session;},get debug(){return {session:!!session,busy,pauseMenu:!!pauseMenu,menu:!!menu,overlay:!!overlay,page:{...menuPage},audio:{nodes:audio.nodes.size,timers:audio.timers.size}};},listed,get busy(){return busy;},get session(){return session;},registry,order};
  globalThis.VoidVR=api;
 })();

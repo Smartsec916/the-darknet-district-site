@@ -56,3 +56,32 @@ Hub to client: `vr-sessions {list}`, `vr-room {session|null, peers}`, `vr-update
 ## Deploying
 
 The hub runs on Render (`district-hub`) and does not redeploy when `main` changes. The hub announces the feature in its welcome (`features.vr`). A game page sends session messages only to a hub that announced it: an older hub counts unknown messages as faults and would disconnect the player. So either can be deployed first; with an old hub VR simply stays solo and offline, as before. Old game pages keep working with a new hub.
+
+## 16 Nov 2026: VR upgrade (music, brightness, Tropical Escape water and fishing)
+
+David asked for graphical upgrades to all the VR areas with new music to match, sensual electronic music in the companion rooms, better water, beach and dolphins, a casting animation, fishing like World of Warcraft's, a counter for every fish that survives playthroughs, and 100 fish as a VR achievement (a rare fish may come later).
+
+### Brightness (the biggest change, and a finding for the whole game)
+
+On Medium and High the renderer's sharpen pass (`babylon-renderer.js`, `pipeline.sharpen.colorAmount = .3`) has multiplied the finished picture by 0.3 since 12 Nov 2026 (commit c3c9213d); Babylon's default is 1. Measured in a browser: sand 42 with it, 129 without. The simulations were built bright before that and looked like night. `vr-core.js` now sets the amount to 1 while a simulation runs and puts 0.3 back on leaving.
+
+**OPEN DECISION for David:** the District, NeoChinatown and everything else are still drawn at 0.3 on Medium and High, and at full brightness on Low (Low has no sharpen pass), so Low players see a much brighter game than Medium players. David has judged and tuned the District's look since 12 Nov in the dimmed state, so it was not changed. Options: leave it; fix it to 1 everywhere and re-tune the District's lights down to the look he approved; or make the dimming an explicit setting. Do not change it without him.
+
+### Music
+
+`vr-core.js` `setMusic(id, level)` plays one looped recording under the generated ambience (`void-runner/assets/audio/vr/`, sources in `LICENSES.md` there): Tropical Escape, the forest, the combat simulator, and the companion suite. The suite's Music setting is now Off / Velvet (sensual electronic recording, the default) / Lounge (recording) / Midnight (the old generated pad). 4,500 ElevenLabs credits, one take each. NOBODY HAS LISTENED TO THEM; the prompts asked for no vocals.
+
+### Tropical Escape
+
+- Water and beach: deeper blue sea, turquoise shallows near the shore, a wet-sand band, a second foam line, sun glitter far out (not on Low).
+- Dolphins: larger, shinier skin, and they porpoise (rise and tip under) while swimming, with a small splash; a leap rolls slightly. Same model (Quaternius, CC0); the swimming rules and tests are unchanged.
+- Fishing (`vr-tropical.js`): E on the pier casts (the rod swings back and forward, the float flies out to a new spot each time). After 5 to 18 seconds the float splashes; LOOK AT THE FLOAT AND CLICK (left mouse, or E) within 2.6 seconds to land the fish. A click before the bite reels in with nothing. The fish jumps to you.
+- Counter: a panel on the pier shows fish caught (of 100), this visit's count and how many of each kind. Kept in the browser per account by `local-progress.js` (now also per kind), outside the campaign save, so it survives a new campaign. It does not follow the player to another browser.
+- Rare fish: `RARE` in `vr-tropical.js` has chance 0. Give it a name and a chance when David decides.
+- Browser test: `tests/tropical-fishing-browser.cjs` (passes).
+
+### NOT done
+
+- The forest, the combat simulator and the companion suite got the brightness fix and music only; no new models, textures or lighting work. Only the brightness was looked at (forest picture); the suite and the combat simulator were not looked at after the change.
+- The dolphin is the same low-poly model. A better one needs a new model.
+- The 100-fish achievement itself still needs the server-side record (see ACHIEVEMENTS.md); the goal is counted and shown as reached.

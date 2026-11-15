@@ -11,12 +11,15 @@ test('unknown counters, odd amounts and tampered records are refused or cleaned'
  const r=A.restore(null);assert.deepEqual(A.add(r,'made-up',1),[]);assert.deepEqual(A.add(r,'tropical-fish',-3),[]);assert.deepEqual(A.add(r,'tropical-fish',1.5),[]);assert.deepEqual(r.counters,{});
  A.add(r,'tropical-fish',1e9);assert.equal(r.counters['tropical-fish'],5,'one event can never add more than a handful');
  const dirty=A.restore(JSON.stringify({counters:{'tropical-fish':'lots','x':9},earned:{'tropical-100-fish':'<b>yes</b>','other':'2026-01-01'}}));assert.deepEqual(dirty,{counters:{},earned:{}});
+ // how many of each kind was caught is kept too (the fishing counter), with tidy names only
+ const k=A.restore(null);A.add(k,'tropical-fish',1,'2026-11-16','silver');A.add(k,'tropical-fish',1,'2026-11-16','silver');A.add(k,'tropical-fish',1,'2026-11-16','<bad>');assert.deepEqual(k.kinds,{'tropical-fish':{silver:2}});assert.equal(k.counters['tropical-fish'],3);
+ assert.deepEqual(A.restore(JSON.stringify(k)).kinds,{'tropical-fish':{silver:2}});assert.deepEqual(A.restore(JSON.stringify({kinds:{'tropical-fish':{'<x>':4,red:'many',blue:2}}})).kinds,{'tropical-fish':{blue:2}});
  assert.deepEqual(A.restore('not json'),{counters:{},earned:{}});assert.deepEqual(A.lines(A.restore(null)),[],'nothing is shown before anything was done');
 });
 test('every definition is complete, and the script ships once in both copies of the page before the device',()=>{
  for(const d of A.DEFS)for(const k of ['id','game','gameTitle','title','description','counter','goal'])assert(d[k],d.id+' has '+k);
  for(const f of ['void-runner.html','static/void-runner.html']){const h=fs.readFileSync(f,'utf8');assert.equal(h.split('void-runner/local-progress.js').length,2);assert(h.indexOf('void-runner/local-progress.js')<h.indexOf('void-runner/personal-device.js'));}
- assert.match(fs.readFileSync('void-runner/vr-tropical.js','utf8'),/VoidLocalProgress\?\.count\('tropical-fish',1\)/,'the fishing spot reports each fish landed');
+ assert.match(fs.readFileSync('void-runner/vr-tropical.js','utf8'),/LP\(\)\?\.count\('tropical-fish',1,f\[0\]\)/,'the fishing spot reports each fish landed');
 });
 test('the goal has a matching entry in the achievement catalogue, which still only unlocks on server-verified events',()=>{
  const defs=Catalogue.definitions||Catalogue.DEFINITIONS,d=defs.find(x=>x.id==='tropical-100-fish');assert(d,'in the catalogue');assert.equal(d.description,'Catch 100 fish in Tropical Escape.');assert.equal(d.condition.count,100);

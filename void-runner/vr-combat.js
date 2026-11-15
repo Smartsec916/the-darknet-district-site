@@ -67,5 +67,5 @@
  VoidVR.register({id:'combat',title:'Combat Simulator',status:'ready',listed:false,station:0,weapon:true,tint:'linear-gradient(135deg,#05121a,#ff3fb4)',
   description:'A holographic range: pop-up and sliding targets, then drones that fire back. Timed challenge, score, accuracy and three difficulty levels. Simulated weapon; nothing carries over.',
   defaults:{level:'normal'},settings:[{key:'level',label:'Difficulty',values:[['easy','Easy'],['normal','Normal'],['hard','Hard']]}],
-  ambience:()=>({hum:.025}),layout,build});
+  ambience:()=>({hum:.025,music:'vr-combat',musicLevel:.36}),layout,build});
 })();

@@ -14,15 +14,24 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');cons
  const spot=await page.evaluate(()=>walkingLocation.interactions.find(i=>i.id==='vr-fish'));assert(spot,'the pier has a fishing spot');
  const act=()=>page.evaluate(()=>VoidVR.session.world.interact({id:'vr-fish'})),notice=()=>page.evaluate(()=>document.getElementById('notice').textContent);
  await page.evaluate(p=>{walker.x=p[0];walker.z=p[2];},spot.position);await page.waitForTimeout(500);
- // too early
- await act();assert.match(await notice(),/cast out/);await page.waitForTimeout(1500);await page.screenshot({path:'/tmp/fishing.png'});await act();assert.match(await notice(),/too early/);
- // a proper catch
- await act();await page.waitForFunction(()=>/A BITE/.test(document.getElementById('notice').textContent));await act();assert.match(await notice(),/You land .* kg.*Fish landed: 1\./);
+ // World-of-Warcraft style (David, 16 Nov 2026): E casts (the rod swings, the float flies out), the float splashes when a fish bites, and it must be LOOKED AT and clicked.
+ const state=()=>page.evaluate(()=>VoidVR.session.world.fishing()),look=()=>page.evaluate(()=>{const f=VoidVR.session.world.fishing();walker.yaw=Math.atan2(f.float[0]-walker.x,f.float[2]-walker.z);walker.pitch=Math.atan2(walker.y-f.float[1]-.1,Math.hypot(f.float[0]-walker.x,f.float[2]-walker.z));}),away=()=>page.evaluate(()=>{walker.yaw+=1.2;});
+ const click=()=>page.evaluate(()=>dispatchEvent(new MouseEvent('mousedown',{button:0,bubbles:true,cancelable:true})));
+ const bite=()=>page.waitForFunction(()=>VoidVR.session.world.fishing().state==='bite');
+ // too early: a click while waiting reels in with nothing
+ await act();assert.match(await notice(),/draw the rod back/);assert.equal((await state()).state,'casting');await page.waitForFunction(()=>VoidVR.session.world.fishing().state==='waiting');await page.screenshot({path:'/tmp/fishing.png'});await click();assert.match(await notice(),/too early/);assert.equal((await state()).state,'idle');
+ // a bite, but not looking at the float: nothing is landed
+ await act();await bite();await away();await click();assert.match(await notice(),/Look at the float/);
+ // looking at it and clicking lands the fish; the count and its kind are kept
+ await look();await click();assert.match(await notice(),/You land .* kg.*Fish caught: 1\./);assert.equal(Object.values(await page.evaluate(()=>VoidLocalProgress.kinds('tropical-fish'))).reduce((a,b)=>a+b,0),1);
+ assert.match(await page.evaluate(()=>document.getElementById('vr-fish-hud').textContent),/FISH CAUGHT\s*1/);
+ // each cast lands somewhere else
+ const spots=[];for(let i=0;i<3;i++){await act();await page.waitForFunction(()=>VoidVR.session.world.fishing().state==='waiting');spots.push((await state()).float.map(v=>v.toFixed(1)).join());await click();}assert.ok(new Set(spots).size>1,'the float lands in a different place: '+spots);
  // too slow
- await act();await page.waitForFunction(()=>/A BITE/.test(document.getElementById('notice').textContent));await page.waitForFunction(()=>/got away/.test(document.getElementById('notice').textContent));
- // the 100th fish earns the achievement (98 more are reported by the game's own counter to save an hour of waiting)
+ await act();await bite();await page.waitForFunction(()=>/got away/.test(document.getElementById('notice').textContent));
+ // the 100th fish reaches the goal (98 more are reported by the game's own counter to save an hour of waiting)
  await page.evaluate(()=>{for(let i=0;i<98;i++)VoidLocalProgress.count('tropical-fish',1);});
- await act();await page.waitForFunction(()=>/A BITE/.test(document.getElementById('notice').textContent));await act();assert.match(await notice(),/Fish landed: 100\. That is 100: the goal of "Catch 100 Fish"\./);
+ await act();await bite();await look();await click();assert.match(await notice(),/Fish caught: 100\. That is 100: the goal of "Catch 100 Fish"\./);
  // leaving the simulation keeps the count; it shows on the player's own profile
  await page.evaluate(()=>VoidVR.exit());await page.waitForFunction(()=>!VoidVR.busy&&!VoidVR.active&&mode==='walking'&&walkingLocation?.area==='interior');
  assert.equal(await page.evaluate(()=>VoidLocalProgress.record.counters['tropical-fish']),100);assert.match((await page.evaluate(()=>VoidLocalProgress.profileLines())).join('|'),/Catch 100 Fish · 100 of 100 · reached \d{4}-\d\d-\d\d/);

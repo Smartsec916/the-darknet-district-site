@@ -12,7 +12,7 @@
  // Dolphins stay on the sea surface. The body is placed so the waterline (the opaque sea, untouched) cuts the belly;
  // a leap is a sine arc that leaves and returns to that height, then the model is hidden until it surfaces again.
  const Dolphins=(function(){
-  const SURFACE=-.32,SEA=.08,SCALE=.55,X0=-36,X1=40,LEAP_H=3.2,LEAP_D=9,LEAP_T=1.45,UNDER=1.7;
+  const SURFACE=-.32,SEA=.08,SCALE=.85,X0=-36,X1=40,LEAP_H=3.2,LEAP_D=9,LEAP_T=1.45,UNDER=1.7;
   const lanes=[{x:14,z:48,yaw:Math.PI/2,wait:1.6,speed:3.3},{x:-6,z:62,yaw:-Math.PI/2,wait:7.5,speed:3.6},{x:-24,z:42,yaw:Math.PI/2,wait:4.4,speed:3.1}];
   function create(n){return lanes.slice(0,Math.max(0,n|0)).map(L=>({x:L.x,z:L.z,yaw:L.yaw,speed:L.speed,wait:L.wait,y:SURFACE,pitch:0,phase:'swim',t:0,shown:true}));}
   function step(d,dt){const ev=[];dt=Math.min(.1,Math.max(0,dt||0));
@@ -33,7 +33,7 @@
   function spawn(k,container,count){const B=k.B,plainMats=new Map();for(const g of container.animationGroups||[])g.stop();
    // One StandardMaterial per glTF colour, shared by every dolphin, so the beach does not pay for a PBR shader.
    function plain(node){for(const mesh of node.getChildMeshes(false)){const src=mesh.material;if(!src)continue;let m=plainMats.get(src);
-    if(!m){const c=src.albedoColor||src.diffuseColor;m=k.material('dolphin-'+(src.name||'skin'),{spec:.28});if(c)m.diffuseColor=c.clone();m.specularColor=new B.Color3(.2,.24,.26);plainMats.set(src,m);}mesh.material=m;}}
+    if(!m){const c=src.albedoColor||src.diffuseColor;m=k.material('dolphin-'+(src.name||'skin'),{spec:.28});if(c)m.diffuseColor=c.clone();m.specularColor=new B.Color3(.75,.82,.88);m.specularPower=42;m.emissiveColor=new B.Color3(.03,.045,.06);   /* wet skin: a bright, tight highlight */plainMats.set(src,m);}mesh.material=m;}}
    const tex=k.paint('dolphin-splash',64,64,(g,W)=>{const r=g.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,'rgba(255,255,255,.85)');r.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,W,W);},true);
    const dolphins=create(count).map((d,i)=>{const prefix='vr-dolphin'+i+'-';
     const inst=container.instantiateModelsToScene(n=>prefix+n,false,{doNotInstantiate:true});
@@ -46,7 +46,9 @@
     splash.color1=new B.Color4(1,1,1,.55);splash.color2=new B.Color4(.85,.94,1,.3);splash.colorDead=new B.Color4(1,1,1,0);splash.blendMode=B.ParticleSystem.BLENDMODE_STANDARD;splash.start();
     return Object.assign(d,{node,swim,splash,splashT:0});});
    const burst=d=>{d.splash.emitter.set(d.x,SEA,d.z);d.splash.manualEmitCount=(d.splash.manualEmitCount||0)+42;d.splashT=.22;d.splash.emitRate=90;};
-   const apply=d=>{d.node.position.set(d.x,d.y,d.z);d.node.rotationQuaternion=B.Quaternion.RotationYawPitchRoll(d.yaw,d.pitch,0);d.node.setEnabled(d.shown);};
+   // Swimming, a dolphin porpoises: it rises until its back and fin are out, tips forward and slides under again (drawn only; the rules above keep it on the surface line).
+   const apply=d=>{const swim=d.phase==='swim',w=swim?Math.sin((d.x+d.z)*.55+d.speed):0,u=d.phase==='leap'?Math.min(1,d.t/LEAP_T):0;d.node.position.set(d.x,d.y+(swim?.05+.3*w:0),d.z);d.node.rotationQuaternion=B.Quaternion.RotationYawPitchRoll(d.yaw,d.pitch+(swim?-.3*Math.cos((d.x+d.z)*.55+d.speed):0),u?Math.sin(u*Math.PI)*.35:0);d.node.setEnabled(d.shown);
+    if(swim&&w>.92&&!(d.splashT>0)){d.splash.emitter.set(d.x,SEA,d.z);d.splash.manualEmitCount=(d.splash.manualEmitCount||0)+8;}};
    for(const d of dolphins)apply(d);
    k.every(dt=>{for(const d of dolphins){for(const ev of step(d,dt))if(ev.splash)burst(d);if(d.splashT>0){d.splashT-=dt;if(d.splashT<=0)d.splash.emitRate=0;}apply(d);}});
    let dead=false;function dispose(){if(dead)return;dead=true;for(const d of dolphins){try{d.swim.stop();}catch(e){}try{d.splash.dispose();}catch(e){}try{d.node.dispose();}catch(e){}}dolphins.length=0;if(api.live===dolphins)api.live=null;}
@@ -56,20 +58,37 @@
  function layout(){const sea=(x0,x1)=>({id:'vr-sea',position:[(x0+x1)/2,1,27],size:[x1-x0,2,26]});
   return {id:'vr-tropical',name:'VR · TROPICAL ESCAPE',bounds:[40,40],spawn:[-4,1.7,-24],yaw:0,music:null,signs:[],
    solids:[sea(-41,PIER[0]),sea(PIER[1],41),{id:'vr-pier-end',position:[21.5,1,PIER_END+1],size:[4,2,2]},{id:'vr-hut',position:[-18,1,-16.6],size:[.4,2,.4]},{id:'vr-hut2',position:[-14.6,1,-16.6],size:[.4,2,.4]}],
-   interactions:[...spots.lounger.map(([x,z],i)=>spot('lounger'+i,'RELAX ON THE LOUNGER',x,z-1.2,1.8)),spot('pier-bench','SIT AT THE END OF THE PIER',21.5,31.6,2),spot('fish','FISH FROM THE PIER',21.5,26,2.2),spot('hut','CHANGE THE SKY (DAY / SUNSET)',-16.3,-12.4,2.4),spot('surf','WADE INTO THE SURF',-10,11.5,3),...spots.shells.map(([x,z],i)=>spot('shell'+i,'PICK UP THE SHELL',x,z,1.8))]};}
+   interactions:[...spots.lounger.map(([x,z],i)=>spot('lounger'+i,'RELAX ON THE LOUNGER',x,z-1.2,1.8)),spot('pier-bench','SIT AT THE END OF THE PIER',21.5,31.6,2),spot('fish','FISH FROM THE PIER (E TO CAST)',21.5,25,7),spot('hut','CHANGE THE SKY (DAY / SUNSET)',-16.3,-12.4,2.4),spot('surf','WADE INTO THE SURF',-10,11.5,3),...spots.shells.map(([x,z],i)=>spot('shell'+i,'PICK UP THE SHELL',x,z,1.8))]};}
  async function build(ctx){
   const k=kit(ctx),B=k.B,api=ctx.api,low=ctx.quality==='low';
-  const presets={day:{sky:'beach-day',light:{clear:[.55,.75,.95],fog:[.72,.82,.9],fogDensity:.0028,sunColor:[1,.97,.9],sunIntensity:1.7,sunDir:[-.3,-.9,.4],sky:[.85,.92,1],ground:[.6,.55,.42],ambient:.9,exposure:1.05},sea:'#1f7d8f'},
-   sunset:{sky:'beach-sunset',light:{clear:[.85,.5,.35],fog:[.82,.55,.42],fogDensity:.0035,sunColor:[1,.62,.35],sunIntensity:1.3,sunDir:[.15,-.35,1],sky:[.95,.7,.55],ground:[.45,.32,.25],ambient:.75,exposure:1.0},sea:'#3a4a6a'}};
+  const presets={day:{sky:'beach-day',light:{clear:[.55,.75,.95],fog:[.72,.82,.9],fogDensity:.0028,sunColor:[1,.97,.9],sunIntensity:1.7,sunDir:[-.3,-.9,.4],sky:[.85,.92,1],ground:[.6,.55,.42],ambient:.9,exposure:1.05},sea:'#0d4a63'},
+   sunset:{sky:'beach-sunset',light:{clear:[.85,.5,.35],fog:[.82,.55,.42],fogDensity:.0035,sunColor:[1,.62,.35],sunIntensity:1.3,sunDir:[.15,-.35,1],sky:[.95,.7,.55],ground:[.45,.32,.25],ambient:.75,exposure:1.0},sea:'#26324c'}};
   let dome=null,sea=null;
-  function setTime(t){const p=presets[t]||presets.day;k.light(p.light);dome?.dispose();dome=k.sky(p.sky,Math.PI);if(sea)sea.diffuseColor=B.Color3.FromHexString(p.sea);if(sea?.reflectionTexture){sea.reflectionTexture.dispose();const r=new B.Texture(k.base+'sky/'+p.sky+'.jpg',k.scene);r.coordinatesMode=B.Texture.EQUIRECTANGULAR_MODE;r.level=.22;sea.reflectionTexture=r;}k.time=t;}
+  function setTime(t){const p=presets[t]||presets.day;k.light(p.light);dome?.dispose();dome=k.sky(p.sky,Math.PI);if(sea)sea.diffuseColor=B.Color3.FromHexString(p.sea);if(sea?.reflectionTexture){sea.reflectionTexture.dispose();const r=new B.Texture(k.base+'sky/'+p.sky+'.jpg',k.scene);r.coordinatesMode=B.Texture.EQUIRECTANGULAR_MODE;r.level=.12;sea.reflectionTexture=r;}k.time=t;}
   setTime(ctx.settings.time||'day');
   const sand=k.material('sand',{color:'sand-color',normal:'sand-normal',scale:30,hex:'#f2e3c4'});k.terrain('beach',220,160,height,sand);
-  sea=k.water('sea',{hex:presets[k.time].sea,alpha:1,sky:presets[k.time].sky,scale:30,reflect:.22,spec:.45});const ocean=k.mesh(B.MeshBuilder.CreateGround('vr-ocean',{width:2400,height:2400},k.scene),sea,[0,-.05,1200+SHORE-1]);
+  sea=k.water('sea',{hex:presets[k.time].sea,alpha:1,sky:presets[k.time].sky,scale:30,reflect:.12,spec:.45});const ocean=k.mesh(B.MeshBuilder.CreateGround('vr-ocean',{width:2400,height:2400},k.scene),sea,[0,-.05,1200+SHORE-1]);
+  /* Better water and beach (David, 16 Nov 2026). The open sea keeps its plane and collision; over it and along the shore go:
+     - shallows: clear turquoise over the sand near the beach, deepening to the sea's own colour further out;
+     - wet sand: a darker, shinier band where the waves reach, which lightens as each wave draws back;
+     - a second line of foam behind the first, and sun glitter far out on the water. */
+  sea.specularPower=120;sea.specularColor=new B.Color3(.5,.5,.46);
+  {const tex=k.paint('shallows',8,256,(g,W,H)=>{const r=g.createLinearGradient(0,0,0,H);r.addColorStop(0,'rgba(190,240,232,0)');r.addColorStop(.06,'rgba(120,214,204,.34)');r.addColorStop(.3,'rgba(40,178,184,.42)');r.addColorStop(.65,'rgba(20,128,150,.26)');r.addColorStop(1,'rgba(20,110,140,0)');g.fillStyle=r;g.fillRect(0,0,W,H);},true);
+   const m=k.material('shallows',{spec:.6});m.diffuseTexture=tex;m.opacityTexture=tex;m.emissiveColor=new B.Color3(.01,.03,.03);m.specularColor=new B.Color3(.25,.25,.25);m.specularPower=90;m.bumpTexture=sea.bumpTexture;m.backFaceCulling=false;
+   const g=k.mesh(B.MeshBuilder.CreateGround('vr-shallows',{width:420,height:30},k.scene),m,[0,-.03,SHORE+14.2]);g.isPickable=false;
+   const wet=k.paint('wet-sand',8,128,(c,W,H)=>{const r=c.createLinearGradient(0,0,0,H);r.addColorStop(0,'rgba(92,70,44,0)');r.addColorStop(.45,'rgba(92,70,44,.42)');r.addColorStop(1,'rgba(70,58,44,.62)');c.fillStyle=r;c.fillRect(0,0,W,H);},true);
+   const wm=k.material('wet-sand',{spec:.5});wm.diffuseTexture=wet;wm.opacityTexture=wet;wm.specularPower=60;wm.zOffset=-2;
+   const near=[],far=[];for(let x=-210;x<=210;x+=10){near.push(new B.Vector3(x,height(x,SHORE-4.5)+.03,SHORE-4.5));far.push(new B.Vector3(x,height(x,SHORE+1.2)+.03,SHORE+1.2));}
+   const band=B.MeshBuilder.CreateRibbon('vr-wet-sand',{pathArray:[near,far],sideOrientation:B.Mesh.DOUBLESIDE},k.scene);{const uv=[];for(let r=0;r<2;r++)for(let i=0;i<near.length;i++)uv.push(i/(near.length-1),r?0:1);band.setVerticesData(B.VertexBuffer.UVKind,uv);}k.mesh(band,wm,[0,0,0]);band.isPickable=false;
+   k.every((dt,time)=>{band.visibility=.75+.25*Math.sin(time*.55+1.2);});
+   if(!low){const sp=k.paint('sea-sparkle',256,256,(c,W,H)=>{c.clearRect(0,0,W,H);for(let i=0;i<170;i++){const x=Math.random()*W,y=Math.random()*H,l=2+Math.random()*7;c.strokeStyle='rgba(255,252,235,'+(.35+Math.random()*.6)+')';c.lineWidth=1;c.beginPath();c.moveTo(x-l,y);c.lineTo(x+l,y);c.stroke();}},true);sp.uScale=26;sp.vScale=14;sp.wrapU=sp.wrapV=B.Texture.WRAP_ADDRESSMODE;
+    const sm=k.material('sea-sparkle');sm.diffuseTexture=sp;sm.opacityTexture=sp;sm.emissiveColor=new B.Color3(.9,.87,.78);sm.disableLighting=true;const gl=k.mesh(B.MeshBuilder.CreateGround('vr-sea-sparkle',{width:520,height:300},k.scene),sm,[0,.0,SHORE+175]);gl.isPickable=false;
+    k.every((dt,time)=>{sp.uOffset+=dt*.006;sp.vOffset-=dt*.004;gl.visibility=.28+.16*Math.sin(time*1.7);});}}
   // Foam on the tideline: a band that washes in and out.
   {const t=k.paint('foam',256,64,(g,W,H)=>{g.clearRect(0,0,W,H);for(let i=0;i<500;i++){g.fillStyle='rgba(255,255,255,'+(Math.random()*.7)+')';g.beginPath();g.arc(Math.random()*W,Math.random()*H*.7+H*.15,1+Math.random()*3,0,Math.PI*2);g.fill();}},true);t.uScale=60;
    const m=k.material('foam');m.diffuseTexture=t;m.useAlphaFromDiffuseTexture=true;m.emissiveColor=new B.Color3(.6,.62,.62);const band=k.mesh(B.MeshBuilder.CreateGround('vr-foam',{width:400,height:3},k.scene),m,[0,.02,SHORE+.4]);
-   k.every((dt,time)=>{const w=Math.sin(time*.55);band.position.z=SHORE+.3+w*.9;band.visibility=.55+.35*Math.max(0,-w);t.uOffset+=dt*.004;});}
+   const band2=k.mesh(B.MeshBuilder.CreateGround('vr-foam2',{width:400,height:2.2},k.scene),m,[0,.015,SHORE+4]);band2.isPickable=false;
+   k.every((dt,time)=>{const w=Math.sin(time*.55),w2=Math.sin(time*.55-1.5);band.position.z=SHORE+.3+w*.9;band.visibility=.55+.35*Math.max(0,-w);band2.position.z=SHORE+3.6+w2*1.3;band2.visibility=.3+.3*Math.max(0,-w2);t.uOffset+=dt*.004;});}
   // Palms: a leaning ringed trunk and drooping painted fronds, two shapes, drawn as thin instances.
   const bark=k.material('palm-bark',{color:'bark-color',normal:'bark-normal',hex:'#c9b089'});bark.diffuseTexture.vScale=6;
   const frondTex=k.paint('frond',128,512,(g,W,H)=>{g.clearRect(0,0,W,H);g.strokeStyle='#6b7d2e';g.lineWidth=5;g.beginPath();g.moveTo(W/2,0);g.lineTo(W/2,H);g.stroke();
@@ -111,36 +130,88 @@
   // Offshore, in sight of the beach and the pier. The sea plane and its collision are left as they are.
   Dolphins.spawn(k,dolphin,low?2:3);
   let found=0;
-  // ---- Fishing from the pier. Press E to cast; when the float dips (a splash, and the words on screen) press E again within a moment to land the fish.
-  // Too early or too late and it gets away. The fish stay in the simulation; the COUNT of fish landed is kept outside it (local-progress.js). Each player fishes
-  // on their own screen: in a shared session the others do not see the line.
-  const FISH=[['a small silver fish',.2,.6],['a striped reef fish',.4,1.2],['a yellow-tailed fish',.6,1.8],['a broad flat fish',.9,2.6],['a long blue fish',1.5,4.5],['a heavy red fish',2.5,7]];
-  const rodMat=k.material('rod',{hex:'#3a2a1c'}),floatMat=k.material('float',{hex:'#ff5a3c',emissive:'#5a1408'}),fishMat=k.material('fish',{hex:'#b9c7d4',spec:.5});
-  const rod=k.cyl('rod',.035,2.6,[0,0,0],rodMat,6,.012),bob=k.mesh(B.MeshBuilder.CreateSphere('vr-float',{diameter:.16,segments:8},k.scene),floatMat,[0,0,0]),line=k.cyl('line',.008,1,[0,0,0],rodMat,4),
-   fish=k.mesh(B.MeshBuilder.CreateSphere('vr-fish',{diameter:.5,segments:8},k.scene),fishMat,[0,0,0]);fish.scaling.set(1,.42,.3);for(const m of [rod,bob,line,fish]){m.setEnabled(false);m.isPickable=false;}
-  const fishing={state:'idle',t:0,bite:0,at:[0,0],jump:0};
-  const stow=()=>{fishing.state='idle';for(const m of [rod,bob,line])m.setEnabled(false);};
-  function cast(){const side=walker.x<21.5?-1:1;fishing.at=[side<0?PIER[0]-2.6:PIER[1]+2.6,Math.max(SHORE+4,Math.min(PIER_END-1,walker.z+.5))];fishing.state='waiting';fishing.t=0;fishing.bite=3+Math.random()*6;
-   walker.yaw=side*Math.PI/2;walker.pitch=.12;   // you turn to the water you are casting into
-   fishing.at[1]=walker.z;rod.position.set(walker.x+side*.9,1.9,walker.z-side*.45);rod.rotation.set(0,0,-side*1.05);bob.position.set(fishing.at[0]+side*1.4,-.02,fishing.at[1]-side*.45);
-   const tip=[walker.x+side*2.02,2.55,walker.z-side*.45],dx=bob.position.x-tip[0],dy=bob.position.y-tip[1],len=Math.hypot(dx,dy);line.scaling.y=len;line.position.set(tip[0]+dx/2,tip[1]+dy/2,bob.position.z);line.rotation.set(0,0,Math.atan2(dx,-dy));
-   for(const m of [rod,bob,line])m.setEnabled(true);api.sfx(520,.18,'triangle',.05);announce('You cast out from the pier. Watch the float; press E when it dips.');}
-  function land(){const f=FISH[Math.min(FISH.length-1,Math.floor(Math.random()**1.6*FISH.length))],kg=(f[1]+Math.random()*(f[2]-f[1])).toFixed(1),r=globalThis.VoidLocalProgress?.count('tropical-fish',1);
-   fish.position.set(bob.position.x,0,bob.position.z);fish.setEnabled(true);fishing.jump=1;stow();api.sfx(880,.3,'triangle',.07);
-   const total=r?r.total:0,got=r?.earned?.[0];announce('You land '+f[0]+', '+kg+' kg, and let it go.'+(total?' Fish landed: '+total+'.':'')+(got?' That is '+got.goal+': the goal of "'+got.title+'".':''));}
+  /* ---- Fishing from the pier (David, 16 Nov 2026: like fishing in World of Warcraft).
+     Cast (E at the pier): the rod swings back and forward and the float flies out to a spot on the water in front of you, a different spot each time.
+     Then wait. Some seconds later the float splashes and dips: LOOK AT THE FLOAT AND CLICK IT (left mouse button, or E) before it stops, and the fish is yours.
+     Click before it bites and you reel in with nothing; too late and it gets away. Every fish is counted, by kind and in all, and the count is kept outside the
+     simulation and outside the campaign save (local-progress.js): it survives a new campaign. 100 fish is the goal of the Catch 100 Fish achievement.
+     Each player fishes on their own screen: in a shared session the others do not see the line.
+     RARE is where a rare catch goes when David adds one: give it a chance above 0 and it can come up (its own count is kept under its id). */
+  const FISH=[['silver','a small silver fish',.2,.6,'#c8d4de'],['reef','a striped reef fish',.4,1.2,'#f0b23a'],['yellowtail','a yellow-tailed fish',.6,1.8,'#e8d24a'],['flat','a broad flat fish',.9,2.6,'#b89a6a'],['blue','a long blue fish',1.5,4.5,'#3f7fd0'],['red','a heavy red fish',2.5,7,'#d0503a']];
+  const RARE={id:'rare',name:'a rare fish',chance:0,min:3,max:9,color:'#f4f0ff'};
+  const CAST_TIME=1.05,FLY=.62,WINDOW=2.6,AIM=.17;   // AIM: how close to the float you must be looking, in radians (about 10 degrees)
+  const rodMat=k.material('rod',{hex:'#3a2a1c',spec:.3}),floatMat=k.material('float',{hex:'#ff5a3c',emissive:'#5a1408'}),floatTop=k.material('float-top',{hex:'#fff6e6',emissive:'#3a3630'}),lineMat=k.material('fishing-line',{hex:'#e8eef2',emissive:'#8a9296'}),fishMat=k.material('fish',{hex:'#b9c7d4',spec:.6});
+  const rodNode=new B.TransformNode('vr-rod',k.scene);rodNode.parent=k.parent;
+  {const shaft=k.cyl('rod',.028,2.7,[0,1.35,0],rodMat,6,.01);shaft.parent=rodNode;const grip=k.cyl('rod-grip',.042,.42,[0,.2,0],k.material('rod-grip',{hex:'#1c1c1e'}),8);grip.parent=rodNode;const reel=k.cyl('rod-reel',.07,.045,[0,.5,.055],k.material('rod-reel',{hex:'#3c4046',spec:.5}),10);reel.parent=rodNode;reel.rotation.x=Math.PI/2;for(const m of rodNode.getChildMeshes())m.isPickable=false;}
+  const bob=new B.TransformNode('vr-float',k.scene);bob.parent=k.parent;{const a=k.mesh(B.MeshBuilder.CreateSphere('vr-float-body',{diameter:.2,segments:10},k.scene),floatMat,[0,0,0]);a.parent=bob;const t=k.cyl('float-top',.05,.22,[0,.16,0],floatTop,6);t.parent=bob;for(const m of bob.getChildMeshes())m.isPickable=false;}
+  let line=B.MeshBuilder.CreateLines('vr-line',{points:[B.Vector3.Zero(),B.Vector3.Zero(),B.Vector3.Zero()],updatable:true},k.scene);line.parent=k.parent;line.color=new B.Color3(.9,.93,.95);line.alpha=.7;line.isPickable=false;
+  const fish=k.mesh(B.MeshBuilder.CreateSphere('vr-fish',{diameter:.5,segments:10},k.scene),fishMat,[0,0,0]);fish.scaling.set(1,.42,.3);{const tail=k.cyl('fish-tail',.02,.26,[-.3,0,0],fishMat,3,.16);tail.parent=fish;tail.rotation.z=Math.PI/2;tail.isPickable=false;}
+  // ripples and the splash of a bite: soft rings and droplets at the float
+  const ringTex=k.paint('fish-ring',128,128,(g,W)=>{g.clearRect(0,0,W,W);g.strokeStyle='rgba(255,255,255,.9)';g.lineWidth=5;g.beginPath();g.arc(W/2,W/2,W/2-8,0,Math.PI*2);g.stroke();},true),ringMat=k.material('fish-ring');ringMat.diffuseTexture=ringTex;ringMat.opacityTexture=ringTex;ringMat.emissiveColor=new B.Color3(.8,.9,.95);ringMat.disableLighting=true;ringMat.backFaceCulling=false;
+  const rings=[0,1,2].map(i=>{const r=k.mesh(B.MeshBuilder.CreateGround('vr-fish-ring'+i,{width:1,height:1},k.scene),ringMat,[0,.03,0]);r.setEnabled(false);r.isPickable=false;return {mesh:r,t:-1};});
+  const dropTex=k.paint('fish-drop',32,32,(g,W)=>{const r=g.createRadialGradient(16,16,0,16,16,16);r.addColorStop(0,'rgba(255,255,255,.95)');r.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,W,W);},true);
+  const splash=new B.ParticleSystem('vr-fish-splash',60,k.scene);splash.particleTexture=dropTex;splash.emitter=new B.Vector3(0,0,0);splash.minEmitBox=new B.Vector3(-.12,0,-.12);splash.maxEmitBox=new B.Vector3(.12,.05,.12);splash.minSize=.05;splash.maxSize=.2;splash.minLifeTime=.3;splash.maxLifeTime=.7;splash.emitRate=0;
+  splash.direction1=new B.Vector3(-.8,1.6,-.8);splash.direction2=new B.Vector3(.8,3,.8);splash.gravity=new B.Vector3(0,-9,0);splash.minEmitPower=.6;splash.maxEmitPower=1.4;splash.color1=new B.Color4(1,1,1,.8);splash.color2=new B.Color4(.85,.95,1,.5);splash.colorDead=new B.Color4(1,1,1,0);splash.blendMode=B.ParticleSystem.BLENDMODE_STANDARD;splash.start();
+  for(const m of [rodNode,bob,line,fish])m.setEnabled(false);
+  const fishing={state:'idle',t:0,bite:0,target:[0,0],side:1,tip:new B.Vector3(),jump:0,from:null,session:0,last:''};
+  const ring=()=>{const r=rings.find(x=>x.t<0)||rings[0];r.t=0;r.mesh.position.set(bob.position.x,.03,bob.position.z);r.mesh.setEnabled(true);};
+  const plop=n=>{splash.emitter.set(bob.position.x,.02,bob.position.z);splash.manualEmitCount=n;ring();};
+  // the counter on screen while you are on the pier
+  const hud=document.createElement('div');hud.id='vr-fish-hud';hud.hidden=true;hud.setAttribute('role','status');hud.style.cssText='position:fixed;left:18px;top:42%;z-index:30;padding:.55rem .8rem;border:1px solid rgba(120,220,235,.55);background:rgba(4,14,22,.72);color:#dff6ff;font:600 13px/1.5 ui-monospace,Consolas,monospace;letter-spacing:.06em;pointer-events:none;max-width:15rem';document.body.appendChild(hud);
+  const LP=()=>globalThis.VoidLocalProgress;
+  function drawHud(){const P=LP(),total=P?.total?.('tropical-fish')||0,kinds=P?.kinds?.('tropical-fish')||{},rows=[...FISH.map(f=>[f[0],f[1]]),...(kinds[RARE.id]?[[RARE.id,RARE.name]]:[])].filter(([id])=>kinds[id]).map(([id,name])=>'<div style="display:flex;justify-content:space-between;gap:1rem;font-weight:400;opacity:.85"><span>'+name.replace(/^an? /,'')+'</span><span>'+kinds[id]+'</span></div>').join('');
+   hud.innerHTML='<div style="color:#7fe6f2">FISH CAUGHT</div><div style="font-size:22px">'+total+' <span style="font-size:12px;opacity:.7">/ 100</span></div>'+(fishing.session?'<div style="opacity:.8">this visit: '+fishing.session+'</div>':'')+rows+(fishing.last?'<div style="margin-top:.3rem;color:#ffe9a8;font-weight:400">'+fishing.last+'</div>':'');}
+  const stow=()=>{fishing.state='idle';for(const m of [rodNode,bob,line])m.setEnabled(false);};
+  const hand=()=>{const f=[Math.sin(walker.yaw),Math.cos(walker.yaw)],r=[f[1],-f[0]];return new B.Vector3(walker.x+f[0]*.6+r[0]*.36,walker.y-.55,walker.z+f[1]*.6+r[1]*.36);};
+  function poseRod(swing){   // swing: -1 drawn back over the shoulder .. 0 upright .. 1 forward over the water
+   rodNode.position.copyFrom(hand());rodNode.rotationQuaternion=B.Quaternion.RotationYawPitchRoll(walker.yaw,.35+swing*.75,.12);rodNode.computeWorldMatrix(true);B.Vector3.TransformCoordinatesToRef(new B.Vector3(0,2.7,0),rodNode.getWorldMatrix(),fishing.tip);if(k.parent)B.Vector3.TransformCoordinatesToRef(fishing.tip,B.Matrix.Invert(k.parent.getWorldMatrix()),fishing.tip);}
+  function drawLine(){const a=fishing.tip,b=bob.position,mid=new B.Vector3((a.x+b.x)/2,(a.y+b.y)/2-.22,(a.z+b.z)/2);line=B.MeshBuilder.CreateLines('vr-line',{points:[a,mid,new B.Vector3(b.x,b.y+.24,b.z)],instance:line});}
+  const inSea=(x,z)=>z>SHORE+3&&z<PIER_END+16&&!(x>PIER[0]-.8&&x<PIER[1]+.8&&z<PIER_END+.8)&&Math.abs(x)<60;
+  function cast(){
+   // out over the water in front of you, at a new distance and angle each time; if you are facing the planks, out to the nearer side
+   let tx=0,tz=0,ok=false;for(let n=0;n<12&&!ok;n++){const a=walker.yaw+(Math.random()-.5)*.7,d=6+Math.random()*5;tx=walker.x+Math.sin(a)*d;tz=walker.z+Math.cos(a)*d;ok=inSea(tx,tz);}
+   if(!ok){const side=walker.x<21.5?-1:1;walker.yaw=side*Math.PI/2;tx=walker.x+side*(6+Math.random()*4);tz=Math.max(SHORE+4,walker.z+(Math.random()-.5)*4);}
+   walker.pitch=.1;fishing.target=[tx,tz];fishing.state='casting';fishing.t=0;fishing.bite=5+Math.random()*13;fishing.last='';
+   rodNode.setEnabled(true);bob.setEnabled(false);line.setEnabled(false);poseRod(0);api.sfx(240,.25,'sine',.04);announce('You draw the rod back and cast.');drawHud();}
+  function land(){
+   const rare=RARE.chance>0&&Math.random()<RARE.chance,f=rare?[RARE.id,RARE.name,RARE.min,RARE.max,RARE.color]:FISH[Math.min(FISH.length-1,Math.floor(Math.random()**1.6*FISH.length))],kg=(f[2]+Math.random()*(f[3]-f[2])).toFixed(1),r=LP()?.count('tropical-fish',1,f[0]);
+   fishMat.diffuseColor=B.Color3.FromHexString(f[4]);fishing.from=[bob.position.x,bob.position.z];fish.setEnabled(true);fishing.jump=1;plop(40);stow();api.sfx(880,.3,'triangle',.07);fishing.session++;fishing.last=f[1].replace(/^an? /,'')+', '+kg+' kg';
+   const total=r?r.total:0,got=r?.earned?.[0];announce('You land '+f[1]+', '+kg+' kg, and let it go.'+(total?' Fish caught: '+total+'.':'')+(got?' That is '+got.goal+': the goal of "'+got.title+'".':''));drawHud();
+   try{globalThis.VoidAchievements?.report?.('vr_fish_landed',{world:'tropical',kind:f[0]});}catch{}}
+  const aimed=()=>{const dx=bob.position.x-walker.x,dy=bob.position.y+.1-walker.y,dz=bob.position.z-walker.z,d=Math.hypot(dx,dy,dz)||1,p=walker.pitch||0,fx=Math.sin(walker.yaw)*Math.cos(p),fy=-Math.sin(p),fz=Math.cos(walker.yaw)*Math.cos(p);return Math.acos(Math.max(-1,Math.min(1,(dx*fx+dy*fy+dz*fz)/d)))<=AIM;};
+  /* The player acts (E at the pier, or a click while the line is out). */
+  function act(fromClick){
+   if(fishing.state==='idle'){if(!fromClick)cast();return;}
+   if(fishing.state==='casting')return;
+   if(fishing.state==='waiting'){stow();api.sfx(200,.2,'sine',.04);announce('You reel in too early. Nothing on the line.');return;}
+   if(fishing.state==='bite'){if(aimed())land();else announce('Look at the float and click it!');}}
+  const onClick=e=>{if(e.button!==0||fishing.state==='idle'||!globalThis.VoidVR?.active)return;if(typeof mode!=='undefined'&&mode!=='walking')return;e.preventDefault();e.stopImmediatePropagation();act(true);};
+  addEventListener('mousedown',onClick,{capture:true});
+  {const prev=k.dispose.bind(k);k.dispose=function(){removeEventListener('mousedown',onClick,{capture:true});try{hud.remove();}catch{}try{splash.dispose();}catch{}try{line.dispose();}catch{}return prev();};}
   k.every((dt,time)=>{
-   if(fishing.jump>0){fishing.jump-=dt*1.1;const j=1-fishing.jump;fish.position.y=Math.sin(j*Math.PI)*1.5;fish.rotation.z=j*5;if(fishing.jump<=0)fish.setEnabled(false);}
+   for(const r of rings)if(r.t>=0){r.t+=dt;const u=r.t/1.3;r.mesh.scaling.setAll(.3+u*2.4);r.mesh.visibility=Math.max(0,.7*(1-u));if(u>=1){r.t=-1;r.mesh.setEnabled(false);}}
+   if(fishing.jump>0&&fishing.from){fishing.jump-=dt*1.25;const j=1-Math.max(0,fishing.jump),fx=fishing.from[0]+(walker.x-fishing.from[0])*j*.85,fz=fishing.from[1]+(walker.z-fishing.from[1])*j*.85;fish.position.set(fx,Math.sin(j*Math.PI)*2.1+j*(walker.y-.7),fz);fish.rotation.z=j*7;fish.rotation.y=walker.yaw;if(fishing.jump<=0)fish.setEnabled(false);}
+   const pier=onPier(walker.x,walker.z);if(hud.hidden===pier){hud.hidden=!pier;if(pier)drawHud();}
    if(fishing.state==='idle')return;fishing.t+=dt;
-   if(!onPier(walker.x,walker.z)){stow();announce('You reel in and leave the pier.');return;}
-   if(fishing.state==='waiting'){bob.position.y=-.02+Math.sin(time*2.2)*.03;if(fishing.t>=fishing.bite){fishing.state='bite';fishing.t=0;api.sfx(300,.2,'sine',.09);announce('A BITE! Press E now!');}}
-   else if(fishing.state==='bite'){bob.position.y=-.16+Math.sin(time*26)*.05;if(fishing.t>1.7){stow();api.sfx(180,.3,'sine',.05);announce('Too slow. It took the bait and got away.');}}});
-  return {tick:k.tick,dispose:k.dispose,
+   if(!pier){stow();announce('You reel in and leave the pier.');return;}
+   if(fishing.state==='casting'){const u=fishing.t/CAST_TIME;
+    // back over the shoulder, a quick whip forward, then the float flies out on an arc and lands
+    const swing=u<.4?-(u/.4):u<.55?-1+2*((u-.4)/.15):1-.35*Math.min(1,(u-.55)/.45);poseRod(swing);
+    const fly=(fishing.t-CAST_TIME*.5)/FLY;
+    if(fly>=0){if(!bob.isEnabled()){bob.setEnabled(true);line.setEnabled(true);fishing.start=fishing.tip.clone();api.sfx(1400,.22,'sawtooth',.02);}
+     const v=Math.min(1,fly);bob.position.set(fishing.start.x+(fishing.target[0]-fishing.start.x)*v,fishing.start.y*(1-v)+Math.sin(v*Math.PI)*1.6-.02*v,fishing.start.z+(fishing.target[1]-fishing.start.z)*v);drawLine();
+     if(fly>=1&&u>=1){fishing.state='waiting';fishing.t=0;bob.position.y=-.02;plop(14);api.sfx(520,.18,'triangle',.05);announce('The float is out. Watch it; when it splashes, look at it and click.');}}
+    return;}
+   poseRod(.65+Math.sin(time*1.3)*.02);
+   if(fishing.state==='waiting'){bob.position.y=-.02+Math.sin(time*2.2)*.025;bob.rotation.z=Math.sin(time*1.7)*.08;drawLine();if(fishing.t>=fishing.bite){fishing.state='bite';fishing.t=0;plop(46);api.sfx(300,.2,'sine',.09);api.sfx(1900,.12,'triangle',.04);announce('A BITE! Look at the float and click!');}}
+   else if(fishing.state==='bite'){bob.position.y=-.15+Math.sin(time*26)*.06;bob.rotation.z=Math.sin(time*31)*.3;drawLine();if(Math.floor(fishing.t*3)!==Math.floor((fishing.t-dt)*3))plop(10);if(fishing.t>WINDOW){stow();api.sfx(180,.3,'sine',.05);announce('Too slow. It took the bait and got away.');}}});
+  return {tick:k.tick,dispose:k.dispose,fishing:()=>({state:fishing.state,float:[bob.position.x,bob.position.y,bob.position.z],session:fishing.session}),
    update(){walker.y+=onPier(walker.x,walker.z)?.66:height(walker.x,Math.min(walker.z,SHORE+1.5));api.audioLevel('waves',.06+.12*Math.max(0,1-Math.abs(walker.z-SHORE)/40)**2,.3);},
    interact(item){const id=item.id.slice(3);
     if(id.startsWith('lounger')){const [x,z]=spots.lounger[+id.slice(7)];api.sit({x,z:z-.6,yaw:0,eye:.95,pitch:.05,text:'You stretch out on the lounger. The sea is warm and blue.'});}
     else if(id==='pier-bench')api.sit({x:21.5,z:33.2,yaw:0,eye:1.75,text:'You sit at the end of the pier, the sea all around you.'});
     else if(id==='hut'){const next=k.time==='day'?'sunset':'day';setTime(next);api.session.settings.time=next;announce(next==='day'?'Bright afternoon.':'Sunset over the water.');}
-    else if(id==='fish'){if(fishing.state==='idle')cast();else if(fishing.state==='bite')land();else{stow();announce('You reel in too early. Nothing on the line.');}}
+    else if(id==='fish')act(false);
     else if(id==='surf'){api.sfx(220,.8,'sine',.06);announce('Warm water runs over your feet and draws back across the sand.');}
     else if(id.startsWith('shell')){const s=shells[+id.slice(5)];if(s.isEnabled()){s.setEnabled(false);found++;api.sfx(1200,.25,'triangle',.05);announce('A shell, pink inside. ('+found+' of '+shells.length+' found. They stay in the simulation.)');}}},
    setOption(key,val){if(key==='time'&&val!==k.time)setTime(val);if(key==='gulls')api.audioSet('birdLevel',val==='off'?0:1);}};
@@ -148,5 +219,5 @@
  VoidVR.register({id:'tropical',shared:true,title:'Tropical Escape',status:'ready',station:1,preview:'void-runner/assets/vr/sky/beach-day.jpg',
   description:'A sandy beach on a calm sea: palms, loungers, a thatched shelter, a pier, and dolphins leaping offshore.',
   defaults:{time:'day',gulls:'on'},settings:[{key:'time',label:'Time of day',values:[['day','Afternoon'],['sunset','Sunset']]},{key:'gulls',label:'Gulls',values:[['on','On'],['off','Off']]}],
-  ambience:()=>({waves:.12,wind:.03,gulls:true}),layout,build});
+  ambience:()=>({waves:.12,wind:.03,gulls:true,music:'vr-tropical',musicLevel:.3}),layout,build});
 })();
