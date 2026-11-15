@@ -40,7 +40,7 @@
   news:{id:'news',title:'NEWS',glyph:'N',state:'ready',note:'Reports you have received.'},
   map:{id:'map',title:'MAP',glyph:'+',state:'ready',note:'Places you have explored.'},
   camera:{id:'camera',title:'CAMERA',glyph:'O',state:'ready',note:'A live viewfinder with name tags and zoom. Nothing is captured or stored yet.'},
-  gallery:{id:'gallery',title:'GALLERY',glyph:'G',state:'placeholder',note:'Photos will appear here when the camera exists.'},
+  gallery:{id:'gallery',title:'GALLERY',glyph:'G',state:'ready',note:'Photos you have taken with the camera.'},
   store:{id:'store',title:'APP STORE',glyph:'A',state:'ready',note:'Apps for this device.'},
   device:{id:'device',title:'MY DEVICE',glyph:'D',state:'ready',note:'This device: its model, storage and built-in apps.'},   // shown as MY V1, MY V2... (appTitle)
   settings:{id:'settings',title:'SETTINGS',glyph:'*',state:'ready',note:'Device preferences.'},
@@ -84,7 +84,9 @@
  /* Stock V1: 11 system apps, 0 optional apps, 75% used / 25% available. Only optional apps that are actually installed add to the baseline. */
  function storage(device){
   const def=DEVICES[device.model]||DEVICES.v1,optional=device.apps.filter(a=>!def.apps.includes(a)),
-   extra=optional.reduce((t,a)=>t+(Number((STORE_EXTRA.find(x=>x.id===a)||{}).storagePct)||0),0),used=clampPct(def.storage.baseUsedPct+extra);
+   extra=optional.reduce((t,a)=>t+(Number((STORE_EXTRA.find(x=>x.id===a)||{}).storagePct)||0),0),
+   photos=Math.max(0,Number(arguments[1]??(typeof globalThis!=='undefined'&&globalThis.VoidGallery?globalThis.VoidGallery.count:0))||0),   // each photo in the Gallery takes 1% (device-gallery.js)
+   used=clampPct(def.storage.baseUsedPct+extra+photos);
   return {model:def.name,systemApps:def.apps.length,optionalApps:optional.length,usedPct:used,availablePct:100-used,baselinePct:def.storage.baseUsedPct};
  }
  /* What an app is called on THIS device: the device app carries the model's name (MY V1 on a V1, MY V2 on a V2). */

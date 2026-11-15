@@ -5,7 +5,7 @@ const D=require('../void-runner/device-v1.js'),N=require('../void-runner/neochin
 test('V1 is the default device and the registry is the extension point',()=>{
  assert.equal(D.restore({}).model,'v1');assert.equal(D.DEVICES.v1.name,'V1');assert.equal(D.DEVICES.v1.generation,1);
  for(const id of D.DEVICES.v1.apps)assert.ok(D.APPS[id],id);
- assert.deepEqual(Object.keys(D.APPS).filter(k=>D.APPS[k].state==='placeholder').sort(),['gallery'],'only the gallery is a placeholder');
+ assert.deepEqual(Object.keys(D.APPS).filter(k=>D.APPS[k].state==='placeholder').sort(),[],'no app is a placeholder now that the Gallery keeps photos');
  assert.equal(D.DEVICES.v1.camera.enabled,true);assert.deepEqual(D.DEVICES.v1.camera.zooms,[1,1.5,2,3,4]);assert.equal(D.DEVICES.v1.camera.maxZoom,2);
  assert.deepEqual(Object.keys(D.DEVICES),['v1','v3'],'the V1 everyone has, and the V3 // SHADOW nobody can get yet');assert.equal(D.DEVICES.v3.name,'V3 // SHADOW');assert.equal(D.appTitle('device',{model:'v3'}),'MY V3 // SHADOW');assert(D.DEVICES.v3.ui.appOpenMs<D.DEVICES.v1.ui.appOpenMs,'the V3 is faster');for(const id of D.DEVICES.v3.apps)assert.ok(D.APPS[id],id);assert.deepEqual(D.STORE_EXTRA.map(x=>x.id),['warflying'],'one optional app, free');assert.ok(!JSON.stringify(D.STORE_EXTRA).match(/price|credit|buy|purchase/i),'nothing is for sale');
 });

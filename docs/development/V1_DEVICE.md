@@ -94,3 +94,14 @@ David: when he signs in with his developer account (smartsec916@gmail.com) he wa
 - **Players (Messages) and Social:** outside The Darknet District each other player's row shows how far away they are ("42 m away"), nearest first. Inside the District no distance is shown (everyone is simply here).
 - **Footsteps** (`void-runner/footsteps.js`, `tests/footsteps.test.cjs`): other players and NPCs who are moving near you make steps that come from their position, fade with distance, and are quicker and louder when they run; your own steps are louder when you run. A thud made in code, on the Effects channel, nearest five movers only. Not heard by Claude (the test browser has no sound): David to judge level and feel.
 
+
+## 15 Nov 2026: photos, the Gallery and News filters
+
+David: left mouse button takes a picture with the camera; pictures are kept in the Gallery at about 1% of storage each; players can delete them and post them to the News app; residents post too, at places like NULL; the tags of players and residents stay in every picture; News can be filtered (Broadcasts, Commerce, People).
+
+- **Taking a photo.** With the viewfinder up (B), the left mouse button takes the picture (`device-camera.js` `shoot`). The picture is the game's own frame with the name tags drawn in; the list of who was tagged is kept with it. A full device says so instead of saving.
+- **Gallery** (`device-gallery.js`). Photos are stored in this browser only (IndexedDB `void-runner-gallery`); nothing is uploaded. Each photo takes 1% of the device's storage on top of the apps (`D.storage` counts them), so a stock V1 holds 25. A photo can be opened, deleted (press twice) or posted.
+- **News filters** (`personal-device.js` `newsView`): ALL, BROADCASTS (the Relay archive), COMMERCE (the adverts), PEOPLE (pictures).
+- **People posts.** The player's posted photos and four pictures posted by residents (`NPC_POSTS`: Lumi and DJ Vanta at NULL, Nyx at the bar, Dax in the arcade). The residents' pictures were taken in the game with this camera and are in `void-runner/art/news/`. No captions were invented.
+- **NOT DONE: other players cannot see your posts.** That needs picture storage and moderation on the server (cost and a reporting path), which has not been built or approved. Until then a post is visible to its owner only, and the photo screen says so.
+- Tests: `tests/device-gallery.test.cjs`.

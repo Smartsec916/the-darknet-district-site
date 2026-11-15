@@ -199,7 +199,8 @@
     +(here.length?'<h2>RESIDENTS HERE</h2>'+here.map(row).join(''):'')+'<h2>PLAYERS HERE NOW</h2>'+(pl.length?pl.map(row).join(''):'<div class="pd-empty">'+(rp()?.connected?'No other players nearby.':'Not connected to the District server.')+'</div>')
     +'<div class="pd-note" style="margin-top:10px">Friends and player discovery are not available yet.</div>';
   },
-  news(){
+  news(){return newsView(newsOld());},
+  newsOld_(){
    const R=root.VoidRelayRadio;let html='';try{html=R?.archiveSection?.()||'';}catch{}
    const head=html?'<div class="pd-note">From THE RELAY. Only what you have actually heard is listed. Sponsored lines are the adverts on the screens around you.</div>':'';
    // adverts mixed in among the reports, in a new order each time the app is opened
@@ -219,8 +220,8 @@
    if(root.VoidDistrictMap?.mount)return '<div class="pd-note">'+(wl.mapSpace?(root.VoidAreaMap?.get(wl.mapSpace)?.name||'AREA').toUpperCase():area==='interior'?'THE DARKNET DISTRICT':'NEOCHINATOWN')+' · '+(wl.mapSpace?'area map · unexplored places are hidden':'city navigation')+'</div><div data-district-map></div>';
    return '<div class="pd-note">'+(area==='interior'?'THE DARKNET DISTRICT':'NEOCHINATOWN')+' · only places you have explored are shown.</div><canvas class="pd-map" width="800" height="560" data-map aria-label="Map of explored areas"></canvas><div data-places></div>';
   },
-  camera(){return '<div class="pd-empty"><b>CAMERA</b><br>The viewfinder opens over the world.<br>Nothing is captured, stored or sent.</div>';},
-  gallery(){return '<div class="pd-empty"><b>GALLERY</b><br>No photos. Photos will be kept here once the camera exists.</div>';},
+  camera(){return '<div class="pd-empty"><b>CAMERA</b><br>The viewfinder opens over the world.<br>Left mouse button takes a photo; photos are kept in the Gallery.</div>';},
+  gallery(){return root.VoidGallery?root.VoidGallery.view(dev,stack[1]):'<div class="pd-empty"><b>GALLERY</b><br>The gallery is not available.</div>';},
   /* The App Store is empty until David adds apps (15 Nov 2026): the device's own details moved to MY V1 (the `device` app). */
   store(){
    const l=D.storeListing(dev),st=l.storage;
@@ -305,6 +306,19 @@
   el.querySelector('[data-do=expand]').textContent=expanded?'COLLAPSE':'EXPAND';el.querySelector('[data-do=expand]').setAttribute('aria-label',expanded?'Collapse device':'Expand device');
   el.querySelector('[data-do=back]').hidden=!app;el.querySelector('.pd-title').textContent=label();
  }
+ /* News filters (David, 15 Nov 2026): ALL, BROADCASTS (what was heard on the Relay), COMMERCE (the adverts), PEOPLE (pictures posted by residents and by you). */
+ const NEWS_FILTERS=[['all','ALL'],['broadcasts','BROADCASTS'],['commerce','COMMERCE'],['people','PEOPLE']];let newsFilter='all';
+ const newsOld=()=>APP_VIEW.newsOld_();
+ setTimeout(()=>{try{root.VoidGallery?.onChange(()=>{if(open&&!busy&&stack[0]==='gallery')render({keepScroll:true});});}catch{}},0);
+ function newsView(old){
+  const bar='<div class="pd-newsfilter" role="group" aria-label="Show">'+NEWS_FILTERS.map(([k,l])=>'<button type="button" data-news-filter="'+k+'" aria-pressed="'+(newsFilter===k)+'">'+l+'</button>').join('')+'</div>';
+  let people='';try{const h=root.VoidAccount?.handle;people=root.VoidGallery?.peopleHtml(typeof h==='string'&&h?h:'You',id=>DP()?.npc(id)?.name)||'';}catch{}
+  const tpl=document.createElement('template');tpl.innerHTML=old;const ads=[...tpl.content.querySelectorAll('.pd-ad')],hasReports=!!tpl.content.querySelector('.relay-archive article,.relay-archive details');
+  if(newsFilter==='people')return bar+(people||'<div class="pd-empty">Nobody has posted a picture yet.</div>');
+  if(newsFilter==='commerce')return bar+(ads.length?ads.map(a=>a.outerHTML).join(''):'<div class="pd-empty">No adverts right now.</div>');
+  if(newsFilter==='broadcasts'){for(const a of ads)a.remove();for(const h of tpl.content.querySelectorAll('h2'))if(/SPONSORED/.test(h.textContent))h.remove();return bar+(hasReports?tpl.innerHTML:'<div class="pd-empty">No news received yet.<br>Reports appear here after you hear them on the Relay.</div>');}
+  return bar+(people?'<h2>PEOPLE</h2>'+people:'')+old;
+ }
  function render(opts={}){
   if(!el||!open||busy)return;   // while a transition card is showing nothing else redraws the screen
   const app=stack[0],def=D.DEVICES[dev.model];chrome();syncViewing();
@@ -330,6 +344,10 @@
  function onClick(e){
   {const more=e.target.closest?.('[data-ach-more]');if(more){const k=more.dataset.achMore,v=achView.get(k)||{open:false,sort:'featured'};achView.set(k,{...v,open:!v.open});render();return;}}
   const t=e.target.closest('button');if(!t)return;
+  if(t.dataset.newsFilter){newsFilter=t.dataset.newsFilter;render();return;}
+  if(t.dataset.photo){go(['gallery',t.dataset.photo],'tab','OPENING PHOTO');return;}
+  if(t.dataset.photoDel){if(t.dataset.sure!=='1'){t.dataset.sure='1';t.textContent='DELETE THIS PHOTO? PRESS AGAIN';return;}root.VoidGallery?.remove(t.dataset.photoDel).then(()=>{if(open&&stack[0]==='gallery'){stack=['gallery'];render();}});return;}
+  if(t.dataset.photoPost){root.VoidGallery?.post(t.dataset.photoPost,t.dataset.on==='1').then(()=>{if(open&&stack[0]==='gallery')render({keepScroll:true});});return;}
   if(t.dataset.app){if(busy)return;if(!reduced()){t.classList.add('launching');t.style.setProperty('--pd-ms',D.delayMs(dev,'open',false)+'ms');}go([t.dataset.app],'open');return;}
   if(t.dataset.do==='close')return setOpen(false);
   if(t.dataset.do==='back')return back();
