@@ -27,7 +27,7 @@
      which stays as the fallback if the file cannot be loaded. `scale` brings the file to the game's standard height. */
   {id:'admin',name:'Admin',jobs:['merchant'],area:'interior',place:'The Darknet District store',bio:'Runs the District store.',model:'npc-admin',scale:.99,
    appearance:{v:1,base:'male',look:'district-smuggler',hair:'short03',hairColor:'silver',clothingColor:'graphite',accessories:[]}},
-  {id:'iris',name:'Iris',jobs:['merchant','info-broker'],area:'interior',place:'The Darknet District store',bio:'Works the store counter beside Admin.',
+  {id:'iris',name:'Iris',jobs:['merchant','info-broker'],area:'interior',place:'The Darknet District store',bio:'Works the store counter beside Admin.',model:'npc-iris',scale:.99,
    appearance:{v:1,base:'female',look:'fixer-01',hair:'bob02',hairColor:'silver',clothingColor:'black',accessories:['gear-collar','gear-shoulders','gear-chest']}},
   {id:'nyx-district',name:'Nyx',jobs:['bartender'],area:'interior',place:'The bar and oxygen lounge',bio:'Behind the bar.'},
   {id:'rin-takeda',crew:'crew-bar1',look:'district-resident',name:'Rin Takeda',jobs:['influencer'],area:'interior',place:'The bar and oxygen lounge',bio:'Usually at the bar.'},

@@ -31,6 +31,8 @@ The CLI on David's PC is 0.8.6: `--async` on create, then `meshy <resource> get 
 | 15 Nov | Iris concept | image-to-image `01a1e023-ed62…` | 9 |
 | 15 Nov | Iris 3D | image-to-3d `01a1e025-5be1…` | 30 |
 | 15 Nov | Iris remesh 45k | remesh `01a1e029-51c6…` | 5 |
+| 15 Nov | Iris rig | rigging `01a1e032-0b3f…` | 5 |
+| | **Total so far** | | **98** |
 
 A full character costs about 49 credits, so the month's 1,100 is roughly 22 characters, or fewer characters plus props (a prop from a picture is about 30).
 

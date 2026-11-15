@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "604c440a2e312761",
+  "revision": "94c2d4c62c2d8dd9",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -14243,7 +14243,7 @@
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-test.js": "4362607f733d49e3e9e6582cb3362665e29bd28ee56c90fc5580d5d23cb1fdb0",
     "void-runner/dev-tools.js": "8fc329454a6ed8a22bf93e8721eeffca11b1276ccf0eb3676b90c67c58781974",
-    "void-runner/device-camera.js": "59de7fb0f547cea33294e843bcaa4e12dcfd984797c5cdfb0469012e38aea998",
+    "void-runner/device-camera.js": "6a346b2eb359bfdd88bc94c7dc4a26ce833b9eb4f60d87b0879efff6f7e6056d",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
     "void-runner/device-portraits.js": "804452b16dda42da7d3057a6fd940c508e43dc881e1e9614195e54d8242db594",
     "void-runner/device-v1.js": "b8e737ed01eb6a42c42880665e20f5369317acbd4fef749b906edf69a281b9c6",
@@ -14251,7 +14251,7 @@
     "void-runner/district-area.js": "48b60eab3a791020ce7a4a7213de866e697069ca4c003cf7f255a5ffcef3db4c",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
     "void-runner/district-map.js": "58b56089eef021541f870f4fc6edc10debc9998e151b71c1d1e05c16eeafa792",
-    "void-runner/district-people.js": "502a01ed60b70cae2506fa1ce9b82cedc02ac8de2e1f93ba5867e894f4bd6f33",
+    "void-runner/district-people.js": "3cde50b86f431659dbd66463d1c6b15f4450fd52aa05d6a3cc784a8c1dd1a46a",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/district-voice.js": "748c71527b459938e848cd52e70feb2d3c30efefe93858e36e5ef44339b443eb",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
