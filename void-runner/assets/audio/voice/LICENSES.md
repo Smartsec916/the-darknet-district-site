@@ -18,3 +18,14 @@ python tools/voice/generate.py --models <folder with kokoro-v1.0.onnx and voices
 ```
 
 `npm test` fails if dialogue changes without its clip being re-rendered (`extract-lines.cjs --check`).
+
+## Lines voiced with ElevenLabs (`extra/`)
+
+| Item | Source | Licence | Commercial use |
+|---|---|---|---|
+| `extra/*.ogg` (listed in `extra/manifest.json` with the voice used) | Generated once with ElevenLabs (model `eleven_v4`, library voices) on David's ElevenLabs account, Starter plan, 15 Nov 2026, and stored here so the game never generates audio at play time | ElevenLabs terms for paid plans | David to confirm the plan's commercial terms cover this use; the plan and date are recorded here as the evidence available |
+
+- These are NEW lines only. No existing approved Kokoro recording was replaced, and the approved voices in `tools/audio/npc-voice-registry.json` are unchanged.
+- Admin's ElevenLabs voice is a natural American male; Iris's is a calm British female, and her synthetic colour is still added live by `voice-clips.js`, as for her Kokoro lines.
+- The same character now has lines in two different voices (Kokoro and ElevenLabs). Re-voicing the older lines for consistency is David's decision.
+

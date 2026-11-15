@@ -58,8 +58,11 @@
  const isFollowing=(flags,key)=>readFollowing(flags).some(f=>f.key===key);
  /* House rule (David, 15 Nov 2026): the District is shielded, and scanning inside it is rude. When someone comes in with the WarFlying app ACTIVE, Admin or Iris
     notices, walks over and tells them to deactivate it. Admin goes half the time and Iris the other half; if Admin is not in the District, Iris always goes.
-    DRAFT: the two lines are Claude's wording of David's instruction ("tell them it's rude and to Deactivate it in the App"); they have no recorded voice. */
+    DRAFT: the two lines are Claude's wording of David's instruction ("tell them it's rude and to Deactivate it in the App"). They are voiced with ElevenLabs
+    (David, 15 Nov 2026) and the recordings are kept in the game's assets. */
  const ETIQUETTE={noticeAfter:2.5,speed:1.5,stopAt:1.7,talkFor:7,
+  // who says it and the words (spoken with a stored recording: assets/audio/voice/extra; the caption is `who: text`)
+  spoken:{admin:['Admin','Scanning in here is rude. Open WarFlying on your device and deactivate it.'],iris:['Iris','You are scanning inside the District. That is rude. Deactivate WarFlying in the app.']},   /* [speaker, words]: kept as a pair so the Kokoro line extractor does not take these for its own lines */
   lines:{admin:'Admin: Scanning in here is rude. Open WarFlying on your device and deactivate it.',iris:'Iris: You are scanning inside the District. That is rude. Deactivate WarFlying in the app.'},
   // who goes: r is a random number 0..1
   who(adminHere,irisHere,r){return adminHere&&irisHere?(r<.5?'admin':'iris'):irisHere?'iris':adminHere?'admin':null;},

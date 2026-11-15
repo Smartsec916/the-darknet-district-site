@@ -1182,7 +1182,7 @@
       if(!actor)return;const h=actor.holder;
       if(phase==='go'){const last=at>=route.length-1;if(last&&p){const dx=p[0]-h.position.x,dz=p[1]-h.position.z,d=Math.hypot(dx,dz);if(d<=E.stopAt){face(h,dx,dz);phase='talk';talk=0;spoken=false;actor.play('talk');return;}route[route.length-1]=[p[0]-dx/d*(E.stopAt-.2),p[1]-dz/d*(E.stopAt-.2)];}   /* the last leg follows the player if they move */
        if(step(h,route[at],dt)&&at<route.length-1)at++;return;}
-      if(phase==='talk'){talk+=dt;if(p)face(h,p[0]-h.position.x,p[1]-h.position.z);if(!spoken){spoken=true;try{announce(E.lines[who]);}catch{}}
+      if(phase==='talk'){talk+=dt;if(p)face(h,p[0]-h.position.x,p[1]-h.position.z);if(!spoken){spoken=true;try{announce(E.lines[who]);}catch{}try{const sp=E.spoken?.[who];if(sp)root.VoidAudio?.speak?.(sp[0],sp[1]);}catch{}}
        if(talk>=E.talkFor||(!on&&talk>1.5)){const end=actor.home[0]<10?4.9:15.1;route=[[2.2,45.4],[end,45.4],[end,actor.home[1]],actor.home.slice()];at=0;phase='back';actor.play('walk');}return;}
       if(phase==='back'){if(step(h,route[at],dt)){at++;if(at>=route.length){h.rotation.y=Math.PI;actor.play('idle');phase='watch';seen=0;actor=null;}}}
      }};})();

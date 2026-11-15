@@ -8,6 +8,8 @@
  let manifest=null,lookup=new Map(),source=null,stopTimer=null;const cache=new Map();
  fetch(new URL('manifest.json',base)).then(r=>r.ok?r.json():null).then(m=>{if(!m)return;manifest=m;
   for(const [id,l] of Object.entries(m.lines))lookup.set(l.speaker+'|'+l.text,{id,...l});}).catch(()=>{});
+ /* A few lines voiced outside the Kokoro pipeline (ElevenLabs, rendered once and stored): extra/manifest.json. Same lookup, same playback, same live effects. */
+ fetch(new URL('extra/manifest.json',base)).then(r=>r.ok?r.json():null).then(m=>{if(!m)return;for(const [id,l] of Object.entries(m.lines||{}))if(/^extra\/[a-z0-9-]+\.ogg$/.test(l.file))lookup.set(l.speaker+'|'+l.text,{id:'extra:'+id,...l});}).catch(()=>{});
  const key=(who,text)=>(alias[who]||root.VoidVRCompanions?.voiceOf?.(who)?.characterId||who)+'|'+text;
  function has(who,text){return lookup.has(key(who,text));}
  async function clip(context,line){
@@ -57,7 +59,7 @@
  function cancel(){clearTimeout(stopTimer);try{source?.stop();}catch{}source=null;}
  async function speak({characterId,text,bus}){
   cancel();const line=lookup.get(key(characterId,text));if(!line||!bus)throw Error('No recorded line');
-  const ctx=bus.context,data=await clip(ctx,line),cast=manifest.cast[line.speaker]||{};
+  const ctx=bus.context,data=await clip(ctx,line),cast=manifest?.cast?.[line.speaker]||{};
   const playing=ctx.createBufferSource();playing.buffer=data;source=playing;
   const input=ctx.createGain(),out=ctx.createGain();out.connect(bus);playing.connect(input);
   const extra=cast.effect==='android'?android(ctx,input,out):cast.effect==='hologram'?hologram(ctx,input,out):cast.effect==='radio'?radio(ctx,input,out):(input.connect(out),[]);
