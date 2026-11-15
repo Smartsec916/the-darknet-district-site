@@ -6,6 +6,18 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 15 Nov 2026 (morning): the area soundtrack and environmental sound (build `2026-11-16-soundtrack-1`); NOBODY HAS LISTENED TO IT YET
+**Read `docs/development/AREA_SOUNDTRACK.md` first.** David asked for the code-generated music to be replaced by ElevenLabs recordings, one 60-second loop per existing area, plus environmental sound.
+- **14 recorded loops** in `void-runner/assets/audio/score/` (menu, NeoChinatown streets, alley, vestibule, District hall, store, bar, VR area, arcade, NULL, Milked, Corporate District, temple, flight). `music-score.js` `files` maps area to file; the generated score is now only the fallback and the music of the older-campaign stations, warp and hazards.
+- **New areas for the music director:** alley, Milked, Corporate District, temple, VR play area, bar (the bar used to be a "speaker" heard from the hall; it is a room now). The old `district-arcade` zone pointed at the VR area; it now points at the cabinets.
+- **Environmental sound** in `void-runner/area-ambience.js` (new, loaded after `music-integration.js`): beds per area, six placed emitters, a lock clunk in the vestibule, recorded footsteps for wet / metal / concrete floors (also used by `footsteps.js`). Files in `void-runner/assets/audio/ambience/`.
+- **Rules kept:** nothing plays in a sleeping pod, in VR or over the player's own pod playlist; the 27 Riffusion songs were not touched; music ducks 30% while anyone talks on voice chat; Music / Effects / Ambient / Voice sliders already existed and the new sound sits on those channels.
+- **No "black market" area exists**, so no track was made for it and no location was created.
+- **ElevenLabs credits:** 13,210 used for this (12,600 music + 610 effects; David's cap was 15,000). Account now at about 14,070 of 40,000 for the month. The estimate tool quotes 1,500 for a 60-second track but the real charge is 900. One take each; nothing was regenerated.
+- **Open for David:** listen and say which tracks to redo (900 credits each); whether the older-campaign places should get recordings too (about 12 more tracks, over the cap, so it needs his yes); confirm the Starter plan's commercial terms for music and sound effects (recorded in the two `LICENSES.md` files).
+- **Not verified:** how any of it sounds (no speakers in the cloud). Checked in a real browser: each District room resolves to its track and ambience, files load, the pod is silent. The street, alley, club, Milked, Corporate and temple mappings are covered by unit tests only.
+
+
 ### 15 Nov 2026 (after midnight): voice stage 1 is LIVE and UNTESTED WITH REAL AUDIO; open audio work in order
 **Live (build `2026-11-16-voice-1`; hub redeployed, its log says "voice on", so David's three LiveKit variables are set and well-formed):**
 - **Comms app + proximity voice** (PR #308; `HUB_DEPLOYMENT.md` last section, `void-runner/district-voice.js`). Nobody has yet confirmed sound passing between two sessions: the cloud session cannot reach LiveKit. First thing to do next: have David test with two accounts, then fix what he finds.

@@ -23,8 +23,10 @@ test('District zones are distinguished by where the player stands',()=>{
   assert.equal(D.zoneStyle(inDistrict(1,23)),'district-entry');
   assert.equal(D.zoneStyle(inDistrict(0,32)),'district-hall');
   assert.equal(D.zoneStyle(inDistrict(10,47)),'district-store');
-  assert.equal(D.zoneStyle(inDistrict(-9,40)),'district-arcade');
-  assert.equal(D.zoneStyle(inDistrict(-12.5,62.5)),'district-rest');
+  assert.equal(D.zoneStyle(inDistrict(-9,40)),'district-vr','the VR play area');
+  assert.equal(D.zoneStyle(inDistrict(-8.9,62)),'district-arcade','the arcade cabinets');
+  assert.equal(D.zoneStyle(inDistrict(10,37.2)),'district-bar','the bar and oxygen lounge');
+  assert.equal(D.zoneStyle(inDistrict(0,73)),'district-rest','the sleeping pods');
   assert.equal(D.zoneStyle(inDistrict(30,68)),'district-terrace');
 });
 test('walking between District zones waits a moment so the music never flickers',()=>{
@@ -52,9 +54,26 @@ test('watching a faction battle adds tension, never player-combat music',()=>{
 test('bar music comes from in-world speakers and fades with distance',()=>{
   const near=D.speaker(walk('meridian',0,58)),mid=D.speaker(walk('meridian',0,45)),far=D.speaker(walk('meridian',0,10));
   assert.equal(near.style,'dead-channel');assert.equal(near.level,1);assert(mid.level>0&&mid.level<1);assert.equal(far,null);
-  assert.equal(D.speaker(inDistrict(10,38)).style,'district-bar');
-  assert.equal(D.speaker(inDistrict(10,46.5)),null,'the bar music stays out of Admin and Iris’s store');
+  assert.equal(D.speaker(inDistrict(10,38)),null,'the District bar is a room with its own music now, not a speaker');
+  assert.equal(D.zoneStyle(inDistrict(10,46.5)),'district-store','the bar music stays out of Admin and Iris’s store');
   assert.equal(D.speaker({mode:'play',location:'meridian'}),null,'no bar speakers in flight');
+});
+test('the area soundtrack: the street, the alley, Milked, the Corporate District and the temple each have their own music',()=>{
+  assert.equal(D.zoneStyle(walk('earth',0,-40)),'neochinatown');
+  assert.equal(D.zoneStyle(walk('earth',100,-58)),'alley','the alley behind the District');
+  assert.equal(D.zoneStyle(walk('earth',230,-10)),'milked');
+  assert.equal(D.zoneStyle({...walk('earth',0,0),place:'corporate'}),'corporate');
+  assert.equal(D.zoneStyle({...walk('earth',0,0),place:'temple'}),'temple');
+  const d=D.create();settle(d,walk('earth',0,-40));D.step(d,walk('earth',100,-58),.5);assert.equal(d.style,'neochinatown','the alley mouth holds a moment, like a doorway');settle(d,walk('earth',100,-58),2);assert.equal(d.style,'alley');
+});
+test('every area of the soundtrack has a recording on disk, and so does every neighbour it fetches ahead',()=>{
+  const fs=require('node:fs'),path=require('node:path'),S=require('../void-runner/music-score.js'),root=path.join(__dirname,'..');
+  const areas=['theme','neochinatown','alley','district-hall','district-entry','district-store','district-vr','district-arcade','district-bar','nightclub','corporate','temple','milked','space'];
+  for(const id of areas){assert.ok(S.styles[id],id+' is a style');assert.ok(S.files[id],id+' has a recording');}
+  assert.equal(new Set(areas.map(id=>S.files[id])).size,areas.length,'each area has its own track');
+  for(const [id,f] of Object.entries(S.files)){assert.ok(S.styles[id],id);const st=fs.statSync(path.join(root,f));assert.ok(st.size>200000&&st.size<1500000,f+' is a compressed loop of sensible size');}
+  for(const [id,list] of Object.entries(D.neighbours)){assert.ok(S.styles[id],id);for(const n of list)assert.ok(S.files[n],id+' -> '+n);}
+  assert.equal(S.files['district-rest'],S.files['district-hall'],'the pods end hears the hall, quieter');assert.ok(S.styles['district-rest'].gain<S.styles['district-hall'].gain);
 });
 test('dialogue ducks the music without stopping it',()=>{
   const r=D.step(D.create(),{...inDistrict(10,46),mode:'dialogue',dialogue:true},.1);assert.equal(r.duck,D.config.dialogueDuck);assert(r.style);
