@@ -75,3 +75,9 @@ David: add the WarFlying app to the App Store; it takes 15% of storage on any pe
 - **Scanning** (`warflying-scanner.js`): listens when the app is installed and active. In flight it hears what it always did. On foot it logs the transmitter of the place you are in. **Inside The Darknet District it is shielded and hears nothing.**
 - **The old ship module** (`warflying-module`, Utility slot) is no longer needed for scanning. It is still in the item list and still sold at outfitters so no save breaks. **Open question for David:** remove it from sale and refund owners? The scrambler is unchanged and still a ship module.
 
+## 15 Nov 2026 (late): the scanning house rule, the V3 // SHADOW, walking speed
+
+- **House rule:** someone inside the District with the WarFlying app ACTIVE is noticed after a few seconds. Admin goes half the time, Iris the other half; when Admin is not in the District Iris always goes (`district-people.js` `ETIQUETTE`; the walking is in `neochinatown.js`, `etiquette`). They walk round the counter, down the hallway to the player, face them, say their line (shown as a notice; **no recorded voice, and the wording is Claude's draft of David's instruction**), and walk back. Once per visit; it re-arms when the app is switched off. Checked in a test browser with the clock sped up (the software renderer's game clock crawls): the route, the line and the return. The walk animation itself was not seen.
+- **V3 // SHADOW** (`DEVICES.v3`): faster timings, the same interface in monochrome green (`[data-device=v3]` in `device-v1.css`), camera `EYE 01` zooming to 4. The shared zoom array is now 1, 1.5, 2, 3, 4; the V1 still stops at 2. Nobody can get a V3 yet; it is Dax's device. Not built: the eye camera on B, and target lock on B in flight.
+- **On foot:** walk 3.4 to 3.9 m/s, run 5.6 to 6.4 m/s (`exploration-controller.js`); still under the multiplayer server's 9 m/s limit.
+

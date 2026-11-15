@@ -354,7 +354,7 @@
    if(!el)build();const s=state_();dev=D.restore(s?.story?.flags||{});dev.loaded=true;
    expanded=dev.settings.size==='expanded';stack=[];open=true;busy=false;clearTimeout(navTimer);navSeq++;
    walkingKeys?.clear?.();try{clearInput?.();}catch{}for(const c of held)if(MOVE.has(c))suppressed.add(c);   // keys already held do nothing until released and pressed again
-   document.exitPointerLock?.();el.classList.add('open');el.classList.toggle('anim',!reduced());chip.classList.remove('on');
+   document.exitPointerLock?.();el.dataset.device=dev.model;el.classList.add('open');el.classList.toggle('anim',!reduced());chip.classList.remove('on');
    if(pending){const q=pending;pending=null;booted=true;go(q.sub?[q.app,q.sub]:[q.app],'open');}
    else if(!booted){booted=true;go([],'startup','V1 STARTING');}else render();   // the first opening after the page loads shows a short start-up card
    setTimeout(()=>{if(!el.querySelector('input:focus'))el.querySelector('.pd-main')?.focus({preventScroll:true});},0);

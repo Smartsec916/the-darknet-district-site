@@ -7,7 +7,7 @@
     return location.solids.some(s => s.id!==ignoreId && !s.open && Math.abs(x - s.position[0]) < s.size[0] / 2 + radius && Math.abs(z - s.position[2]) < s.size[2] / 2 + radius);
   }
 
-  const config={sensitivity:.0022,walk:3.4,sprint:5.6,crouch:1.65,acceleration:32,braking:44,gravity:18,jump:4.6};
+  const config={sensitivity:.0022,walk:3.9,sprint:6.4,crouch:1.65,acceleration:32,braking:44,gravity:18,jump:4.6};
   function step(player,input,dt,location){
     dt=Math.max(0,Math.min(.1,dt));const length=Math.max(1,Math.hypot(input.x,input.z)),speed=input.crouch?config.crouch:input.run?config.sprint:config.walk;
     const tx=(Math.cos(player.yaw)*input.x+Math.sin(player.yaw)*input.z)/length*speed,tz=(-Math.sin(player.yaw)*input.x+Math.cos(player.yaw)*input.z)/length*speed;
