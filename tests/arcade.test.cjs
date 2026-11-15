@@ -27,5 +27,13 @@ test('the cabinet runs the real game page in a frame and never reaches into it; 
 test('every game page offers a way back to the website, and inside the District arcade the way out is EXIT GAME',()=>{
  const ret=fs.readFileSync('site-return.js','utf8');assert.match(ret,/games-list\.html/);assert.match(ret,/window\.top!==window\.self/,'nothing is shown inside the arcade frame');
  for(const f of ['blackout-protocol/index.html','corporate-zombies/index.html','underground-overdrive/index.html','origins/index.html','raven.html','void-runner.html'])assert.match(fs.readFileSync(f,'utf8'),/site-return\.js/,f);
- assert.match(fs.readFileSync('void-runner/district-arcade.js','utf8'),/>EXIT GAME</);assert.match(fs.readFileSync('games-list.html','utf8'),/href="void-runner\.html">\s*<h3>The Darknet District - Game<\/h3>/);
+ assert.match(fs.readFileSync('void-runner/district-arcade.js','utf8'),/>EXIT GAME · RETURN TO THE DARKNET DISTRICT</);assert.match(fs.readFileSync('site-return.js','utf8'),/RETURN TO THE DARKNET DISTRICT/);assert.match(fs.readFileSync('games-list.html','utf8'),/href="void-runner\.html">\s*<h3>The Darknet District - Game<\/h3>/);
+});
+
+test('a working cabinet shows its own game: an attract strip and a poster picture exist for every playable game, and the light-gun game has guns',()=>{
+ const {GAMES}=require('../void-runner/district-arcade.js'),src=fs.readFileSync('void-runner/neochinatown.js','utf8');
+ const art=/const ART=new Set\(\[([^\]]+)\]\)/.exec(src)[1].split(',').map(s=>s.trim().replace(/'/g,''));assert.deepEqual(art.sort(),Object.keys(GAMES).sort(),'every playable game, and only those');
+ for(const g of art)for(const kind of ['attract','poster']){const st=fs.statSync('void-runner/art/arcade/'+g+'-'+kind+'.jpg');assert.ok(st.size>8000&&st.size<200000,g+' '+kind);}
+ assert.match(src,/if\(key==='corporate-zombies'\)\{[^\n]*\n[^\n]*arcade-cab-gun'/,'Corporate Zombies has light guns on its panel');
+ assert.match(fs.readFileSync('void-runner/remote-players.js','utf8'),/ROOM_MODES=new Set\(\[[^\]]*'arcade'/,'a player at a cabinet stays in the room, where others still see them');
 });

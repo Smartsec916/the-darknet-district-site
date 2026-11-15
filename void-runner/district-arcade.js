@@ -13,7 +13,7 @@
  document.head.appendChild(css);
  // The bar is a div, not a <header>: the game page styles every <header>.
  function build(){el=document.createElement('section');el.id='arcade-play';el.hidden=true;el.setAttribute('role','dialog');el.setAttribute('aria-label','Arcade cabinet');
-  el.innerHTML='<div class="ap-bar"><b></b><span>ARCADE CABINET · the game runs here exactly as on its own page</span><button type="button" data-arcade="leave">EXIT GAME</button></div>';document.body.appendChild(el);
+  el.innerHTML='<div class="ap-bar"><b></b><span>ARCADE CABINET · the game runs here exactly as on its own page</span><button type="button" data-arcade="leave" aria-label="Exit the game and return to The Darknet District">EXIT GAME · RETURN TO THE DARKNET DISTRICT</button></div>';document.body.appendChild(el);
   el.querySelector('[data-arcade=leave]').addEventListener('click',close);}
  function open(id){
   const game=GAMES[id];if(!game||playing||typeof mode==='undefined'||typeof walker==='undefined'||!walker)return false;if(!el)build();
