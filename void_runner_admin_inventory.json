@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "cd5b3146fdafaff6",
+  "revision": "f80d7a91fcb39ae0",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12457,37 +12457,37 @@
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 50,
+      "line": 51,
       "text": "const A=root.VoidCharacterCreator?.stored?.()||null,h=root.VoidAccount?.handle;   // no saved look: the portrait says unavailable, never a guess",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 162,
+      "line": 163,
       "text": "const tabs='<div class=\"pd-tabs\">'+tab('chat','DISTRICT CHAT',un?(un>99?'99+':un):'')+tab('players','PLAYERS','')+tab('talk','CONVERSATIONS','')+tab('dm','PRIVATE','')+'</div>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 167,
+      "line": 168,
       "text": "return tabs+'<div class=\"pd-note\">People you have talked to in this browser. Not synced.</div>'+(rows.length?rows.slice(-40).reverse().map(m=>'<div class=\"pd-line\"><b>'+esc(m.name)+'</b><span class=\"pd-note\">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class=\"pd-empty\">No conversations yet. People you talk to appear here.</div>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 173,
+      "line": 174,
       "text": "+'<form data-chatform class=\"pd-compose\"><input type=\"text\" maxlength=\"200\" autocomplete=\"off\" aria-label=\"Chat message\" placeholder=\"'+(can?'Say something to the District (no links)':'Chat needs a registered account and a connection')+'\"'+(can?'':' disabled')+'><button type=\"submit\"'+(can?'':' disabled')+'>SEND</button></form>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 259,
+      "line": 260,
       "text": "const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 397,
+      "line": 398,
       "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
       "kind": "source-reference"
     },
@@ -14179,7 +14179,7 @@
     "void-runner/crowd.js": "ca4a687970b32147ef44b85615f7e8ed05ffc7b1360b3e0f2f9c4dbfa83c13b2",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
-    "void-runner/dev-test.js": "4583e5683e8c37ba25bf04bf9b0816ef93030c79b3c0a099532c97ca193e65cd",
+    "void-runner/dev-test.js": "4362607f733d49e3e9e6582cb3362665e29bd28ee56c90fc5580d5d23cb1fdb0",
     "void-runner/dev-tools.js": "8fc329454a6ed8a22bf93e8721eeffca11b1276ccf0eb3676b90c67c58781974",
     "void-runner/device-camera.js": "59de7fb0f547cea33294e843bcaa4e12dcfd984797c5cdfb0469012e38aea998",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
@@ -14222,7 +14222,7 @@
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "09c6ffa9f4bd4e961e3d566a9d797b53725fce88f49af9b20fb989cab5cbea98",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
-    "void-runner/menu.js": "1e867ab310bf04f9ad6a5a8f02db34f9ed6d0fa4fff3557fe73416ba9ba69772",
+    "void-runner/menu.js": "7d0621dbfaa581d9e06990aecc3ddfdbd8f09897d820ae714c4d2d202b348343",
     "void-runner/meridian-art.js": "ef57144a85d288a8b5c3ea0a616d36b5fcc78de0f4a5220473486f1f2b9f2a19",
     "void-runner/meridian-interior-kit.js": "2ca741d025cbd6b3e205e823c637fcf46c0488303ecb24cdcf2e678d0e43eeb4",
     "void-runner/meridian-interior.js": "d9f411d4f42b3cf8bacbe377812cda9b3c3563aef0d52127e989898e4b9a2b96",
@@ -14249,7 +14249,7 @@
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "4172df44fc02d43d56016c17c76bc6af4daa80edcc1c5200be582903d7075a19",
-    "void-runner/personal-device.js": "76f0a9cef92d86ce733dc1d3c58fc6299e234af92bd29c2cfda1d99dd54a96de",
+    "void-runner/personal-device.js": "13cf6e88f0e8af659ed74fa02a4b966f324f95c9bb4a46e6980bf0acb86624cb",
     "void-runner/personal-hud.js": "1ca0e48b3d144a0a2ffed8e3202f98322a060541b8127de2ee48469ed2606776",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",

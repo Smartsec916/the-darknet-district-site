@@ -47,6 +47,7 @@
  const uid=()=>root.VoidAccount?.user?.uid||'guest';
  const rp=()=>root.VoidRemotePlayers;
  function myProfile(){
+  if(flags_()?.playingAs==='admin'&&DP()?.npc('admin')){const n=DP().npc('admin'),p=D.profile('player',{handle:'Admin',publicId:rp()?.me||'',appearance:n.appearance,bio:n.bio,jobs:DP().jobsText(n.jobs)});p.subtitle='Admin · '+DP().jobsText(n.jobs);return p;}   // a developer playing as Admin: Admin's own record
   const A=root.VoidCharacterCreator?.stored?.()||null,h=root.VoidAccount?.handle;   // no saved look: the portrait says unavailable, never a guess
   const f=flags_(),about=f?cleanAbout(f.profileAbout):'',mine=D.profile('player',{handle:typeof h==='string'?h:null,publicId:rp()?.me||'',appearance:A,bio:about||'This is you.',jobs:DP()&&f?DP().jobsText(DP().readJobs(f)):''});
   try{mine.facts=(root.VoidLocalProgress?.profileLines()||[]).slice(0,12);}catch{}   // progress counted in this browser (local-progress.js): your own profile only; achievements proper need server records
@@ -62,7 +63,7 @@
  function areasHere(){const out=[];try{const wl=typeof walkingLocation!=='undefined'?walkingLocation:null;if(wl?.id==='neochinatown'&&typeof walker!=='undefined'&&walker){if(wl.area==='interior')out.push('interior');else if(root.VoidNightclub?.inside?.(walker))out.push('club');}}catch{}return out;}
  function sceneLook(crew){try{const sc=root.VoidBabylon?.scene,hit=n=>n.metadata&&n.metadata.crowd&&(n.metadata.character===crew||n.metadata.club===crew),n=sc?.transformNodes.find(hit)||sc?.meshes.find(hit);return n?n.metadata.crowd:null;}catch{return null;}}
  function residentProfile(n,here){const P=DP();return D.profile('npc',{id:n.id,name:n.name,affiliation:P.jobsText(n.jobs),bio:n.bio,place:n.place,here:false,appearance:n.appearance||null,model:n.appearance?null:(n.crew&&sceneLook(n.crew))||n.look||null});}
- function residents(onlyHere=true){const P=DP();if(!P)return [];const a=areasHere();return P.NPCS.filter(n=>!onlyHere||a.includes(n.area)).map(n=>residentProfile(n));}
+ function residents(onlyHere=true){const P=DP();if(!P)return [];const a=areasHere();const me=flags_()?.playingAs;return P.NPCS.filter(n=>n.id!==me&&(!onlyHere||a.includes(n.area))).map(n=>residentProfile(n));}   /* a developer playing as Admin is not also listed as a resident */
  const flags_=()=>state_()?.story?.flags||null;
  const cleanAbout=v=>String(v??'').replace(/[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2066-\u2069<>]/g,'').replace(/\s+/g,' ').trim().slice(0,120);
  function profileEditor(){
@@ -265,7 +266,7 @@
  const label=()=>stack[0]?D.appTitle(stack[0],dev):'HOME';
  function chrome(){   // header, title and back button: these change at once, only the content waits
   const def=D.DEVICES[dev.model],app=stack[0];
-  el.querySelector('.pd-tag').textContent=def.tagline;el.classList.toggle('expanded',expanded);el.classList.toggle('fx',dev.settings.scan==='1'&&!reduced());el.classList.toggle('pd-still',reduced());
+  el.querySelector('.pd-brand').textContent=def.name.split(' ')[0];el.querySelector('.pd-tag').textContent=def.tagline;el.classList.toggle('expanded',expanded);el.classList.toggle('fx',dev.settings.scan==='1'&&!reduced());el.classList.toggle('pd-still',reduced());
   el.querySelector('[data-do=expand]').textContent=expanded?'COLLAPSE':'EXPAND';el.querySelector('[data-do=expand]').setAttribute('aria-label',expanded?'Collapse device':'Expand device');
   el.querySelector('[data-do=back]').hidden=!app;el.querySelector('.pd-title').textContent=label();
  }

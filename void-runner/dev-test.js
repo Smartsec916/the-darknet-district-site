@@ -49,6 +49,20 @@
   if(typeof hud==='function')hud();
   announce('TEST MODE · '+(C.stations[choice.location]?.name||choice.location)+' · nothing is saved');
  }
+ /* PLAY AS ADMIN (David, 15 Nov 2026): a developer signs in and walks the District as Admin. First stage, built on the test session above, so NOTHING IS SAVED:
+    a District campaign with no missions and a ship available (the same award the beginner campaign ends with), the V3 // SHADOW device, Admin's own profile and
+    portrait in the V1, and Admin the NPC away from the counter (the existing adminOccupied flag), so Iris is the one behind it. Server-confirmed developers only. */
+ function adminBuild(){const d=C.startDistrictCampaign(C.fresh());d.story.flags.podWakePending=false;C.awardStarterShip(d);d.story.flags.testShip=true;d.story.flags.playingAs='admin';d.story.flags.adminOccupied=true;
+  d.story.flags.deviceModel='v3';d.story.flags.area='district';d.story.flags.districtBadge=true;d.story.flags.profileJobs='merchant';d.credits=10000;
+  d.universe.discoveredLocations=[...new Set([...(d.universe.discoveredLocations||[]),...Object.keys(VoidUniverse.locations)])];VoidMissions.sync(d,C);return d;}
+ async function playAsAdmin(){
+  try{await VoidDevTools.request('developer/balance');}catch(e){announce('Developer access could not be confirmed: '+e.message);return false;}
+  if(!VoidDevTools.authorized)return false;
+  active=true;banner.hidden=false;banner.querySelector('span').textContent='PLAYING AS ADMIN · TEST SESSION · NOTHING IS SAVED';
+  state=adminBuild();walkingLocation=walker=null;mode='menu';document.getElementById('screen')?.classList.add('hidden');
+  state.location='earth';await enterWalking(VoidDistrictArea.KEY.interior,{silent:true,...VoidDistrictArea.resume(state,VoidNeoChinatown)});
+  if(typeof hud==='function')hud();announce('You are Admin. Iris has the counter. Nothing in this session is saved.');return true;
+ }
  function action(name,panel){if(name==='test-start')return start(panel);if(name==='test-exit')return exit();}
  function exit(){active=false;location.reload();}
 
@@ -57,5 +71,5 @@
  document.addEventListener('click',e=>{const a=e.target.closest?.('button')?.dataset.action;if(active&&a&&/^cloud-(save|load)/.test(a)){e.preventDefault();e.stopImmediatePropagation();announce('Test mode: cloud saves are off. Exit the test first.');}},{capture:true});
  const banner=document.createElement('div');banner.id='dev-test-banner';banner.hidden=true;banner.innerHTML='<span>TEST MODE · NOTHING IS SAVED</span><button type="button">EXIT TEST</button>';document.body.append(banner);
  banner.querySelector('button').onclick=exit;
- globalThis.VoidDevTest={render,action,build,get active(){return active;}};
+ globalThis.VoidDevTest={render,action,build,adminBuild,playAsAdmin,get active(){return active;}};
 })();
