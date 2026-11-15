@@ -15,7 +15,7 @@ const LOCAL_ORIGIN=/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/;
 function start({ledger=null,identify,access={allowed:null,denied:new Set(),registeredOnly:false,verifiedEmail:false},origins=null,gate=new ConnectionGate(),trustHops=0,port=0,host='127.0.0.1',log=()=>{}}){
   const profileRefusal=who=>{
     if(!access.requireProfile)return null;
-    if(who.anonymous)return [4407,'registered account required'];
+    /* A handle-only (anonymous) account is admitted like any other once the API holds its handle and character (David, 15 Nov 2026); with neither it is told what is missing. */
     return ({'missing-handle':[4410,'District handle required'],'missing-character':[4411,'saved character required'],
       'missing-both':[4414,'District handle and character required'],'unavailable':[4413,'account verification unavailable']})[who.profileStatus]||
       (who.profileStatus==='ready'?null:[4413,'account verification unavailable']);
@@ -49,7 +49,7 @@ function start({ledger=null,identify,access={allowed:null,denied:new Set(),regis
         // The allow-list is checked on the verified account id, never on anything the client wrote.
         if(access.denied.has(who.uid)||(access.allowed&&!access.allowed.has(who.uid))){log('not on the test list');hub.send(ws,{t:'error',reason:'not on the test list'});ws.close(4403,'not allowed');return;}
         // Open registration mode: a real (not anonymous) account is required, and optionally a verified email. Checked on the verified token, never on the client.
-        if((access.registeredOnly||access.requireProfile)&&who.anonymous){log('registered account required');hub.send(ws,{t:'error',reason:'registered account required'});ws.close(4407,'registered account required');return;}
+        if(access.registeredOnly&&!access.requireProfile&&who.anonymous){log('registered account required');hub.send(ws,{t:'error',reason:'registered account required'});ws.close(4407,'registered account required');return;}
         if(access.verifiedEmail&&!who.emailVerified){log('verified email required');hub.send(ws,{t:'error',reason:'verified email required'});ws.close(4408,'verified email required');return;}
         const incomplete=profileRefusal(who);
         if(incomplete){log(incomplete[1]);hub.send(ws,{t:'error',reason:incomplete[1]});ws.close(...incomplete);return;}
