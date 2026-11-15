@@ -11,9 +11,9 @@ test('only well-formed hello, state and bye messages parse; identity fields are 
  for(const bad of ['{"t":"state","x":1,"z":2,"yaw":0,"uid":"other"}','{"t":"state","x":1,"z":2,"yaw":0,"model":"admin"}','{"t":"hello","token":"x","room":"r","name":"Admin"}','{"t":"state","x":"1","z":2,"yaw":0}','{"t":"state","x":null,"z":2,"yaw":0}','{"t":"state","x":1e9,"z":2,"yaw":0}','[]','7','{','x'.repeat(600)])assert.equal(parse(bad),null,bad);
 });
 test('public ids are stable, short and do not reveal the account id',()=>{assert.equal(publicId('uid-1'),publicId('uid-1'));assert.notEqual(publicId('uid-1'),publicId('uid-2'));assert.equal(publicId('uid-1').length,12);assert(!publicId('uid-1').includes('uid'));});
-test('two players see each other once placed, with the server-chosen model; guests get the default look',()=>{
+test('two players see each other once placed, with the server-chosen model; a guest with no saved character gets the default look',()=>{
  const r=rig(),a={},b={};
- assert(r.hub.join(a,hello,who('A')));assert(r.hub.join(b,hello,who('B',{anonymous:true,model:'district-resident'})));
+ assert(r.hub.join(a,hello,who('A')));assert(r.hub.join(b,hello,who('B',{anonymous:true,model:undefined})));
  assert.equal(r.last(a).t,'welcome');assert.deepEqual(r.last(a).peers,[],'nobody is shown before they report a position');
  r.hub.state(a,st(10,10));r.adv(100);r.hub.state(b,st(11,10));
  const joins=r.msgs(a).filter(m=>m.t==='join');assert.equal(joins.length,1);assert.equal(joins[0].peer.model,'district-smuggler','a guest cannot claim a character');assert(joins[0].peer.name.startsWith('Guest-'));

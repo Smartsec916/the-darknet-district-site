@@ -33,9 +33,11 @@ test('registered entry preserves complete accounts, guides partial/new accounts,
   const veteran=await connect(hub,w.accounts.veteran);assert.equal(result(veteran).t,'welcome');
   assert.deepEqual(hub.hub.peers.get('veteran').appearance,w.accounts.veteran.appearance);
   for(const [key,code,reason] of [['handleOnly',4411,'saved character required'],['characterOnly',4410,'District handle required'],
-    ['newcomer',4414,'District handle and character required'],['duplicate',4412,'duplicate District handle'],['anonymous',4407,'registered account required']]){
+    ['newcomer',4414,'District handle and character required'],['duplicate',4412,'duplicate District handle']]){
     const c=await connect(hub,w.accounts[key]);assert.equal(result(c).reason,reason,key);assert.equal(await closed(c),code,key);
   }
+  // A handle-only (anonymous) account with a handle and a saved character is admitted under its handle, without chat (David, 15 Nov 2026).
+  {const c=await connect(hub,w.accounts.anonymous);assert.equal(result(c).t,'welcome','handle account admitted');assert.equal(result(c).features.chat,false);assert.equal(hub.hub.peers.get('anonymous').name,'Anon_1');assert.equal(hub.hub.peers.get('anonymous').model,'district-smuggler');}
   // Completing one missing field must leave the other and the existing records untouched.
   w.accounts.handleOnly.model='district-resident';w.accounts.characterOnly.handle='Character_1';
   w.accounts.newcomer.handle='New_1';w.accounts.newcomer.model='district-smuggler';

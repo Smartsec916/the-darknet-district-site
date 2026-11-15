@@ -130,7 +130,6 @@
   opening=true;let tok;try{tok=await token();}finally{opening=false;}
   if(ws||!wantOn||!inRoom())return;
   if(!tok){status='sign in to join';retryTimer=setTimeout(connect,3000);return;}
-  if(!isLocalPage&&root.VoidAccount?.user?.isAnonymous){status='create an account';retryTimer=setTimeout(connect,5000);return;}   // a registered account is required (the hub checks this too)
   if(!isLocalPage){const a=root.VoidAccount;
    if(!a?.profileReady||a.handle===undefined){status='checking account';retryTimer=setTimeout(connect,3000);return;}
    if(!a.handle||!a.character){status=!a.handle&&!a.character?'District handle and character required':!a.handle?'District handle required':'saved character required';
@@ -214,8 +213,8 @@
  const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function menuHtml(){
   const st=root.VoidRemotePlayers?.status||'off',signedIn=!!root.VoidAccount?.user;
-  const a=root.VoidAccount,setup=on()&&a?.user&&!a.user.isAnonymous&&a.profileReady;
-  return '<h2>Multiplayer test</h2><p>Early access: meet other registered players inside The Darknet District and chat with them (press Enter). You need a unique District handle and a saved character. It works only in the District interior; everywhere else, and whenever the server is unavailable, you play alone. Your saves are not touched. Real-money and item trading stay disabled.</p>'
+  const a=root.VoidAccount,setup=on()&&a?.user&&a.profileReady;
+  return '<h2>Multiplayer test</h2><p>Early access: meet other players inside The Darknet District. You need a unique District handle and a saved character; a handle on its own (no email or Google) is enough to be seen. Chat (press Enter) needs an account secured with an email or Google. It works only in the District interior; everywhere else, and whenever the server is unavailable, you play alone. Your saves are not touched. Real-money and item trading stay disabled.</p>'
    +'<p id="multiplayer-status" role="status">'+esc(words(on()?st:'off',signedIn))+'</p>'
    +(setup&&a.handle===null?'<label for="multiplayer-handle">District handle</label><input id="multiplayer-handle" maxlength="20" autocomplete="off" placeholder="Ghost_01"><button type="button" data-action="multiplayer-handle">CLAIM HANDLE</button>':'')
    +(setup&&!a.character?'<button type="button" data-action="multiplayer-character">CREATE CHARACTER</button>':'')
@@ -247,7 +246,6 @@
   if(st==='in'){const n=rp.peers.length;return ['ONLINE · '+(n===0?'NO OTHER PLAYERS HERE YET':n===1?'1 OTHER PLAYER HERE':n+' OTHER PLAYERS HERE'),'on','people'];}
   const devToken=isLocalPage&&!!get(root.localStorage,'tdd-dev-mp-token');   // local tests sign in with an emulator token instead of an account
   if(!a?.user&&!devToken)return ['PLAYING SOLO · SIGN IN (MAIN MENU) TO MEET OTHER PLAYERS','solo','menu'];
-  if(!isLocalPage&&a?.user?.isAnonymous)return ['PLAYING SOLO · CREATE AN ACCOUNT (MAIN MENU) TO GO ONLINE','solo','menu'];
   if(!allowed(root.location,root.localStorage))return ['PLAYING SOLO · MULTIPLAYER IS SWITCHED OFF IN SETTINGS','solo','menu'];
   if(st==='connecting'||st==='checking account'||st==='off')return ['CONNECTING TO THE DISTRICT…','wait',''];
   if(st==='waking the server')return ['WAKING THE SERVER · THIS CAN TAKE A MINUTE…','wait',''];

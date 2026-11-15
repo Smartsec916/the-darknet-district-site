@@ -207,6 +207,16 @@ def account(db, uid):
     return jsonify(owned=inventory(db, uid), developer=balance_admin(uid), character=saved.get('character'), appearance=saved.get('appearance'), save=None if retired else saved.get('save'), retired=retired, revision=saved.get('revision', 0), savedAt=None if retired else saved.get('savedAt'))
 
 
+def require_handle_if_guest(db, uid, message):
+    """Handle-only accounts (Firebase anonymous sign-in) may keep a character once they hold a District handle (David, 15 Nov 2026).
+    The handle is the server's own record (the identity registry, bp_profiles), never a name sent by the browser. A guest with no handle is still refused."""
+    if getattr(g, 'auth_claims', {}).get('firebase', {}).get('sign_in_provider') != 'anonymous':
+        return
+    profile = db.collection('bp_profiles').document(hashlib.sha256(uid.encode('utf-8')).hexdigest()).get().to_dict() or {}
+    if not isinstance(profile.get('handle'), str) or not profile.get('handle'):
+        raise ApiError(message, 403)
+
+
 @api.route('/character', methods=['GET', 'POST'])
 @signed_in
 def character(db, uid):
@@ -216,8 +226,7 @@ def character(db, uid):
         saved = player_ref(db, uid).get().to_dict() or {}
         extra = {'appearance': saved['appearance']} if saved.get('appearance') else {}
         return jsonify(character=saved.get('character'), **extra)
-    if getattr(g, 'auth_claims', {}).get('firebase', {}).get('sign_in_provider') == 'anonymous':
-        raise ApiError('Secure your account before creating a permanent character.', 403)
+    require_handle_if_guest(db, uid, 'Register a District handle before creating a permanent character.')
     appearance = clean_character(request.get_json(silent=True), balance_admin(uid))
     ref = player_ref(db, uid)
 
@@ -246,8 +255,7 @@ def character_appearance(db, uid):
     OFF unless VOID_APPEARANCE_ENABLED=true (the owner turns it on when approving a test; production stays off until then)."""
     if os.getenv('VOID_APPEARANCE_ENABLED') != 'true':
         raise ApiError('Appearance changes are not available yet.', 404)
-    if getattr(g, 'auth_claims', {}).get('firebase', {}).get('sign_in_provider') == 'anonymous':
-        raise ApiError('Secure your account before saving a permanent look.', 403)
+    require_handle_if_guest(db, uid, 'Register a District handle before saving a permanent look.')
     appearance = clean_appearance(request.get_json(silent=True))
     ref = player_ref(db, uid)
     if not (ref.get().to_dict() or {}).get('character'):

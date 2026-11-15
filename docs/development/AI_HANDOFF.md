@@ -6,6 +6,12 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 15 Nov 2026: handle-only accounts may keep a character and join multiplayer (code merged; RENDER REDEPLOY NEEDED)
+David: "Let the Save Server use Handles as well." A Firebase anonymous account that has claimed a District handle is now treated as a District account:
+- **Game API** (`void_runner_api.py` `require_handle_if_guest`): character creation and saved looks are accepted when the identity registry (`bp_profiles`) holds a handle for that account; a guest with no handle is still refused (403).
+- **Hub** (`tools/district-hub`): a handle account with a handle and a stored character is admitted and shown under its handle with its saved look. With neither it is told what is missing (4410/4411/4414) instead of 4407. Chat, reports and shared VR sessions still need a secured (email or Google) account: `features.chat` is false for handle accounts.
+- **Client** (`account.js` `guestOnly`, `remote-players.js`, `character-creator.js`): a handle account can claim its handle, save its character and connect.
+- **Not live until both Render services are redeployed from `main`** (game API and `district-hub`; the hub has `autoDeploy: false`). Until then the live hub still closes handle accounts with 4407 and the API still answers 403. Moderation note: a handle account can be removed with `HUB_DENY_UIDS`, but a new anonymous account is free to make, which is why chat stays for secured accounts.
 ### 15 Nov 2026 (later): name tags removed (live, PR #294); District residents and profile jobs WAIT FOR DAVID'S APPROVAL
 - **Live:** no name floats over other players (`remote-players.js` `makeTag` draws nothing).
 - **Built, not merged (David asked to approve all V1 work):** branch `claude/district-people`: the V1 lists named District residents beside players, profiles show jobs, players choose up to three jobs and one line about themselves, portraits are face on. Details: [`V1_DEVICE.md`](V1_DEVICE.md), last section. Names and the extra jobs are drafts for David.

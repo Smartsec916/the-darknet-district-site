@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "b691e49a2ab88029",
+  "revision": "07b095af02be4197",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12733,13 +12733,13 @@
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 147,
+      "line": 146,
       "text": "sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false,chat:false};emitChat({t:'chat-status',on:false});for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 203,
+      "line": 202,
       "text": "sendChat(text){if(ws?.readyState===1&&status==='in'&&features.chat&&typeof text==='string'){ws.send(JSON.stringify({t:'chat',text:text.slice(0,800)}));return true;}return false;},",
       "kind": "source-reference"
     },
@@ -14120,7 +14120,7 @@
   ],
   "warnings": [],
   "sources": {
-    "void-runner/account.js": "c0cfc4266163ec8c6b1bc8075ab0582e996df5e2d329b77a716e41dbac8dce2f",
+    "void-runner/account.js": "608e9e265d621184a2b95f8b84062859cfc4530340141534991f8bd435d4d1db",
     "void-runner/achievements.js": "b02228547f2a3d3d94d999d803cf6e2ccaff3dd4cf41b40887a00ab011bbfd59",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
@@ -14139,7 +14139,7 @@
     "void-runner/character-appearance.js": "d58fa411096616436c9fdc54af4ac3090568117e53ca6c8c988a248906e2ed0d",
     "void-runner/character-assembler.js": "139786b714776693401dad56c0dd53e51318740a56606e713216cd2a27b5bf0a",
     "void-runner/character-catalog.js": "fa91d8fa3aa8372373ca0d9e5a50c95e02d93f12b4d766df4be0c1e9157fa3a3",
-    "void-runner/character-creator.js": "ad7e7e095e3114c5a8ab19a215c88a959cdd84f41e9ae1871fa4cb7aa1cdf572",
+    "void-runner/character-creator.js": "e0677eb939979f4c9578ef3b7d89715279ecf13af69f53a74a95dd3cae554792",
     "void-runner/character-finish.js": "458095761533ec279026ec1859446af93ab3a267e272b96783d8c2dfd7b3c312",
     "void-runner/character-fit.js": "ee63772c43aa17513e8325b03ee8fee759e3fbf2407fa9adc3912921a6efcbc9",
     "void-runner/city-taxi.js": "6ba39de32bed644cff3c08c5729c320fb2bd6c871fba36b0d34fa8689cd303b7",
@@ -14245,7 +14245,7 @@
     "void-runner/relay-radio.js": "2a71125ab14c4dcd2c5a113aa7793ba0a9367503386fa97e0a22a270e7652a80",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
-    "void-runner/remote-players.js": "ee83d376c2fc55088e260cb97e0172a7c3d3ac1c92a3bfa5c75620b186c9def7",
+    "void-runner/remote-players.js": "312ecb2f8c45486aa6b8e35731b24b2f2f5cceb8a5ae24a5877c639a345ffc6f",
     "void-runner/road-taxi-rules.js": "6287b0c4133166f9ad618193e49c34578ca2faf594f5bcd8038c7e10cf51a80c",
     "void-runner/road-taxi.js": "29de2e70351ee336bd78c268e491e3ed41543ecabd92c3e10432971b9a654010",
     "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",
