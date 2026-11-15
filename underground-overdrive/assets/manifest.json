@@ -1,0 +1,104 @@
+{
+  "characters": {
+    "brax_r": {
+      "baseModel": "assets/characters/brax_r/brax_r.glb",
+      "rigTaskId": "library:9822df955bada9d423aaa8862c0e6f30997948cd962af9ce2f567d338799ca72",
+      "animations": {},
+      "forward": "+z",
+      "facingCertified": true,
+      "facingContract": "tesana-character-facing-canonical-v1"
+    },
+    "kaira_r": {
+      "baseModel": "assets/characters/kaira_r/kaira_r.glb",
+      "rigTaskId": "library:a84d06e165c947e77121a23508d320d01ecb637a7a73bf67853bdbfc07884924",
+      "animations": {},
+      "forward": "+z",
+      "facingCertified": true,
+      "facingContract": "tesana-character-facing-canonical-v1"
+    },
+    "grim_r": {
+      "baseModel": "assets/characters/grim_r/grim_r.glb",
+      "rigTaskId": "library:bd0efc6709dee9e6f6b11d26ccb632b62672f8b4cbb79a7b6a95827a3fbf5025",
+      "animations": {},
+      "forward": "+z",
+      "facingCertified": true,
+      "facingContract": "tesana-character-facing-canonical-v1"
+    },
+    "nyx_r": {
+      "baseModel": "assets/characters/nyx_r/nyx_r.glb",
+      "rigTaskId": "0e35cc31-197b-4c51-9918-ab1b4e9b76d0",
+      "animations": {},
+      "forward": "+z",
+      "facingCertified": true,
+      "facingContract": "tesana-character-facing-canonical-v1"
+    },
+    "echo_r": {
+      "baseModel": "assets/characters/echo_r/echo_r.glb",
+      "rigTaskId": "ce12029d-1734-4640-ac48-6174c805ba6e",
+      "animations": {},
+      "forward": "+z",
+      "facingCertified": true,
+      "facingContract": "tesana-character-facing-canonical-v1"
+    },
+    "vex_r": {
+      "baseModel": "assets/characters/vex_r/vex_r.glb",
+      "rigTaskId": "8e8cc909-ebe4-400f-a224-45c3970cc128",
+      "animations": {},
+      "forward": "+z",
+      "facingCertified": true,
+      "facingContract": "tesana-character-facing-canonical-v1"
+    },
+    "seraphine_r": {
+      "baseModel": "assets/characters/seraphine_r/seraphine_r.glb",
+      "rigTaskId": "c860cf5b-f2cf-4d0a-9cc9-462e79fd149c",
+      "animations": {},
+      "forward": "+z",
+      "facingCertified": true,
+      "facingContract": "tesana-character-facing-canonical-v1"
+    },
+    "malik_r": {
+      "baseModel": "assets/characters/malik_r/malik_r.glb",
+      "rigTaskId": "c7589052-40a2-4e13-aca7-3ff618fe95ee",
+      "animations": {},
+      "forward": "+z",
+      "facingCertified": true,
+      "facingContract": "tesana-character-facing-canonical-v1"
+    },
+    "crowd_punk": {
+      "baseModel": "assets/characters/crowd_punk/crowd_punk.glb",
+      "rigTaskId": "library:200f1d656b9473bc415fd00eb47957da036effa34b17cc1fbf621f4f511d5a24",
+      "animations": {},
+      "forward": "+z",
+      "facingCertified": true,
+      "facingContract": "tesana-character-facing-canonical-v1"
+    },
+    "crowd_hood": {
+      "baseModel": "assets/characters/crowd_hood/crowd_hood.glb",
+      "rigTaskId": "library:d82fbc3342e8dd804fc5ce35ffadc3efb4c1cd0777b56e5bf588eda7c83eee31",
+      "animations": {},
+      "forward": "+z",
+      "facingCertified": true,
+      "facingContract": "tesana-character-facing-canonical-v1"
+    },
+    "crowd_exec": {
+      "baseModel": "assets/characters/crowd_exec/crowd_exec.glb",
+      "rigTaskId": "library:2f96022856e440fc7e67cbe181ba1af7070572441f492efa892229a283949467",
+      "animations": {},
+      "forward": "+z",
+      "facingCertified": true,
+      "facingContract": "tesana-character-facing-canonical-v1"
+    },
+    "crowd_club": {
+      "baseModel": "assets/characters/crowd_club/crowd_club.glb",
+      "rigTaskId": "library:fee61632f422e32879694d345b0224ab7765a312e9119daae23a65a601b11419",
+      "animations": {},
+      "forward": "+z",
+      "facingCertified": true,
+      "facingContract": "tesana-character-facing-canonical-v1"
+    }
+  },
+  "props": {},
+  "environment": {},
+  "weapons": {},
+  "oriented": {}
+}

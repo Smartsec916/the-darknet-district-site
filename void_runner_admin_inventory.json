@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "53980f704a867100",
+  "revision": "f7879dfcb31b85a8",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12396,6 +12396,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/neochinatown.js",
+      "line": 1109,
+      "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/opening-scene.js",
       "line": 210,
       "text": "const maraCue=B.MeshBuilder.CreateTorus('mara-conversation-locus',{diameter:1.8,thickness:.017,tessellation:24},scene);add(maraCue,blue,[0,.05,0],mara,false);maraCue.isPickable=false;",
@@ -14130,7 +14136,7 @@
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
     "void-runner/device-portraits.js": "390549763346c7202b1f16c85c873828baf5b3e8b05dc326a2dcde2cc264374f",
     "void-runner/device-v1.js": "50c7e6f065eb8f261f8306d90b005ac51aa2300ced09bc8ba0f3a6f16b389233",
-    "void-runner/district-arcade.js": "de51866295a9a6cef51b94a3097ea6ca38bc3da02133d85ba4f26835653336f9",
+    "void-runner/district-arcade.js": "ff81f9ea3af5335c27e2f5a073965838834c91c8daf5500b078a1c10192b7e90",
     "void-runner/district-area.js": "48b60eab3a791020ce7a4a7213de866e697069ca4c003cf7f255a5ffcef3db4c",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
     "void-runner/district-map.js": "58b56089eef021541f870f4fc6edc10debc9998e151b71c1d1e05c16eeafa792",
@@ -14188,7 +14194,7 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-nightclub.js": "58e8f26da2df090c85d2295cb403b5658cfe8241450d70b70c777e276f8425c5",
     "void-runner/ncz-nightlife.js": "15cf226233896181b848a2d99611ceb0319f8b0cee8eec6035e771f38a7725df",
-    "void-runner/neochinatown.js": "a661c6889ef743911aa1d766f5dca0dfd5f4cfe2f7d38a987bcef0356406de57",
+    "void-runner/neochinatown.js": "be52742ea54e3f1b6569d14216c5ca70401bdbf371668fa5f9f79224c50b2c39",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "4172df44fc02d43d56016c17c76bc6af4daa80edcc1c5200be582903d7075a19",
