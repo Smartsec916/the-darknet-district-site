@@ -52,9 +52,19 @@ if opts['source'].suffix.lower() == '.blend':
     for o in dst_data.objects:
         if o and o.type in ('ARMATURE', 'MESH'):
             bpy.context.scene.collection.objects.link(o)
+elif opts['source'].suffix.lower() in ('.glb', '.gltf'):
+    # A rigged GLB (a Meshy character): its bundled clips are not ours and are dropped.
+    bpy.ops.import_scene.gltf(filepath=str(opts['source']))
+    for o in list(bpy.data.objects):
+        if o.type not in ('ARMATURE', 'MESH') or (o.type == 'MESH' and not any(m.type == 'ARMATURE' for m in o.modifiers)):
+            bpy.data.objects.remove(o, do_unlink=True)
+    for a in list(bpy.data.actions):
+        bpy.data.actions.remove(a)
 else:
     bpy.ops.import_scene.fbx(filepath=str(opts['source']), use_anim=False)
 rig = next(o for o in bpy.data.objects if o.type == 'ARMATURE')
+if rig.animation_data:
+    rig.animation_data_clear()
 meshes = [o for o in bpy.data.objects if o.type == 'MESH']
 for o in [rig] + meshes:
     o.select_set(True)
@@ -63,6 +73,8 @@ bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 prefix = spec.get('bonePrefix', '')
 for src, dst in spec['bones'].items():
     bone = rig.data.bones.get(prefix + src)
+    if not bone and spec.get('optionalBones'):   # a simple rig (no fingers or toes): the joints it lacks are simply absent
+        continue
     assert bone, f'no bone {prefix + src}'
     bone.name = 'mixamorig:' + dst   # vertex groups follow the rename
 for b in rig.data.bones:

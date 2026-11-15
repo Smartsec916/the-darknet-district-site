@@ -34,3 +34,11 @@ test('aim: the crosshair on a person OR on their tag selects them; the nearest w
  assert.equal(C.aimed([a,b],640,450,70),'npc:admin','on the head');assert.equal(C.aimed([a,b],760,380,70),'npc:admin','on the tag');assert.equal(C.aimed([a,b],1000,380,70),'npc:iris');
  assert.equal(C.aimed([a,b],300,300,70),null);assert.equal(C.aimed([],640,450,70),null);assert.equal(C.aimed([a,{...b,hx:650,hy:455}],650,455,70),'npc:iris','the closer one');
 });
+
+test('B raises and puts away the camera for every device, on foot only, and never while typing',()=>{
+ const fs=require('node:fs'),js=fs.readFileSync('void-runner/device-camera.js','utf8');
+ assert.match(js,/e\.code!=='KeyB'[^\n]*mode!=='walking'\)return;/,'B, on foot only');assert.match(js,/INPUT\|TEXTAREA\|SELECT/,'not while typing');
+ assert.match(js,/if\(active\)\{e\.preventDefault\(\);stop\(\);return;\}/,'B puts it away again');assert.match(js,/B · PUT AWAY/,'the viewfinder says so');
+ for(const m of ['v1','v3'])assert.equal(D.DEVICES[m].camera.enabled,true,m+' has a camera to raise');
+ assert.match(fs.readFileSync('void-runner/input.js','utf8'),/lock: \['Acquire target lock', 'KeyB'\]/,'in flight B is still the target lock');
+});

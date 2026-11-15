@@ -70,7 +70,7 @@ def slab(V, y, half, cx, reach):
 def main():
     bodies = {}
     for f in sorted(os.listdir(CROWD)):
-        if not f.endswith('.glb'):
+        if not f.endswith('.glb') or f.startswith('npc-'):   # npc-*: Meshy characters, which come dressed
             continue
         path = os.path.join(CROWD, f)
         j = glb_json(path)

@@ -1,0 +1,43 @@
+{
+ "name": "npc-admin",
+ "source": "Admin, generated with Meshy (image-to-3d from a concept made from David's reference picture, then remesh and auto-rig) on David's Meshy account, 15 Nov 2026; prepared by prepare_meshy.py",
+ "bonePrefix": "",
+ "optionalBones": true,
+ "bones": {
+  "Hips": "Hips",
+  "Spine02": "Spine",
+  "Spine01": "Spine1",
+  "Spine": "Spine2",
+  "neck": "Neck",
+  "Head": "Head",
+  "LeftShoulder": "LeftShoulder",
+  "LeftArm": "LeftArm",
+  "LeftForeArm": "LeftForeArm",
+  "LeftHand": "LeftHand",
+  "LeftUpLeg": "LeftUpLeg",
+  "LeftLeg": "LeftLeg",
+  "LeftFoot": "LeftFoot",
+  "LeftToeBase": "LeftToeBase",
+  "RightShoulder": "RightShoulder",
+  "RightArm": "RightArm",
+  "RightForeArm": "RightForeArm",
+  "RightHand": "RightHand",
+  "RightUpLeg": "RightUpLeg",
+  "RightLeg": "RightLeg",
+  "RightFoot": "RightFoot",
+  "RightToeBase": "RightToeBase"
+ },
+ "meshes": {
+  "output_unwrapped": {
+   "name": "body",
+   "maxTris": 40000
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "walk-game",
+  "look",
+  "shrug"
+ ]
+}

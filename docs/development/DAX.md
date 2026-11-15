@@ -34,4 +34,4 @@ Both Blender steps were run as separate background Blender processes through the
 
 ## Licence
 
-Not yet read: see `docs/VOID_RUNNER_ASSET_LICENSES.md`, "Dax". David to confirm from his purchase page.
+Royalty Free License (no AI), confirmed by David on 15 Nov 2026 from the listing: see `docs/VOID_RUNNER_ASSET_LICENSES.md`, "Dax". Her model must never be given to an AI generator (for example as a Meshy image or model input) or used for training.

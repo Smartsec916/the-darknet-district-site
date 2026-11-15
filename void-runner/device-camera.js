@@ -56,7 +56,7 @@
    +'<div class="pc-aim" data-pc="aim" hidden></div><div class="pc-toast" data-pc="toast" hidden></div>'
    +'<div class="pc-time" data-pc="time">00:00:00:00</div>'
    +'<div class="pc-tr"><div>Battery <b data-pc="battery">100%</b><span class="pc-batt"><i data-pc="battbar"></i></span></div><div>Signal <b data-pc="signal">Good</b><span class="pc-bars" data-pc="bars"><i></i><i></i><i></i><i></i></span></div></div>'
-   +'<div class="pc-bl"><div>Zoom <b data-pc="zoom">1x</b></div><div>Focus : <b>Auto</b></div><div class="pc-hint">WHEEL · ZOOM &nbsp; F · FOLLOW &nbsp; L · CLOSE</div></div>'
+   +'<div class="pc-bl"><div>Zoom <b data-pc="zoom">1x</b></div><div>Focus : <b>Auto</b></div><div class="pc-hint">WHEEL · ZOOM &nbsp; F · FOLLOW &nbsp; B · PUT AWAY</div></div>'
    +'<div class="pc-br"><div class="pc-cam" data-pc="cam">CAM 01</div><div>FPS : <b data-pc="fps">0.00</b></div><div>ISO <b data-pc="iso">320</b></div></div>'
    +'<svg class="pc-lines" aria-hidden="true"></svg><div class="pc-tags"></div>';
   document.body.appendChild(el);svg=el.querySelector('svg');tagBox=el.querySelector('.pc-tags');
@@ -147,5 +147,13 @@
   try{if(baseFov!==null&&sc?.activeCamera)sc.activeCamera.fov=baseFov;}catch{}baseFov=null;
   if(el)el.hidden=true;for(const t of tags.values()){t.tag.remove();t.line.remove();t.dot.remove();}tags.clear();
  }
+ /* B (David, 15 Nov 2026): the key the V3 // Shadow uses for the camera in its owner's eye raises and puts away the camera for EVERYONE, whatever device they carry,
+    while on foot. In flight B is still the target lock (input.js), and it does nothing while typing. */
+ addEventListener('keydown',e=>{if(e.code!=='KeyB'||e.repeat||e.ctrlKey||e.metaKey||e.altKey||typeof mode==='undefined'||mode!=='walking')return;
+  const a=document.activeElement;if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))return;
+  if(active){e.preventDefault();stop();return;}
+  let dev=null;try{dev=D.restore(flags()||{});}catch{}
+  if(root.VoidPersonalDevice?.isOpen)root.VoidPersonalDevice.close();
+  if(start(dev))e.preventDefault();});
  root.VoidDeviceCamera={start,stop,get active(){return active;},get zoom(){return steps[zi];},get steps(){return steps.slice();},get target(){return target?{key:target.key,name:target.name}:null;},get tags(){return [...tags.entries()].filter(([,t])=>!t.tag.hidden).map(([k,t])=>({key:k,name:t.name,role:t.role}));},...pure};
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const G=require('../void-runner/street-gear.js'),root=path.join(__dirname,'..');
 const fit=JSON.parse(fs.readFileSync(path.join(root,'void-runner/assets/models/gear/street-fit.json'),'utf8')).bodies;
-const looks=fs.readdirSync(path.join(root,'void-runner/assets/models/crowd')).filter(f=>f.endsWith('.glb')).map(f=>f.slice(0,-4));
+const looks=fs.readdirSync(path.join(root,'void-runner/assets/models/crowd')).filter(f=>f.endsWith('.glb')&&!f.startsWith('npc-')).map(f=>f.slice(0,-4));   // npc-* characters come dressed and get no street gear
 test('every character file has its measurements',()=>{
  for(const l of looks){const b=fit[l];assert.ok(b,l);assert.ok(b.height>1&&b.height<2.2,l);for(const k of ['waist','ribs','brow'])assert.ok(b[k].halfW>0&&b[k].front>b[k].back,l+' '+k);
   for(const s of ['Left','Right'])for(const k of ['thigh','knee','shin','forearm'])assert.ok(b[s][k].r>.015&&b[s][k].r<.2,l+' '+s+' '+k);}
