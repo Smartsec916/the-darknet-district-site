@@ -11,17 +11,12 @@
  const ALLEY={x0:71,x1:136,south:-61.6,north:-55.5},DOOR=[126.9,-61.9],LANE={z:-59.3,half:.75},CLEAR_DOOR=4.5;
  // Who is there. `clips` lists what the person does, in order of preference (the first one their look can play is used); `seat` is how far the figure is lowered
  // onto what they sit on; `face` is the point they look at; `tier` is the lowest quality setting that shows them (1 low, 2 medium, 3 high).
+ // David, Nov 2026: fewer people in the alley, four at the most, and one of them is ALWAYS a drunk. Nobody else walks through (the nightlife lane here has no walkers).
  const PEOPLE=[
-  {id:'alley-talk-a',x:88.0,z:-56.5,face:[88.7,-56.9],clips:['talk','idle'],tier:1},
-  {id:'alley-talk-b',x:89.3,z:-56.4,face:[88.7,-56.9],clips:['laugh','talk','idle'],tier:1},
-  {id:'alley-talk-c',x:88.6,z:-57.5,face:[88.7,-56.6],clips:['talk','idle'],tier:2},
-  {id:'alley-smoker',x:104.0,z:-56.15,face:[104.0,-60],clips:['smoke','idle'],tier:1},
+  {id:'alley-drunk',x:88.0,z:-56.5,face:[88.6,-60],clips:['drink','idle'],tier:1,drunk:true},
   {id:'alley-watcher',x:122.4,z:-56.25,face:DOOR,clips:['watch','idle'],tier:1,watchesDoor:true},
-  {id:'alley-device',x:112.0,z:-56.2,face:[112.4,-60],clips:['look','interact','idle'],tier:2},
-  {id:'alley-sitter',x:93.6,z:-60.75,face:[93.6,-56],clips:['sit','idle'],seat:0,tier:2,sits:true},
-  {id:'alley-end-a',x:131.4,z:-56.5,face:[132.3,-57.2],clips:['talk','idle'],tier:3},
-  {id:'alley-end-b',x:132.5,z:-57.4,face:[131.4,-56.5],clips:['drink','talk','idle'],tier:3},
-  {id:'alley-loner',x:78.5,z:-56.2,face:[79,-60],clips:['drink','smoke','idle'],tier:3}];
+  {id:'alley-smoker',x:104.0,z:-56.15,face:[104.0,-60],clips:['smoke','idle'],tier:1},
+  {id:'alley-sitter',x:93.6,z:-60.75,face:[93.6,-56],clips:['sit','idle'],seat:0,tier:2,sits:true}];
  const TIER={low:1,medium:2,high:3,ultra:3},CAST=['ncz-neon','fixer-01','hacker-01','outlaw-01','district-resident','district-smuggler','runner-02','communion-tech'];
  const config={reactRadius:3.2,reactFor:[2.5,4.5],doorWatchRadius:7,showRadius:75,turn:4};
  /* plan(quality, clipsOf): who appears, with the look and clip each will use. clipsOf(look) -> the clips that look can play. Looks are dealt in turn so
@@ -49,7 +44,7 @@
   // Asked for only once the street is up and running (never while it is being prepared: the loader waits for everything asked of it during preparation).
   let asked=false;const askForLooks=()=>{asked=true;for(const look of new Set(people.map(p=>p.look)))try{Promise.resolve(root.VoidCharacterAssembler?.ensureLook?.(look,scene)).catch(()=>{});}catch{}};
   function spawn(p){if(p.node||disposed)return;let node=instance('crowd:'+p.look,parent);
-   if(!node&&clock>14){for(const want of [p.clip,'idle']){const alt=CAST.find(c=>clipsOf(c).includes(want)&&(node=instance('crowd:'+c,parent)));if(alt){p.look=alt;p.clip=p.now=want;break;}}}
+   if(!node&&clock>(p.drunk?.5:14)){for(const want of [p.clip,'idle']){   /* the drunk must always be there: if their look is slow or missing they take any ready look at once (the sway does not need a clip) */const alt=CAST.find(c=>clipsOf(c).includes(want)&&(node=instance('crowd:'+c,parent)));if(alt){p.look=alt;p.clip=p.now=want;break;}}}
    if(!node)return;node.metadata={...node.metadata,crowd:p.look,alley:p.id};
    p.node=node;p.anim=animate(node,p.look,p.clip);node.position.set(p.x,-(p.seat||0),p.z);node.rotation.y=p.rot;}
   const cam=()=>scene?.activeCamera?.globalPosition||null;
@@ -63,7 +58,9 @@
     if(me){const d=Math.hypot(me.x-p.x,me.z-p.z),atDoor=p.watchesDoor&&Math.hypot(me.x-DOOR[0],me.z-DOOR[1])<cfg.doorWatchRadius;
      if((d<cfg.reactRadius||atDoor)&&p.react<=0&&p.cool<=0&&!p.sits){p.react=cfg.reactFor[0]+rnd()*(cfg.reactFor[1]-cfg.reactFor[0]);p.cool=p.react+6+rnd()*8;const glance=['watch','look','idle'].find(k=>p.anim?.has?.(k));if(glance&&glance!==p.now&&p.clip!=='smoke'){p.now=glance;p.anim.play(glance);}}
      if(p.react>0){p.react-=dt;p.target=Math.atan2(me.x-p.x,me.z-p.z);if(p.react<=0){p.target=p.yaw;if(p.now!==p.clip){p.now=p.clip;p.anim?.play(p.clip);}}}}
-    let dy=p.target-p.rot;dy=Math.atan2(Math.sin(dy),Math.cos(dy));if(Math.abs(dy)>.002){p.rot+=dy*Math.min(1,dt*cfg.turn);p.node.rotation.y=p.rot;}}
+    let dy=p.target-p.rot;dy=Math.atan2(Math.sin(dy),Math.cos(dy));if(Math.abs(dy)>.002){p.rot+=dy*Math.min(1,dt*cfg.turn);p.node.rotation.y=p.rot;}
+    // The drunk never stands straight: a slow sway on the spot, now and then a lurch.
+    if(p.drunk){p.sway=(p.sway||0)+dt;const lurch=Math.max(0,Math.sin(p.sway*.23))**6;p.node.rotation.z=.07*Math.sin(p.sway*.9)+.05*lurch*Math.sin(p.sway*3.1);p.node.rotation.x=.05*Math.sin(p.sway*.61+1)+.04*lurch;}}
   }
   return {tick,people,stats:()=>({people:people.length,spawned:people.filter(p=>p.node).length,reacting:people.filter(p=>p.react>0).length,clips:people.map(p=>p.id+':'+p.look+':'+p.now)}),
    dispose(){disposed=true;for(const p of people){p.anim?.dispose?.();p.node?.dispose?.();p.node=null;}}};
