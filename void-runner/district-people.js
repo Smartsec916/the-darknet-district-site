@@ -37,6 +37,9 @@
   {id:'mags-oduya',crew:'crew-hall-talk2',look:'district-resident',name:'Mags Oduya',jobs:['mechanic'],area:'interior',place:'The hallway',bio:'Talking in the hallway.'},
   {id:'tavi-rourke',crew:'crew-hall-talk3',look:'hacker-01',name:'Tavi Rourke',jobs:['influencer'],area:'interior',place:'The hallway',bio:'Hangs about near the bar door.'},
   {id:'bishop-hale',crew:'crew-hall-watch1',look:'outlaw-01',name:'Bishop Hale',jobs:['bodyguard'],area:'interior',place:'The hallway',bio:'Watches the hallway by the arcade.'},
+  /* Dax (David, 15 Nov 2026): there is only one. Her model is a licensed one drawn by dax.js, which also says where she is at any moment (`live`); her profile picture is a
+     labelled silhouette until one is made from her own model. DRAFT: the line about her is Claude's. */
+  {id:'dax',name:'Dax',jobs:['bounty-hunter','mercenary'],area:'interior',place:'Comes and goes',bio:'Bounty hunter. Watches more than she talks.',device:'v3',live:'dax'},
   {id:'dj-vanta',crew:'dj',name:'DJ Vanta',jobs:['dj'],area:'club',place:'NULL nightclub, NeoChinatown',bio:'Plays the desk at NULL.'}
  ].map(n=>Object.freeze({...n,jobs:cleanJobs(n.jobs)}));
  const BY_ID=new Map(NPCS.map(n=>[n.id,n])),BY_CREW=new Map(NPCS.filter(n=>n.crew).map(n=>[n.crew,n]));

@@ -2,7 +2,10 @@
 into a light companion GLB with our clips.
 
 blender -b --factory-startup --python build_imported_character.py -- SPEC.json OUT.glb --source MODEL.fbx \
-    --mocap DIR [--ual DIR] [--mixamo DIR] [--master MASTER.blend]
+    --mocap DIR [--ual DIR] [--mixamo DIR] [--crowd DIR] [--master MASTER.blend]
+
+--crowd DIR is the game's own void-runner/assets/models/crowd folder: a clip whose source is "crowd" is taken from a
+character the game already ships (same 52 joints, T-pose bind), for machines that do not have the UAL or Mixamo files.
 
 The source is never modified. Its bones are renamed to the Mixamo names in the spec's "bones" map (so the
 game's head tracking and clip names work unchanged); bones without a Mixamo match (twists, pelvis, face)
@@ -25,12 +28,12 @@ args = sys.argv[sys.argv.index('--') + 1:]
 spec = json.loads(Path(args[0]).read_text(encoding='utf-8'))
 output_path = Path(args[1])
 opts = {}
-for flag in ('--source', '--mocap', '--ual', '--mixamo', '--master'):
+for flag in ('--source', '--mocap', '--ual', '--mixamo', '--crowd', '--master'):
     if flag in args:
         opts[flag[2:]] = Path(args[args.index(flag) + 1])
 library_doc = json.loads((Path(__file__).resolve().parent / 'clips.json').read_text(encoding='utf-8'))
 FPS = library_doc.get('fps', 24)
-folders = {'ual': opts.get('ual'), 'mixamo': opts.get('mixamo')}
+folders = {'ual': opts.get('ual'), 'mixamo': opts.get('mixamo'), 'crowd': opts.get('crowd')}
 clips = []
 for name in ([] if '--noclips' in args else spec.get('clips', [])):  # --noclips: a quick look at the geometry
     c = library_doc['clips'][name]
@@ -443,7 +446,7 @@ def retarget(name, path, span, copts):
                 a.negate()
             poses[k][n] = a.slerp(poses[0][n], w)
         hip_locs[k] = hip_locs[k].lerp(hip_locs[0], w)
-    out = bpy.data.actions.new(name)
+    out = bpy.data.actions.new(copts.get('as', name))   # "as": the name the clip is exported under (walk-game -> walk)
     rig.animation_data_create()
     rig.animation_data.action = out
     for k, pose in enumerate(poses):
