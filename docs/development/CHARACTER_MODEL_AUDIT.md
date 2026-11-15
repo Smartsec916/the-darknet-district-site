@@ -167,3 +167,13 @@ The body is the lever: at 15,000 to 20,000 triangles it is far heavier than its 
 6. **Body heights are inconsistent.** The bodies are built with different height settings: in game the current female player look (`district-resident`) stands about 1.33 m and the male (`district-smuggler`) about 1.96 m (measured earlier against the avatar preview), and the 22 files span roughly 1.3 to 2.0 m. Standard bases need chosen, consistent heights.
 7. **Licence gaps** (Suits 02, the heroine suit, Rokoko and Mixamo redistribution) must close before any of those items enter a public catalog.
 8. **Nothing here touches the multiplayer authentication or the trading security model.** The appearance would be a validated id record next to the existing character record.
+
+## 15 Nov 2026: surface quality pass (first step of the character upgrade)
+
+David asked for all NPC and player characters to be upgraded after two reference pictures (`VISUAL_REFERENCES.md`, "Characters"). This step changes **how the existing models are shaded**, not the models: `void-runner/character-finish.js` `refine()` runs once per model file as it loads and treats each material by the MakeHuman part it came from.
+
+- Clothing: a woven grain (a small detail map made in code, no file) and a thin wet coat. Footwear: polished. Skin: slightly smoother with a soft sheen. Hair: a tighter highlight. Masks, visors and shades: dark coated shell; a mask's slits are lit in one accent colour per figure.
+- Applies to every crowd figure and so to player characters and other players (they are the same files); VR companions keep their own finish. Low quality skips the grain. `VoidCharacterFinish.config.quality=false` turns it off.
+- Before and after: `character-audit/finish-before-men.png`, `finish-after-men.png` (software renderer, so darker than a real GPU).
+- **What this does not do:** new bodies, faces, outfits, tattoos, layered gear or higher-resolution textures. The references need those, and they need new assets: outfits modelled by code (free, slow, limited), purchased models, or generated ones (paid credits). David's Blender has the MakeHuman add-on but no clothing, hair or skin packs installed. Saved looks were NOT reset; nothing about a saved look changed.
+
