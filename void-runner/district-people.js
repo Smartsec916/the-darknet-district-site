@@ -30,15 +30,15 @@
   {id:'iris',achievements:[['district-first-visit','2026-01-04']],name:'Iris',jobs:['merchant','info-broker'],area:'interior',place:'The Darknet District store',bio:'Works the store counter beside Admin.',model:'npc-iris',scale:.99,
    appearance:{v:1,base:'female',look:'fixer-01',hair:'bob02',hairColor:'silver',clothingColor:'black',accessories:['gear-collar','gear-shoulders','gear-chest']}},
   {id:'nyx-district',achievements:[['district-first-visit','2026-02-11']],name:'Nyx',jobs:['bartender'],area:'interior',place:'The bar and oxygen lounge',bio:'Behind the bar.'},
-  {id:'rin-takeda',achievements:[['district-first-visit','2026-06-30']],crew:'crew-bar1',look:'district-resident',name:'Rin Takeda',jobs:['influencer'],area:'interior',place:'The bar and oxygen lounge',bio:'Usually at the bar.'},
-  {id:'jonah-pike',achievements:[['district-first-visit','2026-03-08'],['rook-three-runs','2026-08-15']],crew:'crew-bar2',look:'outlaw-01',name:'Jonah Pike',jobs:['smuggler'],area:'interior',place:'The bar and oxygen lounge',bio:'Keeps to the back of the lounge.'},
-  {id:'sable-quon',achievements:[['district-first-visit','2026-05-21'],['blackout-score','2026-09-03']],crew:'crew-vr-watch',look:'hacker-01',name:'Sable Quon',jobs:['influencer','hacker'],area:'interior',place:'VR play area',bio:'Watches the VR booths.'},
+  {id:'rin-takeda',own:'npc-rin',achievements:[['district-first-visit','2026-06-30']],crew:'crew-bar1',look:'district-resident',name:'Rin Takeda',jobs:['influencer'],area:'interior',place:'The bar and oxygen lounge',bio:'Usually at the bar.'},
+  {id:'jonah-pike',own:'npc-jonah',achievements:[['district-first-visit','2026-03-08'],['rook-three-runs','2026-08-15']],crew:'crew-bar2',look:'outlaw-01',name:'Jonah Pike',jobs:['smuggler'],area:'interior',place:'The bar and oxygen lounge',bio:'Keeps to the back of the lounge.'},
+  {id:'sable-quon',own:'npc-sable',achievements:[['district-first-visit','2026-05-21'],['blackout-score','2026-09-03']],crew:'crew-vr-watch',look:'hacker-01',name:'Sable Quon',jobs:['influencer','hacker'],area:'interior',place:'VR play area',bio:'Watches the VR booths.'},
   {id:'cade-moreno',achievements:[['district-first-visit','2026-04-17'],['blackout-score','2026-07-29']],crew:'vr-player-a',look:'vr-player-a',name:'Cade Moreno',jobs:['mercenary','vr-athlete'],area:'interior',place:'VR play area, booth one',bio:'In the shooter booth most nights.'},
   {id:'lumi-ashby',achievements:[['district-first-visit','2026-07-06'],['tropical-100-fish','2026-10-28']],crew:'vr-player-b',look:'vr-player-b',name:'Lumi Ashby',jobs:['dancer','influencer'],area:'interior',place:'VR play area, booth two',bio:'In the social booth: dancing, eating, talking to someone only they can see.'},
-  {id:'kei-navarro',achievements:[['district-first-visit','2026-08-01']],crew:'crew-hall-talk1',look:'district-smuggler',name:'Kei Navarro',jobs:['courier'],area:'interior',place:'The hallway',bio:'Talking in the hallway.'},
-  {id:'mags-oduya',achievements:[['district-first-visit','2026-02-27']],crew:'crew-hall-talk2',look:'district-resident',name:'Mags Oduya',jobs:['mechanic'],area:'interior',place:'The hallway',bio:'Talking in the hallway.'},
-  {id:'tavi-rourke',achievements:[['district-first-visit','2026-09-12']],crew:'crew-hall-talk3',look:'hacker-01',name:'Tavi Rourke',jobs:['influencer'],area:'interior',place:'The hallway',bio:'Hangs about near the bar door.'},
-  {id:'bishop-hale',achievements:[['district-first-visit','2026-03-19']],crew:'crew-hall-watch1',look:'outlaw-01',name:'Bishop Hale',jobs:['bodyguard'],area:'interior',place:'The hallway',bio:'Watches the hallway by the arcade.'},
+  {id:'kei-navarro',own:'npc-kei',achievements:[['district-first-visit','2026-08-01']],crew:'crew-hall-talk1',look:'district-smuggler',name:'Kei Navarro',jobs:['courier'],area:'interior',place:'The hallway',bio:'Talking in the hallway.'},
+  {id:'mags-oduya',own:'npc-mags',achievements:[['district-first-visit','2026-02-27']],crew:'crew-hall-talk2',look:'district-resident',name:'Mags Oduya',jobs:['mechanic'],area:'interior',place:'The hallway',bio:'Talking in the hallway.'},
+  {id:'tavi-rourke',own:'npc-tavi',achievements:[['district-first-visit','2026-09-12']],crew:'crew-hall-talk3',look:'hacker-01',name:'Tavi Rourke',jobs:['influencer'],area:'interior',place:'The hallway',bio:'Hangs about near the bar door.'},
+  {id:'bishop-hale',own:'npc-bishop',achievements:[['district-first-visit','2026-03-19']],crew:'crew-hall-watch1',look:'outlaw-01',name:'Bishop Hale',jobs:['bodyguard'],area:'interior',place:'The hallway',bio:'Watches the hallway by the arcade.'},
   /* Dax (David, 15 Nov 2026): there is only one. Her model is a licensed one drawn by dax.js, which also says where she is at any moment (`live`); her profile picture is a
      labelled silhouette until one is made from her own model. DRAFT: the line about her is Claude's. */
   {id:'dax',achievements:[['arcade-top-blackout-protocol','2026-10-19'],['arcade-top-corporate-zombies','2026-11-02'],['arcade-top-underground-overdrive','2026-11-13'],['rook-three-runs','2026-09-27']],name:'Dax',jobs:['bounty-hunter','mercenary'],area:'interior',place:'Comes and goes',bio:'Bounty hunter. Watches more than she talks.',device:'v3',live:'dax'},
@@ -52,7 +52,9 @@
  const npc=id=>BY_ID.get(id)||null;
  const npcs=area=>area?NPCS.filter(n=>n.area===area):NPCS.slice();
  // The fixed look of a named resident's figure, so the same person has the same face on every visit (crowd.js asks here before dealing a random look).
- const lookFor=crewId=>BY_CREW.get(crewId)?.look||null;
+ /* `own`: a resident's own model (assets/models/crowd/<own>.glb, made with Meshy: docs/development/MESHY_CHARACTERS.md). It is who they are in the scene and in their
+    profile picture; `look` is the crowd figure they had before, kept as a record. */
+ const lookFor=crewId=>{const n=BY_CREW.get(crewId);return n?n.own||n.look||null:null;};
  /* Following (David, 15 Nov 2026): people a player chose to follow, by aiming the V1 camera at them. Kept in the save as one short string
     (story.flags.socialFollowing): 'n:<resident id>' or 'p:<public player id>:<handle>', comma separated, newest last, oldest dropped when it would pass 200 characters. */
  const FOLLOW_FLAG='socialFollowing',FOLLOW_KEY=/^(n:[a-z][a-z0-9-]{0,39}|p:[0-9a-f]{1,12}:[A-Za-z0-9_]{3,20})$/;
