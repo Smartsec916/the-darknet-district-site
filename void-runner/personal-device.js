@@ -39,7 +39,7 @@
   const v=achView.get(p.key)||{open:false,sort:'featured'},list=A.profileList(held,v.sort),shown=v.open?list:list.slice(0,A.SHOWN),day=t=>t?new Date(t).toISOString().slice(0,10):'';
   return '<div class="pd-ach"><h4>ACHIEVEMENTS · '+list.length+'</h4>'
    +(v.open?'<label class="pd-achsort">ORDER <select data-ach-sort="'+esc(p.key)+'">'+A.SORTS.map(([id,label])=>'<option value="'+id+'"'+(id===v.sort?' selected':'')+'>'+esc(label)+'</option>').join('')+'</select></label>':'')
-   +shown.map(a=>'<div class="pd-achrow"><b>'+esc(a.icon||'◆')+'</b><div><strong>'+esc(a.name)+'</strong><small>'+esc(A.DIFFICULTY[a.difficulty]||'')+(a.paid?' · Real purchase':'')+' · '+esc(a.category)+(a.at?' · '+day(a.at):'')+'</small></div></div>').join('')
+   +shown.map(a=>'<div class="pd-achrow"><b>'+esc(a.icon||'◆')+'</b><div><strong>'+esc(a.name)+'</strong><small><span class="pd-stars" role="img" aria-label="Difficulty '+a.difficulty+' of 5">'+A.stars(a.difficulty)+'</span>'+(a.paid?' · Real purchase':'')+' · '+esc(a.category)+(a.at?' · '+day(a.at):'')+'</small></div></div>').join('')
    +(list.length>A.SHOWN?'<button type="button" class="pd-achmore" data-ach-more="'+esc(p.key)+'" aria-expanded="'+v.open+'">'+(v.open?'SHOW FEWER ▴':'VIEW ALL '+list.length+' ▾')+'</button>':'')+'</div>';}
  function profileCard(p,opts={}){
   return '<article class="pd-card"><div class="pd-prof">'+portraitHtml(p)+'<div style="flex:1;min-width:150px"><h3>'+esc(p.name)+'</h3>'+(p.subtitle?'<div class="pd-note">'+esc(p.subtitle)+'</div>':'')+'<p>'+esc(p.bio)+'</p>'

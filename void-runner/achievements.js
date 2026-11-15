@@ -23,5 +23,7 @@
   for(const h of Array.isArray(held)?held:[]){const d=byId.get(h&&h.id);if(!d||seen.has(d.id))continue;seen.add(d.id);list.push({id:d.id,name:d.name,description:d.description,icon:d.icon,category:d.category,difficulty:d.difficulty||1,paid:!!d.paid,at:Number.isFinite(h.at)?h.at:0});}
   const order={merchandise:0,district:1,arcade:2,community:3},featured=(a,b)=>(b.paid?1:0)-(a.paid?1:0)||b.difficulty-a.difficulty||b.at-a.at||a.name.localeCompare(b.name);
   return list.sort(sort==='recent'?(a,b)=>b.at-a.at||featured(a,b):sort==='difficulty'?(a,b)=>b.difficulty-a.difficulty||featured(a,b):sort==='type'?(a,b)=>(order[a.category]??9)-(order[b.category]??9)||featured(a,b):featured);}
- const api={definitions,categories,valid,preview,publicDisplay,profileList,SHOWN,SORTS,DIFFICULTY};if(typeof module==='object'&&module.exports)module.exports=api;else root.VoidAchievements=api;
+ /* Difficulty is shown as stars, one to five (David, 15 Nov 2026: stars, not the word). */
+ const stars=n=>{const k=Math.max(1,Math.min(5,n|0));return '★'.repeat(k)+'☆'.repeat(5-k);};
+ const api={definitions,categories,valid,preview,publicDisplay,profileList,SHOWN,SORTS,DIFFICULTY,stars};if(typeof module==='object'&&module.exports)module.exports=api;else root.VoidAchievements=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
