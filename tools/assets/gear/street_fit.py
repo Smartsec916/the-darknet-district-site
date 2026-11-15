@@ -30,6 +30,20 @@ def verts(path, j, skip):
     return np.concatenate(out)
 
 
+def verts_of(d, j, mesh):
+    n = struct.unpack_from('<I', d, 12)[0]
+    off = 20 + n + 8
+    out = []
+    for prim in mesh['primitives']:
+        a = j['accessors'][prim['attributes']['POSITION']]
+        bv = j['bufferViews'][a['bufferView']]
+        stride = bv.get('byteStride', 12)
+        raw = np.frombuffer(d, dtype=np.uint8, count=(a['count'] - 1) * stride + 12, offset=off + bv.get('byteOffset', 0) + a.get('byteOffset', 0))
+        idx = (np.arange(a['count'])[:, None] * stride + np.arange(12)[None, :]).ravel()
+        out.append(raw[idx].view(np.float32).reshape(-1, 3))
+    return np.concatenate(out)
+
+
 def radial(V, a, b, t, half, limit):
     """Around the bone a->b at fraction t: the clothed limb's centre (as an offset from the bone, since a bone does not run down the middle of a limb), its radius about
     that centre (97th percentile) and how far forward (+z) it reaches from the bone. Only points within `limit` of the bone count."""
@@ -90,6 +104,14 @@ def main():
         fy = J['Head'][1] + .66 * (top - J['Head'][1])
         P = slab(everything, fy, .010 * H, J['Head'][0], .12 * H)
         o['brow'] = {'y': round(float(fy), 4), 'halfW': round(float(np.abs(P[:, 0] - J['Head'][0]).max()), 4), 'front': round(float(P[:, 2].max()), 4), 'back': round(float(P[:, 2].min()), 4)}
+        # the left eye (the character's own left, +x): centre, how far forward it reaches and its radius, from the eyeball mesh ("low-poly")
+        d = open(path, 'rb').read()
+        eyes = [m for m in j['meshes'] if m['name'] == 'low-poly']
+        if eyes:
+            E = verts_of(d, j, eyes[0])
+            Lv = E[E[:, 0] > J['Head'][0]]
+            c = (Lv.min(axis=0) + Lv.max(axis=0)) / 2
+            o['eyeL'] = [round(float(c[0]), 4), round(float(c[1]), 4), round(float(Lv[:, 2].max()), 4), round(float((Lv[:, 1].max() - Lv[:, 1].min()) / 2), 4)]
         for side in ('Left', 'Right'):
             sx = 1 if J[side + 'UpLeg'][0] > cx else -1
             legV = body[(body[:, 0] - cx) * sx > 0]

@@ -103,6 +103,7 @@
   let p=peers.get(v.id);
   if(!p){p={id:v.id,name:clean(v.name),model:v.model,appearance:v.appearance||null,x:v.x,z:v.z,yaw:v.yaw,tx:v.x,tz:v.z,tyaw:v.yaw,clip:v.clip};peers.set(v.id,p);}
   else{p.tx=v.x;p.tz=v.z;p.tyaw=v.yaw;p.clip=v.clip;}
+  if(typeof v.eye==='boolean')p.eye=v.eye;
   (p.seen||(p.seen=new Set())).add(v.clip);   // every animation the hub has sent for this player (lets a test see short clips on a slow machine)
   if(ignored.get(v.id)==='block'){removePeer(v.id);return;}
   if(!place(p)&&!p.off&&root.VoidAssets.onLoaded)p.off=root.VoidAssets.onLoaded(id=>{if(id==='crowd:'+p.model&&peers.get(p.id)===p){place(p);p.off?.();p.off=null;}});
@@ -124,6 +125,7 @@
   else if(m.t==='look'){const p=peers.get(m.id),VA=root.VoidCharacterAppearance;if(p){const ok=!!VA&&VA.validate(m.appearance);p.appearance=ok?VA.normalize(m.appearance):null;p.model=ok?VA.CATALOG.looks[p.appearance.look].model:(['district-smuggler','district-resident'].includes(m.model)?m.model:p.model);
    if(p.char&&p.appearance&&root.VoidCharacterAppearance?.validate(p.appearance))p.char.set(p.appearance).catch(()=>{});
    else{p.ctrl?.dispose?.();p.ctrl=p.char=null;p.node?.dispose?.();p.node=null;place(p);}}}
+  else if(m.t==='eye'){const p=peers.get(m.id);if(p)p.eye=!!m.on;}   // that player is (or is no longer) using a V3 // Shadow: their left eye glows green (street-gear.js)
   else if(m.t==='leave')removePeer(m.id);
   else if(m.t==='error'||m.t==='refused')status='refused: '+m.reason;
  }
@@ -192,6 +194,12 @@
  root.addEventListener('pagehide',()=>{if(ws?.readyState===1)try{ws.send('{"t":"bye"}');}catch{}});
  requestAnimationFrame(frame);
  // Frames stop while a place loads or the tab is in the background; this timer still tells the hub the player is there, so a slow load is not taken for a dead connection.
+ /* V3 // Shadow (David, 15 Nov 2026): the device's camera is in the left eye, and while its owner is using it that eye glows a little, in the device's own green.
+    Twice a second: tell the server when my own use starts or stops, and put the light on (or take it off) each player I can see. */
+ let eyeSent=false;
+ setInterval(()=>{let using=false;try{using=state?.story?.flags?.deviceModel==='v3'&&(!!root.VoidPersonalDevice?.isOpen||!!root.VoidDeviceCamera?.active);}catch{}
+  if(ws?.readyState===1&&status==='in'){if(using!==eyeSent){eyeSent=using;try{ws.send(JSON.stringify({t:'eye',on:using}));}catch{}}}else eyeSent=false;
+  for(const p of peers.values())if(p.node&&!p.fallback&&!!p.eye!==!!p.eyeShown){p.eyeShown=!!p.eye;root.VoidStreetGear?.eye?.(p.node,p.eyeShown);}},500);
  setInterval(()=>{if(ws?.readyState===1&&status==='in'&&hubVr&&performance.now()-lastSend>=3500){lastSend=performance.now();try{ws.send('{"t":"vr-list"}');}catch{}}},2000);
  root.VoidRemotePlayers={get status(){return status;},
   // For the on-screen indicator and for developers (no token, no account id, no address): where the connection stands and how many players are really drawn.

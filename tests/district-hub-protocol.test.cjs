@@ -97,3 +97,14 @@ test('voice: a registered player gets a short-lived token for the voice room of 
  const off=new Hub({send:(c,m)=>{(sent.get(c)||sent.set(c,[]).get(c)).push(m);},close:()=>{},now:()=>now}),c={};off.join(c,hello,who('C',{handle:'Cat_1'}));assert.equal(off.voiceToken(c).ok,false);
  assert(parse('{"t":"voice-token"}'));assert.equal(parse('{"t":"voice-token","room":"x"}'),null,'the player cannot name a room');
 });
+
+test('the V3 eye light: a player says when they are using it, the room is told, and someone arriving later sees it',()=>{
+ let now=1e6;const sent=new Map(),hub=new Hub({send:(c,m)=>{(sent.get(c)||sent.set(c,[]).get(c)).push(m);},close:()=>{},now:()=>now});
+ assert.deepEqual(parse('{"t":"eye","on":true}'),{t:'eye',on:true});assert.equal(parse('{"t":"eye","on":1}'),null);assert.equal(parse('{"t":"eye","on":true,"colour":"red"}'),null,'nothing but on or off');
+ const a={},b={},c={};hub.join(a,hello,who('A',{handle:'Ann_1'}));hub.join(b,hello,who('B',{handle:'Bob_1'}));hub.state(a,st(1,30));hub.state(b,st(2,31));now+=200;hub.tick?.();
+ assert.equal(hub.eye(a,{t:'eye',on:true}),true);assert.deepEqual(sent.get(b).at(-1),{t:'eye',id:publicId('A'),on:true});assert.ok(!(sent.get(a)||[]).some(m=>m.t==='eye'),'not echoed to the sender');
+ assert.equal(hub.eye(a,{t:'eye',on:true}),false,'saying it twice sends nothing');
+ hub.join(c,hello,who('C',{handle:'Cat_1'}));hub.state(c,st(3,32));now+=200;hub.tick?.();
+ const seen=(sent.get(c)||[]).flatMap(m=>m.t==='join'?[m.peer]:m.t==='welcome'||m.t==='snap'?(m.peers||[]):[]).find(p=>p&&p.id===publicId('A'));assert.ok(seen,'the newcomer is told about A');assert.equal(seen.eye,true);
+ assert.equal(hub.eye(a,{t:'eye',on:false}),true);assert.deepEqual(sent.get(b).at(-1),{t:'eye',id:publicId('A'),on:false});
+});

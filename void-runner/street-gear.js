@@ -144,6 +144,28 @@
   me.material=material(scene);me.isPickable=false;me.receiveShadows=false;me.setBoundingInfo(bodyMesh.getBoundingInfo());me.layerMask=bodyMesh.layerMask;me.renderingGroupId=bodyMesh.renderingGroupId;
   me.metadata={streetGear:{seed,look,parts:g.parts,accent:wear.accent}};count++;me.onDisposeObservable.add(()=>{count--;});
   return me;}
+ /* The V3 // Shadow eye (David, 15 Nov 2026): the device's camera is in its owner's LEFT eye, and while the device is in use that eye glows a little, in the green the
+    V3 uses for its screen. A small lit disc on the iris and a faint halo round it, skinned to the head like the gear. eye(node, true) puts it on a figure, eye(node, false)
+    takes it off. node: any node above the figure (a player's holder, an NPC). */
+ const V3_GREEN=[.275,1,.478],eyes=new WeakMap();
+ function eyeMaterial(scene){const B=root.BABYLON;let m=scene.getMaterialByName('v3-eye');if(m)return m;m=new B.StandardMaterial('v3-eye',scene);m.disableLighting=true;m.emissiveColor=new B.Color3(1,1,1);m.backFaceCulling=false;m.alphaMode=B.Constants?.ALPHA_ADD??1;m.useAlphaFromDiffuseTexture=false;return m;}
+ async function eye(node,on){
+  const B=root.BABYLON;if(!B||!node||node.isDisposed())return null;const had=eyes.get(node);
+  if(!on){if(had){eyes.delete(node);had.dispose();}return null;}
+  if(had&&!had.isDisposed())return had;
+  const model=node.getDescendants(false).map(n=>/^crowd:([a-z0-9-]+)-model$/.exec(n.name)?.[1]).find(Boolean),data=await fit().catch(()=>null),body=data?.bodies?.[model],e=body?.eyeL;if(!e||node.isDisposed())return null;
+  const skinned=node.getChildMeshes().filter(x=>x.skeleton&&x.getTotalVertices()>0);if(!skinned.length)return null;
+  const bodyMesh=skinned.reduce((a,b)=>b.getTotalVertices()>a.getTotalVertices()?b:a),sk=bodyMesh.skeleton,bi=boneIndex(sk,'Head');if(bi<0)return null;
+  const positions=[],colors=[],indices=[],disc=(r,z,alpha)=>{const c=positions.length/3,N=10;positions.push(e[0],e[1],z);colors.push(...V3_GREEN,alpha);
+   for(let i=0;i<N;i++){const t=i/N*Math.PI*2;positions.push(e[0]+Math.cos(t)*r,e[1]+Math.sin(t)*r,z);colors.push(...V3_GREEN,alpha>.5?alpha:0);}
+   for(let i=0;i<N;i++)indices.push(c,c+1+i,c+1+(i+1)%N);};
+  disc(e[3]*.42,e[2]+e[3]*.06,.85);disc(e[3]*2.1,e[2]+e[3]*.12,.3);   // the lit iris, then a halo that fades to nothing at its edge
+  const n=positions.length/3,mi=new Float32Array(n*4),mw=new Float32Array(n*4);for(let i=0;i<n;i++){mi[i*4]=bi;mw[i*4]=1;}
+  const scene=node.getScene(),me=new B.Mesh('v3-eye',scene),vd=new B.VertexData();vd.positions=positions;vd.colors=colors;vd.indices=indices;vd.matricesIndices=mi;vd.matricesWeights=mw;vd.applyToMesh(me);
+  me.hasVertexAlpha=true;me.skeleton=sk;me.numBoneInfluencers=1;me.parent=bodyMesh.parent;me.position.copyFrom(bodyMesh.position);me.scaling.copyFrom(bodyMesh.scaling);
+  if(bodyMesh.rotationQuaternion)me.rotationQuaternion=bodyMesh.rotationQuaternion.clone();else me.rotation.copyFrom(bodyMesh.rotation);
+  me.material=eyeMaterial(scene);me.isPickable=false;me.setBoundingInfo(bodyMesh.getBoundingInfo());me.layerMask=bodyMesh.layerMask;me.metadata={v3Eye:true};
+  if(eyes.get(node)&&!eyes.get(node).isDisposed()){me.dispose();return eyes.get(node);}eyes.set(node,me);return me;}
  // Every crowd figure is dressed as it is made. Who it is (metadata.character) is written by the scene just after the copy is made, so the dressing waits a moment for it.
  const A=root.VoidAssets;
  if(A&&typeof A.instance==='function'){const original=A.instance;let anon=0;
@@ -155,5 +177,5 @@
      if(/^character:/.test(parent?.name||'')){const staff=parent.parent?.metadata?.character;if(KITS[staff])dress(node,look,staff).catch(()=>{});return;}
      const who=node.metadata?.character||node.metadata?.id||'walker-'+n;dress(node,look,KITS[who]?who:look+':'+who).catch(()=>{});},0);}
    return node;};}
- root.VoidStreetGear={...pure,config,dress,get dressed(){return count;}};
+ root.VoidStreetGear={...pure,config,dress,eye,V3_GREEN,get dressed(){return count;}};
 })(typeof globalThis!=='undefined'?globalThis:this);
