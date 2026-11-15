@@ -21,7 +21,7 @@
  const pairSeat={x:-4.4,z:-.65,yaw:Math.PI/2,eye:1.1};
  function layout(opts){const wall=(id,x,z,w,d)=>({id:'vr-'+id,position:[x,1.5,z],size:[w,3,d]});
   return {id:'vr-suite',name:'VR · PLAY IN A BEDROOM',bounds:[11,7],spawn:[-3,1.7,-3.9],yaw:.5,music:null,signs:[],
-   solids:[wall('w-n',0,5.1,12.4,.3),wall('w-s',0,-5.1,12.4,.3),wall('w-w',-6.1,0,.3,10),wall('w-e1',6.1,-3.1,.3,3.8),wall('w-e2',6.1,3.1,.3,3.8),
+   solids:[wall('p-cart',3.25,-4.5,.9,.6),wall('p-vanity',-5.55,2.55,.6,1.3),wall('p-sculpture',-5.2,4.2,.7,.7),wall('p-seat',7.75,-1.35,.9,1.6),wall('w-n',0,5.1,12.4,.3),wall('w-s',0,-5.1,12.4,.3),wall('w-w',-6.1,0,.3,10),wall('w-e1',6.1,-3.1,.3,3.8),wall('w-e2',6.1,3.1,.3,3.8),
     {id:'vr-rail',position:[8.95,.55,0],size:[.2,1.1,5.4]},{id:'vr-rail-n',position:[7.5,.55,2.75],size:[3,1.1,.2]},{id:'vr-rail-s',position:[7.5,.55,-2.75],size:[3,1.1,.2]},
     {id:'vr-bed',position:[0,.4,3.55],size:[3,.8,2.75]},{id:'vr-nightstand-l',position:[-2.15,.4,4.72],size:[.66,.8,.5]},{id:'vr-nightstand-r',position:[2.15,.4,4.72],size:[.66,.8,.5]},
     {id:'vr-sofa',position:[-4.72,.4,-.5],size:[1.05,.8,2.7]},{id:'vr-table',position:[-2.8,.2,-.7],size:[.7,.4,1.25]},{id:'vr-armchair',position:[4.3,.4,-3.4],size:[.95,.8,.95]},

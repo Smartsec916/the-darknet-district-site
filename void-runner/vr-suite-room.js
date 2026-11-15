@@ -172,6 +172,34 @@
   let curtainTarget=1;tick.push(dt=>{for(const c of curtains)c.scaling.z+=(curtainTarget-c.scaling.z)*Math.min(1,dt*2.5);});
   // ---- Plants: two calatheas ----
   const plant=await k.model('plant');k.place(plant,[5.3,0,4.35],0,1.3);k.place(plant,[-5.35,0,-4.3],2,1.15);
+  /* ---- Room upgrade (David, 16 Nov 2026): furniture and art made with Meshy, a furnished and lit balcony, more to look at outside ----
+     The five models are optional files (assets/vr/models/suite-*.glb, docs/development/MESHY_CHARACTERS.md lists how they were made); a missing one is simply not
+     there. Each is sized by its height and stood on the floor, so a regenerated model drops in without new numbers. */
+  const prop=async(name,[x,z],ry,h,y=0)=>{try{const c=await k.model('suite-'+name),n=k.place(c,[x,0,z],ry,1);n.computeWorldMatrix(true);for(const m of n.getChildMeshes())m.computeWorldMatrix(true);
+    const bb=n.getHierarchyBoundingVectors(true),sc=h/Math.max(.01,bb.max.y-bb.min.y);n.scaling.setAll(sc);n.position.y=y-bb.min.y*sc;for(const m of n.getChildMeshes()){m.isPickable=false;if(m.material&&'environmentIntensity' in m.material){m.material.environmentIntensity=.35;m.material.directIntensity=1.6;}}return n;}
+   catch(e){console.info('[VR suite] room prop not available: '+name);return null;}};
+  await Promise.all([prop('bar-cart',[3.25,-4.5],Math.PI,.95),prop('floor-lamp',[5.2,-4.25],-2.4,2.05),prop('vanity',[-5.5,2.55],Math.PI/2,1.45),prop('sculpture',[-5.2,4.2],.6,1.5),prop('balcony-seat',[7.75,-1.35],Math.PI/2,.8,.0)]);
+  // light from the new lamp over the lounge chair, a picture light on the sculpture, a lit rim behind the dressing-table mirror
+  {const arc=P('arc',[4.55,1.75,-3.7],4.2);arc.diffuse=hex(B,'#ffb070');arc.intensity=.75;const art=P('art',[-4.6,1.9,3.5],3.6);art.diffuse=hex(B,'#ffd2a8');art.intensity=.7;W(wash.amb,[4.5,.016,-3.6],'up',2.2,2.2,0);W(wash.amb,[-5.965,1.5,4.2],'east',1.3,2.3,3);W(wash.mag,[-5.965,1.35,2.55],'east',1.5,1.3,0);}
+  // the balcony: a low table, two lanterns and a planter by the rail, warm light on the stone
+  b.add(stone,from(B.MeshBuilder.CreateCylinder('bt',{diameter:.55,height:.03,tessellation:24},scene)),[7.7,.42,-.35]);b.add(metal,from(B.MeshBuilder.CreateCylinder('bt',{diameter:.05,height:.42,tessellation:8},scene)),[7.7,.21,-.35]);
+  for(const [x,z,h] of [[8.55,-2.35,.42],[8.55,2.3,.56],[6.55,2.3,.34]]){b.add(black,box([.2,.03,.2]),[x,.015,z]);b.add(black,box([.2,.03,.2]),[x,h,z]);for(const sx of [-1,1])for(const sz of [-1,1])b.add(black,box([.015,h,.015]),[x+sx*.09,h/2,z+sz*.09]);
+   b.add(globe,box([.11,h*.55,.11],.03,2,4),[x,h*.42,z]);W(wash.amb,[x,.014,z],'up',1.7,1.7,0);}
+  b.add(ceramic,from(B.MeshBuilder.CreateCylinder('bp',{diameterTop:.5,diameterBottom:.36,height:.46,tessellation:20},scene)),[8.3,.23,1.2]);k.place(plant,[8.3,.42,1.2],1.1,.95);
+  b.add(led.amb,box([2.7,.015,.015]),[7.45,1.045,-2.66]);b.add(led.amb,box([2.7,.015,.015]),[7.45,1.045,2.66]);
+  /* Outside: an advertising airship that drifts across between the towers, and two searchlights sweeping the cloud. */
+  {const hull=k.own(new B.StandardMaterial('vr-suite-airship',scene));hull.diffuseColor=hex(B,'#2a2c36');hull.specularColor=new B.Color3(.2,.2,.24);hull.emissiveColor=hex(B,'#3a3648');
+   const ship=new B.TransformNode('vr-suite-airship',scene);ship.parent=k.parent;const body=B.MeshBuilder.CreateSphere('vr-suite-airship-hull',{diameter:1,segments:16},scene);body.scaling.set(9,9,34);body.material=hull;body.parent=ship;body.isPickable=false;
+   for(const [w,hh,dd,px,py,pz] of [[.6,7,6,0,5,-14],[.6,7,6,0,-5,-14],[7,.6,6,5,0,-14],[7,.6,6,-5,0,-14],[3,2.4,9,0,-5.4,2]]){const f=B.MeshBuilder.CreateBox('vr-suite-airship-part',{width:w,height:hh,depth:dd},scene);f.material=hull;f.parent=ship;f.position.set(px,py,pz);f.isPickable=false;}
+   {const wm=k.own(new B.StandardMaterial('vr-suite-airship-windows',scene));wm.emissiveColor=hex(B,'#ffd9a0');wm.disableLighting=true;const wr=B.MeshBuilder.CreateBox('vr-suite-airship-windows',{width:3.1,height:.5,depth:8},scene);wr.material=wm;wr.parent=ship;wr.position.set(0,-5.4,2);wr.isPickable=false;}
+   const adTex=k.paint('suite-airship-ad',1024,256,(g,Wd,Hd)=>{g.fillStyle='#07030c';g.fillRect(0,0,Wd,Hd);const gr=g.createLinearGradient(0,0,Wd,0);gr.addColorStop(0,'#ff2d96');gr.addColorStop(1,'#7b45ff');g.fillStyle=gr;g.font='900 150px Arial,Helvetica,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('NEOCHINATOWN',Wd/2,Hd/2+6);g.strokeStyle='rgba(255,255,255,.5)';g.lineWidth=4;g.strokeRect(10,10,Wd-20,Hd-20);});
+   const adMat=k.own(new B.StandardMaterial('vr-suite-airship-ad',scene));adMat.diffuseColor=B.Color3.Black();adMat.emissiveTexture=adTex;adMat.disableLighting=true;
+   const ad=B.MeshBuilder.CreatePlane('vr-suite-airship-ad',{width:30,height:7.5},scene);ad.material=adMat;ad.parent=ship;ad.position.set(-4.9,0,2);ad.rotation.y=Math.PI/2;ad.isPickable=false;   // faces the apartment (-x)
+   const nav=k.own(new B.StandardMaterial('vr-suite-airship-nav',scene));nav.emissiveColor=hex(B,'#ff3030');nav.disableLighting=true;const blink=B.MeshBuilder.CreateSphere('vr-suite-airship-nav',{diameter:.9,segments:6},scene);blink.material=nav;blink.parent=ship;blink.position.set(0,-4.9,16);blink.isPickable=false;
+   const beamMat=k.own(new B.StandardMaterial('vr-suite-searchlight',scene));beamMat.diffuseColor=B.Color3.Black();beamMat.emissiveColor=hex(B,'#bfd6ff');beamMat.disableLighting=true;beamMat.alpha=.045;beamMat.alphaMode=B.Engine.ALPHA_ADD;beamMat.backFaceCulling=false;
+   const beams=low?[]:[[150,-40,.31,0],[210,90,.23,2]].map(([x,z,rate,ph])=>{const pivot=new B.TransformNode('vr-suite-searchlight',scene);pivot.parent=k.parent;pivot.position.set(x,60,z);const cone=B.MeshBuilder.CreateCylinder('vr-suite-searchlight-beam',{diameterTop:26,diameterBottom:1.5,height:240,tessellation:14,cap:B.Mesh.NO_CAP},scene);cone.material=beamMat;cone.parent=pivot;cone.position.y=120;cone.isPickable=false;return {pivot,rate,ph};});
+   const glowLayer0=scene.metadata?.lookGlow;if(glowLayer0)for(const m of [...beams.map(x=>x.pivot.getChildMeshes()[0])])glowLayer0.addExcludedMesh(m);
+   tick.push((dt,t)=>{const z=((t*5+200)%640)-320;ship.position.set(118,34+Math.sin(t*.2)*1.5,z);blink.setEnabled(Math.floor(t*1.3)%2===0);for(const s of beams){s.pivot.rotation.z=.5*Math.sin(t*s.rate+s.ph);s.pivot.rotation.x=.35*Math.cos(t*s.rate*.7+s.ph);}});}
   // ---- The city ----
   const city=await buildCity(k,ctx,b,tick);
   // ---- Holo screen at the desk: the music preset and a live equaliser ----

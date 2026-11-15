@@ -6,6 +6,13 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 16 Nov 2026 (night): companion room upgrade (build `2026-11-16-suite-room-1`); companions wait for approval
+
+- Room: five Meshy props, lighting, balcony furniture, airship and searchlights. See the last section of `docs/development/VR_SESSIONS.md`.
+- David asked for a naked option for VR companions. Claude declined (no nude or sexually explicit character content). Do not add it.
+- **Companion graphics: David must approve before anything is pushed.** Nothing has been made yet. Some companion models are licensed "No AI" (see `docs/VOID_RUNNER_ASSET_LICENSES.md`): those files must not go through Meshy or any AI tool, so improvements to them are limited to materials, lighting and code.
+- Meshy: about 440 credits left this month.
+
 ### 16 Nov 2026 (later): VR upgrade (build `2026-11-16-vr-upgrade-1`) and AN OPEN DECISION ON BRIGHTNESS
 
 - Read the last section of `docs/development/VR_SESSIONS.md`. In short: VR music (5 recordings), WoW-style fishing with saved counters, better beach water, and full brightness inside simulations.
