@@ -1,0 +1,37 @@
+// Environmental sound: which beds an area has, the floor underfoot, how a placed sound is heard, and that every file it names exists.
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const A=require('../void-runner/area-ambience.js'),S=require('../void-runner/music-score.js'),root=path.join(__dirname,'..');
+const file=name=>path.join(root,A.DIR,name+'.ogg');
+test('each area has its own bed, and an unknown area has none',()=>{
+ assert.ok(A.beds('neochinatown')['rain-street']>0&&A.beds('neochinatown')['city-distant']>0,'rain and the far city on the street');
+ assert.ok(A.beds('alley')['alley-drip']>A.beds('alley')['rain-street'],'the alley drips');
+ assert.ok(A.beds('district-hall')['vent-hum']>0);assert.equal(A.beds('district-hall')['rain-street'],undefined,'no rain indoors');
+ assert.ok(A.beds('temple')['temple-wind']>0);assert.ok(A.beds('corporate')['corporate-plaza']>0);
+ assert.deepEqual(A.beds('space'),{});assert.deepEqual(A.beds(null),{});
+ for(const area of Object.keys(A.BEDS))assert.ok(S.styles[area],area+' is an area the music knows');
+});
+test('the floor underfoot follows the area',()=>{
+ assert.equal(A.surface('neochinatown'),'wet');assert.equal(A.surface('alley'),'wet');assert.equal(A.surface('district-entry'),'metal');assert.equal(A.surface('district-hall'),'concrete');assert.equal(A.surface(null),null);
+});
+test('a placed sound fades with distance and sits on the side it comes from',()=>{
+ const near=A.heard(0,1,0,10),mid=A.heard(0,5,0,10),far=A.heard(0,10,0,10);assert.ok(near.level>mid.level&&mid.level>0);assert.equal(far.level,0);
+ assert.ok(Math.abs(mid.pan)<1e-9,'straight ahead is in the middle');
+ assert.ok(A.heard(5,0,0,10).pan>.9,'to the right when facing +z');assert.ok(A.heard(-5,0,0,10).pan<-.9,'to the left');
+ assert.ok(A.heard(5,0,Math.PI,10).pan<-.9,'turn round and it changes side');
+ assert.equal(A.heard(0,0,0,10).pan,0,'standing on it: no side');
+});
+test('emitters belong to the inside of the District or to the street, never both',()=>{
+ const inside=A.emittersFor('district-hall').map(e=>e.id),street=A.emittersFor('alley').map(e=>e.id);
+ assert.ok(inside.includes('arcade')&&inside.includes('counter')&&inside.includes('scanner'));assert.deepEqual(street,['door-neon']);
+ assert.deepEqual(A.emittersFor('district-terrace'),[]);assert.deepEqual(A.emittersFor('temple'),[]);assert.deepEqual(A.emittersFor(null),[]);
+});
+test('the lock sounds only when passing through the vestibule',()=>{
+ assert.ok(A.lockBetween('alley','district-entry'));assert.ok(A.lockBetween('district-entry','district-hall'));
+ assert.ok(!A.lockBetween('district-hall','district-store'));assert.ok(!A.lockBetween(null,'district-entry'),'not on arriving in the game');assert.ok(!A.lockBetween('district-entry','district-entry'));
+});
+test('every sound named is a file in the game, small enough to fetch on entering an area',()=>{
+ const names=new Set(['door-lock']);for(const b of Object.values(A.BEDS))for(const n of Object.keys(b))names.add(n);for(const e of A.EMITTERS)names.add(e.loop);
+ for(const s of new Set(['concrete',...Object.values(A.SURFACE)]))for(let i=1;i<=A.STEP_COUNT;i++)names.add('steps-'+s+'-'+i);
+ for(const n of names){const st=fs.statSync(file(n));assert.ok(st.size>2000&&st.size<400000,n);}
+ const onDisk=fs.readdirSync(path.join(root,A.DIR)).filter(f=>f.endsWith('.ogg')).map(f=>f.slice(0,-4));assert.deepEqual(onDisk.filter(f=>!names.has(f)),[],'no unused sound files');
+});

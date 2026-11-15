@@ -49,7 +49,20 @@
  // Recorded tracks David supplies later: { styleId: 'void-runner/assets/audio/music/<file>.ogg' }.
  // A style with a file plays that file instead of the generated score.
  // The club's final soundtrack goes here once it exists, e.g. files.nightclub='void-runner/assets/audio/music/nightclub.ogg' (loops; no commercial music without permission).
- const files={};
+ // 15 Nov 2026: the area soundtrack (David). Each area below plays a recorded loop made with ElevenLabs Music; see void-runner/assets/audio/score/LICENSES.md.
+ // The generated score above stays as the fallback (a file that fails to load) and for the places that have no recording yet (stations, warp, hazards).
+ const SCORE='void-runner/assets/audio/score/',track=id=>SCORE+id+'.ogg';
+ // Areas added with the soundtrack. Their generated fallback borrows a neighbour's.
+ styles.alley={...styles['district-entry'],gain:.8,mood:'The alley behind the District: sparse, tense, the club heard far off.'};
+ styles['district-vr']={...styles['district-arcade'],gain:.7,mood:'VR play area: shimmering, weightless, inside a simulation.'};
+ styles.milked={...styles['district-bar'],gain:.8,mood:'Milked: slow, glossy, late night.'};
+ styles.corporate={...styles.vantor,gain:.8,mood:'Corporate District: cold, imposing, watched.'};
+ styles.temple={...styles.communion,gain:.8,mood:'Zen Zephyr Temple: bowls, flute and wind above the city.'};
+ const files={theme:track('theme'),neochinatown:track('neochinatown'),alley:track('alley'),'district-hall':track('district-hall'),'district-entry':track('district-entry'),'district-store':track('district-store'),
+  'district-vr':track('district-vr'),'district-arcade':track('district-arcade'),'district-bar':track('district-bar'),nightclub:track('nightclub'),corporate:track('corporate'),temple:track('temple'),milked:track('milked'),
+  space:track('space'),'space-cantor':track('space'),'space-garrow':track('space'),
+  // the pods end of the hall and the smoking terrace hear the hall's music, quieter (and through the wall on the terrace): same file, so walking between them is only a change of level
+  'district-rest':track('district-hall'),'district-terrace':track('district-hall')};
  const tension=[L('drone',{vel:.06}),L('kick',{pattern:'x.......x.......',vel:.18,tone:.6}),L('metal',{pattern:'............x...',chance:.4,vel:.035})];
  function chord(style,bar){const degree=style.prog[Math.floor(bar/(style.chordBars||1))%style.prog.length];return degree;}
  function midi(style,step,octave=0){const scale=modes[style.mode],n=scale.length,o=Math.floor(step/n);return style.root+scale[((step%n)+n)%n]+12*(o+octave);}

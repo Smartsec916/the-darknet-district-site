@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "17a0649931fc85d3",
+  "revision": "4950dde199435eaf",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12373,26 +12373,32 @@
     },
     {
       "source": "void-runner/music-director.js",
-      "line": 33,
+      "line": 48,
       "text": "if(c.mode!=='walking'&&c.mode!=='dialogue'||!c.walker)return null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/music-director.js",
-      "line": 57,
+      "line": 72,
       "text": "duck:c.dialogue?config.dialogueDuck:0,speaker:speaker(c)};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/music-integration.js",
-      "line": 15,
+      "line": 17,
       "text": "const walking=!!walkingLocation&&!!walker&&['walking','dialogue','mission-log','road-taxi'].includes(mode);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/music-integration.js",
-      "line": 27,
+      "line": 31,
       "text": "dialogue:mode==='dialogue'||globalThis.VoidRelayRadio?.speaking===true,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/music-integration.js",
+      "line": 40,
+      "text": "const talk=globalThis.VoidVoice;if(talk&&(talk.talking||talk.speaking?.length))target.duck=Math.max(target.duck||0,D.config.dialogueDuck);",
       "kind": "source-reference"
     },
     {
@@ -14154,10 +14160,11 @@
     "void-runner/achievements.js": "b02228547f2a3d3d94d999d803cf6e2ccaff3dd4cf41b40887a00ab011bbfd59",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
+    "void-runner/area-ambience.js": "4a3b6f044b5b1ec76acef62abede55abe91d1d813ca66a9a50f2d6dea6e0b818",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "496edd3d907d4f23524366ef1263dd57b33a149d444c14ba2b20c9e09a4bb746",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
-    "void-runner/babylon-integration.js": "79d4c6078c725913cc70d5f84a14a72976a4c7b466dabc219fd1c2cf2363b0fb",
+    "void-runner/babylon-integration.js": "1d2f8347d034fc41d0f6998b2f426d062a0c3af0153bc17a2a0de71e15828f19",
     "void-runner/babylon-renderer.js": "4c601e377db987c898657c101e263dd90cd95294aa0d6c901de66866bfaf2a1c",
     "void-runner/balance-data.js": "ebc76bb374885f015ae60a86864e8701bba194e5d3ce09fb321dd52cedabe16c",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
@@ -14223,7 +14230,7 @@
     "void-runner/flight-session-integration.js": "0dc63b7cdab18fa333bed6e699c55b58b5ab6c391153fc414b8093bfb452a154",
     "void-runner/flight-session.js": "1027dd1a11d5c087d2d754f96cfd8ecce8948ace49398ac78aab5efef0e52bfa",
     "void-runner/flight-skirmish.js": "d34dcc71253521e0b64617552cce2db27b7e1e37420611fa7471de848c8a5573",
-    "void-runner/footsteps.js": "284ebaea308aab973afdd7a344ba916eb45bd807f65b52239fb797f375486372",
+    "void-runner/footsteps.js": "e68a86c357036b5e09df73f9f3a70b8047b0af277dfd5c4597892ad59efe7330",
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
     "void-runner/game.js": "12ab691c726ae68308e305e53de737011b05e11962d7a843baf4e26d48e6283a",
     "void-runner/graphics-prefs.js": "5b0092cbc6e4ed50c21d51bc2856a2caeb0c5957e46cb4415c3f28514d2dd6fe",
@@ -14249,10 +14256,10 @@
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
     "void-runner/mouse-control.js": "af8df4b620bba30d4cc4ce2dcfb3a0a8766f143f18bd388c52ba0f5412eadf5e",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
-    "void-runner/music-director.js": "a751c57ffcc8fd9928ecd8baa1f962d21f86ae842b87a3724e31c045887795a8",
-    "void-runner/music-engine.js": "5078e1a0fedff9d09a7f23823126d3ef8a834a1806edb7675c54e3b668014a8b",
-    "void-runner/music-integration.js": "8b3be844e052bd281c2a847357cecaf36c6db712b91a6896760e16ac67de3164",
-    "void-runner/music-score.js": "87751174ef61afbb0be20d98b5b01127d833ee63c06e727bf1a2d6e985b8b7e7",
+    "void-runner/music-director.js": "7e201f1cb867e99608e3a3dadd20a9e7f41431a7b02aab640c9ab2d6421b598c",
+    "void-runner/music-engine.js": "01eecadf954ace9df5655135ab20f6341548f1af07b0e864715be33d08eec2ea",
+    "void-runner/music-integration.js": "d0a29b7a06e2eb14f2bb27a9077c3c29a29b6a295b4662070a843df5113a406e",
+    "void-runner/music-score.js": "bcd474d4ac02366ee0cd2381f25f1905b1e5c0e65546451c1a3a5cc7f6bdc37c",
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-alley.js": "8ab13c0f1bb1a5857b3ec426d07106ec7bf0fa72143ea5d7b3ab01679b7daf58",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",

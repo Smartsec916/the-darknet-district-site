@@ -70,12 +70,18 @@
   // Same family (e.g. District zones): keep the beat so the change lands musically.
   if(inherit&&inherit.style.family&&inherit.style.family===style.family&&inherit.style.bpm===style.bpm){inst.step=inherit.step;inst.next=inherit.next;}
   const file=S.files[id];
-  if(file&&root.VoidAudio?.connectMedia){const a=new Audio(file);a.loop=true;a.preload='auto';const link=root.VoidAudio.connectMedia(a);if(link){link.gain.disconnect();link.gain.connect(bus);inst.audio={a,link};a.play().catch(()=>{});}}
+  if(file&&root.VoidAudio?.connectMedia){const a=new Audio(file);a.loop=true;a.preload='auto';const link=root.VoidAudio.connectMedia(a);if(link){link.gain.disconnect();link.gain.connect(bus);inst.audio={a,link};
+   // Every recording runs on one clock: it starts where it would be had it been playing all along, so coming back to a room never restarts its music.
+   const sync=()=>{try{if(a.duration>0)a.currentTime=ctx.currentTime%a.duration;}catch{}};if(a.readyState>=1)sync();else a.addEventListener('loadedmetadata',sync,{once:true});
+   // A recording that cannot be loaded gives the place back to the generated score.
+   a.addEventListener('error',()=>{if(inst.audio&&inst.audio.a===a){inst.audio=null;inst.next=ctx.currentTime+.05;try{link.dispose();}catch{}}},{once:true});
+   a.play().catch(()=>{});}}
   return inst;
  }
  function run(inst,now){
-  if(inst.audio)return;
-  const sd=60/inst.style.bpm/4,layers=S.layersFor(inst.style,inst.intensity,inst.tension);
+  const sd=60/inst.style.bpm/4;let layers=S.layersFor(inst.style,inst.intensity,inst.tension);
+  // Over a recording only the combat drums and the tension layer are performed: the recording is the music.
+  if(inst.audio){layers=layers.filter(l=>!inst.style.layers.includes(l));if(!layers.length){inst.next=now+.05;return;}}
   while(inst.next<now+lookahead){for(const l of layers)try{inst.play(inst.style,l,inst.step,inst.next);}catch{}inst.step++;inst.next+=sd;}
  }
  function level(inst,value,seconds){inst.gain=value;inst.bus.gain.setTargetAtTime(value*inst.style.gain,ctx.currentTime,seconds/3);}
@@ -122,6 +128,9 @@
     if(inst.audio){const a=inst.audio.a;if(a.duration>0)a.currentTime=elapsed%a.duration;a.play().catch(()=>{});}
     else{inst.step=Math.ceil(elapsed/sd());inst.next=Math.max(now+.02,inst.t0+inst.step*sd());}},
    dispose(){world.delete(inst);dispose(inst);}};}
- const api={worldSource,context(){return ensure()?ctx:null;},update,stop,voices,get current(){return main?.id||null;},get speaker(){return speakerInst?.id||null;}};
+ // Fetch the recordings of the areas next door, once each, so they start without a wait (the browser keeps them).
+ const warmed=new Set();
+ function preload(ids){for(const id of ids||[]){const f=S.files[id];if(!f||warmed.has(f))continue;warmed.add(f);try{fetch(f).catch(()=>{});}catch{}}}
+ const api={preload,worldSource,context(){return ensure()?ctx:null;},update,stop,voices,get current(){return main?.id||null;},get speaker(){return speakerInst?.id||null;}};
  root.VoidMusicEngine=api;
 })(globalThis);

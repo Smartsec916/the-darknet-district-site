@@ -115,6 +115,6 @@ test('the engine keeps world sources apart from the city mix and from style chan
 
 test('the club has its own soundtrack, separate from the street, and a place for the final recording',()=>{
  const club=S.styles.nightclub,street=S.styles.neochinatown;assert.ok(club&&street&&club!==street);assert.ok(club.bpm!==street.bpm);
- assert.equal(S.files.nightclub,undefined,'no recorded track installed yet (generated original in use)');
+ assert.match(S.files.nightclub,/assets\/audio\/score\/nightclub\.ogg$/,'the club plays its recorded track (15 Nov 2026)');
  assert.ok(CA.config.style==='nightclub'&&S.styles[CA.config.style]);
 });

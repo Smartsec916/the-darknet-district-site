@@ -26,7 +26,7 @@
  function listener(ctx,cam){const p=cam.globalPosition,f=cam.getForwardRay(1).direction,L=ctx.listener,t=ctx.currentTime;
   if(L.positionX){L.positionX.setTargetAtTime(p.x,t,.03);L.positionY.setTargetAtTime(p.y,t,.03);L.positionZ.setTargetAtTime(-p.z,t,.03);L.forwardX.setTargetAtTime(f.x,t,.03);L.forwardY.setTargetAtTime(0,t,.03);L.forwardZ.setTargetAtTime(-f.z,t,.03);L.upX.value=0;L.upY.value=1;L.upZ.value=0;}
   else{L.setPosition?.(p.x,p.y,-p.z);L.setOrientation?.(f.x,0,-f.z,0,1,0);}}
- function play(bus,x,z,g){const ctx=bus.context,src=ctx.createBufferSource(),gain=ctx.createGain(),pan=ctx.createPanner();src.buffer=buffer(ctx);src.playbackRate.value=.9+Math.random()*.25;gain.gain.value=g;
+ function play(bus,x,z,g){const ctx=bus.context,src=ctx.createBufferSource(),gain=ctx.createGain(),pan=ctx.createPanner();const rec=root.VoidAmbience?.stepBuffer?.(ctx)||null;src.buffer=rec||buffer(ctx);src.playbackRate.value=.9+Math.random()*.25;gain.gain.value=rec?g*1.5:g;   /* a recorded step for the floor (area-ambience.js) when it has arrived, else the soft thud */
   pan.panningModel='HRTF';pan.distanceModel='inverse';pan.refDistance=config.ref;pan.maxDistance=config.range*1.5;pan.rolloffFactor=config.rolloff;
   if(pan.positionX){pan.positionX.value=x;pan.positionY.value=.1;pan.positionZ.value=-z;}else pan.setPosition?.(x,.1,-z);
   src.connect(gain);gain.connect(pan);pan.connect(bus.node);src.onended=()=>{try{pan.disconnect();gain.disconnect();}catch{}};src.start();}
