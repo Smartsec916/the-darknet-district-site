@@ -134,14 +134,20 @@ test('saved news state is bounded and rejects junk',()=>{
 
 // ---- WarFlying commentary uses the real leaderboard ----
 test('WarFlying moments come only from real leaderboard changes, and change nobody’s points',()=>{
-  const board=(clock,pts)=>X.leaderboard(clock,pts,'YOU').map(r=>({name:r.name,points:r.points,rank:r.rank,player:r.player}));
-  assert.deepEqual(R.moments(board(0,0),board(0,0)),[],'no change, no commentary');
-  assert.deepEqual(R.moments(board(0,0),board(0,1)).map(m=>m.trigger),['warflying-new-contender'],'your first point');
-  // You lead RiftRunner; RiftRunner's next point passes you.
-  const before=board(0,7),after=board(90*60,7);const m=R.moments(before,after);
-  const rift=m.find(x=>x.trigger==='warflying-one-point');assert.ok(rift);assert.equal(rift.vars.name,'RiftRunner');assert.deepEqual(rift.vars,{name:'RiftRunner',NAME:'RIFTRUNNER',RANK:'FIFTH',rank:'fifth'});assert.equal(m.length,1,'nobody else changed rank');
-  assert.deepEqual(board(90*60,7),after,'reading the board changes nothing');
-  const s=world.segments.find(x=>x.id==='wf');assert.deepEqual(R.render(s,rift.vars),['RIFTRUNNER INTO '+rift.vars.RANK+' PLACE!']);
+  // The board is the week's five (warflying-board.js). Find a week in which one of the five finds a single signal and passes the handle above.
+  const Board=require('../void-runner/warflying-board.js'),HOUR=36e5,ORD=['','first','second','third','fourth','fifth'];
+  const board=(date,pts)=>X.leaderboard(0,pts,'YOU',date).map(r=>({name:r.name,points:r.points,rank:r.rank,player:r.player}));
+  let week=null,mover=null;
+  for(let w=0;w<60&&!week;w++){const start=new Date(Date.UTC(2026,10,16)+w*7*864e5),plan=Board.plan(Board.weekOf(start));mover=plan.slice(1).find((p,i)=>p.gains.length===1&&p.gains[0].points===1&&p.base===plan[i].base&&!plan[i].gains.length);if(mover)week=start;}
+  assert.ok(week,'some week has a one-point move');
+  const t0=new Date(week.getTime()+HOUR),t1=new Date(week.getTime()+7*864e5-HOUR);
+  assert.deepEqual(R.moments(board(t0,0),board(t0,0)),[],'no change, no commentary');
+  assert.deepEqual(R.moments(board(t0,0),board(t0,1)).map(m=>m.trigger),['warflying-new-contender'],'your first point');
+  const before=board(t0,0),after=board(t1,0);const m=R.moments(before,after);
+  const rift=m.find(x=>x.trigger==='warflying-one-point'&&x.vars.name===mover.name);assert.ok(rift);assert.ok(Board.isDavid(rift.vars.name),'the handle the radio names is one of David’s');
+  const rank=after.find(r=>r.name===mover.name).rank;assert.deepEqual(rift.vars,{name:mover.name,NAME:mover.name.toUpperCase(),RANK:ORD[rank].toUpperCase(),rank:ORD[rank]});
+  assert.deepEqual(board(t1,0),after,'reading the board changes nothing');
+  const s=world.segments.find(x=>x.id==='wf');assert.deepEqual(R.render(s,rift.vars),[mover.name.toUpperCase()+' INTO '+rift.vars.RANK+' PLACE!']);
   // A triggered report airs only with its moment.
   assert.ok(!R.eligible(world.segments,on('erebus'),R.fresh(),world).some(x=>x.id==='wf'));
   assert.ok(R.eligible(world.segments,on('erebus',{moment:rift}),R.fresh(),world).some(x=>x.id==='wf'));

@@ -47,14 +47,15 @@
  // Plays one Relay line on the given bus node; returns {done, stop} or null when it has no recording.
  function broadcast(speaker,text,bus){
   const line=lookup.get(speaker+'|'+text);if(!line||!bus)return null;
-  let playing=null,stopped=false;
+  let playing=null,stopped=false,duration=0;
   const done=(async()=>{
-   const ctx=bus.context,data=await clip(ctx,line);if(stopped)return;
+   const ctx=bus.context,data=await clip(ctx,line);if(stopped)return;duration=data.duration;
    playing=ctx.createBufferSource();playing.buffer=data;const input=ctx.createGain(),out=ctx.createGain();out.connect(bus);playing.connect(input);
    const extra=radio(ctx,input,out);await new Promise(resolve=>{playing.onended=resolve;playing.start();});
    for(const o of extra)try{o.stop();}catch{}out.disconnect();
   })();
-  return {done,stop(){stopped=true;try{playing?.stop();}catch{}}};
+  // duration: the recording's length in seconds once it has loaded (0 until then), so a screen can show the words in step with it (ad-screens.js).
+  return {done,stop(){stopped=true;try{playing?.stop();}catch{}},get duration(){return duration;}};
  }
  function cancel(){clearTimeout(stopTimer);try{source?.stop();}catch{}source=null;}
  async function speak({characterId,text,bus}){

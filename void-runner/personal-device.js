@@ -253,14 +253,14 @@
    const W=root.VoidWarFlying,X=root.VoidWarFlyingScanner,s=state_();if(!W||!X||!s?.warflying)return '<div class="pd-empty">WarFlying is not available right now.</div>';
    const sum=W.summary(s.warflying),on=X.installed,sh=X.shielded,link=X.link(),can=root.VoidComms.canUpload(link),busy_=!!X.transfer;
    const stateLine=!on?'INACTIVE':sh?'ACTIVE · SHIELDED HERE':'ACTIVE · SCANNING NEARBY FREQUENCIES';
-   const board=X.leaderboard(),recent=X.recent();
+   const board=X.standings(),recent=X.recent();
    return '<section class="pd-storage"><div class="pd-stat"><span>WARFLYING</span><span>'+stateLine+'</span></div>'
     +(sh?'<div class="pd-note" style="margin-top:6px">The Darknet District interior is shielded from frequency scans. Nothing is heard in here; it will listen again outside.</div>':'')
     +'<div class="pd-tabs" style="margin:10px 0 0"><button type="button" data-wf="'+(on?'off':'on')+'" aria-pressed="'+on+'">'+(on?'DEACTIVATE':'ACTIVATE')+'</button></div></section>'
     +'<h2>LOGGED</h2><dl class="pd-kv"><dt>POINTS</dt><dd>'+sum.points+'</dd><dt>FREQUENCIES IDENTIFIED</dt><dd>'+sum.discoveries+'</dd><dt>WAITING TO SEND</dt><dd>'+sum.pending+'</dd></dl>'
-    +'<div class="pd-tabs" style="margin:10px 0 0"><button type="button" class="'+(sum.pending?'pd-hot':'')+'" data-wf="send"'+(!sum.pending||!can||busy_?' disabled':'')+'>SEND DATA TO WARFLYING LEADERBOARD</button></div>'
+    +'<div class="pd-tabs" style="margin:10px 0 0"><button type="button" class="'+(sum.pending?'pd-hot':'')+'" data-wf="send"'+(!sum.pending||!can||busy_?' disabled':'')+'>SUBMIT SCANS</button></div>'
     +'<div class="pd-note">'+(busy_?'Sending now…':!sum.pending?'Nothing waiting to send.':can?sum.pending+' logged '+(sum.pending===1?'frequency is':'frequencies are')+' ready to send.':'Cannot send from here ('+esc(root.VoidComms.labels[link.state]||'no link')+(link.reason==='premises'?': no uploads inside The Darknet District':'')+'). Your log is kept.')+'</div>'
-    +'<h2>LEADERBOARD</h2>'+board.map(r=>'<div class="pd-line"><b>'+r.rank+'</b>'+esc(r.name)+(r.player?' (you)':'')+' · '+r.points+'</div>').join('')
+    +'<h2>'+esc(board.header)+'</h2><div class="pd-note">This week’s top five. The five change every week.</div>'+board.rows.map(r=>'<div class="pd-line"><b>'+r.rank+'</b>'+esc(r.name)+(r.player?' (you)':'')+' · '+r.points+'</div>').join('')+(board.you.rank?'':'<div class="pd-note">Your score: '+board.you.points+' · not in the top five this week.</div>')
     +'<h2>RECENT DISCOVERIES</h2>'+(recent.length?recent.map(r=>'<div class="pd-line">+1 · '+esc(r.text)+' · '+esc(r.place)+'</div>').join(''):'<div class="pd-empty">None yet. Activate the scanner and travel.</div>');
   },
   device(){
