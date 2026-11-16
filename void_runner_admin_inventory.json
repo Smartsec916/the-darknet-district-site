@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "497f4f1e35a153c4",
+  "revision": "53fcedacd8e0334b",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12809,6 +12809,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/street-sight.js",
+      "line": 12,
+      "text": "Who: only the street's own ambient people (ncz-nightlife.js, ncz-alley.js, the five standing crew, NULL's people). Other players, companions and anything else are",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/temple-integration.js",
       "line": 1,
       "text": "/* Zen Zephyr Temple: game wiring (browser only). Registers the walking location, the interaction handlers, the return cab, and the typed conversation panel.",
@@ -13817,7 +13823,7 @@
     "void-runner/corporate-integration.js": "dad32da04630d0ca31dd0494c1466ae5b242fc5268dd8e3f09a5782a7034f900",
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "d4df127d0d7c8132bb9900b2520e8e29c2a405b01cc6e2451f0acd7ed3ed849e",
-    "void-runner/crowd.js": "0fb48c349f7bb12098c1e01dde8813210d5557b052524e98ffcb4f790d51c984",
+    "void-runner/crowd.js": "1008566f38ce6d10b85f5c0b085cfb86bdf07307bbb963bd8978707dfc830b20",
     "void-runner/dax.js": "c3c782e8ffb3efe7e694eb919e03f8f5660e0e3ef128c52271cd95b291135d87",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
@@ -13892,7 +13898,7 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-nightclub.js": "58e8f26da2df090c85d2295cb403b5658cfe8241450d70b70c777e276f8425c5",
     "void-runner/ncz-nightlife.js": "5db758c34d16dfe6cd62f42e96de8b2a36f2ae7640d87ec5b02927a52861132c",
-    "void-runner/neochinatown.js": "674c9ea37927b243475c678b6c2a47d9f47a180db17b7ab86dfc91cbc75544f8",
+    "void-runner/neochinatown.js": "6e429ad7f99449ba099dd5de80c5e189ebf83d3d7555eb45dbcdb23ba3f0b497",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
@@ -13931,6 +13937,7 @@
     "void-runner/story-scenes.js": "322106e619d1a2456c5dac94dd252bd2373cb0c03273c75954d068b378cad5dd",
     "void-runner/story.js": "74501dca85057c374b5181b440f93059fd6658641624b10e3a159d11493fe272",
     "void-runner/street-gear.js": "78d203669af47a48ab4d03efa83c0ecb8f2a9132722b952dd5ea83938825e623",
+    "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
     "void-runner/taxi-rules.js": "6b2df0300b8bab6c7c9e6e35baddf9a66c73e2dca37e0419bf4689a08e72f473",
     "void-runner/temple-build.js": "e326ba94812e744e32547f0b5bfeed9dd546df328ebc8df36b699aca76b76913",
