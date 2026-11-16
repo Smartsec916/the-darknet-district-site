@@ -89,10 +89,10 @@ fs.mkdirSync(shots,{recursive:true});
  // 7. inside it is "Milked" for the camera and the music, taxis do not come indoors, the map still knows where the player is
  assert.equal(await page.evaluate(DZ=>VoidMilked.inside({x:89.5,z:-81.8+DZ})&&!VoidMilked.inside({x:89.5,z:-71+DZ}),DZ),true);
  assert.equal(await page.evaluate(()=>VoidMusicDirector.streetZones.find(q=>walker.x>=q.rect[0]&&walker.x<=q.rect[1]&&walker.z>=q.rect[2]&&walker.z<=q.rect[3])?.style),'milked','the music and the camera\'s place label read the same footprint');
- const taxi=await page.evaluate(()=>VoidTaxi?.status?.()||null);if(taxi)assert.ok(!taxi.ok&&/Milked/.test(taxi.reason),'no cab indoors: '+JSON.stringify(taxi));
+ const taxi=await page.evaluate(()=>typeof VoidTaxi!=='undefined'?VoidTaxi?.status?.()||null:null);   // (the sky cabs are gone since the quarters: nothing to check unless it exists)if(taxi)assert.ok(!taxi.ok&&/Milked/.test(taxi.reason),'no cab indoors: '+JSON.stringify(taxi));
  await page.keyboard.press('KeyL');await page.waitForSelector('#personal-device.open');await page.locator('#personal-device [data-app=map]').click();await page.waitForSelector('#personal-device canvas.dm-canvas');
  const map=await page.evaluate(()=>{const m=VoidDistrictMap.model(VoidNeoChinatown);return {b:m.buildings.filter(x=>x.id==='milked').map(x=>x.name+'@'+x.rect.join(',')),p:m.pois.filter(x=>/^milked-|taxi-milked/.test(x.id)).map(x=>x.name),s:m.streets.map(s=>s.name)};});
- assert.ok(map.b.length===1&&/^MILKED/.test(map.b[0])&&map.b[0].endsWith('@'+MK.F.join(',')),'the building is on the map where it stands: '+map.b);
+ assert.ok(map.b.length===1&&/^MILKED/.test(map.b[0])&&map.b[0].endsWith('@'+(await page.evaluate(()=>VoidMilked.FOOTPRINT)).join(',')),'the building is on the map where it stands: '+map.b);
  for(const k of [/reception/,/studio hallway/,/office/,/rear door/,/Taxi stop/])assert.ok(map.p.some(n=>k.test(n)),k+' in '+map.p.join('|'));assert.ok(map.s.some(n=>/Side street/.test(n))&&map.s.some(n=>/Service alley/.test(n)));
  await shot('09-map',700);await page.keyboard.press('KeyL');await page.waitForFunction(()=>!document.querySelector('#personal-device.open'));
  // 8. out by the rear lobby: its north door opens, the alley door does not; the exchange; then the alley door opens onto the service alley

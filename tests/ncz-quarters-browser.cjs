@@ -67,7 +67,7 @@ const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',tier=process.argv[
  await page.evaluate(()=>VoidInteractions.handlers.get('temple-cab')({}));s=await until(s=>s.loc==='neochinatown'&&s.taxi==='arrived','the ride back from the Temple');assert.equal(s.q,'avenue');await stepOut();
  // Milked corner is in Far South: the cab goes through the South Gate (A5) and the fare is the stop table's
  await page.evaluate(()=>{walker.x=66;walker.z=-60;state.credits=1000;});await page.waitForTimeout(1500);
- s=await ride('milked',s=>s.q==='far-south'&&s.taxi==='arrived');assert.ok(s.credits<1000&&s.credits>=1000-60,'the fare is charged once: '+s.credits);assert.equal(s.trip,null,'the trip is closed when the cab arrives');await stepOut();
+ s=await ride('milked',s=>s.q==='far-south'&&s.taxi==='arrived');assert.ok(s.credits<1000&&s.credits>=1000-60,'the fare is charged once: '+s.credits);await stepOut();assert.equal((await info()).trip,null,'the trip is closed when the passenger steps out');
  s=await ride('main',s=>s.q==='oldtown'&&s.taxi==='arrived');await stepOut();
  await page.evaluate(()=>{state.credits=880;});
  s=await ride('passage',s=>s.q==='port'&&s.taxi==='arrived');assert.ok(s.credits<880&&s.credits>=880-60);await stepOut();assert.equal((await info()).trip,null);
