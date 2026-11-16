@@ -6,6 +6,10 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 16 Nov 2026: ActorCore library PUBLISHED and first used by the companions (build `2026-11-16-actorcore-1`)
+
+David: "Publish with the existing protection." The library is in the private asset repository; see `docs/development/ACTORCORE_ANIMATIONS.md` (status, what uses it, David's idea for the group clips). Companions offer Dance for me / Strike a pose / Relax on the floor when their figure has the clips. Fish (Milked's owner) is getting her own model from photos of a real person who, David says, gave permission: concept in progress on David's PC (`...\Meshy\fish`), she asked for an anime style, sexier and more cyberpunk; clothed and non-explicit; do not commit the concept or her photos to this public repository before David approves.
+
 ### 16 Nov 2026: Kai has his own model (build `2026-11-16-kai-1`)
 
 David approved the concept and then the in-room picture ("push Kai"). `npc-kai.glb` (Meshy: concept, image-to-3d, remesh, rig; 49 credits) replaces the MakeHuman stand-in for the companion Kai. His clips are the old figure's (`vr-companion-m.glb`), retargeted (`cm-*` entries in `tools/animation-pipeline/clips.json`, spec `characters/npc-kai.json`). No fingers, no blink or smile shapes on this rig. The cyan trim on his jacket came out white. Source files: `C:\Users\smart\Documents\DarknetDistrict_Assets\Meshy\companions\kai\`.

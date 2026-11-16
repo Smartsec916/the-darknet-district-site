@@ -2,7 +2,7 @@
 
 David bought ActorCore (Reallusion) motion capture and sent two downloads on 16 Nov 2026 (Blender preset, 60 fps, CC3+ skeleton, 101 bones). His brief: use them for VR companions, the Milked dancers and general NPCs; support group and synchronised interactions; build a reusable library; keep the originals out of the public repository; **check the licence before publishing**.
 
-## STATUS: built and checked locally; NOT published. Publishing waits for David (licence question below).
+## STATUS: PUBLISHED on 16 Nov 2026. David decided: "Publish with the existing protection" (the same packing and encryption as the other licensed models). The library file is in the private asset repository (`void-runner/assets/models/anim/anim-actorcore.vrpak`) and is sealed into the site at the Pages build.
 
 ## Inventory (14 motions)
 
@@ -47,9 +47,14 @@ To add a future purchase: put the FBX outside the repository, add a line to the 
 
 In a browser, on Kai (MakeHuman male) in the companion room: standing pose, slow dance, bench sitting, floor pose, group seat and seated cuddle all read correctly (first attempt had arms out and bodies sinking; fixed by aiming each bone at the next bone of its limb). The library was retargeted on the female MakeHuman skeleton and applied to the male one.
 
+## In use (16 Nov 2026)
+
+- **VR companions** (`vr-suite.js`): a companion whose figure takes the library gets three more choices in the Together group: "Dance for me" (the two slow dances), "Strike a pose" (the two standing poses) and "Relax on the floor" (the three floor poses). They hold until the player chooses Stop. "Dance together" now sometimes picks a motion-capture dance. Checked on the new Kai (a Meshy 24-joint figure): a standing pose, the slow movement and two floor poses.
+- David's idea for the group clips whose partners are missing (16 Nov): use the single seats where the other people are PLAYERS (two players and one companion: the companion plays her recorded seat and the players sit as themselves), or he may look for the missing parts. Not built yet.
+
 ## NOT done yet (the rest of David's brief)
 
-- Nothing plays these clips yet except by test: no companion interaction, no Milked dancer, no bench or bar NPC uses them.
+- No bench or bar NPC uses them yet; the Milked dancers are part of the Milked redesign (in progress).
 - Purchased companions (Ava, Eva, Yuki, Dex) and Nadia have their own skeletons; whether the library fits them has not been checked. The Meshy residents (24-joint rigs, no fingers) should take them but are unchecked.
 - Group synchronisation, consent and exit for players, furniture alignment, transitions between activities, the NPC Editor listing, ElevenLabs companion voices, and the companion interaction UI are not started.
 - Feet are not pinned (no inverse kinematics pass); some sliding or sinking is expected on figures of a different height.
