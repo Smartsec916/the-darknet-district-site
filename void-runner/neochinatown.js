@@ -1413,7 +1413,7 @@
    // keeps its built buildings.
    'ncz:building5':{src:'assets/models/ncz/building5.vrpak'},'ncz:storefronts':{src:'assets/models/ncz/storefronts.vrpak'},
    // The Outskirts' purchased packs (CGTrader, Royalty Free, NO AI use, no redistribution; docs/VOID_RUNNER_ASSET_LICENSES.md): 20 ft containers and dirty solar panels. Private repository only; without them ncz-containers.js builds its own.
-   'ncz:outskirts-containers':{src:'assets/models/ncz/outskirts-containers.vrpak'},'ncz:outskirts-solar':{src:'assets/models/ncz/outskirts-solar.vrpak'}};
+   'ncz:outskirts-containers':{src:'assets/models/ncz/outskirts-containers.vrpak'},'ncz:outskirts-solar':{src:'assets/models/ncz/outskirts-solar.vrpak'},'ncz:outskirts-dish':{src:'assets/models/ncz/outskirts-dish.vrpak'}};
   // The models one environment needs: the street's city pack, or the District's furniture and VR players.
   function modelsFor(area='all'){if(area==='all')return models;const street=k=>k.startsWith('ncz:'),entry=k=>k.startsWith('entry:');return Object.fromEntries(Object.entries(models).filter(([k])=>entry(k)||(area==='street'?street(k):!street(k))));}
   const api={layout,layoutByArea,build,models,modelsFor,toWorld,zone,streets,footprints,milked:MK,door:DOOR,districts,taxiZones,cityBox,arcade:ARCADE,quarters:QT};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;

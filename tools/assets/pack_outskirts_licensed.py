@@ -3,7 +3,8 @@
 they are kept out of this public repository and published only as scrambled .vrpak through the private repository, see docs/VOID_RUNNER_ASSET_LICENSES.md).
   1. "Low Poly PBR Shipping Container 20ft": OBJ, centimetres, 3ds Max export. Nodes: c01_LOD0..3, c02_LOD0..3, doorL_LOD0..1, doorR_LOD0..1.
   2. "solar panels with clean and dirty textures": Collada. The five DIRTY arrays become nodes solar-1..5 (each stood on y 0 around its own middle).
-Usage: python3 tools/assets/pack_outskirts_licensed.py <containers-dir> <solar-dir> <out-dir>   then: node tools/assets/pack-model.cjs <glb> <vrpak>
+  3. "Satellite Dish Low-poly" (GLB, 10.7k triangles kept as they are; its three 16 MB PNG pictures become 1024 px JPEGs, with a little grime laid over the colour).
+Usage: python3 tools/assets/pack_outskirts_licensed.py <containers-dir> <solar-dir> <out-dir> [<dish-dir>]   then: node tools/assets/pack-model.cjs <glb> <vrpak>
 Run on David's side or here after fetching; nothing is sent anywhere. Needs Pillow."""
 import sys, os, re, json, struct, io, math
 from PIL import Image
@@ -57,9 +58,25 @@ def read_obj(path, scale):
             for k in range(1, len(ids) - 1): g['idx'] += [ids[0], ids[k], ids[k + 1]]
     return groups
 
+def weathered(path):
+    """The pack's own picture, modified for The Outskirts (remixing is allowed by the licence): the seller's printed company logo is painted out with the plain corrugated strip beside it
+    (nothing in this game carries a real-looking company name) and rust streaks and grime are laid over everything, since these homes are rundown."""
+    import random
+    im = Image.open(path).convert('RGB'); W, H = im.size; k = W / 1024
+    box = (int(365 * k), int(835 * k), int(930 * k), int(962 * k)); w = box[2] - box[0]; src = im.crop((0, box[1], int(360 * k), box[3]))
+    for x in range(box[0], box[2], src.size[0]): im.paste(src, (x, box[1]))
+    # grime and rust streaks (seeded: the same picture every time)
+    rnd = random.Random(2026); ov = Image.new('RGBA', im.size, (0, 0, 0, 0)); from PIL import ImageDraw; d = ImageDraw.Draw(ov)
+    for _ in range(260):
+        x = rnd.randrange(W); y = rnd.randrange(H); l = rnd.randrange(40, 260); c = rnd.choice([(120, 60, 28), (70, 36, 20), (20, 16, 12)])
+        d.line([(x, y), (x + rnd.randrange(-3, 4), y + l)], fill=c + (rnd.randrange(30, 90),), width=rnd.randrange(2, 9))
+    from PIL import ImageFilter
+    ov = ov.filter(ImageFilter.GaussianBlur(1.2)); im = Image.alpha_composite(im.convert('RGBA'), ov).convert('RGB')
+    b = io.BytesIO(); im.save(b, 'JPEG', quality=86); return b.getvalue()
+
 def containers(src, out):
     g = Glb(); od = os.path.join(src, 'extracted', 'Meshes Container 20ft', 'obj'); dd = os.path.join(src, 'extracted', 'Meshes Container Doors', 'obj')
-    ct = g.image(jpeg(os.path.join(od, 'T_ShipContainer_20ft_A_Blue.jpg'))); dt = g.image(jpeg(os.path.join(dd, 'T_ShipContainer_Doors_A_Blue.jpg')))
+    ct = g.image(weathered(os.path.join(od, 'T_ShipContainer_20ft_A_Blue.jpg'))); dt = g.image(jpeg(os.path.join(dd, 'T_ShipContainer_Doors_A_Blue.jpg')))
     mats = {'Container': len(g.materials), 'Doors': len(g.materials) + 1}
     g.materials += [dict(name='container', pbrMetallicRoughness=dict(baseColorTexture=dict(index=ct), metallicFactor=.3, roughnessFactor=.75), doubleSided=True),
                     dict(name='doors', pbrMetallicRoughness=dict(baseColorTexture=dict(index=dt), metallicFactor=.3, roughnessFactor=.75), doubleSided=True)]
@@ -104,5 +121,30 @@ def solar(src, out):
         k += 1; g.mesh('solar-%d' % k, [(0, pos, nr, uv, idx)])
     g.write(os.path.join(out, 'outskirts-solar.glb'))
 
+def dish(src, out):
+    f = [os.path.join(src, n) for n in os.listdir(src) if n.endswith('.glb')][0]; b = open(f, 'rb').read(); n = struct.unpack('<I', b[12:16])[0]; j = json.loads(b[20:20 + n]); m = 20 + n; bl = struct.unpack('<I', b[m:m + 4])[0]; binb = b[m + 8:m + 8 + bl]
+    import random
+    from PIL import ImageDraw, ImageFilter
+    newbin = bytearray(); views = []; keep = {im['bufferView'] for im in j['images']}
+    for i, v in enumerate(j['bufferViews']):
+        while len(newbin) % 4: newbin.append(0)
+        data = binb[v.get('byteOffset', 0):v.get('byteOffset', 0) + v['byteLength']]
+        if i in keep:
+            im = Image.open(io.BytesIO(data)).convert('RGB')
+            if max(im.size) > 1024: im = im.resize((1024, 1024), Image.LANCZOS)
+            if 'BaseColor' in str(next(x.get('name', '') for x in j['images'] if x['bufferView'] == i)):   # grime and rust over the colour: these dishes are old
+                rnd = random.Random(7); ov = Image.new('RGBA', im.size, (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
+                for _ in range(120): x = rnd.randrange(1024); y = rnd.randrange(1024); d.line([(x, y), (x + rnd.randrange(-2, 3), y + rnd.randrange(30, 200))], fill=rnd.choice([(120, 62, 30), (60, 40, 26), (24, 20, 16)]) + (rnd.randrange(40, 100),), width=rnd.randrange(2, 8))
+                im = Image.alpha_composite(im.convert('RGBA'), ov.filter(ImageFilter.GaussianBlur(1.2))).convert('RGB')
+            bb = io.BytesIO(); im.save(bb, 'JPEG', quality=88); data = bb.getvalue()
+        nv = dict(v); nv['byteOffset'] = len(newbin); nv['byteLength'] = len(data); views.append(nv); newbin += data
+    j['bufferViews'] = views
+    for im in j['images']: im['mimeType'] = 'image/jpeg'
+    j['buffers'] = [dict(byteLength=len(newbin))]
+    js = json.dumps(j, separators=(',', ':')).encode(); js += b' ' * (-len(js) % 4); nb = bytes(newbin) + b'\0' * (-len(newbin) % 4)
+    open(os.path.join(out, 'outskirts-dish.glb'), 'wb').write(struct.pack('<III', 0x46546C67, 2, 28 + len(js) + len(nb)) + struct.pack('<II', len(js), 0x4E4F534A) + js + struct.pack('<II', len(nb), 0x004E4942) + nb)
+
 if __name__ == '__main__':
-    c, s_, o = sys.argv[1:4]; os.makedirs(o, exist_ok=True); containers(c, o); solar(s_, o); print('written to', o)
+    c, s_, o = sys.argv[1:4]; os.makedirs(o, exist_ok=True); containers(c, o); solar(s_, o)
+    if len(sys.argv) > 4: dish(sys.argv[4], o)
+    print('written to', o)

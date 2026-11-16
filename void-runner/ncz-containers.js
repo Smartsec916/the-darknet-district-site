@@ -117,8 +117,8 @@
   const body=(w,h,d,x,y,z,m)=>{const side=a=>new B.Vector4(0,0,a/2.4,h/2.4);return add(B.MeshBuilder.CreateBox('o-body',{width:w,height:h,depth:d,faceUV:[side(w),side(w),side(d),side(d),new B.Vector4(0,0,w/3,d/3),new B.Vector4(0,0,.1,.1)],wrap:true},scene),m,x,y,z);};
   const roofs=[];   // the top of each stack: where the clutter goes
   // ---- the purchased packs (Royalty Free, no AI, never in the public repository): present only where the private files are installed ----
-  const A=root.VoidAssets,licC=!!A?.container?.('ncz:outskirts-containers'),licS=!!A?.container?.('ncz:outskirts-solar'),tinted=new Map(),BLUE=[.2,.36,.6];
-  api.lastSource={containers:licC?'LICENSED':'FALLBACK',solar:licS?'LICENSED':'FALLBACK'};
+  const A=root.VoidAssets,licC=!!A?.container?.('ncz:outskirts-containers'),licS=!!A?.container?.('ncz:outskirts-solar'),licD=!!A?.container?.('ncz:outskirts-dish'),tinted=new Map(),BLUE=[.2,.36,.6];
+  api.lastSource={containers:licC?'LICENSED':'FALLBACK',solar:licS?'LICENSED':'FALLBACK',dish:licD?'LICENSED':'FALLBACK'};
   const tintOf=(mat,hex)=>{const key=(mat?.name||'')+hex;if(tinted.has(key))return tinted.get(key);const m=mat.clone(mat.name+'-'+hex);const c=B.Color3.FromHexString(hex);const sc=[c.r/BLUE[0],c.g/BLUE[1],c.b/BLUE[2]].map(v=>Math.min(2.2,v));if(m.albedoColor)m.albedoColor=new B.Color3(...sc).scale(.9);else if(m.diffuseColor)m.diffuseColor=new B.Color3(...sc).scale(.9);track(m);tinted.set(key,m);return m;};
   const licensed=(c,l,x,y,z)=>{if(!licC)return null;const n=c.id.length%2?'c01':'c02',inst=A.instance('ncz:outskirts-containers',node,n+(low?'_LOD2':'_LOD0'));if(!inst)return null;
    inst.position.set(x,y,z);inst.rotation.y=(c.axis==='x'?0:Math.PI/2)+(l.doorEnd<0?Math.PI:0);
@@ -162,11 +162,11 @@
    box(K.step.d,K.step.h,K.step.w,K.step.x,K.step.h/2,K.step.z,wood);box(.5,.14,1.5,x-.3,2.35,z,tarpG,0,0,-.35);   // the step and a tilted awning
    box(.14,.14,.14,x-.15,2.18,z+.7,lamp);box(.5,.9,.5,x-.7,.45,z-1.6,wood);box(.45,.6,.5,x-.7,1.2,z-1.55,wood);}   // a porch lamp and two crates
   // ---- rooftop clutter and tarps ----
-  const clutter=(R,i)=>{const {x,z,y}=R,n=low?1:1+Math.floor(r()*2),kinds=['tank','antenna','dish','solar','laundry','ac','tarp'];
+  const clutter=(R,i)=>{const {x,z,y}=R,n=low?1:1+Math.floor(r()*2),kinds=['tank','antenna','dish','solar','laundry','ac','tarp','dish','antenna'];
    for(let j=0;j<n+(i%3===0?1:0);j++){const kind=kinds[Math.floor(r()*kinds.length)],ox=(r()-.5)*(R.w-1.6),oz=(r()-.5)*(R.d-1.4),px=x+ox,pz=z+oz;
     if(kind==='tank'){cyl(.55,1.2,px,y+.9,pz,rust);for(const [a,b] of [[-.4,-.4],[.4,-.4],[-.4,.4],[.4,.4]])cyl(.03,.5,px+a,y+.25,pz+b,steel,5);}
     else if(kind==='antenna'){const h=2.5+r()*3;box(.06,h,.06,px,y+h/2,pz,steel);for(let k=1;k<=3;k++)box(1.2-k*.28,.03,.03,px,y+h*(.45+k*.15),pz,steel);box(.1,.1,.1,px,y+h+.05,pz,glowM('beacon','#ff3b2e',1.1));}
-    else if(kind==='dish'){const d=add(B.MeshBuilder.CreateSphere('o-dish',{diameter:1.3,segments:8,slice:.5,sideOrientation:B.Mesh.DOUBLESIDE},scene),steel,px,y+1.2,pz,r()*6.28,-1.1);void d;box(.06,1,.06,px,y+.5,pz,dark);}
+    else if(kind==='dish'){if(licD){const di=A.instance('ncz:outskirts-dish',node,null);if(di){di.position.set(px,y,pz);di.rotation.y=(r()-.5)*2.4+Math.PI;di.scaling.setAll(.45+r()*.6);for(const m of di.getChildMeshes())m.isPickable=false;continue;}}const d=add(B.MeshBuilder.CreateSphere('o-dish',{diameter:1.3,segments:8,slice:.5,sideOrientation:B.Mesh.DOUBLESIDE},scene),steel,px,y+1.2,pz,r()*6.28,-1.1);void d;box(.06,1,.06,px,y+.5,pz,dark);}
     else if(kind==='solar'){if(licS){const si=A.instance('ncz:outskirts-solar',node,'solar-'+(1+Math.floor(r()*5)));if(si){si.position.set(px,y,pz);si.rotation.y=r()*6.28;si.scaling.setAll(.8);for(const m of si.getChildMeshes())m.isPickable=false;continue;}}box(1.3,.04,.85,px,y+.55,pz,solar,r()*.6,-.45);box(.05,.5,.05,px,y+.25,pz,steel);}
     else if(kind==='laundry'){const l=Math.min(R.w,R.d)>3?3:2.2;box(.04,1.6,.04,px-l/2,y+.8,pz,steel);box(.04,1.6,.04,px+l/2,y+.8,pz,steel);box(l,.015,.015,px,y+1.55,pz,dark);for(let k=0;k<3;k++)box(.4,.55,.02,px-l/2+.5+k*.75,y+1.25,pz,cloth[(i+k)%3]);}
     else if(kind==='ac'){box(.9,.7,.6,px,y+.35,pz,steel);box(.7,.04,.5,px,y+.72,pz,dark);}
