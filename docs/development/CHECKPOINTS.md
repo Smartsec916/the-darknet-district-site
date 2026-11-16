@@ -16,6 +16,16 @@ the V1 taxi map, and the character-quality / outdoor optimisation work.
 - **Standardise character quality** across the game: NPCs inside The Darknet District look much better than those outside. When doing this,
   also look for other ways to optimise the outdoors.
 
+- **Final wording of the rule (David):** vestibules match their surroundings; no wording that implies loading; no loading bar. He likes the
+  scan effects, and the options listed below may be experimented with.
+- **NeoChinatown rework:** take the checkpoints into account from the start: place them where they allow better graphics in each area while
+  making sense for security and looking right. Bring David a map of the areas and checkpoint positions before building.
+- **Two kinds:** pedestrian vestibules and car vestibules (for road taxis).
+- **Air cars / sky taxis are scrapped**, specifically because the game has ships: David wants players to leave the planet and experience the
+  lore through other places. Remove the sky-cab stops during the NeoChinatown rework (they also exist in the Corporate District and Zen Zephyr
+  Temple code: remove only the stops there). The V1 taxi map work becomes road taxis only.
+- **High-speed rail:** a "maybe". Not to be built without approval; show it as an option on the area map, as a short hop within the city.
+
 ## Proposed by Claude, NOT approved
 - Keep the player in the live vestibule while the next area loads behind closed doors (no still picture); a lamp turning red to green for
   businesses; a scan sweep tied to real progress, a guard behind glass and wall screens for checkpoints.
