@@ -29,7 +29,9 @@
    appearance:{v:1,base:'male',look:'district-smuggler',hair:'short03',hairColor:'silver',clothingColor:'graphite',accessories:[]}},
   {id:'iris',achievements:[['district-first-visit','2026-01-04']],name:'Iris',jobs:['merchant','info-broker'],area:'interior',place:'The Darknet District store',bio:'Works the store counter beside Admin.',model:'npc-iris',scale:.99,
    appearance:{v:1,base:'female',look:'fixer-01',hair:'bob02',hairColor:'silver',clothingColor:'black',accessories:['gear-collar','gear-shoulders','gear-chest']}},
-  {id:'nyx-district',achievements:[['district-first-visit','2026-02-11']],name:'Nyx',jobs:['bartender'],area:'interior',place:'The bar and oxygen lounge',bio:'Behind the bar.'},
+  /* Nyx (David, 16 Nov 2026: "The bartender NPC needs upgrading"): her own model, made with Meshy from his picture of her behind the oxygen bar. She has no creator look: if the file cannot be
+     loaded the scene shows the plain stand-in figure she had before (neochinatown.js), never another character. */
+  {id:'nyx-district',achievements:[['district-first-visit','2026-02-11']],name:'Nyx',jobs:['bartender'],area:'interior',place:'The bar and oxygen lounge',bio:'Behind the bar.',model:'npc-nyx',scale:1},
   {id:'rin-takeda',own:'npc-rin',achievements:[['district-first-visit','2026-06-30']],crew:'crew-bar1',look:'district-resident',name:'Rin Takeda',jobs:['influencer'],area:'interior',place:'The bar and oxygen lounge',bio:'Usually at the bar.'},
   {id:'jonah-pike',own:'npc-jonah',achievements:[['district-first-visit','2026-03-08'],['rook-three-runs','2026-08-15']],crew:'crew-bar2',look:'outlaw-01',name:'Jonah Pike',jobs:['smuggler'],area:'interior',place:'The bar and oxygen lounge',bio:'Keeps to the back of the lounge.'},
   {id:'sable-quon',own:'npc-sable',achievements:[['district-first-visit','2026-05-21'],['blackout-score','2026-09-03']],crew:'crew-vr-watch',look:'hacker-01',name:'Sable Quon',jobs:['influencer','hacker'],area:'interior',place:'VR play area',bio:'Watches the VR booths.'},

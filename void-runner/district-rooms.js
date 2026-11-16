@@ -48,7 +48,16 @@
   "WarFlying today. Criminal charges tomorrow.","Keep your nose out of my packets.","Real pilots respect personal bandwidth.","Unauthorized scanning is digital trespassing.","The Tessaly System has room for everyone. Except snoops."]};
  // Which line shows at time t (seconds), which one it is giving way to, and how far the change has gone (0 = the old line, 1 = the new one).
  function campaignAt(t,C=CAMPAIGN){const n=C.lines.length,k=Math.floor(Math.max(0,t)/C.seconds),into=Math.max(0,t)-k*C.seconds,mix=k===0?1:Math.min(1,into/C.fade);return {index:k%n,from:(k+n-1)%n,mix};}
- const api={CAMPAIGN,campaignAt,MACHINES,machineStock,COUNTER,CASES,STAFF,ITEMS,FOOT,SCALE,TIERS,counterItems,BAR,build:null};
+ /* Modelled props (David, 16 Nov 2026: the simplest built props replaced where they are seen close up). Each is one file in assets/models/district-props/ (made with Meshy:
+    docs/development/DISTRICT_UPGRADE.md), loaded after the room is up on Medium and above and drawn as instances of one mesh. Low, and any quality where a file cannot be loaded,
+    shows the built prop it replaces. `fit`: the size in metres the model is brought to along one of its axes once it is posed ('y' its height, 'x' its length). `pose`: the turn that
+    stands the model the way the built prop stood (x, y, z in radians). `face`: a further turn about the vertical so its front looks the way the built prop looked.
+    `self`: how much of its own colour it gives back (the rooms have one lamp each at most). `glow`: a lit prop (the tank's fluid) that the glow pass may bloom. */
+ const PROP_DIR='assets/models/district-props/',PROPS={
+  'bar-stool':{fit:['y',.85],self:.3},'o2-station':{fit:['y',.34],face:Math.PI,self:.2},'o2-tank':{fit:['y',1.3],face:Math.PI,self:.2,glow:[.09,.5,.5]},'vr-headset':{fit:['x',.21],self:.4},
+  pistol:{fit:['x',.19],pose:[Math.PI/2,0,0],self:.42},radio:{fit:['y',.17],face:Math.PI,self:.3},flashlight:{fit:['x',.13],self:.42}};
+ const propFile=name=>PROP_DIR+'district-'+name+'.glb';
+ const api={CAMPAIGN,campaignAt,MACHINES,machineStock,COUNTER,CASES,STAFF,ITEMS,FOOT,SCALE,TIERS,counterItems,BAR,PROPS,PROP_DIR,propFile,build:null};
 
  // =====================================================================================================================================================
  function build(K){
@@ -67,6 +76,22 @@
   const dark=pm('dark','#111317',.5,.7,.3),black=pm('black','#07080a',.7,.2,.2),rubber=pm('rubber','#0c0d10',.95,0,.25),chrome=pm('chrome','#9aa2ad',.25,.95,.2),brass=pm('brass','#8c6a32',.35,.9,.24),
    leather=pm('leather','#1e0a0d',.5,.05,.2),white=pm('white','#c9ced6',.5,.1,.3);
   const glowC=(key,hex,i=1)=>glowMat('dr-'+key,hex,i);
+  /* ---- modelled props: prop(name, {x, y, z, yaw, k}, standIn). The model is brought to its listed size (times k), stood with the middle of its underside at (x, y, z) and turned by yaw.
+     Every copy after the first is an instance of the same mesh. standIn() builds the code prop instead: at once on Low, or later if the file cannot be loaded. ---- */
+  const propModels=new Map(),propNodes=[],propBoxes=[];let propsGone=false;
+  K.owned.push({dispose(){propsGone=true;for(const n of propNodes)try{n.dispose(false,false);}catch{}for(const c of propBoxes)try{c.dispose();}catch{}propNodes.length=propBoxes.length=0;}});
+  const propModel=name=>{let p=propModels.get(name);if(!p){const spec=api.PROPS[name];p=root.VoidAssets.loadContainer({src:api.propFile(name)},scene,null,'district-prop:'+name).then(c=>{if(propsGone||scene.isDisposed){c.dispose();throw Error('gone');}propBoxes.push(c);
+     for(const m of c.materials){if('usePhysicalLightFalloff' in m){m.usePhysicalLightFalloff=false;m.environmentIntensity=.5;m.directIntensity=1.4;if(m.albedoTexture){m.emissiveTexture=m.albedoTexture;m.emissiveColor=spec.glow?new B.Color3(...spec.glow):new B.Color3(spec.self,spec.self,spec.self*1.06);}}}return {c,spec,fit:null};});propModels.set(name,p);}return p;};
+  const prop=(name,at,standIn)=>{const propHome=K.target;if(low||!root.VoidAssets?.loadContainer||!propHome){standIn?.();return;}
+   propModel(name).then(M=>{if(propsGone)return;const {c,spec}=M,n=new B.TransformNode('dr-prop-'+name,scene),q=new B.TransformNode('dr-prop-pose',scene),inst=c.instantiateModelsToScene(s=>'dr-prop-'+name+'-'+s,false,{doNotInstantiate:false});
+     n.parent=propHome;q.parent=n;if(spec.pose)q.rotation.set(...spec.pose);q.rotation.y+=spec.face||0;for(const r0 of inst.rootNodes)r0.parent=q;propNodes.push(n);for(const g of inst.animationGroups||[])g.dispose();
+     const meshes=n.getChildMeshes(false);
+     if(!M.fit){n.computeWorldMatrix(true);for(const m of meshes){m.computeWorldMatrix(true);m.refreshBoundingInfo?.();}const inv=n.getWorldMatrix().clone().invert(),lo=new B.Vector3(1e9,1e9,1e9),hi=new B.Vector3(-1e9,-1e9,-1e9);
+      for(const m of meshes)for(const v of m.getBoundingInfo().boundingBox.vectorsWorld){const p=B.Vector3.TransformCoordinates(v,inv);lo.minimizeInPlace(p);hi.maximizeInPlace(p);}
+      const size=hi.subtract(lo),[axis,want]=spec.fit;M.fit={k:want/Math.max(.001,size[axis]),off:[-(lo.x+hi.x)/2,-lo.y,-(lo.z+hi.z)/2],size:[size.x,size.y,size.z]};}
+     q.position.set(...M.fit.off);n.scaling.setAll(M.fit.k*(at.k||1));n.position.set(at.x,at.y||0,at.z);n.rotation.y=at.yaw||0;n.computeWorldMatrix(true);q.computeWorldMatrix(true);
+     for(const m of meshes){m.isPickable=false;m.receiveShadows=false;m.computeWorldMatrix(true);m.freezeWorldMatrix?.();if(!spec.glow)for(const l of scene.effectLayers||[])l.addExcludedMesh?.(m);}try{at.done?.({k:M.fit.k*(at.k||1),size:M.fit.size});}catch{}})
+    .catch(e=>{if(propsGone||scene.isDisposed)return;if(!propModels.get(name).said){propModels.get(name).said=true;console.info('[District] prop model not available, the built one is shown: '+name);}try{standIn?.();}catch{}});};
   const M=(mesh,m,p,merge=true,r)=>{add(mesh,m,p,merge);if(r)mesh.rotation.set(r[0]||0,r[1]||0,r[2]||0);return mesh;};
   // A box whose texture repeats every `tile` metres (the kit's textures are a metre or two of surface, not one picture per box).
   const tbox=(name,size,p,m,tile=1.6)=>{const mesh=B.MeshBuilder.CreateBox(name,{width:size[0],height:size[1],depth:size[2]},scene);if(!low){const uv=mesh.getVerticesData('uv'),d=[[size[0],size[1]],[size[0],size[1]],[size[2],size[1]],[size[2],size[1]],[size[0],size[2]],[size[0],size[2]]];
@@ -212,17 +237,19 @@
    box('bar-counter-pink',[9.1,.02,.03],[10,1.035,37.885],pink);rod('bar-foot-rail',.026,8.8,[10,.24,37.8],brass,'x',8);for(let x=5.9;x<14.5;x+=1.64){box('bar-foot-bracket',[.035,.035,.2],[x,.24,37.9],brass);}
    for(const x of [7.2,10.3,12.9])box('bar-mat',[1.1,.012,.26],[x,top+.006,38.86],rubber);box('bar-drip',[8.9,.02,.05],[10,top+.01,39.02],dark);
    // ---- stools: a floor plate, a column, a foot ring, a leather seat in a chrome band
-   for(const x of api.BAR.seats){cyl('bar-stool-base',.21,.03,[x,.035,37.2],chrome,true,T);cone('bar-stool-skirt',.1,.04,.1,[x,.1,37.2],chrome,T);cyl('bar-stool-post',.034,.6,[x,.44,37.2],chrome,true,8);torus('bar-stool-ring',.34,.022,[x,.3,37.2],chrome);
+   const stoolBuilt=x=>{cyl('bar-stool-base',.21,.03,[x,.035,37.2],chrome,true,T);cone('bar-stool-skirt',.1,.04,.1,[x,.1,37.2],chrome,T);cyl('bar-stool-post',.034,.6,[x,.44,37.2],chrome,true,8);torus('bar-stool-ring',.34,.022,[x,.3,37.2],chrome);
     for(const a of [0,2.094,4.189])rod('bar-stool-spoke',.01,.15,[x+Math.cos(a)*.09,.3,37.2+Math.sin(a)*.09],chrome,'x',5).rotation.y=-a;
-    cyl('bar-stool-band',.215,.05,[x,.755,37.2],chrome,true,T);cyl('bar-stool-seat',.205,.07,[x,.8,37.2],leather,true,T);cone('bar-stool-crown',.205,.15,.03,[x,.85,37.2],leather,T);}
+    cyl('bar-stool-band',.215,.05,[x,.755,37.2],chrome,true,T);cyl('bar-stool-seat',.205,.07,[x,.8,37.2],leather,true,T);cone('bar-stool-crown',.205,.15,.03,[x,.85,37.2],leather,T);};
+   api.BAR.seats.forEach((x,i)=>prop('bar-stool',{x,y:0,z:37.2,yaw:i*1.3},()=>stoolBuilt(x)));
    // ---- oxygen at every seat: a small regulator post with a gauge, a coiled hose and a clear mask on its hook
    const mask=pm('o2-mask','#9fd8e0',.3,.1,.35),hose=pm('o2-hose','#b9d4dc',.5,.1,.3);mask.alpha=.62;mask.transparencyMode=2;
    const gaugeT=texture('dr-o2-gauge',64,64,(g,W,H)=>{g.fillStyle='#0a0c10';g.fillRect(0,0,W,H);g.fillStyle='#e8eef2';g.beginPath();g.arc(32,32,28,0,7);g.fill();g.strokeStyle='#20252c';g.lineWidth=2;for(let a=-2.2;a<=.6;a+=.35){g.beginPath();g.moveTo(32+Math.cos(a)*20,32+Math.sin(a)*20);g.lineTo(32+Math.cos(a)*26,32+Math.sin(a)*26);g.stroke();}g.strokeStyle='#2bbfa8';g.lineWidth=4;g.beginPath();g.arc(32,32,23,-2.2,-.9);g.stroke();g.strokeStyle='#c8242e';g.lineWidth=3;g.beginPath();g.moveTo(32,32);g.lineTo(46,18);g.stroke();g.fillStyle='#20252c';g.font='700 13px Arial';g.textAlign='center';g.fillText('O₂',32,50);}),gaugeM=litMat('o2-gauge',gaugeT);
-   const station=(x,y,z,face=0)=>{cyl('o2-station-base',.06,.02,[x,y+.01,z],chrome,true,10);cyl('o2-station-post',.018,.3,[x,y+.17,z],brass,true,8);cyl('o2-station-reg',.034,.06,[x,y+.3,z],chrome,true,10);rod('o2-station-knob',.02,.05,[x+.05,y+.3,z],dark,'x',8);
+   const stationBuilt=(x,y,z,face=0)=>{cyl('o2-station-base',.06,.02,[x,y+.01,z],chrome,true,10);cyl('o2-station-post',.018,.3,[x,y+.17,z],brass,true,8);cyl('o2-station-reg',.034,.06,[x,y+.3,z],chrome,true,10);rod('o2-station-knob',.02,.05,[x+.05,y+.3,z],dark,'x',8);
     const gz=face?1:-1;rod('o2-station-gauge',.04,.02,[x,y+.22,z+gz*.03],chrome,'z',10);M(B.MeshBuilder.CreatePlane('o2-station-dial',{width:.066,height:.066},scene),gaugeM,[x,y+.22,z+gz*.042],true,[0,face?PI:0,0]);
     rod('o2-station-arm',.007,.13,[x-.065,y+.33,z],chrome,'x',5);cyl('o2-station-hook',.007,.05,[x-.13,y+.305,z],chrome,true,5);
     dome('o2-mask-cup',.1,[x-.13,y+.2,z],mask,.6,low?5:7,[PI/2*gz,0,0]);torus('o2-mask-rim',.082,.008,[x-.13,y+.2,z+gz*.012],hose,[PI/2,0,0]);cyl('o2-mask-port',.012,.03,[x-.13,y+.165,z],hose,true,6);
     if(!low){for(let k=0;k<3;k++)torus('o2-hose-coil',.1+k*.012,.008,[x+.13,y+.008+k*.009,z+.02],hose,null,10);rod('o2-hose-run',.005,.17,[x+.05,y+.02,z+.01],hose,'x',5);}};
+   const station=(x,y,z,face=0)=>prop('o2-station',{x,y,z,yaw:face?PI:0},()=>stationBuilt(x,y,z,face));
    for(const x of api.BAR.seats)station(x+.34,top,38.3);
    // ---- on the counter: tumblers, coasters, lanterns with a small flame, a shaker and jiggers near the bartender, a stack of menus-size cards left blank
    {const rnd=lcg(41),amberM=tintM[0];for(const [x,z] of [[6.2,38.2],[7.9,38.35],[8.7,38.15],[10.9,38.25],[12.4,38.3],[13.6,38.15],[9.5,38.8],[11.9,38.85]]){cyl('bar-coaster',.05,.006,[x,top+.003,z],black,true,10);cyl('bar-tumbler',.036,.085,[x,top+.049,z],glassM,true,low?8:10);if(rnd()>.35)cyl('bar-drink',.031,.03,[x,top+.022,z],amberM,true,8);}
@@ -254,12 +281,24 @@
    bubbleT.wrapV=B.Texture.WRAP_ADDRESSMODE;bubbleT.uScale=2;ticks.push(dt=>{bubbleT.vOffset=(bubbleT.vOffset+dt*.11)%1;});
    const tubeM=pg('o2-tube','#9ff0f2',.12,.2),o2T=texture('dr-o2-mark',128,96,(g,W,H)=>{g.clearRect(0,0,W,H);g.fillStyle='rgba(240,255,255,.95)';g.font='700 64px Arial,Helvetica,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('O',W/2-14,H/2);g.font='700 34px Arial,Helvetica,sans-serif';g.fillText('2',W/2+30,H/2+22);});o2T.hasAlpha=true;const o2M=litMat('o2-mark',o2T,true);
    const manifoldY=3.66;rod('bar-o2-manifold',.04,13.2,[10,manifoldY,41.62],S.steel,'x',8);for(let x=4;x<16.5;x+=2.05){box('bar-o2-bracket',[.05,.14,.16],[x,manifoldY,41.69],dark);}for(const x of [5.4,14.9]){rod('bar-o2-gauge',.07,.03,[x,manifoldY+.02,41.56],chrome,'z',12);M(B.MeshBuilder.CreatePlane('bar-o2-dial',{width:.12,height:.12},scene),gaugeM,[x,manifoldY+.02,41.542],true);}
-   for(const [x,z] of api.BAR.tanks){cyl('bar-o2-base',.24,.3,[x,.15,z],S.steel,true,T);cyl('bar-o2-base-ring',.255,.04,[x,.3,z],chrome,true,T);box('bar-o2-control',[.2,.14,.03],[x,.16,z-.238],black);box('bar-o2-lamp',[.03,.02,.006],[x-.05,.19,z-.255],glowC('vend-ok','#6cff9e',1));box('bar-o2-lamp',[.08,.012,.006],[x+.03,.15,z-.255],teal);
+   const tankBuilt=(x,z)=>{cyl('bar-o2-base',.24,.3,[x,.15,z],S.steel,true,T);cyl('bar-o2-base-ring',.255,.04,[x,.3,z],chrome,true,T);box('bar-o2-control',[.2,.14,.03],[x,.16,z-.238],black);box('bar-o2-lamp',[.03,.02,.006],[x-.05,.19,z-.255],glowC('vend-ok','#6cff9e',1));box('bar-o2-lamp',[.08,.012,.006],[x+.03,.15,z-.255],teal);
     cyl('bar-o2-fluid',.17,1.36,[x,1,z],bubbleM,true,T);cyl('bar-o2-glass',.2,1.36,[x,1,z],tubeM,true,T);for(const y of [.6,1.4])torus('bar-o2-hoop',.41,.02,[x,y,z],chrome);for(const a of [.6,2.5,3.8,5.6])cyl('bar-o2-stay',.01,1.36,[x+Math.cos(a)*.21,1,z+Math.sin(a)*.21],chrome,true,5);
     M(B.MeshBuilder.CreatePlane('bar-o2-mark',{width:.24,height:.18},scene),o2M,[x,1.12,z-.206],true);
-    cyl('bar-o2-cap',.24,.16,[x,1.76,z],S.steel,true,T);dome('bar-o2-dome',.42,[x,1.84,z],S.steel,.5);cyl('bar-o2-stem',.035,.2,[x,2.1,z],brass,true,8);torus('bar-o2-wheel',.2,.02,[x,2.2,z],pm('valve-red','#8c1c1c',.5,.4,.3));rod('bar-o2-spoke',.008,.19,[x,2.2,z],chrome,'x',5);rod('bar-o2-spoke',.008,.19,[x,2.2,z],chrome,'z',5);
+    cyl('bar-o2-cap',.24,.16,[x,1.76,z],S.steel,true,T);dome('bar-o2-dome',.42,[x,1.84,z],S.steel,.5);cyl('bar-o2-stem',.035,.2,[x,2.1,z],brass,true,8);torus('bar-o2-wheel',.2,.02,[x,2.2,z],pm('valve-red','#8c1c1c',.5,.4,.3));rod('bar-o2-spoke',.008,.19,[x,2.2,z],chrome,'x',5);rod('bar-o2-spoke',.008,.19,[x,2.2,z],chrome,'z',5);};
+   /* Medium and above: the modelled tank (a glass cylinder of lit fluid in a steel frame with a valve wheel) stands on a steel plinth, as the tanks in David's picture stand on the back counter;
+      a sleeve of rising bubbles moves over its glass. The pipe up to the manifold is the same. */
+   const sleeveT=low?null:texture('dr-o2-sleeve',64,256,(g,W,H)=>{g.clearRect(0,0,W,H);const rnd=lcg(11);for(let n=0;n<46;n++){const x=rnd()*W,y=rnd()*H,r=.8+rnd()*2.2;g.fillStyle='rgba(225,255,255,'+(.3+rnd()*.5)+')';g.beginPath();g.arc(x,y,r,0,7);g.fill();if(y<r){g.beginPath();g.arc(x,y+H,r,0,7);g.fill();}}}),sleeveM=low?null:litMat('o2-sleeve',sleeveT,true);
+   if(sleeveT){sleeveT.hasAlpha=true;sleeveT.wrapV=B.Texture.WRAP_ADDRESSMODE;sleeveT.uScale=2;ticks.push(dt=>{sleeveT.vOffset=(sleeveT.vOffset+dt*.09)%1;});}
+   /* The plinths are one mesh of this file's own, so that they can be taken away again if the model never arrives (the built tank then stands on the floor as it did). */
+   const plinthY=.8,plinthParts=[],pb=(size,p,m)=>{const e=B.MeshBuilder.CreateBox('bar-o2-plinth',{width:size[0],height:size[1],depth:size[2]},scene);e.material=m;e.position.set(...p);plinthParts.push(e);};let plinth=null,sleeve0=null;
+   const dressed=(x,z)=>info=>{const w=Math.min(info.size[0],info.size[2])*info.k,h=info.size[1]*info.k,r=w*.405,sh=h*.52,sy=plinthY+h*.43;
+     const sl=sleeve0?sleeve0.createInstance('bar-o2-sleeve'):B.MeshBuilder.CreateCylinder('bar-o2-sleeve',{diameter:r*2,height:sh,tessellation:16,cap:B.Mesh.NO_CAP},scene);if(!sleeve0){sleeve0=sl;sl.material=sleeveM;}sl.parent=K.target;sl.position.set(x,sy,z);sl.isPickable=false;propNodes.push(sl);};
+   for(const [x,z] of api.BAR.tanks){
+    if(low)tankBuilt(x,z);else{prop('o2-tank',{x,y:plinthY,z,done:dressed(x,z)},()=>{if(plinth){plinth.dispose();plinth=null;}tankBuilt(x,z);});
+     pb([.62,plinthY-.09,.62],[x,(plinthY-.09)/2+.06,z],S.plate);pb([.56,.06,.56],[x,.03,z],black);pb([.65,.03,.65],[x,plinthY-.015,z],dark);pb([.3,.16,.012],[x,.34,z-.315],black);pb([.05,.02,.008],[x-.18,.62,z-.315],glowC('vend-ok','#6cff9e',1));pb([.12,.012,.008],[x+.12,.62,z-.315],teal);}
     cyl('bar-o2-riser',.022,manifoldY-2.0,[x+.12,(manifoldY+2.0)/2,z+.3],brass,true,6);rod('bar-o2-elbow',.022,.34,[x+.12,2.0,z+.14],brass,'z',6);
     if(!low){lightPool('#3fe0d8',1.9,1.9,[x,.046,z-.45],.5);}}
+   if(plinthParts.length){plinth=B.Mesh.MergeMeshes(plinthParts,true,true,undefined,false,true);if(plinth){plinth.name='bar-o2-plinths';plinth.parent=K.target;plinth.isPickable=false;propNodes.push(plinth);if(plinth.material?.subMaterials)K.owned.push(plinth.material);}}
    if(!low){wallGlow('#3fe0d8',2.8,2.8,[4.1,1.2,41.74],PI,.3);wallGlow('#3fe0d8',2.8,2.8,[15.85,1.2,41.74],PI,.3);}
    {const tankM=pm('o2-cylinder','#27504a',.45,.6,.26),band=white,can=(x,z,h=.5,r=.06)=>{cyl('bar-o2-can',r,h,[x,h/2,z],tankM,true,low?8:10);dome('bar-o2-can-top',r*2,[x,h,z],band,.5,low?5:6);cyl('bar-o2-can-neck',.016,.05,[x,h+r+.02,z],brass,true,6);rod('bar-o2-can-valve',.012,.07,[x,h+r+.04,z],chrome,'x',6);cyl('bar-o2-can-band',r+.002,.04,[x,h*.72,z],band,true,low?8:10);};
     // a floor rack of spare cylinders at each end of the back bar, and a row of small ones on the cabinet top under the mask rail
@@ -330,11 +369,14 @@
     tin:(f,v)=>{f.b([.095,.022,.062],v%2?yellow:green,0,.011);f.b([.06,.002,.035],tagM,0,.023);},
     card:(f,v)=>{const m=v%2?green:steel;f.b([.085,.003,.054],m,0,.003);f.b([.085,.003,.054],m,.006,.007,.004,[0,.2,0]);},
     headlamp:(f,v)=>{f.b([.05,.03,.03],blk,0,.016,-.012);f.b([.09,.02,.004],v%2?blue:olive,0,.016,.006);f.b([.02,.016,.004],lensT,0,.018,-.028);},
-    pistol:(f,v)=>{f.b([.19,.026,.034],gunM,0,.016,-.028);f.b([.05,.026,.085],blk,-.058,.016,.028,[0,.18,0]);f.b([.05,.012,.03],blk,-.005,.01,.004);f.b([.04,.004,.02],steel,.04,.03,-.028);f.b([.16,.012,.1],felt,-.01,.004,0);},
+    pistol:(f,v)=>{f.b([.19,.026,.034],gunM,0,.016,-.028);f.b([.05,.026,.085],blk,-.058,.016,.028,[0,.18,0]);f.b([.05,.012,.03],blk,-.005,.01,.004);f.b([.04,.004,.02],steel,.04,.03,-.028);},
     magazine:(f,v)=>{f.b([.024,.1,.05],blk,0,.05,0,[-.2,0,0]);f.b([.02,.006,.04],brass2,0,.1,-.01,[-.2,0,0]);},
     ammo:(f,v)=>{const h=.04+v*.006;f.b([.08,h,.05],v%2?brass2:olive,0,h/2);f.b([.081,.012,.051],tagM,0,h*.6);},
     tag:(f)=>{f.b([.05,.03,.003],tagM,0,.016,0,[-.35,0,0]);}};
-   for(const it of api.counterItems(true))make[it.kind](frame(it.x,it.y,it.z,it.yaw,it.kind==='tag'?1:api.SCALE),it.v);
+   /* The pistols, radios and flashlights are modelled (Medium and above); a pistol lies on a felt pad either way. */
+   const lies={pistol:{y:.01,yaw:0},radio:{y:0,yaw:0},flashlight:{y:0,yaw:0}};
+   for(const it of api.counterItems(true)){const f=frame(it.x,it.y,it.z,it.yaw,it.kind==='tag'?1:api.SCALE),L=lies[it.kind];if(it.kind==='pistol')f.b([.16,.012,.1],felt,-.01,.004,0);
+    if(L)prop(it.kind,{x:it.x,y:it.y+L.y*api.SCALE,z:it.z,yaw:it.yaw+L.yaw,k:api.SCALE},()=>make[it.kind](f,it.v));else make[it.kind](f,it.v);}
    // on the counter between the cases (never in front of Admin or Iris): boxed stock in stacks, steel bottles, a stove, a radio set, a card reader and a tray
    {const rnd=lcg(77),y=top;for(const [x0,x1,z] of [[6.15,7.4,47.5],[8.7,10.2,47.52],[10.35,11.85,47.52],[13.15,13.9,47.5]]){let x=x0;while(x<x1-.12){const k=Math.floor(rnd()*5),w=.1+rnd()*.1;
       if(k===0){const n=1+Math.floor(rnd()*3);for(let s=0;s<n;s++)at(bx('shop-stock',[w,.05,.14],[tan,olive,brass2][Math.floor(rnd()*3)]),x+w/2,y+.025+s*.052,z,(rnd()-.5)*.2);}
@@ -355,9 +397,10 @@
    if(!padM.albedoTexture){dotT.uScale=7.4;dotT.vScale=6.4;padM.albedoTexture=dotT;padM.emissiveTexture=dotT;padM.emissiveColor=new B.Color3(.45,.45,.5);}
    const visor=pm('vr-visor','#b4b9c0',.35,.1,.3),foam=pm('vr-foam','#08090b',.9,0,.4),gridM=pm('vr-grid','#2a2e35',.4,.8,.4);
    // A headset hung by its strap, visor outward: `face` is the axis it looks along ('x' off the west wall, 'z' off the north wall).
-   const gloss=pm('vr-gloss','#06070a',.12,.5,.3),headset=(x,y,z,face,glow)=>{const at=(d,h,l)=>face==='x'?[x+d,y+h,z+l]:[x+l,y+h,z+d],sz=(a,b,c)=>face==='x'?[a,b,c]:[c,b,a];
+   const gloss=pm('vr-gloss','#06070a',.12,.5,.3),headsetBuilt=(x,y,z,face,glow)=>{const at=(d,h,l)=>face==='x'?[x+d,y+h,z+l]:[x+l,y+h,z+d],sz=(a,b,c)=>face==='x'?[a,b,c]:[c,b,a];
     box('vr-hmd',sz(.1,.105,.2),at(0,0,0),visor);box('vr-hmd-front',sz(.014,.09,.18),at(.055,0,0),gloss);box('vr-hmd-lens',sz(.006,.016,.13),at(.064,.012,0),glow);box('vr-hmd-face',sz(.03,.09,.17),at(-.062,0,0),foam);
     for(const l of [-.098,.098])box('vr-hmd-strap',sz(.15,.03,.012),at(-.14,.012,l),foam);box('vr-hmd-pad',sz(.03,.08,.13),at(-.215,.012,0),foam);box('vr-hmd-top',sz(.2,.012,.03),at(-.11,.06,0),foam);for(const l of [-.07,.07])box('vr-hmd-cam',sz(.006,.016,.016),at(.064,-.03,l),visor);};
+   const headset=(x,y,z,face,glow)=>prop('vr-headset',{x:face==='x'?x-.06:x,y:y-.07,z:face==='x'?z:z-.06,yaw:face==='x'?PI/2:0},()=>headsetBuilt(x,y,z,face,glow));
    const controller=(x,y,z,glow)=>{cyl('vr-ctl-grip',.016,.11,[x,y,z],visor,true,6);torus('vr-ctl-ring',.085,.012,[x+.01,y+.075,z],visor,[0,0,PI/2]);box('vr-ctl-lamp',[.006,.012,.012],[x+.018,y+.02,z],glow);};
    for(const b of booths){const zc=(b.z0+b.z1)/2,len=b.z1-b.z0,c=b.tint,glow=b.color,lampM=glowC('vr-lamp-'+c,c,1.15);
     // floor: a dotted rubber pad, a thin boundary with corner brackets
@@ -394,7 +437,7 @@
      box('vr-rack-dock',[.3,.04,.2],[x,1.035,z+.14],black);box('vr-rack-dock-lamp',[.1,.008,.006],[x,1.04,z+.243],glowC('vend-ok','#6cff9e',1));}
     box('vr-rack-lamp',[2.0,.02,.03],[x0+1.1,2.52,z+.06],glowC('case-led','#dcebff',1.1));if(!low){wallGlow('#cfe2ff',2.6,1.8,[x0+1.1,1.9,z-.015],0,.2);}}
   }
-  return {machine,alcove,campaign,bar,store,vr,tick(dt){for(const t of ticks)t(dt);}};
+  return {machine,alcove,campaign,bar,store,vr,every(fn){ticks.push(fn);},tick(dt){for(const t of ticks)t(dt);}};
  }
  api.build=build;
  if(typeof module!=='undefined')module.exports=api;else root.VoidDistrictRooms=api;

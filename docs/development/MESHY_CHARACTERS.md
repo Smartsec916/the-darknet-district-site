@@ -34,7 +34,13 @@ The CLI on David's PC is 0.8.6: `--async` on create, then `meshy <resource> get 
 | 15 Nov | Iris rig | rigging `01a1e032-0b3f…` | 5 |
 | 15 Nov | Seven residents' concepts (Rin, Jonah, Sable, Kei, Mags, Tavi, Bishop), text-to-image, 9 each | task ids in `Documents/DarknetDistrict_Assets/Meshy/residents/concepts_status.json` on David's PC | 63 |
 | 15 Nov | The same seven: 3D (30), remesh (5), rig (5) each | `.../residents/build_status.json` | 280 |
-| | **Total so far** | | **441** (about 660 left of the month's 1,100) |
+| | **Total to 15 Nov** | | **441** |
+| 16 Nov | Nyx (bartender) concept, image-to-image from David's picture of her behind the oxygen bar | `01a1e4a9-18a9…` | 9 |
+| 16 Nov | Nyx 3D | image-to-3d `01a1e4aa-e074…` | 30 |
+| 16 Nov | Nyx remesh 30k | remesh `01a1e4ac-b1d4…` | 5 |
+| 16 Nov | Nyx rig | rigging (id in `Documents/DarknetDistrict_Assets/Meshy/nyx/build_status.json`) | 5 |
+| 16 Nov | Seven District props (oxygen tank, bar stool, oxygen station, VR headset, pistol, radio, flashlight): text-to-image 9, image-to-3d 30, remesh 5 each; the flashlight's picture was made twice | `Documents/DarknetDistrict_Assets/Meshy/district_props/status.json`; table in `DISTRICT_UPGRADE.md` | 317 |
+| | **16 Nov, District second pass** | | **366** (David's limit for it was 400; the account showed 1,767 before and 1,401 after) |
 
 A full character costs about 49 credits, so the month's 1,100 is roughly 22 characters, or fewer characters plus props (a prop from a picture is about 30).
 
@@ -50,4 +56,4 @@ Lessons: never `time.sleep` inside a `bl_execute` call (it blocks Blender and th
 
 ## Residents (15 Nov)
 
-`district-people.js` `own` names a resident's own model; `lookFor(crew)` returns it, `crowd.js` loads it with the District interior and `pick()` gives it to their spot. If a file fails to load, a look of the place stands in. Residents done: Rin Takeda, Jonah Pike, Sable Quon, Kei Navarro, Mags Oduya, Tavi Rourke, Bishop Hale. Not done: Nyx (bartender), Cade and Lumi (the VR players need clips from the UAL library: take them from `vr-player-a/b.glb` with `--crowd`), DJ Vanta (in NULL), the street crowd, player characters, companions, mission-givers. The residents' looks (faces, clothes) are Claude's designs from their jobs and David's style references: David may want any of them changed.
+`district-people.js` `own` names a resident's own model; `lookFor(crew)` returns it, `crowd.js` loads it with the District interior and `pick()` gives it to their spot. If a file fails to load, a look of the place stands in. Residents done: Rin Takeda, Jonah Pike, Sable Quon, Kei Navarro, Mags Oduya, Tavi Rourke, Bishop Hale. Nyx (bartender) was done on 16 Nov from David's own picture: `model:'npc-nyx'` in `district-people.js`, 30,942 triangles, clips idle, talk, walk, look, watch, laugh, shrug, wipe; she is placed by `neochinatown.js` (not by a crew spot), and the figure she had before is the only stand-in. Not done: Cade and Lumi (the VR players need clips from the UAL library: take them from `vr-player-a/b.glb` with `--crowd`), DJ Vanta (in NULL), the street crowd, player characters, companions, mission-givers. The residents' looks (faces, clothes) are Claude's designs from their jobs and David's style references: David may want any of them changed.

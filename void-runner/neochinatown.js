@@ -668,7 +668,7 @@
      for(const ry of across?[Math.PI/2,Math.PI/2+.5,Math.PI/2-.5]:[0,.5,-.5])plane('light-shaft',wide,top,[x,top/2,z],mats[key],ry);};
 
     // The rooms' own fittings (district-rooms.js): the vending machines, the oxygen bar, the store counter's cases, the VR play area. It builds with this file's kit, so its meshes merge and are released with the rest.
-    const rooms=root.VoidDistrictRooms.build({B,scene,low,box,cyl,plane,add,mat,glowMat,texture,texMat,neon,glass,kitMat,lightPool,wallGlow,lightShaft,owned,textures});
+    const rooms=root.VoidDistrictRooms.build({B,scene,low,box,cyl,plane,add,mat,glowMat,texture,texMat,neon,glass,kitMat,lightPool,wallGlow,lightShaft,owned,textures,get target(){return target;}});
     const NO_NEON=['__screen_0','__light_0','__screen_1','__light_1'];   // David, Nov 2026: no neon strips in the hallway; light it like his container-alley reference (cold white overhead, small red lamps at the doors)
     const hallLined=(()=>{if(!kitPiece('district:hall_ceiling_4m',[3,4.05-.62,30],0,NO_NEON,{merge:true}))return false;for(let z=34;z<=70;z+=4)kitPiece('district:hall_ceiling_4m',[3,4.05-.62,z],0,NO_NEON,{merge:true});
      for(let z=32,i=0;z<=68;z+=6,i++){serviceLamp(0,z,i%2?-1:1,3.41,false);if(!low){lightShaft('#a9c8ff',0,z,3.3,1.5,false,.3);lightPool('#a9c8ff',3.4,3.8,[0,.036,z],.12);}}   /* David, 15 Nov 2026: the white haze under each lamp stacked up and hid the view down the hallway; it is now a faint hint */
@@ -878,7 +878,19 @@
 
     // Bar and lounge: counter, bottles, booths, bartender, patrons.
     rooms.bar();   // the oxygen bar: counter, stools, back bar, tanks, masks, lamps, booths (district-rooms.js)
-    characterModel('nyx-district',target,[10,0,40],false);characterModel('crew-bar1',target,[7,0,36.6],true);characterModel('crew-bar2',target,[14.5,0,30],true);
+    /* Nyx, the bartender (David, 16 Nov 2026: "The bartender NPC needs upgrading"): her own model (district-people.js `model`, made with Meshy from his picture of her: docs/development/MESHY_CHARACTERS.md).
+       She never had a model: the game drew its plain stand-in figure for her. That figure is still what stands there if her file cannot be loaded (never another character), and the file is tried again, as for
+       Admin and Iris. Same spot, same prompt, same line. She idles, looks about or wipes down now and then, and talks while her line is on screen. */
+    {const pos=[10,0,40],who=root.VoidDistrictPeople?.npc('nyx-district'),own=who?.model,A=root.VoidCharacterAssembler,old=characterModel('nyx-district',target,pos,false);
+     if(own&&A?.ensureLook&&root.VoidAssets?.instance&&root.VoidCrowd?.clips?.[own]){old?.setEnabled(false);
+      const holder=new B.TransformNode('npc-nyx-district',scene);holder.parent=target;holder.position.set(pos[0],0,pos[2]);holder.rotation.y=Math.PI;holder.metadata={character:'nyx-district'};let ctrl=null,node=null,gone=false,talking=false,next=9;
+      owned.push({dispose(){gone=true;try{ctrl?.dispose();}catch{}try{node?.dispose();}catch{}holder.dispose();}});
+      const tryOwn=attempt=>A.ensureLook(own,scene).then(()=>{if(gone||ctrl)return;const n=root.VoidAssets.instance('crowd:'+own,holder);if(!n)throw Error('model not available');n.scaling.setAll(who.scale||1);node=n;ctrl=root.VoidCrowd.animate(n,own,'idle');old?.setEnabled(false);})
+       .catch(()=>{if(gone||scene.isDisposed)return;if(!attempt){old?.setEnabled(true);console.info('[District] Nyx: assets/models/crowd/'+own+'.glb is not available, so her stand-in figure is shown');}if(attempt<8)setTimeout(()=>{if(!gone&&!scene.isDisposed&&!ctrl)tryOwn(attempt+1);},5000+attempt*3000);});
+      tryOwn(0);
+      rooms.every(dt=>{if(!ctrl||gone)return;const now=typeof speech!=='undefined'&&!!speech&&speech.lines?.[speech.index]?.who==='Bartender';if(now!==talking){talking=now;ctrl.play(now?'talk':'idle');next=8+Math.random()*8;return;}
+       if(talking||ctrl.busy)return;next-=dt;if(next<=0){next=16+Math.random()*16;ctrl.playOnce(Math.random()<.5?'look':'wipe','idle');}});}}
+    characterModel('crew-bar1',target,[7,0,36.6],true);characterModel('crew-bar2',target,[14.5,0,30],true);
     plane('bar-menu',2.2,1.2,[16.71,2.4,35],texMat('bar-menu',texture('bar-menu',384,210,(g,W,H)=>{g.fillStyle='#0d0a08';g.fillRect(0,0,W,H);g.fillStyle='#ffb347';g.font='bold 22px monospace';g.fillText('BAR · LOUNGE',16,32);g.font='15px monospace';[['FILTERED AIR, 10 MIN','12'],['VANTOR STOUT','9'],['RECLAIMED-WATER GIN','14'],['SYNTH WHISKEY','18'],['NO CREDIT · NO TABS','']].forEach(([a,b],i)=>{g.fillStyle=i===4?'#9b7bff':'#e8e0d0';g.fillText(a,16,66+i*30);g.fillText(b,W-48,66+i*30);});}),{glow:true}),Math.PI/2);
 
     // Admin & Iris shop: counter, display cases, shelves, workstation.
