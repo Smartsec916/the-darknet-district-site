@@ -51,11 +51,13 @@ const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',tier=process.argv[
  await pass('South Gate, west lane, back to Old Town',[52.8,-132],[52.8,-127],[52.8,-121],'oldtown');
  await pass('South Gate, east lane, to Far South',[69.2,-122],[69.2,-127],[69.2,-133],'far-south');
  await pass('South Gate, east lane, back to Old Town',[69.2,-132],[69.2,-127],[69.2,-121],'oldtown');
- // the Far South Gate (A6) is shut: a walker coming down Far South stops at its wall
- await enter('far-south',[61,1.7,-208]);
- {let r=null;for(let z=-208;z>-222;z-=.25){r=await page.evaluate(([x,z])=>{if(VoidExplorer.blocked(x,z,walkingLocation))return false;walker.x=x;walker.z=z;return true;},[52.8,z]);if(!r)break;}
-  assert.equal(r,false,'the Far South Gate stops a walker');const z=await page.evaluate(()=>walker.z);assert.ok(z>-218.6&&z<-214,'at its north face, z '+z);
-  assert.equal(await page.evaluate(()=>walkingLocation.solids.filter(s=>/^gate-far-south-gate-/.test(s.id)).length),1,'one wall, no lanes, no doors');console.log('Far South Gate is shut ok, stopped at z',z);}
+ // the Far South Gate (A6, live since stage 2) is a PEDESTRIAN vestibule: walkers only, both ways; the Outskirts' only way in and out
+ await enter('far-south',[61,1.7,-212]);
+ await pass('Far South Gate, on foot, to The Outskirts',[61,-216],[61,-221],[61,-228],'outskirts');
+ assert.equal(await page.evaluate(()=>state.story.flags.quarter),'outskirts','the Outskirts is remembered');
+ await pass('Far South Gate, on foot, back to Far South',[61,-227],[61,-221],[61,-215],'far-south');
+ assert.equal(await page.evaluate(()=>walkingLocation.solids.filter(s=>/^gate-far-south-gate-/.test(s.id)&&s.door).length),2,'one lane, two doors, no vehicle bay');
+ await enter('outskirts');{const L=await page.evaluate(()=>walkingLocation.interactions.filter(i=>i.action==='road-taxi-call').length);assert.equal(L,0,'no taxi post in The Outskirts');}
  await enter('oldtown');
  // ---- by taxi ----
  await page.evaluate(()=>{walker.x=66;walker.z=-60;state.credits=1000;});await page.waitForTimeout(1500);
