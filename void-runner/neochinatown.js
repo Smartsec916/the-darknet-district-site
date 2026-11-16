@@ -653,6 +653,8 @@
     const lightShaft=(c,x,z,top,wide,across,strength=1)=>{const key='shaft-'+c+(strength===1?'':strength);if(!mats[key]){const t=texture(key,64,128,(g,W,H)=>{g.clearRect(0,0,W,H);const n=parseInt(c.slice(1),16),rgb=[n>>16,n>>8&255,n&255].join(',');for(let y=0;y<H;y++){const a=.13*strength*Math.pow(1-y/H,2.1);const r=g.createLinearGradient(0,0,W,0),spread=.18+.32*y/H;r.addColorStop(Math.max(0,.5-spread),'rgba('+rgb+',0)');r.addColorStop(.5,'rgba('+rgb+','+a+')');r.addColorStop(Math.min(1,.5+spread),'rgba('+rgb+',0)');g.fillStyle=r;g.fillRect(0,y,W,1);}});t.hasAlpha=true;const m=texMat(key,t,{glow:true,alpha:true});m.backFaceCulling=false;m.alphaMode=B.Engine.ALPHA_ADD;m.disableDepthWrite=true;m.fogEnabled=false;mats[key]=m;}
      for(const ry of across?[Math.PI/2,Math.PI/2+.5,Math.PI/2-.5]:[0,.5,-.5])plane('light-shaft',wide,top,[x,top/2,z],mats[key],ry);};
 
+    // The rooms' own fittings (district-rooms.js): the vending machines, the oxygen bar, the store counter's cases, the VR play area. It builds with this file's kit, so its meshes merge and are released with the rest.
+    const rooms=root.VoidDistrictRooms.build({B,scene,low,box,cyl,plane,add,mat,glowMat,texture,texMat,neon,glass,kitMat,lightPool,wallGlow,lightShaft,owned,textures});
     const NO_NEON=['__screen_0','__light_0','__screen_1','__light_1'];   // David, Nov 2026: no neon strips in the hallway; light it like his container-alley reference (cold white overhead, small red lamps at the doors)
     const hallLined=(()=>{if(!kitPiece('district:hall_ceiling_4m',[3,4.05-.62,30],0,NO_NEON,{merge:true}))return false;for(let z=34;z<=70;z+=4)kitPiece('district:hall_ceiling_4m',[3,4.05-.62,z],0,NO_NEON,{merge:true});
      for(let z=32,i=0;z<=68;z+=6,i++){serviceLamp(0,z,i%2?-1:1,3.41,false);if(!low){lightShaft('#a9c8ff',0,z,3.3,1.5,false,.3);lightPool('#a9c8ff',3.4,3.8,[0,.036,z],.12);}}   /* David, 15 Nov 2026: the white haze under each lamp stacked up and hid the view down the hallway; it is now a faint hint */
@@ -679,7 +681,11 @@
      // A few ordinary residents standing about, against the walls and out of the walking lane (ambient crowd figures: no names, no dialogue).
      for(const [id,x,z,fx,fz] of [['crew-hall-talk1',-2.0,40.3,-1.9,41.5],['crew-hall-talk2',-1.9,41.5,-2.0,40.3],['crew-hall-watch1',2.05,57.2,0,56],['crew-hall-talk3',2.0,38.4,0,39.5]]){const n=characterModel(id,target,[x,0,z],true);if(n?.rotation)n.rotation.y=Math.atan2(fx-x,fz-z);}}
     if(!hallLined)for(let z=28;z<78;z+=4){box('hall-beam',[6,.3,.3],[0,3.9,z],frame);box('hall-led',[.08,.05,3.6],[-2.6,3.85,z+2],z%8?cyan:magenta);box('hall-led',[.08,.05,3.6],[2.6,3.85,z+2],z%8?magenta:cyan);}
-    for(const [z,side] of [[30.5,1],[46,-1],[58,1],[66,-1]])plane('hall-ad',1.2,1.8,[side*(hallLined?2.52:2.82),hallLined?2.0:2.2,z],adMat(nextAd()),side>0?Math.PI/2:-Math.PI/2);
+    // The hallway's posters: taken down for now (David, 16 Nov 2026; he will supply new ones). The four wall spots stay listed here: [z along the hallway, side (1 east, -1 west)].
+    // To hang posters again, set HALL_POSTERS_SHOWN to true (or give each spot its own picture). Each spot still takes its turn in the advertisement order, so every other screen keeps the advertisement it had.
+    const HALL_POSTER_SPOTS=[[30.5,1],[46,-1],[58,1],[66,-1]],HALL_POSTERS_SHOWN=false;
+    for(const [z,side] of HALL_POSTER_SPOTS){const ad=nextAd();if(HALL_POSTERS_SHOWN)plane('hall-ad',1.2,1.8,[side*(hallLined?2.52:2.82),hallLined?2.0:2.2,z],adMat(ad),side>0?Math.PI/2:-Math.PI/2);}
+    rooms.campaign(hallLined);   // the four campaign screens (two in the hallway, one in the arcade, one in the bar): David's anti-WarFlying lines (district-rooms.js CAMPAIGN)
     for(const z of [40,72])box('hall-camera',[.2,.2,.4],[2.7,3.6,z],frame);
     const signX=hallLined?2.5:2.8;   // room signs stand on the doorway fascias when the hallway is lined
     const roomSign=(lines,colors,p,ry)=>neon('room-sign-'+lines[0],lines,colors,2.4,.7,p,ry,'rgba(10,10,16,.9)',true);
@@ -694,23 +700,18 @@
     const boothGlass=glass('vr-glass','#bfe6ff',.07),boothFrame=mat('vr-frame','#1b1e24',{rough:.35,metal:.8});
     const booths=[{z0:29,z1:36,color:cyan,label:['NEON STRIKE','VR SHOOTER · SESSION LIVE'],tint:'#38e8ff'},{z0:36,z1:43,color:magenta,label:['SKYLINE SOCIAL','DANCE · DINE · PLAY'],tint:'#ff3fb4'}];
     for(const b of booths){const zc=(b.z0+b.z1)/2,len=b.z1-b.z0;
-     // Floor: a dark pad with a lit play boundary.
-     box('vr-pad',[7.4,.03,len-.6],[-12.7,.035,zc],mat('vr-pad','#101219',{rough:.5,metal:.4}));
-     for(const [w,d,x,z] of [[7,.06,-12.7,b.z0+.5],[7,.06,-12.7,b.z1-.5],[.06,len-1,-16.2,zc],[.06,len-1,-9.2,zc]])box('vr-boundary',[w,.02,d],[x,.05,z],b.color);
+     // Floor, framing, lamps, racks and cameras: district-rooms.js (vr). Here: the tracking rig's beams, the glass and the session sign.
      // Tracking rig overhead: a frame with sensor pods at the corners.
      for(const z of [b.z0+.4,b.z1-.4])box('vr-rig-beam',[7.6,.12,.12],[-12.7,3.6,z],boothFrame);for(const x of [-16.4,-9])box('vr-rig-beam',[.12,.12,len-.8],[x,3.6,zc],boothFrame);
-     for(const [x,z] of [[-16.3,b.z0+.5],[-9.1,b.z0+.5],[-16.3,b.z1-.5],[-9.1,b.z1-.5]]){box('vr-sensor',[.18,.12,.18],[x,3.45,z],frame);box('vr-sensor-led',[.06,.03,.02],[x,3.42,z+(z<zc?.1:-.1)],b.color);}
      // Glass front with slim posts and a lit sill; a small session sign above the glass, out of the way.
      box('vr-glass-front',[.06,2.9,len-.12],[-8.5,1.45,zc],boothGlass,false);
-     for(const z of [b.z0,b.z1])box('vr-post',[.12,3,.12],[-8.5,1.5,z],boothFrame);
-     box('vr-sill',[.16,.06,len],[-8.5,.03,zc],b.color);box('vr-header',[.16,.12,len],[-8.5,2.95,zc],boothFrame);
      neon('vr-session-'+b.z0,b.label,[b.tint,'#e8f0ff'],2.2,.55,[-8.42,3.25,zc],-Math.PI/2,'rgba(6,8,14,.92)');}
     // The partition between the booths.
     boothGlass.specularColor=B.Color3.Black();boothGlass.diffuseColor=new B.Color3(.1,.13,.16);boothGlass.emissiveColor=B.Color3.Black();   // David, 15 Nov 2026: a big white glare sat on the VR play area's glass (the pane's shine catching the hallway lamps); the pane is now clear
     box('vr-glass-partition',[7.9,2.9,.06],[-12.55,1.45,36],boothGlass,false);box('vr-partition-top',[7.9,.1,.12],[-12.55,2.95,36],boothFrame);
+    rooms.vr(booths);
     // Viewing strip: a rail and a bench along the hallway side, a soft floor line.
     box('vr-rail',[.06,.06,13.6],[-7.6,1,36],pipe);for(const z of [30,34,38,42])box('vr-rail-post',[.06,1,.06],[-7.6,.5,z],pipe);
-    box('vr-floor-line',[.05,.02,13.6],[-7.9,.04,36],violet);
     // Interior rebuild, phase C: the room and both booths stay as they are; the walls get the hallway's lining (cyan in the north booth, magenta in the south)
     // and each booth an equipment rack with headsets on charge.
     if(kitAt('vr_rack_1m','+x',-16.8,34.7,1,.5)){kitAt('vr_rack_1m','+x',-16.8,36.3,1,.5);const C=['__screen_0','__light_0'],M=['__screen_1','__light_1'];
@@ -802,13 +803,6 @@
      // the dark label
      const lw=bw*.56,lh=bh*.36,ly=by+bh*.56;g.fillStyle='#08080b';g.beginPath();g.ellipse(cx,ly,lw/2,lh/2,0,0,7);g.fill();g.fillStyle=accent;let size=Math.max(6,Math.round(lh*.34));const words=String(name||'').split(/[ \/]+/).filter(Boolean).slice(0,2);g.font='900 '+size+'px Arial,Helvetica,sans-serif';while(size>5&&Math.max(...words.map(t=>g.measureText(t).width))>lw*.84){size--;g.font='900 '+size+'px Arial,Helvetica,sans-serif';}
      words.forEach((t,n)=>g.fillText(t,cx,ly+(n-(words.length-1)/2)*(size+1)));g.restore();}
-    /* A whole machine front of dispensary goods: three shelves under white tube lights, the lowest washed pink (for one hallway machine). */
-    function drawDispensary(g,W,H){
-     g.fillStyle='#06070b';g.fillRect(0,0,W,H);const rows=3,cols=4,rh=H/rows,cw=W/cols,names=['NULL OG','B3 HAZE','PINK STATIC','LOW TIDE','GREEN NEON','MIDNIGHT KUSH','ROSIN CARTS','NULL OG','B3 HAZE','PINK STATIC','LOW TIDE','MIDNIGHT KUSH'],acc=['#3fd6ff','#b8ff5a','#ff5bd0','#7fe6ff','#2fbf4f','#1f9a3a','#ffb347'];
-     for(let r=0;r<rows;r++){const tint=r===2?'255,86,190':'226,240,255',wash=g.createLinearGradient(0,r*rh,0,(r+1)*rh);wash.addColorStop(0,'rgba('+tint+',.55)');wash.addColorStop(.3,'rgba('+tint+',.16)');wash.addColorStop(1,'rgba('+tint+',.04)');g.fillStyle=wash;g.fillRect(0,r*rh,W,rh);g.fillStyle='rgba('+tint+',1)';g.fillRect(W*.05,r*rh+5,W*.9,6);
-      for(let c=0;c<cols;c++){const i=r*cols+c;budPack(g,c*cw+cw/2,(r+1)*rh-12,cw*.86,rh*.76,(i+r)%3===1?'pouch':'tub',i*4441+9,acc[i%acc.length],names[i]);}
-      g.fillStyle='#2a2f3a';g.fillRect(0,(r+1)*rh-12,W,12);g.fillStyle='#ffb84a';g.font='700 '+Math.round(rh*.045)+'px Consolas,Menlo,monospace';g.textAlign='center';g.textBaseline='middle';for(let c=0;c<cols;c++)g.fillText('ABC'[r]+(c+1)+'   '+(12+((r*cols+c)*7)%13)+'.00',c*cw+cw/2,(r+1)*rh-6);}
-     g.fillStyle='rgba(120,130,150,.5)';g.fillRect(W/2-3,0,6,H);}
     // The vending unit's lit shelves: one picture shared by all ten pods (same stock everywhere).
     function drawPodVending(g,W,H){
      // A dark cabinet lit shelf by shelf (David's references, Nov 2026): a cold white tube under each shelf, one shelf washed pink, the goods standing in their own light.
@@ -869,23 +863,21 @@
       if(after){const len=p.c.playOnce(clip,after);p.timer=Math.max(.3,len)+(rand()*.3);}else{p.c.play(clip);p.timer=hold*(.8+rand()*.45);}}}
 
     // Bar and lounge: counter, bottles, booths, bartender, patrons.
-    box('bar-counter',[9,1.1,1.1],[10,.55,38.5],mat('bar-top','#2b1d18',{rough:.35,metal:.2}));box('bar-counter-glow',[9,.05,.05],[10,1.1,37.92],amber);
-    box('bar-back-shelf',[10,.08,.5],[10,1.6,41.6],frame);box('bar-back-shelf',[10,.08,.5],[10,2.3,41.6],frame);
-    for(let i=0;i<22;i++){const x=5.5+i*.42;cyl('bottle',.07,.32,[x,1.82+(i%2)*.7,41.6],[amber,cyan,magenta,violet][i%4],true,6);}
-    for(const x of [6.5,9,11.5,14])cyl('bar-stool',.25,.8,[x,.4,37.2],frame,true,10);
-    for(const z of [29.5,32.5]){box('booth-seat',[3.5,.5,1],[14.5,.25,z],mat('booth','#4a1d2e',{rough:.8}));box('booth-table',[2.6,.08,1],[14.5,.8,z+1],frame);}
+    rooms.bar();   // the oxygen bar: counter, stools, back bar, tanks, masks, lamps, booths (district-rooms.js)
     characterModel('nyx-district',target,[10,0,40],false);characterModel('crew-bar1',target,[7,0,36.6],true);characterModel('crew-bar2',target,[14.5,0,30],true);
-    plane('bar-menu',2.2,1.2,[16.8,2.4,35],texMat('bar-menu',texture('bar-menu',384,210,(g,W,H)=>{g.fillStyle='#0d0a08';g.fillRect(0,0,W,H);g.fillStyle='#ffb347';g.font='bold 22px monospace';g.fillText('BAR · LOUNGE',16,32);g.font='15px monospace';[['FILTERED AIR, 10 MIN','12'],['VANTOR STOUT','9'],['RECLAIMED-WATER GIN','14'],['SYNTH WHISKEY','18'],['NO CREDIT · NO TABS','']].forEach(([a,b],i)=>{g.fillStyle=i===4?'#9b7bff':'#e8e0d0';g.fillText(a,16,66+i*30);g.fillText(b,W-48,66+i*30);});}),{glow:true}),Math.PI/2);box('bar-light',[8,.05,.3],[10,4,36],amber);
+    plane('bar-menu',2.2,1.2,[16.71,2.4,35],texMat('bar-menu',texture('bar-menu',384,210,(g,W,H)=>{g.fillStyle='#0d0a08';g.fillRect(0,0,W,H);g.fillStyle='#ffb347';g.font='bold 22px monospace';g.fillText('BAR · LOUNGE',16,32);g.font='15px monospace';[['FILTERED AIR, 10 MIN','12'],['VANTOR STOUT','9'],['RECLAIMED-WATER GIN','14'],['SYNTH WHISKEY','18'],['NO CREDIT · NO TABS','']].forEach(([a,b],i)=>{g.fillStyle=i===4?'#9b7bff':'#e8e0d0';g.fillText(a,16,66+i*30);g.fillText(b,W-48,66+i*30);});}),{glow:true}),Math.PI/2);
 
     // Admin & Iris shop: counter, display cases, shelves, workstation.
     // Interior rebuild, phase E: Blender-made shop fittings. kitAt puts a piece against a wall: `facing` is the way the piece looks, `face` the wall surface behind it,
     // `s` where it starts along the wall (its low end) and `len`/`depth` its size.
-    const shopKit=!!kitAt('shop_counter_8m','-z',47.75,6,8,1.1);
+    const shopCounter=kitAt('shop_counter_8m','-z',47.75,6,8,1.1),shopKit=!!shopCounter;
+    // The model's flat coloured trays come off the counter: the display cases and their goods (district-rooms.js) stand there now.
+    if(shopCounter)for(const c of shopCounter.getChildMeshes()){if(c.material?.name==='ncz-kit_goods'){const l=staticMeshes.get(c.material),k=l?l.indexOf(c):-1;if(k>=0)l.splice(k,1);c.dispose();}}
     if(shopKit){for(const x of [8,10,12])kitAt('hall_wall_2m_a','+z',43.2,x,2,.2);   /* the bookshelves gave way to the gun wall (David, Nov 2026) */kitAt('shop_gearwall_3m','-z',52.8,11.2,3,.35);kitAt('shop_gearwall_3m','+x',3.2,49.7,3,.35);
      for(const [f,face,list] of [['+z',43.2,[[3.4,'a'],[5.4,'c'],[14.2,'a']]],['-x',16.8,[[43.6,'a'],[45.6,'c'],[47.6,'a'],[49.6,'a']]],['-z',52.8,[[3.2,'a'],[5.2,'d'],[7.2,'a'],[14.2,'b']]]])for(const [at,k] of list)kitAt('hall_wall_2m_'+k,f,face,at,2,.2);
      kitAt('hall_wall_1m','-x',16.8,51.6,1,.2);kitAt('hall_wall_1m','+x',3.2,43.4,1,.2);
      for(const [x,z] of [[8,45.4],[12,45.4],[8,50.2],[12,50.2]]){kitPiece('district:tube_light_2m',[x+1,4.05-.51,z],0,[],{merge:true});if(!low){lightShaft('#a9c8ff',x+1,z,3.5,2.2,true);lightPool('#a9c8ff',3.6,3,[x+1,.036,z],.14);}}}   // the hallway standard: each tube's light hangs in the haze and lies on the floor
-    if(!shopKit)box('shop-counter',[8,1.1,1.1],[10,.55,47.2],mat('shop-counter','#1f2228',{rough:.35,metal:.7}));box('shop-counter-glow',[8,.05,.05],[10,1.1,46.62],violet);
+    if(!shopKit)box('shop-counter',[8,1.1,1.1],[10,.55,47.2],mat('shop-counter','#1f2228',{rough:.35,metal:.7}));rooms.store();
     // Real glass cases (David, Nov 2026: the survival gear boxes looked too boxy): a steel plinth and cap, slim corner posts, clear panes, glass shelves, a cold light strip under the cap.
     {const pane=new B.StandardMaterial('ncz-case-pane',scene);owned.push(pane);pane.diffuseColor=new B.Color3(.04,.07,.09);pane.specularColor=new B.Color3(.6,.66,.72);pane.specularPower=220;pane.alpha=.09;pane.backFaceCulling=false;
      const shelf=new B.StandardMaterial('ncz-case-shelf',scene);owned.push(shelf);shelf.diffuseColor=new B.Color3(.1,.16,.18);shelf.emissiveColor=new B.Color3(.05,.09,.1);shelf.alpha=.32;const cs=mat('case-steel','#14161a',{rough:.4,metal:.85}),strip=glowMat('case-strip','#cfe6ff',1);
@@ -997,19 +989,12 @@
 
     // Vending alcove: three lit machines.
     // Machines (reference: glass fronts over lit shelves of goods, a payment panel at the side, a bright top light).
-    const vendGlass=glass('vend-glass','#cfe8ff',.08),vendBody=mat('vend','#16161d',{rough:.5,metal:.6}),itemColors=['#38e8ff','#ff5bd0','#ffb347','#6cff9e','#e8f0ff'];
     for(let i=0;i<3;i++){const z=47.6+i*1.9,x=-6.3;
-     // The licensed Neon Urban Utility machine (Astral-3D; docs/VOID_RUNNER_ASSET_LICENSES.md), back to the alcove wall,
-     // front where the built machines' glass was; the built machine below stays as the fallback if it isn't there.
-     if(!instance('vending-neon',[-6.4,0,z],Math.PI/2)){
-     // A hollow cabinet: back, top, base and sides, open at the front behind the glass.
-     box('vending-back',[.5,2.2,1.6],[x-.25,1.1,z],vendBody);box('vending-top',[.5,.26,1.6],[x+.25,2.07,z],vendBody);box('vending-base',[.5,.34,1.6],[x+.25,.17,z],vendBody);box('vending-side',[.5,2.2,.07],[x+.25,1.1,z-.765],vendBody);box('vending-side',[.5,2.2,.36],[x+.25,1.1,z+.62],vendBody);box('vending-back-glow',[.04,1.6,1.1],[x+.12,1.15,z-.12],glowMat('vend-back-'+i,['#12384a','#3a1236','#3a2e10'][i],1));
-     for(let s=0;s<4;s++){const sy=.5+s*.42;box('vending-shelf',[.62,.03,1.1],[x+.2,sy,z-.12],frame);for(let k=0;k<5;k++){const h=.16+((i*7+s*3+k)%3)*.05,c=(i+s*2+k)%5;box('vending-item',[.22,h,.16],[x+.3,sy+h/2+.02,z-.55+k*.21],glowMat('vend-item-'+c,itemColors[c],.5));}}
-     box('vending-led',[.05,.05,1.1],[x+.48,1.97,z-.12],glowMat('vend-led','#f4f8ff',1.5));box('vending-glass',[.02,1.68,1.14],[x+.51,1.18,z-.12],vendGlass,false);
-     box('vending-panel',[.06,1.5,.32],[x+.5,1.1,z+.6],frame);box('vending-pay',[.02,.26,.2],[x+.535,1.38,z+.6],glowMat('vend-pay','#6cff9e',.9));box('vending-card',[.02,.1,.18],[x+.535,1.08,z+.6],amber);}
-     if(i===1){const face=texMat('vend-dispensary',texture('vend-dispensary',512,768,drawDispensary),{glow:true});plane('vending-dispensary',1.08,1.62,[x+.535,1.2,z-.12],face,-Math.PI/2);}   /* David, 15 Nov 2026: one machine stocks loose flower in tubs and pouches, like his dispensary picture */
-     neon('vend-label-'+i,[['DRINKS','DISPENSARY','NEUROHACKERS'][i]],[['#38e8ff','#ff5bd0','#ffb347'][i]],[1.1,1.1,1.3][i],.22,[x+.52,2.08,z-.12],-Math.PI/2,'rgba(8,8,12,.92)');}
-    box('vend-bin',[.5,.8,.5],[-3.6,.4,52],pipe);
+     // The dispensary machine is always the built one (David, 16 Nov 2026: it was a flat picture laid over a machine). The other two are the licensed Neon Urban Utility machine
+     // (Astral-3D; docs/VOID_RUNNER_ASSET_LICENSES.md) where that file is present, and the same built machine with their own stock where it is not.
+     if(i===1||!instance('vending-neon',[-6.4,0,z],Math.PI/2))rooms.machine(i,x,z,POD_VENDING);
+     neon('vend-label-'+i,[['DRINKS','DISPENSARY','NEUROHACKERS'][i]],[['#38e8ff','#ff5bd0','#ffb347'][i]],[1.1,1.1,1.3][i],.22,[x+.52,2.03,z],-Math.PI/2,'rgba(8,8,12,.92)');}
+    rooms.alcove();box('vend-bin',[.5,.8,.5],[-3.6,.4,52],pipe);
 
     // Sleep pods: two stacked rows with ring-lit hatches and numbers.
     // Capsules (reference: rounded pods with glowing oval hatches, glass, a warm-lit bed inside).
@@ -1111,7 +1096,6 @@
 
     // ---- Upgrades from David's District reference pictures (2026-10-17) ----
     // VR / arcade: red and cyan ceiling tubes, headsets on the players, a row of glowing monitors.
-    for(const x of [-14,-10,-6])box('vr-neon',[.06,.06,14],[x,4.02,36],red);for(const z of [30,36,42])box('vr-neon',[12,.06,.06],[-10,4.02,z],cyan);
     // Hallway: pipes and a duct overhead, cables at the walls, the neon reflected in the wet floor, bins.
     if(!hallLined)for(const [x,r,y,m] of [[-1.9,.15,3.72,pipe],[-1.5,.08,3.82,rust],[1.75,.2,3.68,pipe],[2.2,.07,3.85,pipe]]){const c=cyl('hall-pipe',r,50,[x,y,53],m);c.rotation.x=Math.PI/2;}
     if(!hallLined)box('hall-duct',[.9,.34,50],[0,3.86,53],metal);for(const x of hallLined?[]:[-2.82,2.82]){const c=cyl('hall-cable',.03,50,[x,.05,53],frame,true,6);c.rotation.x=Math.PI/2;}
@@ -1143,7 +1127,9 @@
      box('arcade-ceiling-light',[1.3,.05,1.3],[-6.6,4.02,59.9],magenta);box('arcade-ceiling-light',[1.3,.05,1.3],[-6.6,4.02,64.1],cyan);
      // Posters for the games, on the wall beside the doorway.
      const poster=(key,p,ry)=>{const [name,a,b2]=GAMES[key],big=ART.has(key),S=big?2:1,t=texture('arcade-poster-'+key,128*S,192*S,(g,W0,H0)=>{const W=128,H=192;g.save();g.scale(S,S);const gr=g.createLinearGradient(0,0,W,H);gr.addColorStop(0,a);gr.addColorStop(1,'#07060c');g.fillStyle=gr;g.fillRect(0,0,W,H);g.strokeStyle=b2;g.lineWidth=4;g.strokeRect(5,5,W-10,H-10);g.fillStyle=b2;for(let i=0;i<7;i++)g.fillRect(14+i*15,40+((i*37)%60),9,9);g.fillStyle='#fff';g.font='900 17px Arial,Helvetica,sans-serif';g.textAlign='center';name.split(' ').forEach((w,i)=>g.fillText(w,W/2,128+i*20));g.font='700 9px Arial,sans-serif';g.fillStyle=b2;g.fillText(big?'NOW PLAYING':'COMING SOON',W/2,178);g.restore();});if(big&&typeof Image!=='undefined'){const im=new Image();im.onload=()=>{try{const g=t.getContext(),W=256,H=384;g.fillStyle='#05050a';g.fillRect(0,0,W,H);g.drawImage(im,8,10,W-16,(W-16)*.8);const fade=g.createLinearGradient(0,170,0,215);fade.addColorStop(0,'rgba(5,5,10,0)');fade.addColorStop(1,'#05050a');g.fillStyle=fade;g.fillRect(8,170,W-16,46);g.strokeStyle=b2;g.lineWidth=5;g.strokeRect(5,5,W-10,H-10);g.fillStyle='#fff';g.textAlign='center';const words=name.split(/ |\/\//).filter(Boolean);let size=34;g.font='900 '+size+'px Arial,Helvetica,sans-serif';while(Math.max(...words.map(w=>g.measureText(w).width))>W-30){size--;g.font='900 '+size+'px Arial,Helvetica,sans-serif';}g.shadowColor=a;g.shadowBlur=12;words.forEach((w,i)=>g.fillText(w,W/2,262+i*(size+4)));g.shadowBlur=0;g.font='700 16px Arial,sans-serif';g.fillStyle=b2;g.fillText('NOW PLAYING',W/2,362);t.update();}catch{}};im.src=ARCADE_ART+key+'-poster.jpg';}plane('arcade-poster',1,1.5,p,texMat('arcade-poster-'+key,t,{glow:true}),ry);};
-     poster('blackout-protocol',[-6,2,57.74],Math.PI);poster('laser-moth',[-4.4,2,57.74],Math.PI);poster('turbo-kelp',[-6,2,66.26],0);poster('corporate-zombies',[-4.4,2,66.26],0);poster('underground-overdrive',[-3.24,2,65.5],Math.PI/2);
+     // Posters only for the games that can really be played (David, 16 Nov 2026). The two for games not built yet came down, and a campaign screen hangs in each of their places (district-rooms.js CAMPAIGN):
+     // to put one back when its game exists, add poster('laser-moth',[-4.4,2,57.74],Math.PI) or poster('turbo-kelp',[-6,2,66.26],0) and take that screen out of CAMPAIGN.screens.
+     for(const [key,p,ry] of [['blackout-protocol',[-6,2,57.74],Math.PI],['corporate-zombies',[-4.4,2,66.26],0],['underground-overdrive',[-3.24,2,65.5],Math.PI/2]])if(ARCADE.find(c=>c.game===key)?.playable)poster(key,p,ry);
      // Screens: one small picture per game, redrawn a few times a second while someone is near, with chunky pixels like a CRT.
      const screens={},marquees={};
      const attract={
@@ -1202,19 +1188,8 @@
       box('arcade-crt',[.62,.5,.52],[-9.75,3.1,57.95],steel);box('arcade-crt-arm',[.08,.5,.08],[-9.75,3.6,57.95],steel);const noise=texture('arcade-static',64,48,(g,W,H)=>{let q=7;const r=()=>(q=(q*1103515245+12345)&0x7fffffff)/0x7fffffff;for(let y=0;y<H;y+=2)for(let x=0;x<W;x+=2){const v=Math.floor(60+r()*180);g.fillStyle='rgb('+v+','+v+','+(v+10)+')';g.fillRect(x,y,2,2);}});plane('arcade-crt-screen',.5,.38,[-9.43,3.1,57.95],texMat('arcade-static',noise,{glow:true}),-Math.PI/2);
       for(const [z,y,tilt] of [[59.2,3.82,.02],[61.5,3.9,-.03],[63.4,3.8,.03],[65.3,3.88,-.02]]){const c=cyl('arcade-cable',.022,7.2,[-6.75,y,z],frame,true,6);c.rotation.z=Math.PI/2+tilt;}
       cyl('arcade-side-table',.3,.86,[-3.62,.43,65.95],steel,true,12);cyl('arcade-lava-base',.07,.08,[-3.62,.9,65.95],steel,true,10);cyl('arcade-lava-lamp',.05,.3,[-3.62,1.09,65.95],glowMat('arcade-lava','#ff5a8a',1.1),true,10);if(!low)lightPool('#ff5a8a',1.2,1.2,[-3.62,.875,65.95],.5);}
-     // VR PLAY AREA: over each booth a light bar in the booth's colour, its light in the air and on the pad, corner marks on the play space, the colour on the back wall
-     for(const b of booths){const zc=(b.z0+b.z1)/2,c=b.tint;box('vr-bar-housing',[3.4,.07,.5],[-12.7,3.5,zc],steel);box('vr-bar-light',[3.1,.03,.36],[-12.7,3.455,zc],glowMat('vr-bar-'+c,c,1.15));
-      for(const sx of [-1,1])for(const sz of [-1,1]){const x=-12.7+sx*3.1,z=zc+sz*((b.z1-b.z0)/2-.95);box('vr-corner-mark',[.5,.02,.07],[x-sx*.22,.052,z],b.color);box('vr-corner-mark',[.07,.02,.5],[x,.052,z-sz*.22],b.color);}
-      if(!low){lightPool(c,6.4,5.6,[-12.7,.056,zc],.34);wallGlow(c,5.4,3,[-16.56,1.7,zc],-Math.PI/2,.3);lightPool(c,2.2,5,[-7.3,.045,zc],.26);}}
-     // BAR / OXYGEN BAR: glowing oxygen columns either end of the back bar, the sign and two menu screens above it, a pink line under the counter's edge, leather stool seats, three pink pendant lamps
-     {const o2=glowMat('bar-oxygen','#48e0ff',.9);o2.alpha=.82;for(const x of [3.7,4.25,15.75,16.3]){cyl('bar-o2-base',.2,.2,[x,.1,41.45],steel,true,14);cyl('bar-o2-column',.16,1.5,[x,.95,41.45],o2,false,14);cyl('bar-o2-cap',.2,.14,[x,1.77,41.45],steel,true,14);cyl('bar-o2-valve',.05,.16,[x,1.92,41.45],steel,true,8);const h=cyl('bar-o2-hose',.014,.9,[x,1.5,41.2],frame,true,6);h.rotation.x=.5;if(!low)lightPool('#48e0ff',1.6,1.6,[x,.046,41.0],.5);}
-      if(!low){wallGlow('#48e0ff',2.6,2.6,[4,1.2,41.76],Math.PI,.34);wallGlow('#48e0ff',2.6,2.6,[16,1.2,41.76],Math.PI,.34);}
-      neon('bar-oxygen-sign',['O₂  OXYGEN BAR'],['#58e8ff'],3.4,.6,[10,3.25,41.7],0,'rgba(6,8,14,.9)',true);
-      const screen=(name,x,title,rows,c)=>{box('bar-screen-frame',[1.7,1.0,.06],[x,2.95,41.74],steel);plane(name,1.6,.9,[x,2.95,41.7],texMat(name,texture(name,384,216,(g,W,H)=>{g.fillStyle='#05080d';g.fillRect(0,0,W,H);g.fillStyle=c;g.font='bold 24px Consolas,monospace';g.fillText(title,16,34);g.fillRect(16,44,W-32,2);g.font='16px Consolas,monospace';rows.forEach(([n,v],i)=>{g.fillStyle='#d8e6f0';g.fillText(n,16,76+i*27);g.fillStyle=c;g.textAlign='right';g.fillText(v,W-16,76+i*27);g.textAlign='left';});}),{glow:true}),0);};
-      screen('bar-oxygen-menu',5.4,'OXYGEN MENU',[['O₂ PURITY BLEND','12'],['HYPER FOCUS','16'],['RECOVERY','14'],['CALM','12'],['SLEEP PREP','15']],'#58e8ff');screen('bar-drink-menu',14.6,'DRINK MENU',[['VANTOR STOUT','9'],['RECLAIMED-WATER GIN','14'],['SYNTH COLA','4'],['KAIJU FUEL','6'],['HOUSE TEA','3']],'#ff8ad0');
-      box('bar-counter-pink',[8.8,.03,.03],[10,.99,37.93],pinkT);for(const x of [6.5,9,11.5,14]){cyl('bar-stool-seat',.27,.07,[x,.84,37.2],mat('bar-stool-leather','#5a1420',{rough:.5,metal:.1}),true,14);cyl('bar-stool-ring',.2,.03,[x,.3,37.2],pipe,true,12);}
-      for(const x of [6.6,10,13.4]){cyl('bar-pendant-cord',.01,.9,[x,3.6,37.6],frame,true,6);cyl('bar-pendant-shade',.24,.16,[x,3.1,37.6],steel,true,14);cyl('bar-pendant-light',.2,.03,[x,3.02,37.6],pinkT,true,14);if(!low){lightShaft('#ff3fb4',x,37.6,3.0,1.5,false);lightPool('#ff3fb4',2.6,2.6,[x,.046,37.4],.4);}}
-      if(!low)lightPool('#ff3fb4',9,1.4,[10,.045,37.1],.3);}}
+     // The bar's own light and dressing are built with the bar (district-rooms.js).
+    }
     /* The house rule on scanning (district-people.js ETIQUETTE): someone walks in with the WarFlying app ACTIVE; Admin or Iris comes out from the counter, tells them
        it is rude and to deactivate it, and goes back. Once per visit; it re-arms when the app is switched off. Nothing else about Admin or Iris changes. */
     const etiquette=(()=>{
@@ -1235,7 +1210,7 @@
        if(talk>=E.talkFor||(!on&&talk>1.5)){const end=actor.home[0]<10?4.9:15.1;route=[[2.2,45.4],[end,45.4],[end,actor.home[1]],actor.home.slice()];at=0;phase='back';actor.play('walk');}return;}
       if(phase==='back'){if(step(h,route[at],dt)){at++;if(at>=route.length){h.rotation.y=Math.PI;actor.play('idle');phase='watch';seen=0;actor=null;}}}
      }};})();
-    return {lights,terminal,vrTick,podScreen,arcade,etiquette};})();
+    return {lights,terminal,vrTick:dt=>{vrTick(dt);rooms.tick(dt);},podScreen,arcade,etiquette};})();
     if(!wantInterior){seed=SEAMS[1];target=districtRoot;}else if(area==='all'&&seed!==SEAMS[1])console.warn('[NeoChinatown] random state after the interior changed; update SEAMS');
 
     // ---- Street detail: taxi zones, streaming districts, club, weather ----
