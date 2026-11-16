@@ -5,7 +5,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const load=host=>{globalThis.location=host?{hostname:host}:undefined;delete require.cache[require.resolve('../void-runner/neochinatown.js')];return require('../void-runner/neochinatown.js');};
 
 test('the pack is requested everywhere (released 2026-11-01; its files come from the private asset repository)',()=>{
- for(const host of [undefined,'thedarknetdistrict.com','localhost','127.0.0.1'])assert.deepEqual(Object.keys(load(host).models).filter(k=>k.startsWith('ncz:')).sort(),['ncz:building5','ncz:storefronts'],String(host));
+ for(const host of [undefined,'thedarknetdistrict.com','localhost','127.0.0.1'])assert.deepEqual(Object.keys(load(host).models).filter(k=>k.startsWith('ncz:')).sort(),['ncz:building5','ncz:outskirts-containers','ncz:outskirts-dish','ncz:outskirts-solar','ncz:storefronts'],String(host));
  load(undefined);
 });
 
