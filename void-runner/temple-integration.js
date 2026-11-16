@@ -1,5 +1,5 @@
 /* Zen Zephyr Temple: game wiring (browser only). Registers the walking location, the interaction handlers, the return cab, and the typed conversation panel.
-   The conversation is LOCAL (zen-chat.js): not an AI, no network. Nothing here is saved except the map fog (written by temple-build.js) and the sky-cab trip record (sky-cab.js). */
+   The conversation is LOCAL (zen-chat.js): not an AI, no network. Nothing here is saved except the map fog (written by temple-build.js) and the taxi's own trip record (road-taxi-rules.js). */
 (function(root){
  'use strict';
  const T=root.VoidTemple,Z=root.VoidZenChat;if(!T||!Z||typeof document==='undefined')return;
@@ -10,7 +10,7 @@
   const note=t=>{done();try{announce(t);}catch{}};
   const R=(a,f)=>VoidInteractions.register(a,f);
   const chat=Z.create();T.chat=chat;   // a future API dialogue registers on T.chat.registerProvider(...) and is switched on with T.chat.enableProvider(true); it is OFF by default
-  R('temple-cab',()=>{const w=walker;if(!root.VoidSkyCab?.ride){note('The sky cab is not available.');return;}root.VoidSkyCab.ride('neochinatown',{from:{spawn:[w.x,1.7,w.z],yaw:w.yaw},paid:0});});
+  R('temple-cab',()=>{done();if(!root.VoidRoadTaxi?.returnFrom){note('The taxi is not available.');return;}root.VoidRoadTaxi.returnFrom('temple','cab');});
   R('temple-altar',({item})=>note(T.ALTAR_TEXT[item?.altar]||'DATA ALTAR: the glass is warm and still.'));
   R('temple-incense',()=>note('Blue-flame incense. It burns without smoke and smells faintly of warm metal and rain.'));
   R('temple-overlook',()=>note('Far below to the south-east the city glows through the mist: towers, traffic, neon. From here it is almost silent.'));

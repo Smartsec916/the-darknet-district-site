@@ -10,7 +10,7 @@ test('mission NPCs, voices and dialogue are preserved',()=>{const voices=JSON.pa
 test('the door spawn stands outside the closed door, clear of walls',()=>{const place=N.layout(),E=require('../void-runner/exploration-controller.js');const [x,z]=N.toWorld(0,17);assert(!E.blocked(x,z,place));const door=place.solids.find(s=>s.id==='district-door');assert.equal(Math.abs(door.position[2]-z),3);});
 test('the Kestrel and its boarding prompt are hidden for new campaigns but kept for existing saves',()=>{
  const src=fs.readFileSync('void-runner/neochinatown.js','utf8'),V=require('../void-runner/story.js'),board=N.layout().interactions.find(i=>i.id==='board');
- assert(src.includes("shipAccess!=='none'){const ship=shipModel('starter'"),'the pad ship is only built when the pool is not closed');
+ assert(src.includes("shipAccess!=='none'&&(!QK||QK==='port')){const ship=shipModel('starter'"),'the pad ship is only built when the pool is not closed');
  assert(board&&board.when,'the boarding prompt is conditional');
  assert.equal(V.matches(started(),board.when),false,'new campaign: no prompt');
  const old=C.restore(JSON.stringify(Object.assign(C.fresh(),{location:'earth',quest:'open'})));

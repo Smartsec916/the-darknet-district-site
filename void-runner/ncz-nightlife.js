@@ -42,6 +42,11 @@
  // The street's standing crew (neochinatown.js): walkers step round them.
  const standing=[[52.6,-40],[69.4,-78],[52.6,-100],[34,-6.6],[98,-18.4]];
  const remarks=['Whoa. The pavement\'s moving again.','Have you seen my taxi? It was right… somewhere.','Love this city. Love it. Hate it. Love it.','One more noodle bar. Then home. Probably.','Is it Tuesday? Feels like a Tuesday.','I\'m fine. I\'m great. I\'m sitting down.'];
+ // The lanes of one quarter (ncz-quarters.js): Main Street's stop short of the North Gate, the avenue's run between its two gates, the Port has none.
+ // `share` is that quarter's part of the whole city's crowd, so the same number of people are spread over the three quarters as walked the one city.
+ const CLIP={oldtown:{'main-west':[[52.6,-121],[52.6,-27.6]],'main-east':[[69.4,-121],[69.4,-27.6]],alley:null},avenue:{'avenue-north':[[12.5,-6.6],[141.5,-6.6]],'avenue-south':[[12.5,-17.7],[141.5,-17.7]]},port:{}};
+ function lanesFor(quarter){const c=CLIP[quarter];if(!c)return lanes;return lanes.filter(l=>l.id in c).map(l=>c[l.id]?{...l,a:c[l.id][0],b:c[l.id][1],...(l.id==='avenue-south'?{half:.6}:{})}:l);}   /* the avenue's south pavement keeps clear of the North Gate's doors and guards */
+ const weightOf=ls=>ls.reduce((s,l)=>s+l.weight,0),share=quarter=>CLIP[quarter]?weightOf(lanesFor(quarter))/weightOf(lanes):1;
  const len=l=>Math.hypot(l.b[0]-l.a[0],l.b[1]-l.a[1]);
  // A point along a lane at distance t, pushed sideways by `side` metres (positive = toward the wall).
  function at(l,t,side=0){const L=len(l),k=Math.max(0,Math.min(1,t/L)),x=l.a[0]+(l.b[0]-l.a[0])*k,z=l.a[1]+(l.b[1]-l.a[1])*k;return [x+l.wall[0]*side,z+l.wall[1]*side];}
@@ -49,9 +54,10 @@
  const clearAt=p=>!keepClear.some(([x,z,r])=>Math.hypot(p[0]-x,p[1]-z)<r);
  const canLean=(l,t)=>{const p=at(l,t);const s=l.id.startsWith('main')?p[1]:p[0];return clearAt(p)&&!(l.noLean||[]).some(([a,b])=>s>a&&s<b);};
  // Who walks where: lanes weighted by liveliness, drunks only on nightlife lanes, some pairs.
- function plan(quality='medium',rnd=Math.random,cfg=config){
+ function plan(quality='medium',rnd=Math.random,cfg=config,quarter=null){
   if(quality==='ultra')quality='high';
-  const n=cfg.walkers[quality]??cfg.walkers.medium,people=[];if(!n)return people;
+  const all=lanes,part=share(quarter);{const lanes=lanesFor(quarter);if(!lanes.length||!weightOf(lanes))return [];
+  const n=Math.round((cfg.walkers[quality]??cfg.walkers.medium)*part),people=[];if(!n)return people;void all;
   const total=lanes.reduce((s,l)=>s+l.weight,0),drunks=Math.max(n>=8?1:0,Math.round(n*cfg.drunkShare));
   const pickLane=(night)=>{const pool=lanes.filter(l=>!night||l.nightlife),w=pool.reduce((s,l)=>s+l.weight,0);let r=rnd()*w;for(const l of pool){r-=l.weight;if(r<=0)return l;}return pool[0];};
   let drunkPlaced=0;for(let i=0;i<n;i++){const drunk=drunkPlaced<drunks;if(drunk)drunkPlaced++;const l=pickLane(drunk),L=len(l),dir=rnd()<.5?1:-1,t=4+rnd()*(L-8);
@@ -64,13 +70,13 @@
   const counts=cfg.standers[quality]??cfg.standers.medium;let k=0;
   const spot=(wallSide)=>{for(let tries=0;tries<40;tries++){const l=pickLane(false),L=len(l),t=5+rnd()*(L-10),side=wallSide?l.half-.25:(rnd()-.5)*.6,p=at(l,t,side);
     if(clearAt(p)&&!people.some(o=>o.fixed&&Math.hypot(o.x-p[0],o.z-p[1])<4))return {l,t,side,p};}return null;};
-  for(const [kind,n] of Object.entries(counts))for(let i=0;i<n;i++){const s=spot(kind==='shop'||kind==='lean');if(!s)continue;
+  for(const [kind,n0] of Object.entries(counts))for(let i=0,n=Math.round(n0*part);i<n;i++){const s=spot(kind==='shop'||kind==='lean');if(!s)continue;
    const size=kind==='group'?2+(rnd()<.45?1:0):kind==='couple'?2:1,cx=s.p[0],cz=s.p[1];
    for(let j=0;j<size;j++){const a=size>1?j/size*Math.PI*2+rnd()*.4:0,x=cx+(size>1?Math.sin(a)*.55:0),z=cz+(size>1?Math.cos(a)*.55:0);
     // Groups face their middle; window-shoppers face the storefront; leaners face the street.
     const face=size>1?[cx,cz]:kind==='shop'?[x+s.l.wall[0]*2,z+s.l.wall[1]*2]:[x-s.l.wall[0]*2,z-s.l.wall[1]*2];
     people.push({id:'stand-'+(k++),fixed:true,kind,lane:s.l.id,t:s.t,side:s.side,x,z,face,clip:kind==='lean'?(rnd()<.5?'smoke':'idle'):kind==='shop'?(rnd()<.5?'watch':'idle'):'talk'});}}
-  return people;}
+  return people;}}
 
  // Hysteresis uses the main loop's measured frame intervals, never Babylon's unmaintained FPS counter.
  function createBudget(total,cfg=config.fps){let budget=total,warm=0,check=0;
@@ -83,8 +89,9 @@
   }};
  }
  // Browser: figures, routines and reactions.
- function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=['ncz-neon','fixer-01','runner-02','communion-tech','district-resident','hacker-01','outlaw-01','district-smuggler'],drunkCast=['runner-02','ncz-neon'],rnd=Math.random,cfg=config}){
-  const people=plan(quality,rnd,cfg).map(p=>({...p,l:lanes.find(l=>l.id===p.lane),state:'walk',timer:stopIn(p),node:null,anim:null,look:null,react:0,sway:rnd()*6,yaw:0}));
+ function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=['ncz-neon','fixer-01','runner-02','communion-tech','district-resident','hacker-01','outlaw-01','district-smuggler'],drunkCast=['runner-02','ncz-neon'],rnd=Math.random,cfg=config,quarter=null}){
+  const lanes=lanesFor(quarter);
+  const people=plan(quality,rnd,cfg,quarter).map(p=>({...p,l:lanes.find(l=>l.id===p.lane),state:'walk',timer:stopIn(p),node:null,anim:null,look:null,react:0,sway:rnd()*6,yaw:0}));
   const byId=new Map(people.map(p=>[p.id,p]));let remarkCool=8,dealt=Math.floor(rnd()*8),disposed=false;
   const budget=createBudget(people.length,cfg.fps),gov={budget:people.length,fps:0,check:0},cam=()=>scene?.activeCamera?.globalPosition||null;
   function stopIn(p){const [a,b]=p.drunk?cfg.drunkStopEvery:cfg.stopEvery;return a+rnd()*(b-a);}
@@ -104,9 +111,9 @@
    const d=((want-p.yaw+Math.PI*3)%(Math.PI*2))-Math.PI;p.yaw+=d*Math.min(1,dt*(p.drunk?2.5:5));p.node.position.set(x,0,z);p.node.rotation.y=p.yaw;}
   // Frame-rate governor and distance culling: the people nearest the camera stay; the rest are switched off.
   function density(dt){const c=cam(),metrics=root.VoidFrameMetrics?.stats;gov.fps=metrics?.fps||0;gov.budget=budget.step(Math.min((metrics?.interval||0)/1000,2),metrics);gov.check-=dt;
-   if(c&&gov.check<=0){gov.check=.2;
+   if(c&&gov.check<=0){gov.check=.2;const zf=(root.VoidZoom?root.VoidZoom.now():1);   // zoomed with the camera app: far people count as near (zoom-detail.js)
     const shown=people.filter(p=>p.node&&!p.away).map(p=>({p,d:Math.hypot(p.node.position.x-c.x,p.node.position.z-c.z)})).sort((a,b)=>a.d-b.d);
-    shown.forEach(({p,d},i)=>p.show=d<cfg.showRadius&&(i<gov.budget||d<10));
+    shown.forEach(({p,d},i)=>p.show=d*zf<cfg.showRadius&&(i<gov.budget||d*zf<10));
    }
    for(const p of people){if(!p.node)continue;const to=p.show&&!p.away?1:0;p.fade=Math.max(0,Math.min(1,(p.fade||0)+(to?1:-1)*dt/(cfg.fps.fade||.65)));
     const on=p.fade>0;if(p.node.isEnabled()!==on)p.node.setEnabled(on);p.anim?.setActive?.(on);p.hidden=!on;
@@ -124,7 +131,7 @@
     if(p.fixed)continue;
     if(p.away){p.away-=dt;if(p.away<=0)comeBack(p);continue;}
     if(p.hidden)continue;
-    const far=me&&Math.hypot(p.node.position.x-me.x,p.node.position.z-me.z)>cfg.activeRadius;if(far)continue;
+    const far=me&&Math.hypot(p.node.position.x-me.x,p.node.position.z-me.z)*(root.VoidZoom?root.VoidZoom.now():1)>cfg.activeRadius;if(far)continue;
     p.timer-=dt;p.react=Math.max(0,p.react-dt);p.sway+=dt*(p.drunk?1.6:0);
     const lead=p.friendOf?byId.get(p.friendOf):p.pairOf?byId.get(p.pairOf):null;
     if(lead?.node){// Friends keep pace beside their friend, stop when they stop.
@@ -152,6 +159,6 @@
   function sideOf(l,o){const p=[o.node.position.x,o.node.position.z],L=len(l),ux=(l.b[0]-l.a[0])/L,uz=(l.b[1]-l.a[1])/L,t=along(l,p),bx=l.a[0]+ux*t,bz=l.a[1]+uz*t;return (p[0]-bx)*l.wall[0]+(p[1]-bz)*l.wall[1];}
   function dispose(){disposed=true;for(const p of people)p.node?.dispose(false,false);people.length=0;}
   return {tick,dispose,people,stats,config:cfg};}
- const api={config,lanes,keepClear,standing,remarks,plan,at,canLean,start,createBudget};
+ const api={config,lanes,lanesFor,share,keepClear,standing,remarks,plan,at,canLean,start,createBudget};
  if(typeof module!=='undefined')module.exports=api;else root.VoidNightlife=api;
 })(globalThis);

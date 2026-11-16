@@ -52,7 +52,7 @@
    if(disposed)return;clock+=dt;const c=cam(),me=player();if(!asked&&clock>3&&typeof mode!=='undefined'&&mode==='walking')askForLooks();
    for(const p of people){
     if(!p.node){spawn(p);continue;}
-    const far=c?Math.hypot(c.x-p.x,c.z-p.z)>cfg.showRadius:false;if(p.node.isEnabled()===far)p.node.setEnabled(!far);if(far)continue;
+    const far=c?Math.hypot(c.x-p.x,c.z-p.z)*(root.VoidZoom?root.VoidZoom.now():1)>cfg.showRadius:false;   /* judged as the picture shows it when the camera app is zoomed (zoom-detail.js) */if(p.node.isEnabled()===far)p.node.setEnabled(!far);if(far)continue;
     // Someone close (or, for the watcher, someone at the District door) draws a look; afterwards they turn back to what they were doing.
     p.cool=Math.max(0,p.cool-dt);
     if(me){const d=Math.hypot(me.x-p.x,me.z-p.z),atDoor=p.watchesDoor&&Math.hypot(me.x-DOOR[0],me.z-DOOR[1])<cfg.doorWatchRadius;

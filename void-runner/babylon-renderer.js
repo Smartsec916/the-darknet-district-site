@@ -1176,16 +1176,16 @@
       await task.wait('scene',()=>scene.whenReadyAsync(),'workshop');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
-    // Separate areas built by their own modules: the Corporate District (corporate.js, corporate-build.js), the inside of Milked (milked-build.js) and the sky-cab interior (sky-cab.js). The handle is {tick(time,player), dispose()}.
-    if((def.corporate&&root.VoidCorporate?.build)||(def.temple&&root.VoidTemple?.build)||(def.skycab&&root.VoidSkyCab?.build)||(def.milked&&root.VoidMilked?.build)){
+    // Separate areas built by their own modules: the Corporate District (corporate.js, corporate-build.js), and the inside of Milked (milked-build.js). The handle is {tick(time,player), dispose()}.
+    if((def.corporate&&root.VoidCorporate?.build)||(def.temple&&root.VoidTemple?.build)||(def.milked&&root.VoidMilked?.build)){
       crowdLocation=def.id;root.VoidCrowd?.begin();
-      zoneHandle=(def.corporate?root.VoidCorporate:def.temple?root.VoidTemple:def.milked?root.VoidMilked:root.VoidSkyCab).build({scene,parent:roomRoot,quality,def,camera,characterModel,state:typeof state!=='undefined'?state:{}});
+      zoneHandle=(def.corporate?root.VoidCorporate:def.temple?root.VoidTemple:root.VoidMilked).build({scene,parent:roomRoot,quality,def,camera,characterModel,state:typeof state!=='undefined'?state:{}});
       await task.wait(def.corporate||def.temple?'area':'scene',()=>scene.whenReadyAsync(),def.id);
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
     if(def.district&&root.VoidNeoChinatown){
       crowdLocation='neochinatown';root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,{...(root.VoidCrowd?.models('neochinatown',quality,def.area||'all')||{}),...((VoidNeoChinatown.modelsFor?VoidNeoChinatown.modelsFor(def.area||'all'):VoidNeoChinatown.models)||{})},task),'district models');
-      districtHandle=VoidNeoChinatown.build({scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{},area:def.area||'all',instance:(id,parent,only)=>VoidAssets.instance(id,parent,only)});landBoarding(def);
+      districtHandle=VoidNeoChinatown.build({scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{},area:def.area||'all',quarter:def.quarter||null,instance:(id,parent,only)=>VoidAssets.instance(id,parent,only)});landBoarding(def);
       await task.wait('scene',()=>scene.whenReadyAsync(),'neochinatown');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }

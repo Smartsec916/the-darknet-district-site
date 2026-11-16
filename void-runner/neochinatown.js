@@ -16,6 +16,8 @@
   // The District keeps its own plan (the local metres below, door at local 0,20), turned a half turn so its
   // door faces the alley and the hallway runs south. A half turn is its own inverse: toWorld also maps back.
   const MK=typeof module!=='undefined'?require('./milked.js'):root.VoidMilked;
+  // The three quarters and the checkpoints between them (ncz-quarters.js): which quarter a build makes, and the gates' collision.
+  const QT=typeof module!=='undefined'?require('./ncz-quarters.js'):root.VoidQuarters;
   const DOOR={x:126.9,z:-61.9};
   const toWorld=(x,z)=>[DOOR.x-x,DOOR.z+20-z];
   const streets={avenue:[2,152,-20,-5],main:[51,71,-124,-20],alley:[71,136,-61.6,-55.5],road:[13,51,-121,-116],passage:[37.5,44,-116,-92],pad:[13,37.5,-106,-86],
@@ -26,11 +28,14 @@
     milkedLane:MK.LANE,milkedAlley:MK.ALLEY};
   // Future districts: placeholders until David supplies their designs. Each streams its own detail as you approach.
   const districts=[
-    {id:'corporate',name:'Corporate District',lines:['CORPORATE DISTRICT','SKY CAB DEPARTURES'],rect:streets.corporate,center:[-90,-12.5],taxi:[-90,-12.5],heading:Math.PI/2,placeholder:false,built:true,scene:'corporate'},
+    {id:'corporate',name:'Corporate District',lines:['CORPORATE DISTRICT','FUNCTION GATE'],rect:streets.corporate,center:[-90,-12.5],taxi:[-90,-12.5],heading:Math.PI/2,placeholder:false,built:true,scene:'corporate',retired:true},
     {id:'milked',name:'Milked',lines:['MILKED','LIVE BROADCAST STUDIOS'],rect:MK.BOUNDS.rect,center:[(MK.FOOTPRINT[0]+MK.FOOTPRINT[1])/2,(MK.FOOTPRINT[2]+MK.FOOTPRINT[3])/2],taxi:MK.TAXI.position,heading:MK.TAXI.heading,placeholder:false,built:true},
-    {id:'containers',name:'Container Settlement',lines:['CONTAINER SETTLEMENT','PLACEHOLDER'],rect:streets.containers,center:[65,-220],taxi:[65,-215],heading:0,placeholder:true}];
+    {id:'containers',name:'Container Settlement',lines:['CONTAINER SETTLEMENT','PLACEHOLDER'],rect:streets.containers,center:[65,-220],taxi:[65,-215],heading:0,placeholder:true,retired:true}];   // retired: behind a shut gate since the quarters (2026-11-16); nothing of theirs is built on the street
   // Taxi landing zones: open street wide enough for the cab, clear of doors, the ship and the sidewalk crowd.
-  const taxiZones=[{id:'main',name:'Main Street',position:[61,-100],heading:0},{id:'avenue',name:'The avenue',position:[40,-12.5],heading:Math.PI/2},{id:'alley-mouth',name:'Main Street by the alley',position:[61,-66],heading:0},{id:'passage',name:'The passage by the landing pad',position:[40.75,-101],heading:0},
+  // Since the quarters (2026-11-16) these are the road taxis' kerbside stops (ncz-quarters.js STOPS); the sky cabs and their landing zones are gone.
+  // LEGACY_ZONES: where the old zones were. Only the overhead-cable layout still reads it, so the cables hang where they always did.
+  const taxiZones=QT.STOPS.map(s=>({id:s.id,name:s.name,position:s.position.slice(),heading:s.heading,quarter:s.quarter}));
+  const LEGACY_ZONES=[{id:'main',name:'Main Street',position:[61,-100],heading:0},{id:'avenue',name:'The avenue',position:[40,-12.5],heading:Math.PI/2},{id:'alley-mouth',name:'Main Street by the alley',position:[61,-66],heading:0},{id:'passage',name:'The passage by the landing pad',position:[40.75,-101],heading:0},
     ...districts.map(d=>({id:d.id,name:d.name,position:d.taxi,heading:d.heading,district:d.id}))];
   // Places with their own walls: the District (with its front wall on the alley) and the roof terrace.
   // The nightclub (ncz-nightclub.js) is on a local server only until its licence is cleared; elsewhere nothing below changes.
@@ -133,17 +138,21 @@
   // scanner) belongs to both 'street' and 'interior', so the player stands in the same vestibule when one replaces the other.
   const ENTRANCE=new Set(['district-door','district-inner-door','district-front-west','district-front-east','vestibule-west','vestibule-east']);
   const insideSide=item=>{const a=zone({x:item.position[0],z:item.position[2]}).area;return a==='district'||a==='terrace';};
-  function layout(area='all'){
+  // quarter (street only): 'port' | 'oldtown' | 'avenue'. The layout of that quarter: the same city, plus its gates' walls and doors, its own spawn and name.
+  function layout(area='all',quarter=null){
     const l=fullLayout();if(area==='all')return l;
     const keep=area==='interior'?insideSide:i=>!insideSide(i)||ENTRANCE.has(i.id),base={...l,area,solids:l.solids.filter(keep),interactions:l.interactions.filter(keep)};
-    if(area==='street')return base;
+    if(area==='street'){const q=QT.valid(quarter),Q=q&&QT.QUARTERS[q];return Q?{...base,quarter:q,quarterName:Q.name,spawn:Q.spawn.slice(),yaw:Q.yaw,solids:[...base.solids,...QT.solids(q)]}:base;}
     const [x,z]=toWorld(0,22.5);delete base.ship;
     return {...base,name:'THE DARKNET DISTRICT',spawn:[x,1.7,z],yaw:Math.PI};
   }
 
   // ---- Presentation -------------------------------------------------------
   const ads=()=>(root.VoidAds?.brands||[]).map(b=>b.id);
-  function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance,area='all'}){
+  function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance,area='all',quarter=null}){
+    // QK: the one quarter this street build makes (null: the whole city, as before the quarters). `free` lifts the test for pieces placed by a parent.
+    const QK=area==='street'?QT.valid(quarter):null;let free=false;const inCore=(x,z)=>x>=-6&&x<=160&&z>=-130&&z<=2,roofPiece=/^(water-tank|dish)$/;
+    const dropped=(name,p)=>!!QK&&!free&&target===parent&&inCore(p[0],p[2])&&!(roofPiece.test(name)?QT.keepBuilding(QK,p[0],p[2]):QT.keepDetail(QK,p[0],p[2]));
     const B=root.BABYLON,low=quality==='low',owned=[],districtRoot=new root.BABYLON.TransformNode('district-root',scene);let target=parent,disposed=false;districtRoot.parent=parent;districtRoot.position.set(DOOR.x,0,DOOR.z+20);districtRoot.rotation.y=Math.PI;const textures=[],staticMeshes=new Map(),dynamic=[],v=(x,y,z)=>new B.Vector3(x,y,z);
     // A previous build's handles (club, streaming city, booths) belong to a released environment; clear them so nothing reads them.
     if(root.VoidNeoChinatown)for(const k of ['city','nightclub','booths','podPick','podHover'])root.VoidNeoChinatown[k]=undefined;
@@ -171,13 +180,13 @@
     // `framed`: while it is a list, every mesh added is noted, so a finished section can be moved as one rigid piece (the Sleeping Pods are built where they always
     // were and then set down at the back of the building).
     let framed=null;
-    function add(mesh,m,p,merge=true){if(discard){mesh.dispose();return mesh;}if(framed)framed.push(mesh);mesh.material=m;mesh.position.set(...p);mesh.parent=target;mesh.isPickable=false;mesh.receiveShadows=false;if(merge){if(!staticMeshes.has(m))staticMeshes.set(m,[]);staticMeshes.get(m).push(mesh);}else dynamic.push(mesh);return mesh;}
+    function add(mesh,m,p,merge=true){if(discard||dropped(mesh.name,p)){mesh.dispose();return mesh;}if(framed)framed.push(mesh);mesh.material=m;mesh.position.set(...p);mesh.parent=target;mesh.isPickable=false;mesh.receiveShadows=false;if(merge){if(!staticMeshes.has(m))staticMeshes.set(m,[]);staticMeshes.get(m).push(mesh);}else dynamic.push(mesh);return mesh;}
     const box=(name,size,p,m,merge=true)=>add(B.MeshBuilder.CreateBox(name,{width:size[0],height:size[1],depth:size[2]},scene),m,p,merge);
     const cyl=(name,r,h,p,m,merge=true,t=12)=>add(B.MeshBuilder.CreateCylinder(name,{diameter:r*2,height:h,tessellation:t},scene),m,p,merge);
     function texture(name,w,h,draw){const t=new B.DynamicTexture('ncz-'+name,{width:w,height:h},scene,true);draw(t.getContext(),w,h);t.update();textures.push(t);return t;}
     function texMat(name,t,{glow=false,alpha=false}={}){const m=new B.StandardMaterial('ncz-'+name,scene);owned.push(m);if(glow){m.diffuseColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;}else{m.diffuseTexture=t;m.specularColor=new B.Color3(.08,.08,.1);}if(alpha){m.opacityTexture=t;}return m;}
     function plane(name,w,h,p,m,ry=0,merge=false){const mesh=B.MeshBuilder.CreatePlane(name,{width:w,height:h,sideOrientation:B.Mesh.DOUBLESIDE},scene);add(mesh,m,p,merge);mesh.rotation.y=ry;return mesh;}
-    function neon(name,lines,colors,w,h,p,ry=0,bg='rgba(0,0,0,0)',frontOnly=false){const t=texture(name,512,Math.round(512*h/w),(g,W,H)=>{g.fillStyle=bg;g.fillRect(0,0,W,H);const n=lines.length;lines.forEach((text,i)=>{const size=Math.min(H/n*.62,W/(Math.max(4,text.length)*.62));g.font='bold '+size+'px "Noto Sans SC","Microsoft YaHei",sans-serif';g.textAlign='center';g.textBaseline='middle';const c=colors[i%colors.length];g.shadowColor=c;g.shadowBlur=18;g.fillStyle=c;g.fillText(text,W/2,H*(i+.5)/n);g.shadowBlur=0;g.fillStyle='rgba(255,255,255,.85)';g.fillText(text,W/2,H*(i+.5)/n);});});const material=texMat(name,t,{glow:true,alpha:true});if(!frontOnly)return plane(name,w,h,p,material,ry);const mesh=B.MeshBuilder.CreatePlane(name,{width:w,height:h,sideOrientation:B.Mesh.FRONTSIDE},scene);add(mesh,material,p,false);mesh.rotation.y=ry;return mesh;}
+    function neon(name,lines,colors,w,h,p,ry=0,bg='rgba(0,0,0,0)',frontOnly=false){if(dropped(name,p)){const none=new B.Mesh(name,scene);none.dispose();return none;}const t=texture(name,512,Math.round(512*h/w),(g,W,H)=>{g.fillStyle=bg;g.fillRect(0,0,W,H);const n=lines.length;lines.forEach((text,i)=>{const size=Math.min(H/n*.62,W/(Math.max(4,text.length)*.62));g.font='bold '+size+'px "Noto Sans SC","Microsoft YaHei",sans-serif';g.textAlign='center';g.textBaseline='middle';const c=colors[i%colors.length];g.shadowColor=c;g.shadowBlur=18;g.fillStyle=c;g.fillText(text,W/2,H*(i+.5)/n);g.shadowBlur=0;g.fillStyle='rgba(255,255,255,.85)';g.fillText(text,W/2,H*(i+.5)/n);});});const material=texMat(name,t,{glow:true,alpha:true});if(!frontOnly)return plane(name,w,h,p,material,ry);const mesh=B.MeshBuilder.CreatePlane(name,{width:w,height:h,sideOrientation:B.Mesh.FRONTSIDE},scene);add(mesh,material,p,false);mesh.rotation.y=ry;return mesh;}
     // Tessaly ads are painted locally (ad-art.js): ship parts, weapons, security, labour.
     const adMats={},adIds=ads();function adMat(id){if(adMats[id])return adMats[id];const brand=root.VoidAds.brands.find(b=>b.id===id)||root.VoidAds.brands[0];const t=texture('ad-'+brand.id,low?256:512,low?384:768,(g,W,H)=>root.VoidAds.paint(g,W,H,brand));const m=new B.StandardMaterial('ncz-ad-'+brand.id,scene);m.diffuseColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;owned.push(m);adMats[id]=m;return m;}
     let adIndex=0;const nextAd=()=>adIds[(adIndex++)%adIds.length];
@@ -209,7 +218,7 @@
     // ---- Streets, landing pad and skyline (world metres, David's map 2026-10-26) ----
     const S=streets,overlaps=(x0,x1,z0,z1,m=.4)=>[...Object.values(S),...Object.values(footprints)].some(([a,b,c,d])=>x0<b+m&&x1>a-m&&z0<d+m&&z1>c-m);
     // Ground surfaces keep a 10 m texture repeat whatever their size.
-    function ground(name,[x0,x1,z0,z1],m,y=0,repeat=10){const g=add(B.MeshBuilder.CreateGround(name,{width:x1-x0,height:z1-z0},scene),m,[(x0+x1)/2,y,(z0+z1)/2]);g.setVerticesData(B.VertexBuffer.UVKind,g.getVerticesData(B.VertexBuffer.UVKind).map((u,i)=>u*(i%2?(z1-z0):(x1-x0))/repeat));return g;}
+    function ground(name,[x0,x1,z0,z1],m,y=0,repeat=10){const was=free;free=!QK||QT.region(QK).some(([a,b,c,d])=>x0<b&&x1>a&&z0<d&&z1>c);const g=add(B.MeshBuilder.CreateGround(name,{width:x1-x0,height:z1-z0},scene),m,[(x0+x1)/2,y,(z0+z1)/2]);free=was;if(g.isDisposed())return g;g.setVerticesData(B.VertexBuffer.UVKind,g.getVerticesData(B.VertexBuffer.UVKind).map((u,i)=>u*(i%2?(z1-z0):(x1-x0))/repeat));return g;}
     asphaltTex.uScale=asphaltTex.vScale=1;asphaltTex.wrapU=asphaltTex.wrapV=B.Texture.WRAP_ADDRESSMODE;
     // Upgraded surfaces (ambientCG, CC0; docs/VOID_RUNNER_ASSET_LICENSES.md): roads, paving, alley brick, night facades.
     const acg=name=>{const url=(base?new URL('assets/textures/ncz/'+name+'.jpg',base).href:'assets/textures/ncz/'+name+'.jpg'),t=new B.Texture(url,scene,false,true);t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;textures.push(t);return t;};
@@ -241,7 +250,7 @@
     // Where the pack's models are installed, a block's visible buildings and shopfronts come from them. Collision,
     // interactions, streets, signs and kiosks are unchanged; without the models the procedural block stays.
     // Models face +z as converted (tools/animation-pipeline/pack_to_glb.py); `yaw` turns them to face the street.
-    const piece=(key,only,p,yaw)=>{const n=modelInstance?.('ncz:'+key,target,only);if(!n)return null;n.position.set(...p);n.rotation.y=yaw;for(const m of n.getChildMeshes()){m.isPickable=false;m.receiveShadows=false;}return n;};
+    const piece=(key,only,p,yaw)=>{if(dropped(key,p))return null;const n=modelInstance?.('ncz:'+key,target,only);if(!n)return null;n.position.set(...p);n.rotation.y=yaw;for(const m of n.getChildMeshes()){m.isPickable=false;m.receiveShadows=false;}return n;};
     const upgraded=[];
     // Block A (prototype, 2026-10-31): Main Street's west side across from the alley mouth. An apartment block over a
     // row of street stalls fronts the street from z -76.6 to -49.4, replacing two procedural plots.
@@ -271,6 +280,11 @@
      box('club-canopy',[1.7,.14,D.half*2+2.4],[R[1]+.85,D.height+.35,D.z],frame);box('club-canopy-light',[1.4,.05,D.half*2+2],[R[1]+.85,D.height+.26,D.z],hot);
      neon('club-sign',[club.NAME||'NIGHTCLUB'],['#eafcff'],8.4,2.6,[R[1]+.08,6.1,D.z],-Math.PI/2,'rgba(10,6,20,.92)');   // the club's name comes from ncz-nightclub.js (NAME), so it is changed in one place
      box('club-door-glow',[3,.02,D.half*2+3],[R[1]+1.6,.05,D.z],glowMat('club-spill','#ff3fb4',.22));
+     // The entry passage (ncz-nightclub.js ENTRY): two walls, a ceiling, a floor runner, and an empty door frame at each end, lit by a strip in each colour.
+     {const E=club.ENTRY,[ex0,,ez0,ez1]=E.rect,ex1=R[1]-1,len=ex1-ex0,mx=(ex0+ex1)/2,eh=E.height,lining=mat('club-entry','#1c1826',{rough:.4,metal:.75}),runner=mat('club-runner','#2a0f24',{rough:.85,metal:.05});
+      for(const [z,s] of [[ez0-E.wall/2,-1],[ez1+E.wall/2,1]]){box('club-entry-wall',[len,eh+.3,E.wall],[mx,(eh+.3)/2,z],front);box('club-entry-lining',[len-.3,eh-.9,.04],[mx,(eh-.9)/2+.45,z-s*(E.wall/2+.02)],lining);box('club-entry-strip',[len-.4,.05,.05],[mx,eh-.25,z-s*(E.wall/2+.05)],s<0?hot:ice);box('club-entry-kick',[len-.3,.1,.05],[mx,.05,z-s*(E.wall/2+.03)],frame);}
+      box('club-entry-ceiling',[len,.3,ez1-ez0+E.wall*2],[mx,eh+.15,D.z],front);box('club-entry-runner',[len+1,.02,ez1-ez0-.3],[mx+.5,.03,D.z],runner);
+      for(const d of [E.doors.outer,E.doors.inner]){for(const s of [-1,1])box('club-entry-frame',[.16,eh,.14],[d.x,eh/2,d.z+s*(d.half-.07)],frame);box('club-entry-frame-head',[.16,.16,d.half*2],[d.x,eh-.08,d.z],frame);box('club-entry-threshold',[.2,.025,d.half*2-.28],[d.x,.035,d.z],mat('club-threshold','#3a3d42',{rough:.45,metal:.8}));}}
      clubShutter=box('club-shutter',[.1,D.height,D.half*2],[R[1]-.5,D.height/2,D.z],mat('club-shutter','#0d0b14',{rough:.5,metal:.9}),false);}
     for(const e of edges){
      const len=Math.hypot(e.b[0]-e.a[0],e.b[1]-e.a[1]),wide=e.street==='avenue'||e.street==='main',sw=wide?3:e.street==='road'?1.5:0,ry=faceInto(e.n);
@@ -295,7 +309,7 @@
     for(const [x,z] of [[15.4,-103.6],[32.6,-103.6],[15.4,-88.4],[32.6,-88.4]])cyl('pad-light',.2,.14,[x,.14,z],amber,true,8);
     for(let i=0;i<4;i++)box('pad-stripe',[18,.02,.25],[24,.13,-104+i*5.3],glowMat('pad-stripe','#f2b33d',.35));
     // New campaigns have no ship yet (shipAccess 'none'), so the pad stays empty until a mission grants one.
-    if(state?.story?.flags?.shipAccess!=='none'){const ship=shipModel('starter','friendly',parent,{landed:true});ship.position.set(22,1.9,-96);ship.scaling.setAll(2.2);ship.rotation.y=Math.PI;}
+    if(state?.story?.flags?.shipAccess!=='none'&&(!QK||QK==='port')){const ship=shipModel('starter','friendly',parent,{landed:true});ship.position.set(22,1.9,-96);ship.scaling.setAll(2.2);ship.rotation.y=Math.PI;}
     box('terminal-base',[.9,1.3,.6],[35.6,.65,-103],frame);plane('terminal-screen',.8,.55,[35.28,1.45,-103],texMat('landing-terminal',texture('landing-terminal',256,176,(g,W,H)=>{g.fillStyle='#04080e';g.fillRect(0,0,W,H);g.fillStyle='#7ff0ff';g.font='bold 22px monospace';g.fillText('LANDING',20,40);g.fillText('TERMINAL',20,66);g.fillStyle='#ffb347';g.font='15px monospace';g.fillText('PAD 07 · KESTREL',20,104);g.fillText('PARKING: THE FUNCTION',20,128);g.fillText('[E] CONNECT',20,156);}),{glow:true}),-Math.PI/2);
     // Puddles: glossy dark water that catches the haze and the lights, not black holes.
     const puddle=new B.StandardMaterial('ncz-puddle',scene);puddle.diffuseColor=new B.Color3(.02,.03,.04);puddle.specularColor=new B.Color3(.7,.8,.9);puddle.specularPower=180;puddle.emissiveColor=new B.Color3(.05,.1,.115);puddle.alpha=.82;owned.push(puddle);
@@ -306,7 +320,7 @@
     // material instead of one mesh each, so entering NeoChinatown stays quick. Same convention as a Babylon plane:
     // a quad turned by r about y faces (-sin r, 0, -cos r).
     const batches=new Map();
-    function quadAt(m,c,ax,ay,n,w,h,us=1,vs=1){if(discard)return;let b=batches.get(m);if(!b)batches.set(m,b={p:[],n:[],u:[],i:[]});const k=b.p.length/3;for(const [sx,sy,u,vv] of [[-1,-1,0,0],[1,-1,1,0],[1,1,1,1],[-1,1,0,1]]){b.p.push(c[0]+(ax[0]*sx*w+ay[0]*sy*h)/2,c[1]+(ax[1]*sx*w+ay[1]*sy*h)/2,c[2]+(ax[2]*sx*w+ay[2]*sy*h)/2);b.n.push(...n);b.u.push(u*us,vv*vs);}b.i.push(k,k+1,k+2,k,k+2,k+3);}
+    function quadAt(m,c,ax,ay,n,w,h,us=1,vs=1){if(discard||QK&&!QT.keepBuilding(QK,c[0],c[2]))return;let b=batches.get(m);if(!b)batches.set(m,b={p:[],n:[],u:[],i:[]});const k=b.p.length/3;for(const [sx,sy,u,vv] of [[-1,-1,0,0],[1,-1,1,0],[1,1,1,1],[-1,1,0,1]]){b.p.push(c[0]+(ax[0]*sx*w+ay[0]*sy*h)/2,c[1]+(ax[1]*sx*w+ay[1]*sy*h)/2,c[2]+(ax[2]*sx*w+ay[2]*sy*h)/2);b.n.push(...n);b.u.push(u*us,vv*vs);}b.i.push(k,k+1,k+2,k,k+2,k+3);}
     const quad=(m,c,w,h,r,us,vs)=>quadAt(m,c,[Math.cos(r),0,-Math.sin(r)],[0,1,0],[-Math.sin(r),0,-Math.cos(r)],w,h,us,vs);
     // tile: metres one copy of the texture covers ([across, up]); without it a face shows the texture once.
     function cuboid(m,[sx,sy,sz],[x,y,z],tile){const [tw,th]=tile||[sx,sy],us=a=>tile?a/tw:1,vs=tile?sy/th:1;quad(m,[x,y,z-sz/2],sx,sy,0,us(sx),vs);quad(m,[x,y,z+sz/2],sx,sy,Math.PI,us(sx),vs);quad(m,[x+sx/2,y,z],sz,sy,-Math.PI/2,us(sz),vs);quad(m,[x-sx/2,y,z],sz,sy,Math.PI/2,us(sz),vs);quadAt(m,[x,y+sy/2,z],[1,0,0],[0,0,1],[0,1,0],sx,sz);quadAt(m,[x,y-sy/2,z],[1,0,0],[0,0,-1],[0,-1,0],sx,sz);}
@@ -407,15 +421,15 @@
      // Kept out of the glow layer (it would bloom the whole sky).
      const glow=scene.effectLayers?.find(l=>l.name==='void-glow');if(glow)for(const m of skyShells)glow.addExcludedMesh(m);}
     // IronEye drones patrol above the main street and the avenue.
-    const drones=[];const droneBody=mat('ironeye','#1d1f24',{rough:.4,metal:.8});for(let i=0;i<(low?2:4);i++){const n=new B.TransformNode('ironeye-'+i,scene);n.parent=parent;const body=add(B.MeshBuilder.CreateSphere('ironeye-body',{diameter:.9,segments:10},scene),droneBody,[0,0,0],false);body.parent=n;body.scaling.y=.6;const eye=add(B.MeshBuilder.CreateDisc('ironeye-eye',{radius:.16,tessellation:12},scene),red,[0,0,-.46],false);eye.parent=n;for(const s of [-1,1]){const rot=box('ironeye-rotor',[.9,.04,.12],[s*.55,.25,0],frame,false);rot.parent=n;}drones.push({n,phase:i*1.7,x:i<3?61:100,z:i<3?-100+i*30:-12.5});}
+    const drones=[];const droneBody=mat('ironeye','#1d1f24',{rough:.4,metal:.8});for(let i=0;i<(low?2:4);i++){if(QK&&!QT.inQuarter(QK,i<3?61:100,i<3?-100+i*30:-12.5))continue;free=true;const n=new B.TransformNode('ironeye-'+i,scene);n.parent=parent;const body=add(B.MeshBuilder.CreateSphere('ironeye-body',{diameter:.9,segments:10},scene),droneBody,[0,0,0],false);body.parent=n;body.scaling.y=.6;const eye=add(B.MeshBuilder.CreateDisc('ironeye-eye',{radius:.16,tessellation:12},scene),red,[0,0,-.46],false);eye.parent=n;for(const s of [-1,1]){const rot=box('ironeye-rotor',[.9,.04,.12],[s*.55,.25,0],frame,false);rot.parent=n;}drones.push({n,phase:i*1.7,x:i<3?61:100,z:i<3?-100+i*30:-12.5});free=false;}
     // Street pedestrians on the sidewalks.
-    for(const [x,z,i] of [[52.6,-40,1],[69.4,-78,2],[52.6,-100,3],[34,-6.6,4],[98,-18.4,5]])characterModel('crew-ncz'+i,parent,[x,0,z],true);
+    for(const [x,z,i] of [[52.6,-40,1],[69.4,-78,2],[52.6,-100,3],[34,-6.6,4],[98,-18.4,5]])if(!QK||QT.inQuarter(QK,x,z))characterModel('crew-ncz'+i,parent,[x,0,z],true);
     // Nightlife: people walking and standing about on the sidewalks, a few of them drunk (ncz-nightlife.js).
-    const nightlife=root.VoidNightlife&&modelInstance?root.VoidNightlife.start({B,scene,parent,quality,instance:modelInstance}):null;
+    const nightlife=root.VoidNightlife&&modelInstance?root.VoidNightlife.start({B,scene,parent,quality,instance:modelInstance,quarter:QK}):null;
     // The people who stay in the alley by the District (ncz-alley.js): talking, smoking, sitting, watching the door.
-    const alleyLife=root.VoidAlley&&modelInstance?root.VoidAlley.start({scene,parent,quality,instance:modelInstance}):null;
+    const alleyLife=root.VoidAlley&&modelInstance&&(!QK||QK==='oldtown')?root.VoidAlley.start({scene,parent,quality,instance:modelInstance}):null;
     // Two street lights (the District's own lights are added with its rooms).
-    const streetLights=[];if(!low)for(const [p,c,i,r] of [[[61,7,-40],'#ff5bd0',.9,34],[[61,7,-12],'#38e8ff',.8,30]]){const l=new B.PointLight('ncz-street-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=parent;streetLights.push(l);owned.push(l);}
+    const streetLights=[];if(!low)for(const [p,c,i,r] of [[[61,7,-40],'#ff5bd0',.9,34],[[61,7,-12],'#38e8ff',.8,30]]){if(QK&&!QT.inQuarter(QK,p[0],p[2]))continue;const l=new B.PointLight('ncz-street-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=parent;streetLights.push(l);owned.push(l);}
 
     // ---- Alley: old dark brick, counterculture graffiti, pipes and vents ----
     // Old, dirty red brick (ambientCG Bricks097, CC0), darkened toward charcoal by its material.
@@ -452,7 +466,7 @@
      for(const [x,z] of [[107.4,-56.1],[115.2,-56.05],[115.9,-56.2]])cyl('alley-drum',.58,.9,[x,.45,z],drum,true,12);
      for(let k=0;k<4;k++)box('alley-pallet',[1.2,.13,1],[119.2,.07+k*.14,-56.2],pallet);box('alley-seat',[1.7,.46,.7],[93.6,.23,-61.15],rust);box('alley-seat',[.8,.4,.6],[95.1,.2,-61.2],rust);
      box('alley-tube',[1.9,.06,.06],[113,3.15,A[3]-.32],magenta);box('alley-tube',[1.5,.06,.06],[92.4,3.4,A[3]-.32],cyan);box('alley-tube-back',[2.1,.2,.05],[113,3.15,A[3]-.27],frame);box('alley-tube-back',[1.7,.2,.05],[92.4,3.4,A[3]-.27],frame);
-     if(!low&&B.ParticleSystem){const puff=texture('alley-steam',64,64,(g,W,H)=>{g.clearRect(0,0,W,H);const r=g.createRadialGradient(W/2,H/2,2,W/2,H/2,W/2);r.addColorStop(0,'rgba(210,220,230,.5)');r.addColorStop(1,'rgba(210,220,230,0)');g.fillStyle=r;g.fillRect(0,0,W,H);});
+     if(!low&&B.ParticleSystem&&(!QK||QK==='oldtown')){const puff=texture('alley-steam',64,64,(g,W,H)=>{g.clearRect(0,0,W,H);const r=g.createRadialGradient(W/2,H/2,2,W/2,H/2,W/2);r.addColorStop(0,'rgba(210,220,230,.5)');r.addColorStop(1,'rgba(210,220,230,0)');g.fillStyle=r;g.fillRect(0,0,W,H);});
       for(const x of [99,121]){const ps=new B.ParticleSystem('alley-steam',quality==='high'||quality==='ultra'?70:40,scene);ps.particleTexture=puff;ps.emitter=v(x,.05,(A[2]+A[3])/2);ps.minEmitBox=new B.Vector3(-.4,0,-.2);ps.maxEmitBox=new B.Vector3(.4,0,.2);
        ps.direction1=new B.Vector3(-.15,1,-.1);ps.direction2=new B.Vector3(.2,1.4,.1);ps.minEmitPower=.35;ps.maxEmitPower=.7;ps.minLifeTime=2.2;ps.maxLifeTime=4;ps.minSize=.5;ps.maxSize=1.5;ps.emitRate=quality==='high'||quality==='ultra'?14:9;
        ps.color1=new B.Color4(.75,.8,.86,.16);ps.color2=new B.Color4(.9,.8,.85,.1);ps.colorDead=new B.Color4(.8,.8,.85,0);ps.blendMode=B.ParticleSystem.BLENDMODE_STANDARD;ps.gravity=new B.Vector3(.05,.05,0);ps.start();alleySteam.push(ps);}}}
@@ -496,7 +510,7 @@
      art('skull',2.2,2.6,[108.5,3.0,Sx],'s',(g,W,H)=>{g.fillStyle='#d9d6cc';g.beginPath();g.ellipse(W/2,96,78,74,0,0,7);g.fill();g.fillRect(84,140,88,50);g.globalCompositeOperation='destination-out';for(const x of [94,162]){g.beginPath();g.ellipse(x,100,24,28,0,0,7);g.fill();}g.beginPath();g.moveTo(W/2,122);g.lineTo(116,150);g.lineTo(140,150);g.fill();for(let k=0;k<5;k++)g.fillRect(92+k*16,164,4,26);g.globalCompositeOperation='source-over';drips(g,'#d9d6cc',[90,112,134,158],188);});
      // an oil drum with a fire in it, by the alley mouth: the warm light of the reference's left edge
      {const fx=76.6,fz=N-.75;cyl('alley-firedrum',.34,.92,[fx,.46,fz],mat('alley-firedrum','#4a3220',{rough:.8,metal:.5}),true,14);for(const y of [.2,.62])cyl('alley-firedrum-band',.35,.04,[fx,y,fz],frame,true,14);cyl('alley-fire-core',.27,.06,[fx,.9,fz],glowMat('alley-ember','#ff7a1a',1.3),true,12);
-      if(!low){spill('#ff8a2a',4.6,4.6,[fx,.036,fz-1.2],null,.6);spill('#ff8a2a',5,4,[fx,1.9,N-.02],'n',.5);if(B.ParticleSystem){const flame=texture('alley-flame',64,64,(g,W,H)=>{g.clearRect(0,0,W,H);const r=g.createRadialGradient(W/2,H/2,2,W/2,H/2,W/2);r.addColorStop(0,'rgba(255,240,190,1)');r.addColorStop(.4,'rgba(255,150,40,.7)');r.addColorStop(1,'rgba(255,60,0,0)');g.fillStyle=r;g.fillRect(0,0,W,H);});
+      if(!low){spill('#ff8a2a',4.6,4.6,[fx,.036,fz-1.2],null,.6);spill('#ff8a2a',5,4,[fx,1.9,N-.02],'n',.5);if(B.ParticleSystem&&(!QK||QK==='oldtown')){const flame=texture('alley-flame',64,64,(g,W,H)=>{g.clearRect(0,0,W,H);const r=g.createRadialGradient(W/2,H/2,2,W/2,H/2,W/2);r.addColorStop(0,'rgba(255,240,190,1)');r.addColorStop(.4,'rgba(255,150,40,.7)');r.addColorStop(1,'rgba(255,60,0,0)');g.fillStyle=r;g.fillRect(0,0,W,H);});
         const ps=new B.ParticleSystem('alley-fire',60,scene);ps.particleTexture=flame;ps.emitter=v(fx,.92,fz);ps.minEmitBox=new B.Vector3(-.16,0,-.16);ps.maxEmitBox=new B.Vector3(.16,0,.16);ps.minSize=.22;ps.maxSize=.5;ps.minLifeTime=.35;ps.maxLifeTime=.8;ps.emitRate=55;ps.direction1=new B.Vector3(-.12,1,-.12);ps.direction2=new B.Vector3(.12,1.5,.12);ps.minEmitPower=.5;ps.maxEmitPower=1.1;ps.color1=new B.Color4(1,.75,.3,.9);ps.color2=new B.Color4(1,.45,.1,.8);ps.colorDead=new B.Color4(.5,.08,0,0);ps.blendMode=B.ParticleSystem.BLENDMODE_ADD;ps.start();alleySteam.push(ps);}}}
      // the dumpster: sloped lids, side ribs, wheels, stickers; cans on the ground; louvred vents and a steel service door on the north wall
      {const dm=mats['dumpster']||mat('dumpster','#2d4a3a',{rough:.7,metal:.4});for(const dx of [-.66,.66]){const lid=box('dumpster-lid-half',[1.28,.05,1.7],[86+dx,1.44,-57],frame);lid.rotation.x=.16;}for(const dx of [-1.31,1.31])for(const dz of [-.5,0,.5])box('dumpster-rib',[.05,1.1,.1],[86+dx,.68,-57+dz],dm);for(const dx of [-1.05,1.05])for(const dz of [-.62,.62])cyl('dumpster-wheel',.09,.08,[86+dx,.09,-57+dz],frame,true,10).rotation.x=Math.PI/2;
@@ -1228,10 +1242,10 @@
     // ---- Street detail: taxi zones, streaming districts, club, weather ----
     const {clubCtl,streamDistricts,weather,city}=!wantStreet?{clubCtl:null,streamDistricts(){},weather:null,city:{live:new Map(),loads:0,unloads:0}}:(function buildStreetDetail(){
     const {clubShutter,onFace,faceRot,signSpots,bbox,A,decal,graffiti,S,puddle}=sc;
-    // Taxi zones: a painted box and TAXI on the road, so players know where cabs set down.
+    // (The sky cabs' painted landing zones stood here until the quarters, 2026-11-16. The road taxis' kerbside stops are painted by ncz-gates.js; the loop below makes nothing.)
     {const t=texture('taxi-zone',256,256,(g,W,H)=>{g.clearRect(0,0,W,H);g.strokeStyle='rgba(242,179,61,.85)';g.lineWidth=8;g.setLineDash([22,14]);g.strokeRect(10,10,W-20,H-20);g.setLineDash([]);g.fillStyle='rgba(242,179,61,.8)';g.font='bold 64px Consolas,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText('TAXI',W/2,H/2);});t.hasAlpha=true;
      const m=texMat('taxi-zone',t);m.useAlphaFromDiffuseTexture=true;m.emissiveColor=new B.Color3(.35,.25,.08);
-     for(const z of taxiZones){const g=add(B.MeshBuilder.CreateGround('taxi-zone',{width:5,height:7},scene),m,[z.position[0],.03,z.position[1]],false);g.rotation.y=z.heading||0;}}
+     for(const z of []){const g=add(B.MeshBuilder.CreateGround('taxi-zone',{width:5,height:7},scene),m,[z.position[0],.03,z.position[1]],false);g.rotation.y=z.heading||0;}}
     // ---- Future districts: placeholders that stream (city expansion, 2026-10-27) ----
     // Each district's own detail is built when the camera comes within 90 m and disposed beyond 140 m. The streets, walls
     // and surrounding buildings are always there. A placeholder holds no game state, so loading it again changes nothing.
@@ -1249,12 +1263,12 @@
      for(const [px,pz] of [[x0+1,z0+1],[x1-1,z0+1],[x0+1,z1-1],[x1-1,z1-1]]){const b=B.MeshBuilder.CreateBox('district-bollard',{width:.3,height:.5,depth:.3},scene);b.material=lamp;b.parent=node;b.position.set(px,.25,pz);b.isPickable=false;}
      return {dispose(){node.dispose(false,true);for(const x of own)x.dispose();}};}
     const rectDistance=([x0,x1,z0,z1],x,z)=>Math.hypot(Math.max(x0-x,0,x-x1),Math.max(z0-z,0,z-z1));
-    function streamDistricts(cam){if(!cam)return;for(const d of districts){const near=rectDistance(d.rect,cam.x,cam.z),live=city.live.get(d.id);
+    function streamDistricts(cam){if(!cam)return;for(const d of districts){if(d.retired||QK&&!QT.inQuarter(QK,d.center[0],d.center[1]))continue;const near=rectDistance(d.rect,cam.x,cam.z)*(root.VoidZoom?root.VoidZoom.now():1),live=city.live.get(d.id);   /* zoomed in, a far building is built as if near (zoom-detail.js) */
      if(!live&&near<90){city.live.set(d.id,placeholder(d));city.loads++;}else if(live&&near>140){live.dispose();city.live.delete(d.id);city.unloads++;}}}
     root.VoidNeoChinatown&&(root.VoidNeoChinatown.city=city);
     let weather=null;
     // The club itself streams in when the player comes near and out again when they leave (ncz-nightclub.js).
-    const clubCtl=club&&root.VoidAssets?club.create({B,scene,parent,quality,assets:root.VoidAssets,getSolids:()=>typeof walkingLocation!=='undefined'?walkingLocation?.solids:null,onChange:open=>{if(clubShutter)clubShutter.setEnabled(!open);}}):null;
+    const clubCtl=club&&root.VoidAssets&&(!QK||QK==='oldtown')?club.create({B,scene,parent,quality,assets:root.VoidAssets,getSolids:()=>typeof walkingLocation!=='undefined'?walkingLocation?.solids:null,onChange:open=>{if(clubShutter)clubShutter.setEnabled(!open);}}):null;
     root.VoidNeoChinatown&&(root.VoidNeoChinatown.nightclub=clubCtl);
     // ---- Street detail: neon light spill, blade signs, wall lamps, cables, graffiti, the District's front, rain ----
     {const saved=target;target=parent;
@@ -1286,7 +1300,7 @@
      // Overhead cables: sagging bundles strung between facing buildings, 7-11 m up, each end on a junction box.
      const cableMat=mat('cable','#0a0a0c',{rough:.6,metal:.3});
      function cable(a,b,sag,r){const pts=[];for(let i=0;i<=12;i++){const t=i/12;pts.push(v(a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t-Math.sin(Math.PI*t)*sag,a[2]+(b[2]-a[2])*t));}add(B.MeshBuilder.CreateTube('cable',{path:pts,radius:r,tessellation:4},scene),cableMat,[0,0,0]);}
-     function span(a,b,n){if(taxiZones.some(z=>Math.hypot((a[0]+b[0])/2-z.position[0],(a[1]+b[1])/2-z.position[1])<8))return;for(let i=0;i<n;i++){const A=[a[0],7+rand()*4,a[1]],Bp=[b[0],7+rand()*4,b[1]];cable(A,Bp,.6+rand()*1.2,.025+rand()*.02);bbox('junction-box',[.35,.45,.35],A,frame);bbox('junction-box',[.35,.45,.35],Bp,frame);}}
+     function span(a,b,n){if(LEGACY_ZONES.some(z=>Math.hypot((a[0]+b[0])/2-z.position[0],(a[1]+b[1])/2-z.position[1])<8))return;for(let i=0;i<n;i++){const A=[a[0],7+rand()*4,a[1]],Bp=[b[0],7+rand()*4,b[1]];cable(A,Bp,.6+rand()*1.2,.025+rand()*.02);bbox('junction-box',[.35,.45,.35],A,frame);bbox('junction-box',[.35,.45,.35],Bp,frame);}}
      for(let z=-118;z<-24;z+=8+rand()*5)span([51.05,z],[70.95,z+(rand()-.5)*6],2+Math.floor(rand()*2));
      for(let x=6;x<150;x+=9+rand()*6){if(x>49&&x<73)continue;span([x,-19.95],[x+(rand()-.5)*6,-5.05],1+Math.floor(rand()*2));}
      for(let x=16;x<50;x+=7+rand()*4)span([x,-120.95],[x+(rand()-.5)*4,-116.05],1+Math.floor(rand()*2));
@@ -1326,6 +1340,9 @@
     let lastTick=null;
     // Outdoors only: street people behind a building are not drawn or animated, far ones are simplified (street-sight.js).
     const sight=area==='street'&&root.VoidStreetSight?root.VoidStreetSight.start({scene}):null;
+    // The checkpoints at this quarter's edges (ncz-gates.js): gatehouses, doors, scan beams, guards. The District's entrance is Old Town's.
+    const gates=QK&&root.VoidGates?root.VoidGates.build({B,scene,parent,quality,quarter:QK,instance:modelInstance}):null;
+    if(QK&&QK!=='oldtown')districtRoot.setEnabled(false);
     function atmosphere(time,dt){const cam=scene.activeCamera?.globalPosition,inClub=!!cam&&!!clubCtl&&clubCtl.inside(cam),inside=inClub||!!cam&&(zone({x:cam.x,z:cam.z}).area==='district'||MK.inside(cam));applyLook(inside&&!inClub);const sky=inClub?clubSky:inside?indoor:outdoor,key=inClub?'club':inside?'district':'street';
      if(ambient){ambient.intensity+=(sky.intensity-ambient.intensity)*Math.min(1,dt*3);if(key!==wasInside){if(sky.diffuse)ambient.diffuse=sky.diffuse;if(sky.ground&&ambient.groundColor)ambient.groundColor=sky.ground;wasInside=key;}}
      // Haze: thicker and violet inside the club, the street's teal fog everywhere else.
@@ -1336,8 +1353,8 @@
      for(const fl of weather?.flickers||[]){if(fl.off>0){fl.off-=dt;if(fl.off<=0)for(const m of fl.meshes)m.isVisible=true;}else if(time>fl.next){fl.off=.05+Math.random()*.12;fl.next=time+2+Math.random()*7;for(const m of fl.meshes)m.isVisible=false;}}
      for(const s of screens)if(time>s.next){s.mesh.material=adMat(nextAd());s.next=time+9+Math.random()*4;}}
     let wasInside=null;
-    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);etiquette.tick(dt);doors.tick(dt);terminal.tick(dt);podScreen.tick(dt);arcade?.tick(time);nightlife?.tick(dt);alleyLife?.tick(dt);atmosphere(time,dt);sight?.tick();for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
-    return {tick,city,nightlife,alleyLife,sight,doors,etiquette,dispose(){disposed=true;sight?.dispose();clubCtl?.dispose();nightlife?.dispose();alleyLife?.dispose();for(const ps of alleySteam)ps.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
+    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);etiquette.tick(dt);doors.tick(dt);terminal.tick(dt);podScreen.tick(dt);arcade?.tick(time);nightlife?.tick(dt);alleyLife?.tick(dt);atmosphere(time,dt);gates?.tick(dt,time);sight?.tick();for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
+    return {tick,city,nightlife,alleyLife,sight,doors,etiquette,gates,quarter:QK,dispose(){disposed=true;sight?.dispose();gates?.dispose();clubCtl?.dispose();nightlife?.dispose();alleyLife?.dispose();for(const ps of alleySteam)ps.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
   }
   // Licensed models (docs/VOID_RUNNER_ASSET_LICENSES.md) dressing the District; loaded before build().
   // The security vestibule's pieces (made in Blender by tools/assets/kit/build_kit.py --interior; docs/development/DISTRICT_INTERIOR.md). 'entry:' models belong to BOTH areas, like the vestibule itself.
@@ -1359,5 +1376,5 @@
    'ncz:building5':{src:'assets/models/ncz/building5.vrpak'},'ncz:storefronts':{src:'assets/models/ncz/storefronts.vrpak'}};
   // The models one environment needs: the street's city pack, or the District's furniture and VR players.
   function modelsFor(area='all'){if(area==='all')return models;const street=k=>k.startsWith('ncz:'),entry=k=>k.startsWith('entry:');return Object.fromEntries(Object.entries(models).filter(([k])=>entry(k)||(area==='street'?street(k):!street(k))));}
-  const api={layout,layoutByArea,build,models,modelsFor,toWorld,zone,streets,footprints,milked:MK,door:DOOR,districts,taxiZones,cityBox,arcade:ARCADE};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
+  const api={layout,layoutByArea,build,models,modelsFor,toWorld,zone,streets,footprints,milked:MK,door:DOOR,districts,taxiZones,cityBox,arcade:ARCADE,quarters:QT};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
 })(globalThis);

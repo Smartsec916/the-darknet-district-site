@@ -1,18 +1,18 @@
 // Zen Zephyr Temple: layout, collision, reachability, the monk's replacement point, taxi destination, map and fog, lights, scene lifecycle, no network.
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-require('../void-runner/corporate.js');const T=require('../void-runner/temple.js'),E=require('../void-runner/exploration-controller.js'),R=require('../void-runner/taxi-rules.js'),N=require('../void-runner/neochinatown.js'),CAM=require('../void-runner/campaign.js'),A=require('../void-runner/area-map.js'),K=require('../void-runner/sky-cab.js'),Z=require('../void-runner/zen-chat.js');
+require('../void-runner/corporate.js');const T=require('../void-runner/temple.js'),E=require('../void-runner/exploration-controller.js'),R=require('../void-runner/road-taxi-rules.js'),N=require('../void-runner/neochinatown.js'),CAM=require('../void-runner/campaign.js'),A=require('../void-runner/area-map.js'),QT=require('../void-runner/ncz-quarters.js'),Z=require('../void-runner/zen-chat.js');
 const L=T.layout(),read=f=>fs.readFileSync(path.join(__dirname,'..','void-runner',f),'utf8'),strip=s=>s.replace(/\/\*[\s\S]*?\*\//g,'').replace(/(^|[^:'"])\/\/.*$/gm,'$1');
 const reach=()=>{const st=.5,seen=new Set(),key=(x,z)=>x.toFixed(1)+','+z.toFixed(1),q=[[0,-38]];seen.add(key(0,-38));for(let i=0;i<q.length;i++){const [x,z]=q[i];for(const [dx,dz] of [[st,0],[-st,0],[0,st],[0,-st]]){const nx=x+dx,nz=z+dz,k=key(nx,nz);if(seen.has(k)||E.blocked(nx,nz,L))continue;seen.add(k);q.push([nx,nz]);}}return {q,has:(x,z)=>seen.has(key(x,z))};};
 test('the Temple is its own walking location with a map space and a hilltop arrival',()=>{
   assert.equal(L.id,'temple');assert.equal(L.temple,true);assert.equal(L.mapSpace,'temple');assert.notEqual(L.id,'neochinatown');assert.equal(E.blocked(L.spawn[0],L.spawn[2],L),false);assert.ok(Math.hypot(T.CAB_PAD.x-L.spawn[0],T.CAB_PAD.z-L.spawn[2])<8,'arrive beside the cab pad');
   assert.ok(!L.solids.some(s=>/club|milked|district-door|corp-/.test(s.id)),'none of the city or Corporate');assert.equal(T.FARE,60);
 });
-test('taxi only: a sky-cab destination at a flat 60 CR, with a return cab at the pad',()=>{
-  const s=CAM.fresh();s.location='earth';s.credits=100;const d=R.destinations(s,{player:[61,-100],layout:N.layout()}).find(x=>x.id==='temple');
-  assert.ok(d&&d.ok&&d.fare===60&&d.scene==='temple'&&!d.placeholder);s.credits=59;assert.equal(R.destinations(s,{player:[61,-100],layout:N.layout()}).find(x=>x.id==='temple').ok,false);
+test('taxi only: a road-taxi destination at a flat 60 CR through the East Gate, with a return cab at the stop',()=>{
+  const s=CAM.fresh();s.location='earth';s.credits=100;const d=R.destinations(s,{player:[61,-100],quarter:'oldtown'}).find(x=>x.id==='temple');
+  assert.ok(d&&d.ok&&d.fare===60&&d.scene==='temple'&&!d.placeholder);assert.deepEqual(d.legs.map(l=>l.gate),['north','east']);s.credits=59;assert.equal(R.destinations(s,{player:[61,-100],quarter:'oldtown'}).find(x=>x.id==='temple').ok,false);
   assert.ok(!N.districts.some(x=>x.id==='temple'),'it is not a street stop or a district of NeoChinatown');assert.ok(!N.taxiZones.some(z=>z.id==='temple'));
   const cab=L.interactions.find(i=>i.action==='temple-cab');assert.ok(cab&&Math.hypot(cab.position[0]-T.CAB_PAD.x,cab.position[2]-T.CAB_PAD.z)<6,'the return cab is at the pad');
-  assert.equal(K.DESTINATIONS.temple.fare,60);assert.equal(K.DESTINATIONS.temple.module,'VoidTemple');assert.equal(K.DESTINATIONS.temple.key,'temple');assert.equal(K.DESTINATIONS.neochinatown.fare,0,'return included');
+  const f=QT.far('temple');assert.equal(f.fare,60);assert.equal(f.gate,'east');assert.equal(QT.lanesOf('east').some(l=>l.kind==='foot'),false,'nobody walks to the Temple');assert.equal(R.returnTrip('temple').fare,0,'return included');assert.doesNotMatch(JSON.stringify(L.interactions)+JSON.stringify(T.mapModel()),/sky/i);
 });
 test('every part can be walked to; the chamber is entered through one gap, the pillars, dais, altars and glass are solid',()=>{
   const r=reach();for(const i of L.interactions)assert.ok(r.q.some(([x,z])=>Math.hypot(x-i.position[0],z-i.position[2])<=i.range),i.id+' within reach');

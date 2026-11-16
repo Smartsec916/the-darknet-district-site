@@ -1,3 +1,6 @@
+/* STALE SINCE build 2026-11-16-quarters-1: this script still rides the sky cab, which no longer exists (VoidTaxi, VoidSkyCab, the 'skycab' location).
+   Getting to the Temple and back is now covered by tests/ncz-quarters-browser.cjs (road taxi through the gate). The parts below that explore the place itself
+   are still right, but the arrival and return sections need rewriting before this script will run. */
 /* ZEN ZEPHYR TEMPLE in a real browser: pay 60 CR, ride the 3D sky cab (the same transition as Corporate), arrive on the hill, walk the courtyard into the chamber, speak with
    Zen Zephyr and type to him (local quotes), use the area's V1 map, return by cab, and keep the explored map after a reload. Screenshots go to SHOTS (default docs/development/temple/).
    SITE_TEST_URL=http://127.0.0.1:5187 CHROMIUM_PATH=/opt/pw-browsers/chromium node tests/temple-browser.cjs [low|high] */

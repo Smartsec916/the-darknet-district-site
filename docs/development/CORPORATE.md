@@ -1,5 +1,7 @@
 # Corporate District and the reusable sky-cab transition
 
+> **Update, build `2026-11-16-quarters-1`:** the sky cab is gone. The Corporate District is reached by ROAD taxi through the Function Gate at the west end of the Avenue (60 CR, ride back included), or on foot through the same gate. Only the arrival stop changed here: the landing ring is removed, the parked cab is a road cab, the sign and prompts read TAXI, and a second prompt walks back through the gate. Nothing else in the district was touched. See [`NEOCHINATOWN_QUARTERS.md`](NEOCHINATOWN_QUARTERS.md). Text below about the sky-cab ride is older.
+
 A separate area about **1.8 km** from central NeoChinatown, reached only by **sky cab for 60 CR** (the existing maximum fare, flat). Built from Babylon.js geometry; no proprietary assets. Status: **built, provisional** (names, signage and the guard's one line are placeholders; no corporation, brand or story has been decided).
 
 Part 2 of the three-location expansion ([`THREE_LOCATION_EXPANSION.md`](THREE_LOCATION_EXPANSION.md)). Screenshots: `docs/development/corporate/`.

@@ -408,7 +408,7 @@
   k.blob(84.2,-73.22,.9,.9,.036);k.blob(87,-90.65,2.8,1.7,.036);k.blob(97.4,-92.75,1.8,1.5,.036);
   k.vestibule();k.lobby();k.finish();
   const doors=k.doorControl();
-  function tick(cam,dt){if(k.disposed)return;const d=cam?distance(cam.x,cam.z):999;if(d<40)doors.tick(dt,cam);k.animate(dt,cam,d<30);
+  function tick(cam,dt){if(k.disposed)return;const d=cam?distance(cam.x,cam.z):999,dz=d*(root.VoidZoom?root.VoidZoom.now():1);if(d<40)doors.tick(dt,cam);k.animate(dt,cam,dz<30);   /* dz: the distance as a zoomed camera shows it (zoom-detail.js) */
    if(wet){wet.setEnabled(d<36);if(d<36&&k.clock>wetNext){wetNext=k.clock+(k.clock<40?4:1e9);wetMirror.renderList=k.reflectIn([],true);}}}
   return {tick,inside:cam=>inside(cam),people:[],doors,area:'street',state:()=>({ready:!k.disposed,area:'street',doors:doors.state(),screens:k.screens.length}),dispose(){k.dispose();}};
  }

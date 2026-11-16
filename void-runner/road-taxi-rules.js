@@ -1,31 +1,22 @@
 /* Street taxis in NeoChinatown. Pure rules: no rendering, no clock, no network.
-   The sky cabs (taxi-rules.js, city-taxi.js) still fly to the painted zones. These drive the roads.
-   Destinations: REGISTRY below is the only list. Each id must already be a taxi zone in neochinatown.js
-   that is not a placeholder district. A new stop is one new line here, once that zone exists.
-   Fares use the sky-cab formula (taxi-rules.js). The charge is recorded in story.flags.roadTaxiTrip
-   so it never collides with a sky-cab fare, and a reload refunds it once. */
+   Since the quarters (16 Nov 2026; ncz-quarters.js) these are the ONLY taxis: the sky cabs are gone. A cab drives the roads of the quarter it is in. A trip to
+   another quarter, to the Corporate District or to the Zen Zephyr Temple goes THROUGH the checkpoints: the cab drives into a gate's vehicle bay, the gate
+   exchanges one quarter for the next around it (ncz-gate-transit.js), and it drives on.
+   Destinations: the kerbside stops and the two far places in ncz-quarters.js (STOPS, FAR) are the only list. Do not invent places.
+   Fares: 12 CR plus 0.05 CR a metre, 60 CR at most; the Corporate District and the Temple are 60 CR with the ride back included. The charge is recorded in
+   story.flags.roadTaxiTrip until the trip ends, and a reload refunds it once. */
 (function(root){
  'use strict';
  const node=typeof module!=='undefined';
- const N=node?require('./neochinatown.js'):root.VoidNeoChinatown;
- const Fares=node?require('./taxi-rules.js'):root.VoidTaxiRules;
- // Add a destination by appending the id of a taxi zone that already exists. Do not invent places.
- const REGISTRY=['main','avenue','alley-mouth','passage'];
+ const Q=node?require('./ncz-quarters.js'):root.VoidQuarters;
+ const fare={base:12,perMetre:.05,max:60};
+ const REGISTRY=Q.STOPS.map(s=>s.id);
  const FLAG='roadTaxiTrip';
  const SPEC={length:4.4,width:1.9,nose:2.2,cruise:8,accel:7,brake:16,gap:2.6,look:0.45,hold:120,playerR:0.5,taxiR:2.3};
- const DRIVE=['avenue','avenueWest','avenueEast','main','mainSouth','road','passage'];
+ const DRIVE=['avenue','main','road','passage'];
  const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 
- function stops(){
-  const zones=N.taxiZones||[],out=[];
-  for(const id of REGISTRY){
-   const z=zones.find(x=>x.id===id);
-   if(!z||z.district)continue;
-   if((N.districts||[]).some(d=>d.placeholder&&(d.id===z.id||d.id===z.district)))continue;
-   out.push({id:z.id,label:z.name,position:[z.position[0],z.position[1]]});
-  }
-  return out;
- }
+ function stops(quarter){return Q.STOPS.filter(s=>!quarter||s.quarter===quarter).map(s=>({id:s.id,label:s.name,position:[s.position[0],s.position[1]],quarter:s.quarter}));}
  function availability(s,ctx={}){
   if(!s||s.location!=='earth')return {ok:false,reason:ctx.inSpace?'No taxis drive in space.':'No street taxi service operates here.'};
   if(!ctx.onFoot)return {ok:false,reason:'Taxis pick up on foot, in the city.'};
@@ -36,13 +27,15 @@
   if(s.story?.flags?.taxiBlocked)return {ok:false,reason:'Taxi service is suspended for this mission.'};
   return {ok:true,network:'NeoChinatown street taxis'};
  }
- const cost=(from,to)=>Fares.cost(from,to);
+ const cost=(from,to)=>Math.min(fare.max,Math.round(fare.base+fare.perMetre*Math.hypot(from[0]-to[0],from[1]-to[1])));
+ const gateNames=legs=>legs.map(l=>Q.gate(l.gate).name).join(', then ');
+ // Every place a cab goes from here: the stops of all three quarters and the two places beyond the gates. ctx: {player:[x,z], quarter}.
  function destinations(s,ctx){
-  const player=ctx&&ctx.player;if(!player)return [];
-  return stops().map(d=>{const fare=cost(player,d.position),here=Math.hypot(player[0]-d.position[0],player[1]-d.position[1])<18;
-   if(here)return {...d,fare,ok:false,reason:'Already there.'};
-   const afford=!s||s.credits>=fare;
-   return {...d,fare,ok:!!afford,reason:afford?null:'Not enough credits ('+fare+' CR).'};});
+  const player=ctx&&ctx.player;if(!player)return [];const quarter=Q.valid(ctx.quarter)||Q.quarterAt(player[0],player[1])||null;
+  const row=(d,price,legs,here)=>{if(here)return {...d,fare:price,legs,ok:false,reason:'Already there.'};if(!legs)return {...d,fare:price,legs:null,ok:false,reason:'No road from here.'};
+   const afford=!s||s.credits>=price,via=legs.length?'Through '+gateNames(legs)+'.':null;return {...d,fare:price,legs,via,ok:!!afford,reason:afford?null:'Not enough credits ('+price+' CR).'};};
+  return [...stops().map(d=>row(d,cost(player,d.position),quarter?Q.gatesBetween(quarter,d.quarter):null,d.quarter===quarter&&Math.hypot(player[0]-d.position[0],player[1]-d.position[1])<18)),
+   ...Q.FAR.map(f=>row({id:f.id,label:f.name,scene:f.scene,far:true,blurb:'The ride back is included.'},f.fare,quarter?Q.gatesBetween(quarter,f.id):null,false))];
  }
  function charge(s,dest,price){if(!s?.story?.flags||s.story.flags[FLAG]||s.credits<price)return 0;s.credits-=price;s.story.flags[FLAG]=dest+':'+price;return price;}
  function arrive(s){if(s?.story?.flags)delete s.story.flags[FLAG];}
@@ -73,36 +66,38 @@
   for(let i=1;i<pts.length;i++){acc+=dist(pts[i-1],pts[i]);if(acc>a+0.02&&acc<b-0.02)out.push({x:pts[i].x,z:pts[i].z});}
   const end=pointAlong(pts,b,false);if(dist(out[out.length-1],end)>0.02)out.push({x:end.x,z:end.z});return out;
  }
- function buildNetwork(){
-  const S=N.streets,ave=[S.avenueWest,S.avenue,S.avenueEast],mains=[S.main,S.mainSouth];
-  const xMin=Math.min(...ave.map(r=>r[0])),xMax=Math.max(...ave.map(r=>r[1])),zc=(S.avenue[2]+S.avenue[3])/2,offA=3.2,inset=8;
-  const xW=xMin+inset,xE=xMax-inset,ebZ=zc-offA,wbZ=zc+offA,xc=(S.main[0]+S.main[1])/2,offM=2.2,nbX=xc+offM,sbX=xc-offM;
-  const zSouth=Math.min(...mains.map(r=>r[2]))+inset,road=S.road,passage=S.passage,zRoad=(road[2]+road[3])/2,xPass=(passage[0]+passage[1])/2;
-  const padZone=N.taxiZones.find(z=>z.id==='passage'),padZ=padZone?padZone.position[1]:(passage[2]+passage[3])/2;
-  const P={wEb:{x:xW,z:ebZ},jEb:{x:sbX,z:ebZ},jNb:{x:nbX,z:ebZ},eEb:{x:xE,z:ebZ},eWb:{x:xE,z:wbZ},jWbN:{x:nbX,z:wbZ},jWb:{x:sbX,z:wbZ},wWb:{x:xW,z:wbZ},
-   sbRoad:{x:sbX,z:zRoad},sSb:{x:sbX,z:zSouth},sNb:{x:nbX,z:zSouth},nbRoad:{x:nbX,z:zRoad},roadMouth:{x:road[1],z:zRoad},roadWest:{x:xPass,z:zRoad},pad:{x:xPass,z:padZ}};
-  const edges=[
-   {id:'eb-w',a:'wEb',b:'jEb',pts:line(P.wEb,P.jEb)},{id:'eb-j',a:'jEb',b:'jNb',pts:line(P.jEb,P.jNb)},{id:'eb-e',a:'jNb',b:'eEb',pts:line(P.jNb,P.eEb)},
-   {id:'uturn-e',a:'eEb',b:'eWb',pts:arc(xE,zc,offA,-Math.PI/2,Math.PI/2,8)},
-   {id:'wb-e',a:'eWb',b:'jWbN',pts:line(P.eWb,P.jWbN)},{id:'wb-j',a:'jWbN',b:'jWb',pts:line(P.jWbN,P.jWb)},{id:'wb-w',a:'jWb',b:'wWb',pts:line(P.jWb,P.wWb)},
-   {id:'uturn-w',a:'wWb',b:'wEb',pts:arc(xW,zc,offA,Math.PI/2,Math.PI*3/2,8)},
-   {id:'sb-n',a:'jEb',b:'sbRoad',pts:line(P.jEb,P.sbRoad)},{id:'sb-s',a:'sbRoad',b:'sSb',pts:line(P.sbRoad,P.sSb)},
-   {id:'uturn-s',a:'sSb',b:'sNb',pts:arc(xc,zSouth,offM,Math.PI,Math.PI*2,6)},
-   {id:'nb-s',a:'sNb',b:'nbRoad',pts:line(P.sNb,P.nbRoad)},{id:'nb-n',a:'nbRoad',b:'jNb',pts:line(P.nbRoad,P.jNb)},
-   {id:'to-road',a:'sbRoad',b:'roadMouth',pts:line(P.sbRoad,P.roadMouth)},{id:'road',a:'roadMouth',b:'roadWest',pts:line(P.roadMouth,P.roadWest)},
-   {id:'passage',a:'roadWest',b:'pad',pts:line(P.roadWest,P.pad)},
-   {id:'passage-back',a:'pad',b:'roadWest',pts:line(P.pad,P.roadWest)},{id:'road-back',a:'roadWest',b:'roadMouth',pts:line(P.roadWest,P.roadMouth)},
-   {id:'from-road',a:'roadMouth',b:'nbRoad',pts:line(P.roadMouth,P.nbRoad)},
-   {id:'wb-to-sb',a:'jWb',b:'jEb',pts:line(P.jWb,P.jEb)},{id:'nb-to-wb',a:'jNb',b:'jWbN',pts:line(P.jNb,P.jWbN)}
-  ];
-  const by=Object.fromEntries(edges.map(e=>[e.id,e]));
-  const loop=[];
-  for(const id of ['eb-w','sb-n','sb-s','uturn-s','nb-s','nb-n','eb-e','uturn-e','wb-e','wb-j','wb-w','uturn-w']){
-   const pts=by[id].pts;for(let i=loop.length?1:0;i<pts.length;i++)loop.push(pts[i]);}
-  return {nodes:P,edges,loop,drive:DRIVE};
+/* The lanes of one quarter. Nodes are named points; an edge runs one way from a to b. Edges that START in a gate's bay are listed before the ones that end
+    there, so a cab standing in a bay is taken to be on its way out. bays: lane key -> the point a cab stops at. rank: where a quarter with no through road
+    keeps its cab. loop: the circuit the ambient cabs drive. */
+ function buildNetwork(quarter){
+  const q=Q.valid(quarter)||'oldtown',bay=key=>{const l=Q.lane(key);return {x:l.mid[0],z:l.mid[1]};},poly=(...pts)=>{const out=[];pts.forEach((p,i)=>{if(i){const seg=line(pts[i-1],p);for(let k=out.length?1:0;k<seg.length;k++)out.push(seg[k]);}});return out;};
+  let P,edges,loopIds=[],rank=null;const bays={};
+  if(q==='port'){const b=bay('customs:bay'),x=b.x,top={x,z:-95.5};bays['customs:bay']=b;P={bay:b,top};rank={x,z:-95.5,yaw:Math.PI};
+   edges=[{id:'from-customs',a:'bay',b:'top',pts:line(b,top)},{id:'to-customs',a:'top',b:'bay',pts:line(top,b)}];}
+  else if(q==='oldtown'){const xc=61,off=2.2,sbX=xc-off,nbX=xc+off,zTop=-31.5,zRoad=-118.5,zSouth=-119.6,c=bay('customs:bay'),bn=bay('north:bay-n'),bs=bay('north:bay-s');
+   Object.assign(bays,{'customs:bay':c,'north:bay-n':bn,'north:bay-s':bs});
+   P={tSb:{x:sbX,z:zTop},tNb:{x:nbX,z:zTop},sbRoad:{x:sbX,z:zRoad},sSb:{x:sbX,z:zSouth},sNb:{x:nbX,z:zSouth},nbRoad:{x:nbX,z:zRoad},roadMouth:{x:51,z:zRoad},roadWest:{x:c.x,z:zRoad},customs:c,bayN:bn,bayS:bs};
+   edges=[{id:'from-north',a:'bayS',b:'tSb',pts:line(bs,P.tSb)},{id:'from-customs',a:'customs',b:'roadWest',pts:line(c,P.roadWest)},
+    {id:'sb',a:'tSb',b:'sbRoad',pts:line(P.tSb,P.sbRoad)},{id:'sb-s',a:'sbRoad',b:'sSb',pts:line(P.sbRoad,P.sSb)},{id:'uturn-s',a:'sSb',b:'sNb',pts:arc(xc,zSouth,off,Math.PI,Math.PI*2,6)},
+    {id:'nb-s',a:'sNb',b:'nbRoad',pts:line(P.sNb,P.nbRoad)},{id:'nb',a:'nbRoad',b:'tNb',pts:line(P.nbRoad,P.tNb)},{id:'uturn-n',a:'tNb',b:'tSb',pts:arc(xc,zTop,off,0,Math.PI,6)},
+    {id:'to-road',a:'sbRoad',b:'roadMouth',pts:line(P.sbRoad,P.roadMouth)},{id:'road',a:'roadMouth',b:'roadWest',pts:line(P.roadMouth,P.roadWest)},{id:'road-back',a:'roadWest',b:'roadMouth',pts:line(P.roadWest,P.roadMouth)},{id:'from-road',a:'roadMouth',b:'nbRoad',pts:line(P.roadMouth,P.nbRoad)},
+    {id:'to-customs',a:'roadWest',b:'customs',pts:line(P.roadWest,c)},{id:'to-north',a:'tNb',b:'bayN',pts:line(P.tNb,bn)}];
+   loopIds=['sb','sb-s','uturn-s','nb-s','nb','uturn-n'];}
+  else{const zc=-12.5,off=3.2,ebZ=zc-off,wbZ=zc+off,xW=17,xE=137,bn=bay('north:bay-n'),bs=bay('north:bay-s'),bf=bay('function:bay'),be=bay('east:bay');
+   Object.assign(bays,{'north:bay-n':bn,'north:bay-s':bs,'function:bay':bf,'east:bay':be});
+   P={wEb:{x:xW,z:ebZ},jS:{x:bs.x,z:ebZ},jN:{x:bn.x,z:ebZ},eEb:{x:xE,z:ebZ},eWb:{x:xE,z:wbZ},jNw:{x:bn.x,z:wbZ},wWb:{x:xW,z:wbZ},bayN:bn,bayS:bs,bayF:bf,bayE:be};
+   edges=[{id:'from-south',a:'bayN',b:'jN',pts:line(bn,P.jN)},{id:'from-function',a:'bayF',b:'wEb',pts:poly(bf,{x:11.5,z:bf.z},{x:14.6,z:ebZ},P.wEb)},{id:'from-east',a:'bayE',b:'eWb',pts:poly(be,{x:142.5,z:be.z},{x:139.4,z:wbZ},P.eWb)},
+    {id:'eb-w',a:'wEb',b:'jS',pts:line(P.wEb,P.jS)},{id:'eb-j',a:'jS',b:'jN',pts:line(P.jS,P.jN)},{id:'eb-e',a:'jN',b:'eEb',pts:line(P.jN,P.eEb)},{id:'uturn-e',a:'eEb',b:'eWb',pts:arc(xE,zc,off,-Math.PI/2,Math.PI/2,8)},
+    {id:'wb-e',a:'eWb',b:'jNw',pts:line(P.eWb,P.jNw)},{id:'wb-w',a:'jNw',b:'wWb',pts:line(P.jNw,P.wWb)},{id:'uturn-w',a:'wWb',b:'wEb',pts:arc(xW,zc,off,Math.PI/2,Math.PI*3/2,8)},
+    {id:'nb-to-wb',a:'jN',b:'jNw',pts:line(P.jN,P.jNw)},
+    {id:'to-south',a:'jS',b:'bayS',pts:line(P.jS,bs)},{id:'to-function',a:'wWb',b:'bayF',pts:line(P.wWb,bf)},{id:'to-east',a:'eEb',b:'bayE',pts:line(P.eEb,be)}];
+   loopIds=['eb-w','eb-j','eb-e','uturn-e','wb-e','wb-w','uturn-w'];}
+  const by=Object.fromEntries(edges.map(e=>[e.id,e])),loop=[];
+  for(const id of loopIds){const pts=by[id].pts;for(let i=loop.length?1:0;i<pts.length;i++)loop.push(pts[i]);}
+  return {quarter:q,nodes:P,edges,loop,bays,rank,drive:DRIVE};
  }
- let NET=null;
- const network=()=>NET||(NET=buildNetwork());
+ const NETS={};
+ const network=quarter=>{const q=Q.valid(quarter)||'oldtown';return NETS[q]||(NETS[q]=buildNetwork(q));};
 
  function snap(net,p){
   let best=null;
@@ -158,7 +153,7 @@
  }
  function follow(taxi,dt,obstacles){
   dt=Math.max(0,Math.min(.1,dt||0));
-  if(taxi.phase==='waiting'||taxi.phase==='arrived'){taxi.speed=0;if(taxi.phase==='waiting')taxi.wait=(taxi.wait||0)+dt;taxi.blockedFor=0;return taxi;}
+  if(taxi.phase==='waiting'||taxi.phase==='arrived'||taxi.phase==='parked'||taxi.phase==='in-bay'){taxi.speed=0;if(taxi.phase==='waiting')taxi.wait=(taxi.wait||0)+dt;taxi.blockedFor=0;return taxi;}
   const cap=targetSpeed(taxi,obstacles),rate=cap<taxi.speed-0.01?SPEC.brake:SPEC.accel;
   taxi.speed=Math.max(0,taxi.speed+Math.sign(cap-taxi.speed)*Math.min(Math.abs(cap-taxi.speed),rate*dt));
   if(taxi.speed<0.05)taxi.speed=0;
@@ -185,14 +180,19 @@
   const loop=world.net.loop,L=pathLength(loop),at=pointAlong(loop,s||0,true);
   taxi.phase='cruise';taxi.loop=true;taxi.path=loop;taxi.pathLen=L;taxi.s=at.s;taxi.x=at.x;taxi.z=at.z;taxi.yaw=at.yaw;taxi.speed=SPEC.cruise;taxi.wait=0;taxi.blockedFor=0;
  }
- function createTraffic(count,seed){
-  const net=network(),L=pathLength(net.loop),n=Math.max(1,count|0),taxis=[];
+ const park=(world,t)=>{const r=world.net.rank;Object.assign(t,{x:r.x,z:r.z,yaw:r.yaw,speed:0,s:0,phase:'parked',loop:false,path:[{x:r.x,z:r.z},{x:r.x+Math.sin(r.yaw)*.2,z:r.z+Math.cos(r.yaw)*.2}],pathLen:.2,wait:0,blockedFor:0});};
+ // The cabs of one quarter. A quarter with a circuit has `count` cabs driving it; one without (the Port) keeps a single cab at its rank.
+ function createTraffic(count,seed,quarter){
+  const net=network(quarter),taxis=[],world={net,quarter:net.quarter,taxis,job:null,seed:seed||1};
+  if(!net.loop.length){const t={id:'cab-1'};park(world,t);taxis.push(t);return world;}
+  const L=pathLength(net.loop),n=Math.max(1,count|0);
   for(let i=0;i<n;i++){const s=(i+0.2)*L/n,at=pointAlong(net.loop,s,true);
    taxis.push({id:'cab-'+(i+1),x:at.x,z:at.z,yaw:at.yaw,speed:SPEC.cruise,s,phase:'cruise',loop:true,path:net.loop,pathLen:L,wait:0,blockedFor:0});}
-  return {net,taxis,job:null,seed:seed||1};
+  return world;
  }
  function release(world,cab){
   if(world.job&&world.job.cab===cab)world.job.released=true;
+  if(!world.net.loop.length){const r=world.net.rank;if(dist(cab,r)<.6)park(world,cab);else assignPath(cab,route(world.net,cab,r),'rejoin');return;}
   const back=projectPath(world.net.loop,cab);
   if(back.d>4)assignPath(cab,route(world.net,cab,{x:back.x,z:back.z}),'rejoin');
   else enterCruise(world,cab,back.s);
@@ -201,37 +201,59 @@
   dt=Math.max(0,Math.min(.1,dt||0));const riding=!!player?.riding;
   for(const t of world.taxis){const obs=[];if(player&&!riding)obs.push({x:player.x,z:player.z,r:SPEC.playerR});
    for(const o of world.taxis)if(o!==t)obs.push({x:o.x,z:o.z,r:SPEC.taxiR});follow(t,dt,obs);}
-  for(const t of world.taxis)if(t.phase==='rejoin'&&t.pathLen-t.s<=0.45){const back=projectPath(world.net.loop,t);enterCruise(world,t,back.s);}
+  for(const t of world.taxis)if(t.phase==='rejoin'&&t.pathLen-t.s<=0.45){if(!world.net.loop.length)park(world,t);else{const back=projectPath(world.net.loop,t);enterCruise(world,t,back.s);}}
   const job=world.job;if(!job||job.released)return world;const cab=job.cab;
   if(cab.phase==='to-pickup'){const remain=cab.pathLen-cab.s,playerBlock=player&&!riding&&blockedByPlayer(cab,player);
    if(remain<=0.45||(playerBlock&&cab.blockedFor>0.35)){cab.phase='waiting';cab.speed=0;cab.wait=0;job.phase='waiting';}}
   else if(cab.phase==='waiting'){if(cab.wait>=SPEC.hold)release(world,cab);}
-  else if(cab.phase==='to-dest'&&cab.pathLen-cab.s<=0.45){cab.phase='arrived';cab.speed=0;job.phase='arrived';}
+  else if(cab.phase==='to-dest'&&cab.pathLen-cab.s<=0.45){cab.speed=0;cab.phase=job.phase=job.via?'in-bay':'arrived';}
   return world;
  }
  function hail(world,s,player,destId,ctx){
-  const c=Object.assign({onFoot:true,area:'street',player:[player.x,player.z]},ctx||{});
+  const c=Object.assign({onFoot:true,area:'street',player:[player.x,player.z],quarter:world.quarter},ctx||{});
   if(world.job&&!world.job.released)c.trip=true;
   const a=availability(s,c);if(!a.ok)return {ok:false,reason:a.reason};
   const dest=destinations(s,c).find(d=>d.id===destId);
   if(!dest)return {ok:false,reason:'That stop is not on the street network.'};
+  if(!dest.legs&&dest.ok)return {ok:false,reason:'No road from here.'};
   if(!dest.ok)return {ok:false,reason:dest.reason};
   let pick=snap(world.net,player);if(!pick||pick.d>50)return {ok:false,reason:'No road close enough for a pickup.'};
   if(pick.d<2.2)pick=rewind(pick,6);
   let best=null,bd=Infinity,bestPath=null;
-  for(const t of world.taxis){if(t.phase!=='cruise')continue;const path=route(world.net,t,{x:pick.x,z:pick.z}),len=pathLength(path);if(len<bd){bd=len;best=t;bestPath=path;}}
+  for(const t of world.taxis){if(!['cruise','parked','rejoin'].includes(t.phase))continue;   /* a cab on its way back to the circuit or the rank is free too */const path=route(world.net,t,{x:pick.x,z:pick.z}),len=pathLength(path);if(len<bd){bd=len;best=t;bestPath=path;}}
   if(!best)return {ok:false,reason:'No taxi is free.'};
   assignPath(best,bestPath,'to-pickup');
-  world.job={cab:best,dest,fare:dest.fare,phase:'to-pickup',charged:false,released:false,pickup:{x:pick.x,z:pick.z}};
+  world.job={cab:best,dest,fare:dest.fare,legs:(dest.legs||[]).slice(),via:null,phase:'to-pickup',charged:false,released:false,pickup:{x:pick.x,z:pick.z}};
   return {ok:true,fare:dest.fare,taxi:best.id,pickup:world.job.pickup};
  }
  function board(world,s){
   const job=world.job;if(!job||job.released||job.cab.phase!=='waiting')return {ok:false,reason:'The taxi is not waiting.'};
   const paid=charge(s,job.dest.id,job.fare);if(!paid)return {ok:false,reason:'Not enough credits.'};
   job.charged=true;
-  assignPath(job.cab,route(world.net,job.cab,{x:job.dest.position[0],z:job.dest.position[1]}),'to-dest');job.phase='to-dest';
+  drive(world,job);
   return {ok:true,paid};
  }
+ // The next stretch of a paid trip: to the bay of the next gate on the way, or (none left) to the stop itself.
+ function drive(world,job){
+  const leg=job.legs[0];
+  if(leg){const lane=Q.bayFor(leg.gate,world.quarter),p=world.net.bays[lane.key];job.via={gate:leg.gate,lane:lane.key,from:world.quarter,to:leg.to?{quarter:leg.to}:{scene:leg.scene}};
+   assignPath(job.cab,route(world.net,job.cab,p),'to-dest');}
+  else{job.via=null;assignPath(job.cab,route(world.net,job.cab,{x:job.dest.position[0],z:job.dest.position[1]}),'to-dest');}
+  job.phase='to-dest';return job;
+ }
+ // What a trip carries through a gate: everything but the cab (each quarter has its own).
+ function carry(job){return {dest:job.dest,fare:job.fare,legs:job.legs.slice(1),through:job.via};}
+ /* The far side of a gate: the trip goes on in the quarter that has just been built. `world` is that quarter's traffic; one of its cabs becomes the trip's
+    cab, standing in the same bay, pointing into the quarter. trip: from carry(), or {dest, fare:0, legs:[], through:{gate,lane}} for the included ride back. */
+ function resume(world,trip){
+  const lane=Q.lane(trip.through.lane),p=world.net.bays[lane.key];if(!p)return null;
+  const cab=world.taxis.find(t=>t.phase==='parked')||world.taxis[world.taxis.length-1];
+  Object.assign(cab,{x:p.x,z:p.z,yaw:Q.yawInto(trip.through.gate,world.quarter),speed:0,s:0,loop:false,wait:0,blockedFor:0});
+  world.job={cab,dest:trip.dest,fare:trip.fare,legs:trip.legs.slice(),via:null,phase:'to-dest',charged:true,released:false,pickup:{x:p.x,z:p.z}};
+  drive(world,world.job);return world.job;
+ }
+ // The ride back from a far place: it starts in that place's gate and ends at the stop just inside it.
+ function returnTrip(farId){const f=Q.far(farId);if(!f)return null;const st=stops().find(s=>s.id===f.returnStop),lane=Q.bayFor(f.gate,f.from);return {dest:st,fare:0,legs:[],through:{gate:f.gate,lane:lane.key}};}
  function exitRide(world,s){
   const job=world.job;if(!job||job.released||job.cab.phase!=='arrived')return {ok:false,reason:'The taxi has not arrived.'};
   const doors=doorPoints(job.cab);arrive(s);release(world,job.cab);return {ok:true,doors};
@@ -249,10 +271,10 @@
   return {x:taxi.x+rx*0.42+fx*0.35,y:1.08,z:taxi.z+rz*0.42+fz*0.35,yaw};
  }
  function onRoad(x,z,margin){
-  const m=margin||0,S=N.streets;
+  const m=margin||0,S=Q.S;
   return DRIVE.some(id=>{const r=S[id];return r&&x>=r[0]-m&&x<=r[1]+m&&z>=r[2]-m&&z<=r[3]+m;});
  }
 
- const api={REGISTRY,FLAG,SPEC,DRIVE,stops,availability,destinations,cost,charge,arrive,recover,network,route,pathLength,pointAlong,projectPath,targetSpeed,follow,createTraffic,stepWorld,hail,board,exitRide,cancel,doorPoints,seatPoint,onRoad,snap};
+ const api={fare,REGISTRY,FLAG,SPEC,DRIVE,drive,carry,resume,returnTrip,stops,availability,destinations,cost,charge,arrive,recover,network,route,pathLength,pointAlong,projectPath,targetSpeed,follow,createTraffic,stepWorld,hail,board,exitRide,cancel,doorPoints,seatPoint,onRoad,snap};
  if(node)module.exports=api;else root.VoidRoadTaxiRules=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

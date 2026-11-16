@@ -1,5 +1,7 @@
 # VOID//RUNNER: Personal HUD, city expansion and flying taxis (2026-10-27)
 
+> **Update, build `2026-11-16-quarters-1`:** the flying taxis (sky cabs) described below were REMOVED on David's decision (16 Nov 2026), with their landing zones. `taxi-rules.js`, `city-taxi.js` and `sky-cab.js` no longer exist. Road taxis replace them (`road-taxi-rules.js`, `road-taxi.js`), and NeoChinatown is now three quarters joined by checkpoints: see [`development/NEOCHINATOWN_QUARTERS.md`](development/NEOCHINATOWN_QUARTERS.md). The far placeholder streets (avenue ends, the plaza, Main Street South, the Container lot) are behind shut gates. What follows is kept as history.
+
 David's brief: "Personal HUD, flying taxis, seamless city expansion and immersive loading". This records what was built, how it fits the existing systems, and what is still future work.
 
 ## Personal HUD (`hud-data.js`, `personal-hud.js`, `personal-hud.css`)

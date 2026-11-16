@@ -30,6 +30,8 @@
   if(fp.club){const c=root.VoidNightclub||{},d=c.DOOR;if(d)pois.push({id:'club',name:(c.NAME||'Nightclub')+' · nightclub',kind:'shop',area:'street',x:d.x+2,z:d.z});}   // the club's street door
   if(N.milked)for(const p of N.milked.PLACES)pois.push({id:p.id,name:p.name,kind:p.kind,area:'street',x:p.x,z:p.z});
   for(const t of N.taxiZones||[])if(!placeholder.has(t.id))pois.push({id:'taxi-'+t.id,name:'Taxi stop · '+t.name,kind:'transit',area:'street',x:t.position[0],z:t.position[1]});   // stops at places that are not built are left out
+  // The checkpoints between the quarters (ncz-quarters.js): where they stand and whether they are open.
+  for(const g of N.quarters?.GATES||[])pois.push({id:'gate-'+g.id,name:g.name+(g.shut?' (closed)':' · checkpoint'),kind:'guard',area:'street',x:(g.rect[0]+g.rect[1])/2,z:(g.rect[2]+g.rect[3])/2});
   // Places that exist in the layout only as placeholders: shown to developers, never to players.
   for(const d of (N.districts||[]).filter(d=>d.placeholder))pois.push({id:'dev-'+d.id,name:d.name+' (not built)',kind:'dev',area:'street',x:d.center[0],z:d.center[1],dev:true,rect:d.rect});
   const xs=[],zs=[];for(const s of streets){xs.push(s.rect[0],s.rect[1]);zs.push(s.rect[2],s.rect[3]);}for(const b of buildings){xs.push(b.rect[0],b.rect[1]);zs.push(b.rect[2],b.rect[3]);}
@@ -143,12 +145,12 @@
    if(typeof walkingLocation!=='undefined'&&walkingLocation&&walker)area=walkingLocation.area==='interior'?'district':(root.VoidNeoChinatown?.zone?.({x:walker.x,z:walker.z}).area||'street');
    onFoot=typeof mode!=='undefined'&&mode==='walking';
   }catch{}
-  return {onFoot,area,player,combat:!!root.VoidFlightSkirmish?.active,busy:!!root.VoidGraphics?.busy,trip:!!(root.VoidRoadTaxi?.active||root.VoidTaxi?.trip)};
+  return {onFoot,area,player,combat:!!root.VoidFlightSkirmish?.active,busy:!!root.VoidGraphics?.busy,trip:!!root.VoidRoadTaxi?.active,quarter:(typeof walkingLocation!=='undefined'&&walkingLocation?.quarter)||null};
  }
  let hailHtml='';
  function paintHail(){
   const el=host?.querySelector('[data-map-hail]');if(!el)return;
-  if(spaceId()!=='neochinatown'){el.innerHTML='<h2>SKY CAB</h2><div class="pd-note">No street taxis here. The sky cab stop on the map takes you back (the return ride is included in your fare).</div>';return;}
+  if(spaceId()!=='neochinatown'){el.innerHTML='<h2>TAXI</h2><div class="pd-note">No street taxis drive here. The taxi stop on the map takes you back (the ride back is included in your fare).</div>';return;}
   const Rules=root.VoidRoadTaxiRules;if(!Rules){if(hailHtml){hailHtml='';el.innerHTML='';}return;}
   const ctx=taxiCtx(),a=Rules.availability(typeof state!=='undefined'?state:null,ctx),list=ctx.player?Rules.destinations(typeof state!=='undefined'?state:null,ctx):[],st=root.VoidRoadTaxi?.status?.();
   let html='<h2>STREET TAXIS</h2>';

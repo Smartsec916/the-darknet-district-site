@@ -6,6 +6,23 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 16 Nov 2026 (latest): NEOCHINATOWN IS THREE QUARTERS WITH CHECKPOINTS; SKY CABS REMOVED (build `2026-11-16-quarters-1`, branch `claude/neochinatown-quarters-1`, local commits, NOT pushed, no PR)
+
+David approved map A of the rework plan and this builds it. Full record: [`NEOCHINATOWN_QUARTERS.md`](NEOCHINATOWN_QUARTERS.md); decisions: [`CHECKPOINTS.md`](CHECKPOINTS.md).
+
+- **Built.** The Port, Old Town and The Avenue, one built at a time. Checkpoints as buildings you walk or ride through: A1 Port Customs, A2 North Gate (under a block bridging Main Street), A3 Function Gate (walkers and taxis, to the Corporate District), A4 East Gate (taxis only, to the Temple), A5 South Gate (shut). The everyday loop (Pod, District, alley, NULL, Milked) is all Old Town and meets no checkpoint.
+- **A checkpoint is one entry of data** (`void-runner/ncz-quarters.js` `GATES`): position, direction, operator, lanes, what it joins. David may add more later as gameplay, including checkpoints inside a quarter that change nothing but run the scan; both kinds are tested. The scan is a picture only and always passes.
+- **Sky cabs are gone** (`taxi-rules.js`, `city-taxi.js`, `sky-cab.js` and their tests deleted). Road taxis are the only taxis: seven stops, trips through the gates' vehicle bays, Corporate District and Temple at 60 CR with the ride back included. In the Corporate District and at the Temple ONLY the arrival stop changed (ring removed, road cab, TAXI wording, and at Corporate a prompt to walk back through the gate).
+- **NULL:** an open entry passage with an empty door frame at each end (a vestibule by adding two doors).
+- **Zoom renders detail:** `void-runner/zoom-detail.js`; used by the nightlife, the alley, NULL, Milked's shell, Milked's streaming and other players' tags and faces.
+- **Saves:** no id renamed, nothing new required; `story.flags.quarter` remembers the quarter; old sky-cab records are refunded once and dropped. **Multiplayer:** one hub room for the whole street as before (chat reaches every quarter; nothing deployed); players in another quarter are not drawn.
+- **NOT built because NOT decided:** contraband, being caught, bribes, shielding, The Function's own guards, rail.
+- **Placeholders:** private guards are street figures in a uniform tint; the Function Gate's guards are the Corporate District's silent robots; the gatehouses are box-built architecture with the existing textures.
+- **Honest result on performance:** the Port and the Avenue are much smaller scenes than the old city; Old Town is nearly as heavy as the old city was, because Main Street was always the heavy part. The numbers are in `NEOCHINATOWN_QUARTERS.md`. The plan's further savings (one-piece far figures, a sign sheet, the Medium glow pass) are still to do and are what Old Town needs.
+- **Not verified:** real frame rates and real exchange times (software renderer only); High and Ultra; a VR headset; two real players in different quarters (the rule is unit-tested, the hub was not run); the purchased city pack and NULL's purchased interior (not on this machine).
+- **Stale scripts:** `tests/corporate-browser.cjs` and `tests/temple-browser.cjs` still ride the sky cab (marked at the top). `tests/ncz-quarters-browser.cjs` is the new end-to-end script.
+- **Not mine, left alone:** `docs/void-runner/design-source/12-street-advertisements-david.md` appeared in this worktree during the session (David's advertisement lines); it is untracked and uncommitted here.
+### 16 Nov 2026 (latest): DISTRICT INTERIOR ROOMS MADE TO LOOK REAL; HALLWAY POSTERS DOWN; ANTI-WARFLYING SCREENS (build `2026-11-16-district-1`, branch `claude/district-upgrade-1`, one local commit, NOT pushed, no PR)
 ### 16 Nov 2026 (latest): NYX THE BARTENDER HAS HER OWN MODEL; SEVEN DISTRICT PROPS ARE MODELLED (build `2026-11-16-district-2`, branch `claude/district-upgrade-2`, one local commit, NOT pushed, no PR)
 
 David: "The bartender NPC needs upgrading", with his picture of her. Looks only: her id, name, job, spot, prompt, line and voice are unchanged. Full record: [`DISTRICT_UPGRADE.md`](DISTRICT_UPGRADE.md), "Second pass".

@@ -1,5 +1,7 @@
 # Three-location expansion: Milked, Corporate District, Zen Zephyr Temple
 
+> **Update, build `2026-11-16-quarters-1`:** sky cabs were scrapped. Milked is on foot in Old Town (taxi stop "Milked corner"); the Corporate District and the Temple are reached by road taxi through the Function Gate and the East Gate. See [`NEOCHINATOWN_QUARTERS.md`](NEOCHINATOWN_QUARTERS.md).
+
 **Owner-approved scope, recorded 15 Nov 2026 from the working session** (the original brief existed only in chat until now). Order is fixed: **Milked, then Corporate District, then Zen Zephyr Temple.** One branch, one PR, full tests, a real-browser walkthrough with screenshots, merge, and a live verification for each, before the next starts. Never combine them. The owner approved merging and deploying each PR once its checks pass.
 
 ## Status at a glance

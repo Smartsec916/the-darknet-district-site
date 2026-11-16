@@ -1,5 +1,7 @@
 # MILKED
 
+> **Update, build `2026-11-16-quarters-1`:** Milked is in the Old Town quarter; nothing inside it changed. The sky cab that set down on Main Street is gone; the road-taxi stop there is "Milked corner". See [`NEOCHINATOWN_QUARTERS.md`](NEOCHINATOWN_QUARTERS.md).
+
 > **Surfaces and light, 16 Nov 2026 (fourth pass, build `2026-11-16-milked-4`, branch `claude/milked-surfaces`, one local commit, not pushed):** the layout, the props and the loading transition are those of the third pass; this pass changed how the surfaces are made and lit. See "Surfaces and light (fourth pass)" below.
 >
 > **Rebuilt on 16 Nov 2026 (third pass, build `2026-11-16-milked-3`, branch `claude/milked-aaa`)** after David's two reference sheets (one exterior picture, one six-panel interior sheet) and his request: "Since Milked is going to have a security vestibule it can have a loading screen that functions like the one at The Darknet District with Milked styling and be more detail inside. Make it AAA standard". The inside of Milked is now **its own environment behind a loading card**, like The Darknet District. The building's place, size and rooms are those of the second pass earlier the same day (PR #326); "What changed in this pass" lists the differences.

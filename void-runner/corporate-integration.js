@@ -1,6 +1,6 @@
 /* Corporate District: game wiring (browser only). Registers the walking location, the interaction handlers and the security messages.
-   The data is corporate.js; the 3D build corporate-build.js; the transition sky-cab.js. Nothing here is saved except the map fog (story.flags.corpFog),
-   written by the build, and the trip record owned by sky-cab.js. */
+   The data is corporate.js; the 3D build corporate-build.js; the way in and out is the Function Gate (ncz-gate-transit.js, road-taxi.js). Nothing here is saved except the map fog (story.flags.corpFog),
+   written by the build, and the taxi's own trip record (road-taxi-rules.js). */
 (function(root){
  'use strict';
  const C=root.VoidCorporate;if(!C||typeof document==='undefined')return;
@@ -15,8 +15,9 @@
    'bay-1':'LOADING BAY: the shutter is down and locked.','bay-2':'LOADING BAY: the shutter is down and locked.','bay-3':'LOADING BAY: the shutter is down and locked.'};
   R('corp-door',({item})=>note(MSG[item?.door]||'Locked.'));
   R('corp-checkpoint',()=>note('SECURITY CHECKPOINT: visitors state their business. The lane is open, but a guard, a camera and a drone cover it.'));
-  // The return cab is included in the fare (sky-cab.js). Nobody is stranded without credits.
-  R('corp-cab',()=>{const w=walker;if(!root.VoidSkyCab?.ride){note('The sky cab is not available.');return;}root.VoidSkyCab.ride('neochinatown',{from:{spawn:[w.x,1.7,w.z],yaw:w.yaw},paid:0});});
+  // The ride back is included in the fare, and the gate can be walked. Nobody is stranded without credits.
+  R('corp-cab',()=>{done();if(!root.VoidRoadTaxi?.returnFrom){note('The taxi is not available.');return;}root.VoidRoadTaxi.returnFrom('corporate','cab');});
+  R('corp-gate',()=>{done();if(!root.VoidRoadTaxi?.returnFrom){note('The gate is not available.');return;}root.VoidRoadTaxi.returnFrom('corporate','foot');});
   // Security speech: the guard's line shows over the robot (corporate-build.js) and as a notice.
   addEventListener('corporate-security',e=>{const d=e.detail||{};
    if(d.type==='challenge')announce('SECURITY ROBOT: "'+(d.text||'State your business.')+'"');

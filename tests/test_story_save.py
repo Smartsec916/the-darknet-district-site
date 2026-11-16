@@ -86,3 +86,10 @@ class StorySaveTests(unittest.TestCase):
         state=self.state();state.update(quest='inheritance',location='earth',completed=0);state['story']['flags'].update(missionPool='closed',area='district',districtBadge=True,districtDoor=True)
         clean=vr.clean_save(state)
         self.assertEqual(clean['location'],'earth');self.assertEqual(clean['story']['flags']['area'],'district');self.assertIs(clean['story']['flags']['districtBadge'],True)
+
+    def test_quarter_flag_survives_cloud_validation(self):
+        # The quarter of NeoChinatown an outdoor player was last in (ncz-quarters.js): a short string in story.flags; the location id stays 'earth'.
+        for quarter in ('oldtown','avenue'):
+            state=self.state();state.update(quest='inheritance',location='earth',completed=0);state['story']['flags'].update(missionPool='closed',quarter=quarter)
+            clean=vr.clean_save(state)
+            self.assertEqual(clean['location'],'earth');self.assertEqual(clean['story']['flags']['quarter'],quarter)

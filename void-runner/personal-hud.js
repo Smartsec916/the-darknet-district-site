@@ -1,6 +1,6 @@
 /* Personal HUD: the pilot's own terminal (David's brief, 2026-10-27). Fully opaque, full screen.
    Four sections: Mission Log (the same missions and tracking as the L log), Comms, Inventory, and Taxi / Transport,
-   which shows a service only where one operates (VoidTaxi registers itself; otherwise it explains why not).
+   which shows a service only where one operates (the street taxis, road-taxi.js; otherwise it explains why not).
    Opening it uses the same pattern as the Mission Log: the game switches to its own 'hud' mode (no movement,
    firing or interactions), the mouse is released, and the previous mode comes back on close.
    Keys: P (rebindable, "Personal HUD") opens and closes; Esc closes; 1-4 or ←/→ switch sections; ↑/↓ and Enter
@@ -46,7 +46,7 @@
    row('Salvage',esc(s.cargo.salvage.map(c=>c.name+' ×'+c.units).join(' · ')||'None'))+row('Secure data',esc(s.cargo.data.join(' · ')||'None'))+'</table></section></div>';
  }
  function taxiHtml(){
-  const T=globalThis.VoidTaxi;if(!T)return '<p class="hud-note">No transport service is available here.</p>';
+  const T=globalThis.VoidRoadTaxi;if(!T?.hudHtml)return '<p class="hud-note">No transport service is available here.</p>';
   return T.hudHtml({onFoot:onFoot(),returnMode});
  }
  // Plain divs throughout: the page styles header, nav and main elements globally (game.css).
@@ -80,7 +80,7 @@
   if(b.hasAttribute('data-hud-character')){socialCharacter=b.dataset.hudCharacter;return render();}
   if(b.dataset.hudTrack){if(VoidMissions.track(state,b.dataset.hudTrack,C))save();return render();}
   if(b.dataset.hudUntrack){if(state.universe.trackedMission===b.dataset.hudUntrack){VoidMissions.untrack(state);save();}return render();}
-  if(b.dataset.hudAction)globalThis.VoidTaxi?.action?.(b.dataset.hudAction,{close,render});
+  if(b.dataset.hudAction)globalThis.VoidRoadTaxi?.action?.(b.dataset.hudAction,{close,render});
  },true);
  addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.ctrlKey||e.metaKey||e.altKey)return;
   const key=VoidInput.bindings.personalHud||'KeyP';
