@@ -26,9 +26,9 @@
  const TOW=PI/2,TOE=-PI/2,TON=PI,TOS=0;   // plane rotation.y so the readable face points west (-x), east (+x), north (+z), south (-z)
 
  // ================================================================ the kit: materials, shapes, signs, doors, props ================================================================
- function kit({B,scene,parent,quality,area}){
+ function kit({B,scene,parent,quality,area,offset}){
   const low=quality==='low',high=quality==='high'||quality==='ultra',interior=area===AREA,own=[],groups=new Map(),screens=[],leaves=new Map(),containers=[],models=new Map(),late=[],pbrs=[];let disposed=false,merged=false;
-  const node=new B.TransformNode(interior?'milked-interior':'milked',scene);node.parent=parent;node.position.set(OX,0,OZ);   // the one rigid move (milked.js OFFSET): every mesh and light below is parented to this node and keeps its own coordinates
+  const node=new B.TransformNode(interior?'milked-interior':'milked',scene);node.parent=parent;const [KX,KZ]=offset||[OX,OZ];node.position.set(KX,0,KZ);   // the one rigid move (milked.js OFFSET): every mesh and light below is parented to this node and keeps its own coordinates
   const matCache=new Map();
   /* Surfaces. Low keeps the plain (Standard) materials it had. Medium and above are physically based: roughness, metalness and a normal map on every main
      surface, so the metal, the concrete, the glass and the damp floors answer the lamps and show reflections.
@@ -301,7 +301,7 @@
    box(.26,.5,.14,lx1-.2,1.3,lz0+.6,M('fire','#7a1418','#30080a'));cyl(.13,.42,lx1-.22,.75,lz0+.6,M('fire','#7a1418','#30080a'),false,10);cyl(.3,.3,lx1-.32,.15,lz1-.5,M('bucket','#2c4a5a','#122028'),false,10);pipe(.03,1.2,'x',lx1-.3,.72,lz1-.45,trim).rotation.z=1.25;}
 
   // ---------------- merge static pieces by material (few draw calls) ----------------
-  function finish(){merged=true;for(const [mat,list] of groups){if(list.length>1){const alphaIn=list.some(m=>m.hasVertexAlpha),mm=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(mm){mm.parent=node;mm.position.set(-OX,0,-OZ);mm.material=mat;   /* a merge bakes the meshes' WORLD positions (this node's move included): the merged mesh stands back by the move so it is not carried twice */mm.isPickable=false;if(alphaIn)mm.hasVertexAlpha=true;mm.freezeWorldMatrix?.();}}else list[0].freezeWorldMatrix?.();}groups.clear();}
+  function finish(){merged=true;for(const [mat,list] of groups){if(list.length>1){const alphaIn=list.some(m=>m.hasVertexAlpha),mm=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(mm){mm.parent=node;mm.position.set(-KX,0,-KZ);mm.material=mat;   /* a merge bakes the meshes' WORLD positions (this node's move included): the merged mesh stands back by the move so it is not carried twice */mm.isPickable=false;if(alphaIn)mm.hasVertexAlpha=true;mm.freezeWorldMatrix?.();}}else list[0].freezeWorldMatrix?.();}groups.clear();}
   let clock=0;
   function animate(dt,cam,near=true){clock+=dt;if(!near)return;for(const s of screens){if(clock>s.next){s.next=clock+s.period;const g=s.t.getContext();s.draw(g,s.cw,s.ch,clock);s.t.update();}}
    if(cam)for(const o of autos){const want=Math.hypot(cam.x-o.cx,cam.z-o.cz)<o.r?1:0;if(o.k!==want){o.k+=Math.sign(want-o.k)*Math.min(Math.abs(want-o.k),dt*2.6);o.m.position[o.axis]=o.from+o.travel*o.k;}}}
@@ -726,6 +726,18 @@
  // How far each Meshy model must be turned so that its front faces the way the code asks. Checked by looking (16 Nov 2026): all four come in facing +z, which is
  // what a yaw of 0 means here, so none needs a turn. A regenerated model may need a new number.
  const FACE={camera:0,ring:0,softbox:0,chair:0};
- MK.create=create;MK.build=build;
+ /* The pointer signs in Old Town (David, 16 Nov 2026: Milked moved down the street, past the South Gate). Each is a blade sign on a bracket from the east wall of Main Street,
+    read walking south: the existing MILKED logo, an arrow straight ahead and the plain words SOUTH GATE. No new wording. spots: [[x of the plate's middle, y, z]]. Built in Old Town's
+    own frame (no move): they belong to Old Town, not to the building. */
+ function pointers({B,scene,parent,quality,spots}){
+  const k=kit({B,scene,parent,quality,area:'street',offset:[0,0]}),{box,sign,logo,black,FONT}=k;
+  const ahead=(g,w,h)=>{g.fillStyle='#0b0b10';g.fillRect(0,0,w,h);g.strokeStyle='#4a4e58';g.lineWidth=6;g.strokeRect(6,6,w-12,h-12);logo(g,w*.38,h*.4,h*.4);
+   g.strokeStyle='#ffe9f7';g.shadowColor=PINK;g.shadowBlur=14;g.lineWidth=h*.08;g.lineCap='round';g.lineJoin='round';const ax=w*.88;g.beginPath();g.moveTo(ax,h*.78);g.lineTo(ax,h*.2);g.moveTo(ax-h*.17,h*.38);g.lineTo(ax,h*.2);g.lineTo(ax+h*.17,h*.38);g.stroke();g.shadowBlur=0;
+   g.font=FONT(h*.17);g.fillStyle=GREEN;g.textAlign='center';g.textBaseline='middle';g.fillText('SOUTH GATE',w*.38,h*.86);};
+  for(const [bx,by,bz] of spots){box(2.9,.08,.08,bx,by+.55,bz,black);box(.08,.6,.08,bx+1.22,by+.3,bz,black);box(2.7,.97,.07,bx,by,bz,black);sign(2.6,.9,bx,by,bz+.045,TON,832,288,ahead);}
+  k.finish();
+  return {dispose(){k.dispose();}};
+ }
+ MK.create=create;MK.build=build;MK.pointers=pointers;
 
 })(typeof globalThis!=='undefined'?globalThis:this);

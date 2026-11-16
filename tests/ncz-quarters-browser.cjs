@@ -46,12 +46,28 @@ const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',tier=process.argv[
   await page.evaluate(()=>VoidInteractions.handlers.get('road-taxi-call')({}));await page.waitForFunction(()=>VoidHUD.isOpen&&VoidHUD.tab==='taxi');assert.ok(await page.locator('[data-hud-action="taxi-call:temple"]').count(),'the list offers the Temple with its fare');await page.keyboard.press('Escape');await page.waitForFunction(()=>!VoidHUD.isOpen&&mode==='walking');
   await page.keyboard.press('KeyG');await page.waitForFunction(()=>VoidHUD.isOpen&&VoidHUD.tab==='taxi');await page.keyboard.press('Escape');await page.waitForFunction(()=>!VoidHUD.isOpen);console.log('CALL A TAXI and G open the taxi list ok');}
  await pass('North Gate, east lane, to Old Town',[69.2,-17.5],[69.2,-23],[69.2,-28.5],'oldtown');
+ // the South Gate (A5, opened 16 Nov 2026) takes walkers in both pavements, both ways; Milked is on the far side of it
+ await pass('South Gate, west lane, to Far South',[52.8,-122],[52.8,-127],[52.8,-133],'far-south');
+ await pass('South Gate, west lane, back to Old Town',[52.8,-132],[52.8,-127],[52.8,-121],'oldtown');
+ await pass('South Gate, east lane, to Far South',[69.2,-122],[69.2,-127],[69.2,-133],'far-south');
+ await pass('South Gate, east lane, back to Old Town',[69.2,-132],[69.2,-127],[69.2,-121],'oldtown');
+ // the Far South Gate (A6) is shut: a walker coming down Far South stops at its wall
+ await enter('far-south',[61,1.7,-208]);
+ {let r=null;for(let z=-208;z>-222;z-=.25){r=await page.evaluate(([x,z])=>{if(VoidExplorer.blocked(x,z,walkingLocation))return false;walker.x=x;walker.z=z;return true;},[52.8,z]);if(!r)break;}
+  assert.equal(r,false,'the Far South Gate stops a walker');const z=await page.evaluate(()=>walker.z);assert.ok(z>-218.6&&z<-214,'at its north face, z '+z);
+  assert.equal(await page.evaluate(()=>walkingLocation.solids.filter(s=>/^gate-far-south-gate-/.test(s.id)).length),1,'one wall, no lanes, no doors');console.log('Far South Gate is shut ok, stopped at z',z);}
+ await enter('oldtown');
  // ---- by taxi ----
  await page.evaluate(()=>{walker.x=66;walker.z=-60;state.credits=1000;});await page.waitForTimeout(1500);
  let s=await ride('corporate',s=>s.loc==='corporate'&&s.mode==='walking');assert.equal(s.credits,940);assert.equal(s.trip,null);
  await page.evaluate(()=>VoidInteractions.handlers.get('corp-cab')({}));s=await until(s=>s.loc==='neochinatown'&&s.taxi==='arrived','the ride back from the Corporate District');assert.equal(s.q,'avenue');assert.equal(s.credits,940,'the ride back is included');await stepOut();
  s=await ride('temple',s=>s.loc==='temple'&&s.mode==='walking');assert.equal(s.credits,880);
  await page.evaluate(()=>VoidInteractions.handlers.get('temple-cab')({}));s=await until(s=>s.loc==='neochinatown'&&s.taxi==='arrived','the ride back from the Temple');assert.equal(s.q,'avenue');await stepOut();
+ // Milked corner is in Far South: the cab goes through the South Gate (A5) and the fare is the stop table's
+ await page.evaluate(()=>{walker.x=66;walker.z=-60;state.credits=1000;});await page.waitForTimeout(1500);
+ s=await ride('milked',s=>s.q==='far-south'&&s.taxi==='arrived');assert.ok(s.credits<1000&&s.credits>=1000-60,'the fare is charged once: '+s.credits);assert.equal(s.trip,null,'the trip is closed when the cab arrives');await stepOut();
+ s=await ride('main',s=>s.q==='oldtown'&&s.taxi==='arrived');await stepOut();
+ await page.evaluate(()=>{state.credits=880;});
  s=await ride('passage',s=>s.q==='port'&&s.taxi==='arrived');assert.ok(s.credits<880&&s.credits>=880-60);await stepOut();assert.equal((await info()).trip,null);
  assert.deepEqual(await page.evaluate(()=>[typeof VoidTaxi,typeof VoidSkyCab]),['undefined','undefined'],'the sky cabs are gone');
  assert.deepEqual(errs,[],'no page errors');console.log('NeoChinatown quarters: all passes and rides ok');await b.close();
