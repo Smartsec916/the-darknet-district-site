@@ -180,6 +180,18 @@
   // the fire barrel in the plaza and the lamps: an orange glow, no real light on Low
   cyl(.32,.85,61,.43,-238,dark);box(.5,.12,.5,61,.88,-238,fire);
   const lampAt=[[61,-232],[52,-248],[80,-246],[44,-226]];lampAt.forEach(([x,z])=>{cyl(.05,4.2,x,2.1,z,steel,6);box(.5,.12,.3,x,4.2,z,steel);box(.34,.08,.2,x,4.12,z,lamp);});
+  // ---- junk along the edges and in the gaps (David, 16 Nov 2026: the Outskirts has ONE way in and out, the Far South Gate; its boundary is containers and junk, no gap): heaps of scrap, tyres, drums, pallets, dead appliances and leaning corrugated sheet ----
+  const tyreM=flat('tyre','#111214',{rough:.95,metal:0}),appl=flat('appliance','#6b6e70',{rough:.7,metal:.4}),sheet=flat('sheet','#7a5a3c',{rough:.85,metal:.5});
+  const heap=(x,z,k)=>{const n=low?5:9;for(let i=0;i<n;i++){const ox=(r()-.5)*2.2,oz=(r()-.5)*1.6,t=r(),y0=Math.floor(i/4)*.35;
+    if(t<.22){const tor=B.MeshBuilder.CreateTorus('o-tyre',{diameter:.75,thickness:.28,tessellation:low?8:14},scene);add(tor,tyreM,x+ox,.14+y0,z+oz,r()*3);}
+    else if(t<.4){drum(x+ox,z+oz,i%2?rust:steel);}
+    else if(t<.55){for(let q=0;q<2;q++)box(1.1,.12,1.1,x+ox,.07+q*.13+y0,z+oz,wood,r()*3);}
+    else if(t<.7){box(.7,1.1,.65,x+ox,.55+y0,z+oz,appl,r()*3,0,(r()-.5)*.3);box(.5,.4,.02,x+ox,.8+y0,z+oz+.34,dark);}
+    else if(t<.85){box(1.8,.05,.9,x+ox,.6+y0,z+oz,sheet,r()*3,-.5-r()*.4,0);}
+    else box(.3+r()*.8,.15+r()*.4,.3+r()*.6,x+ox,.15+y0,z+oz,r()<.5?rust:steel,r()*3,(r()-.5)*.4,(r()-.5)*.4);}};
+  [[40,-225.8],[48,-225.8],[74,-225.8],[86,-225.8],[36.9,-233],[91.2,-232],[91.4,-242],[36.8,-239],[30,-240.9],[30,-249.2],[100,-240.9],[100,-247.2],[24,-241],[106,-246],[45,-255],[84,-255]].slice(0,low?8:16).forEach(([x,z],i)=>heap(x,z,i));
+  // corrugated sheet fencing between the containers and the lane walls
+  for(const [x,z,ry] of [[28,-240.2,Math.PI/2],[28,-249.8,Math.PI/2],[100,-240.2,Math.PI/2],[100,-247.8,Math.PI/2]])box(.05,2.1,3.6,x,1.05,z,sheet,0,0,.06);
   // ---- cables strung between the roofs ----
   const cable=track(flat('cable','#0a0a0c',{rough:.6,metal:.3}));
   for(let i=0;i<(low?6:16);i++){const a=roofs[Math.floor(r()*roofs.length)],b=roofs[Math.floor(r()*roofs.length)];if(a===b||Math.hypot(a.x-b.x,a.z-b.z)>16||Math.hypot(a.x-b.x,a.z-b.z)<3)continue;const pts=[];for(let k=0;k<=8;k++){const t=k/8;pts.push(new B.Vector3(a.x+(b.x-a.x)*t,a.y+.2+(b.y-a.y)*t-Math.sin(Math.PI*t)*(.5+r()*.9),a.z+(b.z-a.z)*t));}
