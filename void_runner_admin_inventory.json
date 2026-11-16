@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "884ae0e035aeed45",
+  "revision": "56a94c1c2aca665c",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13044,127 +13044,127 @@
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 87,
+      "line": 88,
       "text": "dialogue:{",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 91,
+      "line": 92,
       "text": "flirt:['Is that so? Tell me more.','You\\'re dangerous. I like it.','Say it like you mean it.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 106,
+      "line": 107,
       "text": "accepted:['Yeah? Good.','I was hoping you\\'d say that.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 120,
+      "line": 121,
       "text": "dialogue:{",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 124,
+      "line": 125,
       "text": "flirt:['Careful. Locals don\\'t fall for lines. Usually.','Say that again and I might believe it.','You\\'re bolder than you look, outsider.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 158,
+      "line": 159,
       "text": "dialogue:{",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 161,
+      "line": 162,
       "text": "compliment:['Obviously. But it\\'s nice to hear you say it.','Okay, that was smooth. I\\'m noting it down.','Flattery works on me. You\\'ve just found my weakness.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 196,
+      "line": 197,
       "text": "dialogue:{",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 198,
+      "line": 199,
       "text": "chat:['I paint the skyline sometimes. It\\'s never the same twice.','Do you ever listen to the rain on the glass? It sounds like whispering.','I like the hour before dawn. Even the signs look tired.','You don\\'t have to say anything. I like the quiet too.','Tell me something you love. Anything at all.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 200,
+      "line": 201,
       "text": "flirt:['You\\'re sweet. I\\'m not used to that.','Say that again? I want to keep it.','You make it hard to look anywhere else.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 216,
+      "line": 217,
       "text": "accepted:['Really? Good.','I hoped you\\'d say yes.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 241,
+      "line": 242,
       "text": "dialogue:{",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 245,
+      "line": 246,
       "text": "flirt:['Careful. I read people for a living.','You\\'re harder to predict than most. I like that.','Say that again. I want to check it for lies.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 277,
+      "line": 278,
       "text": "dialogue:{",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 279,
+      "line": 280,
       "text": "chat:['I ran the rooftops from here to the noodle market this morning. Personal best!','You should come running with me sometime. I\\'ll go slow. Maybe.','I\\'ve never been able to sit still. My mum says I was born mid-sprint.','The view\\'s better at dawn. Everything turns gold for about four minutes.','Tell me your favourite thing about this city. Mine\\'s the food.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 297,
+      "line": 298,
       "text": "accepted:['Yes!','Knew you\\'d say yes.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 306,
+      "line": 307,
       "text": "dialogue:{",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 326,
+      "line": 327,
       "text": "accepted:['Yeah? Good.','Was hoping you\\'d say that.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 352,
+      "line": 353,
       "text": "const speaks=entry=>Object.values(entry?.dialogue||{}).some(p=>p?.length);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 377,
+      "line": 378,
       "text": "if(near&&!wasNear){wasNear=true;t.apart=0;if(apartLong&&ready('welcome',c.welcomeAfter)){apartLong=false;mark('welcome');return {do:'say',pool:'welcomeBack',gesture:'greet'};}apartLong=false;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companions.js",
-      "line": 389,
+      "line": 390,
       "text": "return rnd()<c.flirtatiousness?{do:'say',pool:'aside',gesture:'flirt'}:{do:'say',pool:'chat',gesture:'laugh'};}",
       "kind": "source-reference"
     },
@@ -13805,7 +13805,7 @@
     "void-runner/corporate-integration.js": "dad32da04630d0ca31dd0494c1466ae5b242fc5268dd8e3f09a5782a7034f900",
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "d4df127d0d7c8132bb9900b2520e8e29c2a405b01cc6e2451f0acd7ed3ed849e",
-    "void-runner/crowd.js": "aa85593a85546ccd3d1b6b891f1bb5239814cfca299cbc27e39e2467a1484f4c",
+    "void-runner/crowd.js": "a27c0346cc3fcb15af0db5cfae0c19cdb13ea3f9e833a274ac076e4db71df95a",
     "void-runner/dax.js": "c3c782e8ffb3efe7e694eb919e03f8f5660e0e3ef128c52271cd95b291135d87",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
@@ -13931,7 +13931,7 @@
     "void-runner/voice-clips.js": "208db187d3d3a77b876b1e4a48e97fe50b488ce18567f28c63dea41753029fca",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "226b270665ea658d0295fc8c29c5da495c3bcde464a21debb7f02dcb11e9561d",
-    "void-runner/vr-companions.js": "f602bcc5a03617b8fa523e211958a0bed8cd8c13374b108258e893a8d2a2cdb4",
+    "void-runner/vr-companions.js": "598fece52ab5cb9016df2caad749aaa076be637f5f3c717e56b37f5596b9ebcc",
     "void-runner/vr-core.js": "e4c615af238030ee52498107d86deed4aef29e130b905dd14b33a2062a306a76",
     "void-runner/vr-forest.js": "6f3d4e0566de2bf9b5a73021a5a97471e8a735e582ff38bf09fbb960a544bf2b",
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",

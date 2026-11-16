@@ -4,6 +4,7 @@ const models=path.join(__dirname,'../void-runner/assets/models/crowd'),specs=pat
 const glbJson=buf=>JSON.parse(buf.subarray(20,20+buf.readUInt32LE(12)).toString('utf8'));
 const asArrayBuffer=buf=>buf.buffer.slice(buf.byteOffset,buf.byteOffset+buf.length);
 
+const clipsJson=JSON.parse(fs.readFileSync(path.join(__dirname,'..','tools','animation-pipeline','clips.json'),'utf8'));
 test('every companion has its model file, a clip list matching its spec and a preview',()=>{
  for(const e of C.companions.values()){
   // Purchased models (licensed) and those offered only in local development keep their model and preview out of
@@ -13,7 +14,9 @@ test('every companion has its model file, a clip list matching its spec and a pr
   if(!local){assert.ok(fs.existsSync(path.join(models,C.file(e))),e.id+': '+C.file(e)+' missing');
    assert.ok(fs.existsSync(path.join(__dirname,'..',e.preview)),e.id+': preview missing');}
   const spec=JSON.parse(fs.readFileSync(path.join(specs,e.model+'.json'),'utf8'));
-  assert.deepEqual([...spec.clips].sort(),[...crowd.clips[e.model]].sort(),e.model+' clips differ from its spec');
+  // a spec may name a clip by its source entry in clips.json (cm-walk: the old Kai figure's walk); the name it is shipped under is that entry's `as`
+  const shipped=c=>clipsJson.clips[c]?.as||c;
+  assert.deepEqual(spec.clips.map(shipped).sort(),[...crowd.clips[e.model]].sort(),e.model+' clips differ from its spec');
   for(const c of C.requiredClips)assert.ok(crowd.clips[e.model].includes(c),e.model+' lacks '+c);
  }
 });
