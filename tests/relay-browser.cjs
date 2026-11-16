@@ -12,7 +12,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
  const caption=()=>page.evaluate(()=>{const c=document.getElementById('relay-caption');return c.hidden?'':c.innerText;});
  const tick=(n=1,dt=.5)=>page.evaluate(([n,dt])=>{for(let i=0;i<n;i++)update(dt);},[n,dt]);
 
- // 1. Routine programming: an ad or a statement plays as a caption (no broadcaster is cast yet).
+ // 1. Routine programming: an ad or a statement plays as a caption (a line with no recording is a caption; the broadcasters are cast provisionally).
  await tick(8);await page.waitForFunction(()=>VoidRelayRadio.state.state==='playing');
  const first=await page.evaluate(()=>({kind:VoidRelayRadio.state.segment.kind,status:VoidRadio.status}));
  assert.match(first.status,/ON AIR/);assert.match(await caption(),/THE RELAY ·/);

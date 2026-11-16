@@ -126,6 +126,9 @@
   {id:'port-pad',quarter:'port',kind:'wall',at:[25,9,-86.3],faces:'s',w:6},
   {id:'port-passage',quarter:'port',kind:'kiosk',at:[38.2,1.55,-96],faces:'e'}
  ];
+ /* RECORDING SWITCHES, read by tools/audio/extract-lines.cjs. Both are OFF: David picks the voices by ear first, and nothing new is recorded before that.
+    ads: the street's ad and announcement lines. board: each of David's handles and "a new number one". */
+ const RECORD={ads:false,board:false};
  // No screen stands inside a checkpoint or within this many metres of one.
  const GATE_MARGIN=3;
  // The lore era now. null: no eras exist yet, so every ad without an `era` runs and an ad with one does not.
@@ -190,6 +193,6 @@
  }
  // Every line a voice could ever say on a street screen, as {speaker, text, cat, id}: the recording list (see the audition plan). Board handles are separate.
  function spokenLines(relay){const out=[];for(const z of Object.keys(ZONES))for(const list of Object.values(adsFor(z,{relay})))for(const ad of list)for(const l of slide({type:'ad',ad}).lines)if(l.say&&!out.some(o=>o.text===l.say&&o.speaker===(ad.speaker||CATEGORIES[ad.cat].speaker)))out.push({speaker:ad.speaker||CATEGORIES[ad.cat].speaker,text:l.say,cat:ad.cat,id:ad.id,relay:!!ad.relay});return out;}
- const api={CATEGORIES,ADS,RELAY,ZONES,AREAS,SCENES,PLACES,ERA,EVERY,TIMING,GATE_MARGIN,zoneAt,inEra,adsFor,programme,breakSlot,newsFor,slide,spokenLines,hash,mulberry};
+ const api={CATEGORIES,ADS,RELAY,ZONES,AREAS,SCENES,PLACES,ERA,EVERY,TIMING,GATE_MARGIN,RECORD,zoneAt,inEra,adsFor,programme,breakSlot,newsFor,slide,spokenLines,hash,mulberry};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidAdData=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

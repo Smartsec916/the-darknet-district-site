@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "08697f82d173d4a2",
+  "revision": "8f334da1cad15943",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11208,49 +11208,49 @@
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 176,
+      "line": 179,
       "text": "/* One slot as something a screen can show and say. Each slide: {kind, cat, look, speaker, label, title, lines:[{text, say, hold}]}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 182,
+      "line": 185,
       "text": "say: the exact text a recording is looked up by (null: nothing is ever said for it). hold: seconds on screen without a recording. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 184,
+      "line": 187,
       "text": "if(slot.type==='board'){const c=CATEGORIES.board;return {kind:'board',cat:'board',look:c.look,speaker:c.speaker,label:standings?.header||'WARFLYING LEADERSHIP BOARD',title:'',standings,lines:[{text:standings?.spoken||'',say:standings?.spoken||null,hold:TIMING.board}]};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 185,
+      "line": 188,
       "text": "if(slot.type==='news'){const s=slot.segment,c=CATEGORIES.news;return {kind:'news',cat:'news',look:c.look,speaker:s.speaker||'news-anchor',label:c.label,title:s.headline||'',id:s.id,lines:[{text:s.headline||'',say:null,hold:TIMING.headline,headline:true},...s.lines.map(t=>({text:t,say:t,hold:TIMING.line}))]};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 187,
+      "line": 190,
       "text": "if(ad.brand){const full=ad.brand+' — '+ad.line;return {...base,kind:'brand',title:ad.brand,lines:[{text:ad.line,say:full,hold:TIMING.brand}]};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 188,
+      "line": 191,
       "text": "if(ad.lines)return {...base,kind:'script',title:ad.title,lines:[...(ad.relay||!ad.title?[]:[{text:ad.title,say:ad.title,hold:TIMING.title,title:true}]),...ad.lines.map(t=>({text:t,say:t,hold:TIMING.line}))]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 189,
+      "line": 192,
       "text": "return {...base,kind:'notice',title:'',lines:[{text:ad.line,say:ad.line,hold:TIMING.notice}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 192,
+      "line": 195,
       "text": "function spokenLines(relay){const out=[];for(const z of Object.keys(ZONES))for(const list of Object.values(adsFor(z,{relay})))for(const ad of list)for(const l of slide({type:'ad',ad}).lines)if(l.say&&!out.some(o=>o.text===l.say&&o.speaker===(ad.speaker||CATEGORIES[ad.cat].speaker)))out.push({speaker:ad.speaker||CATEGORIES[ad.cat].speaker,text:l.say,cat:ad.cat,id:ad.id,relay:!!ad.relay});return out;}",
       "kind": "source-reference"
     },
@@ -12515,6 +12515,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/relay-screens.js",
+      "line": 10,
+      "text": "sits in a modelled housing. What the screens SAY is unchanged. */",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/relay.js",
       "line": 4,
       "text": "a broadcaster says about an event, or standalone programming (ads, WarFlying, The Function).",
@@ -13146,19 +13152,19 @@
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 68,
+      "line": 69,
       "text": "if(typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text)speech.rate=Math.max(20,text.length/Math.max(.5,data.duration-.15));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 76,
+      "line": 77,
       "text": "renderLine=function(){if(speech)speech.rate=null;voicedRender();const line=speech?.lines[speech.index];if(line&&line.who!=='pilot')screen.querySelector('.speech-controls')?.insertAdjacentHTML('afterbegin','<button data-action=\"speech-replay\" class=\"quiet\" title=\"Replay line\">REPLAY ↺</button>');};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 77,
+      "line": 78,
       "text": "screen.addEventListener('click',e=>{if(e.target.closest('button')?.dataset.action!=='speech-replay'||!speech)return;const line=speech.lines[speech.index];VoidAudio.speak(line.who,line.text);});",
       "kind": "source-reference"
     },
@@ -13924,8 +13930,8 @@
     "void-runner/account.js": "608e9e265d621184a2b95f8b84062859cfc4530340141534991f8bd435d4d1db",
     "void-runner/achievements.js": "2f974b5ab4c9d85d24bfdc3cb95ef1310941d9e9c0608e6965f340afa91fdba5",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
-    "void-runner/ad-screens-data.js": "ecfc55889c4068965c4f082c9647c3bb10a16bee24e63f8352450938dc4cbb4b",
-    "void-runner/ad-screens.js": "ff77736ab3db972d96843a49d2142ddd5d7ecb2b9ec9aba92e09a2a66cf765c2",
+    "void-runner/ad-screens-data.js": "61f2319a04534ab267bfb0580d77cb0e9b8818a70cbd31e12d34a6213488566c",
+    "void-runner/ad-screens.js": "7d924f94ba35860af08c309a6b92257d9031628f70234545a3107e0804f13b21",
     "void-runner/anim-library.js": "21718cc00efa5199c5fd3164b62454e848e0c0519fb001afa7d61524c2510568",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/area-ambience.js": "4a3b6f044b5b1ec76acef62abede55abe91d1d813ca66a9a50f2d6dea6e0b818",
@@ -14059,7 +14065,7 @@
     "void-runner/prologue-integration.js": "73b6689dec3977c05f5e318d1a24024f2f2d1b70a18cc838d1a5d9640665f800",
     "void-runner/radio.js": "a9d04c53cfb34748f9c30054ffdb28f02a5fb87114883c71149b691e0ff5c313",
     "void-runner/relay-radio.js": "ed5b8686c724bc865e73f89cfdb57aa9e6ab18282b87d7398a5cf6102ef6f5d1",
-    "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
+    "void-runner/relay-screens.js": "b3365f56117519e9dfe0aa4ff58c62e5feebb7d334db1ca03b20d20e830afb7c",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
     "void-runner/remote-players.js": "f8bbf039d6dc58d8b96adb744622e9dddb5a7d057a761131ded5911e4123cb9a",
     "void-runner/road-taxi-rules.js": "40969019b02ff066cee7323610a9668b6d2becf8dbfbea5ea8c473f1e0b384cb",
@@ -14090,7 +14096,7 @@
     "void-runner/unified-controls.js": "4b4aec06ae8268e43d621f4aa772036353e2fcf62d78d176a6f4508c9f444a8f",
     "void-runner/universe.js": "b4230d16307e4209ba781e04841d1be043b0360f2aa0ca35380af88718a67887",
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
-    "void-runner/voice-clips.js": "989e00a5d23c8ea6fc92a95c27d2207983730b45304dadaf40915abab36ad020",
+    "void-runner/voice-clips.js": "fdf9a06bf86f5900bc4905edb3ebf1593d3dac3ba4d64fa13a5f875a43973012",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "226b270665ea658d0295fc8c29c5da495c3bcde464a21debb7f02dcb11e9561d",
     "void-runner/vr-companions.js": "598fece52ab5cb9016df2caad749aaa076be637f5f3c717e56b37f5596b9ebcc",

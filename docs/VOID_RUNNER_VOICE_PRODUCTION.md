@@ -66,7 +66,8 @@ The Relay's scripts are in `void-runner/relay-content.json`. Each segment has an
 
 ## Not built yet
 
-- **Broadcast voices:** the Relay's scripts are in (David's lines from his Relay brief; see `docs/VOID_RUNNER_RELAY.md`), but no broadcaster is cast yet, so they show as captions. Each report line is recorded as its own clip; lines with leaderboard names filled in at play time stay captions.
+- **Broadcast voices:** the Relay's scripts are in (David's lines from his Relay brief; see `docs/VOID_RUNNER_RELAY.md`), and four broadcasters are cast **provisionally** (`news-anchor`, `warflying-host`, `police-recruiter`, `commercial-announcer`: stand-ins from 17 Oct 2026, not David's picks), so every fixed report line has a recording and plays on the radio. Each report line is its own clip; lines with leaderboard names filled in at play time stay captions. The Function is not cast.
+- **Street advertisement screens (16 Nov 2026):** they play the existing recordings of David's seven space-station ads and his three news reports from where the screens stand; every other ad line, the government announcements and the WarFlying board's "#1" callout have **no recording and are silent** until David picks voices by ear. The audition lines, the pick sheet and the full clip list are in [`development/AD_SCREENS_VOICE_AUDITION.md`](development/AD_SCREENS_VOICE_AUDITION.md). Recording is switched on by `RECORD` in `void-runner/ad-screens-data.js`.
 - The special-character slot stays reserved until David introduces that character.
 
 ## Companion voices and blends (2026-11-01)

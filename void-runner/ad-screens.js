@@ -232,7 +232,7 @@
  const audio={ctx:null,voice:null,hums:[],busy:null,level:0};
  function ensureAudio(){
   const A=root.VoidAudio,vb=A?.bus?.('voice'),ab=A?.bus?.('ambient');if(!vb||!ab||!A.settings?.enabled)return null;
-  if(audio.ctx!==vb.context){audio.ctx=vb.context;const c=audio.ctx,gain=c.createGain(),pan=c.createStereoPanner?c.createStereoPanner():null;gain.gain.value=0;if(pan){gain.connect(pan);pan.connect(vb.node);}else gain.connect(vb.node);audio.voice={gain,pan,level:0,x:0,z:0};audio.hums=[];audio.busy=null;audio.amb=ab.node;}
+  if(audio.ctx!==vb.context){audio.ctx=vb.context;const c=audio.ctx,gain=c.createGain(),pan=c.createStereoPanner?c.createStereoPanner():null;gain.gain.value=0;if(pan){gain.connect(pan);pan.connect(vb.node);}else gain.connect(vb.node);audio.voice={gain,pan,level:0,panTo:0,x:0,z:0};audio.hums=[];audio.busy=null;audio.amb=ab.node;}
   return audio.ctx.state==='running'?audio:null;
  }
  function humVoice(zone){
@@ -266,7 +266,7 @@
  const standings=()=>{try{return root.VoidWarFlyingScanner?.standings?.()||root.VoidWarFlyingBoard.standings(0,'YOU');}catch{return root.VoidWarFlyingBoard.standings(0,'YOU');}};
  const newsNow=()=>{try{return D.newsFor(relayContent(),typeof state!=='undefined'?state?.relay?.occurred:null);}catch{return [];}};
  function createFeed(id,zone,seed){
-  const f={id,zone,seed,programme:[],relayCount:-1,pos:-1,slide:null,i:0,lineT:0,dur:1,slideT:0,clip:null,clipLen:0,spots:[],texture:null,material:null,dirty:true,spoken:0,shown:0,log:[]};
+  const f={id,zone,seed,programme:[],relayCount:-1,pos:-1,slide:null,i:0,lineT:0,dur:1,slideT:0,clip:null,said:false,spots:[],texture:null,material:null,dirty:true,spoken:0,shown:0,log:[]};
   f.rebuild=()=>{const rc=relayContent();f.relayCount=(rc.segments||[]).length;f.programme=D.programme(zone,{relay:rc,seed});if(f.pos<0)f.pos=seed*7%Math.max(1,f.programme.length)-1;};
   f.rebuild();return f;
  }
@@ -280,11 +280,11 @@
  function stopClip(f){if(f.clip){const c=f.clip;f.clip=null;try{c.stop();}catch{}if(audio.busy===f)audio.busy=null;f.dur=Math.max(f.lineT+D.TIMING.gap,f.slide?.lines[f.i]?.hold||0);}}
  function nextLine(f,speak){
   stopClip(f);f.i++;if(!f.slide||f.i>=f.slide.lines.length){nextSlide(f);if(!f.slide){f.dur=5;f.lineT=0;return;}f.i=0;}
-  const line=f.slide.lines[f.i];f.lineT=0;f.dur=line.hold;f.clipLen=0;
+  const line=f.slide.lines[f.i];f.lineT=0;f.dur=line.hold;f.said=false;
   if(speak&&line.say&&!audio.busy&&audio.voice){
    const clip=root.VoidVoiceClips?.broadcast?.(f.slide.speaker,line.say,audio.voice.gain);
    if(clip){f.clip=clip;audio.busy=f;f.dur=40;f.spoken++;f.lastSpoken={speaker:f.slide.speaker,text:line.say};
-    const done=ok=>{if(f.clip!==clip)return;f.clip=null;if(audio.busy===f)audio.busy=null;f.dur=ok?f.lineT+D.TIMING.gap:Math.max(f.lineT+D.TIMING.gap,line.hold);};clip.done.then(()=>done(true),()=>done(false));}
+    const done=ok=>{if(f.clip!==clip)return;f.clip=null;f.said=ok;if(audio.busy===f)audio.busy=null;f.dur=ok?f.lineT+D.TIMING.gap:Math.max(f.lineT+D.TIMING.gap,line.hold);};clip.done.then(()=>done(true),()=>done(false));}
   }
  }
 
@@ -303,7 +303,7 @@
    const m=new B.StandardMaterial('adscreen-'+id,scene);m.diffuseColor=B.Color3.Black();m.specularColor=B.Color3.Black();m.emissiveTexture=f.texture;m.disableLighting=true;env.owned.push(m);f.material=m;
    f.offset=k*3.1;nextLine(f,false);paintFeed(f);feeds.set(id,f);return f;
   }
-  function paintFeed(f){if(!f.slide)return;const line=f.slide.lines[f.i],p=f.clip?(f.clipLen>0?f.lineT/f.clipLen:f.clip.duration>0?(f.clipLen=f.clip.duration,f.lineT/f.clipLen):Math.min(.2,f.lineT/8)):f.lineT/Math.max(.5,line.hold*.82);
+  function paintFeed(f){if(!f.slide||f.i<0)return;const line=f.slide.lines[f.i],p=f.clip?f.clip.progress||0:f.said?1:f.lineT/Math.max(.5,line.hold*.82);
    paint(f.texture.getContext(),f.res[0],f.res[1],f.slide,{t:clock+f.offset,slideT:f.slideT,i:f.i,p:clamp(p),lineT:f.lineT});f.texture.update();f.frames=(f.frames||0)+1;}
   function make(kind,w,h,p,ry){
    const zone=D.zoneAt(quarter,p[0],p[2]);if(!zone||env.dropped('adscreen',p))return false;
@@ -330,17 +330,17 @@
     lead=loud>0&&best&&bestLevel>.004?best:null;
     // a feed that is talking keeps the voice while one of its screens is still heard; otherwise it is cut off and the best-heard screen takes over at its next line
     if(audio.busy){const own=feeds.get(audio.busy.id)===audio.busy?audio.busy.spots.reduce((a,s)=>(s.level||0)>(a?.level||0)?s:a,null):null;if(own&&own.level>.015&&loud>0)lead=own;else stopClip(audio.busy);}
-    if(au){const v=audio.voice,target=lead&&loud>0?Math.min(1,lead.level*1.5)*loud:0;v.level=target;v.gain.gain.setTargetAtTime(target,au.ctx.currentTime,.12);if(v.pan&&lead)v.pan.pan.setTargetAtTime(lead.pan,au.ctx.currentTime,.1);if(lead){v.x=lead.x;v.z=lead.z;}
+    if(au){const v=audio.voice,target=lead&&loud>0?Math.min(1,lead.level*1.5)*loud:0;v.level=target;v.gain.gain.setTargetAtTime(target,au.ctx.currentTime,.12);if(lead){v.x=lead.x;v.z=lead.z;v.panTo=lead.pan;if(v.pan)v.pan.pan.setTargetAtTime(lead.pan,au.ctx.currentTime,.1);}
      // the nearest two screens hum
      near.sort((a,b)=>b.level-a.level);const want=loud>0?near.slice(0,2):[];
      for(let i=0;i<2;i++){const n=want[i];let h=audio.hums[i];if(!n){if(h&&h.level){h.level=0;h.gain.gain.setTargetAtTime(0,au.ctx.currentTime,.3);h.spot=null;}continue;}
       if(!h||h.zone!==n.s.zone){if(h){const old=h;old.gain.gain.setTargetAtTime(0,au.ctx.currentTime,.1);setTimeout(()=>{for(const o of old.nodes)try{o.stop();}catch{}try{old.gain.disconnect();old.pan?.disconnect();}catch{}},600);}h=audio.hums[i]=humVoice(n.s.zone);}
-      const lv=n.level*.045*(ZONE_SOUND[n.s.zone]?.gain||1)*loud;h.level=lv;h.spot=n.s;h.gain.gain.setTargetAtTime(lv,au.ctx.currentTime,.25);if(h.pan)h.pan.pan.setTargetAtTime(n.pan,au.ctx.currentTime,.1);}}
+      const lv=n.level*.045*(ZONE_SOUND[n.s.zone]?.gain||1)*loud;h.level=lv;h.spot=n.s;h.panTo=n.pan;h.gain.gain.setTargetAtTime(lv,au.ctx.currentTime,.25);if(h.pan)h.pan.pan.setTargetAtTime(n.pan,au.ctx.currentTime,.1);}}
     else if(audio.busy)stopClip(audio.busy);
    }
    // the programme
    for(const f of feeds.values()){f.lineT+=dt;f.slideT+=dt;
-    if(f.lineT>=f.dur){const speak=!!au&&loud>0&&!!lead&&lead.feed===f&&D.ZONES[f.zone].speaks;nextLine(f,speak);
+    if(f.lineT>=f.dur){const speak=!!au&&loud>0&&!!lead&&lead.feed===f&&D.ZONES[f.zone].speaks&&root.VoidAudio.settings.voiceEnabled!==false;nextLine(f,speak);
      if(f.fresh){f.fresh=false;if(au&&loud>0){const s=f.spots.reduce((a,x)=>(x.level||0)>(a?.level||0)?x:a,null);if(s&&s.level>.01&&(lead?.feed===f||!lead))chime(f.slide.look,s.level*loud,s.pan||0);}}
      f.dirty=true;}}
    // the pictures: one feed per frame slot, only where somebody can see it
@@ -351,7 +351,7 @@
   function dispose(){disposed=true;for(const f of feeds.values())stopClip(f);for(const h of audio.hums){if(!h)continue;try{h.gain.gain.value=0;for(const o of h.nodes)o.stop();h.gain.disconnect();h.pan?.disconnect();}catch{}}audio.hums=[];if(audio.voice)try{audio.voice.gain.gain.value=0;}catch{}feeds.clear();spots.length=0;lead=null;if(api.current===handle)api.current=null;}
   const handle={wall,kiosk,extras,tick,dispose,quarter,get feeds(){return [...feeds.values()];},get spots(){return spots;},get lead(){return lead;},
    // for tests: move a feed on by one slide, or to the first slide of a kind / id
-   skip(id,want){const f=feeds.get(id);if(!f)return null;for(let n=0;n<400;n++){stopClip(f);nextSlide(f);if(!f.slide)return null;f.i=0;f.lineT=0;f.dur=f.slide.lines[0].hold;f.fresh=false;if(!want||f.slide.kind===want||f.slide.cat===want||f.slide.id===want)break;}paintFeed(f);return f.slide;},
+   skip(id,want){const f=feeds.get(id);if(!f)return null;for(let n=0;n<400;n++){stopClip(f);nextSlide(f);if(!f.slide)return null;if(!want||f.slide.kind===want||f.slide.cat===want||f.slide.id===want)break;}f.i=-1;f.lineT=0;f.dur=0;return f.slide;},
    paintAll(){for(const f of feeds.values())paintFeed(f);}};
   api.current=handle;return handle;
  }
