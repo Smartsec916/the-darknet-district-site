@@ -6,6 +6,17 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 16 Nov 2026 (after midnight): TWO BIG BRIEFS RECEIVED; what is done and what is next (build `2026-11-16-companions-2`)
+
+David sent (1) "ActorCore Motion Capture Integration" and (2) "NeoChinatown Rework, Milked Redesign & V1 Taxi Integration" (three phases, in order). Both are large. State:
+
+- **ActorCore:** inventory, licence position, retarget tool and the shared library module exist; see `docs/development/ACTORCORE_ANIMATIONS.md`. **The licensed clips are NOT published; David must answer the licence question there first.** Nothing uses the clips yet.
+- **NeoChinatown rework, Milked redesign, taxi in the V1 Map: NOT STARTED.** Do them in that order. Milked's new concept (from the brief): a small adult livestreaming studio on a quiet side street with a service alley; pink and green branding, logo MILKED plus white droplets; its own double-door vestibule; reception with Eva; a hallway with windows onto small studios, exactly one clothed adult dancer each, ON AIR lights; Fish's office, dressing rooms, restrooms and a rear door; remove every medical, biobank, laboratory and collection feature, the plaza and the big footprint; no bar or dance floor; do not activate or rewrite the Milked mission. All performers adults, clothed, non-explicit.
+- **Companions:** the material and face-light pass is approved by David and shipped. **Seren is removed** at David's request (he will supply a better model); anything that asks for `seren` gets Nadia (`vr-companions.js` `legacy`). Kai: David wants his clothing sexier and somewhat cyberpunk or flashy without adding much; a new concept was generated on David's PC (`...\Meshy\companions\kai\concept`), not yet shown to him or built. An earlier Kai model (plain outfit) was built and rigged there but is superseded. David asked for a naked option earlier; Claude declined, do not add it.
+- David also asked: ElevenLabs voices for companions and a better companion interaction UI. Not started.
+- Local-only test failure: `tests/vr-companion-models.test.cjs` fails here with "ava: preview missing" because the licensed models were copied in for pictures without their preview images. It passes in CI.
+- Meshy credits: about 235 left this month (estimate).
+
 ### 16 Nov 2026 (night): companion room upgrade (build `2026-11-16-suite-room-1`); companions wait for approval
 
 - Room: five Meshy props, lighting, balcony furniture, airship and searchlights. See the last section of `docs/development/VR_SESSIONS.md`.
