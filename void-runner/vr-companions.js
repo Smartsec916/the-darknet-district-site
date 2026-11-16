@@ -80,7 +80,7 @@
  // Seren and Kai (original adult characters; MakeHuman CC0, Mixamo and Rokoko mocap). DRAFT lines throughout.
  // Seren was removed on 16 Nov 2026 at David's request (he will supply a better model). Anything that still asks for 'seren' (an old save, a shared
  // session, a remembered choice) is given Nadia: see `retired` below.
- register({id:'kai',name:'Kai',sex:'male',model:'vr-companion-kai',skin:[],   /* his own model since 16 Nov 2026 (Meshy, from a concept David approved); vr-companion-m was the MakeHuman stand-in */
+ register({id:'kai',name:'Kai',sex:'male',model:'npc-kai',skin:[],   /* his own model since 16 Nov 2026 (Meshy, from a concept David approved); vr-companion-m was the MakeHuman stand-in */
   preview:'void-runner/assets/vr/companions/kai.jpg',
   about:'Calm, wry and attentive. He listens more than he talks.',voice:{characterId:'vr-kai',voiceId:null},
   personality:{initiative:.45,flirtatiousness:.5,approachFrequency:.42,attention:.92,personalSpace:1.15,walkSpeed:1.05},

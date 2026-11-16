@@ -6,6 +6,10 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 16 Nov 2026: Kai has his own model (build `2026-11-16-kai-1`)
+
+David approved the concept and then the in-room picture ("push Kai"). `npc-kai.glb` (Meshy: concept, image-to-3d, remesh, rig; 49 credits) replaces the MakeHuman stand-in for the companion Kai. His clips are the old figure's (`vr-companion-m.glb`), retargeted (`cm-*` entries in `tools/animation-pipeline/clips.json`, spec `characters/npc-kai.json`). No fingers, no blink or smile shapes on this rig. The cyan trim on his jacket came out white. Source files: `C:\Users\smart\Documents\DarknetDistrict_Assets\Meshy\companions\kai\`.
+
 ### 16 Nov 2026 (after midnight): TWO BIG BRIEFS RECEIVED; what is done and what is next (build `2026-11-16-companions-2`)
 
 David sent (1) "ActorCore Motion Capture Integration" and (2) "NeoChinatown Rework, Milked Redesign & V1 Taxi Integration" (three phases, in order). Both are large. State:

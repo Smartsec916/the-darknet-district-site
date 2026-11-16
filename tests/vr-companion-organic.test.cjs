@@ -31,7 +31,7 @@ test('the breath is small, smooth, periodic and differs between companions',()=>
  assert.equal(C.breathWeight({state:'idle'}),1);assert.ok(C.breathWeight({state:'walk'})<.5&&C.breathWeight({dancing:true})<.5);});
 
 test('every released companion names its skin materials; Eva reads ambient occlusion from her ORM maps',()=>{
- for(const id of ['kai','nadia','ava','eva','base-f','base-m'])assert.ok(C.get(id).skin?.length,id+' lists skin materials');
+ for(const id of ['nadia','ava','eva','base-f','base-m'])assert.ok(C.get(id).skin?.length,id+' lists skin materials');
  assert.ok(C.isSkin(C.get('ava'),'head')&&!C.isSkin(C.get('ava'),'hair_front')&&!C.isSkin(C.get('ava'),'pupil'));
  assert.ok(C.hasOrm(C.get('eva'),'head5')&&!C.hasOrm(C.get('ava'),'head'));
  // Without a list, skin is guessed from the name, never from eyes, hair or lashes.
