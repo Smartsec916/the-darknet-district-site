@@ -21,12 +21,13 @@
    {id:'temple',label:'Zen Zephyr Temple',zone:null,scene:'temple',fixedFare:60,blurb:'A hilltop sanctuary far from the city, by sky cab only'}]}
  };
  const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
- // ctx: {mode, onFoot, area ('street'|'district'|'terrace'), busy, combat, location}. Returns {ok, reason}.
+ // ctx: {mode, onFoot, area ('street'|'district'|'terrace'|'milked': the inside of Milked, an environment of its own), busy, combat, location}. Returns {ok, reason}.
  function availability(s,ctx={}){
   const net=networks[s?.location];
   if(!net)return {ok:false,reason:ctx.inSpace?'No taxis fly in space.':'No taxi service operates here.'};
   if(!ctx.onFoot)return {ok:false,reason:'Taxis pick up on foot, in the city.'};
   if(ctx.area==='district')return {ok:false,reason:'Taxis can’t land in The Darknet District. Step out into the alley first.'};
+  if(ctx.area==='milked')return {ok:false,reason:'Taxis can’t land inside Milked. Step out to the street first.'};
   if(ctx.combat)return {ok:false,reason:'No cab will come in while there’s fighting.'};
   if(ctx.busy)return {ok:false,reason:'Try again in a moment.'};
   if(s?.story?.flags?.taxiBlocked)return {ok:false,reason:'Taxi service is suspended for this mission.'};

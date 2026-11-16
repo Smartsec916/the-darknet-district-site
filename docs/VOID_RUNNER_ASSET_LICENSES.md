@@ -218,6 +218,7 @@ muffled 124 BPM thump), nothing recorded or licensed.
 | Item | Source | Licence | Status |
 |---|---|---|---|
 | `void-runner/assets/models/crowd/npc-admin.glb` (and later `npc-*.glb`) | Generated with Meshy (image-to-image concept, image-to-3d, remesh, auto-rig) on David's paid Meshy account from his own reference pictures; the clips are the game's own, retargeted. Steps and task ids: `docs/development/MESHY_CHARACTERS.md`. | Meshy's terms for paid plans (the customer owns the outputs) | **David to confirm** his plan's wording. Stored in this repository on that basis. |
+| `void-runner/assets/models/milked/milked-*.glb` (ten props for Milked, 16 Nov 2026: camera on tripod, ring light, softbox, office chair, bamboo, pothos, lucky cat, shark plush, laundry cart, flight case) | Generated with Meshy on David's paid account from text prompts written for this game (text to image with nano-banana-pro, image to 3D, remesh; 44 credits each, 440 in total). No reference pictures of real products, people or brands were used. Prompts and task ids: `docs/development/MILKED.md` and `Documents\DarknetDistrict_Assets\Meshy\milked_props\` on David's PC. | Meshy's terms for paid plans (the customer owns the outputs) | **David to confirm** his plan's wording, as above. Stored in this repository on that basis. |
 
 ## Store display sheets in the in-game shop (Nov 2026)
 

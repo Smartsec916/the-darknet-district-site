@@ -2,7 +2,9 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const MK=require('../void-runner/milked.js'),N=require('../void-runner/neochinatown.js'),E=require('../void-runner/exploration-controller.js'),R=require('../void-runner/taxi-rules.js'),C=require('../void-runner/campaign.js'),Map_=require('../void-runner/district-map.js');
 const src=fs.readFileSync(path.join(__dirname,'../void-runner/milked.js'),'utf8');
-const code=src.replace(/\/\*[\s\S]*?\*\//g,'').replace(/(^|[^:'"])\/\/.*$/gm,'$1');
+const strip=t=>t.replace(/\/\*[\s\S]*?\*\//g,'').replace(/(^|[^:'"])\/\/.*$/gm,'$1'),code=strip(src);
+// the Babylon presentation lives in its own file since the interior became an environment of its own (16 Nov 2026)
+const bsrc=fs.readFileSync(path.join(__dirname,'../void-runner/milked-build.js'),'utf8'),bcode=strip(bsrc);
 const reach=L=>{const S=.5,seen=new Set(),key=(x,z)=>x.toFixed(1)+','+z.toFixed(1),q=[[L.spawn[0],L.spawn[2]]];seen.add(key(...q[0]));for(let i=0;i<q.length;i++){const [x,z]=q[i];for(const [dx,dz] of [[S,0],[-S,0],[0,S],[0,-S]]){const nx=x+dx,nz=z+dz,k=key(nx,nz);if(seen.has(k)||E.blocked(nx,nz,L))continue;seen.add(k);q.push([nx,nz]);}}return q;};
 const near=(cells,x,z,r)=>cells.some(([a,b])=>Math.hypot(a-x,b-z)<=r);
 
@@ -16,7 +18,7 @@ test('Milked is a small adult livestreaming production studio: not a nightclub, 
 });
 test('the biobank, the consultation room, the laboratory, cryogenic storage and the appointment systems are gone',()=>{
   const gone=/biobank|sperm|clinic|consult|laborator|\blab\b|cryo|centrifuge|sample|specimen|appointment kiosk|check-in kiosk|medical|chain of custody|inventory/i;
-  assert.ok(!gone.test(code),'nothing clinical is left in milked.js: '+(code.match(gone)||[''])[0]);
+  assert.ok(!gone.test(code),'nothing clinical is left in milked.js: '+(code.match(gone)||[''])[0]);assert.ok(!gone.test(bcode),'nor in milked-build.js: '+(bcode.match(gone)||[''])[0]);
   const integ=fs.readFileSync(path.join(__dirname,'../void-runner/milked-integration.js'),'utf8');assert.ok(!gone.test(integ),'nor in the interaction handlers');
   for(const t of [...strings(MK.DIALOGUE),...strings(MK.MISSION),...MK.ROOMS.map(r=>r.name),...MK.INTERACTIONS.map(i=>i.label),...MK.PLACES.map(p=>p.name)])assert.ok(!gone.test(t),t);
   assert.ok(!MK.ROOMS.some(r=>r.wing==='clinical'||/^(biobank|consult|lab)$/.test(r.id)));assert.equal(MK.PLAZA,undefined,'the plaza is gone');
@@ -57,8 +59,10 @@ test('it is a small building on a quiet side street off Main Street, built into 
 });
 test('the front entrance is a small double-door vestibule of its own',()=>{
   const [x0,x1,z0,z1]=MK.VESTIBULE;assert.ok(x1-x0<=4.5&&z1-z0<=3,'small');assert.equal(z1,MK.DOOR.z,'against the front wall');assert.equal(MK.INNER.z,z0);assert.equal(MK.INNER.x,MK.DOOR.x,'two doors in line');
-  assert.equal(MK.roomAt(MK.DOOR.x,(z0+z1)/2).id,'vestibule');assert.ok(!/district-door|district-inner-door|vestibule-(east|west)'/.test(code),'it shares nothing with The Darknet District\'s vestibule');
-  assert.match(code,/green scan frame|vest-ceiling/);assert.ok(MK.INTERACTIONS.some(i=>i.id==='milked-intercom'));
+  assert.equal(MK.roomAt(MK.DOOR.x,(z0+z1)/2).id,'vestibule');assert.ok(!/district-door|district-inner-door|vestibule-(east|west)'/.test(code+bcode),'it shares nothing with The Darknet District\'s vestibule');
+  assert.match(bcode,/function vestibule\(\)/);assert.match(bcode,/VISITOR CHECK-IN/);assert.match(bcode,/访客登记/);assert.match(bcode,/仅限员工/);assert.ok(MK.INTERACTIONS.some(i=>i.id==='milked-intercom'&&i.both&&MK.roomAt(i.position[0],i.position[2]).id==='vestibule'),'the check-in reader is in the vestibule, in both environments');
+  // the same room is built by the same code on both sides of the exchange
+  assert.equal((bcode.match(/k\.vestibule\(\);k\.lobby\(\)/g)||[]).length,2,'the street build and the interior build both make the vestibule and the rear lobby');
 });
 test('Milked is a built taxi destination; the cab sets down on Main Street, not in the side street',()=>{
   const d=N.districts.find(d=>d.id==='milked');assert.ok(d&&!d.placeholder&&d.built);assert.deepEqual(d.rect,MK.FOOTPRINT);assert.ok(N.districts.find(x=>x.id==='containers').placeholder);assert.ok(N.districts.find(x=>x.id==='corporate').built);
@@ -87,7 +91,7 @@ test('mission 3 is data only and inactive; the beginner missions are untouched',
 });
 test('reception, a narrow hallway with four studios, and a rear staff area are registered as rooms',()=>{
   const by=z=>MK.ROOMS.filter(r=>r.zone===z),ids=MK.ROOMS.map(r=>r.id);
-  for(const id of ['vestibule','reception','hallway','office','staff-corridor','dressing-a','dressing-b','restroom-1','restroom-2'])assert.ok(ids.includes(id),id);
+  for(const id of ['vestibule','reception','hallway','office','staff-corridor','rear-lobby','rear-corridor','dressing-a','dressing-b','restroom-1','restroom-2'])assert.ok(ids.includes(id),id);
   assert.equal(by('studios').filter(r=>r.kind==='studio').length,4);assert.ok(by('staff').some(r=>r.id==='office'&&r.name===MK.CONFIG.FISH_NAME+'\'s office'));
   const [fx0,fx1,fz0,fz1]=MK.FOOTPRINT;for(const r of MK.ROOMS){assert.ok(r.rect[0]>=fx0&&r.rect[1]<=fx1&&r.rect[2]>=fz0&&r.rect[3]<=fz1,r.id+' is inside the building');}
   const h=MK.HALL;assert.ok(Math.min(h[1]-h[0],h[3]-h[2])<=2.2,'the hallway is narrow');assert.equal(MK.roomAt(87.5,-78).id,'studio-1');assert.equal(MK.roomAt(91.5,-85).id,'studio-4');assert.equal(MK.roomAt(95.7,-77).id,'office');
@@ -106,26 +110,39 @@ test('each studio has exactly one adult dancer, a window and a closed door on th
    for(const span of [s.window,s.door])assert.ok(span[0]>=r.rect[0]&&span[1]<=r.rect[1]&&span[1]>span[0]);assert.ok(s.window[1]-s.window[0]>=2,'a real window');assert.ok(s.window[1]<=s.door[0]||s.door[1]<=s.window[0]);
    assert.ok(MK.INTERACTIONS.some(i=>i.action==='milked-studio'&&i.studio===s.n&&MK.roomAt(i.position[0],i.position[2]).id==='hallway'),'watched from the hallway');}
   // the build: one dancer per studio and nobody else in them; no camera operators; an ON AIR sign per studio door
-  assert.match(code,/for\(const s of STUDIOS\)spot\(s\.dancer\.id/);assert.equal((code.match(/spot\(/g)||[]).length,3,'Eva, Fish, and the one loop over the studios: nobody else');
-  assert.ok(!/performer-|ops-tech|lab-tech|guest-|operator/.test(code));assert.match(code,/ON AIR/);assert.match(src,/fixed cameras on stands/);
+  assert.match(bcode,/for\(const s of STUDIOS\)spot\(s\.dancer\.id/);assert.equal((bcode.match(/spot\(/g)||[]).length,3,'Eva, Fish, and the one loop over the studios: nobody else');
+  assert.ok(!/performer-|ops-tech|lab-tech|guest-|operator/.test(code+bcode));assert.match(bcode,/ON AIR/);assert.match(bsrc,/fixed cameras on stands/);
+  // the shared animation library is used where it is installed, and the figure's own dance stays as the fallback
+  assert.match(bcode,/VoidAnimLibrary\?\.apply/);assert.match(bcode,/p\.anim=p\.asset\?null:root\.VoidCrowd\?\.animate/);
 });
 test('the logo is MILKED followed by three white droplets drawn as shapes, in pink and green',()=>{
-  assert.match(code,/const droplets=/);assert.equal((code.match(/const droplets=[^;]*;/)[0].match(/drop\(g/g)||[]).length,0);const d=code.slice(code.indexOf('const droplets='),code.indexOf('const logo='));assert.equal((d.match(/drop\(g/g)||[]).length,3,'three droplets');assert.equal((d.match(/'#ffffff'/g)||[]).length>=4,true,'white');
+  const code=bcode,src=bsrc;assert.match(code,/const droplets=/);assert.equal((code.match(/const droplets=[^;]*;/)[0].match(/drop\(g/g)||[]).length,0);const d=code.slice(code.indexOf('const droplets='),code.indexOf('const logo='));assert.equal((d.match(/drop\(g/g)||[]).length,3,'three droplets');assert.equal((d.match(/'#ffffff'/g)||[]).length>=4,true,'white');
   assert.ok(!/[\u{1F4A7}\u{1F4A6}]/u.test(src),'no emoji');assert.match(code,/PINK='#ff3fb4'/);assert.match(code,/GREEN='#39ff9c'/);assert.match(code,/logo\(g,w\/2/);
 });
-test('every room that is open and every interaction can be walked to; the studios are only seen through their windows',()=>{
-  const L=N.layout(),cells=reach(L);
-  for(const i of L.interactions.filter(i=>/^milked-/.test(i.id)))assert.ok(near(cells,i.position[0],i.position[2],i.range),i.id+' within reach');
+test('inside: every room that is open and every interaction can be walked to; the studios are only seen through their windows; nobody walks out through a wall',()=>{
+  // the interior environment, with its three inner doors open (the door control opens them as the player comes up) and the two outer doors shut
+  const L=MK.layout();for(const s of L.solids)if(s.door)s.open=MK.openable(MK.DOORS.find(d=>d.id===s.id),MK.AREA);const cells=reach(L);
+  for(const i of L.interactions)assert.ok(near(cells,i.position[0],i.position[2],i.range),i.id+' within reach');
   for(const r of MK.ROOMS){const c=[(r.rect[0]+r.rect[1])/2,(r.rect[2]+r.rect[3])/2];assert.equal(near(cells,c[0],c[1],.8),!r.closed,r.id+(r.closed?' is closed':' is reachable'));}
   for(const s of MK.STUDIOS){const r=MK.ROOMS.find(q=>q.id===s.room).rect;assert.ok(!cells.some(([x,z])=>x>r[0]+.5&&x<r[1]-.5&&z>r[2]+.5&&z<r[3]-.5),s.room+' is never entered');}
-  // the walk-through: side street, front doors, vestibule, reception, the door beside the desk, hallway, staff area, rear door, service alley, Main Street
-  for(const [what,x,z] of [['the side street',75,-71],['the front doors',MK.DOOR.x,MK.DOOR.z],['the vestibule',MK.DOOR.x,-75.3],['the inner doors',MK.INNER.x,MK.INNER.z],['reception',84,-79],['the door beside the desk',85.5,-81.8],['the hallway',89.5,-81.8],['the staff door',93.5,-81.8],['the staff corridor',94.75,-85],['Fish\'s office',95,-77.5],['the rear door',MK.REAR.x,MK.REAR.z],['the service alley',90,-91.8],['the alley mouth on Main Street',72,-91.8]])assert.equal(E.blocked(x,z,L),false,what+' is open');
-  for(const [what,x,z] of [['the wall beside the front doors',79,-74],['the reception desk',81.3,-80.6],['a studio window',87.2,-80.8],['a studio door',88.95,-80.8],['dressing room B\'s door',83.6,-88],['a restroom door',96,-82.75],['the block between the side street and the alley to the District',85,-66],['the block between the service alley and the terrace',85,-94.5],['the block east of the building',103,-82]])assert.equal(E.blocked(x,z,L),true,what+' is solid');
+  for(const [what,x,z] of [['the vestibule',MK.DOOR.x,-75.5],['the inner doors',MK.INNER.x,MK.INNER.z],['reception',84,-79],['the door beside the desk',85.5,-81.8],['the hallway',89.5,-81.8],['the staff door',93.5,-81.8],['the staff corridor',94.75,-85],['Fish\'s office',95,-77.5],['the lobby\'s north door',MK.LOBBY_N.x,MK.LOBBY_N.z],['the rear lobby',94.75,-88.7],['the lobby\'s west door',MK.LOBBY_W.x,MK.LOBBY_W.z],['the rear corridor',86,-88.6],['dressing room A',80,-86]])assert.equal(E.blocked(x,z,L),false,what+' is open');
+  for(const [what,x,z] of [['the street doors (they never open from inside)',MK.DOOR.x,MK.DOOR.z],['the alley door (it never opens from inside)',MK.REAR.x,MK.REAR.z],['the wall beside the front doors',79,-74],['the reception desk',81.3,-80.6],['a studio window',87.2,-80.8],['a studio door',88.95,-80.8],['dressing room B\'s door',83.6,-88],['a restroom door',96,-82.75]])assert.equal(E.blocked(x,z,L),true,what+' is solid');
+  assert.ok(!cells.some(([x,z])=>!MK.inside({x,z})&&MK.distance(x,z)>.6),'nobody gets out of the building in the interior environment');
   assert.ok(!near(cells,MK.MODELS.eva.at[0],MK.MODELS.eva.at[1],.3),'Eva is behind her desk');
+});
+test('outside: the street reaches the vestibule and the rear lobby and nothing further; the building is solid',()=>{
+  const L=N.layout('street');for(const s of L.solids)if(s.door&&/^milked-/.test(s.id))s.open=MK.openable(MK.DOORS.find(d=>d.id===s.id),'street');const cells=reach(L);
+  for(const [what,x,z] of [['the side street',75,-71],['the front doors',MK.DOOR.x,MK.DOOR.z],['the vestibule',MK.DOOR.x,-75.5],['the rear door',MK.REAR.x,MK.REAR.z],['the rear lobby',94.75,-88.7],['the service alley',90,-91.8],['the alley mouth on Main Street',72,-91.8]])assert.equal(E.blocked(x,z,L),false,what+' is open');
+  for(const [what,x,z] of [['the inner doors (they never open from the street)',MK.INNER.x,MK.INNER.z],['the lobby\'s north door',MK.LOBBY_N.x,MK.LOBBY_N.z],['the lobby\'s west door',MK.LOBBY_W.x,MK.LOBBY_W.z],['the wall beside the front doors',79,-74],['the shopfront\'s pier',79.3,-73.7],['the block between the side street and the alley to the District',85,-66],['the block between the service alley and the terrace',85,-94.5],['the block east of the building',103,-82]])assert.equal(E.blocked(x,z,L),true,what+' is solid');
+  assert.ok(near(cells,MK.DOOR.x,-75.5,.6)&&near(cells,94.75,-88.7,.6),'both checkpoints are reached on foot from the landing pad');
+  for(const r of MK.ROOMS.filter(r=>!/^(vestibule|rear-lobby)$/.test(r.id))){const c=[(r.rect[0]+r.rect[1])/2,(r.rect[2]+r.rect[3])/2];assert.ok(!near(cells,c[0],c[1],.8),r.id+' cannot be walked into from the street: the only way in is a checkpoint');}
+  const i=L.interactions.find(i=>i.id==='milked-intercom');assert.ok(near(cells,i.position[0],i.position[2],i.range));
+  // closed, the street doors are solid too
+  for(const s of L.solids)if(s.door&&/^milked-/.test(s.id))s.open=false;assert.equal(E.blocked(MK.DOOR.x,MK.DOOR.z,L),true);assert.equal(E.blocked(MK.REAR.x,MK.REAR.z,L),true);
 });
 test('Milked adds no save fields, no location id and no mission',()=>{
   const man=JSON.parse(fs.readFileSync(path.join(__dirname,'../void-runner/save-manifest.json'),'utf8'));assert.ok(!JSON.stringify(man).includes('milked'));
-  assert.ok(!/state\.|story\.flags/.test(code),'the presentation module touches no game state');
+  assert.ok(!/state\.|story\.flags/.test(code),'the data module touches no game state');assert.ok(!/story\.flags|[^.\w]save\(/.test(bcode),'the presentation module writes nothing to the save');
 });
 test('every interaction has a registered handler in the integration script',()=>{
   const integ=fs.readFileSync(path.join(__dirname,'../void-runner/milked-integration.js'),'utf8');

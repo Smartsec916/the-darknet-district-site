@@ -7,10 +7,10 @@ const ids=l=>l.map(i=>i.id),at=item=>N.zone({x:item.position[0],z:item.position[
 const ENTRANCE_SOLIDS=['district-door','district-front-east','district-front-west','district-inner-door','vestibule-east','vestibule-west'];
 
 test('the default layout is still the whole combined layout, unchanged',()=>{
- assert.equal(all.solids.length,83+45,'83 original solids (82 and the shop\'s stock-cage partition) + Milked\'s 45 (walls, furniture and the city blocks its footprint, side street and service alley open)');assert.equal(all.interactions.length,26+11,'26 original interactions + Milked\'s 11');assert.equal(all.area,undefined);assert.equal(all.name,'NEOCHINATOWN / TESSALY');assert.equal(N.layout('all').solids.length,128);
+ assert.equal(all.solids.length,83+61,'83 original solids (82 and the shop\'s stock-cage partition) + Milked\'s 61 (walls, furniture, its five doors and the city blocks its footprint, side street and service alley open)');assert.equal(all.interactions.length,26+1,'26 original interactions + Milked\'s check-in reader (the rest are inside, in its own environment)');assert.equal(all.area,undefined);assert.equal(all.name,'NEOCHINATOWN / TESSALY');assert.equal(N.layout('all').solids.length,144);
 });
 test('the street environment is the outdoors plus the entrance, and nothing of the District behind the inner door',()=>{
- assert.equal(street.area,'street');assert.equal(street.solids.length,35+45);
+ assert.equal(street.area,'street');assert.equal(street.solids.length,35+61);
  assert.deepEqual(ids(street.interactions).filter(i=>!/^milked-/.test(i)).sort(),['board','terminal']);
  for(const s of street.solids)if(at(s)!=='street')assert(ENTRANCE_SOLIDS.includes(s.id),s.id+' is part of the entrance');
  for(const id of ENTRANCE_SOLIDS)assert(ids(street.solids).includes(id),id+' is in the street');

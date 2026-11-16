@@ -7,7 +7,8 @@ const city=()=>{const s=C.fresh();s.location='earth';s.credits=100;return s;};
 
 test('the three future districts are reached on foot from the landing pad, with no loading points',()=>{
   const L=N.layout(),cells=reachable(L);
-  for(const d of N.districts){assert.ok(d.placeholder||d.built,d.id+' is a placeholder or built');assert.ok(cells.some(([x,z])=>Math.hypot(x-d.center[0],z-d.center[1])<4),d.id+' reachable');}
+  for(const d of N.districts){assert.ok(d.placeholder||d.built,d.id+' is a placeholder or built');// Milked's inside is its own environment since 16 Nov 2026: on the street it is reached at its front door (the vestibule is the loading point)
+   const [gx,gz]=d.id==='milked'?[N.milked.DOOR.x,N.milked.DOOR.z+1.5]:d.center;assert.ok(cells.some(([x,z])=>Math.hypot(x-gx,z-gz)<4),d.id+' reachable');}
 });
 
 test('the old neighbourhood keeps its interactions, spawn and District walls',()=>{

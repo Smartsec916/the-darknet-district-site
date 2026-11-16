@@ -8,7 +8,7 @@
  const SPEC=R.SPEC;
  let world=null,own=[],signTex=null,mats=null,look={yaw:0,pitch:.08},visual={};
  const B=()=>globalThis.BABYLON,scene=()=>globalThis.VoidBabylon?.scene;
- const inCity=()=>!!walkingLocation&&walkingLocation.id==='neochinatown'&&walkingLocation.area!=='interior'&&!!walker&&state?.location==='earth';
+ const inCity=()=>!!walkingLocation&&walkingLocation.id==='neochinatown'&&walkingLocation.area!=='interior'&&walkingLocation.area!=='milked'&&!!walker&&state?.location==='earth';
  const yawDelta=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
 
  function makeMats(sc){
@@ -57,7 +57,7 @@
   return true;
  }
  function context(){
-  const area=walkingLocation?.area==='interior'?'district':(globalThis.VoidNeoChinatown?.zone?.({x:walker.x,z:walker.z}).area||'street');
+  const area=walkingLocation?.area==='interior'?'district':walkingLocation?.area==='milked'?'milked':(globalThis.VoidNeoChinatown?.zone?.({x:walker.x,z:walker.z}).area||'street');
   return {onFoot:mode==='walking',area,player:[walker.x,walker.z],combat:!!globalThis.VoidFlightSkirmish?.active,busy:!!globalThis.VoidGraphics?.busy,trip:!!globalThis.VoidTaxi?.trip,inSpace:mode==='play'};
  }
  function syncBoard(){
