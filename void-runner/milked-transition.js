@@ -116,6 +116,7 @@
 #milked-transition li.now{opacity:1;color:#fff}#milked-transition li.done{opacity:.7;color:#9af5c8}
 #milked-transition li::before{content:"";display:inline-block;width:8px;height:8px;margin-right:10px;border-radius:0 55% 55% 55%;transform:rotate(45deg);background:rgba(255,255,255,.35)}
 #milked-transition li.done::before{background:#39ff9c}#milked-transition li.now::before{background:#ff3fb4;box-shadow:0 0 8px #ff3fb4;animation:mt-pulse 1s ease-in-out infinite}
+#milked-transition .mt-card{width:1px;height:1px;padding:0;border:0;overflow:hidden;clip-path:inset(50%);opacity:0}#milked-transition .mt-logo,#milked-transition .mt-bar{display:none}
 @keyframes mt-pass{from{left:6vw}to{left:94vw}}@keyframes mt-pulse{50%{opacity:.35}}@keyframes mt-drip{50%{transform:rotate(45deg) translate(.035em,.035em)}}
 @media (prefers-reduced-motion:reduce){#milked-transition{transition:none}#milked-transition .mt-line{display:none}#milked-transition .mt-drops i,#milked-transition li.now::before{animation:none}}`;
  document.head.append(css);
