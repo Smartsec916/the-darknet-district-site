@@ -44,7 +44,7 @@
    const w=b.MeshBuilder.CreateCylinder('road-taxi-wheel',{diameter:.52,height:.16,tessellation:12},sc);
    w.material=mats.body;w.parent=root;w.position.set(x,.28,z);w.rotation.z=Math.PI/2;w.isPickable=false;parts.push(w);wheels.push(w);
   }
-  return {root,parts,door,wheels,doorOpen:0};
+  const cab={root,parts,door,wheels,doorOpen:0};globalThis.VoidRoadTaxiModel?.dress(cab,sc);return cab;   // the modelled cab (road-taxi-model.js) takes the boxes' place when it has loaded
  }
  function disposeCab(cab){cab?.root?.dispose?.();}
  function teardown(){

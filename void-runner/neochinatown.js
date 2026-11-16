@@ -18,6 +18,8 @@
   const MK=typeof module!=='undefined'?require('./milked.js'):root.VoidMilked;
   // The three quarters and the checkpoints between them (ncz-quarters.js): which quarter a build makes, and the gates' collision.
   const QT=typeof module!=='undefined'?require('./ncz-quarters.js'):root.VoidQuarters;
+  // The remade Port's plan (ncz-port-data.js): what stands in its yard, and the public toilet cut out of the block north of the lane.
+  const PD=typeof module!=='undefined'?require('./ncz-port-data.js'):root.VoidPortData;
   const DOOR={x:126.9,z:-61.9};
   const toWorld=(x,z)=>[DOOR.x-x,DOOR.z+20-z];
   const streets={avenue:[2,152,-20,-5],main:[51,71,-124,-20],alley:[71,136,-61.6,-55.5],road:[13,51,-121,-116],passage:[37.5,44,-116,-92],pad:[13,37.5,-106,-86],
@@ -142,7 +144,7 @@
   function layout(area='all',quarter=null){
     const l=fullLayout();if(area==='all')return l;
     const keep=area==='interior'?insideSide:i=>!insideSide(i)||ENTRANCE.has(i.id),base={...l,area,solids:l.solids.filter(keep),interactions:l.interactions.filter(keep)};
-    if(area==='street'){const q=QT.valid(quarter),Q=q&&QT.QUARTERS[q];return Q?{...base,quarter:q,quarterName:Q.name,spawn:Q.spawn.slice(),yaw:Q.yaw,solids:[...base.solids,...QT.solids(q)]}:base;}
+    if(area==='street'){const q=QT.valid(quarter),Q=q&&QT.QUARTERS[q];return Q?{...base,quarter:q,quarterName:Q.name,spawn:Q.spawn.slice(),yaw:Q.yaw,solids:[...(q==='port'&&PD&&root.VoidPort?.enabled!==false?PD.apply(base.solids):base.solids),...QT.solids(q)]}:base;}
     const [x,z]=toWorld(0,22.5);delete base.ship;
     return {...base,name:'THE DARKNET DISTRICT',spawn:[x,1.7,z],yaw:Math.PI};
   }
@@ -153,6 +155,8 @@
     // QK: the one quarter this street build makes (null: the whole city, as before the quarters). `free` lifts the test for pieces placed by a parent.
     const QK=area==='street'?QT.valid(quarter):null;let free=false;const inCore=(x,z)=>x>=-6&&x<=160&&z>=-130&&z<=2,roofPiece=/^(water-tank|dish)$/;
     const dropped=(name,p)=>!!QK&&!free&&target===parent&&inCore(p[0],p[2])&&!(roofPiece.test(name)?QT.keepBuilding(QK,p[0],p[2]):QT.keepDetail(QK,p[0],p[2]));
+    // The remade Port (ncz-port.js) is built first. When it is there, the old Port's own pieces are left out (PORT.replaces); when it is missing or fails, the old Port is built as before.
+    let PORT=null;if(QK==='port'&&root.VoidPort?.build&&root.VoidPort.enabled!==false){try{PORT=root.VoidPort.build({B:root.BABYLON,scene,parent,quality,instance:modelInstance,state});}catch(e){console.warn('[Port] the remade Port could not be built; the old Port is used',e);PORT=null;}}
     const B=root.BABYLON,low=quality==='low',owned=[],districtRoot=new root.BABYLON.TransformNode('district-root',scene);let target=parent,disposed=false;districtRoot.parent=parent;districtRoot.position.set(DOOR.x,0,DOOR.z+20);districtRoot.rotation.y=Math.PI;const textures=[],staticMeshes=new Map(),dynamic=[],v=(x,y,z)=>new B.Vector3(x,y,z);
     // A previous build's handles (club, streaming city, booths) belong to a released environment; clear them so nothing reads them.
     if(root.VoidNeoChinatown)for(const k of ['city','nightclub','booths','podPick','podHover'])root.VoidNeoChinatown[k]=undefined;
@@ -180,7 +184,7 @@
     // `framed`: while it is a list, every mesh added is noted, so a finished section can be moved as one rigid piece (the Sleeping Pods are built where they always
     // were and then set down at the back of the building).
     let framed=null;
-    function add(mesh,m,p,merge=true){if(discard||dropped(mesh.name,p)){mesh.dispose();return mesh;}if(framed)framed.push(mesh);mesh.material=m;mesh.position.set(...p);mesh.parent=target;mesh.isPickable=false;mesh.receiveShadows=false;if(merge){if(!staticMeshes.has(m))staticMeshes.set(m,[]);staticMeshes.get(m).push(mesh);}else dynamic.push(mesh);return mesh;}
+    function add(mesh,m,p,merge=true){if(discard||dropped(mesh.name,p)||PORT&&target===parent&&PORT.replaces(mesh.name,p)){mesh.dispose();return mesh;}if(framed)framed.push(mesh);mesh.material=m;mesh.position.set(...p);mesh.parent=target;mesh.isPickable=false;mesh.receiveShadows=false;if(merge){if(!staticMeshes.has(m))staticMeshes.set(m,[]);staticMeshes.get(m).push(mesh);}else dynamic.push(mesh);return mesh;}
     const box=(name,size,p,m,merge=true)=>add(B.MeshBuilder.CreateBox(name,{width:size[0],height:size[1],depth:size[2]},scene),m,p,merge);
     const cyl=(name,r,h,p,m,merge=true,t=12)=>add(B.MeshBuilder.CreateCylinder(name,{diameter:r*2,height:h,tessellation:t},scene),m,p,merge);
     function texture(name,w,h,draw){const t=new B.DynamicTexture('ncz-'+name,{width:w,height:h},scene,true);draw(t.getContext(),w,h);t.update();textures.push(t);return t;}
@@ -320,7 +324,7 @@
     // material instead of one mesh each, so entering NeoChinatown stays quick. Same convention as a Babylon plane:
     // a quad turned by r about y faces (-sin r, 0, -cos r).
     const batches=new Map();
-    function quadAt(m,c,ax,ay,n,w,h,us=1,vs=1){if(discard||QK&&!QT.keepBuilding(QK,c[0],c[2]))return;let b=batches.get(m);if(!b)batches.set(m,b={p:[],n:[],u:[],i:[]});const k=b.p.length/3;for(const [sx,sy,u,vv] of [[-1,-1,0,0],[1,-1,1,0],[1,1,1,1],[-1,1,0,1]]){b.p.push(c[0]+(ax[0]*sx*w+ay[0]*sy*h)/2,c[1]+(ax[1]*sx*w+ay[1]*sy*h)/2,c[2]+(ax[2]*sx*w+ay[2]*sy*h)/2);b.n.push(...n);b.u.push(u*us,vv*vs);}b.i.push(k,k+1,k+2,k,k+2,k+3);}
+    function quadAt(m,c,ax,ay,n,w,h,us=1,vs=1){if(discard||QK&&!QT.keepBuilding(QK,c[0],c[2])||PORT&&PORT.replaces('batch',c))return;let b=batches.get(m);if(!b)batches.set(m,b={p:[],n:[],u:[],i:[]});const k=b.p.length/3;for(const [sx,sy,u,vv] of [[-1,-1,0,0],[1,-1,1,0],[1,1,1,1],[-1,1,0,1]]){b.p.push(c[0]+(ax[0]*sx*w+ay[0]*sy*h)/2,c[1]+(ax[1]*sx*w+ay[1]*sy*h)/2,c[2]+(ax[2]*sx*w+ay[2]*sy*h)/2);b.n.push(...n);b.u.push(u*us,vv*vs);}b.i.push(k,k+1,k+2,k,k+2,k+3);}
     const quad=(m,c,w,h,r,us,vs)=>quadAt(m,c,[Math.cos(r),0,-Math.sin(r)],[0,1,0],[-Math.sin(r),0,-Math.cos(r)],w,h,us,vs);
     // tile: metres one copy of the texture covers ([across, up]); without it a face shows the texture once.
     function cuboid(m,[sx,sy,sz],[x,y,z],tile){const [tw,th]=tile||[sx,sy],us=a=>tile?a/tw:1,vs=tile?sy/th:1;quad(m,[x,y,z-sz/2],sx,sy,0,us(sx),vs);quad(m,[x,y,z+sz/2],sx,sy,Math.PI,us(sx),vs);quad(m,[x+sx/2,y,z],sz,sy,-Math.PI/2,us(sz),vs);quad(m,[x-sx/2,y,z],sz,sy,Math.PI/2,us(sz),vs);quadAt(m,[x,y+sy/2,z],[1,0,0],[0,0,1],[0,1,0],sx,sz);quadAt(m,[x,y-sy/2,z],[1,0,0],[0,0,-1],[0,-1,0],sx,sz);}
@@ -1353,8 +1357,8 @@
      for(const fl of weather?.flickers||[]){if(fl.off>0){fl.off-=dt;if(fl.off<=0)for(const m of fl.meshes)m.isVisible=true;}else if(time>fl.next){fl.off=.05+Math.random()*.12;fl.next=time+2+Math.random()*7;for(const m of fl.meshes)m.isVisible=false;}}
      for(const s of screens)if(time>s.next){s.mesh.material=adMat(nextAd());s.next=time+9+Math.random()*4;}}
     let wasInside=null;
-    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);etiquette.tick(dt);doors.tick(dt);terminal.tick(dt);podScreen.tick(dt);arcade?.tick(time);nightlife?.tick(dt);alleyLife?.tick(dt);atmosphere(time,dt);gates?.tick(dt,time);sight?.tick();for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
-    return {tick,city,nightlife,alleyLife,sight,doors,etiquette,gates,quarter:QK,dispose(){disposed=true;sight?.dispose();gates?.dispose();clubCtl?.dispose();nightlife?.dispose();alleyLife?.dispose();for(const ps of alleySteam)ps.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
+    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);etiquette.tick(dt);doors.tick(dt);terminal.tick(dt);podScreen.tick(dt);arcade?.tick(time);nightlife?.tick(dt);alleyLife?.tick(dt);atmosphere(time,dt);gates?.tick(dt,time);PORT?.tick(dt,time);sight?.tick();for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
+    return {tick,city,nightlife,alleyLife,sight,doors,etiquette,gates,port:PORT,quarter:QK,dispose(){disposed=true;sight?.dispose();gates?.dispose();PORT?.dispose();clubCtl?.dispose();nightlife?.dispose();alleyLife?.dispose();for(const ps of alleySteam)ps.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
   }
   // Licensed models (docs/VOID_RUNNER_ASSET_LICENSES.md) dressing the District; loaded before build().
   // The security vestibule's pieces (made in Blender by tools/assets/kit/build_kit.py --interior; docs/development/DISTRICT_INTERIOR.md). 'entry:' models belong to BOTH areas, like the vestibule itself.

@@ -144,8 +144,9 @@
    box(x?len:.12,.08,x?.12:len,mx,w.y-.3,mz,warmL);box(x?len:w.w,.2,x?w.w:len,mx,w.y+2.45,mz,roofM);for(let t=-len/2+3;t<len/2-2;t+=6)box(x?.2:w.w,.3,x?w.w:.2,x?mx+t:mx,w.y-.35,x?mz:mz+t,trim);}
   // ---- the taxi stop: a parked road cab at the kerb, a sign (the sky-cab ring is gone: sky cabs were scrapped, 16 Nov 2026) ----
   pool('#38e8ff',C.CAB_PAD.x,C.CAB_PAD.z,14,14,.5);
-  {const cx=C.CAB_PAD.x,cz=C.CAB_PAD.z,paint=M('cabpaint','#c79a1c','#3d2e06',.5);box(2.4,.75,4.8,cx,.8,cz,paint);box(2.1,.45,.8,cx,.75,cz+2.75,paint);box(2.2,.9,3.1,cx,1.5,cz+.1,M('cabglass','#071a20','#0e3a44',.6,.55));box(2.2,.08,3.1,cx,2.0,cz+.1,paint);box(.9,.28,.4,cx,2.25,cz+.1,M('cabsign','#ffd23f','#ffd23f'));
-   for(const [x,zz] of [[-1.2,1.55],[1.2,1.55],[-1.2,-1.55],[1.2,-1.55]])cyl(.7,.28,cx+x,.35,cz+zz,M('cabtyre','#08090a','#020203',.2)).rotation.z=Math.PI/2;box(.35,.12,.05,cx-.75,.85,cz+3.18,coolL);box(.35,.12,.05,cx+.75,.85,cz+3.18,coolL);}
+  {const cx=C.CAB_PAD.x,cz=C.CAB_PAD.z,builtCab=()=>{const paint=M('cabpaint','#c79a1c','#3d2e06',.5);box(2.4,.75,4.8,cx,.8,cz,paint);box(2.1,.45,.8,cx,.75,cz+2.75,paint);box(2.2,.9,3.1,cx,1.5,cz+.1,M('cabglass','#071a20','#0e3a44',.6,.55));box(2.2,.08,3.1,cx,2.0,cz+.1,paint);box(.9,.28,.4,cx,2.25,cz+.1,M('cabsign','#ffd23f','#ffd23f'));
+   for(const [x,zz] of [[-1.2,1.55],[1.2,1.55],[-1.2,-1.55],[1.2,-1.55]])cyl(.7,.28,cx+x,.35,cz+zz,M('cabtyre','#08090a','#020203',.2)).rotation.z=Math.PI/2;box(.35,.12,.05,cx-.75,.85,cz+3.18,coolL);box(.35,.12,.05,cx+.75,.85,cz+3.18,coolL);};
+   if(root.VoidRoadTaxiModel?.park)root.VoidRoadTaxiModel.park({scene,parent,x:cx,z:cz,yaw:0,fallback:builtCab});else builtCab();}   /* the modelled road cab (road-taxi-model.js); the built one on Low or if it is missing */
   sign(3.4,1.2,0,3.6,-24.4,TOS,256,90,(g,w,h)=>{g.fillStyle='#04141a';g.fillRect(0,0,w,h);g.strokeStyle='#38e8ff';g.lineWidth=5;g.strokeRect(5,5,w-10,h-10);g.fillStyle='#fff';g.font='bold 30px Consolas,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText('TAXI',w/2,34);g.fillStyle='#ffd23f';g.font='bold 20px Consolas,monospace';g.fillText('RETURN · E',w/2,64);}).rotation.y=Math.PI;
   box(.25,3.6,.25,0,1.8,-24.2,metal);
   // ---- distant skyline: rings of dark towers, merged into one mesh; a horizon glow ----

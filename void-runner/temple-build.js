@@ -126,8 +126,9 @@
   {const pm=M('path','#222c33','#0b1013',.5);box(6,.04,31,0,.025,-21.5,pm);box(40,.04,24,0,.02,-18,M('court','#1b242a','#090d10',.4));}
   // the taxi stop where the hill road ends: a parked road cab, a sign, a pool of light (the sky-cab ring is gone: sky cabs were scrapped, 16 Nov 2026)
   {const px=T.CAB_PAD.x,pz=T.CAB_PAD.z;pool('#38e8ff',px,pz,14,14,.5,.045);
-   const paint=M('cabpaint','#c79a1c','#3d2e06',.5);box(2.4,.75,4.8,px,.8,pz,paint);box(2.1,.45,.8,px,.75,pz+2.75,paint);box(2.2,.9,3.1,px,1.5,pz+.1,M('cabglass','#071a20','#0e3a44',.6,.55));box(2.2,.08,3.1,px,2,pz+.1,paint);box(.9,.28,.4,px,2.25,pz+.1,M('cabsign','#ffd23f','#ffd23f'));
-   for(const [dx,dz] of [[-1.2,1.55],[1.2,1.55],[-1.2,-1.55],[1.2,-1.55]])cyl(.7,.28,px+dx,.35,pz+dz,M('cabtyre','#08090a','#020203',.2)).rotation.z=Math.PI/2;
+   const builtCab=()=>{const paint=M('cabpaint','#c79a1c','#3d2e06',.5);box(2.4,.75,4.8,px,.8,pz,paint);box(2.1,.45,.8,px,.75,pz+2.75,paint);box(2.2,.9,3.1,px,1.5,pz+.1,M('cabglass','#071a20','#0e3a44',.6,.55));box(2.2,.08,3.1,px,2,pz+.1,paint);box(.9,.28,.4,px,2.25,pz+.1,M('cabsign','#ffd23f','#ffd23f'));
+   for(const [dx,dz] of [[-1.2,1.55],[1.2,1.55],[-1.2,-1.55],[1.2,-1.55]])cyl(.7,.28,px+dx,.35,pz+dz,M('cabtyre','#08090a','#020203',.2)).rotation.z=Math.PI/2;};
+   if(root.VoidRoadTaxiModel?.park)root.VoidRoadTaxiModel.park({scene,parent,x:px,z:pz,yaw:0,fallback:builtCab});else builtCab();   /* the modelled road cab (road-taxi-model.js); the built one on Low or if it is missing */
    sign(3.4,1.2,px,3.6,pz+4,TON,256,90,(g,w,h)=>{g.fillStyle='#04141a';g.fillRect(0,0,w,h);g.strokeStyle='#38e8ff';g.lineWidth=5;g.strokeRect(5,5,w-10,h-10);g.fillStyle='#fff';g.font='bold 30px Consolas,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText('TAXI',w/2,34);g.fillStyle='#ffd23f';g.font='bold 20px Consolas,monospace';g.fillText('RETURN · E',w/2,64);});box(.25,3.6,.25,px,1.8,pz+4.2,metal);}
   // ---- mist: three slow, soft layers close to the ground ----
   const mistTex=canvas(256,256,(g,w,h)=>{g.fillStyle='rgba(0,0,0,0)';g.clearRect(0,0,w,h);for(let i=0;i<46;i++){const x=rand()*w,y=rand()*h,r=24+rand()*52,rg=g.createRadialGradient(x,y,1,x,y,r);rg.addColorStop(0,'rgba(120,170,200,.22)');rg.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=rg;g.fillRect(x-r,y-r,r*2,r*2);}});
