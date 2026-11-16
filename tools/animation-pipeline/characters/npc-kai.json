@@ -1,0 +1,58 @@
+{
+ "name": "npc-kai",
+ "source": "Kai, generated with Meshy (text-to-image concept approved by David on 16 Nov 2026, then image-to-3d, remesh and auto-rig) on David's Meshy account; prepared by prepare_meshy.py. His clips are the old Kai figure's (vr-companion-m.glb), retargeted.",
+ "bonePrefix": "",
+ "optionalBones": true,
+ "bones": {
+  "Hips": "Hips",
+  "Spine02": "Spine",
+  "Spine01": "Spine1",
+  "Spine": "Spine2",
+  "neck": "Neck",
+  "Head": "Head",
+  "LeftShoulder": "LeftShoulder",
+  "LeftArm": "LeftArm",
+  "LeftForeArm": "LeftForeArm",
+  "LeftHand": "LeftHand",
+  "LeftUpLeg": "LeftUpLeg",
+  "LeftLeg": "LeftLeg",
+  "LeftFoot": "LeftFoot",
+  "LeftToeBase": "LeftToeBase",
+  "RightShoulder": "RightShoulder",
+  "RightArm": "RightArm",
+  "RightForeArm": "RightForeArm",
+  "RightHand": "RightHand",
+  "RightUpLeg": "RightUpLeg",
+  "RightLeg": "RightLeg",
+  "RightFoot": "RightFoot",
+  "RightToeBase": "RightToeBase"
+ },
+ "meshes": {
+  "output_unwrapped": {
+   "name": "body",
+   "maxTris": 40000
+  }
+ },
+ "clips": [
+  "cm-idle",
+  "cm-talk",
+  "cm-walk",
+  "cm-sit",
+  "cm-sit-enter",
+  "cm-sit-exit",
+  "cm-sit-talk",
+  "cm-dance",
+  "cm-interact",
+  "cm-idle-m2",
+  "cm-blow-kiss",
+  "cm-head-tilt",
+  "cm-laugh",
+  "cm-glance-back",
+  "cm-slow-dance",
+  "cm-dance-samba",
+  "cm-sit-relax",
+  "cm-sit-wave",
+  "cm-shrug",
+  "cm-recline"
+ ]
+}

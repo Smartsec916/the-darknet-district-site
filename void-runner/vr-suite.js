@@ -254,9 +254,11 @@
    function menu(){const far=Math.hypot(walker.x-node.position.x,walker.z-node.position.z)>2.8&&!c.sitting,never=['Never mind',()=>{resumeWalking();idle();},'Leave'];
     const atHome=Math.hypot(node.position.x-home[0],node.position.z-home[1])<.4;
     const commands=[...(c.mode!=='follow'?[['Follow me',followMe,'Together']]:[]),...(c.mode!=='stay'?[['Stay here',stayHere,'Together']]:[]),...(c.mode!=='free'||!atHome?[['Go back to your spot',goBack,'Together']]:[])];
-    const together=[['Sit together',()=>sitTogether(),'Together'],[c.dancing?'Stop dancing':'Dance together',()=>dance(),'Together']];
+    const together=[['Sit together',()=>sitTogether(),'Together'],[c.dancing?'Stop':'Dance together',()=>dance(),'Together']];
+    // Motion-capture moves from the shared library (anim-library.js), offered only to a companion whose figure took them.
+    const lib=self.library||[],offer=(label,ids)=>ids.some(i=>lib.includes(i))?[[label,()=>perform(ids),'Together']]:[],moves=c.dancing?[]:[...offer('Dance for me',['ac-sensual-dance-3','ac-sensual-movement-1']),...offer('Strike a pose',['ac-stand-curve-2','ac-stand-curve-3']),...offer('Relax on the floor',['ac-ground-pose-2','ac-ground-pose-3','ac-ground-pose-4'])];
     const opts=far?[['Come over here',comeHere,'Together'],...together,...commands,never]:
-     [...(talks?[['Chat',chat,'Talk'],['Compliment them',compliment,'Talk'],['Flirt',flirt,'Talk']]:[]),...together,...(has('recline')&&!others(self).some(o=>o.c.reclining)?[['Lie back together',()=>recline(),'Together']]:[]),
+     [...(talks?[['Chat',chat,'Talk'],['Compliment them',compliment,'Talk'],['Flirt',flirt,'Talk']]:[]),...together,...moves,...(has('recline')&&!others(self).some(o=>o.c.reclining)?[['Lie back together',()=>recline(),'Together']]:[]),
       ['Hold hands',hands,'Together'],...(talks?[['Kiss',kiss,'Together'],['Relax together',relax,'Together']]:[]),...commands,...(talks?[['Say goodnight',goodbye,'Leave']]:[]),never];
     const opening=c.greeted?C.pick(L.chat,mem,'menu'):C.pick(L.greet,mem,'greet');c.greeted=true;ask2(self,far?C.pick(L.approach,mem,'menu-far'):opening,opts);}
    const after=()=>{resumeWalking();idle();};
@@ -265,8 +267,11 @@
    function compliment(){c.affection++;say(self,C.pick(L.compliment,mem,'compliment'),after);gesture(Math.random()<.5?'shy':'laugh');}
    function flirt(){c.affection++;say(self,C.pick(L.flirt,mem,'flirt'),after);gesture('flirt');}
    function sitTogether(){c.dancing=false;resumeWalking();c.withYou=true;walkTo(...S.sofa.from,sitOnSofa,true);api.sit({...(party2?pairSeat:seats.sofa),text:C.pick(L.sit,mem,'sit')||'You sit down together.'});}
+   /* One of the library's moves, held until the player chooses Stop (it uses the dancing state, so everything that ends a dance ends it too). */
+   function perform(ids){const have=ids.filter(i=>(self.library||[]).includes(i));if(!have.length)return dance();stand(true);c.danceClip=have[Math.floor(Math.random()*have.length)];c.dancing=true;anim.play(c.danceClip);resumeWalking();}
    function dance(asked){if(c.dancing&&!asked){c.dancing=false;idle();resumeWalking();return;}stand(true);
     c.danceClip=Math.random()<(.25+cfg.flirtatiousness*.2)&&has(clip('playfulDance'))?clip('playfulDance'):clip('dance');c.dancing=true;
+    {const slow=['ac-sensual-dance-3','ac-sensual-movement-1'].filter(i=>(self.library||[]).includes(i));if(slow.length&&Math.random()<.45)c.danceClip=slow[Math.floor(Math.random()*slow.length)];}   // sometimes one of the motion-capture dances
     if(!api.session.settings.music||api.session.settings.music==='off'){api.setPad('velvet');room.music('velvet');api.session.settings.music='velvet';}
     const s=party2?S.side*.55:0;walkTo(walker.x+Math.sin(walker.yaw)*1.2+Math.cos(walker.yaw)*s,walker.z+Math.cos(walker.yaw)*1.2-Math.sin(walker.yaw)*s,()=>{c.dancing=true;anim.play(c.danceClip);});
     if(!asked)say(self,C.pick(L.dance,mem,'dance'),()=>{resumeWalking();anim.play(c.danceClip);});else resumeWalking();}
