@@ -116,6 +116,7 @@
   {quarter:'avenue',zone:'avenue'},
   {quarter:'oldtown',zone:'oldtown'},
   {quarter:'far-south',zone:'oldtown'},
+  {quarter:'outskirts',zone:null,why:'The Outskirts: no advertisement screens (David, 16 Nov 2026)'},
   {quarter:'port',zone:'port'}
  ];
  /* Places with their own scene. null = no advertisement screens at all. 'silent' = whatever screens the place already has stay as they are, and nothing speaks.

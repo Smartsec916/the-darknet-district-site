@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "368945406f20455e",
+  "revision": "d35180fea09324b8",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11208,49 +11208,49 @@
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 181,
+      "line": 182,
       "text": "/* One slot as something a screen can show and say. Each slide: {kind, cat, look, speaker, label, title, lines:[{text, say, hold}]}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 187,
+      "line": 188,
       "text": "say: the exact text a recording is looked up by (null: nothing is ever said for it). hold: seconds on screen without a recording. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 189,
+      "line": 190,
       "text": "if(slot.type==='board'){const c=CATEGORIES.board;return {kind:'board',cat:'board',look:c.look,speaker:c.speaker,label:standings?.header||'WARFLYING LEADERSHIP BOARD',title:'',standings,lines:[{text:standings?.spoken||'',say:standings?.spoken||null,hold:TIMING.board}]};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 190,
+      "line": 191,
       "text": "if(slot.type==='news'){const s=slot.segment,c=CATEGORIES.news;return {kind:'news',cat:'news',look:c.look,speaker:s.speaker||'news-anchor',label:c.label,title:s.headline||'',id:s.id,lines:[{text:s.headline||'',say:null,hold:TIMING.headline,headline:true},...s.lines.map(t=>({text:t,say:t,hold:TIMING.line}))]};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 192,
+      "line": 193,
       "text": "if(ad.brand){const full=ad.brand+' — '+ad.line;return {...base,kind:'brand',title:ad.brand,lines:[{text:ad.line,say:full,hold:TIMING.brand}]};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 193,
+      "line": 194,
       "text": "if(ad.lines)return {...base,kind:'script',title:ad.title,lines:[...(ad.relay||!ad.title?[]:[{text:ad.title,say:ad.title,hold:TIMING.title,title:true}]),...ad.lines.map(t=>({text:t,say:t,hold:TIMING.line}))]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 194,
+      "line": 195,
       "text": "return {...base,kind:'notice',title:'',lines:[{text:ad.line,say:ad.line,hold:TIMING.notice}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 197,
+      "line": 198,
       "text": "function spokenLines(relay){const out=[];for(const z of Object.keys(ZONES))for(const list of Object.values(adsFor(z,{relay})))for(const ad of list)for(const l of slide({type:'ad',ad}).lines)if(l.say&&!out.some(o=>o.text===l.say&&o.speaker===(ad.speaker||CATEGORIES[ad.cat].speaker)))out.push({speaker:ad.speaker||CATEGORIES[ad.cat].speaker,text:l.say,cat:ad.cat,id:ad.id,relay:!!ad.relay});return out;}",
       "kind": "source-reference"
     },
@@ -12173,6 +12173,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/ncz-containers.js",
+      "line": 7,
+      "text": "nothing here names or describes anyone (David, 16 Nov 2026: no character, dialogue or mission yet). No signs and no words are painted anywhere. */",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/ncz-gate-transit.js",
       "line": 12,
       "text": "Nothing on screen says anything about loading; there is no bar and no text. A screen reader is told \"Security scan\".",
@@ -12192,25 +12198,25 @@
     },
     {
       "source": "void-runner/ncz-quarters.js",
-      "line": 19,
+      "line": 20,
       "text": "Saves: nothing new is required. story.flags.quarter ('oldtown' | 'avenue'; absent = the Port) says which quarter an outdoor player was last in. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 912,
+      "line": 916,
       "text": "rooms.every(dt=>{if(!ctrl||gone)return;const now=typeof speech!=='undefined'&&!!speech&&speech.lines?.[speech.index]?.who==='Bartender';if(now!==talking){talking=now;ctrl.play(now?'talk':'idle');next=8+Math.random()*8;return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1076,
+      "line": 1080,
       "text": "const podPick=(x,y)=>{   // (x, y) is where the pointer is in the window. The game's picture is drawn smaller than the window and stretched whenever the quality setting says so, so the point is first brought to the picture's own size: without this a click landed beside what was drawn.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1197,
+      "line": 1201,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -13948,7 +13954,7 @@
     "void-runner/account.js": "608e9e265d621184a2b95f8b84062859cfc4530340141534991f8bd435d4d1db",
     "void-runner/achievements.js": "2f974b5ab4c9d85d24bfdc3cb95ef1310941d9e9c0608e6965f340afa91fdba5",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
-    "void-runner/ad-screens-data.js": "f059228ce0adced57f96407233e4f4201e405896c513ca89f753fe761e4e442d",
+    "void-runner/ad-screens-data.js": "5f5b648adb4aab4ff023b9e9e778c8e228a57b31698e1048d43ff053046b9a6d",
     "void-runner/ad-screens.js": "dee5cbc0c4d97ffeae19b2db3d2eb7fcbf5515f59279fc92131643357763cfa2",
     "void-runner/anim-library.js": "21718cc00efa5199c5fd3164b62454e848e0c0519fb001afa7d61524c2510568",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
@@ -14001,7 +14007,7 @@
     "void-runner/district-area.js": "691220341919fe9ae6839cc50aaebaa84d6d59d3a6a0c35accb790d3de946dc8",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
     "void-runner/district-life.js": "d6c860db19dbe4ec7cf521a48a2be9662cb879218dd831943d6ee72a83d15138",
-    "void-runner/district-map.js": "b9c4602c2b6e94e8c69c0ff21d36b6018327bf9ab472f6d8de62da5493cb09fc",
+    "void-runner/district-map.js": "c8e80d051734fac11dc1289db27c25c5ed38677e79d0f1fd3cac17cdcadd2b32",
     "void-runner/district-people.js": "f316fcb961aa14d995be283c61a3f6ffe82964e5ab4edcc30348f563bb92d2c4",
     "void-runner/district-rooms.js": "bf2aeb23d55b2a870cac2fdbe5850461e06066464e7b7b41b4b4ccfab13eac0a",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
@@ -14060,12 +14066,13 @@
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-alley.js": "ab36c39ef7d1cdaa812224c7fa1213d20121542b362c9d635b75964db045a219",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
+    "void-runner/ncz-containers.js": "4e68d6f6b0ba73b62797d2489213970a4f633106961c8d531e130bce7e2243e4",
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
     "void-runner/ncz-gates.js": "a932b125a1da4fab1060c6faf95a042d5e99f5120c1f85cf85634bcdcefc862f",
     "void-runner/ncz-nightclub.js": "09c1373360df509732ccb609f0e879d615551e568cbaf09e278af8247b97e6fb",
-    "void-runner/ncz-nightlife.js": "6804929c0efb72352644e7e447fa623674ca8eeb88c831d7468b0eba7553b0cf",
-    "void-runner/ncz-quarters.js": "ed13f2ca5169e26e3a82458058afc986dfc57350feaccd63323b028eab70b855",
-    "void-runner/neochinatown.js": "a9a47deb209f540eb4516244e3b245a0068b7f479a85facf7d5b2b2a0ea452b7",
+    "void-runner/ncz-nightlife.js": "764591a2e2bdd2d99732f62da2a67904c7e1da16985f718713d4b7a4bf4ad6be",
+    "void-runner/ncz-quarters.js": "5c622171495aa0a03ced24039103c1b42535b714a3462344af01ac1b1d06425e",
+    "void-runner/neochinatown.js": "ebe06a22ec92f021812a83c5ee14294cff3b29a7051f44505710341f9623b36d",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
@@ -14086,7 +14093,7 @@
     "void-runner/relay-screens.js": "b3365f56117519e9dfe0aa4ff58c62e5feebb7d334db1ca03b20d20e830afb7c",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
     "void-runner/remote-players.js": "f8bbf039d6dc58d8b96adb744622e9dddb5a7d057a761131ded5911e4123cb9a",
-    "void-runner/road-taxi-rules.js": "a885fc58faa8b4a74aa44596021ba12ca16012a3d2d279944818199643b77b96",
+    "void-runner/road-taxi-rules.js": "40803f3a813522104e26984aacbe008b2390851c4e4624374d3c75dcc3fa003c",
     "void-runner/road-taxi.js": "96089dbdcbf372903dc24e3238029061ade05159a825233adc46a0ef15160ff4",
     "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",

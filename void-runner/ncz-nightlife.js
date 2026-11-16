@@ -48,7 +48,7 @@
  const remarks=['Whoa. The pavement\'s moving again.','Have you seen my taxi? It was right… somewhere.','Love this city. Love it. Hate it. Love it.','One more noodle bar. Then home. Probably.','Is it Tuesday? Feels like a Tuesday.','I\'m fine. I\'m great. I\'m sitting down.'];
  // The lanes of one quarter (ncz-quarters.js): Main Street's stop short of the North Gate, the avenue's run between its two gates, the Port has none.
  // `share` is that quarter's part of the whole city's crowd, so the same number of people are spread over the three quarters as walked the one city.
- const CLIP={oldtown:{'main-west':[[52.6,-122.4],[52.6,-27.6]],'main-east':[[69.4,-122.4],[69.4,-27.6]],alley:null},'far-south':{'main-far-west':null,'main-far-east':null},avenue:{'avenue-north':[[12.5,-6.6],[141.5,-6.6]],'avenue-south':[[12.5,-17.7],[141.5,-17.7]]},port:{}};
+ const CLIP={oldtown:{'main-west':[[52.6,-122.4],[52.6,-27.6]],'main-east':[[69.4,-122.4],[69.4,-27.6]],alley:null},'far-south':{'main-far-west':null,'main-far-east':null},outskirts:{},avenue:{'avenue-north':[[12.5,-6.6],[141.5,-6.6]],'avenue-south':[[12.5,-17.7],[141.5,-17.7]]},port:{}};
  function lanesFor(quarter){const c=CLIP[quarter];if(!c)return lanes;return [...lanes,...farLanes].filter(l=>l.id in c).map(l=>c[l.id]?{...l,a:c[l.id][0],b:c[l.id][1],...(l.id==='avenue-south'?{half:.6}:{})}:l);}   /* the avenue's south pavement keeps clear of the North Gate's doors and guards */
  const weightOf=ls=>ls.reduce((s,l)=>s+l.weight,0),share=quarter=>CLIP[quarter]?weightOf(lanesFor(quarter))/weightOf(lanes):1;
  const len=l=>Math.hypot(l.b[0]-l.a[0],l.b[1]-l.a[1]);
