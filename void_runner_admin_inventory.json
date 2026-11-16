@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "56a94c1c2aca665c",
+  "revision": "2f3115c5469c3e0f",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13242,97 +13242,97 @@
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 260,
+      "line": 262,
       "text": "['Hold hands',hands,'Together'],...(talks?[['Kiss',kiss,'Together'],['Relax together',relax,'Together']]:[]),...commands,...(talks?[['Say goodnight',goodbye,'Leave']]:[]),never];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 264,
+      "line": 266,
       "text": "function chat(){say(self,C.pick(L.chat,mem,'chat'),after);gesture(Math.random()<.4?'laugh':'idleAlt');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 265,
+      "line": 267,
       "text": "function compliment(){c.affection++;say(self,C.pick(L.compliment,mem,'compliment'),after);gesture(Math.random()<.5?'shy':'laugh');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 266,
+      "line": 268,
       "text": "function flirt(){c.affection++;say(self,C.pick(L.flirt,mem,'flirt'),after);gesture('flirt');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 267,
+      "line": 269,
       "text": "function sitTogether(){c.dancing=false;resumeWalking();c.withYou=true;walkTo(...S.sofa.from,sitOnSofa,true);api.sit({...(party2?pairSeat:seats.sofa),text:C.pick(L.sit,mem,'sit')||'You sit down together.'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 272,
+      "line": 277,
       "text": "if(!asked)say(self,C.pick(L.dance,mem,'dance'),()=>{resumeWalking();anim.play(c.danceClip);});else resumeWalking();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 274,
+      "line": 279,
       "text": "function recline(){resumeWalking();walkTo(1.95,2.9,()=>{c.reclining=true;c.state='idle';node.rotation.y=-Math.PI/2;node.position.set(.95,.5,3.35);anim.play('recline');remark('recline');},true);api.sit({x:-.35,z:3.1,yaw:Math.PI/2+.25,eye:1.05,text:'You stretch out on the bed. The ceiling glows violet.'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 275,
+      "line": 280,
       "text": "function hands(){c.affection++;const near=Math.hypot(walker.x-node.position.x,walker.z-node.position.z);if(!c.sitting&&near>1.3)approach(()=>gesture('interact'));else gesture('interact');say(self,C.pick(L.hands,mem,'hands'),after);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 277,
+      "line": 282,
       "text": "function kiss(){if(!c.sitting&&!c.dancing&&!c.reclining)return say(self,C.pick(L.notNow,mem,'notNow'));if(c.affection<3)return say(self,C.pick(L.notYet,mem,'notYet'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 278,
+      "line": 283,
       "text": "say(self,L.kiss[0],()=>{resumeWalking();c.kissing=true;k.kiss=1.6;api.sfx(520,1.2,'sine',.02);k.after(()=>{c.kissing=false;if(api.session){gesture('shy');say(self,C.pick(L.kissAfter,mem,'kissAfter'),after);}},1700);});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 279,
+      "line": 284,
       "text": "function relax(){c.affection++;if(!c.sitting)return sitTogether();say(self,C.pick(L.relax,mem,'relax'),after);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 280,
+      "line": 285,
       "text": "function goodbye(){say(self,C.pick(L.bye,mem,'bye'),()=>{api.exit();},'EXIT VR →');gesture('flirt');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 302,
+      "line": 307,
       "text": "greet(){c.greeted=true;gesture('greet');if(talks)say(self,C.pick(L.greet,mem,'greet'));},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 311,
+      "line": 316,
       "text": "return {tick:k.tick,dispose,companions:comps,anim:first.anim,companion:first.node,who:first.who,config:first.cfg,brain:first.brain,attention:first.att,bones:first.bones,state:first.c,act:first.act,overlay:(g,W,H)=>k.overlayFn(g,W,H),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 320,
+      "line": 325,
       "text": "else if(id.startsWith('sit-')||id==='balcony'){const s=seats[id.replace('sit-','')]||seats.balcony;api.sit({...s,text:id==='balcony'?'You lean on the rail. The city hums far below, all neon and rain-haze.':'You sit down. The room is quiet and soft.'});}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 341,
+      "line": 346,
       "text": "{title:'CHOOSE A COMPANION',prompt:'Pick who you would like to meet: one companion alone, or two together where a card says so. You can change your mind by leaving the simulation and choosing again.',",
       "kind": "source-reference"
     },
@@ -13936,7 +13936,7 @@
     "void-runner/vr-forest.js": "6f3d4e0566de2bf9b5a73021a5a97471e8a735e582ff38bf09fbb960a544bf2b",
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "505304a77e258c7a99f58e17cc7f5856f706083aa391f11a83cbd77cb8d9836d",
-    "void-runner/vr-suite.js": "3aabe6a466d63561e6d36f0101617e6881971a75e47c6bf16d94628f9875bc60",
+    "void-runner/vr-suite.js": "6e53c6bcd406b85e1bcc1b1298187b53f41a716512c5297c70ca8637f4302266",
     "void-runner/vr-tropical.js": "69461cdf66deffa476b984eda6962bf1708642557818d03514252e75d17e1b22",
     "void-runner/warflying-scan.js": "f6de823ef265ff4e1cde538ac17b5adefb72547ad0ef2e3b25cdb42de9ce8a87",
     "void-runner/warflying-scanner.js": "983a0c022fa0a93ddc0f84ad5927e01fbd933823a68afabcc5b7b444ff2f128b",
