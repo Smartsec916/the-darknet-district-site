@@ -19,7 +19,8 @@
  'use strict';
  const MK=root.VoidMilked;if(!MK||typeof document==='undefined')return;
  const HERE=document.currentScript?new URL('.',document.currentScript.src).href:'void-runner/';
- const {CONFIG,MODELS,FOOTPRINT,DOOR,INNER,REAR,VESTIBULE,HALL,LOBBY,LOBBY_N,LOBBY_W,DOORS,SEGMENTS,ROOMS,STUDIOS,T,CEIL,AREA,spansOf,distance,inside}=MK;
+ const {CONFIG,MODELS,FOOTPRINT,DOOR,INNER,REAR,VESTIBULE,HALL,LOBBY,LOBBY_N,LOBBY_W,DOORS,SEGMENTS,ROOMS,STUDIOS,T,CEIL,AREA,spansOf,distance,inside}=MK.LOCAL,[OX,OZ]=MK.OFFSET;   // everything here is drawn in the building's own frame; MK.OFFSET carries it to where it stands (milked.js)
+ const toLocal=c=>c?{x:c.x-OX,y:c.y,z:c.z-OZ}:c;   // a camera or a player in world metres, in the building's frame
  const PINK='#ff3fb4',GREEN='#39ff9c',WHITE='#f4f8ff',RED='#ff2b4a',WARM='#ffd9a8',PI=Math.PI;
  const CJK='"Microsoft YaHei","PingFang SC","Noto Sans CJK SC","Noto Sans SC","WenQuanYi Zen Hei",sans-serif';
  const TOW=PI/2,TOE=-PI/2,TON=PI,TOS=0;   // plane rotation.y so the readable face points west (-x), east (+x), north (+z), south (-z)
@@ -27,7 +28,7 @@
  // ================================================================ the kit: materials, shapes, signs, doors, props ================================================================
  function kit({B,scene,parent,quality,area}){
   const low=quality==='low',high=quality==='high'||quality==='ultra',interior=area===AREA,own=[],groups=new Map(),screens=[],leaves=new Map(),containers=[],models=new Map(),late=[],pbrs=[];let disposed=false,merged=false;
-  const node=new B.TransformNode(interior?'milked-interior':'milked',scene);node.parent=parent;
+  const node=new B.TransformNode(interior?'milked-interior':'milked',scene);node.parent=parent;node.position.set(OX,0,OZ);   // the one rigid move (milked.js OFFSET): every mesh and light below is parented to this node and keeps its own coordinates
   const matCache=new Map();
   /* Surfaces. Low keeps the plain (Standard) materials it had. Medium and above are physically based: roughness, metalness and a normal map on every main
      surface, so the metal, the concrete, the glass and the damp floors answer the lamps and show reflections.
@@ -300,7 +301,7 @@
    box(.26,.5,.14,lx1-.2,1.3,lz0+.6,M('fire','#7a1418','#30080a'));cyl(.13,.42,lx1-.22,.75,lz0+.6,M('fire','#7a1418','#30080a'),false,10);cyl(.3,.3,lx1-.32,.15,lz1-.5,M('bucket','#2c4a5a','#122028'),false,10);pipe(.03,1.2,'x',lx1-.3,.72,lz1-.45,trim).rotation.z=1.25;}
 
   // ---------------- merge static pieces by material (few draw calls) ----------------
-  function finish(){merged=true;for(const [mat,list] of groups){if(list.length>1){const alphaIn=list.some(m=>m.hasVertexAlpha),mm=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(mm){mm.parent=node;mm.material=mat;mm.isPickable=false;if(alphaIn)mm.hasVertexAlpha=true;mm.freezeWorldMatrix?.();}}else list[0].freezeWorldMatrix?.();}groups.clear();}
+  function finish(){merged=true;for(const [mat,list] of groups){if(list.length>1){const alphaIn=list.some(m=>m.hasVertexAlpha),mm=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(mm){mm.parent=node;mm.position.set(-OX,0,-OZ);mm.material=mat;   /* a merge bakes the meshes' WORLD positions (this node's move included): the merged mesh stands back by the move so it is not carried twice */mm.isPickable=false;if(alphaIn)mm.hasVertexAlpha=true;mm.freezeWorldMatrix?.();}}else list[0].freezeWorldMatrix?.();}groups.clear();}
   let clock=0;
   function animate(dt,cam,near=true){clock+=dt;if(!near)return;for(const s of screens){if(clock>s.next){s.next=clock+s.period;const g=s.t.getContext();s.draw(g,s.cw,s.ch,clock);s.t.update();}}
    if(cam)for(const o of autos){const want=Math.hypot(cam.x-o.cx,cam.z-o.cz)<o.r?1:0;if(o.k!==want){o.k+=Math.sign(want-o.k)*Math.min(Math.abs(want-o.k),dt*2.6);o.m.position[o.axis]=o.from+o.travel*o.k;}}}
@@ -417,9 +418,9 @@
   k.blob(84.2,-73.22,.9,.9,.036);k.blob(87,-90.65,2.8,1.7,.036);k.blob(97.4,-92.75,1.8,1.5,.036);
   k.vestibule();k.lobby();k.finish();
   const doors=k.doorControl();
-  function tick(cam,dt){if(k.disposed)return;const d=cam?distance(cam.x,cam.z):999,dz=d*(root.VoidZoom?root.VoidZoom.now():1);if(d<40)doors.tick(dt,cam);k.animate(dt,cam,dz<30);   /* dz: the distance as a zoomed camera shows it (zoom-detail.js) */
+  function tick(wcam,dt){if(k.disposed)return;const cam=toLocal(wcam),d=cam?distance(cam.x,cam.z):999,dz=d*(root.VoidZoom?root.VoidZoom.now():1);if(d<40)doors.tick(dt,cam);k.animate(dt,cam,dz<30);   /* dz: the distance as a zoomed camera shows it (zoom-detail.js) */
    if(wet){wet.setEnabled(d<36);if(d<36&&k.clock>wetNext){wetNext=k.clock+(k.clock<40?4:1e9);wetMirror.renderList=k.reflectIn([],true);}}}
-  return {tick,inside:cam=>inside(cam),people:[],doors,area:'street',state:()=>({ready:!k.disposed,area:'street',doors:doors.state(),screens:k.screens.length}),dispose(){k.dispose();}};
+  return {tick,inside:cam=>MK.inside(cam),people:[],doors,area:'street',state:()=>({ready:!k.disposed,area:'street',doors:doors.state(),screens:k.screens.length}),dispose(){k.dispose();}};
  }
 
 
@@ -671,7 +672,7 @@
   function roomPicture(clock,zone){if(!probes.length)return;
    if(probePending>=0){if(clock<probeSwap||!(probes[probePending].drawn>=6))return;{const i=scene.customRenderTargets.indexOf(probes[probePending].cubeTexture);if(i>=0)scene.customRenderTargets.splice(i,1);}probeCur=probePending;probePending=-1;probeShown=probeWant;const t=probes[probeCur].cubeTexture;for(const m of k.pbrs)if(!mirrored.has(m))m.reflectionTexture=t;return;}
    if(clock<1.2||(zone===probeShown&&clock<probeDue))return;if(clock>=probeDue)probeDue=probeAgain.length?probeAgain.shift():1e9;
-   probeWant=zone;probePending=probeCur<0?0:1-probeCur;const p=probes[probePending],list=p.renderList;p.position.set(...PROBE_AT[zone]);list.length=0;
+   probeWant=zone;probePending=probeCur<0?0:1-probeCur;const p=probes[probePending],list=p.renderList;p.position.set(PROBE_AT[zone][0]+OX,PROBE_AT[zone][1],PROBE_AT[zone][2]+OZ);   /* a probe is not parented: world metres */list.length=0;
    for(const m of node.getChildMeshes(false))if(m.isEnabled()&&m.material&&m.material.metadata?.mk!=='fx'&&!m.skeleton)list.push(m);p.drawn=0;p.cubeTexture.resetRefreshCounter();if(!scene.customRenderTargets.includes(p.cubeTexture))scene.customRenderTargets.push(p.cubeTexture);probeSwap=clock+.3;}
 
   // ---------------- people: Eva, Fish and one dancer in each studio (clothed crowd figures). Nobody else. ----------------
@@ -710,7 +711,7 @@
     if(p.role==='dancer'&&!/dance|^ac-/.test(p.clip)){const t=clock*2.6+p.phase;p.node.position.y=p.y+Math.abs(Math.sin(t))*.03;p.node.rotation.y=p.yaw+Math.sin(t*.5)*.4;}}
   }
   function tick(time){
-   if(k.disposed)return;const dt=last===null?0:Math.min(.1,Math.max(0,time-last));last=time;const cam=scene.activeCamera?.globalPosition;
+   if(k.disposed)return;const dt=last===null?0:Math.min(.1,Math.max(0,time-last));last=time;const cam=toLocal(scene.activeCamera?.globalPosition);
    doors.tick(dt,cam);k.animate(dt,cam,true);{const q=Math.sin(k.clock*3.2)>0?1:.3;onAir.emissiveColor.copyFromFloats(q,.17*q,.29*q);}
    expose();if(!low&&cam){const zone=zoneOf(cam.x,cam.z);relight(dt,cam,zone);keyLight(dt,cam,zone);if(k.clock>faceNext){faceNext=k.clock+.5;faceLamps(cam);}roomPicture(k.clock,zone);
     // the mirror's list: everything it may show is gathered a few times as the place fills up; on Medium only what is near the player is drawn into it

@@ -1,4 +1,4 @@
-/* NeoChinatown's three quarters and their checkpoints (void-runner/ncz-quarters.js): the map, what each quarter's build keeps, the gates' rooms and doors,
+/* NeoChinatown's four quarters (Far South since 16 Nov 2026) and their checkpoints (void-runner/ncz-quarters.js): the map, what each quarter's build keeps, the gates' rooms and doors,
    the collision that seals a quarter, taxi routes between quarters, saves, and adding a checkpoint by one entry. */
 const test=require('node:test'),assert=require('node:assert/strict');
 const Q=require('../void-runner/ncz-quarters.js'),N=require('../void-runner/neochinatown.js'),E=require('../void-runner/exploration-controller.js'),MK=require('../void-runner/milked.js'),A=require('../void-runner/district-area.js');
@@ -8,14 +8,17 @@ function reach(L,from,limit=60000){const key=(x,z)=>Math.round(x*2)+':'+Math.rou
  while(todo.length&&out.length<limit){const [x,z]=todo.pop();out.push([x,z]);for(const [dx,dz] of [[.5,0],[-.5,0],[0,.5],[0,-.5]]){const nx=x+dx,nz=z+dz,k=key(nx,nz);if(seen.has(k))continue;seen.add(k);if(!E.blocked(nx,nz,L))todo.push([nx,nz]);}}return out;}
 
 test('the streets here are the streets neochinatown.js walks',()=>{for(const k of Object.keys(Q.S))assert.deepEqual(Q.S[k],N.streets[k],k);assert.equal(N.quarters,Q);});
-test('three quarters; the everyday loop is all in Old Town and never meets a checkpoint',()=>{
- assert.deepEqual(Q.IDS,['port','oldtown','avenue']);assert.deepEqual(Object.values(Q.QUARTERS).map(q=>q.name),['The Port','Old Town','The Avenue']);
- const exit=A.exitSpawn(N).spawn,loop={districtDoor:[exit[0],exit[2]],alley:[100,-58.5],mainStreet:[61,-58.5],nullDoor:[52,-58.5],milkedFront:[MK.DOOR.x,MK.DOOR.z+1],milkedRear:[94.75,-91.5],accessRoad:[30,-118.5]};
+test('four quarters; the everyday loop (the District, the alley, NULL) is all in Old Town and never meets a checkpoint',()=>{
+ assert.deepEqual(Q.IDS,['port','oldtown','avenue','far-south']);assert.deepEqual(Object.values(Q.QUARTERS).map(q=>q.name),['The Port','Old Town','The Avenue','Far South']);
+ const exit=A.exitSpawn(N).spawn,loop={districtDoor:[exit[0],exit[2]],alley:[100,-58.5],mainStreet:[61,-58.5],nullDoor:[52,-58.5],accessRoad:[30,-118.5]};
  for(const [name,[x,z]] of Object.entries(loop)){assert.equal(Q.quarterAt(x,z),'oldtown',name);assert.equal(Q.laneAt({x,z}),null,name+' is not inside a checkpoint');}
  // and a walker really can get round it with every gate door shut
  const L=N.layout('street','oldtown'),cells=reach(L,[exit[0],exit[2]]),has=(x,z)=>cells.some(c=>Math.hypot(c[0]-x,c[1]-z)<.8);
  for(const [name,[x,z]] of Object.entries(loop))assert.ok(has(x,z),name+' is reachable from the District door');
- assert.equal(Q.quarterAt(31,-96),'port');assert.equal(Q.quarterAt(61,-12),'avenue');assert.equal(Q.quarterAt(-50,-12),null,'the retired west street is nobody\'s');assert.equal(Q.quarterAt(61,-150),null);assert.equal(Q.quarterAt(61,-23,'avenue'),'avenue');assert.equal(Q.quarterAt(61,-23,'oldtown'),'oldtown');
+ assert.equal(Q.quarterAt(31,-96),'port');assert.equal(Q.quarterAt(61,-12),'avenue');assert.equal(Q.quarterAt(-50,-12),null,'the retired west street is nobody\'s');assert.equal(Q.quarterAt(61,-150),'far-south','Main Street goes on south of the South Gate');assert.equal(Q.quarterAt(61,-250),null);
+ // Milked is in Far South now (David, 16 Nov 2026): its doors, side street and alley are nobody else's, and nothing of it is left in Old Town
+ for(const [name,x,z] of [['front door',MK.DOOR.x,MK.DOOR.z+1],['rear door',MK.REAR.x,MK.REAR.z-1.5],['side street',MK.LANE[0]+10,(MK.LANE[2]+MK.LANE[3])/2],['inside',MK.DOOR.x,MK.DOOR.z-3]])assert.equal(Q.quarterAt(x,z),'far-south','Milked '+name);
+ for(const [x,z] of [[84,-80],[75,-71],[90,-91.8],[81.75,-73]])assert.equal(Q.quarterAt(x,z),null,'where Milked stood ('+x+', '+z+') is solid block, nobody\'s street');assert.equal(Q.quarterAt(61,-23,'avenue'),'avenue');assert.equal(Q.quarterAt(61,-23,'oldtown'),'oldtown');
 });
 test('each quarter is sealed by its gates: with the doors shut nobody walks out of it, and its spawn is open floor',()=>{
  for(const q of Q.IDS){const L=N.layout('street',q),sp=Q.QUARTERS[q].spawn;assert.equal(L.quarter,q);assert.equal(L.area,'street');assert.equal(L.id,'neochinatown');assert.deepEqual(L.spawn,sp);assert.equal(E.blocked(sp[0],sp[2],L),false,q+' spawn');
@@ -29,11 +32,14 @@ test('each quarter is sealed by its gates: with the doors shut nobody walks out 
  assert.equal(N.layout('street').quarter,undefined);assert.ok(!N.layout('street').solids.some(s=>String(s.id).startsWith('gate-')));
 });
 test('the checkpoints of map A: who runs them, what they join, their lanes',()=>{
- const by=Object.fromEntries(Q.GATES.map(g=>[g.id,g]));assert.deepEqual(Q.GATES.map(g=>g.code+' '+g.name),['A1 Port Customs','A2 North Gate','A3 Function Gate','A4 East Gate','A5 South Gate']);
+ const by=Object.fromEntries(Q.GATES.map(g=>[g.id,g]));assert.deepEqual(Q.GATES.map(g=>g.code+' '+g.name),['A1 Port Customs','A2 North Gate','A3 Function Gate','A4 East Gate','A5 South Gate','A6 Far South Gate']);
  assert.deepEqual([by.customs.ends.lo.quarter,by.customs.ends.hi.quarter],['oldtown','port']);assert.deepEqual([by.north.ends.lo.quarter,by.north.ends.hi.quarter],['oldtown','avenue']);
- assert.equal(by.function.ends.lo.scene,'corporate');assert.equal(by.function.ends.hi.quarter,'avenue');assert.equal(by.east.ends.hi.scene,'temple');assert.equal(by.south.shut,true);
- assert.deepEqual(Q.GATES.map(g=>g.guard),['private','private','function','private',null]);
- const kinds=id=>Q.lanesOf(id).map(l=>l.kind).sort().join();assert.equal(kinds('customs'),'bay,foot');assert.equal(kinds('north'),'bay,bay,foot,foot');assert.equal(kinds('function'),'bay,foot','The Function\'s gate is walkable and takes cabs');assert.equal(kinds('east'),'bay,foot','the East Gate is walkable and takes cabs (walkers\' lane added 16 Nov 2026)');assert.equal(kinds('south'),'');
+ assert.equal(by.function.ends.lo.scene,'corporate');assert.equal(by.function.ends.hi.quarter,'avenue');assert.equal(by.east.ends.hi.scene,'temple');assert.ok(!by.south.shut,'the South Gate is open since Far South');assert.deepEqual([by.south.ends.lo.quarter,by.south.ends.hi.quarter],['far-south','oldtown']);assert.equal(by['far-south-gate'].shut,true,'the Far South Gate is shut for now');assert.deepEqual([by['far-south-gate'].ends.lo,by['far-south-gate'].ends.hi.quarter],[{},'far-south']);
+ assert.deepEqual(Q.GATES.map(g=>g.guard),['private','private','function','private','private','private']);assert.equal(by['far-south-gate'].sign,'FAR SOUTH GATE');assert.equal(by.south.sign,'SOUTH GATE');
+ const kinds=id=>Q.lanesOf(id).map(l=>l.kind).sort().join();assert.equal(kinds('customs'),'bay,foot');assert.equal(kinds('north'),'bay,bay,foot,foot');assert.equal(kinds('function'),'bay,foot','The Function\'s gate is walkable and takes cabs');assert.equal(kinds('east'),'bay,foot','the East Gate is walkable and takes cabs (walkers\' lane added 16 Nov 2026)');assert.equal(kinds('south'),'bay,bay,foot,foot','the South Gate is the North Gate\'s twin: a walkers\' lane on each pavement and two vehicle bays');assert.equal(kinds('far-south-gate'),'','a shut gate has no lanes built or walkable');
+ // ... but its lanes are DEFINED, so opening it is one word (shut:false): the same lanes as the South Gate, in the same places
+ {const g=by['far-south-gate'],open=Q.lanesOfGate({...g,shut:false});assert.deepEqual(open.map(l=>l.kind).sort(),['bay','bay','foot','foot']);assert.deepEqual(open.map(l=>l.key),['far-south-gate:foot-w','far-south-gate:bay-s','far-south-gate:bay-n','far-south-gate:foot-e']);
+  for(const l of open)assert.ok(l.rect[0]>=g.rect[0]&&l.rect[1]<=g.rect[1]&&l.rect[2]>=g.rect[2]&&l.rect[3]<=g.rect[3],l.key+' lies in the gate');}
  for(const l of Q.LANES){const g=Q.gate(l.gate);assert.ok(l.rect[0]>=g.rect[0]-1e-9&&l.rect[1]<=g.rect[1]+1e-9&&l.rect[2]>=g.rect[2]-1e-9&&l.rect[3]<=g.rect[3]+1e-9,l.key+' lies in its gate');
   const c={x:l.mid[0],z:l.mid[1]};assert.equal(Q.laneAt(c).key,l.key);assert.ok(Q.atCentre(l,c));
   // the middle is clear of both doorways, and a cab (4.4 m) fits between a bay's doors
@@ -49,16 +55,17 @@ test('a quarter\'s build keeps its own street furniture and the buildings in sig
  assert.ok(Q.keepDetail(null,80,-12),'no quarter: everything, as before');
  assert.ok(Q.keepBuilding('avenue',80,-30));assert.ok(!Q.keepBuilding('avenue',80,-100));assert.ok(Q.keepBuilding('port',300,300),'the megacity is everyone\'s backdrop');assert.ok(!Q.keepBuilding('port',120,-40));
  // the District's own front and Milked belong to Old Town
- assert.ok(Q.keepDetail('oldtown',126.9,-91));assert.ok(Q.keepDetail('oldtown',88,-82));
+ assert.ok(Q.keepDetail('oldtown',126.9,-91));assert.ok(!Q.keepDetail('oldtown',88,-182),'Milked is not built in Old Town');assert.ok(Q.keepDetail('far-south',88,-182),'it is Far South\'s');assert.ok(!Q.keepDetail('far-south',126.9,-91),'and the District\'s front is not');
+ assert.ok(!Q.keepBuilding('oldtown',61,-200),'Far South\'s far end is not built for Old Town');assert.ok(Q.keepBuilding('far-south',61,-200));assert.ok(Q.keepBuilding('oldtown',61,-300)&&Q.keepBuilding('far-south',61,-300),'the far city beyond is everyone\'s backdrop');
 });
 test('taxis: seven kerbside stops, two places beyond the gates at 60 CR, and the gates a trip passes',()=>{
  assert.deepEqual(Q.STOPS.map(s=>s.id),['passage','main','milked','alley-mouth','avenue','function-gate','east-gate']);
  for(const s of Q.STOPS){assert.equal(Q.quarterAt(s.position[0],s.position[1]),s.quarter,s.id);assert.equal(E.blocked(s.position[0],s.position[1],N.layout('street',s.quarter)),false,s.id);}
  assert.deepEqual(N.taxiZones.map(z=>z.id),Q.STOPS.map(s=>s.id));
  assert.deepEqual(Q.FAR.map(f=>[f.id,f.fare,f.gate]),[['corporate',60,'function'],['temple',60,'east']]);
- assert.deepEqual(Q.gatesBetween('oldtown','oldtown'),[]);assert.deepEqual(Q.gatesBetween('port','avenue').map(h=>h.gate),['customs','north']);
+ assert.deepEqual(Q.gatesBetween('oldtown','oldtown'),[]);assert.deepEqual(Q.gatesBetween('oldtown','far-south').map(h=>h.gate),['south']);assert.deepEqual(Q.gatesBetween('far-south','avenue').map(h=>h.gate),['south','north']);assert.deepEqual(Q.gatesBetween('port','far-south').map(h=>h.gate),['customs','south']);assert.deepEqual(Q.gatesBetween('port','avenue').map(h=>h.gate),['customs','north']);
  assert.deepEqual(Q.gatesBetween('oldtown','corporate').map(h=>h.gate),['north','function']);assert.deepEqual(Q.gatesBetween('port','temple').map(h=>h.gate),['customs','north','east']);assert.equal(Q.gatesBetween('nowhere','port'),null);
- assert.equal(Q.bayFor('north','oldtown').key,'north:bay-n');assert.equal(Q.bayFor('north','avenue').key,'north:bay-s');assert.equal(Q.bayFor('customs','port').key,'customs:bay');
+ assert.equal(Q.bayFor('north','oldtown').key,'north:bay-n');assert.equal(Q.bayFor('north','avenue').key,'north:bay-s');assert.equal(Q.bayFor('customs','port').key,'customs:bay');assert.equal(Q.bayFor('south','oldtown').key,'south:bay-s','leaving Old Town south');assert.equal(Q.bayFor('south','far-south').key,'south:bay-n','leaving Far South north');
 });
 test('saves: the quarter is remembered in story.flags, the Port needs no flag, and sky-cab records in old saves are refunded once and dropped',()=>{
  const s={credits:100,story:{flags:{}}};assert.equal(Q.resumeQuarter(s),'port');Q.remember(s,'avenue');assert.equal(s.story.flags.quarter,'avenue');assert.equal(Q.resumeQuarter(s),'avenue');Q.remember(s,'port');assert.equal('quarter' in s.story.flags,false);

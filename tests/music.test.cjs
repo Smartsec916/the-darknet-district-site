@@ -61,7 +61,7 @@ test('bar music comes from in-world speakers and fades with distance',()=>{
 test('the area soundtrack: the street, the alley, Milked, the Corporate District and the temple each have their own music',()=>{
   assert.equal(D.zoneStyle(walk('earth',0,-40)),'neochinatown');
   assert.equal(D.zoneStyle(walk('earth',100,-58)),'alley','the alley behind the District');
-  assert.equal(D.zoneStyle(walk('earth',88,-82)),'milked','inside Milked (milked.js FOOTPRINT)');assert.equal(D.zoneStyle(walk('earth',88,-71)),'neochinatown','its side street is the city');assert.equal(D.zoneStyle(walk('earth',230,-10)),'neochinatown','nothing is left at the old site');
+  assert.equal(D.zoneStyle(walk('earth',88,-182)),'milked','inside Milked (milked.js FOOTPRINT; it moved to Far South on 16 Nov 2026)');assert.equal(D.zoneStyle(walk('earth',88,-171)),'neochinatown','its side street is the city');assert.equal(D.zoneStyle(walk('earth',88,-82)),'neochinatown','nothing of it is left at its old site');assert.equal(D.zoneStyle(walk('earth',230,-10)),'neochinatown','nothing is left at the old site');
   assert.equal(D.zoneStyle({...walk('earth',0,0),place:'corporate'}),'corporate');
   assert.equal(D.zoneStyle({...walk('earth',0,0),place:'temple'}),'temple');
   const d=D.create();settle(d,walk('earth',0,-40));D.step(d,walk('earth',100,-58),.5);assert.equal(d.style,'neochinatown','the alley mouth holds a moment, like a doorway');settle(d,walk('earth',100,-58),2);assert.equal(d.style,'alley');

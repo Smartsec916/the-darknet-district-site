@@ -33,19 +33,23 @@
  const lanes=[
   // Nobody leans on the club's front by its door (ncz-nightclub.js, local server only for now).
   {id:'main-west',a:[52.6,-121],b:[52.6,-22],wall:[-1,0],half:1,nightlife:true,weight:3,...(club?{noLean:[[-61,-55.6]]}:{})},
-  {id:'main-east',a:[69.4,-121],b:[69.4,-22],wall:[1,0],half:1,nightlife:true,weight:3,noLean:[[-62.5,-54.5],[-75,-67.5],[-94.5,-89]]},   /* the alley mouth, and the mouths of Milked's side street and service alley */
+  {id:'main-east',a:[69.4,-121],b:[69.4,-22],wall:[1,0],half:1,nightlife:true,weight:3,noLean:[[-62.5,-54.5]]},   /* the alley mouth (Milked's side street and service alley moved to Far South on 16 Nov 2026: main-far-east) */
   {id:'alley',a:[73,-59.3],b:[117,-59.3],wall:[0,1],half:.6,nightlife:true,weight:0,noLean:[[0,999]]}   /* weight 0: nobody walks the alley now (David, Nov 2026: four people there at most; ncz-alley.js has them) */,
   {id:'avenue-north',a:[6,-6.6],b:[148,-6.6],wall:[0,1],half:1,nightlife:false,weight:2},
   {id:'avenue-south',a:[6,-18.4],b:[148,-18.4],wall:[0,-1],half:1,nightlife:true,weight:2,noLean:[[49,73]]}];
  // Spots no one stops or leans at: doors, the taxi zones' kerbs, the static crew.
- const keepClear=[[126.9,-61.9,3],[61,-100,4],[40,-12.5,4],[61,-66,4],[61,-82,4],[52.6,-40,1.5],[69.4,-78,1.5],[52.6,-100,1.5],[34,-6.6,1.5],[98,-18.4,1.5]];
+ const keepClear=[[126.9,-61.9,3],[61,-100,4],[40,-12.5,4],[61,-66,4],[61,-182,4],[52.6,-40,1.5],[69.4,-78,1.5],[52.6,-100,1.5],[34,-6.6,1.5],[98,-18.4,1.5]];
  // The street's standing crew (neochinatown.js): walkers step round them.
  const standing=[[52.6,-40],[69.4,-78],[52.6,-100],[34,-6.6],[98,-18.4]];
+ // Far South's two pavements: Main Street goes on south of the South Gate. Their share of the crowd is Old Town's (weights are counted against the lanes above, so the other quarters' crowds did not change).
+ const farLanes=[
+  {id:'main-far-west',a:[52.6,-131.6],b:[52.6,-216.4],wall:[-1,0],half:1,nightlife:true,weight:3},
+  {id:'main-far-east',a:[69.4,-131.6],b:[69.4,-216.4],wall:[1,0],half:1,nightlife:true,weight:3,noLean:[[-175,-167.5],[-194.5,-189]]}];   /* the mouths of Milked's side street and service alley */
  const remarks=['Whoa. The pavement\'s moving again.','Have you seen my taxi? It was right… somewhere.','Love this city. Love it. Hate it. Love it.','One more noodle bar. Then home. Probably.','Is it Tuesday? Feels like a Tuesday.','I\'m fine. I\'m great. I\'m sitting down.'];
  // The lanes of one quarter (ncz-quarters.js): Main Street's stop short of the North Gate, the avenue's run between its two gates, the Port has none.
  // `share` is that quarter's part of the whole city's crowd, so the same number of people are spread over the three quarters as walked the one city.
- const CLIP={oldtown:{'main-west':[[52.6,-121],[52.6,-27.6]],'main-east':[[69.4,-121],[69.4,-27.6]],alley:null},avenue:{'avenue-north':[[12.5,-6.6],[141.5,-6.6]],'avenue-south':[[12.5,-17.7],[141.5,-17.7]]},port:{}};
- function lanesFor(quarter){const c=CLIP[quarter];if(!c)return lanes;return lanes.filter(l=>l.id in c).map(l=>c[l.id]?{...l,a:c[l.id][0],b:c[l.id][1],...(l.id==='avenue-south'?{half:.6}:{})}:l);}   /* the avenue's south pavement keeps clear of the North Gate's doors and guards */
+ const CLIP={oldtown:{'main-west':[[52.6,-122.4],[52.6,-27.6]],'main-east':[[69.4,-122.4],[69.4,-27.6]],alley:null},'far-south':{'main-far-west':null,'main-far-east':null},avenue:{'avenue-north':[[12.5,-6.6],[141.5,-6.6]],'avenue-south':[[12.5,-17.7],[141.5,-17.7]]},port:{}};
+ function lanesFor(quarter){const c=CLIP[quarter];if(!c)return lanes;return [...lanes,...farLanes].filter(l=>l.id in c).map(l=>c[l.id]?{...l,a:c[l.id][0],b:c[l.id][1],...(l.id==='avenue-south'?{half:.6}:{})}:l);}   /* the avenue's south pavement keeps clear of the North Gate's doors and guards */
  const weightOf=ls=>ls.reduce((s,l)=>s+l.weight,0),share=quarter=>CLIP[quarter]?weightOf(lanesFor(quarter))/weightOf(lanes):1;
  const len=l=>Math.hypot(l.b[0]-l.a[0],l.b[1]-l.a[1]);
  // A point along a lane at distance t, pushed sideways by `side` metres (positive = toward the wall).
@@ -159,6 +163,6 @@
   function sideOf(l,o){const p=[o.node.position.x,o.node.position.z],L=len(l),ux=(l.b[0]-l.a[0])/L,uz=(l.b[1]-l.a[1])/L,t=along(l,p),bx=l.a[0]+ux*t,bz=l.a[1]+uz*t;return (p[0]-bx)*l.wall[0]+(p[1]-bz)*l.wall[1];}
   function dispose(){disposed=true;for(const p of people)p.node?.dispose(false,false);people.length=0;}
   return {tick,dispose,people,stats,config:cfg};}
- const api={config,lanes,lanesFor,share,keepClear,standing,remarks,plan,at,canLean,start,createBudget};
+ const api={config,lanes,farLanes,lanesFor,share,keepClear,standing,remarks,plan,at,canLean,start,createBudget};
  if(typeof module!=='undefined')module.exports=api;else root.VoidNightlife=api;
 })(globalThis);

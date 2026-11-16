@@ -115,6 +115,7 @@
   {quarter:'avenue',rect:[-6,36,-30,6],zone:'corporate',why:'the Function Gate end: the Corporate District is next door'},
   {quarter:'avenue',zone:'avenue'},
   {quarter:'oldtown',zone:'oldtown'},
+  {quarter:'far-south',zone:'oldtown'},
   {quarter:'port',zone:'port'}
  ];
  /* Places with their own scene. null = no advertisement screens at all. 'silent' = whatever screens the place already has stay as they are, and nothing speaks.

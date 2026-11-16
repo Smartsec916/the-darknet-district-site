@@ -64,7 +64,15 @@ test('a checkpoint inside a quarter scans and opens its far door; nothing is exc
  }finally{Q.GATES.splice(before);for(let i=Q.LANES.length-1;i>=0;i--)if(Q.LANES[i].gate==='test-in')Q.LANES.splice(i,1);const gs=Q.QUARTERS.oldtown.gates;gs.splice(gs.indexOf('test-in'),1);}
 });
 test('an entry to the street lands in the quarter asked for, else where its spawn stands, else where the save was, else the Port',()=>{
- const s={story:{flags:{}}};assert.equal(T.resolve(Q,{},s),'port');assert.equal(T.resolve(Q,undefined,s),'port');assert.equal(T.resolve(Q,{spawn:[126.9,1.7,-59.3]},s),'oldtown','leaving the District');assert.equal(T.resolve(Q,{spawn:[81.75,1.7,-73]},s),'oldtown','leaving Milked');
+ const s={story:{flags:{}}};assert.equal(T.resolve(Q,{},s),'port');assert.equal(T.resolve(Q,undefined,s),'port');assert.equal(T.resolve(Q,{spawn:[126.9,1.7,-59.3]},s),'oldtown','leaving the District');assert.equal(T.resolve(Q,{spawn:[81.75,1.7,-173]},s),'far-south','leaving Milked (its front door is in Far South now)');assert.equal(T.resolve(Q,{spawn:[81.75,1.7,-73]},s),'far-south','a position from before Milked moved goes with it');
+ // settle(): where a player placed at a position from before the move, or on a street that is gone, really appears
+ {const St=Q.settle;assert.deepEqual(St([81.75,1.7,-71],'oldtown'),{quarter:'far-south',spawn:[81.75,1.7,-171],moved:true},'the old side street: 100 m south with the building');
+  const inside=St([84,1.7,-78],'oldtown');assert.equal(inside.quarter,'far-south');assert.deepEqual(inside.spawn,[81.75,1.7,-172.6],'a player who was INSIDE Milked is put outside its front door, on the side street');
+  assert.deepEqual(St([61,1.7,-60],'oldtown'),{quarter:'oldtown',spawn:[61,1.7,-60],moved:false},'a point in a street is left alone');
+  const gone=St([90,1.7,-91],'oldtown');assert.equal(gone.quarter,'far-south','the old service alley follows Milked too');
+  const off=St([-90,1.7,-12.5],'oldtown');assert.equal(off.quarter,'oldtown');assert.equal(Q.quarterAt(off.spawn[0],off.spawn[2]),'oldtown','a point on a retired street goes to the nearest street of the saved quarter');
+  const lost=St([200,1.7,-100],'oldtown');assert.equal(Q.quarterAt(lost.spawn[0],lost.spawn[2]),'oldtown','a point in solid block is brought to the nearest open ground');
+  assert.equal(St(null,'oldtown'),null);}
  assert.equal(T.resolve(Q,{spawn:[40,1.7,-12.5]},s),'avenue');assert.equal(T.resolve(Q,{quarter:'avenue',spawn:[31,1.7,-96]},s),'avenue');s.story.flags.quarter='oldtown';assert.equal(T.resolve(Q,{},s),'oldtown');assert.equal(T.resolve(Q,{spawn:[-90,1.7,-12.5]},s),'oldtown','a point on a retired street falls back to the saved quarter');
 });
 test('nothing on screen speaks of loading: no words, no bar; the scan is a picture only',()=>{
@@ -73,7 +81,7 @@ test('nothing on screen speaks of loading: no words, no bar; the scan is a pictu
  for(const f of [src,gsrc])assert.doesNotMatch(f.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm,''),/contraband|bribe|confiscat/i,'no contraband rule is built');
  // signs: plain functional words only
  const words=[...gsrc.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm,'').matchAll(/'([A-Z][A-Z ]{2,})'/g)].map(m=>m[1]);assert.deepEqual([...new Set(words)].sort(),['CHECKPOINT','CLOSED','PEDESTRIANS','SCAN','TAXI','VEHICLES']);
- assert.deepEqual(Q.GATES.map(g=>g.sign),['CUSTOMS','NORTH GATE','FUNCTION GATE','EAST GATE','SOUTH GATE']);
+ assert.deepEqual(Q.GATES.map(g=>g.sign),['CUSTOMS','NORTH GATE','FUNCTION GATE','EAST GATE','SOUTH GATE','FAR SOUTH GATE']);
  // the Function Gate's guards are the existing silent robots, and no guard has a line
  assert.match(gsrc,/VoidCorporateActors/);assert.doesNotMatch(gsrc,/announce\(|speak\(|say\(/);
 });

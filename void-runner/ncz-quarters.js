@@ -1,10 +1,11 @@
-/* NeoChinatown's three quarters and the checkpoints between them (David's map A, 16 Nov 2026; docs/development/NEOCHINATOWN_QUARTERS.md).
+/* NeoChinatown's four quarters and the checkpoints between them (David's map A, 16 Nov 2026; Far South added the same day, docs/development/NEOCHINATOWN_QUARTERS.md).
    PURE RULES: no rendering, no clock, no network. Runs in the browser and in Node (tests/ncz-quarters.test.cjs).
 
-   The outdoor city is one coordinate space (world metres, x east, z north) cut into three quarters. Only one is built at a time:
-     port     The Port      the landing pad and the north part of the passage
-     oldtown  Old Town      Main Street, the alley, NULL, Milked's two streets, the District's door, the access road
-     avenue   The Avenue    the wide road across the top, between the Function Gate and the East Gate
+   The outdoor city is one coordinate space (world metres, x east, z north) cut into four quarters. Only one is built at a time:
+     port       The Port       the landing pad and the north part of the passage
+     oldtown    Old Town       Main Street, the alley, NULL, the District's door, the access road
+     avenue     The Avenue     the wide road across the top, between the Function Gate and the East Gate
+     far-south  Far South      Main Street's second stretch, south of the South Gate: Milked, its side street and its service alley (David, 16 Nov 2026)
    A checkpoint (a "gate") is a small building standing in the street. It is built in BOTH quarters it joins, in the same place, so the player stands in the
    same room before and after the exchange (the way the District's vestibule and Milked's work). Each lane of a gate is a room with a door at each end; in any
    one quarter only the door on that quarter's side can open, so the two doors are never open together.
@@ -12,7 +13,8 @@
      A2 north     North Gate      Old Town <-> The Avenue      walkers and taxis   private guards
      A3 function  Function Gate   The Avenue <-> the Corporate District (its own scene)   walkers and taxis   The Function (silent stand-in robots)
      A4 east      East Gate       The Avenue <-> the Zen Zephyr Temple (its own scene)    walkers and taxis   private guards   (walkers' lane added 16 Nov 2026)
-     A5 south     South Gate      shut (the Container Settlement is not built)
+     A5 south     South Gate      Old Town <-> Far South       walkers and taxis   private guards   (opened 16 Nov 2026; it was shut)
+     A6 far-south-gate  Far South Gate   the south end of Far South   SHUT: nothing is built beyond it yet. A full checkpoint, closed: set `shut:false` to open it
    NOT DECIDED, so not here: contraband, what happens when caught, bribes, shielding. The scan is a picture only and always lets the player through.
    Saves: nothing new is required. story.flags.quarter ('oldtown' | 'avenue'; absent = the Port) says which quarter an outdoor player was last in. */
 (function(root){
@@ -20,7 +22,7 @@
  const node=typeof module!=='undefined'&&module.exports;
  const MK=node?require('./milked.js'):root.VoidMilked,NC=node?require('./ncz-nightclub.js'):root.VoidNightclub;
  // Streets as neochinatown.js has them (tests check these against it).
- const S={avenue:[2,152,-20,-5],main:[51,71,-124,-20],alley:[71,136,-61.6,-55.5],road:[13,51,-121,-116],passage:[37.5,44,-116,-92],pad:[13,37.5,-106,-86]};
+ const S={avenue:[2,152,-20,-5],main:[51,71,-124,-20],alley:[71,136,-61.6,-55.5],road:[13,51,-121,-116],passage:[37.5,44,-116,-92],pad:[13,37.5,-106,-86],southGate:[51,71,-130,-124],farSouth:[51,71,-224,-130]};
  const DISTRICT=[109.4,144.4,-120.4,-61.6],TERRACE=[78.4,99.4,-116.4,-95.4];
  const WALL_H=7.2,DOOR_T=.3;
  /* A gate. rect: the ground it stands on. axis: the direction of travel ('z': north-south, 'x': east-west). ends.lo / ends.hi: what lies beyond the end with
@@ -34,14 +36,22 @@
    lanes:[{id:'foot',kind:'foot',v:[-19.7,-16.7]},{id:'bay',kind:'bay',v:[-11.2,-7.4]}]},
   {id:'east',code:'A4',name:'East Gate',sign:'EAST GATE',guard:'private',rect:[144,152,-20,-5],axis:'x',ends:{lo:{quarter:'avenue'},hi:{scene:'temple'}},
    lanes:[{id:'bay',kind:'bay',v:[-17.6,-13.8]},{id:'foot',kind:'foot',v:[-8.3,-5.3]}]},
-  {id:'south',code:'A5',name:'South Gate',sign:'SOUTH GATE',guard:null,shut:true,rect:[51,71,-124,-122.4],axis:'z',ends:{lo:{},hi:{quarter:'oldtown'}},lanes:[]}];
+  // A5 opened on 16 Nov 2026 (it was a shut wall at z -124..-122.4): Main Street goes on south into Far South. Built like the North Gate, without the bridge.
+  {id:'south',code:'A5',name:'South Gate',sign:'SOUTH GATE',guard:'private',rect:[51,71,-130,-124],axis:'z',ends:{lo:{quarter:'far-south'},hi:{quarter:'oldtown'}},
+   lanes:[{id:'foot-w',kind:'foot',v:[51.3,54.3]},{id:'bay-s',kind:'bay',v:[57,60.6],heading:'lo'},{id:'bay-n',kind:'bay',v:[61.4,65],heading:'hi'},{id:'foot-e',kind:'foot',v:[67.7,70.7]}]},
+  // A6: the far (south) end of Far South. SHUT for now (David, 16 Nov 2026: "Add another security checkpoint past that"; nothing exists beyond it). It is a whole checkpoint with its lanes
+  // defined, so opening it is one word: change `shut:true` to `shut:false` and give `ends.lo` the place beyond. A shut gate is one wall with closed shutters and red lamps and no lanes.
+  {id:'far-south-gate',code:'A6',name:'Far South Gate',sign:'FAR SOUTH GATE',guard:'private',shut:true,height:13.5,rect:[51,71,-224,-218],axis:'z',ends:{lo:{},hi:{quarter:'far-south'}},
+   lanes:[{id:'foot-w',kind:'foot',v:[51.3,54.3]},{id:'bay-s',kind:'bay',v:[57,60.6],heading:'lo'},{id:'bay-n',kind:'bay',v:[61.4,65],heading:'hi'},{id:'foot-e',kind:'foot',v:[67.7,70.7]}]}];
  const gate=id=>GATES.find(g=>g.id===id)||null;
  const gateRect=id=>gate(id).rect;
  const QUARTERS={
   port:{id:'port',name:'The Port',spawn:[31,1.7,-96],yaw:2.44,streets:[S.pad,[37.5,44,-107,-92]],gates:['customs']},
   oldtown:{id:'oldtown',name:'Old Town',spawn:[126.9,1.7,-59.3],yaw:-Math.PI/2,
-   streets:[[51,71,-122.4,-26],S.alley,S.road,[37.5,44,-116,-113],MK.LANE,MK.ALLEY,...(NC?[NC.RECT]:[])],places:[DISTRICT,TERRACE,MK.FOOTPRINT],gates:['customs','north','south']},
-  avenue:{id:'avenue',name:'The Avenue',spawn:[69.2,1.7,-16.6],yaw:0,streets:[[10,144,-20,-5]],gates:['north','function','east']}};
+   streets:[[51,71,-124,-26],S.alley,S.road,[37.5,44,-116,-113],...(NC?[NC.RECT]:[])],places:[DISTRICT,TERRACE],gates:['customs','north','south']},
+  avenue:{id:'avenue',name:'The Avenue',spawn:[69.2,1.7,-16.6],yaw:0,streets:[[10,144,-20,-5]],gates:['north','function','east']},
+  // Far South (David, 16 Nov 2026): Main Street's second stretch. Milked, its side street and its service alley moved here, whole (milked.js OFFSET).
+  'far-south':{id:'far-south',name:'Far South',spawn:[61,1.7,-140],yaw:Math.PI,streets:[[51,71,-218,-130],MK.LANE,MK.ALLEY],places:[MK.FOOTPRINT],gates:['south','far-south-gate']}};
  const IDS=Object.keys(QUARTERS),DEFAULT='port';
  const valid=q=>IDS.includes(q)?q:null;
  const inRect=([x0,x1,z0,z1],x,z,m=0)=>x>=x0-m&&x<=x1+m&&z>=z0-m&&z<=z1+m;
@@ -62,7 +72,7 @@
  /* What a quarter's build keeps (neochinatown.js asks for every piece it is about to make).
     detail: street furniture, signs, lamps, cables, kiosks: only what stands in the quarter or on its walls.
     building: the city blocks: those within sight of the quarter (45 m), and everything outside the old neighbourhood (the outer ring and the megacity, the shared backdrop). */
- const CORE=[-6,160,-130,2],DETAIL_MARGIN=2.6,BUILDING_MARGIN=45;
+ const CORE=[-6,160,-232,2],DETAIL_MARGIN=2.6,BUILDING_MARGIN=45;
  const keepDetail=(q,x,z)=>!REGION[q]||inQuarter(q,x,z,DETAIL_MARGIN);
  const keepBuilding=(q,x,z)=>!REGION[q]||!inRect(CORE,x,z)||distanceTo(q,x,z)<=BUILDING_MARGIN;
 
@@ -75,7 +85,8 @@
  const INSET=.35;   // how far inside the gate's end a door stands
  /* The lanes of a gate as rooms. Each: {gate, id, kind, key, rect [x0,x1,z0,z1], zone (the floor between the doors), centre (where a walker, or a cab's middle,
     must be for the doors to seal), doors:{lo,hi} each {id, x, z, half, height, axis ('x': the leaves slide along x)}, mid [x,z]}. */
- function lanes(g){const s=span(g),mid=(s.u0+s.u1)/2;
+ function lanes(g){if(g.shut)return [];   // a shut gate is one wall: its lanes are defined (so that opening it is one word) but nothing of them is built or walkable
+  const s=span(g),mid=(s.u0+s.u1)/2;
   return g.lanes.map(l=>{const [v0,v1]=l.v,vc=(v0+v1)/2,foot=l.kind==='foot',half=foot?Math.min(1.05,(v1-v0)/2-.25):(v1-v0)/2-.15,height=foot?2.6:3.3,
     door=(end,u)=>{const [x,z]=world(g,u,vc);return {id:doorId(g,l,end),end,x,z,half,height,axis:g.axis==='z'?'x':'z',kind:l.kind};},
     r=boxUV(g,s.u0,s.u1,v0,v1),zn=boxUV(g,s.u0+INSET+.25,s.u1-INSET-.25,v0+.1,v1-.1),reach=foot?1.25:.7,c=boxUV(g,mid-reach,mid+reach,v0+.25,v1-.25),[mx,mz]=world(g,mid,vc);
@@ -125,7 +136,7 @@
  const STOPS=[
   {id:'passage',name:'The Port',quarter:'port',position:[42.35,-99],heading:0,post:[43.55,-99,-Math.PI/2]},
   {id:'main',name:'Main Street',quarter:'oldtown',position:[61,-100],heading:0,post:[68.3,-100,-Math.PI/2]},
-  {id:'milked',name:'Milked corner',quarter:'oldtown',position:[61,-82],heading:0,post:[68.3,-82,-Math.PI/2]},
+  {id:'milked',name:'Milked corner',quarter:'far-south',position:[61,-182],heading:0,post:[68.3,-182,-Math.PI/2]},   // moved with Milked, 100 m south (it was at z -82 in Old Town)
   {id:'alley-mouth',name:'NULL / the alley',quarter:'oldtown',position:[61,-66],heading:0,post:[68.3,-66,-Math.PI/2]},
   {id:'avenue',name:'The Avenue',quarter:'avenue',position:[40,-12.5],heading:Math.PI/2,post:[40,-7.7,0]},
   {id:'function-gate',name:'Function Gate',quarter:'avenue',position:[20,-12.5],heading:Math.PI/2,post:[20,-7.7,0]},
@@ -143,7 +154,7 @@
  const REMOVED_STOPS=['corporate','containers'];   // sky-cab landing zones that no longer exist (a saved map waypoint on one is cleared)
  const stop=id=>STOPS.find(s=>s.id===id)||null,far=id=>FAR.find(f=>f.id===id)||null;
  // The gates a trip passes, in order: from a quarter to another quarter or to a far place. [] when it stays in one quarter; null when there is no way.
- const LINKS={port:[['customs','oldtown']],oldtown:[['customs','port'],['north','avenue']],avenue:[['north','oldtown']]};
+ const LINKS={port:[['customs','oldtown']],oldtown:[['customs','port'],['north','avenue'],['south','far-south']],avenue:[['north','oldtown']],'far-south':[['south','oldtown']]};
  function gatesBetween(from,to){if(!valid(from))return null;const f=far(to);const goal=f?f.from:to;if(!valid(goal))return null;
   const seen=new Set([from]),queue=[[from,[]]];let path=null;
   while(queue.length){const [q,p]=queue.shift();if(q===goal){path=p;break;}for(const [g,n] of LINKS[q]||[])if(!seen.has(n)){seen.add(n);queue.push([n,[...p,{gate:g,from:q,to:n}]]);}}
@@ -156,6 +167,18 @@
  // The quarter an outdoor player resumes in: the saved one, or the Port (where the street has always put a player with no position).
  const resumeQuarter=s=>valid(s?.story?.flags?.[FLAG])||DEFAULT;
  function remember(s,q){const f=s?.story?.flags;if(!f)return;if(valid(q)&&q!==DEFAULT)f[FLAG]=q;else delete f[FLAG];}
+ /* Where a player appears when a save, a link or a script places them at `spawn` ([x, y, z]) and the point may be from BEFORE Milked moved (16 Nov 2026), or on a street that
+    no longer exists. A point that is inside a quarter stays as it is. Otherwise:
+      - a point in Milked's old block (its footprint, its side street, its service alley: milked.js fromOld) goes with Milked, by its OFFSET, into Far South; one that falls inside the
+        building (a player who was INSIDE Milked) is put outside its front door, on the side street, so nobody is placed inside a wall;
+      - any other point is moved to the nearest open street of `saved` (the quarter the save remembers, else the Port), a metre in from the edge.
+    Returns {quarter, spawn, moved}. No save stores a street position today (every login wakes in the Sleeping Pod), so this guards anything that ever hands one over. */
+ function settle(spawn,saved){if(!spawn||spawn.length<3)return null;const [x,y,z]=spawn;let q=quarterAt(x,z);if(q)return {quarter:q,spawn:spawn.slice(),moved:false};
+  const m=MK&&MK.fromOld?MK.fromOld(x,z):null;
+  if(m){let [nx,nz]=m;if(MK.inside({x:nx,z:nz})){nx=MK.DOOR.x;nz=MK.DOOR.z+1.4;}return {quarter:'far-south',spawn:[nx,y,nz],moved:true};}
+  const home=valid(saved)||DEFAULT;let best=null;
+  for(const r of QUARTERS[home].streets){const px=Math.max(r[0]+1,Math.min(r[1]-1,x)),pz=Math.max(r[2]+1,Math.min(r[3]-1,z)),d=Math.hypot(px-x,pz-z);if(!best||d<best.d)best={d,p:[px,pz]};}
+  return best?{quarter:home,spawn:[best.p[0],y,best.p[1]],moved:true}:{quarter:home,spawn:QUARTERS[home].spawn.slice(),moved:true};}
  /* Old saves: the sky cabs are gone. A fare recorded for a flight in progress comes back once; the records are dropped; a map waypoint on a removed
     landing zone is cleared. Returns the credits refunded. */
  function migrateSave(s){const f=s?.story?.flags;if(!f)return 0;let back=0;
@@ -165,7 +188,7 @@
   if(f[FLAG]!==undefined&&!valid(f[FLAG]))delete f[FLAG];
   if(back&&typeof s.credits==='number')s.credits+=back;return back;}
 
- const api={S,QUARTERS,IDS,DEFAULT,GATES,LANES,STOPS,CALL_POINTS,CALL_LABEL,callPrompts,FAR,FAR_FARE,REMOVED_STOPS,FLAG,WALL_H,DOOR_T,valid,gate,lane,lanesOf,gatesOf,region,inQuarter,distanceTo,quarterAt,keepDetail,keepBuilding,
+ const api={S,lanesOfGate:lanes,settle,QUARTERS,IDS,DEFAULT,GATES,LANES,STOPS,CALL_POINTS,CALL_LABEL,callPrompts,FAR,FAR_FARE,REMOVED_STOPS,FLAG,WALL_H,DOOR_T,valid,gate,lane,lanesOf,gatesOf,region,inQuarter,distanceTo,quarterAt,keepDetail,keepBuilding,
   span,world,endOf,sidesOf,internal,define,other,beyond,laneAt,atCentre,openable,footArrival,bayPoint,bayFor,yawInto,solids,stop,far,gatesBetween,resumeQuarter,remember,migrateSave};
  if(node)module.exports=api;else root.VoidQuarters=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

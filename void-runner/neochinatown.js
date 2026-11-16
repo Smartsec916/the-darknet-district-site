@@ -23,14 +23,16 @@
   const streets={avenue:[2,152,-20,-5],main:[51,71,-124,-20],alley:[71,136,-61.6,-55.5],road:[13,51,-121,-116],passage:[37.5,44,-116,-92],pad:[13,37.5,-106,-86],
     // City expansion (David's brief, 2026-10-27): walkable streets out to three future districts. The neighbourhood above is
     // unchanged; only the avenue's closed ends and the main street's south end now open onto these.
-    avenueWest:[-60,2,-20,-5],corporate:[-120,-60,-40,15],avenueEast:[152,200,-20,-5],mainSouth:[56,66,-190,-124],containers:[30,100,-250,-190],
+    avenueWest:[-60,2,-20,-5],corporate:[-120,-60,-40,15],avenueEast:[152,200,-20,-5],
+    // Far South (David, 16 Nov 2026): Main Street goes on south through the South Gate (A5, z -130..-124) into a second stretch, to the Far South Gate (A6, z -224..-218, shut for now).
+    // This replaces the narrow retired "Main Street South" and "Container Settlement" placeholders that stood here.
+    southGate:[51,71,-130,-124],farSouth:[51,71,-224,-130],
     // Milked (David's brief, 2026-11-16): a quiet dead-end side street off Main Street's east side and the service alley behind the building (milked.js).
     milkedLane:MK.LANE,milkedAlley:MK.ALLEY};
   // Future districts: placeholders until David supplies their designs. Each streams its own detail as you approach.
   const districts=[
     {id:'corporate',name:'Corporate District',lines:['CORPORATE DISTRICT','FUNCTION GATE'],rect:streets.corporate,center:[-90,-12.5],taxi:[-90,-12.5],heading:Math.PI/2,placeholder:false,built:true,scene:'corporate',retired:true},
-    {id:'milked',name:'Milked',lines:['MILKED','LIVE BROADCAST STUDIOS'],rect:MK.BOUNDS.rect,center:[(MK.FOOTPRINT[0]+MK.FOOTPRINT[1])/2,(MK.FOOTPRINT[2]+MK.FOOTPRINT[3])/2],taxi:MK.TAXI.position,heading:MK.TAXI.heading,placeholder:false,built:true},
-    {id:'containers',name:'Container Settlement',lines:['CONTAINER SETTLEMENT','PLACEHOLDER'],rect:streets.containers,center:[65,-220],taxi:[65,-215],heading:0,placeholder:true,retired:true}];   // retired: behind a shut gate since the quarters (2026-11-16); nothing of theirs is built on the street
+    {id:'milked',name:'Milked',lines:['MILKED','LIVE BROADCAST STUDIOS'],rect:MK.BOUNDS.rect,center:[(MK.FOOTPRINT[0]+MK.FOOTPRINT[1])/2,(MK.FOOTPRINT[2]+MK.FOOTPRINT[3])/2],taxi:MK.TAXI.position,heading:MK.TAXI.heading,placeholder:false,built:true}];   // (the Container Settlement placeholder is gone: Far South stands where it was)
   // Taxi landing zones: open street wide enough for the cab, clear of doors, the ship and the sidewalk crowd.
   // Since the quarters (2026-11-16) these are the road taxis' kerbside stops (ncz-quarters.js STOPS); the sky cabs and their landing zones are gone.
   // LEGACY_ZONES: where the old zones were. Only the overhead-cable layout still reads it, so the cables hang where they always did.
@@ -151,7 +153,7 @@
   const ads=()=>(root.VoidAds?.brands||[]).map(b=>b.id);
   function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance,area='all',quarter=null}){
     // QK: the one quarter this street build makes (null: the whole city, as before the quarters). `free` lifts the test for pieces placed by a parent.
-    const QK=area==='street'?QT.valid(quarter):null;let free=false;const inCore=(x,z)=>x>=-6&&x<=160&&z>=-130&&z<=2,roofPiece=/^(water-tank|dish|old-building)$/;   // pieces kept as far as a BUILDING is kept (45 m), not as street detail (2.6 m). 'old-building' is the body of every plot that faces a street: it was missing from this list, so in every quarter those bodies were thrown away and only their roofs, windows and shopfront strips were left standing (David, 16 Nov 2026: "Much of NeoChinaTown has gaps in the buildings")
+    const QK=area==='street'?QT.valid(quarter):null;let free=false;const inCore=(x,z)=>x>=-6&&x<=160&&z>=-232&&z<=2,roofPiece=/^(water-tank|dish|old-building)$/;   // pieces kept as far as a BUILDING is kept (45 m), not as street detail (2.6 m). 'old-building' is the body of every plot that faces a street: it was missing from this list, so in every quarter those bodies were thrown away and only their roofs, windows and shopfront strips were left standing (David, 16 Nov 2026: "Much of NeoChinaTown has gaps in the buildings")
     const dropped=(name,p)=>!!QK&&!free&&target===parent&&inCore(p[0],p[2])&&!(roofPiece.test(name)?QT.keepBuilding(QK,p[0],p[2]):QT.keepDetail(QK,p[0],p[2]));
     const B=root.BABYLON,low=quality==='low',owned=[],districtRoot=new root.BABYLON.TransformNode('district-root',scene);let target=parent,disposed=false;districtRoot.parent=parent;districtRoot.position.set(DOOR.x,0,DOOR.z+20);districtRoot.rotation.y=Math.PI;const textures=[],staticMeshes=new Map(),dynamic=[],v=(x,y,z)=>new B.Vector3(x,y,z);
     // A previous build's handles (club, streaming city, booths) belong to a released environment; clear them so nothing reads them.
@@ -241,10 +243,12 @@
     // Street edges, outward normal pointing into the buildings, with gaps where another street joins.
     const edges=[
      {street:'avenue',a:[2,-5],b:[152,-5],n:[0,1],gaps:[]},{street:'avenue',a:[2,-20],b:[152,-20],n:[0,-1],gaps:[[51,71]]},
-     {street:'main',a:[51,-124],b:[51,-20],n:[-1,0],gaps:[[-121,-116]]},{street:'main',a:[71,-124],b:[71,-20],n:[1,0],gaps:[[-61.6,-55.5],[MK.LANE[2],MK.LANE[3]],[MK.ALLEY[2],MK.ALLEY[3]]]},
+     {street:'main',a:[51,-124],b:[51,-20],n:[-1,0],gaps:[[-121,-116]]},{street:'main',a:[71,-124],b:[71,-20],n:[1,0],gaps:[[-61.6,-55.5]]},   // (Milked's two side streets left this edge on 16 Nov 2026: its frontage is closed all the way along)
      {street:'road',a:[13,-116],b:[51,-116],n:[0,1],gaps:[[37.5,44]]},{street:'road',a:[13,-121],b:[51,-121],n:[0,-1],gaps:[]},
      {street:'passage',a:[37.5,-116],b:[37.5,-106],n:[-1,0],gaps:[]},{street:'passage',a:[44,-116],b:[44,-92],n:[1,0],gaps:[]},
-     {street:'pad',a:[13,-106],b:[13,-86],n:[-1,0],gaps:[]},{street:'pad',a:[13,-86],b:[37.5,-86],n:[0,1],gaps:[]},{street:'pad',a:[37.5,-92],b:[37.5,-86],n:[1,0],gaps:[]},{street:'pad',a:[13,-106],b:[37.5,-106],n:[0,-1],gaps:[]}];
+     {street:'pad',a:[13,-106],b:[13,-86],n:[-1,0],gaps:[]},{street:'pad',a:[13,-86],b:[37.5,-86],n:[0,1],gaps:[]},{street:'pad',a:[37.5,-92],b:[37.5,-86],n:[1,0],gaps:[]},{street:'pad',a:[13,-106],b:[37.5,-106],n:[0,-1],gaps:[]},
+     // Far South: Main Street's second stretch, between the two gates (the last entries, so nothing above changes its place in the sequence of random numbers). Milked's side street and service alley open on its east side.
+     {street:'main',a:[51,-218],b:[51,-130],n:[-1,0],gaps:[]},{street:'main',a:[71,-218],b:[71,-130],n:[1,0],gaps:[[MK.LANE[2],MK.LANE[3]],[MK.ALLEY[2],MK.ALLEY[3]]]}];
     // A plane faces -z; turn it to face back into the street (away from its wall).
     const faceInto=n=>n[1]>0?0:n[1]<0?Math.PI:n[0]>0?Math.PI/2:-Math.PI/2;
     const along=(e,t)=>[e.a[0]+(e.b[0]-e.a[0])*t,e.a[1]+(e.b[1]-e.a[1])*t];
@@ -310,6 +314,7 @@
     adScreens?.extras();
     for(const [x0,x1,z] of [[2,152,-12.5]])for(let x=x0+4;x<x1-2;x+=6)box('lane-mark',[2.6,.02,.18],[x,.02,z],glowMat('lane','#d7c06a',.55));
     for(let z=-120;z<-22;z+=6)box('lane-mark',[.18,.02,2.6],[61,.02,z],glowMat('lane','#d7c06a',.55));
+    for(let z=-136;z>-216;z-=6)box('lane-mark',[.18,.02,2.6],[61,.02,z],glowMat('lane','#d7c06a',.55));
     // The avenue runs on into the wider city: its ends open onto the expansion streets (streets.avenueWest / avenueEast).
     // Landing pad: the Kestrel, pad lights, a low wall and the landing terminal.
     box('landing-pad',[18,.12,16],[24,.06,-96],mat('pad','#26262c',{rough:.6,metal:.4}));
@@ -445,7 +450,7 @@
     // The people who stay in the alley by the District (ncz-alley.js): talking, smoking, sitting, watching the door.
     const alleyLife=root.VoidAlley&&modelInstance&&(!QK||QK==='oldtown')?root.VoidAlley.start({scene,parent,quality,instance:modelInstance}):null;
     // Two street lights (the District's own lights are added with its rooms).
-    const streetLights=[];if(!low)for(const [p,c,i,r] of [[[61,7,-40],'#ff5bd0',.9,34],[[61,7,-12],'#38e8ff',.8,30]]){if(QK&&!QT.inQuarter(QK,p[0],p[2]))continue;const l=new B.PointLight('ncz-street-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=parent;streetLights.push(l);owned.push(l);}
+    const streetLights=[];if(!low)for(const [p,c,i,r] of [[[61,7,-40],'#ff5bd0',.9,34],[[61,7,-12],'#38e8ff',.8,30],[[61,7,-150],'#ff5bd0',.9,34],[[61,7,-196],'#38e8ff',.8,30]]){if(QK&&!QT.inQuarter(QK,p[0],p[2]))continue;const l=new B.PointLight('ncz-street-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=parent;streetLights.push(l);owned.push(l);}
 
     // ---- Alley: old dark brick, counterculture graffiti, pipes and vents ----
     // Old, dirty red brick (ambientCG Bricks097, CC0), darkened toward charcoal by its material.
@@ -1303,7 +1308,9 @@
      // Shop-sign spill: each storefront neon lights its patch of wall and the sidewalk under it.
      for(const {c,f} of signSpots){wallWash(c,f,0,5.2,5,6.5,.4);const g=onFace(f,0,0,1.6);floorWash(c,g[0],g[2],f.tx?4:2.8,f.tx?2.8:4,.2,.3);}
      // The street faces (outward normal into the street) of the avenue and the main street, with the gaps where streets join.
-     const fronts=[[{x:2,z:-20.12,tx:1,tz:0,len:150,nx:0,nz:1},[[51,71]]],[{x:2,z:-4.88,tx:1,tz:0,len:150,nx:0,nz:-1},[]],[{x:50.88,z:-124,tx:0,tz:1,len:104,nx:1,nz:0},[[-121,-116]]],[{x:71.12,z:-124,tx:0,tz:1,len:104,nx:-1,nz:0},[[-61.6,-55.5]]]];
+     const fronts=[[{x:2,z:-20.12,tx:1,tz:0,len:150,nx:0,nz:1},[[51,71]]],[{x:2,z:-4.88,tx:1,tz:0,len:150,nx:0,nz:-1},[]],[{x:50.88,z:-124,tx:0,tz:1,len:104,nx:1,nz:0},[[-121,-116]]],[{x:71.12,z:-124,tx:0,tz:1,len:104,nx:-1,nz:0},[[-61.6,-55.5]]],
+      // Far South (after the others, so their sequence of random numbers is as it was)
+      [{x:50.88,z:-218,tx:0,tz:1,len:88,nx:1,nz:0},[]],[{x:71.12,z:-218,tx:0,tz:1,len:88,nx:-1,nz:0},[[MK.LANE[2],MK.LANE[3]],[MK.ALLEY[2],MK.ALLEY[3]]]]];
      const inGapF=(f,s,gaps)=>{const c=f.tx?f.x+s:f.z+s;return gaps.some(([g0,g1])=>c>g0-2&&c<g1+2);};
      // Blade signs: vertical neon sticking out from the wall, readable from both directions (two single-sided faces).
      const blades=[['拉麵','#ff5b5b'],['旅館','#7ff0ff'],['當鋪','#ffcf5a'],['診所','#6cff9e'],['電器','#9b7bff'],['HOTEL','#ff5bd0'],['PHO','#ffb347'],['KEBAB','#ffcf5a'],['CYBERWARE','#7ff0ff'],['網吧','#38e8ff'],['TATTOO','#ff5bd0'],['麻將','#ff5b5b'],['PAWN','#ffcf5a'],['BAR','#ff5bd0'],['NOODLES','#ffb347'],['CLINIC','#6cff9e']];
@@ -1324,6 +1331,7 @@
      function cable(a,b,sag,r){const pts=[];for(let i=0;i<=12;i++){const t=i/12;pts.push(v(a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t-Math.sin(Math.PI*t)*sag,a[2]+(b[2]-a[2])*t));}add(B.MeshBuilder.CreateTube('cable',{path:pts,radius:r,tessellation:4},scene),cableMat,[0,0,0]);}
      function span(a,b,n){if(LEGACY_ZONES.some(z=>Math.hypot((a[0]+b[0])/2-z.position[0],(a[1]+b[1])/2-z.position[1])<8))return;for(let i=0;i<n;i++){const A=[a[0],7+rand()*4,a[1]],Bp=[b[0],7+rand()*4,b[1]];cable(A,Bp,.6+rand()*1.2,.025+rand()*.02);bbox('junction-box',[.35,.45,.35],A,frame);bbox('junction-box',[.35,.45,.35],Bp,frame);}}
      for(let z=-118;z<-24;z+=8+rand()*5)span([51.05,z],[70.95,z+(rand()-.5)*6],2+Math.floor(rand()*2));
+     for(let z=-136;z>-212;z-=8+rand()*5)span([51.05,z],[70.95,z+(rand()-.5)*6],2+Math.floor(rand()*2));   // Far South
      for(let x=6;x<150;x+=9+rand()*6){if(x>49&&x<73)continue;span([x,-19.95],[x+(rand()-.5)*6,-5.05],1+Math.floor(rand()*2));}
      for(let x=16;x<50;x+=7+rand()*4)span([x,-120.95],[x+(rand()-.5)*4,-116.05],1+Math.floor(rand()*2));
      for(let z=-114;z<-94;z+=6+rand()*3)span([37.55,z],[43.95,z+(rand()-.5)*3],1);

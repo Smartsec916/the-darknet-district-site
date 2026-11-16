@@ -8,6 +8,7 @@ const bsrc=fs.readFileSync(path.join(__dirname,'../void-runner/milked-build.js')
 const reach=L=>{const S=.5,seen=new Set(),key=(x,z)=>x.toFixed(1)+','+z.toFixed(1),q=[[L.spawn[0],L.spawn[2]]];seen.add(key(...q[0]));for(let i=0;i<q.length;i++){const [x,z]=q[i];for(const [dx,dz] of [[S,0],[-S,0],[0,S],[0,-S]]){const nx=x+dx,nz=z+dz,k=key(nx,nz);if(seen.has(k)||E.blocked(nx,nz,L))continue;seen.add(k);q.push([nx,nz]);}}return q;};
 const near=(cells,x,z,r)=>cells.some(([a,b])=>Math.hypot(a-x,b-z)<=r);
 
+const DZ=MK.OFFSET[1];   // Milked moved by one rigid translation (16 Nov 2026): every number below that was drawn at its old place is shifted by it
 const ov=(a,b)=>a[0]<b[1]&&a[1]>b[0]&&a[2]<b[3]&&a[3]>b[2];
 const strings=o=>typeof o==='string'?[o]:o&&typeof o==='object'?Object.values(o).flatMap(strings):[];
 
@@ -53,7 +54,8 @@ test('it is a small building on a quiet side street off Main Street, built into 
   // the service alley: behind the building, back to Main Street; the rear door is on it
   assert.equal(MK.ALLEY[3],z0,'the alley runs along the back wall');assert.equal(MK.ALLEY[0],S.main[1],'and returns to Main Street');assert.ok(MK.ALLEY[3]-MK.ALLEY[2]>=3&&MK.ALLEY[3]-MK.ALLEY[2]<=4.5);assert.equal(MK.REAR.z,z0);assert.ok(MK.ALLEY[1]>MK.REAR.x+1);
   // nothing else is cut into
-  for(const id of ['pad','avenue','main','alley','road','passage','avenueEast','mainSouth','avenueWest'])for(const r of [MK.FOOTPRINT,MK.LANE,MK.ALLEY])assert.ok(!ov(r,S[id])||(id==='main'&&r!==MK.FOOTPRINT&&r[0]===S.main[1]),id);
+  for(const id of ['pad','avenue','main','alley','road','passage','avenueEast','southGate','farSouth','avenueWest'])for(const r of [MK.FOOTPRINT,MK.LANE,MK.ALLEY])assert.ok(!ov(r,S[id])||(id==='farSouth'&&r!==MK.FOOTPRINT&&r[0]===S.farSouth[1]),id);   // (the two side streets open onto Far South's east edge)
+  assert.ok(MK.FOOTPRINT[2]>S.farSouth[2]+20&&MK.ALLEY[2]>S.farSouth[2]+20,'it stands well clear of the Far South Gate at the south end');assert.ok(MK.LANE[3]<S.southGate[2]-30,'and well south of the South Gate');
   for(const r of [MK.FOOTPRINT,MK.LANE,MK.ALLEY]){for(const f of ['district','terrace']){const [a,b,c,d]=N.footprints[f];assert.ok(!ov(r,[a-1,b+1,c-1,d+1]),f+' keeps a wall of city block between');}assert.ok(!ov(r,[18,51,-68.5,-48.5]),'clear of the nightclub');assert.ok(!ov(r,[13,37.5,-106,-86]),'clear of the landing pad');}
   assert.ok(!ov(MK.LANE,MK.ALLEY)&&MK.LANE[2]-S.alley[2]<-5,'the side street is its own street, south of the alley to the District');
 });
@@ -65,11 +67,11 @@ test('the front entrance is a small double-door vestibule of its own',()=>{
   assert.equal((bcode.match(/k\.vestibule\(\);k\.lobby\(\)/g)||[]).length,2,'the street build and the interior build both make the vestibule and the rear lobby');
 });
 test('Milked is a built taxi destination; the cab sets down on Main Street, not in the side street',()=>{
-  const d=N.districts.find(d=>d.id==='milked');assert.ok(d&&!d.placeholder&&d.built);assert.deepEqual(d.rect,MK.FOOTPRINT);assert.ok(N.districts.find(x=>x.id==='containers').placeholder);assert.ok(N.districts.find(x=>x.id==='corporate').built);
-  const z=N.taxiZones.find(z=>z.id==='milked'),[zx,zz]=z.position,m=N.streets.main;assert.ok(zx>m[0]+2&&zx<m[1]-2&&zz>m[2]&&zz<m[3],'the stop is on Main Street');
+  const d=N.districts.find(d=>d.id==='milked');assert.ok(d&&!d.placeholder&&d.built);assert.deepEqual(d.rect,MK.FOOTPRINT);assert.equal(N.districts.find(x=>x.id==='containers'),undefined,'the Container Settlement placeholder is gone: Far South stands where it was');assert.ok(N.districts.find(x=>x.id==='corporate').built);
+  const z=N.taxiZones.find(z=>z.id==='milked'),[zx,zz]=z.position,m=N.streets.farSouth;assert.ok(zx>m[0]+2&&zx<m[1]-2&&zz>m[2]&&zz<m[3],'the stop is on Main Street, in Far South');assert.equal(z.quarter,'far-south');
   assert.ok(Math.abs(zz-(MK.LANE[2]+MK.LANE[3])/2)<12,'near the mouth of the side street');for(const o of N.taxiZones.filter(o=>o.id!=='milked'))assert.ok(Math.hypot(o.position[0]-zx,o.position[1]-zz)>8,'clear of '+o.id);
   const s=C.fresh();s.location='earth';s.credits=100;const dest=R.destinations(s,{player:[61,-40],quarter:'oldtown'}).find(x=>x.id==='milked');
-  assert.ok(dest.ok&&dest.fare>0&&dest.fare<=R.fare.max&&!dest.placeholder);assert.deepEqual(dest.legs,[],'no checkpoint between the District and Milked');
+  assert.ok(dest.ok&&dest.fare>0&&dest.fare<=R.fare.max&&!dest.placeholder);assert.deepEqual(dest.legs.map(l=>l.gate),['south'],'one checkpoint, the South Gate, between the District and Milked (David, 16 Nov 2026)');
   const l=R.destinations(s,{player:[61,-40],quarter:'oldtown'});assert.equal(l.filter(x=>x.placeholder).length,0,'no placeholder is offered');
   // road taxis keep to the roads they already drive: they never turn into the side street or the service alley
   const RT=require('../void-runner/road-taxi-rules.js'),rsrc=fs.readFileSync(path.join(__dirname,'../void-runner/road-taxi-rules.js'),'utf8');assert.ok(!/milkedLane|milkedAlley/.test(rsrc));
@@ -94,7 +96,7 @@ test('reception, a narrow hallway with four studios, and a rear staff area are r
   for(const id of ['vestibule','reception','hallway','office','staff-corridor','rear-lobby','rear-corridor','dressing-a','dressing-b','restroom-1','restroom-2'])assert.ok(ids.includes(id),id);
   assert.equal(by('studios').filter(r=>r.kind==='studio').length,4);assert.ok(by('staff').some(r=>r.id==='office'&&r.name===MK.CONFIG.FISH_NAME+'\'s office'));
   const [fx0,fx1,fz0,fz1]=MK.FOOTPRINT;for(const r of MK.ROOMS){assert.ok(r.rect[0]>=fx0&&r.rect[1]<=fx1&&r.rect[2]>=fz0&&r.rect[3]<=fz1,r.id+' is inside the building');}
-  const h=MK.HALL;assert.ok(Math.min(h[1]-h[0],h[3]-h[2])<=2.2,'the hallway is narrow');assert.equal(MK.roomAt(87.5,-78).id,'studio-1');assert.equal(MK.roomAt(91.5,-85).id,'studio-4');assert.equal(MK.roomAt(95.7,-77).id,'office');
+  const h=MK.HALL;assert.ok(Math.min(h[1]-h[0],h[3]-h[2])<=2.2,'the hallway is narrow');assert.equal(MK.roomAt(87.5,-78+DZ).id,'studio-1');assert.equal(MK.roomAt(91.5,-85+DZ).id,'studio-4');assert.equal(MK.roomAt(95.7,-77+DZ).id,'office');
   for(const r of by('studios').filter(r=>r.kind==='studio'))assert.ok(r.rect[2]===h[3]||r.rect[3]===h[2],r.id+' is on the hallway');
   const o=MK.ROOMS.find(r=>r.id==='office').rect;assert.ok(o[0]>=h[1],'the staff area is at the far end of the hallway');
 });
@@ -125,16 +127,16 @@ test('inside: every room that is open and every interaction can be walked to; th
   for(const i of L.interactions)assert.ok(near(cells,i.position[0],i.position[2],i.range),i.id+' within reach');
   for(const r of MK.ROOMS){const c=[(r.rect[0]+r.rect[1])/2,(r.rect[2]+r.rect[3])/2];assert.equal(near(cells,c[0],c[1],.8),!r.closed,r.id+(r.closed?' is closed':' is reachable'));}
   for(const s of MK.STUDIOS){const r=MK.ROOMS.find(q=>q.id===s.room).rect;assert.ok(!cells.some(([x,z])=>x>r[0]+.5&&x<r[1]-.5&&z>r[2]+.5&&z<r[3]-.5),s.room+' is never entered');}
-  for(const [what,x,z] of [['the vestibule',MK.DOOR.x,-75.5],['the inner doors',MK.INNER.x,MK.INNER.z],['reception',84,-79],['the door beside the desk',85.5,-81.8],['the hallway',89.5,-81.8],['the staff door',93.5,-81.8],['the staff corridor',94.75,-85],['Fish\'s office',95,-77.5],['the lobby\'s north door',MK.LOBBY_N.x,MK.LOBBY_N.z],['the rear lobby',94.75,-88.7],['the lobby\'s west door',MK.LOBBY_W.x,MK.LOBBY_W.z],['the rear corridor',86,-88.6],['dressing room A',80,-86]])assert.equal(E.blocked(x,z,L),false,what+' is open');
-  for(const [what,x,z] of [['the street doors (they never open from inside)',MK.DOOR.x,MK.DOOR.z],['the alley door (it never opens from inside)',MK.REAR.x,MK.REAR.z],['the wall beside the front doors',79,-74],['the reception desk',81.3,-80.6],['a studio window',87.2,-80.8],['a studio door',88.95,-80.8],['dressing room B\'s door',83.6,-88],['a restroom door',96,-82.75]])assert.equal(E.blocked(x,z,L),true,what+' is solid');
+  for(const [what,x,z] of [['the vestibule',MK.DOOR.x,-75.5+DZ],['the inner doors',MK.INNER.x,MK.INNER.z],['reception',84,-79+DZ],['the door beside the desk',85.5,-81.8+DZ],['the hallway',89.5,-81.8+DZ],['the staff door',93.5,-81.8+DZ],['the staff corridor',94.75,-85+DZ],['Fish\'s office',95,-77.5+DZ],['the lobby\'s north door',MK.LOBBY_N.x,MK.LOBBY_N.z],['the rear lobby',94.75,-88.7+DZ],['the lobby\'s west door',MK.LOBBY_W.x,MK.LOBBY_W.z],['the rear corridor',86,-88.6+DZ],['dressing room A',80,-86+DZ]])assert.equal(E.blocked(x,z,L),false,what+' is open');
+  for(const [what,x,z] of [['the street doors (they never open from inside)',MK.DOOR.x,MK.DOOR.z],['the alley door (it never opens from inside)',MK.REAR.x,MK.REAR.z],['the wall beside the front doors',79,-74+DZ],['the reception desk',81.3,-80.6+DZ],['a studio window',87.2,-80.8+DZ],['a studio door',88.95,-80.8+DZ],['dressing room B\'s door',83.6,-88+DZ],['a restroom door',96,-82.75+DZ]])assert.equal(E.blocked(x,z,L),true,what+' is solid');
   assert.ok(!cells.some(([x,z])=>!MK.inside({x,z})&&MK.distance(x,z)>.6),'nobody gets out of the building in the interior environment');
   assert.ok(!near(cells,MK.MODELS.eva.at[0],MK.MODELS.eva.at[1],.3),'Eva is behind her desk');
 });
 test('outside: the street reaches the vestibule and the rear lobby and nothing further; the building is solid',()=>{
   const L=N.layout('street');for(const s of L.solids)if(s.door&&/^milked-/.test(s.id))s.open=MK.openable(MK.DOORS.find(d=>d.id===s.id),'street');const cells=reach(L);
-  for(const [what,x,z] of [['the side street',75,-71],['the front doors',MK.DOOR.x,MK.DOOR.z],['the vestibule',MK.DOOR.x,-75.5],['the rear door',MK.REAR.x,MK.REAR.z],['the rear lobby',94.75,-88.7],['the service alley',90,-91.8],['the alley mouth on Main Street',72,-91.8]])assert.equal(E.blocked(x,z,L),false,what+' is open');
-  for(const [what,x,z] of [['the inner doors (they never open from the street)',MK.INNER.x,MK.INNER.z],['the lobby\'s north door',MK.LOBBY_N.x,MK.LOBBY_N.z],['the lobby\'s west door',MK.LOBBY_W.x,MK.LOBBY_W.z],['the wall beside the front doors',79,-74],['the shopfront\'s pier',79.3,-73.7],['the block between the side street and the alley to the District',85,-66],['the block between the service alley and the terrace',85,-94.5],['the block east of the building',103,-82]])assert.equal(E.blocked(x,z,L),true,what+' is solid');
-  assert.ok(near(cells,MK.DOOR.x,-75.5,.6)&&near(cells,94.75,-88.7,.6),'both checkpoints are reached on foot from the landing pad');
+  for(const [what,x,z] of [['the side street',75,-71+DZ],['the front doors',MK.DOOR.x,MK.DOOR.z],['the vestibule',MK.DOOR.x,-75.5+DZ],['the rear door',MK.REAR.x,MK.REAR.z],['the rear lobby',94.75,-88.7+DZ],['the service alley',90,-91.8+DZ],['the alley mouth on Main Street',72,-91.8+DZ]])assert.equal(E.blocked(x,z,L),false,what+' is open');
+  for(const [what,x,z] of [['the inner doors (they never open from the street)',MK.INNER.x,MK.INNER.z],['the lobby\'s north door',MK.LOBBY_N.x,MK.LOBBY_N.z],['the lobby\'s west door',MK.LOBBY_W.x,MK.LOBBY_W.z],['the wall beside the front doors',79,-74+DZ],['the shopfront\'s pier',79.3,-73.7+DZ],['the block between the side street and the alley to the District',85,-66+DZ],['the block between the service alley and the terrace',85,-94.5+DZ],['the block east of the building',103,-82+DZ]])assert.equal(E.blocked(x,z,L),true,what+' is solid');
+  assert.ok(near(cells,MK.DOOR.x,-75.5+DZ,.6)&&near(cells,94.75,-88.7+DZ,.6),'both checkpoints are reached on foot from the landing pad');
   for(const r of MK.ROOMS.filter(r=>!/^(vestibule|rear-lobby)$/.test(r.id))){const c=[(r.rect[0]+r.rect[1])/2,(r.rect[2]+r.rect[3])/2];assert.ok(!near(cells,c[0],c[1],.8),r.id+' cannot be walked into from the street: the only way in is a checkpoint');}
   const i=L.interactions.find(i=>i.id==='milked-intercom');assert.ok(near(cells,i.position[0],i.position[2],i.range));
   // closed, the street doors are solid too

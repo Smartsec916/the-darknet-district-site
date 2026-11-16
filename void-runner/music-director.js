@@ -22,7 +22,7 @@
  ];
  const systemSpace={communion:'space-cantor','natural-order':'space-garrow'};
  // On the street (street metres): the alley behind the District and the inside of Milked (milked.js FOOTPRINT) have their own music; the rest is the city's.
- const streetZones=[{style:'alley',rect:[71,136,-61.6,-55.5]},{style:'milked',rect:[78,98,-90,-74]}];
+ const streetZones=[{style:'alley',rect:[71,136,-61.6,-55.5]},{style:'milked',rect:((typeof module!=='undefined'?require('./milked.js'):root.VoidMilked)||{}).FOOTPRINT||[78,98,-190,-174]}];
  const streetStyle=p=>streetZones.find(z=>p.x>=z.rect[0]&&p.x<=z.rect[1]&&p.z>=z.rect[2]&&p.z<=z.rect[3])?.style||'neochinatown';
  // Areas that are one walk apart: a change between them waits a moment (zoneHold) so a doorway never flickers.
  const local=s=>s==='neochinatown'||s==='alley'||s==='milked'||s.startsWith('district-');
