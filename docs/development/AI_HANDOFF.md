@@ -6,6 +6,8 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+> **16 Nov 2026, later (branch `claude/milked-far-south-1`, builds `2026-11-16-far-south-1` then `2026-11-16-outskirts-1`, pushed, no PR, not merged):** Milked moved by one rigid translation (100 m south) into the new **Far South** quarter past the **South Gate (A5, now live)**; **A6 Far South Gate** is a pedestrian-only checkpoint to the new **Outskirts** quarter (code-built container homes on gravel; `ncz-containers.js`; Kai Kryptos' home reserved as data `kai-kryptos-home`, nothing else). See `NEOCHINATOWN_QUARTERS.md` (end), `CHECKPOINTS.md`, `MILKED.md` (position note). Next: David reviews the look of The Outskirts against his reference pictures; the Outskirts' art is a first slice.
+
 ### 16 Nov 2026 (END OF DAY SUMMARY — read this first; it corrects the entries below)
 
 **The entries below that say "local commits, NOT pushed, no PR" are out of date: all of them were pushed, passed CI and were merged the same day.** Live on `main` after PR #337: build `2026-11-16-fixes-1`.

@@ -70,8 +70,8 @@
    for(let y=0;y<256;y++)for(let x=0;x<256;x++){const ax=(H(x+1,y)-H(x-1,y))*2.2,l=1/Math.hypot(ax,1),i=(y*256+x)*4;o[i]=(-ax*l*.5+.5)*255;o[i+1]=128;o[i+2]=(l*.5+.5)*255;o[i+3]=255;}tg.putImageData(out,0,0);t.update();t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;ribNormal=t;}
   const mats=new Map();
   const paint=hex=>{const k='p'+hex;if(mats.has(k))return mats.get(k);let m;
-   if(low){m=new B.StandardMaterial('outskirts-paint',scene);m.diffuseTexture=ribs;m.diffuseColor=B.Color3.FromHexString(hex).scale(1.25);m.specularColor=new B.Color3(.08,.08,.08);m.emissiveColor=B.Color3.FromHexString(hex).scale(.1);}
-   else{m=new B.PBRMaterial('outskirts-paint',scene);m.albedoTexture=ribs;m.albedoColor=lin(hex).scale(1.5);m.metallic=.45;m.roughness=.68;m.bumpTexture=ribNormal;m.bumpTexture.level=.9;m.emissiveTexture=ribs;m.emissiveColor=lin(hex).scale(.07);}
+   if(low){m=new B.StandardMaterial('outskirts-paint',scene);m.diffuseTexture=ribs;m.diffuseColor=B.Color3.FromHexString(hex).scale(1.25);m.specularColor=new B.Color3(.08,.08,.08);m.emissiveColor=B.Color3.FromHexString(hex).scale(.24);}
+   else{m=new B.PBRMaterial('outskirts-paint',scene);m.albedoTexture=ribs;m.albedoColor=lin(hex).scale(1.5);m.metallic=.45;m.roughness=.68;m.bumpTexture=ribNormal;m.bumpTexture.level=.9;m.emissiveTexture=ribs;m.emissiveColor=lin(hex).scale(.14);}
    track(m);mats.set(k,m);return m;};
   const flat=(key,hex,{rough=.8,metal=.3,glow=0}={})=>{if(mats.has(key))return mats.get(key);let m;
    if(low){m=new B.StandardMaterial('outskirts-'+key,scene);m.diffuseColor=B.Color3.FromHexString(hex);m.specularColor=new B.Color3(.05,.05,.05);if(glow)m.emissiveColor=B.Color3.FromHexString(hex).scale(glow);}
