@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "d35180fea09324b8",
+  "revision": "210ead0bd977bbb9",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12197,6 +12197,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/ncz-outskirts-life.js",
+      "line": 2,
+      "text": "look poor\". Ambient figures only: no names, no dialogue, no voices, no interactions, no missions, no collision. They live in that quarter only (started by neochinatown.js for",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/ncz-quarters.js",
       "line": 20,
       "text": "Saves: nothing new is required. story.flags.quarter ('oldtown' | 'avenue'; absent = the Port) says which quarter an outdoor player was last in. */",
@@ -14066,13 +14072,14 @@
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-alley.js": "ab36c39ef7d1cdaa812224c7fa1213d20121542b362c9d635b75964db045a219",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
-    "void-runner/ncz-containers.js": "4e68d6f6b0ba73b62797d2489213970a4f633106961c8d531e130bce7e2243e4",
+    "void-runner/ncz-containers.js": "1622c43eae09d45dcf07cdc42427e18adc371571b5dc629c2c868921b6b142e0",
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
     "void-runner/ncz-gates.js": "a932b125a1da4fab1060c6faf95a042d5e99f5120c1f85cf85634bcdcefc862f",
     "void-runner/ncz-nightclub.js": "09c1373360df509732ccb609f0e879d615551e568cbaf09e278af8247b97e6fb",
     "void-runner/ncz-nightlife.js": "764591a2e2bdd2d99732f62da2a67904c7e1da16985f718713d4b7a4bf4ad6be",
+    "void-runner/ncz-outskirts-life.js": "9dbc204a317176478e847c9c17272b9b70c5e318eefa6351339bb1544987d6ed",
     "void-runner/ncz-quarters.js": "5c622171495aa0a03ced24039103c1b42535b714a3462344af01ac1b1d06425e",
-    "void-runner/neochinatown.js": "ebe06a22ec92f021812a83c5ee14294cff3b29a7051f44505710341f9623b36d",
+    "void-runner/neochinatown.js": "3198138d3d36c4efc0cf243415b5ba91347a6b5df5aa940b66a0de7379849033",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",

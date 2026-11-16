@@ -87,7 +87,7 @@ fs.mkdirSync(shots,{recursive:true});
  await page.evaluate(()=>VoidInteractions.handlers.get('milked-cameras')({item:{}}));assert.match(await page.evaluate(()=>document.getElementById('notice').textContent),/REMOTE CAMERA CONTROLS/);
  await at(94.75,-80.4,SOUTH);await stops(97,-82.75,'a restroom door');await at(94.75,-80.4,SOUTH);await reaches(94.75,-86.4,'down the staff corridor');
  // 7. inside it is "Milked" for the camera and the music, taxis do not come indoors, the map still knows where the player is
- assert.equal(await page.evaluate(DZ=>VoidMilked.inside({x:89.5,z:-81.8+DZ})&&!VoidMilked.inside({x:89.5,z:-71+DZ})),true);
+ assert.equal(await page.evaluate(DZ=>VoidMilked.inside({x:89.5,z:-81.8+DZ})&&!VoidMilked.inside({x:89.5,z:-71+DZ}),DZ),true);
  assert.equal(await page.evaluate(()=>VoidMusicDirector.streetZones.find(q=>walker.x>=q.rect[0]&&walker.x<=q.rect[1]&&walker.z>=q.rect[2]&&walker.z<=q.rect[3])?.style),'milked','the music and the camera\'s place label read the same footprint');
  const taxi=await page.evaluate(()=>VoidTaxi?.status?.()||null);if(taxi)assert.ok(!taxi.ok&&/Milked/.test(taxi.reason),'no cab indoors: '+JSON.stringify(taxi));
  await page.keyboard.press('KeyL');await page.waitForSelector('#personal-device.open');await page.locator('#personal-device [data-app=map]').click();await page.waitForSelector('#personal-device canvas.dm-canvas');
