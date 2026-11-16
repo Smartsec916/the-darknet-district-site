@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "8f334da1cad15943",
+  "revision": "ddd91db17720dc63",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11208,49 +11208,49 @@
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 179,
+      "line": 180,
       "text": "/* One slot as something a screen can show and say. Each slide: {kind, cat, look, speaker, label, title, lines:[{text, say, hold}]}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 185,
+      "line": 186,
       "text": "say: the exact text a recording is looked up by (null: nothing is ever said for it). hold: seconds on screen without a recording. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 187,
+      "line": 188,
       "text": "if(slot.type==='board'){const c=CATEGORIES.board;return {kind:'board',cat:'board',look:c.look,speaker:c.speaker,label:standings?.header||'WARFLYING LEADERSHIP BOARD',title:'',standings,lines:[{text:standings?.spoken||'',say:standings?.spoken||null,hold:TIMING.board}]};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 188,
+      "line": 189,
       "text": "if(slot.type==='news'){const s=slot.segment,c=CATEGORIES.news;return {kind:'news',cat:'news',look:c.look,speaker:s.speaker||'news-anchor',label:c.label,title:s.headline||'',id:s.id,lines:[{text:s.headline||'',say:null,hold:TIMING.headline,headline:true},...s.lines.map(t=>({text:t,say:t,hold:TIMING.line}))]};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 190,
+      "line": 191,
       "text": "if(ad.brand){const full=ad.brand+' — '+ad.line;return {...base,kind:'brand',title:ad.brand,lines:[{text:ad.line,say:full,hold:TIMING.brand}]};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 191,
+      "line": 192,
       "text": "if(ad.lines)return {...base,kind:'script',title:ad.title,lines:[...(ad.relay||!ad.title?[]:[{text:ad.title,say:ad.title,hold:TIMING.title,title:true}]),...ad.lines.map(t=>({text:t,say:t,hold:TIMING.line}))]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 192,
+      "line": 193,
       "text": "return {...base,kind:'notice',title:'',lines:[{text:ad.line,say:ad.line,hold:TIMING.notice}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 195,
+      "line": 196,
       "text": "function spokenLines(relay){const out=[];for(const z of Object.keys(ZONES))for(const list of Object.values(adsFor(z,{relay})))for(const ad of list)for(const l of slide({type:'ad',ad}).lines)if(l.say&&!out.some(o=>o.text===l.say&&o.speaker===(ad.speaker||CATEGORIES[ad.cat].speaker)))out.push({speaker:ad.speaker||CATEGORIES[ad.cat].speaker,text:l.say,cat:ad.cat,id:ad.id,relay:!!ad.relay});return out;}",
       "kind": "source-reference"
     },
@@ -13930,8 +13930,8 @@
     "void-runner/account.js": "608e9e265d621184a2b95f8b84062859cfc4530340141534991f8bd435d4d1db",
     "void-runner/achievements.js": "2f974b5ab4c9d85d24bfdc3cb95ef1310941d9e9c0608e6965f340afa91fdba5",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
-    "void-runner/ad-screens-data.js": "61f2319a04534ab267bfb0580d77cb0e9b8818a70cbd31e12d34a6213488566c",
-    "void-runner/ad-screens.js": "7d924f94ba35860af08c309a6b92257d9031628f70234545a3107e0804f13b21",
+    "void-runner/ad-screens-data.js": "bfec23ed6c18d262ec74aa02a3c96498f86677b0b9b587b77378db6fe115b0b4",
+    "void-runner/ad-screens.js": "dee5cbc0c4d97ffeae19b2db3d2eb7fcbf5515f59279fc92131643357763cfa2",
     "void-runner/anim-library.js": "21718cc00efa5199c5fd3164b62454e848e0c0519fb001afa7d61524c2510568",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/area-ambience.js": "4a3b6f044b5b1ec76acef62abede55abe91d1d813ca66a9a50f2d6dea6e0b818",

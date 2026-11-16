@@ -316,7 +316,10 @@
   }
   const wall=(w,p,ry)=>make('wall',w,w*1.5,p,ry),kiosk=(p,ry)=>make('kiosk',1.6,2.4,p,ry);
   // the hand-placed screens of this quarter (ad-screens-data.js PLACES)
-  function extras(){for(const e of D.PLACES){if(e.quarter!==quarter)continue;const ry=FACES[e.faces]??0;if(e.kind==='kiosk')kiosk(e.at,ry);else wall(e.w||6,e.at,ry);}}
+  function extras(){for(const e of D.PLACES){if(e.quarter!==quarter)continue;const ry=FACES[e.faces]??0;if(e.kind==='kiosk'){kiosk(e.at,ry);continue;}const w=e.w||6,h=w*1.5;if(!wall(w,e.at,ry))continue;
+   // posts: true stands the screen on two steel legs with a brace and a footing each (where there is no wall behind it to carry it)
+   if(e.posts){const bottom=e.at[1]-h/2,t=Math.max(.3,w*.07);for(const s of [-1,1]){const leg=env.box('adscreen-leg',[t,bottom+h*.5,t],place([e.at[0],(bottom+h*.5)/2,e.at[2]],ry,[s*w*.3,0,t*1.6]),trimM);leg.rotation.y=ry;const foot=env.box('adscreen-footing',[t*2.6,.3,t*2.6],place([e.at[0],.15,e.at[2]],ry,[s*w*.3,0,t*1.6]),caseM);foot.rotation.y=ry;}
+    for(const y of [bottom*.45,bottom*.9]){const brace=env.box('adscreen-brace',[w*.6,t*.5,t*.5],place([e.at[0],y,e.at[2]],ry,[0,0,t*1.6]),trimM);brace.rotation.y=ry;}}}}
   // Is a spot worth drawing for: near enough, the camera on its picture side, and not behind the camera.
   function seen(s,cam,fx,fz){const dx=s.x-cam.x,dz=s.z-cam.z,d=Math.hypot(dx,dz);if(d>DRAW_RANGE[s.kind])return false;if(-(dx*s.nx+dz*s.nz)<-.5)return false;return d<6||(dx*fx+dz*fz)/d>-.25;}
   function tick(dt){

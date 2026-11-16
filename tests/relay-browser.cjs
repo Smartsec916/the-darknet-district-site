@@ -1,3 +1,6 @@
+/* STALE IN PART SINCE build 2026-11-16-adscreens-1: step 6 expects the old rival RiftRunner to pass the player as the play clock advances. The board is now
+   the weekly five (void-runner/warflying-board.js), which moves with the real-world week, not the play clock; that step needs rewriting before this script
+   is run again. The same rule is covered in tests/relay.test.cjs and tests/warflying-board.test.cjs. Not part of npm test. */
 // The Relay in the browser: routine programming, breaking news (queued in combat, then cutting in),
 // the District's silence, no signal in warp, Meridian's screens, the news archive, WarFlying
 // commentary from the real leaderboard, and save/load. Needs the local server and Edge.

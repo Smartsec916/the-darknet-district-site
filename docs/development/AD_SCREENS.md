@@ -19,7 +19,7 @@ David's words and direction: [`docs/void-runner/design-source/12-street-advertis
 | Area | Screens | Plays |
 |---|---|---|
 | Old Town (Main Street) | wall screens and street stands where the old posters were | food & beverages, dating & entertainment, black-market tech, cybernetics, housing, pro-WarFlying, The Darknet District apparel |
-| The Port | one wall screen over the pad and one stand in the passage (new: the Port had no posters) | transport, housing, healthcare, David's ship-equipment ads, police recruitment, pro-WarFlying |
+| The Port | one big screen on its own steel legs at the pad's north edge and one stand by the passage (new: the Port had no posters) | transport, housing, healthcare, David's ship-equipment ads, police recruitment, pro-WarFlying |
 | The Avenue, middle | where the old posters were | everything except black-market tech, plus government announcements |
 | The Avenue, Function Gate end (west of x = 36) | where the old posters were | corporate propaganda, government announcements, healthcare. **No Darknet District ads.** |
 | The Avenue, East Gate end (east of x = 106) | **none** | the road to the Temple stays quiet |
@@ -97,8 +97,29 @@ Plainly: the screens cost nothing extra to draw on Main Street and the Avenue (s
 
 ## Checked
 
-@@CHECKED@@
+- `npm test`: all pass except the known local-only "ava: preview missing" (new: `tests/ad-screens.test.cjs`, `tests/warflying-board.test.cjs`; updated: `warflying-scan`, `relay`). They cover: David's ads word for word against his document, the three pro-WarFlying ads, the every-fifth rule, the location table and the quiet stretches, eras, news only from David's non-draft reports, the board (same for everyone in a week, different next week, #1 always David's and never overtaken, only five shown, "a new number one"), the generator (shape, share ending in two digits, nothing from a banned-word list, no overlap with David's list), and that only David's handles are ever named by the radio.
+- `python3 -m unittest tests.test_story_save tests.test_progression_save tests.test_warflying_save` (with Flask installed): pass, with a new test that the weekly board's rows survive the save server. `void_runner_api.py` needed no change.
+- **In the running game** (bundled Chromium, software renderer; Low for everything, Medium for Old Town and the counts):
+  - Looked at every category's template on a real street screen, the board, a news slide, wall screens and street stands in each quarter, the Port's new screens, both ends of the Avenue, and Meridian's hall and corridor screens. Sheets are listed in the hand-over report.
+  - Eight frames of one ad taken 0.65 s apart: the picture moves (the canvas was repainted 11 times across them and the words arrive).
+  - Location rules, counted in the built scene: no screen east of x = 106 on the Avenue; none in or within 3 m of a checkpoint; the Function Gate end's screens carry only corporate, government and healthcare; Old Town 12 screens, the Port 2, the Avenue 22; The Function's poster still stands where it stood.
+  - Sound, by reading the audio graph (it cannot be heard on this machine): standing 3 m in front of a Port stand with David's shield ad on, a recording plays through a gain and a left/right panner into the Voice channel at full level, centred; the picture's progress is the recording's own progress; with the screen to the right the pan target is +1 and to the left -1; at 12 m the level is 0.24; across 40 samples never more than one recording was playing; the ad went on to its next lines by itself; an ad with no recording (DeathCab) played no sound and held for its 8 s; the hum was on for the nearest screen in the Port's tone; inside the Customs lane the voice level and both hums were 0.
+  - No page errors in any run.
+- `STABILIZATION_SMOKE=1 BROWSER_CHANNEL=chromium node tests/stabilization-browser.cjs`: **could not be run to the end on this machine.** It passed its three Meridian visits (the restyled screens are built and disposed three times with the same object, picture and material counts each time), the Old Town crowd check and the VR forest, then timed out at the step that reloads the page after an interrupted VR session (a 90-second wait). Unchanged `main` times out at exactly the same step here, so it is this machine's speed, not this change; CI is the real check.
+
 
 ## Not done, and questions for David
 
-@@OPEN@@
+- **Not heard by anyone.** Levels, panning, timing and "one voice at a time" were checked by reading the audio graph. Whether the voice effect, the hum and the chimes sound good is for David's ears. They are easy to turn down: `ZONE_SOUND` and `CHIMES` in `ad-screens.js`.
+- **No real graphics card.** Counts are before/after on a software renderer; the cost of repainting the canvases was not timed on real hardware.
+- **Medium was looked at less than Low** (one Old Town pass; its first picture was taken while the scene was still fading in).
+- **The location table is a proposal.** David has not confirmed which category plays where.
+- **News on the street uses the existing provisional news voice.** The brief allowed the seven ad recordings; the three news reports' recordings are the same kind of existing clip and already play on the radio, so they play here too. One line in `ad-screens-data.js` (`slide()`: set `say` to null for news) silences them if David prefers.
+- **Meridian's screens are still silent**, as before. David's note says the station ads should get voices too; the radio already speaks them. Giving the station screens the street's positional sound is a small follow-up, not done here because the brief said the stations' content and behaviour stay.
+- **A second reader per category** (so ads are not always the same voice) is not built: there is no second voice until the audition.
+- **The far skyline's giant posters, the District's own posters, the VR suite window and the device's News feed still show the 12 old Tessaly brands** (silent, static). Say if any of those should go.
+- **The generator's taste.** Twenty samples are in the hand-over report for David to vet; the word lists are short and easy to edit.
+- **Eras:** the tag exists; no era was invented.
+- **A player's name on the board** is their account handle (or YOU). It is not filtered beyond what the account system already allows.
+- **Corporate District and Temple** got nothing new. If the Corporate District should have its own propaganda screens later, the `corporate` zone's programme can be reused there.
+

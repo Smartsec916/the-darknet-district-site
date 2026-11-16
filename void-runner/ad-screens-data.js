@@ -121,9 +121,10 @@
     (The Darknet District's own anti-WarFlying screens are district-screens.js and are not touched from here.) */
  const SCENES={temple:null,corporate:null,district:'silent',milked:null};
  /* Screens added by hand (the rest stand where the city's old posters stood). kind: 'wall' (a big screen up on a wall) or 'kiosk' (a street-level stand).
-    at: [x, y, z] of the middle of the picture; faces: the compass direction the picture looks ('n' +z, 's' -z, 'e' +x, 'w' -x); w: width in metres. */
+    at: [x, y, z] of the middle of the picture; faces: the compass direction the picture looks ('n' +z, 's' -z, 'e' +x, 'w' -x); w: width in metres;
+    posts: true stands a wall screen on its own two legs (where no wall is behind it). */
  const PLACES=[
-  {id:'port-pad',quarter:'port',kind:'wall',at:[25,9,-86.3],faces:'s',w:6},
+  {id:'port-pad',quarter:'port',kind:'wall',at:[25,9.5,-86.6],faces:'s',w:6,posts:true},
   {id:'port-passage',quarter:'port',kind:'kiosk',at:[38.2,1.55,-96],faces:'e'}
  ];
  /* RECORDING SWITCHES, read by tools/audio/extract-lines.cjs. Both are OFF: David picks the voices by ear first, and nothing new is recorded before that.
