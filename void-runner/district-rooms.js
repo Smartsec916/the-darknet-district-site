@@ -38,7 +38,7 @@
     line (they share one picture). The header and every line are his, word for word: add a line by adding it to `lines`. No voice and no sound. `seconds` is how long a line stays,
     `fade` how long one gives way to the next. `screens`: `face` is the way a panel looks, (x, z) the middle of it on the wall's surface, y its middle height, `wall` the solid it hangs on.
     Each is whole on solid wall, clear of every doorway (a test checks the margin). `hall` screens follow the hallway's lining (the bare wall is 0.3 m further out). */
- const CAMPAIGN={header:'ANTI-WARFLYING CAMPAIGN',seconds:5,fade:.9,near:16,w:1.2,h:1.8,frame:.08,screens:[
+ const CAMPAIGN={header:'ANTI-WARFLYING CAMPAIGN',seconds:10,fade:.9,near:16,w:1.2,h:1.8,frame:.08,screens:[
   {id:'hall-south',wall:'hall-east-0',hall:true,face:'-x',x:2.52,z:28.2,y:2.0},{id:'hall-mid',wall:'hall-west-1',hall:true,face:'+x',x:-2.52,z:44.3,y:2.0},
   {id:'arcade-north',wall:'arc-north',face:'+z',x:-4.4,z:57.7,y:2.0,replaces:'laser-moth'},{id:'arcade-south',wall:'arc-south',face:'-z',x:-6.5,z:66.3,y:2.0,replaces:'turbo-kelp'},{id:'bar',wall:'bar-north',face:'+z',x:10,z:28.2,y:2.2}],lines:[
   "WarFlying is not a hobby. It's an invasion.","My ship. My signal. My business.","Just because you can scan it doesn't mean you should.","Space is vast. Get out of my bandwidth.","Respect orbital privacy. Say NO to WarFlying.",

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "61437cef9abbb452",
+  "revision": "f702c87de50c8e09",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13864,7 +13864,7 @@
     "void-runner/district-life.js": "d6c860db19dbe4ec7cf521a48a2be9662cb879218dd831943d6ee72a83d15138",
     "void-runner/district-map.js": "1411a2367891eb8af00c34ab2a5b7075ba3ea41eb9a4684f4b50c75ee56e8b7f",
     "void-runner/district-people.js": "f316fcb961aa14d995be283c61a3f6ffe82964e5ab4edcc30348f563bb92d2c4",
-    "void-runner/district-rooms.js": "44f07e8956e0b657fd20f8f63a6c71061c8513c5ad035ad67cc56802922eb110",
+    "void-runner/district-rooms.js": "4aa731e98c2929d901df1ab2957a7d7655cc4f606bd466758f05ba815d45f84f",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/district-voice.js": "748c71527b459938e848cd52e70feb2d3c30efefe93858e36e5ef44339b443eb",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
