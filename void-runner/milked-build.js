@@ -10,6 +10,9 @@
    second, exposed ducts, pipes and cable trays, plants, pinned photos and plush toys. Surfaces use the repository's own texture sets (the District interior kit,
    the street set, the suite's wood and fabric); the props in assets/models/milked/ were made with Meshy (optional files: a missing one is replaced by a simple
    stand-in built here, and Low quality always uses the stand-ins).
+   Surfaces and light (fourth pass, 16 Nov 2026): Low keeps plain materials, a sky light, light pools and contact shadows. Medium and above use physically
+   based materials with normal maps, a mirror in the floors, a small picture of the room for metal and glass to reflect, five lamps that follow the player to
+   the nearest signs and tubes, and one key light with a shadow map. docs/development/MILKED.md has the whole account and the measurements.
    Content rules: every performer is an adult, everyone is clothed, nothing is explicit; each studio has exactly one dancer and nobody else; fixed cameras on
    stands, run remotely from the office, so there are no camera operators. */
 (function(root){
@@ -23,27 +26,60 @@
 
  // ================================================================ the kit: materials, shapes, signs, doors, props ================================================================
  function kit({B,scene,parent,quality,area}){
-  const low=quality==='low',interior=area===AREA,own=[],groups=new Map(),screens=[],leaves=new Map(),containers=[],models=new Map(),late=[];let disposed=false,merged=false;
+  const low=quality==='low',high=quality==='high'||quality==='ultra',interior=area===AREA,own=[],groups=new Map(),screens=[],leaves=new Map(),containers=[],models=new Map(),late=[],pbrs=[];let disposed=false,merged=false;
   const node=new B.TransformNode(interior?'milked-interior':'milked',scene);node.parent=parent;
   const matCache=new Map();
-  const M=(name,hex,em,alpha)=>{const key='m'+name+hex+em+alpha;if(matCache.has(key))return matCache.get(key);const m=new B.StandardMaterial('milked-'+name,scene);m.diffuseColor=B.Color3.FromHexString(hex);m.specularColor=new B.Color3(.2,.2,.24);if(em)m.emissiveColor=B.Color3.FromHexString(em);if(alpha!=null){m.alpha=alpha;m.backFaceCulling=false;}m.maxSimultaneousLights=8;own.push(m);matCache.set(key,m);return m;};
-  const G=(name,hex,k=1)=>{const key='g'+name+hex+k;if(matCache.has(key))return matCache.get(key);const m=new B.StandardMaterial('milked-'+name,scene);m.diffuseColor=B.Color3.Black();m.specularColor=B.Color3.Black();m.emissiveColor=B.Color3.FromHexString(hex).scale(k);m.disableLighting=true;own.push(m);matCache.set(key,m);return m;};
-  // A surface from one of the repository's texture sets: colour and (above Low) a normal map; `glow` re-uses the colour map as a faint emissive so the weathering
-  // still reads where no lamp reaches ("dark is not black").
+  /* Surfaces. Low keeps the plain (Standard) materials it had. Medium and above are physically based: roughness, metalness and a normal map on every main
+     surface, so the metal, the concrete, the glass and the damp floors answer the lamps and show reflections.
+     Each material carries a tag (metadata.mk) that says what it is for the reflections: 'floor' (it shows the mirror), 'fx' (light pools and contact
+     shadows: never reflected), 'glow' (signs, tubes, screens), 'core' (the room itself). */
+  const tag=(m,t)=>{m.metadata={...(m.metadata||{}),mk:t};return m;},lin=hex=>B.Color3.FromHexString(hex).toLinearSpace();
+  const tile=t=>{t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;return t;};   // a DynamicTexture clamps by default
+  let seed=20261116;const rnd=()=>(seed=(seed*1664525+1013904223)>>>0)/4294967296;
+  const tex=(w,h,draw)=>{const t=new B.DynamicTexture('milked-tex',{width:w,height:h},scene,false);own.push(t);const g=t.getContext();draw(g,w,h,0);t.update();return t;};
+  // A normal map from a drawn height picture (white is high): how the painted surfaces get their relief.
+  const normalFrom=(size,draw,depth=2)=>{const c=document.createElement('canvas');c.width=c.height=size;const cg=c.getContext('2d');draw(cg,size,size);const src=cg.getImageData(0,0,size,size).data,t=new B.DynamicTexture('milked-normal',{width:size,height:size},scene,true);own.push(t);
+   const g=t.getContext(),out=g.createImageData(size,size),o=out.data,Hh=(x,y)=>src[(((y+size)%size)*size+((x+size)%size))*4]/255;
+   for(let y=0;y<size;y++)for(let x=0;x<size;x++){const ax=(Hh(x+1,y)-Hh(x-1,y))*depth,ay=(Hh(x,y+1)-Hh(x,y-1))*depth,l=1/Math.hypot(ax,ay,1),i=(y*size+x)*4;o[i]=(-ax*l*.5+.5)*255;o[i+1]=(ay*l*.5+.5)*255;o[i+2]=(l*.5+.5)*255;o[i+3]=255;}
+   g.putImageData(out,0,0);t.update();return tile(t);};
+  // fine scratches and small dents for the plain dark metal parts (frames, trims, doors)
+  let scuffT=null;const scuff=()=>scuffT||(scuffT=normalFrom(256,(g,w,h)=>{g.fillStyle='#808080';g.fillRect(0,0,w,h);seed=313;g.lineWidth=1;for(let i=0;i<300;i++){const x=rnd()*w,y=rnd()*h,l=10+rnd()*90,a=(rnd()-.5)*.5+(rnd()<.2?1.5:0);g.strokeStyle=rnd()<.5?'rgba(255,255,255,.3)':'rgba(0,0,0,.34)';g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(a)*l,y+Math.sin(a)*l);g.stroke();}
+   for(let i=0;i<26;i++){const x=rnd()*w,y=rnd()*h,r=3+rnd()*9,gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(0,0,0,.5)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);}},1.6));
+  // How each plain-coloured material is finished on Medium and above: [metalness, roughness]. Anything not listed is a matt non-metal.
+  const FINISH={metal:[.9,.4],trim:[.85,.36],dark:[.55,.5],black:[.5,.42],door:[.8,.36],stand:[.8,.42],cam:[.6,.4],lens:[.1,.08],brass:[1,.3],mirror:[1,.06],dome:[.2,.12],'pipe-red':[.5,.5],'door-glass':[0,.05],glass:[0,.04],acrylic:[0,.08],crt:[.2,.3],mug:[0,.25],bin:[.7,.5],dumpster:[.6,.55],'dumpster-lid':[.6,.5],fire:[.3,.35],bucket:[0,.4],chaise:[0,.5],ottoman:[0,.5],'stool-p':[0,.5]};
+  const CORE=/^(metal|trim|dark|black|door|stand|mirror|door-glass|glass)$/,SCUFFED=/^(metal|trim|dark|black|door)$/;
+  const M=(name,hex,em,alpha)=>{const key='m'+name+hex+em+alpha;if(matCache.has(key))return matCache.get(key);let m;
+   if(low){m=new B.StandardMaterial('milked-'+name,scene);m.diffuseColor=B.Color3.FromHexString(hex);m.specularColor=new B.Color3(.2,.2,.24);if(em)m.emissiveColor=B.Color3.FromHexString(em);}
+   else{const f=FINISH[name]||[0,.72];m=new B.PBRMaterial('milked-'+name,scene);m.albedoColor=lin(hex);m.metallic=f[0];m.roughness=f[1];m.usePhysicalLightFalloff=!interior;if(em)m.emissiveColor=lin(em);if(SCUFFED.test(name)){m.bumpTexture=scuff();m.bumpTexture.level=.7;}pbrs.push(m);}
+   if(alpha!=null){m.alpha=alpha;m.backFaceCulling=false;}m.maxSimultaneousLights=8;if(CORE.test(name))tag(m,'core');own.push(m);matCache.set(key,m);return m;};
+  const G=(name,hex,k=1)=>{const key='g'+name+hex+k;if(matCache.has(key))return matCache.get(key);const m=new B.StandardMaterial('milked-'+name,scene);m.diffuseColor=B.Color3.Black();m.specularColor=B.Color3.Black();m.emissiveColor=B.Color3.FromHexString(hex).scale(low?k:k*1.5);m.disableLighting=true;own.push(m);matCache.set(key,m);return tag(m,'glow');};
+  // A surface from one of the repository's texture sets. Low: colour only. Medium and above: colour, normal map and either the set's own occlusion /
+  // roughness / metalness map (`orm`) or plain numbers. `glow` re-uses the colour map as a faint light of its own so the weathering still reads where no lamp
+  // reaches ("dark is not black"). `wet` gives a floor its damp patches (below); `f0` is how strongly a non-metal mirrors what is in front of it.
   const fileTex=(rel,level)=>{const t=new B.Texture(HERE+'assets/'+rel,scene);t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;if(level!=null)t.level=level;own.push(t);return t;};
-  const surf=(name,set,sep,tint,o={})=>{const m=new B.StandardMaterial('milked-'+name,scene);m.diffuseTexture=fileTex(set+sep+'color.jpg');m.diffuseColor=B.Color3.FromHexString(tint);if(!low){m.bumpTexture=fileTex(set+sep+'normal.jpg');m.bumpTexture.level=o.bump??.8;}
-   const s=o.spec??.12;m.specularColor=new B.Color3(s,s,s*1.08);m.specularPower=o.power??32;if(o.glow)m.emissiveTexture=fileTex(set+sep+'color.jpg',o.glow);m.maxSimultaneousLights=8;if(o.twoSided)m.backFaceCulling=false;own.push(m);return m;};
+  const ormOn=(m,t)=>{m.metallicTexture=t;m.useRoughnessFromMetallicTextureAlpha=false;m.useRoughnessFromMetallicTextureGreen=true;m.useMetallnessFromMetallicTextureBlue=true;m.useAmbientOcclusionFromMetallicTextureRed=true;};
+  // The damp floor: a drawn roughness map (green channel) of smooth wet patches on a duller floor, with drag marks. It repeats every 7 m or so, not with the tiles.
+  let wetT=null;const wetMap=()=>{if(wetT)return wetT;wetT=tile(tex(512,512,(g,w,h)=>{g.fillStyle='rgb(255,118,0)';g.fillRect(0,0,w,h);seed=4242;
+    for(let i=0;i<30;i++){const x=rnd()*w,y=rnd()*h,r=28+rnd()*74,sx=1+rnd()*.9,a=rnd()*3;for(const ox of [-w,0,w])for(const oy of [-h,0,h]){g.save();g.translate(x+ox,y+oy);g.rotate(a);g.scale(sx,1);const gr=g.createRadialGradient(0,0,r*.3,0,0,r);gr.addColorStop(0,'rgba(255,14,0,.96)');gr.addColorStop(.72,'rgba(255,24,0,.8)');gr.addColorStop(1,'rgba(255,118,0,0)');g.fillStyle=gr;g.beginPath();g.arc(0,0,r,0,7);g.fill();g.restore();}}
+    for(let i=0;i<150;i++){g.fillStyle='rgba(255,'+(150+Math.floor(rnd()*70))+',0,.4)';g.fillRect(rnd()*w,rnd()*h,16+rnd()*90,1+rnd()*2.4);}}));wetT.uScale=wetT.vScale=.31;return wetT;};
+  const surf=(name,set,sep,tint,o={})=>{let m;
+   if(low){m=new B.StandardMaterial('milked-'+name,scene);m.diffuseTexture=fileTex(set+sep+'color.jpg');m.diffuseColor=B.Color3.FromHexString(tint);const s=o.spec??.12;m.specularColor=new B.Color3(s,s,s*1.08);m.specularPower=o.power??32;if(o.glow)m.emissiveTexture=fileTex(set+sep+'color.jpg',o.glow);}
+   else{m=new B.PBRMaterial('milked-'+name,scene);const c=fileTex(set+sep+'color.jpg'),p=o.pt??1;m.albedoTexture=c;m.albedoColor=new B.Color3(p,p,p*1.05);m.bumpTexture=fileTex(set+sep+'normal.jpg');m.bumpTexture.level=o.bump??1;m.usePhysicalLightFalloff=!interior;
+    if(o.orm){ormOn(m,fileTex(set+sep+'orm.jpg'));m.metallic=o.metal??1;m.roughness=o.rough??1;}else if(o.wet){ormOn(m,wetMap());m.metallic=1;m.roughness=1;}else{m.metallic=o.metal??0;m.roughness=o.rough??.7;}
+    if(o.f0)m.metallicF0Factor=o.f0;if(o.glow){m.emissiveTexture=c;const e=o.glow*(o.lift??.6);m.emissiveColor=new B.Color3(e,e,e*1.06);}pbrs.push(m);}
+   m.maxSimultaneousLights=8;if(o.twoSided)m.backFaceCulling=false;own.push(m);return tag(m,o.tag||'core');};
   const KIT='textures/district-interior/kit_';
   const S={
-   wall:surf('wall',KIT+'gunmetal','_','#7c7a88',{spec:.24,power:42,glow:.2}),            // near-black weathered metal: scratches and rust blooms
-   concrete:surf('concrete',KIT+'concrete','_','#a9a6b2',{spec:.05,glow:.2}),             // stained, streaked concrete panels (inside)
-   front:surf('front',KIT+'concrete','_','#c4c1cc',{spec:.06,glow:.42}),                  // the same concrete on the street, lifted a little for the night
-   floor:surf('floor','textures/ncz/concrete-mold','-','#6a6574',{spec:.55,power:96,glow:.16,bump:.5}),   // dark, wet-looking
-   steel:surf('steel',KIT+'steel','_','#6f6d78',{spec:.42,power:64,glow:.16}),            // brushed metal: doors, ducts, frames
-   rust:surf('rust',KIT+'metal','_','#b9b2b4',{spec:.16,glow:.24}),                       // dark oxidised metal: ceilings, pipes, old plant
-   wood:surf('wood','vr/textures/wood-floor','-','#8d7667',{spec:.28,power:56,glow:.16}),
-   cloth:surf('cloth','vr/textures/fabric','-','#5d5f69',{spec:.04,glow:.2,twoSided:true})};
-  const metal=M('metal','#1a1920','#0b0a10'),trim=M('trim','#3c3946','#1c1a24'),dark=M('dark','#121017','#08070c'),black=M('black','#08080b','#040406');
+   wall:surf('wall',KIT+'gunmetal','_','#7c7a88',{spec:.24,power:42,glow:.2,orm:1,pt:2.6}),              // near-black weathered metal: scratches and rust blooms
+   concrete:surf('concrete',KIT+'concrete','_','#a9a6b2',{spec:.05,glow:.2,orm:1,pt:2.6}),              // stained, streaked concrete panels (inside)
+   front:surf('front',KIT+'concrete','_','#c4c1cc',{spec:.06,glow:.42,orm:1,pt:2.4}),                   // the same concrete on the street, lifted a little for the night
+   floor:surf('floor','textures/ncz/concrete-mold','-','#6a6574',{spec:.55,power:96,glow:.16,bump:.5,wet:1,f0:6,pt:1.1,tag:'floor'}),   // dark and damp: it mirrors the neon
+   steel:surf('steel',KIT+'steel','_','#6f6d78',{spec:.42,power:64,glow:.16,orm:1,pt:1.8}),                   // brushed metal: doors, ducts, frames
+   rust:surf('rust',KIT+'metal','_','#b9b2b4',{spec:.16,glow:.24,orm:1,pt:2.6}),                        // dark oxidised metal: ceilings, pipes, old plant
+   wood:surf('wood','vr/textures/wood-floor','-','#8d7667',{spec:.28,power:56,glow:.16,rough:.32,f0:3,pt:1.3,tag:'floor'}),   // lacquered boards
+   cloth:surf('cloth','vr/textures/fabric','-','#5d5f69',{spec:.04,glow:.2,twoSided:true,rough:.95,pt:1.1})};
+  // (On Low a few near-identical dark materials are one, so that the contact shadows and the merged light pools cost it no extra draw calls.)
+  const metal=M('metal','#1a1920','#0b0a10'),trim=M('trim','#3c3946','#1c1a24'),dark=low?metal:M('dark','#121017','#08070c'),black=M('black','#08080b','#040406');
   const pink=G('pink',PINK),green=G('green',GREEN),glowW=G('white',WHITE),red=G('red',RED),pinkDim=G('pink-dim',PINK,.45),greenDim=G('green-dim',GREEN,.4),warm=G('warm',WARM,.8);
   const tone=c=>c==='pink'?pink:green,hexOf=c=>c==='pink'?PINK:GREEN;
   // put(): a mesh that is merged with its material neighbours at the end (static), or kept (animated, or added after the merge).
@@ -57,11 +93,13 @@
   const cone=(dia,h,x,y,z,mat,seg=10)=>put(B.MeshBuilder.CreateCylinder('milked-cone',{diameterBottom:dia,diameterTop:0,height:h,tessellation:seg},scene),mat,x,y,z);
   const ball=(dia,x,y,z,mat,sy=1)=>{const m=put(B.MeshBuilder.CreateSphere('milked-ball',{diameter:dia,segments:8},scene),mat,x,y,z);m.scaling.y=sy;return m;};
   const torus=(dia,th,x,y,z,mat,rx,ry)=>{const m=put(B.MeshBuilder.CreateTorus('milked-ring',{diameter:dia,thickness:th,tessellation:28},scene),mat,x,y,z);m.rotation.set(rx||0,ry||0,0);return m;};
-  const tex=(w,h,draw)=>{const t=new B.DynamicTexture('milked-tex',{width:w,height:h},scene,false);own.push(t);const g=t.getContext();draw(g,w,h,0);t.update();return t;};
-  const tile=t=>{t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;return t;};   // a DynamicTexture clamps by default
   // A painted surface (drawn here): lit, with a faint glow of its own drawing.
-  const painted=(name,size,draw,o={})=>{const m=new B.StandardMaterial('milked-'+name,scene);m.diffuseTexture=tile(tex(size,size,draw));const s=o.spec??.1;m.specularColor=new B.Color3(s,s,s);m.specularPower=o.power??32;if(o.glow){const e=tile(tex(size,size,draw));e.level=o.glow;m.emissiveTexture=e;}m.maxSimultaneousLights=8;own.push(m);return m;};
-  const emissiveMat=(t,alpha,cull)=>{const m=new B.StandardMaterial('milked-screen',scene);m.diffuseColor=B.Color3.Black();m.specularColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;m.backFaceCulling=!!cull;if(alpha){m.opacityTexture=t;}own.push(m);return m;};
+  const painted=(name,size,draw,o={})=>{let m;
+   if(low){m=new B.StandardMaterial('milked-'+name,scene);m.diffuseTexture=tile(tex(size,size,draw));const s=o.spec??.1;m.specularColor=new B.Color3(s,s,s);m.specularPower=o.power??32;if(o.glow){const e=tile(tex(size,size,draw));e.level=o.glow;m.emissiveTexture=e;}}
+   else{m=new B.PBRMaterial('milked-'+name,scene);const c=tile(tex(size,size,draw)),p=o.pt??1;m.albedoTexture=c;m.albedoColor=new B.Color3(p,p,p);m.metallic=o.metal??0;m.roughness=o.rough??.6;m.usePhysicalLightFalloff=!interior;if(o.height){m.bumpTexture=normalFrom(size,o.height,o.depth??2);m.bumpTexture.level=o.bump??1;}
+    if(o.f0)m.metallicF0Factor=o.f0;if(o.glow){m.emissiveTexture=c;const e=o.glow*(o.lift??.5);m.emissiveColor=new B.Color3(e,e,e);}pbrs.push(m);}
+   m.maxSimultaneousLights=8;own.push(m);return tag(m,o.tag||'core');};
+  const emissiveMat=(t,alpha,cull)=>{const m=new B.StandardMaterial('milked-screen',scene);m.diffuseColor=B.Color3.Black();m.specularColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;m.backFaceCulling=!!cull;if(alpha){m.opacityTexture=t;}own.push(m);return tag(m,'glow');};
   const plane=(w,h,mat,x,y,z,ry)=>{const p=put(B.MeshBuilder.CreatePlane('milked-plane',{width:w,height:h},scene),mat,x,y,z,true);p.rotation.y=ry;return p;};
   // A screen: a plane showing a small canvas that redraws every `period` seconds (cheap; no video).
   const screen=(w,h,px,py,pz,ry,cw,ch,draw,period=1.1)=>{const t=tex(cw,ch,draw),p=plane(w,h,emissiveMat(t),px,py,pz,ry);screens.push({t,draw,cw,ch,next:Math.random()*period,period,mesh:p});return p;};
@@ -83,19 +121,36 @@
   const plate=(w,h,px,py,pz,ry,lines,o={})=>{const cw=Math.round(256*Math.max(1,w/h)),ch=Math.round(256*Math.max(1,h/w));return sign(w,h,px,py,pz,ry,cw,ch,(g,W,Hh)=>{g.fillStyle=o.bg||'#0b0b10';g.fillRect(0,0,W,Hh);g.strokeStyle=o.border||'#4a4e58';g.lineWidth=4;g.strokeRect(4,4,W-8,Hh-8);
    g.textAlign='center';g.textBaseline='middle';const total=lines.reduce((a,l)=>a+l[2]*1.35,0);let y=(Hh-total)/2;for(const [t,c,s,han] of lines){y+=s*.675;if(t==='@logo'){logo(g,W/2,y,s);}else{g.font=han?HAN(s):FONT(s);g.fillStyle=c;if(o.neon){g.shadowColor=c;g.shadowBlur=s*.35;}g.fillText(t,W/2,y);g.shadowBlur=0;}y+=s*.675;}});};
   const flat=p=>{p.rotation.x=PI/2;return p;};   // a sign lying on the floor, readable from above
-  let seed=20261116;const rnd=()=>(seed=(seed*1664525+1013904223)>>>0)/4294967296;
   // A soft pool of light on a floor or a wall (radial glow, drawn once per colour).
-  const poolT=new Map(),pool=(hex,w,d,x,y,z,k=.5)=>{let m=poolT.get(hex+k);if(!m){const t=tex(128,128,(g,W,Hh)=>{g.clearRect(0,0,W,Hh);const gr=g.createRadialGradient(64,64,4,64,64,62),c=B.Color3.FromHexString(hex),rgb=Math.round(c.r*255)+','+Math.round(c.g*255)+','+Math.round(c.b*255);gr.addColorStop(0,'rgba('+rgb+','+k+')');gr.addColorStop(1,'rgba('+rgb+',0)');g.fillStyle=gr;g.fillRect(0,0,W,Hh);});m=emissiveMat(t,true);m.disableDepthWrite=true;poolT.set(hex+k,m);}
-   return put(B.MeshBuilder.CreatePlane('milked-pool',{width:w,height:d},scene),m,x,y,z,true);};
+  // On Low every pool of one colour is a single merged mesh (its strength is in the corners' alpha), so they cost three draw calls in all. Above Low they stay
+  // separate, as they were (the bloom layer treats them one by one), and inside they are fainter there: the lamps and the floor's reflections do most of that work.
+  const poolT=new Map(),pool=(hex,w,d,x,y,z,k=.5)=>{if(!low&&interior)k=+(k*.6).toFixed(3);const key=low?hex:hex+k,a=low?1:k;let m=poolT.get(key);if(!m){const t=tex(128,128,(g,W,Hh)=>{g.clearRect(0,0,W,Hh);const gr=g.createRadialGradient(64,64,4,64,64,62),c=B.Color3.FromHexString(hex),rgb=Math.round(c.r*255)+','+Math.round(c.g*255)+','+Math.round(c.b*255);gr.addColorStop(0,'rgba('+rgb+','+a+')');gr.addColorStop(1,'rgba('+rgb+',0)');g.fillStyle=gr;g.fillRect(0,0,W,Hh);});m=tag(emissiveMat(t,true),'fx');m.disableDepthWrite=true;poolT.set(key,m);}
+   const p=put(B.MeshBuilder.CreatePlane('milked-pool',{width:w,height:d},scene),m,x,y,z,!low);if(low){p.setVerticesData(B.VertexBuffer.ColorKind,[1,1,1,k,1,1,1,k,1,1,1,k,1,1,1,k]);p.hasVertexAlpha=true;}return p;};
+  // A contact shadow: a soft dark patch on the floor under a person or a piece of furniture (every quality; all of them are one merged mesh).
+  const blobM=(()=>{const t=tex(64,64,(g,W,Hh)=>{g.clearRect(0,0,W,Hh);const gr=g.createRadialGradient(32,32,3,32,32,31);gr.addColorStop(0,'rgba(0,0,0,.82)');gr.addColorStop(.55,'rgba(0,0,0,.5)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,W,Hh);}),m=new B.StandardMaterial('milked-contact-shadow',scene);m.diffuseColor=B.Color3.Black();m.specularColor=B.Color3.Black();m.emissiveColor=B.Color3.Black();m.disableLighting=true;m.opacityTexture=t;m.disableDepthWrite=true;own.push(m);return tag(m,'fx');})();
+  const blob=(x,z,w,d=w,y=.011)=>{const p=put(B.MeshBuilder.CreatePlane('milked-contact-shadow',{width:w,height:d},scene),blobM,x,y,z);p.rotation.x=PI/2;return p;};
+  // Reflections (Medium and above). mirror(): the picture a flat wet floor shows, drawn at half size, softened where the floor is rough. The caller lists
+  // what it shows with reflectIn().
+  const mirror=(y=.005)=>{const t=new B.MirrorTexture('milked-mirror',{ratio:high?.75:.5},scene,true,0,B.Texture.TRILINEAR_SAMPLINGMODE);t.mirrorPlane=new B.Plane(0,-1,0,y);t.clearColor=new B.Color4(0,0,0,1);t.renderList=[];own.push(t);return t;};
+  // What a reflection shows: never the floors themselves, the light pools or the contact shadows; on Medium the rooms, the signs and the people, on High everything.
+  // `lit` (the street's puddles on Medium): only what glows, which is all a puddle shows of a dark wall at night.
+  const reflectIn=(extra=[],lit=false)=>node.getChildMeshes(false).filter(m=>{const t=m.material?.metadata?.mk;return m.isEnabled()&&m.material&&t!=='floor'&&t!=='fx'&&(high||t==='glow'||(t==='core'&&!lit));}).concat(high?[]:extra);
   const wash=(hex,w,h,x,y,z,ry,k=.4)=>{const p=pool(hex,w,h,x,y,z,k);p.rotation.y=ry;return p;};
 
   // ---------------- painted surfaces ----------------
   // Ribbed rubber matting, a slotted steel floor grating, a quilted (diamond-padded) wall.
-  const rubber=painted('rubber',128,(g,w,h)=>{g.fillStyle='#16161a';g.fillRect(0,0,w,h);for(let y=0;y<h;y+=8){g.fillStyle='#26262c';g.fillRect(0,y,w,3);g.fillStyle='#0a0a0c';g.fillRect(0,y+5,w,2);}},{spec:.18,glow:.25});
+  const rubber=painted('rubber',128,(g,w,h)=>{g.fillStyle='#16161a';g.fillRect(0,0,w,h);for(let y=0;y<h;y+=8){g.fillStyle='#26262c';g.fillRect(0,y,w,3);g.fillStyle='#0a0a0c';g.fillRect(0,y+5,w,2);}},{spec:.18,glow:.25,rough:.78,tag:'floor',
+   height:(g,w,h)=>{g.fillStyle='#505050';g.fillRect(0,0,w,h);for(let y=0;y<h;y+=8){g.fillStyle='#e0e0e0';g.fillRect(0,y,w,3);g.fillStyle='#000';g.fillRect(0,y+5,w,2);}}});
+  const slots=(g,w,h)=>{for(let y=10;y<h;y+=32)for(let x=8+(Math.floor(y/32)%2)*20;x<w;x+=40){g.beginPath();g.roundRect(x,y,26,11,5);g.fill();}};
   const grate=painted('grate',256,(g,w,h)=>{g.fillStyle='#24262c';g.fillRect(0,0,w,h);seed=771;for(let i=0;i<900;i++){g.fillStyle='rgba('+(rnd()<.5?'255,255,255':'0,0,0')+','+(.03+rnd()*.06)+')';g.fillRect(rnd()*w,rnd()*h,2+rnd()*10,1);}
-   g.fillStyle='#050507';for(let y=10;y<h;y+=32)for(let x=8+(Math.floor(y/32)%2)*20;x<w;x+=40){g.beginPath();g.roundRect(x,y,26,11,5);g.fill();}g.strokeStyle='rgba(0,0,0,.6)';g.lineWidth=3;g.strokeRect(1.5,1.5,w-3,h-3);g.strokeStyle='rgba(140,150,165,.25)';g.lineWidth=1;g.strokeRect(4,4,w-8,h-8);},{spec:.5,power:70,glow:.3});
-  const quilt=painted('quilt',256,(g,w,h)=>{g.fillStyle='#17161b';g.fillRect(0,0,w,h);const n=4,s=w/n;for(let i=-1;i<=n;i++)for(let j=-1;j<=n*2;j++){const cx=i*s+(j%2?s/2:0)+s/2,cy=j*s/2;const gr=g.createRadialGradient(cx-s*.08,cy-s*.1,2,cx,cy,s*.55);gr.addColorStop(0,'#3a3840');gr.addColorStop(.6,'#1f1e24');gr.addColorStop(1,'#09090b');g.fillStyle=gr;g.beginPath();g.moveTo(cx,cy-s/2);g.lineTo(cx+s/2,cy);g.lineTo(cx,cy+s/2);g.lineTo(cx-s/2,cy);g.closePath();g.fill();}
-   g.fillStyle='#050506';for(let i=0;i<=n;i++)for(let j=0;j<=n*2;j++){g.beginPath();g.arc(i*s+(j%2?s/2:0),j*s/2,3.2,0,7);g.fill();}},{spec:.22,power:24,glow:.42});
+   for(let i=0;i<7;i++){const x=rnd()*w,y=rnd()*h,r=14+rnd()*30,gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(120,62,30,.4)');gr.addColorStop(1,'rgba(120,62,30,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);}   // rust blooms
+   g.fillStyle='#050507';slots(g,w,h);g.strokeStyle='rgba(0,0,0,.6)';g.lineWidth=3;g.strokeRect(1.5,1.5,w-3,h-3);g.strokeStyle='rgba(140,150,165,.25)';g.lineWidth=1;g.strokeRect(4,4,w-8,h-8);},{spec:.5,power:70,glow:.3,metal:.7,rough:.34,pt:2.2,f0:4,tag:'floor',depth:2.6,
+   height:(g,w,h)=>{g.fillStyle='#b0b0b0';g.fillRect(0,0,w,h);seed=772;for(let i=0;i<260;i++){g.fillStyle='rgba('+(rnd()<.5?'255,255,255':'0,0,0')+',.12)';g.fillRect(rnd()*w,rnd()*h,4+rnd()*30,1);}g.fillStyle='#fff';for(let y=26;y<h;y+=32)for(let x=28+(Math.floor(y/32)%2)*20;x<w;x+=40){g.beginPath();g.arc(x,y,2.6,0,7);g.fill();}
+    g.filter='blur(1.2px)';g.fillStyle='#000';slots(g,w,h);g.filter='none';g.strokeStyle='#000';g.lineWidth=4;g.strokeRect(0,0,w,h);}});
+  const diamonds=(g,w,inner,mid,outer,stud)=>{const n=4,s=w/n;for(let i=-1;i<=n;i++)for(let j=-1;j<=n*2;j++){const cx=i*s+(j%2?s/2:0)+s/2,cy=j*s/2;const gr=g.createRadialGradient(cx-s*.08,cy-s*.1,2,cx,cy,s*.55);gr.addColorStop(0,inner);gr.addColorStop(.6,mid);gr.addColorStop(1,outer);g.fillStyle=gr;g.beginPath();g.moveTo(cx,cy-s/2);g.lineTo(cx+s/2,cy);g.lineTo(cx,cy+s/2);g.lineTo(cx-s/2,cy);g.closePath();g.fill();}
+   g.fillStyle=stud;for(let i=0;i<=n;i++)for(let j=0;j<=n*2;j++){g.beginPath();g.arc(i*s+(j%2?s/2:0),j*s/2,3.2,0,7);g.fill();}};
+  const quilt=painted('quilt',256,(g,w,h)=>{g.fillStyle='#17161b';g.fillRect(0,0,w,h);diamonds(g,w,'#3a3840','#1f1e24','#09090b','#050506');},{spec:.22,power:24,glow:.42,rough:.42,f0:1.6,pt:1.5,depth:3.2,lift:.3,
+   height:(g,w,h)=>{g.fillStyle='#000';g.fillRect(0,0,w,h);diamonds(g,w,'#ffffff','#b4b4b4','#000000','#000000');}});
   // Abstract posters (text and shapes only: no people, no brands).
   const POSTERS=[
    (g,w,h)=>{g.fillStyle='#120a14';g.fillRect(0,0,w,h);g.strokeStyle=PINK;g.lineWidth=6;for(let i=0;i<6;i++){g.globalAlpha=.9-i*.13;g.beginPath();g.arc(w/2,h*.42,20+i*22,0,7);g.stroke();}g.globalAlpha=1;droplets(g,w/2-6,h*.42,90);g.fillStyle='#fff';g.font=LOGO(34);g.textAlign='center';g.fillText('LIVE',w/2,h*.82);g.fillStyle=GREEN;g.font=FONT(18);g.fillText('EVERY NIGHT',w/2,h*.92);},
@@ -143,7 +198,7 @@
      const bb=n.getHierarchyBoundingVectors(true),sc=h/Math.max(.01,bb.max.y-bb.min.y);n.scaling.setAll(sc);n.position.y=y-bb.min.y*sc;for(const m of n.getChildMeshes()){m.isPickable=false;m.freezeWorldMatrix?.();}})
     .catch(e=>{if(disposed)return;console.info('[Milked] prop not available: '+name);try{standIn?.();}catch{}}));};
   // The stand-ins (also what Low quality shows).
-  const standM=M('stand','#23232b','#0e0e13'),camM=M('cam','#101016','#07070b'),lens=M('lens','#1c2a3a','#0a1220'),leafM=M('leaf','#1c5a3a','#0c2a1a'),potM=M('pot','#15151a','#09090c');
+  const standM=low?trim:M('stand','#23232b','#0e0e13'),camM=low?black:M('cam','#101016','#07070b'),lens=M('lens','#1c2a3a','#0a1220'),leafM=M('leaf','#1c5a3a','#0c2a1a'),potM=low?metal:M('pot','#15151a','#09090c');
   const tripod=(x,z,h,a0=0)=>{cyl(.04,h,x,h/2,z,standM,false,8);for(let k=0;k<3;k++){const a=k*2.094+a0;rbox(.03,.72,.03,x+Math.sin(a)*.2,.33,z+Math.cos(a)*.2,standM,Math.cos(a)*.6,0,-Math.sin(a)*.6);}};
   const simple={
    camera:(x,z,yaw,h=1.45)=>{tripod(x,z,h-.1);rbox(.2,.16,.32,x,h,z,camM,0,yaw,0);const ln=cyl(.11,.14,x+Math.sin(yaw)*.22,h,z+Math.cos(yaw)*.22,lens,false,12);ln.rotation.set(PI/2,yaw,0);box(.035,.035,.035,x+Math.sin(yaw)*.14,h+.1,z+Math.cos(yaw)*.14,red);},
@@ -207,13 +262,23 @@
    box(INNER.half*2+.1,.05,.05,dx,INNER.height+.11,vz0+.15,greenDim);
    // outer doors: tall dark brushed-metal leaves, a narrow vision panel in each, arrow marks at the centre seam; logo and hazard band on the inside
    // the vision panels are painted: the rainy street seen from inside, the warm pink of the lobby seen from the street
-   const rainy=(g,w,h)=>{seed=9;const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#0b1d22');gr.addColorStop(.6,'#11272e');gr.addColorStop(1,'#1c2c34');g.fillStyle=gr;g.fillRect(0,0,w,h);g.filter='blur(3px)';for(let i=0;i<14;i++){g.fillStyle=['#ff3fb4','#39ff9c','#ffd9a8','#ff4a3a','#7fd8ff'][i%5];g.globalAlpha=.35+rnd()*.5;g.beginPath();g.arc(rnd()*w,20+rnd()*(h-60),3+rnd()*7,0,7);g.fill();}g.filter='none';g.globalAlpha=.45;g.strokeStyle='#cfe6ff';g.lineWidth=1;for(let i=0;i<40;i++){const x=rnd()*w,y=rnd()*h;g.beginPath();g.moveTo(x,y);g.lineTo(x-2,y+12);g.stroke();}g.globalAlpha=1;};
    const glowIn=(g,w,h)=>{const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#3a1230');gr.addColorStop(.5,'#5a1c46');gr.addColorStop(1,'#1c0a18');g.fillStyle=gr;g.fillRect(0,0,w,h);g.fillStyle='rgba(255,138,210,.5)';g.fillRect(0,h*.34,w,6);};
+   // from inside, each street door is a tall pane of rain-streaked glass: the buildings across the side street, their signs and lanterns, the wet road (one painting
+   // across the two leaves; the street itself is not loaded while the player is inside)
+   const viewT=tex(512,640,(g,w,h)=>{seed=9;const sky=g.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#060b12');sky.addColorStop(.5,'#0e1e27');sky.addColorStop(.62,'#173039');sky.addColorStop(1,'#0a1218');g.fillStyle=sky;g.fillRect(0,0,w,h);
+    g.filter='blur(2px)';for(const [x,bw,top] of [[-10,150,60],[150,120,130],[280,110,36],[400,130,110]]){g.fillStyle='#0a1016';g.fillRect(x,top,bw-6,h*.6-top);for(let i=0;i<12;i++){if(rnd()<.5)continue;g.fillStyle=rnd()<.6?'rgba(255,196,120,.7)':'rgba(140,200,255,.45)';g.fillRect(x+12+(i%3)*((bw-30)/3),top+18+Math.floor(i/3)*46,(bw-60)/3,26);}}
+    const signs=[[70,150,26,150,PINK],[250,110,22,190,GREEN],[395,170,30,120,'#ff4a3a'],[470,90,18,170,'#7fd8ff'],[160,262,90,20,WARM]];
+    g.filter='blur(4px)';g.globalCompositeOperation='lighter';for(const [x,y,sw,sh,c] of signs){g.fillStyle=c;g.globalAlpha=.85;g.fillRect(x,y,sw,sh);g.globalAlpha=.3;g.fillRect(x-10,y-10,sw+20,sh+20);}
+    g.fillStyle='#ff3a2a';g.globalAlpha=.9;for(const [x,y] of [[324,240],[352,246],[380,240]]){g.beginPath();g.arc(x,y,9,0,7);g.fill();}
+    g.filter='blur(8px)';for(const [x,,sw,,c] of signs){const gr=g.createLinearGradient(0,h*.62,0,h);gr.addColorStop(0,c);gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.globalAlpha=.5;g.fillRect(x-4,h*.62,sw+8,h*.36);}
+    g.filter='none';g.globalCompositeOperation='source-over';g.globalAlpha=1;g.strokeStyle='rgba(200,225,255,.2)';g.lineWidth=1;for(let i=0;i<280;i++){const x=rnd()*w,y=rnd()*h,l=10+rnd()*26;g.beginPath();g.moveTo(x,y);g.lineTo(x-l*.16,y+l);g.stroke();}
+    for(let i=0;i<36;i++){const x=rnd()*w,y=rnd()*h*.8,l=30+rnd()*120,gr=g.createLinearGradient(0,y,0,y+l);gr.addColorStop(0,'rgba(220,235,255,0)');gr.addColorStop(1,'rgba(220,235,255,.3)');g.strokeStyle=gr;g.lineWidth=1.6;g.beginPath();g.moveTo(x,y);g.lineTo(x+(rnd()-.5)*4,y+l);g.stroke();g.fillStyle='rgba(230,240,255,.5)';g.beginPath();g.arc(x,y+l,2,0,7);g.fill();}
+    const v=g.createRadialGradient(w/2,h/2,h*.25,w/2,h/2,h*.72);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.5)');g.fillStyle=v;g.fillRect(0,0,w,h);});viewT.level=.9;const viewM=emissiveMat(viewT,false,true);
    const dh=DOOR.half,dH=DOOR.height;
    for(const s of [-1,1]){const f=put(B.MeshBuilder.CreateBox('milked-leaf',{width:dh-.01,height:dH-.04,depth:.07,faceUV:[0,1,2,3,4,5].map(()=>new B.Vector4(0,0,.5,1.3)),wrap:true},scene),S.steel,dx+s*dh/2,(dH-.04)/2,FZ,true);leaf('milked-door',f,'x',s*(dh-.05));
-    child(box(.2,1.16,.075,0,0,0,black,true),f,s*.3,.5,0);child(picture(.15,1.1,0,0,0,TOS,32,256,rainy,.9),f,s*.3,.5,-.04);child(picture(.15,1.1,0,0,0,TON,32,256,glowIn,.8),f,s*.3,.5,.04);child(box(.02,dH-.3,.08,0,0,0,black,true),f,-s*(dh/2-.02),0,0);child(box(.05,.6,.06,0,0,0,trim,true),f,-s*.22,-.2,.06);
+    child(box(.2,1.16,.075,0,0,0,black,true),f,s*.3,.5,0);{const p=B.MeshBuilder.CreatePlane('milked-street-view',{width:.76,height:1.72},scene);p.setVerticesData('uv',s<0?[0,0,.5,0,.5,1,0,1]:[.5,0,1,0,1,1,.5,1]);p.material=viewM;p.isPickable=false;child(p,f,0,.2,-.0455);for(const [bw,bh,bx,by] of [[.84,.05,0,1.085],[.84,.05,0,-.685],[.05,1.82,-.4,.2],[.05,1.82,.4,.2]])child(box(bw,bh,.03,0,0,0,metal,true),f,bx,by,-.05);}child(picture(.15,1.1,0,0,0,TON,32,256,glowIn,.8),f,s*.3,.5,.04);child(box(.02,dH-.3,.08,0,0,0,black,true),f,-s*(dh/2-.02),0,0);child(box(.05,.6,.06,0,0,0,trim,true),f,-s*.22,-.2,.06);
     child(sign(.16,.16,0,0,0,TON,64,64,(g,w,h)=>{g.clearRect(0,0,w,h);g.fillStyle='#d5dbe4';g.beginPath();if(s<0){g.moveTo(46,12);g.lineTo(18,32);g.lineTo(46,52);}else{g.moveTo(18,12);g.lineTo(46,32);g.lineTo(18,52);}g.fill();}),f,-s*(dh/2-.16),.15,.04);
-    decal(f,dh-.3,dH,TOS,-.04,-s*.14,.44);}
+    decal(f,dh-.3,dH,TOS,-.058,0,.44);}
    // what shows through the glass of the inner doors on the street side: a blurred glimpse of reception, painted (the inside is not built in that environment)
    if(!interior)picture(2.6,2.6,dx,1.3,vz0-.5,TON,256,256,(g,w,h)=>{g.fillStyle='#0b0910';g.fillRect(0,0,w,h);g.filter='blur(9px)';g.fillStyle='#2a0d22';g.fillRect(20,60,w-40,90);g.fillStyle=PINK;g.globalAlpha=.75;g.fillRect(64,84,128,26);g.globalAlpha=.5;g.fillRect(40,186,176,10);g.fillStyle=GREEN;g.globalAlpha=.4;g.fillRect(30,150,196,5);g.fillStyle='#fff';g.globalAlpha=.6;g.fillRect(196,84,18,22);g.globalAlpha=.5;g.fillStyle='#17131c';g.fillRect(50,160,156,60);g.filter='none';g.globalAlpha=1;},.75);}
   // ---- the rear lobby: a small airlock between the staff area and the service alley ----
@@ -235,12 +300,12 @@
    box(.26,.5,.14,lx1-.2,1.3,lz0+.6,M('fire','#7a1418','#30080a'));cyl(.13,.42,lx1-.22,.75,lz0+.6,M('fire','#7a1418','#30080a'),false,10);cyl(.3,.3,lx1-.32,.15,lz1-.5,M('bucket','#2c4a5a','#122028'),false,10);pipe(.03,1.2,'x',lx1-.3,.72,lz1-.45,trim).rotation.z=1.25;}
 
   // ---------------- merge static pieces by material (few draw calls) ----------------
-  function finish(){merged=true;for(const [mat,list] of groups){if(list.length>1){const mm=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(mm){mm.parent=node;mm.material=mat;mm.isPickable=false;mm.freezeWorldMatrix?.();}}else list[0].freezeWorldMatrix?.();}groups.clear();}
+  function finish(){merged=true;for(const [mat,list] of groups){if(list.length>1){const alphaIn=list.some(m=>m.hasVertexAlpha),mm=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(mm){mm.parent=node;mm.material=mat;mm.isPickable=false;if(alphaIn)mm.hasVertexAlpha=true;mm.freezeWorldMatrix?.();}}else list[0].freezeWorldMatrix?.();}groups.clear();}
   let clock=0;
   function animate(dt,cam,near=true){clock+=dt;if(!near)return;for(const s of screens){if(clock>s.next){s.next=clock+s.period;const g=s.t.getContext();s.draw(g,s.cw,s.ch,clock);s.t.update();}}
    if(cam)for(const o of autos){const want=Math.hypot(cam.x-o.cx,cam.z-o.cz)<o.r?1:0;if(o.k!==want){o.k+=Math.sign(want-o.k)*Math.min(Math.abs(want-o.k),dt*2.6);o.m.position[o.axis]=o.from+o.travel*o.k;}}}
   function dispose(){disposed=true;node.dispose(false,true);for(const c of containers)try{c.dispose();}catch{}containers.length=0;for(const o of own)try{o.dispose();}catch{}own.length=0;screens.length=0;autos.length=0;}
-  return {B,scene,node,low,interior,own,S,M,G,metal,trim,dark,black,pink,green,glowW,red,pinkDim,greenDim,warm,tone,hexOf,put,box,rbox,tbox,cyl,pipe,cone,ball,torus,tex,painted,emissiveMat,plane,screen,sign,picture,FONT,LOGO,HAN,drop,droplets,logo,logoSign,plate,flat,pool,wash,
+  return {B,scene,node,low,high,interior,own,pbrs,tag,lin,mirror,reflectIn,blob,blobM,normalFrom,S,M,G,metal,trim,dark,black,pink,green,glowW,red,pinkDim,greenDim,warm,tone,hexOf,put,box,rbox,tbox,cyl,pipe,cone,ball,torus,tex,painted,emissiveMat,plane,screen,sign,picture,FONT,LOGO,HAN,drop,droplets,logo,logoSign,plate,flat,pool,wash,
    rubber,grate,quilt,poster,photoWall,leaf,child,doorControl,auto,prop,simple,standM,leafM,potM,lantern,services,tube,drain,wallOf,seg,hazard,glassM,vestibule,lobby,finish,animate,dispose,rnd,reseed:v=>{seed=v;},get clock(){return clock;},get disposed(){return disposed;},late,screens,
    fx0,fx1,fz0,fz1,FZ,BZ,dx};
  }
@@ -332,9 +397,19 @@
    sign(1.1,1.1,89,1.5,bo-.02,TOS,128,128,(g,w,h)=>{g.clearRect(0,0,w,h);g.globalAlpha=.5;droplets(g,w/2-4,h/2-4,92);});}
 
   // ---------------- the two rooms that exist on both sides ----------------
+  // ---------------- the wet pavement in front of the shopfront (Medium and above) ----------------
+  // Shallow puddles that mirror the sign, the strips, the lit windows and the lanterns: the street's own puddles (dark, glossy), with a real reflection in them.
+  // No lamp is added out here: the street already carries ten lights on Medium and the scene's limit is twelve.
+  let wet=null,wetMirror=null,wetNext=0;
+  if(!low){wetMirror=k.mirror(.034);wetMirror.level=.9;const m=new B.StandardMaterial('milked-puddles',scene);m.diffuseColor=new B.Color3(.012,.016,.02);m.specularColor=new B.Color3(.7,.8,.9);m.specularPower=180;m.emissiveColor=new B.Color3(.01,.018,.022);m.reflectionTexture=wetMirror;
+   m.opacityTexture=k.tex(256,128,(g,w,h)=>{g.clearRect(0,0,w,h);k.reseed(61);for(let i=0;i<13;i++){const x=26+k.rnd()*(w-52),y=18+k.rnd()*(h-36),r=7+k.rnd()*13,a=k.rnd()*3,sx=1.3+k.rnd()*.8;g.save();g.translate(x,y);g.rotate(a);g.scale(sx,1);const gr=g.createRadialGradient(0,0,r*.55,0,0,r);gr.addColorStop(0,'rgba(255,255,255,.88)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.beginPath();g.arc(0,0,r,0,7);g.fill();g.restore();}});
+   k.own.push(m);k.tag(m,'fx');wet=k.put(B.MeshBuilder.CreatePlane('milked-puddles',{width:11,height:4.6},scene),m,dx+1.4,.034,FZ+2.75,true);wet.rotation.x=PI/2;}
+  // contact shadows under the things that stand on the pavement
+  k.blob(84.2,-73.22,.9,.9,.036);k.blob(87,-90.65,2.8,1.7,.036);k.blob(97.4,-92.75,1.8,1.5,.036);
   k.vestibule();k.lobby();k.finish();
   const doors=k.doorControl();
-  function tick(cam,dt){if(k.disposed)return;const d=cam?distance(cam.x,cam.z):999;if(d<40)doors.tick(dt,cam);k.animate(dt,cam,d<30);}
+  function tick(cam,dt){if(k.disposed)return;const d=cam?distance(cam.x,cam.z):999;if(d<40)doors.tick(dt,cam);k.animate(dt,cam,d<30);
+   if(wet){wet.setEnabled(d<36);if(d<36&&k.clock>wetNext){wetNext=k.clock+(k.clock<40?4:1e9);wetMirror.renderList=k.reflectIn([],true);}}}
   return {tick,inside:cam=>inside(cam),people:[],doors,area:'street',state:()=>({ready:!k.disposed,area:'street',doors:doors.state(),screens:k.screens.length}),dispose(){k.dispose();}};
  }
 
@@ -342,16 +417,60 @@
  // ================================================================ the INTERIOR (its own environment) ================================================================
  // build({scene,parent,quality}) -> {tick(time,player), doors, people, state(), dispose()}   (the renderer's zone handle)
  function build({scene,parent,quality}){
-  const B=root.BABYLON,k=kit({B,scene,parent,quality,area:AREA}),{S,M,G,box,rbox,tbox,cyl,pipe,cone,ball,torus,sign,picture,screen,plane,flat,pool,wash,plate,logoSign,poster,photoWall,metal,trim,dark,black,pink,green,greenDim,pinkDim,glowW,warm,red,tone,hexOf,logo,droplets,FONT,LOGO,HAN,low,fx0,fx1,fz0,fz1,FZ,BZ,dx,node,simple,prop,lantern,services,tube,drain,auto,child,wallOf,standM}=k;
-  const cx0=(fx0+fx1)/2,cz0=(fz0+fz1)/2,people=[],lights=[],loading=new Set();let last=null,looksAsked=.5;
+  const B=root.BABYLON,k=kit({B,scene,parent,quality,area:AREA}),{high,S,M,G,box,rbox,tbox,cyl,pipe,cone,ball,torus,sign,picture,screen,plane,flat,pool,wash,plate,logoSign,poster,photoWall,metal,trim,dark,black,pink,green,greenDim,pinkDim,glowW,warm,red,tone,hexOf,logo,droplets,FONT,LOGO,HAN,low,fx0,fx1,fz0,fz1,FZ,BZ,dx,node,simple,prop,lantern,services,tube,drain,auto,child,wallOf,standM}=k;
+  const cx0=(fx0+fx1)/2,cz0=(fz0+fz1)/2,people=[],lights=[],loading=new Set();let last=null,looksAsked=.5,faceNext=0;
   // ---- mood: a dark interior with a little haze; lamps and neon do the lighting. Everything is put back on dispose. ----
   const ip=scene.imageProcessingConfiguration,prev={clear:scene.clearColor.clone(),fogMode:scene.fogMode,fogDensity:scene.fogDensity,fogColor:scene.fogColor.clone(),exposure:ip.exposure,contrast:ip.contrast,env:scene.environmentIntensity};
-  scene.clearColor=new B.Color4(.012,.01,.016,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.011;scene.fogColor=new B.Color3(.04,.026,.045);ip.exposure=1.3;ip.contrast=1.18;scene.environmentIntensity=Math.min(prev.env??1,.3);
+  scene.clearColor=new B.Color4(.012,.01,.016,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.011;scene.fogColor=new B.Color3(.04,.026,.045);ip.exposure=1.3;ip.contrast=1.18;scene.environmentIntensity=low?Math.min(prev.env??1,.3):1;
   const sun=scene.getLightByName('sun'),ambient=scene.getLightByName('ambient'),lightPrev={sun:sun?.intensity,amb:ambient?.intensity,dif:ambient?.diffuse?.clone(),gnd:ambient?.groundColor?.clone()};
-  if(sun)sun.intensity=.02;if(ambient){ambient.intensity=low?1.05:.78;ambient.diffuse=new B.Color3(.74,.68,.82);if(ambient.groundColor)ambient.groundColor=new B.Color3(.2,.15,.23);}
-  // room lamps (Medium and above): four, so every material stays inside the eight-light limit with the sun, the sky light and nothing else
-  const lamp=(name,x,y,z,hex,intensity,range)=>{if(low)return;const L=new B.PointLight('milked-lamp-'+name,new B.Vector3(x,y,z),scene);L.parent=node;L.diffuse=B.Color3.FromHexString(hex);L.specular=B.Color3.FromHexString(hex).scale(.6);L.intensity=intensity;L.range=range;k.own.push(L);lights.push(L);return L;};
-  lamp('reception',81.6,2.6,-79.3,'#ffc2e4',1.15,10);lamp('hall',89.5,2.5,-81.8,'#8dffc8',1,7.5);lamp('office',95.4,2.5,-77,'#ffd9b0',1,6.5);lamp('rear',86.5,2.5,-89,'#8dffc8',.95,10);
+  if(sun)sun.intensity=.02;if(ambient){ambient.intensity=low?2.2:.6;   /* Low has no lamps: its sky light alone has to show the rooms */ambient.diffuse=new B.Color3(.74,.68,.82);if(ambient.groundColor)ambient.groundColor=new B.Color3(.2,.15,.23);}
+  // The game outside VR multiplies the finished Medium and High picture by 0.3 (babylon-renderer.js; an open decision recorded in
+  // docs/development/VR_SESSIONS.md), so nothing on screen can be brighter than 30% white there. That is not touched. While the player is in here the
+  // exposure is raised so the walls, floors and faces sit higher under that ceiling (the neon is already at it). It is read from the live setting every
+  // frame, so the rooms stay right if that number is ever changed or the picture is not going through that pass. Everything is put back on leaving.
+  let comp=1;const expose=()=>{let d=1;try{const p=scene.postProcessRenderPipelineManager?.supportedPipelines?.find(q=>q.name==='void-look');if(p&&p.sharpenEnabled&&p.sharpen&&p.cameras?.includes(scene.activeCamera))d=p.sharpen.colorAmount;}catch{}const c=d>0&&d<1?Math.min(2.6,.78/d):1;if(c!==comp){comp=c;ip.exposure=1.3*c;}};
+  /* Light (Medium and above). Twelve lights is the scene's limit and eight a material's, so:
+       the sun and the sky light (2);
+       five lamps that are always at the five neon signs, tube lights or screens nearest the player. glowAt() lists those places as the rooms are built, and
+       the lamps fade out, move and fade in as the player walks, so nothing is recompiled;
+       one key light with a shadow map, in the occupied room nearest the player (Eva's desk, Fish's desk or a studio);
+       four small lamps for the four nearest people's faces (each lights only that person).
+     Low has none of these: it keeps its flat sky light, the light pools and the contact shadows. */
+  const GLOWS=[],glowAt=(zone,x,y,z,hex,intensity=1,range=5)=>{GLOWS.push({zone,x,y,z,c:B.Color3.FromHexString(hex),i:intensity*4.5,r:range});};
+  const ZONE={vestibule:'front',reception:'front',hallway:'hall','studio-1':'hall','studio-2':'hall','studio-3':'hall','studio-4':'hall',office:'office','staff-corridor':'staff','rear-lobby':'staff','rear-corridor':'rear','dressing-a':'rear','dressing-b':'rear'},
+   NEXT={front:['hall'],hall:['front','office','staff'],office:['hall','staff'],staff:['office','hall','rear'],rear:['staff']};
+  const zoneOf=(x,z)=>{for(const r of ROOMS){const q=r.rect;if(x>=q[0]&&x<=q[1]&&z>=q[2]&&z<=q[3])return ZONE[r.id]||'staff';}return 'front';};
+  const lamps=[],faces=[];let key=null,shadow=null,keyOf=null,keyK=0,hold=null;
+  if(!low){
+   for(let i=0;i<5;i++){const Lp=new B.PointLight('milked-lamp-'+i,new B.Vector3(cx0,2.4,cz0),scene);Lp.parent=node;Lp.intensity=0;Lp.range=5;Lp.renderPriority=1;k.own.push(Lp);lights.push(Lp);lamps.push({L:Lp,at:null,k:0});}
+   key=new B.SpotLight('milked-key-light',new B.Vector3(82.2,2.7,-79.8),new B.Vector3(-.4,-1,-.6),1.75,1.3,scene);key.parent=node;key.intensity=0;key.range=8;key.shadowMinZ=.25;key.shadowMaxZ=8.5;key.renderPriority=1;k.own.push(key);lights.push(key);
+   shadow=new B.ShadowGenerator(high?1024:512,key);shadow.usePercentageCloserFiltering=true;shadow.filteringQuality=high?B.ShadowGenerator.QUALITY_HIGH:B.ShadowGenerator.QUALITY_MEDIUM;shadow.bias=.002;shadow.normalBias=.025;shadow.setDarkness(.22);shadow.getShadowMap().refreshRate=2;k.own.push(shadow);
+   hold=B.MeshBuilder.CreateBox('milked-hold',{size:.01},scene);hold.parent=node;hold.position.set(cx0,-2,cz0);hold.setEnabled(false);
+   for(let i=0;i<4;i++){const Lp=new B.PointLight('milked-face-'+i,new B.Vector3(cx0,2.4,cz0),scene);Lp.parent=node;Lp.intensity=0;Lp.range=6;Lp.renderPriority=2;Lp.includedOnlyMeshes=[hold];k.own.push(Lp);lights.push(Lp);faces.push({L:Lp,p:null});}}
+  function relight(dt,cam,zone){
+   const near=GLOWS.map(s=>({s,d:Math.hypot(s.x-cam.x,s.z-cam.z)+(s.zone===zone?0:(NEXT[zone]||[]).includes(s.zone)?3:99)+(lamps.some(l=>l.at===s)?-.6:0)})).filter(q=>q.d<15).sort((a,b)=>a.d-b.d).slice(0,lamps.length).map(q=>q.s);
+   for(const l of lamps){if(!l.at)continue;if(near.includes(l.at))l.k=Math.min(1,l.k+dt*2.5);else{l.k-=dt*3;if(l.k<=0){l.k=0;l.at=null;}}}
+   for(const s of near){if(lamps.some(l=>l.at===s))continue;const l=lamps.find(q=>!q.at);if(!l)break;l.at=s;l.k=0;l.L.position.set(s.x,s.y,s.z);l.L.diffuse=s.c;l.L.specular=s.c.scale(.7);l.L.range=s.r;}
+   for(const l of lamps)l.L.intensity=l.at?l.at.i*l.k:0;}
+  function keyLight(dt,cam,zone){if(!key)return;let best=null,bd=1e9;
+   for(const p of people){if(!p.spawned||!p.meshes)continue;if(p.zone!==zone&&!(NEXT[zone]||[]).includes(p.zone))continue;const d=Math.hypot(p.x-cam.x,p.z-cam.z)+(p.zone===zone?0:3)+(p===keyOf?-1:0);if(d<bd){bd=d;best=p;}}
+   if(best!==keyOf){keyK=Math.max(0,keyK-dt*3);if(keyK<=0){keyOf=best;if(best){const c=best.key;key.position.set(c.x,2.7,c.z);key.setDirectionToTarget(new B.Vector3(best.x,.9,best.z));key.diffuse=c.dif;key.specular=c.dif.scale(.5);shadow.getShadowMap().renderList=[...near(casters,c.x,c.z,7),...best.meshes];}}}
+   else if(best)keyK=Math.min(1,keyK+dt*2.5);
+   key.intensity=keyOf?4*keyK:0;}
+  function faceLamps(cam){const near=people.filter(p=>p.spawned&&p.meshes).sort((a,b)=>Math.hypot(a.x-cam.x,a.z-cam.z)-Math.hypot(b.x-cam.x,b.z-cam.z)).slice(0,faces.length);
+   for(const f of faces)if(f.p&&!near.includes(f.p)){f.p=null;f.L.intensity=0;f.L.includedOnlyMeshes=[hold];f.L.setEnabled(false);f.L.setEnabled(true);}
+   for(const p of near){let f=faces.find(q=>q.p===p);if(!f){f=faces.find(q=>!q.p);if(!f)break;f.p=p;const c=p.lamp;f.L.position.set(c.x,c.y,c.z);f.L.diffuse=c.dif;f.L.specular=c.spec;f.L.range=c.r;f.L.includedOnlyMeshes=p.meshes;f.L.setEnabled(false);f.L.setEnabled(true);}f.L.intensity=p.lamp.i/comp;}}
+  // The places a lamp can be (zone, where, colour, strength, reach). The studios add theirs below.
+  for(const g of [['front',81.3,2.1,-81.9,PINK,1.5,6],['front',81.3,.4,-79.6,PINK,1,3.4],['front',81.75,2.6,-75.5,PINK,.45,4],['front',79.4,2.8,-78,WARM,.8,5],['front',84.2,2.8,-78,WARM,.8,5],['front',84.3,1.95,-82,'#9fd8ff',.55,3.2],['front',80.2,1.4,-75.5,GREEN,.5,2.4],['front',84.9,2.5,-81.8,GREEN,.5,2.6],
+    ['hall',86.5,CEIL-.55,-81.8,GREEN,1.2,4.8],['hall',88.5,CEIL-.55,-81.8,GREEN,1.2,4.8],['hall',90.5,CEIL-.55,-81.8,GREEN,1.2,4.8],['hall',92.5,CEIL-.55,-81.8,GREEN,1.2,4.8],
+    ['office',95.2,CEIL-.45,-77,PINK,1.1,5],['office',97.2,2,-76.6,'#b8c8ff',.9,4],['office',96.6,1.3,-77.95,WARM,.9,3],['office',94.6,2.8,-78.4,WARM,.6,4.2],
+    ['staff',94.75,CEIL-.5,-83.4,GREEN,1,5],['staff',95.5,2.4,-82.75,PINK,.5,2.6],['staff',95.5,2.4,-86.25,PINK,.5,2.6],['staff',(LOBBY[0]+LOBBY[1])/2,2.65,(LOBBY[2]+LOBBY[3])/2,GREEN,.5,4],
+    ['rear',80.5,CEIL-.5,-89,GREEN,.9,4.4],['rear',84.5,CEIL-.5,-89,GREEN,.9,4.4],['rear',88.5,CEIL-.5,-89,GREEN,.9,4.4],['rear',92,CEIL-.5,-89,GREEN,.9,4.4],['rear',79.9,1.9,-83.5,WARM,1.3,5],['rear',79.95,2.4,-88.6,PINK,.5,2.6]])glowAt(...g);
+  // The floors mirror the rooms (Medium and above): one half-size picture shared by every damp floor, the hallway's deck plate and the studios' boards.
+  let mir=null,mirNext=0,mirAll=null,mirAllNext=0;const mirrored=new Set();
+  // the pieces of a list within r metres of a point (a merged, building-wide mesh always counts)
+  const near=(list,x,z,r)=>list.filter(m=>{const b=m.getBoundingInfo().boundingSphere;return b.radiusWorld>6||Math.hypot(b.centerWorld.x-x,b.centerWorld.z-z)<r+b.radiusWorld;});
+  if(!low){mir=k.mirror(.005);mir.gammaSpace=!ip.applyByPostProcess;for(const m of [S.floor,k.grate,S.wood]){m.reflectionTexture=mir;mirrored.add(m);}}
   const doorM=M('door','#1b1a22','#0c0c11'),onAir=G('on-air',RED,1);
 
   // ---------------- the shell: floors, the ceiling slab, the outer walls' inner faces, the partitions ----------------
@@ -388,8 +507,8 @@
   cyl(.08,.1,81.25,1.16,-80.36,black,false,10);for(const [a,c] of [[-.015,PINK],[.01,'#d5dbe4'],[.025,GREEN]])rbox(.008,.16,.008,81.25+a,1.24,-80.36,M('pen'+c,c,c),0,0,a*6);
   // security monitors on the wall beside the desk
   box(1.7,1.1,.06,84.3,1.95,-82.6,black);screen(1.56,.98,84.3,1.95,-82.565,TON,512,320,(g,w,h,t)=>{g.fillStyle='#04060a';g.fillRect(0,0,w,h);['VESTIBULE','HALLWAY','REAR DOOR','SIDE STREET'].forEach((c,i)=>{const x=(i%2)*w/2+6,y=Math.floor(i/2)*h/2+6,cw=w/2-12,ch=h/2-12;g.fillStyle=i%2?'#0d1a14':'#1a0d16';g.fillRect(x,y,cw,ch);g.strokeStyle='rgba(255,255,255,.08)';for(let q=1;q<4;q++){g.beginPath();g.moveTo(x,y+ch*q/4);g.lineTo(x+cw,y+ch*q/4);g.stroke();}g.fillStyle=GREEN;g.font=FONT(15);g.textAlign='left';g.fillText('CAM '+(i+1)+' · '+c,x+8,y+20);g.fillStyle=Math.floor(t+i)%2?RED:'#5a1420';g.beginPath();g.arc(x+cw-14,y+14,5,0,Math.PI*2);g.fill();g.fillStyle='#8f9aa8';g.font=FONT(12);g.fillText('NO MOTION',x+8,y+ch-8);});},1.6);
-  // the door to the studios (beside the desk), with a small logo
-  plate(1.25,.52,85.36,2.55,-81.8,TOW,[['STUDIOS',GREEN,58],['直播间','#f4f8ff',50,1]],{neon:true});
+  // the side door (beside the desk): STAFF ONLY, with a small logo on the leaf. It leads to the studio hallway.
+  plate(1.25,.52,85.36,2.55,-81.8,TOW,[['STAFF ONLY',PINK,54],['仅限员工','#f4f8ff',50,1]],{neon:true});
   {const f=box(.06,2.16,1.28,85.5,1.08,-81.8,doorM,true);auto(f,'z',1.2,85.5,-81.8);child(logoSign(.7,0,0,0,TOW),f,-.035,.45,0);child(logoSign(.7,0,0,0,TOE),f,.035,.45,0);}
   // shelves along the west wall: ring binders, boxes, trailing pothos
   box(.04,2,3.6,78.16,1,-78.2,black);for(const y of [.25,.8,1.35,1.9])box(.42,.04,3.6,78.38,y,-78.2,trim);for(const z of [-80,-78.8,-77.6,-76.4])box(.42,2,.04,78.38,1,z,trim);
@@ -430,7 +549,7 @@
   {const f=box(.06,2.16,1.28,93.5,1.08,-81.8,doorM,true);auto(f,'z',1.2,93.5,-81.8);child(logoSign(.7,0,0,0,TOW),f,-.035,.45,0);}
 
   // ---------------- the four studios (seen through the windows; nobody goes in) ----------------
-  const studioLights=[];
+  
   const feed=n=>(g,w,h,t)=>{const c=STUDIOS[n-1].light==='green'?GREEN:STUDIOS[n-1].light==='pink'?PINK:n%2?PINK:GREEN;g.fillStyle=n%2?'#1c0f24':'#0d1c18';g.fillRect(0,0,w,h);
    // a clothed performer silhouette swaying (a drawing, not a camera)
    const sway=Math.sin(t*1.7+n)*w*.03,bx=w*.5+sway;g.fillStyle='#d9e3ea';g.beginPath();g.arc(bx,h*.3,h*.07,0,Math.PI*2);g.fill();g.fillStyle=c;g.fillRect(bx-h*.08,h*.38,h*.16,h*.3);g.fillStyle='#232733';g.fillRect(bx-h*.07,h*.68,h*.06,h*.24);g.fillRect(bx+h*.01,h*.68,h*.06,h*.24);
@@ -465,7 +584,10 @@
     for(let i=0;i<4;i++)for(let j=0;j<4;j++)box(.55,.012,.55,px-.825+i*.55,.012,pz-.825+j*.55,(i+j)%2?M('check-a','#231426','#110a13'):M('check-b','#0f2219','#07110c'));}
    else{const mx=north?x0+.16:x1-.16;for(const v of [.9,1.9,2.9]){box(.04,2.3,.9,mx,1.35,zw+dir*v,M('mirror','#27303a','#0c1016'));box(.05,2.36,.03,mx,1.35,zw+dir*(v-.47),trim);}{const b=cyl(.05,2.9,mx+(north?.14:-.14),1,zw+dir*1.9,trim,false,8);b.rotation.x=PI/2;}
     const [sx,sz]=P(.3,depth-1);cyl(.62,.4,sx,.2,sz,M('ottoman','#3a1436','#1b0a19'),false,16);}
-   if(!low){const L=new B.PointLight('milked-studio-light-'+s.n,new B.Vector3(px,2.5,pz-dir*.9),scene);L.parent=node;L.diffuse=B.Color3.Lerp(B.Color3.FromHexString(hex1),B.Color3.White(),.4);L.specular=B.Color3.FromHexString(hex2).scale(.4);L.intensity=36;L.range=7;   /* the figures are PBR (physical falloff), so this is a small lamp, lighting only the dancer */L.setEnabled(false);k.own.push(L);studioLights[s.n]=L;}}
+   glowAt('hall',mid,2.1,bz-dir*.7,PINK,1.25,5.2);glowAt('hall',px,CEIL-.5,pz,hex2,.9,4.6);
+   s.lamp={x:px,y:2.5,z:pz-dir*.9,dif:B.Color3.Lerp(B.Color3.FromHexString(hex1),B.Color3.White(),.4),spec:B.Color3.FromHexString(hex2).scale(.4),i:36,r:7};   // the figures use physical falloff, so this is a small lamp, lighting only the dancer
+   s.key={x:px+.9,z:pz-dir*1.5,dif:B.Color3.Lerp(B.Color3.FromHexString(hex1),B.Color3.White(),.6)};
+   k.blob(px,pz,1.05,1.05,.058);for(const [u,v,w] of [[-.85,.95,.8],[-1.5,2.25,.6],[1.45,1.3,.6],[1.4,depth*.56,.8],[-1.5,depth-.62,.8]]){const [qx,qz]=P(u,v);k.blob(qx,qz,w);}}
 
   // ---------------- Fish's office: the monitor wall, the schedule, the desk, shelves of archive boxes ----------------
   const feeds=STUDIOS.map(s=>feed(s.n));
@@ -521,18 +643,45 @@
   box(.05,.05,2.8,78.38,1.7,-86,trim);for(const z of [-87.4,-84.6])box(.05,1.7,.05,78.38,.85,z,trim);for(let i=0;i<8;i++)box(.34,.95,.05,78.4,1.18,-87.2+i*.34,M('garment'+(i%4),['#5a1d44','#123425','#2c2f36','#3a1028'][i%4],['#22081a','#081a12','#111317','#1c0814'][i%4]));
   tbox(.5,.42,1.6,81.35,.21,-86,S.cloth,1);box(1.8,.04,.06,79.9,CEIL-.03,-85.4,warm);poster(0,.5,81.6,1.7,-85,TOW);
 
+  // ---------------- contact shadows: a soft dark patch under each person and each piece of furniture (every quality) ----------------
+  for(const [x,z,w,d] of [[81.3,-80.6,4.3,1.7],[79.75,-81.84,.9,2.3],[82.85,-81.84,.9,2.3],[81.3,-81.32,.95,.95],[84.62,-74.6,1.9,1],[78.38,-78.2,.95,4.2],[78.7,-74.7,.8,.8],
+    [96.9,-76.9,1.5,3.7],[95.6,-76.9,.95,.95],[95.95,-78.05,.9,.9],[94,-77.1,1,1.3],[94.65,-74.62,2.2,1.3],[96.6,-74.4,1.9,.8],[93.9,-85.4,.9,3.9],
+    [82.15,-89.52,1.5,1],[78.6,-89.05,1.1,1.7],[79.9,-83.25,3.3,1],[79.2,-83.9,.6,.6],[80.6,-83.9,.6,.6],[81.35,-86,.9,2],[78.4,-86,.7,3.1]])k.blob(x,z,w,d);
+
   k.finish();
   const doors=k.doorControl();
+  // after the merge: which pieces take the key light's shadow and which cast one
+  const casters=[];if(shadow){const CAST=new Set([S.wall,S.steel,S.cloth,S.concrete,metal,trim,dark,black,doorM,standM]);
+   for(const m of node.getChildMeshes(false)){const t=m.material?.metadata?.mk;if(m.material&&t!=='fx'&&t!=='glow'&&!(m.material.alpha<1))m.receiveShadows=true;if(CAST.has(m.material))casters.push(m);}shadow.getShadowMap().renderList=casters.slice();}
+  {const glow=scene.metadata?.lookGlow;if(glow)for(const m of node.getChildMeshes(false))if(m.material===k.blobM)try{glow.addExcludedMesh(m);}catch{}}
+  /* What every other surface reflects (Medium and above): a small all-round picture of the room group the player is in, taken once when they come into it
+     and twice more as the people and props arrive. There are two, so one is drawn while the other is in use (a surface cannot be drawn into the picture
+     it is showing). The floors keep their mirror. */
+  const probes=[],PROBE_AT={front:[81.75,1.5,-79.2],hall:[89.5,1.5,-81.8],office:[95.6,1.5,-77.2],staff:[94.75,1.5,-84],rear:[86,1.5,-89]},probeAgain=[14,34];let probeCur=-1,probePending=-1,probeSwap=0,probeShown=null,probeWant=null,probeDue=1.2;
+  if(!low)for(let i=0;i<2;i++){const p=new B.ReflectionProbe('milked-room-'+i,high?256:128,scene,true,false,!!ip.applyByPostProcess);p.refreshRate=B.RenderTargetTexture.REFRESHRATE_RENDER_ONCE;p.cubeTexture.onAfterRenderObservable.add(()=>{p.drawn=(p.drawn||0)+1;});k.own.push(p);probes.push(p);}
+  function roomPicture(clock,zone){if(!probes.length)return;
+   if(probePending>=0){if(clock<probeSwap||!(probes[probePending].drawn>=6))return;{const i=scene.customRenderTargets.indexOf(probes[probePending].cubeTexture);if(i>=0)scene.customRenderTargets.splice(i,1);}probeCur=probePending;probePending=-1;probeShown=probeWant;const t=probes[probeCur].cubeTexture;for(const m of k.pbrs)if(!mirrored.has(m))m.reflectionTexture=t;return;}
+   if(clock<1.2||(zone===probeShown&&clock<probeDue))return;if(clock>=probeDue)probeDue=probeAgain.length?probeAgain.shift():1e9;
+   probeWant=zone;probePending=probeCur<0?0:1-probeCur;const p=probes[probePending],list=p.renderList;p.position.set(...PROBE_AT[zone]);list.length=0;
+   for(const m of node.getChildMeshes(false))if(m.isEnabled()&&m.material&&m.material.metadata?.mk!=='fx'&&!m.skeleton)list.push(m);p.drawn=0;p.cubeTexture.resetRefreshCounter();if(!scene.customRenderTargets.includes(p.cubeTexture))scene.customRenderTargets.push(p.cubeTexture);probeSwap=clock+.3;}
 
   // ---------------- people: Eva, Fish and one dancer in each studio (clothed crowd figures). Nobody else. ----------------
   const assets=root.VoidAssets,clipsOf=look=>root.VoidCrowd?.clips?.[look]||['idle'],SPARE=['district-resident','runner-02'];
   const spot=(id,x,z,face,clips,opts={})=>people.push({id,x,z,y:0,yaw:Math.atan2(face[0]-x,face[1]-z),clips,node:null,anim:null,spawned:false,...opts});
   const eva=MODELS.eva,fish=MODELS.fish;
   spot(eva.id,eva.at[0],eva.at[1],eva.face,eva.clips,{fixedLook:eva.look,asset:eva.asset,role:'eva'});spot(fish.id,fish.at[0],fish.at[1],fish.face,fish.clips,{fixedLook:fish.look,asset:fish.asset,role:'fish'});
-  for(const s of STUDIOS)spot(s.dancer.id,s.spot[0],s.spot[1],s.face,s.dancer.clips,{fixedLook:s.dancer.look,spare:SPARE,role:'dancer',studio:s.n,library:s.dancer.library,y:.055,phase:s.n*1.3});
+  for(const s of STUDIOS)spot(s.dancer.id,s.spot[0],s.spot[1],s.face,s.dancer.clips,{fixedLook:s.dancer.look,spare:SPARE,role:'dancer',zone:'hall',lamp:s.lamp,key:s.key,studio:s.n,library:s.dancer.library,y:.055,phase:s.n*1.3});
+  for(const p of people)if(p.role!=='dancer'){const fx=Math.sin(p.yaw),fz=Math.cos(p.yaw),hex=p.role==='eva'?PINK:WARM;p.zone=p.role==='eva'?'front':'office';
+   p.lamp={x:p.x+fx*1.2,y:2.3,z:p.z+fz*1.2,dif:B.Color3.Lerp(B.Color3.FromHexString(hex),B.Color3.White(),.55),spec:B.Color3.FromHexString(hex).scale(.5),i:30,r:6};
+   p.key={x:p.x+fx*1.5+fz*.9,z:p.z+fz*1.5-fx*.9,dif:B.Color3.Lerp(B.Color3.FromHexString(hex),B.Color3.White(),.7)};}
+  /* The dancers' clothes lean to black and pink (David's reference). The figures are the repository's own MakeHuman people (CC0), whose clothes and shoes are
+     separate materials: each dancer gets its own tinted copy of those two (the model files and everyone else who wears the look are untouched). A face
+     covering that came with a look (the street mask, the VR headset and its trackers) is hidden so that every dancer's face shows. Nothing else changes:
+     the same clothed figures, the same clips. */
+  const OUTFIT={'district-resident':{suit:[.5,.45,.55],shoes:[3,.6,2]},'vr-companion-f':{suit:[1.6,1,2.2],shoes:[.6,.6,.7]},'vr-companion-m':{suit:[.55,.5,.6],shoes:[1.4,.35,1.6]},'vr-player-b':{suit:[1.3,.3,5],shoes:[.2,.2,.22]}},COVER=/\.(mask0|headset0|trackers1)/;
+  function dress(p){const o=OUTFIT[p.look];p.meshes=p.meshes.filter(m=>{const mat=m.material,nm=mat?.name||'';if(COVER.test(nm)){m.setEnabled(false);return false;}
+    const c=o&&mat?.albedoColor?(/suit/.test(nm)?o.suit:/shoes/.test(nm)?o.shoes:null):null;if(c){const cl=mat.clone(nm+'-milked-'+p.studio);cl.albedoColor=new B.Color3(c[0],c[1],c[2]);k.own.push(cl);m.material=cl;}return true;});}
   const LOOKS=[...new Set(people.map(p=>p.fixedLook))];
-  // a small key lamp for Eva and for Fish (they are PBR figures, like the dancers): it lights only her
-  const keyLamp=(p,hex)=>{if(low)return;const L=new B.PointLight('milked-key-'+p.role,new B.Vector3(p.x+Math.sin(p.yaw)*1.2,2.3,p.z+Math.cos(p.yaw)*1.2),scene);L.parent=node;L.diffuse=B.Color3.Lerp(B.Color3.FromHexString(hex),B.Color3.White(),.55);L.intensity=22;L.range=6;L.includedOnlyMeshes=p.node.getChildMeshes();k.own.push(L);};
   function staff(clock){
    // The figures are loaded here, by this environment (nothing else preloads them for it). Asked again every 20 s while one is still missing: a download can be
    // dropped by a change of scene, and the shared look loader remembers such a download as done.
@@ -543,11 +692,10 @@
      else{   // Eva and Fish only ever use their own look; a dancer whose look is not on this machine after a while uses a spare clothed figure
       const order=p.spare&&clock>25?[p.fixedLook,...p.spare]:[p.fixedLook];
       for(const c of order){if(clipsOf(c).some(q=>p.clips.includes(q))&&(n=assets?.instance?.('crowd:'+c,node))){look=c;clip=p.clips.find(q=>clipsOf(c).includes(q))||'idle';break;}}}
-     if(!n)continue;p.node=n;p.look=look;p.clip=clip;p.spawned=true;p.anim=p.asset?null:root.VoidCrowd?.animate?.(n,look,clip);n.position.set(p.x,p.y,p.z);n.rotation.y=p.yaw;n.metadata={...n.metadata,milked:p.id};
-     if(p.role==='dancer'){const L=studioLights[p.studio];if(L){L.includedOnlyMeshes=n.getChildMeshes();L.setEnabled(true);}
+     if(!n)continue;p.node=n;p.look=look;p.clip=clip;p.spawned=true;p.anim=p.asset?null:root.VoidCrowd?.animate?.(n,look,clip);n.position.set(p.x,p.y,p.z);n.rotation.y=p.yaw;n.metadata={...n.metadata,milked:p.id};p.meshes=n.getChildMeshes();if(p.role==='dancer')dress(p);for(const m of p.meshes)if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;   /* or a look made for four lights never sees its own lamp */if(key)for(const m of p.meshes)key.excludedMeshes.push(m);mirAll=null;mirNext=0;
+     if(p.role==='dancer'){
       // the shared animation library, where it is installed: a different loop for each studio. Without it the look's own dance plays.
       if(p.library&&root.VoidAnimLibrary?.apply)Promise.resolve(root.VoidAnimLibrary.apply(n,look,{only:[p.library],scene})).then(added=>{if(k.disposed||p.node!==n||!added?.includes(p.library))return;p.anim?.play?.(p.library);p.clip=p.library;}).catch(()=>{});}
-     else keyLamp(p,p.role==='eva'?PINK:WARM);
      continue;}
     // a figure with no dance of its own still moves: a slow sway on the spot
     if(p.role==='dancer'&&!/dance|^ac-/.test(p.clip)){const t=clock*2.6+p.phase;p.node.position.y=p.y+Math.abs(Math.sin(t))*.03;p.node.rotation.y=p.yaw+Math.sin(t*.5)*.4;}}
@@ -555,10 +703,13 @@
   function tick(time){
    if(k.disposed)return;const dt=last===null?0:Math.min(.1,Math.max(0,time-last));last=time;const cam=scene.activeCamera?.globalPosition;
    doors.tick(dt,cam);k.animate(dt,cam,true);{const q=Math.sin(k.clock*3.2)>0?1:.3;onAir.emissiveColor.copyFromFloats(q,.17*q,.29*q);}
+   expose();if(!low&&cam){const zone=zoneOf(cam.x,cam.z);relight(dt,cam,zone);keyLight(dt,cam,zone);if(k.clock>faceNext){faceNext=k.clock+.5;faceLamps(cam);}roomPicture(k.clock,zone);
+    // the mirror's list: everything it may show is gathered a few times as the place fills up; on Medium only what is near the player is drawn into it
+    if(k.clock>mirNext){mirNext=k.clock+.5;if(!mirAll||k.clock>mirAllNext){mirAllNext=k.clock+(k.clock<45?3:1e9);mirAll=k.reflectIn(people.flatMap(p=>p.meshes||[]));}mir.renderList=high?mirAll:near(mirAll,cam.x,cam.z,10);}}
    staff(k.clock);
   }
   return {tick,inside:()=>true,people,doors,area:AREA,state:()=>({ready:!k.disposed,area:AREA,people:people.filter(p=>p.spawned).length,dancers:people.filter(p=>p.spawned&&p.role==='dancer').map(p=>({studio:p.studio,look:p.look,clip:p.clip})),screens:k.screens.length,doors:doors.state(),lights:lights.length}),
-   dispose(){if(k.disposed)return;for(const p of people){try{p.anim?.dispose?.();p.node?.dispose?.();}catch{}}people.length=0;k.dispose();
+   dispose(){if(k.disposed)return;for(const p of people){try{p.anim?.dispose?.();p.node?.dispose?.();}catch{}}people.length=0;for(const p of probes){const i=scene.customRenderTargets.indexOf(p.cubeTexture);if(i>=0)scene.customRenderTargets.splice(i,1);}k.dispose();
     scene.clearColor=prev.clear;scene.fogMode=prev.fogMode;scene.fogDensity=prev.fogDensity;scene.fogColor=prev.fogColor;ip.exposure=prev.exposure;ip.contrast=prev.contrast;scene.environmentIntensity=prev.env;
     if(sun&&lightPrev.sun!=null)sun.intensity=lightPrev.sun;if(ambient){if(lightPrev.amb!=null)ambient.intensity=lightPrev.amb;if(lightPrev.dif)ambient.diffuse=lightPrev.dif;if(lightPrev.gnd&&ambient.groundColor)ambient.groundColor=lightPrev.gnd;}}};
  }

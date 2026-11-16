@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "9798baabd17ea640",
+  "revision": "4b67f3b220b87ea9",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11867,6 +11867,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/milked-build.js",
+      "line": 34,
+      "text": "Each material carries a tag (metadata.mk) that says what it is for the reflections: 'floor' (it shows the mirror), 'fx' (light pools and contact",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/milked-integration.js",
       "line": 2,
       "text": "Everything here is provisional placeholder text. Nothing starts a mission and nothing is saved except the usual \"met\" entry a conversation records. */",
@@ -13868,7 +13874,7 @@
     "void-runner/meridian-interior.js": "d9f411d4f42b3cf8bacbe377812cda9b3c3563aef0d52127e989898e4b9a2b96",
     "void-runner/meridian-kitbash.js": "5e1efc2246631b5e37507d12fc23206b5ac8838fa8d0b1b34302a8fa2d5b7ebb",
     "void-runner/meridian-station.js": "2ecbbeec490597999c1a11e4c918a694f8e82673944100fe04e6657180556526",
-    "void-runner/milked-build.js": "bb528762111fb7a5202f3443f109425bc7656ba581de1e79b282ed9fe1ab4bab",
+    "void-runner/milked-build.js": "3a2f31dd140b224faa4d12faf73a329a41d7a37017fea8373310b28884be2dba",
     "void-runner/milked-integration.js": "886ec02f0991098a1007dfa6e8dd03992ca1ded5962871002a229459b180327e",
     "void-runner/milked-transition.js": "00210e59b1fc40c1011a117bc79570b0f6753aa65f94f5241e678b49e4ac60a0",
     "void-runner/milked.js": "7ce6b25576ff838a99be682e8f0dc1120d4e4553e9dfee32658ef8780e351ab1",
