@@ -452,7 +452,7 @@
     // Nightlife: people walking and standing about on the sidewalks, a few of them drunk (ncz-nightlife.js).
     const nightlife=root.VoidNightlife&&modelInstance?root.VoidNightlife.start({B,scene,parent,quality,instance:modelInstance,quarter:QK}):null;
     // The people who stay in the alley by the District (ncz-alley.js): talking, smoking, sitting, watching the door.
-    const alleyLife=root.VoidAlley&&modelInstance&&(!QK||QK==='oldtown')?root.VoidAlley.start({scene,parent,quality,instance:modelInstance}):null;
+    const alleyLife=root.VoidAlley&&modelInstance&&(!QK||QK==='oldtown')?root.VoidAlley.start({scene,parent,quality,instance:modelInstance}):(QK==='outskirts'&&root.VoidOutskirtsLife&&modelInstance?root.VoidOutskirtsLife.start({scene,parent,quality,instance:modelInstance}):null);   // The Outskirts' own residents take the alley people's slot (this quarter only)
     // Two street lights (the District's own lights are added with its rooms).
     const streetLights=[];if(!low)for(const [p,c,i,r] of [[[61,7,-40],'#ff5bd0',.9,34],[[61,7,-12],'#38e8ff',.8,30],[[61,7,-150],'#ff5bd0',.9,34],[[61,7,-196],'#38e8ff',.8,30]]){if(QK&&!QT.inQuarter(QK,p[0],p[2]))continue;const l=new B.PointLight('ncz-street-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=parent;streetLights.push(l);owned.push(l);}
 
