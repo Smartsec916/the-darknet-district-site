@@ -6,6 +6,43 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 16 Nov 2026 (END OF DAY SUMMARY — read this first; it corrects the entries below)
+
+**The entries below that say "local commits, NOT pushed, no PR" are out of date: all of them were pushed, passed CI and were merged the same day.** Live on `main` after PR #337: build `2026-11-16-fixes-1`.
+
+**Merged and live today, in order:** #327/#329 Milked interior and surfaces · #328 vestibules without loading wording · #330 street people hidden behind buildings (`street-sight.js`) · #331 District rooms (oxygen bar, real vending machines, store cases, VR booths, hallway posters down, anti-WarFlying screens) · #332 those screens at 10 s per line · #335 Nyx the bartender's own model and seven modelled props · #334 NeoChinatown in three quarters with checkpoints, sky cabs removed, road taxis (`ncz-quarters.js`, `ncz-gates.js`) · #336 advertisement screens and the weekly WarFlying Leadership Board (`ad-screens.js`, `ad-screens-data.js`) · #337 playthrough fixes (pod strip buttons removed, music and light controls on the pod's right wall, KeyMap with mouse map, taxi calling with G and `[E] CALL A TAXI`, East Gate walkers' lane, Milked signs, front-row building bodies restored, plot slits closed, the gap check).
+
+**Known mistake, fixed:** the quarters build (#334) dropped the body of every street-facing building (`old-building` judged as street detail). Restored in #337. The repeatable check is `tests/ncz-gaps-browser.cjs` with `tools/ncz/gap-check.cjs` (`docs/development/NCZ_GAP_CHECK.md`). All NeoChinatown blocks are the code-built FALLBACK, on the live site too: the purchased pack (`ncz:building5`, `ncz:storefronts`) loads but is placed nowhere while NULL's front exists.
+
+**WAITING FOR DAVID TO JUDGE (do not apply further until he does): the Old Town art-direction block.** Branch `claude/port-remake-1`, commit `926bce07` (screenshots and gap check were run on this commit; pictures in `6264d2e3`, `docs/development/neochinatown-remake/`, cameras in `cameras.json` there). One continuous block on Main Street's east side (`void-runner/ncz-oldtown-block.js`, existing assets only, 0 credits), the Lantern Bridge landmark over the alley mouth, a six-colour palette. Ray check on that block: 10,012 of 16,800 before, 0 after. NOT merged. His process, in his words: "Treat the landing-pad-to-alley walk as the art-direction pass ... Use the existing assets first ... Let's judge that block before applying the style district-wide." Merging it needs: combine with `main` (same `roofPiece` fix as #337, take either; keep both edits on the `layout()` return line; choose one gap script, `tests/ncz-raygrid-browser.cjs` or `tests/ncz-gaps-browser.cjs`).
+
+**UNFINISHED ASSETS — HANDOFF TO CODEX (David asked for this list)**
+
+| What | Where | State | Left to do | Credits spent |
+|---|---|---|---|---|
+| Port quarter remake (builder, city kit, food stall, housing doors, restroom shell) | branch `claude/port-remake-1`, commit `dc4b227c`; switched off by `VoidPort.enabled=false` | Parked, unfinished. First pictures on Low and Medium only | Port gap check, customs walk, save and reload, landing by ship; David must approve the Old Town block first | 528 (12 kit props) + 9 (stall picture) |
+| Road taxi model | same branch; `void-runner/road-taxi-model.js`, off by `VoidRoadTaxiModel.enabled=false` | Model made, never checked in the running game | Check scale, wheels, lights, boarding; switch on | 44 |
+| Kit models, shrunk GLBs | repo `void-runner/assets/models/ncz-kit/` on that branch (12 MB) | Made | Use in the Port once approved | (above) |
+| Source files for the kit props | David's PC: `C:\Users\smart\Documents\DarknetDistrict_Assets\Meshy\ncz_port\` (`props.json`, `status.json`, a folder per prop, `out\`, `run.py`, `shrink.py`) | Complete sources. No `.blend` files exist: nothing was made in Blender | none | |
+| Source files for the taxi | David's PC: `C:\Users\smart\Documents\DarknetDistrict_Assets\Meshy\ncz_taxi\` | Complete sources, no `.blend` | none | |
+| Nyx and District props sources | David's PC: `C:\Users\smart\Documents\DarknetDistrict_Assets\Meshy\nyx\` and `...\district_props\` | Finished and live | none | 366 |
+| Meridian Station screens: voice | `void-runner/relay-screens.js`; street screens' positional voice is in `void-runner/ad-screens.js` | Station screens have the new look and are silent | **David assigned this to Codex**: make them speak like the street screens | 0 |
+
+Meshy balance reported after this work: 820 (David's page showed 3,107 earlier; which figure applies to generation through Blender is not established). Never buy credits. Licensed and purchased models stay out of this public repository.
+
+**David's standing decisions from today (his words are in the files named):**
+- Advertisements, WarFlying Leadership Board rules, handles, anti-WarFlying lines: `docs/void-runner/design-source/12-street-advertisements-david.md`. Only five names are ever shown; the voice names only #1; "a new number one" when a real player leads; top five change weekly.
+- Voices: he wants cheesy, over-dramatic news-broadcaster voices, more than one, including a female one. He picks by ear. Nothing is cast: `docs/development/AD_SCREENS_VOICE_AUDITION.md`. Keep the street news in the provisional voice for now.
+- Checkpoints are gameplay, not loading screens; more may be added (data in `ncz-quarters.js`). Contraband, bribes and shielding wait for him. `docs/development/CHECKPOINTS.md`.
+- NeoChinatown needs, in every quarter: food stalls, housing doors (no interiors), entertainment venues, gross public restrooms with sometimes a passed-out NPC. `docs/development/NEOCHINATOWN_REMAKE.md` on the remake branch.
+- Sky taxis are gone for good; rail is "later".
+- Camera zoom must bring back full detail (`zoom-detail.js`).
+- Location table for ads and the 20 generated handles: he will look himself.
+
+**Next, in order:** (1) David judges the Old Town block; (2) then the style district-wide, the Port, NULL exterior and interior (reference pictures are outside the repo); (3) voice auditions; (4) outdoor character upgrade and proper guards (he approved 300–500 credits); (5) Eva's model when he sends a reference; (6) the open brightness decision (Medium and High are dimmed by the sharpen pass outside VR).
+
+**Not verified by anyone yet:** real graphics-card frame rates and checkpoint swap times, High and Ultra, a VR headset, two players in different quarters, any of today's audio by ear.
+
 ### 16 Nov 2026 (latest): PLAYTHROUGH FIXES 1 (build `2026-11-16-fixes-1`, branch `claude/playthrough-fixes-1`, local commits, NOT pushed, no PR)
 
 David played the live site and sent five pictures and nine notes. Full record, with the complete key list: [`PLAYTHROUGH_FIXES_1.md`](PLAYTHROUGH_FIXES_1.md).
