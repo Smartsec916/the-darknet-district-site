@@ -64,7 +64,9 @@
  }
  function context(){
   const area=walkingLocation?.area==='interior'?'district':walkingLocation?.area==='milked'?'milked':(globalThis.VoidNeoChinatown?.zone?.({x:walker.x,z:walker.z}).area||'street');
-  return {onFoot:mode==='walking',area,player:[walker.x,walker.z],combat:!!globalThis.VoidFlightSkirmish?.active,busy:!!globalThis.VoidGraphics?.busy,quarter:quarterNow(),inSpace:mode==='play'};
+  // On foot includes reading the terminal while on foot: with it open the game's mode is 'hud', and the TAXI / TRANSPORT section used to answer "Taxis pick up on foot, in the city." to everyone (found 16 Nov 2026).
+  const onFoot=mode==='walking'||mode==='hud'&&globalThis.VoidHUD?.returnMode==='walking';
+  return {onFoot,area,player:[walker.x,walker.z],combat:!!globalThis.VoidFlightSkirmish?.active,busy:!!globalThis.VoidGraphics?.busy,quarter:quarterNow(),inSpace:mode==='play'};
  }
  function syncBoard(){
   if(!walkingLocation)return;
@@ -83,7 +85,7 @@
   const player={x:walker.x,z:walker.z,riding:false};
   const res=R.hail(world,state,player,destId,context());
   if(!res.ok){announce?.(res.reason);return false;}
-  announce?.('Street taxi on its way to you. Fare '+res.fare+' CR, paid when you board.');
+  announce?.(res.walk>15?'Street taxi called. It will wait on the road, about '+res.walk+' m from you. Fare '+res.fare+' CR, paid when you board.':'Street taxi on its way to you. Fare '+res.fare+' CR, paid when you board.');
   try{globalThis.VoidPersonalDevice?.close?.();}catch{}
   return true;
  }
@@ -132,7 +134,7 @@
  }
  // The TAXI / TRANSPORT tab of the terminal (personal-hud.js): the same list the V1 map offers.
  function hudHtml(){const esc=s=>escapeText(String(s??''));
-  if(!inCity())return '<p class="hud-note">'+esc(walkingLocation?.corporate||walkingLocation?.temple?'The taxi stop here takes you back to NeoChinatown. The ride back is included in your fare.':'No street taxi service operates here.')+'</p>';
+  if(!inCity())return '<p class="hud-note">'+esc(walkingLocation?.corporate||walkingLocation?.temple?'The taxi stop here takes you back to NeoChinatown. The ride back is included in your fare.':walkingLocation?.id==='neochinatown'&&state?.location==='earth'?'Street taxis stay on the roads. Step outside first.':'No street taxi service operates here.')+'</p>';
   ensure();const ctx=context(),a=R.availability(state,{...ctx,trip:!!(world?.job&&!world.job.released)}),st=status();
   if(st)return '<article class="hud-card"><h3>'+esc(st.label)+' <small class="hud-tag tracked">'+esc((phaseText[st.phase]||st.phase).toUpperCase())+'</small></h3><p>'+st.distance+' m away · fare '+esc(st.fare)+' CR</p>'+(st.canCancel?'<div class="hud-actions"><button type="button" data-hud-action="taxi-cancel" data-hud-key="taxi-cancel">CANCEL TAXI</button></div>':'')+'</article>';
   if(!a.ok)return '<p class="hud-note">'+esc(a.reason)+'</p>';
@@ -168,6 +170,12 @@
  const phaseText={cruise:'Driving','to-pickup':'On its way',waiting:'Waiting, door open','to-dest':'Driving','in-bay':'Checkpoint',arrived:'Arrived',rejoin:'Leaving',parked:'At the rank'};
 
  if(globalThis.VoidInteractions)VoidInteractions.register('road-taxi-board',()=>board());
+ /* Calling a taxi (David, 16 Nov 2026: "Couldn't figure out how to call a taxi"): CALL A TAXI at the post of every stop and by the District's door, and the G key anywhere on foot.
+    Both open the list of destinations with their fares (the terminal's TAXI / TRANSPORT section, the same list the V1 map has). */
+ const callList=()=>{if(mode!=='walking')return false;globalThis.VoidHUD?.open?.('taxi');return !!globalThis.VoidHUD?.isOpen;};
+ if(globalThis.VoidInteractions)VoidInteractions.register('road-taxi-call',()=>{callList();});
+ addEventListener('keydown',e=>{if(e.code!=='KeyG'||e.repeat||e.ctrlKey||e.metaKey||e.altKey||mode!=='walking'||/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName||'')||e.target?.isContentEditable)return;
+  if(globalThis.VoidPersonalDevice?.isOpen||globalThis.VoidCharacterCreator?.isOpen||globalThis.VoidVR?.active||document.querySelector('#screen.conversation-live'))return;e.preventDefault();callList();});
  addEventListener('mousemove',e=>{if(mode!=='road-taxi')return;look.yaw=Math.max(-1.5,Math.min(1.5,look.yaw+e.movementX*.004));look.pitch=Math.max(-.6,Math.min(.45,look.pitch+e.movementY*.003));});
  addEventListener('keydown',e=>{if(mode!=='road-taxi')return;
   if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.code)){e.preventDefault();look.yaw+=e.code==='ArrowLeft'?-.12:e.code==='ArrowRight'?.12:0;look.pitch+=e.code==='ArrowUp'?-.08:e.code==='ArrowDown'?.08:0;}
@@ -204,5 +212,5 @@
   ctx.fillStyle='#ffb347';ctx.font='bold 14px Consolas,monospace';ctx.textAlign='center';ctx.fillText('STREET TAXI · '+job.dest.label.toUpperCase()+' · '+String(text).toUpperCase(),W/2,H-66);
   ctx.fillStyle='#b9c8ce';ctx.font='12px Consolas,monospace';ctx.fillText(job.cab.phase==='arrived'?'E / STEP OUT':'Mouse or arrow keys to look around',W/2,H-48);ctx.restore();};
 
- globalThis.VoidRoadTaxi={hail,cancel,board,exit,status,returnFrom,hudHtml,action,get crossing(){return crossing;},get active(){return !!(world?.job&&!world.job.released);},get world(){return world;}};
+ globalThis.VoidRoadTaxi={hail,cancel,board,exit,status,returnFrom,hudHtml,action,callList,get crossing(){return crossing;},get active(){return !!(world?.job&&!world.job.released);},get world(){return world;}};
 })();

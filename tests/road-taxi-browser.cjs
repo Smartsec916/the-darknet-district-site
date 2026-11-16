@@ -17,7 +17,7 @@ const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187';
  await page.waitForSelector('#character-creator.on');await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled);
  await page.locator('[data-cc=confirm]').click();
  await page.waitForFunction(()=>mode==='pod-waking'&&walker&&VoidAssets.pending===0);
- await page.locator('#pod-wake [data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking');
+ await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking');
  await page.evaluate(()=>{delete state.story.flags.area;return enterWalking(VoidDistrictArea.KEY.street,{silent:true});});
  await page.waitForFunction(()=>mode==='walking'&&walkingLocation?.area==='street'&&VoidRoadTaxi.world&&VoidRoadTaxi.world.taxis.length>=2);
  await page.screenshot({path:'/tmp/road-taxi-street.png'});

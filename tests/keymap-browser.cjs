@@ -7,7 +7,7 @@ async function boot(browser,{saved,viewport={width:1280,height:720}}={}){
  const page=await browser.newPage({viewport});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route(base+'/__km',r=>r.fulfill({contentType:'text/html',body:PAGE}));await page.goto(base+'/__km');   // a real origin, so localStorage works
  await page.evaluate(s=>{if(s)localStorage.setItem('void-runner-controls-v1',JSON.stringify(s));else localStorage.removeItem('void-runner-controls-v1');
-  window.state={story:{flags:{}},credits:0};window.mode='walking';window.walkingKeys=new Set();window.clearInput=()=>{};window.C={stations:{}};window.walker={};window.walkingLocation={id:'neochinatown',area:'interior'};window.__saves=0;window.openMissionLog=function(){};addEventListener('keydown',e=>{if(e.code===(VoidInput?.bindings?.missionLog||'KeyL')&&!/INPUT/.test(e.target.tagName))openMissionLog();});   // what world-integration.js does for the L key
+  window.state={story:{flags:{}},credits:0,progression:{personal:{weapon:'ward-pistol'}}};window.mode='walking';window.walkingKeys=new Set();window.clearInput=()=>{};window.C={stations:{}};window.walker={};window.walkingLocation={id:'neochinatown',area:'interior'};window.__saves=0;window.openMissionLog=function(){};addEventListener('keydown',e=>{if(e.code===(VoidInput?.bindings?.missionLog||'KeyL')&&!/INPUT/.test(e.target.tagName))openMissionLog();});   // what world-integration.js does for the L key
   window.save=()=>{window.__saves++;};},saved);
  for(const f of ['input.js','device-v1.js','personal-device.js','keymap.js'])await page.addScriptTag({url:base+'/void-runner/'+f});
  return {page,errors};
@@ -23,7 +23,25 @@ async function boot(browser,{saved,viewport={width:1280,height:720}}={}){
   assert.equal(await page.evaluate(()=>state.story.flags.keymapSeen),true,'opening it counts as seen (saved with the game)');assert.ok(await page.evaluate(()=>__saves)>=1);
   await page.waitForTimeout(500);await page.screenshot({path:shots+'/dd-keymap-walking.png'});
   const walk=await page.evaluate(()=>[...document.querySelectorAll('#keymap .km-key')].map(k=>k.querySelector('.km-cap').textContent+':'+k.querySelector('.km-act').textContent));
-  for(const e of ['W:Forward','A:Left','S:Back','D:Right','Space:Jump','E:Use','R:Reload','L:V1 device','K:KeyMap','P:Terminal','Esc:Pause'])assert.ok(walk.includes(e),e+' in '+walk.join(' '));
+  for(const e of ['W:Forward','A:Left','S:Back','D:Right','Space:Jump','E:Use','R:Reload','B:Camera','G:Taxi','L:V1 device','K:KeyMap','P:Terminal','Esc:Pause'])assert.ok(walk.includes(e),e+' in '+walk.join(' '));
+  // the mouse map: a drawn mouse; with a weapon every part has a job on foot
+  const parts=()=>page.evaluate(()=>Object.fromEntries([...document.querySelectorAll('#keymap .km-mouse-map svg [data-part]')].map(p=>[p.dataset.part,p.classList.contains('on')])));
+  const labels=()=>page.evaluate(()=>Object.fromEntries([...document.querySelectorAll('#keymap .km-ml')].map(l=>[l.dataset.part,l.querySelector('span').textContent])));
+  assert.deepEqual(await parts(),{left:true,right:true,move:true,wheel:true});assert.equal((await labels()).right,'Aim');assert.equal((await labels()).wheel,'Change weapon');assert.equal((await labels()).move,'Look around');
+  assert.deepEqual(await page.evaluate(()=>[...document.querySelectorAll('#keymap .km-tabs button')].map(b=>b.textContent)),['ON FOOT','CAMERA','SLEEPING POD','FLIGHT']);
+  // a player with no weapon: the weapon keys and the right button / wheel are not offered
+  await page.evaluate(()=>{state.progression.personal.weapon=null;});await page.keyboard.press('KeyK');await page.keyboard.press('KeyK');
+  const bare=await page.evaluate(()=>[...document.querySelectorAll('#keymap .km-key')].map(k=>k.querySelector('.km-cap').textContent+':'+k.querySelector('.km-act').textContent));assert.ok(!bare.some(x=>/Reload|holster|Rifle/.test(x)),bare.join(' '));
+  assert.deepEqual(await parts(),{left:true,right:false,move:true,wheel:false});assert.equal((await labels()).right,undefined);await page.screenshot({path:shots+'/dd-keymap-walking-unarmed.png'});
+  // the camera raised: its own layout (left click photo, wheel zoom, F follow), shown by itself
+  await page.evaluate(()=>{window.VoidDeviceCamera={active:true};});await page.waitForFunction(()=>VoidKeyMapUI.context==='camera');await page.waitForTimeout(300);
+  const cam=await page.evaluate(()=>[...document.querySelectorAll('#keymap .km-key')].map(k=>k.querySelector('.km-cap').textContent+':'+k.querySelector('.km-act').textContent));assert.ok(cam.includes('F:Follow person')&&cam.includes('B:Camera away'),cam.join(' '));
+  assert.equal((await labels()).left,'Take a photo');assert.equal((await labels()).wheel,'Zoom in / out');await page.screenshot({path:shots+'/dd-keymap-camera.png'});
+  await page.evaluate(()=>{window.VoidDeviceCamera={active:false};state.progression.personal.weapon='ward-pistol';});await page.waitForFunction(()=>VoidKeyMapUI.context==='walking');
+  // the Sleeping Pod tab
+  await page.click('#keymap [data-ctx=pod]');const pod=await page.evaluate(()=>[...document.querySelectorAll('#keymap .km-key')].map(k=>k.querySelector('.km-cap').textContent+':'+k.querySelector('.km-act').textContent));
+  for(const e of ['E:Exit pod','M:Music & lights','V:Vending','Q:Look at controls'])assert.ok(pod.includes(e),e+' in '+pod.join(' '));assert.equal(pod.length,8);await page.screenshot({path:shots+'/dd-keymap-pod.png'});
+  await page.click('#keymap [data-ctx=walking]');await page.keyboard.press('KeyK');await page.evaluate(()=>location.reload());await page.waitForLoadState();await page.close();({page,errors}=await boot(browser));await page.keyboard.press('KeyK');
   assert.ok(!walk.some(x=>/^(Z|Q|J|M|N):/.test(x)),'unused keys are not drawn');report.walkingKeys=walk.length;
   await page.keyboard.press('KeyK');assert.equal(await vis(),false);await page.keyboard.press('KeyK');assert.equal(await vis(),true);
   // 2. the visible close control works
@@ -47,6 +65,9 @@ async function boot(browser,{saved,viewport={width:1280,height:720}}={}){
   for(const vp of [{width:1024,height:600},{width:1920,height:1080},{width:1366,height:768}]){await page.setViewportSize(vp);await page.waitForTimeout(400);
    const m=await page.evaluate(()=>{const r=document.getElementById('keymap').getBoundingClientRect();return {l:r.left,r:r.right,t:r.top,b:r.bottom,w:innerWidth,h:innerHeight,sw:document.getElementById('keymap').scrollWidth,cw:document.getElementById('keymap').clientWidth};});
    assert.ok(m.l>=0&&m.r<=m.w&&m.t>=0&&m.b<=m.h,'fits in '+vp.width+'x'+vp.height+': '+JSON.stringify(m));assert.ok(m.sw<=m.cw+1,'no horizontal overflow '+vp.width);
+   if(vp.height>=720)for(const ctx of ['walking','camera','pod','flight']){await page.click('#keymap [data-ctx='+ctx+']');const s=await page.evaluate(()=>{const k=document.getElementById('keymap'),mm=k.querySelector('.km-mouse-map').getBoundingClientRect();return {sh:k.scrollHeight,ch:k.clientHeight,sw:k.scrollWidth,cw:k.clientWidth,mouse:mm.width>200&&mm.height>120};});
+    assert.ok(s.sh<=s.ch+1&&s.sw<=s.cw+1,ctx+' needs no scrolling at '+vp.width+'x'+vp.height+': '+JSON.stringify(s));assert.ok(s.mouse,'the mouse map is drawn');await page.screenshot({path:shots+'/dd-keymap-'+ctx+'-'+vp.width+'x'+vp.height+'.png'});}
+   await page.click('#keymap [data-ctx=walking]');
    await page.screenshot({path:shots+'/dd-keymap-'+vp.width+'x'+vp.height+'.png'});}
   assert.deepEqual(errors,[]);await page.close();
   // 8. saved controls: a player who put Mission log on K keeps it there; the KeyMap takes J and says so

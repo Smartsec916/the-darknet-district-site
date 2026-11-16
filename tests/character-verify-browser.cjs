@@ -15,7 +15,7 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   await page.evaluate(()=>{VoidAccount.character={gender:'female',model:'district-resident'};});
   assert.equal((await page.evaluate(()=>VoidCharacterCreator.stored())).look,'district-resident');
   const before=await page.evaluate(()=>({credits:state.credits,loc:state.location,inv:JSON.stringify(state.inventory||null),missions:JSON.stringify(state.story?.missions||state.missions||null)}));
-  await page.locator('#pod-wake button').click();await page.waitForFunction(()=>mode==='walking'&&VoidAssets.pending===0,null,{timeout:120000});
+  await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking'&&VoidAssets.pending===0,null,{timeout:120000});
   // B. every look x every offered hairstyle: hair sits on the head (alignment) and does not float or sink
   const fit=await page.evaluate(async()=>{const sc=VoidBabylon.scene,A=VoidCharacterAppearance,out=[];const p=new BABYLON.TransformNode('verify',sc);p.position.set(walker.x,walker.y-1.68,walker.z);
    for(const [look,l] of Object.entries(A.CATALOG.looks)){const ch=await VoidCharacterAssembler.build(A.defaults(look),p,{scene:sc});const top=A.CATALOG.bases[l.base].height;

@@ -20,8 +20,8 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');cons
  await page.mouse.move(640,100);await page.mouse.down();await page.mouse.move(640,700,{steps:8});await page.mouse.up();assert((await view()).pitch<=1.2+1e-9);
  // arrow keys turn too
  const y1=(await view()).yaw;await page.keyboard.down('ArrowLeft');await page.waitForTimeout(700);await page.keyboard.up('ArrowLeft');assert((await view()).yaw<y1-.05,'the left arrow turns left');
- // the buttons still snap the view, from wherever the player was looking
- await page.locator('[data-pod=look]').click();assert.equal((await view()).yaw,await page.evaluate(()=>VoidDistrictArea.POD_VIEW.inside));await page.screenshot({path:'/tmp/pod-look-2.png'});
+ // Q snaps the view inside, from wherever the player was looking
+ await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyQ');assert.equal((await view()).yaw,await page.evaluate(()=>VoidDistrictArea.POD_VIEW.controls));await page.screenshot({path:'/tmp/pod-look-2.png'});
  // V opens the vending list; while it is open the view does not drift with the mouse
  await page.keyboard.press('KeyV');await page.waitForFunction(()=>!document.querySelector('.pod-vend').hidden);const yv=(await view()).yaw;
  await page.mouse.move(300,200);await page.mouse.down();await page.mouse.move(500,260,{steps:4});await page.mouse.up();assert.equal((await view()).yaw,yv);

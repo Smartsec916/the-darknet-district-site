@@ -382,6 +382,15 @@
   picture(1.5,3.3,76.3,1.65,FZ+.02,TON,128,282,(g,w,h)=>{g.fillStyle='#050809';g.fillRect(0,0,w,h);for(let i=0;i<6;i++){const s=1-i*.13,x0=w/2-w*.42*s,y0=h*(.06+i*.05);g.strokeStyle='rgba(57,255,156,'+(.55-i*.08)+')';g.lineWidth=3;g.strokeRect(x0,y0,w*.84*s,h*.9*s);}g.fillStyle='#ff3a2a';g.shadowColor='#ff3a2a';g.shadowBlur=12;for(const [x,y,r] of [[40,70,9],[84,96,7],[60,120,5]]){g.beginPath();g.arc(x,y,r,0,7);g.fill();}g.shadowBlur=0;g.fillStyle=GREEN;g.font=HAN(22);g.textAlign='center';for(const [c,i] of [['茶',0],['室',1]])g.fillText(c,w*.5,h*.62+i*26);},.9);
   box(.12,2.4,.5,74.9,3.4,FZ+.3,black);for(const [s,ry] of [[-1,TOW],[1,TOE]])sign(.42,2.2,74.9+s*.07,3.4,FZ+.3,ry,60,314,(g,w,h)=>{g.fillStyle='#04100a';g.fillRect(0,0,w,h);g.fillStyle=GREEN;g.shadowColor=GREEN;g.shadowBlur=8;g.font=HAN(40);g.textAlign='center';['旅','馆'].forEach((c,i)=>g.fillText(c,w/2,110+i*90));});
   {const lan=G('lantern-red','#ff3a2a',.9);pipe(.012,5.4,'z',77.3,3.75,-71.2,black);[-73,-71.2,-69.4].forEach((z,i)=>{ball(.42,77.3,3.42,z,lan,1.15);cyl(.14,.05,77.3,3.68,z,black,false,8);cyl(.1,.05,77.3,3.17,z,black,false,8);box(.02,.16,.02,77.3,3.06,z,M('tassel','#b8860b','#4a3604'));flat(pool('#ff3a2a',2,2,77.3,.024,z,.2));});}
+  /* Finding it from Main Street (David, 16 Nov 2026: "I couldn't get to Milked"; the side street had nothing on Main Street saying what is down it). A blade sign on a bracket
+     at the side street's corner, read from both directions along Main Street, and a wall sign on the corner building facing across the road. Each is the existing logo and an
+     arrow into the side street; no new wording. */
+  {const way=(dir)=>(g,w,h)=>{g.fillStyle='#0b0b10';g.fillRect(0,0,w,h);g.strokeStyle='#4a4e58';g.lineWidth=5;g.strokeRect(5,5,w-10,h-10);const ax=dir<0?w*.13:w*.87;logo(g,w/2-dir*w*.09,h*.52,h*.42);
+    g.strokeStyle='#ffe9f7';g.shadowColor=PINK;g.shadowBlur=14;g.lineWidth=h*.09;g.lineCap='round';g.lineJoin='round';g.beginPath();g.moveTo(ax-dir*h*.2,h*.5);g.lineTo(ax+dir*h*.14,h*.5);g.moveTo(ax-dir*h*.02,h*.28);g.lineTo(ax+dir*h*.16,h*.5);g.lineTo(ax-dir*h*.02,h*.72);g.stroke();g.shadowBlur=0;};
+   const bx=69.85,by=4.5,bz=-74.25;box(2.3,.08,.08,bx,by+.42,bz,black);box(.08,.5,.08,70.92,by+.2,bz,black);box(2.2,.74,.07,bx,by,bz,black);
+   sign(2.1,.66,bx,by,bz+.04,TON,640,200,way(-1));sign(2.1,.66,bx,by,bz-.04,TOS,640,200,way(1));   // seen walking south the side street is on the left; walking north, on the right
+   box(.07,.9,3.3,70.93,4.6,-76.6,black);sign(3.1,.8,70.88,4.6,-76.6,TOW,640,166,way(-1));box(.035,.035,3.3,70.9,5.08,-76.6,green);
+   flat(pool(PINK,3,2.6,69.9,.03,-73.2,.22));}
   // the dead end of the side street: bins and a crate against the far wall (clear of the walking line)
   if(!low){for(const [x,z] of [[99.4,-73.3],[100.3,-73.4]])cyl(.56,1,x,.5,z,M('bin','#22262b','#0e1012'),false,12);box(.9,.7,.7,100.2,.35,-69.2,M('crate','#3a3128','#17130f'));}
 

@@ -16,7 +16,7 @@ fs.mkdirSync(shots,{recursive:true});
  await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);await generous();
  await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');const c=page.locator('[data-action=menu-new-confirm]');if(await c.count())await c.click();
  await page.waitForSelector('#character-creator.on');await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled);await page.locator('[data-cc=confirm]').click();
- await page.waitForFunction(()=>mode==='pod-waking'&&walker&&VoidAssets.pending===0);await page.locator('#pod-wake [data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking');
+ await page.waitForFunction(()=>mode==='pod-waking'&&walker&&VoidAssets.pending===0);await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking');
  await page.evaluate(()=>{delete state.story.flags.area;return enterWalking(VoidDistrictArea.KEY.street,{silent:true});});await page.waitForFunction(()=>mode==='walking'&&walkingLocation?.area==='street');
  const at=(x,z,yaw=0,pitch=0)=>page.evaluate(([x,z,yaw,pitch])=>{Object.assign(walker,{x,z,yaw,pitch});},[x,z,yaw,pitch]);
  const shot=async(name,wait=1200)=>{await page.waitForTimeout(wait);await page.screenshot({path:shots+'/'+name+'.png'});};
@@ -80,7 +80,7 @@ fs.mkdirSync(shots,{recursive:true});
  // 8. reload: credits and the explored map survive
  await page.evaluate(()=>save());await page.reload();await page.waitForFunction(()=>window.VoidStartup?.started);await generous();
  await page.locator('[data-action=menu-continue]').click();await page.waitForFunction(()=>mode==='pod-waking'||mode==='walking',null,{timeout:300000});
- if(await page.evaluate(()=>mode==='pod-waking'))await page.locator('#pod-wake [data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking'&&VoidAssets.pending===0);
+ if(await page.evaluate(()=>mode==='pod-waking'))await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking'&&VoidAssets.pending===0);
  const after=await page.evaluate(()=>({credits:state.credits,fog:state.story.flags.templeFog}));assert.equal(after.credits,40);assert.equal(after.fog,back.fog,'the explored map survived the reload');
  await page.evaluate(()=>enterWalking('temple',{silent:true}));await page.waitForFunction(()=>walkingLocation?.id==='temple',null,{timeout:300000});
  const kept=await page.evaluate(()=>VoidBabylon.zone.fog.explored());assert.equal(kept,savedCells,'the same cells are still explored after the reload');await shot('14-temple-after-reload',800);

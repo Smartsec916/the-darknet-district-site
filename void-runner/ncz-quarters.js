@@ -11,7 +11,7 @@
      A1 customs   Port Customs    Old Town <-> The Port        walkers and taxis   private guards
      A2 north     North Gate      Old Town <-> The Avenue      walkers and taxis   private guards
      A3 function  Function Gate   The Avenue <-> the Corporate District (its own scene)   walkers and taxis   The Function (silent stand-in robots)
-     A4 east      East Gate       The Avenue <-> the Zen Zephyr Temple (its own scene)    taxis only          private guards
+     A4 east      East Gate       The Avenue <-> the Zen Zephyr Temple (its own scene)    walkers and taxis   private guards   (walkers' lane added 16 Nov 2026)
      A5 south     South Gate      shut (the Container Settlement is not built)
    NOT DECIDED, so not here: contraband, what happens when caught, bribes, shielding. The scan is a picture only and always lets the player through.
    Saves: nothing new is required. story.flags.quarter ('oldtown' | 'avenue'; absent = the Port) says which quarter an outdoor player was last in. */
@@ -33,7 +33,7 @@
   {id:'function',code:'A3',name:'Function Gate',sign:'FUNCTION GATE',guard:'function',rect:[2,10,-20,-5],axis:'x',ends:{lo:{scene:'corporate'},hi:{quarter:'avenue'}},
    lanes:[{id:'foot',kind:'foot',v:[-19.7,-16.7]},{id:'bay',kind:'bay',v:[-11.2,-7.4]}]},
   {id:'east',code:'A4',name:'East Gate',sign:'EAST GATE',guard:'private',rect:[144,152,-20,-5],axis:'x',ends:{lo:{quarter:'avenue'},hi:{scene:'temple'}},
-   lanes:[{id:'bay',kind:'bay',v:[-17.6,-13.8]}]},
+   lanes:[{id:'bay',kind:'bay',v:[-17.6,-13.8]},{id:'foot',kind:'foot',v:[-8.3,-5.3]}]},
   {id:'south',code:'A5',name:'South Gate',sign:'SOUTH GATE',guard:null,shut:true,rect:[51,71,-124,-122.4],axis:'z',ends:{lo:{},hi:{quarter:'oldtown'}},lanes:[]}];
  const gate=id=>GATES.find(g=>g.id===id)||null;
  const gateRect=id=>gate(id).rect;
@@ -123,13 +123,20 @@
  // Kerbside stops (the only places a cab sets down) and the two places beyond the gates. Ids 'main', 'avenue', 'alley-mouth', 'passage' and 'milked' are the
  // ones the game already used (map pins and saved waypoints keep working).
  const STOPS=[
-  {id:'passage',name:'The Port',quarter:'port',position:[42.35,-99],heading:0},
-  {id:'main',name:'Main Street',quarter:'oldtown',position:[61,-100],heading:0},
-  {id:'milked',name:'Milked corner',quarter:'oldtown',position:[61,-82],heading:0},
-  {id:'alley-mouth',name:'NULL / the alley',quarter:'oldtown',position:[61,-66],heading:0},
-  {id:'avenue',name:'The Avenue',quarter:'avenue',position:[40,-12.5],heading:Math.PI/2},
-  {id:'function-gate',name:'Function Gate',quarter:'avenue',position:[20,-12.5],heading:Math.PI/2},
-  {id:'east-gate',name:'East Gate',quarter:'avenue',position:[134,-12.5],heading:Math.PI/2}];
+  {id:'passage',name:'The Port',quarter:'port',position:[42.35,-99],heading:0,post:[43.55,-99,-Math.PI/2]},
+  {id:'main',name:'Main Street',quarter:'oldtown',position:[61,-100],heading:0,post:[68.3,-100,-Math.PI/2]},
+  {id:'milked',name:'Milked corner',quarter:'oldtown',position:[61,-82],heading:0,post:[68.3,-82,-Math.PI/2]},
+  {id:'alley-mouth',name:'NULL / the alley',quarter:'oldtown',position:[61,-66],heading:0,post:[68.3,-66,-Math.PI/2]},
+  {id:'avenue',name:'The Avenue',quarter:'avenue',position:[40,-12.5],heading:Math.PI/2,post:[40,-7.7,0]},
+  {id:'function-gate',name:'Function Gate',quarter:'avenue',position:[20,-12.5],heading:Math.PI/2,post:[20,-7.7,0]},
+  {id:'east-gate',name:'East Gate',quarter:'avenue',position:[134,-12.5],heading:Math.PI/2,post:[134,-7.7,0]}];
+ /* Where a taxi can be called by walking up and pressing the use key (David, 16 Nov 2026: "Couldn't figure out how to call a taxi"). post: [x, z, turn] of the pole with
+    the TAXI plate: one on the pavement at every stop, and one by The Darknet District's door, where no road runs (a cab called there waits at the alley's mouth). */
+ const CALL_POINTS=[...STOPS.map(s=>({id:s.id,quarter:s.quarter,post:s.post,stop:s.id})),{id:'district-door',quarter:'oldtown',post:[122.4,-61.15,Math.PI/2],stop:null}];
+ const CALL_LABEL='CALL A TAXI',CALL_REACH=.75,CALL_RANGE=2.6;
+ // The prompts for one quarter: each stands a step out from its post, on the walkable side.
+ function callPrompts(q){return CALL_POINTS.filter(c=>c.quarter===q).map(c=>{const [x,z,t]=c.post,out=c.stop?stop(c.stop).position:[x,z+1];const d=Math.hypot(out[0]-x,out[1]-z)||1;
+  return {id:'taxi-call-'+c.id,label:CALL_LABEL,position:[x+(out[0]-x)/d*CALL_REACH,1.7,z+(out[1]-z)/d*CALL_REACH],action:'road-taxi-call',range:CALL_RANGE};});}
  const FAR_FARE=60;
  const FAR=[{id:'corporate',name:'Corporate District',scene:'corporate',gate:'function',from:'avenue',fare:FAR_FARE,returnStop:'function-gate'},
   {id:'temple',name:'Zen Zephyr Temple',scene:'temple',gate:'east',from:'avenue',fare:FAR_FARE,returnStop:'east-gate'}];
@@ -158,7 +165,7 @@
   if(f[FLAG]!==undefined&&!valid(f[FLAG]))delete f[FLAG];
   if(back&&typeof s.credits==='number')s.credits+=back;return back;}
 
- const api={S,QUARTERS,IDS,DEFAULT,GATES,LANES,STOPS,FAR,FAR_FARE,REMOVED_STOPS,FLAG,WALL_H,DOOR_T,valid,gate,lane,lanesOf,gatesOf,region,inQuarter,distanceTo,quarterAt,keepDetail,keepBuilding,
+ const api={S,QUARTERS,IDS,DEFAULT,GATES,LANES,STOPS,CALL_POINTS,CALL_LABEL,callPrompts,FAR,FAR_FARE,REMOVED_STOPS,FLAG,WALL_H,DOOR_T,valid,gate,lane,lanesOf,gatesOf,region,inQuarter,distanceTo,quarterAt,keepDetail,keepBuilding,
   span,world,endOf,sidesOf,internal,define,other,beyond,laneAt,atCentre,openable,footArrival,bayPoint,bayFor,yawInto,solids,stop,far,gatesBetween,resumeQuarter,remember,migrateSave};
  if(node)module.exports=api;else root.VoidQuarters=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -1,6 +1,7 @@
 /* NeoChinatown's quarters and checkpoints in a real browser (docs/development/NEOCHINATOWN_QUARTERS.md). Not part of npm test.
      SITE_TEST_URL=http://127.0.0.1:5187 node tests/ncz-quarters-browser.cjs [low|medium]
-   Walks Port Customs and the North Gate both ways, walks the Function Gate to the Corporate District and back, rides a taxi from Old Town to the Corporate
+   Walks Port Customs and the North Gate both ways, walks the Function Gate to the Corporate District and back and the East Gate to the Temple and back, calls a taxi
+   at a stop's post (CALL A TAXI) and with the G key, rides a taxi from Old Town to the Corporate
    District and back, to the Temple and back, and across the city to the Port. Checks the quarter, the fare and that nothing is thrown.
    In a software renderer the game runs at a few percent of real time, so the cabs' own rules are stepped forward between frames while they drive on open
    road (never inside a gate). CHROMIUM_PATH names the browser where the bundled one is not found. */
@@ -16,7 +17,7 @@ const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',tier=process.argv[
  await page.evaluate(()=>{Object.assign(VoidPreparation.limits,{scene:900000,assets:600000,optional:600000,area:900000,total:1800000});});
  await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');const c=page.locator('[data-action=menu-new-confirm]');if(await c.count())await c.click();
  await page.waitForSelector('#character-creator.on');await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled);await page.locator('[data-cc=confirm]').click();
- await page.waitForFunction(()=>mode==='pod-waking'&&walker);await page.waitForTimeout(2500);await page.evaluate(()=>document.querySelector('#pod-wake [data-pod=exit]').click());await page.waitForFunction(()=>mode==='walking');
+ await page.waitForFunction(()=>mode==='pod-waking'&&walker);await page.waitForTimeout(2500);await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking');
  const info=()=>page.evaluate(()=>({mode,loc:walkingLocation?.id,q:walkingLocation?.quarter||null,credits:state.credits,trip:state.story.flags.roadTaxiTrip||null,taxi:VoidRoadTaxi.status()?.phase||null,gate:VoidGateTransit.state,swapMs:VoidGateTransit.lastSwapMs}));
  const enter=async(q,spawn)=>{await page.evaluate(([q,spawn])=>{delete state.story.flags.area;state.credits=1000;return enterWalking('sacramento',{silent:true,quarter:q,...(spawn?{spawn}:{})});},[q,spawn]);await page.waitForFunction(q=>mode==='walking'&&walkingLocation?.quarter===q,q);await page.waitForTimeout(4000);};
  // walk a straight line in small steps, only over open floor (waits for doors)
@@ -37,6 +38,13 @@ const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',tier=process.argv[
  await pass('North Gate, west lane, to the Avenue',[52.8,-28.5],[52.8,-23],[52.8,-17.5],'avenue');
  await pass('Function Gate, on foot, to the Corporate District',[12.5,-18.2],[6,-18.2],null,'corporate');
  await page.evaluate(()=>VoidInteractions.handlers.get('corp-gate')({}));await page.waitForFunction(()=>walkingLocation?.quarter==='avenue'&&mode==='walking'&&!VoidGateTransit.busy,null,{timeout:400000});await walk(12.5,-18.2);console.log('Function Gate, on foot, back to the Avenue ok');
+ // the East Gate's walkers' lane (16 Nov 2026): to the Temple, and back by the EAST GATE prompt there
+ await pass('East Gate, on foot, to the Temple',[141,-6.8],[148,-6.8],null,'temple');
+ await page.evaluate(()=>VoidInteractions.handlers.get('temple-walk')({}));await page.waitForFunction(()=>walkingLocation?.quarter==='avenue'&&mode==='walking'&&!VoidGateTransit.busy,null,{timeout:400000});await walk(141,-6.8);console.log('East Gate, on foot, back to the Avenue ok');
+ // calling a taxi: the prompt at a stop's post opens the list of destinations and fares; so does G
+ {const p=await page.evaluate(()=>walkingLocation.interactions.find(i=>i.id==='taxi-call-east-gate'));assert.ok(p&&p.label==='CALL A TAXI');await page.evaluate(p=>{walker.x=p.position[0];walker.z=p.position[2];},p);await page.waitForTimeout(1500);
+  await page.evaluate(()=>VoidInteractions.handlers.get('road-taxi-call')({}));await page.waitForFunction(()=>VoidHUD.isOpen&&VoidHUD.tab==='taxi');assert.ok(await page.locator('[data-hud-action="taxi-call:temple"]').count(),'the list offers the Temple with its fare');await page.keyboard.press('Escape');await page.waitForFunction(()=>!VoidHUD.isOpen&&mode==='walking');
+  await page.keyboard.press('KeyG');await page.waitForFunction(()=>VoidHUD.isOpen&&VoidHUD.tab==='taxi');await page.keyboard.press('Escape');await page.waitForFunction(()=>!VoidHUD.isOpen);console.log('CALL A TAXI and G open the taxi list ok');}
  await pass('North Gate, east lane, to Old Town',[69.2,-17.5],[69.2,-23],[69.2,-28.5],'oldtown');
  // ---- by taxi ----
  await page.evaluate(()=>{walker.x=66;walker.z=-60;state.credits=1000;});await page.waitForTimeout(1500);

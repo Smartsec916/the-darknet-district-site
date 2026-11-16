@@ -142,7 +142,7 @@
   function layout(area='all',quarter=null){
     const l=fullLayout();if(area==='all')return l;
     const keep=area==='interior'?insideSide:i=>!insideSide(i)||ENTRANCE.has(i.id),base={...l,area,solids:l.solids.filter(keep),interactions:l.interactions.filter(keep)};
-    if(area==='street'){const q=QT.valid(quarter),Q=q&&QT.QUARTERS[q];return Q?{...base,quarter:q,quarterName:Q.name,spawn:Q.spawn.slice(),yaw:Q.yaw,solids:[...base.solids,...QT.solids(q)]}:base;}
+    if(area==='street'){const q=QT.valid(quarter),Q=q&&QT.QUARTERS[q];return Q?{...base,quarter:q,quarterName:Q.name,spawn:Q.spawn.slice(),yaw:Q.yaw,solids:[...base.solids,...QT.solids(q)],interactions:[...base.interactions,...QT.callPrompts(q)]}:base;}   // callPrompts: CALL A TAXI at every stop's post and by the District's door
     const [x,z]=toWorld(0,22.5);delete base.ship;
     return {...base,name:'THE DARKNET DISTRICT',spawn:[x,1.7,z],yaw:Math.PI};
   }
@@ -151,7 +151,7 @@
   const ads=()=>(root.VoidAds?.brands||[]).map(b=>b.id);
   function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance,area='all',quarter=null}){
     // QK: the one quarter this street build makes (null: the whole city, as before the quarters). `free` lifts the test for pieces placed by a parent.
-    const QK=area==='street'?QT.valid(quarter):null;let free=false;const inCore=(x,z)=>x>=-6&&x<=160&&z>=-130&&z<=2,roofPiece=/^(water-tank|dish)$/;
+    const QK=area==='street'?QT.valid(quarter):null;let free=false;const inCore=(x,z)=>x>=-6&&x<=160&&z>=-130&&z<=2,roofPiece=/^(water-tank|dish|old-building)$/;   // pieces kept as far as a BUILDING is kept (45 m), not as street detail (2.6 m). 'old-building' is the body of every plot that faces a street: it was missing from this list, so in every quarter those bodies were thrown away and only their roofs, windows and shopfront strips were left standing (David, 16 Nov 2026: "Much of NeoChinaTown has gaps in the buildings")
     const dropped=(name,p)=>!!QK&&!free&&target===parent&&inCore(p[0],p[2])&&!(roofPiece.test(name)?QT.keepBuilding(QK,p[0],p[2]):QT.keepDetail(QK,p[0],p[2]));
     const B=root.BABYLON,low=quality==='low',owned=[],districtRoot=new root.BABYLON.TransformNode('district-root',scene);let target=parent,disposed=false;districtRoot.parent=parent;districtRoot.position.set(DOOR.x,0,DOOR.z+20);districtRoot.rotation.y=Math.PI;const textures=[],staticMeshes=new Map(),dynamic=[],v=(x,y,z)=>new B.Vector3(x,y,z);
     // A previous build's handles (club, streaming city, booths) belong to a released environment; clear them so nothing reads them.
@@ -377,8 +377,17 @@
     const onWide=(x0,x1,z0,z1)=>[S.avenue,S.main].some(([a,b,c,d])=>x0-.6<b&&x1+.6>a&&z0-.6<d&&z1+.6>c);
     for(const s of cityBlocks){const [cx,,cz]=s.position,[w,,d]=s.size,X0=cx-w/2,Z0=cz-d/2,nx=Math.ceil(w/12),nz=Math.ceil(d/12),I=.12,E=.3;
      for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){let x0=X0+w*i/nx,x1=X0+w*(i+1)/nx,z0=Z0+d*j/nz,z1=Z0+d*(j+1)/nz;const faces=[];
-      const [a,b,c,e]=[x0,x1,z0,z1];if(openNear(a-E,a,c,e)){x0+=I;faces.push('w');}if(openNear(b,b+E,c,e)){x1-=I;faces.push('e');}if(openNear(a,b,c-E,c)){z0+=I;faces.push('s');}if(openNear(a,b,e,e+E)){z1-=I;faces.push('n');}
-      const wide=onWide(a,b,c,e);discard=upgradedAt((a+b)/2,(c+e)/2);lowrise(x0,x1,z0,z1,wide?18+rand()*12:9+rand()*8,i+j*2+s.id.length,faces,wide?7.4:4.6);}}
+      // A side is set back only where open ground really runs along it (`along`: the same test with the side's two ends left out). A street that merely touches a corner
+      // still marks the side as a face, as it always did (so the seeded sequence, and with it every sign and window, stays where it was), but no longer pulls the wall in:
+      // two neighbouring plots each pulled in 0.12 m left a 0.24 m slit between them, open from the street to whatever was behind (found by the gap check, 16 Nov 2026).
+      const [a,b,c,e]=[x0,x1,z0,z1],sx=Math.min(E,(b-a)/3),sz=Math.min(E,(e-c)/3);if(openNear(a-E,a,c,e)){if(openNear(a-E,a,c+sz,e-sz))x0+=I;faces.push('w');}if(openNear(b,b+E,c,e)){if(openNear(b,b+E,c+sz,e-sz))x1-=I;faces.push('e');}if(openNear(a,b,c-E,c)){if(openNear(a+sx,b-sx,c-E,c))z0+=I;faces.push('s');}if(openNear(a,b,e,e+E)){if(openNear(a+sx,b-sx,e,e+E))z1-=I;faces.push('n');}
+      const wide=onWide(a,b,c,e);discard=upgradedAt((a+b)/2,(c+e)/2);const ph=wide?18+rand()*12:9+rand()*8,pk=i+j*2+s.id.length;lowrise(x0,x1,z0,z1,ph,pk,faces,wide?7.4:4.6);
+      // Where a side was set back but open ground runs along only PART of it (the rest is against a neighbouring plot), the set-back strip is filled over that rest,
+      // so no 0.12 m slit is left between the two buildings. Same material and height as the plot; no random numbers are drawn.
+      {const rest=(lo,hi,alongX,s0,s1)=>{let parts=[[lo,hi]];for(const [oa,ob,oc,od] of [...Object.values(S),...Object.values(footprints)]){const [l0,l1,f0,f1]=alongX?[oa,ob,oc,od]:[oc,od,oa,ob];if(!(s0<f1&&s1>f0))continue;parts=parts.flatMap(([p0,p1])=>l1<=p0||l0>=p1?[[p0,p1]]:[[p0,Math.min(p1,l0)],[Math.max(p0,l1),p1]]).filter(([u,v])=>v-u>.02);}return parts;},
+        m=old[pk%old.length],t=m.metadata.tile,strip=(fx0,fx1,fz0,fz1)=>{const w=fx1-fx0,d=fz1-fz0,side=q=>new B.Vector4(0,0,q/t,ph/t),cap=new B.Vector4(0,0,.01,.01);add(B.MeshBuilder.CreateBox('old-building',{width:w,height:ph,depth:d,faceUV:[side(w),side(w),side(d),side(d),cap,cap],wrap:true},scene),m,[(fx0+fx1)/2,ph/2,(fz0+fz1)/2]);};
+       if(x0>a)for(const [p0,p1] of rest(c,e,false,a-E,a))strip(a,x0,p0,p1);if(x1<b)for(const [p0,p1] of rest(c,e,false,b,b+E))strip(x1,b,p0,p1);
+       if(z0>c)for(const [p0,p1] of rest(a,b,true,c-E,c))strip(p0,p1,c,z0);if(z1<e)for(const [p0,p1] of rest(a,b,true,e,e+E))strip(p0,p1,z1,e);}}}
     discard=false;
     // The outer ring: older mid-rise blocks all round the city's edge (cityBox), facing inward.
     {const [X0,X1,Z0,Z1]=cityBox,ring=[[X0-24,X1+24,Z1,Z1+18,'s'],[X0-24,X1+24,Z0-18,Z0,'n'],[X0-24,X0,Z0,Z1,'e'],[X1,X1+24,Z0,Z1,'w']];
@@ -793,7 +802,7 @@
      g.fillStyle='#4fae6c';g.font='11px monospace';g.fillText('VOL',226,164);g.fillStyle='#16221c';g.fillRect(254,154,112,10);g.fillStyle='#b8d94a';g.fillRect(254,154,Math.round(112*Math.max(0,Math.min(1,on||st?st.volume??.6:.6))),10);
      g.fillStyle='#4fae6c';g.fillText(on?(st.source==='mine'?'MY MUSIC':'DISTRICT PLAYLIST'):'CLICK TITLE: PLAYLIST',226,182);
     }
-    // The pod's ambient-light panel face (after the owner's Tesana pod). It shows THIS pod's lighting choice; the controls stay in MUSIC & LIGHTS.
+    // The pod's ambient-light panel face (after the owner's Tesana pod). It shows THIS pod's lighting choice; its three presets are clicked on the panel itself.
     const podLightFaces={},POD_LIGHTS=[['rest','REST','#ad5a94','#5a2a66'],['reading','READING','#fff0cb','#d9a860'],['music','MUSIC SYNC','#e96bbf','#7840a5']];
     function drawPodLights(g,index,preset,lv){
      const W=320,H=180,bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#1c1424');bg.addColorStop(1,'#0e0a14');g.fillStyle=bg;g.fillRect(0,0,W,H);
@@ -1059,7 +1068,9 @@
     const drawPodExit=(g,hot)=>{const W=512,H=96;g.clearRect(0,0,W,H);g.fillStyle=hot?'rgba(10,52,28,.8)':'rgba(8,10,16,.5)';g.beginPath();g.roundRect?g.roundRect(4,8,W-8,H-16,14):g.rect(4,8,W-8,H-16);g.fill();g.strokeStyle=hot?'rgba(120,255,170,1)':'rgba(214,236,226,.7)';g.lineWidth=hot?4:2;g.stroke();
      g.textAlign='center';g.textBaseline='middle';g.font='700 44px Arial,Helvetica,sans-serif';g.shadowColor=hot?'#58ff9a':'transparent';g.shadowBlur=hot?18:0;g.fillStyle=hot?'#eafff1':'rgba(240,248,244,.92)';g.fillText('EXIT THE POD',W/2,H/2+2);g.shadowBlur=0;};
     const podExitTex=texture('tesana-pod-exit',512,96,g=>drawPodExit(g,false));podExitTex.hasAlpha=true;const podExitMat=texMat('tesana-pod-exit',podExitTex,{glow:true,alpha:true});podExitMat.backFaceCulling=true;let podExitHot=false;
-    const podPick=(x,y)=>{const hit=scene.pick(x,y,m=>!!m.metadata?.podTouch,false,scene.activeCamera);if(!hit?.hit)return null;const uv=hit.getTextureCoordinates?.();return {...hit.pickedMesh.metadata.podTouch,u:uv?uv.x:.5,v:uv?1-uv.y:.5,distance:hit.distance};};
+    const podPick=(x,y)=>{   // (x, y) is where the pointer is in the window. The game's picture is drawn smaller than the window and stretched whenever the quality setting says so, so the point is first brought to the picture's own size: without this a click landed beside what was drawn.
+     {const eng=scene.getEngine(),k=eng.getHardwareScalingLevel?.()||1,W=root.innerWidth,H=root.innerHeight;if(W>0&&H>0){x=x*eng.getRenderWidth()/W*k;y=y*eng.getRenderHeight()/H*k;}}   // the picture is drawn on its own surface and stretched over the whole window (babylon-integration.js)
+     const hit=scene.pick(x,y,m=>!!m.metadata?.podTouch,false,scene.activeCamera);if(!hit?.hit)return null;const uv=hit.getTextureCoordinates?.();return {...hit.pickedMesh.metadata.podTouch,u:uv?uv.x:.5,v:uv?1-uv.y:.5,distance:hit.distance};};
     const podHover=kind=>{const hot=kind==='exit';if(hot===podExitHot)return;podExitHot=hot;drawPodExit(podExitTex.getContext(),hot);podExitTex.update();};
     if(root.VoidNeoChinatown){root.VoidNeoChinatown.podPick=podPick;root.VoidNeoChinatown.podHover=podHover;}
     framed=[];   // the ten pods, their ladder and ceiling panels: built in the west room's coordinates, then moved to the back wall below
@@ -1082,16 +1093,20 @@
        for(let k=0;k<4;k++){const b=box('tesana-pod-fan-blade',[.19,.006,.07],[fx+Math.cos(k*Math.PI/2+.5)*.1,fy-.014,z-.5+Math.sin(k*Math.PI/2+.5)*.1],podRib);b.rotation.y=-(k*Math.PI/2+.5);}cyl('tesana-pod-fan-hub',.035,.02,[fx,fy-.016,z-.5],podVent,true,10);}
       for(const x of [-16.05,-15.3,-14.55]){box('tesana-pod-rib',[.055,.055,2.16],[x,y+.65,z],podRib);for(const side of [-1,1])box('tesana-pod-rib',[.055,1.34,.055],[x,y,z+side*1.07],podRib);}
       for(const x of [-16.05,-15.3,-14.55])box('tesana-pod-ceiling',[.58,.018,1.65],[x,y+.635,z],podRib);
-      box('tesana-pod-vent',[.04,.18,.55],[-16.53,y+.24,z-.42],podVent);for(let k=0;k<4;k++)box('tesana-pod-vent-slot',[.015,.012,.5],[-16.505,y+.17+k*.045,z-.42],podRib);
+      for(const s of [-1,1]){box('tesana-pod-vent',[.04,.18,.46],[-16.53,y+.26,z+s*.27],podVent);for(let k=0;k<4;k++)box('tesana-pod-vent-slot',[.015,.012,.4],[-16.505,y+.19+k*.045,z+s*.27],podRib);}
       const positions=[],uvs=[],indices=[],cols=12,rows=9;for(let j=0;j<=rows;j++)for(let k=0;k<=cols;k++){const u=k/cols,v=j/rows;positions.push(-15.85+u*1.42,y-.4+.03*Math.sin(u*7+v*3)+.022*Math.sin(v*6+u*2),z-.85+v*1.7);uvs.push(u*2,v*2);if(j<rows&&k<cols){const a=j*(cols+1)+k;indices.push(a,a+1,a+cols+1,a+1,a+cols+2,a+cols+1);}}
       const duvet=new B.Mesh('tesana-pod-duvet',scene),data=new B.VertexData();data.positions=positions;data.uvs=uvs;data.indices=indices;data.normals=[];B.VertexData.ComputeNormals(positions,indices,data.normals);data.applyToMesh(duvet);add(duvet,podFabric,[0,0,0]);
       for(const side of [-1,1]){const pillow=B.MeshBuilder.CreateSphere('tesana-pod-pillow',{segments:12,diameter:1},scene);pillow.scaling.set(.45,.12,.38);add(pillow,podFabric,[-16.13,y-.28,z+side*.43]);}
      }
-     // The pod's own music player face (after the owner's Tesana pod: an old-style amp display). It shows what THIS pod is playing; the controls stay in MUSIC & LIGHTS.
+     // The pod's own music player face (after the owner's Tesana pod: an old-style amp display). It shows what THIS pod is playing.
+     // David, 16 Nov 2026: the player and the light panel are on the RIGHT-hand wall (the occupant's right, facing the hatch), not the back wall. Their clicks are
+     // found by picking the plane and reading where on its picture the pointer is (podPick), so the click regions move with the planes.
      const podTex=texture('tesana-pod-screen-'+index,384,192,g=>drawPodPlayer(g,index,null));podPlayers[index]=podTex;
-     box('tesana-pod-screen-frame',[.05,.56,1.06],[-16.48,y+.14,z+.4],podVent);podTouch(plane('tesana-pod-screen',.98,.49,[-16.44,y+.14,z+.4],texMat('tesana-pod-screen-'+index,podTex,{glow:true}),-Math.PI/2),index,'music');
+     box('tesana-pod-screen-frame',[1.06,.56,.05],[-15.05,y+.14,z-.985],podVent);podTouch(plane('tesana-pod-screen',.98,.49,[-15.05,y+.14,z-.945],texMat('tesana-pod-screen-'+index,podTex,{glow:true}),Math.PI),index,'music');
      const lightTex=texture('tesana-pod-lights-'+index,320,180,g=>drawPodLights(g,index,root.VoidPodMusic?.lightingFor?.(index)||'rest',null));podLightFaces[index]=lightTex;
-     box('tesana-pod-lights-frame',[.05,.32,.56],[-16.48,y-.04,z-.42],podVent);podTouch(plane('tesana-pod-lights',.5,.28,[-16.44,y-.04,z-.42],texMat('tesana-pod-lights-'+index,lightTex,{glow:true}),-Math.PI/2),index,'lights');
+     box('tesana-pod-lights-frame',[.56,.32,.05],[-15.92,y+.14,z-.985],podVent);podTouch(plane('tesana-pod-lights',.5,.28,[-15.92,y+.14,z-.945],texMat('tesana-pod-lights-'+index,lightTex,{glow:true}),Math.PI),index,'lights');
+     // The back wall, where they used to be: the lamp panel in a moulded frame between the two vents.
+     for(const s of [-1,1]){box('tesana-pod-back-trim',[.02,.025,1.14],[-16.54,y+.05+s*.465,z],podVent);box('tesana-pod-back-trim',[.02,.955,.025],[-16.54,y+.05,z+s*.5575],podVent);}
      // Built-in vending unit on the side wall between two ribs (after the owner's Tesana pod). Browsed from the pod menu (VENDING).
      box('tesana-pod-vend-frame',[.72,.6,.06],[-15.675,y+.08,z+.985],podRib);box('tesana-pod-vend-tray',[.5,.07,.02],[-15.675,y-.19,z+.95],podVent);box('tesana-pod-vend-led',[.03,.03,.012],[-15.36,y+.3,z+.95],amber);
      box('tesana-pod-vend-bezel',[.68,.46,.01],[-15.675,y+.13,z+.959],podVent); podTouch(plane('tesana-pod-vend',.64,.42,[-15.675,y+.13,z+.952],podVendMat,0),index,'vend');

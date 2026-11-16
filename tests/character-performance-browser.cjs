@@ -9,7 +9,7 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   await page.addInitScript(q=>localStorage.setItem('void-runner-graphics-v1',JSON.stringify({quality:q})),tier);await page.goto(base+'/void-runner.html');
   await page.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:120000});
   await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');const c=page.locator('[data-action=menu-new-confirm]');if(await c.count())await c.click();
-  await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});await page.evaluate(()=>{state.story.flags.appearanceOffered=true;});await page.locator('#pod-wake button').click();
+  await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});await page.evaluate(()=>{state.story.flags.appearanceOffered=true;});await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');
   await page.waitForFunction(()=>mode==='walking'&&VoidAssets.pending===0,null,{timeout:120000});
   const out=await page.evaluate(async()=>{
    const sc=VoidBabylon.scene,A=VoidCharacterAppearance,looks=Object.keys(A.CATALOG.looks),res={perLook:{},rooms:{}},made=[];

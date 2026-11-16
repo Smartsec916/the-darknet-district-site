@@ -18,6 +18,17 @@ The pods are still BUILT in the old room's coordinates and then set down as one 
 
 `POINT.pod`, `POINT.podExit`, `podBed(N, index)`, `podExit(N, index)` (faces the doorway to the hallway), `resume(state, N)`, and `POD_VIEW` = the three directions used from inside a pod: `hatch`, `inside`, `vending`. Do not hard-code pod coordinates or view angles elsewhere.
 
+## 16 Nov 2026 (build `2026-11-16-fixes-1`): the strip's buttons are gone; the controls are on the right-hand wall
+
+David, after a playthrough: "Remove these button from the Sleeping Pod now that there's an Exit the Pod button above the door. Move the music and lighting controls to the right side of the sleeping pod, not the back."
+
+- **The strip along the bottom has no buttons** (EXIT POD, MUSIC & LIGHTS, LOOK INSIDE, VENDING are removed). It keeps the pod's number, "You wake in a Sleeping Pod." and one line of help that ends with the keys. Everything is still reachable: click EXIT THE POD on the glass, the music player, the light panel or the vending unit; or press **E** (exit), **M** (music and lights), **V** (vending), **Q** (look at the controls on the right wall; again for the hatch), arrow keys to look.
+- **Q is new.** It replaces the LOOK INSIDE button, and it now faces the controls rather than the back wall.
+- **The music player and the ambient light panel are on the right-hand wall** (the occupant's right, facing the hatch), side by side, the player nearer the hatch. The vending unit stays on the left wall. The back wall keeps its lamp panel, now in a thin frame, with two vents.
+- **A click now lands where the picture is.** The pod's click test used the window's coordinates, but the game's picture is drawn smaller than the window and stretched on Low (911 wide in a 1366 window here), so a click registered about a third of the way off. `podPick` in `neochinatown.js` now converts first. This affected every pod control, including EXIT THE POD on the glass.
+- The player's function, its playlist and its songs were not touched.
+- Code: `podAct` in `world-integration.js`; `POD_VIEW.controls` in `district-area.js`; the panels in `neochinatown.js`. Tests: `tests/keymap.test.cjs`, `tests/district-transition.test.cjs`, `tests/pod-free-look-browser.cjs`; every browser script that clicked the EXIT POD button now presses E.
+
 ## Looking around from the pod (2026-11-12)
 
 Lying in a pod the player is not held to the buttons: click the view to take the mouse (as when walking; Esc gives it back), or drag, or use the arrow keys. E gets up, M opens music and lights, V opens the vending list. The LOOK INSIDE / LOOK THROUGH HATCH button still snaps the view. Code: `podLook` in `void-runner/world-integration.js`; test `tests/pod-free-look-browser.cjs`.

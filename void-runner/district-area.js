@@ -21,7 +21,7 @@
   return {spawn:world(N,[lx,lz]),yaw:Math.atan2(lx-0,lz-67)};}
  // Where a player lies in pod `index` (1..10; 6..10 are the upper row), and the directions to look from there: out through the hatch, at the wall screens, at the vending unit.
  function podBed(N,index=1){const slot=Math.max(1,Math.min(10,Number(index)||1)),[x,,z]=world(N,[POINT.pod[0]+((slot-1)%5)*POD_STEP,POINT.pod[1]]);return {x,z,y:1.1+(slot>5?1.7:0)};}
- const POD_VIEW={hatch:POD_YAW,inside:POD_YAW+Math.PI,vending:POD_YAW-Math.PI/2};
+ const POD_VIEW={hatch:POD_YAW,inside:POD_YAW+Math.PI,vending:POD_YAW-Math.PI/2,controls:POD_YAW+Math.PI/2};   // controls: the music player and light panel on the right-hand wall (16 Nov 2026)
  // Where a player appears on leaving the District: in the alley outside the outer door, facing along the alley toward the street.
  function exitSpawn(N){return {spawn:world(N,POINT.outside),yaw:-Math.PI/2};}
  const local=(N,p)=>N.toWorld(p.x??p[0],p.z??p[2]);

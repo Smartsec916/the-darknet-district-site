@@ -1,6 +1,7 @@
 /* KEYMAP overlay. Scoped to #keymap. Same visual language as the V1 (device-v1.css): dark translucent panel, teal edges, chamfered keys. */
-#keymap{--km-panel:#0c1b23;--km-edge:#38808b;--km-hi:#61eee9;--km-text:#c3d8de;--km-muted:#8caaaf;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:46;box-sizing:border-box;max-width:96vw;max-height:94vh;overflow:auto;padding:14px 18px 16px;color:var(--km-text);font:12px/1.4 'Courier New',Courier,monospace;
- background:linear-gradient(160deg,rgba(7,17,22,.9),rgba(8,13,20,.92));border:1px solid var(--km-edge);box-shadow:0 0 26px rgba(97,238,233,.12),inset 0 0 36px rgba(97,238,233,.04);clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));pointer-events:none}
+#keymap{--km-panel:#0c1b23;--km-edge:#38808b;--km-hi:#61eee9;--km-text:#c3d8de;--km-muted:#8caaaf;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:46;box-sizing:border-box;max-width:96vw;max-height:94vh;overflow:auto;color:var(--km-text);font:12px/1.4 'Courier New',Courier,monospace;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));pointer-events:none}
+/* The panel is a child so that it can stay visible while the camera app hides the rest of the interface (device-v1.css hides body's children; a child may show itself). */
+#keymap .km-panel{visibility:visible;box-sizing:border-box;padding:14px 18px 16px;background:linear-gradient(160deg,rgba(7,17,22,.9),rgba(8,13,20,.92));border:1px solid var(--km-edge);box-shadow:inset 0 0 36px rgba(97,238,233,.04)}
 #keymap[hidden]{display:none}#keymap.in{animation:km-in .22s ease-out}
 @keyframes km-in{from{opacity:0;transform:translate(-50%,-48%)}to{opacity:1;transform:translate(-50%,-50%)}}
 @keyframes km-key{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -10,11 +11,18 @@
 #keymap button{pointer-events:auto;font:600 11px/1.3 'Courier New',Courier,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--km-text);background:var(--km-panel);border:1px solid var(--km-edge);padding:5px 11px;cursor:pointer;min-height:28px;clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
 #keymap button:hover{background:#122d37;color:#f1ffff;border-color:#8cfff6}#keymap button:focus-visible{outline:2px solid #fff0c9;outline-offset:-3px}#keymap button[aria-pressed=true]{background:#103139;border-color:var(--km-hi);color:#c9fffa}
 #keymap .km-hint{margin:12px 0 14px;text-align:center;font-size:clamp(15px,2vw,22px);font-weight:700;letter-spacing:.1em;color:#f1ffff;text-shadow:0 0 10px rgba(97,238,233,.45)}
-#keymap .km-stage{position:relative;margin:0 auto}
+#keymap .km-body{display:flex;align-items:center;justify-content:center;gap:26px}#keymap .km-body.stacked{flex-direction:column;gap:14px}
+#keymap .km-stage{position:relative;flex:none}
+/* The mouse map: a drawn mouse with a label beside each part that does something. */
+#keymap .km-mouse-map{flex:none;display:grid;grid-template-columns:104px 84px 104px;grid-template-areas:'. wheel .' 'left svg right' '. move .';gap:6px 8px;align-items:center;justify-items:center;width:308px}
+#keymap .km-mouse-map svg{grid-area:svg;width:84px;height:136px;overflow:visible}#keymap .km-mouse-map svg path,#keymap .km-mouse-map svg rect{fill:var(--km-panel);stroke:var(--km-edge);stroke-width:1.5;opacity:.45}
+#keymap .km-mouse-map svg .on{opacity:1;fill:#103139;stroke:var(--km-hi)}#keymap .km-mouse-map svg rect.on{fill:#1c5a63}#keymap .km-mouse-map svg .arrows path{fill:var(--km-hi);stroke:none;opacity:.9}
+#keymap .km-ml{display:flex;flex-direction:column;gap:2px;max-width:104px;text-align:center}#keymap .km-ml b{font-size:10px;letter-spacing:.1em;color:var(--km-hi)}#keymap .km-ml span{font-size:10px;line-height:1.25;letter-spacing:.03em;color:var(--km-text);text-transform:uppercase}
+#keymap .km-ml-wheel{grid-area:wheel;max-width:none;grid-column:1/4}#keymap .km-ml-left{grid-area:left;text-align:right;align-items:flex-end}#keymap .km-ml-right{grid-area:right;text-align:left;align-items:flex-start}#keymap .km-ml-move{grid-area:move;max-width:none;grid-column:1/4}
 #keymap .km-key{position:absolute;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:2px;text-align:center;background:var(--km-panel);border:1px solid var(--km-edge);overflow:hidden;
  clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);animation:km-key .24s ease-out both;animation-delay:calc(var(--i,0)*14ms)}
 #keymap .km-cap{font-size:14px;font-weight:700;color:var(--km-hi);line-height:1.1}#keymap .km-act{font-size:9px;line-height:1.1;letter-spacing:.04em;color:var(--km-text);text-transform:uppercase}
 #keymap .km-key.conflict{border-color:#e0a84a}#keymap .km-key.conflict .km-cap{color:#e0a84a}
-#keymap .km-foot{margin-top:14px;text-align:center;color:var(--km-muted);letter-spacing:.06em;font-size:11px}#keymap .km-warn{margin-top:6px;color:#e0a84a}
-@media(max-height:560px){#keymap{padding:8px 12px}#keymap .km-hint{margin:6px 0 8px}}
+#keymap .km-foot{margin:14px auto 0;max-width:1100px;text-align:center;color:var(--km-muted);letter-spacing:.06em;font-size:11px}#keymap .km-warn{margin-top:6px;color:#e0a84a}
+@media(max-height:560px){#keymap .km-panel{padding:8px 12px}#keymap .km-hint{margin:6px 0 8px}}
 @media(prefers-reduced-motion:reduce){#keymap,#keymap *{animation:none!important;transition:none!important}}

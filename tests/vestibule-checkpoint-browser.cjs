@@ -13,7 +13,7 @@ const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',tier=process.argv[
   await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);
   await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');const c=page.locator('[data-action=menu-new-confirm]');if(await c.count())await c.click();
   await page.waitForSelector('#character-creator.on');await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled);await page.locator('[data-cc=confirm]').click();
-  await page.waitForFunction(()=>mode==='pod-waking'&&walker&&VoidAssets.pending===0);await page.locator('#pod-wake [data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking');
+  await page.waitForFunction(()=>mode==='pod-waking'&&walker&&VoidAssets.pending===0);await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking');
   // The watcher: every frame, note any moment the rules are broken.
   await page.evaluate(()=>{window.__v={bothOpen:0,scanWithOpenDoor:0,frames:0,states:[]};(function f(){requestAnimationFrame(f);const d=VoidBabylon.district?.doors;if(!d)return;const st=d.state(),open=st.filter(x=>x.open>.02).length,scan=!document.getElementById('district-transition').hidden;
    __v.frames++;if(open>1)__v.bothOpen++;if(scan&&open>0)__v.scanWithOpenDoor++;const p=VoidDistrict.state;if(__v.states.at(-1)!==p)__v.states.push(p);})();});

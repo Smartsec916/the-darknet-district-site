@@ -209,6 +209,7 @@
   else if(cab.phase==='to-dest'&&cab.pathLen-cab.s<=0.45){cab.speed=0;cab.phase=job.phase=job.via?'in-bay':'arrived';}
   return world;
  }
+ const PICKUP_REACH=80;
  function hail(world,s,player,destId,ctx){
   const c=Object.assign({onFoot:true,area:'street',player:[player.x,player.z],quarter:world.quarter},ctx||{});
   if(world.job&&!world.job.released)c.trip=true;
@@ -217,14 +218,16 @@
   if(!dest)return {ok:false,reason:'That stop is not on the street network.'};
   if(!dest.legs&&dest.ok)return {ok:false,reason:'No road from here.'};
   if(!dest.ok)return {ok:false,reason:dest.reason};
-  let pick=snap(world.net,player);if(!pick||pick.d>50)return {ok:false,reason:'No road close enough for a pickup.'};
+  // How far from a road a cab can still be called. 80 m covers the whole alley, so a cab can be called from The Darknet District's door (57 m from Main Street); it was 50,
+  // which refused every call made there (found 16 Nov 2026). The cab waits on the road; `walk` tells the caller how far away that is.
+  let pick=snap(world.net,player);if(!pick||pick.d>PICKUP_REACH)return {ok:false,reason:'No road close enough for a pickup.'};const walk=Math.round(pick.d);
   if(pick.d<2.2)pick=rewind(pick,6);
   let best=null,bd=Infinity,bestPath=null;
   for(const t of world.taxis){if(!['cruise','parked','rejoin'].includes(t.phase))continue;   /* a cab on its way back to the circuit or the rank is free too */const path=route(world.net,t,{x:pick.x,z:pick.z}),len=pathLength(path);if(len<bd){bd=len;best=t;bestPath=path;}}
   if(!best)return {ok:false,reason:'No taxi is free.'};
   assignPath(best,bestPath,'to-pickup');
   world.job={cab:best,dest,fare:dest.fare,legs:(dest.legs||[]).slice(),via:null,phase:'to-pickup',charged:false,released:false,pickup:{x:pick.x,z:pick.z}};
-  return {ok:true,fare:dest.fare,taxi:best.id,pickup:world.job.pickup};
+  return {ok:true,fare:dest.fare,taxi:best.id,pickup:world.job.pickup,walk};
  }
  function board(world,s){
   const job=world.job;if(!job||job.released||job.cab.phase!=='waiting')return {ok:false,reason:'The taxi is not waiting.'};
@@ -275,6 +278,6 @@
   return DRIVE.some(id=>{const r=S[id];return r&&x>=r[0]-m&&x<=r[1]+m&&z>=r[2]-m&&z<=r[3]+m;});
  }
 
- const api={fare,REGISTRY,FLAG,SPEC,DRIVE,drive,carry,resume,returnTrip,stops,availability,destinations,cost,charge,arrive,recover,network,route,pathLength,pointAlong,projectPath,targetSpeed,follow,createTraffic,stepWorld,hail,board,exitRide,cancel,doorPoints,seatPoint,onRoad,snap};
+ const api={fare,REGISTRY,FLAG,SPEC,PICKUP_REACH,DRIVE,drive,carry,resume,returnTrip,stops,availability,destinations,cost,charge,arrive,recover,network,route,pathLength,pointAlong,projectPath,targetSpeed,follow,createTraffic,stepWorld,hail,board,exitRide,cancel,doorPoints,seatPoint,onRoad,snap};
  if(node)module.exports=api;else root.VoidRoadTaxiRules=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

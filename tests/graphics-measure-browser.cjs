@@ -29,7 +29,7 @@ const out=process.argv[2]||'graphics-measure.json',dpr=Number(process.argv[3]||1
  };
  const rows=[];const all=async scene=>{for(const q of ['low','medium','high','ultra']){rows.push(await measure(scene,q));console.log(scene,q,JSON.stringify(rows.at(-1).renderTarget),rows.at(-1).drawCalls);}};
  await all('Sleeping Pod room (pod-waking)');
- await page.locator('#pod-wake [data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0);await page.waitForTimeout(2000);
+ await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0);await page.waitForTimeout(2000);
  await all('The Darknet District interior');
  await page.evaluate(()=>{delete state.story.flags.area;return enterWalking(VoidDistrictArea.KEY.street,{silent:true});});await page.waitForFunction(()=>mode==='walking'&&walkingLocation?.area==='street'&&VoidAssets.pending===0,null,{timeout:300000});await page.waitForTimeout(3000);
  await all('NeoChinatown street');

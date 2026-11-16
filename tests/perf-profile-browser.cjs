@@ -32,7 +32,7 @@ const out=process.argv[2]||'perf.json',quality=process.argv[3]||'medium',base=pr
   r.longTasks=await page.evaluate(()=>({count:window.__long.length,over100:window.__long.filter(x=>x>100).length,max:Math.max(0,...window.__long)}));r.scene=scene;rows.push(r);console.log(scene,JSON.stringify({draw:r.drawCalls,active:r.activeMeshes,meshes:r.meshes,mats:r.materials,fps:r.fps,top:r.cpuProfile.slice(0,3)}));
  }
  await measure('Sleeping Pod room (pod-waking)');
- const tExit=Date.now();await page.locator('#pod-wake [data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0);const exitMs=Date.now()-tExit;
+ const tExit=Date.now();await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0);const exitMs=Date.now()-tExit;
  await page.evaluate(()=>{const [x,z]=VoidNeoChinatown.toWorld(0,34);Object.assign(walker,{x,z,yaw:0,pitch:0,vx:0,vz:0});});
  await measure('The Darknet District interior (hall)');
  await page.evaluate(()=>{const [x,z]=VoidNeoChinatown.toWorld(14,60);Object.assign(walker,{x,z,yaw:Math.PI,pitch:0,vx:0,vz:0});});await measure('The Darknet District interior (bar side)');

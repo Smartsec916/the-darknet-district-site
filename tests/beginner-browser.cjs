@@ -32,7 +32,7 @@ const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',shots=process.env.
  await page.waitForSelector('#character-creator.on');await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled);await page.locator('[data-cc=confirm]').click();
  await page.waitForFunction(()=>mode==='pod-waking'&&walker);let s=await S();log('in the pod '+JSON.stringify(s));
  assert.equal(s.ship,false,'the player starts without a ship');assert.equal(s.pool,'closed');assert.deepEqual(s.m,{},'no mission before the pod exit');assert.equal(s.free,false);
- await page.locator('#pod-wake [data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0);
+ await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0);
  // ---- 1 FIRST CONTACT
  await page.waitForFunction(()=>!!state.universe.missions['first-contact']?.acquired,null,{timeout:30000});s=await S();log('mission 1 offered '+JSON.stringify(s.m)+' tracked='+s.tracked);assert.equal(s.tracked,'first-contact');await snap('01-first-contact-offered');
  await page.keyboard.press('KeyL');await page.waitForSelector('#personal-device.open');await page.waitForFunction(()=>!VoidPersonalDevice.busy);await page.click('[data-app=missions]');await page.waitForFunction(()=>!VoidPersonalDevice.busy);
@@ -61,7 +61,7 @@ const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',shots=process.env.
  assert.deepEqual([saved.ship,saved.awarded,saved.free,saved.q],['granted',true,true,'open']);
  await page.reload();await page.waitForFunction(()=>window.VoidStartup?.started);await page.evaluate(()=>Object.assign(VoidPreparation.limits,{scene:600000,assets:600000,optional:300000,total:1200000,module:600000,artwork:300000}));
  await page.locator('[data-action=menu-continue]').click();await page.waitForFunction(()=>mode==='pod-waking'||mode==='walking',null,{timeout:300000});
- if(await page.evaluate(()=>mode==='pod-waking'))await page.locator('#pod-wake [data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking'&&VoidAssets.pending===0);
+ if(await page.evaluate(()=>mode==='pod-waking'))await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking'&&VoidAssets.pending===0);
  s=await S();log('after reload '+JSON.stringify(s));assert.equal(s.ship,true,'ship ownership persists after a reload');assert.equal(s.free,true);assert.match(s.m['first-ship'],/claim/);assert.equal(s.tracked,'first-ship');
  await page.keyboard.press('KeyL');await page.waitForSelector('#personal-device.open');await page.waitForFunction(()=>!VoidPersonalDevice.busy);await page.click('[data-app=missions]');await page.waitForFunction(()=>!VoidPersonalDevice.busy);
  const t2=await page.textContent('#personal-device .pd-main');assert.match(t2,/YOUR FIRST SHIP/);assert.match(t2,/Board your ship at Pad 01/);assert.match(t2,/COMPLETED/);await snap('06-v1-after-reload');await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);

@@ -13,7 +13,7 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   const confirm=page.locator('[data-action=menu-new-confirm]');if(await confirm.count())await confirm.click();
   await page.waitForSelector('#character-creator.on',{timeout:180000});await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]')?.disabled,null,{timeout:180000});
   await page.locator('[data-cc=confirm]').click();await page.waitForFunction(()=>mode==='pod-waking',null,{timeout:60000});
-  await page.locator('[data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking'&&walkingLocation.area==='interior');
+  await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking'&&walkingLocation.area==='interior');
   for(let trip=0;trip<Number(process.env.TRIPS||2);trip++){
    // Leave through the inner door and allow the normal automatic exit transition to finish.
    await page.evaluate(()=>{const [x,z]=VoidNeoChinatown.toWorld(0,27.6);Object.assign(walker,{x,z,yaw:0,vx:0,vz:0});});

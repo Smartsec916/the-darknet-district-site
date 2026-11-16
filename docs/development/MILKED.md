@@ -76,6 +76,8 @@ The interior keeps **NeoChinatown's id and the same world coordinates** (its pla
 
 ## Where it is (world metres, x east, z north)
 
+> **16 Nov 2026 (build `2026-11-16-fixes-1`): finding it.** David: "I couldn't get to Milked." Nothing blocked the way (a test now walks the collision from the District's door to both of Milked's doors), but nothing on Main Street said what was down the side street. There is now a blade sign at the side street's corner, read from both directions along Main Street, and a wall sign on the corner building facing across the road: the existing MILKED logo and an arrow, no new wording (`milked-build.js`, after the lanterns). A taxi can be called to the "Milked corner" stop from any TAXI post or with G.
+
 | Piece | Rectangle `[x0, x1, z0, z1]` | Notes |
 |---|---|---|
 | Building `FOOTPRINT` | `[78, 98, -90, -74]` | 20 m wide, 16 m deep. Front wall z -74, back wall z -90. Unchanged. |

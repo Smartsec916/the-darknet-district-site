@@ -100,7 +100,7 @@ const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',shots=process.env.
  await page.reload();await page.waitForFunction(()=>window.VoidStartup?.started);
  await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');const c2=page.locator('[data-action=menu-new-confirm]');if(await c2.count())await c2.click();
  await page.waitForSelector('#character-creator.on');await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled);
- await page.locator('[data-cc=confirm]').click();await page.waitForFunction(()=>mode==='pod-waking'&&walker&&VoidAssets.pending===0);await page.locator('#pod-wake [data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking');
+ await page.locator('[data-cc=confirm]').click();await page.waitForFunction(()=>mode==='pod-waking'&&walker&&VoidAssets.pending===0);await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking');
  // stand in the open hallway, looking down it, so characters placed in front of the player are in plain view (at the pod exit the point in front is inside the pod wall)
  await page.evaluate(()=>{const w=VoidNeoChinatown.toWorld(0,40);Object.assign(walker,{x:w.x??w[0],z:w.z??w[1],yaw:Math.PI,pitch:0});});await page.waitForTimeout(5000);
  const cost=await page.evaluate(async()=>{

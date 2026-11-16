@@ -102,6 +102,8 @@
   prev=down;}
  const hudUpdate=update;update=function(dt){pollPad();hudUpdate(dt);};
  // Keep an open section current (credits, tracking, a taxi on its way).
- setInterval(()=>{if(panel&&(tab==='taxi'||tab==='inventory'))render();},1000);
- globalThis.VoidHUD={open,close,toggle,get isOpen(){return !!panel;},get tab(){return tab;},render};
+ // Not while a button is being pressed: redrawing between the press and the release replaced the button and lost the click (about one click in ten on the taxi list).
+ let pressing=false;addEventListener('pointerdown',()=>{pressing=true;},true);for(const t of ['pointerup','pointercancel'])addEventListener(t,()=>{setTimeout(()=>{pressing=false;},0);},true);
+ setInterval(()=>{if(panel&&!pressing&&(tab==='taxi'||tab==='inventory'))render();},1000);
+ globalThis.VoidHUD={open,close,toggle,get isOpen(){return !!panel;},get tab(){return tab;},get returnMode(){return returnMode;},render};
 })();

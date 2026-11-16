@@ -18,6 +18,17 @@ test('every item lies inside a display case, on the counter, clear of Admin and 
  for(const [a,b] of R.CASES){assert.ok(a>=C.x0&&b<=C.x1&&b>a);}
  assert.deepEqual(R.counterItems(true),items,'the same every time');
 });
+test('nothing in a display case stands through its glass: every item clears the top pane on the tier it lies on, in both its forms',()=>{
+ const src=read('void-runner/district-rooms.js'),H=Number(/const H=(\.\d+);/.exec(src)[1]);assert.ok(src.includes("box('shop-case-pane',[w-.03,.008,d-.03],[xc,top+.036+H,zc]"),'the top pane is where the rule expects it');
+ assert.ok(Math.abs(R.CASE_CEILING-(.036+H-.004))<1e-9,'the ceiling is the underside of the top pane');
+ for(const kind of Object.keys(R.FOOT))assert.ok(R.TALL[kind]>0,kind+' has a height');
+ for(const [name,p] of Object.entries(R.PROPS))if(p.fit[0]==='y'&&R.TALL[name])assert.ok(R.TALL[name]>=p.fit[1],'the modelled '+name+' is no taller than the height the cases allow for');
+ for(const dense of [true,false])for(const it of R.counterItems(dense)){if(it.kind==='tag')continue;const topOf=it.y-R.COUNTER.top+R.TALL[it.kind]*R.SCALE;
+  assert.ok(topOf<=R.CASE_CEILING-R.CASE_CLEAR+1e-9,it.kind+' on tier '+it.tier+' reaches '+topOf.toFixed(3));
+  const [fw,fd]=R.FOOT[it.kind].map(v=>v*R.SCALE),[a,b]=R.CASES[it.case],zf=R.COUNTER.z0+.1,[f,t]=R.TIERS[it.tier];assert.ok(it.x-fw/2>=a+.02&&it.x+fw/2<=b-.02,it.kind+' is clear of the side panes');assert.ok(it.z-fd/2>=zf+f-.001&&it.z+fd/2<=zf+t+.001,it.kind+' stays on its own tier');}
+ const radios=R.counterItems(true).filter(i=>i.kind==='radio');assert.ok(radios.length>0&&radios.every(i=>i.tier<2),'no radio on the top shelf');
+ assert.ok(R.counterItems(true).some(i=>i.tier===2),'the top shelf still carries the short goods');
+});
 test('each hallway machine is stocked from the pod vending list under its own label',()=>{
  const src=read('void-runner/neochinatown.js'),all=JSON.parse(/const POD_VENDING=(\[\[.*?\]\])\.map/s.exec(src)[1]).map(d=>({name:d[0],category:d[1],price:d[2],kind:d[3]}));
  assert.deepEqual(R.MACHINES.map(m=>m.label),['DRINKS','DISPENSARY','NEUROHACKERS']);for(const m of R.MACHINES)assert.ok(src.includes("'"+m.label+"'"),'the label is the game\'s own');

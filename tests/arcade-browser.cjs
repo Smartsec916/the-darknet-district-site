@@ -9,7 +9,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');cons
  await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);
  await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');const c=page.locator('[data-action=menu-new-confirm]');if(await c.count())await c.click();
  await page.waitForSelector('#character-creator.on');await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled);await page.locator('[data-cc=confirm]').click();
- await page.waitForFunction(()=>mode==='pod-waking'&&walker&&VoidAssets.pending===0);await page.locator('#pod-wake [data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking');
+ await page.waitForFunction(()=>mode==='pod-waking'&&walker&&VoidAssets.pending===0);await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking');
  const info=await page.evaluate(()=>({cabs:VoidNeoChinatown.arcade.length,playable:VoidNeoChinatown.arcade.filter(c=>c.playable).map(c=>c.game),screens:VoidBabylon.scene.textures.filter(t=>/ncz-arcade-screen-/.test(t.name)).length,carpet:!!VoidBabylon.scene.getMeshByName('arcade-carpet')}));
  assert.equal(info.cabs,5,'a small room: about five games');assert.deepEqual(info.playable,['blackout-protocol','corporate-zombies','underground-overdrive']);assert.equal(info.screens,5,'one screen picture per game');assert(info.carpet);
  // walk up to the playable cabinet: the prompt is for that game

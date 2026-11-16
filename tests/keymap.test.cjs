@@ -11,7 +11,7 @@ test('the toggle hint says exactly what to press, and follows the player\'s bind
  assert.equal(K.toggleHint({keymap:'KeyK'}),'To hide the KeyMap Press K');assert.equal(K.toggleHint(),'To hide the KeyMap Press K');assert.equal(K.toggleHint({keymap:'KeyJ'}),'To hide the KeyMap Press J');
 });
 test('every fixed on-foot key listed is really handled by the source file named for it, and the bindable actions really exist in input.js',()=>{
- for(const f of K.FIXED_WALKING)for(const code of f.codes)assert.ok(src(f.src).includes("'"+code+"'")||src(f.src).includes('"'+code+'"')||src(f.src).includes(code+':'),code+' ('+f.label+') is not handled in '+f.src);
+ for(const f of [...K.FIXED_WALKING,...K.SITUATIONAL,...K.POD])for(const code of f.codes)assert.ok(src(f.src).includes("'"+code+"'")||src(f.src).includes('"'+code+'"')||src(f.src).includes(code+':'),code+' ('+f.label+') is not handled in '+f.src);
  const I=loadInput();for(const id of Object.keys(K.WALKING_BOUND))assert.ok(I.actions[id],id);for(const id of Object.keys(K.FLIGHT_LABEL))assert.ok(I.actions[id],id+' exists');
  for(const id of Object.keys(I.actions))assert.ok(K.FLIGHT_LABEL[id],'flight KeyMap knows the action '+id+' (a new action must be added to the KeyMap)');
  assert.deepEqual(K.DEFAULTS,I.defaults,'the KeyMap defaults mirror input.js');
@@ -19,7 +19,7 @@ test('every fixed on-foot key listed is really handled by the source file named 
  assert.match(src('mouse-control.js')+src('prologue-integration.js'),/e\.button===2/,'right-click aim exists');
 });
 test('on foot: only keys with an action are drawn, in their real relative positions, with the action; no conflicts by default',()=>{
- const p=K.place(K.entries('walking',K.DEFAULTS,{chat:false}));assert.deepEqual(p.conflicts,[]);
+ const p=K.place(K.entries('walking',K.DEFAULTS,{chat:false,armed:true}));assert.deepEqual(p.conflicts,[]);
  const key=c=>p.keys.find(k=>k.code===c);
  for(const c of ['KeyW','KeyA','KeyS','KeyD','ShiftLeft','Space','KeyE','KeyR','KeyI','Digit1','KeyL','KeyK','KeyP','Escape'])assert.ok(key(c),c);
  assert.equal(key('KeyK').label,'KeyMap');assert.equal(key('KeyL').label,'V1 device');assert.equal(key('KeyW').label,'Forward');
@@ -27,6 +27,31 @@ test('on foot: only keys with an action are drawn, in their real relative positi
  const x=(a,b)=>key(a).x-key(b).x;assert.ok(Math.abs(x('KeyD','KeyA')-2)<1e-9,'A and D are two keys apart, like a real keyboard');assert.ok(Math.abs(x('KeyS','KeyA')-1)<1e-9);
  assert.equal(key('KeyW').row+1,key('KeyA').row,'W is a row above A');assert.ok(key('Space').w>5,'the space bar is wide');
  assert.ok(K.place(K.entries('walking',K.DEFAULTS,{chat:true})).keys.some(k=>k.code==='Enter'&&k.label==='Messages'));
+});
+test('keys that only work in a situation are drawn only then: weapon keys, the rifle, trade, voice, and F with the camera raised',()=>{
+ const has=(ctx,o,code,label)=>K.place(K.entries(ctx,K.DEFAULTS,o)).keys.some(k=>k.code===code&&(!label||k.label===label));
+ assert.ok(has('walking',{},'KeyB','Camera'),'B raises the camera for everyone on foot');
+ for(const c of ['KeyR','Digit1','KeyH','Digit2'])assert.ok(!has('walking',{},c),c+' is not drawn for a player with no weapon');
+ assert.ok(has('walking',{armed:true},'KeyR','Reload')&&has('walking',{armed:true},'Digit1','Draw / holster')&&!has('walking',{armed:true},'Digit2'),'a pistol owner sees reload and draw, not the rifle key');
+ assert.ok(has('walking',{armed:true,rifle:true},'Digit2','Rifle'));
+ assert.ok(!has('walking',{},'KeyT')&&has('walking',{trade:true},'KeyT','Trade')&&has('walking',{trade:true},'KeyY','Accept trade')&&has('walking',{trade:true},'KeyN','Decline trade'));
+ assert.ok(!has('walking',{},'KeyV')&&has('walking',{voiceKey:'KeyV'},'KeyV','Talk (hold)')&&has('walking',{voiceKey:'KeyZ'},'KeyZ','Talk (hold)'),'the talk key is the one the player chose');
+ assert.ok(!has('walking',{},'KeyF'),'F does nothing on foot');assert.ok(has('camera',{},'KeyF','Follow person')&&has('camera',{},'KeyB','Camera away')&&has('camera',{},'KeyW','Forward'));
+ for(const o of [{},{armed:true,rifle:true,chat:true,trade:true,voiceKey:'KeyV'}])for(const ctx of ['walking','camera'])assert.deepEqual(K.place(K.entries(ctx,K.DEFAULTS,o)).conflicts,[],ctx+' has no key with two jobs');
+});
+test('the Sleeping Pod tab lists the pod\'s own keys and nothing else',()=>{
+ const p=K.place(K.entries('pod',K.DEFAULTS,{armed:true,chat:true}));assert.deepEqual(p.conflicts,[]);
+ assert.deepEqual(p.keys.map(k=>k.code+':'+k.label).sort(),['ArrowDown:Look','ArrowLeft:Look','ArrowRight:Look','ArrowUp:Look','KeyE:Exit pod','KeyM:Music & lights','KeyQ:Look at controls','KeyV:Vending']);
+ const w=fs.readFileSync(path.join(__dirname,'..','void-runner','world-integration.js'),'utf8');assert.match(w,/KeyE:'exit',KeyM:'music',KeyV:'vend',KeyQ:'look'/,'the pod really handles those four keys');
+ assert.ok(!/data-pod=/.test(w),'the strip\'s buttons are gone (David, 16 Nov 2026)');
+});
+test('the mouse map: each part says what it does in the context, and a part that does nothing has no label',()=>{
+ assert.deepEqual(K.mouse('camera'),{move:'Look around',left:'Take a photo',right:null,wheel:'Zoom in / out'});
+ assert.deepEqual(K.mouse('flight'),{move:'Aim',left:'Fire (hold)',right:null,wheel:null});
+ const un=K.mouse('walking',{}),ar=K.mouse('walking',{armed:true});assert.equal(un.right,null);assert.equal(un.wheel,null);assert.match(un.left,/hold the mouse/);assert.equal(ar.right,'Aim');assert.equal(ar.wheel,'Change weapon');assert.match(ar.left,/^Fire/);
+ const pod=K.mouse('pod');assert.match(pod.left,/screen or sign/);assert.equal(pod.wheel,null);assert.equal(pod.right,null);
+ assert.match(src('device-camera.js'),/addEventListener\('wheel',onWheel/);assert.match(src('device-camera.js'),/addEventListener\('mousedown',onShot/);assert.match(src('mouse-control.js'),/addEventListener\('wheel'/);
+ assert.deepEqual(K.CONTEXTS.map(c=>c[0]),['walking','camera','pod','flight']);
 });
 test('flight is its own layout; arrows and right Shift appear only while the action is on its default key',()=>{
  const f=K.place(K.entries('flight',K.DEFAULTS));const c=n=>f.keys.find(k=>k.code===n);
