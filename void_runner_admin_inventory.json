@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "86e6f70bc8bd22f4",
+  "revision": "0349adf1dcc2a720",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12096,19 +12096,19 @@
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 891,
+      "line": 900,
       "text": "rooms.every(dt=>{if(!ctrl||gone)return;const now=typeof speech!=='undefined'&&!!speech&&speech.lines?.[speech.index]?.who==='Bartender';if(now!==talking){talking=now;ctrl.play(now?'talk':'idle');next=8+Math.random()*8;return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1055,
+      "line": 1064,
       "text": "const podPick=(x,y)=>{   // (x, y) is where the pointer is in the window. The game's picture is drawn smaller than the window and stretched whenever the quality setting says so, so the point is first brought to the picture's own size: without this a click landed beside what was drawn.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1176,
+      "line": 1185,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -13937,7 +13937,7 @@
     "void-runner/ncz-nightclub.js": "09c1373360df509732ccb609f0e879d615551e568cbaf09e278af8247b97e6fb",
     "void-runner/ncz-nightlife.js": "3750630f293c5f32c9555335c9153ae02913e89d5ac3fbf3c5d69d02342d0353",
     "void-runner/ncz-quarters.js": "2f21dbe9d1c243d5be8975f4c774513ee9650bf49f4bc42a1860b8c162f1a692",
-    "void-runner/neochinatown.js": "12290e30278d33f6b43f98f4aade30aa03d7bdf819b038aee2b7973918692149",
+    "void-runner/neochinatown.js": "1d7f74f28c79d783f781982a9c5a44a925af96008288ccd7ff1299ad4cf66158",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",

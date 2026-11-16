@@ -57,3 +57,13 @@ test('a taxi can be called from every CALL A TAXI prompt, including the one by t
  // and from the door itself, and from the far end of the alley
  for(const x of [126.9,135]){const s=C.fresh();s.location='earth';s.credits=500;const res=R.hail(R.createTraffic(2,4127,'oldtown'),s,{x,z:-58.5,riding:false},'milked',{onFoot:true,area:'street',player:[x,-58.5],quarter:'oldtown'});assert.equal(res.ok,true,'x '+x+': '+res.reason);}
 });
+test('the body of every plot that faces a street is kept as a building, not thrown away as street detail (the cause of "gaps in the buildings")',()=>{
+ const src=read('neochinatown.js'),m=/roofPiece=\/\^\(([a-z|-]+)\)\$\//.exec(src);assert.ok(m,'the list of building-level pieces');const kept=m[1].split('|');
+ assert.ok(kept.includes('old-building'),'the plot bodies are on it');assert.match(src,/CreateBox\('old-building'/,'and that is still the name oldBox gives them');
+ // what the old rule did: count the street-facing plots of each quarter whose middle is further than the street-detail margin from the quarter (their bodies were dropped)
+ const blocks=N.layout('all').solids.filter(s=>/^city-block-/.test(s.id)),open=[...Object.values(N.streets),...Object.values(N.footprints)],near=(x0,x1,z0,z1)=>open.some(([a,b,c,d])=>x0<b&&x1>a&&z0<d&&z1>c);
+ for(const q of Q.IDS){let faced=0,lost=0;for(const s of blocks){const [cx,,cz]=s.position,[w,,d]=s.size,X0=cx-w/2,Z0=cz-d/2,nx=Math.ceil(w/12),nz=Math.ceil(d/12),E=.3;
+   for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){const a=X0+w*i/nx,b=X0+w*(i+1)/nx,c=Z0+d*j/nz,e=Z0+d*(j+1)/nz,mx=(a+b)/2,mz=(c+e)/2;
+    if(!(near(a-E,a,c,e)||near(b,b+E,c,e)||near(a,b,c-E,c)||near(a,b,e,e+E))||!Q.keepBuilding(q,mx,mz)||Q.distanceTo(q,mx,mz)>14)continue;faced++;if(!Q.keepDetail(q,mx,mz))lost++;}}
+  assert.ok(faced>10,q+' has street-facing plots');assert.ok(lost>faced/2,q+': the street-detail rule would drop most of them ('+lost+' of '+faced+'), which is why their bodies must not go through it');}
+});

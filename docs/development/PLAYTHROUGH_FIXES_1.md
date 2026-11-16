@@ -83,13 +83,22 @@ What there is now:
 - The cab itself was not restyled; its nodes and its API are as they were (`VoidRoadTaxi` gained `callList`).
 - Not done: a cab standing at each stop. The cabs of a quarter drive a circuit; one comes when called.
 
+## 6. "Much of NeoChinaTown has gaps in the buildings"
+
+Done the way David set out: a repeatable check, one gap first, shown to fail before and pass after, then everywhere. Full record: [`NCZ_GAP_CHECK.md`](NCZ_GAP_CHECK.md).
+
+- **What it was.** When the city was cut into quarters, the body of every building that faces a street was thrown away by mistake (it was judged by the rule for street furniture, not the rule for buildings). Roofs, windows, signs and the 3 m shopfront panels were kept. So above the shopfronts, and through a 1.5 m opening every 7 m, the far city showed through. It was the same on the live site and here: none of these blocks uses a purchased model.
+- **The check** (`tests/ncz-gaps-browser.cjs`): before, 1,819 of 5,880 rays went through an expected wall in Old Town and 1,763 of 2,958 on the Avenue. After: 0 of 14,568 and 0 of 7,386 (on a finer grid).
+- **Also found by it:** seven slits 12 to 24 cm wide between neighbouring buildings. Closed.
+- The Port was not run (it is being rebuilt).
+
 ## Files
 
 | File | What changed |
 |---|---|
 | `void-runner/world-integration.js`, `pod-start.css` | the strip without buttons; `podAct`; Q |
 | `void-runner/district-area.js` | `POD_VIEW.controls` |
-| `void-runner/neochinatown.js` | the pod's screens on the right wall, the back wall, `podPick`; CALL A TAXI prompts in a quarter's layout |
+| `void-runner/neochinatown.js` | the pod's screens on the right wall, the back wall, `podPick`; CALL A TAXI prompts in a quarter's layout; the plot bodies and the slits between plots |
 | `void-runner/keymap.js`, `keymap.css` | tabs, situational keys, the mouse map |
 | `void-runner/district-rooms.js` | `TALL`, `fitsTier` |
 | `void-runner/ncz-quarters.js` | the East Gate's foot lane; each stop's post; `CALL_POINTS`, `callPrompts` |
@@ -97,7 +106,8 @@ What there is now:
 | `void-runner/road-taxi.js`, `road-taxi-rules.js`, `personal-hud.js` | `road-taxi-call`, G, on foot while reading the terminal, 80 m pickup reach |
 | `void-runner/temple.js`, `temple-build.js`, `temple-integration.js` | the walk-back prompt and its sign |
 | `void-runner/milked-build.js` | the two signs on Main Street |
-| `tests/playthrough-fixes.test.cjs` (new) | reachability, CALL A TAXI, the taxi list |
+| `tests/playthrough-fixes.test.cjs` (new) | reachability, CALL A TAXI, the taxi list, the plot bodies |
+| `tools/ncz/gap-check.cjs`, `tests/ncz-gap-check.test.cjs`, `tests/ncz-gaps-browser.cjs` (new) | the building-gap check |
 
 ## Also fixed on the way
 

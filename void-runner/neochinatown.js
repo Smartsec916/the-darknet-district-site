@@ -151,7 +151,7 @@
   const ads=()=>(root.VoidAds?.brands||[]).map(b=>b.id);
   function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance,area='all',quarter=null}){
     // QK: the one quarter this street build makes (null: the whole city, as before the quarters). `free` lifts the test for pieces placed by a parent.
-    const QK=area==='street'?QT.valid(quarter):null;let free=false;const inCore=(x,z)=>x>=-6&&x<=160&&z>=-130&&z<=2,roofPiece=/^(water-tank|dish)$/;
+    const QK=area==='street'?QT.valid(quarter):null;let free=false;const inCore=(x,z)=>x>=-6&&x<=160&&z>=-130&&z<=2,roofPiece=/^(water-tank|dish|old-building)$/;   // pieces kept as far as a BUILDING is kept (45 m), not as street detail (2.6 m). 'old-building' is the body of every plot that faces a street: it was missing from this list, so in every quarter those bodies were thrown away and only their roofs, windows and shopfront strips were left standing (David, 16 Nov 2026: "Much of NeoChinaTown has gaps in the buildings")
     const dropped=(name,p)=>!!QK&&!free&&target===parent&&inCore(p[0],p[2])&&!(roofPiece.test(name)?QT.keepBuilding(QK,p[0],p[2]):QT.keepDetail(QK,p[0],p[2]));
     const B=root.BABYLON,low=quality==='low',owned=[],districtRoot=new root.BABYLON.TransformNode('district-root',scene);let target=parent,disposed=false;districtRoot.parent=parent;districtRoot.position.set(DOOR.x,0,DOOR.z+20);districtRoot.rotation.y=Math.PI;const textures=[],staticMeshes=new Map(),dynamic=[],v=(x,y,z)=>new B.Vector3(x,y,z);
     // A previous build's handles (club, streaming city, booths) belong to a released environment; clear them so nothing reads them.
@@ -370,8 +370,17 @@
     const onWide=(x0,x1,z0,z1)=>[S.avenue,S.main].some(([a,b,c,d])=>x0-.6<b&&x1+.6>a&&z0-.6<d&&z1+.6>c);
     for(const s of cityBlocks){const [cx,,cz]=s.position,[w,,d]=s.size,X0=cx-w/2,Z0=cz-d/2,nx=Math.ceil(w/12),nz=Math.ceil(d/12),I=.12,E=.3;
      for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){let x0=X0+w*i/nx,x1=X0+w*(i+1)/nx,z0=Z0+d*j/nz,z1=Z0+d*(j+1)/nz;const faces=[];
-      const [a,b,c,e]=[x0,x1,z0,z1];if(openNear(a-E,a,c,e)){x0+=I;faces.push('w');}if(openNear(b,b+E,c,e)){x1-=I;faces.push('e');}if(openNear(a,b,c-E,c)){z0+=I;faces.push('s');}if(openNear(a,b,e,e+E)){z1-=I;faces.push('n');}
-      const wide=onWide(a,b,c,e);discard=upgradedAt((a+b)/2,(c+e)/2);lowrise(x0,x1,z0,z1,wide?18+rand()*12:9+rand()*8,i+j*2+s.id.length,faces,wide?7.4:4.6);}}
+      // A side is set back only where open ground really runs along it (`along`: the same test with the side's two ends left out). A street that merely touches a corner
+      // still marks the side as a face, as it always did (so the seeded sequence, and with it every sign and window, stays where it was), but no longer pulls the wall in:
+      // two neighbouring plots each pulled in 0.12 m left a 0.24 m slit between them, open from the street to whatever was behind (found by the gap check, 16 Nov 2026).
+      const [a,b,c,e]=[x0,x1,z0,z1],sx=Math.min(E,(b-a)/3),sz=Math.min(E,(e-c)/3);if(openNear(a-E,a,c,e)){if(openNear(a-E,a,c+sz,e-sz))x0+=I;faces.push('w');}if(openNear(b,b+E,c,e)){if(openNear(b,b+E,c+sz,e-sz))x1-=I;faces.push('e');}if(openNear(a,b,c-E,c)){if(openNear(a+sx,b-sx,c-E,c))z0+=I;faces.push('s');}if(openNear(a,b,e,e+E)){if(openNear(a+sx,b-sx,e,e+E))z1-=I;faces.push('n');}
+      const wide=onWide(a,b,c,e);discard=upgradedAt((a+b)/2,(c+e)/2);const ph=wide?18+rand()*12:9+rand()*8,pk=i+j*2+s.id.length;lowrise(x0,x1,z0,z1,ph,pk,faces,wide?7.4:4.6);
+      // Where a side was set back but open ground runs along only PART of it (the rest is against a neighbouring plot), the set-back strip is filled over that rest,
+      // so no 0.12 m slit is left between the two buildings. Same material and height as the plot; no random numbers are drawn.
+      {const rest=(lo,hi,alongX,s0,s1)=>{let parts=[[lo,hi]];for(const [oa,ob,oc,od] of [...Object.values(S),...Object.values(footprints)]){const [l0,l1,f0,f1]=alongX?[oa,ob,oc,od]:[oc,od,oa,ob];if(!(s0<f1&&s1>f0))continue;parts=parts.flatMap(([p0,p1])=>l1<=p0||l0>=p1?[[p0,p1]]:[[p0,Math.min(p1,l0)],[Math.max(p0,l1),p1]]).filter(([u,v])=>v-u>.02);}return parts;},
+        m=old[pk%old.length],t=m.metadata.tile,strip=(fx0,fx1,fz0,fz1)=>{const w=fx1-fx0,d=fz1-fz0,side=q=>new B.Vector4(0,0,q/t,ph/t),cap=new B.Vector4(0,0,.01,.01);add(B.MeshBuilder.CreateBox('old-building',{width:w,height:ph,depth:d,faceUV:[side(w),side(w),side(d),side(d),cap,cap],wrap:true},scene),m,[(fx0+fx1)/2,ph/2,(fz0+fz1)/2]);};
+       if(x0>a)for(const [p0,p1] of rest(c,e,false,a-E,a))strip(a,x0,p0,p1);if(x1<b)for(const [p0,p1] of rest(c,e,false,b,b+E))strip(x1,b,p0,p1);
+       if(z0>c)for(const [p0,p1] of rest(a,b,true,c-E,c))strip(p0,p1,c,z0);if(z1<e)for(const [p0,p1] of rest(a,b,true,e,e+E))strip(p0,p1,z1,e);}}}
     discard=false;
     // The outer ring: older mid-rise blocks all round the city's edge (cityBox), facing inward.
     {const [X0,X1,Z0,Z1]=cityBox,ring=[[X0-24,X1+24,Z1,Z1+18,'s'],[X0-24,X1+24,Z0-18,Z0,'n'],[X0-24,X0,Z0,Z1,'e'],[X1,X1+24,Z0,Z1,'w']];
