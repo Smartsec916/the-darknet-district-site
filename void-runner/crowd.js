@@ -84,13 +84,15 @@
  function pick(location,id,clip=clipFor(id)){const cast=castFor(location,id);if(!cast)return null;const named=people()?.lookFor?.(id);if(named&&clips[named]?.includes(clip))return named;   /* a named District resident keeps one face (district-people.js) */const key=cast===casts.district?'district':location,n=dealt.get(key)||0;dealt.set(key,n+1);for(let i=0;i<cast.length;i++){const look=cast[(n+i)%cast.length];if(clips[look].includes(clip))return look;}return cast[n%cast.length];}
 
  // Browser side: one controller per figure, playing a clip from its own cloned animation groups.
- const groups=new Set(),controllers=new Set();
+ const groups=new Set(),controllers=new Set();let made=0;
  const ctrls=new WeakMap();   // the animation controller of each figure, for scripts that move a figure the scene already placed (district-life.js)
  function animate(node,look,clip){const made=animate_(node,look,clip);if(made)ctrls.set(node,made);return made;}
  function animate_(node,look,clip){
   const list=node.metadata?.animationGroups||[];list.forEach(g=>groups.add(g));
   const bones={};for(const t of node.getDescendants(false))for(const b of ['LeftUpLeg','RightUpLeg','LeftLeg','RightLeg','LeftArm','RightArm'])if(t.name.endsWith('mixamorig:'+b)&&t.rotationQuaternion)bones[b]={node:t,rest:t.rotationQuaternion.clone()};
-  const speed=.9+(hash(node.name)%20)/100;let current=null,walking=false,active=true,disposed=false;
+  const speed=.9+(hash(node.name)%20)/100;let current=null,walking=false,active=true,culled=false,held=false,heldAt=0,heldFor=0,heldN=0,disposed=false;
+  // A figure animates only while its owner wants it to (setActive) AND it is not hidden behind a building or out of view (setCulled, street-sight.js).
+  const live=()=>active&&!culled;
   // Clips cross-fade instead of snapping.
   for(const g of list){g.enableBlending=true;g.blendingSpeed=.06;}
   const groupFor=name=>list.find(g=>g.name===name||g.name.endsWith('-'+name))||list.find(g=>g.name.replace(/\.\d{3}$/,'').endsWith('-'+name));   /* Blender names a second clip of the same name walk.001 (Dax's walk): without this she slid along in her idle */
@@ -101,7 +103,7 @@
    if(disposed)return;name=clipIn(look,name);const next=groupFor(name)||list[0];if(!next)return;
    if(current===next&&!walking&&!once)return;walking=false;once=null;
    for(const g of list)if(g!==next)g.stop();
-   next.start(true,speed,next.from,next.to);next.goToFrame(next.from+(next.to-next.from)*((hash(node.name+name)%100)/100));current=next;if(!active)next.pause();
+   next.start(true,speed,next.from,next.to);next.goToFrame(next.from+(next.to-next.from)*((hash(node.name+name)%100)/100));current=next;held=false;if(!live())next.pause();
   }
   // A one-shot clip (sitting down, standing up, reaching), then `after` (a clip name) loops. Returns its length in
   // seconds, or 0 if the figure lacks it (the caller then just switches clips).
@@ -110,9 +112,9 @@
    if(disposed)return 0;
    const g=clipIn(look,name)===name?groupFor(name):null;if(!g){if(after)play(after);return 0;}
    // Claim the figure first: stopping the previous one-shot fires its end handler, which must not start another clip.
-   walking=false;current=g;once=g;for(const o of list)if(o!==g)o.stop();
+   walking=false;current=g;once=g;held=false;for(const o of list)if(o!==g)o.stop();
    g.start(false,1,g.from,g.to);g.onAnimationGroupEndObservable.addOnce(()=>{if(!disposed&&!node.isDisposed?.()&&once===g){once=null;if(after)play(after);}});
-   if(!active)g.pause();return (g.to-g.from)/(g.animatables[0]?.animation?.framePerSecond||g.targetedAnimations[0]?.animation.framePerSecond||15);
+   if(!live())g.pause();return (g.to-g.from)/(g.animatables[0]?.animation?.framePerSecond||g.targetedAnimations[0]?.animation.framePerSecond||15);
   }
   // Walking plays the Quaternius walk loop (CC0). A look without it holds the idle clip's first pose (arms down)
   // and swings its legs and arms from there.
@@ -120,21 +122,31 @@
    if(clipIn(look,'walk')==='walk'){play('walk');return;}
    const B=root.BABYLON;
    if(!walking){const idle=list.find(g=>g.name==='idle'||g.name.endsWith('-idle'))||list[0];for(const g of list)if(g!==idle)g.stop();
-    if(idle){idle.start(false,1,idle.from,idle.to);idle.goToFrame(idle.from);idle.pause();}current=null;walking=true;
+    if(idle){idle.start(false,1,idle.from,idle.to);idle.goToFrame(idle.from);idle.pause();}current=null;walking=true;held=false;
     for(const b of Object.values(bones))b.base=b.node.rotationQuaternion.clone();}
    const s=Math.sin(time*5.2),bend=x=>Math.max(0,x)*.55;
    const swing=(b,angle)=>{const k=bones[b];if(k?.base)k.node.rotationQuaternion.copyFrom(k.base.multiply(B.Quaternion.RotationAxis(B.Axis.X,angle)));};
    swing('LeftUpLeg',s*.36);swing('RightUpLeg',-s*.36);swing('LeftLeg',bend(-Math.sin(time*5.2+1.3)));swing('RightLeg',bend(Math.sin(time*5.2+1.3)));swing('LeftArm',-s*.18);swing('RightArm',s*.18);
   }
-  function setActive(value){if(disposed||active===value)return;active=value;
-   if(!active){for(const g of list)g.pause();}else if(current)current.play(current.loopAnimation);
+  function gate(){held=false;if(!live()){for(const g of list)g.pause();}else if(current)current.play(current.loopAnimation);}
+  function setActive(value){if(disposed||active===value)return;const was=live();active=value;if(was!==live())gate();}
+  function setCulled(value){value=!!value;if(disposed||culled===value)return;const was=live();culled=value;if(was!==live())gate();}
+  // Far-away figures (street-sight.js): lod(n, seconds since the last call) once a frame. With n>1 the playing loop is held and moved on by hand every nth frame,
+  // at the same speed, so the figure costs 1/n of the animation work. One-off moves, the hand-swung walk and paused figures are left alone; lod(1) hands the clip back.
+  function lod(n,dt){
+   if(disposed)return;
+   if(!(n>1)||!live()||!current||once||walking){if(held){held=false;if(live()&&current)current.play(current.loopAnimation);}return;}
+   if(!held){const a=current.animatables?.[0];if(!a)return;held=true;heldAt=a.masterFrame;heldFor=0;heldN=serial%n;current.pause();}
+   heldFor+=dt;if(++heldN%n)return;
+   const span=current.to-current.from;if(!(span>0))return;const fps=current.targetedAnimations[0]?.animation.framePerSecond||30;
+   heldAt=current.from+(((heldAt-current.from+heldFor*fps*speed)%span)+span)%span;heldFor=0;current.goToFrame(heldAt);
   }
   function dispose(){if(disposed)return;disposed=true;once=null;for(const g of list){groups.delete(g);g.stop();}controllers.delete(api);}
-  const api={play,playOnce,walk,look,setActive,dispose,has:name=>clipIn(look,name)===name,get busy(){return !!once;},get active(){return active;}};
+  const serial=made++,api={play,playOnce,walk,look,node,setActive,setCulled,lod,dispose,has:name=>clipIn(look,name)===name,get busy(){return !!once;},get active(){return active;},get culled(){return culled;},get held(){return held;}};
   controllers.add(api);node.onDisposeObservable?.addOnce(dispose);play(clip);return api;
  }
  function release(){for(const c of [...controllers])c.dispose();groups.clear();}
 
- const api={casts,staff,clips,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,controller:node=>ctrls.get(node)||null,release,variety,varietyFor};
+ const api={casts,staff,clips,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,controller:node=>ctrls.get(node)||null,figures:()=>controllers,release,variety,varietyFor};
  if(typeof module!=='undefined')module.exports=api;else root.VoidCrowd=api;
 })(globalThis);
